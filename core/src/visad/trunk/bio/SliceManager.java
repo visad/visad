@@ -437,47 +437,7 @@ public class SliceManager
       int slice = (int) value_control2.getValue();
       if (this.slice != slice) bio.vert.setValue(slice + 1);
     }
-    else {
-      // update color controls to match current color table
-      int index = -1;
-      ScalarMap[] maps = bio.display3 == null ? rmaps2 : rmaps3;
-      for (int i=0; i<maps.length; i++) {
-        if (c == maps[i].getControl()) {
-          index = i;
-          break;
-        }
-      }
-      float[][] table = widgets[index].getTable();
-      try {
-        BaseColorControl cc2 = (BaseColorControl) rmaps2[index].getControl();
-        float[][] t2 = null;
-        if (cc2 != c) {
-          t2 = BioVisAD.adjustColorTable(table, null, false);
-          if (!BioVisAD.tablesEqual(t2, cc2.getTable())) cc2.setTable(t2);
-          cc2.setTable(t2);
-        }
-        if (bio.display3 != null) {
-          BaseColorControl cc3 = (BaseColorControl) rmaps3[index].getControl();
-          if (cc3 != c) {
-            float[][] t3 = cc3.getTable();
-            t3 = BioVisAD.adjustColorTable(table, t3[3], true);
-            if (!BioVisAD.tablesEqual(t3, cc3.getTable())) cc3.setTable(t3);
-            cc3.setTable(t3);
-          }
-        }
-        if (hasThumbs && bio.previous != null && bio.next != null) {
-          if (t2 == null) t2 = BioVisAD.adjustColorTable(table, null, false);
-          for (int j=0; j<rmapsP.length; j++) {
-            BaseColorControl ccP = (BaseColorControl)
-              rmapsP[j][index].getControl();
-            if (!BioVisAD.tablesEqual(t2, ccP.getTable())) ccP.setTable(t2);
-            ccP.setTable(t2);
-          }
-        }
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
-    }
+    else syncColors();
   }
 
   /** DisplayListener method used for mouse activity in 3-D display. */
@@ -534,6 +494,34 @@ public class SliceManager
     }
     finally {
       bio.setWaitCursor(false);
+    }
+  }
+
+  /** Sets the color controls to match the current widget color tables. */
+  void syncColors() {
+    for (int i=0; i<widgets.length; i++) {
+      float[][] table = widgets[i].getTable();
+      try {
+        BaseColorControl cc2 = (BaseColorControl) rmaps2[i].getControl();
+        float[][] t2 = BioVisAD.adjustColorTable(table, null, false);
+        if (!BioVisAD.tablesEqual(t2, cc2.getTable())) cc2.setTable(t2);
+        if (bio.display3 != null) {
+          BaseColorControl cc3 = (BaseColorControl) rmaps3[i].getControl();
+          float[][] t3 = cc3.getTable();
+          t3 = BioVisAD.adjustColorTable(table, t3[3], true);
+          if (!BioVisAD.tablesEqual(t3, cc3.getTable())) cc3.setTable(t3);
+        }
+        if (hasThumbs && bio.previous != null && bio.next != null) {
+          if (t2 == null) t2 = BioVisAD.adjustColorTable(table, null, false);
+          for (int j=0; j<rmapsP.length; j++) {
+            BaseColorControl ccP = (BaseColorControl)
+              rmapsP[j][i].getControl();
+            if (!BioVisAD.tablesEqual(t2, ccP.getTable())) ccP.setTable(t2);
+          }
+        }
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
     }
   }
 
@@ -1037,7 +1025,7 @@ public class SliceManager
     bio.setAspect(res_x, res_y, Double.NaN);
 
     // set up color table characteristics
-    bio.toolColor.doColorTable();
+    //bio.toolColor.doColorTable();
 
     // set up display listener for 3-D display
     if (bio.display3 != null) bio.display3.addDisplayListener(this);
@@ -1149,7 +1137,37 @@ public class SliceManager
   private void updateSliceField() {
     try {
       FieldImpl f = lowres ? (FieldImpl) lowresField.getSample(index) : field;
-      sliceField = (FlatField) f.domainMultiply();
+      try { sliceField = (FlatField) f.domainMultiply(); }
+      catch (FieldException exc) {
+        // images dimensions do not match; resample so that they do
+        GriddedSet set = (GriddedSet) f.getDomainSet();
+        int len = set.getLengths()[0];
+        int res_x = 0;
+        int res_y = 0;
+        for (int i=0; i<len; i++) {
+          FlatField flat = (FlatField) f.getSample(i);
+          GriddedSet flat_set = (GriddedSet) flat.getDomainSet();
+          int[] l = flat_set.getLengths();
+          if (l[0] > res_x) res_x = l[0];
+          if (l[1] > res_y) res_y = l[1];
+        }
+        FieldImpl nf = new FieldImpl((FunctionType) f.getType(), set);
+        for (int i=0; i<len; i++) {
+          FlatField flat = (FlatField) f.getSample(i);
+          GriddedSet flat_set = (GriddedSet) flat.getDomainSet();
+          int[] l = flat_set.getLengths();
+          if (l[0] > res_x) res_x = l[0];
+          if (l[1] > res_y) res_y = l[1];
+        }
+        for (int i=0; i<len; i++) {
+          FlatField flat = (FlatField) f.getSample(i);
+          GriddedSet flat_set = (GriddedSet) flat.getDomainSet();
+          nf.setSample(i, flat.resample(
+            new Integer2DSet(flat_set.getType(), res_x, res_y),
+            Data.WEIGHTED_AVERAGE, Data.NO_ERRORS));
+        }
+        sliceField = (FlatField) nf.domainMultiply();
+      }
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }

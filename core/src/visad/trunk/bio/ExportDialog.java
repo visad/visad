@@ -203,6 +203,8 @@ public class ExportDialog extends JPanel
     dialog = new JDialog(bio, "Save file series", true);
     dialog.getRootPane().setDefaultButton(ok);
     chooser.clearFields();
+    int ndx = picFormat.isSelected() ? 0 : tiffFormat.isSelected() ? 1 : 2;
+    chooser.type.setSelectedIndex(ndx);
 
     int maxSlice = bio.sm.getNumberOfSlices();
     int maxIndex = bio.sm.getNumberOfIndices();

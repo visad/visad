@@ -277,6 +277,8 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     red.addItemListener(this);
     green.addItemListener(this);
     blue.addItemListener(this);
+    doColorTable();
+    bio.sm.syncColors();
   }
 
   /** Enables or disables this tool panel. */
