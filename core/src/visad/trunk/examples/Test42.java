@@ -74,15 +74,21 @@ public class Test42
     FlatField imaget2 = new FlatField(ftype2, imaget1.getDomainSet());
     imaget2.setSamples(vals, false);
 
-    dpys[0].addMap(new ScalarMap(dom0, Display.XAxis));
-    dpys[0].addMap(new ScalarMap(dom1, Display.YAxis));
+    ScalarMap xmap0 = new ScalarMap(dom0, Display.XAxis);
+    dpys[0].addMap(xmap0);
+    ScalarMap ymap0 = new ScalarMap(dom1, Display.YAxis);
+    dpys[0].addMap(ymap0);
     dpys[0].addMap(new ScalarMap(ran, Display.Green));
     dpys[0].addMap(new ConstantMap(0.3, Display.Blue));
     dpys[0].addMap(new ConstantMap(0.3, Display.Red));
     dpys[0].addMap(new ScalarMap(oogle, Display.IsoContour));
 
-    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
-    mode.setTextureEnable(false);
+    xmap0.getAxisScale().setScreenBased(true);
+    ymap0.getAxisScale().setScreenBased(true);
+
+    GraphicsModeControl mode0 = dpys[0].getGraphicsModeControl();
+    mode0.setTextureEnable(false);
+    mode0.setScaleEnable(true);
 
     ConstantMap[] omaps1;
     omaps1 = new ConstantMap[] {new ConstantMap(1.0, Display.Blue),
@@ -97,12 +103,20 @@ public class Test42
     ref_imaget2.setData(imaget2);
     dpys[0].addReference(ref_imaget2, omaps1);
 
-    dpys[1].addMap(new ScalarMap(dom0, Display.XAxis));
-    dpys[1].addMap(new ScalarMap(dom1, Display.YAxis));
+    ScalarMap xmap1 = new ScalarMap(dom0, Display.XAxis);
+    dpys[1].addMap(xmap1);
+    ScalarMap ymap1 = new ScalarMap(dom1, Display.YAxis);
+    dpys[1].addMap(ymap1);
     dpys[1].addMap(new ScalarMap(ran, Display.Green));
     dpys[1].addMap(new ConstantMap(0.3, Display.Blue));
     dpys[1].addMap(new ConstantMap(0.3, Display.Red));
     dpys[1].addMap(new ScalarMap(oogle, Display.IsoContour));
+
+    xmap1.getAxisScale().setScreenBased(false);
+    ymap1.getAxisScale().setScreenBased(false);
+
+    GraphicsModeControl mode1 = dpys[1].getGraphicsModeControl();
+    mode1.setScaleEnable(true);
 
     ConstantMap[] omaps2;
     omaps2 = new ConstantMap[] {new ConstantMap(1.0, Display.Blue),

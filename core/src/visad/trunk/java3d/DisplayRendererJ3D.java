@@ -118,6 +118,9 @@ public abstract class DisplayRendererJ3D
   private Switch scale_switch = null;
   /** children of scale_switch */
   private BranchGroup scale_on = null, scale_off = null;
+  /** Vector of screen based AxisScales */
+  private Vector axis_vector = new Vector();
+
   /** on / off state of cursor in GraphicsModeControl */
 
   /** Vector of DirectManipulationRenderers */
@@ -779,6 +782,59 @@ public abstract class DisplayRendererJ3D
       catch (VisADException e) {
       }
     }
+
+    if (scale_switch.getWhichChild() == 1) {
+      double MUL = 4.0;
+      double XMAX = Math.abs(MUL * position2.x - (MUL - 1.0) * position3.x);
+      double YMAX = Math.abs(MUL * position2.y - (MUL - 1.0) * position3.y);
+      double XMIN = -XMAX;
+      double YMIN = -YMAX;
+
+      TransformGroup trans = getTrans();
+      Transform3D tt = new Transform3D();
+      trans.getTransform(tt);
+      tt.invert();
+      Point3d positionx = new Point3d(XMAX, YMAX, 0.0);
+      Point3d positionn = new Point3d(XMIN, YMIN, 0.0);
+      tt.transform(positionx);
+      tt.transform(positionn);
+
+      double XTMAX = positionx.x;
+      double YTMAX = positionx.y;
+      double XTMIN = positionn.x;
+      double YTMIN = positionn.y;
+
+      Enumeration axes = axis_vector.elements();
+      while (axes.hasMoreElements()) {
+        AxisScale axisScale = (AxisScale) axes.nextElement();
+        try {
+          boolean success =
+            axisScale.makeScreenBasedScale(XMIN, YMIN, XMAX, YMAX,
+                                           XTMIN, YTMIN, XTMAX, YTMAX);
+          if (success) {
+// System.out.println("makeScreenBasedScale success");
+            int axis = axisScale.getAxis();
+            int axis_ordinal = axisScale.getAxisOrdinal();
+            VisADLineArray array = axisScale.getScaleArray();
+            VisADTriangleArray labels = axisScale.getLabelArray();
+            float[] scale_color = axisScale.getColor().getColorComponents(null);
+  
+            // set cursor color, if possible
+            Appearance appearance = new Appearance();
+            ColoringAttributes color = new ColoringAttributes();
+            color.setColor(new Color3f(scale_color));
+            appearance.setColoringAttributes(color);
+            graphics.setAppearance(appearance);
+            graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+            graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(labels));
+          }
+          else {
+//  System.out.println("makeScreenBasedScale fail");
+          }
+        } catch (Exception e) {
+        }
+      }
+    }
   }
 
   /**
@@ -842,11 +898,16 @@ public abstract class DisplayRendererJ3D
    */
   public void setScale(AxisScale axisScale)
          throws VisADException {
-    setScale(axisScale.getAxis(),
-             axisScale.getAxisOrdinal(),
-             axisScale.getScaleArray(),
-             axisScale.getLabelArray(),
-             axisScale.getColor().getColorComponents(null));
+    if (axisScale.getScreenBased()) {
+      axis_vector.addElement(axisScale);
+    }
+    else {
+      setScale(axisScale.getAxis(),
+               axisScale.getAxisOrdinal(),
+               axisScale.getScaleArray(),
+               axisScale.getLabelArray(),
+               axisScale.getColor().getColorComponents(null));
+    }
   }
 
   /**
@@ -948,6 +1009,7 @@ public abstract class DisplayRendererJ3D
         }
       }
     }
+    axis_vector.removeAllElements();
   }
 
   public void setTransform3D(Transform3D t) {

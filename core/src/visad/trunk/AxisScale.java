@@ -53,6 +53,11 @@ public class AxisScale implements java.io.Serializable
   /** identifier for secondary label side of axis*/
   public final static int SECONDARY = 1;
 
+  // WLH 12 July 2001
+  // true indicates axis is stationary relative to screen
+  // rather than graphics coordinates
+  private boolean screenBased = false;
+
   private VisADLineArray scaleArray;
   private VisADTriangleArray labelArray;
   private ScalarMap scalarMap;
@@ -210,6 +215,122 @@ public class AxisScale implements java.io.Serializable
   }
 
   /**
+   * set screenBased mode
+   *   true indicates axis is stationary relative to screen
+  */
+  public void setScreenBased(boolean sb) {
+    DisplayImpl display = scalarMap.getDisplay();
+    if (display == null) return;
+    DisplayRenderer displayRenderer = display.getDisplayRenderer();
+    if (displayRenderer == null) return;
+    // screenBased mode only in 2-D mode
+    if (displayRenderer.getMode2D()) {
+      screenBased = sb;
+    }
+    else {
+      screenBased = false;
+    }
+  }
+
+  /**
+   * return screenBased mode
+   * @return  true if axis is stationary relative to screen
+  */
+  public boolean getScreenBased() {
+    return screenBased;
+  }
+
+  /**
+   * Create the scale for screen based.
+   * @return  true if scale was successfully created, otherwise false
+   */
+  public boolean makeScreenBasedScale(double XMIN, double YMIN,
+                                      double XMAX, double YMAX,
+                                      double XTMIN, double YTMIN,
+                                      double XTMAX, double YTMAX)
+         throws VisADException {
+    DisplayImpl display = scalarMap.getDisplay();
+    if (display == null) return false;
+    DisplayRenderer displayRenderer = display.getDisplayRenderer();
+    if (displayRenderer == null) return false;
+    if (axisOrdinal < 0) return false;
+    dataRange = scalarMap.getRange();
+    // boolean twoD = displayRenderer.getMode2D();
+    if (!displayRenderer.getMode2D()) return false;
+    boolean twoD = true;
+
+    ProjectionControl pcontrol = display.getProjectionControl();
+    double[] aspect = pcontrol.getAspectCartesian();
+    double oldMax = 1.0;
+    double oldMin = -1.0;
+    double newMax = 1.0;
+    double newMin = -1.0;
+    if (myAxis == X_AXIS) {
+      oldMax = aspect[0];
+      oldMin = -aspect[0];
+      newMax = XTMAX;
+      newMin = XTMIN;
+    }
+    else if (myAxis == Y_AXIS) {
+      oldMax = aspect[1];
+      oldMin = -aspect[1];
+      newMax = YTMAX;
+      newMin = YTMIN;
+    }
+
+    double mult = (dataRange[1] - dataRange[0]) / (oldMax - oldMin);
+    double d1 = (newMax - oldMin) * mult + dataRange[0];
+    double d0 = (newMin - oldMin) * mult + dataRange[0];
+    double[] dr = {d0, d1};
+
+    double ZMIN = 0.0;
+    double ZMAX = -ZMIN;
+
+    // set scale according to labelSize
+    double SCALE =  labelSize/200.;
+    double OFFSET = 1.05;
+
+    // Add 16-APR-2001 DRM
+    int position = 0;
+    int myPosition = 0;
+    // Snap to the box edge instead of being offset
+    if (snapToBox) {
+      OFFSET = 1.0;
+    } 
+    else
+    {
+      for (Enumeration e = display.getMapVector().elements(); 
+            e.hasMoreElements();)
+      {
+        ScalarMap map = (ScalarMap) e.nextElement();
+        if (map.getDisplayScalar().equals(scalarMap.getDisplayScalar()))
+        {
+          if (getSide() == map.getAxisScale().getSide()) // same side
+          {
+            if (map.equals(scalarMap)) 
+            {
+              myPosition = position;// this is me
+              break;
+            }
+            position++;
+          }
+        }
+      }
+    }
+    /*
+    System.out.println(scalarMap + "is at position " + (myPosition+1) + 
+                       " out of " + (position + 1));
+    */
+    // End Add 16-APR-2001 DRM
+
+    // position of baseline for this scale
+    double line = 4.0 * myPosition * SCALE;  // DRM 17-APR-2001
+
+    return makeScale(twoD, XMIN, YMIN, ZMIN, XMAX, YMAX, ZMAX,
+                     SCALE, OFFSET, line, dr);
+  }
+
+  /**
    * Create the scale.
    * @return  true if scale was successfully created, otherwise false
    */
@@ -232,11 +353,6 @@ public class AxisScale implements java.io.Serializable
     ProjectionControl pcontrol = display.getProjectionControl();
     double[] aspect = pcontrol.getAspectCartesian();
 
-/* WLH 24 Nov 2000
-    double XMIN = -1.0;
-    double YMIN = -1.0;
-    double ZMIN = -1.0;
-*/
     double XMIN = -aspect[0];
     double YMIN = -aspect[1];
     double ZMIN = -aspect[2];
@@ -298,14 +414,15 @@ public class AxisScale implements java.io.Serializable
 
 
     return makeScale(twoD, XMIN, YMIN, ZMIN, XMAX, YMAX, ZMAX,
-                     SCALE, OFFSET, line);
+                     SCALE, OFFSET, line, dataRange);
   }
 
   /** inner logic of makeScale with no references to display, displayRenderer
       or scalarMap, allwoing more flexible placement of scales */
   public boolean makeScale(boolean twoD, double XMIN, double YMIN, double ZMIN,
                            double XMAX, double YMAX, double ZMAX,
-                           double SCALE, double OFFSET, double line)
+                           double SCALE, double OFFSET, double line,
+                           double[] dataRange)
          throws VisADException {
 
 // start new method here
