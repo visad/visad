@@ -551,8 +551,27 @@ public abstract class Set extends DataImpl implements SetIface {
     return s_copy;
   }
 
+  /**
+   * <p>Returns the indexes of the neighboring points for every point
+   * in the set. <code>neighbors.length</code> should be at least
+   * <code>getLength()</code>.  On return, <code>neighbors[i][j]</code>
+   * will be the index of the <code>j </code>-th neighboring point of
+   * point <code>i</code>.  This method will allocate and set the array
+   * <code>neighbors[i]</code> for all <code>i</code>.</p>
+   *
+   * <p>This implementation always throws an {@link UnimplementedException}.</p>
+   *
+   * @param neighbors                The array to contain the indexes of the
+   *                                 neighboring points.
+   * @throws NullPointerException    if the array is <code>null</code>.
+   * @throws ArrayIndexOutOfBoundsException
+   *                                 if <code>neighbors.length < getLength()
+   *                                 </code>.
+   * @throws UnimplementedException  if this method can't yet handle this 
+   *                                 instance.
+   */
   public void getNeighbors( int[][] neighbors )
-              throws VisADException
+              throws UnimplementedException
   {
     throw new UnimplementedException("Set: getNeighbors()");
   }
@@ -563,8 +582,29 @@ public abstract class Set extends DataImpl implements SetIface {
     throw new UnimplementedException("Set: getNeighbors()");
   }
 
+  /**
+   * <p>Returns the indexes of the neighboring points along a manifold
+   * dimesion for every point in the set. Elements <code>[i][0]</code>
+   * and <code>[i][1]</code> of the returned array are the indexes of the
+   * neighboring sample points in the direction of decreasing and increasing
+   * manifold index, respectively, for sample point <code>i</code>.  If a sample
+   * point doesn't have a neighboring point (because it is an exterior point,
+   * for example) then the value of the corresponding index will be -1.</p>
+   *
+   * <p>This implementation always throws an {@link UnimplementedException}.</p>
+   *
+   * @param manifoldIndex           The index of the manifold dimension along
+   *                                which to return the neighboring points.
+   * @throws ArrayIndexOutOfBoundsException
+   *                                if <code>manifoldIndex < 0 || 
+   *                                manifoldIndex >= getManifoldDimension()
+   *                                </code>.
+   * @throws UnimplementedException if this method can't yet handle this
+   *                                instance.
+   * @see #getManifoldDimension()
+   */
   public int[][] getNeighbors( int dimension )
-                 throws VisADException
+                 throws UnimplementedException
   {
     throw new UnimplementedException("Set: getNeighbors()");
   }
