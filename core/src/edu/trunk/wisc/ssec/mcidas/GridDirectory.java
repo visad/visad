@@ -80,6 +80,7 @@ public class GridDirectory
     private String paramName;
     private String gridDescription;
     private String paramUnitName;
+    private int forecastHour;
     private Date referenceTime;
     private Date validTime;
     private Date secondTime = null;
@@ -114,9 +115,10 @@ public class GridDirectory
         int refHMS = dirblock[REFTIME_INDEX];
         referenceTime = 
             new Date(McIDASUtil.mcDayTimeToSecs(refDay, refHMS) * 1000);
+        forecastHour = dirblock[FTIME_INDEX];
         validTime = 
             new Date( (McIDASUtil.mcDayTimeToSecs(refDay,refHMS)+
-                                    (dirblock[FTIME_INDEX] * 3600)) * 1000 );
+                                    (forecastHour * 3600)) * 1000 );
         // parameter values
         paramName = 
             McIDASUtil.intBitsToString(dirblock[PARAM_NAME_INDEX]).trim();
@@ -157,12 +159,6 @@ public class GridDirectory
         navBlock = new int[NAV_BLOCK_LENGTH];
         System.arraycopy(
             dirblock, NAV_BLOCK_INDEX, navBlock, 0, NAV_BLOCK_LENGTH);
-        // make the nav module
-        try {
-            gridNav = new GRIDnav(dirblock);
-        } catch (McIDASException excp) {
-            gridNav = null;
-        }
 
         // get the grid description
         int[] nameBits = new int[GRID_DESCR_LENGTH];
@@ -230,6 +226,14 @@ public class GridDirectory
     }
 
     /**
+     * Get the forecast hour for this parameter if it is a forecast
+     * @return forecast hour
+     */
+    public int getForecastHour() {
+        return forecastHour;
+    }
+
+    /**
      * Get the second time for this parameter if it is a time difference
      * @return second time (null if only one time associated with this)
      */
@@ -253,6 +257,16 @@ public class GridDirectory
      */
     public String getLevelUnitName() {
         return levelUnitName;
+    }
+
+    /**
+     * Get the second vertical level value if one exists.  
+     * @return level  By McIDAS conventions, 1013. == mean sea level,
+     *                0. == tropopause, 1001. == surface.  Otherwise,
+     *                value is what is returned.
+     */
+    public double getSecondLevelValue() {
+        return secondLevelValue;
     }
 
     /**
@@ -292,7 +306,15 @@ public class GridDirectory
      */
     public GRIDnav getNavigation()
     {
-        return gridNav;
+      if (gridNav == null) {
+        // make the nav module
+        try {
+          gridNav = new GRIDnav(this);
+        } catch (McIDASException excp) {
+          gridNav = null;
+        }
+      }
+      return gridNav;
     }
 
     /**

@@ -38,7 +38,7 @@ import edu.wisc.ssec.mcidas.adde.GetAreaGUI;
 /** 
  * AreaFile interface with McIDAS 'area' file format image data.
  * This will allow 'area' format data to be read from disk; the
- * navigation block is made available (see navGVAR for example).
+ * navigation block is made available (see GVARnav for example).
  *
  * This implementation does not do calibration (other than
  * accounting for its presence in the data).  Also, the 'valcode'
