@@ -64,7 +64,10 @@ DEL = del
 
 DOC = javadoc
 DOC_DIR = ..\docs
-DOCFLAGS = -J-Xmx96m -d $(DOC_DIR)
+DOC_MEM = 96m
+DOC_LINKS = -link http://java.sun.com/j2se/1.4/docs/api
+DOCFLAGS = $(DOC_LINKS) -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
+	-doctitle 'VisAD Documentation' $(DOC_EXTRAFLAGS)
 
 JAR_FILES1 = \
 dods\dap\*.java \
