@@ -24,88 +24,107 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-// Heavily adapted from BioRadForm.java
-
 package visad.data.bio;
+
+import java.io.*;
+import java.net.URL;
+import java.util.*;
 
 import visad.*;
 import visad.data.*;
 import visad.data.tiff.BitBuffer;
 import visad.data.tiff.TiffTools;
-import java.io.*;
-import java.net.URL;
-import java.util.*;
 
-/** MetamorphForm is the VisAD data format adapter for Metamorph .stk files. */
-public class MetamorphForm extends Form
-  implements FormFileInformer, FormBlockReader, MetadataReader
+/**
+ * MetamorphForm is the VisAD data format adapter for Metamorph STK files.
+ * @author Eric Kjellman egkjellman@wisc.edu
+ */
+public class MetamorphForm extends Form implements FormBlockReader,
+  FormFileInformer, FormProgressInformer, MetadataReader
 {
 
-  // -- Fields --
+  // -- Constants --
 
-  /** Form instantiation counter. */
-  private static int count = 0;
+  /** Number identifying a TIFF file. */
+  private static final int TIFF_MAGIC_NUMBER = 42;
 
-  /** IFD Tag numbers of important fields */
+  /** Denotes little-endian. */
+  private static final int LITTLE_ENDIAN = 73;
+
+  // IFD Tag numbers of important fields
   private static final int BITS_PER_SAMPLE_FIELD = 258;
   private static final int STRIP_OFFSET_FIELD = 273;
   private static final int METAMORPH_ID = 33629;
-
   private static final int UIC1TAG = 33628;
   private static final int UIC2TAG = 33629;
   private static final int UIC3TAG = 33630;
   private static final int UIC4TAG = 33631;
 
 
-  /** used in ProgressInformer, supposedly */
-  private double percent = 0;
+  // -- Static fields --
 
-  // Private variables
+  /** Form instantiation counter. */
+  private static int formCount = 0;
 
-  // The quantities to be displayed in x- and y-axes
-  private RealType frame, row, column, pixel, red, green, blue;
-  // The function pixel = f(r,c)
-  // as (row,column -> pixel)
-  private FunctionType funcRowColPix, funcRowColRGB;
-  // The (time -> range)
-  private FunctionType funcTimeRange;
+  /** Domain of 2-D image. */
+  private static RealTupleType domainTuple;
 
-  private RealTupleType domainTuple, rgbTuple;
-  private visad.Set pixelSet;
-  private visad.Set timeSet;
-  // The Data class FlatField, which will hold data.
-  private FlatField frameField;
-  // A FieldImpl, which will hold all data.
-  private FieldImpl timeField;
+  /** MathType of a 2-D image with a 1-D range. */
+  private static FunctionType funcRowColPix;
 
-  // contains currently referenced file information.
-  private RandomAccessFile r;
+  /** MathType of a 2-D image with a 3-D range. */
+  private static FunctionType funcRowColRGB;
+
+  static {
+    try {
+      RealType column = RealType.getRealType("ImageElement");
+      RealType row = RealType.getRealType("ImageLine");
+      domainTuple = new RealTupleType(column, row);
+
+      // for grayscale images
+      RealType pixel = RealType.getRealType("intensity");
+      funcRowColPix = new FunctionType(domainTuple, pixel);
+
+      // for color images
+      RealType red = RealType.getRealType("Red");
+      RealType green = RealType.getRealType("Green");
+      RealType blue = RealType.getRealType("Blue");
+      RealType[] rgb = new RealType[] {red, green, blue};
+      RealTupleType rgbPixelData = new RealTupleType(rgb);
+      funcRowColRGB = new FunctionType(domainTuple, rgbPixelData);
+    }
+    catch (VisADException exc) {
+      exc.printStackTrace();
+    }
+  }
+
+
+  // -- Fields --
+
+  /** Filename of current Metamorph STK. */
   private String currentId;
+
+  /** Input stream for current Metamorph STK. */
+  private RandomAccessFile r;
+
+  /** IFD hash for current Metamorph STK. */
   private Hashtable ifdHash;
-  private int dimensions[];
+
+  /** XYZ dimensions of current Metamorph STK. */
+  private int[] dimensions;
+
+  /** Domain set of current Metamorph STK. */
+  private Linear2DSet pixelSet;
+
+  /** Percent complete with current operation. */
+  private double percent;
 
 
   // -- Constructor --
 
   /** Constructs a new Metamorph file form. */
   public MetamorphForm() {
-    super("MetamorphForm" + count++);
-    try {
-      frame = RealType.getRealType("frame");
-      row = RealType.getRealType("row");
-      column = RealType.getRealType("column");
-      red = RealType.getRealType("red");
-      green = RealType.getRealType("green");
-      blue = RealType.getRealType("blue");
-      domainTuple = new RealTupleType(row, column);
-      rgbTuple = new RealTupleType(red, green, blue);
-      pixel = RealType.getRealType("pixel");
-      funcRowColRGB = new FunctionType(domainTuple, rgbTuple);
-      funcRowColPix = new FunctionType(domainTuple, pixel);
-      funcTimeRange = new FunctionType(frame, funcRowColPix);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    super("MetamorphForm" + formCount++);
   }
 
 
@@ -132,23 +151,26 @@ public class MetamorphForm extends Form
 
     // Must be little-endian tiff.
     if (block.length < 3) { return false; }
-    if (block[0] != 73) { return false; } // denotes little-endian
-    if (block[1] != 73) { return false; }
-    if (block[2] != 42) { return false; } // denotes tiff
+    if (block[0] != LITTLE_ENDIAN) { return false; } // denotes little-endian
+    if (block[1] != LITTLE_ENDIAN) { return false; }
+    if (block[2] != TIFF_MAGIC_NUMBER) { return false; } // denotes tiff
     if (block.length < 8) { return true; } // we have no way of verifying
-    int ifdlocation = batoi(new byte[]
-      {block[4], block[5], block[6], block[7]});
+    int ifdlocation = batoi(new byte[] {
+      block[4], block[5], block[6], block[7]
+    });
     if (ifdlocation + 1 > block.length) {
       // we have no way of verifying this is a Metamorph file.
       // It is at least a tiff.
       return true;
-    } else {
+    }
+    else {
       int ifdnumber = batoi(new byte[]
         {block[ifdlocation], block[ifdlocation + 1]});
-      for (int i = 0; i < ifdnumber ; i++) {
+      for (int i = 0; i < ifdnumber; i++) {
         if (ifdlocation + 3 + (i * 12) > block.length) {
           return true;
-        } else {
+        }
+        else {
           int ifdtag = batoi(new byte[] {
             block[ifdlocation + 2 + (i * 12)],
             block[ifdlocation + 3 + (i * 12)]
@@ -177,7 +199,7 @@ public class MetamorphForm extends Form
   public void save(String id, Data data, boolean replace)
     throws UnimplementedException
   {
-    throw new UnimplementedException(); // This is not implemented
+    throw new UnimplementedException("MetamorphForm.save");
   }
 
   /**
@@ -199,17 +221,29 @@ public class MetamorphForm extends Form
   public DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
-
-    if (id != currentId) {
-      initFile(id);
+    percent = 0;
+    int nImages = getBlockCount(id);
+    FieldImpl[] fields = new FieldImpl[nImages];
+    for (int i=0; i<nImages; i++) {
+      fields[i] = (FieldImpl) open(id, i);
+      percent = (double) (i + 1) / nImages;
     }
 
-    // cycle through all frames, get each frame, add it to the timeField.
-    for (int z = 0; z < dimensions[2]; z++) {
-      frameField = (FlatField) open(id, z);
-      timeField.setSample(z, frameField);
+    DataImpl data;
+    if (nImages == 1) data = fields[0];
+    else {
+      // combine data stack into index function
+      RealType index = RealType.getRealType("index");
+      FunctionType indexFunction =
+        new FunctionType(index, fields[0].getType());
+      Integer1DSet indexSet = new Integer1DSet(nImages);
+      FieldImpl indexField = new FieldImpl(indexFunction, indexSet);
+      indexField.setSamples(fields, false);
+      data = indexField;
     }
-    return timeField;
+    close();
+    percent = Double.NaN;
+    return data;
   }
 
   /** Returns the data forms that are compatible with a data object. */
@@ -221,8 +255,7 @@ public class MetamorphForm extends Form
    * Opens an existing Metamorph file from the given URL.
    *
    * @return VisAD Data object containing Metamorph data.
-   * @exception UnimplementedException Always thrown (this method not
-   * implemented).
+   * @exception UnimplementedException Always thrown (method not implemented).
    */
   public DataImpl open(URL url)
     throws BadFormException, VisADException, IOException
@@ -238,27 +271,21 @@ public class MetamorphForm extends Form
    * by id, retrieving only the frame number given.
    * @return a DataImpl containing the specified frame
    */
-  public DataImpl open(String id, int block_number)
+  public DataImpl open(String id, int blockNumber)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) {
-      initFile(id);
-    }
-    int[] bitsperpixel = new int[3];
-    int photointerp = TiffTools.getPhotometricInterpretation(r);
+    if (id != currentId) initFile(id);
+    int[] bitsPerPixel = null;
+    int photoInterp = TiffTools.getPhotometricInterpretation(r);
     Vector v = (Vector) ifdHash.get(new Integer(BITS_PER_SAMPLE_FIELD)); // bpp
     if (v == null) {
       throw new BadFormException("Bits per sample field not found");
     }
-    if (photointerp == 2) { // RGB color
-      int[] values = TiffTools.getIFDArray(r, v);
-      bitsperpixel[0] = values[0];
-      bitsperpixel[1] = values[1];
-      bitsperpixel[2] = values[2];
-      // It's conceivable that more than 3 will come back from getIFDArray,
-      // but I don't want to worry about this.
-    } else { // assume it's grayscale
-      bitsperpixel[0] = ((Integer) v.get(2)).intValue();
+    if (photoInterp == 2) { // RGB color
+      bitsPerPixel = TiffTools.getIFDArray(r, v);
+    }
+    else { // assume it's grayscale
+      bitsPerPixel = new int[] {((Integer) v.get(2)).intValue()};
     }
     v = (Vector) ifdHash.get(new Integer(STRIP_OFFSET_FIELD));
     if (v == null) {
@@ -270,78 +297,72 @@ public class MetamorphForm extends Form
     bb.skipBits(8 * r.getFilePointer());
 
     // Check whether it's RGB or grayscale and read file in appropriately.
-    if (photointerp == 2) { // RGB file
-      long toskip = dimensions[0] * dimensions[1];
-      toskip *= (bitsperpixel[0] + bitsperpixel[1] + bitsperpixel[2]);
-      toskip *= block_number;
-      bb.skipBits(toskip);
-      float[][] flatsamples = new float[3][dimensions[0] * dimensions[1]];
-      for (int y = 0; y < dimensions[1] ; y++) {
-        for (int x = 0 ; x < dimensions[0]; x++) {
+    FlatField frameField = null;
+    if (photoInterp == 2) { // RGB file
+      long toSkip = dimensions[0] * dimensions[1];
+      toSkip *= (bitsPerPixel[0] + bitsPerPixel[1] + bitsPerPixel[2]);
+      toSkip *= blockNumber;
+      bb.skipBits(toSkip);
+      float[][] flatSamples = new float[3][dimensions[0] * dimensions[1]];
+      for (int y = 0; y < dimensions[1]; y++) {
+        for (int x = 0; x < dimensions[0]; x++) {
           for (int c = 0; c < 3; c ++) {
-            flatsamples[c][x + y*dimensions[0]] = bb.getBits(bitsperpixel[c]);
+            flatSamples[c][x + y*dimensions[0]] = bb.getBits(bitsPerPixel[c]);
           }
         }
       }
       frameField = new FlatField(funcRowColRGB, pixelSet);
-      frameField.setSamples(flatsamples);
-    } else { // grayscale
-      long toskip = dimensions[0] * dimensions[1];
-      toskip *= (bitsperpixel[0] + bitsperpixel[1] + bitsperpixel[2]);
-      toskip *= block_number;
-      bb.skipBits(toskip);
-      float[][] flatsamples = new float[1][dimensions[0] * dimensions[1]];
-      if (bitsperpixel[0] == 8) { // 8 bit
-        for (int y = 0; y < dimensions[1] ; y++) {
-          for (int x = 0 ; x < dimensions[0]; x++) {
-            flatsamples[0][x + y*dimensions[0]] = bb.getBits(bitsperpixel[0]);
-            //datargb[x][y][z][c] = bb.getBits(bitsperpixel[c]);
+      frameField.setSamples(flatSamples);
+    }
+    else { // grayscale
+      long toSkip = dimensions[0] * dimensions[1];
+      toSkip *= (bitsPerPixel[0] + bitsPerPixel[1] + bitsPerPixel[2]);
+      toSkip *= blockNumber;
+      bb.skipBits(toSkip);
+      float[][] flatSamples = new float[1][dimensions[0] * dimensions[1]];
+      if (bitsPerPixel[0] == 8) { // 8 bit
+        for (int y = 0; y < dimensions[1]; y++) {
+          for (int x = 0; x < dimensions[0]; x++) {
+            flatSamples[0][x + y*dimensions[0]] = bb.getBits(bitsPerPixel[0]);
+            //datargb[x][y][z][c] = bb.getBits(bitsPerPixel[c]);
           }
         }
-      } else if (bitsperpixel[0] % 8 == 0) { // 16, 24, etc. bit
-        int bytesperpixel = bitsperpixel[0] / 8;
-        for (int y = 0; y < dimensions[1] ; y++) {
-          for (int x = 0 ; x < dimensions[0]; x++) {
-            int[] thispixel = new int[bytesperpixel];
-            for (int b = 0 ; b < bytesperpixel ; b++) {
-              thispixel[b] = bb.getBits(8);
+      }
+      else if (bitsPerPixel[0] % 8 == 0) { // 16, 24, etc. bit
+        int bytesPerPixel = bitsPerPixel[0] / 8;
+        for (int y = 0; y < dimensions[1]; y++) {
+          for (int x = 0; x < dimensions[0]; x++) {
+            int[] thisPixel = new int[bytesPerPixel];
+            for (int b = 0; b < bytesPerPixel; b++) {
+              thisPixel[b] = bb.getBits(8);
             }
-            for (int b = bytesperpixel - 1; b >= 0 ; b--) {
-              flatsamples[0][x + y*dimensions[0]] *= 256;
-              flatsamples[0][x + y*dimensions[0]] += thispixel[b];
+            for (int b = bytesPerPixel - 1; b >= 0; b--) {
+              flatSamples[0][x + y*dimensions[0]] *= 256;
+              flatSamples[0][x + y*dimensions[0]] += thisPixel[b];
             }
-            //datargb[x][y][z][c] = bb.getBits(bitsperpixel[c]);
+            //datargb[x][y][z][c] = bb.getBits(bitsPerPixel[c]);
           }
         }
-      } else { // arbitrary bit case, I don't know that this works.
-        for (int y = 0; y < dimensions[1] ; y++) {
-          for (int x = 0 ; x < dimensions[0]; x++) {
-            flatsamples[0][x + y*dimensions[0]] = bb.getBits(bitsperpixel[0]);
+      }
+      else { // arbitrary bit case, I don't know that this works.
+        for (int y = 0; y < dimensions[1]; y++) {
+          for (int x = 0; x < dimensions[0]; x++) {
+            flatSamples[0][x + y*dimensions[0]] = bb.getBits(bitsPerPixel[0]);
           }
         }
       }
       frameField = new FlatField(funcRowColPix, pixelSet);
-      frameField.setSamples(flatsamples);
+      frameField.setSamples(flatSamples);
     }
     return frameField;
   }
 
-  /** Returns the number of frames in the specified Metamorph file.
-   */
-
+  /** Returns the number of frames in the specified Metamorph file. */
   public int getBlockCount(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) {
-      initFile(id);
-    }
-    ifdHash = TiffTools.getIFDHash(r);
-    Vector v = (Vector) ifdHash.get(new Integer(METAMORPH_ID));
-    if (v == null) {
-      return -1;
-    }
-    return ((Integer) v.get(1)).intValue();
-
+    if (id != currentId) initFile(id);
+    return dimensions[2];
   }
 
   /** Closes the current form. */
@@ -351,6 +372,17 @@ public class MetamorphForm extends Form
       r = null;
     }
   }
+
+
+  // -- FormProgressInformer API methods --
+
+  /**
+   * Gets the percentage complete of the form's current operation.
+   * @return the percentage complete (0.0 - 100.0), or Double.NaN
+   *         if no operation is currently taking place
+   */
+  public double getPercentComplete() { return percent; }
+
 
 
   // -- MetadataReader API methods --
@@ -363,9 +395,7 @@ public class MetamorphForm extends Form
     // http://www.universal-imaging.com/ftp/support/stack/STK.doc
 
     Hashtable metadata = new Hashtable();
-    if (id != currentId) {
-      initFile(id);
-    }
+    if (id != currentId) initFile(id);
     int offset = TiffTools.getIFDValue(ifdHash, UIC4TAG);
     if (offset < 0) {
       throw new BadFormException("UIC4TAG not found");
@@ -475,11 +505,12 @@ public class MetamorphForm extends Form
            julian = batoi(toread);
 
            // code reused from the Metamorph data specification
-                 z = julian + 1;
+           z = julian + 1;
 
            if (z < 2299161L) {
              a = z;
-           } else {
+           }
+           else {
              alpha = (long) ((z - 1867216.25) / 36524.25);
              a = z + 1 + alpha - alpha / 4;
            }
@@ -523,7 +554,8 @@ public class MetamorphForm extends Form
 
            if (z < 2299161L) {
              a = z;
-           } else {
+           }
+           else {
              alpha = (long) ((z - 1867216.25) / 36524.25);
              a = z + 1 + alpha - alpha / 4;
            }
@@ -746,7 +778,8 @@ public class MetamorphForm extends Form
     Hashtable h = getMetadata(id);
     try {
       return h.get(field);
-    } catch (NullPointerException e) {
+    }
+    catch (NullPointerException e) {
       return null;
     }
 
@@ -755,12 +788,12 @@ public class MetamorphForm extends Form
 
   // -- Utility methods --
 
+  /** Translates up to the first 4 bytes of a byte array to an integer. */
   private static int batoi(byte[] inp) {
-    // Translates up to the first 4 bytes of a byte array to an integer
     int len = inp.length>4?4:inp.length;
     int total = 0;
     for (int i = 0; i < len; i++) {
-      total = total + ((inp[i]<0?(int)256+inp[i]:(int)inp[i]) << (i * 8));
+      total += ((inp[i]<0?256+inp[i]:(int)inp[i]) << (i * 8));
     }
     return total;
   }
@@ -790,27 +823,49 @@ public class MetamorphForm extends Form
     dimensions[2] = ((Integer) v.get(1)).intValue();
     pixelSet = new Linear2DSet(domainTuple, 0,
       dimensions[0] - 1, dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
-    timeSet = new Integer1DSet(frame,  dimensions[2]);
-    frameField = new FlatField(funcRowColPix, pixelSet);
-    timeField = new FieldImpl(funcTimeRange, timeSet);
   }
 
 
   // -- Main method --
 
-  public static void main(String[] args) throws VisADException, IOException {
-     MetamorphForm reader = new MetamorphForm();
-     System.out.println("Opening " + args[0] + "...");
-     Data d = reader.open(args[0]);
-     System.out.println(d.getType());
-     System.out.println();
-     System.out.println("Reading metadata pairs...");
-     Hashtable metadata = reader.getMetadata(args[0]);
-     Enumeration e = metadata.keys();
-     while (e.hasMoreElements()) {
-       String key = (String) e.nextElement();
-       System.out.println(key + " = " + metadata.get(key));
-     }
+  /**
+   * Run 'java visad.data.bio.MetamorphForm in_file'
+   * to test read a Metamorph STK data file.
+   */
+  public static void main(String[] args)
+    throws VisADException, IOException
+  {
+    if (args == null || args.length < 1) {
+      System.out.println("To test read a Metamorph STK file, run:");
+      System.out.println("  java visad.data.bio.MetamorphForm in_file");
+      System.exit(2);
+    }
+
+    // Test read Metamorph STK file
+    MetamorphForm form = new MetamorphForm();
+    System.out.print("Reading " + args[0] + " metadata ");
+    Hashtable meta = form.getMetadata(args[0]);
+    System.out.println("[done]");
+    System.out.println();
+
+    Enumeration e = meta.keys();
+    Vector v = new Vector();
+    while (e.hasMoreElements()) v.add(e.nextElement());
+    String[] keys = new String[v.size()];
+    v.copyInto(keys);
+    Arrays.sort(keys);
+
+    for (int i=0; i<keys.length; i++) {
+      System.out.println(keys[i] + ": " + meta.get(keys[i]));
+    }
+    System.out.println();
+
+    System.out.print("Reading " + args[0] + " pixel data ");
+    Data data = form.open(args[0]);
+    System.out.println("[done]");
+
+    System.out.println("MathType =\n" + data.getType());
+    System.exit(0);
   }
 
 }

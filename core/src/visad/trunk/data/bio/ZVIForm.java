@@ -33,7 +33,10 @@ import java.util.Vector;
 import visad.*;
 import visad.data.*;
 
-/** ZVIForm is the VisAD data adapter for reading Zeiss ZVI files. */
+/**
+ * ZVIForm is the VisAD data adapter for reading Zeiss ZVI files.
+ * @author Curtis Rueden ctrueden@wisc.edu
+ */
 public class ZVIForm extends Form
   implements FormBlockReader, FormFileInformer, FormProgressInformer
 {
@@ -50,7 +53,7 @@ public class ZVIForm extends Form
     65, 0, 16
   };
 
-  /** Block identifying second part of useful heading information. */
+  /** Block identifying second part of useful header information. */
   private static final byte[] ZVI_MAGIC_BLOCK_2 = { // 41 00 80
     65, 0, -128
   };
@@ -74,7 +77,7 @@ public class ZVIForm extends Form
   // -- Static fields --
 
   /** Form instantiation counter. */
-  private static int num = 0;
+  private static int formCount = 0;
 
 
   // -- Fields --
@@ -84,7 +87,7 @@ public class ZVIForm extends Form
 
   /** Input stream for current file. */
   private RandomAccessFile in;
- 
+
   /** List of image blocks. */
   private Vector blockList;
 
@@ -96,7 +99,7 @@ public class ZVIForm extends Form
 
   /** Constructs a new ZVI file form. */
   public ZVIForm() {
-    super("ZVIForm" + num++);
+    super("ZVIForm" + formCount++);
   }
 
 
@@ -175,21 +178,21 @@ public class ZVIForm extends Form
   /**
    * Obtains the specified block from the given file.
    * @param id The file from which to load data blocks.
-   * @param block_number The block number of the block to load.
+   * @param blockNumber The block number of the block to load.
    * @throws VisADException If the block number is invalid.
    */
-  public DataImpl open(String id, int block_number)
+  public DataImpl open(String id, int blockNumber)
     throws BadFormException, IOException, VisADException
   {
     if (!id.equals(currentId)) initFile(id);
 
-    if (block_number < 0 || block_number >= blockList.size()) {
-      throw new BadFormException("Invalid image number: " + block_number);
+    if (blockNumber < 0 || blockNumber >= blockList.size()) {
+      throw new BadFormException("Invalid image number: " + blockNumber);
     }
 
-    if (DEBUG) System.out.println("Reading image #" + block_number + "...");
+    if (DEBUG) System.out.println("Reading image #" + blockNumber + "...");
 
-    ZVIBlock zviBlock = (ZVIBlock) blockList.elementAt(block_number);
+    ZVIBlock zviBlock = (ZVIBlock) blockList.elementAt(blockNumber);
     return zviBlock.readImage(in);
   }
 
@@ -590,11 +593,26 @@ public class ZVIForm extends Form
 
   // -- Main method --
 
-  public static void main(String[] args) throws VisADException, IOException {
-     ZVIForm reader = new ZVIForm();
-     System.out.println("Opening " + args[0] + "...");
-     Data d = reader.open(args[0]);
-     System.out.println(d.getType());
+  /**
+   * Run 'java visad.data.bio.ZVIForm in_file'
+   * to test read a Zeiss ZVI data file.
+   */
+  public static void main(String[] args)
+    throws VisADException, IOException
+  {
+    if (args == null || args.length < 1) {
+      System.out.println("To test read a Zeiss ZVI file, run:");
+      System.out.println("  java visad.data.bio.ZVIForm in_file");
+      System.exit(2);
+    }
+
+    // Test read Zeiss ZVI file
+    ZVIForm form = new ZVIForm();
+    System.out.print("Reading " + args[0] + " ");
+    Data data = form.open(args[0]);
+    System.out.println("[done]");
+    System.out.println("MathType =\n" + data.getType());
+    System.exit(0);
   }
 
 }

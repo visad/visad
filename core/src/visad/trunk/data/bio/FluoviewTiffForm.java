@@ -24,16 +24,15 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-// Heavily adapted from BioRadForm.java
-
 package visad.data.bio;
+
+import java.io.*;
+import java.net.URL;
+import java.rmi.RemoteException;
+import java.util.*;
 
 import visad.*;
 import visad.data.*;
-import java.io.*;
-import java.rmi.RemoteException;
-import java.net.URL;
-import java.util.*;
 
 /**
  * FluoviewTiffForm is the VisAD data format adapter for
@@ -42,37 +41,66 @@ import java.util.*;
  * @author Eric Kjellman egkjellman@wisc.edu
  */
 public class FluoviewTiffForm extends Form
-  implements FormFileInformer, FormProgressInformer, FormBlockReader
+  implements FormBlockReader, FormFileInformer, FormProgressInformer
 {
 
+  // -- Constants --
+
+  /** Number of bytes to check for Fluoview header information. */
+  private static final int BLOCK_CHECK_LEN = 16384;
+
+  /** Number identifying a TIFF file. */
+  private static final int TIFF_MAGIC_NUMBER = 42;
+
+  /** String identifying a Fluoview file. */
+  private static final String FLUOVIEW_MAGIC_STRING = "fluoview";
+
+  /** A value that is impossible as an IFD number. */
+  private static final int IMPOSSIBLE_IFD = 424242;
+
+
+  // -- Static fields --
+
   /** Form instantiation counter. */
-  private static int num = 0;
+  private static int formCount = 0;
+
+  /** Domain of 2-D image. */
+  private static RealTupleType domainTuple;
+
+  /** MathType of a 2-D image with a 1-D range. */
+  private static FunctionType funcRowColPix;
+
+  static {
+    try {
+      RealType column = RealType.getRealType("ImageElement");
+      RealType row = RealType.getRealType("ImageLine");
+      domainTuple = new RealTupleType(column, row);
+
+      // for grayscale images
+      RealType pixel = RealType.getRealType("intensity");
+      funcRowColPix = new FunctionType(domainTuple, pixel);
+    }
+    catch (VisADException exc) {
+      exc.printStackTrace();
+    }
+  }
 
 
-  // Private variables
+  // -- Fields --
 
-  // The quantities to be displayed in x- and y-axes
-  private RealType frame, row, column, pixel;
-  // The function pixel = f(r,c)
-  // as ( row,column -> pixel )
-  private FunctionType func_rc_p;
-  // The ( time -> range )
-  private FunctionType func_t_range;
+  /** Filename of current Fluoview TIFF. */
+  private String currentId;
 
-  private RealTupleType domain_tuple;
-  private visad.Set pixelSet;
-  private visad.Set timeSet;
-  // The Data class FlatField, which will hold data.
-  private FlatField frame_ff;
-  // A FieldImpl, which will hold all data.
-  private FieldImpl timeField;
-  // The DataReference from the data to display
-  private DataReferenceImpl data_ref;
-  // The 2D display, and its the maps
-  private DisplayImpl display;
-  private ScalarMap timeAnimMap, timeZMap, lenXMap, ampYMap, ampRGBMap;
-  private RandomAccessFile readin;
-  private String current_id;
+  /** Input stream for current Fluoview TIFF. */
+  private RandomAccessFile readIn;
+
+  /** Number of blocks for current Fluoview TIFF. */
+  private int numBlocks;
+
+  /** Domain set of current Fluoview TIFF. */
+  private Linear2DSet pixelSet;
+
+  /** Percent complete with current operation. */
   private double percent;
 
 
@@ -80,52 +108,11 @@ public class FluoviewTiffForm extends Form
 
   /** Constructs a new FluoviewTiffForm file form. */
   public FluoviewTiffForm() {
-    super("FluoviewTiffForm" + num++);
+    super("FluoviewTiffForm" + formCount++);
   }
 
 
-  // -- FormFileInformer methods --
-
-  /** Checks if the given string is a valid filename for a Fluoview file. */
-  public boolean isThisType(String name) {
-    // 1 or 2 fs
-    if (!(name.toLowerCase().endsWith(".tif")
-       || name.toLowerCase().endsWith(".tiff"))) { return false; }
-    long len = new File(name).length();
-    int num = len < 16384 ? (int) len : 16384;
-    byte[] buf = new byte[num];
-    try {
-      FileInputStream fin = new FileInputStream(name);
-      int r = 0;
-      while(r < num) {
-        r += fin.read(buf, r, num-r);
-      }
-      fin.close();
-      return isThisType(buf);
-    } catch (IOException e) {
-      return false;
-    }
-  }
-
-  /**
-   * Checks if the given block is a valid header for a Fluoview .tif file.
-   * If it is, it should have 42 for the 3rd byte, and contain the text
-   * "fluoview"
-   */
-  public boolean isThisType(byte[] block) {
-    if (block.length < 3 || block[2] != 42) { return false; }
-    String test = new String(block);
-    test = test.toLowerCase();
-    return (test.indexOf("fluoview") != -1);
-  }
-
-  /** Returns the default file suffixes for the Fluoview TIFF file format. */
-  public String[] getDefaultSuffixes() {
-    return new String[] {"tif", "tiff"};
-  }
-
-
-  // -- API methods --
+  // -- FormNode API methods --
 
   /**
    * Saves a VisAD Data object to Fluoview TIFF
@@ -163,41 +150,29 @@ public class FluoviewTiffForm extends Form
   public DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (!id.equals(current_id)) {
-      readin = new RandomAccessFile(id, "r");
-      current_id = id;
-    }
     percent = 0;
-    frame = RealType.getRealType("frame");
-    row = RealType.getRealType("row");
-    column = RealType.getRealType("column");
-    domain_tuple = new RealTupleType(row, column);
-    pixel = RealType.getRealType("intensity");
-    func_rc_p = new FunctionType(domain_tuple, pixel);
-    func_t_range = new FunctionType(frame, func_rc_p);
-
-    int[] dimensions = getFTIFFDimensions();
-    int xdim = dimensions[0];
-    int ydim = dimensions[1];
-    pixelSet = new Linear2DSet(domain_tuple,
-      0, xdim - 1, xdim, ydim - 1, 0, ydim);
-    timeSet = new Integer1DSet(frame,  dimensions[2]);
-    // Create a FlatField
-    frame_ff = new FlatField(func_rc_p, pixelSet);
-    // ...and a FieldImpl
-    timeField = new FieldImpl(func_t_range, timeSet);
-
-    // Populates the FieldImpl with data.
-    for (int framecount = 0; framecount < dimensions[2]; framecount++) {
-      percent = framecount / dimensions[2];
-      float[][] flat_samples = new float[1][];
-      flat_samples[0] = getFrame(framecount+1);
-      frame_ff.setSamples(flat_samples);
-      timeField.setSample(framecount, frame_ff);
+    int nImages = getBlockCount(id);
+    FieldImpl[] fields = new FieldImpl[nImages];
+    for (int i=0; i<nImages; i++) {
+      fields[i] = (FieldImpl) open(id, i);
+      percent = (double) (i + 1) / nImages;
     }
 
-    percent = -1;
-    return timeField;
+    DataImpl data;
+    if (nImages == 1) data = fields[0];
+    else {
+      // combine data stack into index function
+      RealType index = RealType.getRealType("index");
+      FunctionType indexFunction =
+        new FunctionType(index, fields[0].getType());
+      Integer1DSet indexSet = new Integer1DSet(nImages);
+      FieldImpl indexField = new FieldImpl(indexFunction, indexSet);
+      indexField.setSamples(fields, false);
+      data = indexField;
+    }
+    close();
+    percent = Double.NaN;
+    return data;
   }
 
   /**
@@ -213,6 +188,7 @@ public class FluoviewTiffForm extends Form
     throw new UnimplementedException("FluoviewTiffForm.open(URL)");
   }
 
+  /** Returns the data forms that are compatible with a data object. */
   public FormNode getForms(Data data) {
     return null;
   }
@@ -221,56 +197,77 @@ public class FluoviewTiffForm extends Form
   // -- FormBlockReader methods --
 
   /**
-   * Opens the FluoviewTiff file with the file name specified
+   * Opens the Fluoview TIFF file with the file name specified
    * by id, retrieving only the frame number given.
    * @return a DataImpl containing the specified frame
    */
-  public DataImpl open(String id, int block_number)
+  public DataImpl open(String id, int blockNumber)
     throws BadFormException, IOException, VisADException
   {
-    if (!id.equals(current_id)) {
-      readin = new RandomAccessFile(id, "r");
-      current_id = id;
-    }
-    frame = RealType.getRealType("frame");
-    row = RealType.getRealType("row");
-    column = RealType.getRealType("column");
-    domain_tuple = new RealTupleType(row, column);
-    pixel = RealType.getRealType("intensity");
-    func_rc_p = new FunctionType(domain_tuple, pixel);
-    func_t_range = new FunctionType(frame, func_rc_p);
-
-    int[] dimensions = getFTIFFDimensions();
-    int xdim = dimensions[0];
-    int ydim = dimensions[1];
-    pixelSet = new Linear2DSet(domain_tuple,
-      0, xdim - 1, xdim, ydim - 1, 0, ydim);
-    timeSet = new Integer1DSet(frame,  dimensions[2]);
-    frame_ff = new FlatField(func_rc_p, pixelSet);
-
-    float[][] flat_samples = new float[1][];
-    flat_samples[0] = getFrame(block_number+1);
-    frame_ff.setSamples(flat_samples);
-    return frame_ff;
+    if (!id.equals(currentId)) initFile(id);
+    FlatField frameField = new FlatField(funcRowColPix, pixelSet);
+    float[][] samples = new float[1][];
+    samples[0] = getFrame(blockNumber + 1);
+    frameField.setSamples(samples);
+    return frameField;
   }
 
-  /** Returns the number of frames in the specified FluoviewTiff file. */
+  /** Returns the number of frames in the specified Fluoview TIFF file. */
   public int getBlockCount(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (!id.equals(current_id)) {
-      readin = new RandomAccessFile(id, "r");
-      current_id = id;
-    }
-    int[] dimensions = getFTIFFDimensions();
-    return dimensions[2];
+    if (!id.equals(currentId)) initFile(id);
+    return numBlocks;
   }
 
   /** Closes the current form. */
   public void close() {
     try {
-      readin.close();
-    } catch (Exception e) {}
+      readIn.close();
+    }
+    catch (Exception e) { }
+  }
+
+
+  // -- FormFileInformer methods --
+
+  /** Checks if the given string is a valid filename for a Fluoview file. */
+  public boolean isThisType(String name) {
+    // 1 or 2 fs
+    if (!(name.toLowerCase().endsWith(".tif")
+       || name.toLowerCase().endsWith(".tiff"))) { return false; }
+    long len = new File(name).length();
+    int size = len < BLOCK_CHECK_LEN ? (int) len : BLOCK_CHECK_LEN;
+    byte[] buf = new byte[size];
+    try {
+      FileInputStream fin = new FileInputStream(name);
+      int r = 0;
+      while(r < size) {
+        r += fin.read(buf, r, size - r);
+      }
+      fin.close();
+      return isThisType(buf);
+    }
+    catch (IOException e) {
+      return false;
+    }
+  }
+
+  /**
+   * Checks if the given block is a valid header for a Fluoview .tif file.
+   * If it is, it should have 42 for the 3rd byte, and contain the text
+   * "fluoview"
+   */
+  public boolean isThisType(byte[] block) {
+    if (block.length < 3 || block[2] != TIFF_MAGIC_NUMBER) { return false; }
+    String test = new String(block);
+    test = test.toLowerCase();
+    return (test.indexOf(FLUOVIEW_MAGIC_STRING) != -1);
+  }
+
+  /** Returns the default file suffixes for the Fluoview TIFF file format. */
+  public String[] getDefaultSuffixes() {
+    return new String[] {"tif", "tiff"};
   }
 
 
@@ -280,72 +277,96 @@ public class FluoviewTiffForm extends Form
   public double getPercentComplete() { return percent; }
 
 
-  // -- Private Methods --
+  // -- Utility methods --
+
+  /** Translates up to the first 4 bytes of a byte array to an integer. */
+  private static int batoi(byte[] inp) {
+    int len = inp.length>4?4:inp.length;
+    int total = 0;
+    for (int i = 0; i < len; i++) {
+      total += ((inp[i]<0?256+inp[i]:(int)inp[i]) << (i * 8));
+    }
+    return total;
+  }
+
+
+  // -- Helper methods --
+
+  private void initFile(String id)
+    throws IOException, VisADException, BadFormException
+  {
+    readIn = new RandomAccessFile(id, "r");
+    currentId = id;
+    int[] dimensions = getFTIFFDimensions();
+    numBlocks = dimensions[2];
+    pixelSet = new Linear2DSet(domainTuple, 0, dimensions[0] - 1,
+      dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
+  }
 
   /**
    * Returns a Hashtable containing all of the info from the first IFD of
    * the file.
    */
   private Hashtable getIFDHash(int framecount) throws IOException {
-    byte[] bytearray = new byte[4];
-    int nextoffset;
-    readin.seek(4);
-    readin.read(bytearray); // Gets the offset of the first IFD
-//    readin.seek(batoi(bytearray));
-    nextoffset = batoi(bytearray);
-//    bytearray = new byte[2];
+    byte[] byteArray = new byte[4];
+    int nextOffset;
+    readIn.seek(4);
+    readIn.read(byteArray); // Gets the offset of the first IFD
+//    readIn.seek(batoi(byteArray));
+    nextOffset = batoi(byteArray);
+//    byteArray = new byte[2];
     // Gets the number of directory entries in the IFD
-//    readin.read(bytearray);
-    Hashtable IFDentries = new Hashtable();
-//    Integer numentries = new Integer(batoi(bytearray));
-    Integer entrytag, entrytype, entrycount, entryoffset;
+//    readIn.read(byteArray);
+    Hashtable ifdEntries = new Hashtable();
+//    Integer numEntries = new Integer(batoi(byteArray));
+    Integer entrytag, entrytype, entrycount, entryOffset;
     int frames = 1;
-    int length, offset, numentries;
-    Vector entrydata;
+    int length, offset, numEntries;
+    Vector entryData;
 
-    while (nextoffset != 0 && frames != framecount) {
+    while (nextOffset != 0 && frames != framecount) {
       frames++;
-      readin.seek(nextoffset);
-      bytearray = new byte[2];
-      readin.read(bytearray); // Gets number of directory entries in the IFD
-      numentries = batoi(bytearray);
-      readin.skipBytes(12 * numentries);
-      bytearray = new byte[4];
-      readin.read(bytearray);
-      nextoffset = batoi(bytearray);
+      readIn.seek(nextOffset);
+      byteArray = new byte[2];
+      readIn.read(byteArray); // Gets number of directory entries in the IFD
+      numEntries = batoi(byteArray);
+      readIn.skipBytes(12 * numEntries);
+      byteArray = new byte[4];
+      readIn.read(byteArray);
+      nextOffset = batoi(byteArray);
     }
 
-    readin.seek(nextoffset);
-    bytearray = new byte[2];
-    readin.read(bytearray); // Gets the number of directory entries in the IFD
-    numentries = batoi(bytearray);
+    readIn.seek(nextOffset);
+    byteArray = new byte[2];
+    readIn.read(byteArray); // Gets the number of directory entries in the IFD
+    numEntries = batoi(byteArray);
 
 
     // Iterate through the directory entries
-    for (int i = 0; i < numentries; i++) {
-      bytearray = new byte[2];
-      readin.read(bytearray); // Get the entry tag
-      entrytag = new Integer(batoi(bytearray));
-      readin.read(bytearray); // Get the entry type
-      entrytype = new Integer(batoi(bytearray));
-      bytearray = new byte[4];
+    for (int i = 0; i < numEntries; i++) {
+      byteArray = new byte[2];
+      readIn.read(byteArray); // Get the entry tag
+      entrytag = new Integer(batoi(byteArray));
+      readIn.read(byteArray); // Get the entry type
+      entrytype = new Integer(batoi(byteArray));
+      byteArray = new byte[4];
       // Get the number of entries this offset points to.
-      readin.read(bytearray);
-      entrycount = new Integer(batoi(bytearray));
-      readin.read(bytearray); // Gets the offset for the entry
-      entryoffset = new Integer(batoi(bytearray));
+      readIn.read(byteArray);
+      entrycount = new Integer(batoi(byteArray));
+      readIn.read(byteArray); // Gets the offset for the entry
+      entryOffset = new Integer(batoi(byteArray));
       // Adds the data to a vector, and then hashs it.
-      entrydata = new Vector();
-      entrydata.add(entrytype);
-      entrydata.add(entrycount);
-      entrydata.add(entryoffset);
-      IFDentries.put(entrytag, entrydata);
+      entryData = new Vector();
+      entryData.add(entrytype);
+      entryData.add(entrycount);
+      entryData.add(entryOffset);
+      ifdEntries.put(entrytag, entryData);
     }
-    readin.read(bytearray);
-    nextoffset = batoi(bytearray);
-    IFDentries.put(new Integer(424242), new Integer(nextoffset));
+    readIn.read(byteArray);
+    nextOffset = batoi(byteArray);
+    ifdEntries.put(new Integer(IMPOSSIBLE_IFD), new Integer(nextOffset));
     // 424242 is not possible as an IFD ID number, which are 16 bit
-    return IFDentries;
+    return ifdEntries;
   }
 
   /**
@@ -361,38 +382,40 @@ public class FluoviewTiffForm extends Form
     // coordinates out of it, and then just pass through the other IFDs to get
     // z. It is conceivable that the various images are of different sizes,
     // but for now I'm going to assume that they are not.
-    byte[] bytearray;
-    int nextoffset;
-    int numentries;
+    byte[] byteArray;
+    int nextOffset;
+    int numEntries;
     int frames = 1;
     Integer width, length;
-    Vector entrydata;
-    Hashtable IFDentries = getIFDHash(1);
+    Vector entryData;
+    Hashtable ifdEntries = getIFDHash(1);
 
-    nextoffset = ((Integer) IFDentries.get(new Integer(424242))).intValue();
+    nextOffset = ((Integer)
+      ifdEntries.get(new Integer(IMPOSSIBLE_IFD))).intValue();
 
-    while (nextoffset != 0) {
+    while (nextOffset != 0) {
       frames++;
       try {
-        readin.seek(nextoffset);
-      } catch (Exception e) {
+        readIn.seek(nextOffset);
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
-      bytearray = new byte[2];
-      readin.read(bytearray); // Get the number of directory entries in the IFD
-      numentries = batoi(bytearray);
-      readin.skipBytes(12 * numentries);
-      bytearray = new byte[4];
-      readin.read(bytearray);
-      nextoffset = batoi(bytearray);
+      byteArray = new byte[2];
+      readIn.read(byteArray); // Get the number of directory entries in the IFD
+      numEntries = batoi(byteArray);
+      readIn.skipBytes(12 * numEntries);
+      byteArray = new byte[4];
+      readIn.read(byteArray);
+      nextOffset = batoi(byteArray);
     }
 
     // This is the directory entry for width.
-    entrydata = (Vector) IFDentries.get(new Integer(256));
-    width = (Integer) entrydata.get(2);
+    entryData = (Vector) ifdEntries.get(new Integer(256));
+    width = (Integer) entryData.get(2);
     // This is the directory entry for height.
-    entrydata = (Vector) IFDentries.get(new Integer(257));
-    length = (Integer) entrydata.get(2);
+    entryData = (Vector) ifdEntries.get(new Integer(257));
+    length = (Integer) entryData.get(2);
     return new int[] {width.intValue(), length.intValue(), frames};
   }
 
@@ -406,112 +429,87 @@ public class FluoviewTiffForm extends Form
    * @return a float[][] containing the file data.
    * @throws IOException  if a file input or output exception occured
    */
-  public float[] getFrame(int framecount) throws IOException {
-    Hashtable IFDentries = getIFDHash(framecount);
-    Vector entrydata;
-    byte[] bytearray;
-    int stripoffsets, stripoffsetcount, stripbytes;
-    float[] toreturn;
+  private float[] getFrame(int framecount) throws IOException {
+    Hashtable ifdEntries = getIFDHash(framecount);
+    Vector entryData;
+    byte[] byteArray;
+    int stripOffsets, stripOffsetCount, stripBytes;
+    float[] toReturn;
 
     // This is the directory entry for strip offsets
-    entrydata = (Vector) IFDentries.get(new Integer(273));
-    stripoffsetcount = ((Integer) entrydata.get(1)).intValue();
-    stripoffsets = ((Integer) entrydata.get(2)).intValue();
+    entryData = (Vector) ifdEntries.get(new Integer(273));
+    stripOffsetCount = ((Integer) entryData.get(1)).intValue();
+    stripOffsets = ((Integer) entryData.get(2)).intValue();
     // This is the directory entry for strip bytes
-    entrydata = (Vector) IFDentries.get(new Integer(279));
-    stripbytes = ((Integer) entrydata.get(2)).intValue();
-    int[][] stripinfo = new int[stripoffsetcount][2];
+    entryData = (Vector) ifdEntries.get(new Integer(279));
+    stripBytes = ((Integer) entryData.get(2)).intValue();
+    int[][] stripInfo = new int[stripOffsetCount][2];
     int current;
     int total = 0; //  /rude Java
 
     // If there is only one strip offset in the IFD, it will contain the data
     // itself.
-    if (stripoffsetcount == 1) {
-      stripinfo[0][0] = stripoffsets;
-      stripinfo[0][1] = stripbytes;
-      total = stripbytes;
-    } else {
-    // Otherwise, it will contain a pointer, and we need to read the data out
-      readin.seek(stripoffsets);
-      bytearray = new byte[4];
-      for(int i = 0; i < stripoffsetcount; i++) {
-        readin.read(bytearray);
-        stripinfo[i][0] = batoi(bytearray);
+    if (stripOffsetCount == 1) {
+      stripInfo[0][0] = stripOffsets;
+      stripInfo[0][1] = stripBytes;
+      total = stripBytes;
+    }
+    else {
+      // Otherwise, it will contain a pointer, and we need to read the data out
+      readIn.seek(stripOffsets);
+      byteArray = new byte[4];
+      for(int i = 0; i < stripOffsetCount; i++) {
+        readIn.read(byteArray);
+        stripInfo[i][0] = batoi(byteArray);
       }
-      readin.seek(stripbytes);
-      for(int i = 0; i < stripoffsetcount; i++) {
-        readin.read(bytearray);
-        current = batoi(bytearray);
-        stripinfo[i][1] = current;
+      readIn.seek(stripBytes);
+      for(int i = 0; i < stripOffsetCount; i++) {
+        readIn.read(byteArray);
+        current = batoi(byteArray);
+        stripInfo[i][1] = current;
         total += current;
       }
     }
-    // Then, create the array to return, and read the data in from the
-    // file.
-    toreturn = new float[total/2];
+    // Then, create the array to return, and read the data in from the file.
+    toReturn = new float[total/2];
     current = 0;
-    for(int i = 0; i < stripoffsetcount; i++) {
-      readin.seek(stripinfo[i][0]);
-      bytearray = new byte[stripinfo[i][1]];
-      readin.read(bytearray);
+    for(int i = 0; i < stripOffsetCount; i++) {
+      readIn.seek(stripInfo[i][0]);
+      byteArray = new byte[stripInfo[i][1]];
+      readIn.read(byteArray);
       // read reads in as bytes (signed), we need them as unsigned floats.
-      for(int j = 0; j < bytearray.length; j += 2) {
-        toreturn[current] =
-          (float) (bytearray[j]<0?(int)256+bytearray[j]:(int)bytearray[j]) +
-          ((bytearray[j+1]<0?(int)256+bytearray[j+1]:(int)bytearray[j+1])<<8);
+      for(int j = 0; j < byteArray.length; j += 2) {
+        toReturn[current] =
+          (float) (byteArray[j]<0?(int)256+byteArray[j]:(int)byteArray[j]) +
+          ((byteArray[j+1]<0?(int)256+byteArray[j+1]:(int)byteArray[j+1])<<8);
         current++;
       }
     }
-    return toreturn;
-  }
-
-  /** Translates up to the first 4 bytes of a byte array to an integer. */
-  private int batoi(byte[] inp) {
-    int len = inp.length>4?4:inp.length;
-    int total = 0;
-    for (int i = 0; i < len; i++) {
-      total = total + ((inp[i]<0?(int)256+inp[i]:(int)inp[i]) << (i * 8));
-    }
-    return total;
+    return toReturn;
   }
 
 
   // -- Main method --
 
   /**
-   * Run 'java visad.data.bio.FluoviewTiffForm in_file out_file' to convert
-   * in_file to out_file in Olympus Fluoview TIFF data format.
+   * Run 'java visad.data.bio.FluoviewTiffForm in_file'
+   * to test read an Olympus Fluoview TIFF data file.
    */
   public static void main(String[] args)
     throws VisADException, RemoteException, IOException
   {
-    if (args == null || args.length < 1 || args.length > 2) {
-      System.out.println("To convert a file to Fluoview TIFF, run:");
-      System.out.println(
-        "  java visad.data.bio.FluoviewTiffForm in_file out_file");
+    if (args == null || args.length < 1) {
       System.out.println("To test read a Fluoview TIFF file, run:");
       System.out.println("  java visad.data.bio.FluoviewTiffForm in_file");
       System.exit(2);
     }
 
-    if (args.length == 1) {
-      // Test read Fluoview TIFF file
-      FluoviewTiffForm form = new FluoviewTiffForm();
-      System.out.print("Reading " + args[0] + " ");
-      Data data = form.open(args[0]);
-      System.out.println("[done]");
-      System.out.println("MathType =\n" + data.getType().prettyString());
-    }
-    else if (args.length == 2) {
-      // Convert file to Fluoview TIFF format
-      System.out.print(args[0] + " -> " + args[1] + " ");
-      DefaultFamily loader = new DefaultFamily("loader");
-      DataImpl data = loader.open(args[0]);
-      loader = null;
-      FluoviewTiffForm form = new FluoviewTiffForm();
-      form.save(args[1], data, true);
-      System.out.println("[done]");
-    }
+    // Test read Fluoview TIFF file
+    FluoviewTiffForm form = new FluoviewTiffForm();
+    System.out.print("Reading " + args[0] + " ");
+    Data data = form.open(args[0]);
+    System.out.println("[done]");
+    System.out.println("MathType =\n" + data.getType());
     System.exit(0);
   }
 

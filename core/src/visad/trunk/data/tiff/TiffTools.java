@@ -29,130 +29,133 @@ package visad.data.tiff;
 import java.util.*;
 import java.io.*;
 
-/** A utility class for manipulating TIFF files. */
+/**
+ * A utility class for manipulating TIFF files.
+ * @author Eric Kjellman egkjellman@wisc.edu
+ */
 public class TiffTools {
 
   private static final int CLEAR_CODE = 256;
   private static final int EOI_CODE = 257;
   private static final int PHOTOMETRIC_INTERPRETATION_FIELD = 262;
+  private static final int IMPOSSIBLE_IFD = 424242;
 
-  public static Hashtable getIFDHash(RandomAccessFile readin)
+  public static Hashtable getIFDHash(RandomAccessFile readIn)
     throws IOException
   {
-    byte[] bytearray = new byte[4];
-    int nextoffset;
-    readin.seek(4);
-    readin.read(bytearray); // Gets the offset of the first IFD
-    readin.seek(batoi(bytearray));
-    bytearray = new byte[2];
+    byte[] byteArray = new byte[4];
+    int nextOffset;
+    readIn.seek(4);
+    readIn.read(byteArray); // Gets the offset of the first IFD
+    readIn.seek(batoi(byteArray));
+    byteArray = new byte[2];
     // Gets the number of directory entries in the IFD
-    readin.read(bytearray);
+    readIn.read(byteArray);
     Hashtable ifdEntries = new Hashtable();
-    Integer numentries = new Integer(batoi(bytearray));
-    Integer entrytag, entrytype, entrycount, entryoffset;
+    Integer numEntries = new Integer(batoi(byteArray));
+    Integer entryTag, entryType, entrycount, entryOffset;
     int frames = 1;
     int length, offset;
-    Vector entrydata;
+    Vector entryData;
 
     // Iterate through the directory entries
-    for (int i = 0; i < numentries.intValue(); i++) {
-      bytearray = new byte[2];
-      readin.read(bytearray); // Get the entry tag
-      entrytag = new Integer(batoi(bytearray));
-      readin.read(bytearray); // Get the entry type
-      entrytype = new Integer(batoi(bytearray));
-      bytearray = new byte[4];
+    for (int i = 0; i < numEntries.intValue(); i++) {
+      byteArray = new byte[2];
+      readIn.read(byteArray); // Get the entry tag
+      entryTag = new Integer(batoi(byteArray));
+      readIn.read(byteArray); // Get the entry type
+      entryType = new Integer(batoi(byteArray));
+      byteArray = new byte[4];
       // Get the number of entries this offset points to.
-      readin.read(bytearray);
-      entrycount = new Integer(batoi(bytearray));
-      readin.read(bytearray); // Gets the offset for the entry
-      entryoffset = new Integer(batoi(bytearray));
+      readIn.read(byteArray);
+      entrycount = new Integer(batoi(byteArray));
+      readIn.read(byteArray); // Gets the offset for the entry
+      entryOffset = new Integer(batoi(byteArray));
       // Adds the data to a vector, and then hashs it.
-      entrydata = new Vector();
-      entrydata.add(entrytype);
-      entrydata.add(entrycount);
-      entrydata.add(entryoffset);
-      ifdEntries.put(entrytag, entrydata);
+      entryData = new Vector();
+      entryData.add(entryType);
+      entryData.add(entrycount);
+      entryData.add(entryOffset);
+      ifdEntries.put(entryTag, entryData);
     }
-    readin.read(bytearray);
-    nextoffset = batoi(bytearray);
-    ifdEntries.put(new Integer(424242), new Integer(nextoffset));
+    readIn.read(byteArray);
+    nextOffset = batoi(byteArray);
+    ifdEntries.put(new Integer(IMPOSSIBLE_IFD), new Integer(nextOffset));
     // 424242 is not possible as an IFD ID number, which are 16 bit
     return ifdEntries;
   }
 
   public static Hashtable
-      getIFDHash(RandomAccessFile readin, int block_id)
+      getIFDHash(RandomAccessFile readIn, int block_id)
       throws IOException {
 
     Hashtable ifdEntries = new Hashtable();
-    Integer entrytag, entrytype, entrycount, entryoffset;
+    Integer entryTag, entryType, entrycount, entryOffset;
     int frames = 0;
     int length, offset;
-    byte[] bytearray = new byte[4];
-    int nextoffset;
-    Vector entrydata;
-    Integer numentries;
+    byte[] byteArray = new byte[4];
+    int nextOffset;
+    Vector entryData;
+    Integer numEntries;
 
 
-    readin.seek(4);
-    readin.read(bytearray); // Gets the offset of the first IFD
-    readin.seek(batoi(bytearray));
+    readIn.seek(4);
+    readIn.read(byteArray); // Gets the offset of the first IFD
+    readIn.seek(batoi(byteArray));
 
 
     // Get to the IFD we want.
     while (frames != block_id) {
-      bytearray = new byte[2];
+      byteArray = new byte[2];
       // Gets the number of directory entries in the IFD
-      readin.read(bytearray);
-      numentries = new Integer(batoi(bytearray));
+      readIn.read(byteArray);
+      numEntries = new Integer(batoi(byteArray));
       // skips the IFD
-      readin.skipBytes(12 * numentries.intValue());
-      // Get the nextoffset
-      bytearray = new byte[4];
-      readin.read(bytearray);
-      readin.seek(batoi(bytearray));
+      readIn.skipBytes(12 * numEntries.intValue());
+      // Get the nextOffset
+      byteArray = new byte[4];
+      readIn.read(byteArray);
+      readIn.seek(batoi(byteArray));
       frames++;
     }
 
-    bytearray = new byte[2];
-    readin.read(bytearray);
-    numentries = new Integer(batoi(bytearray));
+    byteArray = new byte[2];
+    readIn.read(byteArray);
+    numEntries = new Integer(batoi(byteArray));
 
     // Iterate through the directory entries
-    for (int i = 0; i < numentries.intValue(); i++) {
-      bytearray = new byte[2];
-      readin.read(bytearray); // Get the entry tag
-      entrytag = new Integer(batoi(bytearray));
-      readin.read(bytearray); // Get the entry type
-      entrytype = new Integer(batoi(bytearray));
-      bytearray = new byte[4];
+    for (int i = 0; i < numEntries.intValue(); i++) {
+      byteArray = new byte[2];
+      readIn.read(byteArray); // Get the entry tag
+      entryTag = new Integer(batoi(byteArray));
+      readIn.read(byteArray); // Get the entry type
+      entryType = new Integer(batoi(byteArray));
+      byteArray = new byte[4];
       // Get the number of entries this offset points to.
-      readin.read(bytearray);
-      entrycount = new Integer(batoi(bytearray));
-      readin.read(bytearray); // Gets the offset for the entry
-      entryoffset = new Integer(batoi(bytearray));
+      readIn.read(byteArray);
+      entrycount = new Integer(batoi(byteArray));
+      readIn.read(byteArray); // Gets the offset for the entry
+      entryOffset = new Integer(batoi(byteArray));
       // Adds the data to a vector, and then hashs it.
-      entrydata = new Vector();
-      entrydata.add(entrytype);
-      entrydata.add(entrycount);
-      entrydata.add(entryoffset);
-      ifdEntries.put(entrytag, entrydata);
+      entryData = new Vector();
+      entryData.add(entryType);
+      entryData.add(entrycount);
+      entryData.add(entryOffset);
+      ifdEntries.put(entryTag, entryData);
     }
-    readin.read(bytearray);
-    nextoffset = batoi(bytearray);
-    ifdEntries.put(new Integer(424242), new Integer(nextoffset));
+    readIn.read(byteArray);
+    nextOffset = batoi(byteArray);
+    ifdEntries.put(new Integer(IMPOSSIBLE_IFD), new Integer(nextOffset));
     // 424242 is not possible as an IFD ID number, which are 16 bit
     return ifdEntries;
   }
-
 
   /**
    * Items in an IFD can be pointers to arrays of data, and not just single
    * items. This will return an array of int containing the data pointed to
    * in the IFD. This does not currently handle the type RATIONAL.
    */
-  public static int[] getIFDArray(RandomAccessFile readin, Vector v)
+  public static int[] getIFDArray(RandomAccessFile readIn, Vector v)
     throws IOException
   {
     int count = ((Integer) v.get(1)).intValue();
@@ -162,32 +165,32 @@ public class TiffTools {
       return new int[] {((Integer) v.get(2)).intValue()};
     }
     else {
-      readin.seek(((Integer) v.get(2)).intValue());
-      int[] toreturn = new int[count];
-      int bytesperentry = 1;
+      readIn.seek(((Integer) v.get(2)).intValue());
+      int[] toReturn = new int[count];
+      int bytesPerEntry = 1;
       if (type == 1) { // BYTE
-        bytesperentry = 1;
+        bytesPerEntry = 1;
       }
       if (type == 2) { // ASCII
-        bytesperentry = 1;
+        bytesPerEntry = 1;
       }
       if (type == 3) { // SHORT
-        bytesperentry = 2;
+        bytesPerEntry = 2;
       }
       if (type == 4) { // LONG
-        bytesperentry = 4;
+        bytesPerEntry = 4;
       }
       //if (type == 5) { // RATIONAL, not supported right now.
-      //  bytesperentry = 4;
+      //  bytesPerEntry = 4;
       //}
-      byte[] data = new byte[count * bytesperentry];
-      readin.read(data);
-      byte[] translate = new byte[bytesperentry];
+      byte[] data = new byte[count * bytesPerEntry];
+      readIn.read(data);
+      byte[] translate = new byte[bytesPerEntry];
       for (int i = 0; i < count ; i++) {
-        System.arraycopy(data, i * bytesperentry, translate, 0, bytesperentry);
-        toreturn[i] = batoi(translate);
+        System.arraycopy(data, i * bytesPerEntry, translate, 0, bytesPerEntry);
+        toReturn[i] = batoi(translate);
       }
-      return toreturn;
+      return toReturn;
     }
   }
 
@@ -196,7 +199,7 @@ public class TiffTools {
    * items. This will return an array of int containing the data pointed to
    * in the IFD.
    */
-  public static double[] getIFDRArray(RandomAccessFile readin, Vector v)
+  public static double[] getIFDRArray(RandomAccessFile readIn, Vector v)
     throws IOException
   {
     int count = ((Integer) v.get(1)).intValue();
@@ -208,24 +211,24 @@ public class TiffTools {
       return new double[] {-1.0D}; // TODO: Change this.
     }
     else {
-      readin.seek(((Integer) v.get(2)).intValue());
-      double[] toreturn = new double[count];
-      int bytesperentry = 8;
+      readIn.seek(((Integer) v.get(2)).intValue());
+      double[] toReturn = new double[count];
+      int bytesPerEntry = 8;
       int num, denom;
       if (type != 5) { // Not a rational!
         return new double[] {-1.0D}; // TODO: Change this.
       }
-      byte[] data = new byte[count * bytesperentry];
-      readin.read(data);
-      byte[] translate = new byte[bytesperentry];
+      byte[] data = new byte[count * bytesPerEntry];
+      readIn.read(data);
+      byte[] translate = new byte[bytesPerEntry];
       for (int i = 0; i < count ; i++) {
-        System.arraycopy(data, i * bytesperentry, translate, 0, 4);
+        System.arraycopy(data, i * bytesPerEntry, translate, 0, 4);
         num = batoi(translate);
-        System.arraycopy(data, i * bytesperentry + 4, translate, 0, 4);
+        System.arraycopy(data, i * bytesPerEntry + 4, translate, 0, 4);
         denom = batoi(translate);
-        toreturn[i] = num/denom;
+        toReturn[i] = num/denom;
       }
-      return toreturn;
+      return toReturn;
     }
   }
 
@@ -235,107 +238,107 @@ public class TiffTools {
     if (input.length == 0) {
       return new byte[0];
     }
-    byte[][] symboltable = new byte[4096][];
-    int bitstoread = 9;
-    int nextsymbol = 258;
-    int currentcode;
-    int oldcode = -1;
+    byte[][] symbolTable = new byte[4096][];
+    int bitsToRead = 9;
+    int nextSymbol = 258;
+    int currentCode;
+    int oldCode = -1;
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     ByteArrayOutputStream symbol = new ByteArrayOutputStream();
     BitBuffer bb = new BitBuffer(new ByteArrayInputStream(input));
     int readcode;
     // initialize the symbol table
     for (int i = 0; i < 256; i++) {
-      symboltable[i] = new byte[] { (byte) i };
+      symbolTable[i] = new byte[] { (byte) i };
     }
     // Handle the first character, since this causes problems somehow.
     boolean firsthandled = false;
     while (!firsthandled) {
-      currentcode = bb.getBits(bitstoread);
-      if (currentcode == EOI_CODE || currentcode == -1) {
+      currentCode = bb.getBits(bitsToRead);
+      if (currentCode == EOI_CODE || currentCode == -1) {
         // -1 indicates no more to read
         return out.toByteArray();
       }
-      else if (currentcode == CLEAR_CODE) {
+      else if (currentCode == CLEAR_CODE) {
         //System.out.println("Clear code was first!"); // ignore, already done
       }
       else { // the first character will be in the table, so:
             //System.out.println("In table (first!)");
-            out.write(symboltable[currentcode], 0,
-              symboltable[currentcode].length);
+            out.write(symbolTable[currentCode], 0,
+              symbolTable[currentCode].length);
             //symbol.reset();
-            //symbol.write(symboltable[oldcode], 0,
-            //  symboltable[oldcode].length);
-            //symbol.write(symboltable[currentcode], 0, 1);
-            //symboltable[nextsymbol] = symbol.toByteArray();
-            //nextsymbol++;
-            oldcode = currentcode;
+            //symbol.write(symbolTable[oldCode], 0,
+            //  symbolTable[oldCode].length);
+            //symbol.write(symbolTable[currentCode], 0, 1);
+            //symbolTable[nextSymbol] = symbol.toByteArray();
+            //nextSymbol++;
+            oldCode = currentCode;
             firsthandled = true;
       }
     }
-    while((currentcode = bb.getBits(bitstoread)) != EOI_CODE) {
-      if (currentcode == CLEAR_CODE) {
-        symboltable = new byte[4096][];
+    while((currentCode = bb.getBits(bitsToRead)) != EOI_CODE) {
+      if (currentCode == CLEAR_CODE) {
+        symbolTable = new byte[4096][];
         for (int i = 0; i < 256; i++) {
-          symboltable[i] = new byte[] { (byte) i };
+          symbolTable[i] = new byte[] { (byte) i };
         }
-        nextsymbol = 258;
-        bitstoread = 9;
-        currentcode = bb.getBits(bitstoread);
+        nextSymbol = 258;
+        bitsToRead = 9;
+        currentCode = bb.getBits(bitsToRead);
 
-        if (currentcode == EOI_CODE || currentcode == -1) {
+        if (currentCode == EOI_CODE || currentCode == -1) {
           break;
         }
-        out.write(symboltable[currentcode], 0,
-          symboltable[currentcode].length);
-        oldcode = currentcode;
+        out.write(symbolTable[currentCode], 0,
+          symbolTable[currentCode].length);
+        oldCode = currentCode;
       }
       else {
-        //System.out.println("Handling: " + currentcode + " " + nextsymbol);
-        //System.out.print("Current: " + currentcode + " Old: " + oldcode);
-        if (currentcode < nextsymbol) {
+        //System.out.println("Handling: " + currentCode + " " + nextSymbol);
+        //System.out.print("Current: " + currentCode + " Old: " + oldCode);
+        if (currentCode < nextSymbol) {
           //System.out.println("In table");
-          out.write(symboltable[currentcode], 0,
-            symboltable[currentcode].length);
+          out.write(symbolTable[currentCode], 0,
+            symbolTable[currentCode].length);
           //System.out.print(" Out: ");
-          for (int j = 0; j < symboltable[currentcode].length ; j++) {
-            //System.out.print(symboltable[currentcode][j]);
+          for (int j = 0; j < symbolTable[currentCode].length ; j++) {
+            //System.out.print(symbolTable[currentCode][j]);
           }
 
           symbol.reset();
-          symbol.write(symboltable[oldcode], 0, symboltable[oldcode].length);
-          symbol.write(symboltable[currentcode], 0, 1);
-          symboltable[nextsymbol] = symbol.toByteArray();
-          for (int d = 0; d < symboltable[nextsymbol].length ; d++) {
-            //System.out.print(symboltable[nextsymbol][d]);
+          symbol.write(symbolTable[oldCode], 0, symbolTable[oldCode].length);
+          symbol.write(symbolTable[currentCode], 0, 1);
+          symbolTable[nextSymbol] = symbol.toByteArray();
+          for (int d = 0; d < symbolTable[nextSymbol].length ; d++) {
+            //System.out.print(symbolTable[nextSymbol][d]);
           }
           //System.out.println(" ");
-          nextsymbol++;
-          oldcode = currentcode;
+          nextSymbol++;
+          oldCode = currentCode;
         }
         else {
           //System.out.println("Out of table");
-          //System.out.println("Code: " + oldcode);
-          out.write(symboltable[oldcode], 0, symboltable[oldcode].length);
-          out.write(symboltable[oldcode], 0, 1); // probably not right
+          //System.out.println("Code: " + oldCode);
+          out.write(symbolTable[oldCode], 0, symbolTable[oldCode].length);
+          out.write(symbolTable[oldCode], 0, 1); // probably not right
           symbol.reset();
-          symbol.write(symboltable[oldcode], 0, symboltable[oldcode].length);
-          symbol.write(symboltable[oldcode], 0, 1); // probably not right
-          symboltable[nextsymbol] = symbol.toByteArray();
-          oldcode=currentcode;
-          nextsymbol++;
+          symbol.write(symbolTable[oldCode], 0, symbolTable[oldCode].length);
+          symbol.write(symbolTable[oldCode], 0, 1); // probably not right
+          symbolTable[nextSymbol] = symbol.toByteArray();
+          oldCode=currentCode;
+          nextSymbol++;
         }
-        if (nextsymbol == 511) { bitstoread = 10; }
-        if (nextsymbol == 1023) { bitstoread = 11; }
-        if (nextsymbol == 2047) { bitstoread = 12; }
+        if (nextSymbol == 511) { bitsToRead = 10; }
+        if (nextSymbol == 1023) { bitsToRead = 11; }
+        if (nextSymbol == 2047) { bitsToRead = 12; }
       }
     }
     /*
     System.out.println(" *** Translation Table *** ");
-    for (int i = 258 ; i < nextsymbol ; i++) {
+    for (int i = 258 ; i < nextSymbol ; i++) {
       System.out.print(i + ": ");
-      for (int j = 0; j < symboltable[i].length ; j++) {
-        System.out.print(symboltable[i][j] + " ");
+      for (int j = 0; j < symbolTable[i].length ; j++) {
+        System.out.print(symbolTable[i][j] + " ");
       }
       System.out.println();
     }
@@ -359,60 +362,75 @@ public class TiffTools {
   }
 
   /** Translates up to the first 4 bytes of a byte array to an integer. */
-  public static int batoi (byte[] inp) {
+  public static int batoi(byte[] inp) {
     int len = inp.length>4?4:inp.length;
     int total = 0;
     for (int i = 0; i < len; i++) {
-      total = total + ((inp[i]<0?(int)256+inp[i]:(int)inp[i]) << (i * 8));
+      total += ((inp[i]<0?256+inp[i]:(int)inp[i]) << (i * 8));
     }
     return total;
   }
 
-  public static int[] getTIFFDimensions(RandomAccessFile readin)
+  public static int[] getTIFFDimensions(RandomAccessFile readIn)
     throws IOException
   {
     // For this one, we're going to read the entire IFD, get the x and y
     // coordinates out of it, and then just pass through the other IFDs to get
     // z. It is conceivable that the various images are of different sizes,
     // but for now I'm going to assume that they are not.
-    byte[] bytearray;
-    int nextoffset;
-    int numentries;
+    byte[] byteArray;
+    int nextOffset;
+    int numEntries;
     int frames = 1;
     Integer width, length;
-    Vector entrydata;
-    Hashtable ifdEntries = getIFDHash(readin);
+    Vector entryData;
+    Hashtable ifdEntries = getIFDHash(readIn);
 
-    nextoffset = ((Integer) ifdEntries.get(new Integer(424242))).intValue();
+    nextOffset =
+      ((Integer) ifdEntries.get(new Integer(IMPOSSIBLE_IFD))).intValue();
 
-    while (nextoffset != 0) {
+    while (nextOffset != 0) {
       frames++;
       try {
-        readin.seek(nextoffset);
+        readIn.seek(nextOffset);
       }
       catch (Exception e) {
         e.printStackTrace();
       }
-      bytearray = new byte[2];
-      readin.read(bytearray); // Get the number of directory entries in the IFD
-      numentries = batoi(bytearray);
-      readin.skipBytes(12 * numentries);
-      bytearray = new byte[4];
-      readin.read(bytearray);
-      nextoffset = batoi(bytearray);
+      byteArray = new byte[2];
+      readIn.read(byteArray); // Get the number of directory entries in the IFD
+      numEntries = batoi(byteArray);
+      readIn.skipBytes(12 * numEntries);
+      byteArray = new byte[4];
+      readIn.read(byteArray);
+      nextOffset = batoi(byteArray);
     }
 
     // This is the directory entry for width.
-    entrydata = (Vector) ifdEntries.get(new Integer(256));
-    width = (Integer) entrydata.get(2);
+    entryData = (Vector) ifdEntries.get(new Integer(256));
+    width = (Integer) entryData.get(2);
     // This is the directory entry for height.
-    entrydata = (Vector) ifdEntries.get(new Integer(257));
-    length = (Integer) entrydata.get(2);
+    entryData = (Vector) ifdEntries.get(new Integer(257));
+    length = (Integer) entryData.get(2);
     return new int[] {width.intValue(), length.intValue(), frames};
   }
 
-  public static void main(String args[]) throws IOException {
+  public static boolean isIFDArray(Hashtable h, int id) {
+    Integer k = new Integer(id);
+    Vector v = (Vector) h.get(k);
+    return (((Integer) v.get(1)).intValue() == 1);
+  }
 
+  public static int getIFDValue(Hashtable h, int id) {
+    Integer k = new Integer(id);
+    Vector v = (Vector) h.get(k);
+    return ((Integer) v.get(2)).intValue();
+  }
+
+
+  // -- Main method --
+
+  public static void main(String args[]) throws IOException {
     Vector v;
     Integer k;
     // File f = new File(args[0]);
@@ -459,18 +477,6 @@ public class TiffTools {
     }
     int[] a = getTIFFDimensions(f);
     System.out.println(a[0] + "x" + a[1] + "x" + a[2]);
-  }
-
-  public static boolean isIFDArray(Hashtable h, int id) {
-    Integer k = new Integer(id);
-    Vector v = (Vector) h.get(k);
-    return (((Integer) v.get(1)).intValue() == 1);
-  }
-
-  public static int getIFDValue(Hashtable h, int id) {
-    Integer k = new Integer(id);
-    Vector v = (Vector) h.get(k);
-    return ((Integer) v.get(2)).intValue();
   }
 
 }

@@ -28,67 +28,72 @@ package visad.data.tiff;
 
 import java.io.*;
 
-/** A class for reading arbitrary numbers of bits from an input stream. */
+/**
+ * A class for reading arbitrary numbers of bits from an input stream.
+ * @author Eric Kjellman egkjellman@wisc.edu
+ */
 public class BitBuffer {
 
+  private static final int BUFFER_SIZE = 8192;
+
   private InputStream in;
-  private int currentbyte;
-  private int currentbit;
-  private byte[] bytebuffer;
+  private int currentByte;
+  private int currentBit;
+  private byte[] byteBuffer;
   private int eofByte;
-  private int[] backmask;
-  private int[] frontmask;
+  private int[] backMask;
+  private int[] frontMask;
   private boolean eofFlag;
 
   public BitBuffer(InputStream i) throws IOException {
-    bytebuffer = new byte[8192];
+    byteBuffer = new byte[BUFFER_SIZE];
     in = i;
-    currentbyte = 0;
-    currentbit = 0;
-    eofByte = in.read(bytebuffer);
+    currentByte = 0;
+    currentBit = 0;
+    eofByte = in.read(byteBuffer);
     // System.out.println(" eofByte: " + eofByte);
     eofFlag = false;
     if (eofByte < 1) {
       eofFlag = true;
     }
-    backmask = new int[] {0x0000, 0x0001, 0x0003, 0x0007,
+    backMask = new int[] {0x0000, 0x0001, 0x0003, 0x0007,
                           0x000F, 0x001F, 0x003F, 0x007F};
-    frontmask = new int[] {0x0000, 0x0080, 0x00C0, 0x00E0,
+    frontMask = new int[] {0x0000, 0x0080, 0x00C0, 0x00E0,
                            0x00F0, 0x00F8, 0x00FC, 0x00FE};
   }
 
-  public long skipBits(long bitstoskip) throws IOException {
-    long skipbytes = (long) bitstoskip / 8;
-    long skipbits = bitstoskip % 8;
-    long newbyte = currentbyte + skipbytes;
-    long newbit = currentbit + skipbits;
-    long toreturn = bitstoskip;
-    if (newbit > 8) {
-      newbit -= 8;
-      newbyte++;
+  public long skipBits(long bitsToSkip) throws IOException {
+    long skipBytes = (long) bitsToSkip / 8;
+    long skipBits = bitsToSkip % 8;
+    long newByte = currentByte + skipBytes;
+    long newBit = currentBit + skipBits;
+    long toReturn = bitsToSkip;
+    if (newBit > 8) {
+      newBit -= 8;
+      newByte++;
     }
-    if (newbyte >= eofByte) {
+    if (newByte >= eofByte) {
       // The byte to skip to is out of the current block.
-      if (eofByte != 8192) {
+      if (eofByte != BUFFER_SIZE) {
         // meaning yeah, we actually reached the end of the file.
 //        System.out.println("1");
         eofFlag = true;
-        currentbyte = eofByte;
-        currentbit = 0;
-        toreturn = (8 - currentbit) + 8 * (eofByte - currentbyte);
+        currentByte = eofByte;
+        currentBit = 0;
+        toReturn = (8 - currentBit) + 8 * (eofByte - currentByte);
       }
       else {
         // meaning maybe we haven't, but we don't know, so trying to skip the
         // correct number of bytes.
 //        System.out.println("2");
-        newbyte -= 8192; // need to account for the current buffer.
+        newByte -= BUFFER_SIZE; // need to account for the current buffer.
         long skipped = -1;
         // This part may not suffice. Why would in.skip() fail?
         while(skipped != 0) {
-          skipped = in.skip(newbyte);
-          newbyte -= skipped;
+          skipped = in.skip(newByte);
+          newByte -= skipped;
         }
-        if (newbyte != 0) {
+        if (newByte != 0) {
           // When we are unable to skip all of the bytes, the
           // file is assumed to be finished.
 //          System.out.println("3");
@@ -97,98 +102,97 @@ public class BitBuffer {
         else {
           // Otherwise, we have bytes we can still read:
 //          System.out.println("4");
-          currentbyte = 0;
-          currentbit = (int) newbit;
-          eofByte = in.read(bytebuffer);
+          currentByte = 0;
+          currentBit = (int) newBit;
+          eofByte = in.read(byteBuffer);
         }
       }
     }
     else {
       // The byte to skip to is in the current block, and readable
-      currentbyte = (int) newbyte;
-      currentbit = (int) newbit;
+      currentByte = (int) newByte;
+      currentBit = (int) newBit;
     }
-    return toreturn;
+    return toReturn;
   }
 
-  public int getBits(int bitstoread)
+  public int getBits(int bitsToRead)
     throws IOException, FileNotFoundException
   {
-    if (bitstoread == 0) {
+    if (bitsToRead == 0) {
       return 0;
     }
     if (eofFlag) {
       return -1; // Already at end of file
     }
-    int tostore = 0;
-    while(bitstoread != 0  && !eofFlag) {
-//      System.out.println("byte: " + currentbyte + " bit: " + currentbit);
-      if (bitstoread >= 8 - currentbit) {
-        if (currentbit == 0) { // special
-          tostore = tostore << 8;
-          int cb = ((int) bytebuffer[currentbyte]);
-          tostore += (cb<0 ? (int) 256 + cb : (int) cb);
-          bitstoread -= 8;
-          currentbyte++;
+    int toStore = 0;
+    while(bitsToRead != 0  && !eofFlag) {
+//      System.out.println("byte: " + currentByte + " bit: " + currentBit);
+      if (bitsToRead >= 8 - currentBit) {
+        if (currentBit == 0) { // special
+          toStore = toStore << 8;
+          int cb = ((int) byteBuffer[currentByte]);
+          toStore += (cb<0 ? (int) 256 + cb : (int) cb);
+          bitsToRead -= 8;
+          currentByte++;
         }
         else {
-          tostore = tostore << (8 - currentbit);
-          tostore += ((int) bytebuffer[currentbyte]) &
-            backmask[8 - currentbit];
-          bitstoread -= (8 - currentbit);
-          currentbit = 0;
-          currentbyte++;
+          toStore = toStore << (8 - currentBit);
+          toStore += ((int) byteBuffer[currentByte]) &
+            backMask[8 - currentBit];
+          bitsToRead -= (8 - currentBit);
+          currentBit = 0;
+          currentByte++;
         }
       }
       else {
-//        System.out.println(bitstoread);
-        tostore = tostore << bitstoread;
+//        System.out.println(bitsToRead);
+        toStore = toStore << bitsToRead;
 
-        int cb = ((int) bytebuffer[currentbyte]);
+        int cb = ((int) byteBuffer[currentByte]);
         cb = (cb<0 ? (int) 256 + cb : (int) cb);
-        tostore += ((cb) & (0x00FF - frontmask[currentbit])) >>
-          (8 - (currentbit + bitstoread));
+        toStore += ((cb) & (0x00FF - frontMask[currentBit])) >>
+          (8 - (currentBit + bitsToRead));
 //        System.out.println("Byte : " + cb);
-//        System.out.println("Mask : " + (0x00FF - frontmask[currentbit] -
-//          backmask[8 - (currentbit + bitstoread)]));
-//        System.out.println("Shift: " + (8 - (currentbit + bitstoread)));
+//        System.out.println("Mask : " + (0x00FF - frontMask[currentBit] -
+//          backMask[8 - (currentBit + bitsToRead)]));
+//        System.out.println("Shift: " + (8 - (currentBit + bitsToRead)));
 //        System.out.println("Res 1: " + ((cb) & (0x00FF -
-//          frontmask[currentbit] - backmask[8 - (currentbit + bitstoread)])));
+//          frontMask[currentBit] - backMask[8 - (currentBit + bitsToRead)])));
 //        System.out.println("Res 2: " + (((cb) & (0x00FF -
-//          frontmask[currentbit])) >> (8 - (currentbit + bitstoread))));
+//          frontMask[currentBit])) >> (8 - (currentBit + bitsToRead))));
 
-        currentbit += bitstoread;
-        bitstoread = 0;
+        currentBit += bitsToRead;
+        bitsToRead = 0;
       }
-      if (currentbyte == 8192) {
-        eofByte = in.read(bytebuffer);
-        currentbyte = 0;
+      if (currentByte == BUFFER_SIZE) {
+        eofByte = in.read(byteBuffer);
+        currentByte = 0;
       }
-      if (currentbyte == eofByte) {
+      if (currentByte == eofByte) {
         eofFlag = true;
-        return tostore;
+        return toStore;
       }
     }
-    return tostore;
+    return toStore;
   }
 
-// Test method.
 
-/*
+  // -- Main method --
+
   public static void main(String[] args) throws Exception {
     BitBuffer b = new BitBuffer(new FileInputStream(new File(args[0])));
     int i = 1;
     int current = 0;
-    int numbits = Integer.parseInt(args[1]);
+    int numBits = Integer.parseInt(args[1]);
 //    System.out.println(args[0]);
 //    System.out.println(args[1]);
     while(current != -1) {
-      current = b.getBits(numbits);
+      current = b.getBits(numBits);
       System.out.println(i + ": " + current);
       i++;
 //      b.skipBits(65536);
     }
   }
-*/
 
 }

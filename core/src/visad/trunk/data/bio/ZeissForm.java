@@ -24,8 +24,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-// Heavily adapted from MetamorphForm.java
-
 package visad.data.bio;
 
 import visad.*;
@@ -33,112 +31,352 @@ import visad.data.*;
 import visad.data.tiff.*;
 import java.io.*;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.*;
 
-/** ZeissForm is the VisAD data adapter used by Zeiss files. */
-public class ZeissForm extends Form
-  implements FormFileInformer, FormBlockReader, MetadataReader
+/**
+ * ZeissForm is the VisAD data adapter used by Zeiss files.
+ * @author Eric Kjellman egkjellman@wisc.edu
+ */
+public class ZeissForm extends Form implements FormBlockReader,
+  FormFileInformer, FormProgressInformer, MetadataReader
 {
 
+  // -- Static fields --
+
   /** Form instantiation counter. */
-  private static int num = 0;
+  private static int formCount = 0;
 
-  // VisAD objects
-  private RealType frame, row, column, pixel, red, green, blue;
-  private FunctionType funcRowColPix, funcRowColRGB;
-  private FunctionType funcTimeRange;
-  private RealTupleType domainTuple, rgbTuple;
-  private visad.Set pixelSet;
-  private visad.Set timeSet;
-  private FlatField frameField;
-  private FieldImpl timeField;
+  /** Domain of 2-D image. */
+  private static RealTupleType domainTuple;
 
-  // contains currently referenced file information.
-  private RandomAccessFile r;
+  /** MathType of a 2-D image with a 1-D range. */
+  private static FunctionType funcRowColPix;
+
+  /** MathType of a 2-D image with a 3-D range. */
+  private static FunctionType funcRowColRGB;
+
+  static {
+    try {
+      RealType column = RealType.getRealType("ImageElement");
+      RealType row = RealType.getRealType("ImageLine");
+      domainTuple = new RealTupleType(column, row);
+
+      // for grayscale images
+      RealType pixel = RealType.getRealType("intensity");
+      funcRowColPix = new FunctionType(domainTuple, pixel);
+
+      // for color images
+      RealType red = RealType.getRealType("Red");
+      RealType green = RealType.getRealType("Green");
+      RealType blue = RealType.getRealType("Blue");
+      RealType[] rgb = new RealType[] {red, green, blue};
+      RealTupleType rgbPixelData = new RealTupleType(rgb);
+      funcRowColRGB = new FunctionType(domainTuple, rgbPixelData);
+    }
+    catch (VisADException exc) {
+      exc.printStackTrace();
+    }
+  }
+
+
+  // -- Fields --
+
+  /** Filename of current Zeiss LSM. */
   private String currentId;
-  private int dimensions[];
-  private int maxchannels;
-  private int offsets[];
-  private int actualimages[];
+
+  /** Input stream for current Zeiss LSM. */
+  private RandomAccessFile r;
+
+  /** XYZ dimensions of current Zeiss LSM. */
+  private int[] dimensions;
+
+  /** Domain set of current Zeiss LSM. */
+  private Linear2DSet pixelSet;
+
+  /** Offset for each block of current Zeiss LSM. */
+  private int[] offsets;
+
+  private int maxChannels;
+  private int[] actualImages;
+
+  /** Percent complete with current operation. */
+  private double percent;
 
 
   // -- Constructor --
 
-  /** Constructs a new Zeiss file form. */
+  /** Constructs a new Zeiss LSM file form. */
   public ZeissForm() {
-    super("ZeissForm" + num++);
-    try {
-      frame = RealType.getRealType("frame");
-      row = RealType.getRealType("ImageElement");
-      column = RealType.getRealType("ImageLine");
-      domainTuple = new RealTupleType(row, column);
+    super("ZeissForm" + formCount++);
+  }
 
-      // For grayscale images
-      pixel = RealType.getRealType("pixel");
-      funcRowColPix = new FunctionType(domainTuple, pixel);
 
-      // For color images
-      RealTupleType rgbPixelData = new RealTupleType(new RealType[] {
-        RealType.getRealType("Red"),
-        RealType.getRealType("Green"),
-        RealType.getRealType("Blue")
-      });
-      funcRowColRGB = new FunctionType(domainTuple, rgbPixelData);
-      funcTimeRange = new FunctionType(frame, funcRowColPix);
+  // -- FormNode API methods --
+
+  /** Saves a VisAD Data object to Zeiss LSM format at the given location. */
+  public void save(String id, Data data, boolean replace)
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
+    throw new UnimplementedException("ZeissForm.save");
+  }
+
+  /**
+   * Adds data to an existing Zeiss LSM file.
+   *
+   * @exception BadFormException Always thrown (this method not implemented).
+   */
+  public void add(String id, Data data, boolean replace)
+    throws BadFormException
+  {
+    throw new BadFormException("ZeissForm.add");
+  }
+
+  /**
+   * Opens an existing Zeiss LSM file from the given location.
+   *
+   * @return VisAD Data object containing Zeiss LSM data.
+   */
+  public DataImpl open(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    percent = 0;
+    int nImages = getBlockCount(id);
+    FieldImpl[] fields = new FieldImpl[nImages];
+    for (int i=0; i<nImages; i++) {
+      fields[i] = (FieldImpl) open(id, i);
+      percent = (double) (i + 1) / nImages;
     }
-    catch (Exception e) { // Should not happen, but is required.
+
+    DataImpl data;
+    if (nImages == 1) data = fields[0];
+    else {
+      // combine data stack into index function
+      RealType index = RealType.getRealType("index");
+      FunctionType indexFunction =
+        new FunctionType(index, fields[0].getType());
+      Integer1DSet indexSet = new Integer1DSet(nImages);
+      FieldImpl indexField = new FieldImpl(indexFunction, indexSet);
+      indexField.setSamples(fields, false);
+      data = indexField;
+    }
+    close();
+    percent = -1;
+    return data;
+  }
+
+  /**
+   * Opens an existing Zeiss LSM file from the given URL.
+   *
+   * @return VisAD Data object containing Zeiss LSM data.
+   * @exception UnimplementedException Always thrown (method not implemented).
+   */
+  public DataImpl open(URL url)
+    throws BadFormException, VisADException, IOException
+  {
+    throw new BadFormException("ZeissForm.open(URL)");
+  }
+
+  /** Returns the data forms that are compatible with a data object. */
+  public FormNode getForms(Data data) {
+    return null;
+  }
+
+
+  // -- FormBlockReader methods --
+
+  /**
+   * Opens the Zeiss LSM file with the file name specified
+   * by id, retrieving only the frame number given.
+   * @return a DataImpl containing the specified frame
+   */
+  public DataImpl open(String id, int blockNumber)
+    throws BadFormException, IOException, VisADException
+  {
+    if (id != currentId) initFile(id);
+
+    Hashtable ifdEntries = TiffTools.getIFDHash(r, actualImages[blockNumber]);
+    Vector entryData;
+    byte[] byteArray;
+    int stripOffsets, stripOffsetCount, stripBytes;
+    float[] toreturn;
+
+    // This is the directory entry for strip offsets
+    entryData = (Vector) ifdEntries.get(new Integer(273));
+    stripOffsetCount = ((Integer) entryData.get(1)).intValue();
+    stripOffsets = ((Integer) entryData.get(2)).intValue();
+    // This is the directory entry for strip bytes
+    entryData = (Vector) ifdEntries.get(new Integer(279));
+    stripBytes = ((Integer) entryData.get(2)).intValue();
+    int[][] stripInfo = new int[stripOffsetCount][2];
+    int current;
+    int total = 0;
+
+    // If there is only one strip offset in the IFD, it will contain the data
+    // itself.
+    if (stripOffsetCount == 1) {
+      stripInfo[0][0] = stripOffsets;
+      stripInfo[0][1] = stripBytes;
+      total = stripBytes;
+    }
+    else {
+      // Otherwise, it will contain a pointer, and we need to read the data out
+      r.seek(stripOffsets);
+      byteArray = new byte[4];
+      for(int i = 0; i < stripOffsetCount; i++) {
+        r.read(byteArray);
+        stripInfo[i][0] = batoi(byteArray);
+      }
+      r.seek(stripBytes);
+      for(int i = 0; i < stripOffsetCount; i++) {
+        r.read(byteArray);
+        current = batoi(byteArray);
+        stripInfo[i][1] = current;
+        total += current;
+      }
+    }
+    // Then, create the array to return, and read the data in from the
+    // file.
+    byte[] imageData = new byte[total];
+    current = 0;
+    //System.out.println(" Image Number: " + blockNumber);
+    for(int i = 0; i < stripOffsetCount; i++) {
+      r.seek(stripInfo[i][0]);
+      //System.out.println("   Reading from: " + r.getFilePointer());
+      byteArray = new byte[stripInfo[i][1]];
+      r.read(byteArray);
+      // System.out.println("   Read " + byteArray.length + " bytes");
+      if (TiffTools.getIFDValue(ifdEntries, 259) == 5) {
+        byteArray = TiffTools.lzwUncompress(byteArray);
+      }
+      System.arraycopy(byteArray, 0, imageData, current, byteArray.length);
+      current += byteArray.length;
+      // read reads in as bytes (signed), we need them as unsigned floats.
+    }
+
+    entryData = (Vector) ifdEntries.get(new Integer(262));
+    int photoint = ((Integer) entryData.get(2)).intValue();
+    current = 0;
+    //System.out.println(" photoint: " + photoint);
+    FlatField frameField = null;
+    if (photoint == 2) {
+      int[] bitsPerSample =
+         TiffTools.getIFDArray(r, (Vector) ifdEntries.get(new Integer(258)));
+      BitBuffer bb = new BitBuffer(new ByteArrayInputStream(imageData));
+
+      float[][] flatSamples =
+        new float[bitsPerSample.length][dimensions[0] * dimensions[1]];
+      if (TiffTools.getIFDValue(ifdEntries, 317) == 2) { // use differencing
+        int currentVal, currentByte = 0;
+        for (int c = 0; c < bitsPerSample.length; c++) {
+          for (int y = 0; y < dimensions[1]; y++) {
+            currentVal = 0;
+            for (int x = 0; x < dimensions[0]; x++) {
+              if (bitsPerSample[c] > 0) {
+                currentVal += imageData[currentByte];
+                currentVal = currentVal % 256;
+                if (currentVal < 0) {
+                  currentVal += 256;
+                }
+                flatSamples[c][x + y*dimensions[0]] = currentVal;
+                currentByte++;
+              }
+              else {
+                flatSamples[c][x + y*dimensions[0]] = 0;
+              }
+            }
+          }
+        }
+      }
+      else {
+        for (int c = 0; c < bitsPerSample.length; c++) {
+          for (int y = 0; y < dimensions[1]; y++) {
+            for (int x = 0; x < dimensions[0]; x++) {
+              flatSamples[c][x + y*dimensions[0]] =
+                bb.getBits(bitsPerSample[c]);
+            }
+          }
+        }
+      }
+      frameField = new FlatField(funcRowColRGB, pixelSet);
+      frameField.setSamples(flatSamples);
+    }
+    else if (photoint == 1) {
+      int bitsPerSample = TiffTools.getIFDValue(ifdEntries, 258);
+      BitBuffer bb = new BitBuffer(new ByteArrayInputStream(imageData));
+      // could be broken, assumes 8 bit depth.
+      float[][] flatSamples = new float[1][dimensions[0] * dimensions[1]];
+      if (TiffTools.getIFDValue(ifdEntries, 317) == 2) { // use differencing
+        int currentVal, currentByte = 0;
+        for (int y = 0; y < dimensions[1]; y++) {
+          currentVal = 0;
+          for (int x = 0; x < dimensions[0]; x++) {
+            currentVal += imageData[currentByte];
+            currentVal = currentVal % 256;
+            if (currentVal < 0) {
+              currentVal += 256;
+            }
+            flatSamples[0][x + y*dimensions[0]] = currentVal;
+            currentByte++;
+          }
+        }
+      }
+      else {
+        for (int y = 0; y < dimensions[1]; y++) {
+          for (int x = 0; x < dimensions[0]; x++) {
+            flatSamples[0][x + y*dimensions[0]] = bb.getBits(bitsPerSample);
+          }
+        }
+      }
+      if (maxChannels == 1) {
+        frameField = new FlatField(funcRowColPix, pixelSet);
+        frameField.setSamples(flatSamples, false);
+      }
+      else {
+        float[][] flatSamp = new float[3][];
+        flatSamp[0] = flatSamp[1] = flatSamp[2] = flatSamples[0];
+        frameField = new FlatField(funcRowColRGB, pixelSet);
+        frameField.setSamples(flatSamp, false);
+      }
+    }
+    else {
+      throw new BadFormException("Invalid Photometric Interpretation");
+    }
+
+    return frameField;
+  }
+
+  /** Returns the number of frames in the specified Zeiss file. */
+  public int getBlockCount(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    if (id != currentId) initFile(id);
+    return dimensions[2];
+  }
+
+  /** Closes the current form. */
+  public void close() {
+    try {
+      if (r == null) {
+        return;
+      }
+      r.close();
+      r = null;
+    }
+    catch (Exception e) {
       e.printStackTrace();
     }
   }
 
-  private void initFile(String id)
-    throws IOException, VisADException, BadFormException {
-    r = new RandomAccessFile(id, "r");
-    currentId = id;
-    dimensions = TiffTools.getTIFFDimensions(r);
-    // System.out.println(dimensions[0] + " x " +
-    //   dimensions[1] + " x " + dimensions[2]);
-    pixelSet = new Linear2DSet(domainTuple, 0, dimensions[0] - 1,
-      dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
-    timeSet = new Integer1DSet(frame,  dimensions[2]);
-    frameField = new FlatField(funcRowColPix, pixelSet);
-    timeField = new FieldImpl(funcTimeRange, timeSet);
-    Hashtable temp = new Hashtable();
-    maxchannels = 0;
-    int[] tempia;
-    int comp;
-    actualimages = new int[dimensions[2]];
-    int imagenum = 0;
-    for (int i = 0; i < dimensions[2]; i++) {
-      temp = TiffTools.getIFDHash(r, i);
-      if (TiffTools.getIFDValue(temp, 254) == 0) {
-        actualimages[imagenum] = i;
-        imagenum++;
-      }
-      tempia =
-          TiffTools.getIFDArray(r, (Vector) temp.get(new Integer(258)));
-      comp = TiffTools.getIFDValue(temp, 259);
-      if (comp != 1) {
-        // System.out.println(" Compression used: " + comp);
-      }
-      if (tempia.length > maxchannels) {
-        maxchannels = tempia.length;
-      }
-    }
-    dimensions[2] = imagenum;
 
-  }
-
-// -- FormFileInformer methods --
+  // -- FormFileInformer methods --
 
   /** Checks if the given string is a valid filename for a Zeiss File */
   public boolean isThisType(String name) {
     return (name.toLowerCase().endsWith(".lsm"));
   }
 
-  /** Checks if the given block is a valid header for a Zeiss file.
-   */
-
+  /** Checks if the given block is a valid header for a Zeiss file. */
   public boolean isThisType(byte[] block) {
     if (block.length < 3) { return false; }
     if (block[0] != 73) { return false; } // denotes little-endian
@@ -176,55 +414,86 @@ public class ZeissForm extends Form
 
   /** Returns the default file suffixes for the Zeiss file format. */
   public String[] getDefaultSuffixes() {
-    return new String[] {"lsm", ""};
+    return new String[] {"lsm"};
   }
 
-  // -- API methods --
+
+  // -- FormProgressInformer methods --
 
   /**
-   * Saves a VisAD Data object to Zeiss
-   * format at the given location.
+   * Gets the percentage complete of the form's current operation.
+   * @return the percentage complete (0.0 - 100.0), or Double.NaN
+   *         if no operation is currently taking place
    */
-  public void save(String id, Data data, boolean replace)
-    throws UnimplementedException
-  {
-    throw new UnimplementedException(); // This is not implemented
-  }
+  public double getPercentComplete() { return percent; }
 
-  /**
-   * Adds data to an existing Zeiss file.
-   *
-   * @exception BadFormException Always thrown (this method not implemented).
-   */
-  public void add(String id, Data data, boolean replace)
-    throws BadFormException
-  {
-    throw new BadFormException("ZeissForm.add");
-  }
 
-  /**
-   * Opens an existing Zeiss file from the given location.
-   *
-   * @return VisAD Data object containing Zeiss data.
-   */
-  public DataImpl open(String id)
+  // -- MetadataReader API methods --
+
+
+  /** Creates a hashtable containing metadata info from the file. */
+  public Hashtable getMetadata(String id)
     throws BadFormException, IOException, VisADException
   {
-
-    if (id != currentId) {
-      initFile(id);
-    }
-
-    // cycle through all frames, get each frame, add it to the timeField.
-    for (int z = 0; z < dimensions[2]; z++) {
-      frameField = (FlatField) open(id, z);
-      timeField.setSample(z, frameField);
-    }
-    return timeField;
+    if (id != currentId) initFile(id);
+    // TODO
+    return new Hashtable();
   }
 
-  private static int batoi (byte[] inp) {
-    /* Translates up to the first 4 bytes of a byte array to an integer */
+  /** Returns a single Metadata value from the file. */
+  public Object getMetadataValue(String id, String field)
+    throws BadFormException, IOException, VisADException
+  {
+    Hashtable h = getMetadata(id);
+    try {
+      return h.get(field);
+    }
+    catch (NullPointerException e) {
+      return null;
+    }
+  }
+
+
+  // -- Helper methods --
+
+  private void initFile(String id)
+    throws IOException, VisADException, BadFormException
+  {
+    r = new RandomAccessFile(id, "r");
+    currentId = id;
+    dimensions = TiffTools.getTIFFDimensions(r);
+    // System.out.println(dimensions[0] + " x " +
+    //   dimensions[1] + " x " + dimensions[2]);
+    pixelSet = new Linear2DSet(domainTuple, 0, dimensions[0] - 1,
+      dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
+
+    Hashtable temp = new Hashtable();
+    maxChannels = 0;
+    int[] tempArray;
+    int comp;
+    actualImages = new int[dimensions[2]];
+    int imageNum = 0;
+    for (int i = 0; i < dimensions[2]; i++) {
+      temp = TiffTools.getIFDHash(r, i);
+      if (TiffTools.getIFDValue(temp, 254) == 0) {
+        actualImages[imageNum] = i;
+        imageNum++;
+      }
+      tempArray =
+          TiffTools.getIFDArray(r, (Vector) temp.get(new Integer(258)));
+      comp = TiffTools.getIFDValue(temp, 259);
+      if (comp != 1) {
+        // System.out.println(" Compression used: " + comp);
+      }
+      if (tempArray.length > maxChannels) {
+        maxChannels = tempArray.length;
+      }
+    }
+    dimensions[2] = imageNum;
+  }
+
+  /** Translates up to the first 4 bytes of a byte array to an integer. */
+  private static int batoi(byte[] inp) {
     int len = inp.length>4?4:inp.length;
     int total = 0;
     for (int i = 0; i < len; i++) {
@@ -233,269 +502,47 @@ public class ZeissForm extends Form
     return total;
   }
 
-  /** Gets Forms(?)
-   *  @return Always returns null
-   */
-  public FormNode getForms(Data data) {
-    return null;
-  }
-
-  /**
-   * Opens an existing Zeiss file from the given URL.
-   *
-   * @return VisAD Data object containing Zeiss data.
-   * @exception UnimplementedException Always thrown (this method not
-   * implemented).
-   */
-  public DataImpl open(URL url)
-    throws UnimplementedException
-  {
-    throw new UnimplementedException(); // This is not implemented
-  }
-
-
-  // -- FormBlockReader methods --
-
-  /** Opens the Zeiss file with the file name specified
-   *  by id, retrieving only the frame number given.
-   *  @return a DataImpl containing the specified frame
-   */
-
-  public DataImpl open(String id, int block_number)
-    throws BadFormException, IOException, VisADException
-  {
-
-    if (id != currentId) {
-      initFile(id);
-    }
-
-    Hashtable ifdEntries = TiffTools.getIFDHash(r, actualimages[block_number]);
-    Vector entrydata;
-    byte[] bytearray;
-    int stripoffsets, stripoffsetcount, stripbytes;
-    float[] toreturn;
-
-    // This is the directory entry for strip offsets
-    entrydata = (Vector) ifdEntries.get(new Integer(273));
-    stripoffsetcount = ((Integer) entrydata.get(1)).intValue();
-    stripoffsets = ((Integer) entrydata.get(2)).intValue();
-    // This is the directory entry for strip bytes
-    entrydata = (Vector) ifdEntries.get(new Integer(279));
-    stripbytes = ((Integer) entrydata.get(2)).intValue();
-    int[][] stripinfo = new int[stripoffsetcount][2];
-    int current;
-    int total = 0;
-
-    // If there is only one strip offset in the IFD, it will contain the data
-    // itself.
-    if (stripoffsetcount == 1) {
-      stripinfo[0][0] = stripoffsets;
-      stripinfo[0][1] = stripbytes;
-      total = stripbytes;
-    }
-    else {
-      // Otherwise, it will contain a pointer, and we need to read the data out
-      r.seek(stripoffsets);
-      bytearray = new byte[4];
-      for(int i = 0; i < stripoffsetcount; i++) {
-        r.read(bytearray);
-        stripinfo[i][0] = batoi(bytearray);
-      }
-      r.seek(stripbytes);
-      for(int i = 0; i < stripoffsetcount; i++) {
-        r.read(bytearray);
-        current = batoi(bytearray);
-        stripinfo[i][1] = current;
-        total += current;
-      }
-    }
-    // Then, create the array to return, and read the data in from the
-    // file.
-    byte[] imagedata = new byte[total];
-    current = 0;
-    //System.out.println(" Image Number: " + block_number);
-    for(int i = 0; i < stripoffsetcount; i++) {
-      r.seek(stripinfo[i][0]);
-      //System.out.println("   Reading from: " + r.getFilePointer());
-      bytearray = new byte[stripinfo[i][1]];
-      r.read(bytearray);
-      // System.out.println("   Read " + bytearray.length + " bytes");
-      if (TiffTools.getIFDValue(ifdEntries, 259) == 5) {
-        bytearray = TiffTools.lzwUncompress(bytearray);
-      }
-      System.arraycopy(bytearray, 0, imagedata, current, bytearray.length);
-      current += bytearray.length;
-      // read reads in as bytes (signed), we need them as unsigned floats.
-    }
-
-    entrydata = (Vector) ifdEntries.get(new Integer(262));
-    int photoint = ((Integer) entrydata.get(2)).intValue();
-    current = 0;
-    //System.out.println(" photoint: " + photoint);
-    if (photoint == 2) {
-      int[] bitspersample =
-         TiffTools.getIFDArray(r, (Vector) ifdEntries.get(new Integer(258)));
-      BitBuffer bb = new BitBuffer(new ByteArrayInputStream(imagedata));
-
-      float[][] flatsamples =
-        new float[bitspersample.length][dimensions[0] * dimensions[1]];
-      if (TiffTools.getIFDValue(ifdEntries, 317) == 2) { // use differencing
-        int currentval, currentbyte = 0;
-        for (int c = 0; c < bitspersample.length; c++) {
-          for (int y = 0; y < dimensions[1]; y++) {
-            currentval = 0;
-            for (int x = 0; x < dimensions[0]; x++) {
-              if (bitspersample[c] > 0) {
-                currentval += imagedata[currentbyte];
-                currentval = currentval % 256;
-                if (currentval < 0) {
-                  currentval += 256;
-                }
-                flatsamples[c][x + y*dimensions[0]] = currentval;
-                currentbyte++;
-              }
-              else {
-                flatsamples[c][x + y*dimensions[0]] = 0;
-              }
-            }
-          }
-        }
-      }
-      else {
-        for (int c = 0; c < bitspersample.length; c++) {
-          for (int y = 0; y < dimensions[1]; y++) {
-            for (int x = 0; x < dimensions[0]; x++) {
-              flatsamples[c][x + y*dimensions[0]] =
-                bb.getBits(bitspersample[c]);
-            }
-          }
-        }
-      }
-      frameField = new FlatField(funcRowColRGB, pixelSet);
-      frameField.setSamples(flatsamples);
-    }
-    else if (photoint == 1) {
-      int bitspersample = TiffTools.getIFDValue(ifdEntries, 258);
-      BitBuffer bb = new BitBuffer(new ByteArrayInputStream(imagedata));
-      // could be broken, assumes 8 bit depth.
-      float[][] flatsamples = new float[1][dimensions[0] * dimensions[1]];
-      if (TiffTools.getIFDValue(ifdEntries, 317) == 2) { // use differencing
-        int currentval, currentbyte = 0;
-        for (int y = 0; y < dimensions[1]; y++) {
-          currentval = 0;
-          for (int x = 0; x < dimensions[0]; x++) {
-            currentval += imagedata[currentbyte];
-            currentval = currentval % 256;
-            if (currentval < 0) {
-              currentval += 256;
-            }
-            flatsamples[0][x + y*dimensions[0]] = currentval;
-            currentbyte++;
-          }
-        }
-      }
-      else {
-        for (int y = 0; y < dimensions[1]; y++) {
-          for (int x = 0; x < dimensions[0]; x++) {
-            flatsamples[0][x + y*dimensions[0]] = bb.getBits(bitspersample);
-          }
-        }
-      }
-      if (maxchannels == 1) {
-        frameField = new FlatField(funcRowColPix, pixelSet);
-        frameField.setSamples(flatsamples, false);
-      }
-      else {
-        float[][] flatsamp = new float[3][];
-        flatsamp[0] = flatsamp[1] = flatsamp[2] = flatsamples[0];
-        frameField = new FlatField(funcRowColRGB, pixelSet);
-        frameField.setSamples(flatsamp, false);
-      }
-    }
-    else {
-      throw new BadFormException("Invalid Photometric Interpretation");
-    }
-
-    return frameField;
-  }
-
-  /** Returns the number of frames in the specified Zeiss file. */
-  public int getBlockCount(String id)
-    throws BadFormException, IOException, VisADException
-  {
-    if (id != currentId) {
-      initFile(id);
-    }
-    return dimensions[2];
-  }
-
-  /** Closes the current form. */
-  public void close() {
-    try {
-      if (r == null) {
-        return;
-      }
-      r.close();
-      r = null;
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  /** Creates a hashtable containing metadata info from the file. */
-  public Hashtable getMetadata(String id)
-    throws BadFormException, IOException, VisADException
-  {
-    Hashtable metadata = new Hashtable();
-    if (id != currentId) {
-      initFile(id);
-    }
-
-    // TODO
-
-    return metadata;
-  }
-
-  /** Returns a single Metadata value from the file. */
-  public Object getMetadataValue(String id, String field)
-    throws BadFormException, IOException, VisADException {
-
-    Hashtable h = getMetadata(id);
-    try {
-      return h.get(field);
-    }
-    catch (NullPointerException e) {
-      return null;
-    }
-
-  }
-
 
   // -- Main method --
 
-  public static void main(String[] args) throws Exception {
-    ZeissForm reader = new ZeissForm();
-    System.out.println("Opening " + args[0] + "...");
-    Data d = reader.open(args[0]);
-    System.out.println(d.getType());
+  /**
+   * Run 'java visad.data.bio.ZeissForm in_file'
+   * to test read a Zeiss LSM data file.
+   */
+  public static void main(String[] args)
+    throws VisADException, IOException
+  {
+    if (args == null || args.length < 1) {
+      System.out.println("To test read a Zeiss LSM file, run:");
+      System.out.println("  java visad.data.bio.ZeissForm in_file");
+      System.exit(2);
+    }
+
+    // Test read Zeiss LSM file
+    ZeissForm form = new ZeissForm();
+    System.out.print("Reading " + args[0] + " metadata ");
+    Hashtable meta = form.getMetadata(args[0]);
+    System.out.println("[done]");
     System.out.println();
-    System.out.println("Reading metadata pairs...");
-    Hashtable metadata = reader.getMetadata(args[0]);
-    Enumeration e = metadata.keys();
-    while (e.hasMoreElements()) {
-      String key = (String) e.nextElement();
-      System.out.println(key + " = " + metadata.get(key));
+
+    Enumeration e = meta.keys();
+    Vector v = new Vector();
+    while (e.hasMoreElements()) v.add(e.nextElement());
+    String[] keys = new String[v.size()];
+    v.copyInto(keys);
+    Arrays.sort(keys);
+
+    for (int i=0; i<keys.length; i++) {
+      System.out.println(keys[i] + ": " + meta.get(keys[i]));
     }
-    /*
-    RandomAccessFile raf = new RandomAccessFile(args[0], "r");
-    int blah[] = TiffTools.getTIFFDimensions(raf);
-    for (int i = 0; i < blah.length; i++) {
-      //System.out.println(blah[i] + " ");
-    }
-    //System.out.println("photo interp: " +
-    //  TiffTools.getPhotometricInterpretation(raf));
-    */
+    System.out.println();
+
+    System.out.print("Reading " + args[0] + " pixel data ");
+    Data data = form.open(args[0]);
+    System.out.println("[done]");
+
+    System.out.println("MathType =\n" + data.getType());
+    System.exit(0);
   }
 
 }

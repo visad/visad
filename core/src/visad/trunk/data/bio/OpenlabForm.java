@@ -24,78 +24,93 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-// Heavily adapted from MetamorphForm.java
 package visad.data.bio;
 
 import java.awt.Dimension;
 import java.io.*;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.*;
 
 import visad.*;
 import visad.data.*;
 import visad.data.qt.*;
 
-/** OpenlabForm is the VisAD data adapter used by Openlab files. */
+/**
+ * OpenlabForm is the VisAD data adapter used for Openlab LIFF files.
+ * @author Eric Kjellman egkjellman@wisc.edu
+ */
 public class OpenlabForm extends Form
-  implements FormFileInformer, FormBlockReader
+  implements FormBlockReader, FormFileInformer, FormProgressInformer
 {
+
+  // -- Static fields --
+
+  /** Form instantiation counter. */
+  private static int formCount = 0;
+
+  /** Domain of 2-D image. */
+  private static RealTupleType domainTuple;
+
+  /** MathType of a 2-D image with a 1-D range. */
+  private static FunctionType funcRowColPix;
+
+  /** MathType of a 2-D image with a 3-D range. */
+  private static FunctionType funcRowColRGB;
+
+  static {
+    try {
+      RealType column = RealType.getRealType("ImageElement");
+      RealType row = RealType.getRealType("ImageLine");
+      domainTuple = new RealTupleType(column, row);
+
+      // for grayscale images
+      RealType pixel = RealType.getRealType("intensity");
+      funcRowColPix = new FunctionType(domainTuple, pixel);
+
+      // for color images
+      RealType red = RealType.getRealType("Red");
+      RealType green = RealType.getRealType("Green");
+      RealType blue = RealType.getRealType("Blue");
+      RealType[] rgb = new RealType[] {red, green, blue};
+      RealTupleType rgbPixelData = new RealTupleType(rgb);
+      funcRowColRGB = new FunctionType(domainTuple, rgbPixelData);
+    }
+    catch (VisADException exc) {
+      exc.printStackTrace();
+    }
+  }
+
 
   // -- Fields --
 
-  /** Form instantiation counter. */
-  private static int num = 0;
-
-  // VisAD objects
-  private RealType frame, row, column, pixel, red, green, blue;
-  private FunctionType funcRcP, funcRcRgb;
-  private FunctionType funcTRange;
-  private RealTupleType domainTuple, rgbTuple;
-  private visad.Set pixelSet;
-  private visad.Set timeSet;
-  private FlatField frameField;
-  private FieldImpl timeField;
-
-  // contains currently referenced file information.
-  private RandomAccessFile r;
+  /** Filename of current Openlab LIFF. */
   private String currentId;
 
-  // dimensions[0] and dimensions[1] may not be used.
-  private int dimensions[] = new int[3];
-  private int[] offsets;
-  private int[] imagetype;
+  /** Input stream for current Openlab LIFF. */
+  private RandomAccessFile r;
 
-  /** Is there color data in this file? */
+  /** Number of blocks for current Openlab LIFF. */
+  private int numBlocks;
+
+  /** Offset for each block of current Openlab LIFF. */
+  private int[] offsets;
+
+  /** Image type for each block of current Openlab LIFF. */
+  private int[] imageType;
+
+  /** Indicates whether there is any color data in current Openlab LIFF. */
   private boolean isColor;
+
+  /** Percent complete with current operation. */
+  private double percent;
 
 
   // -- Constructor --
 
   /** Constructs a new Openlab file form. */
   public OpenlabForm() {
-    super("OpenlabForm" + num++);
-    try {
-      frame = RealType.getRealType("frame");
-      row = RealType.getRealType("ImageElement");
-      column = RealType.getRealType("ImageLine");
-      domainTuple = new RealTupleType(row, column);
-
-      // For grayscale images
-      pixel = RealType.getRealType("pixel");
-      funcRcP = new FunctionType(domainTuple, pixel);
-
-      // For color images
-      RealTupleType rgbPixelData = new RealTupleType(new RealType[] {
-        RealType.getRealType("Red"),
-        RealType.getRealType("Green"),
-        RealType.getRealType("Blue")
-      });
-      funcRcRgb = new FunctionType(domainTuple, rgbPixelData);
-      funcTRange = new FunctionType(frame, funcRcP);
-    }
-    catch (Exception e) { // Should not happen, but is required.
-      e.printStackTrace();
-    }
+    super("OpenlabForm" + formCount++);
   }
 
 
@@ -147,9 +162,9 @@ public class OpenlabForm extends Form
    * format at the given location.
    */
   public void save(String id, Data data, boolean replace)
-    throws UnimplementedException
+    throws BadFormException, IOException, RemoteException, VisADException
   {
-    throw new UnimplementedException(); // This is not implemented
+    throw new UnimplementedException("OpenlabForm.save");
   }
 
   /**
@@ -171,16 +186,29 @@ public class OpenlabForm extends Form
   public DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) {
-      initFile(id);
+    percent = 0;
+    int nImages = getBlockCount(id);
+    FieldImpl[] fields = new FieldImpl[nImages];
+    for (int i=0; i<nImages; i++) {
+      fields[i] = (FieldImpl) open(id, i);
+      percent = (double) (i + 1) / nImages;
     }
 
-    // cycle through all frames, get each frame, add it to the timeField.
-    for (int z = 0; z < dimensions[2]; z++) {
-      frameField = (FlatField) open(id, z);
-      timeField.setSample(z, frameField);
+    DataImpl data;
+    if (nImages == 1) data = fields[0];
+    else {
+      // combine data stack into index function
+      RealType index = RealType.getRealType("index");
+      FunctionType indexFunction =
+        new FunctionType(index, fields[0].getType());
+      Integer1DSet indexSet = new Integer1DSet(nImages);
+      FieldImpl indexField = new FieldImpl(indexFunction, indexSet);
+      indexField.setSamples(fields, false);
+      data = indexField;
     }
-    return timeField;
+    close();
+    percent = Double.NaN;
+    return data;
   }
 
   /** Gets Forms(?)
@@ -205,68 +233,66 @@ public class OpenlabForm extends Form
 
   // -- FormBlockReader API methods --
 
-  /** Opens the Openlab file with the file name specified
-   *  by id, retrieving only the frame number given.
-   *  There is a known bug involving the QuickTime library, where
-   *  it can crash when converting two byte blocks to Pict at the
-   *  same time.
-   *  @return a DataImpl containing the specified frame
+  /**
+   * Opens the Openlab file with the file name specified
+   * by id, retrieving only the frame number given.
+   *
+   * Warning: This method is not thread-safe when accessing multiple blocks
+   * of a color Openlab file. There is a known bug in the QuickTime library,
+   * where it crashes when converting two byte blocks to PICT at the same time.
+   *
+   * @return a DataImpl containing the specified frame
    */
-  public synchronized DataImpl open(String id, int block_number)
+  public synchronized DataImpl open(String id, int blockNumber)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) {
-      initFile(id);
-    }
+    if (id != currentId) initFile(id);
 
     // First, initialize:
-    r.seek(offsets[block_number] + 12);
-    byte[] toread = new byte[4];
-    r.read(toread);
-    int blockSize = batoi(toread);
+    r.seek(offsets[blockNumber] + 12);
+    byte[] toRead = new byte[4];
+    r.read(toRead);
+    int blockSize = batoi(toRead);
 
-    toread = new byte[1];
-    r.read(toread);
+    toRead = new byte[1];
+    r.read(toRead);
     // right now I'm gonna skip all the header info
     // check to see whether or not this is v2 data
-    if (toread[0] == 1) {
+    if (toRead[0] == 1) {
       r.skipBytes(128);
     }
     r.skipBytes(169);
     // read in the block of data
-    toread = new byte[blockSize];
+    toRead = new byte[blockSize];
     int read = 0;
     int left = blockSize;
     while (left > 0) {
-      int i = r.read(toread, read, left);
+      int i = r.read(toRead, read, left);
       read += i;
       left -= i;
     }
-    byte[] pixeldata = new byte[blockSize];
-    int pixpos = 0;
-    Dimension dim = QTForm.getPictDimensions(toread);
-    dimensions[0] = dim.width;
-    dimensions[1] = dim.height;
+    byte[] pixelData = new byte[blockSize];
+    int pixPos = 0;
+    Dimension dim = QTForm.getPictDimensions(toRead);
 
-    int length = toread.length;
-    int blocknumber, blocksize, blockend;
-    int totalblocks = -1; // set to allow loop to start.
-    int expectedblock = 0;
+    int length = toRead.length;
+    int num, size, blockEnd;
+    int totalBlocks = -1; // set to allow loop to start.
+    int expectedBlock = 0;
     int pos = 0;
-    int imagepos = 0;
-    int imagesize = dimensions[0] * dimensions[1];
-    float[][] flatsamples = new float[1][imagesize];
+    int imagePos = 0;
+    int imagesize = dim.width * dim.height;
+    float[][] flatSamples = new float[1][imagesize];
     byte[] temp;
 
-    // Set up visad objects.
-    pixelSet = new Linear2DSet(domainTuple,
-     0, dimensions[0] - 1, dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
-    timeSet = new Integer1DSet(frame,  dimensions[2]);
-    frameField = new FlatField(funcRcP, pixelSet);
+    // set up VisAD objects
+    Linear2DSet pixelSet = new Linear2DSet(domainTuple,
+     0, dim.width - 1, dim.width, dim.height - 1, 0, dim.height);
+    FlatField frameField = new FlatField(funcRowColPix, pixelSet);
     boolean skipflag;
 
     // read in deep grey pixel data into an array, and create a
-    // visad object out of it
+    // VisAD object out of it
 
     // First, checks the existence of a deep gray block. If it doesn't exist,
     // assume it is PICT data, and attempt to read it. This is unpleasantly
@@ -274,23 +300,23 @@ public class OpenlabForm extends Form
     // when it doesn't work.
 
     // check whether or not there is deep gray data
-    while(expectedblock != totalblocks) {
+    while (expectedBlock != totalBlocks) {
       skipflag = false;
-      while(pos + 7 < length &&
-        (toread[pos] != 73 || toread[pos + 1] != 86 ||
-        toread[pos + 2] != 69 || toread[pos + 3] != 65 ||
-        toread[pos + 4] != 100 || toread[pos + 5] != 98 ||
-        toread[pos + 6] != 112 || toread[pos + 7] != 113))
+      while (pos + 7 < length &&
+        (toRead[pos] != 73 || toRead[pos + 1] != 86 ||
+        toRead[pos + 2] != 69 || toRead[pos + 3] != 65 ||
+        toRead[pos + 4] != 100 || toRead[pos + 5] != 98 ||
+        toRead[pos + 6] != 112 || toRead[pos + 7] != 113))
       {
         pos++;
       }
       if (pos + 32 > length) { // The header is 32 bytes long.
-        if (expectedblock == 0 && imagetype[block_number] < 9) {
+        if (expectedBlock == 0 && imageType[blockNumber] < 9) {
           // there has been no deep gray data, and it is supposed
           // to be a pict... *crosses fingers*
           try { // This never actually does an exception, to my knowledge,
                 // but we can always hope.
-            return QTForm.pictToField(toread);
+            return QTForm.pictToField(toRead);
           }
           catch (Exception e) {
             throw new BadFormException("No iPic comment block found");
@@ -306,65 +332,65 @@ public class OpenlabForm extends Form
       // Read info from the iPic comment. This serves as a
       // starting point to read the rest.
       temp = new byte[] {
-        toread[pos], toread[pos+1], toread[pos+2], toread[pos+3]
+        toRead[pos], toRead[pos+1], toRead[pos+2], toRead[pos+3]
       };
-      blocknumber = batoi(temp);
-      if (blocknumber != expectedblock) {
+      num = batoi(temp);
+      if (num != expectedBlock) {
         throw new BadFormException("Expected iPic block not found");
       }
-      expectedblock++;
+      expectedBlock++;
       temp = new byte[] {
-        toread[pos+4], toread[pos+5], toread[pos+6], toread[pos+7]
+        toRead[pos+4], toRead[pos+5], toRead[pos+6], toRead[pos+7]
       };
-      if (totalblocks == -1) {
-        totalblocks = batoi(temp);
+      if (totalBlocks == -1) {
+        totalBlocks = batoi(temp);
       }
       else {
-        if (batoi(temp) != totalblocks) {
+        if (batoi(temp) != totalBlocks) {
           throw new BadFormException("Unexpected totalBlocks number read");
         }
       }
 
-      // skip to blocksize
+      // skip to size
       pos += 16;
       temp = new byte[] {
-        toread[pos], toread[pos+1], toread[pos+2], toread[pos+3]
+        toRead[pos], toRead[pos+1], toRead[pos+2], toRead[pos+3]
       };
-      blocksize = batoi(temp);
+      size = batoi(temp);
       pos += 8;
-      blockend = pos + blocksize;
+      blockEnd = pos + size;
 
       // copy into our data array.
-      System.arraycopy(toread, pos, pixeldata, pixpos, blocksize);
-      pixpos += blocksize;
+      System.arraycopy(toRead, pos, pixelData, pixPos, size);
+      pixPos += size;
     }
-    int pixelvalue = 0;
+    int pixelValue = 0;
     pos = 0;
 
-    // Now read the data and put it into the visad objects
+    // Now read the data and put it into the VisAD objects
     while(true) {
-      if (pos + 1 < pixeldata.length) {
-        pixelvalue = pixeldata[pos]<0?256+pixeldata[pos]:
-                     (int)pixeldata[pos]<<8;
-        pixelvalue += pixeldata[pos+1]<0?256+pixeldata[pos+1]:
-                      (int)pixeldata[pos+1];
+      if (pos + 1 < pixelData.length) {
+        pixelValue = pixelData[pos]<0?256+pixelData[pos]:
+                     (int)pixelData[pos]<<8;
+        pixelValue += pixelData[pos+1]<0?256+pixelData[pos+1]:
+                      (int)pixelData[pos+1];
       }
       else {
         throw new BadFormException("Malformed LIFF data");
       }
-      flatsamples[0][imagepos] = pixelvalue;
-      imagepos++;
-      if (imagepos == imagesize) { // done, return it.
+      flatSamples[0][imagePos] = pixelValue;
+      imagePos++;
+      if (imagePos == imagesize) { // done, return it.
         if (isColor) {
-          float[][] flatsamp = new float[3][];
-          flatsamp[0] = flatsamp[1] = flatsamp[2] = flatsamples[0];
-          frameField = new FlatField(funcRcRgb, pixelSet);
-          frameField.setSamples(flatsamp, false);
+          float[][] flatSamp = new float[3][];
+          flatSamp[0] = flatSamp[1] = flatSamp[2] = flatSamples[0];
+          frameField = new FlatField(funcRowColRGB, pixelSet);
+          frameField.setSamples(flatSamp, false);
           return frameField;
         }
         else { // it's all grayscale.
-          frameField = new FlatField(funcRcP, pixelSet);
-          frameField.setSamples(flatsamples, false);
+          frameField = new FlatField(funcRowColPix, pixelSet);
+          frameField.setSamples(flatSamples, false);
           return frameField;
         }
       }
@@ -376,10 +402,8 @@ public class OpenlabForm extends Form
   public int getBlockCount(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) {
-      initFile(id);
-    }
-    return dimensions[2];
+    if (id != currentId) initFile(id);
+    return numBlocks;
   }
 
   /** Closes any currently open files. */
@@ -391,6 +415,16 @@ public class OpenlabForm extends Form
   }
 
 
+  // -- FormProgressInformer methods --
+
+  /**
+   * Gets the percentage complete of the form's current operation.
+   * @return the percentage complete (0.0 - 100.0), or Double.NaN
+   *         if no operation is currently taking place
+   */
+  public double getPercentComplete() { return percent; }
+
+
   // -- Utility methods --
 
   /** Translates up to the first 4 bytes of a byte array to an integer. */
@@ -400,8 +434,7 @@ public class OpenlabForm extends Form
     int len = inp.length>4?4:inp.length;
     int total = 0;
     for (int i = 0; i < len; i++) {
-      total = total +
-        ((inp[i]<0?(int)256+inp[i]:(int)inp[i]) << (((len - 1) - i) * 8));
+      total += (inp[i]<0?256+inp[i]:(int)inp[i]) << (((len - 1) - i) * 8);
     }
     return total;
   }
@@ -422,59 +455,69 @@ public class OpenlabForm extends Form
 
     isColor = false;
 
-    byte[] toread = new byte[4];
+    byte[] toRead = new byte[4];
     Vector v = new Vector(); // a temp vector containing offsets.
 
     // Get first offset.
     r.seek(16);
-    r.read(toread);
-    int nextoffset = batoi(toread);
-    int nextoffsettemp;
+    r.read(toRead);
+    int nextOffset = batoi(toRead);
+    int nextOffsetTemp;
 
-    while(nextoffset != 0) {
-      r.seek(nextoffset + 4);
-      r.read(toread);
-      nextoffsettemp = batoi(toread); // get next tag, but we still need
-                                      // this one.
-      r.read(toread);
-      if ((new String(toread)).equals("PICT")) {
-        v.add(new Integer(nextoffset)); // add THIS tag offset
+    while(nextOffset != 0) {
+      r.seek(nextOffset + 4);
+      r.read(toRead);
+      nextOffsetTemp = batoi(toRead); // get next tag, but still need this one
+      r.read(toRead);
+      if ((new String(toRead)).equals("PICT")) {
+        v.add(new Integer(nextOffset)); // add THIS tag offset
       }
-      if (nextoffset == nextoffsettemp) {
-        break;
-      }
-      nextoffset = nextoffsettemp;
+      if (nextOffset == nextOffsetTemp) break;
+      nextOffset = nextOffsetTemp;
     }
     // create and populate the array of offsets from the vector.
-    offsets = new int[v.size()];
-    for (int i = 0; i < v.size(); i++) {
+    numBlocks = v.size();
+    offsets = new int[numBlocks];
+    for (int i = 0; i < numBlocks; i++) {
       offsets[i] = ((Integer) v.get(i)).intValue();
     }
-    dimensions[2] = v.size();
 
     // check to see whether there is any color data. This also populates
-    // the imagetypes that the file uses.
-    toread = new byte[2];
-    imagetype = new int[v.size()];
-    for (int i = 0; i < v.size(); i++) {
+    // the imageTypes that the file uses.
+    toRead = new byte[2];
+    imageType = new int[numBlocks];
+    for (int i = 0; i < numBlocks; i++) {
       r.seek(offsets[i]);
       r.skipBytes(40);
-      r.read(toread);
-      imagetype[i] = batoi(toread);
-      if (imagetype[i] < 9) {
-        isColor = true;
-      }
+      r.read(toRead);
+      imageType[i] = batoi(toRead);
+      if (imageType[i] < 9) isColor = true;
     }
   }
 
 
   // -- Main method --
 
-  public static void main(String[] args) throws VisADException, IOException {
-     OpenlabForm reader = new OpenlabForm();
-     System.out.println("Opening " + args[0] + "...");
-     Data d = reader.open(args[0]);
-     System.out.println(d.getType());
+  /**
+   * Run 'java visad.data.bio.OpenlabForm in_file'
+   * to test read an Openlab LIFF data file.
+   */
+  public static void main(String[] args)
+    throws VisADException, IOException
+  {
+    if (args == null || args.length < 1) {
+      System.out.println("To test read an Openlab LIFF file, run:");
+      System.out.println("  java visad.data.bio.OpenlabForm in_file");
+      System.exit(2);
+    }
+
+    // Test read Openlab LIFF file
+    OpenlabForm form = new OpenlabForm();
+    System.out.print("Reading " + args[0] + " ");
+    Data data = form.open(args[0]);
+    System.out.println("[done]");
+    System.out.println("MathType =\n" + data.getType());
+    System.exit(0);
   }
 
 }

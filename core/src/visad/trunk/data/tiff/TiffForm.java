@@ -73,10 +73,10 @@ public class TiffForm extends Form
   // -- Static fields --
 
   /** Counter for TIFF form instantiation. */
-  private static int num = 0;
+  private static int formCount = 0;
 
-  /** Legal TIFF suffixes. */
-  private static final String[] suffixes = { "tif", "tiff" };
+  /** Legal TIFF SUFFIXES. */
+  private static final String[] SUFFIXES = { "tif", "tiff" };
 
   /** Message produced when attempting to use ImageJ without it installed. */
   private static final String NO_IJ = "This feature requires ImageJ, " +
@@ -99,7 +99,7 @@ public class TiffForm extends Form
   private boolean noJai = false;
 
   /** Filename of current TIFF stack. */
-  private String current_id;
+  private String currentId;
 
   /** Number of images in current TIFF stack. */
   private int numImages;
@@ -115,7 +115,7 @@ public class TiffForm extends Form
 
   /** Constructs a new TIFF file form. */
   public TiffForm() {
-    super("TiffForm" + num++);
+    super("TiffForm" + formCount++);
     r = new ReflectedUniverse();
 
     // ImageJ imports
@@ -145,8 +145,8 @@ public class TiffForm extends Form
 
   /** Checks if the given string is a valid filename for a TIFF file. */
   public boolean isThisType(String name) {
-    for (int i=0; i<suffixes.length; i++) {
-      if (name.toLowerCase().endsWith(suffixes[i])) return true;
+    for (int i=0; i<SUFFIXES.length; i++) {
+      if (name.toLowerCase().endsWith(SUFFIXES[i])) return true;
     }
     return false;
   }
@@ -156,10 +156,10 @@ public class TiffForm extends Form
     return false;
   }
 
-  /** Returns the default file suffixes for the TIFF file format. */
+  /** Returns the default file SUFFIXES for the TIFF file format. */
   public String[] getDefaultSuffixes() {
-    String[] s = new String[suffixes.length];
-    System.arraycopy(suffixes, 0, s, 0, suffixes.length);
+    String[] s = new String[SUFFIXES.length];
+    System.arraycopy(SUFFIXES, 0, s, 0, SUFFIXES.length);
     return s;
   }
 
@@ -284,11 +284,11 @@ public class TiffForm extends Form
     else {
       // combine data stack into time function
       RealType time = RealType.getRealType("time");
-      FunctionType time_function = new FunctionType(time, fields[0].getType());
-      Integer1DSet time_set = new Integer1DSet(nImages);
-      FieldImpl time_field = new FieldImpl(time_function, time_set);
-      time_field.setSamples(fields, false);
-      data = time_field;
+      FunctionType timeFunction = new FunctionType(time, fields[0].getType());
+      Integer1DSet timeSet = new Integer1DSet(nImages);
+      FieldImpl timeField = new FieldImpl(timeFunction, timeSet);
+      timeField.setSamples(fields, false);
+      data = timeField;
     }
     close();
     percent = -1;
@@ -318,7 +318,7 @@ public class TiffForm extends Form
   public DataImpl open(String id, int block_number)
     throws BadFormException, IOException, VisADException
   {
-    if (!id.equals(current_id)) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
 
     if (block_number < 0 || block_number >= numImages) {
       throw new BadFormException("Invalid image number: " + block_number);
@@ -357,7 +357,7 @@ public class TiffForm extends Form
   public int getBlockCount(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (!id.equals(current_id)) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     return numImages;
   }
 
@@ -384,16 +384,16 @@ public class TiffForm extends Form
     int[] pixels = new int[samples[0].length];
     if (samples.length == 3) {
       for (int i=0; i<samples[0].length; i++) {
-        int r = (int) samples[0][i] & 0x000000ff;
-        int g = (int) samples[1][i] & 0x000000ff;
-        int b = (int) samples[2][i] & 0x000000ff;
-        pixels[i] = r << 16 | g << 8 | b;
+        int red = (int) samples[0][i] & 0x000000ff;
+        int green = (int) samples[1][i] & 0x000000ff;
+        int blue = (int) samples[2][i] & 0x000000ff;
+        pixels[i] = red << 16 | green << 8 | blue;
       }
     }
     else if (samples.length == 1) {
       for (int i=0; i<samples[0].length; i++) {
-        int v = (int) samples[0][i] & 0x000000ff;
-        pixels[i] = v << 16 | v << 8 | v;
+        int val = (int) samples[0][i] & 0x000000ff;
+        pixels[i] = val << 16 | val << 8 | val;
       }
     }
     r.setVar("w", w);
@@ -443,7 +443,7 @@ public class TiffForm extends Form
       }
     }
 
-    current_id = id;
+    currentId = id;
   }
 
 

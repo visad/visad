@@ -37,7 +37,10 @@ import java.util.Vector;
 import visad.*;
 import visad.data.*;
 
-/** BioRadForm is the VisAD data format adapter for Bio-Rad PIC files. */
+/**
+ * BioRadForm is the VisAD data format adapter for Bio-Rad PIC files.
+ * @author Curtis Rueden ctrueden@wisc.edu
+ */
 public class BioRadForm extends Form implements FormBlockReader,
   FormFileInformer, FormProgressInformer, MetadataReader
 {
@@ -146,7 +149,7 @@ public class BioRadForm extends Form implements FormBlockReader,
   // -- Static fields --
 
   /** Form instantiation counter. */
-  private static int count = 0;
+  private static int formCount = 0;
 
   /** MathType of a 2-D image with 1-D range. */
   private static MathType image;
@@ -172,7 +175,7 @@ public class BioRadForm extends Form implements FormBlockReader,
       noteFunction = new FunctionType(NOTE_INDEX, BioRadNote.NOTE_TUPLE);
     }
     catch (VisADException exc) {
-      if (DEBUG) exc.printStackTrace();
+      exc.printStackTrace();
     }
   }
 
@@ -211,7 +214,7 @@ public class BioRadForm extends Form implements FormBlockReader,
 
   /** Constructs a new Bio-Rad file form. */
   public BioRadForm() {
-    super("BioRadForm" + count++);
+    super("BioRadForm" + formCount++);
   }
 
 
@@ -435,13 +438,13 @@ public class BioRadForm extends Form implements FormBlockReader,
     }
 
     // set up header data
-    int nx = xlen;
-    int ny = ylen;
-    int npic = numImages;
+    int numX = xlen;
+    int numY = ylen;
+    int numPic = numImages;
     int ramp1min = ramp1minType == null ? 0 : (int) ramp1minType.getValue();
     int ramp1max = ramp1maxType == null ? 255 : (int) ramp1maxType.getValue();
     int notes = vNotes.size();
-    int byteFormat =
+    int format =
       byteFormatType == null ? 1 : (int) byteFormatType.getValue();
     int imageNumber = 0;
     String name = nameType == null ? id : nameType.getValue();
@@ -458,10 +461,10 @@ public class BioRadForm extends Form implements FormBlockReader,
 
     // extract image data
     byte[] imageBytes;
-    if (byteFormat == 0) {
+    if (format == 0) {
       // word format (16 bits per pixel)
-      imageBytes = new byte[2 * npic * nx * ny];
-      for (int i=0; i<npic; i++) {
+      imageBytes = new byte[2 * numPic * numX * numY];
+      for (int i=0; i<numPic; i++) {
         FlatField d = (FlatField) vImages.elementAt(i);
         double[][] samples = d.getValues(false);
         double[] samp = samples[0];
@@ -477,8 +480,8 @@ public class BioRadForm extends Form implements FormBlockReader,
     }
     else {
       // byte format (8 bits per pixel)
-      imageBytes = new byte[npic * nx * ny];
-      for (int i=0; i<npic; i++) {
+      imageBytes = new byte[numPic * numX * numY];
+      for (int i=0; i<numPic; i++) {
         FlatField d = (FlatField) vImages.elementAt(i);
         double[][] samples = d.getValues(false);
         double[] samp = samples[0];
@@ -509,13 +512,13 @@ public class BioRadForm extends Form implements FormBlockReader,
     DataOutputStream fout = new DataOutputStream(new FileOutputStream(id));
 
     // write header
-    writeShort(fout, nx);
-    writeShort(fout, ny);
-    writeShort(fout, npic);
+    writeShort(fout, numX);
+    writeShort(fout, numY);
+    writeShort(fout, numPic);
     writeShort(fout, ramp1min);
     writeShort(fout, ramp1max);
     writeInt(fout, notes);
-    writeShort(fout, byteFormat);
+    writeShort(fout, format);
     writeShort(fout, imageNumber);
     writeString(fout, name, 32);
     writeShort(fout, merged);
@@ -535,8 +538,9 @@ public class BioRadForm extends Form implements FormBlockReader,
     // write image data
     fout.write(imageBytes, 0, imageBytes.length);
     if (DEBUG && DEBUG_LEVEL >= 1) {
-      System.out.println("Wrote " + npic + " " + nx + " x " + ny + " image" +
-        (npic == 1 ? "" : "s") + " (" + imageBytes.length + " bytes).");
+      System.out.println("Wrote " + npic + " " + numX + " x " + numY +
+        " image" + (npic == 1 ? "" : "s") +
+        " (" + imageBytes.length + " bytes).");
     }
 
     // write notes
@@ -600,7 +604,7 @@ public class BioRadForm extends Form implements FormBlockReader,
       data = indexField;
     }
     close();
-    percent = -1;
+    percent = Double.NaN;
     return data;
   }
 
@@ -626,16 +630,16 @@ public class BioRadForm extends Form implements FormBlockReader,
   /**
    * Obtains the specified block from the given file.
    * @param id The file from which to load data blocks.
-   * @param block_number The block number of the block to load.
+   * @param blockNumber The block number of the block to load.
    * @throws VisADException If the block number is invalid.
    */
-  public DataImpl open(String id, int block_number)
+  public DataImpl open(String id, int blockNumber)
     throws BadFormException, IOException, VisADException
   {
     if (!id.equals(currentId)) initFile(id);
 
-    if (block_number < 0 || block_number >= npic) {
-      throw new BadFormException("Invalid image number: " + block_number);
+    if (blockNumber < 0 || blockNumber >= npic) {
+      throw new BadFormException("Invalid image number: " + blockNumber);
     }
 
     // read image bytes & convert to floats
@@ -643,7 +647,7 @@ public class BioRadForm extends Form implements FormBlockReader,
     float[][] samples = new float[1][imageLen];
     if (byteFormat) {
       // jump to proper image number
-      in.seek(block_number * imageLen + 76);
+      in.seek(blockNumber * imageLen + 76);
 
       // read in imageLen bytes
       byte[] buf = new byte[imageLen];
@@ -657,7 +661,7 @@ public class BioRadForm extends Form implements FormBlockReader,
     }
     else {
       // jump to proper image number
-      in.seek(block_number * 2 * imageLen + 76);
+      in.seek(blockNumber * 2 * imageLen + 76);
 
       // read in 2 * imageLen bytes
       final int dataLen = 2 * imageLen;
@@ -1022,12 +1026,11 @@ public class BioRadForm extends Form implements FormBlockReader,
    * in_file to out_file in Bio-Rad PIC data format.
    */
   public static void main(String[] args)
-    throws VisADException, RemoteException, IOException
+    throws VisADException, IOException
   {
     if (args == null || args.length < 1 || args.length > 2) {
       System.out.println("To convert a file to Bio-Rad PIC, run:");
-      System.out.println(
-        "  java visad.data.bio.BioRadForm in_file out_file");
+      System.out.println("  java visad.data.bio.BioRadForm in_file out_file");
       System.out.println("To test read a Bio-Rad PIC file, run:");
       System.out.println("  java visad.data.bio.BioRadForm in_file");
       System.exit(2);
@@ -1053,7 +1056,7 @@ public class BioRadForm extends Form implements FormBlockReader,
       }
       System.out.println();
 
-      System.out.print("Reading " + args[0] + " image data ");
+      System.out.print("Reading " + args[0] + " pixel data ");
       Data data = form.open(args[0]);
       System.out.println("[done]");
 
