@@ -54,10 +54,7 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
                                      "AdaptedDataReference is null");
     }
     if (d instanceof DataImpl) {
-/* WLH 12 Dec 97 - allow Data object passed by copy from remote JVM
-      throw new RemoteVisADException("RemoteDataReferenceImpl.setData: must use " +
-                                     "DataReferenceImpl for DataImpl");
-*/
+      // allow Data object passed by copy from remote JVM
       AdaptedDataReference.setData(d);
     }
     else {

@@ -54,7 +54,7 @@ public abstract class RemoteActionImpl extends UnicastRemoteObject
       must be RemoteDataReferenceImpl */
   public void addReference(DataReference ref)
          throws VisADException, RemoteException {
-    if (ref instanceof DataReferenceImpl) {
+    if (!(ref instanceof RemoteDataReference)) {
       throw new RemoteVisADException("RemoteActionImpl.addReference: requires " +
                                      "RemoteDataReferenceImpl");
     }
@@ -71,7 +71,7 @@ public abstract class RemoteActionImpl extends UnicastRemoteObject
       must be RemoteDataReferenceImpl */
   public void removeReference(DataReference ref)
          throws VisADException, RemoteException {
-    if (ref instanceof DataReferenceImpl) {
+    if (!(ref instanceof RemoteDataReference)) {
       throw new RemoteVisADException("RemoteActionImpl.removeReference: requires " +
                                      "RemoteDataReferenceImpl");
     }

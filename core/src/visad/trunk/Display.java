@@ -65,7 +65,7 @@ public interface Display extends Action {
     new DisplayRealType("Longitude", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
   public final static DisplayRealType Radius =
-    new DisplayRealType("Radius", true, 0.0, 2.0, 1.0, true);
+    new DisplayRealType("Radius", true, 0.1, 2.0, 1.0, true);
 
   /** list display scalar (default domain of DisplayField) */
   public final static DisplayRealType List =

@@ -1953,7 +1953,11 @@ public class Gridded3DSet extends GriddedSet {
     // take the garbage out
     ptFLAG = null;
     ptAUX = null;
-
+/*
+for (int j=0; j<nvertex; j++) {
+  System.out.println("iso vertex[" + j + "] " + VX[j] + " " + VY[j] + " " + VZ[j]);
+}
+*/
     float[][] fieldVertices = new float[3][nvertex];
     // NOTE - NO X & Y swap
     System.arraycopy(VX, 0, fieldVertices[0], 0, nvertex);
@@ -1970,6 +1974,9 @@ public class Gridded3DSet extends GriddedSet {
       System.arraycopy(color_temps[0], 0, color_levels[0], 0, nvertex);
       System.arraycopy(color_temps[1], 0, color_levels[1], 0, nvertex);
       System.arraycopy(color_temps[2], 0, color_levels[2], 0, nvertex);
+      if (color_temps.length > 3) {
+        System.arraycopy(color_temps[3], 0, color_levels[3], 0, nvertex);
+      }
       // take the garbage out
       color_temps = null;
     }

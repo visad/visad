@@ -940,10 +940,25 @@ System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
           vector_ends[k] = coord.toReference(vector_ends[k]);
         } // end if (flen[k] > 0)
       } // end for (int k=0; k<2; k++)
-
+/*
+System.out.println("\nbefore tranform spatial_values[" + spatial_values.length +
+                   "][" + spatial_values[0].length + "]");
+for (int p=0; p<spatial_values[0].length; p++) {
+  System.out.println(" " + p + " " + spatial_values[0][p] + " " +
+                     spatial_values[1][p] + " " + spatial_values[2][p]);
+}
+*/
       // transform spatial_values
       spatial_values = coord.toReference(spatial_values);
-
+/*
+System.out.println("\nafter tranform spatial_values[" + spatial_values.length +
+                   "][" + spatial_values[0].length + "]");
+for (int p=0; p<spatial_values[0].length; p++) {
+  System.out.println(" " + p + " " + spatial_values[0][p] + " " +
+                     spatial_values[1][p] + " " + spatial_values[2][p]);
+}
+System.out.println(" ");
+*/
       // subtract transformed spatial_values from transformed flow vectors
       for (int k=0; k<2; k++) {
         if (flen[k] > 0) {

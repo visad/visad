@@ -43,7 +43,7 @@ public class RemoteCellImpl extends RemoteActionImpl
   /** create link to an output DataReference */
   public void setOtherReference(int index, DataReference ref)
          throws VisADException, RemoteException {
-    if (ref instanceof DataReferenceImpl) {
+    if (!(ref instanceof RemoteDataReference)) {
       throw new RemoteVisADException("RemoteCellImpl.setOutputReference: " +
                             "requires RemoteDataReferenceImpl");
     }
