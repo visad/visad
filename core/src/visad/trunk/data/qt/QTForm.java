@@ -61,9 +61,12 @@ public class QTForm extends Form implements FormFileInformer {
 
   private static ReflectedUniverse createReflectedUniverse() {
     ReflectedUniverse r = null;
+    boolean needClose = false;
     try {
       r = new ReflectedUniverse();
       r.exec("import quicktime.QTSession");
+      r.exec("QTSession.open()");
+      needClose = true;
       r.exec("import quicktime.app.display.QTCanvas");
       r.exec("import quicktime.app.image.ImageDataSequence");
       r.exec("import quicktime.app.image.ImageUtil");
@@ -89,7 +92,13 @@ public class QTForm extends Form implements FormFileInformer {
       r.exec("import quicktime.util.QTHandle");
       r.exec("import quicktime.util.RawEncodedImage");
     }
-    catch (VisADException exc) { noQT = true; }
+    catch (VisADException exc) {
+      noQT = true;
+    }
+    finally {
+      try { r.exec("QTSession.close()"); }
+      catch (VisADException exc) { }
+    }
     return r;
   }
 
