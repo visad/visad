@@ -107,7 +107,7 @@ if(DEBUG_RD_MATH)System.err.println("cchU: read " + endByte + " (wanted FLD_END)
 if(DEBUG_RD_MATH)System.err.println("cchU: FLD_END (" + endByte + ")");
 
     Unit u;
-    if (defStr.equals("promiscuous")) {
+    if (defStr.equals("promiscuous") || defStr.equals("UniversalUnit")) {
       u = CommonUnit.promiscuous;
     } else {
       try {
