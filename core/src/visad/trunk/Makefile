@@ -246,7 +246,7 @@ TAR_FILES = \
 	visad/java3d/*.h				\
 	visad/java3d/Makefile
 
-VISAD_PACKAGES = \
+DOC_PACKAGES = \
 		visad \
 		visad.collab \
 		visad.java3d \
@@ -289,13 +289,17 @@ VISAD_PACKAGES = \
 		visad.aeri \
 		visad.georef
 
+ALL_PACKAGES = \
+		$(DOC_PACKAGES) \
+		visad.examples
+
 CLASS_FILES=	\
 	DATE \
-	`echo $(VISAD_PACKAGES) 'visad.examples ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
+	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
 	visad/ss/*.gif
 
 JAVA_FILES=	\
-	`echo $(VISAD_PACKAGES) 'visad.examples ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
+	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
 	visad/ss/*.gif
 
 tar:
@@ -371,7 +375,7 @@ debug:
 
 clean:
 	$(RM) *.class *~
-	for i in $(VISAD_PACKAGES); do					\
+	for i in $(ALL_PACKAGES); do					\
 	  case $$i in							\
 	  visad)							\
 	    dir=							\
@@ -396,11 +400,10 @@ clean:
 	    fi;								\
 	  fi;								\
 	done
-	-(cd examples && $(RM) *.class *~)
 
 recompile:
 	@root=`cd .. && pwd`;						\
-	for i in $(VISAD_PACKAGES) visad.examples; do			\
+	for i in $(ALL_PACKAGES); do					\
 	  case $$i in							\
 	  visad)							\
 	    dir=.							\
@@ -470,7 +473,7 @@ compile: clean recompile
 
 docs:
 	@if [ ! -d $(DOC_DIR) ]; then mkdir $(DOC_DIR); fi   
-	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
+	$(DOC) $(DOCFLAGS) $(DOC_PACKAGES)
 
 tardocs: docs
 	(cd $(DOC_DIR)/.. &&						\
