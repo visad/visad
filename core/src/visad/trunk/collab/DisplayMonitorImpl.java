@@ -237,6 +237,12 @@ public class DisplayMonitorImpl
   public void addRemoteListener(RemoteDisplay rd)
     throws RemoteException, RemoteVisADException
   {
+    addRemoteListener(rd, true);
+  }
+/* WLH 6 Dec 2000
+  public void addRemoteListener(RemoteDisplay rd)
+    throws RemoteException, RemoteVisADException
+  {
     RemoteDisplayMonitor rdm = rd.getRemoteDisplayMonitor();
     final int id = negotiateUniqueID(rdm);
 
@@ -262,6 +268,7 @@ public class DisplayMonitorImpl
                                      " remote display to this object");
     }
   }
+*/
 
   // WLH 6 Dec 2000
   public void addRemoteListener(RemoteDisplay rd, boolean link_to_data)
