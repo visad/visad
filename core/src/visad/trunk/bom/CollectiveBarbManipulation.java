@@ -27,12 +27,14 @@ MA 02111-1307, USA
 package visad.bom;
 
 import visad.*;
+import visad.util.*;
 import visad.java3d.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.util.*;
+import java.util.Vector;
+import java.util.Enumeration;
 import java.rmi.*;
 
 
@@ -43,54 +45,89 @@ import java.rmi.*;
 public class CollectiveBarbManipulation extends Object
   implements ControlListener {
 
+  private int nindex = 0;
+  private int[] ntimes;
+  private int max_ntimes = 0;
+  private Tuple[][] tuples;
+  private FlatField[] wind_stations;
+  private Set[] time_sets;
+  private int which_time = -1;
+  private int[] which_times;
+
+  private DataReferenceImpl stations_ref;
+  private DataReferenceImpl[] station_refs;
+  private BarbRendererJ3D barb_renderer;
+  private BarbManipulationRendererJ3D[] barb_manipulation_renderers;
+
+  private AnimationControl control = null;
+
   /**
      wind_field should have MathType:
-       (station_index -> (Time -> real_tuple))
-     where RealTuple includes RealTypes mapped to:
+       (station_index -> (Time -> tuple))
+     where tuple is flat and includes RealTypes mapped to:
        Flow1Azimuth
        Flow1Radial
        Latitude
        Longitude
   */
-  public CollectiveBarbManipulation (FieldImpl wind_field,
+  public CollectiveBarbManipulation(FieldImpl wind_field,
                                      DisplayImpl display)
          throws VisADException, RemoteException {
-    AnimationControl control =
-      (AnimationControl) display.getControl(AnimationControl.class);
-    if (control != null) {
-      // use a ControlListener on Display.Animation to fake
-      // animation of manipulable barbs
-      control.addControlListener(this);
+    control = (AnimationControl) display.getControl(AnimationControl.class);
+    if (control == null) {
+      throw new CollectiveBarbException("display must include " +
+                     "ScalarMap to Animation");
     }
-    else {
-      // or just fake it using
-      // display.removeReference(refs[oldk]) and
-      // display.addReference(new BarbManipulationRendererJ*D(), refs[k]);
-
-
-    }
+    // use a ControlListener on Display.Animation to fake
+    // animation of manipulable barbs
+    control.addControlListener(this);
 
     FunctionType wind_field_type = (FunctionType) wind_field.getType();
-    RealTupleType wind_type = null;
+    TupleType wind_type = null;
+    RealType station_index = null;
+
     try {
-      RealType station_index =
+      station_index =
         (RealType) wind_field_type.getDomain().getComponent(0);
       if (RealType.Time.equals(station_index)) {
-        throw new VisADException("wind_field bad MathType: " + station_index +
-                                 " cannot be RealType.Time");
+        throw new CollectiveBarbException("wind_field bad MathType: " +
+                     station_index + " cannot be RealType.Time");
       }
       FunctionType wind_station_type =
         (FunctionType) wind_field_type.getRange();
       RealType time =
         (RealType) wind_station_type.getDomain().getComponent(0);
       if (!RealType.Time.equals(time)) {
-        throw new VisADException("wind_field bad MathType: " + time +
-                                 " must be RealType.Time");
+        throw new CollectiveBarbException("wind_field bad MathType: " +
+                     time + " must be RealType.Time");
       }
-      wind_type = (RealTupleType) wind_station_type.getRange();
+      wind_type = (TupleType) wind_station_type.getRange();
+      if (!wind_type.getFlat()) {
+        throw new CollectiveBarbException("wind_field bad MathType: " +
+                      wind_type + " must be flat");
+      }
+
+      nindex = wind_field.getLength();
+      ntimes = new int[nindex];
+      max_ntimes = 0;
+      tuples = new Tuple[nindex][];
+      which_times = new int[nindex];
+      wind_stations = new FlatField[nindex];
+      time_sets = new Set[nindex];
+      for (int i=0; i<nindex; i++) {
+        wind_stations[i] = (FlatField) wind_field.getSample(i);
+        ntimes[i] = wind_stations[i].getLength();
+        time_sets[i] = wind_stations[i].getDomainSet();
+        if (ntimes[i] > max_ntimes) max_ntimes = ntimes[i];
+        tuples[i] = new Tuple[ntimes[i]];
+        for (int j=0; j<ntimes[i]; j++) {
+          tuples[i][j] = (Tuple) wind_stations[i].getSample(j);
+        }
+      }
     }
     catch (ClassCastException e) {
-      throw new VisADException("wind_field bad MathType: " + wind_field_type);
+      throw new CollectiveBarbException("wind_field bad MathType: " +
+                     wind_field_type);
     }
 
     int azimuth_index = -1;
@@ -99,12 +136,13 @@ public class CollectiveBarbManipulation extends Object
     int lon_index = -1;
     Vector scalar_map_vector = display.getMapVector();
     int tuple_dim = wind_type.getDimension();
+    RealType[] reals = wind_type.getRealComponents();
     for (int i=0; i<tuple_dim; i++) {
-      RealType real = (RealType) wind_type.getComponent(i);
+      RealType real = reals[i];
       if (RealType.Latitude.equals(real)) {
         lat_index = i;
       }
-      else if (RealType.Latitude.equals(real)) {
+      else if (RealType.Longitude.equals(real)) {
         lon_index = i;
       }
       else {
@@ -125,25 +163,84 @@ public class CollectiveBarbManipulation extends Object
     } // for (int i=0; i<n; i++) {
     if (lat_index < 0 || lon_index < 0 ||
         azimuth_index < 0 || radial_index < 0) {
-      throw new VisADException("wind data must include Latitude and " +
-               "Longitude and two RealTypes mapped to Flow1Azimuth " +
-               "and Flow1Radial");
+      throw new CollectiveBarbException("wind data must include Latitude " +
+               "and Longitude and two RealTypes mapped to Flow1Azimuth " +
+               "and Flow1Radial " + lat_index + " " + lon_index +
+               " " + azimuth_index + " " + radial_index);
+    }
+
+    stations_ref = new DataReferenceImpl("stations_ref");
+    stations_ref.setData(wind_field);
+    barb_renderer = new BarbRendererJ3D();
+    display.addReferences(barb_renderer, stations_ref);
+    barb_renderer.toggle(false);
+    which_time = -1;
+    station_refs = new DataReferenceImpl[nindex];
+    barb_manipulation_renderers = new BarbManipulationRendererJ3D[nindex];
+    for (int i=0; i<nindex; i++) {
+      station_refs[i] = new DataReferenceImpl("station_ref" + i);
+      station_refs[i].setData(null);
+      which_times[i] = -1;
+      barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
+      display.addReferences(barb_manipulation_renderers[i], station_refs[i]);
     }
 
 
-
-
+    control.setCurrent(0);
   }
 
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
+    which_time = -1;
+    if (barb_manipulation_renderers == null) return;
+    for (int i=0; i<nindex; i++) {
+      which_times[i] = -1;
+      if (barb_manipulation_renderers[i] == null) return;
+      barb_manipulation_renderers[i].stop_direct();
+    }
+
+    Set time_set = control.getSet();
+    if (time_set == null) return;
+    int current = control.getCurrent();
+    if (current < 0) return;
+    which_time = current;
+    int[] indices = {current};
+    double[][] fvalues = time_set.indexToDouble(indices);
+    double value = fvalues[0][0];
+    if (value != value) return;
+    RealTupleType in = ((SetType) time_set.getType()).getDomain();
+
+    for (int i=0; i<nindex; i++) {
+      RealTupleType out = ((SetType) time_sets[i].getType()).getDomain();
+      double[][] values = CoordinateSystem.transformCoordinates(
+                               out, time_sets[i].getCoordinateSystem(),
+                               time_sets[i].getSetUnits(), null /* errors */,
+                               in, time_set.getCoordinateSystem(),
+                               time_set.getSetUnits(),
+                               null /* errors */, fvalues);
+      if (time_sets[i].getLength() == 1) {
+        indices = new int[] {0};
+      }
+      else {
+        indices = time_sets[i].doubleToIndex(values);
+      }
+      int index = indices[0];
+      if (index < tuples[i].length) {
+        station_refs[i].setData(tuples[i][index]);
+        which_times[i] = index;
+      }
+// System.out.println("station " + i + " ref " + index);
+
+    } // end for (int i=0; i<nindex; i++)
   }
 
-  private static final int N = 5;
+  private static final int N = 3;
+  private static final int NTIMES = 10;
 
   public static void main(String args[])
          throws VisADException, RemoteException {
 
+    boolean polar = true;
 
     // construct RealTypes for wind record components
     RealType lat = RealType.Latitude;
@@ -165,12 +262,31 @@ public class CollectiveBarbManipulation extends Object
     RealType wind_speed = new RealType("wind_speed",
                           CommonUnit.meterPerSecond, null);
     RealTupleType windds = null;
-    if (args.length > 0) {
+    if (polar) {
       System.out.println("polar winds");
       windds =
         new RealTupleType(new RealType[] {wind_dir, wind_speed},
         new WindPolarCoordinateSystem(windxy), null);
     }
+
+    RealType stn = new RealType("station");
+    Set stn_set = new Integer1DSet(stn, N * N);
+    RealType time = RealType.Time;
+    double start = new DateTime(1999, 122, 57060).getValue();
+    Set time_set = new Linear1DSet(time, start, start + 3000.0, NTIMES);
+
+    TupleType tuple_type = null;
+    if (polar) {
+      tuple_type = new TupleType(new MathType[]
+            {lon, lat, windds, red, green});
+    }
+    else {
+      tuple_type = new TupleType(new MathType[]
+            {lon, lat, windxy, red, green});
+    }
+
+    FunctionType station_type = new FunctionType(time, tuple_type);
+    FunctionType stations_type = new FunctionType(stn, station_type);
 
     // construct Java3D display and mappings that govern
     // how wind records are displayed
@@ -184,7 +300,7 @@ public class CollectiveBarbManipulation extends Object
     latmap.setRange(-50.0, -30.0);
 
     FlowControl flow_control;
-    if (args.length > 0) {
+    if (polar) {
       ScalarMap winds_map = new ScalarMap(wind_speed, Display.Flow1Radial);
       display.addMap(winds_map);
       winds_map.setRange(0.0, 1.0); // do this for barb rendering
@@ -209,59 +325,46 @@ public class CollectiveBarbManipulation extends Object
     display.addMap(new ScalarMap(green, Display.Green));
     display.addMap(new ConstantMap(1.0, Display.Blue));
 
-    DataReferenceImpl[] refs = new DataReferenceImpl[N * N];
-    int k = 0;
+    ScalarMap amap = new ScalarMap(time, Display.Animation);
+    display.addMap(amap);
+    AnimationControl acontrol = (AnimationControl) amap.getControl();
+    acontrol.setStep(2000);
+
     // create an array of N by N winds
+    FieldImpl field = new FieldImpl(stations_type, stn_set);
+    int m = 0;
     for (int i=0; i<N; i++) {
       for (int j=0; j<N; j++) {
-        double u = 2.0 * i / (N - 1.0) - 1.0;
-        double v = 2.0 * j / (N - 1.0) - 1.0;
-
-        // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
-        // set colors by wind components, just for grins
-        Tuple tuple;
-        double fx = 30.0 * u;
-        double fy = 30.0 * v;
-        if (args.length > 0) {
-          double fd = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
-          double fs = Math.sqrt(fx * fx + fy * fy);
-          tuple = new Tuple(new Data[]
-            {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-             new RealTuple(windds, new double[] {fd, fs}),
-             new Real(red, u), new Real(green, v)});
+        FlatField ff = new FlatField(station_type, time_set);
+        double[][] values = new double[6][NTIMES];
+        for (int k=0; k<NTIMES; k++) {
+          double u = 2.0 * i / (N - 1.0) - 1.0;
+          double v = 2.0 * j / (N - 1.0) - 1.0;
+  
+          // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
+          // set colors by wind components, just for grins
+          values[0][k] = 10. * u;
+          values[1][k] = 10.0 * v - 40.0;
+          double fx = 30.0 * u;
+          double fy = 30.0 * v;
+          if (polar) {
+            double fd = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
+            double fs = Math.sqrt(fx * fx + fy * fy);
+            values[2][k] = fd;
+            values[3][k] = fs;
+          }
+          else {
+            values[2][k] = fx;
+            values[3][k] = fy;
+          }
+          values[4][k] = u;
+          values[5][k] = v;
         }
-        else {
-          tuple = new Tuple(new Data[]
-            {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-             new RealTuple(windxy, new double[] {fx, fy}),
-             new Real(red, u), new Real(green, v)});
-        }
-
-        // construct reference for wind record
-        refs[k] = new DataReferenceImpl("ref_" + k);
-        refs[k].setData(tuple);
-
-        // link wind record to display via CollectiveBarbManipulation
-        // so user can change barb by dragging it
-        // drag with right mouse button and shift to change direction
-        // drag with right mouse button and no shift to change speed
-        // WLH
-        // display.addReferences(new BarbManipulationRendererJ3D(), refs[k]);
-
-
-        // link wind record to a CellImpl that will listen for changes
-        // and print them
-        WindGetter cell = new WindGetter(flow_control, refs[k]);
-        cell.addReference(refs[k]);
-
-        k++;
+        ff.setSamples(values);
+        field.setSample(m, ff);
+        m++;
       }
     }
-
-    // instead of linking the wind record "DataReferenceImpl refs" to
-    // the WindGetters, you can have some user interface event (e.g.,
-    // the user clicks on "DONE") trigger code that does a getData() on
-    // all the refs and stores the records in a file.
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test CollectiveBarbManipulation");
@@ -278,46 +381,13 @@ public class CollectiveBarbManipulation extends Object
 
     // add display to JPanel
     panel.add(display.getComponent());
+    panel.add(new AnimationWidget(amap));
 
     // set size of JFrame and make it visible
-    frame.setSize(500, 500);
+    frame.setSize(500, 700);
     frame.setVisible(true);
-
-    ScalarMap amap = new ScalarMap(RealType.Time, Display.Animation);
-    display.addMap(amap);
-    AnimationControl acontrol = (AnimationControl) amap.getControl();
-    acontrol.setStep(2000);
-
-    FunctionType ftype = new FunctionType(RealType.Time, lat);
-    Integer1DSet fset = new Integer1DSet(RealType.Time, N * N);
-    FlatField field = new FlatField(ftype, fset);
-    float[][] samples = new float[1][N * N];
-    for (int i=0; i<N*N; i++) {
-      samples[0][i] = i - 10.0f;
-    }
-    field.setSamples(samples);
-    DataReferenceImpl aref = new DataReferenceImpl("field");
-    aref.setData(field);
-    display.addReference(aref);
-
-    DataReferenceImpl ref = new DataReferenceImpl("wind");
-    ref.setData(refs[0].getData());
-    display.addReferences(new BarbManipulationRendererJ3D(), ref);
-
-    Hey hey = new Hey(acontrol, display, refs, ref);
-    acontrol.addControlListener(hey);
-/*
-    int oldk = 0;
-    while (true) {
-      for (k=0; k<N*N; k++) {
-        // **** this actually works ****
-        display.removeReference(refs[oldk]);
-        display.addReferences(new BarbManipulationRendererJ3D(), refs[k]);
-        oldk = k;
-        new visad.util.Delay(2000);
-      }
-    }
-*/
+    CollectiveBarbManipulation cbm =
+      new CollectiveBarbManipulation(field, display);
   }
 }
 

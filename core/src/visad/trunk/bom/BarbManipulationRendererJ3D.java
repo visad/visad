@@ -132,6 +132,8 @@ public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 
   private boolean refirst = false;
 
+  private boolean stop = false;
+
   public String getWhyNotDirect() {
     return whyNotDirect;
   }
@@ -287,10 +289,22 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     // may need to do this for performance
   }
 
+  public void stop_direct() {
+    stop = true;
+  }
+
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     // System.out.println("drag_direct " + first + " " + type);
     if (barbValues == null || ref == null || shadow == null) return;
+
+    if (first) {
+      stop = false;
+    }
+    else {
+      if (stop) return;
+    }
+
     // modify direction if mshift != 0
     // modify speed if mctrl != 0
     // modify speed and direction if neither
