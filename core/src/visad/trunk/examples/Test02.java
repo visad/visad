@@ -89,10 +89,7 @@ public class Test02
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
-    // dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
-    // dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
-    // dpys[0].addMap(new ConstantMap(0.5, Display.Red));
-    map1color = new ScalarMap(vis_radiance, Display.RGB);
+    map1color = new ScalarMap(ir_radiance, Display.RGB);
     dpys[0].addMap(map1color);
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     dpys[0].addMap(map1contour);
@@ -114,8 +111,6 @@ public class Test02
     panel.add(new ContourWidget(map1contour));
     panel.add(new LabeledColorWidget(map1color));
     return panel;
-    // ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
-    // return new ContourWidget(map1contour);
   }
 
   public String toString()
