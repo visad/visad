@@ -1146,8 +1146,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     numv3[0] = lbl_vv[0][0][0].length;
     numv4[0] = lbl_vv[1][0][0].length;
 
+    if (auxLevels != null) {
     int clr_dim = auxValues.length;
-
     auxLevels1[0] = new_colors[0][0];
     auxLevels1[1] = new_colors[0][1];
     auxLevels1[2] = new_colors[0][2];
@@ -1160,6 +1160,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     auxLevels3[1] = lbl_cc[0][0][1];
     auxLevels3[2] = lbl_cc[0][0][2];
     if (clr_dim == 4) auxLevels3[3] = lbl_cc[0][0][3];
+    }
   }
 
   public static void fillGridBox(float[] g, short[][] n_lines,
@@ -3053,13 +3054,15 @@ class ContourStripSet {
         }
       }
 
+      int clr_dim = 0;
+      if (colors != null) {
+      clr_dim = colors.length;
       len = 0;
       for (int mm = 0; mm < n_strips; mm++) {
         if (ca[mm][tt] != null) {
           len += ca[mm][tt][0].length;
         }
       }
-      int clr_dim = colors.length;
       out_bb[tt]  = new byte[clr_dim][len];
       cnt = 0;
       for (int mm = 0; mm < n_strips; mm++) {
@@ -3069,6 +3072,7 @@ class ContourStripSet {
           }
           cnt += ca[mm][tt][0].length;
         }
+      }
       }
     }
 
@@ -3097,7 +3101,9 @@ class ContourStripSet {
         if (laL[kk][tt] != null) {
           for (int mm = 0; mm < laL[kk][tt].length; mm++ ) {
             out_vvL[tt][n_lbl] = laL[kk][tt][mm];
+            if (caL[kk][tt] != null) {
             out_bbL[tt][n_lbl] = caL[kk][tt][mm];
+            }
             n_lbl++;
           }
         }
@@ -3146,12 +3152,13 @@ class ContourStripSet {
         System.arraycopy(tmp[kk][tt][2], 0, out_vv[tt][2], cnt, tmp[kk][tt][0].length);
         cnt += tmp[kk][tt][0].length;
       }
-
+      int clr_dim = 0;
+      if (colors != null) {
+      clr_dim = colors.length;
       len = 0;
       for (int kk=0; kk<n_levs; kk++) {
         len += btmp[kk][tt][0].length;
       }
-      int clr_dim = colors.length;
       out_bb[tt]  = new byte[clr_dim][len];
       cnt = 0;
       for (int kk = 0; kk < n_levs; kk++) {
@@ -3159,6 +3166,7 @@ class ContourStripSet {
           System.arraycopy(btmp[kk][tt][cc], 0, out_bb[tt][cc], cnt, btmp[kk][tt][cc].length);
         }
         cnt += btmp[kk][tt][0].length;
+      }
       }
     }
 
@@ -3335,7 +3343,8 @@ class ContourStrip {
     }
 
     byte[][]  bb      = getColorArray(colors);
-    int clr_dim       = colors.length;
+    int clr_dim       = 0;
+    if (colors != null) clr_dim = colors.length;
     int n_lbl         = 1;
 
     out_vvL[0]        = null;
@@ -3410,13 +3419,17 @@ class ContourStrip {
 
       float[] vx_tmp    = new float[plot.NumVerts];
       float[] vy_tmp    = new float[plot.NumVerts];
-      byte[][] lbl_clr  = new byte[clr_dim][plot.NumVerts];
       System.arraycopy(plot.Vx, 0, vx_tmp, 0, plot.NumVerts);
       System.arraycopy(plot.Vy, 0, vy_tmp, 0, plot.NumVerts);
       float[] vxB_tmp   = new float[plot.NumVerts];
       float[] vyB_tmp   = new float[plot.NumVerts];
       System.arraycopy(plot.VxB, 0, vxB_tmp, 0, plot.NumVerts);
       System.arraycopy(plot.VyB, 0, vyB_tmp, 0, plot.NumVerts);
+
+      byte[][] lbl_clr = null;
+      if (bb != null) {
+        lbl_clr  = new byte[clr_dim][plot.NumVerts];
+      }
 
       boolean rotate = true;
       float[][] lbl_dcoords = null;
@@ -3499,9 +3512,11 @@ class ContourStrip {
         vy_tmp[kk]      += vv[1][loc];
         vxB_tmp[kk]     += vv[0][loc];
         vyB_tmp[kk]     += vv[1][loc];
-        lbl_clr[0][kk]   = bb[0][loc];
-        lbl_clr[1][kk]   = bb[1][loc];
-        lbl_clr[2][kk]   = bb[2][loc];
+        if (bb != null) {
+          lbl_clr[0][kk]   = bb[0][loc];
+          lbl_clr[1][kk]   = bb[1][loc];
+          lbl_clr[2][kk]   = bb[2][loc];
+        }
       }
 
       out_vvL[0]       = new float[n_lbl][][];
@@ -3513,9 +3528,11 @@ class ContourStrip {
       lbl_loc[0][0][1] = vv[1][loc];
       lbl_loc[0][0][2] = vv[2][loc];
       out_vv[0]        = new float[3][vv[0].length - n_skip];
-      out_colors[0]    = new byte[clr_dim][bb[0].length - n_skip];
       out_vv[1]        = new float[3][n_skip];
-      out_colors[1]    = new byte[clr_dim][n_skip];
+      if (bb != null) {
+        out_colors[0]    = new byte[clr_dim][bb[0].length - n_skip];
+        out_colors[1]    = new byte[clr_dim][n_skip];
+      }
 
       int s_pos        = 0;
       int d_pos        = 0;
@@ -3524,8 +3541,10 @@ class ContourStrip {
       System.arraycopy(vv[0], s_pos, out_vv[0][0], d_pos, cnt);
       System.arraycopy(vv[1], s_pos, out_vv[0][1], d_pos, cnt);
       System.arraycopy(vv[2], s_pos, out_vv[0][2], d_pos, cnt);
-      for (int cc=0; cc<clr_dim; cc++) {
-        System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
+      if (bb != null) {
+        for (int cc=0; cc<clr_dim; cc++) {
+          System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
+        }
       }
 
       s_pos         = start_break;
@@ -3535,8 +3554,10 @@ class ContourStrip {
       System.arraycopy(vv[0], s_pos, out_vv[1][0], d_pos, cnt);
       System.arraycopy(vv[1], s_pos, out_vv[1][1], d_pos, cnt);
       System.arraycopy(vv[2], s_pos, out_vv[1][2], d_pos, cnt);
-      for (int cc=0; cc<clr_dim; cc++) {
-        System.arraycopy(bb[cc], s_pos, out_colors[1][cc], d_pos, cnt);
+      if (bb != null) {
+        for (int cc=0; cc<clr_dim; cc++) {
+          System.arraycopy(bb[cc], s_pos, out_colors[1][cc], d_pos, cnt);
+        }
       }
 
       s_pos         = stop_break+1;
@@ -3546,19 +3567,23 @@ class ContourStrip {
       System.arraycopy(vv[0], s_pos, out_vv[0][0], d_pos, cnt);
       System.arraycopy(vv[1], s_pos, out_vv[0][1], d_pos, cnt);
       System.arraycopy(vv[2], s_pos, out_vv[0][2], d_pos, cnt);
-      for (int cc=0; cc<clr_dim; cc++) {
-        System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
+      if (bb != null) {
+        for (int cc=0; cc<clr_dim; cc++) {
+          System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
+        }
       }
      
 
       //--- expanding/contracting left-right segments
 
       out_vvL[2]     = new float[n_lbl][3][2];
-      out_colorsL[2] = new byte[n_lbl][clr_dim][2];
       out_vvL[3]     = new float[n_lbl][3][2];
-      out_colorsL[3] = new byte[n_lbl][clr_dim][2];
       lbl_loc[1]     = new float[n_lbl][3];
       lbl_loc[2]     = new float[n_lbl][3];
+      if (bb != null) {
+        out_colorsL[2] = new byte[n_lbl][clr_dim][2];
+        out_colorsL[3] = new byte[n_lbl][clr_dim][2];
+      }
       //- left
       s_pos = start_break;
       d_pos = 0;
@@ -3587,8 +3612,10 @@ class ContourStrip {
       out_vvL[2][0][2][1] = vv[2][s_pos] + dz;
       lbl_loc[0][0][3]    = lbl_half;
       lbl_loc[0][0][4]    = dd;
-      for (int cc = 0; cc < clr_dim; cc++) {
-        System.arraycopy(bb[cc], s_pos, out_colorsL[2][0][cc], d_pos, cnt);
+      if (bb != null) {
+        for (int cc = 0; cc < clr_dim; cc++) {
+          System.arraycopy(bb[cc], s_pos, out_colorsL[2][0][cc], d_pos, cnt);
+        }
       }
 
       //- right
@@ -3619,8 +3646,10 @@ class ContourStrip {
       out_vvL[3][0][2][1] = vv[2][stop_break] + dz;
       lbl_loc[0][0][5]    = lbl_half;
       lbl_loc[0][0][6]    = dd;
-      for (int cc = 0; cc < clr_dim; cc++) {
-        System.arraycopy(bb[cc], s_pos, out_colorsL[3][0][cc], d_pos, cnt);
+      if (bb != null) {
+        for (int cc = 0; cc < clr_dim; cc++) {
+          System.arraycopy(bb[cc], s_pos, out_colorsL[3][0][cc], d_pos, cnt);
+        }
       }
       //----- end expanding/contracting line segments
 
@@ -3660,6 +3689,7 @@ class ContourStrip {
   }
 
   byte[][] getColorArray(byte[][] colors) {
+    if (colors == null) return null;
     int clr_dim = colors.length;
     int clr_len = (hi_idx-low_idx)+1;
     byte[][] new_colors = new byte[clr_dim][clr_len];

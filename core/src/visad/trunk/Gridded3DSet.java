@@ -1897,10 +1897,12 @@ for color_length = 3 this is 148 * Length
       vx = null;
       vy = null;
 
-      byte[][] segL_color = new byte[color_length][2];
-      byte[][] segR_color = new byte[color_length][2];
+      byte[][] segL_color = null;
+      byte[][] segR_color = null;
       if (color_length > 0) {
         byte[][] a = new byte[color_length][num];
+        segL_color = new byte[color_length][2];
+        segR_color = new byte[color_length][2];
         for (int i=0; i<color_length; i++) {
           System.arraycopy(lbl_cc[0][kk][i], 0, a[i], 0, num);
           System.arraycopy(lbl_cc[2][kk][i], 0, segL_color[i], 0, 2);
