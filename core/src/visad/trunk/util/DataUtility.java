@@ -1532,4 +1532,41 @@ public class DataUtility {
     return null;
   }
 
+  /**
+   * Gets the specified sample of a VisAD Set.
+   *
+   * @param set               The set to have a sample returned.
+   * @param index             The index of the sample to be returned.
+   * @return                  The sample at the specified index.  Will
+   *                          be empty if the index is out-of-bounds.
+   *                          Will have a single component if the set is
+   *                          one-dimensional.
+   * @throws VisADException   Couldn't create necessary VisAD object.
+   * @throws RemoteException  Java RMI failure.
+   */
+  public static RealTuple getSample(Set set, int index)
+          throws VisADException, RemoteException {
+
+    RealTuple     sample;
+    RealTupleType realTupleType = ((SetType) set.getType()).getDomain();
+    double[][]    values        =
+      Unit.convertTuple(set.indexToDouble(new int[]{ index }),
+                        set.getSetUnits(),
+                        realTupleType.getDefaultUnits());
+
+    if ((index < 0) || (index >= set.getLength())) {
+      sample = new RealTuple(realTupleType);
+    } else {
+      double[] doubles = new double[values.length];
+
+      for (int i = doubles.length; --i >= 0; ) {
+        doubles[i] = values[i][0];
+      }
+
+      sample = new RealTuple(realTupleType, doubles);
+    }
+
+    return sample;
+  }
+
 }
