@@ -60,7 +60,7 @@ public class Test33
 
     float[][] table = new float[3][256];
     for (int i=0; i<256; i++) {
-      float a = ((float) i) / 256.0f;
+      float a = ((float) i) / 255.0f;
       table[0][i] = a;
       table[1][i] = 1.0f - a;
       table[2][i] = 0.5f;

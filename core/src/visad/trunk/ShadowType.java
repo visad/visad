@@ -2810,6 +2810,9 @@ System.out.println("color_values: nummissing = " + nummissing);
 
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
                     VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
+                    VisADGeometryArray arrayXrev,
+                    VisADGeometryArray arrayYrev,
+                    VisADGeometryArray arrayZrev,
                     BufferedImage[] images, GraphicsModeControl mode,
                     float constant_alpha, float[] constant_color,
                     int texture_width, int texture_height, int texture_depth,

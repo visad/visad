@@ -122,16 +122,28 @@ public class ProjectionControlJ3D extends ProjectionControl {
     Point3d eye = new Point3d(0.0, 0.0, 1.0);
     tt.transform(origin);
     tt.transform(eye);
-    double dx = Math.abs(eye.x - origin.x);
-    double dy = Math.abs(eye.y - origin.y);
-    double dz = Math.abs(eye.z - origin.z);
-    if (dz >= dy && dz >= dx) which_child = 2;
-    else if (dy >= dx) which_child = 1;
-    else which_child = 0;
+    double dx = eye.x - origin.x;
+    double dy = eye.y - origin.y;
+    double dz = eye.z - origin.z;
+    double ax = Math.abs(dx);
+    double ay = Math.abs(dy);
+    double az = Math.abs(dz);
+    if (az >= ay && az >= ax) {
+      which_child = (dz > 0) ? 2 : 5;
+    }
+    else if (ay >= ax) {
+      which_child = (dy > 0) ? 1 : 4;
+    }
+    else {
+      which_child = (dx > 0) ? 0 : 3;
+    }
 
     // axis did not change, so no need to change Switches
     if (old_which_child == which_child) return;
-
+/*
+System.out.println("which_child = " + which_child + "  " + dx +
+                  " " + dy + " " + dz);
+*/
     // axis changed, so change Switches
     Enumeration pairs = ((Vector) switches.clone()).elements();
     while (pairs.hasMoreElements()) {

@@ -303,6 +303,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
                     VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
+                    VisADGeometryArray arrayXrev,
+                    VisADGeometryArray arrayYrev,
+                    VisADGeometryArray arrayZrev,
                     BufferedImage[] images, GraphicsModeControl mode,
                     float constant_alpha, float[] constant_color,
                     int texture_width, int texture_height,
@@ -312,6 +315,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     GeometryArray geometryX = display.makeGeometry(arrayX);
     GeometryArray geometryY = display.makeGeometry(arrayY);
     GeometryArray geometryZ = display.makeGeometry(arrayZ);
+    GeometryArray geometryXrev = display.makeGeometry(arrayXrev);
+    GeometryArray geometryYrev = display.makeGeometry(arrayYrev);
+    GeometryArray geometryZrev = display.makeGeometry(arrayZrev);
     // System.out.println("texture geometry");
     // create basic Appearance
     TransparencyAttributes c_alpha = null;
@@ -368,12 +374,13 @@ System.out.println("Texture.NICEST = " + Texture.NICEST); // 1
 System.out.println("Texture.BASE_LEVEL_POINT = " + Texture.BASE_LEVEL_POINT); // 2
 System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); // 3
 */
-/* for interpolation:
+/* for interpolation: */
     texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
     texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
-*/
+/* for sampling:
     texture.setMinFilter(Texture.BASE_LEVEL_POINT);
     texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+*/
     texture.setEnable(true);
     // end of from TextureLoader
 
@@ -381,12 +388,18 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     Shape3D shapeX = new Shape3D(geometryX, appearance);
     Shape3D shapeY = new Shape3D(geometryY, appearance);
     Shape3D shapeZ = new Shape3D(geometryZ, appearance);
+    Shape3D shapeXrev = new Shape3D(geometryXrev, appearance);
+    Shape3D shapeYrev = new Shape3D(geometryYrev, appearance);
+    Shape3D shapeZrev = new Shape3D(geometryZrev, appearance);
     appearance.setTexture(texture);
 
     Switch swit = (Switch) makeSwitch();
     swit.addChild(shapeX);
     swit.addChild(shapeY);
     swit.addChild(shapeZ);
+    swit.addChild(shapeXrev);
+    swit.addChild(shapeYrev);
+    swit.addChild(shapeZrev);
     ((Group) group).addChild(swit);
 
     ProjectionControlJ3D control =

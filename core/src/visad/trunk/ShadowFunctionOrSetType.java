@@ -697,6 +697,9 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
     float[] texCoordsZ = null;
     float[] normalsZ = null;
     byte[] colorsZ = null;
+
+    int[] volume_tuple_index = null;
+
     if (isTextureMap) {
       Linear1DSet X = null;
       Linear1DSet Y = null;
@@ -892,6 +895,7 @@ for (int i=0; i < 4; i++) {
                                      "ShadowFunctionOrSetType.doTransform");
         }
       } // end for (int i=0; i<DomainComponents.length; i++)
+      volume_tuple_index = tuple_index;
 
       coordinatesX = new float[12 * data_width];
       coordinatesY = new float[12 * data_height];
@@ -937,7 +941,7 @@ for (int i=0; i < 4; i++) {
         // corner 3
         coordinatesY[i12 + 9 + tuple_index[0]] = limits[0][0];
         coordinatesY[i12 + 9 + tuple_index[1]] = height;
-        coordinatesY[i12 + 9 + tuple_index[2]] = limits[2][0];
+        coordinatesY[i12 + 9 + tuple_index[2]] = limits[2][1];
       }
 
       for (int i=0; i<data_width; i++) {
@@ -1048,6 +1052,7 @@ for (int i=0; i < 4; i++) {
       for (int i=0; i<12*data_width; i++) colorsX[i] = (byte) 127;
       for (int i=0; i<12*data_height; i++) colorsY[i] = (byte) 127;
       for (int i=0; i<12*data_depth; i++) colorsZ[i] = (byte) 127;
+
 /*
 for (int i=0; i < 4; i++) {
   System.out.println("i = " + i + " texCoordsX = " + texCoordsX[3 * i] + " " +
@@ -1903,11 +1908,13 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             if (range_select[0] != null && range_select[0].length > 1) {
               int len = range_select[0].length;
 
-// WLH - 29 May 99  must test this
+/* can be misleading because of the way transparency composites
               float alpha =
                 default_values[display.getDisplayScalarIndex(Display.Alpha)];
+// System.out.println("alpha = " + alpha);
               if (constant_alpha == constant_alpha) {
-                alpha = constant_alpha;
+                alpha = 1.0f - constant_alpha;
+// System.out.println("constant_alpha = " + alpha);
               }
               if (color_values.length < 4) {
                 byte[][] c = new byte[4][];
@@ -1925,6 +1932,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                   color_values[3][i] = 0;
                 }
               }
+*/
 
               for (int i=0; i<len; i++) {
                 if (!range_select[0][i]) {
@@ -2102,11 +2110,11 @@ if (size < 0.2) {
             if (range_select[0] != null && range_select[0].length > 1) {
               int len = range_select[0].length;
 
-// WLH - 29 May 99  must test this
+/* can be misleading because of the way transparency composites
               float alpha =
                 default_values[display.getDisplayScalarIndex(Display.Alpha)];
               if (constant_alpha == constant_alpha) {
-                alpha = constant_alpha;
+                alpha = 1.0f - constant_alpha;
               }
               if (color_values.length < 4) {
                 byte[][] c = new byte[4][];
@@ -2124,6 +2132,7 @@ if (size < 0.2) {
                   color_values[3][i] = 0;
                 }
               }
+*/
 
               for (int i=0; i<len; i++) {
                 if (!range_select[0][i]) {
@@ -2136,32 +2145,50 @@ if (size < 0.2) {
             } // end if (range_select[0] != null)
 
             // MEM
-            VisADQuadArray qarrayX = new VisADQuadArray();
-            qarrayX.vertexCount = coordinatesX.length / 12;
-            qarrayX.coordinates = coordinatesX;
-            qarrayX.texCoords = texCoordsX;
-            qarrayX.colors = colorsX;
-            qarrayX.normals = normalsX;
+            VisADQuadArray[] qarray =
+              {new VisADQuadArray(), new VisADQuadArray(), new VisADQuadArray()};
+            qarray[0].vertexCount = coordinatesX.length / 3;
+            qarray[0].coordinates = coordinatesX;
+            qarray[0].texCoords = texCoordsX;
+            qarray[0].colors = colorsX;
+            qarray[0].normals = normalsX;
 
-            VisADQuadArray qarrayY = new VisADQuadArray();
-            qarrayY.vertexCount = coordinatesY.length / 12;
-            qarrayY.coordinates = coordinatesY;
-            qarrayY.texCoords = texCoordsY;
-            qarrayY.colors = colorsY;
-            qarrayY.normals = normalsY;
+            qarray[1].vertexCount = coordinatesY.length / 3;
+            qarray[1].coordinates = coordinatesY;
+            qarray[1].texCoords = texCoordsY;
+            qarray[1].colors = colorsY;
+            qarray[1].normals = normalsY;
 
-            VisADQuadArray qarrayZ = new VisADQuadArray();
-            qarrayZ.vertexCount = coordinatesZ.length / 12;
-            qarrayZ.coordinates = coordinatesZ;
-            qarrayZ.texCoords = texCoordsZ;
-            qarrayZ.colors = colorsZ;
-            qarrayZ.normals = normalsZ;
+            qarray[2].vertexCount = coordinatesZ.length / 3;
+            qarray[2].coordinates = coordinatesZ;
+            qarray[2].texCoords = texCoordsZ;
+            qarray[2].colors = colorsZ;
+            qarray[2].normals = normalsZ;
+
+            VisADQuadArray qarrayX = null;
+            VisADQuadArray qarrayY = null;
+            VisADQuadArray qarrayZ = null;
+            for (int i=0; i<3; i++) {
+              if (volume_tuple_index[i] == 0) {
+                 qarrayX = qarray[i];
+              }
+              else if (volume_tuple_index[i] == 1) {
+                 qarrayY = qarray[i];
+              }
+              else if (volume_tuple_index[i] == 2) {
+                 qarrayZ = qarray[i];
+              }
+            }
+            VisADQuadArray qarrayXrev = reverse(qarrayX);
+            VisADQuadArray qarrayYrev = reverse(qarrayY);
+            VisADQuadArray qarrayZrev = reverse(qarrayZ);
 
             BufferedImage[] images =
               createImages(data_width, data_height, data_depth,
                            texture_width, texture_height, texture_depth,
                            color_values);
             shadow_api.texture3DToGroup(group, qarrayX, qarrayY, qarrayZ,
+                                        qarrayXrev, qarrayYrev, qarrayZrev,
                                         images, mode, constant_alpha,
                                         constant_color, texture_width,
                                         texture_height, texture_depth, renderer);
@@ -2713,6 +2740,42 @@ if (size < 0.2) {
       }
     }
     return images;
+  }
+
+  public VisADQuadArray reverse(VisADQuadArray array) {
+    VisADQuadArray qarray = new VisADQuadArray();
+    qarray.coordinates = new float[array.coordinates.length];
+    qarray.texCoords = new float[array.texCoords.length];
+    qarray.colors = new byte[array.colors.length];
+    qarray.normals = new float[array.normals.length];
+
+    int count = array.vertexCount;
+    qarray.vertexCount = count;
+    int color_length = array.colors.length / count;
+    int i3 = 0;
+    int k3 = 3 * (count - 1);
+    int ic = 0;
+    int kc = color_length * (count - 1);
+    for (int i=0; i<count; i++) {
+      qarray.coordinates[i3] = array.coordinates[k3];
+      qarray.coordinates[i3 + 1] = array.coordinates[k3 + 1];
+      qarray.coordinates[i3 + 2] = array.coordinates[k3 + 2];
+      qarray.texCoords[i3] = array.texCoords[k3];
+      qarray.texCoords[i3 + 1] = array.texCoords[k3 + 1];
+      qarray.texCoords[i3 + 2] = array.texCoords[k3 + 2];
+      qarray.normals[i3] = array.normals[k3];
+      qarray.normals[i3 + 1] = array.normals[k3 + 1];
+      qarray.normals[i3 + 2] = array.normals[k3 + 2];
+      qarray.colors[ic] = array.colors[kc];
+      qarray.colors[ic + 1] = array.colors[kc + 1];
+      qarray.colors[ic + 2] = array.colors[kc + 2];
+      if (color_length == 4) qarray.colors[ic + 3] = array.colors[kc + 3];
+      i3 += 3;
+      k3 -= 3;
+      ic += color_length;
+      kc -= color_length;
+    }
+    return qarray;
   }
 
 }
