@@ -142,7 +142,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 	Object obj = Class.forName(name).newInstance();
 	displayRenderer = (DisplayRenderer )obj;
       } catch (Exception e) {
-	renderer = getDefaultDisplayRenderer();
+	displayRenderer = getDefaultDisplayRenderer();
       }
     }
     displayRenderer.setDisplay(this);
