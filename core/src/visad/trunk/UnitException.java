@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitException.java,v 1.2 1998-04-09 18:04:06 billh Exp $
+ * $Id: UnitException.java,v 1.3 1998-09-24 21:53:40 steve Exp $
  */
 
 package visad;
@@ -16,7 +16,7 @@ package visad;
  * A class for exceptions in the units package.
  * @author Steve Emmerson
  *
- * This is part of Steve Emerson's Unit package that has been
+ * This is part of Steve Emmerson's Unit package that has been
  * incorporated into VisAD.
  */
 public final class UnitException 
@@ -25,7 +25,7 @@ public final class UnitException
     /**
      * Create an exception with no detail message.
      */
-    UnitException()
+    public UnitException()
     {
 	super();
     }
@@ -33,7 +33,7 @@ public final class UnitException
     /**
      * Create an exception with a detail message.
      */
-    UnitException(String msg)
+    public UnitException(String msg)
     {
 	super(msg);
     }
