@@ -50,7 +50,7 @@ public class Test19
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -133,7 +133,7 @@ public class Test19
 
   String getFrameTitle() { return "VisAD select slider"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     ScalarMap map1value = (ScalarMap )dpys[0].getMapVector().lastElement();

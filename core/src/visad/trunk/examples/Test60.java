@@ -46,7 +46,7 @@ public class Test60
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType index = new RealType("index", null, null);

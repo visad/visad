@@ -45,7 +45,7 @@ public class Test45
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     TextType text = new TextType("text");

@@ -49,7 +49,7 @@ public class Test59
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType index = new RealType("index", null, null);
@@ -93,7 +93,7 @@ public class Test59
 
   String getFrameTitle() { return "VisAD irregular iso-level controls"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();

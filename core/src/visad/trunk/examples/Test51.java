@@ -57,7 +57,7 @@ public class Test51
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -86,7 +86,7 @@ public class Test51
 
   String getFrameTitle() { return "capture image in Java3D"; }
 
-  void setupUI(DisplayImpl[] dpys)
+  void setupUI(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());

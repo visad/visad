@@ -44,7 +44,7 @@ public class Test65
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
@@ -82,7 +82,7 @@ public class Test65
 
   String getFrameTitle() { return "VisAD widget test"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     return dpys[0].getWidgetPanel();

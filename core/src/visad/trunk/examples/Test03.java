@@ -48,7 +48,7 @@ public class Test03
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] time = {RealType.Time};
@@ -119,7 +119,7 @@ public class Test03
 
   String getFrameTitle() { return "VisAD animation controls"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     ScalarMap map1animation = (ScalarMap )dpys[0].getMapVector().lastElement();

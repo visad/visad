@@ -47,7 +47,7 @@ public class Test00
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     GraphicsModeControl mode;

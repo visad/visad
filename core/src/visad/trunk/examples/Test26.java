@@ -47,7 +47,7 @@ public class Test26
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -79,7 +79,7 @@ public class Test26
     dpys[0].addReference(ref_imaget1, null);
   }
 
-  void setupUI(DisplayImpl[] dpys)
+  void setupUI(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     Vector v = dpys[0].getMapVector();

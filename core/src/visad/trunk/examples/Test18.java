@@ -45,7 +45,7 @@ public class Test18
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] time = {RealType.Time};
@@ -112,7 +112,7 @@ public class Test18
     dpys[0].addReference(ref_big_tuple, null);
   }
 
-  void setupUI(DisplayImpl[] dpys)
+  void setupUI(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     ScalarMap map1animation = (ScalarMap )dpys[0].getMapVector().lastElement();

@@ -28,6 +28,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 import visad.DisplayImpl;
+import visad.LocalDisplay;
 import visad.RemoteDisplay;
 import visad.RemoteDisplayImpl;
 import visad.RemoteServer;
@@ -250,7 +251,7 @@ public abstract class TestSkeleton
     return rmtDpy;
   }
 
-  private static DisplayImpl wrapRemoteDisplay(RemoteDisplay rmtDpy)
+  private static LocalDisplay wrapRemoteDisplay(RemoteDisplay rmtDpy)
     throws RemoteException, VisADException
   {
     String className = rmtDpy.getDisplayClassName();
@@ -291,7 +292,7 @@ public abstract class TestSkeleton
     return dpy;
   }
 
-  DisplayImpl[] setupClientData()
+  LocalDisplay[] setupClientData()
     throws RemoteException, VisADException
   {
     RemoteServer client = getClientServer();
@@ -300,7 +301,7 @@ public abstract class TestSkeleton
       throw new VisADException("No RemoteDisplays found!");
     }
 
-    DisplayImpl[] dpys = new DisplayImpl[rmtDpy.length];
+    LocalDisplay[] dpys = new LocalDisplay[rmtDpy.length];
     for (int i = 0; i < dpys.length; i++) {
       dpys[i] = wrapRemoteDisplay(rmtDpy[i]);
     }
@@ -314,7 +315,7 @@ public abstract class TestSkeleton
   abstract DisplayImpl[] setupServerDisplays()
     throws RemoteException, VisADException;
 
-  abstract void setupServerData(DisplayImpl[] dpys)
+  abstract void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException;
 
   void setServerDataReferences(RemoteServerImpl server)
@@ -361,7 +362,7 @@ public abstract class TestSkeleton
     return server;
   }
 
-  void setupUI(DisplayImpl[] dpys)
+  void setupUI(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
   }
@@ -369,11 +370,11 @@ public abstract class TestSkeleton
   public void startThreads()
     throws RemoteException, VisADException
   {
-    DisplayImpl[] displays;
+    LocalDisplay[] local;
     if (isClient()) {
-      displays = setupClientData();
+      local = setupClientData();
     } else {
-      displays = setupServerDisplays();
+      DisplayImpl[] displays = setupServerDisplays();
 
       RemoteServerImpl server;
       if (startServer) {
@@ -383,10 +384,11 @@ public abstract class TestSkeleton
       }
       setServerDataReferences(server);
 
-      setupServerData(displays);
+      local = displays;
+      setupServerData(local);
     }
 
-    setupUI(displays);
+    setupUI(local);
   }
 
   public String toString()

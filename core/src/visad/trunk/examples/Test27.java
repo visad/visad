@@ -53,7 +53,7 @@ public class Test27
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Altitude};

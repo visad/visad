@@ -48,7 +48,7 @@ public class Test01
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
@@ -79,7 +79,7 @@ public class Test01
 
   String getFrameTitle() { return "VisAD iso-level controls"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();

@@ -48,7 +48,7 @@ public class Test20
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -78,7 +78,7 @@ public class Test20
 
   String getFrameTitle0() { return "VisAD Color Alpha Widget"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();

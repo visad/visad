@@ -49,7 +49,7 @@ public class Test44
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     TextType text = new TextType("text");
@@ -91,7 +91,7 @@ public class Test44
 
   String getFrameTitle() { return "text in Java2D"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     boolean foundCtrl = false;

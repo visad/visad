@@ -49,7 +49,7 @@ public class Test46
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -79,7 +79,7 @@ public class Test46
     dpys[0].addReference(ref_histogram1, null);
   }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     Vector v = dpys[0].getMapVector();

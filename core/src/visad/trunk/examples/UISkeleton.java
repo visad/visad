@@ -33,7 +33,7 @@ import java.awt.event.WindowEvent;
 
 import java.rmi.RemoteException;
 
-import visad.DisplayImpl;
+import visad.LocalDisplay;
 import visad.VisADException;
 
 public abstract class UISkeleton
@@ -47,7 +47,7 @@ public abstract class UISkeleton
     super(args);
   }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     return null;
@@ -55,7 +55,7 @@ public abstract class UISkeleton
 
   String getFrameTitle() { return "VisAD generic user interface"; }
 
-  void setupUI(DisplayImpl[] dpys)
+  void setupUI(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     Component special = getSpecialComponent(dpys);

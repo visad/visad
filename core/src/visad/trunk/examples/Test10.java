@@ -63,7 +63,7 @@ public class Test10
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);

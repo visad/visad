@@ -56,7 +56,7 @@ public class Test57
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -84,7 +84,7 @@ public class Test57
 
   String getFrameTitle() { return "fly-through in Java3D"; }
 
-  void setupUI(DisplayImpl[] dpys)
+  void setupUI(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());
@@ -109,11 +109,11 @@ public class Test57
   public void displayChanged(DisplayEvent e)
     throws RemoteException, VisADException {
     if (e.getId() == DisplayEvent.FRAME_DONE) {
-      rotate((DisplayImpl) e.getDisplay());
+      rotate((LocalDisplay) e.getDisplay());
     }
   }
 
-  public void rotate(DisplayImpl display)
+  public void rotate(LocalDisplay display)
     throws RemoteException, VisADException {
     double[] matrix = control.getMatrix();
     double[] mult = display.make_matrix(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0);

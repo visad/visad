@@ -62,7 +62,7 @@ public class Test37
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -105,7 +105,7 @@ public class Test37
 
   private String getFrameTitle1() { return "VisAD contour controls"; }
 
-  void setupUI(DisplayImpl[] dpys)
+  void setupUI(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle0() + getClientServerTitle());

@@ -48,7 +48,7 @@ public class Test34
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);

@@ -64,7 +64,7 @@ public class Test15
     return dpys;
   }
 
-  void setupServerData(DisplayImpl[] dpys)
+  void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     if (!(dpys[0] instanceof DisplayImpl)) {
