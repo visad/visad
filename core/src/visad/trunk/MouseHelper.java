@@ -301,7 +301,7 @@ public class MouseHelper
 
       if (f >= 0) function[f] = true;
 
-      enableFunctions((MouseEvent) event);
+      boolean cursor_off = enableFunctions((MouseEvent) event);
 
       if (event_id == MouseEvent.MOUSE_PRESSED) {
         try {
@@ -391,6 +391,7 @@ public class MouseHelper
           }
         }
       }
+      if (cursor_off) display_renderer.setCursorOn(false);
     }
     else if (event_id == MouseEvent.MOUSE_DRAGGED) {
       boolean cursor = function[CURSOR_TRANSLATE] ||
@@ -515,7 +516,9 @@ public class MouseHelper
 
   }
 
-  private void enableFunctions(MouseEvent event) {
+  private boolean enableFunctions(MouseEvent event) {
+
+    boolean cursor_off = false;
 
     if (event == null) {
       for (int i=0; i<NFUNCTIONS; i++) {
@@ -541,7 +544,8 @@ public class MouseHelper
 
     // disable functions
     if (old_cursor && !cursor) {
-      display_renderer.setCursorOn(false);
+      // display_renderer.setCursorOn(false);
+      cursor_off = true;
     }
 
     if (old_function[DIRECT] && !function[DIRECT]) {
@@ -661,7 +665,7 @@ public class MouseHelper
         }
       }
     }
-
+    return cursor_off;
   }
 
   /** 
