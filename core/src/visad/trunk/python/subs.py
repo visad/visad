@@ -58,6 +58,9 @@ makeMaps(RealType, name, RealType, name, ....)
   define ScalarMap(s) given pairs of (Type, name)
   where "name" is taken from the list, below.
 
+  Alternatively, you may use the "string" names of
+  existing RealTypes.
+
 showDisplay(display, width=300, height=300, title=, bottom=, top=)
   quick display of a Display object in a separate JFrame
   you can set the size and title, if you want...  Use the bottom=
@@ -375,7 +378,12 @@ def makeMaps(*a):
       if dis[k] == a[i+1] : got=k
 
     if got != -1:
-      maps.append(ScalarMap(a[i], Display.DisplayRealArray[got]))
+      if type(a[i]) == StringType:
+        rt = RealType.getRealType(a[i])
+        maps.append(ScalarMap(RealType.getRealType(a[i]),
+                                    Display.DisplayRealArray[got]))
+      else:
+        maps.append(ScalarMap(a[i], Display.DisplayRealArray[got]))
     else:
       print "While making mappings, cannot match: ",a[i+1]
 
