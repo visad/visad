@@ -182,19 +182,17 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     sendMouseEvent(e);
 
     // notify display listeners
-    int x = e.getX();
-    int y = e.getY();
     DisplayEvent de1 =
-      new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED, x, y);
+      new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED, e);
     DisplayEvent de2 = null;
     if (SwingUtilities.isLeftMouseButton(e)) {
-      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_LEFT, x, y);
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_LEFT, e);
     }
     else if (SwingUtilities.isMiddleMouseButton(e)) {
-      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_CENTER, x, y);
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_CENTER, e);
     }
     else if (SwingUtilities.isRightMouseButton(e)) {
-      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_RIGHT, x, y);
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_RIGHT, e);
     }
     synchronized (listen) {
       for (int i=0; i<listen.size(); i++) {
@@ -217,20 +215,18 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     sendMouseEvent(e);
 
     // notify display listeners
-    int x = e.getX();
-    int y = e.getY();
     DisplayEvent de1 =
-      new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED, x, y);
+      new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED, e);
     DisplayEvent de2 = null;
     if (SwingUtilities.isLeftMouseButton(e)) {
-      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_LEFT, x, y);
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_LEFT, e);
     }
     else if (SwingUtilities.isMiddleMouseButton(e)) {
       de2 =
-        new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_CENTER, x, y);
+        new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_CENTER, e);
     }
     else if (SwingUtilities.isRightMouseButton(e)) {
-      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_RIGHT, x, y);
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_RIGHT, e);
     }
     synchronized (listen) {
       for (int i=0; i<listen.size(); i++) {

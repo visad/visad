@@ -26,6 +26,13 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.awt.Component;
+import java.awt.event.*;
+import javax.swing.*;
+
+import visad.java3d.DisplayImplJ3D;
+import visad.util.Util;
+
 /**
    DisplayEvent is the VisAD class for Events from Display
    objects.  They are sourced by Display objects and
@@ -130,13 +137,13 @@ public class DisplayEvent extends VisADEvent {
    */
   public final static int DESTROYED = 15;
 
+  /** Dummy AWT component. */
+  private static final Component DUMMY = new JPanel();
+
   private int id = 0;
 
-  /** MouseEvent x position */
-  private int mouse_x = 0;
-  
-  /** MouseEvent y position */
-  private int mouse_y = 0;
+  /** InputEvent corresponding to the DisplayEvent, if any */
+  private InputEvent input_event = null;
 
   /** source of event */
   private Display display;
@@ -185,6 +192,18 @@ public class DisplayEvent extends VisADEvent {
 
   /**
    * Constructs a DisplayEvent object with the specified source display,
+   * type of event, and mouse event describing mouse details.
+   *
+   * @param  d  display that sends the event
+   * @param  id_d  type of DisplayEvent that is sent
+   * @param  e  the InputEvent describing this MOUSE type DisplayEvent
+   */
+  public DisplayEvent(Display d, int id_d, InputEvent e) {
+    this(d, id_d, e, LOCAL_SOURCE);
+  }
+
+  /**
+   * Constructs a DisplayEvent object with the specified source display,
    * type of event, mouse positions where event occurred, and
    * remote flag indicating whether event came from a remote source.
    *
@@ -197,13 +216,28 @@ public class DisplayEvent extends VisADEvent {
    * @param  remoteId  ID of remote source
    */
   public DisplayEvent(Display d, int id_d, int x, int y, int remoteId) {
+    this(d, id_d, new MouseEvent(d instanceof DisplayImpl ?
+      ((DisplayImpl) d).getComponent() : DUMMY, 0,
+      System.currentTimeMillis(), 0, x, y, 1, false), remoteId);
+  }
+
+  /**
+   * Constructs a DisplayEvent object with the specified source display,
+   * type of event, mouse event describing mouse details, and remote
+   * flag indicating whether event came from a remote source.
+   *
+   * @param  d  display that sends the event
+   * @param  id_d  type of DisplayEvent that is sent
+   * @param  e  the InputEvent describing this MOUSE type DisplayEvent
+   * @param  remoteId  ID of remote source
+   */
+  public DisplayEvent(Display d, int id_d, InputEvent e, int remoteId) {
     // don't pass display as the source, since source
     // is transient inside Event
     super(null, 0, null, remoteId);
     display = d;
     id = id_d;
-    mouse_x = x;
-    mouse_y = y;
+    input_event = e;
   }
 
   /**
@@ -212,7 +246,7 @@ public class DisplayEvent extends VisADEvent {
    */
   public DisplayEvent cloneButDisplay(Display dpy)
   {
-    return new DisplayEvent(dpy, id, mouse_x, mouse_y, getRemoteId());
+    return new DisplayEvent(dpy, id, input_event, getRemoteId());
   }
 
   /** get the DisplayImpl that sent this DisplayEvent (or
@@ -252,10 +286,11 @@ public class DisplayEvent extends VisADEvent {
    * for MOUSE type events.
    *
    * @return  horizontal x coordinate for the mouse location in
-   *          the display component
+   *          the display component, or -1 if not a mouse event
    */
   public int getX() {
-    return mouse_x;
+    return input_event == null || !(input_event instanceof MouseEvent) ?
+      -1 : ((MouseEvent) input_event).getX();
   }
 
   /**
@@ -263,14 +298,34 @@ public class DisplayEvent extends VisADEvent {
    * for MOUSE type events.
    *
    * @return  vertical y coordinate for the mouse location in
-   *          the display component
+   *          the display component, or -1 if not a mouse event
    */
   public int getY() {
-    return mouse_y;
+    return input_event == null || !(input_event instanceof MouseEvent) ?
+      -1 : ((MouseEvent) input_event).getY();
   }
 
   /**
+   * Get the keyboard modifiers (such as whether SHIFT or CTRL was
+   * being held during the event).  Only valid for MOUSE type events.
+   *
+   * @return  keyboard modifier bit field, or -1 if not a mouse event
+   */
+  public int getModifiers() {
+    return input_event == null ? -1 : input_event.getModifiers();
+  }
+
+  /**
+   * Get the InputEvent associated with this DisplayEvent.
+   * Only valid for MOUSE type events.
+   *
+   * @return  associated InputEvent, or null if not a mouse event
+   */
+  public InputEvent getInputEvent() { return input_event; }
+
+  /**
    * String representation of the event.
+   *
    * @return descriptive info about the event
    */
   public String toString() {
@@ -293,5 +348,78 @@ public class DisplayEvent extends VisADEvent {
     return buf.toString();
   }
 
-}
+  /** Run 'java visad.DisplayEvent' to test DisplayEvents. */
+  public static void main(String[] args) throws Exception {
+    DisplayImpl display = new DisplayImplJ3D("display");
 
+    RealType[] types = {RealType.Latitude, RealType.Longitude};
+    RealTupleType earth_location = new RealTupleType(types);
+    RealType vis_radiance = RealType.getRealType("vis_radiance");
+    RealType ir_radiance = RealType.getRealType("ir_radiance");
+    RealType[] types2 = {vis_radiance, ir_radiance};
+    RealTupleType radiance = new RealTupleType(types2);
+    FunctionType image_tuple = new FunctionType(earth_location, radiance);
+
+    int size = 32;
+    FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
+
+    display.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    display.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    display.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+
+    display.addMap(new ScalarMap(RealType.Latitude, Display.Red));
+    display.addMap(new ScalarMap(RealType.Longitude, Display.Green));
+    display.addMap(new ScalarMap(vis_radiance, Display.Blue));
+
+    GraphicsModeControl mode = display.getGraphicsModeControl();
+    mode.setTextureEnable(false);
+
+    DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+    ref_imaget1.setData(imaget1);
+    display.addReference(ref_imaget1, null);
+
+    final String[] ids = {
+      "?", "MOUSE_PRESSED", "TRANSFORM_DONE", "FRAME_DONE",
+      "MOUSE_PRESSED_CENTER", "MOUSE_PRESSED_LEFT",  "MOUSE_PRESSED_RIGHT",
+      "MOUSE_RELEASED", "MOUSE_RELEASED_CENTER", "MOUSE_RELEASED_LEFT",
+      "MOUSE_RELEASED_RIGHT", "MAP_ADDED", "MAPS_CLEARED", "REFERENCE_ADDED",
+      "REFERENCE_REMOVED", "DESTROYED"
+    };
+
+    display.addDisplayListener(new DisplayListener() {
+      public void displayChanged(DisplayEvent e) {
+        int id = e.getId();
+        System.out.print(System.currentTimeMillis() + ": " + ids[id]);
+        InputEvent ie = e.getInputEvent();
+        if (ie == null) System.out.println();
+        else {
+          System.out.print(" [ ");
+          if (ie instanceof MouseEvent) {
+            MouseEvent me = (MouseEvent) ie;
+            int x = me.getX();
+            int y = me.getY();
+            System.out.print("(" + x + ", " + y + ") ");
+          }
+          int mods = ie.getModifiers();
+          if ((mods & InputEvent.CTRL_MASK) != 0) System.out.print("CTRL ");
+          if ((mods & InputEvent.SHIFT_MASK) != 0) System.out.print("SHIFT ");
+          System.out.println("]");
+        }
+      }
+    });
+
+    JFrame frame = new JFrame("VisAD DisplayEvent test");
+    JPanel pane = new JPanel();
+    pane.setLayout(new BoxLayout(pane, BoxLayout.X_AXIS));
+    frame.setContentPane(pane);
+    pane.add(display.getComponent());
+
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) { System.exit(0); }
+    });
+    frame.pack();
+    Util.centerWindow(frame);
+    frame.show();
+  }
+
+}
