@@ -63,7 +63,7 @@ public class JamaMatrix extends FlatField {
     }
   }
 
-  private static final Class matrixClass = constructMatrixClass();
+  private static final Class classMatrix = constructMatrixClass();
 
   private static Class constructMatrixClass() {
     try {
@@ -87,75 +87,75 @@ public class JamaMatrix extends FlatField {
     Method[] ms = new Method[46];
     try {
       Class[] param = new Class[] {};
-      ms[0] = matrixClass.getMethod("getColumnDimension", param);
+      ms[0] = classMatrix.getMethod("getColumnDimension", param);
       param = new Class[] {};
-      ms[1] = matrixClass.getMethod("getRowDimension", param);
+      ms[1] = classMatrix.getMethod("getRowDimension", param);
       param = new Class[] {};
-      ms[2] = matrixClass.getMethod("getArray", param);
+      ms[2] = classMatrix.getMethod("getArray", param);
       param = new Class[] {int.class, int.class};
-      ms[3] = matrixClass.getMethod("get", param);
+      ms[3] = classMatrix.getMethod("get", param);
       param = new Class[] {int.class, int.class, int.class, int.class};
-      ms[4] = matrixClass.getMethod("getMatrix", param);
+      ms[4] = classMatrix.getMethod("getMatrix", param);
       param = new Class[] {int[].class, int[].class};
-      ms[5] = matrixClass.getMethod("getMatrix", param);
+      ms[5] = classMatrix.getMethod("getMatrix", param);
       param = new Class[] {int.class, int.class, int[].class};
-      ms[6] = matrixClass.getMethod("getMatrix", param);
+      ms[6] = classMatrix.getMethod("getMatrix", param);
       param = new Class[] {int[].class, int.class, int.class};
-      ms[7] = matrixClass.getMethod("getMatrix", param);
+      ms[7] = classMatrix.getMethod("getMatrix", param);
       param = new Class[] {int.class, int.class, double.class};
-      ms[8] = matrixClass.getMethod("set", param);
+      ms[8] = classMatrix.getMethod("set", param);
       param = new Class[] {int.class, int.class, int.class, int.class,
-                           matrixClass};
-      ms[9] = matrixClass.getMethod("setMatrix", param);
-      param = new Class[] {int[].class, int[].class, matrixClass};
-      ms[10] = matrixClass.getMethod("setMatrix", param);
-      param = new Class[] {int.class, int.class, int[].class, matrixClass};
-      ms[11] = matrixClass.getMethod("setMatrix", param);
-      param = new Class[] {int[].class, int.class, int.class, matrixClass};
-      ms[12] = matrixClass.getMethod("setMatrix", param);
+                           classMatrix};
+      ms[9] = classMatrix.getMethod("setMatrix", param);
+      param = new Class[] {int[].class, int[].class, classMatrix};
+      ms[10] = classMatrix.getMethod("setMatrix", param);
+      param = new Class[] {int.class, int.class, int[].class, classMatrix};
+      ms[11] = classMatrix.getMethod("setMatrix", param);
+      param = new Class[] {int[].class, int.class, int.class, classMatrix};
+      ms[12] = classMatrix.getMethod("setMatrix", param);
       param = new Class[] {};
-      ms[13] = matrixClass.getMethod("transpose", param);
-      ms[14] = matrixClass.getMethod("norm1", param);
-      ms[15] = matrixClass.getMethod("norm2", param);
-      ms[16] = matrixClass.getMethod("normInf", param);
-      ms[17] = matrixClass.getMethod("normF", param);
-      ms[18] = matrixClass.getMethod("uminus", param);
-      param = new Class[] {matrixClass};
-      ms[19] = matrixClass.getMethod("plus", param);
-      ms[20] = matrixClass.getMethod("plusEquals", param);
-      ms[21] = matrixClass.getMethod("minus", param);
-      ms[22] = matrixClass.getMethod("minusEquals", param);
-      ms[23] = matrixClass.getMethod("arrayTimes", param);
-      ms[24] = matrixClass.getMethod("arrayTimesEquals", param);
-      ms[25] = matrixClass.getMethod("arrayRightDivide", param);
-      ms[26] = matrixClass.getMethod("arrayRightDivideEquals", param);
-      ms[27] = matrixClass.getMethod("arrayLeftDivide", param);
-      ms[28] = matrixClass.getMethod("arrayLeftDivideEquals", param);
+      ms[13] = classMatrix.getMethod("transpose", param);
+      ms[14] = classMatrix.getMethod("norm1", param);
+      ms[15] = classMatrix.getMethod("norm2", param);
+      ms[16] = classMatrix.getMethod("normInf", param);
+      ms[17] = classMatrix.getMethod("normF", param);
+      ms[18] = classMatrix.getMethod("uminus", param);
+      param = new Class[] {classMatrix};
+      ms[19] = classMatrix.getMethod("plus", param);
+      ms[20] = classMatrix.getMethod("plusEquals", param);
+      ms[21] = classMatrix.getMethod("minus", param);
+      ms[22] = classMatrix.getMethod("minusEquals", param);
+      ms[23] = classMatrix.getMethod("arrayTimes", param);
+      ms[24] = classMatrix.getMethod("arrayTimesEquals", param);
+      ms[25] = classMatrix.getMethod("arrayRightDivide", param);
+      ms[26] = classMatrix.getMethod("arrayRightDivideEquals", param);
+      ms[27] = classMatrix.getMethod("arrayLeftDivide", param);
+      ms[28] = classMatrix.getMethod("arrayLeftDivideEquals", param);
       param = new Class[] {double.class};
-      ms[29] = matrixClass.getMethod("times", param);
-      ms[30] = matrixClass.getMethod("timesEquals", param);
-      param = new Class[] {matrixClass};
-      ms[31] = matrixClass.getMethod("times", param);
-      ms[32] = matrixClass.getMethod("solve", param);
-      ms[33] = matrixClass.getMethod("solveTranspose", param);
+      ms[29] = classMatrix.getMethod("times", param);
+      ms[30] = classMatrix.getMethod("timesEquals", param);
+      param = new Class[] {classMatrix};
+      ms[31] = classMatrix.getMethod("times", param);
+      ms[32] = classMatrix.getMethod("solve", param);
+      ms[33] = classMatrix.getMethod("solveTranspose", param);
       param = new Class[] {};
-      ms[34] = matrixClass.getMethod("inverse", param);
-      ms[35] = matrixClass.getMethod("det", param);
-      ms[36] = matrixClass.getMethod("rank", param);
-      ms[37] = matrixClass.getMethod("cond", param);
-      ms[38] = matrixClass.getMethod("trace", param);
+      ms[34] = classMatrix.getMethod("inverse", param);
+      ms[35] = classMatrix.getMethod("det", param);
+      ms[36] = classMatrix.getMethod("rank", param);
+      ms[37] = classMatrix.getMethod("cond", param);
+      ms[38] = classMatrix.getMethod("trace", param);
       param = new Class[] {int.class, int.class};
-      ms[39] = matrixClass.getMethod("random", param);
-      ms[40] = matrixClass.getMethod("identity", param);
-      ms[41] = matrixClass.getMethod("print", param);
+      ms[39] = classMatrix.getMethod("random", param);
+      ms[40] = classMatrix.getMethod("identity", param);
+      ms[41] = classMatrix.getMethod("print", param);
       param = new Class[] {PrintWriter.class, int.class, int.class};
-      ms[42] = matrixClass.getMethod("print", param);
+      ms[42] = classMatrix.getMethod("print", param);
       param = new Class[] {NumberFormat.class, int.class};
-      ms[43] = matrixClass.getMethod("print", param);
+      ms[43] = classMatrix.getMethod("print", param);
       param = new Class[] {PrintWriter.class, NumberFormat.class, int.class};
-      ms[44] = matrixClass.getMethod("print", param);
+      ms[44] = classMatrix.getMethod("print", param);
       param = new Class[] {BufferedReader.class};
-      ms[45] = matrixClass.getMethod("read", param);
+      ms[45] = classMatrix.getMethod("read", param);
     }
     catch (NoSuchMethodException e) {
       e.printStackTrace();
@@ -218,9 +218,9 @@ public class JamaMatrix extends FlatField {
     Constructor[] cs = new Constructor[2];
     try {
       Class[] param = new Class[] {int.class, int.class};
-      cs[0] = matrixClass.getConstructor(param);
+      cs[0] = classMatrix.getConstructor(param);
       param = new Class[] {double[][].class};
-      cs[1] = matrixClass.getConstructor(param);
+      cs[1] = classMatrix.getConstructor(param);
     }
     catch (NoSuchMethodException e) {
     }
@@ -240,7 +240,7 @@ public class JamaMatrix extends FlatField {
   public static JamaMatrix convertToMatrix(Data data)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -330,11 +330,11 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   private static Integer2DSet getDomainSet(Object matrix)
           throws VisADException, IllegalAccessException,
                  InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
-    if (!matrixClass.isInstance(matrix)) {
+    if (!classMatrix.isInstance(matrix)) {
       throw new VisADException("matrix must be an instance of Jama.Matrix");
     }
     int rows = ((Integer)
@@ -434,11 +434,11 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void setMatrix(Object matrix)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
-    if (!matrixClass.isInstance(matrix)) {
+    if (!classMatrix.isInstance(matrix)) {
       throw new VisADException("matrix must be an instance of Jama.Matrix");
     }
     // convert matrix entries into range sample values
@@ -483,7 +483,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public int getRowDimension()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -499,7 +499,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public int getColumnDimension()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -518,7 +518,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public double get(int i, int j)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -540,7 +540,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix getMatrix(int i0, int i1, int j0, int j1)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -559,7 +559,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix getMatrix(int[] r, int[] c)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -578,7 +578,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix getMatrix(int i0, int i1, int[] c)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -598,7 +598,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix getMatrix(int[] r, int j0, int j1)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -617,7 +617,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void set(int i, int j, double s)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -639,7 +639,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void setMatrix(int i0, int i1, int j0, int j1, JamaMatrix X)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -659,7 +659,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void setMatrix(int[] r, int[] c, JamaMatrix X)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -678,7 +678,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void setMatrix(int[] r, int j0, int j1, JamaMatrix X)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -698,7 +698,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void setMatrix(int i0, int i1, int[] c, JamaMatrix X)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -714,7 +714,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix transpose()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -729,7 +729,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public double norm1()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -745,7 +745,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public double norm2()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -761,7 +761,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public double normInf()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -777,7 +777,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public double normF()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -793,7 +793,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix uminus()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -809,7 +809,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix plus(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -825,7 +825,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix plusEquals(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -842,7 +842,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix minus(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -858,7 +858,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix minusEquals(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -875,7 +875,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix arrayTimes(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -891,7 +891,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix arrayTimesEquals(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -908,7 +908,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix arrayRightDivide(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -924,7 +924,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix arrayRightDivideEquals(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -941,7 +941,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix arrayLeftDivide(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -957,7 +957,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix arrayLeftDivideEquals(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -974,7 +974,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix times(double s)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -990,7 +990,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix timesEquals(double s)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1008,7 +1008,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix times(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1024,7 +1024,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix solve(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1040,7 +1040,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix solveTranspose(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1055,7 +1055,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public JamaMatrix inverse()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1070,7 +1070,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public double det()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1086,7 +1086,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public int rank()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1102,7 +1102,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public double cond()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1118,7 +1118,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public double trace()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1136,7 +1136,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public static JamaMatrix random(int m, int n)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1154,7 +1154,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public static JamaMatrix identity(int m, int n)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1172,7 +1172,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void print(int w, int d)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1189,7 +1189,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void print(PrintWriter output, int w, int d)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1206,7 +1206,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void print(NumberFormat format, int width)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1224,7 +1224,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public void print(PrintWriter output, NumberFormat format, int width)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -1241,7 +1241,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
   public static JamaMatrix read(BufferedReader input)
          throws IOException, VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (matrixClass == null) {
+    if (classMatrix == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
