@@ -797,15 +797,4 @@ public class PlaneSelector implements DisplayListener {
     return c4;
   }
 
-  /** Saves a data object to a binary file, for debugging. */
-  protected static void save(String file, DataImpl data) {
-    System.err.print("Saving " + file + "... ");
-    java.io.File f = new java.io.File(file);
-    if (f.exists()) f.delete();
-    visad.data.visad.VisADForm saver = new visad.data.visad.VisADForm(true);
-    try { saver.save(file, data, false); }
-    catch (Exception exc) { exc.printStackTrace(); }
-    System.err.println("done.");
-  }
-
 }

@@ -29,6 +29,7 @@ package visad.bio;
 import java.awt.*;
 import java.awt.event.*;
 import java.rmi.RemoteException;
+import java.util.Arrays;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
@@ -40,6 +41,11 @@ import visad.util.*;
  * adjusting viewing parameters.
  */
 public class ColorToolPanel extends ToolPanel implements ItemListener {
+
+  // -- CONSTANTS --
+
+  private static final int MAX_POWER = 8;
+
 
   // -- GUI COMPONENTS --
 
@@ -79,8 +85,14 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
   /** Toggle for composite coloring. */
   private JCheckBox composite;
 
-  /** Toggle for colorizing image stack based on slice level. */
-  private JCheckBox colorize;
+  /** Label for alpha. */
+  private JLabel alphaLabel;
+
+  /** Slider for alpha function. */
+  private JSlider alpha;
+
+  /** Label for current alpha value. */
+  private JLabel alphaValue;
 
   /** Combo box for choosing color widgets. */
   private JComboBox selector;
@@ -120,9 +132,9 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
 
     // current brightness value
     brightnessValue = new JLabel("" + BioVisAD.NORMAL_BRIGHTNESS);
-    Dimension colorValueSize =
-      new JLabel("" + BioVisAD.COLOR_DETAIL).getPreferredSize();
-    brightnessValue.setPreferredSize(colorValueSize);
+    Dimension labelSize =
+      new JLabel("." + BioVisAD.COLOR_DETAIL).getPreferredSize();
+    brightnessValue.setPreferredSize(labelSize);
     brightnessValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
     p.add(brightnessValue);
     controls.add(pad(p));
@@ -151,7 +163,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
 
     // current contrast value
     contrastValue = new JLabel("" + BioVisAD.NORMAL_CONTRAST);
-    contrastValue.setPreferredSize(colorValueSize);
+    contrastValue.setPreferredSize(labelSize);
     contrastValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
     p.add(contrastValue);
     controls.add(pad(p));
@@ -232,6 +244,40 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       }
     });
     controls.add(pad(composite));
+    cc++;
+
+    // alpha label
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    alphaLabel = new JLabel("Alpha: ");
+    alphaLabel.setForeground(Color.black);
+    alphaLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    alphaLabel.setPreferredSize(brightnessLabel.getPreferredSize());
+    alphaLabel.setEnabled(false);
+    p.add(alphaLabel);
+
+    // alpha slider
+    alpha = new JSlider(0, BioVisAD.COLOR_DETAIL, BioVisAD.COLOR_DETAIL / 2);
+    alpha.addChangeListener(new ChangeListener() {
+      public void stateChanged(ChangeEvent e) { doAlpha(false); }
+    });
+    alpha.setAlignmentY(JSlider.TOP_ALIGNMENT);
+    alpha.setMajorTickSpacing(BioVisAD.COLOR_DETAIL / 4);
+    alpha.setMinorTickSpacing(BioVisAD.COLOR_DETAIL / 16);
+    alpha.setPaintTicks(true);
+    alpha.setEnabled(false);
+    p.add(alpha);
+
+    // current alpha value
+    alphaValue = new JLabel("1.0");
+    alphaValue.setPreferredSize(labelSize);
+    alphaValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    alphaValue.setEnabled(false);
+    p.add(alphaValue);
+    controls.add(pad(p));
+    cc++;
+
+    controls.add(pad(p));
     cc++;
 
     // divider between display functions and resolution functions
@@ -320,6 +366,43 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       green.getSelectedItem(), blue.getSelectedItem());
     brightnessValue.setText("" + bright);
     contrastValue.setText("" + cont);
+  }
+
+  /** Updates image alpha, for transparency in volume rendering. */
+  void doAlpha(boolean solid) {
+    // [0, 0.5] -> [N, 1]
+    // [0.5, 1] -> [1, 1/N]
+    double value = (double) alpha.getValue() / BioVisAD.COLOR_DETAIL;
+    boolean invert = value > 0.5;
+    if (invert) value = 1 - value;
+    double pow = (MAX_POWER - 1) * 2 * (0.5 - value) + 1;
+    if (invert) pow = 1 / pow;
+    float[] alphaTable = new float[BioVisAD.COLOR_DETAIL];
+    for (int i=0; i<BioVisAD.COLOR_DETAIL; i++) {
+      double inc = (double) i / (BioVisAD.COLOR_DETAIL - 1);
+      alphaTable[i] = (float) Math.pow(inc, pow);
+    }
+    LabeledColorWidget[] widgets = bio.sm.getColorWidgets();
+    for (int j=0; j<widgets.length; j++) {
+      float[][] table = widgets[j].getTable();
+      if (table.length < 4) continue;
+      if (solid) Arrays.fill(table[3], 1.0f);
+      else {
+        int len = alphaTable.length < table[3].length ?
+          alphaTable.length : table[3].length;
+        System.arraycopy(alphaTable, 0, table[3], 0, len);
+      }
+      widgets[j].setTable(table);
+    }
+    bio.state.saveState(true);
+
+    String s = "" + pow;
+    if (s.length() > 4) s = s.substring(0, 4);
+    alphaValue.setText(s);
+
+    alphaLabel.setEnabled(!solid);
+    alpha.setEnabled(!solid);
+    alphaValue.setEnabled(!solid);
   }
 
   /** Updates color components to match those specified. */

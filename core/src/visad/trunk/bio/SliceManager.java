@@ -375,6 +375,8 @@ public class SliceManager
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+    bio.toolColor.doAlpha(!volume);
+    syncColors();
   }
 
   /** Sets the resolution at which volume rendering occurs. */
