@@ -1741,5 +1741,53 @@ public abstract class JPythonMethods {
     return ((FieldImpl)data).domainFactor(factor);
   }
 
+  /** creates a VisAD MathType from the given string
+  *
+  * @param s is the string describing the names in
+  * the form:  (x,y)->(a)  for a Field.
+  * It can be as simple as "foo" for a single RealType.
+  *
+  */
+  public static MathType makeType(String s) 
+             throws VisADException, RemoteException {
+    return MathType.stringToType(s);
+  }
+
+  /** get the RealType corresponding to the name; if
+  * none exists, make one and return it.
+  *
+  * @param name is the name of the RealType type.
+  *
+  */
+  public static RealType getRealType(String name) {
+    return (visad.RealType.getRealType(name));
+  }
+
+  /** get the MathType of the named VisAD data object
+  *
+  * @param data is the VisAD Data object
+  *
+  */
+  public static MathType getType(Data data) 
+             throws VisADException, RemoteException {
+    return (data.getType());
+  }
+  
+  /** helper method for the dump(Data|Math)Type() methods
+  *   this will list both the MathType and DataType information
+  *   to stdout.
+  *
+  * @param d is the Data object
+  *
+  */
+  public static void dumpType(Data d) 
+             throws VisADException, RemoteException {
+      MathType t = d.getType();
+      visad.jmet.DumpType.dumpMathType(t);
+      System.out.println("- - - - - - - - - - - - - - - - - - - - - - - ");
+      System.out.println("DataType analysis...");
+      visad.jmet.DumpType.dumpDataType(d);
+  }
+
 }
 
