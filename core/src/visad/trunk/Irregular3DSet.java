@@ -619,7 +619,7 @@ public class Irregular3DSet extends IrregularSet {
     vz = null;
     float[][] colors = null;
     if (color_length > 0) {
-      colors = new float[color_length][numv];
+      colors = new float[3][numv];
       System.arraycopy(color_levels[0], 0, colors[0], 0, numv);
       System.arraycopy(color_levels[1], 0, colors[1], 0, numv);
       System.arraycopy(color_levels[2], 0, colors[2], 0, numv);

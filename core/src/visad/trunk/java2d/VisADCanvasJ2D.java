@@ -210,6 +210,9 @@ System.out.println("VisADCanvasJ2D.paint: current = " + current_image +
         w = width;
         h = height;
         tsave = (tgeometry == null) ? null : new AffineTransform(tgeometry);
+        if (image != null && !valid) {
+          valid_images[current_image] = true;
+        }
       }
     }
 /*
@@ -243,9 +246,9 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
           // draw Animation string in upper right corner of screen
           String animation_string = displayRenderer.getAnimationString();
           if (animation_string != null) {
-
+/*
 System.out.println("VisADCanvasJ2D.paint: " + animation_string);
-
+*/
             g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_ON);
             g2.setFont(new Font("Times New Roman", Font.PLAIN, 12));
             g2.setTransform(new AffineTransform());
@@ -259,11 +262,6 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
         catch (VisADException e) {
         }
         g2.dispose();
-        synchronized (images) {
-          if (0 <= current_image && current_image < length) {
-            valid_images[current_image] = true;
-          }
-        }
       } // end if (!valid)
       if (tsave == null || !displayRenderer.anyCursorStringVector()) {
         g.drawImage(image, 0, 0, this);
@@ -272,6 +270,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
         Graphics ga = aux_image.getGraphics();
         ga.drawImage(image, 0, 0, this);
         displayRenderer.drawCursorStringVector(ga, tsave, w, h);
+        ga.dispose();
         g.drawImage(aux_image, 0, 0, this);
       }
     } // end if (image != null)
@@ -286,10 +285,9 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
     }
     else if (scene instanceof VisADGroup) {
       Vector children = ((VisADGroup) scene).getChildren();
-      Enumeration childs = children.elements();
-      while (childs.hasMoreElements()) {
+      for (int i=children.size()-1; i>=0; i--) {
         VisADSceneGraphObject child =
-          (VisADSceneGraphObject) childs.nextElement();
+          (VisADSceneGraphObject) children.elementAt(i);
         render(g2, child);
       }
     }
@@ -424,7 +422,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
                                       0.5f * (colors[j+1] + colors[j+jinc+1]),
                                       0.5f * (colors[j+2] + colors[j+jinc+2])));
-                j += jinc;
+                j += 2 * jinc;
                 g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
                                          coordinates[i+3], coordinates[i+4]));
               }
@@ -487,7 +485,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 0.33f * (colors[j] + colors[j+jinc] + colors[j+2*jinc]),
                 0.33f * (colors[j+1] + colors[j+jinc+1] + colors[j+2*jinc+1]),
                 0.33f * (colors[j+2] + colors[j+jinc+2] + colors[j+2*jinc+2])));
-              j += jinc;
+              j += 3 * jinc;
               GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
@@ -521,7 +519,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                          colors[j+2*jinc+1] + colors[j+3*jinc+1]),
                 0.25f * (colors[j+2] + colors[j+jinc+2] +
                          colors[j+2*jinc+2] + colors[j+3*jinc+2])));
-              j += jinc;
+              j += 4 * jinc;
               GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
@@ -568,11 +566,13 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                   0.33f * (colors[jinc*index0+2] + colors[jinc*index1+2] +
                            colors[jinc*index2+2])));
                 GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
-                path.moveTo(coordinates[i], coordinates[i+1]);
-                path.lineTo(coordinates[i+3], coordinates[i+4]);
-                path.lineTo(coordinates[i+6], coordinates[i+7]);
+                path.moveTo(coordinates[3*index0], coordinates[3*index0+1]);
+                path.lineTo(coordinates[3*index1], coordinates[3*index1+1]);
+                path.lineTo(coordinates[3*index2], coordinates[3*index2+1]);
                 path.closePath();
                 g2.fill(path);
+                index0 = index1;
+                index1 = index2;
               }
             }
             base += count;
@@ -651,7 +651,7 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
           graphics.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
                                       0.5f * (colors[j+1] + colors[j+jinc+1]),
                                       0.5f * (colors[j+2] + colors[j+jinc+2])));
-          j += jinc;
+          j += 2 * jinc;
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
                             (int) newcoords[i+2], (int) newcoords[i+3]);
         }
@@ -671,6 +671,10 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
 
   public Dimension getPreferredSize() {
     return prefSize;
+  }
+
+  public void setPreferredSize(Dimension size) {
+    prefSize = size;
   }
 
 }

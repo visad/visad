@@ -193,6 +193,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       throw new DisplayException("DisplayImpl.addReferences: constant_maps " +
                                  "length must match refs length");
     }
+    if (!displayRenderer.legalDataRenderer(renderer)) {
+      throw new DisplayException("DisplayImpl.addReferences: illegal " +
+                                 "DataRenderer class");
+    }
     DataDisplayLink[] links = new DataDisplayLink[refs.length];
     for (int i=0; i< refs.length; i++) {
       if (!(refs[i] instanceof DataReferenceImpl)) {
@@ -230,6 +234,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     if (constant_maps != null && refs.length != constant_maps.length) {
       throw new DisplayException("DisplayImpl.addReferences: constant_maps " +
                                  "length must match refs length");
+    }
+    if (!displayRenderer.legalDataRenderer(renderer)) {
+      throw new DisplayException("DisplayImpl.addReferences: illegal " +
+                                 "DataRenderer class");
     }
     DataDisplayLink[] links = new DataDisplayLink[refs.length];
     for (int i=0; i< refs.length; i++) {

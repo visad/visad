@@ -30,6 +30,7 @@ import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
 
 import visad.java2d.DisplayImplJ2D;
+import visad.java2d.DisplayRendererJ2D;
 import visad.java2d.DirectManipulationRendererJ2D;
 
 import visad.util.*;
@@ -163,6 +164,10 @@ public class DisplayTest extends Object {
         System.out.println("  33: ColorWidget with non-default table");
         System.out.println("  34: direct manipulation in Java2D");
         System.out.println("  35: direct manipulation linking Java2D and Java3D");
+        System.out.println("  36: polar coordinates in Java2D");
+        System.out.println("  37: colored contours from regular grids in Java2D");
+        System.out.println("  38: colored contours from irregular grids in Java2D");
+        System.out.println("  39: color array and ColorWidget in Java2D");
 
         return;
 
@@ -382,6 +387,7 @@ public class DisplayTest extends Object {
         display1.addMap(map1contour);
         control1contour = (ContourControl) map1contour.getControl();
         control1contour.enableContours(true);
+        control1contour.enableLabels(true);
      
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
@@ -1618,6 +1624,143 @@ public class DisplayTest extends Object {
         jframe.setSize(512, 256);
         jframe.setVisible(true);
 
+        break;
+
+      case 36:
+
+        System.out.println(test_case + ": test polar coordinates in Java2D");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ2D("display1");
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.Radius));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
+        display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
+     
+        jframe = new JFrame("polar coordinates in Java2D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe.getContentPane().add(display1.getComponent());
+        jframe.setSize(256, 256);
+        jframe.setVisible(true);
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 37:
+
+        System.out.println(test_case + ": test colored contours from " +
+                           "regular grids in Java2D");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ2D("display1");
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+        map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
+        display1.addMap(map1contour);
+        control1contour = (ContourControl) map1contour.getControl();
+        control1contour.enableContours(true);
+        control1contour.enableLabels(true);
+     
+        mode = display1.getGraphicsModeControl();
+        mode.setScaleEnable(true);
+
+        jframe = new JFrame("regular contours in Java2D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe.getContentPane().add(display1.getComponent());
+        jframe.setSize(256, 256);
+        jframe.setVisible(true);
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 38:
+ 
+        System.out.println(test_case + ": test colored contours from " +
+                           "irregular grids in Java2D");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, true);
+ 
+        display1 = new DisplayImplJ2D("display1");
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+        map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
+        display1.addMap(map1contour);
+        control1contour = (ContourControl) map1contour.getControl();
+        control1contour.enableContours(true);
+ 
+        jframe = new JFrame("irregular contours in Java2D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe.getContentPane().add(display1.getComponent());
+        jframe.setSize(256, 256);
+        jframe.setVisible(true);
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        break;
+
+      case 39:
+ 
+        System.out.println(test_case + ": test color array and ColorWidget " +
+                           "in Java2D");
+
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ2D("display1");
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+ 
+        color1map = new ScalarMap(vis_radiance, Display.RGB);
+        display1.addMap(color1map);
+
+        lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f);
+
+        ((DisplayRendererJ2D) display1.getDisplayRenderer()).getCanvas().
+          setPreferredSize(new Dimension(256, 256));
+
+        jframe = new JFrame("VisAD Color Widget in Java2D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(lw);
+        big_panel.add(display1.getComponent());
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(400, 400);
+        jframe.setVisible(true);
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
         break;
 
     } // end switch(test_case)

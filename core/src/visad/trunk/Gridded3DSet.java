@@ -1433,7 +1433,7 @@ public class Gridded3DSet extends GriddedSet {
     // TO_DO - eventually return all 4 label orientations
     // and have ProjectionControl switch among them
     boolean backwards = false;
-    boolean upsidedown = false;
+    boolean upsidedown = true;
     float[] vx = null;
     float[] vy = null;
     if (backwards) {

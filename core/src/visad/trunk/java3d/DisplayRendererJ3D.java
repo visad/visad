@@ -598,5 +598,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return new DefaultRendererJ3D();
   }
 
+  public boolean legalDataRenderer(DataRenderer renderer) {
+    return (renderer instanceof RendererJ3D);
+  }
+
 }
 

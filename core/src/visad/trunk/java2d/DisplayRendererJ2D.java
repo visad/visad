@@ -20,6 +20,7 @@ GNU General Public License in file NOTICE for more details.
  
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
+    scaleOn = false;
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
@@ -73,6 +74,8 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   private boolean cursorOn = false;
   /** on / off state of direct manipulation location display */
   private boolean directOn = false;
+  /** on / off state of axis scale */
+  private boolean scaleOn = false;
 
   /** single VisADSwitch between root and scales */
   private VisADSwitch scale_switch = null;
@@ -163,11 +166,6 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     AffineTransform tstart = new AffineTransform(proj.getMatrix());
     // flip y
     AffineTransform t1 = new AffineTransform(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
-/* WLH 29 June 98
-    double scale = 0.5;
-    AffineTransform t1 = new AffineTransform(
-      mouse.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
-*/
     t1.concatenate(tstart);
     double[] matrix = new double[6];
     t1.getMatrix(matrix);
@@ -183,10 +181,10 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     // manipulation Data object VisADGroup objects
     direct = new VisADGroup();
     root.addChild(direct);
+    directOn = false;
 
     cursor_trans = new AffineTransform();
     cursor_switch = new VisADSwitch();
-    root.addChild(cursor_switch);
     cursor_on = new VisADGroup();
     cursor_off = new VisADGroup();
     cursor_switch.addChild(cursor_off);
@@ -201,6 +199,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     scale_switch.addChild(scale_off);
     scale_switch.addChild(scale_on);
     scale_switch.setWhichChild(0); // initially off
+    scaleOn = false;
 
     return root;
   }
@@ -306,9 +305,6 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
 
     if (getWaitFlag()) return true;
-/* WLH 2 July 98
-    if (getAnimationString() != null) return true;
-*/
     return false;
   }
 
@@ -380,18 +376,6 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       graphics.drawString("please wait . . .", x, y);
       y -= 12;
     }
-/* WLH 2 July 98
-    // draw Animation string in upper right corner of screen
-    String animation_string = getAnimationString();
-    if (animation_string != null) {
-      int nchars = animation_string.length();
-      if (nchars < 12) nchars = 12;
-      x = width - 9 * nchars;
-      y = 10;
-      graphics.drawString(animation_string, x, y);
-      y += 10;
-    }
-*/
   }
 
   public DataRenderer findDirect(VisADRay ray) {
@@ -420,11 +404,16 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   }
 
   public void setScaleOn(boolean on) {
+    boolean oldOn = scaleOn;
+    scaleOn = on;
     if (on) {
       scale_switch.setWhichChild(1); // on
     }
     else {
       scale_switch.setWhichChild(0); // off
+    }
+    if (scaleOn != oldOn) {
+      canvas.scratchImages();
     }
   }
 
@@ -531,6 +520,10 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
   public DataRenderer makeDefaultRenderer() {
     return new DefaultRendererJ2D();
+  }
+
+  public boolean legalDataRenderer(DataRenderer renderer) {
+    return (renderer instanceof RendererJ2D);
   }
 
 }

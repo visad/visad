@@ -55,5 +55,9 @@ public class VisADCanvasJ3D extends Canvas3D { // J3D
     return prefSize;
   }
 
+  public void setPreferredSize(Dimension size) {
+    prefSize = size;
+  }
+
 }
 

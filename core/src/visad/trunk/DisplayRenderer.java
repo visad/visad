@@ -111,6 +111,8 @@ public abstract class DisplayRenderer extends Object {
 
   public abstract DataRenderer makeDefaultRenderer();
 
+  public abstract boolean legalDataRenderer(DataRenderer renderer);
+
   public String getAnimationString() {
     return animationString;
   }
