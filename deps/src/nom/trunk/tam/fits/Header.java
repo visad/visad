@@ -664,7 +664,6 @@ public class Header extends Object {
     public static Header readHeader(BufferedDataInputStream dis)
 	throws TruncatedFileException, IOException
     {
-
 	Header myHeader = new Header();
         try {
             myHeader.read(dis);
@@ -711,6 +710,16 @@ public class Header extends Object {
 	  }
 
 	    HeaderCard fcard = new HeaderCard(new String(buffer));
+	    if (firstCard) {
+	      String key = fcard.getKey();
+	      if (key == null ||
+		  (!key.equals("SIMPLE") && !key.equals("XTENSION")))
+	      {
+		throw new IOException("Not a FITS file");
+	      }
+	    }
+
+	    // save card
 	    addLine(fcard);
 	    if (!fcard.isKeyValuePair()) {
 	      String endKey = fcard.getKey();
@@ -718,6 +727,9 @@ public class Header extends Object {
 		break;
 	      }
 	    }
+
+	    // we're past the first card now
+	    firstCard = false;
 	  }
 
       // Read to the end of the current FITS block.
