@@ -75,11 +75,14 @@ DataNode
      *		the data model used by <code>visitor</code>.
      * @exception VisADException	Problem in core VisAD (probably
      *		couldn't create some VisAD object).
+     * @exception RemoteException	Problem accessing the VisAD data 
+     *		object.
      * @see visad.data.DataVisitor
      */
     public abstract DataVisitor
     accept(DataVisitor visitor)
-	throws UnimplementedException, BadFormException, VisADException;
+	throws UnimplementedException, BadFormException, VisADException,
+	    RemoteException;
 }
 
 
@@ -127,7 +130,8 @@ TupleNode
      */
     public DataVisitor
     accept(DataVisitor visitor)
-	throws UnimplementedException, BadFormException, VisADException
+	throws UnimplementedException, BadFormException, VisADException,
+	RemoteException
     {
 	if (visitor.visit(tuple))
 	{
