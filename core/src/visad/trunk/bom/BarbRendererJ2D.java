@@ -95,8 +95,8 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
       }
       catch(NumberFormatException e) { }
     }
-    RealType x = RealType.Longitude;
-    RealType y = RealType.Latitude;
+    RealType lat = RealType.Latitude;
+    RealType lon = RealType.Longitude;
     RealType flowx = new RealType("flowx",
                           CommonUnit.meterPerSecond, null);
     RealType flowy = new RealType("flowy",
@@ -107,7 +107,7 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     EarthVectorType flowxy = new EarthVectorType(flowx, flowy);
     TupleType range = null;
     if (args.length > 1) {
-// System.out.println("polar");
+      System.out.println("polar");
       RealType flow_degree = new RealType("flow_degree",
                             CommonUnit.degree, null);
       RealType flow_speed = new RealType("flow_speed",
@@ -115,24 +115,18 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
       RealTupleType flowds =
         new RealTupleType(new RealType[] {flow_degree, flow_speed},
         new WindPolarCoordinateSystem(flowxy), null);
-      range = new TupleType(new MathType[] {RealType.Longitude,
-        RealType.Latitude, flowds, red, green});
+      range = new TupleType(new MathType[] {lon, lat, flowds, red, green});
     }
     else {
-// System.out.println("Cartesian");
-/* WLH 19 May 99
-      range = new RealTupleType(new RealType[] {RealType.Longitude,
-        RealType.Latitude, flowx, flowy, red, green});
-*/
-      range = new TupleType(new MathType[] {RealType.Longitude,
-        RealType.Latitude, flowxy, red, green});
+      System.out.println("Cartesian");
+      range = new TupleType(new MathType[] {lon, lat, flowxy, red, green});
     }
     FunctionType flow_field = new FunctionType(index, range);
 
     DisplayImpl display = new DisplayImplJ2D("display1");
-    ScalarMap xmap = new ScalarMap(RealType.Longitude, Display.XAxis);
+    ScalarMap xmap = new ScalarMap(lon, Display.XAxis);
     display.addMap(xmap);
-    ScalarMap ymap = new ScalarMap(RealType.Latitude, Display.YAxis);
+    ScalarMap ymap = new ScalarMap(lat, Display.YAxis);
     display.addMap(ymap);
     ScalarMap flowx_map = new ScalarMap(flowx, Display.Flow1X);
     display.addMap(flowx_map);

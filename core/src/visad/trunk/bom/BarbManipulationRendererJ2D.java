@@ -331,21 +331,24 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
   /** test BarbManipulationRendererJ2D */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    RealType x = new RealType("x");
-    RealType y = new RealType("y");
+    RealType lat = RealType.Latitude;
+    RealType lon = RealType.Longitude;
     RealType flowx = new RealType("flowx");
     RealType flowy = new RealType("flowy");
     RealType red = new RealType("red");
     RealType green = new RealType("green");
-    RealType blue = new RealType("blue");
+
+    EarthVectorType flowxy = new EarthVectorType(flowx, flowy);
+
+
 
     DisplayImpl display = new DisplayImplJ2D("display1");
-    ScalarMap xmap = new ScalarMap(x, Display.XAxis);
-    display.addMap(xmap);
-    xmap.setRange(-1.0, 1.0);
-    ScalarMap ymap = new ScalarMap(y, Display.YAxis);
-    display.addMap(ymap);
-    ymap.setRange(-1.0, 1.0);
+    ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
+    display.addMap(lonmap);
+    lonmap.setRange(-1.0, 1.0);
+    ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
+    display.addMap(latmap);
+    latmap.setRange(-1.0, 1.0);
     ScalarMap flowx_map = new ScalarMap(flowx, Display.Flow1X);
     display.addMap(flowx_map);
     flowx_map.setRange(-1.0, 1.0);
@@ -354,16 +357,25 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     flowy_map.setRange(-1.0, 1.0);
     FlowControl flow_control = (FlowControl) flowy_map.getControl();
     flow_control.setFlowScale(0.15f);
+    display.addMap(new ScalarMap(red, Display.Red));
+    display.addMap(new ScalarMap(green, Display.Green));
+    display.addMap(new ConstantMap(1.0, Display.Blue));
 
     for (int i=0; i<N; i++) {
       for (int j=0; j<N; j++) {
         double u = 2.0 * i / (N - 1.0) - 1.0;
         double v = 2.0 * j / (N - 1.0) - 1.0;
+        Tuple tuple = new Tuple(new Data[]
+          {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
+           new RealTuple(new EarthVectorType(flowx, flowy),
+                         new double[] {30.0 * u, 30.0 * v}),
+           new Real(red, u), new Real(green, v)});
+/*
         RealTuple tuple = new RealTuple(new Real[]
           {new Real(x, u), new Real(y, v),
            new Real(flowx, 30.0 * u), new Real(flowy, 30.0 * v),
            new Real(red, 1.0), new Real(green, 1.0), new Real(blue, 0.0)});
-    
+*/
         DataReferenceImpl ref = new DataReferenceImpl("ref");
         ref.setData(tuple);
         display.addReferences(new BarbManipulationRendererJ2D(), ref);

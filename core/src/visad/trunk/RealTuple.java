@@ -275,8 +275,11 @@ public class RealTuple extends Tuple {
   public Object clone() {
     RealTuple tuple;
     try {
-      tuple = new RealTuple((RealTupleType) Type, (Real[]) tupleComponents,
-                            TupleCoordinateSystem);
+      Real[] comps = new Real[tupleComponents.length];
+      for (int i=0; i<tupleComponents.length; i++) {
+        comps[i] = (Real) tupleComponents[i];
+      }
+      tuple = new RealTuple((RealTupleType) Type, comps, TupleCoordinateSystem);
     }
     catch (VisADException e) {
       throw new VisADError("RealTuple.clone: VisADException occurred");
