@@ -706,11 +706,12 @@ if(DEBUG_DATA&&DEBUG_MATH)System.err.println("rdFlFld: type index (" + typeIndex
 if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdFlFld: type index (" + typeIndex + "=" + ft + ")");
 
     Set domainSet = null;
-    Data[] samples = null;
+    Data[] oldSamples = null;
     CoordinateSystem cs = null;
     CoordinateSystem[] rangeCS = null;
     Set[] rangeSets = null;
     Unit[] units = null;
+    double[][] samples = null;
 
     boolean reading = true;
     while (reading) {
@@ -726,9 +727,13 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdFlFld: type index (" + typeInde
 if(DEBUG_DATA)System.err.println("rdFlFld: FLD_SET (" + FLD_SET + ")");
         domainSet = (Set )getData();
         break;
-      case FLD_DATA_SAMPLES:
+      case FLD_DATA_SAMPLES:  // deprecated
 if(DEBUG_DATA)System.err.println("rdFlFld: FLD_DATA_SAMPLES (" + FLD_DATA_SAMPLES + ")");
-        samples = readDataArray();
+        oldSamples = readDataArray();
+        break;
+      case FLD_DOUBLE_SAMPLES:
+if(DEBUG_DATA)System.err.println("rdFlFld: FLD_DOUBLE_SAMPLES (" + FLD_DOUBLE_SAMPLES + ")");
+        samples = readDoubleMatrix();
         break;
       case FLD_INDEX_COORDSYS:
 if(DEBUG_DATA)System.err.println("rdFlFld: FLD_INDEX_COORDSYS (" + FLD_INDEX_COORDSYS + ")");
@@ -765,10 +770,15 @@ if(DEBUG_DATA)System.err.println("rdFlFld: FLD_END (" + FLD_END + ")");
 
     FlatField fld = new FlatField(ft, domainSet, rangeCS, rangeSets, units);
     if (samples != null) {
-      final int len = samples.length;
+      fld.setSamples(0, samples);
+    } else if (oldSamples != null) {
+      final int len = oldSamples.length;
       for (int i = 0; i < len; i++) {
-        fld.setSample(i, samples[i]);
+        fld.setSample(i, oldSamples[i]);
       }
+    }
+    if (samples != null) {
+      fld.setSamples(samples, false);
     }
 
     return fld;
