@@ -1788,7 +1788,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       MathType new_range_type;
       SampledSet[] last_set;
       SampledSet[] fac_sets;
-      Object[] collapse_array;
+      Data[] collapse_array;
 
       public Helper(Data data, int col_depth)
              throws VisADException, RemoteException
@@ -1808,6 +1808,19 @@ public class FieldImpl extends FunctionImpl implements Field {
           depth_max = col_depth;
         }
 
+
+        flat = false;
+        for (int kk = 0; kk < depth_max; kk++) {
+          if (m_type instanceof FunctionType) {
+            m_type = ((FunctionType)m_type).getRange();
+          }
+        }
+        if (m_type instanceof FunctionType)  {
+          flat = ((FunctionType)m_type).getFlat();
+          new_range_type = ((FunctionType)m_type).getRange();
+        }
+         
+
         last_set = new SampledSet[depth_max + 1];
         depth = 0;
         if ( !(setsEqual((Field)data)) )
@@ -1816,10 +1829,18 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
 
         int length = 1;
-        for ( int kk = 0; kk < depth_max; kk++ ) {
-          length *= last_set[kk].getLength();
+        if (flat) {
+          for ( int kk = 0; kk < depth_max; kk++ ) {
+            length *= last_set[kk].getLength();
+          }
         }
-        collapse_array = new Object[length];
+        else {
+          for ( int kk = 0; kk < depth_max+1; kk++ ) {
+            length *= last_set[kk].getLength();
+          }
+        }
+ 
+        collapse_array = new Data[length];
 
         depth = 0;
         collapse( data );
@@ -1834,7 +1855,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         return fac_sets;
       }
 
-      public Object[] getRangeArray() {
+      public Data[] getRangeArray() {
         return collapse_array;
       }
 
@@ -1872,22 +1893,24 @@ public class FieldImpl extends FunctionImpl implements Field {
       {
         if ( depth == depth_max )
         {
-          if ( flat )
+          if (flat)
           {
-            double[][] values = ((FieldImpl)data).getValues();
-            collapse_array[cnt++] = values;
+            collapse_array[cnt++] = ((FieldImpl)data);
           }
           else
           {
-            collapse_array[cnt++] = data;
+            for ( int ii = 0; ii < ((FieldImpl)data).getLength(); ii++) {
+              collapse_array[cnt++] = ((FieldImpl)data).getSample(ii);
+            }
           }
         }
         else
         {
-          depth++;
-          n_samples = (((Field)data).getDomainSet()).getLength();
+          int n_samples = (((Field)data).getDomainSet()).getLength();
           for ( int ii = 0; ii < n_samples; ii++ ) {
+            depth++;
             collapse(((FieldImpl)data).getSample(ii));
+            depth--;
           }
         }
       }
@@ -1942,7 +1965,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     Helper helper = new Helper(this, collapse_depth);
     SampledSet[] fac_sets = helper.getSets();
     int n_sets = fac_sets.length;
-    Object[] new_range = helper.getRangeArray();
+    Data[] new_range = helper.getRangeArray();
     MathType new_range_type = helper.getRangeType();
 
     SetType[] set_types = new SetType[n_sets];
@@ -2059,7 +2082,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       new_set = GriddedSet.create(new_domain_type, new_samples, new_lengths );
     }
     Field new_field;
-    if ( new_function_type.getFlat() )
+    if ( helper.flat )
     {
       new_field = new FlatField( new_function_type, new_set );
       int tup_dim =
@@ -2070,7 +2093,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       cnt = 0;
       double[][] sub_range;
       for ( int ii = 0; ii < new_range.length; ii++ ) {
-        sub_range = ((double[][]) new_range[ii]);
+        sub_range = ((FieldImpl) new_range[ii]).getValues();
         int len = sub_range[0].length;
         for ( int jj = 0; jj < tup_dim; jj++ ) {
           System.arraycopy(sub_range[jj], 0, new_values[jj], cnt, len);
@@ -2085,7 +2108,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     {
       new_field = new FieldImpl( new_function_type, new_set );
       for ( int ii = 0; ii < new_length; ii++ ){
-        new_field.setSample(ii,((Data)new_range[ii]));
+        new_field.setSample(ii, new_range[ii]);
       }
     }
 
