@@ -547,7 +547,7 @@ public class MonitorBroadcaster
      *
      * @return <TT>true</TT> if the event has been seen.
      */
-    public boolean eventSeen(MonitorEvent evt)
+    private boolean eventSeen(MonitorEvent evt)
     {
       Object obj = getObject(evt);
       if (obj == null) {
