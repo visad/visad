@@ -851,21 +851,57 @@ public class SpreadSheet extends JFrame implements ActionListener,
     newFile(false);
 
     // load file
+    String[][] cellNames = new String[NumVisX][NumVisY];
     String[][] fileStrings = new String[NumVisX][NumVisY];
+    int newX, newY;
     try {
       FileReader fr = new FileReader(f);
       char[] buff = new char[8192];
       boolean done = false;
+
+      // get spreadsheet dimensions
+      int count = 0;
+      int ch;
+      do {
+        ch = fr.read();
+        if (ch == 'x') {
+          String s = new String(buff, 0, count);
+          newX = Integer.parseInt(s.substring(0, s.length()-1));
+          /* CTR: TEMP */ System.out.println("NumVisX = " + newX);
+          count = 0;
+        }
+        else if (ch == '\n') {
+          String s = new String(buff, 0, count);
+          newY = Integer.parseInt(s.substring(1, s.length()));
+          /* CTR: TEMP */ System.out.println("NumVisY = " + newY);
+        }
+        else buff[count++] = (char) ch;
+      } while (ch != '\n');
+
+      // get cell information
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) {
-          int count = 0;
+          count = 0;
           int lncnt = 0;
+          // get cell name
+          while (ch != '[') ch = fr.read();
+          do {
+            ch = fr.read();
+            buff[count++] = (char) ch;
+          } while (ch != '\n');
+          String s = new String(buff, 0, count);
+          cellNames[i][j] = s.substring(0, s.length()-2);
+          /* CTR: TEMP */ System.out.println("Loading cell " + cellNames[i][j]);
+          count = 0;
+
+          // get cell reconstruction string
           while (lncnt < 5) {
-            int ch = fr.read();
+            ch = fr.read();
             buff[count++] = (char) ch;
             if (ch == '\n') lncnt++;
           }
           fileStrings[i][j] = new String(buff, 0, count);
+          /* CTR: TEMP */ System.out.println("Got data:\n" + fileStrings[i][j]);
         }
       }
       fr.close();
@@ -930,10 +966,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else {
       try {
         FileWriter fw = new FileWriter(CurrentFile);
+        String s = NumVisX + " x " + NumVisY + "\n\n";
+        char[] sc = s.toCharArray();
+        fw.write(sc, 0, sc.length);
         for (int j=0; j<NumVisY; j++) {
           for (int i=0; i<NumVisX; i++) {
-            String s = DisplayCells[i][j].getSSCellString();
-            char[] sc = s.toCharArray();
+            s = "[" + DisplayCells[i][j].getName() + "]\n";
+            sc = s.toCharArray();
+            fw.write(sc, 0, sc.length);
+            s = DisplayCells[i][j].getSSCellString() + "\n";
+            sc = s.toCharArray();
             fw.write(sc, 0, sc.length);
           }
         }

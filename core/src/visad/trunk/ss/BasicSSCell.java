@@ -201,6 +201,11 @@ public class BasicSSCell extends JPanel {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
   }
 
+  /** get this SSCell's name */
+  public String getName() {
+    return Name;
+  }
+
   /** list of SSCellListeners to be notified of changes */
   private Vector list = new Vector();
 
