@@ -1084,8 +1084,6 @@ if (initialize) {
         ConstantMapVector.removeAllElements();
       }
 
-      notifyListeners(new DisplayEvent(this, DisplayEvent.MAPS_CLEARED));
-
       synchronized (ControlVector) {
         // clear Control-s associated with this Display
         maps = ControlVector.elements();
@@ -1117,6 +1115,8 @@ if (initialize) {
       displayRenderer.clearAxisOrdinals();
       displayRenderer.setAnimationString(new String[] {null, null});
     }
+
+    notifyListeners(new DisplayEvent(this, DisplayEvent.MAPS_CLEARED));
   }
 
   public Vector getMapVector() {
