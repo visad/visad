@@ -38,7 +38,12 @@ if(DEBUG_RD_DATA)System.err.println("rdDataRA: len (" + len + ")");
 long t = (DEBUG_RD_TIME ? System.currentTimeMillis() : 0);
     Data[] array = new Data[len];
     for (int i = 0; i < len; i++) {
+
+if(DEBUG_WR_DATA)System.err.println("rdDataRA#"+i);
       array[i] = BinaryGeneric.read(reader);
+if(DEBUG_WR_DATA_DETAIL)System.err.println("rdDataRA: #" + i + " (" + array[i] + ")");
+
+if(DEBUG_WR_DATA)System.err.println("rdDataRA#"+i+": "+array[i].getClass().getName());
     }
 if(DEBUG_RD_TIME)System.err.println("rdDataRA: "+len+" arrays "+(System.currentTimeMillis()-t));
 
