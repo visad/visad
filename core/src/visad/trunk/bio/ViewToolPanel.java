@@ -262,6 +262,8 @@ public class ViewToolPanel extends ToolPanel {
         sliceUpdate.setEnabled(ps);
         bio.sm.setPlaneSelect(ps);
         bio.vert.setEnabled(!ps);
+        bio.toolMeasure.setEnabled(!ps);
+        bio.mm.pool2.setSlice(ps ? -1 : bio.sm.getSlice());
       }
     });
     planeSelect.setEnabled(false);

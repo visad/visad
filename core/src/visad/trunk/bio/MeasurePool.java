@@ -344,6 +344,7 @@ public class MeasurePool implements DisplayListener {
               select(point);
             }
           }
+          bio.toolMeasure.updateSelection();
           list.refreshPools(true);
         }
       }
@@ -434,7 +435,8 @@ public class MeasurePool implements DisplayListener {
     this.slice = slice;
     deselectAll();
     releaseAll();
-    refresh(true);
+    bio.toolMeasure.updateSelection();
+    list.refreshPools(true);
   }
 
   /** Refreshes the measurement endpoints in the pool. */
