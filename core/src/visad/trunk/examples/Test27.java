@@ -120,6 +120,10 @@ public class Test27
     final DataReferenceImpl ref_direct_hi =
       new DataReferenceImpl("ref_direct_hi");
     ref_direct_hi.setData(direct_hi);
+    maps = new ConstantMap[][] {{new ConstantMap(1.0f, Display.Red),
+                                 new ConstantMap(1.0f, Display.Green),
+                                 new ConstantMap(0.0f, Display.Blue),
+                                 new ConstantMap(5.0f, Display.PointSize)}};
     dpys[0].addReferences(new DirectManipulationRendererJ3D(),
                            new DataReference[] {ref_direct_hi}, maps);
 
