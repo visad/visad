@@ -384,7 +384,8 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
         displayRenderer.drawCursorStringVector(ga, tsave, w, h);
         ga.dispose();
         if (g != null) g.drawImage(aux_copy, 0, 0, this);
-        if (captureFlag) {
+        // if (captureFlag) { WLH 14 Oct 99
+        if (captureFlag || display.hasSlaves()) {
 // System.out.println("aux_copy capture " + width + " " + height);
           captureFlag = false;
           if (component != null) {
@@ -399,6 +400,8 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
           gc.dispose();
           displayRenderer.notifyCapture();
 // System.out.println("aux_copy capture end");
+          // WLH 14 Oct 99 - send BufferedImage to any attached slaved displays
+          if (display.hasSlaves()) display.updateSlaves(captureImage);
         }
       }
       // WLH 15 March 99
