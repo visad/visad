@@ -349,21 +349,24 @@ public abstract class ActionImpl
   /**
    * Creates a link to a ThingReference.  Note that this method causes this
    * object to register itself with the ThingReference.
-   * @param ref                 The ThingReference to create
-   *                            the link to.  Must be a local
-   *                            ThingReferenceImpl.  Subsequent invocation
-   *                            of <code>thingChanged(ThingChangedEvent)</code>
-   *                            causes invocation of
-   *                            <code>ref.acknowledgeThingChanged(this)</code>.
-   *                            This method invokes <code>
-   *                            ref.addThingChangedListener(this, ...)</code>.
-   * @throws VisADException	VisAD failure.
-   * @throws RemoteException	Java RMI failure.
+   * @param ref                   The ThingReference to which to create
+   *                              the link.  Subsequent invocation of
+   *                              <code>thingChanged(ThingChangedEvent)</code>
+   *                              causes invocation of
+   *                              <code>ref.acknowledgeThingChanged(this)</code>
+   *                              .  This method invokes <code>
+   *                              ref.addThingChangedListener(this, ...)</code>.
+   * @throws RemoteVisADException if the reference isn't a {@link 
+   *                              ThingReferenceImpl}.
+   * @throws ReferenceException   if the reference has already been added.
+   * @throws VisADException	  if a VisAD failure occurs.
+   * @throws RemoteException	  if a Java RMI failure occurs.
    * @see #thingChanged(ThingChangedEvent)
    * @see ThingReference#addThingChangedListener(ThingChangedListener, long)
    */
   public void addReference(ThingReference ref)
-         throws VisADException, RemoteException {
+      throws ReferenceException, RemoteVisADException, VisADException,
+	RemoteException {
     if (!(ref instanceof ThingReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.addReference: requires " +
                                      "ThingReferenceImpl");
@@ -387,8 +390,19 @@ public abstract class ActionImpl
     notifyAction();
   }
 
-  /** remove link to a ThingReference;
-      must be local ThingReferenceImpl */
+  /**
+   * <p>Removes a link to a ThingReference.</p>
+   *
+   * <p>This implementation invokes {@link #findReference(ThingReference)}.</p>
+   *
+   * @param ref                   The reference to be removed.
+   * @throws RemoteVisADException if the reference isn't a {@link 
+   *                              ThingReferenceImpl}.
+   * @throws ReferenceException   if the reference isn't a part of this 
+   *                              instance.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   public void removeReference(ThingReference ref)
          throws VisADException, RemoteException {
     ReferenceActionLink link = null;
@@ -489,7 +503,14 @@ public abstract class ActionImpl
   }
 
 
-  /** find link to a ThingReference */
+  /**
+   * Returns the link associated with a ThingReference.
+   *
+   * @param ref                 The reference to find.
+   * @return                    The link associated with the reference.
+   * @throws ReferenceException if the argument is <code>null</code>.
+   * @throws VisADException     if the argument is <code>null</code>.
+   */
   public ReferenceActionLink findReference(ThingReference ref)
          throws VisADException {
     if (ref == null) {

@@ -37,7 +37,12 @@ import java.rmi.*;
 */
 public class DataReferenceImpl extends ThingReferenceImpl
        implements DataReference {
-
+  /**
+   * Constructs from a name for the instance.
+   *
+   * @param name                   The name for this instance.
+   * @throws VisADException        if the name is <code>null</code>.
+   */
   public DataReferenceImpl(String name) throws VisADException {
     super(name);
   }
