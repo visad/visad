@@ -2643,7 +2643,63 @@ WLH 15 March 2000 */
               }
             }
 
-            if (!anyShapeCreated && !anyTextCreated) {
+            boolean anyFlowCreated = false;
+            if (anyFlow) {
+	      if (flow1_values != null && flow1_values[0] != null) {
+                // try Flow1
+                float[][] f1 = new float[3][1];
+                if (flow1_values[0].length > 1) {
+                  f1[0][0] = flow1_values[0][i];
+                  f1[1][0] = flow1_values[1][i];
+                  f1[2][0] = flow1_values[2][i];
+                }
+                else {
+                  f1[0][0] = flow1_values[0][0];
+                  f1[1][0] = flow1_values[1][0];
+                  f1[2][0] = flow1_values[2][0];
+                }
+                arrays = shadow_api.makeFlow(0, f1, flowScale[0], sp, co, ra);
+                if (arrays != null) {
+                  for (int j=0; j<arrays.length; j++) {
+                    if (arrays[j] != null) {
+                      shadow_api.addToGroup(branch, arrays[j], mode,
+                                            constant_alpha, constant_color);
+                      arrays[j] = null;
+                    }
+                  }
+                }
+                anyFlowCreated = true;
+              }
+    
+              // try Flow2
+              if (flow2_values != null && flow2_values[0] != null) {
+                float[][] f2 = new float[3][1];
+                if (flow2_values[0].length > 1) {
+                  f2[0][0] = flow2_values[0][i];
+                  f2[1][0] = flow2_values[1][i];
+                  f2[2][0] = flow2_values[2][i];
+                }
+                else {
+                  f2[0][0] = flow2_values[0][0];
+                  f2[1][0] = flow2_values[1][0];
+                  f2[2][0] = flow2_values[2][0];
+                }
+                arrays = shadow_api.makeFlow(1, f2, flowScale[1], sp, co, ra);
+                if (arrays != null) {
+                  for (int j=0; j<arrays.length; j++) {
+                    if (arrays[j] != null) {
+                      shadow_api.addToGroup(branch, arrays[j], mode,
+                                            constant_alpha, constant_color);
+                      arrays[j] = null;
+                    }
+                  }
+                }
+                anyFlowCreated = true;
+              }
+            }
+
+            if (!anyShapeCreated && !anyTextCreated &&
+                !anyFlowCreated) {
               array = new VisADPointArray();
               array.vertexCount = 1;
               coordinates = new float[3];

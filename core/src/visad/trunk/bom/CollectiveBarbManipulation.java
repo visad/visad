@@ -33,6 +33,9 @@ import visad.java3d.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.text.*;
+import javax.swing.border.*;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
@@ -261,7 +264,6 @@ public class CollectiveBarbManipulation extends Object
     stations_ref.setData(wind_field);
     barb_renderer = new BarbRendererJ3D();
     display.addReferences(barb_renderer, stations_ref);
-    // barb_renderer.toggle(false);
     which_time = -1;
     station_refs = new DataReferenceImpl[nindex];
     barb_manipulation_renderers = new BarbManipulationRendererJ3D[nindex];
@@ -277,6 +279,15 @@ public class CollectiveBarbManipulation extends Object
     }
 
     control.setCurrent(0);
+  }
+
+  public void endManipulation()
+         throws VisADException, RemoteException {
+    for (int i=0; i<nindex; i++) {
+      display.removeReference(station_refs[i]);
+    }
+    barb_renderer = new BarbRendererJ3D();
+    display.addReferences(barb_renderer, stations_ref);
   }
 
   private boolean first = true;
@@ -624,12 +635,39 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
     panel.add(display.getComponent());
     panel.add(new AnimationWidget(amap));
 
-    // set size of JFrame and make it visible
-    frame.setSize(500, 700);
-    frame.setVisible(true);
     CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display, false,
                                      0.0f, 1000000.0f, 0.0f, 1000.0f);
+
+    JButton end = new JButton("end manip");
+    end.addActionListener(new EndManip(cbm));
+    end.setActionCommand("end");
+    panel.add(end);
+
+    // set size of JFrame and make it visible
+    frame.setSize(500, 700);
+    frame.setVisible(true);
+  }
+}
+
+class EndManip implements ActionListener {
+  CollectiveBarbManipulation cbm;
+
+  EndManip(CollectiveBarbManipulation c) {
+    cbm = c;
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    String cmd = e.getActionCommand();
+    if (cmd.equals("end")) {
+      try {
+        cbm.endManipulation();
+      }
+      catch (VisADException ex) {
+      }
+      catch (RemoteException ex) {
+      }
+    }
   }
 }
 
