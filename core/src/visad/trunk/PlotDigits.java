@@ -26,24 +26,13 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.applet.*;
-import java.awt.*;
-import java.awt.event.*;
-
 /**
    PlotDigits calculates an array of points to be plotted to
    the screen as vector pairs, given a number and a bounding
    rectangle, for use as a label on a contour R^2.<P>
 
-   It is implemented as an applet so that it can be
-   tested graphically with the appletviewer utility.<P>
 */
-public class PlotDigits extends Applet implements MouseListener {
-
-  // Applet variables
-  protected PlotDigits plot;
-  protected int reverseLetters = 0;
-  protected int width, height;
+public class PlotDigits {
 
   // these variables are filled in by the plotdigits method
   public float[] Vx;   // x coordinates of label's digits
@@ -384,65 +373,6 @@ public class PlotDigits extends Applet implements MouseListener {
       float[] temp = VyB;
       VyB = Vy;
       Vy = temp;
-    }
-  }
-
-  // APPLET SECTION
-
-  /* run 'appletviewer plotdigits.html' to test the PlotDigits class. */
-  public void init() {
-    this.addMouseListener(this);
-    plot = new PlotDigits();
-    plot.Number = Double.valueOf(getParameter("number")).floatValue();
-    try {
-      width = Integer.parseInt(getParameter("width"));
-      height = Integer.parseInt(getParameter("height"));
-      boolean[] swap = {false, false, false};
-      plot.plotdigits(plot.Number, 0, 0, height, 7*width/8, 150, swap);
-    }
-    catch (VisADException VE) {
-      System.out.println("PlotDigits.init: "+VE);
-      System.exit(1);
-    }
-  }
-
-  public void mouseClicked(MouseEvent e) {
-    reverseLetters = (reverseLetters+1)%4;
-    Graphics g = getGraphics();
-    if (g != null) {
-      paint(g);
-      g.dispose();
-    }
-  }
-
-  public void mousePressed(MouseEvent e) {;}
-  public void mouseReleased(MouseEvent e) {;}
-  public void mouseEntered(MouseEvent e) {;}
-  public void mouseExited(MouseEvent e) {;}
-
-  public void paint(Graphics g) {
-    g.setColor(Color.white);
-    g.fillRect(0, 0, width, height);
-    g.setColor(Color.black);
-    for (int i=0; i<plot.NumVerts; i+=2) {
-      int v1, v2, v3, v4;
-      if (reverseLetters%2 == 1) { // y is backwards
-        v1 = (int) plot.VyB[i];
-        v3 = (int) plot.VyB[(i+1)%plot.NumVerts];
-      }
-      else {
-        v1 = (int) plot.Vy[i];
-        v3 = (int) plot.Vy[(i+1)%plot.NumVerts];
-      }
-      if (reverseLetters > 1) { // x is backwards
-        v2 = (int) plot.VxB[i];
-        v4 = (int) plot.VxB[(i+1)%plot.NumVerts];
-      }
-      else {
-        v2 = (int) plot.Vx[i];
-        v4 = (int) plot.Vx[(i+1)%plot.NumVerts];
-      }
-      g.drawLine(v1, v2, v3, v4);
     }
   }
 

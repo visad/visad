@@ -107,7 +107,6 @@ visad\VisAD.Manifest \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
-visad\plotdigits.html \
 visad\*.java
 
 JAR_FILES3 = \
@@ -363,8 +362,7 @@ visad\install\README \
 visad\install\README.html \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
-visad\Gridded3D.txt \
-visad\plotdigits.html
+visad\Gridded3D.txt
 
 save:
 	cd ..

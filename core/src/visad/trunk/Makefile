@@ -284,8 +284,7 @@ SAVE_FILES = \
 	visad/install/README.html			\
 	visad/Gridded1D.txt				\
 	visad/Gridded2D.txt				\
-	visad/Gridded3D.txt				\
-	visad/plotdigits.html
+	visad/Gridded3D.txt
 
 TAR_FILES = \
 	$(SAVE_FILES)					\
