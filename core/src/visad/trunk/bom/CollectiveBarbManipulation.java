@@ -268,7 +268,7 @@ public class CollectiveBarbManipulation extends Object
     barb_monitors = new BarbMonitor[nindex];
     for (int i=0; i<nindex; i++) {
       station_refs[i] = new DataReferenceImpl("station_ref" + i);
-      station_refs[i].setData(null);
+      station_refs[i].setData(tuples[i][0]);
       which_times[i] = -1;
       barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
       display.addReferences(barb_manipulation_renderers[i], station_refs[i]);
