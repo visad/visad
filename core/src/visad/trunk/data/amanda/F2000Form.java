@@ -684,15 +684,16 @@ System.out.println("IOException " + e.getMessage());
 System.out.println("amanda MathType\n" + amanda.getType());
 // visad.jmet.DumpType.dumpDataType(amanda, System.out);
 
+    final int nevents = ((Field) amanda).getLength();
 
     final DataReference event_ref = new DataReferenceImpl("event");
-    VisADSlider event_slider = new VisADSlider("event", 0, 99, 0, 1.0,
+    VisADSlider event_slider = new VisADSlider("event", 0, nevents, 0, 1.0,
                                                event_ref, event_index);
     Cell cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         int index = (int) ((Real) event_ref.getData()).getValue();
         if (index < 0) index = 0;
-        else if (index > 99) index = 99;
+        else if (index > nevents) index = nevents;
         amanda_ref.setData(((FieldImpl) amanda).getSample(index));
       }
     };
