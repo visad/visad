@@ -1205,7 +1205,7 @@ public abstract class JPythonMethods {
    *                          are analyzed in histogram
    * @param   ranges          int[] array whose elements are indices of into
    *                          the range Tuple of field, selecting range
-   *                          components as dimesnions of the histogram
+   *                          components as dimensions of the histogram
    * 
    * @throws  VisADException  invalid data 
    * @throws  RemoteException unable to access remote field
@@ -1230,7 +1230,7 @@ public abstract class JPythonMethods {
    *                          are analyzed in histogram
    * @param   ranges          int[] array whose elements are indices of into
    *                          the range Tuple of field, selecting range
-   *                          components as dimesnions of the histogram
+   *                          components as dimensions of the histogram
    * @param   sizes           int[] array whose elements are numbers of
    *                          equally spaced bins for each dimension
    * 
