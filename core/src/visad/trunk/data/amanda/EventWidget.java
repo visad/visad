@@ -38,6 +38,13 @@ public class EventWidget
   private Event thisEvent;
 
   public EventWidget(AmandaFile fileData, FieldImpl amanda,
+                     DataReferenceImpl amandaRef)
+    throws RemoteException, VisADException
+  {
+    this(fileData, amanda, amandaRef, null);
+  }
+
+  public EventWidget(AmandaFile fileData, FieldImpl amanda,
                      DataReferenceImpl amandaRef, ScalarMap trackMap)
     throws RemoteException, VisADException
   {
@@ -52,7 +59,11 @@ public class EventWidget
     thisEvent = null;
 
     // initialize before buildSlider() in case it triggers a reference to them
-    trackWidget = new TrackWidget(trackMap);
+    if (trackMap == null) {
+      trackWidget = null;
+    } else {
+      trackWidget = new TrackWidget(trackMap);
+    }
     dateLabel = new JLabel();
 
     slider = buildSlider(amanda);
@@ -61,7 +72,7 @@ public class EventWidget
 
     add(slider);
     add(dateLabel);
-    add(trackWidget);
+    if (trackWidget != null) add(trackWidget);
   }
 
   private VisADSlider buildSlider(FieldImpl amanda)
@@ -145,7 +156,7 @@ public class EventWidget
 
     }
 
-    trackWidget.setEvent(thisEvent);
+    if (trackWidget != null) trackWidget.setEvent(thisEvent);
 
     this.invalidate();
   }
