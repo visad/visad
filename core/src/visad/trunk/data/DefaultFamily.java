@@ -151,7 +151,7 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
-      list[i] = new QTForm();
+      list[i] = new ImageJForm();
       i++;
     } catch (Throwable t) {
     }
@@ -161,7 +161,7 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
-      list[i] = new ImageJForm();
+      list[i] = new QTForm();
       i++;
     } catch (Throwable t) {
     }
