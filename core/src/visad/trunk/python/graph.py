@@ -42,10 +42,19 @@ def mapimage(imagedata, mapfile="outlsupw", panel=None, colortable=None, width=4
   xMap = ScalarMap(RealType.Longitude, Display.XAxis)
   yMap = ScalarMap(RealType.Latitude, Display.YAxis)
   maps = (xMap, yMap, rngMap)
+  dom = getDomain(imagedata)
+  xc = dom.getX()
+  yc = dom.getY()
+  xl = len(xc)
+  yl = len(yc)
+  if xl > 1024 or yl > 1024:
+    print "Resampling image from",yl,"x",xl,"to",min(yl,1024),"x",min(xl,1024)
+    imagedata = resample(imagedata, makeDomain(dom.getType(),
+                         xc.getFirst(), xc.getLast(), min(xl, 1024),
+                         yc.getFirst(), yc.getLast(), min(yl, 1024) ) )
+
   if lat is None or lon is None:
-    xl = len(getDomain(imagedata).getX())
-    yl = len(getDomain(imagedata).getY())
-    c=imagedata.getNavigation()
+    c=dom.getCoordinateSystem()
     ll = c.toReference( ( (0,0,xl,xl),(0,yl,0,yl) ) )
     import java.lang.Double.NaN as missing
 
