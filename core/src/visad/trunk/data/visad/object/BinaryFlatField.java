@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 
+import java.rmi.RemoteException;
+
 import visad.CoordinateSystem;
 import visad.Data;
 import visad.DataImpl;
@@ -14,15 +16,74 @@ import visad.Set;
 import visad.Unit;
 import visad.VisADException;
 
+import visad.data.CacheStrategy;
+import visad.data.FileAccessor;
 import visad.data.FileFlatField;
 
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
 
+class BinaryAccessor
+  extends FileAccessor
+{
+  private transient BinaryReader rdr;
+  private transient long filePtr;
+  private transient FunctionType ft;
+
+  public BinaryAccessor(BinaryReader rdr, long filePtr, FunctionType ft)
+  {
+    this.rdr = rdr;
+    this.filePtr = filePtr;
+    this.ft = ft;
+  }
+
+  public FlatField getFlatField()
+    throws RemoteException, VisADException
+  {
+    FlatField ff;
+    try {
+      final long curPtr = rdr.getFilePointer();
+
+      rdr.seek(filePtr);
+      ff = BinaryFlatField.read(rdr, 0, false);
+      rdr.seek(curPtr);
+    } catch (IOException ioe) {
+      throw new VisADException(ioe.getClass().getName() + ": " +
+                               ioe.getMessage());
+    }
+
+    return ff;
+  }
+
+  public FunctionType getFunctionType()
+    throws VisADException
+  {
+    return ft;
+  }
+
+  public double[][] readFlatField(FlatField template, int[] fileLocations)
+  {
+    throw new RuntimeException("Unimplemented");
+  }
+
+  public void writeFile(int[] fileLocations, Data range)
+  {
+    throw new RuntimeException("Unimplemented");
+  }
+
+  public void writeFlatField(double[][] values, FlatField template,
+                             int[] fileLocations)
+  {
+    throw new RuntimeException("Unimplemented");
+  }
+}
+
 public class BinaryFlatField
   implements BinaryObject
 {
+  private static CacheStrategy strategy = new CacheStrategy();
+
   public static final int computeBytes(Set domainSet, CoordinateSystem cs,
                                        CoordinateSystem[] rangeCS,
                                        Set[] rangeSets, Unit[] units,
@@ -62,6 +123,72 @@ public class BinaryFlatField
       rangeSetsLen +
       (unitsLen == 0 ? 0 : 1 + unitsLen) +
       1;
+  }
+
+  private static FileFlatField createFileFlatField(BinaryReader rdr,
+                                                   int objLen)
+    throws IOException, VisADException
+  {
+    final long filePtr = rdr.getFilePointer();
+
+    BinaryObjectCache typeCache = rdr.getTypeCache();
+    DataInput file = rdr.getInput();
+
+    final int typeIndex = file.readInt();
+
+    FunctionType ft = (FunctionType )typeCache.get(typeIndex);
+
+if(DEBUG_RD_DATA){
+  final int partLen = objLen - 4;
+
+  byte[] b = new byte[partLen];
+  file.readFully(b);
+
+if(DEBUG_RD_MATH)System.err.println("rdFlFld: type index (" + typeIndex + ")");
+  System.err.println("rdFlFld: Skipping " + objLen + " bytes");
+
+  System.err.print("  ");
+  int cols = 2;
+
+  for (int i = 0; i < partLen; i++) {
+    final int bVal;
+    if (b[i] < 0) {
+      bVal = 256 - b[i];
+    } else {
+      bVal = b[i];
+    }
+
+    final int bCols;
+    if (bVal < 10) {
+      bCols = 2;
+    } else if (bVal < 100) {
+      bCols = 3;
+    } else {
+      bCols = 4;
+    }
+
+    if (cols + bCols < 80) {
+      cols += bCols;
+    } else {
+      System.err.println();
+      System.err.print("  ");
+      cols = 2 + bCols;
+    }
+
+    System.err.print(" " + bVal);
+  }
+  System.err.println();
+
+  final long expectedPtr = filePtr + (long )objLen;
+  final long postPtr = rdr.getFilePointer();
+  if (postPtr != expectedPtr) {
+    System.err.println("Expected ptr " + expectedPtr + ", got " + postPtr);
+  }
+}
+    // skip to the end of this object
+    rdr.seek(filePtr + (long )objLen);
+
+    return new FileFlatField(new BinaryAccessor(rdr, filePtr, ft), strategy);
   }
 
   public static double[][] getDoubleSamples(FlatField fld)
@@ -114,9 +241,14 @@ if(DEBUG_RD_DATA)System.err.println("rdSetRA: len (" + len + ")");
     return sets;
   }
 
-  public static final FlatField read(BinaryReader reader)
+  public static final FlatField read(BinaryReader reader, int objLen,
+                                     boolean cacheFile)
     throws IOException, VisADException
   {
+    if (cacheFile) {
+      return createFileFlatField(reader, objLen);
+    }
+
     BinaryObjectCache cSysCache = reader.getCoordinateSystemCache();
     BinaryObjectCache typeCache = reader.getTypeCache();
     DataInput file = reader.getInput();
@@ -154,7 +286,7 @@ if(DEBUG_RD_DATA)System.err.println("rdFlFld: FLD_SET (" + FLD_SET + ")");
         domainSet = (Set )BinaryGeneric.read(reader);
 if(DEBUG_RD_TIME)sTime += System.currentTimeMillis() - tmpStart;
         break;
-      case FLD_DATA_SAMPLES:  // deprecated
+      case FLD_DATA_SAMPLES:
 if(DEBUG_RD_DATA)System.err.println("rdFlFld: FLD_DATA_SAMPLES (" + FLD_DATA_SAMPLES + ")");
         oldSamples = BinaryDataArray.read(reader);
 if(DEBUG_RD_TIME)dsTime += System.currentTimeMillis() - tmpStart;
