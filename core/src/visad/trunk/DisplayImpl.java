@@ -664,12 +664,13 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       // for transformation)
       // clone RendererVector to avoid need for synchronized access
       Vector temp = ((Vector) RendererVector.clone());
-      Enumeration renderers = temp.elements();
+      Enumeration renderers;
       boolean go = false;
       if (initialize) {
-        while (renderers.hasMoreElements()) {
+        renderers = temp.elements();
+        while (!go && renderers.hasMoreElements()) {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
-          go = renderer.checkAction(go);
+          go |= renderer.checkAction();
         }
 // System.out.println("initialize = " + initialize + " go = " + go);
       }

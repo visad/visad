@@ -133,17 +133,22 @@ public abstract class DataRenderer extends Object {
     displayRenderer = r;
   }
 
-  public boolean checkAction(boolean go) {
+  public boolean checkAction() {
     for (int i=0; i<Links.length; i++) {
-      if (Links[i].checkTicks() || !feasible[i]) go = true;
+      if (Links[i].checkTicks() || !feasible[i]) {
+        return true;
+      }
+
       // check if this Data includes any changed Controls
       Enumeration maps = Links[i].getSelectedMapVector().elements();
       while(maps.hasMoreElements()) {
         ScalarMap map = (ScalarMap) maps.nextElement();
-        if (map.checkTicks(this, Links[i])) go = true;
+        if (map.checkTicks(this, Links[i])) {
+          return true;
+        }
       }
     }
-    return go;
+    return false;
   }
 
   /** check if re-transform is needed; if initialize is true then
