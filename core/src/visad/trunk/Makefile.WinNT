@@ -42,8 +42,7 @@ JFLAGS = -J-mx32m
 RMIC = rmic
 
 .java.class:
-	@echo $(JC) $(JFLAGS) $<
-	@(cd $(<D) && $(JC) $(JFLAGS) $(<F))
+	$(JC) $(JFLAGS) $<
 
 DEL = del
 
@@ -465,12 +464,14 @@ ss\*.class \
 jmet\*.class \
 paoloa\*.class \
 paoloa\spline\*.class \
-aune\*.class \
 benjamin\*.class \
 rabin\*.class \
-bom\*.class \
-examples\*.class
+aune\*.class \
+bom\*.class
 	$(RMIC) $(RMIC_FILES)
+	cd examples
+	$(JC) $(JFLAGS) *.java
+	cd ..
 
 compile: clean recompile
 

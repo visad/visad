@@ -466,7 +466,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     msize.height = psize.height;
     FormulaField.setMaximumSize(msize);
 
-    FormulaField.setToolTipText("Enter a file name, URL, RMI address, or formula");
+    FormulaField.setToolTipText("Enter a file name, URL, RMI address, " +
+                                "or formula");
     FormulaField.addActionListener(this);
     FormulaField.setActionCommand("formulaChange");
     formulaPanel.add(FormulaField);
@@ -940,8 +941,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Does any necessary clean-up, then quits the program */
   void quitProgram() {
     // wait for files to finish saving
-    new Delay();
-
     Thread t = new Thread() {
       public void run() {
         boolean b = BasicSSCell.isSaving();
@@ -1051,20 +1050,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Make sure the Edit Mappings menu item and toolbar button are
       grayed-out or enabled depending whether this cell has data */
   void refreshMenuCommands() {
-    if (DisplayCells[CurX][CurY].hasData()) {
-      DispEdit.setEnabled(true);
-      ToolMap.setEnabled(true);
-      FileSave1.setEnabled(true);
-      FileSave2.setEnabled(true);
-      ToolSave.setEnabled(true);
-    }
-    else {
-      DispEdit.setEnabled(false);
-      ToolMap.setEnabled(false);
-      FileSave1.setEnabled(false);
-      FileSave2.setEnabled(false);
-      ToolSave.setEnabled(false);
-    }
+    boolean b = DisplayCells[CurX][CurY].hasData();
+    DispEdit.setEnabled(b);
+    ToolMap.setEnabled(b);
+    FileSave1.setEnabled(b);
+    FileSave2.setEnabled(b);
+    ToolSave.setEnabled(b);
+  }
+
+  /** Adds a column to the Spread Sheet */
+  void addColumn() {
+    /* CTR: START HERE */
+  }
+
+  /** Adds a row to the Spread Sheet */
+  void addRow() {
+    
   }
 
   /** Make sure the formula bar is displaying up-to-date info */
@@ -1263,7 +1264,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   private int oldX;
   private int oldY;
 
-  /** Handles mouse presses and cell resizing */
+  /** Handles mouse presses */
   public void mousePressed(MouseEvent e) {
     Component c = e.getComponent();
     for (int j=0; j<NumVisY; j++) {
@@ -1294,31 +1295,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
     if (change) {
-      // redisplay spreadsheet cells
-      Dimension d = new Dimension();
-      d.height = VertLabel[0].getSize().height;
+      // resize spreadsheet cells
+      int h = VertLabel[0].getSize().height;
       for (int i=0; i<NumVisX; i++) {
+        Dimension d = new Dimension();
         d.width = HorizLabel[i].getSize().width;
+        d.height = h;
         DisplayCells[i][0].setPreferredSize(d);
       }
-      d.width = HorizLabel[0].getSize().width;
+
+      int w = HorizLabel[0].getSize().width;
       for (int j=0; j<NumVisY; j++) {
+        Dimension d = new Dimension();
+        d.width = w;
         d.height = VertLabel[j].getSize().height;
         DisplayCells[0][j].setPreferredSize(d);
       }
-      for (int j=0; j<NumVisY; j++) {
-        d.height = DisplayCells[0][j].getPreferredSize().height;
-        for (int i=0; i<NumVisX; i++) {
-          d.width = DisplayCells[i][0].getPreferredSize().width;
-          DisplayCells[i][j].setSize(d);
-        }
-      }
-      SCPane.invalidate();
-      SCPane.validate();
+      DisplayPanel.doLayout();
     }
   }
 
-  /** Handles cell resizing */
+  /** Handles cell label resizing */
   public void mouseDragged(MouseEvent e) {
     Component c = e.getComponent();
     int x = e.getX();
