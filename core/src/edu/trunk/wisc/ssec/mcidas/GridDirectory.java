@@ -91,6 +91,7 @@ public class GridDirectory
     private int columns;
     private int paramType;
     private int[] navBlock;
+    private GRIDnav gridNav = null;
 
     /**
      * Construct a GridDirectory from the grid directory block.
@@ -156,6 +157,12 @@ public class GridDirectory
         navBlock = new int[NAV_BLOCK_LENGTH];
         System.arraycopy(
             dirblock, NAV_BLOCK_INDEX, navBlock, 0, NAV_BLOCK_LENGTH);
+        // make the nav module
+        try {
+            gridNav = new GRIDnav(dirblock);
+        } catch (McIDASException excp) {
+            gridNav = null;
+        }
 
         // get the grid description
         int[] nameBits = new int[GRID_DESCR_LENGTH];
@@ -277,6 +284,15 @@ public class GridDirectory
     public int[] getNavBlock()
     {
         return navBlock;
+    }
+
+    /**
+     * Get the navigation 
+     * @return  GRIDnav for this grid  (may be null)
+     */
+    public GRIDnav getNavigation()
+    {
+        return gridNav;
     }
 
     /**
