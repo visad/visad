@@ -2,11 +2,12 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CommonUnits.java,v 1.1 1998-10-21 15:27:57 steve Exp $
+ * $Id: CommonUnits.java,v 1.2 1998-10-28 17:16:47 steve Exp $
  */
 
 package visad.meteorology;
 
+import visad.CommonUnit;
 import visad.DerivedUnit;
 import visad.SI;
 import visad.ScaledUnit;
@@ -25,7 +26,11 @@ CommonUnits
     public static final Unit	CELSIUS;
     public static final Unit	G_PER_KG;
     public static final Unit	METERS_PER_SECOND;
-
+    public static final Unit	HOUR;
+    public static final Unit	NAUTICAL_MILE;
+    public static final Unit	KNOT;
+    public static final Unit	DEGREE;
+    
     static
     {
 	Unit	pascal = null;
@@ -33,7 +38,10 @@ CommonUnits
 	Unit	celsius = null;
 	Unit	gPerKg = null;
 	Unit	metersPerSecond = null;
-
+	Unit	nauticalMile = null;
+        Unit	knot = null;
+        Unit	hour = null;
+        
 	try
 	{
 	    pascal = SI.kilogram.divide(SI.meter).divide(SI.second.pow(2));
@@ -41,6 +49,9 @@ CommonUnits
 	    celsius = SI.kelvin.shift(273.15);
 	    gPerKg = new ScaledUnit(0.001);
 	    metersPerSecond = SI.meter.divide(SI.second);
+	    nauticalMile = new ScaledUnit(1.852e3, SI.meter);
+	    hour = new ScaledUnit(3600.0, SI.second);
+	    knot = nauticalMile.divide(hour);
 	}
 	catch (Exception e)
 	{
@@ -56,5 +67,11 @@ CommonUnits
 	CELSIUS = celsius;
 	G_PER_KG = gPerKg;
 	METERS_PER_SECOND = metersPerSecond;
+	HOUR = hour;
+	NAUTICAL_MILE = nauticalMile;
+	KNOT = knot;
+	DEGREE = CommonUnit.degree;
     }
 }
+
+

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CommonTypes.java,v 1.1 1998-10-21 15:27:57 steve Exp $
+ * $Id: CommonTypes.java,v 1.2 1998-10-28 17:16:47 steve Exp $
  */
 
 package visad.meteorology;
@@ -25,6 +25,8 @@ CommonTypes
     public static final RealType	R_SAT;
     public static final RealType	SPEED;
     public static final RealType	DIRECTION;
+    public static final RealType	U;
+    public static final RealType	V;
 
     static
     {
@@ -36,6 +38,8 @@ CommonTypes
 	RealType	rSat = null;
 	RealType	speed = null;
 	RealType	direction = null;
+	RealType	u = null;
+	RealType	v = null;
 
 	try
 	{
@@ -45,8 +49,10 @@ CommonTypes
 	    theta = new RealType("Theta", CommonUnits.CELSIUS, null);
 	    thetaES = new RealType("ThetaES", CommonUnits.CELSIUS, null);
 	    rSat = new RealType("Rsat", CommonUnits.G_PER_KG, null);
-	    speed = new RealType("Speed", CommonUnits.METERS_PER_SECOND, null);
+	    speed = new RealType("Speed", CommonUnits.KNOT, null);
 	    direction = new RealType("Direction", CommonUnit.degree, null);
+	    u = new RealType("U", CommonUnits.KNOT, null);
+	    v = new RealType("V", CommonUnits.KNOT, null);
 	}
 	catch (Exception e)
 	{
@@ -65,5 +71,7 @@ CommonTypes
 	R_SAT = rSat;
 	SPEED = speed;
 	DIRECTION = direction;
+	U = u;
+	V = v;
     }
 }

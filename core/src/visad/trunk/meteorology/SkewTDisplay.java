@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.11 1998-10-21 15:27:58 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.12 1998-10-28 17:16:48 steve Exp $
  */
 
 package visad.meteorology;
@@ -134,13 +134,24 @@ SkewTDisplay
      */
     private RealType				bgTemperatureType;
     private RealTupleType			domainType;
+	/**@shapeType DependencyLink*/
+	/*#  SkewTDisplay$1 lnkUnnamed1*/
+	/**@shapeType DependencyLink*/
+	/*#  CommonUnits lnkUnnamed2*/
+	/**@shapeType DependencyLink*/
+	/*#  CommonTypes lnkUnnamed3*/
+	/**@shapeType DependencyLink*/
+	/*#  SoundingException lnkUnnamed4*/
 
 
     /**
-     * Constructs from a JFrame.
+     * Constructs from nothing.
+     *
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Remote access failure.
      */
     public
-    SkewTDisplay(JFrame jframe)
+    SkewTDisplay()
 	throws	VisADException, RemoteException
     {
 	displayRenderer = new SkewTDisplayRenderer();
@@ -153,6 +164,12 @@ SkewTDisplay
 
 	display = new DisplayImplJ2D("Skew T, Log P Diagram", displayRenderer);
 
+	JFrame	jframe = new JFrame("Skew-T Chart");
+	jframe.addWindowListener(new WindowAdapter() {
+	    public void windowClosing(WindowEvent e) {System.exit(0);}
+	});
+	jframe.setSize(512, 512);
+	jframe.setVisible(true);
 	jframe.getContentPane().add(display.getComponent());
 
 	skewTCoordSys = displayRenderer.skewTCoordSys;
@@ -564,11 +581,11 @@ SkewTDisplay
     {
 	FlatField	profile;
 
-	profile = sounding.getTemperature();
+	profile = sounding.getTemperatureSounding();
 	if (profile != null)
 	    setTemperatureSounding(profile);
 
-	profile = sounding.getDewPoint();
+	profile = sounding.getDewPointSounding();
 	if (profile != null)
 	    setDewPointSounding(profile);
     }
@@ -582,15 +599,7 @@ SkewTDisplay
     main(String[] args)
 	throws Exception
     {
-	JFrame		jframe = new JFrame("Skew-T Chart");
-
-	jframe.addWindowListener(new WindowAdapter() {
-	    public void windowClosing(WindowEvent e) {System.exit(0);}
-	});
-	jframe.setSize(512, 512);
-	jframe.setVisible(true);
-
-	SkewTDisplay	display = new SkewTDisplay(jframe);
+	SkewTDisplay	display = new SkewTDisplay();
 	Plain		plain = new Plain();
 
 	QuantityMap.push(MetQuantityDB.instance());
@@ -601,19 +610,19 @@ SkewTDisplay
 	for (;;)
 	 */
 	{
-	    FlatField	field;
-	    Sounding	sounding;
+	    FlatField		field;
+	    SoundingImpl	sounding;
 
 	    /*
 	    field = (FlatField)plain.open("soundingA.nc");
-	    sounding = new Sounding(field, CommonTypes.PRESSURE,
+	    sounding = new SoundingImpl(field, CommonTypes.PRESSURE,
 		CommonTypes.TEMPERATURE, CommonTypes.DEW_POINT);
 	    display.setSounding(sounding);
 	    java.lang.Thread.sleep(5000);
 	    */
 
-	    field = (FlatField)plain.open("soundingB.nc");
-	    sounding = new Sounding(field, CommonTypes.PRESSURE,
+	    field = (FlatField)plain.open("sounding.nc");
+	    sounding = new SoundingImpl(field, CommonTypes.PRESSURE,
 		CommonTypes.TEMPERATURE, CommonTypes.DEW_POINT);
 	    display.setSounding(sounding);
 	    // java.lang.Thread.sleep(5000);

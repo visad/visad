@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplayRenderer.java,v 1.4 1998-10-21 15:27:58 steve Exp $
+ * $Id: SkewTDisplayRenderer.java,v 1.5 1998-10-28 17:16:49 steve Exp $
  */
 
 package visad.meteorology;
@@ -35,7 +35,7 @@ import visad.java2d.DefaultDisplayRendererJ2D;
  */
 public class
 SkewTDisplayRenderer
-    extends	DefaultDisplayRendererJ2D
+    extends	DefaultDisplayRendererJ2D                                               
 {
     /*
      * Coordinates:
@@ -89,7 +89,8 @@ SkewTDisplayRenderer
     public final ThetaCoordinateSystem		thetaCoordSys;
     /**
      * displayThetaESTuple <-> Display.DisplaySpatialCartesianTuple
-     */
+     
+@directed*/
     public final ThetaESCoordinateSystem	thetaESCoordSys;
     /**
      * displayRSatTuple <-> Display.DisplaySpatialCartesianTuple
@@ -353,3 +354,5 @@ SkewTDisplayRenderer
 	    super.legalDisplayScalar(type);
     }
 }
+
+
