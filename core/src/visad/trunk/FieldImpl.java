@@ -2686,10 +2686,10 @@ class FieldEnumerator implements Enumeration {
   RealType[] types;
 
   FieldEnumerator(Field f) throws VisADException, RemoteException {
+    field = f;
     if (field.getDomainSet() == null) {
       throw new FieldException("FieldImplEnumerator: DomainSet undefined");
     }
-    field = f;
     index = new int[1];
     index[0] = 0;
     dimension = field.getDomainSet().getDimension();
