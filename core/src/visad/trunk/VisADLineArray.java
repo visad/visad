@@ -81,9 +81,8 @@ public class VisADLineArray extends VisADGeometryArray {
     return array;
   }
 
-  private final static int TEST = 1;
-  private final static float LIMIT = 4.0f; // constant for TEST = 0
-  // private final static float ALPHA = 0.1f; // constant for TEST = 1
+  private final static int TEST = 0;
+  private final static float LIMIT = 1.0f; // constant for TEST = 0
   private final static float ALPHA = 0.01f; // constant for TEST = 1
 
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
@@ -115,87 +114,102 @@ public class VisADLineArray extends VisADGeometryArray {
     int last_i;
 
     boolean any_split = false;
-    if (TEST == 0) {
-      float[] ratios = new float[len];
-      for (int i=0; i<len;  i++) ratios[i] = 0.0f;
-      float mean_ratio = 0.0f;
-      float var_ratio = 0.0f;
-      float max_ratio = 0.0f;
-      int num_ratio = 0;
 
-      for (int i=0; i<len; i+=2) {
-        float cd = (cs[0][i+1] - cs[0][i]) * (cs[0][i+1] - cs[0][i]) +
-                   (cs[1][i+1] - cs[1][i]) * (cs[1][i+1] - cs[1][i]) +
-                   (cs[2][i+1] - cs[2][i]) * (cs[2][i+1] - cs[2][i]);
-        float rd = (rs[0][i+1] - rs[0][i]) * (rs[0][i+1] - rs[0][i]) +
-                   (rs[1][i+1] - rs[1][i]) * (rs[1][i+1] - rs[1][i]) +
-                   (rs[2][i+1] - rs[2][i]) * (rs[2][i+1] - rs[2][i]);
-        if (rd > 0.0f) {
-          ratios[i] = cd / rd;
-          num_ratio++;
-          mean_ratio += ratios[i];
-          var_ratio += ratios[i] * ratios[i];
-          if (ratios[i] > max_ratio) max_ratio = ratios[i];
-        }
-      } // end for (int i=0; i<len; i+=2)
-      if (num_ratio < 2) return this;
-      mean_ratio = mean_ratio / num_ratio;
-      var_ratio = (float)
-        Math.sqrt((var_ratio - mean_ratio * mean_ratio) / num_ratio);
-      float limit_ratio = mean_ratio + LIMIT * var_ratio;
-      if (max_ratio < limit_ratio) return this;
-      for (int i=0; i<len; i+=2) {
-        test[i] = (ratios[i] > limit_ratio);
-        if (test[i]) any_split = true;
-      }
+    // TEST 1
+    if (len < 2) return this;
+    float[][] bs = new float[3][len/2];
+    float[][] ss = new float[3][len/2];
+    float ALPHA1 = 1.0f + ALPHA;
+    float ALPHA1m = 1.0f - ALPHA;
+    for (int i=0; i<len/2; i++) {
+      // BS = point ALPHA * opposite direction
+      bs[0][i] = ALPHA1 * rs[0][2*i] - ALPHA * rs[0][2*i+1];
+      bs[1][i] = ALPHA1 * rs[1][2*i] - ALPHA * rs[1][2*i+1];
+      bs[2][i] = ALPHA1 * rs[2][2*i] - ALPHA * rs[2][2*i+1];
+      // SS = point ALPHA * same direction
+      ss[0][i] = ALPHA1 * rs[0][2*i+1] - ALPHA * rs[0][2*i];
+      ss[1][i] = ALPHA1 * rs[1][2*i+1] - ALPHA * rs[1][2*i];
+      ss[2][i] = ALPHA1 * rs[2][2*i+1] - ALPHA * rs[2][2*i];
     }
-    else if (TEST == 1) {
-      if (len < 2) return this;
-      float[][] bs = new float[3][len/2];
-      float ALPHA1 = 1.0f + ALPHA;
-      for (int i=0; i<len/2; i++) {
-        // BS = point ALPHA * opposite direction
-        bs[0][i] = ALPHA1 * rs[0][2*i] - ALPHA * rs[0][2*i+1];
-        bs[1][i] = ALPHA1 * rs[1][2*i] - ALPHA * rs[1][2*i+1];
-        bs[2][i] = ALPHA1 * rs[2][2*i] - ALPHA * rs[2][2*i+1];
-      }
-      float[][] ds = coord_sys.toReference(bs);
-      float IALPHA = 1.0f / ALPHA;
-      for (int i=0; i<len; i+=2) {
-        // A = original line segment
-        float a0 = cs[0][i+1] - cs[0][i];
-        float a1 = cs[1][i+1] - cs[1][i];
-        float a2 = cs[2][i+1] - cs[2][i];
-        // B = estimate of vector using ALPHA * opposite direction
-        float b0 = IALPHA * (cs[0][i] - ds[0][i/2]);
-        float b1 = IALPHA * (cs[1][i] - ds[1][i/2]);
-        float b2 = IALPHA * (cs[2][i] - ds[2][i/2]);
-        float aa = (a0 * a0 + a1 * a1 + a2 * a2);
-        float aminusb =
-          (b0 - a0) * (b0 - a0) +
-          (b1 - a1) * (b1 - a1) +
-          (b2 - a2) * (b2 - a2);
-        float ratio = aminusb / aa;
-        test[i] = 0.01f < ratio; // true for bad segment
-        if (test[i]) any_split = true;
+    float[][] ds = coord_sys.toReference(bs);
+    float[][] es = coord_sys.toReference(ss);
+    float IALPHA = 1.0f / ALPHA;
+    for (int i=0; i<len; i+=2) {
+      // A = original line segment
+      float a0 = cs[0][i+1] - cs[0][i];
+      float a1 = cs[1][i+1] - cs[1][i];
+      float a2 = cs[2][i+1] - cs[2][i];
+      // B = estimate of vector using ALPHA * opposite direction
+      float b0 = IALPHA * (cs[0][i] - ds[0][i/2]);
+      float b1 = IALPHA * (cs[1][i] - ds[1][i/2]);
+      float b2 = IALPHA * (cs[2][i] - ds[2][i/2]);
+      float aa = (a0 * a0 + a1 * a1 + a2 * a2);
+      float aminusb =
+        (b0 - a0) * (b0 - a0) +
+        (b1 - a1) * (b1 - a1) +
+        (b2 - a2) * (b2 - a2);
+      float abratio = aminusb / aa;
+
+      // C = estimate of vector using ALPHA * opposite direction
+      float c0 = IALPHA * (cs[0][i+1] - es[0][i/2]);
+      float c1 = IALPHA * (cs[1][i+1] - es[1][i/2]);
+      float c2 = IALPHA * (cs[2][i+1] - es[2][i/2]);
+      float aminusc =
+        (c0 + a0) * (c0 + a0) +
+        (c1 + a1) * (c1 + a1) +
+        (c2 + a2) * (c2 + a2);
+      float acratio = aminusc / aa;
+
+      // true for bad segment
+      test[i] = test[i] || (0.01f < abratio) || (0.01f < acratio);
 /*
-        float bb = (b0 * b0 + b1 * b1 + b2 * b2);
-        float ab = (b0 * a0 + b1 * a1 + b2 * a2);
-        // float acrossb =
-        //   (a1 * b2 - a2 * b1) * (a1 * b2 - a2 * b1) +
-        //   (a2 * b0 - a0 * b2) * (a2 * b0 - a0 * b2) +
-        //   (a0 * b1 - a1 * b0) * (a0 * b1 - a1 * b0);
-        // b = A projected onto B, as a signed fraction of B
-        float b = ab / bb;
-        // c = (norm(A projected onto B) / norm(A)) ^ 2
-        float c = (ab * ab) / (aa * bb);
-        test[i] = !(0.5f < b && b < 2.0f && 0.5f < c);
+if ((0.01f < abratio) != (0.01f < acratio)) {
+System.out.println("test[" + i + "] " + abratio + " " + acratio);
+}
 */
-      } // end for (int i=0; i<len; i+=2)
-    } // end TEST == 1
+      if (test[i]) any_split = true;
+    } // end for (int i=0; i<len; i+=2)
+
+    bs = null;
+    ss = null;
 
     if (!any_split) {
       return this;
+    }
+
+    // TEST 0
+    float[] lengths = new float[len];
+    for (int i=0; i<len;  i++) lengths[i] = 0.0f;
+    float mean_length = 0.0f;
+    float var_length = 0.0f;
+    float max_length = 0.0f;
+    int num_length = 0;
+    
+    for (int i=0; i<len; i+=2) {
+      float cd = (cs[0][i+1] - cs[0][i]) * (cs[0][i+1] - cs[0][i]) +
+                 (cs[1][i+1] - cs[1][i]) * (cs[1][i+1] - cs[1][i]) +
+                 (cs[2][i+1] - cs[2][i]) * (cs[2][i+1] - cs[2][i]);
+     if (!test[i]) {
+        lengths[i] = cd;
+        num_length++;
+        mean_length += lengths[i];
+        var_length += lengths[i] * lengths[i];
+        if (lengths[i] > max_length) max_length = lengths[i];
+      }
+    } // end for (int i=0; i<len; i+=2)
+    if (num_length < 2) return this;
+    mean_length = mean_length / num_length;
+    var_length = (float)
+      Math.sqrt((var_length - mean_length * mean_length) / num_length);
+    float limit_length = mean_length + LIMIT * var_length;
+/*
+System.out.println("limit_length = " + limit_length + " " + max_length + " " +
+                   mean_length + " " + var_length + " " + num_length);
+*/
+    if (max_length >= limit_length) {
+      for (int i=0; i<len; i+=2) {
+        test[i] = test[i] || (lengths[i] > limit_length);
+      }
     }
 
     cs = null;
@@ -253,8 +267,7 @@ public class VisADLineArray extends VisADGeometryArray {
       j += 2 * color_length;
     }
 
-// always coming out false
-System.out.println("VisADLineArray.adjustSeam any_split = " + any_split);
+// System.out.println("VisADLineArray.adjustSeam any_split = " + any_split);
 
     if (!any_split) {
       return this;
