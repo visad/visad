@@ -182,6 +182,11 @@ public abstract class ActionImpl
     return currentActionThread;
   }
 
+  void handleRunDisconnectException(ReferenceActionLink link)
+  {
+    LinkVector.removeElement(link);
+  }
+
   /** code executed by a thread to manage updates to the corresponding Thing */
   public void run() {
     currentActionThread = Thread.currentThread();
@@ -199,7 +204,20 @@ public abstract class ActionImpl
           while (links.hasMoreElements()) {
             ReferenceActionLink link =
               (ReferenceActionLink) links.nextElement();
-            ThingChangedEvent e = link.getThingChangedEvent();
+
+            ThingChangedEvent e;
+            try {
+              e = link.getThingChangedEvent();
+            } catch (RemoteException re) {
+              if (!visad.collab.CollabUtil.isDisconnectException(re)) {
+                throw re;
+              }
+
+              // remote side has died
+              handleRunDisconnectException(link);
+              e = null;
+            }
+
             if (e != null) {
               thingChanged(e);
               requeue = true;
@@ -398,7 +416,14 @@ public abstract class ActionImpl
     for (int i=0; i<links.length; i++) {
       if (links[i] != null) {
         ThingReference ref = links[i].getThingReference();
-        ref.removeThingChangedListener(links[i].getAction());
+        try {
+          ref.removeThingChangedListener(links[i].getAction());
+        } catch (RemoteException re) {
+          // don't throw exception if the other side has died
+          if (!visad.collab.CollabUtil.isDisconnectException(re)) {
+            throw re;
+          }
+        }
       }
     }
     notifyAction();

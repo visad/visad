@@ -55,7 +55,10 @@ import visad.util.Util;
  * <CODE>DisplayRendererJ2D</CODE> is not <CODE>Serializable</CODE> and
  * should not be copied between JVMs.<P>
 */
-public abstract class DisplayRendererJ2D extends DisplayRenderer {
+public abstract class DisplayRendererJ2D
+  extends DisplayRenderer
+  implements RendererDeletedListener
+{
 
   private VisADCanvasJ2D canvas;
 
@@ -129,6 +132,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     throws VisADException
   {
     super.setDisplay(dpy);
+    dpy.addRendererDeletedListener(this);
     boxOn = getRendererControl().getBoxOn();
   }
 
@@ -790,5 +794,9 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return (renderer instanceof RendererJ2D);
   }
 
+  public void rendererDeleted(DataRenderer renderer)
+  {
+    clearScene(renderer);
+  }
 }
 

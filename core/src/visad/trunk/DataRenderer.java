@@ -187,7 +187,18 @@ DisplayImpl.printStack("prepareAction");
         any_changed = true;
 
         // create ShadowType for data, classify data for display
-        feasible[i] = Links[i].prepareData();
+        try {
+          feasible[i] = Links[i].prepareData();
+        } catch (RemoteException re) {
+          if (visad.collab.CollabUtil.isDisconnectException(re)) {
+            getDisplay().connectionFailed(this, Links[i]);
+            removeLink(Links[i]);
+            i--;
+            continue;
+          }
+          throw re;
+        }
+
         if (!feasible[i]) {
           all_feasible = false;
           // WLH 31 March 99
@@ -196,12 +207,25 @@ DisplayImpl.printStack("prepareAction");
         if (initialize && feasible[i]) {
           // compute ranges of RealTypes and Animation sampling
           ShadowType type = Links[i].getShadow().getAdaptedShadowType();
+          Data data;
+          try {
+            data = Links[i].getData();
+          } catch (RemoteException re) {
+            if (visad.collab.CollabUtil.isDisconnectException(re)) {
+              getDisplay().connectionFailed(this, Links[i]);
+              removeLink(Links[i]);
+              i--;
+              continue;
+            }
+            throw re;
+          }
+
           if (shadow == null) {
             shadow =
-              Links[i].getData().computeRanges(type, display.getScalarCount());
+              data.computeRanges(type, display.getScalarCount());
           }
           else {
-            shadow = Links[i].getData().computeRanges(type, shadow);
+            shadow = data.computeRanges(type, shadow);
           }
         }
       } // end if (Links[i].checkTicks() || !feasible[i] || go)
@@ -1176,6 +1200,8 @@ if (map.badRange()) {
     "Function directManifoldDimension < 2";
   private final static String badCoordSysManifoldDim =
     "bad directManifoldDimension with spatial CoordinateSystem";
+  private final static String lostConnection =
+    "lost connection to Data server";
 
   private boolean stop = false;
 
@@ -1185,7 +1211,12 @@ if (map.badRange()) {
          throws VisADException, RemoteException {
     setIsDirectManipulation(false);
 
-    link = getLinks()[0];
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      return;
+    }
+    link = Links[0];
+
     ref = link.getDataReference();
     shadow = link.getShadow().getAdaptedShadowType();
     type = link.getType();
@@ -1248,10 +1279,27 @@ if (map.badRange()) {
         whyNotDirect = viaReference;
         return;
       }
-      else if (!(link.getData() instanceof Field) ||
-               !(((Field) link.getData()).getDomainSet() instanceof Gridded1DSet)) {
-        whyNotDirect = domainSet;
-        return;
+      else {
+        Data data;
+        try {
+          data = link.getData();
+        } catch (RemoteException re) {
+          if (visad.collab.CollabUtil.isDisconnectException(re)) {
+            getDisplay().connectionFailed(this, link);
+            removeLink(link);
+            link = null;
+            whyNotDirect = lostConnection;
+            return;
+          }
+          throw re;
+        }
+
+        if (!(data instanceof Field) ||
+            !(((Field) data).getDomainSet() instanceof Gridded1DSet))
+        {
+          whyNotDirect = domainSet;
+          return;
+        }
       }
       if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
         tuple = null;
@@ -1515,7 +1563,8 @@ System.out.println("checkClose: distance = " + distance);
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     // System.out.println("drag_direct " + first + " " + type);
-    if (spatialValues == null || ref == null || shadow == null) return;
+    if (spatialValues == null || ref == null || shadow == null ||
+        link == null) return;
 
     if (first) {
       stop = false;
@@ -1614,7 +1663,18 @@ System.out.println("checkClose: distance = " + distance);
         x[2] = new_cursor[2][0];
       }
       Data newData = null;
-      Data data = link.getData();
+      Data data;
+      try {
+        data = link.getData();
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          link = null;
+          return;
+        }
+        throw re;
+      }
 
       if (type instanceof RealType) {
         addPoint(xx);
@@ -1964,5 +2024,41 @@ System.out.println("checkClose: distance = " + distance);
     return ray_pos;
   }
 
+  /**
+   * <b>WARNING!</b>
+   * Do <b>NOT</b> use this routine unless you know what you are doing!
+   */
+  public void removeLink(DataDisplayLink link)
+  {
+    final int newLen = Links.length - 1;
+    if (newLen < 0) {
+      // give up if the Links array is already empty
+      return;
+    }
+
+    DataDisplayLink[] newLinks = new DataDisplayLink[newLen];
+
+    int n = 0;
+    for (int i = 0; i <= newLen; i++) {
+      if (Links[i] == link) {
+        // skip the specified link
+      } else {
+        if (n == newLen) {
+          // yikes!   Obviously didn't find this link in the list!
+          return;
+        }
+        newLinks[n++] = Links[i];
+      }
+    }
+
+    if (n < newLen) {
+      // Hmmm ... seem to have removed multiple instances of 'link'!
+      DataDisplayLink[] newest = new DataDisplayLink[n];
+      System.arraycopy(newLinks, 0, newest, 0, n);
+      newLinks = newest;
+    }
+
+    Links = newLinks;
+  }
 }
 

@@ -92,7 +92,13 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     array.coordinates = x;
     array.vertexCount = count;
     VisADAppearance appearance = new VisADAppearance();
-    DataDisplayLink link = getLinks()[0];
+
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      return;
+    }
+    DataDisplayLink link = Links[0];
+
     float[] default_values = link.getDefaultValues();
     DisplayImpl display = getDisplay();
     appearance.pointSize =
@@ -121,7 +127,12 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     branch = new VisADGroup();
     extra_branch = new VisADGroup();
 
-    DataDisplayLink link = getLinks()[0];
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      return null;
+    }
+    DataDisplayLink link = Links[0];
+
     // values needed by drag_direct, which cannot throw Exceptions
     ShadowTypeJ2D shadow = (ShadowTypeJ2D) link.getShadow();
 
@@ -138,7 +149,18 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
       valueArray[i] = Float.NaN;
     }
 
-    Data data = link.getData();
+    Data data;
+    try {
+      data = link.getData();
+    } catch (RemoteException re) {
+      if (visad.collab.CollabUtil.isDisconnectException(re)) {
+        getDisplay().connectionFailed(this, link);
+        removeLink(link);
+        return null;
+      }
+      throw re;
+    }
+
     if (data == null) {
       branch = null;
       extra_branch = null;
@@ -147,9 +169,18 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
                              "doTransform"));
     }
     else {
-      // no preProcess or postProcess for direct manipulation */
-      shadow.doTransform(branch, data, valueArray,
-                         link.getDefaultValues(), this);
+      try {
+        // no preProcess or postProcess for direct manipulation */
+        shadow.doTransform(branch, data, valueArray,
+                           link.getDefaultValues(), this);
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          return null;
+        }
+        throw re;
+      }
     }
     return branch;
   }

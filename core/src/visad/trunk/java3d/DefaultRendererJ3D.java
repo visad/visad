@@ -73,7 +73,18 @@ public class DefaultRendererJ3D extends RendererJ3D {
       valueArray[i] = Float.NaN;
     }
 
-    Data data = link.getData();
+    Data data;
+    try {
+      data = link.getData();
+    } catch (RemoteException re) {
+      if (visad.collab.CollabUtil.isDisconnectException(re)) {
+        getDisplay().connectionFailed(this, link);
+        removeLink(link);
+        return null;
+      }
+      throw re;
+    }
+
     if (data == null) {
       branch = null;
       addException(
@@ -83,9 +94,19 @@ public class DefaultRendererJ3D extends RendererJ3D {
       link.start_time = System.currentTimeMillis();
       link.time_flag = false;
       type.preProcess();
-      boolean post_process =
-        type.doTransform(branch, data, valueArray,
-                         link.getDefaultValues(), this);
+      boolean post_process;
+      try {
+        post_process =
+          type.doTransform(branch, data, valueArray,
+                           link.getDefaultValues(), this);
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          return null;
+        }
+        throw re;
+      }
       if (post_process) type.postProcess(branch);
     }
     link.clearData();

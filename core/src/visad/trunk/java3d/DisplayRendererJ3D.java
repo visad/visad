@@ -56,7 +56,10 @@ import visad.util.Util;
  * <CODE>DisplayRendererJ3D</CODE> is not <CODE>Serializable</CODE> and
  * should not be copied between JVMs.<P>
 */
-public abstract class DisplayRendererJ3D extends DisplayRenderer {
+public abstract class DisplayRendererJ3D
+  extends DisplayRenderer
+  implements RendererDeletedListener
+{
 
   /** View associated with this VirtualUniverse */
   private View view;
@@ -139,6 +142,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     throws VisADException
   {
     super.setDisplay(dpy);
+    dpy.addRendererDeletedListener(this);
     boxOn = getRendererControl().getBoxOn();
   }
 
@@ -896,5 +900,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return (renderer instanceof RendererJ3D);
   }
 
+  public void rendererDeleted(DataRenderer renderer)
+  {
+    clearScene(renderer);
+  }
 }
 

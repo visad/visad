@@ -57,9 +57,15 @@ public class DefaultRendererJ2D extends RendererJ2D {
 
   /** create a VisADGroup scene graph for Data in links[0] */
   public VisADGroup doTransform() throws VisADException, RemoteException { // J2D
-    VisADGroup branch = new VisADGroup();
-    link = getLinks()[0];
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      return null;
+    }
+    link = Links[0];
+
     ShadowTypeJ2D type = (ShadowTypeJ2D) link.getShadow();
+
+    VisADGroup branch = new VisADGroup();
 
     // initialize valueArray to missing
     int valueArrayLength = getDisplay().getValueArrayLength();
@@ -68,7 +74,18 @@ public class DefaultRendererJ2D extends RendererJ2D {
       valueArray[i] = Float.NaN;
     }
 
-    Data data = link.getData();
+    Data data;
+    try {
+      data = link.getData();
+    } catch (RemoteException re) {
+      if (visad.collab.CollabUtil.isDisconnectException(re)) {
+        getDisplay().connectionFailed(this, link);
+        removeLink(link);
+        return null;
+      }
+      throw re;
+    }
+
     if (data == null) {
       branch = null;
       addException(
@@ -78,9 +95,19 @@ public class DefaultRendererJ2D extends RendererJ2D {
       link.start_time = System.currentTimeMillis();
       link.time_flag = false;
       type.preProcess();
-      boolean post_process =
-        type.doTransform(branch, data, valueArray,
-                         link.getDefaultValues(), this);
+      boolean post_process;
+      try {
+        post_process =
+          type.doTransform(branch, data, valueArray,
+                           link.getDefaultValues(), this);
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          return null;
+        }
+        throw re;
+      }
       if (post_process) type.postProcess(branch);
     }
     link.clearData();

@@ -34,6 +34,7 @@ import visad.util.ClientServer;
 
 public abstract class TestSkeleton
   extends Thread
+  implements DataSourceListener
 {
   boolean startServer = false;
   String hostName = null;
@@ -186,6 +187,11 @@ public abstract class TestSkeleton
   {
   }
 
+  public void dataSourceLost(String name)
+  {
+    System.err.println("Lost Data object \"" + name + "\"");
+  }
+
   LocalDisplay[] setupClientData()
     throws RemoteException, VisADException
   {
@@ -202,6 +208,10 @@ public abstract class TestSkeleton
     LocalDisplay[] dpys = ClientServer.getClientDisplays(client);
     if (dpys == null) {
       throw new VisADException("No remote displays found!");
+    }
+
+    for (int i = 0; i < dpys.length; i++) {
+      ((DisplayImpl )dpys[i]).addDataDeletedListener(this);
     }
 
     // fetch any data references from server

@@ -88,7 +88,12 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
     GeometryArray geometry = display.makeGeometry(array);
 
-    DataDisplayLink link = getLinks()[0];
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      return;
+    }
+    DataDisplayLink link = Links[0];
+
     float[] default_values = link.getDefaultValues();
     GraphicsModeControl mode = (GraphicsModeControl)
       display.getGraphicsModeControl().clone();
@@ -117,7 +122,12 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
     branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
-    DataDisplayLink link = getLinks()[0];
+    DataDisplayLink[] Links = getLinks();
+    if (Links == null || Links.length == 0) {
+      return null;
+    }
+    DataDisplayLink link = Links[0];
+
     // values needed by drag_direct, which cannot throw Exceptions
     ShadowTypeJ3D shadow = (ShadowTypeJ3D) link.getShadow();
 
@@ -134,7 +144,18 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       valueArray[i] = Float.NaN;
     }
 
-    Data data = link.getData();
+    Data data;
+    try {
+      data = link.getData();
+    } catch (RemoteException re) {
+      if (visad.collab.CollabUtil.isDisconnectException(re)) {
+        getDisplay().connectionFailed(this, link);
+        removeLink(link);
+        return null;
+      }
+      throw re;
+    }
+
     if (data == null) {
       branch = null;
       addException(
@@ -142,9 +163,18 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
                              "doTransform"));
     }
     else {
-      // no preProcess or postProcess for direct manipulation */
-      shadow.doTransform(branch, data, valueArray,
-                       link.getDefaultValues(), this);
+      try {
+        // no preProcess or postProcess for direct manipulation */
+        shadow.doTransform(branch, data, valueArray,
+                           link.getDefaultValues(), this);
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          return null;
+        }
+        throw re;
+      }
     }
     return branch;
   }

@@ -269,8 +269,19 @@ public class VisADSlider extends JPanel implements ChangeListener,
       CellImpl cell = new CellImpl() {
         public void doAction() throws VisADException, RemoteException {
           // update slider when value of linked Real changes
-          double val = ((Real) sRef.getData()).getValue();
-          if (!Util.isApproximatelyEqual(sCurrent, val)) updateSlider(val);
+          if (sRef != null) {
+            double val;
+            try {
+              val = ((Real) sRef.getData()).getValue();
+              if (!Util.isApproximatelyEqual(sCurrent, val)) updateSlider(val);
+            } catch (RemoteException re) {
+              if (visad.collab.CollabUtil.isDisconnectException(re)) {
+                // Remote data server went away
+                sRef = null;
+              }
+              throw re;
+            }
+          }
         }
       };
 
@@ -313,7 +324,17 @@ public class VisADSlider extends JPanel implements ChangeListener,
       double cur = (sMaximum - sMinimum) * (val / sTicks) + sMinimum;
       if (!Util.isApproximatelyEqual(sCurrent, cur)) {
         if (smapControl) control.setValue(cur);
-        else sRef.setData(new Real(realType, cur));
+        else if (sRef != null) {
+          try {
+            sRef.setData(new Real(realType, cur));
+          } catch (RemoteException re) {
+            if (visad.collab.CollabUtil.isDisconnectException(re)) {
+              // Remote data server went away
+              sRef = null;
+            }
+            throw re;
+          }
+        }
       }
     }
     catch (VisADException exc) {

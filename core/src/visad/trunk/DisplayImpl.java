@@ -79,6 +79,14 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** ordered list of DataRenderer objects that render Data objects */
   private Vector RendererVector = new Vector();
 
+  /** list of objects interested in learning when DataRenderers
+      are deleted from this Display */
+  private Vector RendererDeletedListeners = new Vector();
+
+  /** list of objects interested in learning when Data objects
+      are deleted from this Display */
+  private Vector DataDeletedListeners = new Vector();
+
   /** DisplayRenderer object for background and metadata rendering */
   private DisplayRenderer displayRenderer;
 
@@ -1703,4 +1711,69 @@ if (initialize) {
     return printer;
   }
 
+  void handleRunDisconnectException(ReferenceActionLink raLink)
+  {
+    if (!(raLink instanceof DataDisplayLink)) {
+      return;
+    }
+
+    DataDisplayLink link = (DataDisplayLink )raLink;
+  }
+
+  /**
+   * Notify this Display that a connection to a remote server has failed
+   */
+  public void connectionFailed(DataRenderer renderer, DataDisplayLink link)
+  {
+    try {
+      removeLinks(new DataDisplayLink[] { link });
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+    } catch (RemoteException re) {
+      re.printStackTrace();
+    }
+
+    if (renderer != null) {
+      DataDisplayLink[] links = renderer.getLinks();
+      if (links.length <= 1) {
+        deleteRenderer(renderer);
+      }
+    }
+
+    Enumeration enum = DataDeletedListeners.elements();
+    while (enum.hasMoreElements()) {
+      DataDeletedListener l = (DataDeletedListener )enum.nextElement();
+      l.dataDeleted(link.getName());
+    }
+  }
+
+  public void addRendererDeletedListener(RendererDeletedListener listener)
+  {
+    RendererDeletedListeners.addElement(listener);
+  }
+
+  public void removeRendererDeletedListener(RendererDeletedListener listener)
+  {
+    RendererDeletedListeners.removeElement(listener);
+  }
+
+  private void deleteRenderer(DataRenderer renderer)
+  {
+    RendererVector.removeElement(renderer);
+
+    Enumeration enum = RendererDeletedListeners.elements();
+    while (enum.hasMoreElements()) {
+      ((RendererDeletedListener )enum.nextElement()).rendererDeleted(renderer);
+    }
+  }
+
+  public void addDataDeletedListener(DataDeletedListener listener)
+  {
+    DataDeletedListeners.addElement(listener);
+  }
+
+  public void removeDataDeletedListener(DataDeletedListener listener)
+  {
+    DataDeletedListeners.removeElement(listener);
+  }
 }
