@@ -50,7 +50,8 @@ public class Test69
 
  public int checkKeyword(String testName, int argc, String[] args)
   {
-    if (args[argc].length() >= 3 && "sphere".startsWith(args[argc])) {
+    if ((args[argc].length() >= 3 && "sphere".startsWith(args[argc])) ||
+         "1".equals(args[argc])) {
       sphere = true;
       return 1;
     }
