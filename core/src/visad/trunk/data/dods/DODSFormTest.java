@@ -37,7 +37,7 @@ public class DODSFormTest
 	String	urlSpec = 
 	    args.length > 0
 		? args[0]
-		: "http://www.unidata.ucar.edu/cgi-bin/dods/test2/nph-nc/" +
+		: "http://www.unidata.ucar.edu/cgi-bin/dods/nph-nc/" +
 		  "packages/dods/data/nc_test/COADS-climatology.nc";
 	Runtime	runtime = Runtime.getRuntime();
 	long	free1 = runtime.freeMemory();
