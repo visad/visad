@@ -41,10 +41,21 @@ public class Region {
     RealTupleType earth =
       new RealTupleType(RealType.Latitude, RealType.Longitude);
 
-    float[][] samples = {{1.0f, 0.0f, 0.0f, -14.0f, 10.0f, 10.0f},
-                         {0.0f, -1.0f, 1.0f, 0.0f, -10.0f, 10.0f}};
-    int[][] tris = {{0, 1, 2}, {0, 1, 4}, {0, 2, 5}, {1, 2, 3}};
+    // construct boundary of 7-pointed star
+    int np = 14;
+    float[][] samples = new float[2][np];
+    float radius = 7.0f;
+    for (int i=0; i<np; i++) {
+      double b = 2.0 * Math.PI * i / np;
+      samples[0][i] = radius * ((float) Math.cos(b));
+      samples[1][i] = radius * ((float) Math.sin(b));
+      radius = 10.0f - radius;
+    }
+
+    // compute triangles to fill star, and use them to construct Delaunay
+    int[][] tris = DelaunayCustom.fill(samples);
     DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
+
     Irregular2DSet region =
       new Irregular2DSet(earth, samples, null, null, null, delaunay);
 

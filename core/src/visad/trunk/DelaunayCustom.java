@@ -115,5 +115,57 @@ public class DelaunayCustom extends Delaunay {
     if (samples != null) super.finish_triang(samples);
   }
 
+  /** assume that float[2][number_of_points] samples describes the
+      boundary of a simply connected plane region; return a decomposition
+      of that region into triangles whose vertices are all boindary
+      points from samples */
+  public static int[][] fill(float[][] samples) throws VisADException {
+    if (samples == null) return null;
+    if (samples.length != 2 || samples[0].length != samples[1].length) {
+      throw new VisADException("samples argument bad dimensions");
+    }
+    int n = samples[0].length;
+
+    // build circular boundary list
+    int[] next = new int[n];
+    for (int i=0; i<n-1; i++) {
+      next[i] = i+1;
+    }
+    next[n-1] = 0;
+
+    // compute area of region, to get orientation (positive or negative)
+    float area = 0.0f;
+    for (int i=0; i<n; i++) {
+      area +=
+        samples[0][i] * samples[1][next[i]] - samples[0][next[i]] * samples[1][i];
+    }
+    boolean pos = (area > 0.0);
+
+    int[][] tris = new int[n-2][]; // will be n-2 triangles
+    int i = 0; // current candidate for triangle
+    int t = 0; // next triangle, boundary length = n - t
+    int bad = 0;
+    while ((n - t) > 2) {
+      int j = next[i];
+      int k = next[j];
+      float a0 = samples[0][j] - samples[0][i];
+      float a1 = samples[1][j] - samples[1][i];
+      float b0 = samples[0][k] - samples[0][j];
+      float b1 = samples[1][k] - samples[1][j];
+      if (((a0 * b1 - b0 * a1) > 0.0) == pos) {
+        tris[t++] = new int[] {i, j, k}; // add triangle to tris
+        next[i] = k; // and remove j from boundary
+        bad = 0;
+      }
+      else {
+        i = j; // try next point along boundary
+        if (bad++ > n) {
+          throw new VisADException("bad samples");
+        }
+      }
+    }
+    return tris;
+  }
+
 }
 
