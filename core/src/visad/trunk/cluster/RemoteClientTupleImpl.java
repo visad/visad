@@ -28,7 +28,6 @@ package visad.cluster;
 
 import visad.*;
 
-import java.util.*;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -43,6 +42,10 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
 
   private Tuple adaptedTuple = null;
 
+  /**
+     must call setupClusterData after constructor to finish the
+     "construction"
+  */
   public RemoteClientTupleImpl(Data[] datums)
          throws VisADException, RemoteException {
     if (datums == null) {
@@ -53,27 +56,25 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
       throw new ClusterException("datums.length must be > 0");
     }
     for (int i=0; i<n; i++) {
-      if (!(datums[i] instanceof Scalar ||
+      if (!(datums[i] instanceof Scalar || datums[i] instanceof RealTuple ||
+            datums[i] instanceof Set ||
             datums[i] instanceof RemoteClientDataImpl)) {
-        throw new ClusterException("datums must be Scalar or RemoteClientDataImpl");
+        throw new ClusterException("datums must be Scalar, RealTuple, Set " +
+                                   "or RemoteClientDataImpl");
       }
     }
-    adaptedTuple = new Tuple(datums);
-  }
-
-/*
-  public RemoteClientTupleImpl(RemoteClusterDataImpl[] datums)
-         throws VisADException, RemoteException {
-    super(Tuple.buildTupleType(datums));
-    int n = datums.length;
-    tupleComponents = new RemoteClusterDataImpl[n];
-    // don't copy
+    adaptedTuple = new Tuple(datums, false); // no copy
+    // set this as parent for RemoteClientDataImpls
     for (int i=0; i<n; i++) {
-      tupleComponents[i] = datums[i];
-      tupleComponents[i].setParent(this);
+      if (datums[i] instanceof RemoteClientDataImpl) {
+        ((RemoteClientDataImpl) datums[i]).setParent(this);
+      }
     }
   }
-*/
+
+  public MathType getType() throws VisADException, RemoteException {
+    return adaptedTuple.getType();
+  }
 
   public Real[] getRealComponents()
          throws VisADException, RemoteException {
@@ -92,26 +93,33 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
     return adaptedTuple.isMissing();
   }
 
-  public Data binary(Data data, int op, MathType new_type,
-                    int sampling_mode, int error_mode )
-             throws VisADException, RemoteException {
-    throw new UnimplementedException("RemoteClientTupleImpl.binary");
-  }
-
-  public Data unary(int op, MathType new_type,
-                    int sampling_mode, int error_mode)
-         throws VisADException, RemoteException {
-    throw new UnimplementedException("RemoteClientTupleImpl.unary");
-  }
-
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException, RemoteException {
     return adaptedTuple.computeRanges(type, shadow);
   }
 
+  public DataShadow computeRanges(ShadowType type, int n)
+         throws VisADException, RemoteException {
+    return adaptedTuple.computeRanges(type, n);
+  }
+
+  public double[][] computeRanges(RealType[] reals)
+         throws VisADException, RemoteException {
+    return adaptedTuple.computeRanges(reals);
+  }
+
   public Data adjustSamplingError(Data error, int error_mode)
          throws VisADException, RemoteException {
     return adaptedTuple.adjustSamplingError(error, error_mode);
+  }
+
+  public String longString() throws VisADException, RemoteException {
+    return longString("");
+  }
+
+  public String longString(String pre)
+         throws VisADException, RemoteException {
+    return pre + "RemoteClientTupleImpl";
   }
 
 }

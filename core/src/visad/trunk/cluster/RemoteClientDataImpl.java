@@ -36,10 +36,32 @@ import java.rmi.server.UnicastRemoteObject;
    RemoteClientData is the class for cluster client
    VisAD data objects.<P>
 */
-public class RemoteClientDataImpl extends RemoteClusterDataImpl
+public abstract class RemoteClientDataImpl extends RemoteClusterDataImpl
        implements RemoteClientData {
 
   public RemoteClientDataImpl() throws RemoteException {
+  }
+
+  public Data binary(Data data, int op, MathType new_type,
+                    int sampling_mode, int error_mode )
+             throws VisADException, RemoteException {
+    throw new ClusterException("no binary method for cluster client data");
+  }
+
+  public Data binary(Data data, int op, int sampling_mode, int error_mode )
+             throws VisADException, RemoteException {
+    throw new ClusterException("no binary method for cluster client data");
+  }
+
+  public Data unary(int op, MathType new_type,
+                    int sampling_mode, int error_mode)
+         throws VisADException, RemoteException {
+    throw new ClusterException("no unary method for cluster client data");
+  }
+
+  public Data unary(int op, int sampling_mode, int error_mode)
+         throws VisADException, RemoteException {
+    throw new ClusterException("no unary method for cluster client data");
   }
 
 }

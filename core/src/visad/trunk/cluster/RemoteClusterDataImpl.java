@@ -152,7 +152,7 @@ import java.rmi.server.UnicastRemoteObject;
    RemoteClusterDataImpl is the super class for cluster
    client and node Data.<P>
 */
-public class RemoteClusterDataImpl extends RemoteDataImpl
+public abstract class RemoteClusterDataImpl extends RemoteDataImpl
        implements RemoteClusterData {
 
   /** Set that defines partition of Data across cluster;
@@ -171,15 +171,7 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
   /** used for testing equality */
   private RemoteClusterData me = null;
 
-  private MathType type = null;
-
-  public RemoteClusterDataImpl()
-          throws RemoteException {
-    this(null);
-  }
-
-  public RemoteClusterDataImpl(MathType t)
-          throws RemoteException {
+  public RemoteClusterDataImpl() throws RemoteException {
     super(null); // RemoteDataImpl.AdaptedData =
                  // RemoteThingImpl.AdaptedThing = null
     // but adapt a ThingImpl and a RemoteThingImpl
@@ -187,8 +179,6 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
     adaptedThingImpl = new ThingImpl();
     adaptedRemoteThingImpl = new RemoteThingImpl(adaptedThingImpl);
     me = this;
-
-    type = t;
   }
 
   /** return RemoteClusterData for JVM where data resides;
@@ -253,11 +243,9 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
     return (cd == me); // seems to work - but does it really?
   }
 
-
-
   /** parent logic, looosely copied from DataImpl */
   private RemoteClusterDataImpl parent = null;
-  void setParent(RemoteClusterDataImpl p) {
+  public void setParent(RemoteClusterDataImpl p) {
     parent = p;
   }
   public void notifyReferences()
@@ -280,9 +268,10 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
     adaptedRemoteThingImpl.removeReference(r);
   }
 
-  public MathType getType() {
-    return type;
+  public DataImpl local() throws VisADException, RemoteException {
+    throw new ClusterException("no local() method for cluster data");
   }
+
 
 /* MUST OVER-RIDE
 methods that acccess AdaptedThing and AdaptedData
@@ -321,8 +310,9 @@ END MUST OVER-RIDE */
 
   public static void main(String[] args)
          throws RemoteException, VisADException {
-    RemoteClusterData cd = new RemoteClusterDataImpl();
-    RemoteClusterData cd2 = new RemoteClusterDataImpl();
+    Real r = new Real(0);
+    RemoteClientTupleImpl cd = new RemoteClientTupleImpl(new Data[] {r});
+    RemoteClientTupleImpl cd2 = new RemoteClientTupleImpl(new Data[] {r});
     System.out.println(cd.equals(cd)); // true
     System.out.println(cd.equals(cd2)); // false
     System.out.println(cd.clusterDataEquals(cd)); // true
