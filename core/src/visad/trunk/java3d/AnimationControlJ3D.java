@@ -53,7 +53,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     real = r;
     current = 0;
     direction = true;
-    step = 100;
+    step = 500;
     animationSet = new AnimationSetControl(d, this);
     d.addControl(animationSet);
     animate = new ToggleControl(d, this);

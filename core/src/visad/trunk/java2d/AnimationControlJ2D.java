@@ -56,7 +56,7 @@ public class AnimationControlJ2D extends AVControlJ2D
     real = r;
     current = 0;
     direction = true;
-    step = 100;
+    step = 500;
     if (d != null) {
       canvas = ((DisplayRendererJ2D) d.getDisplayRenderer()).getCanvas();
       animationSet = new AnimationSetControlJ2D(d, this);
