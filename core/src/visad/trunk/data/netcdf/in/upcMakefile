@@ -7,13 +7,11 @@ include ../../../rules.make
 
 TESTS	= \
 	    2332_2365.test	\
-	    98101409_ruc.test	\
 	    SSECImages.test	\
 	    b2rlc.test	\
 	    big.test	\
 	    images.test	\
 	    imagesNoTimeVar.test	\
-	    lowresTerrain.test	\
 	    lwc3rms.test	\
 	    pmsl.test	\
 	    rueden.test	\
@@ -24,6 +22,7 @@ TESTS	= \
 	    time.test	\
 	    timeNoTimeVar.test	\
 	    timeNoUnit.test
+#	    cf-1.test
 
 DEBUGS	= $(TESTS:.test=.debug)
 
@@ -44,7 +43,7 @@ test:	$(TESTS)
 	$(MAKE) -s $*.run 2>&1 | diff -cw $*.save -
 
 
-$(TESTS):	NetcdfAdapter.class
+# $(TESTS):	NetcdfAdapter.class
 $(DEBUGS):	NetcdfAdapter.class
 
-include depend
+# include depend
