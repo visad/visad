@@ -39,6 +39,24 @@ public abstract class Scalar
   }
 
   /**
+   * Adds a listener for changes to this instance.  Because instances of this
+   * class don't change, this method does nothing.
+   *
+   * @param listener                     The listener for changes.
+   */
+  public final void addReference(ThingReference listener) {
+  }
+
+  /**
+   * Removes a listener for changes to this instance.  Because instances of this
+   * class don't change, this method does nothing.
+   *
+   * @param listener                    The change listener to be removed.
+   */
+  public final void removeReference(ThingReference listener) {
+  }
+
+  /**
    * Indicates if this scalar is semantically identical to an object.
    * @param obj			The object.
    * @return			<code>true</code> if and only if this scalar

@@ -130,6 +130,24 @@ public class RealTuple
   }
 
   /**
+   * Adds a listener for changes to this instance.  Because instances of this
+   * class don't change, this method does nothing.
+   *
+   * @param listener                     The listener for changes.
+   */
+  public final void addReference(ThingReference listener) {
+  }
+
+  /**
+   * Removes a listener for changes to this instance.  Because instances of this
+   * class don't change, this method does nothing.
+   *
+   * @param listener                    The change listener to be removed.
+   */
+  public final void removeReference(ThingReference listener) {
+  }
+
+  /**
    * Get the values of the Real components
    * @return double array of the values of each Real component
    */
