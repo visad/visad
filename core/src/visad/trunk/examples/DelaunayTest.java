@@ -24,10 +24,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import java.io.*;
-import java.util.*;
-
-// packages for main method
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -36,14 +32,12 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 /**
-   Delaunay represents an abstract class for calculating an
-   N-dimensional Delaunay triangulation, that can be extended
-   to allow for various triangulation methods.<P>
+   DelaunayTest provides a graphical demonstration of implemented
+   Delaunay triangulation algorithms, in 2-D or 3-D.
 */
 public class DelaunayTest {
 
-  /** A graphical demonstration of implemented Delaunay triangulation
-      algorithms, in 2-D or 3-D */
+  /** Run 'java DelaunayTest' for usage instructions */
   public static void main(String[] argv) throws VisADException,
                                                 RemoteException {
     boolean problem = false;
@@ -74,7 +68,7 @@ public class DelaunayTest {
     }
     if (problem) {
       System.out.println("Usage:\n" +
-                         "   java visad.Delaunay dim points type [label]\n" +
+                         "   java DelaunayTest dim points type [label]\n" +
                          "dim    = The dimension of the triangulation\n" +
                          "         2 = 2-D\n" +
                          "         3 = 3-D\n" +
