@@ -2349,6 +2349,10 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     }
 
     int n = text_values.length;
+
+    // CTR 22 Jan 2001
+    if (n > spatial_values[0].length) n = spatial_values[0].length;
+
     VisADGeometryArray[] as = new VisADGeometryArray[n];
     boolean center = text_control.getCenter();
     double size = text_control.getSize();
