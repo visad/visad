@@ -82,4 +82,17 @@ public abstract class MapProjection extends NavigatedCoordinateSystem
      */
     public abstract java.awt.geom.Rectangle2D getDefaultMapArea();
 
+    /**
+     * Print out a string representation of this MapProjection
+     */
+    public String toString() {
+        StringBuffer buf = new StringBuffer();
+        buf.append("MapProjection: \n");
+        buf.append("  Reference = ");
+        buf.append(getReference());
+        buf.append("\n");
+        buf.append("  DefaultMapArea = ");
+        buf.append(getDefaultMapArea());
+        return buf.toString();
+    }
 }
