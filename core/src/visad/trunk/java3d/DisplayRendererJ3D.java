@@ -69,7 +69,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   private TransformGroup trans = null;
   /** BranchGroup between trans and all direct manipulation
    *  Data depictions */
-  private BranchGroup direct = null;
+  // WLH 13 March 2000
+  // private BranchGroup direct = null;
 
   // WLH 10 March 2000
   private OrderedGroup non_direct = null;
@@ -266,9 +267,11 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
   }
 
+/* WLH 13 March 2000
   public BranchGroup getDirect() {
     return direct;
   }
+*/
 
   /**
    * Create scene graph root, if none exists, with Transform
@@ -330,6 +333,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     trans.addChild(new BoundingLeaf(boundingbox));
 */
 
+/* WLH 13 Macrh 2000
     // create the BranchGroup that is the parent of direct
     // manipulation Data object BranchGroup objects
     direct = new BranchGroup();
@@ -338,6 +342,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     direct.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     direct.setCapability(Node.ENABLE_PICK_REPORTING);
     trans.addChild(direct);
+*/
 
     // WLH 10 March 2000
     non_direct = new OrderedGroup();
@@ -407,7 +412,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   public void addDirectManipulationSceneGraphComponent(Group group,
                          DirectManipulationRendererJ3D renderer) {
-    direct.addChild(group);
+    // WLH 13 March 2000
+    // direct.addChild(group);
+    non_direct.addChild(group);
     directs.addElement(renderer);
   }
 
