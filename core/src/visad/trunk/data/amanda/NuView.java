@@ -176,10 +176,8 @@ public class NuView
       file = new AmandaFile(args[0]);
     }
 
-    Data temp = file.makeData();
-
-    final FieldImpl amanda = (FieldImpl )((Tuple )temp).getComponent(0);
-    final FieldImpl modules = (FieldImpl )((Tuple )temp).getComponent(1);
+    final FieldImpl amanda = file.makeEventData();
+    final FieldImpl modules = file.makeModuleData();
 
     DisplayImpl display = new DisplayImplJ3D("amanda");
 
