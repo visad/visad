@@ -164,7 +164,7 @@ public class Spline {
                                         new TwoDDisplayRendererJ3D());
         }
         catch (UnsatisfiedLinkError e) {
-          java2d = true;
+          // java2d = true;
         }
       }
       if (java2d) {

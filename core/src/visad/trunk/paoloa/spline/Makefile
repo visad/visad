@@ -50,9 +50,9 @@ RM = rm -f
 
 default: Spline.class Spline2D.class Spline.so Spline2D.so
 
-Spline.so: SplineImp.o $(FORTRANS)
+Spline.so: SplineImp.o gcvspl.o
 	${SHLD} ${SHLDFLAGS} -o libSpline.so \
-		SplineImp.o $(FORTRANS) \
+		SplineImp.o gcvspl.o \
 		$(LIBS) -lM77 -lF77 -lsunmath -lm -lc
 
 SplineImp.o: visad_paoloa_spline_Spline.h
@@ -63,9 +63,9 @@ visad_paoloa_spline_Spline.h: Spline.class
 Spline.class: Spline.java
 	javac Spline.java
 
-Spline2D.so: Spline2DImp.o $(FORTRANS)
+Spline2D.so: Spline2DImp.o tpspline.o
 	${SHLD} ${SHLDFLAGS} -o libSpline2D.so \
-		Spline2DImp.o $(FORTRANS) \
+		Spline2DImp.o tpspline.o \
 		$(LIBS) -lM77 -lF77 -lsunmath -lm -lc
 
 Spline2DImp.o: visad_paoloa_spline_Spline2D.h

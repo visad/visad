@@ -1,5 +1,4 @@
-      subroutine tpspline(x_array,y_array,s_array,
-     * ytrue,y,dimen1,dimen2) 
+      subroutine tpspline(x_arr,y_arr,s_arr,ytrue,y,dimen) 
 c
 c  Purpose: Test the gcvpack driver dtpss.f with VisAD
 c
@@ -11,17 +10,24 @@ c
      *  lwa = maxuni*(2+mxncts+maxuni)+maxobs,
      *  liwa = 2*maxobs + maxuni)
 c
+      integer dimen(2)
       integer nobs,i,j,info,ntbl,ncov1,job,m,dim,iwork(liwa),iout(4)
       integer dimen1, dimen2
-      double precision s(maxobs,1),s2(maxobs,1),lamlim(2),
-     * des(maxobs,4),des2(maxobs,4),y(maxobs),adiag(maxobs),
-     * ytrue(maxobs),tbl(maxtbl,3),coef(maxpar),auxtbl(3,3),
-     * svals(maxobs),dout(5),pred(maxobs),work(lwa),pderr,r,trA,diag
-      double precision x_array(121),y_array(121),s_array(121)
+      double precision s(maxobs,1),s2(maxobs,1),lamlim(2)
+      double precision trA,diag,adiag(maxobs),auxtbl(3,3),pderr,r
+      double precision des(maxobs,4),des2(maxobs,4),y(maxobs)
+      double precision ytrue(maxobs),tbl(maxtbl,3),coef(maxpar)
+      double precision svals(maxobs),dout(5),pred(maxobs),work(lwa)
+C      double precision s(maxobs,1),s2(maxobs,1),lamlim(2),
+C     * des(maxobs,4),des2(maxobs,4),y(maxobs),adiag(maxobs),
+C     * ytrue(maxobs),tbl(maxtbl,3),coef(maxpar),auxtbl(3,3),
+C     * svals(maxobs),dout(5),pred(maxobs),work(lwa),pderr,r,trA,diag
+      double precision x_arr(121),y_arr(121),s_arr(121)
 c
       double precision dasum
 c
-
+      dimen1 = dimen(1)
+      dimen2 = dimen(2)
       print *, dimen1, dimen2
 
       nobs=dimen1*dimen2
@@ -35,9 +41,9 @@ c
       job=1010
 
       do i=1,nobs
-         des(i,1)=x_array(i)
-         des(i,2)=y_array(i)
-         s(i,1)=s_array(i)
+         des(i,1)=x_arr(i)
+         des(i,2)=y_arr(i)
+         s(i,1)=s_arr(i)
       enddo
 
       do 20 i = 1,dim
@@ -97,7 +103,7 @@ C      endif
 C      if (abs(pderr) .gt. 1.0d-8) write(*,*) 'pderr = ',pderr
 C      write(*,*) 'pderr = ',pderr
 
-      stop
+      return
   999 continue
       end
 
@@ -290,7 +296,7 @@ c	Linpack - dchdc dqrdc dqrsl dtrsl dsvdc
 c	Blas    - ddot dcopy dgemv
 c	Other 	- dprmut dset dftkf fact mkpoly 
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer ncts,jrep,jadiag,p1,p1p1,p2,p2p1,p3,p3p1,ip1,ip1p1,ip2,
      * ip2p1,nuobs,p4,p4p1,j,i,lwa2,wsize,q1,q1p1,npsing,
@@ -535,7 +541,7 @@ c Subprograms Called Indirectly:
 c    Blas    - dcopy
 c    Other   - fact mkpoly
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       double precision dummy
       integer nct,p1,p1p1,npoly
@@ -623,7 +629,7 @@ c			   0 : successful completion
 c			   1 : ncov1 is incorrect
 c
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer sw,oldsw,itemp,i,j,k,cont,dfrep
       double precision temp,diff,one,machpr,denom,wmin,wmax
@@ -780,7 +786,7 @@ c	Blas    - dcopy
 c	Gcvpack - dqrsl
 c	Other   - fact mkpoly
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer npoly,i,j
       integer mkpoly
@@ -834,7 +840,7 @@ c
 c  On Exit:
 c   mkploy		(m + dim - 1) choose dim
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,j,k,k1,kcoef,n
 c 			compute binomial coefficient 
@@ -887,7 +893,7 @@ c   y(nuobs)  		B1'y
 c   ytrue(nuobs)	B1'ytrue if job is nonzero
 c   ssqrep		sum of squares for replication
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer first,i,j
       double precision accum
@@ -968,7 +974,7 @@ c
 c Subprograms Called:
 c	Other   - fact
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,j,k,fact
       double precision tauij,expo,theta,t,pi
@@ -1065,7 +1071,7 @@ c	Linpack - dchdc dsvdc
 c	Blas    - dcopy
 c	Other   - dset dprmut
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,j,pp1,locinf,k
       double precision dummy,one,machpr
@@ -1136,7 +1142,7 @@ c On Exit:
 c   xu(ldxu,ncx) 	unique rows of x
 c			may be identified with x in the calling sequence
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,j,k
 c
@@ -1189,7 +1195,7 @@ c Subprograms Called Directly:
 c	Blas  - dcopy
 c	Other - mkpoly
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,j,k,tt,nt,bptr,eptr
       integer mkpoly
@@ -1262,7 +1268,7 @@ c   x(npar)		array with permuted entries
 c
 c   Written:	Yin Ling	U. of Maryland, August,1978
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,j,k
       double precision t
@@ -1685,7 +1691,7 @@ c	Gcvlib  - dvl vmin
 c	Linpack - dqrsl dtrsl
 c	Blas    - ddot dcopy dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       double precision addend,nlamht,ssqw2
       integer npsing,i,jpmse,jlaml,jadiag,nmnct,nctp1,sinfo
@@ -1824,7 +1830,7 @@ c
 c Subprograms Called Indirectly:
 c	Gcvpack - dvl
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,k
       double precision vlamht,w
@@ -1936,7 +1942,7 @@ c	Linpack - dqrsl
 c	Blas    - ddot dgemv
 c	Other   - dset
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,j,hp1,locinf,nmh,np1
       double precision dummy(1)
@@ -2005,7 +2011,7 @@ c Subprograms Called Directly:
 c      Linpack - dqrsl 
 c      Blas    - ddot dcopy dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer locinf,hp1
       double precision dummy(1)
@@ -2057,7 +2063,7 @@ c Subprograms Called Directly:
 c	Linpack - dqrsl
 c	Blas    - dcopy
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       double precision dummy
       integer i,locinf
@@ -2129,7 +2135,7 @@ c Subprograms Called Directly:
 c      Linpack - dqrsl 
 c      Blas    - ddot dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,nmh,k,locinf
       double precision dummy,nlam,wrk1,addtru,wrk
@@ -2199,7 +2205,7 @@ c
 c On Exit:
 c   dx(n)		vector with all n entries set to da
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,m,mp1,nincx
 c
@@ -3207,7 +3213,7 @@ c Subprograms Called Directly:
 c	Linpack - dqrsl 
 c	Blas    - dcopy dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,locinf,nmh,np1
       double precision dummy(1)
@@ -3241,7 +3247,7 @@ c   i			a non-negative integer
 c On Exit:
 c   fact		i factorial
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer j
       fact = 0
@@ -3301,7 +3307,7 @@ c   Subprograms Used:
 c      Linpack - dqrsl dtrsl 
 c      Blas    - ddot dcopy dgemv
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer i,j,nmnct,nctp1,locinf
       double precision dummy,machpr,one,rcond
@@ -4033,7 +4039,7 @@ c
 c Subprograms Called Directly:
 c	Gcvpack - dvl
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
 
       double precision a,b,c,d,vc,vd,del,k1,k2,x,v
@@ -4398,7 +4404,7 @@ c
 c On Exit:
 c   dvl			V(lambda)
 c
-c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.1 1998-12-04 20:22:02 billh Exp $
+c $Header: /cvsroot/visad/paoloa/spline/tpspline.f,v 1.2 1998-12-04 21:56:42 billh Exp $
 c
       integer j
       double precision nlam,numrtr,denom,factor

@@ -192,6 +192,8 @@ public class DisplayTest extends Object {
         System.out.println("  45: text in Java3D");
         System.out.println("  46: shape in Java2D");
         System.out.println("  47: shape in Java3D");
+        System.out.println("  48: 2-D surface and ConstantMap colors");
+        System.out.println("  49: test 1-D line and ConstantMap colors");
 
         return;
 
@@ -681,6 +683,13 @@ public class DisplayTest extends Object {
         display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
         display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
  
+        display1.addMap(new ConstantMap(0.0, Display.Red));
+        display1.addMap(new ConstantMap(0.1, Display.Green));
+        display1.addMap(new ConstantMap(0.0, Display.Blue));
+
+        LabeledRGBWidget lw;
+        ScalarMap color1map;
+/*
         ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGB);
         display1.addMap(color1map);
 
@@ -697,6 +706,7 @@ public class DisplayTest extends Object {
         jframe.setContentPane(big_panel);
         jframe.pack();
         jframe.setVisible(true);
+*/
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
@@ -2481,6 +2491,49 @@ public class DisplayTest extends Object {
         jframe.setContentPane((JPanel) display1.getComponent());
         jframe.pack();
         jframe.setVisible(true);
+
+        break;
+
+      case 48:
+
+        System.out.println(test_case + ": test 2-D surface and ConstantMap colors");
+
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+
+        display1.addMap(new ConstantMap(0.0, Display.Red));
+        display1.addMap(new ConstantMap(1.0, Display.Green));
+        display1.addMap(new ConstantMap(0.0, Display.Blue));
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 49:
+
+        System.out.println(test_case + ": test 1-D line and ConstantMap colors");
+
+        size = 64;
+        histogram1 = FlatField.makeField(ir_histogram, size, false);
+
+        display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+        display1.addMap(new ScalarMap(count, Display.YAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+
+        display1.addMap(new ConstantMap(0.0, Display.Red));
+        display1.addMap(new ConstantMap(1.0, Display.Green));
+        display1.addMap(new ConstantMap(0.0, Display.Blue));
+
+        ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+        ref_histogram1.setData(histogram1);
+        display1.addReference(ref_histogram1, null);
 
         break;
 

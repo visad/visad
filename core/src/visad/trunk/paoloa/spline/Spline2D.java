@@ -35,6 +35,7 @@ public class Spline2D {
   float[] domain_valuesx;
   float[] domain_valuesy;
   double[] range_values;
+  double[] return_values;
   double[] true_values;
   double[] range_values_pass;
   double[] true_values_pass;
@@ -83,10 +84,9 @@ public class Spline2D {
     dim2 = 11;
     int pp = 0;
     n_samples = dim1*dim2;
-    true_values_pass = new double[ 200 ];
-    range_values_pass = new double[ 200 ];
     true_values = new double[ n_samples ];
     range_values = new double[ n_samples ];
+    return_values = new double[ n_samples ];
     s_values = new double[ n_samples ];
     x_values = new double[ n_samples ];
     y_values = new double[ n_samples ];
@@ -125,7 +125,7 @@ public class Spline2D {
       values[1] = (double) domain_valuesy[ii];
       values[2] = (double) range_values[ii];
       tuples[ii] = new RealTuple( RealTupleType.SpatialCartesian3DTuple, values );
-      reals[ii] = new Real( RealType.ZAxis, values[1] );
+      reals[ii] = new Real( RealType.ZAxis, values[2] );
       range_refs[ii] = new DataReferenceImpl("rangeRef_"+ii);
     //range_refs[ii].setData( tuples[ii] );
       range_refs[ii].setData( reals[ii] );
@@ -136,7 +136,7 @@ public class Spline2D {
     samples[1] = domain_valuesy;
     RealTupleType domain_tuple =
       new RealTupleType(RealType.XAxis, RealType.YAxis);
-    domainSet = new Gridded2DSet( domain_tuple, samples, n_samples ); 
+    domainSet = new Gridded2DSet( domain_tuple, samples, dim1, dim2 ); 
     f_type = new FunctionType( domain_tuple, RealType.ZAxis );
     spline_field = new FlatField( f_type, domainSet );
     gcv_field = new FlatField( f_type, domainSet );
@@ -291,7 +291,7 @@ public class Spline2D {
       spline_fieldRef.setData( spline_field );
       gcv_fieldRef.setData( gcv_field );
       true_fieldRef.setData( true_field );
-      display1.addReference(spline_fieldRef);
+      // display1.addReference(spline_fieldRef);
       display1.addReference(gcv_fieldRef, green);
       display1.addReference(true_fieldRef, blue);
 
@@ -325,31 +325,15 @@ public class Spline2D {
               noise_a[ii] = (range_values[ii] - true_values[ii])/last_noise_fac;
             }
             range_values[ii] = true_values[ii] + noise_fac*noise_a[ii];
-            range_refs[ii].setData( new Real(RealType.YAxis, range_values[ii]));
+            range_refs[ii].setData( new Real(RealType.ZAxis, range_values[ii]));
           }
 
-/*
-          val = ((Real)lambda_ref.getData()).getValue();
-          val = Math.pow(10.0, val);
+          int[] dimen = {dim1, dim2};
+          System.arraycopy(range_values, 0, return_values, 0, n_samples);
+          tpspline_c(x_values, y_values, s_values, true_values,
+                     return_values, dimen);
 
-          mode = 1;
-          getspline_c( range_values, spline_range, val, mode);
-
-          f_range[0] = spline_range;
-          spline_field.setSamples( f_range ); 
-*/
-
-          mode = 2;
-          // getspline_c( range_values, spline_range, val, mode);
-
-          System.arraycopy(true_values, 0, true_values_pass, 0, n_samples);
-          System.arraycopy(range_values, 0, range_values_pass, 0, n_samples);
-          tpspline_c(x_values, y_values, s_values, true_values_pass,
-                     range_values_pass, dim1, dim2);
-          System.arraycopy(true_values_pass, 0, true_values, 0, n_samples);
-          System.arraycopy(range_values_pass, 0, range_values, 0, n_samples);
-
-          f_range[0] = range_values;
+          f_range[0] = return_values;
           gcv_field.setSamples( f_range );
           last_noise_fac = noise_fac;
         }
@@ -388,13 +372,11 @@ public class Spline2D {
           val = Math.pow(10.0, val);
           mode = 2;
           // getspline_c( range_values, spline_range, val, mode);
-          System.arraycopy(true_values, 0, true_values_pass, 0, n_samples);
-          System.arraycopy(range_values, 0, range_values_pass, 0, n_samples);
-          tpspline_c(x_values, y_values, s_values, true_values_pass,
-                     range_values_pass, dim1, dim2);
-          System.arraycopy(true_values_pass, 0, true_values, 0, n_samples);
-          System.arraycopy(range_values_pass, 0, range_values, 0, n_samples);
-          f_range[0] = range_values;
+          int[] dimen = {dim1, dim2};
+          System.arraycopy(range_values, 0, return_values, 0, n_samples);
+          tpspline_c(x_values, y_values, s_values, true_values,
+                     return_values, dimen);
+          f_range[0] = return_values;
           gcv_field.setSamples( f_range );
         }
         catch (VisADException exc) { }
@@ -407,5 +389,5 @@ public class Spline2D {
   // public native void getspline_c( double[] y, double[] y_s0, double val, int mode );
   public native void tpspline_c( double[] x_array, double[] y_array,
                                        double[] s_array, double[] ytrue,
-                                       double[] y, int dimen1, int dimen2 );
+                                       double[] y, int[] dimen );
 }

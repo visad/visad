@@ -713,6 +713,13 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
         assembleColor(display_values, valueArrayLength, valueToScalar,
                       display, default_values, range_select);
 
+if (color_values != null) {
+  System.out.println("color_values.length = " + color_values.length +
+                     " color_values[0].length = " + color_values[0].length);
+  System.out.println(color_values[0][0] + " " + color_values[1][0] +
+                     " " + color_values[2][0]);
+}
+
       if (range_select[0] != null && range_select[0].length == 1 &&
           range_select[0][0] != range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
@@ -781,12 +788,13 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
         color_values = c;
 */
       }
+/* WLH 4 Dec 98
       if (color_length == 1) {
         if (color_values[0][0] != color_values[0][0] ||
             color_values[1][0] != color_values[1][0] ||
             color_values[2][0] != color_values[2][0]) {
           // System.out.println("single missing color");
-          // a single missing color value, so render nothing
+          // a single missing color value, so render nothing 
           ensureNotEmpty(group);
           return false;
         }
@@ -794,7 +802,34 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
         constant_color = new ColoringAttributes();
         constant_color.setColor(color_values[0][0], color_values[1][0],
                                 color_values[2][0]);
-        color_values = null;
+        color_values = null; 
+      }
+*/
+      if (color_length == 1) {
+        if (spatialManifoldDimension == 1) {
+          if (color_values[0][0] != color_values[0][0] ||
+              color_values[1][0] != color_values[1][0] ||
+              color_values[2][0] != color_values[2][0]) {
+            // System.out.println("single missing color");
+            // a single missing color value, so render nothing
+            ensureNotEmpty(group);
+            return false;
+          }
+          // constant color, so put it in appearance
+          constant_color = new ColoringAttributes();
+          constant_color.setColor(color_values[0][0], color_values[1][0],
+                                  color_values[2][0]);
+          color_values = null;
+        }
+        else {
+          float[][] c = new float[color_values.length][domain_length];
+          for (int i=0; i<color_values.length; i++) {
+            for (int j=0; j<domain_length; j++) {
+              c[i][j] = color_values[i][0];
+            }
+          }
+          color_values = c;
+        }
       }
 
       if (range_select[0] != null && range_select[0].length == 1 &&
