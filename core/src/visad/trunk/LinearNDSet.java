@@ -40,28 +40,146 @@ public class LinearNDSet extends GriddedSet
        implements LinearSet {
 
   Linear1DSet[] L;
+  private boolean cacheSamples = false;
 
-  /** construct an N-dimensional set as the product of N Linear1DSets,
-      with null errors, CoordinateSystem and Units are defaults from
-      type */
+  /** 
+   * Construct an N-dimensional set as the product of N Linear1DSets,
+   * with null errors, CoordinateSystem and Units are defaults from
+   * type.
+   * @param type     MathType for this LinearNDSet.  Must be consistent
+   *                 with MathType-s of sets.
+   * @param sets     Linear1DSets that make up this LinearNDSet.
+   * @throws VisADException problem creating VisAD objects.
+   */
   public LinearNDSet(MathType type, Linear1DSet[] l) throws VisADException {
     this(type, l, null, null, null);
   }
 
-  /** construct an N-dimensional set as the product of N arithmetic
-      progressions (lengths[i] samples between firsts[i] and lasts[i]),
-      with null errors, CoordinateSystem and Units are defaults from type */
+  /** 
+   * Construct an N-dimensional set as the product of N arithmetic
+   * progressions (lengths[i] samples between firsts[i] and lasts[i]),
+   * with null errors, CoordinateSystem and Units are defaults from type 
+   * @param type       MathType for this LinearNDSet.
+   * @param firsts     array of first values for each of the 
+   *                   arithmetic progressions
+   * @param lasts      array of last values for each of the 
+   *                   arithmetic progressions
+   * @param lengths    array of number of samples for each of the 
+   *                   arithmetic progressions
+   * @throws VisADException problem creating VisAD objects.
+   */
   public LinearNDSet(MathType type, double[] firsts, double[] lasts, int[] lengths)
          throws VisADException {
     this(type, get_linear1d_array(type, firsts, lasts, lengths), null,
          null, null);
   }
 
-  /** construct an N-dimensional set as the product of N Linear1DSets;
-      coordinate_system and units must be compatible with defaults
-      for type, or may be null; errors may be null */
+  /** 
+   * Construct an N-dimensional set as the product of N arithmetic
+   * progressions (lengths[i] samples between firsts[i] and lasts[i]),
+   * coordinate_system and units must be compatible with defaults for
+   * type, or may be null; errors may be null.
+   * @param type       MathType for this LinearNDSet.
+   * @param firsts     array of first values for each of the 
+   *                   arithmetic progressions
+   * @param lasts      array of last values for each of the 
+   *                   arithmetic progressions
+   * @param lengths    array of number of samples for each of the 
+   *                   arithmetic progressions
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with default of
+   *                   <code>type</code> if not null.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @throws VisADException problem creating VisAD objects.
+   */
+  public LinearNDSet(MathType type, double[] firsts, 
+                     double[] lasts, int[] lengths,
+                     CoordinateSystem coord_sys, Unit[] units,
+                     ErrorEstimate[] errors) throws VisADException {
+    this(type, firsts, lasts, lengths, coord_sys, units, errors, false);
+  }
+
+  /** 
+   * Construct an N-dimensional set as the product of N arithmetic
+   * progressions (lengths[i] samples between firsts[i] and lasts[i]),
+   * coordinate_system and units must be compatible with defaults for
+   * type, or may be null; errors may be null.
+   * @param type       MathType for this LinearNDSet.
+   * @param firsts     array of first values for each of the 
+   *                   arithmetic progressions
+   * @param lasts      array of last values for each of the 
+   *                   arithmetic progressions
+   * @param lengths    array of number of samples for each of the 
+   *                   arithmetic progressions
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with default of
+   *                   <code>type</code> if not null.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @param cache      if true, enumerate and cache the samples.  This will
+   *                   result in a larger memory footprint, but will
+   *                   reduce the time to return samples from calls to 
+   *                   {@link #getSamples()}.
+   * @throws VisADException problem creating VisAD objects.
+   */
+  public LinearNDSet(MathType type, double[] firsts, 
+                     double[] lasts, int[] lengths,
+                     CoordinateSystem coord_sys, Unit[] units,
+                     ErrorEstimate[] errors,
+                     boolean cache) throws VisADException {
+    this(type, get_linear1d_array(type, firsts, lasts, lengths), coord_sys,
+         units, errors, cache);
+  }
+
+  /** 
+   * Construct an N-dimensional set as the product of N Linear1DSets;
+   * coordinate_system and units must be compatible with defaults
+   * for type, or may be null; errors may be null 
+   * @param type     MathType for this LinearNDSet.  Must be consistent
+   *                 with MathType-s of sets.
+   * @param sets     Linear1DSets that make up this LinearNDSet.
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with default of
+   *                   <code>type</code> if not null.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @throws VisADException problem creating VisAD objects.
+   */
   public LinearNDSet(MathType type, Linear1DSet[] l, CoordinateSystem coord_sys,
                    Unit[] units, ErrorEstimate[] errors) throws VisADException {
+    this(type, l, coord_sys, units, errors, false);
+  }
+
+  /** 
+   * Construct an N-dimensional set as the product of N Linear1DSets;
+   * coordinate_system and units must be compatible with defaults
+   * for type, or may be null; errors may be null 
+   * @param type     MathType for this LinearNDSet.  Must be consistent
+   *                 with MathType-s of sets.
+   * @param sets     Linear1DSets that make up this LinearNDSet.
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with default of
+   *                   <code>type</code> if not null.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @param cache      if true, enumerate and cache the samples.  This will
+   *                   result in a larger memory footprint, but will
+   *                   reduce the time to return samples from calls to 
+   *                   {@link #getSamples()}.
+   * @throws VisADException problem creating VisAD objects.
+   */
+  public LinearNDSet(MathType type, Linear1DSet[] l, CoordinateSystem coord_sys,
+                   Unit[] units, ErrorEstimate[] errors,
+                   boolean cache) throws VisADException {
     super(type, null, get_lengths(l), coord_sys, units, errors);
     if (DomainDimension != ManifoldDimension) {
       throw new SetException("LinearNDSet: DomainDimension != ManifoldDimension");
@@ -77,17 +195,7 @@ public class LinearNDSet extends GriddedSet
                             Length, SetErrors[j].getUnit());
       }
     }
-  }
-
-  /** construct an N-dimensional set as the product of N arithmetic
-      progressions (lengths[i] samples between firsts[i] and lasts[i]),
-      coordinate_system and units must be compatible with defaults for
-      type, or may be null; errors may be null */
-  public LinearNDSet(MathType type, double[] firsts, double[] lasts, int[] lengths,
-                   CoordinateSystem coord_sys, Unit[] units,
-                   ErrorEstimate[] errors) throws VisADException {
-    this(type, get_linear1d_array(type, firsts, lasts, lengths), coord_sys,
-         units, errors);
+    cacheSamples = cache;
   }
 
   private static int[] get_lengths(Linear1DSet[] l) throws VisADException {
@@ -174,7 +282,7 @@ public class LinearNDSet extends GriddedSet
     int dim = getDimension();
     int length = index.length;
     int[][] indexN = new int[dim][length];
-    float[][] values = new float[dim][length];
+    float[][] values = new float[dim][];
     int[] lengthN = new int[dim];
     for (int j=0; j<dim; j++) lengthN[j] = L[j].getLength();
     for (int i=0; i<length; i++) {
@@ -251,23 +359,56 @@ public class LinearNDSet extends GriddedSet
     return grid;
   }
 
+  /**
+   * Check to see if this is an empty cross-product.
+   * @return always false.
+   */
   public boolean isMissing() {
     return false;
   }
 
+  /**
+   * Get the array of first values of each of the arithmetic progressions
+   * in this cross product.
+   * @return  array of first values.
+   */
   public double[] getFirsts() throws VisADException {
     double[] firsts = new double[L.length];
     for (int j=0; j<firsts.length; j++) firsts[j] = L[j].getFirst();
     return firsts;
   }
 
+  /**
+   * Get the array of last values of each of the arithmetic progressions
+   * in this cross product.
+   * @return  array of last values.
+   */
   public double[] getLasts() throws VisADException {
     double[] lasts = new double[L.length];
     for (int j=0; j<lasts.length; j++) lasts[j] = L[j].getLast();
     return lasts;
   }
 
+  /**
+   * Return the array of values in R^N space corresponding to
+   * this cross product of arithmetic progressions.
+   * @param  copy  if true, return a copy of the samples.
+   * @return  array of values in R^N space.
+   * @throws  VisADException  problem creating samples.
+   */
   public float[][] getSamples(boolean copy) throws VisADException {
+    if (Samples != null) {
+      return copy ? Set.copyFloats(Samples) : Samples;
+    }
+    float[][] samples = makeSamples ();
+    if (cacheSamples) {
+      Samples = samples;
+      return copy ? Set.copyFloats(Samples) : Samples;
+    }
+    return samples;
+  }
+
+  private float[][] makeSamples() throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge
@@ -275,6 +416,14 @@ public class LinearNDSet extends GriddedSet
     return indexToValue(indices);
   }
 
+  /**
+   * Check to see if this LinearNDSet is equal to the Object
+   * in question.
+   * @param  set  Object in question
+   * @return true if <code>set</code> is a LinearNDSet and each
+   *         of the Linear1DSet-s that make up this cross product
+   *         are equal.
+   */
   public boolean equals(Object set) {
     if (!(set instanceof LinearNDSet) || set == null) return false;
     if (this == set) return true;
@@ -288,7 +437,7 @@ public class LinearNDSet extends GriddedSet
 
   /**
    * Returns the hash code for this instance.
-   * @return			The hash code for this instance.
+   * @return                    The hash code for this instance.
    */
   public int hashCode()
   {
@@ -296,7 +445,7 @@ public class LinearNDSet extends GriddedSet
     {
       hashCode = unitAndCSHashCode();
       for (int i = 0; i < DomainDimension; ++i)
-	hashCode ^= L[i].hashCode();
+        hashCode ^= L[i].hashCode();
       hashCodeSet = true;
     }
     return hashCode;
@@ -314,15 +463,27 @@ public class LinearNDSet extends GriddedSet
     return L[i];
   }
 
+  /**
+   * Return a clone of this object with a new MathType.
+   * @param  type  new MathType.
+   * @return  new LinearNDSet with <code>type</code>.
+   * @throws VisADException  if <code>type</code> is not compatible
+   *                         with MathType of component Linear1DSets.
+   */
   public Object cloneButType(MathType type) throws VisADException {
     Linear1DSet[] l = new Linear1DSet[DomainDimension];
     for (int j=0; j<DomainDimension; j++) {
       l[j] = (Linear1DSet) L[j].clone();
     }
     return new LinearNDSet(type, l, DomainCoordinateSystem,
-                         SetUnits, SetErrors);
+                         SetUnits, SetErrors, cacheSamples);
   }
 
+  /**
+   * Extended version of the toString() method.
+   * @param  pre  prefix for string.
+   * @return wordy string describing this LinearNDSet.
+   */
   public String longString(String pre) throws VisADException {
     String s = pre + "LinearNDSet: Dimension = " +
                DomainDimension + " Length = " + Length + "\n";

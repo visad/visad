@@ -38,17 +38,44 @@ public class Linear3DSet extends Gridded3DSet
        implements LinearSet {
 
   Linear1DSet X, Y, Z;
+  private boolean cacheSamples;
 
+  /**
+   * Construct a 3-D cross product of <code>sets</code> with a
+   * generic MathType.
+   * @param sets     Linear1DSets that make up this Linear3DSet.
+   * @throws VisADException illegal sets or other VisAD error.
+   */
   public Linear3DSet(Linear1DSet[] sets) throws VisADException {
     this(RealTupleType.Generic3D, sets, null, null, null);
   }
 
+  /**
+   * Construct a 3-D cross product of <code>sets</code> with the
+   * specified <code>type</code>.
+   * @param type     MathType for this Linear3DSet.  Must be consistent
+   *                 with MathType-s of sets.
+   * @param sets     Linear1DSets that make up this Linear3DSet.
+   * @throws VisADException illegal sets or other VisAD error.
+   */
   public Linear3DSet(MathType type, Linear1DSet[] sets) throws VisADException {
     this(type, sets, null, null, null);
   }
 
-  /** a 3-D cross product of arithmetic progressions with
-      null errors and generic type */
+  /** 
+   * Construct a 3-D cross product of arithmetic progressions with
+   * null errors and generic type.
+   * @param first1     first value in first arithmetic progression
+   * @param last1      last value in first arithmetic progression
+   * @param length1    number of values in first arithmetic progression
+   * @param first2     first value in second arithmetic progression
+   * @param last2      last value in second arithmetic progression
+   * @param length2    number of values in second arithmetic progression
+   * @param first3     first value in third arithmetic progression
+   * @param last3      last value in third arithmetic progression
+   * @param length3    number of values in third arithmetic progression
+   * @throws VisADException problem creating VisAD objects.
+   */
   public Linear3DSet(double first1, double last1, int length1,
                      double first2, double last2, int length2,
                      double first3, double last3, int length3)
@@ -58,6 +85,21 @@ public class Linear3DSet extends Gridded3DSet
            first2, last2, length2, first3, last3, length3), null, null, null);
   }
 
+  /** 
+   * Construct a 3-D cross product of arithmetic progressions with
+   * null errors and the specified <code>type</code>.
+   * @param type       MathType for this Linear3DSet.  
+   * @param first1     first value in first arithmetic progression
+   * @param last1      last value in first arithmetic progression
+   * @param length1    number of values in first arithmetic progression
+   * @param first2     first value in second arithmetic progression
+   * @param last2      last value in second arithmetic progression
+   * @param length2    number of values in second arithmetic progression
+   * @param first3     first value in third arithmetic progression
+   * @param last3      last value in third arithmetic progression
+   * @param length3    number of values in third arithmetic progression
+   * @throws VisADException problem creating VisAD objects.
+   */
   public Linear3DSet(MathType type, double first1, double last1, int length1,
                                     double first2, double last2, int length2,
                                     double first3, double last3, int length3)
@@ -66,9 +108,119 @@ public class Linear3DSet extends Gridded3DSet
          first2, last2, length2, first3, last3, length3), null, null, null);
   }
 
+  /** 
+   * Construct a 3-D cross product of arithmetic progressions with
+   * the specified <code>type</code>, <code>coord_sys</code>, 
+   * <code>units</code> and <code>errors</code>.
+   * @param type       MathType for this Linear3DSet.  
+   * @param first1     first value in first arithmetic progression
+   * @param last1      last value in first arithmetic progression
+   * @param length1    number of values in first arithmetic progression
+   * @param first2     first value in second arithmetic progression
+   * @param last2      last value in second arithmetic progression
+   * @param length2    number of values in second arithmetic progression
+   * @param first3     first value in third arithmetic progression
+   * @param last3      last value in third arithmetic progression
+   * @param length3    number of values in third arithmetic progression
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with values in
+   *                   <code>sets</code>.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @throws VisADException problem creating VisAD objects.
+   */
+  public Linear3DSet(MathType type, double first1, double last1, int length1,
+                     double first2, double last2, int length2, double first3,
+                     double last3, int length3, CoordinateSystem coord_sys,
+                     Unit[] units, ErrorEstimate[] errors) throws VisADException {
+    this(type, first1, last1, length1, first2, last2, length2, 
+         first3, last3, length3, coord_sys, units, errors, false);
+  }
+
+  /** 
+   * Construct a 3-D cross product of arithmetic progressions with
+   * the specified <code>type</code>, <code>coord_sys</code>, 
+   * <code>units</code> and <code>errors</code>.
+   * @param type       MathType for this Linear3DSet.  
+   * @param first1     first value in first arithmetic progression
+   * @param last1      last value in first arithmetic progression
+   * @param length1    number of values in first arithmetic progression
+   * @param first2     first value in second arithmetic progression
+   * @param last2      last value in second arithmetic progression
+   * @param length2    number of values in second arithmetic progression
+   * @param first3     first value in third arithmetic progression
+   * @param last3      last value in third arithmetic progression
+   * @param length3    number of values in third arithmetic progression
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with values in
+   *                   <code>sets</code>.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @param cache      if true, enumerate and cache the samples.  This will
+   *                   result in a larger memory footprint, but will
+   *                   reduce the time to return samples from calls to 
+   *                   {@link #getSamples()}.
+   * @throws VisADException problem creating VisAD objects.
+   */
+  public Linear3DSet(MathType type, double first1, double last1, int length1,
+                     double first2, double last2, int length2, double first3,
+                     double last3, int length3, CoordinateSystem coord_sys,
+                     Unit[] units, ErrorEstimate[] errors,
+                     boolean cache) throws VisADException {
+    this(type, LinearNDSet.get_linear1d_array(type, first1, last1, length1,
+         first2, last2, length2, first3, last3, length3), coord_sys,
+         units, errors, cache);
+  }
+
+  /**
+   * Construct a 3-D cross product of <code>sets</code>, with
+   * the specified <code>type</code>, <code>coord_sys</code>, 
+   * <code>units</code> and <code>errors</code>.
+   * @param type       MathType for this Linear3DSet.  Must be consistent
+   *                   with MathType-s of <code>sets</code>.
+   * @param sets       Linear1DSets that make up this Linear3DSet.
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with values in
+   *                   <code>sets</code>.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @throws VisADException illegal sets or other VisAD error.
+   */
   public Linear3DSet(MathType type, Linear1DSet[] sets,
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors) throws VisADException {
+    this(type, sets, coord_sys, units, errors, false);
+  }
+
+  /**
+   * Construct a 3-D cross product of <code>sets</code>, with
+   * the specified <code>type</code>, <code>coord_sys</code>, 
+   * <code>units</code> and <code>errors</code>.
+   * @param type       MathType for this Linear3DSet.  Must be consistent
+   *                   with MathType-s of <code>sets</code>.
+   * @param sets       Linear1DSets that make up this Linear3DSet.
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with values in
+   *                   <code>sets</code>.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @param cache      if true, enumerate and cache the samples.  This will
+   *                   result in a larger memory footprint, but will
+   *                   reduce the time to return samples from calls to 
+   *                   {@link #getSamples()}.
+   * @throws VisADException illegal sets or other VisAD error.
+   */
+  public Linear3DSet(MathType type, Linear1DSet[] sets,
+                     CoordinateSystem coord_sys, Unit[] units,
+                     ErrorEstimate[] errors, boolean cache) throws VisADException {
     super(type, (float[][]) null, sets[0].getLength(), sets[1].getLength(),
           sets[2].getLength(), coord_sys, units, errors);
     if (DomainDimension != 3) {
@@ -107,27 +259,22 @@ public class Linear3DSet extends Gridded3DSet
         new ErrorEstimate(SetErrors[2].getErrorValue(), (Low[2] + Hi[2]) / 2.0,
                           Length, SetErrors[2].getUnit());
     }
+    cacheSamples = cache;
   }
 
-  /** a 3-D cross product of arithmetic progressions;
-      coordinate_system and units must be compatible with defaults
-      for type, or may be null; errors may be null */
-  public Linear3DSet(MathType type, double first1, double last1, int length1,
-                     double first2, double last2, int length2, double first3,
-                     double last3, int length3, CoordinateSystem coord_sys,
-                     Unit[] units, ErrorEstimate[] errors) throws VisADException {
-    this(type, LinearNDSet.get_linear1d_array(type, first1, last1, length1,
-         first2, last2, length2, first3, last3, length3), coord_sys,
-         units, errors);
-  }
-
-  /** convert an array of 1-D indices to an array of values in R^DomainDimension */
+  /** 
+   * Convert an array of 1-D indices to an array of values in 
+   * R^3 space.
+   * @param index  array of indices of values in R^3 space.
+   * @return  values in R^3 space corresponding to indices.
+   * @throws  VisADException  problem converting indices to values.
+   */
   public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
     int[] indexX = new int[length];
     int[] indexY = new int[length];
     int[] indexZ = new int[length];
-    float[][] values = new float[3][length];
+    float[][] values = new float[3][];
 
     for (int i=0; i<length; i++) {
       if (0 <= index[i] && index[i] < Length) {
@@ -213,28 +360,87 @@ public class Linear3DSet extends Gridded3DSet
     return grid;
   }
 
+  /**
+   * Return the first arithmetic progression for this
+   * cross product (X of XYZ).
+   * @return first arithmetic progression as a Linear1DSet.
+   */
   public Linear1DSet getX() {
     return X;
   }
 
+  /**
+   * Return the second arithmetic progression for this
+   * cross product (Y of XYZ).
+   * @return second arithmetic progression as a Linear1DSet.
+   */
   public Linear1DSet getY() {
     return Y;
   }
 
+  /**
+   * Return the third arithmetic progression for this
+   * cross product (Z of XYZ).
+   * @return third arithmetic progression as a Linear1DSet.
+   */
   public Linear1DSet getZ() {
     return Z;
   }
 
+  /**
+   * Check to see if this is an empty cross-product.
+   * @return always false.
+   */
   public boolean isMissing() {
     return false;
   }
 
+  /**
+   * Return the array of values in R^3 space corresponding to
+   * this cross product of arithmetic progressions.
+   * @param  copy  if true, return a copy of the samples.
+   * @return  array of values in R^3 space.
+   * @throws  VisADException  problem creating samples.
+   */
   public float[][] getSamples(boolean copy) throws VisADException {
+    /*  DRM 2003-01-16
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge
     for (int i=0; i<n; i++) indices[i] = i;
     return indexToValue(indices);
+    */
+    if (Samples != null) {
+      return copy ? Set.copyFloats(Samples) : Samples;
+    }
+    float[][] samples = makeSamples ();
+    if (cacheSamples) {
+      Samples = samples;
+      return copy ? Set.copyFloats(Samples) : Samples;
+    }
+    return samples;
+  }
+
+  /** code to actually enumerate the samples from the Linear1DSets
+      into an array in R^3 space. */
+  private float[][] makeSamples () throws VisADException {
+    float[][] xVals = X.getSamples(false);
+    float[][] yVals = Y.getSamples(false);
+    float[][] zVals = Z.getSamples(false);
+    float[][] samples = new float[3][Length];
+    int idx = 0;
+    for (int k = 0; k < zVals[0].length; k++) {
+      for (int j = 0; j < yVals[0].length; j++) {
+        for (int i = 0; i < xVals[0].length; i++) {
+          // set or load coordinate values
+          samples[0][idx] = (float) xVals[0][i];
+          samples[1][idx] = (float) yVals[0][j];
+          samples[2][idx] = (float) zVals[0][k];
+          idx++;
+        }
+      }
+    }
+    return samples;
   }
 
   /** note makeSpatial never returns a Linear3DSet,
@@ -1601,6 +1807,14 @@ for (int j=0; j<nvertex; j++) {
   }
 
 
+  /**
+   * Check to see if this Linear3DSet is equal to the Object
+   * in question.
+   * @param  set  Object in question
+   * @return true if <code>set</code> is a Linear3DSet and each
+   *         of the Linear1DSet-s that make up this cross product
+   *         are equal.
+   */
   public boolean equals(Object set) {
     if (!(set instanceof Linear3DSet) || set == null) return false;
     if (this == set) return true;
@@ -1612,14 +1826,14 @@ for (int j=0; j<nvertex; j++) {
 
   /**
    * Returns the hash code for this instance.
-   * @return			The hash code for this instance.
+   * @return                    The hash code for this instance.
    */
   public int hashCode()
   {
     if (!hashCodeSet)
     {
       hashCode =
-	unitAndCSHashCode() ^ X.hashCode() ^ Y.hashCode() ^ Z.hashCode();
+        unitAndCSHashCode() ^ X.hashCode() ^ Y.hashCode() ^ Z.hashCode();
       hashCodeSet = true;
     }
     return hashCode;
@@ -1640,14 +1854,26 @@ for (int j=0; j<nvertex; j++) {
     else throw new ArrayIndexOutOfBoundsException("Invalid component index");
   }
 
+  /**
+   * Return a clone of this object with a new MathType.
+   * @param  type  new MathType.
+   * @return  new Linear3DSet with <code>type</code>.
+   * @throws VisADException  if <code>type</code> is not compatible
+   *                         with MathType of component Linear1DSets.
+   */
   public Object cloneButType(MathType type) throws VisADException {
     Linear1DSet[] sets = {(Linear1DSet) X.clone(),
                           (Linear1DSet) Y.clone(),
                           (Linear1DSet) Z.clone()};
     return new Linear3DSet(type, sets, DomainCoordinateSystem,
-                           SetUnits, SetErrors);
+                           SetUnits, SetErrors, cacheSamples);
   }
 
+  /**
+   * Extended version of the toString() method.
+   * @param  pre  prefix for string.
+   * @return wordy string describing this Linear3DSet.
+   */
   public String longString(String pre) throws VisADException {
     String s = pre + "Linear3DSet: Length = " + Length + "\n";
     s = s + pre + "  Dimension 1: Length = " + X.getLength() +

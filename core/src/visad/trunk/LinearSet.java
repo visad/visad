@@ -36,6 +36,14 @@ package visad;
 */
 public interface LinearSet {
 
+  /**
+   * Get the indexed component.
+   *
+   * @param i Index of component
+   * @return The requested component
+   * @exception ArrayIndexOutOfBoundsException If an invalid index is
+   *                                           specified.
+   */
   Linear1DSet getLinear1DComponent(int i);
 
 }

@@ -36,24 +36,83 @@ public class Linear1DSet extends Gridded1DSet
        implements LinearSet {
 
   private double First, Last, Step, Invstep;
+  private boolean cacheSamples;
 
-  /** a 1-D arithmetic progression with null errors and generic type */
+  /** 
+   * Construct a 1-D arithmetic progression with null 
+   * errors and generic type 
+   * @param first      first value in progression
+   * @param last       last value in progression
+   * @param length     number of samples in progression (R)
+   * @throws  VisADException  problem creating set
+   */
   public Linear1DSet(double first, double last, int length)
          throws VisADException {
     this(RealType.Generic, first, last, length, null, null, null);
   }
 
+  /** 
+   * Construct a 1-D arithmetic progression with the specified
+   * <code>type</code> and null errors.
+   * @param type       MathType for this Linear1DSet.  
+   * @param first      first value in progression
+   * @param last       last value in progression
+   * @param length     number of samples in progression (R)
+   * @throws  VisADException  problem creating set
+   */
   public Linear1DSet(MathType type, double first, double last, int length)
          throws VisADException {
     this(type, first, last, length, null, null, null);
   }
 
-  /** an arithmetic progression of length values between first and last;
-      coordinate_system and units must be compatible with defaults
-      for type, or may be null; errors may be null */
+  /** 
+   * Construct a 1-D arithmetic progression with 
+   * the specified <code>type</code>, <code>coord_sys</code>, 
+   * <code>units</code> and <code>errors</code>.
+   * @param type       MathType for this Linear2DSet.  
+   * @param first      first value in progression
+   * @param last       last value in progression
+   * @param length     number of samples in progression (R)
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with default
+   *                   of <code>type</code> if specified.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @throws VisADException problem creating VisAD objects.
+   */
   public Linear1DSet(MathType type, double first, double last, int length,
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors) throws VisADException {
+    this(type, first, last, length, coord_sys, units, errors, false);
+  }
+
+  /** 
+   * Construct a 1-D arithmetic progression with 
+   * the specified <code>type</code>, <code>coord_sys</code>, 
+   * <code>units</code> and <code>errors</code>.
+   * @param type       MathType for this Linear2DSet.  
+   * @param first      first value in progression
+   * @param last       last value in progression
+   * @param length     number of samples in progression (R)
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with default
+   *                   of <code>type</code> if specified.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @param cache      if true, enumerate and cache the samples.  This will
+   *                   result in a larger memory footprint, but will
+   *                   reduce the time to return samples from calls to 
+   *                   {@link #getSamples()}
+   * @throws VisADException problem creating VisAD objects.
+   */
+  public Linear1DSet(MathType type, double first, double last, int length,
+                     CoordinateSystem coord_sys, Unit[] units,
+                     ErrorEstimate[] errors, 
+                     boolean cache) throws VisADException {
     super(type, (float[][]) null, length, coord_sys, units, errors);
     if (DomainDimension != 1) {
       throw new SetException("Linear1DSet: DomainDimension must be 1, not " +
@@ -75,9 +134,16 @@ public class Linear1DSet extends Gridded1DSet
         new ErrorEstimate(SetErrors[0].getErrorValue(), (Low[0] + Hi[0]) / 2.0,
                           Length, SetErrors[0].getUnit());
     }
+    cacheSamples = cache;
   }
 
-  /** convert an array of 1-D indices to an array of values in R^DomainDimension */
+  /** 
+   * Convert an array of 1-D indices to an array of values in 
+   * the set corresponding to those indices.
+   * @param index  array of indices of values in R^1 space.
+   * @return  values in R^1 space corresponding to indices.
+   * @throws  VisADException  problem converting indices to values.
+   */
   public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
     float[][] values = new float[1][length];
@@ -92,6 +158,13 @@ public class Linear1DSet extends Gridded1DSet
     return values;
   }
 
+  /** 
+   * Convert an array of 1-D indices to an array of double values in 
+   * the set corresponding to those indices.
+   * @param index  array of indices of values in R space.
+   * @return  values in R space corresponding to indices.
+   * @throws  VisADException  problem converting indices to values.
+   */
   public double[][] indexToDouble(int[] index) throws VisADException {
     int length = index.length;
     double[][] values = new double[1][length];
@@ -180,42 +253,111 @@ public class Linear1DSet extends Gridded1DSet
     return grid;
   }
 
+  /**
+   * Get the first value in this arithmetic progression.
+   * @return  first value
+   */
   public double getFirst() {
     return First;
   }
 
+  /**
+   * Get the last value in this arithmetic progression.
+   * @return  last value
+   */
   public double getLast() {
     return Last;
   }
 
+  /**
+   * Get the interval between values in this progression
+   * @return  step interval of progression
+   */
   public double getStep() {
     return Step;
   }
 
+  /**
+   * Get the inverse of the step (1.0/getStep()).
+   * @return  inverse of step interval of progression
+   */
   public double getInvstep() {
     return Invstep;
   }
 
+  /**
+   * Check to see if this is an empty progression
+   * @return always false.
+   */
   public boolean isMissing() {
     return false;
   }
 
+  /**
+   * Return the array of values as doubles in R space corresponding to
+   * this arithmetic progression.
+   * @param  copy  if true, return a copy of the samples.
+   * @return  array of values in R space.
+   * @throws  VisADException  problem creating samples.
+   */
   public double[][] getDoubles(boolean copy) throws VisADException {
+    /*  DRM 2003-01-16
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge
     for (int i=0; i<n; i++) indices[i] = i;
     return indexToDouble(indices);
+    */
+    double[][] samples = new double[1][Length];
+    for (int i=0; i<Length; i++) {
+      samples[0][i] = (First + ((double) i) * Step);
+    }
+    return samples;
   }
 
+  /**
+   * Return the array of values in R space corresponding to
+   * this arithmetic progression.
+   * @param  copy  if true, return a copy of the samples.
+   * @return  array of values in R space.
+   * @throws  VisADException  problem creating samples.
+   */
   public float[][] getSamples(boolean copy) throws VisADException {
+    /*  DRM 2003-01-16
     int n = getLength();
     int[] indices = new int[n];
     // do NOT call getWedge
     for (int i=0; i<n; i++) indices[i] = i;
     return indexToValue(indices);
+    */
+    if (Samples != null) {
+      return copy ? Set.copyFloats(Samples) : Samples;
+    }
+    float[][] samples = makeSamples ();
+    if (cacheSamples) {
+      Samples = samples;
+      return copy ? Set.copyFloats(Samples) : Samples;
+    }
+    return samples;
   }
 
+  /** code to actually enumerate the samples for this progression*/
+  private float[][] makeSamples() throws VisADException {
+    float[][] samples = new float[1][Length];
+    for (int i=0; i<Length; i++) {
+      samples[0][i] = (float) (First + ((double) i) * Step);
+    }
+    return samples;
+  }
+
+  /**
+   * Check to see if this Linear1DSet is equal to the Object
+   * in question.
+   * @param  set  Object in question
+   * @return true if <code>set</code> is a Linear1DSet and 
+   *         the type, first, last and lengths of the progressions
+   *         are equal.
+   */
   public boolean equals(Object set) {
     boolean flag;
     if (!(set instanceof Linear1DSet) || set == null) return false;
@@ -234,17 +376,17 @@ public class Linear1DSet extends Gridded1DSet
 
   /**
    * Returns the hash code for this instance.
-   * @return			The hash code for this instance.
+   * @return                    The hash code for this instance.
    */
   public int hashCode()
   {
     if (!hashCodeSet)
     {
       hashCode =
-	unitAndCSHashCode() ^
-	new Double(First).hashCode() ^
-	new Double(Last).hashCode() ^
-	Length;
+        unitAndCSHashCode() ^
+        new Double(First).hashCode() ^
+        new Double(Last).hashCode() ^
+        Length;
       hashCodeSet = true;
     }
     return hashCode;
@@ -264,11 +406,23 @@ public class Linear1DSet extends Gridded1DSet
                                                   i);
   }
 
+  /**
+   * Return a clone of this object with a new MathType.
+   * @param  type  new MathType.
+   * @return  new Linear1DSet with <code>type</code>.
+   * @throws VisADException  if <code>type</code> is not compatible
+   *                         with MathType of this.
+   */
   public Object cloneButType(MathType type) throws VisADException {
     return new Linear1DSet(type, First, Last, Length, DomainCoordinateSystem,
-                           SetUnits, SetErrors);
+                           SetUnits, SetErrors, cacheSamples);
   }
 
+  /**
+   * Extended version of the toString() method.
+   * @param  pre  prefix for string.
+   * @return wordy string describing this Linear1DSet.
+   */
   public String longString(String pre) throws VisADException {
     return pre + "Linear1DSet: Length = " + Length +
            " Range = " + First + " to " + Last + "\n";

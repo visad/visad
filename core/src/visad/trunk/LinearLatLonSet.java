@@ -42,31 +42,95 @@ public class LinearLatLonSet extends Linear2DSet {
 
   private boolean LongitudeWrap;
   private double WrapStep, WrapFactor;
-  private int latI;		// index of latitude component
-  private int lonI;		// index of longitude component
-  private double halfPiLat;	// 0.5*pi in set lat units
-  private double halfPiLon;	// 0.5*pi in set lon units
-  private double twoPiLon;	// 2*pi in set lon units
-  private Linear1DSet lat;	// references X or Y in super
-  private Linear1DSet lon;	// references Y or X in super
+  private int latI;             // index of latitude component
+  private int lonI;             // index of longitude component
+  private double halfPiLat;     // 0.5*pi in set lat units
+  private double halfPiLon;     // 0.5*pi in set lon units
+  private double twoPiLon;      // 2*pi in set lon units
+  private Linear1DSet lat;      // references X or Y in super
+  private Linear1DSet lon;      // references Y or X in super
 
+  /**
+   * Construct a 2-D cross product of arithmetic progressions whose east
+   * and west edges may be joined (for interpolation purposes), with
+   * null errors, CoordinateSystem and Units are defaults from type.
+   * @param type     MathType for this LinearLatLonSet.  Must be consistent
+   *                 with MathType-s of sets.
+   * @param sets     Linear1DSets that make up this LinearLatLonSet.
+   * @throws VisADException illegal sets or other VisAD error.
+   */
   public LinearLatLonSet(MathType type, Linear1DSet[] sets) throws VisADException {
     this(type, sets, null, null, null);
   }
 
-  /** a 2-D cross product of arithmetic progressions that whose east
-      and west edges may be joined (for interpolation purposes), with
-      null errors, CoordinateSystem and Units are defaults from type */
+  /** 
+   * Construct a 2-D cross product of arithmetic progressions whose east
+   * and west edges may be joined (for interpolation purposes), with
+   * null errors, CoordinateSystem and Units are defaults from type 
+   * @param type       MathType for this LinearLatLonSet.  
+   * @param first1     first value in first arithmetic progression
+   * @param last1      last value in first arithmetic progression
+   * @param length1    number of values in first arithmetic progression
+   * @param first2     first value in second arithmetic progression
+   * @param last2      last value in second arithmetic progression
+   * @param length2    number of values in second arithmetic progression
+   * @throws VisADException illegal sets or other VisAD error.
+   */
   public LinearLatLonSet(MathType type, double first1, double last1, int length1,
                                         double first2, double last2, int length2)
          throws VisADException {
     this(type, first1, last1, length1, first2, last2, length2, null, null, null);
   }
 
+  /**
+   * Construct a 2-D cross product of arithmetic progressions whose east
+   * and west edges may be joined (for interpolation purposes), with
+   * specified <code>errors</code>, <code>coord_sys</code> and <code>
+   * units</code>.
+   * @param type       MathType for this LinearLatLonSet.  Must be consistent
+   *                   with MathType-s of sets.
+   * @param sets       Linear1DSets that make up this LinearLatLonSet.
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with values in
+   *                   <code>sets</code>.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @throws VisADException illegal sets or other VisAD error.
+   */
   public LinearLatLonSet(MathType type, Linear1DSet[] sets,
                          CoordinateSystem coord_sys, Unit[] units,
                          ErrorEstimate[] errors) throws VisADException {
-    super(type, sets, coord_sys, units, errors);
+    this(type, sets, coord_sys, units, errors, false);
+  }
+
+  /**
+   * Construct a 2-D cross product of arithmetic progressions whose east
+   * and west edges may be joined (for interpolation purposes), with
+   * specified <code>errors</code>, <code>coord_sys</code> and <code>
+   * units</code>.
+   * @param type       MathType for this LinearLatLonSet.  Must be consistent
+   *                   with MathType-s of sets.
+   * @param sets       Linear1DSets that make up this LinearLatLonSet.
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with values in
+   *                   <code>sets</code>.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @param cache      if true, enumerate and cache the samples.  This will
+   *                   result in a larger memory footprint, but will
+   *                   reduce the time to return samples from calls to 
+   *                   {@link #getSamples()}
+   * @throws VisADException illegal sets or other VisAD error.
+   */
+  public LinearLatLonSet(MathType type, Linear1DSet[] sets,
+                         CoordinateSystem coord_sys, Unit[] units,
+                         ErrorEstimate[] errors, 
+                         boolean cache) throws VisADException {
+    super(type, sets, coord_sys, units, errors, cache);
     setParameters();
     checkWrap();
   }
@@ -75,12 +139,67 @@ public class LinearLatLonSet extends Linear2DSet {
       and west edges may be joined (for interpolation purposes);
       coordinate_system and units must be compatible with defaults
       for type, or may be null; errors may be null */
+  /** 
+   * Construct a 2-D cross product of arithmetic progressions whose east
+   * and west edges may be joined (for interpolation purposes), with
+   * specified <code>errors</code>, <code>coord_sys</code> and <code>
+   * units</code>.
+   * @param type       MathType for this LinearLatLonSet.  
+   * @param first1     first value in first arithmetic progression
+   * @param last1      last value in first arithmetic progression
+   * @param length1    number of values in first arithmetic progression
+   * @param first2     first value in second arithmetic progression
+   * @param last2      last value in second arithmetic progression
+   * @param length2    number of values in second arithmetic progression
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with values in
+   *                   <code>sets</code>.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @throws VisADException illegal sets or other VisAD error.
+   */
   public LinearLatLonSet(MathType type, double first1, double last1, int length1,
                          double first2, double last2, int length2,
                          CoordinateSystem coord_sys, Unit[] units,
                          ErrorEstimate[] errors) throws VisADException {
+    this(type, first1, last1, length1, first2, last2, length2, coord_sys,
+          units, errors, false);
+  }
+
+  /** 
+   * Construct a 2-D cross product of arithmetic progressions whose east
+   * and west edges may be joined (for interpolation purposes), with
+   * specified <code>errors</code>, <code>coord_sys</code> and <code>
+   * units</code>.
+   * @param type       MathType for this LinearLatLonSet.  
+   * @param first1     first value in first arithmetic progression
+   * @param last1      last value in first arithmetic progression
+   * @param length1    number of values in first arithmetic progression
+   * @param first2     first value in second arithmetic progression
+   * @param last2      last value in second arithmetic progression
+   * @param length2    number of values in second arithmetic progression
+   * @param coord_sys  CoordinateSystem for this set.  May be null, but
+   *                   if not, must be consistent with <code>type</code>.
+   * @param units      Unit-s for the values in <code>sets</code>.  May
+   *                   be null, but must be convertible with values in
+   *                   <code>sets</code>.
+   * @param errors     ErrorEstimate-s for values in <code>sets</code>,
+   *                   may be null
+   * @param cache      if true, enumerate and cache the samples.  This will
+   *                   result in a larger memory footprint, but will
+   *                   reduce the time to return samples from calls to 
+   *                   {@link #getSamples()}
+   * @throws VisADException illegal sets or other VisAD error.
+   */
+  public LinearLatLonSet(MathType type, double first1, double last1, int length1,
+                         double first2, double last2, int length2,
+                         CoordinateSystem coord_sys, Unit[] units,
+                         ErrorEstimate[] errors,
+                         boolean cache) throws VisADException {
     super(type, first1, last1, length1, first2, last2, length2, coord_sys,
-          units, errors);
+          units, errors, cache);
     setParameters();
     checkWrap();
   }
