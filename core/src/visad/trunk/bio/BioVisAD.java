@@ -145,7 +145,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     super(true);
     setTitle(TITLE);
     importer = new ImportDialog();
-    exporter = new ExportDialog();
+    exporter = new ExportDialog(this);
 
     // menu bar
     addMenuItem("File", "Open...", "fileOpen", 'o');
@@ -360,13 +360,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Exports the current dataset as specified by the user. */
   public void fileExport() {
-    final BioVisAD bio = this;
-    final JFrame frame = this;
     Util.invoke(false, new Runnable() {
       public void run() {
         // display export dialog
-        if (exporter.showDialog(frame) != ExportDialog.APPROVE_OPTION) return;
-        exporter.export(bio);
+        if (exporter.showDialog() != ExportDialog.APPROVE_OPTION) return;
+        exporter.export();
       }
     });
   }

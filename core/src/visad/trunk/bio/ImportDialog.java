@@ -181,37 +181,36 @@ public class ImportDialog extends JPanel implements ActionListener {
       String prefix = name.substring(0, i + 1);
 
       // determine series count
-      String count;
+      String first = "";
+      String last = "";
       if (series) {
-        File dir = file.getParentFile();
-        int maxFiles = dir.list(filter).length;
-        int min = 1;
-        int guess = maxFiles / 2;
-        int max = maxFiles;
         String end = (ext.equals("") ? "" : ".") + ext;
-        for (int j=0; min!=max && j<maxFiles; j++) {
-          File top = new File(prefix + guess + end);
-          File top1 = new File(prefix + (guess + 1) + end);
-          boolean exists = top.exists();
-          boolean exists1 = top1.exists();
-          if (!exists) {
-            // guess is too high
-            max = guess;
-          }
-          else if (exists1) {
-            // guess is too low
-            min = guess + 1;
-          }
-          else break;
-          guess = (min + max) / 2;
+        int num = -1;
+        try {
+          num = Integer.parseInt(dot >= 0 ?
+            name.substring(i + 1, dot) : name.substring(i + 1));
         }
-        count = "" + guess;
+        catch (NumberFormatException exc) { }
+        int min = num;
+        int max = num;
+
+        // find lower series bound
+        for (min=num; min>0; min--) {
+          if (!new File(prefix + (min - 1) + end).exists()) break;
+        }
+        first = "" + min;
+
+        // find upper series bound
+        for (max=num;; max++) {
+          if (!new File(prefix + (max + 1) + end).exists()) break;
+        }
+        last = "" + max;
       }
-      else count = "";
 
       // fill in text fields appropriately
       chooser.prefix.setText(prefix);
-      chooser.count.setText(count);
+      chooser.start.setText(first);
+      chooser.end.setText(last);
       chooser.type.setSelectedItem(ext);
       if (chooser.type.getSelectedItem() == null) chooser.type.addItem(ext);
     }

@@ -41,6 +41,7 @@ public class DoubleTextCheckBox extends JPanel
   // -- FIELDS --
 
   private Vector listeners;
+  private String cmd;
   private JCheckBox box;
   private JLabel label;
   private JTextField field1, field2;
@@ -54,6 +55,7 @@ public class DoubleTextCheckBox extends JPanel
   {
     super();
     listeners = new Vector();
+    cmd = "";
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     box = new JCheckBox(label1, checked);
     box.addItemListener(this);
@@ -112,6 +114,9 @@ public class DoubleTextCheckBox extends JPanel
   /** Removes an item listener from the check box. */
   public void removeActionListener(ActionListener l) { listeners.remove(l); }
 
+  /** Sets the action command for the action listeners. */
+  public void setActionCommand(String cmd) { this.cmd = cmd; }
+
 
   // -- INTERNAL API METHODS --
 
@@ -129,7 +134,7 @@ public class DoubleTextCheckBox extends JPanel
   // -- HELPER METHODS --
 
   private void notifyListeners() {
-    ActionEvent e = new ActionEvent(this, 0, "");
+    ActionEvent e = new ActionEvent(this, 0, cmd);
     int size = listeners.size();
     for (int i=0; i<size; i++) {
       ActionListener l = (ActionListener) listeners.elementAt(i);
