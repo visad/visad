@@ -118,8 +118,8 @@ DOCFLAGS = -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
 JAVADIR = /usr/java
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
-JC = jikes
-JFLAGS = +P -deprecation
+#JC = jikes
+#JFLAGS = +P -deprecation
 
 # to always use the Nexus RMI compiler, uncomment the next line
 #RMIC=nexusrmic
@@ -492,7 +492,7 @@ clean:
 	done
 
 recompile:
-	@root=`cd .. && pwd`;						\
+	@root="d:\java";						\
 	for i in $(ALL_PACKAGES); do					\
 	  case $$i in							\
 	  visad)							\
