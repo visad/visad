@@ -144,6 +144,11 @@ class MonitorSyncer
     return eventCache.containsKey(ControlMonitorEvent.getControlKey(ctl));
   }
 
+  // WLH 12 April 2001
+  public boolean isEmpty() {
+    return eventCache.isEmpty();
+  }
+
   /**
    * Check to see if the connection is dead.
    *

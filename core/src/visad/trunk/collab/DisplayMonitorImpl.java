@@ -65,7 +65,7 @@ MonitorEvent transmission happens in several steps.
    or more events, the forwarded event will be added to
    a queue which will be delivered as soon as the current
    events have been delivered.
- * To deliver on or more events, the MonitorSyncer sends a
+ * To deliver one or more events, the MonitorSyncer sends a
    "key" for each event to the remote DisplaySync.
  * The remote DisplaySync gathers all the event keys,
    then uses them to request the actual events from the
@@ -595,6 +595,19 @@ public class DisplayMonitorImpl
       }
     }
 
+    return result;
+  }
+
+  // WLH 12 April 2001
+  public boolean isEmpty() {
+    boolean result = true;
+    synchronized (listeners) {
+      ListIterator iter = listeners.listIterator();
+      while (iter.hasNext()) {
+        MonitorSyncer li = (MonitorSyncer )iter.next();
+        if (!li.isEmpty()) result = false;
+      }
+    }
     return result;
   }
 

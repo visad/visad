@@ -137,6 +137,10 @@ public interface DisplayMonitor
   boolean hasEventQueued(int listenerID, Control ctl)
     throws RemoteException;
 
+  // WLH 12 April 2001
+  public boolean isEmpty()
+         throws RemoteException;
+
   /**
    * Forwards the <CODE>MonitorEvent</CODE> to all the listeners
    * associated with this <CODE>DisplayMonitor</CODE>.

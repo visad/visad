@@ -247,6 +247,12 @@ public class RemoteDisplayMonitorImpl
     throw new RemoteException("Unimplemented");
   }
 
+  // WLH 12 April 2001
+  public boolean isEmpty()
+        throws RemoteException {
+    throw new RemoteException("Unimplemented");
+  }
+
   /**
    * Unusable stub.  Unimplemented.
    *
