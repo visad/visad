@@ -645,6 +645,8 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                             (domain_set instanceof Gridded2DSet ||
                              (domain_set instanceof GriddedSet &&
                               domain_set.getDimension() == 2));
+    boolean domainOnlySpatial =
+      Domain.getAllSpatial() && !Domain.getMultipleDisplayScalar();
 
     boolean isTexture3D = getIsTexture3D() &&
                            // default_values[alpha_index] > 0.99 &&
@@ -1120,11 +1122,65 @@ for (int i=0; i < 4; i++) {
               domain_units, null, domain_doubles);
         }
         else {
-          reference_values =
-            CoordinateSystem.transformCoordinates(
-              ref, null, ref.getDefaultUnits(), null,
-              (RealTupleType) Domain.getType(), dataCoordinateSystem,
-              domain_units, null, domain_values);
+          // WLH 23 June 99
+          if (curvedTexture && domainOnlySpatial) {
+            int[] lengths = ((GriddedSet) domain_set).getLengths();
+            data_width = lengths[0];
+            data_height = lengths[1];
+            texture_width = shadow_api.textureWidth(data_width);
+            texture_height = shadow_api.textureHeight(data_height);
+
+            int size = (data_width + data_height) / 2;
+            curved_size = Math.max(2, Math.min(curved_size, size / 32));
+
+            int nwidth = 2 + (data_width - 1) / curved_size;
+            int nheight = 2 + (data_height - 1) / curved_size;
+            int nn = nwidth * nheight;
+            int[] is = new int[nwidth];
+            int[] js = new int[nheight];
+            for (int i=0; i<nwidth; i++) {
+              is[i] = Math.min(i * curved_size, data_width - 1);
+            }
+            for (int j=0; j<nheight; j++) {
+              js[j] = Math.min(j * curved_size, data_height - 1);
+            }
+            float[][] spline_domain = new float[2][nwidth * nheight];
+            int k = 0;
+            for (int j=0; j<nheight; j++) {
+              for (int i=0; i<nwidth; i++) {
+                int ij = is[i] + data_width * js[j];
+                spline_domain[0][k] = domain_values[0][ij];
+                spline_domain[1][k] = domain_values[1][ij];
+                k++;
+              }
+            }
+            float[][] spline_reference =
+              CoordinateSystem.transformCoordinates(
+                ref, null, ref.getDefaultUnits(), null,
+                (RealTupleType) Domain.getType(), dataCoordinateSystem,
+                domain_units, null, spline_domain);
+            reference_values = new float[2][domain_length];
+            for (int i=0; i<domain_length; i++) {
+              reference_values[0][i] = Float.NaN;
+              reference_values[1][i] = Float.NaN;
+            }
+            k = 0;
+            for (int j=0; j<nheight; j++) {
+              for (int i=0; i<nwidth; i++) {
+                int ij = is[i] + data_width * js[j];
+                reference_values[0][ij] = spline_reference[0][k];
+                reference_values[1][ij] = spline_reference[1][k];
+                k++;
+              }
+            }
+          }
+          else {
+            reference_values =
+              CoordinateSystem.transformCoordinates(
+                ref, null, ref.getDefaultUnits(), null,
+                (RealTupleType) Domain.getType(), dataCoordinateSystem,
+                domain_units, null, domain_values);
+          }
         }
 
         if (anyFlow) {

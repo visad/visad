@@ -147,8 +147,14 @@ public class ShadowRealTupleType extends ShadowTupleType {
           permutation = Reference.getPermutation();
         }
       }
+/* WLH 23 June 99
       MultipleDisplayScalar |=
         (MappedDisplayScalar && Reference.getMappedDisplayScalar());
+*/
+      MultipleDisplayScalar |=
+        (MappedDisplayScalar && Reference.getMappedDisplayScalar()) ||
+        Reference.getMultipleDisplayScalar();
+
       MappedDisplayScalar |= Reference.getMappedDisplayScalar();
     }
     else { // ((RealTupleType) Type).DefaultCoordinateSystem == null
