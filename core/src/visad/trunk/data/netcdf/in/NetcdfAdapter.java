@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.22 2000-06-26 20:56:05 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.23 2001-01-08 17:11:36 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -293,6 +293,11 @@ NetcdfAdapter
 	 */
 	private static Strategy	instance;
 
+	static
+	{
+	    instance = new Strategy();
+	}
+
 
 	/**
 	 * Returns an instance of this class.
@@ -301,14 +306,6 @@ NetcdfAdapter
 	 */
 	public static Strategy instance()
 	{
-	    if (instance == null)
-	    {
-		synchronized(Strategy.class)
-		{
-		    if (instance == null)
-			instance = new Strategy();
-		}
-	    }
 	    return instance;
 	}
 
