@@ -3,7 +3,7 @@
 # be used in conjuction with basemaps, for example.  Note also
 # that the "value" is given a unit of degree Celcius.
 (Longitude,Latitude)->(value)
-Longitude(-130:-40),  Latitude(20:60), skip, value[degC]
+Longitude(-130:-40),  Latitude(20:60), skip, value[unit=degC miss=99]
 0   0   17   34   50   64   76   86   93   98   99 
 1   17   34   50   64   76   86   93   98   99   98 
 2   34   50   64   76   86   93   98   99   98   93 
