@@ -2,13 +2,14 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NamedUnit.java,v 1.4 1998-09-23 22:17:24 steve Exp $
+ * $Id: NamedUnit.java,v 1.4.2.1 1999-05-13 19:46:35 steve Exp $
  */
 
 package visad.data.netcdf.units;
 
 
 import visad.Unit;
+import visad.UnitException;
 
 
 /**
@@ -44,6 +45,17 @@ NamedUnit
     NamedUnit(String name, Unit unit)
     {
 	this.name = name;
+	/*
+	 * The following exception can't happen because a unit without an
+	 * identifier must be clonable.
+	 */
+	try
+	{
+	    if (unit.getIdentifier() == null)
+		unit = unit.clone(name);
+	}
+	catch (UnitException e)
+	{}
 	this.unit = unit;
     }
 

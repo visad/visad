@@ -2,14 +2,20 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.5 1998-12-16 16:08:28 steve Exp $
+ * $Id: UnitTable.java,v 1.5.2.1 1999-05-13 19:46:35 steve Exp $
  */
 
 package visad.data.netcdf.units;
 
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import visad.BaseUnit;
 import visad.DerivedUnit;
 import visad.OffsetUnit;
 import visad.SI;
@@ -25,22 +31,33 @@ import visad.UnitException;
  */
 public class
 UnitTable
-    implements	java.io.Serializable
+    implements	UnitsDB, java.io.Serializable
 {
     /**
-     * Unit table.
+     * Name-to-unit map.
+     * @serial
      */
-    protected final Hashtable	names;
-    protected final Hashtable	symbols;
+    private final Hashtable	nameMap;
+
+    /**
+     * Symbol-to-unit map.
+     * @serial
+     */
+    private final Hashtable	symbolMap;
+
+    /**
+     * The unit set.
+     * @serial
+     */
+    private final SortedSet	unitSet;
 
 
     /**
      * Construct.
      *
-     * @param num	The initial size of the table.  The table will grow,
-     *			as necessary, only after this number is exceeded.
-     * @require		<code>num</code> >= 0.
-     * @exception IllegalArgumentException	<code>num</code> < 0.
+     * @param numNames		Anticipated minimum number of names in the
+     *				database.
+     * @throws IllegalArgumentException	<code>numNames < 0</code>.
      */
     public
     UnitTable(int numNames)
@@ -53,10 +70,12 @@ UnitTable
     /**
      * Construct.
      *
-     * @param num	The initial size of the table.  The table will grow,
-     *			as necessary, only after this number is exceeded.
-     * @require		<code>num</code> >= 0.
-     * @exception IllegalArgumentException	<code>num</code> < 0.
+     * @param numNames		Anticipated minimum number of names in the
+     *				database.
+     * @param numSymbols	Anticipated minimum number of symbols in the
+     *				database.
+     * @throws IllegalArgumentException	<code>numNames < 0 || numSymbols < 0
+     *					</code>.
      */
     public
     UnitTable(int numNames, int numSymbols)
@@ -64,9 +83,20 @@ UnitTable
     {
 	if (numNames < 0 || numSymbols < 0)
 	    throw new IllegalArgumentException("Negative hashtable size");
-
-	names = new Hashtable(numNames);
-	symbols = new Hashtable(numSymbols);
+	nameMap = new Hashtable(numNames);
+	symbolMap = new Hashtable(numSymbols);
+	unitSet =
+	    Collections.synchronizedSortedSet(
+		new TreeSet(
+		    new Comparator()
+		    {
+			public int
+			compare(Object o1, Object o2)
+			{
+			    return ((Unit)o1).toString().compareToIgnoreCase(
+				((Unit)o2).toString());
+			}
+		    }));
     }
 
 
@@ -83,7 +113,6 @@ UnitTable
     get(String name)
     {
 	Unit	unit = null;	// default
-
 	if (name.length() == 0)
 	{
 	    // Return a unity, dimensionless unit.
@@ -92,22 +121,12 @@ UnitTable
 	else
 	{
 	    /*
-	     * Try the name table.
+	     * Try the symbol table first because symbols are case-sensitive.
 	     */
-	    NamedUnit	namedUnit = getByName(name);
-
-	    if (namedUnit == null)
-	    {
-		/*
-		 * Try the symbol table.
-		 */
-		namedUnit = getBySymbol(name);
-	    }
-
-	    if (namedUnit != null)
-		unit = namedUnit.getUnit();
+	    unit = getBySymbol(name);
+	    if (unit == null)
+		unit = getByName(name);
 	}
-
 	return unit;
     }
 
@@ -121,30 +140,10 @@ UnitTable
      * @return		The unit of the matching entry or null if not found.
      * @require		<code>name</code> is non-null.
      */
-    protected NamedUnit
+    protected Unit
     getByName(String name)
     {
-	name = name.toLowerCase();
-
-	NamedUnit	namedUnit = (NamedUnit)names.get(name);
-
-	if (namedUnit == null)
-	{
-	    int	lastPos = name.length() - 1;
-
-	    if (lastPos > 0 && name.charAt(lastPos) == 's')
-	    {
-		/*
-		 * Input name is possibly plural. Try singular form.
-		 */
-		namedUnit = (NamedUnit)names.get(name.substring(0, lastPos));
-
-		if (namedUnit != null && !namedUnit.hasPlural())
-		    namedUnit = null;
-	    }
-	}
-
-	return namedUnit;
+	return (Unit)nameMap.get(name.toLowerCase());
     }
 
 
@@ -157,92 +156,150 @@ UnitTable
      * @return		The unit of the matching entry or null if not found.
      * @require		<code>name</code> is non-null.
      */
-    protected NamedUnit
+    protected Unit
     getBySymbol(String symbol)
     {
-	return (NamedUnit)symbols.get(symbol);
+	return (Unit)symbolMap.get(symbol);
     }
 
 
     /**
-     * Add a unit.
+     * Adds a base unit.
      *
-     * @param name	The name of the unit to be added.
-     * @param unit	The unit to be added.
-     * @param hasPlural	Whether or not the name of the unit has a plural form
-     *			that ends with an `s'.
-     * @return		The previously matching unit or null if no such entry.
-     * @require		All argument shall be non-null.  The name shall be non-
-     *			empty.
-     * @exception java.lang.IllegalArgumentException
-     *			An argument was null or the name was empty.
+     * @param baseUnit	The base unit to be added.
+     * @throws IllegalArgumentException
+     *			The base unit argument is invalid.
      */
-    public Unit
-    put(String name, Unit unit, boolean hasPlural)
+    public void
+    put(BaseUnit unit)
 	throws IllegalArgumentException
     {
-	if (name == null || name.length() == 0 || unit == null)
-	    throw new IllegalArgumentException("Invalid name or unit");
-
-	NamedUnit	namedUnit = (NamedUnit)names.put(name.toLowerCase(), 
-	    hasPlural
-		? (NamedUnit)new PluralUnit(name, unit)
-		: (NamedUnit)new SingleUnit(name, unit));
-
-	return namedUnit == null
-		? null
-		: namedUnit.getUnit();
+	String	name = unit.unitName();
+	putName(name, unit);
+	putName(makePlural(name), unit);
+	putSymbol(unit.unitSymbol(), unit);
     }
 
 
     /**
-     * Add a named unit.
-     *
-     * @param namedUnit	The named unit to be added.
-     * @return		The previous entry or null.
-     * @require		<code>namedUnit</code> shall be non-null.
-     * @exception java.lang.IllegalArgumentException
-     *			<code>namedUnit</code> was null.
+     * Returns the plural form of a name.  Regular rules are used to generate
+     * the plural form.
+     * @param name		The name.
+     * @return			The plural form of the name.
      */
-    public NamedUnit
-    put(NamedUnit namedUnit)
-	throws IllegalArgumentException
+    protected String
+    makePlural(String name)
     {
-	if (namedUnit == null)
-	    throw new IllegalArgumentException("Null named unit");
+	char	lastChar = name.charAt(name.length()-1);
+	return name +
+	    (lastChar == 'y'
+		? "ies"
+		: (lastChar == 's' || lastChar == 'x' ||
+		   lastChar == 'z' || name.endsWith("ch"))
+		  ? "es"
+		  : "s");
+    }
 
-	return namedUnit.isCaseSensitive()
-		? (NamedUnit)symbols.put(namedUnit.getName(), namedUnit)
-		: (NamedUnit)names.put(namedUnit.getName().toLowerCase(),
-				       namedUnit);
+
+    /**
+     * Adds a name and a unit to the name table.
+     * @param name		The name to be added.
+     * @param unit		The unit to be added.
+     * @throws IllegalArgumentException	Invalid argument.
+     */
+    public void
+    putName(String name, Unit unit)
+    {
+	if (name == null)
+	    throw new IllegalArgumentException(this.getClass().getName() +
+		".putName(String,Unit): <null> unit name");
+	if (unit == null)
+	    throw new IllegalArgumentException(this.getClass().getName() +
+		".putName(String,Unit): <null> unit");
+	name = name.toLowerCase();
+	String[]	names =
+	    (name.indexOf(' ') == -1 && name.indexOf('_') == -1)
+		? new String[] {name}
+		: new String[] {
+		    name.replace('_', ' '),
+		    name.replace(' ', '_')};
+	for (int i = 0; i < names.length; i++)
+	{
+	    Unit	prevUnit = (Unit)nameMap.get(names[i]);
+	    if (prevUnit != null && !prevUnit.equals(unit))
+		throw new IllegalArgumentException(
+		    "Attempt to replace unit \"" + prevUnit + " with unit \"" +
+		    unit + '"');
+	    nameMap.put(names[i], unit);
+	}
+	unitSet.add(unit);
+    }
+
+
+    /**
+     * Adds a symbol and a unit to the symbol table.
+     * @param symbol		The symbol to be added.
+     * @param unit		The unit to be added.
+     * @throws IllegalArgumentException	Invalid argument.
+     */
+    public void
+    putSymbol(String symbol, Unit unit)
+    {
+	if (symbol == null)
+	    throw new IllegalArgumentException(this.getClass().getName() +
+		".putName(String,Unit): <null> unit symbol");
+	if (unit == null)
+	    throw new IllegalArgumentException(this.getClass().getName() +
+		".putName(String,Unit): <null> unit");
+	Unit	prevUnit = (Unit)symbolMap.get(symbol);
+	if (prevUnit != null && !prevUnit.equals(unit))
+	    throw new IllegalArgumentException(
+		"Attempt to replace unit \"" + prevUnit + " with unit \"" +
+		unit + '"');
+	symbolMap.put(symbol, unit);
+	unitSet.add(unit);
+    }
+
+
+    /**
+     * Get an enumeration of the unit names in the table.  The Object returned
+     * by nextElement() is a String.
+     */
+    public Enumeration
+    getNameEnumeration()
+    {
+	return nameMap.keys();
+    }
+
+
+    /**
+     * Get an enumeration of the unit symbols in the table.  The Object returned
+     * by nextElement() is a String.
+     */
+    public Enumeration
+    getSymbolEnumeration()
+    {
+	return symbolMap.keys();
     }
 
 
     /**
      * Get an enumeration of the units in the table.  The Object returned
-     * by nextElement() is a NamedUnit.
+     * by nextElement() is a Unit.
      */
     public Enumeration
-    enumeration()
+    getUnitEnumeration()
     {
 	return new Enumeration()
 	{
-	    protected Enumeration	nameEnum = names.elements();
-	    protected Enumeration	symbolEnum = symbols.elements();
-
-	    public boolean
-	    hasMoreElements()
+	    private final Iterator	iter = unitSet.iterator();
+	    public boolean hasMoreElements()
 	    {
-		return nameEnum.hasMoreElements() || 
-		       symbolEnum.hasMoreElements();
+		return iter.hasNext();
 	    }
-
-	    public Object
-	    nextElement()
+	    public Object nextElement()
 	    {
-		return nameEnum.hasMoreElements()
-			? nameEnum.nextElement()
-			: symbolEnum.nextElement();
+		return iter.next();
 	    }
 	};
     }
@@ -254,7 +311,7 @@ UnitTable
     public String
     toString()
     {
-	return names.toString() + symbols.toString();
+	return nameMap.toString() + symbolMap.toString();
     }
 
 
@@ -266,24 +323,39 @@ UnitTable
 	throws Exception
     {
 	UnitTable	db = new UnitTable(13);
-
-	db.put(new PluralUnit("ampere",		SI.ampere));
-	db.put(new PluralUnit("candela",	SI.candela));
-	db.put(new PluralUnit("kelvin",		SI.kelvin));
-	db.put(new PluralUnit("kilogram",	SI.kilogram));
-	db.put(new PluralUnit("meter",		SI.meter));
-	db.put(new PluralUnit("mole",		SI.mole));
-	db.put(new PluralUnit("second",		SI.second));
-	db.put(new PluralUnit("radian",		SI.radian));
-	db.put(new PluralUnit("amp",		SI.ampere));	// alias
-	db.put(new SingleUnit("celsius", new OffsetUnit(273.15, SI.kelvin)));
-	db.put(new PluralUnit("newton",  
-	    SI.kilogram.multiply(SI.meter).divide(SI.second.pow(2))));
-	db.put(new PluralUnit("rankine", new ScaledUnit(1/1.8, SI.kelvin)));
-	db.put(new PluralUnit("fahrenheit", new OffsetUnit(459.67,
-	    (ScaledUnit)db.get("rankine"))));
-
+	db.put(SI.ampere);
+	db.put(SI.candela);
+	db.put(SI.kelvin);
+	db.put(SI.kilogram);
+	db.put(SI.meter);
+	db.put(SI.mole);
+	db.put(SI.second);
+	db.put(SI.radian);
+	db.putName("amp", SI.ampere);	// alias
+	db.putName("celsius", new OffsetUnit(273.15, SI.kelvin));
+	db.putName("newton",  
+	    SI.kilogram.multiply(SI.meter).divide(SI.second.pow(2)));
+	db.putName("rankine", new ScaledUnit(1/1.8, SI.kelvin));
+	db.putName("fahrenheit",
+	    new OffsetUnit(459.67, (ScaledUnit)db.get("rankine")));
 	System.out.println("db:");
 	System.out.println(db.toString());
+    }
+
+
+    /**
+     * List the units in the database.
+     */
+    public void
+    list()
+    {
+	Enumeration	enum = getUnitEnumeration();
+	
+	while (enum.hasMoreElements())
+	{
+	    Unit	unit = (Unit)enum.nextElement();
+	    System.out.println(unit.getIdentifier() + " = " + 
+		unit.getDefinition());
+	}
     }
 }
