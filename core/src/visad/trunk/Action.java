@@ -36,20 +36,52 @@ import java.rmi.*;
 */
 public interface Action extends ThingChangedListener {
 
-  /** create link to a ThingReference;
-      invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
+  /**
+   * Creates a link to a ThingReference.  Note that this method causes this
+   * object to register itself with the ThingReference.
+   * @param ref                   The ThingReference to which to create
+   *                              the link.  Subsequent invocation of
+   *                              <code>thingChanged(ThingChangedEvent)</code>
+   *                              causes invocation of
+   *                              <code>ref.acknowledgeThingChanged(this)</code>
+   *                              .  This method invokes <code>
+   *                              ref.addThingChangedListener(this, ...)</code>.
+   * @throws RemoteVisADException if the reference isn't a {@link
+   *                              ThingReferenceImpl}.
+   * @throws ReferenceException   if the reference has already been added.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   * @see #thingChanged(ThingChangedEvent)
+   * @see ThingReference#addThingChangedListener(ThingChangedListener, long)
+   */
   void addReference(ThingReference ref)
          throws VisADException, RemoteException;
 
-  /** delete link to a ThingReference */
+  /**
+   * <p>Removes a link to a ThingReference.</p>
+   *
+   * <p>This implementation invokes {@link #findReference(ThingReference)}.</p>
+   *
+   * @param ref                   The reference to be removed.
+   * @throws RemoteVisADException if the reference isn't a {@link
+   *                              ThingReferenceImpl}.
+   * @throws ReferenceException   if the reference isn't a part of this
+   *                              instance.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   void removeReference(ThingReference ref)
          throws VisADException, RemoteException;
 
-  /** delete all links to ThingReferences */
+  /**
+    * delete all links to ThingReferences
+    */
   void removeAllReferences()
          throws VisADException, RemoteException;
 
-  /** return name of this Action */
+  /**
+    * @return String name of this Action
+    */
   String getName()
          throws VisADException, RemoteException;
 

@@ -37,16 +37,32 @@ public class AnimationSetControl extends Control {
   private Set set;
   private transient AnimationControl parent;
 
+  /**
+   * construct an AnimationSetControl for the given DisplayImpl
+   * and AnimationControl
+   * @param d - DisplayImpl this AnimationSetControl is associated with
+   * @param p - parent AnimationControl of this AnimationSetControl
+   */
   public AnimationSetControl(DisplayImpl d, AnimationControl p) {
     super(d);
     parent = p;
     set = null;
   }
 
+  /** 
+   * @return Set of RealType values for animation steps, in RealType
+   * mapped to Animation
+   */
   public Set getSet() {
     return set;
   }
 
+  /**
+   * @return value of current clipped to limits defined by this
+   * AnimationSetControl
+   * @param current value to clip
+   * @throws VisADException if a VisAD error occurs
+   */
   public int clipCurrent(int current) throws VisADException {
     if (set == null || current >= set.getLength()) {
       current = 0;
@@ -57,6 +73,12 @@ public class AnimationSetControl extends Control {
     return current;
   }
 
+  /**
+   * @return current step converted to value of RealType
+   * mapped to Animation
+   * @param current index of current step
+   * @throws VisADException if a VisAD error occurs
+   */
   public double getValue(int current) throws VisADException {
     int[] indices = new int[1];
     indices[0] = clipCurrent(current);
@@ -69,6 +91,12 @@ public class AnimationSetControl extends Control {
     }
   }
 
+  /**
+   * @return animation step ordinal corresponding to value
+   * of RealType mapped to Animation
+   * @param value - RealType value
+   * @throws VisADException if a VisAD error occurs
+   */
   public int getIndex(double value) throws VisADException {
     if (set == null) {
       return 0;
@@ -80,13 +108,25 @@ public class AnimationSetControl extends Control {
     }
   }
 
+  /** 
+   * set Set of Animation value
+   * @param s - Set of RealType values for Animation steps
+   * @throws VisADException if a VisAD error occurs
+   * @throws RemoteException if an RMI error occurs
+   */
   public void setSet(Set s)
          throws VisADException, RemoteException {
     setSet(s, false);
   }
 
-  /** noChange = true to not trigger changeControl, used by
-      ScalarMap.setRange */
+  /**
+   * set Set of Animation value
+   * @param s - Set of RealType values for Animation steps
+   * @param noChange = true to not trigger changeControl (used by
+      ScalarMap.setRange())
+   * @throws VisADException if a VisAD error occurs
+   * @throws RemoteException if an RMI error occurs
+   */
   public void setSet(Set s, boolean noChange)
          throws VisADException, RemoteException {
     if (set != null && set.equals(s) || 
@@ -101,12 +141,19 @@ public class AnimationSetControl extends Control {
     changeControl(!noChange);
   }
 
-  /** get a string that can be used to reconstruct this control later */
+  /**
+   * @return String representation of this AnimationSetControl
+   */
   public String getSaveString() {
     return null;
   }
 
-  /** reconstruct this control using the specified save string */
+  /**
+   * reconstruct this AnimationSetControl using the specified save string
+   * @param save - String representation for reconstruction
+   * @throws VisADException if a VisAD error occurs
+   * @throws RemoteException if an RMI error occurs
+   */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
@@ -114,7 +161,11 @@ public class AnimationSetControl extends Control {
       "Cannot setSaveString on this type of control");
   }
 
-  /** copy the state of a remote control to this control */
+  /**
+   * copy the state of a remote control to this control
+   * @param rmt remote Control whose state is copied
+   * @throws VisADException if a VisAD error occurs
+   */
   public void syncControl(Control rmt)
     throws VisADException
   {
@@ -151,6 +202,10 @@ public class AnimationSetControl extends Control {
     }
   }
 
+  /**
+   * @return true if o is identical with this
+   * @param o - Object tested for equality with this
+   */
   public boolean equals(Object o)
   {
     if (!super.equals(o)) {
@@ -171,4 +226,5 @@ public class AnimationSetControl extends Control {
 
     return true;
   }
+
 }

@@ -46,16 +46,19 @@ package visad;
  */
 public interface ActivityHandler
 {
+
   /**
    * Method called when the Display becomes busy.
    *
    * @param dpy Busy Display.
    */
   void busyDisplay(LocalDisplay dpy);
+
   /**
    * Method called after the Display has been idle long enough.
    *
    * @param dpy Idle Display.
    */
   void idleDisplay(LocalDisplay dpy);
+
 }

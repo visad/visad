@@ -30,24 +30,44 @@ import java.rmi.*;
 
 /**
    AnimationControl is the VisAD interface for controlling Animation
-   display scalars.<P>
+   display scalars. Current implementations also implement Runnable<P>
 */
 public interface AnimationControl extends AVControl {
 
+  /**
+   * stop activity in this AnimationControl
+   */
   void stop();
 
+  /**
+   * a single invocation implements anmation behavior
+   * until stop() is called
+   */
   void run();
 
-  /** set the current ordinal step number = c */
+  /**
+   * set the current ordinal step number
+   * @param c - value for current ordinal step number
+   * @throws VisADException - a VisAD error occurred
+   * @throws RemoteException - an RMI error occurred
+   */
   void setCurrent(int c)
          throws VisADException, RemoteException;
 
-  /** set the current step by the value of the RealType
-      mapped to Display.Animation */
+  /**
+   * set the current step by the value of the RealType mapped to
+   * Display.Animation
+   * @param value - RealType value that is converted to an
+   *                ordinal step number
+   * @throws VisADException - a VisAD error occurred
+   * @throws RemoteException - an RMI error occurred
+   */
   void setCurrent(double value)
          throws VisADException, RemoteException;
 
-  /** get the current ordinal step number */
+  /**
+   * @return the current ordinal step number
+   */
   int getCurrent();
 
   /**
@@ -69,12 +89,12 @@ public interface AnimationControl extends AVControl {
   boolean getDirection();
 
   /**
-   * Return the dwell time for the current step
+   * @return the dwell time for the current step (in ms)
    */
   long getStep();
 
   /**
-   * return an array of the dwell times for all the steps.
+   * @return an array of the dwell times for all the steps (in ms)
    */
   long[] getSteps();
 
@@ -93,7 +113,8 @@ public interface AnimationControl extends AVControl {
   /**
    * set the dwell time for individual steps.
    *
-   * @param   steps   an array of dwell rates for each step in the animation
+   * @param   steps   an array of dwell times in milliseconds for each
+   *                  step in the animation.
    *                  If the length of the array is less than the number of
    *                  frames in the animation, the subsequent step values will
    *                  be set to the value of the last step.
@@ -115,14 +136,23 @@ public interface AnimationControl extends AVControl {
   void takeStep()
          throws VisADException, RemoteException;
 
+  /**
+   * actually set Switches (Java3D) or VisADSwitches (Java2D) to
+   * child nodes corresponding to current ordinal step number
+   * @throws VisADException - a VisAD error occurred.
+   */
   void init() throws VisADException;
 
-  /** get Set of RealType values for animation steps */
+  /**
+   * @return Set of RealType values for animation steps, in RealType
+   * mapped to Animation
+   */
   Set getSet();
 
   /**
-   * <p>Sets the set of times in this animation control.  If the argument 
-   * set is equal to the current set, then nothing is done.</p>
+   * <p>Sets the set of times in this animation control, in RealType
+   * mapped to Animation. If the argument set is equal to the current
+   * set, then nothing is done.</p>
    *
    * @param s                     The set of times.
    * @throws VisADException       if a VisAD failure occurs.
@@ -132,8 +162,9 @@ public interface AnimationControl extends AVControl {
          throws VisADException, RemoteException;
 
   /**
-   * <p>Sets the set of times in this animation control.  If the argument 
-   * set is equal to the current set, then nothing is done.</p>
+   * <p>Sets the set of times in this animation control, in RealType
+   * mapped to Animation. If the argument set is equal to the current
+   * set, then nothing is done.</p>
    *
    * @param s                     The set of times.
    * @param noChange              changeControl(!noChange) to not trigger 
@@ -144,7 +175,9 @@ public interface AnimationControl extends AVControl {
   void setSet(Set s, boolean noChange)
          throws VisADException, RemoteException;
 
-  /** return true if automatic stepping is on */
+  /**
+   * @return true if automatic stepping is on, false otherwise
+   */
   boolean getOn();
 
   /**

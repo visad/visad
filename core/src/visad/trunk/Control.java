@@ -234,14 +234,25 @@ if (tickFlag) {
     return display;
   }
 
-  /** get a string that can be used to reconstruct this control later */
+  /**
+   * @return String representation of this Control
+   */
   public abstract String getSaveString();
 
-  /** reconstruct this control using the specified save string */
+  /**
+   * reconstruct this Control using the specified save string
+   * @param save - String representation for reconstruction
+   * @throws VisADException if a VisAD error occurs
+   * @throws RemoteException if an RMI error occurs
+   */
   public abstract void setSaveString(String save)
     throws VisADException, RemoteException;
 
-  /** copy the state of a remote control to this control */
+  /**
+   * copy the state of a remote control to this control
+   * @param rmt remote Control whose state is copied
+   * @throws VisADException if a VisAD error occurs
+   */
   public abstract void syncControl(Control rmt)
     throws VisADException;
 

@@ -62,13 +62,14 @@ call stacks:
 */
 
 /**
-   ActionImpl is the abstract superclass for runnable threads that
-   need to be notified when ThingReference objects change.  For example,
-   this may be used for a Data display or for a spreadsheet cell.<P>
-
-   ActionImpl is not Serializable and should not be copied
-   between JVMs.<P>
-*/
+ * ActionImpl is the abstract superclass for runnable threads that
+ * need to be notified when ThingReference objects change.<P>
+ *
+ * ActionImpl is the superclass of DisplayImpl and CellImpl.<P>
+ *
+ * ActionImpl is not Serializable and should not be copied
+ * between JVMs.<P>
+ */
 public abstract class ActionImpl
        implements Action, Runnable {
 
@@ -83,7 +84,11 @@ public abstract class ActionImpl
 
   private Thread currentActionThread = null;
 
-  String Name;
+  /** String name, used only for debugging */
+  private String Name;
+
+  // WLH 17 Dec 2001 - get it off Thread stack
+  private Enumeration run_links = null;
 
   /** Vector of ReferenceActionLink-s;
       ActionImpl is not Serializable, but mark as transient anyway */
@@ -95,6 +100,10 @@ public abstract class ActionImpl
 
   private boolean requeue = false;
 
+  /**
+   * construct an ActionImpl
+   * @param name - String name, used only for debugging
+   */
   public ActionImpl(String name) {
     // if the thread pool hasn't been initialized...
     if (pool == null) {
@@ -121,7 +130,9 @@ public abstract class ActionImpl
     }
   }
 
-  /** destroy all threads after they've drained the job queue */
+  /**
+   * destroy all threads after they've drained the job queue
+   */
   public static void stopThreadPool()
   {
     if (pool != null) {
@@ -130,7 +141,11 @@ public abstract class ActionImpl
     }
   }
 
-  /** increase the maximum number of threads allowed for the thread pool */
+  /**
+   * increase the maximum number of Threads allowed in the ThreadPool
+   * @param num - new maximum number of Threads in ThreadPool
+   * @throws Exception - num is less than previous maximum
+   */
   public static void setThreadPoolMaximum(int num)
         throws Exception
   {
@@ -140,6 +155,9 @@ public abstract class ActionImpl
     pool.setThreadMaximum(num);
   }
 
+  /**
+   * stop activity in this ActionImpl
+   */
   public void stop() {
     if (LinkVector == null) return;
     synchronized (LinkVector) {
@@ -165,12 +183,21 @@ public abstract class ActionImpl
 
   }
 
+  /**
+   * @return long value of long counter used to give a unique id to
+   *         each linked ReferenceActionLink
+   */
   synchronized long getLinkId() {
     long i = link_id;
     link_id++;
     return i;
   }
 
+  /**
+   * call setTicks() for each linked ReferenceActionLink 
+   * which saves boolean flag indicating whether its incTick()
+   * has been called since last setTicks()
+   */
   private void setTicks() {
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
@@ -181,6 +208,10 @@ public abstract class ActionImpl
     }
   }
 
+  /**
+   * @return boolean that is disjunction (or) of flags saved
+   * in setTicks() calls to each linked ReferenceActionLink
+   */
   public boolean checkTicks() {
     boolean doIt = false;
     synchronized (LinkVector) {
@@ -193,6 +224,11 @@ public abstract class ActionImpl
     return doIt;
   }
 
+  /**
+   * call resetTicks() for each linked ReferenceActionLink
+   * which resets boolean flag indicating whether its incTick()
+   * has been called since last setTicks()
+   */
   private void resetTicks() {
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
@@ -203,7 +239,9 @@ public abstract class ActionImpl
     }
   }
 
-  /** enable and notify this Action */
+  /**
+   * enable activity in this ActionImpl and trigger any pending activity
+   */
   public void enableAction() {
 // System.out.println("enableAction " + getName());
     if (!enabled) peek = true;
@@ -211,7 +249,10 @@ public abstract class ActionImpl
     notifyAction();
   }
 
-  /** disable this Action and if necessary wait for end of doAction */
+  /**
+   * disable activity in this ActionImpl and if necessary wait
+   * for end of current doAction() call
+   */
   public void disableAction() {
 // System.out.println("disableAction " + getName());
     enabled = false;
@@ -250,18 +291,27 @@ public abstract class ActionImpl
     return wasEnabled;
   }
 
+  /**
+   * return Thread currently active in run() method of this
+   * ActionImpl, or null is run() is not active
+   */
   public Thread getCurrentActionThread() {
     return currentActionThread;
   }
 
+  /**
+   * remove linked ReferenceActionLink
+   * @param link - linked ReferenceActionLink to remove
+   */
   void handleRunDisconnectException(ReferenceActionLink link)
   {
     LinkVector.removeElement(link);
   }
 
-  Enumeration run_links = null; // WLH 17 Dec 2001 - get it off Thread stack
-
-  /** code executed by a thread to manage updates to the corresponding Thing */
+  /**
+   * invoked by a Thread from the ThreadPool whenever
+   * there is a request for activity in this ActionImpl
+   */
   public void run() {
 
     // Save the current thread so we can prohibit it from calling
@@ -353,8 +403,20 @@ public abstract class ActionImpl
     currentActionThread = null;
   }
 
+  /**
+   * abstract method that implements activity of this ActionImpl
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public abstract void doAction() throws VisADException, RemoteException;
 
+  /**
+   * a linked ThingReference has changed, requesting activity
+   * in this ActionImpl
+   * @param e ThingChangedEvent for change to ThingReference
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public boolean thingChanged(ThingChangedEvent e)
          throws VisADException, RemoteException {
     long id = e.getId();
@@ -370,7 +432,13 @@ public abstract class ActionImpl
     return changed;
   }
 
-  /** add a ReferenceActionLink */
+  /**
+   * add a link to a ReferenceActionLink (and via it
+   * link to a ThingReference)
+   * @param link ReferenceActionLink to link to
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void addLink(ReferenceActionLink link)
        throws VisADException, RemoteException {
     ThingReference ref = link.getThingReference();
@@ -388,6 +456,9 @@ public abstract class ActionImpl
     }
   }
 
+  /**
+   * trigger activity in this ActionImpl
+   */
   void notifyAction() {
 // if (getName() != null) DisplayImpl.printStack("notifyAction " + getName());
     requeue = true;
@@ -397,7 +468,9 @@ public abstract class ActionImpl
     pool.queue(this);
   }
 
-  /** wait for currently-running actions to finish */
+  /**
+   * wait for all queued tasks in ThreadPool to finish
+   */
   public void waitForTasks()
   {
     if (pool != null) {
@@ -438,7 +511,16 @@ public abstract class ActionImpl
     notifyAction();
   }
 
-  /** method for use by RemoteActionImpl that adapts this ActionImpl */
+  /**
+   * does essentially the same thing as addReference(), but is
+   * called by the addReference() method of any RemoteActionImpl
+   * that adapts this ActionImpl
+   * @param ref RemoteThingReference being linked
+   * @param action RemoteActionImpl adapting this ActionImpl
+   * @throws ReferenceException   if the reference has already been added.
+   * @throws VisADException	  if a VisAD failure occurs.
+   * @throws RemoteException	  if a Java RMI failure occurs.
+   */
   void adaptedAddReference(RemoteThingReference ref, Action action)
        throws VisADException, RemoteException {
     if (findReference(ref) != null) {
@@ -483,7 +565,15 @@ public abstract class ActionImpl
     notifyAction();
   }
 
-  /** method for use by RemoteActionImpl that adapts this ActionImpl */
+  /**
+   * does essentially the same thing as removeReference(), but is
+   * called by the removeReference() method of any RemoteActionImpl
+   * that adapts this ActionImpl
+   * @param ref RemoteThingReference being removed
+   * @throws ReferenceException   if the reference is not linked.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   void adaptedRemoveReference(RemoteThingReference ref)
        throws VisADException, RemoteException {
     ReferenceActionLink link = null;
@@ -501,7 +591,9 @@ public abstract class ActionImpl
     notifyAction();
   }
 
-  /** remove all ThingReferences */
+  /** 
+    * delete all links to ThingReferences 
+    */
   public void removeAllReferences()
          throws VisADException, RemoteException {
     Vector cloneLink = null;
@@ -522,8 +614,13 @@ public abstract class ActionImpl
     notifyAction();
   }
 
-  /** used by DisplayImpl.removeReference and
-      DisplayImpl.adaptedDisplayRemoveReference */
+  /**
+   * called by DisplayImpl.removeReference and
+   * DisplayImpl.adaptedDisplayRemoveReference to remove links
+   * @param links array of ReferenceActionLinks to remove
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   void removeLinks(ReferenceActionLink[] links)
     throws VisADException, RemoteException {
     if (LinkVector != null) {
@@ -549,6 +646,12 @@ public abstract class ActionImpl
     notifyAction();
   }
 
+  /**
+   * returns a linked ReferenceActionLink with the given id
+   * @param id value to search for
+   * @return linked ReferenceActionLink with given id
+   * @throws VisADException       if a VisAD failure occurs.
+   */
   ReferenceActionLink findLink(long id) throws VisADException {
     if (LinkVector == null) return null;
     synchronized (LinkVector) {
@@ -587,21 +690,26 @@ public abstract class ActionImpl
     return null;
   }
 
-  /** return vector of ReferenceActionLink-s */
+  /**
+   * @return Vector of linked ReferenceActionLinks
+   */
   public Vector getLinks() {
-/* WLH 14 Feb 98
-    return LinkVector;
-*/
     return (Vector) LinkVector.clone();
   }
 
-  /** return name of this Action */
+  /**
+    * @return String name of this Action
+    */
   public String getName() {
     return Name;
   }
 
-  /** change name of this Action */
+  /**
+   * change the name of this Action
+   * @param name new String name
+   */
   public void setName(String name) {
     Name = name;
   }
+
 }

@@ -34,14 +34,33 @@ import java.rmi.RemoteException;
 */
 public interface AVControl {
 
+  /**
+   * remove all references to SwitchSet objects involving re
+   * @param re - DataRenderer used to select SwitchSet objects
+   */
   void clearSwitches(DataRenderer re);
 
+  /**
+   * in future, notify listener of changes in this AVControl
+   * @param listener - ControlListener to notify
+   */
   void addControlListener(ControlListener listener);
 
+  /**
+   * stop notifying listener of changes in this AVControl
+   * @param listener - ControlListener to stop notifying
+   */
   void removeControlListener(ControlListener listener);
 
+  /**
+   * @return String representation of this AVControl
+   */
   String getSaveString();
 
+  /**
+   * reconstruct this AVControl using the specified save string
+   * @param save - String representation for reconstruction
+   */
   void setSaveString(String save)
     throws VisADException, RemoteException;
 
