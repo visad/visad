@@ -442,10 +442,14 @@ public class Gridded3DDoubleSet extends Gridded3DSet
   {
     int len = weights.length;
     double[][] w = new double[len][];
-    for (int i=0; i<len; i++) w[i] = new double[weights[i].length];
     doubleToInterp(Set.floatToDouble(value), indices, w);
     for (int i=0; i<len; i++) {
-      System.arraycopy(w[i], 0, weights[i], 0, w.length);
+      if (w[i] != null) {
+        weights[i] = new float[w[i].length];
+        for (int j=0; j<w[i].length; j++) {
+          weights[i][j] = (float) w[i][j];
+        }
+      }
     }
   }
 

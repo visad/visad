@@ -260,7 +260,6 @@ public class Gridded1DDoubleSet extends Gridded1DSet
   {
     int len = weights.length;
     double[][] w = new double[len][];
-    // for (int i=0; i<len; i++) w[i] = new double[weights[i].length];
     doubleToInterp(Set.floatToDouble(value), indices, w);
     for (int i=0; i<len; i++) {
       if (w[i] != null) {
