@@ -143,6 +143,9 @@ ij\*.java \
 ij\gui\*.java \
 ij\io\*.java \
 ij\measure\*.java \
+ij\plugin\*.java \
+ij\plugin\filter\*.java \
+ij\plugin\frame\*.java \
 ij\process\*.java \
 ij\text\*.java \
 ij\util\*.java \
@@ -267,6 +270,9 @@ ij\*.java \
 ij\gui\*.java \
 ij\io\*.java \
 ij\measure\*.java \
+ij\plugin\*.java \
+ij\plugin\filter\*.java \
+ij\plugin\frame\*.java \
 ij\process\*.java \
 ij\text\*.java \
 ij\util\*.java \
@@ -461,6 +467,9 @@ ij\*.class \
 ij\gui\*.class \
 ij\io\*.class \
 ij\measure\*.class \
+ij\plugin\*.class \
+ij\plugin\filter\*.class \
+ij\plugin\frame\*.class \
 ij\process\*.class \
 ij\text\*.class \
 ij\util\*.class \
@@ -534,6 +543,9 @@ clear:
 	if exist ..\ij\gui\*.java $(DEL) ..\ij\gui\*.java
 	if exist ..\ij\io\*.java $(DEL) ..\ij\io\*.java
 	if exist ..\ij\measure\*.java $(DEL) ..\ij\measure\*.java
+	if exist ..\ij\plugin\*.java $(DEL) ..\ij\plugin\*.java
+	if exist ..\ij\plugin\filter\*.java $(DEL) ..\ij\plugin\filter\*.java
+	if exist ..\ij\plugin\frame\*.java $(DEL) ..\ij\plugin\frame\*.java
 	if exist ..\ij\process\*.java $(DEL) ..\ij\process\*.java
 	if exist ..\ij\text\*.java $(DEL) ..\ij\text\*.java
 	if exist ..\ij\util\*.java $(DEL) ..\ij\util\*.java
@@ -599,6 +611,9 @@ clean:
 	if exist ..\ij\gui\*.class $(DEL) ..\ij\gui\*.class
 	if exist ..\ij\io\*.class $(DEL) ..\ij\io\*.class
 	if exist ..\ij\measure\*.class $(DEL) ..\ij\measure\*.class
+	if exist ..\ij\plugin\*.class $(DEL) ..\ij\plugin\*.class
+	if exist ..\ij\plugin\filter\*.class $(DEL) ..\ij\plugin\filter\*.class
+	if exist ..\ij\plugin\frame\*.class $(DEL) ..\ij\plugin\frame\*.class
 	if exist ..\ij\process\*.class $(DEL) ..\ij\process\*.class
 	if exist ..\ij\text\*.class $(DEL) ..\ij\text\*.class
 	if exist ..\ij\util\*.class $(DEL) ..\ij\util\*.class
@@ -673,6 +688,9 @@ data\gif\*.class \
 ..\ij\gui\*.class \
 ..\ij\io\*.class \
 ..\ij\measure\*.class \
+..\ij\plugin\*.class \
+..\ij\plugin\filter\*.class \
+..\ij\plugin\frame\*.class \
 ..\ij\process\*.class \
 ..\ij\text\*.class \
 ..\ij\util\*.class \
@@ -741,6 +759,9 @@ compile: clean
 	$(JC) $(JFLAGS) ..\ij\gui\*.java
 	$(JC) $(JFLAGS) ..\ij\io\*.java
 	$(JC) $(JFLAGS) ..\ij\measure\*.java
+	$(JC) $(JFLAGS) ..\ij\plugin\*.java
+	$(JC) $(JFLAGS) ..\ij\plugin\filter\*.java
+	$(JC) $(JFLAGS) ..\ij\plugin\frame\*.java
 	$(JC) $(JFLAGS) ..\ij\process\*.java
 	$(JC) $(JFLAGS) ..\ij\text\*.java
 	$(JC) $(JFLAGS) ..\ij\util\*.java
@@ -818,6 +839,9 @@ ij \
 ij.gui \
 ij.io \
 ij.measure \
+ij.plugin \
+ij.plugin.filter \
+ij.plugin.frame \
 ij.process \
 ij.text \
 ij.util \

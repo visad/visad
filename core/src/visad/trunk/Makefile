@@ -208,6 +208,9 @@ SAVE_FILES = \
 	ij/gui/*.java					\
 	ij/io/*.java					\
 	ij/measure/*.java				\
+	ij/plugin/*.java				\
+	ij/plugin/filter/*.java				\
+	ij/plugin/frame/*.java				\
 	ij/process/*.java				\
 	ij/text/*.java					\
 	ij/util/*.java					\
@@ -270,7 +273,7 @@ DOC_PACKAGES = \
 		visad.java3d \
 		visad.java2d \
 		visad.python \
-                visad.browser \
+		visad.browser \
 		visad.util \
 		ucar.multiarray \
 		ucar.util \
@@ -296,6 +299,9 @@ DOC_PACKAGES = \
 		ij.gui \
 		ij.io \
 		ij.measure \
+		ij.plugin \
+		ij.plugin.filter \
+		ij.plugin.frame \
 		ij.process \
 		ij.text \
 		ij.util \
