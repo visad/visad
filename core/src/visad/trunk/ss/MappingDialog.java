@@ -47,6 +47,8 @@ public class MappingDialog extends JDialog implements ActionListener,
   // These components affect each other
   JComponent MathCanvas;
   JScrollPane MathCanvasView;
+  JComponent CoordCanvas;
+  JScrollPane CoordCanvasView;
   JList MathList;
   JComponent DisplayCanvas;
   DefaultListModel CurMaps;
@@ -58,8 +60,9 @@ public class MappingDialog extends JDialog implements ActionListener,
   int[][] ScY;
   int[] ScW;
   int ScH;
-  int StrWidth = 0;
-  int StrHeight = 0;
+  int[] ScB;
+  int[] StrWidth;
+  int[] StrHeight;
   boolean[][][] Maps;
   String[][][] CurMapLabel;
 
@@ -106,7 +109,7 @@ public class MappingDialog extends JDialog implements ActionListener,
   /** For synchronization */
   private Vector Lock = new Vector();
 
-  /** Pre-loads the display.gif file, so it's ready when
+  /** Pre-load the display.gif file, so it's ready when
       mapping dialog is requested */
   static void initDialog() {
     if (DRT == null) {
@@ -114,6 +117,96 @@ public class MappingDialog extends JDialog implements ActionListener,
       DRT = Toolkit.getDefaultToolkit().getImage(url);
     }
     Inited = true;
+  }
+
+  /** Return a human-readable list of CoordinateSystem dependencies,
+      and fill in Vector v with CoordinateSystem reference RealTypes */
+  static String prettyCoordSys(MathType type, Vector v) {
+    String s = "";
+    if (type instanceof FunctionType) {
+      s = s + pcsFunction((FunctionType) type, v);
+    }
+    else if (type instanceof SetType) {
+      s = s + pcsSet((SetType) type, v);
+    }
+    else if (type instanceof TupleType) {
+      s = s + pcsTuple((TupleType) type, v);
+    }
+
+    return s;
+  }
+
+  /** used by prettyCoordSys */
+  private static String pcsFunction(FunctionType mathType, Vector v) {
+    String s = "";
+    // extract domain
+    RealTupleType domain = mathType.getDomain();
+    s = s + pcsTuple((TupleType) domain, v);
+
+    // extract range
+    MathType range = mathType.getRange();
+    if (range instanceof FunctionType) {
+      s = s + pcsFunction((FunctionType) range, v);
+    }
+    else if (range instanceof SetType) {
+      s = s + pcsSet((SetType) range, v);
+    }
+    else if (range instanceof TupleType) {
+      s = s + pcsTuple((TupleType) range, v);
+    }
+
+    return s;
+  }
+
+  /** used by prettyCoordSys */
+  private static String pcsSet(SetType mathType, Vector v) {
+    // extract domain
+    RealTupleType domain = mathType.getDomain();
+    return pcsTuple((TupleType) domain, v);
+  }
+
+  /** used by prettyCoordSys */
+  private static String pcsTuple(TupleType mathType, Vector v) {
+    String s = "";
+    if (mathType instanceof RealTupleType) {
+      RealTupleType rtt = (RealTupleType) mathType;
+      CoordinateSystem cs = rtt.getCoordinateSystem();
+      if (cs != null) {
+        RealTupleType ref = cs.getReference();
+        if (ref != null) {
+          s = s + rtt.prettyString() + " ==> " + ref.prettyString() + "\n";
+          for (int i=0; i<ref.getDimension(); i++) {
+            try {
+              v.add(ref.getComponent(i));
+            }
+            catch (VisADException exc) { }
+          }
+        }
+      }
+    }
+    else {
+      // extract components
+      for (int j=0; j<mathType.getDimension(); j++) {
+        MathType cType = null;
+        try {
+          cType = mathType.getComponent(j);
+        }
+        catch (VisADException exc) { }
+
+        if (cType != null) {
+          if (cType instanceof FunctionType) {
+            s = s + pcsFunction((FunctionType) cType, v);
+          }
+          else if (cType instanceof SetType) {
+            s = s + pcsSet((SetType) cType, v);
+          }
+          else if (cType instanceof TupleType) {
+            s = s + pcsTuple((TupleType) cType, v);
+          }
+        }
+      }
+    }
+    return s;
   }
 
   /** This MappingDialog's copy of DRT with certain DisplayRealTypes
@@ -145,15 +238,35 @@ public class MappingDialog extends JDialog implements ActionListener,
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
     // parse MathType
-    Vector mv = new Vector();
-    int dupl = BasicSSCell.getRealTypes(data, mv);
     try {
       type = data.getType();
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
-    String mt = (type == null ? "" : type.prettyString());
-    final String[] mtype = extraPretty(mt, mv, dupl);
+    Vector[] v = new Vector[2];
+    v[0] = new Vector();
+    v[1] = new Vector();
+    String[] mt = new String[2];
+    int dupl = BasicSSCell.getRealTypes(data, v[0]);
+    mt[0] = (type == null ? "" : type.prettyString());
+    mt[1] = (type == null ? "" : prettyCoordSys(type, v[1]));
+
+    // extract a bunch of info
+    int[] duplA = new int[2];
+    duplA[0] = dupl;
+    duplA[1] = 0;
+    int[] nl = extraPretty(mt, v, duplA);
+    String[][] mtype = new String[2][];
+    for (int j=0; j<2; j++) {
+      mtype[j] = new String[nl[j]];
+      int curLine = 0;
+      int c = 0;
+      for (int i=0; i<nl[j]; i++) {
+        int sc = c;
+        while (c < mt[j].length() && mt[j].charAt(c) != '\n') c++;
+        mtype[j][curLine++] = mt[j].substring(sc, c++);
+      }
+    }
 
     // alphabetize Scalars list
     sort(0, Scalars.length-1);
@@ -169,24 +282,34 @@ public class MappingDialog extends JDialog implements ActionListener,
     contentPane.add(topPanel);
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
+    // set up "CoordinateSystem references" label
+    JLabel l1 = new JLabel("CoordinateSystem references:");
+    l1.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    contentPane.add(l1);
+
+    // set up second top panel
+    JPanel topPanel2 = new JPanel();
+    topPanel2.setLayout(new BoxLayout(topPanel2, BoxLayout.X_AXIS));
+    contentPane.add(topPanel2);
+    contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
+
     // draw the "pretty-print" MathType to an Image (slow!)
-    final Image img = parent.createImage(StrWidth, StrHeight);
-    Graphics g = img.getGraphics();
+    final Image ppImg = parent.createImage(StrWidth[0], StrHeight[0]);
+    Graphics g = ppImg.getGraphics();
     g.setFont(Mono);
     g.setColor(Color.black);
-
-    for (int i=0; i<mtype.length; i++) {
-      g.drawString(mtype[i], 5, (ScH+2)*(i+1));
+    for (int i=0; i<mtype[0].length; i++) {
+      g.drawString(mtype[0][i], 5, (ScH+2)*(i+1));
     }
     g.dispose();
 
     // set up MathType canvas
     MathCanvas = new JComponent() {
       public void paint(Graphics g) {
-        // draw "pretty-print" MathType using image
-        g.drawImage(img, 0, 0, this);
+        // draw "pretty-print" MathType using its Image
+        g.drawImage(ppImg, 0, 0, this);
         int ind = MathList.getSelectedIndex();
-        if (ind >= 0) {
+        if (ind >= 0 && ScB[ind] == 0) {
           g.setFont(Mono);
           String s = (String) Scalars[ind];
           for (int i=0; i<ScX[ind].length; i++) {
@@ -200,15 +323,15 @@ public class MappingDialog extends JDialog implements ActionListener,
         }
       }
     };
-    MathCanvas.setMinimumSize(new Dimension(StrWidth, StrHeight));
-    MathCanvas.setPreferredSize(new Dimension(StrWidth, StrHeight));
+    MathCanvas.setMinimumSize(new Dimension(StrWidth[0], StrHeight[0]));
+    MathCanvas.setPreferredSize(new Dimension(StrWidth[0], StrHeight[0]));
     MathCanvas.addMouseListener(this);
     MathCanvas.setBackground(Color.white);
 
     // set up MathCanvas's ScrollPane
     MathCanvasView = new JScrollPane(MathCanvas);
     MathCanvasView.setMinimumSize(new Dimension(0, 0));
-    int prefMCHeight = StrHeight + 10;
+    int prefMCHeight = StrHeight[0] + 10;
     if (prefMCHeight < 70) prefMCHeight = 70;
     int maxMCHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
     if (prefMCHeight > maxMCHeight) prefMCHeight = maxMCHeight;
@@ -234,6 +357,71 @@ public class MappingDialog extends JDialog implements ActionListener,
     contentPane.add(lowerPanel);
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
+    // set up far-left-side panel
+    JPanel flsPanel = new JPanel();
+    flsPanel.setLayout(new BoxLayout(flsPanel, BoxLayout.Y_AXIS));
+    lowerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+    lowerPanel.add(flsPanel);
+
+    // draw the "pretty-print" CoordinateSystem references to an Image (slow!)
+    final Image csImg = parent.createImage(StrWidth[1], StrHeight[1]);
+    g = csImg.getGraphics();
+    g.setFont(Mono);
+    g.setColor(Color.black);
+    for (int i=0; i<mtype[1].length; i++) {
+      g.drawString(mtype[1][i], 5, (ScH+2)*(i+1));
+    }
+    g.dispose();
+
+    // set up CoordinateSystem references canvas
+    CoordCanvas = new JComponent() {
+      public void paint(Graphics g) {
+        // draw "pretty-print" CoordinateSystem reference list using its Image
+        g.drawImage(csImg, 0, 0, this);
+        int ind = MathList.getSelectedIndex();
+        if (ind >= 0 && ScB[ind] == 1) {
+          g.setFont(Mono);
+          String s = (String) Scalars[ind];
+          for (int i=0; i<ScX[ind].length; i++) {
+            int x = ScX[ind][i]+5;
+            int y = (ScH+2)*ScY[ind][i];
+            g.setColor(Color.blue);
+            g.fillRect(x, y+6, ScW[ind], ScH);
+            g.setColor(Color.white);
+            g.drawString(s, x, y+ScH+2);
+          }
+        }
+      }
+    };
+    CoordCanvas.setMinimumSize(new Dimension(StrWidth[1], StrHeight[1]));
+    CoordCanvas.setPreferredSize(new Dimension(StrWidth[1], StrHeight[1]));
+    CoordCanvas.addMouseListener(this);
+    CoordCanvas.setBackground(Color.white);
+
+    // set up CoordCanvas's ScrollPane
+    CoordCanvasView = new JScrollPane(CoordCanvas);
+    CoordCanvasView.setMinimumSize(new Dimension(0, 0));
+    CoordCanvasView.setPreferredSize(new Dimension(0, StrHeight[1]));
+    int prefCCHeight = StrHeight[1] + 10;
+    if (prefCCHeight < 70) prefCCHeight = 70;
+    int maxCCHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 2;
+    if (prefCCHeight > maxCCHeight) prefCCHeight = maxCCHeight;
+    CoordCanvasView.setPreferredSize(new Dimension(0, prefCCHeight));
+    CoordCanvasView.setBackground(Color.white);
+    horiz = CoordCanvasView.getHorizontalScrollBar();
+    verti = CoordCanvasView.getVerticalScrollBar();
+    horiz.setBlockIncrement(5*ScH+10);
+    horiz.setUnitIncrement(ScH+2);
+    verti.setBlockIncrement(5*ScH+10);
+    verti.setUnitIncrement(ScH+2);
+    topPanel2.add(Box.createRigidArea(new Dimension(5, 0)));
+    JPanel whitePanel2 = new JPanel();
+    whitePanel2.setBackground(Color.white);
+    whitePanel2.setLayout(new BoxLayout(whitePanel2, BoxLayout.X_AXIS));
+    whitePanel2.add(CoordCanvasView);
+    topPanel2.add(whitePanel2);
+    topPanel2.add(Box.createRigidArea(new Dimension(5, 0)));
+
     // set up left-side panel
     JPanel lsPanel = new JPanel();
     lsPanel.setLayout(new BoxLayout(lsPanel, BoxLayout.Y_AXIS));
@@ -253,7 +441,7 @@ public class MappingDialog extends JDialog implements ActionListener,
       for (int j=0; j<7; j++) {
         for (int k=0; k<5; k++) {
           Maps[i][j][k] = false;
-          CurMapLabel[i][j][k] = Scalars[i]+" -> "+MapNames[j][k];
+          CurMapLabel[i][j][k] = Scalars[i] + " -> " + MapNames[j][k];
           if (startMaps != null) {
             for (int m=0; m<startMaps.length; m++) {
               if (startMaps[m].getScalar() == MathTypes[i] &&
@@ -280,9 +468,9 @@ public class MappingDialog extends JDialog implements ActionListener,
         return new Dimension(Integer.MAX_VALUE, 265);
       }
     };
-    JLabel l1 = new JLabel("Map from:");
-    l1.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-    lsPanel.add(l1);
+    JLabel l2 = new JLabel("Map from:");
+    l2.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    lsPanel.add(l2);
     lsPanel.add(mathListS);
     lowerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 
@@ -291,9 +479,9 @@ public class MappingDialog extends JDialog implements ActionListener,
     centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
     lowerPanel.add(centerPanel);
     lowerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-    JLabel l2 = new JLabel("Map to:");
-    l2.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-    centerPanel.add(l2);
+    JLabel l3 = new JLabel("Map to:");
+    l3.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    centerPanel.add(l3);
 
     // finish loading DRT if necessary
     if (!Inited) initDialog();
@@ -305,7 +493,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
     catch (InterruptedException exc) { }
 
-    // copy DRT into MapTo and black out needed DisplayRealType icons
+    // copy DRT into MapTo and black out icons of illegal DisplayRealTypes
     MapTo = parent.createImage(280, 200);
     Graphics gr = MapTo.getGraphics();
     gr.drawImage(DRT, 0, 0, this);
@@ -438,112 +626,127 @@ public class MappingDialog extends JDialog implements ActionListener,
         return new Dimension(Integer.MAX_VALUE, 265);
       }
     };
-    JLabel l3 = new JLabel("Current maps:");
-    l3.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-    rsPanel.add(l3);
+    JLabel l4 = new JLabel("Current maps:");
+    l4.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    rsPanel.add(l4);
     rsPanel.add(CurrentMapsView);
   }
 
-  /** Parses a prettyString to find out some information,
-      then eliminates duplicate RealTypes */
-  String[] extraPretty(String pStr, Vector v, int duplCount) {
-    // extract number of lines from prettyString
-    int numLines = 1;
-    int len = pStr.length();
-    for (int i=0; i<len; i++) {
-      if (pStr.charAt(i) == '\n') numLines++;
+  /** Parse an array of prettyStrings to find out some information,
+      and eliminate duplicate RealTypes */
+  int[] extraPretty(String[] pStr, Vector[] v, int[] duplCount) {
+    int numStrings = pStr.length;
+    StrWidth = new int[numStrings];
+    StrHeight = new int[numStrings];
+    int[] numScalars = new int[numStrings];
+    int[] numLines = new int[numStrings];
+    int[] mod = new int[numStrings];
+    int num = 0;
+    for (int j=0; j<numStrings; j++) {
+      numScalars[j] = v[j].size();
+      mod[j] = num;
+      num += numScalars[j] - duplCount[j];
     }
-
-    // define new array of strings and other stuff
-    String[] retStr = new String[numLines];
-    int lineNum = 0;
-    int lastLine = 0;
-    String scalar = ((RealType) v.elementAt(0)).getName();
-    int scalarNum = 0;
-    int scalarLen = scalar.length();
-    int numScalars = v.size();
-    int[] x = new int[numScalars];
-    int[] y = new int[numScalars];
-    int[] w = new int[numScalars];
-    FontMetrics fm = getFontMetrics(Mono);
-    ScH = fm.getHeight();
-    StrWidth = 0;
-    StrHeight = (ScH+2)*numLines+10;
-
-    // extract info from prettyString
-    int q = 0;
-    while (q <= len) {
-      // fill in array of strings
-      if (q == len || pStr.charAt(q) == '\n') {
-        String lnStr = pStr.substring(lastLine, q);
-        lnStr = lnStr+" ";  // stupid FontMetrics bug work-around
-        int lnStrLen = fm.stringWidth(lnStr);
-        if (lnStrLen > StrWidth) StrWidth = lnStrLen;
-        retStr[lineNum++] = lnStr;
-        lastLine = q+1;
-      }
-
-      // fill in scalar info
-      if (q+scalarLen <= len &&
-          pStr.substring(q, q+scalarLen).equals(scalar)) {
-        x[scalarNum] = fm.stringWidth(pStr.substring(lastLine, q));
-        y[scalarNum] = lineNum;
-        w[scalarNum] = fm.stringWidth(scalar);
-        scalarNum++;
-        q += scalarLen;
-        if (scalarNum < numScalars) {
-          scalar = ((RealType) v.elementAt(scalarNum)).getName();
-          scalarLen = scalar.length();
-        }
-      }
-      else q++;
-    }
-
-    // remove duplicates from all data structures
-    int num = numScalars - duplCount;
     Scalars = new String[num];
     MathTypes = new RealType[num];
+    FontMetrics fm = getFontMetrics(Mono);
     ScX = new int[num][];
     ScY = new int[num][];
     ScW = new int[num];
-    int[] trans = new int[numScalars];
-    int[] numXY = new int[numScalars];
-    for (int i=0; i<numScalars; i++) numXY[i] = 0;
-    int modifier = 0;
-    for (int i=0; i<numScalars; i++) {
-      // NOTE: This implementation assumes that Vector.indexOf(Object)
-      //       returns the FIRST index in the Vector occupied by that
-      //       Object (i.e., the closest to 0).
-      int ind = v.indexOf(v.elementAt(i));
-      if (i == ind) trans[i] = ind - modifier;
-      else {
-        trans[i] = trans[ind];
-        modifier++;
-      }
-      numXY[ind]++;
-    }
-    int[] j = new int[num];
-    for (int i=0; i<numScalars; i++) {
-      int t = trans[i];
-      if (numXY[i] > 0) {
-        MathTypes[t] = (RealType) v.elementAt(i);
-        Scalars[t] = MathTypes[t].getName();
-        int u = numXY[i];
-        ScX[t] = new int[u];
-        ScY[t] = new int[u];
-        ScX[t][u-1] = x[i];
-        ScY[t][u-1] = y[i];
-        ScW[t] = w[i];
-        j[t] = u - 2;
-      }
-      else {
-        int jt = j[t]--;
-        ScX[t][jt] = x[i];
-        ScY[t][jt] = y[i];
-      }
-    }
+    ScH = fm.getHeight();
+    ScB = new int[num];
 
-    return retStr;
+    for (int j=0; j<numStrings; j++) {
+      // extract number of lines from prettyString
+      numLines[j] = 1;
+      int len = pStr[j].length();
+      for (int i=0; i<len; i++) {
+        if (pStr[j].charAt(i) == '\n') numLines[j]++;
+      }
+      StrWidth[j] = 1;
+      StrHeight[j] = (ScH+2)*numLines[j]+10;
+
+      if (numScalars[j] > 0) {
+        // define new array of strings and other stuff
+        int lineNum = 0;
+        int lastLine = 0;
+        int[] x = new int[numScalars[j]];
+        int[] y = new int[numScalars[j]];
+        int[] w = new int[numScalars[j]];
+        int scalarNum = 0;
+        String scalar = ((RealType) v[j].elementAt(0)).getName();
+        int scalarLen = scalar.length();
+
+        // extract info from prettyString
+        int q = 0;
+        while (q <= len) {
+          // fill in array of strings
+          if (q == len || pStr[j].charAt(q) == '\n') {
+            String lnStr = pStr[j].substring(lastLine, q);
+            lnStr = lnStr + " "; // FontMetrics bug work-around
+            int lnStrLen = fm.stringWidth(lnStr);
+            if (lnStrLen > StrWidth[j]) StrWidth[j] = lnStrLen;
+            lineNum++;
+            lastLine = q+1;
+          }
+
+          // fill in scalar info
+          if (q + scalarLen <= len &&
+              pStr[j].substring(q, q + scalarLen).equals(scalar)) {
+            x[scalarNum] = fm.stringWidth(pStr[j].substring(lastLine, q));
+            y[scalarNum] = lineNum;
+            w[scalarNum] = fm.stringWidth(scalar);
+            scalarNum++;
+            q += scalarLen;
+            if (scalarNum < numScalars[j]) {
+              scalar = ((RealType) v[j].elementAt(scalarNum)).getName();
+              scalarLen = scalar.length();
+            }
+          }
+          else q++;
+        }
+
+        // remove duplicates from all data structures
+        int[] trans = new int[numScalars[j]];
+        int[] numXY = new int[numScalars[j]];
+        for (int i=0; i<numScalars[j]; i++) numXY[i] = 0;
+        int modifier = 0;
+        for (int i=0; i<numScalars[j]; i++) {
+          // NOTE: This implementation assumes that Vector.indexOf(Object)
+          //       returns the FIRST index in the Vector occupied by that
+          //       Object (i.e., the closest to 0).
+          int ind = v[j].indexOf(v[j].elementAt(i));
+          if (i == ind) trans[i] = ind - modifier;
+          else {
+            trans[i] = trans[ind];
+            modifier++;
+          }
+          numXY[ind]++;
+        }
+        int[] z = new int[num];
+        for (int i=0; i<numScalars[j]; i++) {
+          int t = trans[i] + mod[j];
+          if (numXY[i] > 0) {
+            MathTypes[t] = (RealType) v[j].elementAt(i);
+            Scalars[t] = MathTypes[t].getName();
+            int u = numXY[i];
+            ScX[t] = new int[u];
+            ScY[t] = new int[u];
+            ScX[t][u-1] = x[i];
+            ScY[t][u-1] = y[i];
+            ScW[t] = w[i];
+            ScB[t] = j;
+            z[t] = u - 2;
+          }
+          else {
+            int zt = z[t]--;
+            ScX[t][zt] = x[i];
+            ScY[t][zt] = y[i];
+          }
+        }
+      }
+    }
+    return numLines;
   }
 
   /** Recursive quick-sort routine used to alphabetize scalars */
@@ -578,7 +781,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     if (lo < hi0) sort(lo, hi0);
   }
 
-  /** Clears a box in the "map to" canvas */
+  /** Clear a box in the "map to" canvas */
   void eraseBox(int col, int row, Graphics g) {
     int x = 40*col;
     int y = 40*row;
@@ -589,7 +792,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Highlights a box in the "map to" canvas */
+  /** Highlight a box in the "map to" canvas */
   void highlightBox(int col, int row, Graphics g) {
     int x = 40*col;
     int y = 40*row;
@@ -618,7 +821,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Handles button press events */
+  /** Handle button press events */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
 
@@ -700,7 +903,8 @@ public class MappingDialog extends JDialog implements ActionListener,
             for (int k=0; k<5; k++) {
               if (Maps[i][j][k]) {
                 try {
-                  ScalarMaps[s++] = new ScalarMap(MathTypes[i], MapTypes[j][k]);
+                  ScalarMaps[s++] = new ScalarMap(MathTypes[i],
+                                                  MapTypes[j][k]);
                 }
                 catch (VisADException exc) {
                   okay = false;
@@ -723,7 +927,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Handles list selection change events */
+  /** Handle list selection change events */
   public void valueChanged(ListSelectionEvent e) {
     synchronized (Lock) {
       if (!e.getValueIsAdjusting()) {
@@ -735,28 +939,32 @@ public class MappingDialog extends JDialog implements ActionListener,
           Rectangle r = new Rectangle(ScX[i][0]+5, (ScH+2)*ScY[i][0]+6,
                                       ScW[i], ScH);
           MathList.ensureIndexIsVisible(i);
-          MathCanvas.scrollRectToVisible(r);
+          if (ScB[i] == 0) MathCanvas.scrollRectToVisible(r);
+          else if (ScB[i] == 1) CoordCanvas.scrollRectToVisible(r);
           MathCanvas.repaint();
+          CoordCanvas.repaint();
         }
       }
     }
   }
 
-  /** Handles mouse clicks in the MathType window and "map to" canvas */
+  /** Handle mouse clicks in the MathType window and "map to" canvas */
   public void mousePressed(MouseEvent e) {
     synchronized (Lock) {
       Component c = e.getComponent();
       if (c == MathCanvas) {
         Point p = e.getPoint();
         for (int i=0; i<Scalars.length; i++) {
-          for (int j=0; j<ScX[i].length; j++) {
-            Rectangle r = new Rectangle(ScX[i][j]+5, (ScH+2)*ScY[i][j]+6,
-                                        ScW[i], ScH);
-            if (r.contains(p)) {
-              MathList.setSelectedIndex(i);
-              MathList.ensureIndexIsVisible(i);
-              MathCanvas.scrollRectToVisible(r);
-              return;
+          if (ScB[i] == 0) {
+            for (int j=0; j<ScX[i].length; j++) {
+              Rectangle r = new Rectangle(ScX[i][j]+5, (ScH+2)*ScY[i][j]+6,
+                                          ScW[i], ScH);
+              if (r.contains(p)) {
+                MathList.setSelectedIndex(i);
+                MathList.ensureIndexIsVisible(i);
+                MathCanvas.scrollRectToVisible(r);
+                return;
+              }
             }
           }
         }
@@ -790,6 +998,23 @@ public class MappingDialog extends JDialog implements ActionListener,
           // redraw CurrentMaps
           CurrentMaps.repaint();
           CurrentMapsView.validate();
+        }
+      }
+      else if (c == CoordCanvas) {
+        Point p = e.getPoint();
+        for (int i=0; i<Scalars.length; i++) {
+          if (ScB[i] == 1) {
+            for (int j=0; j<ScX[i].length; j++) {
+              Rectangle r = new Rectangle(ScX[i][j]+5, (ScH+2)*ScY[i][j]+6,
+                                          ScW[i], ScH);
+              if (r.contains(p)) {
+                MathList.setSelectedIndex(i);
+                MathList.ensureIndexIsVisible(i);
+                CoordCanvas.scrollRectToVisible(r);
+                return;
+              }
+            }
+          }
         }
       }
     }

@@ -321,10 +321,9 @@ public class BasicSSCell extends JPanel {
     return null;
   }
 
-  /** obtain a Vector of RealTypes consisting of all ScalarTypes
-      present in data's MathType; return the number of duplicate
-      ScalarTypes found */
-  public static int getRealTypes(Data data, Vector v) {
+  /** obtain a Vector consisting of all ScalarTypes present in data's MathType;
+      return the number of duplicate ScalarTypes found */
+  static int getRealTypes(Data data, Vector v) {
     MathType dataType;
     try {
       dataType = data.getType();

@@ -326,7 +326,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     options.add(optFormula);
     options.addSeparator();
 
-    MenuItem optWidget = new MenuItem("Show VisAD controls");
+    MenuItem optWidget = new MenuItem("Show controls");
     optWidget.addActionListener(this);
     optWidget.setActionCommand("optWidget");
     options.add(optWidget);
@@ -416,7 +416,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (winShowControls != null) {
       JButton b = new JButton(winShowControls);
       b.setAlignmentY(JButton.CENTER_ALIGNMENT);
-      b.setToolTipText("Show VisAD controls");
+      b.setToolTipText("Show controls");
       b.addActionListener(this);
       b.setActionCommand("optWidget");
       toolbar.add(b);
