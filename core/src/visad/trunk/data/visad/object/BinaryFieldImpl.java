@@ -19,41 +19,65 @@ import visad.data.visad.BinaryWriter;
 public class BinaryFieldImpl
   implements BinaryObject
 {
-  public static final int computeBytes(Set set, DataImpl[] samples)
+  public static final int computeBytes(FieldImpl fld)
   {
-    final int setLen = BinaryGeneric.computeBytes(set);
-    final int samplesLen = (samples == null ? 0 :
-                            BinaryDataArray.computeBytes(samples));
-
-    if (setLen < 0 || samplesLen < 0) {
-      return -1;
+    try {
+      return processDependentData(null, null, fld.getDomainSet(), fld);
+    } catch (IOException ioe) {
+      return 0;
     }
-
-    return 1 + 4 + 1 + 4 +
-      (setLen == 0 ? 0 : 1 + setLen) +
-      (samplesLen == 0 ? 0 : 1 + samplesLen) +
-      1;
   }
 
-  public static DataImpl[] getSamples(FieldImpl fld)
+  public static final int processDependentData(BinaryWriter writer,
+                                               FunctionType ft, Set set,
+                                               FieldImpl fld)
+    throws IOException
   {
-    final int len = fld.getLength();
-    if (fld.isMissing() || len <= 0) {
-      return null;
+    byte dataType;
+    if (!fld.getClass().equals(FieldImpl.class)) {
+      return 0;
     }
 
-    DataImpl[] samples = new DataImpl[len];
-    for (int i = 0; i < len; i++) {
-      try {
-        samples[i] = (DataImpl )fld.getSample(i);
-      } catch (java.rmi.RemoteException re) {
-        return null;
-      } catch (VisADException ve) {
-        return null;
+    int numBytes = 1 + 4;
+
+if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrFldI: type (" + ft + ")");
+    if (writer != null) {
+      BinaryFunctionType.write(writer, ft, SAVE_DATA);
+    }
+    numBytes += 1 + 4;
+
+    if (set != null) {
+      if (writer != null) {
+        BinaryGeneric.write(writer, set, SAVE_DEPEND);
+      }
+
+      int setBytes = BinaryGeneric.computeBytes(set);
+      if (setBytes > 0) {
+        numBytes += 1 + setBytes;
       }
     }
 
-    return samples;
+    final int numSamples = (fld.isMissing() ? 0 : fld.getLength());
+    if (numSamples > 0) {
+      numBytes += 1;
+
+      for (int i = 0; i < numSamples; i++) {
+        DataImpl sample;
+        try {
+          sample = (DataImpl )fld.getSample(i);
+        } catch (VisADException ve) {
+          continue;
+        }
+
+        if (writer != null) {
+          BinaryGeneric.write(writer, sample, SAVE_DEPEND);
+        }
+
+        numBytes += BinaryGeneric.computeBytes(sample);
+      }
+    }
+
+    return numBytes;
   }
 
   public static final FieldImpl read(BinaryReader reader)
@@ -86,7 +110,19 @@ if(DEBUG_RD_DATA)System.err.println("rdFldI: FLD_SET (" + FLD_SET + ")");
         break;
       case FLD_DATA_SAMPLES:
 if(DEBUG_RD_DATA)System.err.println("rdFldI: FLD_DATA_SAMPLES (" + FLD_DATA_SAMPLES + ")");
-        samples = BinaryDataArray.read(reader);
+        final int numSamples = file.readInt();
+if(DEBUG_RD_DATA)System.err.println("rdFldI: numSamples (" + numSamples + ")");
+        if (numSamples <= 0) {
+          throw new IOException("Corrupted file (bad Field sample length " +
+                                numSamples + ")");
+        }
+
+        samples = new Data[numSamples];
+        for (int i = 0; i < numSamples; i++) {
+if(DEBUG_WR_DATA)System.err.println("rdFldI#"+i);
+          samples[i] = BinaryGeneric.read(reader);
+if(DEBUG_WR_DATA_DETAIL)System.err.println("rdFldI: #" + i + " (" + samples[i] + ")");
+        }
         break;
       case FLD_END:
 if(DEBUG_RD_DATA)System.err.println("rdFldI: FLD_END (" + FLD_END + ")");
@@ -114,34 +150,19 @@ if(DEBUG_RD_DATA)System.err.println("rdFldI: FLD_END (" + FLD_END + ")");
     return fld;
   }
 
-  public static final void writeDependentData(BinaryWriter writer,
-                                              FunctionType ft, Set set,
-                                              FieldImpl fld)
+  public static final int writeDependentData(BinaryWriter writer,
+                                             FunctionType ft, Set set,
+                                             FieldImpl fld)
     throws IOException
   {
-    byte dataType;
-    if (!fld.getClass().equals(FieldImpl.class)) {
-      return;
-    }
-
-if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrFldI: type (" + ft + ")");
-    BinaryFunctionType.write(writer, ft, SAVE_DATA);
-
-    if (set != null) {
-      BinaryGeneric.write(writer, set, SAVE_DEPEND);
-    }
-
-    DataImpl[] samples = getSamples(fld);
-    for (int i = 0; i < samples.length; i++) {
-      BinaryGeneric.write(writer, samples[i], SAVE_DEPEND);
-    }
+    return processDependentData(writer, ft, set, fld);
   }
 
   public static final void write(BinaryWriter writer, FunctionType ft,
                                  Set set, FieldImpl fld, Object token)
     throws IOException
   {
-    writeDependentData(writer, ft, set, fld);
+    final int objLen = writeDependentData(writer, ft, set, fld);
 
     // if we only want to write dependent data, we're done
     if (token == SAVE_DEPEND) {
@@ -157,14 +178,10 @@ if(DEBUG_WR_DATA)System.err.println("wrFldI: punt "+fld.getClass().getName());
       return;
     }
 
-    DataImpl[] samples = getSamples(fld);
-
     int typeIndex = writer.getTypeCache().getIndex(ft);
     if (typeIndex < 0) {
       throw new IOException("FunctionType " + ft + " not cached");
     }
-
-    final int objLen = computeBytes(set, samples);
 
     DataOutputStream file = writer.getOutputStream();
 
@@ -184,10 +201,23 @@ if(DEBUG_WR_DATA)System.err.println("wrFldI: FLD_SET (" + FLD_SET + ")");
       BinaryGeneric.write(writer, set, token);
     }
 
-    if (samples != null) {
+    final int numSamples = (fld.isMissing() ? 0 : fld.getLength());
+    if (numSamples > 0) {
 if(DEBUG_WR_DATA)System.err.println("wrFldI: FLD_DATA_SAMPLES (" + FLD_DATA_SAMPLES + ")");
       file.writeByte(FLD_DATA_SAMPLES);
-      BinaryDataArray.write(writer, samples, token);
+if(DEBUG_WR_DATA)System.err.println("wrFldI: numSamples (" + numSamples + ")");
+      file.writeInt(numSamples);
+      for (int i = 0; i < numSamples; i++) {
+        DataImpl sample;
+        try {
+          sample = (DataImpl )fld.getSample(i);
+        } catch (VisADException ve) {
+          writer.getOutputStream().writeByte(DATA_NONE);
+          continue;
+        }
+
+        BinaryGeneric.write(writer, sample, token);
+      }
     }
 
 if(DEBUG_WR_DATA)System.err.println("wrFldI: FLD_END (" + FLD_END + ")");

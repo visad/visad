@@ -52,8 +52,7 @@ public class BinarySizer
                                Object token)
     throws VisADException
   {
-    DataImpl[] samples = BinaryFieldImpl.getSamples(fld);
-    int bytes = BinaryFieldImpl.computeBytes(set, samples);
+    int bytes = BinaryFieldImpl.computeBytes(fld);
     size.add(bytes);
   }
 
@@ -63,18 +62,8 @@ public class BinarySizer
                                Unit[] units, FlatField fld, Object token)
     throws VisADException
   {
-    double[][] dblSamples = BinaryFlatField.getDoubleSamples(fld);
-
-    Data[] samples;
-    if (dblSamples != null) {
-      samples = null;
-    } else {
-      samples = BinaryFlatField.getSamples(fld);
-    }
-
     int bytes = BinaryFlatField.computeBytes(domainSet, cs, rangeCS,
-                                             rangeSets, units,
-                                             dblSamples, samples);
+                                             rangeSets, units, fld);
     size.add(bytes);
   }
 

@@ -87,15 +87,16 @@ public class BinaryFlatField
   public static final int computeBytes(Set domainSet, CoordinateSystem cs,
                                        CoordinateSystem[] rangeCS,
                                        Set[] rangeSets, Unit[] units,
-                                       double[][] dblSamples, Data[] samples)
+                                       FlatField fld)
   {
-    int samplesLen;
-    if (dblSamples != null) {
-      samplesLen = 1 + BinaryDoubleMatrix.computeBytes(dblSamples);
-    } else if (samples != null) {
-      samplesLen = 1 + BinaryDataArray.computeBytes(samples);
-    } else {
-      samplesLen = 0;
+    int samplesLen = 0;
+    if (!fld.isMissing()) {
+      final int dim = fld.getRangeDimension();
+      final int len = fld.getLength();
+
+      if (dim > 0 && len > 0) {
+        samplesLen = 4 + dim * (4 + len * 8);
+      }
     }
 
     int rangeSetsLen;
@@ -189,42 +190,6 @@ if(DEBUG_RD_MATH)System.err.println("rdFlFld: type index (" + typeIndex + ")");
     rdr.seek(filePtr + (long )objLen);
 
     return new FileFlatField(new BinaryAccessor(rdr, filePtr, ft), strategy);
-  }
-
-  public static double[][] getDoubleSamples(FlatField fld)
-  {
-    if (fld.isMissing() || fld.getLength() <= 0) {
-      return null;
-    }
-
-    double[][] dblSamples;
-    try {
-      dblSamples = fld.unpackValues();
-    } catch (NullPointerException npe) {
-      dblSamples = null;
-    } catch (VisADException ve) {
-      dblSamples = null;
-    }
-
-    return dblSamples;
-  }
-
-  public static Data[] getSamples(FlatField fld)
-  {
-    final int len = fld.getLength();
-
-    Data[] samples = new Data[len];
-    for (int i = 0; i < len; i++) {
-      try {
-        samples[i] = (Data )fld.getSample(i);
-      } catch (java.rmi.RemoteException re) {
-        return null;
-      } catch (VisADException ve) {
-        return null;
-      }
-    }
-
-    return samples;
   }
 
   private static final Set[] readSetArray(BinaryReader reader)
@@ -475,17 +440,8 @@ if(DEBUG_WR_DATA)System.err.println("wrFlFld: punt "+fld.getClass().getName());
       unitsIndex = BinaryUnit.lookupList(writer.getUnitCache(), units);
     }
 
-    double[][] dblSamples = getDoubleSamples(fld);
-
-    Data[] samples;
-    if (dblSamples != null) {
-      samples = null;
-    } else {
-      samples = getSamples(fld);
-    }
-
     final int objLen = computeBytes(domainSet, cs, rangeCS, rangeSets, units,
-                                    dblSamples, samples);
+                                    fld);
 
     DataOutputStream file = writer.getOutputStream();
 
@@ -505,14 +461,23 @@ if(DEBUG_WR_DATA)System.err.println("wrFlFld: FLD_SET (" + FLD_SET + ")");
       BinaryGeneric.write(writer, domainSet, token);
     }
 
-    if (dblSamples != null) {
+    if (fld.isMissing() || fld.getLength() <= 0) {
+      double[][] dblSamples;
+      try {
+        dblSamples = fld.unpackValues();
+      } catch (NullPointerException npe) {
+        npe.printStackTrace();
+        dblSamples = null;
+      } catch (VisADException ve) {
+        ve.printStackTrace();
+        dblSamples = null;
+      }
+
+      if (dblSamples != null) {
 if(DEBUG_WR_DATA)System.err.println("wrFlFld: FLD_DOUBLE_SAMPLES (" + FLD_DOUBLE_SAMPLES + ")");
-      file.writeByte(FLD_DOUBLE_SAMPLES);
-      BinaryDoubleMatrix.write(writer, dblSamples, token);
-    } else if (samples != null) {
-if(DEBUG_WR_DATA)System.err.println("wrFlFld: FLD_DATA_SAMPLES (" + FLD_DATA_SAMPLES + ")");
-      file.writeByte(FLD_DATA_SAMPLES);
-      BinaryDataArray.write(writer, samples, token);
+        file.writeByte(FLD_DOUBLE_SAMPLES);
+        BinaryDoubleMatrix.write(writer, dblSamples, token);
+      }
     }
 
     if (csIndex >= 0) {
