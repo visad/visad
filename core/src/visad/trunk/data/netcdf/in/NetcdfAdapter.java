@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.25 2001-10-29 21:58:30 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.26 2001-12-19 16:47:05 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -29,7 +29,8 @@ public class
 NetcdfAdapter
 {
     /**
-     * The name of the import-strategy property.
+     * The name of the import-strategy Java property.  (NOTE: A Java property is
+     * not a JavaBean property.)
      */
     public static final String  IMPORT_STRATEGY_PROPERTY =
         "visad.data.netcdf.in.Strategy";
@@ -78,28 +79,24 @@ NetcdfAdapter
 
 
     /**
-     * Gets the VisAD data object corresponding to the netCDF dataset.  This
+     * <p>Gets the VisAD data object corresponding to the netCDF dataset.  This
      * is a potentially expensive method in either time or space.</p>
      *
-     * <p>This method uses the Java property
-     * <code>IMPORT_STRATEGY_PROPERTY</code> to determine the strategy with
-     * which to import the netCDF dataset.  If the property is not set, then
-     * the default is to use the <code>getData()</code> method of inner class
-     * <code>Strategy</code>; otherwise, the value of the property is used as a
-     * class name to instantiate the strategy for importing the netCDF dataset.
-     * The strategy used to import a netCDF dataset can be set programatically 
-     * by code like the following:
-     * <blockquote><code><pre>
-     * String strategyClassName = ...;
-     * System.setProperty(
-     *     NetcdfAdapter.IMPORT_STRATEGY_PROPERTY, strategyClassName);
-     * visad.Data data = new NetcdfAdapter(...).getData();</pre>
-     * </code></blockquote>
-     * The import strategy can also be set by the user of an application by
-     * means of the property "visad.data.netcdf.in.Strategy":
+     * <p>This method uses the Java (not JavaBean) property
+     * <em>visad.data.netcdf.in.Strategy</em> to determine the strategy with
+     * which to import the netCDF dataset.  If the property is not set,
+     * then the default is to use {@link Strategy#DEFAULT}; otherwise, the
+     * value of the property is used as a class name to instantiate the
+     * strategy for importing the netCDF dataset.  The import strategy
+     * can be set by the user of an application by means of the property
+     * <em>visad.data.netcdf.in.Strategy</em>:
      * <blockquote><code><pre>
      * java -Dvisad.data.netcdf.in.Strategy=<em>SomeClassName</em> ...</pre>
-     * </code></blockquote>
+     * </code></blockquote></p>
+     *
+     * <p>This implementation invokes method {@link
+     * #getData(NetcdfAdapter.Strategy)} with the {@link NetcdfAdapter.Strategy}
+     * determined from the above procedure.</p>
      *
      * @return                  The top-level, VisAD data object in the netCDF
      *                          dataset.
@@ -110,10 +107,11 @@ NetcdfAdapter
      *                          implicit in the View that was passed to the
      *                          constructor.
      * @throws OutOfMemoryError Couldn't read netCDF dataset into memory.
+     * @throws RemoteException  if a Java RMI failure occurs.
+     * @see #getData(Strategy)
      * @see #IMPORT_STRATEGY_PROPERTY
-     * @see Strategy#getData
      */
-    public DataImpl
+    public synchronized DataImpl
     getData()
         throws IOException, VisADException, RemoteException, BadFormException,
             OutOfMemoryError
@@ -128,7 +126,7 @@ NetcdfAdapter
             {
                 strategy =
                     strategyName == null
-                        ? Strategy.instance()
+                        ? Strategy.DEFAULT
                         : (Strategy)Class.forName(strategyName).getMethod(
                             "instance", new Class[0])
                             .invoke(null, new Object[0]);
@@ -161,6 +159,36 @@ NetcdfAdapter
                     + e.getMessage());
             }
 
+            data = getData(strategy);
+        }
+
+        return data;
+    }
+
+    /**
+     * Gets the VisAD data object corresponding to the netCDF dataset using a
+     * given strategy.  This is a potentially expensive method in either time or
+     * space.</p>
+     *
+     * @param strategy          The strategy to use for importing the data.
+     * @return                  The top-level, VisAD data object in the netCDF
+     *                          dataset.
+     * @throws VisADException   Problem in core VisAD.  Probably some VisAD
+     *                          object couldn't be created.
+     * @throws IOException      Data access I/O failure.
+     * @throws BadFormException netCDF dataset doesn't conform to conventions
+     *                          implicit in the View that was passed to the
+     *                          constructor.
+     * @throws OutOfMemoryError Couldn't read netCDF dataset into memory.
+     * @throws RemoteException  if a Java RMI failure occurs.
+     */
+    public synchronized DataImpl
+    getData(Strategy strategy)
+        throws IOException, VisADException, RemoteException, BadFormException,
+            OutOfMemoryError
+    {
+        if (data == null)
+        {
             data = strategy.getData(this);
         }
 
@@ -181,6 +209,7 @@ NetcdfAdapter
      * @throws BadFormException netCDF dataset doesn't conform to conventions
      *                          implicit in constructing View.
      * @throws OutOfMemoryError Couldn't read netCDF dataset into memory.
+     * @throws RemoteException  if a Java RMI failure occurs.
      * @see Strategy#getData
      */
     public DataImpl
@@ -210,6 +239,7 @@ NetcdfAdapter
      * @throws BadFormException netCDF dataset doesn't conform to conventions
      *                          implicit in constructing View.
      * @throws OutOfMemoryError Couldn't read netCDF dataset into memory.
+     * @throws RemoteException  if a Java RMI failure occurs.
      * @see Strategy
      */
     protected static DataImpl
@@ -284,138 +314,6 @@ NetcdfAdapter
             // System.out.println("Domain set:\n" +
                 // ((FieldImpl)data).getDomainSet());
             // System.out.println("Data:\n" + data);
-        }
-    }
-
-
-    /**
-     * Provides support for implementing strategies for importing netCDF
-     * datasets.  The <code>getData()</code> method of this class implements the
-     * default strategy.  This method may be overriden in order to implement a
-     * different strategy.
-     *
-     * @author Steven R. Emmerson
-     */
-    public static class Strategy
-    {
-        /**
-         * The singleton instance of this class.
-         */
-        private static Strategy instance;
-
-        static
-        {
-            instance = new Strategy();
-        }
-
-
-        /**
-         * Returns an instance of this class.
-         *
-         * @return                      An instance of this class.
-         */
-        public static Strategy instance()
-        {
-            return instance;
-        }
-
-
-        /**
-         * Constructs from nothing.  Protected to ensure use of 
-         * <code>instance()</code> method.
-         *
-         * @see #instance()
-         */
-        protected Strategy()
-        {}
-
-
-        /**
-         * Returns a VisAD data object corresponding to the netCDF dataset.
-         * </p>
-         *
-         * <p>The following tactics are used, in order, to import the netCDF
-         * dataset.  The first one to succeed determines the details of the
-         * returned VisAD data object.
-         * <ol>
-         * <li>Attempt to import the entire dataset into memory;</li>
-         * <li>Attempt to import the entire dataset into memory -- using
-         * visad.data.FileFlatField-s wherever possible;</li>
-         * <li>Attempt to import the entire dataset into memory -- using
-         * visad.data.FileFlatField-s wherever possible and maximizing
-         * their number.</li>
-         * </ol>
-         * The first two tactics above will yield VisAD data objects with
-         * identical MathType-s.  The last tactic above can yield a VisAD
-         * data object with a different MathType than the first two because
-         * multiple FlatField-s with the same domain will <em>not</em> be
-         * consolidated.</p>
-         *
-         * <p>This method may be overridden in order to implement a different
-         * netCDF-dataset import-strategy.</p>
-         *
-         * @param adapter               The netCDF-to-VisAD adapter.
-         * @return                      The top-level, VisAD data object in the
-         *                              netCDF dataset.
-         * @throws VisADException       Problem in core VisAD.  Probably some
-         *                              VisAD object couldn't be created.
-         * @throws IOException          Data access I/O failure.
-         * @throws BadFormException     netCDF dataset doesn't conform to
-         *                              conventions implicit in constructing
-         *                              View.
-         * @throws OutOfMemoryError     Couldn't import netCDF dataset into 
-         *                              memory.
-         */
-        public DataImpl
-        getData(NetcdfAdapter adapter)
-            throws IOException, VisADException, RemoteException,
-                BadFormException, OutOfMemoryError
-        {
-            DataImpl    data;
-            View        view = adapter.getView();
-            Merger      merger = Merger.instance();             // default
-            DataFactory dataFactory = DataFactory.instance();   // default
-
-            try
-            {
-                data = adapter.importData(view, merger, dataFactory);
-            }
-            catch (OutOfMemoryError e1)
-            {
-                System.err.println(
-                    getClass().getName() + ".getData(): " +
-                    "Couldn't import netCDF dataset into memory; " + 
-                    "Attempting to use FileFlatField-s");
-                try
-                {
-                    dataFactory = FileDataFactory.instance();
-
-                    data = adapter.importData(view, merger, dataFactory);
-                }
-                catch (OutOfMemoryError e2)
-                {
-                    System.err.println(
-                        getClass().getName() + ".getData(): " +
-                        "Couldn't import netCDF dataset into memory; " + 
-                        "Attempting to maximize the number of FileFlatField-s");
-                    try
-                    {
-                        merger = FlatMerger.instance();
-
-                        data = adapter.importData(view, merger, dataFactory);
-                    }
-                    catch (OutOfMemoryError e3)
-                    {
-                        System.err.println(
-                            getClass().getName() + ".getData(): " +
-                            "Couldn't import netCDF dataset into memory; " +
-                            "Giving up");
-                        throw e3;
-                    }
-                }
-            }
-
-            return data;
         }
     }
 }
