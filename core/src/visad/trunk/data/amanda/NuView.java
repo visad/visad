@@ -22,6 +22,7 @@ MA 02111-1307, USA
 
 package visad.data.amanda;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -36,7 +37,6 @@ import java.net.URL;
 import java.rmi.RemoteException;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -101,17 +101,12 @@ public class NuView
     displayPanel.setPreferredSize(dim);
     displayPanel.setMinimumSize(dim);
 
-    // if widgetPanel alignment doesn't match
-    //  displayPanel alignment, BoxLayout will freak out
-    widgetPanel.setAlignmentX(displayPanel.getAlignmentX());
-    widgetPanel.setAlignmentY(displayPanel.getAlignmentY());
-
     // create JPanel in frame
     JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.setLayout(new BorderLayout());
 
-    panel.add(widgetPanel);
-    panel.add(displayPanel);
+    panel.add(widgetPanel, BorderLayout.WEST);
+    panel.add(displayPanel, BorderLayout.EAST);
 
     JFrame frame = new JFrame("VisAD AMANDA Viewer");
 
@@ -129,8 +124,9 @@ public class NuView
     frame.setVisible(true);
   }
 
-  private static final void buildMainDisplay(DisplayImpl dpy, AmandaFile file,
-                                             HistogramWidget histoWidget)
+  private static final JPanel buildMainDisplay(DisplayImpl dpy,
+                                               AmandaFile file,
+                                               HistogramWidget histoWidget)
     throws RemoteException, VisADException
   {
     final double halfRange = getMaxRange(file) / 2.0;
@@ -208,13 +204,14 @@ public class NuView
     }
 
     JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setLayout(new BorderLayout());
     panel.setMaximumSize(new Dimension(400, 600));
 
 //    panel.add(colorWidget);
-    panel.add(eventWidget);
+
+    panel.add(eventWidget, BorderLayout.NORTH);
     if (animWidget != null) {
-      panel.add(animWidget);
+      panel.add(animWidget, BorderLayout.SOUTH);
     }
 
 //    panel.add(Box.createHorizontalGlue());

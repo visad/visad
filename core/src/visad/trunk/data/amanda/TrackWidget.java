@@ -1,11 +1,12 @@
 package visad.data.amanda;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.FlowLayout;
 
 import java.rmi.RemoteException;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -53,34 +54,31 @@ public class TrackWidget
     this.event = null;
     this.trackIndex = (int )ctl.getValue();
 
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    setLayout(new BorderLayout());
 
     Component labels = buildLabels();
 
     VisADSlider trackSlider = new VisADSlider(map, true, true);
     trackSlider.hardcodeSizePercent(110); // leave room for label changes
 
-    add(trackSlider);
-    add(labels);
+    add(trackSlider, BorderLayout.NORTH);
+    add(labels, BorderLayout.SOUTH);
   }
 
   public Component buildLabels()
   {
     JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.setLayout(new FlowLayout());
 
     lengthLabel = new JLabel("WWWWWW.WWWW");
     lengthLabel.setMinimumSize(lengthLabel.getSize());
     energyLabel = new JLabel("WWWWWW.WWWW");
     energyLabel.setMinimumSize(energyLabel.getSize());
 
-    panel.add(Box.createHorizontalGlue());
-    panel.add(new JLabel("Length: "));
+    panel.add(new JLabel("  Length: "));
     panel.add(lengthLabel);
-    panel.add(Box.createHorizontalGlue());
     panel.add(new JLabel("  Energy: "));
     panel.add(energyLabel);
-    panel.add(Box.createHorizontalGlue());
 
     return panel;
   }

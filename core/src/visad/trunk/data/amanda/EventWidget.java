@@ -1,5 +1,7 @@
 package visad.data.amanda;
 
+import java.awt.BorderLayout;
+
 import java.rmi.RemoteException;
 
 import java.text.DateFormat;
@@ -9,7 +11,6 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -83,12 +84,16 @@ public class EventWidget
 
     slider = buildSlider(fileData.getNumberOfEvents());
 
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    JPanel sliderPanel = new JPanel();
+    sliderPanel.setLayout(new BorderLayout());
+    sliderPanel.add(slider, BorderLayout.NORTH);
+    sliderPanel.add(dateLabel, BorderLayout.SOUTH);
 
-    add(histoWidget);
-    add(slider);
-    add(dateLabel);
-    if (trackWidget != null) add(trackWidget);
+    setLayout(new BorderLayout());
+
+    add(histoWidget, BorderLayout.NORTH);
+    add(sliderPanel, BorderLayout.CENTER);
+    if (trackWidget != null) add(trackWidget, BorderLayout.SOUTH);
   }
 
   private VisADSlider buildSlider(int initialLength)
