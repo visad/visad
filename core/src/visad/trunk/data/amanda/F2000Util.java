@@ -22,6 +22,11 @@ MA 02111-1307, USA
 
 package visad.data.amanda;
 
+import java.rmi.RemoteException;
+
+import visad.BaseColorControl;
+import visad.ScalarMap;
+import visad.VisADException;
 import visad.VisADQuadArray;
 
 public abstract class F2000Util
@@ -92,5 +97,31 @@ public abstract class F2000Util
     }
 
     return new VisADQuadArray[] {cube};
+  }
+
+  public static final void invertColorTable(ScalarMap colorMap)
+  {
+    BaseColorControl colorCtl = (BaseColorControl )colorMap.getControl();
+    final int numColors = colorCtl.getNumberOfColors();
+    final int numComps = colorCtl.getNumberOfComponents();
+    float[][] table = colorCtl.getTable();
+    for (int i = 0; i < numColors / 2; i++) {
+      final int swaploc = numColors - (i + 1);
+      for (int j = 0; j < numComps; j++) {
+        float tmp = table[j][i];
+        table[j][i] = table[j][swaploc];
+        table[j][swaploc] = tmp;
+      }
+    }
+
+    try {
+      colorCtl.setTable(table);
+    } catch (RemoteException re) {
+      System.err.println("Couldn't invert color table");
+      re.printStackTrace();
+    } catch (VisADException ve) {
+      System.err.println("Couldn't invert color table");
+      ve.printStackTrace();
+    }
   }
 }

@@ -166,7 +166,7 @@ public class NuView
     dpy.addMap(colorMap);
 
     // invert color table so colors match what is expected
-    invertColorTable(colorMap);
+    F2000Util.invertColorTable(colorMap);
 
     ScalarMap animMap = new ScalarMap(RealType.Time, Display.Animation);
     dpy.addMap(animMap);
@@ -248,32 +248,6 @@ public class NuView
   public void initializeArgs()
   {
     fileName = null;
-  }
-
-  private static final void invertColorTable(ScalarMap colorMap)
-  {
-    BaseColorControl colorCtl = (BaseColorControl )colorMap.getControl();
-    final int numColors = colorCtl.getNumberOfColors();
-    final int numComps = colorCtl.getNumberOfComponents();
-    float[][] table = colorCtl.getTable();
-    for (int i = 0; i < numColors / 2; i++) {
-      final int swaploc = numColors - (i + 1);
-      for (int j = 0; j < numComps; j++) {
-        float tmp = table[j][i];
-        table[j][i] = table[j][swaploc];
-        table[j][swaploc] = tmp;
-      }
-    }
-
-    try {
-      colorCtl.setTable(table);
-    } catch (RemoteException re) {
-      System.err.println("Couldn't invert color table");
-      re.printStackTrace();
-    } catch (VisADException ve) {
-      System.err.println("Couldn't invert color table");
-      ve.printStackTrace();
-    }
   }
 
   public String keywordUsage()
