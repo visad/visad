@@ -517,6 +517,36 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
+  // public void addStation(FlatField station)
+  public void addStation(float lat, float lon)
+         throws VisADException, RemoteException {
+    synchronized (data_lock) {
+      // construct FlatField station for global times at (lat, lon)
+      // all winds = 0 (?)
+      FlatField station = null;
+      addStation(station);
+    }
+  }
+
+  public void addStation(FlatField station)
+         throws VisADException, RemoteException {
+    synchronized (data_lock) {
+      // check MathType of station
+      // add station to wind_field
+      // increment nindex
+      // fix everything else
+
+/*
+     wf should have MathType:
+       (station_index -> (Time -> tuple))
+     where tuple is flat
+       [e.g., (Latitude, Longitude, (flow_dir, flow_speed))]
+     if (nindex != wind_field.getLength()) {
+*/
+
+    }
+  }
+
   /** set values that govern collective barb adjustment
      and disable any DataReference to a spatial curve;
      abs indicates absolute or relative value adjustment
