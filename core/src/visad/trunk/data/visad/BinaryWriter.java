@@ -2406,8 +2406,6 @@ if(DEBUG_MATH)System.err.println("wrScTy: serialized ScalarType (" + st.getClass
       throw new IOException("No active file");
     }
 
-    file.writeByte(objType);
-
     java.io.ByteArrayOutputStream outBytes;
     outBytes = new java.io.ByteArrayOutputStream();
 
@@ -2420,6 +2418,7 @@ if(DEBUG_MATH)System.err.println("wrScTy: serialized ScalarType (" + st.getClass
 
     byte[] bytes = outBytes.toByteArray();
 
+    file.writeByte(objType);
     file.writeInt(bytes.length);
     for (int i = 0; i < bytes.length; i++) {
       file.writeByte(bytes[i]);
