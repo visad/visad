@@ -2,13 +2,12 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitsDB.java,v 1.1 1997-11-17 19:35:13 steve Exp $
+ * $Id: UnitsDB.java,v 1.2 1998-01-20 23:30:44 steve Exp $
  */
 
 package visad.data.netcdf.units;
 
 
-import java.util.Enumeration;
 import visad.Unit;
 import visad.UnitException;
 
@@ -66,10 +65,24 @@ UnitsDB
 
 
     /**
+     * Inner class for enumerating the units in the database.
+     */
+    public interface
+    Enumeration
+    {
+	public abstract boolean
+	hasMoreElements();
+
+	public abstract NamedUnit
+	nextElement();
+    }
+
+
+    /**
      * Get an enumeration of the units in the database.
      */
     public abstract Enumeration
-    enumeration();
+    getEnumeration();
 
 
     /**
@@ -78,7 +91,7 @@ UnitsDB
     public void
     list()
     {
-	Enumeration	enum = enumeration();
+	Enumeration	enum = getEnumeration();
 	
 	while (enum.hasMoreElements())
 	    System.out.println(enum.nextElement().toString());
