@@ -224,6 +224,26 @@ public final class McIDASUtil
     }
 
     /**
+     * convert consequtive bytes into a (signed) int array. This
+     * is useful in dealing with McIDAS data files.
+     *
+     * @param byte[] array of bytes
+     * @param off is the offset into the byte array
+     * @param num number of integers to create
+     *
+     */
+    public static int[] bytesToIntegerArray(byte[] b, int off, int num) {
+
+      int[] values = new int[num];
+      for (int i = 0; i < num; i++) {
+        byte[] bytes = new byte[4];
+	System.arraycopy(b, i*4, bytes, 0, 4);
+        values[i] = bytesToInteger(bytes,0);
+      }
+      return values;
+    }
+
+    /**
      * convert signed int to a String representation.  This is useful
      * in dealing with McIDAS data files. Java version of 'clit'.
      *
@@ -257,4 +277,21 @@ public final class McIDASUtil
         return sb.toString();
     }
 
+    /**
+     * Check to see if the int value is the representation of a
+     * string or not.  Java version of ischar_.c (sort of).
+     *
+     * @param value  integer representation
+     * @return true if the int represents a string
+     */
+    public static boolean isChar(int value) {
+        String valueString = intBitsToString(value);
+	char[] chars = valueString.toCharArray();
+	for (int i = 0; i < 4; i++) {
+	   if (!Character.UnicodeBlock.of(chars[i]).equals(
+	       Character.UnicodeBlock.BASIC_LATIN) ||
+	       Character.isISOControl(chars[i])) return false;
+	}
+	return true;
+    }
 }
