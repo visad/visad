@@ -37,7 +37,7 @@ import java.util.Enumeration;
 */
 public abstract class AVControlJ2D extends Control implements AVControl {
 
-  Vector switches = new Vector();
+  transient Vector switches = new Vector();
 
   public AVControlJ2D(DisplayImplJ2D d) {
     super(d);
