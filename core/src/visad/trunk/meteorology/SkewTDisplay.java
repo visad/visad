@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.16 1999-01-07 16:13:19 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.17 1999-01-07 18:33:40 steve Exp $
  */
 
 package visad.meteorology;
@@ -41,7 +41,6 @@ import visad.Set;
 import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
-import visad.data.netcdf.QuantityMap;
 import visad.data.netcdf.units.ParseException;
 import visad.data.netcdf.units.Parser;
 import visad.java2d.DirectManipulationRendererJ2D;
