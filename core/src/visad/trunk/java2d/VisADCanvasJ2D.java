@@ -271,11 +271,15 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
         g.drawImage(image, 0, 0, this);
       }
       else {
-        Graphics ga = aux_image.getGraphics();
+        Image aux_copy = null;
+        synchronized (images) {
+          aux_copy = aux_image;
+        }
+        Graphics ga = aux_copy.getGraphics();
         ga.drawImage(image, 0, 0, this);
         displayRenderer.drawCursorStringVector(ga, tsave, w, h);
         ga.dispose();
-        g.drawImage(aux_image, 0, 0, this);
+        g.drawImage(aux_copy, 0, 0, this);
       }
     } // end if (image != null)
   }
