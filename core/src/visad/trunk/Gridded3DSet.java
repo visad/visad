@@ -4401,13 +4401,21 @@ System.out.println("makeNormals " + k + " " + normals[k] + " " + normals[k+1] + 
           float n1 = 0.0f;
           float n2 = 0.0f;
           float n, m, m0, m1, m2;
+          boolean any = false;
           for (int ip = -1; ip<=1; ip += 2) {
             for (int jp = -1; jp<=1; jp += 2) {
               int ii = i + ip;
               int jj = j + jp;
-              if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX) {
-                ki = k3 + ip * LengthX;
-                kj = k3 + jp;
+              ki = k3 + ip * LengthX;
+              kj = k3 + jp;
+              if (0 <= ii && ii < LengthY && 0 <= jj && jj < LengthX &&
+                  samples[0][ki] == samples[0][ki] &&
+                  samples[1][ki] == samples[1][ki] &&
+                  samples[2][ki] == samples[2][ki] &&
+                  samples[0][kj] == samples[0][kj] &&
+                  samples[1][kj] == samples[1][kj] &&
+                  samples[2][kj] == samples[2][kj]) {
+                any = true;
                 m0 = (samples[2][kj] - c2) * (samples[1][ki] - c1) -
                      (samples[1][kj] - c1) * (samples[2][ki] - c2);
                 m1 = (samples[0][kj] - c0) * (samples[2][ki] - c2) -
@@ -4429,9 +4437,16 @@ System.out.println("makeNormals " + k + " " + normals[k] + " " + normals[k+1] + 
             }
           }
           n = (float) Math.sqrt(n0 * n0 + n1 * n1 + n2 * n2);
-          normals[k] = n0 / n;
-          normals[k+1] = n1 / n;
-          normals[k+2] = n2 / n;
+          if (any) {
+            normals[k] = n0 / n;
+            normals[k+1] = n1 / n;
+            normals[k+2] = n2 / n;
+          }
+          else {
+            normals[k] = 0.0f;
+            normals[k+1] = 0.0f;
+            normals[k+2] = 1.0f;
+          }
           k += 3;
           k3++;
         } // end for (int j=0; j<LengthX; j++)
