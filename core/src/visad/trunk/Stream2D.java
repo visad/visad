@@ -155,11 +155,11 @@ static void stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
     row = grid[1][0];
     col = grid[0][0];
 
-      //System.out.println("row: "+row+", col: "+col+" : "+grid[1][0]+", "+grid[0][0]);
+    //System.out.println("row: "+row+", col: "+col+" : "+grid[1][0]+", "+grid[0][0]);
 
     /* terminate stream if out of grid
     -----------------------------------*/
-    if (row < 0 || col < 0 || row >= nr-1 || col >= nc-1) {
+    if (row < 0 || col < 0 || row >= nr-1 || col >= nc-1 || row != row || col != col) {
       break;
     }
 
