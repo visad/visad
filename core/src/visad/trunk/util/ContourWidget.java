@@ -251,7 +251,7 @@ public class ContourWidget extends JPanel implements ActionListener,
   {
     if (cSurface == cSurface) {
       Surface.setEnabled(true);
-      Surface.setValue((int) (sliderScale*cSurface));
+      Surface.setValue((int) ((sliderScale*cSurface)+0.5));
       SurfaceLabel.setText(name + " = " + PlotText.shortString(cSurface));
     }
     else {
