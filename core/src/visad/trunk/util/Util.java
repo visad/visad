@@ -29,6 +29,7 @@ package visad.util;
 import com.sun.image.codec.jpeg.*;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
@@ -363,7 +364,18 @@ public class Util
   public static void centerWindow(Window window) {
     Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension w = window.getSize();
-    window.setLocation(s.width / 2 - w.width / 2, s.height / 2 - w.height / 2);
+    window.setLocation((s.width - w.width) / 2, (s.height - w.height) / 2);
+  }
+
+  /**
+   * Center the given window within the specified parent window.
+   */
+  public static void centerWindow(Window parent, Window window) {
+    Point loc = parent.getLocation();
+    Dimension p = parent.getSize();
+    Dimension w = window.getSize();
+    window.setLocation(loc.x + (p.width - w.width) / 2,
+      loc.y + (p.height - w.height) / 2);
   }
 
   /**
