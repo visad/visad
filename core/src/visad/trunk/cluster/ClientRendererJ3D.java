@@ -61,7 +61,14 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
   private RemoteClientAgentImpl focus_agent = null;
   private RemoteAgentContact[] contacts = null;
 
+  private long time_out = 10000;
+
   public ClientRendererJ3D () {
+    this(10000);
+  }
+
+  public ClientRendererJ3D (long to) {
+    time_out = to;
   }
 
   public DataShadow prepareAction(boolean go, boolean initialize,
@@ -110,7 +117,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       if (cluster && data != old_data) {
         // send agents to nodes if data changed
         RemoteClientDataImpl rcdi = (RemoteClientDataImpl) data;
-        focus_agent = new RemoteClientAgentImpl(null, -1);
+        focus_agent = new RemoteClientAgentImpl(null, -1, time_out);
         RemoteClusterData[] jvmTable = rcdi.getTable();
         int nagents = jvmTable.length - 1;
         agents = new RemoteClientAgentImpl[nagents];

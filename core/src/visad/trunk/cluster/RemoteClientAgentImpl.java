@@ -46,10 +46,18 @@ public class RemoteClientAgentImpl extends UnicastRemoteObject
   private boolean not_all;
   Serializable[] responses = null;
 
+  private long time_out = 10000;
+
   public RemoteClientAgentImpl(RemoteClientAgentImpl fa, int ind)
+         throws RemoteException {
+    this(fa, ind, 10000);
+  }
+
+  public RemoteClientAgentImpl(RemoteClientAgentImpl fa, int ind, long to)
          throws RemoteException {
     focus_agent = fa;
     index = ind;
+    time_out = to;
   }
 
   public void sendToClient(Serializable message) throws RemoteException {
@@ -94,12 +102,12 @@ public class RemoteClientAgentImpl extends UnicastRemoteObject
     while (not_all) {
       synchronized (this) {
         try {
-          wait(10000); // wait for at most 10 seconds
+          wait(time_out); // wait for at most time_out ms
         }
         catch (InterruptedException e) {
         }
         long time = System.currentTimeMillis();
-        if (time > start_time + 10000) {
+        if (time > start_time + time_out) {
           not_all = false;
 System.out.println("RemoteClientAgentImpl.broadcastWithResponses time out");
         }

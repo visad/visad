@@ -1,5 +1,5 @@
 //
-// TestVis5DCluster.java
+// TestSSCluster.java
 //
 
 /*
@@ -29,8 +29,9 @@ package visad.cluster;
 import visad.*;
 import visad.java3d.*;
 import visad.java2d.*;
-import visad.util.ContourWidget;
-import visad.util.AnimationWidget;
+import visad.ss.*;
+import visad.util.*;
+import visad.bom.*;
 import visad.data.vis5d.Vis5DForm;
 
 import java.rmi.*;
@@ -40,11 +41,254 @@ import javax.swing.*;
 import java.io.IOException;
 
 /**
-   TestVis5DCluster is the class for testing the visad.cluster package.<P>
+   TestSSCluster is the class for testing the visad.cluster package.<P>
 */
-public class TestVis5DCluster extends Object {
+public class TestSSCluster extends FancySSCell implements ActionListener {
 
-  public TestVis5DCluster() {
+  private RemoteDataReferenceImpl remote_ref = null;
+
+  public TestSSCluster(String name, Frame parent)
+         throws VisADException, RemoteException {
+    super(name, parent);
+  }
+
+/*
+from BasicSSCell:
+   * Indicates that the data was added to this cell directly
+   * using addData() or addReference().
+  public static final int DIRECT_SOURCE = 0;
+
+  public String addData(Data data) throws VisADException, RemoteException;
+
+*/
+
+
+  /**
+   * override method from BasicSSCell
+   */
+  protected String addData(int id, Data data, ConstantMap[] cmaps,
+    String source, int type, boolean notify)
+    throws VisADException, RemoteException
+  {
+    // add Data object to cell
+    DataReferenceImpl ref = new DataReferenceImpl(Name);
+if (data instanceof RemoteData) {
+  remote_ref = new RemoteDataReferenceImpl(ref);
+  remote_ref.setData(data);
+}
+else {
+    ref.setData(data);
+}
+    SSCellData cellData;
+    synchronized (CellData) {
+      cellData = addReferenceImpl(id, ref, cmaps, source, type, notify, true);
+    }
+    return cellData.getVariableName();
+  }
+
+  /**
+   * override method from BasicSSCell
+   */
+  protected SSCellData addReferenceImpl(int id, DataReferenceImpl ref,
+    ConstantMap[] cmaps, String source, int type, boolean notify,
+    boolean checkErrors) throws VisADException, RemoteException
+  {
+    // ensure that id is valid
+    if (id == 0) id = getFirstFreeId();
+
+    // ensure that ref is valid
+    if (ref == null) ref = new DataReferenceImpl(Name);
+
+    // notify linked cells of data addition (ADD_DATA message must come first)
+    // if (notify) sendMessage(ADD_DATA, source, ref.getData());
+
+    // add data reference to cell
+    SSCellData cellData =
+      new SSCellData(id, this, ref, cmaps, source, type, checkErrors);
+    CellData.add(cellData);
+
+    if (!IsRemote) {
+      // SERVER: add data reference to display
+      if (HasMappings) VDisplay.addReference(ref, cmaps);
+
+      // add remote data reference to servers
+      synchronized (Servers) {
+        RemoteDataReferenceImpl remoteRef =
+          (RemoteDataReferenceImpl) cellData.getRemoteReference();
+        int len = Servers.size();
+        for (int i=0; i<len; i++) {
+          RemoteServerImpl rs = (RemoteServerImpl) Servers.elementAt(i);
+          rs.addDataReference(remoteRef);
+        }
+      }
+    }
+
+    return cellData;
+  }
+
+  /**
+   * override method from BasicSSCell
+   */
+  public synchronized void setMaps(ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
+    if (maps == null) return;
+
+    VisADException vexc = null;
+    RemoteException rexc = null;
+
+    if (IsRemote) {
+      // CLIENT: send new mappings to server
+      // sendMessage(SET_MAPS, DataUtility.convertMapsToString(maps), null);
+    }
+    else {
+      // SERVER: set up mappings
+
+      DataReference[] dr;
+      ConstantMap[][] cmaps;
+      synchronized (CellData) {
+        int len = CellData.size();
+        dr = new DataReference[len];
+        cmaps = new ConstantMap[len][];
+        for (int i=0; i<len; i++) {
+          SSCellData cellData = (SSCellData) CellData.elementAt(i);
+          dr[i] = cellData.getReference();
+          cmaps[i] = cellData.getConstantMaps();
+        }
+      }
+      String save = getPartialSaveString();
+      VDisplay.disableAction();
+      clearMaps();
+      for (int i=0; i<maps.length; i++) {
+        if (maps[i] != null) {
+          try {
+            VDisplay.addMap(maps[i]);
+          }
+          catch (VisADException exc) {
+            vexc = exc;
+          }
+          catch (RemoteException exc) {
+            rexc = exc;
+          }
+        }
+      }
+      for (int i=0; i<dr.length; i++) {
+        // determine if ImageRendererJ3D can be used
+        boolean ok = false;
+        Data data = dr[i].getData();
+        if (data == null) {
+        }
+        else if (Possible3D) {
+          MathType type = data.getType();
+          try {
+            ok = ImageRendererJ3D.isRendererUsable(type, maps);
+          }
+          catch (VisADException exc) {
+            if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
+          }
+        }
+        // add reference
+        if (ok && Dim != JAVA2D_2D) {
+          VDisplay.addReferences(new ImageRendererJ3D(), dr[i], cmaps[i]);
+        }
+        else {
+          // VDisplay.addReference(dr[i], cmaps[i]);
+          RemoteVDisplay.addReference(remote_ref, cmaps[i]);
+        }
+      }
+
+      VDisplay.enableAction();
+      setPartialSaveString(save, true);
+    }
+    HasMappings = true;
+    if (vexc != null) throw vexc;
+    if (rexc != null) throw rexc;
+  }
+
+
+
+  /**
+   * override method from BasicSSCell
+   */
+  public synchronized boolean constructDisplay() {
+    boolean success = true;
+    DisplayImpl newDisplay = VDisplay;
+    RemoteDisplay rmtDisplay = RemoteVDisplay;
+    if (IsSlave) {
+      // SLAVE: construct dummy 2-D display
+      try {
+        newDisplay = new DisplayImplJ2D("DUMMY");
+      }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+        success = false;
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+        success = false;
+      }
+    }
+    else if (!CanDo3D && Dim != JAVA2D_2D) {
+      // dimension requires Java3D, but Java3D is disabled for this JVM
+      success = false;
+    }
+    else {
+      // construct display of the proper dimension
+      try {
+        if (IsRemote) {
+          // CLIENT: construct new display from server's remote copy
+          if (Dim == JAVA3D_3D) newDisplay = new DisplayImplJ3D(rmtDisplay);
+          else if (Dim == JAVA2D_2D) {
+            newDisplay = new DisplayImplJ2D(rmtDisplay);
+          }
+          else { // Dim == JAVA3D_2D
+            TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
+            newDisplay = new DisplayImplJ3D(rmtDisplay, tdr);
+          }
+        }
+        else {
+          // SERVER: construct new display and make a remote copy
+          if (Dim == JAVA3D_3D) {
+            ClientDisplayRendererJ3D cdr = new ClientDisplayRendererJ3D(10000);
+            newDisplay = new DisplayImplJ3D(Name, cdr);
+          }
+          else if (Dim == JAVA2D_2D) newDisplay = new DisplayImplJ2D(Name);
+          else { // Dim == JAVA3D_2D
+            TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
+            newDisplay = new DisplayImplJ3D(Name, tdr);
+          }
+          rmtDisplay = new RemoteDisplayImpl(newDisplay);
+        }
+      }
+      catch (NoClassDefFoundError err) {
+        if (DEBUG) err.printStackTrace();
+        success = false;
+      }
+      catch (UnsatisfiedLinkError err) {
+        if (DEBUG) err.printStackTrace();
+        success = false;
+      }
+      catch (Exception exc) {
+        if (DEBUG) exc.printStackTrace();
+        success = false;
+      }
+    }
+    if (success) {
+      if (VDisplay != null) {
+        try {
+          VDisplay.destroy();
+        }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+      }
+      VDisplay = newDisplay;
+      RemoteVDisplay = rmtDisplay;
+    }
+    return success;
   }
 
   public static void main(String[] args)
@@ -56,7 +300,7 @@ public class TestVis5DCluster extends Object {
     RemoteNodeField[] node_v5ds = new RemoteNodeField[number_of_nodes];
   
     if (args == null || args.length < 2) {
-      System.out.println("usage: 'java visad.cluster.TestVis5DCluster " +
+      System.out.println("usage: 'java visad.cluster.TestSSCluster " +
                          "n file.v5d'");
       System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
                          " for nodes");
@@ -67,14 +311,14 @@ public class TestVis5DCluster extends Object {
       id = Integer.parseInt(args[0]);
     }
     catch (NumberFormatException e) {
-      System.out.println("usage: 'java visad.cluster.TestVis5DCluster " +
+      System.out.println("usage: 'java visad.cluster.TestSSCluster " +
                          "n file.v5d'");
       System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
                          " for nodes");
       return;
     }
     if (id < 0 || id > number_of_nodes) {
-      System.out.println("usage: 'java visad.cluster.TestVis5DCluster " +
+      System.out.println("usage: 'java visad.cluster.TestSSCluster " +
                          "n file.v5d'");
       System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
                          " for nodes");
@@ -243,97 +487,52 @@ System.out.println("data type = " + v5d_type);
       table[i].setupClusterData(ps, table);
     }
 
-    DisplayImpl display =
-      // new DisplayImplJ3D("main_display");
-      new DisplayImplJ3D("main_display", new ClientDisplayRendererJ3D(5000));
-
-/*
-    // get a list of decent mappings for this data
-    MathType type = image.getType();
-    ScalarMap[] maps = type.guessMaps(true);
-    // add the maps to the display
-    for (int i=0; i<maps.length; i++) {
-      display.addMap(maps[i]);
-    }
-*/
-
-    grid_type = (FunctionType) v5d_type.getRange();
-    RealTupleType domain_type = grid_type.getDomain();
-  
-  
-    RealTupleType time_tuple = v5d_type.getDomain();
-    RealType time = (RealType) time_tuple.getComponent(0);
-    RealType x = (RealType) domain_type.getComponent(0);
-    RealType y = (RealType) domain_type.getComponent(1);
-    RealType z = (RealType) domain_type.getComponent(2);
-    RealTupleType val_tuple = (RealTupleType) grid_type.getRange();
-    int nvals = val_tuple.getDimension();
-    RealType[] vals = new RealType[nvals];
-    for (int i=0; i<nvals; i++) {
-      vals[i] = (RealType) val_tuple.getComponent(i);
-    }
-
-    ScalarMap animation_map = new ScalarMap(time, Display.Animation);
-    display.addMap(animation_map);
-    display.addMap(new ScalarMap(x, Display.XAxis));
-    display.addMap(new ScalarMap(y, Display.YAxis));
-    display.addMap(new ScalarMap(z, Display.ZAxis));
-    ScalarMap[] contour_maps = new ScalarMap[nvals];
-    for (int i=0; i<nvals; i++) {
-      contour_maps[i] = new ScalarMap(vals[i], Display.IsoContour);
-      display.addMap(contour_maps[i]);
-    }
-
-    // link data to the display
-    DataReferenceImpl ref = new DataReferenceImpl("image");
-    // ref.setData(image);
-    // display.addReference(ref);
-    RemoteDataReferenceImpl remote_ref = new RemoteDataReferenceImpl(ref);
-    remote_ref.setData(client_v5d);
-    RemoteDisplayImpl remote_display = new RemoteDisplayImpl(display);
-    remote_display.addReference(remote_ref);
-
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test ClientRendererJ3D");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
 
+    TestSSCluster ss = new TestSSCluster("TestSSCluster", frame);
+
+    ss.addData(client_v5d);
+    // ss.addData(0, client_v5d, null, "", DIRECT_SOURCE, true);
+
     // create JPanel in JFrame
     JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    // panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    // panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     frame.getContentPane().add(panel);
 
-    JPanel lpanel = new JPanel();
-    lpanel.setLayout(new BoxLayout(lpanel, BoxLayout.Y_AXIS));
-    // lpanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    // lpanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    JPanel bpanel = new JPanel();
+    bpanel.setLayout(new BoxLayout(bpanel, BoxLayout.X_AXIS));
 
-    JPanel rpanel = new JPanel();
-    rpanel.setLayout(new BoxLayout(rpanel, BoxLayout.Y_AXIS));
-    // rpanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    // rpanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    JButton maps = new JButton("Maps");
+    maps.addActionListener(ss);
+    maps.setActionCommand("map");
+    bpanel.add(maps);
 
-    // add display to JPanel
-    rpanel.add(display.getComponent());
-    AnimationWidget awidget = new AnimationWidget(animation_map);
-    awidget.setMaximumSize(new Dimension(400, 400));
-    lpanel.add(new AnimationWidget(animation_map));
-    for (int i=0; i<nvals; i++) {
-      ContourWidget cwidget = new ContourWidget(contour_maps[i]);
-      cwidget.setMaximumSize(new Dimension(400, 200));
-      lpanel.add(new ContourWidget(contour_maps[i]));
-    }
+    JButton show = new JButton("Widgets");
+    show.addActionListener(ss);
+    show.setActionCommand("widgets");
+    bpanel.add(show);
 
-    lpanel.setMaximumSize(new Dimension(400, 600));
-    panel.add(lpanel);
-    panel.add(rpanel);
+    panel.add(ss);
+    panel.add(bpanel);
 
     // set size of JFrame and make it visible
-    frame.setSize(800, 600);
+    frame.setSize(600, 600);
     frame.setVisible(true);
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    String cmd = e.getActionCommand();
+    if (cmd.equals("map")) {
+      hideWidgetFrame();
+      addMapDialog();
+    }
+    else if (cmd.equals("widgets")) {
+      showWidgetFrame();
+    }
   }
 
   private static Gridded3DSet makePS(Gridded3DSet domain_set, int node_divide)

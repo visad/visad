@@ -46,15 +46,22 @@ import java.util.*;
  */
 public class ClientDisplayRendererJ3D extends DefaultDisplayRendererJ3D {
 
+  private long time_out = 10000;
+
   /**
    * This is the <CODE>DisplayRenderer</CODE> used for cluster clients.
    */
   public ClientDisplayRendererJ3D () {
+    this(10000);
+  }
+
+  public ClientDisplayRendererJ3D (long to) {
     super();
+    time_out = to;
   }
 
   public DataRenderer makeDefaultRenderer() {
-    return new ClientRendererJ3D();
+    return new ClientRendererJ3D(time_out);
   }
 
   public boolean legalDataRenderer(DataRenderer renderer) {
