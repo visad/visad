@@ -351,7 +351,8 @@ public class BasicSSCell extends JPanel {
 
   /** Returns the data string necessary to reconstruct this cell */
   public String getSSCellString() {
-    String s = "filename = " + Filename.toString() + "\n";
+    String s = "filename = " +
+               (Filename == null ? "null" : Filename.toString()) + "\n";
     s = s + "formula = " + getFormula() + "\n";
     s = s + "dim = " + Dimension2D + "\n";
     return s;
