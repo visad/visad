@@ -212,7 +212,7 @@ public class VisADForm extends Form implements FormFileInformer {
     return data;
   }
 
-  final DataImpl readData(BinaryReader rdr)
+  DataImpl readData(BinaryReader rdr)
     throws IOException, VisADException
   {
     DataImpl di = rdr.getData();
