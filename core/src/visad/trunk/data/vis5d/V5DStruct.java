@@ -881,7 +881,7 @@ public class V5DStruct {
           }
         }
         else {
-          assert(compressmode == 4);
+          V5Dassert(compressmode == 4);
           for (lev=0; lev<nl; lev++) {
             ga[lev] = 1.0f;
             gb[lev] = 0.0f;
@@ -979,7 +979,7 @@ public class V5DStruct {
   }
 
   /** Verifies that a certain condition holds */
-  private static void assert(boolean b)
+  private static final void V5Dassert(boolean b)
           throws BadFormException {
     if (!b) {
       throw new BadFormException("Warning: assert failed");
@@ -1168,10 +1168,10 @@ public class V5DStruct {
       throws BadFormException {
     int pos, i;
 
-    assert(time >= 0);
-    assert(vr >= 0);
-    assert(time < NumTimes);
-    assert(vr < NumVars);
+    V5Dassert(time >= 0);
+    V5Dassert(vr >= 0);
+    V5Dassert(time < NumTimes);
+    V5Dassert(vr < NumVars);
 
     pos = FirstGridPos + time * SumGridSizes;
     for (i=0; i<vr; i++) pos += GridSize[i];
@@ -1787,7 +1787,7 @@ public class V5DStruct {
 
       switch (tag) {
         case TAG_VERSION:
-          assert(length == 10);
+          V5Dassert(length == 10);
           byte[] b = new byte[10];
           f.read(b, 0, 10);
           int index = 10;
@@ -1805,32 +1805,32 @@ public class V5DStruct {
           }
           break;
         case TAG_NUMTIMES:
-          assert(length == 4);
+          V5Dassert(length == 4);
           NumTimes = f.readInt();
           break;
         case TAG_NUMVARS:
-          assert(length == 4);
+          V5Dassert(length == 4);
           NumVars = f.readInt();
           break;
         case TAG_VARNAME:
           // 1 int + 10 char
-          assert(length == 14);
+          V5Dassert(length == 14);
           vr = f.readInt();
           for (int q=0; q<10; q++) VarName[vr][q] = (char) f.readByte();
           break;
         case TAG_NR:
           // Number of rows for all variables
-          assert(length == 4);
+          V5Dassert(length == 4);
           Nr = f.readInt();
           break;
         case TAG_NC:
           // Number of columns for all variables
-          assert(length == 4);
+          V5Dassert(length == 4);
           Nc = f.readInt();
           break;
         case TAG_NL:
           // Number of levels for all variables
-          assert(length == 4);
+          V5Dassert(length == 4);
           nl = f.readInt();
           for (i=0; i<NumVars; i++) {
             Nl[i] = nl;
@@ -1838,57 +1838,57 @@ public class V5DStruct {
           break;
         case TAG_NL_VAR:
           // Number of levels for one variable
-          assert(length == 8);
+          V5Dassert(length == 8);
           vr = f.readInt();
           Nl[vr] = f.readInt();
           break;
         case TAG_LOWLEV_VAR:
           // Lowest level for one variable
-          assert(length == 8);
+          V5Dassert(length == 8);
           vr = f.readInt();
           LowLev[vr] = f.readInt();
           break;
 
         case TAG_TIME:
           // Time stamp for 1 timestep
-          assert(length == 8);
+          V5Dassert(length == 8);
           time = f.readInt();
           TimeStamp[time] = f.readInt();
           break;
         case TAG_DATE:
           // Date stamp for 1 timestep
-          assert(length == 8);
+          V5Dassert(length == 8);
           time = f.readInt();
           DateStamp[time] = f.readInt();
           break;
 
         case TAG_MINVAL:
           // Minimum value for a variable
-          assert(length == 8);
+          V5Dassert(length == 8);
           vr = f.readInt();
           MinVal[vr] = f.readFloat();
           break;
         case TAG_MAXVAL:
           // Maximum value for a variable
-          assert(length == 8);
+          V5Dassert(length == 8);
           vr = f.readInt();
           MaxVal[vr] = f.readFloat();
           break;
         case TAG_COMPRESS:
           // Compress mode
-          assert(length == 4);
+          V5Dassert(length == 4);
           CompressMode = f.readInt();
           break;
         case TAG_UNITS:
           // physical units
-          assert(length == 24);
+          V5Dassert(length == 24);
           vr = f.readInt();
           for (int q=0; q<20; q++) Units[vr][q] = (char) f.readByte();
           break;
 
         // Vertical coordinate system
         case TAG_VERTICAL_SYSTEM:
-          assert(length == 4);
+          V5Dassert(length == 4);
           VerticalSystem = f.readInt();
           if (VerticalSystem < 0 || VerticalSystem > 3) {
             System.err.println("Error: bad vertical coordinate system: " +
@@ -1897,28 +1897,28 @@ public class V5DStruct {
           break;
         case TAG_VERT_ARGS:
           numargs = f.readInt();
-          assert(numargs <= MAXVERTARGS);
+          V5Dassert(numargs <= MAXVERTARGS);
           for (int q=0; q<numargs; q++) VertArgs[q] = f.readFloat();
-          assert(length == numargs * 4 + 4);
+          V5Dassert(length == numargs * 4 + 4);
           break;
         case TAG_HEIGHT:
           // height of a grid level
-          assert(length == 8);
+          V5Dassert(length == 8);
           lev = f.readInt();
           VertArgs[lev] = f.readFloat();
           break;
         case TAG_BOTTOMBOUND:
-          assert(length == 4);
+          V5Dassert(length == 4);
           VertArgs[0] = f.readFloat();
           break;
         case TAG_LEVINC:
-          assert(length == 4);
+          V5Dassert(length == 4);
           VertArgs[1] = f.readFloat();
           break;
 
         // Map projection information
         case TAG_PROJECTION:
-          assert(length == 4);
+          V5Dassert(length == 4);
           Projection = f.readInt();
           // WLH 4-21-95
           if (Projection < 0 || Projection > 4) {
@@ -1929,12 +1929,12 @@ public class V5DStruct {
           break;
         case TAG_PROJ_ARGS:
           numargs = f.readInt();
-          assert(numargs <= MAXPROJARGS);
+          V5Dassert(numargs <= MAXPROJARGS);
           for (int q=0; q<numargs; q++) ProjArgs[q] = f.readFloat();
-          assert(length == 4 * numargs + 4);
+          V5Dassert(length == 4 * numargs + 4);
           break;
         case TAG_NORTHBOUND:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 0 || Projection == 1 || Projection == 4) {
             ProjArgs[0] = f.readFloat();
           }
@@ -1943,7 +1943,7 @@ public class V5DStruct {
           }
           break;
         case TAG_WESTBOUND:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 0 || Projection == 1 || Projection == 4) {
             ProjArgs[1] = f.readFloat();
           }
@@ -1952,7 +1952,7 @@ public class V5DStruct {
           }
           break;
         case TAG_ROWINC:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 0 || Projection == 1 || Projection == 4) {
             ProjArgs[2] = f.readFloat();
           }
@@ -1961,7 +1961,7 @@ public class V5DStruct {
           }
           break;
         case TAG_COLINC:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 0 || Projection == 1 || Projection == 4) {
             ProjArgs[3] = f.readFloat();
           }
@@ -1976,7 +1976,7 @@ public class V5DStruct {
           }
           break;
         case TAG_LAT1:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 2) {
             ProjArgs[0] = f.readFloat();
           }
@@ -1985,7 +1985,7 @@ public class V5DStruct {
           }
           break;
         case TAG_LAT2:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 2) {
             ProjArgs[1] = f.readFloat();
           }
@@ -1994,7 +1994,7 @@ public class V5DStruct {
           }
           break;
         case TAG_POLE_ROW:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 2) {
             ProjArgs[2] = f.readFloat();
           }
@@ -2003,7 +2003,7 @@ public class V5DStruct {
           }
           break;
         case TAG_POLE_COL:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 2) {
             ProjArgs[3] = f.readFloat();
           }
@@ -2012,7 +2012,7 @@ public class V5DStruct {
           }
           break;
         case TAG_CENTLON:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 2) {
             ProjArgs[4] = f.readFloat();
           }
@@ -2028,7 +2028,7 @@ public class V5DStruct {
           }
           break;
         case TAG_CENTLAT:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 3) {
             ProjArgs[0] = f.readFloat();
           }
@@ -2041,7 +2041,7 @@ public class V5DStruct {
           }
           break;
         case TAG_CENTROW:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 3) {
             ProjArgs[2] = f.readFloat();
           }
@@ -2050,7 +2050,7 @@ public class V5DStruct {
           }
           break;
         case TAG_CENTCOL:
-          assert(length == 4);
+          V5Dassert(length == 4);
           if (Projection == 3) {
             ProjArgs[3] = f.readFloat();
           }
@@ -2059,7 +2059,7 @@ public class V5DStruct {
           }
           break;
         case TAG_ROTATION:
-          assert(length == 4);
+          V5Dassert(length == 4);
           // WLH 4-21-95
           if (Projection == 4) {
             ProjArgs[6] = f.readFloat();
