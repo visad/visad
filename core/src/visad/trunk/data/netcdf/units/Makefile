@@ -28,8 +28,8 @@ GARBAGE	= \
 
 include rules.make
 
-test:	all	\
+test:	classes	\
 	UnitParser.test
 
 UnitParser.java:	UnitParser.jj
-UnitParser.class:	UnitParser.java
+ASCII_CharStream.java:	UnitParser.class
