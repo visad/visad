@@ -118,7 +118,6 @@ public class ThingReferenceImpl extends Object implements ThingReference {
       share access to thing and ref */
   public synchronized long incTick()
          throws VisADException, RemoteException {
-// XYZW
 // if (getName() != null) DisplayImpl.printStack("incTick " + getName());
     Tick += 1;
     if (Tick == Long.MAX_VALUE) Tick = Long.MIN_VALUE + 1;
@@ -156,6 +155,20 @@ public class ThingReferenceImpl extends Object implements ThingReference {
     return Tick;
   }
 
+  public ThingChangedEvent peekThingChanged(Action a)
+         throws VisADException {
+    if (!(a instanceof ActionImpl)) {
+      throw new RemoteVisADException("ThingReferenceImpl.peekThingChanged:" +
+                                     " Action must be local");
+    }
+    if (ListenerVector == null) return null;
+    ThingChangedLink listener = findThingChangedLink(a);
+    if (listener == null) {
+      return null;
+    }
+    return listener.peekThingChangedEvent();
+  }
+
   public ThingChangedEvent acknowledgeThingChanged(Action a)
          throws VisADException {
     if (!(a instanceof ActionImpl)) {
@@ -168,6 +181,16 @@ public class ThingReferenceImpl extends Object implements ThingReference {
       return null;
     }
     return listener.acknowledgeThingChangedEvent();
+  }
+
+  public ThingChangedEvent adaptedPeekThingChanged(RemoteAction a)
+         throws VisADException {
+    if (ListenerVector == null) return null;
+    ThingChangedLink listener = findThingChangedLink(a);
+    if (listener == null) {
+      return null;
+    }
+    return listener.peekThingChangedEvent();
   }
 
   public ThingChangedEvent adaptedAcknowledgeThingChanged(RemoteAction a)

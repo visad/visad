@@ -99,12 +99,28 @@ public class ReferenceActionLink {
   /** set value of NewTick; presumably increases value */
   synchronized void incTick(long t) {
     NewTick = t;
+/*
+if (OldTick < NewTick || (NewTick < 0 && 0 < OldTick)) {
+  try {
+    DisplayImpl.printStack("incTick " +
+                           getThingReference().getName());
+    System.out.println("  NewTick = " + NewTick + " OldTick = " + OldTick);
+  } catch (VisADException e) {} catch (RemoteException e) {}
+}
+*/
   }
 
   /** sync consumer's tick count with producer's tick count */
   public synchronized void setTicks() {
     tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
     OldTick = NewTick;
+/*
+if (tickFlag) {
+  try {
+    System.out.println("setTicks " + getThingReference().getName());
+  } catch (VisADException e) {} catch (RemoteException e) {}
+}
+*/
   }
 
 /*
@@ -126,6 +142,11 @@ System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
 
   /** clear internal state */
   synchronized void resetTicks() {
+/*
+try {
+  System.out.println("resetTicks " + getThingReference().getName());
+} catch (VisADException e) {} catch (RemoteException e) {}
+*/
     tickFlag = false;
   }
 
@@ -137,14 +158,6 @@ System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
 
     // if the reference has an event waiting...
     if (Ball) {
-
-/* WLH 27 July 99
-      // get the event
-      event = ref.acknowledgeThingChanged(action);
-
-      // remember that we picked up the event
-      Ball = false;
-*/
       // remember that we picked up the event
       Ball = false;
       // get the event
@@ -154,7 +167,21 @@ System.out.println("ReferenceActionLink.getThingChangedEvent Ball = false " +
                    "event non null = " + (event != null));
 */
     }
+    return event;
+  }
 
+  /** return any waiting event */
+  ThingChangedEvent peekThingChangedEvent()
+        throws RemoteException, VisADException
+  {
+    ThingChangedEvent event = null;
+
+    // if the reference has an event waiting...
+    if (Ball) {
+      // get the event
+      event = ref.peekThingChanged(action);
+      if (event != null) NewTick = event.getTick(); 
+    }
     return event;
   }
 
@@ -162,7 +189,13 @@ System.out.println("ReferenceActionLink.getThingChangedEvent Ball = false " +
     NewTick = actionTick;
     Ball = true;
 /*
-System.out.println("ReferenceActionLink.acknowledgeThingChangedEvent Ball = true");
+if (OldTick < NewTick || (NewTick < 0 && 0 < OldTick)) {
+  try {
+    DisplayImpl.printStack("acknowledgeThingChangedEvent " +
+                           getThingReference().getName());
+    System.out.println("  NewTick = " + NewTick + " OldTick = " + OldTick);
+  } catch (VisADException e) {} catch (RemoteException e) {}
+}
 */
   }
 

@@ -129,6 +129,21 @@ public class RemoteThingReferenceImpl extends UnicastRemoteObject
   }
 
   /** Action must be RemoteAction */
+  public ThingChangedEvent peekThingChanged(Action a)
+         throws VisADException, RemoteException {
+    if (!(a instanceof RemoteAction)) {
+      throw new RemoteVisADException("RemoteThingReferenceImpl.acknowledge" +
+                                     "ThingChanged: Action must be Remote");
+    }
+    if (AdaptedThingReference == null) {
+      throw new RemoteVisADException("RemoteThingReferenceImpl." +
+                                     "acknowledgeThingChanged: " +
+                                     "AdaptedThingReference is null");
+    }
+    return AdaptedThingReference.adaptedPeekThingChanged(((RemoteAction) a));
+  }
+
+  /** Action must be RemoteAction */
   public ThingChangedEvent acknowledgeThingChanged(Action a)
          throws VisADException, RemoteException {
     if (!(a instanceof RemoteAction)) {

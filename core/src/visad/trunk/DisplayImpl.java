@@ -829,9 +829,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       RendererVector.addElement(renderer);
     }
 
-/* WLH 22 Aug 2001
-    initialize = true;
-*/
     initialize |= computeInitialize();
 
 // printStack("addReference");
@@ -896,9 +893,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       RendererVector.addElement(renderer);
     }
 
-/* WLH 22 Aug 2001
-    initialize = true;
-*/  
     initialize |= computeInitialize();
 
 // printStack("adaptedAddReference");
@@ -1152,9 +1146,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       RendererVector.addElement(renderer);
     }
 
-/* WLH 22 Aug 2001
-    initialize = true;
-*/  
     initialize |= computeInitialize();
 
 // printStack("addReferences");
@@ -1242,9 +1233,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       RendererVector.addElement(renderer);
     }
 
-/* WLH 22 Aug 2001
-    initialize = true;
-*/  
     initialize |= computeInitialize();
 
 // printStack("adaptedAddReferences");
@@ -1294,10 +1282,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       RendererVector.removeElement(renderer);
     }
     removeLinks(links);
-
-/* WLH 22 April 99
-    initialize = true;
-*/
   }
 
   /** remove all DataReference links */
@@ -1308,23 +1292,15 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     Vector temp = (Vector) RendererVector.clone();
 
     synchronized (mapslock) {
-
-      // WLH 29 Jan 2001
-      // synchronized (RendererVector) {
-        // Iterator renderers = RendererVector.iterator();
-
-        Iterator renderers = temp.iterator();
-        while (renderers.hasNext()) {
-          DataRenderer renderer = (DataRenderer) renderers.next();
-          renderer.clearAVControls(); // WLH 31 Oct 2000
-          renderer.clearScene();
-          DataDisplayLink[] links = renderer.getLinks();
-          renderers.remove();
-          removeLinks(links);
-        }
-
-      // WLH 29 Jan 2001
-      // }
+      Iterator renderers = temp.iterator();
+      while (renderers.hasNext()) {
+        DataRenderer renderer = (DataRenderer) renderers.next();
+        renderer.clearAVControls(); // WLH 31 Oct 2000
+        renderer.clearScene();
+        DataDisplayLink[] links = renderer.getLinks();
+        renderers.remove();
+        removeLinks(links);
+      }
       RendererVector.removeAllElements();
 
       initialize = true;
@@ -1337,11 +1313,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       they have changed */
   public void controlChanged() {
     notifyAction();
-/* WLH 29 Aug 98
-    synchronized (this) {
-      notify();
-    }
-*/
   }
 
   /** DisplayImpl always runs doAction to find out if there is
@@ -1355,7 +1326,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     VisADException thrownVE = null;
     RemoteException thrownRE = null;
 
-    // WLH 17 Dec 2001
     stop();
 
     if (displayActivity != null) {
@@ -1430,22 +1400,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       while (maps.hasMoreElements()) {
         ScalarMap map = ((ScalarMap) maps.nextElement());
         DisplayRealType dreal = map.getDisplayScalar();
-/* WLH 13 Feb 2001 - how could this ever have worked?
-        if (dreal.isSingle()) {
-          int j = getDisplayScalarIndex(dreal);
-          if (scalarToValue[j] < 0) {
-            scalarToValue[j] = valueArrayLength;
-            valueArrayLength++;
-          }
-          map.setValueIndex(scalarToValue[j]);
-        }
-        else {
-*/
           map.setValueIndex(valueArrayLength);
           valueArrayLength++;
-/* WLH 13 Feb 2001
-        }
-*/
       }
 
       // set valueToScalar and valueToMap arrays
@@ -1521,7 +1477,6 @@ if (initialize) {
           boolean this_transform = renderer.doAction();
           transform_done |= this_transform;
 /*
-// XYZW
           if (this_transform) {
             DataDisplayLink[] links = renderer.getLinks();
             System.out.println("transform " + getName() + " " +
@@ -2156,7 +2111,6 @@ if (initialize) {
   /** return a captured image of the display */
   public BufferedImage getImage() {
     return getImage(false);
-    // return displayRenderer.getImage();  WLH 4 April 2000
   }
 
   /** return a captured image of the display;

@@ -65,6 +65,12 @@ class ThingChangedLink extends Object {
     return action;
   }
 
+  /** possibly return a new event to the Action */
+  public synchronized ThingChangedEvent peekThingChangedEvent()
+  {
+    return event;
+  }
+
   /** acknowledge the last event from the ThingReference,
    *  and possibly return a new event to the Action
    */

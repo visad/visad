@@ -49,6 +49,8 @@ public abstract class ActionImpl
   private boolean enabled = true;
   private Object lockEnabled = new Object();
 
+  private boolean peek = false;
+
   private Thread currentActionThread = null;
 
   String Name;
@@ -173,15 +175,14 @@ public abstract class ActionImpl
 
   /** enable and notify this Action */
   public void enableAction() {
-// XYZW
 // System.out.println("enableAction " + getName());
+    if (!enabled) peek = true;
     enabled = true;
     notifyAction();
   }
 
   /** disable this Action and if necessary wait for end of doAction */
   public void disableAction() {
-// XYZW
 // System.out.println("disableAction " + getName());
     enabled = false;
     // wait for possible current run() invocation to finish
@@ -242,12 +243,36 @@ public abstract class ActionImpl
 // if (getName() != null) System.out.println("ENABLED = " + enabled + " " + getName());
       if (enabled) {
         try {
+          if (peek) {
+            // WLH 17 Dec 2001 - keep run_links off Thread stack
+            synchronized (LinkVector) {
+              run_links = ((Vector) LinkVector.clone()).elements();
+            }
+            while (run_links.hasMoreElements()) {
+              ReferenceActionLink link =
+                (ReferenceActionLink) run_links.nextElement();
+  
+              try {
+                link.peekThingChangedEvent();
+              } catch (RemoteException re) {
+                if (!visad.collab.CollabUtil.isDisconnectException(re)) {
+                  throw re;
+                }
+  
+                // remote side has died
+                handleRunDisconnectException(link);
+              }
+            }
+            run_links = null;
+            peek = false;
+          } // end if (peek)
+
           setTicks();
           if (checkTicks()) {
 // if (getName() != null) System.out.println("RUN " + getName());
             doAction();
           }
-          // Enumeration run_links; // WLH 17 Dec 2001 - get it off Thread stack
+          // WLH 17 Dec 2001 - keep run_links off Thread stack
           synchronized (LinkVector) {
             run_links = ((Vector) LinkVector.clone()).elements();
           }
@@ -270,10 +295,9 @@ public abstract class ActionImpl
 
             if (e != null) {
               thingChanged(e);
-              // requeue = true;  **** WLH 20 Feb 2001 ****
             }
           }
-          run_links = null; // WLH 17 Dec 2001
+          run_links = null;
           resetTicks();
         }
         catch(VisADException v) {
@@ -335,7 +359,6 @@ public abstract class ActionImpl
   }
 
   void notifyAction() {
-// XYZW
 // if (getName() != null) DisplayImpl.printStack("notifyAction " + getName());
     requeue = true;
     if (pool == null) {

@@ -164,11 +164,12 @@ System.out.println("doAction " + getDisplay().getName() + " " +
 */
     if (all_feasible && (any_changed || any_transform_control)) {
 /*
-System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
+System.out.println("doAction " + getDisplay().getName() + " " +
+                   getLinks()[0].getThingReference().getName() +
+                   " any_changed = " + any_changed +
+                   " all_feasible = " + all_feasible +
                    " any_transform_control = " + any_transform_control);
-System.out.println(getLinks()[0].getThingReference().getName());
 */
-
       // exceptionVector.removeAllElements();
       clearAVControls();
       try {

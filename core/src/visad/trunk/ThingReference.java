@@ -64,5 +64,8 @@ public interface ThingReference {
 
   ThingChangedEvent acknowledgeThingChanged(Action a)
          throws VisADException, RemoteException;
+
+  ThingChangedEvent peekThingChanged(Action a)
+         throws VisADException, RemoteException;
 }
 
