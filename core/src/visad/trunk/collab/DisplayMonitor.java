@@ -44,6 +44,9 @@ public interface DisplayMonitor
   extends ControlListener, DisplayListener, MessageListener,
           ScalarMapListener, Serializable
 {
+  /** Connection ID used to indicate errors */
+  int UNKNOWN_LISTENER_ID = 0;
+
   /**
    * Adds the specified listener to receive <CODE>MonitorEvent</CODE>s
    * when the monitored <CODE>Display</CODE>'s state changes.

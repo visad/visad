@@ -56,7 +56,7 @@ import visad.VisADException;
 public class DisplayMonitorImpl
   implements DisplayMonitor
 {
-  private int nextListenerID = 1;
+  private int nextListenerID = UNKNOWN_LISTENER_ID + 1;
 
   /**
    * The name of this display monitor.
@@ -140,7 +140,6 @@ public class DisplayMonitorImpl
     try {
       rdm.addListener(wrap, id);
     } catch (Exception e) {
-e.printStackTrace();
       throw new RemoteVisADException("Couldn't make this object" +
                                      " a listener for the remote display");
     }
@@ -174,7 +173,7 @@ e.printStackTrace();
         ListIterator iter = listeners.listIterator();
         while (iter.hasNext()) {
           MonitorSyncer li = (MonitorSyncer )iter.next();
-          if (id == 0 || li.getID() == id) {
+          if (id == UNKNOWN_LISTENER_ID || li.getID() == id) {
             id = getNextListenerID();
             failed = true;
             break;
@@ -394,8 +393,8 @@ e.printStackTrace();
   private int getNextListenerID()
   {
     synchronized (listeners) {
-      if (nextListenerID == 0) {
-        // zero is magic; don't let anyone have that ID
+      if (nextListenerID == UNKNOWN_LISTENER_ID) {
+        // don't let anyone have the magic ID
         nextListenerID++;
       }
       return nextListenerID++;
