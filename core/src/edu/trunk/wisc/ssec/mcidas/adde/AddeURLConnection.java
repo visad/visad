@@ -1504,6 +1504,18 @@ public class AddeURLConnection extends URLConnection
                 buf.append(testString);
             }
             else
+            if (testString.startsWith("co"))       // id keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("reg"))       // id keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
             if (testString.startsWith("nhou"))       // nhour keyword
             {
                 buf.append(" ");
