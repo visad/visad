@@ -338,17 +338,6 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
         dataRange[1] = Double.NaN;
       }
     }
-    if (shadow != null && dataRange[0] == dataRange[0] &&
-        dataRange[1] == dataRange[1] && ListenerVector != null) {
-      synchronized (ListenerVector) {
-        Enumeration listeners = ListenerVector.elements();
-        while (listeners.hasMoreElements()) {
-          ScalarMapListener listener =
-            (ScalarMapListener) listeners.nextElement();
-          listener.mapChanged(new ScalarMapEvent(this));
-        }
-      }
-    }
 /*
 System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                    " to " + dataRange[1] + " scale: " + scale + " " + offset);
@@ -394,6 +383,18 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         }
         else {
           scale_flag = true;
+        }
+      }
+    }
+
+    if (shadow != null && dataRange[0] == dataRange[0] &&
+        dataRange[1] == dataRange[1] && ListenerVector != null) {
+      synchronized (ListenerVector) {
+        Enumeration listeners = ListenerVector.elements();
+        while (listeners.hasMoreElements()) {
+          ScalarMapListener listener =
+            (ScalarMapListener) listeners.nextElement();
+          listener.mapChanged(new ScalarMapEvent(this));
         }
       }
     }
