@@ -181,7 +181,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     Vis5DVerticalSystem vert_coord_sys = null;
 
     if (nl > 1) {
-      vert_coord_sys = 
+      vert_coord_sys =
         new Vis5DVerticalSystem(vert_sys[0], nl, vert_args[0]);
 
       RealType height =
@@ -214,7 +214,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
       timeses[0][i] = times[i];
     }
 
-    /*- TDR
+    /**- TDR
     Gridded1DSet time_set =
       new Gridded1DSet(time, timeses, ntimes);
      */
@@ -232,8 +232,27 @@ public class Vis5DForm extends Form implements FormFileInformer {
       SampledSet row_col_set = new Integer2DSet(row_col, nr, nc);
       SampledSet vert_set = vert_coord_sys.vertSet;
 
+      /**-  Maybe sometime in the future
       space_set = new ProductSet(domain,
         new SampledSet[] {row_col_set, vert_set});
+       */
+
+      float[][] vert_samples = vert_set.getSamples();
+      float[][] domain_samples = new float[3][nr*nc*nl];
+      int idx = 0;
+      for (int kk = 0; kk < nl; kk++) {
+        for (int jj = 0; jj < nc; jj++) {
+          for ( int ii = 0; ii < nr; ii++) {
+            domain_samples[0][idx] = ii;
+            domain_samples[1][idx] = jj;
+            domain_samples[2][idx] = vert_samples[0][kk];
+            idx++;
+          }
+        }
+      }
+
+      space_set =
+        new Gridded3DSet(domain, domain_samples, nr, nc, nl);
     }
     else 
     {
