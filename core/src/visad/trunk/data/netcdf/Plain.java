@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.23 2001-09-10 19:33:08 steve Exp $
+ * $Id: Plain.java,v 1.24 2001-09-10 20:36:05 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -223,16 +223,6 @@ Plain
 		    i == file.length() - 1
 			? ""
 			: file.substring(i+1);
-		/*
-		 * The query component is removed from the URL because 
-		 * NetcdfFile can't handle it.
-		 */
-		url =
-		    new URL(
-			url.getProtocol(),
-			url.getHost(),
-			url.getPort(),
-			file.substring(0, i));
 	    }
 	}
 	Set    names = new TreeSet();
