@@ -91,9 +91,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   MenuItem EditPaste;
   JButton ToolPaste;
   JButton FormulaOk;
-  CheckboxMenuItem CellDim3D3D;
-  CheckboxMenuItem CellDim2D2D;
-  CheckboxMenuItem CellDim2D3D;
+  CheckboxMenuItem CellDim3D3D, CellDim2D2D, CellDim2D3D;
+  CheckboxMenuItem DispImage, DispSphereImage,
+                   DispSurface3D, DispSphereSurface3D;
+  CheckboxMenuItem DispColor, DispGray, DispCMY, DispHSV;
   int CurDisplay = 0;
 
   String Clipboard = null;
@@ -134,7 +135,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     MenuItem fileOpen = new MenuItem("Import data...");
     fileOpen.addActionListener(this);
-    fileOpen.setActionCommand("cellImport");
+    fileOpen.setActionCommand("fileOpen");
     file.add(fileOpen);
 
     file.addSeparator();
@@ -193,119 +194,61 @@ public class SpreadSheet extends JFrame implements ActionListener,
     setupSaveas.setActionCommand("setupSaveas");
     setup.add(setupSaveas);
 
-    // cell menu
-    Menu cell = new Menu("Cell");
-    menubar.add(cell);
+    // display menu
+    Menu disp = new Menu("Display");
+    menubar.add(disp);
 
-    MenuItem cellImport = new MenuItem("Import data...");
-    cellImport.addActionListener(this);
-    cellImport.setActionCommand("cellImport");
-    cell.add(cellImport);
-    cell.addSeparator();
+    MenuItem dispEdit = new MenuItem("Edit mappings...");
+    dispEdit.addActionListener(this);
+    dispEdit.setActionCommand("dispEdit");
+    disp.add(dispEdit);
+    disp.addSeparator();
 
     CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)");
     CellDim3D3D.addItemListener(this);
-    cell.add(CellDim3D3D);
+    disp.add(CellDim3D3D);
 
     CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)", true);
     CellDim2D2D.addItemListener(this);
-    cell.add(CellDim2D2D);
+    disp.add(CellDim2D2D);
 
     CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)");
     CellDim2D3D.addItemListener(this);
-    cell.add(CellDim2D3D);
+    disp.add(CellDim2D3D);
+    disp.addSeparator();
 
-    // mappings menu
-    Menu map = new Menu("Mappings");
-    menubar.add(map);
+    DispImage = new CheckboxMenuItem("Image");
+    DispImage.addItemListener(this);
+    disp.add(DispImage);
 
-    MenuItem mapEdit = new MenuItem("Edit mappings...");
-    mapEdit.addActionListener(this);
-    mapEdit.setActionCommand("mapEdit");
-    map.add(mapEdit);
-    map.addSeparator();
+    DispSphereImage = new CheckboxMenuItem("Spherical image");
+    DispSphereImage.addItemListener(this);
+    disp.add(DispSphereImage);
 
-    MenuItem mapColorImage = new MenuItem("Color image");
-    mapColorImage.addActionListener(this);
-    mapColorImage.setActionCommand("mapColorImage");
-    map.add(mapColorImage);
+    DispSurface3D = new CheckboxMenuItem("3-D surface", true);
+    DispSurface3D.addItemListener(this);
+    disp.add(DispSurface3D);
 
-    MenuItem mapGrayImage = new MenuItem("Grayscale image");
-    mapGrayImage.addActionListener(this);
-    mapGrayImage.setActionCommand("mapGrayImage");
-    map.add(mapGrayImage);
+    DispSphereSurface3D = new CheckboxMenuItem("3-D spherical surface");
+    DispSphereSurface3D.addItemListener(this);
+    disp.add(DispSphereSurface3D);
+    disp.addSeparator();
 
-    MenuItem mapCMYImage = new MenuItem("CMY image");
-    mapCMYImage.addActionListener(this);
-    mapCMYImage.setActionCommand("mapCMYImage");
-    map.add(mapCMYImage);
+    DispColor = new CheckboxMenuItem("Color", true);
+    DispColor.addItemListener(this);
+    disp.add(DispColor);
 
-    MenuItem mapHSVImage = new MenuItem("HSV image");
-    mapHSVImage.addActionListener(this);
-    mapHSVImage.setActionCommand("mapHSVImage");
-    map.add(mapHSVImage);
+    DispGray = new CheckboxMenuItem("Grayscale");
+    DispGray.addItemListener(this);
+    disp.add(DispGray);
 
-    MenuItem mapSphereColorImage = new MenuItem("Spherical color image");
-    mapSphereColorImage.addActionListener(this);
-    mapSphereColorImage.setActionCommand("mapSphereColorImage");
-    map.add(mapSphereColorImage);
+    DispCMY = new CheckboxMenuItem("CMY");
+    DispCMY.addItemListener(this);
+    disp.add(DispCMY);
 
-    MenuItem mapSphereGrayImage = new MenuItem("Spherical grayscale image");
-    mapSphereGrayImage.addActionListener(this);
-    mapSphereGrayImage.setActionCommand("mapSphereGrayImage");
-    map.add(mapSphereGrayImage);
-
-    MenuItem mapSphereCMYImage = new MenuItem("Spherical CMY image");
-    mapSphereCMYImage.addActionListener(this);
-    mapSphereCMYImage.setActionCommand("mapSphereCMYImage");
-    map.add(mapSphereCMYImage);
-
-    MenuItem mapSphereHSVImage = new MenuItem("Spherical HSV image");
-    mapSphereHSVImage.addActionListener(this);
-    mapSphereHSVImage.setActionCommand("mapSphereHSVImage");
-    map.add(mapSphereHSVImage);
-
-    MenuItem mapColor3DSurface = new MenuItem("Color 3-D surface");
-    mapColor3DSurface.addActionListener(this);
-    mapColor3DSurface.setActionCommand("mapColor3DSurface");
-    map.add(mapColor3DSurface);
-
-    MenuItem mapGray3DSurface = new MenuItem("Grayscale 3-D surface");
-    mapGray3DSurface.addActionListener(this);
-    mapGray3DSurface.setActionCommand("mapGray3DSurface");
-    map.add(mapGray3DSurface);
-
-    MenuItem mapCMY3DSurface = new MenuItem("CMY 3-D surface");
-    mapCMY3DSurface.addActionListener(this);
-    mapCMY3DSurface.setActionCommand("mapCMY3DSurface");
-    map.add(mapCMY3DSurface);
-
-    MenuItem mapHSV3DSurface = new MenuItem("HSV 3-D surface");
-    mapHSV3DSurface.addActionListener(this);
-    mapHSV3DSurface.setActionCommand("mapHSV3DSurface");
-    map.add(mapHSV3DSurface);
-
-    MenuItem mapColorSphere3DSurface = new MenuItem(
-                                       "Color spherical 3-D surface");
-    mapColorSphere3DSurface.addActionListener(this);
-    mapColorSphere3DSurface.setActionCommand("mapColorSphere3DSurface");
-    map.add(mapColorSphere3DSurface);
-
-    MenuItem mapGraySphere3DSurface = new MenuItem(
-                                      "Grayscale spherical 3-D surface");
-    mapGraySphere3DSurface.addActionListener(this);
-    mapGraySphere3DSurface.setActionCommand("mapGraySphere3DSurface");
-    map.add(mapGraySphere3DSurface);
-
-    MenuItem mapCMYSphere3DSurface = new MenuItem("CMY spherical 3-D surface");
-    mapCMYSphere3DSurface.addActionListener(this);
-    mapCMYSphere3DSurface.setActionCommand("mapCMYSphere3DSurface");
-    map.add(mapCMYSphere3DSurface);
-
-    MenuItem mapHSVSphere3DSurface = new MenuItem("HSV spherical 3-D surface");
-    mapHSVSphere3DSurface.addActionListener(this);
-    mapHSVSphere3DSurface.setActionCommand("mapHSVSphere3DSurface");
-    map.add(mapHSVSphere3DSurface);
+    DispHSV = new CheckboxMenuItem("HSV");
+    DispHSV.addItemListener(this);
+    disp.add(DispHSV);
 
     // set up toolbar
     JToolBar toolbar = new JToolBar();
@@ -320,7 +263,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       JButton b = new JButton(toolFileOpen);
       b.setToolTipText("Import data");
       b.addActionListener(this);
-      b.setActionCommand("cellImport");
+      b.setActionCommand("fileOpen");
       toolbar.add(b);
     }
     toolbar.addSeparator();
@@ -359,7 +302,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       JButton b = new JButton(toolMappingsEdit);
       b.setToolTipText("Edit mappings");
       b.addActionListener(this);
-      b.setActionCommand("mapEdit");
+      b.setActionCommand("dispEdit");
       toolbar.add(b);
     }
     toolbar.add(Box.createHorizontalGlue());
@@ -404,7 +347,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     formulaImport.setAlignmentY(JButton.CENTER_ALIGNMENT);
     formulaImport.setToolTipText("Import data");
     formulaImport.addActionListener(this);
-    formulaImport.setActionCommand("cellImport");
+    formulaImport.setActionCommand("fileOpen");
     size = new Dimension(importIcon.getIconWidth()+4,
                          importIcon.getIconHeight()+4);
     formulaImport.setPreferredSize(size);
@@ -564,67 +507,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("setupSaveas")) saveasFile();
 
     // cell menu commands
-    else if (cmd.equals("cellImport")) loadDataSet();
+    else if (cmd.equals("fileOpen")) loadDataSet();
 
     // mappings menu commands
-    else if (cmd.equals("mapEdit")) createMappings();
-    else if (cmd.equals("mapColorImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.COLOR_IMAGE);
-    }
-    else if (cmd.equals("mapGrayImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.GRAYSCALE_IMAGE);
-    }
-    else if (cmd.equals("mapCMYImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.CMY_IMAGE);
-    }
-    else if (cmd.equals("mapHSVImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.HSV_IMAGE);
-    }
-    else if (cmd.equals("mapSphereColorImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.COLOR_SPHERICAL_IMAGE);
-    }
-    else if (cmd.equals("mapSphereGrayImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.GRAYSCALE_SPHERICAL_IMAGE);
-    }
-    else if (cmd.equals("mapSphereCMYImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.CMY_SPHERICAL_IMAGE);
-    }
-    else if (cmd.equals("mapSphereHSVImage")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.HSV_SPHERICAL_IMAGE);
-    }
-    else if (cmd.equals("mapColor3DSurface")) {
-      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.COLOR_3DSURFACE);
-    }
-    else if (cmd.equals("mapGray3DSurface")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.GRAYSCALE_3DSURFACE);
-    }
-    else if (cmd.equals("mapCMY3DSurface")) {
-      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.CMY_3DSURFACE);
-    }
-    else if (cmd.equals("mapHSV3DSurface")) {
-      DisplayCells[CurDisplay].setMappingScheme(FancySSCell.HSV_3DSURFACE);
-    }
-    else if (cmd.equals("mapColorSphere3DSurface")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.COLOR_SPHERICAL_3DSURFACE);
-    }
-    else if (cmd.equals("mapGraySphere3DSurface")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.GRAYSCALE_SPHERICAL_3DSURFACE);
-    }
-    else if (cmd.equals("mapCMYSphere3DSurface")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.CMY_SPHERICAL_3DSURFACE);
-    }
-    else if (cmd.equals("mapHSVSphere3DSurface")) {
-      DisplayCells[CurDisplay].setMappingScheme(
-                               FancySSCell.HSV_SPHERICAL_3DSURFACE);
-    }
+    else if (cmd.equals("dispEdit")) createMappings();
 
     // formula bar commands
     else if (cmd.equals("formulaCancel")) refreshFormulaBar();
@@ -866,23 +752,37 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Update dimension checkbox menu items in Cell menu. */
-  void refreshDimensionMenuItems() {
+  void refreshDisplayMenuItems() {
+    // update dimension check marks
     int dim = DisplayCells[CurDisplay].getDimension();
-    if (dim == BasicSSCell.JAVA3D_3D) {
-      CellDim3D3D.setState(true);
-      CellDim2D2D.setState(false);
-      CellDim2D3D.setState(false);
-    }
-    else if (dim == BasicSSCell.JAVA2D_2D) {
-      CellDim3D3D.setState(false);
-      CellDim2D2D.setState(true);
-      CellDim2D3D.setState(false);
-    }
-    else {  // dim == BasicSSCell.JAVA3D_2D
-      CellDim3D3D.setState(false);
-      CellDim2D2D.setState(false);
-      CellDim2D3D.setState(true);
-    }
+    if (dim == BasicSSCell.JAVA3D_3D) CellDim3D3D.setState(true);
+    else CellDim3D3D.setState(false);
+    if (dim == BasicSSCell.JAVA2D_2D) CellDim2D2D.setState(true);
+    else CellDim2D2D.setState(false);
+    if (dim == BasicSSCell.JAVA3D_2D) CellDim2D3D.setState(true);
+    else CellDim2D3D.setState(false);
+
+    // update domain mapping scheme check marks
+    int d = DisplayCells[CurDisplay].getMappingSchemeDomain();
+    if (d == FancySSCell.IMAGE) DispImage.setState(true);
+    else DispImage.setState(false);
+    if (d == FancySSCell.SPHERICAL_IMAGE) DispSphereImage.setState(true);
+    else DispSphereImage.setState(false);
+    if (d == FancySSCell.SURFACE3D) DispSurface3D.setState(true);
+    else DispSurface3D.setState(false);
+    if (d == FancySSCell.SPHERICAL_SURFACE3D) DispSphereSurface3D.setState(true);
+    else DispSphereSurface3D.setState(false);
+
+    // update range mapping scheme check marks
+    int r = DisplayCells[CurDisplay].getMappingSchemeRange();
+    if (r == FancySSCell.COLOR) DispColor.setState(true);
+    else DispColor.setState(false);
+    if (r == FancySSCell.GRAYSCALE) DispGray.setState(true);
+    else DispGray.setState(false);
+    if (r == FancySSCell.CMY) DispCMY.setState(true);
+    else DispCMY.setState(false);
+    if (r == FancySSCell.HSV) DispHSV.setState(true);
+    else DispHSV.setState(false);
   }
 
   /** Handles checkbox menu item changes (dimension checkboxes). */
@@ -895,10 +795,41 @@ public class SpreadSheet extends JFrame implements ActionListener,
       else if (i.equals("2-D (Java2D)")) {
         DisplayCells[CurDisplay].setDimension(true, true);
       }
-      else {  // i.equals("2-D (Java3D)")
+      else if (i.equals("2-D (Java3D)")) {
         DisplayCells[CurDisplay].setDimension(true, false);
       }
-      refreshDimensionMenuItems();
+      else if (i.equals("Image")) {
+        DisplayCells[CurDisplay].setMappingSchemeDomain(FancySSCell.IMAGE);
+      }
+      else if (i.equals("Spherical image")) {
+        DisplayCells[CurDisplay].setMappingSchemeDomain(
+                                 FancySSCell.SPHERICAL_IMAGE);
+      }
+      else if (i.equals("3-D surface")) {
+        DisplayCells[CurDisplay].setMappingSchemeDomain(
+                                 FancySSCell.SURFACE3D);
+      }
+      else if (i.equals("3-D spherical surface")) {
+        DisplayCells[CurDisplay].setMappingSchemeDomain(
+                                 FancySSCell.SPHERICAL_SURFACE3D);
+      }
+      else if (i.equals("Color")) {
+        DisplayCells[CurDisplay].setMappingSchemeRange(
+                                 FancySSCell.COLOR);
+      }
+      else if (i.equals("Grayscale")) {
+        DisplayCells[CurDisplay].setMappingSchemeRange(
+                                 FancySSCell.GRAYSCALE);
+      }
+      else if (i.equals("CMY")) {
+        DisplayCells[CurDisplay].setMappingSchemeRange(
+                                 FancySSCell.CMY);
+      }
+      else if (i.equals("HSV")) {
+        DisplayCells[CurDisplay].setMappingSchemeRange(
+                                 FancySSCell.HSV);
+      }
+      refreshDisplayMenuItems();
     }
     catch (VisADException exc) {
       ErrorBox.showError("Cannot alter display dimension.");
@@ -941,7 +872,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // update spreadsheet info
     refreshFormulaBar();
-    refreshDimensionMenuItems();
+    refreshDisplayMenuItems();
   }
 
   /** Handles key presses. */

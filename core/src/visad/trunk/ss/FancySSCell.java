@@ -32,23 +32,20 @@ import visad.data.BadFormException;
     provides an example of GUI extensions to BasicSSCell. */
 public class FancySSCell extends BasicSSCell implements FilenameFilter {
 
-  // Default display mapping types
-  static final int COLOR_IMAGE = 1;
-  static final int GRAYSCALE_IMAGE = 2;
-  static final int CMY_IMAGE = 3;
-  static final int HSV_IMAGE = 4;
-  static final int COLOR_SPHERICAL_IMAGE = 5;
-  static final int GRAYSCALE_SPHERICAL_IMAGE = 6;
-  static final int CMY_SPHERICAL_IMAGE = 7;
-  static final int HSV_SPHERICAL_IMAGE = 8;
-  static final int COLOR_3DSURFACE = 9;
-  static final int GRAYSCALE_3DSURFACE = 10;
-  static final int CMY_3DSURFACE = 11;
-  static final int HSV_3DSURFACE = 12;
-  static final int COLOR_SPHERICAL_3DSURFACE = 13;
-  static final int GRAYSCALE_SPHERICAL_3DSURFACE = 14;
-  static final int CMY_SPHERICAL_3DSURFACE = 15;
-  static final int HSV_SPHERICAL_3DSURFACE = 16;
+  // Custom domain/range type
+  static final int CUSTOM = 0;
+
+  // Default domain mapping types
+  static final int IMAGE = 1;
+  static final int SPHERICAL_IMAGE = 2;
+  static final int SURFACE3D = 3;
+  static final int SPHERICAL_SURFACE3D = 4;
+
+  // Default range mapping types
+  static final int COLOR = 1;
+  static final int GRAYSCALE = 2;
+  static final int CMY = 3;
+  static final int HSV = 4;
 
   /** unselected border */
   static final Border GRAY3 = new LineBorder(Color.gray, 3);
@@ -63,7 +60,8 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
   JFrame WidgetFrame = null;
 
   /** default mapping type */
-  int DefaultMappingType = COLOR_3DSURFACE;
+  int MappingDomain = SURFACE3D;
+  int MappingRange = COLOR;
 
   /** Specifies whether this cell is selected. */
   boolean Selected = false;
@@ -119,8 +117,7 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     this(name, null, null);
   }
 
-  /** Sets the ScalarMaps for this cell, and creates appropriate
-      control widgets. */
+  /** Sets the ScalarMaps for this cell and creates needed control widgets. */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     super.setMaps(maps);
@@ -203,17 +200,41 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
   public void setData(Data data) throws VisADException, RemoteException {
 
     super.setData(data);
-    setMappingScheme(DefaultMappingType);
+    setMappingScheme(MappingDomain, MappingRange);
   }
 
   /** Sets the dimension for this cell, and applies the default ScalarMaps. */
   public void setDimension(boolean twoD, boolean java2d)
                               throws VisADException, RemoteException {
     super.setDimension(twoD, java2d);
-    setMappingScheme(DefaultMappingType);
+    setMappingScheme(MappingDomain, MappingRange);
   }
 
-  public void setMappingScheme(int mappingType) {
+  /** Gets the domain for this cell's mapping scheme. */
+  public int getMappingSchemeDomain() {
+    return MappingDomain;
+  }
+
+  /** Gets the range for this cell's mapping scheme. */
+  public int getMappingSchemeRange() {
+    return MappingRange;
+  }
+
+  /** Sets the domain for this cell's mapping scheme. */
+  public void setMappingSchemeDomain(int domainScheme) {
+    setMappingScheme(domainScheme, MappingRange);
+  }
+
+  /** Sets the range for this cell's mapping scheme. */
+  public void setMappingSchemeRange(int rangeScheme) {
+    setMappingScheme(MappingDomain, rangeScheme);
+  }
+
+  /** Sets the mapping scheme for this cell. */
+  public void setMappingScheme(int domainScheme, int rangeScheme) {
+    MappingDomain = domainScheme;
+    MappingRange = rangeScheme;
+
     // parse data's MathType;  find FunctionType of form:
     // ((RealType, ..., RealType) -> (RealType, ..., RealType))
     Data data = DataRef.getData();
@@ -254,153 +275,48 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     DisplayRealType[] r = null;
 
     // set up default ScalarMaps
-    if (mappingType == COLOR_IMAGE) {
+    if (domainScheme == IMAGE) {
       d = new DisplayRealType[2];
       d[0] = Display.XAxis;
       d[1] = Display.YAxis;
+    }
+    else if (domainScheme == SPHERICAL_IMAGE) {
+      d = new DisplayRealType[2];
+      d[0] = Display.Latitude;
+      d[1] = Display.Longitude;
+    }
+    else if (domainScheme == SURFACE3D) {
+      d = new DisplayRealType[3];
+      d[0] = Display.XAxis;
+      d[1] = Display.YAxis;
+      d[2] = Display.ZAxis;
+    }
+    else if (domainScheme == SPHERICAL_SURFACE3D) {
+      d = new DisplayRealType[3];
+      d[0] = Display.Latitude;
+      d[1] = Display.Longitude;
+      d[2] = Display.Radius;
+    }
+
+    if (rangeScheme == COLOR) {
       r = new DisplayRealType[3];
       r[0] = Display.Red;
       r[1] = Display.Green;
       r[2] = Display.Blue;
     }
-    else if (mappingType == GRAYSCALE_IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
+    else if (rangeScheme == GRAYSCALE) {
       r = new DisplayRealType[3];
       r[0] = Display.RGB;
       r[1] = Display.RGB;
       r[2] = Display.RGB;
     }
-    else if (mappingType == CMY_IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
+    else if (rangeScheme == CMY) {
       r = new DisplayRealType[3];
       r[0] = Display.Cyan;
       r[1] = Display.Magenta;
       r[2] = Display.Yellow;
     }
-    else if (mappingType == HSV_IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
-      r = new DisplayRealType[3];
-      r[0] = Display.Hue;
-      r[1] = Display.Saturation;
-      r[2] = Display.Value;
-    }
-    else if (mappingType == COLOR_SPHERICAL_IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      r = new DisplayRealType[3];
-      r[0] = Display.Red;
-      r[1] = Display.Green;
-      r[2] = Display.Blue;
-    }
-    else if (mappingType == GRAYSCALE_SPHERICAL_IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      r = new DisplayRealType[3];
-      r[0] = Display.RGB;
-      r[1] = Display.RGB;
-      r[2] = Display.RGB;
-    }
-    else if (mappingType == CMY_SPHERICAL_IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      r = new DisplayRealType[3];
-      r[0] = Display.Cyan;
-      r[1] = Display.Magenta;
-      r[2] = Display.Yellow;
-    }
-    else if (mappingType == HSV_SPHERICAL_IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      r = new DisplayRealType[3];
-      r[0] = Display.Hue;
-      r[1] = Display.Saturation;
-      r[2] = Display.Value;
-    }
-    else if (mappingType == COLOR_3DSURFACE) {
-      d = new DisplayRealType[3];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
-      d[2] = Display.ZAxis;
-      r = new DisplayRealType[3];
-      r[0] = Display.Red;
-      r[1] = Display.Green;
-      r[2] = Display.Blue;
-    }
-    else if (mappingType == GRAYSCALE_3DSURFACE) {
-      d = new DisplayRealType[3];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
-      d[2] = Display.ZAxis;
-      r = new DisplayRealType[3];
-      r[0] = Display.RGB;
-      r[1] = Display.RGB;
-      r[2] = Display.RGB;
-    }
-    else if (mappingType == CMY_3DSURFACE) {
-      d = new DisplayRealType[3];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
-      d[2] = Display.ZAxis;
-      r = new DisplayRealType[3];
-      r[0] = Display.Cyan;
-      r[1] = Display.Magenta;
-      r[2] = Display.Yellow;
-    }
-    else if (mappingType == HSV_3DSURFACE) {
-      d = new DisplayRealType[3];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
-      d[2] = Display.ZAxis;
-      r = new DisplayRealType[3];
-      r[0] = Display.Hue;
-      r[1] = Display.Saturation;
-      r[2] = Display.Value;
-    }
-    else if (mappingType == COLOR_SPHERICAL_3DSURFACE) {
-      d = new DisplayRealType[3];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      d[2] = Display.Radius;
-      r = new DisplayRealType[3];
-      r[0] = Display.Red;
-      r[1] = Display.Green;
-      r[2] = Display.Blue;
-    }
-    else if (mappingType == GRAYSCALE_SPHERICAL_3DSURFACE) {
-      d = new DisplayRealType[3];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      d[2] = Display.Radius;
-      r = new DisplayRealType[3];
-      r[0] = Display.RGB;
-      r[1] = Display.RGB;
-      r[2] = Display.RGB;
-    }
-    else if (mappingType == CMY_SPHERICAL_3DSURFACE) {
-      d = new DisplayRealType[3];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      d[2] = Display.Radius;
-      r = new DisplayRealType[3];
-      r[0] = Display.Cyan;
-      r[1] = Display.Magenta;
-      r[2] = Display.Yellow;
-    }
-    else if (mappingType == HSV_SPHERICAL_3DSURFACE) {
-      d = new DisplayRealType[3];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      d[2] = Display.Radius;
+    else if (rangeScheme == HSV) {
       r = new DisplayRealType[3];
       r[0] = Display.Hue;
       r[1] = Display.Saturation;
@@ -529,11 +445,6 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     if (confirmClear()) clearCell();
   }
 
-  /** Sets the default scalar mappings for this cell. */
-  public void setDefaultMappings(int mappingType) {
-    DefaultMappingType = mappingType;
-  }
-
   /** Lets the user create ScalarMaps from the current SSPanel's Data
       to its Display. */
   public void addMapDialog() {
@@ -586,6 +497,8 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
       }
     }
     try {
+      MappingDomain = CUSTOM;
+      MappingRange = CUSTOM;
       setMaps(newMaps);
     }
     catch (VisADException exc) {

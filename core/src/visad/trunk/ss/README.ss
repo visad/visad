@@ -22,8 +22,8 @@
   2.2 Menu Commands
     2.2.1 File Menu
     2.2.2 Edit Menu
-    2.2.3 Cell Menu
-    2.2.4 Mappings Menu
+    2.2.3 Setup Menu
+    2.2.4 Display Menu
   2.3 Toolbars
     2.3.1 Main Toolbar
     2.3.2 Formula Toolbar
@@ -132,24 +132,6 @@ desired cell with a mouse button, or press the arrow keys.
 
 2.2.1 File Menu
     Here are the commands from the File menu:
-      New -     Clears all spreadsheet cells;  starts from scratch.
-      Open -    Opens a "spreadsheet file."  Spreadsheet files are small,
-                containing only the instructions needed to recreate a
-                spreadsheet.  They do not contain any actual data, but rather
-                the file names and formulas of the cells.
-      Save -    Saves a "spreadsheet file" under the current name.  
-      Save as - Saves a "spreadsheet file" under a new name.
-      Exit -    Quits the VisAD SpreadSheet User Interface.
-
-2.2.2 Edit Menu
-    Here are the commands from the Edit menu:
-      Cut -      Moves the current cell to the clipboard.
-      Copy -     Copies the current cell to the clipboard.
-      Paste -    Copies the cell in the clipboard to the current cell.
-      Clear -    Clears the current cell.
-
-2.2.3 Cell Menu
-    Here are the commands from the Cell menu:
       Import data -  Brings up a dialog box that allows the user to select a
                      file for the spreadsheet to import to the current cell.
                      Currently, VisAD supports the following file types:
@@ -157,24 +139,26 @@ desired cell with a mouse button, or press the arrow keys.
                      Note that you must have the HDF-EOS and Vis5D file
                      adapter native C code compiled in order to import data
                      sets of those types.
-      3-D (Java3D) - Sets the current cell's display dimension to 3-D.  This
-                     setting requires Java3D.
-      2-D (Java2D) - Sets the current cell's display dimension to 2-D.  This
-                     uses Java2D, which comes with JDK 1.2beta3.  However, in
-                     this mode, nothing can be mapped to ZAxis, Latitude, or
-                     Alpha.  For computers without OpenGL 3-D acceleration,
-                     this mode will provide much better performance, but the
-                     display quality will not be as good as 2-D (Java3D).
-                     This setting is the default, so that non-Java3D-enabled
-                     computers can still use the spreadsheet.
-      2-D (Java3D) - Sets the current cell's display dimension to 2-D.  This
-                     requires Java3D.  In this mode, nothing can be mapped to
-                     ZAxis or Latitude (but things can be mapped to Alpha).
-                     On computers with OpenGL 3-D acceleration, this mode will
-                     probably provide better performance than 2-D (Java2D).
-                     It also has better display quality than 2-D (Java2D).
+      Exit -         Quits the VisAD SpreadSheet User Interface.
 
-2.2.4 Mappings Menu
+2.2.2 Edit Menu
+    Here are the commands from the Edit menu:
+      Cut -   Moves the current cell to the clipboard.
+      Copy -  Copies the current cell to the clipboard.
+      Paste - Copies the cell in the clipboard to the current cell.
+      Clear - Clears the current cell.
+
+2.2.3 Setup Menu
+    Here are the commands from the Setup menu:
+      New -     Clears all spreadsheet cells;  starts from scratch.
+      Open -    Opens a "spreadsheet file."  Spreadsheet files are small,
+                containing only the instructions needed to recreate a
+                spreadsheet.  They do not contain any actual data, but rather
+                the file names and formulas of the cells.
+      Save -    Saves a "spreadsheet file" under the current name.  
+      Save as - Saves a "spreadsheet file" under a new name.
+
+2.2.4 Display Menu
     Here are the commands from the Mappings menu:
       Edit Mappings - Brings up a dialog box which lets you change how the Data
                       object is mapped to the Display.  Click a Display object
@@ -185,19 +169,35 @@ desired cell with a mouse button, or press the arrow keys.
                       you've set up all the mappings to your liking, click the
                       Done button and the spreadsheet will try to display the
                       data object.
-      ** The rest of the commands from the Mappings menu are "quick-maps."
+      3-D (Java3D) -  Sets the current cell's display dimension to 3-D.  This
+                      setting requires Java3D.
+      2-D (Java2D) -  Sets the current cell's display dimension to 2-D.  This
+                      uses Java2D, which comes with JDK 1.2beta3.  However, in
+                      this mode, nothing can be mapped to ZAxis, Latitude, or
+                      Alpha.  For computers without OpenGL 3-D acceleration,
+                      this mode will provide much better performance, but the
+                      display quality will not be as good as 2-D (Java3D).
+                      This setting is the default, so that non-Java3D-enabled
+                      computers can still use the spreadsheet.
+      2-D (Java3D) -  Sets the current cell's display dimension to 2-D.  This
+                      requires Java3D.  In this mode, nothing can be mapped to
+                      ZAxis or Latitude (but things can be mapped to Alpha).
+                      On computers with OpenGL 3-D acceleration, this mode will
+                      probably provide better performance than 2-D (Java2D).
+                      It also has better display quality than 2-D (Java2D).
+
+      ** The rest of the commands from the Display menu are "quick-maps."
          They scan the current cell's data object for a valid flat function
          and map it in a preset fashion.  These built-in "mapping schemes"
          provide common visualization ScalarMap combinations.  If for some
          reason the quick-maps do not work, you will have to edit the mappings
-         manually with the "Edit Mappings" option in the Mappings menu.
+         manually with the "Edit Mappings" option in the Display menu.
 
 2.3 Toolbars
 
 2.3.1 Main Toolbar
     The main toolbar provides shortcuts to the following menu items:
-        File New, File Open, File Save,
-        Edit Cut, Edit Copy, Edit Paste, and Mappings Edit.
+        File Import, Edit Cut, Edit Copy, Edit Paste, and Display Edit.
 The main toolbar has tool tips so each button can be easily identified.
 
 2.3.2 Formula Toolbar
