@@ -734,4 +734,12 @@ public class AREACoordinateSystem
            this.lines == that.lines &&
            this.elements == that.elements);
   }
+
+  /**
+   * Return a String which tells some info about this navigation
+   * @return wordy String
+   */
+  public String toString() {
+     return "Image (" + anav.toString() + ") Projection";
+  }
 }
