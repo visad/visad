@@ -148,8 +148,9 @@ public class Nesti {
   DataReference wnum_last_ref;
   DataReference wnum_low_ref;
   DataReference wnum_hi_ref;
+  DataReference setBand_ref;
 
-  int n_refs = 20;  //- # of above ---
+  int n_refs = 21;  //- # of above ---
 
 
   FunctionType press_tt;
@@ -253,6 +254,7 @@ public class Nesti {
     wnum_last_ref = new DataReferenceImpl("wnum_last_ref");
     wnum_low_ref = new DataReferenceImpl("wnum_low_ref");
     wnum_hi_ref = new DataReferenceImpl("wnum_hi_ref");
+    setBand_ref = new DataReferenceImpl("setBand_ref");
 
 
 //------ Initialize, File I/O  ------------------------
@@ -641,8 +643,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         {
           float gamt = (float) (((Real)(gamt_ref.getData())).getValue());
           float gamw = (float) (((Real)(gamw_ref.getData())).getValue());
+          gamt = (float)Math.pow(10d, (double)gamt);
+          gamw = (float)Math.pow(10d, (double)gamw);
           float gamts = 0.0001f;
           float emis = 1.0f;
+          System.out.println( gamt+"  "+gamw);
           nasti_retrvl_c( rec, gamt, gamw, gamts, emis, p_out);
 
           for ( int i = 0; i < 40; i++ ) {
@@ -711,7 +716,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         public void doAction() throws VisADException, RemoteException {
         if ( ! first )
         {
-          System.out.println("white_cursor_cell: doAction");
           int i;
           red_bar_ref.setData(null);
           RealTuple white_cursor = (RealTuple) white_cursor_ref.getData();
@@ -720,7 +724,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             (int) Math.round((elem + 45.0) / 7.5);
           line =
             (int) Math.round( ((Real) white_cursor.getComponent(1)).getValue() );
-          System.out.println(element+"  "+line);
           if (0 <= line && line < nlines && 0 <= element && element < nelements) {
             i = sample_to_time[line][element];
           }
@@ -844,6 +847,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       refs[17] = new RemoteDataReferenceImpl((DataReferenceImpl)wnum_last_ref);
       refs[18] = new RemoteDataReferenceImpl((DataReferenceImpl)wnum_low_ref);
       refs[19] = new RemoteDataReferenceImpl((DataReferenceImpl)wnum_hi_ref);
+      refs[20] = new RemoteDataReferenceImpl((DataReferenceImpl)setBand_ref);
 
       server_server.setDataReferences(refs);
     }
@@ -879,6 +883,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     wnum_last_ref = refs[17];
     wnum_low_ref = refs[18];
     wnum_hi_ref = refs[19];
+    setBand_ref = refs[20];
 
     RealTupleType rt_type = ((FunctionType)image_ref.getType()).getDomain();
     image_element = (RealType)rt_type.getComponent(0);
@@ -963,7 +968,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     float[][] tt_values;
     float[][] wv_values;
     float[][] oz_values;
-//- double[] rr_a = new double[9127];
     double[][] rr_values_a;
 
     ConstantMap[] red = new ConstantMap[3];
@@ -1031,12 +1035,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
 
       // initial wave number in middle of spectrum
-   //-wnum_last = (wnum_low + wnum_hi) / 2.0f;
       wnum_last = (float)((Real)wnum_last_ref.getData()).getValue();
    
     if(!client)
     {
-
       // white_cursor in image display for selecting spectrum
       init_white_cursor =
         new RealTuple(new Real[] {new Real(image_element, 0.0),
@@ -1044,13 +1046,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       white_cursor_ref.setData(init_white_cursor);
 
       // create red_cursor in spectrum display for setting wave number
-   //-Real init_red_cursor = new Real(wnum1, (double) wnum_last);
-   //-red_cursor_ref.setData(init_red_cursor);
       red_cursor_ref.setData(wnum_last_ref.getData());
     }
-      // initialize image to initial wave number
-   //-do_image(wnum_last);
-
 
       // create image Display using Java3D in 2-D mode
       if (!java2d) {
@@ -1460,11 +1457,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel.add(retrieval);
 
       VisADSlider gamt_slider =
-        new VisADSlider(gamt_ref, 10f, 30f, 20f, RealType.Generic, "gamt");
+        new VisADSlider(gamt_ref, -1f, 5f, 1f, RealType.Generic, "gamt");
       s_panel.add(gamt_slider);
 
       VisADSlider gamw_slider =
-        new VisADSlider(gamw_ref, 20f, 60f, 40f, RealType.Generic, "gamw");
+        new VisADSlider(gamw_ref, -1f, 5f, 1f, RealType.Generic, "gamw");
       s_panel.add(gamw_slider);
 
    if (!client) 
@@ -1488,11 +1485,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             wnum = wnum_hi;
           }
           try {
-        //- do_image(wnum);
             wnum_last = wnum;
             wnum_last_ref.setData(red_cursor);
             do_red_bar(wnum);
-        //- wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
           }
           catch (VisADException exc) {
           }
@@ -1510,15 +1505,32 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
       }
     };
+    CellImpl setBand_cell = new CellImpl() {
+      boolean first = true;
+      public void doAction() throws VisADException, RemoteException {
+        if (! first ) {
+          String band = ((Text)setBand_ref.getData()).getValue();
+          setBand(band);
+        }
+        else {
+          first = false;
+        }
+      }
+    };
+
     if (!client) {
       wnum_field_cell.addReference(wnum_last_ref);
+      setBand_cell.addReference(setBand_ref);
     }
     else {
       RemoteCellImpl remote_wnum_field_cell =
         new RemoteCellImpl(wnum_field_cell);
       remote_wnum_field_cell.addReference(wnum_last_ref);
-    }
 
+      RemoteCellImpl remote_setBand_cell =
+        new RemoteCellImpl(setBand_cell);
+      remote_wnum_field_cell.addReference(setBand_ref);
+    }
   } //- end constructor ChannelImage
 
     /** update red_bar based on wave number */
@@ -1584,7 +1596,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
           }
           try {
-         //-do_image(wnum);
             wnum_last = wnum;
             wnum_last_ref.setData(new Real(wnum1, wnum));
             do_red_bar(wnum);
@@ -1644,7 +1655,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           cmd.equals("ALL") )
       {
         try {
-          setBand( cmd );
+      //- setBand( cmd );
+          setBand_ref.setData(new Text(cmd));
         }
         catch ( VisADException e4 )  {
           System.out.println( e4.getMessage() );
@@ -1696,8 +1708,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
     }
 
-    synchronized void setBand( String band )
-  //void setBand( String band )
+  //synchronized void setBand( String band )
+    void setBand( String band )
       throws VisADException, RemoteException
     {
       double CO2_1_lo = 700;
@@ -1730,7 +1742,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         wnum_map.setRange( (double) wnum_low, (double) wnum_hi );
       }
     }
-  } // end class ChannelImage
+  } //- end class ChannelImage
 
   private native void readProf_c( int i, float[] a, float[] b, int[] c, float[] d, 
                                   float[] p, float[] t, float[] wv, float[] o );
