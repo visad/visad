@@ -295,9 +295,7 @@ public class DataConverter {
 
   // -- MAIN METHOD --
 
-  /** Run 'java visad.util.DataConverter to convert some data. */
-  public static void main(String[] args) {
-    DataConverter dc = new DataConverter();
-  }
+  /** Run 'java visad.util.DataConverter' to convert some data. */
+  public static void main(String[] args) { new DataConverter(); }
 
 }
