@@ -17,7 +17,7 @@ available from the VisAD web page at:
 2. Downloading the VisAD Source Code
 
 To download the VisAD source code, first make sure the current
-directory is a directory in your CLASS_PATH (which we will refer
+directory is a directory in your CLASSPATH (which we will refer
 to as '/parent_dir' through the rest of this README file).
 Then get:
 
@@ -77,15 +77,15 @@ default package (i.e., they do not include a package statement).
 
 3. Building VisAD
 
-Your CLASS_PATH sould include:
+Your CLASSPATH sould include:
 
   1. The parent directory of your visad directory.
   2. The current directory.
 
-Thus if VisAD is installed at /home/me/java/visad and you use csh,
+Thus if VisAD is installed at /parent_dir/visad and you use csh,
 your .cshrc file should include:
 
-  setenv CLASSPATH /home/me/java:.
+  setenv CLASSPATH /parent_dir:.
 
 VisAD requires JDK 1.2 and Java3D.  More information about
 these is available at:
@@ -215,7 +215,7 @@ or:
   ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.jar
  
 which include necessary data files.  Unpack these files in
-/parent_dir (i.e., the directory in your CLASS_PATH where
+/parent_dir (i.e., the directory in your CLASSPATH where
 you unpacked the VisAD source).  They include all necessary
 source code and Makefiles as well as the data files.
 
@@ -261,7 +261,7 @@ visad.jar simply add:
 
    /parent_dir/visad.jar
 
-to your CLASS_PATH.  Then you can compile and run applications
+to your CLASSPATH.  Then you can compile and run applications
 that import the VisAD classes.  However, if your application
 uses the HDF-EOS or Vis5D file format adapters, then you will
 need to compile the native code as described in Section 4 of
