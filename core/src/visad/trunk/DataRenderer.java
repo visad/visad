@@ -865,9 +865,15 @@ System.out.println("checkClose: distance = " + distance);
         int k = getDomainAxis();
         f[0] = x[k]; 
         d = getDirectMap(k).inverseScaleValues(f);
+        RealType rtype = (RealType) getDirectMap(k).getScalar();
+        // WLH 4 Jan 99
+        // convert d from default Unit to actual domain Unit of data
+        Unit[] us = ((Field) data).getDomainUnits();
+        if (us != null && us[0] != null) {
+          d[0] = us[0].toThis(d[0], rtype.getDefaultUnit());
+        }
         // create location string
         float g = (float) d[0];
-        RealType rtype = (RealType) getDirectMap(k).getScalar();
         vect.addElement(rtype.getName() + " = " + g);
         // convert domain value to domain index
         Gridded1DSet set = (Gridded1DSet) ((Field) data).getDomainSet();
