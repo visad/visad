@@ -1408,6 +1408,9 @@ if (image == null) System.out.println("image is null");
     clearScene(renderer);
   }
 
+  public void setLineWidth(float width) {
+  }
+
   /**
    * Add a <CODE>KeyboardBehavior</CODE> for keyboard control of rotation,
    * translation and zoom.  

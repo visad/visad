@@ -147,6 +147,11 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     if (width < 1.0f) width = 1.0f;
     if (Util.isApproximatelyEqual(lineWidth, width)) return;
     lineWidth = width;
+
+    // WLH 2 Dec 2002 in response to qomo2.txt
+    DisplayRendererJ3D dr = (DisplayRendererJ3D) getDisplayRenderer();
+    dr.setLineWidth(width);
+
     changeControl(true);
     getDisplay().reDisplayAll();
   }

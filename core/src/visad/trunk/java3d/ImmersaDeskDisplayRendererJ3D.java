@@ -56,6 +56,10 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
   private ColoringAttributes box_color = null;
   private ColoringAttributes cursor_color = null;
 
+  /** line of box and cursor */
+  private LineAttributes box_line = null;
+  private LineAttributes cursor_line = null;
+
   /** ray information */
   private LineArray ray_geometry = null;
   private ColoringAttributes ray_color = null;
@@ -119,6 +123,12 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
 
     box_geometry.setCoordinates(0, box_verts);
     Appearance box_appearance = new Appearance();
+
+    // WLH 2 Dec 2002 in response to qomo2.txt
+    box_line = new LineAttributes();
+    box_line.setCapability(LineAttributes.ALLOW_WIDTH_WRITE);
+    box_appearance.setLineAttributes(box_line);
+
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
     float[] ctlBox = getRendererControl().getBoxColor();
@@ -130,6 +140,12 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     box_on.addChild(box);
 
     Appearance cursor_appearance = new Appearance();
+
+    // WLH 2 Dec 2002 in response to qomo2.txt
+    cursor_line = new LineAttributes();
+    cursor_line.setCapability(LineAttributes.ALLOW_WIDTH_WRITE);
+    cursor_appearance.setLineAttributes(cursor_line);
+
     cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
     cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
     float[] ctlCursor = getRendererControl().getCursorColor();
@@ -219,6 +235,12 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     Shape3D box = (Shape3D) box_on.getChild(0);
     LineArray box_geometry = (LineArray) box.getGeometry();
     box_geometry.setCoordinates(0, new_verts);
+  }
+
+  // WLH 2 Dec 2002 in response to qomo2.txt
+  public void setLineWidth(float width) {
+    box_line.setLineWidth(width);
+    cursor_line.setLineWidth(width);
   }
 
   private static final float[] box_verts = {
