@@ -658,10 +658,8 @@ The following bugs have been discovered:
    incomplete implementations in VisAD file adapter forms.
 
 If you find a bug in the SpreadSheet user interface not listed above,
-please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
-describing the problem, preferably with a detailed description of how to
-recreate the problem.
+please send e-mail to visad-list@ssec.wisc.edu describing the problem,
+preferably with a detailed description of how to recreate the problem.
 
 If you have any suggestions for features that you would find useful,
-please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
-describing the feature.
+please send e-mail to visad-list@ssec.wisc.edu describing the feature.
