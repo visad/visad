@@ -46,6 +46,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
   boolean any_longitude_rotate = false;
   int longitude_axis = -1;
   ScalarMap longitude_map = null;
+  CoordinateSystem longitude_cs = null;
+  float[][] longitude_coords = null;
 
   public VisADGeometryArray() {
     vertexCount = 0;
@@ -109,13 +111,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     }
   }
 
-  void rotateLongitudes(float[] lons, float base, int axis,
-                        ScalarMap map) {
-    rotateLongitudes(lons, base, axis, map, false);
-  }
-
-  void rotateLongitudes(float[] lons, float base, int axis,
-                        ScalarMap map, boolean bulk) {
+  void rotateLongitudes(float[] lons, float base, boolean bulk)
+       throws VisADException {
     boolean any = false;
     // so rotate longitudes to base
     if (bulk) {
@@ -155,9 +152,21 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       }
     }
     if (any) {
-      float[] coords = map.scaleValues(lons);
-      for (int i=0; i<vertexCount; i++) {
-        coordinates[3 * i + axis] = coords[i];
+      if (longitude_cs == null) {
+        float[] coords = longitude_map.scaleValues(lons);
+        for (int i=0; i<vertexCount; i++) {
+          coordinates[3 * i + longitude_axis] = coords[i];
+        }
+      }
+      else {
+        longitude_coords[longitude_axis] = longitude_map.scaleValues(lons);
+        float[][] coords = longitude_cs.toReference(longitude_coords);
+        int k = 0;
+        for (int i=0; i<vertexCount; i++) {
+          coordinates[k++] = coords[0][i];
+          coordinates[k++] = coords[1][i];
+          coordinates[k++] = coords[2][i];
+        }
       }
       any_longitude_rotate = true;
     }
@@ -173,6 +182,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     any_longitude_rotate = false;
     longitude_map = null;
     longitude_axis = -1;
+    longitude_cs = null;
+    longitude_coords = null;
     Vector mapVector = renderer.getDisplay().getMapVector();
     Enumeration maps = mapVector.elements();
     while(maps.hasMoreElements()) {
@@ -180,26 +191,48 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       DisplayRealType dreal = map.getDisplayScalar();
       DisplayTupleType tuple = dreal.getTuple();
       if (!RealType.Longitude.equals(map.getScalar())) continue;
-      if (Display.Longitude.equals(dreal)) return null; // do nothing!
-      if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
-// System.out.println("getLongitudes: found a map from Longitude to a Cartesian spatial axis");
-        // have found a map from Longitude to a Cartesian spatial axis
+      if (Display.Longitude.equals(dreal) ||
+          Display.CylAzimuth.equals(dreal)) return null; // do nothing!
+      // if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+      if (tuple != null &&
+          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplaySpatialCartesianTuple)))) { // spatial
+
+// System.out.println("getLongitudes: found a map from Longitude to a spatial axis");
+        // have found a map from Longitude to a spatial DisplayRealType
+        // other than Longitude or CylAzimuth
         double[] map_range = map.getRange();
         float map_min = (float) map_range[0];
         float map_max = (float) map_range[1];
+// System.out.println("map = " + map);
 // System.out.println("map_min = " + map_min + " map_max = " + map_max);
-        // get Longitude values
-        int axis = dreal.getTupleIndex();
 
         // leave some information for getLongitudeRange
         longitude_map = map;
-        longitude_axis = axis;
+        longitude_axis = dreal.getTupleIndex();
+        longitude_cs = tuple.getCoordinateSystem(); // may be null
 
-        float[] lons = new float[vertexCount];
-        for (int i=0; i<vertexCount; i++) {
-          lons[i] = coordinates[3 * i + axis];
+        float[] lons = null;
+        if (longitude_cs == null) {
+          for (int i=0; i<vertexCount; i++) {
+            lons = new float[vertexCount];
+            lons[i] = coordinates[3 * i + longitude_axis];
+          }
         }
-        lons = map.inverseScaleValues(lons);
+        else {
+          float[][] coords = new float[3][vertexCount];
+          int k = 0;
+          for (int i=0; i<vertexCount; i++) {
+            coords[0][i] = coordinates[k++];
+            coords[1][i] = coordinates[k++];
+            coords[2][i] = coordinates[k++];
+          }
+          longitude_coords = longitude_cs.fromReference(coords);
+          lons = longitude_coords[longitude_axis];
+        }
+        lons = longitude_map.inverseScaleValues(lons);
         // get range of Longitude values
         float lon_min = Float.MAX_VALUE;
         // float lon_max = Float.MIN_VALUE;
@@ -242,13 +275,13 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
               // so rotate longitudes to base at map_min
 // System.out.println("rotateLongitudes to map_min " + map_min);
               any_rotate = true;
-              rotateLongitudes(lons, map_min, axis, map, bulk);
+              rotateLongitudes(lons, map_min, bulk);
             }
           }
         }
         if (!any_rotate && (lon_min + 360.0f) < lon_max) {
 // System.out.println("rotateLongitudes to lon_min " + lon_min);
-          rotateLongitudes(lons, lon_min, axis, map, bulk);
+          rotateLongitudes(lons, lon_min, bulk);
         }
 /*
 for (int i=0; i<vertexCount; i++) {
@@ -272,6 +305,7 @@ for (int i=0; i<vertexCount; i++) {
     return latlons[1];
   }
 
+  // always called after getLongitudes()
   float[] getLongitudeRange(float[] lons, int[] axis,
                             float[] coords) {
     float[] lon_range = {Float.NaN, Float.NaN};
@@ -310,15 +344,16 @@ for (int i=0; i<vertexCount; i++) {
         lon_range[0] = lon_min;
         lon_range[1] = lon_min + 360.0f;
       }
-      axis[0] = longitude_axis;
-      if (longitude_map != null) {
+      if (longitude_map != null && longitude_cs == null) {
         float[] xcoords = longitude_map.scaleValues(lon_range);
         coords[0] = xcoords[0];
         coords[1] = xcoords[1];
+        axis[0] = longitude_axis;
       }
       else {
         coords[0] = Float.NaN;
         coords[1] = Float.NaN;
+        axis[0] = -1;
       }
     }
     return lon_range;
