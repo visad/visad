@@ -22,7 +22,6 @@ MA 02111-1307, USA
 
 import java.rmi.RemoteException;
 
-
 import visad.DataReference;
 import visad.DisplayImpl;
 import visad.LocalDisplay;
@@ -33,6 +32,8 @@ import visad.RemoteSourceListener;
 import visad.VisADException;
 
 import visad.util.ClientServer;
+import visad.util.CmdlineConsumer;
+import visad.util.CmdlineParser;
 
 public abstract class TestSkeleton
   extends Thread
