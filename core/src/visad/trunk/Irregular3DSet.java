@@ -158,7 +158,7 @@ public class Irregular3DSet extends IrregularSet {
     Delan = null;
   }
 
-  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+  public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
     if (samples.length == 3) {
       if (ManifoldDimension == 1) {
         return new Irregular3DSet(type, samples, newToOld, oldToNew,
@@ -608,7 +608,7 @@ public class Irregular3DSet extends IrregularSet {
 
     } // end for (int jj=0; jj<npolygons; jj++)
 
-    VisADGeometryArray[] arrays = new VisADGeometryArray[3];
+    VisADLineArray[] arrays = new VisADLineArray[3];
     arrays[0] = new VisADLineArray();
     float[][] coordinates = new float[3][numv];
     System.arraycopy(vx, 0, coordinates[0], 0, numv);

@@ -402,6 +402,10 @@ public class DisplayImplJ3D extends DisplayImpl {
         System.out.println("  23: Cyan & Magenta");
         System.out.println("  24: HSV");
         System.out.println("  25: CMY");
+        System.out.println("  26: scale");
+        System.out.println("  27: interactive scale");
+        System.out.println("  28: flow");
+        System.out.println("  29: 2-D irregular surface");
 
         return;
 
@@ -1256,7 +1260,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       case 22:
 
         System.out.println(test_case + ": test Hue & Saturation");
-        size = 8;
+        size = 32;
         imaget1 = FlatField.makeField(image_tuple, size, false);
 
         display1 = new DisplayImplJ3D("display1", APPLETFRAME);
@@ -1327,6 +1331,173 @@ public class DisplayImplJ3D extends DisplayImpl {
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
 
+        break;
+
+      case 26:
+ 
+        System.out.println(test_case + ": test scale");
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        ScalarMap map1lat = new ScalarMap(RealType.Latitude, Display.YAxis);
+        display1.addMap(map1lat);
+        ScalarMap map1lon = new ScalarMap(RealType.Longitude, Display.XAxis);
+        display1.addMap(map1lon);
+        ScalarMap map1vis = new ScalarMap(vis_radiance, Display.ZAxis);
+        display1.addMap(map1vis);
+        display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+
+        mode = display1.getGraphicsModeControl();
+        mode.setScaleEnable(true);
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        boolean forever = true;
+        while (forever) {
+          // delay(5000);
+          try {
+            Thread.sleep(5000);
+          }
+          catch (InterruptedException e) {
+          }
+          System.out.println("\ndelay\n");
+          double[] range1lat = map1lat.getRange();
+          double[] range1lon = map1lon.getRange();
+          double[] range1vis = map1vis.getRange();
+          double inclat = 0.05 * (range1lat[1] - range1lat[0]);
+          double inclon = 0.05 * (range1lon[1] - range1lon[0]);
+          double incvis = 0.05 * (range1vis[1] - range1vis[0]);
+          map1lat.setRange(range1lat[1] + inclat, range1lat[0] - inclat);
+          map1lon.setRange(range1lon[1] + inclon, range1lon[0] - inclon);
+          map1vis.setRange(range1vis[1] + incvis, range1vis[0] - incvis);
+        }
+
+        break;
+
+      case 27:
+ 
+        System.out.println(test_case + ": test interactive scale");
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        final ScalarMap map2lat = new ScalarMap(RealType.Latitude, Display.YAxis);
+        display1.addMap(map2lat);
+        final ScalarMap map2lon = new ScalarMap(RealType.Longitude, Display.XAxis);
+        display1.addMap(map2lon);
+        final ScalarMap map2vis = new ScalarMap(vis_radiance, Display.ZAxis);
+        display1.addMap(map2vis);
+        display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+ 
+        mode = display1.getGraphicsModeControl();
+        mode.setScaleEnable(true);
+        mode.setPointSize(5.0f);
+        mode.setPointMode(false);
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        try {
+          Thread.sleep(2000);
+        }
+        catch (InterruptedException e) {
+        }
+        double[] range1lat = map2lat.getRange();
+        double[] range1lon = map2lon.getRange();
+        double[] range1vis = map2vis.getRange();
+
+        RealTuple direct_low = new RealTuple(new Real[]
+                         {new Real(RealType.Latitude, range1lat[0]),
+                          new Real(RealType.Longitude, range1lon[0]),
+                          new Real(vis_radiance, range1vis[0])});
+        RealTuple direct_hi = new RealTuple(new Real[]
+                         {new Real(RealType.Latitude, range1lat[1]),
+                          new Real(RealType.Longitude, range1lon[1]),
+                          new Real(vis_radiance, range1vis[1])});
+
+        final DataReferenceImpl ref_direct_low =
+          new DataReferenceImpl("ref_direct_low");
+        ref_direct_low.setData(direct_low);
+        // color low and hi tuples yellow
+        ConstantMap[][] maps = {{new ConstantMap(1.0f, Display.Red),
+                                 new ConstantMap(1.0f, Display.Green),
+                                 new ConstantMap(0.0f, Display.Blue)}};
+        display1.addReferences(new DirectManipulationRendererJ3D(),
+                               new DataReference[] {ref_direct_low}, maps);
+ 
+        final DataReferenceImpl ref_direct_hi =
+          new DataReferenceImpl("ref_direct_hi");
+        ref_direct_hi.setData(direct_hi);
+        display1.addReferences(new DirectManipulationRendererJ3D(),
+                               new DataReference[] {ref_direct_hi}, maps);
+ 
+        cell = new CellImpl() {
+          public void doAction() throws VisADException, RemoteException {
+            RealTuple low = (RealTuple) ref_direct_low.getData();
+            RealTuple hi = (RealTuple) ref_direct_hi.getData();
+            map2lat.setRange(((Real) low.getComponent(0)).getValue(),
+                             ((Real) hi.getComponent(0)).getValue());
+            map2lon.setRange(((Real) low.getComponent(1)).getValue(),
+                             ((Real) hi.getComponent(1)).getValue());
+            map2vis.setRange(((Real) low.getComponent(2)).getValue(),
+                             ((Real) hi.getComponent(2)).getValue());
+          }
+        };
+        cell.addReference(ref_direct_low);
+        cell.addReference(ref_direct_hi);
+
+        break;
+
+      case 28:
+ 
+        System.out.println(test_case + ": test flow");
+ 
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        ScalarMap map28flow = new ScalarMap(vis_radiance, Display.Flow1X);
+        display1.addMap(map28flow);
+        display1.addMap(new ScalarMap(ir_radiance, Display.Flow1Y));
+ 
+        FlowControl control28flow = (FlowControl) map28flow.getControl();
+        control28flow.setFlowScale(0.06f);
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 29:
+ 
+        System.out.println(test_case + ": test 2-D irregular surface");
+ 
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, true);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
         break;
 
     } // end switch(test_case)

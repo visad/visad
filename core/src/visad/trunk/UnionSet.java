@@ -24,12 +24,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+//
+// TO_DO
+// getWedge
+//
+
 /**
    UnionSet is the union of an array of SampledSets.<P>
 */
 public class UnionSet extends SampledSet {
 
-  public SampledSet[] Sets;
+  SampledSet[] Sets;
 
   /** construct a UnionSet with an array of SampledSets */
   public UnionSet(MathType type, SampledSet[] sets) throws VisADException {
@@ -60,12 +65,25 @@ public class UnionSet extends SampledSet {
     for (int i=0; i<sets.length; i++) {
       Length += Sets[i].Length;
     }
+    Low = new float[DomainDimension];
+    Hi = new float[DomainDimension];
+    for (int i=0; i<DomainDimension; i++) {
+      Low[i] = Sets[0].Low[i];
+      Hi[i] = Sets[0].Hi[i];
+      for (int j=1; j<sets.length; j++) {
+        if (sets[j].Low[i] < Low[i]) Low[i] = sets[j].Low[i];
+        if (sets[j].Hi[i] > Hi[i]) Hi[i] = sets[j].Hi[i];
+      }
+    }
   }
 
   private static int find_manifold_dim(SampledSet[] sets)
                                         throws VisADException {
     if (sets == null || sets[0] == null) {
       throw new SetException("UnionSet: Sets cannot be missing");
+    }
+    if (sets.length < 2) {
+      throw new SetException("UnionSet: must be at least 2 sets");
     }
     int dim = sets[0].DomainDimension;
     int mdim = sets[0].ManifoldDimension;
@@ -79,6 +97,249 @@ public class UnionSet extends SampledSet {
       }
     }
     return mdim;
+  }
+
+  /** construct a UnionSet with an array of SampledSets */
+  public UnionSet(SampledSet[] sets) throws VisADException {
+    this(sets[0].getType(), sets, null, null, null, true);
+  }
+
+  /** return a SampledSet that is a UnionSet of ProductSets of
+      GriddedSets and IrregularSets */
+  public SampledSet product() throws VisADException {
+    int n = Sets.length;
+    SampledSet[] sets = new SampledSet[n];
+    int count = 0;
+    for (int i=0; i<n; i++) {
+      if (Sets[i] instanceof GriddedSet ||
+          Sets[i] instanceof IrregularSet) {
+        sets[i] = Sets[i];
+      }
+      else if (Sets[i] instanceof ProductSet) { 
+        sets[i] = ((ProductSet) Sets[i]).product();
+      }
+      else if (Sets[i] instanceof UnionSet) {
+        sets[i] = ((UnionSet) Sets[i]).product();
+      }
+      else {
+        throw new UnimplementedException("ProductSet.product: " +
+                                         Sets[i].getClass());
+      }
+      if (sets[i] instanceof UnionSet) {
+        count += ((UnionSet) sets[i]).Sets.length;
+      }
+      else {
+        count++;
+      }
+    } // end for (int i=0; i<n; i++)
+    SampledSet[] summands = new SampledSet[count];
+    int k = 0;
+    for (int i=0; i<n; i++) {
+      if (sets[i] instanceof UnionSet) {
+        for (int j=0; j<((UnionSet) sets[i]).Sets.length; j++) {
+          summands[k++] = ((UnionSet) sets[i]).Sets[j];
+        }
+      }
+      else {
+        summands[k++] = sets[i];
+      }
+    }
+    return new UnionSet(getType(), summands);
+  }
+
+  public SampledSet product(SampledSet set) throws VisADException {
+    int n = Sets.length;
+    SampledSet[] sets = new SampledSet[n];
+    boolean union_of_union = false;
+    for (int i=0; i<n; i++) {
+      if (Sets[i] instanceof ProductSet) {
+        sets[i] = ((ProductSet) Sets[i]).product(set);
+      }
+      else {
+        if (set instanceof ProductSet) {
+          sets[i] = ((ProductSet) set).inverseProduct(Sets[i]);
+        }
+        else if (set instanceof UnionSet) {
+          sets[i] = ((UnionSet) set).inverseProduct(Sets[i]);
+          union_of_union = true;
+        }
+        else {
+          sets[i] = new ProductSet(new SampledSet[] {Sets[i], set});
+        }
+      }
+    }
+    SampledSet union = new UnionSet(sets);
+    if (union_of_union) {
+      union = ((UnionSet) union).product();
+    }
+    return union;
+  }
+
+  public SampledSet inverseProduct(SampledSet set) throws VisADException {
+    int n = Sets.length;
+    SampledSet[] sets = new SampledSet[n];
+    boolean union_of_union = false;
+    for (int i=0; i<n; i++) {
+      if (Sets[i] instanceof ProductSet) {
+        sets[i] = ((ProductSet) Sets[i]).inverseProduct(set);
+      }
+      else {
+        if (set instanceof ProductSet) {
+          sets[i] = ((ProductSet) set).product(Sets[i]);
+        }
+        else if (set instanceof UnionSet) {
+          sets[i] = ((UnionSet) set).product(Sets[i]);
+          union_of_union = true;
+        }
+        else {
+          sets[i] = new ProductSet(new SampledSet[] {set, Sets[i]});
+        }
+      }
+    }
+    SampledSet union = new UnionSet(sets);
+    if (union_of_union) {
+      union = ((UnionSet) union).product();
+    }
+    return union;
+  }
+
+  public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+    int n = Sets.length;
+    int dim = samples.length;
+    if (dim != DomainDimension) {
+      throw new SetException("UnionSet.makeSpatial: samples bad dimension");
+    }
+    SampledSet[] sets = new SampledSet[n];
+    int base = 0;
+    for (int i=0; i<n; i++) {
+      int len = Sets[i].Length;
+      float[][] s = new float[dim][len];
+      for (int j=0; j<dim; j++) {
+        for (int k=0; k<len; k++) s[j][k] = samples[j][base + k];
+      }
+      sets[i] = (SampledSet) Sets[i].makeSpatial(type, s);
+      base += len;
+    }
+    return new UnionSet((SetType) sets[0].getType(), sets);
+  }
+
+  /** create a 2-D GeometryArray from this Set and color_values */
+  public VisADGeometryArray make2DGeometry(float[][] color_values)
+         throws VisADException {
+    if (DomainDimension != 3) {
+      throw new SetException("UnionSet.make2DGeometry: " +
+                              "DomainDimension must be 3");
+    }
+    if (ManifoldDimension != 2) {
+      throw new SetException("UnionSet.make2DGeometry: " +
+                              "ManifoldDimension must be 2");
+    }
+    int n = Sets.length;
+    int dim = color_values.length;
+    if (dim != DomainDimension) {
+      throw new SetException("UnionSet.makeSpatial: color_values bad dimension");
+    }
+    VisADIndexedTriangleStripArray[] arrays =
+      new VisADIndexedTriangleStripArray[n];
+    int base = 0;
+    for (int i=0; i<n; i++) {
+      int len = Sets[i].Length;
+      float[][] c = new float[dim][len];
+      for (int j=0; j<dim; j++) {
+        for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+      }
+      arrays[i] = (VisADIndexedTriangleStripArray) Sets[i].make2DGeometry(c);
+      base += len;
+    }
+    return VisADIndexedTriangleStripArray.merge(arrays);
+  }
+
+  /** return basic lines in array[0], fill-ins in array[1]
+      and labels in array[2] */
+  public VisADGeometryArray[] makeIsoLines(float interval, float low,
+                      float hi, float base, float[] fieldValues,
+                      float[][] color_values) throws VisADException {
+    if (DomainDimension != 3) {
+      throw new SetException("UnionSet.makeIsoLines: " +
+                             "DomainDimension must be 3");
+    }
+    if (ManifoldDimension != 2) {
+      throw new SetException("UnionSet.makeIsoLines: " +
+                             "ManifoldDimension must be 2");
+    }
+    int n = Sets.length;
+    int dim = color_values.length;
+    if (dim != DomainDimension) {
+      throw new SetException("UnionSet.makeIsoLines: " +
+                             "color_values bad dimension");
+    }
+    VisADLineArray[][] arrays = new VisADLineArray[n][];
+    int kbase = 0;
+    for (int i=0; i<n; i++) {
+      int len = Sets[i].Length;
+      float[][] c = new float[dim][len];
+      float[] f = new float[len];
+      for (int j=0; j<dim; j++) {
+        for (int k=0; k<len; k++) c[j][k] = color_values[j][kbase + k];
+      }
+      for (int k=0; k<len; k++) f[k] = fieldValues[kbase + k];
+      arrays[i] =
+        (VisADLineArray[]) Sets[i].makeIsoLines(interval, low, hi, base, f, c);
+      kbase += len;
+    }
+    VisADLineArray[] arrays2 = new VisADLineArray[3];
+    for (int j=0; j<3; j++) {
+      VisADLineArray[] arrays3 = new VisADLineArray[n];
+      for (int i=0; i<n; i++) {
+        arrays3[i] = arrays[i][j];
+      }
+      arrays2[j] = VisADLineArray.merge(arrays3);
+    }
+    return arrays2;
+  }
+ 
+  public VisADGeometryArray makeIsoSurface(float isolevel,
+         float[] fieldValues, float[][] color_values)
+         throws VisADException {
+    if (DomainDimension != 3) {
+      throw new SetException("UnionSet.makeIsoSurface: " +
+                             "DomainDimension must be 3");
+    }
+    if (ManifoldDimension != 3) {
+      throw new SetException("UnionSet.makeIsoSurface: " +
+                             "ManifoldDimension must be 3");
+    }
+    int n = Sets.length;
+    int dim = color_values.length;
+    if (dim != DomainDimension) {
+      throw new SetException("UnionSet.makeIsoSurface: " +
+                             "color_values bad dimension");
+    }
+    VisADIndexedTriangleStripArray[] arrays =
+      new VisADIndexedTriangleStripArray[n];
+    int base = 0;
+    for (int i=0; i<n; i++) {
+      int len = Sets[i].Length;
+      float[][] c = new float[dim][len];
+      float[] f = new float[len];
+      for (int j=0; j<dim; j++) {
+        for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
+      }
+      for (int k=0; k<len; k++) f[k] = fieldValues[base + k];
+      arrays[i] =
+        (VisADIndexedTriangleStripArray) Sets[i].makeIsoSurface(isolevel, f, c);
+      base += len;
+    }
+    return VisADIndexedTriangleStripArray.merge(arrays);
+  }
+
+  /** copied from Set */
+  public float[][] getSamples(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    // do NOT call getWedge
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToValue(indices);
   }
 
   /** convert an array of 1-D indices to an

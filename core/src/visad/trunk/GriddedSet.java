@@ -160,12 +160,20 @@ public class GriddedSet extends SampledSet {
     }
   }
 
-  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+  public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
     return create(type, samples, Lengths, null, null, null, false);
   }
 
   public int getLength(int i) {
     return Lengths[i];
+  }
+
+  public int[] getLengths() {
+    int[] lens = new int[Lengths.length];
+    for (int i=0; i<Lengths.length; i++) {
+      lens[i] = Lengths[i];
+    }
+    return lens;
   }
 
   /** returns a zig-zagging ennumeration of index values with

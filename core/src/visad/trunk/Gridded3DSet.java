@@ -1457,7 +1457,7 @@ public class Gridded3DSet extends GriddedSet {
     System.arraycopy(vx, 0, grid_label[0], 0, numv3[0]);
     System.arraycopy(vy, 0, grid_label[1], 0, numv3[0]);
 
-    VisADGeometryArray[] arrays = new VisADGeometryArray[3];
+    VisADLineArray[] arrays = new VisADLineArray[3];
     arrays[0] = new VisADLineArray();
     setGeometryArray(arrays[0], gridToValue(grid1), 3, color_levels1);
     grid1 = null;

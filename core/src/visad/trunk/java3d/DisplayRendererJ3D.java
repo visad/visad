@@ -372,9 +372,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       while(strings.hasMoreElements()) {
         String string = (String) strings.nextElement();
         try {
+/* WLH 20 Feb 98
           VisADLineArray array =
             PlotText.render_label(string, start, base, up, false,
                                   GeometryArray.COORDINATES);
+*/
+          VisADLineArray array =
+            PlotText.render_label(string, start, base, up, false);
           graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
           start[1] -= 1.2 * up[1];
         }
@@ -394,9 +398,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       while (exceptions.hasMoreElements()) {
         String string = (String) exceptions.nextElement();
         try {
+/* WLH 20 Feb 98
           VisADLineArray array =
             PlotText.render_label(string, startl, base, up, false,
                                   GeometryArray.COORDINATES);
+*/
+          VisADLineArray array =
+            PlotText.render_label(string, startl, base, up, false);
           graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
           startl[1] += 1.2 * up[1];
         }
@@ -434,6 +442,15 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return !directs.isEmpty();
   }
 
+  public void setScaleOn(boolean on) {
+    if (on) {
+      scale_switch.setWhichChild(1); // on
+    }
+    else {
+      scale_switch.setWhichChild(0); // off
+    }
+  }
+
   public void setScale(int axis, int axis_ordinal,
               VisADLineArray array) throws VisADException {
     // add array to scale_on
@@ -448,8 +465,30 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     group.setCapability(BranchGroup.ALLOW_DETACH);
     group.addChild(shape);
     // may only add BranchGroup to 'live' scale_on
-    scale_on.addChild(group);
+    int dim = getMode2D() ? 2 : 3;
+    synchronized (scale_on) {
+      int n = scale_on.numChildren();
+      int m = dim * axis_ordinal + axis;
+      if (m >= n) {
+        for (int i=n; i<=m; i++) {
+          BranchGroup empty = new BranchGroup();
+          empty.setCapability(BranchGroup.ALLOW_DETACH);
+          scale_on.addChild(empty);
+        }
+      }
+      scale_on.setChild(group, m);
+    }
+  }
 
+  public void clearScales() {
+    if (scale_on != null) {
+      synchronized (scale_on) {
+        int n = scale_on.numChildren();
+        for (int i=n-1; i>=0; i--) {
+          scale_on.removeChild(i);
+        }
+      }
+    }
   }
 
   public void setTransform3D(Transform3D t) {

@@ -304,7 +304,7 @@ public abstract class Set extends DataImpl {
                             SetErrors, false);
   }
 
-  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+  public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
     throw new SetException("Set.makeSpatial: not valid for this Set");
   }
 

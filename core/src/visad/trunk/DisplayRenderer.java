@@ -80,10 +80,15 @@ public abstract class DisplayRenderer extends Object {
       axisOrdinals[1] = -1;
       axisOrdinals[2] = -1;
     }
+    clearScales();
   }
 
   public abstract void setScale(int axis, int axis_ordinal,
-                       VisADLineArray array) throws VisADException;
+                  VisADLineArray array) throws VisADException;
+
+  public abstract void clearScales();
+
+  public abstract void setScaleOn(boolean on);
 
   public boolean getMode2D() {
     return false;

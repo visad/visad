@@ -25,12 +25,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+//
+// TO_DO
+// getWedge
+//
+
 /**
    ProductSet is the cross-product of an array of SampledSets.<P>
 */
 public class ProductSet extends SampledSet {
 
-  public SampledSet[] Sets;
+  SampledSet[] Sets;
 
   /** construct a ProductSet with an array of SampledSets */
   public ProductSet(MathType type, SampledSet[] sets) throws VisADException {
@@ -67,14 +72,219 @@ public class ProductSet extends SampledSet {
     for (int i=0; i<sets.length; i++) {
       Length *= sets[i].Length;
     }
+    Low = new float[DomainDimension];
+    Hi = new float[DomainDimension];
+    int base = 0;
+    for (int i=0; i<sets.length; i++) {
+      float[] low = sets[i].getLow();
+      float[] hi = sets[i].getHi();
+      for (int j=0; j<sets[i].getDimension(); j++) {
+        Low[base + j] = low[j];
+        Hi[base + j] = hi[j];
+      }
+    }
   }
 
-  private static int find_manifold_dim(SampledSet[] sets) {
+  private static int find_manifold_dim(SampledSet[] sets)
+          throws VisADException {
+    if (sets == null || sets[0] == null) {
+      throw new SetException("ProductSet: Sets cannot be missing");
+    }
+    if (sets.length < 2) {
+      throw new SetException("ProductSet: must be at least 2 sets");
+    }
     int dim = 0;
     for (int i=0; i<sets.length; i++) {
       dim += sets[i].getManifoldDimension();
     }
     return dim;
+  }
+
+  /** construct a ProductSet with an array of SampledSets */
+  ProductSet(SampledSet[] sets) throws VisADException {
+    this(makeType(sets), sets, null, null, null, true);
+  }
+
+  static MathType makeType(SampledSet[] sets) throws VisADException {
+    int n = sets.length;
+    RealTupleType[] types = new RealTupleType[n];
+    int count = 0;
+    for (int i=0; i<n; i++) {
+      types[i] = ((SetType) sets[i].getType()).getDomain();
+      count += types[i].getDimension();
+    }
+    RealType[] reals = new RealType[count];
+    int k=0;
+    for (int i=0; i<n; i++) {
+      for (int j=0; j<types[i].getDimension(); j++) {
+        reals[k++] = (RealType) types[i].getComponent(j);
+      }
+    }
+    return new SetType(new RealTupleType(reals));
+  }
+
+  public SampledSet product() throws VisADException {
+    int n = Sets.length;
+    SampledSet[] sets = new SampledSet[n];
+    for (int i=0; i<n; i++) {
+      if (Sets[i] instanceof GriddedSet ||
+          Sets[i] instanceof IrregularSet) {
+        sets[i] = Sets[i];
+      }
+      else if (Sets[i] instanceof ProductSet) {
+        sets[i] = ((ProductSet) Sets[i]).product();
+      }
+      else if (Sets[i] instanceof UnionSet) {
+        sets[i] = ((UnionSet) Sets[i]).product();
+      }
+      else {
+        throw new UnimplementedException("ProductSet.product: " +
+                                         Sets[i].getClass());
+      }
+    } // end for (int i=0; i<n; i++)
+    SampledSet prod = sets[0];
+    for (int i=1; i<n; i++) {
+      if (prod instanceof ProductSet) {
+        prod = ((ProductSet) prod).product(sets[i]);
+      }
+      else if (prod instanceof UnionSet) {
+        prod = ((UnionSet) prod).product(sets[i]);
+      }
+      if (sets[i] instanceof ProductSet) {
+        prod = ((ProductSet) sets[i]).inverseProduct(prod);
+      }
+      else if (sets[i] instanceof UnionSet) {
+        prod = ((UnionSet) sets[i]).inverseProduct(prod);
+      }
+      else {
+        prod = new ProductSet(new SampledSet[] {prod, sets[i]});
+      }
+    }
+    return prod;
+  }
+
+  public SampledSet product(SampledSet set) throws VisADException {
+    int n = Sets.length;
+    if (set instanceof ProductSet) {
+      int m = ((ProductSet) set).Sets.length;
+      SampledSet[] sets = new SampledSet[n + m];
+      for (int i=0; i<n; i++) {
+        sets[i] = Sets[i];
+      }
+      for (int j=0; j<m; j++) {
+        sets[n + j] = ((ProductSet) set).Sets[j];
+      }
+      return new ProductSet(sets);
+    }
+    else if (set instanceof UnionSet) {
+      int m = ((UnionSet) set).Sets.length;
+      SampledSet[] sets = new SampledSet[m];
+      for (int j=0; j<m; j++) {
+        sets[j] = product(((UnionSet) set).Sets[j]);
+      }
+      return new UnionSet(sets);
+    }
+    else {
+      SampledSet[] sets = new SampledSet[n + 1];
+      for (int i=0; i<n; i++) sets[i] = Sets[i];
+      sets[n] = set;
+      return new ProductSet(sets);
+    }
+  }
+
+  public SampledSet inverseProduct(SampledSet set) throws VisADException {
+    int n = Sets.length;
+    if (set instanceof ProductSet) {
+      int m = ((ProductSet) set).Sets.length;
+      SampledSet[] sets = new SampledSet[n + m];
+      for (int j=0; j<m; j++) {
+        sets[j] = ((ProductSet) set).Sets[j];
+      }
+      for (int i=0; i<n; i++) {
+        sets[m + i] = Sets[i];
+      }
+      return new ProductSet(sets);
+    }
+    else if (set instanceof UnionSet) {
+      int m = ((UnionSet) set).Sets.length;
+      SampledSet[] sets = new SampledSet[m];
+      for (int j=0; j<m; j++) {
+        sets[j] = inverseProduct(((UnionSet) set).Sets[j]);
+      }
+      return new UnionSet(sets);
+    }
+    else {
+      SampledSet[] sets = new SampledSet[n + 1];
+      sets[0] = set;
+      for (int i=0; i<n; i++) {
+        sets[i + 1] = Sets[i];
+      }
+      return new ProductSet(sets);
+    }
+  }
+
+  /** this should return Gridded3DSet or Irregular3DSet;
+      no need for make*DGeometry or makeIso* in this class */
+  public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+    int n = Sets.length;
+    int dim = samples.length;
+    if (dim != DomainDimension || dim != 3) {
+      throw new SetException("ProductSet.makeSpatial: samples bad dimension");
+    }
+    try {
+      //
+      // TO_DO
+      // make a Gridded3DSet if possible
+      // otherwise be smart in making an Irregular3DSet
+      // note: cannot re-order samples
+      //
+      boolean any_product_or_union = false;
+      for (int i=0; i<n; i++) {
+        if (Sets[i] instanceof ProductSet ||
+            Sets[i] instanceof UnionSet) {
+          any_product_or_union = true;
+        }
+      }
+      if (any_product_or_union) {
+        return product().makeSpatial(type, samples);
+      }
+      else {
+        boolean all_gridded = true;
+        int[] lengths = new int[ManifoldDimension];
+        int k = 0;
+        for (int i=0; i<n; i++) {
+          if (!(Sets[i] instanceof GriddedSet)) {
+            all_gridded = false;
+            break;
+          }
+          int[] ls = ((GriddedSet) Sets[i]).getLengths();
+          for (int j=0; j<ls.length; j++) {
+            lengths[k++] = ls[j];
+          }
+        }
+        if (all_gridded) {
+          return GriddedSet.create(type, samples, lengths);
+        }
+        //
+        // TO_DO
+        // can assume that no factors are ProductSet or UnionSet
+        //
+      }
+      throw new UnimplementedException("ProductSet.makeSpatial");
+    }
+    catch (VisADException e) {
+      return new Irregular3DSet(type, samples, null,
+                                null, null, null, false);
+    }
+  }
+
+  /** copied from Set */
+  public float[][] getSamples(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    // do NOT call getWedge
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToValue(indices);
   }
 
   /** convert an array of 1-D indices to an

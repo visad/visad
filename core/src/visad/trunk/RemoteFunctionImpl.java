@@ -66,6 +66,25 @@ public abstract class RemoteFunctionImpl extends RemoteDataImpl
     return ((FunctionImpl) AdaptedData).getDomainCoordinateSystem();
   }
 
+  public Data evaluate(Real domain)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFunctionImpl.evaluate: " +
+                                     "AdaptedData is null");
+    }
+    return ((FunctionImpl) AdaptedData).evaluate(domain);
+  }
+
+  public Data evaluate(Real domain, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFunctionImpl.evaluate: " +
+                                     "AdaptedData is null");
+    }
+    return ((FunctionImpl) AdaptedData).evaluate(domain,
+                                                 sampling_mode, error_mode);
+  }
+
   public Data evaluate(RealTuple domain)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {

@@ -51,7 +51,22 @@ public abstract class FunctionImpl extends DataImpl implements Function {
     return ((FunctionType) Type).getDomain().getCoordinateSystem();
   }
 
-  /** evaluate this Function at domain; first check that types match;
+  /** evaluate this Function at domain;
+      use default modes for resampling (NEAREST_NEIGHBOR) and errors */
+  public Data evaluate(Real domain)
+         throws VisADException, RemoteException {
+    return evaluate(new RealTuple(new Real[] {domain}),
+                    NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
+  /** evaluate this Function with non-default modes for resampling and errors */
+  public Data evaluate(Real domain, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    return evaluate(new RealTuple(new Real[] {domain}),
+                    sampling_mode, error_mode);
+  }
+
+  /** evaluate this Function at domain;
       use default modes for resampling (NEAREST_NEIGHBOR) and errors */
   public Data evaluate(RealTuple domain)
          throws VisADException, RemoteException {

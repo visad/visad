@@ -75,26 +75,39 @@ jar:
 	ls -l visad-2.0.jar visad.jar
 
 save:
+	/bin/rm backup/*.java backup/java3d/*.java backup/util/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/units/*.java backup/data/fits/*.java backup/data/fits/fits/*.java backup/data/fits/util/*.java backup/data/hdfeos/*.java backup/paoloa/*.java
 	cp *.java backup
 	cp java3d/*.java backup/java3d
+	cp util/*.java backup/util
 	cp data/*.java backup/data
 	cp data/netcdf/*.java backup/data/netcdf
-	cp data/netcdf/plain/*.java backup/data/netcdf/plain
+	cp data/netcdf/units/*.java backup/data/netcdf/units
+	cp data/netcdf/units/*.jj backup/data/netcdf/units
+	cp data/fits/*.java backup/data/fits
+	cp data/fits/fits/*.java backup/data/fits/fits
+	cp data/fits/util/*.java backup/data/fits/util
+	cp data/hdfeos/*.java backup/data/hdfeos
 	cp paoloa/*.java backup/paoloa
 	cp paoloa/*.f backup/paoloa
 	cp paoloa/*.c backup/paoloa
 	cp paoloa/*.h backup/paoloa
 	cp paoloa/Makefile backup/paoloa
-	cp *.txt backup
-	cp *.html backup
+	cp ucar.jar backup
+	cp Gridded1D.txt backup
+	cp Gridded2D.txt backup
+	cp Gridded3D.txt backup
+	cp contour.html backup
+	cp delaunay.html backup
+	cp plotdigits.html backup
 	cp README backup
 	cp DEDICATION backup
 	cp NOTICE backup
 	cp LICENSE backup
+	cp DATE backup
 	cp Makefile backup
 	cp rmic_script backup
 	cp docs/DESIGN5 backup
-	wc backup/*.java backup/java3d/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/plain/*.java backup/paoloa/*.java
+	wc backup/*.java backup/java3d/*.java backup/util/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/units/*.java backup/data/fits/*.java backup/data/fits/fits/*.java backup/data/fits/util/*.java backup/data/hdfeos/*.java backup/paoloa/*.java
 
 .SUFFIXES : .java .class
 

@@ -122,7 +122,7 @@ public abstract class ActionImpl extends Object
 
   public void run() {
     boolean dontSleep = false;
-/*
+/* WLH 28 Feb 98
    put this back once Swing-Java3D bugs are fixed
     try {
       DisplayImpl.delay(500);
@@ -134,7 +134,7 @@ public abstract class ActionImpl extends Object
       if (!dontSleep) {
         try {
           synchronized (this) {
-            wait(5000);
+            wait(2000);
           }
         }
         catch(InterruptedException e) {
@@ -176,7 +176,7 @@ public abstract class ActionImpl extends Object
         v.printStackTrace();
         throw new VisADError("Action.run: " + v.toString());
       }
-/*
+/* WLH 20 Feb 98
       if (!dontSleep) {
         try {
           synchronized (this) {

@@ -2502,7 +2502,7 @@ for (i=0; i<length; i++) {
         dsize = length;
         float[][] samples = new float[1][dsize];
         for (int i=0; i<dsize; i++) {
-          samples[0][i] = length * random.nextFloat();
+          samples[0][i] = (float) (last * random.nextFloat());
         }
         domain_set = new Irregular1DSet(dtype, samples);
       }
@@ -2510,8 +2510,8 @@ for (i=0; i<length; i++) {
         dsize = length * length;
         float[][] samples = new float[2][dsize];
         for (int i=0; i<dsize; i++) {
-          samples[0][i] = length * random.nextFloat();
-          samples[1][i] = length * random.nextFloat();
+          samples[0][i] = (float) (last * random.nextFloat());
+          samples[1][i] = (float) (last * random.nextFloat());
         }
         domain_set = new Irregular2DSet(dtype, samples);
       }
@@ -2521,9 +2521,9 @@ for (i=0; i<length; i++) {
 
         // random Irregular3DSet
         for (int i=0; i<dsize; i++) {
-          samples[0][i] = length * random.nextFloat();
-          samples[1][i] = length * random.nextFloat();
-          samples[2][i] = length * random.nextFloat();
+          samples[0][i] = (float) (last * random.nextFloat());
+          samples[1][i] = (float) (last * random.nextFloat());
+          samples[2][i] = (float) (last * random.nextFloat());
         }
 /*
         // jittered linear Irregular3DSet
@@ -2544,7 +2544,7 @@ for (i=0; i<length; i++) {
         throw new FieldException("FlatField.makeField: bad domain dimension");
       }
     }
-    else {
+    else { // if (!irregular)
       if (domain_dim == 1) {
         domain_set = new Linear1DSet(dtype, first, last, length);
         dsize = length;

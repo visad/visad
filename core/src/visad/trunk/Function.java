@@ -43,6 +43,15 @@ public interface Function extends Data {
   public abstract CoordinateSystem getDomainCoordinateSystem()
          throws VisADException, RemoteException;
 
+  /** evaluate this Function at domain;
+      use default modes for resampling (NEAREST_NEIGHBOR) and errors */
+  public abstract Data evaluate(Real domain)
+         throws VisADException, RemoteException;
+
+  /** evaluate this Function with non-default modes for resampling and errors */
+  public abstract Data evaluate(Real domain, int sampling_mode, int error_mode)
+              throws VisADException, RemoteException;
+
   /** evaluate this Function at domain; first check that types match;
       use default modes for resampling (NEAREST_NEIGHBOR) and errors */
   public abstract Data evaluate(RealTuple domain)

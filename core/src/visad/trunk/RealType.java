@@ -63,6 +63,12 @@ public class RealType extends ScalarType {
   public final static RealType Generic =
     new RealType("GENERIC_REAL", CommonUnit.promiscuous, true);
 
+ 
+  /** construct a RealType with null Unit and default set */
+  public RealType(String name) throws VisADException {
+    this(name, null, null);
+  }
+
   /** construct a RealType with given Unit and default set */
   public RealType(String name, Unit u, Set set) throws VisADException {
     super(name);

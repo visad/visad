@@ -299,5 +299,17 @@ public abstract class SampledSet extends SimpleSet {
     }
   }
 
+  public float[] getLow() {
+    float[] low = new float[Low.length];
+    for (int i=0; i<Low.length; i++) low[i] = Low[i];
+    return low;
+  }
+
+  public float[] getHi() {
+    float[] hi = new float[Hi.length];
+    for (int i=0; i<Hi.length; i++) hi[i] = Hi[i];
+    return hi;
+  }
+
 }
 

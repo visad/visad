@@ -31,5 +31,48 @@ package visad;
 */
 public class VisADLineArray extends VisADGeometryArray {
 
+  public static VisADLineArray merge(VisADLineArray[] arrays)
+         throws VisADException {
+    if (arrays == null || arrays.length == 0) return null;
+    VisADLineArray array = new VisADLineArray();
+    merge(arrays, array);
+/*
+    int n = arrays.length;
+    int count = 0;
+    boolean color_flag = (arrays[0].colors != null);
+    for (int i=0; i<n; i++) {
+      count += arrays[i].vertexCount;
+      if (color_flag != (arrays[i].colors != null)) {
+        throw new DisplayException("VisADLineArray.merge: formats don't match");
+      }
+    }
+    float[] coordinates = new float[3 * count];
+    float[] colors = null;
+    if (color_flag) {
+      colors = new float[3 * count];
+    }
+    int k = 0;
+    int m = 0;
+    for (int i=0; i<n; i++) {
+      float[] c = arrays[i].coordinates;
+      for (int j=0; j<3*arrays[i].vertexCount; j++) {
+        coordinates[k++] = c[j];
+      }
+      if (color_flag) {
+        c = arrays[i].colors;
+        for (int j=0; j<3*arrays[i].vertexCount; j++) {
+          colors[m++] = c[j];
+        }
+      }
+    }
+    VisADLineArray array = new VisADLineArray();
+    array.vertexCount = count;
+    array.coordinates = coordinates;
+    array.colors = colors;
+    array.vertexFormat = arrays[0].vertexFormat;
+*/
+    return array;
+  }
+
 }
 

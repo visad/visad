@@ -127,8 +127,12 @@ public class PlotText extends Object {
              line - line number (0 = first line)
              c - color
   */
+/* WLH 20 Feb 98
   public static VisADLineArray render_label(int axis, double pos, String str,
                                             int line, long c, int COORDINATES) {
+*/
+  public static VisADLineArray render_label(int axis, double pos, String str,
+                                            int line, long c) {
     double XMIN = -1.0;
     double YMIN = -1.0;
     double ZMIN = -1.0;
@@ -163,13 +167,20 @@ public class PlotText extends Object {
       start[1] = YMIN * (1.1 + 0.07*line);
       start[2] = pos;
     }
+/* WLH 20 Feb 98
     return render_label(str, start, base, up, true, COORDINATES);
+*/
+    return render_label(str, start, base, up, true);
   }
 
   /** plot str in 3-D, at start, x along base and y along up,
       center str at start if center is true */
+/* WLH 20 Feb 98
   public static VisADLineArray render_label(String str, double[] start,
          double[] base, double[] up, boolean center, int COORDINATES) {
+*/
+  public static VisADLineArray render_label(String str, double[] start,
+         double[] base, double[] up, boolean center) {
     double[] temp;
     double cx, cy, cz;
     double startx = 0.0;
@@ -321,8 +332,38 @@ public class PlotText extends Object {
     System.arraycopy(plot, 0, coordinates, 0, plot_index);
     array.coordinates = coordinates;
     array.vertexCount = plot_index / 3;
+/* WLH 20 Feb 98
     array.vertexFormat = COORDINATES;
+*/
     return array;
+  }
+
+  /** make a short string for value for use in slider label */
+  public static String shortString(double val) {
+    String s = null;
+    int is = (val < 0.0) ? -1 : 1;
+    val = Math.abs(val);
+    int i = (int) (1000 * val);
+    int i1000 = i / 1000;
+    int i1 = i - 1000 * i1000;
+    String s1000 = (is > 0) ? Integer.toString(i1000) :
+                              "-" + Integer.toString(i1000);
+    if (i1 == 0) {
+      s = s1000;
+    }
+    else {
+      String s1 = Integer.toString(i1);
+      if (s1.length() == 3) {
+        s = s1000 + "." + s1;
+      }
+      else if (s1.length() == 2) {
+        s = s1000 + ".0" + s1;
+      }
+      else {
+        s = s1000 + ".00" + s1;
+      }
+    }
+    return s;
   }
 
 }

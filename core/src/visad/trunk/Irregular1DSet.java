@@ -69,7 +69,7 @@ public class Irregular1DSet extends IrregularSet {
                                  coord_sys, units, errors, false);
   }
 
-  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+  public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
     if (samples.length == 3) {
       return new Irregular3DSet(type, samples, newToOld, oldToNew,
                                 null, null, null, false);

@@ -122,6 +122,7 @@ public class GraphicsModeControlJ3D extends Control
   public void setScaleEnable(boolean enable)
          throws VisADException, RemoteException {
     scaleEnable = enable;
+    getDisplayRenderer().setScaleOn(enable);
     changeControl(true);
   }
  

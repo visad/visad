@@ -147,7 +147,7 @@ public class Irregular2DSet extends IrregularSet {
     Delan = null;
   }
 
-  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+  public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
     if (samples.length == 3) {
       if (ManifoldDimension == 1) {
         return new Irregular3DSet(type, samples, newToOld, oldToNew,

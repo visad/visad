@@ -288,28 +288,149 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     else if (DisplayScalar == Display.XAxis ||
              DisplayScalar == Display.YAxis ||
              DisplayScalar == Display.ZAxis) {
-      if (display != null) {
-        makeScale();
-      }
-      else {
-        scale_flag = true;
+      if (dataRange[0] != Double.MAX_VALUE &&
+          dataRange[1] != -Double.MAX_VALUE &&
+          dataRange[0] == dataRange[0] &&
+          dataRange[1] == dataRange[1] &&
+          dataRange[0] != dataRange[1] &&
+          scale == scale && offset == offset) {
+        if (display != null) {
+          makeScale();
+        }
+        else {
+          scale_flag = true;
+        }
       }
     }
   }
+
+  private static final double SCALE = 0.07;
+  private static final double OFFSET = 1.05;
 
   private void makeScale()
           throws VisADException, RemoteException {
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     axis = (DisplayScalar == Display.XAxis) ? 0 :
            (DisplayScalar == Display.YAxis) ? 1 : 2;
-    axis_ordinal = displayRenderer.getAxisOrdinal(axis);
- 
-    VisADLineArray array = null;
+    if (axis_ordinal < 0) {
+      axis_ordinal = displayRenderer.getAxisOrdinal(axis);
+    }
+    VisADLineArray[] arrays = new VisADLineArray[4];
     boolean twoD = displayRenderer.getMode2D();
-//
+
 // now create scale along axis at axis_ordinal position in array
 // twoD may help define orientation
-//
+
+    // compute graphics positions
+    double[] base = null; // vector from one character to another
+    double[] up = null; // vector from bottom of character to top
+    double[] startn = null; // -1.0 position 
+    double[] startp = null; // +1.0 position 
+
+    double XMIN = -1.0;
+    double YMIN = -1.0;
+    double ZMIN = -1.0;
+
+    double line = 2.0 * axis_ordinal * SCALE;
+
+    double ONE = 1.0;
+    if (dataRange[0] > dataRange[1]) ONE = -1.0;
+    if (axis == 0) {
+      base = new double[] {SCALE, 0.0, 0.0};
+      up = new double[] {0.0, SCALE, SCALE};
+      startp = new double[] {ONE, YMIN * (OFFSET + line), ZMIN * (OFFSET + line)};
+      startn = new double[] {-ONE, YMIN * (OFFSET + line), ZMIN * (OFFSET + line)};
+    }
+    else if (axis == 1) {
+      base = new double[] {0.0, -SCALE, 0.0};
+      up = new double[] {SCALE, 0.0, SCALE};
+      startp = new double[] {XMIN * (OFFSET + line), ONE, ZMIN * (OFFSET + line)};
+      startn = new double[] {XMIN * (OFFSET + line), -ONE, ZMIN * (OFFSET + line)};
+    }
+    else if (axis == 2) {
+      base = new double[] {0.0, 0.0, -SCALE};
+      up = new double[] {SCALE, SCALE, 0.0};
+      startp = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), ONE};
+      startn = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), -ONE};
+    }
+    if (twoD) {
+      base[2] = 0.0;
+      up[2] = 0.0;
+      startn[2] = 0.0;
+      startp[2] = 0.0;
+      if (axis == 2) return;
+    }
+
+    // compute tick mark values
+    double range = Math.abs(dataRange[1] - dataRange[0]);
+    double min = Math.min(dataRange[0], dataRange[1]);
+    double max = Math.max(dataRange[0], dataRange[1]);
+    double tens = 1.0;
+    if (range < tens) {
+      tens /= 10.0;
+      while (range < tens) tens /= 10.0;
+    }
+    else {
+      while (10.0 * tens <= range) tens *= 10.0;
+    }
+    // now tens <= range < 10.0 * tens;
+    double ratio = range / tens;
+    if (ratio < 2.0) {
+      tens /= 5.0;
+    }
+    else if (ratio < 4.0) {
+      tens /= 2.0;
+    }
+
+    int bot = (int) Math.ceil(min / tens);
+    int top = (int) Math.floor(max / tens);
+    arrays[0] = new VisADLineArray();
+    int nticks = (top - bot) + 1;
+    float[] coordinates = new float[6 * (nticks + 1)];
+    // draw base line
+    for (int i=0; i<3; i++) {
+      coordinates[i] = (float) startn[i];
+      coordinates[3 + i] = (float) startp[i];
+    }
+
+    // draw tick marks
+    int k = 6;
+    for (int j=bot; j<=top; j++) {
+      double val = j * tens;
+      double a = (val - min) / (max - min);
+      for (int i=0; i<3; i++) {
+        coordinates[k + i] = (float) ((1.0 - a) * startn[i] + a * startp[i]);
+        coordinates[k + 3 + i] = (float) (coordinates[k + i] - 0.5 * up[i]);
+      }
+      k += 6;
+    }
+    arrays[0].vertexCount = 2 * (nticks + 1);
+    arrays[0].coordinates = coordinates;
+
+    double[] startbot = new double[3];
+    double[] starttop = new double[3];
+    double[] startlabel = new double[3];
+    double botval = bot * tens;
+    double topval = top * tens;
+    double abot = (botval - min) / (max - min);
+    double atop = (topval - min) / (max - min);
+    for (int i=0; i<3; i++) {
+      startbot[i] = (1.0 - abot) * startn[i] + abot * startp[i] - 1.5 * up[i];
+      starttop[i] = (1.0 - atop) * startn[i] + atop * startp[i] - 1.5 * up[i];
+      startlabel[i] = 0.5 * (startn[i] + startp[i]) - 1.5 * up[i];
+    }
+
+    // draw RealType name
+    arrays[1] = PlotText.render_label(Scalar.getName(), startlabel,
+                                      base, up, true);
+    // draw number at bottom tick mark
+    arrays[2] = PlotText.render_label(PlotText.shortString(botval), startbot,
+                                      base, up, true);
+    // draw number at top tick mark
+    arrays[3] = PlotText.render_label(PlotText.shortString(topval), starttop,
+                                      base, up, true);
+
+    VisADLineArray array = VisADLineArray.merge(arrays);
     displayRenderer.setScale(axis, axis_ordinal, array);
     scale_flag = false;
   }
