@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: InputNetcdf.java,v 1.1 1998-06-26 14:25:57 visad Exp $
+ * $Id: InputNetcdf.java,v 1.2 2002-09-20 18:14:41 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -35,44 +35,126 @@ InputNetcdf
     private DataImpl			data;
 
     /**
+     * The quantity database property.
+     */
+    private QuantityDB                  quantityDB;
+
+    /**
      * Support for property changes.
      */
     private final PropertyChangeSupport	changes;
 
 
     /**
-     * Construct.
+     * Construct.  The pathname and data object properties will be 
+     * <code>null</code>; the quantity database property will be {@link
+     * StandardQuantityDB}.
      */
     public
     InputNetcdf()
     {
-	pathname = "dummy.nc";
+	pathname = null;
 	data = null;
 	changes = new PropertyChangeSupport(this);
+	quantityDB = StandardQuantityDB.instance();
     }
 
 
     /**
-     * Set the dataset pathname property.
+     * Set the quantity database property.  The quantity database is used
+     * to transform the incoming netCDF variables into their canonical
+     * {@link RealType}s.  If no transformation is desired, then use {@link
+     * QuantityDB#emptyDB}.  A {@link PropertyChangeEvent} for <code>quantityDB
+     * </code> will be fired, if appropriate.  If the pathname property is
+     * non-<code>null</code>, then the netCDF database will be read and a {@link
+     * PropertyChangeEvent} for the data property will be fired, if appropriate.
+     *
+     * @param db                    The new quantity database.
+     * @throws NullPointerException if the argument is <code>null</code>.
+     * @throws BadFormException     if the netCDF dataset doesn't have the 
+     *                              right form.
+     * @throws IOException          if an error occurs while reading the netCDF
+     *                              dataset.
+     * @throws VisADException       if a VisAD failure occurs.
      */
-    public synchronized void
-    setPathname(String pathname)
+    public void
+    setPathname(QuantityDB db)
+	throws BadFormException, IOException, VisADException
+    {
+	if (db == null)
+	    throw new NullPointerException();
+
+	QuantityDB oldDB;
+	DataImpl oldData;
+	String   name;
+
+	synchronized(this) {
+	    oldDB = quantityDB;
+	    oldData = data;
+	    name = pathname;
+	}
+
+	DataImpl newData = new Plain(db).open(name);
+
+	synchronized(this) {
+	    quantityDB = db;
+	    data = newData;
+	}
+
+        changes.firePropertyChange("quantityDB", oldDB, db);
+        changes.firePropertyChange("data", oldData, newData);
+    }
+
+
+    /**
+     * Sets the dataset name property.  If the name is <code>null</code>,
+     * then the data property will be set to <code>null</code>; otherwise,
+     * the dataset will be read. {@link PropertyChangeEvent}s for the
+     * pathname and data properties will be fired when appropriate.
+     *
+     * @param name                  The new name of the dataset or 
+     *                              <code>null</code>.
+     */
+    public void
+    setPathname(String name)
 	throws IOException, VisADException, BadFormException
     {
-	String		oldPathname = this.pathname;
-	DataImpl	oldData = data;
-	Plain		plain = new Plain();
+        String   oldName;
+	DataImpl oldData;
+        DataImpl newData;
 
-	data = plain.open(pathname);
-	this.pathname = pathname;
+        if (name == null) {
+            synchronized(this) {
+		oldName = pathname;
+		oldData = data;
+	    }
+	    newData = null;
+        }
+        else {
+            QuantityDB      db;
 
-	changes.firePropertyChange("pathname", oldPathname, this.pathname);
-	changes.firePropertyChange("data", oldData, this.data);
+            synchronized(this) {
+                db = quantityDB;
+                oldData = data;
+                oldName = pathname;
+            }
+
+            newData = new Plain(db).open(name);
+
+            synchronized(this) {
+                pathname = name;
+                data = newData;
+            }
+        }
+
+        changes.firePropertyChange("pathname", oldName, name);
+        changes.firePropertyChange("data", oldData, newData);
     }
 
 
     /**
-     * Get the dataset pathname property.
+     * Returns the dataset pathname property.  Returns <code>null</code> if the
+     * property has no value.
      */
     public synchronized String
     getPathname()
@@ -82,7 +164,8 @@ InputNetcdf
 
 
     /**
-     * Get the VisAD data object property.
+     * Returns the VisAD data object property.  Returns <code>null</code> if the
+     * property has no value.
      */
     public synchronized DataImpl
     getData()
