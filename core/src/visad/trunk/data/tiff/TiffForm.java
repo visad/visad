@@ -285,6 +285,8 @@ public class TiffForm extends Form implements FormFileInformer {
    * Opens an existing TIFF file from the given URL.
    *
    * @return VisAD Data object containing TIFF data.
+   *
+   * @exception BadFormException Always thrown (method is not implemented).
    */
   public DataImpl open(URL url)
     throws BadFormException, IOException, VisADException
