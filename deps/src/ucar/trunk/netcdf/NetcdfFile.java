@@ -1,4 +1,4 @@
-// $Id: NetcdfFile.java,v 1.6 2002-05-29 18:31:34 steve Exp $
+// $Id: NetcdfFile.java,v 1.7 2002-07-15 21:37:00 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -53,7 +53,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @see Netcdf
  * @author $Author: steve $
- * @version $Revision: 1.6 $ $Date: 2002-05-29 18:31:34 $
+ * @version $Revision: 1.7 $ $Date: 2002-07-15 21:37:00 $
  */
 public class NetcdfFile	extends AbstractNetcdf {
 
@@ -1233,7 +1233,9 @@ public class NetcdfFile	extends AbstractNetcdf {
                         throws IOException {
                 byte fv = NC_FILL_CHAR;
                 if(fAttr != null)
-                        fv = fAttr.getNumericValue().byteValue();
+                        fv = fAttr.getLength() == 0
+                            ? 0  // because Atribute strips trailing NUL
+                            : fAttr.getNumericValue().byteValue();
                 for(int ii = 0; ii < nbytes; ii++)
                                 dos.write(fv);
         }
@@ -1847,6 +1849,9 @@ public class NetcdfFile	extends AbstractNetcdf {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.12  2002/07/15 21:39:17  steve
+   Changed use of _FillValue attribute.  If zero-length, then use byte-value 0.
+
    Revision 1.11  2002/05/24 00:06:06  caron
    add flush()
 
