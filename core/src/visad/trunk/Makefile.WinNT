@@ -115,6 +115,9 @@ visad\data\fits\*.java \
 nom\tam\fits\*.java \
 nom\tam\util\*.java \
 nom\tam\test\*.java \
+HTTPClient\0* \
+HTTPClient\*.html \
+HTTPClient\*.java \
 ucar\COPYRIGHT \
 ucar\VERSION \
 ucar\multiarray\*.java \
@@ -265,6 +268,9 @@ visad\data\fits\*.java \
 nom\tam\fits\*.java \
 nom\tam\util\*.java \
 nom\tam\test\*.java \
+HTTPClient\0* \
+HTTPClient\*.html \
+HTTPClient\*.java \
 ucar\COPYRIGHT \
 ucar\VERSION \
 ucar\multiarray\*.java \
@@ -409,6 +415,8 @@ save:
 		$(DEL) $(BACKUP)\nom\tam\util\*.java
 	if exist $(BACKUP)\nom\tam\test\*.java \
 		$(DEL) $(BACKUP)\nom\tam\test\*.java
+	if exist $(BACKUP)\HTTPClient\*.java \
+		$(DEL) $(BACKUP)\HTTPClient\*.java
 	if exist $(BACKUP)\ucar\multiarray\*.java \
 		$(DEL) $(BACKUP)\ucar\multiarray\*.java
 	if exist $(BACKUP)\ucar\netcdf\*.java \
@@ -512,6 +520,7 @@ visad\data\netcdf\*.class \
 visad\data\netcdf\units\*.class \
 visad\data\netcdf\in\*.class \
 visad\data\netcdf\out\*.class \
+HTTPClient\*.class \
 ucar\multiarray\*.class \
 ucar\netcdf\*.class \
 ucar\tests\*.class \
@@ -609,6 +618,7 @@ clear:
 	if exist ..\nom\tam\fits\*.java $(DEL) ..\nom\tam\fits\*.java
 	if exist ..\nom\tam\util\*.java $(DEL) ..\nom\tam\util\*.java
 	if exist ..\nom\tam\test\*.java $(DEL) ..\nom\tam\test\*.java
+	if exist ..\HTTPClient\*.java $(DEL) ..\HTTPClient\*.java
 	if exist ..\ucar\multiarray\*.java $(DEL) ..\ucar\multiarray\*.java
 	if exist ..\ucar\netcdf\*.java $(DEL) ..\ucar\netcdf\*.java
 	if exist ..\ucar\tests\*.java $(DEL) ..\ucar\tests\*.java
@@ -683,6 +693,7 @@ clean:
 	if exist ..\nom\tam\fits\*.class $(DEL) ..\nom\tam\fits\*.class
 	if exist ..\nom\tam\util\*.class $(DEL) ..\nom\tam\util\*.class
 	if exist ..\nom\tam\test\*.class $(DEL) ..\nom\tam\test\*.class
+	if exist ..\HTTPClient\*.class $(DEL) ..\HTTPClient\*.class
 	if exist ..\ucar\multiarray\*.class $(DEL) ..\ucar\multiarray\*.class
 	if exist ..\ucar\netcdf\*.class $(DEL) ..\ucar\netcdf\*.class
 	if exist ..\ucar\tests\*.class $(DEL) ..\ucar\tests\*.class
@@ -762,6 +773,7 @@ java2d\*.class \
 cluster\*.class \
 collab\*.class \
 data\*.class \
+..\HTTPClient\*.class \
 ..\ucar\multiarray\*.class \
 ..\ucar\netcdf\*.class \
 ..\ucar\tests\*.class \
@@ -845,6 +857,7 @@ compile: clean
 	$(JC) $(JFLAGS) collab\*.java
 	$(JC) $(JFLAGS) data\*.java
 	$(JC) $(JFLAGS) data\units\*.java
+	$(JC) $(JFLAGS) ..\HTTPClient\*.java
 	$(JC) $(JFLAGS) ..\ucar\multiarray\*.java
 	$(JC) $(JFLAGS) ..\ucar\netcdf\*.java
 	$(JC) $(JFLAGS) ..\ucar\tests\*.java
@@ -948,6 +961,7 @@ visad.data.fits \
 nom.tam.fits \
 nom.tam.util \
 nom.tam.test \
+HTTPClient \
 ucar.multiarray \
 ucar.util \
 ucar.netcdf \

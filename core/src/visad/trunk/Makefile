@@ -190,6 +190,9 @@ SAVE_FILES = \
 	nom/tam/fits/*.java				\
 	nom/tam/util/*.java				\
 	nom/tam/test/*.java				\
+	HTTPClient/0*					\
+	HTTPClient/*.html				\
+	HTTPClient/*.java				\
 	ucar/COPYRIGHT					\
 	ucar/VERSION					\
 	ucar/multiarray/*.java				\
@@ -294,6 +297,7 @@ DOC_PACKAGES = \
 		visad.python \
 		visad.browser \
 		visad.util \
+		HTTPClient \
 		ucar.multiarray \
 		ucar.util \
 		ucar.netcdf \
