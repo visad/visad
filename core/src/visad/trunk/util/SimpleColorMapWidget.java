@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.7 1998-07-30 23:53:07 billh Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.8 1998-08-07 18:41:08 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import com.sun.java.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.7 $, $Date: 1998-07-30 23:53:07 $
+ * @version $Revision: 1.8 $, $Date: 1998-08-07 18:41:08 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBWidget extends Panel implements ActionListener,
@@ -54,7 +54,7 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
 
   private float[][] orig_table;
 
-  /* CTR: 29 Jul 1998
+/* CTR: 29 Jul 1998
   public LabeledRGBWidget() {
     this(new ColorWidget(), new ArrowSlider());
   }
@@ -82,7 +82,7 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
     add(slider);
     add(label);
   }
-  */
+*/
 
   ColorControl colorcontrol;
 
@@ -220,6 +220,17 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
       }
     });
 
+  }
+
+  private Dimension d = null;
+
+  public Dimension getMaximumSize() {
+    if (d != null) return d;
+    else return super.getMaximumSize();
+  }
+
+  public void setMaximumSize(Dimension dd) {
+    d = dd;
   }
 
   /** ScalarMapListener method used with delayed auto-scaling. */
