@@ -81,6 +81,8 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     // not used now, so do nothing
   }
 
+  /** client must process the VisADSwitch this makes in order to insert
+      in a Java3D scene graph */
   public void textureStackToGroup(Object group, VisADGeometryArray arrayX,
                     VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
                     VisADGeometryArray arrayXrev,
@@ -103,9 +105,6 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     VisADGroup branchX = new VisADGroup();
     int data_depth = geometryX.length;
     for (int i=0; i<data_depth; i++) {
-      int width = imagesX[i].getWidth();
-      int height = imagesX[i].getHeight();
-
       // client must compute c_alpha from constant_alpha
       VisADAppearance appearance =
         makeAppearance(mode, constant_alpha, constant_color, geometryX[i]);
@@ -120,9 +119,69 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                           null, 0, appearance.image_width);
       branchX.addChild(appearance);
     }
-// repeat for branchXrev, branchY, etc
+    // client must construct branchXrev from VisADAppearances in branchX
 
-// ??
+    // VisADGroup branchYrev = new VisADGroup();
+    // client must treat branchY as ordered
+    VisADGroup branchY = new VisADGroup();
+    int data_height = geometryY.length;
+    for (int i=0; i<data_height; i++) {
+      // client must compute c_alpha from constant_alpha
+      VisADAppearance appearance =
+        makeAppearance(mode, constant_alpha, constant_color, geometryY[i]);
+      // must encode image as Serializable rather than as Image
+      // appearance.image = image;
+      appearance.image = null;
+      appearance.image_type = imagesY[i].getType();
+      appearance.image_width = imagesY[i].getWidth();
+      appearance.image_height = imagesY[i].getHeight();
+      appearance.image_pixels =
+        imagesY[i].getRGB(0, 0, appearance.image_width, appearance.image_height, 
+                          null, 0, appearance.image_width);
+      branchY.addChild(appearance);
+    }
+    // client must construct branchYrev from VisADAppearances in branchY
+    // VisADGroup branchYrev = new VisADGroup();
+
+    // VisADGroup branchZrev = new VisADGroup();
+    // client must treat branchZ as ordered
+    VisADGroup branchZ = new VisADGroup();
+    int data_width = geometryZ.length;
+    for (int i=0; i<data_width; i++) {
+      // client must compute c_alpha from constant_alpha
+      VisADAppearance appearance =
+        makeAppearance(mode, constant_alpha, constant_color, geometryZ[i]);
+      // must encode image as Serializable rather than as Image
+      // appearance.image = image;
+      appearance.image = null;
+      appearance.image_type = imagesZ[i].getType();
+      appearance.image_width = imagesZ[i].getWidth();
+      appearance.image_height = imagesZ[i].getHeight();
+      appearance.image_pixels =
+        imagesZ[i].getRGB(0, 0, appearance.image_width, appearance.image_height, 
+                          null, 0, appearance.image_width);
+      branchZ.addChild(appearance);
+    }
+    // client must construct branchZrev from VisADAppearances in branchZ
+    // VisADGroup branchZrev = new VisADGroup();
+
+    VisADSwitch swit = (VisADSwitch) makeSwitch();
+    swit.addChild(branchX);
+    swit.addChild(branchY);
+    swit.addChild(branchZ);
+    // swit.addChild(branchXrev);
+    // swit.addChild(branchYrev);
+    // swit.addChild(branchZrev);
+    swit.setSet(null); // to distinguish swit from a VisADSwitch for Animation
+
+    VisADGroup branch = new VisADGroup();
+    branch.addChild(swit);
+    if (((VisADGroup) group).numChildren() > 0) {
+      ((VisADGroup) group).setChild(branch, 0);
+    }
+    else {
+      ((VisADGroup) group).addChild(branch);
+    }
   }
 
 
@@ -152,10 +211,11 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     ((VisADGroup) group).addChild((VisADSwitch) swit);
   }
 
-// NOT true in ShadowFunctionOrSetTypeJ3D, but true here for
-// better Serializable compression ??
+// NOT true in ShadowFunctionOrSetTypeJ3D
+// could be true for better Serializable compression
+// but false means client does not need to un-index it
   public boolean wantIndexed() {
-    return true;
+    return false;
   }
 
   public boolean addToGroup(Object group, VisADGeometryArray array,
