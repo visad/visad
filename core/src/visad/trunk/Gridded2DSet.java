@@ -313,7 +313,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     for (int i=0; i<length; i++) {
       // grid box guess starts at previous box unless there was no solution
 /* WLH 24 Oct 97
-      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) ) {
+      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) )
 */
       // test for missing
       if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {

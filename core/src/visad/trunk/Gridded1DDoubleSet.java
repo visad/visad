@@ -32,6 +32,8 @@ package visad;
 public class Gridded1DDoubleSet extends Gridded1DSet
        implements GriddedDoubleSet {
 
+  double[] Low = new double[1];
+  double[] Hi = new double[1];
   double LowX, HiX;
   double[][] Samples;
 
@@ -42,7 +44,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       CoordinateSystem and Units are defaults from type */
   public Gridded1DDoubleSet(MathType type, float[][] samples, int lengthX)
          throws VisADException {
-    this(type, Set.floatToDouble(samples), lengthX, null, null, null);
+    this(type, Set.floatToDouble(samples), lengthX, null, null, null, true);
   }
 
   public Gridded1DDoubleSet(MathType type, float[][] samples, int lengthX,
@@ -72,7 +74,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       CoordinateSystem and Units are defaults from type */
   public Gridded1DDoubleSet(MathType type, double[][] samples, int lengthX)
          throws VisADException {
-    this(type, samples, lengthX, null, null, null);
+    this(type, samples, lengthX, null, null, null, true);
   }
 
   public Gridded1DDoubleSet(MathType type, double[][] samples, int lengthX,
@@ -94,9 +96,9 @@ public class Gridded1DDoubleSet extends Gridded1DSet
     if (samples == null) {
       throw new SetException("Gridded1DDoubleSet: samples are null");
     }
-    init_samples(samples, true);
-    Low = new float[] {(float) LowX};
-    Hi = new float[] {(float) HiX};
+    init_doubles(samples, copy);
+    LowX = Low[0];
+    HiX = Hi[0];
     LengthX = Lengths[0];
 
     if (Samples != null && Lengths[0] > 1) {
@@ -258,10 +260,10 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       of values in R^DomainDimension */
   public double[][] gridToDouble(double[][] grid) throws VisADException {
     if (grid.length < DomainDimension) {
-      throw new SetException("Gridded1DDoubleSet.gridToValue: bad dimension");
+      throw new SetException("Gridded1DDoubleSet.gridToDouble: bad dimension");
     }
     if (Lengths[0] < 2) {
-      throw new SetException("Gridded1DDoubleSet.gridToValue: " +
+      throw new SetException("Gridded1DDoubleSet.gridToDouble: " +
         "requires all grid dimensions to be > 1");
     }
     int length = grid[0].length;
@@ -292,7 +294,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       throw new SetException("Gridded1DDoubleSet.doubleToGrid: bad dimension");
     }
     if (Lengths[0] < 2) {
-      throw new SetException("Gridded1DDoubleSet.valueToGrid: " +
+      throw new SetException("Gridded1DDoubleSet.doubleToGrid: " +
         "requires all grid dimensions to be > 1");
     }
     double[] vals = value[0];
@@ -459,17 +461,23 @@ public class Gridded1DDoubleSet extends Gridded1DSet
 
 
   // Miscellaneous Set methods that must be overridden
-  // (this code is duplicated throughout all Gridded*DoubleSet classes)
+  // (this code is duplicated throughout all *DoubleSet classes)
 
-  void init_samples(double[][] samples, boolean copy)
+  void init_doubles(double[][] samples, boolean copy)
        throws VisADException {
     if (samples.length != DomainDimension) {
-      throw new SetException("Gridded1DDoubleSet.init_samples: " +
+      throw new SetException("SampledSet.init_doubles: " +
                              "dimensions don't match");
     }
-    if (Length != samples[0].length) {
-      throw new SetException("Gridded1DDoubleSet.init_samples: " +
-                             "lengths don't match");
+    if (Length == 0) {
+      // Length set in init_lengths, but not called for IrregularSet
+      Length = samples[0].length;
+    }
+    else {
+      if (Length != samples[0].length) {
+        throw new SetException("SampledSet.init_doubles: " +
+                               "lengths don't match");
+      }
     }
     // MEM
     if (copy) {
@@ -478,35 +486,35 @@ public class Gridded1DDoubleSet extends Gridded1DSet
     else {
       Samples = samples;
     }
-    if (samples[0].length != Length) {
-      throw new SetException("Gridded1DDoubleSet.init_samples: " +
-        "lengths don't match");
-    }
-    double[] samplesJ = samples[0];
-    double[] SamplesJ = Samples[0];
-    if (copy) {
-      System.arraycopy(samplesJ, 0, SamplesJ, 0, Length);
-    }
-    LowX = Double.POSITIVE_INFINITY;
-    HiX = Double.NEGATIVE_INFINITY;
-    double sum = 0.0f;
-    for (int i=0; i<Length; i++) {
-      if (SamplesJ[i] != SamplesJ[i]) {
-        throw new SetException("Gridded1DDoubleSet.init_samples: " +
-          "sample values cannot be missing");
+    for (int j=0; j<DomainDimension; j++) {
+      if (samples[j].length != Length) {
+        throw new SetException("SampledSet.init_doubles: lengths don't match");
       }
-      if (Double.isInfinite(SamplesJ[i])) {
-        throw new SetException("Gridded1DDoubleSet.init_samples: " +
-          "sample values cannot be infinite");
+      double[] samplesJ = samples[j];
+      double[] SamplesJ = Samples[j];
+      if (copy) {
+        System.arraycopy(samplesJ, 0, SamplesJ, 0, Length);
       }
-      if (SamplesJ[i] < LowX) LowX = SamplesJ[i];
-      if (SamplesJ[i] > HiX) HiX = SamplesJ[i];
-      sum += SamplesJ[i];
-    }
-    if (SetErrors[0] != null) {
-      SetErrors[0] =
-        new ErrorEstimate(SetErrors[0].getErrorValue(), sum / Length,
-                          Length, SetErrors[0].getUnit());
+      Low[j] = Double.POSITIVE_INFINITY;
+      Hi[j] = Double.NEGATIVE_INFINITY;
+      double sum = 0.0f;
+      for (int i=0; i<Length; i++) {
+        if (SamplesJ[i] == SamplesJ[i] && !Double.isInfinite(SamplesJ[i])) {
+          if (SamplesJ[i] < Low[j]) Low[j] = SamplesJ[i];
+          if (SamplesJ[i] > Hi[j]) Hi[j] = SamplesJ[i];
+        }
+        else {
+          SamplesJ[i] = Double.NaN;
+        }
+        sum += SamplesJ[i];
+      }
+      if (SetErrors[j] != null ) {
+        SetErrors[j] =
+          new ErrorEstimate(SetErrors[j].getErrorValue(), sum / Length,
+                            Length, SetErrors[j].getUnit());
+      }
+      super.Low[j] = (float) Low[j];
+      super.Hi[j] = (float) Hi[j];
     }
   }
 

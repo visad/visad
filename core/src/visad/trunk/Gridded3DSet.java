@@ -686,7 +686,7 @@ for (int j=0; j<3; j++) {
       boolean offgrid = false;
       // the first guess should be the last box unless there was no solution
 /* WLH 24 Oct 97
-      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) ) {
+      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) )
 */
       // test for missing
       if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
