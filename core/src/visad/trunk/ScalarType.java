@@ -102,6 +102,7 @@ public abstract class ScalarType extends MathType implements Comparable {
    *			depending on whether this object is considered less
    *			than, equal to, or greater than the other object,
    *			respectively.
+   * @throws ClassCastException if the object is not a {@link ScalarType}.
    */
   public int compareTo(Object obj) {
     return getName().compareTo(((ScalarType)obj).getName());
@@ -153,11 +154,12 @@ public abstract class ScalarType extends MathType implements Comparable {
   }
 
   /**
-   * Returns this <CODE>ScalarType</CODE>'s name.
+   * Returns this <CODE>ScalarType</CODE>'s name.  If an alias exists, then it
+   * it is returned; otherwise, the name given to the constructor is used.
    *
    * @return The name of this <CODE>ScalarType</CODE>.
    */
-  public String getName() {
+  public final String getName() {
     synchronized(getClass()) {
       String alias = (String )ReverseTranslations.get(Name);
       if (alias != null) {
@@ -165,6 +167,29 @@ public abstract class ScalarType extends MathType implements Comparable {
       }
     }
     return Name;
+  }
+
+  /**
+   * Returns the original name of this instance.  This method ignores any alias
+   * and returns the name given to the constructor.
+   *
+   * @return                      The original name.
+   */
+  public final String getOriginalName() {
+    return Name;
+  }
+
+  /**
+   * Returns the alias of this instance or <code>null</code> if this instance
+   * has no alias.  This method returns the alias set by the most recent {@link
+   * alias(String)} invocation.
+   *
+   * @return                      The alias or <code>null</code>.
+   */
+  public final String getAlias() {
+    synchronized(getClass()) {
+      return (String)ReverseTranslations.get(Name);
+    }
   }
 
   public String getNameWithBlanks() {
