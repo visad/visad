@@ -2303,11 +2303,12 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     float stepFactor = 2;
 
     int[] numl = new int[1];
-    int max_lines = 300;
+    int max_lines = 500;
     int maxv      = 500;
-    int[] n_verts = new int[max_lines];
-    float[][] vr  = new float[max_lines][maxv];
-    float[][] vc  = new float[max_lines][maxv];
+
+    int[][] n_verts = new int[1][];
+    float[][][] vr  = new float[1][][];
+    float[][][] vc  = new float[1][][];
     int nr;
     int nc;
 
@@ -2317,6 +2318,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     if (which == 1) arrowScale = arrowScale2;
     if (which == 0) stepFactor = stepFactor1;
     if (which == 1) stepFactor = stepFactor2;
+
     if ( spatialManifoldDimension == 2 )
     {
       nc = ((Gridded3DSet)spatial_set).LengthX;
@@ -2336,20 +2338,20 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     }
 
     VisADLineArray[] arrays = new VisADLineArray[numl[0]];
-    Integer2DSet grid_set = new Integer2DSet(nc, nr);
-
+    Integer2DSet grid_set   = new Integer2DSet(nc, nr);
+    
     for (int kk = 0; kk < arrays.length; kk++ ) {
       arrays[kk] = new VisADLineArray();
-      float[][] grid = new float[2][n_verts[kk]];
-      System.arraycopy(vr[kk], 0, grid[1], 0, n_verts[kk]);
-      System.arraycopy(vc[kk], 0, grid[0], 0, n_verts[kk]);
+      float[][] grid = new float[2][n_verts[0][kk]];
+      System.arraycopy(vr[0][kk], 0, grid[1], 0, n_verts[0][kk]);
+      System.arraycopy(vc[0][kk], 0, grid[0], 0, n_verts[0][kk]);
 
       float[][] spatial_set_vals =
        ((Gridded3DSet)spatial_set).gridToValue(grid);
 
-      byte[][] intrp_color_values = new byte[3][n_verts[kk]];
+      byte[][] intrp_color_values = new byte[3][n_verts[0][kk]];
       int[] indices = grid_set.valueToIndex(grid);
-      for ( int cc = 0; cc < n_verts[kk]; cc++ ) {
+      for ( int cc = 0; cc < n_verts[0][kk]; cc++ ) {
         intrp_color_values[0][cc] = color_values[0][indices[cc]];
         intrp_color_values[1][cc] = color_values[1][indices[cc]];
         intrp_color_values[2][cc] = color_values[2][indices[cc]];
