@@ -27,13 +27,13 @@ package visad.util;
 
 import java.awt.Dimension;
 
-import java.awt.swing.BoxLayout;
-import java.awt.swing.JLabel;
-import java.awt.swing.JPanel;
-import java.awt.swing.JSlider;
+import com.sun.java.swing.BoxLayout;
+import com.sun.java.swing.JLabel;
+import com.sun.java.swing.JPanel;
+import com.sun.java.swing.JSlider;
 
-import java.awt.swing.event.ChangeEvent;
-import java.awt.swing.event.ChangeListener;
+import com.sun.java.swing.event.ChangeEvent;
+import com.sun.java.swing.event.ChangeListener;
 
 import java.rmi.RemoteException;
 

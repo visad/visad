@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMapWidget.java,v 1.6 1998-07-30 20:30:04 curtis Exp $
+@(#) $Id: ColorMapWidget.java,v 1.7 1998-07-30 23:53:07 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -33,14 +33,14 @@ import java.awt.event.*;
 import java.applet.*;
 import java.util.Vector;
 
-import java.awt.swing.*;
+import com.sun.java.swing.*;
 
 /** 
  * A color widget that allows users to interactively map numeric data to
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.6 $, $Date: 1998-07-30 20:30:04 $
+ * @version $Revision: 1.7 $, $Date: 1998-07-30 23:53:07 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBWidget extends Panel implements ActionListener,
