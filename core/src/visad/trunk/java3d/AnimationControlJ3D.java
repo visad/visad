@@ -301,16 +301,27 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
+  /**
+   * <p>Sets the set of times in this animation control.  If the argument set is
+   * equal to the current set, then nothing is done.</p>
+   *
+   * @param s                     The set of times.
+   * @throws NullPointerException if the argument is <code>null</code>.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   public void setSet(Set s)
          throws VisADException, RemoteException {
-    setSet(s, false);
-    if (s.getLength() != stepValues.length)
-    {
-        stepValues = new long[s.getLength()];
-        for (int i = 0; i < stepValues.length; i++)
-        {
-            stepValues[i] = step;
-        }
+    if (animationSet == null || !s.equals(animationSet.getSet())) {
+      setSet(s, false);
+      if (s.getLength() != stepValues.length)
+      {
+	  stepValues = new long[s.getLength()];
+	  for (int i = 0; i < stepValues.length; i++)
+	  {
+	      stepValues[i] = step;
+	  }
+      }
     }
   }
 
