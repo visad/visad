@@ -36,7 +36,7 @@ package visad;
 */
 public class IrregularSet extends SampledSet {
 
-  Delaunay Delan = null;
+  public Delaunay Delan = null;
 
   /** oldToNew and newToOld used when ManifoldDimension = 1
       but DomainDimension > 1 */
