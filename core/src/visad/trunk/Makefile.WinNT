@@ -156,6 +156,7 @@ visad\data\dods\package.html \
 visad\data\fits\*.java \
 visad\data\gif\*.java \
 visad\data\gif\sseclogo.gif \
+visad\data\gis\*.java \
 visad\data\hdf5\*.java \
 visad\data\hdf5\COPYING \
 visad\data\hdf5\hdf5objects\*.java \
@@ -314,6 +315,7 @@ visad\data\hdfeos\hdfeosc\*.h \
 visad\data\hdfeos\hdfeosc\Makefile \
 visad\data\vis5d\*.java \
 visad\data\gif\*.java \
+visad\data\gis\*.java \
 visad\data\tiff\*.java \
 edu\wisc\ssec\mcidas\*.java \
 edu\wisc\ssec\mcidas\adde\*.java \
@@ -485,6 +487,8 @@ save:
 		$(DEL) $(BACKUP)\visad\data\qt\*.java
 	if exist $(BACKUP)\visad\data\gif\*.java \
 		$(DEL) $(BACKUP)\visad\data\gif\*.java
+	if exist $(BACKUP)\visad\data\gis\*.java \
+		$(DEL) $(BACKUP)\visad\data\gis\*.java
 	if exist $(BACKUP)\visad\data\tiff\*.java \
 		$(DEL) $(BACKUP)\visad\data\tiff\*.java
 	if exist $(BACKUP)\visad\data\visad\*.java \
@@ -585,6 +589,7 @@ visad\data\ij\*.class \
 visad\data\jai\*.class \
 visad\data\qt\*.class \
 visad\data\gif\*.class \
+visad\data\gis\*.class \
 ij\*.class \
 ij\gui\*.class \
 ij\io\*.class \
@@ -674,6 +679,7 @@ clear:
 	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
 	if exist data\gif\*.java $(DEL) data\gif\*.java
+	if exist data\gis\*.java $(DEL) data\gis\*.java
 	if exist ..\ij\*.java $(DEL) ..\ij\*.java
 	if exist ..\ij\gui\*.java $(DEL) ..\ij\gui\*.java
 	if exist ..\ij\io\*.java $(DEL) ..\ij\io\*.java
@@ -758,6 +764,7 @@ clean:
 	if exist data\jai\*.class $(DEL) data\jai\*.class
 	if exist data\qt\*.class $(DEL) data\qt\*.class
 	if exist data\gif\*.class $(DEL) data\gif\*.class
+	if exist data\gis\*.class $(DEL) data\gis\*.class
 	if exist ..\ij\*.class $(DEL) ..\ij\*.class
 	if exist ..\ij\gui\*.class $(DEL) ..\ij\gui\*.class
 	if exist ..\ij\io\*.class $(DEL) ..\ij\io\*.class
@@ -859,6 +866,7 @@ data\ij\*.class \
 data\jai\*.class \
 data\qt\*.class \
 data\gif\*.class \
+data\gis\*.class \
 ..\ij\*.class \
 ..\ij\gui\*.class \
 ..\ij\io\*.class \
@@ -944,6 +952,7 @@ compile: clean
 	$(JC) $(JFLAGS) data\jai\*.java
 	$(JC) $(JFLAGS) data\qt\*.java
 	$(JC) $(JFLAGS) data\gif\*.java
+	$(JC) $(JFLAGS) data\gis\*.java
 	$(JC) $(JFLAGS) ..\ij\*.java
 	$(JC) $(JFLAGS) ..\ij\gui\*.java
 	$(JC) $(JFLAGS) ..\ij\io\*.java
@@ -1036,6 +1045,7 @@ visad.data.hdfeos \
 visad.data.hdfeos.hdfeosc \
 visad.data.vis5d \
 visad.data.gif \
+visad.data.gis \
 ij \
 ij.gui \
 ij.io \
