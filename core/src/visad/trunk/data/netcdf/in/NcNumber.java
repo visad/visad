@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.7 1998-09-11 15:00:53 steve Exp $
+ * $Id: NcNumber.java,v 1.8 1998-09-14 13:51:37 billh Exp $
  */
 
 package visad.data.netcdf.in;
@@ -322,13 +322,26 @@ NcNumber
 	    npts *= lengths[i];
 
 	float[]		values = new float[npts];
-	IndexIterator	iter = new IndexIterator(lengths);
 
-	for (int i = 0; i < npts; ++i)
-	{
-	    values[i] = var.getFloat(iter.value());
-	    iter.incr();
-	}
+        /* WLH 14 Sept 98 */
+        int [] origin = new int[var.getRank()];
+        for (int i=0; i<origin.length; i++) origin[i] = 0;
+        Class component_type = var.getComponentType();
+        if (component_type.equals(Float.TYPE)) {
+          values = (float[]) var.toArray(values, origin, lengths);
+        }
+        else if (component_type.equals(Double.TYPE)) {
+          double[] dvals = new double[npts];
+          dvals = (double[]) var.toArray(dvals, origin, lengths);
+          for (int i=0; i<dvals.length; i++) values[i] = (float) dvals[i];
+        }
+        else {
+          IndexIterator	iter = new IndexIterator(lengths);
+          for (int i = 0; i < npts; ++i) {
+            values[i] = var.getFloat(iter.value());
+            iter.incr();
+          }
+        }
 
 	vetter.vet(values);
 
@@ -457,6 +470,7 @@ NcNumber
 
 	    for (int istart = 0; istart < count; )
 	    {
+
 		int[]	origin = iter.value();
 
 		for (int idim = 0; idim < lengths.length; ++idim)
@@ -650,7 +664,12 @@ NcNumber
     getData()
 	throws IOException, VisADException
     {
+      /* WLH 13 Sept 98 */
+      return getData(new NcDomain(this, getDimensions()), getDoubles());
+
+/* WLH 13 Sept 98
 	return getData(new NcDomain(getDimensions()), getDoubles());
+*/
     }
 
 
@@ -708,7 +727,12 @@ NcNumber
 	    throw new VisADException("Scalar " + getName() + 
 		" can't be a function");
 
+        /* WLH 13 Sept 98 */
+        NcDomain domain = new NcDomain(this, getDimensions());
+
+/* WLH 13 Sept 98
 	NcDomain	domain = new NcDomain(getDimensions());
+*/
 
 	return new FunctionType(domain.getType(), (RealType)getMathType());
     }
@@ -812,7 +836,11 @@ NcNumber
 
 	System.arraycopy(getDimensions(), 1, dims, 0, dims.length);
 
+        /* WLH 13 Sept 98 */
+        return getData(new NcDomain(this, dims, true), getDoubles(ipt));
+/* WLH 13 Sept 98
 	return getData(new NcDomain(dims), getDoubles(ipt));
+*/
     }
 
 

@@ -64,12 +64,9 @@ Unpacking VisAD will create the following sub-directories:
   nom/tam/fits			// Java FITS file binding
   nom/tam/util			// Java FITS file binding
   nom/tam/test			// Java FITS file binding
-  ucar.jar			// Java netCDF file binding
-
-Note that compiling VisAD will further unpack ucar.jar into:
-
-  ucar/netcdf/*.class
-  ucar/multiarray/*.class
+  ucar/multiarray		// Java netCDF file binding
+  ucar/netcdf			// Java netCDF file binding
+  ucar/tests			// Java netCDF file binding
 
 These directories correspond to the packages in distributed with
 VisAD, except that the classes in visad/examples are in the
@@ -99,13 +96,7 @@ Java compiler on the Java source files in all the directories
 unpacked from the source distribution.  Note that the Java
 source code in the visad/examples directory has no package, so
 you must run 'cd visad/examples' before you compile these Java
-source files.  You must also either add the 'ucar.jar' file to
-your CLASS_PATH, or run:
-
-  jar xvf ucar.jar
-
-to unpack the netCDF Java binding into sub-directories with
-appropriate package names.
+source files.
 
 If you do not use make, then you must also run the rmic compiler
 on the following classes (after they are compiled by the javac
@@ -257,8 +248,9 @@ these packages:
   nom.tam.fits			// Java FITS file binding
   nom.tam.util			// Java FITS file binding
   nom.tam.test			// Java FITS file binding
-  ucar.netcdf			// Java netCDF file binding
   ucar.multiarray		// Java netCDF file binding
+  ucar.netcdf			// Java netCDF file binding
+  ucar.tests			// Java netCDF file binding
 
 
 7. Problems

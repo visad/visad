@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Vetter.java,v 1.3 1998-09-11 15:00:56 steve Exp $
+ * $Id: Vetter.java,v 1.4 1998-09-14 13:51:39 billh Exp $
  */
 
 package visad.data.netcdf.in;
@@ -210,6 +210,7 @@ Vetter
      * @postcondition	All invalid values in <code>values</code> have been
      *			replaced with NaN's.
      */
+/* WLH 12 Sept 98
     void
     vet(float[] values)
     {
@@ -220,6 +221,21 @@ Vetter
 		    values[i] = Float.NaN;
 	}
     }
+*/
+    void vet(float[] values) {
+      if (!isTrivial) {
+        for (int i = 0; i < values.length; ++i) {
+          if (values[i] != values[i] ||  // test for Float.NaN
+              values[i] == fillValue ||
+              values[i] == missingValue ||
+              values[i] < lowerVettingLimit ||
+              values[i] > upperVettingLimit) {
+            values[i] = Float.NaN;
+          }
+        }
+      }
+    }
+
 
 
     /**
@@ -229,6 +245,7 @@ Vetter
      * @postcondition	All invalid values in <code>values</code> have been
      *			replaced with NaN's.
      */
+/* WLH 12 Sept 98
     void
     vet(double[] values)
     {
@@ -239,4 +256,19 @@ Vetter
 		    values[i] = Double.NaN;
 	}
     }
+*/
+    void vet(double[] values) {
+      if (!isTrivial) {
+        for (int i = 0; i < values.length; ++i) {
+          if (values[i] != values[i] ||  // test for Double.NaN
+              values[i] == fillValue ||
+              values[i] == missingValue ||
+              values[i] < lowerVettingLimit ||
+              values[i] > upperVettingLimit) {
+            values[i] = Double.NaN;
+          }
+        }
+      }
+    }
+
 }

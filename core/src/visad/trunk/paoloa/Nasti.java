@@ -59,6 +59,9 @@ public class Nasti {
   // index of spectrum in nasti range tuple
   int spectrum_index;
 
+  // flag to use Java2D
+  boolean java2d = false;
+
   // RealTypes for data
   RealType time;
   RealType wnum1;
@@ -95,19 +98,10 @@ public class Nasti {
 
     // open a netCDF file containing a NAST-I file
     Tuple nasti_tuple = (Tuple) plain.open(filename);
+    plain = null;
 
-/*
-    // temporary hack to change MathType of data created from file
-    Field[] components = new Field[] {(Field) nasti_tuple.getComponent(2),
-                                      (Field) nasti_tuple.getComponent(3)};
-    // System.out.println("first = \n" + components[0].getType().prettyString());
-    // System.out.println("second = \n" + components[1].getType().prettyString());
-    nasti = FieldImpl.combine(components);
-    // System.out.println("combined = \n" + combined.getType().prettyString());
-    // plain.save(args[1], combined, true);
-*/
+    // extract the time sequence of spectra
     nasti = (Field) nasti_tuple.getComponent(2);
-
 
     // extract the type of image and use
     // it to determine how images are displayed
@@ -171,9 +165,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     }
 
     // get spectrum and types
-/*
-    spectrum_index = nasti_range_type.getDimension() - 1;
-*/
     spectrum_index = 0;
     FunctionType spectrum_type =
       (FunctionType) nasti_range_type.getComponent(spectrum_index);
@@ -220,21 +211,12 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     // create two image-spectrum interfaces (each have
     // interacting image and spectrum displays)
     ChannelImage channel_image1 = new ChannelImage();
-/*
-    ChannelImage channel_image2 = new ChannelImage();
-*/
 
     // add image-spectrum interfaces to the JFrame
     panel.add(channel_image1);
-/*
-    panel.add(channel_image2);
-*/
 
     frame.getContentPane().add(panel);
     // set size of JFrame and make it visible
-/*
-    frame.setSize(800, 900);
-*/
     frame.setSize(400, 900);
     frame.setVisible(true);
   }
@@ -249,9 +231,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     // image data object for display
     FlatField image;
 
-    // declare DataReferences for displaying yellow_cursor, red_cursor,
+    // declare DataReferences for displaying white_cursor, red_cursor,
     // spectrum and red_bar
-    DataReferenceImpl yellow_cursor_ref;
+    DataReferenceImpl image_ref;
+    DataReferenceImpl white_cursor_ref;
     DataReferenceImpl red_cursor_ref;
     DataReferenceImpl spectrum_ref;
     DataReferenceImpl red_bar_ref;
@@ -288,9 +271,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       setAlignmentY(JPanel.TOP_ALIGNMENT);
       setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-      // construct DataReferences for displaying yellow_cursor, red_cursor,
+      // construct DataReferences for displaying white_cursor, red_cursor,
       // spectrum and red_bar
-      yellow_cursor_ref = new DataReferenceImpl("yellow_cursor_ref");
+      white_cursor_ref = new DataReferenceImpl("white_cursor_ref");
       red_cursor_ref = new DataReferenceImpl("red_cursor_ref");
       spectrum_ref = new DataReferenceImpl("spectrum_ref");
       red_bar_ref = new DataReferenceImpl("red_bar_ref");
@@ -312,11 +295,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       wnum_last = (wnum_low + wnum_hi) / 2.0f;
       wnum_field.setText(PlotText.shortString(wnum_last));
 
-      // yellow_cursor in image display for selecting spectrum
-      RealTuple init_yellow_cursor =
+      // white_cursor in image display for selecting spectrum
+      RealTuple init_white_cursor =
         new RealTuple(new Real[] {new Real(image_element, 0.0),
                                   new Real(image_line, 0.0)});
-      yellow_cursor_ref.setData(init_yellow_cursor);
+      white_cursor_ref.setData(init_white_cursor);
 
       // create image data object for display and initialize radiance
       // array to missing
@@ -325,7 +308,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       for (int i=0; i<nelements * nlines; i++) {
         radiances[0][i] = Double.NaN;
       }
-      DataReferenceImpl image_ref = new DataReferenceImpl("image_ref");
+      image_ref = new DataReferenceImpl("image_ref");
       image_ref.setData(image);
  
       // create red_cursor in spectrum display for setting wave number
@@ -336,11 +319,19 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       do_image(wnum_last);
 
       // create image Display using Java3D in 2-D mode
-/*
-      DisplayImpl display1 = new DisplayImplJ2D("image display");
-*/
-      DisplayImpl display1 =
-        new DisplayImplJ3D("image display", new TwoDDisplayRendererJ3D());
+      DisplayImpl display1 = null;
+      if (!java2d) {
+        try {
+          display1 = new DisplayImplJ3D("image display",
+                                        new TwoDDisplayRendererJ3D());
+        }
+        catch (UnsatisfiedLinkError e) {
+          java2d = true;
+        }
+      }
+      if (java2d) {
+        display1 = new DisplayImplJ2D("image display");
+      }
       ScalarMap line_map = new ScalarMap(image_line, Display.YAxis);
       display1.addMap(line_map);
       line_map.setRange(12.5, -0.5);
@@ -360,19 +351,20 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       // link image to display
       display1.addReference(image_ref);
 
-      // make yellow_cursor and link to display with direct manipulation
-      // (so yellow_cursor can select spectrum)
-      ConstantMap[] cmaps = {new ConstantMap(0.0, Display.Blue),
+      // make white_cursor and link to display with direct manipulation
+      // (so white_cursor can select spectrum)
+      ConstantMap[] wmaps = {new ConstantMap(1.0, Display.Blue),
                              new ConstantMap(1.0, Display.Red),
                              new ConstantMap(1.0, Display.Green),
                              new ConstantMap(4.0, Display.PointSize)};
-/*
-      display1.addReferences(new DirectManipulationRendererJ2D(),
-                             yellow_cursor_ref, cmaps);
-*/
-      display1.addReferences(new DirectManipulationRendererJ3D(),
-                             yellow_cursor_ref, cmaps);
-
+      if (java2d) {
+        display1.addReferences(new DirectManipulationRendererJ2D(),
+                               white_cursor_ref, wmaps);
+      }
+      else {
+        display1.addReferences(new DirectManipulationRendererJ3D(),
+                               white_cursor_ref, wmaps);
+      }
       // create panel for display with border
       dpanel1 = new JPanel();
       dpanel1.setLayout(new BoxLayout(dpanel1, BoxLayout.X_AXIS));
@@ -386,7 +378,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
       // create color widget for atmosphericRadiance
       LabeledRGBWidget lw = new LabeledRGBWidget(radiance_map1);
-      Dimension d = new Dimension(300, 150);
+      Dimension d = new Dimension(400, 120);
       lw.setMaximumSize(d);
       add(lw);
 
@@ -403,11 +395,14 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       add(zpanel);
 
       // create spectrum Display using Java3D in 2-D mode
-/*
-      DisplayImpl display2 = new DisplayImplJ2D("spectrum display");
-*/
-      DisplayImpl display2 =
-        new DisplayImplJ3D("spectrum display", new TwoDDisplayRendererJ3D());
+      DisplayImpl display2 = null;
+      if (java2d) {
+        display2 = new DisplayImplJ2D("spectrum display");
+      }
+      else {
+        display2 = new DisplayImplJ3D("spectrum display",
+                                      new TwoDDisplayRendererJ3D());
+      }
       wnum_map = new ScalarMap(wnum1, Display.XAxis);
       display2.addMap(wnum_map);
       radiance_map2 = new ScalarMap(atmosphericRadiance, Display.YAxis);
@@ -439,13 +434,14 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                              new ConstantMap(1.0, Display.Red),
                              new ConstantMap(0.0, Display.Green),
                              new ConstantMap(4.0, Display.PointSize)};
-/*
-      display2.addReferences(new DirectManipulationRendererJ2D(),
-                             red_cursor_ref, rmaps);
-*/
-      display2.addReferences(new DirectManipulationRendererJ3D(),
-                             red_cursor_ref, rmaps);
-
+      if (java2d) {
+        display2.addReferences(new DirectManipulationRendererJ2D(),
+                               red_cursor_ref, rmaps);
+      }
+      else {
+        display2.addReferences(new DirectManipulationRendererJ3D(),
+                               red_cursor_ref, rmaps);
+      }
       // create panel for display with border
       dpanel2 = new JPanel();
       dpanel2.setLayout(new BoxLayout(dpanel2, BoxLayout.X_AXIS));
@@ -454,17 +450,17 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       dpanel2.setBorder(etchedBorder5);
       add(dpanel2);
 
-      // CellImpl to change spectrum when user moves yellow_cursor
-      CellImpl yellow_cursor_cell = new CellImpl() {
+      // CellImpl to change spectrum when user moves white_cursor
+      CellImpl white_cursor_cell = new CellImpl() {
         public void doAction() throws VisADException, RemoteException {
           int i;
           red_bar_ref.setData(null);
-          RealTuple yellow_cursor = (RealTuple) yellow_cursor_ref.getData();
-          float elem = (float) ((Real) yellow_cursor.getComponent(0)).getValue();
+          RealTuple white_cursor = (RealTuple) white_cursor_ref.getData();
+          float elem = (float) ((Real) white_cursor.getComponent(0)).getValue();
           int element =
             (int) Math.round((elem + 45.0) / 7.5);
           int line =
-            (int) Math.round( ((Real) yellow_cursor.getComponent(1)).getValue() );
+            (int) Math.round( ((Real) white_cursor.getComponent(1)).getValue() );
           if (0 <= line && line < nlines && 0 <= element && element < nelements) {
             i = sample_to_time[line][element];
           }
@@ -481,8 +477,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           }
         }
       };
-      // link yellow_cursor to yellow_cursor_cell
-      yellow_cursor_cell.addReference(yellow_cursor_ref);
+      // link white_cursor to white_cursor_cell
+      white_cursor_cell.addReference(white_cursor_ref);
 
       // CellImpl to change wave number when user moves red_cursor
       CellImpl red_cursor_cell = new CellImpl() {

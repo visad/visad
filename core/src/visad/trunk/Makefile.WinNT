@@ -45,6 +45,7 @@ DEL = del
 DOC = javadoc -d
 DOCS_DIR = ..\docs
 FITS = ..\nom\tam
+UCAR = ..\ucar
 
 JAR_FILES = \
 visad\README \
@@ -73,6 +74,13 @@ visad\data\fits\*.java \
 visad\$(FITS)\fits\*.java \
 visad\$(FITS)\util\*.java \
 visad\$(FITS)\test\*.java \
+visad\$(UCAR)\COPYRIGHT \
+visad\$(UCAR)\VERSION \
+visad\$(UCAR)\multiarray\*.java \
+visad\$(UCAR)\multiarray\*.java \
+visad\$(UCAR)\tests\*.java \
+visad\$(UCAR)\tests\test.nc \
+visad\$(UCAR)\tests\test.out \
 visad\data\hdfeos\*.java \
 visad\data\hdfeos\hdfeosc\*.java \
 visad\data\hdfeos\hdfeosc\*.c \
@@ -105,7 +113,6 @@ visad\benjamin\*.c \
 visad\benjamin\*.h \
 visad\benjamin\switch.inp \
 visad\benjamin\*.table \
-ucar.jar \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
@@ -152,6 +159,13 @@ visad\data\fits\*.java \
 visad\$(FITS)\fits\*.java \
 visad\$(FITS)\util\*.java \
 visad\$(FITS)\test\*.java \
+visad\$(UCAR)\COPYRIGHT \
+visad\$(UCAR)\VERSION \
+visad\$(UCAR)\multiarray\*.java \
+visad\$(UCAR)\multiarray\*.java \
+visad\$(UCAR)\tests\*.java \
+visad\$(UCAR)\tests\test.nc \
+visad\$(UCAR)\tests\test.out \
 visad\data\hdfeos\*.java \
 visad\data\hdfeos\hdfeosc\*.java \
 visad\data\hdfeos\hdfeosc\*.c \
@@ -183,7 +197,6 @@ visad\benjamin\*.c \
 visad\benjamin\*.h \
 visad\benjamin\switch.inp \
 visad\benjamin\*.table \
-ucar.jar \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
@@ -226,6 +239,12 @@ save:
 		$(DEL) $(BACKUP)\visad\$(FITS)\util\*.java
 	if exist $(BACKUP)\visad\$(FITS)\test\*.java               \
 		$(DEL) $(BACKUP)\visad\$(FITS)\test\*.java
+	if exist $(BACKUP)\visad\$(UCAR)\multiarray\*.java         \
+		$(DEL) $(BACKUP)\visad\$(UCAR)\multiarray\*.java
+	if exist $(BACKUP)\visad\$(UCAR)\netcdf\*.java             \
+		$(DEL) $(BACKUP)\visad\$(UCAR)\netcdf\*.java
+	if exist $(BACKUP)\visad\$(UCAR)\tests\*.java              \
+		$(DEL) $(BACKUP)\visad\$(UCAR)\tests\*.java
 	if exist $(BACKUP)\visad\data\hdfeos\*.java                \
 		$(DEL) $(BACKUP)\visad\data\hdfeos\*.java
 	if exist $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java        \
@@ -258,8 +277,9 @@ visad\data\netcdf\*.class \
 visad\data\netcdf\units\*.class \
 visad\data\netcdf\in\*.class \
 visad\data\netcdf\out\*.class \
-ucar\multiarray\*.class \
-ucar\netcdf\*.class \
+visad\$(UCAR)\multiarray\*.class \
+visad\$(UCAR)\netcdf\*.class \
+visad\$(UCAR)\tests\*.class \
 visad\data\fits\*.class \
 visad\$(FITS)\fits\*.class \
 visad\$(FITS)\util\*.class \
@@ -273,7 +293,6 @@ classes:
 	cd ..
 	date /t > DATE
 	time /t >> DATE
-	jar xvf ucar.jar
 	jar cvf visad.jar $(CLASS_FILES)
 	dir /-w visad.jar
 
@@ -293,6 +312,9 @@ clear:
 	if exist $(FITS)\fits\*.java $(DEL) $(FITS)\fits\*.java
 	if exist $(FITS)\util\*.java $(DEL) $(FITS)\util\*.java
 	if exist $(FITS)\test\*.java $(DEL) $(FITS)\test\*.java
+	if exist $(UCAR)\multiarray\*.java $(DEL) $(UCAR)\multiarray\*.java
+	if exist $(UCAR)\netcdf\*.java $(DEL) $(UCAR)\netcdf\*.java
+	if exist $(UCAR)\tests\*.java $(DEL) $(UCAR)\tests\*.java
 	if exist data\hdfeos\*.java $(DEL) data\hdfeos\*.java
 	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
@@ -324,8 +346,10 @@ compile: clean
 	$(JC) $(JFLAGS) java3d\*.java
 	$(JC) $(JFLAGS) java2d\*.java
 	$(JC) $(JFLAGS) util\*.java
-	-(cd .. && jar xvf ucar.jar)
 	$(JC) $(JFLAGS) data\*.java
+	-$(JC) $(JFLAGS) $(UCAR)\multiarray\*.java
+	-$(JC) $(JFLAGS) $(UCAR)\netcdf\*.java
+	-$(JC) $(JFLAGS) $(UCAR)\tests\*.java
 	$(JC) $(JFLAGS) data\netcdf\units\*.java
 	$(JC) $(JFLAGS) data\netcdf\in\*.java
 	$(JC) $(JFLAGS) data\netcdf\out\*.java
@@ -359,6 +383,9 @@ clean:
 	if exist $(FITS)\fits\*.class $(DEL) $(FITS)\fits\*.class
 	if exist $(FITS)\util\*.class $(DEL) $(FITS)\util\*.class
 	if exist $(FITS)\test\*.class $(DEL) $(FITS)\test\*.class
+	if exist $(UCAR)\multiarray\*.class $(DEL) $(UCAR)\multiarray\*.class
+	if exist $(UCAR)\netcdf\*.class $(DEL) $(UCAR)\netcdf\*.class
+	if exist $(UCAR)\tests\*.class $(DEL) $(UCAR)\tests\*.class
 	if exist data\hdfeos\*.class $(DEL) data\hdfeos\*.class
 	if exist data\hdfeos\hdfeosc\*.class $(DEL) data\hdfeos\hdfeosc\*.class
 	if exist data\vis5d\*.class $(DEL) data\vis5d\*.class
@@ -383,6 +410,9 @@ visad.data.fits \
 nom.tam.fits \
 nom.tam.util \
 nom.tam.test \
+ucar.multiarray \
+ucar.netcdf \
+ucar.tests \
 visad.data.hdfeos \
 visad.data.hdfeos.hdfeosc \
 visad.data.vis5d \

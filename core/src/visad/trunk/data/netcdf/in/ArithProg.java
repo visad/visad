@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ArithProg.java,v 1.3 1998-09-11 15:00:51 steve Exp $
+ * $Id: ArithProg.java,v 1.4 1998-09-14 13:51:35 billh Exp $
  */
 
 
@@ -118,11 +118,43 @@ class ArithProg {
      * @promise		A subsequent getLast() will return the last value of
      *			the vector providing the function returns true.
      */
+/* WLH 12 Sept 98
     boolean accumulate(double[] values) throws VisADException {
 	for (int i = 0; (i < values.length) && accumulate(values[i]); ++i) ;
 
 	return consistent;
     }
+*/
+    boolean accumulate(double[] values) throws VisADException {
+        if (!consistent) {
+          throw new VisADException("Sequence not arithmetic series");
+        }
+        for (int i = 0; i < values.length; ++i) {
+          if (n == 0) {
+              first = values[i];
+          } else if (n == 1) {
+              increment = values[i] - first;
+          } else {
+              double      delta = increment == 0
+                                      ? values[i] - last
+                                      : 1.0 - (values[i] - last) / increment;
+              if (Math.abs(delta) <= epsilon) {
+                  increment = (values[i] - first) / n;
+              } else {
+                  consistent = false;
+                  increment = Double.NaN;
+              }
+          }
+     
+          last = values[i];
+          n++;
+     
+          if (!consistent) return false;
+
+        }
+        return true;
+    }
+
 
     /**
      * Accumulate a bunch of float values.  Indicate whether or not the 
@@ -138,10 +170,41 @@ class ArithProg {
      * @promise		A subsequent getLast() will return the last value of
      *			the vector providing the function returns true.
      */
+/* WLH 12 Sept 98
     boolean accumulate(float[] values) throws VisADException {
 	for (int i = 0; i < values.length && accumulate(values[i]); ++i) ;
 
 	return consistent;
+    }
+*/
+    boolean accumulate(float[] values) throws VisADException {
+        if (!consistent) {
+          throw new VisADException("Sequence not arithmetic series");
+        }
+        for (int i = 0; i < values.length; ++i) {
+          if (n == 0) {
+              first = values[i];
+          } else if (n == 1) {
+              increment = values[i] - first;
+          } else {
+              double      delta = increment == 0
+                                      ? values[i] - last
+                                      : 1.0 - (values[i] - last) / increment;
+              if (Math.abs(delta) <= epsilon) {
+                  increment = (values[i] - first) / n;
+              } else {
+                  consistent = false;
+                  increment = Double.NaN;
+              }
+          }
+ 
+          last = values[i];
+          n++;
+ 
+          if (!consistent) return false;
+ 
+        }
+        return true;
     }
 
     /**

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.7 1998-09-11 16:33:52 steve Exp $
+ * $Id: NcVar.java,v 1.8 1998-09-14 13:51:39 billh Exp $
  */
 
 package visad.data.netcdf.in;
@@ -78,6 +78,9 @@ NcVar
     private static final Map	longNameMap = 
 	Collections.synchronizedMap(new WeakHashMap());
 
+    /* WLH 13 Sept 98 */
+    Set computedDomainSet = null;
+    Set outerDomainSet = null;
 
     /**
      * Constructs from another NcVar.  Protected to ensure use by

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDomain.java,v 1.1 1998-09-11 15:00:52 steve Exp $
+ * $Id: NcDomain.java,v 1.2 1998-09-14 13:51:36 billh Exp $
  */
 
 package visad.data.netcdf.in;
@@ -39,6 +39,28 @@ NcDomain
      */
     private final MathType	type;
 
+    /* WLH 13 Sept 98 */
+    private NcVar our_var = null;
+    private boolean outer = false;
+
+    /* WLH 13 Sept 98 */
+    protected NcDomain(NcVar var, NcDim[] dims) throws VisADException {
+      this(dims);
+      our_var = var;
+    }
+
+    /* WLH 13 Sept 98 */
+    protected NcDomain(NcVar var, NcDim[] dims, boolean b) throws VisADException {
+      this(dims);
+      our_var = var;
+      outer = true;
+    }
+
+    /* WLH 13 Sept 98 */
+    protected NcDomain(NcVar var, NcDim dim) throws VisADException {
+      this(dim);
+      our_var = var;
+    }
 
     /**
      * Constructs from an adapted netCDF dimension.
@@ -196,7 +218,28 @@ NcDomain
 	if (getRank() < 1)
 	    throw new NestedException("Can't get sampling set of scalar");
 
+      /* WLH 13 Sept 98 */
+      if (our_var == null) {
+        return computeDomainSet(dims, type);
+      }
+      else {
+        if (outer) {
+          if (our_var.outerDomainSet == null) {
+            our_var.outerDomainSet = computeDomainSet(dims, type);
+          }
+          return our_var.outerDomainSet;
+        }
+        else {
+          if (our_var.computedDomainSet == null) {
+            our_var.computedDomainSet = computeDomainSet(dims, type);
+          }
+          return our_var.computedDomainSet;
+        }
+      }
+
+/* WLH 13 Sept 98
 	return computeDomainSet(dims, type);
+*/
     }
 
 
