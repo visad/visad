@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.2.4.2 2001-10-15 18:49:19 steve Exp $
+ * $Id: View.java,v 1.2.4.3 2001-10-19 17:07:36 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -53,7 +53,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.2.4.2 $ $Date: 2001-10-15 18:49:19 $
+ * @version $Revision: 1.2.4.3 $ $Date: 2001-10-19 17:07:36 $
  */
 public abstract class View
 {
@@ -498,7 +498,7 @@ public abstract class View
      */
     protected String newName(Variable var)
     {
-        return var.getName() + "_" + ++nameCount;
+        return var.getName() + "_" + nameCount++;
             // getUnitFromAttribute(var).toString().replace(' ', '_')
             // .replace('.', '_');
     }
