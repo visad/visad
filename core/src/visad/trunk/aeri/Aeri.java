@@ -37,7 +37,7 @@ import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaForm;
 import java.rmi.RemoteException;
 import java.io.IOException;
-import visad.data.visad.VisADForm;
+import visad.data.visad.VisADSerialForm;
 
 // JFC packages
 import javax.swing.*;
@@ -230,7 +230,7 @@ public class Aeri
       stations_field.setSample(kk, advect_field);
     }
 
-    VisADForm vad_form = new VisADForm();
+    VisADSerialForm vad_form = new VisADSerialForm();
     vad_form.save("aeri_winds_" + baseDate + "." +
                   height_limit + ".vad", stations_field, true);
 
@@ -240,7 +240,7 @@ public class Aeri
   void init_from_vad( String vad_file )
        throws VisADException, RemoteException, IOException
   {
-    VisADForm vad_form = new VisADForm();
+    VisADSerialForm vad_form = new VisADSerialForm();
     stations_field = (FieldImpl) vad_form.open( vad_file );
 
     MathType file_type = stations_field.getType();
