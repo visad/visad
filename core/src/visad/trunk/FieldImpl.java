@@ -1998,14 +1998,37 @@ public class FieldImpl extends FunctionImpl implements Field {
       }
     }
     RealType[] r_types = new RealType[new_domainDim];
+
     cnt = 0;
+    boolean any_coord_sys = false;
+    CoordinateSystem[] coord_sys = new CoordinateSystem[n_sets];
+
     for ( int kk = 0; kk < n_sets; kk++ ) {
       RealTupleType domain = set_types[kk].getDomain();
+      //- TDR: May, 2003
+      CoordinateSystem cs = domain.getCoordinateSystem();
+      if (cs != null) {
+        any_coord_sys = true;
+        coord_sys[kk] = cs;
+      }
+      else {
+        coord_sys[kk] = new IdentityCoordinateSystem(domain);
+      }
+
       for ( int j = 0; j < domain.getDimension(); j++ ) {
         r_types[cnt++] = (RealType) domain.getComponent(j);
       }
     }
-    RealTupleType new_domain_type = new RealTupleType( r_types );
+    //- TDR: May, 2003
+    CoordinateSystem new_cs = null;
+    if (any_coord_sys) {
+      new_cs = coord_sys[0];
+      for ( int kk = 0; kk < (coord_sys.length - 1); kk++ ) {
+        new_cs = new CartesianProductCoordinateSystem(new_cs, coord_sys[kk+1]);
+      }
+    }
+
+    RealTupleType new_domain_type = new RealTupleType( r_types, new_cs, null );
     FunctionType new_function_type = new FunctionType( new_domain_type,
                                                        new_range_type );
 
