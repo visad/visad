@@ -26,13 +26,21 @@ import visad.*;
 import visad.data.netcdf.*;
 import visad.data.netcdf.units.*;
 
-/** define a few atmospheric science club names and variations
-*
-* create the proper mb/hPa Units
-*/
+/** 
+ * Class for defining a few common atmospheric science units which don't
+ * conform to the standards used by the VisAD netCDF Units package.
+ * Use the makeSymbol method to return a "proper" unit symbol from a
+ * common one (ex: input mph to get mi/h).  Also allows one to input
+ * a common symbol in upper case (MPH) and get the proper one back (mi/h).
+ * @author Tom Whittaker, SSEC
+ */
 public class MetUnits {
 
-  public MetUnits () throws Exception {
+  /**
+   * Construct an instance of this class and add some common pressure
+   * units to the default database.
+   */
+  public MetUnits () throws VisADException {
     UnitsDB du = DefaultUnitsDB.instance();
     Unit hpa = du.get("hPa");
     hpa = hpa.clone("hPa");
@@ -42,26 +50,32 @@ public class MetUnits {
     du.putSymbol("mb", hpa);
   }
 
-  /** create a 'proper' unit symbol from a common one
+ /** 
+  * Create a 'proper' unit symbol from a common one (ie: mph -> mi/h instead
+  * of milliphots)
   *
-  * @param s is the String of the original unit name
+  * @param commonSymbol is the String of the original unit name
   *
-  * @return possibly converted String to standard name
-  *
+  * @return commonSymbol converted to "proper" symbol or commonSymbol if 
+  *         unknown
   */
-  public String makeSymbol(String s) {
-    String in = s.trim();
+  public String makeSymbol(String commonSymbol) {
+    String in = commonSymbol.trim();
     String out = in;
     if (in.equalsIgnoreCase("m")) out = "m";
     if (in.equalsIgnoreCase("sec")) out = "s";
     if (in.equalsIgnoreCase("mps")) out = "m/s";
     if (in.equalsIgnoreCase("mph")) out = "mi/h";
+    if (in.equalsIgnoreCase("kph")) out = "km/h";
+    if (in.equalsIgnoreCase("fps")) out = "ft/s";
     if (in.equalsIgnoreCase("km")) out = "km";
+    if (in.equalsIgnoreCase("dm")) out = "dm";
     if (in.equalsIgnoreCase("cm")) out = "cm";
+    if (in.equalsIgnoreCase("mm")) out = "mm";
     if (in.equalsIgnoreCase("mi")) out = "mi";
     if (in.equalsIgnoreCase("pa")) out = "Pa";
     if (in.equalsIgnoreCase("nmi")) out = "nmi";
-    if (in.equalsIgnoreCase("mm")) out = "mm";
+    if (in.equalsIgnoreCase("in")) out = "in";
     if (in.equalsIgnoreCase("deg")) out = "deg";
     if (in.equalsIgnoreCase("yd")) out = "yd";
     if (in.equalsIgnoreCase("ft")) out = "ft";
@@ -92,6 +106,7 @@ public class MetUnits {
     if (in.equalsIgnoreCase("jpkg")) out = "J/kg";
     if (in.equalsIgnoreCase("kgkg")) out = "kg/kg";
     if (in.equalsIgnoreCase("psps")) out = "s^-1";
+    if (in.equalsIgnoreCase("kps")) out = "K/s";
 
     return out;
   }
