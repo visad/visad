@@ -56,7 +56,7 @@ public class GIFAdapter
   private boolean badImage = false;
   private FlatField field = null;
 
-  /** Create a VisAD FlatField from a local GIF or JPEG file
+  /** Create a VisAD FlatField from a local GIF, JPEG or PNG file
     * @param filename name of local file.
     * @exception IOException if there was a problem reading the file.
     * @exception VisADException if an unexpected problem occurs.
@@ -67,7 +67,7 @@ public class GIFAdapter
     loadImage(Toolkit.getDefaultToolkit().getImage(filename).getSource());
   }
 
-  /** Create a VisAD FlatField from a GIF or JPEG on the Web.
+  /** Create a VisAD FlatField from a GIF, JPEG or PNG on the Web.
     * @param filename name of local file.
     * @exception IOException if there was a problem reading the file.
     * @exception VisADException if an unexpected problem occurs.

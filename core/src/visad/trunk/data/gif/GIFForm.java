@@ -55,7 +55,9 @@ public class GIFForm
   public boolean isThisType(String name)
   {
     return (name.endsWith(".gif") || name.endsWith(".GIF") ||
-            name.endsWith(".jpg") || name.endsWith(".JPG"));
+            name.endsWith(".jpg") || name.endsWith(".JPG") ||
+            name.endsWith(".jpeg") || name.endsWith(".JPEG") ||
+            name.endsWith(".png") || name.endsWith(".PNG"));
   }
 
   public boolean isThisType(byte[] block)
