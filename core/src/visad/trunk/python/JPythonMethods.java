@@ -73,7 +73,6 @@ public abstract class JPythonMethods {
           }
         }
       };
-  
       // set up scalar maps
       maps = data.getType().guessMaps(true);
   
@@ -106,7 +105,6 @@ public abstract class JPythonMethods {
       display.addReferences(new ImageRendererJ3D(), ref);
     }
     catch (VisADException exc) {
-System.out.println("not using ImageRendererJ3D");
       display.addReference(ref);
     }
   }
