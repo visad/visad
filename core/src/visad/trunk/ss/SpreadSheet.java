@@ -433,7 +433,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     this.fm = fm;
     CanDo3D = BasicSSCell.canDo3D();
     MappingDialog.initDialog();
-    addKeyListener(this);
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         quitProgram();
@@ -943,6 +942,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayPanel = new Panel();
     DisplayPanel.setBackground(Color.darkGray);
     SCPane.add(DisplayPanel);
+
+    // ugly hack to improve reliability of key presses
+    addKeyListener(this);
+    SCPane.addKeyListener(this);
+    ScrollPanel.addKeyListener(this);
+    DisplayPanel.addKeyListener(this);
 
     DataReferenceImpl lColRow = null;
     if (server != null) {
