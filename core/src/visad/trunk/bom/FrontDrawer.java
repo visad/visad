@@ -569,7 +569,6 @@ public class FrontDrawer extends Object {
       SampledSet[] sets = ((UnionSet) data).getSets();
       if (sets[0] instanceof Gridded2DSet) {
         curve_set = (Gridded2DSet) sets[0];
-System.out.println("curve_set = " + curve_set);
       }
     }
     if (curve_set == null) {
@@ -577,7 +576,6 @@ System.out.println("curve_set = " + curve_set);
     }
     else {
       SetType st = (SetType) curve_set.getType();
-System.out.println("st = " + st);
       if (!st.equals(curve_type)) {
         SetType rft =
           new SetType(new RealTupleType(RealType.Longitude, RealType.Latitude));
@@ -586,7 +584,6 @@ System.out.println("st = " + st);
         }
         lat_index = 1;
         lon_index = 0;
-System.out.println("invert lat and lon");
       }
     }
 
@@ -770,7 +767,6 @@ System.out.println("invert lat and lon");
 
     public void doAction() throws VisADException, RemoteException {
       synchronized (data_lock) {
-System.out.println("doAction");
         Data data = null;
         if (curve_ref != null) data = curve_ref.getData();
         Gridded2DSet curve_set = null;
@@ -827,8 +823,6 @@ System.out.println("doAction");
           }
         }
         last_curve_set = curve_set;
-
-System.out.println("curve_samples length = " + curve_samples[0].length);
 
         boolean flip = false;
         double[] lat_range = lat_map.getRange();
@@ -1262,7 +1256,7 @@ System.out.println("curve_samples length = " + curve_samples[0].length);
 
     initColormaps(display);
 
-    float[][] curve = {{-35.0f, -30.0f, -25.0f}, {10.0f, 5.0f, 10.0f}};
+    float[][] curve = {{-35.0f, -30.0f, -25.0f}, {10.0f, 10.0f, 10.0f}};
     Gridded2DSet set =
       new Gridded2DSet(curve_type, curve, 3);
     UnionSet init_curve = new UnionSet(curve_type, new Gridded2DSet[] {set});
