@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                  25 March 1999
+                                   27 May 1999
  
                                 Table of Contents
 
@@ -73,7 +73,9 @@ You can optionally specify the number of spreadsheet cells with:
     java -mx64m visad.ss.SpreadSheet (cols) (rows)
 
 where (cols) is the number of columns, and (rows) is the number of rows.
-The default is four cells (two columns, two rows).
+The default is four cells (two columns, two rows).  Note that rows and
+columns can be added or deleted at run time using the commands from the
+Display menu.
 
 The Spread Sheet user interface requires a lot of memory (at least 32 MB),
 especially if you want to work with large data sets.  If you receive an
@@ -244,6 +246,20 @@ button.  You can also highlight items from the "Current Mappings" box, then
 click "Clear selected" to remove those mappings from the list, or click "Clear
 all" to clear all mappings from the list and start from scratch.
 
+Add column - Creates a new column and places it at the right edge of the
+spreadsheet.
+
+Add row - Creates a new row and places it at the bottom edge of the
+spreadsheet.
+
+Delete column - Deletes the column to which the currently selected cell
+belongs.  If a cell depends on any of the cells in the column, the delete
+column operation will fail.
+
+Delete row - Deletes the row to which the currently selected cell belongs.
+If a cell depends on any of the cells in the row, the delete row operation will
+fail.
+
 3-D (Java3D) - Sets the current cell's display dimension to 3-D.  This setting
 requires Java3D.  If you do not have Java3D installed, this option will be
 grayed out.
@@ -282,11 +298,11 @@ cell's mappings change, or the cell becomes highlighted.  If this option is
 unchecked, use the "Show VisAD controls" menu item or toolbar button to display
 the controls.  This option is checked by default.
 
-Show formula and RMI evaluation errors - If this option is checked, dialog boxes
-will pop up explaining why any formulas entered are illegal or could not be
-evaluated, as well as reporting any errors from RMI address imports.  If this
-option is not checked, the only notification of an error is a large X through
-the current cell.
+Show formula and RMI evaluation errors - If this option is checked, dialog
+boxes will pop up explaining why any formulas entered are illegal or could not
+be evaluated, as well as reporting any errors from RMI address imports.  If
+this option is not checked, the only notification of an error is a large X
+through the current cell.
 
 Show VisAD controls - Displays the set of controls relevant to the current cell
 (these controls are displayed by default, but could become hidden at a later
@@ -472,9 +488,9 @@ and other Spread Sheets.
 
 Obviously, if they're undocumented, you won't find them in this README!
 However, creating the javadoc for the visad.ss package should help in
-deciphering it, since the source is heavily commented.  You may also wish to
-create the javadoc for the visad.formula package, since it is heavily used
-by the Spread Sheet.
+deciphering it, since the source is liberally commented.  You may also wish to
+create the javadoc for the visad.formula package, since it is heavily used by
+the Spread Sheet.
 
 3. Known Bugs
 
@@ -483,11 +499,7 @@ The following bugs have been discovered and have not yet been fixed:
 1) The Spread Sheet will not import certain data sets correctly, due to
    incomplete implementations in VisAD file adapter forms.
 
-2) There is no way to change the number of rows and columns while the
-   Spread Sheet is running;  you must quit the Spread Sheet and specify
-   a new setting on the command line.
-
-3) When resizing cells, if a cell is made to be as small as it can be
+2) When resizing cells, if a cell is made to be as small as it can be
    in one or more dimensions, some extra space or a scroll bar will
    appear in the bottom or right-hand corners of the Spread Sheet window.
 
@@ -500,17 +512,15 @@ recreate the problem.
 
 Here's what's coming in the future:
 
-1) Spreadsheet column and row addition and deletion
+1) Remote spreadsheet cloning with collaboration
 
 2) Multiple data per cell
 
 3) Direct manipulation support
 
-4) Distributed Cells (including Displays)
+4) Misc. user interface enhancements
 
-5) Misc. user interface enhancements
-
-6) And of course, bug fixes
+5) And of course, bug fixes
 
 If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu and whibbard@macc.wisc.edu
