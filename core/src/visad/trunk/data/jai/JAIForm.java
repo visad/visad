@@ -27,13 +27,12 @@ MA 02111-1307, USA
 package visad.data.jai;
 
 import java.awt.image.BufferedImage;
-import java.lang.reflect.*;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
-import visad.util.DataUtility;
+import visad.util.*;
 
 /**
  * JAIForm is the VisAD data form for image formats supported by the Java
@@ -49,34 +48,28 @@ public class JAIForm extends Form implements FormFileInformer {
 
   private static boolean noJai = false;
 
-  private static Method[] methods = createMethods();
+  private static ReflectedUniverse r = createReflectedUniverse();
 
-  private static Method[] createMethods() {
-    Method[] m = new Method[2];
+  private static ReflectedUniverse createReflectedUniverse() {
+    ReflectedUniverse r = null;
     try {
-      Class jai = Class.forName("javax.media.jai.JAI");
-      Class planarImage = Class.forName("javax.media.jai.PlanarImage");
-      m[0] = jai.getMethod("create",
-        new Class[] {String.class, Object.class});
-      m[1] = planarImage.getMethod("getAsBufferedImage", new Class[0]);
+      r = new ReflectedUniverse();
+      r.exec("import javax.media.jai.JAI");
+      r.exec("import javax.media.jai.PlanarImage");
     }
-    catch (ClassNotFoundException exc) { noJai = true; }
-    catch (NoSuchMethodException exc) { noJai = true; }
-    return m;
+    catch (VisADException exc) { noJai = true; }
+    return r;
   }
-
-  private static Method jaiCreate = methods[0];
-  private static Method piGet = methods[1];
 
   private static BufferedImage createImage(String s, Object o) {
     BufferedImage bi = null;
     try {
-      Object pi = jaiCreate.invoke(null, new Object[] {s, o});
-      bi = (BufferedImage) piGet.invoke(pi, new Object[0]);
+      r.setVar("s", s);
+      r.setVar("o", o);
+      r.exec("pi = JAI.create(s, o)");
+      bi = (BufferedImage) r.exec("pi.getAsBufferedImage()");
     }
-    catch (IllegalAccessException exc) { }
-    catch (IllegalArgumentException exc) { }
-    catch (InvocationTargetException exc) { }
+    catch (VisADException exc) { }
     return bi;
   }
 
