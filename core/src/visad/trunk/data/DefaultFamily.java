@@ -236,6 +236,8 @@ public class DefaultFamily
     {
       try {
 	data = node.open(name);
+      } catch (OutOfMemoryError t) { // WLH 5 Feb 99
+	throw t;
       } catch (Throwable t) {
 	return false;
       }

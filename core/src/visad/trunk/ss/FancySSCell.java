@@ -341,6 +341,11 @@ public class FancySSCell extends BasicSSCell {
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
                                         JOptionPane.ERROR_MESSAGE);
         }
+        catch (OutOfMemoryError exc) { // WLH 5 Feb 99
+          msg = msg + "An error occurred:\n" + exc.toString();
+          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
       }
     };
     Thread t = new Thread(loadFile);
