@@ -108,7 +108,9 @@ public class SelectRangeWidget extends RangeSlider
 
     // copy range from ScalarMap
     double[] smapRange = smap.getRange();
-    resetValues((float )smapRange[0], (float )smapRange[1]);
+    float[] wr = widenRange((float) smapRange[0], (float) smapRange[1]);
+    resetValues(wr[0], wr[1]);
+    // resetValues((float )smapRange[0], (float )smapRange[1]); // HERE
 
     // get range control
     rangeControl = (RangeControl) smap.getControl();
@@ -138,7 +140,14 @@ public class SelectRangeWidget extends RangeSlider
   private void updateWidget(float min, float max) throws VisADException,
                                                  RemoteException {
     rangeControl.setRange(new float[] {min, max});
-    setBounds(min, max);
+    float[] wr = widenRange(min, max);
+    setBounds(wr[0], wr[1]);
+    // setBounds(min, max); // HERE
+  }
+
+  private float[] widenRange(float lo, float hi) {
+    float widen = 0.001f * (hi - lo);
+    return new float[] {lo - widen, hi + widen};
   }
 
   /** ScalarMapListener method used with delayed auto-scaling. */
