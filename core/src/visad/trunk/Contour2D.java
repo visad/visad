@@ -101,10 +101,16 @@ public class Contour2D extends Applet implements MouseListener {
   }
 
   public static float[] intervalToLevels(float interval, float low,
-                                         float high, float ba, boolean[] dash) {
+                                         float high, float ba, boolean[] dash)
+        throws VisADException {
     float clow, chi;
     float tmp1;
     float[] levs = null;
+
+    if (interval == 0.0) {
+      throw new VisADException("Contour interval cannot be zero");
+    }
+
     dash[0] = false;
     if (interval < 0) {
         dash[0] = true;
@@ -114,28 +120,35 @@ public class Contour2D extends Applet implements MouseListener {
     // compute list of contours
     // compute clow and chi, low and high contour values in the box
     tmp1 = (low - ba) / interval;
-    clow = ba + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
-                                          : (int) ((tmp1)-0.5) )-1);
+    clow = ba + interval * ((int) (tmp1 + (tmp1 >= 0 ? 0.5 : -0.5)) - 1);
     while (clow<low) {
       clow += interval;
     }
 
     tmp1 = (high - ba) / interval;
-    chi = ba + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
-                                             : (int) ((tmp1)-0.5) )+1);
+    chi = ba + interval * ((int) (tmp1 + (tmp1 >= 0 ? 0.5 : -0.5)) + 1);
     while (chi>high) {
       chi -= interval;
     }
 
     // how many contour lines are needed.
     tmp1 = (chi-clow) / interval;
-    int numc = 1+( (tmp1) >= 0 ? (int) ((tmp1) + 0.5) : (int) ((tmp1)-0.5) );
+    int numc = (int) (tmp1 + (tmp1 >= 0 ? 0.5 : -0.5)) + 1;
 /*
     System.out.println("clow = " + clow + "chigh = " + chi +
                        "tmp1 = " + tmp1 + "numc = " + numc);
 */
     if (numc < 1) return levs;
-    levs = new float[numc];
+
+    if (numc > 1000) {
+      throw new VisADException("Contour interval too small");
+    }
+
+    try {
+      levs = new float[numc];
+    } catch (OutOfMemoryError e) {
+      throw new VisADException("Contour interval too small");
+    }
 
     levs[0] = clow;
     for (int i = 1; i < numc; i++) {
