@@ -375,18 +375,21 @@ class myFrame:
 
   def __init__(self, display, width, height, title, bottom, top):
     from javax.swing import JFrame, JPanel
+    from java.awt import BorderLayout, Dimension
     self.display = display
     self.frame = JFrame(title, windowClosing=self.desty)
     self.pane = self.frame.getContentPane()
-    self.pane.add("Center",self.display.getComponent())
+    self.display.getComponent().setPreferredSize(Dimension(width,height))
+    self.pane.add(self.display.getComponent(), BorderLayout.CENTER)
     if bottom != None: 
-      self.pb = JPanel()
+      self.pb = JPanel(BorderLayout())
       self.pb.add(bottom)
-      self.pane.add("South", self.pb)
+      self.pane.add(self.pb, BorderLayout.SOUTH)
     if top != None: 
-      self.pt = Jpanel()
-      self.pane.add("North", self.pt)
+      self.pt = JPanel(BorderLayout())
+      self.pt.add(top)
+      self.pane.add(self.pt, BorderLayout.NORTH)
     self.frame.pack()
     self.frame.show()
-    self.frame.setSize(width, height)
+#    self.frame.setSize(width, height)
 
