@@ -55,7 +55,7 @@ Shapes
 /**
    FrontDrawer is the VisAD class for manipulation of fronts
 */
-public class FrontDrawer extends Object {
+public class FrontDrawer extends Object implements ControlListener {
 
   private static boolean debug = true;
 
@@ -131,6 +131,11 @@ public class FrontDrawer extends Object {
 
   // size of filter window for smoothing curve
   private int filter_window = 1;
+
+  // copy of cs argument
+  float[][][] ccs = null;
+  // copy of fs argument
+  FieldImpl ffs = null;
 
   public static final int COLD_FRONT = 0;
   public static final int WARM_FRONT = 1;
@@ -569,10 +574,12 @@ public class FrontDrawer extends Object {
     catch (VisADException e) {
       // if (debug) System.out.println("caught " + e.toString());
     }
+    ccs = cs;
+    ffs = fs;
 
     curve_ref = new DataReferenceImpl("curve_ref");
     Gridded2DSet set = null;
-    if (cs == null) {
+    if (cs == null || cs[0] == null) {
       set = new Gridded2DSet(curve_type, new float[][] {{0.0f}, {0.0f}}, 1);
     }
     else {
@@ -713,29 +720,13 @@ public class FrontDrawer extends Object {
         }
       }
     }
+
     Set aset = acontrol.getSet();
-    ntimes = aset.getLength();
-    current_time_step = acontrol.getCurrent();
-    if (cs == null) {
-      curves = new float[ntimes][][];
+    if (aset != null) {
+      setupAnimationSet(aset);
     }
     else {
-      curves = cs;
-      if (cs.length != ntimes) {
-        throw new VisADException("cs bad number of times " +
-                                 cs.length + " != " + ntimes);
-      }
-    }
-    flips = new boolean[ntimes];
-    if (fs == null) {
-      fronts = new FieldImpl(fronts_type, aset);
-    }
-    else {
-      fronts = fs;
-      if (!aset.equals(fs.getDomainSet())) {
-        throw new VisADException("fs bad time Set " +
-                                 fs.getDomainSet() + " != " + aset);
-      }
+      acontrol.addControlListener(this);
     }
 
     // find spatial maps for Latitude and Longitude
@@ -785,6 +776,46 @@ public class FrontDrawer extends Object {
     zoom_cell.addReference(zoom_ref);
 
     setScale();
+  }
+
+  private void setupAnimationSet(Set aset)
+    throws VisADException {
+    ntimes = aset.getLength();
+    current_time_step = acontrol.getCurrent();
+    if (ccs == null) {
+      curves = new float[ntimes][][];
+    }
+    else {
+      curves = ccs;
+      if (ccs.length != ntimes) {
+        throw new VisADException("cs bad number of times " +
+                                 ccs.length + " != " + ntimes);
+      }
+    }
+    flips = new boolean[ntimes];
+    if (ffs == null) {
+      fronts = new FieldImpl(fronts_type, aset);
+    }
+    else {
+      fronts = ffs;
+      if (!aset.equals(ffs.getDomainSet())) {
+        throw new VisADException("fs bad time Set " +
+                                 ffs.getDomainSet() + " != " + aset);
+      }
+    }
+  }
+
+  public void controlChanged(ControlEvent e) {
+    if (fronts == null) {
+      try {
+        Set aset = acontrol.getSet();
+        if (aset != null) {
+          setupAnimationSet(aset);
+        }
+      }
+      catch (VisADException ee) {
+      }
+    }
   }
 
   public DefaultRendererJ3D getFrontRenderer() {
@@ -1370,19 +1401,9 @@ public class FrontDrawer extends Object {
     ScalarMap timemap = new ScalarMap(RealType.Time, Display.Animation);
     display.addMap(timemap);
     AnimationControl acontrol = (AnimationControl) timemap.getControl();
-    acontrol.setSet(new Integer1DSet(RealType.Time, 4));
+    // acontrol.setSet(new Integer1DSet(RealType.Time, 4));
 
     initColormaps(display);
-
-/*
-    float[][] curve = {{-35.0f, -30.0f, -25.0f}, {10.0f, 10.0f, 10.0f}};
-    Gridded2DSet set =
-      new Gridded2DSet(curve_type, curve, 3);
-    UnionSet init_curve = new UnionSet(curve_type, new Gridded2DSet[] {set});
-
-    DataReferenceImpl curve_ref = new DataReferenceImpl("curve_ref");
-    curve_ref.setData(init_curve);
-*/
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test FrontDrawer");
@@ -1424,6 +1445,9 @@ public class FrontDrawer extends Object {
     // set size of JFrame and make it visible
     frame.setSize(500, 700);
     frame.setVisible(true);
+
+    new Delay(5000);
+    acontrol.setSet(new Integer1DSet(RealType.Time, 4));
   }
 }
 
