@@ -3555,9 +3555,8 @@ try {
                                          lowhibase[2], display_values[i],
                                          color_values, swap, dashes[0],
                                          fill, smap, scale_ratio, label_size, f_array);
-
-              if (fill) array_s[0][0] = array_s[0][0].adjustSeam(renderer);
-              if (array_s != null && !fill) {
+              if (array_s != null) {
+              if (!fill) {
                 for (int j=0; j<2; j++) {
                   if (array_s[j][0] != null) {
                     try {
@@ -3570,40 +3569,35 @@ try {
                 }
               }
 
-              array = array_s[0][0];
-
-              if (array_s != null && array_s.length > 0 && array != null &&
-                  array.vertexCount > 0)
+              if (array_s.length > 0 && array_s[0][0] != null &&
+                  array_s[0][0].vertexCount > 0)
               {
-                shadow_api.addToGroup(group, array, mode,
+                shadow_api.addToGroup(group, array_s[0][0], mode,
                                       constant_alpha, constant_color);
+                array_s[0][0] = null;
                 if (!fill) {
-                array     = null;
-                array_s[0] = null;
-                if (bvalues[1] && array_s[2] != null)
-                {
-                  // draw labels
-                  shadow_api.addLabelsToGroup(group, array_s, mode, control,
-                                              p_cntrl, cnt, constant_alpha,
-                                              constant_color, f_array);
-                  array_s[2] = null;
-                }
-                else if ((!bvalues[1]) && array_s[1] != null)
-                {
-                  // fill in contour lines in place of labels
-                  array = array_s[1][0];
-                  shadow_api.addToGroup(group, array, mode,
+                  if (bvalues[1] && array_s[2] != null)
+                  {
+                    // draw labels
+                    shadow_api.addLabelsToGroup(group, array_s, mode, control,
+                                                p_cntrl, cnt, constant_alpha,
+                                                constant_color, f_array);
+                    array_s[2] = null;
+                  }
+                  else if ((!bvalues[1]) && array_s[1] != null)
+                  {
+                    // fill in contour lines in place of labels
+                    array = array_s[1][0];
+                    shadow_api.addToGroup(group, array_s[1][0], mode,
                                         constant_alpha, constant_color);
-                  //  FREE
-                  array = null;
+                    array_s[1][0] = null;
+                  }
                 }
-                }
-                array_s[1] = null;
                 array_s = null;
               }
+            }
             } // end if (spatial_set != null)
             anyContourCreated = true;
-            //projListener.cnt = cnt;
           } // end if (spatialManifoldDimension == 2)
         } // end if (bvalues[0])
       } // end if (real.equals(Display.IsoContour) && not inherited)

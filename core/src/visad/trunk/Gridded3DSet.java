@@ -1702,6 +1702,9 @@ for color_length = 3 this is 148 * Length
     float[][] tri_normals    = new float[1][];
     byte[][]  tri_color      = new byte[color_length][];
     float[][][] grd_normals  = null;
+    if (intervals == null) {
+      return null;
+    }
     byte[][] interval_colors = new byte[color_length][intervals.length];
 
 
