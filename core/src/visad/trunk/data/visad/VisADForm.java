@@ -98,7 +98,6 @@ public class VisADForm extends Form implements FormFileInformer {
     try {
       return readData(new BinaryReader(id));
     } catch (Exception ioe) {
-ioe.printStackTrace();
       errMsg = ioe.getMessage();
     }
 
