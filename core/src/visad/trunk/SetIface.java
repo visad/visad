@@ -216,13 +216,6 @@ public interface SetIface
   boolean equals(java.lang.Object set);
 
   /**
-   * Clones this set.
-   *
-   * @return			A clone of this set.
-   */
-  Object clone();
-
-  /**
    * Clones this set -- changing the MathType.
    *
    * @param type		The MathType for the clone.
