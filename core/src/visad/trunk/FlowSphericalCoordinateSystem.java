@@ -1,5 +1,5 @@
 //
-// SphericalCoordinateSystem.java
+// FlowSphericalCoordinateSystem.java
 //
 
 /*
@@ -27,34 +27,36 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   SphericalCoordinateSystem is the VisAD CoordinateSystem class
-   for (Latitude, Longitude, Radius) with a Cartesian Reference,
-   and with Latitude and Longitude in degrees.<P>
+   FlowSphericalCoordinateSystem is the VisAD CoordinateSystem class
+   for (Elevation, Azimuth, Radial) with a Cartesian Reference,
+   with Elevation and Azimuth in degrees and Radial in meters
+   per second.  Note Elevation and Azimuth are direction that
+   wind is from.<P>
 */
-public class SphericalCoordinateSystem extends CoordinateSystem {
+public class FlowSphericalCoordinateSystem extends CoordinateSystem {
 
   private static Unit[] coordinate_system_units =
-    {CommonUnit.degree, CommonUnit.degree, null};
+    {CommonUnit.degree, CommonUnit.degree, CommonUnit.meterPerSecond};
 
-  /** construct a CoordinateSystem for (latitude, longitude,
-      radius) relative to a 3-D Cartesian reference;
+  /** construct a CoordinateSystem for (elevation, azimuth,
+      radial) relative to a 3-D Cartesian reference;
       this constructor supplies units =
-      {CommonUnit.Degree, CommonUnit.Degree, null} to the super
-      constructor, in order to ensure Unit compatibility with its
-      use of trigonometric functions */
-  public SphericalCoordinateSystem(RealTupleType reference)
+      {CommonUnit.Degree, CommonUnit.Degree, CommonUnit.meterPerSecond}
+      to the super constructor, in order to ensure Unit compatibility
+      with its use of trigonometric functions */
+  public FlowSphericalCoordinateSystem(RealTupleType reference)
          throws VisADException {
     super(reference, coordinate_system_units);
   }
 
   /** trusted constructor for initializers */
-  SphericalCoordinateSystem(RealTupleType reference, boolean b) {
+  FlowSphericalCoordinateSystem(RealTupleType reference, boolean b) {
     super(reference, coordinate_system_units, b);
   }
 
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
-      throw new CoordinateSystemException("SphericalCoordinateSystem." +
+      throw new CoordinateSystemException("FlowSphericalCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -70,9 +72,9 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
         double sinlat = Math.sin(Data.DEGREES_TO_RADIANS * tuples[0][i]);
         double coslon = Math.cos(Data.DEGREES_TO_RADIANS * tuples[1][i]);
         double sinlon = Math.sin(Data.DEGREES_TO_RADIANS * tuples[1][i]);
-        value[0][i] = tuples[2][i] * coslon * coslat;
-        value[1][i] = tuples[2][i] * sinlon * coslat;
-        value[2][i] = tuples[2][i] * sinlat;
+        value[0][i] = -tuples[2][i] * sinlon * coslat;
+        value[1][i] = -tuples[2][i] * coslon * coslat;
+        value[2][i] = -tuples[2][i] * sinlat;
       }
     }
     return value;
@@ -80,7 +82,7 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
 
   public double[][] fromReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
-      throw new CoordinateSystemException("SphericalCoordinateSystem." +
+      throw new CoordinateSystemException("FlowSphericalCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -90,9 +92,9 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
                               tuples[1][i] * tuples[1][i] +
                               tuples[2][i] * tuples[2][i]);
       value[0][i] =
-        Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]);
+        Data.RADIANS_TO_DEGREES * Math.asin(-tuples[2][i] / value[2][i]);
       value[1][i] =
-        Data.RADIANS_TO_DEGREES * Math.atan2(tuples[1][i], tuples[0][i]);
+        Data.RADIANS_TO_DEGREES * Math.atan2(-tuples[0][i], -tuples[1][i]);
       if (value[1][i] < 0.0) value[1][i] += 360.0;
     }
     return value;
@@ -100,7 +102,7 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
 
   public float[][] toReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
-      throw new CoordinateSystemException("SphericalCoordinateSystem." +
+      throw new CoordinateSystemException("FlowSphericalCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -116,9 +118,9 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
         float sinlat = (float) Math.sin(Data.DEGREES_TO_RADIANS * tuples[0][i]);
         float coslon = (float) Math.cos(Data.DEGREES_TO_RADIANS * tuples[1][i]);
         float sinlon = (float) Math.sin(Data.DEGREES_TO_RADIANS * tuples[1][i]);
-        value[0][i] = tuples[2][i] * coslon * coslat;
-        value[1][i] = tuples[2][i] * sinlon * coslat;
-        value[2][i] = tuples[2][i] * sinlat;
+        value[0][i] = -tuples[2][i] * sinlon * coslat;
+        value[1][i] = -tuples[2][i] * coslon * coslat;
+        value[2][i] = -tuples[2][i] * sinlat;
       }
     }
     return value;
@@ -126,7 +128,7 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
  
   public float[][] fromReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
-      throw new CoordinateSystemException("SphericalCoordinateSystem." +
+      throw new CoordinateSystemException("FlowSphericalCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
@@ -136,16 +138,16 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
                                       tuples[1][i] * tuples[1][i] +
                                       tuples[2][i] * tuples[2][i]);
       value[0][i] = (float)
-        (Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]));
+        (Data.RADIANS_TO_DEGREES * Math.asin(-tuples[2][i] / value[2][i]));
       value[1][i] = (float)
-        (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[1][i], tuples[0][i]));
+        (Data.RADIANS_TO_DEGREES * Math.atan2(-tuples[0][i], -tuples[1][i]));
       if (value[1][i] < 0.0f) value[1][i] += 360.0f;
     }
     return value;
   }
 
   public boolean equals(Object cs) {
-    return (cs instanceof SphericalCoordinateSystem);
+    return (cs instanceof FlowSphericalCoordinateSystem);
   }
 
 }

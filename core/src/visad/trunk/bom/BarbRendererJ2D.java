@@ -107,12 +107,12 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     RealType index = new RealType("index");
     EarthVectorType flowxy = new EarthVectorType(flowx, flowy);
     TupleType range = null;
+    RealType flow_degree = new RealType("flow_degree",
+                          CommonUnit.degree, null);
+    RealType flow_speed = new RealType("flow_speed",
+                          CommonUnit.meterPerSecond, null);
     if (args.length > 1) {
       System.out.println("polar winds");
-      RealType flow_degree = new RealType("flow_degree",
-                            CommonUnit.degree, null);
-      RealType flow_speed = new RealType("flow_speed",
-                            CommonUnit.meterPerSecond, null);
       RealTupleType flowds =
         new RealTupleType(new RealType[] {flow_degree, flow_speed},
         new WindPolarCoordinateSystem(flowxy), null);
@@ -129,14 +129,26 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     display.addMap(xmap);
     ScalarMap ymap = new ScalarMap(lat, Display.YAxis);
     display.addMap(ymap);
-    ScalarMap flowx_map = new ScalarMap(flowx, Display.Flow1X);
-    display.addMap(flowx_map);
-    flowx_map.setRange(-1.0, 1.0);
-    ScalarMap flowy_map = new ScalarMap(flowy, Display.Flow1Y);
-    display.addMap(flowy_map);
-    flowy_map.setRange(-1.0, 1.0);
-    FlowControl flow_control = (FlowControl) flowy_map.getControl();
-    flow_control.setFlowScale(0.1f);
+    if (args.length > 1) {
+      ScalarMap flowd_map = new ScalarMap(flow_degree, Display.Flow1Azimuth);
+      display.addMap(flowd_map);
+      flowd_map.setRange(0.0, 360.0);
+      ScalarMap flows_map = new ScalarMap(flow_speed, Display.Flow1Radial);
+      display.addMap(flows_map);
+      flows_map.setRange(0.0, 1.0);
+      FlowControl flow_control = (FlowControl) flows_map.getControl();
+      flow_control.setFlowScale(0.1f);
+    }
+    else {
+      ScalarMap flowx_map = new ScalarMap(flowx, Display.Flow1X);
+      display.addMap(flowx_map);
+      flowx_map.setRange(-1.0, 1.0);
+      ScalarMap flowy_map = new ScalarMap(flowy, Display.Flow1Y);
+      display.addMap(flowy_map);
+      flowy_map.setRange(-1.0, 1.0);
+      FlowControl flow_control = (FlowControl) flowy_map.getControl();
+      flow_control.setFlowScale(0.1f);
+    }
     display.addMap(new ScalarMap(red, Display.Red));
     display.addMap(new ScalarMap(green, Display.Green));
     display.addMap(new ConstantMap(1.0, Display.Blue));

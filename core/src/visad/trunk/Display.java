@@ -156,7 +156,7 @@ public interface Display extends Action {
     new DisplayRealType("Flow1Azimuth", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
   DisplayRealType Flow1Radial =
-    new DisplayRealType("Flow1Radial", true, -1.0, 1.0, 0.0,
+    new DisplayRealType("Flow1Radial", true, 0.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
   /** second set of three flow display scalars */
@@ -177,7 +177,7 @@ public interface Display extends Action {
     new DisplayRealType("Flow2Azimuth", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
   DisplayRealType Flow2Radial =
-    new DisplayRealType("Flow2Radial", true, -1.0, 1.0, 0.0,
+    new DisplayRealType("Flow2Radial", true, 0.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
   /** spatial offset display scalars */
@@ -290,9 +290,7 @@ public interface Display extends Action {
       Flow Coordinates, this defines a CoordinateSystem with Reference
       DisplayFlow1Tuple */
   CoordinateSystem DisplayFlow1SphericalCoordSys =
-    new SphericalCoordinateSystem(DisplayFlow1Tuple, new Unit[]
-          {CommonUnit.degree, CommonUnit.degree, CommonUnit.meterPerSecond},
-          true);
+    new FlowSphericalCoordinateSystem(DisplayFlow1Tuple, true);
   DisplayRealType[] componentsflow1s =
           {Flow1Elevation, Flow1Azimuth, Flow1Radial};
   DisplayTupleType DisplayFlow1SphericalTuple =
@@ -302,9 +300,7 @@ public interface Display extends Action {
       Flow Coordinates, this defines a CoordinateSystem with Reference
       DisplayFlow2Tuple */
   CoordinateSystem DisplayFlow2SphericalCoordSys =
-    new SphericalCoordinateSystem(DisplayFlow2Tuple, new Unit[]
-          {CommonUnit.degree, CommonUnit.degree, CommonUnit.meterPerSecond},
-          true);
+    new FlowSphericalCoordinateSystem(DisplayFlow2Tuple, true);
   DisplayRealType[] componentsflow2s =
           {Flow2Elevation, Flow2Azimuth, Flow2Radial};
   DisplayTupleType DisplayFlow2SphericalTuple =

@@ -346,8 +346,16 @@ public abstract class ShadowType extends Object
            (tuple.getCoordinateSystem() != null &&
             tuple.getCoordinateSystem().getReference().equals(
             Display.DisplayRGBTuple)))) continue;  // Color
-      if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
-      if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow1Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow1Tuple)))) continue;  // Flow1
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow2Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow2Tuple)))) continue;  // Flow2
       if (real.equals(Display.RGB) ||
           real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
@@ -384,8 +392,16 @@ public abstract class ShadowType extends Object
            (tuple.getCoordinateSystem() != null &&
             tuple.getCoordinateSystem().getReference().equals(
             Display.DisplayRGBTuple)))) continue;  // Color
-      if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
-      if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow1Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow1Tuple)))) continue;  // Flow1
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow2Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow2Tuple)))) continue;  // Flow2
       if (real.equals(Display.RGB) ||
           real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
@@ -413,8 +429,16 @@ public abstract class ShadowType extends Object
            (tuple.getCoordinateSystem() != null &&
             tuple.getCoordinateSystem().getReference().equals(
             Display.DisplayRGBTuple)))) continue;  // Color
-      if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
-      if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow1Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow1Tuple)))) continue;  // Flow1
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow2Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow2Tuple)))) continue;  // Flow2
       if (real.equals(Display.RGB) ||
           real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
@@ -442,8 +466,16 @@ public abstract class ShadowType extends Object
            (tuple.getCoordinateSystem() != null &&
             tuple.getCoordinateSystem().getReference().equals(
             Display.DisplayRGBTuple)))) continue;  // Color
-      if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
-      if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow1Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow1Tuple)))) continue;  // Flow1
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow2Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow2Tuple)))) continue;  // Flow2
       if (real.equals(Display.RGB) ||
           real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
@@ -519,8 +551,16 @@ public abstract class ShadowType extends Object
            (tuple.getCoordinateSystem() != null &&
             tuple.getCoordinateSystem().getReference().equals(
             Display.DisplayRGBTuple)))) continue;  // Color
-      if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
-      if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow1Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow1Tuple)))) continue;  // Flow1
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow2Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow2Tuple)))) continue;  // Flow2
       if (real.equals(Display.RGB) ||
           real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
@@ -649,8 +689,16 @@ public abstract class ShadowType extends Object
       if (display_indices[i] == 0) continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (Display.DisplayFlow1Tuple.equals(tuple)) return true;  // Flow1
-      if (Display.DisplayFlow2Tuple.equals(tuple)) return true;  // Flow2
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow1Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow1Tuple)))) return true;  // Flow1
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayFlow2Tuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayFlow2Tuple)))) return true;  // Flow2
     }
     return false;
   }
