@@ -1928,6 +1928,12 @@ System.out.println("degree earth_locs = " + earth_locs[0][0] +
         vert[j] = factor_vert * flow_values[2][j];
       }
       earth_locs = renderer.earthToSpatial(earth_locs, vert);
+      for (int i=0; i<earth_locs.length; i++) {
+        if (earth_locs[i] == null) {
+          earth_locs[i] = new float[flen];
+          for (int j=0; j<flen; j++) earth_locs[i][j] = spatial_values[i][j];
+        }
+      }
     }
 /*
 System.out.println("spatial earth_locs = " + earth_locs[0][0] + " " +

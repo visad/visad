@@ -619,6 +619,7 @@ if (map.badRange()) {
       return null;
     }
 
+/* WLH 28 July 99
     // fill any empty spatial DisplayRealTypes with default values
     for (int i=0; i<3; i++) {
       if (spatial_locs[i] == null) {
@@ -627,10 +628,18 @@ if (map.badRange()) {
         for (int j=0; j<size; j++) spatial_locs[i][j] = def;
       }
     }
+*/
 
     // adjust non-lat/lon spatial_locs by vertical flow component
+/* WLH 28 July 99
     if (vert != null && vert_index > -1) {
       for (int j=0; j<size; j++) spatial_locs[vert_index][j] += vert[j];
+    }
+*/
+    if (spatial_locs[vert_index] != null) {
+      if (vert != null && vert_index > -1) {
+        for (int j=0; j<size; j++) spatial_locs[vert_index][j] += vert[j];
+      }
     }
 
     if (display_coordinate_system != null) {
