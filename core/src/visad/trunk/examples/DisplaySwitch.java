@@ -166,63 +166,6 @@ public class DisplaySwitch
     return " unknown";
   }
 
-  RemoteServer getClientServer()
-    throws RemoteException, VisADException
-  {
-    RemoteServer client = null;
-    String domain = "//" + hostName + "/" + getClass().getName();
-
-    int loops = 0;
-    while (client == null && loops < maximumWaitTime) {
-
-      // try to reconnect to the server after the first loop
-      if (loops > 0) {
-        try {
-          client = (RemoteServer )Naming.lookup(domain);
-        } catch (NotBoundException nbe) {
-          client = null;
-        } catch (Exception e) {
-          throw new VisADException ("Cannot connect to server on \"" +
-                                    hostName + "\" (" +
-                                    e.getClass().getName() + ": " +
-                                    e.getMessage() + ")");
-        }
-      }
-
-      // try to get first display from remote server
-      RemoteDisplay rmtDpy;
-      try {
-        if (client != null) {
-          rmtDpy = client.getDisplay(0);
-        }
-      } catch (java.rmi.ConnectException ce) {
-        client = null;
-      }
-
-      // if we didn't get the display, print a message and wait a bit
-      if (client == null) {
-        if (loops == 0) {
-          System.err.print("Client waiting for server ");
-        } else {
-          System.err.print(".");
-        }
-
-        try { sleep(1000); } catch (InterruptedException ie) { }
-
-        loops++;
-      }
-    }
-
-    if (loops == maximumWaitTime) {
-      System.err.println(" giving up!");
-      System.exit(1);
-    } else if (loops > 0) {
-      System.err.println(". connected");
-    }
-
-    return client;
-  }
-
   LocalDisplay setupClientData()
     throws RemoteException, VisADException
   {
