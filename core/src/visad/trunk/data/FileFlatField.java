@@ -103,8 +103,13 @@ public class FileFlatField extends FlatField {
     throws VisADException 
   {
 
+/* WLH 3 April 98
     super( accessor.getFunctionType(), 
            (accessor.getFunctionType()).getDomain().getDefaultSet() );
+*/
+    super( accessor.getFunctionType(), 
+           getNullDomainSet(accessor.getFunctionType().getDomain()) );
+
 
     fileAccessor = accessor;
     cacheStrategy = strategy;
@@ -116,6 +121,21 @@ public class FileFlatField extends FlatField {
     }
   }
  
+  private static Set getNullDomainSet(RealTupleType type)
+          throws VisADException {
+    int n = type.getDimension();
+    double[] values = new double[n];
+    for (int i=0; i<n; i++) values[i] = 0.0;
+    RealTuple tuple;
+    try {
+      tuple = new RealTuple(type, values);
+      return new SingletonSet(tuple);
+    }
+    catch (RemoteException e) {
+      throw new VisADError("FileFlatField.getNullDomainSet: " + e.toString());
+    }
+  }
+
   private FlatField getadaptedFlatField()
   {
     // does not lock adaptedFlatFields since it is always
