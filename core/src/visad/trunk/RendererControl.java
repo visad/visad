@@ -366,7 +366,7 @@ public class RendererControl
     buf.append('/');
     buf.append(backgroundColor[2]);
 
-    buf.append("fg=");
+    buf.append(",fg=");
     buf.append(foregroundColor[0]);
     buf.append('/');
     buf.append(foregroundColor[1]);
