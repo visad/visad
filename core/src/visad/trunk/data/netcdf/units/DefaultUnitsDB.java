@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.13 1999-07-14 22:00:28 dglo Exp $
+ * $Id: DefaultUnitsDB.java,v 1.14 1999-09-02 16:05:41 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -875,6 +875,7 @@ DefaultUnitsDB
 	pn("count",		"");
 	ps("gp",		"geopotential");
 	px("dynamic",		"geopotential");
+	ps("gpm",		get("geopotential").multiply(get("meter")));
     }
 
 

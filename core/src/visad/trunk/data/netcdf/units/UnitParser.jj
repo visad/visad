@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitParser.jj,v 1.11 1999-07-13 20:11:05 steve Exp $
+ * $Id: UnitParser.jj,v 1.12 1999-09-02 16:05:43 steve Exp $
  */
 
 options
@@ -127,7 +127,7 @@ PARSER_BEGIN(UnitParser)
 
 
 	/**
-	 * Encode a timestamp as a double value.
+	 * Encode a timestamp as a double value in units of seconds.
 	 */
 	public static double
 	encodeTimestamp(int year, int month, int day,
@@ -232,7 +232,9 @@ Unit unitSpec() :
 	{
 	    if (unit == null)
 		unit = new DerivedUnit();	// dimensionless derived unit
-	    if (origin != 0 || (originSpecified && isTime))
+	    if (originSpecified && isTime)
+		unit = unit.shift(unit.toThis(origin, second));
+	    else if (origin != 0)
 		unit = unit.shift(origin);
 	    return unit;
 	}
