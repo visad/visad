@@ -41,6 +41,14 @@ import java.rmi.*;
 */
 public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
 
+
+/*
+
+ **** must invert CoordinateSystem adjustment to flow, from assembleSpatial ****
+
+*/
+
+
   /** this DataRenderer supports direct manipulation for RealTuple
       representations of wind barbs; four of the RealTuple's Real
       components must be mapped to XAxis, YAxis, Flow1X and Flow1Y */
