@@ -951,6 +951,8 @@ min(32 deltaF, 100 deltaK) = 32.0 degR
 300 kelvin + -(32 fahrenheit) = 26.85 K
 32 fahrenheit + -(300 kelvin) = -48.33 degR
 
+log(1 yard / 3 feet) = 0.0 
+
 */
 
 }
