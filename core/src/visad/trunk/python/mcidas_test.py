@@ -1,6 +1,6 @@
 from visad.python.JPythonMethods import *
 # load a McIDAS area file
-area = load("../data/mcidas/AREA0001")
+area = load("../examples/AREA2001")
 print area.length
 
 # make a scratch across the top of the area

@@ -244,23 +244,12 @@ public class JPythonEditor extends CodeEditor {
   /** executes the JPython script */
   public void run() throws VisADException {
     if (hasChanged()) {
-    /*  int ans = JOptionPane.showConfirmDialog(this,
-        "A save is required before execution. Okay to save?",
-        "VisAD JPython Editor", JOptionPane.YES_NO_OPTION);
-      if (ans != JOptionPane.YES_OPTION) return;
       if (warnBeforeSave) {
         int ans = JOptionPane.showConfirmDialog(this,
           "A save is required before execution. Okay to save?",
           "VisAD JPython Editor", JOptionPane.YES_NO_OPTION);
         if (ans != JOptionPane.YES_OPTION) return;
       }
-      if (warnBeforeSave) {
-        int ans = JOptionPane.showConfirmDialog(this,
-          "A save is required before execution. Okay to save?",
-          "VisAD JPython Editor", JOptionPane.YES_NO_OPTION);
-        if (ans != JOptionPane.YES_OPTION) return;
-      }
-    */
       boolean success = saveFile();
       if (!success) return;
     }
