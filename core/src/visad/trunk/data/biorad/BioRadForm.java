@@ -634,11 +634,19 @@ public class BioRadForm extends Form implements FormFileInformer {
   private DataImpl open(InputStream in)
     throws BadFormException, IOException, VisADException
   {
-    DataInputStream fin = new DataInputStream(in);
+    try {
+      return readFile(new DataInputStream(in));
+    } finally {
+      try { in.close(); } catch (IOException ioe) { }
+    }
+  }
 
+  DataImpl readFile(DataInput fin)
+    throws IOException, RemoteException, VisADException
+  {
     // read header
     byte[] header = new byte[76];
-    fin.read(header, 0, 76);
+    fin.readFully(header);
     int nx = getUnsignedShort(header[0], header[1]);
     int ny = getUnsignedShort(header[2], header[3]);
     int npic = getUnsignedShort(header[4], header[5]);
@@ -685,18 +693,38 @@ public class BioRadForm extends Form implements FormFileInformer {
       throw new BadFormException("Invalid file header: " + file_id);
     }
 
-    // read image data
-    int image_len = nx * ny;
-    byte[][] image_data = new byte[npic][image_len];
+    final int image_len = nx * ny;
+
+    float[][][] samples;
+
+    // read image bytes & convert to floats
+    samples = new float[npic][1][image_len];
     if (byte_format) {
       // read in image_len bytes
-      image_data = new byte[npic][image_len];
-      for (int i=0; i<npic; i++) fin.read(image_data[i], 0, image_len);
+      byte[] buf = new byte[image_len];
+      for (int i=0; i<npic; i++) {
+        fin.readFully(buf);
+
+        // each pixel is 8 bits
+        for (int l=0; l<image_len; l++) {
+          int q = 0x000000ff & buf[l];
+          samples[i][0][l] = (float) q;
+        }
+      }
     }
     else {
       // read in 2 * image_len bytes
-      image_data = new byte[npic][2 * image_len];
-      for (int i=0; i<npic; i++) fin.read(image_data[i], 0, 2 * image_len);
+      final int data_len = 2 * image_len;
+      byte[] buf = new byte[data_len];
+      for (int i=0; i<npic; i++) {
+        fin.readFully(buf);
+
+        // each pixel is 16 bits
+        for (int l=0; l<data_len; l+=2) {
+          int q = getUnsignedShort(buf[l], buf[l + 1]);
+          samples[i][0][l/2] = (float) q;
+        }
+      }
     }
 
     // read notes
@@ -704,7 +732,7 @@ public class BioRadForm extends Form implements FormFileInformer {
     while (notes) {
       // read in note
       byte[] note = new byte[96];
-      fin.read(note, 0, 96);
+      fin.readFully(note);
       int level = getUnsignedShort(note[0], note[1]);
       notes = (note[2] | note[3] | note[4] | note[5]) != 0;
       int num = getUnsignedShort(note[6], note[7]);
@@ -722,9 +750,8 @@ public class BioRadForm extends Form implements FormFileInformer {
     boolean eof = false;
     while (!eof && numLuts < 3) {
       try {
-        int ret = fin.read(lut[numLuts]);
-        if (ret == -1) eof = true;
-        else numLuts++;
+        fin.readFully(lut[numLuts]);
+        numLuts++;
       }
       catch (IOException exc) {
         eof = true;
@@ -735,9 +762,6 @@ public class BioRadForm extends Form implements FormFileInformer {
       System.out.println(numLuts + " color table" +
         (numLuts == 1 ? "" : "s") + " present.");
     }
-
-    // close file
-    fin.close();
 
     // get basic note information
     int len = noteList.size();
@@ -795,28 +819,6 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
     if (horizStep == 0) horizStep = 1;
     if (vertStep == 0) vertStep = 1;
-
-    // convert image bytes to floats
-    float[][][] samples = new float[npic][1][image_len];
-    if (byte_format) {
-      // each pixel is 8 bits
-      for (int i=0; i<npic; i++) {
-        for (int l=0; l<image_len; l++) {
-          int q = 0x000000ff & image_data[i][l];
-          samples[i][0][l] = (float) q;
-        }
-      }
-    }
-    else {
-      // each pixel is 16 bits
-      for (int i=0; i<npic; i++) {
-        for (int l=0; l<image_len; l++) {
-          int q = getUnsignedShort(
-            image_data[i][2 * l], image_data[i][2 * l + 1]);
-          samples[i][0][l] = (float) q;
-        }
-      }
-    }
 
     // convert color table bytes to floats
     float[][][] colors = new float[numLuts][3][256];
