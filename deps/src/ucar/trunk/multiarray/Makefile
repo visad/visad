@@ -1,11 +1,11 @@
-# $Id: Makefile,v 1.1.1.2 2000-08-28 21:43:05 dglo Exp $
+# $Id: Makefile,v 1.1.1.3 2000-08-28 21:43:41 dglo Exp $
 #
 #       Makefile for java package ucar.multiarray
 #
 SHELL = /bin/sh
 ##
 # target directories
-ROOT = /tmp/ucar19980626 
+ROOT = /tmp/java
 CLASSDIR = $(ROOT)/classes
 
 JC = javac
@@ -29,6 +29,7 @@ JSRCS = \
 	OffsetIndexIterator.java \
 	ScalarMultiArray.java \
 	SliceMap.java \
+	StringCharAdapter.java \
 	TransposeMap.java
 
 PACKING_LIST = \

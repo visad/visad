@@ -22,6 +22,7 @@ multiarray/MultiArrayProxy.java
 multiarray/OffsetIndexIterator.java
 multiarray/ScalarMultiArray.java
 multiarray/SliceMap.java
+multiarray/StringCharAdapter.java
 multiarray/TransposeMap.java
 netcdf/package.html
 netcdf/Makefile
@@ -44,6 +45,7 @@ netcdf/NetcdfServer.java
 netcdf/NetcdfService.java
 netcdf/ProtoVariable.java
 netcdf/ProtoVariableIterator.java
+netcdf/RandomAccessFile.java
 netcdf/RemoteAccessor.java
 netcdf/RemoteNetcdf.java
 netcdf/Schema.java

@@ -4,6 +4,7 @@
  */
 
 
+package ucar.test;
 import ucar.netcdf.*;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -16,7 +17,7 @@ import ucar.multiarray.SliceMap;
 
 /**
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:08 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:43:43 $
  */
 
 public class TestNetcdf {
