@@ -87,14 +87,23 @@ public class AxisScale implements java.io.Serializable
     DisplayRealType displayScalar = scalarMap.getDisplayScalar();
     if (!displayScalar.equals(Display.XAxis) &&
       !displayScalar.equals(Display.YAxis) &&
-      !displayScalar.equals(Display.ZAxis)) 
-    throw new DisplayException("AxisSale: DisplayScalar " +
-                   "must be XAxis, YAxis or ZAxis");
+      !displayScalar.equals(Display.ZAxis)) {
+        throw new DisplayException("AxisSale: DisplayScalar " +
+                                   "must be XAxis, YAxis or ZAxis");
+    }
     myAxis = (displayScalar.equals(Display.XAxis)) ? X_AXIS :
        (displayScalar.equals(Display.YAxis)) ? Y_AXIS : Z_AXIS;
     myTitle = scalarMap.getScalarName();
     labelTable = new Hashtable();
-    boolean ok = makeScale();
+    DisplayImpl display = scalarMap.getDisplay();
+    if (display != null) {
+      DisplayRenderer displayRenderer = display.getDisplayRenderer();
+      if (displayRenderer != null) {
+        float[] rgb = displayRenderer.getRendererControl().getForegroundColor();
+        myColor = new Color(rgb[0], rgb[1], rgb[2]);
+        boolean ok = makeScale();
+      }
+    }
   }
 
   /**
@@ -1081,17 +1090,22 @@ public class AxisScale implements java.io.Serializable
   private double[] computeTickRange(double high, double low, 
                                     double base, double interval)
   {
+    //System.out.println("high = " + high + " low = " + low +
+    //                  " base = " + base + " int = " + interval);
     double[] vals = new double[2];
     double start = (low - base) / interval;
     double clow =  // DRM 24-May-2001
       base + interval * ((long) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
+    //System.out.println("first low = " + clow);
     while (clow<low) {
       clow += interval;
+      //System.out.println("now clow = " + clow);
     }
 
     start = (high - base) / interval;
     double chi =  // DRM 24-MAY-2001
       base + interval * ((long) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
+    //System.out.println("first hi = " + chi);
     while (chi>high) {
       chi -= interval;
     }
@@ -1133,6 +1147,10 @@ public class AxisScale implements java.io.Serializable
   private String createLabelString(double value)
   {
     String label = PlotText.shortString(value);
+    if (RealType.Time.equals(scalarMap.getScalar())) {
+      RealType rtype = (RealType) scalarMap.getScalar();
+      label = new Real(rtype, value).toValueString();
+    }
     return label;
   }
 }
