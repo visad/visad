@@ -106,79 +106,79 @@ public class VisADForm extends Form implements FormFileInformer {
   }
 
   public synchronized DataImpl open(String id)
-    throws BadFormException, VisADException
+    throws BadFormException, IOException, VisADException
   {
-    String errMsg = null;
+    IOException savedIOE = null;
+    VisADException savedVE = null;
 
     // try to read a binary object
-    BinaryReader rdr;
     try {
       return readData(new BinaryReader(id));
-    } catch (Exception e) {
-      errMsg = e.getMessage();
+    } catch (IOException ioe) {
+      savedIOE = ioe;
+    } catch (VisADException ve) {
+      savedVE = ve;
     }
 
     // maybe it's a serialized object
-    DataImpl data;
     try {
-      FileInputStream fileStream = new FileInputStream(id);
-      BufferedInputStream bufferedStream =
-        new BufferedInputStream(fileStream);
-      ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
-      data = (DataImpl )objectStream.readObject();
-    }
-    catch (Exception e) {
-      if (errMsg == null) {
-        errMsg = e.getMessage();
+      return readSerial(new FileInputStream(id));
+    } catch (ClassNotFoundException cnfe) {
+      if (savedIOE != null) {
+        throw savedIOE;
+      } else if (savedVE != null) {
+        throw savedVE;
       }
-      throw new BadFormException(errMsg);
-    }
 
-    return data;
+      throw new BadFormException("Could not read file \"" + id + "\": " +
+                                 cnfe.getMessage());
+    } catch (IOException ioe) {
+      if (savedIOE != null) {
+        throw savedIOE;
+      } else if (savedVE != null) {
+        throw savedVE;
+      }
+
+      throw ioe;
+    }
   }
 
   public synchronized DataImpl open(URL url)
-    throws BadFormException, VisADException
+    throws BadFormException, IOException, VisADException
   {
-    String errMsg = null;
+    IOException savedIOE = null;
+    VisADException savedVE = null;
 
     // try to read a binary object
-    BinaryReader rdr;
     try {
       return readData(new BinaryReader(url.openStream()));
-    } catch (Exception ioe) {
-      errMsg = ioe.getMessage();
+    } catch (IOException ioe) {
+      savedIOE = ioe;
+    } catch (VisADException ve) {
+      savedVE = ve;
     }
 
     // maybe it's a serialized object
-    DataImpl data;
     try {
-      InputStream inputStream = url.openStream();
-      BufferedInputStream bufferedStream =
-        new BufferedInputStream(inputStream);
-      ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
-      data = (DataImpl )objectStream.readObject();
-    }
-    catch (OptionalDataException e) {
-      if (errMsg == null) {
-        errMsg = e.getMessage();
+      return readSerial(url.openStream());
+    } catch (ClassNotFoundException cnfe) {
+      if (savedIOE != null) {
+        throw savedIOE;
+      } else if (savedVE != null) {
+        throw savedVE;
       }
-      throw new BadFormException(errMsg);
-    }
-    catch (ClassNotFoundException e) {
-      if (errMsg == null) {
-        errMsg = e.getMessage();
-      }
-      throw new BadFormException(errMsg);
-    }
-    catch (IOException e) {
-      if (errMsg == null) {
-        errMsg = e.getMessage();
-      }
-      throw new BadFormException(errMsg);
-    }
 
-    return data;
+      throw new BadFormException("Could not read URL " + url + ": " +
+                                 cnfe.getMessage());
+    } catch (IOException ioe) {
+      if (savedIOE != null) {
+        throw savedIOE;
+      } else if (savedVE != null) {
+        throw savedVE;
+      }
+
+      throw ioe;
+    }
   }
 
   DataImpl readData(BinaryReader rdr)
@@ -187,6 +187,14 @@ public class VisADForm extends Form implements FormFileInformer {
     DataImpl di = rdr.getData();
     try { rdr.close(); } catch (IOException ioe) { }
     return di;
+  }
+
+  DataImpl readSerial(InputStream inputStream)
+    throws ClassNotFoundException, IOException
+  {
+    BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
+    ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
+    return (DataImpl )objectStream.readObject();
   }
 
   /**

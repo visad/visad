@@ -26,7 +26,10 @@ MA 02111-1307, USA
 
 package visad.data.visad;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+
+import java.net.URL;
 
 import ucar.netcdf.RandomAccessFile;
 
@@ -36,9 +39,10 @@ import visad.VisADException;
 import visad.data.BadFormException;
 
 /**
-   VisADForm is the VisAD data format adapter for
-   binary visad.Data objects.<P>
-*/
+ * VisADCachingForm is the VisAD data format adapter
+ * for large binary visad.Data objects which may not
+ * fit in memory.<P>
+ */
 public class VisADCachingForm
   extends VisADForm
 {
@@ -52,21 +56,48 @@ public class VisADCachingForm
 
   public String[] getDefaultSuffixes() { return null; }
 
-  public synchronized DataImpl open(String id)
+  public synchronized DataImpl open(URL url)
     throws BadFormException, VisADException
   {
-    String errMsg = null;
+    throw new VisADException("Cannot cache URL " + url);
+  }
+
+  public synchronized DataImpl open(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    IOException savedIOE = null;
+    VisADException savedVE = null;
 
     // try to read a binary object
-    BinaryReader rdr;
     try {
       return readData(new BinaryReader(new RandomAccessFile(id, "r")));
-    } catch (Exception e) {
-e.printStackTrace();
-      errMsg = e.getMessage();
+    } catch (IOException ioe) {
+      savedIOE = ioe;
+    } catch (VisADException ve) {
+      savedVE = ve;
     }
 
-    return super.open(id);
+    // maybe it's a serialized object
+    try {
+      return readSerial(new FileInputStream(id));
+    } catch (ClassNotFoundException cnfe) {
+      if (savedIOE != null) {
+        throw savedIOE;
+      } else if (savedVE != null) {
+        throw savedVE;
+      }
+
+      throw new BadFormException("Could not read file \"" + id + "\": " +
+                                 cnfe.getMessage());
+    } catch (IOException ioe) {
+      if (savedIOE != null) {
+        throw savedIOE;
+      } else if (savedVE != null) {
+        throw savedVE;
+      }
+
+      throw ioe;
+    }
   }
 
   DataImpl readData(BinaryReader rdr)
