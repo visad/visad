@@ -28,6 +28,7 @@ import java.awt.Window;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
+import ncsa.hdf.hdf5lib.H5;
 
 /**
  * A hodge-podge of general utility methods.
@@ -184,6 +185,47 @@ public class Util
     Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension w = window.getSize();
     window.setLocation(s.width / 2 - w.width / 2, s.height / 2 - w.height / 2);
+  }
+
+  /**
+   * Test whether HDF-5 native code is present in this JVM.
+   */
+  public static boolean canDoHDF5() {
+    boolean success = false;
+    try {
+      H5.J2C(0); // HDF-5 call initializes HDF-5 native library
+      success = true;
+    }
+    catch (NoClassDefFoundError err) { }
+    catch (UnsatisfiedLinkError err) { }
+    catch (Exception exc) { }
+    return success;
+  }
+
+  /**
+   * Test whether JPEG codec (com.sun.image.codec.jpeg) is present in this JVM.
+   */
+  public static boolean canDoJPEG() {
+    boolean success = false;
+    try {
+      Class c = Class.forName("com.sun.image.codec.jpeg.JPEGCodec");
+      success = true;
+    }
+    catch (ClassNotFoundException exc) { }
+    return success;
+  }
+
+  /**
+   * Test whether JPython is present in this JVM.
+   */
+  public static boolean canDoPython() {
+    boolean success = false;
+    try {
+      Class c = Class.forName("org.python.util.PythonInterpreter");
+      success = true;
+    }
+    catch (ClassNotFoundException exc) { }
+    return success;
   }
 
 }
