@@ -72,6 +72,12 @@ public class TwoDDisplayRenderer extends DisplayRenderer {
     // first child of trans
     trans.addChild(box);
  
+    BranchGroup cursor_on = getCursorOnBranch();
+    LineArray cursor_geometry = new LineArray(4, LineArray.COORDINATES);
+    cursor_geometry.setCoordinates(0, cursor_verts);
+    Shape3D cursor = new Shape3D(cursor_geometry, box_appearance);
+    cursor_on.addChild(cursor);
+
     // create the Behavior for mouse interactions
     ProjectionControl proj = getDisplay().getProjectionControl();
 
@@ -112,6 +118,11 @@ public class TwoDDisplayRenderer extends DisplayRenderer {
          -1.0f,  1.0f,  0.0f,                        1.0f,  1.0f,  0.0f,
           1.0f,  1.0f,  0.0f,                        1.0f, -1.0f,  0.0f,
           1.0f, -1.0f,  0.0f,                       -1.0f, -1.0f,  0.0f
+  };
+
+  private static final float[] cursor_verts = {
+          0.0f,  0.1f,  0.0f,                        0.0f, -0.1f,  0.0f,
+          0.1f,  0.0f,  0.0f,                       -0.1f,  0.0f,  0.0f
   };
 
 }

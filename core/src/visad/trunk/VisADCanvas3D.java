@@ -1,6 +1,6 @@
 
 //
-// DisplayPanel.java
+// VisADCanvas3D.java
 //
 
 /*
@@ -25,38 +25,27 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  
 package visad;
  
-// GUI handling
-import com.sun.java.swing.*;
-import com.sun.java.swing.border.*;
-
-import java.awt.BorderLayout;
-import java.awt.event.*;
 import javax.media.j3d.*;
 import java.vecmath.*;
-
-import java.util.*;
 import java.awt.*;
-import java.awt.image.*;
-import java.net.*;
-
-public class DisplayPanel extends JPanel {
-
-  private DisplayImpl display;
-  private DisplayRenderer renderer;
-
-  public DisplayPanel(DisplayImpl d) {
-    display = d;
-    renderer = display.getDisplayRenderer();
-    setLayout(new BorderLayout());
-    Canvas3D canvas = new VisADCanvas3D(renderer, this);
-    add("Center", canvas);
  
-    UniverseBuilder universe = new UniverseBuilder(canvas);
-    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas);
-    universe.addBranchGraph(scene);
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    setAlignmentX(LEFT_ALIGNMENT);
+/**
+   VisADCanvas3D is the VisAD extension of Canvas3D
+*/
 
+public class VisADCanvas3D extends Canvas3D {
+
+  private DisplayRenderer displayRenderer;
+  private Component component;
+
+  VisADCanvas3D(DisplayRenderer renderer, Component c) {
+    super(null);
+    displayRenderer = renderer;
+    component = c;
+  }
+
+  public void renderField(int i) {
+    displayRenderer.drawCursorStringVector(this);
   }
 
 }

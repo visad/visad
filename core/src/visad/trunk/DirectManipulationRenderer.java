@@ -195,6 +195,11 @@ public class DirectManipulationRenderer extends Renderer {
             d = type.directMap[i].inverseScaleValues(f);
             RealType rtype = (RealType) data.getType();
             newData = new Real(rtype, d[0], rtype.getDefaultUnit(), null);
+            // create location string
+            Vector vect = new Vector();
+            float g = (float) d[0];
+            vect.addElement(rtype.getName() + " = " + g);
+            displayRenderer.setCursorStringVector(vect);
             break;
           }
         }
@@ -203,6 +208,7 @@ public class DirectManipulationRenderer extends Renderer {
       else if (type instanceof ShadowRealTupleType) {
         int n = ((RealTuple) data).getDimension();
         Real[] reals = new Real[n];
+        Vector vect = new Vector();
         for (int i=0; i<3; i++) {
           int j = type.axisToComponent[i];
           if (j >= 0) {
@@ -211,8 +217,12 @@ public class DirectManipulationRenderer extends Renderer {
             Real c = (Real) ((RealTuple) data).getComponent(j);
             RealType rtype = (RealType) c.getType();
             reals[j] = new Real(rtype, d[0], rtype.getDefaultUnit(), null);
+            // create location string
+            float g = (float) d[0];
+            vect.addElement(rtype.getName() + " = " + g);
           }
         }
+        displayRenderer.setCursorStringVector(vect);
         for (int j=0; j<n; j++) {
           if (reals[j] == null) {
             reals[j] = (Real) ((RealTuple) data).getComponent(j);
@@ -222,10 +232,16 @@ public class DirectManipulationRenderer extends Renderer {
         ref.setData(newData);
       }
       else if (type instanceof ShadowFunctionType) {
+        Vector vect = new Vector();
         if (first) lastIndex = -1;
         int k = type.domainAxis;
         f[0] = x[k]; 
         d = type.directMap[k].inverseScaleValues(f);
+        // create location string
+        float g = (float) d[0];
+        RealType rtype = type.directMap[k].getScalar();
+        vect.addElement(rtype.getName() + " = " + g);
+        // convert domain value to domain index
         Gridded1DSet set = (Gridded1DSet) ((Field) data).getDomainSet();
         value[0][0] = (float) d[0];
         int[] indices = set.valueToIndex(value);
@@ -253,10 +269,15 @@ public class DirectManipulationRenderer extends Renderer {
           if (j >= 0) {
             f[0] = x[i];
             d = type.directMap[i].inverseScaleValues(f);
+            // create location string
+            g = (float) d[0];
+            rtype = type.directMap[i].getScalar();
+            vect.addElement(rtype.getName() + " = " + g);
             thisD[j] = d[0];
             directComponent[j] = true;
           }
         }
+        displayRenderer.setCursorStringVector(vect);
         if (lastIndex < 0) {
           lastIndex = thisIndex;
           lastD = new double[n];
@@ -282,7 +303,7 @@ public class DirectManipulationRenderer extends Renderer {
           Data tuple = ((Field) data).getSample(index);
           if (tuple instanceof Real) {
             if (directComponent[0]) {
-              RealType rtype = (RealType) tuple.getType();
+              rtype = (RealType) tuple.getType();
               tuple = new Real(rtype, thisD[0] + coef * (lastD[0] - thisD[0]),
                                rtype.getDefaultUnit(), null);
             }
@@ -291,7 +312,7 @@ public class DirectManipulationRenderer extends Renderer {
             for (int j=0; j<n; j++) {
               Real c = (Real) ((RealTuple) tuple).getComponent(j);
               if (directComponent[j]) {
-                RealType rtype = (RealType) c.getType();
+                rtype = (RealType) c.getType();
                 reals[j] = new Real(rtype, thisD[j] + coef * (lastD[j] - thisD[j]),
                                     rtype.getDefaultUnit(), null);
               }

@@ -248,8 +248,10 @@ public class PlotText extends Object {
       temp = index[k];
       int temp_index = 0;
       if (k==12) {
-        v2 = verts[k]/2;
-        for (j=0; j<v2; j++) {
+        // render '=' as two seperate lines
+        // v2 = verts[k]/2;
+        // for (j=0; j<v2; j++) {
+        for (j=0; j<verts[k]; j++) {
           double x, y;
           x = temp[temp_index];
           temp_index++;
@@ -258,15 +260,18 @@ public class PlotText extends Object {
           plot[plot_index] = (float) (cx + x * base[0] + y * up[0]);
           plot[plot_index + 1] = (float) (cy + x * base[1] + y * up[1]);
           plot[plot_index + 2] = (float) (cz + x * base[2] + y * up[2]);
+/*
           if (plot_index > 0) {
             plot[plot_index + 3] = plot[plot_index];
             plot[plot_index + 4] = plot[plot_index + 1];
             plot[plot_index + 5] = plot[plot_index + 2];
             plot_index += 3;
           }
+*/
           plot_index += 3;
         }
         // polyline( win, plot, v2, c, 0 );
+/*
         for (j=v2; j<verts[k]; j++) {
           double x, y;
           x = temp[temp_index];
@@ -284,6 +289,7 @@ public class PlotText extends Object {
           }
           plot_index += 3;
         }
+*/
         // polyline( win, plot, v2, c, 0 );
       }
       else {
@@ -296,7 +302,7 @@ public class PlotText extends Object {
           plot[plot_index] = (float) (cx + x * base[0] + y * up[0]);
           plot[plot_index + 1] = (float) (cy + x * base[1] + y * up[1]);
           plot[plot_index + 2] = (float) (cz + x * base[2] + y * up[2]);
-          if (plot_index > 0) {
+          if (0 < j && j < verts[k] - 1) {
             plot[plot_index + 3] = plot[plot_index];
             plot[plot_index + 4] = plot[plot_index + 1];
             plot[plot_index + 5] = plot[plot_index + 2];
@@ -311,7 +317,6 @@ public class PlotText extends Object {
       cy += width[k] * base[1];
       cz += width[k] * base[2];
     } // end for (i=0; i<len; i++)
-    plot_index -= 3;
     if (plot_index <= 0) return null;
     VisADLineArray array = new VisADLineArray();
     float[] coordinates = new float[plot_index];

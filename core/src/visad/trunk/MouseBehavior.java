@@ -66,7 +66,7 @@ public class MouseBehavior extends Behavior {
   private boolean mousePressed1, mousePressed2, mousePressed3;
   /** combinations of Mouse Buttons and keys pressed;
       z -- SHIFT, t -- CONTROL */
-  private boolean z1Pressed, t1Pressed, z2Pressed;
+  private boolean z1Pressed, t1Pressed, z2Pressed, t2Pressed;
 
   /** flag for 2-D mode */
   private boolean mode2D;
@@ -92,6 +92,7 @@ public class MouseBehavior extends Behavior {
     z1Pressed = false;
     t1Pressed = false;
     z2Pressed = false;
+    t2Pressed = false;
 
     WakeupCriterion[] conditions = new WakeupCriterion[5];
     conditions[0] = new WakeupOnAWTEvent(MouseEvent.MOUSE_DRAGGED);
@@ -136,35 +137,43 @@ public class MouseBehavior extends Behavior {
               if (m2 == 0 && m3 == 0 &&
                   !mousePressed2 && !mousePressed3) {
                 mousePressed1 = true;
+
+                start_x = ((MouseEvent) events[i]).getX();
+                start_y = ((MouseEvent) events[i]).getY();
+                tstart = new Transform3D(proj.getMatrix());
+
                 if ((m & InputEvent.SHIFT_MASK) != 0) {
                   z1Pressed = true;
                 }
                 else if ((m & InputEvent.CTRL_MASK) != 0) {
                   t1Pressed = true;
                 }
+              }
+              else if (m2 != 0 && !mousePressed1 && !mousePressed3) {
+                mousePressed2 = true;
+                // turn cursor on whenever mouse button2 pressed
+                display_renderer.setCursorOn(true);
 
                 start_x = ((MouseEvent) events[i]).getX();
                 start_y = ((MouseEvent) events[i]).getY();
                 tstart = new Transform3D(proj.getMatrix());
-              }
-              else if (m2 != 0 && !mousePressed1 && !mousePressed3) {
-                mousePressed2 = true;
-                start_x = ((MouseEvent) events[i]).getX();
-                start_y = ((MouseEvent) events[i]).getY();
 
                 if ((m & InputEvent.SHIFT_MASK) != 0) {
+                  z2Pressed = true;
                   if (!mode2D) {
                     // don't do cursor Z in 2-D mode
-                    z2Pressed = true;
                     // current_y -> 3-D cursor Z
                     PickRay cursor_ray =
                       cursorRay(display_renderer.getCursor());
                     display_renderer.depth_cursor(cursor_ray);
                   }
                 }
-                else {
+                else if ((m & InputEvent.CTRL_MASK) != 0) {
+                  t2Pressed = true;
                   PickRay cursor_ray = findRay(start_x, start_y);
                   display_renderer.drag_cursor(cursor_ray, true);
+                }
+                else {
                 }
               }
               else if (m3 != 0 && !mousePressed1 && !mousePressed2) {
@@ -177,6 +186,7 @@ public class MouseBehavior extends Behavior {
                   direct_renderer =
                     display_renderer.findDirect(direct_ray);
                   if (direct_renderer != null) {
+                    display_renderer.setDirectOn(true);
                     direct_renderer.drag_direct(direct_ray, true);
                   }
                 }
@@ -184,22 +194,25 @@ public class MouseBehavior extends Behavior {
             }
             break;
           case MouseEvent.MOUSE_RELEASED:
-              int m = ((InputEvent) events[i]).getModifiers();
-              int m1 = m & InputEvent.BUTTON1_MASK;
-              int m2 = m & InputEvent.BUTTON2_MASK;
-              int m3 = m & InputEvent.BUTTON3_MASK;
-              // special hack for BUTTON1 error in getModifiers
-              if (m2 == 0 && m3 == 0 && mousePressed1) {
+            int m = ((InputEvent) events[i]).getModifiers();
+            int m1 = m & InputEvent.BUTTON1_MASK;
+            int m2 = m & InputEvent.BUTTON2_MASK;
+            int m3 = m & InputEvent.BUTTON3_MASK;
+            // special hack for BUTTON1 error in getModifiers
+            if (m2 == 0 && m3 == 0 && mousePressed1) {
               mousePressed1 = false;
               z1Pressed = false;
               t1Pressed = false;
             }
             else if (m2 != 0 && mousePressed2) {
               mousePressed2 = false;
+              display_renderer.setCursorOn(false);
               z2Pressed = false;
+              t2Pressed = false;
             }
             else if (m3 != 0 && mousePressed3) {
               mousePressed3 = false;
+              display_renderer.setDirectOn(false);
               direct_renderer = null;
             }
             break;
@@ -251,14 +264,29 @@ public class MouseBehavior extends Behavior {
                     // don't do cursor Z in 2-D mode
                     // current_y -> 3-D cursor Z
                     float diff =
-                      (start_y - current_y) * 2.0f / (float) d.height;
+                      (start_y - current_y) * 4.0f / (float) d.height;
                     display_renderer.drag_depth(diff);
                   }
                 }
-                else {
+                else if (t2Pressed) {
                   // current_x, current_y -> 3-D cursor X and Y
                   PickRay cursor_ray = findRay(current_x, current_y);
                   display_renderer.drag_cursor(cursor_ray, false);
+                }
+                else {
+                  if (!mode2D) {
+                    // don't do 3-D rotation in 2-D mode
+                    double angley =
+                      - (current_x - start_x) * 100.0 / (double) d.width;
+                    double anglex =
+                      - (current_y - start_y) * 100.0 / (double) d.height;
+                    Transform3D t1 =
+                      make_matrix(anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
+                    t1.mul(tstart);
+                    double[] matrix = new double[16];
+                    t1.get(matrix);
+                    proj.setMatrix(matrix);
+                  }
                 }
               }
               else if (mousePressed3) {
@@ -311,19 +339,18 @@ public class MouseBehavior extends Behavior {
   PickRay cursorRay(double[] cursor) {
     View view = display_renderer.getView();
     Canvas3D canvas = display_renderer.getCanvas();
+    // note position already in Vworld coordinates
     Point3d position = new Point3d(cursor[0], cursor[1], cursor[2]);
     Point3d eye_position = new Point3d();
     canvas.getCenterEyeInImagePlate(eye_position);
     Transform3D t = new Transform3D();
     canvas.getImagePlateToVworld(t);
-    t.transform(position);
     t.transform(eye_position);
  
     TransformGroup trans = display_renderer.getTrans();
     Transform3D tt = new Transform3D();
     trans.getTransform(tt);
     tt.invert();
-    tt.transform(position);
     tt.transform(eye_position);
  
     // new eye_position = 2 * position - old eye_position

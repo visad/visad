@@ -54,6 +54,8 @@ public class FieldImpl extends FunctionImpl implements Field {
   /** the array of function values */
   private Data[] Range;
 
+  private boolean MissingFlag;
+
   /** construct a FieldImpl from type;
       use default Set of FunctionType domain */
   public FieldImpl(FunctionType type) throws VisADException {
@@ -82,7 +84,8 @@ public class FieldImpl extends FunctionImpl implements Field {
     DomainCoordinateSystem = DomainSet.getCoordinateSystem();
     DomainUnits = DomainSet.getSetUnits();
     Length = DomainSet.getLength();
-    Range = null; // mark as missing
+    Range = new Data[Length];
+    MissingFlag = true;
   }
 
   /** set the range samples of the function; the order of range samples
@@ -96,18 +99,17 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
 
     synchronized (Range) {
-      if (copy) {
-        MathType t = ((FunctionType) Type).getRange();
-        Range = new Data[Length];
-        for (int i=0; i<Length; i++) {
-          if (range != null && !t.equalsExceptName(range[i].getType())) {
-            throw new TypeException("FieldImpl.setSamples: types don't match");
-          }
-          if (range[i] != null) Range[i] = (Data) range[i].dataClone();
+      MissingFlag = false;
+      MathType t = ((FunctionType) Type).getRange();
+      for (int i=0; i<Length; i++) {
+        if (range != null && !t.equalsExceptName(range[i].getType())) {
+          throw new TypeException("FieldImpl.setSamples: types don't match");
         }
-      }
-      else {
-        Range = range;
+        if (range[i] != null) {
+          if (copy) Range[i] = (Data) range[i].dataClone();
+          else Range[i] = range[i];
+        }
+        else Range[i] = null;
       }
       for (int i=0; i<Length; i++) {
         if (Range[i] instanceof DataImpl) {
@@ -355,9 +357,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     if (index >= 0 && index < Length) {
       synchronized (Range) {
-        if (Range == null) {
-          Range = new Data[Length];
-        }
+        MissingFlag = false;
         Range[index] = (Data) range.dataClone();
         if (Range[index] instanceof DataImpl) {
           ((DataImpl) Range[index]).setParent(this);
@@ -370,7 +370,7 @@ public class FieldImpl extends FunctionImpl implements Field {
   /** test whether Field value is missing */
   public boolean isMissing() {
     synchronized (Range) {
-      return (Range == null);
+      return MissingFlag;
     }
   }
 

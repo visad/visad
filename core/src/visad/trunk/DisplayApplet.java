@@ -46,7 +46,7 @@ public class DisplayApplet extends Applet {
     display = d;
     renderer = display.getDisplayRenderer();
     setLayout(new BorderLayout());
-    Canvas3D canvas = new Canvas3D(null);
+    Canvas3D canvas = new VisADCanvas3D(renderer, this);
     add("Center", canvas);
  
     UniverseBuilder universe = new UniverseBuilder(canvas);

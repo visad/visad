@@ -72,8 +72,8 @@ public class DisplayImpl extends ActionImpl implements Display {
   /** DisplayRenderer object for background and metadata rendering */
   private DisplayRenderer displayRenderer;
 
-  /** a Vector of BadMappingExceptions and UnimplementedExceptions
-      generated during the last invocation of doAction */
+  /** a Vector of BadMappingException and UnimplementedException
+      Strings generated during the last invocation of doAction */
   private Vector ExceptionVector = new Vector();
 
   /** basic graphics api for DisplayImpl */

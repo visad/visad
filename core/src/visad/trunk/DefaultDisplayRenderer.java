@@ -38,7 +38,6 @@ import java.util.*;
 */
 public class DefaultDisplayRenderer extends DisplayRenderer {
 
-  Shape3D box = null; // box outline for data
   ColoringAttributes box_color = null; // color of box
   MouseBehavior mouse = null; // Behavior for mouse interactions
 
@@ -64,9 +63,15 @@ public class DefaultDisplayRenderer extends DisplayRenderer {
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
     box_color.setColor(1.0f, 1.0f, 1.0f);
     box_appearance.setColoringAttributes(box_color);
-    box = new Shape3D(box_geometry, box_appearance);
+    Shape3D box = new Shape3D(box_geometry, box_appearance);
     // first child of trans
     trans.addChild(box);
+
+    BranchGroup cursor_on = getCursorOnBranch();
+    LineArray cursor_geometry = new LineArray(6, LineArray.COORDINATES);
+    cursor_geometry.setCoordinates(0, cursor_verts);
+    Shape3D cursor = new Shape3D(cursor_geometry, box_appearance);
+    cursor_on.addChild(cursor);
  
     // create the Behavior for mouse interactions
     ProjectionControl proj = getDisplay().getProjectionControl();
@@ -116,6 +121,12 @@ public class DefaultDisplayRenderer extends DisplayRenderer {
          -1.0f,  1.0f,  1.0f,                       -1.0f,  1.0f, -1.0f,
           1.0f,  1.0f,  1.0f,                        1.0f,  1.0f, -1.0f,
           1.0f, -1.0f,  1.0f,                        1.0f, -1.0f, -1.0f
+  };
+
+  private static final float[] cursor_verts = {
+          0.0f,  0.0f,  0.1f,                        0.0f,  0.0f, -0.1f,
+          0.0f,  0.1f,  0.0f,                        0.0f, -0.1f,  0.0f,
+          0.1f,  0.0f,  0.0f,                       -0.1f,  0.0f,  0.0f
   };
 
 }

@@ -25,6 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.awt.*;
 import java.awt.event.*;
 import javax.media.j3d.*;
 import java.vecmath.*;
@@ -63,8 +64,27 @@ public abstract class DisplayRenderer extends Object {
   /** BranchGroup between trans and all direct manipulation
       Data depictions */
   private BranchGroup direct = null;
-  /** Behavior for delayed removal of BranchNodes */
+  /** Behavior for delayed removal of BranchGroups */
   RemoveBehavior remove = null;
+
+  /** TransformGroup between trans and cursor */
+  private TransformGroup cursor_trans = null;
+  /** single Switch between cursor_trans and cursor */
+  private Switch cursor_switch = null;
+  /** children of cursor_switch */
+  private BranchGroup cursor_on = null, cursor_off = null;
+  /** on / off state of cursor */
+  private boolean cursorOn = false;
+  /** Vector of cursor location Strings */
+  private Vector cursorStringVector = new Vector();
+  /** on / off state of direct manipulation location display */
+  private boolean directOn = false;
+
+//
+// TO_DO
+// whenever cursorOn or directOn is true, display
+// Strings in cursorStringVector
+//
 
   /** distance threshhold for successful pick */
   private static final float PICK_THRESHHOLD = 0.05f;
@@ -113,7 +133,29 @@ public abstract class DisplayRenderer extends Object {
     return trans;
   }
 
-  // public BranchGroup getDirect() {
+  public BranchGroup getCursorOnBranch() {
+    return cursor_on;
+  }
+
+  public void setCursorOn(boolean on) {
+    cursorOn = on;
+    if (on) {
+      cursor_switch.setWhichChild(1); // set cursor on
+      setCursorStringVector();
+    }
+    else {
+      cursor_switch.setWhichChild(0); // set cursor off
+      cursorStringVector.removeAllElements();
+    }
+  }
+
+  public void setDirectOn(boolean on) {
+    directOn = on;
+    if (!on) {
+      cursorStringVector.removeAllElements();
+    }
+  }
+
   public BranchGroup getDirect() {
     return direct;
   }
@@ -157,6 +199,26 @@ public abstract class DisplayRenderer extends Object {
       new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
     remove.setSchedulingBounds(bounds);
     trans.addChild(remove);
+
+    cursor_trans = new TransformGroup();
+    cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+    cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+    cursor_trans.setCapability(Group.ALLOW_CHILDREN_READ);
+    cursor_trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    cursor_trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    trans.addChild(cursor_trans);
+    cursor_switch = new Switch();
+    cursor_switch.setCapability(Switch.ALLOW_SWITCH_READ);
+    cursor_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    cursor_trans.addChild(cursor_switch);
+    cursor_on = new BranchGroup();
+    cursor_on.setCapability(Group.ALLOW_CHILDREN_READ);
+    cursor_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    cursor_off = new BranchGroup();
+    cursor_switch.addChild(cursor_off);
+    cursor_switch.addChild(cursor_on);
+    cursor_switch.setWhichChild(0); // initially off
+    cursorOn = false;
 
     return root;
   }
@@ -217,6 +279,7 @@ public abstract class DisplayRenderer extends Object {
     cursorX = point_x + diff * line_x;
     cursorY = point_y + diff * line_y;
     cursorZ = point_z + diff * line_z;
+    setCursorLoc();
   }
 
   public void drag_cursor(PickRay ray, boolean first) {
@@ -244,6 +307,98 @@ public abstract class DisplayRenderer extends Object {
     cursorX = o_x + dot * d_x;
     cursorY = o_y + dot * d_y;
     cursorZ = o_z + dot * d_z;
+    setCursorLoc();
+  }
+
+  private void setCursorLoc() {
+    Transform3D t = new Transform3D();
+    t.setTranslation(new Vector3f(cursorX, cursorY, cursorZ));
+    cursor_trans.setTransform(t);
+    if (cursorOn) {
+      setCursorStringVector();
+    }
+  }
+
+  /** whenever cursorOn or directOn is true, display
+      Strings in cursorStringVector */
+  public void drawCursorStringVector(Canvas3D canvas) {
+    if (cursorOn || directOn) {
+      GraphicsContext3D graphics = canvas.getGraphicsContext3D();
+      Appearance appearance = new Appearance();
+      ColoringAttributes color = new ColoringAttributes();
+      color.setColor(1.0f, 1.0f, 1.0f);
+      appearance.setColoringAttributes(color);
+      graphics.setAppearance(appearance);
+
+      double[] start = {-1.25, 1.25, 1.0};
+      double[] base = {0.1, 0.0, 0.0};
+      double[] up = {0.0, 0.1, 0.0};
+
+      synchronized (cursorStringVector) {
+        Enumeration strings = cursorStringVector.elements();
+        while(strings.hasMoreElements()) {
+          String string = (String) strings.nextElement();
+          try {
+            VisADLineArray array =
+              PlotText.render_label(string, start, base, up, false);
+            graphics.draw(array.makeGeometry());
+            start[1] -= 0.12;
+          }
+          catch (VisADException e) {
+          }
+        }
+      }
+    }
+  }
+
+  void setCursorStringVector(Vector vect) {
+    synchronized (cursorStringVector) {
+      cursorStringVector.removeAllElements();
+      Enumeration strings = vect.elements();
+      while(strings.hasMoreElements()) {
+        cursorStringVector.addElement(strings.nextElement());
+      }
+    }
+  }
+
+  private void setCursorStringVector() {
+    synchronized (cursorStringVector) {
+      cursorStringVector.removeAllElements();
+      float[][] cursor = new float[3][1];
+      cursor[0][0] = cursorX;
+      cursor[1][0] = cursorY;
+      cursor[2][0] = cursorZ;
+      Enumeration maps = display.getMapVector().elements();
+      while(maps.hasMoreElements()) {
+        try {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          DisplayRealType dreal = map.getDisplayScalar();
+          DisplayTupleType tuple = dreal.getTuple();
+          int index = dreal.getTupleIndex();
+          if (tuple != null &&
+              (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+               (tuple.getCoordinateSystem() != null &&
+                tuple.getCoordinateSystem().getReference().equals(
+                Display.DisplaySpatialCartesianTuple)))) {
+            float[] fval = new float[1];
+            if (tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+              fval[0] = cursor[index][0];
+            }
+            else {
+              float[][] new_cursor =
+                tuple.getCoordinateSystem().fromReference(cursor);
+              fval[0] = new_cursor[index][0];
+            }
+            double[] dval = map.inverseScaleValues(fval);
+            float f = (float) dval[0];
+            RealType real = map.getScalar();
+            cursorStringVector.addElement(real.getName() + " = " + f);
+          } // end if (tuple != null && ...)
+        }
+        catch (VisADException e) {
+        }
+      } // end while(maps.hasMoreElements())
+    } // end synchronized (cursorStringVector)
   }
 
   public DirectManipulationRenderer findDirect(PickRay ray) {
