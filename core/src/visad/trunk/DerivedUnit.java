@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.14 2000-08-22 18:16:58 dglo Exp $
+ * $Id: DerivedUnit.java,v 1.15 2001-03-23 16:56:31 steve Exp $
  */
 
 package visad;
@@ -207,16 +207,57 @@ public final class DerivedUnit
     }
 
     /**
+     * Returns the N-th root of this unit.
+     *
+     * @param root	The root to take (e.g. 2 means square root).  May not
+     *			be zero.
+     * @return		The unit corresponding to the <code>root</code>-th root
+     *			of this unit.
+     * @promise		The unit has not been modified.
+     * @throws IllegalArgumentException
+     *			<code>root</code> is zero or the result would have a
+     *			non-integral unit dimension.
+     */
+    public Unit root(int root)
+      throws IllegalArgumentException
+    {
+	if (root == 0)
+	  throw new IllegalArgumentException(
+	    getClass().getName() + ".root(int): zero root");
+	DerivedUnit	result;
+	if (root == 1)
+	{
+	  result = this;
+	}
+	else
+	{
+	  Factor[]	newFactors = new Factor[factors.length];
+	  for (int i = 0; i < factors.length; ++i)
+	  {
+	    Factor	factor = factors[i];
+	    if (factor.power % root != 0)
+	      throw new IllegalArgumentException(
+		getClass().getName() + ".root(int): " +
+		"Non-integral resulting dimension");
+	    newFactors[i] = new Factor(factor.baseUnit, factor.power/root);
+	  }
+	  result = new DerivedUnit(newFactors);
+	}
+	return result;
+    }
+
+    /**
      * Raise a derived unit to a power.
      *
      * @param power		The power to raise this unit by.  If this unit
      *				is not dimensionless, then the value must be
-     *				integral.
+     *				an integer or the reciprocal of an integer.
      * @return			The unit resulting from raising this unit to
      *				<code>power</code>.
      * @throws IllegalArgumentException
      *				This unit is not dimensionless and <code>power
-     *				</code> has a non-integral value.
+     *				</code> is neither an integer nor the
+     *				reciprocal of an integer.
      * @promise			The unit has not been modified.
      */
     public Unit pow(double power)
@@ -229,14 +270,31 @@ public final class DerivedUnit
 	}
 	else
 	{
-	    double	intVal = Math.rint(power);
-	    if (power < ChoiceFormat.previousDouble(intVal) ||
-		power > ChoiceFormat.nextDouble(intVal))
+	    if (Math.abs(power) > 1)
 	    {
-		throw new IllegalArgumentException(this.getClass().getName() +
-		    ".pow(double): non-integral power");
+		double	intVal = Math.rint(power);
+		if (power < ChoiceFormat.previousDouble(intVal) ||
+		    power > ChoiceFormat.nextDouble(intVal))
+		{
+		    throw new IllegalArgumentException(
+		      this.getClass().getName() + ".pow(double): " +
+		      "Non-integral power");
+		}
+		result = pow((int)intVal);
 	    }
-	    result = pow((int)intVal);
+	    else
+	    {
+		double	root = 1./power;
+		double	intVal = Math.rint(root);
+		if (root < ChoiceFormat.previousDouble(intVal) ||
+		    root > ChoiceFormat.nextDouble(intVal))
+		{
+		    throw new IllegalArgumentException(
+		      this.getClass().getName() + ".pow(double): " +
+		      "Non-integral reciprocal power");
+		}
+		result = root((int)intVal);
+	    }
 	}
 	return result;
     }
@@ -316,11 +374,15 @@ public final class DerivedUnit
 	BaseUnit	second = SI.second;
 	DerivedUnit	speed = new DerivedUnit(new BaseUnit[] {meter, second},
 						new int[] {1, -1});
+	Unit		speed2 = speed.pow(2);
 
 	System.out.println("speed=\"" + speed + "\"");
 	System.out.println("speed.pow(2)=\"" + speed.pow(2) + "\"");
 	System.out.println("speed.pow(2.0+ULP)=\"" +
 	    speed.pow(ChoiceFormat.nextDouble(2.0)) + "\"");
+	System.out.println("speed2.root(2)=\"" + speed2.root(2) + "\"");
+	System.out.println("speed2.pow(1/(2.0+ULP))=\"" +
+	    speed2.pow(1/ChoiceFormat.nextDouble(2.0)) + "\"");
 
 	System.out.println("speed*meter=\"" + speed.multiply(meter) + "\"");
 	System.out.println("meter*speed=\"" + meter.multiply(speed) + "\"");
@@ -364,6 +426,19 @@ public final class DerivedUnit
 	{
 	    System.out.println("speed.pow(2+2*ULP)=\"" +
 		speed.pow(
+		  ChoiceFormat.nextDouble(ChoiceFormat.nextDouble(2.0)))
+		+ "\"");
+	    System.err.println("ERROR: IllegalArgumentException not thrown!");
+	    System.exit(1);
+	}
+	catch (IllegalArgumentException e)
+	{
+	    System.out.println(e.getMessage());
+	}
+	try
+	{
+	    System.out.println("speed2.pow(1/(2+2*ULP))=\"" +
+		speed2.pow(1/
 		  ChoiceFormat.nextDouble(ChoiceFormat.nextDouble(2.0)))
 		+ "\"");
 	    System.err.println("ERROR: IllegalArgumentException not thrown!");

@@ -64,28 +64,28 @@ public class PromiscuousUnit extends Unit {
     return getIdentifier();
   }
 
-  public Unit pow(int power)
-	throws UnitException {
+  public Unit pow(int power) {
     return this;
   }
 
-  public Unit pow(double power)
-	throws UnitException {
+  public Unit root(int root) {
     return this;
   }
 
-  public Unit multiply(Unit that)
-       throws UnitException {
+  public Unit pow(double power) {
+    return this;
+  }
+
+  public Unit multiply(Unit that) {
     return that;
   }
 
   public Unit divide(Unit that)
-       throws UnitException {
+	throws UnitException {
     return CommonUnit.dimensionless.divide(that);
   }
 
-  public Unit divide(PromiscuousUnit that)
-       throws UnitException {
+  public Unit divide(PromiscuousUnit that) {
     return that;
   }
 
@@ -95,23 +95,19 @@ public class PromiscuousUnit extends Unit {
   }
 
 
-  public double[] toThis(double[] values, Unit that)
-           throws UnitException {
+  public double[] toThis(double[] values, Unit that) {
     return values;
   }
 
-  public double[] toThat(double[] values, Unit that)
-           throws UnitException {
+  public double[] toThat(double[] values, Unit that) {
     return values;
   }
 
-  public float[] toThis(float[] values, Unit that)
-           throws UnitException {
+  public float[] toThis(float[] values, Unit that) {
     return values;
   }
 
-  public float[] toThat(float[] values, Unit that)
-           throws UnitException {
+  public float[] toThat(float[] values, Unit that) {
     return values;
   }
 

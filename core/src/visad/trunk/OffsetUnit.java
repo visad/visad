@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.11 2000-08-22 18:17:00 dglo Exp $
+ * $Id: OffsetUnit.java,v 1.12 2001-03-23 16:56:31 steve Exp $
  */
 
 package visad;
@@ -254,6 +254,23 @@ public final class OffsetUnit
     }
 
     /**
+     * Returns the N-th root of this unit.
+     *
+     * @param root	The root to take (e.g. 2 means square root).  May not
+     *			be zero.
+     * @return		The unit corresponding to the <code>root</code>-th root
+     *			of this unit.
+     * @throws IllegalArgumentException
+     *			The root value is zero or the resulting unit would have
+     *			a non-integral unit dimension.
+     */
+    public Unit root(int root)
+	throws IllegalArgumentException
+    {
+	return scaledUnit.root(root);
+    }
+
+    /**
      * Raise an offset unit to a power.
      *
      * @param power		The power to raise this unit by.
@@ -458,6 +475,7 @@ public final class OffsetUnit
 	Unit		degC = new OffsetUnit(273.15, degK);
 	ScaledUnit	degR = new ScaledUnit(1/1.8, degK);
 	Unit		degF = new OffsetUnit(459.67, degR);
+	Unit		degF2 = degF.pow(2);;
 
 	System.out.println("degC=\"" + degC + "\"");
 
@@ -484,6 +502,8 @@ public final class OffsetUnit
 	System.out.println("degC.multiply(degF)=" + degC.multiply(degF));
 	System.out.println("degF.divide(degC)=" + degF.divide(degC));
 	System.out.println("degC.divide(degF)=" + degC.divide(degF));
+
+	System.out.println("degF2.pow(0.5)=" + degF2.pow(0.5));
 
 	System.out.println("new OffsetUnit(0,SI.second).toString()=" +
 	    new OffsetUnit(0,SI.second).toString());

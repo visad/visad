@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.19 2000-10-31 19:48:52 dglo Exp $
+ * $Id: Unit.java,v 1.20 2001-03-23 16:56:32 steve Exp $
  */
 
 package visad;
@@ -300,6 +300,42 @@ public abstract class Unit
      */
     public abstract Unit pow(int power)
 	throws UnitException;
+
+    /**
+     * Returns the N-th root of this unit.
+     *
+     * @param root	The root to take (e.g. 2 means square root).  Must not
+     *			be zero.
+     * @return		The unit corresponding to the <code>root</code>-th root
+     *			of this unit.
+     * @require		The unit is not an offset unit.
+     * @promise		The unit has not been modified.
+     * @exception	UnitException	It's meaningless to raise this unit
+     *					by a power.
+     * @throws IllegalArgumentException
+     *			The root value is zero or the resulting unit would have
+     *			a non-integral unit dimension.
+     */
+    public abstract Unit root(int root)
+	throws IllegalArgumentException, UnitException;
+
+    /**
+     * Returns the square-root of this unit.  This method is identical to {@link
+     * #root(int root)} with a value of <code>2</code>.
+     *
+     * @return		The unit corresponding to the square-root of this unit.
+     * @promise		This unit has not been modified.
+     * @throws IllegalArgumentException
+     *			The resulting unit would have a non-integral unit
+     *			dimension.
+     * @throws UnitException
+     *			It is meaningless to take a root of this unit.
+     */
+    public Unit sqrt()
+      throws IllegalArgumentException, UnitException
+    {
+	return root(2);
+    }
 
     /**
      * Raise a unit to a power.

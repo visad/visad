@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.12 2000-08-22 18:16:57 dglo Exp $
+ * $Id: BaseUnit.java,v 1.13 2001-03-23 16:56:30 steve Exp $
  */
 
 package visad;
@@ -47,7 +47,6 @@ public final class BaseUnit
      */
     private static final Vector	baseUnits = new Vector(9);
 
-
     /**
      * Raise a base unit to a power.
      *
@@ -62,14 +61,33 @@ public final class BaseUnit
     }
 
     /**
+     * Returns the N-th root of this unit.
+     *
+     * @param root	The root to take (e.g. 2 means square root).  May not
+     *			be zero.
+     * @return		The unit corresponding to the <code>root</code>-th root
+     *			of this unit.
+     * @promise		This unit has not been modified.
+     * @throws IllegalArgumentException
+     *			The root value is zero or the resulting unit would have
+     *			a non-integral unit dimension.
+     */
+    public Unit root(int root)
+      throws IllegalArgumentException
+    {
+	return derivedUnit.root(root);
+    }
+
+    /**
      * Raise a unit to a power.
      *
      * @param power	The power to raise this unit by.  The value must be
-     *			integral.
+     *			integral or reciprocal integral.
      * @return		The unit resulting from raising this unit to
      *			<code>power</code>.
      * @throws IllegalArgumentException
-     *			<code>power</code> has a non-integral value.
+     *			<code>power</code> has a non-integral or non-reciprocal
+     *			integral value.
      * @promise		The unit has not been modified.
      */
     public Unit pow(double power)
@@ -232,6 +250,7 @@ public final class BaseUnit
 	System.out.println("(Unit)meter=\"" + (Unit)meter + "\"");
 	System.out.println("meter^2=\"" + meter.pow(2) + "\"");
 	System.out.println("((Unit)meter)^2=\"" + ((Unit)meter).pow(2) + "\"");
+	System.out.println("(meter^2).sqrt()=\"" + meter.pow(2).sqrt() + "\"");
 
 	BaseUnit	second = BaseUnit.addBaseUnit("Time", "second", "s");
 

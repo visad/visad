@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.12 2001-02-12 17:51:49 curtis Exp $
+ * $Id: ScaledUnit.java,v 1.13 2001-03-23 16:56:31 steve Exp $
  */
 
 package visad;
@@ -210,6 +210,25 @@ public final class ScaledUnit
     }
 
     /**
+     * Returns the N-th root of this unit.
+     *
+     * @param root	The root to take (e.g. 2 means square root).  May not
+     *			be zero.
+     * @return		The unit corresponding to the <code>root</code>-th root
+     *			of this unit.
+     * @throws IllegalArgumentException
+     *			The root value is zero or the resulting unit would have
+     *			a non-integral unit dimension.
+     * @promise		This unit has not been modified.
+     */
+    public Unit root(int root)
+	throws IllegalArgumentException
+    {
+	return new ScaledUnit(Math.pow(amount, 1./root),
+			      (DerivedUnit)derivedUnit.root(root));
+    }
+
+    /**
      * Raises this unit to a power.
      *
      * @param power	The power to raise this unit by.  If this unit is
@@ -403,6 +422,7 @@ public final class ScaledUnit
 	DerivedUnit	meterPerSec = new DerivedUnit(
 			    new BaseUnit[] {meter, second}, new int[] {1, -1});
 	Unit		milePerHour = new ScaledUnit(0.44704, meterPerSec);
+	Unit		milePerHour2 = milePerHour.pow(2);
 
 	BaseUnit	kg = BaseUnit.addBaseUnit("Mass", "kilogram");
 	DerivedUnit	kgPerSec = new DerivedUnit(new BaseUnit[] {kg, second},
@@ -411,6 +431,8 @@ public final class ScaledUnit
 
 	System.out.println("milePerHour=\"" + milePerHour + "\"");
 	System.out.println("milePerHour.pow(2)=\"" + milePerHour.pow(2) + "\"");
+	System.out.println("milePerHour2.root(2)=\"" + milePerHour2.root(2) +
+	  "\"");
 
 	System.out.println("poundPerSec=\"" + poundPerSec + "\"");
 
