@@ -1717,10 +1717,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
   public static final float METERS_PER_DEGREE = 111137.0f;
 
-  public float[][] adjustFlowToEarth(int which, float[][] flow_values,
-                            float[][] spatial_values, float flowScale)
+  public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
+                                    float[][] spatial_values, float flowScale,
+                                    DataRenderer renderer)
          throws VisADException {
-    DataRenderer renderer = getLink().getRenderer();
     if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType)) {
       // only do this for EarthVectorType
       return flow_values;
@@ -1728,19 +1728,27 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
     int flen = flow_values[0].length;
 
+    // get flow_values maximum
     float scale = 0.0f;
     for (int j=0; j<flen; j++) {
-      if (flow_values[0][j] > scale) scale = flow_values[0][j];
-      if (flow_values[1][j] > scale) scale = flow_values[1][j];
-      if (flow_values[2][j] > scale) scale = flow_values[2][j];
+      if (Math.abs(flow_values[0][j]) > scale) {
+        scale = (float) Math.abs(flow_values[0][j]);
+      }
+      if (Math.abs(flow_values[1][j]) > scale) {
+        scale = (float) Math.abs(flow_values[1][j]);
+      }
+      if (Math.abs(flow_values[2][j]) > scale) {
+        scale = (float) Math.abs(flow_values[2][j]);
+      }
     }
     float inv_scale = 1.0f / scale;
-    float factor = 100.0f / METERS_PER_DEGREE;
 
+    // convert spatial DisplayRealType values to earth coordinates
     float[][] earth_locs = renderer.spatialToEarth(spatial_values);
     if (earth_locs == null) return flow_values;
-    int elen = earth_locs.length;
+    int elen = earth_locs.length; // 2 or 3
 
+    // convert earth coordinate Units to (radian, radian, meter)
     boolean other_meters = false;
     Unit[] earth_units = renderer.getEarthUnits();
     if (earth_units != null) {
@@ -1760,6 +1768,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
     }
  
+    // add scaled flow vector to earth location
     if (elen == 3) {
       // assume meters even if other_meters == false
       float factor_lat = (float) (inv_scale * 1000.0f *
@@ -1782,6 +1791,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
     }
 
+    // convert earth coordinate Units from (radian, radian, meter)
     if (earth_units != null) {
       if (Unit.canConvert(earth_units[0], CommonUnit.radian)) {
         earth_locs[0] =
@@ -1798,6 +1808,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
     }
 
+    // convert earth coordinates to spatial DisplayRealType values
     if (elen == 3) {
       earth_locs = renderer.earthToSpatial(earth_locs, null);
     }
@@ -1810,12 +1821,15 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
       earth_locs = renderer.earthToSpatial(earth_locs, vert);
     }
+
+    // flow = change in spatial_values
     for (int i=0; i<3; i++) {
       for (int j=0; j<flen; j++) {
         earth_locs[i][j] -= spatial_values[i][j];
       }
     }
 
+    // combine earth_locs direction with flow_values magnitude
     for (int j=0; j<flen; j++) {
       float mag =
         (float) Math.sqrt(flow_values[0][j] * flow_values[0][j] +
@@ -1857,8 +1871,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     }
     if (rlen == 0) return null;
 
+    DataRenderer renderer = getLink().getRenderer();
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
-                                    flowScale);
+                                    flowScale, renderer);
 
     array.vertexCount = 6 * rlen;
 

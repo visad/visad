@@ -39,7 +39,7 @@ winds not on a grid have components in earth coordinates */
    vertical coordinates transform nearly flat, so the optional
    third vertical wind component does not transform. <P>
 */
-public abstract class GridVectorType extends RealVectorType {
+public class GridVectorType extends RealVectorType {
 
   public GridVectorType(RealType[] types) throws VisADException {
     this(types, null);

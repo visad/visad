@@ -104,7 +104,7 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     RealType red = new RealType("red");
     RealType green = new RealType("green");
     RealType index = new RealType("index");
-    RealTupleType flowxy = new RealTupleType(flowx, flowy);
+    EarthVectorType flowxy = new EarthVectorType(flowx, flowy);
     TupleType range = null;
     if (args.length > 1) {
 // System.out.println("polar");
@@ -120,8 +120,12 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     }
     else {
 // System.out.println("Cartesian");
+/* WLH 19 May 99
       range = new RealTupleType(new RealType[] {RealType.Longitude,
         RealType.Latitude, flowx, flowy, red, green});
+*/
+      range = new TupleType(new MathType[] {RealType.Longitude,
+        RealType.Latitude, flowxy, red, green});
     }
     FunctionType flow_field = new FunctionType(index, range);
 
@@ -149,8 +153,8 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
       for (int j=0; j<N; j++) {
         double u = 2.0 * i / (N - 1.0) - 1.0;
         double v = 2.0 * j / (N - 1.0) - 1.0;
-        values[0][m] = u;
-        values[1][m] = v + mid_lat;
+        values[0][m] = 10.0 * u;
+        values[1][m] = 10.0 * v + mid_lat;
         double fx = 30.0 * u;
         double fy = 30.0 * v;
         if (args.length > 1) {

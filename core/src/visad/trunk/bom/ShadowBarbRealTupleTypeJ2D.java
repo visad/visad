@@ -55,12 +55,12 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     if (direct && renderer instanceof BarbManipulationRendererJ2D) {
       return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which,
                  flow_values, flowScale, spatial_values, color_values,
-                 range_select, (BarbManipulationRendererJ2D) renderer);
+                 range_select, renderer, true);
     }
     else {
       return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which, 
                  flow_values, flowScale, spatial_values, color_values, 
-                 range_select, null);
+                 range_select, renderer, false);
     }
   }
 
@@ -70,7 +70,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
   public static VisADGeometryArray[] staticMakeFlow(DisplayImpl display,
                int which, float[][] flow_values, float flowScale,
                float[][] spatial_values, byte[][] color_values,
-               boolean[][] range_select, BarbManipulationRendererJ2D renderer)
+               boolean[][] range_select, DataRenderer renderer, boolean direct)
          throws VisADException {
     if (flow_values[0] == null) return null;
  
@@ -97,6 +97,10 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     }
     if (rlen == 0) return null;
 
+    // use default flowScale = 0.02f here, since flowScale for barbs is
+    // just for barb size
+    flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
+                                    0.02f, renderer);
 
     float[] vx = new float[NUM];
     float[] vy = new float[NUM];
@@ -183,8 +187,8 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         float mbarb[] =
           makeBarb(south, spatial_values[0][j], spatial_values[1][j],
                    scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt);
-        if (renderer != null) {
-          renderer.setBarbSpatialValues(mbarb);
+        if (direct) {
+          ((BarbManipulationRendererJ2D) renderer).setBarbSpatialValues(mbarb);
         }
         int nv = numv[0];
         int nt = numt[0];

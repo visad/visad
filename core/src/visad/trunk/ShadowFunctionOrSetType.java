@@ -987,15 +987,16 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       range_coord_sys, range_units);
           }
           else {
+            Unit[] dummy_units = ((Field) data).getDefaultRangeUnits();
             int start = 0;
             int n = ((ShadowTupleType) Range).getDimension();
             for (int i=0; i<n ;i++) {
               ShadowType range_component =
                 ((ShadowTupleType) Range).getComponent(i);
               if (range_component instanceof ShadowRealTupleType) {
-                Unit[] dummy_units = ((Field) data).getDefaultRangeUnits();
-                Unit[] range_units = new Unit[n];
-                for (int j=0; j<n; j++) range_units[j] = dummy_units[j + start];
+                int m = ((ShadowRealTupleType) range_component).getDimension();
+                Unit[] range_units = new Unit[m];
+                for (int j=0; j<m; j++) range_units[j] = dummy_units[j + start];
                 CoordinateSystem[] range_coord_sys =
                   ((Field) data).getRangeCoordinateSystem(i);
                 renderer.setEarthSpatialData((ShadowRealTupleType)

@@ -264,22 +264,22 @@ public class RealTupleType extends TupleType {
     return new RealTupleType( R_types, DefaultCoordinateSystem, null );
   }
 
-  private static RealType[] makeArray(RealType a) {
+  public static RealType[] makeArray(RealType a) {
     RealType[] types = {a};
     return types;
   }
 
-  private static RealType[] makeArray(RealType a, RealType b) {
+  public static RealType[] makeArray(RealType a, RealType b) {
     RealType[] types = {a, b};
     return types;
   }
 
-  private static RealType[] makeArray(RealType a, RealType b, RealType c) {
+  public static RealType[] makeArray(RealType a, RealType b, RealType c) {
     RealType[] types = {a, b, c};
     return types;
   }
 
-  private static RealType[] makeArray(RealType a, RealType b, RealType c,
+  public static RealType[] makeArray(RealType a, RealType b, RealType c,
                                       RealType d) {
     RealType[] types = {a, b, c, d};
     return types;

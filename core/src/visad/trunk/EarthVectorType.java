@@ -39,7 +39,7 @@ winds not on a grid have components in earth coordinates */
    nearly flat, so the optional third vertical wind component
    does not transform. <P>
 */
-public abstract class EarthVectorType extends RealVectorType {
+public class EarthVectorType extends RealVectorType {
 
   public EarthVectorType(RealType[] types) throws VisADException {
     this(types, null);
@@ -57,6 +57,24 @@ public abstract class EarthVectorType extends RealVectorType {
                                 "with meter / second: " + types[i].getDefaultUnit());
       }
     }
+  }
+
+  public EarthVectorType(RealType a) throws VisADException {
+    super(a);
+  }
+
+  public EarthVectorType(RealType a, RealType b) throws VisADException {
+    super(a, b);
+  }
+
+  public EarthVectorType(RealType a, RealType b, RealType c) 
+         throws VisADException {
+    super(a, b, c);
+  }
+
+  public EarthVectorType(RealType a, RealType b, RealType c, RealType d)
+         throws VisADException {
+    super(a, b, c, d);
   }
 
   /** transform an array of vector values from a field, based on a

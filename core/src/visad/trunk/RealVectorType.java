@@ -42,6 +42,24 @@ public abstract class RealVectorType extends RealTupleType {
     super(types, coord_sys, null);
   }
 
+  public RealVectorType(RealType a) throws VisADException {
+    super(a);
+  }
+
+  public RealVectorType(RealType a, RealType b) throws VisADException {
+    super(a, b);
+  }
+
+  public RealVectorType(RealType a, RealType b, RealType c)
+         throws VisADException {
+    super(a, b, c);
+  }
+
+  public RealVectorType(RealType a, RealType b, RealType c, RealType d)
+         throws VisADException {
+    super(a, b, c, d);
+  }
+
   /** transform an array of vector values from a field, based on a
       coordinate transform of the field domain.  This may use the
       Jacobean of the coordinate transform, but may be more complex.
