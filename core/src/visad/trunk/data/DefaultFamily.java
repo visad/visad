@@ -102,11 +102,11 @@ public class DefaultFamily
       i++;
     } catch (Throwable t) {
     }
-    try {
-      list[i] = new FluoviewTiffForm();
-      i++;
-    } catch (Throwable t) {
-    }
+//    try {
+//      list[i] = new FluoviewTiffForm();
+//      i++;
+//    } catch (Throwable t) {
+//    }
     try {
       list[i] = new TiffForm();
       i++;
