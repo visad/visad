@@ -27,6 +27,8 @@ MA 02111-1307, USA
 package visad;
 
 import java.io.*;
+import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 
 /**
    Gridded1DSet represents a finite set of samples of R.<P>
@@ -38,6 +40,15 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
 
   /** Whether this set is ascending or descending */
   boolean Ascending;
+
+  /**
+   * A canonicalizing cache of previously-created instances.  Because instances
+   * are immutable, a cache can be used to reduce memory usage by ensuring
+   * that each instance is truely unique.  By implementing the cache using a
+   * {@link WeakHashMap}, this can be accomplished without the technique itself
+   * adversely affecting memory usage.
+   */
+  private static final WeakHashMap	cache = new WeakHashMap();
 
   /**
    * Constructs a 1-D sorted sequence with no regular interval.  The 
@@ -148,6 +159,73 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
         }
       }
     }
+  }
+
+  /**
+   * Returns an instance of this class.  This method uses a weak cache of
+   * previously-created instances to reduce memory usage.
+   *
+   * @param type		The type of the set.  Must be a {@link 
+   *				RealType} or a single-component {@link
+   *				RealTupleType} or {@link SetType}.
+   * @param samples             The values in the set.
+   *                            <code>samples[i]</code> is the value of
+   *                            the ith sample point.  Must be sorted (either
+   *                            increasing or decreasing).  May be
+   *                            <code>null</code>.  The array is not copied, so
+   *				either don't modify it or clone it first.
+   * @param coord_sys           The coordinate system for this, particular, set.
+   *                            Must be compatible with the default coordinate
+   *                            system.  May be <code>null</code>.
+   * @param unit                The unit for the samples.  Must be compatible
+   *				with the default unit.  May be 
+   *				<code>null</code>.
+   * @param error		The error estimate of the samples.  May be
+   *				<code>null</code>.
+   */
+  public static synchronized Gridded1DSet create(
+      MathType		type,
+      float[]		samples,
+      CoordinateSystem	coordSys,
+      Unit		unit,
+      ErrorEstimate	error)
+    throws VisADException
+  {
+    Gridded1DSet	newSet =
+      new Gridded1DSet(
+	type, new float[][] {samples}, samples.length, coordSys,
+	new Unit[] {unit}, new ErrorEstimate[] {error}, false);
+    WeakReference	ref = (WeakReference)cache.get(newSet);
+    if (ref == null)
+    {
+      /*
+       * The new instance is unique (any and all previously-created identical
+       * instances no longer exist).
+       *
+       * A WeakReference is used in the following because values of a
+       * WeakHashMap aren't "weak" themselves and must not strongly reference
+       * their associated keys either directly or indirectly.
+       */
+      cache.put(newSet, new WeakReference(newSet));
+    }
+    else
+    {
+      /*
+       * The new instance is a duplicate of a previously-created one.
+       */
+      Gridded1DSet	oldSet = (Gridded1DSet)ref.get();
+      if (oldSet == null)
+      {
+	/* The previous instance no longer exists.  Save the new instance. */
+	cache.put(newSet, new WeakReference(newSet));
+      }
+      else
+      {
+	/* The previous instance still exists.  Reuse it to save memory. */
+	newSet = oldSet;
+      }
+    }
+    return newSet;
   }
 
   static int[] make_lengths(int lengthX) {
