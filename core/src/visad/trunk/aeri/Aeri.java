@@ -254,9 +254,6 @@ public class Aeri
       locs[1][1] = samples[1][0];
       locs[2][1] = hi[2];
 
-System.out.println("kk = " + kk + " locs = " + locs[0][0] + " " + locs[1][0] + " " +
-                   locs[2][0] + " and hi = " + locs[2][1]);
-
       set_s[kk] = new Gridded3DSet(spatial_domain, locs, 2, null, null, null);
 
 System.out.println("set_s[" + kk + "] = " + set_s[kk]);
@@ -324,7 +321,8 @@ System.out.println("set_s[" + kk + "] = " + set_s[kk]);
     //- make sub mathtype for file objects
     MathType file_type = file_data[0].getType();
     FunctionType f_type0 = (FunctionType)((TupleType)file_type).getComponent(2);
-    FunctionType f_type1 = (FunctionType)((TupleType)f_type0.getRange()).getComponent(10);
+    FunctionType f_type1 =
+      (FunctionType)((TupleType)f_type0.getRange()).getComponent(10);
     altitude = (RealType)((RealTupleType)f_type1.getRange()).getComponent(0);
     spd = (RealType)((RealTupleType)f_type1.getRange()).getComponent(4);
     dir = (RealType)((RealTupleType)f_type1.getRange()).getComponent(3);
