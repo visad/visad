@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.9 1998-12-16 16:08:26 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.10 1999-03-23 21:10:47 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -264,7 +264,7 @@ DefaultUnitsDB
 	put(new PluralUnit("tonne",	get("metric_ton")));
 	put(new SingleUnit("tne",	get("metric_ton")));
 	put(new PluralUnit("apothecary_ounce",	get("troy_ounce")));
-	put(new PluralUnit("apothecary_pound",	get("avoirdupois_pound")));
+	put(new PluralUnit("apothecary_pound",	get("troy_pound")));
 	put(new PluralUnit("pound",	get("avoirdupois_pound")));
 	put(new PluralUnit("metricton",	get("metric_ton")));
 	put(new UnitSymbol("gr",	get("grain")));
