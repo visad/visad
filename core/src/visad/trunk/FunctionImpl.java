@@ -59,8 +59,16 @@ public abstract class FunctionImpl extends DataImpl implements Function {
     if (domain == null) {
       return ((FunctionType) getType()).getRange().missingData();
     }
-    return evaluate(new RealTuple(new Real[] {domain}),
-                    NEAREST_NEIGHBOR, NO_ERRORS);
+    CoordinateSystem domainCoordinateSystem = getDomainCoordinateSystem();
+    RealTuple domainPoint =
+      domainCoordinateSystem == null
+	? new RealTuple(new Real[] {domain})
+	: new RealTuple(
+	    new RealTupleType(
+	      (RealType)domain.getType(), domainCoordinateSystem, null),
+	    new Real[] {domain},
+	    (CoordinateSystem)null);
+    return evaluate(domainPoint, NEAREST_NEIGHBOR, NO_ERRORS);
   }
 
   /** evaluate this Function with non-default modes for resampling and errors */
@@ -69,8 +77,16 @@ public abstract class FunctionImpl extends DataImpl implements Function {
     if (domain == null) {
       return ((FunctionType) getType()).getRange().missingData();
     }
-    return evaluate(new RealTuple(new Real[] {domain}),
-                    sampling_mode, error_mode);
+    CoordinateSystem domainCoordinateSystem = getDomainCoordinateSystem();
+    RealTuple domainPoint =
+      domainCoordinateSystem == null
+	? new RealTuple(new Real[] {domain})
+	: new RealTuple(
+	    new RealTupleType(
+	      (RealType)domain.getType(), domainCoordinateSystem, null),
+	    new Real[] {domain},
+	    (CoordinateSystem)null);
+    return evaluate(domainPoint, sampling_mode, error_mode);
   }
 
   /** evaluate this Function at domain;
