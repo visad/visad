@@ -139,7 +139,7 @@ public class AddeTextReader {
 
   private int status=0;                 // read status
   private String statusString = "OK";
-  private boolean debug = true;        // debug
+  private boolean debug = false;        // debug
   private Vector linesOfText = null;
   private URLConnection urlc;           
   private DataInputStream dis;
@@ -155,6 +155,7 @@ public class AddeTextReader {
    
     try {
       URL url = new URL(request);
+      debug = request.indexOf("debug=true") > 0;
       if (debug) System.out.println("Request: "+request);
       urlc = url.openConnection();
       InputStream is = urlc.getInputStream();
