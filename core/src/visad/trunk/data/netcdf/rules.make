@@ -28,6 +28,21 @@ clean:
 	    $(PACKAGE).*.html	\
 	    *.class
 
+$(SUBDIR_TARGETS):	FORCE
+	@subdir=`echo $@ | sed 's,/.*,,'`; \
+	target=`echo $@ | sed 's,.*/,,'`; \
+	$(MAKE) SUBDIR=$$subdir TGET=$$target subdir_target
+
+subdir_target:
+	@echo ""
+	@cd $(SUBDIR) && \
+	    echo "Making \`$(TGET)' in directory `pwd`" && \
+	    echo "" && \
+	    $(MAKE) $(TGET) || exit 1
+	@echo ""
+	@echo "Returning to directory `pwd`"
+	@echo ""
+
 .SUFFIXES:
 .SUFFIXES:	.debug .test .class .html .java .jj
 

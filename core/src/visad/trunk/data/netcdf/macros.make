@@ -12,3 +12,4 @@ TOP_JAVADOCS	= AllNames.html \
 		  Package-$(PACKAGE).html \
 		  packages.html \
 		  tree.html
+SUBDIR_TARGETS	= dummy_subdir_targets
