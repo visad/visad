@@ -372,7 +372,12 @@ public class CollectiveBarbManipulation extends Object {
     }
 
     setupData(); // new data
-    if (display1 != null) setupStations(); // new data  WLH 6 May 2001
+    if (display1 != null) {
+      pcontrol = display1.getProjectionControl();
+      pcl = new DiscoverableZoom();
+      pcontrol.addControlListener(pcl);
+      setupStations(); // new data  WLH 6 May 2001
+    }
 
     // better have CellImpl in place before addControlListener // NEW
     stepper_ref = new DataReferenceImpl("stepper");
@@ -402,10 +407,6 @@ public class CollectiveBarbManipulation extends Object {
       // animation of manipulable barbs
       AnimationControlListener acl = new AnimationControlListener();
       acontrol.addControlListener(acl);
-
-      pcontrol = display1.getProjectionControl();
-      pcl = new DiscoverableZoom();
-      pcontrol.addControlListener(pcl);
 
       stations_ref = new DataReferenceImpl("stations_ref");
       stations_ref.setData(wind_field);
@@ -608,7 +609,7 @@ public class CollectiveBarbManipulation extends Object {
       barb_monitors[i].addReference(station_refs[i]);
     }
 
-    pcl.setRenderers(barb_manipulation_renderers, 1.0f);
+    if (pcl != null) pcl.setRenderers(barb_manipulation_renderers, 0.2f);
 
     // stepper_ref.setData(null); // NEW
   }

@@ -60,7 +60,18 @@ public class DiscoverableZoom extends Object
   private float[] lons = null;
   private float[] lats = null;
 
-  public void setRenderers(DataRenderer[] rs, float d)
+  /** the DataRenderers in the rs array are assumed to each link to
+      a Tuple data object that includes Real fields for Latitude and
+      Longitude, and that Latitude and Longitude are mapped to spatial
+      DisplayRealTypes; the DataRenderers in rs are enabled or disabled
+      to maintain a roughly constant spacing among their visible
+      depictions;
+      distance is the scale for distance;
+      in order to work, this DiscoverableZoom must be added as a
+      Control Listener to the ProjectionControl of the DisplayImpl
+      linked to the DataRenderer array rs;
+      see CollectiveBarbManipulation.java for an example of use */
+  public void setRenderers(DataRenderer[] rs, float distance)
          throws VisADException, RemoteException {
     renderers = rs;
     if (renderers != null) {
@@ -84,10 +95,10 @@ public class DiscoverableZoom extends Object
         if (reals == null || reals.length == 0) continue;
         for (int j=0; j<reals.length; j++) {
           if (RealType.Latitude.equals(reals[j].getType())) {
-            lats[j] = (float) reals[j].getValue();
+            lats[i] = (float) reals[j].getValue();
           }
           else if (RealType.Longitude.equals(reals[j].getType())) {
-            lons[j] = (float) reals[j].getValue();
+            lons[i] = (float) reals[j].getValue();
           }
         }
         if (lats[i] != lats[i] || lons[i] != lons[i]) {
@@ -119,7 +130,7 @@ public class DiscoverableZoom extends Object
             if (RealType.Latitude.equals(real)) {
               latmap = map;
             }
-            else if (RealType.Latitude.equals(real)) {
+            else if (RealType.Longitude.equals(real)) {
               lonmap = map;
             }
           }
@@ -131,8 +142,8 @@ public class DiscoverableZoom extends Object
       }
       double[] latrange = latmap.getRange();
       double[] lonrange = lonmap.getRange();
-      latmul = (float) (1.0 / (Math.abs(latrange[1] - latrange[0]) * d));
-      lonmul = (float) (1.0 / (Math.abs(lonrange[1] - lonrange[0]) * d));
+      latmul = (float) (1.0 / (Math.abs(latrange[1] - latrange[0]) * distance));
+      lonmul = (float) (1.0 / (Math.abs(lonrange[1] - lonrange[0]) * distance));
       if (latmul != latmul || lonmul != lonmul) {
         nrenderers = -1;
         return;
@@ -163,20 +174,27 @@ public class DiscoverableZoom extends Object
       float cscale = (float) (base_scale / scale[0]);
       float ratio = cscale / last_cscale;
       if (ratio < 0.95f || 1.05f < ratio) {
+// System.out.println(latmul + " " + lonmul + " " + cscale);
         last_cscale = cscale;
         for (int i=0; i<nrenderers; i++) {
           boolean enable = true;
-          for (int j=0; j<i; j++) {
-            if (enabled[j]) {
-              float latd = latmul * (lats[j] - lats[i]);
-              float lond = lonmul * (lons[j] - lons[i]);
-              float distsq = (latd * latd + lond * lond) / cscale;
-              if (distsq < 1.0f) {
-                enable = false;
-                break;
+          if (lats[i] == lats[i] && lons[i] == lons[i]) {
+            for (int j=0; j<i; j++) {
+              if (enabled[j] && lats[j] == lats[j] && lons[j] == lons[j]) {
+                float latd = latmul * (lats[j] - lats[i]) / cscale;
+                float lond = lonmul * (lons[j] - lons[i]) / cscale;
+                float distsq = (latd * latd + lond * lond);
+// System.out.println(i + " " + lats[i] + " " + lons[i] + " " +
+//                    j + " " + lats[j] + " " + lons[j] + " " +
+//                    latd + " " + lond + " " + distsq);
+                if (distsq < 1.0f) {
+                  enable = false;
+                  break;
+                }
               }
             }
           }
+// System.out.println("enabled[" + i + "] = " + enable);
           enabled[i] = enable;
           renderers[i].toggle(enable);
         }
