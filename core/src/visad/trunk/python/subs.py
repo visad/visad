@@ -48,8 +48,13 @@ drawLine(display, points[], color=None, mathtype=None)
   drawLine(name|display, points[], color=Color)
   "Color" is java.awt.Color
 
-drawString(display, string, point, color=None, center=0, font='futural')
-  draw a string on the display
+drawString(display, string, point, color=None, center=0, font='futural',
+start=, base= up=, size=.1)
+  draw a string on the display; use 'size=' to set size.
+
+textShape(string, center=0 font='futural', start=, base=, up=, size=.1)
+  Creates a VisADGeometryArray (shape) for this string. Used by
+  drawString, and may be used directly with the Shapes class.
 
 addMaps(display, maps[])
   add an array of ScalarMaps to a Display
@@ -67,10 +72,31 @@ showDisplay(display, width=300, height=300, title=, bottom=, top=)
   and top= keywords to add these componenets (or panels) to the bottom
   and top of the VisAD display (which always is put in the Center).
 
+Shapes(display)
+  a Class that allows you to do some easy displays of Shapes
+
+  addShape(type=None, scale=.1, color=None, shape=None, index=None)
+    type is a string that names a pre-defined type of shape 
+    ("cross", "triangle", "square", "solid_square", "solid_triangle")
+    or None if the shape=keyword is used.  This will add a shape for
+    the display.  If the shape= is given, it should be a 
+    VisADGeometryArray.  If 'index=' is given, it is assumed you
+    are simply replacing that shape with a different one.
+
+    Returns the shape index (see next method).
+
+  moveShape(index, coordinates)
+    this will reposition the shape numbered 'index'.  The coordinates
+    must be in the order of the x,y,z axes mappings, and should be
+    the types of values defined by the call to 'getDisplayMaps()'. 
+
 """
 
 from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
-          Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple
+          Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple, \
+          VisADLineArray, VisADQuadArray, VisADTriangleArray, \
+          ConstantMap, Integer1DSet
+
 from types import StringType
 from visad.ss import BasicSSCell
 from visad.java2d import DisplayImplJ2D
@@ -83,36 +109,40 @@ except:
   ok3d = 0
 
 py_text_type = RealType.getRealType("py_text_type")
+py_text_map = ScalarMap(py_text_type, Display.Text)
 py_shape_type = RealType.getRealType("py_shape_type")
+py_shape_map = ScalarMap(py_shape_type, Display.Shape)
+py_shapes = None 
 
 # create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay3D(maps):
+  global py_shapes
   disp = DisplayImplJ3D("Jython3D")
-  py_text_map = ScalarMap(py_text_type, Display.Text)
   disp.addMap(py_text_map)
-  py_shape_map = ScalarMap(py_shape_type, Display.Shape)
   disp.addMap(py_shape_map)
 
   if maps != None:  addMaps(disp, maps)
+  py_shapes = Shapes(disp)
   return disp
 
 # create (and return) a VisAD DisplayImplJ2D and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay2D(maps):
+  global py_shapes
   disp = DisplayImplJ2D("Jython2D")
-  py_text_map = ScalarMap(py_text_type, Display.Text)
   disp.addMap(py_text_map)
-  py_shape_map = ScalarMap(py_shape_type, Display.Shape)
   disp.addMap(py_shape_map)
 
   print "Using 2D"
   if maps != None:  addMaps(disp, maps)
+  py_shapes = Shapes(disp)
   return disp
 
 # create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay(maps):
+  global py_shapes
   is3d = 0
   if maps == None:
     is3d = 1
@@ -127,10 +157,9 @@ def makeDisplay(maps):
       tdr = TwoDDisplayRendererJ3D() 
       disp = DisplayImplJ3D("Jython3D",tdr)
       addMaps(disp, maps)
-      py_text_map = ScalarMap(py_text_type, Display.Text)
       disp.addMap(py_text_map)
-      py_shape_map = ScalarMap(py_shape_type, Display.Shape)
       disp.addMap(py_shape_map)
+      py_shapes = Shapes(disp)
     else:
       disp =  makeDisplay2D(maps)
   
@@ -235,7 +264,7 @@ def getDisplayMaps(display, includeShapes=0):
     x = RealType.getRealTypeByName("x")
     y = RealType.getRealTypeByName("y")
     z = RealType.getRealTypeByName("z")
-    shape = RealType.getRealTypeByName("shape")
+    shape = RealType.getRealTypeByName("py_shape_type")
   # if no maps, make them...
   else:
     for m in maps:
@@ -258,16 +287,11 @@ def getDisplayMaps(display, includeShapes=0):
 def makeLine(domainType, points):
   return Gridded2DSet(RealTupleType(domainType), points, len(points[0]))
 
-# draw a line directly into the display; also return reference
-# drawLine(display, domainType, points[], color=Color, mathtype=domainType)
-# drawLine(name|display, points[], color=Color)
-# "Color" is java.awt.Color
-def drawLine(display, points, color=None, mathtype=None):
 
-  constmap = None
+def makeColorMap(color):
+
   # see if color should be handled
   if color is not None:
-    from visad import ConstantMap
     from java.awt import Color
     if isinstance(color,Color):
       awtColor = color
@@ -278,9 +302,24 @@ def drawLine(display, points, color=None, mathtype=None):
     green = float(awtColor.getGreen())/255.
     blue = float(awtColor.getBlue())/255.
 
-    constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
-           ConstantMap(blue,Display.Blue) )
+  # or just make it white
+  else:
+    red=1.0
+    green=1.0
+    blue=1.0
 
+  constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
+         ConstantMap(blue,Display.Blue) )
+
+  return constmap
+
+# draw a line directly into the display; also return reference
+# drawLine(display, domainType, points[], color=Color, mathtype=domainType)
+# drawLine(name|display, points[], color=Color)
+# "Color" is java.awt.Color
+def drawLine(display, points, color=None, mathtype=None):
+
+  constmap = makeColorMap(color)
 
   # drawLine(display, domainType, points[])
   maps = None
@@ -309,52 +348,13 @@ def drawLine(display, points, color=None, mathtype=None):
 
 # draw a string on the display
 def drawString(display, string, point, color=None, center=0, font="futural",
-                 start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.] ):
+                 start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],size=None ):
 
-  from visad import PlotText, Integer1DSet, ConstantMap
-  from visad.util import HersheyFont
+  textfs = textShape(string, center, font, start, base, up, size)
+  i = py_shapes.addShape(None, color=color, shape=textfs)
+  py_shapes.moveShape(i, point)
 
-  x , y , z , disp = getDisplayMaps(display)
-  textshape = PlotText.render_font(string, HersheyFont(font), 
-                                          start, base, up, center)
-
-  coord_type = RealTupleType(x, y, py_shape_type)
-  coord = list(point)
-  coord.append(0)
-  coord_tuple = RealTuple(coord_type, coord)
-
-
-  maps = display.getMapVector()
-  py_shape_map = None
-  for sm in maps:
-    if (sm.getScalar() == py_shape_type): 
-       py_shape_map = sm
-
-  shape_control = py_shape_map.getControl()
-  shape_control.setShapeSet(Integer1DSet(1))
-  shape_control.setShapes([textshape,])
-
-  # see if color should be handled
-  from visad import ConstantMap
-  from java.awt import Color
-  if color is not None:
-    if isinstance(color,Color):
-      awtColor = color
-    else:
-      exec 'awtColor=Color.'+color
-    red = float(awtColor.getRed())/255.
-    green = float(awtColor.getGreen())/255.
-    blue = float(awtColor.getBlue())/255.
-  else:
-    red=1.0
-    green=1.0
-    blue=1.0
-
-  constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
-           ConstantMap(blue,Display.Blue) )
-
-  ref = addData("textshape", coord_tuple, disp, constmap)
-  return ref
+  return py_shapes 
   
 # add an array of ScalarMaps to a Display
 def addMaps(display, maps):
@@ -440,17 +440,110 @@ class myFrame:
       self.frame.pack()
       self.frame.show()
 
-class Shape:
-  def __init__(self, points, display, color=None, solid=0):
-    this.x,this.y,this.z,this.disp,this.shape = getDisplayMaps(display, 1)
+# create a (VisADGeometryArray) shape for use with the Shape class
+def textShape(string, center=0, font="futural",
+                 start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],
+                 size=None ):
+    
+    from visad import PlotText
+    from visad.util import HersheyFont
+    if size != None:
+      start = [0., 0., size]
+      base = [size, 0., 0.]
+      up = [0., size, 0.]
 
-    # get display maps, if no shape then add one?
-    # make VisADLineArray or VisADQuadArray
-    # set coordinates and vertexCount
-    # etc
+    return (PlotText.render_font(string, HersheyFont(font), 
+                                          start, base, up, center))
 
-  def moveShape(self, coordinates):
-    # self.shapeLoc = visad.RealTuple(self.shape_coord, (coord[0], coord[1], coord[2]))
-    # self.shape_ref.setData(self.shapeLoc)
-    pass
+# defines Shapes for a display
+# note that when a Display is created (makeDisplay) a new Shapes object
+# is also created, in case it is needed by drawString()
+
+class Shapes:
+
+  def __init__(self, display):
+
+    self.x, self.y, self.z, self.disp = getDisplayMaps(display)
+    self.doing3D = 1
+    if self.z == None:
+      self.doing3D = 0
+
+    self.count = -1 
+    self.shapeList = []
+    self.shapeRef = []
+
+    py_shapes = self
+
+  # type = type of shape ('cross','triangle','square',
+  #  'solid_square','solid_triangle'
+  # scale = relative size for the shape
+  # color = color name (e.g., "green")
+  # shape = a VisADGeometryArray shape if you want to use one
+  # index = the index of the shape to replace with this one
+  def addShape(self, type=None, scale=.1, color=None, shape=None, index=None):
+
+    if shape == None:
+
+      if type == "cross":
+        self.shape = VisADLineArray()
+        self.shape.coordinates = ( scale,scale,0,  -scale, -scale, 0,
+                                   scale, -scale, 0,  -scale, scale, 0 )
+      elif type == "triangle":
+        self.shape = VisADLineArray()
+        self.shape.coordinates = ( -scale, -scale/2, 0,  scale, -scale/2, 0,  
+                                    scale, -scale/2, 0,  0, scale,0,
+                                    0, scale, 0, -scale, -scale/2, 0 )
+      elif type == "solid_square":
+        self.shape = VisADQuadArray()
+        self.shape.coordinates = (scale, scale, 0, scale, -scale, 0,
+                                  -scale, -scale, 0, -scale, scale, 0)
+      elif type == "solid_triagle":
+        self.shape = VisADTriangleArray()
+        self.shape.coordinates = ( -scale, -scale/2, 0,  
+                                   scale, -scale/2, 0,  0, scale, 0 )
+      else:
+        self.shape = VisADLineArray()
+        self.shape.coordinates = ( scale, scale, 0,  scale, -scale, 0,
+                                   scale, -scale, 0,  -scale, -scale, 0,
+                                    -scale, -scale,0,  -scale, scale, 0,
+                                    -scale, scale, 0,  scale, scale, 0)
+
+      self.shape.vertexCount = len(self.shape.coordinates)/3
+
+    else:
+      self.shape = shape
+
+    shape_control = py_shape_map.getControl()
+
+    if index != None:
+      shape_control.setShape(index, self.shape)
+      return (index)
+
+    self.count = self.count + 1
+    self.shapeList.append(self.shape)
+
+    shape_control.setShapeSet(Integer1DSet(self.count+1))
+    shape_control.setShapes( self.shapeList )
+
+    if self.doing3D:
+      self.shape_coord = RealTupleType(self.x,self.y,self.z,py_shape_type)
+      shapeLoc = RealTuple(self.shape_coord, (0., 0., 0., self.count))
+    else:
+      self.shape_coord = RealTupleType(self.x,self.y,py_shape_type)
+      shapeLoc = RealTuple(self.shape_coord, (0., 0., self.count))
+
+    constmap = makeColorMap(color)
+    self.shapeRef.append(addData("shape", shapeLoc, self.disp, constmap))
+
+    return (self.count)
+
+  # move the shape to a new location
+  # inx = the shape index to move
+  # coordinates = a list or tuple of the coordinates (in the
+  #   same order as returned by 'getDisplayMaps()'
+  def moveShape(self, inx, coordinates):
+    coord = list(coordinates)
+    coord.append(inx)
+    shapeLoc = RealTuple(self.shape_coord, coord)
+    self.shapeRef[inx].setData(shapeLoc)
 

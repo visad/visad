@@ -113,17 +113,7 @@ def lineplot(data, panel=None, color=None, width=400, height=400, title="Line Pl
   axes = (xaxis, yaxis)
 
   disp = subs.makeDisplay( axes )
-  constmap = None
-  if color is not None:
-    from visad import ConstantMap
-    from java.awt import Color
-    red = float(color.getRed())/255.
-    green = float(color.getGreen())/255.
-    blue = float(color.getBlue())/255.
-
-    constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
-           ConstantMap(blue,Display.Blue) )
-
+  constmap = subs.makeColorMap(color)
 
   dr=subs.addData("Lineplot", data, disp, constmap)
   subs.setBoxSize(disp, .70)
