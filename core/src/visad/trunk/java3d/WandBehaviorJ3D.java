@@ -39,6 +39,7 @@ import java.util.*;
 
 /**
    WandBehaviorJ3D is the VisAD class for wand behaviors for Java3D
+   it works with ImmersaDeskDisplayRendererJ3D
 */
 
 /* extend MouseBehaviorJ3D to inherit multiply_matrix, make_matrix, etc */
@@ -92,36 +93,6 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
 
     init_trans = new Transform3D();
     vpTrans.getTransform(init_trans);
-/*
-Transform3D trans = new Transform3D();
-vpTrans.getTransform(trans);
-float[] array = new float[16];
-trans.get(array);
-for (int i=0; i<16; i+=4) {
-  System.out.println(array[i] + " " + array[i+1] + " " +
-                     array[i+2] + " " + array[i+3]);
-
-# java TestIDesk 4148 4147
-1.0 0.0 0.0 0.0
-0.0 1.0 0.0 0.0
-0.0 0.0 1.0 2.0
-0.0 0.0 0.0 1.0
-sensor 0 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 1 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 2 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
-3 buttons: 0 0 0
-sensor 0 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 1 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 2 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
-3 buttons: 0 0 0
-sensor 0 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 1 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 2 0.0 0.0 0.0 0.0 0.0 0.0
-sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
-3 buttons: 0 0 0
-*/
   }
 
   /* override MouseBehaviorJ3D.processStimulus() to do nothing */
@@ -274,9 +245,6 @@ sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
       Transform3D tm = new Transform3D(matrix);
       temp.mul(tm);
       vpTrans.setTransform(temp);
-// ****
-      // vpTrans.setTransform(new Transform3D(matrix));
-// ****
 
       // QUESTION? + or - travel_position QUESTION?
       float wandx =
