@@ -93,274 +93,989 @@ public interface Data extends Thing {
   double RADIANS_TO_DEGREES = 180.0 / Math.PI;
   double DEGREES_TO_RADIANS = Math.PI / 180.0;
 
-  /** if remote (i.e., RemoteData), return a local copy;
-      if local (i.e., DataImpl), return this */
+  /**
+   * @return a local copy if remote (i.e., this is RemoteData),
+   *         else return this if local (i.e., this is DataImpl)
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   DataImpl local() throws VisADException, RemoteException;
 
+  /**
+   * @return MathType of this Data
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   MathType getType() throws VisADException, RemoteException;
 
-  /** a method to tell whether data object has a missing value */
+  /**
+   * @return flag indicating whether this Data has a missing value
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   boolean isMissing()
          throws VisADException, RemoteException;
 
-  /** general binary operation between this and data; op may
-      be Data.ADD, Data.SUBTRACT, etc; these include all binary
-      operations defined for Java primitive data types; sampling_mode
-      may be Data.NEAREST_NEIGHBOR or Data.WEIGHTED_AVERAGE; error_mode
-      may be Data.INDEPENDENT, Data.DEPENDENT or Data.NO_ERRORS;
-      result takes the MathType of this unless the default Units of
-      that MathType conflict with Units of the result, in which case
-      a generic MathType with appropriate Units is constructed */
+  /**
+   * Pointwise binary operation between this and data. Applies
+   * to Reals, Tuples (recursively to components), and to Field
+   * ranges (Field domains implicitly resampled if necessary).
+   * Does not apply to Field domains or Sets (regarded as domains
+   * of Fields wthout ranges). Data.ADD is only op defined for
+   * Text, interpreted as concatenate. MathTypes of this and data
+   * must match, or one may match the range of the other if it is
+   * a FunctionType.
+   * @param data other Data operand for binary operation
+   * @param op may be Data.ADD, Data.SUBTRACT, etc; these include all
+   *             binary operations defined for Java primitive data types
+   * @param sampling_mode may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation, which takes the MathType of this unless
+   *         the default Units of that MathType conflict with Units of
+   *         the result, in which case a generic MathType with appropriate
+   *         Units is constructed
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   Data binary(Data data, int op, int sampling_mode,
          int error_mode) throws VisADException, RemoteException;
 
-  /*- BINARY - TDR June 1998  */
-  /** general binary operation between this and data; op may
-      be Data.ADD, Data.SUBTRACT, etc; these include all binary
-      operations defined for Java primitive data types; new_type
-      is the MathType of the result; sampling_mode may be
-      Data.NEAREST_NEIGHBOR or Data.WEIGHTED_AVERAGE; error_mode
-      may be Data.INDEPENDENT, Data.DEPENDENT or Data.NO_ERRORS */
+  /**
+   * Pointwise binary operation between this and data. Applies
+   * to Reals, Tuples (recursively to components), and to Field 
+   * ranges (Field domains implicitly resampled if necessary). 
+   * Does not apply to Field domains or Sets (regarded as domains
+   * of Fields wthout ranges). Data.ADD is only op defined for
+   * Text, interpreted as concatenate. MathTypes of this and data
+   * must match, or one may match the range of the other if it is
+   * a FunctionType.
+   * @param data other Data operand for binary operation
+   * @param op may be Data.ADD, Data.SUBTRACT, etc; these include all
+   *             binary operations defined for Java primitive data types
+   * @param new_type MathType of the result
+   * @param sampling_mode may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result, with MathType = new_type
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   Data binary(Data data, int op, MathType new_type,
                               int sampling_mode, int error_mode )
          throws VisADException, RemoteException;
 
-  /** a list of binary operations using default modes for
-      sampling (Data.NEAREST_NEIGHBOR) and error estimation
-      (Data.NO_ERRORS) */
+  /**
+   * call binary() to add data to this, using default modes
+   * for sampling (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @param data other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data add(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to subtract data from this, using default modes
+   * for sampling (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data subtract(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to multiply this by data, using default modes
+   * for sampling (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data multiply(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to divide this by data, using default modes
+   * for sampling (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data divide(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to raise this to data power, using default modes
+   * for sampling (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data pow(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the max of this and data, using default
+   * modes for sampling (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data max(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the min of this and data, using default
+   * modes for sampling (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data min(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the atan of this by data
+   * producing radian Units, using default modes
+   * for sampling (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data atan2(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the atan of this by data
+   * producing degree Units, using default modes
+   * for sampling (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data atan2Degrees(Data data)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the remainder of this divided by
+   * data, using default modes for sampling 
+   * (Data.NEAREST_NEIGHBOR) and error estimation (Data.NO_ERRORS)
+   * @param data  other Data operand for binary operation
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data remainder(Data data)
          throws VisADException, RemoteException;
 
-  /** a list of binary operations supporting non-default modes for
-      sampling and error estimation */
+  /**
+   * call binary() to add data to this
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data add(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to subtract data from this
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data subtract(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to multiply this by data
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data multiply(Data data, int sampling_mode,
          int error_mode) throws VisADException, RemoteException;
 
+  /**
+   * call binary() to divide this by data
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data divide(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to raise this to data power
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data pow(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the max of this and data
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data max(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the min of this and data
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data min(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the atan of this by data
+   * producing radian Units
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data atan2(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the atan of this by data
+   * producing degree Units
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data atan2Degrees(Data data, int sampling_mode,
          int error_mode) throws VisADException, RemoteException;
 
+  /**
+   * call binary() to take the remainder of this divided by data
+   * @param data  other Data operand for binary operation
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data remainder(Data data, int sampling_mode,
          int error_mode) throws VisADException, RemoteException;
 
-  /** general unary operation; operation may be Data.ABS, Data.ACOS, etc;
-      these include all unary operations defined for Java primitive data
-      types; sampling_mode may be Data.NEAREST_NEIGHBOR or
-      Data.WEIGHTED_AVERAGE; error_mode may be Data.INDEPENDENT,
-      Data.DEPENDENT or Data.NO_ERRORS; result takes
-      the MathType of this unless the default Units of that MathType
-      conflict with Units of the result, in which case a generic
-      MathType with appropriate Units is constructed */
+  /**
+   * Pointwise unary operation applied to this. Applies
+   * to Reals, Tuples (recursively to components), and to Field 
+   * ranges (Field domains implicitly resampled if necessary). 
+   * Does not apply to Field domains, Sets (regarded as domains
+   * of Fields wthout ranges) or Text.
+   * @param op  may be Data.ABS, Data.ACOS, etc; these include all
+   *             unary operations defined for Java primitive data types
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation, which takes the MathType of this unless
+   *         the default Units of that MathType conflict with Units of
+   *         the result, in which case a generic MathType with appropriate
+   *         Units is constructed
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data unary(int op, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
-  /*- TDR June 1998  */
-  /** general unary operation; operation may be Data.ABS, Data.ACOS, etc;
-      these include all unary operations defined for Java primitive data
-      types; new_type is the MathType of the result; sampling_mode may be
-      Data.NEAREST_NEIGHBOR or Data.WEIGHTED_AVERAGE; error_mode may be
-      Data.INDEPENDENT, Data.DEPENDENT or Data.NO_ERRORS */
+  /**
+   * Pointwise unary operation applied to this. Applies
+   * to Reals, Tuples (recursively to components), and to Field 
+   * ranges (Field domains implicitly resampled if necessary). 
+   * Does not apply to Field domains, Sets (regarded as domains
+   * of Fields wthout ranges) or Text.
+   * @param op  may be Data.ABS, Data.ACOS, etc; these include all
+   *             unary operations defined for Java primitive data types
+   * @param new_type  MathType of the result
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result, with MathType = new_type
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data unary(int op, MathType new_type, int sampling_mode,
                              int error_mode )
          throws VisADException, RemoteException;
 
-  /** clone this Data object except give it new_type */
+  /**
+   * call unary() to clone this except with a new MathType
+   * @param new_type  MathType of returned Data object
+   * @return clone of this Data object except with new MathType
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data changeMathType(MathType new_type)
          throws VisADException, RemoteException;
 
-  /** a list of unary operations using default modes for
-      sampling (Data.NEAREST_NEIGHBOR) and error estimation
-      (Data.NO_ERRORS) */
+  /**
+   * call unary() to take the absolute value of this, using
+   * default modes for sampling (Data.NEAREST_NEIGHBOR) and
+   * error estimation (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data abs() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arccos of this producing
+   * radian Units, using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data acos() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arccos of this producing
+   * degree Units, using default modes for sampling 
+   * (Data.NEAREST_NEIGHBOR) and error estimation 
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data acosDegrees() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arcsin of this producing
+   * radian Units, using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data asin() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arcsin of this producing
+   * degree Units, using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data asinDegrees() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arctan of this producing
+   * radian Units, using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data atan() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arctan of this producing
+   * degree Units, using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data atanDegrees() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the ceiling of this, using default
+   * modes for sampling (Data.NEAREST_NEIGHBOR) and
+   * error estimation (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data ceil() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the cos of this assuming radian
+   * Units unless this actual Units are degrees,
+   * using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data cos() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the cos of this assuming degree 
+   * Units unless this actual Units are radians, 
+   * using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data cosDegrees() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the exponent of this, using default 
+   * modes for sampling (Data.NEAREST_NEIGHBOR) and 
+   * error estimation (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data exp() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the floor of this, using default 
+   * modes for sampling (Data.NEAREST_NEIGHBOR) and 
+   * error estimation (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data floor() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the log of this, using default 
+   * modes for sampling (Data.NEAREST_NEIGHBOR) and 
+   * error estimation (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data log() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the rint (essentially round)
+   * of this, using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data rint() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the round of this, using default
+   * modes for sampling (Data.NEAREST_NEIGHBOR) and error
+   * estimation (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data round() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the sin of this assuming radian 
+   * Units unless this actual Units are degrees, 
+   * using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data sin() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the sin of this assuming degree
+   * Units unless this actual Units are radians,
+   * using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data sinDegrees() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the square root of this, using default 
+   * modes for sampling (Data.NEAREST_NEIGHBOR) and error 
+   * estimation (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data sqrt() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the tan of this assuming radian 
+   * Units unless this actual Units are degrees, 
+   * using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data tan() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the tan of this assuming degree
+   * Units unless this actual Units are radians,
+   * using default modes for sampling
+   * (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data tanDegrees() throws VisADException, RemoteException;
 
+  /**
+   * call unary() to negate this, using default modes for
+   * sampling (Data.NEAREST_NEIGHBOR) and error estimation
+   * (Data.NO_ERRORS)
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data negate() throws VisADException, RemoteException;
 
-  /** a list of unary operations supporting non-default modes for
-      sampling and error estimation */
+  /**
+   * call unary() to take the absolute value of this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data abs(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arccos of this producing
+   * radian Units
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data acos(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arccos of this producing
+   * degree Units
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data acosDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arcsin of this producing
+   * radian Units
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data asin(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arcsin of this producing
+   * degree Units
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data asinDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arctan of this producing
+   * radian Units
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data atan(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the arctan of this producing
+   * degree Units
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data atanDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the ceiling of this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data ceil(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the cos of this assuming radian
+   * Units unless this actual Units are degrees
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data cos(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the cos of this assuming degree
+   * Units unless this actual Units are radians
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data cosDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the exponent of this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data exp(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the floor of this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data floor(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the log of this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data log(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the rint (essentially round)
+   * of this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data rint(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the round of this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data round(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the sin of this assuming radian
+   * Units unless this actual Units are degrees
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data sin(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the sin of this assuming degree
+   * Units unless this actual Units are radians
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data sinDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the square root of this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data sqrt(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the tan of this assuming radian
+   * Units unless this actual Units are degrees
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data tan(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to take the tan of this assuming degree
+   * Units unless this actual Units are radians
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data tanDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /**
+   * call unary() to negate this
+   * @param sampling_mode  may be Data.NEAREST_NEIGHBOR or
+   *                        Data.WEIGHTED_AVERAGE
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return result of operation
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   Data negate(int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
-  /** return range of values of RealType real[i] in
-      return[i][0], return[i][1] */
+  /**
+   * compute ranges of values in this of given RealTypes, using
+   * a dummy DisplayImplJ2D
+   * @params reals array of RealTypes whose value ranges to compute
+   * @return double[reals.length][2] giving the low and high value
+   *         in this for each RealType in reals
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   double[][] computeRanges(RealType[] reals)
          throws VisADException, RemoteException;
 
-  /** compute ranges of values for each of 'n' RealType-s in
-      DisplayImpl.RealTypeVector;
-      would like 'default' visibility here, but must be declared
-      'public' because it is defined in the Data interface */
+  /**
+   * Compute ranges of values for each of 'n' RealTypes in
+   * DisplayImpl.RealTypeVector. Called from DataRenderer
+   * with n = DisplayImpl.getScalarCount().
+   * @param type ShadowType generated for MathType of this
+   * @param n number of RealTypes in DisplayImpl.RealTypeVector
+   * @return DataShadow instance containing double[][] array
+   *         of RealType ranges, and an animation sampling Set
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   DataShadow computeRanges(ShadowType type, int n)
          throws VisADException, RemoteException;
 
-  /** recursive version of computeRanges;
-      would like 'default' visibility here, but must be declared
-      'public' because it is defined in the Data interface */
+  /** 
+   * Recursive version of computeRanges(), called down through
+   * Data object tree.
+   * @param type ShadowType generated for MathType of Data
+   *             object at top of Data object tree
+   * @param shadow DataShadow instance whose contained double[][]
+   *               array and animation sampling Set are modified
+   *               according to RealType values in this, and used
+   *               as return value
+   * @return DataShadow instance containing double[][] array
+   *         of RealType ranges, and an animation sampling Set
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException, RemoteException;
 
-  /** adjust ErrorEstimate-s for sampling errors in error;
-      would like 'default' visibility here, but must be declared
-      'public' because it is defined in the Data interface */
+  /**
+   * return a clone of this, except with ErrorEstimates
+   * combined with values in error, according to error_mode
+   * @param error
+   * @param error_mode  may be Data.INDEPENDENT, Data.DEPENDENT or
+   *                     Data.NO_ERRORS;
+   * @return clone of this, except with ErrorEstimates set
+   *         according to values in error
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   Data adjustSamplingError(Data error, int error_mode)
          throws VisADException, RemoteException;
 
-  /** generates a longer string than generated by toString */
+  /**
+   * @return a longer String than returned by toString()
+   */
   String longString()
          throws VisADException, RemoteException;
 
-  /** generates a longer string than generated by toString,
-      indented by pre (a string of blanks) */
+  /** 
+   * @return a longer String than returned by toString(),
+   *         indented by pre (a string of blanks)
+   */
   String longString(String pre)
          throws VisADException, RemoteException;
 
-  /** DataImpl.dataClone returns clone;
-      RemoteDataImpl.dataClone returns clone inherited from
-      UnicastRemoteObject */
+  /** 
+   * A VisAD adaptation of clone that works for local or remote Data.
+   * Catches CloneNotSupportedException and throws message in a
+   * RuntimeException.
+   * @return for DataImpl return clone(), and for RemoteDataImpl
+   *         return clone() inherited from UnicastRemoteObject
+   */
   Object dataClone() throws RemoteException;
 }
 
