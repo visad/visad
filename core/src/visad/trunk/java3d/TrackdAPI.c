@@ -84,7 +84,7 @@ void *controller;
      if (nb > number_of_buttons[0]) nb = number_of_buttons[0];
      number_of_buttons[0] = nb;
      for (ib=0; ib<nb; ib++) {
-       button_states[ib] = trackdGetButton(controller, is);
+       button_states[ib] = trackdGetButton(controller, ib);
      }
      (*env)->ReleaseIntArrayElements(env, number_of_sensors_j, number_of_sensors, 0);
      (*env)->ReleaseFloatArrayElements(env, sensor_positions_j, sensor_positions, 0);
