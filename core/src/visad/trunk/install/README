@@ -1,13 +1,18 @@
 To install VisAD-in-a-Box:
-1) If you've received an install_visad.tar file,
-   run 'tar xvf install_visad.tar'
-1) Move into the extracted distribution directory
+1) If you've received an visad-in-a-box.tar file,
+   run 'tar xvf visad-in-a-box.tar'
+2) If you've received an visad-in-a-box.tar.gz file,
+   run 'gzcat -c visad-in-a-box.tar | tar xvf -'
+3) Move into the extracted distribution directory
    and run 'install_visad'
-2) Answer the few installation questions,
+4) Answer the few installation questions,
    then wait for everything to finish
    installing.
+5) You can remove the distribution directory after
+   the installation is complete.
 
-(Note: Cluster installation uses the 'cpush' utility.)
+Note: The 'cpush' utility must be available in order
+      to install on all nodes in a cluster.
 
 To create a new VisAD-in-a-Box distribution:
 
