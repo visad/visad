@@ -292,6 +292,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     boolean texCoord_flag = (arrays[0].texCoords != null);
 
     for (int i=0; i<n; i++) {
+      if (arrays[i] == null) continue;
       count += arrays[i].vertexCount;
       if (color_flag != (arrays[i].colors != null) ||
           normal_flag != (arrays[i].normals != null) ||
@@ -317,6 +318,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     int kn = 0;
     int kt = 0;
     for (int i=0; i<n; i++) {
+      if (arrays[i] == null) continue;
       float[] c = arrays[i].coordinates;
       for (int j=0; j<3*arrays[i].vertexCount; j++) {
         coordinates[k++] = c[j];
