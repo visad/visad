@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# this script should be in the root directory of the distribution
+
+# figure out where this script lives
+#
+DISTTMP=`echo $0 | sed 's/\/[^\/]*$/\//'`
+DISTDIR=`cd $DISTTMP && pwd`
+
+# get OS/machine info
+#
+OS=`uname -s`
+MACH=`uname -p`
+
+# try to guess name of appropriate JDK directory
+#
+dir=
+case "$OS-$MACH" in
+FreeBSD*-i*86) dir="freebsd-x86";;
+Linux*-i*86) dir="linux-x86";;
+SunOS-sparc) dir="solaris-sparc";;
+esac
+
+# if we guessed a JDK dir name...
+#
+if [ ! -z "$dir" ]; then
+  JBIN=$DISTDIR/jdk-$dir/bin
+
+  # ...and JDK dir exists...
+  #
+  if [ -d "$JBIN" ]; then
+
+    # ...add directory to PATH envvar
+    #
+    if [ -z "$PATH" ]; then
+      PATH="$JBIN"
+    else
+      PATH="$JBIN:$PATH"
+    fi
+    export PATH
+  fi
+fi
+
+# make sure visad.jar is in the CLASSPATH
+#
+CPARG=
+if [ -f $DISTDIR/visad.jar ]; then
+  CPARG="-cp $DISTDIR/visad.jar"
+fi
+
+# and away we go!
+#
+exec java $CPARG \
+	-Dvisad.install.path="$PATH" \
+	-Dvisad.install.home="$DISTDIR" \
+		visad.install.Main
