@@ -76,6 +76,14 @@ public class GMSXnav extends AREAnav
   private double [][] atit = new double[10][10];
   private static String fileName = "GMSXAREA";
 
+  // class constants
+  private static final double cdr = Math.PI / 180.0d;
+  private static final double crd = 180.0d / Math.PI;
+  private static final double hpai = Math.PI / 2.0d;
+  private static final double dpai = Math.PI * 2.0d;
+  private static final double ea = 6378136.0d;
+  private static final double ef = 1.0d / 298.257d;
+
   // main is used for unit testing
 
   public static void main(String[] args) {
@@ -136,8 +144,8 @@ public class GMSXnav extends AREAnav
 
     double [][] linEle = new double [2][1];
     double [][] latLon = new double [2][1];
-    linEle[gmsx.indexLine][0] = 5596.0f;
-    linEle[gmsx.indexEle][0] = 3981.0f;
+    linEle[gmsx.indexLine][0] = 471.0f;
+    linEle[gmsx.indexEle][0] = 323.0f;
 
     latLon = gmsx.toLatLon(linEle);
     System.out.println("  answer is: " + latLon[gmsx.indexLat][0] + 
@@ -224,13 +232,8 @@ public class GMSXnav extends AREAnav
 
     int mode = 1;
     int count = latlon[0].length;
-    int iret = 0;
-    float [] rinf = new float[8];
     float [] rtnPoint; 
     double[][] linele = new double[2][count];
-    double dsct = 0.0d;
-    double lat;
-    double lon;
     double line = 0.0d;
     double elem = 0.0d;
 
@@ -240,14 +243,11 @@ public class GMSXnav extends AREAnav
       linele[indexLine][point] = Double.NaN; 
       linele[indexEle][point] = Double.NaN; 
 
-      lat = latlon[indexLat][point];
-      lon = latlon[indexLon][point];
-
-      if (Math.abs(lat) > 90.0) {
+      if (Math.abs(latlon[indexLat][point]) > 90.0) {
         continue;
       }
 
-      if (Math.abs(lon) > 180.0) {
+      if (Math.abs(latlon[indexLon][point]) > 180.0) {
         continue;
       }
 
@@ -255,8 +255,8 @@ public class GMSXnav extends AREAnav
         mode, 
         (float) elem, 
         (float) line, 
-        (float) lon, 
-        (float) lat, 0.0f, rinf, dsct
+        (float) latlon[indexLon][point], 
+        (float) latlon[indexLat][point]
       );
 
       linele[indexLine][point] = rtnPoint[0];
@@ -286,15 +286,13 @@ public class GMSXnav extends AREAnav
 
     int mode = -1;
     int count = linele[0].length;
-    int iret = 0;
-    float [] rinf = new float[8];
     float [] rtnPoint;
     double[][] latlon = new double[2][count];
-    double dsct = 0.0d;
     double lat  = 0.0d;
     double lon  = 0.0d;
-    double line = 0.0d;
-    double elem = 0.0d;
+
+    // transform file to image coordinates
+    double[][] imgLinEle = areaCoordToImageCoord(linele);
 
     for (int point = 0; point < count; point++) {
 
@@ -302,15 +300,12 @@ public class GMSXnav extends AREAnav
       latlon[indexLat][point] = Double.NaN; 
       latlon[indexLon][point] = Double.NaN; 
 
-      line = linele[indexLine][point];
-      elem = linele[indexEle][point];
-
       rtnPoint = mgivsr (  
         mode, 
-        (float) elem, 
-        (float) line, 
+        (float) imgLinEle[indexEle][point], 
+        (float) imgLinEle[indexLine][point], 
         (float) lon, 
-        (float) lat, 0.0f, rinf, dsct
+        (float) lat
       );
 
       latlon[indexLat][point] = rtnPoint[0];
@@ -542,9 +537,6 @@ public class GMSXnav extends AREAnav
    * @param rLin - float line value
    * @param rLat - float latitude value
    * @param rLon - float longitude value
-   * @param rHgt - float height value
-   * @param rInf - ?
-   * @param dsct - ?
    *
    * @return array of two floating point values, lat/lon or line/elem pair
    *
@@ -555,10 +547,7 @@ public class GMSXnav extends AREAnav
     float rPix,
     float rLin,
     float rLon,
-    float rLat,
-    float rHgt,
-    float [] rInf,
-    double dsct
+    float rLat
   ) 
 
   {
@@ -579,66 +568,35 @@ public class GMSXnav extends AREAnav
     double bc;
     double bs;
     double beta = 0.0d;
-    double cdr;
-    double crd;
     double dd;
     double dda;
     double ddb;
     double ddc;
     double def;
-    double hpai;
-    double dpai;
-    double ea;
-    double ef;
     double ee;
     double en;
-    double eps;
     double dk;
     double dk1;
     double dk2;
     double dLat = 0.0d;
     double dLon = 0.0d;
-    double dlatn;
-    double dlonn;
-    double dsata = 0.0d;
-    double dsatz = 0.0d;
-    double dsung = 0.0d;
-    double dsuna = 0.0d;
-    double dsunz = 0.0d;
-    double dssda = 0.0d;
-    double dsatd;
     double pc, ps;
     double qc, qs;
     double rtim = 0.0d; 
-    double sdis;
-    double sunm;
     double tf;
     double tl = 0.0d;
     double tp = 0.0d;
-    double wkcos;
-    double wksin;
     double [] stn1 = new double[3];
-    double [] stn2 = new double[3];
-    double [] stn3 = new double[3];
-    double [] sl = new double[3];
+    double [] sl;
     double [] slv = new double[3];
-    double [] sx = new double[3];
-    double [] sy = new double[3];
-    double [] sw1 = new double[3];
-    double [] sw2 = new double[3];
+    double [] sx;
+    double [] sy;
+    double [] sw1;
+    double [] sw2;
     double [] sw3 = new double[3];
 
     point[0] = Float.NaN;
     point[1] = Float.NaN;
-
-    // initialize constants
-    cdr = Math.PI / 180.0d;
-    crd = 180.0d / Math.PI;
-    hpai = Math.PI / 2.0d;
-    dpai = Math.PI * 2.0d;
-    ea = 6378136.0d;
-    ef = 1.0d / 298.257d;
-    eps = 1.0d;
 
     // parameter checks
     if (Math.abs(iMode) > 4) {
@@ -667,16 +625,16 @@ public class GMSXnav extends AREAnav
       dLon = (double) rLon * cdr;
       ee = (2.0d * ef) - (ef * ef);
       en = ea / Math.sqrt(1.0d - (ee * Math.sin(dLat) * Math.sin(dLat)));
-      stn1[0] = (en + (double) rHgt) * Math.cos(dLat) * Math.cos(dLon);
-      stn1[1] = (en + (double) rHgt) * Math.cos(dLat) * Math.sin(dLon);
-      stn1[2] = (en * (1.0d - ee) + (double) rHgt) * Math.sin(dLat);
+      stn1[0] = en * Math.cos(dLat) * Math.cos(dLon);
+      stn1[1] = en * Math.cos(dLat) * Math.sin(dLon);
+      stn1[2] = (en * (1.0d - ee)) * Math.sin(dLat);
       rio = (float) (rfcl - 
         Math.atan(Math.sin(dLat) / (6.610689 - Math.cos(dLat))) / rstep);
       rtim = dtims + (double) (rio / sens / 1440.0d) / dspin;
 
       loop: while (true) {
 
-        beta = mg1100(rtim, cdr);
+        beta = mg1100(rtim);
         sw1 = mg1220(sp, ss);
         sw2 = mg1220(sw1, sp);
         bc = Math.cos(beta);
@@ -701,7 +659,7 @@ public class GMSXnav extends AREAnav
         ri = (float) (hpai - tl) / rstep + rfcl - (vmis[1] / rstep);
         rj = (float) (tp / rsamp + rfcp + (vmis[2] / rsamp) -
           (hpai - tl) * Math.tan(vmis[0]) / rsamp);
-        if (Math.abs(ri - rio) >= eps) {
+        if (Math.abs(ri - rio) >= 1.0d) {
           rtim = (double) (Math.rint((ri - 1) / sens) + 
             (rj * rsamp) / dpai) / (dspin * 1440.0) + dtims;
           rio = ri;
@@ -714,7 +672,6 @@ public class GMSXnav extends AREAnav
       point[1] = rj;
       rLin = ri;
       rPix = rj;
-      dsct = rtim;
       if ((rLin < 0) || (rLin > rftl)) {
         rc = 4;
       }
@@ -727,7 +684,7 @@ public class GMSXnav extends AREAnav
     if (iMode < 0) {
       rtim = (double) (Math.rint((rLin - 1) / sens) + 
         (rPix * rsamp) / dpai) / (dspin * 1440.0) + dtims;
-      beta = mg1100(rtim, cdr);
+      beta = mg1100(rtim);
       sw1 = mg1220(sp, ss);
       sw2 = mg1220(sw1, sp);
       bc = Math.cos(beta);
@@ -789,73 +746,9 @@ public class GMSXnav extends AREAnav
           dLon = -hpai;
         }
       }
-      rLat = (float) (dLat * crd);
-      rLon = (float) (dLon * crd);
-      point[0] = rLat;
-      point[1] = rLon;
-      dsct = rtim;
+      point[0] = (float) (dLat * crd);
+      point[1] = (float) (dLon * crd);
     }
-
-    // transformation, zenith/azimuth
-    stn2[0] = Math.cos(dLat) * Math.cos(dLon);
-    stn2[1] = Math.cos(dLat) * Math.sin(dLon);
-    stn2[2] = Math.sin(dLat);
-    slv[0] = sat[0] - stn1[0];
-    slv[1] = sat[1] - stn1[1];
-    slv[2] = sat[2] - stn1[2];
-    sl = mg1200(slv);
-    dsatz = mg1230(stn2, sl);
-    if (dsatz > hpai) {
-      rc = 7;
-    }
-    sunm = 315.253d + (0.9856d * rtim);
-    sunm = Math.IEEEremainder(sunm, 360.0d) * cdr;
-
-    sdis = (1.0014d - (0.01672d * Math.cos(sunm)) - 
-      (0.00014 * Math.cos(2.0d * sunm)) * 1.49597870e8d);
-
-    if (dLat >= 0.0d) {
-      dlatn = hpai - dLat;
-      dlonn = dLon - Math.PI;
-      if (dlonn <= -Math.PI) {
-        dlonn = dlonn + dpai;
-      }
-    } else {
-      dlatn = hpai + dLat;
-      dlonn = dLon;
-    }
-    stn3[0] = Math.cos(dlatn) * Math.cos(dlonn);
-    stn3[1] = Math.cos(dlatn) * Math.sin(dlonn);
-    stn3[2] = Math.sin(dlatn);
-    sw1[0] = slv[0] + (ss[0] * sdis * 1.0e3d);
-    sw1[1] = slv[1] + (ss[1] * sdis * 1.0e3d);
-    sw1[2] = slv[2] + (ss[2] * sdis * 1.0e3d);
-    sw2 = mg1200(sw1);
-    dsunz = mg1230(stn2, sw2);
-    dssda = mg1230(sl, sw2);
-    dsata = mg1240(sl, stn2, stn3, dpai);
-    dsuna = mg1240(sw2, stn2, stn3, dpai);
-    dsatd = Math.sqrt(slv[0] * slv[0] + slv[1] * slv[1] + slv[2] * slv[2]);
-
-    sl = mg1200(stn1);
-    dsung = mg1230(sw2, sl);
-    sw3 = mg1220(sl, sw2);
-    sw1 = mg1220(sw3, sl);
-    wkcos = Math.cos(dsung);
-    wksin = Math.sin(dsung);
-    sw2[0] = (wkcos * sl[0]) - (wksin * sw1[0]);
-    sw2[1] = (wkcos * sl[1]) - (wksin * sw1[1]);
-    sw2[2] = (wkcos * sl[2]) - (wksin * sw1[2]);
-    dsung = mg1230(sw2, slv);
-
-    rInf[5] = (float) (dsatd);
-    rInf[6] = (float) (sdis);
-    rInf[0] = (float) (dsatz * crd);
-    rInf[1] = (float) (dsata * crd);
-    rInf[2] = (float) (dsunz * crd);
-    rInf[3] = (float) (dsuna * crd);
-    rInf[5] = (float) (dssda * crd);
-    rInf[7] = (float) (dsung * crd);
 
     return (point);
 
@@ -867,15 +760,13 @@ public class GMSXnav extends AREAnav
    * mg1100 conversion routine of some sort
    *
    * @param rtim - ?
-   * @param cdr - ?
    *
    * @return converted value ?
    *
    */
 
   public double mg1100 (
-    double rtim,
-    double cdr
+    double rtim
   ) 
 
   {
@@ -893,7 +784,7 @@ public class GMSXnav extends AREAnav
 
     for (int i = 0; i < 7; i++) {
       if ((rtim > orbt1[0][i]) && (rtim < orbt1[0][i+1])) {
-        npa = mg1110(i, rtim, cdr, orbt1);
+        npa = mg1110(i, rtim, orbt1);
         break;
       }
     }
@@ -956,7 +847,6 @@ public class GMSXnav extends AREAnav
    *
    * @param i - ?
    * @param rtim - ?
-   * @param cdr - ?
    * @param orbta - ?
    *
    * @return 3 by 3 double array
@@ -966,7 +856,6 @@ public class GMSXnav extends AREAnav
   public double [][] mg1110 (
     int i,
     double rtim,
-    double cdr,
     double [][] orbta
   )
 
