@@ -106,6 +106,7 @@ public class FancySSCell extends BasicSSCell {
       }
       else if (drt == Display.SelectValue) {
         VisADSlider vs = new VisADSlider(maps[i]);
+        vs.setAlignmentX(JPanel.CENTER_ALIGNMENT);
         addToFrame(vs);
       }
       else if (drt == Display.SelectRange) {
