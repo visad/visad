@@ -1702,14 +1702,14 @@ if (initialize) {
     int count;
 
     Syncher(DisplayImpl display) {
-      control = display.getProjectionControl();
-      count = -1;
-      display.disableAction();
-      display.addDisplayListener(this);
-      display.reDisplayAll();
-      display.enableAction();
       try {
         synchronized (this) {
+          control = display.getProjectionControl();
+          count = -1;
+          display.disableAction();
+          display.addDisplayListener(this);
+          display.reDisplayAll();
+          display.enableAction();
           this.wait();
         }
       }

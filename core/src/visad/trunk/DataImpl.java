@@ -472,15 +472,16 @@ public abstract class DataImpl extends ThingImpl
   // WLH 18 March 2000
   public class Syncher extends Object implements DisplayListener {
     Syncher() {
-      rdisplay.addDisplayListener(this);
-      rdisplay.enableAction();
       try {
         synchronized (this) {
+          rdisplay.addDisplayListener(this);
+          rdisplay.enableAction();
           this.wait();
         }
       }
       catch(InterruptedException e) {
       }
+
       rdisplay.removeDisplayListener(this);
     }
 
@@ -499,14 +500,10 @@ public abstract class DataImpl extends ThingImpl
          throws VisADException, RemoteException {
     synchronized (lock) {
 
-/* WLH 11 May 2001
       if (rdisplay == null) {
         // construct offscreen dummy display
         rdisplay = new DisplayImplJ2D("dummy", 4, 4);
       }
-*/
-      // construct offscreen dummy display
-      rdisplay = new DisplayImplJ2D("dummy", 4, 4);
 
       if (reals == null || reals.length == 0) return null;
       int n = reals.length;
