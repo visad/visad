@@ -440,24 +440,24 @@ public class PlaneSelector {
       }
     }
     int p1 = index;
-    int p2 = index + 1;
+    int p2 = (index + 1) % numpts;
+    int p = 0;
+    while (p == p1 || p == p2) p++;
 
     // compute first two corners
     float[] c1 = new float[3];
     float[] c2 = new float[3];
-    int[] p = {p1, p2};
-    project(x, y, z, x[p1], y[p1], z[p1], x[p2], y[p2], z[p2], c1, c2, p);
-    p1 = -1;
-    p2 = p[0];
+    float[] proj = new float[3];
+    project(x, y, z,
+      x[p1], y[p1], z[p1], x[p2], y[p2], z[p2], p, c1, c2, proj);
 
     // compute third corner
     float[] c3 = new float[3];
-    p = new int[] {p1, p2};
-    project(x, y, z, c1[0], c1[1], c1[2], x[p2], y[p2], z[p2], c1, c3, p);
+    float[] l = corner(proj, c1, new float[] {x[p], y[p], z[p]});
+    project(x, y, z, c1[0], c1[1], c1[2], l[0], l[1], l[2], -1, c1, c3, proj);
 
     // compute fourth corner
-    float[] c4 = new float[3];
-    for (int i=0; i<3; i++) c4[i] = c3[i] + c2[i] - c1[i];
+    float[] c4 = corner(c1, c2, c3);
 
     // construct 3-D planar grid
     SetType type3 = (SetType) lines.getType();
@@ -542,13 +542,12 @@ public class PlaneSelector {
 
   /**
    * Projects all the points in (x, y, z) onto the line defined by (p1, p2).
-   * The points that bound the line segment are returned in (min, max).
-   * The corresponding point indices that generated the projections are
-   * returned in p[0] and p[1].
+   * The points that bound the line segment are stored in (min, max).
+   * The projection of the pth point is stored in proj.
    */
   protected static void project(float[] x, float[] y, float[] z,
     float p1x, float p1y, float p1z, float p2x, float p2y, float p2z,
-    float[] min, float[] max, int[] p)
+    int p, float[] min, float[] max, float[] proj)
   {
     int numpts = x.length - 1;
     float x21 = p2x - p1x;
@@ -572,6 +571,11 @@ public class PlaneSelector {
       float px = p1x + u * x21;
       float py = p1y + u * y21;
       float pz = p1z + u * z21;
+      if (p3 == p) {
+        proj[0] = px;
+        proj[1] = py;
+        proj[2] = pz;
+      }
 
       float pminx = px - min[0];
       float pminy = py - min[1];
@@ -588,17 +592,33 @@ public class PlaneSelector {
           max[0] = px;
           max[1] = py;
           max[2] = pz;
-          p[1] = p3;
         }
         else {
           maxdist = pdistmax;
           min[0] = px;
           min[1] = py;
           min[2] = pz;
-          p[0] = p3;
         }
       }
     }
+  }
+
+  /** Computes the fourth corner of a rectangle, given the first three. */
+  private static float[] corner(float[] c1, float[] c2, float[] c3) {
+    float[] c4 = new float[c1.length];
+    for (int i=0; i<c1.length; i++) c4[i] = c3[i] + c2[i] - c1[i];
+    return c4;
+  }
+
+  /** Saves a data object to a binary file, for debugging. */
+  protected static void save(String file, DataImpl data) {
+    System.err.print("Saving " + file + "... ");
+    java.io.File f = new java.io.File(file);
+    if (f.exists()) f.delete();
+    visad.data.visad.VisADForm saver = new visad.data.visad.VisADForm(true);
+    try { saver.save(file, data, false); }
+    catch (Exception exc) { exc.printStackTrace(); }
+    System.err.println("done.");
   }
 
 }
