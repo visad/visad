@@ -162,6 +162,40 @@ public final class McIDASUtil
     }
 
     /**
+     * Convert date (yyyymmdd or yyyymmdd) and hms (hhmmss) to seconds since
+     * the epoch (January 1, 1970, 00:00GMT).  
+     *
+     * @param    date       year/day in yyymmdd format.
+     *                      Only works for years > 1900.
+     * @param    time       time in packed integer format (hhmmss)
+     *
+     * @return  seconds since the epoch
+     *
+     */
+    public static long mcDateHmsToSecs(int date, int time)
+    {
+        int year = date/10000;
+        int month = (date%10000)/100;
+        int day =  date%100;
+        System.out.println("year = " + year);
+        System.out.println("month = " + month);
+        System.out.println("day = " + day);
+        double seconds = mcPackedIntegerToDouble(time)*3600.;
+
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.clear();
+        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+        cal.set(Calendar.ERA, GregorianCalendar.AD);
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, month);
+        cal.set(Calendar.DAY_OF_MONTH, day);
+        int secs = ((int) Math.round(seconds * 1000))/1000;
+        cal.set(Calendar.SECOND, secs);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime().getTime()/1000;
+    }
+
+    /**
      * Convert seconds since the epoch (January 1, 1970, 00:00GMT) to
      * day (yyyyddd) and time (hhmmss).  Java version of 
      * 'mcsecstodaytime' except it returns an int array instead of pointers 
