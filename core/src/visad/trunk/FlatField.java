@@ -553,11 +553,13 @@ public class FlatField extends FieldImpl {
   }
 
   /**
-   * Returns the CoordinateSystem of a component of the range.
+   * Returns the CoordinateSystem of a component of the range.  The MathType
+   * of the range shall be a TupleType.
    *
-   * @param i			The index of the component.  The value shall lie
-   *				in the interval from 0 through 
-   *				<code>getDomainDimension()</code>, inclusive.
+   * @param i			The index of the component.  The value shall be
+   *				greater than or equal to zero and less that the
+   *				number of components in the TupleType of the
+   *				range.
    * @return			The CoordinateSystem of the <code>i</code>-th
    *				component.  Won't be <code>null</code> and will
    *				be of length 1.  The single element might be
@@ -1586,11 +1588,21 @@ public class FlatField extends FieldImpl {
         }
       }
 
+      /*
+       * Ensure that the numeric values and units are in rational form, i.e. one
+       * in which ratios of data values make sense (e.g. Temperature values in
+       * kelvin rather than celsius).
+       */
+      units_in = (Unit[])RangeUnits.clone();
+      errors_in = (ErrorEstimate[])RangeErrors.clone();;
+      makeRational(values, units_in, errors_in);
+      makeRational(value2, units_out, errors_out);
+
 /*
  roles from Real.binary:
-   RangeUnits[j]     --  unit
+   units_in[j]     --  unit
    units_out[j]     --  data_unit, u
-   RangeErrors[j]   --  Error
+   errors_in[j]   --  Error
    errors_out[j]    --  dError
 */
 
@@ -1605,28 +1617,28 @@ public class FlatField extends FieldImpl {
           for (j=0; j<TupleDimension; j++) {
             Unit u;
 
-            if (RangeUnits[j] == null || units_out[j] == null) {
+            if (units_in[j] == null || units_out[j] == null) {
               u = null;
             }
-            else if (RangeUnits[j] == CommonUnit.promiscuous) {
+            else if (units_in[j] == CommonUnit.promiscuous) {
               u = units_out[j];
             }
             else if (units_out[j] == CommonUnit.promiscuous) {
-              u = RangeUnits[j];
+              u = units_in[j];
             }
-            else if (Unit.canConvert(RangeUnits[j], units_out[j])) {
-              u = RangeUnits[j];
-              value2[j] = RangeUnits[j].toThis(value2[j], units_out[j]);
+            else if (Unit.canConvert(units_in[j], units_out[j])) {
+              u = units_in[j];
+              value2[j] = units_in[j].toThis(value2[j], units_out[j]);
               // scale data.ErrorEstimate for Unit.toThis
               if (error_mode != NO_ERRORS && errors_out[j] != null) {
                 double error = 0.5 * errors_out[j].getErrorValue();
                 double mean = errors_out[j].getMean();
-                double a = RangeUnits[j].toThis(mean + error, units_out[j]);
-                double b = RangeUnits[j].toThis(mean - error, units_out[j]);
+                double a = units_in[j].toThis(mean + error, units_out[j]);
+                double b = units_in[j].toThis(mean - error, units_out[j]);
                 double new_error = Math.abs(a - b);
                 double new_mean = 0.5 * (a + b);
                 errors_out[j] =
-                  new ErrorEstimate(new_mean, new_error, RangeUnits[j]);
+                  new ErrorEstimate(new_mean, new_error, units_in[j]);
               }
             }
             else {
@@ -1690,11 +1702,11 @@ public class FlatField extends FieldImpl {
             for (i=0; i<Length; i++) {
               valuesJ[i] *= value2J[i];
             }
-            if (RangeUnits[j] == null || units_out[j] == null) {
+            if (units_in[j] == null || units_out[j] == null) {
               units_out[j] = null;
             }
             else {
-              units_out[j] = RangeUnits[j].multiply(units_out[j]);
+              units_out[j] = units_in[j].multiply(units_out[j]);
             }
           }
           break;
@@ -1705,11 +1717,11 @@ public class FlatField extends FieldImpl {
             for (i=0; i<Length; i++) {
               valuesJ[i] /= value2J[i];
             }
-            if (RangeUnits[j] == null || units_out[j] == null) {
+            if (units_in[j] == null || units_out[j] == null) {
               units_out[j] = null;
             }
             else {
-              units_out[j] = RangeUnits[j].divide(units_out[j]);
+              units_out[j] = units_in[j].divide(units_out[j]);
             }
           }
           break;
@@ -1720,11 +1732,11 @@ public class FlatField extends FieldImpl {
             for (i=0; i<Length; i++) {
               valuesJ[i] = value2J[i] / valuesJ[i];
             }
-            if (RangeUnits[j] == null || units_out[j] == null) {
+            if (units_in[j] == null || units_out[j] == null) {
               units_out[j] = null;
             }
             else {
-              units_out[j] = units_out[j].divide(RangeUnits[j]);
+              units_out[j] = units_out[j].divide(units_in[j]);
             }
           }
           break;
@@ -1797,7 +1809,7 @@ public class FlatField extends FieldImpl {
             for (i=0; i<Length; i++) {
               valuesJ[i] %= value2J[i];
             }
-            units_out[j] = RangeUnits[j];
+            units_out[j] = units_in[j];
           }
           break;
         case INV_REMAINDER:
@@ -1814,12 +1826,12 @@ public class FlatField extends FieldImpl {
       // compute ErrorEstimates for result
       for (j=0; j<TupleDimension; j++) {
         if (error_mode == NO_ERRORS ||
-            RangeErrors[j] == null || errors_out[j] == null) {
+            errors_in[j] == null || errors_out[j] == null) {
           errors_out[j] = null;
         }
         else {
           errors_out[j] =
-            new ErrorEstimate(values[j], units_out[j], op, RangeErrors[j],
+            new ErrorEstimate(values[j], units_out[j], op, errors_in[j],
                               errors_out[j], error_mode);
         }
       }
@@ -1917,11 +1929,21 @@ public class FlatField extends FieldImpl {
         }
       }
 
+      /*
+       * Ensure that the numeric values and units are in rational form, i.e. one
+       * in which ratios of data values make sense (e.g. Temperature values in
+       * kelvin rather than celsius).
+       */
+      Unit[]		units_in = (Unit[])RangeUnits.clone();
+      ErrorEstimate[]	errors_in = (ErrorEstimate[])RangeErrors.clone();;
+      makeRational(values, units_in, errors_in);
+      makeRational(vals, units_out, errors_out);
+
 /*
  roles from Real.binary:
-   RangeUnits[j]     --  unit
+   units_in[j]     --  unit
    units_out[j]     --  data_unit, u
-   RangeErrors[j]   --  Error
+   errors_in[j]   --  Error
    errors_out[j]    --  dError
 */
 
@@ -1936,28 +1958,28 @@ public class FlatField extends FieldImpl {
           case MIN:
             Unit u;
 
-            if (RangeUnits[j] == null || units_out[j] == null) {
+            if (units_in[j] == null || units_out[j] == null) {
               u = null;
             }
-            else if (RangeUnits[j] == CommonUnit.promiscuous) {
+            else if (units_in[j] == CommonUnit.promiscuous) {
               u = units_out[j];
             }
             else if (units_out[j] == CommonUnit.promiscuous) {
-              u = RangeUnits[j];
+              u = units_in[j];
             }
-            else if (Unit.canConvert(RangeUnits[j], units_out[j])) {
-              u = RangeUnits[j];
-              value = RangeUnits[j].toThis(value, units_out[j]);
+            else if (Unit.canConvert(units_in[j], units_out[j])) {
+              u = units_in[j];
+              value = units_in[j].toThis(value, units_out[j]);
               if (error_mode == NO_ERRORS && errors_out[j] != null) {
                 // scale data.ErrorEstimate for Unit.toThis
                 double error = 0.5 * errors_out[j].getErrorValue();
                 double mean = errors_out[j].getMean();
-                double a = RangeUnits[j].toThis(mean + error, units_out[j]);
-                double b = RangeUnits[j].toThis(mean - error, units_out[j]);
+                double a = units_in[j].toThis(mean + error, units_out[j]);
+                double b = units_in[j].toThis(mean - error, units_out[j]);
                 double new_error = Math.abs(a - b);
                 double new_mean = 0.5 * (a + b);
                 errors_out[j] =
-                  new ErrorEstimate(new_mean, new_error, RangeUnits[j]);
+                  new ErrorEstimate(new_mean, new_error, units_in[j]);
               }
             }
             else {
@@ -1997,40 +2019,41 @@ public class FlatField extends FieldImpl {
             for (int i=0; i<Length; i++) {
               valuesJ[i] *= value;
             }
-            if (RangeUnits[j] == null || units_out[j] == null) {
+            if (units_in[j] == null || units_out[j] == null) {
               units_out[j] = null;
             }
             else {
-              units_out[j] = RangeUnits[j].multiply(units_out[j]);
+              units_out[j] = units_in[j].multiply(units_out[j]);
             }
             break;
           case DIVIDE:
             for (int i=0; i<Length; i++) {
               valuesJ[i] /= value;
             }
-            if (RangeUnits[j] == null || units_out[j] == null) {
+            if (units_in[j] == null || units_out[j] == null) {
               units_out[j] = null;
             }
             else {
-              units_out[j] = RangeUnits[j].divide(units_out[j]);
+              units_out[j] = units_in[j].divide(units_out[j]);
             }
             break;
           case INV_DIVIDE:
             for (int i=0; i<Length; i++) {
               valuesJ[i] = value / valuesJ[i];
             }
-            if (RangeUnits[j] == null || units_out[j] == null) {
+            if (units_in[j] == null || units_out[j] == null) {
               units_out[j] = null;
             }
             else {
-              units_out[j] = units_out[j].divide(RangeUnits[j]);
+              units_out[j] = units_out[j].divide(units_in[j]);
             }
             break;
           case POW:
             for (int i=0; i<Length; i++) {
               valuesJ[i] = Math.pow(valuesJ[i], value);
             }
-            units_out[j] = null;
+            units_out[j] = CommonUnit.dimensionless.equals(units_in[j])
+	      ? CommonUnit.dimensionless : null;
             break;
           case INV_POW:
             for (int i=0; i<Length; i++) {
@@ -2068,7 +2091,7 @@ public class FlatField extends FieldImpl {
             for (int i=0; i<Length; i++) {
               valuesJ[i] %= value;
             }
-            units_out[j] = RangeUnits[j];
+            units_out[j] = units_in[j];
             break;
           case INV_REMAINDER:
             for (int i=0; i<Length; i++) {
@@ -2082,12 +2105,12 @@ public class FlatField extends FieldImpl {
       // compute ErrorEstimates for result
       for (int j=0; j<TupleDimension; j++) {
         if (error_mode == NO_ERRORS ||
-            RangeErrors[j] == null || errors_out[j] == null) {
+            errors_in[j] == null || errors_out[j] == null) {
           errors_out[j] = null;
         }
         else {
           errors_out[j] =
-            new ErrorEstimate(values[j], units_out[j], op, RangeErrors[j],
+            new ErrorEstimate(values[j], units_out[j], op, errors_in[j],
                               errors_out[j], error_mode);
         }
       }
@@ -2124,6 +2147,15 @@ public class FlatField extends FieldImpl {
 
     Unit[] units_out = new Unit[TupleDimension];
 
+    /*
+     * Ensure that the numeric values and units are in rational form, i.e. one
+     * in which ratios of data values make sense (e.g. Temperature values in
+     * kelvin rather than celsius).
+     */
+    Unit[]		units_in = (Unit[])RangeUnits.clone();
+    ErrorEstimate[]	errors_in = (ErrorEstimate[])RangeErrors.clone();;
+    makeRational(values, units_in, errors_in);
+
     int i, j; // loop indices
     double[] valuesJ;
     switch (op) {
@@ -2133,7 +2165,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.abs(valuesJ[i]);
           }
-          units_out[j] = RangeUnits[j];
+          units_out[j] = units_in[j];
         }
         break;
       case ACOS:
@@ -2196,14 +2228,14 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.ceil(valuesJ[i]);
           }
-          units_out[j] = RangeUnits[j];
+          units_out[j] = units_in[j];
         }
         break;
       case COS:
         // do cos in degrees, unless unit is radians
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (CommonUnit.degree.equals(RangeUnits[j])) {
+          if (CommonUnit.degree.equals(units_in[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.cos(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -2214,13 +2246,13 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case COS_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (CommonUnit.radian.equals(RangeUnits[j])) {
+          if (CommonUnit.radian.equals(units_in[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.cos(valuesJ[i]);
             }
@@ -2231,7 +2263,7 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case EXP:
@@ -2241,7 +2273,7 @@ public class FlatField extends FieldImpl {
             valuesJ[i] = Math.exp(valuesJ[i]);
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case FLOOR:
@@ -2250,7 +2282,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.floor(valuesJ[i]);
           }
-          units_out[j] = RangeUnits[j];
+          units_out[j] = units_in[j];
         }
         break;
       case LOG:
@@ -2260,7 +2292,7 @@ public class FlatField extends FieldImpl {
             valuesJ[i] = Math.log(valuesJ[i]);
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case RINT:
@@ -2269,7 +2301,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.rint(valuesJ[i]);
           }
-          units_out[j] = RangeUnits[j];
+          units_out[j] = units_in[j];
         }
         break;
       case ROUND:
@@ -2278,13 +2310,13 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.round(valuesJ[i]);
           }
-          units_out[j] = RangeUnits[j];
+          units_out[j] = units_in[j];
         }
         break;
       case SIN:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (CommonUnit.degree.equals(RangeUnits[j])) {
+          if (CommonUnit.degree.equals(units_in[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.sin(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -2295,13 +2327,13 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case SIN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (CommonUnit.radian.equals(RangeUnits[j])) {
+          if (CommonUnit.radian.equals(units_in[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.sin(valuesJ[i]);
             }
@@ -2312,7 +2344,7 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case SQRT:
@@ -2322,13 +2354,13 @@ public class FlatField extends FieldImpl {
             valuesJ[i] = Math.sqrt(valuesJ[i]);
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case TAN:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (CommonUnit.degree.equals(RangeUnits[j])) {
+          if (CommonUnit.degree.equals(units_in[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.tan(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -2339,13 +2371,13 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case TAN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (CommonUnit.radian.equals(RangeUnits[j])) {
+          if (CommonUnit.radian.equals(units_in[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.tan(valuesJ[i]);
             }
@@ -2356,7 +2388,7 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
         }
         break;
       case NEGATE:
@@ -2365,12 +2397,12 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = -valuesJ[i];
           }
-          units_out[j] = RangeUnits[j];
+          units_out[j] = units_in[j];
         }
         break;
       case NOP:
         for (j=0; j<TupleDimension; j++) {
-          units_out[j] = RangeUnits[j];
+          units_out[j] = units_in[j];
         }
         break;
     }
@@ -2378,12 +2410,12 @@ public class FlatField extends FieldImpl {
     // compute ErrorEstimates for result
     ErrorEstimate[] errors_out = new ErrorEstimate[TupleDimension];
     for (j=0; j<TupleDimension; j++) {
-      if (error_mode == NO_ERRORS || RangeErrors[j] == null) {
+      if (error_mode == NO_ERRORS || errors_in[j] == null) {
         errors_out[j] = null;
       }
       else {
         errors_out[j] = new ErrorEstimate(values[j], units_out[j], op,
-                                          RangeErrors[j], error_mode);
+                                          errors_in[j], error_mode);
       }
     }
 
@@ -2397,6 +2429,40 @@ public class FlatField extends FieldImpl {
     // new_field.DoubleRange = values; 
     new_field.clearMissing();
     return new_field;
+  }
+
+  /**
+   * Ensure that numeric values and units are in rational form, i.e. one in
+   * which ratios of data values make sense (e.g. Temperature values in Kelvin
+   * rather than Celsius).  All conversions are done in-place.
+   *
+   * @param values		The numeric values.
+   * @param units		The units for the values and error
+   *				estimates.  It's length shall be 
+   *				<code>values.length</code>.
+   * @param errors		The error estimates.  It's length shall be
+   *				<code>values.length</code>.
+   * @throws UnitException	Unit conversion error.
+   */
+  protected static void makeRational(double[][] values, Unit[] units,
+    ErrorEstimate[] errors) throws UnitException
+  {
+    for (int j=0; j<values.length; j++) {
+      if (units[j] != null) {
+	Unit	absoluteUnit = units[j].getAbsoluteUnit();
+	if (!absoluteUnit.equals(units[j])) {
+	  values[j] = absoluteUnit.toThis(values[j], units[j]);
+	  if (errors[j] != null) {
+	    errors[j] =
+	      new ErrorEstimate(
+		absoluteUnit.toThis(errors[j].getMean(), units[j]),
+		errors[j].getErrorValue(),
+		absoluteUnit);
+	  }
+	  units[j] = absoluteUnit;
+	}
+      }
+    }
   }
 
   /** extract field from this[].component;
