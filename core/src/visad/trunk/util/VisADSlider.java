@@ -42,6 +42,8 @@ public class VisADSlider extends JPanel {
 
   private String head;
 
+  private int first;
+
   public VisADSlider(String n, int l, int h, int start,
                      double sc, DataReference r, RealType t)
          throws VisADException, RemoteException {
@@ -52,6 +54,7 @@ public class VisADSlider extends JPanel {
     low = l;
     hi = h;
     scale = sc;
+    first = -2; // what an ugly hack work-around for jdk1.2beta2 bug
 
     lastCellValue = low - 1;
     lastSliderValue = low - 1;
@@ -65,7 +68,6 @@ public class VisADSlider extends JPanel {
     slider = new JSlider(JSlider.HORIZONTAL, low, hi, start);
     double val = scale * slider.getValue();
     head = "         ";
-
     slider_label = new JLabel(name + " = " + shortString(val) + head);
  
     listener = new SliderListener();
@@ -131,8 +133,13 @@ public class VisADSlider extends JPanel {
       }
       else { // ival != lastCellValue
         lastSliderValue = ival;
-// hack for JDK 1.2 with Java3D
-update(getGraphics());
+if (first > 0) {
+  // hack for JDK 1.2 with Java3D
+  update(getGraphics());
+}
+else {
+  first++;
+}
         try {
           double val = scale * ival;
           ref.setData(new Real(type, val));
@@ -161,8 +168,13 @@ update(getGraphics());
       else {
         lastCellValue = ival;
         slider.setValue(ival);
-// hack for JDK 1.2 with Java3D
-update(getGraphics());
+if (first > 0) {
+  // hack for JDK 1.2 with Java3D
+  update(getGraphics());
+}
+else {
+  first++;
+}
         slider_label.setText(name + " = " + shortString(val) + head);
       }
     }
