@@ -427,6 +427,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       float[] normalsY = null;
       byte[] colorsY = null;
 
+      if (color_length == 4) constant_alpha = Float.NaN; // WLH 6 May 2003
+
       if (isTextureMap) {
 
 // System.out.println("start texture map " + (System.currentTimeMillis() - link.start_time));
@@ -1020,10 +1022,10 @@ if (i == (len / 2)) {
   private static ScalarMap xaxis;
   private static ScalarMap yaxis;
 
-  // run 'java -mx64m visad.bom.ShadowImageFunctionTypeJ3D' for globe display
-  // run 'java -mx64m visad.bom.ShadowImageFunctionTypeJ3D X remap'
+  // run 'java visad.bom.ShadowImageFunctionTypeJ3D' for globe display
+  // run 'java visad.bom.ShadowImageFunctionTypeJ3D X remap'
   //                     for remapped globe display
-  // run 'java -mx64m visad.bom.ShadowImageFunctionTypeJ3D X 2D' for flat display
+  // run 'java visad.bom.ShadowImageFunctionTypeJ3D X 2D' for flat display
   public static void main (String[] args) {
 
     String mapFile = "OUTLSUPW";
@@ -1119,6 +1121,8 @@ if (i == (len / 2)) {
                                            -150.0, 5.0, SIZE);
         imaget = (FlatField)
           imaget.resample(dset, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+        ftype = (FunctionType) imaget.getType();
+        dtype = ftype.getDomain();
       }
 
       if (gif) {

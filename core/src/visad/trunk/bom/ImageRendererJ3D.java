@@ -251,8 +251,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
         if (br || bg || bb) {
           throw new VisADException("Duplicate color mappings");
         }
-        if (rgb == null || !mr.equals(Display.RGB)) {
-          throw new VisADException("Illegal RGB mapping");
+        if (rgb == null ||
+            !(mr.equals(Display.RGB) || mr.equals(Display.RGBA))) {
+          throw new VisADException("Illegal RGB/RGBA mapping");
         }
         dbr = dbg = dbb = true;
         br = bg = bb = true;
