@@ -83,7 +83,7 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
          throws VisADException, RemoteException {
 
     DisplayImpl display =
-      new DisplayImplJ3D("display", new TransformOnlyDisplayRendererJ3D(),
+      new DisplayImplJ3D("display", new NodeDisplayRendererJ3D(),
                          DisplayImplJ3D.TRANSFORM_ONLY);
 
     // create JFrame (i.e., a window) for display and slider
