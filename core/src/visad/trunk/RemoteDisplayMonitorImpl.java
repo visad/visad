@@ -122,14 +122,19 @@ public class RemoteDisplayMonitorImpl
    * @param id The unique identifer (determined with <CODE>checkID</CODE>.)
    *
    * @exception RemoteException If there was an RMI-related problem.
+   * @exception RemoteVisADException If there was an internal problem.
    */
   public void addListener(DisplayMonitorListener l, int id)
-    throws RemoteException, VisADException
+    throws RemoteException, RemoteVisADException
   {
     if (AdaptedMonitor == null) {
       throw new RemoteVisADException("AdaptedMonitor is null");
     }
-    AdaptedMonitor.addListener(l, id);
+    try {
+      AdaptedMonitor.addListener(l, id);
+    } catch (VisADException ve) {
+      throw new RemoteVisADException(ve.getMessage());
+    }
   }
 
   /**
@@ -137,8 +142,8 @@ public class RemoteDisplayMonitorImpl
    *
    * @param rd Ignored.
    *
-   * @exception VisADException Not really possible.
-   * @exception RemoteException <B>ALWAYS</B> thrown.
+   * @exception RemoteException If there was an RMI-related problem.
+   * @exception RemoteVisADException <B>ALWAYS</B> thrown.
    */
   public void addRemoteListener(RemoteDisplay rd)
     throws RemoteException, RemoteVisADException
@@ -150,6 +155,8 @@ public class RemoteDisplayMonitorImpl
    * Forwards the event to the remote <CODE>DisplayMonitor</CODE>.
    *
    * @param evt The event to forward.
+   *
+   * @exception RemoteVisADException If there was an internal problem.
    */
   public void notifyListeners(MonitorEvent evt)
     throws RemoteVisADException
@@ -163,7 +170,8 @@ public class RemoteDisplayMonitorImpl
   /**
    * Unusable stub.  Unimplemented.
    *
-   * @exception RemoteException <B>ALWAYS</B> thrown.
+   * @exception RemoteException If there was an RMI-related problem.
+   * @exception RemoteVisADException <B>ALWAYS</B> thrown.
    */
   public void syncControls()
     throws RemoteException, RemoteVisADException

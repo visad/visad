@@ -38,9 +38,11 @@ public class ControlMonitorEvent
    * <CODE>Control</CODE>.
    *
    * @param type The event type (either
-   *			<CODE>MonitorEvent.CONTROL_INIT_REQUESTED</CODE>
-   *			or <CODE>MonitorEvent.CONTROL_CHANGED</CODE>.)
+   * 			<CODE>MonitorEvent.CONTROL_INIT_REQUESTED</CODE>
+   * 			or <CODE>MonitorEvent.CONTROL_CHANGED</CODE>.)
    * @param ctl The <CODE>Control</CODE>.
+   *
+   * @exception VisADException When a bad <CODE>type</CODE> is specified.
    */
   public ControlMonitorEvent(int type, Control ctl)
     throws VisADException
@@ -53,8 +55,8 @@ public class ControlMonitorEvent
    * <CODE>Control</CODE>.
    *
    * @param type The event type (either
-   *			<CODE>MonitorEvent.CONTROL_INIT_REQUESTED</CODE>
-   *			or <CODE>MonitorEvent.CONTROL_CHANGED</CODE>.)
+   * 			<CODE>MonitorEvent.CONTROL_INIT_REQUESTED</CODE>
+   * 			or <CODE>MonitorEvent.CONTROL_CHANGED</CODE>.)
    * @param originator The ID of the connection from which this event came,
    *                    relative to the receiver of the event.
    * @param ctl The <CODE>Control</CODE>.

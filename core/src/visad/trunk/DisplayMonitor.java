@@ -45,7 +45,7 @@ public interface DisplayMonitor
    * @exception VisADException If the listener <CODE>Vector</CODE>
    * 				is uninitialized.
    */
-  void addListener(DisplayMonitorListener l, int id)
+  void addListener(DisplayMonitorListener listener, int id)
     throws RemoteException, VisADException;
 
   /**
@@ -93,7 +93,7 @@ public interface DisplayMonitor
    *
    * @exception RemoteException If there was an RMI-related problem.
    */
-  boolean hasEventQueued(int originator, Control ctl)
+  boolean hasEventQueued(int listenerID, Control ctl)
     throws RemoteException;
 
   /**
@@ -103,6 +103,7 @@ public interface DisplayMonitor
    * @param evt The event to forward.
    *
    * @exception RemoteException If there was an RMI-related problem.
+   * @exception RemoteVisADException If there is an internal error.
    */
   void notifyListeners(MonitorEvent evt)
     throws RemoteException, RemoteVisADException;

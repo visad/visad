@@ -81,6 +81,9 @@ public class ObjectCache
 
     /**
      * Creates a wrapper which binds an object with its generation.
+     *
+     * @param gen The generation number for this object.
+     * @param obj The object to wrap.
      */
     public QueueMember(int gen, Object obj)
     {

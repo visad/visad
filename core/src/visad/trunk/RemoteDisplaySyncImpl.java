@@ -62,7 +62,7 @@ public class RemoteDisplaySyncImpl
    * @exception RemoteVisADException If there was an internal problem.
    */
   public void stateChanged(MonitorEvent evt)
-    throws RemoteException, VisADException
+    throws RemoteException, RemoteVisADException
   {
     if (AdaptedSync == null) {
       throw new RemoteVisADException("AdaptedSync is null");

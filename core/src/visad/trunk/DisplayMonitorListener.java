@@ -40,5 +40,5 @@ public interface DisplayMonitorListener
    * @exception RemoteVisADException If there was an internal problem.
    */
   void stateChanged(MonitorEvent e)
-    throws RemoteException, VisADException;
+    throws RemoteException, RemoteVisADException;
 }

@@ -385,7 +385,7 @@ public class DisplayMonitorImpl
      * Tries to deliver the queued events to this listener
      *
      * @exception ConnectException If a connection could not be made to the
-     *					remote listener.
+     * 					remote listener.
      */
     private void deliverEventTable()
       throws ConnectException
@@ -455,10 +455,9 @@ public class DisplayMonitorImpl
    *
    * @param dpy The <CODE>Display</CODE> to monitor.
    *
-   * @exception RemoteException If there was an RMI-related problem.
    * @exception VisADException If the <CODE>Display</CODE> encountered
    * 				problems adding this new object as a
-   *				<CODE>DisplayListener</CODE>.
+   * 				<CODE>DisplayListener</CODE>.
    */
   public DisplayMonitorImpl(DisplayImpl dpy)
     throws VisADException

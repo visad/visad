@@ -41,6 +41,8 @@ public class MapMonitorEvent
    * 			<CODE>MonitorEvent.MAP_CHANGED</CODE>, or
    * 			<CODE>MonitorEvent.MAPS_CLEARED</CODE>.)
    * @param map the <CODE>ScalarMap</CODE> (or <CODE>ConstantMap</CODE>).
+   *
+   * @exception VisADException When a bad <CODE>type</CODE> is specified.
    */
   public MapMonitorEvent(int type, ScalarMap map)
     throws VisADException
@@ -58,6 +60,8 @@ public class MapMonitorEvent
    * @param originator The ID of the connection from which this event came,
    * 			relative to the receiver of the event.
    * @param map the <CODE>ScalarMap</CODE> (or <CODE>ConstantMap</CODE>).
+   *
+   * @exception VisADException When a bad <CODE>type</CODE> is specified.
    */
   public MapMonitorEvent(int type, int originator, ScalarMap map)
     throws VisADException
