@@ -14,6 +14,10 @@ import visad.util.VisADSlider;
 import visad.util.LabeledRGBWidget;
 import visad.data.vis5d.Vis5DForm;
 import java.rmi.RemoteException;
+import java.rmi.NotBoundException;
+import java.rmi.AccessException;
+import java.rmi.Naming;
+import java.net.MalformedURLException;
 import java.io.IOException;
 import java.awt.*;
 import java.awt.event.*;
@@ -23,13 +27,24 @@ import javax.swing.border.*;
 
 public class Rain implements ControlListener {
 
+  /** RemoteServerImpl for server
+      this Rain is a server if server_server != null
+      this Rain is stand-alone if server_server == null
+        and client_server == null */
+  RemoteServerImpl server_server;
+
+  /** RemoteServer for client
+      this Rain is a client if client_server != null */
+  RemoteServer client_server;
+
+
   static final int N_COLUMNS = 3;
   static final int N_ROWS = 4;
   static final JPanel[] row_panels =
     new JPanel[N_ROWS];
   static final JPanel[][] cell_panels =
     new JPanel[N_ROWS][N_COLUMNS];
-  static final DataReferenceImpl[][] cell_refs =
+  static final DataReference[][] cell_refs =
     new DataReferenceImpl[N_ROWS][N_COLUMNS];
   static final CellImpl[][] cells =
     new CellImpl[N_ROWS][N_COLUMNS];
@@ -58,10 +73,12 @@ public class Rain implements ControlListener {
   static final double MAX = 300.0;
   static final double MAXC4 = 10.0;
 
+  /** remoted DataReferences */
   static DataReference ref300 = null;
   static DataReference ref1_4 = null;
   static DataReference refMAX = null;
   static DataReference ref_cursor = null;
+  static DataReference ref_vis5d = null;
 
 
   static LabeledRGBWidget color_widgetC1 = null;
@@ -84,36 +101,115 @@ public class Rain implements ControlListener {
   // type 'java Rain' to run this application
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
-    rain = new Rain();
-    rain.makeRain(args);
-  }
-
-  private Rain()
-          throws VisADException, RemoteException {
-    ref300 = new DataReferenceImpl("num300");
-    ref1_4 = new DataReferenceImpl("num1_4");
-    refMAX = new DataReferenceImpl("colorMAX");
-    ref_cursor = new DataReferenceImpl("cursor");
-  }
-
-  private void makeRain(String args[])
-         throws VisADException, RemoteException, IOException {
     if (args == null || args.length < 1) {
-      System.out.println("run 'java visad.rabin.Rain file.v5d'");
+      System.out.println("run 'java visad.rabin.Rain file.v5d'\n or");
+      System.out.println("    'java visad.rabin.Rain server.ip.name'\n or");
     }
-    Vis5DForm form = new Vis5DForm();
-    FieldImpl vis5d = null;
-    try {
-      vis5d = (FieldImpl) form.open(args[0]);
+    rain = new Rain(args);
+
+    rain.makeRain();
+  }
+
+  private Rain(String args[])
+          throws VisADException, RemoteException {
+    if (args[0].endsWith(".v5d")) {
+      // this is server
+      // try to set up a RemoteServer
+      server_server = new RemoteServerImpl();
+      try {
+        Naming.rebind("//:/Rain", server_server);
+      }
+      catch (MalformedURLException e) {
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
+      }
+      catch (AccessException e) {
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
+      }
+      catch (RemoteException e) {
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
+      }
+
+      Vis5DForm form = new Vis5DForm();
+      FieldImpl vis5d = null;
+      try {
+        vis5d = (FieldImpl) form.open(args[0]);
+      }
+      catch (Exception e) {
+        System.out.println(e.getMessage());
+        System.exit(0);
+      }
+      if (vis5d == null) {
+        System.out.println("bad Vis5D file read");
+        System.exit(0);
+      }
+
+      ref300 = new DataReferenceImpl("num300");
+      ref1_4 = new DataReferenceImpl("num1_4");
+      refMAX = new DataReferenceImpl("colorMAX");
+      ref_cursor = new DataReferenceImpl("cursor");
+      ref_vis5d = new DataReferenceImpl("vis5d");
+      ref_vis5d.setData(vis5d);
+      if (server_server != null) {
+        // set RemoteDataReferenceImpls in RemoteServer
+        RemoteDataReferenceImpl[] refs =
+          new RemoteDataReferenceImpl[5];
+        refs[0] =
+          new RemoteDataReferenceImpl((DataReferenceImpl) ref300);
+        refs[1] =
+          new RemoteDataReferenceImpl((DataReferenceImpl) ref1_4);
+        refs[2] =
+          new RemoteDataReferenceImpl((DataReferenceImpl) refMAX);
+        refs[3] =
+          new RemoteDataReferenceImpl((DataReferenceImpl) ref_cursor);
+        refs[4] =
+          new RemoteDataReferenceImpl((DataReferenceImpl) ref_vis5d);
+        server_server.setDataReferences(refs);
+      }
     }
-    catch (Exception e) {
-      System.out.println(e.getMessage());
-      return;
+    else {
+      // this is client
+      // try to connect to RemoteServer
+      String domain = "//" + args[0] + "/Rain";
+      try {
+        client_server = (RemoteServer) Naming.lookup(domain);
+      }
+      catch (MalformedURLException e) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+      catch (NotBoundException e) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+      catch (AccessException e) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+      catch (RemoteException e) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+      RemoteDataReference[] refs = client_server.getDataReferences();
+      if (refs == null) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+      ref300 = refs[0];
+      ref1_4 = refs[1];
+      refMAX = refs[2];
+      ref_cursor = refs[3];
+      // localize the big data set once at the start
+      ref_vis5d = new DataReferenceImpl("vis5d");
+      ref_vis5d.setData(refs[4].getData().local());
     }
-    if (vis5d == null) {
-      System.out.println("bad Vis5D file read");
-      return;
-    }
+  }
+
+  private void makeRain()
+         throws VisADException, RemoteException, IOException {
+    FieldImpl vis5d = (FieldImpl) ref_vis5d.getData();
 
     FunctionType vis5d_type = (FunctionType) vis5d.getType();
     // System.out.println(vis5d_type);
@@ -208,7 +304,12 @@ public class Rain implements ControlListener {
         cell_panels[i][j].setAlignmentY(JPanel.TOP_ALIGNMENT);
         cell_panels[i][j].setAlignmentX(JPanel.LEFT_ALIGNMENT);
         row_panels[i].add(cell_panels[i][j]);
-        cell_refs[i][j] = new DataReferenceImpl("cell_" + i + "_" + j);
+        if (i == 0 && j ==0) {
+          cell_refs[i][j] = ref_vis5d;
+        }
+        else {
+          cell_refs[i][j] = new DataReferenceImpl("cell_" + i + "_" + j);
+        }
         displays[i][j] = new DisplayImplJ3D("display_" + i + "_" + j,
                                             new TwoDDisplayRendererJ3D());
         displays[i][j].addMap(new ScalarMap(y_domain, Display.XAxis));
@@ -267,7 +368,7 @@ public class Rain implements ControlListener {
     displays[0][0].addMap(new ScalarMap(range_types[1], Display.Green));
     displays[0][0].addMap(new ScalarMap(range_types[2], Display.Blue));
     displays[0][0].addMap(new ScalarMap(time, Display.Animation));
-    cell_refs[0][0].setData(vis5d);
+    // cell_refs[0][0].setData(vis5d);
     displays[0][0].addReference(cell_refs[0][0]);
     display_done[0][0] = true;
 
@@ -302,8 +403,15 @@ public class Rain implements ControlListener {
       }
     };
     cells[0][2].addReference(cell_refs[0][1]);
-    cells[0][2].addReference(ref300);
-    cells[0][2].addReference(ref1_4);
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[0][2]);
+      remote_cell.addReference(ref300);
+      remote_cell.addReference(ref1_4);
+    }
+    else {
+      cells[0][2].addReference(ref300);
+      cells[0][2].addReference(ref1_4);
+    }
 
     color_map = new ScalarMap(rangeC1, Display.RGB);
     displays[0][2].addMap(color_map);
@@ -322,7 +430,13 @@ public class Rain implements ControlListener {
     // controlChanged(null);
 
     displays[0][2].addReference(cell_refs[0][2]);
-    displays[0][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    if (client_server != null) {
+      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[0][2]);
+      remote_display.addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    }
+    else {
+      displays[0][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    }
     display_done[0][2] = true;
 
     DisplayImpl.delay(DELAY);
@@ -338,8 +452,15 @@ public class Rain implements ControlListener {
       }
     };
     cells[1][0].addReference(cell_refs[0][1]);
-    cells[1][0].addReference(ref300);
-    cells[1][0].addReference(ref1_4);
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[1][0]);
+      remote_cell.addReference(ref300);
+      remote_cell.addReference(ref1_4);
+    } 
+    else {
+      cells[1][0].addReference(ref300);
+      cells[1][0].addReference(ref1_4);
+    }
     finishDisplay((RealType) range.getComponent(1), 1, 0);
 
     DisplayImpl.delay(DELAY);
@@ -355,8 +476,15 @@ public class Rain implements ControlListener {
       }
     };
     cells[1][1].addReference(cell_refs[0][1]);
-    cells[1][1].addReference(ref300);
-    cells[1][1].addReference(ref1_4);
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[1][1]);
+      remote_cell.addReference(ref300);
+      remote_cell.addReference(ref1_4);
+    }
+    else {
+      cells[1][1].addReference(ref300);
+      cells[1][1].addReference(ref1_4);
+    }
     finishDisplay((RealType) range.getComponent(2), 1, 1);
 
     DisplayImpl.delay(DELAY);
@@ -372,8 +500,15 @@ public class Rain implements ControlListener {
       }
     };
     cells[1][2].addReference(cell_refs[0][1]);
-    cells[1][2].addReference(ref300);
-    cells[1][2].addReference(ref1_4);
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[1][2]);
+      remote_cell.addReference(ref300);
+      remote_cell.addReference(ref1_4);
+    }
+    else {
+      cells[1][2].addReference(ref300);
+      cells[1][2].addReference(ref1_4);
+    }
     finishDisplay((RealType) range.getComponent(3), 1, 2);
 
     DisplayImpl.delay(DELAY);
@@ -389,8 +524,15 @@ public class Rain implements ControlListener {
       }
     };
     cells[2][0].addReference(cell_refs[0][1]);
-    cells[2][0].addReference(ref300);
-    cells[2][0].addReference(ref1_4);
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[2][0]);
+      remote_cell.addReference(ref300);
+      remote_cell.addReference(ref1_4);
+    }
+    else {
+      cells[2][0].addReference(ref300);
+      cells[2][0].addReference(ref1_4);
+    }
     finishDisplay((RealType) range.getComponent(4), 2, 0);
 
     DisplayImpl.delay(DELAY);
@@ -406,8 +548,15 @@ public class Rain implements ControlListener {
       }
     };
     cells[2][1].addReference(cell_refs[0][1]);
-    cells[2][1].addReference(ref300);
-    cells[2][1].addReference(ref1_4);
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[2][1]);
+      remote_cell.addReference(ref300);
+      remote_cell.addReference(ref1_4);
+    }
+    else {
+      cells[2][1].addReference(ref300);
+      cells[2][1].addReference(ref1_4);
+    }
     finishDisplay((RealType) range.getComponent(5), 2, 1);
 
     DisplayImpl.delay(DELAY);
@@ -507,7 +656,13 @@ public class Rain implements ControlListener {
     left_panel.add(new JLabel("  "));
 
     displays[3][2].addReference(cell_refs[3][2]);
-    displays[3][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    if (client_server != null) {
+      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[3][2]);
+      remote_display.addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    }
+    else {
+      displays[3][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    }
     display_done[3][2] = true;
 
     DisplayImpl.delay(DELAY);
@@ -529,7 +684,7 @@ public class Rain implements ControlListener {
 
     DisplayImpl.delay(DELAY);
 
-    Cell cell_cursor = new CellImpl() {
+    CellImpl cell_cursor = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         RealTuple c = (RealTuple) ref_cursor.getData();
         RealTuple dom = new RealTuple(new Real[]
@@ -546,7 +701,13 @@ public class Rain implements ControlListener {
         }
       }
     }; 
-    cell_cursor.addReference(ref_cursor);
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cell_cursor);
+      remote_cell.addReference(ref_cursor);
+    }
+    else {
+      cell_cursor.addReference(ref_cursor);
+    }
 
     DisplayImpl.delay(DELAY);
 
@@ -554,7 +715,7 @@ public class Rain implements ControlListener {
     frame.setVisible(true);
   }
 
-  public static FlatField baseCell(DataReferenceImpl ref, int component)
+  public static FlatField baseCell(DataReference ref, int component)
          throws VisADException, RemoteException {
     FlatField field = (FlatField) ref.getData();
     if (field != null) {
@@ -588,7 +749,7 @@ public class Rain implements ControlListener {
     }
   }
 */
-  public static void finishDisplay(RealType rt, int i, int j)
+  public void finishDisplay(RealType rt, int i, int j)
          throws VisADException, RemoteException {
     color_maps[i][j] = new ScalarMap(rt, Display.RGB);
     displays[i][j].addMap(color_maps[i][j]);
@@ -599,7 +760,13 @@ public class Rain implements ControlListener {
       if (table != null) color_controls[i][j].setTable(table);
     }
     displays[i][j].addReference(cell_refs[i][j]);
-    displays[i][j].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    if (client_server != null) {
+      RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[i][j]);
+      remote_display.addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    }
+    else {
+      displays[i][j].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    }
     display_done[i][j] = true;
   }
 
