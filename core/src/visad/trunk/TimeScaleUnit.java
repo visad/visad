@@ -6,7 +6,7 @@
  * Copyright 2000, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TimeScaleUnit.java,v 1.1 2000-04-21 21:08:14 steve Exp $
+ * $Id: TimeScaleUnit.java,v 1.2 2000-04-24 21:03:19 steve Exp $
  */
 
 package visad;
@@ -154,6 +154,17 @@ public final class TimeScaleUnit
     }
 
     /**
+     * Returns the definition of this unit.
+     *
+     * @return          The definition of this unit (e.g. "s since 2000-04-21
+     *			14:54:04.05 UTC").
+     */
+    public String getDefinition()
+    {
+	return _unit.toString() + " since " + dateFormat.format(_origin);
+    }
+
+    /**
      * Clones this unit, changing the identifier.
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
@@ -199,14 +210,29 @@ public final class TimeScaleUnit
     }
 
     /**
-     * Returns the definition of this unit.
+     * Scales this unit by an amount.
      *
-     * @return          The definition of this unit (e.g. "s since 2000-04-21
-     *			14:54:04.05 UTC").
+     * @param amount	The amount by which to scale this unit.  E.g.
+     *			Unit yard = meter.scale(0.9144);
+     * @exception	UnitException	This unit cannot be scaled.
      */
-    public String getDefinition()
+    public Unit scale(double amount)
+	throws UnitException
     {
-	return _unit.toString() + " since " + dateFormat.format(_origin);
+	return instance(_unit.scale(amount), _origin);
+    }
+
+    /**
+     * Shifts this unit by an amount.
+     *
+     * @param offset	The amount by which to shift this unit.  E.g.
+     *			Unit celsius = kelvin.shift(273.15);
+     * @throws UnitException	This unit cannot be shifted.  Always thrown.
+     */
+    public Unit shift(double offset)
+	throws UnitException
+    {
+	throw new UnitException("Cannot shift unit (" + this + ")");
     }
 
     /**
@@ -746,7 +772,10 @@ public final class TimeScaleUnit
      */
     public boolean isConvertible(Unit unit)
     {
-      return unit instanceof TimeScaleUnit;
+	return
+	    unit instanceof TimeScaleUnit ||
+	    (unit instanceof OffsetUnit &&
+	     unit.getAbsoluteUnit().isConvertible(SI.second));
     }
 
     /**

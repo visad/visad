@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.7 1999-12-14 19:24:26 steve Exp $
+ * $Id: OffsetUnit.java,v 1.8 2000-04-24 21:03:18 steve Exp $
  */
 
 package visad;
@@ -387,6 +387,38 @@ public final class OffsetUnit
     }
 
     /**
+     * Convert values to this unit from a TimeScaleUnit.
+     *
+     * @param values	The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @return          The converted values in units of this unit.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
+    double[] toThis(double[] values, TimeScaleUnit that)
+	throws UnitException
+    {
+	return that.toThat(values, this);
+    }
+
+    /**
+     * Convert values to this unit from a TimeScaleUnit.
+     *
+     * @param values	The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @return          The converted values in units of this unit.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
+    float[] toThis(float[] values, TimeScaleUnit that)
+        throws UnitException
+    {
+	return that.toThat(values, this);
+    }
+
+    /**
      * Convert values from this unit to a base unit.
      *
      * @param values	The values to be converted in units of this unit.
@@ -498,7 +530,49 @@ public final class OffsetUnit
 	return that.toThis(values, this);
     }
 
+    /**
+     * Convert values from this unit to an offset unit.
+     *
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
     float[] toThat(float values[], OffsetUnit that)
+        throws UnitException
+    {
+        return that.toThis(values, this);
+    }
+
+    /**
+     * Convert values from this unit to a TimeScaleUnit.
+     *
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
+    double[] toThat(double values[], TimeScaleUnit that)
+	throws UnitException
+    {
+	return that.toThis(values, this);
+    }
+
+    /**
+     * Convert values from this unit to a TimeScaleUnit.
+     *
+     * @param values	The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require		The units are convertible.
+     * @promise		Neither unit has been modified.
+     * @exception	The units are not convertible.
+     */
+    float[] toThat(float values[], TimeScaleUnit that)
         throws UnitException
     {
         return that.toThis(values, this);
