@@ -125,9 +125,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     BufferedImage image = null;
     while (image == null) {
       try {
+        ProjectionControl proj = getDisplay().getProjectionControl();
         synchronized (this) {
           canvas.captureFlag = true;
-          ProjectionControl proj = getDisplay().getProjectionControl();
           try {
             proj.setMatrix(proj.getMatrix());
           }
