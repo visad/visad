@@ -1821,7 +1821,7 @@ public abstract class JPythonMethods {
   */
   public static void showAxesScales(DisplayImpl d, boolean on)
              throws VisADException, RemoteException {
-    d.getDisplayRenderer().setScaleOn(on);
+             d.getGraphicsModeControl().setScaleEnable(on);
   }
 
   /** Set the font to be used for the axes labels and scales
