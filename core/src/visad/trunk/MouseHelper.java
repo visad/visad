@@ -314,6 +314,19 @@ event_switch:
         int m2 = m & InputEvent.BUTTON2_MASK;
         int m3 = m & InputEvent.BUTTON3_MASK;
 
+        // DRM add 17 Sep 1999
+        if (mousePressed1 || mousePressed2 || mousePressed3 ||
+            mouseCombo1 || mouseCombo2 || mouseCombo3) {
+          try {
+            display.notifyListeners(DisplayEvent.MOUSE_RELEASED,
+                                    mouse_x, mouse_y);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
+        }
+
         if (mousePressed3 || mouseCombo3) {
           if (direct_renderer != null) {
             direct_renderer.release_direct();
@@ -324,33 +337,87 @@ event_switch:
           mousePressed1 = false;
           z1Pressed = false;
           t1Pressed = false;
+          // DRM add 17 Sep 1999
+          try {
+            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_LEFT,
+                                    mouse_x, mouse_y);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
         }
         else if ((m2 != 0 || m3 != 0) && mouseCombo1) {
           mouseCombo1 = false;
           z1Pressed = false;
           t1Pressed = false;
+          // DRM add 17 Sep 1999
+          try {
+            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_LEFT,
+                                    mouse_x, mouse_y);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
         }
         else if (m2 != 0 && mousePressed2) {
           mousePressed2 = false;
           display_renderer.setCursorOn(false);
           z2Pressed = false;
           t2Pressed = false;
+          // DRM add 17 Sep 1999
+          try {
+            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_CENTER,
+                                    mouse_x, mouse_y);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
         }
         else if ((m1 != 0 || m3 != 0) && mouseCombo2) {
           mouseCombo2 = false;
           display_renderer.setCursorOn(false);
           z2Pressed = false;
           t2Pressed = false;
+          // DRM add 17 Sep 1999
+          try {
+            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_CENTER,
+                                    mouse_x, mouse_y);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
         }
         else if (m3 != 0 && mousePressed3) {
           mousePressed3 = false;
           display_renderer.setDirectOn(false);
           direct_renderer = null;
+          // DRM add 17 Sep 1999
+          try {
+            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_RIGHT,
+                                    mouse_x, mouse_y);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
         }
         else if ((m1 != 0 || m2 != 0) && mouseCombo3) {
           mouseCombo3 = false;
           display_renderer.setDirectOn(false);
           direct_renderer = null;
+          // DRM add 17 Sep 1999
+          try {
+            display.notifyListeners(DisplayEvent.MOUSE_RELEASED_RIGHT,
+                                    mouse_x, mouse_y);
+          }
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
         }
         mouseModifiers = 0;
         break;
