@@ -224,9 +224,18 @@ public abstract class SampledSet extends SimpleSet {
       throw new SetException("SampledSet.make1DGeometry: " +
                              "ManifoldDimension must be 1");
     }
-    VisADLineStripArray array = new VisADLineStripArray();
-    array.stripVertexCounts = new int[1];
-    array.stripVertexCounts[0] = Length;
+    VisADGeometryArray array = null;
+    if (Length == 0) {
+      return null;
+    }
+    else if (Length == 1) {
+      array = new VisADPointArray();
+    }
+    else {
+      array = new VisADLineStripArray();
+      ((VisADLineStripArray) array).stripVertexCounts = new int[1];
+      ((VisADLineStripArray) array).stripVertexCounts[0] = Length;
+    }
     // set coordinates and colors
     setGeometryArray(array, 3, color_values);
     return array;
