@@ -221,6 +221,98 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
 
     LineAttributes line = new LineAttributes();
+    line.setCapability(LineAttributes.ALLOW_ANTIALIASING_READ);
+    line.setCapability(LineAttributes.ALLOW_PATTERN_READ);
+    line.setCapability(LineAttributes.ALLOW_WIDTH_READ);
+    line.setLineWidth(mode.getLineWidth());
+    int pattern = GraphicsModeControlJ3D.LINE_PATTERN[mode.getLineStyle()];
+    line.setLinePattern(pattern);
+    appearance.setLineAttributes(line);
+
+    PointAttributes point = new PointAttributes();
+    point.setCapability(PointAttributes.ALLOW_ANTIALIASING_READ);
+    point.setCapability(PointAttributes.ALLOW_SIZE_READ);
+    point.setPointSize(mode.getPointSize());
+    appearance.setPointAttributes(point);
+
+    PolygonAttributes polygon = new PolygonAttributes();
+    polygon.setCapability(PolygonAttributes.ALLOW_CULL_FACE_READ);
+    polygon.setCapability(PolygonAttributes.ALLOW_MODE_READ);
+    polygon.setCapability(PolygonAttributes.ALLOW_NORMAL_FLIP_READ);
+    polygon.setCapability(PolygonAttributes.ALLOW_OFFSET_READ);
+    polygon.setCullFace(PolygonAttributes.CULL_NONE);
+    polygon.setPolygonMode(mode.getPolygonMode());
+
+    try {
+      float polygonOffset = mode.getPolygonOffset();
+      if (polygonOffset == polygonOffset) polygon.setPolygonOffset(polygonOffset);
+    }
+    catch (Exception e) {
+    }
+
+    appearance.setPolygonAttributes(polygon);
+
+    RenderingAttributes rendering = new RenderingAttributes();
+    rendering.setCapability(RenderingAttributes.ALLOW_ALPHA_TEST_FUNCTION_READ);
+    rendering.setCapability(RenderingAttributes.ALLOW_ALPHA_TEST_VALUE_READ);
+    rendering.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_READ);
+ 
+    rendering.setCapability(RenderingAttributes.ALLOW_IGNORE_VERTEX_COLORS_READ);
+    rendering.setCapability(RenderingAttributes.ALLOW_RASTER_OP_READ);
+    rendering.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
+    rendering.setDepthBufferEnable(true);
+    appearance.setRenderingAttributes(rendering);
+
+    if (constant_color != null) {
+      constant_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+      constant_color.setCapability(ColoringAttributes.ALLOW_SHADE_MODEL_READ);
+      appearance.setColoringAttributes(constant_color);
+    }
+    // only do Material if geometry is 2-D (not 0-D points or 1-D lines)
+    if (!(geometry instanceof LineArray ||
+          geometry instanceof PointArray ||
+          geometry instanceof IndexedLineArray ||
+          geometry instanceof IndexedPointArray ||
+          geometry instanceof IndexedLineStripArray ||
+          geometry instanceof LineStripArray)) {
+      if (!no_material) {
+        Material material = new Material();
+        material.setCapability(Material.ALLOW_COMPONENT_READ);
+        material.setSpecularColor(0.0f, 0.0f, 0.0f);
+
+        // no lighting in 2-D mode
+        if (!mode.getMode2D()) material.setLightingEnable(true);
+        appearance.setMaterial(material);
+      }
+      if (constant_alpha != null) {
+        constant_alpha.setCapability(TransparencyAttributes.ALLOW_BLEND_FUNCTION_READ);
+        constant_alpha.setCapability(TransparencyAttributes.ALLOW_MODE_READ);
+        constant_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_READ);
+        appearance.setTransparencyAttributes(constant_alpha);
+      }
+    }
+
+    return appearance;
+  }
+/*
+  public static Appearance staticMakeAppearance(GraphicsModeControl mode,
+                      TransparencyAttributes constant_alpha,
+                      ColoringAttributes constant_color,
+                      GeometryArray geometry, boolean no_material) {
+    Appearance appearance = new Appearance();
+    appearance.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_LINE_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_MATERIAL_READ);
+    appearance.setCapability(Appearance.ALLOW_POINT_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_POLYGON_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
+    appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
+
+    LineAttributes line = new LineAttributes();
     line.setLineWidth(mode.getLineWidth());
     int pattern = GraphicsModeControlJ3D.LINE_PATTERN[mode.getLineStyle()];
     line.setLinePattern(pattern);
@@ -273,6 +365,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
     return appearance;
   }
+*/
 
   /** collect and transform Shape DisplayRealType values from display_values;
       offset by spatial_values, selected by range_select */
