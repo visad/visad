@@ -79,7 +79,7 @@ public class VisADCanvasJ2D extends JPanel
   // wake up flag for renderTrigger
   boolean wakeup = false;
 
-  VisADCanvasJ2D(DisplayRendererJ2D renderer, Component c) {
+  public VisADCanvasJ2D(DisplayRendererJ2D renderer, Component c) {
     displayRenderer = renderer;
     display = (DisplayImplJ2D) renderer.getDisplay();
     component = c;
@@ -114,7 +114,7 @@ public class VisADCanvasJ2D extends JPanel
    * @param w
    * @param h
    */
-  VisADCanvasJ2D(DisplayRendererJ2D renderer, int w, int h) {
+  public VisADCanvasJ2D(DisplayRendererJ2D renderer, int w, int h) {
     displayRenderer = renderer;
     display = (DisplayImplJ2D) renderer.getDisplay();
     component = null;
