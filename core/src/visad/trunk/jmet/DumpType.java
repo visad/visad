@@ -81,7 +81,7 @@ public class DumpType {
       dumpDT(ds, prefix+"  ");
       System.out.println(prefix+" Range has "+nr+" components:");
       Set[] dr = ((FlatField)d).getRangeSets() ;
-      float[][] samples = ((FlatField)d).getFloats();
+      float[][] samples = ((FlatField)d).getFloats(false);
       for (int i=0; i<dr.length; i++) {
         dumpDT(dr[i],prefix+"   "+i+".");
         int nmiss = 0;
@@ -106,7 +106,7 @@ public class DumpType {
       System.out.println(prefix+" Domain has "+nd+" components:");
       dumpDT(ds, prefix+"  ");
       System.out.println(prefix+" first sample = ");
-      dumpDT( ((FieldImpl)d).getSample(0),prefix+"   "+0+".");
+      dumpDT( ((FieldImpl)d).getSample(0, false),prefix+"   "+0+".");
 
     } else if (d instanceof Field) {
       System.out.println(prefix+" Field: ");
