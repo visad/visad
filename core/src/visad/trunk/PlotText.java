@@ -459,6 +459,7 @@ public class PlotText extends Object {
       boolean skip = true;
       float maxX = 0.f;
 
+
       for (int j=1; j<verts; j++) {
 
         if (charVector[0][j] == (int) ' ') {
@@ -512,15 +513,17 @@ public class PlotText extends Object {
     float cxoff = Float.NaN;
     float cyoff = Float.NaN;
     float czoff = Float.NaN;
+
     if (justification == TextControl.Justification.CENTER) {
       cxoff = (float)((cx - start[0])/2.);
       cyoff = (float)((cy - start[1])/2.);
       czoff = (float)((cz - start[2])/2.);
 
     } else if (justification == TextControl.Justification.RIGHT) {
-      cxoff = (float)cx;
-      cyoff = (float)cy;
-      czoff = (float)cz;
+      cxoff = (float)(cx - start[0]);
+      cyoff = (float)(cy - start[1]);
+      czoff = (float)(cz - start[2]);
+
     }
 
     if (cxoff == cxoff) {
