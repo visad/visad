@@ -152,6 +152,8 @@ public abstract class SampledSet extends SimpleSet {
      float constant = 4f;
      float pi_squared = (float) (Math.PI*Math.PI);
 
+     float[][] samples = (Samples != null) ? Samples : getSamples();
+
      for ( int ii = 0; ii < Length; ii++ )
      {
         n_points = neighbors[ii].length;
@@ -162,7 +164,7 @@ public abstract class SampledSet extends SimpleSet {
           distance_squared = 0f;
           for ( int tt = 0; tt < DomainDimension; tt++ )
           {
-            diff =  Samples[tt][ii] - Samples[tt][ neighbors[ii][kk] ]; 
+            diff =  samples[tt][ii] - samples[tt][ neighbors[ii][kk] ]; 
             distance_squared += diff*diff;
           }
           lambda_squared = ( distance_squared*constant )/pi_squared;
