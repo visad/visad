@@ -293,12 +293,12 @@ public abstract class ShadowTypeJ3D extends ShadowType {
            spatial_values, color_values, range_select);
   }
 
-  public static VisADGeometryArray makeText(String[] text_values,
+  public VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
-    return ShadowType.makeText(text_values, text_control, spatial_values,
-                               color_values, range_select);
+    return adaptedShadowType.makeText(text_values, text_control, spatial_values,
+                                      color_values, range_select);
   }
 
   /** composite and transform color and Alpha DisplayRealType values

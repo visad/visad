@@ -2131,7 +2131,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
 
   private static final double FONT = 0.07;
 
-  public static VisADGeometryArray makeText(String[] text_values,
+  public VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException { 
@@ -2766,8 +2766,8 @@ System.out.println("range = " + range[0] + " " + range[1] +
       boolean anyTextCreated = false;
       if (text_value != null && text_control != null) {
         String[] text_values = {text_value};
-        array = makeText(text_values, text_control, spatial_values,
-                         color_values, range_select);
+        array = shadow_api.makeText(text_values, text_control, spatial_values,
+                                    color_values, range_select);
         shadow_api.addToGroup(group, array, mode,
                               constant_alpha, constant_color);
         anyTextCreated = true;
