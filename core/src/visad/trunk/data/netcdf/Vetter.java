@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Vetter.java,v 1.3 1998-03-12 22:03:19 steve Exp $
+ * $Id: Vetter.java,v 1.4 1998-03-16 17:00:59 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -103,16 +103,16 @@ Vetter
 	    fillValue = attr.getNumericValue().doubleValue();
 	    if (fillValue < 0)
 	    {
-		lowerVettingLimit = type == Float.TYPE || type == Double.TYPE
+		lowerVettingLimit = (type == Float.TYPE || type == Double.TYPE)
 			    ? fillValue/2
 			    : fillValue + 1;
 	    }
 	    else
 	    if (fillValue > 0)
 	    {
-		upperVettingLimit = type == Float.TYPE || type == Double.TYPE
-			    ? upperVettingLimit = fillValue/2
-			    : upperVettingLimit = fillValue - 1;
+		upperVettingLimit = (type == Float.TYPE || type == Double.TYPE)
+			    ? fillValue/2
+			    : fillValue - 1;
 	    }
 	}
 
