@@ -1577,7 +1577,9 @@ public class FieldImpl extends FunctionImpl implements Field {
    * Factors this instance into a (nested) field-of-fields.  The type of the
    * domain of the outer field will be the type specified.  The type of the
    * domains of the inner fields will be the remainder of the original domain
-   * after the outer domain is factored out.
+   * after the outer domain is factored out.  Range data is not copied for
+   * FieldImpls, but will be for FlatFields.
+   * @see #domainFactor(RealType, boolean) for copy information
    *
    * @param factor              The type of the domain for the outer field.
    * @return                    The field-of-fields realization of this
@@ -1590,6 +1592,27 @@ public class FieldImpl extends FunctionImpl implements Field {
   public Field domainFactor( RealType factor )
          throws DomainException, VisADException, RemoteException
   {
+    return domainFactor(factor, false);
+  }
+
+  /**
+   * Factors this instance into a (nested) field-of-fields.  The type of the
+   * domain of the outer field will be the type specified.  The type of the
+   * domains of the inner fields will be the remainder of the original domain
+   * after the outer domain is factored out.  Range data is copied if
+   *
+   * @param factor              The type of the domain for the outer field.
+   * @param copy                true to make copies of the data objects
+   * @return                    The field-of-fields realization of this
+   *                            instance.
+   * @throws DomainException    The domain of this instance cannot be factored
+   *                            as requested.
+   * @throws VisADException     VisAD failure.
+   * @throws RemoteException    Java RMI failure.
+   */
+  public Field domainFactor( RealType factor, boolean copy )
+         throws DomainException, VisADException, RemoteException
+  {
     int factorIndex;
     Set factor_domain = null;
     int length;
@@ -1600,11 +1623,8 @@ public class FieldImpl extends FunctionImpl implements Field {
     int[] sub_domain = null;
     Set new_domain = null;
     RealTupleType new_domain_type = null;
-    FieldImpl new_field = null;
     FieldImpl factor_field = null;
     FunctionType new_type = null;
-    double[][] new_range_values = null;
-    double[][] old_range_values = null;
     Data range;
     Data[] new_range_data = null;
 
@@ -1797,13 +1817,13 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     if ( isFlatField() )
     {
-      old_range_values = getValues(false);
+      double[][] old_range_values = getValues(false);
       int tup_dim = old_range_values.length;
-      new_range_values = new double[tup_dim][work.length];
 
       for ( ii = 0; ii < length; ii++ )
       {
-        new_field = new FlatField( new_type, new_domain );
+        double[][] new_range_values = new double[tup_dim][work.length];
+        FlatField new_field = new FlatField( new_type, new_domain );
         for ( jj = 0; jj < work.length; jj++ ) {
           index = 0;
           index = ii*dim_product[factorIndex];
@@ -1820,7 +1840,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     {
       for ( ii = 0; ii < length; ii++ )
       {
-        new_field = new FieldImpl( new_type, new_domain );
+        FieldImpl new_field = new FieldImpl( new_type, new_domain );
         for ( jj = 0; jj < work.length; jj++ ) {
           index = 0;
           index = ii*dim_product[factorIndex];
@@ -1833,7 +1853,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     factor_field = new FieldImpl( new FunctionType( factor, new_type),
                                   factor_domain );
-    factor_field.setSamples( new_range_data, false );
+    factor_field.setSamples( new_range_data, copy );
     return factor_field;
   }
 
