@@ -1211,7 +1211,8 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
         // WLH 19 Oct 2001
         Unit rtc0_unit = rtc0.getDefaultUnit();
-        if (SI.second.isConvertible(rtc0_unit)) {
+        if (SI.second.isConvertible(rtc0_unit) ||
+            CommonUnit.secondsSinceTheEpoch.isConvertible(rtc0_unit)) {
           int len = info[0].length;
           DataStruct[][] temp = new DataStruct[1][len + 1];
           for (int i=0; i<len; i++) {
