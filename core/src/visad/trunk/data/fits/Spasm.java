@@ -1,14 +1,14 @@
 package visad.data.fits;
 
-import com.sun.java.swing.BoxLayout;
-import com.sun.java.swing.JFrame;
-import com.sun.java.swing.JLabel;
-import com.sun.java.swing.JPanel;
+import java.awt.swing.BoxLayout;
+import java.awt.swing.JFrame;
+import java.awt.swing.JLabel;
+import java.awt.swing.JPanel;
 
-import com.sun.java.swing.border.Border;
-import com.sun.java.swing.border.CompoundBorder;
-import com.sun.java.swing.border.EmptyBorder;
-import com.sun.java.swing.border.EtchedBorder;
+import java.awt.swing.border.Border;
+import java.awt.swing.border.CompoundBorder;
+import java.awt.swing.border.EmptyBorder;
+import java.awt.swing.border.EtchedBorder;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -18,7 +18,11 @@ import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.io.IOException;
+
 import java.rmi.RemoteException;
+
+import java.net.URL;
 
 import visad.ConstantMap;
 import visad.Data;
@@ -45,9 +49,16 @@ public class Spasm
   public static int HEIGHT = 600;
 
   public Spasm(String filename)
-	throws VisADException, RemoteException
+	throws VisADException, RemoteException, IOException
   {
-    fitsTuple = new FitsForm().open(filename);
+    FitsForm ff = new FitsForm();
+
+    if (filename.startsWith("http:")) {
+      fitsTuple = ff.open(new URL(filename));
+    } else {
+      fitsTuple = ff.open(filename);
+    }
+
     if (fitsTuple == null) {
       throw new VisADException("No usable HDUs in \"" + filename + "\"");
     }
@@ -237,7 +248,7 @@ public class Spasm
   }
 
   public static void main(String args[])
-	throws VisADException, RemoteException
+	throws VisADException, RemoteException, IOException
   {
     if (args.length == 0) {
       args = new String[1];
