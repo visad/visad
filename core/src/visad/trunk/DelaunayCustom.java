@@ -728,7 +728,14 @@ public class DelaunayCustom extends Delaunay {
     return (Math.abs(angle) > 0.5);
   }
 
-  /** clip (samples, tris) against xc * x + yc * c <= v */
+  /** clip (samples, tris) against xc * x + yc * y <= v
+      input samples and tris describes a network of triangles
+      samples[2][number_of_samples], tris[number_of_triangles][3]
+      tris values are indices into second index of samples
+      output is same thing in outs[0] and outt[0]
+      outs[1][2][number_of_output_samples]
+      outt[1][number_of_output_triangles][3]
+   */
   public static void clip(float[][] samples, int[][] tris,
                           float xc, float yc, float v,
                           float[][][] outs, int[][][] outt)
