@@ -40,7 +40,10 @@ public class TestUtil
       if (fromFile.isDirectory()) {
         result = Util.copyDirectory(mon, fromFile, toFile, suffix);
       } else {
-        result = Util.copyFile(mon, fromFile, toFile, suffix);
+        result = Util.copyJar(mon, fromFile, toFile, suffix);
+        if (!result) {
+          result = Util.copyFile(mon, fromFile, toFile, suffix);
+        }
       }
       System.err.println("Result was " + result);
     }
@@ -75,7 +78,6 @@ public class TestUtil
       } catch (InterruptedException ie) {
         ie.printStackTrace();
       }
-      System.err.println("Joined?");
     }
 
     if (!cp.getResult()) {
