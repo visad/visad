@@ -1,3 +1,4 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
 <head>
 <title>VisAD-In-A-Box</title>
@@ -14,12 +15,12 @@
      run <tt>tar xvf visad-in-a-box.tar</tt>
  <li>If you've received an <tt>visad-in-a-box.tar.gz</tt> file,
      run <tt>gzcat -c visad-in-a-box.tar | tar xvf -</tt>
- <li>Move into the extracted distribution directory
-     and run <tt>install_visad</tt>
+ <li>Move into the extracted <tt>visad-in-a-box</tt> distribution
+     directory and run <tt>install_visad</tt>
  <li>Answer the few installation questions,
      then wait for everything to finish installing.
- <li>You can remove the distribution directory after the
-     installation is complete.
+ <li>You can remove the <tt>visad-in-a-box</tt> distribution
+     directory after the installation is complete.
 </ol>
 
 <b>Note:</b> The <tt>cpush</tt> utility must be available in order
@@ -36,9 +37,11 @@ than the distributed <tt>visad.jar</tt> file.
 <h2>To create a new VisAD-in-a-Box distribution:</h2>
 
 <ol>
- <li> Create a distribution directory.
- <li> Copy visad/install/install_visad to the distribution directory
- <li> Copy a visad.jar file to the distribution directory.
+ <li>Create a distribution directory (in this example, the distribution
+     directory will be named <tt>visad-in-a-box</tt>.)
+ <li>Copy visad/install/install_visad to the <tt>visad-in-a-box</tt>
+     directory
+ <li>Copy a visad.jar file to the <tt>visad-in-a-box</tt> directory.
  <ul>
   <li>If you have a VisAD source distribution,
       you can run <tt>make compile</tt> (or <tt>make recompile</tt>)
@@ -49,20 +52,22 @@ than the distributed <tt>visad.jar</tt> file.
  <li>If you want to include Java executables, you can
      do either of the following:
   <ul>
-   <li>Copy a JDK directory tree into the distribution
+   <li>Copy a JDK directory tree into the <tt>visad-in-a-box</tt>
        directory and name it jdk-<i>OS</i>-<i>MACH</i>
        where <i>OS</i> is whatever is printed by <tt>uname -s</tt>
        and <i>MACH</i> is whatever is printed by <tt>uname -p</tt>.
    <br>
        If you do this, the included <tt>java</tt> executable
-       will be used to run the installer.
+       will be used to run the installer on machines which
+       match this machine's <i>OS</i> and <i>MACH</i>.
    <li>Package up a JDK directory tree in a jar file
        named jdk-<i>OS</i>-<i>MACH</i>.jar (where <i>OS</i> and <i>MACH</i>
        are as in the item above.)
   </ul>
- <li>In the directory above the distribution, package
-   everything up with <tt>tar cvf visad-in-a-box.tar visad</tt>
-   (or whatever you've named your distribution directory.
+ <li>In the directory above the <tt>visad-in-a-box</tt> directory,
+     package everything up with
+     <tt>tar cvf visad-in-a-box.tar visad-in-a-box</tt>
+     (or whatever you've named your distribution directory.)
 </ol>
 </body>
 </html>
