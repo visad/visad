@@ -132,8 +132,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   private MouseBehavior mouse = null;
 
   // objects which monitor and synchronize with remote displays
-  private DisplayMonitor displayMonitor = null;
-  private DisplaySync displaySync = null;
+  private transient DisplayMonitor displayMonitor = null;
+  private transient DisplaySync displaySync = null;
 
   // Support for printing
   private Printable printer;
