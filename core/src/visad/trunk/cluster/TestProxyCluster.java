@@ -44,28 +44,36 @@ import java.io.IOException;
 /**
    TestProxyCluster is the class for testing the visad.cluster package.<P>
 <PRE> Run:
-   java visad.cluster.TestProxyCluster 1 /home3/billh/wrf/wrfout_01_000000_0000
-   java visad.cluster.TestProxyCluster 2 /home3/billh/wrf/wrfout_01_000000_0001
-   java visad.cluster.TestProxyCluster 3 /home3/billh/wrf/wrfout_01_000000_0002
-   java visad.cluster.TestProxyCluster 4 /home3/billh/wrf/wrfout_01_000000_0003
-   java visad.cluster.TestProxyCluster 0
-   java visad.cluster.TestProxyCluster 5
-Or:
- On doll:
-   xhost +hyde
-   xhost +demedici
- On demedici:
+ On cluster node1:
    rmiregistry &
-   export DISPLAY=doll:0
    java -cp visad.jar visad.cluster.TestProxyCluster 1 wrfout_01_000000_0000
-   java -cp visad.jar visad.cluster.TestProxyCluster 2 wrfout_01_000000_0001
- On hyde:
+ On cluster node2:
    rmiregistry &
-   setenv DISPLAY doll:0
+   java -cp visad.jar visad.cluster.TestProxyCluster 2 wrfout_01_000000_0001
+ On cluster node3:
+   rmiregistry &
    java -cp visad.jar visad.cluster.TestProxyCluster 3 wrfout_01_000000_0002
+ On cluster node4:
+   rmiregistry &
    java -cp visad.jar visad.cluster.TestProxyCluster 4 wrfout_01_000000_0003
- On doll:
-   java -cp visad.jar visad.cluster.TestProxyCluster 0
+
+ Wait for "data ready as ..." on all four cluster nodes.
+
+ On cluster host:
+   rmiregistry &
+   java -cp visad.jar visad.cluster.TestProxyCluster 0 node1 node2 node3 node4
+
+ Wait for "data ready as ..." on cluster host.
+
+ On user workstation:
+   rmiregistry &
+   java -cp visad.jar visad.cluster.TestProxyCluster 5 host
+
+ When 3-D window pops up, click on "Maps".
+ When maps window pops up, click on "Detect" and "Done".
+ After "please wait ..." message in 3-D window goes off, click on "Widgets".
+ When widgets window pops up, slide "RRP" slider over to about 0.003.
+ When iso-surfaces appear, click "Go" to animate.
 </PRE>
 */
 public class TestProxyCluster extends FancySSCell implements ActionListener {
@@ -324,43 +332,50 @@ public class TestProxyCluster extends FancySSCell implements ActionListener {
     RemoteNodeField[] node_wrfs = new RemoteNodeField[number_of_nodes];
   
     if (args == null || args.length < 1) {
-      System.out.println("usage: 'java visad.cluster.TestProxyCluster " +
-                         "n (file)'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes, and " + (number_of_nodes+1) + " for user");
-      return;
+      System.out.println("usage: 'java visad.cluster.TestProxyCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestProxyCluster 0 " +
+                         "node1 node2 node3 node4' for host");
+      System.out.println("       'java visad.cluster.TestProxyCluster 5 " +
+                         "host' for user");
+      System.exit(0);
     }
     int pid = -1;
     try {
       pid = Integer.parseInt(args[0]);
     }
     catch (NumberFormatException e) {
-      System.out.println("usage: 'java visad.cluster.TestProxyCluster " +
-                         "n (file)'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes, and " + (number_of_nodes+1) + " for user");
-      return;
+      System.out.println("usage: 'java visad.cluster.TestProxyCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestProxyCluster 0 " +
+                         "node1 node2 node3 node4' for host");
+      System.out.println("       'java visad.cluster.TestProxyCluster 5 " +
+                         "host' for user");
+      System.exit(0);
     }
     if (pid < 0 || pid > number_of_nodes + 1) {
-      System.out.println("usage: 'java visad.cluster.TestProxyCluster " +
-                         "n (file)'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes, and " + (number_of_nodes+1) + " for user");
-      return;
+      System.out.println("usage: 'java visad.cluster.TestProxyCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestProxyCluster 0 " +
+                         "node1 node2 node3 node4' for host");
+      System.out.println("       'java visad.cluster.TestProxyCluster 5 " +
+                         "host' for user");
+      System.exit(0);
     }
     if (pid > 0 && pid <= number_of_nodes && args.length < 2) {
-      System.out.println("usage: 'java visad.cluster.TestProxyCluster " +
-                         "n (file)'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes, and " + (number_of_nodes+1) + " for user");
-      return;
+      System.out.println("usage: 'java visad.cluster.TestProxyCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestProxyCluster 0 " +
+                         "node1 node2 node3 node4' for host");
+      System.out.println("       'java visad.cluster.TestProxyCluster 5 " +
+                         "host' for user");
+      System.exit(0);
     }
 
-
-    boolean client = (pid == 0);
+    boolean host = (pid == 0);
     boolean user = (pid == (number_of_nodes+1));
 
-    if (!client && !user) {
+    if (!host && !user) {
 
       Plain plain = new Plain();
       FieldImpl wrf = (FieldImpl) plain.open(args[1]);
@@ -478,32 +493,27 @@ System.out.println("kk = " + kk);
         return;
       }
       // just so app doesn't exit
-      DisplayImpl display = new DisplayImplJ2D("dummy");
+      CellImpl cell = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+        }
+      };
       System.out.println("data ready as " + nav_wrf_type);
       return;
-    } // end if (!client && !user)
+    } // end if (!host && !user)
 
-    if (client) {
-      // this is all client code
+    if (host) {
+      if (args.length != 5) {
+        System.out.println("usage: 'java visad.cluster.TestProxyCluster n file'");
+        System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+        System.out.println("       'java visad.cluster.TestProxyCluster 0 " +
+                           "node1 node2 node3 node4' for host");
+        System.out.println("       'java visad.cluster.TestProxyCluster 5 " +
+                           "host' for user");
+        System.exit(0);
+      }
+      // this is all host code
       for (int k=0; k<number_of_nodes; k++) {
-        // to test on a real cluster, change to something like:
-        // String ipname = "node" + k + ".ncar.ucar.edu";
-        // String url = "//" + ipname + "/TestProxyCluster" + k;
-        // Then start up the four server commands on machines named
-        // node1.ncar.ucar.edu, node2.ncar.ucar.edu, node3.ncar.ucar.edu
-        // and node1.ncar.ucar.edu (or whatever).
-        String url = "///TestProxyCluster" + k;
-  
-  /*
-        // to test with demedici and hyde as servers
-        if (k == 0 || k == 1) {
-          url = "//demedici/TestProxyCluster" + k;
-        }
-        else {
-          url = "//hyde/TestProxyCluster" + k;
-        }
-  */
-  
+        String url = "//" + args[1+k] + "/TestProxyCluster" + k;
         try {
           node_wrfs[k] = (RemoteNodeField) Naming.lookup(url);
         }
@@ -516,7 +526,7 @@ System.out.println("kk = " + kk);
       FunctionType nav_wrf_type = (FunctionType) node_wrfs[0].getType();
       Set time_set = node_wrfs[0].getDomainSet();
   
-      RemoteClientFieldImpl client_wrf =
+      RemoteClientFieldImpl host_wrf =
         new RemoteClientFieldImpl(nav_wrf_type, time_set);
   
       RemoteClusterData[] table =
@@ -524,13 +534,13 @@ System.out.println("kk = " + kk);
       for (int i=0; i<number_of_nodes; i++) {
         table[i] = node_wrfs[i];
       }
-      table[number_of_nodes] = client_wrf;
+      table[number_of_nodes] = host_wrf;
   
       for (int i=0; i<table.length; i++) {
         table[i].setupClusterData(null, table);
       }
 
-      RemoteProxyAgentImpl rpai = new RemoteProxyAgentImpl(client_wrf);
+      RemoteProxyAgentImpl rpai = new RemoteProxyAgentImpl(host_wrf);
 
       String url = "///TestProxyCluster_Proxy";
       try {
@@ -541,12 +551,24 @@ System.out.println("kk = " + kk);
         return;
       }
       // just so app doesn't exit
-      DisplayImpl display = new DisplayImplJ2D("dummy");
+      CellImpl cell = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+        }
+      };
       System.out.println("data ready as " + nav_wrf_type);
-    } // end if (client)
+    } // end if (host)
 
     if (user) {
-      String url = "///TestProxyCluster_Proxy";
+      if (args.length != 2) {
+        System.out.println("usage: 'java visad.cluster.TestProxyCluster n file'");
+        System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+        System.out.println("       'java visad.cluster.TestProxyCluster 0 " +
+                           "node1 node2 node3 node4' for host");
+        System.out.println("       'java visad.cluster.TestProxyCluster 5 " +
+                           "host' for user");
+        System.exit(0);
+      }
+      String url = "//" + args[1] + "/TestProxyCluster_Proxy";
 
       RemoteProxyAgent rpa = null;
       try {

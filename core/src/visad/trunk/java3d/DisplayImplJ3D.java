@@ -365,14 +365,15 @@ public class DisplayImplJ3D extends DisplayImpl {
     else {
       throw new DisplayException("DisplayImplJ3D: bad graphics API " + api);
     }
-    // initialize projection
-    if (api != TRANSFORM_ONLY) projection.setAspect(new double[] {1.0, 1.0, 1.0});
+    if (api != TRANSFORM_ONLY) {
+      // initialize projection and set Display in Canvas
+      projection.setAspect(new double[] {1.0, 1.0, 1.0});
+      ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas().setDisplay();
+    }
 
     // a GraphicsModeControl always exists
     mode = new GraphicsModeControlJ3D(this);
     addControl(mode);
-
-    ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas().setDisplay();
   }
 
   /** return a DefaultDisplayRendererJ3D */

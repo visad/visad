@@ -48,23 +48,8 @@ import java.io.IOException;
    java visad.cluster.TestWRFCluster 2 /home3/billh/wrf/wrfout_01_000000_0001
    java visad.cluster.TestWRFCluster 3 /home3/billh/wrf/wrfout_01_000000_0002
    java visad.cluster.TestWRFCluster 4 /home3/billh/wrf/wrfout_01_000000_0003
-   java visad.cluster.TestWRFCluster 0
-Or:
- On doll:
-   xhost +hyde
-   xhost +demedici
- On demedici:
-   rmiregistry &
-   export DISPLAY=doll:0
-   java -cp visad.jar visad.cluster.TestWRFCluster 1 wrfout_01_000000_0000
-   java -cp visad.jar visad.cluster.TestWRFCluster 2 wrfout_01_000000_0001
- On hyde:
-   rmiregistry &
-   setenv DISPLAY doll:0
-   java -cp visad.jar visad.cluster.TestWRFCluster 3 wrfout_01_000000_0002
-   java -cp visad.jar visad.cluster.TestWRFCluster 4 wrfout_01_000000_0003
- On doll:
-   java -cp visad.jar visad.cluster.TestWRFCluster 0
+   java visad.cluster.TestWRFCluster 0 doll doll doll doll
+   java visad.cluster.TestWRFCluster 0 demedici demedici demedici demedici
 </PRE>
 */
 public class TestWRFCluster extends FancySSCell implements ActionListener {
@@ -321,36 +306,36 @@ public class TestWRFCluster extends FancySSCell implements ActionListener {
     RemoteNodeField[] node_wrfs = new RemoteNodeField[number_of_nodes];
   
     if (args == null || args.length < 1) {
-      System.out.println("usage: 'java visad.cluster.TestWRFCluster " +
-                         "n (file)'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
-      return;
+      System.out.println("usage: 'java visad.cluster.TestWRFCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestWRFCluster 0 " +
+                         "node1 node2 node3 node4' for client");
+      System.exit(0);
     }
     int pid = -1;
     try {
       pid = Integer.parseInt(args[0]);
     }
     catch (NumberFormatException e) {
-      System.out.println("usage: 'java visad.cluster.TestWRFCluster " +
-                         "n (file)'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
-      return;
+      System.out.println("usage: 'java visad.cluster.TestWRFCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestWRFCluster 0 " +
+                         "node1 node2 node3 node4' for client");
+      System.exit(0);
     }
     if (pid < 0 || pid > number_of_nodes) {
-      System.out.println("usage: 'java visad.cluster.TestWRFCluster " +
-                         "n (file)'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
-      return;
+      System.out.println("usage: 'java visad.cluster.TestWRFCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestWRFCluster 0 " +
+                         "node1 node2 node3 node4' for client");
+      System.exit(0);
     }
     if (pid > 0 && args.length < 2) {
-      System.out.println("usage: 'java visad.cluster.TestWRFCluster " +
-                         "n (file)'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
-      return;
+      System.out.println("usage: 'java visad.cluster.TestWRFCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestWRFCluster 0 " +
+                         "node1 node2 node3 node4' for client");
+      System.exit(0);
     }
 
 
@@ -474,31 +459,25 @@ System.out.println("kk = " + kk);
         return;
       }
       // just so app doesn't exit
-      DisplayImpl display = new DisplayImplJ2D("dummy");
+      CellImpl cell = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+        }
+      };
       System.out.println("data ready as " + nav_wrf_type);
       return;
     } // end if (!client)
 
     // this is all client code
+    if (args.length != 5) {
+      System.out.println("usage: 'java visad.cluster.TestWRFCluster n file'");
+      System.out.println("            for nodes where n = 1 - " + number_of_nodes);
+      System.out.println("       'java visad.cluster.TestWRFCluster 0 " +
+                         "node1 node2 node3 node4' for client");
+      System.exit(0);
+    }
+
     for (int k=0; k<number_of_nodes; k++) {
-      // to test on a real cluster, change to something like:
-      // String ipname = "node" + k + ".ncar.ucar.edu";
-      // String url = "//" + ipname + "/TestWRFCluster" + k;
-      // Then start up the four server commands on machines named
-      // node1.ncar.ucar.edu, node2.ncar.ucar.edu, node3.ncar.ucar.edu
-      // and node1.ncar.ucar.edu (or whatever).
-      String url = "///TestWRFCluster" + k;
-
-/*
-      // to test with demedici and hyde as servers
-      if (k == 0 || k == 1) {
-        url = "//demedici/TestWRFCluster" + k;
-      }
-      else {
-        url = "//hyde/TestWRFCluster" + k;
-      }
-*/
-
+      String url = "//" + args[1+k] + "/TestWRFCluster" + k;
       try {
         node_wrfs[k] = (RemoteNodeField) Naming.lookup(url);
       }

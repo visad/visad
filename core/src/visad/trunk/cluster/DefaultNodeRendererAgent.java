@@ -166,7 +166,9 @@ public class DefaultNodeRendererAgent extends NodeAgent {
                 new ScalarMap(map.getScalar(), map.getDisplayScalar());
               display.addMap(new_map);
               double[] range = map.getRange();
-              new_map.setRange(range[0], range[1]);
+              if (!Display.Animation.equals(new_map.getDisplayScalar())) {
+                new_map.setRange(range[0], range[1]);
+              }
               Control new_control = new_map.getControl();
               if (new_control != null) new_control.syncControl(control);
             }
@@ -206,16 +208,18 @@ public class DefaultNodeRendererAgent extends NodeAgent {
                 System.out.println("ERROR2 " + map1 + " != " + map2);
               }
               double[] range = map1.getRange();
-              try {
-                map2.setRange(range[0], range[1]);
-              }
-              catch (VisADException e) {
-                DisplayImpl.printStack("ex " + e);
-                return;
-              }
-              catch (RemoteException e) {
-                DisplayImpl.printStack("ex " + e);
-                return;
+              if (!Display.Animation.equals(map2.getDisplayScalar())) {
+                try {
+                  map2.setRange(range[0], range[1]);
+                }
+                catch (VisADException e) {
+                  DisplayImpl.printStack("ex " + e);
+                  return;
+                }
+                catch (RemoteException e) {
+                  DisplayImpl.printStack("ex " + e);
+                  return;
+                }
               }
             }
             nr.enableTransform();

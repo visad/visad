@@ -208,7 +208,15 @@ public class DisplayEvent extends VisADEvent {
     };
 
   /** Dummy AWT component. */
-  private static final Component DUMMY = new JPanel();
+  // private static final Component DUMMY = new JPanel();
+  private static Component DUMMY = null;
+  static {
+    try {
+      DUMMY = new JPanel();
+    }
+    catch (Throwable t) {
+    }
+  }
 
   private int id = 0;
 
@@ -293,8 +301,9 @@ public class DisplayEvent extends VisADEvent {
    * @param  remoteId  ID of remote source
    */
   public DisplayEvent(Display d, int id_d, int x, int y, int remoteId) {
-    this(d, id_d, new MouseEvent(getDisplayComponent(d), 0,
-      System.currentTimeMillis(), 0, x, y, 1, false), remoteId);
+    this(d, id_d, makeInputEvent(d, x, y), remoteId);
+    // this(d, id_d, new MouseEvent(getDisplayComponent(d), 0,
+    //   System.currentTimeMillis(), 0, x, y, 1, false), remoteId);
   }
 
   /**
@@ -314,6 +323,16 @@ public class DisplayEvent extends VisADEvent {
     display = d;
     id = id_d;
     input_event = e;
+  }
+
+  private static InputEvent makeInputEvent(Display d, int x, int y) {
+    Component c = getDisplayComponent(d);
+    if (c != null) {
+      return new MouseEvent(c, 0, System.currentTimeMillis(), 0, x, y, 1, false);
+    }
+    else {
+      return null;
+    }
   }
 
   /**
