@@ -1856,9 +1856,17 @@ if (initialize) {
             if (axisScale != null) {
               displayRenderer.clearScale(axisScale);
               axisScale.setAxisOrdinal(-1);
+            }
+          }
+          maps = MapVector.elements();
+          while(maps.hasMoreElements()) {
+            ScalarMap map2 = (ScalarMap) maps.nextElement();
+            AxisScale axisScale = map2.getAxisScale();
+            if (axisScale != null) {
               map2.makeScale();
             }
           }
+
 
         }
         needWidgetRefresh = true;
