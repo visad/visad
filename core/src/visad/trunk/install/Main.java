@@ -19,8 +19,9 @@ public class Main
   private static final String CLASSPATH_PROPERTY = "java.class.path";
   private static final String PATH_PROPERTY = "visad.install.path";
 
+  private static final String JAR_NAME = "visad.jar";
   private static final String VISAD_JAR_URL =
-    "ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad.jar";
+    "ftp://ftp.ssec.wisc.edu/pub/visad-2.0/" + JAR_NAME;
 
   private boolean debug;
 
@@ -31,9 +32,11 @@ public class Main
   private File installerJar;
   private JavaFile installerJava;
   private File installerJavaDir;
+  private String cPushStr;
 
   private boolean useSuppliedJava, downloadLatestJar;
   private File jvmToUse, javaInstallDir, jarInstallDir;
+  private ClusterInstaller clusterInstaller;
 
   public Main(String[] args)
   {
@@ -61,6 +64,7 @@ public class Main
 
     useSuppliedJava = downloadLatestJar = false;
     jvmToUse = javaInstallDir = jarInstallDir = null;
+    clusterInstaller = null;
 
     queryUser();
 
@@ -187,8 +191,9 @@ public class Main
     }
 
     if (jarList == null) {
-      System.err.println("No visad.jar found in " + classpath);
+      System.err.println("No " + JAR_NAME + " found in " + classpath);
     } else {
+      System.err.println("== jar file list ==");
       for (int i = 0; i < jarList.size(); i++) {
         System.out.println("#" + i + ": " +
                            getPath((File )jarList.get(i)));
@@ -198,10 +203,18 @@ public class Main
     if (javaList == null) {
       System.err.println("No java executable found in " + path);
     } else {
+      System.err.println("== java executable list ==");
       for (int i = 0; i < javaList.size(); i++) {
         System.out.println("#" + i + ": " +
                            getPath((File )javaList.get(i)));
       }
+    }
+
+    if (cPushStr == null) {
+      System.err.println("No cluster executable found in " + path);
+    } else {
+      System.err.println("== cluster executable ==");
+      System.out.println(cPushStr);
     }
   }
 
@@ -220,9 +233,13 @@ public class Main
     }
 
     if (downloadLatestJar) {
-      System.err.println("Download latest visad.jar");
+      System.err.println("Download latest " + JAR_NAME);
     }
-    System.err.println("Install visad.jar in " + jarInstallDir);
+    System.err.println("Install " + JAR_NAME + " in " + jarInstallDir);
+
+    if (clusterInstaller != null) {
+      System.err.println("Push installed files out to cluster");
+    }
   }
 
   /**
@@ -310,9 +327,9 @@ public class Main
     installerJar = null;
 
     // find all visad jar files
-    jarList = classpath.findMatch("visad.jar");
+    jarList = classpath.findMatch(JAR_NAME);
     if (jarList == null) {
-      jarList = classpath.find("visad.jar");
+      jarList = classpath.find(JAR_NAME);
     }
     if (jarList != null) {
       loseDuplicates(jarList);
@@ -346,6 +363,18 @@ public class Main
       System.exit(1);
     }
 
+    // no cluster installation executable found yet
+    cPushStr = null;
+
+    // find all cluster installation executables
+    ArrayList c3List = path.find("cpush");
+    if (c3List != null) {
+      loseDuplicates(c3List);
+      if (c3List != null && c3List.size() > 0) {
+        cPushStr = getPath((File )c3List.get(0));
+      }
+    }
+
     return true;
   }
 
@@ -366,6 +395,11 @@ public class Main
       }
 
       Util.copyDirectory(installerJavaDir, javaInstallDir);
+
+      // if they want a cluster install, push the JVM out to the nodes
+      if (clusterInstaller != null) {
+        clusterInstaller.push(javaInstallDir.toString());
+      }
     }
 
     // install jar
@@ -373,6 +407,11 @@ public class Main
       new Download(jarURL, jarInstallDir);
     } else {
       Util.copyFile(installerJar, jarInstallDir, ".old");
+    }
+
+    // if they want a cluster install, push the jar file out to the nodes
+    if (clusterInstaller != null) {
+      clusterInstaller.push(getPath(new File(jarInstallDir, JAR_NAME)));
     }
   }
 
@@ -413,7 +452,8 @@ public class Main
     final int STEP_INSTALL_JAVA = 1;
     final int STEP_INSTALL_JAR = 2;
     final int STEP_DOWNLOAD_JAR = 3;
-    final int STEP_FINISHED = 4;
+    final int STEP_CLUSTER = 4;
+    final int STEP_FINISHED = 5;
 
     int step = 0;
     while (step < STEP_FINISHED) {
@@ -477,12 +517,30 @@ public class Main
         if (installerJar == null) {
           downloadLatestJar = true;
         } else {
-          String djMsg = "Would you like to download the latest visad.jar?";
+          String djMsg = "Would you like to download the latest " +
+            JAR_NAME + "?";
 
           int n = JOptionPane.showConfirmDialog(null, djMsg,
-                                                "Download latest visad.jar?",
+                                                "Download latest " +
+                                                JAR_NAME + "?",
                                                 JOptionPane.YES_NO_OPTION);
           downloadLatestJar = (n == JOptionPane.YES_OPTION);
+        }
+        step++;
+        break;
+      case STEP_CLUSTER:
+        if (cPushStr == null) {
+          clusterInstaller = null;
+        } else {
+          String cMsg =
+            "Would you like to push everything out to the cluster?";
+
+          int n = JOptionPane.showConfirmDialog(null, cMsg,
+                                                "Push files to cluster?",
+                                                JOptionPane.YES_NO_OPTION);
+          if (n == JOptionPane.YES_OPTION) {
+            clusterInstaller = new ClusterInstaller(cPushStr);
+          }
         }
         step++;
         break;
