@@ -1,6 +1,6 @@
 
 //
-// WindVectorType.java
+// GridVectorType.java
 //
 
 /*
@@ -31,7 +31,7 @@ import java.rmi.*;
 winds not on a grid have components in earth coordinates */
 
 /**
-   WindVectorType is the VisAD data type for 2-D and 3-D wind
+   GridVectorType is the VisAD data type for 2-D and 3-D wind
    or current vectors in Units convertable with meter / second
    whose first component is parallel to grid rows, positive toward
    increasing column, and whose second component is parallel to
@@ -39,21 +39,21 @@ winds not on a grid have components in earth coordinates */
    vertical coordinates transform nearly flat, so the optional
    third vertical wind component does not transform. <P>
 */
-public abstract class WindVectorType extends RealVectorType {
+public abstract class GridVectorType extends RealVectorType {
 
-  public WindVectorType(RealType[] types) throws VisADException {
+  public GridVectorType(RealType[] types) throws VisADException {
     this(types, null);
   }
 
-  public WindVectorType(RealType[] types, CoordinateSystem coord_sys)
+  public GridVectorType(RealType[] types, CoordinateSystem coord_sys)
          throws VisADException {
     super(types, coord_sys);
     if (types.length != 2 && types.length != 3) {
-      throw new TypeException("WindVectorType must be 2-D or 3-D: " + types.length);
+      throw new TypeException("GridVectorType must be 2-D or 3-D: " + types.length);
     }
     for (int i=0; i<types.length; i++) {
       if (!Unit.canConvert(CommonUnit.meterPerSecond, types[i].getDefaultUnit())) {
-        throw new TypeException("WindVectorType components must be convertable " +
+        throw new TypeException("GridVectorType components must be convertable " +
                                 "with meter / second: " + types[i].getDefaultUnit());
       }
     }
