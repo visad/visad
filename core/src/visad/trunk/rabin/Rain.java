@@ -79,15 +79,20 @@ public class Rain implements ControlListener {
   static DataReference refMAX = null;
   static DataReference ref_cursor = null;
   static DataReference ref_vis5d = null;
+  static DataReference ref_projection = null;
+  static DataReference ref_colorC1 = null;
+  static DataReference ref_colorC4 = null;
 
 
   static LabeledRGBWidget color_widgetC1 = null;
   static LabeledRGBWidget color_widgetC4 = null;
-  static ColorControl color_control = null;
+  static ColorControl color_controlC1 = null;
+  static ColorControl color_controlC4 = null;
   static ColorControl[][] color_controls = new ColorControl[N_ROWS][N_COLUMNS];
   static ProjectionControl[][] projection_controls =
     new ProjectionControl[N_ROWS][N_COLUMNS];
-  static ScalarMap color_map = null;
+  static ScalarMap color_mapC1 = null;
+  static ScalarMap color_mapC4 = null;
   static ScalarMap[][] color_maps = new ScalarMap[N_ROWS][N_COLUMNS];
 
   static boolean in_proj = false;
@@ -151,11 +156,15 @@ public class Rain implements ControlListener {
       refMAX = new DataReferenceImpl("colorMAX");
       ref_cursor = new DataReferenceImpl("cursor");
       ref_vis5d = new DataReferenceImpl("vis5d");
+      ref_projection = new DataReferenceImpl("projection");
+      ref_colorC1 = new DataReferenceImpl("colorC1");
+      ref_colorC4 = new DataReferenceImpl("colorC4");
+
       ref_vis5d.setData(vis5d);
       if (server_server != null) {
         // set RemoteDataReferenceImpls in RemoteServer
         RemoteDataReferenceImpl[] refs =
-          new RemoteDataReferenceImpl[5];
+          new RemoteDataReferenceImpl[8];
         refs[0] =
           new RemoteDataReferenceImpl((DataReferenceImpl) ref300);
         refs[1] =
@@ -166,10 +175,16 @@ public class Rain implements ControlListener {
           new RemoteDataReferenceImpl((DataReferenceImpl) ref_cursor);
         refs[4] =
           new RemoteDataReferenceImpl((DataReferenceImpl) ref_vis5d);
+        refs[5] =
+          new RemoteDataReferenceImpl((DataReferenceImpl) ref_projection);
+        refs[6] =
+          new RemoteDataReferenceImpl((DataReferenceImpl) ref_colorC1);
+        refs[7] =
+          new RemoteDataReferenceImpl((DataReferenceImpl) ref_colorC4);
         server_server.setDataReferences(refs);
       }
     }
-    else {
+    else { // if (!args[0].endsWith(".v5d"))
       // this is client
       // try to connect to RemoteServer
       String domain = "//" + args[0] + "/Rain";
@@ -204,6 +219,9 @@ public class Rain implements ControlListener {
       // localize the big data set once at the start
       ref_vis5d = new DataReferenceImpl("vis5d");
       ref_vis5d.setData(refs[4].getData().local());
+      ref_projection = refs[5];
+      ref_colorC1 = refs[6];
+      ref_colorC4 = refs[7];
     }
   }
 
@@ -413,21 +431,48 @@ public class Rain implements ControlListener {
       cells[0][2].addReference(ref1_4);
     }
 
-    color_map = new ScalarMap(rangeC1, Display.RGB);
-    displays[0][2].addMap(color_map);
-    color_widgetC1 = new LabeledRGBWidget(color_map, (float) MIN, (float) MAX);
+    color_mapC1 = new ScalarMap(rangeC1, Display.RGB);
+    displays[0][2].addMap(color_mapC1);
+    color_widgetC1 = new LabeledRGBWidget(color_mapC1, (float) MIN, (float) MAX);
     Dimension d = new Dimension(500, 170);
     color_widgetC1.setMaximumSize(d);
-    color_map.setRange(MIN, MAX);
+    color_mapC1.setRange(MIN, MAX);
 
     left_panel.add(color_widgetC1);
     left_panel.add(new JLabel("  "));
 
-    color_control = (ColorControl) color_map.getControl();
+    color_controlC1 = (ColorControl) color_mapC1.getControl();
     // listener sets all non-null color_controls[i][j]
     // for ControlEvents from color_control
-    color_control.addControlListener(this);
-    // controlChanged(null);
+    color_controlC1.addControlListener(this);
+    if (server_server != null) {
+      float[][] table = color_controlC1.getTable();
+      Integer1DSet set = new Integer1DSet(table[0].length);
+      FlatField color_fieldC1 =
+        new FlatField(FunctionType.REAL_1TO3_FUNCTION, set);
+      color_fieldC1.setSamples(table);
+      ref_colorC1.setData(color_fieldC1);
+    }
+    CellImpl color_cellC1 = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        FlatField field = (FlatField) ref_colorC1.getData().local();
+        float[][] table = field.getFloats();
+        float[][] old_table = color_controlC1.getTable();
+        for (int i=0; i<3; i++) {
+          for (int j=0; j<table[0].length; j++) {
+            if (table[i][j] != old_table[i][j]) return;
+          }
+        }
+        color_controlC1.setTable(table);
+      }
+    };
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(color_cellC1);
+      remote_cell.addReference(ref_colorC1);
+    }
+    else {
+      color_cellC1.addReference(ref_colorC1);
+    }
 
     displays[0][2].addReference(cell_refs[0][2]);
     if (client_server != null) {
@@ -447,7 +492,6 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 1);
         if (field != null) {
           cell_refs[1][0].setData(field);
-          // finishDisplay(field, 1, 0);
         }
       }
     };
@@ -461,7 +505,7 @@ public class Rain implements ControlListener {
       cells[1][0].addReference(ref300);
       cells[1][0].addReference(ref1_4);
     }
-    finishDisplay((RealType) range.getComponent(1), 1, 0);
+    finishDisplay(client_server, (RealType) range.getComponent(1), 1, 0);
 
     DisplayImpl.delay(DELAY);
 
@@ -471,7 +515,6 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 2);
         if (field != null) {
           cell_refs[1][1].setData(field);
-          // finishDisplay(field, 1, 1);
         }
       }
     };
@@ -485,7 +528,7 @@ public class Rain implements ControlListener {
       cells[1][1].addReference(ref300);
       cells[1][1].addReference(ref1_4);
     }
-    finishDisplay((RealType) range.getComponent(2), 1, 1);
+    finishDisplay(client_server, (RealType) range.getComponent(2), 1, 1);
 
     DisplayImpl.delay(DELAY);
 
@@ -495,7 +538,6 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 3);
         if (field != null) {
           cell_refs[1][2].setData(field);
-          // finishDisplay(field, 1, 2);
         }
       }
     };
@@ -509,7 +551,7 @@ public class Rain implements ControlListener {
       cells[1][2].addReference(ref300);
       cells[1][2].addReference(ref1_4);
     }
-    finishDisplay((RealType) range.getComponent(3), 1, 2);
+    finishDisplay(client_server, (RealType) range.getComponent(3), 1, 2);
 
     DisplayImpl.delay(DELAY);
 
@@ -519,7 +561,6 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 4);
         if (field != null) {
           cell_refs[2][0].setData(field);
-          // finishDisplay(field, 2, 0);
         }
       }
     };
@@ -533,7 +574,7 @@ public class Rain implements ControlListener {
       cells[2][0].addReference(ref300);
       cells[2][0].addReference(ref1_4);
     }
-    finishDisplay((RealType) range.getComponent(4), 2, 0);
+    finishDisplay(client_server, (RealType) range.getComponent(4), 2, 0);
 
     DisplayImpl.delay(DELAY);
 
@@ -543,7 +584,6 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 5);
         if (field != null) {
           cell_refs[2][1].setData(field);
-          // finishDisplay(field, 2, 1);
         }
       }
     };
@@ -557,7 +597,7 @@ public class Rain implements ControlListener {
       cells[2][1].addReference(ref300);
       cells[2][1].addReference(ref1_4);
     }
-    finishDisplay((RealType) range.getComponent(5), 2, 1);
+    finishDisplay(client_server, (RealType) range.getComponent(5), 2, 1);
 
     DisplayImpl.delay(DELAY);
 
@@ -582,7 +622,6 @@ public class Rain implements ControlListener {
           field = (FlatField) field.divide(fifty_three);
 
           cell_refs[2][2].setData(field);
-          // finishDisplay(field, 2, 2);
         }
       }
     };
@@ -592,7 +631,7 @@ public class Rain implements ControlListener {
     cells[2][2].addReference(cell_refs[1][2]);
     cells[2][2].addReference(cell_refs[2][0]);
     cells[2][2].addReference(cell_refs[2][1]);
-    finishDisplay(rangeC1, 2, 2);
+    finishDisplay(client_server, rangeC1, 2, 2);
 
     DisplayImpl.delay(DELAY);
 
@@ -603,12 +642,11 @@ public class Rain implements ControlListener {
         if (field != null) {
           field = (FlatField) field.extract(6);
           cell_refs[3][0].setData(field);
-          // finishDisplay(field, 3, 0);
         }
       }
     };
     cells[3][0].addReference(cell_refs[0][1]);
-    finishDisplay((RealType) range.getComponent(6), 3, 0);
+    finishDisplay(client_server, (RealType) range.getComponent(6), 3, 0);
 
     DisplayImpl.delay(DELAY);
 
@@ -619,12 +657,11 @@ public class Rain implements ControlListener {
         if (field != null) {
           field = (FlatField) field.extract(7);
           cell_refs[3][1].setData(field);
-          // finishDisplay(field, 3, 1);
         }
       }
     };
     cells[3][1].addReference(cell_refs[0][1]);
-    finishDisplay((RealType) range.getComponent(7), 3, 1);
+    finishDisplay(client_server, (RealType) range.getComponent(7), 3, 1);
 
     GraphicsModeControl mode = displays[3][1].getGraphicsModeControl();
     mode.setTextureEnable(false);
@@ -645,12 +682,43 @@ public class Rain implements ControlListener {
     };
     cells[3][2].addReference(cell_refs[0][1]);
 
-    ScalarMap color_mapC4 = new ScalarMap(rangeC4, Display.RGB);
+    color_mapC4 = new ScalarMap(rangeC4, Display.RGB);
     displays[3][2].addMap(color_mapC4);
     color_widgetC4 = new LabeledRGBWidget(color_mapC4, (float) MIN, (float) MAXC4);
     Dimension dC4 = new Dimension(500, 170);
     color_widgetC4.setMaximumSize(dC4);
     color_mapC4.setRange(MIN, MAXC4);
+    color_controlC4 = (ColorControl) color_mapC4.getControl();
+    color_controlC4.addControlListener(this);
+
+    if (server_server != null) {
+      float[][] table = color_controlC4.getTable();
+      Integer1DSet set = new Integer1DSet(table[0].length);
+      FlatField color_fieldC4 =
+        new FlatField(FunctionType.REAL_1TO3_FUNCTION, set);
+      color_fieldC4.setSamples(table);
+      ref_colorC4.setData(color_fieldC4);
+    }
+    CellImpl color_cellC4 = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        FlatField field = (FlatField) ref_colorC4.getData().local(); 
+        float[][] table = field.getFloats();
+        float[][] old_table = color_controlC4.getTable();
+        for (int i=0; i<3; i++) {
+          for (int j=0; j<table[0].length; j++) {
+            if (table[i][j] != old_table[i][j]) return;
+          }
+        }
+        color_controlC4.setTable(table);
+      }       
+    };
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(color_cellC4);
+      remote_cell.addReference(ref_colorC4);
+    }
+    else {
+      color_cellC4.addReference(ref_colorC4);
+    }
 
     left_panel.add(color_widgetC4);
     left_panel.add(new JLabel("  "));
@@ -667,10 +735,10 @@ public class Rain implements ControlListener {
 
     DisplayImpl.delay(DELAY);
 
-    Cell cellMAX = new CellImpl() {
+    CellImpl cellMAX = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         double max = ((Real) refMAX.getData()).getValue();
-        color_map.setRange(MIN, max);
+        color_mapC1.setRange(MIN, max);
         for (int i=0; i<N_ROWS; i++) {
           for (int j=0; j<N_COLUMNS; j++) {
             if (color_maps[i][j] != null) {
@@ -680,7 +748,13 @@ public class Rain implements ControlListener {
         }
       }
     };
-    cellMAX.addReference(refMAX);
+    if (client_server != null) {
+      RemoteCellImpl remote_cell = new RemoteCellImpl(cellMAX);
+      remote_cell.addReference(refMAX);
+    }
+    else {
+      cellMAX.addReference(refMAX);
+    }
 
     DisplayImpl.delay(DELAY);
 
@@ -728,39 +802,18 @@ public class Rain implements ControlListener {
     return field;
   }
 
-/*
-  public static void finishDisplay(FlatField field, int i, int j)
-         throws VisADException, RemoteException {
-    FunctionType type = (FunctionType) field.getType();
-    if (!display_done[i][j] && type != null) {
-      RealType rt = (RealType) type.getRange();
-      // System.out.println("i, j = " + i + " " + j + " rt = " + rt);
-      color_maps[i][j] = new ScalarMap(rt, Display.RGB);
-      displays[i][j].addMap(color_maps[i][j]);
-      color_maps[i][j].setRange(MIN, MAX);
-      color_controls[i][j] = (ColorControl) color_maps[i][j].getControl();
-      if (color_control != null) { 
-        float[][] table = color_control.getTable();
-        if (table != null) color_controls[i][j].setTable(table);
-      }
-      displays[i][j].addReference(cell_refs[i][j]);
-      displays[i][j].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
-      display_done[i][j] = true;
-    }
-  }
-*/
-  public void finishDisplay(RealType rt, int i, int j)
+  public static void finishDisplay(RemoteServer cs, RealType rt, int i, int j)
          throws VisADException, RemoteException {
     color_maps[i][j] = new ScalarMap(rt, Display.RGB);
     displays[i][j].addMap(color_maps[i][j]);
     color_maps[i][j].setRange(MIN, MAX);
     color_controls[i][j] = (ColorControl) color_maps[i][j].getControl();
-    if (color_control != null) { 
-      float[][] table = color_control.getTable();
+    if (color_controlC1 != null) { 
+      float[][] table = color_controlC1.getTable();
       if (table != null) color_controls[i][j].setTable(table);
     }
     displays[i][j].addReference(cell_refs[i][j]);
-    if (client_server != null) {
+    if (cs != null) {
       RemoteDisplayImpl remote_display = new RemoteDisplayImpl(displays[i][j]);
       remote_display.addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
     }
@@ -773,7 +826,8 @@ public class Rain implements ControlListener {
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
     Control control = e.getControl();
-    if (control != null && control instanceof ColorControl) {
+    // if (control != null && control instanceof ColorControl) {
+    if (control.equals(color_controlC1)) {
       float[][] table = ((ColorControl) control).getTable();
       if (table != null) {
         for (int i=0; i<N_ROWS; i++) {
