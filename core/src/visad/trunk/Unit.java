@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.10 1999-05-24 21:07:44 steve Exp $
+ * $Id: Unit.java,v 1.11 1999-05-27 01:49:38 billh Exp $
  */
 
 package visad;
@@ -40,7 +40,7 @@ public abstract class Unit
     double[][] new_value = new double[value.length][];
     for (int i=0; i<value.length; i++) {
       if (units_out[i] == null) {
-        if (units_in[i] != null) {
+        if (units_in[i] != null && !(units_in[i] instanceof PromiscuousUnit)) {
           throw new UnitException("Unit.convertTuple: illegal Unit conversion");
         }
         new_value[i] = value[i];
