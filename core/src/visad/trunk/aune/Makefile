@@ -53,8 +53,7 @@ ShallowFluid.class: ShallowFluid.java
 	javac ShallowFluid.java
 
 clean:
-	$(RM) visad_paoloa_GoesRetrieval.h
-	$(RM) visad_paoloa_GoesCollaboration.h
+	$(RM) visad_aune_ShallowFluid.h
 	$(RM) *.o
 	$(RM) *.so
 	$(RM) *.class
