@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: BadRepositoryException.java,v 1.4 2000-04-26 15:44:40 dglo Exp $
+$Id: BadRepositoryException.java,v 1.5 2001-05-01 20:33:02 dglo Exp $
 */
 
 package visad.data;
