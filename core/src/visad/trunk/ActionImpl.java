@@ -31,6 +31,36 @@ import java.rmi.*;
 
 import visad.util.ThreadPool;
 
+/*
+Action - ThingReference event logic
+
+ActionImpl has Vector of ReferenceActionLinks, one per linked ThingReference
+ThingReferenceImpl has Vector of ThingChangedLinks, one per linked Action
+
+
+
+call stacks:
+  // create and send ThingChangedEvent
+  ThingReferenceImpl.incTick() calls
+    ThingChangedLink.queueThingChangedEvent('new' ThingChangedEvent e) calls
+      Action.thingChanged(e) calls
+        ReferenceActionLink.acknowledgeThingChangedEvent(e.getTick())
+
+  // get queued ThingChangedEvent
+  ActionImpl.run() calls
+    ReferenceActionLink.getThingChangedEvent() calls
+      ThingReference.acknowledgeThingChanged(Action a) calls
+        ThingChangedLink.acknowledgeThingChangedEvent()
+    ActionImpl.thingChanged(ThingChangedEvent e) calls
+      ReferenceActionLink.acknowledgeThingChangedEvent(e.getTick())
+
+  // peek at queued ThingChangedEvent
+  ActionImpl.run() calls
+    ReferenceActionLink.peekThingChangedEvent() calls
+      ThingReference.peekThingChanged() calls
+        ThingChangedLink.peekThingChangedEvent()
+*/
+
 /**
    ActionImpl is the abstract superclass for runnable threads that
    need to be notified when ThingReference objects change.  For example,
