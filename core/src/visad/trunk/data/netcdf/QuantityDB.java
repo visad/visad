@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDB.java,v 1.9 2000-11-17 18:54:39 dglo Exp $
+ * $Id: QuantityDB.java,v 1.10 2001-08-28 17:08:34 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -37,7 +37,7 @@ QuantityDB
      * @return		The quantity in the loal database that matches
      *			<code>name</code>.  Note that
      *			RETURN_VALUE<code>.getName().equals(name)</code> can
-     *			be <code>false due to aliasing.
+     *			be <code>false</code> due to aliasing.
      */
     public abstract Quantity
     get(String name);
@@ -92,7 +92,7 @@ QuantityDB
 	    Unit	quantityUnit = quantity.getDefaultUnit();
 	    if (!Unit.canConvert(Parser.parse(unitSpec), quantityUnit))
 		throw new UnitException(
-		    "Quantity " + name + " already exists; it's unit " +
+		    "Quantity " + name + " already exists; its unit " +
 		    quantity.getDefaultUnitString() +
 		    " is inconvertible with " + unitSpec);
 	}
