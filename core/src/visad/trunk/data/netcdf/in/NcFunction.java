@@ -3,30 +3,21 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFunction.java,v 1.1 1998-03-20 20:56:49 visad Exp $
+ * $Id: NcFunction.java,v 1.2 1998-04-13 17:05:05 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
-import visad.CoordinateSystem;
-import visad.DataImpl;
-import visad.FieldImpl;
-import visad.FlatField;
 import visad.FunctionType;
 import visad.GriddedSet;
 import visad.IntegerNDSet;
-import visad.IntegerSet;
-import visad.Linear1DSet;
-import visad.Linear2DSet;
-import visad.Linear3DSet;
 import visad.LinearNDSet;
 import visad.LinearSet;
 import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.Set;
-import visad.TextType;
 import visad.TupleType;
 import visad.UnimplementedException;
 import visad.Unit;
@@ -129,6 +120,8 @@ NcFunction
      * @param dims	The netCDF dimensions comprising the domain in
      *			netCDF order.
      * @param vars	The netCDF variables comprising the function.
+     * @exception VisADException
+     *			Couldn't create a necessary VisAD object.
      */
     protected static FunctionType
     getFunctionType(NcDim[] dims, NcVar[] vars)
@@ -325,6 +318,8 @@ NcFunction
      * @return		The IntegerSet of the domain of the function.
      * @precondition	The sampling domain-set of the function is (logically)
      *			an IntegerSet.
+     * @exception VisADException
+     *			Couldn't create a necessary VisAD object.
      */
     protected static GriddedSet
     getIntegerSet(NcDim[] dims, MathType domain)
@@ -349,6 +344,8 @@ NcFunction
      * @return		The LinearSet of the domain of the function.
      * @precondition	The sampling domain-set of this function is (logically)
      *			a LinearSet.
+     * @exception VisADException
+     *			Couldn't create a necessary VisAD object.
      */
     protected static LinearSet
     getLinearSet(NcDim[] dims, ArithProg[] aps, NcVar[] coordVars, 
@@ -397,6 +394,10 @@ NcFunction
      * @return		The GriddedSet of the domain of the function.
      * @precondition	The sampling domain-set of this function is a 
      *			GriddedSet.
+     * @exception IOException
+     *			Data access I/O failure.
+     * @exception VisADException
+     *			Couldn't create a necessary VisAD object.
      */
     protected static GriddedSet
     getGriddedSet(NcDim[] dims, NcVar[] coordVars, MathType domain)
