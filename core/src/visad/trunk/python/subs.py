@@ -1,5 +1,5 @@
-from visad import ScalarMap, Display, DataReferenceImpl,RealTupleType,\
-          Gridded2DSet, DisplayImpl
+from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
+          Gridded2DSet, DisplayImpl, RealType
 from types import StringType
 from visad.ss import BasicSSCell
 from visad.java2d import DisplayImplJ2D
@@ -43,7 +43,6 @@ def makeDisplay(maps):
     if ok3d:
       tdr = TwoDDisplayRendererJ3D() 
       disp = DisplayImplJ3D("Jython3D",tdr)
-      print "Using 3D"
       maximizeBox(disp)
       addMaps(disp, maps)
     else:
@@ -53,10 +52,10 @@ def makeDisplay(maps):
 
 
 # add a Data object to a Display, and return a reference to the Data
-def addData(name, data, disp):
+def addData(name, data, disp, constantMaps=None):
   ref = DataReferenceImpl(name)
-  disp.addReference(ref)
-  if data != None: ref.setData(data)
+  temp = disp.addReference(ref, constantMaps)
+  if data != None: temp = ref.setData(data)
   return ref
 
 # a simple method for making the VisAD "box" 95% of the window size
@@ -78,33 +77,48 @@ def makeLine(domainType, points):
   return Gridded2DSet(RealTupleType(domainType), points, len(points[0]))
 
 # draw a line directly into the display; also return reference
-# drawLine(display, domainType, points[])
-# drawLine(name|display, points[])
-def drawLine(a,b,c=None):
+# drawLine(display, domainType, points[], color=Color, mathtype=domainType)
+# drawLine(name|display, points[], color=Color)
+# "Color" is java.awt.Color
+def drawLine(display, points, color=None, mathtype=None):
+
+  constmap = None
+  # see if color should be handled
+  if color is not None:
+    from visad import ConstantMap
+    from java.awt import Color
+    red = float(color.getRed())/255.
+    green = float(color.getGreen())/255.
+    blue = float(color.getBlue())/255.
+
+    constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
+           ConstantMap(blue,Display.Blue) )
+
 
   # drawLine(display, domainType, points[])
-  if c is not None:
+  maps = None
+  if mathtype is not None:
     linref = addData("linesegment",
-       Gridded2DSet(RealTupleType(b), c, len(c[0])), a)
+       Gridded2DSet(RealTupleType(mathtype), points, len(points[0])), display)
     return linref
 
   # drawLine(name|display, points[])
   else:
-    if type(a) == StringType:
-      disp = BasicSSCell.getSSCellByName(a)
-      display = disp.getDisplay()
-      maps = disp.getMaps()
+    if type(display) == StringType:
+      d = BasicSSCell.getSSCellByName(display)
+      disp = d.getDisplay()
+      maps = d.getMaps()
     elif isinstance(a, DisplayImpl):
-      maps = a.getMapVector()
-      display = a
+      maps = display.getMapVector()
+      disp = display
     else:
       maps = None
-      display = None
+      disp = None
 
     if maps == None:
-      x = getRealByName("x")
-      y = getRealByName("y")
-      z = getRealByName("z")
+      x = RealType.getRealTypeByName("x")
+      y = RealType.getRealTypeByName("y")
+      z = RealType.getRealTypeByName("z")
     # if no maps, make them...
     else:
       for m in maps:
@@ -115,13 +129,14 @@ def drawLine(a,b,c=None):
         if m.getDisplayScalar().toString() == "DisplayZAxis":
           z = m.getScalar()
 
-    if len(b) == 2:
+    if len(points) == 2:
       dom = RealTupleType(x,y)
     else:
       dom = RealTupleType(x,y,z)
 
+# this is a test
     linref = addData("linesegment", 
-             Gridded2DSet(dom, b, len(b[0])), display)
+             Gridded2DSet(dom, points, len(points[0])), disp, constmap)
     return linref 
 
 # add an array of ScalarMaps to a Display
