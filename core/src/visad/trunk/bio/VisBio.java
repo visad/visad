@@ -535,103 +535,85 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   /** Restores the current state from a text file specified by the user. */
   public void fileRestore() {
-    final VisBio bio = this;
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        int rval = stateBox.showOpenDialog(bio);
-        if (rval == JFileChooser.APPROVE_OPTION) {
-          setWaitCursor(true);
-          state.restoreState(stateBox.getSelectedFile());
-          setWaitCursor(false);
-        }
-      }
-    });
-    t.start();
+    int rval = stateBox.showOpenDialog(this);
+    if (rval == JFileChooser.APPROVE_OPTION) {
+      setWaitCursor(true);
+      state.restoreState(stateBox.getSelectedFile());
+      setWaitCursor(false);
+    }
   }
 
   /** Saves the current state to a text file specified by the user. */
   public void fileSave() {
-    final VisBio bio = this;
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        int rval = stateBox.showSaveDialog(bio);
-        if (rval == JFileChooser.APPROVE_OPTION) {
-          setWaitCursor(true);
-          state.saveState(stateBox.getSelectedFile());
-          setWaitCursor(false);
-        }
-      }
-    });
-    t.start();
+    int rval = stateBox.showSaveDialog(this);
+    if (rval == JFileChooser.APPROVE_OPTION) {
+      setWaitCursor(true);
+      state.saveState(stateBox.getSelectedFile());
+      setWaitCursor(false);
+    }
   }
 
   /** Saves a snapshot of the displays to a file specified by the user. */
   public void fileSnap() {
-    final VisBio bio = this;
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        int rval = snapBox.showSaveDialog(bio);
-        if (rval == JFileChooser.APPROVE_OPTION) {
-          setWaitCursor(true);
+    int rval = snapBox.showSaveDialog(this);
+    if (rval != JFileChooser.APPROVE_OPTION) return;
 
-          // determine file type
-          String file = snapBox.getSelectedFile().getPath();
-          String ext = "";
-          int dot = file.indexOf(".");
-          if (dot >= 0) ext = file.substring(dot + 1).toLowerCase();
-          boolean tiff = ext.equals("tif") || ext.equals("tiff");
-          boolean jpeg = ext.equals("jpg") || ext.equals("jpeg");
-          boolean raw = ext.equals("raw");
-          if (!tiff && !jpeg && !raw) {
-            setWaitCursor(false);
-            JOptionPane.showMessageDialog(bio, "Invalid filename (" +
-              file + "): " + "extension must be TIFF, JPEG or RAW.",
-              "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
-            return;
-          }
+    setWaitCursor(true);
 
-          // construct output image
-          boolean has2 = display2.getComponent().isVisible();
-          boolean has3 = display3 != null &&
-            display3.getComponent().isVisible();
-          if (!has2 && !has3) {
-            setWaitCursor(false);
-            JOptionPane.showMessageDialog(bio, "No displays are visible.",
-              "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
-            return;
-          }
+    // determine file type
+    String file = snapBox.getSelectedFile().getPath();
+    String ext = "";
+    int dot = file.indexOf(".");
+    if (dot >= 0) ext = file.substring(dot + 1).toLowerCase();
+    boolean tiff = ext.equals("tif") || ext.equals("tiff");
+    boolean jpeg = ext.equals("jpg") || ext.equals("jpeg");
+    boolean raw = ext.equals("raw");
+    if (!tiff && !jpeg && !raw) {
+      setWaitCursor(false);
+      JOptionPane.showMessageDialog(this, "Invalid filename (" +
+        file + "): " + "extension must be TIFF, JPEG or RAW.",
+        "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
 
-          BufferedImage image2 = has2 ? display2.getImage() : null;
-          BufferedImage image3 = has3 ? display3.getImage() : null;
-          int w2 = 0, h2 = 0, w3 = 0, h3 = 0;
-          int type = BufferedImage.TYPE_INT_RGB;
-          if (has2) {
-            w2 = image2.getWidth();
-            h2 = image2.getHeight();
-            type = image2.getType();
-          }
-          if (has3) {
-            w3 = image3.getWidth();
-            h3 = image3.getHeight();
-            type = image3.getType();
-          }
-          BufferedImage img = new BufferedImage(
-            w2 > w3 ? w2 : w3, h2 + h3, type);
-          Graphics g = img.createGraphics();
-          if (has2) g.drawImage(image2, 0, 0, null);
-          if (has3) g.drawImage(image3, 0, h2, null);
+    // construct output image
+    boolean has2 = display2.getComponent().isVisible();
+    boolean has3 = display3 != null &&
+      display3.getComponent().isVisible();
+    if (!has2 && !has3) {
+      setWaitCursor(false);
+      JOptionPane.showMessageDialog(this, "No displays are visible.",
+        "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
 
-          // save image to disk
-          FileSaver saver = new FileSaver(new ImagePlus("null", img));
-          if (tiff) saver.saveAsTiff(file);
-          else if (jpeg) saver.saveAsJpeg(file);
-          else if (raw) saver.saveAsRaw(file);
+    BufferedImage image2 = has2 ? display2.getImage() : null;
+    BufferedImage image3 = has3 ? display3.getImage() : null;
+    int w2 = 0, h2 = 0, w3 = 0, h3 = 0;
+    int type = BufferedImage.TYPE_INT_RGB;
+    if (has2) {
+      w2 = image2.getWidth();
+      h2 = image2.getHeight();
+      type = image2.getType();
+    }
+    if (has3) {
+      w3 = image3.getWidth();
+      h3 = image3.getHeight();
+      type = image3.getType();
+    }
+    BufferedImage img = new BufferedImage(
+      w2 > w3 ? w2 : w3, h2 + h3, type);
+    Graphics g = img.createGraphics();
+    if (has2) g.drawImage(image2, 0, 0, null);
+    if (has3) g.drawImage(image3, 0, h2, null);
 
-          setWaitCursor(false);
-        }
-      }
-    });
-    t.start();
+    // save image to disk
+    FileSaver saver = new FileSaver(new ImagePlus("null", img));
+    if (tiff) saver.saveAsTiff(file);
+    else if (jpeg) saver.saveAsJpeg(file);
+    else if (raw) saver.saveAsRaw(file);
+
+    setWaitCursor(false);
   }
 
   /** Displays the VisBio options dialog box. */
@@ -646,7 +628,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   /** Exits the application. */
   public void fileExit() {
-    mm.checkSave();
+    state.checkSave();
     state.destroy();
     System.exit(0);
   }
@@ -696,6 +678,18 @@ public class VisBio extends GUIFrame implements ChangeListener {
   void restoreState(BufferedReader fin)
     throws IOException, VisADException
   {
+    String header = fin.readLine();
+    if (!header.startsWith("# " + TITLE + " " + VERSION + " state file")) {
+      final JFrame frame = this;
+      Util.invoke(false, new Runnable() {
+        public void run() {
+          JOptionPane.showMessageDialog(frame,
+            "State data is not a " + TITLE + " " + VERSION + " state file",
+            "Cannot restore state", JOptionPane.ERROR_MESSAGE);
+        }
+      });
+      return;
+    }
     prefix = fin.readLine().trim();
     int bright = Integer.parseInt(fin.readLine().trim());
     int cont = Integer.parseInt(fin.readLine().trim());
@@ -739,7 +733,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
       bio.options.searchQT();
       bio.options.writeIni();
     }
-    bio.state.checkState();
+    bio.state.checkCrash();
   }
 
 }

@@ -581,6 +581,7 @@ public class SliceManager
     fout.println(sliceRes_x);
     fout.println(sliceRes_y);
     if (arb != null) arb.saveState(fout);
+    if (align != null) align.saveState(fout);
   }
 
   /** Restores the current program state from the given input stream. */
@@ -597,6 +598,7 @@ public class SliceManager
     setThumbnails(thumbs, thumbX, thumbY);
     setSeries(files, fas);
     if (arb != null) arb.restoreState(fin);
+    if (align != null) align.restoreState(fin);
   }
 
 

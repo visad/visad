@@ -34,7 +34,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
 import visad.browser.*;
-import visad.util.Util;
+import visad.util.*;
 
 /**
  * MeasureToolPanel is the tool panel for
@@ -87,6 +87,9 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Button for exporting measurements to Excel-friendly text format. */
   private JButton export;
+
+  /** File chooser for exporting measurements. */
+  private JFileChooser exportBox;
 
 
   // -- GLOBAL FUNCTIONS --
@@ -151,15 +154,23 @@ public class MeasureToolPanel extends ToolPanel {
 
     // export measurements button
     export = new JButton("Export measurements");
+    final Component panel = this;
     export.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        // CTR - TODO - export measurements
+        int rval = exportBox.showSaveDialog(panel);
+        if (rval != JFileChooser.APPROVE_OPTION) return;
+        bio.mm.export(exportBox.getSelectedFile());
       }
     });
     export.setToolTipText(
       "Exports measurements to Excel-friendly text format");
     export.setEnabled(false);
     controls.add(pad(export));
+
+    // export measurements file chooser
+    exportBox = new JFileChooser();
+    exportBox.addChoosableFileFilter(new ExtensionFileFilter(
+      "txt", "VisBio measurements"));
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
@@ -500,13 +511,14 @@ public class MeasureToolPanel extends ToolPanel {
   // -- INTERNAL API METHODS --
 
   /** Updates GUI to match internal information. */
-  void updateInfo(boolean microns, double mx, double my, double sd) {
+  void updateInfo(boolean microns, double mw, double mh, double sd) {
     // update groups
     groupList.removeAllItems();
     for (int i=0; i<bio.mm.groups.size(); i++) {
       groupList.addItem(bio.mm.groups.elementAt(i));
     }
     descriptionBox.setText("");
+    // CTR - TODO - update microns, mw, mh and sd information in GUI
   }
 
   /** Sets the merge toggle button's status. */

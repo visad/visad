@@ -31,6 +31,7 @@ import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.*;
 import visad.java3d.DirectManipulationRendererJ3D;
+import visad.util.Util;
 
 /**
  * AlignmentPlane maintains an arbitrary plane
@@ -43,19 +44,20 @@ public class AlignmentPlane extends PlaneSelector {
   /** VisBio frame. */
   protected VisBio bio;
 
-  protected boolean[][] locked;
+  /** Number of timesteps. */
+  protected int numIndices;
 
   /** Position of plane selector for each timestep. */
   protected double[][][] pos;
 
-  /** Number of timesteps. */
-  protected int numIndices;
-
   /** Current timestep value. */
   protected int index;
 
-  /** Maximum timestep value. */
-  protected int maxIndex;
+  /** Whether to keep endpoint distances fixed. */
+  protected boolean locked;
+
+  /** Fixed distances between endpoints. */
+  protected double dist12, dist13, dist23;
 
 
   // -- CONSTRUCTOR --
@@ -64,9 +66,9 @@ public class AlignmentPlane extends PlaneSelector {
   public AlignmentPlane(VisBio biovis, DisplayImpl display) {
     super(display);
     bio = biovis;
-    maxIndex = 10;
-    locked = new boolean[maxIndex][3];
-    pos = new double[maxIndex][3][3];
+    numIndices = bio.sm.getNumberOfIndices();
+    pos = new double[numIndices][3][3];
+    locked = false;
   }
 
 
@@ -74,21 +76,41 @@ public class AlignmentPlane extends PlaneSelector {
 
   /** Sets the current timestep. */
   public void setIndex(int index) {
-    if (this.index == index) return;
+    if (this.index == index || index < 0 || index >= numIndices) return;
     this.index = index;
-    if (index >= maxIndex) {
-      int ndx = 2 * index + 1;
-      boolean[][] nlock = new boolean[ndx][3];
-      double[][][] npos = new double[ndx][3][3];
-      System.arraycopy(locked, 0, nlock, 0, maxIndex);
-      System.arraycopy(pos, 0, npos, 0, maxIndex);
-      locked = nlock;
-      pos = npos;
-      maxIndex = ndx;
-    }
+
     // set endpoint values to match those at current index
     for (int i=0; i<3; i++) {
       setData(i, pos[index][i][0], pos[index][i][1], pos[index][i][2]);
+    }
+  }
+
+  /** Sets whether to lock endpoint distances to maintain size and shape. */
+  public void setLocked(boolean locked) { this.locked = locked; }
+
+
+  // -- INTERNAL API METHODS --
+
+  /** Writes the alignment plane state to the given output stream. */
+  void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println(numIndices);
+    for (int ndx=0; ndx<numIndices; ndx++) {
+      for (int i=0; i<3; i++) {
+        for (int j=0; j<3; j++) fout.println(pos[ndx][i][j]);
+      }
+    }
+  }
+
+  /** Restores the plane selector state from the given input stream. */
+  void restoreState(BufferedReader fin) throws IOException, VisADException {
+    numIndices = Integer.parseInt(fin.readLine());
+    pos = new double[numIndices][3][3];
+    for (int ndx=0; ndx<numIndices; ndx++) {
+      for (int i=0; i<3; i++) {
+        for (int j=0; j<3; j++) {
+          pos[ndx][i][j] = Double.parseDouble(fin.readLine());
+        }
+      }
     }
   }
 
@@ -97,7 +119,6 @@ public class AlignmentPlane extends PlaneSelector {
 
   /** Refreshes the plane data from its endpoint locations. */
   protected boolean refresh() {
-    if (!super.refresh()) return false;
     for (int i=0; i<3; i++) {
       RealTuple tuple = (RealTuple) refs[i + 2].getData();
       if (tuple == null) continue;
@@ -108,6 +129,30 @@ public class AlignmentPlane extends PlaneSelector {
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
+
+    double[] m = {1, 1, 1};
+    if (locked) {
+      // maintain constant endpoint distances
+      double d12 = BioUtil.getDistance(pos[index][0], pos[index][1], m);
+      if (!Util.isApproximatelyEqual(dist12, d12)) {
+        // CTR - TODO - adjust 2nd endpoint
+      }
+      double d13 = BioUtil.getDistance(pos[index][0], pos[index][2], m);
+      double d23 = BioUtil.getDistance(pos[index][1], pos[index][2], m);
+      if (!Util.isApproximatelyEqual(dist13, d13) ||
+        !Util.isApproximatelyEqual(dist23, d23))
+      {
+        // CTR - TODO - adjust 3rd endpoint
+      }
+    }
+    else {
+      dist12 = BioUtil.getDistance(pos[index][0], pos[index][1], m);
+      dist13 = BioUtil.getDistance(pos[index][0], pos[index][2], m);
+      dist23 = BioUtil.getDistance(pos[index][1], pos[index][2], m);
+    }
+
+    if (!super.refresh()) return false;
+
     return true;
   }
 

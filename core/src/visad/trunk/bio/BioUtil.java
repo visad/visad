@@ -163,7 +163,8 @@ public class BioUtil {
   }
 
   /**
-   * Determines whether the specified line intersects the given rectangle.
+   * Determines whether the specified line segment
+   * intersects the given rectangle.
    *
    * @param x1 X-coordinate of the top-left corner of the rectangle
    * @param y1 Y-coordinate of the top-left corner of the rectangle

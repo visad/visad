@@ -56,6 +56,9 @@ public class StateManager {
   /** Is state currently being restored? */
   private boolean restoring = false;
 
+  /** Has the user saved the most recent state? */
+  private boolean saved = true;
+
 
   // -- CONSTRUCTORS --
 
@@ -87,15 +90,27 @@ public class StateManager {
 
   /** Saves the current state to the temp file. */
   public void saveState() {
-    if (oldState.exists()) oldState.delete();
-    if (state.exists()) state.renameTo(oldState);
-    saveState(state);
+    if (restoring) return;
+    dirty = true;
+    if (saveThread == null) {
+      saveThread = new Thread(new Runnable() {
+        public void run() {
+          while (dirty) {
+            dirty = false;
+            saved = false;
+            if (oldState.exists()) oldState.delete();
+            if (state.exists()) state.renameTo(oldState);
+            saveState(state);
+          }
+        }
+      });
+    }
+    if (!saveThread.isAlive()) saveThread.start();
   }
 
   /** Restores the state from the given state file. */
   public void restoreState(File stateFile) {
     restoring = true;
-    /* CTR: TEMP */ System.out.println("Restoring state from " + stateFile);
     try {
       BufferedReader fin = new BufferedReader(new FileReader(stateFile));
       bio.restoreState(fin);
@@ -108,34 +123,23 @@ public class StateManager {
 
   /** Saves the current state to the temp file. */
   public void saveState(File stateFile) {
-    if (restoring) return;
-    dirty = true;
-    if (saveThread == null) {
-      final File fstate = stateFile;
-      saveThread = new Thread(new Runnable() {
-        public void run() {
-          while (dirty) {
-            /* CTR: TEMP */ System.out.println("Saving state to " + fstate);
-            try {
-              dirty = false;
-              PrintWriter fout = new PrintWriter(new FileWriter(fstate));
-              bio.saveState(fout);
-              fout.close();
-            }
-            catch (IOException exc) { exc.printStackTrace(); }
-            catch (VisADException exc) { exc.printStackTrace(); }
-          }
-        }
-      });
+    try {
+      PrintWriter fout = new PrintWriter(new FileWriter(stateFile));
+      bio.saveState(fout);
+      fout.close();
+      if (!stateFile.getAbsolutePath().equals(state.getAbsolutePath())) {
+        saved = true;
+      }
     }
-    if (!saveThread.isAlive()) saveThread.start();
+    catch (IOException exc) { exc.printStackTrace(); }
+    catch (VisADException exc) { exc.printStackTrace(); }
   }
 
   /**
    * Checks whether the state file already exists, and if so,
    * asks the user whether to restore the previous state.
    */
-  public void checkState() {
+  public void checkCrash() {
     if (!state.exists()) return;
     int ans = JOptionPane.showConfirmDialog(bio,
       "It appears that VisBio crashed last time. " +
@@ -143,6 +147,19 @@ public class StateManager {
       JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
     if (ans != JOptionPane.YES_OPTION) return;
     restoreState();
+  }
+
+  /**
+   * Checks whether the program state has been saved,
+   * and if not, prompts the user to save.
+   */
+  public void checkSave() {
+    if (saved) return;
+    int ans = JOptionPane.showConfirmDialog(bio,
+      "Program state has been changed. Save before exiting?", "VisBio",
+      JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+    if (ans != JOptionPane.YES_OPTION) return;
+    bio.fileSave();
   }
 
   /** Deletes state-related temp files. */

@@ -219,6 +219,7 @@ public class ColorToolPanel extends ToolPanel
     // CTR - TODO - dynamic color scaling support
     dynamic.setEnabled(false);
     controls.add(pad(dynamic, false, true));
+    cc++;
 
     // fixed color scaling option
     p = new JPanel();
@@ -256,6 +257,7 @@ public class ColorToolPanel extends ToolPanel
     hiVal.setToolTipText("Maximum color range value");
     p.add(hiVal);
     controls.add(pad(p, false, true));
+    cc++;
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
