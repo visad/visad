@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 import java.rmi.*;
+import java.util.*;
 
 /**
    A ScalarMap object defines a mapping from a RealType
@@ -52,14 +53,18 @@ public class ScalarMap extends Object implements java.io.Serializable {
   // unique Display this ScalarMap is part of
   private transient DisplayImpl display;
 
-  // true if Scalar values need to be scaled
+  /** true if dataRange set by application;
+      disables automatic setting */
+  private boolean isManual;
+
+  /** true if Scalar values need to be scaled */
   boolean isScaled;
-  // ranges of values of DisplayScalar
+  /** ranges of values of DisplayScalar */
   double[] displayRange = new double[2];
 
-  // ranges of values of Scalar
+  /** ranges of values of Scalar */
   private double[] dataRange = new double[2];
-  // scale and offset
+  /** scale and offset */
   private double scale, offset;
 
   public ScalarMap(RealType scalar, DisplayRealType display_scalar)
@@ -80,6 +85,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
     ScalarIndex = -1;
     DisplayScalarIndex = -1;
     isScaled = DisplayScalar.getRange(displayRange);
+    isManual = false;
   }
 
   /** get the RealType that is the map domain */
@@ -133,24 +139,65 @@ public class ScalarMap extends Object implements java.io.Serializable {
     control = proto.copy(this);
   }
 
+  public boolean getScale(double[] so, double[] data, double[] display) {
+    so[0] = scale;
+    so[1] = offset;
+    data[0] = dataRange[0];
+    data[1] = dataRange[1];
+    display[0] = displayRange[0];
+    display[1] = displayRange[1];
+    return isScaled;
+  }
+
+  /** set range used for linear map from Scalar to DisplayScalar values; 
+      this is the call for applications */
+  public void setRange(double low, double hi) throws VisADException {
+    isManual = true;
+    setRange(null, low, hi);
+    // if it didn't work, don't lock out auto-scaling
+    if (scale != scale || offset != offset) isManual = false;
+  }
+
+  /** set range used for linear map from Scalar to DisplayScalar values;
+      this is the call for automatic scaling */
+  void setRange(DataShadow shadow) throws VisADException {
+    if (!isManual) setRange(shadow, 0.0, 0.0);
+  }
+
   /** set range used for linear map from Scalar to
       DisplayScalar values */
-  void setRange(DataShadow shadow) throws VisADException {
+  private synchronized void setRange(DataShadow shadow, double low, double hi)
+          throws VisADException {
     int i = ScalarIndex;
-    dataRange[0] = shadow.ranges[0][i];
-    dataRange[1] = shadow.ranges[1][i];
+    if (shadow != null) {
+      dataRange[0] = shadow.ranges[0][i];
+      dataRange[1] = shadow.ranges[1][i];
+    }
+    else {
+      dataRange[0] = low;
+      dataRange[1] = hi;
+    }
     if (isScaled) {
-      if (dataRange[0] < dataRange[1]) {
+      if (dataRange[0] == dataRange[1]) {
+        scale = (displayRange[1] - displayRange[0]) / 1.0; 
+        offset = displayRange[0] - scale * (dataRange[0] - 0.5);
+      }
+      else if (dataRange[0] == Double.MAX_VALUE ||
+               dataRange[1] == -Double.MAX_VALUE) {
+        scale = Double.NaN;
+        offset = Double.NaN;
+      }
+      else {
         scale = (displayRange[1] - displayRange[0]) /
                 (dataRange[1] - dataRange[0]);
         offset = displayRange[0] - scale * dataRange[0];
       }
-      else {
-        scale = 0.0;
-        offset = displayRange[0];
+      if (Double.isInfinite(scale) || Double.isInfinite(offset)) {
+        scale = Double.NaN;
+        offset = Double.NaN;
       }
     }
-    if (DisplayScalar == Display.Animation) {
+    if (DisplayScalar == Display.Animation && shadow != null) {
       Set set = shadow.animationSampling;
       if (set == null) {
         // WLH - should never happen
@@ -160,7 +207,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
       if (set == null) {
         set = new Linear1DSet(Scalar, dataRange[0], dataRange[1], 100);
       }
-      ((AnimationControl) control).setSet(set);
+      ((AnimationControl) control).setSet(set, true);
     }
     else if (DisplayScalar == Display.IsoContour) {
       boolean[] bvalues = new boolean[2];
@@ -172,14 +219,19 @@ public class ScalarMap extends Object implements java.io.Serializable {
       values[2] = (float) dataRange[0]; // lowLimit
       values[3] = (float) dataRange[1]; // hiLimit
       values[4] = (float) dataRange[0]; // base
-      ((ContourControl) control).setMainContours(bvalues, values);
+      ((ContourControl) control).setMainContours(bvalues, values, true);
     }
+  }
+
+  boolean badRange() {
+    return (isScaled && (scale != scale || offset != offset));
   }
 
   /** apply linear map to Scalar values */
   public float[] scaleValues(double[] values) {
+    if (values == null || badRange()) return null;
     float[] new_values = new float[values.length];
-    if (isScaled && values != null) {
+    if (isScaled) {
       for (int i=0; i<values.length; i++) {
         new_values[i] = (float) (offset + scale * values[i]);
       }
@@ -194,8 +246,9 @@ public class ScalarMap extends Object implements java.io.Serializable {
 
   /** apply linear map to Scalar values */
   public float[] scaleValues(float[] values) {
+    if (values == null || badRange()) return null;
     float[] new_values = new float[values.length];
-    if (isScaled && values != null) {
+    if (isScaled) {
       for (int i=0; i<values.length; i++) {
         new_values[i] = (float) (offset + scale * values[i]);
       }
@@ -206,6 +259,59 @@ public class ScalarMap extends Object implements java.io.Serializable {
       }
     }
       return new_values;
+  }
+
+  /** apply inverse linear map to Scalar values */
+  public double[] inverseScaleValues(float[] values) {
+    if (values == null) return null;
+    double[] new_values = new double[values.length];
+    if (isScaled) {
+      for (int i=0; i<values.length; i++) {
+        new_values[i] = (values[i] - offset) / scale;
+      }
+    }
+    else {
+      for (int i=0; i<values.length; i++) {
+        new_values[i] = values[i];
+      }
+    }
+      return new_values;
+  }
+
+  /** ensure that non-Manual components of flow_tuple have equal
+      dataRanges symmetric about 0.0 */
+  static void equalizeFlow(Vector mapVector,
+         DisplayTupleType flow_tuple) throws VisADException {
+    double[] range = new double[2];
+    double low = Double.MAX_VALUE;
+    double hi = -Double.MAX_VALUE;
+    boolean anyAuto = false;
+ 
+    Enumeration maps = mapVector.elements();
+    while(maps.hasMoreElements()) {
+      ScalarMap map = ((ScalarMap) maps.nextElement());
+      DisplayRealType dtype = map.getDisplayScalar();
+      DisplayTupleType tuple = dtype.getTuple();
+      if (flow_tuple.equals(tuple) && !map.isManual &&
+          !map.badRange()) {
+        anyAuto = true;
+        low = Math.min(low, map.dataRange[0]);
+        hi = Math.max(hi, map.dataRange[1]);
+      }
+    }
+    if (!anyAuto) return;
+    hi = Math.max(hi, -low);
+    low = -hi;
+    maps = mapVector.elements();
+    while(maps.hasMoreElements()) {
+      ScalarMap map = ((ScalarMap) maps.nextElement());
+      DisplayRealType dtype = map.getDisplayScalar();
+      DisplayTupleType tuple = dtype.getTuple();
+      if (flow_tuple.equals(tuple) && !map.isManual &&
+          !map.badRange()) {
+        map.setRange(null, low, hi);
+      }
+    }
   }
 
   /** get index of DisplayScalar in display.DisplayRealTypeVector */

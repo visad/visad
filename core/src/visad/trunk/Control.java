@@ -50,13 +50,17 @@ import java.rmi.*;
 public abstract class Control extends Object
        implements Cloneable, java.io.Serializable {
 
+  /** incremented by incTicks */
   private long NewTick;
+  /** value of NewTick at last setTicks call */
   private long OldTick;
+  /** set by setTicks if OldTick < NewTick; cleared by resetTicks */
   private boolean tickFlag;
-  // unique Display this Control is part of
+
+  /** unique Display this Control is part of */
   transient DisplayImpl display;
   transient DisplayRenderer displayRenderer;
-  // index of this in DisplayImpl.ControlVector
+  /** index of this in display.ControlVector */
   private int Index;
 
   public Control() {

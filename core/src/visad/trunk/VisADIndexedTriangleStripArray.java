@@ -113,6 +113,7 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
   }
 */
 
+/* this is the 'normal' makeGeometry */
   public GeometryArray makeGeometry() throws VisADException {
     if (vertexCount == 0) return null;
     IndexedTriangleStripArray array = 
@@ -125,6 +126,29 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
     if (texCoords != null) array.setTextureCoordinateIndices(0, indices);
     return array;
   }
+
+/** this draws normal vectors
+  public GeometryArray makeGeometry() throws VisADException {
+    if (vertexCount == 0) return null;
+    LineArray array = new LineArray(2 * vertexCount, LineArray.COORDINATES);
+    float[] new_coords = new float[6 * vertexCount];
+    int i = 0;
+    int j = 0;
+    for (int k=0; k<vertexCount; k++) {
+      new_coords[j] = coordinates[i];
+      new_coords[j+1] = coordinates[i+1];
+      new_coords[j+2] = coordinates[i+2];
+      j += 3;
+      new_coords[j] = coordinates[i] + 0.05f * normals[i];
+      new_coords[j+1] = coordinates[i+1] + 0.05f * normals[i+1];
+      new_coords[j+2] = coordinates[i+2] + 0.05f * normals[i+2];
+      i += 3;
+      j += 3;
+    }
+    array.setCoordinates(0, new_coords);
+    return array;
+  }
+*/
 
 /** this draws the 'dots'
   public GeometryArray makeGeometry() throws VisADException {

@@ -68,7 +68,7 @@ public abstract class SampledSet extends SimpleSet {
   void init_samples(float[][] samples, boolean copy)
        throws VisADException {
     if (samples.length != DomainDimension) {
-      throw new SetException("GriddedSet.init_samples: " +
+      throw new SetException("SampledSet.init_samples: " +
                              "dimensions don't match");
     }
     if (Length == 0) {
@@ -77,7 +77,7 @@ public abstract class SampledSet extends SimpleSet {
     }
     else {
       if (Length != samples[0].length) {
-        throw new SetException("GriddedSet.init_samples: " +
+        throw new SetException("SampledSet.init_samples: " +
                                "lengths don't match");
       }
     }
@@ -90,7 +90,7 @@ public abstract class SampledSet extends SimpleSet {
     }
     for (int j=0; j<DomainDimension; j++) {
       if (samples[j].length != Length) {
-        throw new SetException("GriddedSet: lengths don't match");
+        throw new SetException("SampledSet.init_samples: lengths don't match");
       }
       float[] samplesJ = samples[j];
       float[] SamplesJ = Samples[j];
@@ -106,11 +106,11 @@ public abstract class SampledSet extends SimpleSet {
 */
         if (SamplesJ[i] != SamplesJ[i]) {
           throw new SetException(
-                     "GriddedSet: sample values cannot be missing");
+                     "SampledSet.init_samples: sample values cannot be missing");
         }
         if (Double.isInfinite(SamplesJ[i])) {
           throw new SetException(
-                     "GriddedSet: sample values cannot be infinite");
+                     "SampledSet.init_samples: sample values cannot be infinite");
         }
         if (SamplesJ[i] < Low[j]) Low[j] = SamplesJ[i];
         if (SamplesJ[i] > Hi[j]) Hi[j] = SamplesJ[i];
@@ -179,7 +179,7 @@ public abstract class SampledSet extends SimpleSet {
         double max = Hi[i];
         Unit dunit =
           ((RealType) ((SetType) Type).getDomain().getComponent(i)).
-          getDefaultUnit();
+            getDefaultUnit();
         if (dunit != null && !dunit.equals(SetUnits[i])) {
           min = dunit.toThis(min, SetUnits[i]);
           max = dunit.toThis(max, SetUnits[i]);
@@ -267,9 +267,9 @@ public abstract class SampledSet extends SimpleSet {
     float[] coordinates = new float[3 * len];
     int j = 0;
     for (int i=0; i<len; i++) {
-      coordinates[j++] = (float) samples[0][i];
-      coordinates[j++] = (float) samples[1][i];
-      coordinates[j++] = (float) samples[2][i];
+      coordinates[j++] = samples[0][i];
+      coordinates[j++] = samples[1][i];
+      coordinates[j++] = samples[2][i];
     }
     array.coordinates = coordinates;
     array.vertexFormat |= GeometryArray.COORDINATES;
@@ -280,18 +280,20 @@ public abstract class SampledSet extends SimpleSet {
       j = 0;
       if (color_length == 4) {
         for (int i=0; i<len; i++) {
-          colors[j++] = (float) color_values[0][i];
-          colors[j++] = (float) color_values[1][i];
-          colors[j++] = (float) color_values[2][i];
-          colors[j++] = (float) color_values[3][i];
+          colors[j++] = color_values[0][i];
+          colors[j++] = color_values[1][i];
+          colors[j++] = color_values[2][i];
+          colors[j++] = (1.0f - color_values[3][i]);
         }
+System.out.println("COLOR_4 " + color_values[3][0] + " " + color_values[3][1] +
+                          " " + color_values[3][2] + " " + color_values[3][3]);
         array.vertexFormat |= GeometryArray.COLOR_4;
       }
       else if (color_length == 3) {
         for (int i=0; i<len; i++) {
-          colors[j++] = (float) color_values[0][i];
-          colors[j++] = (float) color_values[1][i];
-          colors[j++] = (float) color_values[2][i];
+          colors[j++] = color_values[0][i];
+          colors[j++] = color_values[1][i];
+          colors[j++] = color_values[2][i];
         }
         array.vertexFormat |= GeometryArray.COLOR_3;
       }

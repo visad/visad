@@ -29,7 +29,8 @@ package visad;
    Integer1DSet represents a finite set of samples of R at
    an integer lattice based at the origin (i.e, 0, 1, 2, ..., length-1).<P>
 */
-public class Integer1DSet extends Linear1DSet {
+public class Integer1DSet extends Linear1DSet
+       implements IntegerSet {
 
   public Integer1DSet(MathType type, int length) throws VisADException {
     this(type, length, null, null, null);
@@ -38,10 +39,6 @@ public class Integer1DSet extends Linear1DSet {
   public Integer1DSet(MathType type, int length, CoordinateSystem coord_sys,
                       Unit[] units, ErrorEstimate[] errors) throws VisADException {
     super(type, 0.0, (double) (length - 1), length, coord_sys, units, errors);
-  }
-
-  public boolean isIntegerSet() {
-    return true;
   }
 
   public Object clone() {

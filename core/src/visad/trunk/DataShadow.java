@@ -42,7 +42,7 @@ public class DataShadow extends Object implements java.io.Serializable {
       2. animationRangeSampling
       3. new Linear1DSet(type, low_range, hi_range, 100) */
   Set animationSampling; // from a Field domain in data
-  Set animationRangeSampling; // from a range value in data
+  Set animationRangeSampling; // from a range value in data (should never happen)
 
   DataShadow(double[][] r) {
     ranges = r;

@@ -27,33 +27,58 @@ default:
 # Make the VisAD source tar file
 
 TAR_FILES = \
-	README			\
-	NOTICE			\
-	LICENSE			\
-	Makefile		\
-	rmic_script		\
-	docs/DESIGN5		\
-	*.java			\
-	*.txt			\
-	*.html
+	visad/README					\
+	visad/DEDICATION				\
+	visad/NOTICE					\
+	visad/LICENSE					\
+	visad/Makefile					\
+	visad/rmic_script				\
+	visad/docs/DESIGN5				\
+	visad/*.java					\
+	visad/data/*.java				\
+	visad/data/netcdf/*.java			\
+	visad/data/netcdf/plain/*.java			\
+	ucar/netcdf/*.java				\
+	visad/*.txt					\
+	visad/*.html
 
 tar:
+	cd .. ; \
 	tar -cvf visad-2.0.tar $(TAR_FILES) ; \
 	compress visad-2.0.tar ; \
+	mv visad-2.0.tar.Z visad ; \
+	cd visad ; \
 	cp visad-2.0.tar.Z visad.taz ; \
 	ls -l visad-2.0.tar.Z visad.taz
 
+jar:
+	cd .. ; \
+	jar cvf visad-2.0.jar $(TAR_FILES) ; \
+	mv visad-2.0.jar visad ; \
+	cd visad ; \
+	cp visad-2.0.jar visad.jar ; \
+	ls -l visad-2.0.jar visad.jar
+
 save:
 	cp *.java backup
+	cp data/*.java backup/data
+	cp data/netcdf/*.java backup/data/netcdf
+	cp data/netcdf/plain/*.java backup/data/netcdf/plain
+	cp paoloa/*.java backup/paoloa
+	cp paoloa/*.f backup/paoloa
+	cp paoloa/*.c backup/paoloa
+	cp paoloa/*.h backup/paoloa
+	cp paoloa/Makefile backup/paoloa
 	cp *.txt backup
 	cp *.html backup
 	cp README backup
+	cp DEDICATION backup
 	cp NOTICE backup
 	cp LICENSE backup
 	cp Makefile backup
 	cp rmic_script backup
 	cp docs/DESIGN5 backup
-	wc backup/*.java
+	wc backup/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/plain/*.java backup/paoloa/*.java
 
 .SUFFIXES : .java .class
 
@@ -61,5 +86,5 @@ save:
 	javac $<
 
 compile:
-	javac *.java
+	javac *.java data/netcdf/*.java data/netcdf/plain/*.java
 

@@ -35,19 +35,20 @@ import java.rmi.*;
    The ShadowSetType class shadows the SetType class,
    within a DataDisplayLink.<P>
 */
-public class ShadowSetType extends ShadowType {
-
-  private ShadowRealTupleType Domain; 
-
-  private Vector AccumulationVector = new Vector();
+public class ShadowSetType extends ShadowFunctionOrSetType {
 
   ShadowSetType(MathType t, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(t, link, parent);
     Domain = (ShadowRealTupleType)
                   ((SetType) Type).getDomain().buildShadowType(Link, this);
+    Range = null;
+    Flat = true;
     MultipleDisplayScalar = Domain.getMultipleDisplayScalar();
     MappedDisplayScalar = Domain.getMappedDisplayScalar();
+    RangeComponents = null;
+    DomainComponents = getComponents(Domain, false);
+    DomainReferenceComponents = getComponents(Domain.getReference(), false);
   }
 
   int checkIndices(int[] indices, int[] display_indices, int[] value_indices,
@@ -60,6 +61,9 @@ public class ShadowSetType extends ShadowType {
 
     if (Domain.testTransform()) Domain.markTransform(isTransform);
 
+    // get value_indices arrays used by doTransform
+    inherited_values = copyIndices(value_indices);
+
     // check for any mapped
     if (levelOfDifficulty == NOTHING_MAPPED) {
       if (checkAny(local_display_indices)) {
@@ -68,11 +72,24 @@ public class ShadowSetType extends ShadowType {
     }
 
     // test legality of Animation and SelectValue in Domain
-    if (Domain.getDimension() != 1 &&
-        checkAnimationOrValue(Domain.getDisplayIndices())) {
-      throw new BadMappingException("ShadowSetType.checkIndices: " +
+    int avCount = checkAnimationOrValue(Domain.getDisplayIndices());
+    if (Domain.getDimension() != 1) {
+      if (avCount > 0) {
+        throw new BadMappingException("ShadowSetType.checkIndices: " +
                                     "Animation and SelectValue may only occur " +
                                     "in 1-D Set domain");
+      }
+    }
+    else {
+      // eventually ShadowType.testTransform is used to mark Animation,
+      // Value or Range as isTransform when multiple occur in Domain;
+      // however, temporary hack in Renderer.isTransformControl requires 
+      // multiple occurence of Animation and Value to throw an Exception
+      if (avCount > 1) {
+        throw new BadMappingException("ShadowSetType.checkIndices: " +
+                                    "only one Animation and SelectValue may " +
+                                    "occur Set domain");
+      }
     }
 
     anyContour = checkContour(local_display_indices);
@@ -109,74 +126,6 @@ public class ShadowSetType extends ShadowType {
       }
     }
     return LevelOfDifficulty;
-  }
-
-  ShadowRealTupleType getDomain() {
-    return Domain;
-  }
-
-  /** clear AccumulationVector */
-  public void preProcess() throws VisADException {
-    AccumulationVector.removeAllElements();
-  }
-
-  /** transform data into a Java3D scene graph;
-      return true if need post-process */
-  public boolean doTransform(Group group, Data data, float[] value_array,
-                             float[] default_values)
-         throws VisADException {
-    if (isTerminal) {
-      if (LevelOfDifficulty == LEGAL) {
-        // add values to value_array according to SelectedMapVector-s
-        // of RealType-s in Domain (including Reference)
-        //
-        // accumulate Vector of value_array-s at this ShadowType,
-        // to be rendered in a post-process to scanning data
-/*
-        return true;
-*/
-        throw new UnimplementedException("ShadowSetType.doTransform: " +
-                                         "terminal LEGAL");
-      }
-      else {
-        // must be LevelOfDifficulty == SIMPLE_FIELD
-        // only manage Spatial, Color and Alpha here
-        // (account for Domain Reference)
-/*
-        Group data_group = null;
-        group.addChild(data_group);
-*/
-        throw new UnimplementedException("ShadowSetType.doTransform: " +
-                                         "terminal SIMPLE_FIELD");
-      }
-    }
-    else {
-      // nothing to render at a non-terminal RealType
-    }
-    return false;
-  }
- 
-  /** render accumulated Vector of value_array-s to
-      and add to group; then clear AccumulationVector */
-  public void postProcess(Group group) throws VisADException {
-    if (isTerminal) {
-      if (LevelOfDifficulty == LEGAL) {
-/*
-        Group data_group = null;
-        // transform AccumulationVector
-        group.addChild(data_group);
-*/
-        throw new UnimplementedException("ShadowSetType.postProcess: " +
-                                         "terminal LEGAL");
-      }
-      else {
-        // nothing to do
-      }
-    }
-    else {
-      // nothing to do
-    }
-    AccumulationVector.removeAllElements();
   }
 
 }

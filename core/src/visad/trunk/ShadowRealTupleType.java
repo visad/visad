@@ -34,33 +34,34 @@ import java.rmi.*;
 */
 public class ShadowRealTupleType extends ShadowTupleType {
 
-  // Shadow of Type.getCoordinateSystem().getReference()
+  /** Shadow of Type.getCoordinateSystem().getReference() */
   private ShadowRealTupleType Reference;
 
-  // If allSpatial, need complex logic with permutation
-  // need to indicate subspace of DisplaySpatialCartesianTuple
-  // or of another spatial DisplayTupleType, and permutation
-  // of subspace components
-  //
-  // true if all tupleComponents map to DisplaySpatialTuple
-  // without overlap, or if allSpatialReference is true
+  /** If allSpatial, need complex logic with permutation;
+      need to indicate subspace of DisplaySpatialCartesianTuple
+      or of another spatial DisplayTupleType, and permutation
+      of subspace components;
+      true if all tupleComponents map to DisplaySpatialTuple
+      without overlap, or if allSpatialReference is true */
   private boolean allSpatial;
 
-  // true if using Reference.allSpatial
+  /** true if using Reference.allSpatial */
   private boolean allSpatialReference;
 
-  // unique spatial DisplayTupleType whose components
-  // are mapped from components of this
-  // uniqueness enforced by BadMappingException-s
-  //
-  // implicit anySpatial = (DisplaySpatialTuple != null)
+  /** unique spatial DisplayTupleType whose components
+      are mapped from components of this;
+      uniqueness enforced by BadMappingException-s;
+      implicit anySpatial = (DisplaySpatialTuple != null) */
   private DisplayTupleType DisplaySpatialTuple;
 
-  // mapping from components of DisplaySpatialTuple to
-  // components of this, or -1
-  // use default values for components of DisplaySpatial
-  // whose permutation == -1 from ConstantMap-s or from
-  // DisplayRealType.DefaultValue
+  /** true if DisplaySpatialTuple is from Reference */
+  private boolean spatialReference;
+
+  /** mapping from components of DisplaySpatialTuple to
+      components of this, or -1;
+      use default values for components of DisplaySpatial
+      whose permutation == -1 from ConstantMap-s or from
+      DisplayRealType.DefaultValue */
   private int[] permutation;
  
   ShadowRealTupleType(MathType t, DataDisplayLink link, ShadowType parent)
@@ -74,6 +75,7 @@ public class ShadowRealTupleType extends ShadowTupleType {
     allSpatial = true;
     allSpatialReference = false;
     DisplaySpatialTuple = null;
+    spatialReference = false;
 
     // note DisplayIndices already computed by super constructor,
     // except for contribution by Reference
@@ -135,6 +137,7 @@ public class ShadowRealTupleType extends ShadowTupleType {
         }
         else {
           DisplaySpatialTuple = tuple;
+          spatialReference = true;
           allSpatial = Reference.getAllSpatial();
           allSpatialReference = allSpatial;
           permutation = Reference.getPermutation();
@@ -150,23 +153,45 @@ public class ShadowRealTupleType extends ShadowTupleType {
   }
 
   //
-  // NOTE
+  // TO_DO
+  // allow for any Flat ShadowTupleType
   //
-  // allow for any Flat ShadowTupleType or ShadowRealType
   //
-  //
-  void checkDirect() {
-    if (LevelOfDifficulty == SIMPLE_TUPLE &&
-        !MultipleDisplayScalar) {
+  void checkDirect(Data data) throws VisADException, RemoteException {
+    if (LevelOfDifficulty != SIMPLE_TUPLE) {
+      whyNotDirect = notSimpleTuple;
+      return;
+    }
+    else if (MultipleDisplayScalar) {
+      whyNotDirect = multipleMapping;
+      return;
+    }
+    else if (!Display.DisplaySpatialCartesianTuple.equals(DisplaySpatialTuple)) {
+      whyNotDirect = nonCartesian;
+      return; 
+    }
+    else if (spatialReference) {
+      whyNotDirect = viaReference;
+      return; 
+    }
+/* WLH 25 Dec 97
+    else if (data.isMissing()) {
+      whyNotDirect = dataMissing;
+      return; 
+    }
+*/
+    isDirectManipulation = true;
 
-      if (DisplaySpatialTuple.equals(
-          Display.DisplaySpatialCartesianTuple)) {
-        // this is mapped to a spatial DisplayRealType
-        // (i.e., DisplaySpatialTuple != null)
-        // and is not mapped through any (Display) CoordinateSystem
-        // (i.e., DisplaySpatialTuple.equals(DisplaySpatialCartesianTuple) )
-        isDirectManipulation = true;
-      }
+    domainAxis = -1;
+    for (int i=0; i<3; i++) { 
+      axisToComponent[i] = -1;
+      directMap[i] = null;
+    }
+
+    directManifoldDimension = 0;
+    for (int i=0; i<getDimension(); i++) {
+      directManifoldDimension +=
+        setDirectMap((ShadowRealType) getComponent(i), i, false);
     }
   }
 
@@ -186,6 +211,10 @@ public class ShadowRealTupleType extends ShadowTupleType {
 
   public boolean getMappedDisplayScalar() {
     return MappedDisplayScalar;
+  }
+
+  public boolean getSpatialReference() {
+    return spatialReference;
   }
 
   public ShadowRealTupleType getReference() {

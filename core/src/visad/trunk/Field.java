@@ -88,6 +88,25 @@ public interface Field extends Function {
   public abstract Unit[] getDefaultRangeUnits()
          throws VisADException, RemoteException;
 
+  /** get range Unit-s for 'Flat' components;
+      second index may enumerate samples, if they differ */
+  public abstract Unit[][] getRangeUnits()
+         throws VisADException, RemoteException;
+
+  /** get range CoordinateSystem for 'RealTuple' range;
+      second index may enumerate samples, if they differ */
+  public abstract CoordinateSystem[] getRangeCoordinateSystem()
+         throws VisADException, RemoteException;
+
+  /** get range CoordinateSystem for 'RealTuple' components;
+      second index may enumerate samples, if they differ */
+  public abstract CoordinateSystem[] getRangeCoordinateSystem(int component)
+         throws VisADException, RemoteException;
+
+  /** is this a FlatField or a RemoteField adapting a FlatField */
+  public abstract boolean isFlatField()
+         throws VisADException, RemoteException;
+
 
 /**
 <PRE>

@@ -45,8 +45,15 @@ public abstract class Renderer extends Object {
   DisplayImpl display;
   /** used to insert output into scene graph */
   DisplayRenderer displayRenderer;
-  /** scene graph component */
-  BranchGroup sceneGraphComponent;
+  /** switch is parent of any BranchGroups created by this */
+  Switch sw;
+  /** parent of sw for 'detach' */
+  BranchGroup swParent;
+  /** index of current 'intended' child of Switch sw;
+      not necessarily == sw.getWhichChild() */
+  int currentIndex;
+  BranchGroup[] branches;
+  boolean[] switchFlags = {false, false, false};
 
   /** links to Data to be renderer by this */
   transient DataDisplayLink[] Links;
@@ -62,7 +69,6 @@ public abstract class Renderer extends Object {
   public Renderer () {
     Links = null;
     display = null;
-    sceneGraphComponent = null;
   }
 
   void setLinks(DataDisplayLink[] links, DisplayImpl d)
@@ -76,7 +82,33 @@ public abstract class Renderer extends Object {
     feasible = new boolean[Links.length];
     changed = new boolean[Links.length];
     for (int i=0; i<Links.length; i++) feasible[i] = false;
+
+    // set up switch logic for clean BranchGroup replacement
+    sw = new Switch();
+    sw.setCapability(Group.ALLOW_CHILDREN_READ);
+    sw.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    sw.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    sw.setCapability(Switch.ALLOW_SWITCH_READ);
+    sw.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    branches = new BranchGroup[3];
+    for (int i=0; i<3; i++) {
+      branches[i] = new BranchGroup();
+      branches[i].setCapability(Group.ALLOW_CHILDREN_READ);
+      branches[i].setCapability(Group.ALLOW_CHILDREN_WRITE);
+      branches[i].setCapability(Group.ALLOW_CHILDREN_EXTEND);
+      sw.setChild(branches[i], i);
+    }
+    currentIndex = 0;
+    sw.setWhichChild(currentIndex);
+    swParent = new BranchGroup();
+    swParent.setCapability(BranchGroup.ALLOW_DETACH);
+    swParent.addChild(sw);
+    // make it 'live'
+    addSwitch(displayRenderer, swParent);
   }
+
+  abstract void addSwitch(DisplayRenderer displayRenderer,
+                          BranchGroup branch);
 
   DataDisplayLink[] getLinks() {
     return Links;
@@ -94,9 +126,6 @@ public abstract class Renderer extends Object {
       changed[i] = false;
       DataReference ref = Links[i].getDataReference();
       // test for changed Controls that require doTransform
-/* DEBUG
-      System.out.println("Renderer.prepareAction " + ref.getName());
-*/
       if (Links[i].checkTicks() || !feasible[i] || initialize) {
         // data has changed - need to re-display
         changed[i] = true;
@@ -127,39 +156,100 @@ public abstract class Renderer extends Object {
           }
         }
       }
-      Links[i].syncTicks();
     }
     return shadow;
+  }
+
+  boolean getBadScale() {
+    boolean badScale = false;
+    for (int i=0; i<Links.length; i++) {
+      if (!feasible[i]) return true;
+      Enumeration maps = Links[i].getSelectedMapVector().elements();
+      while(maps.hasMoreElements()) {
+        badScale |= ((ScalarMap) maps.nextElement()).badRange();
+      }
+    }
+    return badScale;
   }
 
   /** re-transform if needed;
       return false if not done */
   public boolean doAction() throws VisADException, RemoteException {
-    clearScene();
+    BranchGroup branch;
     if (all_feasible && (any_changed || any_transform_control)) {
+      clearAVControls();
       try {
-        sceneGraphComponent = doTransform();
+        branch = doTransform();
+      }
+      catch (BadMappingException e) {
+        display.addException(e.getMessage());
+        branch = null;
       }
       catch (UnimplementedException e) {
-        String errorMessage = e.getMessage(); // do something with this
-        System.out.println("UnimplementedException: " + errorMessage);
-        sceneGraphComponent = null;
+        display.addException(e.getMessage());
+        branch = null;
       }
 
-      if (sceneGraphComponent != null) {
-        displayRenderer.addSceneGraphComponent(sceneGraphComponent);
+      if (branch != null) {
+        synchronized (this) {
+          if (branches[currentIndex].numChildren() == 0) {
+            branches[currentIndex].addChild(branch);
+            sw.setWhichChild(currentIndex);
+          }
+          else { // if (branches[currentIndex].numChildren() != 0)
+            int nextIndex = (currentIndex + 1) % 3;
+            if (branches[nextIndex].numChildren() != 0) {
+              try {
+                wait(5000);
+              }
+              catch(InterruptedException e) {
+                // note notify generates a normal return from wait rather
+                // than an Exception - control doesn't normally come here
+              }
+            }
+            if (branches[nextIndex].numChildren() != 0) {
+              throw new DisplayException("Renderer.doAction: wait too long");
+            }
+            branches[nextIndex].addChild(branch);
+            displayRenderer.switchScene(this, nextIndex);
+            switchFlags[nextIndex] = true;
+            currentIndex = nextIndex;
+          } // end if (branches[currentIndex].numChildren() != 0)
+        } // end synchronized (this)
       }
-      else {
+      else { // if (branch == null)
         all_feasible = false;
       }
     }
     return all_feasible;
   }
 
+  synchronized boolean switchTransition(int index) {
+    if (switchFlags[index]) {
+      sw.setWhichChild(index);
+      switchFlags[index] = false;
+      return true;
+    }
+    else {
+      // this is the same as (index - 1) % 3 but always positive
+      branches[(index + 2) % 3].removeChild(0);
+      notify();
+      return false;
+    }
+  }
+
   public void clearScene() {
-    if (sceneGraphComponent != null) {
-      displayRenderer.removeSceneGraphComponent(sceneGraphComponent);
-      sceneGraphComponent = null;
+    swParent.detach();
+    displayRenderer.clearScene(this);
+  }
+
+  public void clearAVControls() {
+    Enumeration controls = display.getControlVector().elements();
+    while (controls.hasMoreElements()) {
+      Control control = (Control) controls.nextElement();
+      if (control instanceof AVControl) {
+        ((AVControl) control).clearSwitches(this);
+      }
     }
   }
 
@@ -167,7 +257,9 @@ public abstract class Renderer extends Object {
       may be over-ridden by Renderer sub-classes */
   public boolean isTransformControl(Control control, DataDisplayLink link) {
     if (control instanceof ProjectionControl ||
-        control instanceof ToggleControl) return false;
+        control instanceof ToggleControl) {
+      return false;
+    }
 /* WLH 1 Nov 97 - temporary hack -
    RangeControl changes always require Transform
    ValueControl and AnimationControl never do

@@ -26,8 +26,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   SphericalCoordinateSystem is the VisAD class for cordinate
-   systems for (Latitude, Longitude, Radius).<P>
+   SphericalCoordinateSystem is the VisAD CoordinateSystem class
+   for (Latitude, Longitude, Radius), with Latitude and Longitude
+   in degrees.<P>
 */
 class SphericalCoordinateSystem extends CoordinateSystem {
 
@@ -44,7 +45,7 @@ class SphericalCoordinateSystem extends CoordinateSystem {
   }
 
   public double[][] toReference(double[][] tuples) throws VisADException {
-    if (tuples.length != 3) {
+    if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("SphericalCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
@@ -57,20 +58,20 @@ class SphericalCoordinateSystem extends CoordinateSystem {
         value[2][i] = Double.NaN;
       }
       else {
-        double coslat = Math.cos(tuples[0][i]);
-        double sinlat = Math.sin(tuples[0][i]);
-        double coslon = Math.cos(tuples[1][i]);
-        double sinlon = Math.sin(tuples[1][i]);
-        value[0][i] = tuples[2][i] * sinlon * sinlat;
-        value[1][i] = tuples[2][i] * coslon * sinlat;
-        value[2][i] = tuples[2][i] * coslat;
+        double coslat = Math.cos(Data.DEGREES_TO_RADIANS * tuples[0][i]);
+        double sinlat = Math.sin(Data.DEGREES_TO_RADIANS * tuples[0][i]);
+        double coslon = Math.cos(Data.DEGREES_TO_RADIANS * tuples[1][i]);
+        double sinlon = Math.sin(Data.DEGREES_TO_RADIANS * tuples[1][i]);
+        value[0][i] = tuples[2][i] * sinlon * coslat;
+        value[1][i] = tuples[2][i] * coslon * coslat;
+        value[2][i] = tuples[2][i] * sinlat;
       }
     }
     return value;
   }
 
   public double[][] fromReference(double[][] tuples) throws VisADException {
-    if (tuples.length != 3) {
+    if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("SphericalCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
@@ -80,14 +81,17 @@ class SphericalCoordinateSystem extends CoordinateSystem {
       value[2][i] = Math.sqrt(tuples[0][i] * tuples[0][i] +
                               tuples[1][i] * tuples[1][i] +
                               tuples[2][i] * tuples[2][i]);
-      value[1][i] = Math.acos(tuples[2][i] / value[1][i]);
-      value[0][i] = Math.atan2(tuples[1][i], tuples[0][i]);
+      value[0][i] =
+        Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]);
+      value[1][i] =
+        Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]);
+      if (value[1][i] < 0.0) value[1][i] += 180.0;
     }
     return value;
   }
 
   public float[][] toReference(float[][] tuples) throws VisADException {
-    if (tuples.length != 3) {
+    if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("SphericalCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
@@ -100,20 +104,20 @@ class SphericalCoordinateSystem extends CoordinateSystem {
         value[2][i] = Float.NaN;
       }
       else {
-        float coslat = (float) Math.cos(tuples[0][i]);
-        float sinlat = (float) Math.sin(tuples[0][i]);
-        float coslon = (float) Math.cos(tuples[1][i]);
-        float sinlon = (float) Math.sin(tuples[1][i]);
-        value[0][i] = tuples[2][i] * sinlon * sinlat;
-        value[1][i] = tuples[2][i] * coslon * sinlat;
-        value[2][i] = tuples[2][i] * coslat;
+        float coslat = (float) Math.cos(Data.DEGREES_TO_RADIANS * tuples[0][i]);
+        float sinlat = (float) Math.sin(Data.DEGREES_TO_RADIANS * tuples[0][i]);
+        float coslon = (float) Math.cos(Data.DEGREES_TO_RADIANS * tuples[1][i]);
+        float sinlon = (float) Math.sin(Data.DEGREES_TO_RADIANS * tuples[1][i]);
+        value[0][i] = tuples[2][i] * sinlon * coslat;
+        value[1][i] = tuples[2][i] * coslon * coslat;
+        value[2][i] = tuples[2][i] * sinlat;
       }
     }
     return value;
   }
  
   public float[][] fromReference(float[][] tuples) throws VisADException {
-    if (tuples.length != 3) {
+    if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("SphericalCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
@@ -123,8 +127,11 @@ class SphericalCoordinateSystem extends CoordinateSystem {
       value[2][i] = (float) Math.sqrt(tuples[0][i] * tuples[0][i] +
                                       tuples[1][i] * tuples[1][i] +
                                       tuples[2][i] * tuples[2][i]);
-      value[1][i] = (float) Math.acos(tuples[2][i] / value[1][i]);
-      value[0][i] = (float) Math.atan2(tuples[1][i], tuples[0][i]);
+      value[0][i] = (float)
+        (Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]));
+      value[1][i] = (float)
+        (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]));
+      if (value[1][i] < 0.0f) value[1][i] += 180.0f;
     }
     return value;
   }

@@ -31,6 +31,8 @@ import java.rmi.*;
    DataChangedOccurrence is the VisAD class for changes in Data objects
    referred to by DataReference objects.  They are sourced by
    DataReference objects and received by Action objects.<P>
+
+   This class is necessary because java.awt.Event cannot be used with RMI.<P>
 */
 public class DataChangedOccurrence extends Object
        implements java.io.Serializable {

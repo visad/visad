@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.3 1997-11-14 13:49:40 billh Exp $
+ * $Id: Unit.java,v 1.4 1998-01-01 21:17:36 billh Exp $
  */
 
 package visad;
@@ -53,7 +53,7 @@ public abstract class Unit
     float[][] new_value = new float[value.length][];
     for (int i=0; i<value.length; i++) {
       if (units_out[i] == null) {
-        if (units_in[i] != null) {
+        if (units_in[i] != null && !(units_in[i] instanceof PromiscuousUnit)) {
           throw new UnitException("Unit.convertTuple: illegal Unit conversion");
         }
         new_value[i] = value[i];
@@ -268,6 +268,18 @@ public abstract class Unit
     public Unit multiply(Unit that)
 	throws UnitException
     {
+/*
+   added by Bill Hibbard for VisAD
+*/
+        if (this instanceof PromiscuousUnit) {
+          return that;
+        }
+        else if (that instanceof PromiscuousUnit) {
+          return this;
+        }
+/*
+   end of added by Bill Hibbard for VisAD
+*/
 	if (that instanceof BaseUnit)
 	    return multiply((BaseUnit)that);
 	if (that instanceof DerivedUnit)
@@ -291,6 +303,18 @@ public abstract class Unit
     public Unit divide(Unit that)
 	throws UnitException
     {
+/*
+   added by Bill Hibbard for VisAD
+*/
+        if (this instanceof PromiscuousUnit) {
+          return that;
+        }
+        else if (that instanceof PromiscuousUnit) {
+          return this;
+        }
+/*
+   end of added by Bill Hibbard for VisAD
+*/
 	if (that instanceof BaseUnit)
 	    return divide((BaseUnit)that);
 	if (that instanceof DerivedUnit)
@@ -335,10 +359,7 @@ public abstract class Unit
 */
         if ((this instanceof PromiscuousUnit) ||
             (that instanceof PromiscuousUnit)) {
-          double[] newValues = new double[values.length];
-          for (int i = 0; i < values.length; ++i) {
-            newValues[i] = values[i];
-          }
+          return values;
         }
 /*
    end of added by Bill Hibbard for VisAD
@@ -364,10 +385,7 @@ public abstract class Unit
 */
         if ((this instanceof PromiscuousUnit) ||
             (that instanceof PromiscuousUnit)) {
-          float[] newValues = new float[values.length];
-          for (int i = 0; i < values.length; ++i) {
-            newValues[i] = values[i];
-          }
+          return values;
         }
 /*
    end of added by Bill Hibbard for VisAD
@@ -414,6 +432,16 @@ public abstract class Unit
      */
     public double[] toThat(double[] values, Unit that)
            throws UnitException {
+/*
+   added by Bill Hibbard for VisAD
+*/
+        if ((this instanceof PromiscuousUnit) ||
+            (that instanceof PromiscuousUnit)) {
+          return values;
+        }
+/*
+   end of added by Bill Hibbard for VisAD
+*/
 	if (that instanceof BaseUnit)
 	    return toThat(values, (BaseUnit)that);
 	else
@@ -430,6 +458,16 @@ public abstract class Unit
 
     public float[] toThat(float[] values, Unit that)
            throws UnitException {
+/*
+   added by Bill Hibbard for VisAD
+*/
+        if ((this instanceof PromiscuousUnit) ||
+            (that instanceof PromiscuousUnit)) {
+          return values;
+        }
+/*
+   end of added by Bill Hibbard for VisAD
+*/
         if (that instanceof BaseUnit)
             return toThat(values, (BaseUnit)that);
         else

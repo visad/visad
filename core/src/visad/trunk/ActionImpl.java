@@ -74,12 +74,66 @@ public abstract class ActionImpl extends Object
     }
   }
 
+  public void setTicks() {
+    synchronized (LinkVector) {
+      Enumeration links = LinkVector.elements();
+      while (links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+        link.setTicks();
+/*
+if (Name != null && Name.equals("shalstep_cell")) {
+  link.printTicks("setTicks");
+}
+*/
+      }
+    }
+  }
+
+  public boolean checkTicks() {
+    boolean doIt = false;
+    synchronized (LinkVector) {
+      Enumeration links = LinkVector.elements();
+      while (links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+        doIt |= link.checkTicks();
+/*
+if (Name != null && Name.equals("shalstep_cell")) {
+  link.printTicks("checkTicks");
+}
+*/
+      }
+    }
+    return doIt;
+  }
+
+  public void resetTicks() {
+    synchronized (LinkVector) {
+      Enumeration links = LinkVector.elements();
+      while (links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+        link.resetTicks();
+/*
+if (Name != null && Name.equals("shalstep_cell")) {
+  link.printTicks("resetTicks");
+}
+*/
+      }
+    }
+  }
+
+
   public void run() {
+    boolean dontSleep;
     while (true) {
       try {
-        doAction();
+        dontSleep = false;
+        setTicks();
+        if (checkTicks() || this instanceof DisplayImpl) {
+          doAction();
+        }
         synchronized (LinkVector) {
           Enumeration links = LinkVector.elements();
+          dontSleep = false;
           while (links.hasMoreElements()) {
             ReferenceActionLink link =
               (ReferenceActionLink) links.nextElement();
@@ -88,10 +142,14 @@ public abstract class ActionImpl extends Object
               DataReference ref = link.getDataReference();
               DataChangedOccurrence e =
                 ref.acknowledgeDataChanged(link.getAction());
-              if (e != null) dataChanged(e);
+              if (e != null) {
+                dataChanged(e);
+                dontSleep = true;
+              }
             }
           }
         }
+        resetTicks();
       }
       catch(VisADException v) {
         v.printStackTrace();
@@ -101,17 +159,16 @@ public abstract class ActionImpl extends Object
         v.printStackTrace();
         throw new VisADError("Action.run: " + v.toString());
       }
-/* DEBUG
-      System.out.println("Action " + Name + " run wait");
-*/
-      try {
-        synchronized (this) {
-          wait(5000);
+      if (!dontSleep) {
+        try {
+          synchronized (this) {
+            wait(5000);
+          }
         }
-      }
-      catch(InterruptedException e) {
-        // note notify generates a normal return from wait rather
-        // than an Exception - control doesn't normally come here
+        catch(InterruptedException e) {
+          // note notify generates a normal return from wait rather
+          // than an Exception - control doesn't normally come here
+        }
       }
     }
   }
@@ -123,37 +180,13 @@ public abstract class ActionImpl extends Object
     DataReference ref = e.getDataReference();
     ReferenceActionLink link = findReference(ref);
 
-/* DEBUG
-    System.out.println("ActionImpl.dataChanged  link = " + link +
-                       ref.getName() + " ref = " + ref);
-*/
-
     if (link != null) {
-
-/* DEBUG
-      System.out.println("ActionImpl.dataChanged  before setTicks");
-*/
-
-      link.setTicks(e.getTick());
+      link.incTick(e.getTick());
       link.setBall(true);
-
-/* DEBUG
-      System.out.println("ActionImpl.dataChanged  after setTicks");
-*/
-
       synchronized (this) {
         notify();
       }
     }
-/* DEBUG
-    try {
-      System.out.println("ActionImpl " + Name + " DataRef " + ref.getName() +
-                         " tick " + e.getTick() + " dataChanged");
-    }
-    catch (RemoteException r) {
-      System.out.println("Action.dataChanged: RemoteException in debug print");
-    }
-*/
   }
 
   /** add a ReferenceActionLink */
@@ -170,10 +203,6 @@ public abstract class ActionImpl extends Object
       LinkVector.addElement(link);
     }
     ref.addDataChangedListener(link.getAction());
-/* DEBUG
-    System.out.println("ActionImpl " + Name + " addDataChangedListener " +
-                       ref.getName());
-*/
   }
 
   void notifyAction() {
@@ -186,9 +215,6 @@ public abstract class ActionImpl extends Object
       must be local DataReferenceImpl */
   public void addReference(DataReference ref)
          throws VisADException, RemoteException {
-/* DEBUG
-    System.out.println("ActionImpl " + Name + " addReference " + ref.getName());
-*/
     if (!(ref instanceof DataReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.addReference: requires " +
                                      "DataReferenceImpl");
@@ -203,9 +229,6 @@ public abstract class ActionImpl extends Object
   /** method for use by RemoteActionImpl that adapts this ActionImpl */
   void adaptedAddReference(RemoteDataReference ref, Action action)
        throws VisADException, RemoteException {
-/* DEBUG
-    System.out.println("ActionImpl.adaptedAddReference,  ref = " + ref);
-*/
     if (findReference(ref) != null) {
       throw new ReferenceException("ActionImpl.adaptedAddReference: " +
                                    "link already exists");
@@ -218,9 +241,6 @@ public abstract class ActionImpl extends Object
       must be local DataReferenceImpl */
   public void removeReference(DataReference ref)
          throws VisADException, RemoteException {
-/* DEBUG
-    System.out.println("ActionImpl " + Name + " removeReference " + ref.getName());
-*/
     ReferenceActionLink link = null;
     if (!(ref instanceof DataReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.removeReference: requires " +

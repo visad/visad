@@ -97,8 +97,8 @@ public class Contour2D extends Applet implements MouseListener {
     float[][] auxLevels = null;
     int naux = (auxValues != null) ? auxValues.length : 0;
     if (naux > 0) {
-      if (auxLevels == null || auxLevels1.length != naux ||
-          auxLevels2.length != naux) {
+      if (auxLevels1 == null || auxLevels1.length != naux ||
+          auxLevels2 == null || auxLevels2.length != naux) {
         throw new SetException("Contour2D.contour: "
                               +"auxLevels length doesn't match");
       }

@@ -1,6 +1,6 @@
 
 //
-// FlowControl.java
+// RemoteCell.java
 //
 
 /*
@@ -26,40 +26,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   FlowControl is the VisAD abstract super-class for controlling
-   Flow display scalars.<P>
+   RemoteCell is the interface for Remote Cell-s.<P>
 */
-public abstract class FlowControl extends Control {
-
-  float flowScale;
-
-  boolean HorizontalVectorSlice;
-  boolean VerticalVectorSlice;
-  boolean HorizontalStreamSlice;
-  boolean VerticalStreamSlice;
-  boolean[] TrajectorySet;
-
-  double HorizontalVectorSliceHeight;
-  double HorizontalStreamSliceHeight;
-
-  // WLH  need Vertical*Slice location parameters
-
-  public FlowControl(DisplayImpl d) {
-    super(d);
-  }
- 
-  FlowControl() {
-    this(null);
-  }
-
-  public void setFlowScale(float scale) {
-    flowScale = scale;
-    changeControl();
-  }
-
-  public float getFlowScale() {
-    return flowScale;
-  }
+public interface RemoteCell extends Cell {
 
 }
 

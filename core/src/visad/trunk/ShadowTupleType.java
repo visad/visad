@@ -39,7 +39,12 @@ public class ShadowTupleType extends ShadowType {
 
   ShadowType[] tupleComponents;
 
+  private ShadowRealType[] RealComponents;
+
   private Vector AccumulationVector = new Vector();
+
+  /** value_indices from parent */
+  private int[] inherited_values;
 
   /** true if no component with mapped Scalar components is a
       ShadowSetType, ShadowFunctionType or ShadowTupleType;
@@ -76,6 +81,7 @@ public class ShadowTupleType extends ShadowType {
         ValueIndices = addIndices(ValueIndices, shadow.getValueIndices());
       }
     }
+    RealComponents = getComponents(this, true);
   }
 
   // copy and increment indices for each ShadowRealType component and
@@ -130,6 +136,9 @@ public class ShadowTupleType extends ShadowType {
 
     markTransform(isTransform);
 
+    // get value_indices arrays used by doTransform
+    inherited_values = copyIndices(value_indices);
+
     // check for any mapped
     if (levelOfDifficulty == NOTHING_MAPPED) {
       if (checkAny(DisplayIndices)) {
@@ -139,7 +148,7 @@ public class ShadowTupleType extends ShadowType {
 
     if (Flat) {
       // test legality of Animation and SelectValue
-      if (checkAnimationOrValue(DisplayIndices)) {
+      if (checkAnimationOrValue(DisplayIndices) > 0) {
         throw new BadMappingException("ShadowTupleType.checkIndices: " +
                                       "Animation and SelectValue may not " +
                                       "occur in range");
@@ -217,51 +226,146 @@ public class ShadowTupleType extends ShadowType {
   /** transform data into a Java3D scene graph;
       return true if need post-process */
   public boolean doTransform(Group group, Data data, float[] value_array,
-                             float[] default_values)
-         throws VisADException {
-    if (isTerminal) {
-      if (LevelOfDifficulty == LEGAL) {
-        // add values to value_array according to SelectedMapVector-s
-        // of RealType-s in components (including Reference)
-        //
-        // accumulate Vector of value_array-s at this ShadowType,
-        // to be rendered in a post-process to scanning data
-/*
-        return true;
-*/
-        throw new UnimplementedException("ShadowTupleType.doTransform: " +
-                                         "terminal LEGAL");
-      }
-      else {
-        // must be LevelOfDifficulty == SIMPLE_TUPLE
-        // only manage Spatial, Color and Alpha here
-        // i.e., the 'dots'
-/*
-        Group data_group = null;
-        group.addChild(data_group);
-*/
-        throw new UnimplementedException("ShadowTupleType.doTransform: " +
-                                         "terminal SIMPLE_TUPLE");
+                             float[] default_values, Renderer renderer)
+         throws VisADException, RemoteException {
+
+    if (data.isMissing()) return false;
+
+    if (!(data instanceof Tuple)) {
+      throw new DisplayException("ShadowTupleType.doTransform: " +
+                                 "data must be Tuple");
+    }
+
+    // get some precomputed values useful for transform
+    // length of ValueArray
+    int valueArrayLength = display.getValueArrayLength();
+    // mapping from ValueArray to DisplayScalar
+    int[] valueToScalar = display.getValueToScalar();
+    // mapping from ValueArray to MapVector
+    int[] valueToMap = display.getValueToMap();
+    Vector MapVector = display.getMapVector();
+
+    // array to hold values for various mappings
+    float[][] display_values = new float[valueArrayLength][];
+
+    // get values inherited from parent;
+    // assume these do not include SelectRange, SelectValue
+    // or Animation values - see temporary hack in
+    // Renderer.isTransformControl
+    for (int i=0; i<valueArrayLength; i++) {
+      if (inherited_values[i] > 0) {
+        display_values[i] = new float[1];
+        display_values[i][0] = value_array[i];
       }
     }
-    else {
+
+    Tuple tuple = (Tuple) data;
+    RealType[] realComponents = ((TupleType) data.getType()).getRealComponents();
+    int length = realComponents.length;
+    if (length > 0) {
+      double[][] value = new double[length][1];
+      Unit[] value_units = new Unit[length];
+      int j = 0;
+      for (int i=0; i<tuple.getDimension(); i++) {
+        Data component = tuple.getComponent(i);
+        if (component instanceof Real) {
+          value_units[j] = realComponents[j].getDefaultUnit();
+          value[j][0] =
+            ((Real) component).getValue(value_units[j]);
+          j++;
+        }
+        else if (component instanceof RealTuple) {
+          for (int k=0; k<((RealTuple) component).getDimension(); k++) {
+            value_units[j] = realComponents[j].getDefaultUnit();
+            value[j][0] =
+              ((Real) ((RealTuple) component).getComponent(k)).
+                                              getValue(value_units[j]);
+            j++;
+          }
+        }
+      }
+      mapValues(display_values, value, RealComponents);
+
+      if (refToComponent != null) {
+
+        // TO_DO
+
+        for (int i=0; i<refToComponent.length; i++) {
+          int n = componentWithRef[i].getDimension();
+          int start = refToComponent[i];
+          double[][] values = new double[n][];
+          for (j=0; j<n; j++) values[j] = value[j + start];
+          ShadowRealTupleType component_reference =
+            componentWithRef[i].getReference();
+          RealTupleType ref = (RealTupleType) component_reference.getType();
+          Unit[] range_units;
+          CoordinateSystem range_coord_sys;
+          if (i == 0 && componentWithRef[i].equals(this)) {
+            range_units = value_units;
+            range_coord_sys = ((RealTuple) data).getCoordinateSystem();
+          }
+          else {
+            range_units = new Unit[n];
+            for (j=0; j<n; j++) range_units[j] = value_units[j + start];
+            range_coord_sys = ((RealTuple) ((Tuple) data).
+                    getComponent(componentIndex[i])).getCoordinateSystem();
+          }
+ 
+          // MEM
+          double[][] reference_values =
+            CoordinateSystem.transformCoordinates(
+              ref, null, ref.getDefaultUnits(), null,
+              (RealTupleType) componentWithRef[i].getType(),
+              range_coord_sys, range_units, null, value);
+ 
+          // map reference_values to appropriate DisplayRealType-s
+          // MEM
+          mapValues(display_values, reference_values,
+                    getComponents(componentWithRef[i], false));
+          // FREE
+          reference_values = null;
+          // FREE (redundant reference to range_values)
+          values = null;
+        } // end for (int i=0; i<refToComponent.length; i++)
+      } // end if (refToComponent != null)
+    } // end if (length > 0)
+
+    float[][] range_select =
+      assembleSelect(display_values, 1, valueArrayLength,
+                     valueToScalar, display);
+
+    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
+      // data not selected
+      return false;
+    }
+
+    if (isTerminal) {
+      return terminalTupleOrReal(group, display_values, valueArrayLength,
+                                 valueToScalar, display, default_values,
+                                 inherited_values, renderer);
+    }
+    else { // if (!isTerminal)
       boolean post = false;
       // add values to value_array according to SelectedMapVector-s
       // of RealType-s in components (including Reference), and
       // recursively call doTransform on other components
-/*
-      for (int i=0; i<num_components; i++) {
-        post |= component_type.doTransform(group, component_data, value_array,
-                                           default_values);
+      for (int i=0; i<valueArrayLength; i++) {
+        if (display_values[i] != null) {
+          value_array[i] = display_values[i][0];
+        }
+      }
+
+      for (int i=0; i<tuple.getDimension(); i++) {
+        Data component = tuple.getComponent(i);
+        if (!(component instanceof Real) &&
+            !(component instanceof RealTuple)) {
+          ShadowType component_type = getComponent(i);
+          post |= component_type.doTransform(group, component, value_array,
+                                             default_values, renderer);
+        }
       }
       return post;
-*/
-      throw new UnimplementedException("ShadowTupleType.doTransform: " +
-                                       "not terminal");
     }
-/*
-    return false;
-*/
   }
  
   /** render accumulated Vector of value_array-s to

@@ -61,6 +61,9 @@ public class ShadowRealType extends ShadowType {
 
   private Vector AccumulationVector = new Vector();
 
+  /** value_indices from parent */
+  private int[] inherited_values;
+
   ShadowRealType(MathType type, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(type, link, parent);
@@ -140,6 +143,9 @@ public class ShadowRealType extends ShadowType {
 
     markTransform(isTransform);
 
+    // get value_indices arrays used by doTransform
+    inherited_values = copyIndices(value_indices);
+
     // check for any mapped
     if (levelOfDifficulty == NOTHING_MAPPED) {
       if (checkAny(DisplayIndices)) {
@@ -148,7 +154,7 @@ public class ShadowRealType extends ShadowType {
     }
 
     // test legality of Animation and SelectValue
-    if (checkAnimationOrValue(DisplayIndices)) {
+    if (checkAnimationOrValue(DisplayIndices) > 0) {
       throw new BadMappingException("ShadowRealType.checkIndices: " +
                                     "Animation and SelectValue may not " +
                                     "occur in range");
@@ -165,6 +171,35 @@ public class ShadowRealType extends ShadowType {
       }
     }
     return LevelOfDifficulty;
+  }
+
+  void checkDirect(Data data) throws VisADException, RemoteException {
+    if (LevelOfDifficulty != SIMPLE_TUPLE) {
+      whyNotDirect = notSimpleTuple;
+      return;
+    }
+    else if (MultipleDisplayScalar) {
+      whyNotDirect = multipleMapping;
+      return;
+    }
+    else if(!Display.DisplaySpatialCartesianTuple.equals(DisplaySpatialTuple)) {
+      whyNotDirect = nonCartesian;
+      return;
+    }
+/* WLH 25 Dec 97
+    else if(data.isMissing()) {
+      whyNotDirect = dataMissing;
+      return;
+    }
+*/
+    isDirectManipulation = true;
+
+    domainAxis = -1;
+    for (int i=0; i<3; i++) {
+      axisToComponent[i] = -1;
+      directMap[i] = null;
+    }
+    directManifoldDimension = setDirectMap(this, 0, false);
   }
 
   public boolean getMappedDisplayScalar() {
@@ -212,31 +247,63 @@ public class ShadowRealType extends ShadowType {
   /** transform data into a Java3D scene graph;
       return true if need post-process */
   public boolean doTransform(Group group, Data data, float[] value_array,
-                             float[] default_values)
-         throws VisADException {
+                             float[] default_values, Renderer renderer)
+         throws VisADException, RemoteException {
+
+    if (data.isMissing()) return false;
+
+    if (!(data instanceof Real)) {
+      throw new DisplayException("ShadowrealType.doTransform: " +
+                                 "data must be Real");
+    }
+ 
+    // get some precomputed values useful for transform
+    // length of ValueArray
+    int valueArrayLength = display.getValueArrayLength();
+    // mapping from ValueArray to DisplayScalar
+    int[] valueToScalar = display.getValueToScalar();
+    // mapping from ValueArray to MapVector
+    int[] valueToMap = display.getValueToMap();
+    Vector MapVector = display.getMapVector();
+ 
+    // array to hold values for various mappings
+    float[][] display_values = new float[valueArrayLength][];
+ 
+    // get values inherited from parent;
+    // assume these do not include SelectRange, SelectValue
+    // or Animation values - see temporary hack in
+    // Renderer.isTransformControl
+    for (int i=0; i<valueArrayLength; i++) {
+      if (inherited_values[i] > 0) {
+        display_values[i] = new float[1];
+        display_values[i][0] = value_array[i];
+      }
+    }
+ 
+    Real real = (Real) data;
+
+    RealType rtype = (RealType) getType();
+    RealType[] realComponents = {rtype};
+    double[][] value = new double[1][1];
+    value[0][0] = real.getValue(rtype.getDefaultUnit());
+    ShadowRealType[] RealComponents = {this};
+    mapValues(display_values, value, RealComponents);
+
+    float[][] range_select =
+      assembleSelect(display_values, 1, valueArrayLength,
+                     valueToScalar, display);
+ 
+    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
+      // data not selected
+      return false;
+    }
+
     // add values to value_array according to SelectedMapVector
     if (isTerminal) {
       // cannot be any Reference when RealType is terminal
-      if (LevelOfDifficulty == LEGAL) {
-        // accumulate Vector of value_array-s at this ShadowType,
-        // to be rendered in a post-process to scanning data
-/*
-        return true;
-*/
-        throw new UnimplementedException("ShadowRealType.doTransform: " +
-                                         "terminal LEGAL");
-      }
-      else {
-        // must be LevelOfDifficulty == SIMPLE_TUPLE
-        // only manage Spatial, Color and Alpha here
-        // i.e., the 'dots'
-/*
-        Group data_group = null;
-        group.addChild(data_group);
-*/
-        throw new UnimplementedException("ShadowRealType.doTransform: " +
-                                         "terminal SIMPLE_TUPLE");
-      }
+      return terminalTupleOrReal(group, display_values, valueArrayLength,
+                                 valueToScalar, display, default_values,
+                                 inherited_values, renderer);
     }
     else {
       // nothing to render at a non-terminal RealType

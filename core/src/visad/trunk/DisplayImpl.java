@@ -27,8 +27,16 @@ package visad;
 
 import java.util.*;
 import java.rmi.*;
+import java.io.*;
 import com.sun.j3d.utils.applet.AppletFrame;
+import javax.media.j3d.*;
+import java.vecmath.*;
 
+// GUI handling
+import com.sun.java.swing.*;
+import com.sun.java.swing.border.*;
+
+import visad.data.netcdf.plain.Plain;
 
 /**
    DisplayImpl is the VisAD class for displays.  It is runnable.<P>
@@ -64,10 +72,24 @@ public class DisplayImpl extends ActionImpl implements Display {
   /** DisplayRenderer object for background and metadata rendering */
   private DisplayRenderer displayRenderer;
 
+  /** a Vector of BadMappingExceptions and UnimplementedExceptions
+      generated during the last invocation of doAction */
+  private Vector ExceptionVector = new Vector();
+
+  /** basic graphics api for DisplayImpl */
+  private int graphicsApi;
+  /** legal values for graphicsApi */
+  public static final int JPANEL_JAVA3D = 1;
+  public static final int APPLETFRAME_JAVA3D = 2;
+  /** these are used for APPLETFRAME_JAVA3D */
+  private DisplayApplet applet;
+  private AppletFrame frame;
+  /** these are used for JPANEL_JAVA3D */
+  private DisplayPanel panel;
+
   /** set to indicate need to compute ranges of RealType-s
       and sampling for Animation */
   private boolean initialize = true;
-
 
   /** length of ValueArray of distinct DisplayRealType values;
       one per Single DisplayRealType that occurs in a ScalarMap,
@@ -81,17 +103,26 @@ public class DisplayImpl extends ActionImpl implements Display {
   /** mapping from ValueArray to MapVector */
   int[] valueToMap;
 
-  /** these are needed for Early Access Java3D */
-  DisplayApplet applet;
-  AppletFrame frame;
-
   /** constructor with DefaultDisplayRenderer */
-  public DisplayImpl(String name) throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRenderer());
+  public DisplayImpl(String name)
+         throws VisADException, RemoteException {
+    this(name, new DefaultDisplayRenderer(), JPANEL_JAVA3D);
   }
 
   /** constructor with non-DefaultDisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
+         throws VisADException, RemoteException {
+    this(name, renderer, JPANEL_JAVA3D);
+  }
+
+  /** constructor with DefaultDisplayRenderer */
+  public DisplayImpl(String name, int api)
+         throws VisADException, RemoteException {
+    this(name, new DefaultDisplayRenderer(), api);
+  }
+
+  /** constructor with non-DefaultDisplayRenderer */
+  public DisplayImpl(String name, DisplayRenderer renderer, int api)
          throws VisADException, RemoteException {
     super(name);
     // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
@@ -109,17 +140,29 @@ public class DisplayImpl extends ActionImpl implements Display {
     projection =
       (ProjectionControl) Display.XAxis.getControl().cloneButContents(this);
     ControlVector.addElement(projection);
-    applet = new DisplayApplet(this);
-    frame = new AppletFrame(applet, 256, 256);
+
+    graphicsApi = api;
+    if (api == APPLETFRAME_JAVA3D) {
+      applet = new DisplayApplet(this);
+      frame = new AppletFrame(applet, 256, 256);
+      frame.setTitle(name);
+    }
+    else if (api == JPANEL_JAVA3D) {
+      panel = new DisplayPanel(this);
+    }
+    else {
+      throw new DisplayException("DisplayImpl: bad graphicsApi");
+    }
+  }
+
+  public JPanel getPanel() {
+    return panel;
   }
 
   /** create link to DataReference with DefaultRenderer;
       must be local DataReferenceImpl */
   public void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException {
-/* DEBUG
-    System.out.println("DisplayImpl " + Name + " addReference " + ref.getName());
-*/
     if (!(ref instanceof DataReferenceImpl)) {
       throw new RemoteVisADException("DisplayImpl.addReference: requires " +
                                      "DataReferenceImpl");
@@ -141,10 +184,6 @@ public class DisplayImpl extends ActionImpl implements Display {
       ActionImpl */
   void adaptedAddReference(RemoteDataReference ref, RemoteDisplay display,
        ConstantMap[] constant_maps) throws VisADException, RemoteException {
-/* DEBUG
-    System.out.println("DisplayImpl.adaptedAddReference " + Name + " " +
-                       ref.getName() + " ref = " + ref);
-*/
     if (findReference(ref) != null) {
       throw new TypeException("DisplayImpl.adaptedAddReference: " +
                               "link already exists");
@@ -168,7 +207,7 @@ public class DisplayImpl extends ActionImpl implements Display {
       throw new DisplayException("DisplayImpl.addReferences: must have at " +
                                  "least one DataReference");
     }
-    if (refs.length != constant_maps.length) {
+    if (constant_maps != null && refs.length != constant_maps.length) {
       throw new DisplayException("DisplayImpl.addReferences: constant_maps " +
                                  "length must match refs length");
     }
@@ -181,8 +220,14 @@ public class DisplayImpl extends ActionImpl implements Display {
       if (findReference(refs[i]) != null) {
         throw new TypeException("DisplayImpl.addReferences: link already exists");
       }
-      links[i] =
-        new DataDisplayLink(refs[i], this, this, constant_maps[i], renderer);
+      if (constant_maps == null) {
+        links[i] =
+          new DataDisplayLink(refs[i], this, this, null, renderer);
+      }
+      else {
+        links[i] =
+          new DataDisplayLink(refs[i], this, this, constant_maps[i], renderer);
+      }
       addLink(links[i]);
     }
     renderer.setLinks(links, this);
@@ -200,7 +245,7 @@ public class DisplayImpl extends ActionImpl implements Display {
       throw new DisplayException("DisplayImpl.addReferences: must have at " +
                                  "least one DataReference");
     }
-    if (refs.length != constant_maps.length) {
+    if (constant_maps != null && refs.length != constant_maps.length) {
       throw new DisplayException("DisplayImpl.addReferences: constant_maps " +
                                  "length must match refs length");
     }
@@ -211,13 +256,25 @@ public class DisplayImpl extends ActionImpl implements Display {
       }
       if (refs[i] instanceof DataReferenceImpl) {
         // refs[i] is local
-        links[i] =
-          new DataDisplayLink(refs[i], this, this, constant_maps[i], renderer);
+        if (constant_maps == null) {
+          links[i] =
+            new DataDisplayLink(refs[i], this, this, null, renderer);
+        }   
+        else {
+          links[i] =
+            new DataDisplayLink(refs[i], this, this, constant_maps[i], renderer);
+        }
       }
       else {
         // refs[i] is remote
-        links[i] =
-          new DataDisplayLink(refs[i], this, display, constant_maps[i], renderer);
+        if (constant_maps == null) {
+          links[i] =
+            new DataDisplayLink(refs[i], this, display, null, renderer);
+        }   
+        else {
+          links[i] =
+            new DataDisplayLink(refs[i], this, display, constant_maps[i], renderer);
+        }
       }
       addLink(links[i]);
     }
@@ -236,7 +293,6 @@ public class DisplayImpl extends ActionImpl implements Display {
                                      "DataReferenceImpl");
     }
     adaptedDisplayRemoveReference(ref);
-    initialize = true;
   }
 
   /** remove link to a DataReference;
@@ -269,6 +325,7 @@ public class DisplayImpl extends ActionImpl implements Display {
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {
+    ExceptionVector.removeAllElements();
     // set tickFlag-s in changed Control-s
     Enumeration maps = MapVector.elements();
     while (maps.hasMoreElements()) {
@@ -316,11 +373,13 @@ public class DisplayImpl extends ActionImpl implements Display {
     // clone RendererVector to avoid need for synchronized access
     Vector temp = ((Vector) RendererVector.clone());
     Enumeration renderers = temp.elements();
+    boolean badScale = false;
     while (renderers.hasMoreElements()) {
       Renderer renderer = (Renderer) renderers.nextElement();
       shadow = renderer.prepareAction(initialize, shadow);
+      badScale |= renderer.getBadScale();
     }
-    initialize = false;
+    initialize = badScale;
 
     if (shadow != null) {
       // apply RealType ranges and animationSampling
@@ -330,6 +389,9 @@ public class DisplayImpl extends ActionImpl implements Display {
         map.setRange(shadow);
       }
     }
+
+    ScalarMap.equalizeFlow(MapVector, Display.DisplayFlow1Tuple);
+    ScalarMap.equalizeFlow(MapVector, Display.DisplayFlow2Tuple);
 
     renderers = temp.elements();
     while (renderers.hasMoreElements()) {
@@ -342,6 +404,18 @@ public class DisplayImpl extends ActionImpl implements Display {
       Control control = ((ScalarMap) maps.nextElement()).getControl();
       if (control != null) control.resetTicks();
     }
+  }
+
+  /** add message from BadMappingException or
+      UnimplementedException to ExceptionVector */
+  public void addException(String error_string) {
+    ExceptionVector.addElement(error_string);
+  }
+
+  /** get a clone of ExceptionVector to avoid
+      concurrent access by Display thread */
+  public Vector getExceptionVector() {
+    return (Vector) ExceptionVector.clone();
   }
 
   public DisplayRenderer getDisplayRenderer() {
@@ -541,6 +615,10 @@ public class DisplayImpl extends ActionImpl implements Display {
     return valueToMap;
   }
 
+  public ProjectionControl getProjectionControl() {
+    return projection;
+  }
+
   public GraphicsModeControl getGraphicsModeControl() {
     return mode;
   }
@@ -572,7 +650,8 @@ public class DisplayImpl extends ActionImpl implements Display {
 
   /** run 'java visad.DisplayImpl' to test the DisplayImpl class */
   public static void main(String args[])
-         throws VisADException, RemoteException {
+         throws IOException, VisADException, RemoteException {
+
 
     RealType vis_radiance = new RealType("vis_radiance", null, null);
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -580,6 +659,9 @@ public class DisplayImpl extends ActionImpl implements Display {
 
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
+
+    RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
+    RealTupleType earth_location3d = new RealTupleType(types3d);
 
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
@@ -590,6 +672,14 @@ public class DisplayImpl extends ActionImpl implements Display {
 
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
 
+    FunctionType grid_tuple = new FunctionType(earth_location3d, radiance);
+
+    RealType[] time = {RealType.Time};
+    RealTupleType time_type = new RealTupleType(time);
+    FunctionType time_images = new FunctionType(time_type, image_tuple);
+
+    System.out.println(time_images);
+    System.out.println(grid_tuple);
     System.out.println(image_tuple);
     System.out.println(ir_histogram);
 
@@ -598,92 +688,221 @@ public class DisplayImpl extends ActionImpl implements Display {
 
     // use 'java visad.DisplayImpl' for size = 256 (implicit -mx16m)
     // use 'java -mx40m visad.DisplayImpl' for size = 512
-    int size = 256;
+    int size = 64;
+    int size3d = 16;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size);
     FlatField imaget1 = FlatField.makeField(image_tuple, size);
+    FlatField grid1 = FlatField.makeField(grid_tuple, size3d);
 
-    DisplayImpl display1 = new DisplayImpl("display1");
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
-    display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.RGB));
-    // display1.addMap(new ScalarMap(count, Display.XAxis));
+    int ntimes = 4;
+    Set time_set =
+      new Linear1DSet(time_type, 0.0, (double) (ntimes - 1.0), ntimes);
+    FieldImpl image_sequence = new FieldImpl(time_images, time_set);
+    FlatField temp = imaget1;
+    Real[] reals = {new Real(vis_radiance, 1.0), new Real(ir_radiance, 2.0)};
+    RealTuple val = new RealTuple(reals);
+    for (int i=0; i<ntimes; i++) {
+      image_sequence.setSample(i, imaget1);
+      temp = (FlatField) temp.add(val);
+    }
+    Real[] reals2 = {new Real(count, 1.0), new Real(ir_radiance, 2.0),
+                     new Real(vis_radiance, 1.0)};
+    // RealTuple direct = new RealTuple(reals2);
+    Real direct = new Real(ir_radiance, 2.0);
+
+
+    DisplayImpl display1 = new DisplayImpl("display1", APPLETFRAME_JAVA3D);
+    display1.addMap(new ScalarMap(vis_radiance, Display.XAxis));
+    display1.addMap(new ScalarMap(ir_radiance, Display.YAxis));
+    display1.addMap(new ScalarMap(count, Display.ZAxis));
+/*
+    display1.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
+    display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
+    display1.addMap(new ScalarMap(vis_radiance, Display.Radius));
+*/
+/*
+    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    display1.addMap(new ScalarMap(vis_radiance, Display.Green));
+    display1.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
+    // display1.addMap(new ScalarMap(vis_radiance, Display.IsoContour));
+    display1.addMap(new ScalarMap(ir_radiance, Display.Alpha));
+    // display1.addMap(new ConstantMap(0.5, Display.Alpha));
+*/
 
 
 /* code to load a GIF image into imaget1 */
+/*
     double[][] data = imaget1.getValues();
-    data[1] = display1.applet.getValues("file:/home/billh/java/visad/billh.gif", size);
+    DisplayApplet applet = new DisplayApplet();
+    data[1] = applet.getValues("file:/home/billh/java/visad/billh.gif", size);
     imaget1.setSamples(data);
+*/
+/*
+    Plain plain = new Plain();
+    FlatField netcdf_data = (FlatField) plain.open("pmsl.nc");
+    // System.out.println("netcdf_data = " + netcdf_data);
+    // prints: FunctionType (Real): (lon, lat) -> P_msl
+    //
+    // compute ScalarMaps from type components
+    FunctionType ftype = (FunctionType) netcdf_data.getType();
+    RealTupleType dtype = ftype.getDomain();
+    MathType rtype = ftype.getRange();
+    int n = dtype.getDimension();
+    display1.addMap(new ScalarMap((RealType) dtype.getComponent(0),
+                                  Display.XAxis));
+    if (n > 1) {
+      display1.addMap(new ScalarMap((RealType) dtype.getComponent(1),
+                                    Display.YAxis));
+    }
+    if (n > 2) {
+      display1.addMap(new ScalarMap((RealType) dtype.getComponent(2),
+                                    Display.ZAxis));
+    }
+    if (rtype instanceof RealType) {
+      display1.addMap(new ScalarMap((RealType) rtype, Display.Green));
+      if (n <= 2) {
+        display1.addMap(new ScalarMap((RealType) rtype, Display.ZAxis));
+      }
+    }
+    else if (rtype instanceof RealTupleType) {
+      int m = ((RealTupleType) rtype).getDimension();
+      RealType rr = (RealType) ((RealTupleType) rtype).getComponent(0);
+      display1.addMap(new ScalarMap(rr, Display.Green));
+      if (n >= 2) {
+        if (m > 1) {
+          rr = (RealType) ((RealTupleType) rtype).getComponent(1);
+        }
+        display1.addMap(new ScalarMap(rr, Display.ZAxis));
+      }
+    }
+    display1.addMap(new ConstantMap(0.5, Display.Red));
+    display1.addMap(new ConstantMap(0.0, Display.Blue));
+*/
 
 
     GraphicsModeControl mode = display1.getGraphicsModeControl();
-    mode.setPointSize(3.0f);
+    mode.setPointSize(5.0f);
     mode.setPointMode(false);
+/*
+    mode.setProjectionPolicy(View.PARALLEL_PROJECTION);
+java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
+        at javax.media.j3d.View.setProjectionPolicy(View.java:423)
+*/
 
     System.out.println(display1);
-    DataReferenceImpl ref_data = new DataReferenceImpl("Test");
-    ref_data.setData(imaget1);
-    // ref_data.setData(histogram1);
-    display1.addReference(ref_data, null);
 
 /*
-    DisplayImpl display2 = new DisplayImpl("display2");
-    display2.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
-    display2.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
-    display2.addMap(new ScalarMap(ir_radiance, Display.Radius));
-    display2.addMap(new ScalarMap(vis_radiance, Display.RGB));
-    System.out.println(display2);
-    display2.addReference(ref_data, null);
+    DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+    ref_imaget1.setData(imaget1);
+    display1.addReference(ref_imaget1, null);
+*/
 
-    DisplayImpl display3 = new DisplayImpl("display3");
+/*
+    DataReferenceImpl ref_val = new DataReferenceImpl("ref_val");
+    ref_val.setData(val);
+    DataReference[] refs = {ref_val};
+    display1.addReferences(new DirectManipulationRenderer(), refs, null);
+*/
+
+    DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
+    ref_direct.setData(direct);
+    DataReference[] refs2 = {ref_direct};
+    display1.addReferences(new DirectManipulationRenderer(), refs2, null);
+
+    DataReferenceImpl ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+    ref_histogram1.setData(histogram1);
+    DataReference[] refs3 = {ref_histogram1};
+    display1.addReferences(new DirectManipulationRenderer(), refs3, null);
+
+/*
+    DataReferenceImpl ref_netcdf = new DataReferenceImpl("ref_netcdf");
+    ref_netcdf.setData(netcdf_data);
+    display1.addReference(ref_netcdf, null);
+*/
+/*
+    DataReferenceImpl ref_image_sequence =
+      new DataReferenceImpl("ref_image_sequence");
+    ref_image_sequence.setData(image_sequence);
+    display1.addReference(ref_image_sequence, null);
+*/
+/*
+    DataReferenceImpl ref_grid1 = new DataReferenceImpl("ref_grid1");
+    ref_grid1.setData(grid1);
+    display1.addReference(ref_grid1, null);
+*/
+
+    DisplayImpl display2 = new DisplayImpl("display2", APPLETFRAME_JAVA3D);
+    display2.addMap(new ScalarMap(vis_radiance, Display.XAxis));
+    display2.addMap(new ScalarMap(ir_radiance, Display.YAxis));
+    display2.addMap(new ScalarMap(count, Display.ZAxis));
+
+    GraphicsModeControl mode2 = display2.getGraphicsModeControl();
+    mode2.setPointSize(5.0f);
+    mode2.setPointMode(false);
+
+    display2.addReferences(new DirectManipulationRenderer(), refs2, null);
+    display2.addReferences(new DirectManipulationRenderer(), refs3, null);
+
+/*
+    DisplayImpl display5 = new DisplayImpl("display5", APPLETFRAME_JAVA3D);
+    display5.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
+    display5.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
+    display5.addMap(new ScalarMap(ir_radiance, Display.Radius));
+    display5.addMap(new ScalarMap(vis_radiance, Display.RGB));
+    System.out.println(display5);
+    display5.addReference(ref_imaget1, null);
+
+    DisplayImpl display3 = new DisplayImpl("display3", APPLETFRAME_JAVA3D);
     display3.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
     display3.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
     display3.addMap(new ScalarMap(ir_radiance, Display.Radius));
     display3.addMap(new ScalarMap(vis_radiance, Display.RGB));
     System.out.println(display3);
-    display3.addReference(ref_data, null);
+    display3.addReference(ref_imaget1, null);
 
-    DisplayImpl display4 = new DisplayImpl("display4");
+    DisplayImpl display4 = new DisplayImpl("display4", APPLETFRAME_JAVA3D);
     display4.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
     display4.addMap(new ScalarMap(RealType.Longitude, Display.Radius));
     display4.addMap(new ScalarMap(ir_radiance, Display.YAxis));
     display4.addMap(new ScalarMap(vis_radiance, Display.RGB));
     System.out.println(display4);
-    display4.addReference(ref_data, null);
+    display4.addReference(ref_imaget1, null);
 
     delay(1000);
     System.out.println("\ndelay\n");
 
-    ref_data.incTick();
+    ref_imaget1.incTick();
 
     delay(1000);
     System.out.println("\ndelay\n");
 
-    ref_data.incTick();
+    ref_imaget1.incTick();
 
     delay(1000);
     System.out.println("\ndelay\n");
 
-    ref_data.incTick();
+    ref_imaget1.incTick();
  
     System.out.println("\nno delay\n");
  
-    ref_data.incTick();
+    ref_imaget1.incTick();
  
     System.out.println("\nno delay\n");
  
-    ref_data.incTick();
+    ref_imaget1.incTick();
  
     delay(2000);
     System.out.println("\ndelay\n");
 
-    display1.removeReference(ref_data);
-    display2.removeReference(ref_data);
-    display3.removeReference(ref_data);
-    display4.removeReference(ref_data);
+
+    display1.removeReference(ref_imaget1);
+    display5.removeReference(ref_imaget1);
+    display3.removeReference(ref_imaget1);
+    display4.removeReference(ref_imaget1);
 
     display1.stop();
-    display2.stop();
+    display5.stop();
     display3.stop();
     display4.stop();
 */

@@ -28,18 +28,6 @@ package visad;
 import java.util.*;
 import java.rmi.*;
 
-
-/*
-   WLH - NOTE
-
-   need to do something about ConstantMap-s, DefaultValue-s
-   and ShadowRealTupleType.permutation
-
-   WLH - NOTE
-
-*/
-
-
 /**
    Display is the VisAD interface for displays.  It is runnable.<P>
 
@@ -74,7 +62,7 @@ public interface Display extends Action {
                         ProjectionControl.prototype, true);
 
   public final static DisplayRealType Latitude =
-    new DisplayRealType("Latitude", true, -180.0, 180.0, 0.0,
+    new DisplayRealType("Latitude", true, -90.0, 90.0, 0.0,
                         ProjectionControl.prototype, CommonUnit.degree, true);
   public final static DisplayRealType Longitude =
     new DisplayRealType("Longitude", true, 0.0, 360.0, 0.0,
@@ -100,7 +88,8 @@ public interface Display extends Action {
                         ColorControl.prototype, true);
 
   public final static DisplayRealType Hue =
-    new DisplayRealType("Hue", false, 0.0, 1.0, 0.0, null, true);
+    new DisplayRealType("Hue", false, 0.0, 360.0, 0.0, null,
+                       CommonUnit.degree, true);
   public final static DisplayRealType Saturation =
     new DisplayRealType("Saturation", false, 0.0, 1.0, 0.0, null, true);
   public final static DisplayRealType Value =
@@ -127,8 +116,11 @@ public interface Display extends Action {
 
   /** animation display scalar */
   public final static DisplayRealType Animation =
+    new DisplayRealType("Animation", true, 0.0, AnimationControl.prototype, true);
+/* WLH 29 Nov 97
     new DisplayRealType("Animation", true, 0.0, 1.0, 0.0,
                         AnimationControl.prototype, true);
+*/
 
   /** display scalar for selecting by a single value */
   public final static DisplayRealType SelectValue =

@@ -80,6 +80,24 @@ public class RealTupleType extends TupleType {
     this(types, null, null);
   }
 
+  public RealTupleType(RealType a) throws VisADException {
+    this(makeArray(a), null, null);
+  }
+
+  public RealTupleType(RealType a, RealType b) throws VisADException {
+    this(makeArray(a, b), null, null);
+  }
+
+  public RealTupleType(RealType a, RealType b, RealType c)
+         throws VisADException {
+    this(makeArray(a, b, c), null, null);
+  }
+
+  public RealTupleType(RealType a, RealType b, RealType c, RealType d)
+         throws VisADException {
+    this(makeArray(a, b, c, d), null, null);
+  }
+
   public RealTupleType(RealType[] types, CoordinateSystem coord_sys, Set set)
          throws VisADException {
     super(types);
@@ -117,6 +135,26 @@ public class RealTupleType extends TupleType {
     }
   }
 
+  public RealTupleType(RealType a, CoordinateSystem coord_sys,
+         Set set) throws VisADException {
+    this(makeArray(a), coord_sys, set);
+  }
+
+  public RealTupleType(RealType a, RealType b,
+         CoordinateSystem coord_sys, Set set) throws VisADException {
+    this(makeArray(a, b), coord_sys, set);
+  }
+
+  public RealTupleType(RealType a, RealType b, RealType c,
+         CoordinateSystem coord_sys, Set set) throws VisADException {
+    this(makeArray(a, b, c), coord_sys, set);
+  }
+
+  public RealTupleType(RealType a, RealType b, RealType c, RealType d,
+         CoordinateSystem coord_sys, Set set) throws VisADException {
+    this(makeArray(a, b, c, d), coord_sys, set);
+  }
+
   /** trusted constructor for initializers */
   RealTupleType(RealType[] types, boolean b) {
     this(types, null, b);
@@ -135,6 +173,27 @@ public class RealTupleType extends TupleType {
       throw new VisADError("RealTupleType (trusted): CoordinateSystem Units " +
                            "must be convertable with default Units");
     }
+  }
+
+  private static RealType[] makeArray(RealType a) {
+    RealType[] types = {a};
+    return types;
+  }
+
+  private static RealType[] makeArray(RealType a, RealType b) {
+    RealType[] types = {a, b};
+    return types;
+  }
+
+  private static RealType[] makeArray(RealType a, RealType b, RealType c) {
+    RealType[] types = {a, b, c};
+    return types;
+  }
+
+  private static RealType[] makeArray(RealType a, RealType b, RealType c,
+                                      RealType d) {
+    RealType[] types = {a, b, c, d};
+    return types;
   }
 
   private void setDefaultUnits(RealType[] types) {

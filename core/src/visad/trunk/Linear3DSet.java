@@ -33,7 +33,8 @@ package visad;
    the 1D components, with the first component increasing fastest.
    For more detail, see the example in Linear2DSet.java.<P>
 */
-public class Linear3DSet extends Gridded3DSet {
+public class Linear3DSet extends Gridded3DSet
+       implements LinearSet {
 
   Linear1DSet X, Y, Z;
 
@@ -45,7 +46,7 @@ public class Linear3DSet extends Gridded3DSet {
                                     double first2, double last2, int length2,
                                     double first3, double last3, int length3)
          throws VisADException {
-    this(type, LinearSet.get_linear1d_array(type, first1, last1, length1,
+    this(type, LinearNDSet.get_linear1d_array(type, first1, last1, length1,
          first2, last2, length2, first3, last3, length3), null, null, null);
   }
 
@@ -94,7 +95,7 @@ public class Linear3DSet extends Gridded3DSet {
                      double first2, double last2, int length2, double first3,
                      double last3, int length3, CoordinateSystem coord_sys,
                      Unit[] units, ErrorEstimate[] errors) throws VisADException {
-    this(type, LinearSet.get_linear1d_array(type, first1, last1, length1,
+    this(type, LinearNDSet.get_linear1d_array(type, first1, last1, length1,
          first2, last2, length2, first3, last3, length3), coord_sys,
          units, errors);
   }
@@ -203,10 +204,6 @@ public class Linear3DSet extends Gridded3DSet {
     return false;
   }
 
-  public boolean isLinearSet() {
-    return true;
-  }
-
   float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
@@ -225,13 +222,10 @@ public class Linear3DSet extends Gridded3DSet {
   }
 
   public Linear1DSet getLinear1DComponent(int i) {
-    if (i == 0)
-      return getX();
-    if (i == 1)
-      return getY();
-    if (i == 2)
-      return getZ();
-    throw new ArrayIndexOutOfBoundsException("Invalid component index");
+    if (i == 0) return getX();
+    else if (i == 1) return getY();
+    else if (i == 2) return getZ();
+    else throw new ArrayIndexOutOfBoundsException("Invalid component index");
   }
 
   public Object clone() {

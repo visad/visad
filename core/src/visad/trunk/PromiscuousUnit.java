@@ -49,20 +49,24 @@ public class PromiscuousUnit extends Unit {
   }
  
   Unit multiply(BaseUnit that)
-        throws UnitException {
+       throws UnitException {
     return that;
   }
 
   Unit multiply(DerivedUnit that)
-        throws UnitException {
+       throws UnitException {
     return that;
   }
 
   Unit multiply(ScaledUnit that)
-        throws UnitException {
+       throws UnitException {
     return that;
   }
 
+  Unit multiply(PromiscuousUnit that)
+       throws UnitException {
+    return that;
+  }
 
   Unit divide(BaseUnit that)
        throws UnitException {
@@ -77,6 +81,11 @@ public class PromiscuousUnit extends Unit {
   Unit divide(ScaledUnit that)
        throws UnitException {
     return CommonUnit.dimensionless.divide(that);
+  }
+
+  Unit divide(PromiscuousUnit that)
+       throws UnitException {
+    return that;
   }
 
 
@@ -96,6 +105,11 @@ public class PromiscuousUnit extends Unit {
   }
 
   double[] toThis(double[] values, OffsetUnit that)
+           throws UnitException {
+    return values;
+  }
+
+  double[] toThis(double[] values, PromiscuousUnit that)
            throws UnitException {
     return values;
   }
@@ -121,6 +135,11 @@ public class PromiscuousUnit extends Unit {
     return values;
   }
 
+  double[] toThat(double[] values, PromiscuousUnit that)
+           throws UnitException {
+    return values;
+  }
+
 
   float[] toThis(float[] values, BaseUnit that)
            throws UnitException {
@@ -142,6 +161,11 @@ public class PromiscuousUnit extends Unit {
     return values;
   }
 
+  float[] toThis(float[] values, PromiscuousUnit that)
+           throws UnitException {
+    return values;
+  }
+
 
   float[] toThat(float[] values, BaseUnit that)
            throws UnitException {
@@ -159,6 +183,11 @@ public class PromiscuousUnit extends Unit {
   }
 
   float[] toThat(float[] values, OffsetUnit that)
+           throws UnitException {
+    return values;
+  }
+
+  float[] toThat(float[] values, PromiscuousUnit that)
            throws UnitException {
     return values;
   }

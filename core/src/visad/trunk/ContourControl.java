@@ -62,6 +62,13 @@ public class ContourControl extends Control {
 
   public void setMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException {
+    setMainContours(bvalues, fvalues, false);
+  }
+
+  /** noChange = true to not trigger changeControl, used by
+      ScalarMap.setRange */
+  void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange)
+       throws VisADException {
     if (fvalues == null || fvalues.length != 5 ||
         bvalues == null || bvalues.length != 2) {
       throw new DisplayException("ContourControl.getMainContours: " +
@@ -74,7 +81,7 @@ public class ContourControl extends Control {
     lowLimit = fvalues[2];
     hiLimit = fvalues[3];
     base = fvalues[4];
-    changeControl();
+    if (!noChange) changeControl();
   }
 
   public void getMainContours(boolean[] bvalues, float[] fvalues)

@@ -42,6 +42,7 @@ public class Flow2Control extends FlowControl {
 
   public Control cloneButContents(DisplayImpl d) {
     Flow1Control control = new Flow1Control(d);
+    control.flowScale = 0.02f;
     control.HorizontalVectorSlice = false;
     control.VerticalVectorSlice = false;
     control.HorizontalStreamSlice = false;

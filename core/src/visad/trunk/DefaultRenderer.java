@@ -66,10 +66,14 @@ public class DefaultRenderer extends Renderer {
 
     type.preProcess();
     boolean post_process =
-      type.doTransform(branch, data, valueArray, link.getDefaultValues());
+      type.doTransform(branch, data, valueArray, link.getDefaultValues(),
+                       this);
     if (post_process) type.postProcess(branch);
-
     return branch;
+  }
+
+  void addSwitch(DisplayRenderer displayRenderer, BranchGroup branch) {
+    displayRenderer.addSceneGraphComponent(branch);
   }
 
 }

@@ -38,10 +38,24 @@ public class DisplayTupleType extends RealTupleType {
   public DisplayTupleType(DisplayRealType[] types, CoordinateSystem coord_sys)
          throws VisADException {
     super(types, coord_sys, null);
-    if (coord_sys != null &&
-        !(coord_sys.getReference() instanceof DisplayTupleType)) {
-      throw new CoordinateSystemException("DisplayTupleType: " +
-                  "CoordinateSystem.Reference must be a DisplayTupleType");
+    if (coord_sys != null) {
+      RealTupleType ref = coord_sys.getReference();
+      if (!(ref instanceof DisplayTupleType)) {
+        throw new CoordinateSystemException("DisplayTupleType: " +
+                    "CoordinateSystem.Reference must be a DisplayTupleType");
+      }
+      else if (Display.DisplaySpatialOffsetTuple.equals(ref)) {
+        throw new CoordinateSystemException("DisplayTupleType: " +
+               "CoordinateSystem.Reference cannot be DisplaySpatialOffsetTuple");
+      }
+      else if (Display.DisplayFlow1Tuple.equals(ref)) {
+        throw new CoordinateSystemException("DisplayTupleType: " +
+               "CoordinateSystem.Reference cannot be DisplaySpatialOffsetTuple");
+      }
+      else if (Display.DisplayFlow2Tuple.equals(ref)) {
+        throw new CoordinateSystemException("DisplayTupleType: " +
+               "CoordinateSystem.Reference cannot be DisplaySpatialOffsetTuple");
+      }
     }
     for (int i=0; i<types.length; i++) {
       if (types[i].getTuple() != null) {

@@ -31,6 +31,7 @@ import java.awt.event.*;
 import javax.media.j3d.*;
 import java.vecmath.*;
 
+import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.net.*;
@@ -48,8 +49,8 @@ public class DisplayApplet extends Applet {
     Canvas3D canvas = new Canvas3D(null);
     add("Center", canvas);
  
-    BranchGroup scene = renderer.createSceneGraph();
     UniverseBuilder universe = new UniverseBuilder(canvas);
+    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas);
     universe.addBranchGraph(scene);
   }
 

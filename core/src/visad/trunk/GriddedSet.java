@@ -188,8 +188,8 @@ public class GriddedSet extends SampledSet {
                                 firsts[2], lasts[2], lengths[2],
                                 coord_sys, units, errors);
       default:
-        return new LinearSet(type, firsts, lasts, lengths,
-                              coord_sys, units, errors);
+        return new LinearNDSet(type, firsts, lasts, lengths,
+                               coord_sys, units, errors);
     }
   }
 
@@ -421,7 +421,7 @@ public class GriddedSet extends SampledSet {
 
   public boolean equals(Object set) {
     if (!(set instanceof GriddedSet) || set == null ||
-        ((GriddedSet) set).isLinearSet()) return false;
+        set instanceof LinearSet) return false;
     if (this == set) return true;
     if (testNotEqualsCache((Set) set)) return false;
     if (testEqualsCache((Set) set)) return true;

@@ -92,7 +92,8 @@ public class RemoteClientTestImpl extends UnicastRemoteObject
    
       System.out.println(image);
    
-      DisplayImpl display = new DisplayImpl("display");
+      DisplayImpl display =
+        new DisplayImpl("display", DisplayImpl.APPLETFRAME_JAVA3D);
       display.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
       display.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
       display.addMap(new ScalarMap(ir_radiance, Display.ZAxis));

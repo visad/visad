@@ -37,10 +37,13 @@ import java.vecmath.*;
 */
 public class GraphicsModeControl extends Control {
 
-  private float lineWidth;
-  private float pointSize;
-  private boolean pointMode;
+  private float lineWidth; // for LineAttributes; >= 1.0
+  private float pointSize; // for PointAttributes; >= 1.0
+  private boolean pointMode; // true => points in place of lines and surfaces
+  /** for TransparencyAttributes; see list below in setTransparencyMode */
   private int transparencyMode;
+  /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION */
+  private int projectionPolicy;
 
   static final GraphicsModeControl prototype = new GraphicsModeControl();
 
@@ -49,7 +52,8 @@ public class GraphicsModeControl extends Control {
     lineWidth = 1.0f;
     pointSize = 1.0f;
     pointMode = false;
-    transparencyMode = TransparencyAttributes.SCREEN_DOOR;
+    // note SCREEN_DOOR does not seem to work with variable transparency
+    transparencyMode = TransparencyAttributes.FASTEST;
   }
  
   GraphicsModeControl() {
@@ -60,7 +64,11 @@ public class GraphicsModeControl extends Control {
     return lineWidth;
   }
 
-  public void setLineWidth(float width) {
+  public void setLineWidth(float width) throws VisADException {
+    if (width < 1.0f) {
+      throw new DisplayException("GraphicsModeControl." +
+                                 "setLineWidth: width < 1.0");
+    }
     lineWidth = width;
     changeControl();
   }
@@ -69,7 +77,11 @@ public class GraphicsModeControl extends Control {
     return pointSize;
   }
 
-  public void setPointSize(float size) {
+  public void setPointSize(float size) throws VisADException {
+    if (size < 1.0f) {
+      throw new DisplayException("GraphicsModeControl." +
+                                 "setPointSize: size < 1.0");
+    }
     pointSize = size;
     changeControl();
   }
@@ -99,6 +111,20 @@ public class GraphicsModeControl extends Control {
     else {
       throw new DisplayException("GraphicsModeControl." +
                                  "setTransparencyMode: bad mode");
+    }
+  }
+
+  public void setProjectionPolicy(int policy) throws VisADException {
+    if (policy == View.PARALLEL_PROJECTION ||
+        policy == View.PERSPECTIVE_PROJECTION) {
+      projectionPolicy = policy;
+      if (displayRenderer != null) {
+        displayRenderer.getView().setProjectionPolicy(projectionPolicy);
+      }
+    }
+    else {
+      throw new DisplayException("GraphicsModeControl." +
+                                 "setProjectionPolicy: bad policy");
     }
   }
 

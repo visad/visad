@@ -145,6 +145,41 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     return ((FieldImpl) AdaptedData).getDefaultRangeUnits();
   }
 
+  public Unit[][] getRangeUnits()
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.getRangeUnits: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).getRangeUnits();
+  }
+
+  public CoordinateSystem[] getRangeCoordinateSystem()
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.getRangeCoordinateSystem: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).getRangeCoordinateSystem();
+  }
+
+  public CoordinateSystem[] getRangeCoordinateSystem(int i)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.getRangeCoordinateSystem: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).getRangeCoordinateSystem(i);
+  }
+
+  public boolean isFlatField() throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.isFlatField: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).isFlatField();
+  }
+
   public Enumeration domainEnumeration()
          throws VisADException, RemoteException {
     if (AdaptedData == null) {

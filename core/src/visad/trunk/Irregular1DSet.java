@@ -65,7 +65,7 @@ public class Irregular1DSet extends IrregularSet {
     oldToNew = new int[Length];
     for (int i=0; i<Length; i++) oldToNew[newToOld[i]] = i;
     SortedSet = new Gridded1DSet(type, sortedSamples, Length,
-                                 coord_sys, units, errors);
+                                 coord_sys, units, errors, false);
   }
 
   Set makeSpatial(SetType type, float[][] samples) throws VisADException {

@@ -159,17 +159,15 @@ class DataDisplayLink extends ReferenceActionLink {
         // (i.e., the 'dots') rendering
         for (int i=0; i<controls.size(); i++) isTransform[i] = true;
       }
-      shadow.checkDirect();
-      System.out.println(shadow);
+      shadow.checkDirect(data);
+      // System.out.println(shadow);
     }
     catch (BadMappingException e) {
-      String errorMessage = e.getMessage(); // do something with this
-      System.out.println("BadMappingException: " + errorMessage);
+      ((DisplayImpl) local_action).addException(e.getMessage());
       return false;
     }
     catch (UnimplementedException e) {
-      String errorMessage = e.getMessage(); // do something with this
-      System.out.println("UnimplementedException: " + errorMessage);
+      ((DisplayImpl) local_action).addException(e.getMessage());
       return false;
     }
     // can now render data based on shadow.LevelOfDifficulty and

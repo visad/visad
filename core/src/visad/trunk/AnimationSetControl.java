@@ -28,18 +28,17 @@ package visad;
 import java.rmi.*;
 
 /**
-   AnimationSetControl is the VisAD class for toggling other Control-s
-   on and off.<P>
+   AnimationSetControl is the VisAD class for sampling Animation
+   steps.<P>
 */
 public class AnimationSetControl extends Control {
 
-  // time in milleseconds between animation steps
   private Set set;
-  private Control parent;
+  private AnimationControl parent;
 
   static final AnimationSetControl prototype = new AnimationSetControl();
 
-  public AnimationSetControl(DisplayImpl d, Control p) {
+  public AnimationSetControl(DisplayImpl d, AnimationControl p) {
     super(d);
     parent = p;
     set = null;
@@ -59,9 +58,36 @@ public class AnimationSetControl extends Control {
     return set;
   }
 
-  public void setSet(Set s) {
+  int clipCurrent(int current) throws VisADException {
+    int set_length = set.getLength();
+    if (current < 0) {
+      current = set_length;
+    }
+    else if (current >= set_length) {
+      current = 0;
+    }
+    return current;
+  }
+
+  float getValue(int current) throws VisADException {
+    int[] indices = new int[1];
+    indices[0] = clipCurrent(current);
+    float[][] values = set.indexToValue(indices);
+    return values[0][0];
+  }
+
+  public void setSet(Set s) throws VisADException {
+    setSet(s, false);
+  }
+
+  /** noChange = true to not trigger changeControl, used by
+      ScalarMap.setRange */
+  void setSet(Set s, boolean noChange) throws VisADException {
     set = s;
-    changeControl();
+    if (parent != null) {
+      parent.setCurrent(0);
+    }
+    if (!noChange) changeControl();
   }
 
 }

@@ -31,7 +31,8 @@ package visad;
 
    The samples are ordered from First to Last.<P>
 */
-public class Linear1DSet extends Gridded1DSet {
+public class Linear1DSet extends Gridded1DSet
+       implements LinearSet {
 
   private double First, Last, Step, Invstep;
 
@@ -154,10 +155,6 @@ public class Linear1DSet extends Gridded1DSet {
     return false;
   }
 
-  public boolean isLinearSet() {
-    return true;
-  }
-
   float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
@@ -183,9 +180,8 @@ public class Linear1DSet extends Gridded1DSet {
   }
 
   public Linear1DSet getLinear1DComponent(int i) {
-    if (i == 0)
-      return this;
-    throw new ArrayIndexOutOfBoundsException("Invalid component index");
+    if (i == 0) return this;
+    else throw new ArrayIndexOutOfBoundsException("Invalid component index");
   }
 
   public Object clone() {

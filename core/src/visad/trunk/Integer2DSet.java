@@ -33,7 +33,8 @@ package visad;
  the 1D components, with the first component increasing fastest.
  For more detail, see the description in Linear2DSet.java.<P>
 */
-public class Integer2DSet extends Linear2DSet {
+public class Integer2DSet extends Linear2DSet
+       implements IntegerSet {
 
   public Integer2DSet(MathType type, Integer1DSet[] sets) throws VisADException {
     this(type, sets, null, null, null);
@@ -74,10 +75,6 @@ public class Integer2DSet extends Linear2DSet {
     sets[1] = new Integer1DSet(set_type, length2);
 
     return sets;
-  }
-
-  public boolean isIntegerSet() {
-    return true;
   }
 
   public Object clone() {

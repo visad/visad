@@ -26,8 +26,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   CMYCoordinateSystem is the VisAD class for cordinate
-   systems for (Cyan, Magenta, Yellow).<P>
+   CMYCoordinateSystem is the VisAD CoordinateSystem class for
+   (Cyan, Magenta, Yellow).  Algorithm from Foley and van Dam.<P>
 */
 class CMYCoordinateSystem extends CoordinateSystem {
 
@@ -43,23 +43,63 @@ class CMYCoordinateSystem extends CoordinateSystem {
   }
 
   public double[][] toReference(double[][] tuples) throws VisADException {
-    throw new UnimplementedException(
-      "CMYCoordinateSystem.toReference");
+    if (tuples == null || tuples.length != 3) {
+      throw new CoordinateSystemException("CMYCoordinateSystem." +
+             "toReference: tuples wrong dimension");
+    }
+    int len = tuples[0].length;
+    double[][] value = new double[3][len];
+    for (int i=0; i<len ;i++) {
+      value[0][i] = 1.0 - tuples[0][i];
+      value[1][i] = 1.0 - tuples[1][i];
+      value[2][i] = 1.0 - tuples[2][i];
+    }
+    return value;
   }
 
   public double[][] fromReference(double[][] tuples) throws VisADException {
-    throw new UnimplementedException(
-      "CMYCoordinateSystem.fromReference");
+    if (tuples == null || tuples.length != 3) {
+      throw new CoordinateSystemException("CMYCoordinateSystem." +
+             "fromReference: tuples wrong dimension");
+    }
+    int len = tuples[0].length;
+    double[][] value = new double[3][len];
+    for (int i=0; i<len ;i++) {
+      value[0][i] = 1.0 - tuples[0][i];
+      value[1][i] = 1.0 - tuples[1][i];
+      value[2][i] = 1.0 - tuples[2][i];
+    }
+    return value;
   }
 
   public float[][] toReference(float[][] tuples) throws VisADException {
-    throw new UnimplementedException(
-      "CMYCoordinateSystem.toReference");
+    if (tuples == null || tuples.length != 3) {
+      throw new CoordinateSystemException("CMYCoordinateSystem." +
+             "toReference: tuples wrong dimension");
+    }
+    int len = tuples[0].length;
+    float[][] value = new float[3][len];
+    for (int i=0; i<len ;i++) {
+      value[0][i] = 1.0f - tuples[0][i];
+      value[1][i] = 1.0f - tuples[1][i];
+      value[2][i] = 1.0f - tuples[2][i];
+    }
+    return value;
   }
  
   public float[][] fromReference(float[][] tuples) throws VisADException {
-    throw new UnimplementedException(
-      "CMYCoordinateSystem.fromReference");
+    if (tuples == null || tuples.length != 3) {
+      throw new CoordinateSystemException("CMYCoordinateSystem." +
+             "fromReference: tuples wrong dimension");
+    }
+    int len = tuples[0].length;
+    float[][] value = new float[3][len];
+    for (int i=0; i<len ;i++) {
+      value[0][i] = 1.0f - tuples[0][i];
+      value[1][i] = 1.0f - tuples[1][i];
+      value[2][i] = 1.0f - tuples[2][i];
+    }
+    return value;
   }
 
   public boolean equals(Object cs) {

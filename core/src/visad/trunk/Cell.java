@@ -1,6 +1,6 @@
 
 //
-// FlowControl.java
+// Cell.java
 //
 
 /*
@@ -25,41 +25,23 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.util.*;
+import java.rmi.*;
+
 /**
-   FlowControl is the VisAD abstract super-class for controlling
-   Flow display scalars.<P>
+   Cell is the VisAD interface for "spread sheet" cells.  It has
+   a set of input DataReferences and an output DataReference, which
+   updates whenever an input changes.  Cell is runnable.<P>
 */
-public abstract class FlowControl extends Control {
+public interface Cell extends Action {
 
-  float flowScale;
-
-  boolean HorizontalVectorSlice;
-  boolean VerticalVectorSlice;
-  boolean HorizontalStreamSlice;
-  boolean VerticalStreamSlice;
-  boolean[] TrajectorySet;
-
-  double HorizontalVectorSliceHeight;
-  double HorizontalStreamSliceHeight;
-
-  // WLH  need Vertical*Slice location parameters
-
-  public FlowControl(DisplayImpl d) {
-    super(d);
-  }
+  /** create link to an output DataReference */
+  public abstract void setOtherReference(int index, DataReference ref)
+         throws VisADException, RemoteException;
  
-  FlowControl() {
-    this(null);
-  }
-
-  public void setFlowScale(float scale) {
-    flowScale = scale;
-    changeControl();
-  }
-
-  public float getFlowScale() {
-    return flowScale;
-  }
+  /** get link to an output DataReference */
+  public abstract DataReference getOtherReference(int index)
+         throws VisADException, RemoteException;
 
 }
 

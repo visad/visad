@@ -50,16 +50,26 @@ public abstract class DisplayRenderer extends Object {
 
   private DisplayImpl display;
 
+  /** View associated with this VirtualUniverse */
+  private View view;
+  /** Canvas3D associated with this VirtualUniverse */
+  private Canvas3D canvas;
+
+  /** root BranchGroup of scene graph under Locale */
   private BranchGroup root = null;
-  private TransformGroup trans;
+  /** single TransformGroup between root and BranchGroups for all
+      Data depictions */
+  private TransformGroup trans = null;
+  /** BranchGroup between trans and all direct manipulation
+      Data depictions */
+  private BranchGroup direct = null;
+  /** Behavior for delayed removal of BranchNodes */
+  RemoveBehavior remove = null;
 
-  // box outline for data
-  Shape3D box;
-  // color of box
-  ColoringAttributes box_color;
+  /** distance threshhold for successful pick */
+  private static final float PICK_THRESHHOLD = 0.05f;
 
-  // Behavior for mouse interactions
-  MouseBehavior mouse;
+  private Vector directs = new Vector();
 
   public DisplayRenderer () {
   }
@@ -72,17 +82,47 @@ public abstract class DisplayRenderer extends Object {
     display = d;
   }
 
-  /** Java3D - create scene graph, if none exists, with Transform
-      and Behavior objects linked to appropriate Control objects
-      [e.g., AWTEvent Behavior changes ProjectionControl.Matrix
-      and invokes ProjectionControl.changeControl()]
-      link scene graph to VirtualUniverse */
-  public BranchGroup createSceneGraph() {
+  public View getView() {
+    return view;
+  }
+
+  public Canvas3D getCanvas() {
+    return canvas;
+  }
+
+  public DisplayImpl getDisplay() {
+    return display;
+  }
+
+  public BranchGroup getRoot() {
+    return root;
+  }
+
+  public TransformGroup getTrans() {
+    return trans;
+  }
+
+  // public BranchGroup getDirect() {
+  public BranchGroup getDirect() {
+    return direct;
+  }
+
+  /** create scene graph root, if none exists, with Transform
+      and direct manipulation root;
+      create special graphics (e.g., 3-D box, SkewT background),
+      any lights, any user interface embedded in scene */
+  public abstract BranchGroup createSceneGraph(View v, Canvas3D c);
+
+  /** create scene graph root, if none exists, with Transform
+      and direct manipulation root */
+  public BranchGroup createBasicSceneGraph(View v, Canvas3D c) {
     if (root != null) return root;
+    view = v;
+    canvas = c;
     // Create the root of the branch graph
     root = new BranchGroup();
     // create the TransformGroup that is the parent of
-    // Data object BranchGroup objects
+    // Data object Group objects
     trans = new TransformGroup();
     trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
     trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -91,86 +131,87 @@ public abstract class DisplayRenderer extends Object {
     trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     root.addChild(trans);
  
-    // create the box containing data depictions
-    LineArray box_geometry = new LineArray(24, LineArray.COORDINATES);
-    box_geometry.setCoordinates(0, box_verts);
-    Appearance box_appearance = new Appearance();
-    box_color = new ColoringAttributes();
-    box_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
-    box_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
-    box_color.setColor(1.0f, 1.0f, 1.0f);
-    box_appearance.setColoringAttributes(box_color);
-    box = new Shape3D(box_geometry, box_appearance);
-    // first child of trans
-    trans.addChild(box);
- 
-    // create the Behavior for mouse interactions
-    ProjectionControl proj = (ProjectionControl)
-      display.getControl(ProjectionControl.prototype.getClass());
-    mouse = new MouseBehavior(proj);
+    // create the BranchGroup that is the parent of direct
+    // manipulation Data object BranchGroup objects
+    direct = new BranchGroup();
+    direct.setCapability(Group.ALLOW_CHILDREN_READ);
+    direct.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    direct.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    direct.setCapability(Node.ENABLE_PICK_REPORTING);
+    trans.addChild(direct);
+
+    // create removeBehavior
+    remove = new RemoveBehavior(this);
     BoundingSphere bounds =
       new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
-    mouse.setSchedulingBounds(bounds);
-    // second child of trnas
-    trans.addChild(mouse);
+    remove.setSchedulingBounds(bounds);
+    trans.addChild(remove);
 
-    // create ambient light
-    Color3f color = new Color3f(0.1f, 0.1f, 0.1f);
-    AmbientLight light = new AmbientLight(color);
-    light.setInfluencingBounds(bounds);
-    root.addChild(light);
-
-    // create directional lights
-    Color3f dcolor = new Color3f(0.3f, 0.3f, 0.3f);
-    Vector3f direction1 = new Vector3f(0.0f, 0.0f, 1.0f);
-    Vector3f direction2 = new Vector3f(0.0f, 0.0f, -1.0f);
-    DirectionalLight light1 =
-      new DirectionalLight(true, dcolor, direction1);
-    light1.setInfluencingBounds(bounds);
-    DirectionalLight light2 =
-      new DirectionalLight(true, dcolor, direction2);
-    light2.setInfluencingBounds(bounds);
-    root.addChild(light1);
-    root.addChild(light2);
- 
     return root;
   }
 
-  // argument type must be changed to Java3D.Group
-  public void addSceneGraphComponent(BranchGroup branch) {
-    trans.addChild(branch);
+  public void addSceneGraphComponent(Group group) {
+    trans.addChild(group);
   }
 
-  // argument type must be changed to Java3D.Group
-  public void removeSceneGraphComponent(BranchGroup branch) {
-    branch.detach();
+  public void addDirectManipulationSceneGraphComponent(Group group,
+                         DirectManipulationRenderer renderer) {
+    direct.addChild(group);
+    directs.addElement(renderer);
+/* WLH 12 Dec 97 - this didn't help
+    if (last == null) {
+      direct.addChild(branch);
+    }
+    else {
+      int n = direct.numChildren();
+      for (int i=0; i<n; i++) {
+        if (last.equals(direct.getChild(i))) {
+          direct.setChild(branch, i);
+        }
+      }
+    }
+*/
+  }
+
+  public void switchScene(Renderer renderer, int index) {
+    remove.addRemove(renderer, index);
+  }
+
+  public void clearScene(Renderer renderer) {
+    directs.removeElement(renderer);
+  }
+
+  public DirectManipulationRenderer findDirect(PickRay ray) {
+    Point3d origin = new Point3d();
+    Vector3d direction = new Vector3d();
+    ray.get(origin, direction);
+    DirectManipulationRenderer renderer = null;
+    float distance = Float.MAX_VALUE;
+    Enumeration renderers = directs.elements();
+    while (renderers.hasMoreElements()) {
+      DirectManipulationRenderer r =
+        (DirectManipulationRenderer) renderers.nextElement();
+      float d = r.checkClose(origin, direction);
+      if (d < distance) {
+        distance = d;
+        renderer = r;
+      }
+    }
+    if (distance < PICK_THRESHHOLD) {
+      return renderer;
+    }
+    else {
+      return null;
+    }
+  }
+
+  public boolean anyDirects() {
+    return !directs.isEmpty();
   }
 
   public void setTransform3D(Transform3D t) {
     trans.setTransform(t);
   }
-
-  // Java3D
-  public void setSwitch(int step) {
-  }
-
-  private static final float[] box_verts = {
-     // front face
-         -1.0f, -1.0f,  1.0f,                       -1.0f,  1.0f,  1.0f,
-         -1.0f,  1.0f,  1.0f,                        1.0f,  1.0f,  1.0f,
-          1.0f,  1.0f,  1.0f,                        1.0f, -1.0f,  1.0f,
-          1.0f, -1.0f,  1.0f,                       -1.0f, -1.0f,  1.0f,
-     // back face
-         -1.0f, -1.0f, -1.0f,                       -1.0f,  1.0f, -1.0f,
-         -1.0f,  1.0f, -1.0f,                        1.0f,  1.0f, -1.0f,
-          1.0f,  1.0f, -1.0f,                        1.0f, -1.0f, -1.0f,
-          1.0f, -1.0f, -1.0f,                       -1.0f, -1.0f, -1.0f,
-     // connectors
-         -1.0f, -1.0f,  1.0f,                       -1.0f, -1.0f, -1.0f,
-         -1.0f,  1.0f,  1.0f,                       -1.0f,  1.0f, -1.0f,
-          1.0f,  1.0f,  1.0f,                        1.0f,  1.0f, -1.0f,
-          1.0f, -1.0f,  1.0f,                        1.0f, -1.0f, -1.0f,
-  };
 
 }
 

@@ -140,9 +140,9 @@ public abstract class DataImpl extends Object
       'public' because it is defined in the Data interface */
   public void removeReference(DataReference r)
          throws VisADException {
-    if (r instanceof DataReferenceImpl) {
+    if (!(r instanceof DataReferenceImpl)) {
       throw new RemoteVisADException("DataImpl.removeReference: must use " +
-                                     "RemoteDataImpl for RemoteDataReferenceImpl");
+                                     "RemoteData for RemoteDataReference");
     }
     if (references == null || !references.removeElement(r)) {
       throw new ReferenceException("DataImpl.removeReference: already clear");
@@ -538,7 +538,7 @@ public abstract class DataImpl extends Object
     double[][] ranges = new double[2][n];
     for (int i=0; i<n; i++) {
       ranges[0][i] = Double.MAX_VALUE; // init minimums
-      ranges[1][i] = Double.MIN_VALUE; // init maximums
+      ranges[1][i] = -Double.MAX_VALUE; // init maximums
     }
     DataShadow shadow = new DataShadow(ranges);
     return computeRanges(type, shadow);
@@ -576,20 +576,27 @@ public abstract class DataImpl extends Object
         }
       }
     }
+    // vals are the vertices of the n-dimensional box defined by ranges;
+    // tranform them
     vals = CoordinateSystem.transformCoordinates(
                    ref, ref.getCoordinateSystem(), ref.getDefaultUnits(), null,
                    type, coord_in, units_in, null, vals);
+    // mix vals into shadow.ranges
     for (int i=0; i<n; i++) {
       double min = Double.MAX_VALUE; // init minimum
-      double max = Double.MIN_VALUE; // init maximum
+      double max = -Double.MAX_VALUE; // init maximum
       for (int j=0; j<len; j++) {
         double val = vals[i][j];
         min = Math.min(min, val);
         max = Math.max(max, val);
       }
       int index = ((ShadowRealType) shad_ref.getComponent(i)).getIndex();
-      shadow.ranges[0][index] = Math.min(shadow.ranges[0][index], min);
-      shadow.ranges[1][index] = Math.max(shadow.ranges[1][index], max);
+      if (min == min) {
+        shadow.ranges[0][index] = Math.min(shadow.ranges[0][index], min);
+      }
+      if (max == max) {
+        shadow.ranges[1][index] = Math.max(shadow.ranges[1][index], max);
+      }
     }
     return shadow;
   }

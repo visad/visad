@@ -375,9 +375,6 @@ public class Real extends Scalar {
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException, RemoteException {
     if (Double.isNaN(Value)) return shadow;
-    //
-    // WLH 4 Sept 97: equivalent but less efficient:
-    // int i = type.getDisplay().getScalarIndex((RealType) Type);
     int i = ((ShadowRealType) type).getIndex();
     if (i >= 0) {
       double value;
@@ -388,8 +385,10 @@ public class Real extends Scalar {
       else {
         value = Value;
       }
-      shadow.ranges[0][i] = Math.min(shadow.ranges[0][i], value);
-      shadow.ranges[1][i] = Math.max(shadow.ranges[1][i], value);
+      if (value == value) {
+        shadow.ranges[0][i] = Math.min(shadow.ranges[0][i], value);
+        shadow.ranges[1][i] = Math.max(shadow.ranges[1][i], value);
+      }
     }
     return shadow;
   }

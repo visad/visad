@@ -215,14 +215,6 @@ public abstract class Set extends DataImpl {
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
   public abstract int[] valueToIndex(float[][] value) throws VisADException;
 
-  public boolean isIntegerSet() {
-    return false;
-  }
-
-  public boolean isLinearSet() {
-    return false;
-  }
-
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException {
     return computeRanges(type, shadow, null, false);
@@ -296,10 +288,12 @@ public abstract class Set extends DataImpl {
     for (int i=0; i<num_new; i++) {
       all_values[0][length + i] = new_values[0][i];
     }
-    // create Irregular1D set with merged values (constructor sorts them)
+    // sort all_values then construct Gridded1DSet
     // just use ErrorEstimates from this
-    return new Irregular1DSet(Type, all_values, DomainCoordinateSystem,
-                              SetUnits, SetErrors);
+    QuickSort.sort(all_values[0]);
+    return new Gridded1DSet(Type, all_values, all_values[0].length,
+                            DomainCoordinateSystem, SetUnits,
+                            SetErrors, false);
   }
 
   Set makeSpatial(SetType type, float[][] samples) throws VisADException {
@@ -528,10 +522,10 @@ public abstract class Set extends DataImpl {
     System.out.println(iset2d);
     System.out.println(iset1d);
 
-    if (set1d.isIntegerSet()) System.out.println(" set1d ");
-    if (set2d.isIntegerSet()) System.out.println(" set2d ");
-    if (iset1d.isIntegerSet()) System.out.println(" iset1d ");
-    if (iset2d.isIntegerSet()) System.out.println(" iset2d ");
+    if (set1d instanceof IntegerSet) System.out.println(" set1d ");
+    if (set2d instanceof IntegerSet) System.out.println(" set2d ");
+    if (iset1d instanceof IntegerSet) System.out.println(" iset1d ");
+    if (iset2d instanceof IntegerSet) System.out.println(" iset2d ");
     System.out.println("");
 
     int i = 14;

@@ -62,7 +62,7 @@ public class DataReferenceImpl extends Object implements DataReference {
     Tick = Long.MIN_VALUE + 1;
   }
 
-  public Data getData() {
+  public synchronized Data getData() {
     return data;
   }
 
@@ -75,17 +75,13 @@ public class DataReferenceImpl extends Object implements DataReference {
     }
     if (!(d instanceof DataImpl)) {
       throw new RemoteVisADException("DataReferenceImpl.setData: must use " +
-                                     "RemoteDataReferenceImpl for RemoteDataImpl");
+                                     "RemoteDataReference for RemoteData");
     }
     if (data != null) data.removeReference(ref);
     ref = this;
     data = d;
     d.addReference(ref);
     incTick();
-/* DEBUG
-    System.out.println("DataReferenceImpl " + Name + " setData " +
-                       "(" + System.getProperty("os.name") + ")");
-*/
   }
 
   /** method for use by RemoteDataReferenceImpl that adapts this
@@ -97,10 +93,6 @@ public class DataReferenceImpl extends Object implements DataReference {
     data = d;
     d.addReference(ref);
     incTick();
-/* DEBUG
-    System.out.println("DataReferenceImpl " + Name + " adaptedSetData " +
-                       "(" + System.getProperty("os.name") + ")");
-*/
   }
 
   public long getTick() {
@@ -130,11 +122,6 @@ public class DataReferenceImpl extends Object implements DataReference {
         }
       }
     }
-/* DEBUG
-    System.out.println("DataReferenceImpl " + Name + " incTick, Tick = " + Tick);
-    System.out.println("type = " + data.getType() +
-                       "(" + System.getProperty("os.name") + ")");
-*/
     return Tick;
   }
 
@@ -148,7 +135,9 @@ public class DataReferenceImpl extends Object implements DataReference {
     DataChangedListener listener = findDataChangedListener(a);
     DataChangedOccurrence e = listener.getDataChangedOccurrence();
     listener.setDataChangedOccurrence(null);
-    if (e == null) listener.setBall(true);
+    if (e == null) {
+      listener.setBall(true);
+    }
     return e;
   }
 
@@ -182,10 +171,6 @@ public class DataReferenceImpl extends Object implements DataReference {
   }
 
   public String getName() {
-/* DEBUG
-    System.out.println("DataReferenceImpl " + Name + " getName " +
-                       "(" + System.getProperty("os.name") + ")");
-*/
     return Name;
   }
 

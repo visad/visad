@@ -49,16 +49,21 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
       throw new ReferenceException("RemoteDataReferenceImpl: data " +
                                    "cannot be null");
     }
-    if (d instanceof DataImpl) {
-      throw new RemoteVisADException("RemoteDataReferenceImpl.setData: must use " +
-                                     "DataReferenceImpl for DataImpl");
-    }
     if (AdaptedDataReference == null) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.setData: " +
                                      "AdaptedDataReference is null");
     }
-    AdaptedDataReference.adaptedSetData((RemoteData) d,
-                                        (RemoteDataReference) this);
+    if (d instanceof DataImpl) {
+/* WLH 12 Dec 97 - allow Data object passed by copy from remote JVM
+      throw new RemoteVisADException("RemoteDataReferenceImpl.setData: must use " +
+                                     "DataReferenceImpl for DataImpl");
+*/
+      AdaptedDataReference.setData(d);
+    }
+    else {
+      AdaptedDataReference.adaptedSetData((RemoteData) d,
+                                          (RemoteDataReference) this);
+    }
   }
 
   public Data getData() throws VisADException, RemoteException {
@@ -69,7 +74,7 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
     Data data = AdaptedDataReference.getData();
     if (data instanceof FieldImpl) {
       // decide here whether to return copy of remote reference
-      boolean return_copy = true;
+      boolean return_copy = false;
       if (return_copy) {
         return data;
       }

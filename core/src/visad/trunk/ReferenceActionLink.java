@@ -34,10 +34,13 @@ class ReferenceActionLink extends Object {
   DataReference ref;
   ActionImpl local_action;
   Action action;  // may be remote or local
-  // value of ref.getTick() last time Action was applied to ref
-  private long OldTick;
-  // value of ref.getTick() from latest DataChangedOccurrence
+
+  /** set by incTick */
   private long NewTick;
+  /** value of NewTick at last setTicks() call */
+  private long OldTick;
+  /** set by setTicks if OldTick < NewTick; cleared by resetTicks */
+  private boolean tickFlag;
 
   /** Ball describes state of protocol between this ReferenceActionLink
       and DataReference ref;
@@ -75,19 +78,36 @@ class ReferenceActionLink extends Object {
     NewTick = tick;
   }
 
-  /** check whether this link requests Action to be applied */
-  synchronized boolean checkTicks() {
-    return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+  /** set value of NewTick; presumably ncreases value */
+  synchronized void incTick(long t) {
+    NewTick = t;
   }
 
-  /** clear request for Action to be applied */
-  synchronized void syncTicks() {
+  /** set tickFlag according to OldTick and NewTick */
+  public synchronized void setTicks() {
+    tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
     OldTick = NewTick;
   }
 
-  /** set value of NewTick; presumably requests Action */
-  synchronized void setTicks(long t) {
-    NewTick = t;
+/*
+  public void printTicks(String s) {
+System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
+                  "  NewTick = " + NewTick);
+  }
+
+  synchronized boolean peekTicks() {
+    return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+  }
+*/
+
+  /** check whether this link requests Action to be applied */
+  public synchronized boolean checkTicks() {
+    return tickFlag;
+  }
+
+  /** reset tickFlag */
+  synchronized void resetTicks() {
+    tickFlag = false;
   }
 
   boolean getBall() {

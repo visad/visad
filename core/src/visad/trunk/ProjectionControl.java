@@ -35,15 +35,19 @@ import java.vecmath.*;
 */
 public class ProjectionControl extends Control {
 
+  private transient Transform3D Matrix;
   private double[] matrix;
+  /** if false, this disables changing the projection matrix */
+  private boolean enabled;
 
   static final ProjectionControl prototype = new ProjectionControl();
 
   public ProjectionControl(DisplayImpl d) {
     super(d);
-    Transform3D Matrix = new Transform3D(); 
+    Matrix = new Transform3D(); 
     matrix = new double[16];
     Matrix.get(matrix);
+    enabled = true;
   }
  
   ProjectionControl() {
@@ -55,10 +59,20 @@ public class ProjectionControl extends Control {
   }
 
   public void setMatrix(double[] m) {
-    System.arraycopy(m, 0, matrix, 0, 16);
-    displayRenderer.setTransform3D(new Transform3D(matrix));
-    // replace with incTick() ??
-    changeControl();
+    if (enabled) {
+      System.arraycopy(m, 0, matrix, 0, 16);
+      Matrix = new Transform3D(matrix);
+      displayRenderer.setTransform3D(Matrix);
+      changeControl();
+    }
+  }
+
+  public boolean getEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean e) {
+    enabled = e;
   }
 
   public Control cloneButContents(DisplayImpl d) {
