@@ -157,6 +157,7 @@ SAVE_FILES = \
 	visad/rmic_script				\
 	visad/*.java					\
 	visad/examples/*.java				\
+	visad/examples/*.html				\
 	visad/java3d/*.java				\
 	visad/java2d/*.java				\
 	visad/util/*.java				\
@@ -344,6 +345,7 @@ classes:
 
 EXAMPLES_TAR_FILES = \
 	visad/examples/*.java				\
+	visad/examples/*.html				\
 	visad/examples/*.class
 
 examplesjar:
