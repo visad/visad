@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitParser.jj,v 1.10 1998-12-16 20:27:43 steve Exp $
+ * $Id: UnitParser.jj,v 1.11 1999-07-13 20:11:05 steve Exp $
  */
 
 options
@@ -413,6 +413,7 @@ double shiftExpression() :
 {
     <SHIFT>
     (
+	LOOKAHEAD(3)
 	    origin=timestampExpression()
 	    {
 		if (!isTime)
@@ -471,6 +472,22 @@ double numericalTerm() :
 
 
 double timestampExpression() :
+{
+    double	value;
+}
+{
+    (
+	    value=timestampTerm()
+	|
+	    "(" value=timestampExpression() ")"
+    )
+    {
+	return value;
+    }
+}
+
+
+double timestampTerm() :
 {
     int		year = 0;
     int		month = 0;
