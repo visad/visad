@@ -102,17 +102,7 @@ public class FancySSCell extends BasicSSCell {
         addToFrame(lw);
       }
       else if (drt == Display.SelectValue) {
-        final DataReference ref = new DataReferenceImpl("value");
-        VisADSlider vs = new VisADSlider("value", 0, 100, 0, 0.01, ref,
-                                         RealType.Generic);
-        final ValueControl control = (ValueControl) maps[i].getControl();
-        control.setValue(0.0);
-        CellImpl cell = new CellImpl() {
-          public void doAction() throws VisADException, RemoteException {
-            control.setValue(((Real) ref.getData()).getValue());
-          }
-        };
-        cell.addReference(ref);
+        VisADSlider vs = new VisADSlider(maps[i]);
         addToFrame(vs);
       }
       else if (drt == Display.SelectRange) {
@@ -139,7 +129,7 @@ public class FancySSCell extends BasicSSCell {
 
   /** Used by setMaps() method */
   private void initWidgetFrame() {
-    WidgetFrame = new JFrame("VisAD controls");
+    WidgetFrame = new JFrame("VisAD controls (" + Name + ")");
     Container pane = WidgetFrame.getContentPane();
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
     first = true;

@@ -31,21 +31,34 @@ import java.util.StringTokenizer;
 /** The Formula class is used to convert formulas to postfix notation.<P> */
 public class Formula {
 
+  /** for debugging purposes, of course! */
+  private static final boolean DEBUG = false;
+
+  /** signifies that the token is a binary operator */
   public static final int OPERATOR_TOKEN = 1;
+
+  /** signifies that the token is a binary function */
   public static final int BINARY_TOKEN = 2;
+
+  /** signifies that the token is a unary function */
   public static final int UNARY_TOKEN = 3;
+
+  /** signifies that the token is a variable */
   public static final int VARIABLE_TOKEN = 4;
 
-  // Binary operators that can be used in the infix formula
+  /** binary operators that can be used in the infix formula */
   private static String[] Operators
-                 = {"@",".","^","&","*","/","%","+","-",",","(","{","$","#"};
-  // Operator precedences of binary operators
+                 = {"@",".","^","&","*","/","%","+","-",",","(","$","#"};
+
+  /** operator precedences of binary operators */
   private static int[] OperatorPrecedence
-                 = {10, 20, 40, 50, 60, 60, 60, 80, 80, 96, 97, 97, 98, 99};
-  // Binary functions that can be used in the infix formula
+                 = {20, 20, 40, 50, 60, 60, 60, 80, 80, 96, 97, 98, 99};
+
+  /** binary functions that can be used in the infix formula */
   private static String[] BinaryFunctions
                  = {"max", "min", "atan2", "atan2Degrees", "extract"};
-  // Unary functions that can be used in the infix formula
+
+  /** unary functions that can be used in the infix formula */
   private static String[] UnaryFunctions
                  = {"abs", "acos", "acosDegrees", "asin", "asinDegrees",
                     "atan", "atanDegrees", "ceil", "cos", "cosDegrees",
@@ -55,18 +68,20 @@ public class Formula {
   /** indicates whether a token is an operator, a binary
       function, or a unary function, or a variable */
   public static int getTokenType(String token) {
-    if (token.equals("d")) return OPERATOR_TOKEN;
-    if (token.equals("&")) return UNARY_TOKEN;
+    int tt = VARIABLE_TOKEN;
+    if (token.equals("d")) tt = OPERATOR_TOKEN;
+    if (token.equals("&")) tt = UNARY_TOKEN;
     for (int i=0; i<Operators.length; i++) {
-      if (token.equalsIgnoreCase(Operators[i])) return OPERATOR_TOKEN;
+      if (token.equalsIgnoreCase(Operators[i])) tt = OPERATOR_TOKEN;
     }
     for (int i=0; i<BinaryFunctions.length; i++) {
-      if (token.equalsIgnoreCase(BinaryFunctions[i])) return BINARY_TOKEN;
+      if (token.equalsIgnoreCase(BinaryFunctions[i])) tt = BINARY_TOKEN;
     }
     for (int i=0; i<UnaryFunctions.length; i++) {
-      if (token.equalsIgnoreCase(UnaryFunctions[i])) return UNARY_TOKEN;
+      if (token.equalsIgnoreCase(UnaryFunctions[i])) tt = UNARY_TOKEN;
     }
-    return VARIABLE_TOKEN;
+    if (DEBUG) System.out.println("token " + token + " is of type #" + tt);
+    return tt;
   }
 
   /** converts an infix string to an array of tokens (Strings) in
@@ -108,6 +123,7 @@ public class Formula {
     String[] funcStack = new String[numTokens];
     String[] pfix = new String[numTokens];
     opStack[0] = "#";
+    if (DEBUG) stackTrace(opStack, 1, "op");
     int opPt = 1;
     int funcPt = 0;
     int pfixlen = 0;
@@ -121,43 +137,84 @@ public class Formula {
     // convert to postfix
     while (tokenizer.hasMoreTokens()) {
       String token = tokenizer.nextToken();
+      if (DEBUG) System.out.print("got token: " + token + " ");
 
       // solve derivatives recursively; their syntax is unique
       if (token.equals("d")) {
-        String d = "";
-        int dparen = 0;
-        String t;
-        do {
+        token = tokenizer.nextToken();
+        if (token.equals("(")) {
+          // token is the derivative operator "d"
+          if (DEBUG) System.out.println("(derivative operator)");
+          String d = "";
+          String t;
+          int dparen = 1;
+          do {
+            t = tokenizer.nextToken();
+            if (t.equals("(")) dparen++;
+            if (t.equals(")")) dparen--;
+            d = d + t;
+          } while (dparen > 0);
+          String[] s = toPostfix(d);
+          if (s == null) return null;
           t = tokenizer.nextToken();
-          if (t.equals("(")) dparen++;
-          if (t.equals(")")) dparen--;
-          d = d + t;
-        } while (dparen > 0);
-        String[] s = toPostfix(d);
-        if (s == null) return null;
-        t = tokenizer.nextToken();
-        if (!t.equals("/")) return null;
-        t = tokenizer.nextToken();
-        if (!t.equals("d")) return null;
-        t = tokenizer.nextToken();
-        if (!t.equals("(")) return null;
-        String type = tokenizer.nextToken();
-        t = tokenizer.nextToken();
-        if (!t.equals(")")) return null;
-        for (int i=0; i<s.length; i++) {
-          pfix[pfixlen++] = s[i];
+          if (!t.equals("/")) return null;
+          t = tokenizer.nextToken();
+          if (!t.equals("d")) return null;
+          t = tokenizer.nextToken();
+          if (!t.equals("(")) return null;
+          String type = tokenizer.nextToken();
+          t = tokenizer.nextToken();
+          if (!t.equals(")")) return null;
+          for (int i=0; i<s.length; i++) {
+            pfix[pfixlen++] = s[i];
+          }
+          pfix[pfixlen++] = "~" + type;
+          pfix[pfixlen++] = "d";
+          if (DEBUG) stackTrace(pfix, pfixlen, "pfix");
         }
-        pfix[pfixlen++] = "~" + type;
-        pfix[pfixlen++] = "d";
+        else {
+          // token is a variable called "d"
+          if (DEBUG) System.out.println("(variable or constant)");
+          // append token to pfix
+          pfix[pfixlen++] = "d";
+          if (DEBUG) stackTrace(pfix, pfixlen, "pfix");
+          implicit = true;
+          unary = false;
+        }
       }
-      else if (token.equals("(")) {
+      if (token.equals("(")) {
+        if (DEBUG) System.out.print("(left parenthesis, ");
         // push left paren onto operator stack
-        opStack[opPt++] = implicit ? "{" : token;
+        if (implicit) {
+          if (DEBUG) System.out.println("implicit @)");
+          // pop operators with greater precedence off stack onto pfix
+          if (opPt < 1) return null;
+          String op = opStack[opPt-1];
+          int prec = getPrecLevel("@");
+          while (getPrecLevel(op) <= prec) {
+            if (DEBUG) {
+              System.out.println("prec(op) = " + getPrecLevel(op)
+                             + ", prec(token) = " + prec);
+            }
+            opPt--;
+            pfix[pfixlen++] = op;
+            if (DEBUG) stackTrace(pfix, pfixlen, "pfix");
+            if (opPt < 1) return null;
+            op = opStack[opPt-1];
+            if (DEBUG) stackTrace(opStack, opPt, "op");
+          }
+          // push token onto operator stack
+          opStack[opPt++] = "@";
+        }
+        else if (DEBUG) System.out.println("normal)");
+        opStack[opPt++] = token;
         if (unary) opStack[opPt++] = ",";
+        if (DEBUG) stackTrace(opStack, opPt, "op");
         implicit = false;
         unary = false;
       }
       else if (token.equals(")")) {
+        if (DEBUG) System.out.println("(right parenthesis)");
         // pop all operators off stack until left paren reached
         if (opPt < 1) return null;
         String op = opStack[--opPt];
@@ -165,24 +222,13 @@ public class Formula {
           if (op.equals(",")) {
             if (funcPt < 1) return null;
             pfix[pfixlen++] = funcStack[--funcPt];
+            if (DEBUG) stackTrace(funcStack, funcPt, "func");
           }
           else pfix[pfixlen++] = op;
+          if (DEBUG) stackTrace(pfix, pfixlen, "pfix");
           if (opPt < 1) return null;
           op = opStack[--opPt];
-        }
-        if (op.equals("{")) {
-          // pop operators with greater precedence off stack onto pfix
-          if (opPt < 1) return null;
-          op = opStack[opPt-1];
-          int prec = getPrecLevel("@");
-          while (getPrecLevel(op) <= prec) {
-            opPt--;
-            pfix[pfixlen++] = op;
-            if (opPt < 1) return null;
-            op = opStack[opPt-1];
-          }
-          //opStack[opPt++] = "@";
-          pfix[pfixlen++] = "@";
+          if (DEBUG) stackTrace(opStack, opPt, "op");
         }
         implicit = true;
         unary = false;
@@ -195,36 +241,45 @@ public class Formula {
         int prec = getPrecLevel(token);
 
         if (prec > 0) { // token is an operator or a unary function
+          if (DEBUG) System.out.println("(operator or unary function)");
           // pop operators with greater precedence off stack onto pfix
           if (opPt < 1) return null;
           String op = opStack[opPt-1];
           while (getPrecLevel(op) <= prec) {
             opPt--;
             pfix[pfixlen++] = op;
+            if (DEBUG) stackTrace(pfix, pfixlen, "pfix");
             if (opPt < 1) return null;
             op = opStack[opPt-1];
+            if (DEBUG) stackTrace(opStack, opPt, "op");
           }
           // push token onto operator stack
           if (prec > 1) {
             opStack[opPt++] = token;
+            if (DEBUG) stackTrace(opStack, opPt, "op");
             unary = false;
           }
           else {
             // push unary function onto function stack, not operator stack
             funcStack[funcPt++] = token;
+            if (DEBUG) stackTrace(funcStack, funcPt, "func");
             unary = true;
           }
           implicit = false;
         }
         else if (prec == 0) { // token is a binary function
+          if (DEBUG) System.out.println("(binary function)");
           // push token onto function stack
           funcStack[funcPt++] = token;
+          if (DEBUG) stackTrace(funcStack, funcPt, "func");
           implicit = false;
           unary = false;
         }
         else { // token is a variable or a constant
+          if (DEBUG) System.out.println("(variable or constant)");
           // append token to pfix
           pfix[pfixlen++] = token;
+          if (DEBUG) stackTrace(pfix, pfixlen, "pfix");
           implicit = true;
           unary = false;
         }
@@ -266,6 +321,15 @@ public class Formula {
       for (int i=0; i<output.length; i++) {
         System.out.print(output[i]+" ");
       }
+      System.out.println();
+    }
+  }
+
+  /** prints contents of opStack variable, for debugging */
+  public static void stackTrace(String[] stack, int sp, String type) {
+    if (DEBUG) {
+      System.out.print(type + "Stack =");
+      for (int i=0; i<sp; i++) System.out.print(" " + stack[i]);
       System.out.println();
     }
   }

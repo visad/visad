@@ -82,7 +82,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     {"Z Axis", "Z Offset", "Radius", "Flow1 Z", "Flow2 Z"},
     {"Red", "Cyan", "Hue", "Animation", "Select Value"},
     {"Green", "Magenta", "Saturation", "Iso-contour", "Select Range"},
-    {"Blue", "Yellow", "Value", "Alpha", "List"},
+    {"Blue", "Yellow", "Value", "Alpha", "Text"},
     {"RGB", "CMY", "HSV", "RGBA", "Shape"}
   };
 
@@ -99,7 +99,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     {Display.Green, Display.Magenta, Display.Saturation,
      Display.IsoContour, Display.SelectRange},
     {Display.Blue, Display.Yellow, Display.Value,
-     Display.Alpha, Display.List},
+     Display.Alpha, Display.Text},
     {Display.RGB, Display.CMY, Display.HSV,
      Display.RGBA, Display.Shape}
   };
@@ -633,15 +633,15 @@ public class MappingDialog extends JDialog implements ActionListener,
     final int n1 = 11;
     final int n2 = 29;
     g.setColor(Color.blue);
-    g.drawRect(x, y, 40, 40);
+    g.drawRect(x, y, 39, 39);
     g.drawLine(x, y+n1, x+n1, y);
     g.drawLine(x, y+n2, x+n2, y);
-    g.drawLine(x+n1, y+40, x+40, y+n1);
-    g.drawLine(x+n2, y+40, x+40, y+n2);
-    g.drawLine(x+n2, y, x+40, y+n1);
-    g.drawLine(x+n1, y, x+40, y+n2);
-    g.drawLine(x, y+n1, x+n2, y+40);
-    g.drawLine(x, y+n2, x+n1, y+40);
+    g.drawLine(x+n1, y+39, x+39, y+n1);
+    g.drawLine(x+n2, y+39, x+39, y+n2);
+    g.drawLine(x+n2, y, x+39, y+n1);
+    g.drawLine(x+n1, y, x+39, y+n2);
+    g.drawLine(x, y+n1, x+n2, y+39);
+    g.drawLine(x, y+n2, x+n1, y+39);
   }
 
   /** Handles button press events */
