@@ -39,6 +39,7 @@ public class Vis5DFile
    Set space_set;
    FunctionType grid_type;
    RealType[] vars;
+   int[] vars_indexes;
    int nvars;
    int grid_size;
 
@@ -48,7 +49,7 @@ public class Vis5DFile
                     Set space_set,
                     FunctionType grid_type,
                     RealType[] vars,
-                    int nvars,
+                    int[] vars_indexes,
                     int grid_size )
    {
      this.filename = filename;
@@ -56,7 +57,8 @@ public class Vis5DFile
      this.space_set = space_set;
      this.grid_type = grid_type;
      this.vars = vars;
-     this.nvars = nvars;
+     this.nvars = vars.length;
+     this.vars_indexes = vars_indexes;
      this.grid_size = grid_size;
    }
 }

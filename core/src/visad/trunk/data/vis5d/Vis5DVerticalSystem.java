@@ -39,17 +39,18 @@ public class Vis5DVerticalSystem
 
   SampledSet vertSet;
   RealType vert_type;
-  RealTupleType reference;  //  special 1-D RealTupleType for
-                            //  CoordinateSystem (row, col, height) 
-                            //  with Reference (lat, lon, height)
-                            //  where the transform to the Reference
-                            //  is described via a
-                            //  CartesianProductCoordinateSystem.
-                            //  this eliminates the circularity by
-                            //  defining height as "Height_2" in the
-                            //  Reference tuple.
-  
 
+/*------------------------------------------------------
+    A special 1-D RealTupleType for CoordinateSystem
+    (row, col, height) with Reference (lat, lon, height)
+    where the transform to the Reference is described via
+    a CartesianProductCoordinateSystem.  This eliminates
+    the circularity by defining a new RealType for height
+    with ScalarName "Height_2" in the Reference tuple. */
+
+  RealTupleType reference;
+/*-----------------------------------------------------*/
+  
   public Vis5DVerticalSystem( int vert_sys,
                               int n_levels,
                               double[] vert_args)

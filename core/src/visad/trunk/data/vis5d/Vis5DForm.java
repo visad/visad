@@ -36,6 +36,8 @@ import visad.jmet.DumpType;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;
+import java.util.Hashtable;
+import java.util.Enumeration;
 
 // JFC packages
 import javax.swing.*;
@@ -102,7 +104,6 @@ public class Vis5DForm extends Form implements FormFileInformer {
     FunctionType v5d_type;
     int nvars;
     int grid_size;
-    FunctionType grid_type;
     RealType[] vars;
 
     if (id == null) {
@@ -112,8 +113,9 @@ public class Vis5DForm extends Form implements FormFileInformer {
     byte[] name = id.getBytes();
     int[] sizes = new int[5];
     int[] map_proj = new int[1];
-    byte[] varnames = new byte[10 * MAXVARS];
-    byte[] varunits = new byte[20 * MAXVARS];
+    String[] varnames = new String[MAXVARS];
+    String[] varunits = new String[MAXVARS];
+    int[] n_levels = new int[MAXVARS];
     int[]  vert_sys = new int[1];
     float[]  vertargs = new float[MAXVERTARGS];
     float[] times = new float[MAXTIMES];
@@ -122,6 +124,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     vv = V5DStruct.v5d_open(name,
                             name.length,
                             sizes,
+                            n_levels,
                             varnames,
                             varunits,
                             map_proj,
@@ -138,25 +141,18 @@ public class Vis5DForm extends Form implements FormFileInformer {
     int nl = sizes[2];
     int ntimes = sizes[3];
     nvars = sizes[4];
-    /*- TDR
-    RealType time = RealType.getRealType("time");
-     */
-    RealType time = RealType.Time;
 
+
+    RealType time = RealType.Time;
 
     RealType row = RealType.getRealType("row");
     RealType col = RealType.getRealType("col");
     RealType lev = RealType.getRealType("lev");
+
     vars = new RealType[nvars];
 
     for (int i=0; i<nvars; i++) {
-      int k = 10 * i;
-      int k2 = 20 * i;
-      int m = k;
-      int m2 = k2;
-      while (varnames[m] != 0) {m++;}
-      while (varunits[m2] != 0) {m2++;}
-      String unit_spec = new String(varunits, k2, m2 - k2);
+      String unit_spec = varunits[i];
       Unit unit = null;
       if ( unit_spec != null ) {
         try {
@@ -166,7 +162,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
           System.out.println(e.getMessage());
         }
       }
-      vars[i] = RealType.getRealType(new String(varnames, k, m - k), unit);
+      vars[i] = RealType.getRealType(varnames[i], unit);
     }
 
     double[][] proj_args =
@@ -180,6 +176,70 @@ public class Vis5DForm extends Form implements FormFileInformer {
     RealTupleType domain;
     Vis5DVerticalSystem vert_coord_sys = null;
 
+
+   /*----------------------------------------------------------
+      Sort variables by n_levels.  There should only be two
+      possibilities:
+       (1) all variables with same n_levels.
+       (2) some variables all with same n_levels, the rest with
+           only one level.
+
+      Throw BadFormException otherwise. */
+    
+
+    Hashtable var_table = new Hashtable();
+    for (int i = 0; i < nvars; i++) {
+      var_table.put(new Integer(n_levels[i]), new Object());
+    }
+    int n_var_groups = var_table.size();
+
+    if ( n_var_groups > 2 ) {
+      throw
+        new BadFormException("more than two variable groups by n_levels");
+    }
+    else if ( n_var_groups == 0 ) {
+      throw
+        new BadFormException("n_var_groups == 0");
+    }
+
+    RealType[][] var_grps = new RealType[n_var_groups][];
+    RealType[] tmp_r = new RealType[nvars];
+    int[][] var_grps_indexes = new int[n_var_groups][];
+    int[] tmp_i = new int[nvars];
+    int[] var_grps_nlevels = new int[n_var_groups];
+    
+
+    Enumeration enum = var_table.keys();
+    for ( int grp = 0; grp < n_var_groups; grp++)
+    {
+      Integer key = (Integer)enum.nextElement();
+      int cnt = 0;
+      for (int i = 0; i < nvars; i++) {
+        if ( n_levels[i] == key.intValue() ) {
+           tmp_r[cnt] = vars[i];
+           tmp_i[cnt] = i;
+           cnt++;
+        }
+      }
+      var_grps[grp] = new RealType[cnt];
+      System.arraycopy(tmp_r, 0, var_grps[grp], 0, cnt);
+
+      var_grps_indexes[grp] = new int[cnt];
+      System.arraycopy(tmp_i, 0, var_grps_indexes[grp], 0, cnt);
+      var_grps_nlevels[grp] = key.intValue();
+    }
+    /*---------------------------------------------------------*/
+
+
+  FunctionType[] grid_type = new FunctionType[n_var_groups];
+  Vis5DFile[] v5dfile_s = new Vis5DFile[n_var_groups];
+
+  for ( int grp = 0; grp < n_var_groups; grp++ )
+  {
+    RealType[] sub_vars = var_grps[grp];
+    int[] sub_vars_indexes = var_grps_indexes[grp];
+    nl = var_grps_nlevels[grp];
+
     if (nl > 1) {
       vert_coord_sys =
         new Vis5DVerticalSystem(vert_sys[0], nl, vert_args[0]);
@@ -188,7 +248,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
         (RealType)
           vert_coord_sys.vert_type;
 
-      coord_sys =
+      CoordinateSystem pcs =
         new CartesianProductCoordinateSystem(
           new CoordinateSystem[]
             {coord_sys,
@@ -196,46 +256,26 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
       domain =
         new RealTupleType(
-          new RealType[] {row, col, height}, coord_sys, null);
-      System.out.println(domain);
+          new RealType[] {row, col, height}, pcs, null);
     }
     else {
       domain = new RealTupleType(new RealType[] {row, col}, coord_sys, null);
     }
 
-    RealTupleType range = new RealTupleType(vars);
-    RealTupleType time_domain = new RealTupleType(time);
-    grid_type = new FunctionType(domain, range);
-    v5d_type = new FunctionType(time_domain, grid_type);
+    RealTupleType range = new RealTupleType(sub_vars);
+    grid_type[grp] = new FunctionType(domain, range);
 
-
-    float[][] timeses = new float[1][ntimes];
-    for (int i=0; i<ntimes; i++)  {
-      timeses[0][i] = times[i];
-    }
-
-    /**- TDR
-    Gridded1DSet time_set =
-      new Gridded1DSet(time, timeses, ntimes);
-     */
-
-    Unit v5d_time_unit = new OffsetUnit(
-                             visad.data.units.UnitParser.encodeTimestamp(
-                                1900, 1, 1, 0, 0, 0, 0), SI.second);
-    Gridded1DSet time_set =
-      new Gridded1DSet(time, timeses, ntimes,
-                       null, new Unit[] {v5d_time_unit}, null);
 
     if (nl > 1)
     {
-      RealTupleType row_col = new RealTupleType(new RealType[] {row, col});
-      SampledSet row_col_set = new Integer2DSet(row_col, nr, nc);
       SampledSet vert_set = vert_coord_sys.vertSet;
 
-      /**-  Maybe sometime in the future
+     /**-  Maybe sometime in the future
+      RealTupleType row_col = new RealTupleType(new RealType[] {row, col});
+      SampledSet row_col_set = new Integer2DSet(row_col, nr, nc);
       space_set = new ProductSet(domain,
         new SampledSet[] {row_col_set, vert_set});
-       */
+      */
 
       float[][] vert_samples = vert_set.getSamples();
       float[][] domain_samples = new float[3][nr*nc*nl];
@@ -250,25 +290,62 @@ public class Vis5DForm extends Form implements FormFileInformer {
           }
         }
       }
-
       space_set =
         new Gridded3DSet(domain, domain_samples, nr, nc, nl);
     }
-    else 
+    else
     {
-      space_set = new Integer2DSet(nr, nc);
+      space_set = new Integer2DSet(domain, nr, nc);
     }
 
-    FieldImpl v5d = new FieldImpl(v5d_type, time_set);
     grid_size = nr * nc * nl;
 
-    Vis5DFile v5dfile =
-      new Vis5DFile(id, vv, space_set, grid_type, vars, nvars, grid_size);
+    v5dfile_s[grp] =
+      new Vis5DFile(id, vv, space_set,
+        grid_type[grp], sub_vars, sub_vars_indexes, grid_size);
+  }
 
+
+    RealTupleType time_domain = new RealTupleType(time);
+
+    MathType v5d_range;
+    if ( grid_type.length == 1 ) {
+      v5d_range = grid_type[0];
+    }
+    else {
+      v5d_range = new TupleType(grid_type);
+    }
+    v5d_type = new FunctionType(time_domain, v5d_range);
+
+    float[][] timeses = new float[1][ntimes];
+    for (int i=0; i<ntimes; i++)  {
+      timeses[0][i] = times[i];
+    }
+
+    Unit v5d_time_unit = new OffsetUnit(
+                             visad.data.units.UnitParser.encodeTimestamp(
+                                1900, 1, 1, 0, 0, 0, 0), SI.second);
+    Gridded1DSet time_set =
+      new Gridded1DSet(time, timeses, ntimes,
+                       null, new Unit[] {v5d_time_unit}, null);
+
+
+    FieldImpl v5d = new FieldImpl(v5d_type, time_set);
+
+    DataImpl range_data;
     for (int i=0; i<ntimes; i++)
     {
-      FlatField grid = getFlatField(v5dfile, i);
-      v5d.setSample(i, grid, false);
+      if (v5d_range instanceof TupleType) {
+        range_data =
+          new Tuple( new DataImpl[] 
+                     {getFlatField(v5dfile_s[0], i), 
+                      getFlatField(v5dfile_s[1], i)}, false );
+      }
+      else {
+        range_data = getFlatField(v5dfile_s[0], i);
+      }
+
+      v5d.setSample(i, range_data, false);
     }
 
     return v5d;
@@ -289,13 +366,14 @@ public class Vis5DForm extends Form implements FormFileInformer {
     Set space_set = v5dfile.space_set;
     V5DStruct vv = v5dfile.vv;
     RealType[] vars = v5dfile.vars;
+    int[] vars_indexes = v5dfile.vars_indexes;
 
 
     float[][] data = new float[nvars][grid_size];
     Linear1DSet[] range_sets = new Linear1DSet[nvars];
     for (int j=0; j<nvars; j++) {
       float[] ranges = new float[2];
-      vv.v5d_read(time_idx, j, ranges, data[j]);
+      vv.v5d_read(time_idx, vars_indexes[j], ranges, data[j]);
       if (ranges[0] >= 0.99E30 && ranges[1] <= -0.99E30) {
         range_sets[j] = new Linear1DSet(0.0, 1.0, 255);
       }
@@ -354,10 +432,18 @@ public class Vis5DForm extends Form implements FormFileInformer {
       System.out.println("bad Vis5D file read");
       return;
     }
-    FunctionType vis5d_type = (FunctionType) vis5d.getType();
+    FunctionType type = (FunctionType) vis5d.getType();
+    FieldImpl new_vis5d;
+    if ( type.getRange() instanceof TupleType ) {
+      new_vis5d = (FieldImpl)vis5d.extract(0);
+    }
+    else {
+      new_vis5d = vis5d;
+    }
+    FunctionType vis5d_type = (FunctionType) new_vis5d.getType();
     System.out.println(vis5d_type);
     DataReference vis5d_ref = new DataReferenceImpl("vis5d_ref");
-    vis5d_ref.setData(vis5d);
+    vis5d_ref.setData(new_vis5d);
     // vis5d_ref.setData(vis5d.getSample(8));
 
     //

@@ -445,14 +445,20 @@ public class V5DStruct {
   // ************************* //
 
   /** Open a Vis5D file */
-  public static V5DStruct v5d_open(byte[] name, int name_length, int[] sizes,
-    byte[] varnames, byte[] varunits, int[] map_proj, float[] projargs, 
-    int[] vert_sys, float[] vert_args, float[] times)
+  public 
+    static 
+      V5DStruct v5d_open(byte[] name, int name_length, int[] sizes,
+                         int[] n_levels,
+                         String[] var_names, String[] var_units,
+                         int[] map_proj, float[] projargs,
+                         int[] vert_sys, float[] vert_args, float[] times)
     throws IOException, BadFormException
   {
-    int i, j, k;
+    int i, j, k, k2, m, m2;
     int day, time, first_day, first_time;
     char[] filename = new char[200];
+    byte[] varnames = new byte[10*MAXVARS];
+    byte[] varunits = new byte[20*MAXVARS];
 
     // open file
     for (i=0; i<name_length; i++) filename[i] = (char) name[i];
@@ -465,14 +471,6 @@ public class V5DStruct {
       sizes[1] = v.Nc;
       sizes[3] = v.NumTimes;
       sizes[4] = v.NumVars;
-
-      // compute maximum level, and make sure all levels are equal
-      int maxNl = v.Nl[0];
-      for (i=0; i<v.NumVars; i++) {
-        // if (v.Nl[i] > maxNl) maxNl = v.Nl[i];
-        if (v.Nl[i] != maxNl) sizes[0] = -1;
-      }
-      sizes[2] = maxNl;
 
       // compute varnames
       for (j=0; j<v.NumVars; j++) {
@@ -502,7 +500,34 @@ public class V5DStruct {
         }
       }
 
+    //- make var/unit Strings:
+
+      for (i=0; i<v.NumVars; i++) {
+        k = 10 * i;
+        k2 = 20 * i;
+        m = k;
+        m2 = k2;
+        while (varnames[m] != 0) {m++;}
+        while (varunits[m2] != 0) {m2++;}
+        var_names[i] = new String(varnames, k, m - k);
+        var_units[i] = new String(varunits, k2, m2 - k2);
+      }
+
+
+      // compute maximum level, and make sure all levels are equal
+      int maxNl = v.Nl[0];
+      for (i=0; i<v.NumVars; i++) {
+        // if (v.Nl[i] > maxNl) maxNl = v.Nl[i];
+  /*----if (v.Nl[i] != maxNl) sizes[0] = -1; */
+      }
+ 
+      sizes[2] = maxNl;
+      for (i = 0; i < v.NumVars; i++) {
+        n_levels[i] = v.Nl[i];
+      }
+
       vert_sys[0] = v.VerticalSystem;
+
       for ( int kk = 0; kk < maxNl; kk++) {
         vert_args[kk] = v.VertArgs[kk];
       }
@@ -518,7 +543,6 @@ public class V5DStruct {
          */
         float ff = (((float)day)*24f*60f*60f + (float)time);
         times[i] = ff;
-        System.out.println(v.DateStamp[i]+", "+ff);
       }
 
       map_proj[0] = v.Projection;
@@ -527,7 +551,7 @@ public class V5DStruct {
         projargs[kk] = v.ProjArgs[kk];
       }
     }
-    else {
+    else {  //- trouble with file
       // v == null
       sizes[0] = -1;
     }
