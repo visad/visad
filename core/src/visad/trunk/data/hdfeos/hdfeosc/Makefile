@@ -15,7 +15,7 @@ HDFEOSINCS = -I${HDFEOS_INC}
 HDFLIBS = $(HDF_LIB)/libmfhdf.a $(HDF_LIB)/libdf.a $(HDF_LIB)/libjpeg.a $(HDF_LIB)/libz.a
 HDFEOSLIBS = $(HDFEOS_LIB)/libhdfeos.a $(HDFEOS_LIB)/libGctp.a ./libhdfeos_ext.a
 
-SHOPT =
+SHCFLAGS =
 
 CC = cc
 AR = ar -r
@@ -60,13 +60,13 @@ hdfeos_ext: SWfdims.o GDfdims.o
 	$(AR) libhdfeos_ext.a SWfdims.o GDfdims.o
 
 SWfdims.o: SWfdims.c
-	$(CC) $(SHOPT) -c SWfdims.c $(HDFINCS) $(HDFEOSINCS)
+	$(CC) $(SHCFLAGS) -c SWfdims.c $(HDFINCS) $(HDFEOSINCS)
 
 GDfdims.o: GDfdims.c
-	$(CC) $(SHOPT) -c GDfdims.c $(HDFINCS) $(HDFEOSINCS)
+	$(CC) $(SHCFLAGS) -c GDfdims.c $(HDFINCS) $(HDFEOSINCS)
 
 .c.o:
-	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(HDFINCS) $(HDFEOSINCS)
+	$(CC) $(SHCFLAGS) -c $*.c $(JAVAINCS) $(PKGINCS)
 
 hdfeosLib: $(OBJECTS) hdfeos_ext
 	$(LD) $(LDOPT) $(OBJECTS) $(HDFEOSLIBS) $(HDFLIBS) $(SYSLIBS) -o $(SLIBDIR)/lib$(SLIB).so
@@ -91,7 +91,7 @@ irix: required_macros
 	@make ARCH=irix SYSLIBS="-lm" LDOPT="-shared -Wl,-x" hdfeosLib
 
 linux: required_macros
-	@make ARCH=linux SYSLIBS="-lm" SHOPT="-fPIC -DPIC" LDOPT="-shared" hdfeosLib
+	@make ARCH=linux SYSLIBS="-lm" SHCFLAGS="-fPIC -DPIC" LDOPT="-shared" hdfeosLib
 
 aix: required_macros
-	@make ARCH=aix SYSLIBS="-lm -lc" SHOPT="" LDOPT="-bE:shrsub.exp -bM:SRE -bnoentry" hdfeosLib
+	@make ARCH=aix SYSLIBS="-lm -lc" LDOPT="-bE:shrsub.exp -bM:SRE -bnoentry" hdfeosLib

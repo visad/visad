@@ -190,7 +190,7 @@ all::
 		$$arch
 
 .c.o:
-	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(PKGINCS)
+	$(CC) $(SHCFLAGS) $(SHCFLAGS) -c $*.c $(JAVAINCS) $(PKGINCS)
 
 shared_library:: lib$(SLIB).so
 
@@ -218,7 +218,7 @@ clean:
 solaris: required_macros
 	@make \
 		JAVAARCH=solaris \
-		SHOPT="-Xa" \
+		SHCFLAGS="-Xa" \
 		SHLD="$(CC)" \
 		SHLDFLAGS="-G -z defs" \
 		SHFLD="$(FC)" \
@@ -260,7 +260,6 @@ linux: required_macros
 aix: required_macros
 	@make \
 		JAVAARCH=aix \
-		SHOPT="" \
 		SHLD="$(CC)" \
 		SHLDFLAGS="-bE:shrsub.exp -bM:SRE -bnoentry" \
 		SHFLD="$(FC)" \
