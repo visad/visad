@@ -46,8 +46,10 @@ import HTTPClient.UncompressInputStream;
  * work to establish an ADDE network connection, put together
  * a request packet, and initiate data flow.  Connections for
  * image data, image directories, grid data, grid directory, 
- * point source data and dataset information (McIDAS
- * AGET, ADIR, GDIR, GGET, MDKS, TXTG and LWPR requests) are supported.
+ * point source data, text, weather text, observational text
+ * and dataset information (McIDAS AGET, ADIR, GDIR, GGET, MDKS, 
+ * TXTG, OBTG, WXTG and LWPR requests) are supported.
+ *
  * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
@@ -55,7 +57,7 @@ import HTTPClient.UncompressInputStream;
  *
  * URLs must all have the following format:
  *
- *   adde://host/request?keyword_1=value_1&keyword_2=value_2
+ *   adde://host/request?keyword_1=value_1&amp;keyword_2=value_2
  *
  * where request can be one of the following:
  *
@@ -66,87 +68,120 @@ import HTTPClient.UncompressInputStream;
  *   imagedirectory - request for image directory information (ADIR)
  *   pointdata - request for point data (MDKS)
  *   textdata - request to read a text file (TXTG) 
+ *   wxtext   - request to read a weather text file (WTXG) 
+ *   obtext   - request to read a observation text file (OBTG) 
  *
  * There can be any valid combination of the following supported keywords:
  *
  * -------for any request
  *
- *   group=<groupname>         ADDE group name
- *   user=<user_id>            ADDE user identification
- *   proj=<proj #>             a valid ADDE project number
- *   trace=<0/1>               setting to 1 tells server to write debug 
- *                               trace file (imagedata, imagedirectory)
+ *   group=&lt;groupname&gt;         ADDE group name
+ *   user=&lt;user_id&gt;            ADDE user identification
+ *   proj=&lt;proj #&gt;             a valid ADDE project number
+ *   trace=&lt;0/1&gt;               setting to 1 tells server to write debug 
+ *                               trace file 
  *   version=                  ADDE version number, currently 1 except for
  *                             griddata requests
  *   debug=                    set to true to watch the printlns stream by
- *   compress=                 set to true if you want to use compressed
- *                             transfers.  You need to have the VisAD package
- *                             if you want to support this.
+ *   compress=                 set to "gzip" if you want to use the GZIP
+ *                             compression or "compress" if you want to use 
+ *                             transfers in Unix compress format (You need to 
+ *                             have the VisAD package if you want to support 
+ *                             this.)  default = none.
  *   port=                     Socket port to connect on.  Overridden by
  *                             a port specified in the host 
  *                             (e.g., adde.ucar.edu:500)
  *
  * -------for images:
  *
- *   descr=<descriptor>        ADDE descriptor name
- *   band=<band>               spectral band or channel number 
- *   mag=<lmag> <emag>         image magnification, postitive for blowup, 
+ *   descr=&lt;descriptor&gt;        ADDE descriptor name
+ *   band=&lt;band&gt;               spectral band or channel number 
+ *   mag=&lt;lmag&gt; &lt;emag&gt;         image magnification, postitive for blowup, 
  *                               negative for blowdown (default = 1, emag=lmag)
  *                               (imagedata only)
- *   latlon=<lat> <lon>        lat/lon point to center image on (imagedata only)
- *   linele=<lin> <ele> <type> line/element to center image on (imagedata only)
- *   place=<placement>         placement of lat/lon or linele points (center 
+ *   latlon=&lt;lat&gt; &lt;lon&gt;        lat/lon point to center image on (imagedata only)
+ *   linele=&lt;lin&gt; &lt;ele&gt; &lt;type&gt; line/element to center image on (imagedata only)
+ *   place=&lt;placement&gt;         placement of lat/lon or linele points (center 
  *                               or upperleft (def=center)) (imagedata only)
- *   pos=<position>            request an absolute or relative ADDE position 
- *                               number.  May use <start> <end>.  Default
- *                               for <end> is 0 if start<0, or =start otherwise.
- *   size=<lines> <elements>   size of image to be returned (imagedata only)
- *   unit=<unit>               to specify calibration units other than the 
+ *   pos=&lt;position&gt;            request an absolute or relative ADDE position 
+ *                               number.  May use &lt;start&gt; &lt;end&gt;  Default
+ *                               for &lt;end&gt; is 0 if start&lt;0, or =start otherwise.
+ *   size=&lt;lines&gt; &lt;elements&gt;   size of image to be returned (imagedata only)
+ *   unit=&lt;unit&gt;               to specify calibration units other than the 
  *                               default 
- *   spac=<bytes>              number of bytes per data point, 1, 2, or 4 
+ *   spac=&lt;bytes&gt;              number of bytes per data point, 1, 2, or 4 
  *                               (imagedata only)
- *   doc=<yes/no>              specify yes to include line documentation 
+ *   doc=&lt;yes/no&gt;              specify yes to include line documentation 
  *                               with image (def=no) 
- *   aux=<yes/no>              specify yes to include auxilliary information 
+ *   aux=&lt;yes/no&gt;              specify yes to include auxilliary information 
  *                               with image 
- *   time=<time1> <time2>      specify the time range of images to select
+ *   time=&lt;time1&gt; &lt;time2&gt;      specify the time range of images to select
  *                               (def=latest image if pos not specified)
- *   day=<day>                 specify the day of the images to select
+ *   day=&lt;day&gt;                 specify the day of the images to select
  *                               (def=latest image if pos not specified)
- *   cal=<cal type>            request a specific calibration on the image 
+ *   cal=&lt;cal type&gt;            request a specific calibration on the image 
  *                               (imagedata only)
- *   id=<stn id>               radar station id 
+ *   id=&lt;stn id&gt;               radar station id 
  *
  * ------ for grids:
  *
- *   descr=<descriptor>        ADDE descriptor name
- *   param=<param list>        parameter code list
- *   time=<model run time>     time in hhmmss format
- *   day=<model run day>       day in ccyyddd format
- *   lev=<level list>          list of requested levels (value or SFC, MSL 
+ *   descr=&lt;descriptor&gt;        ADDE descriptor name
+ *   param=&lt;param list&gt;        parameter code list
+ *   time=&lt;model run time&gt;     time in hhmmss format
+ *   day=&lt;model run day&gt;       day in ccyyddd format
+ *   lev=&lt;level list&gt;          list of requested levels (value or SFC, MSL 
  *                               or TRO)
- *   ftime=<forecast time>     valid time (hhmmss format) (use with fday)
- *   fday=<forecast day>       forecast day (ccyyddd)
- *   fhour=<forecast hours>    forecast hours (offset from model run time)
+ *   ftime=&lt;forecast time&gt;     valid time (hhmmss format) (use with fday)
+ *   fday=&lt;forecast day&gt;       forecast day (ccyyddd)
+ *   fhour=&lt;forecast hours&gt;    forecast hours (offset from model run time)
  *                                (hhmmss format)
- *   num=<max>                 maximum number of grids to return (nn)
+ *   num=&lt;max&gt;                 maximum number of grids to return (nn)
  *
  * ------ for point data:
  *
- *   descr=<descriptor>        ADDE descriptor name
- *   pos=<position>            request an absolute or relative ADDE 
+ *   descr=&lt;descriptor&gt;        ADDE descriptor name
+ *   pos=&lt;position&gt;            request an absolute or relative ADDE 
  *                               position number
- *   select=<select clause>    to specify which data is required
- *   param=<param list>        what parameters to return
- *   num=<max>                 maximum number of obs to return
+ *   select=&lt;select clause&gt;    to specify which data is required
+ *   param=&lt;param list&gt;        what parameters to return
+ *   num=&lt;max&gt;                 maximum number of obs to return
  *   
  * ------ for text data:
  *
- *   descr=<descriptor>        ADDE descriptor name 
+ *   descr=&lt;descriptor&gt;        ADDE descriptor name 
  *                             (may also be "descr=FILE=filename")
- *   file=<filename>           name of text file to read
+ *   file=&lt;filename&gt;           name of text file to read
  *
+ * ------ for weather text data:
  *
+ *   group=&lt;group&gt;         weather text group (default= RTWXTEXT)
+ *   prod=&lt;product&gt;        predefind product name
+ *   apro=&lt;val1 .. valn&gt;   AFOS/AWIPS product headers to match (don't 
+ *                         use with wmo keyword
+ *   astn=&lt;val1 .. valn&gt;   AFOS/AWIPS stations to match
+ *   wmo= &lt;val1 .. valn&gt;   WMO product headers to match (don't 
+ *                         use with apro keyword
+ *   wstn=&lt;val1 .. valn&gt;   WMO stations to match
+ *   day=&lt;start end&gt;       range of days to search
+ *   dtime=&lt;numhours&gt;      maximum number of hours to search back (def=96)
+ *   match=&lt;match strings&gt; list of character match strings to find from text
+ *   num=&lt;num&gt;             number of matches to find (def=1)
+ *
+ * ------ for observational text data:
+ *
+ *   group=&lt;group&gt;         weather text group (default= RTWXTEXT)
+ *   descr=&lt;descriptor&gt;    weather text subgroup (default=SFCHOURLY)
+ *   id=&lt;id1 id2 ... idn&gt;  list of station ids
+ *   co=&lt;co1 co2 ... con&gt;  list of countries
+ *   reg=&lt;reg1 reg2..regn&gt; list of regions
+ *   newest=&lt;day hour&gt;     most recent time to allow in request 
+ *                         (def=current time)
+ *   oldest=&lt;day hour&gt;     oldest observation time to allow in request
+ *   type=&lt;type&gt;           numeric value for the type of ob
+ *   nhours=&lt;numhours&gt;     maximum number of hours to search
+ *   num=&lt;num&gt;             number of matches to find (def=1)
+ *
+ * -------------------------------------------------------------------------
  * The following keywords are required:
  *
  *   group 
@@ -154,7 +189,7 @@ import HTTPClient.UncompressInputStream;
  *
  * an example URL for images might look like:
  *
- *   adde://viper/imagedata?group=gvar&band=1&user=tjj&proj=6999&version=1
+ *   adde://viper/imagedata?group=gvar&amp;band=1&amp;user=tjj&amp;proj=6999&amp;version=1
  *   
  * </pre>
  *
@@ -163,7 +198,6 @@ import HTTPClient.UncompressInputStream;
  * @author Tom Whittaker, SSEC/CIMSS
  * @author James Kelly, Australian Bureau of Meteorology
  */
-
 public class AddeURLConnection extends URLConnection 
 {
 
@@ -172,15 +206,38 @@ public class AddeURLConnection extends URLConnection
   private DataOutputStream dos = null;
   private URL url;
 
-  private final static int DEFAULT_LINES = 480;
-  private final static int DEFAULT_ELEMS = 640;
+  /** The default number of lines for an image request */
+  private final int DEFAULT_LINES = 480;
+
+  /** The default number of elements for an image request */
+  private final int DEFAULT_ELEMS = 640;
+
+  /** Size of an ADDE trailer */
   private final static int TRAILER_SIZE = 92;
+
+  /** Size of an ADDE request */
   private final static int REQUEST_SIZE = 120;
+
+  /** Size of an ADDE error message */
   private final static int ERRMSG_SIZE = 72;
+
+  /** Size of an ADDE error message offset */
   private final static int ERRMSG_OFFS = 8;
+
+  /** Default port. TODO: Update this to be 112 */
   private final static int PORT = 500;
+
+  /** Flag for "compress" compression.  Used to be synonymous 
+      with the port used for compress transfer */
   private final static int COMPRESS = 503;
+
+  /** Flag for GZip compression.  Used to be synonymous with the 
+      port used for compressed transfers */
   private final static int GZIP = 112;
+
+  /**
+   * ADDE Version 1 indicator
+   */
   private final static int VERSION_1 = 1;
 
   // ADDE server requests
@@ -204,7 +261,7 @@ public class AddeURLConnection extends URLConnection
   public final static int OBTG = 8;
 
 
-  // ADDE data types
+  // ADDE data types (not used?)
   private final static int IMAGE = 100;
   private final static int GRID  = 101;
   private final static int POINT = 102;
@@ -214,10 +271,19 @@ public class AddeURLConnection extends URLConnection
 
   private int numBytes = 0;
   private int dataType = IMAGE;
+
   private byte[] binaryData = null;   // byte array to hold extra binary data
+
+  /** request type - default to AGET */
   private int reqType = AGET;
+
+  /** debug flag  - value can be overrided with debug=true */
   private boolean debug = false;
+
+  /** port to use for compression */
   private int portToUse = PORT;   // DRM 03-Mar-2001
+
+  /** compression type */
   private int compressionType = PORT; 
 
   /**
@@ -225,8 +291,8 @@ public class AddeURLConnection extends URLConnection
    * Constructor: just sets URL and calls superclass constructor.
    * Actual network connection is established in connect().
    *
+   * @param url   url to use
    */
-
   AddeURLConnection(URL url)
     throws IOException
   {
@@ -239,12 +305,12 @@ public class AddeURLConnection extends URLConnection
    * Establishes an ADDE connection using the URL passed to the
    * constructor.  Opens a socket on the ADDE port, and formulates
    * an ADDE image data request based on the file portion of URL.
-   *   
-   * an example URL might look like:
-   *   adde://viper.ssec.wisc.edu/image?group=gvar&band=1&mag=-8&version=1
+   * <p>  
+   * An example URL might look like:
+   * <p>
+   *   adde://viper.ssec.wisc.edu/image?group=gvar&amp;band=1&amp;mag=-8&amp;version=1
    *   
    */
-
   synchronized public void connect ()
     throws IOException, AddeURLException
   {
@@ -336,31 +402,31 @@ public class AddeURLConnection extends URLConnection
     switch (reqType)
     {
         case AGET:
-            sb = decodeAGETString(uCmd);
+            sb.append(decodeAGETString(uCmd));
             break;
         case ADIR:
-            sb = decodeADIRString(uCmd);
+            sb.append(decodeADIRString(uCmd));
             break;
         case LWPR:
-            sb = decodeLWPRString(uCmd);
+            sb.append(decodeLWPRString(uCmd));
             break;
         case GDIR:
-            sb = decodeGDIRString(uCmd);
+            sb.append(decodeGDIRString(uCmd));
             break;
         case GGET:
-            sb = decodeGDIRString(uCmd);
+            sb.append(decodeGDIRString(uCmd));
             break;
         case MDKS:
-            sb = decodeMDKSString(uCmd);
+            sb.append(decodeMDKSString(uCmd));
             break;
         case TXTG:
-            sb = decodeTXTGString(uCmd);
+            sb.append(decodeTXTGString(uCmd));
             break;
         case WTXG:
-            sb = decodeWTXGString(uCmd);
+            sb.append(decodeWTXGString(uCmd));
             break;
         case OBTG:
-            sb = decodeOBTGString(uCmd);
+            sb.append(decodeOBTGString(uCmd));
             break;
     }
 
@@ -369,63 +435,38 @@ public class AddeURLConnection extends URLConnection
     sb.append((reqType == GGET || reqType == WTXG) ? "A" : "1");
 
     // now convert to array of bytes for output since chars are two byte
-    String cmd = new String(sb);
-    cmd = cmd.toUpperCase();
+    String cmd = sb.toString().toUpperCase();
     if (debug) System.out.println(cmd);
     byte [] ob = cmd.getBytes();
 
     // get some other stuff
-    int startIdx;
-    int endIdx;
 
     // user initials - pass on what client supplied in user= keyword
     byte [] usr; 
-    String userStr;
-    startIdx = request.indexOf("user=");
-    if (startIdx >= 0) {
-      endIdx = request.indexOf('&', startIdx);
-      if (endIdx == -1)   // last on line
-         endIdx = request.length();
-      // use original to preserve case
-      userStr = requestOriginal.substring(startIdx + 5, endIdx);
-    } else {
-      userStr = "XXXX";
-    }
-    usr = userStr.getBytes();
+    String testStr = getValue(requestOriginal, "user=", "XXXX");
+    if (debug) System.out.println("user = " + testStr);
+    usr = testStr.getBytes();
 
     // project number - we won't validate, but make sure it's there
-    startIdx = uCmd.indexOf("proj=");
-    String projStr;
-    int proj;
-    if (startIdx >= 0) {
-      endIdx = uCmd.indexOf('&', startIdx);
-      if (endIdx == -1)   // last on line
-         endIdx = uCmd.length();
-      projStr = uCmd.substring(startIdx + 5, endIdx);
-    } else {
-      projStr = "0";
-    }
+    int proj = 0;
+    testStr = getValue(uCmd, "proj=", "0");
+    if (debug) System.out.println("proj = " + testStr);
     try {
-      proj = Integer.parseInt(projStr);
+      proj = Integer.parseInt(testStr);
     } catch (NumberFormatException e) {
-      throw new AddeURLException("Invalid project number: " + projStr);
+      // TODO: Should we really throw an exception or just let it default to 0?
+      throw new AddeURLException("Invalid project number: " + testStr);
     }
 
     // compression 
-    startIdx = uCmd.indexOf("compress=");
-    String compType = "";
-    if (startIdx >= 0) {
-      endIdx = uCmd.indexOf('&', startIdx);
-      if (endIdx == -1)   // last on line
-         endIdx = uCmd.length();
-      compType = uCmd.substring(startIdx + 9, endIdx);
-    } 
-    if (compType.equalsIgnoreCase("gzip")) {
+    testStr = getValue(uCmd, "compress=", "none");
+    if (debug) System.out.println("compression = " + testStr);
+    if (testStr.equalsIgnoreCase("gzip")) {
 
       compressionType = GZIP;
 
-    } else if (compType.equalsIgnoreCase("compress") ||
-               compType.equalsIgnoreCase("true")) {
+    } else if (testStr.equals("compress") ||
+               testStr.equals("true")) {
 
       // check to see if we can do uncompression
       try {
@@ -453,19 +494,17 @@ public class AddeURLConnection extends URLConnection
 
       // default to the compression type
       portToUse = compressionType;
-      startIdx = uCmd.indexOf("port=");
-      if (startIdx >= 0) {
-        String portStr;
-        endIdx = uCmd.indexOf('&', startIdx);
-        if (endIdx == -1)   // last on line
-           endIdx = uCmd.length();
-        portStr = uCmd.substring(startIdx + 5, endIdx);
-        try {
-          portToUse = Integer.parseInt(portStr);
-        } catch (NumberFormatException e) {
-            throw new AddeURLException("Invalid port number: " + portStr);
+      testStr = getValue(uCmd, "port=", null);
+      try {
+        portToUse = Integer.parseInt(testStr);
+      } catch (NumberFormatException e) {
+        // just use default
+        if (testStr != null) {
+          System.out.println(
+            "Warning: Invalid port number \"" + testStr + 
+            "\" specified;  using default port " + portToUse + " instead");
         }
-      } 
+      }
     } else {  // specified 
       portToUse = url.getPort();
     }
@@ -536,7 +575,7 @@ public class AddeURLConnection extends URLConnection
       }
     } else {
       // if id entered was > 4 chars, complain
-      throw new AddeURLException("Invalid user id: " + userStr);
+      throw new AddeURLException("Invalid user id: " + new String(usr));
     }
 
     dos.writeInt(proj);
@@ -606,6 +645,28 @@ public class AddeURLConnection extends URLConnection
 
   }
 
+  private static char AMPERSAND = '&';
+
+  /**
+   * Search for a value in the string and return the value or the default
+   * @param stringToSearch    String to search for the value
+   * @param key               key to search for (includes '=' to disambiguate);
+   * @param default           default value
+   * @return value in string
+   */
+  private String getValue(String stringToSearch, String key, String deflt) {
+    int startIdx = stringToSearch.toLowerCase().lastIndexOf(key);
+    String retVal = deflt;
+    if (startIdx >= 0) {
+      int endIdx = stringToSearch.indexOf(AMPERSAND, startIdx);
+      if (endIdx == -1) { // last on line
+        endIdx = stringToSearch.length(); 
+      }
+      retVal = stringToSearch.substring((startIdx + key.length()), endIdx);
+    } 
+    return retVal;
+  }
+
   /**
    * Get the request type 
    * @return  type of request (ADIR, AGET, etc)
@@ -662,35 +723,35 @@ public class AddeURLConnection extends URLConnection
      *
      * there can be any valid combination of the following supported keywords:
      *
-     *   group=<groupname>         ADDE group name
-     *   descr=<descriptor>        ADDE descriptor name
-     *   band=<band>               spectral band or channel number 
-     *   mag=<lmag> <emag>         image magnification, postitive for blowup, 
+     * <pre>
+     *
+     *   group=&lt;groupname&gt;         ADDE group name
+     *   descr=&lt;descriptor&gt;        ADDE descriptor name
+     *   band=&lt;band&gt;               spectral band or channel number 
+     *   mag=&lt;lmag&gt; &lt;emag&gt;         image magnification, postitive for blowup, 
      *                               negative for blowdown (default = 1, 
      *                                  emag=lmag) 
-     *   latlon=<lat> <lon>        lat/lon point to center image on 
-     *   linele=<lin> <ele> <type> line/element to center image on 
-     *   place=<placement>         placement of lat/lon or linele points 
+     *   latlon=&lt;lat&gt; &lt;lon&gt;        lat/lon point to center image on 
+     *   linele=&lt;lin&gt; &lt;ele&gt; &lt;type&gt; line/element to center image on 
+     *   place=&lt;placement&gt;         placement of lat/lon or linele points 
      *                               (center or upperleft (def=center)) 
-     *   pos=<position>            request an absolute or relative ADDE position
+     *   pos=&lt;position&gt;            request an absolute or relative ADDE position
      *                               number
-     *   size=<lines> <elements>   size of image to be returned
-     *   unit=<unit>               to specify calibration units other than the 
+     *   size=&lt;lines&gt; &lt;elements&gt;   size of image to be returned
+     *   unit=&lt;unit&gt;               to specify calibration units other than the 
      *                               default 
-     *   spac=<bytes>              number of bytes per data point, 1, 2, or 4 
-     *   doc=<yes/no>              specify yes to include line documentation 
+     *   spac=&lt;bytes&gt;              number of bytes per data point, 1, 2, or 4 
+     *   doc=&lt;yes/no&gt;              specify yes to include line documentation 
      *                               with image (def=no) 
-     *   aux=<yes/no>              specify yes to include auxilliary information
+     *   aux=&lt;yes/no&gt;              specify yes to include auxilliary information
      *                               with image 
-     *   time=<time1> <time2>      specify the time range of images to select
+     *   time=&lt;time1&gt; &lt;time2&gt;      specify the time range of images to select
      *                               (def=latest image if pos not specified)
-     *   day=<day>                 specify the day of the images to select
+     *   day=&lt;day&gt;                 specify the day of the images to select
      *                               (def=latest image if pos not specified)
-     *   cal=<cal type>            request a specific calibration on the image 
-     *   id=<stn id>               radar station id
-     *   user=<user_id>            ADDE user identification
-     *   proj=<proj #>             a valid ADDE project number
-     *   trace=<0/1>               setting to 1 tells server to write debug 
+     *   cal=&lt;cal type&gt;            request a specific calibration on the image 
+     *   id=&lt;stn id&gt;               radar station id
+     *   trace=&lt;0/1&gt;               setting to 1 tells server to write debug 
      *                               trace file (imagedata, imagedirectory)
      *
      * the following keywords are required:
@@ -698,7 +759,7 @@ public class AddeURLConnection extends URLConnection
      *   group
      *
      * an example URL might look like:
-     *   adde://viper/imagedata?group=gvar&band=1&user=tjj&proj=6999
+     *   adde://viper/imagedata?group=gvar&amp;band=1
      *   
      * </pre>
      */
@@ -995,26 +1056,25 @@ public class AddeURLConnection extends URLConnection
      *
      * there can be any valid combination of the following supported keywords:
      *
-     *   group=<groupname>       ADDE group name
-     *   descr=<descriptor>      ADDE descriptor name
-     *   param=<param list>      parameter code list
-     *   time=<model run time>   time in hhmmss format
-     *   day=<model run day>     day in ccyyddd format
-     *   lev=<level list>        list of requested levels (value or SFC, MSL 
+     * <pre>
+     *   group=&lt;groupname&gt;       ADDE group name
+     *   descr=&lt;descriptor&gt;      ADDE descriptor name
+     *   param=&lt;param list&gt;      parameter code list
+     *   time=&lt;model run time&gt;   time in hhmmss format
+     *   day=&lt;model run day&gt;     day in ccyyddd format
+     *   lev=&lt;level list&gt;        list of requested levels (value or SFC, MSL 
      *                             or TRO)
-     *   ftime=<forecast time>   valid time (hhmmss format) (use with fday)
-     *   fday=<forecast day>     forecast day (ccyyddd)
-     *   fhour=<forecast hours>  forecast hours (offset from model run time)
+     *   ftime=&lt;forecast time&gt;   valid time (hhmmss format) (use with fday)
+     *   fday=&lt;forecast day&gt;     forecast day (ccyyddd)
+     *   fhour=&lt;forecast hours&gt;  forecast hours (offset from model run time)
      *                                (hhmmss format)
-     *   lat=<min lat> <max lat> latitude bounding box (needs lon specified)
-     *   lon=<min lon> <max lon> longitude bounding box (needs lat specified)
-     *   row=<min row> <max row> row bounding box (needs col specified)
-     *   col=<min col> <max col> column bounding box (needs row specified)
-     *   skip=<row> <col>        skip factors for rows and columns (def = 1 1)
-     *   num=<max>               maximum number of grids (nn) to return (def=1)
-     *   user=<user_id>          ADDE user identification
-     *   proj=<proj #>           a valid ADDE project number
-     *   trace=<0/1>             setting to 1 tells server to write debug 
+     *   lat=&lt;min lat&gt; &lt;max lat&gt; latitude bounding box (needs lon specified)
+     *   lon=&lt;min lon&gt; &lt;max lon&gt; longitude bounding box (needs lat specified)
+     *   row=&lt;min row&gt; &lt;max row&gt; row bounding box (needs col specified)
+     *   col=&lt;min col&gt; &lt;max col&gt; column bounding box (needs row specified)
+     *   skip=&lt;row&gt; &lt;col&gt;        skip factors for rows and columns (def = 1 1)
+     *   num=&lt;max&gt;               maximum number of grids (nn) to return (def=1)
+     *   trace=&lt;0/1&gt;             setting to 1 tells server to write debug 
      *                             trace file (imagedata, imagedirectory)
      *
      * the following keywords are required:
@@ -1022,7 +1082,7 @@ public class AddeURLConnection extends URLConnection
      *   group
      *
      * an example URL might look like:
-     *   adde://noaaport/griddirectory?group=ngm&num=10
+     *   adde://noaaport/griddirectory?group=ngm&amp;num=10
      *   
      * </pre>
      */
@@ -1225,24 +1285,22 @@ public class AddeURLConnection extends URLConnection
      * <pre>
      * there can be any valid combination of the following supported keywords:
      *
-     *   group=<groupname>         ADDE group name
-     *   descr=<descriptor>        ADDE descriptor name
-     *   band=<band>               spectral band or channel number 
-     *   pos=<position>            request an absolute or relative ADDE position
+     *   group=&lt;groupname&gt;         ADDE group name
+     *   descr=&lt;descriptor&gt;        ADDE descriptor name
+     *   band=&lt;band&gt;               spectral band or channel number 
+     *   pos=&lt;position&gt;            request an absolute or relative ADDE position
      *                               number
-     *   doc=<yes/no>              specify yes to include line documentation 
+     *   doc=&lt;yes/no&gt;              specify yes to include line documentation 
      *                               with image (def=no) 
-     *   aux=<yes/no>              specify yes to include auxilliary information
+     *   aux=&lt;yes/no&gt;              specify yes to include auxilliary information
      *                               with image 
-     *   time=<time1> <time2>      specify the time range of images to select
+     *   time=&lt;time1&gt; &lt;time2&gt;      specify the time range of images to select
      *                               (def=latest image if pos not specified)
-     *   day=<day>                 specify the day of the images to select
+     *   day=&lt;day&gt;                 specify the day of the images to select
      *                               (def=latest image if pos not specified)
-     *   cal=<cal type>            request a specific calibration on the image 
-     *   id=<stn id>               radar station id
-     *   user=<user_id>            ADDE user identification
-     *   proj=<proj #>             a valid ADDE project number
-     *   trace=<0/1>               setting to 1 tells server to write debug 
+     *   cal=&lt;cal type&gt;            request a specific calibration on the image 
+     *   id=&lt;stn id&gt;               radar station id
+     *   trace=&lt;0/1&gt;               setting to 1 tells server to write debug 
      *                               trace file (imagedata, imagedirectory)
      *
      * the following keywords are required:
@@ -1250,7 +1308,7 @@ public class AddeURLConnection extends URLConnection
      *   group
      *
      * an example URL might look like:
-     *   adde://viper/imagedirectory?group=gvar&descr=east1km&band=1
+     *   adde://viper/imagedirectory?group=gvar&amp;descr=east1km&amp;band=1
      *   
      * </pre>
      */
@@ -1382,16 +1440,16 @@ public class AddeURLConnection extends URLConnection
      * <pre>
      * there can be any valid combination of the following supported keywords:
      *
-     *   file=<filename>    the text file name on the server
-     *   descr=<dataset>    the dataset name on the server
-     *   group=<group>      the ADDE group name for this TEXT
+     *   file=&lt;filename&gt;    the text file name on the server
+     *   descr=&lt;dataset&gt;    the dataset name on the server
+     *   group=&lt;group&gt;      the ADDE group name for this TEXT
      *
      * the following keywords are required:
      *
      *   file or descr
      *
      * an example URL might look like:
-     *   adde://viper/text?group=textdata&file=myfile.txt
+     *   adde://viper/text?group=textdata&amp;file=myfile.txt
      *   
      * </pre>
      */
@@ -1442,18 +1500,18 @@ public class AddeURLConnection extends URLConnection
      * <pre>
      * there can be any valid combination of the following supported keywords:
      *
-     *   group=<group>         weather text group (default= RTWXTEXT)
-     *   prod=<product>        predefind product name
-     *   apro=<val1 .. valn>   AFOS/AWIPS product headers to match (don't 
+     *   group=&lt;group&gt;         weather text group (default= RTWXTEXT)
+     *   prod=&lt;product&gt;        predefind product name
+     *   apro=&lt;val1 .. valn&gt;   AFOS/AWIPS product headers to match (don't 
      *                         use with wmo keyword
-     *   astn=<val1 .. valn>   AFOS/AWIPS stations to match
-     *   wmo= <val1 .. valn>   WMO product headers to match (don't 
+     *   astn=&lt;val1 .. valn&gt;   AFOS/AWIPS stations to match
+     *   wmo= &lt;val1 .. valn&gt;   WMO product headers to match (don't 
      *                         use with apro keyword
-     *   wstn=<val1 .. valn>   WMO stations to match
-     *   day=<start end>       range of days to search
-     *   dtime=<numhours>      maximum number of hours to search back (def=96)
-     *   match=<match strings> list of character match strings to find from text
-     *   num=<num>             number of matches to find (def=1)
+     *   wstn=&lt;val1 .. valn&gt;   WMO stations to match
+     *   day=&lt;start end&gt;       range of days to search
+     *   dtime=&lt;numhours&gt;      maximum number of hours to search back (def=96)
+     *   match=&lt;match strings&gt; list of character match strings to find from text
+     *   num=&lt;num&gt;             number of matches to find (def=1)
      *
      * the following keywords are required:
      *
@@ -1461,7 +1519,7 @@ public class AddeURLConnection extends URLConnection
      *   apro, astn or wstn
      *
      * an example URL might look like:
-     *   adde://viper/text?group=textdata&file=myfile.txt
+     *   adde://viper/text?group=textdata&amp;file=myfile.txt
      *   
      * </pre>
      */
@@ -1580,17 +1638,17 @@ public class AddeURLConnection extends URLConnection
      * there can be any valid combination of the following supported keywords:
      *
      *
-     *   group=<group>         weather text group (default= RTWXTEXT)
-     *   descr=<descriptor>    weather text subgroup (default=SFCHOURLY)
-     *   id=<id1 id2 ... idn>  list of station ids
-     *   co=<co1 co2 ... con>  list of countries
-     *   reg=<reg1 reg2..regn> list of regions
-     *   newest=<day hour>     most recent time to allow in request 
+     *   group=&lt;group&gt;         weather text group (default= RTWXTEXT)
+     *   descr=&lt;descriptor&gt;    weather text subgroup (default=SFCHOURLY)
+     *   id=&lt;id1 id2 ... idn&gt;  list of station ids
+     *   co=&lt;co1 co2 ... con&gt;  list of countries
+     *   reg=&lt;reg1 reg2..regn&gt; list of regions
+     *   newest=&lt;day hour&gt;     most recent time to allow in request 
      *                         (def=current time)
-     *   oldest=<day hour>     oldest observation time to allow in request
-     *   type=<type>           numeric value for the type of ob
-     *   nhours=<numhours>     maximum number of hours to search
-     *   num=<num>             number of matches to find (def=1)
+     *   oldest=&lt;day hour&gt;     oldest observation time to allow in request
+     *   type=&lt;type&gt;           numeric value for the type of ob
+     *   nhours=&lt;numhours&gt;     maximum number of hours to search
+     *   num=&lt;num&gt;             number of matches to find (def=1)
      *
      * the following keywords are required:
      *
@@ -1599,7 +1657,7 @@ public class AddeURLConnection extends URLConnection
      *   id, co, or reg
      *
      * an example URL might look like:
-     *  adde://adde.ucar.edu/obtext?group=rtwxtext&descr=sfchourly&id=kden&num=2
+     *  adde://adde.ucar.edu/obtext?group=rtwxtext&amp;descr=sfchourly&amp;id=kden&amp;num=2
      *   
      * </pre>
      */
@@ -1711,8 +1769,8 @@ public class AddeURLConnection extends URLConnection
      * <pre>
      * there can be any valid combination of the following supported keywords:
      *
-     *   group=<groupname>    ADDE group name
-     *   type=<datatype>      ADDE data type.  Must be one of the following:
+     *   group=&lt;groupname&gt;    ADDE group name
+     *   type=&lt;datatype&gt;      ADDE data type.  Must be one of the following:
      *                             IMAGE, POINT, GRID, TEXT, NAV
      *                        the default is the IMAGE type.
      *
@@ -1721,7 +1779,7 @@ public class AddeURLConnection extends URLConnection
      *   group
      *
      * an example URL might look like:
-     *   adde://viper/datasetinfo?group=gvar&type=image
+     *   adde://viper/datasetinfo?group=gvar&amp;type=image
      *   
      * </pre>
      */
@@ -1774,24 +1832,23 @@ public class AddeURLConnection extends URLConnection
      * If the request contains specific parameters (eg param=t),
      * then the class variable binaryData is set to this param string
      *
-     *   group=<groupname>         ADDE group name
-     *   descr=<descriptor>        ADDE descriptor name
-     *   pos=<position>            request an absolute or relative ADDE 
+     * <pre>
+     *   group=&lt;groupname&gt;         ADDE group name
+     *   descr=&lt;descriptor&gt;        ADDE descriptor name
+     *   pos=&lt;position&gt;            request an absolute or relative ADDE 
      *                               position number
-     *   select=<select clause>    to specify which data is required
-     *   param=<param list>        what parameters to return
+     *   select=&lt;select clause&gt;    to specify which data is required
+     *   param=&lt;param list&gt;        what parameters to return
      *                             eg param=t[c]
      *                             note that the units [c] are ignored by server
      *                             it is the clients task to convert units
      *                             Note that if "param=" is used, 
      *                             binaryData is set to the
      *                             (processed) parameter list
-     *   max=<max>                 maximum number of obs to return
-     *   user=<user_id>            ADDE user identification
-     *   proj=<proj #>             a valid ADDE project number
-     *   trace=<0/1>               setting to 1 tells server to write debug 
+     *   max=&lt;max&gt;                 maximum number of obs to return
+     *   trace=&lt;0/1&gt;               setting to 1 tells server to write debug 
      *                               trace file (imagedata, imagedirectory)
-     *   binaryData=<param list>   because an unlimited number of parameters may
+     *   binaryData=&lt;param list&gt;   because an unlimited number of parameters may
      *                             be requested, these must be packaged up at the end
      *                             of the adde request, and this is known as the
      *                             "binary data" part of the request
@@ -1801,7 +1858,7 @@ public class AddeURLConnection extends URLConnection
      *   group
      *
      * an example URL might look like:
-     *   adde://rtds/point?group=neons&descr=metar&user=jmk&proj=6999
+     *   adde://rtds/point?group=neons&amp;descr=metar
      *   
      * </pre>
      */
@@ -1951,16 +2008,13 @@ public class AddeURLConnection extends URLConnection
 
     /**
      * Helper function for decodeMDKSString to decode
-     * the "param=" part of a point data request
+     * the "param=" part of a point data request.
      *
-     *   Input
-     *   justTheParametersString   The parameter list which follows "param=" eg
-     *                             "id dir spd t[c] td[c]"
-     *   Output
-     *   method return String      parameter list (padded to length 4 for server)
-     *                             without any units (units are ignored by server) eg
-     *                             "id  dir spd t   td  "
-     * </pre>
+     * @param justTheParametersString   The parameter list which follows 
+     *                                  "param=" eg: "id dir spd t[c] td[c]"
+     * @return parameter list (padded to length 4 for server)
+     *                         without any units (units are ignored by server) 
+     *                         eg: "id  dir spd t   td  "
      */
      private String decodePARAMString(String justTheParametersString) {
 
@@ -1995,19 +2049,16 @@ public class AddeURLConnection extends URLConnection
 
     /**
      * Helper function for decodeMDKSString to decode
-     * the "select=" part of a point data request
+     * the "select=" part of a point data request.
      *
-     *   Input
-     *   justTheSelectString   The select list which follows "select=" eg
+     * @param justTheSelectString   The select list which follows "select=" eg:
      *                'id ymml; time 12 18; day 1999316; t[c] 20 30; td 270 276'
-     *   Output
-     *   method return String  The select list formatted for the server eg
-     *                'id ymml' 'time 12 to 18' 'day 1999316' 't 20 to 30 c' 'td 270 to 276'
+     *
+     * @return The select list formatted for the server eg:
+     *         'id ymml' 'time 12 to 18' 'day 1999316' 't 20 to 30 c' 'td 270 to 276'
      *
      *   Reference
      *   McIDAS 7.6 source code: m0psort.for
-     *
-     * </pre>
      */
     private String decodeSELECTString(String justTheSelectString) {
 
@@ -2096,8 +2147,11 @@ public class AddeURLConnection extends URLConnection
         return (buf.toString());
     }
 
-    /* Ensures that a string is two values.  If only one, then it
-       is returned as s + " " + s */
+    /**
+     * Ensures that a string is two values.  If only one, then it
+     * is returned as s + " " + s 
+     * @param s  String to check
+     */
     private String ensureTwoValues(String s)
     {
        String retVal = null;
@@ -2115,7 +2169,10 @@ public class AddeURLConnection extends URLConnection
        return retVal;
     }
 
-    /* Adjust the longitude from East Postitive to west positive */
+    /**
+     * Adjust the longitude from East Postitive to west positive 
+     * @param input  String to check
+     */
     private String adjustLongitudes(String input)
     {
        input = input.trim();
@@ -2124,6 +2181,10 @@ public class AddeURLConnection extends URLConnection
        return (lon2 + " " + lon1);
     }
 
+    /**
+     * Negate a longitude.  McIDAS convention is positive west.
+     * @param eastLongitude  eastLongitude to negate
+     */
     private String negateLongitude(String eastLong)
     {
       if (eastLong.indexOf("-") >= 0) // (comes in as -)
