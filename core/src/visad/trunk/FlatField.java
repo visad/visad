@@ -1313,7 +1313,8 @@ public class FlatField extends FieldImpl {
           ErrorEstimate[] sub_errors_out = new ErrorEstimate[1];
           value = Unit.transformUnits(
                             RangeUnits[0], sub_errors_out,
-                            ((Real) range).getUnit(), ((Real) range).getError(),
+                            ((Real) component).getUnit(),
+                            ((Real) component).getError(),
                             value);
           vals[j] = value[0];
           errors_out[j] = sub_errors_out[0];

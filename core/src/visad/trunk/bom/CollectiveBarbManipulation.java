@@ -54,10 +54,12 @@ public class CollectiveBarbManipulation extends Object
   private int which_time = -1;
   private int[] which_times;
 
+  private DisplayImplJ3D display;
   private DataReferenceImpl stations_ref;
   private DataReferenceImpl[] station_refs;
   private BarbRendererJ3D barb_renderer;
   private BarbManipulationRendererJ3D[] barb_manipulation_renderers;
+  private BarbMonitor[] barb_monitors;
 
   private AnimationControl control = null;
 
@@ -71,8 +73,9 @@ public class CollectiveBarbManipulation extends Object
        Longitude
   */
   public CollectiveBarbManipulation(FieldImpl wind_field,
-                                     DisplayImpl display)
+                                     DisplayImplJ3D d)
          throws VisADException, RemoteException {
+    display = d;
     control = (AnimationControl) display.getControl(AnimationControl.class);
     if (control == null) {
       throw new CollectiveBarbException("display must include " +
@@ -177,17 +180,21 @@ public class CollectiveBarbManipulation extends Object
     which_time = -1;
     station_refs = new DataReferenceImpl[nindex];
     barb_manipulation_renderers = new BarbManipulationRendererJ3D[nindex];
+    barb_monitors = new BarbMonitor[nindex];
     for (int i=0; i<nindex; i++) {
       station_refs[i] = new DataReferenceImpl("station_ref" + i);
       station_refs[i].setData(null);
       which_times[i] = -1;
       barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
       display.addReferences(barb_manipulation_renderers[i], station_refs[i]);
+      barb_monitors[i] = new BarbMonitor(station_refs[i], i);
+      barb_monitors[i].addReference(station_refs[i]);
     }
-
 
     control.setCurrent(0);
   }
+
+  private boolean first = true;
 
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
@@ -229,18 +236,38 @@ public class CollectiveBarbManipulation extends Object
         station_refs[i].setData(tuples[i][index]);
         which_times[i] = index;
       }
-// System.out.println("station " + i + " ref " + index);
-
+      // System.out.println("station " + i + " ref " + index);
     } // end for (int i=0; i<nindex; i++)
+
+    if (first) {
+      first = false;
+      display.removeReference(stations_ref);
+    }
   }
 
-  private static final int N = 3;
+  class BarbMonitor extends CellImpl {
+    DataReferenceImpl ref;
+    int sta_index;
+  
+    public BarbMonitor(DataReferenceImpl r, int index) {
+      ref = r;
+      sta_index = index;
+    }
+  
+    public void doAction() throws VisADException, RemoteException {
+      int time_index = which_times[sta_index];
+      if (time_index < 0) return;
+      Tuple wind = (Tuple) ref.getData();
+      wind_stations[sta_index].setSample(time_index, wind);
+      tuples[sta_index][time_index] = wind;
+    }
+  }
+
+  private static final int NSTAS = 3;
   private static final int NTIMES = 10;
 
   public static void main(String args[])
          throws VisADException, RemoteException {
-
-    boolean polar = true;
 
     // construct RealTypes for wind record components
     RealType lat = RealType.Latitude;
@@ -262,35 +289,26 @@ public class CollectiveBarbManipulation extends Object
     RealType wind_speed = new RealType("wind_speed",
                           CommonUnit.meterPerSecond, null);
     RealTupleType windds = null;
-    if (polar) {
-      System.out.println("polar winds");
-      windds =
-        new RealTupleType(new RealType[] {wind_dir, wind_speed},
-        new WindPolarCoordinateSystem(windxy), null);
-    }
+    windds =
+      new RealTupleType(new RealType[] {wind_dir, wind_speed},
+      new WindPolarCoordinateSystem(windxy), null);
 
     RealType stn = new RealType("station");
-    Set stn_set = new Integer1DSet(stn, N * N);
+    Set stn_set = new Integer1DSet(stn, NSTAS * NSTAS);
     RealType time = RealType.Time;
     double start = new DateTime(1999, 122, 57060).getValue();
     Set time_set = new Linear1DSet(time, start, start + 3000.0, NTIMES);
 
     TupleType tuple_type = null;
-    if (polar) {
-      tuple_type = new TupleType(new MathType[]
-            {lon, lat, windds, red, green});
-    }
-    else {
-      tuple_type = new TupleType(new MathType[]
-            {lon, lat, windxy, red, green});
-    }
+    tuple_type = new TupleType(new MathType[]
+          {lon, lat, windds, red, green});
 
     FunctionType station_type = new FunctionType(time, tuple_type);
     FunctionType stations_type = new FunctionType(stn, station_type);
 
     // construct Java3D display and mappings that govern
     // how wind records are displayed
-    DisplayImpl display =
+    DisplayImplJ3D display =
       new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
     display.addMap(lonmap);
@@ -300,26 +318,14 @@ public class CollectiveBarbManipulation extends Object
     latmap.setRange(-50.0, -30.0);
 
     FlowControl flow_control;
-    if (polar) {
-      ScalarMap winds_map = new ScalarMap(wind_speed, Display.Flow1Radial);
-      display.addMap(winds_map);
-      winds_map.setRange(0.0, 1.0); // do this for barb rendering
-      ScalarMap windd_map = new ScalarMap(wind_dir, Display.Flow1Azimuth);
-      display.addMap(windd_map);
-      windd_map.setRange(0.0, 360.0); // do this for barb rendering
-      flow_control = (FlowControl) windd_map.getControl();
-      flow_control.setFlowScale(0.15f); // this controls size of barbs
-    }
-    else {
-      ScalarMap windx_map = new ScalarMap(windx, Display.Flow1X);
-      display.addMap(windx_map);
-      windx_map.setRange(-1.0, 1.0); // do this for barb rendering
-      ScalarMap windy_map = new ScalarMap(windy, Display.Flow1Y);
-      display.addMap(windy_map);
-      windy_map.setRange(-1.0, 1.0); // do this for barb rendering
-      flow_control = (FlowControl) windy_map.getControl();
-      flow_control.setFlowScale(0.15f); // this controls size of barbs
-    }
+    ScalarMap winds_map = new ScalarMap(wind_speed, Display.Flow1Radial);
+    display.addMap(winds_map);
+    winds_map.setRange(0.0, 1.0); // do this for barb rendering
+    ScalarMap windd_map = new ScalarMap(wind_dir, Display.Flow1Azimuth);
+    display.addMap(windd_map);
+    windd_map.setRange(0.0, 360.0); // do this for barb rendering
+    flow_control = (FlowControl) windd_map.getControl();
+    flow_control.setFlowScale(0.15f); // this controls size of barbs
 
     display.addMap(new ScalarMap(red, Display.Red));
     display.addMap(new ScalarMap(green, Display.Green));
@@ -330,16 +336,16 @@ public class CollectiveBarbManipulation extends Object
     AnimationControl acontrol = (AnimationControl) amap.getControl();
     acontrol.setStep(2000);
 
-    // create an array of N by N winds
+    // create an array of NSTAS by NSTAS winds
     FieldImpl field = new FieldImpl(stations_type, stn_set);
     int m = 0;
-    for (int i=0; i<N; i++) {
-      for (int j=0; j<N; j++) {
+    for (int i=0; i<NSTAS; i++) {
+      for (int j=0; j<NSTAS; j++) {
         FlatField ff = new FlatField(station_type, time_set);
         double[][] values = new double[6][NTIMES];
         for (int k=0; k<NTIMES; k++) {
-          double u = 2.0 * i / (N - 1.0) - 1.0;
-          double v = 2.0 * j / (N - 1.0) - 1.0;
+          double u = 2.0 * i / (NSTAS - 1.0) - 1.0;
+          double v = 2.0 * j / (NSTAS - 1.0) - 1.0;
   
           // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
           // set colors by wind components, just for grins
@@ -347,16 +353,11 @@ public class CollectiveBarbManipulation extends Object
           values[1][k] = 10.0 * v - 40.0;
           double fx = 30.0 * u;
           double fy = 30.0 * v;
-          if (polar) {
-            double fd = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
-            double fs = Math.sqrt(fx * fx + fy * fy);
-            values[2][k] = fd;
-            values[3][k] = fs;
-          }
-          else {
-            values[2][k] = fx;
-            values[3][k] = fy;
-          }
+          double fd =
+            Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy) + k * 15.0;
+          double fs = Math.sqrt(fx * fx + fy * fy);
+          values[2][k] = fd;
+          values[3][k] = fs;
           values[4][k] = u;
           values[5][k] = v;
         }
@@ -389,66 +390,5 @@ public class CollectiveBarbManipulation extends Object
     CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display);
   }
-}
-
-class Hey implements ControlListener {
-  AnimationControl control;
-  DisplayImpl display;
-  DataReferenceImpl[] refs;
-  DataReferenceImpl ref;
-  int oldk = -1;
-
-  Hey(AnimationControl c, DisplayImpl d, DataReferenceImpl[] rs,
-      DataReferenceImpl r) {
-    control = c;
-    display = d;
-    refs = rs;
-    ref = r;
-  }
-
-  public void controlChanged(ControlEvent e)
-         throws VisADException, RemoteException {
-    int num = control.getCurrent();
-    ref.setData(refs[num].getData());
-/*
-    if (oldk >= 0) display.removeReference(refs[oldk]);
-    display.removeReference(refs[num]);
-    display.addReferences(new BarbManipulationRendererJ3D(), refs[num]);
-    oldk = num;
-*/
-  }
-}
-
-class WindGetter extends CellImpl {
-  DataReferenceImpl ref;
-
-  float scale = 0.15f;
-  int count = 20;
-  FlowControl flow_control;
-
-  public WindGetter(FlowControl f, DataReferenceImpl r) {
-    ref = r;
-    flow_control = f;
-  }
-
-  public void doAction() throws VisADException, RemoteException {
-    Tuple tuple = (Tuple) ref.getData();
-    float lon = (float) ((Real) tuple.getComponent(0)).getValue();
-    float lat = (float) ((Real) tuple.getComponent(1)).getValue();
-    RealTuple wind = (RealTuple) tuple.getComponent(2);
-    float windx = (float) ((Real) wind.getComponent(0)).getValue();
-    float windy = (float) ((Real) wind.getComponent(1)).getValue();
-    System.out.println("wind = (" + windx + ", " + windy + ") at (" +
-                       + lat + ", " + lon +")");
-/* a testing hack
-    count--;
-    if (count < 0) {
-      count = 20;
-      scale = 0.15f * 0.3f / scale;
-      flow_control.setFlowScale(scale);
-    }
-*/
-  }
-
 }
 
