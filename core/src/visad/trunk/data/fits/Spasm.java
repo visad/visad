@@ -1,5 +1,3 @@
-package visad.data.fits;
-
 import java.awt.swing.BoxLayout;
 import java.awt.swing.JFrame;
 import java.awt.swing.JLabel;
@@ -38,11 +36,13 @@ import visad.ScalarMap;
 import visad.Tuple;
 import visad.VisADException;
 
+import visad.data.DefaultFamily;
+
 import visad.java3d.DisplayImplJ3D;
 
 public class Spasm
 {
-  private Data fitsTuple;
+  private Data data;
 
   // the width and height of the UI frame
   public static int WIDTH = 600;
@@ -51,23 +51,22 @@ public class Spasm
   public Spasm(String filename)
 	throws VisADException, RemoteException, IOException
   {
-    FitsForm ff = new FitsForm();
+    DefaultFamily dflt = new DefaultFamily("Default");
 
-    if (filename.startsWith("http:")) {
-      fitsTuple = ff.open(new URL(filename));
-    } else {
-      fitsTuple = ff.open(filename);
+    Data data;
+    try {
+      data = dflt.open(filename);
+    } catch (VisADException e) {
+      e.printStackTrace();
+      System.exit(1);
+      return;
     }
 
-    if (fitsTuple == null) {
-      throw new VisADException("No usable HDUs in \"" + filename + "\"");
-    }
-
-    // throw away all but the first FITS HDU that forms a VisAD Function
-    if (fitsTuple instanceof Tuple) {
+    // throw away all but the object
+    if (data instanceof Tuple) {
       boolean discard = false;
 
-      Tuple t = (Tuple )fitsTuple;
+      Tuple t = (Tuple )data;
       try {
 	int i = 0;
 	Data d;
@@ -75,10 +74,10 @@ public class Spasm
 	do {
 	  d = t.getComponent(i);
 	  if (discard) {
-	    System.err.println("Discarding FITS HDU #" + i + ": " +
+	    System.err.println("Discarding VisAD Data object #" + i + ": " +
 				d.getType());
 	  } else if (d instanceof FunctionImpl) {
-	    fitsTuple = d;
+	    data = d;
 	    discard = true;
 	  }
 	  i++;
@@ -92,12 +91,14 @@ public class Spasm
 	System.err.println("");
       }
     }
+
+    this.data = data;
   }
 
   public String toString()
   {
     try {
-      return fitsTuple.getType().toString();
+      return data.getType().toString();
     } catch (Exception e) {
       return e.getClass().toString() + ": " + e.getMessage();
     }
@@ -107,7 +108,7 @@ public class Spasm
 	throws VisADException, RemoteException
   {
     // compute ScalarMaps from type components
-    FunctionType ftype = (FunctionType )fitsTuple.getType();
+    FunctionType ftype = (FunctionType )data.getType();
 
     // get domain and domain dimensions
     RealTupleType dtype = ftype.getDomain();
@@ -155,12 +156,12 @@ public class Spasm
       display.addMap(new ScalarMap(rz, Display.ZAxis));
     }
 
-    System.out.println(fitsTuple.getType());
+    System.out.println(data.getType());
     System.out.println(display);
 
-    // point display at FITS data
-    DataReferenceImpl ref = new DataReferenceImpl("FITS");
-    ref.setData(fitsTuple);
+    // point display at data
+    DataReferenceImpl ref = new DataReferenceImpl("SpazData");
+    ref.setData(data);
     display.addReference(ref, null);
   }
 
@@ -202,7 +203,7 @@ public class Spasm
 
     // construct JLabels
     // (JTextArea does not align in BoxLayout well, so use JLabels)
-    p.add(new JLabel("Silly FITS file viewer"));
+    p.add(new JLabel("Silly file viewer"));
     p.add(new JLabel("using VisAD  -  see:"));
     p.add(new JLabel("  "));
     p.add(new JLabel("  http://www.ssec.wisc.edu/~billh/visad.html"));
@@ -250,11 +251,8 @@ public class Spasm
   public static void main(String args[])
 	throws VisADException, RemoteException, IOException
   {
-    if (args.length == 0) {
-      args = new String[1];
-      args[0] = "testdata/sseclogo.fits";
-    } else if (args.length > 1) {
-      System.err.println("Only specify a single filename, please");
+    if (args.length != 1) {
+      System.err.println("Usage: Spasm file");
       System.exit(1);
       return;
     }
