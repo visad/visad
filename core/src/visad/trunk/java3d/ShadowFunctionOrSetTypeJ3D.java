@@ -329,6 +329,7 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
       texCoords = new float[8];
       float ratiow = ((float) data_width) / ((float) texture_width);
       float ratioh = ((float) data_height) / ((float) texture_height);
+/* WLH 8 Aug 98
       // corner 0
       texCoords[0] = 0.0f;
       texCoords[1] = 1.0f - ratioh;
@@ -341,6 +342,19 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
       // corner 3
       texCoords[6] = 0.0f;
       texCoords[7] = 1.0f;
+*/
+      // corner 0
+      texCoords[0] = 0.0f;
+      texCoords[1] = 1.0f;
+      // corner 1
+      texCoords[2] = ratiow;
+      texCoords[3] = 1.0f;
+      // corner 2
+      texCoords[4] = ratiow;
+      texCoords[5] = 1.0f - ratioh;
+      // corner 3
+      texCoords[6] = 0.0f;
+      texCoords[7] = 1.0f - ratioh;
 
       normals = new float[12];
       float n0 = ((coordinates[3+2]-coordinates[0+2]) *

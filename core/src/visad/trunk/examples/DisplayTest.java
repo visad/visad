@@ -149,7 +149,7 @@ public class DisplayTest extends Object {
         System.out.println("  18: Animation different time extents");
         System.out.println("  19: SelectValue");
         System.out.println("  20: 2-D surface and ColorAlphaWidget");
-        System.out.println("  21: SelectRange and SelectRangeWidget");
+        System.out.println("  21: SelectRange");
         System.out.println("  22: Hue & Saturation");
         System.out.println("  23: Cyan & Magenta");
         System.out.println("  24: HSV");
@@ -169,6 +169,8 @@ public class DisplayTest extends Object {
         System.out.println("  38: colored contours from irregular grids in Java2D");
         System.out.println("  39: color array and ColorWidget in Java2D");
         System.out.println("  40: polar direct manipulation in Java2D");
+        System.out.println("  41: image / contour alignment in Java2D");
+        System.out.println("  42: image / contour alignment in Java3D");
 
         return;
 
@@ -992,10 +994,20 @@ public class DisplayTest extends Object {
 
       case 21:
 
-        System.out.println(test_case + ": test select range and SelectRangeWidget");
+        System.out.println(test_case + ": test select range");
         size = 64;
         imaget1 = FlatField.makeField(image_tuple, size, false);
  
+        final DataReference value_low_ref = new DataReferenceImpl("value_low");
+        final DataReference value_hi_ref = new DataReferenceImpl("value_hi");
+
+        VisADSlider slider_low =
+          new VisADSlider("value low", 0, 64, 0, 1.0, value_low_ref,
+                          RealType.Generic);
+        VisADSlider slider_hi =
+          new VisADSlider("value hi", 0, 64, 64, 1.0, value_hi_ref,
+                          RealType.Generic);
+
         jframe = new JFrame("VisAD select slider");
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
@@ -1005,6 +1017,11 @@ public class DisplayTest extends Object {
         big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
         big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
         big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(slider_low);
+        big_panel.add(slider_hi);
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(300, 120);
+        jframe.setVisible(true);
 
         display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
         display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
@@ -1021,15 +1038,24 @@ public class DisplayTest extends Object {
         mode.setPointSize(2.0f);
         mode.setPointMode(false);
 
+        final RangeControl range1control =
+          (RangeControl) range1map.getControl();
+        range1control.setRange(new float[] {0.0f, 100.0f});
+
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
 
-        SelectRangeWidget srw = new SelectRangeWidget(range1map, 0.0f, 64.0f);
-        big_panel.add(srw);
-        jframe.getContentPane().add(big_panel);
-        jframe.pack();
-        jframe.setVisible(true);
+
+        cell = new CellImpl() {
+          public void doAction() throws VisADException, RemoteException {
+            range1control.setRange(new float[]
+             {(float) ((Real) value_low_ref.getData()).getValue(),
+              (float) ((Real) value_hi_ref.getData()).getValue()});
+          }
+        };
+        cell.addReference(value_low_ref);
+        cell.addReference(value_hi_ref);
 
         break;
 
@@ -1797,6 +1823,182 @@ public class DisplayTest extends Object {
 
         break;
 
+      case 41:
+
+        System.out.println(test_case + ": image / contour alignment in " +
+                           "Java2D");
+
+        // construct types
+        int isize = 16;
+        RealType dom0 = new RealType("dom0");
+        RealType dom1 = new RealType("dom1");
+        RealType ran = new RealType("ran");
+        RealTupleType dom = new RealTupleType(dom0, dom1);
+        ftype = new FunctionType(dom, ran);
+        imaget1 = new FlatField(ftype, new Integer2DSet(isize, isize));
+        double[][] vals = new double[1][isize * isize];
+        for (int i=0; i<isize; i++) {
+          for (int j=0; j<isize; j++) {
+            vals[0][j + isize * i] = (i + 1) * (j + 1);
+          }
+        }
+        imaget1.setSamples(vals, false);
+
+        RealType oogle = new RealType("oogle");
+        FunctionType ftype2 = new FunctionType(dom, oogle);
+        FlatField imaget2 = new FlatField(ftype2, imaget1.getDomainSet());
+        imaget2.setSamples(vals, false);
+
+        display1 = new DisplayImplJ2D("display1");
+        display1.addMap(new ScalarMap(dom0, Display.XAxis));
+        display1.addMap(new ScalarMap(dom1, Display.YAxis));
+        display1.addMap(new ScalarMap(ran, Display.Green));
+        display1.addMap(new ConstantMap(0.3, Display.Blue));
+        display1.addMap(new ConstantMap(0.3, Display.Red));
+        display1.addMap(new ScalarMap(oogle, Display.IsoContour));
+
+        mode = display1.getGraphicsModeControl();
+        mode.setTextureEnable(false);
+
+        ConstantMap[] omaps1 = {new ConstantMap(1.0, Display.Blue),
+                                new ConstantMap(1.0, Display.Red),
+                                new ConstantMap(0.0, Display.Green)};
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        DataReferenceImpl ref_imaget2 = new DataReferenceImpl("ref_imaget2");
+        ref_imaget2.setData(imaget2);
+        display1.addReference(ref_imaget2, omaps1);
+
+        display2 = new DisplayImplJ2D("display2");
+        display2.addMap(new ScalarMap(dom0, Display.XAxis));
+        display2.addMap(new ScalarMap(dom1, Display.YAxis));
+        display2.addMap(new ScalarMap(ran, Display.Green));
+        display2.addMap(new ConstantMap(0.3, Display.Blue));
+        display2.addMap(new ConstantMap(0.3, Display.Red));
+        display2.addMap(new ScalarMap(oogle, Display.IsoContour));
+
+        ConstantMap[] omaps2 = {new ConstantMap(1.0, Display.Blue),
+                                new ConstantMap(1.0, Display.Red),
+                                new ConstantMap(0.0, Display.Green)};
+
+        display2.addReference(ref_imaget1, null);
+        display2.addReference(ref_imaget2, omaps2);
+
+        jframe = new JFrame("Java3D -- Java2D direct manipulation");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(display1.getComponent());
+        big_panel.add(display2.getComponent());
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(800, 400);
+        jframe.setVisible(true);
+
+        break;
+
+      case 42:
+
+        System.out.println(test_case + ": image / contour alignment in " +
+                           "Java3D");
+
+        // construct types
+        isize = 16;
+        dom0 = new RealType("dom0");
+        dom1 = new RealType("dom1");
+        ran = new RealType("ran");
+        dom = new RealTupleType(dom0, dom1);
+        ftype = new FunctionType(dom, ran);
+        imaget1 = new FlatField(ftype, new Integer2DSet(isize, isize));
+        vals = new double[1][isize * isize];
+        for (int i=0; i<isize; i++) {
+          for (int j=0; j<isize; j++) {
+            vals[0][j + isize * i] = (i + 1) * (j + 1);
+          }
+        }
+        imaget1.setSamples(vals, false);
+
+        oogle = new RealType("oogle");
+        ftype2 = new FunctionType(dom, oogle);
+        imaget2 = new FlatField(ftype2, imaget1.getDomainSet());
+        imaget2.setSamples(vals, false);
+
+        display1 = new DisplayImplJ3D("display1");
+        display1.addMap(new ScalarMap(dom0, Display.XAxis));
+        display1.addMap(new ScalarMap(dom1, Display.YAxis));
+        display1.addMap(new ScalarMap(ran, Display.Green));
+        display1.addMap(new ConstantMap(0.3, Display.Blue));
+        display1.addMap(new ConstantMap(0.3, Display.Red));
+        display1.addMap(new ScalarMap(oogle, Display.IsoContour));
+
+        mode = display1.getGraphicsModeControl();
+        mode.setTextureEnable(false);
+
+        omaps1 = new ConstantMap[] {new ConstantMap(1.0, Display.Blue),
+                                    new ConstantMap(1.0, Display.Red),
+                                    new ConstantMap(0.0, Display.Green)};
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        ref_imaget2 = new DataReferenceImpl("ref_imaget2");
+        ref_imaget2.setData(imaget2);
+        display1.addReference(ref_imaget2, omaps1);
+
+        display2 = new DisplayImplJ3D("display2");
+        display2.addMap(new ScalarMap(dom0, Display.XAxis));
+        display2.addMap(new ScalarMap(dom1, Display.YAxis));
+        display2.addMap(new ScalarMap(ran, Display.Green));
+        display2.addMap(new ConstantMap(0.3, Display.Blue));
+        display2.addMap(new ConstantMap(0.3, Display.Red));
+        display2.addMap(new ScalarMap(oogle, Display.IsoContour));
+
+        omaps2 = new ConstantMap[] {new ConstantMap(1.0, Display.Blue),
+                                    new ConstantMap(1.0, Display.Red),
+                                    new ConstantMap(0.0, Display.Green)};
+
+        display2.addReference(ref_imaget1, null);
+        display2.addReference(ref_imaget2, omaps2);
+
+        jframe = new JFrame("Java3D -- Java2D direct manipulation");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(display1.getComponent());
+        big_panel.add(display2.getComponent());
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(800, 400);
+        jframe.setVisible(true);
+
+        break;
+/*
+  J2D and J3D behave the same.
+  ImageElement = 0 at bottom and 224 at top
+  ImageLine = 0 at left and 193 at right
+    (xv thinks 0,0 is top left)
+  image seen right side up
+  contours seen upside down
+  image and contour agree left to right,
+    and are oriented correctly (words readable)
+ - - - - - - - - -
+  J2D, if mode.setTextureEnable(false)
+       then image matches contours
+  J3D, I recall (?) that texture true matches texture false
+*/
+
     } // end switch(test_case)
 
     while (true) {
@@ -1806,7 +2008,7 @@ public class DisplayTest extends Object {
       }
       catch (InterruptedException e) {
       }
-      System.out.println("\ndelay\n");
+      // System.out.println("\ndelay\n");
     }
   }
 

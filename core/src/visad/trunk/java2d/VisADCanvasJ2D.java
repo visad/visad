@@ -325,33 +325,50 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
         float y0h = array.coordinates[10];
         int width = image.getWidth();
         int height = image.getHeight();
+
 /*
 now:
-  x0h = m00 * 0 + m01 * 0 + m02
-  y0h = m10 * 0 + m11 * 0 + m12
+  x00 = m00 * 0 + m01 * 0 + m02
+  y00 = m10 * 0 + m11 * 0 + m12
 
-  xwh = m00 * (width - 1) + m01 * 0 + m02
-  ywh = m10 * (width - 1) + m11 * 0 + m12
+  xw0 = m00 * (width - 1) + m01 * 0 + m02
+  yw0 = m10 * (width - 1) + m11 * 0 + m12
 
-  xw0 = m00 * (width - 1) + m01 * (height - 1) + m02
-  yw0 = m10 * (width - 1) + m11 * (height - 1) + m12
+  xwh = m00 * (width - 1) + m01 * (height - 1) + m02
+  ywh = m10 * (width - 1) + m11 * (height - 1) + m12
 
-  x00 = m00 * 0 + m01 * (height - 1) + m02
-  y00 = m10 * 0 + m11 * (height - 1) + m12
+  x0h = m00 * 0 + m01 * (height - 1) + m02
+  y0h = m10 * 0 + m11 * (height - 1) + m12
 so:
 */
-        float m02 = x0h;
-        float m12 = y0h;
-        float m00 = (xwh - x0h) / (width - 1);
-        float m10 = (ywh - y0h) / (width - 1);
-        float m01 = (x00 - x0h) / (height - 1);
-        float m11 = (y00 - y0h) / (height - 1);
-        float xerr = xw0 - (m00 * (width - 1) + m01 * (height - 1) + m02);
-        float yerr = yw0 - (m10 * (width - 1) + m11 * (height - 1) + m12);
+// SWAP 'h' and '0' - was, not any more
+        float m02 = x00;
+        float m12 = y00;
+        float m00 = (xw0 - x00) / (width - 1);
+        float m10 = (yw0 - y00) / (width - 1);
+        float m01 = (x0h - x00) / (height - 1);
+        float m11 = (y0h - y00) / (height - 1);
+        float xerr = xwh - (m00 * (width - 1) + m01 * (height - 1) + m02);
+        float yerr = ywh - (m10 * (width - 1) + m11 * (height - 1) + m12);
+
         AffineTransform timage = new AffineTransform(m00, m10, m01, m11, m02, m12);
         g2.transform(timage); // concatenate timage onto tg
         g2.drawImage(image, 0, 0, this);
         g2.setTransform(tg); // restore tg
+/*
+X = Linear1DSet: Length = 159 Range = 0.0 to 158.0
+ 
+Y = Linear1DSet: Length = 118 Range = 0.0 to 117.0
+ 
+limits = -1.0 -1.0 1.0 1.0
+tuple_index = 0 1 2
+coordinates = -1.0 -1.0 0.0 1.0 -1.0 0.0 1.0 1.0 0.0 -1.0 1.0 0.0
+width = 159 height = 118
+-1.0 -1.0   1.0 -1.0
+-1.0 1.0   1.0 1.0
+timage = 0.012658228 0.0 -1.0
+         0.0 -0.017094018 1.0
+*/
       }
       else { // image == null
         if (array instanceof VisADPointArray ||

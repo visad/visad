@@ -312,6 +312,7 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
           break;
         }
       }
+
       coordinates = new float[12];
       // corner 0
       coordinates[tuple_index[0]] = limits[0][0];

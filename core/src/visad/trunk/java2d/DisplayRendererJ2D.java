@@ -164,7 +164,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     // XXX - for Java2D, scale is controlled in VisADCanvasJ2D
     ProjectionControl proj = getDisplay().getProjectionControl();
     AffineTransform tstart = new AffineTransform(proj.getMatrix());
-    // flip y
+    // SWAP flip y
     AffineTransform t1 = new AffineTransform(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
     t1.concatenate(tstart);
     double[] matrix = new double[6];
