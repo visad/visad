@@ -68,14 +68,6 @@ public interface Field extends Function {
   /** get number of samples */
   int getLength() throws VisADException, RemoteException;
 
-  /** get the Units of the Real components of the domain Set (SetUnits) */
-  Unit[] getDomainUnits()
-         throws VisADException, RemoteException;
-
-  /** get the CoordinateSystem of the domain Set (DomainCoordinateSystem) */
-  CoordinateSystem getDomainCoordinateSystem()
-         throws VisADException, RemoteException;
-
   /** get the range value at the index-th sample */
   Data getSample(int index)
          throws VisADException, RemoteException;
