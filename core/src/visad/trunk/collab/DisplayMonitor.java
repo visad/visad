@@ -26,20 +26,11 @@ import java.io.Serializable;
 
 import java.rmi.RemoteException;
 
-import visad.AnimationControl;
 import visad.Control;
-import visad.ControlEvent;
 import visad.ControlListener;
-import visad.DataDisplayLink;
-import visad.DisplayEvent;
 import visad.DisplayListener;
-import visad.DisplayMapEvent;
-import visad.DisplayReferenceEvent;
 import visad.RemoteDisplay;
-import visad.RemoteReferenceLinkImpl;
 import visad.RemoteVisADException;
-import visad.ScalarMapControlEvent;
-import visad.ScalarMapEvent;
 import visad.ScalarMapListener;
 import visad.VisADException;
 

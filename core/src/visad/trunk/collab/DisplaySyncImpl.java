@@ -27,8 +27,8 @@ import java.rmi.RemoteException;
 import java.util.ListIterator;
 import java.util.Vector;
 
-import visad.Control;
 import visad.ConstantMap;
+import visad.Control;
 import visad.DataRenderer;
 import visad.DisplayImpl;
 import visad.RemoteDataReference;
