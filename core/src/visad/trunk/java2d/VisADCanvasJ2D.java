@@ -221,6 +221,7 @@ public class VisADCanvasJ2D extends JPanel
         }
         new_valid_images[i] = false;
       }
+      if (aux_image != null) aux_image.flush();
       if (component != null) {
         aux_image = createImage(width, height);
       }
@@ -229,6 +230,11 @@ public class VisADCanvasJ2D extends JPanel
       }
 
       valid_images = new_valid_images;
+      if (images != null) {
+        for (int i=0; i<images.length; i++) {
+          if (images[i] != null) images[i].flush();
+        }
+      }
       images = new_images;
 /*
 System.out.println("VisADCanvasJ2D.createImages: len = " + len +

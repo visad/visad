@@ -87,6 +87,7 @@ public class VisADCanvasJ3D extends Canvas3D {
   
       // Now strip out the image info
       ImageComponent2D img_src = ras.getImage();
+      if (captureImage != null) captureImage.flush();
       captureImage = img_src.getImage();
       displayRenderer.notifyCapture();
 

@@ -62,6 +62,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
   public BranchGroup doTransform() throws VisADException, RemoteException {
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
+    branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     // link = getLinks()[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 

@@ -665,6 +665,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     Shape3D shape = new Shape3D(geometry, appearance);
     BranchGroup group = new BranchGroup();
     group.setCapability(BranchGroup.ALLOW_DETACH);
+    group.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     group.addChild(shape);
     // may only add BranchGroup to 'live' scale_on
     int dim = getMode2D() ? 2 : 3;
@@ -675,6 +676,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         for (int i=n; i<=m; i++) {
           BranchGroup empty = new BranchGroup();
           empty.setCapability(BranchGroup.ALLOW_DETACH);
+          empty.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
           scale_on.addChild(empty);
         }
       }

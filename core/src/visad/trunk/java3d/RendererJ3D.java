@@ -34,6 +34,7 @@ import javax.media.j3d.*;
 
 import java.util.*;
 import java.rmi.*;
+import java.awt.Image;
 
 
 /**
@@ -84,6 +85,7 @@ public abstract class RendererJ3D extends DataRenderer {
 
     swParent = new BranchGroup();
     swParent.setCapability(BranchGroup.ALLOW_DETACH);
+    swParent.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     swParent.addChild(sw);
     // make it 'live'
     addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
@@ -230,6 +232,7 @@ System.out.println(getLinks()[0].getThingReference().getName());
             branchNonEmpty[currentIndex] = true;
           }
           else { // if (branchNonEmpty[currentIndex])
+            flush(branches[currentIndex]);
             branches[currentIndex].setChild(branch, 0);
           } // end if (branchNonEmpty[currentIndex])
         } // end synchronized (this)
@@ -277,6 +280,7 @@ System.out.println(getLinks()[0].getThingReference().getName());
         branchNonEmpty[currentIndex] = true;
       }
       else { // if (branchNonEmpty[currentIndex])
+        flush(branches[currentIndex]);
         branches[currentIndex].setChild(branch, 0);
       } // end if (branchNonEmpty[currentIndex])
     } // end synchronized (this)
@@ -288,6 +292,7 @@ System.out.println(getLinks()[0].getThingReference().getName());
 // System.out.println("branch " + currentIndex + " not empty, clearBranch");
 
 /* WLH 1 April 99 - doesn't help memory */
+        flush(branches[currentIndex]);
         Enumeration ch = branches[currentIndex].getAllChildren();
         while(ch.hasMoreElements()) {
           BranchGroup b = (BranchGroup) ch.nextElement();
@@ -303,7 +308,46 @@ System.out.println(getLinks()[0].getThingReference().getName());
     branchNonEmpty[currentIndex] = false;
   }
 
+  private void flush(Group branch) {
+    Enumeration ch = branch.getAllChildren();
+    while(ch.hasMoreElements()) {
+      Node n = (Node) ch.nextElement();
+      if (n instanceof Group) {
+        flush((Group) n);
+      }
+      else if (n instanceof Shape3D &&
+               ((Shape3D) n).getCapability(Shape3D.ALLOW_APPEARANCE_READ)) {
+        Appearance appearance = ((Shape3D) n).getAppearance();
+        if (appearance != null &&
+            appearance.getCapability(Appearance.ALLOW_TEXTURE_READ)) {
+          Texture texture = appearance.getTexture();
+          if (texture != null &&
+              texture.getCapability(Texture.ALLOW_IMAGE_READ)) {
+            ImageComponent ic = texture.getImage(0);
+            if (ic != null && ic.getCapability(ImageComponent.ALLOW_IMAGE_READ)) {
+              if (ic instanceof ImageComponent2D) {
+                Image image = ((ImageComponent2D) ic).getImage();
+                if (image != null) image.flush();
+// System.out.println("flush");
+              }
+              else if (ic instanceof ImageComponent3D) {
+                Image[] images = ((ImageComponent3D) ic).getImage();
+                if (images != null) {
+                  for (int j=0; j<images.length; j++) {
+                    if (images[j] != null) images[j].flush();
+// System.out.println("flush");
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   public void clearScene() {
+    flush(swParent);
     swParent.detach();
     ((DisplayRendererJ3D) getDisplayRenderer()).clearScene(this);
   }

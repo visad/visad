@@ -103,6 +103,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
 
     Shape3D shape = new Shape3D(geometry, appearance);
     BranchGroup group = new BranchGroup();
+    group.setCapability(Group.ALLOW_CHILDREN_READ);
     group.addChild(shape);
     branch.addChild(group);
   }
