@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMapWidget.java,v 1.24 1999-09-20 19:17:25 dglo Exp $
+@(#) $Id: ColorMapWidget.java,v 1.25 1999-09-20 19:42:43 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB/RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.24 $, $Date: 1999-09-20 19:17:25 $
+ * @version $Revision: 1.25 $, $Date: 1999-09-20 19:42:43 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -369,5 +369,37 @@ public class LabeledColorWidget
   public ColorWidget getColorWidget()
   {
     return widget;
+  }
+
+  public static void main(String[] args)
+    throws RemoteException, VisADException
+  {
+    RealType visRadiance = new RealType("visRadiance", null, null);
+    ScalarMap map = new ScalarMap(visRadiance, Display.RGBA);
+
+    DisplayImpl dpy = new visad.java2d.DisplayImplJ2D("2d");
+    dpy.addMap(map);
+
+    JFrame f;
+
+    f = new JFrame("VisAD LabeledColorWidget 0");
+    f.addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+          System.exit(0);
+        }
+      });
+    f.getContentPane().add(new LabeledColorWidget(map));
+    f.pack();
+    f.setVisible(true);
+
+    f = new JFrame("VisAD LabeledColorWidget 1");
+    f.addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+          System.exit(0);
+        }
+      });
+    f.getContentPane().add(new LabeledColorWidget(map));
+    f.pack();
+    f.setVisible(true);
   }
 }
