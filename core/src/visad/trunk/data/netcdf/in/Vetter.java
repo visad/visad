@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Vetter.java,v 1.2 1998-06-17 20:30:41 visad Exp $
+ * $Id: Vetter.java,v 1.3 1998-09-11 15:00:56 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -64,11 +64,9 @@ Vetter
     /**
      * Construct from a netCDF variable type.
      *
-     * @param type	The Java type of the netCDF variable (i.e. Float.TYPE,
-     *			Character.TYPE, etc.)
-     *			Something that should be implemented isn't yet.
-     * @exception BadFormException
-     *			Invalid <code>type</code>.
+     * @param type		The Java type of the netCDF variable (i.e. 
+     *				Float.TYPE, Character.TYPE, etc.)
+     * @throws BadFormException	Invalid <code>type</code>.
      */
     Vetter(Class type)
 	throws BadFormException
@@ -86,9 +84,8 @@ Vetter
     /**
      * Construct from a netCDF variable.
      *
-     * @param var	The netCDF variable to be examined.
-     * @exception BadFormException
-     *			Invalid <code>var</code>.
+     * @param var		The netCDF variable to be examined.
+     * @throws BadFormException	Invalid <code>var</code>.
      */
     Vetter(Variable var)
 	throws BadFormException

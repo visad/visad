@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Domain.java,v 1.5 1998-06-17 20:30:22 visad Exp $
+ * $Id: Domain.java,v 1.6 1998-09-11 15:00:51 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -40,8 +40,8 @@ Domain
     /**
      * Construct from an array of adapted, netCDF dimensions.
      *
-     * @param dims			netCDF dimensions
-     * @exception VisADException	Couldn't create necessary VisAD object.
+     * @param dims		netCDF dimensions
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     Domain(NcDim[] dims)
 	throws VisADException
@@ -57,8 +57,8 @@ Domain
     /**
      * Get the VisAD math type of the given, adapted, netCDF dimensions.
      *
-     * @param dims			The netCDF dimensions of the domain.
-     * @exception VisADException	Couldn't create necessary VisAD object.
+     * @param dims		The netCDF dimensions of the domain.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     protected static MathType
     getMathType(NcDim[] dims)
@@ -148,17 +148,7 @@ Domain
     public boolean
     equals(Domain that)
     {
-	if (dims.length == 0 && this != that)
-	    return false;
-
-	if (dims.length != that.dims.length)
-	    return false;
-
-	for (int i = 0; i < rank; ++i)
-	    if (!dims[i].equals(that.dims[i]))
-		return false;
-
-	return true;
+	return compareTo(that) == 0;
     }
 
 
@@ -166,20 +156,31 @@ Domain
      * Compare this domain to another.
      *
      * @param other	The other Domain.
-     * @return		Less than 0, zero, or greater than zero depending on
-     *			whether this domain is less than, equal to, or greater
-     *			than the other domain, respectively.
+     * @return          Less than 0, zero, or greater than zero
+     *                  depending on whether this domain is less than,
+     *                  equal to, or greater than the other domain,
+     *                  respectively.  Conceptually, Two domains are
+     *                  compared by making pairwise comparisons of
+     *                  their dimensions in order starting with the
+     *                  first pair.  Conceptually, domains of smaller
+     *                  rank are padded with <code>NcDim.MIN</code>.
+     *                  The first non-zero dimensional comparison
+     *                  is returned.  This should be similar to
+     *                  <code>String.compareTo()</code>.
      */
     public int
     compareTo(Object other)
     {
 	Domain	that = (Domain)other;
-	int	n = dims.length - that.dims.length;
+	int	thatRank = that.getRank();
+	int	minRank = Math.min(rank, thatRank);
+	int	n = 0;
 
-	for (int i = 0; n == 0 && i < rank; ++i)
-	{
+	for (int i = 0; n == 0 && i < minRank; ++i)
 	    n = dims[i].compareTo(that.dims[i]);
-	}
+
+	if (n == 0)
+	    n = rank - thatRank;
 
 	return n;
     }

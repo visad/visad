@@ -3,11 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ArithProg.java,v 1.2 1998-06-17 20:30:21 visad Exp $
+ * $Id: ArithProg.java,v 1.3 1998-09-11 15:00:51 steve Exp $
  */
 
 
 package visad.data.netcdf.in;
+
+import visad.VisADException;
 
 
 /**
@@ -49,7 +51,7 @@ class ArithProg {
      * Construct with a caller-supplied nearness threshold.
      *
      * @param epsilon	Nearness threshold.
-     * @exception IllegalArgumentException
+     * @throws IllegalArgumentException
      *			The given nearness threshold is negative.
      */
     ArithProg(double epsilon) {
@@ -69,29 +71,30 @@ class ArithProg {
      *			current and previous values normalized by the current
      *			increment differs from unity by more than the
      *			nearness threshold; otherwise, true.
-     * @require		isConsistent() is true.
+     * @precondition	<code>isConsistent() == true</code>
      * @promise		A subsequent getNumber() will return one more than 
      *			previously if the function returns true.
      * @promise		A subsequent getLast() will return the value argument
      *			if the function returns true.
      */
-    boolean accumulate(double value) {
-	if (consistent) {
-	    if (n == 0) {
-		first = value;
-	    } else if (n == 1) {
-		increment = value - first;
-	    } else {
-		double	delta = increment == 0
-					? value - last
-					: 1.0 - (value - last) / increment;
+    boolean accumulate(double value) throws VisADException {
+	if (!consistent)
+	    throw new VisADException("Sequence not arithmetic series");
 
-		if (Math.abs(delta) <= epsilon) {
-		    increment = (value - first) / n;
-		} else {
-		    consistent = false;
-		    increment = Double.NaN;
-		}
+	if (n == 0) {
+	    first = value;
+	} else if (n == 1) {
+	    increment = value - first;
+	} else {
+	    double	delta = increment == 0
+				    ? value - last
+				    : 1.0 - (value - last) / increment;
+
+	    if (Math.abs(delta) <= epsilon) {
+		increment = (value - first) / n;
+	    } else {
+		consistent = false;
+		increment = Double.NaN;
 	    }
 	}
 
@@ -115,7 +118,7 @@ class ArithProg {
      * @promise		A subsequent getLast() will return the last value of
      *			the vector providing the function returns true.
      */
-    boolean accumulate(double[] values) {
+    boolean accumulate(double[] values) throws VisADException {
 	for (int i = 0; (i < values.length) && accumulate(values[i]); ++i) ;
 
 	return consistent;
@@ -135,7 +138,7 @@ class ArithProg {
      * @promise		A subsequent getLast() will return the last value of
      *			the vector providing the function returns true.
      */
-    boolean accumulate(float[] values) {
+    boolean accumulate(float[] values) throws VisADException {
 	for (int i = 0; i < values.length && accumulate(values[i]); ++i) ;
 
 	return consistent;

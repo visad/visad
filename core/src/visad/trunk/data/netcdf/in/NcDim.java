@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.6 1998-06-17 20:30:26 visad Exp $
+ * $Id: NcDim.java,v 1.7 1998-09-11 15:00:52 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -28,13 +28,35 @@ NcDim
     implements	Comparable
 {
     /**
+     * The minimum dimension for the <code>compareTo()</code> method.
+     */
+    public static final NcDim	MIN = new NcDim("");
+
+    /**
+     * The maximum dimension for the <code>compareTo()</code> method.
+     */
+    public static final NcDim	MAX = new NcDim("\uffff\uffff");
+
+
+    /**
+     * Constructs from a name.  Used to initialize <code>MIN</code> and
+     * <code>MAX</code>.
+     */
+    protected
+    NcDim(String name)
+    {
+	super(name, 1);
+    }
+
+
+    /**
      * Factory method for constructing the right type of dimension decorator.
      *
-     * @param dim	The netCDF dimension to be decorated.
-     * @param netcdf	The netCDF dataset that contains <code>dim</code>.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param dim		The netCDF dimension to be decorated.
+     * @param netcdf		The netCDF dataset that contains
+     *				<code>dim</code>.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
      */
     static NcDim
     create(Dimension dim, Netcdf netcdf)
@@ -65,10 +87,9 @@ NcDim
     /**
      * Return the VisAD MathType for this dimension.
      *
-     * @return		The VisAD MathType for the dimension.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @return			The VisAD MathType for the dimension.
+     * @throws VisADException	Problem in core VisAD.  Probably some
+     *				VisAD object couldn't be created.
      */
     RealType
     getMathType()
@@ -101,7 +122,7 @@ NcDim
     boolean
     equals(NcDim that)
     {
-	return getName().equals(that.getName());
+	return compareTo(that) == 0;
     }
 
 
@@ -251,11 +272,12 @@ NcCoordDim
      * Construct from a netCDF dimension and dataset.  Protected to ensure
      * use of the NcDim factory method.
      *
-     * @param dim	The netCDF dimension that has a co-ordinate variable.
-     * @param netcdf	The netCDF dataset that contains <code>dim</code>.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param dim		The netCDF dimension that has a co-ordinate
+     *				variable.
+     * @param netcdf		The netCDF dataset that contains
+     *				<code>dim</code>.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
      */
     protected
     NcCoordDim(Dimension dim, Netcdf netcdf)
@@ -309,10 +331,9 @@ NcCoordDim
      * Return the VisAD MathType for this dimension.  It will be the
      * MathType of the associated co-ordinate variable.
      *
-     * @return		The VisAD MathType for the dimension.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @return			The VisAD MathType for the dimension.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
      */
     RealType
     getMathType()

@@ -3,237 +3,91 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcScalar.java,v 1.5 1998-06-17 20:30:34 visad Exp $
+ * $Id: NcScalar.java,v 1.6 1998-09-11 15:00:54 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
-import java.rmi.RemoteException;
 import visad.DataImpl;
 import visad.MathType;
-import visad.Real;
-import visad.RealTuple;
-import visad.RealTupleType;
-import visad.RealType;
-import visad.Scalar;
-import visad.ScalarType;
-import visad.TextType;
-import visad.Tuple;
-import visad.TupleType;
 import visad.VisADException;
 
 
 /**
- * The NcScalar class adapts scalars in a netCDF dataset to a VisAD API.  
- * A scalar can be a single datum or a collection of data defined over the
- * rank 0 domain (i.e. a VisAD Tuple).
+ * Adapts scalar netCDF variables to a VisAD Scalar.
  */
-abstract class
+public class
 NcScalar
     extends	NcData
 {
     /**
-     * Factory method for constructing an NcScalar from netCDF variables.
-     *
-     * @parm vars	The netCDF variables defined over the same, rank-0, 
-     *			domain.
-     * @precondition	The rank of every variable is zero.
-     * @precondition	<code>vars.length >= 1</code>.
-     * @return		The NcData corresponding to <code>vars</code>.
+     * The netCDF variable that constitutes the scalar.
      */
-    static NcData
-    newNcScalar(NcVar[] vars)
+    protected NcVar	var;
+
+
+    /**
+     * Constructs from an adapted, netCDF variable.
+     */
+    public
+    NcScalar(NcVar var)
 	throws VisADException, IOException
     {
-	return vars.length == 1
-		    ? (NcData) new NcScalarVar(vars[0])
-		    : (NcData) new NcScalarVars(vars);
-    }
-
-
-    /**
-     * Construct from a given VisAD MathType.
-     */
-    protected
-    NcScalar(MathType type)
-    {
-	super(type);
-    }
-}
-
-
-/**
- * The NcScalarVar class adapts a scalar netCDF variable to a VisAD Scalar.
- */
-class
-NcScalarVar
-    extends	NcScalar
-{
-    /**
-     * The netCDF variable.
-     */
-    protected final NcVar	var;
-
-
-    /**
-     * Construct from an adapted netCDF variable.
-     *
-     * @parm var	The netCDF variable.
-     * @precondition	<code>var.getRank() == 0</code>.
-     */
-    NcScalarVar(NcVar var)
-	throws VisADException, IOException
-    {
-	super(var.getMathType());
 	this.var = var;
     }
 
 
     /**
-     * Return the corresponding VisAD data object.
-     *
-     * @return	The corresponding VisAD data object.
+     * Returns the VisAD MathType of this data object.
      */
-    DataImpl
-    getData()
-	throws IOException, VisADException
-    {
-	return var.getData()[0];
-    }
-
-
-    /**
-     * Return a proxy for the corresponding VisAD data object.
-     *
-     * @return	The corresponding VisAD data object.
-     */
-    DataImpl
-    getProxy()
-	throws IOException, VisADException
-    {
-	return getData();
-    }
-}
-
-
-/**
- * The NcScalarVars class adapts scalar netCDF variables to a VisAD Tuple.
- */
-class
-NcScalarVars
-    extends	NcScalar
-{
-    /**
-     * The scalar netCDF variables.
-     */
-    protected final NcVar[]	vars;
-
-
-    /**
-     * Construct from adapted netCDF variables.
-     *
-     * @parm vars	The netCDF variables.
-     * @precondition	<code>vars[i].getRank() == 0</code> for all 
-     *			<code>i</code>.
-     */
-    NcScalarVars(NcVar[] vars)
-	throws VisADException, IOException
-    {
-	super(getTupleType(vars));
-	this.vars = vars;
-    }
-
-
-    /**
-     * Return the TupleType of the given, scalar, netCDF variables.
-     */
-    private static TupleType
-    getTupleType(NcVar[] vars)
+    public MathType
+    getMathType()
 	throws VisADException
     {
-	TupleType	tupleType;
-	boolean		allRealTypes = true;
-
-	for (int i = 0; i < vars.length; ++i)
-	{
-	    if (vars[i].getMathType() instanceof TextType)
-	    {
-		allRealTypes = false;
-		break;
-	    }
-	}
-
-	if (allRealTypes)
-	{
-	    RealType[]	types = new RealType[vars.length];
-
-	    for (int i = 0; i < vars.length; ++i)
-	    {
-		types[i] = (RealType)vars[i].getMathType();
-	    }
-
-	    tupleType = new RealTupleType(types);
-	}
-	else
-	{
-	    ScalarType[]	types = new ScalarType[vars.length];
-
-	    for (int i = 0; i < vars.length; ++i)
-	    {
-		types[i] = vars[i].getMathType();
-	    }
-
-	    tupleType = new TupleType(types);
-	}
-
-	return tupleType;
+	return var.getMathType();
     }
 
 
     /**
-     * Return the corresponding VisAD data object.
-     *
-     * @return	The corresponding VisAD data object.
+     * Gets the VisAD data object corresponding to this data object.
      */
-    DataImpl
+    public DataImpl
     getData()
-	throws VisADException, RemoteException, IOException
+	throws IOException, VisADException
     {
-	Tuple	tuple;
-
-	if (getMathType() instanceof RealTupleType)
-	{
-	    Real[]	values = new Real[vars.length];
-
-	    for (int i = 0; i < vars.length; ++i)
-		values[i] = (Real)vars[i].getData()[0];
-
-	    tuple = new RealTuple(values);
-	}
-	else
-	{
-	    Scalar[]	values = new Scalar[vars.length];
-
-	    for (int i = 0; i < vars.length; ++i)
-		values[i] = (Scalar)vars[i].getData()[0];
-
-	    tuple = new Tuple(values);
-	}
-
-	return tuple;
+	// TODO: support text
+	return ((NcNumber)var).getData();
     }
 
 
     /**
-     * Return a proxy for the corresponding VisAD data object.
+     * Gets a proxy for the corresponding VisAD data object.
      *
-     * @return	The corresponding VisAD data object.
+     * @return			A proxy for the corresponding VisAD data object.
+     * @throws NestedException	Data object is in the range of a nested Field.
+     * @throws VisADException   Couldn't create necessary VisAD object.
+     * @throws IOException      Data access I/O failure.
      */
-    DataImpl
+    public DataImpl
     getProxy()
-	throws VisADException, RemoteException, IOException
+	throws IOException, NestedException, VisADException
     {
-	return getData();
+	return getData();	// scalars don't deserve a proxy
+    }
+
+
+    /**
+     * Gets the values of this data object as an array of doubles.  The
+     * length of the returned, inner arrays will be 1.
+     *
+     * @postcondition	RETURN_VALUE<code>[i].length == 1</code> for all
+     *			<code>i</code>
+     */
+    public double[][]
+    getDoubles()
+	throws IOException, VisADException
+    {
+	return new double[][] {var.getDoubles()};
     }
 }

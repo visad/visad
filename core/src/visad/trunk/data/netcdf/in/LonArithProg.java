@@ -3,10 +3,12 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: LonArithProg.java,v 1.2 1998-06-17 20:30:24 visad Exp $
+ * $Id: LonArithProg.java,v 1.3 1998-09-11 15:00:51 steve Exp $
  */
 
 package visad.data.netcdf.in;
+
+import visad.VisADException;
 
 
 /**
@@ -35,9 +37,9 @@ LonArithProg
     /**
      * Construct with a caller-supplied nearness threshold.
      *
-     * @param epsilon	Nearness threshold.
-     * @exception IllegalArgumentException
-     *			The given nearness threshold is negative.
+     * @param epsilon			Nearness threshold.
+     * @throws IllegalArgumentException	The given nearness threshold is
+     *					negative.
      */
     LonArithProg(double epsilon)
     {
@@ -70,38 +72,39 @@ LonArithProg
      */
     boolean
     accumulate(double value)
+	throws VisADException
     {
-	if (isConsistent())
+	if (!isConsistent())
+	    throw new VisADException("Sequence not arithmetic series");
+
+	long	n = getNumber();
+
+	if (n == 0)
+	    setFirst(value);
+	else
+	if (n == 1)
 	{
-	    long	n = getNumber();
+	    double	increment = getDelta(value, getLast());
 
-	    if (n == 0)
-		setFirst(value);
-	    else
-	    if (n == 1)
+	    setIncrement(increment);
+	    sumDelta = increment;
+	}
+	else
+	{
+	    double	delta = getDelta(value, getLast());
+	    double	eps = getIncrement() == 0
+				    ? delta
+				    : 1.0 - delta / getIncrement();
+
+	    if (Math.abs(eps) <= getEpsilon())
 	    {
-		double	increment = getDelta(value, getLast());
-
-		setIncrement(increment);
-		sumDelta = increment;
+		sumDelta += delta;
+		setIncrement(sumDelta / n);
 	    }
 	    else
 	    {
-		double	delta = getDelta(value, getLast());
-		double	eps = getIncrement() == 0
-					? delta
-					: 1.0 - delta / getIncrement();
-
-		if (Math.abs(eps) <= getEpsilon())
-		{
-		    sumDelta += delta;
-		    setIncrement(sumDelta / n);
-		}
-		else
-		{
-		    setConsistent(false);
-		    setIncrement(Double.NaN);
-		}
+		setConsistent(false);
+		setIncrement(Double.NaN);
 	    }
 	}
 
@@ -153,7 +156,7 @@ LonArithProg
      * Test this class.
      *
      * @param args		Runtime arguments.  Ignored.
-     * @exception Exception	Something went wrong.
+     * @throws Exception	Something went wrong.
      */
     public static void main(String[] args)
 	throws Exception

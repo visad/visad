@@ -3,12 +3,15 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.5 1998-08-12 20:57:12 visad Exp $
+ * $Id: NcVar.java,v 1.6 1998-09-11 15:00:55 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import ucar.multiarray.IndexIterator;
 import ucar.multiarray.MultiArray;
 import ucar.netcdf.Attribute;
@@ -17,7 +20,6 @@ import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.CoordinateSystem;
 import visad.Data;
-import visad.DataImpl;
 import visad.DoubleSet;
 import visad.FloatSet;
 import visad.Linear1DSet;
@@ -64,9 +66,35 @@ NcVar
      */
     private final ScalarType	mathType;
 
+    /**
+     * A cache of netCDF variables their units.
+     */
+    private static final Map	unitMap = 
+	Collections.synchronizedMap(new WeakHashMap());
 
     /**
-     * Construct from a netCDF variable, dataset, and VisAD MathType.
+     * A cache of netCDF variables their long names.
+     */
+    private static final Map	longNameMap = 
+	Collections.synchronizedMap(new WeakHashMap());
+
+
+    /**
+     * Constructs from another NcVar.  Protected to ensure use by
+     * trusted subclasses only.
+     */
+    protected
+    NcVar(NcVar ncVar)
+    {
+	netcdf = ncVar.netcdf;
+	var = ncVar.var;
+	unit = ncVar.unit;
+	mathType = ncVar.mathType;
+    }
+
+
+    /**
+     * Constructs from a netCDF variable, netCDF dataset, and VisAD MathType.
      *
      * @param var	The netCDF variable to be adapted.
      * @param netcdf	The netCDF dataset that contains <code>var</code>.
@@ -117,27 +145,48 @@ NcVar
     protected static Unit
     getUnit(Variable var)
     {
-	Unit		unit = null;
-	Attribute	attr = var.getAttribute("units");
+	Unit		unit;
+	UnitMapValue	value = (UnitMapValue)unitMap.get(var);
 
-	if (attr == null)
-	    attr = var.getAttribute("unit");
-
-	if (attr != null && attr.isString())
+	if (value != null)
 	{
-	    String	unitSpec = attr.getStringValue();
+	    unit = value.unit;
+	}
+	else
+	{
+	    String[]	names = new String[] {"units", "unit"};
+	    String	name = null;
+	    Attribute	attr = null;
 
-	    try
-	    {
-		unit = Parser.parse(unitSpec);
-	    }
-	    catch (ParseException e)
-	    {
-		String	reason = e.getMessage();
+	    unit = null;
 
-		System.err.println("Couldn't decode unit attribute \"" +
-		    unitSpec + "\"" + (reason == null ? "" : (": " + reason)));
+	    for (int i = 0; i < names.length; ++i)
+	    {
+		name = names[i];
+		attr = var.getAttribute(name);
+		if (attr != null)
+		    break;
 	    }
+
+	    if (attr != null && attr.isString())
+	    {
+		String	unitSpec = attr.getStringValue();
+
+		try
+		{
+		    unit = Parser.parse(unitSpec);
+		}
+		catch (ParseException e)
+		{
+		    String	reason = e.getMessage();
+
+		    System.err.println("Couldn't decode attribute " +
+			var.getName() + ":" + name + "=\"" + unitSpec + "\"" +
+			(reason == null ? "" : (": " + reason)));
+		}
+	    }
+
+	    unitMap.put(var, new UnitMapValue(unit));
 	}
 
 	return unit;
@@ -147,12 +196,12 @@ NcVar
     /**
      * Factory method for creating an instance of the correct subtype.
      *
-     * @param var	The netCDF variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @return		The NcVar for <code>var</code>.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @return			The NcVar for <code>var</code>.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
      */
     static NcVar
     newNcVar(Variable var, Netcdf netcdf)
@@ -206,11 +255,11 @@ NcVar
      * Return the default fill-value value for a netCDF variable of the
      * given type.
      *
-     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
-     *			<code>Float.TYPE</code>).
-     * @return		The default fill-value value for the given netCDF type.
-     * @exception BadFormException
-     *			Unknown netCDF type.
+     * @param type		netCDF type (e.g. <code>Character.TYPE</code>, 
+     *				<code>Float.TYPE</code>).
+     * @return			The default fill-value value for the given 
+     *				netCDF type.
+     * @throws BadFormException	Unknown netCDF type.
      */
     static double
     getDefaultFillValue(Class type)
@@ -243,11 +292,11 @@ NcVar
      * Return the minimum valid value for a netCDF variable of the given
      * type.
      *
-     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
-     *			<code>Float.TYPE</code>).
-     * @return		The minimum valid value for the given netCDF type.
-     * @exception BadFormException
-     *			Unknown netCDF type.
+     * @param type		netCDF type (e.g. <code>Character.TYPE</code>, 
+     *				<code>Float.TYPE</code>).
+     * @return			The minimum valid value for the given netCDF 
+     *				type.
+     * @throws BadFormException	Unknown netCDF type.
      */
     static double
     getMinValid(Class type)
@@ -283,11 +332,11 @@ NcVar
      * Return the maximum valid value for a netCDF variable of the given
      * type.
      *
-     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
-     *			<code>Float.TYPE</code>).
-     * @return		The maximum valid value for the given netCDF type.
-     * @exception BadFormException
-     *			Unknown netCDF type
+     * @param type		netCDF type (e.g. <code>Character.TYPE</code>, 
+     *				<code>Float.TYPE</code>).
+     * @return			The maximum valid value for the given netCDF 
+     *				type.
+     * @throws BadFormException	Unknown netCDF type
      */
     static double
     getMaxValid(Class type)
@@ -324,7 +373,7 @@ NcVar
      *
      * @return	The VisAD MathType of the variable's values.
      */
-    ScalarType
+    public MathType
     getMathType()
     {
 	return mathType;
@@ -363,9 +412,34 @@ NcVar
 
 
     /**
-     * Return the dimensions of this variable.
+     * Returns a dimension of this variable.
      *
-     * @return		The dimensions of the variable.
+     * @param			The index of the dimension.  Assumes netCDF
+     *				order.
+     * @precondition		<code>index >= 0 && index < getRank()</code>
+     * @return			The requested dimension.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    NcDim
+    getDimension(int index)
+	throws VisADException
+    {
+	if (index < 0 || index >= getRank())
+	    throw new VisADException("Index out of bounds");
+
+	DimensionIterator	iter = var.getDimensionIterator();
+
+	for (int i = 0; i < index; ++i)
+	    iter.next();
+
+	return NcDim.create(iter.next(), netcdf);
+    }
+
+
+    /**
+     * Returns the dimensions of this variable (in netCDF order).
+     *
+     * @return		The dimensions of the variable in netCDF order.
      * @postcondition	<code>getRank() == getDimensions().length</code>.
      */
     NcDim[]
@@ -374,7 +448,8 @@ NcVar
     {
 	/*
 	 * The following algorithm handles both numeric and textual 
-	 * netCDF variables.
+	 * netCDF variables because, for a text variable, it stops before
+	 * getting the innermost dimension.
 	 */
 
 	int			rank = getRank();
@@ -538,11 +613,25 @@ NcVar
     static String
     getLongName(Variable var)
     {
-	Attribute	attr = var.getAttribute("long_name");
+	String	name;
+	LongNameMapValue	value = (LongNameMapValue)longNameMap.get(var);
 
-	return (attr == null || !attr.isString())
-		    ? null
-		    : attr.getStringValue();
+	if (value != null)
+	{
+	    name = value.longName;
+	}
+	else
+	{
+	    Attribute	attr = var.getAttribute("long_name");
+
+	    name = (attr == null || !attr.isString())
+			? null
+			: attr.getStringValue();
+
+	    longNameMap.put(var, new LongNameMapValue(name));
+	}
+
+	return name;
     }
 
 
@@ -630,10 +719,10 @@ NcVar
      * Return the values of this variable as a packed array of floats.
      *
      * @return			The variable's values.
-     * @exception IOException	I/O error.
+     * @throws IOException	I/O error.
      */
     abstract float[]
-    getFloatValues()
+    getFloats()
 	throws IOException;
 
 
@@ -641,11 +730,11 @@ NcVar
      * Return the values of this variable as a packed array of doubles.
      *
      * @return			The variable's values.
-     * @exception IOException	I/O error.
+     * @throws IOException	I/O error.
      */
-    abstract double[]
-    getDoubleValues()
-	throws IOException;
+    public abstract double[]
+    getDoubles()
+	throws IOException, VisADException;
 
 
     /**
@@ -653,22 +742,10 @@ NcVar
      * dimension -- as a packed array of doubles.
      *
      * @return			The variable's values.
-     * @exception IOException	I/O error.
+     * @throws IOException	I/O error.
      */
     abstract double[]
-    getDoubleValues(int ipt)
-	throws IOException;
-
-
-    /**
-     * Return the values of this variable as a packed array of VisAD
-     * DataImpl objects.  It would be really, really stupid to use this
-     * method on a variable of any length.
-     *
-     * @return		The variable's values.
-     */
-    abstract DataImpl[]
-    getData()
+    getDoubles(int ipt)
 	throws IOException, VisADException;
 
 
@@ -681,6 +758,7 @@ NcVar
 	return netcdf;
     }
 
+
     /**
      * Return the netCDF Variable.
      */
@@ -688,6 +766,38 @@ NcVar
     getVar()
     {
 	return var;
+    }
+
+
+    /**
+     * Supports the unit value in the unit cache.
+     */
+    protected static class
+    UnitMapValue
+    {
+	protected Unit		unit;
+
+	protected
+	UnitMapValue(Unit unit)
+	{
+	    this.unit = unit;
+	}
+    }
+
+
+    /**
+     * Supports the long name value in the long name cache.
+     */
+    protected static class
+    LongNameMapValue
+    {
+	protected String	longName;
+
+	protected
+	LongNameMapValue(String longName)
+	{
+	    this.longName = longName;
+	}
     }
 }
 
@@ -703,15 +813,14 @@ NcInteger
     /**
      * Construct.
      *
-     * @param var	The netCDF integer variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @param type	The VisAD RealType of <code>var</code>.
-     * @precondition	<code>isRepresentable(var).
-     * @exception BadFormException
-     *			The netCDF variable cannot be adapted to a VisAD API.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF integer variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @param type		The VisAD RealType of <code>var</code>.
+     * @throws BadFormException	The netCDF variable cannot be adapted to a 
+     *				VisAD API.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
      */
     NcInteger(Variable var, Netcdf netcdf, RealType type)
 	throws BadFormException, VisADException
@@ -724,13 +833,13 @@ NcInteger
      * Indicate whether or not a netCDF variable can be represented as
      * an integer in the given VisAD range.
      *
-     * @param var	The netCDF variable to be examined.
-     * @param visadMin	The minimum representable VisAD value.
-     * @param visadMax	The maximum representable VisAD value.
-     * @return		<code>true</code> if and only if the netCDF variable
-     *			can be represented within the given range.
-     * @exception BadFormException
-     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @param var		The netCDF variable to be examined.
+     * @param visadMin		The minimum representable VisAD value.
+     * @param visadMax		The maximum representable VisAD value.
+     * @return			<code>true</code> if and only if the netCDF 
+     *				variable can be represented within the given range.
+     * @throws BadFormException	The netCDF variable cannot be adapted to a 
+     *				VisAD API.
      */
     protected static boolean
     isRepresentable(Variable var, int visadMin, int visadMax)
@@ -766,11 +875,11 @@ NcByte
      * use the value -128 because that's used by VisAD to indicate a
      * "missing" byte range-value.
      *
-     * @param var	The netCDF variable to be examined.
-     * @return		<code>true</code> if and only if <code>var</code> can
-     *			be represented as bytes.
-     * @exception BadFormException
-     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @param var		The netCDF variable to be examined.
+     * @return			<code>true</code> if and only if 
+     *				<code>var</code> can be represented as bytes.
+     * @throws BadFormException	The netCDF variable cannot be adapted to a 
+     *				VisAD API.
      */
     static boolean
     isRepresentable(Variable var)
@@ -783,26 +892,30 @@ NcByte
     /**
      * Construct.
      *
-     * @param var	The netCDF byte variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @precondition	<code>isRepresentable(var).
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF byte variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @precondition		<code>isRepresentable(var).
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     *				object couldn't be created.
      */
     NcByte(Variable var, Netcdf netcdf)
 	throws VisADException
     {
 	super(var, netcdf, getRealType(var));
+
+	if (!isRepresentable(var))
+	    throw new VisADException("Variable not assignable to byte");
+
     }
 
     
     /**
      * Return the range set of this variable.
      *
-     * @param type	The VisAD RealType of the variable.
-     * @return		The sampling set of the values of this variable.
-     * @exception VisADException	Couldn't create set.
+     * @param type		The VisAD RealType of the variable.
+     * @return			The sampling set of the values of this variable.
+     * @throws VisADException	Couldn't create set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -828,7 +941,7 @@ NcByte
 
 
 /**
- * The NcShort class adapts a netCDF short variable that's being
+ * The NcShort class adapts a netCDF byte or short variable that's being
  * imported to a VisAD API.
  */
 final class
@@ -839,11 +952,12 @@ NcShort
      * Indicate whether or not a netCDF variable can be represented as 
      * an NcShort.
      *
-     * @param var	The netCDF variable to be examined.
-     * @return		<code>true</code> if and only if <code>var</code> can 
-     *			be represented as short values.
-     * @exception BadFormException
-     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @param var		The netCDF variable to be examined.
+     * @return			<code>true</code> if and only if 
+     *				<code>var</code> can be represented as short
+     *				values.
+     * @throws BadFormException	The netCDF variable cannot be adapted to a 
+     *				VisAD API.
      */
     static boolean
     isRepresentable(Variable var)
@@ -856,26 +970,30 @@ NcShort
     /**
      * Construct.
      *
-     * @param var	The netCDF short variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @precondition	<code>isRepresentable(var).
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF short variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @precondition		<code>isRepresentable(var).
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     *				object couldn't be created.
      */
     NcShort(Variable var, Netcdf netcdf)
 	throws VisADException
     {
 	super(var, netcdf, getRealType(var));
+
+	if (!isRepresentable(var))
+	    throw new VisADException("Variable not assignable to short");
+
     }
 
     
     /**
      * Return the range set of this variable.
      *
-     * @param type	The VisAD RealType of the variable.
-     * @return		The sampling set of the values of this variable.
-     * @exception VisADException	Couldn't create set.
+     * @param type		The VisAD RealType of the variable.
+     * @return			The sampling set of the values of this variable.
+     * @throws VisADException	Couldn't create set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -901,7 +1019,7 @@ NcShort
 
 
 /**
- * The NcInt class adapts a 32-bit netCDF variable that's being
+ * The NcInt class adapts a netCDF short, or int variable that's being
  * imported to a VisAD API.
  */
 final class
@@ -912,11 +1030,12 @@ NcInt
      * Indicate whether or not a netCDF variable can be represented as 
      * an NcInt.
      *
-     * @param var	The netCDF variable to be examined.
-     * @return		<code>true</code> if and only if <code>var</code> can
-     *			be represented in 32-bit values.
-     * @exception BadFormException
-     *			The netCDF variable cannot be adapted to a VisAD API.
+     * @param var		The netCDF variable to be examined.
+     * @return			<code>true</code> if and only if 
+     *				<code>var</code> can be represented in 32-bit
+     *				values.
+     * @throws BadFormException	The netCDF variable cannot be adapted to a 
+     *				VisAD API.
      */
     static boolean
     isRepresentable(Variable var)
@@ -929,26 +1048,30 @@ NcInt
     /**
      * Construct.
      *
-     * @param var	The netCDF "int" variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @precondition	<code>isRepresentable(var).
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF "int" variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @precondition		<code>isRepresentable(var).
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     *				object couldn't be created.
      */
     NcInt(Variable var, Netcdf netcdf)
 	throws VisADException
     {
 	super(var, netcdf, getRealType(var));
+
+	if (!isRepresentable(var))
+	    throw new VisADException("Variable not assignable to int");
+
     }
 
     
     /**
      * Return the range set of this variable.
      *
-     * @param type	The VisAD RealType of the variable.
-     * @return		The sampling set of the values of this variable.
-     * @exception VisADException	Couldn't create set.
+     * @param type		The VisAD RealType of the variable.
+     * @return			The sampling set of the values of this variable.
+     * @throws VisADException	Couldn't create set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -1002,14 +1125,14 @@ NcReal
     /**
      * Construct.
      *
-     * @param var	The netCDF variable that's being adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @param type	The VisAD RealType of <code>var</code>.
-     * @exception BadFormException
-     *			The netCDF variable cannot be adapted to a VisAD API.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF variable that's being adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @param type		The VisAD RealType of <code>var</code>.
+     * @throws BadFormException	The netCDF variable cannot be adapted to a 
+     *				VisAD API.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     *				object couldn't be created.
      */
     NcReal(Variable var, Netcdf netcdf, RealType type)
 	throws BadFormException, VisADException
@@ -1054,26 +1177,30 @@ NcFloat
     /**
      * Construct.
      *
-     * @param var	The netCDF float variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @precondition	<code>isRepresentable(var).
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF float variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @precondition		<code>isRepresentable(var).
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     *				object couldn't be created.
      */
     NcFloat(Variable var, Netcdf netcdf)
 	throws VisADException
     {
 	super(var, netcdf, getRealType(var));
+
+	if (!isRepresentable(var))
+	    throw new VisADException("Variable not assignable to float");
+
     }
 
     
     /**
      * Return the range set of this variable.
      *
-     * @param type	The VisAD RealType of the variable.
-     * @return		The sampling set of the values of this variable.
-     * @exception VisADException	Couldn't create set.
+     * @param type		The VisAD RealType of the variable.
+     * @return			The sampling set of the values of this variable.
+     * @throws VisADException	Couldn't create set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -1127,26 +1254,30 @@ NcDouble
     /**
      * Construct.
      *
-     * @param var	The netCDF double variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @precondition	<code>isRepresentable(var).
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF double variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @precondition		<code>isRepresentable(var).
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     *				object couldn't be created.
      */
     NcDouble(Variable var, Netcdf netcdf)
 	throws VisADException
     {
 	super(var, netcdf, getRealType(var));
+
+	if (!isRepresentable(var))
+	    throw new VisADException("Variable not assignable to double");
+
     }
 
     
     /**
      * Return the range set of this variable.
      *
-     * @param type	The VisAD RealType of the variable.
-     * @return		The sampling set of the values of this variable.
-     * @exception VisADException	Couldn't create set.
+     * @param type		The VisAD RealType of the variable.
+     * @return			The sampling set of the values of this variable.
+     * @throws VisADException	Couldn't create set.
      */
     protected SimpleSet
     getRangeSet(RealType type)

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcText.java,v 1.4 1998-06-17 20:30:35 visad Exp $
+ * $Id: NcText.java,v 1.5 1998-09-11 15:00:54 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -14,6 +14,8 @@ import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.Data;
 import visad.DataImpl;
+import visad.FieldImpl;
+import visad.FunctionType;
 import visad.MathType;
 import visad.Text;
 import visad.TextType;
@@ -54,17 +56,21 @@ NcText
     /**
      * Construct.
      *
-     * @param var	The netCDF character variable to be adapted.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @precondition	<code>isRepresentable(var).
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF character variable to be adapted.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @precondition		<code>isRepresentable(var).
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD 
+     *				object couldn't be created.
      */
     NcText(Variable var, Netcdf netcdf)
 	throws VisADException
     {
 	super(var, netcdf, new TextType(var.getName()));
+
+	if (!isRepresentable(var))
+	    throw new VisADException("Variable not textual");
+
 	visadRank = var.getRank() - 1;
     }
 
@@ -131,6 +137,22 @@ NcText
 
 
     /**
+     * Gets the netCDF dimensions of this variable.  NB: The innermost
+     * dimension is omitted.
+     */
+    NcDim[]
+    getDimensions()
+	throws VisADException
+    {
+	NcDim[]		dims = new NcDim[visadRank];
+
+	System.arraycopy(super.getDimensions(), 0, dims, 0, visadRank);
+
+	return dims;
+    }
+
+
+    /**
      * Indicate whether or not the variable is a co-ordinate variable.
      *
      * @return	<code>false</code> always.
@@ -145,10 +167,10 @@ NcText
     /**
      * Return the values of this variable as a packed array of floats.
      *
-     * @exception IOException		I/O error always.
+     * @throws IOException		I/O error always.
      */
     float[]
-    getFloatValues()
+    getFloats()
     {
 	throw new UnsupportedOperationException();
     }
@@ -157,10 +179,10 @@ NcText
     /**
      * Return the values of this variable as a packed array of doubles.
      *
-     * @exception IOException		I/O error always.
+     * @throws IOException		I/O error always.
      */
-    double[]
-    getDoubleValues()
+    public double[]
+    getDoubles()
     {
 	throw new UnsupportedOperationException();
     }
@@ -170,10 +192,10 @@ NcText
      * Return the values of this variable -- at a given point of the outermost
      * dimension -- as a packed array of doubles.
      *
-     * @exception IOException		I/O error always.
+     * @throws IOException		I/O error always.
      */
     double[]
-    getDoubleValues(int ipt)
+    getDoubles(int ipt)
     {
 	throw new UnsupportedOperationException();
     }
@@ -183,7 +205,7 @@ NcText
      * Return the variable's data as a packed array of Strings.
      *
      * @return			The variable's values.
-     * @exception IOException	Data access I/O failure.
+     * @throws IOException	Data access I/O failure.
      */
     String[]
     getStrings()
@@ -218,22 +240,76 @@ NcText
 
 
     /**
-     * Return the values of this variable as a packed array of VisAD
-     * DataImpl objects.  It would be really, really stupid to use this
-     * method on a variable of any length.
+     * Gets the VisAD data object corresponding to this variable.
      *
-     * @return			The variable's values.
-     * @exception IOException	Data access I/O failure.
+     * @return			The variable.
+     * @throws IOException	Data access I/O failure.
      */
-    DataImpl[]
+    public DataImpl
     getData()
 	throws IOException, VisADException
     {
+	return getData(getValues());
+    }
+
+
+    /**
+     * Gets all the values of this netCDF variables as an array of Text.
+     */
+    protected Text[]
+    getValues()
+    {
+	return null;	// STUB
+    }
+
+
+    /**
+     * Gets the VisAD data object corresponding to this variable with the
+     * given values.
+     *
+     * @precondition		<code>getRank() >= 1</code>
+     * @return			The values of the variable at the given 
+     *				position.
+     * @throws IOException	I/O error.
+     */
+    protected DataImpl
+    getData(Text[] values)
+	throws IOException, VisADException
+    {
+	if (getRank() < 1)
+	    throw new VisADException("Variable is scalar");
+
+	TextType	type = (TextType)getMathType();
+	DataImpl	data;
+
+	if (values.length == 1)
+	{
+	    data = values[0];
+	}
+	else
+	{
+	    NcDomain		domain = new NcDomain(getDimensions());
+	    FunctionType	funcType =
+		new FunctionType(domain.getType(), getMathType());
+	    FieldImpl		field =
+		new FieldImpl(funcType, domain.getSet());
+
+	    field.setSamples(values, /*copy=*/false);
+
+	    data = field;
+	}
+
+	return data;
+    }
+
+
+	/*
 	Text[]	texts;
 
 	if (getRank() == 0)
 	{
 	    /* Scalar text variable (i.e. a String). */
+	    /*
 
 	    Variable		var = getVar();
 	    StringBuffer	strbuf = new StringBuffer(var.getLengths()[0]);
@@ -251,9 +327,37 @@ NcText
 	else
 	{
 	    /* Non-scalar text variable (i.e. an array of Strings). */
+	    /*
 	    texts = null;	// TODO: support array of Strings
 	}
 
 	return texts;
+	*/
+
+
+    /**
+     * Gets a proxy for the VisAD data object corresponding to this data 
+     * object.
+     */
+    public DataImpl
+    getProxy()
+	throws VisADException
+    {
+	throw new VisADException("Not supported yet");
+    }
+
+
+    /**
+     * Return the value of this variable at a given point of the outermost
+     * dimension.
+     *
+     * @return			The variable's values.
+     * @throws IOException	I/O error.
+     */
+    public DataImpl
+    getData(int ipt)
+	throws IOException, VisADException
+    {
+	return null;	// STUB
     }
 }

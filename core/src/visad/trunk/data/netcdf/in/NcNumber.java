@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.6 1998-08-12 18:52:42 visad Exp $
+ * $Id: NcNumber.java,v 1.7 1998-09-11 15:00:53 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -11,10 +11,15 @@ package visad.data.netcdf.in;
 import java.io.IOException;
 import ucar.multiarray.IndexIterator;
 import ucar.multiarray.MultiArray;
+import ucar.multiarray.MultiArrayImpl;
 import ucar.netcdf.DimensionIterator;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
+import visad.CoordinateSystem;
 import visad.DataImpl;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.MathType;
 import visad.OffsetUnit;
 import visad.Real;
 import visad.RealType;
@@ -25,16 +30,19 @@ import visad.Unit;
 import visad.TypeException;
 import visad.VisADException;
 import visad.data.BadFormException;
+import visad.data.CacheStrategy;
+import visad.data.FileAccessor;
+import visad.data.FileFlatField;
 import visad.data.netcdf.QuantityMap;
 
 
 /**
- * The NcNumber class decorators netCDF arithmetic variables.  It is useful
+ * The NcNumber class decorates netCDF arithmetic variables.  It is useful
  * for importing netCDF variables
  */
 abstract class
 NcNumber
-    extends NcVar
+    extends	NcVar
 {
     /**
      * The range set of the netCDF variable.  In general, this set will
@@ -74,16 +82,36 @@ NcNumber
 
 
     /**
-     * Construct.
+     * Constructs from another NcNumber.  Protected to ensure use by 
+     * trusted subclasses only.
      *
-     * @param var	The netCDF variable to be decorated.
-     * @param netcdf	The netCDF dataset that contains <code>var</code>.
-     * @param type	The VisAD MathType of <code>var</code>.
-     * @exception BadFormException
-     *			The netCDF variable cannot be adapted to a VisAD API.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param ncVar		The adapted, netCDF variable.
+     */
+    protected
+    NcNumber(NcNumber ncVar)
+    {
+	super(ncVar);
+
+	this.set = ncVar.set;
+	this.vetter = ncVar.vetter;
+	this.isCoordVar = ncVar.isCoordVar;
+	this.isLatitude = ncVar.isLatitude;
+	this.isLongitude = ncVar.isLongitude;
+	this.isTime = ncVar.isTime;
+    }
+
+
+    /**
+     * Constructs from netCDF variable, netCDF dataset, and VisAD MathType.
+     *
+     * @param var		The netCDF variable to be decorated.
+     * @param netcdf		The netCDF dataset that contains 
+     *				<code>var</code>.
+     * @param type		The VisAD MathType of <code>var</code>.
+     * @throws BadFormException	The netCDF variable cannot be adapted to a 
+     *				VisAD API.
+     * @throws VisADException	Problem in core VisAD.  Probably some
+     *				VisAD object couldn't be created.
      */
     NcNumber(Variable var, Netcdf netcdf, RealType type)
 	throws BadFormException, VisADException
@@ -102,10 +130,10 @@ NcNumber
     /**
      * Return the VisAD RealType of the given, netCDF variable.
      *
-     * @param var	The netCDF variable.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param var		The netCDF variable.
+     * @return			The VisAD RealType of <code>var</code>.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
      */
     protected static RealType
     getRealType(Variable var)
@@ -133,9 +161,9 @@ NcNumber
     /**
      * Return the range set of the variable.
      *
-     * @param type	The VisAD RealType of the variable.
-     * @return		The sampling set of the values of this variable.
-     * @exception VisADException	Couldn't create set.
+     * @param type		The VisAD RealType of the variable.
+     * @return			The sampling set of the values of this variable.
+     * @throws VisADException	Couldn't create set.
      */
     protected abstract SimpleSet
     getRangeSet(RealType type)
@@ -143,10 +171,11 @@ NcNumber
 
 
     /**
-     * Set whether or not the variable is a co-ordinate variable.
+     * Indicates whether or not the variable is a co-ordinate variable.
      *
-     * @return	<code>true</code> if and only if the variable is a netCDF
-     *		coordinate variable.
+     * @param var		The netCDF variable.
+     * @return			<code>true</code> if and only if the variable
+     *				is a netCDF coordinate variable.
      */
     private static boolean
     isCoordVar(Variable var)
@@ -166,10 +195,11 @@ NcNumber
 
 
     /**
-     * Set whether or not this variable is longitude.
+     * Indicates whether or not this variable is longitude.
      *
-     * @return	<code>true</code> if and only if the netCDF variable represents
-     *		longitude.
+     * @param var		The netCDF variable.
+     * @return			<code>true</code> if and only if the netCDF 
+     *				variable represents longitude.
      */
     private static boolean
     isLongitude(Variable var)
@@ -184,10 +214,11 @@ NcNumber
 
 
     /**
-     * Set whether or not this variable is temporal in nature.
+     * Indicates whether or not a unit is temporal in nature.
      *
-     * @return	<code>true</code> if and only if the netCDF variable represents
-     *		time.
+     * @param unit		The unit to be considered.
+     * @return			<code>true</code> if and only if 
+     *				<code>unit</code> is a unit of time.
      */
     private static boolean
     isTime(Unit unit)
@@ -200,7 +231,7 @@ NcNumber
     /**
      * Indicate whether or not the variable is a co-ordinate variable.
      *
-     * @return	<code>true</code> if and only if the variable is a netCDF
+     * @return	<code>true</code> if and only if this variable is a netCDF
      *		coordinate variable.
      */
     boolean
@@ -211,9 +242,9 @@ NcNumber
 
 
     /**
-     * Indicate whether or not the variable is temporal in nature.
+     * Indicate whether or not this variable is temporal in nature.
      *
-     * @return	<code>true</code> if and only if the netCDF variable represents
+     * @return	<code>true</code> if and only if this netCDF variable represents
      *		time.
      */
     boolean
@@ -224,9 +255,9 @@ NcNumber
 
 
     /**
-     * Indicate whether or not the variable is temporal in nature.
+     * Indicate whether or not this variable is temporal in nature.
      *
-     * @return	<code>true</code> if and only if the netCDF variable represents
+     * @return	<code>true</code> if and only if this netCDF variable represents
      *		latitude.
      */
     boolean
@@ -237,9 +268,9 @@ NcNumber
 
 
     /**
-     * Indicate whether or not the variable is temporal in nature.
+     * Indicate whether or not this variable represents longitude.
      *
-     * @return	<code>true</code> if and only if the netCDF variable represents
+     * @return	<code>true</code> if and only if this netCDF variable represents
      *		longitude.
      */
     boolean
@@ -250,9 +281,9 @@ NcNumber
 
 
     /**
-     * Get the range set of this variable.
+     * Gets the VisAD range set of this variable.
      *
-     * @return	The range set of the variable.
+     * @return	The VisAD range set of the variable.
      */
     Set
     getSet()
@@ -262,7 +293,7 @@ NcNumber
 
 
     /**
-     * Return the rank of this variable.
+     * Gets the rank of this variable.
      *
      * @return	The rank (i.e. number of netCDF dimensions) of the variable.
      */
@@ -274,13 +305,13 @@ NcNumber
 
 
     /**
-     * Return the values of this variable as a packed array of floats.
+     * Gets the values of this variable as a packed array of floats.
      *
      * @return			The values of the variable.
-     * @exception IOException	I/O error.
+     * @throws IOException	I/O error.
      */
     float[]
-    getFloatValues()
+    getFloats()
 	throws IOException
     {
 	Variable	var = getVar();
@@ -327,13 +358,18 @@ NcNumber
      * Return all the values of this variable as a packed array of doubles.
      *
      * @return			The values of the variable.
-     * @exception IOException	I/O error.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	I/O error.
      */
-    double[]
-    getDoubleValues()
-	throws IOException
+    public double[]
+    getDoubles()
+	throws IOException, VisADException
     {
-	return getDoubleValues(getVar());
+	int[]		lengths = getVar().getLengths();
+	IndexIterator	iter = new IndexIterator(lengths);
+
+	return getDoubles(iter, getMaxIOLengths(lengths),
+	    product(lengths));
     }
 
 
@@ -341,53 +377,103 @@ NcNumber
      * Return the values of this variable -- at a given point of the outermost
      * dimension -- as a packed array of doubles.
      *
-     * @param ipt	The position in the outermost dimension.
-     * @precondition	The variable is rank 2 or greater.
-     * @precondition	<code>ipt</code> lies within the outermost dimension.
-     * @return		The values of the variable at the given position.
-     * @exception IOException		I/O error.
+     * @param ipt		The position in the outermost dimension.
+     * @precondition		<code>getRank() >= 1</code>
+     * @precondition		<code>ipt >= 0 &&
+     *				ipt < getDimension(0).getLength()</code>
+     * @return			The values of the variable at the given 
+     *				position.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	I/O error.
      */
-    double[]
-    getDoubleValues(int ipt)
-	throws IOException
+    protected double[]
+    getDoubles(int ipt)
+	throws IOException, VisADException
     {
-	Variable	var = getVar();
-	int	rank = var.getRank();
-	int[]	origin = new int[rank];
-	int[]	lengths = var.getLengths();
+	if (getRank() < 1)
+	    throw new VisADException("Variable is scalar");
 
-	for (int idim = 1; idim < rank; ++idim)
-	    origin[idim] = 0;
-	origin[0] = ipt;
-	lengths[0] = 1;
+	if (ipt < 0 || ipt >= getDimension(0).getLength())
+	    throw new VisADException("Index out of bounds");
 
-	return getDoubleValues(var.copyout(origin, lengths));
+	int[]		lengths = getLengths();
+	int[]		maxIOLengths = getMaxIOLengths(lengths);
+	IndexIterator	iter = new IndexIterator(lengths);
+
+	maxIOLengths[0] = 1;
+	iter.value()[0] = ipt;
+
+	return getDoubles(iter, maxIOLengths, product(lengths)/lengths[0]);
     }
 
 
     /**
-     * Return a selected subset of the double values of this variable as a
-     * packed array of doubles.
+     * Computes maximum dimensional lengths for I/O.
      *
-     * @param ma	The MultiArray accessor for the values.
-     * @precondition	<code>ma</code> accesses double values.
-     * @return		The values.  Invalid values are replaced with NaN's.
-     * @exception IOException
-     *			Data access I/O failure.
+     * @param lengths	The dimensional sizes of a netCDF variable.
+     * @return		The shape of the variable for I/O.
+     */
+    protected int[]
+    getMaxIOLengths(int[] lengths)
+    {
+	int[]		maxIOLengths = new int[lengths.length];
+	int		product = 1;	// dimensional length product
+	int		bufferSize = 10000;
+
+	for (int idim = lengths.length-1; idim >= 0; --idim)
+	{
+	    maxIOLengths[idim] = 
+		Math.min(Math.max(bufferSize/product, 1), lengths[idim]);
+	    product *= lengths[idim];
+	}
+
+	return maxIOLengths;
+    }
+
+
+    /**
+     * Gets double values.
+     *
+     * @param iter		The iterator for getting values.
+     * @param maxIOLengths	The shape of the I/O array.
+     * @param count		The total number of values to get.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	Data access I/O failure.
      */
     protected double[]
-    getDoubleValues(MultiArray ma)
-	throws IOException
+    getDoubles(IndexIterator iter, int[] maxIOLengths, int count)
+	throws IOException, VisADException
     {
-	int[]		lengths = ma.getLengths();
-	int		npts = product(lengths);
-	double[]	values = new double[npts];
-	IndexIterator	iter = new IndexIterator(lengths);
+	double[]	values = new double[count];
 
-	for (int i = 0; i < npts; ++i)
+	if (values.length == 1)
 	{
-	    values[i] = ma.getDouble(iter.value());
-	    iter.incr();
+	    values[0] = getVar().getDouble(iter.value());
+	}
+	else
+	{
+	    int[]	lengths = getVar().getLengths();
+	    int[]	ioLengths = new int[lengths.length];
+
+	    for (int istart = 0; istart < count; )
+	    {
+		int[]	origin = iter.value();
+
+		for (int idim = 0; idim < lengths.length; ++idim)
+		{
+		    ioLengths[idim] = Math.min(maxIOLengths[idim],
+					       lengths[idim] - origin[idim]);
+		}
+
+		MultiArrayImpl	ma = 
+		    (MultiArrayImpl)getVar().copyout(origin, ioLengths);
+		int			nread = product(ioLengths);
+
+		arrayCopy(ma.storage, values, istart, nread);
+
+		iter.advance(nread);
+		istart += nread;
+	    }
 	}
 
 	vetter.vet(values);
@@ -397,43 +483,260 @@ NcNumber
 
 
     /**
-     * Return the values of this variable as a packed array of VisAD
-     * DataImpl objects.  It would be really, really stupid to use this
-     * method on a variable of any length.
+     * Copies an array of the underlying netCDF type into a double array.
      *
-     * @return		The variable's values.
-     * @exception IOException
-     *			Data access I/O failure.
+     * @param fromArray	Array of unspecified type from which to copy values.
+     * @param toArray	Array of tyoe double to which values are copied.
+     * @param start	Starting index of <code>toArray</code> for copy.
+     * @param npts	The number of points to copy.
+     * @precondition	<code>start+npts <= toArray.length</code>.
+     * @postcondition	<code>toArray[start+i] == fromArray[i]</code> for all 
+     *			</code>i</code>.
+     * @throws VisADException	<code>toArray</code> is too small.
      */
-    DataImpl[]
+    void
+    arrayCopy(Object fromArray, double[] toArray, int start, int npts)
+	throws VisADException
+    {
+	if (start + npts > toArray.length)
+	    throw new VisADException("Destination array too small");
+
+	Class	type = getVar().getComponentType();
+
+	if (type.equals(Byte.TYPE))
+	    arrayCopy((byte[])fromArray, toArray, start, npts);
+	else
+	if (type.equals(Short.TYPE))
+	    arrayCopy((short[])fromArray, toArray, start, npts);
+	else
+	if (type.equals(Integer.TYPE))
+	    arrayCopy((int[])fromArray, toArray, start, npts);
+	else
+	if (type.equals(Float.TYPE))
+	    arrayCopy((float[])fromArray, toArray, start, npts);
+	else
+	if (type.equals(Double.TYPE))
+	    arrayCopy((double[])fromArray, toArray, start, npts);
+    }
+
+
+    /**
+     * Copies a byte array into a double array.
+     *
+     * @param fromArray	Array of type byte from which to copy values.
+     * @param toArray	Array of type double to which values are copied.
+     * @param start	Starting index of <code>toArray</code> for copy.
+     * @param npts	The number of points to copy.
+     * @precondition	<code>start+npts <= toArray.length</code>.
+     * @postcondition	<code>toArray[start+i] == fromArray[i]</code> for all 
+     *			</code>i</code>.
+     * @throws VisADException	<code>toArray</code> is too small.
+     */
+    static void
+    arrayCopy(byte[] fromArray, double[] toArray, int start, int npts)
+	throws VisADException
+    {
+	if (start + npts > toArray.length)
+	    throw new VisADException("Destination array too small");
+
+	for (int i = 0; i < npts; ++i)
+	    toArray[start+i] = fromArray[i];
+    }
+
+
+    /**
+     * Copies a short array into a double array.
+     *
+     * @param fromArray	Array of type short from which to copy values.
+     * @param toArray	Array of type double to which values are copied.
+     * @param start	Starting index of <code>toArray</code> for copy.
+     * @param npts	The number of points to copy.
+     * @precondition	<code>start+npts <= toArray.length</code>.
+     * @postcondition	<code>toArray[start+i] == fromArray[i]</code> for all 
+     *			</code>i</code>.
+     * @throws VisADException	<code>toArray</code> is too small.
+     */
+    static void
+    arrayCopy(short[] fromArray, double[] toArray, int start, int npts)
+	throws VisADException
+    {
+	if (start + npts > toArray.length)
+	    throw new VisADException("Destination array too small");
+
+	for (int i = 0; i < npts; ++i)
+	    toArray[start+i] = fromArray[i];
+    }
+
+
+    /**
+     * Copies an int array into a double array.
+     *
+     * @param fromArray	Array of type int from which to copy values.
+     * @param toArray	Array of type double to which values are copied.
+     * @param start	Starting index of <code>toArray</code> for copy.
+     * @param npts	The number of points to copy.
+     * @precondition	<code>start+npts <= toArray.length</code>.
+     * @postcondition	<code>toArray[start+i] == fromArray[i]</code> for all 
+     *			</code>i</code>.
+     * @throws VisADException	<code>toArray</code> is too small.
+     */
+    static void
+    arrayCopy(int[] fromArray, double[] toArray, int start, int npts)
+	throws VisADException
+    {
+	if (start + npts > toArray.length)
+	    throw new VisADException("Destination array too small");
+
+	for (int i = 0; i < npts; ++i)
+	    toArray[start+i] = fromArray[i];
+    }
+
+
+    /**
+     * Copies a float array into a double array.
+     *
+     * @param fromArray	Array of type float from which to copy values.
+     * @param toArray	Array of type double to which values are copied.
+     * @param start	Starting index of <code>toArray</code> for copy.
+     * @param npts	The number of points to copy.
+     * @precondition	<code>start+npts <= toArray.length</code>.
+     * @postcondition	<code>toArray[start+i] == fromArray[i]</code> for all 
+     *			</code>i</code>.
+     * @throws VisADException	<code>toArray</code> is too small.
+     */
+    static void
+    arrayCopy(float[] fromArray, double[] toArray, int start, int npts)
+	throws VisADException
+    {
+	if (start + npts > toArray.length)
+	    throw new VisADException("Destination array too small");
+
+	for (int i = 0; i < npts; ++i)
+	    toArray[start+i] = fromArray[i];
+    }
+
+
+    /**
+     * Copies a double array into a double array.
+     *
+     * @param fromArray	Array of type double from which to copy values.
+     * @param toArray	Array of type double to which values are copied.
+     * @param start	Starting index of <code>toArray</code> for copy.
+     * @param npts	The number of points to copy.
+     * @precondition	<code>start+npts <= toArray.length</code>.
+     * @postcondition	<code>toArray[start+i] == fromArray[i]</code> for all 
+     *			</code>i</code>.
+     * @throws VisADException	<code>toArray</code> is too small.
+     */
+    static void
+    arrayCopy(double[] fromArray, double[] toArray, int start, int npts)
+	throws VisADException
+    {
+	if (start + npts > toArray.length)
+	    throw new VisADException("Destination array too small");
+
+	System.arraycopy(fromArray, 0, toArray, start, npts);
+    }
+
+
+    /**
+     * Gets the VisAD data object corresponding to this variable.
+     *
+     * @return			The variable's values.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	Data access I/O failure.
+     */
+    public DataImpl
     getData()
 	throws IOException, VisADException
     {
-	Variable	var = getVar();
+	return getData(new NcDomain(getDimensions()), getDoubles());
+    }
+
+
+    /**
+     * Return the VisAD data object corresponding to this variable on a
+     * specified domain.
+     *
+     * @param domain		The domain over which the values are defined.
+     * @param values		The values of the variable.
+     * @return			The corresponding VisAD data object.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	I/O error.
+     */
+    protected DataImpl
+    getData(NcDomain domain, double[] values)
+	throws IOException, VisADException
+    {
 	Unit		unit = getUnit();
 	RealType	type = (RealType)getMathType();
-	int[]		lengths = var.getLengths();
-	int		npts = product(lengths);
-	IndexIterator	iter = new IndexIterator(lengths);
-	Real[]		values = new Real[npts];
-	double[]	val = new double[1];
+	DataImpl	data;
 
-	for (int i = 0; i < npts; ++i)
+	if (values.length == 1)
 	{
-	    val[0] = var.getDouble(iter.value());
-	    iter.incr();
+	    data = new Real(type, values[0], unit);
+	}
+	else
+	{
+	    FunctionType	funcType = 
+		new FunctionType(domain.getType(), type);
+	    FlatField		field = new FlatField(funcType,
+		domain.getSet(), (CoordinateSystem)null, /*(Set[])*/null, 
+		new Unit[] {unit});
 
-	    vetter.vet(val);
+	    field.setSamples(new double[][] {values}, /*copy=*/false);
 
-	    values[i] = new Real(type, val[0], unit);
+	    data = field;
 	}
 
-	return values;
+	return data;
+    }
+
+
+    /**
+     * Gets the VisAD FunctionType of this variable.
+     *
+     * @precondition		<code>getRank() >= 1</code>
+     * @return			The VisAD FunctionType of this variable.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     */
+    public FunctionType
+    getFunctionType()
+	throws VisADException
+    {
+	if (getRank() < 1)
+	    throw new VisADException("Scalar " + getName() + 
+		" can't be a function");
+
+	NcDomain	domain = new NcDomain(getDimensions());
+
+	return new FunctionType(domain.getType(), (RealType)getMathType());
+    }
+
+
+    /**
+     * Gets a proxy for the VisAD Data object corresponding to this variable.
+     *
+     * @return			A proxy for the VisAD Data object 
+     *				corresponding to this variable.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	I/O error.
+     */
+    public DataImpl
+    getProxy()
+	throws VisADException, IOException
+    {
+	return getRank() == 0
+		? getData()	// scalars don't deserve a proxy
+		: new FileFlatField(new Accessor(this), new CacheStrategy());
     }
 
 
     /**
      * Return the value vetter for this variable.
+     *
+     * @return			The object that vets the values of this
+     *				variable.
      */
     protected Vetter
     getVetter()
@@ -444,10 +747,132 @@ NcNumber
 
     /**
      * Indicate whether or not this variable is a co-ordinate variable.
+     *
+     * @return			<code>true</code> if and only if this
+     *				variable is a coordinate variable.
      */
     protected boolean
     isCoordVar()
     {
 	return isCoordVar;
+    }
+
+
+    /**
+     * Gets a proxy for the VisAD Data object corresponding to this variable
+     * at a point in the outermost dimension.
+     *
+     * @param index		The position in the outermost dimension.
+     * @precondition		<code>getRank() >= 1</code>
+     * @precondition		<code>ipt >= 0 &&
+     *				ipt < getDimension(0).getLength()</code>
+     * @return			A proxy for the VisAD data object corresponding
+     *				to this variable at a point in the outermost
+     *				dimension.
+     * @throws VisADException	Couldn't create necessary VisAD data object
+     *				or variable is scalar or index is out-of-bounds.
+     * @throws IOException	I/O error.
+     */
+    public DataImpl
+    getProxy(int index)
+	throws IOException, VisADException
+    {
+	if (getRank() < 1)
+	    throw new VisADException("Variable is scalar");
+
+	return new FileFlatField(new Accessor(this), new CacheStrategy());
+    }
+
+
+    /**
+     * Return the VisAD data object corresponding to this variable at a
+     * point in the outermost dimension.
+     *
+     * @param ipt		The position in the outermost dimension.
+     * @precondition		<code>getRank() >= 1</code>
+     * @precondition		<code>ipt >= 0 &&
+     *				ipt < getDimension(0).getLength()</code>
+     * @return			The values of the variable at the given 
+     *				position.
+     * @throws VisADException	Couldn't create necessary VisAD data object
+     *				or variable is scalar or index is out-of-bounds.
+     * @throws IOException	I/O error.
+     */
+    public DataImpl
+    getData(int ipt)
+	throws IOException, VisADException
+    {
+	if (getRank() < 1)
+	    throw new VisADException("Variable is scalar");
+
+	if (ipt < 0 || ipt >= getDimension(0).getLength())
+	    throw new VisADException("Index out of bounds");
+
+	NcDim[]		dims = new NcDim[getRank()-1];
+
+	System.arraycopy(getDimensions(), 1, dims, 0, dims.length);
+
+	return getData(new NcDomain(dims), getDoubles(ipt));
+    }
+
+
+    /**
+     * Gets the VisAD MathType of the inner portion of the netCDF variable.
+     *
+     * @precondition		<code>getRank() >= 1</code>
+     * @return			The VisAD MathType of the inner portion of this
+     *				variable.
+     * @throws VisADException	Couldn't create necessary VisAD data object
+     *				or variable is scalar.
+     */
+    public MathType
+    getInnerMathType()
+	throws VisADException
+    {
+	if (getRank() < 1)
+	    throw new VisADException("Variable is scalar");
+
+	NcDim[]		innerDims = getInnerDimensions();
+	MathType	varType = getMathType();
+	MathType	innerType;
+
+	if (innerDims.length == 0)
+	{
+	    innerType = varType;
+	}
+	else
+	{
+	    NcDomain	innerDomain = new NcDomain(innerDims);
+
+	    innerType =
+		new FunctionType(innerDomain.getType(), varType);
+	}
+
+	return innerType;
+    }
+
+
+    /**
+     * Gets the inner dimensions of the netCDF variable (in netCDF order).
+     *
+     * @precondition		<code>getRank() >= 1</code>
+     * @return			The inner dimensions of this variable (in 
+     *				netCDF order).
+     * @throws VisADException	Couldn't create necessary VisAD data object
+     *				or variable is scalar.
+     */
+    public NcDim[]
+    getInnerDimensions()
+	throws VisADException
+    {
+	if (getRank() < 1)
+	    throw new VisADException("Variable is scalar");
+
+	NcDim[]	innerDims = new NcDim[getRank()-1];
+
+	System.arraycopy(getDimensions(), 1, innerDims, 0, 
+	    innerDims.length);
+
+	return innerDims;
     }
 }

@@ -3,14 +3,20 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcTuple.java,v 1.5 1998-06-17 20:30:36 visad Exp $
+ * $Id: NcTuple.java,v 1.6 1998-09-11 15:00:55 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
+import java.rmi.RemoteException;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Vector;
+import visad.Data;
 import visad.DataImpl;
 import visad.MathType;
+import visad.Real;
+import visad.RealTuple;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.Tuple;
@@ -19,85 +25,273 @@ import visad.VisADException;
 
 
 /**
- * The NcTuple class adapts a tuple of netCDF data objects to a VisAD Tuple.
+ * Adapts a tuple of netCDF data objects to a VisAD Tuple.
+ *
+ * Instances are mutable.
  */
 class
 NcTuple
-    extends	NcData
 {
     /**
-     * The netCDF data objects.
+     * The elements of the tuple.
      */
-    private final NcData[]	ncDatas;
+    private final Vector	datas = new Vector(1);
 
 
     /**
-     * Construct from an array of netCDF data objects.
+     * Constructs from nothing.  Creates an empty tuple (which makes a
+     * nice, top-level data object to which to add other data objects).
      *
-     * @param ncDatas	The netCDF data objects constituting the tuple.
-     * @precondition	<code>ncDatas.length >= 2</code>.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @postcondition	<code>size() == 0</code>
      */
-    NcTuple(NcData[] ncDatas)
+    public
+    NcTuple()
 	throws VisADException
     {
-	super(getTupleType(ncDatas));
-	this.ncDatas = ncDatas;
     }
 
 
     /**
-     * Return the VisAD MathType of the given, netCDF data objects.
+     * Gets the VisAD MathType of this data object.
      *
-     * @param ncDatas	The netCDF data objects.
-     * @prcondition	<code>ncDatas.length >= 2</code>.
-     * @return		The VisAD MathType of the collection of netCDF data
-     *			objects.
+     * @return			The VisAD MathType of this data object.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
      */
-    private static TupleType
-    getTupleType(NcData[] ncDatas)
+    public MathType
+    getMathType()
 	throws VisADException
     {
-	int		numComponents = ncDatas.length;
-	MathType[]	mathTypes = new MathType[numComponents];
-	boolean		allRealTypes = true;
+	return newMathType(getMathTypes());
+    }
 
-	for (int i = 0; i < numComponents; ++i)
+
+    /**
+     * Creates the VisAD MathType of the given array of data objects.
+     *
+     * @param types		The VisAD MathTypes to be considered together.
+     * @return			The VisAD MathType of the given array of data 
+     *				objects.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     */
+    public static MathType
+    newMathType(MathType[] types)
+	throws VisADException
+    {
+	MathType	type;
+
+	if (types.length == 1)
 	{
-	    mathTypes[i] = ncDatas[i].getMathType();
-	    if (allRealTypes && !(mathTypes[i] instanceof RealType))
-		allRealTypes = false;
+	    type = types[0];
+	}
+	else
+	{
+	    boolean	allRealTypes = true;
+
+	    for (int i = 0; i < types.length; ++i)
+	    {
+		if (!(types[i] instanceof RealType))
+		{
+		    allRealTypes = false;
+		    break;
+		}
+	    }
+
+	    if (!allRealTypes)
+	    {
+		type = new TupleType(types);
+	    }
+	    else
+	    {
+		RealType[]	realTypes = new RealType[types.length];
+
+		for (int i = 0; i < types.length; ++i)
+		    realTypes[i] = (RealType)types[i];
+
+		type = new RealTupleType(realTypes);
+	    }
 	}
 
-	return allRealTypes
-		    ? new RealTupleType((RealType[])mathTypes)
-		    : new TupleType(mathTypes);
+	return type;
+    }
+
+
+    /**
+     * Gets the number of components in this tuple.
+     *
+     * @return			The number of components in this tuple.
+     */
+    public int
+    size()
+    {
+	return datas.size();
+    }
+
+
+    /**
+     * Gets a component of the tuple.
+     *
+     * @param index		The index of the component.
+     * @precondition		<code>index >= 0 && index < size()</code>
+     * @return			The <code>index</code>th component.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     */
+    public NcData
+    get(int index)
+	throws VisADException
+    {
+	if (index < 0 || index >= size())
+	    throw new VisADException("Index out of bounds");
+
+	return (NcData)datas.get(index);
+    }
+
+
+    /**
+     * Gets the MathType-s of the tuple components as an array.
+     *
+     * @return			The MathType-s of the tuple components.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     */
+    public MathType[]
+    getMathTypes()
+	throws VisADException
+    {
+	MathType[]	types = new MathType[datas.size()];
+	int		i = 0;
+
+	for (Iterator iter = datas.iterator(); iter.hasNext(); )
+	    types[i++] = ((NcData)iter.next()).getMathType();
+
+	return types;
+    }
+
+
+    /**
+     * Adds another data object to this one.
+     *
+     * @param data		The data to be added.
+     * @return			The appropriate, top-level data object.
+     * @postcondition		RETURN_VALUE<code>.wasAdded() == true</code>
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	Data access I/O failure.
+     */
+    public void
+    addData(NcData data)
+	throws VisADException, IOException
+    {
+	int	i = 0;
+	boolean	done = false;
+
+	/*
+	 * First try the individual elements of the tuple.
+	 */
+	for (Iterator iter = datas.iterator(); iter.hasNext(); ++i)
+	{
+	    NcData	newData = ((NcData)iter.next()).tryAddData(data);
+
+	    if (newData.wasAdded())
+	    {
+		datas.set(i, newData);
+		done = true;
+		break;
+	    }
+	}
+
+	/*
+	 * If that was unsuccessful, then add the data object to this tuple as
+	 * another element.
+	 */
+	if (!done)
+	    datas.addElement(data);
+    }
+
+
+    /**
+     * Provides support for different data access mechanisms.
+     */
+    protected abstract class
+    Accesser
+    {
+	protected DataImpl
+	getData()
+	    throws VisADException, IOException, RemoteException
+	{
+	    DataImpl	data;
+
+	    if (size() == 1)
+	    {
+		data = get(0).getData();
+	    }
+	    else
+	    {
+		TupleType	type = (TupleType)getMathType();
+		Data[]		values = new DataImpl[type.getDimension()];
+		int		i = 0;
+
+		for (Iterator iter = datas.iterator(); iter.hasNext(); )
+		    values[i++] = getData((NcData)iter.next());
+
+		data = type instanceof RealTupleType
+			? new RealTuple((RealTupleType)type, (Real[])values,
+					/*(CoordinateSystem)*/null)
+			: new Tuple(type, values, /*copy=*/false);
+	    }
+
+	    return data;
+	}
+
+	protected abstract DataImpl
+	getData(NcData data)
+	    throws VisADException, IOException;
+    }
+
+
+    /**
+     * Modifies Accesser for getting the actual data.
+     */
+    protected class
+    ActualAccesser
+	extends Accesser
+    {
+	protected DataImpl
+	getData(NcData data)
+	    throws VisADException, IOException
+	{
+	    return data.getData();
+	}
+    }
+
+
+    /**
+     * Modifies Accesser for getting a proxy for the actual data.
+     */
+    protected class
+    ProxyAccesser
+	extends Accesser
+    {
+	protected DataImpl
+	getData(NcData data)
+	    throws VisADException, IOException
+	{
+	    return data.getProxy();
+	}
     }
 
 
     /**
      * Return the VisAD data object corresponding to this netCDF data object.
      *
-     * @return		The VisAD data object corresponding to the netCDF
-     *			data object.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
-     * @exception IOException
-     *			Data access I/O failure.
+     * @return			The VisAD data object corresponding to the
+     *				netCDF data object.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
+     * @throws IOException	Data access I/O failure.
      */
-    DataImpl
+    public DataImpl
     getData()
 	throws VisADException, IOException
     {
-	DataImpl[]	datas = new DataImpl[ncDatas.length];
-
-	for (int i = 0; i < ncDatas.length; ++i)
-	    datas[i] = ncDatas[i].getData();
-
-	return new Tuple((TupleType)getMathType(), datas, /*copy=*/false);
+	return new ActualAccesser().getData();
     }
 
 
@@ -105,37 +299,86 @@ NcTuple
      * Return a proxy for the VisAD data object corresponding to this 
      * netCDF data object.
      *
-     * @return		The VisAD data object corresponding to the netCDF
-     *			data object.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
-     * @exception IOException
-     *			Data access I/O failure.
+     * @return			The VisAD data object corresponding to the
+     *				netCDF data object.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
+     * @throws IOException	Data access I/O failure.
      */
-    DataImpl
+    public DataImpl
     getProxy()
 	throws VisADException, IOException
     {
-	DataImpl[]	datas = new DataImpl[ncDatas.length];
-
-	for (int i = 0; i < ncDatas.length; ++i)
-	    datas[i] = ncDatas[i].getProxy();
-
-	return new Tuple((TupleType)getMathType(), datas, /*copy=*/false);
+	return new ProxyAccesser().getData();
     }
 
 
     /**
-     * Return the netCDF data objects.
+     * Return the VisAD data object corresponding to this netCDF data object.
+     *
+     * @param accesser		The data access mechanism.
+     * @return			The VisAD data object corresponding to the
+     *				netCDF data object.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
+     * @throws IOException	Data access I/O failure.
      */
-    protected NcData[]
-    getNcDatas()
+    protected DataImpl
+    getData(Accesser accesser)
+	throws VisADException, IOException
     {
-	NcData[]	newDatas = new NcData[ncDatas.length];
+	TupleType	type = (TupleType)getMathType();
+	Data[]		values = new DataImpl[type.getDimension()];
+	int		i = 0;
 
-	System.arraycopy(ncDatas, 0, newDatas, 0, ncDatas.length);
+	for (Iterator iter = datas.iterator(); iter.hasNext(); )
+	    values[i++] = accesser.getData((NcData)iter.next());
 
-	return newDatas;
+	return type instanceof RealTupleType
+		? new RealTuple((RealTupleType)type, (Real[])values,
+				/*(CoordinateSystem)*/null)
+		: new Tuple(type, values, /*copy=*/false);
+    }
+
+
+    /**
+     * Factory method for creating the VisAD data object corresponding to an
+     * array of VisAD data objects considered together.
+     *
+     * @param datas		The VisAD data objects
+     * @return			The VisAD data object corresponding to 
+     *				<code>datas</code>.
+     * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws RemoteException	Remote data access failure.
+     */
+    public static DataImpl
+    newData(DataImpl[] datas)
+	throws VisADException, RemoteException
+    {
+	DataImpl	data;
+
+	if (datas.length == 1)
+	{
+	    data = datas[0];
+	}
+	else
+	{
+	    boolean	allReal = true;
+
+	    for (int i = 0; i < datas.length; ++i)
+	    {
+		if (!(datas[i] instanceof Real))
+		{
+		    allReal = false;
+		    break;
+		}
+	    }
+
+	    data = allReal
+		    ? new RealTuple((Real[])datas)
+		    : new Tuple(datas);
+	}
+
+	return data;
     }
 }
