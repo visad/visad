@@ -120,6 +120,136 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     clearMaps();
   }
 
+  /** construct DisplayImpl from RemoteDisplay */
+  public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer)
+         throws VisADException, RemoteException {
+    super(rmtDpy.getName());
+
+    // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
+    for (int i=0; i<DisplayRealArray.length; i++) {
+      DisplayRealTypeVector.addElement(DisplayRealArray[i]);
+    }
+
+    if (renderer != null) {
+      displayRenderer = renderer;
+    } else {
+      try {
+	String name = rmtDpy.getDisplayRendererClassName();
+	Object obj = Class.forName(name).newInstance();
+	displayRenderer = (DisplayRenderer )obj;
+      } catch (Exception e) {
+	renderer = getDefaultDisplayRenderer();
+      }
+    }
+    displayRenderer.setDisplay(this);
+
+    // initialize ScalarMap's, ShadowDisplayReal's and Control's
+    clearMaps();
+  }
+
+  // suck in any remote ScalarMaps
+  void copyScalarMaps(RemoteDisplay rmtDpy)
+  {
+    try {
+      Vector m = rmtDpy.getMapVector();
+      Enumeration me = m.elements();
+      while (me.hasMoreElements()) {
+	ScalarMap sm = (ScalarMap )me.nextElement();
+	addMap(sm);
+      }
+    } catch (Exception e) {
+    }
+  }
+
+  // suck in any remote ConstantMaps
+  void copyConstantMaps(RemoteDisplay rmtDpy)
+  {
+    try {
+      Vector c = rmtDpy.getConstantMapVector();
+      Enumeration ce = c.elements();
+      while (ce.hasMoreElements()) {
+	ConstantMap cm = (ConstantMap )ce.nextElement();
+	addMap(cm);
+      }
+    } catch (Exception e) {
+    }
+  }
+
+  // suck in remote GraphicsModeControl settings
+  void copyGraphicsModeControl(RemoteDisplay rmtDpy)
+  {
+    try {
+      RemoteGraphicsModeControl rc = rmtDpy.getGraphicsModeControl();
+      GraphicsModeControl gmc = getGraphicsModeControl();
+
+      gmc.setLineWidth(rc.getLineWidth());
+      gmc.setPointSize(rc.getPointSize());
+      gmc.setPointMode(rc.getPointMode());
+      gmc.setTextureEnable(rc.getTextureEnable());
+      gmc.setScaleEnable(rc.getScaleEnable());
+      gmc.setTransparencyMode(rc.getTransparencyMode());
+      gmc.setProjectionPolicy(rc.getProjectionPolicy());
+    } catch (Exception e) {
+    }
+  }
+
+  // suck in any remote DataReferences
+  void copyRefLinks(RemoteDisplay rmtDpy)
+  {
+    try {
+      Vector ml = rmtDpy.getReferenceLinks();
+      Enumeration mle = ml.elements();
+      if (mle.hasMoreElements()) {
+
+	DataRenderer dr = displayRenderer.makeDefaultRenderer();
+	String defaultClass = dr.getClass().getName();
+
+	while (mle.hasMoreElements()) {
+	  RemoteReferenceLink link = (RemoteReferenceLink )mle.nextElement();
+
+	  // build array of ConstantMap values
+	  ConstantMap[] cm = null;
+	  Vector v = link.getConstantMapVector();
+	  int len = v.size();
+	  if (len > 0) {
+	    cm = new ConstantMap[len];
+	    for (int i = 0; i < len; i++) {
+	      cm[i] = (ConstantMap )v.elementAt(i);
+	    }
+	  }
+
+	  // get reference to Data object
+	  RemoteDataReference ref = link.getReference();
+
+	  // get DataRenderer class name
+	  String newClass = link.getRendererClassName();
+
+	  // build RemoteDisplayImpl to which reference is attached
+	  RemoteDisplayImpl rd = new RemoteDisplayImpl(this);
+
+	  // if this reference uses the default renderer...
+	  if (newClass.equals(defaultClass)) {
+	    rd.addReference(ref, cm);
+	  } else {
+	    Object obj = Class.forName(newClass).newInstance();
+	    DataRenderer renderer = (DataRenderer )obj;
+	    rd.addReferences(renderer, ref, cm);
+	  }
+	}
+      }
+    } catch (Exception e) {
+    }
+  }
+
+  // suck in any remote data associated with this Display
+  protected void syncRemoteData(RemoteDisplay rmtDpy)
+  {
+    copyScalarMaps(rmtDpy);
+    copyConstantMaps(rmtDpy);
+    copyGraphicsModeControl(rmtDpy);
+    copyRefLinks(rmtDpy);
+  }
+
   /** RemoteDisplayImpl to this for use with
       Remote DisplayListeners */
   private RemoteDisplayImpl rd = null;
@@ -446,6 +576,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     }
   }
 
+  /** return a Vector containing all DataReferences */
   /** used by Control-s to notify this DisplayImpl that
       they have changed */
   public void controlChanged() {
@@ -874,6 +1005,11 @@ System.out.println("badScale = " + badScale);
       objects are only equal to themselves */
   public boolean equals(Object obj) {
     return (obj == this);
+  }
+
+  public Vector getRenderers()
+  {
+    return (Vector )RendererVector.clone();
   }
 
   public String toString() {

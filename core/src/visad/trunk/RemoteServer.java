@@ -49,5 +49,17 @@ public interface RemoteServer extends Remote {
   public abstract RemoteDataReference[] getDataReferences()
          throws RemoteException;
 
+  /** return array of all RemoteDisplays in this RemoteServer */
+  public abstract RemoteDisplay[] getDisplays()
+         throws RemoteException;
+
+  /** get a RemoteDisplay by index */
+  public abstract RemoteDisplay getDisplay(int index)
+         throws RemoteException;
+
+  /** get a RemoteDisplay by name */
+  public abstract RemoteDisplay getDisplay(String name)
+         throws VisADException, RemoteException;
+
 }
 

@@ -25,12 +25,23 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import java.rmi.*;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+import java.util.Vector;
 
 /**
    RemoteDisplay is the interface for Remote Display-s.<P>
 */
 public interface RemoteDisplay extends Remote, Display {
-
+  public abstract String getName() throws VisADException, RemoteException;
+  public abstract String getDisplayRendererClassName() throws RemoteException;
+  public abstract Vector getMapVector() throws VisADException, RemoteException;
+  public abstract Vector getConstantMapVector()
+	throws VisADException, RemoteException;
+  public abstract RemoteGraphicsModeControl getGraphicsModeControl()
+	throws VisADException, RemoteException;
+  public abstract Vector getReferenceLinks()
+	throws VisADException, RemoteException;
 }
 

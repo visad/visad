@@ -172,5 +172,62 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     ((DisplayImpl) AdaptedAction).clearMaps();
   }
 
-}
+  public String getDisplayRendererClassName() throws RemoteException {
+    DisplayRenderer dr = ((DisplayImpl )AdaptedAction).getDisplayRenderer();
+    return dr.getClass().getName();
+  }
 
+  public Vector getMapVector()
+	throws VisADException, RemoteException
+  {
+    if (AdaptedAction == null) {
+      throw new RemoteVisADException(getClass().getName() + ".getMapVector: " +
+                                     "AdaptedAction is null");
+    }
+
+    return ((DisplayImpl) AdaptedAction).getMapVector();
+  }
+
+
+  public Vector getConstantMapVector()
+	throws VisADException, RemoteException
+  {
+    if (AdaptedAction == null) {
+      throw new RemoteVisADException(getClass().getName() + ".getConstantMapVector: " +
+                                     "AdaptedAction is null");
+    }
+
+    return ((DisplayImpl) AdaptedAction).getConstantMapVector();
+  }
+
+  public RemoteGraphicsModeControl getGraphicsModeControl()
+	throws VisADException, RemoteException
+  {
+    GraphicsModeControl ctl;
+    ctl = ((DisplayImpl) AdaptedAction).getGraphicsModeControl();
+
+    return new RemoteGraphicsModeControlImpl(ctl);
+  }
+
+  public Vector getReferenceLinks()
+	throws VisADException, RemoteException
+  {
+    Vector links = new Vector();
+
+    Vector rv = ((DisplayImpl )AdaptedAction).getRenderers();
+    Enumeration e = rv.elements();
+    while (e.hasMoreElements()) {
+      DataRenderer dr = (DataRenderer )e.nextElement();
+
+      DataDisplayLink[] dl = dr.getLinks();
+      if (dl != null) {
+	for (int i = 0; i < dl.length; i++) {
+	  links.addElement(new RemoteReferenceLinkImpl(dl[i]));
+	}
+      }
+    }
+
+    return links;
+  }
+
+}

@@ -32,20 +32,30 @@ public class RemoteServerImpl extends UnicastRemoteObject
        implements RemoteServer
 {
   private RemoteDataReferenceImpl[] refs;
+  private RemoteDisplayImpl[] dpys;
  
-  /** construct a RemoteServerImpl without any initial
-      array of RemoteDataReferenceImpls */
-   public RemoteServerImpl()
+  public RemoteServerImpl()
          throws RemoteException {
-    this(null);
+    this(null, null);
+  }
+
+  public RemoteServerImpl(RemoteDataReferenceImpl[] rs)
+         throws RemoteException {
+    this(rs, null);
+  }
+
+  public RemoteServerImpl(RemoteDisplayImpl[] rd)
+         throws RemoteException {
+    this(null, rd);
   }
 
   /** construct a RemoteServerImpl and initialize it with
       an array of RemoteDataReferenceImpls */
-  public RemoteServerImpl(RemoteDataReferenceImpl[] rs)
+  public RemoteServerImpl(RemoteDataReferenceImpl[] rs, RemoteDisplayImpl[] rd)
          throws RemoteException {
     super();
     refs = rs;
+    dpys = rd;
   }
  
   /** get a RemoteDataReference by index */
@@ -58,9 +68,10 @@ public class RemoteServerImpl extends UnicastRemoteObject
   /** get a RemoteDataReference by name */
   public synchronized RemoteDataReference getDataReference(String name)
          throws VisADException, RemoteException {
-    if (name == null || refs == null) return null;
-    for (int i=0; i<refs.length; i++) {
-      if (name.equals(refs[i].getName())) return refs[i];
+    if (name != null && refs != null) {
+      for (int i=0; i<refs.length; i++) {
+        if (name.equals(refs[i].getName())) return refs[i];
+      }
     }
     return null;
   }
@@ -107,5 +118,78 @@ public class RemoteServerImpl extends UnicastRemoteObject
     }
   }
 
+  /** return array of all RemoteDisplays in this RemoteServer */
+  public RemoteDisplay[] getDisplays()
+         throws RemoteException
+  {
+    if (dpys == null || dpys.length == 0) return null;
+    // is this copy necessary?
+    RemoteDisplay[] rd =
+      new RemoteDisplay[dpys.length];
+    for (int i=0; i<dpys.length; i++) rd[i] = dpys[i];
+    return rd;
+  }
+
+  /** get a RemoteDisplay by index */
+  public RemoteDisplay getDisplay(int index)
+  {
+    if (dpys != null && index >= 0 && dpys.length < index) {
+      return dpys[index];
+    }
+    return null;
+  }
+
+  /** get a RemoteDisplay by name */
+  public RemoteDisplay getDisplay(String name)
+	throws VisADException, RemoteException
+  {
+    if (dpys == null) {
+      throw new RemoteException("No displays associated with this server");
+    }
+
+    for (int i=0; i<dpys.length; i++) {
+      if (dpys[i] == null) {
+	continue;
+      }
+      if (dpys[i].getName().equals(name)) {
+	return dpys[i];
+      }
+    }
+
+    throw new RemoteException("Display \"" + name + "\" not found");
+  }
+
+  /** set all RemoteDisplayImpls to serve */
+  public synchronized void addDisplay(RemoteDisplayImpl rd) {
+    if (rd == null) {
+      return;
+    }
+
+    int len;
+    if (dpys == null || dpys.length == 0) {
+      len = 0;
+    } else {
+      len = dpys.length;
+    }
+
+    RemoteDisplayImpl[] nd = new RemoteDisplayImpl[len + 1];
+
+    if (len > 0) System.arraycopy(dpys, 0, nd, 0, len);
+
+    nd[len] = rd;
+    dpys = nd;
+  }
+
+  /** set all RemoteDisplayImpls to serve */
+  public synchronized void setDisplays(RemoteDisplayImpl[] rd) {
+    if (rd == null) {
+      dpys = null;
+      return;
+    }
+    dpys = new RemoteDisplayImpl[rd.length];
+    for (int i=0; i<dpys.length; i++) {
+      dpys[i] = rd[i];
+    }
+  }
 }
 

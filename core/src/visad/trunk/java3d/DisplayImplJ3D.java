@@ -87,6 +87,32 @@ public class DisplayImplJ3D extends DisplayImpl {
          throws VisADException, RemoteException {
     super(name, renderer);
 
+    initialize(api);
+  }
+
+  public DisplayImplJ3D(RemoteDisplay rmtDpy)
+         throws VisADException, RemoteException {
+    this(rmtDpy, null, JPANEL);
+  }
+
+  public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer)
+         throws VisADException, RemoteException {
+    this(rmtDpy, renderer, JPANEL);
+  }
+
+  public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer,
+			int api)
+         throws VisADException, RemoteException {
+    super(rmtDpy, renderer);
+
+    initialize(api);
+
+    syncRemoteData(rmtDpy);
+  }
+
+  private void initialize(int api)
+	throws VisADException
+  {
     // a ProjectionControl always exists
     projection = new ProjectionControlJ3D(this);
     addControl(projection);

@@ -242,6 +242,12 @@ public interface Display extends Action {
   public abstract void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException;
 
+  /** create link to DataReference;
+      invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
+  public abstract void addReferences(DataRenderer renderer, DataReference ref,
+                            ConstantMap[] constant_maps)
+         throws VisADException, RemoteException;
+
   /** link map to this Display; this method may not be invoked
       after any links to DataReferences have been made */
   public abstract void addMap(ScalarMap map)
@@ -250,5 +256,7 @@ public interface Display extends Action {
   /** clear set of ScalarMap-s associated with this display */
   public abstract void clearMaps() throws VisADException, RemoteException;
 
+  public abstract Vector getConstantMapVector()
+         throws VisADException, RemoteException;
 }
 

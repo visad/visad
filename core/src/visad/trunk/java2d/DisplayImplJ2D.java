@@ -168,6 +168,20 @@ public class DisplayImplJ2D extends DisplayImpl {
   /** flag to scratch images in VisADCanvasJ2D */
   private boolean scratch;
 
+  public DisplayImplJ2D(RemoteDisplay rmtDpy)
+         throws VisADException, RemoteException {
+    this(rmtDpy, null);
+  }
+
+  public DisplayImplJ2D(RemoteDisplay rmtDpy, DisplayRendererJ2D renderer)
+         throws VisADException, RemoteException {
+    super(rmtDpy, renderer);
+
+    initialize(renderer, JPANEL, 300, 300);
+
+    syncRemoteData(rmtDpy);
+  }
+
   /** construct a DisplayImpl for Java2D with the
       default DisplayRenderer, in a JFC JPanel */
   public DisplayImplJ2D(String name)
@@ -197,7 +211,7 @@ public class DisplayImplJ2D extends DisplayImpl {
   }
 
   /** construct a DisplayImpl for Java2D for offscreen rendering,
-      with size geiven by width and height; getComponent() of this
+      with size given by width and height; getComponent() of this
       returns null, but display is accesible via getImage() */
   public DisplayImplJ2D(String name, int width, int height)
          throws VisADException, RemoteException {
@@ -217,6 +231,13 @@ public class DisplayImplJ2D extends DisplayImpl {
          throws VisADException, RemoteException {
     super(name, renderer);
 
+    initialize(renderer, api, width, height);
+  }
+
+  private void initialize(DisplayRendererJ2D renderer, int api,
+			  int width, int height)
+	throws VisADException
+  {
     // a GraphicsModeControl always exists
     mode = new GraphicsModeControlJ2D(this);
     addControl(mode);
