@@ -885,6 +885,25 @@ public class MappingDialog extends JDialog
   }
 
   /**
+   * Ensure mapping dialog is not larger than the screen size.
+   */
+  public Dimension getPreferredSize() {
+    Dimension max = super.getPreferredSize();
+
+    // take Windows Start bar into account
+    String os = System.getProperty("os.name");
+    final int pad = os.startsWith("Windows") ? 60 : 20;
+
+    // ensure dialog size does not exceed screen size
+    int w = max.width;
+    int h = max.height;
+    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+    if (w > screen.width - pad) w = screen.width - pad;
+    if (h > screen.height - pad) h = screen.height - pad;
+    return new Dimension(w, h);
+  }
+
+  /**
    * Displays the dialog in the center of the screen.
    */
   public void display() {
