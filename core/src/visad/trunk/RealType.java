@@ -88,7 +88,7 @@ public class RealType extends ScalarType {
   }
 
   /** trusted constructor for initializers */
-  RealType(String name, Unit u, boolean b) {
+  protected RealType(String name, Unit u, boolean b) {
     super(name, b);
     DefaultUnit = u;
     DefaultSet = null;
