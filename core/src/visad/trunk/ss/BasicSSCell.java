@@ -1039,6 +1039,7 @@ public class BasicSSCell extends JPanel
     if (type == UNKNOWN_SOURCE) {
       // determine source type
       if (source.startsWith("rmi://")) type = RMI_SOURCE;
+      else if (source.startsWith("adde://")) type = URL_SOURCE;
       else {
         File f = new File(source);
         if (f.exists()) type = URL_SOURCE;
