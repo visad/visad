@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.5 1998-08-19 22:13:34 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.6 1998-08-20 16:57:09 steve Exp $
  */
 
 package visad.meteorology;
@@ -35,8 +35,8 @@ import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
 import visad.data.netcdf.QuantityMap;
-import visad.data.netcdf.units.Parser;
 import visad.java2d.DisplayImplJ2D;
+
 
 /**
  * VisAD display bean for a Skew T, Log P Diagram (alias "Skew-T Chart").
@@ -101,6 +101,11 @@ SkewTDisplay
      * The DisplayRenderer.
      */
     private final SkewTDisplayRenderer	displayRenderer;
+
+    /**
+     * The color of the temperature sounding.
+     */
+    private DisplayRealType		temperatureColor = Display.Red;
 
 
     /**
@@ -222,7 +227,8 @@ SkewTDisplay
 	    /*
 	     * Add the temperature fields to the display.
 	     */
-	    display.addReference(soundingRef);
+	    display.addReference(soundingRef, 
+		new ConstantMap[] {new ConstantMap(1.0, temperatureColor)});
 	    display.addReference(temperatureRef);
 	    display.addReference(potentialTemperatureRef);
 	    // display.addReference(equivalentPotentialTemperatureRef);
