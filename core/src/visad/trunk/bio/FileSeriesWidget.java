@@ -35,7 +35,12 @@ public class FileSeriesWidget extends BioStepWidget {
   // -- CONSTRUCTOR --
 
   /** Constructs a new FileSeriesWidget. */
-  public FileSeriesWidget(VisBio biovis) { super(biovis, true); }
+  public FileSeriesWidget(VisBio biovis) {
+    super(biovis, true);
+    step.setToolTipText("Adjusts the current timestep");
+    forward.setToolTipText("Increments the current timestep");
+    back.setToolTipText("Decrements the current timestep");
+  }
 
 
   // -- API METHODS --

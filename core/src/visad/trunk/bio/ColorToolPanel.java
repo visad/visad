@@ -128,6 +128,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       public void stateChanged(ChangeEvent e) { doColorTable(); }
     });
     brightness.setAlignmentY(JSlider.TOP_ALIGNMENT);
+    brightness.setToolTipText("Adjusts the brightness of the displays");
     p.add(brightness);
 
     // current brightness value
@@ -136,6 +137,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       new JLabel("." + VisBio.COLOR_DETAIL).getPreferredSize();
     brightnessValue.setPreferredSize(labelSize);
     brightnessValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    brightnessValue.setToolTipText("The current brightness value");
     p.add(brightnessValue);
     controls.add(pad(p));
     cc++;
@@ -159,12 +161,14 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     contrast.setMajorTickSpacing(VisBio.COLOR_DETAIL / 4);
     contrast.setMinorTickSpacing(VisBio.COLOR_DETAIL / 16);
     contrast.setPaintTicks(true);
+    contrast.setToolTipText("Adjusts the contrast of the displays");
     p.add(contrast);
 
     // current contrast value
     contrastValue = new JLabel("" + VisBio.NORMAL_CONTRAST);
     contrastValue.setPreferredSize(labelSize);
     contrastValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    contrastValue.setToolTipText("The current contrast value");
     p.add(contrastValue);
     controls.add(pad(p));
     cc++;
@@ -191,6 +195,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         doColorTable();
       }
     });
+    rgb.setToolTipText("Switches to a Red-Green-Blue color model");
     group.add(rgb);
     p.add(rgb);
 
@@ -204,6 +209,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         doColorTable();
       }
     });
+    hsv.setToolTipText("Switches to a Hue-Saturation-Value color model");
     group.add(hsv);
     p.add(hsv);
     controls.add(pad(p));
@@ -218,16 +224,22 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     red = new BioColorWidget(bio, 0);
     red.addItemListener(this);
+    red.setToolTipText("Range mapping to the " +
+      "first color component (Red/Hue)");
     p.add(red);
 
     // green/saturation color map widget
     green = new BioColorWidget(bio, 1);
     green.addItemListener(this);
+    green.setToolTipText("Range mapping to the " +
+      "second color component (Green/Saturation)");
     p.add(green);
 
     // blue/value color map widget
     blue = new BioColorWidget(bio, 2);
     blue.addItemListener(this);
+    blue.setToolTipText("Range mapping to the " +
+      "third color component (Blue/Value)");
     p.add(blue);
     controls.add(pad(p));
     cc++;
@@ -243,6 +255,8 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         doColorTable();
       }
     });
+    composite.setToolTipText("Combines range values " +
+      "into a composite color table");
     controls.add(pad(composite));
     cc++;
 
@@ -265,6 +279,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     alpha.setMajorTickSpacing(VisBio.COLOR_DETAIL / 4);
     alpha.setMinorTickSpacing(VisBio.COLOR_DETAIL / 16);
     alpha.setPaintTicks(true);
+    alpha.setToolTipText("Adjusts transparency when rendering as a volume");
     alpha.setEnabled(false);
     p.add(alpha);
 
@@ -272,6 +287,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     alphaValue = new JLabel("1.0");
     alphaValue.setPreferredSize(labelSize);
     alphaValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    alphaValue.setToolTipText("Current transparency function exponent");
     alphaValue.setEnabled(false);
     p.add(alphaValue);
     controls.add(pad(p));
@@ -301,6 +317,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         }
       }
     });
+    selector.setToolTipText("List of color tables for color components");
     p.add(selector);
     controls.add(pad(p));
     cc++;

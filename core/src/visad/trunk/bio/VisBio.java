@@ -151,6 +151,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Export dialog for saving data series. */
   private ExportDialog exporter;
 
+  /** Help dialog for detailing basic program usage. */
+  private BioHelpWindow help;
+
   /** Panel containing VisAD displays. */
   private JPanel displayPane;
 
@@ -185,8 +188,10 @@ public class VisBio extends GUIFrame implements ChangeListener {
   public VisBio() throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
+    JPopupMenu.setDefaultLightWeightPopupEnabled(false);
     importer = new ImportDialog();
     exporter = new ExportDialog(this);
+    help = new BioHelpWindow();
 
     // menu bar
     addMenuItem("File", "Open...", "fileOpen", 'o');
@@ -195,6 +200,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
     fileExport.setEnabled(false);
+    addMenuItem("Help", "Overview", "helpOverview", 'o');
 
     // lay out components
     JPanel pane = new JPanel();
@@ -577,6 +583,14 @@ public class VisBio extends GUIFrame implements ChangeListener {
     mm.checkSave();
     state.destroy();
     System.exit(0);
+  }
+
+  /** Brings up a window detailing basic program usage. */
+  public void helpOverview() {
+    final JFrame frame = this;
+    Util.invoke(false, new Runnable() {
+      public void run() { help.showWindow(frame); }
+    });
   }
 
 

@@ -171,6 +171,7 @@ public class MeasureToolPanel extends ToolPanel {
         bio.mm.saveMeasurements();
       }
     });
+    saveLines.setToolTipText("Saves measurements to a text file");
     saveLines.setEnabled(false);
     p.add(saveLines);
     p.add(Box.createHorizontalStrut(5));
@@ -182,6 +183,7 @@ public class MeasureToolPanel extends ToolPanel {
         bio.mm.restoreMeasurements();
       }
     });
+    restoreLines.setToolTipText("Restores measurements from a text file");
     restoreLines.setEnabled(false);
     p.add(restoreLines);
     controls.add(pad(p));
@@ -199,6 +201,7 @@ public class MeasureToolPanel extends ToolPanel {
         bio.state.saveState(false);
       }
     });
+    addLine.setToolTipText("Adds a line to the current slice");
     addLine.setEnabled(false);
     p.add(addLine);
     p.add(Box.createHorizontalStrut(5));
@@ -211,6 +214,7 @@ public class MeasureToolPanel extends ToolPanel {
         bio.state.saveState(false);
       }
     });
+    addMarker.setToolTipText("Adds a marker to the current slice");
     addMarker.setEnabled(false);
     p.add(addMarker);
     controls.add(pad(p));
@@ -222,6 +226,7 @@ public class MeasureToolPanel extends ToolPanel {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     merge = new JToggleButton("Merge");
+    merge.setToolTipText("Allows for merging multiple measurement endpoints");
     merge.setEnabled(false);
     p.add(merge);
     p.add(Box.createHorizontalStrut(5));
@@ -231,6 +236,7 @@ public class MeasureToolPanel extends ToolPanel {
     undo.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) { bio.state.undo(); }
     });
+    undo.setToolTipText("Retracts the previous measurement action");
     undo.setEnabled(false);
     p.add(undo);
     p.add(Box.createHorizontalStrut(5));
@@ -248,6 +254,7 @@ public class MeasureToolPanel extends ToolPanel {
         bio.state.saveState(false);
       }
     });
+    clearAll.setToolTipText("Removes all measurements");
     clearAll.setEnabled(false);
     p.add(clearAll);
     controls.add(pad(p));
@@ -266,6 +273,8 @@ public class MeasureToolPanel extends ToolPanel {
         return new Dimension(width, d.height);
       }
     };
+    measureCoord.setToolTipText("Coordinates " +
+      "of the current measurement");
     controls.add(pad(measureCoord));
     measureDist = new JLabel(" ") {
       public Dimension getPreferredSize() {
@@ -275,6 +284,8 @@ public class MeasureToolPanel extends ToolPanel {
         return new Dimension(width, d.height);
       }
     };
+    measureDist.setToolTipText("Distance between " +
+      "the current line's endpoints");
     controls.add(pad(measureDist));
     controls.add(Box.createVerticalStrut(10));
 
@@ -309,6 +320,8 @@ public class MeasureToolPanel extends ToolPanel {
         bio.state.saveState(false);
       }
     });
+    setStandard.setToolTipText("Distributes the current " +
+      "measurement across all slices");
     setStandard.setEnabled(false);
     p.add(setStandard);
     p.add(Box.createHorizontalStrut(5));
@@ -322,6 +335,7 @@ public class MeasureToolPanel extends ToolPanel {
         updateSelection();
       }
     });
+    removeSelected.setToolTipText("Removes the selected measurements");
     removeSelected.setEnabled(false);
     p.add(removeSelected);
     controls.add(pad(p));
@@ -357,6 +371,7 @@ public class MeasureToolPanel extends ToolPanel {
         }
       }
     });
+    colorList.setToolTipText("Changes the color of the selected measurements");
     colorList.setEnabled(false);
     p.add(colorList);
     controls.add(p);
@@ -391,6 +406,7 @@ public class MeasureToolPanel extends ToolPanel {
         }
       }
     });
+    groupList.setToolTipText("Changes the group of the selected measurements");
     groupList.setEnabled(false);
     p.add(groupList);
 
@@ -409,6 +425,7 @@ public class MeasureToolPanel extends ToolPanel {
         }
       }
     });
+    newGroup.setToolTipText("Creates a new measurement group");
     newGroup.setEnabled(false);
     p.add(newGroup);
     controls.add(p);
@@ -435,6 +452,8 @@ public class MeasureToolPanel extends ToolPanel {
         bio.state.saveState(false);
       }
     });
+    descriptionBox.setToolTipText("Edits the description " +
+      "of the current measurement group");
     descriptionBox.setEnabled(false);
     controls.add(new JScrollPane(descriptionBox));
   }

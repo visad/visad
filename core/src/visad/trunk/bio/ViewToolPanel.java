@@ -132,6 +132,7 @@ public class ViewToolPanel extends ToolPanel {
         zoomOut2.setEnabled(b);
       }
     });
+    twoD.setToolTipText("Toggles the 2-D display's visibility");
     p.add(twoD);
 
     // 2-D zoom in button
@@ -139,6 +140,7 @@ public class ViewToolPanel extends ToolPanel {
     zoomIn2.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) { bio.setZoom(false, 1.5); }
     });
+    zoomIn2.setToolTipText("Zooms in on the 2-D display");
     p.add(zoomIn2);
 
     // 2-D zoom reset button
@@ -146,6 +148,7 @@ public class ViewToolPanel extends ToolPanel {
     zoomReset2.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) { bio.resetZoom(false); }
     });
+    zoomReset2.setToolTipText("Resets the 2-D display's zoom");
     p.add(zoomReset2);
 
     // 2-D zoom out button
@@ -153,6 +156,7 @@ public class ViewToolPanel extends ToolPanel {
     zoomOut2.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) { bio.setZoom(false, 0.667); }
     });
+    zoomOut2.setToolTipText("Zooms out on the 2-D display");
     p.add(zoomOut2);
     controls.add(pad(p));
 
@@ -170,6 +174,7 @@ public class ViewToolPanel extends ToolPanel {
         zoomOut3.setEnabled(b);
       }
     });
+    threeD.setToolTipText("Toggles the 3-D display's visibility");
     threeD.setEnabled(okay3d);
     p.add(threeD);
 
@@ -178,6 +183,7 @@ public class ViewToolPanel extends ToolPanel {
     zoomIn3.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) { bio.setZoom(true, 2); }
     });
+    zoomIn3.setToolTipText("Zooms in on the 3-D display");
     zoomIn3.setEnabled(okay3d);
     p.add(zoomIn3);
 
@@ -186,6 +192,7 @@ public class ViewToolPanel extends ToolPanel {
     zoomReset3.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) { bio.resetZoom(true); }
     });
+    zoomReset3.setToolTipText("Resets the 3-D display's zoom");
     zoomReset3.setEnabled(okay3d);
     p.add(zoomReset3);
 
@@ -194,6 +201,7 @@ public class ViewToolPanel extends ToolPanel {
     zoomOut3.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) { bio.setZoom(true, 0.5); }
     });
+    zoomOut3.setToolTipText("Zooms out on the 3-D display");
     zoomOut3.setEnabled(okay3d);
     p.add(zoomOut3);
     controls.add(pad(p));
@@ -207,6 +215,7 @@ public class ViewToolPanel extends ToolPanel {
         catch (RemoteException exc) { exc.printStackTrace(); }
       }
     });
+    box3.setToolTipText("Toggles visibility of the white 3-D bounding box");
     box3.setEnabled(okay3d);
     controls.add(pad(box3));
 
@@ -218,6 +227,7 @@ public class ViewToolPanel extends ToolPanel {
         bio.setPreview(b);
       }
     });
+    preview.setToolTipText("Toggles the previous/next pane's visibility");
     preview.setEnabled(okay3d);
     controls.add(pad(preview));
 
@@ -233,6 +243,7 @@ public class ViewToolPanel extends ToolPanel {
     loRes.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) { bio.sm.setMode(true); }
     });
+    loRes.setToolTipText("Switches to low resolution for fast animation");
     loRes.setEnabled(false);
     p.add(loRes);
 
@@ -248,6 +259,7 @@ public class ViewToolPanel extends ToolPanel {
         bio.sm.setMode(false);
       }
     });
+    hiRes.setToolTipText("Switches to high resolution for greater detail");
     hiRes.setEnabled(false);
     p.add(hiRes);
     controls.add(pad(p));
@@ -259,6 +271,8 @@ public class ViewToolPanel extends ToolPanel {
         bio.sm.setAutoSwitch(autoSwitch.isSelected());
       }
     });
+    autoSwitch.setToolTipText("Switches between " +
+      "hi-res and lo-res when appropriate");
     autoSwitch.setEnabled(false);
     controls.add(pad(autoSwitch));
 
@@ -288,6 +302,7 @@ public class ViewToolPanel extends ToolPanel {
         bio.setVolume(b);
       }
     });
+    doVolume.setToolTipText("Enables semi-transparent volume rendering");
     doVolume.setEnabled(false);
     p.add(doVolume);
 
@@ -295,6 +310,7 @@ public class ViewToolPanel extends ToolPanel {
     int detail = VisBio.RESOLUTION_DETAIL;
     int normal = detail / 2;
     volumeValue = new JLabel("");
+    volumeValue.setToolTipText("Current volume rendering resolution");
     volumeValue.setEnabled(false);
     p.add(volumeValue);
     controls.add(pad(p));
@@ -306,6 +322,7 @@ public class ViewToolPanel extends ToolPanel {
         doVolumeRes(!volumeRes.getValueIsAdjusting());
       }
     });
+    volumeRes.setToolTipText("Adjusts the volume rendering resolution");
     volumeRes.setEnabled(false);
     volumeRes.setMajorTickSpacing(detail / 4);
     volumeRes.setMinorTickSpacing(detail / 16);
@@ -325,11 +342,13 @@ public class ViewToolPanel extends ToolPanel {
         bio.mm.pool2.setSlice(b ? -1 : bio.sm.getSlice());
       }
     });
+    doSlice.setToolTipText("Enables arbitrary cross section mode");
     doSlice.setEnabled(false);
     p.add(doSlice);
 
     // current slice value
     sliceValue = new JLabel("");
+    sliceValue.setToolTipText("Current arbitrary cross section resolution");
     sliceValue.setEnabled(false);
     p.add(sliceValue);
     controls.add(pad(p));
@@ -341,6 +360,7 @@ public class ViewToolPanel extends ToolPanel {
         doSliceRes(!sliceRes.getValueIsAdjusting());
       }
     });
+    sliceRes.setToolTipText("Adjusts arbitrary cross section resolution");
     sliceRes.setEnabled(false);
     sliceRes.setMajorTickSpacing(detail / 4);
     sliceRes.setMinorTickSpacing(detail / 16);
@@ -354,6 +374,8 @@ public class ViewToolPanel extends ToolPanel {
         bio.sm.setPlaneContinuous(sliceContinuous.isSelected());
       }
     });
+    sliceContinuous.setToolTipText("Updates the cross section " +
+      "as you drag the mouse");
     sliceContinuous.setEnabled(false);
     controls.add(pad(sliceContinuous));
   }

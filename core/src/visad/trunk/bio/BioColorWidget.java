@@ -128,6 +128,9 @@ public class BioColorWidget extends JPanel {
     scalars.setEnabled(enabled);
   }
 
+  /** Sets the tool tip for this widget. */
+  public void setToolTipText(String text) { scalars.setToolTipText(text); }
+
   /** Chooses most desirable range type for this widget's color. */
   public void guessType() {
     scalars.removeAllItems();

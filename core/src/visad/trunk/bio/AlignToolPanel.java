@@ -80,6 +80,9 @@ public class AlignToolPanel extends ToolPanel {
         bio.toolMeasure.updateFileButtons();
       }
     });
+    useMicrons.setToolTipText("Computes distances in terms of microns",
+      "Width of each image in microns",
+      "Height of each image in microns");
     useMicrons.setEnabled(false);
     controls.add(pad(useMicrons));
 
@@ -105,6 +108,8 @@ public class AlignToolPanel extends ToolPanel {
         bio.toolMeasure.updateFileButtons();
       }
     });
+    sliceDistance.setToolTipText("Specifies the " +
+      "distance between image slices, in microns");
     sliceDistance.setEnabled(false);
     p.add(sliceDistance);
     controls.add(pad(p));
@@ -114,6 +119,8 @@ public class AlignToolPanel extends ToolPanel {
     zAspect.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) { updateAspect(true); }
     });
+    zAspect.setToolTipText("Adjusts slice spacing to match " +
+      "distance between slices");
     zAspect.setEnabled(false);
     controls.add(pad(zAspect));
 
@@ -130,6 +137,7 @@ public class AlignToolPanel extends ToolPanel {
         bio.sm.setAlignStacks(doDrift);
       }
     });
+    drift.setToolTipText("Toggles image stack alignment mode");
     drift.setEnabled(false);
     controls.add(pad(drift));
   }
@@ -146,7 +154,7 @@ public class AlignToolPanel extends ToolPanel {
       useMicrons.setEnabled(true);
       zAspect.setEnabled(true);
       bio.toolMeasure.updateFileButtons();
-      drift.setEnabled(true);
+      //drift.setEnabled(true);
     }
     else {
       useMicrons.setEnabled(false);

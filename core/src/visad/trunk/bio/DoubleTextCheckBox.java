@@ -117,6 +117,13 @@ public class DoubleTextCheckBox extends JPanel
   /** Sets the mnemonic of the widget. */
   public void setMnemonic(char m) { box.setMnemonic(m); }
 
+  /** Sets the tool tips for the widget. */
+  public void setToolTipText(String checkbox, String text1, String text2) {
+    box.setToolTipText(checkbox);
+    field1.setToolTipText(text1);
+    field2.setToolTipText(text2);
+  }
+
   /** Adds an item listener to the check box. */
   public void addActionListener(ActionListener l) { listeners.add(l); }
 
