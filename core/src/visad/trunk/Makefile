@@ -304,7 +304,7 @@ DOC_PACKAGES = \
 		visad.data.jai \
 		visad.data.qt \
 		visad.data.gif \
-    visad.data.text
+		visad.data.text \
 		ij \
 		ij.gui \
 		ij.io \
