@@ -3,7 +3,8 @@ import subs
 from visad import *
 from visad.util import VisADSlider
 
-# load our neep602_mystery data set
+# load our neep602_mystery data set, available from
+# ftp://www.ssec.wisc.edu/pub/visad-2.0/course/neep602_mystery
 a = load("neep602_mystery")
 
 # get one 3-D grid from the data set, in this case the 8-th
