@@ -62,6 +62,20 @@ public interface DisplayMonitor
     throws RemoteException, VisADException;
 
   /**
+   * Adds the specified remote display to receive <CODE>MonitorEvent</CODE>s
+   * when the monitored <CODE>Display</CODE>'s state changes.
+   *
+   * @param rd The remote display to add.
+   * @param id The unique listener identifier.
+   *
+   * @exception RemoteException If there was an RMI-related problem.
+   * @exception VisADException If the listener <CODE>Vector</CODE>
+   * 				is uninitialized.
+   */
+  void addListener(RemoteDisplay rd, int id)
+    throws RemoteException, VisADException;
+
+  /**
    * Initializes links so that <CODE>MonitorEvent</CODE>s will be
    * exchanged with the specified remote <CODE>Display</CODE>.
    *
@@ -88,6 +102,15 @@ public interface DisplayMonitor
   /** destroy this monitor */
   void destroy()
     throws RemoteException, RemoteVisADException;
+
+  /**
+   * Return the ID associated with the specified <tt>RemoteDisplay</tt>.
+   *
+   * @return <tt>UNKNOWN_LISTENER_ID</tt> if not found;
+   *         otherwise, returns the ID.
+   */
+  int getConnectionID(RemoteDisplay rmtDpy)
+    throws RemoteException;
 
   /**
    * Returns <CODE>true</CODE> if there is a <CODE>MonitorEvent</CODE>

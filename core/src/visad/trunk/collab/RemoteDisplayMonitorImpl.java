@@ -167,6 +167,28 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
+   * Adds this remote display to the remote <CODE>DisplayMonitor</CODE>.
+   *
+   * @param rd The remote display to add
+   * @param id The unique identifer (determined with <CODE>checkID</CODE>.)
+   *
+   * @exception RemoteException If there was an RMI-related problem.
+   * @exception RemoteVisADException If there was an internal problem.
+   */
+  public void addListener(RemoteDisplay rd, int id)
+    throws RemoteException, RemoteVisADException
+  {
+    if (AdaptedMonitor == null) {
+      throw new RemoteVisADException("AdaptedMonitor is null");
+    }
+    try {
+      AdaptedMonitor.addListener(rd, id);
+    } catch (VisADException ve) {
+      throw new RemoteVisADException(ve.getMessage());
+    }
+  }
+
+  /**
    * Unusable stub.  Cannot connect two RemoteDisplayMonitors.
    *
    * @param rd Ignored.
@@ -178,6 +200,21 @@ public class RemoteDisplayMonitorImpl
     throws RemoteException, RemoteVisADException
   {
     throw new RemoteVisADException("Cannot connect two RemoteDisplayMonitors");
+  }
+
+  /**
+   * Return the ID associated with the specified <tt>RemoteDisplay</tt>.
+   *
+   * @return <tt>UNKNOWN_LISTENER_ID</tt> if not found;
+   *         otherwise, returns the ID.
+   */
+  public int getConnectionID(RemoteDisplay rmtDpy)
+  throws RemoteException
+  {
+    if (AdaptedMonitor == null) {
+      return UNKNOWN_LISTENER_ID;
+    }
+    return AdaptedMonitor.getConnectionID(rmtDpy);
   }
 
   /**

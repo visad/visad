@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import visad.Control;
+import visad.RemoteDisplay;
 import visad.RemoteVisADException;
 import visad.ScalarMap;
 
@@ -49,6 +50,7 @@ class MonitorSyncer
 
   private HashMap eventCache = null;
  
+  private RemoteDisplay rmtDpy;
   private MonitorCallback callback;
   private int id;
 
@@ -63,14 +65,29 @@ class MonitorSyncer
   public MonitorSyncer(String name, MonitorCallback callback, int id)
     throws RemoteException
   {
-    Name = name + ":MonL";
+    this.Name = name + ":MonL";
 
-    eventCache = new HashMap();
+    this.eventCache = new HashMap();
 
+    this.rmtDpy = null;
     this.callback = callback;
     this.id = id;
 
-    provider = new RemoteEventProviderImpl(this);
+    this.provider = new RemoteEventProviderImpl(this);
+  }
+
+  public MonitorSyncer(String name, RemoteDisplay rmtDpy, int id)
+    throws RemoteException
+  {
+    this.Name = name + ":MonL";
+
+    this.eventCache = new HashMap();
+
+    this.rmtDpy = rmtDpy;
+    this.callback = rmtDpy.getRemoteDisplaySync();
+    this.id = id;
+
+    this.provider = new RemoteEventProviderImpl(this);
   }
 
   public void addEvent(MonitorEvent evt)
@@ -211,6 +228,19 @@ class MonitorSyncer
    * @return <TT>true</TT> if the connection is dead.
    */
   public boolean isDead() { return dead; }
+
+  /**
+   * Check to see if this object is monitoring the specified
+   * <tt>RemoteDisplay</tt>.
+   *
+   * @param rmtDpy <tt>RemoteDisplay</tt> being searched for.
+   *
+   * @return <tt>true</tt> if this object is monitoring the display.
+   */
+  public boolean isMonitored(RemoteDisplay rmtDpy)
+  {
+    return this.rmtDpy.equals(rmtDpy);
+  }
 
   public void run()
   {

@@ -1318,6 +1318,23 @@ if (initialize) {
     return -1;
   }
 
+  /**
+   * Return the ID used to identify the collaborative connection to
+   * the specified remote display.<br>
+   * <br>
+   * <b>WARNING!</b>  Due to limitations in the Java RMI implementation,
+   * this only works with an exact copy of the RemoteDisplay used to
+   * create the collaboration link.
+   *
+   * @return <tt>DisplayMonitor.UNKNOWN_LISTENER_ID</tt> if not found;
+   *         otherwise, returns the ID.
+   */
+  public int getConnectionID(RemoteDisplay rmtDpy)
+    throws RemoteException
+  {
+    return displayMonitor.getConnectionID(rmtDpy);
+  }
+
   public void addControl(Control control) {
     if (control != null && !ControlVector.contains(control)) {
       ControlVector.addElement(control);

@@ -40,6 +40,7 @@ import visad.DisplayMapEvent;
 import visad.DisplayReferenceEvent;
 import visad.MessageEvent;
 import visad.RemoteDisplay;
+import visad.RemoteDisplayImpl;
 import visad.RemoteReferenceLinkImpl;
 import visad.RemoteVisADException;
 import visad.ScalarMap;
@@ -120,6 +121,25 @@ public class DisplayMonitorImpl
   }
 
   /**
+   * Adds the specified remote display to receive <TT>MonitorEvent</TT>s
+   * when the monitored <TT>Display</TT>'s state changes.
+   *
+   * @param rmtDpy The remote display to add.
+   * @param id The unique listener identifier.
+   *
+   * @exception VisADException If the listener <TT>Vector</TT>
+   * 				is uninitialized.
+   */
+  public void addListener(RemoteDisplay rmtDpy, int id)
+    throws RemoteException, VisADException
+  {
+    MonitorSyncer ms = new MonitorSyncer(myDisplay.getName(), rmtDpy, id);
+    synchronized (listeners) {
+      listeners.add(ms);
+    }
+  }
+
+  /**
    * Initializes links so that <TT>MonitorEvent</TT>s will be
    * exchanged with the specified remote <TT>Display</TT>.
    *
@@ -138,7 +158,7 @@ public class DisplayMonitorImpl
     DisplaySyncImpl dsi = (DisplaySyncImpl )myDisplay.getDisplaySync();
     RemoteDisplaySyncImpl wrap = new RemoteDisplaySyncImpl(dsi);
     try {
-      rdm.addListener(wrap, id);
+      rdm.addListener(new RemoteDisplayImpl(myDisplay), id);
     } catch (Exception e) {
       throw new RemoteVisADException("Couldn't make this object" +
                                      " a listener for the remote display");
@@ -146,7 +166,7 @@ public class DisplayMonitorImpl
 
     boolean unwind = false;
     try {
-      addListener(rd.getRemoteDisplaySync(), id);
+      addListener(rd, id);
     } catch (Exception e) {
       unwind = true;
     }
@@ -388,6 +408,28 @@ public class DisplayMonitorImpl
       System.exit(1);
       break;
     }
+  }
+
+  /**
+   * Return the ID associated with the specified <tt>RemoteDisplay</tt>.
+   *
+   * @return <tt>UNKNOWN_LISTENER_ID</tt> if not found;
+   *         otherwise, returns the ID.
+   */
+  public int getConnectionID(RemoteDisplay rmtDpy)
+  {
+    synchronized (listeners) {
+      ListIterator iter = listeners.listIterator();
+      while (iter.hasNext()) {
+        MonitorSyncer li = (MonitorSyncer )iter.next();
+
+        if (li.isMonitored(rmtDpy)) {
+          return li.getID();
+        }
+      }
+    }
+
+    return UNKNOWN_LISTENER_ID;
   }
 
   private int getNextListenerID()
