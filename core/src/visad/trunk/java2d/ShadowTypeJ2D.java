@@ -147,15 +147,15 @@ public abstract class ShadowTypeJ2D extends ShadowType {
       default_values are defaults for each display.DisplayRealTypeVector;
       return true if need post-process;
       this is default (for ShadowTextType) */
-  boolean doTransform(Group group, Data data, float[] value_array,
-                             float[] default_values, DataRenderer renderer)
-          throws VisADException, RemoteException { // J2D
+  boolean doTransform(VisADGroup group, Data data, float[] value_array,
+                      float[] default_values, DataRenderer renderer)
+          throws VisADException, RemoteException {
     return false;
   }
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Group group) throws VisADException { // J2D
+  void postProcess(VisADGroup group) throws VisADException {
   }
 
 
@@ -182,7 +182,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
   static VisADAppearance makeAppearance(GraphicsModeControl mode,
                       float constant_alpha,
                       float[] constant_color,
-                      GeometryArray geometry) {
+                      VisADGeometryArray array) {
     VisADAppearance appearance = new VisADAppearance();
 
 // LineWidth and PointSize not needed - in GraphicsModeControl
@@ -193,7 +193,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
       appearance.green = constant_color[1];
       appearance.blue = constant_color[2];
     }
-    appearance.array = geometry; // may be null
+    appearance.array = array; // may be null
     return appearance;
   }
 
@@ -262,7 +262,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
            valueArrayLength, valueToScalar, display);
   }
 
-  boolean terminalTupleOrReal(Group group, float[][] display_values,
+  boolean terminalTupleOrReal(VisADGroup group, float[][] display_values,
                               int valueArrayLength, int[] valueToScalar,
                               float[] default_values, int[] inherited_values,
                               DataRenderer renderer)
@@ -318,44 +318,39 @@ public abstract class ShadowTypeJ2D extends ShadowType {
         return false;
       }
       // put single color in appearance
-      ColoringAttributes constant_color = new ColoringAttributes();
-      constant_color.setColor(color_values[0][0], color_values[1][0],
-                              color_values[2][0]);
+      float[] constant_color = {color_values[0][0], color_values[1][0],
+                                color_values[2][0]};
+      float constant_alpha = Float.NaN;
 
       VisADGeometryArray array;
-      GeometryArray geometry;
       VisADAppearance appearance;
-      Shape3D shape;
 
       boolean anyFlowCreated = false;
       // try Flow1
       array = makeFlow(flow1_values, flowScale[0], spatial_values,
                        color_values, range_select);
       if (array != null) {
-        geometry = display.makeGeometry(array);
-        appearance = makeAppearance(mode, null, constant_color, geometry);
-        shape = new Shape3D(geometry, appearance);
-        group.addChild(shape);
+        appearance = makeAppearance(mode, constant_alpha,
+                                    constant_color, array);
+        group.addChild(appearance);
         anyFlowCreated = true;
       }
       // try Flow2
       array = makeFlow(flow2_values, flowScale[1], spatial_values,
                        color_values, range_select);
       if (array != null) {
-        geometry = display.makeGeometry(array);
-        appearance = makeAppearance(mode, null, constant_color, geometry);
-        shape = new Shape3D(geometry, appearance);
-        group.addChild(shape);
+        appearance = makeAppearance(mode, constant_alpha,
+                                    constant_color, array);
+        group.addChild(appearance);
         anyFlowCreated = true;
       }
 
       if (!anyFlowCreated) {
         array = makePointGeometry(spatial_values, null);
         if (array != null) {
-          geometry = display.makeGeometry(array);
-          appearance = makeAppearance(mode, null, constant_color, geometry);
-          shape = new Shape3D(geometry, appearance);
-          group.addChild(shape);
+          appearance = makeAppearance(mode, constant_alpha,
+                                      constant_color, array);
+          group.addChild(appearance);
           if (renderer instanceof DirectManipulationRendererJ2D) {
             ((DirectManipulationRendererJ2D) renderer).setSpatialValues(spatial_values);
           }

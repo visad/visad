@@ -61,7 +61,7 @@ public abstract class RendererJ2D extends DataRenderer {
     setLinks(links);
 
     swParent = new VisADGroup();
-    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
+    addSwitch((DisplayRendererJ2D) getDisplayRenderer(), swParent);
   }
 
   public ShadowType makeShadowFunctionType(
@@ -101,7 +101,7 @@ public abstract class RendererJ2D extends DataRenderer {
   }
 
   abstract void addSwitch(DisplayRendererJ2D displayRenderer,
-                          VisADGroup branch);
+                          VisADGroup branch) throws VisADException;
 
   /** re-transform if needed;
       return false if not done */
@@ -110,6 +110,7 @@ public abstract class RendererJ2D extends DataRenderer {
     boolean all_feasible = get_all_feasible();
     boolean any_changed = get_any_changed();
     boolean any_transform_control = get_any_transform_control();
+    boolean scratch = false;
     if (all_feasible && (any_changed || any_transform_control)) {
       // exceptionVector.removeAllElements();
       clearAVControls();
@@ -135,10 +136,12 @@ public abstract class RendererJ2D extends DataRenderer {
 
       if (branch != null) {
         swParent.setChild(branch, 0);
+        scratch = true;
       }
       else { // if (branch == null)
         if (swParent.numChildren() > 0) {
           swParent.removeChild(0);
+          scratch = true;
         }
         all_feasible = false;
         set_all_feasible(all_feasible);
@@ -149,6 +152,9 @@ public abstract class RendererJ2D extends DataRenderer {
       for (int i=0; i<links.length; i++) {
         links[i].clearData();
       }
+    }
+    if (scratch) {
+      ((DisplayImplJ2D) getDisplay()).setScratch();
     }
     return all_feasible;
   }

@@ -88,7 +88,8 @@ public class DefaultRendererJ2D extends RendererJ2D {
     return branch;
   }
 
-  void addSwitch(DisplayRendererJ2D displayRenderer, VisADGroup branch) {
+  void addSwitch(DisplayRendererJ2D displayRenderer, VisADGroup branch)
+       throws VisADException {
     displayRenderer.addSceneGraphComponent(branch);
   }
 

@@ -44,10 +44,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   private boolean textureEnable; // true => allow use of texture mapping
   private boolean scaleEnable; // true => display X, Y and Z scales
 
-  /** for TransparencyAttributes; see list below in setTransparencyMode */
-  private int transparencyMode;
-  /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION */
-  private int projectionPolicy;
+  private int transparencyMode = 0;
+  private int projectionPolicy = 0;
 
   public GraphicsModeControlJ2D(DisplayImpl d) {
     super(d);
@@ -56,13 +54,6 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     pointMode = false;
     textureEnable = true;
     scaleEnable = false;
-    // NICEST, FASTEST and BLENDED do not solve the depth precedence problem
-    // note SCREEN_DOOR does not seem to work with variable transparency
-    // transparencyMode = TransparencyAttributes.NICEST;
-    transparencyMode = TransparencyAttributes.FASTEST;
-    // transparencyMode = TransparencyAttributes.BLENDED;
-    // transparencyMode = TransparencyAttributes.SCREEN_DOOR;
-    projectionPolicy = View.PERSPECTIVE_PROJECTION;
   }
  
   public boolean getMode2D() {
@@ -134,13 +125,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
 
   public void setTransparencyMode(int mode)
          throws VisADException, RemoteException {
-    if (mode == TransparencyAttributes.SCREEN_DOOR ||
-        mode == TransparencyAttributes.BLENDED ||
-        mode == TransparencyAttributes.NONE ||
-        mode == TransparencyAttributes.FASTEST ||
-        mode == TransparencyAttributes.NICEST) {
+    if (mode == 0) {
       transparencyMode = mode;
-      changeControl(true);
     }
     else {
       throw new DisplayException("GraphicsModeControlJ2D." +
@@ -150,15 +136,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
 
   public void setProjectionPolicy(int policy)
          throws VisADException, RemoteException {
-    if (policy == View.PARALLEL_PROJECTION ||
-        policy == View.PERSPECTIVE_PROJECTION) {
+    if (policy == 0) {
       projectionPolicy = policy;
-      DisplayRendererJ2D displayRenderer =
-        (DisplayRendererJ2D) getDisplayRenderer();
-      if (displayRenderer != null) {
-        displayRenderer.getView().setProjectionPolicy(projectionPolicy);
-      }
-      changeControl(true);
     }
     else {
       throw new DisplayException("GraphicsModeControlJ2D." +

@@ -42,7 +42,7 @@ import java.util.*;
 public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
 
   /** color of box  */
-  ColoringAttributes box_color = null; // J3D
+  ColoringAttributes box_color = null;
   MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
   public DefaultDisplayRendererJ3D () {
@@ -75,17 +75,17 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     // first child of trans
     trans.addChild(box);
 
-    BranchGroup cursor_on = getCursorOnBranch(); // J3D
-    LineArray cursor_geometry = new LineArray(6, LineArray.COORDINATES); // J3D
+    BranchGroup cursor_on = getCursorOnBranch();
+    LineArray cursor_geometry = new LineArray(6, LineArray.COORDINATES);
     cursor_geometry.setCoordinates(0, cursor_verts);
-    Shape3D cursor = new Shape3D(cursor_geometry, box_appearance); // J3D
+    Shape3D cursor = new Shape3D(cursor_geometry, box_appearance);
     cursor_on.addChild(cursor);
  
     // insert MouseBehaviorJ3D into scene graph
     BoundingSphere bounds =
-      new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0); // J3D
-    mouse.setSchedulingBounds(bounds); // J3D
-    trans.addChild(mouse); // J3D
+      new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
+    mouse.setSchedulingBounds(bounds);
+    trans.addChild(mouse);
 
     // create ambient light, directly under root (not transformed)
 /* WLH 27 Jan 98

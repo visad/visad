@@ -91,7 +91,7 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
       value_array are inherited valueArray values;
       default_values are defaults for each display.DisplayRealTypeVector;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, float[] value_array,
+  public boolean doTransform(VisADGroup group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException { // J2D
 
@@ -638,9 +638,9 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                          "  " + color_values.length);
 */
       VisADAppearance appearance;
-      TransparencyAttributes constant_alpha =
-        new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
-      ColoringAttributes constant_color = null;
+      float constant_alpha = Float.NaN;
+      float[] constant_color = null;
+
       // note alpha_length <= color_length
       if (alpha_length == 1) {
         if (color_values[3][0] != color_values[3][0]) {
@@ -652,8 +652,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
         // constant alpha, so put it in appearance
         if (color_values[3][0] > 0.999999f) {
           // constant opaque alpha = NONE
-          constant_alpha =
-            new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
+          constant_alpha = 0.0f;
           /* broken alpha */
           // remove alpha from color_values
           float[][] c = new float[3][];
@@ -663,33 +662,15 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
           color_values = c;
         }
         else {
-/* TransparencyAttributes with constant alpha seems to have broken
           // note transparency 0.0 = opaque, 1.0 = clear
-          constant_alpha =
-            new TransparencyAttributes(TransparencyAttributes.NICEST,
-                                       1.0f - color_values[3][0]);
-so expand constant alpha to variable alpha:
-*/
-          float v = color_values[3][0];
-          color_values[3] = new float[color_values[0].length];
-          for (int i=0; i<color_values[0].length; i++) {
-            color_values[3][i] = v;
-          }
-/*
-System.out.println("replicate alpha = " + v + " " + constant_alpha +
-                   " " + color_values[0].length + " " +
-                   color_values[3].length);
-*/
+          constant_alpha = 1.0f - color_values[3][0];
         }
-/*
-  broken alpha
         // remove alpha from color_values
         float[][] c = new float[3][];
         c[0] = color_values[0];
         c[1] = color_values[1];
         c[2] = color_values[2];
         color_values = c;
-*/
       }
       if (color_length == 1) {
         if (color_values[0][0] != color_values[0][0] ||
@@ -700,9 +681,8 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
           return false;
         }
         // constant color, so put it in appearance
-        constant_color = new ColoringAttributes();
-        constant_color.setColor(color_values[0][0], color_values[1][0],
-                                color_values[2][0]);
+        constant_color = new float[] {color_values[0][0], color_values[1][0],
+                                      color_values[2][0]};
         color_values = null;
       }
 
@@ -712,7 +692,9 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
         return false;
       }
 
+/* WLH 19 June 98
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
+*/
 
       if (LevelOfDifficulty == SIMPLE_FIELD) {
         // only manage Spatial, Contour, Flow, Color, Alpha and
@@ -754,11 +736,9 @@ END MISSING TEST */
           array = makeFlow(flow1_values, flowScale[0], spatial_values,
                            color_values, range_select);
           if (array != null) {
-            GeometryArray geometry = display.makeGeometry(array);
             appearance = makeAppearance(mode, constant_alpha,
-                                        constant_color, geometry);
-            Shape3D shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
+                                        constant_color, array);
+            group.addChild(appearance);
             anyFlowCreated = true;
           }
 
@@ -766,11 +746,9 @@ END MISSING TEST */
           array = makeFlow(flow2_values, flowScale[1], spatial_values,
                            color_values, range_select);
           if (array != null) {
-            GeometryArray geometry = display.makeGeometry(array);
             appearance = makeAppearance(mode, constant_alpha,
-                                        constant_color, geometry);
-            Shape3D shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
+                                        constant_color, array);
+            group.addChild(appearance);
             anyFlowCreated = true;
           }
         }
@@ -803,14 +781,9 @@ END MISSING TEST */
                                 display_values[i], color_values);
                     // System.out.println("makeIsoSurface " + array.vertexCount);
                     if (array != null) {
-                      // MEM
-                      GeometryArray geometry = display.makeGeometry(array);
-                      //  FREE
-                      array = null;
                       appearance = makeAppearance(mode, constant_alpha,
-                                                  constant_color, geometry);
-                      Shape3D shape = new Shape3D(geometry, appearance);
-                      group.addChild(shape);
+                                                  constant_color, array);
+                      group.addChild(appearance);
                     }
                   }
                   anyContourCreated = true;
@@ -820,19 +793,14 @@ END MISSING TEST */
                     spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
                                   fvalues[4], display_values[i], color_values);
                   if (arrays != null && arrays.length != 0 && arrays[0] != null) {
-                    // MEM
-                    GeometryArray geometry = display.makeGeometry(arrays[0]);
-                    //  FREE
-                    arrays[0] = null;
                     appearance = makeAppearance(mode, constant_alpha,
-                                                constant_color, geometry);
-                    Shape3D shape = new Shape3D(geometry, appearance);
-                    group.addChild(shape);
+                                                constant_color, arrays[0]);
+                    group.addChild(appearance);
                     if (bvalues[1] && arrays[2] != null) {
                       // System.out.println("makeIsoLines with labels");
                       // draw labels
                       // MEM
-                      geometry = display.makeGeometry(arrays[2]);
+                      array = arrays[2];
                       //  FREE
                       arrays = null;
                     }
@@ -840,18 +808,17 @@ END MISSING TEST */
                       // System.out.println("makeIsoLines without labels");
                       // fill in contour lines in place of labels
                       // MEM
-                      geometry = display.makeGeometry(arrays[1]);
+                      array = arrays[1];
                       //  FREE
                       arrays = null;
                     }
                     else {
-                      geometry = null;
+                      array = null;
                     }
-                    if (geometry != null) {
+                    if (array != null) {
                       appearance = makeAppearance(mode, constant_alpha,
-                                                  constant_color, geometry);
-                      shape = new Shape3D(geometry, appearance);
-                      group.addChild(shape);
+                                                  constant_color, array);
+                      group.addChild(appearance);
                     }
                   }
                   anyContourCreated = true;
@@ -869,34 +836,13 @@ END MISSING TEST */
             }
             if (range_select[0] != null && range_select[0].length > 1) {
               int len = range_select[0].length;
+/*
               float alpha =
                 default_values[display.getDisplayScalarIndex(Display.Alpha)];
-              if (constant_alpha != null) {
-                alpha = constant_alpha.getTransparency();
+              if (constant_alpha == constant_alpha) {
+                alpha = constant_alpha;
               }
-/* ????
-              if (color_values == null) {
-                float[] colf = null;
-                if (constant_color != null) {
-                  Color3f color = null;
-                  constant_color.getColor(color);
-                  colf = new float[3];
-                  colf[0] = color.x;
-                  colf[1] = color.y;
-                  colf[2] = color.z;
-                }
-                color_values = new float[4][len];
-                for (int j=0; j<3; j++) {
-                  float def_val = (colf != null) ? colf[j] :
-                    default_values[getDefaultColorIndex(display, j)];
-                  for (int i=0; i<len; i++) color_values[j][i] = def_val;
-                }
-                for (int i=0; i<len; i++) color_values[3][i] = alpha;
-                constant_color = null;
-                constant_alpha = null;
-              }
-              else if (color_values.length < 4) {
-*/
+
               if (color_values.length < 4) {
                 float[][] c = new float[4][];
                 c[0] = color_values[0];
@@ -907,60 +853,34 @@ END MISSING TEST */
                 constant_alpha = null;
                 color_values = c;
               }
+*/
               for (int i=0; i<len; i++) {
                 if (range_select[0][i] != range_select[0][i]) {
+                  // make missing pixel black
+                  color_values[0][i] = 0.0f;
+                  color_values[1][i] = 0.0f;
+                  color_values[2][i] = 0.0f;
                   // make missing pixel invisible (transparent)
-                  color_values[3][i] = 0.0f;
+                  // 0.0f or 1.0f ??
+                  // color_values[2][i] = 0.0f;
                 }
               }
             } // end if (range_select[0] != null)
 
-            int vertexFormat = GeometryArray.COORDINATES |
-                               GeometryArray.NORMALS |
-                               GeometryArray.COLOR_3 |
-                               GeometryArray.TEXTURE_COORDINATE_2;
-
-            // MEM
-/* WLH 25 June 98 XXX
-            QuadArray geometry = new QuadArray(4, vertexFormat);
-            geometry.setCoordinates(0, coordinates);
-            geometry.setNormals(0, normals);
-            geometry.setTextureCoordinates(0, texCoords);
-            geometry.setColors(0, colors);
-*/
-            VisADQuadArray array = new VisADQuadArray();
-            array.vertexCount = 4;
-            array.coordinates = coordinates;
-            array.texCoords = texCoords;
-            array.colors = colors;
+            VisADQuadArray qarray = new VisADQuadArray();
+            qarray.vertexCount = 4;
+            qarray.coordinates = coordinates;
+            qarray.texCoords = texCoords;
+            qarray.colors = colors;
             // array.normals = normals;
 
             // System.out.println("texture geometry");
    
             // crreate basic Appearance
             appearance = makeAppearance(mode, constant_alpha,
-                                        constant_color, geometry);
-            // appearance = makeAppearance(mode, null, null, geometry);
-            // create TextureAttributes
-            TextureAttributes texture_attributes = new TextureAttributes();
-            texture_attributes.setTextureMode(TextureAttributes.REPLACE);
-            texture_attributes.setPerspectiveCorrectionMode(
-                                  TextureAttributes.NICEST);
-            appearance.setTextureAttributes(texture_attributes);
-            // create Texture2D
-// TextureLoader uses 1st argument = 1
-/*
-System.out.println("Texture.BASE_LEVEL = " + Texture.BASE_LEVEL); // 1
-System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
-*/
-            Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
-                                              texture_width, texture_height);
-            // Component component = display.getComponent();
+                                        constant_color, qarray);
 
-
-/* JDK 1.2 stuff */
             BufferedImage image = null;
-            ImageComponent2D image2d = null;
             int[] rgbArray = new int[texture_width * texture_height];
             if (color_values.length > 3) {
               int k = 0;
@@ -990,8 +910,6 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                   image.setRGB(i, j, 0);
                 }
               }
-              // transparency does not work yet
-              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
             }
             else { // (color_values.length == 3)
               int k = 0;
@@ -1031,164 +949,10 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
 //                           rgbArray, j*texture_width, texture_width);
 //            }
 //
-
-              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
             } // end if (color_values.length == 3)
-/* */
 
-/* this doesn't work - setRGB must have a bug
-
-            BufferedImage image = null;
-            ImageComponent2D image2d = null;
-            int[] rgbArray = new int[texture_width];
-            if (color_values.length > 3) {
-              image = new BufferedImage(texture_width, texture_height,
-                                        BufferedImage.TYPE_INT_ARGB);
-              int k = 0;
-              for (int j=0; j<texture_height; j++) {
-                for (int i=0; i<texture_width; i++) {
-                  int r, g, b, a;
-                  r = Math.min(255, Math.max(0, (int) (color_values[0][k] * 255.0)));
-                  g = Math.min(255, Math.max(0, (int) (color_values[1][k] * 255.0)));
-                  b = Math.min(255, Math.max(0, (int) (color_values[2][k] * 255.0)));
-                  a = Math.min(255, Math.max(0, (int) (color_values[3][k] * 255.0)));
-                  rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a;
-                }
-                
-              }
-              // transparency does not work yet
-              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
-            }
-            else { // !(color_values.length > 3)
-              image = new BufferedImage(texture_width, texture_height,
-                                        BufferedImage.TYPE_INT_ARGB);
-              int k = 0;
-              for (int j=0; j<texture_height; j++) {
-                for (int i=0; i<texture_width; i++) {
-                  int r, g, b, a;
-                  r = Math.min(255, Math.max(0, (int) (color_values[0][k] * 255.0)));
-                  g = Math.min(255, Math.max(0, (int) (color_values[1][k] * 255.0)));
-                  b = Math.min(255, Math.max(0, (int) (color_values[2][k] * 255.0)));
-                  a = 255; // TO_DO  does 255 == opaque ??  ??  ??
-                  rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a; 
-                }
-                image.setRGB(0, j, texture_width, 1, rgbArray, 0, texture_width);
-              }
-              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
-            }
-*/
-
-
-/* this doesn't work - but is deep in the intricacies of java.awt.image
-   so who would expect it to
-            DirectColorModel cm =
-              new DirectColorModel(32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
-
-            int[] bitMasks = {0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000};
-            // int dataType = BufferedImage.TYPE_INT_ARGB;
-            int dataType = DataBuffer.INT_DATA;
-            SampleModel sampleModel =
-              new MultiBandPackedSampleModel(dataType, texture_width,
-                                             texture_height, bitMasks);
-
-            WritableRaster raster = new myWritableRaster(sampleModel, new Point(0, 0));
- 
-            int[] rgbArray = new int[texture_width * texture_height];
-            if (color_values.length > 3) {
-              for (int i=0; i<domain_length; i++) {
-                int r, g, b, a;
-                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
-                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
-                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
-                rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a;
-              }
-            }
-            else {
-              for (int i=0; i<domain_length; i++) {
-                int r, g, b, a;
-                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
-                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
-                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                a = 255;
-                rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a;
-              }
-            }
- 
-            raster.setPixel(0, 0, texture_width, texture_height, rgbArray);
-
-java.lang.ArrayIndexOutOfBoundsException: 4096
-        at java.awt.image.MultiBandPackedSampleModel.setPixel(MultiBandPackedSampleModel.java:541)
-        at java.awt.image.WritableRaster.setPixel(WritableRaster.java:338)
-        at visad.java3d.ShadowFunctionOrSetTypeJ2D.doTransform(ShadowFunctionOrSetTypeJ2D.java:959)
-        at visad.java3d.DefaultRendererJ2D.doTransform(DefaultRendererJ2D.java:71)
-        at visad.java3d.RendererJ2D.doAction(RendererJ2D.java:153)
-        at visad.DisplayImpl.doAction(DisplayImpl.java:355)
-        at visad.ActionImpl.run(ActionImpl.java:145)
-        at java.lang.Thread.run(Thread.java:484)
-
- 
-            boolean isRasterPremultiplied = false;
- 
-            BufferedImage image =
-              new BufferedImage(cm, raster, isRasterPremultiplied);
-            ImageComponent2D image2d =
-              new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
-*/
-/* ditto for this
-            // DataBuffer dataBuffer =
-            //   new DataBuffer(dataType, texture_width * texture_height);
-
-            DataBuffer dataBuffer = sampleModel.createCompatibleDataBuffer();
-
-            if (color_values.length > 3) {
-              for (int i=0; i<domain_length; i++) {
-                int r, g, b, a;
-                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
-                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
-                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
-                dataBuffer.setElem(i, (r << 24) | (g << 16) | (b << 8) | a);
-              }
-            }
-            else {
-              for (int i=0; i<domain_length; i++) {
-                int r, g, b, a;
-                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
-                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
-                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                a = 255;
-                dataBuffer.setElem(i, (r << 24) | (g << 16) | (b << 8) | a);
-              }
-            }
-
-            WritableRaster raster =
-              new WritableRaster(sampleModel, dataBuffer, new Point(0, 0));
-*/
-
-            texture.setImage(0, image2d);
-
-
-            //
-            // from TextureLoader
-            // TextureLoader uses 3 for both setMinFilter and setMagFilter
-/*
-System.out.println("Texture.FASTEST = " + Texture.FASTEST); // 0
-System.out.println("Texture.NICEST = " + Texture.NICEST); // 1
-System.out.println("Texture.BASE_LEVEL_POINT = " + Texture.BASE_LEVEL_POINT); // 2
-System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); // 3
-*/
-            texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
-            texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
-            texture.setEnable(true);
-            // end of from TextureLoader
-            //
-
-
-            Shape3D shape = new Shape3D(geometry, appearance);
-            appearance.setTexture(texture);
-
-            group.addChild(shape);
+            appearance.image = image;
+            group.addChild(appearance);
 
             // System.out.println("isTextureMap done");
 
@@ -1244,15 +1008,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           }
   
           if (array != null) {
-            // MEM
-            GeometryArray geometry = display.makeGeometry(array);
-            // System.out.println("array.makeGeometry");
-            //  FREE
-            array = null;
             appearance = makeAppearance(mode, constant_alpha,
-                                        constant_color, geometry);
-            Shape3D shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
+                                        constant_color, array);
+            group.addChild(appearance);
             if (renderer instanceof DirectManipulationRendererJ2D) {
               ((DirectManipulationRendererJ2D) renderer).
                                    setSpatialValues(spatial_values);
@@ -1345,7 +1103,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             }
           }
           if (control != null) {
-            VisADGroup branch = new VisADGroup(); // J2D
+            VisADGroup branch = new VisADGroup();
             swit.addChild(branch);
             post |= Range.doTransform(branch, ((Field) data).getSample(i),
                                       range_value_array, default_values, renderer);
@@ -1361,7 +1119,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             // add null Sjape3D as child to maintain order
             VisADGroup branch = new VisADGroup(); // J2D
             swit.addChild(branch);
-            branch.addChild(new Shape3D());
+            branch.addChild(new VisADAppearance());
             // System.out.println("addChild " + i + " of " + domain_length +
             //                    " MISSING");
           }
@@ -1383,12 +1141,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
  
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  public void postProcess(Group group) throws VisADException {
+  public void postProcess(VisADGroup group) throws VisADException {
     if (((ShadowFunctionOrSetType) adaptedShadowType).getFlat()) {
       int LevelOfDifficulty = getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
 /*
-        Group data_group = null;
+        VisADGroup data_group = null;
         // transform AccumulationVector
         group.addChild(data_group);
 */
@@ -1406,12 +1164,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
     }
     AccumulationVector.removeAllElements();
-  }
-
-  private class myWritableRaster extends WritableRaster {
-    myWritableRaster(SampleModel sm, Point p) {
-      super(sm, p);
-    }
   }
 
 }

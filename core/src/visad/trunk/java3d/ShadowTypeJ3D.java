@@ -151,8 +151,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       return true if need post-process;
       this is default (for ShadowTextType) */
   boolean doTransform(Group group, Data data, float[] value_array,
-                             float[] default_values, DataRenderer renderer)
-          throws VisADException, RemoteException { // J3D
+                      float[] default_values, DataRenderer renderer)
+          throws VisADException, RemoteException {
     return false;
   }
 

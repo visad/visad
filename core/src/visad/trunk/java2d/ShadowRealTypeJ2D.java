@@ -73,7 +73,7 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
 
   /** transform data into a Java2D VisADSceneGraphObject;
       return true if need post-process */
-  boolean doTransform(Group group, Data data, float[] value_array,
+  boolean doTransform(VisADGroup group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
@@ -134,7 +134,7 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
       // cannot be any Reference when RealType is terminal
       return terminalTupleOrReal(group, display_values, valueArrayLength,
                                  valueToScalar, default_values,
-                                 inherited_values, renderer); // J2D
+                                 inherited_values, renderer);
     }
     else {
       // nothing to render at a non-terminal RealType
@@ -144,7 +144,7 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Group group) throws VisADException { // J2D
+  void postProcess(VisADGroup group) throws VisADException {
     if (adaptedShadowType.getIsTerminal()) {
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {

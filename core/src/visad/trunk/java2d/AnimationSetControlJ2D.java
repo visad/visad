@@ -35,13 +35,18 @@ import java.rmi.*;
 */
 public class AnimationSetControlJ2D extends AnimationSetControl {
 
+  private VisADCanvasJ2D canvas;
+
   public AnimationSetControlJ2D(DisplayImpl d, AnimationControl p) {
     super(d, p);
+    if (d != null) {
+      canvas = ((DisplayRendererJ2D) d.getDisplayRenderer()).getCanvas();
+    }
   }
 
   public void setSet(Set s) throws VisADException, RemoteException {
     super.setSet(s);
-    // XXX rebuild BufferedImage[] array in DisplayRendererJ2D
+    canvas.createImages(s.getLength());
   }
 
 }

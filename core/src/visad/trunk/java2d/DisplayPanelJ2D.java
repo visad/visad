@@ -36,13 +36,14 @@ public class DisplayPanelJ2D extends JPanel {
   private DisplayImplJ2D display;
   private DisplayRendererJ2D renderer;
 
-  public DisplayPanelJ2D(DisplayImplJ2D d) {
+  public DisplayPanelJ2D(DisplayImplJ2D d)
+         throws VisADException {
     display = d;
     renderer = (DisplayRendererJ2D) display.getDisplayRenderer();
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     setAlignmentY(TOP_ALIGNMENT);
     setAlignmentX(LEFT_ALIGNMENT);
-    Canvas canvas = new VisADCanvasJ2D(renderer, this);
+    VisADCanvasJ2D canvas = new VisADCanvasJ2D(renderer, this);
     add(canvas);
     VisADGroup scene = renderer.createSceneGraph(canvas);
   }

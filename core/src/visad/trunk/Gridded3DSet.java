@@ -3388,8 +3388,13 @@ for (int j=0; j<nvertex; j++) {
                               "ManifoldDimension must be 2");
     }
     if (LengthX < 2 || LengthY < 2) {
+/* WLH 26 June 98
       throw new SetException("Gridded3DSet.make2DGeometry: " +
                               "LengthX and LengthY must be at least 2");
+*/
+      VisADPointArray array = new VisADPointArray();
+      setGeometryArray(array, 4, color_values);
+      return array;
     }
     VisADIndexedTriangleStripArray array =
       new VisADIndexedTriangleStripArray();

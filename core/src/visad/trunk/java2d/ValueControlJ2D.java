@@ -38,15 +38,21 @@ public class ValueControlJ2D extends AVControlJ2D
 
   private double Value;
 
+  private VisADCanvasJ2D canvas;
+
   public ValueControlJ2D(DisplayImplJ2D d) {
     super(d);
     Value = 0.0;
+    if (d != null) {
+      canvas = ((DisplayRendererJ2D) d.getDisplayRenderer()).getCanvas();
+    }
   }
  
   public void setValue(double value)
          throws VisADException, RemoteException {
     Value = value;
     selectSwitches(Value);
+    canvas.scratchImages();
     changeControl(true);
   }
 

@@ -84,7 +84,7 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
 
   /** transform data into a VisADSceneGraphObject;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, float[] value_array,
+  public boolean doTransform(VisADGroup group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
@@ -240,7 +240,7 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
  
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  public void postProcess(Group group) throws VisADException {
+  public void postProcess(VisADGroup group) throws VisADException {
     if (adaptedShadowType.getIsTerminal()) {
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {

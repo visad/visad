@@ -38,6 +38,7 @@ import java.rmi.*;
 public class DirectManipulationRendererJ2D extends RendererJ2D {
 
   VisADGroup branch = null;
+  VisADGroup extra_branch = null;
 
   public DirectManipulationRendererJ2D () {
     super();
@@ -70,21 +71,23 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     }
     array.coordinates = x;
     array.vertexCount = count;
-    DisplayImplJ2D display = (DisplayImplJ2D) getDisplay();
-    GeometryArray geometry = display.makeGeometry(array);
-    VisADAppearance appearance =
-      ShadowTypeJ2D.makeAppearance(display.getGraphicsModeControl(),
-                                   null, null, geometry);
-    Shape3D shape = new Shape3D(geometry, appearance);
-    VisADGroup group = new BranchGroup();
-    group.addChild(shape);
-    branch.addChild(group);
+    VisADAppearance appearance = new VisADAppearance();
+    appearance.red = 1.0f;
+    appearance.green = 1.0f;
+    appearance.blue = 1.0f;
+    appearance.array = array;
+    extra_branch.addChild(appearance);
   }
 
-  /** create a BranchGroup scene graph for Data in links[0] */
+  VisADGroup getExtraBranch() {
+    return extra_branch;
+  }
+
+  /** create a VisADGroup scene graph for Data in links[0] */
   public synchronized VisADGroup doTransform()
          throws VisADException, RemoteException {
     branch = new VisADGroup();
+    extra_branch = new VisADGroup();
  
     DataDisplayLink link = getLinks()[0];
     // values needed by drag_direct, which cannot throw Exceptions
@@ -106,6 +109,7 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     Data data = link.getData();
     if (data == null) {
       branch = null;
+      extra_branch = null;
       addException(
         new DisplayException("DirectManipulationRendererJ2D." +
                              "doTransform: Data is null"));
@@ -118,7 +122,8 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     return branch;
   }
  
-  void addSwitch(DisplayRendererJ2D displayRenderer, BranchGroup branch) {
+  void addSwitch(DisplayRendererJ2D displayRenderer, VisADGroup branch)
+       throws VisADException {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);
   }
 

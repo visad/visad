@@ -310,6 +310,7 @@ compile: clean
 	$(JC) $(JFLAGS) *.java
 	rmic $(RMIC)
 	$(JC) $(JFLAGS) java3d/*.java
+	$(JC) $(JFLAGS) java2d/*.java
 	$(JC) $(JFLAGS) util/*.java
 	-(cd .. && jar xvf ucar.jar)
 	$(JC) $(JFLAGS) data/*.java
@@ -328,7 +329,6 @@ compile: clean
 	-$(JC) $(JFLAGS) paoloa/*.java
 	-$(JC) $(JFLAGS) aune/*.java
 	-(cd examples && $(JC) $(JFLAGS) *.java)
-#	$(JC) $(JFLAGS) java2d/*.java
 
 clean:
 	$(RM) *.class

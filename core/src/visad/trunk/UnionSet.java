@@ -248,7 +248,13 @@ public class UnionSet extends SampledSet {
       for (int j=0; j<dim; j++) {
         for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
       }
-      arrays[i] = (VisADIndexedTriangleStripArray) Sets[i].make2DGeometry(c);
+      VisADGeometryArray array = Sets[i].make2DGeometry(c);
+      if (array instanceof VisADIndexedTriangleStripArray) {
+        arrays[i] = (VisADIndexedTriangleStripArray) array;
+      }
+      else {
+        arrays[i] = null;
+      }
       base += len;
     }
     return VisADIndexedTriangleStripArray.merge(arrays);

@@ -55,14 +55,13 @@ public class VisADCanvasJ2D extends Canvas
 
   private BufferedImage[] images; // animation sequence
   private boolean[] valid_images;
-  private int current_image; // current index into images
   private int width, height; // size of images
   private int length; // length of images & valid_images
   private AffineTransform tgeometry; // transform for current display
 
   MouseHelper helper;
 
-  // wake up flag for render_trigger
+  // wake up flag for renderTrigger
   boolean wakeup = false;
 
   VisADCanvasJ2D(DisplayRendererJ2D renderer, Component c) {
@@ -74,7 +73,6 @@ public class VisADCanvasJ2D extends Canvas
     height = getSize().height;
     images = new BufferedImage[] {(BufferedImage) createImage(width, height)};
     valid_images = new boolean[] {false};
-    current_image = -1;
     tgeometry = null;
 
     ComponentListener cl = new ComponentAdapter() {
@@ -128,7 +126,7 @@ public class VisADCanvasJ2D extends Canvas
       }
       tgeometry = null;
     }
-    render_trigger();
+    renderTrigger();
   }
 
   public void scratchImages() {
@@ -136,11 +134,11 @@ public class VisADCanvasJ2D extends Canvas
       for (int i=0; i<length; i++) valid_images[i] = false;
       tgeometry = null;
     }
-    render_trigger();
+    renderTrigger();
   }
 
-  /** render scene graph into canvas.images[current_image] */
-  public void render_trigger() {
+  /** trigger render to screen */
+  public void renderTrigger() {
     synchronized (this) {
       wakeup = true;
       notify();
@@ -177,7 +175,15 @@ public class VisADCanvasJ2D extends Canvas
   public void paint(Graphics g) {
     BufferedImage image = null;
     boolean valid = false;
-    double w = 0.0, h = 0.0;
+    int w = 0, h = 0;
+    int current_image = -1;
+    try {
+      AnimationControlJ2D control = (AnimationControlJ2D)
+        display.getControl(AnimationControlJ2D.class);
+      current_image = control.getCurrent();
+    }
+    catch (Exception e) {
+    }
     synchronized (images) {
       if (0 <= current_image && current_image < length) {
         image = images[current_image];
@@ -227,7 +233,7 @@ public class VisADCanvasJ2D extends Canvas
         }
       }
       g.drawImage(image, 0, 0, this);
-      displayRenderer.drawCursorStringVector(g);
+      displayRenderer.drawCursorStringVector(g, tgeometry, w, h);
     } // end if (image != null)
   }
 
@@ -250,10 +256,8 @@ public class VisADCanvasJ2D extends Canvas
     else { // scene instanceof VisADAppearance
       VisADAppearance appearance = (VisADAppearance) scene;
       VisADGeometryArray array = appearance.array;
+      if (array == null) return;
       BufferedImage image = (BufferedImage) appearance.image;
-      if (array == null) {
-        throw new VisADError("VisADCanvasJ2D.render: array is null");
-      }
       AffineTransform tg = g2.getTransform();
       if (image != null) {
         if (!(array instanceof VisADQuadArray)) {
@@ -274,33 +278,24 @@ now:
   x00 = m00 * 0 + m01 * 0 + m02
   y00 = m10 * 0 + m11 * 0 + m12
 
-  xw0 = m00 * width + m01 * 0 + m02
-  yw0 = m10 * width + m11 * 0 + m12
+  xw0 = m00 * (width - 1) + m01 * 0 + m02
+  yw0 = m10 * (width - 1) + m11 * 0 + m12
 
-  xwh = m00 * width + m01 * height + m02
-  ywh = m10 * width + m11 * heigth + m12
+  xwh = m00 * (width - 1) + m01 * (height - 1) + m02
+  ywh = m10 * (width - 1) + m11 * (height - 1) + m12
 
-  x0h = m00 * 0 + m01 * height + m02
-  y0h = m10 * 0 + m11 * heigth + m12
+  x0h = m00 * 0 + m01 * (height - 1) + m02
+  y0h = m10 * 0 + m11 * (height - 1) + m12
 so:
-  m02 = x00
-  m12 = y00
-  m00 = (xw0 - x00) / width
-  m10 = (yw0 - y00) / width
-  m01 = (x0h - x00) / height
-  m11 = (y0h - y00) / height
-check by:
-  xwh = m00 * width + m01 * height + m02
-  ywh = m10 * width + m11 * heigth + m12
 */
         float m02 = x00;
         float m12 = y00;
-        float m00 = (xw0 - x00) / width;
-        float m10 = (yw0 - y00) / width;
-        float m01 = (x0h - x00) / height;
-        float m11 = (y0h - y00) / height;
-        float xerr = xwh - (m00 * width + m01 * height + m02);
-        float yerr = ywh - (m10 * width + m11 * height + m12);
+        float m00 = (xw0 - x00) / (width - 1);
+        float m10 = (yw0 - y00) / (width - 1);
+        float m01 = (x0h - x00) / (height - 1);
+        float m11 = (y0h - y00) / (height - 1);
+        float xerr = xwh - (m00 * (width - 1) + m01 * (height - 1) + m02);
+        float yerr = ywh - (m10 * (width - 1) + m11 * (height - 1) + m12);
         AffineTransform timage = new AffineTransform(m00, m10, m01, m11, m02, m12);
         g2.transform(timage); // concatenate timage onto tg
         g2.drawImage(image, 0, 0, this);
@@ -313,7 +308,8 @@ check by:
         float[] colors = array.colors;
         if (colors == null) {
           if (appearance.color_flag) {
-            g2.setColor(new Color(appearance.red, appearance.green, appearance.blue));
+            g2.setColor(new Color(appearance.red, appearance.green,
+                                  appearance.blue));
           }
           else {
             g2.setColor(new Color(1.0f, 1.0f, 1.0f));
@@ -332,7 +328,8 @@ check by:
             tg.inverseTransform(pts, 0, newpts, 0, 3);
           }
           catch (NoninvertibleTransformException e) {
-            throw new VisADError("VisADCanvasJ2D.render: non-invertable transform");
+            throw new VisADError("VisADCanvasJ2D.render: " +
+                                 "non-invertable transform");
           }
           double xx = (newpts[2] - newpts[0]) * (newpts[2] - newpts[0]) +
                       (newpts[3] - newpts[1]) * (newpts[3] - newpts[1]);
@@ -342,25 +339,31 @@ check by:
           if (array instanceof VisADPointArray) {
             if (colors == null) {
               for (int i=0; i<3*count; i += 3) {
-                g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
-                                              size, size));
+                if (coordinates[i] == coordinates[i] &&
+                    coordinates[i+1] == coordinates[i+1]) {
+                  g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
+                                                size, size));
+                }
               }
             }
             else { // colors != null
               int j = 0;
               int jinc = (colors.length == coordinates.length) ? 3 : 4;
               for (int i=0; i<3*count; i += 3) {
-                g2.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
+                if (coordinates[i] == coordinates[i] &&
+                    coordinates[i+1] == coordinates[i+1]) {
+                  g2.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
+                  g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
+                                                size, size));
+                }
                 j += jinc;
-                g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
-                                              size, size));
               }
             }
           }
           else if (array instanceof VisADLineArray) {
             if (Math.abs(dsize - 1.0) < 0.2) {
               if (colors == null) {
-                for (int i=0; i<6*count; i += 6) {
+                for (int i=0; i<3*count; i += 6) {
                   g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
                                            coordinates[i+3], coordinates[i+4]));
                 }
@@ -368,7 +371,7 @@ check by:
               else { // colors != null
                 int j = 0;
                 int jinc = (colors.length == coordinates.length) ? 3 : 4;
-                for (int i=0; i<6*count; i += 6) {
+                for (int i=0; i<3*count; i += 6) {
                   g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
                                         0.5f * (colors[j+1] + colors[j+jinc+1]),
                                         0.5f * (colors[j+2] + colors[j+jinc+2])));
@@ -380,7 +383,7 @@ check by:
             }
             else { // !(Math.abs(dsize - 1.0) < 0.2)
               if (colors == null) {
-                for (int i=0; i<6*count; i += 6) {
+                for (int i=0; i<3*count; i += 6) {
                   float epsx = coordinates[i+4] - coordinates[i+1];
                   float epsy = coordinates[i] - coordinates[i+3];
                   float epsl = (float) Math.sqrt(epsx * epsx + epsy * epsy);
@@ -398,7 +401,7 @@ check by:
               else { // colors != null
                 int j = 0;
                 int jinc = (colors.length == coordinates.length) ? 3 : 4;
-                for (int i=0; i<6*count; i += 6) {
+                for (int i=0; i<3*count; i += 6) {
                   g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]), 
                                         0.5f * (colors[j+1] + colors[j+jinc+1]),
                                         0.5f * (colors[j+2] + colors[j+jinc+2])));
@@ -506,7 +509,7 @@ check by:
         }
         else if (array instanceof VisADTriangleArray) {
           if (colors == null) { 
-            for (int i=0; i<9*count; i += 9) { 
+            for (int i=0; i<3*count; i += 9) { 
               GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
@@ -518,7 +521,7 @@ check by:
           else { // colors != null
             int j = 0; 
             int jinc = (colors.length == coordinates.length) ? 3 : 4;
-            for (int i=0; i<9*count; i += 9) {
+            for (int i=0; i<3*count; i += 9) {
               g2.setColor(new Color(
                 0.33f * (colors[j] + colors[j+jinc] + colors[j+2*jinc]),
                 0.33f * (colors[j+1] + colors[j+jinc+1] + colors[j+2*jinc+1]),
@@ -535,7 +538,7 @@ check by:
         }
         else if (array instanceof VisADQuadArray) {
           if (colors == null) {
-            for (int i=0; i<12*count; i += 12) {
+            for (int i=0; i<3*count; i += 12) {
               GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
@@ -548,7 +551,7 @@ check by:
           else { // colors != null
             int j = 0;
             int jinc = (colors.length == coordinates.length) ? 3 : 4;
-            for (int i=0; i<12*count; i += 12) {
+            for (int i=0; i<3*count; i += 12) {
               g2.setColor(new Color(
                 0.25f * (colors[j] + colors[j+jinc] +
                          colors[j+2*jinc] + colors[j+3*jinc]),

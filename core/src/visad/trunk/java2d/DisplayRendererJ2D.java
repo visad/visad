@@ -96,11 +96,6 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     super();
   }
 
-  /** render scene graph into canvas.images[current_image] */
-  public void render() {
-    // XXX
-  }
-
   public VisADGroup getRoot() {
     return root;
   }
@@ -276,62 +271,93 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
   }
 
+  /** this assumes constant color, and only VisADPointArray or
+      VisADLineArray */
+  private void drawAppearance(Graphics graphics, VisADAppearance appearance,
+                              AffineTransform t) {
+    VisADGeometryArray array = appearance.array;
+    if (array == null) return;
+    graphics.setColor(new Color(appearance.red, appearance.green,
+                                appearance.blue));
+    int count = array.vertexCount;
+    float[] coordinates = array.coordinates;
+    float[] oldcoords = new float[2*count];
+    int j = 0;
+    for (int i=0; i<3*count; i += 3) {
+      oldcoords[j++] = coordinates[i];
+      oldcoords[j++] = coordinates[i+1];
+    }
+    float[] newcoords = new float[2 * count];
+    t.transform(oldcoords, 0, newcoords, 0, count);
+    if (array instanceof VisADPointArray) {
+      for (int i=0; i<2*count; i += 2) {
+        graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                          (int) newcoords[i], (int) newcoords[i+1]);
+      }
+    }
+    else if (array instanceof VisADLineArray) {
+      for (int i=0; i<2*count; i += 4) {
+        graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                          (int) newcoords[i+2], (int) newcoords[i+3]);
+      }
+    }
+    else {
+      throw new VisADError("DisplayRendererJ2D.drawAppearance: " +
+                           "bad VisADGeometryArray type");
+    }
+  }
+
   /** whenever cursorOn or directOn is true, display
       Strings in cursorStringVector */
-  public void drawCursorStringVector(Graphics graphics) {
-    // XXX GraphicsContext3D graphics = canvas.getGraphicsContext3D();
-    // XXX must also display cursor
-    VisADAppearance appearance = new VisADAppearance();
-    appearance.red = 1.0f;
-    appearance.green = 1.0f;
-    appearance.blue = 1.0f;
-    // XXX graphics.setAppearance(appearance);
+  public void drawCursorStringVector(Graphics graphics,
+              AffineTransform tgeometry, int width, int height) {
+    // draw cursor
+    AffineTransform t = new AffineTransform(tgeometry);
+    if (cursorOn) {
+      t.concatenate(cursor_trans);
+      VisADAppearance appearance = null;
+      VisADLineArray array = null;
+      appearance = (VisADAppearance) cursor_on.getChild(0);
+      if (appearance != null) drawAppearance(graphics, appearance, t);
+      t = new AffineTransform(tgeometry);
+    }
 
-    Point3d position1 = new Point3d();
-    Point3d position2 = new Point3d();
-    Point3d position3 = new Point3d();
-    Point3d position4 = new Point3d();
-    canvas.getPixelLocationInImagePlate(1, 10, position1);
-    canvas.getPixelLocationInImagePlate(10, 10, position2);
-    canvas.getPixelLocationInImagePlate(1, 1, position3);
-    canvas.getPixelLocationInImagePlate(10, 1, position4);
-    Transform3D t = new Transform3D();
-    canvas.getImagePlateToVworld(t);
-    t.transform(position1);
-    t.transform(position2);
-    t.transform(position3);
-
-    // draw cursor strings in upper left corner of screen
-    double[] start = {(double) position1.x,
-                      (double) position1.y,
-                      (double) position1.z};
-    double[] base =  {(double) (position2.x - position1.x),
-                      (double) (position2.y - position1.y),
-                      (double) (position2.z - position1.z)};
-    double[] up =    {(double) (position3.x - position1.x),
-                      (double) (position3.y - position1.y),
-                      (double) (position3.z - position1.z)};
-    if (cursorOn || directOn) {
-      Enumeration strings = getCursorStringVector().elements();
-      while(strings.hasMoreElements()) {
-        String string = (String) strings.nextElement();
-        try {
-          VisADLineArray array =
-            PlotText.render_label(string, start, base, up, false);
-          graphics.draw(((DisplayImplJ2D) getDisplay()).makeGeometry(array));
-          start[1] -= 1.2 * up[1];
-        }
-        catch (VisADException e) {
+    // draw direct manipulation extra_branch's
+    Enumeration renderers = directs.elements();
+    while (renderers.hasMoreElements()) {
+      DirectManipulationRendererJ2D r =
+        (DirectManipulationRendererJ2D) renderers.nextElement();
+      VisADGroup extra_branch = r.getExtraBranch();
+      if (extra_branch != null) {
+        Vector children = ((VisADGroup) extra_branch).getChildren();
+        Enumeration childs = children.elements();
+        while (childs.hasMoreElements()) {
+          VisADAppearance child =
+            (VisADAppearance) childs.nextElement();
+          drawAppearance(graphics, child, t);
         }
       }
     }
 
+    // draw cursor strings in upper left corner of screen
+    graphics.setColor(new Color(1.0f, 1.0f, 1.0f));
+    graphics.setFont(new Font("Times New Roman", Font.PLAIN, 10));
+    int x = 1;
+    int y = 10;
+    if (cursorOn || directOn) {
+      Enumeration strings = getCursorStringVector().elements();
+      while(strings.hasMoreElements()) {
+        String string = (String) strings.nextElement();
+        graphics.drawString(string, x, y);
+        y += 12;
+      }
+    }
+
     // draw Exception strings in lower left corner of screen
-    double[] startl = {(double) position3.x,
-                       (double) -position3.y,
-                       (double) position3.z};
+    x = 1;
+    y = height - 2;
     Vector rendererVector = getDisplay().getRendererVector();
-    Enumeration renderers = rendererVector.elements();
+    renderers = rendererVector.elements();
     while (renderers.hasMoreElements()) {
       DataRenderer renderer = (DataRenderer) renderers.nextElement();
       Vector exceptionVector = renderer.getExceptionVector();
@@ -339,25 +365,15 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       while (exceptions.hasMoreElements()) {
         Exception error = (Exception) exceptions.nextElement();
         String string = error.getMessage();
-        try {
-          VisADLineArray array =
-            PlotText.render_label(string, startl, base, up, false);
-          graphics.draw(((DisplayImplJ2D) getDisplay()).makeGeometry(array));
-          startl[1] += 1.2 * up[1];
-        }
-        catch (VisADException e) {
-        }
+        graphics.drawString(string, x, y);
+        y -= 12;
       }
     }
+
+    // draw wait flag in lower left corner of screen
     if (getWaitFlag()) {
-      try {
-        VisADLineArray array =
-          PlotText.render_label("please wait . . .", startl, base, up, false);
-        graphics.draw(((DisplayImplJ2D) getDisplay()).makeGeometry(array));
-        startl[1] += 1.2 * up[1];
-      }
-      catch (VisADException e) {
-      }
+      graphics.drawString("please wait . . .", x, y);
+      y -= 12;
     }
 
     // draw Animation string in upper right corner of screen
@@ -365,18 +381,10 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     if (animation_string != null) {
       int nchars = animation_string.length();
       if (nchars < 12) nchars = 12;
-      double[] starta = {(double) (-position2.x - nchars *
-                                        (position2.x - position1.x)),
-                         (double) position2.y,
-                         (double) position2.z};
-      try {
-        VisADLineArray array =
-          PlotText.render_label(animation_string, starta, base, up, false);
-        graphics.draw(((DisplayImplJ2D) getDisplay()).makeGeometry(array));
-        starta[1] -= 1.2 * up[1];
-      }
-      catch (VisADException e) {
-      }
+      x = width - 9 * nchars;
+      y = 10;
+      graphics.drawString(animation_string, x, y);
+      y += 10;
     }
   }
 
@@ -419,16 +427,14 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
          throws VisADException {
     // add array to scale_on
     // replace any existing at axis, axis_ordinal
-    DisplayImplJ2D display = (DisplayImplJ2D) getDisplay();
-    GeometryArray geometry = display.makeGeometry(array);
-    GraphicsModeControl mode = display.getGraphicsModeControl();
-    ColoringAttributes color = new ColoringAttributes();
-    color.setColor(scale_color[0], scale_color[1], scale_color[2]);
-    VisADAppearance appearance =
-      ShadowTypeJ2D.makeAppearance(mode, null, color, geometry);
-    Shape3D shape = new Shape3D(geometry, appearance);
+    VisADAppearance appearance = new VisADAppearance();
+    appearance.red = scale_color[0];
+    appearance.green = scale_color[1];
+    appearance.blue = scale_color[2];
+    appearance.array = array;
+
     VisADGroup group = new VisADGroup();
-    group.addChild(shape);
+    group.addChild(appearance);
     // may only add VisADGroup to 'live' scale_on
     int dim = getMode2D() ? 2 : 3;
     synchronized (scale_on) {

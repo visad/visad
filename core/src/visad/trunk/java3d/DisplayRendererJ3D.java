@@ -364,11 +364,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     Point3d position1 = new Point3d();
     Point3d position2 = new Point3d();
     Point3d position3 = new Point3d();
-    Point3d position4 = new Point3d();
     canvas.getPixelLocationInImagePlate(1, 10, position1);
     canvas.getPixelLocationInImagePlate(10, 10, position2);
     canvas.getPixelLocationInImagePlate(1, 1, position3);
-    canvas.getPixelLocationInImagePlate(10, 1, position4);
     Transform3D t = new Transform3D();
     canvas.getImagePlateToVworld(t);
     t.transform(position1);
@@ -423,6 +421,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         }
       }
     }
+
+    // draw wait flag in lower left corner of screen
     if (getWaitFlag()) {
       try {
         VisADLineArray array =

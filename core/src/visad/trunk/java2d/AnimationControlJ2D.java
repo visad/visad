@@ -41,9 +41,11 @@ public class AnimationControlJ2D extends AVControlJ2D
   private int current;
   private boolean direction; // true = forward
   private long step; // time in milleseconds between animation steps
-  private AnimationSetControl animationSet;
+  private AnimationSetControlJ2D animationSet;
   private ToggleControl animate;
   private RealType real;
+
+  private VisADCanvasJ2D canvas;
 
   /** AnimationControlJ2D is Serializable, mark as transient */
   private transient Thread animationThread;
@@ -54,18 +56,15 @@ public class AnimationControlJ2D extends AVControlJ2D
     current = 0;
     direction = true;
     step = 100;
-    animationSet = new AnimationSetControlJ2D(d, this);
-    d.addControl(animationSet);
-    animate = new ToggleControl(d, this);
-    d.addControl(animate);
     if (d != null) {
+      canvas = ((DisplayRendererJ2D) d.getDisplayRenderer()).getCanvas();
+      animationSet = new AnimationSetControlJ2D(d, this);
+      d.addControl(animationSet);
+      animate = new ToggleControl(d, this);
+      d.addControl(animate);
       animationThread = new Thread(this);
       animationThread.start();
     }
-  }
-
-  AnimationControlJ2D() {
-    this(null, null);
   }
 
   public void stop() {
@@ -106,6 +105,7 @@ public class AnimationControlJ2D extends AVControlJ2D
 /* WLH 26 June 98
       init();
 */
+      canvas.renderTrigger();
     }
     else {
       current = 0;
@@ -120,11 +120,16 @@ public class AnimationControlJ2D extends AVControlJ2D
 /* WLH 26 June 98
       init();
 */
+      canvas.renderTrigger();
     }
     else {
       current = 0;
     }
     changeControl(true);
+  }
+
+  public int getCurrent() {
+    return current;
   }
 
   public void setDirection(boolean dir)
@@ -150,6 +155,7 @@ public class AnimationControlJ2D extends AVControlJ2D
 /* WLH 26 June 98
       init();
 */
+      canvas.renderTrigger();
     }
     changeControl(true);
   }

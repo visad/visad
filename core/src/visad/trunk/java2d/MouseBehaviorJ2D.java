@@ -29,6 +29,7 @@ import visad.*;
  
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 
 import java.rmi.*;
 import java.awt.*;
@@ -58,90 +59,37 @@ public class MouseBehaviorJ2D implements MouseBehavior {
 
   public VisADRay findRay(int screen_x, int screen_y) {
     // System.out.println("findRay " + screen_x + " " + screen_y);
-    View view = display_renderer.getView();
-    Canvas3D canvas = display_renderer.getCanvas();
-    Point3d position = new Point3d();
-    canvas.getPixelLocationInImagePlate(screen_x, screen_y, position);
-    Point3d eye_position = new Point3d();
-    canvas.getCenterEyeInImagePlate(eye_position);
-    Transform3D t = new Transform3D();
-    canvas.getImagePlateToVworld(t);
-    t.transform(position);
-    t.transform(eye_position);
- 
-    if (display.getGraphicsModeControl().getProjectionPolicy() ==
-        View.PARALLEL_PROJECTION) {
-      eye_position = new Point3d(position.x, position.y,
-                                 position.z + 1.0f);
+    VisADCanvasJ2D canvas = display_renderer.getCanvas();
+    AffineTransform trans = canvas.getTransform();
+    double[] coords = {(float) screen_x, (float) screen_y};
+    double[] newcoords = new double[2];
+    try {
+      trans.inverseTransform(coords, 0, newcoords, 0, 1);
     }
- 
-    TransformGroup trans = display_renderer.getTrans();
-    Transform3D tt = new Transform3D();
-    trans.getTransform(tt);
-    tt.invert();
-    tt.transform(position);
-    tt.transform(eye_position);
- 
-    // new eye_position = 2 * position - old eye_position
-    Vector3d vector = new Vector3d(position.x - eye_position.x,
-                                   position.y - eye_position.y,
-                                   position.z - eye_position.z);
-    vector.normalize();
+    catch (NoninvertibleTransformException e) {
+      throw new VisADError("MouseBehaviorJ2D.findRay: " +
+                           "non-invertable transform");
+    }
+
     VisADRay ray = new VisADRay();
-    ray.position[0] = position.x;
-    ray.position[1] = position.y;
-    ray.position[2] = position.z;
-    ray.vector[0] = vector.x;
-    ray.vector[1] = vector.y;
-    ray.vector[2] = vector.z;
-    // PickRay ray = new PickRay(position, vector);
+    ray.position[0] = newcoords[0];
+    ray.position[1] = newcoords[1];
+    ray.position[2] = 0.0;
+    ray.vector[0] = 0.0;
+    ray.vector[1] = 0.0;
+    ray.vector[2] = -1.0;
     return ray;
   }
 
   public VisADRay cursorRay(double[] cursor) {
-    View view = display_renderer.getView();
-    Canvas3D canvas = display_renderer.getCanvas();
-    // note position already in Vworld coordinates
-    Point3d position = new Point3d(cursor[0], cursor[1], cursor[2]);
-    Point3d eye_position = new Point3d();
-    canvas.getCenterEyeInImagePlate(eye_position);
-    Transform3D t = new Transform3D();
-    canvas.getImagePlateToVworld(t);
-    t.transform(eye_position);
- 
-    TransformGroup trans = display_renderer.getTrans();
-    Transform3D tt = new Transform3D();
-    trans.getTransform(tt);
-    tt.transform(position);
-
-    if (display.getGraphicsModeControl().getProjectionPolicy() ==
-        View.PARALLEL_PROJECTION) {
-      eye_position = new Point3d(position.x, position.y,
-                                 position.z + 1.0f);
-    }
-
-    tt.invert();
-    tt.transform(position);
-    tt.transform(eye_position);
- 
-    // new eye_position = 2 * position - old eye_position
-    Vector3d vector = new Vector3d(position.x - eye_position.x,
-                                   position.y - eye_position.y,
-                                   position.z - eye_position.z);
-    vector.normalize();
     VisADRay ray = new VisADRay();
-    ray.position[0] = eye_position.x;
-    ray.position[1] = eye_position.y;
-    ray.position[2] = eye_position.z;
-    ray.vector[0] = vector.x;
-    ray.vector[1] = vector.y;
-    ray.vector[2] = vector.z;
-    // PickRay ray = new PickRay(eye_position, vector);
+    ray.position[0] = cursor[0];
+    ray.position[1] = cursor[1];
+    ray.position[2] = 0.0;
+    ray.vector[0] = 0.0;
+    ray.vector[1] = 0.0;
+    ray.vector[2] = -1.0;
     return ray;
-  }
-
-  void setWakeup() {
-    wakeupOn(wakeup);
   }
 
   public double[] multiply_matrix(double[] a, double[] b) {

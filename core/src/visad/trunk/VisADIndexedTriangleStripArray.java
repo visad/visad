@@ -46,25 +46,29 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
     int nstrips = 0;
     int n = arrays.length;
     for (int i=0; i<n; i++) {
-      count += arrays[i].indexCount;
-      nind += arrays[i].indices.length;
-      nstrips += arrays[i].stripVertexCounts.length;
+      if (arrays[i] != null) {
+        count += arrays[i].indexCount;
+        nind += arrays[i].indices.length;
+        nstrips += arrays[i].stripVertexCounts.length;
+      }
     }
     int[] indices = new int[nind];
     int[] stripVertexCounts = new int[nstrips];
     nind = 0;
     nstrips = 0;
     for (int i=0; i<n; i++) {
-      int incind = arrays[i].indices.length;
-      int incnstrips = arrays[i].stripVertexCounts.length;
-      for (int j=0; j<incind; j++) {
-        indices[nind + j] = arrays[i].indices[j];
+      if (arrays[i] != null) {
+        int incind = arrays[i].indices.length;
+        int incnstrips = arrays[i].stripVertexCounts.length;
+        for (int j=0; j<incind; j++) {
+          indices[nind + j] = arrays[i].indices[j];
+        }
+        for (int j=0; j<incnstrips; j++) {
+          stripVertexCounts[nstrips + j] = arrays[i].stripVertexCounts[j];
+        }
+        nind += incind;
+        nstrips += incnstrips;
       }
-      for (int j=0; j<incnstrips; j++) {
-        stripVertexCounts[nstrips + j] = arrays[i].stripVertexCounts[j];
-      }
-      nind += incind;
-      nstrips += incnstrips;
     }
     array.indexCount = count;
     array.indices = indices;

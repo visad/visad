@@ -41,11 +41,16 @@ public class ProjectionControlJ2D extends ProjectionControl {
   private transient AffineTransform Matrix;
   private double[] matrix;
 
+  private VisADCanvasJ2D canvas;
+
   public ProjectionControlJ2D(DisplayImpl d) {
     super(d);
     Matrix = new AffineTransform();
     matrix = new double[6];
     Matrix.getMatrix(matrix);
+    if (d != null) {
+      canvas = ((DisplayRendererJ2D) d.getDisplayRenderer()).getCanvas();
+    }
   }
  
   public double[] getMatrix() {
@@ -59,6 +64,7 @@ public class ProjectionControlJ2D extends ProjectionControl {
     System.arraycopy(m, 0, matrix, 0, 6);
     Matrix = new AffineTransform(matrix);
     ((DisplayRendererJ2D) getDisplayRenderer()).setTransform2D(Matrix);
+    canvas.scratchImages();
     changeControl(true);
   }
 
