@@ -243,7 +243,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     super(name, fman, rs, slave, save);
     Parent = parent;
     WidgetFrame = new JFrame("Controls (" + Name + ")");
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, DEBUG, new Runnable() {
       public void run() {
         setHighlighted(false);
       }
@@ -584,7 +584,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
    */
   public synchronized void showWidgetFrame() {
     if (VDisplay == null || CellData.size() == 0) return;
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, DEBUG, new Runnable() {
       public void run() {
         Container jc = VDisplay.getWidgetPanel();
         if (jc != null && jc.getComponentCount() > 0) {
@@ -600,7 +600,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
    * Hides the widgets for altering controls.
    */
   public void hideWidgetFrame() {
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, DEBUG, new Runnable() {
       public void run() {
         WidgetFrame.setVisible(false);
       }
@@ -621,7 +621,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public void setSelected(boolean value) {
     if (Selected == value) return;
     Selected = value;
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, DEBUG, new Runnable() {
       public void run() {
         setHighlighted(Selected);
         if (!Selected) hideWidgetFrame();
@@ -656,7 +656,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
    * Removes all widgets for altering controls and hide widget frame.
    */
   private void clearWidgetFrame() {
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, DEBUG, new Runnable() {
       public void run() {
         WidgetFrame.setVisible(false);
         JPanel pane = new JPanel();
@@ -704,7 +704,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     int type = e.getChangeType();
     if (type == SSCellChangeEvent.DATA_CHANGE) {
       // refresh border color
-      BasicSSCell.invoke(false, new Runnable() {
+      Util.invoke(false, DEBUG, new Runnable() {
         public void run() {
           setHighlighted(Selected);
         }

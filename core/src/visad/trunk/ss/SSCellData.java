@@ -29,6 +29,7 @@ package visad.ss;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.formula.*;
+import visad.util.*;
 
 /**
  * Class for encapsulating all needed information
@@ -275,13 +276,13 @@ public class SSCellData {
    * notify flag is set, and updating display if update flag is set.
    */
   void setErrors(String[] errors, boolean notify, boolean update) {
-    if (BasicSSCell.arraysEqual(this.errors, errors)) return;
+    if (Util.arraysEqual(this.errors, errors)) return;
     this.errors = errors;
     if (update) ssCell.updateDisplay();
     if (notify) {
       try {
         ssCell.sendMessage(BasicSSCell.SET_ERRORS, varName,
-          BasicSSCell.stringsToTuple(errors));
+          DataUtility.stringsToTuple(errors, BasicSSCell.DEBUG));
       }
       catch (RemoteException exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();

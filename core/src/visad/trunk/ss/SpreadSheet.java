@@ -539,7 +539,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       if (line != null) {
         final boolean ssfile = line.equals(SSFileHeader);
         final String filename = dfile;
-        BasicSSCell.invoke(false, new Runnable() {
+        Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
           public void run() {
             try {
               if (ssfile) {
@@ -1181,7 +1181,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         public void doAction() {
           // extract new cell information
           if (getColRowID() != CollabID) {
-            BasicSSCell.invoke(true, new Runnable() {
+            Util.invoke(true, BasicSSCell.DEBUG, new Runnable() {
               public void run() {
                 // update is coming from a different sheet
                 String[][] cellNamesx = getNewCellNames();
@@ -2597,7 +2597,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    * Refreshes spreadsheet cells.
    */
   protected void refreshCells() {
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
       public void run() {
         for (int i=0; i<NumVisX; i++) {
           for (int j=0; j<NumVisY; j++) DisplayCells[i][j].refresh();
@@ -2610,7 +2610,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    * Refreshes check box items in the Options menu.
    */
   protected void refreshOptions() {
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
       public void run() {
         AutoSwitchBox.setState(AutoSwitch);
         AutoDetectBox.setState(AutoDetect);
@@ -2623,7 +2623,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    * Refreshes the "Show controls" menu option and toolbar button.
    */
   protected void refreshShowControls() {
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasControls();
         CellShow.setEnabled(b);
@@ -2637,7 +2637,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    * depending on whether this cell has data.
    */
   protected void refreshMenuCommands() {
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasData();
         FileSave1.setEnabled(b);
@@ -2663,7 +2663,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    * Makes sure the formula bar is displaying up-to-date info.
    */
   protected void refreshFormulaBar() {
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
       public void run() {
         if (FormulaBox.getItemCount() > 0) FormulaBox.removeAllItems();
         String[] varNames = DisplayCells[CurX][CurY].getVariableNames();
@@ -2684,7 +2684,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    * Updates dimension checkbox menu items and toolbar buttons.
    */
   protected void refreshDisplayMenuItems() {
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
       public void run() {
         // update dimension check marks
         int dim = DisplayCells[CurX][CurY].getDimension();
@@ -3865,7 +3865,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     final Component c = parent;
     final String m = msg + (s == null ? "." : (": " + s));
     final String t = title;
-    BasicSSCell.invoke(false, new Runnable() {
+    Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
       public void run() {
         JOptionPane.showMessageDialog(c, m, t, JOptionPane.ERROR_MESSAGE);
       }

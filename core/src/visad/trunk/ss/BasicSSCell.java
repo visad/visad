@@ -115,125 +115,6 @@ public class BasicSSCell extends JPanel
     return Saving > 0;
   }
 
-  // -- Miscellaneous utility methods --
-
-  /**
-   * Converts an array of strings into a VisAD Tuple.
-   */
-  public static Tuple stringsToTuple(String[] s) {
-    try {
-      if (s == null) return null;
-      int len = s.length;
-      if (len == 0) return null;
-      Text[] text = new Text[len];
-      for (int i=0; i<len; i++) text[i] = new Text(s[i]);
-      Tuple tuple = new Tuple(text);
-      return tuple;
-    }
-    catch (VisADException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    catch (RemoteException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    return null;
-  }
-
-  /**
-   * Converts a VisAD tuple into an array of strings.
-   */
-  public static String[] tupleToStrings(Tuple t) {
-    if (t == null) return null;
-    int len = t.getDimension();
-    try {
-      String[] errors = new String[len];
-      for (int i=0; i<len; i++) {
-        Text text = (Text) t.getComponent(i);
-        errors[i] = text.getValue();
-      }
-      return errors;
-    }
-    catch (VisADException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    catch (RemoteException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    return null;
-  }
-
-  /**
-   * Tests whether two arrays are component-wise equal.
-   */
-  public static boolean arraysEqual(Object[] o1, Object[] o2) {
-    // test for null
-    if (o1 == null && o2 == null) return true;
-    if (o1 == null || o2 == null) return false;
-
-    // test for differing lengths
-    if (o1.length != o2.length) return false;
-
-    // test each component
-    for (int i=0; i<o1.length; i++) {
-      if (!o1[i].equals(o2[i])) return false;
-    }
-    return true;
-  }
-
-  /**
-   * Converts a remote Data object to a local Data object.
-   */
-  public static DataImpl makeLocal(Data data) {
-    try {
-      if (data != null) return data.local();
-    }
-    catch (VisADException exc) {
-      if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
-    }
-    catch (RemoteException exc) {
-      if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
-    }
-    return null;
-  }
-
-  /**
-   * Executes the given Runnable object with the Swing event handling thread.
-   */
-  public static void invoke(boolean wait, Runnable r) {
-    if (wait) {
-      // use invokeAndWait
-      if (Thread.currentThread().getName().startsWith("AWT-EventQueue")) {
-        // current thread is the AWT event queue thread; just execute the code
-        r.run();
-      }
-      else {
-        // execute the code with the AWT event thread
-        try {
-          SwingUtilities.invokeAndWait(r);
-        }
-        catch (InterruptedException exc) {
-          if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
-        }
-        catch (InvocationTargetException exc) {
-          if (DEBUG) exc.getTargetException().printStackTrace();
-        }
-      }
-
-      /* CTR: workaround for bizarre Swing issues
-      try {
-        Thread.sleep(100);
-      }
-      catch (InterruptedException exc) {
-        if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
-      }
-      */
-    }
-    else {
-      // use invokeLater
-      SwingUtilities.invokeLater(r);
-    }
-  }
-
   // -- Detect, enable & disable Java3D --
 
   /**
@@ -260,19 +141,9 @@ public class BasicSSCell extends JPanel
     }
     else {
       // test for Java3D availability
-      Possible3D = CanDo3D = false;
-      try {
-        DisplayImplJ3D test = new DisplayImplJ3D("test");
-        Possible3D = CanDo3D = true;
-      }
-      catch (NoClassDefFoundError err) {
-        if (DEBUG) err.printStackTrace();
-      }
-      catch (UnsatisfiedLinkError err) {
+      Possible3D = CanDo3D = Util.canDoJava3D();
+      if (DEBUG && !Possible3D) {
         if (DEBUG) System.err.println("Warning: Java3D library not found");
-      }
-      catch (Exception exc) {
-        if (DEBUG) exc.printStackTrace();
       }
     }
     return CanDo3D;
@@ -674,7 +545,7 @@ public class BasicSSCell extends JPanel
     String m = msg.getString();
     RemoteData data = msg.getData();
     if (DEBUG && DEBUG_LEVEL >= 2) {
-      DataImpl ld = makeLocal(data);
+      DataImpl ld = DataUtility.makeLocal(data, DEBUG);
       System.out.println(Name + "[" + CollabID + "]: received " +
         messages[mid] + " from " + oid + ": msg=" + m + ", data=" +
         (ld == null ? "null" : ld.getClass().getName()));
@@ -693,7 +564,8 @@ public class BasicSSCell extends JPanel
       else if (mid == ADD_SOURCE) {
         // add data from remote RMI_SOURCE or FORMULA_SOURCE
         synchronized (CellData) {
-          int type = (int) ((Real) makeLocal(data)).getValue();
+          int type = (int)
+	    ((Real) DataUtility.makeLocal(data, DEBUG)).getValue();
           addDataSource(0, m, type, false);
         }
       }
@@ -717,7 +589,8 @@ public class BasicSSCell extends JPanel
 
       else if (mid == SET_DIM) {
         // set dimension
-        int dim = (int) ((Real) makeLocal(data)).getValue();
+        int dim = (int)
+	  ((Real) DataUtility.makeLocal(data, DEBUG)).getValue();
         if (m != null) {
           // SET_DIM command originates from client
           if (IsRemote) {
@@ -738,8 +611,8 @@ public class BasicSSCell extends JPanel
 
       else if (mid == SET_ERRORS) {
         // set errors
-        Tuple tuple = (Tuple) makeLocal(data);
-        String[] errors = tupleToStrings(tuple);
+        Tuple tuple = (Tuple) DataUtility.makeLocal(data, DEBUG);
+        String[] errors = DataUtility.tupleToStrings(tuple, DEBUG);
         SSCellData cellData;
         synchronized (CellData) {
           cellData = getCellDataByName(m);
@@ -764,7 +637,8 @@ public class BasicSSCell extends JPanel
           cellData = getCellDataByName(m);
         }
         if (cellData != null) {
-          cellData.setDependencies((Real) makeLocal(data));
+          cellData.setDependencies(
+	    (Real) DataUtility.makeLocal(data, DEBUG));
         }
       }
 
@@ -772,20 +646,24 @@ public class BasicSSCell extends JPanel
         if (m == null) {
           // status report from server
           if (IsRemote && NewClient) {
-            Tuple tuple = (Tuple) makeLocal(data);
+            Tuple tuple = (Tuple) DataUtility.makeLocal(data, DEBUG);
             if (tuple != null) {
               synchronized (CellData) {
                 // add Data objects to cell
                 try {
                   int len = tuple.getDimension();
                   for (int i=0; i<len; i++) {
-                    Tuple t = (Tuple) makeLocal(tuple.getComponent(i));
-                    Real rid = (Real) makeLocal(t.getComponent(0));
+                    Tuple t = (Tuple)
+		      DataUtility.makeLocal(tuple.getComponent(i), DEBUG);
+                    Real rid = (Real)
+		      DataUtility.makeLocal(t.getComponent(0), DEBUG);
                     Data d = t.getComponent(1);
                     DataReferenceImpl ref = new DataReferenceImpl(Name);
                     ref.setData(d);
-                    Text source = (Text) makeLocal(t.getComponent(2));
-                    Real type = (Real) makeLocal(t.getComponent(3));
+                    Text source = (Text)
+		      DataUtility.makeLocal(t.getComponent(2), DEBUG);
+                    Real type = (Real)
+		      DataUtility.makeLocal(t.getComponent(3), DEBUG);
                     addReferenceImpl((int) rid.getValue(), ref, null,
                       source.getValue(), (int) type.getValue(), false, false);
                   }
@@ -1203,7 +1081,7 @@ public class BasicSSCell extends JPanel
           CellImpl lcell = new CellImpl() {
             public void doAction() {
               try {
-                lref.setData(makeLocal(rref.getData()));
+                lref.setData(DataUtility.makeLocal(rref.getData(), DEBUG));
               }
               catch (NullPointerException exc) {
                 if (DEBUG) exc.printStackTrace();
@@ -1835,7 +1713,7 @@ public class BasicSSCell extends JPanel
   public void clearDisplay() throws VisADException, RemoteException {
     if (!DisplayEnabled) return;
     HasDisplay = false;
-    invoke(false, new Runnable() {
+    Util.invoke(false, DEBUG, new Runnable() {
       public void run() {
         removeAll();
         refresh();
@@ -2024,7 +1902,7 @@ public class BasicSSCell extends JPanel
 
         // redraw cell
         final JComponent ec = errorCanvas;
-        invoke(false, new Runnable() {
+        Util.invoke(false, DEBUG, new Runnable() {
           public void run() {
             removeAll();
             add(ec);
@@ -2738,7 +2616,7 @@ public class BasicSSCell extends JPanel
    * linked cells if notify flag is set.
    */
   protected void setErrors(String[] errors, boolean notify) {
-    if (arraysEqual(Errors, errors)) return;
+    if (Util.arraysEqual(Errors, errors)) return;
     Errors = errors;
     updateDisplay();
     if (notify) {
@@ -2828,7 +2706,7 @@ public class BasicSSCell extends JPanel
     }
 
     final JComponent ec = errorCanvas;
-    invoke(true, new Runnable() {
+    Util.invoke(true, DEBUG, new Runnable() {
       public void run() {
         // determine whether VDPanel is already present onscreen
         Component[] c = getComponents();
@@ -3567,6 +3445,41 @@ public class BasicSSCell extends JPanel
    */
   public DataReference getReference() {
     return (getDataCount() > 0 ? getReference(getFirstVariableName()) : null);
+  }
+
+  /**
+   * @deprecated Use visad.DataUtility.stringsToTuple(String[]) instead.
+   */
+  public static Tuple stringsToTuple(String[] s) {
+    return DataUtility.stringsToTuple(s, DEBUG);
+  }
+
+  /**
+   * @deprecated Use visad.DataUtility.tupleToStrings(Tuple) instead.
+   */
+  public static String[] tupleToStrings(Tuple t) {
+    return DataUtility.tupleToStrings(t, DEBUG);
+  }
+
+  /**
+   * @deprecated Use visad.DataUtility.makeLocal(data) instead.
+   */
+  public static DataImpl makeLocal(Data data) {
+    return DataUtility.makeLocal(data, DEBUG && DEBUG_LEVEL >= 3);
+  }
+
+  /**
+   * @deprecated Use visad.Util.arraysEqual(Object[], Object[]) instead.
+   */
+  public static boolean arraysEqual(Object[] o1, Object[] o2) {
+    return Util.arraysEqual(o1, o2);
+  }
+
+  /**
+   * @deprecated Use visad.Util.invoke(boolean, Runnable) instead.
+   */
+  public static void invoke(boolean wait, Runnable r) {
+    Util.invoke(wait, DEBUG, r);
   }
 
 }
