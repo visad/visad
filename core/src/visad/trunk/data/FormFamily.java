@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
 import visad.Data;
+import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;
 
@@ -30,7 +31,7 @@ FormFamily
     /**
      * Save a VisAD data object.
      */
-    public void save(String id, DataImpl data, boolean replace)
+    public void save(String id, Data data, boolean replace)
 	throws BadFormException, RemoteException, IOException, VisADException
     {
 	for (Enumeration e = forms.elements(); e.hasMoreElements(); )
@@ -53,7 +54,7 @@ FormFamily
     /**
      * Add data to an existing data object.
      */
-    public void add(String id, DataImpl data, boolean replace)
+    public void add(String id, Data data, boolean replace)
 	throws BadFormException
     {
 	for (Enumeration e = forms.elements(); e.hasMoreElements(); )
