@@ -67,6 +67,7 @@ public class Test26
     map1lon.setScaleEnable(false);
     dpys[0].addMap(map1lon);
     ScalarMap map1vis = new ScalarMap(vis_radiance, Display.ZAxis);
+    map1vis.setUnderscoreToBlank(true);
     dpys[0].addMap(map1vis);
     dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
     dpys[0].addMap(new ConstantMap(0.5, Display.Blue));

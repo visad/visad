@@ -83,6 +83,7 @@ public class ScalarMap extends Object
   private boolean back_scale_flag = false;
   private float[] scale_color = {1.0f, 1.0f, 1.0f};
   private boolean scale_on = true;
+  private boolean underscore_to_blank = false;
 
   /** Vector of ScalarMapListeners */
   private transient Vector ListenerVector = new Vector();
@@ -568,6 +569,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
 
+  public void setUnderscoreToBlank(boolean u2b) {
+    underscore_to_blank = u2b;
+  }
+
   private static final double SCALE = 0.06;
   private static final double OFFSET = 1.05;
 
@@ -688,7 +693,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
 
     // draw RealType name
-    arrays[1] = PlotText.render_label(Scalar.getName(), startlabel,
+    String label_name = Scalar.getName();
+    if (underscore_to_blank) {
+      label_name = label_name.replace('_', ' ');
+    }
+    arrays[1] = PlotText.render_label(label_name, startlabel,
                                       base, up, true);
 /* WLH 26 July 99
     // draw number at bottom tick mark
