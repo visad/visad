@@ -63,8 +63,8 @@ public class AreaAdapter {
   /** Create a VisAD FlatField from a local McIDAS AREA file using
     * the subsecting information
     * @param imageSource name of local file or a URL to locate file.
-    * @param startLine starting line from the file
-    * @param startEle starting element from the file
+    * @param startLine starting line from the file (AREA coordinates)
+    * @param startEle starting element from the file (AREA coordinates)
     * @param numLines number of lines to read
     * @param numEles number of elements to read
     * @exception IOException if there was a problem reading the file.
@@ -81,8 +81,8 @@ public class AreaAdapter {
   /** Create a VisAD FlatField from a local McIDAS AREA subsected
     * according to the parameters
     * @param imageSource name of local file or a URL to locate file.
-    * @param startLine starting line from the file
-    * @param startEle starting element from the file
+    * @param startLine starting line from the file (AREA coordinates)
+    * @param startEle starting element from the file (AREA coordinates)
     * @param numLines number of lines to read
     * @param numEles number of elements to read
     * @param band band number to get
@@ -143,10 +143,8 @@ public class AreaAdapter {
     if (band != 0) { // specific bands requested
         bandIndices[0] = -1;
         for (int i = 0; i < numBands; i++) {
-           System.out.println("band number = " + bandNums[i]);
            if (band == bandNums[i]) {
               bandIndices[0] = i;
-              System.out.println("found band " + band + " at index " + i);
               break;
            }
         }
@@ -178,32 +176,12 @@ public class AreaAdapter {
     // from (ele,lin) -> (lat,lon)
     try
     {
-        // adjust the directory if a subsection was requested
+        // adjust the directory in case a subsection was requested
         int[] dirBlock = (int[]) areaDirectory.getDirectoryBlock().clone();
-        /*
-        System.out.println("startLine = " + startLine +
-                           " startEle  = " + startEle +
-                           " numLines  = " + numLines +
-                           " nLines  = " + nLines +
-                           " numEles  = " + numEles +
-                           " nEles  = " + nEles +
-                           " linMag  = " + dirBlock[11] +
-                           " eleMag  = " + dirBlock[12]);
-        System.out.println("before change, startLine = " + dirBlock[5] +
-                            " startEle = " + dirBlock[6] +
-                            " numLines = " + dirBlock[8] +
-                            " numEles = " + dirBlock[9]);
-        */
         dirBlock[5] = dirBlock[5] + (startLine * dirBlock[11]);
         dirBlock[6] = dirBlock[6] + (startEle  * dirBlock[12]);
         dirBlock[8] = nLines;
         dirBlock[9] = nEles;
-        /*
-        System.out.println("after change, startLine = " + dirBlock[5] +
-                            " startEle = " + dirBlock[6] +
-                            " numLines = " + dirBlock[8] +
-                            " numEles = " + dirBlock[9]);
-        */
         cs = new AREACoordinateSystem(
                 RealTupleType.LatitudeLongitudeTuple,
                 dirBlock,
@@ -223,11 +201,6 @@ public class AreaAdapter {
     //  whereas in VisAD, it is at the bottom.  So define the
     //  domain set of the FlatField to map the Y axis accordingly
 
-    /*
-    Linear2DSet domain_set = new Linear2DSet(image_domain,
-                                startEle, startEle + (nEles - 1), nEles,
-                                startLine + (nLines - 1), startLine, nLines );
-    */
     Linear2DSet domain_set = new Linear2DSet(image_domain,
                                 0, (nEles - 1), nEles,
                                 (nLines - 1), 0, nLines );
@@ -271,12 +244,12 @@ public class AreaAdapter {
         for (int i=0; i<nLines; i++) {
           for (int j=0; j<nEles; j++) {
 
+            int val = int_samples[bandIndices[b]][startLine+i][startEle+j];
             samples[b][j + (nEles * i) ] =
                (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT") &&
-                int_samples[b][i][j] == 255)
+                val == 255)
                    ? 254.0f                   // push 255 into 254 for BRIT
-                   : (float)
-                       int_samples[bandIndices[b]][startLine+i][startEle+j];
+                   : (float) val;
           }
         }
       }
@@ -327,6 +300,11 @@ public class AreaAdapter {
    * @return image as a FlatField
    */
   public FlatField getData() {
+    if (field.getRangeDimension() == 1) {
+       try {
+           return (FlatField) getImage();
+       } catch (VisADException ve) { ve.printStackTrace();}
+    } 
     return field;
   }
 
