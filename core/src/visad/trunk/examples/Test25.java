@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -52,10 +46,7 @@ public class Test25
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": CMY";
-  }
+  public String toString() { return ": CMY"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

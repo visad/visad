@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 

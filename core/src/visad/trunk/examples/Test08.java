@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -55,10 +49,7 @@ public class Test08
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": offset";
-  }
+  public String toString() { return ": offset"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -11,7 +5,7 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test38
-	extends TestSkeleton
+	extends UISkeleton
 {
   public Test38() { }
 
@@ -48,15 +42,6 @@ public class Test38
     control1contour = (ContourControl) map1contour.getControl();
     control1contour.enableContours(true);
 
-    JFrame jframe = new JFrame("irregular contours in Java2D");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    jframe.setContentPane((JPanel) display1.getComponent());
-    jframe.pack();
-    jframe.setVisible(true);
-
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
@@ -66,6 +51,8 @@ public class Test38
 
     return dpys;
   }
+
+  String getFrameTitle() { return "irregular contours in Java2D"; }
 
   public String toString()
   {

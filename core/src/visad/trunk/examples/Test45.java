@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -11,7 +5,7 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test45
-	extends TestSkeleton
+	extends UISkeleton
 {
   public Test45() { }
 
@@ -61,25 +55,15 @@ public class Test45
     ref_text_field.setData(text_field);
     display1.addReference(ref_text_field, null);
 
-    JFrame jframe = new JFrame("text in Java3D");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    jframe.setContentPane((JPanel) display1.getComponent());
-    jframe.pack();
-    jframe.setVisible(true);
-
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = display1;
 
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": text in Java3D";
-  }
+  String getFrameTitle() { return "text in Java3D"; }
+
+  public String toString() { return ": text in Java3D"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

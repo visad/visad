@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -12,8 +8,10 @@ import visad.util.VisADSlider;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test19
-	extends TestSkeleton
+	extends UISkeleton
 {
+  VisADSlider slider;
+
   public Test19() { }
 
   public Test19(String args[])
@@ -72,7 +70,7 @@ public class Test19
 
     final DataReference value_ref = new DataReferenceImpl("value");
 
-    VisADSlider slider =
+    slider =
       new VisADSlider("value", 0, 100, 0, 0.01, value_ref, RealType.Generic);
 
     DisplayImpl display1;
@@ -101,27 +99,17 @@ public class Test19
     };
     cell.addReference(value_ref);
 
-    JFrame jframe = new JFrame("VisAD select slider");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BorderLayout());
-    big_panel.add("Center", slider);
-    jframe.setContentPane(big_panel);
-    jframe.setSize(300, 60);
-    jframe.setVisible(true);
-
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = display1;
 
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": SelectValue";
-  }
+  String getFrameTitle() { return "VisAD select slider"; }
+
+  Component getSpecialComponent() { return slider; }
+
+  public String toString() { return ": SelectValue"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -1,8 +1,11 @@
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 
-import java.awt.event.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import java.rmi.RemoteException;
 
@@ -14,6 +17,8 @@ import visad.util.ContourWidget;
 public class Test37
 	extends TestSkeleton
 {
+  ContourWidget cw;
+
   private boolean reverse = false;
 
   public Test37() { }
@@ -62,31 +67,10 @@ public class Test37
     ScalarMap map1contour;
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     display1.addMap(map1contour);
-    ContourWidget cw = new ContourWidget(map1contour);
+    cw = new ContourWidget(map1contour);
 
     GraphicsModeControl mode = display1.getGraphicsModeControl();
     mode.setScaleEnable(true);
-
-    JFrame jframe = new JFrame("regular contours in Java2D");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    jframe.setContentPane((JPanel) display1.getComponent());
-    jframe.pack();
-    jframe.setVisible(true);
-
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BorderLayout());
-    big_panel.add("Center", cw);
-
-    JFrame jframe2 = new JFrame("VisAD contour controls");
-    jframe2.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-    jframe2.setContentPane(big_panel);
-    jframe2.pack();
-    jframe2.setVisible(true);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
@@ -96,6 +80,37 @@ public class Test37
     dpys[0] = display1;
 
     return dpys;
+  }
+
+  private String getFrameTitle0() { return "regular contours in Java2D"; }
+
+  private String getFrameTitle1() { return "VisAD contour controls"; }
+
+  void setupUI(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    JFrame jframe  = new JFrame(getFrameTitle0());
+    jframe.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    jframe.setContentPane((JPanel) dpys[0].getComponent());
+    jframe.pack();
+    jframe.setVisible(true);
+
+    JPanel big_panel = new JPanel();
+    big_panel.setLayout(new BorderLayout());
+    big_panel.add("Center", cw);
+
+    JFrame jframe2  = new JFrame(getFrameTitle1());
+    jframe2.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    jframe2.setContentPane(big_panel);
+    jframe2.pack();
+    jframe2.setVisible(true);
+
   }
 
   public String toString()

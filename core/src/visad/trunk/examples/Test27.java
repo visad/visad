@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -152,10 +148,7 @@ public class Test27
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": interactive scale";
-  }
+  public String toString() { return ": interactive scale"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -1,10 +1,13 @@
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Graphics;
 
 import java.awt.image.BufferedImage;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import java.rmi.RemoteException;
 
@@ -46,19 +49,19 @@ public class Test52
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
 
-/*
-    JFrame jframe = new JFrame("capture image in Java2D");
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = display1;
+
+    return dpys;
+  }
+
+  String getFrameTitle() { return "captured image from Java2D"; }
+
+  void setupUI(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    JFrame jframe  = new JFrame(getFrameTitle());
     jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    jframe.setContentPane((JPanel) display1.getComponent());
-    jframe.pack();
-    jframe.setVisible(true);
-*/
-
-    JFrame jframe1 = new JFrame("captured image from Java2D");
-    jframe1.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
 
@@ -66,14 +69,14 @@ public class Test52
     panel1.setLayout(new BoxLayout(panel1, BoxLayout.X_AXIS));
     panel1.setAlignmentY(JPanel.TOP_ALIGNMENT);
     panel1.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    jframe1.setContentPane(panel1);
-    jframe1.pack();
-    jframe1.setVisible(true);
-    jframe1.setSize(300, 300);
+    jframe.setContentPane(panel1);
+    jframe.pack();
+    jframe.setVisible(true);
+    jframe.setSize(300, 300);
 
     while (true) {
       Graphics gp = panel1.getGraphics();
-      BufferedImage image = display1.getImage();
+      BufferedImage image = dpys[0].getImage();
       gp.drawImage(image, 0, 0, panel1);
       gp.dispose();
       try {
@@ -82,11 +85,6 @@ public class Test52
       catch (InterruptedException e) {
       }
     }
-
-//    DisplayImpl[] dpys = new DisplayImpl[1];
-//    dpys[0] = display1;
-
-//    return dpys;
   }
 
   public String toString()

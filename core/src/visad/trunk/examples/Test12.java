@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -12,8 +8,10 @@ import visad.util.LabeledRGBWidget;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test12
-	extends TestSkeleton
+	extends UISkeleton
 {
+  LabeledRGBWidget lw;
+
   public Test12() { }
 
   public Test12(String args[])
@@ -45,19 +43,7 @@ public class Test12
     ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGB);
     display1.addMap(color1map);
 
-    LabeledRGBWidget lw =
-      new LabeledRGBWidget(color1map, 0.0f, 32.0f);
-
-    JFrame jframe = new JFrame("VisAD Color Widget");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BorderLayout());
-    big_panel.add("Center", lw);
-    jframe.setContentPane(big_panel);
-    jframe.pack();
-    jframe.setVisible(true);
+    lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
@@ -69,10 +55,11 @@ public class Test12
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": 2-D surface and ColorWidget";
-  }
+  String getFrameTitle() { return "VisAD Color Widget"; }
+
+  Component getSpecialComponent() { return lw; }
+
+  public String toString() { return ": 2-D surface and ColorWidget"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

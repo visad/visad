@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -13,8 +9,10 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.SelectRangeWidget;
 
 public class Test21
-	extends TestSkeleton
+	extends UISkeleton
 {
+  SelectRangeWidget srw;
+
   public Test21() { }
 
   public Test21(String args[])
@@ -37,11 +35,6 @@ public class Test21
     int size = 64;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
-    JFrame jframe = new JFrame("VisAD select range slider");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
     DisplayImpl display1;
     display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
     display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
@@ -58,14 +51,7 @@ public class Test21
     mode.setPointSize(2.0f);
     mode.setPointMode(false);
 
-    SelectRangeWidget srw = new SelectRangeWidget(range1map, 0.0f, 64.0f);
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BorderLayout());
-    big_panel.add("Center", srw);
-    jframe.setContentPane(big_panel);
-    jframe.pack();
-    jframe.setVisible(true);
-
+    srw = new SelectRangeWidget(range1map, 0.0f, 64.0f);
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
@@ -76,10 +62,11 @@ public class Test21
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": SelectRange and SelectRangeWidget";
-  }
+  String getFrameTitle() { return "VisAD select range slider"; }
+
+  Component getSpecialComponent() { return srw; }
+
+  public String toString() { return ": SelectRange and SelectRangeWidget"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

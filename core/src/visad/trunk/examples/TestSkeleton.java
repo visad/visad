@@ -1,27 +1,7 @@
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-
-import java.awt.Component;
-import java.awt.Container;
-
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 
 import visad.DisplayImpl;
-import visad.RemoteDataReferenceImpl;
-import visad.RemoteDisplay;
-import visad.RemoteDisplayImpl;
-import visad.RemoteServer;
-import visad.RemoteServerImpl;
 import visad.VisADException;
-
-import visad.java2d.DisplayImplJ2D;
-
-import visad.java3d.DisplayImplJ3D;
 
 public abstract class TestSkeleton
 	extends Thread
@@ -180,6 +160,11 @@ public abstract class TestSkeleton
     }
   }
 
+  void setupUI(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+  }
+
   void start(boolean dumpDpy)
 	throws VisADException, RemoteException
   {
@@ -189,6 +174,8 @@ public abstract class TestSkeleton
 	dumpDisplayImpl(displays[i], "Display#" + i);
       }
     }
+
+    setupUI(displays);
   }
 
   public String toString()

@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -11,7 +5,7 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test46
-	extends TestSkeleton
+	extends UISkeleton
 {
   public Test46() { }
 
@@ -94,25 +88,15 @@ public class Test46
     ref_histogram1.setData(histogram1);
     display1.addReference(ref_histogram1, null);
 
-    JFrame jframe = new JFrame("shape in Java2D");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    jframe.setContentPane((JPanel) display1.getComponent());
-    jframe.pack();
-    jframe.setVisible(true);
-
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = display1;
 
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": shape in Java2D";
-  }
+  String getFrameTitle() { return "shape in Java2D"; }
+
+  public String toString() { return ": shape in Java2D"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

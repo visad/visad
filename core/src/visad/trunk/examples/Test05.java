@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -12,8 +8,10 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.ContourWidget;
 
 public class Test05
-	extends TestSkeleton
+	extends UISkeleton
 {
+  ContourWidget cw;
+
   public Test05() { }
 
   public Test05(String args[])
@@ -48,28 +46,20 @@ public class Test05
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     display1.addMap(map1contour);
 
-    ContourWidget cw = new ContourWidget(map1contour);
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BorderLayout());
-    big_panel.add("Center", cw);
-
+    cw = new ContourWidget(map1contour);
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
-
-    JFrame jframe = new JFrame("VisAD contour controls");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-    jframe.setContentPane(big_panel);
-    jframe.pack();
-    jframe.setVisible(true);
 
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = display1;
 
     return dpys;
   }
+
+  String getFrameTitle() { return "VisAD contour controls"; }
+
+  Component getSpecialComponent() { return cw; }
 
   public String toString()
   {

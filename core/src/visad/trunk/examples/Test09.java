@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -13,7 +9,7 @@ import visad.data.gif.GIFForm;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test09
-	extends TestSkeleton
+	extends UISkeleton
 {
   private String fileName = null;
 
@@ -69,20 +65,13 @@ public class Test09
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
 
-    JFrame jframe = new JFrame("GIF / JPEG in Java2D");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    jframe.setContentPane((JPanel) display1.getComponent());
-    jframe.pack();
-    jframe.setVisible(true);
-
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = display1;
 
     return dpys;
   }
+
+  String getFrameTitle() { return "GIF / JPEG in Java2D"; }
 
   public String toString()
   {

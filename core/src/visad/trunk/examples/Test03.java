@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -12,8 +8,10 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.AnimationWidget;
 
 public class Test03
-	extends TestSkeleton
+	extends UISkeleton
 {
+  AnimationWidget aw;
+
   public Test03() { }
 
   public Test03(String args[])
@@ -83,29 +81,21 @@ public class Test03
     ScalarMap map1animation = new ScalarMap(RealType.Time, Display.Animation);
     display1.addMap(map1animation);
 
-    AnimationWidget aw = new AnimationWidget(map1animation, 3000);
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BorderLayout());
-    big_panel.add("Center", aw);
-
+    aw = new AnimationWidget(map1animation, 3000);
     DataReferenceImpl ref_big_tuple =
       new DataReferenceImpl("ref_big_tuple");
     ref_big_tuple.setData(big_tuple);
     display1.addReference(ref_big_tuple, null);
-
-    JFrame jframe = new JFrame("VisAD animation controls");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-    jframe.setContentPane(big_panel);
-    jframe.pack();
-    jframe.setVisible(true);
 
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = display1;
 
     return dpys;
   }
+
+  String getFrameTitle() { return "VisAD animation controls"; }
+
+  Component getSpecialComponent() { return aw; }
 
   public String toString()
   {

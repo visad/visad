@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -55,10 +49,7 @@ public class Test48
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": 2-D surface and ConstantMap colors";
-  }
+  public String toString() { return ": 2-D surface and ConstantMap colors"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

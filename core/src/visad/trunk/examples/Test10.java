@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -119,10 +115,7 @@ public class Test10
     return dpys;
   }
 
-  public String toString()
-  {
-    return " file_name: netCDF adapter";
-  }
+  public String toString() { return " file_name: netCDF adapter"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -12,8 +8,10 @@ import visad.util.LabeledRGBAWidget;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test20
-	extends TestSkeleton
+	extends UISkeleton
 {
+  LabeledRGBAWidget lwa;
+
   public Test20() { }
 
   public Test20(String args[])
@@ -47,19 +45,7 @@ public class Test20
     ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGBA);
     display1.addMap(color1map);
 
-    LabeledRGBAWidget lwa =
-      new LabeledRGBAWidget(color1map, 0.0f, 32.0f);
-
-    JFrame jframe = new JFrame("VisAD Color Alpha Widget");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BorderLayout());
-    big_panel.add("Center", lwa);
-    jframe.setContentPane(big_panel);
-    jframe.pack();
-    jframe.setVisible(true);
+    lwa = new LabeledRGBAWidget(color1map, 0.0f, 32.0f);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
@@ -71,10 +57,11 @@ public class Test20
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": 2-D surface and ColorAlphaWidget";
-  }
+  String getFrameTitle0() { return "VisAD Color Alpha Widget"; }
+
+  Component getSpecialComponent() { return lwa; }
+
+  public String toString() { return ": 2-D surface and ColorAlphaWidget"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

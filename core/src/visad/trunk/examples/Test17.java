@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -55,10 +49,7 @@ public class Test17
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": constant transparency";
-  }
+  public String toString() { return ": constant transparency"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

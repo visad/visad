@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -14,7 +8,7 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java2d.DirectManipulationRendererJ2D;
 
 public class Test35
-	extends TestSkeleton
+	extends UISkeleton
 {
   public Test35() { }
 
@@ -80,27 +74,14 @@ public class Test35
     display2.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
     display2.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
 
-    JFrame jframe = new JFrame("Java3D -- Java2D direct manipulation");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
-    big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    big_panel.add(display1.getComponent());
-    big_panel.add(display2.getComponent());
-    jframe.setContentPane(big_panel);
-    jframe.pack();
-    jframe.setVisible(true);
-
     DisplayImpl[] dpys = new DisplayImpl[2];
     dpys[0] = display1;
     dpys[1] = display2;
 
     return dpys;
   }
+
+  String getFrameTitle() { return "Java3D -- Java2D direct manipulation"; }
 
   public String toString()
   {

@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -98,10 +92,7 @@ public class Test18
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": Animation different time extents";
-  }
+  public String toString() { return ": Animation different time extents"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -61,10 +55,7 @@ public class Test31
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": scatter diagram";
-  }
+  public String toString() { return ": scatter diagram"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -1,8 +1,12 @@
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 
-import java.awt.event.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import java.rmi.RemoteException;
 
@@ -16,6 +20,8 @@ import visad.java2d.DisplayImplJ2D;
 public class Test39
 	extends TestSkeleton
 {
+  LabeledRGBWidget lw;
+
   public Test39() { }
 
   public Test39(String args[])
@@ -45,27 +51,10 @@ public class Test39
     ScalarMap color1map = new ScalarMap(vis_radiance, Display.RGB);
     display1.addMap(color1map);
 
-    LabeledRGBWidget lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f);
+    lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f);
 
     ((DisplayRendererJ2D) display1.getDisplayRenderer()).getCanvas().
       setPreferredSize(new Dimension(256, 256));
-
-    JFrame jframe = new JFrame("VisAD Color Widget in Java2D");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    JPanel big_panel = new JPanel();
-    big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
-    big_panel.add(lw);
-    JPanel lil_panel = new JPanel();
-    lil_panel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
-    lil_panel.setLayout(new BorderLayout());
-    lil_panel.add("Center", display1.getComponent());
-    big_panel.add(lil_panel);
-    jframe.setContentPane(big_panel);
-    jframe.setSize(400, 600);
-    jframe.setVisible(true);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
@@ -75,6 +64,32 @@ public class Test39
     dpys[0] = display1;
 
     return dpys;
+  }
+
+  String getFrameTitle() { return "VisAD Color Widget in Java2D"; }
+
+  void setupUI(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    JFrame jframe  = new JFrame(getFrameTitle());
+    jframe.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    JPanel lil_panel = new JPanel();
+    lil_panel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
+    lil_panel.setLayout(new BorderLayout());
+    lil_panel.add("Center", dpys[0].getComponent());
+
+    JPanel big_panel = new JPanel();
+    big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
+    big_panel.add(lw);
+    big_panel.add(lil_panel);
+
+    jframe.setContentPane(big_panel);
+    jframe.setSize(400, 600);
+    jframe.setVisible(true);
+
   }
 
   public String toString()

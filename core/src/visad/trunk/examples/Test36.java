@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -11,7 +5,7 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test36
-	extends TestSkeleton
+	extends UISkeleton
 {
   public Test36() { }
 
@@ -51,15 +45,6 @@ public class Test36
     // display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
     display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
 
-    JFrame jframe = new JFrame("polar coordinates in Java2D");
-    jframe.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    jframe.setContentPane((JPanel) display1.getComponent());
-    jframe.pack();
-    jframe.setVisible(true);
-
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
@@ -70,10 +55,9 @@ public class Test36
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": polar coordinates in Java2D";
-  }
+  String getFrameTitle() { return "polar coordinates in Java2D"; }
+
+  public String toString() { return ": polar coordinates in Java2D"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

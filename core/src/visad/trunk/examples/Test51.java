@@ -1,8 +1,12 @@
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
 
-import java.awt.event.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import java.awt.image.BufferedImage;
 
@@ -47,12 +51,23 @@ public class Test51
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
 
-    JFrame jframe = new JFrame("capture image in Java3D");
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = display1;
+
+    return dpys;
+  }
+
+  String getFrameTitle() { return "capture image in Java3D"; }
+
+  void setupUI(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    JFrame jframe  = new JFrame(getFrameTitle());
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
 
-    jframe.setContentPane((JPanel) display1.getComponent());
+    jframe.setContentPane((JPanel) dpys[0].getComponent());
     jframe.pack();
     jframe.setVisible(true);
 
@@ -72,7 +87,7 @@ public class Test51
 
     while (true) {
       Graphics gp = panel1.getGraphics();
-      BufferedImage image = display1.getImage();
+      BufferedImage image = dpys[0].getImage();
       gp.drawImage(image, 0, 0, panel1);
       gp.dispose();
       try {
@@ -81,17 +96,9 @@ public class Test51
       catch (InterruptedException e) {
       }
     }
-
-//    DisplayImpl[] dpys = new DisplayImpl[1];
-//    dpys[0] = display1;
-
-//    return dpys;
   }
 
-  public String toString()
-  {
-    return ": test image capture in Java3D";
-  }
+  public String toString() { return ": test image capture in Java3D"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

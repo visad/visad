@@ -1,8 +1,4 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
+import java.awt.Component;
 
 import java.rmi.RemoteException;
 
@@ -95,10 +91,7 @@ public class Test32
     return dpys;
   }
 
-  public String toString()
-  {
-    return " file_name: FITS adapter";
-  }
+  public String toString() { return " file_name: FITS adapter"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

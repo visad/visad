@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -54,10 +48,7 @@ public class Test29
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": 2-D irregular surface";
-  }
+  public String toString() { return ": 2-D irregular surface"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

@@ -1,9 +1,3 @@
-import javax.swing.*;
-
-import java.awt.*;
-
-import java.awt.event.*;
-
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -77,10 +71,7 @@ public class Test30
     return dpys;
   }
 
-  public String toString()
-  {
-    return ": time stack";
-  }
+  public String toString() { return ": time stack"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException
