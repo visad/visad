@@ -146,8 +146,18 @@ public class SelectRangeWidget extends RangeSlider
   }
 
   private float[] widenRange(float lo, float hi) {
-    float widen = 0.001f * (hi - lo);
-    return new float[] {lo - widen, hi + widen};
+    float newLo = lo;
+    float newHi = hi;
+
+    if( ( hi - lo ) > 0. ) {
+      newLo = (float)Math.floor( lo );
+      newHi = (float)Math.ceil( hi );
+    }
+    else {
+      newLo = (float)Math.ceil( lo );
+      newHi = (float)Math.floor( hi );
+    }
+    return new float[] { newLo, newHi };
   }
 
   /** ScalarMapListener method used with delayed auto-scaling. */
