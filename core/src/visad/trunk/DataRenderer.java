@@ -245,6 +245,18 @@ DisplayImpl.printStack("prepareAction");
     return shadow;
   }
 
+  public DataShadow computeRanges(Data data, ShadowType type, DataShadow shadow)
+         throws VisADException, RemoteException {
+    if (shadow == null) {
+      shadow =
+        data.computeRanges(type, display.getScalarCount());
+    }
+    else {
+      shadow = data.computeRanges(type, shadow);
+    }
+    return shadow;
+  }
+
   /** clear scene graph component */
   public abstract void clearBranch();
 

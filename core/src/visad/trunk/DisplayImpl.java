@@ -138,6 +138,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   // Support for printing
   private Printable printer;
 
+  private boolean cluster = false; // WLH 7 Dec 2000
+
   /** constructor with non-default DisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
          throws VisADException, RemoteException {
@@ -164,13 +166,15 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** construct DisplayImpl from RemoteDisplay */
   public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer)
          throws VisADException, RemoteException {
-    this(rmtDpy, renderer, true);
+    this(rmtDpy, renderer, false);
   }
 
   public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer,
-                     boolean link_to_data)
+                     boolean cl)
          throws VisADException, RemoteException {
     super(rmtDpy.getName());
+
+    cluster = cl;
 
     // get class used for remote display
     String className = rmtDpy.getDisplayClassName();
@@ -194,8 +198,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       DisplayRealTypeVector.addElement(DisplayRealArray[i]);
     }
 
-    displayMonitor = new DisplayMonitorImpl(this);
-    displaySync = new DisplaySyncImpl(this, link_to_data); // WLH 6 Dec 2000
+    displayMonitor = new DisplayMonitorImpl(this, cluster); // WLH 7 Dec 2000
+    displaySync = new DisplaySyncImpl(this, cluster); // WLH 7 Dec 2000
 
     if (renderer != null) {
       displayRenderer = renderer;
@@ -376,7 +380,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
-/* WLH 6 Dec 2000
   // suck in any remote data associated with this Display
   protected void syncRemoteData(RemoteDisplay rmtDpy)
     throws VisADException, RemoteException
@@ -384,38 +387,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     copyScalarMaps(rmtDpy);
     copyConstantMaps(rmtDpy);
     copyGraphicsModeControl(rmtDpy);
-    copyRefLinks(rmtDpy);
+    if (!cluster) copyRefLinks(rmtDpy); // WLH 7 Dec 2000
 
     notifyAction();
     waitForTasks();
 
     // only add remote display as listener *after* we've synced
     displayMonitor.addRemoteListener(rmtDpy);
-    initializeControls();
-  }
-*/
-
-  // suck in any remote data associated with this Display
-  protected void syncRemoteData(RemoteDisplay rmtDpy)
-    throws VisADException, RemoteException
-  {
-    syncRemoteData(rmtDpy, true);
-  }
-
-  // suck in any remote data associated with this Display
-  protected void syncRemoteData(RemoteDisplay rmtDpy, boolean link_to_data)
-    throws VisADException, RemoteException
-  {
-    copyScalarMaps(rmtDpy);
-    copyConstantMaps(rmtDpy);
-    copyGraphicsModeControl(rmtDpy);
-    if (link_to_data) copyRefLinks(rmtDpy);
-
-    notifyAction();
-    waitForTasks();
-
-    // only add remote display as listener *after* we've synced
-    displayMonitor.addRemoteListener(rmtDpy, link_to_data);
     initializeControls();
   }
 
@@ -962,15 +940,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       // set valueToScalar and valueToMap arrays
       valueToScalar = new int[valueArrayLength];
       valueToMap = new int[valueArrayLength];
-/* WLH 30 May 2000
-      maps = tmap.elements();
-      while (maps.hasMoreElements()) {
-        ScalarMap map = ((ScalarMap) maps.nextElement());
-        DisplayRealType dreal = map.getDisplayScalar();
-        valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
-        valueToMap[map.getValueIndex()] = tmap.indexOf(map);
-      }
-*/
       for (int i=0; i<tmap.size(); i++) {
         ScalarMap map = (ScalarMap) tmap.elementAt(i);
         DisplayRealType dreal = map.getDisplayScalar();
@@ -978,7 +947,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         valueToMap[map.getValueIndex()] = i;
       }
 
-      DataShadow shadow = null;
       // invoke each DataRenderer (to prepare associated Data objects
       // for transformation)
       // clone RendererVector to avoid need for synchronized access
@@ -1000,6 +968,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       }
 
       if (!initialize || go) {
+        displayRenderer.autoscale(temp, tmap, go, initialize);
+/* WLH 7 Dec 2000
+        DataShadow shadow = null;
         renderers = temp.elements();
         while (renderers.hasMoreElements()) {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
@@ -1014,9 +985,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
             map.setRange(shadow);
           }
         }
-
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
+*/
 
         renderers = temp.elements();
         boolean badScale = false;

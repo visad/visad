@@ -88,10 +88,6 @@ public interface DisplayMonitor
   void addRemoteListener(RemoteDisplay rd)
     throws RemoteException, RemoteVisADException;
 
-  // WLH 6 Dec 2000
-  void addRemoteListener(RemoteDisplay rd, boolean link_to_data)
-    throws RemoteException, RemoteVisADException;
-
   /**
    * Returns a suggestion for a unique listener identifier which is
    * equal to or greater than the supplied ID.

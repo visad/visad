@@ -409,30 +409,6 @@ public abstract class DisplayRenderer
 
   public double getDirectAxisValue(RealType type) {
     return getDirectAxisValue(type.getName());
-/* 27 Oct 2000
-    synchronized (cursorStringVector) {
-      if (cursorStringVector != null) {
-        String name = type.getName();
-        Enumeration strings = cursorStringVector.elements();
-        while(strings.hasMoreElements()) {
-          String s = (String) strings.nextElement();
-          if (s.startsWith(name)) {
-            String t = s.substring(s.indexOf("=") + 2);
-            int i = t.indexOf(" ");
-            if (i >= 0) t = t.substring(0, i);
-            try {
-              double v = Double.valueOf(t).doubleValue();
-              return v;
-            }
-            catch (NumberFormatException e) {
-              return Double.NaN;
-            }
-          }
-        }
-      }
-    }
-    return Double.NaN;
-*/
   }
 
   // 27 Oct 2000
@@ -572,6 +548,29 @@ public abstract class DisplayRenderer
             ref.equals(Display.DisplayFlow2Tuple)) return true;
     }
     return false;
+  }
+
+  public void autoscale(Vector temp, Vector tmap, boolean go,
+                        boolean initialize)
+         throws VisADException, RemoteException {
+    DataShadow shadow = null;
+    Enumeration renderers = temp.elements();
+    while (renderers.hasMoreElements()) {
+      DataRenderer renderer = (DataRenderer) renderers.nextElement();
+      shadow = renderer.prepareAction(go, initialize, shadow);
+    }
+
+    if (shadow != null) {
+      // apply RealType ranges and animationSampling
+      Enumeration maps = tmap.elements();
+      while(maps.hasMoreElements()) {
+        ScalarMap map = ((ScalarMap) maps.nextElement());
+        map.setRange(shadow);
+      }
+    }
+
+    ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
+    ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
   }
 
 }

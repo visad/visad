@@ -119,6 +119,18 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     return fake_branch;
   }
 
+  public DataShadow computeRanges(Data data, ShadowType type, DataShadow shadow) 
+         throws VisADException, RemoteException {
+    if (shadow == null) {
+      shadow =
+        data.computeRanges(type, getDisplay().getScalarCount());
+    }
+    else {
+      shadow = data.computeRanges(type, shadow);
+    }
+    return shadow;
+  }
+
   public static void main(String args[])
          throws VisADException, RemoteException {
 

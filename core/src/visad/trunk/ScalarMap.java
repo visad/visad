@@ -539,7 +539,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
 
   /** set range used for linear map from Scalar to DisplayScalar values;
       this is the call for automatic scaling */
-  void setRange(DataShadow shadow)
+  public void setRange(DataShadow shadow)
          throws VisADException, RemoteException {
     if (!isManual) setRange(shadow, 0.0, 0.0, false, VisADEvent.LOCAL_SOURCE);
   }
@@ -1055,7 +1055,7 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
 
   /** ensure that non-Manual components of flow_tuple have equal
       dataRanges symmetric about 0.0 */
-  static void equalizeFlow(Vector mapVector, DisplayTupleType flow_tuple)
+  public static void equalizeFlow(Vector mapVector, DisplayTupleType flow_tuple)
          throws VisADException, RemoteException {
     double[] range = new double[2];
     double low = Double.MAX_VALUE;

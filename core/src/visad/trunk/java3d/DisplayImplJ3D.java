@@ -236,6 +236,11 @@ public class DisplayImplJ3D extends DisplayImpl {
           ((renderer == null && api == TRANSFORM_ONLY) ?
              new TransformOnlyDisplayRendererJ3D() : renderer));
 
+    // use this for testing cluster = true in ordinary collab programs
+    // super(rmtDpy,
+    //       ((renderer == null && api == TRANSFORM_ONLY) ?
+    //          new TransformOnlyDisplayRendererJ3D() : renderer), true);
+
     initialize(api, config);
 
     syncRemoteData(rmtDpy);
@@ -246,11 +251,11 @@ public class DisplayImplJ3D extends DisplayImpl {
                         TransformOnlyDisplayRendererJ3D renderer,
                         GraphicsConfiguration config)
          throws VisADException, RemoteException {
-    super(rmtDpy, renderer, false); // don't link to remote data events
+    super(rmtDpy, renderer, true); // cluster = true
 
     initialize(TRANSFORM_ONLY, config);
 
-    syncRemoteData(rmtDpy, false); // don't link to remote data
+    syncRemoteData(rmtDpy);
   }
 
   private void initialize(int api, GraphicsConfiguration config)

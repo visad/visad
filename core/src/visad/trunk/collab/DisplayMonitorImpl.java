@@ -165,6 +165,9 @@ public class DisplayMonitorImpl
    */
   private DisplaySync sync;
 
+  /** true in cluster nodes */
+  private boolean cluster = false; // WLH 7 Dec 2000
+
   /**
    * Creates a monitor for the specified <TT>Display</TT>.
    *
@@ -176,6 +179,11 @@ public class DisplayMonitorImpl
    */
   public DisplayMonitorImpl(DisplayImpl dpy)
   {
+    this(dpy, false);
+  }
+
+  public DisplayMonitorImpl(DisplayImpl dpy, boolean cl)
+  {
     Name = dpy.getName() + ":Mon";
 
     dpy.addDisplayListener(this);
@@ -184,6 +192,7 @@ public class DisplayMonitorImpl
     myDisplay = dpy;
 
     listeners = new ArrayList();
+    cluster = cl; // WLH 7 Dec 2000
   }
 
   /**
@@ -237,12 +246,6 @@ public class DisplayMonitorImpl
   public void addRemoteListener(RemoteDisplay rd)
     throws RemoteException, RemoteVisADException
   {
-    addRemoteListener(rd, true);
-  }
-/* WLH 6 Dec 2000
-  public void addRemoteListener(RemoteDisplay rd)
-    throws RemoteException, RemoteVisADException
-  {
     RemoteDisplayMonitor rdm = rd.getRemoteDisplayMonitor();
     final int id = negotiateUniqueID(rdm);
 
@@ -257,38 +260,8 @@ public class DisplayMonitorImpl
 
     boolean unwind = false;
     try {
-      addListener(rd, id);
-    } catch (Exception e) {
-      unwind = true;
-    }
-
-    if (unwind) {
-      removeListener(wrap);
-      throw new RemoteVisADException("Couldn't add listener for the" +
-                                     " remote display to this object");
-    }
-  }
-*/
-
-  // WLH 6 Dec 2000
-  public void addRemoteListener(RemoteDisplay rd, boolean link_to_data)
-    throws RemoteException, RemoteVisADException
-  {
-    RemoteDisplayMonitor rdm = rd.getRemoteDisplayMonitor();
-    final int id = negotiateUniqueID(rdm);
-
-    DisplaySyncImpl dsi = (DisplaySyncImpl )myDisplay.getDisplaySync();
-    RemoteDisplaySyncImpl wrap = new RemoteDisplaySyncImpl(dsi);
-    try {
-      rdm.addListener(new RemoteDisplayImpl(myDisplay), id);
-    } catch (Exception e) {
-      throw new RemoteVisADException("Couldn't make this object" +
-                                     " a listener for the remote display");
-    }
-
-    boolean unwind = false;
-    try {
-      if (link_to_data) addListener(rd, id);
+      if (!cluster) addListener(rd, id); // WLH 7 Dec 2000
+      // addListener(rd, id);
     } catch (Exception e) {
       unwind = true;
     }
@@ -646,7 +619,9 @@ public class DisplayMonitorImpl
       return;
     }
 
-    if (evt.getId() == ScalarMapEvent.AUTO_SCALE) {
+    // WLH 7 Dec 2000
+    // if (evt.getId() == ScalarMapEvent.AUTO_SCALE) {
+    if (evt.getId() == ScalarMapEvent.AUTO_SCALE && !cluster) {
       // ignore internal autoscale events
       return;
     }

@@ -74,13 +74,11 @@ public class DefaultNodeRendererAgent extends NodeAgent {
 
     try {
       // construct collaborative display but without links to
-      // data on client
+      // data on client; client does not listen to node events;
+      // nodes do not listen to client REFERENCE_ADD events;
+      // nodes do listen to AUTO_SCALE events
       ndr = new NodeDisplayRendererJ3D();
       display = new DisplayImplJ3D(rmtDpy, ndr, null);
-// in DisplayImpl.syncRemoteData(RemoteDisplay rmtDpy, boolean link_to_data)
-// need a displayMonitor.addRemoteListener(rmtDpy) call so rmtDpy does not
-// monitor our changes, if link_to_data == false
-// so rmtDpy does not addaddReferences(ref)
 
       ref = new DataReferenceImpl("dummy");
       ref.setData(data);
