@@ -28,6 +28,11 @@ package visad;
 import java.io.*;
 import java.util.*;
 
+// packages for main method
+import com.sun.java.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
 /**
    Delaunay represents an abstract class for calculating an
    N-dimensional Delaunay triangulation, that can be extended
@@ -60,7 +65,7 @@ public abstract class Delaunay implements java.io.Serializable {
       return new DelaunayCustom(null, Tri, Vertices, Walk, Edges, NumEdges);
     }
     catch (VisADException e) {
-      throw new VisADError("Delaunay.clone: "+e.toString());
+      throw new VisADError("Delaunay.clone: " + e.toString());
     }
   }
 
@@ -507,6 +512,140 @@ public abstract class Delaunay implements java.io.Serializable {
                              //   Edges = new int[ntris][3 * (dim - 1)];
   public int NumEdges;       // number of unique global edge numbers
 */
+
+  /** A graphical demonstration of implemented Delaunay triangulation
+      algorithms, in the 2-D case */
+  public static void main(String[] argv) throws VisADException {
+    boolean problem = false;
+    int points = 0;
+    int type = 0;
+    int l = 1;
+    if (argv.length < 2) problem = true;
+    else {
+      try {
+        points = Integer.parseInt(argv[0]);
+        type = Integer.parseInt(argv[1]);
+        if (argv.length > 2) l = Integer.parseInt(argv[2]);
+        if (points < 1 || type < 1 || type > 3 || l < 1 || l > 3) {
+          problem = true;
+        }
+      }
+      catch (NumberFormatException exc) {
+        problem = true;
+      }
+    }
+    if (problem) {
+      System.out.println("Usage:\n" +
+                         "   java visad.Delaunay points type [label]\n" +
+                         "points = The number of points to triangulate.\n" +
+                         "type   = The triangulation method to use:\n" +
+                         "         1 = Clarkson\n" +
+                         "         2 = Fast\n" +
+                         "         3 = Watson\n" +
+                         "label  = How to label the diagram:\n" +
+                         "         1 = No labels (default)\n" +
+                         "         2 = Vertex boxes\n" +
+                         "         3 = Triangle numbers\n" +
+                         "         4 = Vertex numbers\n");
+      System.exit(1);
+    }
+
+    float[][] samples;
+    int[][] ttri = null;
+
+    samples = new float[2][points];
+    final float[] samp0 = samples[0];
+    final float[] samp1 = samples[1];
+
+    for (int i=0; i<points; i++) {
+      samp0[i] = (float) (500 * Math.random());
+      samp1[i] = (float) (500 * Math.random());
+    }
+    System.out.print("Triangulating " + points + " points with ");
+    if (type == 1) {
+      System.out.println("the Clarkson algorithm.");
+      long start = System.currentTimeMillis();
+      DelaunayClarkson delaun = new DelaunayClarkson(samples);
+      long end = System.currentTimeMillis();
+      float time = (end - start) / 1000f;
+      System.out.println("Operation took " + time + " seconds.");
+      ttri = delaun.Tri;
+    }
+    else if (type == 2) {
+      System.out.println("the Fast algorithm.");
+      long start = System.currentTimeMillis();
+      DelaunayFast delaun = new DelaunayFast(samples);
+      long end = System.currentTimeMillis();
+      float time = (end - start) / 1000f;
+      System.out.println("Operation took " + time + " seconds.");
+      ttri = delaun.Tri;
+    }
+    else if (type == 3) {
+      System.out.println("the Watson algorithm.");
+      long start = System.currentTimeMillis();
+      DelaunayWatson delaun = new DelaunayWatson(samples);
+      long end = System.currentTimeMillis();
+      float time = (end - start) / 1000f;
+      System.out.println("Operation took " + time + " seconds.");
+      ttri = delaun.Tri;
+    }
+
+    // set up final variables
+    final int label = l;
+    final int[][] tri = ttri;
+
+    // set up GUI components
+    JFrame frame = new JFrame();
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        System.exit(0);
+      }
+    });
+    JComponent jc = new JComponent() {
+      public void paint(Graphics gr) {
+        if (label == 2) {        // vertex boxes
+          for (int i=0; i<samp0.length; i++) {
+            gr.drawRect((int) samp0[i]-2, (int) samp1[i]-2, 4, 4);
+          }
+        }
+        else if (label == 3) {   // triangle numbers
+          for (int i=0; i<tri.length; i++) {
+            int t0 = tri[i][0];
+            int t1 = tri[i][1];
+            int t2 = tri[i][2];
+            int avgX = (int) ((samp0[t0] + samp0[t1] + samp0[t2])/3);
+            int avgY = (int) ((samp1[t0] + samp1[t1] + samp1[t2])/3);
+            gr.drawString(String.valueOf(i), avgX-4, avgY);
+          }
+        }
+        else if (label == 4) {   // vertex numbers
+          for (int i=0; i<samp0.length; i++) {
+            gr.drawString(String.valueOf(i), (int) samp0[i],
+                                             (int) samp1[i]);
+          }
+        }
+    
+        for (int i=0; i<tri.length; i++) {
+          int[] t = tri[i];
+          gr.drawLine((int) samp0[t[0]],
+                      (int) samp1[t[0]],
+                      (int) samp0[t[1]],
+                      (int) samp1[t[1]]);
+          gr.drawLine((int) samp0[t[1]],
+                      (int) samp1[t[1]],
+                      (int) samp0[t[2]],
+                      (int) samp1[t[2]]);
+          gr.drawLine((int) samp0[t[2]],
+                      (int) samp1[t[2]],
+                      (int) samp0[t[0]],
+                      (int) samp1[t[0]]);
+        }
+      }
+    };
+    frame.getContentPane().add(jc);
+    frame.setSize(new Dimension(510, 530));
+    frame.setVisible(true);
+  }
 
 }
 
