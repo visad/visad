@@ -42,3 +42,5 @@ include ../../rules.make
 	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) $(PACKAGE_PREFIX)$* $<
 
 StandardQuantityDB.class:	QuantityDBImpl.java
+
+include depend

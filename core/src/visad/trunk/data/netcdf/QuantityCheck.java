@@ -10,12 +10,13 @@ QuantityCheck
     main(String[] args)
 	throws Exception
     {
-	StandardQuantityDB	db = StandardQuantityDB.instance();
-	Iterator		iter = db.getIterator();
+	QuantityDB	db = QuantityDBManager.instance();
+	Iterator	iter = db.nameIterator();
 
 	while (iter.hasNext())
 	{
-	    Quantity	quantity = (Quantity)iter.next();
+	    String	name = (String)iter.next();
+	    Quantity	quantity = db.get(name);
 	    Unit	unit	= quantity.getDefaultUnit();
 	    Quantity[]	quantities = db.get(unit);
 
@@ -23,7 +24,7 @@ QuantityCheck
 	    {
 		for (int i = 0; i < quantities.length; ++i)
 		    System.out.print(quantities[i].toString() + " ");
-		System.out.println("");
+		System.out.println(" (" + unit + ")");
 	    }
 	}
     }

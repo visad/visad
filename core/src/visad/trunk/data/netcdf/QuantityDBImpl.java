@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDBImpl.java,v 1.2 1999-01-07 17:01:29 steve Exp $
+ * $Id: QuantityDBImpl.java,v 1.3 1999-01-20 18:05:38 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -15,10 +15,15 @@ import java.io.Serializable;
 import java.text.CollationKey;
 import java.text.Collator;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import visad.DerivedUnit;
 import visad.PromiscuousUnit;
 import visad.QuantityDimension;
+import visad.RealType;
+import visad.TypeException;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
@@ -35,7 +40,13 @@ import visad.data.netcdf.units.Parser;
 public class
 QuantityDBImpl
     extends	QuantityDB
+    implements	Serializable
 {
+    /**
+     * The set of quantities.
+     */
+    private final SortedSet		quantitySet = new TreeSet();
+
     /**
      * The (Name) -> Quantity map.
      */
@@ -49,96 +60,374 @@ QuantityDBImpl
     /**
      * The minimum name value.
      */
-    private static final String	minName = "";
+    private static final String		minName = "";
 
     /**
      * The maximum name value.
      */
-    private static final String	maxName = "zzz";
+    private static final String		maxName = "zzz";
 
     /**
      * The minimum unit value.
      */
-    private static final Unit	minUnit = new DerivedUnit();
+    private static final Unit		minUnit = new DerivedUnit();
 
     /**
      * The maximum unit value.
      */
-    private static final Unit	maxUnit = new DerivedUnit();
+    private static final Unit		maxUnit = new DerivedUnit();
+
+    /**
+     * The quantity database to search after this one.
+     */
+    private /*final*/ QuantityDB	nextDB;
 
 
     /**
-     * Add a quantity to the database under a given name.
+     * Constructs with another quantity database as the successor database.
      *
-     * @param name		The name of the quantity (e.g. "length").
-     *				May be an alias for the quantity.
-     * @param quantity		The quantity.
-     * @exception VisADException	Couldn't create necessary VisAD object.
+     * @param nextDB		The quantity database to search after this one.
+     *				May be <code>null</code>.
      */
-    public synchronized void add(String name, Quantity quantity)
-	throws VisADException
-    {
-	Unit	unit = quantity.getDefaultUnit();
+     public
+     QuantityDBImpl(QuantityDB nextDB)
+     {
+	this.nextDB = nextDB;
+     }
 
-	nameMap.put(new NameKey(name), quantity);
-	unitMap.put(new UnitKey(unit, name), quantity);
+
+    /**
+     * Adds the given quantities and aliases to the database.
+     *
+     * @param definitions	New quantities and their definitions.
+     *				<code>definitions[2*i]</code> contains the
+     *				name (e.g. "speed") of the quantity whose
+     *				preferred unit specification (e.g. "m/s") is
+     *				in <code>definitions[2*i+1]</code>.
+     * @param aliases		Aliases for quantities.  <code>aliases[2*i]
+     *				</code> contains the alias for the quantity
+     *				named in <code>aliases[2*i+1]</code>.
+     * @return			The database resulting from the addition.  May
+     *				or may not be the original object.
+     * @throws ParseException	A unit specification couldn't be parsed.
+     * @throws TypeException	An incompatible version of the quantity already
+     *				exists.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public QuantityDB
+    add(String[] definitions, String[] aliases)
+	throws ParseException, TypeException, VisADException
+    {
+	for (int i = 0; i < definitions.length; i += 2)
+	    add(definitions[i], definitions[i+1]);
+
+	for (int i = 0; i < aliases.length; i += 2)
+	    add(aliases[i], get(aliases[i+1]));
+
+	return this;
     }
 
 
     /**
-     * Add a quantity to the database given a name and a display unit
+     * Adds a quantity to the database under a given name.
+     *
+     * @param name		The name of the quantity (e.g. "length").
+     *				May be an alias for the quantity.
+     * @param quantity		The quantity.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    protected synchronized void
+    add(String name, Quantity quantity)
+	throws VisADException
+    {
+	if (name == null || quantity == null)
+	    throw new VisADException("add(): null argument");
+
+	Unit	unit = quantity.getDefaultUnit();
+
+	quantitySet.add(quantity);
+	nameMap.put(new NameKey(name), quantity);
+	unitMap.put(new UnitKey(unit, quantity.getName()), quantity);
+    }
+
+
+    /**
+     * Adds a quantity to the database given a name and a display unit
      * specification.
      *
      * @param name		The name of the quantity (e.g. "length").
      * @param unitSpec		The preferred display unit for the 
      *				quantity (e.g. "feet").
-     * @exception VisADException	Couldn't create necessary VisAD object.
-     * @exception ParseException	Couldn't decode unit specification.
+     * @throws ParseException	Couldn't decode unit specification.
+     * @throws TypeException	Incompatible ScalarType of same name already
+     *				exists.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
-    public synchronized void add(String name, String unitSpec)
-      throws VisADException, ParseException
+    protected synchronized void
+    add(String name, String unitSpec)
+      throws ParseException, TypeException, VisADException
     {
-	add(name, new Quantity(name, unitSpec));
+	try
+	{
+	    add(name, new Quantity(name, unitSpec));
+	}
+	catch (VisADException e)
+	{
+	    if (!(e instanceof TypeException))
+		throw e;
+
+	    RealType	realType = RealType.getRealTypeByName(name);
+	    if (realType == null ||
+		!Unit.canConvert(
+		    realType.getDefaultUnit(), Parser.parse(unitSpec)))
+		throw (TypeException)e;
+	}
     }
 
 
     /**
-     * Return an iterator of the quantities in the database.
+     * Provides support for iterating over the database.
      */
-    public Iterator
-    getIterator()
+    protected abstract class
+    Iterator
+	implements	java.util.Iterator
     {
-	return nameMap.values().iterator();
+	/**
+	 * The private iterator.
+	 */
+	protected java.util.Iterator	iterator;
+
+	/**
+	 * Whether or not we can switch to the other database.
+	 */
+	private boolean			canSwitch = nextDB != null;
+
+	/*
+	 * Returns <code>true</code> if <code>next</code> will return an object.
+	 * @return		<code>true</code> if and only if <code>next()
+	 *			</code> will return a Quantity.
+	 */
+	public boolean
+	hasNext()
+	{
+	    boolean	have = iterator.hasNext();
+	    if (!have && doSwitch())
+		have = hasNext();
+	    return have;
+	}
+
+	protected abstract Object
+	nextObject();
+
+	/*
+	 * Returns the next thing in the database.
+	 * @return		The next thing in the database if and only
+	 *			if a prior <code>hasNext()</code> did or would
+	 *			have returned <code>true</code>; otherwise
+	 *			throws an exception.
+	 * @throws NoSuchElementException	No more things in the database.
+	 */
+	public Object
+	next()
+	{
+	    Object	object;
+	    try
+	    {
+		object = nextObject();
+	    }
+	    catch (NoSuchElementException e)
+	    {
+		if (!doSwitch())
+		    throw e;
+		object = next();
+	    }
+	    return object;
+	}
+
+	/**
+	 * Gets the iterator for the successor database.
+	 */
+	protected abstract java.util.Iterator
+	nextIterator();
+
+	/**
+	 * Switchs to the other database.
+	 * @return		<code>true</code> if an only if the other
+	 *			database exists and this is the first switch
+	 *			to it.
+	 */
+	protected boolean
+	doSwitch()
+	{
+	    boolean	goodSwitch;
+	    if (!canSwitch)
+	    {
+		goodSwitch = false;
+	    }
+	    else
+	    {
+		iterator = nextIterator();
+		canSwitch = false;
+		goodSwitch = true;
+	    }
+	    return goodSwitch;
+	}
+
+	/**
+	 * Remove the element returned by the last <code>next()</code>.
+	 * @throws UnsupportedOperationException
+				Operation not supported.
+	 */
+	public void
+	remove()
+	    throws UnsupportedOperationException
+	{
+	    throw new UnsupportedOperationException(
+		"remove(): Can't remove elements from quantity database");
+	}
     }
 
 
     /**
-     * Return the quantity in the database whose name matches a 
+     * Provides support for iterating over the quantities in the database.
+     */
+    protected class
+    QuantityIterator
+	extends	Iterator
+    {
+	/**
+	 * Constructs.
+	 */
+	protected
+	QuantityIterator()
+	{
+	    iterator = quantitySet.iterator();
+	}
+
+	/**
+	 * Returns the next quantity of the iterator.
+	 */
+	protected Object
+	nextObject()
+	{
+	    return iterator.next();
+	}
+
+	/**
+	 * Returns the iterator for the successor database.
+	 */
+	protected java.util.Iterator
+	nextIterator()
+	{
+	    return nextDB.quantityIterator();
+	}
+    }
+
+
+    /**
+     * Provides support for iterating over the names in the database.
+     * A name can only appear once in the database.
+     */
+    protected class
+    NameIterator
+	extends	Iterator
+    {
+	/**
+	 * Constructs.
+	 */
+	protected
+	NameIterator()
+	{
+	    iterator = nameMap.keySet().iterator();
+	}
+
+	/**
+	 * Returns the next name in the iterator.
+	 */
+	protected Object
+	nextObject()
+	{
+	    return ((NameKey)iterator.next()).getName();
+	}
+
+	/**
+	 * Gets the iterator for the successor database.
+	 */
+	protected java.util.Iterator
+	nextIterator()
+	{
+	    return nextDB.nameIterator();
+	}
+    }
+
+
+    /**
+     * Returns an iterator of the quantities in the database.
+     * @return		An iterator of the quantities in the database.
+     */
+    public java.util.Iterator
+    quantityIterator()
+    {
+	return new QuantityIterator();
+    }
+
+
+    /**
+     * Returns an iterator of the names in the database.
+     * @return		An iterator of the names in the database.
+     */
+    public java.util.Iterator
+    nameIterator()
+    {
+	return new NameIterator();
+    }
+
+
+    /**
+     * Returns the quantity in the database whose name matches a 
      * given name.
      *
      * @param name	The name of the quantity.
      * @return		The quantity in the loal database with name
      *			<code>name</code>.
      */
-    public synchronized Quantity get(String name)
+    public synchronized Quantity
+    get(String name)
     {
-	return (Quantity)nameMap.get(new NameKey(name));
+	Quantity	quantity = (Quantity)nameMap.get(new NameKey(name));
+	return quantity != null
+		? quantity
+		: nextDB == null
+		    ? null
+		    : nextDB.get(name);
     }
 
 
     /**
-     * Return all quantities in the database whose default unit is
+     * Returns all quantities in the database whose default unit is
      * convertible with a given unit.
      *
      * @param unit	The unit of the quantity.
      * @return		The quantities in the database whose unit is 
      *			convertible with <code>unit</code>.
      */
-    public synchronized Quantity[] get(Unit unit)
+    public synchronized Quantity[]
+    get(Unit unit)
     {
-	return (Quantity[])unitMap.subMap
+	Quantity[]	myQuantities = (Quantity[])unitMap.subMap
 	    (new UnitKey(unit, minName), new UnitKey(unit, maxName))
 		.values().toArray(new Quantity[0]);
+	Quantity[]	nextQuantities = nextDB == null
+					    ? new Quantity[] {}
+					    : nextDB.get(unit);
+	Quantity[]	quantities =
+	    new Quantity[myQuantities.length + nextQuantities.length];
+	System.arraycopy(myQuantities, 0, quantities, 0, myQuantities.length);
+	System.arraycopy(nextQuantities, 0, quantities, myQuantities.length,
+	    nextQuantities.length);
+	myQuantities = null;
+	nextQuantities = null;
+	return quantities;
     }
 
 
@@ -151,6 +440,11 @@ QuantityDBImpl
     NameKey
 	implements	Serializable, Comparable
     {
+	/**
+	 * The name of the quantity.
+	 */
+	private final String		name;
+
 	/**
 	 * The Collator for the name.
 	 */
@@ -176,6 +470,7 @@ QuantityDBImpl
 	 */
 	protected NameKey(String name)
 	{
+	    this.name = name;
 	    nameCookie = collator.getCollationKey(name);
 	}
 
@@ -187,6 +482,16 @@ QuantityDBImpl
 	  throws ClassCastException
 	{
 	    return nameCookie.compareTo(((NameKey)obj).nameCookie);
+	}
+
+
+	/**
+	 * Returns the name of the quantity.
+	 */
+	public String
+	getName()
+	{
+	    return name;
 	}
     }
 

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.14 1998-11-16 18:23:39 steve Exp $
+ * $Id: Plain.java,v 1.15 1999-01-20 18:05:37 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -49,7 +49,7 @@ Plain
     Plain()
 	throws VisADException
     {
-	this(StandardQuantityDB.instance());
+	this(QuantityDBManager.instance());
     }
 
 

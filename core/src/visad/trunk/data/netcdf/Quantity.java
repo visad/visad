@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.4 1999-01-07 17:01:28 steve Exp $
+ * $Id: Quantity.java,v 1.5 1999-01-20 18:05:37 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -16,6 +16,7 @@ import visad.FloatSet;
 import visad.RealType;
 import visad.Set;
 import visad.SimpleSet;
+import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.units.ParseException;
@@ -26,7 +27,7 @@ import visad.data.netcdf.units.Parser;
  * The following class represents a quantity -- usually a physical one
  * such as energy, viscosity, or velocity (although an artificial one
  * such as "money" should be possible).  It extends RealType by carrying
- * around a preferred display unit as a string because a Unit is useless
+ * around a preferred unit as a string because a Unit is useless
  * for doing that.
  *
  * A Quantity is immutable.
@@ -35,9 +36,10 @@ import visad.data.netcdf.units.Parser;
  */
 public class Quantity
   extends	RealType
+  implements	Comparable
 {
   /**
-   * The specification of the preferred display unit of the quantity.
+   * The specification of the preferred unit of the quantity.
    */
   protected final String	unitSpec;
 
@@ -46,11 +48,11 @@ public class Quantity
    * Constructs from a name, a unit specification, and a sample set.
    *
    * @param name		The name of the quantity (e.g. "length").
-   * @param unitSpec		The preferred display unit for the quantity
+   * @param unitSpec		The preferred unit for the quantity
    *				(e.g. "feet").
    * @param set			The default sample set of the quantity.
-   * @exception VisADException	Can't create necessary VisAD object.
-   * @exception ParseException	Couldn't decode unit specification.
+   * @throws ParseException	Couldn't decode unit specification.
+   * @throws VisADException	ScalarType of same name already exists.
    */
   public Quantity(String name, String unitSpec, SimpleSet set)
     throws VisADException, ParseException
@@ -65,7 +67,7 @@ public class Quantity
    * Constructs from a name and a unit specification.
    *
    * @param name		The name of the quantity (e.g. "length").
-   * @param unitSpec		The preferred display unit for the quantity
+   * @param unitSpec		The preferred unit for the quantity
    *				(e.g. "feet").
    * @exception VisADException	Can't create necessary VisAD object.
    * @exception ParseException	Couldn't decode unit specification.
@@ -79,20 +81,19 @@ public class Quantity
 	new FloatSet(
 	    this,
 	    /*CoordinateSystem=*/null,
-	    new Unit[] {Parser.parse(unitSpec)}));
+	    new Unit[] {super.getDefaultUnit()}));
 
     this.unitSpec = unitSpec;
   }
 
 
   /**
-   * Constructs from a VisAD RealType.  This should only be used by classes
-   * like StandardQuantityDB.
+   * Constructs from a VisAD RealType.
    *
    * @param realType		A VisAD realType.
    * @throws VisADException	Can't create necessary VisAD object.
    */
-  public Quantity(RealType realType)
+  Quantity(RealType realType)
     throws VisADException
   {
     /*
@@ -118,5 +119,20 @@ public class Quantity
   public String getDefaultUnitString()
   {
     return unitSpec;
+  }
+
+
+  /**
+   * Compare this quantity with an object.
+   */
+  public int
+  compareTo(Object object)
+  {
+    if (!(object instanceof Quantity))
+      throw new ClassCastException("compare(): Argument not Quantity");
+
+    Quantity	that = (Quantity)object;
+
+    return getName().compareTo(that.getName());
   }
 }

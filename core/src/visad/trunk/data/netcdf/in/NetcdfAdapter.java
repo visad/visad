@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.15 1998-11-16 18:23:42 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.16 1999-01-20 18:05:41 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -18,7 +18,7 @@ import visad.VisADException;
 import visad.data.BadFormException;
 import visad.data.netcdf.QuantityDB;
 import visad.data.netcdf.QuantityDBImpl;
-import visad.data.netcdf.StandardQuantityDB;
+import visad.data.netcdf.QuantityDBManager;
 
 
 /**
@@ -167,7 +167,7 @@ NetcdfAdapter
 	    NetcdfFile		file = new NetcdfFile(pathnames[i], 
 				    /*readonly=*/true);
 	    NetcdfAdapter	adapter =
-		new NetcdfAdapter(file, StandardQuantityDB.instance());
+		new NetcdfAdapter(file, QuantityDBManager.instance());
 	    // Data		data = adapter.getProxy();
 	    DataImpl		data = adapter.getData();
 
