@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.15 1999-09-22 19:11:39 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.16 1999-10-18 21:43:30 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -375,7 +375,7 @@ DefaultUnitsDB
 
 	pn("day",		"d");
 	pn("hour",		"h");
-	pn("mininute",		"min");
+	pn("minute",		"min");
 	pn("sec",		"s");				// avoid
 	pn("lunar month",	get("d").scale(29.530589));
 
