@@ -387,12 +387,12 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
          throws VisADException, RemoteException {
     synchronized (mapslock) {
       synchronized (RendererVector) {
-        Enumeration renderers = RendererVector.elements();
-        while (renderers.hasMoreElements()) {
-          DataRenderer renderer = (DataRenderer) renderers.nextElement();
+        Iterator renderers = RendererVector.iterator();
+        while (renderers.hasNext()) {
+          DataRenderer renderer = (DataRenderer) renderers.next();
           renderer.clearScene();
           DataDisplayLink[] links = renderer.getLinks();
-          RendererVector.removeElement(renderer);
+          renderers.remove();
           removeLinks(links);
         }
       }
