@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.6 1998-03-12 22:03:13 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.7 1998-03-12 23:25:47 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -54,7 +54,7 @@ NetcdfAdapter
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
      * @exception RemoteException
-     *			Remote data access failue.
+     *			Remote data access failure.
      * @exception IOException
      *			Data access I/O failure.
      */
@@ -128,7 +128,7 @@ NetcdfAdapter
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
      * @exception RemoteException
-     *			Remote data access failue.
+     *			Remote data access failure.
      */
     protected static NcData
     setOutermost(Dictionary functionSet)

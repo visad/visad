@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAdapter.java,v 1.4 1998-03-12 22:02:56 steve Exp $
+ * $Id: DataAdapter.java,v 1.5 1998-03-12 23:25:46 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -53,7 +53,7 @@ DataAdapter
      *			adapted to a netCDF API
      * @exception VisADException	Problem in core VisAD.  Some VisAD
      *			object probably couldn't be created.
-     * @exception RemoteException	Remote data access failue.
+     * @exception RemoteException	Remote data access failure.
      * @exception IOException		Data access failure.
      */
     public
@@ -78,7 +78,7 @@ DataAdapter
      *		adapted to a netCDF API
      * @exception VisADException		Problem in core VisAD.
      *		Probably some VisAD object couldn't be created.
-     * @exception RemoteException		Remote data access failue.
+     * @exception RemoteException		Remote data access failure.
      * @exception IOException			Data access failure.
      */
     protected void
@@ -203,7 +203,7 @@ DataAdapter
      *				VisAD data object.
      * @exception VisADException		Problem in core VisAD.
      *		Probably some VisAD object couldn't be created.
-     * @exception RemoteException		Remote data access failue.
+     * @exception RemoteException		Remote data access failure.
      * @exception IOException			Data access failure.
      */
     protected void
@@ -230,7 +230,7 @@ DataAdapter
      *		adapted to a netCDF API
      * @exception VisADException		Problem in core VisAD.
      *		Probably some VisAD object couldn't be created.
-     * @exception RemoteException		Remote data access failue.
+     * @exception RemoteException		Remote data access failure.
      * @exception IOException			Data access failure.
      */
     protected void
