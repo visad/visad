@@ -48,7 +48,28 @@ TrackdAPI.o: visad_java3d_TrackdJNI.h
 # rule to stop Makefile if information is missing
 #
 required_macros::
-	@if [ -z "$(TRACKD_INCDIR)" ]; then echo "TRACKD_INCDIR is undefined"; exit 1; fi
+	@if [ -z "$(TRACKD_INCDIR)" ]; then \
+	  echo ""; \
+	  echo "  TRACKD_INCDIR is undefined; JNI portion of build aborting"; \
+	  echo ""; \
+	  echo "  (Don't worry, this is normal.  It just means the optional"; \
+	  echo "   TrackD library won't be supported.)"; \
+	  echo ""; \
+	  echo "  This 'make' will self-destruct in 1 second"; \
+	  echo ""; \
+	  exit 1; \
+	fi
+	@if [ -z "$(TRACKD_LIBDIR)" ]; then \
+	  echo ""; \
+	  echo "  TRACKD_LIBDIR is undefined; JNI portion of build aborting"; \
+	  echo ""; \
+	  echo "  (Don't worry, this is normal.  It just means the optional"; \
+	  echo "   TrackD library won't be supported.)"; \
+	  echo ""; \
+	  echo "  This 'make' will self-destruct in 1 second"; \
+	  echo ""; \
+	  exit 1; \
+	fi
 	@if [ -z "$(TRACKD_LIBDIR)" ]; then echo "TRACKD_LIBDIR is undefined"; exit 1; fi
 
 # special header/library files needed by this package
