@@ -99,11 +99,18 @@ client and nodes
 every object in data tree on client connects to objects
 in data trees on nodes
 
-may use DisplayImplJ2D on for graphics nodes, modified as follows:
-1. extend DefaultDisplayRendererJ2D and override legalDisplayScalar
-   to make ZAxis, Latitude and Alpha legal
-2. not render: perhaps somehow extend VisADCanvasJ2D?
-send 'VisADGroup root' back to client?
+may use DisplayImplJ3D on nodes for graphics, modified to
+not render (perhaps a new value for the API argument to the
+DisplayImplJ3D constructor)
+
+NodeRendererJ3D extends DefaultRendererJ3D, with
+ShadowNode*TypeJ3D - addToGroup() etc to leave as Serializable
+  note must replace 'Image image' in VisADApprearance
+ClientRendererJ3D extends DefaultRendererJ3D, not even using
+ShadowTypes, but assembling VisADSceneGraphs from nodes
+
+
+
 
 may also need way for client to signal implicit resolution
 reduction to nodes - custom DataRenderers with custon ShadowTypes
