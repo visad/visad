@@ -134,14 +134,20 @@ public class Vis5DForm extends Form implements FormFileInformer {
       for (int j=0; j<nvars; j++) {
         float[] ranges = new float[2];
         v5d_read(i, j, ranges, data[j]);
+        if (ranges[0] >= 0.99E30 && ranges[1] <= -0.99E30) {
+          range_sets[j] = new Linear1DSet(0.0, 1.0, 255);
+        }
+        else {
+          if (ranges[0] > ranges[1]) {
+            throw new BadFormException("Vis5DForm.open: bad read " + 
+                                       vars[j].getName());
+          }
+          range_sets[j] =
+            new Linear1DSet((double) ranges[0], (double) ranges[1], 255);
+        }
         for (int k=0; k<grid_size; k++) {
           if (data[j][k] > 0.5e35) data[j][k] = Float.NaN;
         }
-        if (ranges[0] > ranges[1]) {
-          throw new BadFormException("Vis5DForm.open: bad read");
-        }
-        range_sets[j] =
-          new Linear1DSet((double) ranges[0], (double) ranges[1], 255);
       }
       // FlatField grid =
       //   new FlatField(grid_type, space_set, null, null, range_sets, null);
