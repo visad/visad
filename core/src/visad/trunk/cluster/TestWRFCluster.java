@@ -43,12 +43,13 @@ import java.io.IOException;
 
 /**
    TestWRFCluster is the class for testing the visad.cluster package.<P>
+<PRE> Run:
    java visad.cluster.TestWRFCluster 1 /home3/billh/wrf/wrfout_01_000000_0000
    java visad.cluster.TestWRFCluster 2 /home3/billh/wrf/wrfout_01_000000_0001
    java visad.cluster.TestWRFCluster 3 /home3/billh/wrf/wrfout_01_000000_0002
    java visad.cluster.TestWRFCluster 4 /home3/billh/wrf/wrfout_01_000000_0003
    java visad.cluster.TestWRFCluster 0
-
+</PRE>
 */
 public class TestWRFCluster extends FancySSCell implements ActionListener {
 
@@ -371,15 +372,17 @@ System.out.println("wrf_type = " + wrf_type);
         Tuple wrf_step = (Tuple) wrf.getSample(i);
         FlatField wrf_non_stag = (FlatField) wrf_step.getComponent(3);
         FlatField wrf_surface = (FlatField) wrf_step.getComponent(5);
-        if (nav_grid_set == null) {
+        // if (nav_grid_set == null) {
           FlatField wrf_vert = (FlatField) wrf_step.getComponent(6);
           float[][] wrf_vert_samples = wrf_vert.getFloats(false);
+/*
           nvert = wrf_vert_samples[0].length;
           float[] height = new float[nvert];
           for (int j=0; j<nvert; j++) {
             height[j] = 0.5f * (wrf_vert_samples[0][j] + wrf_vert_samples[1][j]);
 // System.out.println("height["+ j + "] = " +  height[j]);
           }
+*/
           Gridded3DSet wrf_grid_set = (Gridded3DSet) wrf_non_stag.getDomainSet();
           ncols = wrf_grid_set.getLength(0);
           nrows = wrf_grid_set.getLength(1);
@@ -391,10 +394,12 @@ System.out.println("wrf_type = " + wrf_type);
             throw new ClusterException("lats.length = " + lats.length +
                " != " + nrows + " * " + ncols);
           }
+/*
           if (nvert != nlevs) {
             throw new ClusterException("nvert = " + nvert +
                " != " + nlevs + " = nlevs");
           }
+*/
 /*
 int k = 0;
 for (int r=0; r<nrows; r++) {
@@ -405,23 +410,27 @@ for (int r=0; r<nrows; r++) {
   }
 }
 */
+          float[][] range_values = wrf_non_stag.getFloats(false);
           grid_size = nrows * ncols * nlevs;
           float[][] nav_wrf_samples = new float[3][grid_size];
+          nav_wrf_samples[0] = new float[grid_size];
+          nav_wrf_samples[1] = new float[grid_size];
           for (int lev=0; lev<nlevs; lev++) {
             int base = lev * nrows * ncols;
             for (int rc=0; rc<nrows*ncols; rc++) {
               nav_wrf_samples[0][base+rc] = lons[rc];
               nav_wrf_samples[1][base+rc] = lats[rc];
-              // nav_wrf_samples[2][base+rc] = height[lev];
-              nav_wrf_samples[2][base+rc] = lev;
+              // nav_wrf_samples[2][base+rc] = lev;
             }
           }
+          nav_wrf_samples[2] = range_values[11]; // Z
           nav_grid_set =
             new Gridded3DSet(nav_wrf_grid_domain_type, nav_wrf_samples,
-                             ncols, nrows, nlevs);
-        } // end if (nav_grid_set == null)
+                             ncols, nrows, nlevs, null, null, null,
+                             false,  // no copy
+                             false); // no consistency test
+        // } // end if (nav_grid_set == null)
         FlatField nav_wrf_grid = new FlatField(nav_wrf_grid_type, nav_grid_set);
-        float[][] range_values = wrf_non_stag.getFloats(false);
         nav_wrf_grid.setSamples(range_values, false);
         nav_wrf.setSample(i, nav_wrf_grid);
 System.out.println("done with time step " + i);
@@ -607,4 +616,51 @@ System.out.println("data type = " + nav_wrf_type);
   }
 
 }
+
+/*
+java visad.jmet.DumpType wrfout_01_000000_0000
+
+VisAD Data analysis
+  FieldImpl of length = 5
+(Time -> (((west_east_stag, south_north, bottom_top) -> RHO_U),  ****0****
+          ((west_east, south_north_stag, bottom_top) -> RHO_V),  ****1****
+          ((west_east, south_north, bottom_top_stag) -> RW),     ****2****
+          ((west_east, south_north, bottom_top) -> (RRP, RR, TKE,
+                                                    RTP, TP, QVAPOR,
+                                                    QCLOUD, QRAIN, PP,
+                                                    RTB, RRB, Z, PB)),  ****3****
+          ((west_east, south_north, soil_layers) -> TSLB),       ****4****
+          ((west_east, south_north) -> (DZETADZ,  **0** 
+ MAPFAC_M,  **1**
+ HGT,       **2** 
+ TSK,       **3**
+ RAINC,     **4** 
+ RAINNC,    **5**
+ RAINCV,    **6**   
+ GSW,       **7**   
+ GLW,       **8**   
+ XLAT,      **9**                  ****
+ XLONG,     **10**                 ****
+ LU_INDEX,  **11**
+ TMN,       **12**
+ XLAND,     **13**
+ HFX,       **14**
+ QFX,       **15**
+ SNOWC)),   **16**                                ****5****
+          (bottom_top -> (FZM, FZP)),             ****6****
+          (ext_scalar -> (ZETATOP, ITIMESTEP))))  ****7****
+
+
+wrfout_01_000000_0000
+west_east: 0 - 20
+south_north: 0 - 17
+bottom_top: 0 - 22
+
+
+
+wrfout_01_000000_0001
+west_east: 0 - 20
+south_north: 0 - 15
+bottom_top: 0 - 22
+*/
 
