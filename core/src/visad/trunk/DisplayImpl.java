@@ -90,6 +90,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** Vector of DisplayListeners */
   private transient Vector ListenerVector = new Vector();
 
+  private Vector mapslock = new Vector();
 
   /** constructor with non-DefaultDisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
@@ -142,7 +143,6 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   }
 
   public Component getComponent() {
-  /** signature for addReferences without constant_maps */
     return component;
   }
 
@@ -373,93 +373,95 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
-  public synchronized void doAction() throws VisADException, RemoteException {
-    if (RendererVector == null) {
-      return;
-    }
-    displayRenderer.setWaitFlag(true);
-    // set tickFlag-s in changed Control-s
-    // clone MapVector to avoid need for synchronized access
-    // WLH 13 July 98
-    Vector tmap = (Vector) MapVector.clone();
-    Enumeration maps = tmap.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      map.setTicks();
-    }
-
-    // set ScalarMap.valueIndex-s and valueArrayLength
-    int n = getDisplayScalarCount();
-    int[] scalarToValue = new int[n];
-    for (int i=0; i<n; i++) scalarToValue[i] = -1;
-    valueArrayLength = 0;
-    maps = tmap.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = ((ScalarMap) maps.nextElement());
-      DisplayRealType dreal = map.getDisplayScalar();
-      if (dreal.isSingle()) {
-        int j = getDisplayScalarIndex(dreal);
-        if (scalarToValue[j] < 0) {
-          scalarToValue[j] = valueArrayLength;
+  public void doAction() throws VisADException, RemoteException {
+    synchronized (mapslock) {
+      if (RendererVector == null) {
+        return;
+      }
+      displayRenderer.setWaitFlag(true);
+      // set tickFlag-s in changed Control-s
+      // clone MapVector to avoid need for synchronized access
+      // WLH 13 July 98
+      Vector tmap = (Vector) MapVector.clone();
+      Enumeration maps = tmap.elements();
+      while (maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        map.setTicks();
+      }
+  
+      // set ScalarMap.valueIndex-s and valueArrayLength
+      int n = getDisplayScalarCount();
+      int[] scalarToValue = new int[n];
+      for (int i=0; i<n; i++) scalarToValue[i] = -1;
+      valueArrayLength = 0;
+      maps = tmap.elements();
+      while (maps.hasMoreElements()) {
+        ScalarMap map = ((ScalarMap) maps.nextElement());
+        DisplayRealType dreal = map.getDisplayScalar();
+        if (dreal.isSingle()) {
+          int j = getDisplayScalarIndex(dreal);
+          if (scalarToValue[j] < 0) {
+            scalarToValue[j] = valueArrayLength;
+            valueArrayLength++;
+          }
+          map.setValueIndex(scalarToValue[j]);
+        }
+        else {
+          map.setValueIndex(valueArrayLength);
           valueArrayLength++;
         }
-        map.setValueIndex(scalarToValue[j]);
       }
-      else {
-        map.setValueIndex(valueArrayLength);
-        valueArrayLength++;
+   
+      // set valueToScalar and valueToMap arrays
+      valueToScalar = new int[valueArrayLength];
+      valueToMap = new int[valueArrayLength];
+      maps = tmap.elements();
+      while (maps.hasMoreElements()) {
+        ScalarMap map = ((ScalarMap) maps.nextElement());
+        DisplayRealType dreal = map.getDisplayScalar();
+        valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
+        valueToMap[map.getValueIndex()] = tmap.indexOf(map);
       }
-    }
- 
-    // set valueToScalar and valueToMap arrays
-    valueToScalar = new int[valueArrayLength];
-    valueToMap = new int[valueArrayLength];
-    maps = tmap.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = ((ScalarMap) maps.nextElement());
-      DisplayRealType dreal = map.getDisplayScalar();
-      valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
-      valueToMap[map.getValueIndex()] = tmap.indexOf(map);
-    }
-
-    DataShadow shadow = null;
-    // invoke each DataRenderer (to prepare associated Data objects
-    // for transformation)
-    // clone RendererVector to avoid need for synchronized access
-    Vector temp = ((Vector) RendererVector.clone());
-    Enumeration renderers = temp.elements();
-    boolean badScale = false;
-    while (renderers.hasMoreElements()) {
-      DataRenderer renderer = (DataRenderer) renderers.nextElement();
-      shadow = renderer.prepareAction(initialize, shadow);
-      badScale |= renderer.getBadScale();
-    }
-    initialize = badScale;
-
-    if (shadow != null) {
-      // apply RealType ranges and animationSampling
+  
+      DataShadow shadow = null;
+      // invoke each DataRenderer (to prepare associated Data objects
+      // for transformation)
+      // clone RendererVector to avoid need for synchronized access
+      Vector temp = ((Vector) RendererVector.clone());
+      Enumeration renderers = temp.elements();
+      boolean badScale = false;
+      while (renderers.hasMoreElements()) {
+        DataRenderer renderer = (DataRenderer) renderers.nextElement();
+        shadow = renderer.prepareAction(initialize, shadow);
+        badScale |= renderer.getBadScale();
+      }
+      initialize = badScale;
+  
+      if (shadow != null) {
+        // apply RealType ranges and animationSampling
+        maps = tmap.elements();
+        while(maps.hasMoreElements()) {
+          ScalarMap map = ((ScalarMap) maps.nextElement());
+          map.setRange(shadow);
+        }
+      }
+  
+      ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
+      ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
+  
+      renderers = temp.elements();
+      while (renderers.hasMoreElements()) {
+        DataRenderer renderer = (DataRenderer) renderers.nextElement();
+        renderer.doAction();
+      }
+      // clear tickFlag-s in Control-s
       maps = tmap.elements();
       while(maps.hasMoreElements()) {
-        ScalarMap map = ((ScalarMap) maps.nextElement());
-        map.setRange(shadow);
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        map.resetTicks();
       }
+      displayRenderer.setWaitFlag(false);
     }
-
-    ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
-    ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
-
-    renderers = temp.elements();
-    while (renderers.hasMoreElements()) {
-      DataRenderer renderer = (DataRenderer) renderers.nextElement();
-      renderer.doAction();
-    }
-    // clear tickFlag-s in Control-s
-    maps = tmap.elements();
-    while(maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      map.resetTicks();
-    }
-    displayRenderer.setWaitFlag(false);
   }
 
   public DisplayRenderer getDisplayRenderer() {
@@ -523,63 +525,65 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** add a ScalarMap to this Display;
       can only be invoked when no DataReference-s are
       linked to this Display */
-  public synchronized void addMap(ScalarMap map)
+  public void addMap(ScalarMap map)
          throws VisADException, RemoteException {
-    int index;
-    if (!RendererVector.isEmpty()) {
-      throw new DisplayException("DisplayImpl.addMap: RendererVector " +
-                                 "must be empty");
-    }
-    if (!displayRenderer.legalDisplayScalar(map.getDisplayScalar())) {
-      throw new BadMappingException("DisplayImpl.addMap: " +
-            map.getDisplayScalar() + " illegal for this DisplayRenderer");
-    }
-    map.setDisplay(this);
-
-    if (map instanceof ConstantMap) {
-      synchronized (ConstantMapVector) {
-        Enumeration maps = ConstantMapVector.elements();
-        while(maps.hasMoreElements()) {
-          ConstantMap map2 = (ConstantMap) maps.nextElement();
-          if (map2.getDisplayScalar().equals(map.getDisplayScalar())) {
-            throw new BadMappingException("Display.addMap: two ConstantMaps " +
-                              "have the same DisplayScalar");
-          }
-        }
-        ConstantMapVector.addElement(map);
+    synchronized (mapslock) {
+      int index;
+      if (!RendererVector.isEmpty()) {
+        throw new DisplayException("DisplayImpl.addMap: RendererVector " +
+                                   "must be empty");
       }
-    }
-    else { // !(map instanceof ConstantMap)
-      // add to RealTypeVector and set ScalarIndex
-      RealType real = map.getScalar();
-      DisplayRealType dreal = map.getDisplayScalar();
-      synchronized (MapVector) {
-        Enumeration maps = MapVector.elements();
-        while(maps.hasMoreElements()) {
-          ScalarMap map2 = (ScalarMap) maps.nextElement();
-          if (real == map2.getScalar() && dreal == map2.getDisplayScalar()) {
-            throw new BadMappingException("Display.addMap: two ScalarMaps " +
-                                   "with the same RealType & DisplayRealType");
-          }
-          if (dreal == Display.Animation &&
-              map2.getDisplayScalar() == Display.Animation) {
-            throw new BadMappingException("Display.addMap: two RealTypes " +
-                                          "are mapped to Animation");
-          }
-        }
-        MapVector.addElement(map);
+      if (!displayRenderer.legalDisplayScalar(map.getDisplayScalar())) {
+        throw new BadMappingException("DisplayImpl.addMap: " +
+              map.getDisplayScalar() + " illegal for this DisplayRenderer");
       }
-      synchronized (RealTypeVector) {
-        index = RealTypeVector.indexOf(real);
-        if (index < 0) {
-          RealTypeVector.addElement(real);
+      map.setDisplay(this);
+  
+      if (map instanceof ConstantMap) {
+        synchronized (ConstantMapVector) {
+          Enumeration maps = ConstantMapVector.elements();
+          while(maps.hasMoreElements()) {
+            ConstantMap map2 = (ConstantMap) maps.nextElement();
+            if (map2.getDisplayScalar().equals(map.getDisplayScalar())) {
+              throw new BadMappingException("Display.addMap: two ConstantMaps " +
+                                "have the same DisplayScalar");
+            }
+          }
+          ConstantMapVector.addElement(map);
+        }
+      }
+      else { // !(map instanceof ConstantMap)
+        // add to RealTypeVector and set ScalarIndex
+        RealType real = map.getScalar();
+        DisplayRealType dreal = map.getDisplayScalar();
+        synchronized (MapVector) {
+          Enumeration maps = MapVector.elements();
+          while(maps.hasMoreElements()) {
+            ScalarMap map2 = (ScalarMap) maps.nextElement();
+            if (real == map2.getScalar() && dreal == map2.getDisplayScalar()) {
+              throw new BadMappingException("Display.addMap: two ScalarMaps " +
+                                     "with the same RealType & DisplayRealType");
+            }
+            if (dreal == Display.Animation &&
+                map2.getDisplayScalar() == Display.Animation) {
+              throw new BadMappingException("Display.addMap: two RealTypes " +
+                                            "are mapped to Animation");
+            }
+          }
+          MapVector.addElement(map);
+        }
+        synchronized (RealTypeVector) {
           index = RealTypeVector.indexOf(real);
+          if (index < 0) {
+            RealTypeVector.addElement(real);
+            index = RealTypeVector.indexOf(real);
+          }
         }
+        map.setScalarIndex(index);
+        map.setControl();
       }
-      map.setScalarIndex(index);
-      map.setControl();
+      addDisplayScalar(map);
     }
-    addDisplayScalar(map);
   }
 
   void addDisplayScalar(ScalarMap map) {
@@ -615,50 +619,51 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** clear set of ScalarMap-s associated with this display;
       can only be invoked when no DataReference-s are
       linked to this Display */
-  public synchronized void clearMaps()
-         throws VisADException, RemoteException {
-    if (!RendererVector.isEmpty()) {
-      throw new DisplayException("DisplayImpl.clearMaps: RendererVector " +
-                                 "must be empty");
-    }
-    Enumeration maps;
-    synchronized (MapVector) {
-      maps = MapVector.elements();
-      while(maps.hasMoreElements()) {
-        ScalarMap map = (ScalarMap) maps.nextElement();
-        map.nullDisplay();
+  public void clearMaps() throws VisADException, RemoteException {
+    synchronized (mapslock) {
+      if (!RendererVector.isEmpty()) {
+        throw new DisplayException("DisplayImpl.clearMaps: RendererVector " +
+                                   "must be empty");
       }
-      MapVector.removeAllElements();
-    }
-    synchronized (ConstantMapVector) {
-      maps = ConstantMapVector.elements();
-      while(maps.hasMoreElements()) {
-        ConstantMap map = (ConstantMap) maps.nextElement();
-        map.nullDisplay();
+      Enumeration maps;
+      synchronized (MapVector) {
+        maps = MapVector.elements();
+        while(maps.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          map.nullDisplay();
+        }
+        MapVector.removeAllElements();
       }
-      ConstantMapVector.removeAllElements();
-    }
-    synchronized (ControlVector) {
-      // clear Control-s associated with this Display
-      ControlVector.removeAllElements();
-      // one each GraphicsModeControl and ProjectionControl always exists
-      Control control = (Control) getGraphicsModeControl();
-      if (control != null) addControl(control);
-      control = (Control) getProjectionControl();
-      if (control != null) addControl(control);
-    }
-    // clear RealType-s from RealTypeVector
-    // removeAllElements is synchronized
-    RealTypeVector.removeAllElements();
-    synchronized (DisplayRealTypeVector) {
-      // clear DisplayRealType-s from DisplayRealTypeVector
-      DisplayRealTypeVector.removeAllElements();
-      // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
-      for (int i=0; i<DisplayRealArray.length; i++) {
-        DisplayRealTypeVector.addElement(DisplayRealArray[i]);
+      synchronized (ConstantMapVector) {
+        maps = ConstantMapVector.elements();
+        while(maps.hasMoreElements()) {
+          ConstantMap map = (ConstantMap) maps.nextElement();
+          map.nullDisplay();
+        }
+        ConstantMapVector.removeAllElements();
       }
+      synchronized (ControlVector) {
+        // clear Control-s associated with this Display
+        ControlVector.removeAllElements();
+        // one each GraphicsModeControl and ProjectionControl always exists
+        Control control = (Control) getGraphicsModeControl();
+        if (control != null) addControl(control);
+        control = (Control) getProjectionControl();
+        if (control != null) addControl(control);
+      }
+      // clear RealType-s from RealTypeVector
+      // removeAllElements is synchronized
+      RealTypeVector.removeAllElements();
+      synchronized (DisplayRealTypeVector) {
+        // clear DisplayRealType-s from DisplayRealTypeVector
+        DisplayRealTypeVector.removeAllElements();
+        // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
+        for (int i=0; i<DisplayRealArray.length; i++) {
+          DisplayRealTypeVector.addElement(DisplayRealArray[i]);
+        }
+      }
+      displayRenderer.clearAxisOrdinals();
     }
-    displayRenderer.clearAxisOrdinals();
   }
 
   public Vector getMapVector() {
