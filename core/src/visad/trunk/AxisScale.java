@@ -4,8 +4,7 @@ import visad.*;
 import java.awt.Color;
 import java.rmi.RemoteException;
 
-public class AxisScale 
-{
+public class AxisScale implements java.io.Serializable {
     /** X_AXIS identifier */
     public final static int X_AXIS = 0;
     /** Y_AXIS identifier */
