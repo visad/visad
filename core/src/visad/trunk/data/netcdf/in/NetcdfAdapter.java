@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.27 2001-12-19 20:55:50 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.28 2001-12-19 22:40:44 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -20,8 +20,14 @@ import visad.data.netcdf.*;
 
 
 /**
- * The NetcdfAdapter class adapts a netCDF dataset to a VisAD API.  It is
- * useful for importing a netCDF dataset.
+ * <p>A class for importing a netCDF dataset.</p>
+ *
+ * <p>This implementation uses a {@link Strategy} for importing netCDF datasets.
+ * The initial strategy is determined from the Java (not JavaBean) property
+ * <em>visad.data.netcdf.in.Strategy</em>.  If that property is set, then its
+ * values is used as the name of the initial {@link Strategy} class to use.
+ * If that property is not set, then the initial strategy is {@link
+ * Strategy#DEFAULT}.  See, however, {@link setDefaultStrategy(Strategy)}.</p>
  *
  * @author Steven R. Emmerson
  */
@@ -36,14 +42,57 @@ NetcdfAdapter
         "visad.data.netcdf.in.Strategy";
 
     /**
+     * The default strategy to use for importing a netCDF dataset.
+     */
+    private static Strategy     strategy;
+
+    /**
      * The view of the netCDF datset.
      */
-    private View        view;
+    private View                view;
 
     /**
      * The top-level VisAD data object corresponding to the netCDF datset.
      */
-    private DataImpl    data;
+    private DataImpl            data;
+
+    static {
+        String      strategyName =
+            System.getProperty(IMPORT_STRATEGY_PROPERTY);
+        try
+        {
+            strategy =
+                strategyName == null
+                    ? Strategy.DEFAULT
+                    : (Strategy)Class.forName(strategyName).getMethod(
+                        "instance", new Class[0])
+                        .invoke(null, new Object[0]);
+        }
+        catch (NoSuchMethodException e)
+        {
+            throw new Error(
+                "Import strategy \"" + strategyName + "\" doesn't have an "
+                + "\"instance()\" method");
+        }
+        catch (ClassNotFoundException e)
+        {
+            throw new Error(
+                "Import strategy \"" + strategyName + "\" not found");
+        }
+        catch (IllegalAccessException e)
+        {
+            throw new Error(
+                "Permission to access import strategy \"" + strategyName +
+                "\" denied");
+        }
+        catch (java.lang.reflect.InvocationTargetException e)
+        {
+            throw new Error(
+                "Import strategy's \"" +
+                strategyName + "\" \"instance()\" method threw exception: "
+                + e.getMessage());
+        }
+    }
 
 
     /**
@@ -79,15 +128,38 @@ NetcdfAdapter
 
 
     /**
+     * Sets the default strategy used to import a netCDF dataset.  Subsequent
+     * use of the {@link #getData()} method will use the given strategy.
+     *
+     * @param strategy               The default strategy to use.
+     * @return                       The previous strategy.
+     * @throws NullPointerException if the strategy is <code>null</code>.
+     */
+    public static synchronized Strategy setDefaultStrategy(Strategy strategy) {
+        if (strategy == null)
+            throw new NullPointerException();
+        Strategy prev = NetcdfAdapter.strategy;
+        NetcdfAdapter.strategy = strategy;
+        return prev;
+    }
+
+
+    /**
+     * Returns the default strategy used to import a netCDF dataset.
+     *
+     * @return                       The default strategy.
+     */
+    public static synchronized Strategy getDefaultStrategy() {
+        return strategy;
+    }
+
+
+    /**
      * <p>Gets the VisAD data object corresponding to the netCDF dataset.  This
      * is a potentially expensive method in either time or space.</p>
      *
-     * <p>This implementation uses the value of the Java (not JavaBean) property
-     * <em>visad.data.netcdf.in.Strategy</em> as the name of the {@link
-     * Strategy} class to use to import the netCDF dataset.  If that property
-     * is not set, then this implementation uses {@link Strategy#DEFAULT} as
-     * the import strategy.  This implementation then invokes method {@link
-     * #getData(Strategy)} with the determined {@link Strategy}.</p>
+     * <p>This implementation invokes method {@link #getData(Strategy)} with the
+     * default {@link Strategy}.</p>
      *
      * @return                  The top-level, VisAD data object in the netCDF
      *                          dataset.
@@ -100,59 +172,12 @@ NetcdfAdapter
      * @throws OutOfMemoryError Couldn't read netCDF dataset into memory.
      * @throws RemoteException  if a Java RMI failure occurs.
      * @see #getData(Strategy)
-     * @see #IMPORT_STRATEGY_PROPERTY
      */
     public synchronized DataImpl getData()
         throws IOException, VisADException, RemoteException, BadFormException,
             OutOfMemoryError
     {
-        if (data == null)
-        {
-            String      strategyName =
-                System.getProperty(IMPORT_STRATEGY_PROPERTY);
-            Strategy    strategy;
-
-            try
-            {
-                strategy =
-                    strategyName == null
-                        ? Strategy.DEFAULT
-                        : (Strategy)Class.forName(strategyName).getMethod(
-                            "instance", new Class[0])
-                            .invoke(null, new Object[0]);
-            }
-            catch (NoSuchMethodException e)
-            {
-                throw new VisADException(
-                    getClass().getName() + ".getData(): " +
-                    "Import strategy \"" + strategyName + "\" doesn't have an "
-                    + "\"instance()\" method");
-            }
-            catch (ClassNotFoundException e)
-            {
-                throw new VisADException(
-                    getClass().getName() + ".getData(): " +
-                    "Import strategy \"" + strategyName + "\" not found");
-            }
-            catch (IllegalAccessException e)
-            {
-                throw new VisADException(
-                    getClass().getName() + ".getData(): " +
-                    "Permission to access import strategy \"" + strategyName +
-                    "\" denied");
-            }
-            catch (java.lang.reflect.InvocationTargetException e)
-            {
-                throw new VisADException(
-                    getClass().getName() + ".getData(): Import strategy's \"" +
-                    strategyName + "\" \"instance()\" method threw exception: "
-                    + e.getMessage());
-            }
-
-            data = getData(strategy);
-        }
-
-        return data;
+        return getData(strategy);
     }
 
     /**
@@ -172,8 +197,7 @@ NetcdfAdapter
      * @throws OutOfMemoryError Couldn't read netCDF dataset into memory.
      * @throws RemoteException  if a Java RMI failure occurs.
      */
-    public synchronized DataImpl
-    getData(Strategy strategy)
+    public synchronized DataImpl getData(Strategy strategy)
         throws IOException, VisADException, RemoteException, BadFormException,
             OutOfMemoryError
     {
