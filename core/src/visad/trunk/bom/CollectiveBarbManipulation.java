@@ -1248,7 +1248,7 @@ public class CollectiveBarbManipulation extends Object
                                      500000.0f, 1000000.0f, 0.0f, 1000.0f,
                                      0, false, (args.length == 0), true, false,
                                      new double[] {0.0, 0.5, 0.5}, 1,
-                                     new double[] {0.5, 0.5, 0.0}, 3);
+                                     new double[] {0.5, 0.5, 0.0}, 2);
 
     // construct invisible starter set
     Gridded2DSet set1 =
