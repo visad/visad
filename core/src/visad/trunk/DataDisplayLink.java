@@ -82,6 +82,12 @@ public class DataDisplayLink extends ReferenceActionLink {
                                        " the same DisplayScalar");
           }
         }
+
+        // WLH 10 Aug 2001
+        if (constant_maps[i].getDisplay() != null) {
+          throw new DisplayException(constant_maps[i] + " already has a display");
+        }
+
         constant_maps[i].setDisplay(local_d);
         ConstantMapVector.addElement(constant_maps[i]);
         local_d.addDisplayScalar(constant_maps[i]);
@@ -185,7 +191,10 @@ public class DataDisplayLink extends ReferenceActionLink {
     maps =((Vector) ConstantMapVector.clone()).elements();
     while(maps.hasMoreElements()) {
       ConstantMap map = (ConstantMap) maps.nextElement();
-      defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();
+      // WLH 10 Aug 2001
+      int index = map.getDisplayScalarIndex();
+      if (index >= 0) defaultValues[index] = (float) map.getConstant();
+      // defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();
     }
 
     try {
