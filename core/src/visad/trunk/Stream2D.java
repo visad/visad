@@ -69,13 +69,13 @@ public class Stream2D
 
 static float LENGTH = 0.015f;
 
-static int stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
-                         float dir, float[][] vr2, float[][] vc2, int[] numv,
-                         byte[] markarrow, byte[] markstart, byte[] markend,
-                         int nrarrow, int ncarrow, int nrstart, int ncstart,
-                         int nrend, int ncend, float row, float col, float step,
-                         float rowlength, float collength, int irend, int icend,
-                         Gridded2DSet spatial_set, float[][] spatial_values)
+static void stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
+                          float dir, float[][] vr2, float[][] vc2, int[] numv,
+                          byte[] markarrow, byte[] markstart, byte[] markend,
+                          int nrarrow, int ncarrow, int nrstart, int ncstart,
+                          int nrend, int ncend, float row, float col, float step,
+                          float rowlength, float collength, int irend, int icend,
+                          Gridded2DSet spatial_set, float[][] spatial_values)
        throws VisADException
 {
 
@@ -141,9 +141,12 @@ static int stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
 
     float[][] loc = spatial_set.gridToValue(new float[][] {{prevcol}, {prevrow}});
 
-      //float[][] loc_0 =
-      //  spatial_set.gridToValue(new float[][] {{col}, {row}});
-      //System.out.println("prev: "+loc[0][0]+", "+loc[1][0]+": "+loc_0[0][0]+", "+loc_0[1][0]);
+      /**-
+       float[][] loc_0 =
+         spatial_set.gridToValue(new float[][] {{col}, {row}});
+       System.out.println("prev: "+loc[0][0]+", "+loc[1][0]+": "
+         +loc_0[0][0]+", "+loc_0[1][0]);
+       */
 
     loc[1][0] += step*dir*v;
     loc[0][0] += step*dir*u;
@@ -171,9 +174,6 @@ static int stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
     {
       irend = ire;
       icend = ice;
-      if (irend < 0 || irend >= nrend || icend < 0 || icend >= ncend) {
-       /*- System.out.println("bad 2:  irend = %d  icend = %d\n", irend, icend);*/
-      }
       if (markend[icend*nrend + irend] == 1) {
         break;
       }
@@ -192,7 +192,6 @@ static int stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
 
     /*- check vertex array length, expand if necessary
     ---------------------------------------------------*/
-    //if (vr.length == num) {
     if (num >= vr.length - 4) {
       float[] tmp = new float[vr.length + 50];
       System.arraycopy(vr, 0, tmp, 0, vr.length);
@@ -214,9 +213,6 @@ static int stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
     irs = ( (int) (nrstart * (row) / ((float) nr-1.0) ) );
     ics = ( (int) (ncstart * (col) / ((float) nc-1.0) ) );
 
-    if (irs < 0 || irs >= nrstart || ics < 0 || ics >= ncstart) {
-      /*- System.out.println("bad 3:  irs = %d  ics = %d\n", irs, ics); */
-    }
     if (markstart[ (ics) * nrstart + (irs) ] == 0) {
       markstart[ (ics) * nrstart + (irs) ] = 1;
     }
@@ -240,7 +236,6 @@ static int stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
 
       /*- check vertex array length, expand if necessary
       ---------------------------------------------------*/
-      //-if (vr.length == num - 4) {
       if ( num >= vr.length - 6) {
         float[] tmp = new float[vr.length + 50];
         System.arraycopy(vr, 0, tmp, 0, vr.length);
@@ -249,7 +244,6 @@ static int stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
         System.arraycopy(vc, 0, tmp, 0, vc.length);
         vc = tmp;
       }
-
       vr[num]   = row;
       vc[num++] = col;
       vr[num]   = row - ((float)(rv + cv)) * rowlength;
@@ -265,7 +259,6 @@ static int stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
   numv[0] = num;
   vr2[0] = vr;
   vc2[0] = vc;
-  return 1;
 }
 
 
@@ -356,18 +349,21 @@ static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
 
 
   /*-- compute propagation step
-
-    WLH - use shorter step for higher density
-    step = ctx->TrajStep / density;
   -----------------------------------------------*/
-
+  float umax = Float.MIN_VALUE;
+  float vmax = Float.MIN_VALUE;
+  for (int kk = 0; kk < ugrid.length; kk++) {
+    if ( ugrid[kk] > umax ) umax = ugrid[kk];
+    if ( vgrid[kk] > vmax ) vmax = vgrid[kk];
+  }
+  float smax = (float) Math.sqrt((double)(umax*umax + vmax*vmax));
   float[][] spatial_values = spatial_set.getSamples(false);
   int[] lens = spatial_set.getLengths();
   int lenX = lens[0];
   float dist_x = Math.abs(spatial_values[0][lenX+1] - spatial_values[0][0]);
   float dist_y = Math.abs(spatial_values[1][lenX+1] - spatial_values[1][0]);
-  step = stepFactor*((dist_x + dist_y)/2);
-
+  float dist = (dist_x + dist_y)/2;
+  step = stepFactor*(dist/smax);
 
 
   /* iterate over start boxes */
@@ -382,10 +378,6 @@ static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
         irend = ( (int) (nrend * (row) / ((float) nr-1f) ) );
         icend = ( (int) (ncend * (col) / ((float) nc-1f) ) );
 
-        if (irend < 0 || irend >= nrend || icend < 0 || icend >= ncend)
-        {
-         /*-printf("bad 1:  irend = %d  icend = %d\n", irend, icend);*/
-        }
         markend[icend*nrend + irend] = 1;
         
         if (n_lines == vr[0].length) {
@@ -398,7 +390,6 @@ static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
           vc[0] = f_tmp;
         }
 
-        dir = 1f;
 
         float[][] vr2 = new float[1][];
         float[][] vc2 = new float[1][];
@@ -407,26 +398,22 @@ static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
         vr[0][n_lines] = vr2[0];
         vc[0][n_lines] = vc2[0];
 
+        dir = 1f;
         num[0] = 0;
 
-        if (stream_trace( ugrid, vgrid, nr, nc, dir,
-                          vr2, vc2,
-                          num,
-                          markarrow, markstart, markend, nrarrow, ncarrow,
-                          nrstart, ncstart, nrend, ncend, row, col, step,
-                          rowlength, collength, irend, icend, spatial_set,
-                          spatial_values) == 0)
-        {
-          numv[0][n_lines] = num[0];
-          //-System.out.println("1: return 1");
-          //-return 1;
-        }
+        stream_trace( ugrid, vgrid, nr, nc, dir,
+                      vr2, vc2,
+                      num,
+                      markarrow, markstart, markend, nrarrow, ncarrow,
+                      nrstart, ncstart, nrend, ncend, row, col, step,
+                      rowlength, collength, irend, icend, spatial_set,
+                      spatial_values);
+
         vr[0][n_lines] = vr2[0];
         vc[0][n_lines] = vc2[0];
 
 
         if (num[0] > 0) {
-          //-System.out.println("foward: "+n_lines+", n_verts: "+num[n_lines][0]);
 
           if ( n_lines == numv[0].length ) {
             int[] tmp = new int[numv[0].length + 50];
@@ -446,10 +433,6 @@ static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
         }
 
 
-        if (irend < 0 || irend >= nrend || icend < 0 || icend >= ncend)
-        {
-         //-printf("bad 3:  irend = %d  icend = %d\n", irend, icend);
-        }
         markend[icend*nrend + irend] = 1;
 
         if (n_lines == vr[0].length) {
@@ -470,26 +453,20 @@ static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
         vc[0][n_lines] = vc2[0];
 
         dir = -1f;
-
         num[0] = 0;
 
-        if (stream_trace( ugrid, vgrid, nr, nc, dir,
-                          vr2, vc2,
-                          num,
-                          markarrow, markstart, markend, nrarrow, ncarrow,
-                          nrstart, ncstart, nrend, ncend, row, col, step,
-                          rowlength, collength, irend, icend, spatial_set,
-                          spatial_values) == 0)
-        {
-          numv[0][n_lines] = num[0];
-          //-System.out.println("2: return 1");
-          //-return 1;
-        }
+        stream_trace( ugrid, vgrid, nr, nc, dir,
+                      vr2, vc2,
+                      num,
+                      markarrow, markstart, markend, nrarrow, ncarrow,
+                      nrstart, ncstart, nrend, ncend, row, col, step,
+                      rowlength, collength, irend, icend, spatial_set,
+                      spatial_values);
+
         vr[0][n_lines] = vr2[0];
         vc[0][n_lines] = vc2[0];
 
         if (num[0] > 0) {
-          //-System.out.println("backward: "+n_lines+", n_verts: "+num[n_lines][0]);
 
           if ( n_lines == numv[0].length ) {
             int[] tmp = new int[numv[0].length + 50];
@@ -518,7 +495,6 @@ static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
   System.arraycopy(numv[0], 0, tmp, 0, n_lines);
   numv[0] = tmp;
 
-  //-numv[0][n_lines] = num[n_lines][0];
   numl[0] = n_lines;
 
   return 1;
@@ -550,15 +526,7 @@ public static void main(String[] args)
   float[][] uv_values = new float[2][nr*nc];
   
   double ang = 2*Math.PI/nr;
-  /**
-  for ( int jj = 0; jj < nc; jj++ ) {
-    for ( int ii = 0; ii < nr; ii++ ) {
-      int idx = jj*nr + ii;
-      uv_values[0][idx] = 10f;
-      uv_values[1][idx] = 10f*((float) Math.cos(2*ang*ii));
-    }
-  }
-  **/
+
   for ( int jj = 0; jj < nc; jj++ ) {
     for ( int ii = 0; ii < nr; ii++ ) {
       int idx = jj*nr + ii;
@@ -569,7 +537,6 @@ public static void main(String[] args)
 
   uv_field.setSamples(uv_values, false);
                                       
-
 
   int[] numl = new int[1];
   int maxv = 1000;
