@@ -50,10 +50,10 @@ public class ImageJForm extends Form
   /** Counter for ImageJ form instantiation. */
   private static int num = 0;
 
-  /** Legal ImageJ suffixes. */
-  private static final String[] suffixes = {
+  /** Legal ImageJ SUFFIXES. */
+  private static final String[] SUFFIXES = {
     "tif", "tiff", "dicom", "fits", "pgm", "jpg",
-    "jpeg", "gif", "lut", "bmp", "zip", "roi"
+    "jpeg", "gif", "png", "lut", "bmp", "zip", "roi"
   };
 
   /** Message produced when attempting to use ImageJ without it installed. */
@@ -96,8 +96,8 @@ public class ImageJForm extends Form
 
   /** Checks if the given string is a valid filename for this form. */
   public boolean isThisType(String name) {
-    for (int i=0; i<suffixes.length; i++) {
-      if (name.toLowerCase().endsWith(suffixes[i])) return true;
+    for (int i=0; i<SUFFIXES.length; i++) {
+      if (name.toLowerCase().endsWith(SUFFIXES[i])) return true;
     }
     return false;
   }
@@ -105,10 +105,10 @@ public class ImageJForm extends Form
   /** Checks if the given block is a valid header for this form. */
   public boolean isThisType(byte[] block) { return false; }
 
-  /** Returns the default file suffixes supported by ImageJ. */
+  /** Returns the default file SUFFIXES supported by ImageJ. */
   public String[] getDefaultSuffixes() {
-    String[] s = new String[suffixes.length];
-    System.arraycopy(suffixes, 0, s, 0, suffixes.length);
+    String[] s = new String[SUFFIXES.length];
+    System.arraycopy(SUFFIXES, 0, s, 0, SUFFIXES.length);
     return s;
   }
 
@@ -171,12 +171,12 @@ public class ImageJForm extends Form
       fields[i] = DataUtility.makeField((Image) r.exec("ip.createImage()"));
     }
     RealType time = RealType.getRealType("time");
-    FunctionType time_function = new FunctionType(time, fields[0].getType());
-    Integer1DSet time_set = new Integer1DSet(size);
-    FieldImpl time_field = new FieldImpl(time_function, time_set);
-    time_field.setSamples(fields, false);
+    FunctionType timeFunction = new FunctionType(time, fields[0].getType());
+    Integer1DSet timeSet = new Integer1DSet(size);
+    FieldImpl timeField = new FieldImpl(timeFunction, timeSet);
+    timeField.setSamples(fields, false);
     percent = -1;
-    return time_field;
+    return timeField;
   }
 
   /**
