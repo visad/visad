@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.5 1998-03-31 20:35:39 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.6 1998-04-02 16:05:24 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -39,7 +39,7 @@ NetcdfAdapter
     /**
      * The netCDF data objects in the netCDF datset.
      */
-    protected final Map		dataSet;
+    protected final Map		map;
 
     /**
      * The outermost, netCDF data object.
@@ -65,16 +65,17 @@ NetcdfAdapter
     {
 	this.netcdf = netcdf;
 
-	dataSet = getDataSet(netcdf);
+	map = getDataSet(netcdf);
 
-	ncData = getOutermost(dataSet);
+	ncData = getOutermost(map);
+	map.put(new Key(ncData.getMathType(), map.size()), ncData);
     }
 
 
     /**
      * Return the VisAD data objects in the given netCDF dataset.
      *
-     * @param netcdf	The netCDF dataset to be adapted.
+     * @param netcdf	The netCDF dataset to be examined.
      * @return		A Map of data objects in the netCDF dataset.
      * @exception BadFormException
      *			The netCDF variable cannot be adapted to a VisAD API.
@@ -182,24 +183,24 @@ NetcdfAdapter
      *			Remote data access failure.
      */
     protected static NcData
-    getOutermost(Map dataSet)
+    getOutermost(Map map)
 	throws VisADException, RemoteException
     {
 	NcData	data;
-	int	numData = dataSet.size();
+	int	numData = map.size();
 
 	if (numData == 0)
 	    data = null;
 	else
 	if (numData == 1)
 	{
-	    Iterator	iter = dataSet.values().iterator();
+	    Iterator	iter = map.values().iterator();
 
 	    data = (NcData)iter.next();
 	}
 	else
 	{
-	    Iterator		iter = dataSet.values().iterator();
+	    Iterator		iter = map.values().iterator();
 	    NcData[]		datums = new NcData[numData];
 
 	    for (int i = 0; i < numData; ++i)
@@ -236,7 +237,8 @@ NetcdfAdapter
      * @param type	The MathType of the data object to be returned.
      * @prerequisite	<code>type</code> is a node in 
      *			<code>getMathType()</code>'s return-value.
-     * @return		The data object corresponding to <code>type</code>.
+     * @return		The data object corresponding to <code>type</code>
+     *			or <code>null</code> if there's no such object.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
@@ -247,15 +249,11 @@ NetcdfAdapter
     getData(MathType type)
 	throws IOException, VisADException
     {
-	if (type.equals(ncData.getMathType()))
-	    return getData();
+	NcData	ncData = (NcData)map.get(type);
 
-	NcData	data = (NcData)dataSet.get(type);
-
-	if (data == null)
-	    return null;
-
-	return data.getData();
+	return ncData == null
+		? null
+		: ncData.getData();
     }
 
 
