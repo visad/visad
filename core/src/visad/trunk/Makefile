@@ -547,40 +547,44 @@ recompile:
 	      else							\
 		(cd $$dir;						\
 		 if [ ! -z "$(COMPILE_ALL)" ]; then			\
-		   echo $(JC) $(JFLAGS) '*.java';			\
-		   $(JC) $(JFLAGS) *.java;				\
+		   if ls *.java >/dev/null 2>&1; then			\
+		     echo $(JC) $(JFLAGS) '*.java';			\
+		     $(JC) $(JFLAGS) *.java;				\
+		   fi;							\
 		 fi;							\
 		 for j in *.java; do					\
-		   b=`basename $$j .java`;				\
-		   if [ -z "$(COMPILE_ALL)" ]; then			\
-		     c=$$b.class;					\
-		     compile=false;					\
-		     if [ ! -f $$c ]; then				\
-		       compile=true;					\
-		     else						\
-		       set `ls -td $$j $$c` X;				\
-		       if [ $$c != $$1 ]; then				\
+		   if [ -f $$j ]; then					\
+		     b=`basename $$j .java`;				\
+		     if [ -z "$(COMPILE_ALL)" ]; then			\
+		       c=$$b.class;					\
+		       compile=false;					\
+		       if [ ! -f $$c ]; then				\
 			 compile=true;					\
+		       else						\
+			 set `ls -td $$j $$c` X;			\
+			 if [ $$c != $$1 ]; then			\
+			   compile=true;				\
+			 fi;						\
+		       fi;						\
+		       if $$compile; then				\
+			 (echo "$(JC) $(JFLAGS) $$j" &&			\
+			  $(JC) $(JFLAGS) $$j || true);			\
 		       fi;						\
 		     fi;						\
-		     if $$compile; then					\
-		       (echo "$(JC) $(JFLAGS) $$j" &&			\
-			$(JC) $(JFLAGS) $$j || true);			\
+		     rmicomp=;						\
+		     case "$$b" in					\
+		     *Remote*Impl) rmicomp=1;;				\
+		     NetcdfServer) rmicomp=1;;				\
+		     esac;						\
+		     if [ ! -z "$$rmicomp" ]; then			\
+		       set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
+		       if [ $${b}_Stub.class != $$1 ]; then		\
+			 (echo "${RMIC} -d $$root $$i.$$b" &&		\
+			  ${RMIC} -d $$root $$i.$$b || true);		\
+		       fi;						\
 		     fi;						\
 		   fi;							\
-		   rmicomp=;						\
-		   case "$$b" in					\
-		   *Remote*Impl) rmicomp=1;;				\
-		   NetcdfServer) rmicomp=1;;				\
-		   esac;						\
-		   if [ ! -z "$$rmicomp" ]; then			\
-		     set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
-		     if [ $${b}_Stub.class != $$1 ]; then		\
-		       (echo "${RMIC} -d $$root $$i.$$b" &&		\
-			${RMIC} -d $$root $$i.$$b || true);		\
-		     fi;						\
-		   fi;							\
-		 done);							\
+	         done);							\
 	      fi;							\
 	    fi;								\
 	  fi;								\
