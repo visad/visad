@@ -52,6 +52,7 @@ import visad.java3d.TwoDDisplayRendererJ3D;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import ij.process.ColorProcessor;
 import javax.swing.*;
 
 // VisAD packages
@@ -249,9 +250,7 @@ public class DataUtility {
           pixels[i] = v << 16 | v << 8 | v;
         }
       }
-      BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-      bi.setRGB(0, 0, w, h, pixels, 0, w);
-      return bi;
+      return new ColorProcessor(w, h, pixels).createImage();
     }
     catch (VisADException exc) {
       return null;
