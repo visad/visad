@@ -108,10 +108,7 @@ public class NuView
 
     display = new DisplayImplJ3D("amanda");
 
-    HistogramWidget histoWidget = new HistogramWidget();
-
-    JPanel widgetPanel = buildMainDisplay(display, file, histoWidget,
-                                          trackColor);
+    JPanel widgetPanel = buildMainDisplay(display, file, trackColor);
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -161,7 +158,6 @@ public class NuView
 
   private static final JPanel buildMainDisplay(DisplayImpl dpy,
                                                AmandaFile file,
-                                               HistogramWidget histoWidget,
                                                Color trackColor)
     throws RemoteException, VisADException
   {
@@ -207,6 +203,7 @@ public class NuView
     DisplayRenderer dpyRenderer = dpy.getDisplayRenderer();
     dpyRenderer.setBoxOn(false);
     dpyRenderer.setBackgroundColor(Color.white);
+    dpyRenderer.setForegroundColor(Color.black);
 
     final DataReferenceImpl eventRef = new DataReferenceImpl("event");
     // data set by eventWidget below
@@ -228,6 +225,8 @@ public class NuView
 */
 
     AnimationControl animCtl = (AnimationControl )animMap.getControl();
+
+    HistogramWidget histoWidget = new HistogramWidget();
 
     EventWidget eventWidget = new EventWidget(file, eventRef, trackRef,
                                               animCtl, trackMap, histoWidget);
