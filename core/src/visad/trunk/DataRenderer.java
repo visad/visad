@@ -435,10 +435,32 @@ if (map.badRange()) {
       display (x, y, z) */
   public float[][] earthToSpatial(float[][] locs)
          throws VisADException {
-    if (locs.length != lat_lon_dimension) return null;
+    if (lat_index < 0 || lon_index < 0) return null;
 
     int size = locs[0].length;
+    if (locs.length < lat_lon_dimension) {
+      // extend locs to lat_lon_dimension with zero fill
+      float[][] temp = locs;
+      locs = new float[lat_lon_dimension][];
+      for (int i=0; i<locs.length; i++) {
+        locs[i] = temp[i];
+      }
+      float[] zero = new float[size];
+      for (int j=0; j<size; j++) zero[j] = 0.0f;
+      for (int i=locs.length; i<lat_lon_dimension; i++) {
+        locs[i] = zero;
+      }
+    }
+    else if (locs.length > lat_lon_dimension) {
+      // truncate locs to lat_lon_dimension
+      float[][] temp = locs;
+      locs = new float[lat_lon_dimension][];
+      for (int i=0; i<lat_lon_dimension; i++) {
+        locs[i] = temp[i];
+      }
+    }
 
+    // permute (lat, lon, other) to data RealTupleType
     float[][] tuple_locs = new float[lat_lon_dimension][];
     float[][] spatial_locs = new float[3][];
     tuple_locs[lat_index] = locs[0];
@@ -447,12 +469,15 @@ if (map.badRange()) {
 
     if (lat_lon_in) {
       if (lat_lon_by_coord) {
+        // transform 'RealTupleType data_in' to 'RealTupleType data_out'
         if (data_coord_in.length == 1) {
+          // one data_coord_in applies to all data points
           tuple_locs = CoordinateSystem.transformCoordinates(data_out, null,
                            data_units_out, null, data_in, data_coord_in[0],
                            data_units_in, null, tuple_locs);
         }
         else {
+          // one data_coord_in per data point
           float[][] temp = new float[lat_lon_dimension][1];
           for (int j=0; j<size; j++) {
             for (int k=0; k<lat_lon_dimension; k++) temp[k][0] = tuple_locs[k][j];
@@ -462,12 +487,14 @@ if (map.badRange()) {
             for (int k=0; k<lat_lon_dimension; k++) tuple_locs[k][j] = temp[k][0];
           }
         }
+        // map data_out to spatial DisplayRealTypes
         for (int i=0; i<lat_lon_dimension; i++) {
           spatial_locs[sdo_spatial_index[i]] =
             sdo_maps[i].scaleValues(tuple_locs[i]);
         }
       }
       else {
+        // map data_in to spatial DisplayRealTypes
         for (int i=0; i<lat_lon_dimension; i++) {
           spatial_locs[sdi_spatial_index[i]] =
             sdi_maps[i].scaleValues(tuple_locs[i]);
@@ -475,18 +502,55 @@ if (map.badRange()) {
       }
     }
     else if (lat_lon_out) {
+      // map data_out to spatial DisplayRealTypes
       for (int i=0; i<lat_lon_dimension; i++) {
         spatial_locs[sdo_spatial_index[i]] =
           sdo_maps[i].scaleValues(tuple_locs[i]);
       }
     }
     else if (lat_lon_spatial) {
+      // map lat & lon, not in allSpatial RealTupleType, to
+      // spatial DisplayRealTypes
       spatial_locs[lat_spatial_index] = lat_map.scaleValues(tuple_locs[0]);
       spatial_locs[lon_spatial_index] = lon_map.scaleValues(tuple_locs[1]);
     }
     else {
+      // should never happen
       return null;
     }
+
+    // fill any empty spatial DisplayRealTypes with default values
+    for (int i=0; i<3; i++) {
+      if (spatial_locs[i] == null) {
+        spatial_locs[i] = new float[size];
+        float def = default_spatial_in[i];
+        for (int j=0; j<size; j++) spatial_locs[i][j] = def;
+      }
+    }
+
+    if (display_coordinate_system != null) {
+      // transform non-Cartesian spatial DisplayRealTypes to Cartesian
+      spatial_locs = display_coordinate_system.toReference(spatial_locs);
+    }
+    return spatial_locs;
+  }
+
+  /** convert display (x, y, z) to (lat, lon) or (lat, lon, other)
+      values */
+  public float[][] spatialToEarth(float[][] spatial_locs)
+         throws VisADException {
+    if (lat_index < 0 || lon_index < 0) return null;
+    if (spatial_locs.length != 3) return null;
+
+    int size = 0;
+    for (int i=0; i<3; i++) {
+      if (spatial_locs[i] != null && spatial_locs[i].length > size) {
+        size = spatial_locs[i].length;
+      }
+    }
+    if (size == 0) return null;
+
+    // fill any empty spatial DisplayRealTypes with default values
     for (int i=0; i<3; i++) {
       if (spatial_locs[i] == null) {
         spatial_locs[i] = new float[size];
@@ -495,18 +559,74 @@ if (map.badRange()) {
       }
     }
     if (display_coordinate_system != null) {
-      spatial_locs = display_coordinate_system.toReference(spatial_locs);
+      // transform Cartesian spatial DisplayRealTypes to non-Cartesian
+      spatial_locs = display_coordinate_system.fromReference(spatial_locs);
     }
-    return spatial_locs;
-  }
 
-  /** convert display (x, y, z) to (lat, lon) or (lat, lon, other)
-      values */
-  public float[][] spatialToEarth(float[][] locs) {
+    float[][] tuple_locs = new float[lat_lon_dimension][];
+
+
+
+
+/* must edit to invert mappings
+    if (lat_lon_in) {
+      if (lat_lon_by_coord) {
+        // transform 'RealTupleType data_in' to 'RealTupleType data_out'
+        if (data_coord_in.length == 1) {
+          // one data_coord_in applies to all data points
+          tuple_locs = CoordinateSystem.transformCoordinates(data_out, null,
+                           data_units_out, null, data_in, data_coord_in[0],
+                           data_units_in, null, tuple_locs);
+        }
+        else {
+          // one data_coord_in per data point
+          float[][] temp = new float[lat_lon_dimension][1];
+          for (int j=0; j<size; j++) {
+            for (int k=0; k<lat_lon_dimension; k++) temp[k][0] = tuple_locs[k][j];
+              temp = CoordinateSystem.transformCoordinates(data_out, null,
+                             data_units_out, null, data_in, data_coord_in[j],
+                             data_units_in, null, temp);
+            for (int k=0; k<lat_lon_dimension; k++) tuple_locs[k][j] = temp[k][0];
+          }
+        }
+        // map data_out to spatial DisplayRealTypes
+        for (int i=0; i<lat_lon_dimension; i++) {
+          spatial_locs[sdo_spatial_index[i]] =
+            sdo_maps[i].scaleValues(tuple_locs[i]);
+        }
+      }
+      else {
+        // map data_in to spatial DisplayRealTypes
+        for (int i=0; i<lat_lon_dimension; i++) {
+          spatial_locs[sdi_spatial_index[i]] =
+            sdi_maps[i].scaleValues(tuple_locs[i]);
+        }
+      }
+    }
+    else if (lat_lon_out) {
+      // map data_out to spatial DisplayRealTypes
+      for (int i=0; i<lat_lon_dimension; i++) {
+        spatial_locs[sdo_spatial_index[i]] =
+          sdo_maps[i].scaleValues(tuple_locs[i]);
+      }
+    }
+    else if (lat_lon_spatial) {
+      // map lat & lon, not in allSpatial RealTupleType, to
+      // spatial DisplayRealTypes
+      spatial_locs[lat_spatial_index] = lat_map.scaleValues(tuple_locs[0]);
+      spatial_locs[lon_spatial_index] = lon_map.scaleValues(tuple_locs[1]);
+    }
+    else {
+      // should never happen
+      return null;
+    }
+*/
+
+
     return null;
   }
 
-  // from doTransform
+  // information from doTransform
   public void setEarthSpatialData(ShadowRealTupleType s_d_i,
                     ShadowRealTupleType s_d_o, RealTupleType d_o,
                     Unit[] d_u_o, RealTupleType d_i,
@@ -526,9 +646,8 @@ if (map.badRange()) {
       if (k > -1) rvts[k] = (RealVectorType) d_i;
     }
 
-    if (lat_index > -1 && lon_index > -1) return;
-    lat_index = -1;
-    lon_index = -1;
+    int lat_index_local = -1;
+    int lon_index_local = -1;
     other_index = -1;
     int n = 0;
     int m = 0;
@@ -536,11 +655,11 @@ if (map.badRange()) {
       n = d_i.getDimension();
       for (int i=0; i<n; i++) {
         RealType real = (RealType) d_i.getComponent(i);
-        if (RealType.Latitude.equals(real)) lat_index = i;
-        if (RealType.Longitude.equals(real)) lon_index = i;
+        if (RealType.Latitude.equals(real)) lat_index_local = i;
+        if (RealType.Longitude.equals(real)) lon_index_local = i;
       }
     }
-    if (lat_index > -1 && lon_index > -1 && (n == 2 || n == 3)) {
+    if (lat_index_local > -1 && lon_index_local > -1 && (n == 2 || n == 3)) {
       if (s_d_i.getAllSpatial()) {
         lat_lon_by_coord = false;
         sdi_spatial_index = new int[s_d_i.getDimension()];
@@ -558,8 +677,7 @@ if (map.badRange()) {
         }
       }
       else {
-        lat_index = -1;
-        lon_index = -1;
+        // do not update lat_index & lon_index
         return;
       }
       lat_lon_in = true;
@@ -567,27 +685,26 @@ if (map.badRange()) {
       lat_lon_spatial = false;
       lat_lon_dimension = n;
       if (n == 3) {
-        other_index = 3 - (lat_index + lon_index);
+        other_index = 3 - (lat_index_local + lon_index_local);
         if (Unit.canConvert(d_u_i[other_index], CommonUnit.meter)) {
           other_meters = true;
         }
       }
     }
     else {
-      lat_index = -1;
-      lon_index = -1;
+      lat_index_local = -1;
+      lon_index_local = -1;
       if (d_o != null) {
         m = d_o.getDimension();
         for (int i=0; i<m; i++) {
           RealType real = (RealType) d_o.getComponent(i);
-          if (RealType.Latitude.equals(real)) lat_index = i;
-          if (RealType.Longitude.equals(real)) lon_index = i;
+          if (RealType.Latitude.equals(real)) lat_index_local = i;
+          if (RealType.Longitude.equals(real)) lon_index_local = i;
         }
       }
-      if (lat_index < 0 || lon_index < 0 || !s_d_o.getAllSpatial() ||
+      if (lat_index_local < 0 || lon_index_local < 0 || !s_d_o.getAllSpatial() ||
           !(m == 2 || m == 3)) {
-        lat_index = -1;
-        lon_index = -1;
+        // do not update lat_index & lon_index
         return;
       }
       sdo_spatial_index = new int[s_d_o.getDimension()];
@@ -601,7 +718,7 @@ if (map.badRange()) {
       lat_lon_spatial = false;
       lat_lon_dimension = m;
       if (m == 3) {
-        other_index = 3 - (lat_index + lon_index);
+        other_index = 3 - (lat_index_local + lon_index_local);
         if (Unit.canConvert(d_u_i[other_index], CommonUnit.meter)) {
           other_meters = true;
         }
@@ -614,6 +731,9 @@ if (map.badRange()) {
     data_in = d_i;
     data_units_in = d_u_i;
     data_coord_in = d_c_i; // may be one per point
+    lat_index = lat_index_local;
+    lon_index = lon_index_local;
+    return;
   }
 
   /** return array of spatial ScalarMap for srt, or null */
@@ -694,7 +814,7 @@ if (map.badRange()) {
 //
 //
 
-  // from assembleSpatial
+  // information from assembleSpatial
   public void setEarthSpatialDisplay(CoordinateSystem coord,
            DisplayTupleType t, DisplayImpl display, int[] indices,
            float[][] display_values, float[] default_values)
