@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -400,6 +401,7 @@ DateTime
         if (times == null || times.length < 2)
             throw new VisADException(
                 "Must be at least 2 times to create a Gridded1DDoubleSet");
+        Arrays.sort(times);
         double[][] timeValues = new double[1][times.length];
         for (int i = 0; i < times.length; i++) 
             timeValues[0][i] = times[i].getValue();
@@ -413,7 +415,7 @@ DateTime
      * @param  times  array of times in seconds since the epoch. Array 
      *                cannot be null or only have one entry.
      *
-     * @return Gridded1DDouble set representing the array
+     * @return set representing the array as a Gridded1DDoubleSet
      * @throws VisADException  array is null or has only one element or
      *                         couldn't create the GriddedDoubleSet
      */
@@ -423,9 +425,41 @@ DateTime
         if (times == null || times.length < 2)
             throw new VisADException(
                 "Must be at least 2 times to create a Gridded1DDoubleSet");
+        Arrays.sort(times);
         double[][] alltimes = new double[1][times.length];
         for (int i = 0; i < times.length; i++) alltimes[0][i] = times[i];
         return new Gridded1DDoubleSet(RealType.Time, alltimes, times.length);
+    }
+
+    /**
+     * Create an array of DateTimes from a Gridded1DDoubleSet of times.
+     *
+     * @param  timeSet   Gridded1DDoubleSet of times
+     *
+     * @throws VisADException  invalid time set or couldn't create DateTimes
+     */
+    public static DateTime[] timeSetToArray(Gridded1DDoubleSet timeSet)
+        throws VisADException
+    {
+        RealTupleType domainType = ((SetType)timeSet.getType()).getDomain();
+        Unit unit = CommonUnit.secondsSinceTheEpoch;
+        if (!domainType.equals(RealTupleType.Time1DTuple))
+        {
+            unit = domainType.getDefaultUnits()[0];
+            if (!Unit.canConvert(unit, CommonUnit.secondsSinceTheEpoch))
+                throw new VisADException(
+                    "Invalid MathType or Units for timeSet");
+        }
+        double[][] values;
+        if (!unit.equals(CommonUnit.secondsSinceTheEpoch)) 
+            values = Unit.convertTuple(timeSet.getDoubles(), new Unit[] {unit},
+                              new Unit[] {CommonUnit.secondsSinceTheEpoch});
+        else
+            values = timeSet.getDoubles();
+        DateTime[] times = new DateTime[timeSet.getLength()];
+        for (int i = 0; i < timeSet.getLength(); i++)
+            times[i] = new DateTime(values[0][i]);
+        return times;
     }
 
     /**
