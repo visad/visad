@@ -91,12 +91,12 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
     if (gridNumber == 211) {
       
       doLambert(ref, 12.190, -133.459, 81.2705, 25.0, 25.0, -95.0);
-      range = new Rectangle2D.Double(0.0, 0.0, 92., 65.);
+      range = new Rectangle2D.Double(0.0, 0.0, 93., 65.);
 
     } else if (gridNumber == 236) {
 
       doLambert(ref, 16.281, 233.862, 40.635, 25.0, 25.0, 265.0);
-      range = new Rectangle2D.Double(0.0, 0.0, 150., 113.);
+      range = new Rectangle2D.Double(0.0, 0.0, 151., 113.);
       
     } else {
         System.out.println("GRIB Grid type unknown = "+gridNumber);
@@ -118,7 +118,7 @@ public class GRIBCoordinateSystem extends visad.MapProjection {
      LoMax = Lo1 + Di*(Ni - 1);
      aspectRatio = (Di/Dj);
      range = 
-         new Rectangle2D.Double(0.0, 0.0, (double) (Ni - 1), (double) (Nj - 1));
+         new Rectangle2D.Double(0.0, 0.0, (double) (Ni), (double) (Nj));
 
      //System.out.println("la1, lo1, ,LoMax, di, dj ="+La1+" "+Lo1+" "+LoMax+" "+ Di+" "+Dj);
 
