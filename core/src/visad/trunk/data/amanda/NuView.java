@@ -20,6 +20,8 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+package visad.data.amanda;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -52,11 +54,6 @@ import visad.ScalarMap;
 import visad.ShapeControl;
 import visad.Tuple;
 import visad.VisADException;
-
-import visad.data.amanda.AmandaFile;
-import visad.data.amanda.EventWidget;
-import visad.data.amanda.F2000Util;
-import visad.data.amanda.TrackWidget;
 
 import visad.java3d.DisplayImplJ3D;
 
@@ -156,17 +153,17 @@ class DisplayMaps
   }
 }
 
-/** run 'java F2000App in_file' to display data.<br>
- *  try 'java F2000App 100events.r'
+/** run 'java NuView in_file' to display data.<br>
+ *  try 'java NuView 100events.r'
  */
-public class F2000App
+public class NuView
 {
   public static void main(String args[])
          throws VisADException, RemoteException, IOException
   {
     if (args == null || args.length != 1) {
       System.out.println("to test read an F2000 file, run:");
-      System.out.println("  'java F2000App in_file'");
+      System.out.println("  'java NuView in_file'");
       System.exit(1);
       return;
     }
