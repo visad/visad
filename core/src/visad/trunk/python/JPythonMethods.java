@@ -1463,9 +1463,9 @@ public abstract class JPythonMethods {
   *
   * @return the range
   */
-  public static TupleType rangeType(Data data) 
+  public static MathType rangeType(Data data) 
                   throws VisADException, RemoteException {
-    return (TupleType) ((FunctionType)data.getType()).getRange();
+    return (MathType) ((FunctionType)data.getType()).getRange();
   
   }
 
