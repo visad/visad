@@ -241,5 +241,14 @@ public class DataDisplayLink extends ReferenceActionLink {
     return (DataReference) getThingReference();
   }
 
+  public Vector getConstantMaps()
+  {
+    return ConstantMapVector;
+  }
+
+  public Vector getScalarMaps()
+  {
+    return SelectedMapVector;
+  }
 }
 
