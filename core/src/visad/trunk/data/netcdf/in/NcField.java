@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcField.java,v 1.1 1998-09-11 15:00:52 steve Exp $
+ * $Id: NcField.java,v 1.2 1998-09-11 16:33:49 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -16,6 +16,8 @@ import visad.VisADException;
 
 /**
  * Adapts netCDF variables to a VisAD Field.
+ *
+ * Instances are mutable.
  */
 public abstract class
 NcField
@@ -31,11 +33,9 @@ NcField
      * Constructs from a domain.
      *
      * @param domain		The domain of the Field.
-     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     protected
     NcField(NcDomain domain)
-	throws VisADException
     {
 	this.domain = domain;
     }
@@ -43,15 +43,23 @@ NcField
 
     /**
      * Adds a data object to this field.
+     *
+     * @param data		The data object to be added
+     * @return			The appropriate, top-level data object.
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true</code>
+     *				if and only if RETURN_VALUE constains both
+     *				this data object and <code>data</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	I/O failure.
      */
     public NcData
-    tryAddData(NcData data)
+    tryCombine(NcData data)
 	throws VisADException, IOException
     {
 	return data instanceof NcNestedField
-		? tryAddData((NcNestedField)data)
+		? tryCombine((NcNestedField)data)
 		: data instanceof NcFlatField
-		    ? tryAddData((NcFlatField)data)
+		    ? tryCombine((NcFlatField)data)
 		    : this;
     }
 
@@ -61,12 +69,14 @@ NcField
      *
      * @param field		The NcNestedField to be added.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == true</code>
-     *				<=> <the data object was added>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true</code>
+     *				if and only if RETURN_VALUE constains both
+     *				this data object and <code>data</code>.
      * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	I/O failure.
      */
     public abstract NcData
-    tryAddData(NcNestedField field)
+    tryCombine(NcNestedField field)
 	throws VisADException, IOException;
 
 
@@ -75,13 +85,14 @@ NcField
      *
      * @param field		The NcFlatField to be added.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == true</code>
-     *				<=> <the data object was added>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true</code>
+     *				if and only if RETURN_VALUE constains both
+     *				this data object and <code>data</code>.
      * @throws VisADException	Couldn't create necessary VisAD data object.
      * @throws IOException      Data access I/O failure.
      */
     public abstract NcData
-    tryAddData(NcFlatField field)
+    tryCombine(NcFlatField field)
 	throws VisADException, IOException;
 
 
@@ -98,9 +109,10 @@ NcField
 
 
     /**
-     * Gets the VisAD MathType of this field.
+     * Gets the VisAD MathType of this field.  Uses the Template design pattern.
      *
-     * Template design pattern.
+     * @return			The VisAD MathType of this field.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public MathType
     getMathType()
@@ -112,6 +124,9 @@ NcField
 
     /**
      * Gets the VisAD MathType of the range of this field.
+     *
+     * @return			The VisAD MathType of the range of this field.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     protected abstract MathType
     getRangeMathType()
@@ -120,6 +135,8 @@ NcField
 
     /**
      * Gets the range of this field.
+     *
+     * @return			The range of this field.
      */
     public abstract NcRange
     getRange();

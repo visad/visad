@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFlatRange.java,v 1.1 1998-09-11 15:00:53 steve Exp $
+ * $Id: NcFlatRange.java,v 1.2 1998-09-11 16:33:49 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -17,9 +17,10 @@ import visad.VisADException;
 
 
 /**
- * Provides support for the range of a VisAD FlatField.
+ * Provides support for the logical range of a VisAD FlatField that is 
+ * contained in an adapted data object.
  *
- * An instance of this class is mutable.
+ * Instances are mutable.
  */
 public class
 NcFlatRange
@@ -27,6 +28,9 @@ NcFlatRange
 {
     /**
      * Constructs from an adapted, netCDF variable.
+     *
+     * @param var		The adapted, netCDF variable.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public
     NcFlatRange(NcVar var)
@@ -38,6 +42,9 @@ NcFlatRange
 
     /**
      * Gets the VisAD MathType of the given netCDF variable.
+     *
+     * @param var		The adapted, netCDF variable to be examined.
+     * @return			The VisAD MathType of <code>var</code>.
      */
     protected MathType
     getMathType(NcVar var)
@@ -49,7 +56,8 @@ NcFlatRange
     /**
      * Gets the VisAD Sets of this range.
      *
-     * @return		The VisAD Sets of this range.
+     * @return			The VisAD Sets of the components in this range.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public Set[]
     getSets()
@@ -67,7 +75,8 @@ NcFlatRange
     /**
      * Gets the units of this range.
      *
-     * @return          The VisAD Units of this range.
+     * @return          	The VisAD Units of the components in this range.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public Unit[]
     getUnits()
@@ -87,7 +96,9 @@ NcFlatRange
      * of doubles.
      *
      * @return			The values of the netCDF variables in this 
-     *				range.
+     *				range.  The outermost dimension is the
+     *				component dimension.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      * @throws IOException	I/O failure.
      */
     public double[][]

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcRange.java,v 1.1 1998-09-11 15:00:54 steve Exp $
+ * $Id: NcRange.java,v 1.2 1998-09-11 16:33:51 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -16,9 +16,10 @@ import visad.VisADException;
 
 
 /**
- * Provides support for the range of a VisAD field.
+ * Provides support for the logical range of a VisAD Field that is contained
+ * in an adapted data object.
  *
- * An instance of this class is mutable.
+ * Instances are mutable.
  */
 public abstract class
 NcRange
@@ -37,6 +38,11 @@ NcRange
 
     /**
      * Adds an adapted, netCDF variable to the range.
+     *
+     * @param			The adapted, netCDF variable to be added.
+     * @postcondition		<code>size() == </code>(PRE)<code>size()
+     *				+ 1</code>
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public void
     add(NcVar var)
@@ -51,6 +57,8 @@ NcRange
      * Adds the components of another range to this range.
      *
      * @param range		The other range to be added to this one.
+     * @postcondition		<code>size() == </code>(PRE)<code>size() +
+     *				range.size()</code>
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public void
@@ -77,9 +85,10 @@ NcRange
     /**
      * Gets a component of the range.
      *
-     * @param index	The index of the component.
-     * @precondition	<code>index >= 0 && index < size()</code>
-     * @return		The <code>index</code>th component.
+     * @param index		The index of the component.
+     * @precondition		<code>index >= 0 && index < size()</code>
+     * @return			The <code>index</code>th component.
+     * @throws VisADException	<code>index> is out-of-bounds.
      */
     protected NcVar
     get(int index)
@@ -110,6 +119,10 @@ NcRange
 
     /**
      * Gets the VisAD MathType of the given netCDF variable.
+     *
+     * @param var		The adapted, netCDF variable to be examined.
+     * @return			The VisAD MathType of <code>var</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     protected abstract MathType
     getMathType(NcVar var)

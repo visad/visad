@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedField.java,v 1.1 1998-09-11 15:00:53 steve Exp $
+ * $Id: NcNestedField.java,v 1.2 1998-09-11 16:33:50 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -79,16 +79,17 @@ NcNestedField
      *
      * @param flatField		The adapted FlatField to be added.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == true</code>
-     *				<=> <the data object was added>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true</code>
+     *				if and only if RETURN_VALUE constains both
+     *				this data object and <code>data</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
      * @throws IOException	Data access I/O failure.
      */
     public NcData
-    tryAddData(NcFlatField flatField)
+    tryCombine(NcFlatField flatField)
 	throws VisADException, IOException
     {
-	return tryAddData(new NcNestedField(flatField));
+	return tryCombine(new NcNestedField(flatField));
     }
 
 
@@ -97,20 +98,21 @@ NcNestedField
      *
      * @param field		The adapted, nested Field to be added.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == true</code>
-     *				<=> <the data object was added>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true</code>
+     *				if and only if RETURN_VALUE constains both
+     *				this data object and <code>data</code>.
      * @throw VisADException	Couldn't create necessary VisAD object.
      */
     public NcData
-    tryAddData(NcNestedField field)
+    tryCombine(NcNestedField field)
 	throws VisADException
     {
-	clearWasAdded();
+	clearWasCombined();
 
 	if (getDomain().equals(field.getDomain()))
 	{
 	    range.add(field.range);
-	    setWasAdded();
+	    setWasCombined();
 	}
 
 	return this;
@@ -119,6 +121,8 @@ NcNestedField
 
     /**
      * Gets the range of this field.
+     *
+     * @return			The range of this field.
      */
     public NcRange
     getRange()
@@ -129,6 +133,8 @@ NcNestedField
 
     /**
      * Gets the VisAD MathType of the range of this field.
+     *
+     * @return			The VisAD MathType of the range of this field.
      */
     protected MathType
     getRangeMathType()
@@ -139,9 +145,9 @@ NcNestedField
 
 
     /**
-     * Gets the VisAD data object corresponding to this field.
+     * Gets the VisAD Field corresponding to this data object.
      *
-     * @return			The VisAD data object corresponding to this
+     * @return			The VisAD Field corresponding to this
      *				data object.
      * @throws VisADException	Couldn't create necessary VisAD object.
      * @throws IOException	Data access I/O failure.
@@ -163,9 +169,9 @@ NcNestedField
 
 
     /**
-     * Gets a proxy for the VisAD data object.
+     * Gets a proxy for the VisAD Field corresponding to this data object.
      *
-     * @return			A proxy for the VisAD data object corresponding
+     * @return			The VisAD FileFlatField corresponding
      *				to this data object.
      * @throws VisADException	Couldn't create necessary VisAD object.
      * @throws IOException	Data access I/O failure.
@@ -190,8 +196,9 @@ NcNestedField
      * Gets the values of this data object as an array of doubles.
      *
      * @return			The values of the netCDF variables in this 
-     *				range.
-     * @throws IOException	I/O failure.
+     *				range.  The outermost dimension is the
+     *				component dimension.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public double[][]
     getDoubles()
@@ -202,7 +209,7 @@ NcNestedField
 
 
     /**
-     * FileAccessor for the range values of this Field.
+     * Provides FileAccessor support for this data object.
      */
     protected class
     Accessor

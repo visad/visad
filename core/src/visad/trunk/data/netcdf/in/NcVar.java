@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.6 1998-09-11 15:00:55 steve Exp $
+ * $Id: NcVar.java,v 1.7 1998-09-11 16:33:52 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -82,6 +82,8 @@ NcVar
     /**
      * Constructs from another NcVar.  Protected to ensure use by
      * trusted subclasses only.
+     *
+     * @param ncVar	The other NcVar.
      */
     protected
     NcVar(NcVar ncVar)
@@ -98,6 +100,7 @@ NcVar
      *
      * @param var	The netCDF variable to be adapted.
      * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @param type	The VisAD MathType for this variable.
      */
     protected
     NcVar(Variable var, Netcdf netcdf, ScalarType type)
@@ -369,7 +372,9 @@ NcVar
 
 
     /**
-     * Return the VisAD MathType of this variable's values.
+     * Return the VisAD MathType of this variable's values.  NB: The 
+     * MathType of the <b>values</b> is returned -- not the MathType of
+     * the implied function.
      *
      * @return	The VisAD MathType of the variable's values.
      */
@@ -383,7 +388,8 @@ NcVar
     /**
      * Return the VisAD rank of this variable.
      *
-     * @return	The VisAD rank of the variable.
+     * @return	The VisAD rank of the variable.  This is one less than
+     *		the rank of the netCDF variable for textual variables.
      */
     abstract int
     getRank();
@@ -392,8 +398,9 @@ NcVar
     /**
      * Return the shape of this variable.
      *
-     * @return		The length of each netCDF dimension of the variable.
-     * @postcondition	<code>getRank() == getLengths().length</code>.
+     * @return			The length of each netCDF dimension of the
+     *				variable (in netCDF order).
+     * @postcondition		<code>getRank() == getLengths().length</code>.
      */
     int[]
     getLengths()
@@ -439,8 +446,10 @@ NcVar
     /**
      * Returns the dimensions of this variable (in netCDF order).
      *
-     * @return		The dimensions of the variable in netCDF order.
-     * @postcondition	<code>getRank() == getDimensions().length</code>.
+     * @return			The dimensions of the variable in netCDF order.
+     * @postcondition		<code>getRank() == 
+     *				</code>RETURN_VALUE</code>.length</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     NcDim[]
     getDimensions()
@@ -686,7 +695,7 @@ NcVar
 
 
     /**
-     * Indicate whether or not the variable is longitude.
+     * Indicate whether or not the variable is latitude.
      *
      * @return	<code>true</code> if and only if the variable represents
      *		latitude.
@@ -741,6 +750,7 @@ NcVar
      * Return the values of this variable -- at a given point of the outermost
      * dimension -- as a packed array of doubles.
      *
+     * @precondition		<code>getRank() >= 1</code>
      * @return			The variable's values.
      * @throws IOException	I/O error.
      */
@@ -760,7 +770,7 @@ NcVar
 
 
     /**
-     * Return the netCDF Variable.
+     * Return the underlying netCDF Variable.
      */
     protected Variable
     getVar()
@@ -803,15 +813,15 @@ NcVar
 
 
 /**
- * The NcInteger class provides an abstract class for adapting an integral
- * netCDF variable that's being imported to a VisAD API.
+ * Adapts an integral netCDF variable that's being imported to a VisAD API.
  */
 abstract class
 NcInteger
     extends NcNumber
 {
     /**
-     * Construct.
+     * Constructs from a netCDF variable, a netCDF dataset, and a VisAD
+     * RealType.
      *
      * @param var		The netCDF integer variable to be adapted.
      * @param netcdf		The netCDF dataset that contains 
@@ -830,14 +840,15 @@ NcInteger
 
 
     /**
-     * Indicate whether or not a netCDF variable can be represented as
+     * Indicates whether or not a netCDF variable can be represented as
      * an integer in the given VisAD range.
      *
      * @param var		The netCDF variable to be examined.
      * @param visadMin		The minimum representable VisAD value.
      * @param visadMax		The maximum representable VisAD value.
      * @return			<code>true</code> if and only if the netCDF 
-     *				variable can be represented within the given range.
+     *				variable can be represented within the given 
+     *				range.
      * @throws BadFormException	The netCDF variable cannot be adapted to a 
      *				VisAD API.
      */
@@ -862,15 +873,14 @@ NcInteger
 
 
 /**
- * The NcByte class adapts a netCDF byte variable that's being
- * imported to a VisAD API.
+ * Adapts a netCDF byte variable that's being imported to a VisAD API.
  */
 final class
 NcByte
     extends NcInteger
 {
     /**
-     * Indicate whether or not a netCDF variable can be represented as 
+     * Indicates whether or not a netCDF variable can be represented as 
      * an NcByte.  This is only possible if the netCDF variable doesn't
      * use the value -128 because that's used by VisAD to indicate a
      * "missing" byte range-value.
@@ -890,7 +900,7 @@ NcByte
 
 
     /**
-     * Construct.
+     * Constructs from a netCDF variable and dataset.
      *
      * @param var		The netCDF byte variable to be adapted.
      * @param netcdf		The netCDF dataset that contains 
@@ -906,16 +916,15 @@ NcByte
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to byte");
-
     }
 
     
     /**
-     * Return the range set of this variable.
+     * Gets the range set of this variable.
      *
      * @param type		The VisAD RealType of the variable.
      * @return			The sampling set of the values of this variable.
-     * @throws VisADException	Couldn't create set.
+     * @throws VisADException	Couldn't create VisAD Set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -941,15 +950,14 @@ NcByte
 
 
 /**
- * The NcShort class adapts a netCDF byte or short variable that's being
- * imported to a VisAD API.
+ * Adapts a netCDF byte or short variable that's being imported to a VisAD API.
  */
 final class
 NcShort
     extends NcInteger
 {
     /**
-     * Indicate whether or not a netCDF variable can be represented as 
+     * Indicates whether or not a netCDF variable can be represented as 
      * an NcShort.
      *
      * @param var		The netCDF variable to be examined.
@@ -968,7 +976,7 @@ NcShort
 
 
     /**
-     * Construct.
+     * Constructs from a netCDF variable and dataset.
      *
      * @param var		The netCDF short variable to be adapted.
      * @param netcdf		The netCDF dataset that contains 
@@ -984,16 +992,15 @@ NcShort
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to short");
-
     }
 
     
     /**
-     * Return the range set of this variable.
+     * Gets the range set of this variable.
      *
      * @param type		The VisAD RealType of the variable.
      * @return			The sampling set of the values of this variable.
-     * @throws VisADException	Couldn't create set.
+     * @throws VisADException	Couldn't create VisAD Set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -1019,15 +1026,14 @@ NcShort
 
 
 /**
- * The NcInt class adapts a netCDF short, or int variable that's being
- * imported to a VisAD API.
+ * Adapts a netCDF short, or int variable that's being imported to a VisAD API.
  */
 final class
 NcInt
     extends NcInteger
 {
     /**
-     * Indicate whether or not a netCDF variable can be represented as 
+     * Indicates whether or not a netCDF variable can be represented as 
      * an NcInt.
      *
      * @param var		The netCDF variable to be examined.
@@ -1046,7 +1052,7 @@ NcInt
 
 
     /**
-     * Construct.
+     * Constructs from a netCDF variable and dataset.
      *
      * @param var		The netCDF "int" variable to be adapted.
      * @param netcdf		The netCDF dataset that contains 
@@ -1062,16 +1068,15 @@ NcInt
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to int");
-
     }
 
     
     /**
-     * Return the range set of this variable.
+     * Gets the range set of this variable.
      *
      * @param type		The VisAD RealType of the variable.
      * @return			The sampling set of the values of this variable.
-     * @throws VisADException	Couldn't create set.
+     * @throws VisADException	Couldn't create VisAD Set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -1115,15 +1120,14 @@ NcInt
 
 
 /**
- * The NcReal class provides an abstract class for adapting a floating-point
- * netCDF variable that's being imported to a VisAD API.
+ * Adapts a floating-point netCDF variable that's being imported to a VisAD API.
  */
 abstract class
 NcReal
     extends NcNumber
 {
     /**
-     * Construct.
+     * Constructs from a netCDF variable and dataset, and a VisAD RealType.
      *
      * @param var		The netCDF variable that's being adapted.
      * @param netcdf		The netCDF dataset that contains 
@@ -1143,15 +1147,14 @@ NcReal
 
 
 /**
- * The NcFloat class adapts a netCDF float variable that's being
- * imported to a VisAD API.
+ * Adapts a netCDF float variable that's being imported to a VisAD API.
  */
 final class
 NcFloat
     extends NcReal
 {
     /**
-     * Indicate whether or not a netCDF variable can be represented as 
+     * Indicates whether or not a netCDF variable can be represented as 
      * an NcFloat.
      *
      * @param var	The netCDF variable to be examined.
@@ -1175,7 +1178,7 @@ NcFloat
 
 
     /**
-     * Construct.
+     * Constructs from a netCDF variable and dataset.
      *
      * @param var		The netCDF float variable to be adapted.
      * @param netcdf		The netCDF dataset that contains 
@@ -1191,16 +1194,15 @@ NcFloat
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to float");
-
     }
 
     
     /**
-     * Return the range set of this variable.
+     * Gets the range set of this variable.
      *
      * @param type		The VisAD RealType of the variable.
      * @return			The sampling set of the values of this variable.
-     * @throws VisADException	Couldn't create set.
+     * @throws VisADException	Couldn't create VisAD Set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -1213,6 +1215,8 @@ NcFloat
 
     /**
      * Indicate if this variable is float.
+     *
+     * @return			<code>true</code> always.
      */
     boolean
     isFloat()
@@ -1223,15 +1227,14 @@ NcFloat
 
 
 /**
- * The NcDouble class adapts a netCDF double variable that's being
- * imported to a VisAD API.
+ * Adapts a netCDF double variable that's being imported to a VisAD API.
  */
 final class
 NcDouble
     extends NcReal
 {
     /**
-     * Indicate whether or not a netCDF variable can be represented as 
+     * Indicates whether or not a netCDF variable can be represented as 
      * an NcDouble.
      *
      * @param var	The netCDF variable to be examined.
@@ -1252,7 +1255,7 @@ NcDouble
 
 
     /**
-     * Construct.
+     * Constructs from a netCDF variable and dataset.
      *
      * @param var		The netCDF double variable to be adapted.
      * @param netcdf		The netCDF dataset that contains 
@@ -1268,16 +1271,15 @@ NcDouble
 
 	if (!isRepresentable(var))
 	    throw new VisADException("Variable not assignable to double");
-
     }
 
     
     /**
-     * Return the range set of this variable.
+     * Gets the range set of this variable.
      *
      * @param type		The VisAD RealType of the variable.
      * @return			The sampling set of the values of this variable.
-     * @throws VisADException	Couldn't create set.
+     * @throws VisADException	Couldn't create VisAD Set.
      */
     protected SimpleSet
     getRangeSet(RealType type)
@@ -1289,7 +1291,7 @@ NcDouble
 
 
     /**
-     * Indicate if this variable is double.
+     * Indicates if this variable is double.
      *
      * @return	<code>true</code> always.
      */

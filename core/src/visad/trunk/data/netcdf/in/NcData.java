@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcData.java,v 1.5 1998-09-11 15:00:52 steve Exp $
+ * $Id: NcData.java,v 1.6 1998-09-11 16:33:48 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -21,9 +21,9 @@ abstract class
 NcData
 {
     /**
-     * Whether or not the previous tryAddData() succeeded.
+     * Whether or not the previous <code>tryCombine()</code> succeeded.
      */
-    private boolean	wasAdded = false;
+    private boolean	wasCombined = false;
 
 
     /**
@@ -72,23 +72,23 @@ NcData
      *
      * @param data		The data to be added to this one.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == true
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true
      *				</code> if an only if <code>data</code> 
      *				was added to this data object.
      * @throws VisADException	Couldn't create necessary VisAD data object.
      * @throws IOException      Data access I/O failure.
      */
     public NcData
-    tryAddData(NcData data)
+    tryCombine(NcData data)
 	throws VisADException, IOException
     {
-	wasAdded = false;
+	wasCombined = false;
 
 	if (data instanceof NcField)
-	    return tryAddData((NcField)data);
+	    return tryCombine((NcField)data);
 
 	if (data instanceof NcScalar)
-	    return tryAddData((NcScalar)data);
+	    return tryCombine((NcScalar)data);
 
 	return this;
     }
@@ -100,15 +100,15 @@ NcData
      *
      * @param field		The field to be added.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == false</code>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == false</code>
      * @throws VisADException	Couldn't create necessary VisAD data object.
      * @throws IOException      Data access I/O failure.
      */
     public NcData
-    tryAddData(NcField field)
+    tryCombine(NcField field)
 	throws VisADException, IOException
     {
-	wasAdded = false;
+	wasCombined = false;
 	return this;
     }
 
@@ -119,53 +119,55 @@ NcData
      *
      * @param scalar		The NcScalar to be added.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == false</code>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == false</code>
      * @throws VisADException	Couldn't create necessary VisAD data object.
      */
     public NcData
-    tryAddData(NcScalar Scalar)
+    tryCombine(NcScalar Scalar)
 	throws VisADException
     {
-	wasAdded = false;
+	wasCombined = false;
 	return this;
     }
 
 
     /**
-     * Set the indicator of whether or not the previous tryAddData() succeeded.
+     * Set the indicator of whether or not the previous 
+     * <code>tryCombine()</code> succeeded.
      *
-     * @postcondition	<code>wasAdded() == true</code>
+     * @postcondition	<code>wasCombined() == true</code>
      */
     protected void
-    setWasAdded()
+    setWasCombined()
     {
-	wasAdded = true;
+	wasCombined = true;
     }
 
 
     /**
-     * Clear the indicator of whether or not the previous tryAddData()
-     * succeeded.
+     * Clear the indicator of whether or not the previous 
+     * <code>tryCombine()</code> succeeded.
      *
-     * @postcondition	<code>wasAdded() == false</code>
+     * @postcondition	<code>wasCombined() == false</code>
      */
     protected void
-    clearWasAdded()
+    clearWasCombined()
     {
-	wasAdded = false;
+	wasCombined = false;
     }
 
 
     /**
-     * Gets the indicator of whether or not the previous tryAddData() succeeded.
+     * Gets the indicator of whether or not the previous 
+     * <code>tryCombine()</code> succeeded.
      *
-     * @return		Whether or not the previous tryAddData() succeeded
-     *			(true <=> yes).
+     * @return		Whether or not the previous <code>tryCombine()</code>
+     *			succeeded (true <=> yes).
      */
     public boolean
-    wasAdded()
+    wasCombined()
     {
-	return wasAdded;
+	return wasCombined;
     }
 
 

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedRange.java,v 1.1 1998-09-11 15:00:53 steve Exp $
+ * $Id: NcNestedRange.java,v 1.2 1998-09-11 16:33:50 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -15,7 +15,8 @@ import visad.VisADException;
 
 
 /**
- * Supports the range of a "nested" VisAD Field.
+ * Provides support for the logical range of a VisAD Field that is 
+ * contained in a "nested", adapted data object.
  *
  * @see NcNestedField
  *
@@ -28,6 +29,10 @@ NcNestedRange
 {
     /**
      * Constructs from an adapted, netCDF variable.
+     *
+     * @param var		The adapted, netCDF variable.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	I/O failure.
      */
     public
     NcNestedRange(NcVar var)
@@ -39,6 +44,9 @@ NcNestedRange
 
     /**
      * Constructs from another range.
+     *
+     * @param range		The other range.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public
     NcNestedRange(NcRange range)
@@ -50,6 +58,10 @@ NcNestedRange
 
     /**
      * Gets the VisAD MathType of the given netCDF variable.
+     *
+     * @param var		The adapted, netCDF variable to be examined.
+     * @return			The VisAD MathType of <code>var</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     protected MathType
     getMathType(NcVar var)
@@ -63,7 +75,8 @@ NcNestedRange
      * Gets the VisAD MathType of the "inner" portion of this range.
      * In general, this will be a VisAD FunctionType.
      *
-     * @return	the VisAD MathType of this range.
+     * @return			The VisAD MathType of this range.
+     * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public MathType
     getInnerMathType()
@@ -76,12 +89,14 @@ NcNestedRange
     /**
      * Gets the value of the range at a point in the outermost dimension.
      *
-     * @param index	The point in the outermost dimension.
-     * @precondition	<code>size() > 0</code>
-     * @precondition	<code>index >= 0</code>
-     * @precondition	<code>index < get(0).getDimension(0).getLength()</code>
-     *			in the outermost dimension>
-     * @return		The value of the range at <code>index</code>.
+     * @param index		The point in the outermost dimension.
+     * @precondition		<code>size() > 0</code>
+     * @precondition		<code>index >= 0</code> &&
+     *				index < 
+     *				get(0).getDimension(0).getLength()</code>
+     * @return			The value of the range at <code>index</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	I/O failure.
      */
     public DataImpl
     getData(int index)
@@ -107,13 +122,15 @@ NcNestedRange
      * Gets a proxy for value of the range at a point in the outermost
      * dimension.
      *
-     * @param index	The point in the outermost dimension.
-     * @precondition	<code>size() > 0</code>
-     * @precondition	<code>index >= 0</code>
-     * @precondition	<code>index < get(0).getDimension(0).getLength()</code>
-     *			in the outermost dimension>
-     * @return		A proxy for the value of the range at 
-     *			<code>index</code>.
+     * @param index		The point in the outermost dimension.
+     * @precondition		<code>size() > 0</code>
+     * @precondition		<code>index >= 0</code>
+     * @precondition		<code>index <
+     *				get(0).getDimension(0).getLength()</code>
+     * @return			A proxy for the value of the
+     *				range at <code>index</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	I/O failure.
      */
     public DataImpl
     getProxy(int index)

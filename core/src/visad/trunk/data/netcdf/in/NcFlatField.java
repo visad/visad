@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFlatField.java,v 1.1 1998-09-11 15:00:52 steve Exp $
+ * $Id: NcFlatField.java,v 1.2 1998-09-11 16:33:49 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -44,6 +44,7 @@ NcFlatField
      *				FlatField.
      * @precondition		<code>var.getRank() >= 1</code>
      * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws IOException	I/O failure.
      */
     NcFlatField(NcVar var)
 	throws VisADException, IOException
@@ -62,20 +63,21 @@ NcFlatField
      *
      * @param flatField		The FlatField to be added to this one.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == true</code>
-     *				<=> <the data object was added>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true</code>
+     *				if and only if RETURN_VALUE constains both
+     *				this data object and <code>data</code>.
      * @throws VisADException	Couldn't create necessary VisAD data object.
      */
     public NcData
-    tryAddData(NcFlatField flatField)
+    tryCombine(NcFlatField flatField)
 	throws VisADException
     {
-	clearWasAdded();
+	clearWasCombined();
 
 	if (getDomain().equals(flatField.getDomain()))
 	{
 	    range.add(flatField.range);
-	    setWasAdded();
+	    setWasCombined();
 	}
 
 	return this;
@@ -87,23 +89,27 @@ NcFlatField
      *
      * @param field		The nested field to be added to this one.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == true</code>
-     *				<=> <the data object was added>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true</code>
+     *				if and only if RETURN_VALUE constains both
+     *				this data object and <code>data</code>.
      * @throws VisADException	Couldn't create necessary VisAD data object.
+     * @throws IOException	I/O failure.
      */
     public NcData
-    tryAddData(NcNestedField field)
+    tryCombine(NcNestedField field)
 	throws VisADException, IOException
     {
 	/*
 	 * It is easier to add a flat field to a nested field than vice versa.
 	 */
-	return field.tryAddData(this);
+	return field.tryCombine(this);
     }
 
 
     /**
      * Gets the range of this field.
+     *
+     * @return			The range of this field.
      */
     public NcRange
     getRange()
@@ -114,6 +120,8 @@ NcFlatField
 
     /**
      * Gets the VisAD MathType of the range of this field.
+     *
+     * @return			The VisAD MathType of the range of this field.
      */
     protected MathType
     getRangeMathType()
@@ -124,10 +132,10 @@ NcFlatField
 
 
     /**
-     * Gets the VisAD data object corresponding to this field.
+     * Gets the VisAD FlatField corresponding to this data object.
      *
-     * @return			The VisAD data object corresponding to the 
-     *				function.
+     * @return			The VisAD FlatField corresponding to this
+     *				data object.
      * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
      * @throws IOException	Data access I/O failure.
@@ -151,10 +159,10 @@ NcFlatField
 
 
     /**
-     * Gets a proxy for the VisAD data object corresponding to this function.
+     * Gets a proxy for the VisAD FlatField corresponding to this data object.
      *
-     * @return			The VisAD data object corresponding to the 
-     *				function.
+     * @return			The VisAD FileFlatField corresponding to this
+     *				data object.
      * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
      * @throws IOException	Data access I/O failure.
@@ -169,6 +177,9 @@ NcFlatField
 
     /**
      * Gets the values of this data object as an array of doubles.
+     *
+     * @return			The values of this data object as an array 
+     *				of doubles.
      */
     public double[][]
     getDoubles()
@@ -179,7 +190,7 @@ NcFlatField
 
 
     /**
-     * FileAccessor for regular, adapted, netCDF functions.
+     * Provides FileAccessor support for this data object.
      */
     protected class
     Accessor

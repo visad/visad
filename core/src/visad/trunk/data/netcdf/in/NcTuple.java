@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcTuple.java,v 1.6 1998-09-11 15:00:55 steve Exp $
+ * $Id: NcTuple.java,v 1.7 1998-09-11 16:33:51 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -171,7 +171,7 @@ NcTuple
      *
      * @param data		The data to be added.
      * @return			The appropriate, top-level data object.
-     * @postcondition		RETURN_VALUE<code>.wasAdded() == true</code>
+     * @postcondition		RETURN_VALUE<code>.wasCombined() == true</code>
      * @throws VisADException	Couldn't create necessary VisAD data object.
      * @throws IOException	Data access I/O failure.
      */
@@ -187,9 +187,9 @@ NcTuple
 	 */
 	for (Iterator iter = datas.iterator(); iter.hasNext(); ++i)
 	{
-	    NcData	newData = ((NcData)iter.next()).tryAddData(data);
+	    NcData	newData = ((NcData)iter.next()).tryCombine(data);
 
-	    if (newData.wasAdded())
+	    if (newData.wasCombined())
 	    {
 		datas.set(i, newData);
 		done = true;
