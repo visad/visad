@@ -53,7 +53,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
   /** Placeholder for measurement information label. */
   private static final String INFO_LABEL =
-    "   (000.000, 000.000)-(000.000, 000.000): distance=000.000";
+    " (0000.000, 0000.000)-(0000.000, 0000.000): distance=0000.000 pix";
 
 
   // -- GLOBAL VARIABLES --
@@ -292,32 +292,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
       }
     };
     cell = new CellImpl() {
-      public void doAction() {
-        synchronized (cell) {
-          String text = " ";
-          if (thing != null) {
-            Measurement m = thing.getMeasurement();
-            double[][] vals = m.doubleValues();
-            if (thing.getLength() == 2) {
-              String v1x = Convert.shortString(vals[0][0]);
-              String v1y = Convert.shortString(vals[1][0]);
-              String v2x = Convert.shortString(vals[0][1]);
-              String v2y = Convert.shortString(vals[1][1]);
-              String dist = Convert.shortString(m.getDistance());
-              text = "(" + v1x + ", " + v1y + ")-" +
-                "(" + v2x + ", " + v2y + "): distance=" + dist;
-            }
-            else {
-              String vx = Convert.shortString(vals[0][0]);
-              String vy = Convert.shortString(vals[1][0]);
-              text = "(" + vx + ", " + vy + ")";
-            }
-            int space = (INFO_LABEL.length() - text.length()) / 2;
-            for (int i=0; i<space; i++) text = " " + text + " ";
-          }
-          measureInfo.setText("   " + text);
-        }
-      }
+      public void doAction() { updateMeasureInfo(); }
     };
     controls.add(pad(measureInfo));
     controls.add(Box.createVerticalStrut(10));
@@ -419,7 +394,6 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     groupList.addItem(new MeasureGroup(bio, "NONE"));
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        if (ignoreGroup) return;
         MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
         thing.setGroup(group);
         descriptionBox.setText(group.getDescription());
@@ -432,7 +406,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     newGroup = new JButton("New");
     newGroup.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int rval = groupBox.showDialog(null);
+        int rval = groupBox.showDialog(bio);
         if (rval == GroupDialog.APPROVE_OPTION) {
           String name = groupBox.getGroupName();
           MeasureGroup group = new MeasureGroup(bio, name);
@@ -468,6 +442,9 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     descriptionBox.setEnabled(false);
     controls.add(new JScrollPane(descriptionBox));
   }
+
+
+  // -- API METHODS --
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
@@ -525,6 +502,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     double d;
     try { d = Double.parseDouble(micronsPerPixel.getText()); }
     catch (NumberFormatException exc) { d = Double.NaN; }
+    if (d <= 0) d = Double.NaN;
     return d;
   }
 
@@ -533,6 +511,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     double d;
     try { d = Double.parseDouble(sliceDistance.getText()); }
     catch (NumberFormatException exc) { d = Double.NaN; }
+    if (d <= 0) d = Double.NaN;
     return d;
   }
 
@@ -608,33 +587,21 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     });
   }
 
-  /** Updates the group list to match the master MeasureGroup list. */
-  void updateGroupList() {
-    ignoreGroup = true;
-    groupList.removeAllItems();
-    int size = bio.groups.size();
-    for (int i=0; i<size; i++) {
-      MeasureGroup group = (MeasureGroup) bio.groups.elementAt(i);
-      groupList.addItem(group);
-    }
-    ignoreGroup = false;
-  }
+
+  // -- HELPER METHODS --
 
   /** Updates the micron-related menu items. */
   private void updateFileButtons() {
     boolean b;
     if (useMicrons.isSelected()) {
-      b = false;
-      try {
-        double d1 = Double.parseDouble(micronsPerPixel.getText());
-        double d2 = Double.parseDouble(sliceDistance.getText());
-        if (d1 == d1 && d1 > 0 && d2 == d2 && d2 > 0) b = true;
-      }
-      catch (NumberFormatException exc) { }
+      double mpp = getMicronsPerPixel();
+      double sd = getSliceDistance();
+      b = mpp == mpp && sd == sd;
     }
     else b = true;
     saveLines.setEnabled(b);
     restoreLines.setEnabled(b);
+    updateMeasureInfo();
   }
 
   /** Updates the text in the measurement information box. */
@@ -643,20 +610,25 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     if (thing != null) {
       Measurement m = thing.getMeasurement();
       double[][] vals = m.doubleValues();
+      boolean use = useMicrons.isSelected();
+      double mpp = getMicronsPerPixel();
+      double sd = getSliceDistance();
+      boolean microns = use && mpp == mpp && sd == sd;
+      if (!microns) {
+        mpp = 1;
+        sd = 1;
+      }
+      String vx = Convert.shortString(mpp * vals[0][0]);
+      String vy = Convert.shortString(mpp * vals[1][0]);
+      String unit = microns ? "µ" : "pix";
       if (thing.getLength() == 2) {
-        String v1x = Convert.shortString(vals[0][0]);
-        String v1y = Convert.shortString(vals[1][0]);
-        String v2x = Convert.shortString(vals[0][1]);
-        String v2y = Convert.shortString(vals[1][1]);
-        String dist = Convert.shortString(m.getDistance());
-        text = "(" + v1x + ", " + v1y + ")-(" + v2x + ", " + v2y + "): " +
-          "distance=" + dist;
+        String v2x = Convert.shortString(mpp * vals[0][1]);
+        String v2y = Convert.shortString(mpp * vals[1][1]);
+        String dist = Convert.shortString(m.getDistance(mpp, sd));
+        text = "(" + vx + ", " + vy + ")-(" + v2x + ", " + v2y + "): " +
+          "distance=" + dist + " " + unit;
       }
-      else {
-        String vx = Convert.shortString(vals[0][0]);
-        String vy = Convert.shortString(vals[1][0]);
-        text = "(" + vx + ", " + vy + ")";
-      }
+      else text = "(" + vx + ", " + vy + ")";
       int space = (INFO_LABEL.length() - text.length()) / 2;
       for (int i=0; i<space; i++) text = " " + text + " ";
     }

@@ -124,9 +124,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** First free id number for measurement groups. */
   int maxId = 0;
 
-  /** List of all measurement groups. */
+  /** Measurement group list. */
   Vector groups = new Vector();
-
 
 
   // -- GUI COMPONENTS --
@@ -188,7 +187,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     display2.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
     displayPane.add(display2.getComponent());
     if (display3 != null) {
-      display3.getGraphicsModeControl().setPointSize(5.0f);
+      GraphicsModeControl gmc = display3.getGraphicsModeControl();
+      gmc.setPointSize(5.0f);
+      gmc.setLineWidth(2.0f);
       display3.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
       displayPane.add(display3.getComponent());
     }

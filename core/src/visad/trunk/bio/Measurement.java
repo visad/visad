@@ -119,11 +119,19 @@ public class Measurement {
   public RealTuple[] getValues() { return values; }
 
   /** Gets the current distance between the endpoints. */
-  public double getDistance() {
+  public double getDistance() { return getDistance(1, 1); }
+
+  /**
+   * Gets the current distance between the endpoints,
+   * using the given conversion value between pixels and microns,
+   * and distance between measurement slices.
+   */
+  public double getDistance(double mpp, double sd) {
     double[][] vals = doubleValues();
     double sum = 0;
     for (int i=0; i<vals.length; i++) {
-      double distance = vals[i][1] - vals[i][0];
+      double distance =
+        (i == vals.length - 1 ? sd : mpp) * (vals[i][1] - vals[i][0]);
       sum += distance * distance;
     }
     return Math.sqrt(sum);
@@ -195,16 +203,12 @@ public class Measurement {
    * to match the measurement.
    */
   private void refreshThings(MeasureThing thing) {
+    MeasureThing[] t;
     synchronized (things) {
-      final MeasureThing ex = thing;
-      final MeasureThing[] t = new MeasureThing[things.size()];
+      t = new MeasureThing[things.size()];
       things.copyInto(t);
-      Util.invoke(false, new Runnable() {
-        public void run() {
-          for (int i=0; i<t.length; i++) if (t[i] != ex) t[i].refresh();
-        }
-      });
     }
+    for (int i=0; i<t.length; i++) if (t[i] != thing) t[i].refresh();
   }
 
 }
