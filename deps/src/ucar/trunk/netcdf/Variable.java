@@ -9,24 +9,24 @@ import ucar.multiarray.MultiArray;
 import java.io.IOException;
 
 /**
- * Variable is an interface to a a (potentially large) multi-dimensional
- * array of primitives. The dimensions are named, allowing functional
+ * Variable is a (potentially large) multi-dimensional
+ * array of primitives. The dimensions are named, allowing
  * relationships between Variables to be expressed. Variables have names and
  * may have descriptive attributes.
  * <p>
  * Objects which implement this interface exist in the context of a
- * particular Netcdf data set. If you factor out the data data access
+ * particular Netcdf data set. If you factor out the data access
  * methods of this interface, leaving the descriptive "meta" information,
  * what remains is a ProtoVariable.
  * <p>
  * Although there is no explicit relationship between this interface and
- * and class ProtoVariable, they share common method signatures and
+ * class ProtoVariable, they share common method signatures and
  * semantics where appropriate.
  *
  * @see ProtoVariable
  * @see MultiArray
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:08 $
  */
 
 public class
@@ -43,7 +43,7 @@ Variable
 	 * @param proto   the ProtoVariable used as metadata storage.
 	 *   Shouldn't be null.
          *   It should be immutable over the lifetime of this object.
-         *   (If in doubt, hand this it's own private copy.)
+         *   (If in doubt, hand this its own private copy.)
 	 */
 	public
 	Variable(ProtoVariable proto, Accessor io)
@@ -61,7 +61,7 @@ Variable
 	 * Returns the Class object representing the component
 	 * type of the array.
 	 * @see ucar.multiarray.MultiArray#getComponentType
-	 * @return Class the component type
+	 * @return Class of the component type
 	 */
 	public Class
 	getComponentType()
@@ -80,7 +80,7 @@ Variable
 	 * @see ucar.multiarray.MultiArray#getLengths
 	 * @return int array whose length is the rank of this
 	 * and whose elements represent the
-	 * length of each of it's dimensions
+	 * length of each of its dimensions
 	 */
 	public int []
 	getLengths()
@@ -89,7 +89,7 @@ Variable
 	/**
 	 * Returns <code>true</code> if and only if the this variable can grow.
 	 * This is equivalent to saying
-	 * at least one of it's dimensions is unlimited.
+	 * at least one of its dimensions is unlimited.
 	 * In the current implementation, exactly one dimension, the most
 	 * slowly varying (leftmost), can be unlimited.
 	 * @return boolean <code>true</code> iff this can grow
@@ -271,6 +271,19 @@ Variable
 		io.copyin(origin, data);
 	}
 
+	public Object
+	toArray()
+			throws IOException
+	{
+		return io.toArray();
+	}
+
+	public Object
+	toArray(Object dst, int [] origin, int [] shape)
+			throws IOException
+	{
+		return io.toArray(dst, origin, shape);
+	}
 
  /* End Variable aggregate access */
 

@@ -24,7 +24,7 @@ import java.io.Serializable;
  * @see java.util.Collection
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:08 $
  */
 
 public class Schema implements java.io.Serializable {
@@ -190,7 +190,7 @@ public class Schema implements java.io.Serializable {
      * it is returned, otherwise null is returned.
      *
      * @param var the ProtoVariable to be added to this set.
-     * @returns ProtoVariable replaced or null if not a replacement
+     * @return ProtoVariable replaced or null if not a replacement
      */
     public synchronized ProtoVariable
     put(ProtoVariable var) {
@@ -212,7 +212,7 @@ public class Schema implements java.io.Serializable {
      * Delete the ProtoVariable specified by name from this set.
      *
      * @param name String identifying the ProtoVariable to be removed.
-     * @returns true if the Set changed as a result of this call.
+     * @return true if the Set changed as a result of this call.
      */
     public synchronized boolean remove(String name) {
 	final ProtoVariable var = (ProtoVariable) variables.remove(name);
@@ -254,7 +254,7 @@ public class Schema implements java.io.Serializable {
      * Delete the ProtoVariable specified from this set.
      *
      * @param oo ProtoVariable to be removed.
-     * @returns true if the Set changed as a result of this call.
+     * @return true if the Set changed as a result of this call.
      */
     public boolean remove(Object oo) {
 	if(this.contains(oo))
@@ -306,7 +306,7 @@ public class Schema implements java.io.Serializable {
      * Convenience function; add global attribute.
      * @see AttributeSet#put
      * @param attr the Attribute to be added to this set.
-     * @returns Attribute replaced or null if not a replacement
+     * @return Attribute replaced or null if not a replacement
      */
     public Attribute
     putAttribute(Attribute attr) {

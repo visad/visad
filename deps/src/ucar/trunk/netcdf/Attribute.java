@@ -20,17 +20,17 @@ import java.lang.reflect.Array;
  * no setValue() methods are provided.
  * <p>
  * Instances which have same name and same value elements are equal.
- * We override hashCode() and equals() to be consistant with
+ * We override hashCode() and equals() to be consistent with
  * this semantic.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
  */
 /*
  * Implementation Notes:
  * <p>
  * We factor the value into two cases, a String value and
- * a array of (numeric) primitive. Things would have been
+ * an array of (numeric) primitive. Things would have been
  * completely symmetric (eliminating this layer) if we just copied
  * strings into array of char and copied out to string. Seems like a
  * waste when given an immutable object to start with.
@@ -74,7 +74,7 @@ Attribute
 	}
 
 	/**
-	 * Construct a a string valued attribute.
+	 * Construct a string valued attribute.
 	 * This will be seen to have component type Character.TYPE
 	 *
 	 * @param name  String which is to be the name of this Attribute
@@ -133,7 +133,7 @@ Attribute
 
 	/**
 	 * Instances which have same name and same value elements are equal.
-	 * Overrides Object.equals() to be consistant with
+	 * Overrides Object.equals() to be consistent with
 	 * this semantic.
 	 */
 	public int
@@ -144,7 +144,7 @@ Attribute
 
 	/**
 	 * Instances which have same name and same value elements are equal.
-	 * Overrides Object.equals() to be consistant with
+	 * Overrides Object.equals() to be consistent with
 	 * this semantic.
 	 * TODO: test me.
 	 */
@@ -299,17 +299,18 @@ Attribute
 	primitiveClass(Number nn)
 	{
 		try {
-		return (Class) nn.getClass().getDeclaredField("TYPE").get(nn);
+			return (Class) nn.getClass().getDeclaredField("TYPE").
+				get(nn);
 		}
 		catch (NoSuchFieldException ee)
 		{
 			// this shouldn't happen, since Numbers have TYPE
-			throw new InternalError();
+			throw new Error();
 		}
 		catch (IllegalAccessException ee)
 		{
 			// this shouldn't happen, since TYPE is public
-			throw new InternalError();
+			throw new Error();
 		}
 	}
 

@@ -20,7 +20,7 @@ import java.io.Serializable;
  * @see AttributeSet
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
  */
 
 class AttributeDictionary implements AttributeSet, Serializable {
@@ -76,7 +76,7 @@ class AttributeDictionary implements AttributeSet, Serializable {
     }
 
     /**
-     * @returns a new Array containing the elements of this set.
+     * @return a new Array containing the elements of this set.
      */
     public Attribute [] toArray() {
 	final Attribute [] aa = new Attribute[this.size()];
@@ -89,7 +89,7 @@ class AttributeDictionary implements AttributeSet, Serializable {
     /**
      * Gets the attribute associated with the specified name.
      * @param name the name of the attribute
-     * @returns the attribute, or null if not found
+     * @return the attribute, or null if not found
      */
     public Attribute get(String name) {
 	return (Attribute) attributes.get(name);
@@ -124,7 +124,7 @@ class AttributeDictionary implements AttributeSet, Serializable {
      * it is returned, otherwise null is returned.
      *
      * @param attr the Attribute to be added to this set.
-     * @returns Attribute replaced or null if not a replacement
+     * @return Attribute replaced or null if not a replacement
      */
     public Attribute put(Attribute attr) {
 	return (Attribute) attributes.put(attr);
@@ -135,7 +135,7 @@ class AttributeDictionary implements AttributeSet, Serializable {
      * Delete the Attribute specified by name from this set.
      *
      * @param name String identifying the Attribute to be removed.
-     * @returns true if the Set changed as a result of this call.
+     * @return true if the Set changed as a result of this call.
      */
     public boolean remove(String name) {
 	final Named oo = attributes.remove(name);
@@ -147,7 +147,7 @@ class AttributeDictionary implements AttributeSet, Serializable {
      * Delete the Attribute specified from this set.
      *
      * @param oo Attribute to be removed.
-     * @returns true if the Set changed as a result of this call.
+     * @return true if the Set changed as a result of this call.
      */
     public boolean remove(Object oo) {
 	if(this.contains(oo))

@@ -9,123 +9,89 @@ import java.lang.reflect.Array;
 /**
  * Use with MultiArrayProxy to transpose two dimensions.
  *
- * @see IntMap
+ * @see IndexMap
  * @see MultiArrayProxy
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
  */
 public class
 TransposeMap
-		implements IntMap
+		extends ConcreteIndexMap
 {
 	/**
-	 * Create an IntMap which swaps two dimensions.
+	 * Create an IndexMap which swaps two dimensions.
 	 *
-	 * @param aa int specifying one of the dimensions to swap
-	 * @param bb int specifying the other dimension to swap
+	 * @param aa specifies one of the dimensions to swap
+	 * @param bb specifies the other dimension to swap
 	 */
 	public
 	TransposeMap(int aa, int bb)
 	{
-		next = new IntArrayAdapter();
-		this.aa = aa;
-		this.bb = bb;
+		init(new IMap(),
+			new LengthsMap());
+		aa_ = aa;
+		bb_ = bb;
 	}
 
 	/**
-	 * Create an IntMap which swaps two dimensions.
+	 * Create an IndexMap which swaps two dimensions.
 	 *
-	 * @param next IntMap to be composed with this.
-	 * @param aa int specifying one of the dimensions to swap
-	 * @param bb int specifying the other dimension to swap
+	 * @param prev IndexMap to be composed with this.
+	 * @param aa specifies one of the dimensions to swap
+	 * @param bb specifies the other dimension to swap
 	 */
 	public
-	TransposeMap(IntMap next, int aa, int bb)
+	TransposeMap(ConcreteIndexMap prev, int aa, int bb)
 	{
-		this.next = next;
-		this.aa = aa;
-		this.bb = bb;
+		link(prev, new IMap(),
+			new LengthsMap());
+		aa_ = aa;
+		bb_ = bb;
 	}
 
-	/**
-	 * Returns the value to which this Map maps the specified key.
-	 */
-	public int
-	get(int key)
+	private class
+	IMap extends ZZMap
 	{
-		if(key == aa)
+		public synchronized int
+		get(int key)
 		{
-			return next.get(bb);
+			if(key == aa_)
+			{
+				return super.get(bb_);
+			}
+			// else
+			if(key == bb_)
+			{
+				return super.get(aa_);
+			}
+			// else
+			return super.get(key);
+			
 		}
-		// else
-		if(key == bb)
+	}
+
+	private class
+	LengthsMap extends ZZMap
+	{
+		public int
+		get(int key)
 		{
-			return next.get(aa);
+			if(key == aa_)
+				return super.get(bb_);
+			// else
+			if(key == bb_)
+				return super.get(aa_);
+			// else
+			return super.get(key);
 		}
-		// else
-		return next.get(key);
-		
-	}
-
-	/**
-	 * Returns the number of key-value mappings in this Map.
-	 */
-	public int
-	size()
-	{
-		return next.size();
-	}
-
-	/**
-	 * Return the tail of a chain of IntMap.
-	 * As side effects, connect the prev members and
-	 * initialize the rank at the tail.
-	 */
-	public IntArrayAdapter
-	tail(int rank, Object prev)
-	{
-		this.prev = prev;
-		return next.tail(rank, this);
-	}
-
-	/**
-	 * Traverse the inverse mapping chain to
-	 * retrieve the dimension length at ii.
-	 */
-	public int
-	getLength(int ii)
-	{
-		if(ii == aa)
-			return prevLength(bb);
-		// else
-		if(ii == bb)
-			return prevLength(aa);
-		// else
-		return prevLength(ii);
 	}
 
  /**/
 
-	private int
-	prevLength(int ii)
-	{
-		if(prev instanceof IntMap)
-			return ((IntMap)prev).getLength(ii);
-		// else
-		return Array.getInt(prev, ii);
-	}
-
-	/**
-	 * Either an IntMap delegate for getLength(int)
-	 * or an array of ints which can answer the
-	 * question directly.
-	 */
-	private Object prev;
-
-	private final IntMap next;
-	private final int aa;
-	private final int bb;
+	/* WORKAROUND: Inner class & blank final initialize compiler bug */
+	private /* final */ int aa_;
+	private /* final */ int bb_;
 
  /* Begin Test */
 	public static void
@@ -141,7 +107,7 @@ TransposeMap
 					ii, ii);
 
 		}
-		IntMap im = new TransposeMap(0, 2);
+		IndexMap im = new TransposeMap(0, 2);
 		MultiArray ma = new MultiArrayProxy(delegate, im);
 
 		try {
@@ -156,5 +122,11 @@ TransposeMap
 		}
 		catch (java.io.IOException ee) {}
 	}
+ /* Test output java ucar.multiarray.TransposeMap
+Rank  3
+Shape { 64, 48, 32 }
+3072
+64
+1
  /* End Test */
 }

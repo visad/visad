@@ -17,13 +17,13 @@ import java.lang.reflect.InvocationTargetException;
  * would provide a concrete implementation of method
  * <code>Accessor ioFactory(ProtoVariable proto)</code>.
  * It would also provide a constructor which takes a Schema
- * arguement and calls super(Schema) to get this class to
+ * argument and calls super(Schema) to get this class to
  * hook everything up.
  * <p>
  * TODO: There is a lot more to be said.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
  */
 
 public abstract class
@@ -69,46 +69,54 @@ AbstractNetcdf
 	}
 
 	/**
-	 * Create a instance populated with instances
+	 * Create an instance populated with instances
 	 * of Variable.
 	 *
 	 * @param sc   the Schema used as a construction template.
 	 *   May be empty, shouldn't be null.
+	 *
+	 * @param init if true, call initHashtable()
 	 */
 	protected
-	AbstractNetcdf(Schema sc)
+	AbstractNetcdf(Schema sc, boolean init)
 	{
 		ctor = VariableCtor();
 		delegate = new Schema(sc);
 		variables = new Hashtable(delegate.size());
-		try {
-			initHashtable();
-		}
-		catch (InstantiationException ie)
+		if(init)
 		{
-			// Can't happen: ucar.netcdf.Variable is concrete
-			throw new InternalError();
-		}
-		catch (IllegalAccessException iae)
-		{
-			// Can't happen: ucar.netcdf.Variable is accessable
-			throw new InternalError();
-		}
-		catch (InvocationTargetException ite)
-		{
-			// all the possible target exceptions are
-			// RuntimeException
-			throw (RuntimeException) ite.getTargetException();
+			try {
+				initHashtable();
+			}
+			catch (InstantiationException ie)
+			{
+				// Can't happen: Variable is concrete
+				throw new Error();
+			}
+			catch (IllegalAccessException iae)
+			{
+				// Can't happen: Variable is accessable
+				throw new Error();
+			}
+			catch (InvocationTargetException ite)
+			{
+				// all the possible target exceptions are
+				// RuntimeException
+				throw (RuntimeException)
+					ite.getTargetException();
+			}
 		}
 	}
 
 
 	/**
-	 * Create a instance populated with instances
+	 * Create an instance populated with instances
 	 * of some subclass of Variable.
 	 *
 	 * @param sc  the Schema used as a template.
 	 *   May be empty, shouldn't be null.
+	 *
+	 * @param init if true, call initHashtable()
 	 *
 	 * @param varClass  Class object for some subclass of Variable.
 	 * 	The class must implement a constructor of the form
@@ -116,7 +124,7 @@ AbstractNetcdf
 	 *  or NoSuchMethodException will be thrown.
 	 */
 	protected
-	AbstractNetcdf(Schema sc, Class varClass)
+	AbstractNetcdf(Schema sc, boolean init, Class varClass)
 		throws NoSuchMethodException,
 			 InstantiationException,
 			 InvocationTargetException,
@@ -127,7 +135,8 @@ AbstractNetcdf
 			);
 		delegate = new Schema(sc);
 		variables = new Hashtable(delegate.size());
-		initHashtable();
+		if(init)
+			initHashtable();
 	}
 
  /* End Constructors */
@@ -273,7 +282,8 @@ AbstractNetcdf
 	 * correct i/o functionality.
 	 */
 	protected abstract Accessor
-	ioFactory(ProtoVariable proto);
+	ioFactory(ProtoVariable proto)
+		throws InvocationTargetException;
 
 	/**
 	 * Used for incremental initialization.
@@ -294,7 +304,7 @@ AbstractNetcdf
 
 	/**
 	 * Used for incremental initialization.
-	 * Add a variable the Netcdf.
+	 * Add a variable to the Netcdf.
 	protected void
 	put(ProtoVariable proto, Variable var)
 	{
@@ -309,7 +319,7 @@ AbstractNetcdf
 
 	/**
 	 * Used for incremental initialization.
-	 * Add a variable the Netcdf.
+	 * Add a variable to the Netcdf.
 	 */
 	protected void
 	add(ProtoVariable proto, Accessor io)
@@ -341,12 +351,12 @@ AbstractNetcdf
 		catch (ClassNotFoundException cnfe)
 		{
 			// Shouldn't happen
-			throw new InternalError(
+			throw new Error(
 				"ucar.netcdf implementation error");
 		}
 	}
 
-	private void
+	protected void
 	initHashtable()
 		throws InstantiationException,
 			InvocationTargetException,
@@ -380,12 +390,12 @@ AbstractNetcdf
 		catch (ClassNotFoundException cnfe)
 		{
 			// Can't happen: ucar.netcdf.Variable exists
-			throw new InternalError();
+			throw new Error();
 		}
 		catch (NoSuchMethodException cnfe)
 		{
 			// Can't happen: ucar.netcdf.Variable has this ctor
-			throw new InternalError();
+			throw new Error();
 		}
 	}
 

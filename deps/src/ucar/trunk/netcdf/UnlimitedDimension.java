@@ -21,7 +21,7 @@ package ucar.netcdf;
  * @see Dimension
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:08 $
  */
 
 public class
@@ -60,7 +60,7 @@ UnlimitedDimension
 
 	/**
 	 * Instances are only distiguished by name.
-	 * Override super.hashCode() to be consistant with this semantic.
+	 * Override super.hashCode() to be consistent with this semantic.
 	 */
 	public int
 	hashCode()
@@ -70,7 +70,7 @@ UnlimitedDimension
 
 	/**
 	 * Instances are only distiguished by name.
-	 * Override super.equals() to to be consistant with this semantic.
+	 * Override super.equals() to to be consistent with this semantic.
 	 */
 	public boolean
 	equals(Object oo)

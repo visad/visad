@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 /**
  * DimensionDictionary is package private implementation of DimensionSet.
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
  */
 
 class
@@ -78,7 +78,7 @@ DimensionDictionary
 	}
 
 	/**
-	 * @returns a new Array containing (clones of) elements of this set.
+	 * @return a new Array containing (clones of) elements of this set.
 	 */
 	synchronized public Dimension []
 	toArray() {
@@ -95,7 +95,7 @@ DimensionDictionary
 	/**
 	 * Gets the dimension associated with the specified name.
 	 * @param name the name of the dimension
-	 * @returns the dimension, or null if not found
+	 * @return the dimension, or null if not found
 	 */
 	public Dimension
 	get(String name) {
@@ -163,7 +163,7 @@ DimensionDictionary
 	 * was in the set, throw IllegalArgumentException.
 	 *
 	 * @param dim the Dimension to be added to this set.
-	 * @returns Dimension added or matching member from the set.
+	 * @return Dimension added or matching member from the set.
 	 */
 	synchronized Dimension
 	put(Dimension dim) {
@@ -186,7 +186,7 @@ DimensionDictionary
 	/**
 	 * Add a Dimension instance to this dictionary.
 	 * <>
-	 * Use this form when initializing from a an existing
+	 * Use this form when initializing from an existing
 	 * data set and you want instances (and thus UnlimitedDimension
 	 * values) preserved.
 	 */
@@ -205,7 +205,7 @@ DimensionDictionary
 	 * Delete the Dimension specified by name from this set.
 	 *
 	 * @param name String identifying the Dimension to be removed.
-	 * @returns true if the Set changed as a result of this call.
+	 * @return true if the Set changed as a result of this call.
 	 */
 	boolean
 	remove(String name) {

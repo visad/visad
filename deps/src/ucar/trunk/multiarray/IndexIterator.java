@@ -9,22 +9,54 @@ package ucar.multiarray;
  * index values of a MultiArray.
  * <p>
  * This is like an odometer. The number of columns or rings on the odometer
- * is the length of constructor argument. The where the number of values on
- * each ring of the odometer is set to the corresponding
- * value of the constructor argument.
+ * is the length of the constructor argument. The number of values on
+ * each ring of the odometer is specified in the limits argument of
+ * the constructor.
  * <p>
  * Currently no synchronized methods.
  * 
  * @see MultiArray
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
  */
 public class IndexIterator {
 
 	/**
+	 * Return <code>true</code> iff the argument
+	 * is the zero index.
+	 */
+	static public boolean
+	isZero(int [] iv)
+	{
+		for(int ii = 0; ii < iv.length; ii++)
+			if(iv[ii] != 0)
+				return false;
+		return true;
+	}
+
+	/**
+	 * Return <code>true</code> iff the arguments have
+	 * same values.
+	 */
+	static public boolean
+	equals(int [] lhs, int [] rhs)
+	{
+		if(lhs == rhs)
+			return true;
+		// else
+		if(lhs.length != rhs.length)
+			return false;
+		// else
+		for(int ii = 0; ii < lhs.length; ii++)
+			if(lhs[ii] != rhs[ii])
+				return false;
+		return true;
+	}
+
+	/**
          * Creates a new IndexIterator whose variation is bounded by the
 	 * component values of the argument.
-	 * @param int [] theLimits. Typically <code>ma.getLengths()</code>
+	 * @param theLimits typically <code>ma.getLengths()</code>
 	 * for some MultiArray <code>ma</code>
 	 */
 	public
@@ -38,15 +70,18 @@ public class IndexIterator {
 	/**
          * Creates a new IndexIterator with initial counter value,
 	 * whose variation is bounded by the
-	 * component values of the argument
-	 * @param int [] initCounter. The initial value.
-	 * @param int [] theLimits. Typically <code>ma.getLengths()</code>
+	 * component values of the <code>limits</code> argument.
+	 * @param initCounter the initial value.
+	 * @param theLimits typically <code>ma.getLengths()</code>
 	 * for some MultiArray <code>ma</code>
 	 */
 	public
 	IndexIterator(int [] initCounter, int [] theLimits)
 	{
-		counter = (int []) initCounter.clone();
+		if(initCounter == null)
+			counter = new int[theLimits.length];
+		else
+			counter = (int []) initCounter.clone();
 		limits = theLimits; // N.B. Not a copy
 		ncycles = 0;
 	}
@@ -81,6 +116,12 @@ public class IndexIterator {
 	incr()
 	{
 		int digit = counter.length -1;
+		if(digit < 0)
+		{
+			// counter is zero length array <==> scalar
+			ncycles++;
+			return;
+		}
 		while(digit >= 0)
 		{
 			counter[digit]++;
@@ -100,7 +141,7 @@ public class IndexIterator {
 
 	/**
          * Increment the counter value 
-	 * @param int nsteps the number of times to increment the value.
+	 * @param nsteps the number of times to increment the value.
 	 */
 	public void
 	advance(int nsteps)

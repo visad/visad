@@ -13,18 +13,18 @@ import java.lang.reflect.Array;
  * You could "clip" a 2d MultiArray to a window using
  * 2 of these.
  *
- * @see IntMap
+ * @see IndexMap
  * @see MultiArrayProxy
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:05 $
  */
 public class
 ClipMap
-		implements IntMap
+		extends ConcreteIndexMap
 {
 	/**
-	 * Create an IntMap which clips along a specific dimension.
+	 * Create an IndexMap which clips along a specific dimension.
 	 * Using this in an MultiArrayProxy will result in the
 	 * the length of dimension <code>position</code> appearing
 	 * as <code>extent</code>.
@@ -36,103 +36,70 @@ ClipMap
 	public
 	ClipMap(int position, int low, int extent)
 	{
-		next = new IntArrayAdapter();
-		this.position = position;
-		this.low = low;
-		this.extent = extent;
+		init(new IMap(),
+			new LengthsMap());
+		position_ = position;
+		low_ = low;
+		extent_ = extent;
 	}
 
 	/**
-	 * Create an IntMap which clips along a specific dimension
-	 * and is functionally composed with another IntMap.
+	 * Create an IndexMap which clips along a specific dimension
+	 * and is functionally composed with another IndexMap.
 	 * Using this in an MultiArrayProxy will result in the
 	 * the length of dimension <code>position</code> appearing
 	 * as <code>extent</code>.
 	 *
-	 * @param next IntMap to be composed with this.
+	 * @param prev IndexMap to be composed with this.
 	 * @param position the dimension number to clip along
 	 * @param low the minimum value. 0 will map to this
 	 * @param extent the new dimension length at position
 	 */
 	public
-	ClipMap(IntMap next, int position, int low, int extent)
+	ClipMap(ConcreteIndexMap prev, int position, int low, int extent)
 	{
-		this.next = next;
-		this.position = position;
-		this.low = low;
-		this.extent = extent;
+		link(prev, new IMap(),
+			new LengthsMap());
+		position_ = position;
+		low_ = low;
+		extent_ = extent;
 	}
 
-	/**
-	 * Returns the value to which this Map maps the specified key.
-	 */
-	public int
-	get(int key)
+	private class
+	IMap extends ZZMap
 	{
-		if(key == position)
+		public synchronized int
+		get(int key)
 		{
-			// TODO? could add runtime check here
-			// assert(next.get(key) < extent);
-			return next.get(key) + low;
+			if(key == position_)
+			{
+				return super.get(key) + low_;
+			}
+			// else
+			return super.get(key);
 		}
-		// else
-		return next.get(key);
-		
-	}
 
-	/**
-	 * Returns the number of key-value mappings in this Map.
-	 */
-	public int
-	size()
+	}
+	
+	private class
+	LengthsMap extends ZZMap
 	{
-		return next.size();
+		public synchronized int
+		get(int key)
+		{
+			if(key == position_)
+			{
+				return extent_;
+			}
+			// else
+			return super.get(key);
+		}
 	}
 
-	/**
-	 * Return the tail of a chain of IntMap.
-	 * As side effects, connect the prev members and
-	 * initialize the rank at the tail.
-	 */
-	public IntArrayAdapter
-	tail(int rank, Object prev)
-	{
-		this.prev = prev;
-		// TODO? could add consistancy checks here:
-		// assert(low < getLength(position));
-		// assert(getLength(position) <= extent);
-		return next.tail(rank, this);
-	}
-
-	/**
-	 * Traverse the inverse mapping chain to
-	 * retrieve the dimension length at ii.
-	 */
-	public int
-	getLength(int ii)
-	{
-		if(ii == position)
-			return extent;
-		// else
-		if(prev instanceof IntMap)
-			return ((IntMap)prev).getLength(ii);
-		// else
-		return Array.getInt(prev, ii);
-	}
-
- /**/
-
-	/**
-	 * Either an IntMap delegate for getLength(int)
-	 * or an array of ints which can answer the
-	 * question directly.
-	 */
-	private Object prev;
-
-	private final IntMap next;
-	private final int position;
-	private final int low;
-	private final int extent;
+	/* WORKAROUND: Inner class & blank final initialize compiler bug */
+	private /* final */ int position_;
+	private /* final */ int low_;
+	private /* final */ int extent_;
 
  /* Begin Test */
 	public static void
@@ -148,7 +115,7 @@ ClipMap
 					ii, ii);
 
 		}
-		IntMap im = new ClipMap(0, 8, 32);
+		IndexMap im = new ClipMap(0, 8, 32);
 		MultiArray ma = new MultiArrayProxy(delegate, im);
 
 		try {
@@ -160,5 +127,10 @@ ClipMap
 		}
 		catch (java.io.IOException ee) {}
 	}
+ /* Test output java ucar.multiarray.ClipMap
+Rank  2
+Shape { 32, 64 }
+576
+  */
  /* End Test */
 }

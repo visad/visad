@@ -10,18 +10,18 @@ import java.lang.reflect.Array;
  * Use with MultiArrayProxy to reduce the apparent rank of
  * the delegate by fixing an index at particular value.
  *
- * @see IntMap
+ * @see IndexMap
  * @see MultiArrayProxy
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
  */
 public class
 SliceMap
-		implements IntMap
+		extends ConcreteIndexMap
 {
 	/**
-	 * Create an IntMap which fixes the key for a particular
+	 * Create an ConcreteIndexMap which fixes the key for a particular
 	 * dimension at a particular value.
 	 *
 	 * @param position the dimension number on which to fix the key.
@@ -30,95 +30,79 @@ SliceMap
 	public
 	SliceMap(int position, int value)
 	{
-		next = new IntArrayAdapter();
-		this.position = position;
-		this.value = value;
+		init(new IMap(),
+			new LengthsMap());
+		position_ = position;
+		value_ = value;
 	}
 
 	/**
-	 * Create an IntMap which fixes the key for a particular
+	 * Create an ConcreteIndexMap which fixes the key for a particular
 	 * dimension at a particular value and is functionally composed
-	 * with another IntMap.
+	 * with another ConcreteIndexMap.
 	 *
-	 * @param next IntMap to be composed with this.
+	 * @param prev ConcreteIndexMap to be composed with this.
 	 * @param position the dimension number on which to fix the key.
 	 * @param value the value at which to fix the key.
 	 */
 	public
-	SliceMap(IntMap next, int position, int value)
+	SliceMap(ConcreteIndexMap prev, int position, int value)
 	{
-		this.next = next;
-		this.position = position;
-		this.value = value;
+		link(prev, new IMap(),
+			new LengthsMap());
+		position_ = position;
+		value_ = value;
 	}
 
-	/**
-	 * Returns the value to which this Map maps the specified key.
-	 */
-	public int
-	get(int key)
+	private class
+	IMap extends ZZMap
 	{
-	/*
-		return key < position
-			? next.get(key) : key == position
-				? value : next.get(key -1);
-	*/
-		if(key < position)
-			return next.get(key);
-		// else
-		if(key == position)
-			return value;
-		// else
-		return next.get(key -1);
-		
+
+		public synchronized int
+		get(int key)
+		{
+		/*
+			return key < position_
+				? super.get(key) : key == position_
+					? value_ : super.get(key -1);
+		*/
+			if(key < position_)
+				return super.get(key);
+			// else
+			if(key == position_)
+				return value_;
+			// else
+			return super.get(key -1);
+			
+		}
+	
+		public synchronized int
+		size()
+		{
+			return super.size() +1;
+		}
 	}
 
-	/**
-	 * Returns the number of key-value mappings in this Map.
-	 */
-	public int
-	size()
+	private class
+	LengthsMap extends ZZMap
 	{
-		return next.size();
+		public synchronized int
+		get(int key)
+		{
+			final int adjust = key < position_ ? key : key + 1;
+			return super.get(adjust);
+		}
+	
+		public synchronized int
+		size()
+		{
+			return super.size() -1;
+		}
 	}
 
-	/**
-	 * Return the tail of a chain of IntMap.
-	 * As side effects, connect the prev members and
-	 * initialize the rank at the tail.
-	 */
-	public IntArrayAdapter
-	tail(int rank, Object prev)
-	{
-		this.prev = prev;
-		return next.tail(rank - 1, this);
-	}
-
-	/**
-	 * Traverse the inverse mapping chain to
-	 * retrieve the dimension length at ii.
-	 */
-	public int
-	getLength(int ii)
-	{
-		final int adjust = ii < position ? ii : ii + 1;
-		if(prev instanceof IntMap)
-			return ((IntMap)prev).getLength(adjust);
-		// else
-		return Array.getInt(prev, adjust);
-	}
-
- /**/
-	/**
-	 * Either an IntMap delegate for getLength(int)
-	 * or an array of ints which can answer the
-	 * question directly.
-	 */
-	private Object prev;
-
-	private final IntMap next;
-	private final int position;
-	private final int value;
+	/* WORKAROUND: Inner class & blank final initialize compiler bug */
+	private /* final */ int position_;
+	private /* final */ int value_;
 
  /* Begin Test */
 	public static void
@@ -134,7 +118,7 @@ SliceMap
 					ii, ii);
 
 		}
-		IntMap im = new SliceMap(1, 1);
+		IndexMap im = new SliceMap(1, 1);
 		MultiArray ma = new MultiArrayProxy(delegate, im);
 
 		try {
@@ -146,5 +130,10 @@ SliceMap
 		}
 		catch (java.io.IOException ee) {}
 	}
+ /* Test output java ucar.multiarray.SliceMap
+Rank  1
+Shape { 48 }
+65
+  */
  /* End Test */
 }

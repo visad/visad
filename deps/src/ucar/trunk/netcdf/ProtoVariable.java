@@ -6,6 +6,11 @@
 package ucar.netcdf;
 import ucar.multiarray.MultiArrayInfo;
 import java.io.Serializable;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Array;
+import java.io.ObjectInputStream;
+import java.io.InvalidClassException;
 
 /**
  * Prototype for Netcdf Variable.
@@ -25,7 +30,7 @@ import java.io.Serializable;
  *
  * @see Variable
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
  */
 
 
@@ -39,7 +44,7 @@ ProtoVariable
 	 * This method is used to check Attributes as well...
 	 *
 	 * @param componentType Class to check
-	 * @returns <code>true</code> if Okay, <code>false</code> otherwise.
+	 * @return <code>true</code> if Okay, <code>false</code> otherwise.
 	 */
 	static final boolean
 	checkComponentType(Class componentType)
@@ -230,14 +235,14 @@ ProtoVariable
 	clone()
 	{
 		try {
-			ProtoVariable pv = (ProtoVariable) super.clone();
+			final ProtoVariable pv = (ProtoVariable) super.clone();
 			copyVolatile(pv);
 			return pv;
 		}
 		catch (CloneNotSupportedException e)
 		{
 			// this shouldn't happen, since we are Cloneable
-			throw new InternalError();
+			throw new Error();
 		}
 	}
 
@@ -276,11 +281,11 @@ ProtoVariable
 	/**
 	 * Return an array whose length is the rank of this
 	 * and whose elements represent the
-	 * length of each of it's dimensions.
+	 * length of each of its dimensions.
 	 *
 	 * @return int array whose length is the rank of this
 	 * and whose elements represent the
-	 * length of each of it's dimensions
+	 * length of each of its dimensions
 	 */
 	public final int []
 	getLengths()
@@ -295,7 +300,7 @@ ProtoVariable
 	/**
 	 * Returns <code>true</code> if and only if the this variable can grow.
 	 * This is equivalent to saying
-	 * at least one of it's dimensions is unlimited.
+	 * at least one of its dimensions is unlimited.
 	 * In the current implementation, exactly one dimension, the most
 	 * slowly varying (leftmost), can be unlimited.
 	 * @return boolean <code>true</code> iff this can grow
@@ -372,7 +377,7 @@ ProtoVariable
 	 * Convenience function; add attribute.
 	 * @see AttributeSet#put
 	 * @param attr the Attribute to be added to this set.
-	 * @returns Attribute replaced or null if not a replacement
+	 * @return Attribute replaced or null if not a replacement
 	 */
 	public Attribute
 	putAttribute(Attribute attr)
@@ -442,8 +447,87 @@ ProtoVariable
 	}
 
 
-	private final String name;
-	private final Class componentType;
+	/**
+	 * Because members of Class Class can't be serialized, we have
+	 * to come up with our own encoding of the Class field 'componentType'.
+	 * <p>
+	 * The intent of this function is to use the same encoding as
+	 * 'prim_typecode' from the object serialization stream spec.
+	 *
+	 */
+	private int
+	encodeComponentType() 
+	{
+		if(componentType.isPrimitive())
+		{
+			if(componentType.equals(Byte.TYPE))
+				return (byte) 'B';
+			if(componentType.equals(Character.TYPE))
+				return (byte) 'C';
+			if(componentType.equals(Double.TYPE))
+				return (byte) 'D';
+			if(componentType.equals(Float.TYPE))
+				return (byte) 'F';
+			if(componentType.equals(Integer.TYPE))
+				return (byte) 'I';
+			if(componentType.equals(Long.TYPE))
+				return (byte) 'J';
+			if(componentType.equals(Short.TYPE))
+				return (byte) 'S';
+			if(componentType.equals(Boolean.TYPE))
+				return (byte) 'Z';
+		}
+		throw new IllegalArgumentException(componentType.toString());
+	}
+
+	static private Class
+	decodeComponentType(int typecode)
+			throws InvalidClassException
+	{
+		switch (typecode) {
+		case (byte) 'B':
+			return Byte.TYPE;
+		case (byte) 'C':
+			return Character.TYPE;
+		case (byte) 'D':
+			return Double.TYPE;
+		case (byte) 'F':
+			return Float.TYPE;
+		case (byte) 'I':
+			return Integer.TYPE;
+		case (byte) 'J':
+			return Long.TYPE;
+		case (byte) 'S':
+			return Short.TYPE;
+		case (byte) 'Z':
+			return Boolean.TYPE;
+		}
+		throw new InvalidClassException(Integer.toHexString(typecode));
+	}
+
+	private void
+	writeObject(ObjectOutputStream out)
+     		throws IOException
+	{
+		out.writeObject(name);
+		out.write(encodeComponentType());
+		out.writeObject(dimArray);
+		out.writeObject(attributes);
+	}
+
+	private void
+	readObject(ObjectInputStream in)
+     		throws IOException, ClassNotFoundException
+	{
+		name = (String) in.readObject();
+		final int typecode = in.read();
+		componentType = decodeComponentType(typecode);
+		dimArray = (Dimension []) in.readObject();
+		attributes = (AttributeDictionary) in.readObject();
+	}
+
+	private /* final */ String name;
+	private /* final */ Class componentType;
 	private /* final */ Dimension [] dimArray; 
 	private /* final */ AttributeDictionary attributes; 
 }

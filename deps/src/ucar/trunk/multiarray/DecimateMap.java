@@ -10,18 +10,19 @@ import java.lang.reflect.Array;
  * Use with MultiArrayProxy to reduce the length along a particular
  * dimension by sampling the domain according to a (repeated) pattern.
  *
- * @see IntMap
+ * @see IndexMap
  * @see MultiArrayProxy
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:42:24 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:05 $
  */
 public class
 DecimateMap
-		implements IntMap
+		extends ConcreteIndexMap
 {
 	/**
-	 * Create an IntMap which decimates along a specific dimension.
+	 * Create an ConcreteIndexMap which decimates along
+	 * a specific dimension.
 	 * Using this in an MultiArrayProxy will result in the
 	 * the length of dimension <code>position</code> appearing
 	 * smaller. The values which will show through are selected
@@ -36,20 +37,22 @@ DecimateMap
 	public
 	DecimateMap(int position, boolean [] pattern)
 	{
-		next = new IntArrayAdapter();
-		this.position = position;
-		this.pattern = (boolean []) pattern.clone();
-		nset = nbset(this.pattern, this.pattern.length);
+		init(new IMap(),
+			new LengthsMap());
+		position_ = position;
+		pattern_ = (boolean []) pattern.clone();
+		nset_ = nbset(pattern_, pattern_.length);
 	}
 
 	/**
-	 * Create an IntMap which decimates along a specific dimension.
+	 * Create an ConcreteIndexMap which decimates along
+	 * a specific dimension.
 	 * Using this in an MultiArrayProxy will result in the
 	 * the length of dimension <code>position</code> appearing
 	 * smaller. The values which will show through are selected
 	 * by the pattern argument.
 	 *
-	 * @param next IntMap to be composed with this.
+	 * @param prev ConcreteIndexMap to be composed with this.
 	 * @param position the dimension number to clip along
 	 * @param pattern index values along the dimension will
 	 *	show through where pattern is set to <code>true</code>.
@@ -57,93 +60,65 @@ DecimateMap
 	 *	the pattern is repeated.
 	 */
 	public
-	DecimateMap(IntMap next, int position, boolean [] pattern)
+	DecimateMap(ConcreteIndexMap prev, int position, boolean [] pattern)
 	{
-		this.next = next;
-		this.position = position;
-		this.pattern = (boolean []) pattern.clone();
-		nset = nbset(this.pattern, this.pattern.length);
+		link(prev, new IMap(),
+			new LengthsMap());
+		position_ = position;
+		pattern_ = (boolean []) pattern.clone();
+		nset_ = nbset(pattern_, pattern_.length);
 	}
 
-	/**
-	 * Returns the value to which this Map maps the specified key.
-	 */
-	public int
-	get(int key)
+	private class
+	IMap extends ZZMap
 	{
-		if(key == position)
+		public synchronized int
+		get(int key)
 		{
-			// TODO: better algorithm ?
-			final int input = next.get(key);
-			final int nstrides = input / nset;
-			final int which = nset > 1 ? input % nset : 0;
-			int offset = 0;
-			for(int nhits = 0; offset < pattern.length; offset++)
+			if(key == position_)
 			{
-				if(pattern[offset])
+				// TODO: better algorithm ?
+				final int input = super.get(key);
+				final int nstrides = input / nset_;
+				final int which = nset_ > 1 ? input % nset_ : 0;
+				int offset = 0;
+				for(int nhits = 0; offset < pattern_.length;
+						offset++)
 				{
-					nhits++;
-					if(nhits > which)
-						break; // normal loop exit
+					if(pattern_[offset])
+					{
+						nhits++;
+						if(nhits > which)
+							break; // normal exit
+					}
 				}
+				return nstrides * pattern_.length + offset;
 			}
-			return nstrides * pattern.length + offset;
+			// else
+			return super.get(key);
+			
 		}
-		// else
-		return next.get(key);
-		
+	
 	}
-
-	/**
-	 * Returns the number of key-value mappings in this Map.
-	 */
-	public int
-	size()
+	
+	private class
+	LengthsMap extends ZZMap
 	{
-		return next.size();
+		public synchronized int
+		get(int key)
+		{
+			final int plen = super.get(key);
+			if(key != position_)
+				return plen;
+			// else
+			final int len = (plen / pattern_.length) * nset_;
+			final int rem = plen % pattern_.length;
+			if(rem == 0)
+				return len;
+			// else
+			return len + nbset(pattern_, rem);
+		}
 	}
-
-	/**
-	 * Return the tail of a chain of IntMap.
-	 * As side effects, connect the prev members and
-	 * initialize the rank at the tail.
-	 */
-	public IntArrayAdapter
-	tail(int rank, Object prev)
-	{
-		this.prev = prev;
-		return next.tail(rank, this);
-	}
-
-	private int
-	prevLength(int ii)
-	{
-		if(prev instanceof IntMap)
-			return ((IntMap)prev).getLength(ii);
-		// else
-		return Array.getInt(prev, ii);
-	}
-
-	/**
-	 * Traverse the inverse mapping chain to
-	 * retrieve the dimension length at ii.
-	 */
-	public int
-	getLength(int ii)
-	{
-		final int plen = prevLength(ii);
-		if(ii != position)
-			return plen;
-		// else
-		final int len = (plen / pattern.length) * nset;
-		final int rem = plen % pattern.length;
-		if(rem == 0)
-			return len;
-		// else
-		return len + nbset(pattern, rem);
-	}
-
- /**/
 
 	/**
 	 * Compute the number of <code>true</code>
@@ -159,17 +134,10 @@ DecimateMap
 		return nhits;
 	}
 
-	/**
-	 * Either an IntMap delegate for getLength(int)
-	 * or an array of ints which can answer the
-	 * question directly.
-	 */
-	private Object prev;
-
-	private final IntMap next;
-	private final int position;
-	private final boolean [] pattern;
-	private final int nset;
+	/* WORKAROUND: Inner class & blank final initialize compiler bug */
+	private /* final */ int position_;
+	private /* final */ boolean [] pattern_;
+	private /* final */ int nset_;
 
  /* Begin Test */
 	public static void
@@ -186,7 +154,7 @@ DecimateMap
 
 		}
 		boolean [] pattern = new boolean [] { true, false, true };
-		IntMap im = new DecimateMap(0, pattern);
+		IndexMap im = new DecimateMap(0, pattern);
 		MultiArray ma = new MultiArrayProxy(delegate, im);
 
 		try {
@@ -198,5 +166,10 @@ DecimateMap
 		}
 		catch (java.io.IOException ee) {}
 	}
+ /* Test output java ucar.multiarray.DecimateMap
+Rank  2
+Shape { 32, 64 }
+128
+  */
  /* End Test */
 }
