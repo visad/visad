@@ -135,10 +135,11 @@ public class FFT {
         throw new FieldException("x length must be power of 2");
       }
     }
-    float[][] temp = new float[2][n>>1];
+    n2 = n/2;
+    float[][] temp = new float[2][n2];
     float angle = (float) (-2*Math.PI/(float)n);
     if (!forward) angle = -angle;
-    for (int i=0; i<(n>>1);i++) { 
+    for (int i=0; i<n2; i++) { 
       temp[0][i] = (float) Math.cos(i * angle);
       temp[1][i] = (float) Math.sin(i * angle);
     }
@@ -154,6 +155,7 @@ public class FFT {
 
   private static float[][] FFT1D(float[][] x, float[][] temp) {
     int n = x[0].length;
+    int n2 = n/2;
     int k=0;
     int butterfly;
     int buttered=0; 
@@ -162,23 +164,24 @@ public class FFT {
       return z1;
     }
 
-    butterfly= (temp[0].length/(n>>1));
+    butterfly= (temp[0].length/n2);
 
-    float[][] z = new float[2][n>>1];
-    float[][] w = new float[2][n>>1];
+    float[][] z = new float[2][n2];
+    float[][] w = new float[2][n2];
 
-    for (k=0; k<n>>1; k++) {  
-      z[0][k] = x[0][k<<1];
-      z[1][k] = x[1][k<<1];
-      w[0][k] = x[0][(k<<1) + 1];
-      w[1][k] = x[1][(k<<1) + 1];
+    for (k=0; k<n/2; k++) {  
+      int k2 = 2*k;
+      z[0][k] = x[0][k2];
+      z[1][k] = x[1][k2];
+      w[0][k] = x[0][k2 + 1];
+      w[1][k] = x[1][k2 + 1];
     }
 
     z = FFT1D(z, temp);
     w = FFT1D(w, temp);
 
     float[][] y = new float[2][n];
-    for (k=0; k<n>>1;k++) {
+    for (k=0; k<n2;k++) {
       y[0][k] = z[0][k];
       y[1][k] = z[1][k];
 
@@ -189,8 +192,8 @@ public class FFT {
 
       y[0][k] += w[0][k];
       y[1][k] += w[1][k];
-      y[0][k + (n>>1)] = z[0][k] - w[0][k];
-      y[1][k + (n>>1)] = z[1][k] - w[1][k];
+      y[0][k + n2] = z[0][k] - w[0][k];
+      y[1][k + n2] = z[1][k] - w[1][k];
       buttered += butterfly;
     }
     return y;
@@ -210,10 +213,11 @@ public class FFT {
         throw new FieldException("x length must be power of 2");
       }
     }
-    double[][] temp = new double[2][n>>1];
+    n2 = n/2;
+    double[][] temp = new double[2][n2];
     double angle = (double) (-2*Math.PI/(double)n);
     if (!forward) angle = -angle;
-    for (int i=0; i<(n>>1);i++) { 
+    for (int i=0; i<n2; i++) {
       temp[0][i] = (double) Math.cos(i * angle);
       temp[1][i] = (double) Math.sin(i * angle);
     }
@@ -229,6 +233,7 @@ public class FFT {
 
   private static double[][] FFT1D(double[][] x, double[][] temp) {
     int n = x[0].length;
+    int n2 = n/2;
     int k=0;
     int butterfly;
     int buttered=0; 
@@ -237,23 +242,24 @@ public class FFT {
       return z1;
     }
 
-    butterfly= (temp[0].length/(n>>1));
+    butterfly= (temp[0].length/n2);
 
-    double[][] z = new double[2][n>>1];
-    double[][] w = new double[2][n>>1];
+    double[][] z = new double[2][n2];
+    double[][] w = new double[2][n2];
 
-    for (k=0; k<n>>1; k++) {  
-      z[0][k] = x[0][k<<1];
-      z[1][k] = x[1][k<<1];
-      w[0][k] = x[0][(k<<1) + 1];
-      w[1][k] = x[1][(k<<1) + 1];
+    for (k=0; k<n2; k++) {
+      int k2 = 2 * k;
+      z[0][k] = x[0][k2];
+      z[1][k] = x[1][k2];
+      w[0][k] = x[0][k2 + 1];
+      w[1][k] = x[1][k2 + 1];
     }
 
     z = FFT1D(z, temp);
     w = FFT1D(w, temp);
 
     double[][] y = new double[2][n];
-    for (k=0; k<n>>1;k++) {
+    for (k=0; k<n2;k++) {
       y[0][k] = z[0][k];
       y[1][k] = z[1][k];
 
@@ -264,8 +270,8 @@ public class FFT {
 
       y[0][k] += w[0][k];
       y[1][k] += w[1][k];
-      y[0][k + (n>>1)] = z[0][k] - w[0][k];
-      y[1][k + (n>>1)] = z[1][k] - w[1][k];
+      y[0][k + n2] = z[0][k] - w[0][k];
+      y[1][k + n2] = z[1][k] - w[1][k];
       buttered += butterfly;
     }
     return y;
