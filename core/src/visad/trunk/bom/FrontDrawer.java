@@ -73,6 +73,8 @@ public class FrontDrawer extends Object {
   private ProjectionControlListener pcl = null;
   private float zoom = 1.0f;
 
+  private AnimationControl acontrol = null;
+
   private DisplayImplJ3D display;
   private ScalarMap lat_map = null;
   private ScalarMap lon_map = null;
@@ -84,6 +86,10 @@ public class FrontDrawer extends Object {
   private int lat_index = 0;
   private int lon_index = 1;
 
+  private FieldImpl fronts = null; //
+  // (RealType.Time -> (front_index ->
+  //       ((Latitude, Longitude) -> (front_red, front_green, front_blue))))
+  private static FunctionType fronts_type = null;
   private FieldImpl front = null; //
   // (front_index -> ((Latitude, Longitude) -> (front_red, front_green, front_blue)))
   private static FunctionType front_type = null;
@@ -503,28 +509,28 @@ public class FrontDrawer extends Object {
     null
   };
 
-  /** manipulable front with predefined pattern front_type and
+  /** manipulable front with predefined pattern front_kind and
       user specified color arrays */
   public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d, int fw,
-                     int front_type,
+                     int front_kind,
                      float[] fred, float[] fgreen, float[] fblue,
                      float[] rred, float[] rgreen, float[] rblue)
          throws VisADException, RemoteException {
-    this(cr, d, fw, segmentarray[front_type],
-         fshapesarray[front_type], fred, fgreen, fblue,
-         rshapesarray[front_type], rred, rgreen, rblue);
+    this(cr, d, fw, segmentarray[front_kind],
+         fshapesarray[front_kind], fred, fgreen, fblue,
+         rshapesarray[front_kind], rred, rgreen, rblue);
   }
 
-  /** manipulable front with predefined pattern front_type and
+  /** manipulable front with predefined pattern front_kind and
       default color arrays */
   public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d, int fw,
-                     int front_type)
+                     int front_kind)
          throws VisADException, RemoteException {
-    this(cr, d, fw, segmentarray[front_type],
-         fshapesarray[front_type], fredarray[front_type],
-         fgreenarray[front_type], fbluearray[front_type],
-         rshapesarray[front_type], rredarray[front_type],
-         rgreenarray[front_type], rbluearray[front_type]);
+    this(cr, d, fw, segmentarray[front_kind],
+         fshapesarray[front_kind], fredarray[front_kind],
+         fgreenarray[front_kind], fbluearray[front_kind],
+         rshapesarray[front_kind], rredarray[front_kind],
+         rgreenarray[front_kind], rbluearray[front_kind]);
   }
 
 
@@ -680,6 +686,23 @@ public class FrontDrawer extends Object {
     pcl = new ProjectionControlListener();
     pcontrol.addControlListener(pcl);
 
+    acontrol = (AnimationControl) display.getControl(AnimationControl.class);
+    if (acontrol == null) {
+      throw new DisplayException("display must include " +
+                     "ScalarMap to Animation");
+    }
+    Vector tmap = display.getMapVector();
+    for (int i=0; i<tmap.size(); i++) {
+      ScalarMap map = (ScalarMap) tmap.elementAt(i);
+      Control c = map.getControl();
+      if (acontrol.equals(c)) {
+        if (!RealType.Time.equals(map.getScalar())) {
+          throw new DisplayException("must be Time mapped to " +
+                                     "Animation " + map.getScalar());
+        }
+      }
+    }
+
     // find spatial maps for Latitude and Longitude
     lat_map = null;
     lon_map = null;
@@ -754,6 +777,7 @@ public class FrontDrawer extends Object {
           new RealTupleType(front_red, front_green, front_blue);
         front_inner = new FunctionType(latlon, rgb);
         front_type = new FunctionType(front_index, front_inner);
+        fronts_type = new FunctionType(RealType.Time, front_type);
       }
     }
   }
@@ -856,7 +880,7 @@ public class FrontDrawer extends Object {
           curve = resample_curve(curve, increment);
     
           try {
-            curveToFront(curve, flip);
+            front = curveToFront(curve, flip);
             break;
           }
           catch (VisADException e) {
@@ -931,14 +955,13 @@ public class FrontDrawer extends Object {
 
   private static final float CLIP_DELTA = 0.001f;
 
-  private void curveToFront(float[][] curve, boolean flip)
+  private FieldImpl curveToFront(float[][] curve, boolean flip)
          throws VisADException, RemoteException {
 
     // compute various scaling factors
     int len = curve[0].length;
     if (len < 2) {
-      front = null;
-      return;
+      return null;
     }
     float[] seg_length = new float[len-1];
     float curve_length = curveLength(curve, seg_length);
@@ -1076,12 +1099,13 @@ public class FrontDrawer extends Object {
 
     int nfields = inner_field_vector.size();
     Integer1DSet iset = new Integer1DSet(front_index, nfields);
-    front = new FieldImpl(front_type, iset);
+    FieldImpl front = new FieldImpl(front_type, iset);
     FlatField[] fields = new FlatField[nfields];
     for (int i=0; i<nfields; i++) {
       fields[i] = (FlatField) inner_field_vector.elementAt(i);
     }
     front.setSamples(fields, false);
+    return front;
   }
 
   private float[][] mapShape(float[][] samples, int len, int ibase, float mul,
@@ -1229,7 +1253,7 @@ public class FrontDrawer extends Object {
 
     if (ratio < 0.95f || 1.05f < ratio) {
       last_zoom = zoom;
-      release_ref.setData(null);
+      if (release_ref != null) release_ref.setData(null);
 // System.out.println("setScale call setData " + zoom + " " + last_zoom +
 //                    " " + ratio);
     }
@@ -1253,6 +1277,11 @@ public class FrontDrawer extends Object {
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
     latmap.setRange(-40.0, -20.0);
+
+    ScalarMap timemap = new ScalarMap(RealType.Time, Display.Animation);
+    display.addMap(timemap);
+    AnimationControl acontrol = (AnimationControl) timemap.getControl();
+    acontrol.setSet(new Integer1DSet(RealType.Time, 10));
 
     initColormaps(display);
 
@@ -1279,14 +1308,15 @@ public class FrontDrawer extends Object {
 
     // add display to JPanel
     panel.add(display.getComponent());
+    panel.add(new AnimationWidget(timemap));
 
-    int front_type = FrontDrawer.COLD_FRONT;
+    int front_kind = FrontDrawer.COLD_FRONT;
     try {
-      if (args.length > 0) front_type = Integer.parseInt(args[0]);
+      if (args.length > 0) front_kind = Integer.parseInt(args[0]);
     }
     catch(NumberFormatException e) {
     }
-    FrontDrawer fd = new FrontDrawer(curve_ref, display, 8, front_type);
+    FrontDrawer fd = new FrontDrawer(curve_ref, display, 8, front_kind);
 
 
     JPanel button_panel = new JPanel();
