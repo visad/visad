@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.8 1999-01-20 18:05:39 steve Exp $
+ * $Id: StandardQuantityDB.java,v 1.9 1999-06-21 17:28:28 curtis Exp $
  */
 
 package visad.data.netcdf;
@@ -81,6 +81,7 @@ StandardQuantityDB
 	    add(RealType.ZAxis);
 	    add(RealType.Latitude);
 	    add(RealType.Longitude);
+            add(RealType.Altitude);
 	    add(RealType.Time);
 
 	    /*
@@ -312,7 +313,7 @@ StandardQuantityDB
 		"GeodeticLongitude", quantity);	// from RealType.Longitude
 	    super.add("Longitude", quantity);
 	    super.add("lon", quantity);
-	    quantity = new Quantity("Altitude", "m");
+            quantity = get("Altitude");		// from RealType.Altitude
 	    super.add("Elevation", quantity);
 	    super.add("Altitude", quantity);
 	    super.add("Depth", "m");
