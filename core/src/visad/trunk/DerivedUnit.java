@@ -449,6 +449,10 @@ public final class DerivedUnit
 
 	System.out.println("energy=\"" + energy + "\"");
 
+	System.out.println(
+	    "new DerivedUnit().isConvertible(new DerivedUnit()) = " +
+	    new DerivedUnit().isConvertible(new DerivedUnit()));
+
 	System.out.println("Checking exceptions:");
 	try
 	{
