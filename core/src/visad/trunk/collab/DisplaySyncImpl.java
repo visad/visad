@@ -60,24 +60,13 @@ public class DisplaySyncImpl
   private HashMap current = new HashMap();
   private HashMap diverted = null;
 
-  /** true in cluster nodes */
-  private boolean cluster = false; // WLH 7 Dec 2000
-
   public DisplaySyncImpl(DisplayImpl dpy)
     throws RemoteException
   {
-    this(dpy, false); // WLH 7 Dec 2000
-  }
-
-  public DisplaySyncImpl(DisplayImpl dpy, boolean cl)
-    throws RemoteException
-  {
-// System.out.println("DisplaySyncImpl " + dpy.getName() + " " + cl);
     Name = dpy.getName() + ":Sync";
     myDisplay = dpy;
     monitor = dpy.getDisplayMonitor();
     monitor.setDisplaySync(this);
-    cluster = cl; // WLH 7 Dec 2000
   }
 
   /**
@@ -91,8 +80,6 @@ public class DisplaySyncImpl
   private void addLink(RemoteReferenceLink link)
     throws VisADException
   {
-    if (cluster) return; // WLH 7 Dec 2000
-
     // build array of ConstantMap values
     ConstantMap[] cm = null;
     try {

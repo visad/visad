@@ -319,18 +319,6 @@ public class DisplayImplJ3D extends DisplayImpl {
     syncRemoteData(rmtDpy);
   }
 
-  /** special constructor for cluster */
-  public DisplayImplJ3D(RemoteDisplay rmtDpy,
-                        TransformOnlyDisplayRendererJ3D renderer,
-                        GraphicsConfiguration config)
-         throws VisADException, RemoteException {
-    super(rmtDpy, renderer, true); // cluster = true
-
-    initialize(TRANSFORM_ONLY, config);
-
-    syncRemoteData(rmtDpy);
-  }
-
   private void initialize(int api, GraphicsConfiguration config)
           throws VisADException, RemoteException {
     initialize(api, config, -1, -1, null);

@@ -95,7 +95,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   private DisplayRenderer displayRenderer;
 
   /** Component where data depictions are rendered;
-      must be set by concrete subclass constructor */
+      must be set by concrete subclass constructor;
+      may be null for off-screen displays */
   Component component;
 
 
@@ -141,9 +142,14 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   // Support for printing
   private Printable printer;
 
-  private boolean cluster = false;
-
-  /** constructor with non-default DisplayRenderer */
+  /**
+   * construct a DisplayImpl with given name and DisplayRenderer
+   * @param name String name for DisplayImpl (used for debugging)
+   * @param renderer DisplayRenderer that controls aspects of the
+   *                 display not specific to any particular Data
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public DisplayImpl(String name, DisplayRenderer renderer)
          throws VisADException, RemoteException {
     super(name);
@@ -166,19 +172,21 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     clearMaps();
   }
 
-  /** construct DisplayImpl from RemoteDisplay */
+  /** 
+   * construct a DisplayImpl collaborating with the given RemoteDisplay,
+   * and with the given DisplayRenderer 
+   * @param rmtDpy RemoteDisplay to collaborate with
+   * @param renderer DisplayRenderer that controls aspects of the 
+   *                 display not specific to any particular Data
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer)
          throws VisADException, RemoteException {
-    this(rmtDpy, renderer, false);
-  }
+    // this(rmtDpy, renderer, false);
 
-  public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer,
-                     boolean cl)
-         throws VisADException, RemoteException {
-    // super(rmtDpy.getName());
+
     super(rmtDpy.getName() + ".remote"); // WLH 11 April 2001
-
-    cluster = cl;
 
     // get class used for remote display
     String className = rmtDpy.getDisplayClassName();
@@ -202,18 +210,18 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       DisplayRealTypeVector.addElement(DisplayRealArray[i]);
     }
 
-    displayMonitor = new DisplayMonitorImpl(this, cluster); // WLH 7 Dec 2000
-    displaySync = new DisplaySyncImpl(this, cluster); // WLH 7 Dec 2000
+    displayMonitor = new DisplayMonitorImpl(this);
+    displaySync = new DisplaySyncImpl(this);
 
     if (renderer != null) {
       displayRenderer = renderer;
     } else {
       try {
-	String name = rmtDpy.getDisplayRendererClassName();
-	Object obj = Class.forName(name).newInstance();
-	displayRenderer = (DisplayRenderer )obj;
+        String name = rmtDpy.getDisplayRendererClassName();
+        Object obj = Class.forName(name).newInstance();
+        displayRenderer = (DisplayRenderer )obj;
       } catch (Exception e) {
-	displayRenderer = getDefaultDisplayRenderer();
+        displayRenderer = getDefaultDisplayRenderer();
       }
     }
     displayRenderer.setDisplay(this);
@@ -430,11 +438,11 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     copyScalarMaps(rmtDpy);
     copyConstantMaps(rmtDpy);
     copyGraphicsModeControl(rmtDpy);
-    if (!cluster) copyRefLinks(rmtDpy, null); // WLH 7 Dec 2000
+    copyRefLinks(rmtDpy, null);
 
     notifyAction();
 
-    if (!cluster) waitForTasks(); // WLH 11 April 2001
+    waitForTasks();
 
     // only add remote display as listener *after* we've synced
     displayMonitor.addRemoteListener(rmtDpy);
@@ -1708,8 +1716,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
         throw new BadMappingException("DisplayImpl.addMap: " +
               map.getDisplayScalar() + " illegal for this DisplayRenderer");
       }
-      if ((Display.LineWidth.equals(type) || Display.PointSize.equals(type) ||
-        Display.LineStyle.equals(type)) && !(map instanceof ConstantMap))
+      if ((Display.LineWidth.equals(type) ||
+           Display.PointSize.equals(type) ||
+           Display.LineStyle.equals(type) ||
+           Display.TextureEnable.equals(type)) &&
+          !(map instanceof ConstantMap))
       {
         throw new BadMappingException("DisplayImpl.addMap: " +
               map.getDisplayScalar() + " for ConstantMap only");

@@ -165,9 +165,6 @@ public class DisplayMonitorImpl
    */
   private DisplaySync sync;
 
-  /** true in cluster nodes */
-  private boolean cluster = false; // WLH 7 Dec 2000
-
   /**
    * Creates a monitor for the specified {@link visad.Display Display}.
    *
@@ -175,12 +172,6 @@ public class DisplayMonitorImpl
    */
   public DisplayMonitorImpl(DisplayImpl dpy)
   {
-    this(dpy, false);
-  }
-
-  public DisplayMonitorImpl(DisplayImpl dpy, boolean cl)
-  {
-// System.out.println("DisplayMonitorImpl " + dpy.getName() + " " + cl);
     Name = dpy.getName() + ":Mon";
 
     dpy.addDisplayListener(this);
@@ -189,7 +180,6 @@ public class DisplayMonitorImpl
     myDisplay = dpy;
 
     listeners = new ArrayList();
-    cluster = cl; // WLH 7 Dec 2000
   }
 
   /**
@@ -257,8 +247,7 @@ public class DisplayMonitorImpl
 
     boolean unwind = false;
     try {
-      if (!cluster) addListener(rd, id); // WLH 7 Dec 2000
-      // addListener(rd, id);
+      addListener(rd, id);
     } catch (Exception e) {
       unwind = true;
     }
@@ -642,10 +631,7 @@ public class DisplayMonitorImpl
       return;
     }
 
-    // WLH 7 Dec 2000
-    // WLH 12 April 2001 change "!cluster" to "cluster"
-    // if (evt.getId() == ScalarMapEvent.AUTO_SCALE) {
-    if (evt.getId() == ScalarMapEvent.AUTO_SCALE && cluster) {
+    if (evt.getId() == ScalarMapEvent.AUTO_SCALE) {
       // ignore internal autoscale events
       return;
     }
