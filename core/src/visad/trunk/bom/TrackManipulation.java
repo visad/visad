@@ -42,31 +42,31 @@ import java.rmi.*;
 */
 public class TrackManipulation extends Object {
 
-  DisplayImplJ3D display;
-  DataReference track1_ref;
-  DataReference track2_ref;
-  DataReference track3_ref;
+  private DisplayImplJ3D display;
+  private DataReference track1_ref;
+  private DataReference track2_ref;
+  private DataReference track3_ref;
 
-  RealTupleType latlonshape = null;
+  private RealTupleType latlonshape = null;
 
-  ScalarMap latmap = null;
-  ScalarMap lonmap = null;
-  CoordinateSystem coord = null;
-  int latindex = -1;
-  int lonindex = -1;
-  int otherindex = -1;
-  float othervalue = 0.0f;
+  private ScalarMap latmap = null;
+  private ScalarMap lonmap = null;
+  private CoordinateSystem coord = null;
+  private int latindex = -1;
+  private int lonindex = -1;
+  private int otherindex = -1;
+  private float othervalue = 0.0f;
 
-  ScalarMap shapemap = null;
-  ShapeControl shapecontrol = null;
+  private ScalarMap shapemap = null;
+  private ShapeControl shapecontrol = null;
 
-  float x_size;
-  float y_size;
-  float angle;
+  private float x_size;
+  private float y_size;
+  private float angle;
 
   private static int NE = 32;
-  float[] x_ellipse = new float[NE + 1];
-  float[] y_ellipse = new float[NE + 1];
+  private float[] x_ellipse = new float[NE + 1];
+  private float[] y_ellipse = new float[NE + 1];
 
   /** (lat1, lon1) start of track
       (lat2, lon2) end of track
@@ -176,7 +176,7 @@ public class TrackManipulation extends Object {
   private static final int NUM = 4096;
 
   /** draw track */
-  public VisADLineArray makeTrack(float[][] values) {
+  private VisADLineArray makeTrack(float[][] values) {
     float d, xd, yd;
     float x, y, z, x0, y0, x3, y3, x4, y4, x5, y5;
     float sscale = 0.75f * 0.15f;
@@ -186,8 +186,6 @@ public class TrackManipulation extends Object {
     z = values[2][0];
     x5 = values[0][1] - values[0][0];
     y5 = values[1][1] - values[1][0];
-
-// System.out.println("makeTrack " + x + " " + y + " " + x5 + " " + y5);
 
     float xdir = x5 - x;
     float ydir = y5 - y; 
