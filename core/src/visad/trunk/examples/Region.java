@@ -59,7 +59,7 @@ public class Region {
     Irregular2DSet region =
       new Irregular2DSet(earth, samples, null, null, null, delaunay);
 
-    // create a DataReference for river system
+    // create a DataReference for region
     final DataReference region_ref = new DataReferenceImpl("region");
     region_ref.setData(region);
 
