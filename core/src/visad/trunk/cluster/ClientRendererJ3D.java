@@ -34,8 +34,9 @@ import javax.media.j3d.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import javax.swing.*;
-import java.util.*;
+import java.util.Vector;
 import java.rmi.*;
 import java.io.Serializable;
 
@@ -104,8 +105,8 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       cluster = (data instanceof RemoteClientDataImpl);
 
       if (cluster && data != old_data) {
-        RemoteClientDataImpl rcdi = (RemoteClientDataImpl) data;
         // send agents to nodes if data changed
+        RemoteClientDataImpl rcdi = (RemoteClientDataImpl) data;
         focus_agent = new RemoteClientAgentImpl(null, -1);
         RemoteClusterData[] jvmTable = rcdi.getTable();
         int nagents = jvmTable.length - 1;
@@ -143,6 +144,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     // need to:
     // 1. rebuild images and volumes
     // 2. convert from VisADGroups to BranchGroups
+    //    GeometryArray = display.makeGeometry(VisADGeometryArray)
     // 3. add them as children of branch
 
 
@@ -156,6 +158,33 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     return branch;
   }
+
+  public SceneGraphObject convertSceneGraph(VisADSceneGraphObject scene)
+         throws VisADException {
+    if (scene instanceof VisADSwitch) {
+      VisADSwitch swit = (VisADSwitch) scene;
+      Set set = swit.getSet();
+      int n = swit.numChildren();
+
+    }
+    else if (scene instanceof VisADGroup) {
+
+      // see ShadowTypeJ3D.ensureNotEmpty(Group)
+    }
+    else { // scene instanceof VisADAppearance
+      VisADAppearance appearance = (VisADAppearance) scene;
+      VisADGeometryArray vga = appearance.array;
+      GeometryArray array = ((DisplayImplJ3D) display).makeGeometry(vga);
+      if (array == null) return null;
+      BufferedImage image = (BufferedImage) appearance.image;
+      if (image != null) {
+      }
+      else {
+      }
+    }
+return null;
+  }
+    
 
   public DataShadow computeRanges(Data data, ShadowType type, DataShadow shadow) 
          throws VisADException, RemoteException {
