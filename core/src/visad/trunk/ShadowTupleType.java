@@ -357,8 +357,9 @@ public class ShadowTupleType extends ShadowType {
             ShadowType component =
               ((ShadowTupleType) this).getComponent(i);
             if (component instanceof ShadowRealTupleType) {
-              Unit[] range_units = new Unit[n];
-              for (j=0; j<n; j++) range_units[j] = value_units[j + start];
+              int m = ((ShadowRealTupleType) component).getDimension();
+              Unit[] range_units = new Unit[m];
+              for (j=0; j<m; j++) range_units[j] = value_units[j + start];
               CoordinateSystem range_coord_sys = ((RealTuple) ((Tuple) data).
                     getComponent(i)).getCoordinateSystem();
               renderer.setEarthSpatialData((ShadowRealTupleType)

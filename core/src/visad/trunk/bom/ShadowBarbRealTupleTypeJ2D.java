@@ -49,7 +49,6 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
  
-    // is this needed?
     DataRenderer renderer = getLink().getRenderer();
     boolean direct = renderer.getIsDirectManipulation();
     if (direct && renderer instanceof BarbManipulationRendererJ2D) {

@@ -47,10 +47,19 @@ public class ShadowBarbTupleTypeJ2D extends ShadowTupleTypeJ2D {
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
+
     DataRenderer renderer = getLink().getRenderer();
-    return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which,
-               flow_values, flowScale, spatial_values, color_values,
-               range_select, renderer, false);
+    boolean direct = renderer.getIsDirectManipulation();
+    if (direct && renderer instanceof BarbManipulationRendererJ2D) {
+      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which,
+                 flow_values, flowScale, spatial_values, color_values,
+                 range_select, renderer, true);
+    }
+    else {
+      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which,
+                 flow_values, flowScale, spatial_values, color_values,
+                 range_select, renderer, false);
+    }
   }
 
 }

@@ -56,17 +56,41 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     super();
   }
  
+  public ShadowType makeShadowFunctionType(
+         FunctionType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    return new ShadowBarbFunctionTypeJ2D(type, link, parent);
+  }
+
   public ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowBarbRealTupleTypeJ2D(type, link, parent);
   }
 
+  public ShadowType makeShadowRealType(
+         RealType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    return new ShadowBarbRealTypeJ2D(type, link, parent);
+  }
+
+  public ShadowType makeShadowSetType(
+         SetType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    return new ShadowBarbSetTypeJ2D(type, link, parent);
+  }
+
+  public ShadowType makeShadowTupleType(
+         TupleType type, DataDisplayLink link, ShadowType parent)
+         throws VisADException, RemoteException {
+    return new ShadowBarbTupleTypeJ2D(type, link, parent);
+  }
+
   /** information calculated by checkDirect */
   /** explanation for invalid use of DirectManipulationRenderer */
   private String whyNotDirect = null;
-  private final static String notRealTupleType =
-    "not RealTuple";
+  private final static String notFlatTupleType =
+    "not Flat Tuple";
   private final static String multipleFlowTuples =
     "mappings to both Flow1 and Flow2";
   private final static String multipleFlowMapping =
@@ -79,7 +103,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   private transient DataDisplayLink link = null;
   private transient DataReference ref = null;
   private transient MathType type = null;
-  private transient ShadowRealTupleType shadow = null;
+  private transient ShadowTupleType shadow = null;
 
   /** point on direct manifold line or plane */
   private float point_x, point_y, point_z;
@@ -115,13 +139,13 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     ref = link.getDataReference();
     type = link.getType();
     tuple = null;
-    if (!(type instanceof RealTupleType)) {
-      whyNotDirect = notRealTupleType;
+    if (!(type instanceof TupleType) || !((TupleType) type).getFlat()) {
+      whyNotDirect = notFlatTupleType;
       return;
     }
     flowToComponent = new int[] {-1, -1, -1};
     directMap = new ScalarMap[] {null, null, null};
-    shadow = (ShadowRealTupleType) link.getShadow().getAdaptedShadowType();
+    shadow = (ShadowTupleType) link.getShadow().getAdaptedShadowType();
     DisplayTupleType[] tuples = {tuple};
     whyNotDirect = findFlow(shadow, display, tuples, flowToComponent);
     if (whyNotDirect != null) return;
@@ -133,7 +157,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     setIsDirectManipulation(true);
   }
 
-  private String findFlow(ShadowRealTupleType shadow,
+  private String findFlow(ShadowTupleType shadow,
                           DisplayImpl display, DisplayTupleType[] tuples,
                           int[] flowToComponent) {
     ShadowRealType[] components = shadow.getRealComponents();
@@ -345,10 +369,8 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     DisplayImpl display = new DisplayImplJ2D("display1");
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
     display.addMap(lonmap);
-    lonmap.setRange(-1.0, 1.0);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
-    latmap.setRange(-1.0, 1.0);
     ScalarMap flowx_map = new ScalarMap(flowx, Display.Flow1X);
     display.addMap(flowx_map);
     flowx_map.setRange(-1.0, 1.0);
