@@ -486,10 +486,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
           try {
             DisplayRealType ereal =
               (DisplayRealType) tuple.getComponent(i);
-            int eindex = DisplayRealTypeVector.indexOf(dreal);
+            int eindex = DisplayRealTypeVector.indexOf(ereal);
             if (eindex < 0) {
               DisplayRealTypeVector.addElement(ereal);
-              eindex = DisplayRealTypeVector.indexOf(ereal);
             }
           }
           catch (VisADException e) {
@@ -581,8 +580,25 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   void addDisplayScalar(ScalarMap map) {
     int index;
+
+    DisplayRealType dreal = map.getDisplayScalar();
     synchronized (DisplayRealTypeVector) {
-      DisplayRealType dreal = map.getDisplayScalar();
+      DisplayTupleType tuple = dreal.getTuple();
+      if (tuple != null) {
+        int n = tuple.getDimension();
+        for (int i=0; i<n; i++) {
+          try {
+            DisplayRealType ereal =
+              (DisplayRealType) tuple.getComponent(i);
+            int eindex = DisplayRealTypeVector.indexOf(ereal);
+            if (eindex < 0) {
+              DisplayRealTypeVector.addElement(ereal);
+            }
+          }
+          catch (VisADException e) {
+          }
+        }
+      }
       index = DisplayRealTypeVector.indexOf(dreal);
       if (index < 0) {
         DisplayRealTypeVector.addElement(dreal);
