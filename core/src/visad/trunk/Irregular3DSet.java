@@ -391,10 +391,11 @@ public class Irregular3DSet extends IrregularSet {
           if (!fail || t == -1) {
             curtri = t;
           }
+          if (fail) curtri = -1;
 
+/* to deal with non-convex Set, but very slow
           if (custom) {
-            if (curtri == -1 || fail) {
-              curtri = -1;
+            if (curtri == -1) {
               for (int jj=0; jj<fail_tri.length; jj++) {
                 if (!fail_tri[jj]) {
                   curtri = jj;
@@ -403,9 +404,8 @@ public class Irregular3DSet extends IrregularSet {
               }
             }
           }
-          else {
-            if (fail) curtri = -1;
-          }
+*/
+
         }
         else {
           foundit = true;
