@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.6 1998-05-29 20:59:12 visad Exp $
+ * $Id: DefaultUnitsDB.java,v 1.7 1998-08-17 14:50:41 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -128,7 +128,7 @@ DefaultUnitsDB
 	 */
 	put(new PluralUnit("ampere",	SI.ampere));
 	put(new PluralUnit("candela",	SI.candela));
-	put(new PluralUnit("kelvin",	SI.kelvin));
+	put(new PluralUnit("Kelvin",	SI.kelvin));
 	put(new PluralUnit("kilogram",	SI.kilogram));
 	put(new PluralUnit("meter",	SI.meter));
 	put(new PluralUnit("mole",	SI.mole));
@@ -184,53 +184,57 @@ DefaultUnitsDB
 	/*
 	 * UNITS OF THERMODYNAMIC TEMPERATURE
 	 */
-	put(new PluralUnit("degree_Kelvin",	get("kelvin")));
-	put(new SingleUnit("degree_Celsius",
-	    new OffsetUnit(273.15, (BaseUnit)get("kelvin"))));
-	put(new PluralUnit("degree_Rankine",
-	    get("kelvin").scale(1/1.8)));
-	put(new PluralUnit("degree_Fahrenheit",
-	    get("degree_Rankine").shift(459.67)));
+	put(new PluralUnit("kelvin",		get("Kelvin")));
+	put(new SingleUnit("degree_Kelvin",	get("Kelvin")));
+	put(new SingleUnit("degrees_Kelvin",	get("Kelvin")));
+	put(new SingleUnit("degK",		get("Kelvin")));
+	put(new SingleUnit("degreeK",		get("Kelvin")));
+	put(new SingleUnit("degree_K",		get("Kelvin")));
+	put(new SingleUnit("degree_k",		get("Kelvin")));
+	put(new SingleUnit("deg_K",		get("Kelvin")));
+	put(new SingleUnit("deg_k",		get("Kelvin")));
+	put(new SingleUnit("K",			get("Kelvin")));
 
+	put(new SingleUnit("Celsius",
+	    new OffsetUnit(273.15, (BaseUnit)get("Kelvin"))));
+	put(new SingleUnit("celsius",		get("Celsius")));
+	put(new SingleUnit("degree_Celsius",	get("Celsius")));
+	put(new SingleUnit("degrees_Celsius",	get("Celsius")));
+	put(new SingleUnit("degree_centigrade",	get("Celsius")));
+	put(new SingleUnit("degC",		get("Celsius")));
+	put(new SingleUnit("degreeC",		get("Celsius")));
+	put(new SingleUnit("degree_C",		get("Celsius")));
+	put(new SingleUnit("degree_c",		get("Celsius")));
+	put(new SingleUnit("deg_C",		get("Celsius")));
+	put(new SingleUnit("deg_c",		get("Celsius")));
 	//put(new SingleUnit("C",	get("degree_Celsius")));
 						// `C' means `coulomb'
-	put(new SingleUnit("Celsius",	get("degree_Celsius")));
-	put(new SingleUnit("celsius",	get("degree_Celsius")));
-	put(new SingleUnit("degree_centigrade",	get("degree_Celsius")));
-	put(new SingleUnit("degC",	get("degree_Celsius")));
-	put(new SingleUnit("degreeC",	get("degree_Celsius")));
-	put(new SingleUnit("degree_C",	get("degree_Celsius")));
-	put(new SingleUnit("degree_c",	get("degree_Celsius")));
-	put(new SingleUnit("deg_C",	get("degree_Celsius")));
-	put(new SingleUnit("deg_c",	get("degree_Celsius")));
-	put(new SingleUnit("degK",	get("kelvin")));
-	put(new SingleUnit("degreeK",	get("kelvin")));
-	put(new SingleUnit("degree_K",	get("kelvin")));
-	put(new SingleUnit("degree_k",	get("kelvin")));
-	put(new SingleUnit("deg_K",	get("kelvin")));
-	put(new SingleUnit("deg_k",	get("kelvin")));
-	put(new SingleUnit("K",		get("kelvin")));
-	put(new PluralUnit("Kelvin",	get("kelvin")));
 
-	put(new SingleUnit("degF",	get("degree_Fahrenheit")));
-	put(new SingleUnit("degreeF",	get("degree_Fahrenheit")));
-	put(new SingleUnit("degree_F",	get("degree_Fahrenheit")));
-	put(new SingleUnit("degree_f",	get("degree_Fahrenheit")));
-	put(new SingleUnit("deg_F",	get("degree_Fahrenheit")));
-	put(new SingleUnit("deg_f",	get("degree_Fahrenheit")));
-	put(new PluralUnit("Fahrenheit",get("degree_Fahrenheit")));
-	put(new PluralUnit("fahrenheit",get("degree_Fahrenheit")));
-
-	put(new SingleUnit("degR",	get("degree_Rankine")));
-	put(new SingleUnit("degreeR",	get("degree_Rankine")));
-	put(new SingleUnit("degree_R",	get("degree_Rankine")));
-	put(new SingleUnit("degree_r",	get("degree_Rankine")));
-	put(new SingleUnit("deg_R",	get("degree_Rankine")));
-	put(new SingleUnit("deg_r",	get("degree_Rankine")));
-	//put(new SingleUnit("R",	get("degree_Rankine")));
+	put(new PluralUnit("Rankine",		get("Kelvin").scale(1/1.8)));
+	put(new PluralUnit("rankine",		get("Rankine")));
+	put(new SingleUnit("degree_Rankine",	get("Rankine")));
+	put(new SingleUnit("degrees_Rankine",	get("Rankine")));
+	put(new SingleUnit("degR",		get("Rankine")));
+	put(new SingleUnit("degreeR",		get("Rankine")));
+	put(new SingleUnit("degree_R",		get("Rankine")));
+	put(new SingleUnit("degree_r",		get("Rankine")));
+	put(new SingleUnit("deg_R",		get("Rankine")));
+	put(new SingleUnit("deg_r",		get("Rankine")));
+	//put(new SingleUnit("R",		get("Rankine")));
 						// "R" means "roentgen"
-	put(new PluralUnit("Rankine",	get("degree_Rankine")));
-	put(new PluralUnit("rankine",	get("degree_Rankine")));
+
+	put(new PluralUnit("Fahrenheit",	get("Rankine").shift(459.67)));
+	put(new PluralUnit("fahrenheit",	get("Fahrenheit")));
+	put(new PluralUnit("degree_Fahrenheit",	get("Fahrenheit")));
+	put(new PluralUnit("degrees_Fahrenheit",get("Fahrenheit")));
+	put(new SingleUnit("degF",		get("Fahrenheit")));
+	put(new SingleUnit("degreeF",		get("Fahrenheit")));
+	put(new SingleUnit("degree_F",		get("Fahrenheit")));
+	put(new SingleUnit("degree_f",		get("Fahrenheit")));
+	put(new SingleUnit("deg_F",		get("Fahrenheit")));
+	put(new SingleUnit("deg_f",		get("Fahrenheit")));
+	//put(new SingleUnit("F",		get("Fahrenheit")));
+						// "F" means "farad"
 
 	/*
 	 * UNITS OF MASS
@@ -1005,6 +1009,7 @@ DefaultUnitsDB
 	/*
 	 * MISC
 	 */
+	put(new PluralUnit("count",	new ScaledUnit(1)));
 	put(new PluralUnit("kayser",	get("meter").pow(-1).scale(1e2)));
 						// exact
 	put(new SingleUnit("rps",	get("hertz")));
