@@ -27,13 +27,15 @@ MA 02111-1307, USA
 package visad.data.vis5d;
 
 import visad.*;
+import visad.georef.MapProjection;
+import java.awt.geom.Rectangle2D;
 
 /**
    Vis5DCoordinateSystem is the VisAD class for coordinate
    systems for ( row, col ).<P>
 */
 
-public class Vis5DCoordinateSystem extends CoordinateSystem
+public class Vis5DCoordinateSystem extends MapProjection
 {
   private static final int  PROJ_GENERIC      =   0;
   private static final int  PROJ_LINEAR       =   1;
@@ -223,6 +225,14 @@ public class Vis5DCoordinateSystem extends CoordinateSystem
        throw new VisADException("NorthBound greater than 90.0");
      }
    }
+  }
+
+  /**
+   * Get the bounds for this image
+   */
+  public Rectangle2D getDefaultMapArea() 
+  { 
+      return new Rectangle2D.Double(0.0, 0.0, Nc-1, Nr-1);
   }
 
   public double[][] toReference(double[][] rowcol)
