@@ -242,9 +242,13 @@ public abstract class MathType extends Object implements java.io.Serializable {
         }
       }
       String rs = s.substring(0, len[0]);
-      ret_type = RealType.getRealTypeByName(rs);
-      if (ret_type == null) ret_type = new RealType(rs);
-        return ret_type;
+      try {
+        ret_type = new RealType(rs);
+      }
+      catch (TypeException e) {
+        ret_type = RealType.getRealTypeByName(rs);
+      }
+      return ret_type;
     }
     else {
       throw new TypeException("MathType.stringToType: badly formed string");
@@ -1012,6 +1016,10 @@ public abstract class MathType extends Object implements java.io.Serializable {
         System.out.println(s.getName() + " -> " + ds.getName());
       }
     }
+
+    String s3 = "((Row, Col, Lev) -> Radiance)";
+    String s3s = stringToType(s3).prettyString();
+    System.out.println("s3 = \n" + s3 + "\ns3s = \n" + s3s);
   }
 
   /** used by guessMaps to store miscellaneous information
