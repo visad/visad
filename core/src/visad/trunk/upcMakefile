@@ -12,6 +12,9 @@ SUBDIR_TARGETS	=  \
 		      java2d/ftpable_subjars java2d/clean \
 		  data/default   data/all   data/classes   data/jar \
 		      data/ftpable_subjars data/clean \
+		  meteorology/default   meteorology/all   meteorology/classes \
+		      meteorology/jar meteorology/ftpable_subjars \
+		      meteorology/clean \
 		  ss/default   ss/all   ss/classes   ss/jar \
 		      ss/ftpable_subjars ss/clean \
 		  examples/default   examples/all   examples/classes \
@@ -22,12 +25,14 @@ default:	util/default \
 		java3d/default \
 		java2d/default \
 		data/default \
+		meteorology/default \
 		ss/default \
 		examples/default
 all:		util/all \
 		java3d/all \
 		java2d/all \
 		data/all \
+		meteorology/all \
 		ss/all \
 		examples/all
 install:	jar doc
@@ -36,6 +41,7 @@ clean:		util/clean \
 		java3d/clean \
 		java2d/clean \
 		data/clean \
+		meteorology/clean \
 		ss/clean \
 		examples/clean
 
@@ -70,6 +76,7 @@ javadocs:	$(DOCDIR) FORCE
 	    visad.data.vis5d \
 	    visad.java2d \
 	    visad.java3d \
+	    visad.meteorology \
 	    visad.paoloa \
 	    visad.ss \
 	    visad.util
@@ -88,5 +95,21 @@ visad.jar:	#all
 
 $(FTPDIR)/visad-$(VERSION).jar:	$(JARDIR)/visad.jar $(FTPDIR)
 	cp $(JARDIR)/visad.jar $@
+
+metapps.jar:
+	jarfile=`pwd`/$@; { \
+	    cd ..; \
+	    $(JAR) cf $$jarfile \
+	      `ls visad/*.class visad/*.java` \
+	      `ls visad/util/*.class visad/util/*.java` \
+	      `ls visad/java2d/*.class visad/java2d/*.java` \
+	      `ls visad/java3d/*.class visad/java3d/*.java` \
+	      `find visad/data \( -name \*.class -o -name \*.java \) -print` \
+	      `ls visad/meteorology/*.class visad/meteorology/*.java` && \
+	    cd visad/meteorology && \
+	    $(JAR) uf $$jarfile sounding.nc && \
+	    cd /upc/share/ucar/classes && \
+	    $(JAR) uf $$jarfile `find ucar -name \*.class -print`; \
+	} || { rm -f $$jarfile; exit 1; }
 
 include rules.make

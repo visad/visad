@@ -25,6 +25,8 @@ $(FTPDIR):
 
 clean:
 	rm -f $(GARBAGE) *.class;
+distclean:
+	rm -f $(GARBAGE) *.class *.log;
 
 $(SUBDIR_TARGETS):	FORCE
 	@subdir=`echo $@ | sed 's,/.*,,'`; \
@@ -58,6 +60,16 @@ subdir_target:
 .class.debug:
 	@cmd="$(JDB) -classpath $$CLASSPATH $(PACKAGE_PREFIX)$*"; echo $$cmd; \
 	$$cmd
+
+deps:		FORCE
+	javaFiles=`ls *.java`; \
+	for javaFile in $$javaFiles; do \
+	    className=`basename $$javaFile .java`; \
+	    egrep -l -e \
+		'new[ 	]+'$$className'\(|[^A-Za-z0-9_]'$$className'\.' \
+		*.java | grep -v $$javaFile | \
+		sed "s/\.java/.class:	$$className.class/"; \
+	done | sort -u >depend
 
 # The following entry may be used to force execution of a rule by placing
 # it in the rule's dependency list:

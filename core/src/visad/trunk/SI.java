@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SI.java,v 1.1 1997-10-23 20:13:57 dglo Exp $
+ * $Id: SI.java,v 1.2 1998-12-16 16:10:40 steve Exp $
  */
 
 package visad;
@@ -49,7 +49,7 @@ public final class SI
 	     * apart in vacuum, would produce between these conductors a
 	     * force equal to 2 x 10^-7 newton per meter of length.
 	     */
-	    ampere = BaseUnit.addBaseUnit("ElectricCurrent", "ampere");
+	    ampere = BaseUnit.addBaseUnit("ElectricCurrent", "ampere", "A");
 
 	    /**
 	     * Base unit of luminous intensity.
@@ -59,7 +59,8 @@ public final class SI
 	     * radiant intensity in that direction of (1/683) watt per
 	     * steradian.
 	     */
-	    candela = BaseUnit.addBaseUnit("LuminousIntensity", "candela");
+	    candela =
+	      BaseUnit.addBaseUnit("LuminousIntensity", "candela", "cd");
 
 	    /**
 	     * Base unit of thermodynamic temperature.
@@ -67,14 +68,14 @@ public final class SI
 	     * fraction 1/273.16 of the thermodynamic temperature of the
 	     * triple point of water.
 	     */
-	    kelvin = BaseUnit.addBaseUnit("Temperature", "kelvin");
+	    kelvin = BaseUnit.addBaseUnit("Temperature", "kelvin", "K");
 
 	    /**
 	     * Base unit of mass.
 	     * The kilogram is the unit of mass; it is equal to the mass
 	     * of the international prototype of the kilogram.
 	     */
-	    kilogram = BaseUnit.addBaseUnit("Mass", "kilogram");
+	    kilogram = BaseUnit.addBaseUnit("Mass", "kilogram", "kg");
 
 	    /**
 	     * Base unit of length.
@@ -82,7 +83,7 @@ public final class SI
 	     * in vacuum during a time interval of 1/299 792 458 of a
 	     * second.
 	     */
-	    meter = BaseUnit.addBaseUnit("Length", "meter");
+	    meter = BaseUnit.addBaseUnit("Length", "meter", "m");
 
 	    /**
 	     * Base unit of time.
@@ -91,7 +92,7 @@ public final class SI
 	     * the two hyperfine levels of the ground state of the
 	     * cesium-133 atom.
 	     */
-	    second = BaseUnit.addBaseUnit("Time", "second");
+	    second = BaseUnit.addBaseUnit("Time", "second", "s");
 
 	    /**
 	     * Base unit of amount of substance.
@@ -99,7 +100,7 @@ public final class SI
 	     * contains as many elementary entities as there are atoms
 	     * in 0.012 kilogram of carbon 12.
 	     */
-	    mole = BaseUnit.addBaseUnit("AmountOfSubstance", "mole");
+	    mole = BaseUnit.addBaseUnit("AmountOfSubstance", "mole", "mol");
 
 	    /**
 	     * Base unit of angular measure.
@@ -107,7 +108,7 @@ public final class SI
 	     * circle that cut off on the circumference an arc equal in
 	     * length to the radius.
 	     */
-	    radian = BaseUnit.addBaseUnit("Angle", "radian");
+	    radian = BaseUnit.addBaseUnit("Angle", "radian", "rad");
 	}
 	catch (UnitException e) {}
     }

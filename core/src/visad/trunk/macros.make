@@ -12,8 +12,6 @@ JARDIR		= $(ROOTDIR)/classes
 SRCDIR		= $(ROOTDIR)/visad
 NETCDF_JAR	= /upc/share/classes/ucar19980123.jar
 
-PACKAGE_PREFIX	= $(PACKAGE).
-
 JAVACC		= javacc	# javacc is available from 
 #				# <http://www.suntest.com/JavaCC/>
 JAVAC		= javac -g -J-Xmx32m
@@ -37,3 +35,4 @@ TOP_JAVADOCS	= $(DOCDIR)/index.html \
 SUBDIR_TARGETS	= dummy_subdir_targets
 
 PACKAGE		= `pwd | sed 's|'$(SRCDIR)'|visad|;s|^/||;s|/|.|g'`
+PACKAGE_PREFIX	= $(PACKAGE).

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.4 1998-06-04 20:07:06 steve Exp $
+ * $Id: BaseUnit.java,v 1.5 1998-12-16 16:10:39 steve Exp $
  */
 
 package visad;
@@ -30,6 +30,11 @@ public final class BaseUnit
      * Name of the unit (e.g. "meter").
      */
     private final String		unitName;
+
+    /**
+     * Abbreviation for the unit (e.g. "m" for "meter").
+     */
+    private final String		abbreviation;
 
     /**
      * Quantity of the unit (e.g. "Length").
@@ -85,15 +90,16 @@ public final class BaseUnit
     /**
      * Return a string representation of this unit.
      *
-     * @return          A string representation of this unit (e.g. "meter").
+     * @return          A string representation of this unit (e.g. "m").
      */
     public String toString()
     {
-	return unitName;
+	return abbreviation;
     }
 
     /**
-     * Create a new base unit.
+     * Create a new base unit from the name of a quantity and the name
+     * of a unit.  The unit abbreviation will be the same as the unit name.
      *
      * @param quantityName	The name of the associated quantity (e.g. 
      *				"Length").
@@ -108,21 +114,51 @@ public final class BaseUnit
      * @exception UnitException	Attempt to redefine the base unit 
      *				associated with <code>quantityName</code>.
      */
+    public static BaseUnit addBaseUnit(String quantityName, String unitName)
+	throws UnitException
+    {
+	return addBaseUnit(quantityName, unitName, unitName);
+    }
+
+    /**
+     * Create a new base unit from from the name of a quantity, the name of
+     * a unit, and the units' abbreviation.
+     *
+     * @param quantityName	The name of the associated quantity (e.g. 
+     *				"Length").
+     * @param unitName		The name for the unit (e.g. "meter").
+     * @param abbreviation	The abbreviation for the unit (e.g. "m").
+     * @return          	A new base unit or the previously created one
+     *				with the same names.
+     * @require			The arguments are non-null.  The quantity
+     *				name has not been used before or the unit name
+     *				is the same as before.
+     * @promise			The new quantity and unit has been added to the
+     *				database.
+     * @exception UnitException	Attempt to redefine the base unit 
+     *				associated with <code>quantityName</code>.
+     */
     public static synchronized BaseUnit addBaseUnit(String quantityName,
-						    String unitName)
+						    String unitName,
+						    String abbreviation)
 	throws UnitException
     {
 	BaseUnit	baseUnit = quantityNameToUnit(quantityName);
 
 	if (baseUnit == null)
-	    return new BaseUnit(unitName, quantityName);
+	    return new BaseUnit(unitName, abbreviation, quantityName);
 
-	if (baseUnit.unitName.equals(unitName))
+	if (baseUnit.unitName.equals(unitName) && 
+	    baseUnit.abbreviation.equals(abbreviation))
+	{
 	    return baseUnit;
+	}
 
 	throw new UnitException("Attempt to redefine quantity \"" + 
-	    quantityName + "\" base unit from \"" + baseUnit.unitName +
-	    "\" to \"" + unitName + "\"");
+	    quantityName + "\" base unit from \"" + 
+	    baseUnit.unitName + "(" + baseUnit.abbreviation + ")" + 
+	    "\" to \"" + 
+	    unitName + "(" + abbreviation + ")" + "\"");
     }
 
     /**
@@ -177,14 +213,14 @@ public final class BaseUnit
     public static void main(String[] args)
 	throws	UnitException
     {
-	BaseUnit	meter = BaseUnit.addBaseUnit("Length", "meter");
+	BaseUnit	meter = BaseUnit.addBaseUnit("Length", "meter", "m");
 
 	System.out.println("meter=\"" + meter + "\"");
 	System.out.println("(Unit)meter=\"" + (Unit)meter + "\"");
 	System.out.println("meter^2=\"" + meter.pow(2) + "\"");
 	System.out.println("((Unit)meter)^2=\"" + ((Unit)meter).pow(2) + "\"");
 
-	BaseUnit	second = BaseUnit.addBaseUnit("Time", "second");
+	BaseUnit	second = BaseUnit.addBaseUnit("Time", "second", "s");
 
 	System.out.println("meter*second=\"" + meter.multiply(second) + "\"");
 	System.out.println("meter/(Unit)second=\"" + 
@@ -241,7 +277,7 @@ public final class BaseUnit
 	}
 	try
 	{
-	    BaseUnit	foo = BaseUnit.addBaseUnit("Length", "foot");
+	    BaseUnit	foo = BaseUnit.addBaseUnit("Length", "foot", "ft");
 	    System.err.println("ERROR: \"foot\" added");
 	    System.exit(1);
 	}
@@ -472,14 +508,17 @@ public final class BaseUnit
     }
 
     /**
-     * Construct a base unit from the names for the quantity and unit.
+     * Construct a base unit from the names for the quantity and unit, and
+     * from the unit abbreviation.
      *
      * @param unitName		Name of the unit (e.g. "meter").
+     * @param abbreviation	The abbreviation for the unit (e.g. "m").
      * @param quantityName	Name of the quantity (e.g. "Length").
      */
-    private BaseUnit(String unitName, String quantityName)
+    private BaseUnit(String unitName, String abbreviation, String quantityName)
     {
 	this.unitName = unitName;
+	this.abbreviation = abbreviation;
 	this.quantityName = quantityName;
 	baseUnits.addElement(this);
 	derivedUnit = new DerivedUnit(this);

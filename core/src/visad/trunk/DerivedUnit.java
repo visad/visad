@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.5 1998-06-04 20:07:07 steve Exp $
+ * $Id: DerivedUnit.java,v 1.6 1998-12-16 16:10:40 steve Exp $
  */
 
 package visad;
@@ -109,7 +109,7 @@ public final class DerivedUnit
      * Return a string representation of this unit.
      *
      * @return          A string representation of this unit (e.g. 
-     *			"meter/second").
+     *			"m/s").
      * @promise		The unit has not been modified.
      */
     public String toString()
@@ -119,11 +119,11 @@ public final class DerivedUnit
 	for (int i = 0; i < factors.length; ++i)
 	{
 	    if (factors[i].power == 1)
-		buf.append(factors[i].baseUnit.unitName() + " ");
+		buf.append(factors[i].baseUnit.toString() + ".");
 	    else
 	    if (factors[i].power != 0)
-		buf.append(factors[i].baseUnit.unitName() + "^" + 
-		    factors[i].power + " ");
+		buf.append(factors[i].baseUnit.toString() +
+		    factors[i].power + ".");
 	}
 
 	if (buf.length() > 0)
