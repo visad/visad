@@ -907,7 +907,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   }
 
   /** pack an array of doubles into field sample values according to the
-      RangeSet-s; copies data */
+      RangeSet-s; copies data;
+      any method calling this must also call notifyReferences(),
+      and this method must remain private */
   private void packValues(double[][] range, boolean copy)
           throws VisADException {
     // NOTE INVERTED ORDER OF range ARRAY INDICES !!!
@@ -970,6 +972,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Pack an array of floats into field sample values according to the
    * RangeSet-s; copies data.
+   * any method calling this must also call notifyReferences(),
+   * and this method must remain private
    *
    * @throws VisADException if {@link #nullRanges()} fails.
    */
