@@ -1,5 +1,5 @@
 //
-// RADRnav.java
+// RECTnav.java
 //
 
 /*
@@ -26,8 +26,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package edu.wisc.ssec.mcidas;
 
 /**
- * Navigation class for Radar (RADR) type nav. This code was modified
- * from the original FORTRAN code (nvxradr.dlm) on the McIDAS system. It
+ * Navigation class for Radar (RECT) type nav. This code was modified
+ * from the original FORTRAN code (nvxrect.dlm) on the McIDAS system. It
  * only supports latitude/longitude to line/element transformations (LL) 
  * and vice/versa. Transform to 'XYZ' not implemented.
  * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
@@ -35,36 +35,39 @@ package edu.wisc.ssec.mcidas;
  *
  * @author  Don Murray
  */
-public final class RADRnav extends AREAnav 
+public final class RECTnav extends AREAnav 
 {
 
     private boolean isEastPositive = true;
 
-    final double EARTH_RADIUS=6371.23; // earth equatorial radius (km)
-    final int MISS = McIDASUtil.MCMISSING;
-
     int itype;
+    int iwest;
     double xrow;
     double xcol;
+    double zslat;
+    double zslon;
+    double zdlat;
+    double zdlon;
+    double xlin;
+    double xele;
+    double xldif;
+    double xedif;
     double xlat;
     double xlon;
-    double xrot;
-    double xblat;
-    double xblon;
 
     /**
      * Set up for the real math work.  Must pass in the int array
-     * of the RADR nav 'codicil'.
+     * of the RECT nav 'codicil'.
      *
      * @param iparms  the nav block from the image file
      * @throws IllegalArgumentException
-     *           if the nav block is not a RADR type.
+     *           if the nav block is not a RECT type.
      */
-    public RADRnav (int[] iparms) 
+    public RECTnav (int[] iparms) 
         throws IllegalArgumentException
     {
 
-/* No longer needed.  Kept for consistency with nvxradr.dlm
+/* No longer needed.  Kept for consistency with nvxrect.dlm
         if (ifunc != 1) 
         {
             if (iparms[0] == XY ) itype = 1;
@@ -73,21 +76,58 @@ public final class RADRnav extends AREAnav
         }
 */
 
-        if (iparms[0] != RADR ) 
+        if (iparms[0] != RECT ) 
             throw new IllegalArgumentException("Invalid navigation type" + 
                                                 iparms[0]);
         itype = 2;
+
         xrow = iparms[1];
-        xcol = iparms[2];
-        xlat = McIDASUtil.integerLatLonToDouble(iparms[3]);
-        xlon = McIDASUtil.integerLatLonToDouble(iparms[4]);
-        double xspace = iparms[5]/1000.;
-        double yspace = xspace;
-        if (iparms[7] != 0 && iparms[7] != MISS)
-            yspace = iparms[7]/1000.;
-        xrot = -DEGREES_TO_RADIANS*iparms[6]/1000.;
-        xblat = EARTH_RADIUS*DEGREES_TO_RADIANS/xspace;
-        xblon = EARTH_RADIUS*DEGREES_TO_RADIANS/yspace;
+
+        int ipowlat = iparms[11];
+        if (ipowlat == 0) ipowlat = 4;
+        zslat = iparms[2]/Math.pow(10.,ipowlat);
+
+        xcol = iparms[3];
+
+        int ipowlon = iparms[12];
+        if (ipowlon == 0) ipowlon = 4;
+        zslon = iparms[4]/Math.pow(10.,ipowlon);
+
+        int ipowdlin = iparms[13];
+        if (ipowdlin == 0) ipowdlin = 4;
+        zdlat = iparms[5]/Math.pow(10.,ipowdlin);
+
+        int ipowdele = iparms[14];
+        if (ipowdele == 0) ipowdele = 4;
+        zdlon = iparms[6]/Math.pow(10.,ipowdele);
+
+        int ipowrad = iparms[15];
+        if (ipowrad == 0) ipowrad = 3;
+        double drad = iparms[7]/Math.pow(10.,ipowrad);
+
+        int ipowecc = iparms[16];
+        if (ipowecc == 0) ipowecc = 6;
+        double decc = iparms[8]/Math.pow(10.,ipowecc);
+
+        iwest = iparms[10];
+        if (iwest >= 0) 
+        {
+            iwest = 1;
+            isEastPositive = false;
+        }
+
+        xlin = 1;
+        xele = 1;
+        xldif = xrow - xlin;
+        xedif = iwest*(xcol - xele);
+        xlon = zslon + xedif*zdlon;
+        xlat = zslat + xldif*zdlat;
+        zslat = xlat;
+        zslon = xlon;
+        xrow = 1;
+        xcol = 1;
+
+
     }
 
     /** converts from satellite coordinates to latitude/longitude
@@ -107,13 +147,8 @@ public final class RADRnav extends AREAnav
 
         double xldif;
         double xedif;
-        double xlin;
-        double xele;
-        double xdis;
-        double xangl;
-        double xange;
-        double ylat;
-        double ylon;
+        double xlon;
+        double xlat;
 
         int number = linele[0].length;
         double[][] latlon = new double[2][number];
@@ -123,24 +158,34 @@ public final class RADRnav extends AREAnav
 
         for (int point=0; point < number; point++) 
         {
-           xldif = xrow - imglinele[indexLine][point];
-           xedif = xcol - imglinele[indexEle][point];
-           xdis = Math.sqrt(xldif*xldif + xedif*xedif);
-           if (xdis > 0.001)
-           {
-               xangl = Math.atan2(xldif, xedif) - 90.*DEGREES_TO_RADIANS;
-               xange = Math.atan2(xldif, xedif) + 90.*DEGREES_TO_RADIANS;
-               xldif = xdis*Math.cos(xrot+xangl);
-               xedif = xdis*Math.sin(xrot+xange);
+            xldif = xrow - imglinele[indexLine][point];
+            xedif = iwest * (xcol - imglinele[indexEle][point]);
+            xlon = zslon + xedif*zdlon;
+            xlat = zslat + xldif*zdlat;
+            if  (xlat > 90. || xlat < -90.)
+            {
+                xlat = Double.NaN;
             }
-            ylat = xlat + xldif/xblat;
-            ylon = xlon + xedif/xblon/Math.cos(ylat* DEGREES_TO_RADIANS);
-
-            // transform from McIDAS coordinates
-            if (isEastPositive) ylon = -ylon;
-            
-            latlon[indexLat][point] = ylat;
-            latlon[indexLon][point] = ylon;
+            if (xlon < -180.)
+            {
+                xlon = xlon + 360.;
+                if (xlon < -180.) xlon = Double.NaN;
+            }
+            if (xlon > 180. && xlon != Double.NaN)
+            {
+                xlon = xlon - 360.;
+                if (xlon > 180.) xlon = Double.NaN;
+            }
+            if (xlat == Double.NaN || xlon == Double.NaN)
+            {
+                latlon[indexLat][point] = Double.NaN;
+                latlon[indexLon][point] = Double.NaN;
+            }
+            else
+            {
+                latlon[indexLat][point] = xlat;
+                latlon[indexLon][point] = (isEastPositive) ? xlon  : -xlon;
+            }
 
         } // end point for loop
 
@@ -161,15 +206,8 @@ public final class RADRnav extends AREAnav
      */
     public double[][] toLinEle(double[][] latlon) 
     {
-        double zlat;
-        double zlon;
-        double xrlon;
-        double xrlat;
-        double xldif;
-        double xedif;
-        double xdis;
-        double xangl;
-        double xange;
+        double xlon;
+        double xlat;
 
         int number = latlon[0].length;
         double[][] linele = new double[2][number];
@@ -177,26 +215,15 @@ public final class RADRnav extends AREAnav
         for (int point=0; point < number; point++) 
         {
 
-            zlat = latlon[indexLat][point];
+            xlat = latlon[indexLat][point];
 
             // transform to McIDAS (west positive longitude) coordinates
-            zlon = isEastPositive 
+            xlon = isEastPositive 
                      ?  -latlon[indexLon][point]
                      : latlon[indexLon][point];
-            xrlon = zlon - xlon;
-            xrlat = zlat - xlat;
-            xldif = xblat*xrlat;
-            xedif = xrlon*xblon*Math.cos(zlat*DEGREES_TO_RADIANS);
-            xdis = Math.sqrt(xldif*xldif + xedif*xedif);
-            if (xdis > .001) 
-            {
-                xangl = Math.atan2(xldif, xedif)-90*DEGREES_TO_RADIANS;
-                xange = Math.atan2(xldif, xedif)+90*DEGREES_TO_RADIANS;
-                xldif = xdis*Math.cos(-xrot+xangl);
-                xedif = xdis*Math.sin(-xrot+xange);
-            }
-            linele[indexLine][point] = xrow - xldif;
-            linele[indexEle][point] = xcol - xedif;
+            if (iwest == -1 && xlon < zslon) xlon = xlon +360.;
+            linele[indexLine][point] = xrow - (xlat - zslat)/zdlat;
+            linele[indexEle][point]  = xcol - (xlon - zslon)/(zdlon*iwest);
 
         } // end point loop
 

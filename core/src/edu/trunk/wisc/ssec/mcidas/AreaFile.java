@@ -134,6 +134,7 @@ public class AreaFile {
   int[] dir;
   int[] nav;
   int[] cal;
+  int[] aux;
   int[][][] data;
   final int DMSP = 0x444d5250;
   final int GVAR = 0x47564152;
@@ -198,8 +199,8 @@ public class AreaFile {
     try { 
       af = new DataInputStream(url.openStream());
     } catch (IOException e) {
-	fileok = false;
-	throw new AreaFileException("Error opening AreaFile:"+e);
+        fileok = false;
+        throw new AreaFileException("Error opening AreaFile:"+e);
     }
     fileok=true;
     position = 0;
@@ -222,8 +223,8 @@ public class AreaFile {
     try { 
       af = new DataInputStream(url.openStream());
     } catch (IOException e) {
-	fileok = false;
-	throw new AreaFileException("Error opening URL for AreaFile:"+e);
+        fileok = false;
+        throw new AreaFileException("Error opening URL for AreaFile:"+e);
     }
     fileok=true;
     position = 0;
@@ -251,8 +252,8 @@ public class AreaFile {
     for (i=0; i < AD_DIRSIZE; i++) {
       try { dir[i] = af.readInt();
       } catch (IOException e) {
-	status = -1;
-	throw new AreaFileException("Error reading AreaFile directory:" + e);
+        status = -1;
+        throw new AreaFileException("Error reading AreaFile directory:" + e);
       }
     }
     position += AD_DIRSIZE * 4;
@@ -314,16 +315,16 @@ public class AreaFile {
       try {
         af.skipBytes(skipByteCount);
       } catch (IOException e) {
-	status = -1;
-	throw new AreaFileException("Error skipping AreaFile bytes: " + e);
+        status = -1;
+        throw new AreaFileException("Error skipping AreaFile bytes: " + e);
       }
 
       for (i=0; i<navbytes/4; i++) {
-	try { nav[i] = af.readInt();
-	} catch (IOException e) {
-	  status = -1;
-	  throw new AreaFileException("Error reading AreaFile navigation:"+e);
-	}
+        try { nav[i] = af.readInt();
+        } catch (IOException e) {
+          status = -1;
+          throw new AreaFileException("Error reading AreaFile navigation:"+e);
+        }
       }
       if (flipwords) flipnav(nav);
       position = navLoc + navbytes;
@@ -341,19 +342,51 @@ public class AreaFile {
       try {
         af.skipBytes(skipByteCount);
       } catch (IOException e) {
-	status = -1;
-	throw new AreaFileException("Error skipping AreaFile bytes: " + e);
+        status = -1;
+        throw new AreaFileException("Error skipping AreaFile bytes: " + e);
       }
 
       for (i=0; i<calbytes/4; i++) {
-	try { cal[i] = af.readInt();
-	} catch (IOException e) {
-	  status = -1;
-	  throw new AreaFileException("Error reading AreaFile calibration:"+e);
-	}
+        try { cal[i] = af.readInt();
+        } catch (IOException e) {
+          status = -1;
+          throw new AreaFileException("Error reading AreaFile calibration:"+e);
+        }
       }
       // if (flipwords) flipcal(cal);
       position = calLoc + calbytes;
+    }
+
+    // Read in aux block
+
+    if (auxLoc > 0 && auxbytes > 0)
+    {
+        aux = new int[auxbytes/4];
+        newPosition = (long) auxLoc;
+        skipByteCount = (int) (newPosition - position);
+        try
+        {
+            af.skipBytes(skipByteCount);
+        }
+        catch (IOException e)
+        {
+            status = -1;
+            throw new AreaFileException("Error skipping AreaFile bytes: " + e);
+        }
+        for (i = 0; i < auxbytes/4; i++)
+        {
+            try
+            {
+                aux[i] = af.readInt();
+            }
+            catch (IOException e)
+            {
+                status = -1;
+                throw new AreaFileException("Error reading AreaFile aux block:"+
+                                             e);
+            }
+        }
+        position = auxLoc + auxbytes;
     }
 
 
@@ -411,7 +444,7 @@ public class AreaFile {
    * @return an integer array containing the nav block data
    *
    * @exception AreaFileException if there is a problem
-   * reading the navigation
+   * reading the calibration
    *
    */
 
@@ -422,13 +455,39 @@ public class AreaFile {
       throw new AreaFileException("Error reading AreaFile calibration");
     }
 
-    if (navLoc <= 0 || navLoc == McMISSING) {
+    if (calLoc <= 0 || calLoc == McMISSING) {
       throw new AreaFileException("Error reading AreaFile calibration");
     } 
 
     return cal;
 
   }
+
+
+  /** Returns AUX block
+   *
+   * @return an integer array containing the aux block data
+   *
+   * @exception AreaFileException if there is a problem
+   * reading the aux block
+   *
+   */
+
+  public int[] getAux() throws AreaFileException {
+
+
+    if (status <= 0) {
+      throw new AreaFileException("Error reading AreaFile aux block");
+    }
+
+    if (auxLoc <= 0 || auxLoc == McMISSING) {
+      throw new AreaFileException("Error reading AreaFile AUX block");
+    } 
+
+    return aux;
+
+  }
+
   /**
    * Read the AREA file and return the entire contents
    *
@@ -467,7 +526,7 @@ public class AreaFile {
    */
 
   public int[][] getData(int lineNumber, int eleNumber, int
-	 numLines, int numEles) throws AreaFileException {
+         numLines, int numEles) throws AreaFileException {
    return getData(lineNumber, eleNumber, numLines, numEles, 1);
   }
 
@@ -481,13 +540,13 @@ public class AreaFile {
     for (int i=0; i<numLines; i++) {
       int ii = i + lineNumber;
       for (int j=0; j<numEles; j++) {
-	int jj = j + eleNumber;
-	if (ii < 0 || ii > (dir[AD_NUMLINES] - 1) || 
+        int jj = j + eleNumber;
+        if (ii < 0 || ii > (dir[AD_NUMLINES] - 1) || 
             jj < 0 || jj > (dir[AD_NUMELEMS] - 1) ) {
-	  subset[i][j] = 0;
-	} else {
-	  subset[i][j] = data[bandNumber - 1][ii][jj];
-	}
+          subset[i][j] = 0;
+        } else {
+          subset[i][j] = data[bandNumber - 1][ii][jj];
+        }
       }
     }
     return subset;
@@ -508,44 +567,44 @@ public class AreaFile {
 
       try {
         newPosition = (long) (datLoc +
-	       linePrefixLength + i*lineLength) ;
+               linePrefixLength + i*lineLength) ;
         skipByteCount = (int) (newPosition - position);
         af.skipBytes(skipByteCount);
         position = newPosition;
 
       } catch (IOException e) {
-	 for (j = 0; j<numEles; j++) {
-	   for (k=0; k<numBands; k++) {data[k][i][j] = 0;}
-	 }
+         for (j = 0; j<numEles; j++) {
+           for (k=0; k<numBands; k++) {data[k][i][j] = 0;}
+         }
         break;
       }
 
       for (j = 0; j<numEles; j++) {
 
-	for (k=0; k<numBands; k++) {
+        for (k=0; k<numBands; k++) {
 
-	  if (j > lineDataLength) {
-	    data[k][i][j] = 0;
-	  } else {
+          if (j > lineDataLength) {
+            data[k][i][j] = 0;
+          } else {
 
-	    try {
-	      if (dir[AD_DATAWIDTH] == 1) {
-		data[k][i][j] = (int) af.readByte();
-		if (data[k][i][j] < 0) data[k][i][j] += 256;
-		position = position + 1;
-	      }
-	      if (dir[AD_DATAWIDTH] == 2) {
-		data[k][i][j] = (int) af.readShort();
-		position = position + 2;
-	      }
-	      if (dir[AD_DATAWIDTH] == 4) {
-		data[k][i][j] = af.readInt();
-		position = position + 4;
-	      }
-	    } 
-	    catch (IOException e) {data[k][i][j] = 0;}
-	  }
-	}
+            try {
+              if (dir[AD_DATAWIDTH] == 1) {
+                data[k][i][j] = (int) af.readByte();
+                if (data[k][i][j] < 0) data[k][i][j] += 256;
+                position = position + 1;
+              }
+              if (dir[AD_DATAWIDTH] == 2) {
+                data[k][i][j] = (int) af.readShort();
+                position = position + 2;
+              }
+              if (dir[AD_DATAWIDTH] == 4) {
+                data[k][i][j] = af.readInt();
+                position = position + 4;
+              }
+            } 
+            catch (IOException e) {data[k][i][j] = 0;}
+          }
+        }
       }
 
     }
@@ -568,7 +627,7 @@ public class AreaFile {
     for (i=first; i<=last; i++) {
       k = array[i];
       array[i] = ( (k >>> 24) & 0xff) | ( (k >>> 8) & 0xff00) |
-		 ( (k & 0xff) << 24 )  | ( (k & 0xff00) << 8);
+                 ( (k & 0xff) << 24 )  | ( (k & 0xff00) << 8);
     }
   }
 

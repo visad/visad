@@ -387,6 +387,16 @@ public class AddeURLConnection extends URLConnection
       sb.append(" spac=0");
     }
 
+    // spac keyword
+    startIdx = uCmd.indexOf("id=");
+    if (startIdx > 0) {
+      endIdx = uCmd.indexOf('&', startIdx);
+      sb.append(" ");
+      sb.append(uCmd.substring(startIdx, endIdx));
+    } else {
+      sb.append(" id=x");
+    }
+
     // indefinitely use ADDE version 1
     sb.append(" version=1");
 
