@@ -56,7 +56,7 @@ import java.awt.event.*;
 
 /**
    VisADForm is the VisAD data format adapter for
-   serialized visad.Data objects.<P>
+   binary visad.Data objects.<P>
 */
 public class VisADForm extends Form implements FormFileInformer {
 
@@ -93,6 +93,7 @@ public class VisADForm extends Form implements FormFileInformer {
   {
     String errMsg = null;
 
+    // first, try to read a binary object
     BinaryReader rdr;
     try {
       return readData(new BinaryReader(id));
@@ -101,6 +102,7 @@ ioe.printStackTrace();
       errMsg = ioe.getMessage();
     }
 
+    // if it's not a binary object, maybe it's a serialized object
     try {
       FileInputStream fileStream = new FileInputStream(id);
       BufferedInputStream bufferedStream =
@@ -109,7 +111,6 @@ ioe.printStackTrace();
       return (DataImpl) objectStream.readObject();
     }
     catch (Exception e) {
-e.printStackTrace();
       throw new BadFormException(errMsg);
     }
   }
@@ -119,6 +120,7 @@ e.printStackTrace();
   {
     String errMsg = null;
 
+    // first, try to read a binary object
     BinaryReader rdr;
     try {
       return readData(new BinaryReader(url.openStream()));
@@ -126,6 +128,7 @@ e.printStackTrace();
       errMsg = ioe.getMessage();
     }
 
+    // if it's not a binary object, maybe it's a serialized object
     try {
       InputStream inputStream = url.openStream();
       BufferedInputStream bufferedStream =
