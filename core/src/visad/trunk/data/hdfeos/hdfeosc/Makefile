@@ -34,11 +34,15 @@ OBJECTS = SWopenImp.o \
 
 .java.class:
 	javac $<
-	javah -jni visad.data.hdfeos.hdfeosc.HdfeosLib
 
 default: all
 
 all:: HdfeosLib.class
+
+all:: visad_data_hdfeos_hdfeosc_HdfeosLib.h
+
+visad_data_hdfeos_hdfeosc_HdfeosLib.h:
+	javah -jni visad.data.hdfeos.hdfeosc.HdfeosLib
 
 all::
 	@UNAME=`uname -s`; \
