@@ -69,8 +69,6 @@ public class CollectiveBarbManipulation extends Object
 
   private DataReferenceImpl stations_ref;
   private DataReferenceImpl[] station_refs;
-  // private BarbRendererJ3D barb_renderer;
-  // private BarbManipulationRendererJ3D[] barb_manipulation_renderers;
   private DataRenderer barb_renderer;
   private DataRenderer[] barb_manipulation_renderers;
   private BarbMonitor[] barb_monitors;
@@ -625,6 +623,14 @@ public class CollectiveBarbManipulation extends Object
         }
       }
     }
+  }
+
+  public DataRenderer[] getManipulationRenderers() {
+    return barb_manipulation_renderers;
+  }
+
+  public DataRenderer[] getManipulationRenderers2() {
+    return barb_manipulation_renderers2;
   }
 
   private ConstantMap[] constantMaps() {
