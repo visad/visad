@@ -1,3 +1,25 @@
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
 package visad.data.dods;
 
 import dods.dap.*;
@@ -7,20 +29,49 @@ import visad.data.BadFormException;
 import visad.*;
 
 /**
+ * Provides support for creating adapters that bridge between DODS primitive
+ * vectors and the VisAD data-import context.
+ *
+ * <P>Instances are immutable.</P>
+ *
+ * @author Steven R. Emmerson
  */
 public class VectorAdapterFactory
 {
     private static final VectorAdapterFactory	instance =
 	new VectorAdapterFactory();
 
+    /**
+     * Constructs from nothing.
+     */
     protected VectorAdapterFactory()
     {}
 
+    /**
+     * Returns an instance of this class.
+     *
+     * @return			An instance of this class.
+     */
     public static VectorAdapterFactory vectorAdapterFactory()
     {
 	return instance;
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS primitive vector.  The
+     * same data object might be returned every time, so subsequent modification
+     * of it might affect all identical subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public VectorAdapter vectorAdapter(
 	    PrimitiveVector vector,
 	    AttributeTable table,
@@ -67,6 +118,22 @@ public class VectorAdapterFactory
 	return adapter;
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * BooleanPrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public BooleanVectorAdapter booleanVectorAdapter(
 	    BooleanPrimitiveVector vector,
 	    AttributeTable table,
@@ -76,6 +143,22 @@ public class VectorAdapterFactory
 	return new BooleanVectorAdapter(vector, table, factory);
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * BytePrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public ByteVectorAdapter byteVectorAdapter(
 	    BytePrimitiveVector vector,
 	    AttributeTable table,
@@ -85,6 +168,22 @@ public class VectorAdapterFactory
 	return new ByteVectorAdapter(vector, table, factory);
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * UInt16PrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public UInt16VectorAdapter uInt16VectorAdapter(
 	    UInt16PrimitiveVector vector,
 	    AttributeTable table,
@@ -94,6 +193,22 @@ public class VectorAdapterFactory
 	return new UInt16VectorAdapter(vector, table, factory);
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * Int16PrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public Int16VectorAdapter int16VectorAdapter(
 	    Int16PrimitiveVector vector,
 	    AttributeTable table,
@@ -103,6 +218,22 @@ public class VectorAdapterFactory
 	return new Int16VectorAdapter(vector, table, factory);
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * UInt32PrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public UInt32VectorAdapter uInt32VectorAdapter(
 	    UInt32PrimitiveVector vector,
 	    AttributeTable table,
@@ -112,6 +243,22 @@ public class VectorAdapterFactory
 	return new UInt32VectorAdapter(vector, table, factory);
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * Int32PrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public Int32VectorAdapter int32VectorAdapter(
 	    Int32PrimitiveVector vector,
 	    AttributeTable table,
@@ -121,6 +268,22 @@ public class VectorAdapterFactory
 	return new Int32VectorAdapter(vector, table, factory);
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * Float32PrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public Float32VectorAdapter float32VectorAdapter(
 	    Float32PrimitiveVector vector,
 	    AttributeTable table,
@@ -130,6 +293,22 @@ public class VectorAdapterFactory
 	return new Float32VectorAdapter(vector, table, factory);
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * Float64PrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public Float64VectorAdapter float64VectorAdapter(
 	    Float64PrimitiveVector vector,
 	    AttributeTable table,
@@ -139,6 +318,22 @@ public class VectorAdapterFactory
 	return new Float64VectorAdapter(vector, table, factory);
     }
 
+    /**
+     * Returns the adapter corresponding to a DODS {@link
+     * BaseTypePrimitiveVector}.  The same data object might be returned every
+     * time, so subsequent modification of it might affect all identical
+     * subsequent invocations of this method.
+     *
+     * @param vector		A DODS primitive vector of the appropriate type.
+     * @param table		The DODS attribute table associated with the
+     *				DODS primitive vector.
+     * @param factory		A factory for creating adapters of DODS
+     *				variables.
+     * @return			The adapter corresponding to the DODS
+     *				primitive vector.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
+     */
     public BaseTypeVectorAdapter baseTypeVectorAdapter(
 	    BaseTypePrimitiveVector vector,
 	    AttributeTable table,

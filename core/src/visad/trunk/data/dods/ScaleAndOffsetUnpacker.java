@@ -1,3 +1,25 @@
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
 package visad.data.dods;
 
 import dods.dap.*;
@@ -5,6 +27,14 @@ import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import visad.data.BadFormException;
 
+/**
+ * Provides support for unpacking data values (i.e. converting them from less
+ * spacious types to more spacious types).
+ *
+ * <P>Instances are immutable.</P>
+ *
+ * @author Steven R. Emmerson
+ */
 public final class ScaleAndOffsetUnpacker
     extends	ValueUnpacker
 {
@@ -22,6 +52,17 @@ public final class ScaleAndOffsetUnpacker
 	doubleOffset = offset;
     }
 
+    /**
+     * Returns an instance of this class corresponding to a offset and scale
+     * values.
+     *
+     * @param scale		The numeric amount to multiply each value by
+     *				during processing.
+     * @param offset		The numeric offset to be added to each value
+     *				during processing.
+     * @return			An instance of this class corresponding to the
+     *				input arguments.
+     */
     public static synchronized ScaleAndOffsetUnpacker scaleAndOffsetUnpacker(
 	double scale, double offset)
     {
@@ -44,16 +85,37 @@ public final class ScaleAndOffsetUnpacker
 	return unpacker;
     }
 
+    /**
+     * Process a value.
+     *
+     * @param			The value to be processed.
+     * @return			The value with the construction offset added to
+     *				it.
+     */
     public float process(float value)
     {
 	return floatScale*value;
     }
 
+    /**
+     * Process a value.
+     *
+     * @param			The value to be processed.
+     * @return			The value with the construction offset added to
+     *				it.
+     */
     public double process(double value)
     {
 	return doubleScale*value;
     }
 
+    /**
+     * Process values.
+     *
+     * @param			The values to be processed.
+     * @return			The values with the construction offset added to
+     *				them.  The same array is returned.
+     */
     public float[] process(float[] values)
     {
 	for (int i = 0; i < values.length; ++i)
@@ -61,6 +123,13 @@ public final class ScaleAndOffsetUnpacker
 	return values;
     }
 
+    /**
+     * Process values.
+     *
+     * @param			The values to be processed.
+     * @return			The values with the construction offset added to
+     *				them.  The same array is returned.
+     */
     public double[] process(double[] values)
     {
 	for (int i = 0; i < values.length; ++i)
@@ -68,6 +137,13 @@ public final class ScaleAndOffsetUnpacker
 	return values;
     }
 
+    /**
+     * Indicates if this instance is semantically identical to another object.
+     *
+     * @param			The other object.
+     * @return			<code>true</code> if and only if this instance
+     *				is semantically identical to the other object.
+     */
     public boolean equals(Object obj)
     {
 	boolean	equals;
@@ -85,6 +161,11 @@ public final class ScaleAndOffsetUnpacker
 	return equals;
     }
 
+    /**
+     * Returns the hash code of this instance.
+     *
+     * @return			The hash code of this instance.
+     */
     public int hashCode()
     {
 	return

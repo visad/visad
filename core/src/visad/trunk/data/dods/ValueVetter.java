@@ -1,3 +1,25 @@
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
 package visad.data.dods;
 
 import dods.dap.*;
@@ -6,6 +28,13 @@ import visad.data.BadFormException;
 import visad.data.in.*;
 import visad.*;
 
+/**
+ * Provides support for verifying data values.
+ *
+ * <P>Instances are immutable.</P>
+ *
+ * @author Steven R. Emmerson
+ */
 public class ValueVetter
     extends	ValueProcessor
 {
@@ -34,9 +63,22 @@ public class ValueVetter
 	    }
 	};
 
+    /**
+     * Constructs from nothing.
+     */
     protected ValueVetter()
     {}
 
+    /**
+     * Constructs from valid-range limits, a fill-value, and a missing value.
+     *
+     * @param lower		The lower limit of the valid range.  May be
+     *				NaN.
+     * @param upper		The upper limit of the valid range.  May be
+     *				NaN.
+     * @param fill		The fill-value.  May be NaN.
+     * @param missing		The missing-value value.  May be NaN.
+     */
     protected ValueVetter(
 	double lower, double upper, double fill, double missing)
     {
@@ -47,9 +89,15 @@ public class ValueVetter
     }
 
     /**
+     * Returns an instance of this class corresponding to the attributes of a
+     * DODS variable.
+     *
      * @param table		The DODS attribute table.  May be 
      *				<code>null</code>, in which case a trivial
      *				vetter is returned.
+     * @throws BadFormException	The attribute table is corrupt.
+     * @throws VisADException	VisAD failure.
+     * @throws RemoteException	Java RMI failure.
      */
     public static ValueVetter valueVetter(AttributeTable table)
 	throws BadFormException, VisADException, RemoteException
@@ -84,16 +132,31 @@ public class ValueVetter
 	return vetter;
     }
 
+    /**
+     * Returns the minimum, valid value.
+     *
+     * @return			The minimum, valid value.
+     */
     public double getMin()
     {
 	return lower;
     }
 
+    /**
+     * Returns the maximum, valid value.
+     *
+     * @return			The maximum, valid value.
+     */
     public double getMax()
     {
 	return upper;;
     }
 
+    /**
+     * Processes a value.
+     *
+     * @param value		The value to be processed.
+     */
     public float process(float value)
     {
 	/*
@@ -106,6 +169,11 @@ public class ValueVetter
 		: value;
     }
 
+    /**
+     * Processes a value.
+     *
+     * @param value		The value to be processed.
+     */
     public double process(double value)
     {
 	/*
@@ -119,6 +187,9 @@ public class ValueVetter
     }
 
     /**
+     * Processes values.
+     *
+     * @param values		The values to be processed.
      * @return			Vetted values (same array as input).
      */
     public float[] process(float[] values)
@@ -140,6 +211,9 @@ public class ValueVetter
     }
 
     /**
+     * Processes values.
+     *
+     * @param values		The values to be processed.
      * @return			Vetted values (same array as input).
      */
     public double[] process(double[] values)
@@ -160,21 +234,43 @@ public class ValueVetter
 	return values;
     }
 
+    /**
+     * Vets a value.
+     *
+     * @param value		The value to be processed.
+     */
     public final float vet(float value)
     {
 	return process(value);
     }
 
+    /**
+     * Vets a value.
+     *
+     * @param value		The value to be processed.
+     */
     public final float[] vet(float[] values)
     {
 	return process(values);
     }
 
+    /**
+     * Vets values.
+     *
+     * @param values		The values to be vetted.
+     * @return			Vetted values (same array as input).
+     */
     public final double vet(double value)
     {
 	return process(value);
     }
 
+    /**
+     * Vets values.
+     *
+     * @param values		The values to be vetted.
+     * @return			Vetted values (same array as input).
+     */
     public final double[] vet(double[] values)
     {
 	return process(values);
