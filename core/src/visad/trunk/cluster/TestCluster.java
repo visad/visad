@@ -198,14 +198,25 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
       // new DisplayImplJ3D("main_display");
       new DisplayImplJ3D("main_display", new ClientDisplayRendererJ3D());
 
+/*
     // get a list of decent mappings for this data
     MathType type = image.getType();
     ScalarMap[] maps = type.guessMaps(true);
-
     // add the maps to the display
     for (int i=0; i<maps.length; i++) {
       display.addMap(maps[i]);
     }
+*/
+
+    // FunctionType image_type = (FunctionType) image.getType();
+    // RealTupleType domain_type = image_type.getDomain();
+    RealType line = (RealType) domain_type.getComponent(0);
+    RealType element = (RealType) domain_type.getComponent(1);
+    RealTupleType range_type = (RealTupleType) image_type.getRange();
+    RealType red = (RealType) range_type.getComponent(0);
+    display.addMap(new ScalarMap(line, Display.YAxis));
+    display.addMap(new ScalarMap(element, Display.XAxis));
+    display.addMap(new ScalarMap(red, Display.IsoContour));
 
     // link data to the display
     DataReferenceImpl ref = new DataReferenceImpl("image");
