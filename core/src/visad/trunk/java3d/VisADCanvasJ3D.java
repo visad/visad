@@ -34,7 +34,13 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 
-import java.lang.reflect.*;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import java.awt.Graphics;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
    VisADCanvasJ3D is the VisAD extension of Canvas3D
@@ -53,6 +59,8 @@ public class VisADCanvasJ3D extends Canvas3D {
   // size of image for off screen rendering
   private int width;
   private int height;
+
+  private boolean offscreen = false;
 
   private static GraphicsConfiguration defaultConfig = makeConfig();
 
@@ -90,21 +98,24 @@ public class VisADCanvasJ3D extends Canvas3D {
       throws VisADException {
 
     super(defaultConfig);
-    throw new VisADException("For off screen rendering in Java3D\n" +
+    throw new VisADException("\n\nFor off screen rendering in Java3D\n" +
            "please edit visad/java3d/VisADCanvasJ3D.java as follows:\n" +
            "remove or comment-out \"super(defaultConfig);\" and the\n" +
            "  throw statement for this Exception,\n" +
            "and un-comment the body of this constructor");
 /*
     super(defaultConfig, true);
+    displayRenderer = renderer;
+    display = (DisplayImplJ3D) renderer.getDisplay();
+    component = null;
+    offscreen = true;
     width = w;
     height = h;
     BufferedImage image =
       new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     ImageComponent2D image2d =
       new ImageComponent2D(ImageComponent2D.FORMAT_RGB, image);
-    ImageComponent2D buffer = null;
-    setOffScreenBuffer(buffer);
+    setOffScreenBuffer(image2d);
     Screen3D screen = getScreen3D();
     screen.setSize(width, height);
     double width_in_meters = width * METER_RATIO;
@@ -118,6 +129,10 @@ public Canvas3D(java.awt.GraphicsConfiguration graphicsConfiguration,
                 boolean offScreen)
 */
 
+  }
+
+  public boolean getOffscreen() {
+    return offscreen;
   }
 
   public void renderField(int i) {
@@ -170,5 +185,55 @@ public Canvas3D(java.awt.GraphicsConfiguration graphicsConfiguration,
     prefSize = size;
   }
 
+  public static void main(String[] args)
+         throws RemoteException, VisADException {
+    DisplayImplJ3D display = new DisplayImplJ3D("offscreen", 200, 200);
+
+    RealType[] types = {RealType.Latitude, RealType.Longitude};
+    RealTupleType earth_location = new RealTupleType(types);
+    RealType vis_radiance = new RealType("vis_radiance", null, null);
+    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    RealType[] types2 = {vis_radiance, ir_radiance};
+    RealTupleType radiance = new RealTupleType(types2);
+    FunctionType image_tuple = new FunctionType(earth_location, radiance);
+
+    int size = 32;
+    FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
+
+    display.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    display.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    display.addMap(new ScalarMap(vis_radiance, Display.RGB));
+
+    DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+    ref_imaget1.setData(imaget1);
+    display.addReference(ref_imaget1, null);
+
+    JFrame jframe1  = new JFrame("test off screen");
+    jframe1.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    JPanel panel1 = new JPanel();
+    panel1.setLayout(new BoxLayout(panel1, BoxLayout.X_AXIS));
+    panel1.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    panel1.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    jframe1.setContentPane(panel1);
+    jframe1.pack();
+    jframe1.setSize(300, 300);
+    jframe1.setVisible(true);
+
+    while (true) {
+      Graphics gp = panel1.getGraphics();
+      BufferedImage image = display.getImage();
+      gp.drawImage(image, 0, 0, panel1);
+      gp.dispose();
+      try {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException e) {
+      }
+    }
+
+  }
 }
 

@@ -173,6 +173,9 @@ public abstract class DisplayRendererJ3D
         ProjectionControl proj = getDisplay().getProjectionControl();
         synchronized (this) {
           canvas.captureFlag = true;
+          if (canvas.getOffscreen()) {
+            canvas.renderOffScreenBuffer();
+          }
           try {
             proj.setMatrix(proj.getMatrix());
           }

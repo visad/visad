@@ -120,10 +120,12 @@ public class DisplayImplJ3D extends DisplayImpl {
   public static final int UNKNOWN = 0;
   /** Field for specifying that the DisplayImpl be created in a JPanel */
   public static final int JPANEL = 1;
+  /** Field for specifying that the DisplayImpl does not have a screen Component */
+  public static final int OFFSCREEN = 2;
   /** Field for specifying that the DisplayImpl be created in an Applet */
-  public static final int APPLETFRAME = 2;
+  public static final int APPLETFRAME = 3;
   /** Field for specifying that the DisplayImpl transforms but does not render */
-  public static final int TRANSFORM_ONLY = 3;
+  public static final int TRANSFORM_ONLY = 4;
 
   /** this is used for APPLETFRAME */
   private DisplayAppletJ3D applet = null;
@@ -189,6 +191,21 @@ public class DisplayImplJ3D extends DisplayImpl {
     super(name, renderer);
 
     initialize(api, config);
+  }
+
+  /** constructor for off screen */
+  public DisplayImplJ3D(String name, int width, int height)
+         throws VisADException, RemoteException {
+    this(name, null, width, height);
+  }
+
+  /** constructor for off screen */
+  public DisplayImplJ3D(String name, DisplayRendererJ3D renderer,
+                        int width, int height)
+         throws VisADException, RemoteException {
+    super(name, renderer);
+
+    initialize(OFFSCREEN, null, width, height);
   }
 
   public DisplayImplJ3D(RemoteDisplay rmtDpy)
@@ -259,7 +276,13 @@ public class DisplayImplJ3D extends DisplayImpl {
   }
 
   private void initialize(int api, GraphicsConfiguration config)
-	throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
+    initialize(api, config, -1, -1);
+  }
+
+  private void initialize(int api, GraphicsConfiguration config,
+                          int width, int height)
+          throws VisADException, RemoteException {
     // a ProjectionControl always exists
     projection = new ProjectionControlJ3D(this);
     addControl(projection);
@@ -282,6 +305,17 @@ public class DisplayImplJ3D extends DisplayImpl {
         throw new DisplayException("must be TransformOnlyDisplayRendererJ3D " +
                                    "for api = TRANSFORM_ONLY");
       }
+      setComponent(null);
+      apiValue = api;
+    }
+    else if (api == OFFSCREEN) {
+      DisplayRendererJ3D renderer = (DisplayRendererJ3D) getDisplayRenderer();
+      VisADCanvasJ3D canvas = new VisADCanvasJ3D(renderer, width, height);
+      UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
+      BranchGroup scene =
+        renderer.createSceneGraph(universe.view, universe.vpTrans, canvas);
+      universe.addBranchGraph(scene);
+
       setComponent(null);
       apiValue = api;
     }
