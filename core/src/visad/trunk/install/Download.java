@@ -37,9 +37,14 @@ public class Download
     }
   }
 
-  public Download(URL url, String saveDir)
+  public Download(URL url, String dirName)
   {
-    this.saveDir = new File(saveDir);
+    this(url, new File(dirName));
+  }
+
+  public Download(URL url, File saveDir)
+  {
+    this.saveDir = saveDir;
     if (!this.saveDir.isDirectory()) {
       System.err.println("Bad directory \"" + saveDir + "\"");
       System.exit(1);
