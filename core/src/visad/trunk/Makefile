@@ -350,7 +350,7 @@ clean:
 	done
 	-(cd examples && $(RM) *.class)
 
-compile: clean
+recompile:
 	$(JC) $(JFLAGS) *.java
 	rmic $(RMIC)
 	for i in $(VISAD_PACKAGES); do					\
@@ -379,6 +379,8 @@ compile: clean
 	  fi;								\
 	done
 	-(cd examples && $(JC) $(JFLAGS) *.java)
+
+compile: clean recompile
 
 docs:
 	@if [ ! -d $(DOCS_DIR) ]; then mkdir $(DOCS_DIR); fi   

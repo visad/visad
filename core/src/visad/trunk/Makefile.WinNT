@@ -353,7 +353,7 @@ debug:
 	nmake -f Makefile.WinNT compile \
 	"JFLAGS = -J-mx32m -g"
 
-compile: clean
+recompile:
 	$(JC) $(JFLAGS) *.java
 	rmic $(RMIC)
 	$(JC) $(JFLAGS) java3d\*.java
@@ -411,6 +411,8 @@ clean:
 	if exist aune\*.class $(DEL) aune\*.class
 	if exist benjamin\*.class $(DEL) benjamin\*.class
 	if exist examples\*.class $(DEL) examples\*.class
+
+compile: clean recompile
 
 VISAD_PACKAGES = \
 visad \
