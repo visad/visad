@@ -435,7 +435,7 @@ docs:
 	@if [ ! -d $(DOCS_DIR) ]; then mkdir $(DOCS_DIR); fi   
 	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
 
-nexusrmi:
+nexusrmi_compile:
 	make RMIC=nexusrmi CC=gcc compile
 
 tonexus:
