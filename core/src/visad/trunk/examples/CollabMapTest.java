@@ -212,8 +212,8 @@ public class CollabMapTest extends JFrame implements ActionListener {
         MappingDialog dialog =
           new MappingDialog(this, ref.getData(), maps, true, true);
         dialog.display();
-        if (!dialog.Confirm) return;
-        setMaps(dialog.ScalarMaps);
+        if (!dialog.okPressed()) return;
+        setMaps(dialog.getMaps());
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
