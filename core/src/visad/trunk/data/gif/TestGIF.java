@@ -28,7 +28,7 @@ import java.net.URL;
 import visad.FlatField;
 import visad.VisADException;
 
-import visad.data.gif.GIFAdapter;;
+import visad.data.gif.GIFAdapter;
 
 public class TestGIF
 {
