@@ -41,6 +41,9 @@ public class ReferenceActionLink {
   /** this id is unique among ReferenceActionLink attached to action */
   private long id;
 
+  /** name of the associated thing */
+  private String name;
+
   /** set by incTick */
   private long NewTick;
   /** value of NewTick at last setTicks() call */
@@ -67,6 +70,8 @@ public class ReferenceActionLink {
     Ball = true;
     id = jd;
 
+    name = ref.getName();
+
     NewTick = ref.getTick();
     OldTick = NewTick - 1;
   }
@@ -85,6 +90,10 @@ public class ReferenceActionLink {
 
   public Action getAction() {
     return action;
+  }
+
+  public String getName() {
+    return name;
   }
 
   /** set value of NewTick; presumably increases value */
