@@ -124,6 +124,7 @@ public class FunctionType extends MathType {
           if (((TupleType) Range).getComponent(i) instanceof TextType) {
             textComponents[j] = (TextType) ((TupleType) Range).getComponent(i);
             textIndices[j] = i;
+            j++;
           }
         }
       }
