@@ -60,22 +60,43 @@ public class DualRes {
     Set set = field.getDomainSet();
     if (!(set instanceof LinearSet)) return null;
     LinearSet lset = (LinearSet) set;
+    int dim = set.getDimension();
+
+    // compute new lengths
+    int[] lengths = new int[dim];
+    for (int i=0; i<dim; i++) {
+      Linear1DSet lin1set = lset.getLinear1DComponent(i);
+      lengths[i] = (int) (lin1set.getLength() * scale);
+      if (lengths[i] < 1) lengths[i] = 1;
+    }
+
+    return rescale(field, lengths);
+  }
+
+  /** Rescales a field by the given scale factor. */
+  public static FieldImpl rescale(FieldImpl field, int[] lengths)
+    throws VisADException, RemoteException
+  {
+    Set set = field.getDomainSet();
+    if (!(set instanceof LinearSet)) return null;
+    LinearSet lset = (LinearSet) set;
+    int dim = set.getDimension();
+    if (lengths.length != dim) {
+      throw new VisADException("bad lengths dimension");
+    }
 
     // scale set to new resolution
-    int dim = set.getDimension();
     Linear1DSet[] lin_sets = new Linear1DSet[dim];
     for (int i=0; i<dim; i++) {
       Linear1DSet lin1set = lset.getLinear1DComponent(i);
       MathType type = lin1set.getType();
       double first = lin1set.getFirst();
       double last = lin1set.getLast();
-      int length = (int) (lin1set.getLength() * scale);
-      if (length < 1) length = 1;
       CoordinateSystem coord_sys = lin1set.getCoordinateSystem();
       Unit[] units = lin1set.getSetUnits();
 
       lin_sets[i] = new Linear1DSet(type,
-        first, last, length, coord_sys, units, null);
+        first, last, lengths[i], coord_sys, units, null);
     }
 
     // compute new linear set at new resolution
