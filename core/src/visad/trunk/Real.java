@@ -185,6 +185,86 @@ public class Real
     return Value;
   }
 
+
+  /**
+  * Methods for Jython comparisons with doubles and other Reals
+  *
+  * @return =0 for false, =1 for true
+  */
+  public int __gt__(double other) {
+    if (Value > other) return 1;
+    return 0;
+  }
+  public int __lt__(double other) {
+    if (Value < other) return 1;
+    return 0;
+  }
+  public int __ge__(double other) {
+    if (Value >= other) return 1;
+    return 0;
+  }
+  public int __le__(double other) {
+    if (Value <= other) return 1;
+    return 0;
+  }
+  public int __ne__(double other) {
+    if (Value != other) return 1;
+    return 0;
+  }
+  public int __eq__(double other) {
+    if (Value == other) return 1;
+    return 0;
+  }
+
+  public int __gt__(Real other) throws VisADException, RemoteException {
+    double d = ((Real) subtract(other)).getValue();
+    if (d > 0.0) return 1;
+    return 0;
+  }
+  public int __lt__(Real other) throws VisADException, RemoteException {
+    double d = ((Real) subtract(other)).getValue();
+    if (d < 0.0) return 1;
+    return 0;
+  }
+  public int __ge__(Real other) throws VisADException, RemoteException {
+    double d = ((Real) subtract(other)).getValue();
+    if (d >= 0.0) return 1;
+    return 0;
+  }
+  public int __le__(Real other) throws VisADException, RemoteException {
+    double d = ((Real) subtract(other)).getValue();
+    if (d <= 0.0) return 1;
+    return 0;
+  }
+  public int __eq__(Real other) throws VisADException, RemoteException {
+    double d = ((Real) subtract(other)).getValue();
+    if (d == 0.0) return 1;
+    return 0;
+  }
+  public int __ne__(Real other) throws VisADException, RemoteException {
+    double d = ((Real) subtract(other)).getValue();
+    if (d != 0.0) return 1;
+    return 0;
+  }
+
+  /**
+  * Methods to convert types for Jython
+  *
+  * @return this Real as a float, long, or int
+  *
+  */
+  public double __float__() {
+    return Value;
+  }
+
+  public long __long__() {
+    return (long) Value;
+  }
+
+  public int __int__() {
+    return (int) Value;
+  }
+
   /** get double value converted to unit_out */
   /**
    * Get the value for this Real converted to unit_out.
