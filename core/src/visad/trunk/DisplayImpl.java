@@ -1015,6 +1015,13 @@ if (initialize) {
   /** return the GraphicsModeControl associated with this DisplayImpl */
   public abstract GraphicsModeControl getGraphicsModeControl(); 
 
+  /** wait for millis milliseconds
+   *  @deprecated Use <CODE>new visad.util.Delay(millis)</CODE> instead.
+   */
+  public static void delay(int millis) {
+    new visad.util.Delay(millis);
+  }
+
   /** print a stack dump */
   public static void printStack(String message) {
     try {
