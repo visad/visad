@@ -1121,15 +1121,15 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           }
           VisADGeometryArray[] arrays = control.getShapes(values);
           for (int i=0; i<arrays.length; i++) {
-            VisADGeometryArray array = arrays[i];
             if (range_select[0] != null) {
               if (range_select[0].length == 1) {
-                if (!range_select[0][0]) array = null;
+                if (!range_select[0][0]) arrays[i] = null;
               }
               else {
-                if (!range_select[0][i]) array = null;
+                if (!range_select[0][i]) arrays[i] = null;
               }
             }
+            VisADGeometryArray array = arrays[i];
             if (array != null) {
               if (spatial_values[0].length > 1) {
                 x = spatial_values[0][i];
