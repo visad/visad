@@ -636,9 +636,7 @@ public class AVIForm extends Form
     return numImages;
   }
 
-  public void close() throws BadFormException, IOException, VisADException {
-    throw new UnimplementedException("AVIForm.close");
-  }
+  public void close() throws BadFormException, IOException, VisADException { }
 
 
   // -- FormProgressInformer methods --
