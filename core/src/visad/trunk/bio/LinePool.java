@@ -220,13 +220,6 @@ public class LinePool implements DisplayListener {
       for (int i=0; i<lnUsed; i++) {
         MeasureLine line = (MeasureLine) lines.elementAt(i);
         double[][] vals = line.getMeasurement().doubleValues();
-        int dim = vals.length;
-        double[] ep1 = new double[dim];
-        double[] ep2 = new double[dim];
-        for (int j=0; j<dim; j++) {
-          ep1[j] = vals[j][0];
-          ep2[j] = vals[j][1];
-        }
         double dist = distance(vals[0][0], vals[1][0],
           vals[0][1], vals[1][1], coords[0], coords[1]);
         if (dist < mindist) {
@@ -235,10 +228,30 @@ public class LinePool implements DisplayListener {
         }
       }
 
-      // highlight picked line
+      // find closest point
+      boolean pt = false;
+      for (int i=0; i<ptUsed; i++) {
+        MeasurePoint point = (MeasurePoint) points.elementAt(i);
+        double[][] vals = point.getMeasurement().doubleValues();
+        double dx = vals[0][0] - coords[0];
+        double dy = vals[1][0] - coords[1];
+        double dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < mindist) {
+          pt = true;
+          mindist = dist;
+          index = i;
+        }
+      }
+
+      // highlight picked line or point
       if (mindist > threshold) {
         box.select(null);
         if (toolbar != null) toolbar.select(null);
+      }
+      else if (pt) {
+        MeasurePoint point = (MeasurePoint) points.elementAt(index);
+        box.select(point);
+        if (toolbar != null) toolbar.select(point);
       }
       else {
         MeasureLine line = (MeasureLine) lines.elementAt(index);

@@ -45,8 +45,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   /** New group dialog box. */
   private GroupDialog groupBox = new GroupDialog();
 
-  /** Currently selected line. */
-  private MeasureLine line;
+  /** Currently selected measurement object. */
+  private MeasureThing thing;
 
   /** File series widget. */
   private FileSeriesWidget horiz;
@@ -81,10 +81,10 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
   // -- LINE FUNCTIONS --
 
-  /** Button for removing lines. */
-  private JButton removeLine;
+  /** Button for removing objects. */
+  private JButton removeThing;
 
-  /** Button for distributing line throughout all focal planes. */
+  /** Button for distributing measurement object through all focal planes. */
   private JButton setStandard;
 
   /** Toggle for writing measurement to file. */
@@ -199,20 +199,20 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     p.add(p2);
     pane.add(p);
 
-    // divider between global functions and line functions
+    // divider between global functions and object functions
     pane.add(Box.createVerticalStrut(10));
     pane.add(new Divider());
     pane.add(Box.createVerticalStrut(10));
 
-    // remove line button
-    removeLine = new JButton("Remove line");
-    removeLine.addActionListener(new ActionListener() {
+    // remove thing button
+    removeThing = new JButton("Remove");
+    removeThing.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        getList().removeMeasurement(line.getMeasurement());
+        getList().removeMeasurement(thing.getMeasurement());
       }
     });
-    removeLine.setEnabled(false);
-    pane.add(pad(removeLine));
+    removeThing.setEnabled(false);
+    pane.add(pad(removeThing));
 
     // set standard button
     setStandard = new JButton("Set standard");
@@ -247,7 +247,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         LineGroup group = (LineGroup) groupList.getSelectedItem();
-        line.setGroup(group);
+        thing.setGroup(group);
         descriptionBox.setText(group.getDescription());
       }
     });
@@ -284,7 +284,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     colorList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         int index = colorList.getSelectedIndex();
-        line.setColor(COLORS[index]);
+        ((MeasureLine) thing).setColor(COLORS[index]);
       }
     });
     colorList.setEnabled(false);
@@ -330,22 +330,23 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     contrast.setEnabled(enabled);
   }
 
-  /** Selects the given measurement line. */
-  public void select(MeasureLine line) {
-    this.line = line;
-    boolean enabled = line != null;
-    removeLine.setEnabled(enabled);
+  /** Selects the given measurement object. */
+  public void select(MeasureThing thing) {
+    this.thing = thing;
+    boolean enabled = thing != null;
+    boolean line = thing instanceof MeasureLine;
+    removeThing.setEnabled(enabled);
     setStandard.setEnabled(enabled);
     measureNow.setEnabled(enabled);
     groupLabel.setEnabled(enabled);
     groupList.setEnabled(enabled);
     newGroup.setEnabled(enabled);
-    colorLabel.setEnabled(enabled);
-    colorList.setEnabled(enabled);
+    colorLabel.setEnabled(enabled && line);
+    colorList.setEnabled(enabled && line);
     descriptionLabel.setEnabled(enabled);
     descriptionBox.setEnabled(enabled);
     if (enabled) {
-      Measurement m = line.getMeasurement();
+      Measurement m = thing.getMeasurement();
       colorList.setSelectedItem(m.color);
       groupList.setSelectedItem(m.group);
     }

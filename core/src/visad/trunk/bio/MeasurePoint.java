@@ -27,145 +27,48 @@ MA 02111-1307, USA
 package visad.bio;
 
 import java.rmi.RemoteException;
+import java.util.Vector;
 import visad.*;
-import visad.java2d.*;
-import visad.java3d.*;
 
 /** MeasurePoint maintains a DataReference for measuring points in a field. */
-public class MeasurePoint {
+public class MeasurePoint extends MeasureThing {
+
+  /** List of all measurement points. */
+  private static final Vector points = new Vector();
 
   /** First free id number for points. */
-  private static int firstFreeId = 1;
+  private static int maxId = 0;
   
   /** Id number for the point. */
   int id;
 
-  /** Data reference for the point. */
-  DataReferenceImpl ref;
-
-  /** Associated display. */
-  private DisplayImpl display;
-
-  /** Associated measurement. */
-  private Measurement m;
-
-  /** Domain type. */
-  private RealTupleType dtype;
-
-  /** Domain component types. */
-  RealType[] ptypes;
-
-  /** Current Data value for the point. */
-  RealTuple p;
-
-  /** Synchronization object for DataReferences. */
-  private Object dataLock = new Object();
-
   /** Constructs a measurement object to match the given field. */
   public MeasurePoint() throws VisADException, RemoteException {
-    ref = new DataReferenceImpl("ref");
-    id = firstFreeId++;
+    super(1, 2);
+    id = maxId++;
+    points.add(this);
   }
 
-  /** Adds the distance measuring data to the given display. */
+  /** Adds the measuring data to the given display. */
   public void setDisplay(DisplayImpl d)
     throws VisADException, RemoteException
   {
     if (display != null) {
       // remove measuring data from old display
-      display.removeReference(ref);
+      display.removeReference(refs[0]);
     }
     display = d;
     if (d == null) return;
+    d.disableAction();
 
-    // add measuring data to new display
-    boolean j3d = d instanceof DisplayImplJ3D;
+    // configure display appropriately
     d.getGraphicsModeControl().setPointSize(5.0f);
     d.getDisplayRenderer().setPickThreshhold(5.0f);
 
-    // add point
-    DataRenderer renderer = j3d ?
-      (DataRenderer) new DirectManipulationRendererJ3D() :
-      (DataRenderer) new DirectManipulationRendererJ2D();
-    d.addReferences(renderer, new DataReference[] {ref}, null);
+    // add endpoint
+    addDirectManipRef(d, refs[0]);
+
+    d.enableAction();
   }
-
-  /** Hides the point. */
-  public void hide() {
-    setMeasurement(null);
-    if (p != null) {
-      int len = ptypes.length;
-      double[][] values = new double[len][1];
-      for (int i=0; i<len; i++) values[i][0] = Double.NaN;
-      setValues(values);
-    }
-  }
-
-  /** Initializes the point's MathType. */
-  public void setType(RealTupleType domain)
-    throws VisADException, RemoteException
-  {
-    setType(domain, true);
-  }
-
-  private void setType(RealTupleType domain, boolean fillVals)
-    throws VisADException, RemoteException
-  {
-    dtype = domain;
-    int dim = domain.getDimension();
-    ptypes = new RealType[dim];
-    Real[] r = new Real[dim];
-    for (int i=0; i<dim; i++) {
-      ptypes[i] = (RealType) domain.getComponent(i);
-      r[i] = new Real(ptypes[i], Double.NaN);
-    }
-    if (fillVals) {
-      p = new RealTuple(r);
-      setValues(p, false);
-    }
-  }
-
-  /** Links the given measurement with this point. */
-  public void setMeasurement(Measurement m) {
-    this.m = m;
-    if (m != null) setValues(m.values[0]);
-  }
-
-  /** Sets the values of the endpoints. */
-  public void setValues(double[][] values) {
-    int len = values.length;
-    if (len != ptypes.length) {
-      System.err.println("MeasurePoint.setValues: lengths don't match!");
-      return;
-    }
-    Real[] r = new Real[len];
-    try {
-      for (int i=0; i<len; i++) r[i] = new Real(ptypes[i], values[i][0]);
-      setValues(new RealTuple(r), false);
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-  }
-
-  /** Sets the value of the point to match the given RealTuple. */
-  public void setValues(RealTuple v) { setValues(v, true); }
-
-  private void setValues(RealTuple v, boolean getTypes) {
-    try {
-      if (getTypes) setType((RealTupleType) v.getType(), false);
-      synchronized (dataLock) { ref.setData(v); }
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-  }
-
-  /** Gets the point's associated measurement. */
-  public Measurement getMeasurement() { return m; }
-
-  /** Gets the value of the point. */
-  public RealTuple getValue() { return p; }
-
-  /** Gets the domain type for the point's value. */
-  public RealTupleType getDomain() { return dtype; }
 
 }

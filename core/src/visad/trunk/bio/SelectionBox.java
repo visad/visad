@@ -39,10 +39,10 @@ public class SelectionBox {
   /** Data reference for first endpoint. */
   private DataReferenceImpl[] refs = new DataReferenceImpl[4];
 
-  /** Currently selected line. */
-  private MeasureLine line;
+  /** Currently selected thing. */
+  private MeasureThing thing;
 
-  /** Computation cell for linking selection with line. */
+  /** Computation cell for linking selection with measurement object. */
   private CellImpl cell;
 
   /** Associated display. */
@@ -58,40 +58,78 @@ public class SelectionBox {
       public void doAction() {
         synchronized (this) {
           Real[][] reals = null;
-          if (line == null) {
+          if (thing == null) {
+            // no measurement (no selection)
             reals = new Real[4][2];
             for (int i=0; i<4; i++) {
                for (int j=0; j<2; j++) reals[i][j] = new Real(Double.NaN);
             }
           }
-          else if (line.p1 != null && line.p2 != null) {
-            try {
-              Real r1x = (Real) line.p1.getComponent(0);
-              Real r1y = (Real) line.p1.getComponent(1);
-              Real r2x = (Real) line.p2.getComponent(0);
-              Real r2y = (Real) line.p2.getComponent(1);
+          else if (thing instanceof MeasurePoint) {
+            // measurement is a point
+            RealTuple[] values = thing.getValues();
+            RealTuple p = values[0];
 
-              RealType rtx = (RealType) r1x.getType();
-              RealType rty = (RealType) r1y.getType();
+            if (p != null) {
+              try {
+                Real rx = (Real) p.getComponent(0);
+                Real ry = (Real) p.getComponent(1);
 
-              double p1x = r1x.getValue();
-              double p1y = r1y.getValue();
-              double p2x = r2x.getValue();
-              double p2y = r2y.getValue();
+                RealType rtx = (RealType) rx.getType();
+                RealType rty = (RealType) ry.getType();
 
-              double slope = (p1x - p2x) / (p2y - p1y);
-              double vx = DISTANCE / Math.sqrt(slope * slope + 1);
-              double vy = slope * vx;
+                double px = rx.getValue();
+                double py = ry.getValue();
 
-              reals = new Real[][] {
-                {new Real(rtx, p1x - vx), new Real(rty, p1y - vy)},
-                {new Real(rtx, p1x + vx), new Real(rty, p1y + vy)},
-                {new Real(rtx, p2x - vx), new Real(rty, p2y - vy)},
-                {new Real(rtx, p2x + vx), new Real(rty, p2y + vy)}
-              };
+                double vx = DISTANCE;
+                double vy = DISTANCE;
+
+                reals = new Real[][] {
+                  {new Real(rtx, px - vx), new Real(rty, py - vy)},
+                  {new Real(rtx, px + vx), new Real(rty, py - vy)},
+                  {new Real(rtx, px - vx), new Real(rty, py + vy)},
+                  {new Real(rtx, px + vx), new Real(rty, py + vy)},
+                };
+              }
+              catch (VisADException exc) { exc.printStackTrace(); }
+              catch (RemoteException exc) { exc.printStackTrace(); }
             }
-            catch (VisADException exc) { exc.printStackTrace(); }
-            catch (RemoteException exc) { exc.printStackTrace(); }
+          }
+          else if (thing instanceof MeasureLine) {
+            // measurement is a line
+            RealTuple[] values = thing.getValues();
+            RealTuple p1 = values[0];
+            RealTuple p2 = values[1];
+
+            if (p1 != null && p2 != null) {
+              try {
+                Real r1x = (Real) p1.getComponent(0);
+                Real r1y = (Real) p1.getComponent(1);
+                Real r2x = (Real) p2.getComponent(0);
+                Real r2y = (Real) p2.getComponent(1);
+
+                RealType rtx = (RealType) r1x.getType();
+                RealType rty = (RealType) r1y.getType();
+
+                double p1x = r1x.getValue();
+                double p1y = r1y.getValue();
+                double p2x = r2x.getValue();
+                double p2y = r2y.getValue();
+
+                double slope = (p1x - p2x) / (p2y - p1y);
+                double vx = DISTANCE / Math.sqrt(slope * slope + 1);
+                double vy = slope * vx;
+
+                reals = new Real[][] {
+                  {new Real(rtx, p1x - vx), new Real(rty, p1y - vy)},
+                  {new Real(rtx, p1x + vx), new Real(rty, p1y + vy)},
+                  {new Real(rtx, p2x - vx), new Real(rty, p2y - vy)},
+                  {new Real(rtx, p2x + vx), new Real(rty, p2y + vy)}
+                };
+              }
+              catch (VisADException exc) { exc.printStackTrace(); }
+              catch (RemoteException exc) { exc.printStackTrace(); }
+            }
           }
 
           // CTR: TODO: figure out why box never becomes visible
@@ -135,19 +173,19 @@ public class SelectionBox {
     d.enableAction();
   }
 
-  /** Selects the given measurement line. */
-  public void select(MeasureLine line) {
+  /** Selects the given measurement object. */
+  public void select(MeasureThing thing) {
     synchronized (cell) {
       try {
         cell.disableAction();
-        this.line = line;
+        this.thing = thing;
         cell.removeAllReferences();
-        if (line != null) {
-          cell.addReference(line.ref_p1);
-          cell.addReference(line.ref_p2);
+        if (thing != null) {
+          DataReference[] refs = thing.getReferences();
+          for (int i=0; i<refs.length; i++) cell.addReference(refs[i]);
         }
         cell.enableAction();
-        if (line == null) cell.doAction();
+        if (thing == null) cell.doAction();
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
