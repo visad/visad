@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.java3d;
 
 import visad.*;
+import visad.util.Delay;
 
 import javax.media.j3d.*;
 
@@ -163,7 +164,7 @@ System.out.println(getLinks()[0].getThingReference().getName());
       catch (OutOfMemoryError e) {
         // System.out.println("OutOfMemoryError, try again ...");
         clearBranch();
-        DisplayImpl.delay(250);
+        new Delay(250);
         branch = null;
         try {
           branch = doTransform();

@@ -1015,18 +1015,6 @@ if (initialize) {
   /** return the GraphicsModeControl associated with this DisplayImpl */
   public abstract GraphicsModeControl getGraphicsModeControl(); 
 
-  /** wait for millis milliseconds */
-  public static void delay(int millis) {
-    try {
-      Real r = new Real(0.0);
-      synchronized(r) {
-        r.wait(millis);
-      }
-    }
-    catch (InterruptedException e) {
-    }
-  }
-
   /** print a stack dump */
   public static void printStack(String message) {
     try {

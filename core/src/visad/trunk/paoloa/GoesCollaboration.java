@@ -8,6 +8,7 @@ package visad.paoloa;
 
 // VisAD packages
 import visad.*;
+import visad.util.Delay;
 import visad.util.VisADSlider;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
@@ -396,10 +397,10 @@ public class GoesCollaboration extends Object {
  
 
     // make sure Data are initialized
-    DisplayImpl.delay(1000);
+    new Delay(1000);
     gzen_ref.incTick();
     save_config_ref.incTick();
-    DisplayImpl.delay(1000);
+    new Delay(1000);
 
 
     //
@@ -410,7 +411,7 @@ public class GoesCollaboration extends Object {
     // construct a real_tbcCell
     real_tbcCell real_tbc_cell = new real_tbcCell();
     real_tbc_cell.addReference(in_dx_ref);
-    DisplayImpl.delay(500);
+    new Delay(500);
 
     // construct a wfnbCell
     wfnbCell wfnb_cell = new wfnbCell();
@@ -420,24 +421,24 @@ public class GoesCollaboration extends Object {
     wfnb_cell.addReference(mixra_ref);
     wfnb_cell.addReference(ozonea_ref);
     wfnb_cell.addReference(presa_ref);
-    DisplayImpl.delay(500);
+    new Delay(500);
 
     // construct a wfnaCell
     wfnaCell wfna_cell = new wfnaCell();
     wfna_cell.addReference(wfnb_ref);
     wfna_cell.addReference(real_tbc_ref);
-    DisplayImpl.delay(500);
+    new Delay(500);
 
     // construct a wfna_oldCell
     wfna_oldCell wfna_old_cell = new wfna_oldCell();
     wfna_old_cell.addReference(save_config_ref);
-    DisplayImpl.delay(500);
+    new Delay(500);
 
     // construct a diff_colCell
     diff_colCell diff_col_cell = new diff_colCell();
     diff_col_cell.addReference(wfna_ref);
     diff_col_cell.addReference(wfna_old_ref);
-    DisplayImpl.delay(500);
+    new Delay(500);
 
 
     if (server_server != null) {
@@ -458,7 +459,7 @@ public class GoesCollaboration extends Object {
 
 
     // make sure Data are initialized (again)
-    DisplayImpl.delay(1000);
+    new Delay(1000);
     gzen_ref.incTick();
     save_config_ref.incTick();
 

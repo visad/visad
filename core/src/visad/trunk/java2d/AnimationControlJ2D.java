@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.java2d;
  
 import visad.*;
+import visad.util.Delay;
 
 import java.rmi.*;
 
@@ -63,11 +64,11 @@ public class AnimationControlJ2D extends AVControlJ2D
       d.addControl(animationSet);
       animate = new ToggleControl(d, this);
       d.addControl(animate);
-      synchronized (ActionImpl.threadLock) {
-        DisplayImpl.delay(ActionImpl.THREAD_DELAY);
-        animationThread = new Thread(this);
-        animationThread.start();
-      }
+
+      new Delay();
+
+      animationThread = new Thread(this);
+      animationThread.start();
     }
   }
 

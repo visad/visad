@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.java2d;
  
 import visad.*;
+import visad.util.Delay;
  
 import java.awt.*;
 import java.awt.event.*;
@@ -99,11 +100,10 @@ public class VisADCanvasJ2D extends JPanel
     setBackground(Color.black);
     setForeground(Color.white);
 
-    synchronized (ActionImpl.threadLock) {
-      DisplayImpl.delay(ActionImpl.THREAD_DELAY);
-      renderThread = new Thread(this);
-      renderThread.start();
-    }
+    new Delay();
+
+    renderThread = new Thread(this);
+    renderThread.start();
   }
 
   /** constructor for offscreen rendering */

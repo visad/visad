@@ -419,11 +419,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
       }
     };
-    synchronized (ActionImpl.threadLock) {
-      DisplayImpl.delay(ActionImpl.THREAD_DELAY);
-      Thread t = new Thread(loadFile);
-      t.start();
-    }
+    new Delay();
+    Thread t = new Thread(loadFile);
+    t.start();
   }
 
   /** Imports a data object from a server using RMI, in a separate thread */
@@ -461,11 +459,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
       }
     };
-    synchronized (ActionImpl.threadLock) {
-      DisplayImpl.delay(ActionImpl.THREAD_DELAY);
-      Thread t = new Thread(loadRMI);
-      t.start();
-    }
+    new Delay();
+    Thread t = new Thread(loadRMI);
+    t.start();
   }
 
   /** Load a file selected by the user */
@@ -551,11 +547,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
       }
     };
-    synchronized (ActionImpl.threadLock) {
-      DisplayImpl.delay(ActionImpl.THREAD_DELAY);
-      Thread t = new Thread(saveFile);
-      t.start();
-    }
+    new Delay();
+    Thread t = new Thread(saveFile);
+    t.start();
   }
 
   /** set whether this cell is highlighted */

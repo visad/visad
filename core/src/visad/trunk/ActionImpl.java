@@ -45,9 +45,6 @@ public abstract class ActionImpl
   private transient static ThreadPool pool = null;
   private static Object poolLock = new Object();
 
-  /** delay for thread starting */
-  public static final int THREAD_DELAY = 50;
-
   private boolean enabled = true;
   private Object lockEnabled = new Object();
 

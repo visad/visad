@@ -8,6 +8,7 @@ package visad.aune;
 
 // the VisAD package
 import visad.*;
+import visad.util.Delay;
 import visad.util.VisADSlider;
 import visad.java3d.*;
 
@@ -729,7 +730,7 @@ System.out.println("new_state = " + new_state_ref.getData());
       step++;
       sim_time_ref.setData(new Real(time, (double) step));
 
-      DisplayImpl.delay(anim_delay);
+      new Delay(anim_delay);
     }
   }
 
