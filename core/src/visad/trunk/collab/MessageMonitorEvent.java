@@ -105,7 +105,7 @@ public class MessageMonitorEvent
     if (data == null) {
       this.data = null;
     } else if (data instanceof RemoteData) {
-      this.data = (RemoteDataImpl )data;
+      this.data = (RemoteData )data;
     } else if (data instanceof FieldImpl) {
       this.data = new RemoteFieldImpl((FieldImpl )data);
 /*
