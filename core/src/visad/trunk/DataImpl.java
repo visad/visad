@@ -643,6 +643,94 @@ public abstract class DataImpl extends ThingImpl
     return this;
   }
 
+
+  /** for JPython */
+  public Data __add__(Data data) {
+    try {
+      return add(data);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+
+  public Data __sub__(Data data) {
+    try {
+      return subtract(data);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+
+  public Data __mul__(Data data) {
+    try {
+      return multiply(data);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+
+  public Data __div__(Data data) {
+    try {
+      return divide(data);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+
+  public Data __pow__(Data data) {
+    try {
+      return pow(data);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+
+  public Data __mod__(Data data) {
+    try {
+      return remainder(data);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+
+  public Data __neg__() {
+    try {
+      return negate();
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+  /** end of for JPython */
+
+
   /** a VisAD adaptation of clone that works for local or remote Data;
       DataImpl.dataClone returns clone; RemoteDataImpl.dataClone
       returns clone inherited from UnicastRemoteObject */
