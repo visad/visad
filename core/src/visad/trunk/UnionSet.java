@@ -753,7 +753,26 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
       (i.e., if no interpolation is possible) */
   public void valueToInterp(float[][] value, int[][] indices,
                             float[][] weights) throws VisADException {
-    throw new UnimplementedException("UnionSet.valueToInterp");
+    int nsets = Sets.length;
+    int length = indices.length;
+    int offset = 0;
+    for (int i=0; i<nsets; i++) {
+      int[][] temp_indices = new int[length][];
+      float[][] temp_weights = new float[length][];
+      Sets[i].valueToInterp(value, temp_indices, temp_weights);
+      for (int j=0; j<length; j++) {
+        if (indices[j] == null && temp_indices[j] != null) {
+          int m = temp_indices[j].length;
+          indices[j] = new int[m];
+          weights[j] = new float[m];
+          for (int k=0; k<m; k++) {
+            indices[j][k] = temp_indices[j][k] + offset;
+            weights[j][k] = temp_weights[j][k];
+          }
+        }
+      }
+      offset += Sets[i].getLength();
+    }
   }
 
   /**
@@ -846,12 +865,7 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
     Irregular1DSet iSet = new Irregular1DSet(vis_tuple, sampI);
 
     // create UnionSet as the union of gSet and iSet
-    RealType[] vis_arrayP = {vis_xcoord, vis_xcoord};
-    RealTupleType vis_tupleP = new RealTupleType(vis_arrayP);
     SampledSet[] sets = {gSet, iSet};
-    /* DRM - 03-Jan-2000
-    UnionSet uSet = new UnionSet(vis_tupleP, sets);
-    */
     UnionSet uSet = new UnionSet(vis_tuple, sets);
 
     // run some tests
@@ -871,7 +885,8 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
 
     System.out.println("-----------------");
     System.out.println("valueToIndex test:");
-    float[][] value2 = { {10f, 40f, 90f, 25f, 50f, 100f, 30f, 70f} };
+    // float[][] value2 = { {10f, 40f, 90f, 25f, 50f, 100f, 30f, 70f} };
+    float[][] value2 = { {15f, 40f, 92f, 25f, 50f, 103f, 37f, 77f} };
     int[] index2 = uSet.valueToIndex(value2);
     for (int i=0; i<index2.length; i++) {
       System.out.print("("+value2[0][i]);
@@ -879,6 +894,30 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
         System.out.print(", "+value2[j][i]);
       }
       System.out.println(")\t==> index "+index2[i]);
+    }
+
+    System.out.println("-----------------");
+    System.out.println("valueToInterp test:");
+    int n = value2[0].length;
+    int[][] indices = new int[n][];
+    float[][] weights = new float[n][];
+    uSet.valueToInterp(value2, indices, weights);
+    for (int i=0; i<n; i++) {
+      System.out.print("("+value2[0][i]);
+      for (int j=1; j<value2.length; j++) {
+        System.out.print(", "+value2[j][i]);
+      }
+      System.out.print(")\t==>");
+      if (indices[i] == null || indices[i].length == 0) {
+        System.out.println(" missing");
+      }
+      else {
+        int m = indices[i].length;
+        for (int j=0; j<m; j++) {
+          System.out.print(" (" + indices[i][j] + "," + weights[i][j] + ")");
+        }
+        System.out.println(" ");
+      }
     }
 
     System.out.println();

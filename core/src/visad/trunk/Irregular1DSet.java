@@ -124,9 +124,11 @@ public class Irregular1DSet extends IrregularSet {
                             float[][] weights) throws VisADException {
     SortedSet.valueToInterp(value, indices, weights);
     for (int j=0; j<indices.length; j++) {
-      int[] newIndex = new int[indices[j].length];
-      for (int i=0; i<indices[j].length; i++) newIndex[i] = newToOld[indices[j][i]];
-      indices[j] = newIndex;
+      if (indices[j] != null) {
+        int[] newIndex = new int[indices[j].length];
+        for (int i=0; i<indices[j].length; i++) newIndex[i] = newToOld[indices[j][i]];
+        indices[j] = newIndex;
+      }
     }
   }
 
