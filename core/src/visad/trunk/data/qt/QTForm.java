@@ -74,7 +74,7 @@ public class QTForm extends Form
   /** Filename of current QuickTime movie. */
   private String current_id;
 
-  /** Number of images in current TIFF stack. */
+  /** Number of images in current QuickTime movie. */
   private int numImages;
 
   /** Time increment between frames. */
