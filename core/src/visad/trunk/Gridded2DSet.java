@@ -53,12 +53,21 @@ public class Gridded2DSet extends GriddedSet {
   public Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    this(type, samples, lengthX, lengthY, coord_sys, units, errors, true);
+    this(type, samples, lengthX, lengthY, coord_sys, units, errors,
+         true, true);
   }
 
   Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
+               throws VisADException {
+    this(type, samples, lengthX, lengthY, coord_sys, units, errors,
+         true, true);
+  }
+
+  Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy, boolean test)
                throws VisADException {
     super(type, samples, make_lengths(lengthX, lengthY), coord_sys,
           units, errors, copy);
@@ -76,31 +85,32 @@ public class Gridded2DSet extends GriddedSet {
            "Gridded2DSet: samples values may not be missing");
         }
       }
-      // Samples consistency test
-      Pos = ( (Samples[0][1]-Samples[0][0])
-             *(Samples[1][LengthX+1]-Samples[1][1])
-            - (Samples[1][1]-Samples[1][0])
-             *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
-      for (int j=0; j<LengthY-1; j++) {
-        for (int i=0; i<LengthX-1; i++) {
-          float[] v00 = new float[2];
-          float[] v10 = new float[2];
-          float[] v01 = new float[2];
-          float[] v11 = new float[2];
-          for (int v=0; v<2; v++) {
-            v00[v] = Samples[v][j*LengthX+i];
-            v10[v] = Samples[v][j*LengthX+i+1];
-            v01[v] = Samples[v][(j+1)*LengthX+i];
-            v11[v] = Samples[v][(j+1)*LengthX+i+1];
-          }
-          if (  ( (v10[0]-v00[0])*(v11[1]-v10[1])
-                - (v10[1]-v00[1])*(v11[0]-v10[0]) > 0 != Pos)
-             || ( (v11[0]-v10[0])*(v01[1]-v11[1])
-                - (v11[1]-v10[1])*(v01[0]-v11[0]) > 0 != Pos)
-             || ( (v01[0]-v11[0])*(v00[1]-v01[1])
-                - (v01[1]-v11[1])*(v00[0]-v01[0]) > 0 != Pos)
-             || ( (v00[0]-v01[0])*(v10[1]-v00[1])
-                - (v00[1]-v01[1])*(v10[0]-v00[0]) > 0 != Pos)  ) {
+      if (test) {
+        // Samples consistency test
+        Pos = ( (Samples[0][1]-Samples[0][0])
+               *(Samples[1][LengthX+1]-Samples[1][1])
+              - (Samples[1][1]-Samples[1][0])
+               *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
+        for (int j=0; j<LengthY-1; j++) {
+          for (int i=0; i<LengthX-1; i++) {
+            float[] v00 = new float[2];
+            float[] v10 = new float[2];
+            float[] v01 = new float[2];
+            float[] v11 = new float[2];
+            for (int v=0; v<2; v++) {
+              v00[v] = Samples[v][j*LengthX+i];
+              v10[v] = Samples[v][j*LengthX+i+1];
+              v01[v] = Samples[v][(j+1)*LengthX+i];
+              v11[v] = Samples[v][(j+1)*LengthX+i+1];
+            }
+            if (  ( (v10[0]-v00[0])*(v11[1]-v10[1])
+                  - (v10[1]-v00[1])*(v11[0]-v10[0]) > 0 != Pos)
+               || ( (v11[0]-v10[0])*(v01[1]-v11[1])
+                  - (v11[1]-v10[1])*(v01[0]-v11[0]) > 0 != Pos)
+               || ( (v01[0]-v11[0])*(v00[1]-v01[1])
+                  - (v01[1]-v11[1])*(v00[0]-v01[0]) > 0 != Pos)
+               || ( (v00[0]-v01[0])*(v10[1]-v00[1])
+                  - (v00[1]-v01[1])*(v10[0]-v00[0]) > 0 != Pos)  ) {
 /*
 System.out.println("Samples[0][1] = " + Samples[0][1] +
                    " Samples[0][0] = " + Samples[0][0] +
@@ -120,11 +130,12 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
                   " 4th = " + ( (v00[0]-v01[0])*(v10[1]-v00[1])
                               - (v00[1]-v01[1])*(v10[0]-v00[0]) ) );
 */
-            throw new SetException(
-             "Gridded2DSet: samples do not form a valid grid ("+i+","+j+")");
+              throw new SetException(
+               "Gridded2DSet: samples do not form a valid grid ("+i+","+j+")");
+            }
           }
         }
-      }
+      } // end if (test)
     }
   }
 

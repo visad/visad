@@ -1712,7 +1712,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           // MEM
           // WLH 5 April 2000
           // return domain_set.makeSpatial(type, spatial_values);
-          return shadow_api.makeSpatial(domain_set, type, spatial_values);
+          return shadow_api.makeSpatialSet(domain_set, type, spatial_values);
         }
       }
       catch (VisADException e) {
@@ -1725,8 +1725,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
   }
 
   // WLH 5 April 2000
-  public Set makeSpatial(Set domain_set, SetType type, float[][] spatial_values)
-         throws VisADException {
+  public Set makeSpatialSet(Set domain_set, SetType type,
+             float[][] spatial_values) throws VisADException {
     return domain_set.makeSpatial(type, spatial_values);
   }
 

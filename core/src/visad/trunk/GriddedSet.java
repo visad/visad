@@ -108,13 +108,15 @@ public class GriddedSet extends SampledSet {
                                   int[] lengths, CoordinateSystem coord_sys,
                                   Unit[] units, ErrorEstimate[] errors)
          throws VisADException {
-    return create(type, samples, lengths, coord_sys, units, errors, true);
+    return create(type, samples, lengths, coord_sys, units, errors,
+                  true, true);
   }
 
-  static GriddedSet create(MathType type, float[][] samples,
+  private static GriddedSet create(MathType type, float[][] samples,
                            int[] lengths, CoordinateSystem coord_sys,
                            Unit[] units, ErrorEstimate[] errors,
-                           boolean copy) throws VisADException {
+                           boolean copy, boolean test)
+          throws VisADException {
     int domain_dimension = samples.length;
     int manifold_dimension = lengths.length;
     if (manifold_dimension > domain_dimension) {
@@ -136,7 +138,7 @@ public class GriddedSet extends SampledSet {
         else {
           return new Gridded2DSet(type, samples,
                                   lengths[0], lengths[1],
-                                  coord_sys, units, errors, copy);
+                                  coord_sys, units, errors, copy, test);
         }
       case 3:
         if (manifold_dimension == 1) {
@@ -152,7 +154,7 @@ public class GriddedSet extends SampledSet {
         else {
           return new Gridded3DSet(type, samples,
                                   lengths[0], lengths[1], lengths[2],
-                                  coord_sys, units, errors, copy);
+                                  coord_sys, units, errors, copy, test);
         }
       default:
         return new GriddedSet(type, samples,
@@ -162,7 +164,7 @@ public class GriddedSet extends SampledSet {
   }
 
   public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
-    return create(type, samples, Lengths, null, null, null, false);
+    return create(type, samples, Lengths, null, null, null, false, false);
   }
 
   public int getLength(int i) {

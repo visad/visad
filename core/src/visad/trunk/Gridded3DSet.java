@@ -57,7 +57,7 @@ public class Gridded3DSet extends GriddedSet {
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
     this(type, samples, lengthX, lengthY, lengthZ, coord_sys,
-         units, errors, true);
+         units, errors, true, true);
   }
 
   Gridded3DSet(MathType type, float[][] samples,
@@ -65,6 +65,15 @@ public class Gridded3DSet extends GriddedSet {
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {
+    this(type, samples, lengthX, lengthY, lengthZ, coord_sys,
+         units, errors, copy, true);
+  }
+
+  Gridded3DSet(MathType type, float[][] samples,
+               int lengthX, int lengthY, int lengthZ,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy,
+               boolean test) throws VisADException {
     super(type, samples, make_lengths(lengthX, lengthY, lengthZ),
           coord_sys, units, errors, copy);
     LowX = Low[0];
@@ -85,135 +94,137 @@ public class Gridded3DSet extends GriddedSet {
            "Gridded3DSet: samples values may not be missing");
         }
       }
-      // Samples consistency test
-      float[] t000 = new float[3];
-      float[] t100 = new float[3];
-      float[] t010 = new float[3];
-      float[] t001 = new float[3];
-      float[] t110 = new float[3];
-      float[] t101 = new float[3];
-      float[] t011 = new float[3];
-      float[] t111 = new float[3];
-      for (int v=0; v<3; v++) {
-        t000[v] = Samples[v][0];
-        t100[v] = Samples[v][1];
-        t010[v] = Samples[v][LengthX];
-        t001[v] = Samples[v][LengthY*LengthX];
-        t110[v] = Samples[v][LengthX+1];
-        t101[v] = Samples[v][LengthY*LengthX+1];
-        t011[v] = Samples[v][(LengthY+1)*LengthX];
-        t111[v] = Samples[v][(LengthY+1)*LengthX+1];
-      }
-      Pos = (  ( (t100[1]-t000[1])*(t101[2]-t100[2])
-               - (t100[2]-t000[2])*(t101[1]-t100[1]) )
-                *(t110[0]-t100[0])  )
-          + (  ( (t100[2]-t000[2])*(t101[0]-t100[0])
-               - (t100[0]-t000[0])*(t101[2]-t100[2]) )
-                *(t110[1]-t100[1])  )
-          + (  ( (t100[0]-t000[0])*(t101[1]-t100[1])
-               - (t100[1]-t000[1])*(t101[0]-t100[0]) )
-                *(t110[2]-t100[2])  ) > 0;
-      for (int k=0; k<LengthZ-1; k++) {
-        for (int j=0; j<LengthY-1; j++) {
-          for (int i=0; i<LengthX-1; i++) {
-            float[] v000 = new float[3];
-            float[] v100 = new float[3];
-            float[] v010 = new float[3];
-            float[] v001 = new float[3];
-            float[] v110 = new float[3];
-            float[] v101 = new float[3];
-            float[] v011 = new float[3];
-            float[] v111 = new float[3];
-            for (int v=0; v<3; v++) {
-              int zadd = LengthY*LengthX;
-              int base = k*zadd + j*LengthX + i;
-              v000[v] = Samples[v][base];
-              v100[v] = Samples[v][base+1];
-              v010[v] = Samples[v][base+LengthX];
-              v001[v] = Samples[v][base+zadd];
-              v110[v] = Samples[v][base+LengthX+1];
-              v101[v] = Samples[v][base+zadd+1];
-              v011[v] = Samples[v][base+zadd+LengthX];
-              v111[v] = Samples[v][base+zadd+LengthX+1];
-            }
-            if (((  ( (v100[1]-v000[1])*(v101[2]-v100[2])    // test 1
-                    - (v100[2]-v000[2])*(v101[1]-v100[1]) )
-                     *(v110[0]-v100[0])  )
-               + (  ( (v100[2]-v000[2])*(v101[0]-v100[0])
-                    - (v100[0]-v000[0])*(v101[2]-v100[2]) )
-                     *(v110[1]-v100[1])  )
-               + (  ( (v100[0]-v000[0])*(v101[1]-v100[1])
-                    - (v100[1]-v000[1])*(v101[0]-v100[0]) )
-                     *(v110[2]-v100[2])  ) > 0 != Pos)
-             || ((  ( (v101[1]-v100[1])*(v001[2]-v101[2])    // test 2
-                    - (v101[2]-v100[2])*(v001[1]-v101[1]) )
-                     *(v111[0]-v101[0])  )
-               + (  ( (v101[2]-v100[2])*(v001[0]-v101[0])
-                    - (v101[0]-v100[0])*(v001[2]-v101[2]) )
-                     *(v111[1]-v101[1])  )
-               + (  ( (v101[0]-v100[0])*(v001[1]-v101[1])
-                    - (v101[1]-v100[1])*(v001[0]-v101[0]) )
-                     *(v111[2]-v101[2])  ) > 0 != Pos)
-             || ((  ( (v001[1]-v101[1])*(v000[2]-v001[2])    // test 3
-                    - (v001[2]-v101[2])*(v000[1]-v001[1]) )
-                     *(v011[0]-v001[0])  )
-               + (  ( (v001[2]-v101[2])*(v000[0]-v001[0])
-                    - (v001[0]-v101[0])*(v000[2]-v001[2]) )
-                     *(v011[1]-v001[1])  )
-               + (  ( (v001[0]-v101[0])*(v000[1]-v001[1])
-                    - (v001[1]-v101[1])*(v000[0]-v001[0]) )
-                     *(v011[2]-v001[2])  ) > 0 != Pos)
-             || ((  ( (v000[1]-v001[1])*(v100[2]-v000[2])    // test 4
-                    - (v000[2]-v001[2])*(v100[1]-v000[1]) )
-                     *(v010[0]-v000[0])  )
-               + (  ( (v000[2]-v001[2])*(v100[0]-v000[0])
-                    - (v000[0]-v001[0])*(v100[2]-v000[2]) )
-                     *(v010[1]-v000[1])  )
-               + (  ( (v000[0]-v001[0])*(v100[1]-v000[1])
-                    - (v000[1]-v001[1])*(v100[0]-v000[0]) )
-                     *(v010[2]-v000[2])  ) > 0 != Pos)
-             || ((  ( (v110[1]-v111[1])*(v010[2]-v110[2])    // test 5
-                    - (v110[2]-v111[2])*(v010[1]-v110[1]) )
-                     *(v100[0]-v110[0])  )
-               + (  ( (v110[2]-v111[2])*(v010[0]-v110[0])
-                    - (v110[0]-v111[0])*(v010[2]-v110[2]) )
-                     *(v100[1]-v110[1])  )
-               + (  ( (v110[0]-v111[0])*(v010[1]-v110[1])
-                    - (v110[1]-v111[1])*(v010[0]-v110[0]) )
-                     *(v100[2]-v110[2])  ) > 0 != Pos)
-             || ((  ( (v111[1]-v011[1])*(v110[2]-v111[2])    // test 6
-                    - (v111[2]-v011[2])*(v110[1]-v111[1]) )
-                     *(v101[0]-v111[0])  )
-               + (  ( (v111[2]-v011[2])*(v110[0]-v111[0])
-                    - (v111[0]-v011[0])*(v110[2]-v111[2]) )
-                     *(v101[1]-v111[1])  )
-               + (  ( (v111[0]-v011[0])*(v110[1]-v111[1])
-                    - (v111[1]-v011[1])*(v110[0]-v111[0]) )
-                     *(v101[2]-v111[2])  ) > 0 != Pos)
-             || ((  ( (v011[1]-v010[1])*(v111[2]-v011[2])    // test 7
-                    - (v011[2]-v010[2])*(v111[1]-v011[1]) )
-                     *(v001[0]-v011[0])  )
-               + (  ( (v011[2]-v010[2])*(v111[0]-v011[0])
-                    - (v011[0]-v010[0])*(v111[2]-v011[2]) )
-                     *(v001[1]-v011[1])  )
-               + (  ( (v011[0]-v010[0])*(v111[1]-v011[1])
-                    - (v011[1]-v010[1])*(v111[0]-v011[0]) )
-                     *(v001[2]-v011[2])  ) > 0 != Pos)
-             || ((  ( (v010[1]-v110[1])*(v011[2]-v010[2])    // test 8
-                    - (v010[2]-v110[2])*(v011[1]-v010[1]) )
-                     *(v000[0]-v010[0])  )
-               + (  ( (v010[2]-v110[2])*(v011[0]-v010[0])
-                    - (v010[0]-v110[0])*(v011[2]-v010[2]) )
-                     *(v000[1]-v010[1])  )
-               + (  ( (v010[0]-v110[0])*(v011[1]-v010[1])
-                    - (v010[1]-v110[1])*(v011[0]-v010[0]) )
-                     *(v000[2]-v010[2])  ) > 0 != Pos)) {
-              throw new SetException("Gridded3DSet: samples do not form "
-                                     +"a valid grid ("+i+","+j+","+k+")");
+      if (test) {
+        // Samples consistency test
+        float[] t000 = new float[3];
+        float[] t100 = new float[3];
+        float[] t010 = new float[3];
+        float[] t001 = new float[3];
+        float[] t110 = new float[3];
+        float[] t101 = new float[3];
+        float[] t011 = new float[3];
+        float[] t111 = new float[3];
+        for (int v=0; v<3; v++) {
+          t000[v] = Samples[v][0];
+          t100[v] = Samples[v][1];
+          t010[v] = Samples[v][LengthX];
+          t001[v] = Samples[v][LengthY*LengthX];
+          t110[v] = Samples[v][LengthX+1];
+          t101[v] = Samples[v][LengthY*LengthX+1];
+          t011[v] = Samples[v][(LengthY+1)*LengthX];
+          t111[v] = Samples[v][(LengthY+1)*LengthX+1];
+        }
+        Pos = (  ( (t100[1]-t000[1])*(t101[2]-t100[2])
+                 - (t100[2]-t000[2])*(t101[1]-t100[1]) )
+                  *(t110[0]-t100[0])  )
+            + (  ( (t100[2]-t000[2])*(t101[0]-t100[0])
+                 - (t100[0]-t000[0])*(t101[2]-t100[2]) )
+                  *(t110[1]-t100[1])  )
+            + (  ( (t100[0]-t000[0])*(t101[1]-t100[1])
+                 - (t100[1]-t000[1])*(t101[0]-t100[0]) )
+                  *(t110[2]-t100[2])  ) > 0;
+        for (int k=0; k<LengthZ-1; k++) {
+          for (int j=0; j<LengthY-1; j++) {
+            for (int i=0; i<LengthX-1; i++) {
+              float[] v000 = new float[3];
+              float[] v100 = new float[3];
+              float[] v010 = new float[3];
+              float[] v001 = new float[3];
+              float[] v110 = new float[3];
+              float[] v101 = new float[3];
+              float[] v011 = new float[3];
+              float[] v111 = new float[3];
+              for (int v=0; v<3; v++) {
+                int zadd = LengthY*LengthX;
+                int base = k*zadd + j*LengthX + i;
+                v000[v] = Samples[v][base];
+                v100[v] = Samples[v][base+1];
+                v010[v] = Samples[v][base+LengthX];
+                v001[v] = Samples[v][base+zadd];
+                v110[v] = Samples[v][base+LengthX+1];
+                v101[v] = Samples[v][base+zadd+1];
+                v011[v] = Samples[v][base+zadd+LengthX];
+                v111[v] = Samples[v][base+zadd+LengthX+1];
+              }
+              if (((  ( (v100[1]-v000[1])*(v101[2]-v100[2])    // test 1
+                      - (v100[2]-v000[2])*(v101[1]-v100[1]) )
+                       *(v110[0]-v100[0])  )
+                 + (  ( (v100[2]-v000[2])*(v101[0]-v100[0])
+                      - (v100[0]-v000[0])*(v101[2]-v100[2]) )
+                       *(v110[1]-v100[1])  )
+                 + (  ( (v100[0]-v000[0])*(v101[1]-v100[1])
+                      - (v100[1]-v000[1])*(v101[0]-v100[0]) )
+                       *(v110[2]-v100[2])  ) > 0 != Pos)
+               || ((  ( (v101[1]-v100[1])*(v001[2]-v101[2])    // test 2
+                      - (v101[2]-v100[2])*(v001[1]-v101[1]) )
+                       *(v111[0]-v101[0])  )
+                 + (  ( (v101[2]-v100[2])*(v001[0]-v101[0])
+                      - (v101[0]-v100[0])*(v001[2]-v101[2]) )
+                       *(v111[1]-v101[1])  )
+                 + (  ( (v101[0]-v100[0])*(v001[1]-v101[1])
+                      - (v101[1]-v100[1])*(v001[0]-v101[0]) )
+                       *(v111[2]-v101[2])  ) > 0 != Pos)
+               || ((  ( (v001[1]-v101[1])*(v000[2]-v001[2])    // test 3
+                      - (v001[2]-v101[2])*(v000[1]-v001[1]) )
+                       *(v011[0]-v001[0])  )
+                 + (  ( (v001[2]-v101[2])*(v000[0]-v001[0])
+                      - (v001[0]-v101[0])*(v000[2]-v001[2]) )
+                       *(v011[1]-v001[1])  )
+                 + (  ( (v001[0]-v101[0])*(v000[1]-v001[1])
+                      - (v001[1]-v101[1])*(v000[0]-v001[0]) )
+                       *(v011[2]-v001[2])  ) > 0 != Pos)
+               || ((  ( (v000[1]-v001[1])*(v100[2]-v000[2])    // test 4
+                      - (v000[2]-v001[2])*(v100[1]-v000[1]) )
+                       *(v010[0]-v000[0])  )
+                 + (  ( (v000[2]-v001[2])*(v100[0]-v000[0])
+                      - (v000[0]-v001[0])*(v100[2]-v000[2]) )
+                       *(v010[1]-v000[1])  )
+                 + (  ( (v000[0]-v001[0])*(v100[1]-v000[1])
+                      - (v000[1]-v001[1])*(v100[0]-v000[0]) )
+                       *(v010[2]-v000[2])  ) > 0 != Pos)
+               || ((  ( (v110[1]-v111[1])*(v010[2]-v110[2])    // test 5
+                      - (v110[2]-v111[2])*(v010[1]-v110[1]) )
+                       *(v100[0]-v110[0])  )
+                 + (  ( (v110[2]-v111[2])*(v010[0]-v110[0])
+                      - (v110[0]-v111[0])*(v010[2]-v110[2]) )
+                       *(v100[1]-v110[1])  )
+                 + (  ( (v110[0]-v111[0])*(v010[1]-v110[1])
+                      - (v110[1]-v111[1])*(v010[0]-v110[0]) )
+                       *(v100[2]-v110[2])  ) > 0 != Pos)
+               || ((  ( (v111[1]-v011[1])*(v110[2]-v111[2])    // test 6
+                      - (v111[2]-v011[2])*(v110[1]-v111[1]) )
+                       *(v101[0]-v111[0])  )
+                 + (  ( (v111[2]-v011[2])*(v110[0]-v111[0])
+                      - (v111[0]-v011[0])*(v110[2]-v111[2]) )
+                       *(v101[1]-v111[1])  )
+                 + (  ( (v111[0]-v011[0])*(v110[1]-v111[1])
+                      - (v111[1]-v011[1])*(v110[0]-v111[0]) )
+                       *(v101[2]-v111[2])  ) > 0 != Pos)
+               || ((  ( (v011[1]-v010[1])*(v111[2]-v011[2])    // test 7
+                      - (v011[2]-v010[2])*(v111[1]-v011[1]) )
+                       *(v001[0]-v011[0])  )
+                 + (  ( (v011[2]-v010[2])*(v111[0]-v011[0])
+                      - (v011[0]-v010[0])*(v111[2]-v011[2]) )
+                       *(v001[1]-v011[1])  )
+                 + (  ( (v011[0]-v010[0])*(v111[1]-v011[1])
+                      - (v011[1]-v010[1])*(v111[0]-v011[0]) )
+                       *(v001[2]-v011[2])  ) > 0 != Pos)
+               || ((  ( (v010[1]-v110[1])*(v011[2]-v010[2])    // test 8
+                      - (v010[2]-v110[2])*(v011[1]-v010[1]) )
+                       *(v000[0]-v010[0])  )
+                 + (  ( (v010[2]-v110[2])*(v011[0]-v010[0])
+                      - (v010[0]-v110[0])*(v011[2]-v010[2]) )
+                       *(v000[1]-v010[1])  )
+                 + (  ( (v010[0]-v110[0])*(v011[1]-v010[1])
+                      - (v010[1]-v110[1])*(v011[0]-v010[0]) )
+                       *(v000[2]-v010[2])  ) > 0 != Pos)) {
+                throw new SetException("Gridded3DSet: samples do not form "
+                                       +"a valid grid ("+i+","+j+","+k+")");
+              }
             }
           }
         }
-      }
+      } // end if (test)
     }
   }
 
