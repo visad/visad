@@ -171,35 +171,39 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       throw new RemoteVisADException("DisplayImpl.addReference: requires " +
                                      "DataReferenceImpl");
     }
-    if (findReference(ref) != null) {
-      throw new TypeException("DisplayImpl.addReference: link already exists");
+    synchronized (mapslock) {
+      if (findReference(ref) != null) {
+        throw new TypeException("DisplayImpl.addReference: link already exists");
+      }
+      DataRenderer renderer = displayRenderer.makeDefaultRenderer();
+      DataDisplayLink[] links = {new DataDisplayLink(ref, this, this, constant_maps,
+                                                     renderer, getLinkId())};
+      addLink(links[0]);
+      renderer.setLinks(links, this);
+      RendererVector.addElement(renderer);
+      initialize = true;
+      notifyAction();
     }
-    DataRenderer renderer = displayRenderer.makeDefaultRenderer();
-    DataDisplayLink[] links = {new DataDisplayLink(ref, this, this, constant_maps,
-                                                   renderer, getLinkId())};
-    addLink(links[0]);
-    renderer.setLinks(links, this);
-    RendererVector.addElement(renderer);
-    initialize = true;
-    notifyAction();
   }
 
   /** method for use by RemoteActionImpl.addReference that adapts this
       ActionImpl */
   void adaptedAddReference(RemoteDataReference ref, RemoteDisplay display,
        ConstantMap[] constant_maps) throws VisADException, RemoteException {
-    if (findReference(ref) != null) {
-      throw new TypeException("DisplayImpl.adaptedAddReference: " +
-                              "link already exists");
+    synchronized (mapslock) {
+      if (findReference(ref) != null) {
+        throw new TypeException("DisplayImpl.adaptedAddReference: " +
+                                "link already exists");
+      }
+      DataRenderer renderer = displayRenderer.makeDefaultRenderer();
+      DataDisplayLink[] links = {new DataDisplayLink(ref, this, display, constant_maps,
+                                                     renderer, getLinkId())};
+      addLink(links[0]);
+      renderer.setLinks(links, this);
+      RendererVector.addElement(renderer);
+      initialize = true;
+      notifyAction();
     }
-    DataRenderer renderer = displayRenderer.makeDefaultRenderer();
-    DataDisplayLink[] links = {new DataDisplayLink(ref, this, display, constant_maps,
-                                                   renderer, getLinkId())};
-    addLink(links[0]);
-    renderer.setLinks(links, this);
-    RendererVector.addElement(renderer);
-    initialize = true;
-    notifyAction();
   }
 
   /** signature for addReferences with one DataReference and
@@ -240,29 +244,31 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       throw new DisplayException("DisplayImpl.addReferences: illegal " +
                                  "DataRenderer class");
     }
-    DataDisplayLink[] links = new DataDisplayLink[refs.length];
-    for (int i=0; i< refs.length; i++) {
-      if (!(refs[i] instanceof DataReferenceImpl)) {
-        throw new RemoteVisADException("DisplayImpl.addReferences: requires " +
-                                       "DataReferenceImpl");
+    synchronized (mapslock) {
+      DataDisplayLink[] links = new DataDisplayLink[refs.length];
+      for (int i=0; i< refs.length; i++) {
+        if (!(refs[i] instanceof DataReferenceImpl)) {
+          throw new RemoteVisADException("DisplayImpl.addReferences: requires " +
+                                         "DataReferenceImpl");
+        }
+        if (findReference(refs[i]) != null) {
+          throw new TypeException("DisplayImpl.addReferences: link already exists");
+        }
+        if (constant_maps == null) {
+          links[i] = new DataDisplayLink(refs[i], this, this, null,
+                                         renderer, getLinkId());
+        }
+        else {
+          links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
+                                         renderer, getLinkId());
+        }
+        addLink(links[i]);
       }
-      if (findReference(refs[i]) != null) {
-        throw new TypeException("DisplayImpl.addReferences: link already exists");
-      }
-      if (constant_maps == null) {
-        links[i] = new DataDisplayLink(refs[i], this, this, null,
-                                       renderer, getLinkId());
-      }
-      else {
-        links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
-                                       renderer, getLinkId());
-      }
-      addLink(links[i]);
+      renderer.setLinks(links, this);
+      RendererVector.addElement(renderer);
+      initialize = true;
+      notifyAction();
     }
-    renderer.setLinks(links, this);
-    RendererVector.addElement(renderer);
-    initialize = true;
-    notifyAction();
   }
 
   /** method for use by RemoteActionImpl.addReferences that adapts this
@@ -282,39 +288,41 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       throw new DisplayException("DisplayImpl.addReferences: illegal " +
                                  "DataRenderer class");
     }
-    DataDisplayLink[] links = new DataDisplayLink[refs.length];
-    for (int i=0; i< refs.length; i++) {
-      if (findReference(refs[i]) != null) {
-        throw new TypeException("DisplayImpl.addReferences: link already exists");
-      }
-      if (refs[i] instanceof DataReferenceImpl) {
-        // refs[i] is local
-        if (constant_maps == null) {
-          links[i] = new DataDisplayLink(refs[i], this, this, null,
-                                         renderer, getLinkId());
-        }   
-        else {
-          links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
-                                         renderer, getLinkId());
+    synchronized (mapslock) {
+      DataDisplayLink[] links = new DataDisplayLink[refs.length];
+      for (int i=0; i< refs.length; i++) {
+        if (findReference(refs[i]) != null) {
+          throw new TypeException("DisplayImpl.addReferences: link already exists");
         }
-      }
-      else {
-        // refs[i] is remote
-        if (constant_maps == null) {
-          links[i] = new DataDisplayLink(refs[i], this, display, null,
-                                         renderer, getLinkId());
-        }   
-        else {
-          links[i] = new DataDisplayLink(refs[i], this, display, constant_maps[i],
-                                         renderer, getLinkId());
+        if (refs[i] instanceof DataReferenceImpl) {
+          // refs[i] is local
+          if (constant_maps == null) {
+            links[i] = new DataDisplayLink(refs[i], this, this, null,
+                                           renderer, getLinkId());
+          }   
+          else {
+            links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
+                                           renderer, getLinkId());
+          }
         }
+        else {
+          // refs[i] is remote
+          if (constant_maps == null) {
+            links[i] = new DataDisplayLink(refs[i], this, display, null,
+                                           renderer, getLinkId());
+          }   
+          else {
+            links[i] = new DataDisplayLink(refs[i], this, display, constant_maps[i],
+                                           renderer, getLinkId());
+          }
+        }
+        addLink(links[i]);
       }
-      addLink(links[i]);
+      renderer.setLinks(links, this);
+      RendererVector.addElement(renderer);
+      initialize = true;
+      notifyAction();
     }
-    renderer.setLinks(links, this);
-    RendererVector.addElement(renderer);
-    initialize = true;
-    notifyAction();
   }
 
   /** remove link to a DataReference;
@@ -335,32 +343,36 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       mix of local and remote, we tolerate either here */
   void adaptedDisplayRemoveReference(DataReference ref)
        throws VisADException, RemoteException {
-    DataDisplayLink link = (DataDisplayLink) findReference(ref);
-    // don't throw an Exception if link is null: users may try to
-    // remove all DataReferences added by a call to addReferences
-    if (link == null) return;
-    DataRenderer renderer = link.getRenderer();
-    renderer.clearScene();
-    DataDisplayLink[] links = renderer.getLinks();
-    RendererVector.removeElement(renderer);
-    removeLinks(links);
-    initialize = true;
+    synchronized (mapslock) {
+      DataDisplayLink link = (DataDisplayLink) findReference(ref);
+      // don't throw an Exception if link is null: users may try to
+      // remove all DataReferences added by a call to addReferences
+      if (link == null) return;
+      DataRenderer renderer = link.getRenderer();
+      renderer.clearScene();
+      DataDisplayLink[] links = renderer.getLinks();
+      RendererVector.removeElement(renderer);
+      removeLinks(links);
+      initialize = true;
+    }
   }
 
   /** remove all DataReferences */
   public void removeAllReferences()
          throws VisADException, RemoteException {
-    synchronized (RendererVector) {
-      Enumeration renderers = RendererVector.elements();
-      while (renderers.hasMoreElements()) {
-        DataRenderer renderer = (DataRenderer) renderers.nextElement();
-        renderer.clearScene();
-        DataDisplayLink[] links = renderer.getLinks();
-        RendererVector.removeElement(renderer);
-        removeLinks(links);
+    synchronized (mapslock) {
+      synchronized (RendererVector) {
+        Enumeration renderers = RendererVector.elements();
+        while (renderers.hasMoreElements()) {
+          DataRenderer renderer = (DataRenderer) renderers.nextElement();
+          renderer.clearScene();
+          DataDisplayLink[] links = renderer.getLinks();
+          RendererVector.removeElement(renderer);
+          removeLinks(links);
+        }
       }
+      initialize = true;
     }
-    initialize = true;
   }
 
   /** used by Control-s to notify this DisplayImpl that

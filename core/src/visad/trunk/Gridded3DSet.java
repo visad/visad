@@ -1373,10 +1373,12 @@ public class Gridded3DSet extends GriddedSet {
     float[] g = fieldValues;
 
     // these are just estimates
-    int maxv1 = 2 * 2 * Length;
-    int maxv2 = Length;
+    int est = 4 * Length;
+    if (est < 10000) est = 10000;
+    int maxv2 = est;
+    int maxv1 = 2 * 2 * maxv2;
     // maxv3 and maxv4 should be equal
-    int maxv3 = Length;
+    int maxv3 = est;
     int maxv4 = maxv3;
 
     int color_length = (color_values != null) ? color_values.length : 0;

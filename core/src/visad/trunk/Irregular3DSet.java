@@ -437,7 +437,8 @@ public class Irregular3DSet extends IrregularSet {
     if (npolygons < 1 || nvertex < 3) return null;
 
     // estimate number of vertices
-    int maxv = 2 * 2 * Length;
+    int maxv = 2 * 2 * 4 * Length;
+    if (maxv < 10000) maxv = 10000;
 
     int color_length = (color_values != null) ? color_values.length : 0;
     float[][] color_levels = null;
