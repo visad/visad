@@ -61,7 +61,7 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   // integral of wand_vector during left == true
   private float[] travel_position = new float[3];
   // wand button states
-  private boolean left, center, right;
+  private boolean left = false, center = false, right = false;
   // previous right wand button state
   private boolean last_right;
 
