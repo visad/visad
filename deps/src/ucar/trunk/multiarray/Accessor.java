@@ -1,8 +1,23 @@
+// $Id: Accessor.java,v 1.1.1.4 2000-08-28 21:54:42 dglo Exp $
 /*
- * Copyright 1997, University Corporation for Atmospheric Research
- * See COPYRIGHT file for copying and redistribution conditions.
+ * Copyright 1997-2000 Unidata Program Center/University Corporation for
+ * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
+ * support@unidata.ucar.edu.
+ * 
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
-
 package ucar.multiarray;
 import java.io.IOException;
 
@@ -41,7 +56,7 @@ import java.io.IOException;
  * @see MultiArray
  * @see RemoteAccessor
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:19 $
+ * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:54:42 $
  */
 public interface
 Accessor
@@ -233,6 +248,7 @@ Accessor
 	 * @param origin int array specifying the starting index.
 	 * @param shape  int array specifying the extents in each
 	 *	dimension. This becomes the shape of the return.
+	 * @return the MultiArray with the specified shape
 	 */
 	public MultiArray
 	copyout(int [] origin, int [] shape)
@@ -275,6 +291,9 @@ Accessor
 		int [] shape = getDimensions();
 		return toArray(anArray, origin, shape);
 	 * </pre>
+	 *
+	 * @return a one dimensional Array containing all the elements
+	 * in this MultiArray
 	 */
 	public Object
 	toArray()
@@ -306,6 +325,8 @@ Accessor
 	 * NOTE: Implementation of type conversion is deferred until
 	 * JDK 1.2. Currently, the componentType of <code>anArray</code>
 	 * must be the same as <code>this</code>
+	 *
+	 * @return a one dimensional Array containing the specified elements
 	 */
 	public Object
 	toArray(Object anArray, int [] origin, int [] shape)
