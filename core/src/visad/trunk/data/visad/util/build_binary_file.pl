@@ -1,13 +1,35 @@
 #!/usr/local/bin/perl -w
 #
 # Build a BinaryFile.java file using data in the
-# 'datas', 'flds', 'maths' and 'objs' files, which
-# correspond to the DATA_*, FLD_*, MATH_* and OBJ_*
+# 'datas', 'flds', 'maths', 'objs', and 'debugs' files, which
+# correspond to the DATA_*, FLD_*, MATH_*, OBJ_*, and DEBUG_*
 # constants.
 
 use strict;
 
 sub print_header {
+  print "/*\n";
+  print "VisAD system for interactive analysis and visualization of numerical\n";
+  print "data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom\n";
+  print "Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and\n";
+  print "Tommy Jasmin.\n";
+  print "\n";
+  print "This library is free software; you can redistribute it and/or\n";
+  print "modify it under the terms of the GNU Library General Public\n";
+  print "License as published by the Free Software Foundation; either\n";
+  print "version 2 of the License, or (at your option) any later version.\n";
+  print "\n";
+  print "This library is distributed in the hope that it will be useful,\n";
+  print "but WITHOUT ANY WARRANTY; without even the implied warranty of\n";
+  print "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU\n";
+  print "Library General Public License for more details.\n";
+  print "\n";
+  print "You should have received a copy of the GNU Library General Public\n";
+  print "License along with this library; if not, write to the Free\n";
+  print "Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,\n";
+  print "MA 02111-1307, USA\n";
+  print "*/\n";
+  print "\n";
   print "package visad.data.visad;\n";
   print "\n";
   print "/**\n";
@@ -35,12 +57,17 @@ sub print_header {
 sub print_file {
   my $fileName = shift;
   my $prefix = shift;
+  my $type = shift;
 
   if (!open(FILE, $fileName)) {
     print STDERR "Couldn't open '$fileName'\n";
     return;
   }
   print "\n";
+
+  if (!defined($type)) {
+    $type = 'byte';
+  }
 
   my $num = 1;
   while (<FILE>) {
@@ -58,8 +85,15 @@ sub print_file {
       my $comment = '';
       $comment = '// ' if (s/^\/\/\s+//);
 
-      print '  ',$comment,'byte ',$prefix,'_',$_,' = ',$num,";\n";
-      $num++;
+      my $val;
+      if ($type eq 'boolean') {
+        $val = 'false';
+      } else {
+        $val = $num;
+        $num++;
+      }
+
+      print '  ',$comment,$type,' ',$prefix,'_',$_,' = ',$val,";\n";
     }
   }
 
@@ -75,6 +109,7 @@ print_file('objs', 'OBJ');
 print_file('flds', 'FLD');
 print_file('maths', 'MATH');
 print_file('datas', 'DATA');
+print_file('debugs', 'DEBUG', 'boolean');
 print_footer;
 
 exit 0;

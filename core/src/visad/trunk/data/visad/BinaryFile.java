@@ -114,12 +114,12 @@ public interface BinaryFile
   byte DATA_FIELD = 20;
   byte DATA_FLAT_FIELD = 21;
 
-  byte DATA_SET = 30;
-  byte DATA_SIMPLE_SET = 31;
+  // byte DATA_SET = 30;
+  // byte DATA_SIMPLE_SET = 31;
   byte DATA_DOUBLE_SET = 32;
   byte DATA_FLOAT_SET = 33;
   byte DATA_LIST1D_SET = 34;
-  byte DATA_SAMPLED_SET = 35;
+  // byte DATA_SAMPLED_SET = 35;
   byte DATA_SINGLETON_SET = 36;
   byte DATA_UNION_SET = 37;
   byte DATA_PRODUCT_SET = 38;
@@ -143,4 +143,22 @@ public interface BinaryFile
   byte DATA_INTEGER_2D_SET = 56;
   byte DATA_INTEGER_3D_SET = 57;
   byte DATA_INTEGER_ND_SET = 58;
+
+  boolean DEBUG_RD_CSYS = false;
+  boolean DEBUG_RD_DATA = false;
+  boolean DEBUG_RD_DATA_DETAIL = false;
+  boolean DEBUG_RD_ERRE = false;
+  boolean DEBUG_RD_MATH = false;
+  boolean DEBUG_RD_STR = false;
+  boolean DEBUG_RD_TIME = false;
+  boolean DEBUG_RD_UNIT = false;
+
+  boolean DEBUG_WR_CSYS = false;
+  boolean DEBUG_WR_DATA = false;
+  boolean DEBUG_WR_DATA_DETAIL = false;
+  boolean DEBUG_WR_ERRE = false;
+  boolean DEBUG_WR_MATH = false;
+  boolean DEBUG_WR_STR = false;
+  boolean DEBUG_WR_TIME = false;
+  boolean DEBUG_WR_UNIT = false;
 }
