@@ -348,6 +348,10 @@ public class ArcAsciiGridAdapter {
 
       for (int row = 0; row < numRows; row++) {
         if ((line = in.readLine()) != null) {
+          if (line.trim().equals("")) {  // account for blank lines
+             row--;
+             continue;
+          }
           StringTokenizer tok = new StringTokenizer(line);
           if (numColumns <= tok.countTokens()) {
             for (int col = 0; col < numColumns; col++) {
@@ -363,7 +367,9 @@ public class ArcAsciiGridAdapter {
               }
             }
           } else {
-            throw new VisADException("number of values > number of columns");
+            throw new VisADException(
+                "number of values ("+ tok.countTokens() + 
+                ") < number of columns (" + numColumns + ")");
           }
         }
       }
