@@ -26,9 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.ss;
 
 // JFC classes
-import javax.swing.JComponent;
-import javax.swing.JOptionPane;
-import javax.swing.JDialog;
+import javax.swing.*;
 
 // AWT packages
 import java.awt.*;
@@ -54,9 +52,6 @@ class FormulaCell extends CellImpl {
   boolean ShowErrors;
 
   private static final RealType CONSTANT = createConstant();
-
-  // WLH 3 Dec 98
-  private boolean delay = false;
 
   private static RealType createConstant() {
     RealType r;
@@ -154,15 +149,6 @@ class FormulaCell extends CellImpl {
   }
 
   public void doAction() {
-    // WLH 3 Dec 98
-    if (delay) {
-      try {
-        Thread.sleep(1000);
-      }
-      catch (InterruptedException e) {
-      }
-      delay = false;
-    }
     Data value = null;
     Data[] stack = new Data[PFormula.length];
     int sp = 0;
@@ -310,30 +296,21 @@ class FormulaCell extends CellImpl {
       catch (ClassCastException exc) {
         value = null;
         if (ShowErrors) {
-          JOptionPane.showMessageDialog(SSCell,
+          showMsg("Formula evaluation error",
             "One or more data objects are not of the correct type for " +
-            "an operation specified in the formula.",
-            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
-          // WLH 3 Dec 98
-          delay = true;
+            "an operation specified in the formula.");
         }
       }
       catch (VisADException exc) {
         value = null;
         if (ShowErrors) {
-          JOptionPane.showMessageDialog(SSCell, exc.toString(),
-            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
-          // WLH 3 Dec 98
-          delay = true;
+          showMsg("Formula evaluation error", exc.toString());
         }
       }
       catch (RemoteException exc) {
         value = null;
         if (ShowErrors) {
-          JOptionPane.showMessageDialog(SSCell, exc.toString(),
-            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
-          // WLH 3 Dec 98
-          delay = true;
+          showMsg("Formula evaluation error", exc.toString());
         }
       }
     }
@@ -344,18 +321,12 @@ class FormulaCell extends CellImpl {
       }
       catch (VisADException exc) {
         if (ShowErrors) {
-          JOptionPane.showMessageDialog(SSCell, "Unable to clear old data.",
-            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
-          // WLH 3 Dec 98
-          delay = true;
+          showMsg("Formula evaluation error", "Unable to clear old data.");
         }
       }
       catch (RemoteException exc) {
         if (ShowErrors) {
-          JOptionPane.showMessageDialog(SSCell, "Unable to clear old data.",
-            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
-          // WLH 3 Dec 98
-          delay = true;
+          showMsg("Formula evaluation error", "Unable to clear old data.");
         }
       }
       setX(true);
@@ -373,18 +344,12 @@ class FormulaCell extends CellImpl {
       }
       catch (VisADException exc) {
         if (ShowErrors) {
-          JOptionPane.showMessageDialog(SSCell, "Unable to display new data.",
-            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
-          // WLH 3 Dec 98
-          delay = true;
+          showMsg("Formula evaluation error", "Unable to display new data.");
         }
       }
       catch (RemoteException exc) {
         if (ShowErrors) {
-          JOptionPane.showMessageDialog(SSCell, "Unable to display new data.",
-            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
-          // WLH 3 Dec 98
-          delay = true;
+          showMsg("Formula evaluation error", "Unable to display new data.");
         }
       }
     }
@@ -402,10 +367,28 @@ class FormulaCell extends CellImpl {
   void setX(boolean value) {
     if (BigX == value) return;
     BigX = value;
-    if (BigX) SSCell.add(BigXCanvas);
-    else SSCell.remove(BigXCanvas);
-    SSCell.validate();
-    SSCell.repaint();
+
+    // queue up action in event dispatch thread
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        if (BigX) SSCell.add(BigXCanvas);
+        else SSCell.remove(BigXCanvas);
+        SSCell.validate();
+        SSCell.repaint();
+      }
+    });
+  }
+
+  void showMsg(String title, String msg) {
+    final String t = title;
+    final String m = msg;
+
+    // queue up action in event dispatch thread
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        JOptionPane.showMessageDialog(SSCell, m, t, JOptionPane.ERROR_MESSAGE);
+      }
+    });
   }
 
 }
