@@ -123,7 +123,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
           }
           else {
             // unknown flag
-            System.out.println("Unknown option: " + argv[ix]);
+            if (!argv[ix].equals("-help")) {
+              System.out.println("Unknown option: " + argv[ix]);
+            }
             System.out.println(usage);
             System.exit(1);
           }
@@ -816,16 +818,24 @@ public class SpreadSheet extends JFrame implements ActionListener,
     String[] fileStrings = new String[DisplayCells.length];
     try {
       FileReader fr = new FileReader(f);
-      char[] buff = new char[1024];
       int i = 0;
-      while (fr.read(buff, 0, buff.length) != -1) {
-        fileStrings[i++] = new String(buff);
+      char[] buff = new char[8192];
+      boolean done = false;
+      while (i < DisplayCells.length) {
+        int count = 0;
+        int lncnt = 0;
+        while (lncnt < 5) {
+          int ch = fr.read();
+          buff[count++] = (char) ch;
+          if (ch == '\n') lncnt++;
+        }
+        fileStrings[i++] = new String(buff, 0, count);
       }
       fr.close();
     }
     catch (IOException exc) {
       JOptionPane.showMessageDialog(this,
-          "The file "+file+" could not be loaded",
+          "The file " + file + " could not be loaded",
           "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       return;
     }
@@ -865,8 +875,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         FileWriter fw = new FileWriter(CurrentFile);
         for (int i=0; i<DisplayCells.length; i++) {
           String s = DisplayCells[i].getSSCellString();
-          char[] sc = new char[1024];
-          s.getChars(0, s.length(), sc, 0);
+          char[] sc = s.toCharArray();
           fw.write(sc, 0, sc.length);
         }
         fw.close();
