@@ -786,7 +786,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                   break;
                 }
                 if (ttci instanceof RealType) {
-                  a = (RealType) range;
+                  a = (RealType) ttci;
                   break;
                 }
               }
