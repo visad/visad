@@ -156,6 +156,18 @@ public class MeasureList {
   public Vector getLines() { return lines; }
 
 
+  // -- INTERNAL API METHODS --
+
+  /** Refreshes the associated measurement pools if this list is current. */
+  void refreshPools(boolean reconstruct) {
+    if (isCurrent) {
+      bio.mm.pool2.refresh(reconstruct);
+      if (bio.mm.pool3 != null) bio.mm.pool3.refresh(reconstruct);
+    }
+    bio.mm.changed = true;
+  }
+
+
   // -- HELPER METHODS --
 
   /** Removes measurements from the measurement pool. */
@@ -196,15 +208,6 @@ public class MeasureList {
       bio.mm.pool3.release(point);
     }
     points.remove(point);
-  }
-
-  /** Refreshes the associated measurement pools if this list is current. */
-  private void refreshPools(boolean reconstruct) {
-    if (isCurrent) {
-      bio.mm.pool2.refresh(reconstruct);
-      if (bio.mm.pool3 != null) bio.mm.pool3.refresh(reconstruct);
-    }
-    bio.mm.changed = true;
   }
 
 }

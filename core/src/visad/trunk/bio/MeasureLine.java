@@ -77,6 +77,13 @@ public class MeasureLine extends MeasureThing {
 
   // -- API METHODS --
 
+  /** Sets the line's color to match the given one. */
+  public void setColor(Color color) {
+    this.color = color;
+    ep1.refreshColor();
+    ep2.refreshColor();
+  }
+
   /** Sets the line's standard id to match the given id. */
   public void setStdId(int stdId) {
     this.stdId = stdId;

@@ -37,6 +37,9 @@ public class MeasurePoint extends MeasureThing {
   /** Coordinates of this endpoint. */
   double x, y, z;
 
+  /** Preferred color of this endpoint. */
+  Color preferredColor;
+
   /** The number of times this endpoint is selected. */
   int selected;
 
@@ -64,6 +67,7 @@ public class MeasurePoint extends MeasureThing {
     this.x = x;
     this.y = y;
     this.z = z;
+    this.preferredColor = color;
     this.color = color;
     this.group = group;
     lines = new Vector();
@@ -78,6 +82,7 @@ public class MeasurePoint extends MeasureThing {
     x = point.x;
     y = point.y;
     this.z = z;
+    preferredColor = point.preferredColor;
     color = point.color;
     group = point.group;
     lines = new Vector();
@@ -88,7 +93,13 @@ public class MeasurePoint extends MeasureThing {
 
   // -- API METHODS --
 
-  /** Sets the line's standard id to match the given id. */
+  /** Sets the point's preferred color to the given one. */
+  public void setColor(Color color) {
+    preferredColor = color;
+    refreshColor();
+  }
+
+  /** Sets the point's standard id to match the given id. */
   public void setStdId(int stdId) { this.stdId = stdId; }
 
   /** Sets the coordinates of the endpoint to match those given. */
@@ -99,6 +110,23 @@ public class MeasurePoint extends MeasureThing {
     this.z = z;
     for (int i=0; i<pt.length; i++) {
       if (pt[i] != null && pt[i] != p) pt[i].refresh();
+    }
+  }
+
+  /** Sets the point's color to match its associated lines. */
+  public void refreshColor() {
+    if (lines.isEmpty()) color = preferredColor;
+    else {
+      int size = lines.size();
+      Color c = ((MeasureLine) lines.elementAt(0)).color;
+      for (int i=1; i<size; i++) {
+        MeasureLine line = (MeasureLine) lines.elementAt(i);
+        if (line.color != c) {
+          color = Color.white;
+          return;
+        }
+      }
+      color = c;
     }
   }
 

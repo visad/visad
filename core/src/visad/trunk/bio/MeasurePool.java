@@ -157,17 +157,19 @@ public class MeasurePool implements DisplayListener {
 
     lineCell = new CellImpl() {
       public void doAction() {
-        // redraw line segments when endpoints change
+        // redraw colored lines and points when endpoints change
         if (lineRenderer == null) return;
         Vector solidStrips = new Vector();
         Vector dashedStrips = new Vector();
+        Vector pointStrips = new Vector();
         Vector solidColors = new Vector();
         Vector dashedColors = new Vector();
+        Vector pointColors = new Vector();
 
         // compute list of line strips
         Vector lines = list.getLines();
-        int size = lines.size();
-        for (int i=0; i<size; i++) {
+        int lsize = lines.size();
+        for (int i=0; i<lsize; i++) {
           MeasureLine line = (MeasureLine) lines.elementAt(i);
 
           // ensure at least one endpoint is on this slice
@@ -187,45 +189,25 @@ public class MeasurePool implements DisplayListener {
           }
 
           // check for any needed X's
-          if (dim == 2) {
-            double xRange = Math.abs(bio.sm.max_x - bio.sm.min_x);
-            double yRange = Math.abs(bio.sm.max_y - bio.sm.min_y);
-            double x_width = 0.05 * (xRange < yRange ? xRange : yRange);
-            for (int j=0; j<2; j++) {
-              double x, y, z;
-              if (j == 0) {
-                x = line.ep1.x;
-                y = line.ep1.y;
-                z = line.ep1.z;
-              }
-              else {
-                x = line.ep2.x;
-                y = line.ep2.y;
-                z = line.ep2.z;
-              }
-              if (z == slice) continue;
-              float[][] samples1 = {
-                {(float) (x - x_width), (float) (x + x_width)},
-                {(float) (y - x_width), (float) (y + x_width)}
-              };
-              float[][] samples2 = {
-                {(float) (x - x_width), (float) (x + x_width)},
-                {(float) (y + x_width), (float) (y - x_width)}
-              };
-              try {
-                solidStrips.add(new Gridded2DSet(bio.sm.domain2,
-                  samples1, 2, null, null, null, false));
-                solidStrips.add(new Gridded2DSet(bio.sm.domain2,
-                  samples2, 2, null, null, null, false));
-                for (int k=0; k<4; k++) solidColors.add(Color.white);
-              }
-              catch (VisADException exc) { exc.printStackTrace(); }
-            }
-          }
+          if (dim == 2) doXs(line, solidStrips, solidColors);
+        }
+
+        // compute list of point strips
+        Vector points = list.getPoints();
+        int psize = points.size();
+        for (int i=0; i<psize; i++) {
+          MeasurePoint point = (MeasurePoint) points.elementAt(i);
+
+          // ensure endpoint is on this slice
+          if (dim == 2 && point.z != slice) continue;
+
+          pointStrips.add(point);
+          pointColors.add(point.selected > 0 ? Color.yellow : point.color);
         }
 
         doLines(solidStrips, solidColors, solidLines, lineRenderer);
         doLines(dashedStrips, dashedColors, dashedLines, dashedRenderer);
+        doPoints(pointStrips, pointColors, coloredPoints, pointRenderer);
       }
     };
 
@@ -273,7 +255,7 @@ public class MeasurePool implements DisplayListener {
           // warn user if standard points are involved
           if (stdPts) {
             JOptionPane.showMessageDialog(bio, "Some points within the " +
-              "merge box are standard, and will not be merged", "Warning",
+              "merge box are standard and will not be merged.", "Warning",
               JOptionPane.WARNING_MESSAGE);
           }
 
@@ -314,12 +296,13 @@ public class MeasurePool implements DisplayListener {
               else j++;
             }
           }
+          merged.refreshColor();
 
           if (merged.lines.isEmpty()) {
             // add merged point back as a marker
             list.addMarker(merged, false);
           }
-          refresh(true);
+          list.refreshPools(true);
           bio.toolMeasure.setMerge(false);
         }
         else {
@@ -387,7 +370,9 @@ public class MeasurePool implements DisplayListener {
     pointRenderer = display.getDisplayRenderer().makeDefaultRenderer();
     pointRenderer.suppressExceptions(true);
     pointRenderer.toggle(false);
-    display.addReferences(pointRenderer, coloredPoints);
+    display.addReferences(pointRenderer, coloredPoints, new ConstantMap[] {
+      new ConstantMap(5.0f, Display.PointSize)
+    });
 
     // rubber band box
     if (dim == 2 && display instanceof DisplayImplJ3D) {
@@ -722,7 +707,7 @@ public class MeasurePool implements DisplayListener {
     pt.refresh();
   }
 
-  /** Converts a set of measurement endpoints into a gridded set. */
+  /** Converts a set of measurement endpoints into a VisAD set. */
   private GriddedSet doSet(MeasurePoint[] points) {
     float[][] samples = new float[dim][points.length];
     GriddedSet set = null;
@@ -749,20 +734,57 @@ public class MeasurePool implements DisplayListener {
     return set;
   }
 
+  /** Checks a line to see if an X must be placed over either endpoint. */
+  private void doXs(MeasureLine line, Vector strips, Vector colors) {
+    double xRange = Math.abs(bio.sm.max_x - bio.sm.min_x);
+    double yRange = Math.abs(bio.sm.max_y - bio.sm.min_y);
+    double x_width = 0.05 * (xRange < yRange ? xRange : yRange);
+    for (int j=0; j<2; j++) {
+      double x, y, z;
+      if (j == 0) {
+        x = line.ep1.x;
+        y = line.ep1.y;
+        z = line.ep1.z;
+      }
+      else {
+        x = line.ep2.x;
+        y = line.ep2.y;
+        z = line.ep2.z;
+      }
+      if (z == slice) return;
+      float[][] samples1 = {
+        {(float) (x - x_width), (float) (x + x_width)},
+        {(float) (y - x_width), (float) (y + x_width)}
+      };
+      float[][] samples2 = {
+        {(float) (x - x_width), (float) (x + x_width)},
+        {(float) (y + x_width), (float) (y - x_width)}
+      };
+      try {
+        strips.add(new Gridded2DSet(bio.sm.domain2,
+          samples1, 2, null, null, null, false));
+        strips.add(new Gridded2DSet(bio.sm.domain2,
+          samples2, 2, null, null, null, false));
+        for (int k=0; k<4; k++) colors.add(Color.white);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+    }
+  }
+
   /**
    * Converts a set of gridded sets with matching colors
    * into a field and updates the data reference accordingly.
    */
   private void doLines(Vector strips, Vector colors,
-    DataReferenceImpl lines, DataRenderer lineRenderer)
+    DataReferenceImpl ref, DataRenderer renderer)
   {
     int size = strips.size();
     if (size == 0) {
-      lineRenderer.toggle(false);
+      renderer.toggle(false);
       return;
     }
 
-    // compile line strips into UnionSet
+    // compile strips into UnionSet
     GriddedSet[] sets = new GriddedSet[size];
     strips.copyInto(sets);
     try {
@@ -771,7 +793,7 @@ public class MeasurePool implements DisplayListener {
       FunctionType function = new FunctionType(domain, bio.sm.colorRange);
       FlatField field = new FlatField(function, set);
 
-      // assign color values to line segments
+      // assign color values to segment endpoints
       int colorSize = colors.size();
       double[][] samples = new double[3][colorSize];
       for (int j=0; j<colorSize; j++) {
@@ -782,8 +804,80 @@ public class MeasurePool implements DisplayListener {
       }
       field.setSamples(samples, false);
 
-      lines.setData(field);
-      lineRenderer.toggle(true);
+      ref.setData(field);
+      renderer.toggle(true);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /**
+   * Converts a set of irregular sets with matching colors
+   * into a field and updates the data reference accordingly.
+   */
+  private void doPoints(Vector strips, Vector colors,
+    DataReferenceImpl ref, DataRenderer renderer)
+  {
+    int size = strips.size();
+    if (size == 0) {
+      renderer.toggle(false);
+      return;
+    }
+
+    try {
+      RealType index = RealType.getRealType("point_index");
+      RealType[] range_types;
+      if (dim == 2) {
+        range_types = new RealType[] {
+          bio.sm.dtypes[0],
+          bio.sm.dtypes[1],
+          SliceManager.RED_TYPE,
+          SliceManager.GREEN_TYPE,
+          SliceManager.BLUE_TYPE
+        };
+      }
+      else {
+        range_types = new RealType[] {
+          bio.sm.dtypes[0],
+          bio.sm.dtypes[1],
+          bio.sm.dtypes[2],
+          SliceManager.RED_TYPE,
+          SliceManager.GREEN_TYPE,
+          SliceManager.BLUE_TYPE
+        };
+      }
+      RealTupleType range = new RealTupleType(range_types);
+      FunctionType function = new FunctionType(index, range);
+      FlatField field = new FlatField(function, new Integer1DSet(size));
+
+      // assign values to data samples
+      double[][] samples = new double[dim + 3][size];
+      if (dim == 2) {
+        for (int j=0; j<size; j++) {
+          MeasurePoint point = (MeasurePoint) strips.elementAt(j);
+          Color color = (Color) colors.elementAt(j);
+          samples[0][j] = point.x;
+          samples[1][j] = point.y;
+          samples[2][j] = color.getRed();
+          samples[3][j] = color.getGreen();
+          samples[4][j] = color.getBlue();
+        }
+      }
+      else {
+        for (int j=0; j<size; j++) {
+          MeasurePoint point = (MeasurePoint) strips.elementAt(j);
+          Color color = (Color) colors.elementAt(j);
+          samples[0][j] = point.x;
+          samples[1][j] = point.y;
+          samples[2][j] = point.z;
+          samples[3][j] = color.getRed();
+          samples[4][j] = color.getGreen();
+          samples[5][j] = color.getBlue();
+        }
+      }
+      field.setSamples(samples, false);
+      ref.setData(field);
+      renderer.toggle(true);
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }

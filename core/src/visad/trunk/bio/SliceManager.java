@@ -44,19 +44,19 @@ public class SliceManager
   static final RealType Z_TYPE = RealType.getRealType("bio_line_z");
 
   /** RealType for mapping timestep values to animation. */
-  private static final RealType TIME_TYPE = RealType.getRealType("bio_time");
+  static final RealType TIME_TYPE = RealType.getRealType("bio_time");
 
   /** RealType for mapping slice values to select value and Z axis. */
-  private static final RealType SLICE_TYPE = RealType.getRealType("bio_slice");
+  static final RealType SLICE_TYPE = RealType.getRealType("bio_slice");
 
   /** RealType for mapping to Red. */
-  private static final RealType RED_TYPE = RealType.getRealType("bio_red");
+  static final RealType RED_TYPE = RealType.getRealType("bio_red");
 
   /** RealType for mapping to Green. */
-  private static final RealType GREEN_TYPE = RealType.getRealType("bio_green");
+  static final RealType GREEN_TYPE = RealType.getRealType("bio_green");
 
   /** RealType for mapping to Blue. */
-  private static final RealType BLUE_TYPE = RealType.getRealType("bio_blue");
+  static final RealType BLUE_TYPE = RealType.getRealType("bio_blue");
 
 
   // -- DATA TYPE INFORMATION --

@@ -43,6 +43,9 @@ public abstract class MeasureThing {
   /** Standard id tag. -1 if not a standard line. */
   int stdId = -1;
 
+  /** Sets the color of this measurement to match the given color. */
+  public abstract void setColor(Color color);
+
   /** Sets the standard id of this measurement to match the given id. */
   public abstract void setStdId(int stdId);
 

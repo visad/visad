@@ -372,7 +372,7 @@ public class MeasureToolPanel extends ToolPanel {
         for (int i=0; i<things.length; i++) {
           if (things[i].color != color) {
             changed = true;
-            things[i].color = color;
+            things[i].setColor(color);
           }
         }
         if (changed) {
