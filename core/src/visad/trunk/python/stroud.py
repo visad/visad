@@ -58,25 +58,34 @@ def makeBody():
   samples = []
   for i in range(3):
     samples.append(
-      [loc[i]-2*up[i], loc[i], loc[i]+up[i], loc[i]+2*up[i]+right[i],
-       loc[i]+2*up[i]-right[i], loc[i]+up[i]])
+      [loc[i]-2*up[i],
+       loc[i],
+       loc[i]+up[i],
+       loc[i]+2*up[i]+right[i],
+       loc[i]+2*up[i]-right[i],
+       loc[i]+up[i]])
   sets.append(Gridded3DSet(type, samples, len(samples[0])))
 
   # make arms
   samples = []
   for i in range(3):
     samples.append(
-      [loc[i]+up[i]-2*right[i]+2*arm*face[i], loc[i]-right[i]+arm*face[i],
+      [loc[i]+up[i]-2*right[i]+2*arm*face[i],
+       loc[i]-right[i]+arm*face[i],
        loc[i],
-       loc[i]+right[i]+arm*face[i], loc[i]+up[i]+2*right[i]+2*arm*face[i]])
+       loc[i]+right[i]+arm*face[i],
+       loc[i]+up[i]+2*right[i]+2*arm*face[i]])
   sets.append(Gridded3DSet(type, samples, len(samples[0])))
 
   # make legs
   samples = []
   for i in range(3):
     samples.append(
-      [loc[i]-4*up[i]-right[i], loc[i]-3*up[i]-right[i], loc[i]-2*up[i],
-       loc[i]-3*up[i]+right[i], loc[i]-4*up[i]+right[i]])
+      [loc[i]-4*up[i]-right[i],
+       loc[i]-3*up[i]-right[i],
+       loc[i]-2*up[i],
+       loc[i]-3*up[i]+right[i],
+       loc[i]-4*up[i]+right[i]])
   sets.append(Gridded3DSet(type, samples, len(samples[0])))
 
   set = UnionSet(type, sets)
