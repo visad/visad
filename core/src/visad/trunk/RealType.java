@@ -272,10 +272,20 @@ public class RealType extends ScalarType {
 
     // WLH 26 Aug 2001
     // return Name.equals(((RealType) type).Name);
-    return Name.equals(((RealType) type).Name) &&
-           DefaultUnit.equals(((RealType) type).DefaultUnit) &&
-           DefaultSet.equals(((RealType) type).DefaultSet) &&
-           attrMask == ((RealType) type).attrMask;
+    if (!Name.equals(((RealType) type).Name)) return false;
+    if (DefaultUnit == null) {
+      if (((RealType) type).DefaultUnit != null) return false;
+    }
+    else {
+      if (!DefaultUnit.equals(((RealType) type).DefaultUnit)) return false;
+    }
+    if (DefaultSet == null) {
+      if (((RealType) type).DefaultSet != null) return false;
+    }
+    else {
+      if (!DefaultSet.equals(((RealType) type).DefaultSet)) return false;
+    }
+    return attrMask == ((RealType) type).attrMask;
   }
 
   /** any two RealType-s are equal except Name */
