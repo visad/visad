@@ -367,7 +367,7 @@ public class FileFlatField extends FlatField {
     }
   }
 
-  public void combine( Field[] fields)
+  public Field combine( Field[] fields)
          throws VisADException, RemoteException
   {
     synchronized (adaptedFlatFields)
