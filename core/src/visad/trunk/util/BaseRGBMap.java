@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.8 2000-02-04 16:22:25 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.9 2000-02-04 20:11:40 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.8 $, $Date: 2000-02-04 16:22:25 $
+ * @version $Revision: 1.9 $, $Date: 2000-02-04 20:11:40 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -231,6 +231,7 @@ public class BaseRGBMap
       } else if (newVal.length > 4 && newVal[0].length >= 3 &&
                  newVal[0].length <= 4)
       {
+        final boolean newHasAlpha = newVal[0].length > 3;
         resolution = newVal.length;
         val = new float[resolution][hasAlpha ? 4 : 3];
         for (int i = 0; i < resolution; i++) {
@@ -238,12 +239,17 @@ public class BaseRGBMap
           val[i][1] = newVal[i][1];
           val[i][2] = newVal[i][2];
           if (hasAlpha) {
-            val[i][3] = newVal[i][3];
+            if (newHasAlpha) {
+              val[i][3] = newVal[i][3];
+            } else {
+              val[i][3] = 0.0f;
+            }
           }
         }
         newResolution = resolution-1;
       } else {
         // table is inverted
+        final boolean newHasAlpha = newVal.length > 3;
         resolution = newVal[0].length;
         val = new float[resolution][hasAlpha ? 4 : 3];
         for (int i = 0; i < resolution; i++) {
@@ -251,7 +257,11 @@ public class BaseRGBMap
           val[i][1] = newVal[1][i];
           val[i][2] = newVal[2][i];
           if (hasAlpha) {
-            val[i][3] = newVal[3][i];
+            if (newHasAlpha) {
+              val[i][3] = newVal[3][i];
+            } else {
+              val[i][3] = 0.0f;
+            }
           }
         }
         newResolution = resolution-1;
@@ -312,25 +322,22 @@ public class BaseRGBMap
   public float[] getTuple(float value) {
     synchronized (mutex_val) {
       float arrayIndex = value * (resolution - 1);
-      int index = (int) Math.floor(arrayIndex);
+      int index = (int )Math.floor(arrayIndex);
       float partial = arrayIndex - index;
+      boolean isPartial = (partial != 0);
 
       if (index >= resolution || index < 0 ||
-          (index == (resolution - 1) && partial != 0))
+          (index == (resolution - 1) && isPartial))
       {
-        float[] f;
         if (hasAlpha) {
-          float[] fx = {0,0,0,0};
-          f = fx;
+          return new float[] {0,0,0,0};
         } else {
-          float[] fx = {0,0,0};
-          f = fx;
+          return new float[] {0,0,0};
         }
-        return f;
       }
 
       float red, green, blue, alpha = 0.0F;
-      if (partial != 0) {
+      if (isPartial) {
         red = val[index][RED] * (1 - partial) +
           val[index+1][RED] * partial;
         green = val[index][GREEN] * (1 - partial) +
@@ -349,15 +356,12 @@ public class BaseRGBMap
           alpha = val[index][ALPHA];
         }
       }
-      float[] f;
+
       if (hasAlpha) {
-        float[] fx = {red, green, blue, alpha};
-        f = fx;
+        return new float[] {red, green, blue, alpha};
       } else {
-        float[] fx = {red, green, blue};
-        f = fx;
+        return new float[] {red, green, blue};
       }
-      return f;
     }
   }
 
@@ -399,8 +403,8 @@ public class BaseRGBMap
       right++;
     }
 
-    float start = (float) left / (float) (resolution - 1);
-    float end = (float) right + 1 / (float) (resolution - 1);
+    float start = (float )left / (float )(resolution - 1);
+    float end = (float )right + 1 / (float )(resolution - 1);
     sendUpdate(left, right);
     super.notifyListeners(new ColorChangeEvent(this, start, end));
 
@@ -468,7 +472,6 @@ public class BaseRGBMap
       return;
     }
 
-    int index = 0;
     int width = getBounds().width;
     int height = getBounds().height;
     int x = evt.getX();
@@ -476,28 +479,24 @@ public class BaseRGBMap
 
     if (x < 0)
       x = 0;
-
-    if (x >= width)
+    else if (x >= width)
       x = width - 1;
-
     if (y < 0)
       y = 0;
-
-    if (y >= height)
+    else if (y >= height)
       y = height - 1;
 
-    float dist = (float) x / (float) width;
+    int pos;
     synchronized (mutex_val) {
-      index = (int) Math.floor(dist * (resolution - 1) + 0.5);
-      val[index][state] = 1 - (float) y / (float) height;
+      float step = (float )(resolution - 1) / (float )width;
+      pos = (int )Math.floor(x * step + 0.5);
+      val[pos][state] = 1 - (float )y / (float )height;
     }
 
     oldX = x;
     oldY = y;
 
-    notifyListeners(index, index);
-
-
+    notifyListeners(pos, pos);
   }
 
   /**
@@ -545,73 +544,76 @@ public class BaseRGBMap
    */
   private void drag(int x, int y, int oldx, int oldy) {
 
+    int width = getBounds().width;
+    int height = getBounds().height;
+
+    // make sure x, y, oldx and oldy are all inside the window
     if (x < 0)
       x = 0;
-
-    if (x >= getBounds().width)
-      x = getBounds().width - 1;
-
+    else if (x >= width)
+      x = width - 1;
     if (y < 0)
       y = 0;
-
-    if (y >= getBounds().height)
-      y = getBounds().height - 1;
-
+    else if (y >= height)
+      y = height - 1;
     if (oldx < 0)
       oldx = 0;
-
-    if (oldx >= getBounds().width)
-      oldx = getBounds().width - 1;
-
+    else if (oldx >= width)
+      oldx = width - 1;
     if (oldy < 0)
       oldy = 0;
-
-    if (oldy >= getBounds().height)
-      oldy = getBounds().height - 1;
+    else if (oldy >= height)
+      oldy = height - 1;
 
 
     int notelow = -1;
     int notehi = -1;
     synchronized (mutex_val) {
-      float dist = (float) x / (float) (getBounds().width - 1);
-      int index = (int) Math.floor(dist * (resolution - 1) + 0.5);
+    float step = (float )(resolution - 1) / (float )width;
 
-      float oldDist = (float) oldx / (float) (getBounds().width - 1);
-      int oldPos = (int) Math.floor(oldDist * (resolution - 1) + 0.5);
+    int oldPos = (int )Math.floor((float )oldx * step + 0.5);
+    int newPos = (int )Math.floor((float )x * step + 0.5);
 
-      float oldVal = val[oldPos][state];
-      float target = 1 - (float) y / (float) (getBounds().height - 1);
+    float oldVal = 1 - (float )oldy / (float )(height - 1);
+    float newVal = 1 - (float )y / (float )(height - 1);
 
-      if (index > oldPos) {
-        for (int i = oldPos + 1; i <= index; i++) {
-          val[i][state] = oldVal * ((float) (index - i)) / ((float) (index - oldPos))
-            + target * ((float) (i - oldPos)) / ((float) (index - oldPos));
-        }
-        // notifyListeners(oldPos + 1, index);
-        // return;
-        notelow = oldPos + 1;
-        notehi = index;
+    if (x == oldx) {
+      val[newPos][state] = newVal;
+      notelow = notehi = newPos;
+    } else {
+
+      final int start, finish;
+      final float loVal, hiVal;
+      final int adj;
+
+      if (newPos > oldPos) {
+        start = oldPos;
+        finish = newPos;
+        loVal = newVal;
+        hiVal = oldVal;
+        adj = 1;
+      } else {
+        start = newPos;
+        finish = oldPos;
+        loVal = oldVal;
+        hiVal = newVal;
+        adj = 0;
       }
-      if (index < oldPos) {
-        for (int i = oldPos - 1; i >= index; i--) {
-          val[i][state] = oldVal * ((float) (i - index)) / ((float) (oldPos - index))
-            + target * ((float) (oldPos - i)) / ((float) (oldPos - index));
-        }
-        // notifyListeners(index, oldPos - 1);
-        // return;
-        notelow = index;
-        notehi = oldPos - 1;
+
+      final int total = finish - start;
+      for (int i = adj; i < total + adj; i++) {
+        float v = ((hiVal * (float )(total - i) + loVal * (float )i) /
+                   (float )total);
+        val[i + start][state] = v;
       }
-      if (index == oldPos) {
-        val[index][state] = target;
-        // notifyListeners(index, index);
-        // return;
-        notelow = index;
-        notehi = index;
-      }
+
+      notelow = start + adj;
+      notehi = finish + (1 - adj);
     }
-    if (notelow > -1 && notehi > -1) notifyListeners(notelow, notehi);
-    return;
+    }
+
+    if (notelow > -1 && notehi > -1)
+      notifyListeners(notelow, notehi);
   }
 
   /**
@@ -651,77 +653,85 @@ public class BaseRGBMap
    */
   public void update(Graphics g) {
 
-    // System.out.println("update");
     synchronized (mutex_val) {
 
+      final int maxRight = resolution - 1;
+
       int left = 0;
-      int right = resolution - 1;
+      int right = maxRight;
 
       synchronized (mutex) {
-        if (valLeft > valRight) return;
+        if (valLeft > valRight) {
+          return;
+        }
 
         left = valLeft;
         right = valRight;
 
-        valLeft = resolution - 1;
+        valLeft = maxRight;
         valRight = 0;
       }
 
-      Rectangle bounds = getBounds();
+      final int numColors = val.length - 1;
 
-      if (left != 0) {
-        left--;
+      if (left < 0) {
+        left = 0;
+      } else if (left > numColors) {
+        left = numColors;
+      }
+      if (right < 0) {
+        right = 0;
+      } else if (right > numColors) {
+        right = numColors;
       }
 
-      if (right != resolution - 1) {
+      if (left > 0) {
+        left--;
+      }
+      if (right < maxRight) {
         right++;
       }
 
-      int leftPixel = (left * (bounds.width - 1)) / (resolution - 1);
-      int rightPixel = (right * (bounds.width - 1)) / (resolution - 1);
+      final int maxWidth = getBounds().width - 1;
+      final int maxHeight = getBounds().height - 1;
+
+      int leftPixel = (left * maxWidth) / maxRight;
+      int rightPixel = (right * maxWidth) / maxRight;
 
       g.setColor(Color.black);
-      g.fillRect(leftPixel,0,rightPixel - leftPixel + 1, bounds.height);
+      g.fillRect(leftPixel,0,rightPixel - leftPixel + 1, maxHeight + 1);
 
-
-      if (left != 0) {
+      if (left > 0) {
         left--;
       }
-
-      if (right != resolution - 1) {
+      if (right < maxRight) {
         right++;
       }
 
-      leftPixel = (left * (bounds.width - 1)) / (resolution - 1);
-      rightPixel = (right * (bounds.width - 1)) / (resolution - 1);
-
-      int len = val.length - 1;
-      if (left < 0) left = 0;
-      if (left > len) left = len;
-      if (right < 0) right = 0;
-      if (right > len) right = len;
+      leftPixel = (left * maxWidth) / maxRight;
+      rightPixel = (right * maxWidth) / maxRight;
 
       int prevEnd = leftPixel;
 
-      int prevRed = (int) Math.floor((1 - val[left][RED]) * (bounds.height - 1));
-      int prevGreen = (int) Math.floor((1 - val[left][GREEN]) * (bounds.height - 1));
-      int prevBlue = (int) Math.floor((1 - val[left][BLUE]) * (bounds.height - 1));
+      int prevRed = (int )Math.floor((1 - val[left][RED]) * maxHeight);
+      int prevGreen = (int )Math.floor((1 - val[left][GREEN]) * maxHeight);
+      int prevBlue = (int )Math.floor((1 - val[left][BLUE]) * maxHeight);
       int prevAlpha;
       if (hasAlpha) {
-        prevAlpha = (int) Math.floor((1 - val[left][ALPHA]) * (bounds.height - 1));
+        prevAlpha = (int )Math.floor((1 - val[left][ALPHA]) * maxHeight);
       } else {
         prevAlpha = 0;
       }
 
       int alpha = 0;
       for (int i = left + 1; i <= right; i++) {
-        int lineEnd = (i * (getBounds().width - 1)) / (resolution - 1);
+        int lineEnd = (i * maxWidth) / maxRight;
 
-        int red = (int) Math.floor((1 - val[i][RED]) * (bounds.height - 1));
-        int green = (int) Math.floor((1 - val[i][GREEN]) * (bounds.height - 1));
-        int blue = (int) Math.floor((1 - val[i][BLUE]) * (bounds.height - 1));
+        int red = (int )Math.floor((1 - val[i][RED]) * maxHeight);
+        int green = (int )Math.floor((1 - val[i][GREEN]) * maxHeight);
+        int blue = (int )Math.floor((1 - val[i][BLUE]) * maxHeight);
         if (hasAlpha) {
-          alpha = (int) Math.floor((1 - val[i][ALPHA]) * (bounds.height - 1));
+          alpha = (int )Math.floor((1 - val[i][ALPHA]) * maxHeight);
         }
 
         g.setColor(Color.red);
@@ -780,12 +790,12 @@ public class BaseRGBMap
       for (int i = 0; i < resolution; i++) {
 
         /* compute s in [0,1] */
-        float s = (float) i / (float) (resolution-1);
+        float s = (float )i / (float )(resolution-1);
 
         float t = curve * (s - rfact);   /* t in [curve*-0.5,curve*0.5) */
-        val[i][RED] = (float) (0.5 + 0.5 * Math.atan( 7.0*t ) / 1.57);
-        val[i][GREEN] = (float) (0.5 + 0.5 * (2 * Math.exp(-7*t*t) - 1));
-        val[i][BLUE] = (float) (0.5 + 0.5 * Math.atan( -7.0*t ) / 1.57);
+        val[i][RED] = (float )(0.5 + 0.5 * Math.atan( 7.0*t ) / 1.57);
+        val[i][GREEN] = (float )(0.5 + 0.5 * (2 * Math.exp(-7*t*t) - 1));
+        val[i][BLUE] = (float )(0.5 + 0.5 * Math.atan( -7.0*t ) / 1.57);
         if (hasAlpha) {
           val[i][ALPHA] = 1.0f;
         }
@@ -805,9 +815,9 @@ public class BaseRGBMap
 
       for (int i = 0; i < resolution; i++) {
 
-        float h = i * 6 / (float) (resolution - 1);
+        float h = i * 6 / (float )(resolution - 1);
 
-        int hFloor = (int) Math.floor(h);
+        int hFloor = (int )Math.floor(h);
         float hPart = h - hFloor;
 
         // if hFloor is even
