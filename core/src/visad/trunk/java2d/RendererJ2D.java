@@ -168,13 +168,18 @@ public abstract class RendererJ2D extends DataRenderer {
   public void clearBranch() {
     if (swParent.numChildren() > 0) {
       swParent.removeChild(0);
-      ((DisplayImplJ2D) getDisplay()).setScratch();
+      VisADCanvasJ2D canvas =
+        ((DisplayRendererJ2D) getDisplayRenderer()).getCanvas();
+      canvas.scratchImages();
     }
   }
 
   public void clearScene() {
     swParent.detach();
     ((DisplayRendererJ2D) getDisplayRenderer()).clearScene(this);
+    VisADCanvasJ2D canvas =
+      ((DisplayRendererJ2D) getDisplayRenderer()).getCanvas();
+    canvas.scratchImages();
   }
 
   /** create a VisADGroup scene graph for Data in links;
