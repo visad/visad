@@ -86,11 +86,22 @@ On systems that support Unix make, you can simply run:
   make compile
 
 to compile the Java source code in all the directories unpacked
-from the source distribution.
+from the source distribution, as well as native code in the
+visad/data/vis5d and visad/data/hdfeos/hdfeosc directories and
+certain application directories.  If you want 'make compile'
+to compile native libraries, then you may need to change the
+line:
+
+  JAVADIR=/opt/java
+
+in visad/Makefile if your java is installed in a directory
+other than /opt/java.
 
 If you have NMAKE on WinNT you may run:
 
   nmake -f Makefile.WinNT compile
+
+This does not compile native code.
 
 If you cannot use Unix make or WinNT NMAKE, you must invoke the
 Java compiler on the Java source files in all the directories
