@@ -67,7 +67,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   /** distance behind for surfaces in 2-D mode */
   public static final float BACK2D = -2.0f;
 
-  /** a Java3D constants */
+  /** Java3D constants */
   public static final int PARALLEL_PROJECTION =
     javax.media.j3d.View.PARALLEL_PROJECTION;
   public static final int POLYGON_FILL =
@@ -92,20 +92,27 @@ public class DisplayImplJ3D extends DisplayImpl {
       default DisplayRenderer, in a JFC JPanel */
   public DisplayImplJ3D(String name)
          throws VisADException, RemoteException {
-    this(name, null, JPANEL);
+    this(name, null, JPANEL, null);
   }
 
   /** construct a DisplayImpl for Java3D with a non-default
       DisplayRenderer, in a JFC JPanel */
   public DisplayImplJ3D(String name, DisplayRendererJ3D renderer)
          throws VisADException, RemoteException {
-    this(name, renderer, JPANEL);
+    this(name, renderer, JPANEL, null);
   }
 
   /** constructor with default DisplayRenderer */
   public DisplayImplJ3D(String name, int api)
          throws VisADException, RemoteException {
-    this(name, null, api);
+    this(name, null, api, null);
+  }
+
+  /** construct a DisplayImpl for Java3D with a non-default
+      GraphicsConfiguration, in a JFC JPanel */
+  public DisplayImplJ3D(String name, GraphicsConfiguration config)
+         throws VisADException, RemoteException {
+    this(name, null, JPANEL, config);
   }
 
   /** construct a DisplayImpl for Java3D with a non-default
@@ -114,39 +121,88 @@ public class DisplayImplJ3D extends DisplayImpl {
       in an AppletFrame if api == DisplayImplJ3D.APPLETFRAME */
   public DisplayImplJ3D(String name, DisplayRendererJ3D renderer, int api)
          throws VisADException, RemoteException {
+    this(name, renderer, api, null);
+  }
+
+  /** construct a DisplayImpl for Java3D with a non-default
+      DisplayRenderer and GraphicsConfiguration, in a JFC JPanel */
+  public DisplayImplJ3D(String name, DisplayRendererJ3D renderer,
+                        GraphicsConfiguration config)
+         throws VisADException, RemoteException {
+    this(name, renderer, JPANEL, config);
+  }
+
+  /** constructor with default DisplayRenderer and a non-default
+      GraphicsConfiguration */
+  public DisplayImplJ3D(String name, int api, GraphicsConfiguration config)
+         throws VisADException, RemoteException {
+    this(name, null, api, config);
+  }
+
+  public DisplayImplJ3D(String name, DisplayRendererJ3D renderer, int api,
+                        GraphicsConfiguration config)
+         throws VisADException, RemoteException {
     super(name, renderer);
 
-    initialize(api);
+    initialize(api, config);
   }
 
   public DisplayImplJ3D(RemoteDisplay rmtDpy)
          throws VisADException, RemoteException {
-    this(rmtDpy, null, rmtDpy.getDisplayAPI());
+    this(rmtDpy, null, rmtDpy.getDisplayAPI(), null);
   }
 
   public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer)
          throws VisADException, RemoteException {
-    this(rmtDpy, renderer, rmtDpy.getDisplayAPI());
+    this(rmtDpy, renderer, rmtDpy.getDisplayAPI(), null);
+  }
+
+  public DisplayImplJ3D(RemoteDisplay rmtDpy, int api)
+         throws VisADException, RemoteException {
+    this(rmtDpy, null, api, null);
+  }
+
+  public DisplayImplJ3D(RemoteDisplay rmtDpy, GraphicsConfiguration config)
+         throws VisADException, RemoteException {
+    this(rmtDpy, null, rmtDpy.getDisplayAPI(), config);
   }
 
   public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer,
 			int api)
          throws VisADException, RemoteException {
+    this(rmtDpy, renderer, api, null);
+  }
+
+  public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer,
+                        GraphicsConfiguration config)
+         throws VisADException, RemoteException {
+    this(rmtDpy, renderer, rmtDpy.getDisplayAPI(), config);
+  }
+
+  public DisplayImplJ3D(RemoteDisplay rmtDpy, int api,
+                        GraphicsConfiguration config)
+         throws VisADException, RemoteException {
+    this(rmtDpy, null, api, config);
+  }
+
+  public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer,
+                        int api, GraphicsConfiguration config)
+         throws VisADException, RemoteException {
     super(rmtDpy, renderer);
 
-    initialize(api);
+    initialize(api, config);
 
     syncRemoteData(rmtDpy);
   }
 
-  private void initialize(int api)
+  private void initialize(int api, GraphicsConfiguration config)
 	throws VisADException, RemoteException {
     // a ProjectionControl always exists
     projection = new ProjectionControlJ3D(this);
     addControl(projection);
 
     if (api == APPLETFRAME) {
-      applet = new DisplayAppletJ3D(this);
+      applet = new DisplayAppletJ3D(this, config);
       Component component = new MainFrame(applet, 256, 256);
       // Component component = new AppletFrame(applet, 256, 256);
       setComponent(component);
@@ -154,7 +210,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       apiValue = api;
     }
     else if (api == JPANEL) {
-      Component component = new DisplayPanelJ3D(this);
+      Component component = new DisplayPanelJ3D(this, config);
       setComponent(component);
       apiValue = api;
     }

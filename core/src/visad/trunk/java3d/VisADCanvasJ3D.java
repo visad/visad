@@ -49,7 +49,12 @@ public class VisADCanvasJ3D extends Canvas3D { // J3D
   BufferedImage captureImage = null;
 
   VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c) {
-    super(null);
+      this(renderer, c, null);
+  }
+
+  VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c,
+                 GraphicsConfiguration config) {
+    super(config);
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = c;
