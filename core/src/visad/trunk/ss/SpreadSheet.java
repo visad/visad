@@ -894,12 +894,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Update formula based on formula entered in formula bar */
   void updateFormula() {
     String newFormula = FormulaField.getText();
-    URL u;
-    try {
-      u = new URL(newFormula);
+    URL u = null;
+    // check if new entry is a local file
+    File f = new File(newFormula);
+    if (f.exists()) {
+      // convert local file to a URL
+      try {
+        u = new URL("file:/" + f.getAbsolutePath());
+      }
+      catch (MalformedURLException exc) { }
     }
-    catch (MalformedURLException exc) {
-      u = SpreadSheet.class.getResource(newFormula);
+    else {
+      // check if new entry is a URL
+      try {
+        u = new URL(newFormula);
+      }
+      catch (MalformedURLException exc) { }
     }
     if (u != null) {
       // try to load the data from the URL

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.net.URL;
+import java.net.MalformedURLException;
 
 import java.rmi.RemoteException;
 
@@ -446,7 +447,17 @@ public class DefaultFamily
     DefaultFamily fr = new DefaultFamily("sample");
 
     for (int i = 0; i < args.length; i++) {
-      System.out.println(args[i] + ": " + fr.open(args[i]).getType());
+      URL url = null;
+      try {
+        url = new URL(args[i]);
+      }
+      catch (MalformedURLException exc) { }
+      Data data;
+      if (url != null) System.out.println("Trying URL " + url.toString());
+      else System.out.println("Trying file " + args[i]);
+      if (url == null) data = fr.open(args[i]);
+      else data = fr.open(url);
+      System.out.println(args[i] + ": " + data.getType().prettyString());
     }
   }
 }

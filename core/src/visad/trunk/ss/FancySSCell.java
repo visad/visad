@@ -375,15 +375,13 @@ public class FancySSCell extends BasicSSCell {
     }
 
     // load file
-    String filename = "file:/" + f.getPath();
-    URL u;
+    String filename = "file:/" + f.getAbsolutePath();
+    URL u = null;
     try {
       u = new URL(filename);
     }
-    catch (MalformedURLException exc) {
-      return;
-    }
-    loadDataURL(u);
+    catch (MalformedURLException exc) { }
+    if (u != null) loadDataURL(u);
   }
 
   /** Saves to a file selected by the user, in netCDF format */
