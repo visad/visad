@@ -1,4 +1,3 @@
-#tomr's version
 """
 A collection of support methods for connecting VisAD to Jython.  The
 emphasis is on display-side methods and classes.  All display-dependent
@@ -345,7 +344,8 @@ class _vdisp:
     display.  Once attached, it is there foreever!  The useKey
     parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
     """
-    RubberBandZoomer(self,useKey,1,callback)
+    rrbz = RubberBandZoomer(self,useKey,1,callback)
+    return rrbz.ref
 
   def enableRubberBandBox(self,useKey,callback=None):
     """
@@ -353,7 +353,8 @@ class _vdisp:
     attached, it is there forever!  The useKey parameter can 
     be 0 (no key), 1(CTRL), 2(SHIFT)
     """
-    RubberBandZoomer(self,useKey,0,callback)
+    rrbz = RubberBandZoomer(self,useKey,0,callback)
+    return rrbz.ref
 
   def getDisplayScalarMaps(self, includeShapes=0):
     """
@@ -590,7 +591,7 @@ def makeDisplay(maps):
       mode = disp.getGraphicsModeControl()
       mode.setProjectionPolicy(DisplayImplJ3D.PARALLEL_PROJECTION)
       mousehelper = disp.getDisplayRenderer().getMouseBehavior().getMouseHelper()
-      mousehelper.setFunctionMap([[[MouseHelper.TRANSLATE, MouseHelper.ZOOM],
+      mousehelper.setFunctionMap([[[MouseHelper.NONE, MouseHelper.ZOOM],
                                    [MouseHelper.TRANSLATE, MouseHelper.NONE]],
                                   [[MouseHelper.CURSOR_TRANSLATE, MouseHelper.CURSOR_ZOOM],
                                    [MouseHelper.CURSOR_ROTATE, MouseHelper.NONE]],

@@ -216,7 +216,7 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
 
 #----------------------------------------------------------------------------
 # quick look histogram - only first range component is used.
-def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", color=None, panel=None):
+def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", color=None, panel=None, clip=1):
 
   """
   Quick plot of a histogram from <data>.  <bins> is the number of bins
@@ -270,7 +270,7 @@ def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", col
   disp = subs.makeDisplay( (xaxis, yaxis) )
   subs.drawLine(disp, (x,y), mathtype=(domt[0],rngt), color=color)
   showAxesScales(disp,1)
-  subs.setBoxSize(disp,.65)
+  subs.setBoxSize(disp,.65,clip)
   subs.setAspectRatio(disp, float(width)/float(height))
   subs.showDisplay(disp,width,height,title,None,None,panel)
 
