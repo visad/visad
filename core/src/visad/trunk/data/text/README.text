@@ -128,6 +128,11 @@ IIb.  1,2,or 3-D points
    You may also use Text types for these data.  For example:
    (Latitude,Longitude)->(City(Text))
 
+   Strictly speaking, you may have a domain with more than
+   3 components.  If you do this, a VisAD IrregularSet will
+   be used.
+
+
 
 III. Line 2  (ignoring any comment lines that might come before)
 

@@ -755,9 +755,14 @@ public class TextAdapter {
     // make Linear1DSets for each possible domain component
 
     Linear1DSet[] lset = new Linear1DSet[numDom];
+    boolean keepConstant = false;
     int numVal = numRng; 
     if (numDom == 1) numVal = numSamples;
     if (numDom == 2 && numRng == 1 && numElements > 1) numVal = numElements;
+    if (numDom > 2 && numRng == 1 && numElements == 1) {
+      numVal = numSamples / (2 * numDom);
+      keepConstant = true;
+    }
 
     for (int i=0; i<numDom; i++) {
 
@@ -776,7 +781,7 @@ public class TextAdapter {
         lset[i] = null;
       }
 
-      numVal = numSamples; 
+      if (!keepConstant) numVal = numSamples; 
     }
 
 
@@ -799,18 +804,15 @@ public class TextAdapter {
         domain = new Linear2DSet(domType, lset);
 
       } else {
-        float[][] samples = new float[2][numSamples];
+        float[][] samples = new float[numDom][numSamples];
 
-        if (lset[0] == null) {
-          samples[0] = (getDomSamples(0, numSamples, domainValues))[0];
-        } else {
-          samples[0] = (lset[0].getSamples())[0];
-        }
+        for (int k = 0; k < numDom; k++) {
+          if (lset[k] == null) {
+            samples[k] = (getDomSamples(k, numSamples, domainValues))[0];
+          } else {
+            samples[k] = (lset[k].getSamples())[0];
+          }
 
-        if (lset[1] == null) {
-          samples[1] = (getDomSamples(1, numSamples, domainValues))[0];
-        } else {
-          samples[1] = (lset[1].getSamples())[0];
         }
 
         domain = (Set) new Irregular2DSet(domType, samples);
@@ -822,24 +824,15 @@ public class TextAdapter {
         domain = new Linear3DSet(domType, lset);
 
       } else {
-        float[][] samples = new float[3][numSamples];
+        float[][] samples = new float[numDom][numSamples];
 
-        if (lset[0] == null) {
-          samples[0] = (getDomSamples(0, numSamples, domainValues))[0];
-        } else {
-          samples[0] = (lset[0].getSamples())[0];
-        }
+        for (int k = 0; k < numDom; k++) {
+          if (lset[k] == null) {
+            samples[k] = (getDomSamples(k, numSamples, domainValues))[0];
+          } else {
+            samples[k] = (lset[k].getSamples())[0];
+          }
 
-        if (lset[1] == null) {
-          samples[1] = (getDomSamples(1, numSamples, domainValues))[0];
-        } else {
-          samples[1] = (lset[1].getSamples())[0];
-        }
-
-        if (lset[2] == null) {
-          samples[2] = (getDomSamples(2, numSamples, domainValues))[0];
-        } else {
-          samples[2] = (lset[2].getSamples())[0];
         }
 
         domain = (Set) new Irregular3DSet(domType, samples);
@@ -847,7 +840,29 @@ public class TextAdapter {
 
     } else {  // N-D domains (can only use LinearSets!!
 
-      domain = new LinearNDSet(domType, lset);
+      boolean allLinear = true;
+      for (int k = 0; k<numDom; k++) {
+        if (lset[k] == null) allLinear = false;
+      }
+
+      if (allLinear) {
+        if (debug) System.out.println("####   Making LinearNDset");
+        domain = new LinearNDSet(domType, lset);
+
+      } else { 
+        if (debug) System.out.println("####   Making IrregularSet");
+        float[][] samples = new float[numDom][numSamples];
+
+        for (int k=0; k<numDom; k++) {
+          if (lset[k] == null) {
+            samples[k] = (getDomSamples(k, numSamples, domainValues))[0];
+          } else {
+            samples[k] = (lset[k].getSamples())[0];
+          }
+        }
+
+        domain = new IrregularSet(domType, samples);
+      }
     }
 
 
@@ -900,12 +915,16 @@ public class TextAdapter {
 
 // set samples
     if (debug) System.out.println("about to field.setSamples");
+    try {
     if (ff != null) {
+      if (debug) System.out.println("####   ff is not null");
       ff.setSamples(a);
       field = (Field) ff;
     } else {
+      if (debug) System.out.println("####   ff is null..");
       field.setSamples(at, false);
     }
+    } catch (Exception ffe) {ffe.printStackTrace(); }
       
 
     // make up error estimates and set them
