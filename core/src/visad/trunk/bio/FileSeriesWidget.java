@@ -31,7 +31,6 @@ import java.rmi.RemoteException;
 import java.awt.Cursor;
 import javax.swing.*;
 import visad.*;
-import visad.data.DefaultFamily;
 
 /**
  * FileSeriesWidget is a GUI component for stepping through data
@@ -41,7 +40,6 @@ public class FileSeriesWidget extends BioStepWidget {
 
   // -- FIELDS --
 
-  private final DefaultFamily loader = new DefaultFamily("loader");
   private File[] files;
   private int curFile;
 
@@ -68,9 +66,9 @@ public class FileSeriesWidget extends BioStepWidget {
     if (files != null && curFile != cur - 1 && !step.getValueIsAdjusting()) {
       curFile = cur - 1;
       loadFile(false);
-      Measurement[] m = bio.lists[curFile].getMeasurements();
-      bio.pool2.set(m);
-      bio.pool3.set(m);
+      Measurement[] m = bio.mm.lists[curFile].getMeasurements();
+      bio.mm.pool2.set(m);
+      bio.mm.pool3.set(m);
     }
   }
 
@@ -94,26 +92,17 @@ public class FileSeriesWidget extends BioStepWidget {
 
   private void loadFile(boolean initialize) {
     bio.setWaitCursor(true);
-    File f = files[curFile];
-    Data data = null;
-    try { data = loader.open(f.getPath()); }
-    catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-    if (data == null) {
-      bio.setWaitCursor(false);
-      JOptionPane.showMessageDialog(this,
-        "Cannot import data from " + f.getName(),
-        "Cannot load file", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
     try {
-      boolean success = initialize ?
-        bio.init(data, files.length) : bio.setData(data);
-      if (!success) {
-        bio.setWaitCursor(false);
-        JOptionPane.showMessageDialog(this,
-          f.getName() + " does not contain an image stack",
-          "Cannot load file", JOptionPane.ERROR_MESSAGE);
-        return;
+      if (initialize) bio.sm.init(files, 0);
+      else {
+        boolean success = bio.sm.setData(files[curFile]);
+        if (!success) {
+          bio.setWaitCursor(false);
+          JOptionPane.showMessageDialog(this,
+            files[curFile].getName() + " does not contain an image stack",
+            "Cannot load file", JOptionPane.ERROR_MESSAGE);
+          return;
+        }
       }
     }
     catch (VisADException exc) { exc.printStackTrace(); }

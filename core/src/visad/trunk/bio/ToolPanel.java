@@ -28,9 +28,10 @@ package visad.bio;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 /** ToolPanel is the superclass of all tool panel types. */
-public abstract class ToolPanel extends JPanel implements SwingConstants {
+public abstract class ToolPanel extends JScrollPane {
 
   // -- FIELDS --
 
@@ -45,33 +46,18 @@ public abstract class ToolPanel extends JPanel implements SwingConstants {
 
   /** Constructs a tool panel. */
   public ToolPanel(BioVisAD biovis) {
+    super(new JPanel(), VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER);
+    JPanel pane = (JPanel) getViewport().getView();
     bio = biovis;
-    // CTR: TODO: fix scroll bar problem
 
-    // outer pane with vertical scroll bar
-    JPanel outerPane = new JPanel();
-    outerPane.setLayout(new BoxLayout(outerPane, BoxLayout.X_AXIS));
-    JScrollPane scroll = new JScrollPane(outerPane);
-    scroll.setHorizontalScrollBarPolicy(
-      JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    add(scroll, BorderLayout.CENTER);
-
-    // inner pane
-    JPanel innerPane = new JPanel();
-    innerPane.setLayout(new BoxLayout(innerPane, BoxLayout.Y_AXIS));
-    outerPane.add(Box.createHorizontalStrut(10));
-    outerPane.add(innerPane);
-    outerPane.add(Box.createHorizontalStrut(10));
-
-    // controls panel
+    // controls panel with vertical scrollbar
     controls = new JPanel() {
       public Dimension getMaximumSize() { return getPreferredSize(); }
     };
     controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
-    innerPane.add(Box.createVerticalStrut(10));
-    innerPane.add(controls);
-    innerPane.add(Box.createVerticalStrut(30));
-    innerPane.add(Box.createVerticalGlue());
+    controls.setBorder(new EmptyBorder(10, 10, 10, 10));
+    controls.setMaximumSize(controls.getMinimumSize());
+    pane.add(controls);
   }
 
 

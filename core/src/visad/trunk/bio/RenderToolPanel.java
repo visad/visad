@@ -32,10 +32,12 @@ import javax.swing.*;
  * RenderToolPanel is the tool panel for
  * performing rendering operations on the data.
  */
-public class RenderToolPanel extends ToolPanel implements SwingConstants {
+public class RenderToolPanel extends ToolPanel {
 
   /** Constructs a rendering tool panel. */
-  public RenderToolPanel(BioVisAD biovis) { super(biovis); }
+  public RenderToolPanel(BioVisAD biovis) {
+    super(biovis);
+  }
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) { }

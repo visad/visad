@@ -28,12 +28,13 @@ package visad.bio;
 
 import java.awt.*;
 import javax.swing.*;
+import visad.VisADException;
 import visad.util.Util;
 
 /**
  * ProgressDialog is a modal dialog displaying a progress bar.
  * It pops up on construction, and disappears when dismissed from
- * another Thread with hide().
+ * another Thread with kill().
  */
 public class ProgressDialog extends JDialog {
 
@@ -47,6 +48,15 @@ public class ProgressDialog extends JDialog {
 
   /** Progress bar. */
   private JProgressBar bar;
+
+  /** Information label. */
+  private JLabel label;
+
+
+  // -- OTHER FIELDS --
+
+  /** Exception to throw when checkException() is called. */
+  private VisADException exc;
 
 
   // -- CONSTRUCTORS --
@@ -71,7 +81,7 @@ public class ProgressDialog extends JDialog {
     setContentPane(pane);
 
     // info label
-    JLabel label = new JLabel(info + "...");
+    label = new JLabel(info + "...");
     pane.add(ToolPanel.pad(label));
 
     // progress bar
@@ -91,6 +101,14 @@ public class ProgressDialog extends JDialog {
   /** Keeps progress dialog from closing due to user intervention. */
   public void hide() { }
 
+  /** Sets the exception to be thrown when checkException() is called. */
+  public void setException(VisADException exc) { this.exc = exc; }
+
+  /** Throws the exception registered with setException(), if any. */
+  public void checkException() throws VisADException {
+    if (exc != null) throw exc;
+  }
+
   /** Makes progress dialog decently sized. */
   public Dimension getPreferredSize() {
     Dimension d = super.getPreferredSize();
@@ -106,6 +124,9 @@ public class ProgressDialog extends JDialog {
     bar.setString(value + "%");
     bar.setValue(value);
   }
+
+  /** Sets the information label to the specified string. */
+  public void setText(String info) { label.setText(info + "..."); }
 
   /** Hides the progress dialog. */
   public void kill() { super.hide(); }
@@ -124,12 +145,14 @@ public class ProgressDialog extends JDialog {
           try { Thread.sleep((int) (Math.random() * 200)); }
           catch (InterruptedException exc) { exc.printStackTrace(); }
           dialog.setPercent(++percent);
+          if (percent == 90) dialog.setText("Almost done");
         }
         dialog.kill();
       }
     });
     t.start();
     dialog.show();
+    dialog.checkException();
     System.exit(0);
   }
 

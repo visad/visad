@@ -213,7 +213,7 @@ public class MeasurePool implements DisplayListener {
               {(float) s0[0], (float) s1[0]},
               {(float) s0[1], (float) s1[1]}
             };
-            set = new Gridded2DSet(bio.domain2, samples, 2);
+            set = new Gridded2DSet(bio.sm.domain2, samples, 2);
           }
           else { // dim == 3
             float[][] samples = {
@@ -221,7 +221,7 @@ public class MeasurePool implements DisplayListener {
               {(float) s0[1], (float) s1[1]},
               {(float) s0[2], (float) s1[2]}
             };
-            set = new Gridded3DSet(bio.domain3, samples, 2);
+            set = new Gridded3DSet(bio.sm.domain3, samples, 2);
           }
           strips.add(set);
         }
@@ -240,11 +240,11 @@ public class MeasurePool implements DisplayListener {
           GriddedSet set;
           if (dim == 2) {
             set =
-              new Gridded2DSet(bio.domain2, samples, values.length + 1);
+              new Gridded2DSet(bio.sm.domain2, samples, values.length + 1);
           }
           else { // dim == 3
             set =
-              new Gridded3DSet(bio.domain3, samples, values.length + 1);
+              new Gridded3DSet(bio.sm.domain3, samples, values.length + 1);
           }
           strips.add(set);
         }
@@ -257,7 +257,7 @@ public class MeasurePool implements DisplayListener {
       // check for any needed X's
       if (dim == 2) {
         double x_width = 0.05 *
-          (bio.xRange < bio.yRange ? bio.xRange : bio.yRange);
+          (bio.sm.xRange < bio.sm.yRange ? bio.sm.xRange : bio.sm.yRange);
         for (int j=0; j<values.length; j++) {
           double[] s = values[j].getValues();
           if (s[2] == slice) continue;
@@ -270,8 +270,8 @@ public class MeasurePool implements DisplayListener {
             {(float) (s[1] + x_width), (float) (s[1] - x_width)}
           };
           try {
-            strips.add(new Gridded2DSet(bio.domain2, samples1, 2));
-            strips.add(new Gridded2DSet(bio.domain2, samples2, 2));
+            strips.add(new Gridded2DSet(bio.sm.domain2, samples1, 2));
+            strips.add(new Gridded2DSet(bio.sm.domain2, samples2, 2));
             for (int k=0; k<4; k++) colors.add(color);
           }
           catch (VisADException exc) { exc.printStackTrace(); }
@@ -288,10 +288,10 @@ public class MeasurePool implements DisplayListener {
       Color[] line_colors = new Color[colors.size()];
       colors.copyInto(line_colors);
       try {
-        RealTupleType domain = dim == 2 ? bio.domain2 : bio.domain3;
+        RealTupleType domain = dim == 2 ? bio.sm.domain2 : bio.sm.domain3;
         UnionSet set = new UnionSet(domain, sets);
         FunctionType function =
-          new FunctionType(domain, bio.colorRange);
+          new FunctionType(domain, bio.sm.colorRange);
         FlatField field = new FlatField(function, set);
 
         // assign color values to line segments
@@ -383,7 +383,7 @@ public class MeasurePool implements DisplayListener {
       }
 
       // highlight picked line or point
-      if (mindist > threshold) select(null);
+      if (mindist > threshold || index < 0) select(null);
       else {
         MeasureThing thing = (MeasureThing) things.elementAt(index);
         select(thing);

@@ -73,7 +73,7 @@ public class MeasureThing {
     final MeasureThing thing = this;
     final MeasurePool mpool = pool;
     final int dim = pool.getDimension();
-    final int slices = bio.getNumberOfSlices();
+    final int slices = bio.sm.getNumberOfSlices();
     ignoreNext = true;
     cell = new CellImpl() {
       public void doAction() {

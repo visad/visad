@@ -89,8 +89,8 @@ public class MeasureDataFile {
    * and distance between measurement slices.
    */
   public void write(double mpp, double sd) throws IOException {
-    int numIndices = bio.lists.length;
-    int numSlices = bio.getNumberOfSlices();
+    int numIndices = bio.mm.lists.length;
+    int numSlices = bio.sm.getNumberOfSlices();
     int numStd = MeasureToolPanel.maxId;
     MData[][][] stdData = new MData[numStd][numIndices][numSlices];
     boolean microns = mpp == mpp && sd == sd;
@@ -104,7 +104,7 @@ public class MeasureDataFile {
     int minDim, maxDim, minLen, maxLen;
     minDim = maxDim = minLen = maxLen = 0;
     for (int index=0; index<numIndices; index++) {
-      MeasureList list = bio.lists[index];
+      MeasureList list = bio.mm.lists[index];
       Measurement[] measure = list.getMeasurements();
       for (int i=0; i<measure.length; i++) {
         Measurement m = measure[i];
@@ -145,7 +145,7 @@ public class MeasureDataFile {
       MData d = stdData[std][0][0];
       if (d == null) continue;
       int gid = d.groupId;
-      MeasureGroup group = (MeasureGroup) bio.groups.elementAt(gid);
+      MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
       fout.println();
       fout.println("[" + std + "] " + group.getName());
       String tabs = "";
@@ -188,9 +188,9 @@ public class MeasureDataFile {
     fout.println(GROUP_LABEL);
     fout.println();
     fout.println("No\tName\tDescription");
-    int numGroups = bio.groups.size();
+    int numGroups = bio.mm.groups.size();
     for (int g=0; g<numGroups; g++) {
-      MeasureGroup group = (MeasureGroup) bio.groups.elementAt(g);
+      MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(g);
       fout.println(g + "\t" + group.getName() + "\t" + group.getDescription());
     }
     fout.println();
@@ -282,7 +282,7 @@ public class MeasureDataFile {
 
     // clear old group data
     int size = groups.size();
-    bio.groups.removeAllElements();
+    bio.mm.groups.removeAllElements();
 
     // set up new groups
     for (int i=0; i<size; i++) {
@@ -294,20 +294,20 @@ public class MeasureDataFile {
       MeasureGroup group = new MeasureGroup(bio, name);
       group.setDescription(desc);
       group.setId(id);
-      if (id >= bio.maxId) bio.maxId = id + 1;
+      if (id >= bio.mm.maxId) bio.mm.maxId = id + 1;
     }
 
     // clear old measurements
-    for (int i=0; i<bio.lists.length; i++) {
-      bio.lists[i].removeAllMeasurements(true);
+    for (int i=0; i<bio.mm.lists.length; i++) {
+      bio.mm.lists[i].removeAllMeasurements(true);
     }
 
     // set up measurements
     size = v.size();
-    int index = bio.getIndex();
+    int index = bio.sm.getIndex();
     for (int k=0; k<size; k++) {
       MData data = (MData) v.elementAt(k);
-      MeasureList list = bio.lists[data.index];
+      MeasureList list = bio.mm.lists[data.index];
       dim = data.values.length;
       len = data.values[0].length;
       RealTuple[] values = new RealTuple[len];
@@ -315,13 +315,13 @@ public class MeasureDataFile {
         Real[] reals = new Real[dim];
         for (int i=0; i<dim; i++) {
           reals[i] = new Real(i < dim - 1 ?
-            bio.dtypes[i] : BioVisAD.Z_TYPE, data.values[i][j]);
+            bio.sm.dtypes[i] : SliceManager.Z_TYPE, data.values[i][j]);
         }
         values[j] = new RealTuple(reals);
       }
       Color color = new Color(data.r, data.g, data.b);
       MeasureGroup group =
-        (MeasureGroup) bio.groups.elementAt(data.groupId);
+        (MeasureGroup) bio.mm.groups.elementAt(data.groupId);
       Measurement m = new Measurement(values, color, group);
       m.stdId = data.stdId;
       list.addMeasurement(m, data.index == index);

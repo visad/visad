@@ -55,7 +55,9 @@ public class MeasureList {
    * Adds a measurement with the given number of endpoints
    * to the measurement list.
    */
-  public void addMeasurement(int len) { addMeasurement(len, bio.getSlice()); }
+  public void addMeasurement(int len) {
+    addMeasurement(len, bio.sm.getSlice());
+  }
 
   /**
    * Adds a measurement with the given number of endpoints
@@ -63,7 +65,7 @@ public class MeasureList {
    */
   public void addMeasurement(int len, int slice) {
     addMeasurement(len, slice, Color.white,
-      (MeasureGroup) bio.groups.elementAt(0));
+      (MeasureGroup) bio.mm.groups.elementAt(0));
   }
 
   /**
@@ -76,8 +78,8 @@ public class MeasureList {
     // generate some random acceptable endpoint start locations; endpoints
     // are equally spaced points around a circle on the given Z-slice value
     Dimension size = bio.display2.getComponent().getSize();
-    double[] e1 = bio.pool2.pixelToDomain(0, 0);
-    double[] e2 = bio.pool2.pixelToDomain(size.width, size.height);
+    double[] e1 = bio.mm.pool2.pixelToDomain(0, 0);
+    double[] e2 = bio.mm.pool2.pixelToDomain(size.width, size.height);
     double cx = (e1[0] + e2[0]) / 2;
     double cy = (e1[1] + e2[1]) / 2;
     double rx = Math.abs(e2[0] - cx);
@@ -89,9 +91,9 @@ public class MeasureList {
     for (int i=0; i<len; i++) {
       double t = theta + i * inc;
       Real[] reals = {
-        new Real(bio.dtypes[0], r * Math.cos(t) + cx),
-        new Real(bio.dtypes[1], r * Math.sin(t) + cy),
-        new Real(BioVisAD.Z_TYPE, slice)
+        new Real(bio.sm.dtypes[0], r * Math.cos(t) + cx),
+        new Real(bio.sm.dtypes[1], r * Math.sin(t) + cy),
+        new Real(SliceManager.Z_TYPE, slice)
       };
       try { tuples[i] = new RealTuple(reals); }
       catch (VisADException exc) { exc.printStackTrace(); }
@@ -105,8 +107,8 @@ public class MeasureList {
     if (measureList.contains(m)) return;
     measureList.add(m);
     if (updatePool) {
-      bio.pool2.add(m);
-      if (bio.pool3 != null) bio.pool3.add(m);
+      bio.mm.pool2.add(m);
+      if (bio.mm.pool3 != null) bio.mm.pool3.add(m);
     }
   }
 
@@ -115,8 +117,8 @@ public class MeasureList {
     if (!measureList.contains(m)) return;
     measureList.remove(m);
     m.kill();
-    bio.pool2.refresh();
-    if (bio.pool3 != null) bio.pool3.refresh();
+    bio.mm.pool2.refresh();
+    if (bio.mm.pool3 != null) bio.mm.pool3.refresh();
   }
 
   /** Removes all measurements, notifying the measurement pool if specified. */
@@ -127,8 +129,8 @@ public class MeasureList {
     measureList.removeAllElements();
     if (updatePool) {
       Measurement[] mm = getMeasurements();
-      bio.pool2.set(mm);
-      if (bio.pool3 != null) bio.pool3.set(mm);
+      bio.mm.pool2.set(mm);
+      if (bio.mm.pool3 != null) bio.mm.pool3.set(mm);
     }
   }
 

@@ -47,8 +47,8 @@ public class MeasureGroup {
   public MeasureGroup(BioVisAD biovis, String name) {
     this.name = name;
     description = "";
-    id = biovis.maxId++;
-    biovis.groups.add(this);
+    id = biovis.mm.maxId++;
+    biovis.mm.groups.add(this);
   }
 
 

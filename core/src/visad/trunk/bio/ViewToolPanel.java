@@ -29,12 +29,13 @@ package visad.bio;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import visad.browser.Divider;
 
 /**
  * ViewToolPanel is the tool panel for
  * adjusting viewing parameters.
  */
-public class ViewToolPanel extends ToolPanel implements SwingConstants {
+public class ViewToolPanel extends ToolPanel {
 
   // -- GUI COMPONENTS --
 
@@ -50,8 +51,8 @@ public class ViewToolPanel extends ToolPanel implements SwingConstants {
   /** Toggle for hi-res image display. */
   private JToggleButton hiRes;
 
-  /** Toggle for auto-resolution switching mode. */
-  private JCheckBox autoResSwitch;
+  /** Animation widget. */
+  private BioAnimWidget anim;
   
   /** Toggle for grayscale mode. */
   private JCheckBox grayscale;
@@ -117,15 +118,22 @@ public class ViewToolPanel extends ToolPanel implements SwingConstants {
     p.add(hiRes);
     controls.add(pad(p));
 
-    // auto-resolution switching checkbox
-    autoResSwitch = new JCheckBox("Auto-res switching", true);
-    autoResSwitch.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        boolean res = autoResSwitch.isSelected();
-        // CTR: TODO: implement auto-res checkbox
-      }
-    });
-    controls.add(pad(autoResSwitch));
+    // divider between resolution functions and animation functions
+    controls.add(Box.createVerticalStrut(10));
+    controls.add(new Divider());
+    controls.add(Box.createVerticalStrut(10));
+
+    // animation widget
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    anim = new BioAnimWidget();
+    p.add(anim);
+    controls.add(pad(p));
+
+    // divider between animation functions and color functions
+    controls.add(Box.createVerticalStrut(10));
+    controls.add(new Divider());
+    controls.add(Box.createVerticalStrut(10));
 
     // grayscale checkbox
     grayscale = new JCheckBox("Grayscale", true);
@@ -156,7 +164,7 @@ public class ViewToolPanel extends ToolPanel implements SwingConstants {
   public void setEnabled(boolean enabled) {
     loRes.setEnabled(enabled);
     hiRes.setEnabled(enabled);
-    autoResSwitch.setEnabled(enabled);
+    anim.setEnabled(enabled);
     grayscale.setEnabled(enabled);
     brightnessLabel.setEnabled(enabled);
     brightness.setEnabled(enabled);

@@ -101,7 +101,7 @@ public class ImageStackWidget extends BioStepWidget
     if (control != null && cur != control.getCurrent() + 1) {
       try {
         control.setCurrent(cur - 1);
-        bio.pool2.setSlice(cur - 1);
+        bio.mm.pool2.setSlice(cur - 1);
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }

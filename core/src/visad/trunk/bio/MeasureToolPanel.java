@@ -40,7 +40,7 @@ import visad.util.Util;
  * MeasureToolPanel is the tool panel for
  * managing measurements between data points.
  */
-public class MeasureToolPanel extends ToolPanel implements SwingConstants {
+public class MeasureToolPanel extends ToolPanel {
 
   // -- CONSTANTS --
 
@@ -244,7 +244,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     addLine = new JButton("New line");
     addLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.getList().addMeasurement();
+        bio.mm.getList().addMeasurement();
       }
     });
     addLine.setEnabled(false);
@@ -255,7 +255,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     addMarker = new JButton("New marker");
     addMarker.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.getList().addMeasurement(1);
+        bio.mm.getList().addMeasurement(1);
       }
     });
     addMarker.setEnabled(false);
@@ -270,7 +270,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
           "Are you sure?", "Clear all measurements",
           JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (ans != JOptionPane.YES_OPTION) return;
-        bio.clear();
+        bio.mm.clear();
       }
     });
     clearAll.setEnabled(false);
@@ -305,16 +305,17 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         }
         boolean std = setStandard.isSelected();
         Measurement m = thing.getMeasurement();
-        int index = bio.getIndex();
-        int slice = bio.getSlice();
+        int index = bio.sm.getIndex();
+        int slice = bio.sm.getSlice();
         if (std) {
           // set standard
           m.stdId = maxId++;
-          int numSlices = bio.getNumberOfSlices();
-          for (int j=0; j<bio.lists.length; j++) {
+          int numSlices = bio.sm.getNumberOfSlices();
+          for (int j=0; j<bio.mm.lists.length; j++) {
             for (int i=0; i<numSlices; i++) {
               if (j == index && i == slice) continue;
-              bio.lists[j].addMeasurement(new Measurement(m, i), j == index);
+              bio.mm.lists[j].addMeasurement(
+                new Measurement(m, i), j == index);
             }
           }
         }
@@ -330,11 +331,11 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
           }
           int stdId = m.stdId;
           m.stdId = -1;
-          for (int j=0; j<bio.lists.length; j++) {
-            Measurement[] mlist = bio.lists[j].getMeasurements();
+          for (int j=0; j<bio.mm.lists.length; j++) {
+            Measurement[] mlist = bio.mm.lists[j].getMeasurements();
             for (int k=0; k<mlist.length; k++) {
               if (mlist[k].stdId == stdId) {
-                bio.lists[j].removeMeasurement(mlist[k]);
+                bio.mm.lists[j].removeMeasurement(mlist[k]);
               }
             }
           }
@@ -349,7 +350,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     removeThing = new JButton("Remove");
     removeThing.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.getList().removeMeasurement(thing.getMeasurement());
+        bio.mm.getList().removeMeasurement(thing.getMeasurement());
       }
     });
     removeThing.setEnabled(false);
@@ -418,7 +419,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
     // description label
     descriptionLabel = new JLabel("Description");
-    descriptionLabel.setAlignmentX(LEFT);
+    descriptionLabel.setAlignmentX(SwingConstants.LEFT);
     descriptionLabel.setEnabled(false);
     controls.add(pad(descriptionLabel));
 
@@ -601,8 +602,8 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
     // update groups
     groupList.removeAllItems();
-    for (int i=0; i<bio.groups.size(); i++) {
-      groupList.addItem(bio.groups.elementAt(i));
+    for (int i=0; i<bio.mm.groups.size(); i++) {
+      groupList.addItem(bio.mm.groups.elementAt(i));
     }
     descriptionBox.setText("");
   }
