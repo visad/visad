@@ -250,7 +250,6 @@ compile: clean
 	$(JC) $(JFLAGS) java3d/*.java
 	$(JC) $(JFLAGS) java2d/*.java
 	$(JC) $(JFLAGS) util/*.java
-	$(JC) $(JFLAGS) ss/*.java
 	-(cd .. && jar xvf ucar.jar)
 	$(JC) $(JFLAGS) data/*.java
 	$(JC) $(JFLAGS) data/netcdf/units/*.java
@@ -265,6 +264,7 @@ compile: clean
 	$(JC) $(JFLAGS) data/gif/*.java
 	$(JC) $(JFLAGS) data/hdfeos/hdfeosc/*.java
 	$(JC) $(JFLAGS) data/hdfeos/*.java
+	$(JC) $(JFLAGS) ss/*.java
 	-$(JC) $(JFLAGS) paoloa/*.java
 	-$(JC) $(JFLAGS) aune/*.java
 	-(cd examples && $(JC) $(JFLAGS) *.java)
