@@ -161,6 +161,11 @@ public class ScalarMap extends Object
     }
   }
 
+  // WLH 22 August 2001
+  public boolean doInitialize() {
+    return isScaled && !isManual;
+  }
+
   // WLH 31 Aug 2000
   /** 
    * Set display Unit to override default Unit of Scalar;

@@ -602,7 +602,18 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
+
+/* WLH 22 Aug 2001
     initialize = true;
+*/
+    initialize = false;
+    Vector tmap = (Vector) MapVector.clone();
+    Enumeration maps = tmap.elements();
+    while (maps.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      initialize |= map.doInitialize();
+    }
+
 // printStack("addReference");
     notifyAction();
   }
@@ -623,7 +634,18 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
+
+/* WLH 22 Aug 2001
     initialize = true;
+*/  
+    initialize = false;
+    Vector tmap = (Vector) MapVector.clone();
+    Enumeration maps = tmap.elements();
+    while (maps.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      initialize |= map.doInitialize();
+    }
+
 // printStack("adaptedAddReference");
     notifyAction();
   }
@@ -712,7 +734,18 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
+
+/* WLH 22 Aug 2001
     initialize = true;
+*/  
+    initialize = false;
+    Vector tmap = (Vector) MapVector.clone();
+    Enumeration maps = tmap.elements();
+    while (maps.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      initialize |= map.doInitialize();
+    }
+
 // printStack("addReferences");
     notifyAction();
   }
@@ -767,7 +800,18 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
+
+/* WLH 22 Aug 2001
     initialize = true;
+*/  
+    initialize = false;
+    Vector tmap = (Vector) MapVector.clone();
+    Enumeration maps = tmap.elements();
+    while (maps.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      initialize |= map.doInitialize();
+    }
+
 // printStack("adaptedAddReferences");
     notifyAction();
   }
