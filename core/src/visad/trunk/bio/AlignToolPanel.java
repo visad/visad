@@ -158,6 +158,13 @@ public class AlignToolPanel extends ToolPanel {
         shape.setEnabled(doDrift);
         orient.setEnabled(doDrift);
         apply.setEnabled(doDrift);
+        int mode = AlignmentPlane.OFF_MODE;
+        if (doDrift) {
+          if (shape.isSelected()) mode = AlignmentPlane.SET_MODE;
+          else if (orient.isSelected()) mode = AlignmentPlane.ADJUST_MODE;
+          else if (apply.isSelected()) mode = AlignmentPlane.APPLY_MODE;
+        }
+        bio.sm.align.setMode(mode);
       }
     });
     drift.setMnemonic('d');
@@ -174,8 +181,7 @@ public class AlignToolPanel extends ToolPanel {
     shape = new JRadioButton("Adjust size and shape", true);
     shape.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.sm.align.toggle(true);
-        bio.sm.align.setLocked(false);
+        bio.sm.align.setMode(AlignmentPlane.SET_MODE);
       }
     });
     shape.setMnemonic('s');
@@ -189,8 +195,7 @@ public class AlignToolPanel extends ToolPanel {
     orient = new JRadioButton("Adjust orientation", false);
     orient.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.sm.align.toggle(true);
-        bio.sm.align.setLocked(true);
+        bio.sm.align.setMode(AlignmentPlane.ADJUST_MODE);
       }
     });
     orient.setMnemonic('o');
@@ -205,7 +210,7 @@ public class AlignToolPanel extends ToolPanel {
     apply = new JRadioButton("Apply alignment to data", false);
     apply.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.sm.align.toggle(false);
+        bio.sm.align.setMode(AlignmentPlane.APPLY_MODE);
       }
     });
     apply.setMnemonic('a');
@@ -317,7 +322,7 @@ public class AlignToolPanel extends ToolPanel {
       sliceDistance.setEnabled(false);
       zAspect.setEnabled(false);
     }
-    //drift.setEnabled(enabled);
+    drift.setEnabled(enabled);
     legend.setEnabled(enabled);
     redBar.setEnabled(enabled);
     redLabel.setEnabled(enabled);

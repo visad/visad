@@ -54,13 +54,18 @@ public class VisBio extends GUIFrame implements ChangeListener {
   // -- CONSTANTS --
 
   /** Application title. */
-  private static final String TITLE = "VisBio";
+  protected static final String TITLE = "VisBio";
 
   /** Application version. */
-  private static final String VERSION = "v1.0 beta 2a";
+  protected static final String VERSION = "v1.0 beta 3";
 
   /** Flag for enabling or disabling Java3D, for debugging. */
-  private static final boolean ALLOW_3D = true;
+  protected static final boolean ALLOW_3D = true;
+
+  /** Tool panel names. */
+  protected static final String[] TOOL_PANELS = {
+    "View", "Color", "Align", "Measure"
+  };
 
   /** Maximum pixel distance for picking. */
   static final int PICKING_THRESHOLD = 10;
@@ -157,8 +162,20 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Help dialog for detailing basic program usage. */
   private BioHelpWindow help;
 
+  /** Panel containing all components. */
+  private JPanel pane;
+
   /** Panel containing VisAD displays. */
   private JPanel displayPane;
+
+  /** Tabbed pane containing tool panels. */
+  private JTabbedPane tabs;
+
+  /** Frames containing tool panels. */
+  private JFrame[] toolFrames;
+
+  /** Panels containing tool panels. */
+  private JPanel[] toolPanes;
 
   /** Menu item for exporting data. */
   private JMenuItem fileExport;
@@ -190,6 +207,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Prefix of current data series. */
   private String prefix;
 
+  /** Whether tool panels are located in separate, floating windows. */
+  private boolean floating;
+
 
   // -- CONSTRUCTOR --
 
@@ -203,7 +223,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
     options = new OptionDialog(this);
     help = new BioHelpWindow();
 
-    // menu bar
+    // file menu
     addMenuItem("File", "Import data...", "fileImport", 'i');
     fileExport = addMenuItem("File", "Export data...", "fileExport", 'e');
     addMenuSeparator("File");
@@ -216,19 +236,29 @@ public class VisBio extends GUIFrame implements ChangeListener {
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
     fileExport.setEnabled(false);
+
+    // edit menu
     addMenuItem("Edit", "Undo", "editUndo", 'u');
+
+    // window menu
+    for (int i=0; i<TOOL_PANELS.length; i++) {
+      String t = TOOL_PANELS[i];
+      addMenuItem("Window", t, "window" + t, t.charAt(0));
+    }
+
+    // help menu
     addMenuItem("Help", "Overview", "helpOverview", 'o');
     addMenuItem("Help", "QuickTime", "helpQuickTime", 'q');
     addMenuSeparator("Help");
-    addMenuItem("Help", "View", "helpView", 'v');
-    addMenuItem("Help", "Color", "helpColor", 'c');
-    addMenuItem("Help", "Align", "helpAlign", 'a');
-    addMenuItem("Help", "Measure", "helpMeasure", 'm');
+    for (int i=0; i<TOOL_PANELS.length; i++) {
+      String t = TOOL_PANELS[i];
+      addMenuItem("Help", t, "help" + t, t.charAt(0));
+    }
     addMenuSeparator("Help");
     addMenuItem("Help", "About", "helpAbout", 'a');
 
     // lay out components
-    JPanel pane = new JPanel();
+    pane = new JPanel();
     pane.setLayout(new BorderLayout());
     setContentPane(pane);
 
@@ -258,7 +288,6 @@ public class VisBio extends GUIFrame implements ChangeListener {
     display2.getGraphicsModeControl().setColorMode(
       GraphicsModeControl.SUM_COLOR_MODE);
     display2.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
-    //display2.enableEvent(DisplayEvent.MOUSE_DRAGGED);
     displayPane.add(display2.getComponent());
     if (display3 != null) {
       GraphicsModeControl gmc = display3.getGraphicsModeControl();
@@ -267,7 +296,6 @@ public class VisBio extends GUIFrame implements ChangeListener {
       DisplayRendererJ3D renderer =
         (DisplayRendererJ3D) display3.getDisplayRenderer();
       renderer.setPickThreshhold(Float.MAX_VALUE);
-      //display3.enableEvent(DisplayEvent.MOUSE_DRAGGED);
       displayPane.add(display3.getComponent());
       displayPane.add(previewPane);
     }
@@ -288,25 +316,26 @@ public class VisBio extends GUIFrame implements ChangeListener {
     horiz.addChangeListener(this);
     pane.add(horiz, BorderLayout.SOUTH);
 
+    // tool panel containers
+    tabs = new JTabbedPane();
+    toolFrames = new JFrame[4];
+    toolPanes = new JPanel[4];
+    for (int i=0; i<4; i++) {
+      toolFrames[i] = new JFrame(TOOL_PANELS[i]);
+      toolFrames[i].getContentPane().setLayout(new BorderLayout());
+      toolPanes[i] = new JPanel();
+      toolPanes[i].setLayout(new BorderLayout());
+      JScrollPane scroll = new JScrollPane(toolPanes[i]);
+      toolFrames[i].getContentPane().add(scroll, BorderLayout.CENTER);
+    }
+
     // tool panels
-    JTabbedPane tabs = new JTabbedPane();
-    pane.add(tabs, BorderLayout.EAST);
-
-    // viewing tool panel
     toolView = new ViewToolPanel(this);
-    tabs.addTab("View", null, toolView, "Controls for the displays");
-
-    // color tool panel
     toolColor = new ColorToolPanel(this);
-    tabs.addTab("Color", null, toolColor, "Controls for manipulating color");
-
-    // alignment tool panel
     toolAlign = new AlignToolPanel(this);
-    tabs.addTab("Align", null, toolAlign, "Controls for orienting data");
-
-    // measurement tool panel
     toolMeasure = new MeasureToolPanel(this);
-    tabs.addTab("Measure", null, toolMeasure, "Controls for measuring data");
+    floating = !options.isFloating();
+    setFloating(!floating); // force update
 
     // snapshot file chooser
     snapBox = new JFileChooser();
@@ -363,6 +392,36 @@ public class VisBio extends GUIFrame implements ChangeListener {
     try { d.getProjectionControl().resetProjection(); }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Sets whether control panels are separate, floating windows. */
+  public void setFloating(boolean floating) {
+    if (this.floating == floating) return;
+    this.floating = floating;
+
+    final ToolPanel[] panels = {toolView, toolColor, toolAlign, toolMeasure};
+    final String[] tips = {
+      "Controls for the displays",
+      "Controls for manipulating color",
+      "Controls for orienting data",
+      "Controls for measuring data"
+    };
+    if (floating) {
+      pane.remove(tabs);
+      tabs.removeAll();
+      for (int i=0; i<panels.length; i++) {
+        toolPanes[i].add(panels[i], BorderLayout.CENTER);
+      }
+    }
+    else {
+      for (int i=0; i<panels.length; i++) {
+        toolPanes[i].removeAll();
+        toolFrames[i].hide();
+        tabs.addTab(TOOL_PANELS[i], null, panels[i], tips[i]);
+      }
+      pane.add(tabs, BorderLayout.EAST);
+    }
+    doPack();
   }
 
   /** Toggles the 3-D display between image stack and volume render modes. */
@@ -647,6 +706,18 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Undoes the last action taken. */
   public void editUndo() { state.undo(); }
 
+  /** Displays or switches to the View tool panel. */
+  public void windowView() { doWindow(0); }
+
+  /** Displays or switches to the Color tool panel. */
+  public void windowColor() { doWindow(1); }
+
+  /** Displays or switches to the Align tool panel. */
+  public void windowAlign() { doWindow(2); }
+
+  /** Displays or switches to the Measure tool panel. */
+  public void windowMeasure() { doWindow(3); }
+
   /** Brings up the help window on the Overview tab. */
   public void helpOverview() { doHelp(0); }
 
@@ -735,6 +806,23 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   // -- HELPER METHODS --
 
+  /** Displays or switches to the given tool panel. */
+  private void doWindow(int tab) {
+    if (floating) {
+      toolFrames[tab].pack();
+      Point loc = getLocation();
+      int x = loc.x + getSize().width;
+      int y = loc.y;
+      Dimension fsize = toolFrames[tab].getSize();
+      Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+      if (x + fsize.width > screen.width) x = screen.width - fsize.width;
+      if (y + fsize.height > screen.height) y = screen.height - fsize.height;
+      toolFrames[tab].setLocation(x, y);
+      toolFrames[tab].show();
+    }
+    else tabs.setSelectedIndex(tab);
+  }
+
   /** Brings up a window detailing basic program usage. */
   private void doHelp(int tab) {
     final JFrame frame = this;
@@ -744,16 +832,25 @@ public class VisBio extends GUIFrame implements ChangeListener {
     });
   }
 
+  /** Packs the window, but ensure displays are square as well. */
+  private void doPack() {
+    pack();
+    Dimension d = displayPane.getSize();
+    int w = d.height / 2;
+    Dimension size = getSize();
+    setSize(new Dimension(size.width - d.width + w, size.height));
+  }
+
 
   // -- MAIN --
 
   /** Launches the VisBio GUI. */
   public static void main(String[] args) throws Exception {
     final VisBio bio = new VisBio();
-    bio.pack();
     bio.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) { bio.fileExit(); }
     });
+    bio.doPack();
     Util.centerWindow(bio);
     bio.show();
     if (bio.options.isQTAuto()) {

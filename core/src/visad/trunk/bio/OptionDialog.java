@@ -60,6 +60,7 @@ public class OptionDialog extends JPanel implements ActionListener {
   // -- GUI COMPONENTS --
 
   private JCheckBox enableQT;
+  private JCheckBox floating;
   private JButton ok, cancel;
 
 
@@ -69,15 +70,23 @@ public class OptionDialog extends JPanel implements ActionListener {
   public OptionDialog(VisBio biovis) {
     bio = biovis;
 
-    // create components
+    // enable QuickTime option
     enableQT = new JCheckBox("Enable QuickTime support");
     enableQT.setMnemonic('q');
     enableQT.setActionCommand("enableQT");
     enableQT.addActionListener(this);
+
+    // floating control windows option
+    floating = new JCheckBox("Floating control windows");
+    floating.setMnemonic('f');
+
+    // ok button
     ok = new JButton("Ok");
     ok.setMnemonic('o');
     ok.setActionCommand("ok");
     ok.addActionListener(this);
+
+    // cancel button
     cancel = new JButton("Cancel");
     cancel.setMnemonic('c');
     cancel.setActionCommand("cancel");
@@ -86,6 +95,7 @@ public class OptionDialog extends JPanel implements ActionListener {
     // lay out options
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     add(ToolPanel.pad(enableQT, false, true));
+    add(ToolPanel.pad(floating, false, true));
 
     // lay out buttons
     JPanel bottom = new JPanel();
@@ -118,23 +128,27 @@ public class OptionDialog extends JPanel implements ActionListener {
   /** Whether to ask about QuickTime support on startup. */
   public boolean isQTAuto() { return qtAuto; }
 
+  /** Whether floating control windows are enabled. */
+  public boolean isFloating() { return floating.isSelected(); }
+
 
   // -- INTERNAL API METHODS --
 
   /** Handles button press events. */
   public void actionPerformed(ActionEvent e) {
     String command = e.getActionCommand();
-    if (command.equals("ok")) {
+    if (command.equals("enableQT")) {
+      if (enableQT.isSelected() && !CAN_DO_QT) searchQT();
+    }
+    else if (command.equals("ok")) {
       // save options
       writeIni();
       dialog.setVisible(false);
+      bio.setFloating(floating.isSelected());
     }
     else if (command.equals("cancel")) {
       // discard changes
       dialog.setVisible(false);
-    }
-    else if (command.equals("enableQT")) {
-      if (enableQT.isSelected() && !CAN_DO_QT) searchQT();
     }
   }
 
@@ -266,6 +280,10 @@ public class OptionDialog extends JPanel implements ActionListener {
           enableQT.setSelected(qt && CAN_DO_QT);
           qtAuto = qt && !CAN_DO_QT;
         }
+        if (var.equalsIgnoreCase("float")) {
+          boolean fl = expr.equalsIgnoreCase("true");
+          floating.setSelected(fl);
+        }
       }
       fin.close();
     }
@@ -277,6 +295,7 @@ public class OptionDialog extends JPanel implements ActionListener {
     try {
       PrintWriter fout = new PrintWriter(new FileWriter("visbio.ini"));
       fout.println("qt=" + enableQT.isSelected());
+      fout.println("float=" + floating.isSelected());
       fout.close();
     }
     catch (IOException exc) { exc.printStackTrace(); }

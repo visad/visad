@@ -44,6 +44,18 @@ public class AlignmentPlane extends PlaneSelector {
   /** Header for alignment plane data in state file. */
   private static final String ALIGN_HEADER = "# Alignment";
 
+  /** Mode where drift correction is off. */
+  public static final int OFF_MODE = 0;
+
+  /** Mode where user has free control over alignment plane endpoints. */
+  public static final int SET_MODE = 1;
+
+  /** Mode where alignment plane can be moved but not resized. */
+  public static final int ADJUST_MODE = 2;
+
+  /** Mode where alignment plane settings are applied to the display. */
+  public static final int APPLY_MODE = 3;
+
 
   // -- FIELDS --
 
@@ -59,8 +71,8 @@ public class AlignmentPlane extends PlaneSelector {
   /** Current timestep value. */
   protected int index;
 
-  /** Whether to keep endpoint distances fixed. */
-  protected boolean locked;
+  /** Alignment plane mode. */
+  protected int mode;
 
   /** Fixed distances between endpoints. */
   protected double dist12, dist13, dist23, dist34, d_dist;
@@ -74,7 +86,7 @@ public class AlignmentPlane extends PlaneSelector {
     bio = biovis;
     numIndices = bio.sm.getNumberOfIndices();
     pos = new double[numIndices][3][3];
-    locked = false;
+    mode = OFF_MODE;
   }
 
 
@@ -83,14 +95,25 @@ public class AlignmentPlane extends PlaneSelector {
   /** Sets the current timestep. */
   public void setIndex(int index) {
     if (this.index == index || index < 0 || index >= numIndices) return;
+    int old_index = index;
     this.index = index;
 
     // set endpoint values to match those at current index
     for (int i=0; i<3; i++) setData(i, descale(pos[index][i]));
+
+    if (mode == APPLY_MODE) alignDisplay(old_index);
   }
 
   /** Sets whether to lock endpoint distances to maintain size and shape. */
-  public void setLocked(boolean locked) { this.locked = locked; }
+  public void setMode(int mode) {
+    if (mode != OFF_MODE && mode != SET_MODE &&
+      mode != ADJUST_MODE && mode != APPLY_MODE)
+    {
+      return;
+    }
+    this.mode = mode;
+    toggle(mode == SET_MODE || mode == ADJUST_MODE);
+  }
 
 
   // -- INTERNAL API METHODS --
@@ -125,9 +148,31 @@ public class AlignmentPlane extends PlaneSelector {
 
   // -- HELPER METHODS --
 
+  /** Aligns the display to match the alignment plane. */
+  protected void alignDisplay(int old_index) {
+    // make_matrix(rx, ry, rz, 1.0, tx, ty, tz);
+    double[] old_v = pos[old_index][0];
+    double[] v = pos[index][0];
+    double[] t = new double[3];
+    for (int i=0; i<3; i++) t[i] = old_v[i] - v[i];
+    // CTR - ?
+    t[0] /= bio.sm.res_x;
+    t[1] /= bio.sm.res_y;
+    t[2] /= bio.sm.getNumberOfSlices();
+
+    ProjectionControl control = display.getProjectionControl();
+    double[] matrix = control.getMatrix();
+    double[] mult = display.make_matrix(0.0, 0.0, 0.0, 1.0, t[0], t[1], t[2]);
+    try {
+      control.setMatrix(display.multiply_matrix(mult, matrix));
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
   /** Refreshes the plane data from its endpoint locations. */
   protected boolean refresh() {
-    if (bio.state.restoring) return true;
+    if (bio.state == null || bio.state.restoring) return true;
     for (int i=0; i<3; i++) {
       RealTuple tuple = (RealTuple) refs[i + 2].getData();
       if (tuple == null) continue;
@@ -152,7 +197,7 @@ public class AlignmentPlane extends PlaneSelector {
     double d13 = BioUtil.getDistance(p1, p3, m);
     double d23 = BioUtil.getDistance(p2, p3, m);
 
-    if (locked) {
+    if (mode == ADJUST_MODE) {
       // snap 2nd endpoint to bounding sphere
       if (!Util.isApproximatelyEqual(dist12, d12)) {
         double lamda = dist12 / d12;
@@ -232,7 +277,7 @@ public class AlignmentPlane extends PlaneSelector {
       }
     }
     if (equal) return;
-    int startIndex = locked ? index : 0;
+    int startIndex = mode == ADJUST_MODE ? index : 0;
     for (int ndx=startIndex; ndx<numIndices; ndx++) {
       for (int j=0; j<3; j++) pos[ndx][i][j] = v[j];
     }

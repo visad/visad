@@ -1099,13 +1099,11 @@ public class SliceManager
         min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
 
       // initialize alignment plane
-      /*
       if (align == null) align = new AlignmentPlane(bio, bio.display3);
       Color[] alignLines = {Color.red, Color.yellow, Color.blue};
       align.init(dtypes[0], dtypes[1], dtypes[2],
         RED_TYPE, GREEN_TYPE, BLUE_TYPE, alignLines, Color.red,
         min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
-      */
     }
 
     // adjust display aspect ratio
