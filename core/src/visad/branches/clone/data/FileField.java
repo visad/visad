@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: FileField.java,v 1.7 2002-01-07 18:44:29 dglo Exp $
+$Id: FileField.java,v 1.7.2.1 2002-07-23 19:42:47 steve Exp $
 */
 
 package visad.data;
@@ -40,7 +40,7 @@ public class FileField extends FieldImpl {
   // any of its methods - it must re-implement all of them
   // through the adapted FieldImpl
 
-  FieldImpl adaptedField;
+  FieldImpl adaptedField;  // won't be null
 
   // this is the FileAccessor for reading and writing range
   // samples to the adapted file
@@ -86,5 +86,16 @@ public class FileField extends FieldImpl {
 
   // setSamples also changes the file contents;
   // it could be implemented as a series of calls to setSample
+
+  /**
+   * Clones this instance.  This implementation always throws a {@link
+   * CloneNotSupportedException}.
+   *
+   * @return                            A clone of this instance.
+   * @throws CloneNotSupportedException if cloning isn't supported.
+   */
+  public Object clone() throws CloneNotSupportedException {
+    throw new CloneNotSupportedException();
+  }
 
 }
