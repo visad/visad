@@ -179,6 +179,10 @@ public class VisADSlider extends JPanel implements ChangeListener,
       smapcontrol = true;
       map = smap;
       control = (ValueControl) smap.getControl();
+      if (control == null) {
+        throw new VisADException("VisADSlider: ScalarMap must be addMap'ed " +
+                                 "to a Display");
+      }
       sRef = null;
       sName = st.getName();
       start = (float) control.getValue();

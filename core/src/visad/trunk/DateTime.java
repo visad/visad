@@ -76,7 +76,7 @@ DateTime
     public DateTime(Real real) 
             throws VisADException
     {
-	super( RealType.DateTime,
+	super( RealType.Time,
 	       real.isMissing()
 		   ? Double.NaN
 /*
@@ -225,7 +225,7 @@ DateTime
         cal.set(Calendar.SECOND, secs);
         cal.set(Calendar.MILLISECOND, millis);
 
-        return new Real( RealType.DateTime, 
+        return new Real( RealType.Time, 
                          cal.getTime().getTime()/1000.,
                          CommonUnit.secondsSinceTheEpoch );
     }

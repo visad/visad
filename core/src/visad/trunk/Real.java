@@ -563,7 +563,7 @@ public class Real extends Scalar {
       }
       else {
         return
-	  Type.equals(RealType.DateTime)
+	  Type.equals(RealType.Time)
 	    ? new DateTime(this).toString()
 	    : Double.toString(Value);
       }
@@ -586,7 +586,7 @@ public class Real extends Scalar {
         result = "missing";
       }
       else {
-	  if (Type.equals(RealType.DateTime)) {
+	  if (Type.equals(RealType.Time)) {
 	    result = new DateTime(this).toValueString();
 	  }
 	  else {
@@ -606,7 +606,7 @@ public class Real extends Scalar {
     if (Double.isNaN(Value)) {
       return pre + "missing\n";
     }
-    else if (Type.equals(RealType.DateTime)) {
+    else if (Type.equals(RealType.Time)) {
       return pre + "Real.Time: Value = " +
              new DateTime(this).toString() + "\n";
     }

@@ -4010,7 +4010,7 @@ for (i=0; i<length; i++) {
     System.out.println("w / image2 = " + w.divide(image2));
 
     // test DateTime printing
-    RealType[] range2t = {A, RealType.DateTime};
+    RealType[] range2t = {A, RealType.Time};
     RealTupleType Range2t = new RealTupleType(range2t);
     FunctionType Field2t2 = new FunctionType(Domain2d, Range2t);
     FlatField imaget = makeField2(Field2t2, first11, last11, length11,
@@ -4044,7 +4044,7 @@ image2 = FlatField
 . . .
 
 imaget = FlatField
-    FunctionType (Real): (X, Y) -> (A, DateTime)
+    FunctionType (Real): (X, Y) -> (A, Time)
 (0.0, 1970-01-01 00:00:00.000Z), (1.0, 1970-01-01 00:00:00.000Z), (2.0, 1970-01-01 00:00:00.000Z), (3.0, 1970-01-01 00:00:00.000Z)
 
 (0.0, 1970-01-01 00:00:01.000Z), (1.0, 1970-01-01 00:00:01.000Z), (2.0, 1970-01-01 00:00:01.000Z), (3.0, 1970-01-01 00:00:01.000Z)

@@ -21,7 +21,7 @@ public class Test03
   DisplayImpl[] setupData()
 	throws VisADException, RemoteException
   {
-    RealType[] time = {RealType.DateTime};
+    RealType[] time = {RealType.Time};
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
     RealType vis_radiance = new RealType("vis_radiance", null, null);
@@ -81,7 +81,7 @@ public class Test03
     display1.addMap(new ConstantMap(0.5, Display.Blue));
     display1.addMap(new ConstantMap(0.5, Display.Red));
     ScalarMap map1animation =
-      new ScalarMap(RealType.DateTime, Display.Animation);
+      new ScalarMap(RealType.Time, Display.Animation);
     display1.addMap(map1animation);
 
     DataReferenceImpl ref_big_tuple =

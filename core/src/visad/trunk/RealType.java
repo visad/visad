@@ -75,12 +75,12 @@ public class RealType extends ScalarType {
     new RealType("Radius", null, true);
 
   /** Temporal-interval coordinate */
-  public final static RealType Time =
-    new RealType("Time", CommonUnit.second, true);
+  public final static RealType TimeInterval =
+    new RealType("TimeInterval", CommonUnit.second, INTERVAL, true);
 
   /** Timestamp coordinate */
-  public final static RealType DateTime =
-    new RealType("DateTime", CommonUnit.secondsSinceTheEpoch, true);
+  public final static RealType Time =
+    new RealType("Time", CommonUnit.secondsSinceTheEpoch, true);
 
   /** generic RealType */
   public final static RealType Generic =
