@@ -256,7 +256,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)", false);
     CellDim2D3D.addItemListener(this);
-    CellDim3D3D.setEnabled(CanDo3D);
+    CellDim2D3D.setEnabled(CanDo3D);
     disp.add(CellDim2D3D);
 
     // options menu
