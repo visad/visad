@@ -134,7 +134,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
 import java.awt.image.DataBufferInt;
+import java.awt.image.DataBufferByte;
 import java.awt.image.DataBuffer;
+import java.awt.image.ComponentColorModel;
+import java.awt.color.ColorSpace;
+
+import java.awt.*;
 
 /**
    The ShadowFunctionOrSetType class is an abstract parent for
@@ -2921,25 +2926,18 @@ WLH 15 March 2000 */
 
   public BufferedImage createImage(int data_width, int data_height,
                        int texture_width, int texture_height,
-                       byte[][] color_values) {
+                       byte[][] color_values) throws VisADException {
     BufferedImage image = null;
     if (color_values.length > 3) {
       ColorModel colorModel = ColorModel.getRGBdefault();
       WritableRaster raster =
         colorModel.createCompatibleWritableRaster(texture_width, texture_height);
-      image = new BufferedImage(colorModel, raster, false, null);
-
-      // WLH 1 Nov 2000
-      int[] intData = null;
       DataBuffer db = raster.getDataBuffer();
       if (!(db instanceof DataBufferInt)) {
-        intData = new int[texture_width * texture_height];
+        throw new UnimplementedException("getRGBdefault isn't DataBufferInt");
       }
-      else {
-        intData = ((DataBufferInt) db).getData();
-      }
-      // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
-
+      image = new BufferedImage(colorModel, raster, false, null);
+      int[] intData = ((DataBufferInt)db).getData();
       int k = 0;
       int m = 0;
       int r, g, b, a;
@@ -2965,32 +2963,31 @@ WLH 15 March 2000 */
           intData[m++] = 0;
         }
       }
-
-      // WLH 1 Nov 2000
-      if (!(db instanceof DataBufferInt)) {
-        for (int i=0; i<intData.length; i++) {
-          db.setElem(i, intData[i]);
-        }
-      }
-
     }
     else { // (color_values.length == 3)
       ColorModel colorModel = ColorModel.getRGBdefault();
       WritableRaster raster =
         colorModel.createCompatibleWritableRaster(texture_width, texture_height);
-      image = new BufferedImage(colorModel, raster, false, null);
 
-      // WLH 1 Nov 2000
-      int[] intData = null;
+      // WLH 2 Nov 2000
       DataBuffer db = raster.getDataBuffer();
-      if (!(db instanceof DataBufferInt)) {
-        intData = new int[texture_width * texture_height];
+      int[] intData = null;
+      if (db instanceof DataBufferInt) {
+        intData = ((DataBufferInt)db).getData();
       }
       else {
-        intData = ((DataBufferInt) db).getData();
+// System.out.println("byteData 3 1");
+        intData = new int[texture_width * texture_height];
+        ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB); 
+        int[] nBits = {8, 8, 8};
+        colorModel =
+          new ComponentColorModel(cs, nBits, false, false, Transparency.OPAQUE, 0); 
+        raster = 
+          colorModel.createCompatibleWritableRaster(texture_width, texture_height);
       }
-      // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
 
+      image = new BufferedImage(colorModel, raster, false, null);
+      // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
       int k = 0;
       int m = 0;
       int r, g, b, a;
@@ -3016,11 +3013,37 @@ WLH 15 March 2000 */
         }
       }
 
-      // WLH 1 Nov 2000
+      // WLH 2 Nov 2000
       if (!(db instanceof DataBufferInt)) {
+// System.out.println("byteData 3 2");
+        byte[] byteData = ((DataBufferByte)raster.getDataBuffer()).getData();
+        k = 0;
         for (int i=0; i<intData.length; i++) {
-          db.setElem(i, intData[i]);
+          byteData[k++] = (byte) (intData[i] & 255);
+          byteData[k++] = (byte) ((intData[i] >> 8) & 255);
+          byteData[k++] = (byte) ((intData[i] >> 16) & 255);
         }
+/* WLH 4 Nov 2000, from com.sun.j3d.utils.geometry.Text2D
+        // For now, jdk 1.2 only handles ARGB format, not the RGBA we want
+        BufferedImage bImage = new BufferedImage(width, height,
+                                                 BufferedImage.TYPE_INT_ARGB);
+        Graphics offscreenGraphics = bImage.createGraphics();
+
+        // First, erase the background to the text panel - set alpha to 0
+        Color myFill = new Color(0f, 0f, 0f, 0f);
+        offscreenGraphics.setColor(myFill);
+        offscreenGraphics.fillRect(0, 0, width, height);
+
+        // Next, set desired text properties (font, color) and draw String
+        offscreenGraphics.setFont(font);
+        Color myTextColor = new Color(color.x, color.y, color.z, 1f);
+        offscreenGraphics.setColor(myTextColor);
+        offscreenGraphics.drawString(text, 0, height - descent);
+*/
+/* WLH 4 Nov 2000, see MultiTextureTest.java in
+/home2/billh/j2sdk1_3_0beta_refresh/demo/java3d/TextureTest/
+but use BufferedImage.TYPE_INT_ARGB
+*/
       }
 
     } // end if (color_values.length == 3)
@@ -3029,7 +3052,8 @@ WLH 15 March 2000 */
 
   public BufferedImage[] createImages(int axis, int data_width_in,
            int data_height_in, int data_depth_in, int texture_width_in,
-           int texture_height_in, int texture_depth_in, byte[][] color_values) {
+           int texture_height_in, int texture_depth_in, byte[][] color_values)
+         throws VisADException {
     int data_width, data_height, data_depth;
     int texture_width, texture_height, texture_depth;
     int kwidth, kheight, kdepth;
@@ -3087,18 +3111,11 @@ WLH 15 March 2000 */
           images[d] = new BufferedImage(colorModel, raster, false, null);
         }
 */
-
-        // WLH 1 Nov 2000
-        int[] intData = null;
         DataBuffer db = raster.getDataBuffer();
         if (!(db instanceof DataBufferInt)) {
-          intData = new int[texture_width * texture_height];
+          throw new UnimplementedException("getRGBdefault isn't DataBufferInt");
         }
-        else {
-          intData = ((DataBufferInt) db).getData();
-        }
-        // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
-
+        int[] intData = ((DataBufferInt)db).getData();
         // int k = d * data_width * data_height;
         int kk = d * kdepth;
         int m = 0;
@@ -3127,14 +3144,6 @@ WLH 15 March 2000 */
             intData[m++] = 0;
           }
         }
-
-        // WLH 1 Nov 2000
-        if (!(db instanceof DataBufferInt)) {
-          for (int i=0; i<intData.length; i++) {
-            db.setElem(i, intData[i]);
-          }
-        }
-
       }
       else { // (color_values.length == 3)
         ColorModel colorModel = ColorModel.getRGBdefault();
@@ -3150,17 +3159,11 @@ WLH 15 March 2000 */
           images[d] = new BufferedImage(colorModel, raster, false, null);
         }
 */
-
-        // WLH 1 Nov 2000
-        int[] intData = null;
         DataBuffer db = raster.getDataBuffer();
         if (!(db instanceof DataBufferInt)) {
-          intData = new int[texture_width * texture_height];
+          throw new UnimplementedException("getRGBdefault isn't DataBufferInt");
         }
-        else {
-          intData = ((DataBufferInt) db).getData();
-        }
-        // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+        int[] intData = ((DataBufferInt)db).getData();
 
         // int k = d * data_width * data_height;
         int kk = d * kdepth;
@@ -3189,14 +3192,6 @@ WLH 15 March 2000 */
             intData[m++] = 0;
           }
         }
-
-        // WLH 1 Nov 2000
-        if (!(db instanceof DataBufferInt)) {
-          for (int i=0; i<intData.length; i++) {
-            db.setElem(i, intData[i]);
-          }
-        }
-
       } // end if (color_values.length == 3)
     } // end for (int d=0; d<data_depth; d++)
     for (int d=data_depth; d<texture_depth; d++) {
@@ -3204,29 +3199,15 @@ WLH 15 March 2000 */
       WritableRaster raster =
         colorModel.createCompatibleWritableRaster(texture_width, texture_height);
       images[d] = new BufferedImage(colorModel, raster, false, null);
-
-      // WLH 1 Nov 2000
-      int[] intData = null;
       DataBuffer db = raster.getDataBuffer();
       if (!(db instanceof DataBufferInt)) {
-        intData = new int[texture_width * texture_height];
+        throw new UnimplementedException("getRGBdefault isn't DataBufferInt");
       }
-      else {
-        intData = ((DataBufferInt) db).getData();
-      }
-      // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+      int[] intData = ((DataBufferInt)db).getData();
 
       for (int i=0; i<texture_width*texture_height; i++) {
         intData[i] = 0;
       }
-
-      // WLH 1 Nov 2000
-      if (!(db instanceof DataBufferInt)) {
-        for (int i=0; i<intData.length; i++) {
-          db.setElem(i, intData[i]);
-        }
-      }
-
     }
     return images;
   }
