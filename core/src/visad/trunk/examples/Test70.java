@@ -22,6 +22,7 @@ MA 02111-1307, USA
 
 import java.rmi.RemoteException;
 import java.text.*;
+import java.awt.Font;
 
 import visad.*;
 
@@ -66,7 +67,8 @@ public class Test70
     RealTupleType text_tuple = new RealTupleType(mtypes);
     FunctionType text_function = new FunctionType(RealType.Time, text_tuple);
 
-    double[] values = {1.23, 0.001, -23.4, 0.0, 10};
+    // double[] values = {1.23, 0.001, -23.4, 0.0, 10};
+    double[] values = {1.23, 0.001, Double.NaN, 0.0, 10};
 
     int ntimes1 = values.length;
     Set time_set =
@@ -89,6 +91,8 @@ public class Test70
     tcontrol.setSphere(sphere);
     tcontrol.setCenter(true);
     tcontrol.setNumberFormat(new DecimalFormat());
+    Font txtfont = new Font("Arial", Font.PLAIN, 4);
+    tcontrol.setFont(txtfont);
     // tcontrol.setRotation(10.0);
     if (sphere) {
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));

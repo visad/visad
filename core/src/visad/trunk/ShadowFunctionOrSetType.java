@@ -1530,7 +1530,10 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
               NumberFormat format = text_control.getNumberFormat();
               if (display_values[i].length == 1) {
                 String text = null;
-                if (format == null) {
+                if (display_values[i][0] != display_values[i][0]) {
+                  text = "";
+                }
+                else if (format == null) {
                   text = PlotText.shortString(display_values[i][0]);
                 }
                 else {
@@ -1543,12 +1546,22 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
               else {
                 if (format == null) {
                   for (int j=0; j<domain_length; j++) {
-                    text_values[j] = PlotText.shortString(display_values[i][j]);
+                    if (display_values[i][j] != display_values[i][j]) {
+                      text_values[j] = "";
+                    }
+                    else {
+                      text_values[j] = PlotText.shortString(display_values[i][j]);
+                    }
                   }
                 }
                 else {
                   for (int j=0; j<domain_length; j++) {
-                    text_values[j] = format.format(display_values[i][j]);
+                    if (display_values[i][j] != display_values[i][j]) {
+                      text_values[j] = ""; 
+                    }
+                    else {
+                      text_values[j] = format.format(display_values[i][j]);
+                    }
                   }
                 }
               }

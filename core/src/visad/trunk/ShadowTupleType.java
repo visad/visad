@@ -422,7 +422,10 @@ public class ShadowTupleType extends ShadowType {
           if (dreal.equals(Display.Text) && real instanceof RealType) {
             text_control = (TextControl) map.getControl();
             NumberFormat format = text_control.getNumberFormat();
-            if (format == null) {
+            if (display_values[i][0] != display_values[i][0]) {
+              text_value = "";
+            }
+            else if (format == null) {
               text_value = PlotText.shortString(display_values[i][0]);
             }
             else {

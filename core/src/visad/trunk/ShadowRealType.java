@@ -106,7 +106,10 @@ public class ShadowRealType extends ShadowScalarType {
         if (dreal.equals(Display.Text)) {
           text_control = (TextControl) map.getControl();
           NumberFormat format = text_control.getNumberFormat();
-          if (format == null) {
+          if (value[0][0] != value[0][0]) {
+            text_value = "";
+          }
+          else if (format == null) {
             text_value = PlotText.shortString(value[0][0]);
           }
           else {
