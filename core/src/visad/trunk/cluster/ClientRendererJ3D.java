@@ -135,38 +135,19 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       return super.doTransform();
     }
 
-/*
-    ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
+    String message = "transform";
+    Serializable[] responses =
+      focus_agent.broadcastWithResponses(message, contacts);
 
-    // initialize valueArray to missing
-    int valueArrayLength = getDisplay().getValueArrayLength();
-    float[] valueArray = new float[valueArrayLength];
-    for (int i=0; i<valueArrayLength; i++) {
-      valueArray[i] = Float.NaN;
-    }
+    // responses are VisADGroups
+    // need to:
+    // 1. rebuild images and volumes
+    // 2. convert from VisADGroups to BranchGroups
+    // 3. add them as children of branch
 
-    link.start_time = System.currentTimeMillis();
-    link.time_flag = false;
-    type.preProcess();
 
-    boolean post_process;
-    try {
-      // transform data into a depiction under branch
-      post_process = type.doTransform(branch, data, valueArray,
-                                      link.getDefaultValues(), this);
-    } catch (RemoteException re) {
-      if (visad.collab.CollabUtil.isDisconnectException(re)) {
-        getDisplay().connectionFailed(this, link);
-        removeLink(link);
-        return null;
-      }
-      throw re;
-    }
 
-    if (post_process) type.postProcess(branch);
-
-    link.clearData();
-*/
+    // link.clearData(); ????
 
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);

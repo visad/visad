@@ -100,11 +100,21 @@ public class DefaultNodeRendererAgent extends NodeAgent {
     while (getAgentThread() == me) {
       Serializable message = getMessage();
 
-      if (message instanceof String &&
-          ((String) message).equals("stop")) return;
-
       Serializable response = null;
-      if (message instanceof Vector) {
+      if (message instanceof String) {
+        String smessage = (String) message;
+        if (smessage.equals("stop")) {
+          return;
+        }
+        else if (smessage.equals("transform")) {
+          nr.enableTransform();
+          display.reDisplayAll();
+          // NodeRendererJ3D.doTransform() calls
+          // sendToClient(branch) for this, so just return
+          return;
+        }
+      }
+      else if (message instanceof Vector) {
         Vector vmessage = (Vector) message;
         Object first = vmessage.elementAt(0);
         if (first instanceof ShadowType) {

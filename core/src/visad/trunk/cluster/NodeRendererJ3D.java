@@ -48,6 +48,8 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
 
   private NodeAgent agent = null;
 
+  private boolean enable_transform = false;
+
   /** this constructor is need for NodeDisplayRendererJ3D.makeDefaultRenderer()
       but it should never be called */
   public NodeRendererJ3D () {
@@ -92,6 +94,10 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
     return new ShadowNodeTupleTypeJ3D(type, link, parent);
   }
 
+  public void enableTransform() {
+    enable_transform = true;
+  }
+
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
@@ -101,6 +107,17 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
 
   /** create a VisADGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
+    // RendererJ3D.doAction is expecting a BranchGroup
+    // so fake it
+    BranchGroup fake_branch = new BranchGroup();
+    fake_branch.setCapability(BranchGroup.ALLOW_DETACH);
+    fake_branch.setCapability(Group.ALLOW_CHILDREN_READ);
+    fake_branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    fake_branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    // don't do work unless requested by the client
+    if (!enable_transform) return fake_branch;
+    enable_transform = false;
+
     VisADGroup branch = new VisADGroup();
 
     DataDisplayLink[] Links = getLinks();
@@ -163,11 +180,6 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
 
     // RendererJ3D.doAction is expecting a BranchGroup
     // so fake it
-    BranchGroup fake_branch = new BranchGroup();
-    fake_branch.setCapability(BranchGroup.ALLOW_DETACH);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_READ);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     return fake_branch;
   }
 
