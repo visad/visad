@@ -84,7 +84,7 @@ public class BaseMapAdapter {
    * @param filename name of local file.
    * @param bbox  lat/lon bounding box of map lines to include
    *
-   * @exception IOException if there was a problem reading the URL.
+   * @exception IOException if there was a problem reading the file.
    * @exception VisADException if an unexpected problem occurs.
    */
   public BaseMapAdapter(String filename, Rectangle2D bbox)
