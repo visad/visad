@@ -116,7 +116,7 @@ public class Main
     while (i < list.size()) {
       JavaFile f = new JavaFile((File )list.get(i));
 
-      if (JavaVersion.matchMinimum(f, major, minor)) {
+      if (f.matchMinimum(major, minor)) {
         list.set(i++, f);
       } else {
         list.remove(i);
@@ -883,7 +883,7 @@ public class Main
         msg = "Would you like to install the supplied " +
           " Java Development Kit " + installerJava.getMajor() + "." +
           installerJava.getMinor() + " (" +
-          installerJava.getFullString() + ")?";
+          installerJava.getVersionString() + ")?";
       } else {
         msg = "Would you like to install the supplied " +
           " Java Development Kit?";
