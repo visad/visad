@@ -365,7 +365,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     }
     display = d;
     if (scale_flag) makeScale();
-
+// System.out.println("setDisplay " + Scalar + " -> " + DisplayScalar);
     // WLH 27 Nov 2000
     if (!(this instanceof ConstantMap)) {
       ProjectionControl pcontrol = display.getProjectionControl();
