@@ -28,6 +28,7 @@ package visad.data.ij;
 
 import ij.*;
 import ij.io.*;
+import ij.process.ImageProcessor;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -114,7 +115,22 @@ public class ImageJForm extends Form implements FormFileInformer {
     File file = new File(id);
     ImagePlus image = opener.openImage(file.getParent() +
       System.getProperty("file.separator"), file.getName());
-    return DataUtility.makeField(image.getImage());
+    int size = image.getStackSize();
+    if (size == 1) return DataUtility.makeField(image.getImage());
+
+    // combine data stack into time function
+    ImageStack stack = image.getStack();
+    FieldImpl[] fields = new FieldImpl[size];
+    for (int i=0; i<size; i++) {
+      ImageProcessor ip = stack.getProcessor(i + 1);
+      fields[i] = DataUtility.makeField(ip.createImage());
+    }
+    RealType time = RealType.getRealType("time");
+    FunctionType time_function = new FunctionType(time, fields[0].getType());
+    Integer1DSet time_set = new Integer1DSet(size);
+    FieldImpl time_field = new FieldImpl(time_function, time_set);
+    time_field.setSamples(fields, false);
+    return time_field;
   }
 
   /**
