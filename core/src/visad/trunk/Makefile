@@ -304,6 +304,7 @@ compile: clean
 	javac data/netcdf/*.java
 	-javac $(FITS)/util/*.java
 	-javac $(FITS)/fits/*.java
+	-javac $(FITS)/test/*.java
 	javac data/fits/*.java
 	javac data/vis5d/*.java
 	javac data/gif/*.java
