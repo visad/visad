@@ -41,8 +41,9 @@ import java.util.StringTokenizer;
  * This class extends URLConnection, providing the guts of the
  * work to establish an ADDE network connection, put together
  * a request packet, and initiate data flow.  Connections for
- * image data, image directories and dataset information (McIDAS
- * AGET, ADIR and LWPR requests) are supported.
+ * image data, image directories, grid data, grid directory, 
+ * point source * data and dataset information (McIDAS
+ * AGET, ADIR, GGET, MDKS and LWPR requests) are supported.
  * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
@@ -118,9 +119,11 @@ import java.util.StringTokenizer;
  * ------ for point data:
  *
  *   descr=<descriptor>        ADDE descriptor name
- *   pos=<position>            request an absolute or relative ADDE position 
- *                               number
- *                               number
+ *   pos=<position>            request an absolute or relative ADDE 
+ *                               position number
+ *   select=<select clause>    to specify which data is required
+ *   param=<param list>        what parameters to return
+ *   max=<max return>          maximum number of obs to return
  *   
  * The following keywords are required:
  *
@@ -173,6 +176,7 @@ public class AddeURLConnection extends URLConnection
 
   private int numBytes = 0;
   private int dataType = IMAGE;
+  private byte[] binaryData = null;   // byte array to hold extra binary data
 
   /**
    *
@@ -386,20 +390,35 @@ public class AddeURLConnection extends URLConnection
     //System.out.println(cmd);
     byte [] ob = cmd.getBytes();
 
-    // data length - num bytes beyond 120 length for command string
-    int dlen = 0;
-    if (ob.length > REQUEST_SIZE) {
-      dlen = ob.length - REQUEST_SIZE;
-    }
-    dos.writeInt(dlen);
-    
-    // dos.writeBytes(cmd);
-    dos.write(ob, 0, ob.length);
-    if (ob.length < REQUEST_SIZE) {
-      for (int i = 0; i < REQUEST_SIZE - ob.length; i++) {
+    // Write out the data.  There are 2 cases:
+    //
+    //  1) ob.length <= 120 
+    //  2) ob.length > 120 
+    //
+    // In either case, there may or may not be additional binary data
+    // 
+
+    int numBinaryBytes = 0;
+    if (binaryData != null) numBinaryBytes = binaryData.length;
+
+    if (ob.length > REQUEST_SIZE) 
+    {
+      dos.writeInt(ob.length + numBinaryBytes); // number of additional bytes
+      dos.writeInt(ob.length);                  // number of bytes in request
+      for (int i=1; i < REQUEST_SIZE; i++) {
         dos.writeByte(0);
       }
+      dos.write(ob,0,ob.length);
+
+    } else {
+      dos.writeInt(numBinaryBytes);
+      dos.write(ob, 0, ob.length);
+      for (int i=ob.length; i < REQUEST_SIZE; i++) {
+        dos.writeByte(' ');
+      }
     }
+
+    if (numBinaryBytes > 0) dos.write(binaryData, 0, numBinaryBytes);
 
     // get response from server, byte count coming back
     numBytes = dis.readInt();
@@ -1049,10 +1068,11 @@ public class AddeURLConnection extends URLConnection
      *
      * <pre>
      * there can be any valid combination of the following supported keywords:
-     *   group - ADDE group name   
-     *   type  - ADDE data type.  Must be one of the following:
-     *               IMAGE, POINT, GRID, TEXT, NAV
-     *           the default is the IMAGE type.
+     *
+     *   group=<groupname>    ADDE group name
+     *   type=<datatype>      ADDE data type.  Must be one of the following:
+     *                             IMAGE, POINT, GRID, TEXT, NAV
+     *                        the default is the IMAGE type.
      *
      * the following keywords are required:
      *
@@ -1112,12 +1132,13 @@ public class AddeURLConnection extends URLConnection
      *   descr=<descriptor>        ADDE descriptor name
      *   pos=<position>            request an absolute or relative ADDE 
      *                               position number
+     *   select=<select clause>    to specify which data is required
+     *   param=<param list>        what parameters to return
+     *   max=<max return>          maximum number of obs to return
      *   user=<user_id>            ADDE user identification
      *   proj=<proj #>             a valid ADDE project number
      *   trace=<0/1>               setting to 1 tells server to write debug 
      *                               trace file (imagedata, imagedirectory)
-//   *   select - to specify which data is required
-//   *   param  - what parameters to return
      *
      * the following keywords are required:
      *
@@ -1140,12 +1161,14 @@ public class AddeURLConnection extends URLConnection
         String groupString = null;
         String descrString = null;
         String maxString = "max=1000";
+        String numString = "";
                                 // Options strings
         String posString = "pos=0";
         String traceString = "trace=0";
+        String versionString = "version=1";
         String spaceString = "spac=1";
-        String selectString = null;
-        String paramString = null;
+        String selectString = "";
+        String parmString = "";
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
@@ -1166,26 +1189,33 @@ public class AddeURLConnection extends URLConnection
             else
             if (testString.startsWith("select"))
             {
-                selectString = 
-                    testString.substring(testString.indexOf("=") + 1);
+                selectString = testString;
             }
             else
             if (testString.startsWith("max"))
             {
-                maxString = 
-                    testString.substring(testString.indexOf("=") + 1);
+                maxString = testString;
             }
             else
-            if (testString.startsWith("param"))
+            if (testString.startsWith("par"))
             {
-                paramString = 
-                    testString.substring(testString.indexOf("=") + 1);
+                parmString = testString;
             }
             // now get the rest of the keywords (but filter out non-needed)
             else
             if (testString.startsWith("tra"))       // trace keyword
             {
                 traceString = testString;
+            }
+            else
+            if (testString.startsWith("pos"))       
+            {
+                posString = testString;
+            }
+            else
+            if (testString.startsWith("num"))       
+            {
+                numString = testString;
             }
         } 
         // buf.append(" ");
@@ -1194,15 +1224,17 @@ public class AddeURLConnection extends URLConnection
         // now create command string
         StringBuffer posParams = 
             new StringBuffer(
-                 groupString + " " + descrString + " " + maxString + " " + posString);
-
-        // do something here with paramString & selectString
-                                // not yet done!
+                 // groupString + " " + descrString + " " + selectString + " " + paramString + " " + maxString + " " + posString);
+                 // groupString + " " + descrString + " " + maxString + " " + posString + " " + selectString + " " + traceString + " " + versionString + " " + parmString);
+                 // groupString + " " + descrString + " " + parmString + " " + selectString + " " + posString + " " + traceString + " " + maxString);
+                 groupString + " " + descrString + " " + parmString + " " + selectString + " " + posString + " " + traceString + " " + maxString);
+                                System.out.println("String passed to server = " + posParams);
 
         // stuff it in at the beginning
         try
         {
             buf.insert(0, posParams);
+            System.out.println("buf = " + buf);
         }
         catch (StringIndexOutOfBoundsException e)
         {
