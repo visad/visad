@@ -31,13 +31,16 @@ import visad.*;
 import visad.java2d.*;
 import visad.java3d.*;
 
-/** PoolPoint is a single, direct-manipulation DataReference. */
+/** PoolPoint is a single measurement pool endpoint. */
 public class PoolPoint {
 
   // -- FIELDS --
 
+  /** BioVisAD frame. */
+  private BioVisAD bio;
+
   /** Associated data reference. */
-  public DataReferenceImpl ref;
+  DataReferenceImpl ref;
 
   /** Associated VisAD display. */
   private DisplayImpl display;
@@ -45,21 +48,43 @@ public class PoolPoint {
   /** Associated direct manipulation renderer. */
   private DataRenderer renderer;
 
+  /** Dimensionality of the pool point's display. */
+  private int dim;
+
+  /** Measurement endpoint currently linked to this pool point. */
+  MeasurePoint point;
+
 
   // -- CONSTRUCTOR --
 
-  /** Constructs a pool of measurements. */
-  public PoolPoint(DisplayImpl display, String name) {
+  /** Constructs a point for use in the measurement pool. */
+  public PoolPoint(BioVisAD biovis, DisplayImpl display,
+    String name, int dimension)
+  {
+    bio = biovis;
     this.display = display;
     try { ref = new DataReferenceImpl("bio_" + name); }
     catch (VisADException exc) { exc.printStackTrace(); }
+    dim = dimension;
+
+    // update linked measurement endpoint when pool point changes
+    final PoolPoint pt = this;
+    CellImpl cell = new CellImpl() {
+      public void doAction() {
+        if (point == null) return;
+        RealTuple tuple = (RealTuple) ref.getData();
+        if (tuple == null) return;
+        double[] v = tuple.getValues();
+        point.setCoordinates(pt, v[0], v[1], dim == 3 ? v[2] : point.z);
+      }
+    };
+    try { cell.addReference(ref); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
 
   // -- API METHODS --
-
-  /** Toggles the visibility of the point in the display. */
-  public void toggle(boolean visible) { renderer.toggle(visible); }
 
   /** Adds the point to the associated display. */
   public void init() throws VisADException, RemoteException {
@@ -70,6 +95,40 @@ public class PoolPoint {
     renderer.suppressExceptions(true);
     renderer.toggle(false);
     display.addReferences(renderer, ref);
+  }
+
+  /** Refreshes the point's coordinates to match the linked endpoint. */
+  public void refresh() {
+    if (point == null) {
+      renderer.toggle(false);
+      return;
+    }
+    renderer.toggle(true);
+    try {
+      RealTuple tuple = (RealTuple) ref.getData();
+
+      if (tuple != null) {
+        double[] v = tuple.getValues();
+        if (v[0] == point.x && v[1] == point.y) {
+          if (dim == 2 || v[2] == point.z) return;
+        }
+      }
+      if (dim == 3) {
+        ref.setData(new RealTuple(new Real[] {
+          new Real(bio.sm.dtypes[0], point.x),
+          new Real(bio.sm.dtypes[1], point.y),
+          new Real(bio.sm.dtypes[2], point.z)
+        }));
+      }
+      else { // dim == 2
+        ref.setData(new RealTuple(new Real[] {
+          new Real(bio.sm.dtypes[0], point.x),
+          new Real(bio.sm.dtypes[1], point.y)
+        }));
+      }
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
 }

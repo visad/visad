@@ -29,6 +29,7 @@ package visad.bio;
 import java.awt.*;
 import java.awt.event.*;
 import java.rmi.RemoteException;
+import java.util.Vector;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
@@ -68,9 +69,6 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** New group dialog box. */
   private GroupDialog groupBox = new GroupDialog();
-
-  /** Currently selected measurement object. */
-  private MeasureThing thing;
 
   /** Computation cell for linking selection with measurement object. */
   private CellImpl cell;
@@ -133,7 +131,7 @@ public class MeasureToolPanel extends ToolPanel {
   private JCheckBox setStandard;
 
   /** Button for removing objects. */
-  private JButton removeThing;
+  private JButton removeSelected;
 
   /** Label for color list. */
   private JLabel colorLabel;
@@ -233,7 +231,7 @@ public class MeasureToolPanel extends ToolPanel {
     addLine = new JButton("New line");
     addLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.mm.getList().addMeasurement();
+        bio.mm.getList().addLine();
         bio.state.saveState(false);
       }
     });
@@ -245,7 +243,7 @@ public class MeasureToolPanel extends ToolPanel {
     addMarker = new JButton("New marker");
     addMarker.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.mm.getList().addMeasurement(1);
+        bio.mm.getList().addMarker();
         bio.state.saveState(false);
       }
     });
@@ -310,23 +308,7 @@ public class MeasureToolPanel extends ToolPanel {
           return;
         }
         boolean std = setStandard.isSelected();
-        Measurement m = thing.getMeasurement();
-        int index = bio.sm.getIndex();
-        int slice = bio.sm.getSlice();
-        if (std) {
-          // set standard
-          m.stdId = maxId++;
-          int numSlices = bio.sm.getNumberOfSlices();
-          for (int j=0; j<bio.mm.lists.length; j++) {
-            for (int i=0; i<numSlices; i++) {
-              if (j == index && i == slice) continue;
-              bio.mm.lists[j].addMeasurement(
-                new Measurement(m, i), j == index);
-            }
-          }
-        }
-        else {
-          // unset standard
+        if (!std) {
           int ans = JOptionPane.showConfirmDialog(tool,
             "Are you sure?", "Unset standard", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE);
@@ -335,17 +317,10 @@ public class MeasureToolPanel extends ToolPanel {
             setStandard.setSelected(true);
             return;
           }
-          int stdId = m.stdId;
-          m.stdId = -1;
-          for (int j=0; j<bio.mm.lists.length; j++) {
-            Measurement[] mlist = bio.mm.lists[j].getMeasurements();
-            for (int k=0; k<mlist.length; k++) {
-              if (mlist[k].stdId == stdId) {
-                bio.mm.lists[j].removeMeasurement(mlist[k]);
-              }
-            }
-          }
         }
+        MeasureThing[] things = bio.mm.pool2.getSelection();
+        for (int i=0; i<things.length; i++) doStandard(things[i], std);
+        bio.mm.changed = true;
         bio.state.saveState(false);
       }
     });
@@ -354,15 +329,16 @@ public class MeasureToolPanel extends ToolPanel {
     p.add(Box.createHorizontalStrut(5));
 
     // remove thing button
-    removeThing = new JButton("Remove");
-    removeThing.addActionListener(new ActionListener() {
+    removeSelected = new JButton("Remove");
+    removeSelected.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        bio.mm.getList().removeMeasurement(thing.getMeasurement());
+        bio.mm.getList().removeSelected();
         bio.state.saveState(false);
+        updateSelection();
       }
     });
-    removeThing.setEnabled(false);
-    p.add(removeThing);
+    removeSelected.setEnabled(false);
+    p.add(removeSelected);
     controls.add(pad(p));
     controls.add(Box.createVerticalStrut(5));
 
@@ -379,9 +355,21 @@ public class MeasureToolPanel extends ToolPanel {
     colorList.setRenderer(new ColorRenderer());
     colorList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        int index = colorList.getSelectedIndex();
-        thing.setColor(COLORS[index]);
-        bio.state.saveState(false);
+        Color color = COLORS[colorList.getSelectedIndex()];
+        MeasureThing[] things = bio.mm.pool2.getSelection();
+        boolean changed = false;
+        for (int i=0; i<things.length; i++) {
+          if (things[i].color != color) {
+            changed = true;
+            things[i].color = color;
+          }
+        }
+        if (changed) {
+          bio.mm.changed = true;
+          bio.state.saveState(false);
+          bio.mm.pool2.refresh(true);
+          bio.mm.pool3.refresh(true);
+        }
       }
     });
     colorList.setEnabled(false);
@@ -403,10 +391,19 @@ public class MeasureToolPanel extends ToolPanel {
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
-        if (thing == null || group == null) return;
-        thing.setGroup(group);
-        descriptionBox.setText(group.getDescription());
-        bio.state.saveState(false);
+        MeasureThing[] things = bio.mm.pool2.getSelection();
+        boolean changed = false;
+        for (int i=0; i<things.length; i++) {
+          if (things[i].group != group) {
+            changed = true;
+            things[i].group = group;
+          }
+        }
+        if (group != null) descriptionBox.setText(group.getDescription());
+        if (changed) {
+          bio.mm.changed = true;
+          bio.state.saveState(false);
+        }
       }
     });
     groupList.setEnabled(false);
@@ -422,6 +419,7 @@ public class MeasureToolPanel extends ToolPanel {
           MeasureGroup group = new MeasureGroup(bio, name);
           groupList.addItem(group);
           groupList.setSelectedItem(group);
+          bio.mm.changed = true;
           bio.state.saveState(false);
         }
       }
@@ -483,40 +481,42 @@ public class MeasureToolPanel extends ToolPanel {
   /** Enables or disables the "set standard" checkbox. */
   public void setStandardEnabled(boolean enabled) {
     stdEnabled = enabled;
-    setStandard.setEnabled(thing != null && enabled);
+    setStandard.setEnabled(bio.mm.pool2.hasSelection() && enabled);
   }
 
-  /** Selects the given measurement object. */
-  public void select(MeasureThing thing) {
-    this.thing = thing;
-    boolean enabled = thing != null;
-    boolean line = enabled && thing.getLength() == 2;
+  /** Updates the selection data to match the current measurement list. */
+  public void updateSelection() {
+    boolean enabled = bio.mm.pool2.hasSelection();
     setStandard.setEnabled(enabled && stdEnabled);
-    removeThing.setEnabled(enabled);
-    colorLabel.setEnabled(enabled && line);
-    colorList.setEnabled(enabled && line);
+    removeSelected.setEnabled(enabled);
+    colorLabel.setEnabled(enabled);
+    colorList.setEnabled(enabled);
     groupLabel.setEnabled(enabled);
     groupList.setEnabled(enabled);
     newGroup.setEnabled(enabled);
     descriptionLabel.setEnabled(enabled);
     descriptionBox.setEnabled(enabled);
     if (enabled) {
-      Measurement m = thing.getMeasurement();
       ignoreNextStandard = true;
-      setStandard.setSelected(m.stdId >= 0);
-      colorList.setSelectedItem(m.getColor());
-      groupList.setSelectedItem(m.getGroup());
+      boolean std = bio.mm.pool2.isSelectionStandard();
+      if (setStandard.isSelected() != std) setStandard.setSelected(std);
+      Color c = bio.mm.pool2.getSelectionColor();
+      if (colorList.getSelectedItem() != c) colorList.setSelectedItem(c);
+      MeasureGroup g = bio.mm.pool2.getSelectionGroup();
+      if (groupList.getSelectedItem() != g) groupList.setSelectedItem(g);
     }
     synchronized (cell) {
       try {
         cell.disableAction();
         cell.removeAllReferences();
+        boolean trigger = !enabled;
         if (enabled) {
-          PoolPoint[] pts = thing.getPoints();
+          PoolPoint[] pts = bio.mm.pool2.getSelectionPts();
           for (int i=0; i<pts.length; i++) cell.addReference(pts[i].ref);
+          if (pts.length == 0) trigger = true;
         }
         cell.enableAction();
-        if (!enabled) cell.doAction();
+        if (trigger) cell.doAction();
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
@@ -599,9 +599,8 @@ public class MeasureToolPanel extends ToolPanel {
   private void updateMeasureInfo() {
     String coord = "";
     String dist = "";
-    if (thing != null) {
-      Measurement m = thing.getMeasurement();
-      double[][] vals = m.doubleValues();
+    if (bio.mm.pool2.hasSingleSelection()) {
+      Object thing = bio.mm.pool2.getSelection()[0];
       boolean use = useMicrons.isSelected();
       double mw = getMicronWidth();
       double mh = getMicronHeight();
@@ -610,17 +609,25 @@ public class MeasureToolPanel extends ToolPanel {
       double sd = getSliceDistance();
       boolean microns = use && mx == mx && my == my && sd == sd;
       if (!microns) mx = my = sd = 1;
-      String vx = Convert.shortString(mx * vals[0][0]);
-      String vy = Convert.shortString(my * vals[1][0]);
       String unit = microns ? "µ" : "pix";
-      if (thing.getLength() == 2) {
-        String v2x = Convert.shortString(mx * vals[0][1]);
-        String v2y = Convert.shortString(my * vals[1][1]);
-        String d = Convert.shortString(m.getDistance(mx, my, sd));
+      if (thing instanceof MeasureLine) {
+        MeasureLine line = (MeasureLine) thing;
+        String vx = Convert.shortString(mx * line.ep1.x);
+        String vy = Convert.shortString(my * line.ep1.y);
+        String v2x = Convert.shortString(mx * line.ep2.x);
+        String v2y = Convert.shortString(my * line.ep2.y);
+        String d = Convert.shortString(
+          BioUtil.getDistance(line.ep1.x, line.ep1.y, line.ep1.z,
+          line.ep2.x, line.ep2.y, line.ep2.z, mx, my, sd));
         coord = "(" + vx + ", " + vy + ")-(" + v2x + ", " + v2y + ")";
         dist = "distance = " + d + " " + unit;
       }
-      else coord = "(" + vx + ", " + vy + ")";
+      else if (thing instanceof MeasurePoint) {
+        MeasurePoint point = (MeasurePoint) thing;
+        String vx = Convert.shortString(mx * point.x);
+        String vy = Convert.shortString(my * point.y);
+        coord = "(" + vx + ", " + vy + ")";
+      }
     }
 
     StringBuffer sb = new StringBuffer();
@@ -635,6 +642,64 @@ public class MeasureToolPanel extends ToolPanel {
 
     measureCoord.setText(coordSpace + coord + coordSpace);
     measureDist.setText(distSpace + dist + distSpace);
+  }
+
+  /** Sets or unsets the given measurement as standard. */
+  private void doStandard(MeasureThing thing, boolean std) {
+    boolean isLine = thing instanceof MeasureLine;
+    int index = bio.sm.getIndex();
+    int slice = bio.sm.getSlice();
+    if (std) {
+      // set standard
+      if (thing.stdId != -1) {
+        // line already standard; skip it
+        return;
+      }
+      thing.setStdId(maxId++);
+      int numSlices = bio.sm.getNumberOfSlices();
+      for (int j=0; j<bio.mm.lists.length; j++) {
+        MeasureList list = bio.mm.lists[j];
+        boolean update = j == index;
+        for (int i=0; i<numSlices; i++) {
+          if (j == index && i == slice) continue;
+          if (isLine) {
+            MeasureLine line = new MeasureLine((MeasureLine) thing, i);
+            list.addLine(line, update);
+          }
+          else {
+            MeasurePoint point = new MeasurePoint((MeasurePoint) thing, i);
+            list.addMarker(point, update);
+          }
+        }
+      }
+    }
+    else {
+      // unset standard
+      if (thing.stdId == -1) {
+        // line not standard; skip it
+        return;
+      }
+      int stdId = thing.stdId;
+      thing.setStdId(-1);
+      for (int j=0; j<bio.mm.lists.length; j++) {
+        MeasureList list = bio.mm.lists[j];
+        boolean update = j == index;
+        Vector lines = list.getLines();
+        int k = 0;
+        while (k < lines.size()) {
+          MeasureLine line = (MeasureLine) lines.elementAt(k);
+          if (line.stdId == stdId) list.removeLine(line, update);
+          else k++;
+        }
+        Vector points = list.getPoints();
+        k = 0;
+        while (k < points.size()) {
+          MeasurePoint point = (MeasurePoint) points.elementAt(k);
+          if (point.stdId == stdId) list.removeMarker(point, update);
+          else k++;
+        }
+      }
+    }
   }
 
 }

@@ -174,16 +174,16 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       display2 = (DisplayImpl) new DisplayImplJ2D("display2");
       display3 = null;
     }
-    display2.getGraphicsModeControl().setPointSize(5.0f);
     display2.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
+    display2.enableEvent(DisplayEvent.MOUSE_DRAGGED);
     displayPane.add(display2.getComponent());
     if (display3 != null) {
       GraphicsModeControl gmc = display3.getGraphicsModeControl();
-      gmc.setPointSize(5.0f);
       gmc.setLineWidth(2.0f);
       DisplayRendererJ3D renderer =
         (DisplayRendererJ3D) display3.getDisplayRenderer();
       renderer.setPickThreshhold(Float.MAX_VALUE);
+      display3.enableEvent(DisplayEvent.MOUSE_DRAGGED);
       displayPane.add(display3.getComponent());
     }
 

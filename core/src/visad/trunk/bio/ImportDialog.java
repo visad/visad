@@ -71,6 +71,7 @@ public class ImportDialog extends JPanel implements ActionListener {
     chooser = new SeriesChooser();
     thumbs = new DoubleTextCheckBox(
       "Create low-resolution thumbnails", "by", "64", "64", true);
+    thumbs.setMnemonic('t');
     ok = new JButton("Ok");
     ok.setMnemonic('o');
     ok.setActionCommand("ok");

@@ -27,8 +27,9 @@ MA 02111-1307, USA
 package visad.bio;
 
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.rmi.RemoteException;
-import java.util.Vector;
+import java.util.*;
 import visad.*;
 
 /**
@@ -45,55 +46,174 @@ public class MeasurePool implements DisplayListener {
   /** Maximum pixel distance for picking. */
   private static final int PICKING_THRESHOLD = 10;
 
+  /** Maximum number of measurement pools. */
+  static final int MAX_POOLS = 2;
 
-  // -- FIELDS --
+
+  // -- STATIC FIELDS --
+
+  /** Measurement pool counter. */
+  private static int numPools = 0;
+
+
+  // -- GENERAL FIELDS --
 
   /** BioVisAD frame. */
   private BioVisAD bio;
 
+  /** Id of this measurement pool. */
+  private int pid;
+
   /** Associated VisAD display. */
   private DisplayImpl display;
-
-  /** Associated selection box. */
-  private SelectionBox box;
-
-  /** Internal list of free PoolPoints. */
-  private Vector free;
-
-  /** Internal list of MeasureThings using PoolPoints. */
-  private Vector things;
-
-  /** Data reference for colored line segments. */
-  private DataReferenceImpl lines;
-
-  /** Data renderer for colored line segments. */
-  private DataRenderer line_renderer;
-
-  /** Cell for updating connecting lines when an endpoint changes. */
-  private CellImpl cell;
 
   /** Dimensionality of measurement pool's display. */
   private int dim;
 
-  /** Image slice value. */
+  /** Currently linked list of measurements. */
+  private MeasureList list;
+
+  /** Current image slice value. */
   private int slice;
+
+
+  // -- POOL ELEMENT FIELDS --
+
+  /** Internal stack of free PoolPoints. */
+  private Stack free;
+
+  /** Internal list of used PoolPoints. */
+  private Vector used;
+
+  /**
+   * Cell for updating linked measurement endpoints, solid lines,
+   * dashed lines and colored endpoints when a pool point changes.
+   */
+  private CellImpl cell;
+
+
+  // -- SELECTION FIELDS --
+
+  /** List of selected lines. */
+  private Vector selLines;
+
+  /** List of selected markers. */
+  private Vector selPoints;
+
+
+  // -- SPECIAL DATA REFERENCES --
+
+  /** Data reference for colored line segments. */
+  private DataReferenceImpl solidLines;
+
+  /** Data renderer for colored line segments. */
+  private DataRenderer lineRenderer;
+
+  /** Data reference for selected line segments. */
+  private DataReferenceImpl dashedLines;
+
+  /** Data renderer for dashed line segments. */
+  private DataRenderer dashedRenderer;
+
+  /** Data reference for colored endpoints. */
+  private DataReferenceImpl coloredPoints;
+
+  /** Data renderer for colored endpoints. */
+  private DataRenderer pointRenderer;
 
 
   // -- CONSTRUCTOR --
 
   /** Constructs a pool of measurements. */
-  public MeasurePool(BioVisAD biovis, DisplayImpl display, int dim) {
+  public MeasurePool(BioVisAD biovis, DisplayImpl display, int dimension) {
     bio = biovis;
+    pid = numPools++;
     this.display = display;
-    this.dim = dim;
-    box = new SelectionBox(display);
-    free = new Vector();
-    things = new Vector();
-    try { lines = new DataReferenceImpl("bio_colored_lines"); }
+    dim = dimension;
+    free = new Stack();
+    used = new Vector();
+    try {
+      solidLines = new DataReferenceImpl("bio_solid_lines");
+      dashedLines = new DataReferenceImpl("bio_dashed_lines");
+      coloredPoints = new DataReferenceImpl("bio_colored_points");
+    }
     catch (VisADException exc) { exc.printStackTrace(); }
 
+    selLines = new Vector();
+    selPoints = new Vector();
+
     cell = new CellImpl() {
-      public void doAction() { refresh(); }
+      public void doAction() {
+        // redraw line segments when endpoints change
+        if (lineRenderer == null) return;
+        Vector solidStrips = new Vector();
+        Vector dashedStrips = new Vector();
+        Vector solidColors = new Vector();
+        Vector dashedColors = new Vector();
+
+        // compute list of line strips
+        Vector lines = list.getLines();
+        int size = lines.size();
+        for (int i=0; i<size; i++) {
+          MeasureLine line = (MeasureLine) lines.elementAt(i);
+
+          // ensure at least one endpoint is on this slice
+          if (dim == 2 && line.ep1.z != slice && line.ep2.z != slice) continue;
+
+          // create gridded set from this line
+          GriddedSet set = doSet(new MeasurePoint[] {line.ep1, line.ep2});
+          if (line.selected) {
+            dashedStrips.add(set);
+            dashedColors.add(line.color);
+            dashedColors.add(line.color);
+          }
+          else {
+            solidStrips.add(set);
+            solidColors.add(line.color);
+            solidColors.add(line.color);
+          }
+
+          // check for any needed X's
+          if (dim == 2) {
+            double xRange = Math.abs(bio.sm.max_x - bio.sm.min_x);
+            double yRange = Math.abs(bio.sm.max_y - bio.sm.min_y);
+            double x_width = 0.05 * (xRange < yRange ? xRange : yRange);
+            for (int j=0; j<2; j++) {
+              double x, y, z;
+              if (j == 0) {
+                x = line.ep1.x;
+                y = line.ep1.y;
+                z = line.ep1.z;
+              }
+              else {
+                x = line.ep2.x;
+                y = line.ep2.y;
+                z = line.ep2.z;
+              }
+              if (z == slice) continue;
+              float[][] samples1 = {
+                {(float) (x - x_width), (float) (x + x_width)},
+                {(float) (y - x_width), (float) (y + x_width)}
+              };
+              float[][] samples2 = {
+                {(float) (x - x_width), (float) (x + x_width)},
+                {(float) (y + x_width), (float) (y - x_width)}
+              };
+              try {
+                solidStrips.add(new Gridded2DSet(bio.sm.domain2,
+                  samples1, 2, null, null, null, false));
+                solidStrips.add(new Gridded2DSet(bio.sm.domain2,
+                  samples2, 2, null, null, null, false));
+                for (int k=0; k<4; k++) solidColors.add(Color.white);
+              }
+              catch (VisADException exc) { exc.printStackTrace(); }
+            }
+          }
+        }
+
+        doLines(solidStrips, solidColors, solidLines, lineRenderer);
+        doLines(dashedStrips, dashedColors, dashedLines, dashedRenderer);
+      }
     };
 
     display.addDisplayListener(this);
@@ -103,214 +223,83 @@ public class MeasurePool implements DisplayListener {
 
   // -- API METHODS --
 
-  /** Adds all references to the associated display. */
+  /** Adds references to the associated display. */
   public void init() throws VisADException, RemoteException {
+    lineRenderer = display.getDisplayRenderer().makeDefaultRenderer();
+    lineRenderer.suppressExceptions(true);
+    lineRenderer.toggle(false);
+    display.addReferences(lineRenderer, solidLines);
+    dashedRenderer = display.getDisplayRenderer().makeDefaultRenderer();
+    dashedRenderer.suppressExceptions(true);
+    dashedRenderer.toggle(false);
+    display.addReferences(dashedRenderer, dashedLines, new ConstantMap[] {
+      new ConstantMap(GraphicsModeControl.DASH_STYLE, Display.LineStyle)
+    });
+    pointRenderer = display.getDisplayRenderer().makeDefaultRenderer();
+    pointRenderer.suppressExceptions(true);
+    pointRenderer.toggle(false);
+    display.addReferences(pointRenderer, coloredPoints);
     int total = free.size();
     for (int i=0; i<total; i++) ((PoolPoint) free.elementAt(i)).init();
-    box.init();
-    line_renderer = display.getDisplayRenderer().makeDefaultRenderer();
-    line_renderer.suppressExceptions(true);
-    line_renderer.toggle(false);
-    display.addReferences(line_renderer, lines);
   }
 
-  /** Grants the given measurement object use of a number of pool points. */
-  public PoolPoint[] lease(MeasureThing thing) {
-    if (things.contains(thing)) return null;
-    int num = thing.getLength();
-    expand(num, true);
-    PoolPoint[] pts = new PoolPoint[num];
-    for (int i=0; i<num; i++) {
-      pts[i] = (PoolPoint) free.lastElement();
-      free.remove(free.size() - 1);
-    }
-    things.add(thing);
-    return pts;
+  /** Grants the given endpoint use of a pool point. */
+  public PoolPoint lease(MeasurePoint point) {
+    expand(1, true);
+    PoolPoint pt = (PoolPoint) free.pop();
+    pt.point = point;
+    used.add(pt);
+    point.pt[pid] = pt;
+    pt.refresh();
+
+    return pt;
   }
 
-  /**
-   * Returns the given measurement object's pool points
-   * to the measurement pool.
-   */
-  public void release(MeasureThing thing) {
-    if (!things.contains(thing)) return;
-    select(null);
-    purge(thing);
-  }
+  /** Returns the given endpoint's pool point to the measurement pool. */
+  public void release(MeasurePoint point) { purge(point.pt[pid]); }
 
   /** Returns all pool points to the measurement pool. */
   public void releaseAll() {
-    select(null);
-    while (!things.isEmpty()) purge((MeasureThing) things.lastElement());
+    while (!used.isEmpty()) purge((PoolPoint) used.lastElement());
   }
 
   /** Creates measurement pool objects to match the given measurements. */
-  public void set(Measurement[] m) {
-    // release old leases
+  public void set(MeasureList list) {
+    if (this.list == list) return;
+    if (this.list != null) this.list.setCurrent(false);
+    this.list = list;
+    list.setCurrent(true);
+    deselectAll();
     releaseAll();
-
-    // register new leases
-    expand(m.length, true);
-    for (int i=0; i<m.length; i++) new MeasureThing(bio, this, m[i]);
-    refresh();
-  }
-
-  /** Adds a measurement pool object to match the given measurement. */
-  public void add(Measurement m) {
-    expand(1, true);
-    new MeasureThing(bio, this, m);
+    refresh(true);
   }
 
   /** Sets the current image slice value. */
   public void setSlice(int slice) {
     if (this.slice == slice) return;
     this.slice = slice;
-    cell.disableAction();
-    int size = things.size();
-    select(null);
-    for (int i=0; i<size; i++) ((MeasureThing) things.elementAt(i)).refresh();
-    cell.enableAction();
+    deselectAll();
+    releaseAll();
+    refresh(true);
   }
 
-  /** Refreshes the connecting lines of the measurements in the pool. */
-  public void refresh() {
-    if (line_renderer == null) return;
+  /** Refreshes the measurement endpoints in the pool. */
+  public synchronized void refresh(boolean reconstruct) {
+    if (list == null) return;
 
-    // redraw line segments when endpoints change
-    Vector strips = new Vector();
-    Vector colors = new Vector();
-
-    // compute list of line strips
-    int size = things.size();
+    // update endpoints
+    Vector points = list.getPoints();
+    int size = points.size();
+    display.disableAction();
     for (int i=0; i<size; i++) {
-      MeasureThing thing = (MeasureThing) things.elementAt(i);
-      Color color = thing.getColor();
-
-      // create line strip
-      RealTuple[] values = thing.getValues();
-      for (int j=0; j<values.length; j++) if (values[j] == null) return;
-      if (dim == 2) {
-        boolean okay = false;
-        for (int j=0; j<values.length; j++) {
-          double[] s = values[j].getValues();
-          if (s[2] == slice) okay = true;
-        }
-        if (!okay) continue;
-      }
-
-      if (values.length == 1) {
-        // point - no line segments needed
-        continue;
-      }
-      else if (values.length == 2) {
-        // line - one segment needed
-        double[] s0 = values[0].getValues();
-        double[] s1 = values[1].getValues();
-        try {
-          GriddedSet set;
-          if (dim == 2) {
-            float[][] samples = {
-              {(float) s0[0], (float) s1[0]},
-              {(float) s0[1], (float) s1[1]}
-            };
-            set = new Gridded2DSet(bio.sm.domain2, samples, 2,
-              null, null, null, false);
-          }
-          else { // dim == 3
-            float[][] samples = {
-              {(float) s0[0], (float) s1[0]},
-              {(float) s0[1], (float) s1[1]},
-              {(float) s0[2], (float) s1[2]}
-            };
-            set = new Gridded3DSet(bio.sm.domain3, samples, 2,
-              null, null, null, false);
-          }
-          strips.add(set);
-        }
-        catch (VisADException exc) { exc.printStackTrace(); }
-      }
-      else {
-        // multi-vertex shape - line strip loop needed
-        float[][] samples = new float[dim][values.length + 1];
-        for (int j=0; j<values.length; j++) {
-          double[] s = values[j].getValues();
-          for (int k=0; k<dim; k++) samples[k][j] = (float) s[k];
-        }
-        double[] s = values[0].getValues();
-        for (int k=0; k<dim; k++) samples[k][values.length] = (float) s[k];
-        try {
-          GriddedSet set;
-          if (dim == 2) {
-            set = new Gridded2DSet(bio.sm.domain2, samples,
-              values.length + 1, null, null, null, false);
-          }
-          else { // dim == 3
-            set = new Gridded3DSet(bio.sm.domain3, samples,
-              values.length + 1, null, null, null, false);
-          }
-          strips.add(set);
-        }
-        catch (VisADException exc) { exc.printStackTrace(); }
-      }
-      if (values.length > 1) {
-        for (int k=0; k<values.length; k++) colors.add(color);
-      }
-
-      // check for any needed X's
-      if (dim == 2) {
-        double xRange = Math.abs(bio.sm.max_x - bio.sm.min_x);
-        double yRange = Math.abs(bio.sm.max_y - bio.sm.min_y);
-        double x_width = 0.05 * (xRange < yRange ? xRange : yRange);
-        for (int j=0; j<values.length; j++) {
-          double[] s = values[j].getValues();
-          if (s[2] == slice) continue;
-          float[][] samples1 = {
-            {(float) (s[0] - x_width), (float) (s[0] + x_width)},
-            {(float) (s[1] - x_width), (float) (s[1] + x_width)}
-          };
-          float[][] samples2 = {
-            {(float) (s[0] - x_width), (float) (s[0] + x_width)},
-            {(float) (s[1] + x_width), (float) (s[1] - x_width)}
-          };
-          try {
-            strips.add(new Gridded2DSet(bio.sm.domain2,
-              samples1, 2, null, null, null, false));
-            strips.add(new Gridded2DSet(bio.sm.domain2,
-              samples2, 2, null, null, null, false));
-            for (int k=0; k<4; k++) colors.add(color);
-          }
-          catch (VisADException exc) { exc.printStackTrace(); }
-        }
-      }
+      MeasurePoint point = (MeasurePoint) points.elementAt(i);
+      if (dim == 2 && point.z != slice) continue;
+      if (point.pt[pid] == null) point.pt[pid] = lease(point);
     }
+    display.enableAction();
 
-    size = strips.size();
-    if (size == 0) line_renderer.toggle(false);
-    else {
-      // compile line strips into UnionSet
-      GriddedSet[] sets = new GriddedSet[size];
-      strips.copyInto(sets);
-      Color[] line_colors = new Color[colors.size()];
-      colors.copyInto(line_colors);
-      try {
-        RealTupleType domain = dim == 2 ? bio.sm.domain2 : bio.sm.domain3;
-        UnionSet set = new UnionSet(domain, sets);
-        FunctionType function =
-          new FunctionType(domain, bio.sm.colorRange);
-        FlatField field = new FlatField(function, set);
-
-        // assign color values to line segments
-        double[][] samples = new double[3][line_colors.length];
-        for (int j=0; j<line_colors.length; j++) {
-          samples[0][j] = line_colors[j].getRed();
-          samples[1][j] = line_colors[j].getGreen();
-          samples[2][j] = line_colors[j].getBlue();
-        }
-        field.setSamples(samples, false);
-
-        lines.setData(field);
-        line_renderer.toggle(true);
-      }
+    if (reconstruct) {
+      try { cell.doAction(); }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
@@ -322,78 +311,217 @@ public class MeasurePool implements DisplayListener {
   /** Gets the display's dimensionality. */
   public int getDimension() { return dim; }
 
+  /** Gets whether the measurement pool has any selected measurements. */
+  public boolean hasSelection() {
+    return !selLines.isEmpty() || !selPoints.isEmpty();
+  }
+
+  /** Gets whether the measurement pool has a single selected measurement. */
+  public boolean hasSingleSelection() {
+    return selLines.size() + selPoints.size() == 1;
+  }
+
+  /** Gets the list of selected measurements in array form. */
+  public MeasureThing[] getSelection() {
+    int lsize = selLines.size();
+    int psize = selPoints.size();
+    MeasureThing[] things = new MeasureThing[lsize + psize];
+    for (int i=0; i<lsize; i++) {
+      things[i] = (MeasureLine) selLines.elementAt(i);
+    }
+    for (int i=0; i<psize; i++) {
+      things[i + lsize] = (MeasurePoint) selPoints.elementAt(i);
+    }
+    return things;
+  }
+
+  /** Gets whether all measurements in the current selection are standard. */
+  public boolean isSelectionStandard() {
+    int lsize = selLines.size();
+    int psize = selPoints.size();
+    if (lsize == 0 && psize == 0) return false;
+    for (int i=0; i<lsize; i++) {
+      MeasureLine line = (MeasureLine) selLines.elementAt(i);
+      if (line.stdId == -1) return false;
+    }
+    for (int i=0; i<psize; i++) {
+      MeasurePoint point = (MeasurePoint) selPoints.elementAt(i);
+      if (point.stdId == -1) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Gets the color corresponding to the current selection.  If the
+   * selection consists of more than one color, the first color is returned.
+   */
+  public Color getSelectionColor() {
+    int lsize = selLines.size();
+    int psize = selPoints.size();
+    if (lsize == 0 && psize == 0) return null;
+    return lsize > 0 ?
+      ((MeasureLine) selLines.firstElement()).color :
+      ((MeasurePoint) selPoints.firstElement()).color;
+  }
+
+  /**
+   * Gets the group corresponding to the current selection.  If the
+   * selection consists of more than one group, the first group is returned.
+   */
+  public MeasureGroup getSelectionGroup() {
+    int lsize = selLines.size();
+    int psize = selPoints.size();
+    if (lsize == 0 && psize == 0) return null;
+    return lsize > 0 ?
+      ((MeasureLine) selLines.firstElement()).group :
+      ((MeasurePoint) selPoints.firstElement()).group;
+  }
+
 
   // -- INTERNAL API METHODS --
 
-  private int cursor_x, cursor_y;
+  private int mx_left, my_left;
+  private boolean m_shift_left;
 
   /** Listens for left mouse clicks in the display. */
   public void displayChanged(DisplayEvent e) {
     int id = e.getId();
+    InputEvent event = e.getInputEvent();
+
+    // ignore non-input display events
+    if (event == null) return;
+
     int x = e.getX();
     int y = e.getY();
-    if (id == DisplayEvent.MOUSE_PRESSED_LEFT) {
-      cursor_x = x;
-      cursor_y = y;
+    int mods = e.getModifiers();
+    boolean left = (mods & InputEvent.BUTTON1_MASK) != 0;
+    boolean shift = (mods & InputEvent.SHIFT_MASK) != 0;
+    boolean ctrl = (mods & InputEvent.CTRL_MASK) != 0;
+
+    // ignore CTRL clicks and non-left button clicks
+    if (ctrl || !left) return;
+
+    if (id == DisplayEvent.MOUSE_PRESSED) {
+      mx_left = x;
+      my_left = y;
+      m_shift_left = shift;
     }
-    else if (id == DisplayEvent.MOUSE_RELEASED_LEFT &&
-      x == cursor_x && y == cursor_y)
-    {
-      // get domain coordinates of mouse click
-      double[] coords = pixelToDomain(x, y);
+    else if (id == DisplayEvent.MOUSE_RELEASED) {
+      if (x == mx_left && y == my_left) {
+        if (list == null || dim != 2) return;
+        Vector lines = list.getLines();
+        Vector points = list.getPoints();
 
-      // compute maximum distance threshold
-      double[] e1 = pixelToDomain(0, 0);
-      double[] e2 = pixelToDomain(PICKING_THRESHOLD, 0);
-      double threshold = e2[0] - e1[0];
+        // get domain coordinates of mouse click
+        double[] coords = BioUtil.pixelToDomain(display, x, y);
 
-      // find closest object
-      int index = -1;
-      double mindist = Double.MAX_VALUE;
-      int size = things.size();
-      for (int i=0; i<size; i++) {
-        // skip multi-vertex measurements
-        MeasureThing thing = (MeasureThing) things.elementAt(i);
-        int len = thing.getLength();
-        if (len > 2) continue;
+        // compute maximum distance threshold
+        double[] e1 = BioUtil.pixelToDomain(display, 0, 0);
+        double[] e2 = BioUtil.pixelToDomain(display, PICKING_THRESHOLD, 0);
+        double threshold = e2[0] - e1[0];
 
-        // skip measurements not on this slice
-        double[][] values = thing.getMeasurement().doubleValues();
-        boolean okay = false;
-        for (int j=0; j<len; j++) {
-          if (values[2][j] == slice) {
-            okay = true;
-            break;
+        // find closest measurement
+        int index = -1;
+        double mindist = Double.POSITIVE_INFINITY;
+        int lsize = lines.size();
+        boolean isLine = true;
+        for (int i=0; i<lsize; i++) {
+          MeasureLine line = (MeasureLine) lines.elementAt(i);
+
+          // skip lines not on this slice
+          if (line.ep1.z != slice && line.ep2.z != slice) continue;
+
+          // compute distance
+          double dist = BioUtil.distance(line.ep1.x, line.ep1.y,
+            line.ep2.x, line.ep2.y, coords[0], coords[1]);
+          if (dist < mindist) {
+            mindist = dist;
+            index = i;
           }
         }
-        if (!okay) continue;
+        int psize = points.size();
+        for (int i=0; i<psize; i++) {
+          MeasurePoint point = (MeasurePoint) points.elementAt(i);
 
-        // compute distance
-        double dist;
-        if (len == 1) {
-          // compute point distance
-          double dx = values[0][0] - coords[0];
-          double dy = values[1][0] - coords[1];
-          dist = Math.sqrt(dx * dx + dy * dy);
+          // skip points that are part of a line, or not on this slice
+          if (!point.lines.isEmpty() || point.z != slice) continue;
+
+          // compute distance
+          double dx = point.x - coords[0];
+          double dy = point.y - coords[1];
+          double dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < mindist) {
+            mindist = dist;
+            index = i;
+            isLine = false;
+          }
+        }
+
+        if (m_shift_left) {
+          // add or remove picked line or point from the selection
+          if (mindist <= threshold && index >= 0) {
+            if (isLine) {
+              MeasureLine line = (MeasureLine) lines.elementAt(index);
+              if (selLines.contains(line)) deselect(line);
+              else select(line);
+            }
+            else {
+              MeasurePoint point = (MeasurePoint) points.elementAt(index);
+              if (selPoints.contains(point)) deselect(point);
+              else select(point);
+            }
+            bio.toolMeasure.updateSelection();
+            refresh(true);
+          }
         }
         else {
-          // compute line distance
-          dist = distance(values[0][0], values[1][0],
-            values[0][1], values[1][1], coords[0], coords[1]);
+          // set picked line or point as the selection
+          deselectAll();
+          if (mindist <= threshold && index >= 0) {
+            if (isLine) select((MeasureLine) lines.elementAt(index));
+            else select((MeasurePoint) points.elementAt(index));
+          }
+          bio.toolMeasure.updateSelection();
+          refresh(true);
         }
-        if (dist < mindist) {
-          mindist = dist;
-          index = i;
-        }
-      }
-
-      // highlight picked line or point
-      if (mindist > threshold || index < 0) select(null);
-      else {
-        MeasureThing thing = (MeasureThing) things.elementAt(index);
-        select(thing);
       }
     }
+  }
+
+  /** If a single measurement is selected, return its linked pool points. */
+  PoolPoint[] getSelectionPts() {
+    int lsize = selLines.size();
+    int psize = selPoints.size();
+    PoolPoint[] pts;
+    if (lsize + psize != 1) pts = new PoolPoint[0];
+    else if (lsize > 0) {
+      pts = new PoolPoint[2];
+      MeasureLine line = (MeasureLine) selLines.firstElement();
+      pts[0] = line.ep1.pt[pid];
+      pts[1] = line.ep2.pt[pid];
+    }
+    else {
+      pts = new PoolPoint[1];
+      MeasurePoint point = (MeasurePoint) selPoints.firstElement();
+      pts[0] = point.pt[pid];
+    }
+    return pts;
+  }
+
+  /** Deselects the given line. */
+  void deselect(MeasureLine line) {
+    if (!selLines.contains(line)) return;
+    line.selected = false;
+    line.ep1.selected--;
+    line.ep2.selected--;
+    selLines.remove(line);
+  }
+
+  /** Deselects the given point. */
+  void deselect(MeasurePoint point) {
+    if (!selPoints.contains(point)) return;
+    point.selected--;
+    selPoints.remove(point);
   }
 
 
@@ -404,165 +532,135 @@ public class MeasurePool implements DisplayListener {
     // compute number of PoolPoints to add
     int total = free.size();
     if (size <= total) return;
+    int count = total + used.size();
     int n = size - total + BUFFER_SIZE;
 
     // add new PoolPoints to display
     cell.disableAction();
     display.disableAction();
     for (int i=0; i<n; i++) {
-      PoolPoint pt = new PoolPoint(display, "p" + (total + n));
+      PoolPoint pt = new PoolPoint(bio, display, "p" + (count + i), dim);
       try {
         cell.addReference(pt.ref);
         if (init) pt.init();
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
-      free.add(pt);
+      free.push(pt);
     }
     display.enableAction();
     cell.enableAction();
   }
 
-  /** Purges a measurement object from the pool. */
-  private void purge(MeasureThing thing) {
-    thing.destroy();
-    PoolPoint[] pts = thing.getPoints();
-    for (int i=0; i<pts.length; i++) {
-      pts[i].toggle(false);
-      free.add(pts[i]);
-    }
-    things.remove(thing);
+  /** Purges a point from the pool. */
+  private void purge(PoolPoint pt) {
+    if (!used.contains(pt)) return;
+    pt.point.pt[pid] = null;
+    pt.point = null;
+    used.remove(pt);
+    free.push(pt);
+    pt.refresh();
   }
 
-  /** Updates various aspects of the GUI when a measurement object changes. */
-  private void updateStuff(MeasureThing thing) {
-    if (thing == null) return;
-    RealTuple[] values = thing.getMeasurement().getValues();
-    boolean same = true;
-    boolean match = false;
-    double value = 0;
+  /** Converts a set of measurement endpoints into a gridded set. */
+  private GriddedSet doSet(MeasurePoint[] points) {
+    float[][] samples = new float[dim][points.length];
+    GriddedSet set = null;
     try {
-      for (int i=0; i<values.length; i++) {
-        Real[] reals = values[i].getRealComponents();
-        double v = reals[reals.length - 1].getValue();
-        if (v == slice) match = true;
-        if (i != 0 && v != value) same = false;
-        value = v;
+      if (dim == 2) {
+        for (int i=0; i<points.length; i++) {
+          samples[0][i] = (float) points[i].x;
+          samples[1][i] = (float) points[i].y;
+        }
+        set = new Gridded2DSet(bio.sm.domain2, samples,
+          points.length, null, null, null, false);
+      }
+      else {
+        for (int i=0; i<points.length; i++) {
+          samples[0][i] = (float) points[i].x;
+          samples[1][i] = (float) points[i].y;
+          samples[2][i] = (float) points[i].z;
+        }
+        set = new Gridded3DSet(bio.sm.domain3, samples,
+          points.length, null, null, null, false);
       }
     }
     catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-    if (!match) select(null);
-    bio.toolMeasure.setStandardEnabled(same);
+    return set;
   }
 
   /**
-   * Called to indicate that the given measurement object's values
-   * have changed.
+   * Converts a set of gridded sets with matching colors
+   * into a field and updates the data reference accordingly.
    */
-  void valuesChanged(MeasureThing thing) {
-    MeasureThing sel = box.getSelection();
-    if (thing != box.getSelection()) return;
-    updateStuff(thing);
-  }
-
-  /** Deselects any selected measurements. */
-  void select(MeasureThing thing) {
-    bio.toolMeasure.select(thing);
-    box.select(thing);
-    updateStuff(thing);
-  }
-
-  /** Converts the given pixel coordinates to domain coordinates. */
-  double[] pixelToDomain(int x, int y) {
-    return cursorToDomain(pixelToCursor(x, y));
-  }
-
-  /** Converts the given pixel coordinates to cursor coordinates. */
-  private double[] pixelToCursor(int x, int y) {
-    MouseBehavior mb = display.getDisplayRenderer().getMouseBehavior();
-    VisADRay ray = mb.findRay(x, y);
-    return ray.position;
-  }
-
-  /** Converts the given cursor coordinates to domain coordinates. */
-  private double[] cursorToDomain(double[] cursor) {
-    // locate x, y and z mappings
-    Vector maps = display.getMapVector();
-    int numMaps = maps.size();
-    ScalarMap map_x = null, map_y = null, map_z = null;
-    for (int i=0; i<numMaps; i++) {
-      if (map_x != null && map_y != null && map_z != null) break;
-      ScalarMap map = (ScalarMap) maps.elementAt(i);
-      DisplayRealType drt = map.getDisplayScalar();
-      if (drt.equals(Display.XAxis)) map_x = map;
-      else if (drt.equals(Display.YAxis)) map_y = map;
-      else if (drt.equals(Display.ZAxis)) map_z = map;
-    }
-
-    // adjust for scale
-    double[] scale_offset = new double[2];
-    double[] dummy = new double[2];
-    double[] values = new double[3];
-    if (map_x == null) values[0] = Double.NaN;
-    else {
-      map_x.getScale(scale_offset, dummy, dummy);
-      values[0] = (cursor[0] - scale_offset[1]) / scale_offset[0];
-    }
-    if (map_y == null) values[1] = Double.NaN;
-    else {
-      map_y.getScale(scale_offset, dummy, dummy);
-      values[1] = (cursor[1] - scale_offset[1]) / scale_offset[0];
-    }
-    if (map_z == null) values[2] = Double.NaN;
-    else {
-      map_z.getScale(scale_offset, dummy, dummy);
-      values[2] = (cursor[2] - scale_offset[1]) / scale_offset[0];
-    }
-
-    return values;
-  }
-
-  /**
-   * Computes the minimum distance between the point (vx, vy)
-   * and the line (ax, ay)-(bx, by).
-   */
-  private double distance(double ax, double ay,
-    double bx, double by, double vx, double vy)
+  private void doLines(Vector strips, Vector colors,
+    DataReferenceImpl lines, DataRenderer lineRenderer)
   {
-    // vectors
-    double abx = ax - bx;
-    double aby = ay - by;
-    double vax = vx - ax;
-    double vay = vy - ay;
-
-    // project v onto (a, b)
-    double c = (vax * abx + vay * aby) / (abx * abx + aby * aby);
-    double px = c * abx + ax;
-    double py = c * aby + ay;
-
-    // determine which point (a, b or p) to use in distance computation
-    int flag = 0;
-    if (px > ax && px > bx) flag = ax > bx ? 1 : 2;
-    else if (px < ax && px < bx) flag = ax < bx ? 1 : 2;
-    else if (py > ay && py > by) flag = ay > by ? 1 : 2;
-    else if (py < ay && py < by) flag = ay < by ? 1 : 2;
-
-    double x, y;
-    if (flag == 0) { // use p
-      x = px - vx;
-      y = py - vy;
-    }
-    else if (flag == 1) { // use a
-      x = ax - vx;
-      y = ay - vy;
-    }
-    else { // flag == 2, use b
-      x = bx - vx;
-      y = by - vy;
+    int size = strips.size();
+    if (size == 0) {
+      lineRenderer.toggle(false);
+      return;
     }
 
-    return Math.sqrt(x * x + y * y);
+    // compile line strips into UnionSet
+    GriddedSet[] sets = new GriddedSet[size];
+    strips.copyInto(sets);
+    try {
+      RealTupleType domain = dim == 2 ? bio.sm.domain2 : bio.sm.domain3;
+      UnionSet set = new UnionSet(domain, sets);
+      FunctionType function = new FunctionType(domain, bio.sm.colorRange);
+      FlatField field = new FlatField(function, set);
+
+      // assign color values to line segments
+      int colorSize = colors.size();
+      double[][] samples = new double[3][colorSize];
+      for (int j=0; j<colorSize; j++) {
+        Color color = (Color) colors.elementAt(j);
+        samples[0][j] = color.getRed();
+        samples[1][j] = color.getGreen();
+        samples[2][j] = color.getBlue();
+      }
+      field.setSamples(samples, false);
+
+      lines.setData(field);
+      lineRenderer.toggle(true);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Selects the given line. */
+  private void select(MeasureLine line) {
+    if (selLines.contains(line)) return;
+    line.selected = true;
+    line.ep1.selected++;
+    line.ep2.selected++;
+    selLines.add(line);
+  }
+
+  /** Selects the given marker. */
+  private void select(MeasurePoint point) {
+    if (selPoints.contains(point)) return;
+    point.selected++;
+    selPoints.add(point);
+  }
+
+  /** Deselects all measurements. */
+  private void deselectAll() {
+    int lsize = selLines.size();
+    for (int i=0; i<lsize; i++) {
+      MeasureLine line = (MeasureLine) selLines.elementAt(i);
+      line.selected = false;
+      line.ep1.selected--;
+      line.ep2.selected--;
+    }
+    selLines.removeAllElements();
+    int psize = selPoints.size();
+    for (int i=0; i<psize; i++) {
+      MeasurePoint point = (MeasurePoint) selPoints.elementAt(i);
+      point.selected--;
+    }
+    selPoints.removeAllElements();
   }
 
 }

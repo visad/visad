@@ -951,9 +951,9 @@ public class SliceManager
     // switch index values
     if (new_index) {
       if (!lowres) setFile(false);
-      Measurement[] m = bio.mm.lists[index].getMeasurements();
-      bio.mm.pool2.set(m);
-      if (bio.mm.pool3 != null) bio.mm.pool3.set(m);
+      MeasureList list = bio.mm.lists[index];
+      bio.mm.pool2.set(list);
+      if (bio.mm.pool3 != null) bio.mm.pool3.set(list);
       updateAnimationControls();
     }
 

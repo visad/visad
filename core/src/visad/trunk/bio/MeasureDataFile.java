@@ -39,10 +39,7 @@ public class MeasureDataFile {
   // -- CONSTANTS --
 
   /** Variable names for each dimension. */
-  private static final String[] VARIABLES = {
-    "x", "y", "slice", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
-    "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w"
-  };
+  private static final String[] VARIABLES = { "x", "y", "slice" };
 
   /** Data file label for beginning of file. */
   private static final String BEGIN_LABEL = "# BioVisAD measurement data file";
@@ -100,33 +97,50 @@ public class MeasureDataFile {
     Vector v = new Vector();
 
     // compile measurement data
-    int minDim, maxDim, minLen, maxLen;
-    minDim = maxDim = minLen = maxLen = 0;
+    int minLen = 2, maxLen = 1;
     for (int index=0; index<numIndices; index++) {
       MeasureList list = bio.mm.lists[index];
-      Measurement[] measure = list.getMeasurements();
-      for (int i=0; i<measure.length; i++) {
-        Measurement m = measure[i];
-        double[][] vals = m.doubleValues();
-        int dim = vals.length;
-        int len = vals[0].length;
-        if (dim < minDim || minDim == 0) minDim = dim;
-        if (dim > maxDim) maxDim = dim;
-        if (len < minLen || minLen == 0) minLen = len;
-        if (len > maxLen) maxLen = len;
-        int groupId = m.getGroup().getId();
-        int stdId = m.stdId;
-        Color color = m.getColor();
-        int r = color.getRed();
-        int g = color.getGreen();
-        int b = color.getBlue();
-        MData data = new MData(index, stdId, groupId,
-          mx, my, sd, vals, r, g, b);
+      Vector lines = list.getLines();
+      Vector points = list.getPoints();
+      int lsize = lines.size();
+      for (int i=0; i<lsize; i++) {
+        MeasureLine line = (MeasureLine) lines.elementAt(i);
+        double[][] vals = {
+          {line.ep1.x, line.ep2.x},
+          {line.ep1.y, line.ep2.y},
+          {line.ep1.z, line.ep2.z}
+        };
+        int r = line.color.getRed();
+        int g = line.color.getGreen();
+        int b = line.color.getBlue();
+        MData data = new MData(index, line.stdId,
+          line.group.getId(), mx, my, sd, vals, r, g, b);
         if (data.stdId >= 0) {
           // add to standard measurement list
           stdData[data.stdId][index][data.slice] = data;
         }
         v.add(data);
+        maxLen = 2;
+      }
+      int psize = points.size();
+      for (int i=0; i<psize; i++) {
+        MeasurePoint point = (MeasurePoint) points.elementAt(i);
+        if (!point.lines.isEmpty()) {
+          // skip points that aren't markers
+          continue;
+        }
+        double[][] vals = { {point.x}, {point.y}, {point.z} };
+        int r = point.color.getRed();
+        int g = point.color.getGreen();
+        int b = point.color.getBlue();
+        MData data = new MData(index, point.stdId,
+          point.group.getId(), mx, my, sd, vals, r, g, b);
+        if (data.stdId >= 0) {
+          // add to standard measurement list
+          stdData[data.stdId][index][data.slice] = data;
+        }
+        v.add(data);
+        minLen = 1;
       }
     }
 
@@ -150,13 +164,12 @@ public class MeasureDataFile {
       fout.println("[" + std + "] " + group.getName());
       String tabs = "";
       for (int slice=0; slice<numSlices; slice++) tabs = tabs + "\t";
-      int ndx = d.values.length - 1;
       int len = d.values[0].length;
       if (len == 2) fout.print("distance" + tabs);
-      for (int i=0; i<ndx; i++) {
+      for (int i=0; i<2; i++) {
         for (int j=0; j<len; j++) {
           fout.print(VARIABLES[i] + (j + 1));
-          if (i < ndx - 1 || j < len - 1) fout.print(tabs);
+          if (i < 1 || j < len - 1) fout.print(tabs);
         }
       }
       fout.println();
@@ -168,11 +181,11 @@ public class MeasureDataFile {
           }
         }
         // values
-        for (int i=0; i<ndx; i++) {
+        for (int i=0; i<2; i++) {
           for (int j=0; j<len; j++) {
             for (int slice=0; slice<numSlices; slice++) {
               fout.print(stdData[std][index][slice].values[i][j]);
-              if (i < ndx - 1 || j < len - 1 || slice < numSlices - 1) {
+              if (i < 1 || j < len - 1 || slice < numSlices - 1) {
                 fout.print("\t");
               }
             }
@@ -198,22 +211,19 @@ public class MeasureDataFile {
 
     // output all measurement information
     fout.println(ALL_LABEL);
-    for (int i=minDim; i<=maxDim; i++) {
-      for (int j=minLen; j<=maxLen; j++) {
-        int size = v.size();
-        boolean header = true;
-        for (int k=0; k<size; k++) {
-          MData data = (MData) v.elementAt(k);
-          int dim = data.values.length;
-          int len = data.values[0].length;
-          if (i != dim || j != len) continue;
-          if (header) {
-            fout.println();
-            fout.println(getHeader(i, j, false));
-            header = false;
-          }
-          fout.println(data);
+    for (int i=minLen; i<=maxLen; i++) {
+      int size = v.size();
+      boolean doHeader = true;
+      for (int j=0; j<size; j++) {
+        MData data = (MData) v.elementAt(j);
+        int len = data.values[0].length;
+        if (i != len) continue;
+        if (doHeader) {
+          fout.println();
+          fout.println(getHeader(i));
+          doHeader = false;
         }
+        fout.println(data);
       }
     }
     fout.close();
@@ -225,16 +235,16 @@ public class MeasureDataFile {
     double mx = 1, my = 1, sd = 1;
     boolean microns = false;
     BufferedReader fin = new BufferedReader(new FileReader(file));
-    String line = "";
+    String ln = "";
 
     // read in unit data
-    while (!line.startsWith(UNIT_LABEL)) line = fin.readLine().trim();
-    if (line.indexOf("microns") > 0) {
+    while (!ln.startsWith(UNIT_LABEL)) ln = fin.readLine().trim();
+    if (ln.indexOf("microns") > 0) {
       microns = true;
-      int left = line.indexOf("(");
-      int right = line.indexOf(")");
+      int left = ln.indexOf("(");
+      int right = ln.indexOf(")");
       StringTokenizer st =
-        new StringTokenizer(line.substring(left + 1, right), ",");
+        new StringTokenizer(ln.substring(left + 1, right), ",");
       int count = st.countTokens();
       if (count == 2) {
         mpp = Double.parseDouble(st.nextToken().trim());
@@ -249,54 +259,43 @@ public class MeasureDataFile {
     }
 
     // read in group data
-    while (!line.equals(GROUP_LABEL)) line = fin.readLine().trim();
-    while (!line.startsWith("No")) line = fin.readLine().trim();
+    while (!ln.equals(GROUP_LABEL)) ln = fin.readLine().trim();
+    while (!ln.startsWith("No")) ln = fin.readLine().trim();
     Vector groups = new Vector();
     while (true) {
-      line = fin.readLine().trim();
-      if (line == null || line.equals("")) break;
-      groups.add(line);
+      ln = fin.readLine().trim();
+      if (ln == null || ln.equals("")) break;
+      groups.add(ln);
     }
 
     // read in measurement data
-    while (!line.equals(ALL_LABEL)) line = fin.readLine().trim();
+    while (!ln.equals(ALL_LABEL)) ln = fin.readLine().trim();
     Vector v = new Vector();
-    int dim = 0, len = 0;
+    int len = 0;
     while (true) {
-      line = fin.readLine();
-      if (line == null) break;
-      line = line.trim();
-      if (line.startsWith("Timestep")) {
-        dim = 0;
-        // determine dimensionality
-        while (true) {
-          int ndx = line.lastIndexOf(VARIABLES[dim] + "1");
-          if (ndx >= 0) dim++;
-          else break;
-        }
+      ln = fin.readLine();
+      if (ln == null) break;
+      ln = ln.trim();
+      if (ln.startsWith("Timestep")) {
         // determine number of endpoints
-        len = 0;
-        while (true) {
-          int ndx = line.lastIndexOf(VARIABLES[0] + (len + 1));
-          if (ndx >= 0) len++;
-          else break;
-        }
+        int ndx = ln.lastIndexOf("slice2");
+        len = ndx >= 0 ? 2 : 1;
       }
-      if (line.equals("") || line.startsWith("#") ||
-        line.startsWith("Timestep"))
+      if (ln.equals("") || ln.startsWith("#") ||
+        ln.startsWith("Timestep"))
       {
         continue;
       }
-      v.add(new MData(line, dim, len, mx, my, sd));
+      v.add(new MData(ln, len, mx, my, sd));
     }
     fin.close();
 
     // clear old group data
-    int size = groups.size();
+    int gsize = groups.size();
     bio.mm.groups.removeAllElements();
 
     // set up new groups
-    for (int i=0; i<size; i++) {
+    for (int i=0; i<gsize; i++) {
       String g = (String) groups.elementAt(i);
       StringTokenizer st = new StringTokenizer(g, "\t");
       int id = Integer.parseInt(st.nextToken());
@@ -309,23 +308,20 @@ public class MeasureDataFile {
     }
 
     // clear old measurements
-    for (int i=0; i<bio.mm.lists.length; i++) {
-      bio.mm.lists[i].removeAllMeasurements(true);
-    }
+    for (int i=0; i<bio.mm.lists.length; i++) bio.mm.lists[i].removeAll();
 
     // set up measurements
-    size = v.size();
+    int size = v.size();
     int index = bio.sm.getIndex();
     for (int k=0; k<size; k++) {
       MData data = (MData) v.elementAt(k);
       MeasureList list = bio.mm.lists[data.index];
-      dim = data.values.length;
       len = data.values[0].length;
       RealTuple[] values = new RealTuple[len];
       for (int j=0; j<len; j++) {
-        Real[] reals = new Real[dim];
-        for (int i=0; i<dim; i++) {
-          reals[i] = new Real(i < dim - 1 ?
+        Real[] reals = new Real[3];
+        for (int i=0; i<3; i++) {
+          reals[i] = new Real(i < 2 ?
             bio.sm.dtypes[i] : SliceManager.Z_TYPE, data.values[i][j]);
         }
         values[j] = new RealTuple(reals);
@@ -333,15 +329,35 @@ public class MeasureDataFile {
       Color color = new Color(data.r, data.g, data.b);
       MeasureGroup group =
         (MeasureGroup) bio.mm.groups.elementAt(data.groupId);
-      Measurement m = new Measurement(values, color, group);
-      m.stdId = data.stdId;
-      if (m.stdId >= bio.toolMeasure.maxId) {
-        bio.toolMeasure.maxId = m.stdId + 1;
+      if (data.stdId >= bio.toolMeasure.maxId) {
+        bio.toolMeasure.maxId = data.stdId + 1;
       }
-      list.addMeasurement(m, data.index == index);
+      if (len == 1) {
+        double x = data.values[0][0];
+        double y = data.values[1][0];
+        double z = data.values[2][0];
+        MeasurePoint point = new MeasurePoint(x, y, z, color, group);
+        point.setStdId(data.stdId);
+        list.addMarker(point, false);
+      }
+      else if (len == 2) {
+        double x1 = data.values[0][0];
+        double y1 = data.values[1][0];
+        double z1 = data.values[2][0];
+        double x2 = data.values[0][1];
+        double y2 = data.values[1][1];
+        double z2 = data.values[2][1];
+        MeasurePoint ep1 = new MeasurePoint(x1, y1, z1, color, group);
+        MeasurePoint ep2 = new MeasurePoint(x2, y2, z2, color, group);
+        MeasureLine line = new MeasureLine(ep1, ep2, color, group, false);
+        line.setStdId(data.stdId);
+        list.addLine(line, false);
+      }
     }
 
     // refresh GUI components
+    bio.mm.pool2.refresh(true);
+    if (bio.mm.pool3 != null) bio.mm.pool3.refresh(true);
     bio.toolMeasure.updateInfo(microns, mx, my, sd);
   }
 
@@ -349,17 +365,14 @@ public class MeasureDataFile {
   // -- HELPER METHODS --
 
   /** Gets a tab-delimited header of the MData string representation. */
-  private static String getHeader(int dim, int len, boolean slice) {
+  private static String getHeader(int len) {
     StringBuffer sb = new StringBuffer();
-    sb.append("Timestep\t");
-    if (slice) sb.append("Image slice\t");
-    sb.append("Standard ID\tGroup number\tRed\tGreen\tBlue\t");
+    sb.append("Timestep\tStandard ID\tGroup number\tRed\tGreen\tBlue\t");
     if (len == 2) sb.append("Distance\t");
-    int ndx = slice ? dim - 1 : dim;
-    for (int i=0; i<ndx; i++) {
+    for (int i=0; i<3; i++) {
       for (int j=0; j<len; j++) {
         sb.append(VARIABLES[i] + (j + 1));
-        if (i < ndx - 1 || j < len - 1) sb.append("\t");
+        if (i < 2 || j < len - 1) sb.append("\t");
       }
     }
     return sb.toString();
@@ -376,10 +389,7 @@ public class MeasureDataFile {
     public double dist;
 
     /** Constructor from line of text. */
-    public MData(String line, int dim, int len,
-      double mx, double my, double sd)
-    {
-      int ndx = dim - 1;
+    public MData(String line, int len, double mx, double my, double sd) {
       StringTokenizer st = new StringTokenizer(line, "\t");
       index = Integer.parseInt(st.nextToken());
       stdId = Integer.parseInt(st.nextToken());
@@ -388,8 +398,8 @@ public class MeasureDataFile {
       g = Integer.parseInt(st.nextToken());
       b = Integer.parseInt(st.nextToken());
       if (len == 2) dist = Double.parseDouble(st.nextToken());
-      values = new double[dim][len];
-      for (int i=0; i<dim; i++) {
+      values = new double[3][len];
+      for (int i=0; i<3; i++) {
         for (int j=0; j<len; j++) {
           values[i][j] = Double.parseDouble(st.nextToken());
           // convert values from microns to pixels
@@ -412,19 +422,19 @@ public class MeasureDataFile {
       this.b = b;
 
       // compute slice
-      int dim = values.length;
       int len = values[0].length;
-      int ndx = dim - 1;
-      this.slice = (int) values[ndx][0];
+      this.slice = (int) values[2][0];
       for (int j=1; j<len; j++) {
-        if ((int) values[ndx][j] != slice) {
+        if ((int) values[2][j] != slice) {
           slice = -1;
           break;
         }
       }
 
       // compute distance
-      this.dist = len == 2 ? Measurement.getDistance(values, mx, my, sd) : -1;
+      this.dist = len == 2 ?
+        BioUtil.getDistance(values[0][0], values[1][0], values[2][0],
+        values[0][1], values[1][1], values[2][1], mx, my, sd) : -1;
 
       // convert measurement to microns
       for (int j=0; j<len; j++) {
@@ -435,17 +445,16 @@ public class MeasureDataFile {
 
     /** Gets a tab-delimited string representation. */
     public String toString() {
-      int dim = values.length;
       int len = values[0].length;
       StringBuffer sb = new StringBuffer();
       sb.append(index + "\t");
       sb.append(stdId + "\t" + groupId + "\t" +
         r + "\t" + g + "\t" + b + "\t");
       if (len == 2) sb.append(dist + "\t");
-      for (int i=0; i<dim; i++) {
+      for (int i=0; i<3; i++) {
         for (int j=0; j<len; j++) {
           sb.append(values[i][j]);
-          if (i < dim - 1 || j < len - 1) sb.append("\t");
+          if (i < 2 || j < len - 1) sb.append("\t");
         }
       }
       return sb.toString();

@@ -86,14 +86,13 @@ public class MeasureManager {
   public void initLists(int timesteps) throws VisADException, RemoteException {
     lists = new MeasureList[timesteps];
     for (int i=0; i<timesteps; i++) lists[i] = new MeasureList(bio);
+    pool2.set(lists[0]);
+    if (pool3 != null) pool3.set(lists[0]);
   }
 
   /** Clears all measurements from all image slices. */
   public void clear() {
-    int index = bio.sm.getIndex();
-    for (int i=0; i<lists.length; i++) {
-      lists[i].removeAllMeasurements(i == index);
-    }
+    for (int i=0; i<lists.length; i++) lists[i].removeAll();
   }
 
   /** Gets measurement list for current index. */
