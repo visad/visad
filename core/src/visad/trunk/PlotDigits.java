@@ -407,7 +407,11 @@ public class PlotDigits extends Applet implements MouseListener {
 
   public void mouseClicked(MouseEvent e) {
     reverseLetters = (reverseLetters+1)%4;
-    paint(this.getGraphics());
+    Graphics g = getGraphics();
+    if (g != null) {
+      paint(g);
+      g.dispose();
+    }
   }
 
   public void mousePressed(MouseEvent e) {;}

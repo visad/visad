@@ -793,7 +793,11 @@ public class Contour2D extends Applet implements MouseListener {
   public void mouseClicked(MouseEvent e) {
     // cycle between hidden contours, labels, and backwards labels
     con.whichlabels = (con.whichlabels+1)%5;
-    paint(this.getGraphics());
+    Graphics g = getGraphics();
+    if (g != null) {
+      paint(g);
+      g.dispose();
+    }
   }
 
   public void mousePressed(MouseEvent e) {;}
