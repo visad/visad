@@ -955,3 +955,92 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
 
 }
 
+/*
+documentation for VisADTriangleStripArray.adjustLongitude()
+and VisADIndexedTriangleStripArray.adjustLongitude()
+
+given a sequence of points (i-1, i, i+1) along a triangle strip:
+and the three possible split points (silly = last .xor. this)
+
+                    i
+                    /\
+                   /  \
+                  /    \
+                 /      \
+          2nd   /        \   1st
+    last mid   /          \   mid (this)
+          1st /            \ 2nd
+             /              \
+            /                \
+           /                  \
+          i-1    1st  2nd     i+1
+                silly mid
+
+longitude
+split?
+l   t
+a   h
+s   i
+t   s
+
+                    1
+No  No              /\      
+                   /  \    
+                  /    \  
+                 /      \
+                /        \
+               /          \
+              /            \
+             /              \
+            /                \
+           /                  \
+          0                    2
+                    
+    
+                    1
+No  Yes             /\      
+                   /  \    
+                  /    \  
+                 /      \
+                /        \ 2
+               /          \
+              /            \ 6
+             /              \
+            /                \
+           /                  \
+          0, 3     4, 5*       7
+
+
+                    1, 7
+Yes No              /\      
+                   /  \    
+                  /    \  
+                 /      \
+          0, 5* /        \
+               /          \
+            3 /            \
+             /              \
+            /                \
+           /                  \
+          2*       4, 6        8
+
+
+                    1
+Yes Yes             /\
+                   /  \
+                  /    \
+                 /      \
+             0  /        \ 2
+               /          \
+           3* /            \ 5
+             /              \
+            /                \
+           /                  \
+          4                    6
+
+
+the numbers are the order of visiting points in the new strip
+and n* indicates start a new strip
+
+*/
+
