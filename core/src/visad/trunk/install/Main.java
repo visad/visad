@@ -3,6 +3,8 @@ package visad.install;
 import java.io.File;
 import java.io.IOException;
 
+import java.net.URL;
+
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -13,15 +15,21 @@ public class Main
   private static final String CLASSPATH_PROPERTY = "java.class.path";
   private static final String PATH_PROPERTY = "visad.install.path";
 
+  private static final String VISAD_JAR_URL =
+    "ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad.jar";
+
+  private URL jarURL;
+  private ChooserList chooser;
   private Path classpath, path;
   private ArrayList jarList, javaList;
+  private File installerJar;
   private JavaFile installerJava;
+
+  private boolean useSuppliedJava, downloadLatestJar;
+  private File jvmToUse, javaInstallDir, jarInstallDir;
 
   public Main(String[] args)
   {
-    classpath = path = null;
-    jarList = javaList = null;
-
     SplashScreen ss = new SplashScreen("visad-splash.jpg");
     ss.setVisible(true);
 
@@ -33,6 +41,15 @@ public class Main
       System.exit(1);
       return;
     }
+
+    dumpInitialState();
+
+    useSuppliedJava = downloadLatestJar = false;
+    jvmToUse = javaInstallDir = jarInstallDir = null;
+
+    queryUser();
+
+    dumpInstallState();
 
     install();
   }
@@ -60,7 +77,8 @@ public class Main
     }
   }
 
-  private final static File chooseDirectory(ArrayList list, String title)
+  private final static File chooseDirectory(ChooserList chooser,
+                                            ArrayList list, String title)
   {
     final int listLen = (list == null ? 0 : list.size());
 
@@ -73,24 +91,27 @@ public class Main
       }
     }
 
-    ChooserList chooser;
-    if (allDirs) {
-      chooser = new ChooserList(list);
-    } else {
-      // build list containing only files
-      File[] fList = new File[listLen];
+    File[] dList;
+    if (!allDirs) {
+      // build list containing only directories
+      dList = new File[listLen];
       for (int i = 0; i < listLen; i++) {
         File f = (File )list.get(i);
         if (f.isDirectory()) {
-          fList[i] = f;
+          dList[i] = f;
         } else {
-          fList[i] = new File(f.getParent());
+          dList[i] = new File(f.getParent());
         }
       }
-
-      chooser = new ChooserList(fList);
+    } else if (listLen > 0) {
+      // build array from ArrayList
+      dList = (File[] )list.toArray(new File[list.size()]);
+    } else {
+      // empty/null list
+      dList = null;
     }
 
+    chooser.setList(dList);
     chooser.setFileSelectionMode(ChooserList.DIRECTORIES_ONLY);
     chooser.setDialogTitle(title);
 
@@ -111,9 +132,14 @@ public class Main
     return new File(choice.getParent());
   }
 
-  private static final File chooseFile(ArrayList list, String title)
+  private static final File chooseFile(ChooserList chooser,
+                                       ArrayList list, String title)
   {
-    ChooserList chooser = new ChooserList(list);
+    if (list == null) {
+      chooser.setList(null);
+    } else {
+      chooser.setList((File[] )list.toArray(new File[list.size()]));
+    }
     chooser.setFileSelectionMode(ChooserList.FILES_ONLY);
     chooser.setDialogTitle(title);
     //chooser.setApproveButtonText("Choose...");
@@ -151,11 +177,7 @@ public class Main
     }
   }
 
-  private static final void dumpInstallState(boolean useSuppliedJava,
-                                             File javaInstallDir,
-                                             File jvmToUse,
-                                             File jarInstallDir,
-                                             boolean downloadLatestJar)
+  private final void dumpInstallState()
   {
     if (useSuppliedJava) {
       System.err.println("Install java in " + javaInstallDir);
@@ -184,13 +206,13 @@ public class Main
    * @return <tt>null</tt> if installer-supplied java executable
    *         was not found
    */
-  private static final JavaFile extractInstallerJava(ArrayList javaList)
+  private static final File extractInstallerFile(ArrayList javaList)
   {
     String curDir = getPath(new File("."));
 
     java.util.Iterator iter = javaList.iterator();
     while (iter.hasNext()) {
-      JavaFile thisFile = (JavaFile )iter.next();
+      File thisFile = (File )iter.next();
       if (getPath(thisFile).startsWith(curDir)) {
         iter.remove();
         return thisFile;
@@ -222,6 +244,14 @@ public class Main
    */
   private final boolean initialize()
   {
+    // create a ChooserList (for speed purposes)
+    chooser = new ChooserList();
+
+    // set everything to null
+    classpath = path = null;
+    jarURL = null;
+    jarList = javaList = null;
+
     // get class path elements
     try {
       classpath = new Path(System.getProperty(CLASSPATH_PROPERTY));
@@ -241,6 +271,16 @@ public class Main
       return false;
     }
 
+    // build the URL for the jar file
+    try {
+      jarURL = new URL(VISAD_JAR_URL);
+    } catch (java.net.MalformedURLException mue) {
+      jarURL = null;
+    }
+
+    // no installer-supplied jar file found yet
+    installerJar = null;
+
     // find all visad jar files
     jarList = classpath.findMatch("visad.jar");
     if (jarList == null) {
@@ -248,14 +288,24 @@ public class Main
     }
     if (jarList != null) {
       loseDuplicates(jarList);
+      installerJar = extractInstallerFile(jarList);
     }
+
+    // no installer-supplied java found yet
+    installerJava = null;
 
     // find all java executables
     javaList = path.find("java");
     if (javaList != null) {
       loseDuplicates(javaList);
       checkJavaVersions(javaList, 1, 2);
-      installerJava = extractInstallerJava(javaList);
+      installerJava = (JavaFile )extractInstallerFile(javaList);
+    }
+
+    if (jarURL == null && installerJar == null) {
+      System.err.println("Couldn't find either distributed jar file" +
+                         " or jar file URL!");
+      System.exit(1);
     }
 
     return true;
@@ -264,21 +314,55 @@ public class Main
   /**
    * Install VisAD.
    */
-  private final void install()
+  private void install()
+  {
+    // install JVM
+    if (useSuppliedJava) {
+      System.err.println("Not installing " + installerJava + " in " +
+                         javaInstallDir);
+    }
+
+    // install jar
+    if (downloadLatestJar) {
+      new Download(jarURL, jarInstallDir);
+    } else {
+      Util.copyFile(null, installerJar, jarInstallDir, ".old");
+    }
+  }
+
+  /**
+   * Remove duplicate objects from the list.
+   *
+   * @param list of Objects
+   */
+  private static final void loseDuplicates(ArrayList list)
+  {
+    for (int i = 0; i < list.size(); i++) {
+      Object objI = list.get(i);
+
+      int j = i + 1;
+      while (j < list.size()) {
+        Object objJ = list.get(j);
+
+        if (!objI.equals(objJ)) {
+          j++;
+        } else {
+          list.remove(j);
+        }
+      }
+    }
+  }
+
+  /**
+   * Query user about installation options.
+   */
+  private final void queryUser()
   {
     final int STEP_USE_SUPPLIED = 0;
     final int STEP_INSTALL_JAVA = 1;
     final int STEP_INSTALL_JAR = 2;
     final int STEP_DOWNLOAD_JAR = 3;
     final int STEP_FINISHED = 4;
-
-    dumpInitialState();
-
-    boolean useSuppliedJava, downloadLatestJar;
-    useSuppliedJava = downloadLatestJar = false;
-
-    File jvmToUse, javaInstallDir, jarInstallDir;
-    jvmToUse = javaInstallDir = jarInstallDir = null;
 
     int step = 0;
     while (step < STEP_FINISHED) {
@@ -302,7 +386,8 @@ public class Main
       case STEP_INSTALL_JAVA:
         javaInstallDir = jvmToUse = null;
         if (useSuppliedJava) {
-          javaInstallDir = chooseDirectory(null, "Select the directory in which the JDK should be installed");
+          javaInstallDir = chooseDirectory(chooser, null,
+                                           "Select the directory in which the JDK should be installed");
           if (javaInstallDir == null) {
             step--;
           } else if (javaInstallDir.canWrite()) {
@@ -314,7 +399,8 @@ public class Main
                                           JOptionPane.ERROR_MESSAGE);
           }
         } else {
-          jvmToUse = chooseFile(javaList, "Select the java program to use");
+          jvmToUse = chooseFile(chooser, javaList,
+                                "Select the java program to use");
           if (jvmToUse == null) {
             step--;
           } else {
@@ -323,7 +409,8 @@ public class Main
         }
         break;
       case STEP_INSTALL_JAR:
-        jarInstallDir = chooseDirectory(jarList, "Select the directory where the VisAD jar file should be installed");
+        jarInstallDir = chooseDirectory(chooser, jarList,
+                                        "Select the directory where the VisAD jar file should be installed");
         if (jarInstallDir == null) {
           step--;
         } else if (jarInstallDir.canWrite()) {
@@ -336,40 +423,18 @@ public class Main
         }
         break;
       case STEP_DOWNLOAD_JAR:
-        String djMsg = "Would you like to download the latest visad.jar?";
+        if (installerJar == null) {
+          downloadLatestJar = true;
+        } else {
+          String djMsg = "Would you like to download the latest visad.jar?";
 
-        int n = JOptionPane.showConfirmDialog(null, djMsg,
-                                              "Download latest visad.jar?",
-                                              JOptionPane.YES_NO_OPTION);
-        downloadLatestJar = (n == JOptionPane.YES_OPTION);
+          int n = JOptionPane.showConfirmDialog(null, djMsg,
+                                                "Download latest visad.jar?",
+                                                JOptionPane.YES_NO_OPTION);
+          downloadLatestJar = (n == JOptionPane.YES_OPTION);
+        }
         step++;
         break;
-      }
-    }
-
-    dumpInstallState(useSuppliedJava, javaInstallDir, jvmToUse, jarInstallDir,
-                     downloadLatestJar);
-  }
-
-  /**
-   * Remove duplicate objects from the list.
-   *
-   * @param list of Objects
-   */
-  private static final void loseDuplicates(ArrayList list)
-  {
-    for (int i = 0; i < list.size(); i++) {
-      Object objI = list.get(i);
-
-      int j = i + 1;
-      while (j < list.size()) {
-        Object objJ = list.get(j);
-
-        if (!objI.equals(objJ)) {
-          j++;
-        } else {
-          list.remove(j);
-        }
       }
     }
   }
