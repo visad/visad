@@ -314,15 +314,36 @@ public abstract class BaseColorControl
   public void setTable(float[][] t)
     throws RemoteException, VisADException
   {
-    if (t == null || t.length != components ||
-        t[RED] == null || t[GREEN] == null || t[BLUE] == null ||
-        (components > ALPHA && t[ALPHA] == null) ||
-        t[RED].length != t[GREEN].length || t[RED].length != t[BLUE].length ||
-        (components > ALPHA && t[RED].length != t[ALPHA].length)) {
-      throw new DisplayException("BaseColorControl.setTable: " +
-                                 "table must be float[" + components +
-                                 "][Length]");
+    if (t == null || t[0] == null) {
+      throw new DisplayException(getClass().getName() + ".setTable: " +
+                                 "Null table");
     }
+
+    if (t.length != components) {
+      if (t[0].length == components) {
+        throw new DisplayException(getClass().getName() + ".setTable: " +
+                                   " Table may be inverted");
+      }
+      throw new DisplayException(getClass().getName() + ".setTable: " +
+                                 "Unusable table [" + t.length + "][" +
+                                 t[0].length + "], expected [" + components +
+                                 "][]");
+    }
+
+    if (t[RED] == null || t[GREEN] == null || t[BLUE] == null ||
+        (t.length > ALPHA && t[ALPHA] == null))
+    {
+      throw new DisplayException(getClass().getName() + ".setTable: " +
+                                 "One or more component lists is null");
+    }
+
+    if (t[RED].length != t[GREEN].length || t[RED].length != t[BLUE].length ||
+        (components > ALPHA && t[RED].length != t[ALPHA].length))
+    {
+      throw new DisplayException("BaseColorControl.setTable: " +
+                                 "Inconsistent table lengths");
+    }
+
     synchronized (lock) {
       tableLength = t[0].length;
       table = new float[components][tableLength];
