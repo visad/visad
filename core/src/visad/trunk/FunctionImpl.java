@@ -55,6 +55,9 @@ public abstract class FunctionImpl extends DataImpl implements Function {
       use default modes for resampling (NEAREST_NEIGHBOR) and errors */
   public Data evaluate(Real domain)
          throws VisADException, RemoteException {
+    if (domain == null) {
+      return ((FunctionType) getType()).getRange().missingData();
+    }
     return evaluate(new RealTuple(new Real[] {domain}),
                     NEAREST_NEIGHBOR, NO_ERRORS);
   }
@@ -62,6 +65,9 @@ public abstract class FunctionImpl extends DataImpl implements Function {
   /** evaluate this Function with non-default modes for resampling and errors */
   public Data evaluate(Real domain, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+    if (domain == null) {
+      return ((FunctionType) getType()).getRange().missingData();
+    }
     return evaluate(new RealTuple(new Real[] {domain}),
                     sampling_mode, error_mode);
   }
@@ -70,12 +76,18 @@ public abstract class FunctionImpl extends DataImpl implements Function {
       use default modes for resampling (NEAREST_NEIGHBOR) and errors */
   public Data evaluate(RealTuple domain)
          throws VisADException, RemoteException {
+    if (domain == null) {
+      return ((FunctionType) getType()).getRange().missingData();
+    }
     return evaluate(domain, NEAREST_NEIGHBOR, NO_ERRORS);
   }
 
   /** evaluate this Function with non-default modes for resampling and errors */
   public Data evaluate(RealTuple domain, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+    if (domain == null) {
+      return ((FunctionType) getType()).getRange().missingData();
+    }
     Field field = resample(new SingletonSet(domain, domain.getCoordinateSystem(),
                            domain.getTupleUnits(), domain.getErrors()),
                            sampling_mode, error_mode);
