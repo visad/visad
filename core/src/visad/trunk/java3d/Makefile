@@ -143,7 +143,7 @@ all::
 	@UNAME=`uname -s`; \
 	case "$$UNAME" in \
 	IRIX*) arch=irix;; \
-	SunOS*) arch=solaris;; \
+	SunOS*) arch=solaris_gcc;; \
 	Linux*) archlinux;; \
 	*) echo "Unknown system type $$UNAME"; exit 1;; \
 	esac; \
@@ -191,6 +191,19 @@ solaris: required_macros
 		JC="$(JC)" \
 		JFLAGS="$(JFLAGS)" \
 		shared_library
+
+solaris_gcc: required_macros
+	@make \
+		JAVAARCH=solaris \
+		CC="gcc" \
+		SHCFLAGS="-fPIC -DPIC" \
+		SHLDFLAGS="-shared" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="-G -Qoption ld -z,defs" \
+		SYSLIBS="-lM77 -lF77 -lsunmath -lnsl -lm -lc" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
 
 irix: required_macros
 	@make \
