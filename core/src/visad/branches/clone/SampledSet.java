@@ -443,7 +443,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
      * cross-clone effects.
      */
     if (clone.Samples != null) {
-        clone.Samples = (float[][])Samples.clone();
+        clone.Samples = new float[Samples.length][];
         for (int i = 0; i < Samples.length; i++)
             clone.Samples[i] = (float[])Samples[i].clone();
     }
