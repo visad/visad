@@ -301,13 +301,14 @@ public class RangeSlider extends JComponent implements MouseListener,
   /** repaints anything that needs it */
   public void repaint() {
     Graphics g = getGraphics();
-    paintMinimum(getGraphics());
-    g.dispose();
+    if (g != null) {
+      paintMinimum(g);
+      g.dispose();
+    }
   }
 
   private void paintMinimum(Graphics g)
   {
-    if (g == null) return;
     int w = getSize().width;
     if (lSlideMoved) {
       g.setColor(Color.black);
