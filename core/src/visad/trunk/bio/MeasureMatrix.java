@@ -93,6 +93,9 @@ public class MeasureMatrix {
     pool.set(ml.getMeasurements());
   }
 
+  /** Gets the display linked to the matrix. */
+  public DisplayImpl getDisplay() { return display; }
+
   /** Gets the measurement list for the given slice of the specified index. */
   public MeasureList getMeasureList(int index, int slice) {
     return matrix[index][slice];

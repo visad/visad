@@ -54,6 +54,18 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   /** Toggle for grayscale mode. */
   private JCheckBox grayscale;
 
+  /** Label for brightness. */
+  private JLabel brightnessLabel;
+
+  /** Label for contrast. */
+  private JLabel contrastLabel;
+
+  /** Slider for level of brightness. */
+  private JSlider brightness;
+
+  /** Slider for level of contrast. */
+  private JSlider contrast;
+
 
   // -- LINE FUNCTIONS --
 
@@ -119,13 +131,58 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
     // grayscale checkbox
     grayscale = new JCheckBox("Grayscale");
-    grayscale.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        /* CTR: TODO */ System.out.println("grayscale");
+    grayscale.setSelected(true);
+    grayscale.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean gray = grayscale.isSelected();
+        vert.setGrayscale(gray);
+        brightnessLabel.setEnabled(gray);
+        contrastLabel.setEnabled(gray);
+        brightness.setEnabled(gray);
+        contrast.setEnabled(gray);
       }
     });
     grayscale.setEnabled(false);
     add(pad(grayscale));
+
+    // brightness label
+    JPanel p2 = new JPanel();
+    p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
+    brightnessLabel = new JLabel("Brightness: ");
+    brightnessLabel.setEnabled(false);
+    p2.add(brightnessLabel);
+
+    // contrast label
+    contrastLabel = new JLabel("Contrast: ");
+    contrastLabel.setEnabled(false);
+    p2.add(contrastLabel);
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    p.add(p2);
+
+    // brightness slider
+    p2 = new JPanel();
+    p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
+    brightness = new JSlider(-100, 100, 0);
+    brightness.addChangeListener(new ChangeListener() {
+      public void stateChanged(ChangeEvent e) {
+        /* CTR: TODO */ System.out.println("brightness changed");
+      }
+    });
+    brightness.setEnabled(false);
+    p2.add(brightness);
+
+    // contrast slider
+    contrast = new JSlider(-100, 100, 0);
+    contrast.addChangeListener(new ChangeListener() {
+      public void stateChanged(ChangeEvent e) {
+        /* CTR: TODO */ System.out.println("contrast changed");
+      }
+    });
+    contrast.setEnabled(false);
+    p2.add(contrast);
+    p.add(p2);
+    add(p);
 
     // divider between global functions and line functions
     add(Box.createVerticalStrut(10));
@@ -233,6 +290,11 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     grayscale.setEnabled(enabled);
+    brightnessLabel.setEnabled(enabled);
+    contrastLabel.setEnabled(enabled);
+    boolean b = enabled && grayscale.isSelected();
+    brightness.setEnabled(b);
+    contrast.setEnabled(b);
   }
 
   /** Selects the given measurement line. */

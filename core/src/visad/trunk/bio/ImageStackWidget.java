@@ -65,6 +65,54 @@ public class ImageStackWidget extends StepWidget
     if (smap != null) smap.addScalarMapListener(this);
   }
 
+  /** Toggles grayscale color mode. */
+  public void setGrayscale(boolean grayscale) {
+    // CTR: TODO: merge this method with setContrast/setBrightness
+
+    // get color control
+    if (mm == null) return;
+    DisplayImpl display = mm.getDisplay();
+    ColorControl cc = (ColorControl) display.getControl(ColorControl.class);
+    if (cc == null) return;
+
+    // compute color table
+    float[][] table = grayscale ?
+      ColorControl.initTableGreyWedge(new float[3][256]) :
+      ColorControl.initTableVis5D(new float[3][256]);
+
+    // set color table
+    try { cc.setTable(table); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Sets grayscale constrast. */
+  public void setContrast(int contrast) {
+    // CTR: TODO: fix this algorithm
+
+    // get color control
+    DisplayImpl display = mm.getDisplay();
+    ColorControl cc = (ColorControl) display.getControl(ColorControl.class);
+    if (cc == null) return;
+
+    // compute grayscale table with contrast
+    float[][] table = new float[3][256];
+    double width = 2 * contrast;
+    double base = Math.pow(2, 2 / width);
+    double inc = base / 128;
+    double x = -base;
+    for (int i=0; i<256; i++, x+=inc) {
+      double g = Math.pow(2, -width * x * x - 1);
+      if (x > 0) g = 1 - g;
+      table[0][i] = table[1][i] = table[2][i] = (float) g;
+    }
+
+    // set color table
+    try { cc.setTable(table); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
   private void updateSlider() {
     int max = 1;
     int cur = 1;

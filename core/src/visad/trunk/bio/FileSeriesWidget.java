@@ -173,6 +173,7 @@ public class FileSeriesWidget extends StepWidget {
         else if (Display.XAxis.equals(drt)) xMap = smap;
         else if (Display.YAxis.equals(drt)) yMap = smap;
       }
+      isw.setGrayscale(true); // default to grayscale color mode
       try {
         display.addReference(ref);
       }
