@@ -1041,7 +1041,7 @@ public class DisplayTest extends Object {
       case 20:
  
         System.out.println(test_case + ": test 2-D surface and ColorAlphaWidget");
-        System.out.println(" (known problems with Java3D transparency)");
+        // System.out.println(" (known problems with Java3D transparency)");
  
         size = 32;
         imaget1 = FlatField.makeField(image_tuple, size, false);
