@@ -231,13 +231,11 @@ public class BasicSSCell extends JPanel {
     // construct Data
     try {
       if (filename != null) {
-        URL u;
+        URL u = null;
         try {
           u = new URL(filename);
         }
-        catch (MalformedURLException exc) {
-          u = BasicSSCell.class.getResource(filename);
-        }
+        catch (MalformedURLException exc) { }
         loadData(u);
       }
     }
@@ -487,8 +485,18 @@ public class BasicSSCell extends JPanel {
     boolean error = false;
     Data data = null;
     try {
+      // file detection -- note that it will eventually be removed
+      //                   when all Data Forms have open(URL) capability
+      String s = url.toString();
+      boolean f = false;
+      String file = null;
+      if (s.length() >= 6 && s.substring(0, 6).equalsIgnoreCase("file:/")) {
+        f = true;
+        file = s.substring(6);
+      }
       DefaultFamily loader = new DefaultFamily("loader");
-      data = loader.open(url);
+      if (f) data = loader.open(file);
+      else data = loader.open(url);
       loader = null;
     }
     finally {
