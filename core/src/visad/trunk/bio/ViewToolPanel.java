@@ -53,26 +53,29 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
   /** Toggle for 2-D display mode. */
   private JCheckBox twoD;
 
-  /** Button for zooming in. */
+  /** Button for zooming in on 2-D display. */
   private JButton zoomIn2;
 
-  /** Button for resetting zoom. */
+  /** Button for resetting zoom on 2-D display. */
   private JButton zoomReset2;
 
-  /** Button for zooming out. */
+  /** Button for zooming out on 2-D display. */
   private JButton zoomOut2;
 
   /** Toggle for 3-D display mode. */
   private JCheckBox threeD;
 
-  /** Button for zooming in. */
+  /** Button for zooming in on 3-D display. */
   private JButton zoomIn3;
 
-  /** Button for resetting zoom. */
+  /** Button for resetting zoom on 3-D display. */
   private JButton zoomReset3;
 
-  /** Button for zooming out. */
+  /** Button for zooming out on 3-D display. */
   private JButton zoomOut3;
+
+  /** Toggle for preview displays. */
+  private JCheckBox preview;
 
   /** Toggle for using micron information to compute Z aspect ratio. */
   private JCheckBox zAspect;
@@ -115,6 +118,9 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
 
   /** Blue color map widget. */
   private BioColorWidget blue;
+
+  /** Toggle for composite coloring. */
+  private JCheckBox composite;
 
   /** Toggle for colorizing image stack based on slice level. */
   private JCheckBox colorize;
@@ -222,6 +228,17 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     zoomOut3.setEnabled(okay3d);
     p.add(zoomOut3);
     controls.add(pad(p));
+
+    // Preview checkbox
+    preview = new JCheckBox("Previous/next preview displays", false);
+    preview.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = preview.isSelected();
+        bio.setPreview(b);
+      }
+    });
+    preview.setEnabled(false);
+    controls.add(pad(preview));
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
@@ -366,17 +383,25 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     p.add(blue);
     controls.add(pad(p));
 
-    // spacing
-    controls.add(Box.createVerticalStrut(5));
+    // composite checkbox
+    composite = new JCheckBox("Composite image coloring", false);
+    composite.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = !composite.isSelected();
+        red.setEnabled(b);
+        green.setEnabled(b);
+        blue.setEnabled(b);
+        doColorTable();
+      }
+    });
+    controls.add(pad(composite));
 
     // colorize across slice level checkbox
     colorize = new JCheckBox("Colorize image stack across slices", false);
     colorize.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        boolean c = colorize.isSelected();
-        // CTR - TODO - colorize across slice level checkbox
-      }
+      public void itemStateChanged(ItemEvent e) { doColorTable(); }
     });
+    colorize.setEnabled(false);
     controls.add(pad(colorize));
 
     // divider between color functions and misc functions
@@ -494,8 +519,9 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     if (ignore) return;
     int bright = brightness.getValue();
     int cont = contrast.getValue();
-    bio.setImageColors(bright, cont,
-      red.getSelectedItem(), green.getSelectedItem(), blue.getSelectedItem());
+    boolean comp = composite.isSelected();
+    bio.setImageColors(bright, cont, comp, red.getSelectedItem(),
+      green.getSelectedItem(), blue.getSelectedItem());
     brightnessValue.setText("" + bright);
     contrastValue.setText("" + cont);
   }

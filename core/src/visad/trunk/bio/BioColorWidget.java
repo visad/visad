@@ -29,7 +29,7 @@ package visad.bio;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import visad.*;
+import visad.RealType;
 
 /**
  * BioColorWidget is a widget for controlling mappings
@@ -43,10 +43,6 @@ public class BioColorWidget extends JPanel {
   public static final int GREEN = 1;
   public static final int BLUE = 2;
 
-  private static final DisplayRealType[] COLOR_TYPES = {
-    Display.Red, Display.Green, Display.Blue
-  };
-
   private static final String[] COLOR_NAMES = {"Red", "Green", "Blue"};
 
 
@@ -59,7 +55,7 @@ public class BioColorWidget extends JPanel {
   // -- OTHER FIELDS --
 
   private BioVisAD bio;
-  private DisplayRealType type;
+  private int type;
 
 
   // -- CONSTRUCTOR --
@@ -67,7 +63,7 @@ public class BioColorWidget extends JPanel {
   /** Constructs a new animation widget. */
   public BioColorWidget(BioVisAD biovis, int colorType) {
     bio = biovis;
-    type = COLOR_TYPES[colorType];
+    type = colorType;
 
     // create components
     color = new JLabel(COLOR_NAMES[colorType] + ":");
@@ -124,12 +120,19 @@ public class BioColorWidget extends JPanel {
 
     // Autodetect types
 
+    // Case 0: no rtypes
+    //   R -> None
+    //   G -> None
+    //   B -> None
+    
+    if (rt == null || rt.length == 0) scalars.setSelectedIndex(0); // None
+
     // Case 1: rtypes.length == 1
     //   R -> rtypes[0]
     //   G -> rtypes[0]
     //   B -> rtypes[0]
 
-    if (rt.length == 1) scalars.setSelectedItem(rt[0]);
+    else if (rt.length == 1) scalars.setSelectedItem(rt[0]);
 
     // Case 2: rtypes.length == 2
     //   R -> rtypes[0]
@@ -142,11 +145,9 @@ public class BioColorWidget extends JPanel {
     //   B -> rtypes[2]
 
     else {
-      if (type.equals(Display.Red)) scalars.setSelectedItem(rt[0]);
-      else if (type.equals(Display.Green)) scalars.setSelectedItem(rt[1]);
-      else if (type.equals(Display.Blue) && rt.length >= 3) {
-        scalars.setSelectedItem(rt[2]);
-      }
+      if (type == RED) scalars.setSelectedItem(rt[0]);
+      else if (type == GREEN) scalars.setSelectedItem(rt[1]);
+      else if (type == BLUE && rt.length >= 3) scalars.setSelectedItem(rt[2]);
       else scalars.setSelectedIndex(0); // None
     }
   }

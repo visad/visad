@@ -71,6 +71,10 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Default measurement group. */
   static MeasureGroup noneGroup;
 
+  /** Rainbow composite color table. */
+  static final float[][] rainbow =
+    ColorControl.initTableVis5D(new float[3][COLOR_DETAIL]);
+
 
   // -- DISPLAYS --
 
@@ -131,7 +135,10 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Brightness and contrast of images. */
   private int brightness, contrast;
 
-  /** Red, green and blue components of images. */
+  /** Whether to use RGB composite coloring. */
+  private boolean composite;
+
+  /** Red, green, blue and composite components of images. */
   private RealType red, green, blue;
 
 
@@ -233,6 +240,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     display3.getComponent().setVisible(threeD);
   }
 
+  /** Toggles the visibility of the preview displays. */
+  public void setPreview(boolean preview) {
+    // CTR - TODO - setPreview
+  }
+
   /** Zooms a display by the given amount. */
   public void setZoom(boolean threeD, double scale) {
     DisplayImpl d = threeD ? display3 : display2;
@@ -272,19 +284,20 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Updates image color table to match the given values. */
   public void setImageColors(int brightness, int contrast,
-    RealType red, RealType green, RealType blue)
+    boolean composite, RealType r, RealType g, RealType b)
   {
     // verify that image color information has changed
     if (this.brightness == brightness && this.contrast == contrast &&
-      this.red == red && this.green == green && this.blue == blue)
+      this.composite == composite && red == r && green == g && blue == b)
     {
       return;
     }
     this.brightness = brightness;
     this.contrast = contrast;
-    this.red = red;
-    this.green = green;
-    this.blue = blue;
+    this.composite = composite;
+    red = r;
+    green = g;
+    blue = b;
 
     // get color controls
     BaseColorControl[] cc2 = sm.getColorControls2D();
@@ -300,8 +313,24 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
     // compute color channel table values from center and slope
     float[] vals = new float[COLOR_DETAIL];
+    float[] rvals, gvals, bvals;
+    if (composite) {
+      rvals = new float[COLOR_DETAIL];
+      gvals = new float[COLOR_DETAIL];
+      bvals = new float[COLOR_DETAIL];
+      for (int i=0; i<COLOR_DETAIL; i++) {
+        rvals[i] = (float) (0.5 * slope * (rainbow[0][i] - 1.0) + center);
+        gvals[i] = (float) (0.5 * slope * (rainbow[1][i] - 1.0) + center);
+        bvals[i] = (float) (0.5 * slope * (rainbow[2][i] - 1.0) + center);
+      }
+    }
+    else {
+      for (int i=0; i<COLOR_DETAIL; i++) {
+        vals[i] = (float) (0.5 * slope * (i / mid - 1.0) + center);
+      }
+      rvals = gvals = bvals = vals;
+    }
     for (int i=0; i<COLOR_DETAIL; i++) {
-      vals[i] = (float) (0.5 * slope * (i / mid - 1.0) + center);
       if (vals[i] < 0.0f) vals[i] = 0.0f;
       else if (vals[i] > 1.0f) vals[i] = 1.0f;
     }
@@ -313,9 +342,21 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
       // color table without alpha
       float[][] t2 = new float[3][COLOR_DETAIL];
-      if (rt.equals(red)) System.arraycopy(vals, 0, t2[0], 0, COLOR_DETAIL);
-      if (rt.equals(green)) System.arraycopy(vals, 0, t2[1], 0, COLOR_DETAIL);
-      if (rt.equals(blue)) System.arraycopy(vals, 0, t2[2], 0, COLOR_DETAIL);
+      if (composite) {
+        for (int j=0; j<3; j++) {
+          System.arraycopy(rainbow[j], 0, t2[j], 0, COLOR_DETAIL);
+        }
+      }
+      if (composite) {
+        t2[0] = rvals;
+        t2[1] = gvals;
+        t2[2] = bvals;
+      }
+      else {
+        if (rt.equals(r)) System.arraycopy(rvals, 0, t2[0], 0, COLOR_DETAIL);
+        if (rt.equals(g)) System.arraycopy(gvals, 0, t2[1], 0, COLOR_DETAIL);
+        if (rt.equals(b)) System.arraycopy(bvals, 0, t2[2], 0, COLOR_DETAIL);
+      }
 
       // color table with alpha
       float[][] t3 = new float[4][];

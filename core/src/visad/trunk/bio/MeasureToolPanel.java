@@ -118,6 +118,12 @@ public class MeasureToolPanel extends ToolPanel {
   /** Button for adding points. */
   private JButton addMarker;
 
+  /** Button for toggling whether SHIFT + right click does a merge. */
+  private JToggleButton merge;
+
+  /** Button for undoing last measurement change. */
+  private JButton undo;
+
   /** Button for clearing all measurements. */
   private JButton clearAll;
 
@@ -132,9 +138,6 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Label for displaying measurement distance. */
   private JLabel measureDist;
-
-  /** Button for toggling whether SHIFT + right click does a merge. */
-  private JToggleButton merge;
 
   /** Button for distributing measurement object through all focal planes. */
   private JCheckBox setStandard;
@@ -258,6 +261,28 @@ public class MeasureToolPanel extends ToolPanel {
     });
     addMarker.setEnabled(false);
     p.add(addMarker);
+    controls.add(pad(p));
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
+    // merge button
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    merge = new JToggleButton("Merge");
+    merge.setEnabled(false);
+    p.add(merge);
+    p.add(Box.createHorizontalStrut(5));
+
+    // undo button
+    undo = new JButton("Undo");
+    undo.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        // CTR - TODO - undo
+      }
+    });
+    undo.setEnabled(false);
+    p.add(undo);
     p.add(Box.createHorizontalStrut(5));
 
     // clear all measurements button
@@ -336,15 +361,9 @@ public class MeasureToolPanel extends ToolPanel {
       public void doAction() { updateMeasureInfo(); }
     };
 
-    // merge button
+    // set standard button
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    merge = new JToggleButton("Merge");
-    merge.setEnabled(false);
-    p.add(merge);
-    p.add(Box.createHorizontalStrut(10));
-
-    // set standard button
     setStandard = new JCheckBox("Set standard");
     setStandard.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -520,9 +539,10 @@ public class MeasureToolPanel extends ToolPanel {
     }
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
-    clearAll.setEnabled(enabled);
     pilot.setEnabled(enabled);
     merge.setEnabled(enabled);
+    //undo.setEnabled(enabled);
+    clearAll.setEnabled(enabled);
   }
 
   /** Enables or disables the "set standard" checkbox. */
