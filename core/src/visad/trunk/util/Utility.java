@@ -28,6 +28,8 @@ package visad.util;
 import java.rmi.RemoteException;
 import visad.Data;
 import visad.Field;
+import visad.FieldImpl;
+import visad.Function;
 import visad.FunctionType;
 import visad.MathType;
 import visad.Real;
@@ -69,50 +71,49 @@ Utility
   ensureRealTupleType(MathType type)
     throws TypeException, VisADException
   {
+    RealTupleType	result;
     if (type instanceof RealTupleType)
-      return (RealTupleType)type;
-    if (type instanceof RealType)
-      return new RealTupleType((RealType)type);
-    if (type instanceof SetType)
-      return ((SetType)type).getDomain();
-    throw new TypeException(
-      Utility.class.getName() +
-      ".ensureRealTupleType(MathType): Can't convert MathType \"" +
-      type + "\" into a RealTupleType");
+      result = (RealTupleType)type;
+    else if (type instanceof RealType)
+      result = new RealTupleType((RealType)type);
+    else if (type instanceof SetType)
+      result = ((SetType)type).getDomain();
+    else
+      throw new TypeException(
+	Utility.class.getName() +
+	".ensureRealTupleType(MathType): Can't convert MathType \"" +
+	type + "\" into a RealTupleType");
+    return result;
   }
 
   /**
    * Ensures that a MathType is a TupleType.  Converts if necessary.
    * @param type		The math type to be "converted" to a 
-   *				TupleType.  It shall be either a Scalar,
-   *				a TupleType, or a SetType.
+   *				TupleType.
    * @return                    The TupleType version of <code>type</code>.
-   *                            If <code>type</code> is a TupleType, then
-   *                            it is returned; otherwise, if <code>type</code>
-   *                            is a Scalar, then a TupleType
-   *                            containing <code>type</code> as the
-   *                            only component is returned; otherwise,
-   *                            if <code>type</code> is a SetType, then
+   *                            If <code>type</code> is a TupleType,
+   *                            then it is returned; otherwise, if
+   *                            <code>type</code> is a SetType, then
    *                            <code>((SetType)type).getDomain()</code> is
-   *                            returned.
-   * @throws TypeException	<code>type</code> is the wrong type: it can't
-   *				be converted into a TupleType.
+   *                            returned; otherwise, a TupleType containing
+   *                            <code>type</code> as the only component is
+   *                            returned (if <code>MathType</code> is a
+   *				RealType, then the returned TupleType is a 
+   *				RealTupleType);
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public static TupleType
   ensureTupleType(MathType type)
-    throws TypeException, VisADException
+    throws VisADException
   {
-    if (type instanceof TupleType)
-      return (TupleType)type;
-    if (type instanceof ScalarType)
-      return new TupleType(new MathType[] {type});
-    if (type instanceof SetType)
-      return ((SetType)type).getDomain();
-    throw new TypeException(
-      Utility.class.getName() +
-      ".ensureTupleType(MathType): Can't convert MathType \"" +
-      type + "\" into a TupleType");
+    return
+      type instanceof TupleType
+	? (TupleType)type
+	: type instanceof SetType
+	  ? ((SetType)type).getDomain()		// actually a RealTupleType
+	  : type instanceof RealType
+	    ? new RealTupleType((RealType)type)
+	    : new TupleType(new MathType[] {type});
   }
 
   /**
@@ -141,7 +142,41 @@ Utility
   }
 
   /**
-   * Gets the index of a range component of a Field.
+   * Gets the MathType of the range of a Function.
+   * @param function		A function.
+   * @return			The MathType of the range of the function.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static MathType
+  getRangeType(Function function)
+    throws VisADException, RemoteException
+  {
+    return ((FunctionType)function.getType()).getRange();
+  }
+
+  /**
+   * Gets the number of components in the range of a Function.  NB: This differs
+   * from visad.FlatField.getRangeDimension() in that it returns the number of
+   * components in the range rather than the number of components in the flat
+   * range.
+   * @param function		A function.
+   * @return			The number of components in the range of the
+   *				function.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static int
+  getRangeDimension(Function function)
+    throws VisADException, RemoteException
+  {
+    return ensureTupleType(getRangeType(function)).getDimension();
+  }
+
+  /**
+   * Gets the index of a component in the range of a Field.  If the range
+   * contains multiple instances of the component, then it is unspecified
+   * which component index is returned.
    * @param componentType	The MathType of the component.
    * @return                    The index of the component in the range of the
    *                            field or -1 if the component is not in the range
@@ -154,12 +189,57 @@ Utility
   getComponentIndex(Field field, MathType componentType)
     throws VisADException, RemoteException
   {
-    TupleType	rangeTupleType =
-      ensureTupleType(((FunctionType)field.getType()).getRange());
-    int		componentCount = rangeTupleType.getDimension();
-    for (int i = 0; i < componentCount; i++)
+    TupleType	rangeTupleType = ensureTupleType(getRangeType(field));
+    for (int i = rangeTupleType.getDimension(); --i >= 0; )
       if (rangeTupleType.getComponent(i).equals(componentType))
 	return i;
     return -1;
+  }
+
+  /**
+   * Ensures that the range of a FieldImpl is a given type.
+   * @param field		The input field.
+   * @param rangeType		The desired type of range for the resulting
+   *				field.
+   * @param alwaysNew           Whether or not to always create a new field.
+   *                            If <code>false</code> and the input field
+   *                            is exactly what is desired, then the input
+   *                            field will simply be returned; otherwise, an
+   *                            extraction will always be performed.
+   * @return			A field with the desired range.
+   * @throws TypeException	A field with the given range cannot be created
+   *				from the input field.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static FieldImpl
+  ensureRange(FieldImpl field, MathType rangeType, boolean alwaysNew)
+    throws TypeException, VisADException, RemoteException
+  {
+    FieldImpl	result;
+    if (rangeType.equals(getRangeType(field)))
+    {
+      result = alwaysNew ? (FieldImpl)field.clone() : field;
+    }
+    else
+    {
+      result = null;
+      TupleType	rangeTuple = ensureTupleType(rangeType);
+      int	componentCount = rangeTuple.getDimension();
+      for (int i = 0; i < componentCount; i++)
+      {
+	int	componentIndex =
+	  getComponentIndex(field, rangeTuple.getComponent(i));
+	if (componentIndex < 0)
+	  throw new TypeException("The range of field \"" + field + 
+	    "\" doesn't contain component \"" + rangeType + '"');
+	result =
+	  result == null
+	    ? (FieldImpl)field.extract(componentIndex)
+	    : (FieldImpl)FieldImpl.combine(
+		new Field[] {result, field.extract(componentIndex)});
+      }
+    }
+    return result;
   }
 }
