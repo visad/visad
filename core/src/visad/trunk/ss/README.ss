@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                   22 June 1999
+                                   25 June 1999
  
                                 Table of Contents
 
@@ -14,8 +14,6 @@
     1.3.5 SSCellChangeEvent
     1.3.6 SSCellListener
     1.3.7 SSLayout
-    1.3.8 SSMethod
-    1.3.9 SSRealType
 2. Features of the SpreadSheet User Interface
   2.1 Basic Commands
   2.2 Menu Commands
@@ -92,8 +90,6 @@ The following source files are part of the visad.ss package:
     - SSCellChangeEvent.java
     - SSCellListener.java
     - SSLayout.java
-    - SSMethod.java
-    - SSRealType.java
 
 The following included GIF files are needed by the package:
     - cancel.gif
@@ -144,16 +140,6 @@ An interface for classes that wish to be informed when an SSCell changes.
 1.3.7 SSLayout
 
 This is the layout manager for the spreadsheet cells and their labels.
-
-1.3.8 SSMethod
-
-A wrapper for java.lang.reflect.Method so that it may be used in the
-visad.formula package.
-
-1.3.9 SSRealType
-
-A wrapper for visad.RealType so that it may be used in the
-visad.formula package.
 
 2. Features of the SpreadSheet User Interface
 
@@ -506,7 +492,7 @@ The following bugs have been discovered and have not yet been fixed:
    are still imported correctly (i.e., ignore this error message).
 
 4) When importing certain netCDF data sets, a series of errors beginning with
-   "Cannot decode unit" may be displayed.  These are warnings the netCDF
+   "Couldn't decode attribute" may be displayed.  These are warnings the netCDF
    loader prints about unit types.  The Spread Sheet will still import the
    netCDF data set correctly (i.e., these warnings can be safely ignored).
 
