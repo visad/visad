@@ -682,6 +682,7 @@ so:
             yy = 1.05;
           }
           float size = (float) (0.5 * (Math.sqrt(xx) + Math.sqrt(yy)));
+          float hsize = 0.5f * size;
           float[] style = LINE_PATTERN[appearance.lineStyle];
           float[] pattern = null;
           if (style != null) {
@@ -708,7 +709,8 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 for (int i=0; i<3*count; i += 3) {
                   if (coordinates[i] == coordinates[i] &&
                       coordinates[i+1] == coordinates[i+1]) {
-                    g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
+                    g2.fill(new Rectangle2D.Float(coordinates[i]-hsize,
+                                                  coordinates[i+1]-hsize,
                                                   size, size));
                   }
                 }
@@ -726,7 +728,8 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                          ((int) colors[j+1]) ),
                       ((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
                                          ((int) colors[j+2]) ) ));
-                    g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
+                    g2.fill(new Rectangle2D.Float(coordinates[i]-hsize,
+                                                  coordinates[i+1]-hsize,
                                                   size, size));
                   }
                   j += jinc;
