@@ -118,6 +118,8 @@ public class MouseHelper
       if remote flag is set */
   public void processEvent(AWTEvent event, int remoteId) {
 
+    if (behavior == null) return;
+
     // WLH 17 Aug 2000
     if (first) {
       start_x = 0;
@@ -661,6 +663,7 @@ event_switch:
   }
 
   public void print_matrix(String title, double[] m) {
+    if (behavior == null) return;
     double[] rot = new double[3];
     double[] scale = new double[1];
     double[] trans = new double[3];

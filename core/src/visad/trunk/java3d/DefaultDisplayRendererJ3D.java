@@ -28,6 +28,7 @@ package visad.java3d;
 
 import visad.*;
 
+import java.lang.reflect.*;
 import java.awt.event.*;
 
 import javax.media.j3d.*;
@@ -47,6 +48,8 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
   /** color of box and cursor */
   private ColoringAttributes box_color = null;
   private ColoringAttributes cursor_color = null;
+
+  private Class mouseBehaviorJ3DClass = null;
 
   private MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
@@ -77,6 +80,15 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
    */
   public DefaultDisplayRendererJ3D () {
     super();
+    mouseBehaviorJ3DClass = MouseBehaviorJ3D.class;
+  }
+
+  /**
+   * @param mbClass - sub Class of MouseBehaviorJ3D
+  */
+  public DefaultDisplayRendererJ3D (Class mbj3dClass) {
+    super();
+    mouseBehaviorJ3DClass = mbj3dClass;
   }
 
   /**
@@ -95,7 +107,17 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     if (root != null) return root;
 
     // create MouseBehaviorJ3D for mouse interactions
-    mouse = new MouseBehaviorJ3D(this);
+    try {
+      Class[] param = new Class[] {DisplayRendererJ3D.class};
+      Constructor mbConstructor =
+        mouseBehaviorJ3DClass.getConstructor(param);
+      mouse = (MouseBehaviorJ3D) mbConstructor.newInstance(new Object[] {this});
+    }
+    catch (Exception e) {
+      throw new VisADError("cannot construct " + mouseBehaviorJ3DClass);
+    }
+    // mouse = new MouseBehaviorJ3D(this);
+
     getDisplay().setMouseBehavior(mouse);
     box_color = new ColoringAttributes();
     cursor_color = new ColoringAttributes();

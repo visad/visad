@@ -28,6 +28,7 @@ package visad.java2d;
 
 import visad.*;
 
+import java.lang.reflect.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
@@ -53,7 +54,26 @@ public class MouseBehaviorJ2D implements MouseBehavior {
    * @param  r  DisplayRenderer to use
    */
   public MouseBehaviorJ2D(DisplayRendererJ2D r) {
-    helper = new MouseHelper(r, this);
+    this(r, MouseHelper.class);
+  }
+
+  /**
+   * Construct a MouseBehavior for the DisplayRenderer specified
+   * @param  r  DisplayRenderer to use
+   * @param  mhClass  MouseHelper subclass to use
+   */
+  public MouseBehaviorJ2D(DisplayRendererJ2D r, Class mhClass) {
+    try {
+      Class[] param = new Class[] {DisplayRenderer.class, MouseBehavior.class};
+      Constructor mhConstructor =
+        mhClass.getConstructor(param);
+      helper = (MouseHelper) mhConstructor.newInstance(new Object[] {r, this});
+    }
+    catch (Exception e) {
+      throw new VisADError("cannot construct " + mhClass);
+    }
+    // helper = new MouseHelper(r, this);
+
     display_renderer = r;
     display = display_renderer.getDisplay();
   }

@@ -28,6 +28,7 @@ package visad.java2d;
 
 import visad.*;
 
+import java.lang.reflect.*;
 import java.awt.event.*;
 
 import java.rmi.RemoteException;
@@ -45,6 +46,8 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
   private VisADAppearance box = null;
   /** cursor */
   private VisADAppearance cursor = null;
+
+  private Class mouseBehaviorJ2DClass = null;
 
   /** Behavior for mouse interactions */
   private MouseBehaviorJ2D mouse = null;
@@ -74,6 +77,15 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
    */
   public DefaultDisplayRendererJ2D () {
     super();
+    mouseBehaviorJ2DClass = MouseBehaviorJ2D.class;
+  }
+
+  /**
+   * @param mbClass - sub Class of MouseBehaviorJ2D
+  */
+  public DefaultDisplayRendererJ2D (Class mbj2dClass) {
+    super();
+    mouseBehaviorJ2DClass = mbj2dClass;
   }
 
   public boolean getMode2D() {
@@ -102,7 +114,17 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     if (root != null) return root;
 
     // create MouseBehaviorJ2D for mouse interactions
-    mouse = new MouseBehaviorJ2D(this);
+    try {
+      Class[] param = new Class[] {DisplayRendererJ2D.class};
+      Constructor mbConstructor =
+        mouseBehaviorJ2DClass.getConstructor(param);
+      mouse = (MouseBehaviorJ2D) mbConstructor.newInstance(new Object[] {this});
+    }
+    catch (Exception e) {
+      throw new VisADError("cannot construct " + mouseBehaviorJ2DClass);
+    }
+    // mouse = new MouseBehaviorJ2D(this);
+
     getDisplay().setMouseBehavior(mouse);
     box = new VisADAppearance();
     cursor = new VisADAppearance();
