@@ -1,10 +1,72 @@
+from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display
+from visad.util import AnimationWidget
+from visad.python.JPythonMethods import *
+from javax.swing import JFrame, JPanel
+from java.awt import BorderLayout, FlowLayout
+import subs
+
 def image(img, panel=None, colortable=None):
   return
 
-def scatter(data_1, data_2, panel=None, size=None, xlabel=None, ylabel=None):
+def scatter(data_1, data_2, panel=None, size=None, xlabel=None, ylabel=None, title="VisAD Scatter"):
+
+  rng_1 = data_1.getType().getRange().toString()
+  rng_2 = data_2.getType().getRange().toString()
+  maps = subs.makeMaps(getRealType(rng_1),"x", getRealType(rng_2),"y")
+  disp = subs.makeDisplay(maps)
+  subs.addData("first", data_1, disp)
+  subs.addData("second", data_2, disp)
+
+  subs.showDisplay(disp,400,500,title)
+
   return
 
-def histogram(data_1, panel=None, division=None):
+# quick look histogram - only first range component is used.
+
+def histogram(data, bins=20, title="VisAD Histogram", color=None, panel=None):
+
+  from java.lang.Math import abs
+
+  x=[]
+  y=[]
+
+  h = hist(data, [0], [bins])
+  dom = getDomain(h)
+  d = dom.getSamples()
+  step2 = dom.getStep()/2
+
+  hmin = h[0].getValue()
+  hmax = hmin
+
+  for i in range(0,len(h)):
+   xm = d[0][i]-step2
+   xp = d[0][i]+step2
+   x.append(xm)
+   y.append(0)
+   x.append(xm)
+   hval = h[i].getValue()
+   if hval < hmin: hmin = hval
+   if hval > hmax: hmax = hval
+   y.append(hval)
+   x.append(xp)
+   y.append(hval)
+   x.append(xp)
+   y.append(0)
+
+  domt = domainType(h)
+  rngt = rangeType(h)
+
+  xaxis = ScalarMap(domt[0], Display.XAxis)
+  yaxis = ScalarMap(rngt, Display.YAxis)
+
+  yaxis.setRange(hmin, hmax + abs(hmax * .05))
+
+  disp = subs.makeDisplay( (xaxis, yaxis) )
+  subs.drawLine(disp, (x,y), mathtype=(domt[0],rngt), color=color)
+  showAxesScales(disp,1)
+  subs.maximizeBox(disp,.65)
+  subs.showDisplay(disp, title=title )
+
   return
 
 def piechart(data, panel=None):
@@ -21,12 +83,6 @@ def contour(data, panel=None, interval=None, size=None):
 # and AnimationWidget in it
 def animation(data, panel=None, title="VisAD Animation"):
 
-  from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display
-  from visad.util import AnimationWidget
-  from visad.python.JPythonMethods import *
-  from javax.swing import JFrame, JPanel
-  from java.awt import BorderLayout, FlowLayout
-  import subs
 
   num_frames = len(data)
 

@@ -99,7 +99,7 @@ def drawLine(display, points, color=None, mathtype=None):
   maps = None
   if mathtype is not None:
     linref = addData("linesegment",
-       Gridded2DSet(RealTupleType(mathtype), points, len(points[0])), display)
+       Gridded2DSet(RealTupleType(mathtype), points, len(points[0])), display, constmap)
     return linref
 
   # drawLine(name|display, points[])
@@ -134,7 +134,6 @@ def drawLine(display, points, color=None, mathtype=None):
     else:
       dom = RealTupleType(x,y,z)
 
-# this is a test
     linref = addData("linesegment", 
              Gridded2DSet(dom, points, len(points[0])), disp, constmap)
     return linref 
