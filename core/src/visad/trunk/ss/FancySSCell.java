@@ -22,6 +22,7 @@ import java.util.Enumeration;
 
 // VisAD packages
 import visad.*;
+import visad.util.*;
 
 // VisAD classes
 import visad.data.BadFormException;
@@ -57,6 +58,9 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
 
   /** This cell's parent frame. */
   Frame Parent;
+
+  /** This cell's associated JFrame, for use with VisAD Controls. */
+  JFrame WidgetFrame = null;
 
   /** default mapping type */
   int DefaultMappingType = COLOR_3DSURFACE;
@@ -113,6 +117,87 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
 
   public FancySSCell(String name) throws VisADException, RemoteException {
     this(name, null, null);
+  }
+
+  /** Sets the ScalarMaps for this cell, and creates appropriate
+      control widgets. */
+  public void setMaps(ScalarMap[] maps) throws VisADException,
+                                               RemoteException {
+    super.setMaps(maps);
+
+    // create any necessary widgets
+    /* CTR: DISABLED FOR NOW
+    for (int i=0; i<maps.length; i++) {
+      DisplayRealType drt = maps[i].getDisplayScalar();
+      if (drt == Display.RGB) {
+        if (WidgetFrame == null) initWidgetFrame();
+        LabeledRGBWidget lw = new LabeledRGBWidget(maps[i], 0.0f, 32.0f);
+        WidgetFrame.getContentPane().add(lw);
+        WidgetFrame.setVisible(true);
+      }
+      if (drt == Display.RGBA) {
+        if (WidgetFrame == null) initWidgetFrame();
+        LabeledRGBAWidget lw = new LabeledRGBAWidget(maps[i], 0.0f, 32.0f);
+        WidgetFrame.getContentPane().add(lw);
+        WidgetFrame.pack();
+      }
+      if (drt == Display.SelectValue) {
+        if (WidgetFrame == null) initWidgetFrame();
+        final DataReference ref = new DataReferenceImpl("value");
+        VisADSlider vs = new VisADSlider("value", 0, 100, 0, 0.01, ref,
+                                         RealType.Generic);
+        final ValueControl control = (ValueControl) maps[i].getControl();
+        control.setValue(0.0);
+        CellImpl cell = new CellImpl() {
+          public void doAction() throws VisADException, RemoteException {
+            control.setValue(((Real) ref.getData()).getValue());
+          }
+        };
+        cell.addReference(ref);
+        WidgetFrame.getContentPane().add(vs);
+      }
+      if (drt == Display.SelectRange) {
+        if (WidgetFrame == null) initWidgetFrame();
+        final DataReference refLo = new DataReferenceImpl("low");
+        final DataReference refHi = new DataReferenceImpl("high");
+        VisADSlider vsLo = new VisADSlider("value low", 0, 100, 0, 0.01,
+                                           refLo, RealType.Generic);
+        VisADSlider vsHi = new VisADSlider("value high", 0, 100, 0, 0.01,
+                                           refHi, RealType.Generic);
+        final RangeControl control = (RangeControl) maps[i].getControl();
+        control.setRange(new float[] {0.0f, 100.0f});
+        CellImpl cell = new CellImpl() {
+          public void doAction() throws VisADException, RemoteException {
+            control.setRange(new float[]
+                               {(float) ((Real) refLo.getData()).getValue(),
+                                (float) ((Real) refHi.getData()).getValue()});
+          }
+        };
+        cell.addReference(refLo);
+        cell.addReference(refHi);
+        WidgetFrame.getContentPane().add(vsLo);
+        WidgetFrame.getContentPane().add(vsHi);
+      }
+      if (drt == Display.IsoContour) {
+        if (WidgetFrame == null) initWidgetFrame();
+        // create IsoLevel slider
+      }
+      if (drt == Display.Animation) {
+        if (WidgetFrame == null) initWidgetFrame();
+        // create Animation widget: forward/backward, play/stop, speed controls
+      if (WidgetFrame != null) {
+        WidgetFrame.pack();
+        WidgetFrame.setVisible(true);
+      }
+    }
+    */
+  }
+
+  /** Used by setMaps() method. */
+  void initWidgetFrame() {
+    WidgetFrame = new JFrame("VisAD controls");
+    Container pane = WidgetFrame.getContentPane();
+    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
   }
 
   /** Sets the Data for this cell, and applies the default ScalarMaps. */
@@ -461,9 +546,10 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
 
     // get mappings from mapping dialog
     Data data = DataRef.getData();
-    if (Filename == null) Filename = getFormula();
-    if (Filename == null || Filename == "") Filename = "Data hierarchy";
-    MappingDialog mapDialog = new MappingDialog(Parent, data, Filename);
+    String f = Filename;
+    if (f == null) f = getFormula();
+    if (f == null || f == "") f = "Data hierarchy";
+    MappingDialog mapDialog = new MappingDialog(Parent, data, f);
     mapDialog.setSize(new Dimension(520, 470));
     mapDialog.setVisible(true);
 

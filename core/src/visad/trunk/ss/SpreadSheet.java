@@ -59,19 +59,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                                    ItemListener,
                                                    MouseListener {
 
-  // starting size of the application
-  static final int WIDTH = 900;
-  static final int HEIGHT = 800;
+  // starting size of the application, in percentage of screen size
+  static final int WIDTH_PERCENT = 75;
+  static final int HEIGHT_PERCENT = 75;
 
   // minimum VisAD display size, including display border
   static final int MIN_VIS_WIDTH = 200;
   static final int MIN_VIS_HEIGHT = 200;
   
-  // cursors
-  static final Cursor D_CURSOR = Cursor.getDefaultCursor();
-  static final Cursor W_CURSOR =
-               Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-
   // spreadsheet letter order
   static final String Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -103,7 +98,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   ErrorDialog ErrorBox;
 
   public static void main(String[] argv) { 
-    SpreadSheet ss = new SpreadSheet(WIDTH, HEIGHT, "VisAD SpreadSheet");
+    SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
+                                     "VisAD SpreadSheet");
   }
 
   /** This is the constructor for the SpreadSheet class. */
@@ -118,7 +114,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     );
     setBackground(Color.white);
-    setCursor(D_CURSOR);
 
     // set up the content pane
     JPanel pane = new JPanel();
@@ -134,25 +129,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Menu file = new Menu("File");
     menubar.add(file);
 
-    MenuItem fileNew = new MenuItem("New");
-    fileNew.addActionListener(this);
-    fileNew.setActionCommand("fileNew");
-    file.add(fileNew);
-
-    MenuItem fileOpen = new MenuItem("Open...");
+    MenuItem fileOpen = new MenuItem("Import data...");
     fileOpen.addActionListener(this);
-    fileOpen.setActionCommand("fileOpen");
+    fileOpen.setActionCommand("cellImport");
     file.add(fileOpen);
-
-    MenuItem fileSave = new MenuItem("Save");
-    fileSave.addActionListener(this);
-    fileSave.setActionCommand("fileSave");
-    file.add(fileSave);
-
-    MenuItem fileSaveas = new MenuItem("Save as...");
-    fileSaveas.addActionListener(this);
-    fileSaveas.setActionCommand("fileSaveas");
-    file.add(fileSaveas);
 
     file.addSeparator();
 
@@ -185,6 +165,30 @@ public class SpreadSheet extends JFrame implements ActionListener,
     editClear.addActionListener(this);
     editClear.setActionCommand("editClear");
     edit.add(editClear);
+
+    // setup menu
+    Menu setup = new Menu("Setup");
+    menubar.add(setup);
+
+    MenuItem setupNew = new MenuItem("New spreadsheet file");
+    setupNew.addActionListener(this);
+    setupNew.setActionCommand("setupNew");
+    setup.add(setupNew);
+
+    MenuItem setupOpen = new MenuItem("Open spreadsheet file...");
+    setupOpen.addActionListener(this);
+    setupOpen.setActionCommand("setupOpen");
+    setup.add(setupOpen);
+
+    MenuItem setupSave = new MenuItem("Save spreadsheet file");
+    setupSave.addActionListener(this);
+    setupSave.setActionCommand("setupSave");
+    setup.add(setupSave);
+
+    MenuItem setupSaveas = new MenuItem("Save spreadsheet file as...");
+    setupSaveas.addActionListener(this);
+    setupSaveas.setActionCommand("setupSaveas");
+    setup.add(setupSaveas);
 
     // cell menu
     Menu cell = new Menu("Cell");
@@ -308,28 +312,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     pane.add(toolbar);
 
     // file menu toolbar icons
-    ImageIcon toolFileNew = new ImageIcon("new.gif");
-    if (toolFileNew != null) {
-      JButton b = new JButton(toolFileNew);
-      b.setToolTipText("New");
-      b.addActionListener(this);
-      b.setActionCommand("fileNew");
-      toolbar.add(b);
-    }
     ImageIcon toolFileOpen = new ImageIcon("open.gif");
     if (toolFileOpen != null) {
       JButton b = new JButton(toolFileOpen);
-      b.setToolTipText("Open");
+      b.setToolTipText("Import data");
       b.addActionListener(this);
       b.setActionCommand("fileOpen");
-      toolbar.add(b);
-    }
-    ImageIcon toolFileSave = new ImageIcon("save.gif");
-    if (toolFileSave != null) {
-      JButton b = new JButton(toolFileSave);
-      b.setToolTipText("Save");
-      b.addActionListener(this);
-      b.setActionCommand("fileSave");
       toolbar.add(b);
     }
     toolbar.addSeparator();
@@ -544,10 +532,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // display window on screen
     setTitle(sTitle);
-    setSize(sWidth, sHeight);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    setLocation(screenSize.width/2 - sWidth/2,
-                screenSize.height/2 - sHeight/2);
+    int appWidth = (int) (0.01*sWidth*screenSize.width);
+    int appHeight = (int) (0.01*sHeight*screenSize.height);
+    setSize(appWidth, appHeight);
+    setLocation(screenSize.width/2 - appWidth/2,
+                screenSize.height/2 - appHeight/2);
     setVisible(true);
   }
 
@@ -555,18 +545,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
 
-    // file menu commands
-    if (cmd.equals("fileNew")) newFile();
-    else if (cmd.equals("fileOpen")) openFile();
-    else if (cmd.equals("fileSave")) saveFile();
-    else if (cmd.equals("fileSaveas")) saveasFile();
-    else if (cmd.equals("fileExit")) quitProgram();
+    // setup menu commands
+    if (cmd.equals("fileExit")) quitProgram();
 
     // edit menu commands
     else if (cmd.equals("editCut")) cutCell();
     else if (cmd.equals("editCopy")) copyCell();
     else if (cmd.equals("editPaste")) pasteCell();
     else if (cmd.equals("editClear")) clearCell(true);
+
+    // setup menu commands
+    else if (cmd.equals("setupNew")) newFile();
+    else if (cmd.equals("setupOpen")) openFile();
+    else if (cmd.equals("setupSave")) saveFile();
+    else if (cmd.equals("setupSaveas")) saveasFile();
 
     // cell menu commands
     else if (cmd.equals("cellImport")) loadDataSet();
@@ -824,9 +816,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Update formula based on formula entered in formula bar. */
   void updateFormula() {
-    String formula = FormulaField.getText();
-    File f = new File(formula);
+    String newFormula = FormulaField.getText();
+    File f = new File(newFormula);
     if (f.exists()) {
+      // check if filename has changed from last entry
+      String oldFormula = DisplayCells[CurDisplay].getFilename();
+      if (oldFormula == null) oldFormula = "";
+      if (oldFormula.equals(newFormula)) return;
+
       // try to load the file
       try {
         DisplayCells[CurDisplay].loadData(f);
@@ -845,9 +842,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
     else {
+      // check if formula has changed from last entry
+      String oldFormula = "";
+      if (DisplayCells[CurDisplay].hasFormula()) {
+        oldFormula = DisplayCells[CurDisplay].getFormula();
+      }
+      if (oldFormula.equalsIgnoreCase(newFormula)) return;
+
       // try to set the formula
       try {
-        DisplayCells[CurDisplay].setFormula(FormulaField.getText());
+        DisplayCells[CurDisplay].setFormula(newFormula);
       }
       catch (VisADException exc) {
         ErrorBox.showError(exc.toString());
