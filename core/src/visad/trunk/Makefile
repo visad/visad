@@ -298,6 +298,7 @@ VISAD_PACKAGES = \
 		visad.java3d \
 		visad.java2d \
 		visad.util \
+		ucar.util \
 		ucar.multiarray \
 		ucar.netcdf \
 		ucar.tests \
