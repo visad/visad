@@ -32,11 +32,15 @@ package visad;
 
 public interface MouseBehavior {
 
+  public abstract MouseHelper getMouseHelper();
+
   public abstract VisADRay cursorRay(double[] cursor);
 
   public abstract VisADRay findRay(int screen_x, int screen_y);
 
   public abstract double[] multiply_matrix(double[] a, double[] b);
 
+  public abstract double[] make_matrix(double rotx, double roty, double rotz,
+         double scale, double transx, double transy, double transz);
 }
 

@@ -94,5 +94,9 @@ public class VisADGroup extends VisADSceneGraphObject {
     children.removeElement(child);
   }
 
+  public synchronized Vector getChildren() {
+    return (Vector) children.clone();
+  }
+
 }
 

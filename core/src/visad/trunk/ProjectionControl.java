@@ -37,8 +37,12 @@ public abstract class ProjectionControl extends Control {
     super(d);
   }
 
+  /** matrix of 16 elements in Java3D case,
+     6 elements in Java2D case */
   public abstract double[] getMatrix();
 
+  /** matrix of 16 elements in Java3D case,
+     6 elements in Java2D case */
   public abstract void setMatrix(double[] m)
          throws VisADException, RemoteException;
 

@@ -28,7 +28,7 @@ package visad;
 //
 // TO DO:
 //
-// finish GriddednDSet using VisAD Ennumerated logic.
+// finish GriddednDSet using VisAD Enumerated logic.
 //
 // add MultiGridded for union of grids
 // Field evalualtion as mean of non-missing values in each grid

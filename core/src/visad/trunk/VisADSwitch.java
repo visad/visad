@@ -46,5 +46,14 @@ public class VisADSwitch extends VisADGroup {
     }
   }
 
+  public synchronized VisADSceneGraphObject getSelectedChild() {
+    if (which >= 0 && which < numChildren()) {
+      return getChild(which);
+    }
+    else {
+      return null;
+    }
+  }
+
 }
 

@@ -44,8 +44,6 @@ public abstract class ActionImpl extends Object
   /** ActionImpl is not Serializable, but mark as transient anyway */
   private transient Thread actionThread;
 
-  private boolean alive = true;
-
   /** Vector of ReferenceActionLink-s;
       ActionImpl is not Serializable, but mark as transient anyway */
   transient Vector LinkVector = new Vector();
@@ -63,7 +61,6 @@ public abstract class ActionImpl extends Object
 
   public void stop() {
     actionThread = null;
-    alive = false;
     if (LinkVector == null) return;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
@@ -130,7 +127,8 @@ public abstract class ActionImpl extends Object
     catch (VisADException e) {
     }
 */
-    while (alive) {
+    Thread me = Thread.currentThread();
+    while (actionThread == me) {
       if (!dontSleep) {
         try {
           synchronized (this) {
@@ -189,7 +187,7 @@ public abstract class ActionImpl extends Object
         }
       } // end if (!dontSleep)
 */
-    } // end while (alive)
+    } // end while (actionThread == me)
   }
 
   public abstract void doAction() throws VisADException, RemoteException;
