@@ -322,11 +322,14 @@ public class AmandaFile
   public final FieldImpl makeEventData()
     throws RemoteException, VisADException
   {
+    FunctionType eventFunctionType =
+      new FunctionType(Event.indexType, Event.tupleType);
+
     final int nevents = events.size();
     Integer1DSet eventsSet =
       new Integer1DSet(Event.indexType, (nevents == 0 ? 1 : nevents));
     FieldImpl eventsField =
-      new FieldImpl(Event.eventsFunctionType, eventsSet);
+      new FieldImpl(eventFunctionType, eventsSet);
     if (nevents > 0) {
       Tuple[] eventTuples = new Tuple[nevents];
       for (int e = 0; e < nevents; e++) {

@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import visad.Data;
 import visad.FieldImpl;
 import visad.FlatField;
-import visad.FunctionType;
 import visad.Integer1DSet;
 import visad.MathType;
 import visad.RealTuple;
@@ -43,18 +42,16 @@ public class Event
   public static final RealType indexType =
     RealType.getRealType("Event_Index");
 
-  public static FunctionType eventsFunctionType;
+  public static TupleType tupleType;
 
   static {
     try {
-      eventsFunctionType =
-        new FunctionType(indexType,
-                         new TupleType(new MathType[] {
-                           Tracks.functionType, Hits.functionType
-                         }));
+      tupleType = new TupleType(new MathType[] {
+        Tracks.functionType, Hits.functionType
+      });
     } catch (VisADException ve) {
       ve.printStackTrace();
-      eventsFunctionType = null;
+      tupleType = null;
     }
   }
 
