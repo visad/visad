@@ -106,7 +106,7 @@ public class Test70
 
   String getFrameTitle() { return "text from RealType in Java3D"; }
 
-  public String toString() { return ": text from RealType in Java3D"; }
+  public String toString() { return " sphere: text from RealType in Java3D"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException

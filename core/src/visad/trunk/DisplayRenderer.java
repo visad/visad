@@ -369,6 +369,8 @@ public abstract class DisplayRenderer
 
   public abstract boolean anyDirects();
 
+  public abstract MouseBehavior getMouseBehavior();
+
   /**
    * Returns a direct manipulation renderer if one is close to
    * the specified ray.

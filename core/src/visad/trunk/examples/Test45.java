@@ -108,7 +108,7 @@ public class Test45
 
   String getFrameTitle() { return "text in Java3D"; }
 
-  public String toString() { return ": text in Java3D"; }
+  public String toString() { return " sphere: text in Java3D"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException

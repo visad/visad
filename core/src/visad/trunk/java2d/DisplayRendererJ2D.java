@@ -71,6 +71,9 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
    *  Data depictions */
   private VisADGroup non_direct = null;
 
+  /** MouseBehaviorJ2D */
+  private MouseBehaviorJ2D mouse = null;
+
   /** box outline for data */
   private VisADAppearance box = null;
   /** cursor */
@@ -349,27 +352,28 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
          throws DisplayException;
 
   /** @deprecated use createBasicSceneGraph(VisADCanvasJ2D c,
-         MouseBehaviorJ2D mouse, VisADAppearance bx, VisADAppearance cr)
+         MouseBehaviorJ2D m, VisADAppearance bx, VisADAppearance cr)
       instead */
   public VisADGroup createBasicSceneGraph(VisADCanvasJ2D c,
-         MouseBehaviorJ2D mouse) throws DisplayException {
+         MouseBehaviorJ2D m) throws DisplayException {
     VisADAppearance box = new VisADAppearance();
     VisADAppearance cursor = new VisADAppearance();
-    return createBasicSceneGraph(c, mouse, box, cursor);
+    return createBasicSceneGraph(c, m, box, cursor);
   }
 
   /**
    * Create scene graph root, if none exists, with Transform
    * and direct manipulation root.
    * @param c
-   * @param mouse
+   * @param m
    * @return Scene graph root.
    * @exception DisplayException
    */
   public VisADGroup createBasicSceneGraph(VisADCanvasJ2D c,
-         MouseBehaviorJ2D mouse, VisADAppearance bx, VisADAppearance cr)
+         MouseBehaviorJ2D m, VisADAppearance bx, VisADAppearance cr)
          throws DisplayException {
     if (root != null) return root;
+    mouse = m;
     canvas = c;
     box = bx;
     cursor = cr;
@@ -425,6 +429,10 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     canvas.setBackgroundColor(ctlBg[0], ctlBg[1], ctlBg[2]);
 
     return root;
+  }
+
+  public MouseBehavior getMouseBehavior() {
+    return mouse;
   }
 
   public void addSceneGraphComponent(VisADGroup group)

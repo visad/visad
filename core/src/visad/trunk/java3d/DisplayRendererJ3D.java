@@ -478,6 +478,10 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return root;
   }
 
+  public MouseBehavior getMouseBehavior() {
+    return mouse;
+  }
+
   public void addSceneGraphComponent(Group group) {
     // WLH 10 March 2000
     // trans.addChild(group);
