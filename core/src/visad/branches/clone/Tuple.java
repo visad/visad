@@ -391,9 +391,21 @@ public class Tuple extends DataImpl implements TupleIface {
       for (int i = 0; i < tupleComponents.length; i++) {
 	Data comp = tupleComponents[i];
 
-	clone.tupleComponents[i] = comp == null
-	    ? (Data)null
-	    : (Data)tupleComponents[i].clone();
+	if (comp == null) {
+	  clone.tupleComponents[i] = null;
+        }
+        else {
+          try {
+            /*
+             * Data.dataClone() is invoked because Data.clone() doesn't and
+             * can't exist.
+             */
+	    clone.tupleComponents[i] = (Data)tupleComponents[i].dataClone();
+          }
+          catch (RemoteException ex) {
+            throw new RuntimeException(ex.toString());
+          }
+        }
       }
     }
 
