@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.RemoteException;
+
 /**
    ReferenceActionLink objects are used by Action objects to
    define their connections with ThingReference objects.<P>
@@ -52,7 +54,8 @@ public class ReferenceActionLink extends Object {
   boolean Ball;
 
   public ReferenceActionLink(ThingReference r, ActionImpl local_a, Action a,
-                             long jd) throws VisADException {
+                             long jd)
+    throws RemoteException, VisADException {
     if (r == null || a == null) {
       throw new ReferenceException("ReferenceActionLink: ThingReference and " +
                                    "Action cannot be null");
@@ -62,6 +65,9 @@ public class ReferenceActionLink extends Object {
     action = a;
     Ball = true;
     id = jd;
+
+    NewTick = ref.getTick();
+    OldTick = NewTick - 1;
   }
 
   long getId() {
@@ -78,12 +84,6 @@ public class ReferenceActionLink extends Object {
 
   public Action getAction() {
     return action;
-  }
-
-  /** initialize Ticks requesting Action to be applied */
-  synchronized void initTicks(long tick) {
-    OldTick = tick - 1;
-    NewTick = tick;
   }
 
   /** set value of NewTick; presumably ncreases value */

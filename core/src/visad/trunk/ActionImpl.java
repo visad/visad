@@ -248,7 +248,6 @@ System.out.println("doAction: Name = " + Name +
       throw new ReferenceException("Action.addLink: link to " +
                                    "ThingReference already exists");
     }
-    link.initTicks(ref.getTick());
 
 // WLH 4 Dec 98 - moved this above LinkVector stuff
     ref.addThingChangedListener(link.getAction(), link.getId());
