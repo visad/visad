@@ -34,7 +34,9 @@ import visad.data.DefaultFamily;
 import visad.util.DualRes;
 
 /** SliceManager is the class encapsulating BioVisAD's slice logic. */
-public class SliceManager implements ControlListener, PlaneListener {
+public class SliceManager
+  implements ControlListener, DisplayListener, PlaneListener
+{
 
   // -- DATA TYPE CONSTANTS --
 
@@ -83,6 +85,9 @@ public class SliceManager implements ControlListener, PlaneListener {
   /** List of range type components for image stack data. */
   RealType[] rtypes;
 
+  /** Domain mappings for 2-D slice display. */
+  ScalarMap x_map2, y_map2;
+
   /** X, Y and Z bounds for the data. */
   float min_x, max_x, min_y, max_y, min_z, max_z;
 
@@ -107,11 +112,17 @@ public class SliceManager implements ControlListener, PlaneListener {
   /** Is arbitrary plane selection on? */
   private boolean planeSelect;
 
+  /** Has arbitrary plane moved since last right mouse button press? */
+  private boolean planeChanged;
+
 
   // -- DISPLAY MAPPING INFORMATION --
 
   /** High-resolution field for current timestep. */
   private FieldImpl field;
+
+  /** Collapsed high-resolution field, used with arbitrary slicing. */
+  private FieldImpl collapsedField;
 
   /** List of range component mappings for 2-D display. */
   private ScalarMap[] rmaps2;
@@ -284,7 +295,17 @@ public class SliceManager implements ControlListener, PlaneListener {
   /** Sets whether to do arbitrary plane selection. */
   public void setPlaneSelect(boolean value) {
     planeSelect = value;
+    if (!value) {
+      try {
+        // CTR - FIXME - set range if plane select==true, for slice ranges
+        x_map2.setRange(min_x, max_x);
+        y_map2.setRange(min_y, max_y);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
     ps.toggle(value);
+    planeRenderer2.toggle(value);
     renderer2.toggle(!value);
   }
 
@@ -310,18 +331,34 @@ public class SliceManager implements ControlListener, PlaneListener {
     if (this.slice != slice) bio.vert.setValue(slice + 1);
   }
 
-  /** PlaneListener method used for detecting PlaneSelector changes. */
-  public void planeChanged() {
-    /*
-    try {
-      FieldImpl f = (FieldImpl) field.domainMultiply();
-      Data d = ps.extractSlice(f, res_x, res_y);
-      planeRef.setData(d);
+  /** DisplayListener method used for detecting mouse activity. */
+  public void displayChanged(DisplayEvent e) {
+    int id = e.getId();
+    if (id == DisplayEvent.MOUSE_RELEASED_RIGHT) {
+      if (planeChanged) {
+        // update 2-D display of arbitrary plane slice
+        try {
+          if (collapsedField == null) {
+            collapsedField = (FieldImpl) field.domainMultiply();
+          }
+          Field d = ps.extractSlice(collapsedField, res_x, res_y);
+          SampledSet set = (SampledSet) d.getDomainSet();
+          float[] lo = set.getLow();
+          float[] hi = set.getHi();
+          // CTR - FIXME - probly save these values for plane select toggle
+          x_map2.setRange(lo[0], hi[0]);
+          y_map2.setRange(lo[1], hi[1]);
+          planeRef.setData(d);
+        }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        catch (RemoteException exc) { exc.printStackTrace(); }
+      }
+      planeChanged = false;
     }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-    */
   }
+
+  /** PlaneListener method used for detecting PlaneSelector changes. */
+  public void planeChanged() { planeChanged = true; }
 
   /** Ensures slices are set up properly for animation. */
   void startAnimation() {
@@ -378,6 +415,7 @@ public class SliceManager implements ControlListener, PlaneListener {
 
           // create low-resolution thumbnails for timestep animation
           field = null;
+          collapsedField = null;
           FieldImpl[][] thumbs = null;
           timesteps = f.length;
           double scale = Double.NaN;
@@ -553,6 +591,7 @@ public class SliceManager implements ControlListener, PlaneListener {
       if (initialize) init(files, 0);
       else {
         field = loadData(files[index]);
+        collapsedField = null;
         if (field != null) ref.setData(field);
         else {
           bio.setWaitCursor(false);
@@ -581,8 +620,8 @@ public class SliceManager implements ControlListener, PlaneListener {
   /** Configures display mappings and references. */
   private void configureDisplays() throws VisADException, RemoteException {
     // set up mappings to 2-D display
-    ScalarMap x_map2 = new ScalarMap(dtypes[0], Display.XAxis);
-    ScalarMap y_map2 = new ScalarMap(dtypes[1], Display.YAxis);
+    x_map2 = new ScalarMap(dtypes[0], Display.XAxis);
+    y_map2 = new ScalarMap(dtypes[1], Display.YAxis);
     ScalarMap slice_map2 = new ScalarMap(dtypes[2], Display.SelectValue);
     ScalarMap anim_map2 = null;
     ScalarMap r_map2 = new ScalarMap(RED_TYPE, Display.Red);
@@ -614,6 +653,7 @@ public class SliceManager implements ControlListener, PlaneListener {
     bio.display2.addReferences(renderer2, ref);
     on = planeRenderer2 == null ? false : planeRenderer2.getEnabled();
     planeRenderer2 = dr.makeDefaultRenderer();
+    planeRenderer2.suppressExceptions(true);
     planeRenderer2.toggle(on);
     bio.display2.addReferences(planeRenderer2, planeRef);
     if (hasThumbs) {
@@ -740,6 +780,7 @@ public class SliceManager implements ControlListener, PlaneListener {
       if (ps == null) {
         ps = new PlaneSelector(bio.display3);
         ps.addListener(this);
+        bio.display3.addDisplayListener(this);
       }
       ps.init(dtypes[0], dtypes[1], dtypes[2],
         min_x, min_y, min_z, max_x, max_y, max_z);

@@ -423,7 +423,8 @@ public class PlaneSelector {
     int[] lengths = plane.getLengths();
     int lx = lengths[0] - 1;
     int ly = lengths[1] - 1;
-    float[][] grid = new float[2][resx * resy];
+    int len = resx * resy;
+    float[][] grid = new float[2][len];
     for (int y=0; y<resy; y++) {
       for (int x=0; x<resx; x++) {
         int index = y * resx + x;
@@ -431,9 +432,74 @@ public class PlaneSelector {
         grid[1][index] = (float) ly * y / ry;
       }
     }
-    Gridded3DSet nset = new Gridded3DSet(plane.getType(),
+
+    // extract 3-D slice
+    SetType type3 = (SetType) plane.getType();
+    Gridded3DSet set3 = new Gridded3DSet(type3,
       plane.gridToValue(grid), resx, resy);
-    return field.resample(nset, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+    FieldImpl slice3 = (FieldImpl)
+      field.resample(set3, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+
+    /*
+    // CTR - TEMP
+    visad.data.visad.VisADForm saver = new visad.data.visad.VisADForm(true);
+    try { saver.save("ftemp1.vad", slice3, false); }
+    catch (Exception exc) { exc.printStackTrace(); }
+    */
+
+    // compute normal to plane
+    double[] vals1 = ((RealTuple) refs[2].getData()).getValues();
+    double[] vals2 = ((RealTuple) refs[3].getData()).getValues();
+    double[] vals3 = ((RealTuple) refs[4].getData()).getValues();
+    double ux = vals2[0] - vals1[0];
+    double uy = vals2[1] - vals1[1];
+    double uz = vals2[2] - vals1[2];
+    double vx = vals3[0] - vals1[0];
+    double vy = vals3[1] - vals1[1];
+    double vz = vals3[2] - vals1[2];
+    double nx = ux * vy - uy * vx;
+    double ny = uy * vz - uz * vy;
+    double nz = uz * vx - ux * vz;
+
+    // compute normal to plane defined by normal vector and (0, 0, -1)
+    double rotx = 0;
+    double roty = -ny;
+    double rotz = nx;
+    double rotlen = Math.sqrt(rotx * rotx + roty * roty + rotz * rotz);
+    rotx /= rotlen;
+    roty /= rotlen;
+    rotz /= rotlen;
+
+    // compute angle of rotation
+    double a = nx * nx + ny * ny + nz * nz;
+    double c = nx * nx + ny * ny + (nz + 1) * (nz + 1);
+    double theta = Math.acos((a - c + 1) / (2 * Math.sqrt(a)));
+
+    // rotate plane about (rotx, roty, rotz) at angle theta
+    float[][] samp3 = set3.getSamples();
+    rotate(samp3, theta, rotx, roty, rotz);
+
+    /*
+    // CTR - TEMP
+    try {
+      FlatField ff = new FlatField((FunctionType) slice3.getType(), new Gridded3DSet(type3, samp3, resx, resy));
+      ff.setSamples(slice3.getValues());
+      saver.save("ftemp2.vad", ff, false);
+    }
+    catch (Exception exc) { exc.printStackTrace(); }
+    */
+
+    // convert slice to 2-D
+    float[][] samp2 = {samp3[0], samp3[1]};
+    RealType[] rt = type3.getDomain().getRealComponents();
+    FunctionType ftype3 = (FunctionType) slice3.getType();
+    RealTupleType type2 = new RealTupleType(new RealType[] {rt[0], rt[1]});
+    FunctionType ftype2 = new FunctionType(type2, ftype3.getRange());
+    Gridded2DSet set2 = new Gridded2DSet(type2, samp2, resx, resy);
+    FlatField slice2 = new FlatField(ftype2, set2);
+    slice2.setSamples(slice3.getValues(), false);
+
+    return slice2;
   }
 
   /** Adds a PlaneListener to be notified when plane changes. */
@@ -464,6 +530,38 @@ public class PlaneSelector {
     for (int i=0; i<size; i++) {
       PlaneListener l = (PlaneListener) listeners.elementAt(i);
       l.planeChanged();
+    }
+  }
+
+  /** Rotates the samples around vector (nx, ny, nz) by angle theta. */
+  protected void rotate(float[][] samples, double theta,
+    double nx, double ny, double nz)
+  {
+    double s = Math.cos(theta / 2);
+    double sin = Math.sin(theta / 2);
+    double vx = sin * nx;
+    double vy = sin * ny;
+    double vz = sin * nz;
+    double v_v = vx * vx + vy * vy + vz * vz;
+    vx /= v_v;
+    vy /= v_v;
+    vz /= v_v;
+    int len = samples[0].length;
+    for (int i=0; i<len; i++) {
+      double px = samples[0][i];
+      double py = samples[1][i];
+      double pz = samples[2][i];
+      // q1 * q2 = (s1*s2 - v1.v2, s1*v2 + s2*v1 + (v1 x v2))
+      // q = (s, vx, vy, vz)
+      // p = (0, px, py, pz)
+      // q' = (s, -vx, -vy, -vz)
+      double q_p = -(vx * px + vy * py + vz * pz);
+      double q_px = s * px + vx * py - vy * px;
+      double q_py = s * py + vy * pz - vz * py;
+      double q_pz = s * pz + vz * px - vx * pz;
+      samples[0][i] = (float) (-q_p * vx + s * q_px - q_px * vy + q_py * vx);
+      samples[1][i] = (float) (-q_p * vy + s * q_py - q_py * vz + q_pz * vy);
+      samples[2][i] = (float) (-q_p * vz + s * q_pz - q_pz * vx + q_px * vz);
     }
   }
 
