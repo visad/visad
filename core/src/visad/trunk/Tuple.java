@@ -309,5 +309,41 @@ public class Tuple extends DataImpl {
     return s;
   }
 
+  public boolean equals(Object obj) {
+    boolean	equals;
+    if (!(obj instanceof Tuple)) {
+      equals = false;
+    }
+    else {
+      Tuple	that = (Tuple)obj;
+      if (this == that) {
+	equals = true;
+      }
+      else if (tupleComponents == null || that.tupleComponents == null) {
+	equals = tupleComponents == that.tupleComponents;
+      }
+      else if (tupleComponents.length != that.tupleComponents.length) {
+	equals = false;
+      }
+      else {
+	equals = true;
+	for (int i = 0; i < tupleComponents.length; ++i)
+	  if (!(tupleComponents[i].equals(that.tupleComponents[i]))) {
+	    equals = false;
+	    break;
+	  }
+      }
+    }
+    return equals;
+  }
+
+  public int hashCode() {
+    int	hashCode = 0;
+    if (tupleComponents != null)
+      for (int i = 0; i < tupleComponents.length; ++i)
+	hashCode ^= tupleComponents[i].hashCode();
+    return hashCode;
+  }
+
 }
 
