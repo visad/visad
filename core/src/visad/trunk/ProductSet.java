@@ -38,6 +38,11 @@ public class ProductSet extends SampledSet {
 
   SampledSet[] Sets;
 
+  /** construct a ProductSet with an array of SampledSets */
+  public ProductSet(SampledSet[] sets) throws VisADException {
+    this(makeType(sets), sets, null, null, null, true);
+  }
+
   /** create the product of the sets array, with null errors,
       CoordinateSystem and Units are defaults from type */
   public ProductSet(MathType type, SampledSet[] sets) throws VisADException {
@@ -130,11 +135,6 @@ public class ProductSet extends SampledSet {
       manifold_dim += sets[i].getManifoldDimension();
     }
     return manifold_dim;
-  }
-
-  /** construct a ProductSet with an array of SampledSets */
-  public ProductSet(SampledSet[] sets) throws VisADException {
-    this(makeType(sets), sets, null, null, null, true);
   }
 
   static MathType makeType(SampledSet[] sets) throws VisADException {
