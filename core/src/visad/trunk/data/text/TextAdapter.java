@@ -81,6 +81,7 @@ public class TextAdapter {
   Unit[] hdrUnits;
   double[] hdrMissingValues;
   String[] hdrMissingStrings;
+  String[] hdrFormatStrings;
   int[] hdrIsInterval;
   double[] hdrErrorEstimates;
   double[] rangeErrorEstimates;
@@ -197,7 +198,7 @@ public class TextAdapter {
     }
 
     maps = makeMT(maps);
-    System.out.println("Specified MathType = "+maps);
+    // System.out.println("Specified MathType = "+maps);
 
     // but first, we need to get the column headers because they
     // may have [units] associated with them.  The column headers
@@ -237,6 +238,7 @@ public class TextAdapter {
     hdrUnits = new Unit[nhdr];
     hdrMissingValues = new double[nhdr];
     hdrMissingStrings = new String[nhdr];
+    hdrFormatStrings = new String[nhdr];
     hdrIsInterval = new int[nhdr];
     hdrErrorEstimates = new double[nhdr];
     hdrScales = new double[nhdr];
@@ -252,6 +254,7 @@ public class TextAdapter {
       String hdrUnitString = null;
       hdrMissingValues[i] = Double.NaN;
       hdrMissingStrings[i] = null;
+      hdrFormatStrings[i] = null;
       hdrIsInterval[i] = 0;
       hdrScales[i] = 1.0;
       hdrOffsets[i] = 0.0;
@@ -338,6 +341,8 @@ public class TextAdapter {
               hdrColumns[0][i] = Integer.parseInt(stp.nextToken().trim());
               hdrColumns[1][i] = Integer.parseInt(stp.nextToken().trim());
 
+            } else if (tok.toLowerCase().startsWith("fmt")) {
+              hdrFormatStrings[i] = val.trim();
             } else {
               throw new VisADException("Invalid token name: "+s);
             }
@@ -375,7 +380,6 @@ public class TextAdapter {
     MathType mt = null;
     try {
       mt = MathType.stringToType(maps);
-      System.out.println("from: "+maps+" made MathType: "+mt);
     } catch (Exception mte) {
       throw new VisADException("TextAdapter: MathType badly formed or missing: "+maps);
     }
@@ -468,7 +472,7 @@ public class TextAdapter {
       String test_name = name;
       int n = test_name.indexOf("(");
       if (n != -1) {
-        // but allow for "(Text)" - jk
+        // but allow for "(Text)" 
         if ((test_name.indexOf("(Text)")) == -1) {
           test_name = name.substring(0,n).trim();
           countValues --;  // this value wont appear in data!
@@ -574,7 +578,7 @@ public class TextAdapter {
     // for each line of text, put the values into the ArrayList
     ArrayList domainValues = new ArrayList();
     ArrayList rangeValues = new ArrayList();
-    ArrayList tupleValues = new ArrayList(); // jk
+    ArrayList tupleValues = new ArrayList(); 
     Tuple tuple = null;
     
     String dataDelim = DELIM;
@@ -616,8 +620,6 @@ public class TextAdapter {
       double [] dValues = new double[numDom];
       double [] rValues = null;
       
-      //jk
-
       Data [] tValues = null;
 
       if (isRaster) {
@@ -670,7 +672,7 @@ public class TextAdapter {
       
         if (debug) System.out.println("probably not a raster...");
         rValues = new double[numRng];
-        double thisDouble; // jk
+        double thisDouble; 
         MathType thisMT;
         if (n > nhdr) n = nhdr; // in case the # tokens > # parameters
 
@@ -731,7 +733,7 @@ public class TextAdapter {
 
       domainValues.add(dValues);
       rangeValues.add(rValues);
-      if (tuple != null) tupleValues.add(tuple); // jk
+      if (tuple != null) tupleValues.add(tuple); 
       if (isRaster) numElements = rValues.length;
     }
 
@@ -743,9 +745,6 @@ public class TextAdapter {
         System.out.println("domain size = "+domainValues.size());
         double[] dt = (double[]) domainValues.get(1);
         System.out.println("domain.array[0] = "+dt[0]);
-        // jk
-        // System.out.println("domain.array[1] = "+dt[1]);
-      
         System.out.println("range size = "+rangeValues.size());
         System.out.println("# samples = "+numSamples);
       } catch (Exception er) {System.out.println("out range");}
@@ -814,9 +813,7 @@ public class TextAdapter {
           samples[1] = (lset[1].getSamples())[0];
         }
 
-        System.out.println("####  starting..."+(new Date().toGMTString()));
         domain = (Set) new Irregular2DSet(domType, samples);
-        System.out.println("####  ending..."+(new Date().toGMTString()));
       }
         
     } else if (numDom == 3) {  // for 3-D domains
@@ -861,7 +858,6 @@ public class TextAdapter {
     }
 //*************************************************
     if (debug) {
-    // jk
       if (ff != null) {
         System.out.println("ff.Length "+ff.getLength());
         System.out.println("ff.getType "+ff.getType());
@@ -918,7 +914,7 @@ public class TextAdapter {
       es[i] = new ErrorEstimate(a[i], rangeErrorEstimates[i], rangeUnits[i]);
     }
     try {
-        ((FlatField) field).setRangeErrors(es); // jk
+        ((FlatField) field).setRangeErrors(es); 
     } catch (FieldException fe) {
         if (debug) System.out.println("caught "+fe);
         // not a flatfield
@@ -996,24 +992,62 @@ public class TextAdapter {
     return true;
   }
 
+
+  /** 
+   * generate a DateTime from a string
+   * @param string - Formatted date/time string
+   *
+   * @return - the equivalent VisAD DateTime for the string
+   *
+   * (lifted from au.gov.bom.aifs.common.ada.VisADXMLAdapter.java)
+   */
+  private static visad.DateTime makeDateTimeFromString(String string, 
+                                                       String format)
+    throws java.text.ParseException
+  {
+    visad.DateTime dt = null;
+    // try to parse the string using the supplied DateTime format
+    try {
+      dt = visad.DateTime.createDateTime(string, format);
+    } catch (VisADException e) {}
+    if (dt==null) {
+      throw new java.text.ParseException("Couldn't parse visad.DateTime from \""
+                                          +string+"\"", -1);
+    } else {
+      return dt;
+    }
+  }
+
   double getVal(String s, int k) {
     int i = values_to_index[2][k];
     if (i < 0 || s == null || s.length()<1 || s.equals(hdrMissingStrings[i])) {
       return Double.NaN;
     }
-    try {
 
-      double v = Double.parseDouble(s);
-      if (v == hdrMissingValues[i]) {
-        return Double.NaN;
+    // try parsing as a double first
+    if (hdrFormatStrings[i] == null) {
+      // no format provided : parse as a double
+      try {
+        double v = Double.parseDouble(s);
+        if (v == hdrMissingValues[i]) {
+          return Double.NaN;
+        }
+        v = v * hdrScales[i] + hdrOffsets[i];
+        return v;
+      } catch (java.lang.NumberFormatException ne) {
+        System.out.println("Invalid number format for "+s);
       }
-      v = v * hdrScales[i] + hdrOffsets[i];
-      return v;
-
-    } catch (java.lang.NumberFormatException ne) {
-      System.out.println("Invalid number format for "+s);
-      return Double.NaN;
+    } else {
+      // a format was specified: only support DateTime format 
+      // so try to parse as a DateTime
+      try{
+        DateTime dt = makeDateTimeFromString(s, hdrFormatStrings[i]);
+        return dt.getReal().getValue();
+      } catch (java.text.ParseException pe) {
+        System.out.println("Invalid number/time format for "+s);
+      }
     }
+    return Double.NaN;
   }
 
   // get the samples from the ArrayList.
@@ -1028,8 +1062,6 @@ public class TextAdapter {
 
   /** get the data
   * @return a Field of the data read from the file
-  *
-  * Changed by jk
   *
   */
   public Field getData() {

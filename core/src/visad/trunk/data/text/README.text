@@ -1,6 +1,6 @@
                           The VisAD TextAdapter
                              January, 2001
-                           update: May, 2001
+                           update: May, 2003
 
 
 The VisAD TextAdapter is designed to allow you to quickly read in data
@@ -161,15 +161,24 @@ you should use a blank-separated sequence of phrases in the form
               first:last (if present for one item, this MUST be supplied
               for all items!)
 
-Two short examples:
+     fmt      format pattern, using SimpleDateFormat type patterns 
+              (without spaces).
+              Commas should also be avoided in the format pattern, 
+              especially if comma is used as the header column delimiter
+              
+
+Three short examples:
      a, b, c, temperature[unit=degC err=.1 miss=999.9], speed[m/s]
      Longitude[scale=-1], Latitude, temp[unit=degK miss=999.9], dewPoint[unit=degK miss=999.9]
+     Time[fmt=yyyy-MM-dd'T'HH:mm:ss'Z'], Longitude, Latitude, Pressure
 
 (Please note in the second example, the "scale=-1" for the Longitude serves
 to invert the sign of the values read from the file).
 
 (You might also note that "C" is not the VisAD unit name for degrees
 Celcius..."C" means Coulomb...)
+
+
 
 
 As with Line 1, there are two cases to consider when defining the contents of
@@ -311,3 +320,10 @@ Latitude, Longitude, City(Text)
 -23.6, 133.9, "Alice Springs"
 -33.9, 151.2, "Sydney"
 -37.6, 144.9, "Melbourne"
+
+Example #8 - CSV file of time series point data with time format specified <==
+(Time->(Latitude,Longitude,Pressure))
+Time[fmt=yyyy-MM-dd'T'HH:mm:ss'Z'],Latitude,Longitude,Pressure
+2003-05-02T07:00:00Z,-10.0,150.0,998.0
+2003-05-02T10:00:00Z,-10.5,150.5,997.0
+2003-05-02T13:00:00Z,-11.0,151.0,996.0
