@@ -620,6 +620,12 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
         dataRange[1] = (dataRange[1] - override_offset) / override_scale;
       }
     }
+/*
+if (shadow != null || remoteId != VisADEvent.LOCAL_SOURCE) {
+  System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
+                     " to " + dataRange[1] + " " + display.getName());
+}
+*/
     // at this point dataRange is range for Scalar default Unit
     //   even if (overrideUnit != null)
     if (isScaled) {
