@@ -71,15 +71,20 @@ public class Test64
 
   String getFrameTitle() { return "VisAD slave display (Java2D)"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys)
+  Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RemoteDisplayImpl rdi = new RemoteDisplayImpl(dpys[0]);
+    if (!(dpys[0] instanceof DisplayImpl)) {
+      throw new VisADException("Can't build remote slave display from " +
+                               dpys[0].getClass().getName());
+    }
+
+    RemoteDisplayImpl rdi = new RemoteDisplayImpl((DisplayImpl )dpys[0]);
     RemoteSlaveDisplayImpl rsdi = new RemoteSlaveDisplayImpl(rdi);
     return rsdi.getComponent();
   }
 
-  void setupUI(DisplayImpl[] dpys)
+  void setupUI(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     super.setupUI(dpys);
