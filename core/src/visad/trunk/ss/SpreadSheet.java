@@ -874,12 +874,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Allows the user to export a data set to netCDF format */
   void exportDataSetNetcdf() {
-    DisplayCells[CurDisplay].saveDataDialog(false);
+    DisplayCells[CurDisplay].saveDataDialog(true);
   }
 
   /** Allows the user to export a data set to serialized data format */
   void exportDataSetSerial() {
-    DisplayCells[CurDisplay].saveDataDialog(true);
+    DisplayCells[CurDisplay].saveDataDialog(false);
   }
 
   /** Makes sure the formula bar is displaying up-to-date info */
