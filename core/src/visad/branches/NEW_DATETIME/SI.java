@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SI.java,v 1.2 1998-12-16 16:10:40 steve Exp $
+ * $Id: SI.java,v 1.2.2.1 1999-05-24 20:49:38 steve Exp $
  */
 
 package visad;
@@ -36,6 +36,7 @@ public final class SI
     public static /*final*/ BaseUnit	second;
     public static /*final*/ BaseUnit	mole;
     public static /*final*/ BaseUnit	radian;
+    public static /*final*/ BaseUnit	steradian;
 
     static
     {
@@ -109,6 +110,15 @@ public final class SI
 	     * length to the radius.
 	     */
 	    radian = BaseUnit.addBaseUnit("Angle", "radian", "rad");
+
+	    /**
+	     * Base unit of solid angle.
+	     * The steradian is the solid angle that, having its vertex
+	     * in the center of a sphere, cuts off an area of the surface
+	     * equal to that of a square with sides of length equal to the
+	     * radius of the sphere.
+	     */
+	    steradian = BaseUnit.addBaseUnit("SolidAngle", "steradian", "sr");
 	}
 	catch (UnitException e) {}
     }
@@ -120,13 +130,14 @@ public final class SI
      */
     public static void main (String[] args)
     {
-	System.out.println("ampere   = \"" + ampere + "\"");
-	System.out.println("candela  = \"" + candela + "\"");
-	System.out.println("kelvin   = \"" + kelvin + "\"");
-	System.out.println("kilogram = \"" + kilogram + "\"");
-	System.out.println("meter    = \"" + meter + "\"");
-	System.out.println("second   = \"" + second + "\"");
-	System.out.println("mole     = \"" + mole + "\"");
-	System.out.println("radian   = \"" + radian + "\"");
+	System.out.println("ampere      = \"" + ampere + "\"");
+	System.out.println("candela     = \"" + candela + "\"");
+	System.out.println("kelvin      = \"" + kelvin + "\"");
+	System.out.println("kilogram    = \"" + kilogram + "\"");
+	System.out.println("meter       = \"" + meter + "\"");
+	System.out.println("second      = \"" + second + "\"");
+	System.out.println("mole        = \"" + mole + "\"");
+	System.out.println("radian      = \"" + radian + "\"");
+	System.out.println("steradian   = \"" + steradian + "\"");
     }
 }

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.9.2.2 1999-05-12 14:46:15 steve Exp $
+ * $Id: Unit.java,v 1.9.2.3 1999-05-24 20:49:40 steve Exp $
  */
 
 package visad;
@@ -112,11 +112,7 @@ public abstract class Unit
   /** copy a Unit[] array;
       this is a helper for Set, RealTupleType, CoordinateSystem, etc */
   public static Unit[] copyUnitsArray(Unit[] units) {
-    if (units == null) return null;
-    int n = units.length;
-    Unit[] ret_units = new Unit[n];
-    for (int i=0; i<n; i++) ret_units[i] = units[i];
-    return ret_units;
+    return units == null ? null : (Unit[])units.clone();
   }
  
   public abstract boolean equals(Unit unit);
@@ -212,7 +208,10 @@ public abstract class Unit
      */
     protected Unit(String identifier)
     {
-      this.identifier = identifier;
+      this.identifier =
+	identifier == null
+	  ? null
+	  : identifier.replace(' ', '_');	// ensure no whitespace
     }
 
     /**

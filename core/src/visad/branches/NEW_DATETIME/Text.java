@@ -113,5 +113,15 @@ public class Text extends Scalar {
     return getValue().compareTo(((Text)object).getValue());
   }
 
+  /**
+   * Indicates if this Text is semantically identical to an object.
+   * @param obj			The object.
+   * @return			<code>true</code> if and only if this Text
+   *				is semantically identical to the object.
+   */
+  public boolean equals(Object obj) {
+    return obj != null && obj instanceof Text &&
+      ((Text)obj).getValue().equals(getValue());
+  }
 }
 

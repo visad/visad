@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseQuantity.java,v 1.1 1998-06-17 14:34:43 steve Exp $
+ * $Id: BaseQuantity.java,v 1.1.2.1 1999-05-24 20:49:34 steve Exp $
  */
 
 package visad;
@@ -70,6 +70,7 @@ public final class BaseQuantity
       add("time", SI.second.quantityName());
       add("amount of substance", SI.mole.quantityName());
       add("plane angle", new String[] {SI.radian.quantityName(), "angle"});
+      add("solid angle", SI.steradian.quantityName());
     }
     catch (VisADException e)
     {

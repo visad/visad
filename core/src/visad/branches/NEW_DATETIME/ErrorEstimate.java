@@ -29,7 +29,7 @@ package visad;
    ErrorEstimate is the VisAD class for statistics about a value
    or array of values.<P>
 */
-public class ErrorEstimate extends Object implements java.io.Serializable {
+public class ErrorEstimate extends Object implements java.io.Serializable, Comparable {
 
   double Error;
   double Mean;
@@ -621,6 +621,55 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
       (Double.isNaN(Error) ? "missing" : Double.toString(Error)) +
       "  Mean = " +
       (Double.isNaN(Mean) ? "missing" : Double.toString(Mean));
+  }
+
+  /**
+   * Compares this error estimate to another.
+   * @param obj			The other error estimate.  May be <code>null
+   *				</code>.
+   * @return                    A negative integer, zero, or a positive integer
+   *                            depending on whether this ErrorEstimate is
+   *                            considered less than, equal to, or greater than
+   *                            the other ErrorEstimate, respectively.  If
+   *                            <code>obj == null</code>, then a positive value
+   *                            is returned.  An ErrorEstimate with no unit is
+   *                            considered less than an ErrorEstimate with a
+   *                            unit.
+   */
+  public int compareTo(Object obj) {
+    int		comp;
+    if (obj == null) {
+      comp = 1;		// null ErrorEstimate considered smallest
+    }
+    else {
+      ErrorEstimate	that = (ErrorEstimate)obj;
+      if (unit == null)
+      {
+	if (that.unit == null) {
+	  comp = new Double(Error).compareTo(new Double(that.Error));
+	}
+	else {
+	  comp = -1;	// no-unit ErrorEstimate considered smaller than
+			// one with unit
+	}
+      }
+      else {
+	if (that.unit == null) {
+	  comp = 1;	// no-unit ErrorEstimate considered smaller than
+			// one with unit
+	}
+	else {
+	  try {
+	    comp = new Double(Error).compareTo(
+	      new Double(unit.toThis(that.Error, that.unit)));
+	  }
+	  catch (UnitException e) {
+	    comp = +1;	// put problem ErrorEstimate-s at the end
+	  }
+	}
+      }
+    }
+    return comp;
   }
 
 }

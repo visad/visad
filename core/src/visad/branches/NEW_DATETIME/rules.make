@@ -54,7 +54,8 @@ subdir_target:
 	$(JAVAC) $<
 .class.run:
 #	@$(JAVAC) $*.java
-	@cmd="$(JAVA) $(PACKAGE_PREFIX)$*"; echo $$cmd; $$cmd
+	$(JAVA) $(PACKAGE_PREFIX)$*
+#	@cmd="$(JAVA) $(PACKAGE_PREFIX)$*"; echo $$cmd; $$cmd
 .class.save:
 	$(MAKE) -s $*.run >$@ 2>&1
 .class.test:

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.5.2.2 1999-05-12 14:46:12 steve Exp $
+ * $Id: BaseUnit.java,v 1.5.2.3 1999-05-24 20:49:34 steve Exp $
  */
 
 package visad;
@@ -45,7 +45,7 @@ public final class BaseUnit
      * Global database of base units (to prevent multiple base units for the
      * same quantity).
      */
-    private static final Vector	baseUnits = new Vector(8);
+    private static final Vector	baseUnits = new Vector(9);
 
 
     /**
@@ -86,6 +86,16 @@ public final class BaseUnit
     public String unitName()
     {
 	return unitName;
+    }
+
+    /**
+     * Return the symbol of this unit.  This is the same as the identifier.
+     *
+     * @return          The symbol of this unit (e.g. "m").
+     */
+    public String unitSymbol()
+    {
+	return getIdentifier();
     }
 
     /**

@@ -184,6 +184,8 @@ public class Real extends Scalar {
       return Value;
     }
     else {
+      if (((RealType)getType()).isInterval())
+	unit_out = unit_out.getAbsoluteUnit();
       return unit_out.toThis(Value, unit);
     }
   }
@@ -819,10 +821,10 @@ sqrt(x) = 3.4641016151377544
 max(300 kelvin, 32 fahrenheit) = 300.0 K
 min(300 kelvin, 32 fahrenheit) = 273.15 K
 
-32 fahrenheit + 300 kelvin = 112.33 degF
-32 fahrenheit - 300 kelvin = -48.33 degF
-max(32 fahrenheit, 300 kelvin) = 80.33 degF
-min(32 fahrenheit, 300 kelvin) = 32.0 degF
+32 fahrenheit + 300 kelvin = 1031.67 degR
+32 fahrenheit - 300 kelvin = -48.33 degR
+max(32 fahrenheit, 300 kelvin) = 540.0 degR
+min(32 fahrenheit, 300 kelvin) = 491.67 degR
 
 300 kelvin + 32 deltaF = 317.77777 K
 300 kelvin - 32 deltaF = 282.22223 K
@@ -853,6 +855,10 @@ min(100 deltaK, 32 deltaF) = 17.777779 K
 32 deltaF - 100 deltaK = -148.0 degR
 max(32 deltaF, 100 deltaK) = 180.0 degR
 min(32 deltaF, 100 deltaK) = 32.0 degR
+
+300 kelvin + -(32 fahrenheit) = 26.85 K
+32 fahrenheit + -(300 kelvin) = -48.33 degR
+
 */
 
 }

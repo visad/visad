@@ -34,5 +34,12 @@ public abstract class Scalar extends DataImpl implements Comparable {
     super(type);
   }
 
+  /**
+   * Indicates if this scalar is semantically identical to an object.
+   * @param obj			The object.
+   * @return			<code>true</code> if and only if this scalar
+   *				is semantically identical to the object.
+   */
+  public abstract boolean equals(Object obj);
 }
 
