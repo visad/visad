@@ -153,23 +153,31 @@ public class MessageEvent
   public String toString()
   {
     StringBuffer buf = new StringBuffer(getClass().getName());
+
+    boolean needComma = false;
+
     buf.append('[');
     if (id != ID_GENERIC) {
+      if (needComma) buf.append(',');
       buf.append("id=");
       buf.append(id);
-      buf.append(',');
+      needComma = true;
     }
     if (originator != -1) {
+      if (needComma) buf.append(',');
       buf.append("originator=");
       buf.append(originator);
-      buf.append(',');
+      needComma = true;
     }
     if (str != null) {
+      if (needComma) buf.append(',');
       buf.append("str=\"");
       buf.append(str);
-      buf.append("\",");
+      buf.append("\"");
+      needComma = true;
     }
     if (data != null) {
+      if (needComma) buf.append(',');
       buf.append("data=");
       try {
         buf.append(data.local());
@@ -178,9 +186,8 @@ public class MessageEvent
         buf.append(e.getMessage());
         buf.append('?');
       }
-      buf.append(',');
+      needComma = true;
     }
-    buf.setLength(buf.length()-1);
     buf.append(']');
     return buf.toString();
   }
