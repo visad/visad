@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
+/**
+ * A do-nothing DataWriter implementation
+ */
 public class EmptyDataWriter
   extends EmptyDataProcessor
   implements DataWriter

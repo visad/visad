@@ -20,6 +20,11 @@ import visad.data.FileFlatField;
 
 import visad.data.netcdf.Quantity;
 
+/**
+ * Write a {@link visad.Data Data} object in VisAD's binary format.
+ *
+ * @see <a href="http://www.ssec.wisc.edu/~dglo/binary_file_format.html">Binary File Format Spec</a>
+ */
 public class BinaryWriter
   extends BaseDataProcessor
   implements BinaryFile, DataWriter

@@ -13,6 +13,11 @@ import visad.*;
 
 import visad.data.netcdf.Quantity;
 
+/**
+ * Read a {@link visad.Data Data} object in VisAD's binary format.
+ *
+ * @see <a href="http://www.ssec.wisc.edu/~dglo/binary_file_format.html">Binary File Format Spec</a>
+ */
 public class BinaryReader
   implements BinaryFile
 {
@@ -29,18 +34,51 @@ public class BinaryReader
   private char[] inbuf;
   BinaryObjectCache unitCache, errorCache, cSysCache, typeCache;
 
+  /**
+   * Open the named file.
+   * <br><br>
+   * The first few bytes will be read to verify that the file starts
+   * with the appropriate <tt>MAGIC_STR</tt> characters and that this
+   * class can read the format version used by the file.
+   *
+   * @param name Name of file to be read.
+   *
+   * @exception IOException If the file cannot be opened.
+   */
   public BinaryReader(String name)
     throws IOException
   {
     this(new File(name));
   }
 
+  /**
+   * Open the referenced file.
+   * <br><br>
+   * The first few bytes will be read to verify that the file starts
+   * with the appropriate <tt>MAGIC_STR</tt> characters and that this
+   * class can read the format version used by the file.
+   *
+   * @param ref File to be read.
+   *
+   * @exception IOException If the file cannot be opened.
+   */
   public BinaryReader(File ref)
     throws IOException
   {
     this(new FileInputStream(ref));
   }
 
+  /**
+   * Prepare to read a binary object from the specified stream.
+   * <br><br>
+   * The first few bytes will be read to verify that the stream starts
+   * with the appropriate <tt>MAGIC_STR</tt> characters and that this
+   * class can read the format version used by the file.
+   *
+   * @param stream Stream to read.
+   *
+   * @exception IOException If the file cannot be opened.
+   */
   public BinaryReader(InputStream stream)
     throws IOException
   {
@@ -62,21 +100,8 @@ public class BinaryReader
     }
   }
 
-  public static boolean isMagic(byte[] block)
-  {
-    DataInputStream dis;
-      java.io.ByteArrayInputStream bs;
-      bs = new java.io.ByteArrayInputStream(block);
-      dis = new java.io.DataInputStream(bs);
-    try {
-      return (readMagic(dis) <= FORMAT_VERSION);
-    } catch (IOException ioe) {
-      return false;
-    }
-  }
-
   private void cacheCoordinateSystem()
-    throws IOException, VisADException
+    throws IOException
   {
     // read the index number for this CoordinateSystem
     int index = file.readInt();
@@ -260,6 +285,19 @@ if(DEBUG_MATH)System.err.println("getData: FLD_UNIT (" + FLD_UNIT + ")");
       default:
         throw new IOException("Unknown directive " + directive);
       }
+    }
+  }
+
+  public static boolean isMagic(byte[] block)
+  {
+    DataInputStream dis;
+      java.io.ByteArrayInputStream bs;
+      bs = new java.io.ByteArrayInputStream(block);
+      dis = new java.io.DataInputStream(bs);
+    try {
+      return (readMagic(dis) <= FORMAT_VERSION);
+    } catch (IOException ioe) {
+      return false;
     }
   }
 
@@ -1759,11 +1797,9 @@ if(DEBUG_DATA)System.err.println("rdRlTpl: FLD_END (" + FLD_END + ")");
     }
 
     if (values != null) {
-/*
       if (cs == null) {
         return new RealTuple(rtt, values);
       }
-*/
 
       // build a Real[] array from values,
       components = new Real[values.length];

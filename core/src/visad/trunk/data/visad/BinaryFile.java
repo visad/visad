@@ -4,12 +4,21 @@ package visad.data.visad;
  * Constant values used by both
  * {@link visad.data.visad.BinaryReader BinaryReader}
  * and
- * {@link visad.data.visad.BinaryWriter BinaryWriter}
+ * {@link visad.data.visad.BinaryWriter BinaryWriter}<br>
+ * <br>
+ * <tt>MAGIC_STR</tt> and <tt>FORMAT_VERSION</tt> are used
+ * to mark the file as a VisAD binary file.<br>
+ * <tt>FLD_</tt> constants indicate the type of the next
+ * object in the file.<br>
+ * <tt>MATH_</tt> constants indicate the type of <tt>FLD_MATH</tt>
+ * objects.<br>
+ * <tt>DATA_</tt> constants indicate the type of <tt>FLD_DATA</tt>
+ * objects.
  */
 public interface BinaryFile
 {
   String MAGIC_STR = "VisADBin";
-  byte FORMAT_VERSION = 1;
+  int FORMAT_VERSION = 1;
 
   byte FLD_MATH = 1;
   byte FLD_MATH_SERIAL = 2;

@@ -2,6 +2,11 @@ package visad.data;
 
 import visad.*;
 
+/**
+ * A hierarchy of methods used by
+ * {@link visad.data.BaseDataProcessor BaseDataProcessor}
+ * to write an arbitrary {@link visad.Data Data} object.
+ */
 public interface DataProcessor
 {
   void process(DataImpl data)

@@ -5,6 +5,10 @@ import visad.*;
 public abstract class BaseDataProcessor
   implements DataProcessor
 {
+  /**
+   * Write the <tt>Data</tt> object using the most appropriate
+   * {@link visad.data.DataProcessor DataProcessor} method.
+   */
   public void process(DataImpl di)
     throws VisADException
   {
