@@ -167,6 +167,14 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   }
 
   public void reDisplayAll() {
+/*
+    try {
+      throw new VisADException("reDisplayAll");
+    }
+    catch (VisADException e) {
+      e.printStackTrace();
+    }
+*/
     redisplay_all = true;
     notifyAction();
   }

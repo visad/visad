@@ -229,7 +229,8 @@ public class DataDisplayLink extends ReferenceActionLink {
 /* WLH 14 Feb 98 */
   public MathType getType()
          throws VisADException, RemoteException {
-    return getData().getType();
+    Data d = getData();
+    return (d == null) ? null : d.getType();
   }
 
   public float[] getDefaultValues() {

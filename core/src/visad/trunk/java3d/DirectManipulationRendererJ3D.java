@@ -84,12 +84,8 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       default_values[display.getDisplayScalarIndex(Display.PointSize)];
     float lineWidth =
       default_values[display.getDisplayScalarIndex(Display.LineWidth)];
-    try {
-      mode.setPointSize(pointSize);
-      mode.setLineWidth(lineWidth);
-    }
-    catch (RemoteException e) {
-    }
+    mode.setPointSize(pointSize, true);
+    mode.setLineWidth(lineWidth, true);
     Appearance appearance =
       ShadowTypeJ3D.makeAppearance(mode, null, null, geometry);
 

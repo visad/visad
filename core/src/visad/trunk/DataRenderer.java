@@ -154,6 +154,13 @@ public abstract class DataRenderer extends Object {
 /* WLH 19 Aug 98
       if (Links[i].checkTicks() || !feasible[i] || initialize) {
 */
+/*
+System.out.println(display.getName() +
+                   " Links[" + i + "].checkTicks() = " + Links[i].checkTicks() +
+                   " feasible[" + i + "] = " + feasible[i] + " go = " + go);
+MathType junk = Links[i].getType();
+if (junk != null) System.out.println(junk.prettyString());
+*/
       if (Links[i].checkTicks() || !feasible[i] || go) {
 /*
 boolean check = Links[i].checkTicks();

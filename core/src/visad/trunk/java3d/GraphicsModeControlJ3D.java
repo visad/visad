@@ -89,19 +89,15 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
 
   public void setLineWidth(float width)
          throws VisADException, RemoteException {
-    if (width < 1.0f) {
-      throw new DisplayException("GraphicsModeControlJ3D." +
-                                 "setLineWidth: width < 1.0");
-    }
+    if (width < 1.0f) width = 1.0f;
     lineWidth = width;
     changeControl(true);
     getDisplay().reDisplayAll();
   }
 
   public void setLineWidth(float width, boolean dummy) {
-    if (width >= 1.0f) {
-      lineWidth = width;
-    }
+    if (width < 1.0f) width = 1.0f;
+    lineWidth = width;
   }
 
   public float getPointSize() {
@@ -110,19 +106,15 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
 
   public void setPointSize(float size)
          throws VisADException, RemoteException {
-    if (size < 1.0f) {
-      throw new DisplayException("GraphicsModeControlJ3D." +
-                                 "setPointSize: size < 1.0");
-    }
+    if (size < 1.0f) size = 1.0f;
     pointSize = size;
     changeControl(true);
     getDisplay().reDisplayAll();
   }
 
   public void setPointSize(float size, boolean dummy) {
-    if (size >= 1.0f) {
-      pointSize = size;
-    }
+    if (size < 1.0f) size = 1.0f;
+    pointSize = size;
   }
 
   public boolean getPointMode() {

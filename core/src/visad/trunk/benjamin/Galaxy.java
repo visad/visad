@@ -67,6 +67,15 @@ public class Galaxy extends Object implements ActionListener {
   Linear2DSet image_set;
   Linear2DSet lonlat_set;
 
+  Gridded3DSet line_to_sol;
+  RealTuple sol;
+  float sol_x = 0f;
+  float sol_y = 8.5f;
+  float sol_z = 0f;
+  int npts = 2;
+  float[][] samples = new float[3][npts];
+  
+
   /** decalre MathTypes */
   RealType gridx;
   RealType gridy;
@@ -91,6 +100,9 @@ public class Galaxy extends Object implements ActionListener {
   DataReference image_ref;
   DataReference lonlat_ref;
 
+  DataReference line_to_sol_ref;
+  DataReference red_cursor_ref;
+
   /** DataReferences for 13 interactive model paramters */
   DataReference n1_ref;
   DataReference h1_ref;
@@ -113,6 +125,7 @@ public class Galaxy extends Object implements ActionListener {
   /** DataReferences for two Cell trigger buttons */
   DataReference contour_button_ref;
   DataReference compute_button_ref;
+  DataReference reset_button_ref;
 
   /** Displays */
   DisplayImpl display1;
@@ -270,6 +283,7 @@ public class Galaxy extends Object implements ActionListener {
     // set up DataReferences for compute button and contour button
     compute_button_ref = new DataReferenceImpl("compute_button");
     contour_button_ref = new DataReferenceImpl("contour_button");
+    reset_button_ref = new DataReferenceImpl("reset_button");
     density_ref = new DataReferenceImpl("density");
 
 
@@ -339,7 +353,15 @@ public class Galaxy extends Object implements ActionListener {
         lonlat_ref.setData(lonlat);
 
         // create galaxy density grid
-        grid_set = new Integer3DSet(sizes[2], sizes[3], sizes[4]);
+        // grid_set = new Integer3DSet(sizes[2], sizes[3], sizes[4]);
+        double halfx = 0.5 * (sizes[2] - 1.0);
+        double halfy = 0.5 * (sizes[3] - 1.0);
+        double halfz = 0.5 * (sizes[4] - 1.0);
+        grid_set = new Linear3DSet(-halfx, halfx, sizes[2],
+                                   -halfy, halfy, sizes[3],
+                                   -halfz, halfz, sizes[4]);
+
+
         FlatField grid = new FlatField(grid_type, grid_set);
         float[][] grid_b = new float[1][sizes[2] * sizes[3] * sizes[4]];
         System.arraycopy(grid_a[0], 0, grid_b[0], 0, grid_b[0].length);
@@ -351,6 +373,45 @@ public class Galaxy extends Object implements ActionListener {
     Real compute_button = new Real(0.0);
     compute_button_ref.setData(compute_button);
     cell.addReference(compute_button_ref);
+
+    CellImpl reset_cell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        n1_ref.setData( new Real(0.025) );
+        h1_ref.setData( new Real(0.906) );
+        A1_ref.setData( new Real(19.957) );
+        n2_ref.setData( new Real(0.099) );
+        h2_ref.setData( new Real(0.150) );
+        A2_ref.setData( new Real(3.693) );
+        na_ref.setData( new Real(0.074) );
+        ha_ref.setData( new Real(0.297) );
+        wa_ref.setData( new Real(0.298) );
+        Aa_ref.setData( new Real(8.278) );
+      }
+    };
+    reset_cell.addReference(reset_button_ref);
+
+    CellImpl red_cursor_cell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        RealTuple red_cursor = (RealTuple) red_cursor_ref.getData();
+        if (red_cursor == null) return;
+        double step_x = ( ((Real)red_cursor.getComponent(0)).getValue() -
+                          sol_x )/(npts-1.0);
+        double step_y = ( ((Real)red_cursor.getComponent(1)).getValue() -
+                          sol_y )/(npts-1.0);
+        double step_z = ( ((Real)red_cursor.getComponent(2)).getValue() -
+                          sol_z )/(npts-1.0);
+        for ( int ii = 0; ii < npts; ii++ ) {
+          samples[0][ii] = (float) (sol_x + ii*step_x);
+          samples[1][ii] = (float) (sol_y + ii*step_y);
+          samples[2][ii] = (float) (sol_z + ii*step_z);
+        }
+        line_to_sol = new Gridded3DSet( red_cursor.getType(), samples, npts, 
+                                        null, null, null );
+        line_to_sol_ref.setData( line_to_sol );
+      }
+    };
+    // link red_cursor to red_cursor_cell
+    red_cursor_cell.addReference(red_cursor_ref);
 
     if (server_server != null) {
       // set RemoteDataReferenceImpls in RemoteServer
@@ -479,7 +540,9 @@ public class Galaxy extends Object implements ActionListener {
 
     // construct Display for density grid
     display1 = new DisplayImplJ3D("display1");
+    /* WLH 23 Sept 98
     display1.setAlwaysAutoScale(true);
+    */
  
     // map grid_domain to the Display spatial coordinates;
     display1.addMap(new ScalarMap(gridx, Display.XAxis));
@@ -496,6 +559,39 @@ public class Galaxy extends Object implements ActionListener {
     ContourControl controldcontour = (ContourControl) mapdcontour.getControl();
     controldcontour.setSurfaceValue(0.06f);
     controldcontour.enableContours(true);
+/*- - - - - */
+    red_cursor_ref = new DataReferenceImpl("red_cursor_ref");
+    RealTuple init_red_cursor = new RealTuple( new Real[] {
+                                               new Real( gridx, 0.0 ),
+                                               new Real( gridy, 0.0 ),
+                                               new Real( gridz, 20.0 ) } );
+
+    red_cursor_ref.setData( init_red_cursor );
+
+    ConstantMap[] cmaps = { new ConstantMap(0.0, Display.Blue),
+                            new ConstantMap(1.0, Display.Red),
+                            new ConstantMap(0.0, Display.Green),
+                            new ConstantMap(4.0, Display.PointSize) };
+
+    ConstantMap[] cmaps_sol = { new ConstantMap(0.0, Display.Blue),
+                                new ConstantMap(1.0, Display.Red),
+                                new ConstantMap(1.0, Display.Green),
+                                new ConstantMap(6.0, Display.PointSize) };
+
+    ConstantMap[] cmaps_line = { new ConstantMap(0.0, Display.Blue),
+                                 new ConstantMap(1.0, Display.Green),
+                                 new ConstantMap(0.0, Display.Red) };
+
+    DataReference sol_ref = new DataReferenceImpl("sol_ref");
+    RealTuple sol = new RealTuple( new Real[] {
+                                   new Real( gridx, 0.0 ),
+                                   new Real( gridy, 8.5 ),
+                                   new Real( gridz, 0.0 ) } ); 
+    sol_ref.setData( sol );
+    line_to_sol_ref = new DataReferenceImpl("line_to_sol_ref");
+  //line_to_sol_ref.setData(null);
+    
+/* - - - - - */
 
     if (client) {
       RemoteDisplayImpl remote_display1 =
@@ -504,6 +600,13 @@ public class Galaxy extends Object implements ActionListener {
     }
     else { // server
       display1.addReference(grid_ref);
+ 
+/* - - - - */
+      display1.addReference(sol_ref, cmaps_sol);
+      display1.addReference(line_to_sol_ref, cmaps_line);
+      display1.addReferences(new DirectManipulationRendererJ3D(), 
+                             red_cursor_ref, cmaps);
+/* - - - - */
     }
 
     // slider to change galaxy density iso-surface
@@ -665,13 +768,28 @@ public class Galaxy extends Object implements ActionListener {
                                       RealType.Generic));
     slider_panel.add(new JLabel("  "));
 
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+    buttonPanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    buttonPanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
     // "GO" button for applying computation in sliders
     JButton compute = new JButton("Compute");
-    compute.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    compute.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    //compute.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    //compute.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     compute.addActionListener(this);
     compute.setActionCommand("compute");
-    slider_panel.add(compute);
+    buttonPanel.add(compute);
+    // slider_panel.add(compute);
+
+    JButton reset = new JButton("Reset");
+    //reset.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    //reset.setAlignmentX(JPanel.RIGHT_ALIGNMENT);
+    reset.addActionListener(this);
+    reset.setActionCommand("reset");
+    buttonPanel.add(reset);
+    // slider_panel.add(reset);
+    slider_panel.add(buttonPanel);
 
     slider_panel.add(new JLabel("  "));
     slider_panel.add(new JLabel("  "));
@@ -715,11 +833,11 @@ public class Galaxy extends Object implements ActionListener {
     JPanel panel2 = (JPanel) displays[1].getComponent();
 
     // make borders for Displays and embed in display_panel JPanel
-    Border etchedBorder10 =
+    Border etchedBorder5 =
       new CompoundBorder(new EtchedBorder(),
-                         new EmptyBorder(10, 10, 10, 10));
-    panel1.setBorder(etchedBorder10);
-    panel2.setBorder(etchedBorder10);
+                         new EmptyBorder(5, 5, 5, 5));
+    panel1.setBorder(etchedBorder5);
+    panel2.setBorder(etchedBorder5);
 
     // make labels for displays
     JLabel display1_label = new JLabel("3D isodensity surface of Galaxy");
@@ -770,6 +888,15 @@ public class Galaxy extends Object implements ActionListener {
     if (cmd.equals("compute")) {
       try {
         compute_button_ref.setData(new Real(0.0));
+      }
+      catch (VisADException ex) {
+      }
+      catch (RemoteException ex) {
+      }
+    }
+    if (cmd.equals("reset")) {
+      try {
+        reset_button_ref.setData(new Real(0.0));
       }
       catch (VisADException ex) {
       }
