@@ -74,22 +74,6 @@ public class ReferenceMonitorEvent
     this.link = link;
   }
 
-  /*
-   * Gets a clone of the monitored object.
-   */
-  public Object getClonedObject()
-  {
-    return null;
-  }
-
-  /*
-   * Gets the monitored object.
-   */
-  public Object getObject()
-  {
-    return link;
-  }
-
   /**
    * Gets the <CODE>RemoteReferenceLink</CODE> to which this event refers.
    */
