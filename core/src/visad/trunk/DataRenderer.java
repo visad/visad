@@ -1598,6 +1598,8 @@ System.out.println("checkClose: distance = " + distance);
   public synchronized void release_direct() {
   }
 
+  /** discontinue dragging this DataRenderer;
+      this method is not a general disable */
   public void stop_direct() {
     stop = true;
   }
