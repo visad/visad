@@ -461,8 +461,8 @@ public class FileFlatField extends FlatField {
         throw new VisADException("Cannot get cached FlatField");
       }
 
-      fld.setSample(index, range);
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
+      fld.setSample(index, range);
     }
   }
 
@@ -480,8 +480,8 @@ public class FileFlatField extends FlatField {
         throw new VisADException("Cannot get cached FlatField");
       }
 
-      fld.setSample( domain, range );
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
+      fld.setSample( domain, range );
     }
   }
 
@@ -499,8 +499,8 @@ public class FileFlatField extends FlatField {
         throw new VisADException("Cannot get cached FlatField");
       }
 
-      fld.setSample( index, range, copy );
       adaptedFlatFieldDirty[adaptedFlatFieldIndex] = true;
+      fld.setSample( index, range, copy );
     }
   }
 
