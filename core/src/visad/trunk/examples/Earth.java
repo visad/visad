@@ -82,6 +82,18 @@ class Earth
     main(String[] args)
 	throws Exception
     {
+	/* CTR: 28 Sep 1998 */
+	// print a nice error message if user doesn't specify a file
+	if (args.length < 1) {
+	  System.out.println("Usage: \"java Earth file.nc\", " +
+	                     "where file.nc is a netCDF file.");
+	  System.out.println("This program is designed to work with the " +
+	                     "lowresTerrain.nc file available at:");
+	  System.out.println("  ftp://demedici.ssec.wisc.edu/pub/" +
+                             "visad-2.0/lowresTerrain.nc");
+	  System.exit(0);
+	}
+
 	GeoDisplay	display = new GeoDisplay();
 	FlatField	earth = (FlatField) new Plain().open(args[0]);
 	FunctionType	earthType = (FunctionType) earth.getType();
