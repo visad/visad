@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -38,18 +38,21 @@ import java.rmi.*;
 
 
 /**
-   DisplayRendererJ2D is the VisAD abstract super-class for background and
-   metadata rendering algorithms.  These complement depictions of Data
-   objects created by DataRenderer objects.<P>
-
-   DisplayRendererJ2D also manages the overall relation of DataRenderer
-   output to Java2D and manages the VisAD scene graph.<P>
-
-   It creates the binding between Control objects and scene graph
-   Behavior objects for direct manipulation of Control objects.<P>
-
-   DisplayRendererJ2D is not Serializable and should not be copied
-   between JVMs.<P>
+ * <CODE>DisplayRendererJ2D</CODE> is the VisAD abstract super-class for
+ * background and metadata rendering algorithms.  These complement
+ * depictions of <CODE>Data</CODE> objects created by
+ * <CODE>DataRenderer</CODE> objects.<P>
+ *
+ * <CODE>DisplayRendererJ2D</CODE> also manages the overall relation of
+ * <CODE>DataRenderer</CODE> output to Java2D and manages the VisAD scene
+ * graph.<P>
+ *
+ * It creates the binding between <CODE>Control</CODE> objects and scene
+ * graph <CODE>Behavior</CODE> objects for direct manipulation of
+ * <CODE>Control</CODE> objects.<P>
+ *
+ * <CODE>DisplayRendererJ2D</CODE> is not <CODE>Serializable</CODE> and
+ * should not be copied between JVMs.<P>
 */
 public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
@@ -58,13 +61,13 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   /** root VisADGroup of scene graph under Locale */
   private VisADGroup root = null;
   /** single AffineTransform applied to all
-      Data depictions */
+   *  Data depictions */
   private AffineTransform trans = null;
   /** VisADGroup between root and all direct manipulation
-      Data depictions */
+   *  Data depictions */
   private VisADGroup direct = null;
   /** VisADGroup between root and all non-direct-manipulation
-      Data depictions */
+   *  Data depictions */
   private VisADGroup non_direct = null;
 
   /** AffineTransform between trans and cursor */
@@ -194,7 +197,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       box_switch.setWhichChild(0); // set box off
     }
     canvas.scratchImages();
-  } 
+  }
 
   public void setDirectOn(boolean on) {
     directOn = on;
@@ -212,15 +215,26 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return non_direct;
   }
 
-  /** create scene graph root, if none exists, with Transform,
-      direct manipulation root, and non-direct-manipulation root;
-      create special graphics (e.g., 3-D box, SkewT background),
-      any lights, any user interface embedded in scene */
+  /**
+   * Create scene graph root, if none exists, with Transform,
+   * direct manipulation root, and non-direct-manipulation root;
+   * create special graphics (e.g., 3-D box, SkewT background),
+   * any lights, any user interface embedded in scene.
+   * @param c
+   * @return Scene graph root.
+   * @exception DisplayException
+   */
   public abstract VisADGroup createSceneGraph(VisADCanvasJ2D c)
          throws DisplayException;
 
-  /** create scene graph root, if none exists, with Transform
-      and direct manipulation root */
+  /**
+   * Create scene graph root, if none exists, with Transform
+   * and direct manipulation root.
+   * @param c
+   * @param mouse
+   * @return Scene graph root.
+   * @exception DisplayException
+   */
   public VisADGroup createBasicSceneGraph(VisADCanvasJ2D c,
          MouseBehaviorJ2D mouse) throws DisplayException {
     if (root != null) return root;
@@ -229,26 +243,6 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     // Create the root of the branch graph
     root = new VisADGroup();
 
-/* WLH 5 April 99 - moved to ProjectionControlJ2D.java
-    // initialize scale
-    // XXX - for Java2D, scale is controlled in VisADCanvasJ2D
-    ProjectionControl proj = getDisplay().getProjectionControl();
-    AffineTransform tstart = new AffineTransform(proj.getMatrix());
-    // SWAP flip y
-    AffineTransform t1 = new AffineTransform(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
-    t1.concatenate(tstart);
-    double[] matrix = new double[6];
-    t1.getMatrix(matrix);
-    try {
-      // sets trans
-      proj.setMatrix(matrix);
-    }
-    catch (VisADException e) {
-    }
-    catch (RemoteException e) {
-    }
-*/
- 
     // create the VisADGroup that is the parent of direct
     // manipulation Data object VisADGroup objects
     direct = new VisADGroup();
@@ -404,8 +398,14 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return false;
   }
 
-  /** whenever cursorOn or directOn is true, display
-      Strings in cursorStringVector */
+  /**
+   * Whenever <CODE>cursorOn</CODE> or <CODE>directOn</CODE> is
+   * <CODE>true</CODE>, display Strings in cursorStringVector.
+   * @param graphics
+   * @param tgeometry
+   * @param width
+   * @param height
+   */
   public void drawCursorStringVector(Graphics graphics,
               AffineTransform tgeometry, int width, int height) {
     // draw cursor

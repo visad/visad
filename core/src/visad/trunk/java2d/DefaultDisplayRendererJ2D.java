@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -34,9 +34,9 @@ import java.util.*;
 
 
 /**
-   DefaultDisplayRendererJ2D is the VisAD class for default background
-   and metadata rendering under Java2D.<P>
-*/
+ * <CODE>DefaultDisplayRendererJ2D</CODE> is the VisAD class for
+ * default background and metadata rendering under Java2D.<P>
+ */
 public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
 
   /** box outline for data */
@@ -46,22 +46,28 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
   /** Behavior for mouse interactions */
   MouseBehaviorJ2D mouse = null;
 
-  /** this is the default DisplayRenderer used by the
-      DisplayImplJ2D constructor;
-      it draws a 2-D box around the scene and a 2-D cursor;
-      the left mouse button controls the projection as
-      follows: mouse drag or mouse drag with Ctrl translates
-      the scene sideways, mouse drag with Shift down zooms
-      the scene; the center mouse button activates and
-      controls the 2-D cursor as follows: mouse drag
-      translates the cursor sideways; the right mouse button
-      is used for direct manipulation by clicking on the
-      depiction of a Data object and dragging or re-drawing
-      it; cursor and direct manipulation locations are
-      displayed in RealType values; BadMappingExceptions
-      and UnimplementedExceptions are displayed;
-      no RealType may be mapped to ZAxis, Latitude
-      or Alpha */
+  /**
+   * This is the default <CODE>DisplayRenderer</CODE> used by the
+   * <CODE>DisplayImplJ2D</CODE> constructor.
+   * It draws a 2-D box around the scene and a 2-D cursor.<P>
+   * The left mouse button controls the projection as
+   * follows:
+   * <UL>
+   *  <LI>mouse drag or mouse drag with Ctrl translates the scene sideways
+   *  <LI>mouse drag with Shift down zooms the scene
+   * </UL>
+   * The center mouse button activates and controls the 2-D cursor as
+   * follows:
+   * <UL>
+   *  <LI>mouse drag translates the cursor sideways
+   * </UL>
+   * The right mouse button is used for direct manipulation by clicking on
+   * the depiction of a Data object and dragging or re-drawing it.<P>
+   * Cursor and direct manipulation locations are displayed in RealType
+   * values<P>
+   * BadMappingExceptions and UnimplementedExceptions are displayed<P>
+   * No RealType may be mapped to ZAxis, Latitude or Alpha.
+   */
   public DefaultDisplayRendererJ2D () {
     super();
   }
@@ -99,10 +105,15 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     return c3;
   }
 
-  /** create scene graph root, if none exists, with Transform
-      and direct manipulation root;
-      create 3-D box, lights and MouseBehaviorJ2D for
-      embedded user interface */
+  /**
+   * Create scene graph root, if none exists, with Transform
+   * and direct manipulation root;
+   * create 3-D box, lights and <CODE>MouseBehaviorJ2D</CODE> for
+   * embedded user interface.
+   * @param c
+   * @return Scene graph root.
+   * @exception DisplayException
+   */
   public VisADGroup createSceneGraph(VisADCanvasJ2D c)
          throws DisplayException {
     VisADGroup root = getRoot();
@@ -130,7 +141,7 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
 */
     VisADGroup box_on = getBoxOnBranch();
     box_on.addChild(box);
- 
+
     // create cursor
     VisADLineArray cursor_array = new VisADLineArray();
     cursor_array.coordinates = cursor_verts;

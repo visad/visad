@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,10 +25,10 @@ MA 02111-1307, USA
 */
 
 package visad.java2d;
- 
+
 import visad.*;
 import visad.util.Delay;
- 
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -39,12 +39,13 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import javax.swing.*;
 import java.rmi.RemoteException;
- 
+
 import java.util.*;
 
 /**
-   VisADCanvasJ2D is the VisAD "Canvas" for Java2D.  But
-   not really a Canvas, since Canvas is heavyweight.<P>
+ * <CODE>VisADCanvasJ2D</CODE> is the VisAD "Canvas" for Java2D.  But
+ * not really a <CODE>Canvas</CODE>, since <CODE>Canvas</CODE> is
+ * heavyweight.<P>
 */
 
 public class VisADCanvasJ2D extends JPanel
@@ -107,7 +108,12 @@ public class VisADCanvasJ2D extends JPanel
     renderThread.start();
   }
 
-  /** constructor for offscreen rendering */
+  /**
+   * Constructor for offscreen rendering.
+   * @param renderer
+   * @param w
+   * @param h
+   */
   VisADCanvasJ2D(DisplayRendererJ2D renderer, int w, int h) {
     displayRenderer = renderer;
     display = (DisplayImplJ2D) renderer.getDisplay();
@@ -226,7 +232,7 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
   public void stop() {
     renderThread = null;
   }
- 
+
   public void run() {
     Thread me = Thread.currentThread();
     while (renderThread == me) {
@@ -341,7 +347,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
             int nchars = animation_string[0].length();
             if (nchars < 12) nchars = 12;
             // float x = w - 9 * nchars; WLH 30 April 99
-            float x = w - 7 * nchars; 
+            float x = w - 7 * nchars;
             float y = h - 12;
             g2.drawString(animation_string[0], x, y);
             g2.drawString(animation_string[1], x, y+10);
@@ -444,7 +450,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
       AffineTransform tg = g2.getTransform();
       if (image != null) {
         if (pass != 0) return; // non-lines on first pass
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                             RenderingHints.VALUE_ANTIALIAS_OFF);
         if (!(array instanceof VisADQuadArray)) {
           throw new VisADError("VisADCanvasJ2D.render: array must be quad");
@@ -566,7 +572,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
               drawAppearance(ggg, appearance, tg, clip);
             }
             else {
-              g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+              g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                   RenderingHints.VALUE_ANTIALIAS_OFF);
               if (colors == null) {
                 for (int i=0; i<3*count; i += 3) {
@@ -609,7 +615,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
               drawAppearance(ggg, appearance, tg, clip);
             }
             else {
-              g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+              g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                   RenderingHints.VALUE_ANTIALIAS_ON);
               if (colors == null) {
                 for (int i=0; i<3*count; i += 6) {
@@ -651,7 +657,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             }
           }
           else { // (array instanceof VisADLineStripArray)
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                 RenderingHints.VALUE_ANTIALIAS_ON);
 
             int[] stripVertexCounts =
@@ -725,10 +731,10 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           } // end if (array instanceof VisADLineStripArray)
         }
         else if (array instanceof VisADTriangleArray) {
-          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                               RenderingHints.VALUE_ANTIALIAS_OFF);
-          if (colors == null) { 
-            for (int i=0; i<3*count; i += 9) { 
+          if (colors == null) {
+            for (int i=0; i<3*count; i += 9) {
               GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
@@ -738,7 +744,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             }
           }
           else { // colors != null
-            int j = 0; 
+            int j = 0;
             int jinc = (colors.length == coordinates.length) ? 3 : 4;
             for (int i=0; i<3*count; i += 9) {
               g2.setColor(new Color(
@@ -783,7 +789,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           }
         }
         else if (array instanceof VisADQuadArray) {
-          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                               RenderingHints.VALUE_ANTIALIAS_OFF);
           if (colors == null) {
             for (int i=0; i<3*count; i += 12) {
@@ -852,7 +858,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           }
         }
         else if (array instanceof VisADIndexedTriangleStripArray) {
-          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                               RenderingHints.VALUE_ANTIALIAS_OFF);
           int[] indices = ((VisADIndexedTriangleStripArray) array).indices;
           int indexCount = ((VisADIndexedTriangleStripArray) array).indexCount;
@@ -925,7 +931,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           }
         } // end if (array instanceof VisADIndexedTriangleStripArray)
         else if (array instanceof VisADTriangleStripArray) {
-          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                               RenderingHints.VALUE_ANTIALIAS_OFF);
           int[] stripVertexCounts =
              ((VisADTriangleStripArray) array).stripVertexCounts;
@@ -1028,7 +1034,13 @@ System.out.println(i + " " + oldx + " " + oldy + " " + lastx + " " + lasty +
     } // end if (scene instanceof VisADAppearance)
   }
 
-  /** this assumes only VisADPointArray or VisADLineArray */
+  /**
+   * This assumes only VisADPointArray or VisADLineArray.
+   * @param graphics
+   * @param appearance
+   * @param t
+   * @param clip
+   */
   public static void drawAppearance(Graphics graphics, VisADAppearance appearance,
                                     AffineTransform t, Rectangle2D.Float clip) {
     VisADGeometryArray array = appearance.array;
@@ -1109,7 +1121,7 @@ System.out.println("drawAppearance: VisADPointArray, count = " + count);
           j += jinc;
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
                             (int) newcoords[i], (int) newcoords[i+1]);
-        } 
+        }
       }
     }
     else if (array instanceof VisADLineArray) {

@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -37,9 +37,9 @@ import java.util.*;
 
 
 /**
-   DefaultDisplayRendererJ3D is the VisAD class for the default background
-   and metadata rendering algorithm under Java3D.<P>
-*/
+ * <CODE>DefaultDisplayRendererJ3D</CODE> is the VisAD class for the
+ * default background and metadata rendering algorithm under Java3D.<P>
+ */
 public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
 
   /** color of box  */
@@ -47,25 +47,31 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
   ColoringAttributes cursor_color = null;
   MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
-  /** this is the default DisplayRenderer used by the
-      DisplayImplJ3D constructor;
-      it draws a 3-D cube around the scene;
-      the left mouse button controls the projection as
-      follows: mouse drag rotates in 3-D, mouse drag with
-      Shift down zooms the scene, mouse drag with Ctrl
-      translates the scene sideways;
-      the center mouse button activates and controls the
-      3-D cursor as follows: mouse drag translates the
-      cursor sideways, mouse drag with Shift translates
-      the cursor in and out, mouse drag with Ctrl rotates
-      scene in 3-D with cursor on;
-      the right mouse button is used for direct
-      manipulation by clicking on the depiction of a Data
-      object and dragging or re-drawing it;
-      cursor and direct manipulation locations are displayed
-      in RealType values;
-      BadMappingExceptions and UnimplementedExceptions are
-      displayed */
+  /**
+   * This is the default <CODE>DisplayRenderer</CODE> used by the
+   * <CODE>DisplayImplJ3D</CODE> constructor.
+   * It draws a 3-D cube around the scene.<P>
+   * The left mouse button controls the projection as follows:
+   * <UL>
+   *  <LI>mouse drag rotates in 3-D
+   *  <LI>mouse drag with Shift down zooms the scene
+   *  <LI>mouse drag with Ctrl translates the scene sideways
+   * </UL>
+   * The center mouse button activates and controls the
+   * 3-D cursor as follows:
+   * <UL>
+   *  <LI>mouse drag translates the cursor sideways
+   *  <LI>mouse drag with Shift translates the cursor in and out
+   *  <LI>mouse drag with Ctrl rotates scene in 3-D with cursor on
+   * </UL>
+   * The right mouse button is used for direct manipulation by clicking on
+   * the depiction of a <CODE>Data</CODE> object and dragging or re-drawing
+   * it.<P>
+   * Cursor and direct manipulation locations are displayed in RealType
+   * values.<P>
+   * <CODE>BadMappingExceptions</CODE> and
+   * <CODE>UnimplementedExceptions</CODE> are displayed<P>
+   */
   public DefaultDisplayRendererJ3D () {
     super();
   }
@@ -84,10 +90,16 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     return c3;
   }
 
-  /** create scene graph root, if none exists, with Transform
-      and direct manipulation root;
-      create 3-D box, lights and MouseBehaviorJ3D for
-      embedded user interface */
+  /**
+   * Create scene graph root, if none exists, with Transform
+   * and direct manipulation root;
+   * create 3-D box, lights and <CODE>MouseBehaviorJ3D</CODE> for
+   * embedded user interface.
+   * @param v
+   * @param vpTrans
+   * @param c
+   * @return Scene graph root.
+   */
   public BranchGroup createSceneGraph(View v, TransformGroup vpTrans,
                                       VisADCanvasJ3D c) {
     BranchGroup root = getRoot();
@@ -124,7 +136,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     cursor_geometry.setCoordinates(0, cursor_verts);
     Shape3D cursor = new Shape3D(cursor_geometry, cursor_appearance);
     cursor_on.addChild(cursor);
- 
+
     // insert MouseBehaviorJ3D into scene graph
     BoundingSphere bounds =
       new BoundingSphere(new Point3d(0.0,0.0,0.0), 2000000.0);
@@ -139,7 +151,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     AmbientLight light = new AmbientLight(color);
     light.setInfluencingBounds(bounds);
     root.addChild(light);
- 
+
     // create directional lights, directly under root (not transformed)
     Color3f dcolor = new Color3f(0.9f, 0.9f, 0.9f);
     Vector3f direction1 = new Vector3f(0.0f, 0.0f, 1.0f);
@@ -152,7 +164,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     light2.setInfluencingBounds(bounds);
     root.addChild(light1);
     root.addChild(light2);
- 
+
     return root;
   }
 

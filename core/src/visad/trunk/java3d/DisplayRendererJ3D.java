@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -40,18 +40,20 @@ import java.rmi.*;
 
 
 /**
-   DisplayRendererJ3D is the VisAD abstract super-class for background and
-   metadata rendering algorithms.  These complement depictions of Data
-   objects created by DataRenderer objects.<P>
-
-   DisplayRendererJ3D also manages the overall relation of DataRenderer
-   output to Java3D and manages the scene graph.<P>
-
-   It creates the binding between Control objects and scene graph
-   Behavior objects for direct manipulation of Control objects.<P>
-
-   DisplayRendererJ3D is not Serializable and should not be copied
-   between JVMs.<P>
+ * <CODE>DisplayRendererJ3D</CODE> is the VisAD abstract super-class for
+ * background and metadata rendering algorithms.  These complement
+ * depictions of <CODE>Data</CODE> objects created by
+ * <CODE>DataRenderer</CODE> objects.<P>
+ *
+ * <CODE>DisplayRendererJ3D</CODE> also manages the overall relation of
+ * <CODE>DataRenderer</CODE> output to Java3D and manages the scene graph.<P>
+ *
+ * It creates the binding between <CODE>Control</CODE> objects and scene
+ * graph <CODE>Behavior</CODE> objects for direct manipulation of
+ * <CODE>Control</CODE> objects.<P>
+ *
+ * <CODE>DisplayRendererJ3D</CODE> is not <CODE>Serializable</CODE> and
+ * should not be copied between JVMs.<P>
 */
 public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
@@ -63,10 +65,10 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   /** root BranchGroup of scene graph under Locale */
   private BranchGroup root = null;
   /** single TransformGroup between root and BranchGroups for all
-      Data depictions */
+   *  Data depictions */
   private TransformGroup trans = null;
   /** BranchGroup between trans and all direct manipulation
-      Data depictions */
+   *  Data depictions */
   private BranchGroup direct = null;
   /** Behavior for delayed removal of BranchGroups */
   RemoveBehaviorJ3D remove = null;
@@ -213,15 +215,28 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return direct;
   }
 
-  /** create scene graph root, if none exists, with Transform
-      and direct manipulation root;
-      create special graphics (e.g., 3-D box, SkewT background),
-      any lights, any user interface embedded in scene */
+  /**
+   * Create scene graph root, if none exists, with Transform
+   * and direct manipulation root;
+   * create special graphics (e.g., 3-D box, SkewT background),
+   * any lights, any user interface embedded in scene.
+   * @param v
+   * @param vpTrans
+   * @param c
+   * @return Scene graph root.
+   */
   public abstract BranchGroup createSceneGraph(View v, TransformGroup vpTrans,
                                                VisADCanvasJ3D c);
 
-  /** create scene graph root, if none exists, with Transform
-      and direct manipulation root */
+  /**
+   * Create scene graph root, if none exists, with Transform
+   * and direct manipulation root.
+   * @param v
+   * @param vpTrans
+   * @param c
+   * @param m
+   * @return Scene graph root.
+   */
   public BranchGroup createBasicSceneGraph(View v, TransformGroup vpTrans,
          VisADCanvasJ3D c, MouseBehaviorJ3D m) {
     if (root != null) return root;
@@ -434,8 +449,11 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   abstract Color3f getCursorColor();
 
-  /** whenever cursorOn or directOn is true, display
-      Strings in cursorStringVector */
+  /**
+   * Whenever <CODE>cursorOn</CODE> or <CODE>directOn</CODE> is true,
+   * display Strings in cursorStringVector.
+   * @param canvas
+   */
   public void drawCursorStringVector(VisADCanvasJ3D canvas) {
     GraphicsContext3D graphics = canvas.getGraphicsContext3D();
     Appearance appearance = new Appearance();

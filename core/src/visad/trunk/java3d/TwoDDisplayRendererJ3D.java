@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -37,9 +37,9 @@ import java.util.*;
 
 
 /**
-   TwoDDisplayRendererJ3D is the VisAD class for 2-D background
-   and metadata rendering under Java3D.<P>
-*/
+ * <CODE>TwoDDisplayRendererJ3D</CODE> is the VisAD class for 2-D background
+ * and metadata rendering under Java3D.<P>
+ */
 public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
   /** color of box */
@@ -47,14 +47,16 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
   ColoringAttributes cursor_color = null;
   MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
-  /** this DisplayRenderer supports 2-D only rendering;
-      is easiest to describe in terms of differences
-      from DefaultDisplayRendererJ3D: the cursor and box
-      around the scene are 2-D, the scene cannot be rotated,
-      the cursor cannot be translated in and out, and the
-      scene can be translated sideways with the left mouse
-      button with or without pressing the Ctrl key;
-      no RealType may be mapped to ZAxis or Latitude */
+  /**
+   * This <CODE>DisplayRenderer</CODE> supports 2-D only rendering.
+   * It is easiest to describe in terms of differences from
+   * <CODE>DefaultDisplayRendererJ3D</CODE>.  The cursor and box
+   * around the scene are 2-D, the scene cannot be rotated,
+   * the cursor cannot be translated in and out, and the
+   * scene can be translated sideways with the left mouse
+   * button with or without pressing the Ctrl key.<P>
+   * No RealType may be mapped to ZAxis or Latitude.
+   */
   public TwoDDisplayRendererJ3D () {
     super();
   }
@@ -83,15 +85,21 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     return c3;
   }
 
-  /** create scene graph root, if none exists, with Transform
-      and direct manipulation root;
-      create 3-D box, lights and MouseBehaviorJ3D for
-      embedded user interface */
-  public BranchGroup createSceneGraph(View v, TransformGroup vpTrans, 
+  /**
+   * Create scene graph root, if none exists, with Transform
+   * and direct manipulation root;
+   * create 3-D box, lights and MouseBehaviorJ3D for
+   * embedded user interface.
+   * @param v
+   * @param vpTrans
+   * @param c
+   * @return Scene graph root.
+   */
+  public BranchGroup createSceneGraph(View v, TransformGroup vpTrans,
                                       VisADCanvasJ3D c) {
     BranchGroup root = getRoot();
     if (root != null) return root;
- 
+
     // create MouseBehaviorJ3D for mouse interactions
     mouse = new MouseBehaviorJ3D(this);
     getDisplay().setMouseBehavior(mouse);
@@ -110,7 +118,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     Shape3D box = new Shape3D(box_geometry, box_appearance);
     BranchGroup box_on = getBoxOnBranch();
     box_on.addChild(box);
- 
+
     Appearance cursor_appearance = new Appearance();
     cursor_color = new ColoringAttributes();
     cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
