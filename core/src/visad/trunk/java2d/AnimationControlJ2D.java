@@ -63,8 +63,11 @@ public class AnimationControlJ2D extends AVControlJ2D
       d.addControl(animationSet);
       animate = new ToggleControl(d, this);
       d.addControl(animate);
-      animationThread = new Thread(this);
-      animationThread.start();
+      synchronized (ActionImpl.threadLock) {
+        DisplayImpl.delay(ActionImpl.THREAD_DELAY);
+        animationThread = new Thread(this);
+        animationThread.start();
+      }
     }
   }
 

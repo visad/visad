@@ -908,41 +908,44 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Does any necessary clean-up, then quits the program */
   void quitProgram() {
     // wait for files to finish saving
-    Thread t = new Thread() {
-      public void run() {
-        boolean b = BasicSSCell.isSaving();
-        JFrame f = new JFrame("Please wait");
-        if (b) {
-          // display "please wait" message in new frame
-          f.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          JPanel p = new JPanel();
-          f.setContentPane(p);
-          p.setBorder(new EmptyBorder(10, 20, 10, 20));
-          p.setLayout(new BorderLayout());
-          p.add("Center", new JLabel("Please wait while the VisAD " +
-                          "Spread Sheet finishes saving files..."));
-          f.setResizable(false);
-          f.pack();
-          Dimension sSize = Toolkit.getDefaultToolkit().getScreenSize();
-          Dimension fSize = f.getSize();
-          f.setLocation(sSize.width/2 - fSize.width/2,
-                        sSize.height/2 - fSize.height/2);
-          f.setVisible(true);
-        }
-        while (BasicSSCell.isSaving()) {
-          try {
-            sleep(200);
+    synchronized (ActionImpl.threadLock) {
+      DisplayImpl.delay(ActionImpl.THREAD_DELAY);
+      Thread t = new Thread() {
+        public void run() {
+          boolean b = BasicSSCell.isSaving();
+          JFrame f = new JFrame("Please wait");
+          if (b) {
+            // display "please wait" message in new frame
+            f.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            JPanel p = new JPanel();
+            f.setContentPane(p);
+            p.setBorder(new EmptyBorder(10, 20, 10, 20));
+            p.setLayout(new BorderLayout());
+            p.add("Center", new JLabel("Please wait while the VisAD " +
+                            "Spread Sheet finishes saving files..."));
+            f.setResizable(false);
+            f.pack();
+            Dimension sSize = Toolkit.getDefaultToolkit().getScreenSize();
+            Dimension fSize = f.getSize();
+            f.setLocation(sSize.width/2 - fSize.width/2,
+                          sSize.height/2 - fSize.height/2);
+            f.setVisible(true);
           }
-          catch (InterruptedException exc) { }
+          while (BasicSSCell.isSaving()) {
+            try {
+              sleep(200);
+            }
+            catch (InterruptedException exc) { }
+          }
+          if (b) {
+            f.setCursor(Cursor.getDefaultCursor());
+            f.setVisible(false);
+          }
+          System.exit(0);
         }
-        if (b) {
-          f.setCursor(Cursor.getDefaultCursor());
-          f.setVisible(false);
-        }
-        System.exit(0);
-      }
-    };
-    t.start();
+      };
+      t.start();
+    }
   }
 
   /** Moves a cell from the screen to the clipboard */

@@ -1022,14 +1022,14 @@ System.out.println("badScale = " + badScale);
   public abstract GraphicsModeControl getGraphicsModeControl(); 
 
   /** wait for millis milliseconds */
-  public static void delay(int millis) throws VisADException {
+  public static void delay(int millis) {
     try {
       Real r = new Real(0.0);
       synchronized(r) {
         r.wait(millis);
       }
     }
-    catch(InterruptedException e) {
+    catch (InterruptedException e) {
     }
   }
 

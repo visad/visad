@@ -207,7 +207,7 @@ public class Rain implements ActionListener, ControlListener {
         server_server.setDataReferences(refs);
       }
     }
-    else { // if (!args[0].endsWith(".v5d"))
+    else { // if (!(args[0].endsWith(".v5d") || args[0].endsWith(".nc")))
       // this is client
       // try to connect to RemoteServer
       String domain = "//" + args[0] + "/Rain";
@@ -416,7 +416,7 @@ public class Rain implements ActionListener, ControlListener {
       } // end for (int j=0; j<N_ROWS; j++)
     } // end for (int i=0; i<N_COLUMNS; i++)
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     VisADSlider slider300 = new VisADSlider("num300", 0, 600, 300, 1.0,
                                             ref300, RealType.Generic);
@@ -458,7 +458,7 @@ public class Rain implements ActionListener, ControlListener {
     displays[0][0].addReference(cell_refs[0][0]);
     display_done[0][0] = true;
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell B1
     cells[0][1] = new CellImpl() {
@@ -477,7 +477,7 @@ public class Rain implements ActionListener, ControlListener {
     displays[0][1].addReference(cell_refs[0][1]);
     display_done[0][1] = true;
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell C1
     cells[0][2] = new CellImpl() {
@@ -522,6 +522,7 @@ public class Rain implements ActionListener, ControlListener {
       color_fieldC1.setSamples(table);
       ref_colorC1.setData(color_fieldC1);
     }
+/* WLH 19 April 99
     CellImpl color_cellC1 = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = (FlatField) ref_colorC1.getData().local();
@@ -542,6 +543,7 @@ public class Rain implements ActionListener, ControlListener {
     else {
       color_cellC1.addReference(ref_colorC1);
     }
+*/
 
     displays[0][2].addReference(cell_refs[0][2]);
     DataRenderer dr = null;
@@ -560,7 +562,7 @@ public class Rain implements ActionListener, ControlListener {
     }
     display_done[0][2] = true;
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell A2
     cells[1][0] = new CellImpl() {
@@ -583,7 +585,7 @@ public class Rain implements ActionListener, ControlListener {
     }
     finishDisplay(client_server, (RealType) range.getComponent(1), 1, 0);
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell B2
     cells[1][1] = new CellImpl() {
@@ -606,7 +608,7 @@ public class Rain implements ActionListener, ControlListener {
     }
     finishDisplay(client_server, (RealType) range.getComponent(2), 1, 1);
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell C2
     cells[1][2] = new CellImpl() {
@@ -629,7 +631,7 @@ public class Rain implements ActionListener, ControlListener {
     }
     finishDisplay(client_server, (RealType) range.getComponent(3), 1, 2);
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell A3
     cells[2][0] = new CellImpl() {
@@ -652,7 +654,7 @@ public class Rain implements ActionListener, ControlListener {
     }
     finishDisplay(client_server, (RealType) range.getComponent(4), 2, 0);
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell B3
     cells[2][1] = new CellImpl() {
@@ -675,7 +677,7 @@ public class Rain implements ActionListener, ControlListener {
     }
     finishDisplay(client_server, (RealType) range.getComponent(5), 2, 1);
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell C3
     cells[2][2] = new CellImpl() {
@@ -709,7 +711,7 @@ public class Rain implements ActionListener, ControlListener {
     cells[2][2].addReference(cell_refs[2][1]);
     finishDisplay(client_server, rangeC1, 2, 2);
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell A4
     cells[3][0] = new CellImpl() {
@@ -724,7 +726,7 @@ public class Rain implements ActionListener, ControlListener {
     cells[3][0].addReference(cell_refs[0][1]);
     finishDisplay(client_server, (RealType) range.getComponent(6), 3, 0);
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell B4
     cells[3][1] = new CellImpl() {
@@ -744,7 +746,7 @@ public class Rain implements ActionListener, ControlListener {
     mode.setPointMode(true);
     mode.setPointSize(5.0f);
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // cell C4
     cells[3][2] = new CellImpl() {
@@ -775,6 +777,7 @@ public class Rain implements ActionListener, ControlListener {
       color_fieldC4.setSamples(table);
       ref_colorC4.setData(color_fieldC4);
     }
+/* WLH 19 April 99
     CellImpl color_cellC4 = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         FlatField field = (FlatField) ref_colorC4.getData().local(); 
@@ -795,6 +798,7 @@ public class Rain implements ActionListener, ControlListener {
     else {
       color_cellC4.addReference(ref_colorC4);
     }
+*/
 
     left_panel.add(color_widgetC4);
     left_panel.add(new JLabel("  "));
@@ -815,7 +819,7 @@ public class Rain implements ActionListener, ControlListener {
     }
     display_done[3][2] = true;
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     CellImpl cellMAX = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -838,7 +842,7 @@ public class Rain implements ActionListener, ControlListener {
       cellMAX.addReference(refMAX);
     }
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     CellImpl cell_cursor = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -865,7 +869,7 @@ public class Rain implements ActionListener, ControlListener {
       cell_cursor.addReference(ref_cursor);
     }
 
-    DisplayImpl.delay(DELAY);
+    // DisplayImpl.delay(DELAY);
 
     // make the JFrame visible
     frame.setVisible(true);

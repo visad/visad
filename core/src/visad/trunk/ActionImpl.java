@@ -39,6 +39,11 @@ import java.rmi.*;
 public abstract class ActionImpl extends Object
        implements Action, Runnable {
 
+  /** lock for thread starting */
+  public static Object threadLock = new Object();
+  /** delay for thread starting */
+  public static final int THREAD_DELAY = 5;
+
   String Name;
 
   /** ActionImpl is not Serializable, but mark as transient anyway */
@@ -57,8 +62,11 @@ public abstract class ActionImpl extends Object
   public ActionImpl(String name) {
     Name = name;
     link_id = 0;
-    actionThread = new Thread(this);
-    actionThread.start();
+    synchronized (ActionImpl.threadLock) {
+      DisplayImpl.delay(ActionImpl.THREAD_DELAY);
+      actionThread = new Thread(this);
+      actionThread.start();
+    }
   }
 
   public void stop() {

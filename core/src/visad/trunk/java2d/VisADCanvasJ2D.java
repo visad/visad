@@ -98,8 +98,11 @@ public class VisADCanvasJ2D extends Canvas
     setBackground(Color.black);
     setForeground(Color.white);
 
-    renderThread = new Thread(this);
-    renderThread.start();
+    synchronized (ActionImpl.threadLock) {
+      DisplayImpl.delay(ActionImpl.THREAD_DELAY);
+      renderThread = new Thread(this);
+      renderThread.start();
+    }
   }
 
   /** constructor for offscreen rendering */
