@@ -170,7 +170,7 @@ VisAD Data analysis
 
     GraphicsModeControl mode = display.getGraphicsModeControl();
     mode.setScaleEnable(true);
-    mode.setTextureEnable(false);
+    // mode.setTextureEnable(false); WLH - 21 Sept 99
 
     DataReference ref = new DataReferenceImpl("radar_ref");
     ref.setData(radar);
