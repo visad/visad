@@ -75,7 +75,7 @@ showDisplay(display, width=300, height=300, title=, bottom=, top=)
 Shapes(display)
   a Class that allows you to do some easy displays of Shapes
 
-  addShape(type=None, scale=.1, color=None, shape=None, index=None)
+  addShape(type, scale=.1, color=None, index=None)
     type is a string that names a pre-defined type of shape 
     ("cross", "triangle", "square", "solid_square", "solid_triangle")
     or None if the shape=keyword is used.  This will add a shape for
@@ -95,7 +95,7 @@ Shapes(display)
 from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
           Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple, \
           VisADLineArray, VisADQuadArray, VisADTriangleArray, \
-          ConstantMap, Integer1DSet
+          VisADGeometryArray, ConstantMap, Integer1DSet
 
 from types import StringType
 from visad.ss import BasicSSCell
@@ -476,13 +476,17 @@ class Shapes:
 
   # type = type of shape ('cross','triangle','square',
   #  'solid_square','solid_triangle'
+  # ...or a VisADGeometryArray
   # scale = relative size for the shape
   # color = color name (e.g., "green")
-  # shape = a VisADGeometryArray shape if you want to use one
   # index = the index of the shape to replace with this one
-  def addShape(self, type=None, scale=.1, color=None, shape=None, index=None):
+  def addShape(self, type, scale=.1, color=None, index=None):
 
-    if shape == None:
+    if isinstance(type,VisADGeometryArray): 
+
+      self.shape = type
+
+    else:
 
       if type == "cross":
         self.shape = VisADLineArray()
@@ -510,8 +514,6 @@ class Shapes:
 
       self.shape.vertexCount = len(self.shape.coordinates)/3
 
-    else:
-      self.shape = shape
 
     shape_control = py_shape_map.getControl()
 
