@@ -356,7 +356,7 @@ System.out.println("limit_length = " + limit_length + " " + max_length + " " +
       else { // missing coordinates values
         any_missing = true;
       }
-      j += color_length;
+      j += 2 * color_length;
     }
     if (!any_missing) {
       return this;
