@@ -161,6 +161,7 @@ visad\rabin\*.java \
 visad\bom\*.java \
 visad\aeri\*.java \
 visad\georef\*.java \
+visad\meteorology\*.java \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
@@ -268,6 +269,7 @@ visad\rabin\*.java \
 visad\bom\*.java \
 visad\aeri\*.java \
 visad\georef\*.java \
+visad\meteorology\*.java \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
@@ -361,6 +363,8 @@ save:
 		$(DEL) $(BACKUP)\visad\aeri\*.java
 	if exist $(BACKUP)\visad\georef\*.java \
 		$(DEL) $(BACKUP)\visad\georef\*.java
+	if exist $(BACKUP)\visad\meteorology\*.java \
+		$(DEL) $(BACKUP)\visad\meteorology\*.java
 	jar cvf $(BACKUP)\save.jar $(SAVE_FILES1)
 	jar uvf $(BACKUP)\save.jar $(SAVE_FILES2)
 	cd $(BACKUP)
@@ -411,6 +415,7 @@ visad\rabin\*.class \
 visad\bom\*.class \
 visad\aeri\*.class \
 visad\georef\*.class \
+visad\meteorology\*.class \
 visad\examples\*.class
 
 classes:
@@ -473,6 +478,7 @@ clear:
 	if exist bom\*.java $(DEL) bom\*.java
 	if exist aeri\*.java $(DEL) aeri\*.java
 	if exist georef\*.java $(DEL) georef\*.java
+	if exist meteorology\*.java $(DEL) meteorology\*.java
 	if exist examples\*.java $(DEL) examples\*.java
 
 clean:
@@ -517,6 +523,7 @@ clean:
 	if exist bom\*.class $(DEL) bom\*.class
 	if exist aeri\*.class $(DEL) aeri\*.class
 	if exist georef\*.class $(DEL) georef\*.class
+	if exist meteorology\*.class $(DEL) meteorology\*.class
 	if exist examples\*.class $(DEL) examples\*.class
 
 RMIC_FILES = \
@@ -577,7 +584,8 @@ rabin\*.class \
 aune\*.class \
 bom\*.class \
 aeri\*.class \
-georef\*.class
+georef\*.class \
+meteorology\*.class
 	cd examples
 	$(JC) $(JFLAGS) *.java
 	cd ..
@@ -627,6 +635,7 @@ compile: clean
 	$(JC) $(JFLAGS) bom\*.java
 	$(JC) $(JFLAGS) aeri\*.java
 	$(JC) $(JFLAGS) georef\*.java
+	$(JC) $(JFLAGS) meteorology\*.java
 	cd examples
 	$(JC) $(JFLAGS) *.java
 	cd ..
@@ -680,7 +689,8 @@ visad.benjamin \
 visad.rabin \
 visad.bom \
 visad.aeri \
-visad.georef
+visad.georef \
+visad.meteorology
 
 docs:
 	if not exist $(DOC_DIR) mkdir $(DOC_DIR)

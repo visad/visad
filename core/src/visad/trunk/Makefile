@@ -232,7 +232,8 @@ SAVE_FILES = \
 	visad/rabin/*.java                              \
 	visad/bom/*.java                                \
 	visad/aeri/*.java                               \
-	visad/georef/*.java                               \
+	visad/georef/*.java                             \
+	visad/meteorology/*.java                        \
 	visad/Gridded1D.txt				\
 	visad/Gridded2D.txt				\
 	visad/Gridded3D.txt				\
@@ -289,7 +290,8 @@ DOC_PACKAGES = \
 		visad.rabin \
 		visad.bom \
 		visad.aeri \
-		visad.georef
+		visad.georef \
+		visad.meteorology
 
 ALL_PACKAGES = \
 		$(DOC_PACKAGES) \
