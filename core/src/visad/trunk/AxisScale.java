@@ -219,17 +219,7 @@ public class AxisScale implements java.io.Serializable
    *   true indicates axis is stationary relative to screen
   */
   public void setScreenBased(boolean sb) {
-    DisplayImpl display = scalarMap.getDisplay();
-    if (display == null) return;
-    DisplayRenderer displayRenderer = display.getDisplayRenderer();
-    if (displayRenderer == null) return;
-    // screenBased mode only in 2-D mode
-    if (displayRenderer.getMode2D()) {
-      screenBased = sb;
-    }
-    else {
-      screenBased = false;
-    }
+    screenBased = sb;
   }
 
   /**
@@ -289,6 +279,8 @@ public class AxisScale implements java.io.Serializable
     // set scale according to labelSize
     double SCALE =  labelSize/200.;
     double OFFSET = 1.05;
+
+    SCALE *= 0.8; // hack size for screen based
 
     // Add 16-APR-2001 DRM
     int position = 0;

@@ -784,7 +784,11 @@ public abstract class DisplayRendererJ3D
     }
 
     if (scale_switch.getWhichChild() == 1) {
-      double MUL = 4.0;
+      Dimension d = canvas.getSize();
+      int w = d.width;
+      int h = d.height;
+
+      double MUL = 3.0 * w / 256.0;
       double XMAX = Math.abs(MUL * position2.x - (MUL - 1.0) * position3.x);
       double YMAX = Math.abs(MUL * position2.y - (MUL - 1.0) * position3.y);
       double XMIN = -XMAX;
@@ -898,8 +902,10 @@ public abstract class DisplayRendererJ3D
    */
   public void setScale(AxisScale axisScale)
          throws VisADException {
-    if (axisScale.getScreenBased()) {
-      axis_vector.addElement(axisScale);
+    if (axisScale.getScreenBased() && getMode2D()) {
+      if (!axis_vector.contains(axisScale)) {
+        axis_vector.addElement(axisScale);
+      }
     }
     else {
       setScale(axisScale.getAxis(),
@@ -940,6 +946,7 @@ public abstract class DisplayRendererJ3D
               VisADLineArray array, VisADTriangleArray labels,
               float[] scale_color)
          throws VisADException {
+// DisplayImpl.printStack("setScale");
     // add array to scale_on
     // replace any existing at axis, axis_ordinal
     DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
