@@ -491,7 +491,44 @@ bom\*.class
 	$(JC) $(JFLAGS) *.java
 	cd ..
 
-compile: clean recompile
+compile: clean
+	$(JC) $(JFLAGS) *.java
+	$(JC) $(JFLAGS) java3d\*.java
+	$(JC) $(JFLAGS) java2d\*.java
+	$(JC) $(JFLAGS) data\*.java
+	$(JC) $(JFLAGS) $(UCAR)\multiarray\*.java
+	$(JC) $(JFLAGS) $(UCAR)\netcdf\*.java
+	$(JC) $(JFLAGS) $(UCAR)\tests\*.java
+	$(JC) $(JFLAGS) data\netcdf\units\*.java
+	$(JC) $(JFLAGS) data\netcdf\in\*.java
+	$(JC) $(JFLAGS) data\netcdf\out\*.java
+	$(JC) $(JFLAGS) data\netcdf\*.java
+	$(JC) $(JFLAGS) $(FITS)\util\*.java
+	$(JC) $(JFLAGS) $(FITS)\fits\*.java
+	$(JC) $(JFLAGS) $(FITS)\test\*.java
+	$(JC) $(JFLAGS) data\fits\*.java
+	$(JC) $(JFLAGS) data\vis5d\*.java
+	$(JC) $(JFLAGS) $(SSEC)\mcidas\*.java
+	$(JC) $(JFLAGS) $(SSEC)\mcidas\adde\*.java
+	$(JC) $(JFLAGS) data\mcidas\*.java
+	$(JC) $(JFLAGS) data\gif\*.java
+	$(JC) $(JFLAGS) data\visad\*.java
+	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
+	$(JC) $(JFLAGS) data\hdfeos\*.java
+	$(JC) $(JFLAGS) formula\*.java
+	$(JC) $(JFLAGS) util\*.java
+	$(JC) $(JFLAGS) ss\*.java
+	$(JC) $(JFLAGS) jmet\*.java
+	$(JC) $(JFLAGS) paoloa\*.java
+	$(JC) $(JFLAGS) paoloa\spline\*.java
+	$(JC) $(JFLAGS) benjamin\*.java
+	$(JC) $(JFLAGS) rabin\*.java
+	$(JC) $(JFLAGS) aune\*.java
+	$(JC) $(JFLAGS) bom\*.java
+	$(RMIC) $(RMIC_FILES)
+	cd examples
+	$(JC) $(JFLAGS) *.java
+	cd ..
 
 debug:
 	@nmake /nologo -f Makefile.WinNT compile \
