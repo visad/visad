@@ -83,6 +83,10 @@ public interface Field extends Function {
   public Field domainMultiply()
          throws VisADException, RemoteException;
 
+  /** combine domains to depth, if possible */
+  public Field domainMultiply(int depth)
+         throws VisADException, RemoteException;
+
   /** factor Field domain into domains of two nested Fields */
   public Field domainFactor( RealType factor )
          throws VisADException, RemoteException;

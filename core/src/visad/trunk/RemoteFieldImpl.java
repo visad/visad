@@ -131,6 +131,16 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     return ((FieldImpl) AdaptedData).domainMultiply();
   }
 
+  /** combine domains to depth, if possible */
+  public Field domainMultiply(int depth)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.domainMultiply: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).domainMultiply(depth);
+  }
+
   /** factor Field domain into domains of two nested Fields */
   public Field domainFactor( RealType factor )
          throws VisADException, RemoteException {

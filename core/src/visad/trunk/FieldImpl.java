@@ -1454,6 +1454,13 @@ public class FieldImpl extends FunctionImpl implements Field {
   public Field domainMultiply()
          throws VisADException, RemoteException
   {
+    return domainMultiply(1);
+  }
+
+  /** combine domains to collapse_depth, if possible */
+  public Field domainMultiply(int collapse_depth)
+         throws VisADException, RemoteException
+  {
     class Helper
     {
       int cnt = 0;
@@ -1467,7 +1474,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       SampledSet[] fac_sets;
       Object[] collapse_array;
 
-      public Helper(Data data)
+      public Helper(Data data, int collapse_depth)
              throws VisADException, RemoteException
       {
         MathType m_type = data.getType();
@@ -1475,10 +1482,16 @@ public class FieldImpl extends FunctionImpl implements Field {
         depth = 0;
         flat = false;
         depth_max = checkType( m_type );
+
         if ( depth_max == 0 )
         {
           throw new FieldException("MathType "+m_type.prettyString());
         }
+        else if ( depth_max >= collapse_depth ) 
+        {
+          depth_max = collapse_depth;
+        }
+
         last_set = new SampledSet[depth_max + 1];
         depth = 0;
         if ( !(setsEqual((Field)data)) )
@@ -1610,7 +1623,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     int new_domainDim = 0;
     int new_manifoldDim = 0;
 
-    Helper helper = new Helper(this);
+    Helper helper = new Helper(this, collapse_depth);
     SampledSet[] fac_sets = helper.getSets();
     int n_sets = fac_sets.length;
     Object[] new_range = helper.getRangeArray();
