@@ -150,7 +150,7 @@ public class DataSetInfo
             {
                 String temp = new String(data, i*80, 80);
                 if (temp.trim().equals("")) continue;
-                String descriptor = temp.substring(0,11).trim();
+                String descriptor = temp.substring(0,12).trim();
                 String comment;
                 if (temp.indexOf('"') <= 21)   // no comment
                     comment = descriptor;
