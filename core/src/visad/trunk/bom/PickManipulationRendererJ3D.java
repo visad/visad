@@ -29,30 +29,37 @@ package visad.bom;
 import visad.*;
 import visad.java3d.*;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.rmi.*;
+import java.rmi.RemoteException;
 
 import javax.media.j3d.*;
 
 /**
-   PickManipulationRendererJ3D is the VisAD class for direct
-   manipulation of rubber band boxes
-*/
+ * PickManipulationRendererJ3D is the VisAD class for picking
+ * data in 3D.
+ */
 public class PickManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 
   private int mouseModifiersMask = 0;
   private int mouseModifiersValue = 0;
 
+  /**
+   * Default constructor
+   */
   public PickManipulationRendererJ3D () {
     this (0, 0);
   }
 
-  /** mmm and mmv determine whehter SHIFT or CTRL keys are required -
-      this is needed since this is a greedy DirectManipulationRenderer
-      that will grab any right mouse click (that intersects its 2-D
-      sub-manifold) */
+  /** 
+   * Construct a new PickManipulationRenderer using the mouseModifiers
+   * supplied.  mmm and mmv determine whehter SHIFT or CTRL keys are 
+   * required - This is needed since this is a greedy 
+   * DirectManipulationRenderer that will grab any right mouse click 
+   * (that intersects its 2-D sub-manifold).
+   * @param mmm  mouse modifiers mask.
+   * @param mmv  mouse modifiers value.
+   */
   public PickManipulationRendererJ3D (int mmm, int mmv) {
     super();
     mouseModifiersMask = mmm;
@@ -81,6 +88,9 @@ public class PickManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 
   private boolean stop = false;
 
+  /**
+   * Check if direct manipulation is possible.  
+   */
   public void checkDirect() throws VisADException, RemoteException {
     setIsDirectManipulation(false);
 
@@ -124,27 +134,48 @@ public class PickManipulationRendererJ3D extends DirectManipulationRendererJ3D {
     return directManifoldDimension;
   }
 
+  /**
+   * If direct manipulation is not possible, get the error message
+   * explaining why.
+   * @return error message. Will be null if no errors.
+   */
   public String getWhyNotDirect() {
     return whyNotDirect;
   }
 
+  /**
+   * Add a point.  a no-op at this point.  
+   * @param x  point value.
+   */
   public void addPoint(float[] x) throws VisADException {
     // may need to do this for performance
   }
 
 // methods customized from DataRenderer:
 
+  /**
+   * Get the CoordinateSystem for the display side.
+   * @return  null for this DataRenderer
+   */
   public CoordinateSystem getDisplayCoordinateSystem() {
     return null;
   }
 
-  /** set spatialValues from ShadowType.doTransform */
+  /** 
+   * Set spatialValues from ShadowType.doTransform 
+   * @param spatial_values  X, Y, Z values
+   */
   public synchronized void setSpatialValues(float[][] spatial_values) {
     // these are X, Y, Z values
     spatialValues = spatial_values;
   }
 
-  /** check if ray intersects sub-manifold */
+  /** 
+   * Check if ray intersects sub-manifold.  
+   * @param origin  x,y,z values of the ray
+   * @param direction x,y,z values of the ray?
+   * @return distance from the spatial values.
+   */
   public synchronized float checkClose(double[] origin, double[] direction) {
     int mouseModifiers = getLastMouseModifiers();
     if ((mouseModifiers & mouseModifiersMask) != mouseModifiersValue) {
@@ -187,10 +218,21 @@ System.out.println("checkClose: distance = " + distance);
     return distance;
   }
 
+  /**
+   * Return the index of the closes point.
+   * @return index of closest point
+   */
   public int getCloseIndex() {
     return closeIndex;
   }
 
+  /**
+   * Actual workhorse method of manipulation renderer. It's what
+   * gets called when the click is done.
+   * @param ray ray of point where click is.
+   * @param first  if this is the first time.
+   * @param mouseModifiers  modifiers used with the mouse.
+   */
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     if (ref == null) return;
@@ -210,8 +252,6 @@ System.out.println("checkClose: distance = " + distance);
     return new PickManipulationRendererJ3D(mouseModifiersMask,
                                            mouseModifiersValue);
   }
-
-  private static final int N = 64;
 
   /** test PickManipulationRendererJ3D */
   public static void main(String args[])
