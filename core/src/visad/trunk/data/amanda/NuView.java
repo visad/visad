@@ -54,6 +54,8 @@ import visad.VisADException;
 
 import visad.java3d.DisplayImplJ3D;
 
+import visad.util.CmdlineConsumer;
+import visad.util.CmdlineParser;
 import visad.util.LabeledColorWidget;
 import visad.util.VisADSlider;
 
@@ -62,20 +64,22 @@ import visad.util.VisADSlider;
  */
 public class NuView
   extends WindowAdapter
+  implements CmdlineConsumer
 {
+  private String fileName;
+
   private DisplayImpl display;
 
   public NuView(String[] args)
     throws RemoteException, VisADException
   {
-    if (args == null || args.length != 1) {
-      System.out.println("to test read an F2000 file, run:");
-      System.out.println("  'java NuView in_file'");
+    CmdlineParser cmdline = new CmdlineParser(this);
+    if (!cmdline.processArgs(args)) {
       System.exit(1);
       return;
     }
 
-    AmandaFile file = openFile(args[0]);
+    AmandaFile file = openFile(fileName);
 
     final FieldImpl amanda = file.makeEventData();
     final FieldImpl modules = file.makeModuleData();
@@ -175,6 +179,31 @@ public class NuView
     frame.setVisible(true);
   }
 
+  public int checkKeyword(String mainName, int thisArg, String[] args)
+  {
+    if (fileName == null) {
+      fileName = args[thisArg];
+      return 1;
+    }
+
+    return 0;
+  }
+
+  public int checkOption(String mainName, char ch, String arg)
+  {
+    return 0;
+  }
+
+  public boolean finalizeArgs(String mainName)
+  {
+    if (fileName == null) {
+      System.err.println(mainName + ": No file specified!");
+      return false;
+    }
+
+    return true;
+  }
+
   private static final double getMaxRange(AmandaFile file)
   {
     final double xRange = file.getXMax() - file.getXMin();
@@ -184,7 +213,12 @@ public class NuView
     return -0.5 * Math.max(xRange, Math.max(yRange, zRange));
   }
 
-  private AmandaFile openFile(String fileName)
+  public void initializeArgs()
+  {
+    fileName = null;
+  }
+
+  private static final AmandaFile openFile(String fileName)
     throws VisADException
   {
     AmandaFile file;
@@ -201,6 +235,16 @@ public class NuView
     }
 
     return file;
+  }
+
+  public String keywordUsage()
+  {
+    return " fileName";
+  }
+
+  public String optionUsage()
+  {
+    return "";
   }
 
   private static final void setRange(ScalarMap map, double min, double max,
