@@ -29,12 +29,6 @@ package visad;
 import java.io.*;
 import java.util.*;
 
-// packages for main method
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.rmi.RemoteException;
-
 /**
    Delaunay represents an abstract class for calculating an
    N-dimensional Delaunay triangulation, that can be extended
