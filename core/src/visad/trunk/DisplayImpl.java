@@ -822,9 +822,17 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** remove all DataReference links */
   public void removeAllReferences()
          throws VisADException, RemoteException {
+
+    // WLH 29 Jan 2001
+    Vector temp = (Vector) RendererVector.clone();
+
     synchronized (mapslock) {
-      synchronized (RendererVector) {
-        Iterator renderers = RendererVector.iterator();
+
+      // WLH 29 Jan 2001
+      // synchronized (RendererVector) {
+        // Iterator renderers = RendererVector.iterator();
+
+        Iterator renderers = temp.iterator();
         while (renderers.hasNext()) {
           DataRenderer renderer = (DataRenderer) renderers.next();
           renderer.clearAVControls(); // WLH 31 Oct 2000
@@ -833,7 +841,11 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           renderers.remove();
           removeLinks(links);
         }
-      }
+
+      // WLH 29 Jan 2001
+      // }
+      RendererVector.removeAllElements();
+
       initialize = true;
 // printStack("removeAllReferences");
     }
