@@ -76,6 +76,7 @@ public class Test42
 
     ScalarMap xmap0 = new ScalarMap(dom0, Display.XAxis);
     xmap0.getAxisScale().setScreenBased(true);
+    xmap0.getAxisScale().setLabelAllTicks(true);
     dpys[0].addMap(xmap0);
     ScalarMap ymap0 = new ScalarMap(dom1, Display.YAxis);
     ymap0.getAxisScale().setScreenBased(true);
