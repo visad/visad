@@ -853,6 +853,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     control.addPair(swit, renderer);
   }
 
+/*
   GeometryArray[] makeGeometrys(VisADGeometryArray array)
                   throws VisADException {
     int count = array.vertexCount;
@@ -882,6 +883,52 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         qarray.texCoords[i] = array.texCoords[i4t + i];
       }
       geometrys[d] = display.makeGeometry(qarray);
+    }
+    return geometrys;
+  }
+*/
+
+  public GeometryArray[] makeGeometrys(VisADGeometryArray array)
+                  throws VisADException {
+    int count = array.vertexCount;
+    int depth = count / 4;
+    VisADGeometryArray[] qarrays = makeVisADGeometrys(array);
+    GeometryArray[] geometrys = new GeometryArray[depth];
+    for (int d=0; d<depth; d++) {
+      geometrys[d] = display.makeGeometry(qarrays[d]);
+    }
+    return geometrys;
+  }
+
+  public VisADGeometryArray[] makeVisADGeometrys(VisADGeometryArray array)
+                  throws VisADException {
+    int count = array.vertexCount;
+    int depth = count / 4;
+    int color_length = array.colors.length / count;
+    int tex_length = array.texCoords.length / count;
+
+    VisADGeometryArray[] geometrys = new VisADGeometryArray[depth];
+    for (int d=0; d<depth; d++) {
+      int i12 = d * 4 * 3;
+      int i4c = d * 4 * color_length;
+      int i4t = d * 4 * tex_length;
+      VisADQuadArray qarray = new VisADQuadArray();
+      qarray.vertexCount = 4;
+      qarray.coordinates = new float[12];
+      qarray.texCoords = new float[tex_length * 4];
+      qarray.colors = new byte[color_length * 4];
+      qarray.normals = new float[12];
+      for (int i=0; i<12; i++) {
+        qarray.coordinates[i] = array.coordinates[i12 + i];
+        qarray.normals[i] = array.normals[i12 + i];
+      }
+      for (int i=0; i<4*color_length; i++) {
+        qarray.colors[i] = array.colors[i4c + i];
+      }
+      for (int i=0; i<4*tex_length; i++) {
+        qarray.texCoords[i] = array.texCoords[i4t + i];
+      }
+      geometrys[d] = qarray;
     }
     return geometrys;
   }

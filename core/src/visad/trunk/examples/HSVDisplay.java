@@ -137,6 +137,10 @@ public class HSVDisplay extends Object {
 
     display1.getGraphicsModeControl().setScaleEnable(true);
 
+    DisplayRendererJ3D dr = (DisplayRendererJ3D) display1.getDisplayRenderer();
+    KeyboardBehaviorJ3D kbd = new KeyboardBehaviorJ3D(dr);
+    dr.addKeyboardBehavior(kbd);
+
     // display cube_set
     display1.addReference(cube_ref);
 

@@ -56,9 +56,15 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     VisADAppearance appearance =
       makeAppearance(mode, constant_alpha, constant_color, array);
 
-// must encode image as Serializable rather than as Image
-
-    appearance.image = image;
+    // must encode image as Serializable rather than as Image
+    // appearance.image = image;
+    appearance.image = null;
+    appearance.image_type = image.getType();
+    appearance.image_width = image.getWidth();
+    appearance.image_height = image.getHeight();
+    appearance.image_pixels =
+      image.getRGB(0, 0, appearance.image_width, appearance.image_height, null,
+                   0, appearance.image_width);
     ((VisADGroup) group).addChild(appearance);
   }
 
@@ -72,7 +78,7 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                     int texture_width, int texture_height,
                     int texture_depth, DataRenderer renderer)
          throws VisADException {
-// ??
+    // not used now, so do nothing
   }
 
   public void textureStackToGroup(Object group, VisADGeometryArray arrayX,
@@ -88,6 +94,34 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                     int texture_width, int texture_height,
                     int texture_depth, DataRenderer renderer)
          throws VisADException {
+    VisADGeometryArray[] geometryX = makeVisADGeometrys(arrayX);
+    VisADGeometryArray[] geometryY = makeVisADGeometrys(arrayY);
+    VisADGeometryArray[] geometryZ = makeVisADGeometrys(arrayZ);
+// cut and paste ShadowFunctionOrSetTypeJ3D.textureStackToGroup
+
+    // client must treat branchX as ordered
+    VisADGroup branchX = new VisADGroup();
+    int data_depth = geometryX.length;
+    for (int i=0; i<data_depth; i++) {
+      int width = imagesX[i].getWidth();
+      int height = imagesX[i].getHeight();
+
+      // client must compute c_alpha from constant_alpha
+      VisADAppearance appearance =
+        makeAppearance(mode, constant_alpha, constant_color, geometryX[i]);
+      // must encode image as Serializable rather than as Image
+      // appearance.image = image;
+      appearance.image = null;
+      appearance.image_type = imagesX[i].getType();
+      appearance.image_width = imagesX[i].getWidth();
+      appearance.image_height = imagesX[i].getHeight();
+      appearance.image_pixels =
+        imagesX[i].getRGB(0, 0, appearance.image_width, appearance.image_height,
+                          null, 0, appearance.image_width);
+      branchX.addChild(appearance);
+    }
+// repeat for branchXrev, branchY, etc
+
 // ??
   }
 

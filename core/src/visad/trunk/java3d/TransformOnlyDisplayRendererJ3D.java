@@ -127,8 +127,11 @@ public class TransformOnlyDisplayRendererJ3D extends DisplayRendererJ3D {
   public void setTransform3D(Transform3D t) {
   }
 
+  public void setBoxAspect(double[] aspect) {
+  }
 
-// must modify these:
+
+// must override these:
 
 
   public DataRenderer makeDefaultRenderer() {
@@ -137,9 +140,6 @@ public class TransformOnlyDisplayRendererJ3D extends DisplayRendererJ3D {
 
   public boolean legalDataRenderer(DataRenderer renderer) {
     return (renderer instanceof RendererJ3D);
-  }
-
-  public void setBoxAspect(double[] aspect) {
   }
 
 }

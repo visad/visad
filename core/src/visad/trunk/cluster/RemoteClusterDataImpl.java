@@ -103,13 +103,12 @@ client and nodes
 every object in data tree on client connects to objects
 in data trees on nodes
 
-may use DisplayImplJ3D on nodes for graphics, modified to
-not render (perhaps a new value for the API argument to the
-DisplayImplJ3D constructor)
+may use DisplayImplJ3D on nodes for graphics, with api = TRANSFORM_ONLY
+and DisplayRenderer = NodeDisplayRendererJ3D; doesn't render
 
 NodeRendererJ3D extends DefaultRendererJ3D, with
 ShadowNode*TypeJ3D - addToGroup() etc to leave as Serializable
-  note must replace 'Image image' in VisADApprearance
+  note must replace 'Image image' in VisADAppearance
 ClientRendererJ3D extends DefaultRendererJ3D, not even using
 ShadowTypes, but assembling VisADSceneGraphs from nodes
 
