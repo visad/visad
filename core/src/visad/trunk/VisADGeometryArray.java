@@ -215,8 +215,8 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
 
         float[] lons = null;
         if (longitude_cs == null) {
+          lons = new float[vertexCount];
           for (int i=0; i<vertexCount; i++) {
-            lons = new float[vertexCount];
             lons[i] = coordinates[3 * i + longitude_axis];
           }
         }
