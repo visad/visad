@@ -1550,7 +1550,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     // WLH 9 Dec 99
     // if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
     if (!((FunctionType) Type).getRange().equals(range.getType())) {
-      throw new TypeException("Field.setSample: bad range type");
+      throw new TypeException("Field.setSample: sample range type " +
+                              range.getType() +
+                              " does not match expected type " +
+                              ((FunctionType) Type).getRange());
     }
     if (index < 0 || index >= Length) return;
 

@@ -100,7 +100,9 @@ public class FieldImpl extends FunctionImpl implements Field {
                              "or FloatSet");
     }
     if (DomainType.getDimension() != set.getDimension()) {
-      throw new SetException("FieldImpl: set and type dimensions don't match");
+      throw new SetException("FieldImpl: set dimension " + set.getDimension() +
+                             " and type dimension " +
+                             DomainType.getDimension() + " don't match");
     }
     // force DomainSet Type to match DomainType
     if (DomainType.equals(((SetType) set.getType()).getDomain())) {
@@ -146,7 +148,9 @@ public class FieldImpl extends FunctionImpl implements Field {
         // if (range != null && !t.equalsExceptName(range[i].getType())) {
         if (range[i] != null) {
           if (!t.equals(range[i].getType())) {
-            throw new TypeException("FieldImpl.setSamples: types don't match");
+            throw new TypeException("FieldImpl.setSamples: sample#" + i +
+                                    " type " + range[i].getType() +
+                                    " doesn't match field type " + t);
           }
           if (copy) Range[i] = (Data) range[i].dataClone();
           else Range[i] = range[i];
