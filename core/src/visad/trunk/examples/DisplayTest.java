@@ -394,6 +394,7 @@ public class DisplayTest extends Object {
         control1contour = (ContourControl) map1contour.getControl();
         control1contour.enableContours(true);
         control1contour.enableLabels(true);
+        control1contour.setContourInterval(-3.0f, -10.0f, 50.0f, 15.0f);
      
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
@@ -1691,6 +1692,7 @@ public class DisplayTest extends Object {
         control1contour = (ContourControl) map1contour.getControl();
         control1contour.enableContours(true);
         control1contour.enableLabels(true);
+        control1contour.setContourInterval(-3.0f, -10.0f, 50.0f, 15.0f);
      
         mode = display1.getGraphicsModeControl();
         mode.setScaleEnable(true);
