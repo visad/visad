@@ -791,4 +791,122 @@ public class BaseColorControl
 
     return bcc;
   }
+
+  private static char dirChar(int down, int same, int up)
+  {
+    char ch;
+
+    if (down == 0 || same == 0 || up == 0) {
+      if (down > 0) {
+        if (up > 0) {
+          if (down > up) {
+            return 'v';
+          }
+
+          return '^';
+        }
+
+        if (same > 0) {
+          return '~';
+        }
+
+        return '\\';
+      } else if (up > 0) {
+        if (same > 0) {
+          return '~';
+        }
+
+        return '/';
+      } else {
+        return '_';
+      }
+    }
+
+    if (down > same) {
+      if (down > (same + up)) {
+        return '\\';
+      }
+
+      if (up > (down + same)) {
+        return '/';
+      }
+
+      if (up > same) {
+        return '^';
+      }
+    }
+
+    if (up > same) {
+      if (up > (down + same)) {
+        return '/';
+      }
+
+      if (down > (same + up)) {
+        return '\\';
+      }
+    }
+
+    if (same > (down + up)) {
+      return '-';
+    }
+
+    return '~';
+  }
+
+  public String toString()
+  {
+    int binLen = tableLength;
+    int binSize = 1;
+    while (binLen > 32) {
+      binLen >>= 1;
+      binSize <<= 1;
+    }
+
+    String className = getClass().getName();
+    int dot = className.lastIndexOf('.');
+    if (dot >= 0) {
+      className = className.substring(dot+1);
+    }
+
+    StringBuffer buf = new StringBuffer(className);
+    buf.append('[');
+
+    String colorInitial = "RGBA";
+    for (int c = 0; c < components; c++) {
+      if (c > 0) {
+        buf.append(',');
+      }
+      buf.append(colorInitial.charAt(c));
+      buf.append('=');
+
+      float prev = table[c][0];
+
+      int tot = 0;
+      while (tot < tableLength) {
+        int trendDown, trendSame, trendUp;
+        trendDown = trendSame = trendUp = 0;
+
+        for (int i = 0; i < binSize; i++) {
+          float curr = table[c][tot+i];
+
+          if (Math.abs(curr - prev) <= 0.0001) {
+            trendSame++;
+          } else if (curr < prev) {
+            trendDown++;
+          } else {
+            trendUp++;
+          }
+
+          prev = curr;
+        }
+
+        buf.append(dirChar(trendDown, trendSame, trendUp));
+
+        tot += binSize;
+      }
+    }
+
+    buf.append(']');
+    return buf.toString();
+  }
 }

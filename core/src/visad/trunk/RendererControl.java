@@ -277,4 +277,37 @@ public class RendererControl
 
     return rc;
   }
+
+  public String toString()
+  {
+    StringBuffer buf = new StringBuffer("RendererControl[");
+
+    buf.append("bg=");
+    buf.append(backgroundColor[0]);
+    buf.append('/');
+    buf.append(backgroundColor[1]);
+    buf.append('/');
+    buf.append(backgroundColor[2]);
+
+    buf.append(",cursor=");
+    buf.append(cursorColor[0]);
+    buf.append('/');
+    buf.append(cursorColor[1]);
+    buf.append('/');
+    buf.append(cursorColor[2]);
+
+    buf.append(",box=");
+    buf.append(boxColor[0]);
+    buf.append('/');
+    buf.append(boxColor[1]);
+    buf.append('/');
+    buf.append(boxColor[2]);
+
+    buf.append(',');
+    if (!boxOn) buf.append('!');
+    buf.append("boxOn");
+
+    buf.append(']');
+    return buf.toString();
+  }
 }
