@@ -31,7 +31,7 @@ import java.io.*;
 /**
  * Interface to the abstract superclass of GriddedSet-s and the like.
  */
-interface SampledSetIface
+public interface SampledSetIface
   extends SimpleSetIface
 {
   /**

@@ -31,7 +31,7 @@ import java.io.*;
 /**
  * Interface to the abstract superclass of Sets with a unique ManifoldDimension.
  */
-interface SimpleSetIface
+public interface SimpleSetIface
   extends SetIface
 {
   /**

@@ -32,7 +32,7 @@ import java.io.*;
  * Interface to the abstract superclass of the VisAD hierarchy of sets.<P>
  * Sets are subsets of R^n for n>0.
  */
-interface SetIface
+public interface SetIface
   extends Data
 {
   /**

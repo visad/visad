@@ -31,7 +31,7 @@ import java.io.*;
 /**
  * Gridded1DSetIface is the interface to a finite set of samples of R.<P>
  */
-interface Gridded1DSetIface
+public interface Gridded1DSetIface
   extends GriddedSetIface
 {
   /**
