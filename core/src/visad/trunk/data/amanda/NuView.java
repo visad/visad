@@ -92,15 +92,9 @@ public class NuView
 
     display = new DisplayImplJ3D("amanda");
 
-    JPanel widgetPanel = new JPanel();
-    widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
-    widgetPanel.setMaximumSize(new Dimension(400, 600));
-
     HistogramWidget histoWidget = new HistogramWidget();
 
-    buildMainDisplay(display, file, widgetPanel, histoWidget);
-
-//    widgetPanel.add(Box.createHorizontalGlue());
+    JPanel widgetPanel = buildMainDisplay(display, file, histoWidget);
 
     JPanel displayPanel = (JPanel )display.getComponent();
     Dimension dim = new Dimension(800, 800);
@@ -136,7 +130,6 @@ public class NuView
   }
 
   private static final void buildMainDisplay(DisplayImpl dpy, AmandaFile file,
-                                             JPanel widgetPanel,
                                              HistogramWidget histoWidget)
     throws RemoteException, VisADException
   {
@@ -214,11 +207,19 @@ public class NuView
       animWidget = null;
     }
 
-//    widgetPanel.add(colorWidget);
-    widgetPanel.add(eventWidget);
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setMaximumSize(new Dimension(400, 600));
+
+//    panel.add(colorWidget);
+    panel.add(eventWidget);
     if (animWidget != null) {
-      widgetPanel.add(animWidget);
+      panel.add(animWidget);
     }
+
+//    panel.add(Box.createHorizontalGlue());
+
+    return panel;
   }
 
   public int checkKeyword(String mainName, int thisArg, String[] args)
