@@ -82,5 +82,80 @@ public class TextControl extends Control {
     return size;
   }
 
+  private boolean fontEquals(Font newFont)
+  {
+    if (font == null) {
+      if (newFont != null) {
+        return false;
+      }
+    } else if (newFont == null) {
+      return false;
+    } else if (!font.equals(newFont)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
+
+    if (!(rmt instanceof TextControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    TextControl tc = (TextControl )rmt;
+
+    boolean changed = false;
+
+    if (!fontEquals(tc.font)) {
+      changed = true;
+      font = tc.font;
+    }
+
+    if (center != tc.center) {
+      changed = true;
+      center = tc.center;
+    }
+
+    if (Math.abs(size - tc.size) > 0.0001) {
+      changed = true;
+      size = tc.size;
+    }
+
+    if (changed) {
+      changeControl(true);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof TextControl)) {
+      return false;
+    }
+
+    TextControl tc = (TextControl )o;
+
+    if (!fontEquals(font)) {
+      return false;
+    }
+
+    if (center != tc.center) {
+      return false;
+    }
+
+    if (Math.abs(size - tc.size) > 0.0001) {
+      return false;
+    }
+
+    return true;
+  }
 }
 

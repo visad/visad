@@ -381,5 +381,80 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
-}
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
 
+    if (!(rmt instanceof AnimationControlJ3D)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    AnimationControlJ3D ac = (AnimationControlJ3D )rmt;
+
+    boolean changed = false;
+
+    /* *** DON'T TRY TO SYNC CURRENT FRAME!!! *** */
+    // if (current != ac.current) {
+    //   changed = true;
+    //   if (animationSet != null) {
+    //     current = animationSet.getIndex(ac.current);
+    //     canvas.renderTrigger();
+    //   } else {
+    //     current = 0;
+    //   }
+    // }
+    if (direction != ac.direction) {
+      changed = true;
+      direction = ac.direction;
+    }
+    if (step != ac.step) {
+      changed = true;
+      step = ac.step;
+    }
+    if (animate != ac.animate) {
+      changed = true;
+      animate = ac.animate;
+    }
+    if (real != ac.real) {
+      changed = true;
+      real = ac.real;
+    }
+
+    if (changed) {
+      changeControl(true);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof AnimationControlJ3D)) {
+      return false;
+    }
+
+    AnimationControlJ3D ac = (AnimationControlJ3D )o;
+    /**** IGNORE FRAME POSITION ****/
+    // if (current != ac.current) {
+    //   return false;
+    // }
+    if (direction != ac.direction) {
+      return false;
+    }
+    if (step != ac.step) {
+      return false;
+    }
+    if (animate != ac.animate) {
+      return false;
+    }
+    if (real != ac.real) {
+      return false;
+    }
+
+    return true;
+  }
+}

@@ -122,5 +122,61 @@ public abstract class ProjectionControl extends Control {
 
   public void clearSwitches(DataRenderer re) {
   }
+
+  private boolean matrixEquals(double[] newMatrix)
+  {
+    if (matrix == null) {
+      if (newMatrix != null) {
+        return false;
+      }
+    } else if (newMatrix == null) {
+      return false;
+    } else {
+      if (matrix.length != newMatrix.length) {
+        return false;
+      }
+
+      for (int i = 0; i < matrix.length; i++) {
+        if (Math.abs(matrix[i] - newMatrix[i]) > 0.0001) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+        throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
+
+    if (!(rmt instanceof ProjectionControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    ProjectionControl pc = (ProjectionControl )rmt;
+
+    if (!matrixEquals(pc.matrix)) {
+      setMatrix(pc.matrix);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof ProjectionControl)) {
+      return false;
+    }
+
+    ProjectionControl pc = (ProjectionControl )o;
+
+    return matrixEquals(pc.matrix);
+  }
+
 }
 

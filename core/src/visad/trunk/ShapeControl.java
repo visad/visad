@@ -117,5 +117,93 @@ public class ShapeControl extends Control {
     return sh;
   }
 
+  private boolean shapeSetEquals(SimpleSet newShapeSet)
+  {
+    if (shapeSet == null) {
+      if (newShapeSet != null) {
+        return false;
+      }
+    } else if (newShapeSet == null) {
+      return false;
+    } else if (!shapeSet.equals(newShapeSet)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private boolean shapesEquals(VisADGeometryArray[] newShapes)
+  {
+    if (shapes == null) {
+      if (newShapes != null) {
+        return false;
+      }
+    } else if (newShapes == null) {
+      return false;
+    } else {
+      if (shapes.length != newShapes.length) {
+        return false;
+      }
+
+      for (int i = 0; i < shapes.length; i++) {
+        if (shapes[i] == null) {
+          if (newShapes[i] != null) {
+            return false;
+          }
+        } else if (newShapes[i] == null) {
+          return false;
+        } else if (!shapes[i].equals(newShapes[i])) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
+
+    if (!(rmt instanceof ShapeControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    ShapeControl sc = (ShapeControl )rmt;
+
+    boolean changed = false;
+
+    if (!shapeSetEquals(sc.shapeSet)) {
+      changed = true;
+      shapeSet = sc.shapeSet;
+    }
+
+    if (!shapesEquals(sc.shapes)) {
+      changed = true;
+      shapes = null;
+    }
+
+    if (changed) {
+      changeControl(true);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof ShapeControl)) {
+      return false;
+    }
+
+    ShapeControl sc = (ShapeControl )o;
+
+    return shapeSetEquals(sc.shapeSet) && shapesEquals(sc.shapes);
+  }
+
 }
 

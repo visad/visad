@@ -193,5 +193,9 @@ if (tickFlag) {
     return display;
   }
 
-}
+  /** copy the state of a remote control to this control */
+  public abstract void syncControl(Control rmt)
+    throws RemoteException, VisADException;
 
+  public abstract boolean equals(Object o);
+}

@@ -77,6 +77,57 @@ public class RangeControl extends Control {
     return range;
   }
 
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
+
+    if (!(rmt instanceof RangeControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    RangeControl rc = (RangeControl )rmt;
+
+    boolean changed = false;
+
+    if (Math.abs(RangeLow - rc.RangeLow) > 0.0001) {
+      changed = true;
+      RangeLow = rc.RangeLow;
+    }
+    if (Math.abs(RangeHi - rc.RangeHi) > 0.0001) {
+      changed = true;
+      RangeHi = rc.RangeHi;
+    }
+    initialized = (RangeLow == RangeLow && RangeHi == RangeHi);
+
+    if (changed) {
+      changeControl(true);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof RangeControl)) {
+      return false;
+    }
+
+    RangeControl rc = (RangeControl )o;
+
+    if (Math.abs(RangeLow - rc.RangeLow) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(RangeHi - rc.RangeHi) > 0.0001) {
+      return false;
+    }
+
+    return true;
+  }
+
   public String toString()
   {
     return "RangeControl[" + RangeLow + "," + RangeHi + "]";

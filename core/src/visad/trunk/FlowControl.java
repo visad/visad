@@ -106,4 +106,141 @@ public abstract class FlowControl extends Control {
     return barbOrientation; 
   }
 
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
+
+    if (!(rmt instanceof FlowControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    FlowControl fc = (FlowControl )rmt;
+
+    boolean changed = false;
+
+    if (Math.abs(flowScale - fc.flowScale) > 0.0001) {
+      changed = true;
+      flowScale = fc.flowScale;
+    }
+
+    if (barbOrientation != fc.barbOrientation) {
+      changed = true;
+      barbOrientation = fc.barbOrientation;
+    }
+    if (HorizontalVectorSlice != fc.HorizontalVectorSlice) {
+      changed = true;
+      HorizontalVectorSlice = fc.HorizontalVectorSlice;
+    }
+    if (VerticalVectorSlice != fc.VerticalVectorSlice) {
+      changed = true;
+      VerticalVectorSlice = fc.VerticalVectorSlice;
+    }
+    if (HorizontalStreamSlice != fc.HorizontalStreamSlice) {
+      changed = true;
+      HorizontalStreamSlice = fc.HorizontalStreamSlice;
+    }
+    if (VerticalStreamSlice != fc.VerticalStreamSlice) {
+      changed = true;
+      VerticalStreamSlice = fc.VerticalStreamSlice;
+    }
+    if (TrajectorySet == null) {
+      if (fc.TrajectorySet != null) {
+        changed = true;
+        TrajectorySet = fc.TrajectorySet;
+      }
+    } else if (fc.TrajectorySet == null) {
+      changed = true;
+      TrajectorySet = null;
+    } else if (TrajectorySet.length != fc.TrajectorySet.length) {
+      changed = true;
+      TrajectorySet = fc.TrajectorySet;
+    } else {
+      for (int i = 0; i < TrajectorySet.length; i++) {
+        if (TrajectorySet[i] != fc.TrajectorySet[i]) {
+          changed = true;
+          TrajectorySet[i] = fc.TrajectorySet[i];
+        }
+      }
+    }
+
+    if (Math.abs(HorizontalVectorSliceHeight -
+                 fc.HorizontalVectorSliceHeight) > 0.0001)
+    {
+      changed = true;
+      HorizontalVectorSliceHeight = fc.HorizontalVectorSliceHeight;
+    }
+    if (Math.abs(HorizontalStreamSliceHeight -
+                 fc.HorizontalStreamSliceHeight) > 0.0001)
+    {
+      changed = true;
+      HorizontalStreamSliceHeight = fc.HorizontalStreamSliceHeight;
+    }
+
+    if (changed) {
+      changeControl(true);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof FlowControl)) {
+      return false;
+    }
+
+    FlowControl fc = (FlowControl )o;
+
+    if (Math.abs(flowScale - fc.flowScale) > 0.0001) {
+      return false;
+    }
+
+    if (barbOrientation != fc.barbOrientation) {
+      return false;
+    }
+    if (HorizontalVectorSlice != fc.HorizontalVectorSlice) {
+      return false;
+    }
+    if (VerticalVectorSlice != fc.VerticalVectorSlice) {
+      return false;
+    }
+    if (HorizontalStreamSlice != fc.HorizontalStreamSlice) {
+      return false;
+    }
+    if (VerticalStreamSlice != fc.VerticalStreamSlice) {
+      return false;
+    }
+    if (TrajectorySet == null) {
+      if (fc.TrajectorySet != null) {
+        return false;
+      }
+    } else if (fc.TrajectorySet == null) {
+      return false;
+    } else if (TrajectorySet.length != fc.TrajectorySet.length) {
+      return false;
+    } else {
+      for (int i = 0; i < TrajectorySet.length; i++) {
+        if (TrajectorySet[i] != fc.TrajectorySet[i]) {
+          return false;
+        }
+      }
+    }
+
+    if (Math.abs(HorizontalVectorSliceHeight -
+                 fc.HorizontalVectorSliceHeight) > 0.0001)
+    {
+      return false;
+    }
+    if (Math.abs(HorizontalStreamSliceHeight -
+                 fc.HorizontalStreamSliceHeight) > 0.0001)
+    {
+      return false;
+    }
+
+    return true;
+  }
 }

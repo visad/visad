@@ -57,5 +57,71 @@ public class ToggleControl extends Control {
     changeControl(true);
   }
 
+  private boolean parentEquals(Control newParent)
+  {
+    if (parent == null) {
+      if (newParent != null) {
+        return false;
+      }
+    } else if (newParent == null) {
+      return false;
+    } else if (!parent.equals(newParent)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
+
+    if (!(rmt instanceof ToggleControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    ToggleControl tc = (ToggleControl )rmt;
+
+    boolean changed = false;
+
+    if (on != tc.on) {
+      changed = true;
+      on = tc.on;
+    }
+
+    if (!parentEquals(tc.parent)) {
+      changed = true;
+      parent = tc.parent;
+    }
+
+    if (changed) {
+      changeControl(true);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof ToggleControl)) {
+      return false;
+    }
+
+    ToggleControl tc = (ToggleControl )o;
+
+    if (on != tc.on) {
+      return false;
+    }
+
+    if (!parentEquals(tc.parent)) {
+      return false;
+    }
+
+    return true;
+  }
 }
 

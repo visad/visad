@@ -224,5 +224,128 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     return mode;
   }
 
-}
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
 
+    if (!(rmt instanceof GraphicsModeControlJ2D)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    GraphicsModeControlJ2D rmtCtl = (GraphicsModeControlJ2D )rmt;
+
+    boolean changed = false;
+    boolean redisplay = false;
+
+    if (Math.abs(lineWidth - rmtCtl.lineWidth) > 0.0001) {
+      changed = true;
+      redisplay = true;
+      lineWidth = rmtCtl.lineWidth;
+    }
+    if (Math.abs(pointSize - rmtCtl.pointSize) > 0.0001) {
+      changed = true;
+      redisplay = true;
+      pointSize = rmtCtl.pointSize;
+    }
+
+    if (pointMode != rmtCtl.pointMode) {
+      changed = true;
+      redisplay = true;
+      pointMode = rmtCtl.pointMode;
+    }
+    if (textureEnable != rmtCtl.textureEnable) {
+      changed = true;
+      redisplay = true;
+      textureEnable = rmtCtl.textureEnable;
+    }
+    if (scaleEnable != rmtCtl.scaleEnable) {
+      changed = true;
+      scaleEnable = rmtCtl.scaleEnable;
+      getDisplayRenderer().setScaleOn(scaleEnable);
+    }
+
+    if (transparencyMode != rmtCtl.transparencyMode) {
+      changed = true;
+      transparencyMode = rmtCtl.transparencyMode;
+    }
+    if (projectionPolicy != rmtCtl.projectionPolicy) {
+      changed = true;
+      projectionPolicy = rmtCtl.projectionPolicy;
+    }
+    if (polygonMode != rmtCtl.polygonMode) {
+      changed = true;
+      polygonMode = rmtCtl.polygonMode;
+    }
+
+    if (missingTransparent != rmtCtl.missingTransparent) {
+      changed = true;
+      missingTransparent = rmtCtl.missingTransparent;
+    }
+
+    if (curvedSize != rmtCtl.curvedSize) {
+      changed = true;
+      curvedSize = rmtCtl.curvedSize;
+    }
+
+    if (changed) {
+      changeControl(true);
+    }
+    if (redisplay) {
+      getDisplay().reDisplayAll();
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof GraphicsModeControlJ2D)) {
+      return false;
+    }
+
+    GraphicsModeControlJ2D gmc = (GraphicsModeControlJ2D )o;
+
+    boolean changed = false;
+
+    if (Math.abs(lineWidth - gmc.lineWidth) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(pointSize - gmc.pointSize) > 0.0001) {
+      return false;
+    }
+
+    if (pointMode != gmc.pointMode) {
+      return false;
+    }
+    if (textureEnable != gmc.textureEnable) {
+      return false;
+    }
+    if (scaleEnable != gmc.scaleEnable) {
+      return false;
+    }
+
+    if (transparencyMode != gmc.transparencyMode) {
+      return false;
+    }
+    if (projectionPolicy != gmc.projectionPolicy) {
+      return false;
+    }
+    if (polygonMode != gmc.polygonMode) {
+      return false;
+    }
+
+    if (missingTransparent != gmc.missingTransparent) {
+      return false;
+    }
+
+    if (curvedSize != gmc.curvedSize) {
+      return false;
+    }
+
+    return true;
+  }
+}

@@ -399,5 +399,82 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     }
   }
 
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
+
+    if (!(rmt instanceof AnimationControlJ2D)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    AnimationControlJ2D ac = (AnimationControlJ2D )rmt;
+
+    boolean changed = false;
+
+    /* *** DON'T TRY TO SYNC CURRENT FRAME!!! *** */
+    // if (current != ac.current) {
+    //   changed = true;
+    //   if (animationSet != null) {
+    //     current = animationSet.getIndex(ac.current);
+    //     canvas.renderTrigger();
+    //   } else {
+    //     current = 0;
+    //   }
+    // }
+    if (direction != ac.direction) {
+      changed = true;
+      direction = ac.direction;
+    }
+    if (animate != ac.animate) {
+      changed = true;
+      animate = ac.animate;
+    }
+    if (real != ac.real) {
+      changed = true;
+      real = ac.real;
+    }
+    if (no_tick != ac.no_tick) {
+      changed = true;
+      no_tick = ac.no_tick;
+    }
+
+    if (changed) {
+      changeControl(true);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof AnimationControlJ2D)) {
+      return false;
+    }
+
+    AnimationControlJ2D ac = (AnimationControlJ2D )o;
+    /**** IGNORE FRAME POSITION ****/
+    // if (current != ac.current) {
+    //   return false;
+    // }
+    if (direction != ac.direction) {
+      return false;
+    }
+    if (animate != ac.animate) {
+      return false;
+    }
+    if (real != ac.real) {
+      return false;
+    }
+    if (no_tick != ac.no_tick) {
+      return false;
+    }
+
+    return true;
+  }
+
 }
 

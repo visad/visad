@@ -239,4 +239,123 @@ public abstract class BaseColorControl extends Control {
     }
     return colors;
   }
+
+  private boolean tableEquals(float[][] newTable)
+  {
+    if (table == null) {
+      if (newTable != null) {
+        return false;
+      }
+    } else if (newTable == null) {
+      return false;
+    } else {
+      if (table.length != newTable.length) {
+        return false;
+      } else {
+        int i;
+        for (i = 0; i < table.length; i++) {
+          if (table[i].length != newTable[i].length) {
+            return false;
+          }
+        }
+        for (i = 0; i < table.length; i++) {
+          for (int j = 0; j < table[i].length; j++) {
+            if (Math.abs(table[i][j] - newTable[i][j]) > 0.0001) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private boolean functionEquals(Function newFunc)
+  {
+    if (function == null) {
+      if (newFunc != null) {
+        return false;
+      }
+    } else if (newFunc == null) {
+      return false;
+    } else if (!function.equals(newFunc)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+    throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
+
+    if (!(rmt instanceof BaseColorControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    BaseColorControl bcc = (BaseColorControl )rmt;
+
+    boolean changed = false;
+
+    boolean tableChanged = !tableEquals(bcc.table);
+    boolean functionChanged = !functionEquals(bcc.function);
+
+    if (tableChanged) {
+      if (bcc.table == null) {
+        if (functionChanged ? bcc.function == null : function == null) {
+          throw new RemoteException("BaseColorControl has null Table," +
+                                    " but no Function");
+        }
+
+        table = null;
+      } else {
+        synchronized (lock) {
+          table = bcc.table;
+          tableLength = table[0].length - 1;
+          function = null;
+          changeControl(true);
+        }
+      }
+    }
+    if (functionChanged) {
+      if (bcc.function == null) {
+        if (table == null) {
+          throw new RemoteException("ColorControl has null Function," +
+                                    " but no Table");
+        }
+
+        function = null;
+      } else {
+        setFunction(bcc.function);
+      }
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof BaseColorControl)) {
+      return false;
+    }
+
+    BaseColorControl bcc = (BaseColorControl )o;
+
+    if (tableLength != bcc.tableLength) {
+      return false;
+    }
+    if (!tableEquals(bcc.table)) {
+      return false;
+    }
+    if (!functionEquals(bcc.function)) {
+      return false;
+    }
+
+    return true;
+  }
 }

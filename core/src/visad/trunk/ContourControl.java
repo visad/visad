@@ -282,5 +282,217 @@ public class ContourControl extends Control {
     fvalues[4] = base;
   }
 
-}
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+        throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
 
+    if (!(rmt instanceof ContourControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    ContourControl cc = (ContourControl )rmt;
+
+    boolean changed = false;
+
+    if (mainContours != cc.mainContours) {
+      changed = true;
+      mainContours = cc.mainContours;
+    }
+    if (surfaceValue != cc.surfaceValue) {
+      changed = true;
+      surfaceValue = cc.surfaceValue;
+    }
+
+    if (Math.abs(contourInterval - cc.contourInterval) > 0.0001) {
+      changed = true;
+      contourInterval = cc.contourInterval;
+    }
+    if (Math.abs(lowLimit - cc.lowLimit) > 0.0001) {
+      changed = true;
+      lowLimit = cc.lowLimit;
+    }
+    if (Math.abs(hiLimit - cc.hiLimit) > 0.0001) {
+      changed = true;
+      hiLimit = cc.hiLimit;
+    }
+    if (Math.abs(base - cc.base) > 0.0001) {
+      changed = true;
+      base = cc.base;
+    }
+
+    if (labels != cc.labels) {
+      changed = true;
+      labels = cc.labels;
+    }
+    if (arithmeticProgression != cc.arithmeticProgression) {
+      changed = true;
+      arithmeticProgression = cc.arithmeticProgression;
+    }
+
+    if (cc.levels == null) {
+      if (levels != null) {
+        changed = true;
+        levels = null;
+      }
+    } else {
+      // make sure array lengths match
+      if (levels == null || levels.length != cc.levels.length) {
+        changed = true;
+        levels = new float[cc.levels.length];
+        for (int i = 0; i < levels.length; i++) {
+          levels[i] = 0;
+        }
+      }
+      // copy remote values
+      for (int i = 0; i < levels.length; i++) {
+        if (Math.abs(levels[i] - cc.levels[i]) > 0.0001) {
+          changed = true;
+          levels[i] = cc.levels[i];
+        }
+      }
+    }
+
+    if (Math.abs(base - cc.base) > 0.0001) {
+      changed = true;
+      base = cc.base;
+    }
+
+    if (dash != cc.dash) {
+      changed = true;
+      dash = cc.dash;
+    }
+
+    if (horizontalContourSlice != cc.horizontalContourSlice) {
+      changed = true;
+      horizontalContourSlice = cc.horizontalContourSlice;
+    }
+    if (verticalContourSlice != cc.verticalContourSlice) {
+      changed = true;
+      verticalContourSlice = cc.verticalContourSlice;
+    }
+
+    if (Math.abs(horizontalSliceLow - cc.horizontalSliceLow) > 0.0001) {
+      changed = true;
+      horizontalSliceLow = cc.horizontalSliceLow;
+    }
+    if (Math.abs(horizontalSliceHi - cc.horizontalSliceHi) > 0.0001) {
+      changed = true;
+      horizontalSliceHi = cc.horizontalSliceHi;
+    }
+    if (Math.abs(horizontalSliceStep - cc.horizontalSliceStep) > 0.0001) {
+      changed = true;
+      horizontalSliceStep = cc.horizontalSliceStep;
+    }
+    if (Math.abs(verticalSliceLow - cc.verticalSliceLow) > 0.0001) {
+      changed = true;
+      verticalSliceLow = cc.verticalSliceLow;
+    }
+    if (Math.abs(verticalSliceHi - cc.verticalSliceHi) > 0.0001) {
+      changed = true;
+      verticalSliceHi = cc.verticalSliceHi;
+    }
+    if (Math.abs(verticalSliceStep - cc.verticalSliceStep) > 0.0001) {
+      changed = true;
+      verticalSliceStep = cc.verticalSliceStep;
+    }
+
+    if (changed) {
+      changeControl(true);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof ContourControl)) {
+      return false;
+    }
+
+    ContourControl cc = (ContourControl )o;
+
+    if (mainContours != cc.mainContours) {
+      return false;
+    }
+    if (Math.abs(surfaceValue - cc.surfaceValue) > 0.0001) {
+      return false;
+    }
+
+    if (Math.abs(contourInterval - cc.contourInterval) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(lowLimit - cc.lowLimit) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(hiLimit - cc.hiLimit) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(base - cc.base) > 0.0001) {
+      return false;
+    }
+
+    if (labels != cc.labels) {
+      return false;
+    }
+    if (arithmeticProgression != cc.arithmeticProgression) {
+      return false;
+    }
+
+    if (levels == null) {
+      if (cc.levels != null) {
+	return false;
+      }
+    } else {
+      // make sure array lengths match
+      if (cc.levels == null || levels.length != cc.levels.length) {
+	return false;
+      }
+      // copy remote values
+      for (int i = 0; i < levels.length; i++) {
+        if (Math.abs(levels[i] - cc.levels[i]) > 0.0001) {
+	  return false;
+        }
+      }
+    }
+
+    if (Math.abs(base - cc.base) > 0.0001) {
+      return false;
+    }
+
+    if (dash != cc.dash) {
+      return false;
+    }
+
+    if (horizontalContourSlice != cc.horizontalContourSlice) {
+      return false;
+    }
+    if (verticalContourSlice != cc.verticalContourSlice) {
+      return false;
+    }
+
+    if (Math.abs(horizontalSliceLow - cc.horizontalSliceLow) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(horizontalSliceHi - cc.horizontalSliceHi) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(horizontalSliceStep - cc.horizontalSliceStep) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(verticalSliceLow - cc.verticalSliceLow) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(verticalSliceHi - cc.verticalSliceHi) > 0.0001) {
+      return false;
+    }
+    if (Math.abs(verticalSliceStep - cc.verticalSliceStep) > 0.0001) {
+      return false;
+    }
+
+    return true;
+  }
+}

@@ -65,5 +65,45 @@ public class ValueControlJ2D extends AVControlJ2D
     return Value;
   }
 
-}
+  /** copy the state of a remote control to this control */
+  public void syncControl(Control rmt)
+        throws RemoteException, VisADException
+  {
+    if (rmt == null) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with null Control object");
+    }
 
+    if (!(rmt instanceof ValueControl)) {
+      throw new RemoteException("Cannot synchronize " + getClass().getName() +
+                                " with " + rmt.getClass().getName());
+    }
+
+    ValueControl vc = (ValueControl )rmt;
+
+    boolean changed = false;
+
+    double v = getValue();
+    double rv = vc.getValue();
+    if (Math.abs(v - rv) > 0.001) {
+      setValue(rv);
+    }
+  }
+
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof ValueControl)) {
+      return false;
+    }
+
+    ValueControl vc = (ValueControl )o;
+
+    double v = getValue();
+    double rv = vc.getValue();
+    if (Math.abs(v - rv) > 0.001) {
+      return false;
+    }
+
+    return true;
+  }
+}
