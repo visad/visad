@@ -87,9 +87,11 @@ public class MouseBehaviorJ3D extends Behavior
         System.out.println("MouseBehaviorJ3D.processStimulus: non-" +
                             "WakeupOnAWTEvent");
       }
-      AWTEvent[] events = ((WakeupOnAWTEvent) wakeup).getAWTEvent();
-      for (int i=0; i<events.length; i++) {
-        helper.processEvent(events[i]);
+      else {
+        AWTEvent[] events = ((WakeupOnAWTEvent) wakeup).getAWTEvent();
+        for (int i=0; i<events.length; i++) {
+          helper.processEvent(events[i]);
+        }
       }
     }
     setWakeup();
