@@ -171,7 +171,14 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
   /** used for testing equality */
   private RemoteClusterData me = null;
 
+  private MathType type = null;
+
   public RemoteClusterDataImpl()
+          throws RemoteException {
+    this(null);
+  }
+
+  public RemoteClusterDataImpl(MathType t)
           throws RemoteException {
     super(null); // RemoteDataImpl.AdaptedData =
                  // RemoteThingImpl.AdaptedThing = null
@@ -180,6 +187,8 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
     adaptedThingImpl = new ThingImpl();
     adaptedRemoteThingImpl = new RemoteThingImpl(adaptedThingImpl);
     me = this;
+
+    type = t;
   }
 
   /** return RemoteClusterData for JVM where data resides;
@@ -269,6 +278,10 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
   }
   public void removeReference(ThingReference r) throws VisADException {
     adaptedRemoteThingImpl.removeReference(r);
+  }
+
+  public MathType getType() {
+    return type;
   }
 
 /* MUST OVER-RIDE

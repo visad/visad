@@ -104,8 +104,11 @@ public class Tuple extends DataImpl implements TupleIface {
   }
 
   /** make a TupleType for an array of Data */
-  static TupleType buildTupleType(Data[] datums)
+  public static TupleType buildTupleType(Data[] datums)
          throws VisADException, RemoteException {
+    if (datums == null) {
+      throw new TypeException("Tuple: # components must be > 0");
+    }
     int n = datums.length;
     if (n < 1) {
       throw new TypeException("Tuple: # components must be > 0");
