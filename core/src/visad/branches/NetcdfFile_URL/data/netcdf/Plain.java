@@ -3,26 +3,27 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.19 2000-06-26 20:54:38 steve Exp $
+ * $Id: Plain.java,v 1.19.2.1 2001-05-15 22:56:41 steve Exp $
  */
 
 package visad.data.netcdf;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import ucar.netcdf.NetcdfFile;
 import ucar.netcdf.Schema;
 import ucar.netcdf.Variable;
 import ucar.netcdf.VariableIterator;
-import visad.Data;
-import visad.DataImpl;
-import visad.UnimplementedException;
-import visad.VisADException;
 import visad.data.BadFormException;
 import visad.data.FormNode;
 import visad.data.netcdf.in.*;
 import visad.data.netcdf.out.VisADAdapter;
+import visad.Data;
+import visad.DataImpl;
+import visad.UnimplementedException;
+import visad.VisADException;
 
 
 /**
@@ -183,14 +184,17 @@ Plain
      *
      * @param url	The URL of the netCDF dataset.
      * @return		A VisAD object corresponding to the netCDF datset.
-     * @exception UnimplementedException
-     *			Not implemented yet.  Always thrown.
+     * @throws IOException
+     *			Open failure.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
      */
     public synchronized DataImpl
     open (URL url)
-	throws UnimplementedException
+	throws IOException, VisADException
     {
-	throw new UnimplementedException("open(URL)");
+	return new NetcdfAdapter(new NetcdfFile(url), quantityDB).getData();
     }
 
 
@@ -245,7 +249,16 @@ Plain
 
 	System.out.println("Opening netCDF dataset \"" + inPath + "\"");
 
-	Data	data = plain.open(inPath);
+	Data	data;
+	try
+	{
+	    URL	url = new URL(inPath);
+	    data = plain.open(url);
+	}
+	catch (MalformedURLException e)
+	{
+	    data = plain.open(inPath);
+	}
 
 	System.out.println("Data:\n" + data);
 	// System.out.println("data.getType().toString():\n" +
