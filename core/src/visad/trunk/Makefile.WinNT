@@ -80,23 +80,13 @@ gnu\regexp\*.java \
 HTTPClient\0* \
 HTTPClient\*.html \
 HTTPClient\*.java \
-ij\*.java \
-ij\gui\*.java \
-ij\io\*.java \
-ij\measure\*.java \
-ij\plugin\*.java \
-ij\plugin\filter\*.java \
-ij\plugin\frame\*.java \
-ij\process\*.java \
-ij\text\*.java \
-ij\util\*.java
-
-JAR_FILES2 = \
 ncsa\hdf\hdf5lib\*.java \
 ncsa\hdf\hdf5lib\exceptions\*.java \
 nom\tam\fits\*.java \
 nom\tam\util\*.java \
-nom\tam\test\*.java \
+nom\tam\test\*.java
+
+JAR_FILES2 = \
 ucar\COPYRIGHT \
 ucar\VERSION \
 ucar\multiarray\*.java \
@@ -339,16 +329,6 @@ ncsa\hdf\hdf5lib\*.java \
 ncsa\hdf\hdf5lib\exceptions\*.java
 
 SAVE_FILES2 = \
-ij\*.java \
-ij\gui\*.java \
-ij\io\*.java \
-ij\measure\*.java \
-ij\plugin\*.java \
-ij\plugin\filter\*.java \
-ij\plugin\frame\*.java \
-ij\process\*.java \
-ij\text\*.java \
-ij\util\*.java \
 visad\jmet\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
@@ -590,16 +570,6 @@ visad\data\jai\*.class \
 visad\data\qt\*.class \
 visad\data\gif\*.class \
 visad\data\gis\*.class \
-ij\*.class \
-ij\gui\*.class \
-ij\io\*.class \
-ij\measure\*.class \
-ij\plugin\*.class \
-ij\plugin\filter\*.class \
-ij\plugin\frame\*.class \
-ij\process\*.class \
-ij\text\*.class \
-ij\util\*.class \
 visad\data\tiff\*.class \
 visad\data\visad\*.class \
 visad\data\visad\object\*.class \
@@ -680,16 +650,6 @@ clear:
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
 	if exist data\gif\*.java $(DEL) data\gif\*.java
 	if exist data\gis\*.java $(DEL) data\gis\*.java
-	if exist ..\ij\*.java $(DEL) ..\ij\*.java
-	if exist ..\ij\gui\*.java $(DEL) ..\ij\gui\*.java
-	if exist ..\ij\io\*.java $(DEL) ..\ij\io\*.java
-	if exist ..\ij\measure\*.java $(DEL) ..\ij\measure\*.java
-	if exist ..\ij\plugin\*.java $(DEL) ..\ij\plugin\*.java
-	if exist ..\ij\plugin\filter\*.java $(DEL) ..\ij\plugin\filter\*.java
-	if exist ..\ij\plugin\frame\*.java $(DEL) ..\ij\plugin\frame\*.java
-	if exist ..\ij\process\*.java $(DEL) ..\ij\process\*.java
-	if exist ..\ij\text\*.java $(DEL) ..\ij\text\*.java
-	if exist ..\ij\util\*.java $(DEL) ..\ij\util\*.java
 	if exist data\tiff\*.java $(DEL) data\tiff\*.java
 	if exist ..\edu\wisc\ssec\mcidas\*.java $(DEL) ..\edu\wisc\ssec\mcidas\*.java
 	if exist ..\edu\wisc\ssec\mcidas\adde\*.java $(DEL) ..\edu\wisc\ssec\mcidas\adde\*.java
@@ -765,16 +725,6 @@ clean:
 	if exist data\qt\*.class $(DEL) data\qt\*.class
 	if exist data\gif\*.class $(DEL) data\gif\*.class
 	if exist data\gis\*.class $(DEL) data\gis\*.class
-	if exist ..\ij\*.class $(DEL) ..\ij\*.class
-	if exist ..\ij\gui\*.class $(DEL) ..\ij\gui\*.class
-	if exist ..\ij\io\*.class $(DEL) ..\ij\io\*.class
-	if exist ..\ij\measure\*.class $(DEL) ..\ij\measure\*.class
-	if exist ..\ij\plugin\*.class $(DEL) ..\ij\plugin\*.class
-	if exist ..\ij\plugin\filter\*.class $(DEL) ..\ij\plugin\filter\*.class
-	if exist ..\ij\plugin\frame\*.class $(DEL) ..\ij\plugin\frame\*.class
-	if exist ..\ij\process\*.class $(DEL) ..\ij\process\*.class
-	if exist ..\ij\text\*.class $(DEL) ..\ij\text\*.class
-	if exist ..\ij\util\*.class $(DEL) ..\ij\util\*.class
 	if exist data\tiff\*.class $(DEL) data\tiff\*.class
 	if exist data\visad\*.class $(DEL) data\visad\*.class
 	if exist data\visad\object\*.class $(DEL) data\visad\object\*.class
@@ -867,16 +817,6 @@ data\jai\*.class \
 data\qt\*.class \
 data\gif\*.class \
 data\gis\*.class \
-..\ij\*.class \
-..\ij\gui\*.class \
-..\ij\io\*.class \
-..\ij\measure\*.class \
-..\ij\plugin\*.class \
-..\ij\plugin\filter\*.class \
-..\ij\plugin\frame\*.class \
-..\ij\process\*.class \
-..\ij\text\*.class \
-..\ij\util\*.class \
 data\tiff\*.class \
 data\visad\*.class \
 data\visad\object\*.class \
@@ -953,16 +893,6 @@ compile: clean
 	$(JC) $(JFLAGS) data\qt\*.java
 	$(JC) $(JFLAGS) data\gif\*.java
 	$(JC) $(JFLAGS) data\gis\*.java
-	$(JC) $(JFLAGS) ..\ij\*.java
-	$(JC) $(JFLAGS) ..\ij\gui\*.java
-	$(JC) $(JFLAGS) ..\ij\io\*.java
-	$(JC) $(JFLAGS) ..\ij\measure\*.java
-	$(JC) $(JFLAGS) ..\ij\plugin\*.java
-	$(JC) $(JFLAGS) ..\ij\plugin\filter\*.java
-	$(JC) $(JFLAGS) ..\ij\plugin\frame\*.java
-	$(JC) $(JFLAGS) ..\ij\process\*.java
-	$(JC) $(JFLAGS) ..\ij\text\*.java
-	$(JC) $(JFLAGS) ..\ij\util\*.java
 	$(JC) $(JFLAGS) data\tiff\*.java
 	$(JC) $(JFLAGS) data\visad\*.java
 	$(JC) $(JFLAGS) data\visad\object\*.java
@@ -1046,16 +976,6 @@ visad.data.hdfeos.hdfeosc \
 visad.data.vis5d \
 visad.data.gif \
 visad.data.gis \
-ij \
-ij.gui \
-ij.io \
-ij.measure \
-ij.plugin \
-ij.plugin.filter \
-ij.plugin.frame \
-ij.process \
-ij.text \
-ij.util \
 visad.data.tiff \
 edu.wisc.ssec.mcidas \
 visad.data.mcidas \

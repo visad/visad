@@ -237,16 +237,6 @@ SAVE_FILES = \
 	visad/data/text/example2.csv			\
 	visad/data/text/example3.txt			\
 	visad/data/text/README.text			\
-	ij/*.java					\
-	ij/gui/*.java					\
-	ij/io/*.java					\
-	ij/measure/*.java				\
-	ij/plugin/*.java				\
-	ij/plugin/filter/*.java				\
-	ij/plugin/frame/*.java				\
-	ij/process/*.java				\
-	ij/text/*.java					\
-	ij/util/*.java					\
 	visad/data/tiff/*.java				\
 	visad/data/visad/*.java				\
 	visad/data/visad/object/*.java			\
@@ -345,16 +335,6 @@ DOC_PACKAGES = \
 		visad.data.gif \
 		visad.data.gis \
 		visad.data.text \
-		ij \
-		ij.gui \
-		ij.io \
-		ij.measure \
-		ij.plugin \
-		ij.plugin.filter \
-		ij.plugin.frame \
-		ij.process \
-		ij.text \
-		ij.util \
 		visad.data.tiff \
 		visad.data.visad \
 		visad.data.visad.object \
