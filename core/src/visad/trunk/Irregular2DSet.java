@@ -234,6 +234,10 @@ public class Irregular2DSet extends IrregularSet {
       throw new SetException("Irregular2DSet.valueToTri: lengths " +
                              "don't match");
     }
+    if (Delan == null) {
+      throw new SetException("Irregular2DSet.valueToTri: triangulation " +
+                             "undefined");
+    }
     int[] tri = new int[length];
     int curtri = 0;
     for (int i=0; i<length; i++) {
