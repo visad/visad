@@ -96,8 +96,12 @@ public class MouseBehaviorJ2D implements MouseBehavior {
     return ray;
   }
 
+  public double[] make_translate(double transx, double transy, double transz) {
+    return make_matrix(0.0, 0.0, 0.0, 1.0, transx, -transy, transz);
+  }
+
   public double[] make_translate(double transx, double transy) {
-    return make_matrix(0.0, 0.0, 0.0, 1.0, transx, -transy, 0.0);
+    return make_translate(transx, transy, 0.0);
   }
 
   public double[] multiply_matrix(double[] a, double[] b) {

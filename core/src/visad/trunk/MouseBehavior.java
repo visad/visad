@@ -49,5 +49,7 @@ public interface MouseBehavior {
 
   double[] make_translate(double transx, double transy);
 
+  double[] make_translate(double transx, double transy, double transz);
+
 }
 

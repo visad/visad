@@ -32,6 +32,8 @@ import java.rmi.*;
 import java.awt.*;
 import java.util.*;
 
+import visad.browser.Convert;
+
 /**
    MouseHelper is the VisAD helper class for MouseBehaviorJ3D
    and MouseBehaviorJ2D.<p>
@@ -50,6 +52,8 @@ public class MouseHelper
   /** ProjectionControl for Display */
   private ProjectionControl proj;
 
+  private double xymul;
+
   DataRenderer direct_renderer = null;
 
   /** matrix from ProjectionControl when mousePressed1 (left) */
@@ -58,6 +62,8 @@ public class MouseHelper
   /** screen location when mousePressed1 or mousePressed3 */
   private int start_x, start_y;
   private double xmul, ymul;
+  private double[] xtrans = new double[3];
+  private double[] ytrans = new double[3];
 
   /** mouse in window */
   private boolean mouseEntered;
@@ -99,16 +105,53 @@ public class MouseHelper
     t1Pressed = false;
     z2Pressed = false;
     t2Pressed = false;
-
   }
 
   public void processEvent(AWTEvent event) {
     processEvent(event, VisADEvent.LOCAL_SOURCE);
   }
 
+  // WLH 17 Aug 2000
+  private boolean first = true;
+
   /** process the given event, treating it as coming from a remote source
       if remote flag is set */
   public void processEvent(AWTEvent event, int remoteId) {
+
+    // WLH 17 Aug 2000
+    if (first) {
+      start_x = 0;
+      start_y = 0;
+      VisADRay start_ray = behavior.findRay(start_x, start_y);
+      VisADRay start_ray_x = behavior.findRay(start_x + 1, start_y);
+      VisADRay start_ray_y = behavior.findRay(start_x, start_y + 1);
+
+      double[] tstart = proj.getMatrix();
+      double[] rot = new double[3];
+      double[] scale = new double[1];
+      double[] trans = new double[3];
+      behavior.instance_unmake_matrix(rot, scale, trans, tstart);
+      double[] trot = behavior.make_matrix(rot[0], rot[1], rot[2],
+                                           scale[0], 0.0, 0.0, 0.0);
+      double[] xmat = behavior.make_translate(
+                         start_ray_x.position[0] - start_ray.position[0],
+                         start_ray_x.position[1] - start_ray.position[1],
+                         start_ray_x.position[2] - start_ray.position[2]);
+      double[] ymat = behavior.make_translate(
+                         start_ray_y.position[0] - start_ray.position[0],
+                         start_ray_y.position[1] - start_ray.position[1],
+                         start_ray_y.position[2] - start_ray.position[2]);
+      double[] xmatmul = behavior.multiply_matrix(trot, xmat);
+      double[] ymatmul = behavior.multiply_matrix(trot, ymat);
+      behavior.instance_unmake_matrix(rot, scale, trans, xmatmul);
+      double xmul = trans[0];
+      behavior.instance_unmake_matrix(rot, scale, trans, ymatmul);
+      double ymul = trans[1];
+      xymul = Math.sqrt(xmul * xmul + ymul * ymul);
+      // System.out.println("xymul = " + xymul);
+      first = false;
+    }
+
     if (!(event instanceof MouseEvent)) {
       System.out.println("MouseHelper.processStimulus: non-" +
                          "MouseEvent");
@@ -236,19 +279,58 @@ event_switch:
             start_x = ((MouseEvent) event).getX();
             start_y = ((MouseEvent) event).getY();
 
+            // WLH 9 Aug 2000
             VisADRay start_ray = behavior.findRay(start_x, start_y);
-            VisADRay start_ray_x = behavior.findRay(start_x + 100, start_y);
-            VisADRay start_ray_y = behavior.findRay(start_x, start_y + 100);
-            xmul = 0.01 * (start_ray_x.position[0] - start_ray.position[0]);
-            ymul = 0.01 * (start_ray_y.position[1] - start_ray.position[1]);
+            VisADRay start_ray_x = behavior.findRay(start_x + 1, start_y);
+            VisADRay start_ray_y = behavior.findRay(start_x, start_y + 1);
 
             tstart = proj.getMatrix();
+            // print_matrix("tstart", tstart);
             double[] rot = new double[3];
             double[] scale = new double[1];
             double[] trans = new double[3];
             behavior.instance_unmake_matrix(rot, scale, trans, tstart);
-            xmul = xmul * scale[0];
-            ymul = ymul * scale[0];
+            double sts = scale[0];
+            double[] trot = behavior.make_matrix(rot[0], rot[1], rot[2],
+                                                 scale[0], 0.0, 0.0, 0.0);
+            // print_matrix("trot", trot);
+
+            // WLH 17 Aug 2000
+            double[] xmat = behavior.make_translate(
+                               start_ray_x.position[0] - start_ray.position[0],
+                               start_ray_x.position[1] - start_ray.position[1],
+                               start_ray_x.position[2] - start_ray.position[2]);
+            double[] ymat = behavior.make_translate(
+                               start_ray_y.position[0] - start_ray.position[0],
+                               start_ray_y.position[1] - start_ray.position[1],
+                               start_ray_y.position[2] - start_ray.position[2]);
+            double[] xmatmul = behavior.multiply_matrix(trot, xmat);
+            double[] ymatmul = behavior.multiply_matrix(trot, ymat);
+/*
+            print_matrix("xmat", xmat);
+            print_matrix("ymat", ymat);
+            print_matrix("xmatmul", xmatmul);
+            print_matrix("ymatmul", ymatmul);
+*/
+            behavior.instance_unmake_matrix(rot, scale, trans, xmatmul);
+            xmul = trans[0];
+            behavior.instance_unmake_matrix(rot, scale, trans, ymatmul);
+            ymul = trans[1];
+
+            double factor = xymul / Math.sqrt(xmul * xmul + ymul * ymul);
+            xmul *= factor;
+            ymul *= factor;
+
+            // horrible hack, WLH 17 Aug 2000
+            if (behavior instanceof visad.java2d.MouseBehaviorJ2D) {
+              xmul = Math.abs(xmul);
+              ymul = -Math.abs(ymul);
+            }
+/*
+            System.out.println("xmul = " + Convert.shortString(xmul) +
+                               " ymul = " + Convert.shortString(ymul) +
+                               " scale = " + Convert.shortString(sts));
+*/
 
             if (mshift != 0) {
               z1Pressed = true;
@@ -276,19 +358,7 @@ event_switch:
             start_x = ((MouseEvent) event).getX();
             start_y = ((MouseEvent) event).getY();
 
-            VisADRay start_ray = behavior.findRay(start_x, start_y);
-            VisADRay start_ray_x = behavior.findRay(start_x + 1, start_y);
-            VisADRay start_ray_y = behavior.findRay(start_x, start_y + 1);
-            xmul = 0.01 * (start_ray_x.position[0] - start_ray.position[0]);
-            ymul = 0.01 * (start_ray_y.position[1] - start_ray.position[1]);
-
             tstart = proj.getMatrix();
-            double[] rot = new double[3];
-            double[] scale = new double[1];
-            double[] trans = new double[3];
-            behavior.instance_unmake_matrix(rot, scale, trans, tstart);
-            xmul = xmul * scale[0];
-            ymul = ymul * scale[0];
 
             if (mshift != 0) {
               z2Pressed = true;
@@ -494,9 +564,13 @@ event_switch:
             }
             else if (t1Pressed) {
               // current_x, current_y -> translate
+              // WLH 9 Aug 2000
               double transx = xmul * (start_x - current_x);
               double transy = ymul * (start_y - current_y);
+              // System.out.println("xmul = " + xmul + " ymul = " + ymul);
+              // System.out.println("transx = " + transx + " transy = " + transy);
               t1 = behavior.make_translate(-transx, -transy);
+
 /* WLH 9 Aug 2000
               double transx =
                 (start_x - current_x) * -2.0 / (double) d.width;
@@ -582,6 +656,20 @@ event_switch:
                            "not recognized " + event.getID());
         break;
     }
+  }
+
+  public void print_matrix(String title, double[] m) {
+    double[] rot = new double[3];
+    double[] scale = new double[1];
+    double[] trans = new double[3];
+    behavior.instance_unmake_matrix(rot, scale, trans, m);
+    System.out.println(title + " = (" + Convert.shortString(rot[0]) + ", " +
+                       Convert.shortString(rot[1])  + ", " +
+                       Convert.shortString(rot[2]) + "), " +
+                       Convert.shortString(scale[0]) + ", (" +
+                       Convert.shortString(trans[0]) + ", " +
+                       Convert.shortString(trans[1]) + ", " +
+                       Convert.shortString(trans[2]) + ")");
   }
 
   public void rendererDeleted(DataRenderer renderer)
