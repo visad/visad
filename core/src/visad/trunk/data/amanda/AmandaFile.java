@@ -186,26 +186,24 @@ public class AmandaFile
 
       if (keyword.equals("om")) {
         Module module = readOMLine(line, tok);
-        if (module == null) {
-          continue;
-        }
+        if (module != null) {
+          modules.add(module);
 
-        modules.add(module);
-
-        final float x = module.getX();
-        if (x == x) {
-          if (x < xmin) xmin = x;
-          if (x > xmax) xmax = x;
-        }
-        final float y = module.getY();
-        if (y == y) {
-          if (y < ymin) ymin = y;
-          if (y > ymax) ymax = y;
-        }
-        final float z = module.getZ();
-        if (z == z) {
-          if (z < zmin) zmin = z;
-          if (z > zmax) zmax = x;
+          final float x = module.getX();
+          if (x == x) {
+            if (x < xmin) xmin = x;
+            if (x > xmax) xmax = x;
+          }
+          final float y = module.getY();
+          if (y == y) {
+            if (y < ymin) ymin = y;
+            if (y > ymax) ymax = y;
+          }
+          final float z = module.getZ();
+          if (z == z) {
+            if (z < zmin) zmin = z;
+            if (z > zmax) zmax = x;
+          }
         }
 
         continue;
