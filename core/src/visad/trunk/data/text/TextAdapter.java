@@ -204,7 +204,7 @@ public class TextAdapter {
         "TextAdapter: Invalid or missing MathType");
     }
 
-    // System.out.println("Specified MathType = "+maps);
+    if (debug) System.out.println("Specified MathType = "+maps);
 
     // but first, we need to get the column headers because they
     // may have [units] associated with them.  The column headers
@@ -376,23 +376,30 @@ public class TextAdapter {
         }
       }
 
-      int parenIndex = hdrNames[i].indexOf("(");
+      if (debug) System.out.println("####   assigned Unit as u="+u);
+
       String rttemp = hdrNames[i].trim();
+      if (rttemp.indexOf("(Text)") == -1) {
 
-      if (parenIndex < 0) parenIndex = rttemp.indexOf("[");
-      if (parenIndex < 0) parenIndex = rttemp.indexOf("{");
-      if (parenIndex < 0) parenIndex = rttemp.indexOf(" ");
-      String rtname = parenIndex < 0 ? rttemp.trim() : rttemp.substring(0,parenIndex);
+        int parenIndex = rttemp.indexOf("(");
 
-      RealType rt = RealType.getRealType(rtname, u, null, hdrIsInterval[i]);
+        if (parenIndex < 0) parenIndex = rttemp.indexOf("[");
+        if (parenIndex < 0) parenIndex = rttemp.indexOf("{");
+        if (parenIndex < 0) parenIndex = rttemp.indexOf(" ");
+        String rtname = parenIndex < 0 ? rttemp.trim() : rttemp.substring(0,parenIndex);
 
-      if (rt == null) {  // tried to re-use with different units
-        rt = RealType.getRealType(rtname);
+        RealType rt = RealType.getRealType(rtname, u, null, hdrIsInterval[i]);
+
+        if (rt == null) {  // tried to re-use with different units
+          if (debug) System.out.println("####   rt was returned as null");
+          if (u != null) System.out.println("####  Could not make RealType using specified Unit ("+hdrUnitString+") for parameter name: "+rtname);
+          rt = RealType.getRealType(rtname);
+        }
+
+        // get a compatible unit, if necessary
+
+        if (u == null) u = rt.getDefaultUnit();
       }
-
-      // get a compatible unit, if necessary
-
-      if (u == null) u = rt.getDefaultUnit();
 
       hdrUnits[i] = u;
     }
@@ -403,6 +410,7 @@ public class TextAdapter {
     try {
       mt = MathType.stringToType(maps);
     } catch (Exception mte) {
+      System.out.println("####  Exception: "+mte);
       throw new VisADException("TextAdapter: MathType badly formed or missing: "+maps);
     }
 
@@ -892,6 +900,10 @@ public class TextAdapter {
                                 null, null, null, rangeUnits);
 
     } catch (FieldException fe) {
+      field = new FieldImpl((FunctionType) mt, domain);
+
+    } catch (UnitException fe) {
+      System.out.println("####  Problem with Units; attempting to make Field anyway");
       field = new FieldImpl((FunctionType) mt, domain);
     }
 //*************************************************
