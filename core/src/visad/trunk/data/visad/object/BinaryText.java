@@ -1,0 +1,93 @@
+package visad.data.visad.object;
+
+import java.io.DataInput;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+import visad.Text;
+import visad.TextType;
+import visad.VisADException;
+
+import visad.data.visad.BinaryObjectCache;
+import visad.data.visad.BinaryReader;
+import visad.data.visad.BinaryWriter;
+
+public class BinaryText
+  implements BinaryObject
+{
+  public static final int computeBytes(String value)
+  {
+    return 1 + 4 + 1 + 4 +
+      BinaryString.computeBytes(value) +
+      1;
+  }
+
+  public static final Text read(BinaryReader reader)
+    throws IOException, VisADException
+  {
+    BinaryObjectCache cache = reader.getTypeCache();
+    DataInput file = reader.getInput();
+
+    final int typeIndex = file.readInt();
+if(DEBUG_RD_DATA&&DEBUG_RD_MATH)System.err.println("rdTxt: type index (" + typeIndex + ")");
+    TextType tt = (TextType )cache.get(typeIndex);
+if(DEBUG_RD_DATA&&!DEBUG_RD_MATH)System.err.println("rdTxt: type index (" + typeIndex + "=" + tt + ")");
+
+    // read the value
+    String value = BinaryString.read(reader);
+if(DEBUG_RD_DATA&&!DEBUG_RD_STR)System.err.println("rdTxt: value (" + value + ")");
+
+    final byte endByte = file.readByte();
+if(DEBUG_RD_DATA)System.err.println("rdTxt: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
+    if (endByte != FLD_END) {
+      throw new IOException("Corrupted file (no Text end-marker)");
+    }
+
+    return new Text(tt, value);
+  }
+
+  public static final void writeDependentData(BinaryWriter writer,
+                                              TextType type)
+    throws IOException
+  {
+if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrTxt: MathType (" + type + ")");
+    BinaryTextType.write(writer, type, SAVE_DATA);
+  }
+
+  public static final void write(BinaryWriter writer, TextType type,
+                                 String value, boolean missing, Text text,
+                                 Object token)
+    throws IOException
+  {
+    writeDependentData(writer, type);
+
+    // if we only want to write dependent data, we're done
+    if (token == SAVE_DEPEND) {
+      return;
+    }
+
+    int typeIndex = writer.getTypeCache().getIndex(type);
+    if (typeIndex < 0) {
+      throw new IOException("TextType " + type + " not cached");
+    }
+
+    final int objLen = computeBytes(value);
+
+    DataOutputStream file = writer.getOutputStream();
+
+if(DEBUG_WR_DATA)System.err.println("wrTxt: OBJ_DATA (" + OBJ_DATA + ")");
+    file.writeByte(OBJ_DATA);
+if(DEBUG_WR_DATA)System.err.println("wrTxt: objLen (" + objLen + ")");
+    file.writeInt(objLen);
+if(DEBUG_WR_DATA)System.err.println("wrTxt: DATA_TEXT (" + DATA_TEXT + ")");
+    file.writeByte(DATA_TEXT);
+
+if(DEBUG_WR_DATA)System.err.println("wrTxt: type index (" + typeIndex + ")");
+    file.writeInt(typeIndex);
+
+if(DEBUG_WR_DATA)System.err.println("wrTxt: value (" + value + ")");
+    BinaryString.write(writer, value, token);
+
+    file.writeByte(FLD_END);
+  }
+}

@@ -57,33 +57,35 @@ FileFlatField - so better to do FLD_FLOAT_SAMPLES, etc
 
 package visad.data.visad;
 
-import visad.*;
-import visad.java3d.*;
-import visad.data.*;
-import visad.util.*;
-import java.io.IOException;
-import java.io.FileInputStream;
 import java.io.BufferedInputStream;
-import java.io.ObjectInputStream;
-import java.io.OptionalDataException;
-import java.io.FileOutputStream;
-import java.io.File;
 import java.io.BufferedOutputStream;
-import java.io.ObjectOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.rmi.RemoteException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OptionalDataException;
+
 import java.net.URL;
+
+import java.rmi.RemoteException;
+
+import visad.Data;
+import visad.DataImpl;
+import visad.FunctionType;
+import visad.MathType;
+import visad.RealType;
+import visad.SetType;
+import visad.TupleType;
+import visad.VisADException;
+
+import visad.data.BadFormException;
 import visad.data.DefaultFamily;
-
-// JFC packages
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
-
-// AWT packages
-import java.awt.*;
-import java.awt.event.*;
+import visad.data.Form;
+import visad.data.FormFileInformer;
+import visad.data.FormNode;
 
 /**
    VisADForm is the VisAD data format adapter for
@@ -92,6 +94,15 @@ import java.awt.event.*;
 public class VisADForm extends Form implements FormFileInformer {
 
   private static int num = 0;
+
+  private boolean allowBinary = false;
+
+  public VisADForm(boolean allowBinary)
+  {
+    this();
+
+    this.allowBinary = allowBinary;
+  }
 
   public VisADForm()
   {
@@ -126,37 +137,43 @@ public class VisADForm extends Form implements FormFileInformer {
   }
 
   public synchronized DataImpl open(String id)
-    throws BadFormException
+    throws BadFormException, VisADException
   {
     String errMsg = null;
 
-    // first, try to read a binary object
+    // try to read a binary object
     BinaryReader rdr;
     try {
       return readData(new BinaryReader(id));
-    } catch (Exception ioe) {
-      errMsg = ioe.getMessage();
+    } catch (Exception e) {
+      errMsg = e.getMessage();
     }
 
-    // if it's not a binary object, maybe it's a serialized object
+    // maybe it's a serialized object
+    DataImpl data;
     try {
       FileInputStream fileStream = new FileInputStream(id);
       BufferedInputStream bufferedStream =
         new BufferedInputStream(fileStream);
       ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
-      return (DataImpl) objectStream.readObject();
+      data = (DataImpl )objectStream.readObject();
     }
     catch (Exception e) {
+      if (errMsg == null) {
+        errMsg = e.getMessage();
+      }
       throw new BadFormException(errMsg);
     }
+
+    return data;
   }
 
   public synchronized DataImpl open(URL url)
-    throws BadFormException
+    throws BadFormException, VisADException
   {
     String errMsg = null;
 
-    // first, try to read a binary object
+    // try to read a binary object
     BinaryReader rdr;
     try {
       return readData(new BinaryReader(url.openStream()));
@@ -164,26 +181,38 @@ public class VisADForm extends Form implements FormFileInformer {
       errMsg = ioe.getMessage();
     }
 
-    // if it's not a binary object, maybe it's a serialized object
+    // maybe it's a serialized object
+    DataImpl data;
     try {
       InputStream inputStream = url.openStream();
       BufferedInputStream bufferedStream =
         new BufferedInputStream(inputStream);
       ObjectInputStream objectStream = new ObjectInputStream(bufferedStream);
-      return (DataImpl) objectStream.readObject();
+      data = (DataImpl )objectStream.readObject();
     }
     catch (OptionalDataException e) {
-      throw new BadFormException(e.toString());
+      if (errMsg == null) {
+        errMsg = e.getMessage();
+      }
+      throw new BadFormException(errMsg);
     }
     catch (ClassNotFoundException e) {
-      throw new BadFormException(e.toString());
+      if (errMsg == null) {
+        errMsg = e.getMessage();
+      }
+      throw new BadFormException(errMsg);
     }
     catch (IOException e) {
-      throw new BadFormException(e.toString());
+      if (errMsg == null) {
+        errMsg = e.getMessage();
+      }
+      throw new BadFormException(errMsg);
     }
+
+    return data;
   }
 
-  private final DataImpl readData(BinaryReader rdr)
+  final DataImpl readData(BinaryReader rdr)
     throws IOException, VisADException
   {
     DataImpl di = rdr.getData();
@@ -191,7 +220,7 @@ public class VisADForm extends Form implements FormFileInformer {
     return di;
   }
 
-  public synchronized void save(String id, Data data, boolean replace)
+  private synchronized void saveBinary(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
     File file = new File(id);
@@ -200,8 +229,40 @@ public class VisADForm extends Form implements FormFileInformer {
     }
 
     BinaryWriter writer = new BinaryWriter(file);
-    writer.process((DataImpl )data);
+    writer.save((DataImpl )data);
     writer.close();
+  }
+
+  private synchronized void saveSerial(String id, Data data, boolean replace)
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
+    FileOutputStream fileStream = null;
+    if (replace) {
+      fileStream = new FileOutputStream(id);
+    }
+    else {
+      File file = new File(id);
+      if (file.exists()) {
+        throw new BadFormException("VisADSerialForm.save(" + id + "): exists");
+      }
+      fileStream = new FileOutputStream(file);
+    }
+    BufferedOutputStream bufferedStream = new BufferedOutputStream(fileStream);
+    ObjectOutputStream objectStream = new ObjectOutputStream(bufferedStream);
+    DataImpl local_data = data.local();
+    objectStream.writeObject(local_data);
+    objectStream.flush();
+    fileStream.close();
+  }
+
+  public synchronized void save(String id, Data data, boolean replace)
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
+    if (allowBinary) {
+      saveBinary(id, data, replace);
+    } else {
+      saveSerial(id, data, replace);
+    }
   }
 
   /** run 'java visad.data.visad.VisADForm in_file out_file' to

@@ -40,7 +40,7 @@ public class TestBinary
   private static final String OUTPUT_SUBDIRECTORY = "tstout";
 
   private String progName;
-  private boolean verbose;
+  private boolean allowBinary, verbose;
   private String[] files;
 
   public TestBinary(String[] args)
@@ -55,7 +55,7 @@ public class TestBinary
 
     DefaultFamily df = new DefaultFamily("DefaultFamily");
 
-    Form form = new VisADForm();
+    Form form = new VisADForm(allowBinary);
 
     if (!makeSubdirectory(OUTPUT_SUBDIRECTORY)) {
       throw new VisADException("Couldn't create test subdirectory \"" +
@@ -120,7 +120,7 @@ public class TestBinary
 
   public void initArgs()
   {
-    verbose = false;
+    allowBinary = verbose = false;
     files = null;
   }
 
@@ -161,6 +161,9 @@ public class TestBinary
         String str, result;
 
         switch (ch) {
+        case 'a':
+          allowBinary = true;
+          break;
         case 'v':
           verbose = true;
           break;
@@ -180,6 +183,7 @@ public class TestBinary
 
     if (usage) {
       System.err.println("Usage: " + getClass().getName() +
+                         " [-a(llowBinary)]" +
                          " [-v(erbose)]" +
                          "");
     }
