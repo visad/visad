@@ -78,6 +78,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
   private int axis = -1;
   private int axis_ordinal = -1;
   private boolean scale_flag = false;
+  private boolean back_scale_flag = false;
   private float[] scale_color = {1.0f, 1.0f, 1.0f};
 
   /** Vector of ScalarMapListeners */
@@ -221,6 +222,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     control = null;
     ScalarIndex = -1;
     DisplayScalarIndex = -1;
+    scale_flag = back_scale_flag;
   }
 
   /** set the DisplayImpl this ScalarMap is linked to */
@@ -434,6 +436,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         else {
           scale_flag = true;
         }
+        back_scale_flag = true;
       }
     }
 
