@@ -37,7 +37,11 @@ public class ThreadPool
 {
   private static final String DEFAULT_PREFIX = "Minnow";
 
-  private static final int DEFAULT_MIN_THREADS = 1;
+/* WLH 11 April 2001
+there's a deadlock possibility here, if runing ActionImpls are
+waiting for other ActionImpls to run
+*/
+  private static final int DEFAULT_MIN_THREADS = 5; // WLH 11 April 2001
   private static final int DEFAULT_MAX_THREADS = 10;
 
   // maximum number of tasks which can be queued before a new thread is created
