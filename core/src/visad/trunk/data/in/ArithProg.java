@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArithProg.java,v 1.2 2001-03-28 16:25:15 steve Exp $
+$Id: ArithProg.java,v 1.3 2001-03-29 21:08:59 steve Exp $
 */
 
 package visad.data.in;
@@ -41,30 +41,8 @@ public class ArithProg
     private double		sumDelta = 0;
     private double 		commDiff = Double.NaN;
     private boolean		isConsistent = true;
-    private final double	epsilon;
-
-    /**
-     * Constructs with a default nearness threshold.  The default value
-     * is 2e-9 (twice the C DBL_EPSILON).
-     */
-    public ArithProg()
-    {
-	this(2e-9);	// twice the C DBL_EPSILON
-    }
-
-    /**
-     * Constructs with a caller-supplied nearness threshold.
-     *
-     * @param epsilon		Nearness threshold.
-     * @throws IllegalArgumentException
-     *				The given nearness threshold is negative.
-     */
-    public ArithProg(double epsilon)
-    {
-	if (epsilon < 0)
-	    throw new IllegalArgumentException("epsilon < 0");
-	this.epsilon = epsilon;
-    }
+    private final double	fEps = 5e-5f;	// 5 * C FLT_EPS
+    private final double	dEps = 5e-9;	// 5 * C DBL_EPS
 
     /**
      * Accumulates a set of values.  Indicate whether or not the values are
@@ -75,7 +53,8 @@ public class ArithProg
      *				and previous value normalized by the current
      *				increment differs from unity by more than the
      *				nearness threshold; otherwise, true.
-     * @throws VisADException	The sequence isn't an arithmetic progression.
+     * @throws VisADException	{@link isConsistent()} was false before this
+     *				method was invoked.
      * @precondition		isConsistent() is true.
      * @postcondition		A subsequent getNumber() will return
      *				<code>values.length</code> more than previously
@@ -91,7 +70,7 @@ public class ArithProg
 		getClass().getName() + ".accumulate(float[]): " +
 		"Sequence isn't an arithmetic progression");
 	for (int i = 0; i < values.length && isConsistent; ++i)
-	    accum(values[i]);
+	    accum(values[i], fEps);
 	return isConsistent;
     }
 
@@ -104,7 +83,8 @@ public class ArithProg
      *				and previous value normalized by the current
      *				increment differs from unity by more than the
      *				nearness threshold; otherwise, true.
-     * @throws VisADException	The sequence isn't an arithmetic progression.
+     * @throws VisADException	{@link isConsistent()} was false before this
+     *				method was invoked.
      * @precondition		isConsistent() is true.
      * @postcondition		A subsequent getNumber() will return
      *				<code>values.length</code> more than previously
@@ -120,8 +100,35 @@ public class ArithProg
 		getClass().getName() + ".accumulate(double[]): " +
 		"Sequence isn't an arithmetic progression");
 	for (int i = 0; i < values.length && isConsistent; ++i)
-	    accum(values[i]);
+	    accum(values[i], dEps);
 	return isConsistent;
+    }
+
+    /**
+     * Accumulates a value.  Indicate whether or not the value is
+     * consistent with the arithmetic progression so far.
+     *
+     * @param value		The value to accumulate.
+     * @return			False if the difference between any current
+     *				and previous value normalized by the current
+     *				increment differs from unity by more than the
+     *				nearness threshold; otherwise, true.
+     * @throws VisADException	The sequence isn't an arithmetic progression.
+     * @precondition		isConsistent() is true.
+     * @postcondition		A subsequent getNumber() will return
+     *				<code>values.length</code> more than previously
+     *				if the function returns true.
+     * @postcondition		A subsequent getLast() will return the
+     *				value argument if the function returns true.
+     */
+    public final boolean accumulate(float value)
+	throws VisADException
+    {
+	if (!isConsistent())
+	    throw new VisADException(
+		getClass().getName() + ".accumulate(double): " +
+		"Sequence isn't an arithmetic progression");
+	return accum(value, fEps);
     }
 
     /**
@@ -148,7 +155,7 @@ public class ArithProg
 	    throw new VisADException(
 		getClass().getName() + ".accumulate(double): " +
 		"Sequence isn't an arithmetic progression");
-	return accum(value);
+	return accum(value, dEps);
     }
 
     /**
@@ -156,6 +163,7 @@ public class ArithProg
      * consistent with the arithmetic progression so far.
      *
      * @param value		The value to accumulate.
+     * @param epsilon		The relative comparison resolution.
      * @return			False if the difference between any current
      *				and previous value normalized by the current
      *				increment differs from unity by more than the
@@ -168,7 +176,7 @@ public class ArithProg
      *				value argument if the function
      *				returns true.
      */
-    protected synchronized final boolean accum(double value)
+    protected synchronized final boolean accum(double value, double epsilon)
     {
 	if (n == 0)
 	{
@@ -284,16 +292,6 @@ public class ArithProg
 		getClass().getName() + ".getCommonDifference(): " +
 		"Sequence isn't an arithmetic progression");
 	return commDiff;
-    }
-
-    /**
-     * Returns the nearness threshold value.
-     *
-     * @return			The nearness threshold used during construction.
-     */
-    public synchronized final double getEpsilon()
-    {
-	return epsilon;
     }
 
     /**

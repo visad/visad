@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: LonArithProg.java,v 1.1 2001-03-15 15:53:29 steve Exp $
+ * $Id: LonArithProg.java,v 1.2 2001-03-29 21:08:59 steve Exp $
  */
 
 package visad.data.in;
@@ -19,26 +19,6 @@ import visad.VisADException;
 public final class LonArithProg
     extends	ArithProg
 {
-    /**
-     * Constructs with a default nearness threshold.
-     */
-    public LonArithProg()
-    {
-	super();
-    }
-
-    /**
-     * Constructs with a caller-supplied nearness threshold.
-     *
-     * @param epsilon		Nearness threshold.
-     * @throws IllegalArgumentException
-     *				The given nearness threshold is negative.
-     */
-    public LonArithProg(double epsilon)
-    {
-	super(epsilon);
-    }
-
     /**
      * Returns the difference between two values.  This is a template method.
      *
