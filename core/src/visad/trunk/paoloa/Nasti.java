@@ -592,6 +592,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
     }
 
+    /** ignore changes to ScalarMap control */
+    public void controlChanged(ScalarMapControlEvent evt) { }
+
     /** respond to user type-ins of wave number */
     public void actionPerformed(ActionEvent e) {
       String cmd = e.getActionCommand();
