@@ -369,6 +369,12 @@ public class FlatField extends FieldImpl {
     return cs;
   }
 
+  public Set[] getRangeSets() {
+    Set[] sets = new Set[RangeSet.length];
+    System.arraycopy(RangeSet, 0, sets, 0, sets.length);
+    return sets;
+  }
+
   public CoordinateSystem[] getRangeCoordinateSystem(int i)
          throws VisADException {
     if (((FunctionType) Type).getReal()) {
