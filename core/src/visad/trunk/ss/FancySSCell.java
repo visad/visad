@@ -139,15 +139,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
   /** re-auto-detect mappings when this cell's data changes */
   public void ssCellChanged(SSCellChangeEvent e) {
-    if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
+    int type = e.getChangeType();
+    if (type == SSCellChangeEvent.DATA_CHANGE) {
       // refresh border color
       setHighlighted(Selected);
 
-      if (IsRemote) {
-        // reconstruct controls for cloned display
-        if (AutoShowControls) showWidgetFrame();
-      }
-      else {
+      if (!IsRemote) {
         // attempt to auto-detect mappings for new data
         Data value = null;
         try {
@@ -169,7 +166,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           if (DEBUG) exc.printStackTrace();
         }
       }
-
+    }
+    else if (type == SSCellChangeEvent.DISPLAY_CHANGE) {
+      if (IsRemote) {
+        // reconstruct controls for cloned display
+        if (AutoShowControls) showWidgetFrame();
+      }
     }
   }
 
@@ -200,8 +202,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     throws VisADException, RemoteException
   {
     super.setMaps(maps);
-    if (WidgetFrame != null && WidgetFrame.isVisible() ||
-        AutoShowControls) showWidgetFrame();
+    if (WidgetFrame != null && WidgetFrame.isVisible() || AutoShowControls) {
+      showWidgetFrame();
+    }
   }
 
   /** show the widgets for altering controls (if there are any) */
@@ -211,8 +214,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       WidgetFrame = new JFrame("Controls (" + Name + ")");
     }
     synchronized (WidgetFrame) {
-      if (hasControls()) {
-        WidgetFrame.setContentPane(VDisplay.getWidgetPanel());
+      Container jc = VDisplay.getWidgetPanel();
+      if (jc != null && jc.getComponentCount() > 0) {
+        WidgetFrame.setContentPane(jc);
         WidgetFrame.pack();
         WidgetFrame.setVisible(true);
       }

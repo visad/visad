@@ -30,7 +30,8 @@ package visad.ss;
 public class SSCellChangeEvent {
 
   public static int DATA_CHANGE = 0;
-  public static int DIMENSION_CHANGE = 1;
+  public static int DISPLAY_CHANGE = 1;
+  public static int DIMENSION_CHANGE = 2;
 
   private BasicSSCell SSCell;
   private int ChangeType;

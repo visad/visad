@@ -2309,6 +2309,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
     });
   }
 
+  /** refresh the "Show controls" menu option and toolbar button */
+  private void refreshShowControls() {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        boolean b = DisplayCells[CurX][CurY].hasControls();
+        CellShow.setEnabled(b);
+        ToolShow.setEnabled(b);
+      }
+    });
+  }
+
   /** enable or disable certain menu items depending on whether
       this cell has data */
   private void refreshMenuCommands() {
@@ -2325,9 +2336,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         ToolSave.setEnabled(b);
         CellReset.setEnabled(b);
         ToolReset.setEnabled(b);
-        b = DisplayCells[CurX][CurY].hasControls();
-        CellShow.setEnabled(b);
-        ToolShow.setEnabled(b);
+        refreshShowControls();
       }
     });
   }
@@ -3056,6 +3065,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (ct == SSCellChangeEvent.DATA_CHANGE) {
         refreshFormulaBar();
         refreshMenuCommands();
+      }
+      else if (ct == SSCellChangeEvent.DISPLAY_CHANGE) {
+        refreshShowControls();
       }
       else if (ct == SSCellChangeEvent.DIMENSION_CHANGE) {
         refreshDisplayMenuItems();

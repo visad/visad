@@ -282,6 +282,8 @@ public class BasicSSCell extends JPanel {
               constructDisplay();
               setVDPanel(true);
             }
+            // display has changed; notify listeners
+            notifyListeners(SSCellChangeEvent.DISPLAY_CHANGE);
           }
           else if (id == DisplayEvent.MAPS_CLEARED) setVDPanel(false);
         }
