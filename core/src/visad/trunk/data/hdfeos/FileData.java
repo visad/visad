@@ -38,7 +38,6 @@ abstract class FileData  {
 
   public FileData()
   {
-
   }
 
   public abstract DataImpl getVisADDataObject( IndexSet i_set ) throws VisADException,
@@ -81,7 +80,6 @@ abstract class FileData  {
 
         }
  
-
     return null;
   }
 

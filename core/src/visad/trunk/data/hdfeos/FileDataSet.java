@@ -135,6 +135,4 @@ import visad.*;
 
       return str;
     }
-
-
   }

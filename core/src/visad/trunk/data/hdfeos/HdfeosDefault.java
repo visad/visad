@@ -120,7 +120,6 @@ public class HdfeosDefault extends Hdfeos {
         }
     }
 
-
      TupleType t_type = new TupleType( types );
      return (MathType) t_type;
   }
@@ -192,6 +191,10 @@ public class HdfeosDefault extends Hdfeos {
       }
     }
 
+    if (( n_swaths + n_grids ) == 0 ) 
+    {
+       throw new HdfeosException( " no Swath or Grid structures in file: "+file.getFileName() );
+    }
      
     TupleType t_type = new TupleType( types );
     Tuple tuple = new Tuple( t_type, datas, false );
@@ -199,7 +202,8 @@ public class HdfeosDefault extends Hdfeos {
     return (DataImpl) tuple;
   }
 
-   FileDataSet getGridData( EosGrid Grid ) {
+   FileDataSet getGridData( EosGrid Grid ) 
+   {
 
     Shape S_obj;
     DimensionSet D_set;

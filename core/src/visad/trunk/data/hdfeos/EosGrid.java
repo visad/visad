@@ -44,17 +44,17 @@ public class EosGrid {
   static int N_DIMS = 0;
   static String D_TYPE = "Data Fields";
 
-  EosGrid ( int file_id, String name ) {
+  EosGrid ( int file_id, String name ) 
+  throws HdfeosException 
+  {
 
      this.file_id = file_id;
      grid_name = name;
      grid_id = Library.Lib.GDattach( file_id, name );
-     System.out.println( "grid_id= "+grid_id);
-     System.out.println( "grid_name= "+name);
 
      if ( grid_id < 0 ) 
      {
-        System.out.println("cannot attach");
+       throw new HdfeosException("EosGrid cannot attatch Grid: "+name );
      }
 
 

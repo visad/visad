@@ -26,7 +26,7 @@ package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
-import visad.data.hdfeos.hdfeosLib;
+import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
   public class HdfeosFile {
 
@@ -34,7 +34,6 @@ import visad.data.hdfeos.hdfeosLib;
     int  file_id;
     int  n_grids;
     int  n_swaths;
-    hdfeosLib lib;
 
     Vector allSwaths;
     Vector allGrids;
@@ -46,7 +45,9 @@ import visad.data.hdfeos.hdfeosLib;
     static int HDFE_mode = 4;
  
 
-    HdfeosFile( String filename )  {
+    HdfeosFile( String filename ) 
+    throws HdfeosException
+    {
 
       this.filename = filename;
 
@@ -124,6 +125,10 @@ import visad.data.hdfeos.hdfeosLib;
        return (EosSwath) allSwaths.elementAt(ii);
     }
 
+    public String getFileName()
+    {
+     return filename;
+    }
 
     public static void close() throws HdfeosException {
 

@@ -49,15 +49,15 @@ public class EosSwath {
   static String G_TYPE = "Geolocation Fields";
   static String D_TYPE = "Data Fields";
 
-  EosSwath ( int file_id, String name ) {
-
+  EosSwath ( int file_id, String name ) 
+  throws HdfeosException 
+  {
      swath_name = name;
      swath_id = Library.Lib.SWattach( file_id, name );
-     System.out.println( "swath_id= "+swath_id);
 
      if ( swath_id < 0 ) 
      {
-        System.out.println("cannot attach");
+        throw new HdfeosException(" EosSwath cannot attach to swath: "+name );
      }
 
 

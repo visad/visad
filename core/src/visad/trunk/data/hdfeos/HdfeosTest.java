@@ -35,10 +35,10 @@ public class HdfeosTest {
   {
 
 
-  //String filename = "/usr6/rink/HDF-EOS/data/MOP02_partday.hdf";
-    String filename = "/usr6/rink/HDF-EOS/data/MOD07.V2.hdf";
-  //String filename = "/usr6/rink/HDF-EOS/data/NISE_SSMIF11_19911227.HDFEOS";
-  //String filename = "/usr6/rink/HDF-EOS/data/DAS.flk.asm.tsyn2d_mis_x.AM100.1997080100.1997080121";
+  //String filename = "/home/rink/HDF-EOS/data/MOP02_partday.hdf";
+    String filename = "/home/rink/HDF-EOS/data/MOD07.V2.hdf";
+  //String filename = "/home/rink/HDF-EOS/data/NISE_SSMIF11_19911227.HDFEOS";
+  //String filename = "/home/rink/HDF-EOS/data/DAS.flk.asm.tsyn2d_mis_x.AM100.1997080100.1997080121";
 
 
       HdfeosDefault default_form = new HdfeosDefault();

@@ -194,7 +194,7 @@ import visad.RealTupleType;
           float[][] samples1D = new float[ n_domVars ][ n_samples ];
 
 
-          eos.SWreadfield( struct_id, R_name, start1, stride1, edge1, num_type, samples1D[0] );
+          ReadSwathGrid.SWreadfield( struct_id, R_name, start1, stride1, edge1, num_type, samples1D[0] );
 
           R_types[0] = new RealType( R_name, null, null );
           VisADset = new Gridded1DSet( R_types[0], samples1D, lengths[0] );

@@ -26,11 +26,11 @@ package visad.data.hdfeos;
 
 import java.util.*;
 import java.lang.*;
-import visad.data.hdfeos.hdfeosLib;
+import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
 public class Library
 {
 
-  public static hdfeosLib Lib = new hdfeosLib(); 
+  public static HdfeosLib Lib = new HdfeosLib(); 
 
 }
