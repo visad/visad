@@ -1191,7 +1191,7 @@ for (int i=0; i < 4; i++) {
             texture_height = shadow_api.textureHeight(data_height);
 
             int size = (data_width + data_height) / 2;
-            curved_size = Math.max(2, Math.min(curved_size, size / 32));
+            curved_size = Math.max(1, Math.min(curved_size, size / 32));
 
             int nwidth = 2 + (data_width - 1) / curved_size;
             int nheight = 2 + (data_height - 1) / curved_size;
