@@ -4,8 +4,65 @@
 <h2>VisBio Overview</h2>
 </center>
 <p>
-Welcome to <font color="red">VisBio</font>.
-It's more fun than a backpack full of angry weasels.
-Have a <a href="http://www.google.com/">link</a>.
+Welcome to VisBio, a tool for visualization and analysis of 4-D multispectral
+data (stacks of slices of biological data with multiple color values, animated
+across time). It's more fun than a backpack full of angry weasels.
+<p>
+<font size="+1"><b>How to import a dataset</b></font>
+<p>
+The first step is to load your dataset into VisBio. From the file menu, choose
+Open. A dialog box will appear:
+<p>
+<center><img src="import-dialog.gif"></center>
+<p>
+The most straightforward way to get a time series into VisBio is to number your
+data files across time. For example, the sample <i>C. elegans</i> dataset
+available on the VisBio web site is a collection of 13 files labeled SDUB1.PIC
+through SDUB13.PIC. For this dataset, you'd fill in "C:\data\SDUB" for the file
+prefix (where "C:\data" is the location of the dataset), "1" for Start, "13"
+for End, and "PIC" for Extension.
+<p>
+You can fill in the fields manually, or you can let VisBio fill in the fields
+automatically by clicking the "Choose file" button and selecting one timestep
+in your dataset. So, you could select any one of the SDUB files using the file
+chooser, and VisBio would automatically detect that there are 13 timesteps in
+the series.
+<p>
+<font size="+1"><b>How animation works in VisBio</b></font>
+<p>
+To save memory, VisBio only keeps one timestep of the dataset in memory at a
+time, thus allowing visualization of huge datasets quickly. Unfortunately, when
+you switch timesteps, VisBio would need to load the new timestep into memory
+from disk, which takes time and slows down animation.
+<p>
+To sidestep this problem, VisBio reads in all timesteps one at a time when
+it first imports the dataset. It creates a low-resolution thumbnail of each
+slice of every timestep, keeping all these thumbnails in memory at once.
+<p>
+VisBio has a "lo-res" mode and a "hi-res" mode. In lo-res mode the thumbnail
+is displayed, whereas in hi-res mode the timestep is loaded from disk. When
+you switch timesteps, VisBio uses lo-res mode by default to avoid the
+slowdown of going to disk for the next timestep. Thus, animation is still
+quick.
+<p>
+<font size="+1"><b>Controlling low-resolution thumbnailing</b></font>
+<p>
+Since the thumbnails' memory footprint is much smaller than it would be at
+full resolution, VisBio gives you the best of both worlds--efficient memory
+use and realtime animation--at the expense of a longer initial loading time.
+<p>
+You can specify the thumbnail resolution by altering the values next to the
+"Create low-resolution thumbnails" checkbox when first importing a dataset
+(the default is 64 x 64 pixels). Making these numbers smaller will result in
+the low-resolution mode looking blockier but taking less memory, whereas
+larger numbers will require more memory to store the thumbnails but look
+crisper while animating.
+<p>
+You can also choose to disable low-resolution support completely by unchecking
+the checkbox. When thumbnails are disabled, the dataset will load more quickly
+(VisBio only needs to load the current timestep instead of loading them all
+and profiling them), but animation will be disabled as well, and switching
+timesteps will be slow since the new timestep must be loaded from disk.
+<p>
 </body>
 </html>
