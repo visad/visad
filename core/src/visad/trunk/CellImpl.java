@@ -29,9 +29,9 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   CellImpl is the abstract superclass for "spread sheet" cells.
-   It has a set of input DataReferences and an output DataReference,
-   which updates whenever an input changes.  Cell is runnable.<P>
+   CellImpl is the abstract superclass for computations.  It has a
+   set of input DataReferences and an output DataReference, which
+   updates whenever an input changes.  Cell is runnable.<P>
 
    CellImpl is not Serializable and should not be copied
    between JVMs.<P>

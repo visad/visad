@@ -29,7 +29,7 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   Control is the VisAD superclass for controls for display scalars.<P>
+   Control is the VisAD superclass for controls for DisplayRealTypes.<P>
 */
 public abstract class Control extends Object
        implements Cloneable, java.io.Serializable {

@@ -26,7 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   VisADError is the superclass of all exceptions defined within the
+   VisADError is the superclass of all errors defined within the
    VisAD package.<P>
 */
 public class VisADError extends Error {

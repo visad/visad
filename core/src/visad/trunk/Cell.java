@@ -29,9 +29,9 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   Cell is the VisAD interface for "spread sheet" cells.  It has
-   a set of 'triggering' DataReferences and access to a set of non-
-   triggering DataReferences. <P>
+   Cell is the VisAD interface for computations.  It has a set of
+   'triggering' DataReferences and access to a set of non-triggering
+   DataReferences. <P>
 */
 public interface Cell extends Action {
 
