@@ -44,6 +44,7 @@ import visad.matrix.*;
 import visad.data.*;
 import visad.data.netcdf.Plain;
 import visad.ss.*;
+import visad.meteorology.*;
 import ucar.netcdf.NetcdfFile;
 import visad.data.netcdf.QuantityDBManager;
 import visad.data.netcdf.in.DefaultView;
@@ -72,6 +73,9 @@ public abstract class JPythonMethods {
     return form.open(location);
   }
 
+  /** Make a Hashtable available for everyone
+  */
+  public static Hashtable JyVars = new Hashtable();
 
   private static Hashtable frames = new Hashtable();
 

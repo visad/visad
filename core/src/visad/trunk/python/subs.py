@@ -48,7 +48,6 @@ class _vdisp:
       self.addMap(self.shape_map)
       self.my_frame = None
 
-
   def addMaps(self, maps):
     """
     Add list/tuple <maps> mappings to the <display>.  These determine what
@@ -1078,6 +1077,18 @@ def showDisplay(display, width=300, height=300,
   myf = myFrame(display, width, height, title, bottom, top, right, left, panel)
   return myf
 
+
+def changeRangeName(data, new_name):
+  """
+  Change the name of the (single) range component of the Data 
+  object...which really needs to be a Field of some kind.  <data>
+  is the Data object, <new_name> is the new name -- it will
+  inherit the Units of the original.
+  """
+  _at = data.getType()
+  _au = _at.getRange()[0].getDefaultUnit()
+  _nft = FunctionType(_at.getDomain(), RealType.getRealType(new_name,_au))
+  return data.changeMathType(_nft)
 
 #--------------------------------------------------------------------
 # other classes

@@ -361,6 +361,11 @@ maps = makeMaps(type_name, name, type_name, name, ....)
   "flow2elev","flow2azimuth","flow2radial")
 
 
+data = changeRangeName(data, name)
+  changes the name of the (single) Range Component in the <data>
+  object to be <name>.  The Unit of the original is inherited.
+
+
 class Shapes(display, shapemap)
   A class useful for manipulating many shapes on multiple displays.
   'shapemap' is the name of the ScalarMap that has a RealType mapped
