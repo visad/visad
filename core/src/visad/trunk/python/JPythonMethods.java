@@ -2700,6 +2700,27 @@ public abstract class JPythonMethods {
              d.getGraphicsModeControl().setScaleEnable(on);
   }
 
+  /** Set the Label to be used for the axes
+  *
+  * @param sm the array of ScalarMaps
+  * @param labels the array of strings to use for labels
+  */
+  public static void setAxesScalesLabel(ScalarMap [] sm, String[] labels)
+             throws VisADException, RemoteException {
+
+      if (sm.length != labels.length) {
+        throw new VisADException("number of ScalarMaps must match number of labels");
+      }
+      for (int i=0; i<sm.length; i++) {
+        AxisScale scale = sm[i].getAxisScale();
+        if (scale != null) {
+          scale.setLabel(labels[i]);
+        }
+      }
+
+   }
+
+
   /** Set the font to be used for the axes labels and scales
   *
   * @param sm the array of ScalarMaps
