@@ -40,8 +40,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import visad.CellImpl;
-import visad.Data;
 import visad.DataReferenceImpl;
 import visad.Display;
 import visad.DisplayImpl;
@@ -49,11 +47,9 @@ import visad.DisplayRenderer;
 import visad.FieldImpl;
 import visad.GraphicsModeControl;
 import visad.Integer1DSet;
-import visad.Real;
 import visad.RealType;
 import visad.ScalarMap;
 import visad.ShapeControl;
-import visad.Tuple;
 import visad.VisADException;
 
 import visad.java3d.DisplayImplJ3D;
@@ -61,107 +57,16 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.LabeledColorWidget;
 import visad.util.VisADSlider;
 
-class DisplayFrame
-  extends WindowAdapter
-{
-  private Display display;
-
-  DisplayFrame(String title, Display display, JPanel panel)
-    throws VisADException, RemoteException
-  {
-    this.display = display;
-
-    JFrame frame = new JFrame(title);
-
-    frame.addWindowListener(this);
-    frame.getContentPane().add(panel);
-    frame.pack();
-    panel.invalidate();
-
-    Dimension fSize = frame.getSize();
-
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    frame.setLocation((screenSize.width - fSize.width)/2,
-                      (screenSize.height - fSize.height)/2);
-
-    frame.setVisible(true);
-  }
-
-  public void windowClosing(WindowEvent evt)
-  {
-    try { display.destroy(); } catch (Exception e) { }
-    System.exit(0);
-  }
-}
-
-class DisplayMaps
-{
-  ScalarMap trackmap, shapemap, letmap;
-
-  DisplayMaps(AmandaFile file, Display display)
-    throws RemoteException, VisADException
-  {
-    final double halfRange = getMaxRange(file) / 2.0;
-
-    ScalarMap xmap = new ScalarMap(RealType.XAxis, Display.XAxis);
-    setRange(xmap, file.getXMin(), file.getXMax(), halfRange);
-    display.addMap(xmap);
-
-    ScalarMap ymap = new ScalarMap(RealType.YAxis, Display.YAxis);
-    setRange(ymap, file.getYMin(), file.getYMax(), halfRange);
-    display.addMap(ymap);
-
-    ScalarMap zmap = new ScalarMap(RealType.ZAxis, Display.ZAxis);
-    setRange(zmap, file.getZMin(), file.getZMax(), halfRange);
-    display.addMap(zmap);
-
-    // ScalarMap eventmap = new ScalarMap(file.getEventIndex(),
-    //                                    Display.SelectValue);
-    // display.addMap(eventmap);
-
-    this.trackmap = new ScalarMap(BaseTrack.indexType, Display.SelectValue);
-    display.addMap(this.trackmap);
-
-    // ScalarMap energymap = new ScalarMap(energy, Display.RGB);
-    // display.addMap(energymap);
-
-    this.shapemap = new ScalarMap(Hit.amplitudeType, Display.Shape);
-    display.addMap(this.shapemap);
-
-    ScalarMap shapeScalemap = new ScalarMap(Hit.amplitudeType,
-                                            Display.ShapeScale);
-    display.addMap(shapeScalemap);
-    shapeScalemap.setRange(-20.0, 50.0);
-
-    this.letmap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
-    display.addMap(this.letmap);
-  }
-
-  private static final double getMaxRange(AmandaFile file)
-  {
-    final double xRange = file.getXMax() - file.getXMin();
-    final double yRange = file.getYMax() - file.getYMin();
-    final double zRange = file.getZMax() - file.getZMin();
-
-    return -0.5 * Math.max(xRange, Math.max(yRange, zRange));
-  }
-
-  private static final void setRange(ScalarMap map, double min, double max,
-                                     double halfRange)
-    throws RemoteException, VisADException
-  {
-    final double mid = (min + max) / 2.0;
-    map.setRange(mid - halfRange, mid + halfRange);
-  }
-}
-
 /** run 'java NuView in_file' to display data.<br>
  *  try 'java NuView 100events.r'
  */
 public class NuView
+  extends WindowAdapter
 {
-  public static void main(String args[])
-         throws VisADException, RemoteException, IOException
+  private DisplayImpl display;
+
+  public NuView(String[] args)
+    throws RemoteException, VisADException
   {
     if (args == null || args.length != 1) {
       System.out.println("to test read an F2000 file, run:");
@@ -170,35 +75,48 @@ public class NuView
       return;
     }
 
-    AmandaFile file;
-    if (args[0].startsWith("http://")) {
-      // with "ftp://" this throws "sun.net.ftp.FtpProtocolException: RETR ..."
-      file = new AmandaFile(new URL(args[0]));
-    } else {
-      file = new AmandaFile(args[0]);
-    }
+    AmandaFile file = openFile(args[0]);
 
     final FieldImpl amanda = file.makeEventData();
     final FieldImpl modules = file.makeModuleData();
 
-    DisplayImpl display = new DisplayImplJ3D("amanda");
+    display = new DisplayImplJ3D("amanda");
 
-    DisplayMaps maps = new DisplayMaps(file, display);
+    final double halfRange = getMaxRange(file) / 2.0;
 
-    // GraphicsModeControl mode = display.getGraphicsModeControl();
-    // mode.setScaleEnable(true);
+    ScalarMap xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
+    setRange(xMap, file.getXMin(), file.getXMax(), halfRange);
+    display.addMap(xMap);
+
+    ScalarMap yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
+    setRange(yMap, file.getYMin(), file.getYMax(), halfRange);
+    display.addMap(yMap);
+
+    ScalarMap zMap = new ScalarMap(RealType.ZAxis, Display.ZAxis);
+    setRange(zMap, file.getZMin(), file.getZMax(), halfRange);
+    display.addMap(zMap);
+
+    ScalarMap trackMap =
+      new ScalarMap(BaseTrack.indexType, Display.SelectValue);
+    display.addMap(trackMap);
+
+    ScalarMap shapeMap = new ScalarMap(Hit.amplitudeType, Display.Shape);
+    display.addMap(shapeMap);
+
+    ShapeControl sctl = (ShapeControl )shapeMap.getControl();
+    sctl.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
+    sctl.setShapes(F2000Util.getCubeArray());
+
+    ScalarMap shapeScaleMap = new ScalarMap(Hit.amplitudeType,
+                                            Display.ShapeScale);
+    display.addMap(shapeScaleMap);
+    shapeScaleMap.setRange(-20.0, 50.0);
+
+    ScalarMap letmap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
+    display.addMap(letmap);
+
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
-
-    ShapeControl scontrol = (ShapeControl )maps.shapemap.getControl();
-    scontrol.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
-    scontrol.setShapes(F2000Util.getCubeArray());
-
-    final int nevents = amanda.getLength();
-
-    // fixes track display?
-    // SelectValue bug?
-    // amanda = ((FieldImpl )amanda).getSample(99);
 
     final DataReferenceImpl amandaRef = new DataReferenceImpl("amanda");
     // data set by eventWidget below
@@ -208,25 +126,19 @@ public class NuView
     modulesRef.setData(modules);
     display.addReference(modulesRef);
 
-/*
-    LabeledColorWidget energyWidget = new LabeledColorWidget(energymap);
-    widgetPanel.add(energyWidget);
-*/
-
-    LabeledColorWidget letWidget = new LabeledColorWidget(maps.letmap);
+    LabeledColorWidget letWidget = new LabeledColorWidget(letmap);
     // align along left side, to match VisADSlider alignment
     //   (if we don't left-align, BoxLayout hoses everything)
     letWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     EventWidget eventWidget = new EventWidget(file, amanda, amandaRef,
-                                              maps.trackmap);
+                                              trackMap);
 
     JPanel widgetPanel = new JPanel();
     widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
     widgetPanel.setMaximumSize(new Dimension(400, 600));
 
     widgetPanel.add(letWidget);
-    // widgetPanel.add(new VisADSlider(eventmap));
     widgetPanel.add(eventWidget);
     widgetPanel.add(Box.createHorizontalGlue());
 
@@ -247,6 +159,67 @@ public class NuView
     panel.add(widgetPanel);
     panel.add(displayPanel);
 
-    new DisplayFrame("VisAD AMANDA Viewer", display, panel);
+    JFrame frame = new JFrame("VisAD AMANDA Viewer");
+
+    frame.addWindowListener(this);
+    frame.getContentPane().add(panel);
+    frame.pack();
+    panel.invalidate();
+
+    Dimension fSize = frame.getSize();
+
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    frame.setLocation((screenSize.width - fSize.width)/2,
+                      (screenSize.height - fSize.height)/2);
+
+    frame.setVisible(true);
+  }
+
+  private static final double getMaxRange(AmandaFile file)
+  {
+    final double xRange = file.getXMax() - file.getXMin();
+    final double yRange = file.getYMax() - file.getYMin();
+    final double zRange = file.getZMax() - file.getZMin();
+
+    return -0.5 * Math.max(xRange, Math.max(yRange, zRange));
+  }
+
+  private AmandaFile openFile(String fileName)
+    throws VisADException
+  {
+    AmandaFile file;
+    try {
+      if (fileName.startsWith("http://")) {
+        // "ftp://" throws "sun.net.ftp.FtpProtocolException: RETR ..."
+        file = new AmandaFile(new URL(fileName));
+      } else {
+        file = new AmandaFile(fileName);
+      }
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+      throw new VisADException(ioe.getMessage());
+    }
+
+    return file;
+  }
+
+  private static final void setRange(ScalarMap map, double min, double max,
+                                     double halfRange)
+    throws RemoteException, VisADException
+  {
+    final double mid = (min + max) / 2.0;
+    map.setRange(mid - halfRange, mid + halfRange);
+  }
+
+  public void windowClosing(WindowEvent evt)
+  {
+    try { display.destroy(); } catch (Exception e) { }
+    System.exit(0);
+  }
+
+  public static void main(String[] args)
+    throws RemoteException, VisADException
+  {
+    new NuView(args);
   }
 }
