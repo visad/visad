@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.util;
 
 import com.sun.image.codec.jpeg.*;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Window;
@@ -38,7 +39,10 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import ncsa.hdf.hdf5lib.H5;
+import visad.ConstantMap;
+import visad.Display;
 import visad.DisplayImpl;
+import visad.VisADException;
 
 /**
  * A hodge-podge of general utility methods.
@@ -571,4 +575,35 @@ public class Util
     }
   }
 
+  /**
+   * Create a ConstantMap array of colors for use with
+   * @{link Display.addReference(DataReference, ConstantMap[])
+   *   Display.addReference()}
+   *
+   * @param color color to encode
+   *
+   * @return an array containing either 3 colors or, if the <tt>color</tt>
+   *         parameter included an alpha component, a 4 element array
+   *         with 3 colors and an @{link Display.Alpha alpha} component.
+   */
+  public static ConstantMap[] getColorMaps(Color color)
+    throws VisADException
+  {
+    final int alpha = color.getAlpha();
+
+    ConstantMap[] maps = new ConstantMap[alpha == 255 ? 3 : 4];
+
+    maps[0] = new ConstantMap((float )color.getRed() / 255.0f,
+                              Display.Red);
+    maps[1] = new ConstantMap((float )color.getGreen() / 255.0f,
+                              Display.Green);
+    maps[2] = new ConstantMap((float )color.getBlue() / 255.0f,
+                              Display.Blue);
+    if (alpha != 255) {
+      maps[3] = new ConstantMap((float )color.getAlpha() / 255f,
+                                Display.Alpha);
+    }
+
+    return maps;
+  }
 }
