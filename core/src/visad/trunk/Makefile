@@ -33,6 +33,8 @@ default:
 	@echo "	make clear		to clear source files"
 	@echo "	make clean		to clean class files"
 	@echo "	make docs		to create javadoc documentation"
+	@echo "	make tardocs		to create compressed javadoc tar file"
+	@echo "	make jardocs		to create javadoc jar file"
 	@echo ""
 	@echo "You may want to uncomment one or more lines in the"
 	@echo "'Customizations' section of the top-level Makefile"
@@ -239,7 +241,7 @@ tar:
 	compress visad_src-2.0.tar ; \
 	mv visad_src-2.0.tar.Z visad ; \
 	cd visad ; \
-	cp visad_src-2.0.tar.Z visadsrc.taz ; \
+	ln visad_src-2.0.tar.Z visadsrc.taz ; \
 	ls -l visad_src-2.0.tar.Z visadsrc.taz
 
 jar:
@@ -248,7 +250,7 @@ jar:
 	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
 	mv visad_src-2.0.jar visad ; \
 	cd visad ; \
-	cp visad_src-2.0.jar visadsrc.jar ; \
+	ln visad_src-2.0.jar visadsrc.jar ; \
 	ls -l visad_src-2.0.jar visadsrc.jar
 
 jar_split:
@@ -571,6 +573,23 @@ compile: clean recompile
 docs:
 	@if [ ! -d $(DOC_DIR) ]; then mkdir $(DOC_DIR); fi   
 	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
+
+tardocs: docs
+	(cd $(DOC_DIR)/.. &&						\
+	 DNAME=`basename $(DOC_DIR)` &&					\
+	 date > $$DNAME/DATE &&					\
+	 tar -cvf - $$DNAME) > visad_doc-2.0.tar;			\
+	compress visad_doc-2.0.tar;					\
+	ln visad_doc-2.0.tar.Z visaddoc.taz;				\
+	ls -l visad_doc-2.0.tar.Z visaddoc.taz
+
+jardocs: docs
+	(cd $(DOC_DIR)/.. &&						\
+	 DNAME=`basename $(DOC_DIR)` &&					\
+	 date > $$DNAME/DATE &&					\
+	 jar cv $$DNAME) > visad_doc-2.0.jar;			\
+	ln visad_doc-2.0.jar visaddoc.jar;				\
+	ls -l visad_doc-2.0.jar visaddoc.jar
 
 nexusrmi_compile:
 	make RMIC=nexusrmic compile
