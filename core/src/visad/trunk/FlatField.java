@@ -739,6 +739,69 @@ public class FlatField extends FieldImpl {
     }
     return range;
   }
+
+  private double[] unpackOneRangeComp(int comp) throws VisADException {
+    double[] range = null;
+    synchronized (DoubleRange) {
+      if (isMissing()) {
+        range = new double[Length];
+        for (int j=0; j<Length; j++) {
+          range[j] = Double.NaN;
+        }
+        return range;
+      }
+      int[] index;
+      double[][] range0;
+      double[] rangeI;
+      for (int i=0; i<TupleDimension; i++) {
+        switch (RangeMode[comp]) {
+          case DOUBLE:
+            range = new double[Length];
+            double[] DoubleRangeI = DoubleRange[comp];
+            System.arraycopy(DoubleRangeI, 0, range, 0, Length);
+            break;
+          case FLOAT:
+            range = new double[Length];
+            float[] FloatRangeI = FloatRange[comp];
+            for (int j=0; j<Length; j++) {
+              range[j] = (double) FloatRangeI[j];
+            }
+            break;
+          case BYTE:
+            index = new int[Length];
+            byte[] ByteRangeI = ByteRange[comp];
+            for (int j=0; j<Length; j++) {
+              index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
+            }
+            range0 = Set.floatToDouble(RangeSet[comp].indexToValue(index));
+            range = range0[0];
+            break;
+          case SHORT:
+            index = new int[Length];
+            short[] ShortRangeI = ShortRange[comp];
+            for (int j=0; j<Length; j++) {
+              index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
+            }
+            range0 = Set.floatToDouble(RangeSet[comp].indexToValue(index));
+            range = range0[0];
+            break;
+          case INT:
+            index = new int[Length];
+            int[] IntRangeI = IntRange[comp];
+            for (int j=0; j<Length; j++) {
+              index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
+            }
+            range0 = Set.floatToDouble(RangeSet[comp].indexToValue(index));
+            range = range0[0];
+            break;
+          default:
+            throw new SetException("FlatField.unpackValues: bad RangeMode");
+        }
+      }
+    }
+    return range;
+  }
+
   /*-  TDR  June 1998  */
   private double[] unpackValues( int s_index ) throws VisADException {
     double[] range;
@@ -2143,10 +2206,11 @@ public class FlatField extends FieldImpl {
     new_field.setRangeErrors( errors_out );
 
     double[][] new_values = new double[ compSize ][ n_samples ];
+    double[] values = null;
 
     for ( ii = 0; ii < compSize; ii++ )
     {
-      double[] values = unpackValues( flat_indeces[ii] );
+      values = unpackOneRangeComp( flat_indeces[ii] );
       System.arraycopy( values, 0, new_values[ii], 0, n_samples );
     }
     new_field.setSamples( new_values );
