@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.9 2000-11-28 22:04:18 dglo Exp $
+ * $Id: Quantity.java,v 1.10 2000-11-29 14:51:04 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -148,7 +148,11 @@ public class Quantity
   public static Quantity getQuantityByName(String name) {
     RealType quant = RealType.getRealTypeByName(name);
     if (!(quant instanceof Quantity)) {
-      return null;
+      try {
+        return new Quantity(quant);
+      } catch (VisADException ve) {
+        return null;
+      }
     }
     return (Quantity) quant;
   }
