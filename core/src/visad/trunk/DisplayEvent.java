@@ -158,7 +158,7 @@ public class DisplayEvent extends VisADEvent {
    *
    * @param  d  display that sends the event
    * @param  id_d  type of DisplayEvent that is sent
-   * @param  remote  true if this DisplayEvent came from a remote source
+   * @param  remoteId  ID of remote source
    */
   public DisplayEvent(Display d, int id_d, int remoteId) {
     // don't pass display as the source, since source
@@ -194,7 +194,7 @@ public class DisplayEvent extends VisADEvent {
    *            the display component
    * @param  y  the vertical y coordinate for the mouse location in
    *            the display component
-   * @param  remote  true if this DisplayEvent came from a remote source
+   * @param  remoteId  ID of remote source
    */
   public DisplayEvent(Display d, int id_d, int x, int y, int remoteId) {
     // don't pass display as the source, since source

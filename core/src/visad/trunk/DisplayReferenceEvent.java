@@ -52,7 +52,7 @@ public class DisplayReferenceEvent extends DisplayEvent {
    * Return a new DisplayReferenceEvent which is a copy of this event,
    * but which uses the specified source display
    *
-   * @param source Display to use for the new DisplayReferenceEvent
+   * @param dpy Display to use for the new DisplayReferenceEvent
    */
   public DisplayEvent cloneButDisplay(Display dpy)
   {

@@ -41,7 +41,7 @@ public class DisplayMapEvent extends DisplayEvent {
    *
    * @param  d  display that sends the event
    * @param  id  type of DisplayReferenceEvent that is sent
-   * @param map ScalarMap referenced by this event
+   * @param m ScalarMap referenced by this event
    */
   public DisplayMapEvent(Display d, int id, ScalarMap m) {
     this(d, id, m, LOCAL_SOURCE);
@@ -53,9 +53,8 @@ public class DisplayMapEvent extends DisplayEvent {
    *
    * @param  d  display that sends the event
    * @param  id  type of DisplayReferenceEvent that is sent
-   * @param map ScalarMap referenced by this event
-   * @param fromRemote <TT>true</TT> if this is the result of
-   *               a remote change.
+   * @param  m  ScalarMap referenced by this event
+   * @param  remoteId  ID of remote source
    */
   public DisplayMapEvent(Display d, int id, ScalarMap m, int remoteId) {
     super(d, id, remoteId);
@@ -66,7 +65,7 @@ public class DisplayMapEvent extends DisplayEvent {
    * Return a new DisplayMapEvent which is a copy of this event,
    * but which uses the specified source display
    *
-   * @param source Display to use for the new DisplayMapEvent
+   * @param dpy Display to use for the new DisplayMapEvent
    */
   public DisplayEvent cloneButDisplay(Display dpy)
   {
