@@ -603,7 +603,6 @@ public class QTForm extends Form
       // note: could get a RawEncodedImage from the Pict, but
       // apparently no way to get a PixMap from the REI
       R.exec("g = new QDGraphics(box)");
-      Object blah = R.getVar("g");
       R.exec("pict.draw(g, box)");
       // get data from the QDGraphics
       R.exec("pixMap = g.getPixMap()");
