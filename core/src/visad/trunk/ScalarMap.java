@@ -361,11 +361,13 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     if (scale_flag) makeScale();
 
     // WLH 27 Nov 2000
-    ProjectionControl pcontrol = display.getProjectionControl();
-    try {
-      setAspect2(pcontrol.getAspect2());
-    }
-    catch (RemoteException e) {
+    if (!(this instanceof ConstantMap)) {
+      ProjectionControl pcontrol = display.getProjectionControl();
+      try {
+        setAspect2(pcontrol.getAspect2());
+      }
+      catch (RemoteException e) {
+      }
     }
   }
 
