@@ -3048,7 +3048,7 @@ WLH 15 March 2000 */
         offscreenGraphics.setColor(myTextColor);
         offscreenGraphics.drawString(text, 0, height - descent);
 */
-      }
+      } // end if (!(db instanceof DataBufferInt))
 
     } // end if (color_values.length == 3)
     return image;
