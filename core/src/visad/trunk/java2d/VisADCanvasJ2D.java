@@ -135,6 +135,28 @@ public class VisADCanvasJ2D extends JPanel
     renderThread.start();
   }
 
+  /**
+   * Return the background color.
+   * @return A 3 element array of <CODE>float</CODE> values
+   *         in the range <CODE>[0.0f - 1.0f]</CODE>
+   *         in the order <I>(Red, Green, Blue)</I>.
+   */
+  public float[] getBackgroundColor() {
+    Color color = getBackground();
+    float[] list = new float[3];
+    list[0] = (float )color.getRed() / 255.0f;
+    list[1] = (float )color.getGreen() / 255.0f;
+    list[2] = (float )color.getBlue() / 255.0f;
+    return list;
+  }
+
+  /**
+   * Set the background color.  All values should be in the range
+   * <CODE>[0.0f - 1.0f]</CODE>.
+   * @param r Red value.
+   * @param g Green value.
+   * @param b Blue value.
+   */
   public void setBackgroundColor(float r, float g, float b) {
     setBackground(new Color(r, g, b));
   }
