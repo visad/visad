@@ -979,7 +979,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     else if (!allSpatial || domain_set == null) {
       spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
       if (domain_set != null &&
-          (set_for_shape || spatialDimensions[0] < 3)) {
+          (set_for_shape || spatialDimensions[0] < 2)) {
         // cannot inherit Set topology from Field domain, so
         // construct IrregularSet topology of appropriate dimension
         RealType[] reals = new RealType[spatialDimension];
@@ -1008,7 +1008,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             break;
         }
         // System.out.println("IrregularSet done");
-      } // end if domain_set != null && (set_for_shape || spatialDimensions[0] < 3)
+      } // end if domain_set != null && (set_for_shape || spatialDimensions[0] < 2)
     }
     else { // spatialDimension > 0 && allSpatial
       // spatialManifoldDimension
@@ -1021,7 +1021,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     // NOTE - 3-D volume rendering may eventually need a spatial Set
     //
     boolean set_needed =
-      domain_set != null && (set_for_shape || spatialDimensions[1] < 3);
+      domain_set != null && (set_for_shape || spatialDimensions[1] < 2);
 
     boolean[] missing_checked = {false, false, false};
     for (int i=0; i<3; i++) {

@@ -211,13 +211,16 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     // create two image-spectrum interfaces (each have
     // interacting image and spectrum displays)
     ChannelImage channel_image1 = new ChannelImage();
+    ChannelImage channel_image2 = new ChannelImage();
 
     // add image-spectrum interfaces to the JFrame
     panel.add(channel_image1);
+    panel.add(channel_image2);
 
     frame.getContentPane().add(panel);
     // set size of JFrame and make it visible
-    frame.setSize(400, 900);
+    // frame.setSize(400, 900);
+    frame.setSize(800, 900);
     frame.setVisible(true);
   }
 
@@ -378,9 +381,13 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
       // create color widget for atmosphericRadiance
       LabeledRGBWidget lw = new LabeledRGBWidget(radiance_map1);
-      Dimension d = new Dimension(400, 120);
+      Dimension d = new Dimension(400, 200);
       lw.setMaximumSize(d);
-      add(lw);
+      JPanel lpanel = new JPanel();
+      lpanel.setLayout(new BoxLayout(lpanel, BoxLayout.X_AXIS));
+      lpanel.add(lw);
+      lpanel.setBorder(etchedBorder5);
+      add(lpanel);
 
       // create buttons for zooming and center spectrum
       zpanel = new JPanel();
