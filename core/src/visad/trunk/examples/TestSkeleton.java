@@ -15,7 +15,6 @@ import visad.java3d.DisplayImplJ3D;
 public abstract class TestSkeleton
 	extends Thread
 {
-  boolean dumpDpy = false;
   boolean startServer = false;
   String hostName = null;
 
@@ -80,9 +79,6 @@ public abstract class TestSkeleton
 	      }
 	    }
 	    break;
-	  case 'd':
-	    dumpDpy = true;
-	    break;
 	  case 's':
 	    if (hostName != null) {
 	      System.err.println("Cannot specify both '-c' and '-s'!");
@@ -134,77 +130,8 @@ public abstract class TestSkeleton
     return !usage;
   }
 
-  public void startThreads()
-	throws VisADException, RemoteException
-  {
-    start(dumpDpy);
-  }
-
   abstract DisplayImpl[] setupData()
 	throws VisADException, RemoteException;
-
-  void dumpDisplayImpl(DisplayImpl dpy, String name)
-  {
-    boolean FULL_DUMP = false;
-
-    System.out.println("#### " + name + " ####");
-
-    java.awt.Component comp = dpy.getComponent();
-    System.out.println("Component=<" + comp + ">");
-
-    java.util.Vector cmv = dpy.getConstantMapVector();
-    System.out.println("ConstantMapVector=<" + cmv + ">");
-
-    if (FULL_DUMP) {
-      java.util.Vector cv = dpy.getControlVector();
-      System.out.println("ControlVector=<" + cv + ">");
-    }
-
-    if (FULL_DUMP) {
-      visad.DisplayRenderer dr = dpy.getDisplayRenderer();
-      System.out.println("DisplayRenderer=<" + dr + ">");
-    }
-
-    int dsnum = dpy.getDisplayScalarCount();
-    System.out.println("" + dsnum + " DisplayScalars:");
-    for (int i = 0; i < dsnum; i++) {
-      visad.DisplayRealType ds = dpy.getDisplayScalar(i);
-      System.out.println("\t#" + i + "=<" + ds + ">");
-    }
-
-    if (FULL_DUMP) {
-      visad.GraphicsModeControl gmc = dpy.getGraphicsModeControl();
-      System.out.println("GraphicsModeControl=<" + gmc + ">");
-    }
-
-    java.util.Vector mv = dpy.getMapVector();
-    System.out.println("MapVector=<" + mv + ">");
-
-    if (FULL_DUMP) {
-      visad.ProjectionControl pc = dpy.getProjectionControl();
-      System.out.println("ProjectionControl=<" + pc + ">");
-    }
-
-    if (FULL_DUMP) {
-      java.util.Vector rv = dpy.getRendererVector();
-      System.out.println("RendererVector=<" + rv + ">");
-    }
-
-    int snum = dpy.getScalarCount();
-    System.out.println("" + snum + " Scalars:");
-    for (int i = 0; i < snum; i++) {
-      visad.ScalarType s = dpy.getScalar(i);
-      System.out.println("\t#" + i + "=<" + s + ">");
-    }
-
-    int vnum = dpy.getValueArrayLength();
-    System.out.println("" + vnum + " ValueArray entries:");
-    int[] vm = dpy.getValueToMap();
-    int[] vs = dpy.getValueToScalar();
-    for (int i = 0; i < vnum; i++) {
-      System.out.println("\t#" + i + ": map=" + vm[i] + ", scalar=" + vs[i]);
-    }
-  }
 
   String getClientServerTitle()
   {
@@ -228,6 +155,37 @@ public abstract class TestSkeleton
   {
   }
 
+  RemoteDisplay[] getClientDisplays(RemoteServer client)
+	throws VisADException, RemoteException
+  {
+    int loops = 0;
+    RemoteDisplay[] rmtDpy = null;
+    while (rmtDpy == null && loops < 30) {
+      try {
+        rmtDpy = client.getDisplays();
+      } catch (java.rmi.ConnectException ce) {
+
+        if (loops == 0) {
+          System.err.print("Client waiting for server ");
+        } else {
+          System.err.print(".");
+        }
+        loops++;
+
+        try { sleep(1000); } catch (InterruptedException ie) { }
+      }
+    }
+
+    if (loops == 30) {
+      System.err.println(" giving up!");
+      System.exit(1);
+    } else if (loops > 0) {
+      System.err.println(" connected");
+    }
+
+    return rmtDpy;
+  }
+
   DisplayImpl[] setupClientData()
 	throws VisADException, RemoteException
   {
@@ -240,7 +198,7 @@ public abstract class TestSkeleton
 				hostName + "\"");
     }
 
-    RemoteDisplay[] rmtDpy = client.getDisplays();
+    RemoteDisplay[] rmtDpy = getClientDisplays(client);
     if (rmtDpy == null) {
       throw new VisADException("No RemoteDisplays found!");
     }
@@ -298,7 +256,7 @@ public abstract class TestSkeleton
   {
   }
 
-  void start(boolean dumpDpy)
+  public void startThreads()
 	throws VisADException, RemoteException
   {
     DisplayImpl[] displays;
@@ -306,12 +264,6 @@ public abstract class TestSkeleton
       displays = setupClientData();
     } else {
       displays = setupData();
-    }
-
-    if (dumpDpy) {
-      for (int i = 0; i < displays.length; i++) {
-	dumpDisplayImpl(displays[i], "Display#" + i);
-      }
     }
 
     if (startServer) {
