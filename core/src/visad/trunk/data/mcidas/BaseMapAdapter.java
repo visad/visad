@@ -288,8 +288,8 @@ public class BaseMapAdapter {
         int mn = -segList[segmentPointer][3];
 
         if (lonMax > 1800000 ) {
-          if ( mx < 0) mx = mx + 3600000;
-          if ( mn < 0) mn = mn + 3600000;
+          if ( mx < 0 && mx < lonMin) mx = mx + 3600000;
+          if ( mn < 0 && mn < lonMin) mn = mn + 3600000;
         }
 
         if ( mx > lonMax ) {continue;}
@@ -315,6 +315,8 @@ public class BaseMapAdapter {
     long rc;
     float[][] lalo;
 
+    float dLonMin = (float)lonMin/10000.0f;
+
     try {
       skipByte = segList[segmentPointer][4] * 4 - position;
       try {
@@ -331,8 +333,7 @@ public class BaseMapAdapter {
         lalo[1][i] = (float) lon/10000.f;
         if (isEastPositive) {
           lalo[1][i] = -lalo[1][i];
-          if (lalo[1][i] < 0 && lonMax > 1800000) 
-                lalo[1][i] = 360.f+lalo[1][i];
+          if (lalo[1][i] < 0.0 && lalo[1][i] < dLonMin && lonMax > 1800000) lalo[1][i] = 360.f+lalo[1][i];
         }
       }
     } catch (IOException e) {
@@ -358,21 +359,23 @@ public class BaseMapAdapter {
     RealType x,y;
 
     int st=1;
-    float[][] lalo, linele;
+    float[][] lalo, linele, llout;
     int ll;
 
     Vector sets = new Vector();
+    float maxEle = (float)numEles/2.0f;
+
     try {
       while (true) {
         st = findNextSegment();
         if (st == 0) break;
         lalo = getLatLons();
         ll = lalo[0].length;
+        int lbeg = 0;
+        int lnum = 0;
 
         if (isCoordinateSystem) {
           linele = cs.fromReference(lalo);
-          //System.out.println(" lat/lon->line/ele = "+lalo[0][0]+ " "+lalo[1][0]+" -> "+linele[0][0]+" "+linele[1][0]);
-
           boolean missing = false;
 
           for (int i=0; i<ll; i++) {
@@ -380,18 +383,46 @@ public class BaseMapAdapter {
               missing=true;
               break;
             }
+
+            if (i > 0 && Math.abs(linele[0][i] - linele[0][i-1]) > maxEle) {
+
+              if (lnum > 1) {
+
+               llout = new float[2][lnum];
+               System.arraycopy(linele[0],lbeg,llout[0],0,lnum);
+               System.arraycopy(linele[1],lbeg,llout[1],0,lnum);
+               gs = new Gridded2DSet(coordMathType,llout,lnum);
+               sets.addElement(gs);
+              }
+
+              lnum = 0;
+              lbeg = i;
+            }
+
+            lnum ++;
           }
 
           if (missing) continue;
-          gs = new Gridded2DSet(coordMathType,linele,ll);
+
+          if (lnum == ll) {
+            gs = new Gridded2DSet(coordMathType,linele,ll);
+            sets.addElement(gs);
+          } else if (lnum > 1) {
+             llout = new float[2][lnum];
+             System.arraycopy(linele[0],lbeg,llout[0],0,lnum);
+             System.arraycopy(linele[1],lbeg,llout[1],0,lnum);
+
+             gs = new Gridded2DSet(coordMathType,llout,lnum);
+             sets.addElement(gs);
+          }
+
 
         } else {
 
-
           gs = new Gridded2DSet(coordMathType,lalo,ll);
+          sets.addElement(gs);
         }
 
-        sets.addElement(gs);
 
       }
 
@@ -406,7 +437,27 @@ public class BaseMapAdapter {
 
   }
 
+  /** set the sign of longitude convention.  By default, the
+  * longitudes are positive eastward
+  *
+  * @param value set to true for positive eastward, set to
+  * false for positive westward.
+  *
+  */
+
   public void setEastPositive(boolean value) {
     isEastPositive = value;
+  }
+
+  /** determine what sign convention for longitude is currently
+  * being used.
+  *
+  * @return true if the convention is positive eastward; false if
+  * positive westward.
+  */
+
+
+  public boolean isEastPositive() {
+    return (isEastPositive);
   }
 }
