@@ -1362,10 +1362,10 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
         double a, b;
         if (height > width) {
           a = 1.0;
-          b = (double) (height / width);
+          b = ((double) height) / ((double) width);
         }
         else {
-          a = (double) (width / height);
+          a = ((double) width) / ((double) height);
           b = 1.0;
         }
         pc.setAspectCartesian(new double[] {a, b});
