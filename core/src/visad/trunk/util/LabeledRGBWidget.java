@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBWidget.java,v 1.16 1999-04-20 13:36:51 billh Exp $
+@(#) $Id: LabeledRGBWidget.java,v 1.17 1999-04-20 13:39:35 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.16 $, $Date: 1999-04-20 13:36:51 $
+ * @version $Revision: 1.17 $, $Date: 1999-04-20 13:39:35 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBWidget extends Panel implements ActionListener,
@@ -274,9 +274,9 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
     boolean identical = true;
     for (int i=0; i<TABLE_SIZE; i++) {
       float[] t = map_e.getRGBTuple(SCALE * i);
-      if (table[0][i] != t[0] ||
-          table[1][i] != t[1] ||
-          table[2][i] != t[2]) identical = false;
+      if (Math.abs(table[0][i] - t[0]) > 0.0001 ||
+          Math.abs(table[1][i] - t[1]) > 0.0001 ||
+          Math.abs(table[2][i] - t[2]) > 0.0001) identical = false;
     }
     if (!identical) {
       ((RGBMap) map_e).setValues(table_reorg(table));
