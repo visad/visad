@@ -85,11 +85,11 @@ public class FloatSet extends SimpleSet {
    */
   public final Object clone() {
       /*
-       * I (Steve Emmerson) believe that this implementation should return
+       * Steve Emmerson believes that this implementation should return
        * "this" to reduce the memory-footprint but Bill believes that doing so
        * would be counter-intuitive and might harm applications.
        */
-      return super.clone;
+      return super.clone();
   }
 
   public Object cloneButType(MathType type) throws VisADException {
