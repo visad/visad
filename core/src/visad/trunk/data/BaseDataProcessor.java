@@ -31,7 +31,7 @@ public abstract class BaseDataProcessor
    * Write the <tt>Data</tt> object using the most appropriate
    * {@link visad.data.DataProcessor DataProcessor} method.
    */
-  public void process(DataImpl di)
+  public void process(DataImpl di, Object token)
     throws VisADException
   {
     MathType mt = di.getType();
@@ -42,13 +42,14 @@ public abstract class BaseDataProcessor
         if (mt instanceof TextType) {
           Text t = (Text )di;
 
-          processText((TextType )t.getType(), t.getValue(), t.isMissing(), t);
+          processText((TextType )t.getType(), t.getValue(), t.isMissing(), t,
+                      token);
           done = true;
         } else if (mt instanceof RealType) {
           Real r = (Real )di;
 
           processReal((RealType )r.getType(), r.getValue(), r.getUnit(),
-                      r.getError(), r);
+                      r.getError(), r, token);
           done = true;
         }
       } catch (UnimplementedException ue) {
@@ -70,7 +71,8 @@ public abstract class BaseDataProcessor
           }
 
           try {
-            processRealTuple(rtt, reals, rti.getCoordinateSystem(), rti);
+            processRealTuple(rtt, reals, rti.getCoordinateSystem(), rti,
+                             token);
             done = true;
           } catch (UnimplementedException ue) {
           }
@@ -79,7 +81,7 @@ public abstract class BaseDataProcessor
 
       if (!done) {
         try {
-          processTuple(tt, comps, ti);
+          processTuple(tt, comps, ti, token);
           done = true;
         } catch (UnimplementedException ue) {
         }
@@ -89,10 +91,10 @@ public abstract class BaseDataProcessor
 
       try {
         if (di instanceof SampledSet) {
-          processSampledSet(st, (SampledSet )di);
+          processSampledSet(st, (SampledSet )di, token);
           done = true;
         } else if (di instanceof SimpleSet) {
-          processSimpleSet(st, (SimpleSet )di);
+          processSimpleSet(st, (SimpleSet )di, token);
           done = true;
         }
       } catch (UnimplementedException ue) {
@@ -122,12 +124,13 @@ public abstract class BaseDataProcessor
           }
 
           processFlatField(ft, ff.getDomainSet(), cs, rangeCS,
-                           ff.getRangeSets(), ff.getDefaultRangeUnits(), ff);
+                           ff.getRangeSets(), ff.getDefaultRangeUnits(), ff,
+                           token);
           done = true;
         } else if (di instanceof FieldImpl) {
           FieldImpl fi = (FieldImpl )di;
 
-          processFieldImpl(ft, fi.getDomainSet(), fi);
+          processFieldImpl(ft, fi.getDomainSet(), fi, token);
           done = true;
         }
       } catch (UnimplementedException ue) {
@@ -136,7 +139,7 @@ public abstract class BaseDataProcessor
 
     if (!done) {
       try {
-        processUnknownData(di);
+        processUnknownData(di, token);
       } catch (UnimplementedException ue) {
         throw new UnimplementedException("Couldn't process " +
                                          di.getClass().getName() +
@@ -146,22 +149,24 @@ public abstract class BaseDataProcessor
   }
 
   public abstract void processDoubleSet(SetType type, CoordinateSystem cs,
-                                        Unit[] units, DoubleSet set)
+                                        Unit[] units, DoubleSet set,
+                                        Object token)
     throws VisADException;
 
   public abstract void processFieldImpl(FunctionType type, Set set,
-                                        FieldImpl fld)
+                                        FieldImpl fld, Object token)
     throws VisADException;
 
   public abstract void processFlatField(FunctionType type, Set domainSet,
                                         CoordinateSystem cs,
                                         CoordinateSystem[] rangeCS,
                                         Set[] rangeSets, Unit[] units,
-                                        FlatField fld)
+                                        FlatField fld, Object token)
     throws VisADException;
 
   public abstract void processFloatSet(SetType type, CoordinateSystem cs,
-                                       Unit[] units, FloatSet set)
+                                       Unit[] units, FloatSet set,
+                                       Object token)
     throws VisADException;
 
   public abstract void processGridded1DDoubleSet(SetType type,
@@ -170,7 +175,8 @@ public abstract class BaseDataProcessor
                                                  CoordinateSystem cs,
                                                  Unit[] units,
                                                  ErrorEstimate[] errors,
-                                                 Gridded1DDoubleSet set)
+                                                 Gridded1DDoubleSet set,
+                                                 Object token)
     throws VisADException;
 
   public abstract void processGridded2DDoubleSet(SetType type,
@@ -179,7 +185,8 @@ public abstract class BaseDataProcessor
                                                  CoordinateSystem cs,
                                                  Unit[] units,
                                                  ErrorEstimate[] errors,
-                                                 Gridded2DDoubleSet set)
+                                                 Gridded2DDoubleSet set,
+                                                 Object token)
     throws VisADException;
 
   public abstract void processGridded3DDoubleSet(SetType type,
@@ -188,17 +195,18 @@ public abstract class BaseDataProcessor
                                                  CoordinateSystem cs,
                                                  Unit[] units,
                                                  ErrorEstimate[] errors,
-                                                 Gridded3DDoubleSet set)
+                                                 Gridded3DDoubleSet set,
+                                                 Object token)
     throws VisADException;
 
   public abstract void processGridded1DSet(SetType type, float[][] samples,
                                            int[] lengths, CoordinateSystem cs,
                                            Unit[] units,
                                            ErrorEstimate[] errors,
-                                           Gridded1DSet set)
+                                           Gridded1DSet set, Object token)
     throws VisADException;
 
-  private void processGridded1DSet(SetType st, Gridded1DSet set)
+  private void processGridded1DSet(SetType st, Gridded1DSet set, Object token)
     throws VisADException
   {
     int[] lengths = set.getLengths();
@@ -212,11 +220,11 @@ public abstract class BaseDataProcessor
         Gridded1DDoubleSet dset = (Gridded1DDoubleSet )set;
 
         processGridded1DDoubleSet(st, dset.getDoubles(), lengths, cs, units,
-                                  errors, dset);
+                                  errors, dset, token);
         done = true;
       } else if (set instanceof Integer1DSet) {
         processInteger1DSet(st, lengths, cs, units, errors,
-                            (Integer1DSet )set);
+                            (Integer1DSet )set, token);
         done = true;
       } else if (set instanceof Linear1DSet) {
         Linear1DSet lset = (Linear1DSet )set;
@@ -225,7 +233,7 @@ public abstract class BaseDataProcessor
         double[] lasts = new double[] { lset.getLast() };
 
         processLinear1DSet(st, firsts, lasts, lengths, cs, units, errors,
-                           lset);
+                           lset, token);
         done = true;
       }
     } catch (UnimplementedException ue) {
@@ -234,7 +242,7 @@ public abstract class BaseDataProcessor
     if (!done) {
       processGridded1DSet(st, set.getSamples(), set.getLengths(),
                           set.getCoordinateSystem(), set.getSetUnits(),
-                          set.getSetErrors(), set);
+                          set.getSetErrors(), set, token);
     }
   }
 
@@ -242,10 +250,10 @@ public abstract class BaseDataProcessor
                                            int[] lengths, CoordinateSystem cs,
                                            Unit[] units,
                                            ErrorEstimate[] errors,
-                                           Gridded2DSet set)
+                                           Gridded2DSet set, Object token)
     throws VisADException;
 
-  private void processGridded2DSet(SetType st, Gridded2DSet set)
+  private void processGridded2DSet(SetType st, Gridded2DSet set, Object token)
     throws VisADException
   {
     int[] lengths = set.getLengths();
@@ -259,11 +267,11 @@ public abstract class BaseDataProcessor
         Gridded2DDoubleSet dset = (Gridded2DDoubleSet )set;
 
         processGridded2DDoubleSet(st, dset.getDoubles(), lengths, cs, units,
-                                  errors, dset);
+                                  errors, dset, token);
         done = true;
       } else if (set instanceof Integer2DSet) {
         processInteger2DSet(st, lengths, cs, units, errors,
-                            (Integer2DSet )set);
+                            (Integer2DSet )set, token);
         done = true;
       } else if (set instanceof Linear2DSet) {
         Linear2DSet lset = (Linear2DSet )set;
@@ -278,10 +286,10 @@ public abstract class BaseDataProcessor
 
         if (lset instanceof LinearLatLonSet) {
           processLinearLatLonSet(st, firsts, lasts, lengths, cs, units,
-                                 errors, (LinearLatLonSet )lset);
+                                 errors, (LinearLatLonSet )lset, token);
         } else {
           processLinear2DSet(st, firsts, lasts, lengths, cs, units, errors,
-                             lset);
+                             lset, token);
         }
         done = true;
       }
@@ -291,7 +299,7 @@ public abstract class BaseDataProcessor
     if (!done) {
       processGridded2DSet(st, set.getSamples(), set.getLengths(),
                           set.getCoordinateSystem(), set.getSetUnits(),
-                          set.getSetErrors(), set);
+                          set.getSetErrors(), set, token);
     }
   }
 
@@ -299,10 +307,10 @@ public abstract class BaseDataProcessor
                                            int[] lengths, CoordinateSystem cs,
                                            Unit[] units,
                                            ErrorEstimate[] errors,
-                                           Gridded3DSet set)
+                                           Gridded3DSet set, Object token)
     throws VisADException;
 
-  private void processGridded3DSet(SetType st, Gridded3DSet set)
+  private void processGridded3DSet(SetType st, Gridded3DSet set, Object token)
     throws VisADException
   {
     int[] lengths = set.getLengths();
@@ -316,11 +324,11 @@ public abstract class BaseDataProcessor
         Gridded3DDoubleSet dset = (Gridded3DDoubleSet )set;
 
         processGridded3DDoubleSet(st, dset.getDoubles(), lengths, cs, units,
-                                  errors, dset);
+                                  errors, dset, token);
         done = true;
       } else if (set instanceof Integer3DSet) {
         processInteger3DSet(st, lengths, cs, units, errors,
-                            (Integer3DSet )set);
+                            (Integer3DSet )set, token);
         done = true;
       } else if (set instanceof Linear3DSet) {
         Linear3DSet lset = (Linear3DSet )set;
@@ -334,7 +342,7 @@ public abstract class BaseDataProcessor
         }
 
         processLinear3DSet(st, firsts, lasts, lengths, cs, units, errors,
-                           lset);
+                           lset, token);
         done = true;
       }
     } catch (UnimplementedException ue) {
@@ -343,32 +351,32 @@ public abstract class BaseDataProcessor
     if (!done) {
       processGridded3DSet(st, set.getSamples(), set.getLengths(),
                           set.getCoordinateSystem(), set.getSetUnits(),
-                          set.getSetErrors(), set);
+                          set.getSetErrors(), set, token);
     }
   }
 
   public abstract void processGriddedSet(SetType type, float[][] samples,
                                          int[] lengths, CoordinateSystem cs,
                                          Unit[] units, ErrorEstimate[] errors,
-                                         GriddedSet set)
+                                         GriddedSet set, Object token)
     throws VisADException;
 
-  private void processGriddedSet(SetType st, GriddedSet set)
+  private void processGriddedSet(SetType st, GriddedSet set, Object token)
     throws VisADException
   {
     boolean done = false;
     try {
       if (set instanceof Gridded1DSet) {
-        processGridded1DSet(st, (Gridded1DSet )set);
+        processGridded1DSet(st, (Gridded1DSet )set, token);
         done = true;
       } else if (set instanceof Gridded2DSet) {
-        processGridded2DSet(st, (Gridded2DSet )set);
+        processGridded2DSet(st, (Gridded2DSet )set, token);
         done = true;
       } else if (set instanceof Gridded3DSet) {
-        processGridded3DSet(st, (Gridded3DSet )set);
+        processGridded3DSet(st, (Gridded3DSet )set, token);
         done = true;
       } else if (set instanceof LinearNDSet) {
-        processLinearNDSet(st, (LinearNDSet )set);
+        processLinearNDSet(st, (LinearNDSet )set, token);
         done = true;
       }
     } catch (UnimplementedException ue) {
@@ -377,39 +385,39 @@ public abstract class BaseDataProcessor
     if (!done) {
       processGriddedSet(st, set.getSamples(), set.getLengths(),
                         set.getCoordinateSystem(), set.getSetUnits(),
-                        set.getSetErrors(), set);
+                        set.getSetErrors(), set, token);
     }
   }
 
   public abstract void processInteger1DSet(SetType type, int[] lengths,
                                            CoordinateSystem cs, Unit[] units,
                                            ErrorEstimate[] errors,
-                                           Integer1DSet set)
+                                           Integer1DSet set, Object token)
     throws VisADException;
 
   public abstract void processInteger2DSet(SetType type, int[] lengths,
                                            CoordinateSystem cs, Unit[] units,
                                            ErrorEstimate[] errors,
-                                           Integer2DSet set)
+                                           Integer2DSet set, Object token)
     throws VisADException;
 
   public abstract void processInteger3DSet(SetType type, int[] lengths,
                                            CoordinateSystem cs, Unit[] units,
                                            ErrorEstimate[] errors,
-                                           Integer3DSet set)
+                                           Integer3DSet set, Object token)
     throws VisADException;
 
   public abstract void processIntegerNDSet(SetType type, int[] lengths,
                                            CoordinateSystem cs, Unit[] units,
                                            ErrorEstimate[] errors,
-                                           IntegerNDSet set)
+                                           IntegerNDSet set, Object token)
     throws VisADException;
 
   public abstract void processIrregular1DSet(SetType type, float[][] samples,
                                              CoordinateSystem cs,
                                              Unit[] units,
                                              ErrorEstimate[] errors,
-                                             Irregular1DSet set)
+                                             Irregular1DSet set, Object token)
     throws VisADException;
 
   public abstract void processIrregular2DSet(SetType type, float[][] samples,
@@ -417,7 +425,7 @@ public abstract class BaseDataProcessor
                                              Unit[] units,
                                              ErrorEstimate[] errors,
                                              Delaunay delaunay,
-                                             Irregular2DSet set)
+                                             Irregular2DSet set, Object token)
     throws VisADException;
 
   public abstract void processIrregular3DSet(SetType type, float[][] samples,
@@ -425,17 +433,17 @@ public abstract class BaseDataProcessor
                                              Unit[] units,
                                              ErrorEstimate[] errors,
                                              Delaunay delaunay,
-                                             Irregular3DSet set)
+                                             Irregular3DSet set, Object token)
     throws VisADException;
 
   public abstract void processIrregularSet(SetType type, float[][] samples,
                                            CoordinateSystem cs, Unit[] units,
                                            ErrorEstimate[] errors,
                                            Delaunay delaunay,
-                                           IrregularSet set)
+                                           IrregularSet set, Object token)
     throws VisADException;
 
-  private void processIrregularSet(SetType st, IrregularSet set)
+  private void processIrregularSet(SetType st, IrregularSet set, Object token)
     throws VisADException
   {
     float[][] samples = set.getSamples();
@@ -447,22 +455,23 @@ public abstract class BaseDataProcessor
     try {
       if (set instanceof Irregular1DSet) {
         processIrregular1DSet(st, samples, cs, units, errors,
-                              (Irregular1DSet )set);
+                              (Irregular1DSet )set, token);
         done = true;
       } else if (set instanceof Irregular2DSet) {
         processIrregular2DSet(st, samples, cs, units, errors, set.Delan,
-                              (Irregular2DSet )set);
+                              (Irregular2DSet )set, token);
         done = true;
       } else if (set instanceof Irregular3DSet) {
         processIrregular3DSet(st, samples, cs, units, errors, set.Delan,
-                              (Irregular3DSet )set);
+                              (Irregular3DSet )set, token);
         done = true;
       }
     } catch (UnimplementedException ue) {
     }
 
     if (!done) {
-      processIrregularSet(st, samples, cs, units, errors, set.Delan, set);
+      processIrregularSet(st, samples, cs, units, errors, set.Delan, set,
+                          token);
     }
   }
 
@@ -470,30 +479,30 @@ public abstract class BaseDataProcessor
                                           double[] lasts, int[] lengths,
                                           CoordinateSystem cs, Unit[] units,
                                           ErrorEstimate[] errors,
-                                          Linear1DSet set)
+                                          Linear1DSet set, Object token)
     throws VisADException;
 
-  public void processLinear1DSet(SetType st, Linear1DSet set)
+  public void processLinear1DSet(SetType st, Linear1DSet set, Object token)
     throws VisADException
   {
     processLinear1DSet(st, new double[] { set.getFirst() },
                        new double[] { set.getLast() }, set.getLengths(),
                        set.getCoordinateSystem(), set.getSetUnits(),
-                       set.getSetErrors(), set);
+                       set.getSetErrors(), set, token);
   }
 
   public abstract void processLinear2DSet(SetType type, double[] firsts,
                                           double[] lasts, int[] lengths,
                                           CoordinateSystem cs, Unit[] units,
                                           ErrorEstimate[] errors,
-                                          Linear2DSet set)
+                                          Linear2DSet set, Object token)
     throws VisADException;
 
   public abstract void processLinear3DSet(SetType type, double[] firsts,
                                           double[] lasts, int[] lengths,
                                           CoordinateSystem cs, Unit[] units,
                                           ErrorEstimate[] errors,
-                                          Linear3DSet set)
+                                          Linear3DSet set, Object token)
     throws VisADException;
 
   public abstract void processLinearLatLonSet(SetType type, double[] firsts,
@@ -501,17 +510,18 @@ public abstract class BaseDataProcessor
                                               CoordinateSystem cs,
                                               Unit[] units,
                                               ErrorEstimate[] errors,
-                                              LinearLatLonSet set)
+                                              LinearLatLonSet set,
+                                              Object token)
     throws VisADException; 
 
   public abstract void processLinearNDSet(SetType type, double[] firsts,
                                           double[] lasts, int[] lengths,
                                           CoordinateSystem cs, Unit[] units,
                                           ErrorEstimate[] errors,
-                                          LinearNDSet set)
+                                          LinearNDSet set, Object token)
     throws VisADException;
 
-  private void processLinearNDSet(SetType st, LinearNDSet set)
+  private void processLinearNDSet(SetType st, LinearNDSet set, Object token)
     throws VisADException
   {
     boolean done = false;
@@ -519,7 +529,7 @@ public abstract class BaseDataProcessor
       if (set instanceof IntegerNDSet) {
         processIntegerNDSet(st, set.getLengths(), set.getCoordinateSystem(),
                             set.getSetUnits(), set.getSetErrors(),
-                            (IntegerNDSet )set);
+                            (IntegerNDSet )set, token);
         done = true;
       }
     } catch (UnimplementedException ue) {
@@ -528,62 +538,64 @@ public abstract class BaseDataProcessor
     if (!done) {
       processLinearNDSet(st, set.getFirsts(), set.getLasts(),
                          set.getLengths(), set.getCoordinateSystem(),
-                         set.getSetUnits(), set.getSetErrors(), set);
+                         set.getSetUnits(), set.getSetErrors(), set, token);
     }
   }
 
   public abstract void processList1DSet(SetType type, float[] list,
                                         CoordinateSystem cs, Unit[] units,
-                                        List1DSet set)
+                                        List1DSet set, Object token)
     throws VisADException;
 
   public abstract void processProductSet(SetType type, SampledSet[] sets,
                                          CoordinateSystem cs, Unit[] units,
                                          ErrorEstimate[] errors,
-                                         ProductSet set)
+                                         ProductSet set, Object token)
     throws VisADException;
 
   public abstract void processReal(RealType type, double value, Unit unit,
-                                   ErrorEstimate error, Real real)
+                                   ErrorEstimate error, Real real,
+                                   Object token)
     throws VisADException;
 
   public abstract void processRealTuple(RealTupleType type, Real[] components,
-                                        CoordinateSystem cs, RealTuple rt)
+                                        CoordinateSystem cs, RealTuple rt,
+                                        Object token)
     throws VisADException;
 
   public abstract void processSampledSet(SetType st, int manifold_dimension,
                                          CoordinateSystem cs, Unit[] units,
                                          ErrorEstimate[] errors,
-                                         SampledSet set)
+                                         SampledSet set, Object token)
     throws VisADException;
 
-  private void processSampledSet(SetType st, SampledSet set)
+  private void processSampledSet(SetType st, SampledSet set, Object token)
     throws VisADException
   {
     boolean done = false;
     try {
       if (set instanceof GriddedSet) {
-        processGriddedSet(st, (GriddedSet )set);
+        processGriddedSet(st, (GriddedSet )set, token);
         done = true;
       } else if (set instanceof IrregularSet) {
-        processIrregularSet(st, (IrregularSet )set);
+        processIrregularSet(st, (IrregularSet )set, token);
         done = true;
       } else if (set instanceof ProductSet) {
         ProductSet ps = (ProductSet )set;
 
         processProductSet(st, ps.getSets(), ps.getCoordinateSystem(),
-                          ps.getSetUnits(), ps.getSetErrors(), ps);
+                          ps.getSetUnits(), ps.getSetErrors(), ps, token);
         done = true;
       } else if (set instanceof SingletonSet) {
         SingletonSet ss = (SingletonSet )set;
 
         processSingletonSet(ss.getData(), ss.getCoordinateSystem(),
-                            ss.getSetUnits(), ss.getSetErrors(), ss);
+                            ss.getSetUnits(), ss.getSetErrors(), ss, token);
         done = true;
       } else if (set instanceof UnionSet) {
         UnionSet us = (UnionSet )set;
 
-        processUnionSet(st, us.getSets(), us);
+        processUnionSet(st, us.getSets(), us, token);
         done = true;
       }
     } catch (UnimplementedException ue) {
@@ -592,16 +604,17 @@ public abstract class BaseDataProcessor
     if (!done) {
       processSampledSet(st, set.getManifoldDimension(),
                         set.getCoordinateSystem(), set.getSetUnits(),
-                        set.getSetErrors(), set);
+                        set.getSetErrors(), set, token);
     }
   }
 
   public abstract void processSimpleSet(SetType st, int manifold_dimension,
                                         CoordinateSystem cs, Unit[] units,
-                                        ErrorEstimate[] errors, SimpleSet set)
+                                        ErrorEstimate[] errors, SimpleSet set,
+                                        Object token)
     throws VisADException;
 
-  private void processSimpleSet(SetType st, SimpleSet set)
+  private void processSimpleSet(SetType st, SimpleSet set, Object token)
     throws VisADException
   {
     boolean done = false;
@@ -609,19 +622,21 @@ public abstract class BaseDataProcessor
       if (set instanceof DoubleSet) {
         DoubleSet ds = (DoubleSet )set;
 
-        processDoubleSet(st, ds.getCoordinateSystem(), ds.getSetUnits(), ds);
+        processDoubleSet(st, ds.getCoordinateSystem(), ds.getSetUnits(), ds,
+                         token);
         done = true;
       } else if (set instanceof FloatSet) {
         FloatSet fs = (FloatSet )set;
 
-        processFloatSet(st, fs.getCoordinateSystem(), fs.getSetUnits(), fs);
+        processFloatSet(st, fs.getCoordinateSystem(), fs.getSetUnits(), fs,
+                        token);
         done = true;
       } else if (set instanceof List1DSet) {
         List1DSet ls = (List1DSet )set;
 
         float[][] samples = ls.getSamples();
         processList1DSet(st, samples[0], ls.getCoordinateSystem(),
-                         ls.getSetUnits(), ls);
+                         ls.getSetUnits(), ls, token);
         done = true;
       }
     } catch (UnimplementedException ue) {
@@ -630,28 +645,28 @@ public abstract class BaseDataProcessor
     if (!done) {
       processSimpleSet(st, set.getManifoldDimension(),
                        set.getCoordinateSystem(), set.getSetUnits(),
-                       set.getSetErrors(), set);
+                       set.getSetErrors(), set, token);
     }
   }
 
   public abstract void processSingletonSet(RealTuple sample,
                                            CoordinateSystem cs, Unit[] units,
                                            ErrorEstimate[] errors,
-                                           SingletonSet set)
+                                           SingletonSet set, Object token)
     throws VisADException;
 
   public abstract void processText(TextType type, String value,
-                                   boolean missing, Text text)
+                                   boolean missing, Text text, Object token)
     throws VisADException;
 
-  public abstract void processTuple(TupleType type, Data[] components, Tuple t)
+  public abstract void processTuple(TupleType type, Data[] components, Tuple t,
+                                    Object token)
     throws VisADException;
 
   public abstract void processUnionSet(SetType type, SampledSet[] sets,
-                                       UnionSet set)
+                                       UnionSet set, Object token)
     throws VisADException;
 
-  public abstract void processUnknownData(DataImpl data)
+  public abstract void processUnknownData(DataImpl data, Object token)
     throws VisADException;
-
 }

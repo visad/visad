@@ -31,139 +31,153 @@ import visad.*;
  */
 public interface DataProcessor
 {
-  void process(DataImpl data)
+  void process(DataImpl data, Object token)
     throws VisADException;
   void processDoubleSet(SetType type, CoordinateSystem cs, Unit[] units,
-                        DoubleSet set)
+                        DoubleSet set, Object token)
     throws VisADException;
-  void processFieldImpl(FunctionType type, Set set, FieldImpl fld)
+  void processFieldImpl(FunctionType type, Set set, FieldImpl fld,
+                        Object token)
     throws VisADException;
   void processFlatField(FunctionType type, Set domainSet, CoordinateSystem cs,
                         CoordinateSystem[] rangeCS, Set[] rangeSets,
-                        Unit[] units, FlatField fld)
+                        Unit[] units, FlatField fld, Object token)
     throws VisADException;
   void processFloatSet(SetType type, CoordinateSystem cs, Unit[] units,
-                       FloatSet set)
+                       FloatSet set, Object token)
     throws VisADException;
   void processGridded1DDoubleSet(SetType type, double[][] samples,
                                  int[] lengths, CoordinateSystem cs,
                                  Unit[] units, ErrorEstimate[] errors,
-                                 Gridded1DDoubleSet set)
+                                 Gridded1DDoubleSet set, Object token)
     throws VisADException;
   void processGridded2DDoubleSet(SetType type, double[][] samples,
                                  int[] lengths, CoordinateSystem cs,
                                  Unit[] units, ErrorEstimate[] errors,
-                                 Gridded2DDoubleSet set)
+                                 Gridded2DDoubleSet set, Object token)
     throws VisADException;
   void processGridded3DDoubleSet(SetType type, double[][] samples,
                                  int[] lengths, CoordinateSystem cs,
                                  Unit[] units, ErrorEstimate[] errors,
-                                 Gridded3DDoubleSet set)
+                                 Gridded3DDoubleSet set, Object token)
     throws VisADException;
   void processGridded1DSet(SetType type, float[][] samples, int[] lengths,
                            CoordinateSystem cs, Unit[] units,
-                           ErrorEstimate[] errors, Gridded1DSet set)
+                           ErrorEstimate[] errors, Gridded1DSet set,
+                           Object token)
     throws VisADException;
   void processGridded2DSet(SetType type, float[][] samples, int[] lengths,
                            CoordinateSystem cs, Unit[] units,
-                           ErrorEstimate[] errors, Gridded2DSet set)
+                           ErrorEstimate[] errors, Gridded2DSet set,
+                           Object token)
     throws VisADException;
   void processGridded3DSet(SetType type, float[][] samples, int[] lengths,
                            CoordinateSystem cs, Unit[] units,
-                           ErrorEstimate[] errors, Gridded3DSet set)
+                           ErrorEstimate[] errors, Gridded3DSet set,
+                           Object token)
     throws VisADException;
 
   void processGriddedSet(SetType type, float[][] samples, int[] lengths,
                          CoordinateSystem cs, Unit[] units,
-                         ErrorEstimate[] errors, GriddedSet set)
+                         ErrorEstimate[] errors, GriddedSet set,
+                         Object token)
     throws VisADException;
   void processInteger1DSet(SetType type, int[] lengths, CoordinateSystem cs,
                            Unit[] units, ErrorEstimate[] errors,
-                           Integer1DSet set)
+                           Integer1DSet set, Object token)
     throws VisADException;
   void processInteger2DSet(SetType type, int[] lengths, CoordinateSystem cs,
                            Unit[] units, ErrorEstimate[] errors,
-                           Integer2DSet set)
+                           Integer2DSet set, Object token)
     throws VisADException;
   void processInteger3DSet(SetType type, int[] lengths, CoordinateSystem cs,
                            Unit[] units, ErrorEstimate[] errors,
-                           Integer3DSet set)
+                           Integer3DSet set, Object token)
     throws VisADException;
   void processIntegerNDSet(SetType type, int[] lengths, CoordinateSystem cs,
                            Unit[] units, ErrorEstimate[] errors,
-                           IntegerNDSet set)
+                           IntegerNDSet set, Object token)
     throws VisADException;
   void processIrregular1DSet(SetType type, float[][] samples,
                              CoordinateSystem cs, Unit[] units,
-                             ErrorEstimate[] errors, Irregular1DSet set)
+                             ErrorEstimate[] errors, Irregular1DSet set,
+                             Object token)
     throws VisADException;
   void processIrregular2DSet(SetType type, float[][] samples,
                              CoordinateSystem cs, Unit[] units,
                              ErrorEstimate[] errors, Delaunay delaunay,
-                             Irregular2DSet set)
+                             Irregular2DSet set, Object token)
     throws VisADException;
   void processIrregular3DSet(SetType type, float[][] samples,
                              CoordinateSystem cs, Unit[] units,
                              ErrorEstimate[] errors, Delaunay delaunay,
-                             Irregular3DSet set)
+                             Irregular3DSet set, Object token)
     throws VisADException;
   void processIrregularSet(SetType type, float[][] samples,
                            CoordinateSystem cs, Unit[] units,
                            ErrorEstimate[] errors, Delaunay delaunay,
-                           IrregularSet set)
+                           IrregularSet set, Object token)
     throws VisADException;
 
   void processLinear1DSet(SetType type, double[] firsts, double[] lasts,
                           int[] lengths, CoordinateSystem cs, Unit[] units,
-                          ErrorEstimate[] errors, Linear1DSet set)
+                          ErrorEstimate[] errors, Linear1DSet set,
+                          Object token)
     throws VisADException;
   void processLinear2DSet(SetType type, double[] firsts, double[] lasts,
                           int[] lengths, CoordinateSystem cs, Unit[] units,
-                          ErrorEstimate[] errors, Linear2DSet set)
+                          ErrorEstimate[] errors, Linear2DSet set,
+                          Object token)
     throws VisADException;
   void processLinear3DSet(SetType type, double[] firsts, double[] lasts,
                           int[] lengths, CoordinateSystem cs, Unit[] units,
-                          ErrorEstimate[] errors, Linear3DSet set)
+                          ErrorEstimate[] errors, Linear3DSet set,
+                          Object token)
     throws VisADException;
   void processLinearLatLonSet(SetType type, double[] firsts, double[] lasts,
                               int[] lengths, CoordinateSystem cs,
                               Unit[] units, ErrorEstimate[] errors,
-                              LinearLatLonSet set)
+                              LinearLatLonSet set, Object token)
     throws VisADException; 
   void processLinearNDSet(SetType type, double[] firsts, double[] lasts,
                           int[] lengths, CoordinateSystem cs, Unit[] units,
-                          ErrorEstimate[] errors, LinearNDSet set)
+                          ErrorEstimate[] errors, LinearNDSet set,
+                          Object token)
     throws VisADException;
   void processList1DSet(SetType type, float[] list, CoordinateSystem cs,
-                        Unit[] units, List1DSet set)
+                        Unit[] units, List1DSet set, Object token)
     throws VisADException;
   void processProductSet(SetType type, SampledSet[] sets, CoordinateSystem cs,
-                         Unit[] units, ErrorEstimate[] errors, ProductSet set)
+                         Unit[] units, ErrorEstimate[] errors, ProductSet set,
+                         Object token)
     throws VisADException;
   void processReal(RealType type, double value, Unit unit,
-                   ErrorEstimate error, Real real)
+                   ErrorEstimate error, Real real, Object token)
     throws VisADException;
   void processRealTuple(RealTupleType type, Real[] components,
-                        CoordinateSystem cs, RealTuple rt)
+                        CoordinateSystem cs, RealTuple rt, Object token)
     throws VisADException;
   void processSampledSet(SetType st, int manifold_dimension,
                          CoordinateSystem cs, Unit[] units,
-                         ErrorEstimate[] errors, SampledSet set)
+                         ErrorEstimate[] errors, SampledSet set, Object token)
     throws VisADException;
   void processSimpleSet(SetType st, int manifold_dimension,
                         CoordinateSystem cs, Unit[] units,
-                        ErrorEstimate[] errors, SimpleSet set)
+                        ErrorEstimate[] errors, SimpleSet set, Object token)
     throws VisADException;
   void processSingletonSet(RealTuple sample, CoordinateSystem cs,
                            Unit[] units, ErrorEstimate[] errors,
-                           SingletonSet set)
+                           SingletonSet set, Object token)
     throws VisADException;
-  void processText(TextType type, String value, boolean missing, Text text)
+  void processText(TextType type, String value, boolean missing, Text text,
+                   Object token)
     throws VisADException;
-  void processTuple(TupleType type, Data[] components, Tuple t)
+  void processTuple(TupleType type, Data[] components, Tuple t,
+                    Object token)
     throws VisADException;
-  void processUnionSet(SetType type, SampledSet[] sets, UnionSet set)
+  void processUnionSet(SetType type, SampledSet[] sets, UnionSet set,
+                       Object token)
     throws VisADException;
-  void processUnknownData(DataImpl data)
+  void processUnknownData(DataImpl data, Object token)
     throws VisADException;
 }
