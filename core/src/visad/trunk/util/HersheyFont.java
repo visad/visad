@@ -55,10 +55,10 @@ import java.net.URL;
 HersheyFont supports the Hershey Fonts for VisAD.
 Adapted from the original code by Buzbee (see source)
 */
-public class HersheyFont extends java.lang.Object
-{
+public class HersheyFont {
+
    private final static int MAX_CHARACTERS = 256;
-   private final static int MAX_POINTS = 250;
+   private final static int MAX_POINTS = 300;
    protected final static int X = 0;
    protected final static int Y = 1;
    private String copyright = "Copyright (c) James P. Buzbee Mar 30, 1996";
@@ -121,7 +121,7 @@ public class HersheyFont extends java.lang.Object
       }
       catch (Exception e)
       {
-         System.out.println ("Error processing font "+fontName+": "+e);
+         System.out.println ("Error processing HersheyFont named "+fontName+": "+e);
       }
       return;
    }
@@ -321,7 +321,7 @@ public class HersheyFont extends java.lang.Object
    {
       int xadjust = 0;
       // if we do not have a script type font
-      if (fontname.indexOf ("scri") < 0)
+      if (fontname.indexOf ("scri") < 0 )
       {
          // if we have a gothic font
          if (fontname.indexOf ("goth") >= 0)

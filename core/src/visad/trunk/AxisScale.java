@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.awt.Font;
+import visad.util.HersheyFont;
 import java.text.*;
 
 /**
@@ -75,7 +76,7 @@ public class AxisScale implements java.io.Serializable
   private boolean snapToBox = false;
   private boolean userLabels = false;
   private boolean visibility = true;
-  private Font labelFont = null;
+  private Object labelFont = null;
   private int labelSize = 12;
   private int axisSide = PRIMARY;
   private int tickOrient = PRIMARY;
@@ -715,12 +716,17 @@ public class AxisScale implements java.io.Serializable
         PlotText.render_label(myTitle, startlabel, base, up, justification);
       lineArrayVector.add(plotArray);
     }
-    else
+    else if (labelFont instanceof java.awt.Font)
     {
       VisADTriangleArray nameArray = 
-        PlotText.render_font(myTitle, labelFont, 
+        PlotText.render_font(myTitle, (Font) labelFont, 
                              startlabel, base, up, justification);
       labelArrayVector.add(nameArray);
+    } else if (labelFont instanceof visad.util.HersheyFont) {
+      VisADLineArray plotArray = 
+        PlotText.render_font(myTitle, (HersheyFont) labelFont, 
+                             startlabel, base, up, justification);
+      lineArrayVector.add(plotArray);
     }
   
     // Draw the labels.  If user hasn't defined their own, make defaults.
@@ -767,10 +773,11 @@ public class AxisScale implements java.io.Serializable
       for (int j=0; j < 3; j++) {
         point[j] = (1.0 - val) * startn[j] + val * startp[j] - dist * up[j];
       }
+
       /*
-      System.out.println("For label = " + Value.doubleValue() + "(" + val + "), point is (" +
-        point[0] + "," + point[1] + "," + point[2] + ")");
+      System.out.println("For label = " + Value.doubleValue() + "(" + val + "), point is (" + point[0] + "," + point[1] + "," + point[2] + ")");
       */
+
       if (labelFont == null)
       {
         VisADLineArray label = 
@@ -778,13 +785,20 @@ public class AxisScale implements java.io.Serializable
             (String) labelTable.get(Value), point, base, updir, justification);
         lineArrayVector.add(label);
       }
-      else
+      else if (labelFont instanceof Font)
       {
         VisADTriangleArray label = 
           PlotText.render_font(
-              (String) labelTable.get(Value), labelFont, point, base, 
+              (String) labelTable.get(Value), (Font) labelFont, point, base, 
               updir, justification);
         labelArrayVector.add(label);
+
+      } else if (labelFont instanceof HersheyFont) {
+        VisADLineArray label = 
+          PlotText.render_font(
+              (String) labelTable.get(Value), (HersheyFont) labelFont, 
+                 point, base, updir, justification);
+        lineArrayVector.add(label);
       }
     }
   
@@ -1055,12 +1069,31 @@ public class AxisScale implements java.io.Serializable
    */
   public void setFont(Font font)
   {
-    Font oldFont = labelFont;
+    Object oldFont = labelFont;
     labelFont = font;
     //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont)) 
     if (labelFont != null && !labelFont.equals(oldFont)) 
     {
-      labelSize = labelFont.getSize();
+      if (labelFont instanceof java.awt.Font) labelSize = ((Font) labelFont).getSize();
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Set the font used for rendering the labels
+   * @param font  new font to use
+   */
+  public void setFont(HersheyFont font)
+  {
+    Object oldFont = labelFont;
+    labelFont = font;
+    //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont)) 
+    if (labelFont != null && !labelFont.equals(oldFont)) 
+    {
+      labelSize = 12;
       try {
         scalarMap.makeScale();  // update the display
       }
@@ -1074,7 +1107,7 @@ public class AxisScale implements java.io.Serializable
    */
   public Font getFont()
   {
-    return labelFont;
+    return (labelFont instanceof Font) ? (Font)labelFont : null;
   }
 
   /**
@@ -1142,8 +1175,9 @@ public class AxisScale implements java.io.Serializable
     labelSize = size;
     if (labelSize != oldSize) {
       if (labelFont != null) {
-        labelFont = 
-          new Font(labelFont.getName(), labelFont.getStyle(), labelSize);
+        if (labelFont instanceof java.awt.Font) labelFont = 
+            new Font( ((Font)labelFont).getName(), 
+                      ((Font)labelFont).getStyle(), labelSize);
       }
       try {
         scalarMap.makeScale();  // update the display

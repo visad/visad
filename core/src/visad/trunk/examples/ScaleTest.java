@@ -195,6 +195,13 @@ public class ScaleTest extends JFrame {
               String fn = fonts[i].getFontName();
               addItem( fn );
             }
+            addItem("HersheyFont.futural");
+            addItem("HersheyFont.futuram");
+            addItem("HersheyFont.cursive");
+            addItem("HersheyFont.timesr");
+            addItem("HersheyFont.timesrb");
+            addItem("HersheyFont.rowmans");
+            addItem("HersheyFont.rowmant");
         }
     }
 
@@ -262,16 +269,26 @@ public class ScaleTest extends JFrame {
                 {
                     String fontName = 
                       (String) ((FontSelector)e.getSource()).getSelectedItem();
-                    Font font = Font.decode(fontName);
-                    int fSize=labelSize.getValue();
 
-                    // this will derive a new font based on the old 
-                    // labelSize.value this leaves the Slider in the 
-                    //current font size
-                    font = font.deriveFont((float) fSize);
+                    if (fontName.startsWith("Hershey")) {
+                      HersheyFont font = new HersheyFont( 
+                          fontName.substring(fontName.indexOf(".")+1) );
+                      System.out.println("HersheyFont = "+font);
+                      scale.setFont(font);
+                      labelSize.setValue(12);  // HersheyFonts are 12 point
 
-                    scale.setFont(font);
-                    labelSize.setValue(font.getSize());
+                    } else {
+                      Font font = Font.decode(fontName);
+                      int fSize=labelSize.getValue();
+
+                      // this will derive a new font based on the old 
+                      // labelSize.value this leaves the Slider in the 
+                      //current font size
+                      font = font.deriveFont((float) fSize);
+                      scale.setFont(font);
+                      labelSize.setValue(font.getSize());
+                    }
+
                 }
             });
             add(fontSelector);
