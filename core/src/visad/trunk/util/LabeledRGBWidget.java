@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBWidget.java,v 1.4 1998-07-29 18:00:34 billh Exp $
+@(#) $Id: LabeledRGBWidget.java,v 1.5 1998-07-29 21:28:18 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -23,58 +23,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-
-
-/* PROPOSED CHANGE TO
-
-LabeledRGBWidget implements ScalarMapListener
-
-  private LabeledRGBWidget(ScalarMap smap, double[] range, float[][] in_table)
-         throws VisADException, RemoteException {
-
-// in place of this(...):
-
-        String name = smap.getScalar().getName();
-        float min = (float) range[0];
-        float max = (float) range[1];
-        float[][] table = table_reorg(in_table);
-
-        if (min != min || max != max) {
-          // fake min and max
-          min = 0.0;
-          max = 1.0;
-          smap.addScalarMapListener(this);
-          // listen for min and max
-          // update 
-          s.setMinimum(float);
-          s.setMaximum(float);
-        }
-
-
-        ColorWidget c = new ColorWidget(new RGBMap(table));
-        Slider s = new ArrowSlider(min, max, (min + max) / 2, name);
-
-
-        SliderLabel l = new SliderLabel(s);
-
-        widget = c;
-        slider = s;
-        label = l;
-
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        add(widget);
-        add(slider);
-        add(label);
-
-
-  public void mapChanged(ScalarMapEvent e) {
-    s.setMinimum(float);
-    s.setMaximum(float);
-  }
-
-*/
-
-
 package visad.util;
 
 import visad.*;
@@ -92,18 +40,19 @@ import java.awt.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.4 $, $Date: 1998-07-29 18:00:34 $
+ * @version $Revision: 1.5 $, $Date: 1998-07-29 21:28:18 $
  * @since Visad Utility Library v0.7.1
  */
 
-public class LabeledRGBWidget extends Panel  {
+public class LabeledRGBWidget extends Panel implements ScalarMapListener {
 
-	private Slider slider;
+	private ArrowSlider slider;
 	
 	private ColorWidget widget;
 	
 	private SliderLabel label;
 
+        /* CTR: 29 Jul 1998
 	public LabeledRGBWidget() {
 		this(new ColorWidget(), new ArrowSlider());
 	}
@@ -119,7 +68,6 @@ public class LabeledRGBWidget extends Panel  {
 	public LabeledRGBWidget(ColorWidget c, Slider s) {
 		this(c, s, new SliderLabel(s));
 	}
-
 	
 	public LabeledRGBWidget(ColorWidget c, Slider s, SliderLabel l) {
 	
@@ -132,6 +80,7 @@ public class LabeledRGBWidget extends Panel  {
 		add(slider);
 		add(label);
 	}
+        */
 
   ColorControl colorcontrol;
 
@@ -163,33 +112,73 @@ public class LabeledRGBWidget extends Panel  {
   }
 
   private LabeledRGBWidget(ScalarMap smap, double[] range, float[][] in_table)
-         throws VisADException, RemoteException {
+                                     throws VisADException, RemoteException {
+
+    /* CTR: 29 Jul 1998: consolidated constructor code */
+
+    String name = smap.getScalar().getName();
+    float min = (float) range[0];
+    float max = (float) range[1];
+    float[][] table = table_reorg(in_table);
+
+    if (min != min || max != max) {
+      // fake min and max
+      min = 0.0f;
+      max = 1.0f;
+      // listen for real min and max
+      smap.addScalarMapListener(this);
+    }
+
+    ColorWidget c = new ColorWidget(new RGBMap(table));
+    ArrowSlider s = new ArrowSlider(min, max, (min + max) / 2, name);
+
+    SliderLabel l = new SliderLabel(s);
+
+    widget = c;
+    slider = s;
+    label = l;
+
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    add(widget);
+    add(slider);
+    add(label);
+
+    /* CTR: 29 Jul 1998: end of consolidated code */
+
+    /* CTR: 29 Jul 1998
     this(smap.getScalar().getName(), (float) range[0], (float) range[1],
          table_reorg(in_table));
+    */
     if (!Display.RGB.equals(smap.getDisplayScalar())) {
       throw new DisplayException("LabeledRGBWidget: ScalarMap must " +
                                  "be to Display.RGB");
     }
+    /* CTR: 29 Jul 1998
     if (range[0] != range[0] || range[1] != range[1] ||
         Double.isInfinite(range[0]) || Double.isInfinite(range[1]) ||
         range[0] == Double.MAX_VALUE || range[1] == -Double.MAX_VALUE) {
       throw new DisplayException("LabeledRGBWidget: bad range");
     }
+    */
     colorcontrol = (ColorControl) smap.getControl();
  
     ColorMap map = widget.getColorMap();
     final int TABLE_SIZE = map.getMapResolution(); 
     final float SCALE = 1.0f / (TABLE_SIZE - 1.0f);
 
-    float[][] table = new float[3][TABLE_SIZE];
+    /* CTR: 29 Jul 1998 */
+    if (table == null) {
+      table = new float[3][TABLE_SIZE];
  
-    for (int i=0; i<TABLE_SIZE; i++) {
-      float[] t = map.getRGBTuple(SCALE * i);
-      table[0][i] = t[0];
-      table[1][i] = t[1];
-      table[2][i] = t[2];
+      for (int i=0; i<TABLE_SIZE; i++) {
+        float[] t = map.getRGBTuple(SCALE * i);
+        table[0][i] = t[0];
+        table[1][i] = t[1];
+        table[2][i] = t[2];
+      }
+      colorcontrol.setTable(table);
     }
-    colorcontrol.setTable(table);
+    else colorcontrol.setTable(in_table);
 
     widget.addColorChangeListener(new ColorChangeListener() {
       public void colorChanged(ColorChangeEvent e) {
@@ -211,6 +200,19 @@ public class LabeledRGBWidget extends Panel  {
       }
     });
 
+  }
+
+  /* CTR: 29 Jul 1998: added mapChanged method */
+  /** ScalarMapListener method used with delayed auto-scaling. */
+  public void mapChanged(ScalarMapEvent e) {
+    ScalarMap s = e.getScalarMap();
+    double[] range = s.getRange();
+    double val = slider.getValue();
+    if (val <= range[0] || val >= range[1]) {
+      val = (range[0]+range[1])/2;
+      
+    }
+    slider.setBounds((float) range[0], (float) range[1], (float) val);
   }
 
   private static float[][] table_reorg(float[][] table) {
@@ -241,6 +243,7 @@ public class LabeledRGBWidget extends Panel  {
         }
 	
 	/** for debugging purposes */
+        /* CTR: 29 Jul 1998
 	public static void main(String[] argc) {
 	
 		LabeledRGBWidget l = new LabeledRGBWidget("label", 0, 1);
@@ -256,6 +259,7 @@ public class LabeledRGBWidget extends Panel  {
 		f.setVisible(true);
 		
 	}
+        */
 	
 }
 

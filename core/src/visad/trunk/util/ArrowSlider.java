@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ArrowSlider.java,v 1.4 1998-05-27 13:08:33 billh Exp $
+@(#) $Id: ArrowSlider.java,v 1.5 1998-07-29 21:28:17 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.awt.event.*;
  * A pointer slider for visad .
  * 
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.4 $, $Date: 1998-05-27 13:08:33 $
+ * @version $Revision: 1.5 $, $Date: 1998-07-29 21:28:17 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -62,7 +62,7 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 	}
 	
 	/** 
-	 * Construct a new arrow slider with the givden lower, upper and initial values
+	 * Construct a new arrow slider with the given lower, upper and initial values
 	 * @throws IllegalArgumenentException if lower is not less than initial or initial
 	 * is not less than upper 
 	 */
@@ -87,7 +87,7 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 		
 	}
 		
-	/** For testing puropses */
+	/** For testing purposes */
 	public static void main(String[] argv) {
 	
 		Frame frame = new Frame("Visad Arrow Slider");
@@ -102,6 +102,29 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 		frame.setSize(a.getPreferredSize());
 		frame.setVisible(true);
 	}
+
+    /* CTR: 29 Jul 1998: added setBounds method */
+    /** Sets new minimum, maximum, and initial values for this slider */
+    public synchronized void setBounds(float min, float max, float init) {
+      if (min > max) {
+        throw new IllegalArgumentException("ArrowSlider: min cannot be "
+                                          +"greater than max");
+      }
+      if (init < min || init > max) {
+        throw new IllegalArgumentException("ArrowSlider: initial value "
+                                          +"must be between min and max");
+      }
+      lower = min;
+      upper = max;
+      val = init;
+      notifyListeners(new SliderChangeEvent(SliderChangeEvent.LOWER_CHANGE, min));
+      notifyListeners(new SliderChangeEvent(SliderChangeEvent.UPPER_CHANGE, max));
+      notifyListeners(new SliderChangeEvent(SliderChangeEvent.VALUE_CHANGE, init));
+
+      // won't update on repaint, so hit it with a big hammer
+      update(getGraphics());
+      repaint();
+    }
 
 	/** Return the minimum value of this slider */
 	public float getMinimum() {
@@ -154,7 +177,7 @@ update(getGraphics());
 	 * Sets the current value of the slider
 	 * @throws IllegalArgumentException if the new value is out of bounds for the slider
 	 */
-	public synchronized void setValue(float value){
+	public synchronized void setValue(float value) {
 		
 		if (value > upper || value < lower) {
 			throw new IllegalArgumentException("ArrowSlider: Attemped to set new value out of slider range");
