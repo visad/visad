@@ -510,6 +510,7 @@ public abstract class Set extends DataImpl implements SetIface {
   }
 
   public static double[][] copyDoubles(double[][] samples) {
+    if (samples == null) return null;
     int dim = samples.length;
     double[][] s_copy = new double[dim][];
     for (int j=0; j<dim; j++) {
