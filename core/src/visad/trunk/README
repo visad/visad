@@ -128,7 +128,17 @@ Note that the native code in visad/data/hdfeos/hdfeosc does
 not include NASA/Hughes' HDF-EOS C file interface code; it
 only includes our C native code for creating a Java binding
 to their HDF-EOS C file interface.  You must obtain the
-HDF-EOS C file interface code directly from NASA and Hughes.
+HDF-EOS C file interface code directly from NASA and NCSA.
+Specifically, you must obtain and install HDF4.1r1 from:
+
+   ftp://ftp.ncsa.uiuc.edu/HDF/HDF_Current
+ 
+then install HDF-EOS:
+ 
+   http://ulabibm.gsfc.nasa.gov/hdfeos/hdf.html#4
+
+We have successfully linked these libraries on Irix and
+Solaris.
 
 The native code in visad/data/vis5d does include everything
 you need to read Vis5D files.  Note that if you are compiling

@@ -71,6 +71,10 @@ public class FieldImpl extends FunctionImpl implements Field {
     if (set == null) {
       throw new SetException("FieldImpl: set cannot be null");
     }
+    if (set instanceof DoubleSet || set instanceof FloatSet) {
+      throw new SetException("FieldImpl: set may not be DoubleSet " +
+                             "or FloatSet");
+    }
     if (DomainType.getDimension() != set.getDimension()) {
       throw new SetException("FieldImpl: set and type dimensions don't match");
     }
