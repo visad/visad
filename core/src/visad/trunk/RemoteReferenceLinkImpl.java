@@ -46,6 +46,16 @@ public class RemoteReferenceLinkImpl extends UnicastRemoteObject
   public RemoteReferenceLinkImpl(DataDisplayLink ddl)
 	throws RemoteException
   {
+    if (ddl == null) {
+      throw new RemoteException("Cannot link to null link");
+    }
+
+    DataReference ref;
+    ref = ddl.getDataReference();
+    if (!(ref instanceof DataReferenceImpl)) {
+      throw new RemoteException("Cannot link to non-DataReferenceImpl");
+    }
+
     link = ddl;
   }
 
