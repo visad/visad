@@ -77,20 +77,30 @@ public class ScaleTest extends JFrame {
         }
         GraphicsModeControl gmc = display.getGraphicsModeControl();
         gmc.setScaleEnable(true);
+        // uncomment this if you want to show the GMC widget
         //JFrame frame = new JFrame("GMC control");
         //frame.getContentPane().add(new GMCWidget(gmc));
         //frame.pack();
+        // set that aspect
+        ProjectionControl pc = display.getProjectionControl();
+        pc.setAspectCartesian((do3D == true) 
+                                ? new double[] {.8, 1.0, 1.0 }
+                                : new double[] {.8, 1.0 });
+        Unit cel = null;
         try
         {
-            temp = RealType.getRealType("Temperature", Parser.parse("degC"));
-            dewpoint = RealType.getRealType("DewPoint", Parser.parse("degC"));
+            cel = Parser.parse("degC");
+            temp = RealType.getRealType("Temperature", SI.kelvin);
+            //temp = RealType.getRealType("Temperature", cel);
+            dewpoint = RealType.getRealType("DewPoint", cel);
         }
         catch (Exception e) {e.printStackTrace();}
         tMap = new ScalarMap(temp, Display.YAxis);
-        tdMap = 
-           new ScalarMap(dewpoint, Display.YAxis);
-                        //(do3D == true) ? Display.ZAxis : Display.YAxis);
+        tMap.setOverrideUnit(cel);
+        tdMap = new ScalarMap(dewpoint,  
+                             (do3D == true) ? Display.ZAxis : Display.YAxis);
         timeMap = new ScalarMap(RealType.Time, Display.XAxis);
+        // user defined labels
         Hashtable timeLabels = new Hashtable();
         timeLabels.put(new Double(0), "First");
         timeLabels.put(new Double(10), "Last");
@@ -99,12 +109,23 @@ public class ScaleTest extends JFrame {
         tdLabels.put(new Double(-20), "Low");
         tdLabels.put(new Double(5), "High");
         tdMap.getAxisScale().setLabelTable(tdLabels);
+
+        //  orientation
         tdMap.getAxisScale().setSide(AxisScale.SECONDARY);
-        //tdMap.getAxisScale().createStandardLabels(-20, 20, 5, 5);
+
+        // minor ticks
         tdMap.getAxisScale().setMinorTickSpacing(2.5);
+
+        // format labelling
+        AxisScale tScale = tMap.getAxisScale();
         DecimalFormat formatter = (DecimalFormat) DecimalFormat.getInstance();
         formatter.applyPattern("0.0E0");
-        //tMap.getAxisScale().setNumberFormat(formatter);
+        tScale.setNumberFormat(formatter);
+        // calculate labels from user input (NB: format must be set first)
+        tScale.createStandardLabels(50, 10, 50, 40);
+
+        // set title
+        tScale.setTitle(tScale.getTitle() + " (" + cel + ")");
         display.addMap(tMap);
         display.addMap(tdMap);
         display.addMap(timeMap);
@@ -112,7 +133,9 @@ public class ScaleTest extends JFrame {
         float[][] timeVals = 
             new float[][] { { 0.f, 2.f, 4.f, 6.f, 8.f, 10.f} };
         Gridded1DSet timeSet = new Gridded1DSet(RealType.Time, timeVals, 6);
-        float[][] tVals = new float[][] { { 21.f, 53.f, 37.f, 5.f, 5.f, 20.f}};
+        float[][] tVals =   // values in K, display in Cel
+            new float[][] { { 294.15f, 326.15f, 310.15f, 
+                              278.15f, 278.15f, 293.15f}};
         float[][] tdVals = new float[][] { { 1.f, 3.f, 7.f, -15.f, -22.f,4.f}};
         FunctionType fieldType1 = 
             new FunctionType(RealType.Time, temp);
@@ -138,6 +161,7 @@ public class ScaleTest extends JFrame {
         mainPanel.add(left);
         mainPanel.add(display.getComponent());
         pack();
+        // uncomment if you want GMC frame
         //frame.show();
     }
 
