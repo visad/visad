@@ -34,25 +34,45 @@ public class DODSFormTest
     public static void main(String[] args)
 	throws Exception
     {
-	String	urlSpec = 
-	    args.length > 0
-		? args[0]
-		: "http://www.unidata.ucar.edu/cgi-bin/dods/nph-nc/" +
-		  "packages/dods/data/nc_test/COADS-climatology.nc";
-	Runtime	runtime = Runtime.getRuntime();
-	long	free1 = runtime.freeMemory();
-	long	total1 = runtime.totalMemory();
-	long	used1 = total1 - free1;
-	System.out.println("Before DODS total/free/used memory: " + 
-	    total1 + '/' + free1 + '/' + used1);
-	DODSForm	form = DODSForm.dodsForm();
-	DataImpl	data = form.open(urlSpec);
-	long	free2 = runtime.freeMemory();
-	long	total2 = runtime.totalMemory();
-	long	used2 = total2 - free2;
-	System.out.println(data.toString());
-	System.out.println("After DODS total/free/used memory:  " + 
-	    total2 + '/' + free2 + '/' + used2);
-	System.out.println("Used difference = " + (used2 - used1));
+	if (args.length < 1 || args.length > 2)
+	{
+	    System.err.println("Usage: [-v] DODS_dataset_spec");
+	    System.err.println(
+		"e.g. http://www.unidata.ucar.edu/cgi-bin/dods/nph-nc/" +
+		"packages/dods/data/nc_test/COADS-climatology.nc.dods");
+	}
+	else
+	{
+	    boolean	verbose;
+	    String	spec;
+	    if (args.length == 1)
+	    {
+		verbose = false;
+		spec = args[0];
+	    }
+	    else
+	    {
+		verbose = args[0].equals("-v");
+		spec = args[1];
+	    }
+	    Runtime	runtime = Runtime.getRuntime();
+	    long	free1 = runtime.freeMemory();
+	    long	total1 = runtime.totalMemory();
+	    long	used1 = total1 - free1;
+	    System.out.println("Before DODS total/free/used memory: " + 
+		total1 + '/' + free1 + '/' + used1);
+	    DODSForm	form = DODSForm.dodsForm();
+	    DataImpl	data = form.open(spec);
+	    long	free2 = runtime.freeMemory();
+	    long	total2 = runtime.totalMemory();
+	    long	used2 = total2 - free2;
+	    if (verbose)
+		System.out.println(data.toString());
+	    else
+		visad.jmet.DumpType.dumpDataType(data, System.out);
+	    System.out.println("After DODS total/free/used memory:  " + 
+		total2 + '/' + free2 + '/' + used2);
+	    System.out.println("Used difference = " + (used2 - used1));
+	}
     }
 }
