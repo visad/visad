@@ -48,36 +48,68 @@ import java.net.URLConnection;
 public class AreaFile {
 
   // indeces used by this and client classes
+
+  /** AD_STATUS - old status field, now used as position num in ADDE */
   public static final int AD_STATUS     = 0;
+  /** AD_VERSION - McIDAS area file format version number */
   public static final int AD_VERSION    = 1;
+  /** AD_SENSORID - McIDAS sensor identifier */
   public static final int AD_SENSORID   = 2;
+  /** AD_IMGDATE - nominal year and day of the image, CCYYDDD format */
   public static final int AD_IMGDATE    = 3;
+  /** AD_IMGTIME - nominal time of the image, HHMMSS format */
   public static final int AD_IMGTIME    = 4;
+  /** AD_STLINE - upper left image line coordinate */
   public static final int AD_STLINE     = 5;
+  /** AD_STELEM - upper left image element coordinate */
   public static final int AD_STELEM     = 6;
+  /** AD_NUMLINES - number of lines in the image */
   public static final int AD_NUMLINES   = 8;
+  /** AD_NUMELEMS - number of data points per line */
   public static final int AD_NUMELEMS   = 9;
+  /** AD_DATAWIDTH - number of bytes per data point */
   public static final int AD_DATAWIDTH  = 10;
+  /** AD_LINERES - data resolution in line direction */
   public static final int AD_LINERES    = 11;
+  /** AD_ELEMRES - data resolution in element direction */
   public static final int AD_ELEMRES    = 12;
+  /** AD_NUMBANDS - number of spectral bands, or channels, in image */
   public static final int AD_NUMBANDS   = 13;
+  /** AD_PFXSIZE - length in bytes of line prefix section */
   public static final int AD_PFXSIZE    = 14;
+  /** AD_PROJNUM - SSEC project number used in creating image */
   public static final int AD_PROJNUM    = 15;
+  /** AD_CRDATE - year and day image was created, CCYYDDD format */
   public static final int AD_CRDATE     = 16;
+  /** AD_CRTIME - time image was created, HHMMSS format */
   public static final int AD_CRTIME     = 17;
+  /** AD_BANDMAP - spectral band map, bit set for each of 32 bands present */
   public static final int AD_BANDMAP    = 18;
+  /** AD_DATAOFFSET - byte offset to start of data block */
   public static final int AD_DATAOFFSET = 33;
+  /** AD_NAVOFFSET - byte offset to start of navigation block */
   public static final int AD_NAVOFFSET  = 34;
+  /** AD_VALCODE - validity code */
   public static final int AD_VALCODE    = 35;
+  /** AD_STARTSCAN - starting scan number (sensor based) of image */
   public static final int AD_STARTSCAN  = 47;
+  /** AD_DOCLENGTH - length in bytes of line prefix documentation */
   public static final int AD_DOCLENGTH  = 48;
+  /** AD_CALLENGTH - length in bytes of line prefix calibration information */
   public static final int AD_CALLENGTH  = 49;
+  /** AD_LEVLENGTH - length in bytes of line prefix level section */
   public static final int AD_LEVLENGTH  = 50;
+  /** AD_SRCTYPE - McIDAS source type (ascii, satellite specific) */
   public static final int AD_SRCTYPE    = 51;
+  /** AD_CALTYPE - McIDAS calibration type (ascii, satellite specific) */
   public static final int AD_CALTYPE    = 52;
+  /** AD_AVGSMPFLAG - data is averaged (1), or sampled (0) */
   public static final int AD_AVGSMPFLAG = 53;
+  /** AD_AUXOFFSET - byte offset to start of auxilliary data section */
   public static final int AD_AUXOFFSET  = 59;
+  /** AD_CALOFFSET - byte offset to start of calibration section */
   public static final int AD_CALOFFSET  = 62;
+  /** AD_DIRSIZE - size in 4 byte words of an image directory block */
   public static final int AD_DIRSIZE    = 64;
 
   // load protocol handler for ADDE URLs
