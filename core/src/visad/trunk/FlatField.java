@@ -1438,6 +1438,8 @@ public class FlatField extends FieldImpl {
   private void nullRanges() throws VisADException {
     synchronized (DoubleRange) {
       // DoubleRange = new double[TupleDimension][];
+      for (int i=0; i<TupleDimension; i++) DoubleRange[i] = null; // WLH 12 Jan 2001
+
       FloatRange = new float[TupleDimension][];
       LongRange = new long[TupleDimension][];
       IntRange = new int[TupleDimension][];
