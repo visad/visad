@@ -264,6 +264,14 @@ public abstract class ActionImpl
     pool.queue(this);
   }
 
+  /** wait for currently-running actions to finish */
+  public void waitForTasks()
+  {
+    if (pool != null) {
+      pool.waitForTasks();
+    }
+  }
+
   /** create link to a ThingReference;
       must be local ThingReferenceImpl */
   public void addReference(ThingReference ref)
