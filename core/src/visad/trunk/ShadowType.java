@@ -2589,7 +2589,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
         }
         k++;
       }
-    }
+    } // end for (int i=0; i<n; i++)
     if (k == 0) return null;
     VisADGeometryArray[] arrays = new VisADGeometryArray[k];
     System.arraycopy(as, 0, arrays, 0, k);
