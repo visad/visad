@@ -66,6 +66,12 @@ JAVADIR = /opt/java
 JAVAARCH = solaris
 JAVAINCS = -I${JAVADIR}/include -I${JAVADIR}/include/${JAVAARCH}
 
+# JAR is the Java archive executable
+# JARVERBOSE is normally 'v'
+#
+JAR = jar
+JARVERBOSE = v
+
 # these hold the flags needed to tell the C and Fortran compilers
 # to build shared object files
 #
@@ -116,11 +122,11 @@ NCSA = ../ncsa/hdf/hdf5lib
 ############################################################################
 
 # set this if your JDK/JRE is installed somewhere other than /opt/java
-#JAVADIR = /usr/local/java
+JAVADIR = /usr/java
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
-#JC = jikes
-#JFLAGS = +P -deprecation
+JC = jikes
+JFLAGS = +P -deprecation
 
 # to always use the Nexus RMI compiler, uncomment the next line
 #RMIC=nexusrmic
@@ -337,7 +343,7 @@ tar:
 jar:
 	date > DATE ; \
 	cd .. ; \
-	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
+	${JAR} ${JARVERBOSE}cf visad_src-2.0.jar $(TAR_FILES) ; \
 	mv visad_src-2.0.jar visad ; \
 	cd visad ; \
 	rm -f visadsrc.jar ; \
@@ -347,7 +353,7 @@ jar:
 jar_split:
 	date > DATE ; \
 	cd .. ; \
-	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
+	${JAR} ${JARVERBOSE}cf visad_src-2.0.jar $(TAR_FILES) ; \
 	mv visad_src-2.0.jar visad ; \
 	cd visad ; \
 	split -b 1400000 visad_src-2.0.jar visad_ ; \
@@ -356,13 +362,13 @@ jar_split:
 unjar_split:
 	cd .. ; \
 	cat visad_a* > visad_src-2.0.jar ;
-	jar xvf visad_src-2.0.jar
+	${JAR} ${JARVERBOSE}xf visad_src-2.0.jar
 
 
 classes:
 	cd .. ; \
 	date > DATE ; \
-	jar cvf visad.jar $(CLASS_FILES) ; \
+	${JAR} ${JARVERBOSE}cf visad.jar $(CLASS_FILES) ; \
 	tar -cvf visad.tar visad.jar
 
 
@@ -373,7 +379,7 @@ EXAMPLES_TAR_FILES = \
 
 examplesjar:
 	cd .. ; \
-	jar cvf visad_examples.jar $(EXAMPLES_TAR_FILES) ; \
+	${JAR} ${JARVERBOSE}cf visad_examples.jar $(EXAMPLES_TAR_FILES) ; \
 	mv visad_examples.jar visad ; \
 	cd visad ; \
 	ls -l visad_examples.jar
@@ -516,7 +522,7 @@ jardocs: docs
 	(cd $(DOC_DIR)/.. &&						\
 	 DNAME=`basename $(DOC_DIR)` &&					\
 	 date > $$DNAME/DATE &&						\
-	 jar cv $$DNAME) > visad_doc-2.0.jar;				\
+	 ${JAR} ${JARVERBOSE}c $$DNAME) > visad_doc-2.0.jar;		\
 	rm -f visaddoc.jar;						\
 	ln visad_doc-2.0.jar visaddoc.jar;				\
 	ls -l visad_doc-2.0.jar visaddoc.jar

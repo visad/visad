@@ -45,6 +45,9 @@ JFLAGS = -J-mx40m
 #JC = jikes
 #JFLAGS =
 
+JAR = jar
+JARVERBOSE = v
+
 RMIC = rmic
 RMIC_DIR = .
 RMIC_COLLAB_DIR = collab
@@ -183,8 +186,8 @@ jar:
 	date /t > DATE
 	time /t >> DATE
 	cd ..
-	jar cvf visad_src-2.0.jar $(JAR_FILES1)
-	jar uvf visad_src-2.0.jar $(JAR_FILES2)
+	${JAR} ${JARVERBOSE}cf visad_src-2.0.jar $(JAR_FILES1)
+	${JAR} ${JARVERBOSE}uf visad_src-2.0.jar $(JAR_FILES2)
 	move visad_src-2.0.jar visad
 	cd visad
 	copy visad_src-2.0.jar visadsrc.jar
@@ -403,10 +406,10 @@ save:
 		$(DEL) $(BACKUP)\visad\georef\*.java
 	if exist $(BACKUP)\visad\meteorology\*.java \
 		$(DEL) $(BACKUP)\visad\meteorology\*.java
-	jar cvf $(BACKUP)\save.jar $(SAVE_FILES1)
-	jar uvf $(BACKUP)\save.jar $(SAVE_FILES2)
+	${JAR} ${JARVERBOSE}cf $(BACKUP)\save.jar $(SAVE_FILES1)
+	${JAR} ${JARVERBOSE}uf $(BACKUP)\save.jar $(SAVE_FILES2)
 	cd $(BACKUP)
-	jar xvf save.jar
+	${JAR} ${JARVERBOSE}xf save.jar
 	$(DEL) save.jar
 
 CLASS_FILES = \
@@ -468,7 +471,7 @@ classes:
 	cd ..
 	date /t > DATE
 	time /t >> DATE
-	jar cvf visad.jar $(CLASS_FILES)
+	${JAR} ${JARVERBOSE}cf visad.jar $(CLASS_FILES)
 	dir /-w visad.jar
 
 EXAMPLES_TAR_FILES = \
@@ -478,7 +481,7 @@ visad\examples\*.class
 
 examplesjar:
 	cd ..
-	jar cvf visad_examples.jar $(EXAMPLES_TAR_FILES)
+	${JAR} ${JARVERBOSE}cf visad_examples.jar $(EXAMPLES_TAR_FILES)
 	dir /-w visad_examples.jar
 
 clear:
