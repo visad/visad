@@ -331,9 +331,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
               }
               return smaps;
             }
-            catch (VisADException exc) {
-              break;
-            }
+            catch (VisADException exc) { }
 
           case 2: // 3-D ONLY
             //   ((x, y) -> (z -> (..., a, ...)))
@@ -421,9 +419,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
               }
               return smaps;
             }
-            catch (VisADException exc) {
-              break;
-            }
+            catch (VisADException exc) { }
 
           case 3: // 3-D ONLY
             //   (x -> (y -> (z -> (..., a, ...))))
@@ -550,9 +546,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
               }
               return smaps;
             }
-            catch (VisADException exc) {
-              break;
-            }
+            catch (VisADException exc) { }
 
           case 4: // 2-D or 3-D
             //   ((x, y) -> (..., r, ..., g, ..., b, ...))
@@ -632,14 +626,110 @@ public abstract class MathType extends Object implements java.io.Serializable {
             //   (x -> (y -> a))
             // 3-D: x -> X, y -> Y, a -> Z
             // 2-D: x -> X, y -> Y, a -> RGB
-            //
-            break;
+            domain = ft.getDomain();
+            if (domain.getDimension() != 1) break;
+            try {
+              x = (RealType) domain.getComponent(0);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            range = ft.getRange();
+            if (!(range instanceof FunctionType)) break;
+            ft = (FunctionType) range;
+            if (!ft.getFlat()) break;
+            domain = ft.getDomain();
+            if (domain.getDimension() != 1) break;
+            try {
+              y = (RealType) domain.getComponent(0);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            range = ft.getRange();
+            a = null;
+            if (range instanceof RealType) {
+              a = (RealType) range;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  break;
+                }
+                if (ttci instanceof RealType) {
+                  a = (RealType) range;
+                  break;
+                }
+              }
+            }
+            if (a == null) break;
+            try {
+              ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 3 : 4];
+              smaps[0] = new ScalarMap(x, Display.XAxis);
+              smaps[1] = new ScalarMap(y, Display.YAxis);
+              smaps[2] = new ScalarMap(a, threeD ? Display.ZAxis
+                                                 : Display.RGB);
+              if (timeFunc >= 0) {
+                Object o = ds[timeFunc].funcs.elementAt(0);
+                RealTupleType rtt = ((FunctionType) o).getDomain();
+                RealType time = (RealType) rtt.getComponent(0);
+                smaps[3] = new ScalarMap(time, Display.Animation);
+              }
+            }
+            catch (VisADException exc) { }
 
           case 6: // 2-D or 3-D
             //   (x -> (..., a, ...))
             //   (x -> a)
             // x -> X, a -> Y
-            //
+            if (!ft.getFlat()) break;
+            domain = ft.getDomain();
+            if (domain.getDimension() != 1) break;
+            try {
+              x = (RealType) domain.getComponent(0);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            range = ft.getRange();
+            a = null;
+            if (range instanceof RealType) {
+              a = (RealType) range;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  break;
+                }
+                if (ttci instanceof RealType) {
+                  a = (RealType) ttci;
+                  break;
+                }
+              }
+            }
+            if (a == null) break;
+            try {
+              ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 2 : 3];
+              smaps[0] = new ScalarMap(x, Display.XAxis);
+              smaps[1] = new ScalarMap(a, Display.YAxis);
+              if (timeFunc >= 0) {
+                Object o = ds[timeFunc].funcs.elementAt(0);
+                RealTupleType rtt = ((FunctionType) o).getDomain();
+                RealType time = (RealType) rtt.getComponent(0);
+                smaps[2] = new ScalarMap(time, Display.Animation);
+              }
+            }
+            catch (VisADException exc) { }
             break;
         }
       }
@@ -728,6 +818,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
       and MathType.guessMaps() */
   public static void main(String args[])
          throws VisADException, RemoteException {
+    // construct first MathType
     RealType X = new RealType("Xxxxxx", null, null);
     RealType Y = new RealType("Yyyyyy", null, null);
     RealType Z = new RealType("Zzzzzz", null, null);
@@ -754,7 +845,34 @@ public abstract class MathType extends Object implements java.io.Serializable {
     TupleType tuple = new TupleType(types);
     FunctionType big_function = new FunctionType(Range2d, tuple);
 
-    System.out.println(big_function.prettyString());
+    // test prettyString()
+    System.out.println("prettyString for first MathType:");
+    System.out.println(big_function.prettyString() + "\n");
+
+    // construct second MathType
+    RealType T = new RealType("time");
+    RealTupleType Domain1d = new RealTupleType(new RealType[] {T});
+    RealTupleType Domain3d = new RealTupleType(new RealType[] {X, Y, Z});
+    FunctionType image = new FunctionType(Domain3d, Range2d);
+    function = new FunctionType(Domain1d, image);
+
+    // test prettyString() again
+    System.out.println("prettyString for second MathType:");
+    System.out.println(function.prettyString() + "\n");
+
+    // test guessMaps()
+    System.out.println("Guessing at some good mappings for this MathType...");
+    ScalarMap[] smaps = function.guessMaps(true);
+    if (smaps == null) {
+      System.out.println("Could not identify a good set of mappings!");
+    }
+    else {
+      for (int i=0; i<smaps.length; i++) {
+        ScalarType s = smaps[i].getScalar();
+        DisplayRealType ds = smaps[i].getDisplayScalar();
+        System.out.println(s.getName() + " -> " + ds.getName());
+      }
+    }
   }
 
   /** used by guessMaps to store miscellaneous information
