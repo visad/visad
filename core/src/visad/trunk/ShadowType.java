@@ -2965,9 +2965,11 @@ System.out.println("range = " + range[0] + " " + range[1] +
           if (array != null) {
             shadow_api.addToGroup(group, array, mode,
                                   constant_alpha, constant_color);
+/* WLH 25 June 2000
             if (renderer.getIsDirectManipulation()) {
               renderer.setSpatialValues(spatial_values);
             }
+*/
           }
         }
         anyShapeCreated = true;
@@ -3014,11 +3016,19 @@ System.out.println("range = " + range[0] + " " + range[1] +
         if (array != null && array.vertexCount > 0) {
           shadow_api.addToGroup(group, array, mode,
                                 constant_alpha, constant_color);
+/* WLH 25 June 2000
           if (renderer.getIsDirectManipulation()) {
             renderer.setSpatialValues(spatial_values);
           }
+*/
         }
       }
+
+      // WLH 25 June 2000
+      if (renderer.getIsDirectManipulation()) {
+        renderer.setSpatialValues(spatial_values);
+      }
+
       return false;
     }
     else { // if (!(LevelOfDifficulty == SIMPLE_TUPLE))

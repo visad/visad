@@ -2577,12 +2577,20 @@ WLH 15 March 2000 */
             // System.out.println("array.makeGeometry");
             //  FREE
             array = null;
+/* WLH 25 June 2000
             if (renderer.getIsDirectManipulation()) {
               renderer.setSpatialValues(spatial_values);
             }
+*/
           }
         } // end if (!anyContourCreated && !anyFlowCreated &&
           //         !anyTextCreated && !anyShapeCreated)
+
+        // WLH 25 June 2000
+        if (renderer.getIsDirectManipulation()) {
+          renderer.setSpatialValues(spatial_values);
+        }
+
         return false;
       } // end if (LevelOfDifficulty == SIMPLE_FIELD)
       else if (LevelOfDifficulty == SIMPLE_ANIMATE_FIELD) {

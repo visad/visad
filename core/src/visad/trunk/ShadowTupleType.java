@@ -136,7 +136,10 @@ public class ShadowTupleType extends ShadowType {
     int[] local_display_indices = sumDisplayIndices(display_indices);
     int[] local_value_indices = sumValueIndices(value_indices);
 
+    anyContour = checkContour(local_display_indices);
     anyFlow = checkFlow(local_display_indices);
+    anyShape = checkShape(local_display_indices);
+    anyText = checkText(local_display_indices);
 
     markTransform(isTransform);
 
@@ -444,7 +447,7 @@ public class ShadowTupleType extends ShadowType {
           }
         }
       }
-    }
+    } // end if (anyText && text_value == null)
 
     boolean[][] range_select =
       shadow_api.assembleSelect(display_values, 1, valueArrayLength,

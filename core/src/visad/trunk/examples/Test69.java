@@ -111,9 +111,9 @@ public class Test69
     dpys[0].addReference(ref_text_field, null);
   }
 
-  String getFrameTitle() { return "text in Java3D"; }
+  String getFrameTitle() { return "text with font in Java3D"; }
 
-  public String toString() { return " sphere: text in Java3D"; }
+  public String toString() { return " sphere: text with font in Java3D"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
