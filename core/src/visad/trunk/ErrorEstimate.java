@@ -160,7 +160,7 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
   /** construct an ErrorEstimate for a value that is the result of a
       unary operator; a is the ErrorEstimate for the operand */
   public ErrorEstimate(double value, Unit u, int op, ErrorEstimate a,
-                       int error_mode) {
+                       int error_mode) throws VisADException {
     unit = u;
     if (Double.isNaN(value)) {
       NumberNotMissing = 0;
@@ -279,7 +279,7 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
   /** construct Error for an array of values that is the result of a unary 
       operator; a is the ErrorEstimate for the operand */
   public ErrorEstimate(double[] value, Unit u, int op, ErrorEstimate a,
-                       int error_mode) {
+                       int error_mode) throws VisADException {
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
@@ -305,7 +305,7 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
   /** construct Error for an array of values that is the result of a unary
       operator; a is the ErrorEstimate for the operand */
   public ErrorEstimate(float[] value, Unit u, int op, ErrorEstimate a,
-                       int error_mode) {
+                       int error_mode) throws VisADException {
     unit = u;
     NumberNotMissing = 0;
     double sum = 0.0;
@@ -345,94 +345,113 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
   private double binary(int op, ErrorEstimate a, ErrorEstimate b,
                         int error_mode) throws VisADException {
     double am, bm, factor;
-    double bError, bMean;
     double error = Double.NaN;
     if (a.isMissing() || b.isMissing() ||
         error_mode == Data.NO_ERRORS) return error;
-    if (a.unit != null && b.unit != null && !a.unit.equals(b.unit)) {
-      // apply Unit conversion to b Error and Mean
-      bMean = a.unit.toThis(b.Mean, b.unit);
-      bError = Math.abs(a.unit.toThis(b.Mean + 0.5 * b.Error, b.unit) -
-                        a.unit.toThis(b.Mean - 0.5 * b.Error, b.unit));
-    }
-    else {
-      bMean = b.Mean;
-      bError = b.Error;
-    }
+    Unit u = null;
     switch (op) {
       case Data.ADD:
       case Data.SUBTRACT:
       case Data.INV_SUBTRACT:
       case Data.MAX:
       case Data.MIN:
+        if (unit != null && a.unit != null && !unit.equals(a.unit)) {
+          // apply Unit conversion to a Error and Mean
+          am = Math.abs(unit.toThis(a.Mean + 0.5 * a.Error, a.unit) -
+                            unit.toThis(a.Mean - 0.5 * a.Error, a.unit));
+        }
+        else {
+          am = a.Error;
+        }
+        if (unit != null && b.unit != null && !unit.equals(b.unit)) {
+          // apply Unit conversion to a Error and Mean
+          bm = Math.abs(unit.toThis(b.Mean + 0.5 * b.Error, b.unit) -
+                            unit.toThis(b.Mean - 0.5 * b.Error, b.unit));
+        }
+        else {
+          bm = b.Error;
+        }
+
         am = a.Error;
-        bm = bError;
+        bm = b.Error;
         break;
       case Data.MULTIPLY:
-        am = a.Error * bMean;
-        bm = bError * bMean;
+        if (a.unit != null && b.unit != null) {
+          u = a.unit.multiply(b.unit);
+        }
+        am = a.Error * b.Mean;
+        bm = b.Error * a.Mean;
+/* WLH 19 June 98
+        bm = b.Error * b.Mean;
+*/
         break;
       case Data.DIVIDE:
-        factor = Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(bMean));
+        if (a.unit != null && b.unit != null) {
+          u = a.unit.divide(b.unit);
+        }
+        factor = Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(b.Mean));
         am = a.Error / factor;
-        bm = bError * Mean / factor;
+        bm = b.Error * Mean / factor;
         break;
       case Data.INV_DIVIDE:
+        if (a.unit != null && b.unit != null) {
+          u = b.unit.divide(a.unit);
+        }
         factor = Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(a.Mean));
         bm = a.Error * Mean / factor;
-        am = bError / factor;
+        am = b.Error / factor;
         break;
       case Data.POW:
-        am = a.Error * Math.abs(Mean) * (bMean /
+        am = a.Error * Math.abs(Mean) * (b.Mean /
                         Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(a.Mean)));
         factor = Math.log(Math.abs(a.Mean));
         if (Double.isNaN(factor)) factor = 1.0;
         factor = Math.max(DERIVATIVE_LOW_LIMIT,
                           Math.min(DERIVATIVE_HI_LIMIT, factor));
-        bm = bError * Math.abs(Mean) * factor;
+        bm = b.Error * Math.abs(Mean) * factor;
         break;
       case Data.INV_POW:
-        factor = Math.log(Math.abs(bMean));
+        factor = Math.log(Math.abs(b.Mean));
         if (Double.isNaN(factor)) factor = 1.0;
         factor = Math.max(DERIVATIVE_LOW_LIMIT,
                           Math.min(DERIVATIVE_HI_LIMIT, factor));
         am = a.Error * Math.abs(Mean) * factor;
-        bm = bError * Math.abs(Mean) * (a.Mean /
-             Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(bMean)));
+        bm = b.Error * Math.abs(Mean) * (a.Mean /
+             Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(b.Mean)));
         break;
       case Data.ATAN2:
         factor = Math.min(DERIVATIVE_HI_LIMIT, 1.0 + Mean * Mean) /
-                 Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(bMean));
+                 Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(b.Mean));
         am = a.Error * factor;
-        bm = bError * Mean * factor;
+        bm = b.Error * Mean * factor;
         break;
       case Data.ATAN2_DEGREES:
         factor = Math.min(DERIVATIVE_HI_LIMIT, 1.0 + Mean * Mean) /
-                 Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(bMean));
+                 Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(b.Mean));
         am = a.Error * factor;
-        bm = bError * Mean * factor;
+        bm = b.Error * Mean * factor;
         break;
       case Data.INV_ATAN2:
         factor = Math.min(DERIVATIVE_HI_LIMIT, 1.0 + Mean * Mean) /
                  Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(a.Mean));
         am = a.Error * Mean * factor;
-        bm = bError * factor;
+        bm = b.Error * factor;
         break;
       case Data.INV_ATAN2_DEGREES:
         factor = Math.min(DERIVATIVE_HI_LIMIT, 1.0 + Mean * Mean) /
                  Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(a.Mean));
         am = a.Error * Mean * factor;
-        bm = bError * factor;
+        bm = b.Error * factor;
         break;
       case Data.REMAINDER:
         am = a.Error;
-        bm = bError * a.Mean /
-             Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(bMean));
+        bm = b.Error * a.Mean /
+             Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(b.Mean));
         break;
       case Data.INV_REMAINDER:
-        am = a.Error * bMean /
+        am = a.Error * b.Mean /
              Math.max(DERIVATIVE_LOW_LIMIT, Math.abs(a.Mean));
-        bm = bError;
+        bm = b.Error;
         break;
       default:
         throw new ArithmeticException("ErrorEstimate.binary: illegal " +
@@ -444,6 +463,11 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     else {
       error = Math.abs(am) + Math.abs(bm);
     }
+    if (unit != null && u != null && !unit.equals(u)) {
+      // apply Unit conversion to a Error and Mean
+      error = Math.abs(unit.toThis(Mean + 0.5 * error, u) -
+                       unit.toThis(Mean - 0.5 * error, u));
+    }
     return error;
   }
 
@@ -451,11 +475,13 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
       actually, more of a WAG than an estimate;
       these formulas are a bit of a hack and
       suggestions for improvements are welcome */
-  private double unary(int op, ErrorEstimate a, int error_mode) {
+  private double unary(int op, ErrorEstimate a, int error_mode)
+          throws UnitException {
     double factor;
     double error = Double.NaN;
     if (a.isMissing() || error_mode == Data.NO_ERRORS) return error;
     // no difference between Data.INDEPENDENT and Data.DEPENDENT for unary
+
     switch (op) {
       case Data.ABS:
       case Data.CEIL: // least int greater, represented as a double
@@ -463,7 +489,14 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
       case Data.RINT: // nearest int, represented as a double
       case Data.ROUND: // round double to long
       case Data.NEGATE:
-        error = a.Error;
+        if (unit != null && a.unit != null && !unit.equals(a.unit)) {
+          // apply Unit conversion to a Error and Mean
+          error = Math.abs(unit.toThis(a.Mean + 0.5 * a.Error, a.unit) -
+                            unit.toThis(a.Mean - 0.5 * a.Error, a.unit));
+        }
+        else {
+          error = a.Error;
+        }
         break;
       case Data.ACOS:
       case Data.ASIN:
