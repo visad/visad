@@ -2684,6 +2684,7 @@ class FieldEnumerator implements Enumeration {
   int[] index;
   int dimension;
   RealTupleType type;
+  CoordinateSystem coordinateSystem;
   RealType[] types;
   Unit[] units;
 
@@ -2696,6 +2697,17 @@ class FieldEnumerator implements Enumeration {
     index[0] = 0;
     dimension = field.getDomainSet().getDimension();
     type = ((FunctionType) field.getType()).getDomain();
+    /*
+     * The setting of the CoordinateSytem is non-trivial because a the default
+     * CoordinateSystem of the domain of a FieldImpl can be null while the
+     * CoordinateSystem of the domain set of the FieldImpl can be non-null --
+     * giving rise to the possibility of returning a domain RealTuple with a
+     * non-null CoordinateSystem even though the corresponding RealTupleType
+     * doesn't have one. (see nextElement() below.)
+     */
+    coordinateSystem = type.getCoordinateSystem();
+    if (coordinateSystem != null)
+      coordinateSystem = field.getDomainCoordinateSystem();
     types = new RealType[dimension];
     units = field.getDomainUnits();
     for (int j=0; j<dimension; j++) {
@@ -2715,7 +2727,12 @@ class FieldEnumerator implements Enumeration {
     }
   }
 
-  public Object nextElement() {
+  /*
+   * According to the semantics for java.util.Enumeration, this method can only
+   * throw a NoSuchElementException; consequently, all other exceptions must be
+   * trapped and converted.
+   */
+  public Object nextElement() throws NoSuchElementException {
     try {
       if (index[0] < field.getLength()) {
         float[][] vals = field.getDomainSet().indexToValue(index);
@@ -2724,18 +2741,23 @@ class FieldEnumerator implements Enumeration {
         for (int j=0; j<dimension; j++) {
           reals[j] = new Real(types[j], (double) vals[j][0], units[j]);
         }
-        return new RealTuple(reals);
+	/*
+	 * The actual CoordinateSystem of the domain set is used only if the
+	 * domain's RealTupleType has a non-null CoordinateSystem; otherwise,
+	 * an exception would be thrown as of version 1.34.
+	 */
+        return new RealTuple(type, reals, coordinateSystem);
       }
       else {
-        return null;
-        // throw new NoSuchElementException("FieldImplEnumerator.nextElement");
+	throw new NoSuchElementException(
+	  "FieldImplEnumerator.nextElement: no more elements");
       }
     }
     catch (VisADException e) {
-      return null;
+      throw new NoSuchElementException("FieldImplEnumerator.nextElement: " + e);
     }
     catch (RemoteException e) {
-      return null;
+      throw new NoSuchElementException("FieldImplEnumerator.nextElement: " + e);
     }
   }
 }
