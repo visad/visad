@@ -165,7 +165,7 @@ public class AREACoordinateSystem
     navBlock = nav;
     anav.setImageStart(dir[5], dir[6]);
     anav.setRes(dir[11], dir[12]);
-    anav.setStart(1,1);
+    anav.setStart(0,0);
     anav.setMag(1,1);
     lines = dir[8];
     elements = dir[9];
