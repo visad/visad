@@ -139,6 +139,11 @@ public abstract class DataRenderer extends Object {
       DataReference ref = Links[i].getDataReference();
       // test for changed Controls that require doTransform
       if (Links[i].checkTicks() || !feasible[i] || initialize) {
+/*
+boolean check = Links[i].checkTicks();
+System.out.println("DataRenderer.prepareAction: check = " + check + " feasible = " +
+                   !feasible[i] + " initialize = " + initialize);
+*/
         // data has changed - need to re-display
         changed[i] = true;
         any_changed = true;

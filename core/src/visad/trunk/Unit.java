@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.6 1998-02-20 16:53:41 billh Exp $
+ * $Id: Unit.java,v 1.7 1998-06-24 14:08:52 billh Exp $
  */
 
 package visad;
@@ -375,7 +375,7 @@ public abstract class Unit
 	else
 	if (that instanceof OffsetUnit)
 	    return toThis(values, (OffsetUnit)that);
-	throw new UnitException("Unknown unit subclass");
+	throw new UnitException("Unknown unit subclass " + that);
     }
 
     public float[] toThis(float[] values, Unit that)

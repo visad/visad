@@ -144,6 +144,12 @@ public abstract class ActionImpl extends Object
         dontSleep = false;
         setTicks();
         if (checkTicks() || this instanceof DisplayImpl) {
+          boolean check = checkTicks();
+          boolean display = (this instanceof DisplayImpl);
+/*
+System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
+                   " display = " + display);
+*/
           doAction();
         }
         synchronized (LinkVector) {
