@@ -594,7 +594,7 @@ public class Rain implements ControlListener {
     }
     else if (!in_proj && control != null &&
              control instanceof ProjectionControl) {
-      in_proj = true;
+      in_proj = true; // don't allow setMatrix below to re-trigger
       double[] matrix = ((ProjectionControl) control).getMatrix();
       for (int i=0; i<N_ROWS; i++) {
         for (int j=0; j<N_COLUMNS; j++) {
