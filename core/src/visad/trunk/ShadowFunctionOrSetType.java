@@ -1211,8 +1211,9 @@ for (int i=0; i < 4; i++) {
               domain_units, null, domain_doubles);
         }
         else {
-          // WLH 23 June 99
-          if (curvedTexture && domainOnlySpatial) {
+          // this interferes with correct handling of missing data
+          // if (curvedTexture && domainOnlySpatial) {
+          if (false) {
 
  //if (link != null) System.out.println("start compute spline " + (System.currentTimeMillis() - link.start_time));
 
@@ -2202,10 +2203,20 @@ makeGeometry 350, 171
             }
 
             if (range_select[0] != null) {
-              // WLH 27 March 2000
               if (mode.getMissingTransparent()) {
-                spatial_set.cram_missing(range_select[0]);
-                spatial_all_select = false;
+                if (color_values.length == 3) {
+                  spatial_set.cram_missing(range_select[0]);
+                  spatial_all_select = false;
+                }
+                else {
+                  for (int i=0; i<domain_length; i++) {
+                    if (!range_select[0][i]) {
+                      // make missing pixel invisible (transparent)
+                      color_values[3][i] = 0;
+                    }
+                  }
+                }
+
               }
               else {
                 for (int i=0; i<domain_length; i++) {
