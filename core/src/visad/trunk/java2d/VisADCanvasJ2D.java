@@ -280,7 +280,8 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
       if (!valid) {
         VisADGroup root = displayRenderer.getRoot();
         AffineTransform trans = displayRenderer.getTrans();
-        Graphics2D g2 = image.createGraphics();
+        Graphics ggg = image.createGraphics(); // ordinary Graphics for fast lines
+        Graphics2D g2 = image.createGraphics(); // Graphics2D for the fancy stuff
 // System.out.println("(g2 == null) = " + (g2 == null));
         g2.setBackground(getBackground());
         g2.setRenderingHint(RenderingHints.KEY_RENDERING,
@@ -301,8 +302,8 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
         }
         try {
           if (animate_control != null) animate_control.init();
-          render(g2, root, 0);
-          render(g2, root, 1);
+          render(g2, ggg, root, 0);
+          render(g2, ggg, root, 1);
           // draw Animation string in upper right corner of screen
           String[] animation_string = displayRenderer.getAnimationString();
           if (animation_string[0] != null) {
@@ -325,6 +326,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
         catch (VisADException e) {
         }
         g2.dispose();
+        ggg.dispose();
       } // end if (!valid)
       if (tsave == null || !displayRenderer.anyCursorStringVector()) {
         if (g != null) g.drawImage(image, 0, 0, this);
@@ -382,19 +384,20 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
     if (animate_control != null) animate_control.setNoTick(false);
   }
 
-  private void render(Graphics2D g2, VisADSceneGraphObject scene, int pass)
+  private void render(Graphics2D g2, Graphics ggg,
+                      VisADSceneGraphObject scene, int pass)
           throws VisADException {
     if (scene instanceof VisADSwitch) {
       VisADSceneGraphObject child =
         ((VisADSwitch) scene).getSelectedChild();
-      if (child != null) render(g2, child, pass);
+      if (child != null) render(g2, ggg, child, pass);
     }
     else if (scene instanceof VisADGroup) {
       Vector children = ((VisADGroup) scene).getChildren();
       for (int i=children.size()-1; i>=0; i--) {
         VisADSceneGraphObject child =
           (VisADSceneGraphObject) children.elementAt(i);
-        if (child != null) render(g2, child, pass);
+        if (child != null) render(g2, ggg, child, pass);
       }
     }
     else { // scene instanceof VisADAppearance
@@ -488,23 +491,30 @@ so:
                            mode.getPointSize() :
                            mode.getLineWidth();
 */
+          float fsize = (array instanceof VisADPointArray) ?
+                           appearance.pointSize :
+                           appearance.lineWidth;
+          double dsize = fsize;
+/* WLH 19 March 99
           double dsize = (array instanceof VisADPointArray) ?
                            appearance.pointSize :
                            appearance.lineWidth;
+*/
           if (dsize < 1.05) dsize = 1.05; // hack for Java2D problem
           double[] pts = {0.0, 0.0, 0.0, dsize, dsize, 0.0};
           double[] newpts = new double[6];
+          double xx = 0.0, yy = 0.0;
           try {
             tg.inverseTransform(pts, 0, newpts, 0, 3);
+            xx = (newpts[2] - newpts[0]) * (newpts[2] - newpts[0]) +
+                 (newpts[3] - newpts[1]) * (newpts[3] - newpts[1]);
+            yy = (newpts[4] - newpts[0]) * (newpts[4] - newpts[0]) +
+                 (newpts[5] - newpts[1]) * (newpts[5] - newpts[1]);
           }
           catch (NoninvertibleTransformException e) {
-            throw new VisADError("VisADCanvasJ2D.render: " +
-                                 "non-invertable transform");
+            xx = 1.05;
+            yy = 1.05;
           }
-          double xx = (newpts[2] - newpts[0]) * (newpts[2] - newpts[0]) +
-                      (newpts[3] - newpts[1]) * (newpts[3] - newpts[1]);
-          double yy = (newpts[4] - newpts[0]) * (newpts[4] - newpts[0]) +
-                      (newpts[5] - newpts[1]) * (newpts[5] - newpts[1]);
           float size = (float) (0.5 * (Math.sqrt(xx) + Math.sqrt(yy)));
           g2.setStroke(new BasicStroke(size));
 /*
@@ -513,50 +523,62 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                    (array instanceof VisADPointArray ? " point" : " line"));
 */
           if (array instanceof VisADPointArray) {
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
-                                RenderingHints.VALUE_ANTIALIAS_OFF);
-            if (colors == null) {
-              for (int i=0; i<3*count; i += 3) {
-                if (coordinates[i] == coordinates[i] &&
-                    coordinates[i+1] == coordinates[i+1]) {
-                  g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
-                                                size, size));
+/* WLH 19 March 99 */
+            if (Math.abs(fsize - 1.0f) < 0.1f) {
+              drawAppearance(ggg, appearance, tg);
+            }
+            else {
+              g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                                  RenderingHints.VALUE_ANTIALIAS_OFF);
+              if (colors == null) {
+                for (int i=0; i<3*count; i += 3) {
+                  if (coordinates[i] == coordinates[i] &&
+                      coordinates[i+1] == coordinates[i+1]) {
+                    g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
+                                                  size, size));
+                  }
                 }
               }
-            }
-            else { // colors != null
-              int j = 0;
-              int jinc = (colors.length == coordinates.length) ? 3 : 4;
-              for (int i=0; i<3*count; i += 3) {
-                if (coordinates[i] == coordinates[i] &&
-                    coordinates[i+1] == coordinates[i+1]) {
-                  g2.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
-                  g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
-                                                size, size));
+              else { // colors != null
+                int j = 0;
+                int jinc = (colors.length == coordinates.length) ? 3 : 4;
+                for (int i=0; i<3*count; i += 3) {
+                  if (coordinates[i] == coordinates[i] &&
+                      coordinates[i+1] == coordinates[i+1]) {
+                    g2.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
+                    g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
+                                                  size, size));
+                  }
+                  j += jinc;
                 }
-                j += jinc;
               }
             }
           }
           else if (array instanceof VisADLineArray) {
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
-                                RenderingHints.VALUE_ANTIALIAS_ON);
-            if (colors == null) {
-              for (int i=0; i<3*count; i += 6) {
-                g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
-                                         coordinates[i+3], coordinates[i+4]));
-              }
+/* WLH 19 March 99 */
+            if (Math.abs(fsize - 1.0f) < 0.1f) {
+              drawAppearance(ggg, appearance, tg);
             }
-            else { // colors != null
-              int j = 0;
-              int jinc = (colors.length == coordinates.length) ? 3 : 4;
-              for (int i=0; i<3*count; i += 6) {
-                g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
-                                      0.5f * (colors[j+1] + colors[j+jinc+1]),
-                                      0.5f * (colors[j+2] + colors[j+jinc+2])));
-                j += 2 * jinc;
-                g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
-                                         coordinates[i+3], coordinates[i+4]));
+            else {
+              g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                                  RenderingHints.VALUE_ANTIALIAS_ON);
+              if (colors == null) {
+                for (int i=0; i<3*count; i += 6) {
+                  g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
+                                           coordinates[i+3], coordinates[i+4]));
+                }
+              }
+              else { // colors != null
+                int j = 0;
+                int jinc = (colors.length == coordinates.length) ? 3 : 4;
+                for (int i=0; i<3*count; i += 6) {
+                  g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
+                                        0.5f * (colors[j+1] + colors[j+jinc+1]),
+                                        0.5f * (colors[j+2] + colors[j+jinc+2])));
+                  j += 2 * jinc;
+                  g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
+                                           coordinates[i+3], coordinates[i+4]));
+                }
               }
             }
           }
@@ -739,12 +761,17 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
     if (array == null) return;
     float[] colors = array.colors;
     if (colors == null) {
-      graphics.setColor(new Color(appearance.red, appearance.green,
-                                  appearance.blue));
+      if (appearance.color_flag) {
+        graphics.setColor(new Color(appearance.red, appearance.green,
+                                    appearance.blue));
 /*
 System.out.println("drawAppearance: color = " + appearance.red + " " +
                    appearance.green + " " + appearance.blue);
 */
+      }
+      else {
+        graphics.setColor(new Color(1.0f, 1.0f, 1.0f));
+      }
     }
     int count = array.vertexCount;
     float[] coordinates = array.coordinates;
