@@ -41,8 +41,12 @@ public class Test63
 
   private boolean twoD = false;
 
-  int checkExtraKeyword(String testName, int argc, String[] args)
+  int checkExtraOption(String progName, char ch, String arg)
   {
+    if (ch != '2') {
+      return 0;
+    }
+
     twoD = true;
     return 1;
   }
