@@ -453,6 +453,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     appearance.red = scale_color[0];
     appearance.green = scale_color[1];
     appearance.blue = scale_color[2];
+    appearance.color_flag = true;
     appearance.array = array;
 
     VisADGroup group = new VisADGroup();
