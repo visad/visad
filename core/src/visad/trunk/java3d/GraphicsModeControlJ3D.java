@@ -70,6 +70,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   private int transparencyMode;
   /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION @serial */
   private int projectionPolicy;
+  private boolean anti_alias_flag;
   /** PolygonAttributes.POLYGON_FILL, PolygonAttributes.POLYGON_LINE
       or PolygonAttributes.POLYGON_POINT @serial */
   private int polygonMode;
@@ -434,6 +435,36 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   }
 
   /**
+   * Sets the antialiasing flag for the display.
+   *
+   * @param   flag      true to enable antialiasing
+   *
+   * @throws  VisADException   a VisAD error occurred
+   * @throws  RemoteException  change policy on remote display
+   */
+  public void setSceneAntialiasingEnable(boolean flag)
+         throws VisADException, RemoteException {
+    if (flag == anti_alias_flag) return;
+    anti_alias_flag = flag;
+    DisplayRendererJ3D displayRenderer =
+      (DisplayRendererJ3D) getDisplayRenderer();
+    if (displayRenderer != null) {
+      displayRenderer.getView().setSceneAntialiasingEnable(anti_alias_flag);
+    }
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+
+  /**
+   * Get the current antialiasing flag for the display.
+   *
+   * @return  true or false
+   */
+  public int getSceneAntialiasingEnable() {
+    return projectionPolicy;
+  }
+
+  /**
    * Sets the polygon rasterization mode.
    *
    * @param  mode   the polygon rasterization mode to be used; one of
@@ -551,6 +582,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.polygonMode = polygonMode;
     mode.polygonOffset = polygonOffset;
     mode.curvedSize = curvedSize;
+    mode.anti_alias_flag = anti_alias_flag;
     return mode;
   }
 
@@ -638,6 +670,11 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       curvedSize = rmtCtl.curvedSize;
     }
 
+    if (anti_alias_flag != rmtCtl.anti_alias_flag) {
+      changed = true;
+      anti_alias_flag = rmtCtl.anti_alias_flag;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -702,6 +739,10 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     }
 
     if (curvedSize != gmc.curvedSize) {
+      return false;
+    }
+
+    if (anti_alias_flag != gmc.anti_alias_flag) {
       return false;
     }
 
