@@ -250,18 +250,37 @@ public class DefaultFamily
 	throws BadFormException, IOException, RemoteException, VisADException
   {
     if (args.length < 1) {
-      System.err.println("Usage: DefaultFamily infile [infile ...]");
+      System.err.println("Usage: DefaultFamily [-v] infile [infile ...]");
       System.exit(1);
       return;
     }
 
+    int		iarg;
+    boolean	verbose = false;	// default
+    for (iarg = 0; iarg < args.length; iarg++) {
+      String	arg = args[iarg];
+      if (!arg.startsWith("-"))
+	break;
+      if (arg.equals("--"))
+      {
+	iarg++;
+	break;
+      }
+      if (arg.equals("-v"))
+	verbose = true;
+    }
+
     DefaultFamily fr = new DefaultFamily("sample");
 
-    for (int i = 0; i < args.length; i++) {
+    for (; iarg < args.length; iarg++) {
+      String	arg = args[iarg];
       Data data;
-      System.out.println("Trying dataset " + args[i]);
-      data = fr.open(args[i]);
-      System.out.println(args[i] + ": " + data.getType().prettyString());
+      System.out.println("Trying dataset " + args[iarg]);
+      data = fr.open(args[iarg]);
+      if (verbose)
+	  System.out.println(args[iarg] + ":\n" + data);
+      else
+	  System.out.println(args[iarg] + ": " + data.getType().prettyString());
     }
   }
 }
