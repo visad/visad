@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.11 1998-04-03 20:35:15 visad Exp $
+ * $Id: Plain.java,v 1.12 1998-06-17 20:34:22 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -99,8 +99,6 @@ Plain
      * @param replace	Whether or not to replace duplicate, existing data.
      * @exception BadFormException
      *			netCDF can't handle data object.
-     * @exception UnimplementedException
-     *			Not implemented yet.  Always thrown.
      */
     public void
     add(String id, Data data, boolean replace)
@@ -232,11 +230,11 @@ Plain
 
 	System.out.println("Opening netCDF dataset \"" + inPath + "\"");
 
-	Data	data = plain.openProxy(inPath);
+	Data	data = plain.open(inPath);
 
-	// System.out.println("Data:\n" + data.longString());
-	System.out.println("data.getType().toString():\n" +
-	    data.getType());
+	System.out.println("Data:\n" + data);
+	// System.out.println("data.getType().toString():\n" +
+	    // data.getType());
 
 	System.out.println("Writing netCDF dataset \"" + outPath + "\"");
 
