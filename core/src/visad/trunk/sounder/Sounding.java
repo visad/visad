@@ -27,9 +27,12 @@ MA 02111-1307, USA
 package visad.sounder;
 
 import visad.*;
+import visad.java3d.DirectManipulationRendererJ3D;
 import visad.data.netcdf.units.UnitsDB;
 import visad.data.netcdf.units.DefaultUnitsDB;
 import visad.data.netcdf.StandardQuantityDB;
+
+import java.util.Vector;
 
 import java.rmi.RemoteException;
 
@@ -63,9 +66,9 @@ public class Sounding extends FlatField {
     }
   }
 
-  //- this sounding's display
+  //- this sounding's display_s
   //
-  private Display soundingDisplay;
+  private Vector soundingDisplay_s = new Vector();
 
   //- this sounding's DataReference
   //
@@ -98,6 +101,7 @@ public class Sounding extends FlatField {
     }
     setSamples(new float[][] {temperatures, dewpoints});
     sounding_ref = new DataReferenceImpl("sounding reference");
+    sounding_ref.setData(this);
   }
 
   static private Gridded1DSet makePressureSet(float[] pressures)
@@ -109,42 +113,75 @@ public class Sounding extends FlatField {
                             null, new Unit[] {udb.get("hPa")}, null);
   }
 
-  public boolean addToDisplay( Display display )
+  public void addToDisplay( DisplayImpl display ) 
          throws VisADException, RemoteException
   {
-    if ( soundingDisplay != null ) {
-      return false;
-    }
-    soundingDisplay = display;
-
-    soundingDisplay.removeAllReferences();
-    soundingDisplay.clearMaps();
-
-    soundingDisplay.addMap(new ScalarMap(Pressure, Display.YAxis));
-    soundingDisplay.addMap(new ScalarMap(Temperature, Display.XAxis));
-    soundingDisplay.addMap(new ScalarMap(DewPoint, Display.XAxis));
-    sounding_ref.setData(this);
-    soundingDisplay.addReference(sounding_ref);
-    
-    return true;
+     addToDisplay(display, null);
   }
 
-  public boolean addToDisplayWithDirectManipulation( Display display )
-         throws UnimplementedException
-  {
-    throw new UnimplementedException("not yet implemented");
-  }
-
-  public boolean remove()
+  public void addToDisplayWithDirectManipulation( DisplayImpl display )
          throws VisADException, RemoteException
   {
-    if ( soundingDisplay == null ) {
-      return false;
+     addToDisplay(display, new DirectManipulationRendererJ3D());
+  }
+
+  private void addToDisplay(DisplayImpl display, DataRenderer renderer)
+          throws VisADException, RemoteException
+  {
+    if ( soundingDisplay_s.contains(display) ) {
+      return;
     }
-    soundingDisplay.removeReference(sounding_ref);
-    soundingDisplay.clearMaps();
-    soundingDisplay = null;
-    return true;
+    else { 
+      soundingDisplay_s.add(display);
+      Vector mapVector = display.getMapVector();
+
+      boolean presToYAxis = false;
+      boolean tempToXAxis = false;
+      boolean dewpToXAxis = false;
+
+      for (int kk = 0; kk < mapVector.size(); kk++) { 
+        ScalarMap smap = (ScalarMap) mapVector.elementAt(kk);
+        ScalarType s_type = smap.getScalar();
+        DisplayRealType d_type = smap.getDisplayScalar();
+  
+        if (Pressure.equals(smap) && d_type.equals(Display.YAxis)) {
+          presToYAxis = true;
+        }
+        if (Temperature.equals(smap) && d_type.equals(Display.XAxis)) {
+          tempToXAxis = true;
+        }
+        if (DewPoint.equals(smap) && d_type.equals(Display.XAxis)) {
+          dewpToXAxis = true;
+        }
+      }
+      
+      if (presToYAxis && tempToXAxis && dewpToXAxis) {
+        display.removeAllReferences();
+        display.addReferences(renderer, sounding_ref);
+      }
+      else {
+        display.removeAllReferences();
+        display.clearMaps();
+
+        display.addMap(new ScalarMap(Pressure, Display.YAxis));
+        display.addMap(new ScalarMap(Temperature, Display.XAxis));
+        display.addMap(new ScalarMap(DewPoint, Display.XAxis));
+        display.addReferences(renderer, sounding_ref);
+      }
+      return;
+    }
+  }
+
+  public void remove()
+         throws VisADException, RemoteException
+  {
+    for ( int kk = 0; kk < soundingDisplay_s.size(); kk++ ) {
+      DisplayImpl display = 
+        (DisplayImpl) soundingDisplay_s.elementAt(kk); 
+      display.removeReference(sounding_ref);
+    }
+    soundingDisplay_s.removeAllElements();
+    return;
   }
 
   public boolean restore()

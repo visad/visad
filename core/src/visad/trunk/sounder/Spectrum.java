@@ -27,9 +27,12 @@ MA 02111-1307, USA
 package visad.sounder;
 
 import visad.*;
+import visad.java3d.DirectManipulationRendererJ3D;
 import visad.data.netcdf.units.UnitsDB;
 import visad.data.netcdf.units.DefaultUnitsDB;
 import visad.data.netcdf.StandardQuantityDB;
+
+import java.util.Vector;
 
 import java.rmi.RemoteException;
 
@@ -42,8 +45,8 @@ public class Spectrum extends FlatField {
   static private UnitsDB udb;
   static private StandardQuantityDB qdb;
 
-  static private RealType wavelength;
-  static private RealType radiance;
+  static private RealType Wavelength;
+  static private RealType Radiance;
 
   static private FunctionType spectrumType;
 
@@ -51,18 +54,18 @@ public class Spectrum extends FlatField {
     try {
       udb = DefaultUnitsDB.instance();
       qdb = StandardQuantityDB.instance();
-      wavelength = qdb.get("Wavelength");
-      radiance = qdb.get("Radiance");
-      spectrumType = new FunctionType(wavelength, radiance);
+      Wavelength = qdb.get("Wavelength");
+      Radiance = qdb.get("Radiance");
+      spectrumType = new FunctionType(Wavelength, Radiance);
     }
     catch (VisADException e) {
       e.printStackTrace();
     }
   }
 
-  //- this spectrum's display
+  //- this spectrum's display_s
   //
-  Display spectrumDisplay;
+  private Vector spectrumDisplay_s = new Vector();
 
   //- this spectrum's DataReference
   //
@@ -91,10 +94,10 @@ public class Spectrum extends FlatField {
       throw new VisADException("radiance_range should have same length as wavelenghts"); 
     }
     setSamples(new float[][] {radiance_range});
-    spectrumDisplay = null;
     this.domain_unit = domain_unit;
     this.range_unit = range_unit;
     spectrum_ref = new DataReferenceImpl("Spectrum reference");
+    spectrum_ref.setData(this);
   }
 
 
@@ -103,39 +106,75 @@ public class Spectrum extends FlatField {
     if (wavelength_domain == null) {
       throw new SetException("wavelengths cannot be null");
     }
-    return new Gridded1DSet(wavelength, new float[][] {wavelength_domain},
+    return new Gridded1DSet(Wavelength, new float[][] {wavelength_domain},
                             wavelength_domain.length,
                             null, new Unit[] {udb.get("Radiance")}, null);
   }
 
-  public boolean addToDisplay( Display display )
+  public void addToDisplay( DisplayImpl display )
          throws VisADException, RemoteException
   {
-    if ( spectrumDisplay != null ) {
-      return false;
-    }
-    spectrumDisplay = display;
-
-    spectrumDisplay.removeAllReferences();
-    spectrumDisplay.clearMaps();
-    spectrumDisplay.addMap(new ScalarMap(radiance, Display.YAxis));
-    spectrumDisplay.addMap(new ScalarMap(wavelength, Display.XAxis));
-    spectrum_ref.setData(this);
-    spectrumDisplay.addReference(spectrum_ref);
-
-    return true;
+     addToDisplay(display, null);
   }
 
-  public boolean remove()
+  public void addToDisplayWithDirectManipulation( DisplayImpl display )
          throws VisADException, RemoteException
   {
-    if ( spectrumDisplay == null ) {
-      return false;
+     addToDisplay(display, new DirectManipulationRendererJ3D());
+  }
+
+  private void addToDisplay( DisplayImpl display, DataRenderer renderer )
+          throws VisADException, RemoteException
+  {
+    if ( spectrumDisplay_s.contains(display) ) {
+      return;
     }
-    spectrumDisplay.removeReference(spectrum_ref);
-    spectrumDisplay.clearMaps();
-    spectrumDisplay = null;
-    return true;
+    else {
+      spectrumDisplay_s.add(display);
+      Vector mapVector = display.getMapVector();
+  
+      boolean radianceToYAxis = false;
+      boolean wavelengthToXAxis = false;
+  
+      for (int kk = 0; kk < mapVector.size(); kk++) {
+        ScalarMap smap = (ScalarMap) mapVector.elementAt(kk);
+        ScalarType s_type = smap.getScalar();
+        DisplayRealType d_type = smap.getDisplayScalar();
+
+        if (Radiance.equals(smap) && d_type.equals(Display.YAxis)) {
+          radianceToYAxis = true;
+        }
+        if (Wavelength.equals(smap) && d_type.equals(Display.XAxis)) {
+          wavelengthToXAxis = true;
+        }
+      }
+
+      if (radianceToYAxis && wavelengthToXAxis) {
+        display.removeAllReferences();
+        display.addReferences(renderer, spectrum_ref);
+      }
+      else {
+        display.removeAllReferences();
+        display.clearMaps();
+        display.addMap(new ScalarMap(Radiance, Display.YAxis));
+        display.addMap(new ScalarMap(Wavelength, Display.XAxis));
+        display.addReferences(renderer, spectrum_ref);
+      }
+
+      return;
+    }
+  }
+
+  public void remove()
+         throws VisADException, RemoteException
+  {
+    for ( int kk = 0; kk < spectrumDisplay_s.size(); kk++ ) {
+      DisplayImpl display = 
+        (DisplayImpl) spectrumDisplay_s.elementAt(kk);
+      display.removeReference(spectrum_ref);
+    }
+    spectrumDisplay_s.removeAllElements();
+    return;
   }
 
   public boolean restore()
