@@ -1892,11 +1892,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
         null, "VisAD SpreadSheet error");
       return;
     }
-    PrinterJob printJob = PrinterJob.getPrinterJob();
+    final PrinterJob printJob = PrinterJob.getPrinterJob();
     DisplayImpl display = DisplayCells[CurX][CurY].getDisplay();
     Printable p = display.getPrintable();
     printJob.setPrintable(p);
     if (printJob.printDialog()) {
+/* WLH 16 June 2000
       try {
         printJob.print();
       }
@@ -1905,6 +1906,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
         displayErrorMessage("Cannot print the current cell", exc,
           "VisAD SpreadSheet error");
       }
+*/
+      Runnable printImage = new Runnable() {
+        public void run() {
+          try {
+            printJob.print();
+          }
+          catch (Exception exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+            displayErrorMessage("Cannot print the current cell", exc,
+              "VisAD SpreadSheet error");
+          }
+        }
+      };
+      Thread t = new Thread(printImage);
+      t.start();
+
     }
   }
 
