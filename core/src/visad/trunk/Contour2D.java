@@ -125,7 +125,7 @@ public class Contour2D extends Applet implements MouseListener {
    * @param ba                  The base contour value.  The returned values
    *                            will be integer multiples of the interval
    *                            away from this this value. Must not be NaN.
-   * dash                       Whether or not contour lines less than the base
+   * @param dash                Whether or not contour lines less than the base
    *                            should be drawn as dashed lines.  This is a
    *                            computed and returned value.
    * @throws VisADException     The contour interval is zero or too small.
