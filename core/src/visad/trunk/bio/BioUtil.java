@@ -85,8 +85,15 @@ public class BioUtil {
   /**
    * Computes the minimum distance between the point (vx, vy)
    * and the line (ax, ay)-(bx, by).
+   *
+   * @param ax X-coordinate of the line's first endpoint
+   * @param ay Y-coordinate of the line's first endpoint
+   * @param bx X-coordinate of the line's second endpoint
+   * @param by Y-coordinate of the line's second endpoint
+   * @param vx X-coordinate of the standalone endpoint
+   * @param vy Y-coordinate of the standalone endpoint
    */
-  public static double distance(double ax, double ay,
+  public static double getDistance(double ax, double ay,
     double bx, double by, double vx, double vy)
   {
     // vectors
@@ -128,6 +135,16 @@ public class BioUtil {
    * Gets the distance between the specified endpoints, using
    * the given conversion values between pixels and microns,
    * and distance between measurement slices.
+   *
+   * @param x1 X-coordinate of the first endpoint
+   * @param y1 Y-coordinate of the first endpoint
+   * @param z1 Z-coordinate of the first endpoint
+   * @param x2 X-coordinate of the second endpoint
+   * @param y2 Y-coordinate of the second endpoint
+   * @param z2 Z-coordinate of the second endpoint
+   * @param mx Microns per pixel along X-axis
+   * @param my Microns per pixel along Y-axis
+   * @param sd Micron distance between Z-slices
    */
   public static double getDistance(double x1, double y1, double z1,
     double x2, double y2, double z2, double mx, double my, double sd)
@@ -136,6 +153,93 @@ public class BioUtil {
     double disty = my * (y2 - y1);
     double distz = sd * (z2 - z1);
     return Math.sqrt(distx * distx + disty * disty + distz * distz);
+  }
+
+  /**
+   * Determines whether the specified line intersects the given rectangle.
+   *
+   * @param x1 X-coordinate of the top-left corner of the rectangle
+   * @param y1 Y-coordinate of the top-left corner of the rectangle
+   * @param x2 X-coordinate of the bottom-right corner of the rectangle
+   * @param y2 Y-coordinate of the bottom-right corner of the rectangle
+   * @param ax X-coordinate of the line's first endpoint
+   * @param ay Y-coordinate of the line's first endpoint
+   * @param bx X-coordinate of the line's second endpoint
+   * @param by Y-coordinate of the line's second endpoint
+   */
+  public static boolean intersects(double x1, double y1,
+    double x2, double y2, double ax, double ay, double bx, double by)
+  {
+    if (x1 > x2) {
+      double t = x1;
+      x1 = x2;
+      x2 = t;
+    }
+    if (y1 > y2) {
+      double t = y1;
+      y1 = y2;
+      y2 = t;
+    }
+
+    if (contains(x1, y1, x2, y2, ax, ay) ||
+      contains(x1, y1, x2, y2, bx, by))
+    {
+      // rectangle contains an endpoint
+      return true;
+    }
+
+    if (ax == bx) {
+      // vertical line
+      if (ax < x1 || ax > x2) return false;
+      return (ay <= y1 && by >= y1) || (ay <= y2 && by >= y2) ||
+        (ay >= y1 && by <= y1) || (ay >= y2 && by <= y2);
+    }
+    if (ay == by) {
+      // horizontal line
+      if (ay < y1 || ay > y2) return false;
+      return (ax <= x1 && bx >= x1) || (ax <= x2 && bx >= x2) ||
+        (ax >= x1 && bx <= x1) || (ax >= x2 && bx <= x2);
+    }
+
+    double m = (by - ay) / (bx - ax);
+    double b = ay - m * ax;
+
+    double left_y = m * x1 + b;
+    if (left_y >= y1 && left_y <= y2) return true;
+    double right_y = m * x2 + b;
+    if (right_y >= y1 && right_y <= y2) return true;
+    double top_x = (y1 - b) / m;
+    if (top_x >= x1 && top_x <= x2) return true;
+    double bottom_x = (y2 - b) / m;
+    if (bottom_x >= x1 && bottom_x <= x2) return true;
+
+    return false;
+  }
+
+  /**
+   * Determines whether the specified endpoint lies within the given rectangle.
+   *
+   * @param x1 X-coordinate of the top-left corner of the rectangle
+   * @param y1 Y-coordinate of the top-left corner of the rectangle
+   * @param x2 X-coordinate of the bottom-right corner of the rectangle
+   * @param y2 Y-coordinate of the bottom-right corner of the rectangle
+   * @param vx X-coordinate of the standalone endpoint
+   * @param vy Y-coordinate of the standalone endpoint
+   */
+  public static boolean contains(double x1, double y1,
+    double x2, double y2, double vx, double vy)
+  {
+    if (x1 > x2) {
+      double t = x1;
+      x1 = x2;
+      x2 = t;
+    }
+    if (y1 > y2) {
+      double t = y1;
+      y1 = y2;
+      y2 = t;
+    }
+    return vx >= x1 && vx <= x2 && vy >= y1 && vy <= y2;
   }
 
 }

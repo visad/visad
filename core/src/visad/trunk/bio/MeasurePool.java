@@ -31,6 +31,8 @@ import java.awt.event.InputEvent;
 import java.rmi.RemoteException;
 import java.util.*;
 import visad.*;
+import visad.bom.RubberBandBoxRendererJ3D;
+import visad.java3d.DisplayImplJ3D;
 
 /**
  * MeasurePool maintains a pool of manipulable points and a set of
@@ -89,7 +91,9 @@ public class MeasurePool implements DisplayListener {
    * Cell for updating linked measurement endpoints, solid lines,
    * dashed lines and colored endpoints when a pool point changes.
    */
-  private CellImpl cell;
+  private CellImpl lineCell;
+
+  private CellImpl boxCell;
 
 
   // -- SELECTION FIELDS --
@@ -109,7 +113,7 @@ public class MeasurePool implements DisplayListener {
   /** Data renderer for colored line segments. */
   private DataRenderer lineRenderer;
 
-  /** Data reference for selected line segments. */
+  /** Data reference for dashed line segments. */
   private DataReferenceImpl dashedLines;
 
   /** Data renderer for dashed line segments. */
@@ -120,6 +124,12 @@ public class MeasurePool implements DisplayListener {
 
   /** Data renderer for colored endpoints. */
   private DataRenderer pointRenderer;
+
+  /** Data reference for rubber band box. */
+  private DataReferenceImpl rubberBand;
+
+  /** Data renderer for rubber band box. */
+  private DataRenderer boxRenderer;
 
 
   // -- CONSTRUCTOR --
@@ -136,13 +146,14 @@ public class MeasurePool implements DisplayListener {
       solidLines = new DataReferenceImpl("bio_solid_lines");
       dashedLines = new DataReferenceImpl("bio_dashed_lines");
       coloredPoints = new DataReferenceImpl("bio_colored_points");
+      rubberBand = new DataReferenceImpl("bio_rubber_band");
     }
     catch (VisADException exc) { exc.printStackTrace(); }
 
     selLines = new Vector();
     selPoints = new Vector();
 
-    cell = new CellImpl() {
+    lineCell = new CellImpl() {
       public void doAction() {
         // redraw line segments when endpoints change
         if (lineRenderer == null) return;
@@ -216,6 +227,55 @@ public class MeasurePool implements DisplayListener {
       }
     };
 
+    boxCell = new CellImpl() {
+      public void doAction() {
+        // select measurements within the rubber band box
+        if (boxRenderer == null) return;
+        GriddedSet set = (GriddedSet) rubberBand.getData();
+        float[][] samples = null;
+        try { samples = set.getSamples(); }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        if (samples == null) return;
+        double x1 = (double) samples[0][0];
+        double y1 = (double) samples[1][0];
+        double x2 = (double) samples[0][1];
+        double y2 = (double) samples[1][1];
+
+        Vector lines = list.getLines();
+        int lsize = lines.size();
+        for (int i=0; i<lsize; i++) {
+          MeasureLine line = (MeasureLine) lines.elementAt(i);
+
+          // skip lines not on this slice
+          if (line.ep1.z != slice && line.ep2.z != slice) continue;
+
+          // check for intersection
+          if (BioUtil.intersects(x1, y1, x2, y2,
+            line.ep1.x, line.ep1.y, line.ep2.x, line.ep2.y))
+          {
+            select(line);
+          }
+        }
+        Vector points = list.getPoints();
+        int psize = points.size();
+        for (int i=0; i<psize; i++) {
+          MeasurePoint point = (MeasurePoint) points.elementAt(i);
+
+          // skip points that are part of a line, or not on this slice
+          if (!point.lines.isEmpty() || point.z != slice) continue;
+
+          // check for containment
+          if (BioUtil.contains(x1, y1, x2, y2, point.x, point.y)) {
+            select(point);
+          }
+        }
+        refresh(true);
+      }
+    };
+    try { boxCell.addReference(rubberBand); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+
     display.addDisplayListener(this);
     expand(BUFFER_SIZE, false);
   }
@@ -225,20 +285,36 @@ public class MeasurePool implements DisplayListener {
 
   /** Adds references to the associated display. */
   public void init() throws VisADException, RemoteException {
+    // solid line set
     lineRenderer = display.getDisplayRenderer().makeDefaultRenderer();
     lineRenderer.suppressExceptions(true);
     lineRenderer.toggle(false);
     display.addReferences(lineRenderer, solidLines);
+
+    // dashed line set
     dashedRenderer = display.getDisplayRenderer().makeDefaultRenderer();
     dashedRenderer.suppressExceptions(true);
     dashedRenderer.toggle(false);
     display.addReferences(dashedRenderer, dashedLines, new ConstantMap[] {
       new ConstantMap(GraphicsModeControl.DASH_STYLE, Display.LineStyle)
     });
+
+    // enlarged, colored endpoint set
     pointRenderer = display.getDisplayRenderer().makeDefaultRenderer();
     pointRenderer.suppressExceptions(true);
     pointRenderer.toggle(false);
     display.addReferences(pointRenderer, coloredPoints);
+
+    // rubber band box
+    if (dim == 2 && display instanceof DisplayImplJ3D) {
+      rubberBand.setData(new Gridded2DSet(bio.sm.domain2, null, 1));
+      int m = InputEvent.SHIFT_MASK;
+      boxRenderer = new RubberBandBoxRendererJ3D(
+        bio.sm.dtypes[0], bio.sm.dtypes[1], m, m);
+      display.addReferences(boxRenderer, rubberBand);
+    }
+
+    // direct manipulation endpoints
     int total = free.size();
     for (int i=0; i<total; i++) ((PoolPoint) free.elementAt(i)).init();
   }
@@ -299,7 +375,7 @@ public class MeasurePool implements DisplayListener {
     display.enableAction();
 
     if (reconstruct) {
-      try { cell.doAction(); }
+      try { lineCell.doAction(); }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
@@ -432,7 +508,7 @@ public class MeasurePool implements DisplayListener {
           if (line.ep1.z != slice && line.ep2.z != slice) continue;
 
           // compute distance
-          double dist = BioUtil.distance(line.ep1.x, line.ep1.y,
+          double dist = BioUtil.getDistance(line.ep1.x, line.ep1.y,
             line.ep2.x, line.ep2.y, coords[0], coords[1]);
           if (dist < mindist) {
             mindist = dist;
@@ -536,12 +612,12 @@ public class MeasurePool implements DisplayListener {
     int n = size - total + BUFFER_SIZE;
 
     // add new PoolPoints to display
-    cell.disableAction();
+    lineCell.disableAction();
     display.disableAction();
     for (int i=0; i<n; i++) {
       PoolPoint pt = new PoolPoint(bio, display, "p" + (count + i), dim);
       try {
-        cell.addReference(pt.ref);
+        lineCell.addReference(pt.ref);
         if (init) pt.init();
       }
       catch (VisADException exc) { exc.printStackTrace(); }
@@ -549,7 +625,7 @@ public class MeasurePool implements DisplayListener {
       free.push(pt);
     }
     display.enableAction();
-    cell.enableAction();
+    lineCell.enableAction();
   }
 
   /** Purges a point from the pool. */
