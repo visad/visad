@@ -246,7 +246,7 @@ public class DisplayImplJ3D extends DisplayImpl {
                         TransformOnlyDisplayRendererJ3D renderer,
                         GraphicsConfiguration config)
          throws VisADException, RemoteException {
-    super(rmtDpy, renderer);
+    super(rmtDpy, renderer, false); // don't link to remote data events
 
     initialize(TRANSFORM_ONLY, config);
 

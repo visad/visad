@@ -164,6 +164,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** construct DisplayImpl from RemoteDisplay */
   public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer)
          throws VisADException, RemoteException {
+    this(rmtDpy, renderer, true);
+  }
+
+  public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer,
+                     boolean link_to_data)
+         throws VisADException, RemoteException {
     super(rmtDpy.getName());
 
     // get class used for remote display
@@ -189,7 +195,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
 
     displayMonitor = new DisplayMonitorImpl(this);
-    displaySync = new DisplaySyncImpl(this);
+    displaySync = new DisplaySyncImpl(this, link_to_data); // WLH 6 Dec 2000
 
     if (renderer != null) {
       displayRenderer = renderer;
