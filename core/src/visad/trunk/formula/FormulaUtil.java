@@ -105,7 +105,7 @@ public class FormulaUtil {
   }
 
   /** evaluates the dot operator */
-  public static Data dot(Tuple t, Real r) {
+  public static Data dot(TupleIface t, Real r) {
     Data d = null;
     try {
       d = t.getComponent((int) r.getValue());

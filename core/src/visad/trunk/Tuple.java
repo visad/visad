@@ -33,7 +33,7 @@ import java.util.Vector;
    Tuple is the general VisAD data class for vectors.
    Tuple objects are immutable.<P>
 */
-public class Tuple extends DataImpl {
+public class Tuple extends DataImpl implements TupleIface {
 
   Data[] tupleComponents;
 

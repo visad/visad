@@ -356,7 +356,7 @@ public class Real extends Scalar {
     else if (data instanceof Text) {
       throw new TypeException("Real.binary: types don't match");
     }
-    else if (data instanceof Tuple) {
+    else if (data instanceof TupleIface) {
       /* BINARY - TDR May 28, 1998
       return data.binary(this, invertOp(op), sampling_mode, error_mode);
       */

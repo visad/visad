@@ -38,15 +38,13 @@ interfaces:
       RemoteData (extends Remote, Data, RemoteThing)
         RemoteClusterData
           RemoteClientData
-            RemoteClientTuple
-            RemoteClientField
-            RemoteClientPartitionedField
-            RemoteClientPartitionedSet
+            RemoteClientTuple (extends TupleIface)
+            RemoteClientField (extends Field)
+            RemoteClientPartitionedField (extends Field)
           RemoteNodeData
-            RemoteNodeTuple
-            RemoteNodeField
-            RemoteNodePartitionedField
-            RemoteNodePartitionedSet
+            RemoteNodeTuple (extends TupleIface)
+            RemoteNodeField (extends Field)
+            RemoteNodePartitionedField (extends Field)
 
 classes:
   UnicastRemoteObject
@@ -57,14 +55,22 @@ classes:
             RemoteClientTupleImpl
             RemoteClientFieldImpl
             RemoteClientPartitionedFieldImpl
-            RemoteClientPartitionedSetImpl
           RemoteNodeDataImpl
             RemoteNodeTupleImpl
             RemoteNodeFieldImpl
             RemoteNodePartitionedFieldImpl
-            RemoteNodePartitionedSetImpl
 
+  ThingImpl
+    DataImpl
+      Set
+        SimpleSet
+          SampledSet
+            GriddedSet
+              PartitionedGriddedSet      **
+            IrregularSet
+              PartitionedIrregularSet    **
 
+add TupleIface extends Data (Tuple implements TupleIface)
 
 a non-partitioned Data object is local on the client
   that is, a DataImpl
@@ -72,11 +78,10 @@ a non-partitioned Data object is local on the client
 a partitioned Data object is a RemoteClientDataImpl on the
 cient connected to RemodeNodeDataImpl's on the nodes
 
-Client and nodes each have one RemoteSwitchImpl instance,
-identical on each except for
+RemoteNodeDataImpl have Actions (i.e., Threads from the
+thread pool) for doing methods of correesponding
+RemoteClientDataImpl in parallel
 
-answer - don't do domain splits in RemoteSwitchImpl -
-only in actual data
 
 partitioned data on client has similar data trees on
 client and nodes
@@ -162,8 +167,8 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
     me = this;
   }
 
-  /** return RemoteSwitch for JVM where data resides;
-      may be RemoteSwitch for cleint for non-partitioned data;
+  /** return RemoteClusterData for JVM where data resides;
+      may be RemoteClusterData for cleint for non-partitioned data;
       may be null for partitioned data outside partitoning */
   public RemoteClusterData getClusterData(RealTuple domain)
          throws RemoteException, VisADException {
@@ -221,7 +226,7 @@ public class RemoteClusterDataImpl extends RemoteDataImpl
 
 
 
-  /** parent logic, looosely coped from DataImpl */
+  /** parent logic, looosely copied from DataImpl */
   private RemoteClusterDataImpl parent = null;
   void setParent(RemoteClusterDataImpl p) {
     parent = p;

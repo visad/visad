@@ -2482,10 +2482,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** determine whether or not the last remote event was from the server */
   private double getColRowID() {
-    Tuple t = null;
+    TupleIface t = null;
     Real id = null;
     try {
-      t = (Tuple) RemoteColRow.getData();
+      t = (TupleIface) RemoteColRow.getData();
       id = (Real) t.getComponent(0);
       return id.getValue();
     }
@@ -2504,12 +2504,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** get the latest remote row and column information */
   private String[][] getNewCellNames() {
     // extract new row and column information
-    Tuple t = null;
-    Tuple tc = null;
+    TupleIface t = null;
+    TupleIface tc = null;
     RealTuple tr = null;
     try {
-      t = (Tuple) RemoteColRow.getData();
-      tc = (Tuple) t.getComponent(1);
+      t = (TupleIface) RemoteColRow.getData();
+      tc = (TupleIface) t.getComponent(1);
       tr = (RealTuple) t.getComponent(2);
     }
     catch (NullPointerException exc) {
@@ -2584,7 +2584,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             tt[i] = (TextType) txt[i].getType();
           }
           m[1] = new TupleType(tt);
-          Tuple tc = new Tuple((TupleType) m[1], txt);
+          TupleIface tc = new Tuple((TupleType) m[1], txt);
 
           Real[] r = new Real[ylen];
           for (int j=0; j<ylen; j++) {
@@ -2594,7 +2594,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           RealTuple tr = new RealTuple(r);
           m[2] = tr.getType();
 
-          Tuple t = new Tuple(new TupleType(m), new Data[] {id, tc, tr});
+          TupleIface t = new Tuple(new TupleType(m), new Data[] {id, tc, tr});
           RemoteColRow.setData(t);
         }
         catch (VisADException exc) {

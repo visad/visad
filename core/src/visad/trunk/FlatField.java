@@ -1303,10 +1303,10 @@ public class FlatField extends FieldImpl {
     }
     else { // range is Flat Tuple
       MathType RangeType = ((FunctionType) Type).getRange();
-      int n = ((Tuple) range).getDimension();
+      int n = ((TupleIface) range).getDimension();
       int j = 0;
       for (int i=0; i<n; i++) {
-        Data component = ((Tuple) range).getComponent(i);
+        Data component = ((TupleIface) range).getComponent(i);
         if (component instanceof Real) {
           double[] value = new double[1];
           value[0] = ((Real) component).getValue();
@@ -1855,7 +1855,8 @@ public class FlatField extends FieldImpl {
       return new_field;
     }
     else if (data instanceof Real || data instanceof RealTuple ||
-             (data instanceof Tuple && ((TupleType) data.getType()).getFlat())) {
+             (data instanceof TupleIface &&
+              ((TupleType) data.getType()).getFlat())) {
       MathType RangeType = ((FunctionType) Type).getRange();
       /*- TDR July 1998
       if (!RangeType.equalsExceptName(data.getType())) {
@@ -1899,11 +1900,11 @@ public class FlatField extends FieldImpl {
                         ((RealTuple) data).getTupleUnits(),
                         ((RealTuple) data).getErrors(), vals);
       }
-      else { // (data instanceof Tuple && !(data instanceof RealTuple))
-        int n = ((Tuple) data).getDimension();
+      else { // (data instanceof TupleIface && !(data instanceof RealTuple))
+        int n = ((TupleIface) data).getDimension();
         int j = 0;
         for (int i=0; i<n; i++) {
-          Data component = ((Tuple) data).getComponent(i);
+          Data component = ((TupleIface) data).getComponent(i);
           if (component instanceof Real) {
             // no need for Unit conversion - just pass Unit into binary ops
             vals[j][0] = ((Real) component).getValue();
@@ -1912,12 +1913,13 @@ public class FlatField extends FieldImpl {
             j++;
           }
           else { // (component instanceof RealTuple)
-            int m = ((Tuple) component).getDimension();
+            int m = ((TupleIface) component).getDimension();
             double[][] tvals = new double[m][1];
             Unit[] sub_units_out = new Unit[m];
             ErrorEstimate[] sub_errors_out = new ErrorEstimate[m];
             for (int k=0; k<m; k++) {
-              tvals[k][0] = ((Real) ((Tuple) component).getComponent(k)).getValue();
+              tvals[k][0] =
+                ((Real) ((TupleIface) component).getComponent(k)).getValue();
             }
             tvals = CoordinateSystem.transformCoordinatesFreeUnits(
                         (RealTupleType) ((TupleType) RangeType).getComponent(i),

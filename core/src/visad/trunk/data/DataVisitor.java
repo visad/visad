@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: DataVisitor.java,v 1.5 2000-04-26 15:44:41 dglo Exp $
+$Id: DataVisitor.java,v 1.6 2000-07-09 18:29:02 billh Exp $
 */
 
 package visad.data;
@@ -28,6 +28,7 @@ package visad.data;
 import java.rmi.RemoteException;
 import visad.FlatField;
 import visad.Tuple;
+import visad.TupleIface;
 import visad.VisADException;
 
 
@@ -53,7 +54,7 @@ DataVisitor
      * @see visad.data.DataNode
      */
     public boolean
-    visit(Tuple tuple)
+    visit(TupleIface tuple)
 	throws BadFormException, VisADException, RemoteException
     {
 	return true;

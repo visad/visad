@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: DataNode.java,v 1.6 2000-04-26 15:44:41 dglo Exp $
+$Id: DataNode.java,v 1.7 2000-07-09 18:29:02 billh Exp $
 */
 
 package visad.data;
@@ -30,6 +30,7 @@ import visad.Data;
 import visad.Field;
 import visad.FlatField;
 import visad.Tuple;
+import visad.TupleIface;
 import visad.UnimplementedException;
 import visad.VisADException;
 
@@ -70,8 +71,8 @@ DataNode
 	 * Watch the ordering in the following: the first match will be
 	 * taken.
 	 */
-	if (data instanceof Tuple)
-	    node = new TupleNode((Tuple)data);
+	if (data instanceof TupleIface)
+	    node = new TupleNode((TupleIface)data);
 	else
 	if (data instanceof FlatField)
 	    node = new FlatFieldNode((FlatField)data);
@@ -121,7 +122,7 @@ TupleNode
     /**
      * The VisAD Tuple
      */
-    protected final Tuple	tuple;
+    protected final TupleIface	tuple;
 
 
     /**
@@ -131,7 +132,7 @@ TupleNode
      * @precondition	<code>tuple</code> is non-null.
      */
     protected
-    TupleNode(Tuple tuple)
+    TupleNode(TupleIface tuple)
     {
 	this.tuple = tuple;
     }

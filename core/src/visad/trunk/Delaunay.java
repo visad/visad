@@ -1084,7 +1084,7 @@ public abstract class Delaunay implements java.io.Serializable {
                        new Real(y, avgY),
                        new Real(z, avgZ),
                        new Text(text, "" + i)};
-          Tuple tt = new Tuple(text_tuple, td);
+          TupleIface tt = new Tuple(text_tuple, td);
           text_field.setSample(i, tt);
         }
         display.addMap(new ScalarMap(text, Display.Text));
@@ -1106,7 +1106,7 @@ public abstract class Delaunay implements java.io.Serializable {
                        new Real(y, s1[i]),
                        new Real(z, s2[i]),
                        new Text(text, "" + i)};
-          Tuple tt = new Tuple(text_tuple, td);
+          TupleIface tt = new Tuple(text_tuple, td);
           text_field.setSample(i, tt);
         }
         display.addMap(new ScalarMap(text, Display.Text));

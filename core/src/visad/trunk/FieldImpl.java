@@ -192,7 +192,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           }
           else if (RangeType instanceof TupleType) {
             for (int k=0; k<n; k++) {
-              Text t = (Text) ((Tuple) range).getComponent(textIndices[k]);
+              Text t = (Text) ((TupleIface) range).getComponent(textIndices[k]);
               values[k][i] = t.getValue();
             }
           }
@@ -259,14 +259,14 @@ public class FieldImpl extends FunctionImpl implements Field {
             int k = 0;
             for (int j=0; j<((TupleType) RangeType).getDimension(); j++) {
               MathType component_type = ((TupleType) RangeType).getComponent(j);
-              Data component = ((Tuple) range).getComponent(j);
+              Data component = ((TupleIface) range).getComponent(j);
               if (component_type instanceof RealType) {
                 values[k][i] = ((Real) component).getValue(units[k]);
                 k++;
               }
               else if (component_type instanceof RealTupleType) {
                 for (int m=0; m<((TupleType) component_type).getDimension(); m++) {
-                  Data comp_comp = ((Tuple) component).getComponent(m);
+                  Data comp_comp = ((TupleIface) component).getComponent(m);
                   values[k][i] = ((Real) comp_comp).getValue(units[k]);
                   k++;
                 }
@@ -394,14 +394,14 @@ public class FieldImpl extends FunctionImpl implements Field {
           int k = 0;
           for (int j=0; j<((TupleType) RangeType).getDimension(); j++) {
             MathType component_type = ((TupleType) RangeType).getComponent(i);
-            Data component = ((Tuple) range).getComponent(j);
+            Data component = ((TupleIface) range).getComponent(j);
             if (component_type instanceof RealType) {
               units[k][i] = ((Real) component).getUnit();
               k++;
             }
             else if (component_type instanceof RealTupleType) {
               for (int m=0; m<((TupleType) component_type).getDimension(); m++) {
-                Data comp_comp = ((Tuple) component).getComponent(m);
+                Data comp_comp = ((TupleIface) component).getComponent(m);
                 units[k][i] = ((Real) comp_comp).getUnit();
                 k++;
               }
@@ -475,7 +475,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         cs[i] = default_cs;
       }
       else {
-        Data comp = ((Tuple) range).getComponent(component);
+        Data comp = ((TupleIface) range).getComponent(component);
         if (comp == null || comp.isMissing()) {
           cs[i] = default_cs;
         }
@@ -1077,7 +1077,7 @@ public class FieldImpl extends FunctionImpl implements Field {
               {
                 sub_types.add( m_type );
                 for ( kk = 0; kk < n_samples_0; kk++ ) {
-                  v_array[kk].add( ((Tuple)field.getSample(kk)).getComponent(ii));
+                  v_array[kk].add( ((TupleIface)field.getSample(kk)).getComponent(ii));
                 }
               }
               else if ( m_type instanceof RealTupleType )
@@ -1087,7 +1087,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                   sub_types.add( m_type );
                   allReal = false;
                   for ( kk = 0; kk < n_samples_0; kk++ ) {
-                    v_array[kk].add( ((Tuple)field.getSample(kk)).getComponent(ii));
+                    v_array[kk].add( ((TupleIface)field.getSample(kk)).getComponent(ii));
                   }
                 }
                 else
@@ -1097,7 +1097,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                     sub_types.add( ((RealTupleType)m_type).getComponent(jj) );
                   }
                   for ( kk = 0; kk < n_samples_0; kk++ ) {
-                    R_tuple = (RealTuple)((Tuple)field.getSample(kk)).getComponent(ii);
+                    R_tuple = (RealTuple)((TupleIface)field.getSample(kk)).getComponent(ii);
                     for ( jj = 0; jj < ((RealTupleType)m_type).getDimension(); jj++ ) {
                       v_array[kk].add( R_tuple.getComponent(jj));
                     }
@@ -1223,7 +1223,8 @@ public class FieldImpl extends FunctionImpl implements Field {
 
       for ( ii = 0; ii < n_samples; ii++ )
       {
-        r_tuple = (RealTuple) ((Tuple) getSample(ii)).getComponent( component );
+        r_tuple = (RealTuple)
+          ((TupleIface) getSample(ii)).getComponent( component );
         coord_in = r_tuple.getCoordinateSystem();
         unit_in = r_tuple.getTupleUnits();
         for ( jj = 0; jj < dim; jj++ )
@@ -1281,12 +1282,13 @@ public class FieldImpl extends FunctionImpl implements Field {
         {
           if ( m_type instanceof RealType )
           {
-            values[t_dim][ii] = ((Real)((Tuple)rangeData).getComponent(jj)).getValue();
+            values[t_dim][ii] =
+              ((Real)((TupleIface)rangeData).getComponent(jj)).getValue();
             t_dim++;
           }
           else
           {
-            r_tuple = (RealTuple) ((Tuple)rangeData).getComponent(jj);
+            r_tuple = (RealTuple) ((TupleIface)rangeData).getComponent(jj);
             for ( kk = 0; kk < ((RealTupleType)m_type).getDimension(); kk++ )
             {
               values[t_dim][ii] = ((Real)r_tuple.getComponent(kk)).getValue();
@@ -1304,7 +1306,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       for ( ii = 0; ii < n_samples; ii++ )
       {
         rangeData = getSample(ii);
-        new_rangeData = ((Tuple)rangeData).getComponent( component );
+        new_rangeData = ((TupleIface)rangeData).getComponent( component );
         new_field.setSample( ii, new_rangeData );
       }
     }
@@ -2553,7 +2555,8 @@ public class FieldImpl extends FunctionImpl implements Field {
             for (int j=0; j<m; j++) {
               MathType comp_type = ((TupleType) RangeType).getComponent(j);
               if (comp_type instanceof RealVectorType) {
-                RealTuple component = (RealTuple) ((Tuple) range[i]).getComponent(j);
+                RealTuple component =
+                  (RealTuple) ((TupleIface) range[i]).getComponent(j);
                 datums[j] = ((RealVectorType) comp_type).transformVectors(
                             ((FunctionType) Type).getDomain(),
                             DomainCoordinateSystem, DomainUnits, errors_out,
@@ -2562,7 +2565,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                             inloc, outloc, component);
               }
               else {
-                datums[j] = ((Tuple) range[i]).getComponent(j);
+                datums[j] = ((TupleIface) range[i]).getComponent(j);
               }
             }
             range[i] = new Tuple(datums);

@@ -234,7 +234,7 @@ public class ShadowTupleType extends ShadowType {
     if (data.isMissing()) return false;
     if (LevelOfDifficulty == NOTHING_MAPPED) return false;
 
-    if (!(data instanceof Tuple)) {
+    if (!(data instanceof TupleIface)) {
       throw new DisplayException("data must be Tuple: " +
                                  "ShadowTupleType.doTransform");
     }
@@ -263,7 +263,7 @@ public class ShadowTupleType extends ShadowType {
       }
     }
 
-    Tuple tuple = (Tuple) data;
+    TupleIface tuple = (TupleIface) data;
     RealType[] realComponents = ((TupleType) data.getType()).getRealComponents();
     int length = realComponents.length;
     if (length > 0) {
@@ -316,7 +316,7 @@ public class ShadowTupleType extends ShadowType {
           else {
             range_units = new Unit[n];
             for (j=0; j<n; j++) range_units[j] = value_units[j + start];
-            range_coord_sys = ((RealTuple) ((Tuple) data).
+            range_coord_sys = ((RealTuple) ((TupleIface) data).
                     getComponent(componentIndex[i])).getCoordinateSystem();
           }
 
@@ -380,8 +380,8 @@ public class ShadowTupleType extends ShadowType {
               int m = ((ShadowRealTupleType) component).getDimension();
               Unit[] range_units = new Unit[m];
               for (j=0; j<m; j++) range_units[j] = value_units[j + start];
-              CoordinateSystem range_coord_sys = ((RealTuple) ((Tuple) data).
-                    getComponent(i)).getCoordinateSystem();
+              CoordinateSystem range_coord_sys =
+                ((RealTuple) ((TupleIface) data).getComponent(i)).getCoordinateSystem();
 /* WLH 23 May 99
               renderer.setEarthSpatialData((ShadowRealTupleType)
                       component, null, null,

@@ -290,13 +290,13 @@ public class DataUtility {
    * @throws VisADException	Couldn't create necessary VisAD object.
    * @throws RemoteException	Java RMI failure.
    */
-  public static Tuple
+  public static TupleIface
   ensureTuple(Data datum)
     throws VisADException, RemoteException
   {
     return
-      datum instanceof Tuple
-	? (Tuple)datum
+      datum instanceof TupleIface
+	? (TupleIface)datum
 	: datum instanceof Real
 	    ? new RealTuple(new Real[] {(Real)datum})
 	    : new Tuple(new Data[] {datum});

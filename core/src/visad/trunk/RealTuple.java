@@ -192,7 +192,7 @@ public class RealTuple extends Tuple {
       */
       return new RealTuple((RealTupleType) new_type, reals, null );
     }
-    else if (data instanceof Tuple) {
+    else if (data instanceof TupleIface) {
       throw new TypeException("RealTuple.binary: types don't match");
     }
     else if (data instanceof Real) {

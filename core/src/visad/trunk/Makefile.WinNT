@@ -562,7 +562,7 @@ visad.collab.RemoteDisplaySyncImpl \
 visad.collab.RemoteEventProviderImpl
 
 RMIC_CLUSTER_FILES = \
-visad.cluster.RemoteSwitchImpl \
+visad.cluster.RemoteClusterDataImpl \
 visad.cluster.RemoteClientDataImpl
 
 recompile: \

@@ -380,7 +380,7 @@ public class BasicSSCell extends JPanel {
     CellImpl lFilenameCell = new CellImpl() {
       public void doAction() {
         try {
-          Tuple t = (Tuple) RemoteFilename.getData();
+          TupleIface t = (TupleIface) RemoteFilename.getData();
           Real id = (Real) t.getComponent(0);
           FileIsRemote = (id.getValue() != CollabID);
           if (FileIsRemote) {
@@ -414,7 +414,7 @@ public class BasicSSCell extends JPanel {
     CellImpl lRMIAddressCell = new CellImpl() {
       public void doAction() {
         try {
-          Tuple t = (Tuple) RemoteRMIAddress.getData();
+          TupleIface t = (TupleIface) RemoteRMIAddress.getData();
           Real id = (Real) t.getComponent(0);
           if (id.getValue() == CollabID) {
             // cells should ignore their own updates
@@ -451,7 +451,7 @@ public class BasicSSCell extends JPanel {
     CellImpl lFormulaCell = new CellImpl() {
       public void doAction() {
         try {
-          Tuple t = (Tuple) RemoteFormula.getData();
+          TupleIface t = (TupleIface) RemoteFormula.getData();
           Real id = (Real) t.getComponent(0);
           if (id.getValue() == CollabID) {
             // cells should ignore their own updates
@@ -482,7 +482,7 @@ public class BasicSSCell extends JPanel {
     CellImpl lDimCell = new CellImpl() {
       public void doAction() {
         try {
-          Tuple t = (Tuple) RemoteDim.getData();
+          TupleIface t = (TupleIface) RemoteDim.getData();
           Real id = (Real) t.getComponent(0);
           if (id.getValue() == CollabID) {
             // cells should ignore their own updates
@@ -514,7 +514,7 @@ public class BasicSSCell extends JPanel {
     CellImpl lErrorsCell = new CellImpl() {
       public void doAction() {
         try {
-          Tuple t = (Tuple) RemoteErrors.getData();
+          TupleIface t = (TupleIface) RemoteErrors.getData();
           Real id = (Real) t.getComponent(0);
           if (id.getValue() == CollabID) {
             // cells should ignore their own updates
@@ -522,8 +522,8 @@ public class BasicSSCell extends JPanel {
           }
           Data d = t.getComponent(1);
           String[] newErrors;
-          if (d instanceof Tuple) {
-            Tuple nErr = (Tuple) d;
+          if (d instanceof TupleIface) {
+            TupleIface nErr = (TupleIface) d;
             int len = nErr.getDimension();
             newErrors = new String[len];
             for (int i=0; i<len; i++) {
@@ -650,7 +650,7 @@ public class BasicSSCell extends JPanel {
     try {
       Real id = new Real(CollabID);
       Text nFile = new Text(Filename == null ? "" : Filename);
-      Tuple t = new Tuple(new Data[] {id, nFile}, false);
+      TupleIface t = new Tuple(new Data[] {id, nFile}, false);
       RemoteFilename.setData(t);
     }
     catch (VisADException exc) {
@@ -665,7 +665,7 @@ public class BasicSSCell extends JPanel {
     try {
       Real id = new Real(CollabID);
       Text nRMI = new Text(RMIAddress == null ? "" : RMIAddress);
-      Tuple t = new Tuple(new Data[] {id, nRMI}, false);
+      TupleIface t = new Tuple(new Data[] {id, nRMI}, false);
       RemoteRMIAddress.setData(t);
     }
     catch (VisADException exc) {
@@ -680,7 +680,7 @@ public class BasicSSCell extends JPanel {
     try {
       Real id = new Real(CollabID);
       Text nForm = new Text(Formula);
-      Tuple t = new Tuple(new Data[] {id, nForm}, false);
+      TupleIface t = new Tuple(new Data[] {id, nForm}, false);
       RemoteFormula.setData(t);
     }
     catch (VisADException exc) {
@@ -695,7 +695,7 @@ public class BasicSSCell extends JPanel {
     try {
       Real id = new Real(CollabID);
       Real nDim = new Real(Dim);
-      Tuple t = new Tuple(new Data[] {id, nDim}, false);
+      TupleIface t = new Tuple(new Data[] {id, nDim}, false);
       RemoteDim.setData(t);
     }
     catch (VisADException exc) {
@@ -723,7 +723,7 @@ public class BasicSSCell extends JPanel {
       else {
         nErrors = new Text("");
       }
-      Tuple t = new Tuple(new Data[] {id, nErrors}, false);
+      TupleIface t = new Tuple(new Data[] {id, nErrors}, false);
       RemoteErrors.setData(t);
     }
     catch (VisADException exc) {
