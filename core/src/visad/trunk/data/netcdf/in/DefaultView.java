@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultView.java,v 1.8 2002-10-21 20:07:45 donm Exp $
+ * $Id: DefaultView.java,v 1.9 2004-11-19 23:31:08 donm Exp $
  */
 
 package visad.data.netcdf.in;
@@ -32,6 +32,7 @@ import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.SampledSet;
+import visad.SetType;
 import visad.TextType;
 import visad.TypeException;
 import visad.Unit;
@@ -42,7 +43,7 @@ import visad.VisADException;
  * in the netCDF User's Guide.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.8 $ $Date: 2002-10-21 20:07:45 $
+ * @version $Revision: 1.9 $ $Date: 2004-11-19 23:31:08 $
  */
 public class DefaultView
     extends     View
@@ -272,6 +273,11 @@ public class DefaultView
         throws VisADException, IOException
     {
         int             rank = sets.length;
+        // Handle the case where we only have one set.  Save us some work
+        // and keep the integrity of a Gridded1DDoubleSet for Time
+        if (rank == 1 && sets[0].getType().equals(new SetType(type))) {
+          return sets[0];
+        }
         int[]           lengths = new int[rank];
         float[][]       values = new float[rank][];
         int             ntotal = 1;
