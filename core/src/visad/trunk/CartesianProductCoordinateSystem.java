@@ -1,5 +1,5 @@
 //
-// $Id: CartesianProductCoordinateSystem.java,v 1.5 2001-11-27 22:28:47 dglo Exp $
+// $Id: CartesianProductCoordinateSystem.java,v 1.6 2002-01-02 16:02:18 donm Exp $
 //
 
 /*
@@ -77,6 +77,22 @@ public class CartesianProductCoordinateSystem extends CoordinateSystem
     {
         super(getProductReference(csArray), getProductUnits(csArray));
         this.csArray = csArray;
+    }
+
+    /**
+     * Get the arrays of CoordinateSystems being used in this product
+     * return array of CoordinateSystems
+     */
+    public CoordinateSystem[] getCoordinateSystems() {
+        return csArray;
+    }
+
+    /**
+     * Get a particular CoordinateSystem
+     * @param  index  index into the array
+     */
+    public CoordinateSystem getCoordinateSystem(int index) {
+        return csArray[index];
     }
 
     static RealTupleType getProductReference(CoordinateSystem[] csArray)
