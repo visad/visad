@@ -1,5 +1,5 @@
                     VisAD SpreadSheet User Interface README file
-                                   5 October 2000
+                                  1 November 2000
  
                                  Table of Contents
 
@@ -621,11 +621,13 @@ using the "-help" command line option.
 The following bugs have been discovered:
 
 1) Key event processing has some glitches.  For example, the arrow keys may not
-   work at times.  This problem seems to be worse on Solaris, but still occurs
-   on NT.  It is somehow related to Java3D, so try running the SpreadSheet with
-   the "-no3d" parameter to avoid the problem.  Another useful way around the
-   problem is to compute all your data first in 2-D (Java2D) mode, then switch
-   cells to 3-D (Java3D) mode as desired, and finally set up mappings.
+   work at times, and sometimes typing in the formula bar has no effect.  The
+   problem seems to be worse on Solaris, but still occurs on NT.  It is somehow
+   related to Java3D, so try running the SpreadSheet with the "-no3d" parameter
+   to avoid the problem.  Another useful way around the problem is to compute
+   all your data first in 2-D (Java2D) mode, then switch cells to 3-D (Java3D)
+   mode as desired, and finally set up mappings.  Lastly, typing text into the
+   formula bar works more reliably if you click the "Add" button first.
 
 2) On certain machine configurations, the SpreadSheet may sometimes lock up
    on startup (or when a toolbar button first becomes grayed out) due to a
