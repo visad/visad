@@ -206,7 +206,7 @@ public class ThingReferenceImpl extends Object implements ThingReference {
    * thing changes, then the listener is notified.
    *
    * @param listener              The listener.
-   * @param id                    I don't know (SRE 20020409).
+   * @param id                    The id of the corresponding {@link ReferenceActionLink}.
    * @throws RemoteVisADException if the listener isn't an {@link ActionImpl}.
    * @throws ReferenceException   if the listener is already registered.
    * @throws VisADException       if a VisAD failure occurs in a subsystem.
