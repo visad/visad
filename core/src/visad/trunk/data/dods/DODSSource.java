@@ -90,12 +90,16 @@ public class DODSSource
 	     * from a DODS dataset specification whose path component has a
 	     * ".dods" suffix, such a suffix is removed.
 	     */
-	    if (path.endsWith(suffix))
+	    if (path.toLowerCase().endsWith(suffix))
 	    {
+		String	query = url.getQuery();
 		path	= path.substring(0, path.length()-suffix.length());
 		spec =
 		    new URL(
-			url.getProtocol(), url.getHost(), url.getPort(), path)
+			url.getProtocol(),
+			url.getHost(),
+			url.getPort(),
+			query == null ? path : path + "?" + query)
 		    .toString();
 	    }
 	    DConnect	dConnect = new DConnect(spec);
