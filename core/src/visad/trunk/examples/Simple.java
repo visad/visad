@@ -15,12 +15,6 @@ public class Simple {
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
 
-    // create a DataReference for an 'hour' value
-    final DataReference hour_ref = new DataReferenceImpl("hour");
-    // and link it to a slider
-    VisADSlider slider = new VisADSlider("hour", 0, 3, 0, 1.0, 
-                                         hour_ref, new RealType("hour"));
-
     // create a DataReference for an image
     final DataReference image_ref = new DataReferenceImpl("image");
 
@@ -30,6 +24,37 @@ public class Simple {
     // open a netCDF file containing an image sequence and adapt
     // it to a Field Data object
     final Field image_sequence = (Field) plain.open("images.nc");
+
+    // create a Display using Java3D
+    DisplayImpl display = new DisplayImplJ3D("image display");
+
+    // extract the type of image and use
+    // it to determine how images are displayed
+    FunctionType image_sequence_type =
+      (FunctionType) image_sequence.getType();
+    FunctionType image_type =
+      (FunctionType) image_sequence_type.getRange();
+    RealTupleType domain_type = image_type.getDomain();
+    // map image coordinates to display coordinates
+    display.addMap(new ScalarMap((RealType) domain_type.getComponent(0),
+                                 Display.XAxis));
+    display.addMap(new ScalarMap((RealType) domain_type.getComponent(1),
+                                 Display.YAxis));
+    // map image brightness values to RGB (default is grey scale)
+    display.addMap(new ScalarMap((RealType) image_type.getRange(),
+                                 Display.RGB));
+
+    // link the Display to image_ref
+    // display will update whenever image changes
+    display.addReference(image_ref);
+
+    // create a DataReference and RealType for an 'hour' value
+    final DataReference hour_ref = new DataReferenceImpl("hour");
+    RealType hour_type =
+      (RealType) image_sequence_type.getDomain().getComponent(0);
+    // and link it to a slider
+    VisADSlider slider = new VisADSlider("hour", 0, 3, 0, 1.0, 
+                                         hour_ref, hour_type);
 
     // create a Cell to extract an image at 'hour'
     // (this is an anonymous inner class extending CellImpl)
@@ -44,27 +69,6 @@ public class Simple {
     // link cell to hour_ref to trigger doAction whenever
     // 'hour' value changes
     cell.addReference(hour_ref);
- 
-    // create a Display and add it to panel
-    DisplayImpl display = new DisplayImplJ3D("image display");
-
-    // extract the type of image and use
-    // it to determine how images are displayed
-    FunctionType image_type = (FunctionType)
-      ((FunctionType) image_sequence.getType()).getRange();
-    RealTupleType domain_type = image_type.getDomain();
-    // map image coordinates to display coordinates
-    display.addMap(new ScalarMap((RealType) domain_type.getComponent(0),
-                                 Display.XAxis));
-    display.addMap(new ScalarMap((RealType) domain_type.getComponent(1),
-                                 Display.YAxis));
-    // map image brightness values to RGB (default is grey scale)
-    display.addMap(new ScalarMap((RealType) image_type.getRange(),
-                                 Display.RGB));
-
-    // link the Display to image_ref
-    // display will update whenever image changes
-    display.addReference(image_ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("Simple VisAD Application");

@@ -155,6 +155,7 @@ public class DisplayTest extends Object {
         System.out.println("  30: time stack");
         System.out.println("  31: scatter diagram");
         System.out.println("  32 file_name: FITS adapter");
+        System.out.println("  33: ColorWidget with non-default table");
 
         return;
 
@@ -867,7 +868,7 @@ public class DisplayTest extends Object {
 
         ntimes1 = 4;
         ntimes2 = 6;
-        // different time resolutions test
+        // different time resolutions for test
         time_set =
           new Linear1DSet(time_type, 0.0, 1.0, ntimes1);
         time_hornet =
@@ -1426,6 +1427,45 @@ public class DisplayTest extends Object {
         ref_fits.setData(fits_data);
         display1.addReference(ref_fits, null);
 
+        break;
+
+      case 33:
+ 
+        System.out.println(test_case + ": test ColorWidget with non-default table");
+ 
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+ 
+        color1map = new ScalarMap(ir_radiance, Display.RGB);
+        display1.addMap(color1map);
+ 
+        float[][] table = new float[3][256];
+        for (int i=0; i<256; i++) {
+          float a = ((float) i) / 256.0f;
+          table[0][i] = a;
+          table[1][i] = 1.0f - a;
+          table[2][i] = 0.5f;
+        }
+
+        lw = new LabeledRGBWidget(color1map, 0.0f, 32.0f, table);
+ 
+        frame = new Frame("VisAD Color Widget");
+        frame.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        frame.add(lw);
+        frame.setSize(lw.getPreferredSize());
+        frame.setVisible(true);
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
         break;
 
     } // end switch(test_case)
