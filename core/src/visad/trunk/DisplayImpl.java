@@ -143,6 +143,23 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
          throws VisADException, RemoteException {
     super(rmtDpy.getName());
 
+    // get class used for remote display
+    String className = rmtDpy.getDisplayClassName();
+    Class rmtClass;
+    try {
+      rmtClass = Class.forName(className);
+    } catch (ClassNotFoundException cnfe) {
+      throw new DisplayException("Cannot find remote display class " +
+                                 className);
+    }
+
+    // make sure this display class
+    // is compatible with the remote display class
+    if (!rmtClass.isInstance(this)) {
+      throw new DisplayException("Cannot construct " + getClass().getName() +
+                                 " from remote " + className);
+    }
+
     // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
     for (int i=0; i<DisplayRealArray.length; i++) {
       DisplayRealTypeVector.addElement(DisplayRealArray[i]);
