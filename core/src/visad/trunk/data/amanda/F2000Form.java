@@ -117,6 +117,7 @@ public class F2000Form extends Form implements FormFileInformer {
   private synchronized DataImpl open(InputStream is)
          throws BadFormException, VisADException, IOException {
 
+    // construct MathTypes
     if (x == null) {
       // right handed coordinate system
       x = RealType.XAxis; // positive eastward (along 0 longitude?)
@@ -195,13 +196,14 @@ public class F2000Form extends Form implements FormFileInformer {
             if (nstrings < 1 || nmodule < 1) {
               throw new BadFormException("bad nstrings or nmodule\n" + line);
             }
-System.out.println("array " + detector + " " + longitude + " " + latitude + " " +
-                   depth + " " + nstrings + " " + nmodule + "\n" + line);
+// System.out.println("array " + detector + " " + longitude + " " + latitude + " " +
+//                    depth + " " + nstrings + " " + nmodule + "\n" + line);
             om_x = new float[nmodule];
             om_y = new float[nmodule];
             om_z = new float[nmodule];
             om_string = new int[nmodule];
             om_ordinal_on_string = new int[nmodule];
+            // initialize modules
             for (int i=0; i<nmodule; i++) {
               om_string[i] = -1;
               om_ordinal_on_string[i] = -1;
@@ -230,6 +232,9 @@ System.out.println("array " + detector + " " + longitude + " " + latitude + " " 
           try {
             // convert 1-based to 0-based
             number = getInt(tokens[1], 11) - 1;
+            if (number < 0 || number >= om_x.length) {
+              throw new BadFormException("bad number value\n" + line);
+            }
             om_ordinal_on_string[number] = getInt(tokens[2], 12);
             om_string[number] = getInt(tokens[3], 13);
             om_x[number] = getFloat(tokens[4], 14);
@@ -239,9 +244,9 @@ System.out.println("array " + detector + " " + longitude + " " + latitude + " " 
           catch(NumberFormatException e) {
             throw new BadFormException("bad number format with om\n" + line);
           }
-System.out.println("om " + number + " " + om_ordinal_on_string[number] + " " +
-                   om_string[number] + " " + om_x[number] + " " +
-                   om_y[number] + " " + om_z[number] + "\n" + line);
+// System.out.println("om " + number + " " + om_ordinal_on_string[number] + " " +
+//                    om_string[number] + " " + om_x[number] + " " +
+//                    om_y[number] + " " + om_z[number] + "\n" + line);
         }
       }
 /*
@@ -256,6 +261,7 @@ for (int i=0; i<nmodule; i++) {
 System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
                    nymiss + " " + nzmiss);
 */
+      // compute spatial extents of modules in x, y and z
       for (int i=0; i<nmodule; i++) {
         if (om_x[i] == om_x[i]) {
           if (om_x[i] < xmin) xmin = om_x[i];
@@ -276,10 +282,10 @@ System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
         tokens = getNext(br, false);
         if (tokens[0].equals("es")) {
           // ignore ES events for now
-System.out.println("es IGNORE \n" + line);
+// System.out.println("es IGNORE \n" + line);
         }
         else if (tokens[0].equals("em")) {
-System.out.println(line);
+// System.out.println(line);
           // assemble EM event
           try {
             int enr = getInt(tokens[1], 21);
@@ -327,11 +333,10 @@ System.out.println(line);
                 float[][] locs = {{xstart, xstart + xinc},
                                   {ystart, ystart + yinc},
                                   {zstart, zstart + zinc}};
-/*
-System.out.println("tr (" + xstart + ", " + ystart + ", " +
-                   zstart + "), (" + xinc + ", " +
-                   yinc + ", " + zinc + ")\n" + line);
-*/
+// System.out.println("tr (" + xstart + ", " + ystart + ", " +
+//                    zstart + "), (" + xinc + ", " +
+//                    yinc + ", " + zinc + ")\n" + line);
+                // construct Field for track
                 Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
                 FlatField track_field =
                   new FlatField(track_function_type, track_set);
@@ -370,12 +375,11 @@ System.out.println("tr (" + xstart + ", " + ystart + ", " +
                 float[][] locs = {{xstart, xstart + xinc},
                                   {ystart, ystart + yinc},
                                   {zstart, zstart + zinc}};
-/*
-System.out.println("fit (" + xstart + ", " + ystart + ", " +
-                   zstart + "), (" + xinc + ", " +
-                   yinc + ", " + zinc + ") " + length + " " +
-                   event_number + "\n" + line);
-*/
+// System.out.println("fit (" + xstart + ", " + ystart + ", " +
+//                    zstart + "), (" + xinc + ", " +
+//                    yinc + ", " + zinc + ") " + length + " " +
+//                    event_number + "\n" + line);
+                // construct Field for fit
                 Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
                 FlatField track_field =
                   new FlatField(track_function_type, track_set);
@@ -396,6 +400,7 @@ System.out.println("fit (" + xstart + ", " + ystart + ", " +
                 float ht_tot = getFloat(tokens[6], 76);
                 double[] values = {om_x[number], om_y[number], om_z[number],
                                    ht_amplitude, ht_let, ht_tot};
+                // construct Tuple for hit
                 RealTuple hit_tuple = new RealTuple(hit_type, values);
                 hits.addElement(hit_tuple);
               }
@@ -404,11 +409,12 @@ System.out.println("fit (" + xstart + ", " + ystart + ", " +
               }
             }
             else if (tokens[0].equals("ee")) {
-System.out.println("ee");
+// System.out.println("ee");
               // finish EM event
               int ntracks = tracks.size();
               int nhits = hits.size();
               if (ntracks == 0 && nhits == 0) break;
+              // construct parent Field for all tracks
               Integer1DSet tracks_set = (ntracks == 0) ?
                 new Integer1DSet(track_index, 1) :
                 new Integer1DSet(track_index, ntracks);
@@ -421,10 +427,9 @@ System.out.println("ee");
                 }
                 tracks_field.setSamples(track_fields, false);
               }
-/*
-System.out.println("tracks_field " + event_number + "\n" +
-                   tracks_field);
-*/
+// System.out.println("tracks_field " + event_number + "\n" +
+//                    tracks_field);
+              // construct parent Field for all hits
               Integer1DSet hits_set = (nhits == 0) ?
                 new Integer1DSet(hit_index, 1) :
                 new Integer1DSet(hit_index, nhits);
@@ -438,6 +443,7 @@ System.out.println("tracks_field " + event_number + "\n" +
                 hits_field.setSamples(hit_tuples, true);
               }
 
+              // construct Tuple of all tracks and hits
               Tuple em_tuple =
                 new Tuple(new Data[] {tracks_field, hits_field});
               em_events.addElement(em_tuple);
@@ -452,6 +458,7 @@ System.out.println("tracks_field " + event_number + "\n" +
     catch (IOException e) {
 System.out.println("IOException " + e.getMessage());
       // end of file - build Data object
+      // Field of Tuples of track and hit Fields
       int nevents = em_events.size();
       Integer1DSet events_set = (nevents == 0) ? 
         new Integer1DSet(event_index, 1) :
@@ -471,6 +478,7 @@ System.out.println("IOException " + e.getMessage());
 
   private double[] last_values = null;
 
+  // get a float from file stream, with F2000 conventions
   private float getFloat(String token, int index)
           throws NumberFormatException {
     float value = Float.NaN;
@@ -486,6 +494,7 @@ System.out.println("IOException " + e.getMessage());
     return value;
   }
 
+  // get a double from file stream, with F2000 conventions
   private double getDouble(String token, int index)
           throws NumberFormatException {
     double value = Float.NaN;
@@ -501,6 +510,7 @@ System.out.println("IOException " + e.getMessage());
     return value;
   }
 
+  // get an int from file stream, with F2000 conventions
   private int getInt(String token, int index)
           throws NumberFormatException {
     int value = -1;
@@ -518,6 +528,8 @@ System.out.println("IOException " + e.getMessage());
 
   private String line = null;
 
+  // get next non-null line from file stream, parsed into tokens
+  // throw IOException for end of file
   private String[] getNext(BufferedReader br, boolean mark)
           throws IOException {
     while (true) {
@@ -549,7 +561,7 @@ System.out.println("IOException " + e.getMessage());
     return null;
   }
 
-  /** run 'java visad.data.visad.F2000Form in_file out_file' to
+  /** run 'java visad.data.amanda.F2000Form in_file out_file' to
       convert in_file to out_file in VisAD serialized data format */
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
