@@ -149,7 +149,6 @@ public class SelectionBox {
             }
           }
 
-          // CTR: TODO: figure out why box never becomes visible
           if (reals == null) return;
           RealTuple[] tuples = new RealTuple[refs.length];
           for (int i=0; i<refs.length; i++) {

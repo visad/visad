@@ -85,15 +85,15 @@ public class Measurement {
 
   /** Gets the current endpoint values as an array of doubles. */
   public double[][] doubleValues() {
-    int num = values.length;
-    if (num < 1) return null;
-    for (int i=0; i<num; i++) if (values[i] == null) return null;
+    int len = values.length;
+    if (len < 1) return null;
+    for (int i=0; i<len; i++) if (values[i] == null) return null;
 
-    int len = values[0].getDimension();
-    double[][] vals = new double[len][num];
+    int dim = values[0].getDimension();
+    double[][] vals = new double[dim][len];
     try {
-      for (int i=0; i<len; i++) {
-        for (int j=0; j<num; j++) {
+      for (int i=0; i<dim; i++) {
+        for (int j=0; j<len; j++) {
           Real r = (Real) values[j].getComponent(i);
           vals[i][j] = r.getValue();
         }

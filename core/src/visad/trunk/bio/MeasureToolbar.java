@@ -29,7 +29,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
-import visad.browser.Divider;
+import visad.browser.*;
 
 /** MeasureToolbar is a custom toolbar. */
 public class MeasureToolbar extends JPanel implements SwingConstants {
@@ -40,7 +40,11 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     Color.red, Color.orange, Color.yellow, Color.green,
     Color.cyan, Color.blue, Color.magenta, Color.pink
   };
-    
+
+  /** Placeholder for measurement information label. */
+  private static final String INFO_LABEL =
+    "   (000.000, 000.000)-(000.000, 000.000): distance=000.000";
+
 
   /** New group dialog box. */
   private GroupDialog groupBox = new GroupDialog();
@@ -74,6 +78,9 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
 
   // -- LINE FUNCTIONS --
+
+  /** Label for displaying measurement information. */
+  private JLabel measureInfo;
 
   /** Button for distributing measurement object through all focal planes. */
   private JButton setStandard;
@@ -121,6 +128,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       public Dimension getMaximumSize() { return getPreferredSize(); }
     };
     controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
+    pane.add(Box.createVerticalStrut(10));
     pane.add(controls);
     pane.add(Box.createVerticalStrut(30));
     pane.add(Box.createVerticalGlue());
@@ -185,6 +193,18 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     // divider between global functions and object functions
     controls.add(Box.createVerticalStrut(10));
     controls.add(new Divider());
+    controls.add(Box.createVerticalStrut(10));
+
+    // measurement information label
+    measureInfo = new JLabel(" ") {
+      public Dimension getPreferredSize() {
+        FontMetrics fm = getFontMetrics(getFont());
+        int width = fm.stringWidth("    " + INFO_LABEL);
+        Dimension d = super.getPreferredSize();
+        return new Dimension(width, d.height);
+      }
+    };
+    controls.add(pad(measureInfo));
     controls.add(Box.createVerticalStrut(10));
 
     // set standard button
@@ -311,6 +331,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     this.thing = thing;
     boolean enabled = thing != null;
     boolean line = thing instanceof MeasureLine;
+    updateMeasureInfo();
     setStandard.setEnabled(enabled);
     removeThing.setEnabled(enabled);
     colorLabel.setEnabled(enabled && line);
@@ -325,6 +346,32 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       colorList.setSelectedItem(m.getColor());
       groupList.setSelectedItem(m.getGroup());
     }
+  }
+
+  /** Updates the text in the measurement information box. */
+  private void updateMeasureInfo() {
+    String text = " ";
+    if (thing != null) {
+      Measurement m = thing.getMeasurement();
+      double[][] vals = m.doubleValues();
+      if (thing instanceof MeasureLine) {
+        String v1x = Convert.shortString(vals[0][0]);
+        String v1y = Convert.shortString(vals[1][0]);
+        String v2x = Convert.shortString(vals[0][1]);
+        String v2y = Convert.shortString(vals[1][1]);
+        String dist = Convert.shortString(m.getDistance());
+        text = "(" + v1x + ", " + v1y + ")-(" + v2x + ", " + v2y + "): " +
+          "distance=" + dist;
+      }
+      else {
+        String vx = Convert.shortString(vals[0][0]);
+        String vy = Convert.shortString(vals[1][0]);
+        text = "(" + vx + ", " + vy + ")";
+      }
+      int space = (INFO_LABEL.length() - text.length()) / 2;
+      for (int i=0; i<space; i++) text = " " + text + " ";
+    }
+    measureInfo.setText("   " + text);
   }
 
   /** Gets the current measurement list from the slider widgets. */

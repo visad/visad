@@ -166,7 +166,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
           "BioVisAD", JOptionPane.WARNING_MESSAGE);
       }
     });
-    /* CTR: TODO
+    /* CTR: TODO: restore lines
     final JFrame frame = this;
     Thread t = new Thread(new Runnable() {
       public void run() {
@@ -238,7 +238,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
           "BioVisAD", JOptionPane.WARNING_MESSAGE);
       }
     });
-    /* CTR: TODO
+    /* CTR: TODO: save lines
     final JFrame frame = this;
     Thread t = new Thread(new Runnable() {
       public void run() {
