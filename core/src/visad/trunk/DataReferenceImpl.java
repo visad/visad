@@ -57,8 +57,13 @@ public class DataReferenceImpl extends ThingReferenceImpl
     return (data == null) ? null : data.getType();
   }
 
-  /** set this DataReferenceImpl to refer to d;
-      must be local DataImpl */
+  /**
+   * Sets the data object to which this instance refers.
+   *
+   * @param d                     The data object.
+   * @throws ReferenceException   if the data object is <code>null</code>.
+   * @throws RemoteVisADException if the data object is a {@link RemoteData}.
+   */
   public void setData(Data d)
          throws VisADException, RemoteException {
     setThing(d);
