@@ -234,7 +234,7 @@ public class PointDataAdapter {
       PointDataAdapter pda = new PointDataAdapter(args[0]);
       Field data = (Field) pda.getData();
       //System.out.println(data.getType());
-      visad.jmet.DumpType.dumpDataType(data);
+      visad.python.JPythonMethods.dumpTypes(data);
       /*
       int length = data.getDomainSet().getLength() - 1;
       System.out.println(
