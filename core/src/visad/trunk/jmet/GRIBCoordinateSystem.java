@@ -282,6 +282,9 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     } else if (gridNumber == 252) {
       doLambert(ref, 301, 225, 16.281, -126.138, 20.317625, 25.0, 25.0, -95.0);
 
+    } else if (gridNumber == 2525) { // 5km FAA PDT grid pseudo-number 
+      doLambert(ref, 1200, 896, 16.30812906980,  -126.1204451156423, 5.07940 , 25.0, 25.0, -95.0);
+
     } else if (gridNumber == 212) {
       doLambert(ref, 185, 129, 12.190, -133.459, 40.63525, 25.0, 25.0, -95.0);
 
@@ -339,7 +342,9 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
 
     isLambert = true;
     spacing = DxDy*1000.0;
-    double earth = 6371230.0;
+    //double earth = 6371229.0;  // this is the GRADS value
+    //double earth = 6367470.0;  // this is the GRIB document value
+    double earth = 6371230.0;  // this is the one to use...
     aspectRatio = 1.0;
     range[0] = 0.0;
     range[1] = 0.0;
