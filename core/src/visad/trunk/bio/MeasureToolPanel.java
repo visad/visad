@@ -82,6 +82,9 @@ public class MeasureToolPanel extends ToolPanel {
   /** Flag marking whether set standard checkbox can be enabled. */
   private boolean stdEnabled = true;
 
+  /** Flag marking whether pilot line has been initialized. */
+  private boolean pilotInited = false;
+
 
   // -- FILE IO FUNCTIONS --
 
@@ -280,7 +283,24 @@ public class MeasureToolPanel extends ToolPanel {
     pilot = new JCheckBox("Use pilot line to align image stacks", false);
     pilot.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        // CTR - TODO - pilot line checkbox
+        boolean doPilot = pilot.isSelected();
+        if (!pilotInited) {
+          int index = bio.sm.getIndex();
+          for (int j=0; j<bio.mm.lists.length; j++) {
+            MeasureList list = bio.mm.lists[j];
+            boolean update = j == index;
+            MeasurePoint ep1 = new MeasurePoint(
+              bio.sm.min_x, bio.sm.min_y, bio.sm.min_z);
+            MeasurePoint ep2 = new MeasurePoint(
+              bio.sm.min_x, bio.sm.min_y, bio.sm.max_z);
+            MeasureLine line = new MeasureLine(ep1, ep2,
+              Color.white, BioVisAD.noneGroup, false);
+            ep1.pilot = ep2.pilot = line.pilot = true;
+            list.addLine(line, update);
+          }
+          pilotInited = true;
+        }
+        bio.mm.pool3.togglePilot(doPilot);
       }
     });
     pilot.setEnabled(false);
@@ -541,7 +561,9 @@ public class MeasureToolPanel extends ToolPanel {
         boolean trigger = !enabled;
         if (enabled) {
           PoolPoint[] pts = bio.mm.pool2.getSelectionPts();
-          for (int i=0; i<pts.length; i++) cell.addReference(pts[i].ref);
+          for (int i=0; i<pts.length; i++) {
+            if (pts[i] != null) cell.addReference(pts[i].ref);
+          }
           if (pts.length == 0) trigger = true;
         }
         cell.enableAction();
@@ -683,7 +705,7 @@ public class MeasureToolPanel extends ToolPanel {
   /** Updates the remove button. */
   private void updateRemove() {
     MeasureThing[] selThings = bio.mm.pool2.getSelection();
-    boolean noStd = true;
+    boolean noStd = selThings.length > 0;
     for (int i=0; i<selThings.length; i++) {
       if (selThings[i].stdId >= 0) {
         noStd = false;

@@ -86,8 +86,8 @@ public class MeasureList {
     // create two new endpoints and link them
     MeasurePoint ep1 = new MeasurePoint(x1, y1, slice);
     MeasurePoint ep2 = new MeasurePoint(x2, y2, slice);
-    MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(0);
-    MeasureLine line = new MeasureLine(ep1, ep2, Color.white, group, false);
+    MeasureLine line = new MeasureLine(ep1, ep2,
+      Color.white, BioVisAD.noneGroup, false);
     addLine(line, true);
   }
 
@@ -107,8 +107,8 @@ public class MeasureList {
     double y = cy + h * (Math.random() - 0.5);
 
     // create one new endpoint
-    MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(0);
-    MeasurePoint point = new MeasurePoint(x, y, slice, Color.white, group);
+    MeasurePoint point = new MeasurePoint(x, y, slice,
+      Color.white, BioVisAD.noneGroup);
     addMarker(point, true);
   }
 

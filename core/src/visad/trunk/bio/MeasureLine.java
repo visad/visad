@@ -68,7 +68,6 @@ public class MeasureLine extends MeasureThing {
     ep2 = new MeasurePoint(line.ep2, z);
     color = line.color;
     group = line.group;
-    selected = false;
     stdId = line.stdId;
     ep1.lines.add(this);
     ep2.lines.add(this);

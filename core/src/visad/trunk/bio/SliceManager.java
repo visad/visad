@@ -358,6 +358,7 @@ public class SliceManager
   public void exportImageStack(Form saver, String file)
     throws VisADException
   {
+    // CTR - TODO - exportImageStack is obsolete
     setMode(false);
     final Form fsaver = saver;
     final String f = file;
@@ -387,6 +388,7 @@ public class SliceManager
   public void exportSliceAnimation(Form saver, String file)
     throws VisADException
   {
+    // CTR - TODO - exportSliceAnimation is obsolete
     final Form fsaver = saver;
     final String ff = file;
     final ProgressDialog dialog = new ProgressDialog(bio,
@@ -577,6 +579,11 @@ public class SliceManager
               // do current timestep last
               int ndx = i == timesteps - 1 ? curfile :
                 (i >= curfile ? i + 1 : i);
+
+              // dump old dataset (for garbage collection)
+              field = null;
+              System.gc();
+
               field = loadData(f[ndx], true);
               if (field == null) return;
               if (thumbs == null) {
@@ -740,6 +747,14 @@ public class SliceManager
     try {
       if (initialize) init(files, 0);
       else if (!filesAsSlices) {
+        // dump old dataset (for garbage collection)
+        field = new FieldImpl((FunctionType) field.getType(),
+          field.getDomainSet());
+        ref2.setData(field);
+        ref3.setData(field);
+        System.gc();
+
+        // load new data
         field = loadData(files[index], true);
         collapsedField = null;
         if (field != null) {
