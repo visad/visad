@@ -79,9 +79,11 @@ public class DisplayImplJ3D extends DisplayImpl {
          throws VisADException, RemoteException {
     super(name, renderer);
 
+/* WLH 11 Aug 98
     // a GraphicsModeControl always exists
     mode = new GraphicsModeControlJ3D(this);
     addControl(mode);
+*/
     // a ProjectionControl always exists
     projection = new ProjectionControlJ3D(this);
     addControl(projection);
@@ -100,6 +102,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     else {
       throw new DisplayException("DisplayImplJ3D: bad graphicsApi");
     }
+
+    // a GraphicsModeControl always exists
+    mode = new GraphicsModeControlJ3D(this);
+    addControl(mode);
   }
 
   public ProjectionControl getProjectionControl() {
@@ -117,6 +123,9 @@ public class DisplayImplJ3D extends DisplayImpl {
   public GeometryArray makeGeometry(VisADGeometryArray vga)
          throws VisADException {
     if (vga == null) return null;
+
+    boolean mode2d = getDisplayRenderer().getMode2D();
+
     if (vga instanceof VisADIndexedTriangleStripArray) {
       /* this is the 'normal' makeGeometry */
       VisADIndexedTriangleStripArray vgb = (VisADIndexedTriangleStripArray) vga;
@@ -124,7 +133,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       IndexedTriangleStripArray array =
         new IndexedTriangleStripArray(vga.vertexCount, makeFormat(vga),
                                       vgb.indexCount, vgb.stripVertexCounts);
-      basicGeometry(vga, array);
+      basicGeometry(vga, array, false);
       if (vga.coordinates != null) {
         array.setCoordinateIndices(0, vgb.indices);
       }
@@ -236,14 +245,14 @@ public class DisplayImplJ3D extends DisplayImpl {
       if (vga.vertexCount == 0) return null;
       PointArray array =
         new PointArray(vga.vga.vertexCount, makeFormat(vga));
-      basicGeometry(vga, array);
+      basicGeometry(vga, array, mode2d);
       return array;
 */
     }
     else if (vga instanceof VisADLineArray) {
       if (vga.vertexCount == 0) return null;
       LineArray array = new LineArray(vga.vertexCount, makeFormat(vga));
-      basicGeometry(vga, array);
+      basicGeometry(vga, array, mode2d);
       return array;
     }
     else if (vga instanceof VisADLineStripArray) {
@@ -252,19 +261,19 @@ public class DisplayImplJ3D extends DisplayImpl {
       LineStripArray array =
         new LineStripArray(vga.vertexCount, makeFormat(vga),
                            vgb.stripVertexCounts);
-      basicGeometry(vga, array);
+      basicGeometry(vga, array, mode2d);
       return array;
     }
     else if (vga instanceof VisADPointArray) {
       if (vga.vertexCount == 0) return null;
       PointArray array = new PointArray(vga.vertexCount, makeFormat(vga));
-      basicGeometry(vga, array);
+      basicGeometry(vga, array, mode2d);
       return array;
     }
     else if (vga instanceof VisADTriangleArray) {
       if (vga.vertexCount == 0) return null;
       TriangleArray array = new TriangleArray(vga.vertexCount, makeFormat(vga));
-      basicGeometry(vga, array);
+      basicGeometry(vga, array, false);
       return array;
     }
     else {
@@ -273,8 +282,19 @@ public class DisplayImplJ3D extends DisplayImpl {
   }
 
   private void basicGeometry(VisADGeometryArray vga,
-                             GeometryArray array) {
-    if (vga.coordinates != null) array.setCoordinates(0, vga.coordinates);
+                             GeometryArray array, boolean mode2d) {
+    if (mode2d) {
+      if (vga.coordinates != null) {
+        int len = vga.coordinates.length;
+        float[] coords = new float[len];
+        System.arraycopy(vga.coordinates, 0, coords, 0, len);
+        for (int i=2; i<len; i+=3) coords[i] = 0.3f;
+        array.setCoordinates(0, coords);
+      }
+    }
+    else {
+      if (vga.coordinates != null) array.setCoordinates(0, vga.coordinates);
+    }
     if (vga.colors != null) array.setColors(0, vga.colors);
     if (vga.normals != null) array.setNormals(0, vga.normals);
     if (vga.texCoords != null) array.setTextureCoordinates(0, vga.texCoords);

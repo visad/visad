@@ -41,10 +41,8 @@ import java.util.*;
 */
 public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
-  /** box outline for data */
-  Shape3D box = null; // J3D
   /** color of box */
-  ColoringAttributes box_color = null; // J3D
+  ColoringAttributes box_color = null;
   MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
   public TwoDDisplayRendererJ3D () {
@@ -83,7 +81,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
     box_color.setColor(1.0f, 1.0f, 1.0f);
     box_appearance.setColoringAttributes(box_color);
-    box = new Shape3D(box_geometry, box_appearance);
+    Shape3D box = new Shape3D(box_geometry, box_appearance);
     // first child of trans
     trans.addChild(box);
  
@@ -99,9 +97,45 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     mouse.setSchedulingBounds(bounds);
     trans.addChild(mouse);
 
+    // create ambient light, directly under root (not transformed)
+/* WLH 27 Jan 98
+    Color3f color = new Color3f(0.4f, 0.4f, 0.4f);
+*/
+    Color3f color = new Color3f(0.6f, 0.6f, 0.6f);
+    AmbientLight light = new AmbientLight(color);
+    light.setInfluencingBounds(bounds);
+    root.addChild(light);
+
+    // create directional lights, directly under root (not transformed)
+    Color3f dcolor = new Color3f(0.9f, 0.9f, 0.9f);
+    Vector3f direction1 = new Vector3f(0.0f, 0.0f, 1.0f);
+    Vector3f direction2 = new Vector3f(0.0f, 0.0f, -1.0f);
+    DirectionalLight light1 =
+      new DirectionalLight(true, dcolor, direction1);
+    light1.setInfluencingBounds(bounds);
+    DirectionalLight light2 =
+      new DirectionalLight(true, dcolor, direction2);
+    light2.setInfluencingBounds(bounds);
+    root.addChild(light1);
+    root.addChild(light2);
+
     return root;
   }
 
+  private static final float[] box_verts = {
+     // front face
+         -1.0f, -1.0f,  0.3f,                       -1.0f,  1.0f,  0.3f,
+         -1.0f,  1.0f,  0.3f,                        1.0f,  1.0f,  0.3f,
+          1.0f,  1.0f,  0.3f,                        1.0f, -1.0f,  0.3f,
+          1.0f, -1.0f,  0.3f,                       -1.0f, -1.0f,  0.3f
+  };
+
+  private static final float[] cursor_verts = {
+          0.0f,  0.1f,  0.3f,                        0.0f, -0.1f,  0.3f,
+          0.1f,  0.0f,  0.3f,                       -0.1f,  0.0f,  0.3f
+  };
+
+/*
   private static final float[] box_verts = {
      // front face
          -1.0f, -1.0f,  0.0f,                       -1.0f,  1.0f,  0.0f,
@@ -114,6 +148,6 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
           0.0f,  0.1f,  0.0f,                        0.0f, -0.1f,  0.0f,
           0.1f,  0.0f,  0.0f,                       -0.1f,  0.0f,  0.0f
   };
-
+*/
 }
 

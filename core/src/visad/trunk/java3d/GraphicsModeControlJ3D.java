@@ -64,7 +64,16 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     transparencyMode = TransparencyAttributes.FASTEST;
     // transparencyMode = TransparencyAttributes.BLENDED;
     // transparencyMode = TransparencyAttributes.SCREEN_DOOR;
+
     projectionPolicy = View.PERSPECTIVE_PROJECTION;
+    DisplayRendererJ3D displayRenderer =
+      (DisplayRendererJ3D) getDisplayRenderer();
+    if (displayRenderer != null) {
+      if (displayRenderer.getMode2D()) {
+        projectionPolicy = View.PARALLEL_PROJECTION;
+      }
+      displayRenderer.getView().setProjectionPolicy(projectionPolicy);
+    }
   }
  
   public boolean getMode2D() {
