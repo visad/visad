@@ -230,7 +230,7 @@ public interface Display extends Action {
   public abstract void addMap(ScalarMap map)
          throws VisADException, RemoteException;
 
-  /** clear set of SalarMap-s associated with this display */
+  /** clear set of ScalarMap-s associated with this display */
   public abstract void clearMaps() throws VisADException, RemoteException;
 
 }

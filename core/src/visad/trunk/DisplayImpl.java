@@ -509,7 +509,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     map.setDisplayScalarIndex(index);
   }
 
-  /** clear set of SalarMap-s associated with this display;
+  /** clear set of ScalarMap-s associated with this display;
       can only be invoked when no DataReference-s are
       linked to this Display */
   public void clearMaps() throws VisADException, RemoteException {

@@ -128,7 +128,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     ((DisplayImpl) AdaptedAction).addMap(map);
   }
 
-  /** clear set of SalarMap-s associated with this display */
+  /** clear set of ScalarMap-s associated with this display */
   public void clearMaps() throws VisADException, RemoteException {
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteDisplayImpl.clearMaps: " +
