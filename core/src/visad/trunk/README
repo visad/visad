@@ -24,7 +24,7 @@ directory is a directory in your CLASSPATH (which we will refer
 to as '/parent_dir' through the rest of this README file).
 Then get:
 
-  ftp://www.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
  
 If you have previously downloaded the VisAD source you
 should run 'make clear' in your visad directory to clear
@@ -195,7 +195,7 @@ Java interfaces.
 You can build the necessary libraries from source or on
 Sparc Solaris you can simply download:
 
-  ftp://www.ssec.wisc.edu/pub/visad-2.0/libhdfeos.so
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/libhdfeos.so
 
 into your visad/data/hdfeos/hdfeosc directory, and download
 the appropriate file (for Sparc Solaris, Irix, Linux and
@@ -278,7 +278,7 @@ and run the appropriate "java ..." command.
 Note that the applications in visad/paoloa require data files
 available from:
 
-  ftp://www.ssec.wisc.edu/pub/visad-2.0/paoloa-files.tar.Z
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/paoloa-files.tar.Z
 
 
 6. Downloading VisAD Classes in Jar Files
@@ -287,7 +287,7 @@ If you want to write applications for VisAD but don't want
 to compile VisAD from source, you can dowload a jar file that
 includes the VisAD classes.  This file is:
 
-  ftp://www.ssec.wisc.edu/pub/visad-2.0/visad.jar
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad.jar
 
 Once you've got visad.jar simply add:
 
@@ -365,7 +365,7 @@ these packages:
 
 In order to run the examples with visad.jar, download:
 
-  ftp://www.ssec.wisc.edu/pub/visad-2.0/visad_examples.jar
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad_examples.jar
 
 Unpack this jar file by running:
 

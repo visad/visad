@@ -292,11 +292,6 @@ event_switch:
             }
           }
 
-/* WLH 22 Aug 98
-          // special hack for BUTTON1 error in getModifiers
-          if (m2 == 0 && m3 == 0 &&
-              !mousePressed2 && !mousePressed3) {
-*/
           if (mousePressed1 || mouseCombo1) {
             start_x = ((MouseEvent) event).getX();
             start_y = ((MouseEvent) event).getY();
@@ -595,16 +590,6 @@ event_switch:
               // System.out.println("xmul = " + xmul + " ymul = " + ymul);
               // System.out.println("transx = " + transx + " transy = " + transy);
               t1 = behavior.make_translate(-transx, -transy);
-
-/* WLH 9 Aug 2000
-              double transx =
-                (start_x - current_x) * -2.0 / (double) d.width;
-              double transy =
-                (start_y - current_y) * 2.0 / (double) d.width;
-                // WLH 8 Aug 2000
-                // (start_y - current_y) * 2.0 / (double) d.height;
-              t1 = behavior.make_translate(transx, transy);
-*/
             }
             else {
               if (!mode2D) {
