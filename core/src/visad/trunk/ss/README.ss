@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                  11 March 1999
+                                  25 March 1999
  
                                 Table of Contents
 
@@ -398,15 +398,11 @@ through DATAN are each Data objects or RealType objects.
 Keep the following points in mind when writing an external Java method
 that you wish to link to the Spread Sheet:
 
-1) The signature of the linked method must be public and must return a Data
-   object.  In addition, the class to which the method belongs must be public.
-   The method must have only Data and RealType parameters.
+1) The signature of the linked method must be public and static and must return
+   a Data object.  In addition, the class to which the method belongs must be
+   public.  The method must have only Data and RealType parameters (if any).
 
-2) If the method is an object method, then DATA1 is used as the object.  If
-   the method is a static method, all arguments are simply used as the
-   parameters of the method.
-
-3) The method can contain one array argument (Data[] or RealType[]).  In this
+2) The method can contain one array argument (Data[] or RealType[]).  In this
    way, a linked method can support a variable number of arguments.  For
    example, a method with the signature "public static Data max(Data[] d)"
    that is part of a class called Util could be linked into a Spread Sheet cell
@@ -501,7 +497,7 @@ Here's what's coming in the future:
 
 3) Direct manipulation support
 
-4) Distributed Cells, Data, etc.
+4) Distributed Cells (including Displays)
 
 5) Misc. user interface enhancements
 
