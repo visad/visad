@@ -122,7 +122,6 @@ public class Test61
 
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);
-    // dpys[0].addReference(ref_grid3d, null);
 
     DataReferenceImpl ref2 = new DataReferenceImpl("ref2");
     ref2.setData(field2);
