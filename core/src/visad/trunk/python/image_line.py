@@ -32,6 +32,7 @@ d2 = subs.makeDisplay(m2)
 subs.setBoxSize(d2,.80)
 
 # get the desired format of the Data (line->(element->value))
+# factoring works because image has a 2-D rectangular sampling
 byline = domainFactor(image,d[1])
 ref2 = subs.addData("imageline", byline[0], d2)
 
