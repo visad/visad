@@ -1335,7 +1335,12 @@ public abstract class DisplayRendererJ3D
         screen_locked.setCapability(Group.ALLOW_CHILDREN_EXTEND);
         screen_locked.setCapability(Node.ENABLE_PICK_REPORTING);
         locked_trans.addChild(screen_locked);
-        root.addChild(locked_trans);
+        BranchGroup bgroup = new BranchGroup();
+        bgroup.setCapability(Group.ALLOW_CHILDREN_READ);
+        bgroup.setCapability(Group.ALLOW_CHILDREN_WRITE);
+        bgroup.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+        bgroup.addChild(locked_trans);
+        root.addChild(bgroup);
       }
     }
   }
