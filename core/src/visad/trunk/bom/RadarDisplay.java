@@ -189,7 +189,7 @@ public class RadarDisplay {
     RadarAdapter ra = null;
     boolean d3d = (args.length > 0);
     try {
-        ra = new RadarAdapter(centlat, centlon, radarSource, d3d);
+        ra = new RadarAdapter(centlat, centlon, 0.0f, radarSource, d3d);
     } catch (Exception e) {
       System.err.println("Caught Exception for \"" + radarSource + "\": " +
                            e);
