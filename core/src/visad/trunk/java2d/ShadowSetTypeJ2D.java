@@ -32,12 +32,13 @@ import java.rmi.*;
 
 /**
    The ShadowSetTypeJ2D class shadows the SetType class,
-   within a DataDisplayLink, under Java3D.<P>
+   within a DataDisplayLink, under Java2D.<P>
 */
 public class ShadowSetTypeJ2D extends ShadowFunctionOrSetTypeJ2D {
 
-  ShadowSetTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
+  public ShadowSetTypeJ2D(MathType t, DataDisplayLink link,
+                          ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
   }
 

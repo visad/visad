@@ -36,6 +36,8 @@ visad.java2d design:
        all *ControlJ3D extend Control and implement interfaces
        --> looks like interfaces could be abstract classes
              extending Control
+       ** done for GraphicsModeControl and ProjectionControl
+       ** not for AnimationControl and ValueControl
      MouseBehaviorJ2/3D
        visad.MouseBehaviorJND.processAWTEvents
        remove Transform3D constructor from make_matrix
@@ -50,6 +52,7 @@ visad.java2d design:
      canvas, root, trans, direct, cursor_trans & other
        scene graph stuff in DisplayRendererJ2D
 
+     ** done
      VisADSceneGraphObject
        VisADGroup
          VisADSwitch
@@ -71,6 +74,7 @@ visad.java2d design:
 2. add VisADSceneGraphObject as parent of
    existing VisAD-specific scene graph classes:
 
+     ** done
      VisADSceneGraphObject
        VisADGeometryArray
          VisADIndexedTriangleStripArray
@@ -80,30 +84,30 @@ visad.java2d design:
          VisADTriangleArray
  
 3. DisplayRendererJ2D
-     add Image[] array with element for each animation step
+     add BufferedImage[] array with element for each animation step
 
 4. DisplayImplJ2D.doAction
-     scratch Image[] array
+     scratch BufferedImage[] array
      super.doAction()
-     re-build Image[] element for current time step
+     re-build BufferedImage[] element for current time step
 
 5. AnimationControlJ2D.selectSwitches()
      index = super.selectSwitches();
-     if (Image[index] == null) re-build Image[index];
-     drawImage(Image[index]);
-       (build Image[index] using Component.createImage -
+     if (BufferedImage[index] == null) re-build BufferedImage[index];
+     drawImage(BufferedImage[index]);
+       (build BufferedImage[index] using Component.createImage -
         see ObjectAnim Java2D code example)
  
 6. ValueControlJ2D.selectSwitches()
      super.selectSwitches();
-     scratch Image[] array
+     scratch BufferedImage[] array
      set value
-     re-build Image[] element for current time step
+     re-build BufferedImage[] element for current time step
 
 7. ProjectionControlJ2D.setMatrix()
-     scratch Image[] array
+     scratch BufferedImage[] array
      set projection
-     re-build Image[] element for current time step
+     re-build BufferedImage[] element for current time step
  
 8. VisADCanvasJ2D.renderField()
      invokes DisplayRendererJ2D.drawCursorStringVector()
@@ -111,7 +115,7 @@ visad.java2d design:
        WaitFlag & Animation string
      add draw of extra_branch from
        DirectManipulationRendererJ2D.addPoint
-     invoke after any drawImage(Image[index])
+     invoke after any drawImage(BufferedImage[index])
  
 9. DirectManipulationRendererJ2D
      doTransform: create branch and extra_branch
@@ -133,6 +137,12 @@ visad.java2d design:
 
 16. UniverseBuilderJ2D delete
 
+17. resize event on Display component, and
+      rebuild BufferedImage[] array
+
+18. AnimationSetControlJ2D (new class)
+      setSet -> rebuild BufferedImage[] array
+
 NN. renderer thread or Control call-backs ? ? ? ?
 
 */
@@ -147,10 +157,6 @@ import java.rmi.*;
 import java.io.*;
 
 import java.awt.*;
-
-import javax.media.j3d.*;
-import com.sun.j3d.utils.applet.MainFrame;
-// import com.sun.j3d.utils.applet.AppletFrame;
 
 /**
    DisplayImplJ2D is the VisAD class for displays that use

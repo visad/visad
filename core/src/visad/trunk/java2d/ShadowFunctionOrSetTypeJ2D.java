@@ -27,8 +27,6 @@ package visad.java2d;
  
 import visad.*;
 
-import javax.media.j3d.*;
-
 import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
@@ -47,8 +45,9 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
 
   private Vector AccumulationVector = new Vector();
 
-  ShadowFunctionOrSetTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
+  public ShadowFunctionOrSetTypeJ2D(MathType t, DataDisplayLink link,
+                                    ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
     if (this instanceof ShadowFunctionTypeJ2D) {
       Domain = (ShadowRealTupleTypeJ2D)
@@ -86,7 +85,8 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
     }
   }
 
-  /** transform data into a Java3D scene graph;
+
+  /** transform data into a VisADSceneGraphObject;
       add generated scene graph components as children of group;
       value_array are inherited valueArray values;
       default_values are defaults for each display.DisplayRealTypeVector;
@@ -629,7 +629,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       System.out.println("assembleColor, color_length = " + color_length +
                          "  " + color_values.length);
 */
-      Appearance appearance;
+      VisADAppearance appearance;
       TransparencyAttributes constant_alpha =
         new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
       ColoringAttributes constant_color = null;
@@ -1287,7 +1287,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       boolean post = false;
 
       AVControlJ2D control = null;
-      Switch swit = null;
+      VisADSwitch swit = null;
       int index = -1;
 
       for (int i=0; i<valueArrayLength; i++) {
@@ -1297,12 +1297,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
           if (real.equals(Display.Animation) ||
               real.equals(Display.SelectValue)) {
-            swit = new Switch(); // J2D
-            swit.setCapability(Switch.ALLOW_SWITCH_READ);
-            swit.setCapability(Switch.ALLOW_SWITCH_WRITE);
-            swit.setCapability(BranchGroup.ALLOW_DETACH);
-            swit.setCapability(Group.ALLOW_CHILDREN_READ);
-            swit.setCapability(Group.ALLOW_CHILDREN_WRITE);
+            swit = new VisADSwitch();
             index = i;
             control = (AVControlJ2D)
               ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
@@ -1334,8 +1329,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             }
           }
           if (control != null) {
-            BranchGroup branch = new BranchGroup(); // J2D
-            branch.setCapability(BranchGroup.ALLOW_DETACH);
+            VisADGroup branch = new VisADGroup(); // J2D
             swit.addChild(branch);
             post |= Range.doTransform(branch, ((Field) data).getSample(i),
                                       range_value_array, default_values, renderer);
@@ -1349,8 +1343,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         else { // (range_select[0][i] != range_select[0][i])
           if (control != null) {
             // add null Sjape3D as child to maintain order
-            BranchGroup branch = new BranchGroup(); // J2D
-            branch.setCapability(BranchGroup.ALLOW_DETACH);
+            VisADGroup branch = new VisADGroup(); // J2D
             swit.addChild(branch);
             branch.addChild(new Shape3D());
             // System.out.println("addChild " + i + " of " + domain_length +

@@ -27,8 +27,6 @@ package visad.java2d;
 
 import visad.*;
 
-import javax.media.j3d.*;
-
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -44,7 +42,7 @@ public abstract class AVControlJ2D extends Control implements AVControl {
     super(d);
   }
 
-  void addPair(Switch sw, Set se, DataRenderer re) { // J2D
+  void addPair(VisADSwitch sw, Set se, DataRenderer re) {
     switches.addElement(new SwitchSet(sw, se, re));
   }
 
@@ -87,13 +85,13 @@ public abstract class AVControlJ2D extends Control implements AVControl {
   }
 
   /** SwitchSet is an inner class of AVControlJ2D for
-      (Switch, Set, DataRenderer) structures */
+      (VisADSwitch, Set, DataRenderer) structures */
   private class SwitchSet extends Object {
-    Switch swit; // J2D
+    VisADSwitch swit;
     Set set;
     DataRenderer renderer;
  
-    SwitchSet(Switch sw, Set se, DataRenderer re) { // J2D
+    SwitchSet(VisADSwitch sw, Set se, DataRenderer re) {
       swit = sw;
       set = se;
       renderer = re;

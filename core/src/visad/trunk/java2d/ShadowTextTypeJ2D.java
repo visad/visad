@@ -32,12 +32,13 @@ import java.rmi.*;
 
 /**
    The ShadowTextTypeJ2D class shadows the TextType class,
-   within a DataDisplayLink, under Java3D.<P>
+   within a DataDisplayLink, under Java2D.<P>
 */
 public class ShadowTextTypeJ2D extends ShadowTypeJ2D {
 
-  ShadowTextTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
-                 throws VisADException, RemoteException {
+  public ShadowTextTypeJ2D(MathType t, DataDisplayLink link,
+                           ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
     adaptedShadowType =
       new ShadowTextType(t, link, getAdaptedParent(parent));

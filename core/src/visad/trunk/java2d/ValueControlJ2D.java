@@ -31,7 +31,7 @@ import java.rmi.*;
 
 /**
    ValueControlJ2D is the VisAD class for controlling SelectValue
-   display scalars under Java3D.<P>
+   display scalars under Java2D.<P>
 */
 public class ValueControlJ2D extends AVControlJ2D
        implements ValueControl {

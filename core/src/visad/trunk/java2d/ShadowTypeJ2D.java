@@ -27,16 +27,13 @@ package visad.java2d;
  
 import visad.*;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
-
 import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
 
 /**
    The ShadowTypeJ2D hierarchy shadows the MathType hierarchy,
-   within a DataDisplayLink, under Java3D.<P>
+   within a DataDisplayLink, under Java2D.<P>
 */
 public abstract class ShadowTypeJ2D extends ShadowType {
 
@@ -49,8 +46,9 @@ public abstract class ShadowTypeJ2D extends ShadowType {
 
   ShadowType adaptedShadowType;
 
-  ShadowTypeJ2D(MathType type, DataDisplayLink link, ShadowType parent)
-             throws VisADException, RemoteException {
+  public ShadowTypeJ2D(MathType type, DataDisplayLink link,
+                       ShadowType parent)
+         throws VisADException, RemoteException {
     super(type, link, getAdaptedParent(parent));
     Type = type;
     Link = link;
@@ -143,7 +141,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
   void preProcess() throws VisADException {
   }
 
-  /** transform data into a Java3D scene graph;
+  /** transform data into a VisADSceneGraphObject;
       add generated scene graph components as children of group;
       value_array are inherited valueArray values;
       default_values are defaults for each display.DisplayRealTypeVector;
@@ -180,49 +178,22 @@ public abstract class ShadowTypeJ2D extends ShadowType {
     return ShadowType.makePointGeometry(spatial_values, color_values);
   }
 
-  /** construct an Appearance object */
-  static Appearance makeAppearance(GraphicsModeControl mode,
-                      TransparencyAttributes constant_alpha,
-                      ColoringAttributes constant_color,
-                      GeometryArray geometry) { // J2D
-    Appearance appearance = new Appearance();
+  /** construct an VisADAppearance object */
+  static VisADAppearance makeAppearance(GraphicsModeControl mode,
+                      float constant_alpha,
+                      float[] constant_color,
+                      GeometryArray geometry) {
+    VisADAppearance appearance = new VisADAppearance();
 
-    LineAttributes line = new LineAttributes();
-    line.setLineWidth(mode.getLineWidth());
-    appearance.setLineAttributes(line);
+// LineWidth and PointSize not needed - in GraphicsModeControl
 
-    PointAttributes point = new PointAttributes();
-    point.setPointSize(mode.getPointSize());
-    appearance.setPointAttributes(point);
-
-    PolygonAttributes polygon = new PolygonAttributes();
-    polygon.setCullFace(PolygonAttributes.CULL_NONE);
-    appearance.setPolygonAttributes(polygon);
-
-    RenderingAttributes rendering = new RenderingAttributes();
-    rendering.setDepthBufferEnable(true);
-    appearance.setRenderingAttributes(rendering);
-
-    if (constant_alpha != null) {
-      appearance.setTransparencyAttributes(constant_alpha);
+    appearance.alpha = constant_alpha; // may be Float.NaN
+    if (constant_color != null && constant_color.length == 3) {
+      appearance.red = constant_color[0];
+      appearance.green = constant_color[1];
+      appearance.blue = constant_color[2];
     }
-    if (constant_color != null) {
-      appearance.setColoringAttributes(constant_color);
-    }
-    // only do Material if geometry is 2-D (not 0-D points or 1-D lines)
-    if (!(geometry instanceof LineArray ||
-          geometry instanceof PointArray ||
-          geometry instanceof IndexedLineArray ||
-          geometry instanceof IndexedPointArray ||
-          geometry instanceof IndexedLineStripArray ||
-          geometry instanceof LineStripArray)) {
-      Material material = new Material();
-      material.setSpecularColor(0.0f, 0.0f, 0.0f);
-      // no lighting in 2-D mode
-      if (!mode.getMode2D()) material.setLightingEnable(true);
-      appearance.setMaterial(material);
-    }
-
+    appearance.array = geometry; // may be null
     return appearance;
   }
 
@@ -353,7 +324,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
 
       VisADGeometryArray array;
       GeometryArray geometry;
-      Appearance appearance;
+      VisADAppearance appearance;
       Shape3D shape;
 
       boolean anyFlowCreated = false;

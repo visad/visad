@@ -29,15 +29,12 @@ import visad.*;
  
 import java.awt.event.*;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
-
 import java.rmi.*;
 import java.awt.*;
 import java.util.*;
 
 /**
-   MouseBehaviorJ2D is the VisAD class for mouse behaviors for Java3D
+   MouseBehaviorJ2D is the VisAD class for mouse behaviors for Java2D
 */
 
 /*
@@ -56,8 +53,8 @@ public class MouseBehaviorJ2D extends Behavior { // J2D
   DisplayImpl display;
   /** ProjectionControl for Display */
   private ProjectionControl proj;
-  /** root BranchGroup for direct manipulation Data depictions */
-  private BranchGroup direct; // J2D
+  /** root VisADGroup for direct manipulation Data depictions */
+  private VisADGroup direct; // J2D
 
   /** Transform3D from ProjectionControl when mousePressed1 (left) */
   private Transform3D tstart; // J2D

@@ -30,10 +30,6 @@ import visad.*;
 // GUI handling
 import java.awt.*;
 import java.awt.swing.*;
-// import com.sun.java.swing.*;
-// import com.sun.java.swing.border.*;
-
-import javax.media.j3d.*;
 
 public class DisplayPanelJ2D extends JPanel {
 
@@ -50,7 +46,7 @@ public class DisplayPanelJ2D extends JPanel {
     add(canvas);
  
     UniverseBuilderJ2D universe = new UniverseBuilderJ2D(canvas);
-    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas); // J2D
+    VisADGroup scene = renderer.createSceneGraph(universe.view, canvas); // J2D
     universe.addBranchGraph(scene);
 
   }

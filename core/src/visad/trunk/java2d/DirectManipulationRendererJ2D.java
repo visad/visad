@@ -27,9 +27,6 @@ package visad.java2d;
  
 import visad.*;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
-
 import java.util.*;
 import java.rmi.*;
 
@@ -40,7 +37,7 @@ import java.rmi.*;
 */
 public class DirectManipulationRendererJ2D extends RendererJ2D {
 
-  BranchGroup branch = null;
+  VisADGroup branch = null;
 
   private float[][] spatialValues = null;
 
@@ -384,27 +381,24 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     array.vertexCount = count;
     DisplayImplJ2D display = (DisplayImplJ2D) getDisplay();
     GeometryArray geometry = display.makeGeometry(array);
-    Appearance appearance =
+    VisADAppearance appearance =
       ShadowTypeJ2D.makeAppearance(display.getGraphicsModeControl(),
                                    null, null, geometry);
     Shape3D shape = new Shape3D(geometry, appearance);
-    BranchGroup group = new BranchGroup();
+    VisADGroup group = new VisADGroup();
     group.addChild(shape);
     branch.addChild(group);
   }
 
-  synchronized void drag_direct(PickRay ray, boolean first) {
+  public synchronized void drag_direct(VisADRay ray, boolean first) {
     // System.out.println("drag_direct " + first);
     if (spatialValues == null || ref == null || type == null) return;
-    Point3d origin = new Point3d();
-    Vector3d direction = new Vector3d();
-    ray.get(origin, direction);
-    float o_x = (float) origin.x;
-    float o_y = (float) origin.y;
-    float o_z = (float) origin.z;
-    float d_x = (float) direction.x;
-    float d_y = (float) direction.y;
-    float d_z = (float) direction.z;
+    float o_x = (float) ray.position[0];
+    float o_y = (float) ray.position[1];
+    float o_z = (float) ray.position[2];
+    float d_x = (float) ray.vector[0];
+    float d_y = (float) ray.vector[1];
+    float d_z = (float) ray.vector[2];
 
     if (first) {
       point_x = spatialValues[0][closeIndex];
@@ -652,14 +646,10 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     }
   }
 
-  /** create a BranchGroup scene graph for Data in links[0] */
-  public synchronized BranchGroup doTransform()
+  /** create a VisADGroup scene graph for Data in links[0] */
+  public synchronized VisADGroup doTransform()
          throws VisADException, RemoteException {
-    branch = new BranchGroup();
-    branch.setCapability(BranchGroup.ALLOW_DETACH);
-    branch.setCapability(Group.ALLOW_CHILDREN_READ);
-    branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    branch = new VisADGroup();
 
     // values needed by drag_direct, which cannot throw Exceptions
     type = (ShadowTypeJ2D) link.getShadow();
@@ -692,7 +682,7 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     return branch;
   }
 
-  void addSwitch(DisplayRendererJ2D displayRenderer, BranchGroup branch) {
+  void addSwitch(DisplayRendererJ2D displayRenderer, VisADGroup branch) {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);
   }
 

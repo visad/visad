@@ -27,8 +27,6 @@ package visad.java2d;
  
 import visad.*;
 
-import javax.media.j3d.*;
-
 import java.util.*;
 import java.rmi.*;
 
@@ -41,8 +39,9 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
   ShadowTypeJ2D[] tupleComponents;
   private Vector AccumulationVector = new Vector();
 
-  ShadowTupleTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
-                  throws VisADException, RemoteException {
+  public ShadowTupleTypeJ2D(MathType t, DataDisplayLink link,
+                            ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
     if (this instanceof ShadowRealTupleTypeJ2D) return;
 
@@ -83,7 +82,7 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
 */
   }
 
-  /** transform data into a Java3D scene graph;
+  /** transform data into a VisADSceneGraphObject;
       return true if need post-process */
   public boolean doTransform(Group group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)

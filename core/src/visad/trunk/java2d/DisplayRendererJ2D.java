@@ -29,9 +29,7 @@ import visad.*;
 
 import java.awt.*;
 import java.awt.event.*;
-
-import javax.media.j3d.*;
-import javax.vecmath.*;
+import java.awt.image.*;
 
 import java.util.*;
 import java.rmi.*;
@@ -43,7 +41,7 @@ import java.rmi.*;
    objects created by DataRenderer objects.<P>
 
    DisplayRendererJ2D also manages the overall relation of DataRenderer
-   output to Java3D and manages the scene graph.<P>
+   output to Java2D and manages the scene graph.<P>
 
    It creates the binding between Control objects and scene graph
    Behavior objects for direct manipulation of Control objects.<P>
@@ -53,37 +51,40 @@ import java.rmi.*;
 */
 public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
+  private BufferedImage[] images;
+  private boolean[] valid_images;
+
   /** View associated with this VirtualUniverse */
   private View view;
   /** Canvas3D associated with this VirtualUniverse */
   private Canvas3D canvas;
 
-  /** root BranchGroup of scene graph under Locale */
-  private BranchGroup root = null;
-  /** single TransformGroup between root and BranchGroups for all
+  /** root VisADGroup of scene graph under Locale */
+  private VisADGroup root = null;
+  /** single TransformGroup between root and VisADGroups for all
       Data depictions */
   private TransformGroup trans = null;
-  /** BranchGroup between trans and all direct manipulation
+  /** VisADGroup between trans and all direct manipulation
       Data depictions */
-  private BranchGroup direct = null;
-  /** Behavior for delayed removal of BranchGroups */
+  private VisADGroup direct = null;
+  /** Behavior for delayed removal of VisADGroups */
   RemoveBehaviorJ2D remove = null;
 
   /** TransformGroup between trans and cursor */
   private TransformGroup cursor_trans = null;
-  /** single Switch between cursor_trans and cursor */
-  private Switch cursor_switch = null;
+  /** single VisADSwitch between cursor_trans and cursor */
+  private VisADSwitch cursor_switch = null;
   /** children of cursor_switch */
-  private BranchGroup cursor_on = null, cursor_off = null;
+  private VisADGroup cursor_on = null, cursor_off = null;
   /** on / off state of cursor */
   private boolean cursorOn = false;
   /** on / off state of direct manipulation location display */
   private boolean directOn = false;
 
-  /** single Switch between trans and scales */
-  private Switch scale_switch = null;
+  /** single VisADSwitch between trans and scales */
+  private VisADSwitch scale_switch = null;
   /** children of scale_switch */
-  private BranchGroup scale_on = null, scale_off = null;
+  private VisADGroup scale_on = null, scale_off = null;
   /** on / off state of cursor in GraphicsModeControl */
 
   /** distance threshhold for successful pick */
@@ -100,17 +101,20 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
   public DisplayRendererJ2D () {
     super();
+    images = null;
+    valid_images = null;
   }
 
-  public View getView() {
-    return view;
+  public void setDisplay(DisplayImpl d) throws VisADException {
+    super.setDisplay(d);
+    Component c = d.getComponent();
+    int width = c.getSize().width;
+    int height = c.getSize().height;
+    images = new BufferedImage[] {(BufferedImage) c.createImage(width, height)};
+    valid_images = new boolean[] {false};
   }
 
-  public Canvas3D getCanvas() {
-    return canvas;
-  }
-
-  public BranchGroup getRoot() {
+  public VisADGroup getRoot() {
     return root;
   }
 
@@ -118,7 +122,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return trans;
   }
 
-  public BranchGroup getCursorOnBranch() {
+  public VisADGroup getCursorOnBranch() {
     return cursor_on;
   }
 
@@ -141,7 +145,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
   }
 
-  public BranchGroup getDirect() {
+  public VisADGroup getDirect() {
     return direct;
   }
 
@@ -149,26 +153,22 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       and direct manipulation root;
       create special graphics (e.g., 3-D box, SkewT background),
       any lights, any user interface embedded in scene */
-  public abstract BranchGroup createSceneGraph(View v, Canvas3D c);
+  public abstract VisADGroup createSceneGraph(View v, Canvas3D c)
+         throws DisplayException;
 
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root */
-  public BranchGroup createBasicSceneGraph(View v, Canvas3D c) {
+  public VisADGroup createBasicSceneGraph(View v, Canvas3D c) {
     if (root != null) return root;
     view = v;
     // WLH 14 April 98
     v.setDepthBufferFreezeTransparent(false);
     canvas = c;
     // Create the root of the branch graph
-    root = new BranchGroup();
+    root = new VisADGroup();
     // create the TransformGroup that is the parent of
     // Data object Group objects
     trans = new TransformGroup();
-    trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-    trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-    trans.setCapability(Group.ALLOW_CHILDREN_READ);
-    trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     root.addChild(trans);
 
     // initialize scale
@@ -188,13 +188,9 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     catch (RemoteException e) {
     }
  
-    // create the BranchGroup that is the parent of direct
-    // manipulation Data object BranchGroup objects
-    direct = new BranchGroup();
-    direct.setCapability(Group.ALLOW_CHILDREN_READ);
-    direct.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    direct.setCapability(Group.ALLOW_CHILDREN_EXTEND);
-    direct.setCapability(Node.ENABLE_PICK_REPORTING);
+    // create the VisADGroup that is the parent of direct
+    // manipulation Data object VisADGroup objects
+    direct = new VisADGroup();
     trans.addChild(direct);
 
     // create removeBehavior
@@ -205,34 +201,20 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     trans.addChild(remove);
 
     cursor_trans = new TransformGroup();
-    cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-    cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-    cursor_trans.setCapability(Group.ALLOW_CHILDREN_READ);
-    cursor_trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    cursor_trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     trans.addChild(cursor_trans);
-    cursor_switch = new Switch();
-    cursor_switch.setCapability(Switch.ALLOW_SWITCH_READ);
-    cursor_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    cursor_switch = new VisADSwitch();
     cursor_trans.addChild(cursor_switch);
-    cursor_on = new BranchGroup();
-    cursor_on.setCapability(Group.ALLOW_CHILDREN_READ);
-    cursor_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    cursor_off = new BranchGroup();
+    cursor_on = new VisADGroup();
+    cursor_off = new VisADGroup();
     cursor_switch.addChild(cursor_off);
     cursor_switch.addChild(cursor_on);
     cursor_switch.setWhichChild(0); // initially off
     cursorOn = false;
 
-    scale_switch = new Switch();
-    scale_switch.setCapability(Switch.ALLOW_SWITCH_READ);
-    scale_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    scale_switch = new VisADSwitch();
     trans.addChild(scale_switch);
-    scale_on = new BranchGroup();
-    scale_on.setCapability(Group.ALLOW_CHILDREN_READ);
-    scale_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    scale_on.setCapability(Group.ALLOW_CHILDREN_EXTEND);
-    scale_off = new BranchGroup();
+    scale_on = new VisADGroup();
+    scale_off = new VisADGroup();
     scale_switch.addChild(scale_off);
     scale_switch.addChild(scale_on);
     scale_switch.setWhichChild(0); // initially off
@@ -280,13 +262,10 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return cursor;
   }
 
-  public void depth_cursor(PickRay ray) {
-    Point3d origin = new Point3d();
-    Vector3d direction = new Vector3d();
-    ray.get(origin, direction);
-    line_x = (float) direction.x;
-    line_y = (float) direction.y;
-    line_z = (float) direction.z;
+  public void depth_cursor(VisADRay ray) {
+    line_x = (float) ray.vector[0];
+    line_y = (float) ray.vector[1];
+    line_z = (float) ray.vector[2];
     point_x = cursorX;
     point_y = cursorY;
     point_z = cursorZ;
@@ -300,15 +279,12 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   }
 
   public void drag_cursor(PickRay ray, boolean first) {
-    Point3d origin = new Point3d();
-    Vector3d direction = new Vector3d();
-    ray.get(origin, direction);
-    float o_x = (float) origin.x;
-    float o_y = (float) origin.y;
-    float o_z = (float) origin.z;
-    float d_x = (float) direction.x;
-    float d_y = (float) direction.y;
-    float d_z = (float) direction.z;
+    float o_x = (float) ray.position[0];
+    float o_y = (float) ray.position[1];
+    float o_z = (float) ray.position[2];
+    float d_x = (float) ray.vector[0];
+    float d_y = (float) ray.vector[1];
+    float d_z = (float) ray.vector[2];
     if (first) {
       line_x = d_x;
       line_y = d_y;
@@ -339,12 +315,12 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   /** whenever cursorOn or directOn is true, display
       Strings in cursorStringVector */
   public void drawCursorStringVector(Canvas3D canvas) {
-    GraphicsContext3D graphics = canvas.getGraphicsContext3D();
-    Appearance appearance = new Appearance();
+    // XXX GraphicsContext3D graphics = canvas.getGraphicsContext3D();
+    VisADAppearance appearance = new VisADAppearance();
     ColoringAttributes color = new ColoringAttributes();
     color.setColor(1.0f, 1.0f, 1.0f);
     appearance.setColoringAttributes(color);
-    graphics.setAppearance(appearance);
+    // XXX graphics.setAppearance(appearance);
 
     Point3d position1 = new Point3d();
     Point3d position2 = new Point3d();
@@ -439,10 +415,15 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
   }
 
-  public DirectManipulationRendererJ2D findDirect(PickRay ray) {
+  public DataRenderer findDirect(VisADRay ray) {
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
-    ray.get(origin, direction);
+    origin.x = ray.position[0];
+    origin.y = ray.position[1];
+    origin.z = ray.position[2];
+    direction.x = ray.vector[0];
+    direction.y = ray.vector[1];
+    direction.z = ray.vector[2];
     DirectManipulationRendererJ2D renderer = null;
     float distance = Float.MAX_VALUE;
     Enumeration renderers = directs.elements();
@@ -486,21 +467,19 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     GraphicsModeControl mode = display.getGraphicsModeControl();
     ColoringAttributes color = new ColoringAttributes();
     color.setColor(scale_color[0], scale_color[1], scale_color[2]);
-    Appearance appearance =
+    VisADAppearance appearance =
       ShadowTypeJ2D.makeAppearance(mode, null, color, geometry);
     Shape3D shape = new Shape3D(geometry, appearance);
-    BranchGroup group = new BranchGroup();
-    group.setCapability(BranchGroup.ALLOW_DETACH);
+    VisADGroup group = new VisADGroup();
     group.addChild(shape);
-    // may only add BranchGroup to 'live' scale_on
+    // may only add VisADGroup to 'live' scale_on
     int dim = getMode2D() ? 2 : 3;
     synchronized (scale_on) {
       int n = scale_on.numChildren();
       int m = dim * axis_ordinal + axis;
       if (m >= n) {
         for (int i=n; i<=m; i++) {
-          BranchGroup empty = new BranchGroup();
-          empty.setCapability(BranchGroup.ALLOW_DETACH);
+          VisADGroup empty = new VisADGroup();
           scale_on.addChild(empty);
         }
       }

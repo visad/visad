@@ -27,15 +27,13 @@ package visad.java2d;
 
 import visad.*;
 
-import javax.media.j3d.*;
-
 import java.util.*;
 import java.rmi.*;
 
 
 /**
    DefaultRendererJ2D is the VisAD class for the default graphics
-   rendering algorithm under Java3D.<P>
+   rendering algorithm under Java2D.<P>
 */
 public class DefaultRendererJ2D extends RendererJ2D {
 
@@ -58,10 +56,9 @@ public class DefaultRendererJ2D extends RendererJ2D {
     super.setLinks(links, d);
   }
 
-  /** create a BranchGroup scene graph for Data in links[0] */
-  public BranchGroup doTransform() throws VisADException, RemoteException { // J2D
-    BranchGroup branch = new BranchGroup();
-    branch.setCapability(BranchGroup.ALLOW_DETACH);
+  /** create a VisADGroup scene graph for Data in links[0] */
+  public VisADGroup doTransform() throws VisADException, RemoteException { // J2D
+    VisADGroup branch = new VisADGroup();
     link = getLinks()[0];
     ShadowTypeJ2D type = (ShadowTypeJ2D) link.getShadow();
 
@@ -91,7 +88,7 @@ public class DefaultRendererJ2D extends RendererJ2D {
     return branch;
   }
 
-  void addSwitch(DisplayRendererJ2D displayRenderer, BranchGroup branch) {
+  void addSwitch(DisplayRendererJ2D displayRenderer, VisADGroup branch) {
     displayRenderer.addSceneGraphComponent(branch);
   }
 

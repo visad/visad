@@ -27,8 +27,6 @@ package visad.java2d;
  
 import visad.*;
 
-import javax.media.j3d.*;
-
 import java.util.*;
 import java.rmi.*;
 
@@ -40,8 +38,9 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
 
   private Vector AccumulationVector = new Vector();
 
-  public ShadowRealTypeJ2D(MathType type, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
+  public ShadowRealTypeJ2D(MathType type, DataDisplayLink link,
+                           ShadowType parent)
+         throws VisADException, RemoteException {
     super(type, link, parent);
     adaptedShadowType =
       new ShadowRealType(type, link, getAdaptedParent(parent));
@@ -72,7 +71,7 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
     AccumulationVector.removeAllElements();
   }
 
-  /** transform data into a Java3D scene graph;
+  /** transform data into a Java2D VisADSceneGraphObject;
       return true if need post-process */
   boolean doTransform(Group group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)

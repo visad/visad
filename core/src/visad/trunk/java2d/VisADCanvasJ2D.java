@@ -27,8 +27,6 @@ package visad.java2d;
  
 import visad.*;
  
-import javax.media.j3d.*;
-
 import java.awt.*;
  
 /**

@@ -29,15 +29,12 @@ import visad.*;
 
 import java.rmi.*;
 
-import javax.media.j3d.*;
-
 /**
    ProjectionControlJ2D is the VisAD class for controlling the Projection
    from 3-D to 2-D.  It manipulates a TransformGroup node in the
    scene graph.<P>
 */
-public class ProjectionControlJ2D extends Control
-       implements ProjectionControl {
+public class ProjectionControlJ2D extends ProjectionControl {
 
   private transient Transform3D Matrix; // J2D
   private double[] matrix;
@@ -50,7 +47,9 @@ public class ProjectionControlJ2D extends Control
   }
  
   public double[] getMatrix() {
-    return matrix;
+    double[] c = new double[16];
+    System.arraycopy(matrix, 0, c, 0, 16);
+    return c;
   }
 
   public void setMatrix(double[] m)

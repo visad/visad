@@ -1,6 +1,6 @@
 
 //
-// DisplayAppletJ2D.java
+// AnimationSetControlJ2D.java
 //
 
 /*
@@ -22,33 +22,26 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
- 
+
 package visad.java2d;
  
 import visad.*;
 
-import java.applet.Applet;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.BorderLayout;
+import java.rmi.*;
 
-import javax.media.j3d.*;
+/**
+   AnimationSetControlJ2D is the VisAD class for sampling Animation
+   steps under Java2D.<P>
+*/
+public class AnimationSetControlJ2D extends AnimationSetControl {
 
-public class DisplayAppletJ2D extends Applet {
+  public AnimationSetControlJ2D(DisplayImpl d, AnimationControl p) {
+    super(d, p);
+  }
 
-  private DisplayImplJ2D display;
-  private DisplayRendererJ2D renderer;
-
-  public DisplayAppletJ2D(DisplayImplJ2D d) {
-    display = d;
-    renderer = (DisplayRendererJ2D) display.getDisplayRenderer();
-    setLayout(new BorderLayout());
-    Canvas3D canvas = new VisADCanvasJ2D(renderer, this);
-    add("Center", canvas);
- 
-    UniverseBuilderJ2D universe = new UniverseBuilderJ2D(canvas);
-    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas);
-    universe.addBranchGraph(scene); // J2D
+  public void setSet(Set s) throws VisADException, RemoteException {
+    super.setSet(s);
+    // XXX rebuild BufferedImage[] array in DisplayRendererJ2D
   }
 
 }

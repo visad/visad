@@ -31,9 +31,9 @@ import java.rmi.*;
 
 /**
    AnimationControlJ2D is the VisAD class for controlling Animation
-   display scalars under Java3D.<P>
+   display scalars under Java2D.<P>
 
-   WLH - manipulate a list of Switch nodes in scene graph.<P>
+   WLH - manipulate a list of VisADSwitch nodes in scene graph.<P>
 */
 public class AnimationControlJ2D extends AVControlJ2D
        implements Runnable, AnimationControl {
@@ -56,7 +56,7 @@ public class AnimationControlJ2D extends AVControlJ2D
     current = 0;
     direction = true;
     step = 100;
-    animationSet = new AnimationSetControl(d, this);
+    animationSet = new AnimationSetControlJ2D(d, this);
     d.addControl(animationSet);
     animate = new ToggleControl(d, this);
     d.addControl(animate);

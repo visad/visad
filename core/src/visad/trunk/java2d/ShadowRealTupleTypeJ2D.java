@@ -32,12 +32,13 @@ import java.rmi.*;
 
 /**
    The ShadowRealTupleTypeJ2D class shadows the RealTupleType class,
-   within a DataDisplayLink, under Java3D.<P>
+   within a DataDisplayLink, under Java2D.<P>
 */
 public class ShadowRealTupleTypeJ2D extends ShadowTupleTypeJ2D {
 
-  ShadowRealTupleTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
+  public ShadowRealTupleTypeJ2D(MathType t, DataDisplayLink link,
+                                ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
         int n = ((TupleType) t).getDimension();
     tupleComponents = new ShadowRealTypeJ2D[n];

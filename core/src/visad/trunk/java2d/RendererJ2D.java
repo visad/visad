@@ -27,15 +27,13 @@ package visad.java2d;
 
 import visad.*;
 
-import javax.media.j3d.*;
-
 import java.util.*;
 import java.rmi.*;
 
 
 /**
    RendererJ2D is the VisAD abstract super-class for graphics rendering
-   algorithms under Java3D.  These transform Data objects into 3-D
+   algorithms under Java2D.  These transform Data objects into 3-D
    (or 2-D) depictions in a Display window.<P>
 
    RendererJ2D is not Serializable and should not be copied
@@ -43,14 +41,14 @@ import java.rmi.*;
 */
 public abstract class RendererJ2D extends DataRenderer {
 
-  /** switch is parent of any BranchGroups created by this */
-  Switch sw; // J2D
+  /** switch is parent of any VisADGroups created by this */
+  VisADSwitch sw;
   /** parent of sw for 'detach' */
-  BranchGroup swParent; // J2D
-  /** index of current 'intended' child of Switch sw;
+  VisADGroup swParent; // J2D
+  /** index of current 'intended' child of VisADSwitch sw;
       not necessarily == sw.getWhichChild() */
   int currentIndex;
-  BranchGroup[] branches; // J2D
+  VisADGroup[] branches; // J2D
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
   int actualIndex;
@@ -71,26 +69,17 @@ public abstract class RendererJ2D extends DataRenderer {
     setDisplayRenderer(d.getDisplayRenderer());
     setLinks(links);
 
-    // set up switch logic for clean BranchGroup replacement
-    sw = new Switch(); // J2D
-    sw.setCapability(Group.ALLOW_CHILDREN_READ);
-    sw.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    sw.setCapability(Group.ALLOW_CHILDREN_EXTEND);
-    sw.setCapability(Switch.ALLOW_SWITCH_READ);
-    sw.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    // set up switch logic for clean VisADGroup replacement
+    sw = new VisADSwitch();
 
-    swParent = new BranchGroup();
-    swParent.setCapability(BranchGroup.ALLOW_DETACH);
+    swParent = new VisADGroup();
     swParent.addChild(sw);
     // make it 'live'
     addSwitch((DisplayRendererJ2D) getDisplayRenderer(), swParent);
 
-    branches = new BranchGroup[3];
+    branches = new VisADGroup[3];
     for (int i=0; i<3; i++) {
-      branches[i] = new BranchGroup();
-      branches[i].setCapability(Group.ALLOW_CHILDREN_READ);
-      branches[i].setCapability(Group.ALLOW_CHILDREN_WRITE);
-      branches[i].setCapability(Group.ALLOW_CHILDREN_EXTEND);
+      branches[i] = new VisADGroup();
       sw.addChild(branches[i]);
       // sw.setChild(branches[i], i);
     }
@@ -136,12 +125,12 @@ public abstract class RendererJ2D extends DataRenderer {
   }
 
   abstract void addSwitch(DisplayRendererJ2D displayRenderer,
-                          BranchGroup branch); // J2D
+                          VisADGroup branch); // J2D
 
   /** re-transform if needed;
       return false if not done */
   public boolean doAction() throws VisADException, RemoteException {
-    BranchGroup branch; // J2D
+    VisADGroup branch; // J2D
     boolean all_feasible = get_all_feasible();
     boolean any_changed = get_any_changed();
     boolean any_transform_control = get_any_transform_control();
@@ -149,7 +138,7 @@ public abstract class RendererJ2D extends DataRenderer {
      // exceptionVector.removeAllElements();
       clearAVControls();
       try {
-        // doTransform creates a BranchGroup from a Data object
+        // doTransform creates a VisADGroup from a Data object
         branch = doTransform();
       }
       catch (BadMappingException e) {
@@ -242,7 +231,7 @@ public abstract class RendererJ2D extends DataRenderer {
     ((DisplayRendererJ2D) getDisplayRenderer()).clearScene(this);
   }
 
-  /** create a BranchGroup scene graph for Data in links;
+  /** create a VisADGroup scene graph for Data in links;
       this can put Behavior objects in the scene graph for
       DataRenderer classes that implement direct manipulation widgets;
       may reduce work by only changing scene graph for Data and
@@ -250,7 +239,7 @@ public abstract class RendererJ2D extends DataRenderer {
       1. use boolean[] changed to determine which Data objects have changed
       2. if Data has not changed, then use Control.checkTicks loop like in
          prepareAction to determine which Control-s have changed */
-  public abstract BranchGroup doTransform()
+  public abstract VisADGroup doTransform()
          throws VisADException, RemoteException; // J2D
 
 }
