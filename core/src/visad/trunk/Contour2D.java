@@ -317,8 +317,8 @@ boolean anynotmissing = false;
     ydd = ((nc-1)-0.0f)/(nc-1.0f); // = 1.0
     /**-TDR xd = xdd - 0.0001f;
            yd = ydd - 0.0001f;  gap too big **/
-    xd = xdd - 0.000005f;
-    yd = ydd - 0.000005f;
+    xd = xdd - 0.00002f;
+    yd = ydd - 0.00002f;
 
     /*
      * set up mark array
