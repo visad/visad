@@ -100,9 +100,6 @@ public class VisADSlider extends JPanel implements ChangeListener,
   /** The number of ticks in the slider */
   private int sTicks;
 
-  /** Flags whether this VisADSlider is linked to a Real or a ScalarMap */
-  private boolean smapControl;
-
   /** <CODE>true</CODE> if the widget will auto-scale */
   private boolean autoScale;
 
@@ -246,7 +243,6 @@ public class VisADSlider extends JPanel implements ChangeListener,
         throw new VisADException("VisADSlider: ScalarMap must be from " +
                                  "a RealType!");
       }
-      smapControl = true;
       map = smap;
       control = (ValueControl) smap.getControl();
       if (control == null) {
@@ -288,7 +284,6 @@ public class VisADSlider extends JPanel implements ChangeListener,
     }
     else {
       // this VisADSlider should link to a Real
-      smapControl = false;
       map = null;
       control = null;
       if (ref == null) {
@@ -423,7 +418,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
       }
 
       if (!Util.isApproximatelyEqual(sCurrent, cur)) {
-        if (smapControl) control.setValue(cur);
+        if (control != null) control.setValue(cur);
         else if (sRef != null) {
           try {
             sRef.setData(new Real(realType, cur));
