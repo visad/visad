@@ -170,15 +170,92 @@ at all.  For example, a time sequence of images may have MathType:
 Here time may have units of seconds since 0Z, 1 Jan 1970, and the
 field defines images at a finite number of time samples.
 
+VisAD includes one other type of data, Sets.  These are finite
+sets of points in some real vector space defined by a RealTuple.
+For example, map outlines are a Set with MathType:
+
+  Set(latitude, longitude)
+
+and in fact you can such a data object when you load a McIDAS map
+outline file by a statement like:
+
+  map = load("OUTLUSAM")
+
+Sets are also included as metadata in Fields, to define the
+locations of samples.
+
 The power of VisAD data objects come because you can combine Real,
-Text, Tuple and Field objects in any complex way you like.  You can
-learn more about VisAD data objects in the Tutorials and Developer's
-Guide available on the VisAD web page.
+Text, Tuple, Field and Set objects in any complex way you like.
+You can learn more about VisAD data objects in the Tutorials and
+Developer's Guide available on the VisAD web page.
 
 
 4.3 More about accessing VisAD data from Python scripts
 
+Given a Tuple data object, you can find out how many compinents it
+has by:
 
+  number_of_components = tuple_data.length
+
+and you can get the components by:
+
+  component_0 = tuple_data[0]
+  component_1 = tuple_data[1]
+  . . .
+  component_last = tuple_data[number_of_components - 1]
+
+Given a Field data object, you can find out how many samples it
+has by:
+
+  number_of_samples = field_data.length;
+
+and you can get the samples by:
+
+  for i in range(number_of_samples):
+	sample = field_data[i]
+
+Note that range(number_of_samples) is standard Python and means
+that i takes the values 0, 1, 2, ..., number_of_samples - 1.
+
+You can also get the Set of sample locations of the Field by:
+
+  set = field_data.getDomainSet()
+
+You can get the number of locations in the set, and access the
+locations, by:
+
+  number_of_locations = set.length
+  for i in range(number_of_locations):
+	location = set[i]
+
+You can access Field samples by location as well as by index, so we
+could replace the difference:
+
+  area1 = area1 - area2
+
+by the code:
+
+  set = area1.getDomainSet()
+  for i in range(set.length):
+	area1[i] = area1[i] - area2[set[i]]
+
+The expression "area2[set[i]]" is the radiance of area2 at the
+location of the i-th sample of area1.  Please note that this way
+of computing the difference is much slower than "area1 - area2".
+In general, your scripts will run much faster if you can avoid
+explicitly looping over all the points in a Set or Field, but
+rather do it implicitly.
+
+Note also that "area[i] = ..." indicates you can set values in
+Fields by index.
+
+Just for kicks, you could compute image radiances along a map
+outline by:
+
+  map = load("OUTLUSAM")
+  area1 = load("AREA0001")
+  for i in range(map.length):
+	print area1[map[i]]
 
 
 5. The VisAD Python Library Functions
@@ -326,4 +403,11 @@ so you are not restricted to just these.
   trace(data) - return matrix trace of data (sum of the diagonal elements)
   
   transpose(data) - return matrix transpose of data
+
+
+6. Example VisAD Python Scripts
+
+A number of VisAD Python scripts are distributed with the VisAD
+source code.  They are the *.py files in the visad/python
+directory.
 
