@@ -178,7 +178,7 @@ public class Aeri
     del_lon = 5f;
     del_lat = 1.5f;
 
-    baseMap = new BaseMapAdapter("./data/OUTLUSAM");
+    baseMap = new BaseMapAdapter("../data/mcidas/OUTLUSAM");
     map_ref = new DataReferenceImpl("map");
 
     if ( baseMap.isEastPositive() )
