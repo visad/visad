@@ -154,6 +154,7 @@ public class VisADApplet extends Applet
    */
   private Hashtable hashtable = new Hashtable();
 
+  private Applet myself;
   /**
    * Adds a component to the applet with the specified constraints.
    */
@@ -216,12 +217,14 @@ public class VisADApplet extends Applet
     // lay out components with GridBagLayout
     GridBagLayout gridbag = new GridBagLayout();
     setLayout(gridbag);
+    myself = (Applet)this;
 
     // construct GUI components
     addressField = new TextField(DEFAULT_HOST);
     portField = new TextField("" + DEFAULT_PORT, 4);
     connectButton = new Button("Connect");
     canvas = new Component() {
+      public void update(Graphics g) { paint(g); }
       public void paint(Graphics g) {
         if (connected) {
           // connected; paint the remote display's image
@@ -578,14 +581,15 @@ public class VisADApplet extends Applet
               int[] decoded = Convert.decodeRLE(pix);
 
               // reconstruct the image locally
+              if (image != null) image.flush();
               image = createImage(new MemoryImageSource(w, h, decoded, 0, w));
+              MediaTracker tracker = new MediaTracker(myself);
+              tracker.addImage(image,0);
+              try { tracker.waitForAll(); }
+              catch (Exception tex) {;}
 
               // redraw the applet's display canvas
-              Graphics g = canvas.getGraphics();
-              if (g != null) {
-                g.drawImage(image, 0, 0, applet);
-                g.dispose();
-              }
+              canvas.paint(canvas.getGraphics());
             }
           }
         }
