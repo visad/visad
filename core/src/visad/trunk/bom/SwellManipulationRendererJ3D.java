@@ -40,7 +40,8 @@ import java.rmi.*;
    SwellManipulationRendererJ3D is the VisAD class for direct
    manipulation rendering of wind barbs under Java3D
 */
-public class SwellManipulationRendererJ3D extends DirectManipulationRendererJ3D {
+// public class SwellManipulationRendererJ3D extends DirectManipulationRendererJ3D {
+public class SwellManipulationRendererJ3D extends BarbManipulationRendererJ3D {
 
   /** this DataRenderer supports direct manipulation for Tuple
       representations of wind barbs; two of the Tuple's Real components
@@ -52,13 +53,15 @@ public class SwellManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   public ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowSwellRealTupleTypeJ3D(type, link, parent);
+    // return new ShadowSwellRealTupleTypeJ3D(type, link, parent);
+    return new ShadowBarbRealTupleTypeJ3D(type, link, parent);
   }
 
   public ShadowType makeShadowTupleType(
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowSwellTupleTypeJ3D(type, link, parent);
+    // return new ShadowSwellTupleTypeJ3D(type, link, parent);
+    return new ShadowBarbTupleTypeJ3D(type, link, parent);
   }
 
 /*
@@ -218,7 +221,7 @@ public class SwellManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     // may need to do this for performance
   }
 
-  public synchronized void setSwellSpatialValues(float[] mbarb, int which) {
+  public synchronized void setVectorSpatialValues(float[] mbarb, int which) {
     // (barbValues[0], barbValues[1]) = (x, y) barb head location
     // (barbValues[2], barbValues[3]) = (x, y) barb tail location
     barbValues = mbarb;

@@ -215,7 +215,7 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
                    numv, tx, ty, tz, numt);
         if (direct) {
           ((BarbManipulationRendererJ3D) renderer).
-            setBarbSpatialValues(mbarb, which);
+            setVectorSpatialValues(mbarb, which);
         }
         int nv = numv[0];
         int nt = numt[0];

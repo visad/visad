@@ -246,7 +246,7 @@ public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D {
     // may need to do this for performance
   }
 
-  public synchronized void setBarbSpatialValues(float[] mbarb, int which) {
+  public synchronized void setVectorSpatialValues(float[] mbarb, int which) {
     // (barbValues[0], barbValues[1]) = (x, y) barb head location
     // (barbValues[2], barbValues[3]) = (x, y) barb tail location
     barbValues = mbarb;
@@ -565,7 +565,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     }
   }
 
-  static float[] makeVector(boolean south, float x, float y, float z,
+  float[] makeVector(boolean south, float x, float y, float z,
                           float scale, float pt_size, float f0, float f1,
                           float[] vx, float[] vy, float[] vz, int[] numv,
                           float[] tx, float[] ty, float[] tz, int[] numt) {

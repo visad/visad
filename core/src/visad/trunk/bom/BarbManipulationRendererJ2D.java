@@ -246,7 +246,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     // may need to do this for performance
   }
 
-  public synchronized void setBarbSpatialValues(float[] mbarb, int which) {
+  public synchronized void setVectorSpatialValues(float[] mbarb, int which) {
     // (barbValues[0], barbValues[1]) = (x, y) barb head location
     // (barbValues[2], barbValues[3]) = (x, y) barb tail location
     barbValues = mbarb;
