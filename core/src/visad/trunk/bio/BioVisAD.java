@@ -112,8 +112,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Panel containing VisAD displays. */
   private JPanel displayPane;
 
-  /** Menu items for exporting slice animation sequences. */
-  private JMenuItem exportTIFF, exportQT;
+  /** Sub-menus for exporting data series. */
+  private JMenu fileExportSlice, fileExportTime;
+
+  /** Menu item for exporting QuickTime movies. */
+  private JMenuItem exportQT;
 
 
   // -- COLOR SETTINGS --
@@ -141,13 +144,14 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
     // menu bar
     addMenuItem("File", "Open...", "fileOpen", 'o');
-    exportTIFF =
-      addMenuItem("File", "Export TIFF stack...", "fileExportTIFF", 't');
-    exportQT =
-      addMenuItem("File", "Export QuickTime movie...", "fileExportQT", 'q');
+    fileExportSlice = addSubMenu("File", "Export current slice", 's', false);
+    fileExportTime = addSubMenu("File", "Export current timestep", 't', false);
+    addMenuItem("Export current slice",
+      "As TIFF stack...", "sliceExportTIFF", 't');
+    exportQT = addMenuItem("Export current slice",
+      "As QuickTime movie...", "sliceExportQT", 'q');
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
-    exportTIFF.setEnabled(false);
     exportQT.setEnabled(false);
 
     // lay out components
@@ -334,19 +338,20 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
           return;
         }
         sm.setSeries(f, seriesBox.getFilesAsSlices());
-        exportTIFF.setEnabled(true);
+        fileExportSlice.setEnabled(true);
+        fileExportTime.setEnabled(true);
         exportQT.setEnabled(Util.canDoQuickTime());
       }
     });
   }
 
   /** Exports a slice animation sequence to a TIFF stack. */
-  public void fileExportTIFF() {
+  public void sliceExportTIFF() {
     exportData(new TiffForm(), new String[] {"tif", "tiff"}, "TIFF stacks");
   };
 
   /** Exports a slice animation sequence to a QuickTime movie. */
-  public void fileExportQT() {
+  public void sliceExportQT() {
     exportData(new QTForm(), new String[] {"mov", "qt"}, "QuickTime movies");
   }
 

@@ -57,7 +57,7 @@ public class GUIFrame extends JFrame implements ActionListener {
   }
 
   /** gets the JMenu corresponding to the given menu name */
-  protected JMenu getMenu(String menu) {
+  public JMenu getMenu(String menu) {
     // get menu from hashtable
     JMenu m = (JMenu) hash.get(menu);
     if (m == null) {
@@ -107,6 +107,35 @@ public class GUIFrame extends JFrame implements ActionListener {
     item.setEnabled(enabled);
     m.add(item);
     hash.put(menu + "\n" + item.getText(), item);
+  }
+
+  /** adds the given sub-menu to the specified menu */
+  public JMenu addSubMenu(String menu, String sub, char mnemonic) {
+    JMenu x = new JMenu(sub);
+    addSubMenu(menu, x, mnemonic, true);
+    return x;
+  }
+
+  /** adds the given sub-menu to the specified menu */
+  public JMenu addSubMenu(String menu, String sub, char mnemonic,
+    boolean enabled)
+  {
+    JMenu x = new JMenu(sub);
+    addSubMenu(menu, x, mnemonic, enabled);
+    return x;
+  }
+
+  /** adds the given sub-menu to the specified menu */
+  public void addSubMenu(String menu, JMenu sub, char mnemonic,
+    boolean enabled)
+  {
+    // add sub-menu to menu
+    JMenu m = getMenu(menu);
+    sub.setMnemonic(mnemonic);
+    sub.getPopupMenu().setLightWeightPopupEnabled(!heavy);
+    sub.setEnabled(enabled);
+    m.add(sub);
+    hash.put(sub.getText(), sub);
   }
 
   /** adds a separator to the specified menu */
