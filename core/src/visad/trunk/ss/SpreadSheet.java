@@ -160,6 +160,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Display Edit mappings menu item */
   MenuItem DispEdit;
 
+  /** Options Show controls menu item */
+  MenuItem OptWidget;
+
   /** Edit Paste toolbar button */
   JButton ToolPaste;
 
@@ -168,6 +171,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Display Edit mappings toolbar button */
   JButton ToolMap;
+
+  /** Options Show controls toolbar button */
+  JButton ToolShow;
 
   /** formula bar checkbox toolbar button */
   JButton FormulaOk;
@@ -480,10 +486,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     options.add(optASC);
     options.addSeparator();
 
-    MenuItem optWidget = new MenuItem("Show controls");
-    optWidget.addActionListener(this);
-    optWidget.setActionCommand("optWidget");
-    options.add(optWidget);
+    OptWidget = new MenuItem("Show controls");
+    OptWidget.addActionListener(this);
+    OptWidget.setActionCommand("optWidget");
+    OptWidget.setEnabled(false);
+    options.add(OptWidget);
 
     // set up toolbar
     URL url;
@@ -566,14 +573,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // window menu toolbar icons
     url = SpreadSheet.class.getResource("show.gif");
-    ImageIcon winShowControls = new ImageIcon(url);
-    if (winShowControls != null) {
-      JButton b = new JButton(winShowControls);
-      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
-      b.setToolTipText("Show controls");
-      b.addActionListener(this);
-      b.setActionCommand("optWidget");
-      toolbar.add(b);
+    ImageIcon toolShowControls = new ImageIcon(url);
+    if (toolShowControls != null) {
+      ToolShow = new JButton(toolShowControls);
+      ToolShow.setAlignmentY(JButton.CENTER_ALIGNMENT);
+      ToolShow.setToolTipText("Show controls");
+      ToolShow.addActionListener(this);
+      ToolShow.setActionCommand("optWidget");
+      ToolShow.setEnabled(false);
+      toolbar.add(ToolShow);
     }
     toolbar.add(Box.createHorizontalGlue());
 
@@ -1570,6 +1578,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
         FileSave1.setEnabled(b);
         FileSave2.setEnabled(b);
         ToolSave.setEnabled(b);
+        b = DisplayCells[CurX][CurY].hasControls();
+        OptWidget.setEnabled(b);
+        ToolShow.setEnabled(b);
       }
     });
   }

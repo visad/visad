@@ -237,13 +237,18 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
     }
-    JPanel pane = (JPanel) WidgetFrame.getContentPane();
-    if (pane.getComponentCount() > 0) WidgetFrame.setVisible(true);
+    if (hasControls()) WidgetFrame.setVisible(true);
   }
 
   /** hide the widgets for altering controls */
   public void hideWidgetFrame() {
     WidgetFrame.setVisible(false);
+  }
+
+  /** whether the cell has any associated controls */
+  public boolean hasControls() {
+    JPanel pane = (JPanel) WidgetFrame.getContentPane();
+    return (pane.getComponentCount() > 0);
   }
 
   /** remove all widgets for altering controls and hide widget frame */
