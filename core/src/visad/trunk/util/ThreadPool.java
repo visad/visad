@@ -34,6 +34,8 @@ import java.util.Vector;
  */
 public class ThreadPool
 {
+  private static final String DEFAULT_PREFIX = "Minnow";
+
   private static final int DEFAULT_MIN_THREADS = 1;
   private static final int DEFAULT_MAX_THREADS = 10;
 
@@ -55,6 +57,10 @@ public class ThreadPool
 
   // list of queued tasks
   private Vector tasks = new Vector();
+
+  // variables used to name threads
+  private String prefix;
+  private int nextID = 0;
 
   private class ThreadMinnow
       extends Thread
@@ -100,17 +106,27 @@ public class ThreadPool
     }
   }
 
-  /** Build a thread pool with the default minimum and maximum
-   *  numbers of threads
+  /** Build a thread pool with the default thread name prefix
+   *  and the default minimum and maximum numbers of threads
    */
   public ThreadPool()
         throws Exception
   {
-    this(DEFAULT_MIN_THREADS, DEFAULT_MAX_THREADS);
+    this(DEFAULT_PREFIX, DEFAULT_MIN_THREADS, DEFAULT_MAX_THREADS);
+  }
+
+  /** Build a thread pool with the specified thread name prefix, and
+   *  the default minimum and maximum numbers of threads
+   */
+  public ThreadPool(String prefix)
+        throws Exception
+  {
+    this(prefix, DEFAULT_MIN_THREADS, DEFAULT_MAX_THREADS);
   }
 
   /** Build a thread pool with the specified maximum number of
-   *  threads, and the default minimum number of threads
+   *  threads, and the default thread name prefix and minimum number
+   *  of threads
    */
   public ThreadPool(int max)
         throws Exception
@@ -119,9 +135,18 @@ public class ThreadPool
   }
 
   /** Build a thread pool with the specified minimum and maximum
-   *  numbers of threads
+   *  numbers of threads, and the default thread name prefix
    */
   public ThreadPool(int min, int max)
+        throws Exception
+  {
+    this(DEFAULT_PREFIX, min, max);
+  }
+
+  /** Build a thread pool with the specified thread name prefix and
+   *  minimum and maximum numbers of threads
+   */
+  public ThreadPool(String prefix, int min, int max)
         throws Exception
   {
     minThreads = min;
@@ -133,8 +158,12 @@ public class ThreadPool
                           minThreads + ")");
     }
 
+    this.prefix = prefix;
+
     for (int i = 0; i < minThreads; i++) {
-      threads.addElement(new ThreadMinnow(this));
+      ThreadMinnow minnow = new ThreadMinnow(this);
+      minnow.setName(prefix + "-" + nextID++);
+      threads.addElement(minnow);
     }
   }
 
@@ -166,6 +195,7 @@ public class ThreadPool
           // ...spawn a new thread and tell it to deal with this
           try {
             Thread t = new ThreadMinnow(this);
+            t.setName(prefix + "-" + nextID++);
             threads.addElement(t);
             threadLock.notify();
           } catch (SecurityException e) {
