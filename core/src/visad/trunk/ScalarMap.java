@@ -762,10 +762,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       green and blue components; DisplayScalar must be XAxis,
       YAxis or ZAxis */
   public void setScaleColor(float[] color) throws VisADException {
+    if (!DisplayScalar.equals(Display.XAxis) &&
+        !DisplayScalar.equals(Display.YAxis) &&
+        !DisplayScalar.equals(Display.ZAxis)) {
      throw new DisplayException("ScalarMap.setScaleColor: DisplayScalar " +
-    if (DisplayScalar != Display.XAxis &&
-        DisplayScalar != Display.YAxis &&
-        DisplayScalar != Display.ZAxis) {
                                 "must be XAxis, YAxis or ZAxis");
     }
     if (color == null || color.length != 3) {
