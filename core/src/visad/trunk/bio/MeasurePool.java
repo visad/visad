@@ -173,7 +173,13 @@ public class MeasurePool implements DisplayListener {
           MeasureLine line = (MeasureLine) lines.elementAt(i);
 
           // ensure at least one endpoint is on this slice
-          if (dim == 2 && line.ep1.z != slice && line.ep2.z != slice) continue;
+          if (dim == 2) {
+            boolean b1 = line.ep1.z == slice;
+            boolean b2 = line.ep2.z == slice;
+            if (line.ep1.pt[pid] != null) line.ep1.pt[pid].toggle(b1);
+            if (line.ep2.pt[pid] != null) line.ep2.pt[pid].toggle(b2);
+            if (!b1 && !b2) continue;
+          }
 
           // create gridded set from this line
           GriddedSet set = doSet(new MeasurePoint[] {line.ep1, line.ep2});
@@ -335,7 +341,7 @@ public class MeasurePool implements DisplayListener {
               select(point);
             }
           }
-          refresh(true);
+          list.refreshPools(true);
         }
       }
     };
@@ -438,8 +444,8 @@ public class MeasurePool implements DisplayListener {
     display.disableAction();
     for (int i=0; i<size; i++) {
       MeasurePoint point = (MeasurePoint) points.elementAt(i);
-      if (dim == 2 && point.z != slice) continue;
       if (point.pt[pid] == null) point.pt[pid] = lease(point);
+      point.pt[pid].toggle(dim == 3 || point.z == slice);
     }
     display.enableAction();
 
@@ -616,7 +622,7 @@ public class MeasurePool implements DisplayListener {
               else select(point);
             }
             bio.toolMeasure.updateSelection();
-            refresh(true);
+            list.refreshPools(true);
           }
         }
         else {
@@ -627,7 +633,7 @@ public class MeasurePool implements DisplayListener {
             else select((MeasurePoint) points.elementAt(index));
           }
           bio.toolMeasure.updateSelection();
-          refresh(true);
+          list.refreshPools(true);
         }
       }
     }
@@ -660,10 +666,10 @@ public class MeasurePool implements DisplayListener {
     line.ep1.selected--;
     line.ep2.selected--;
     selLines.remove(line);
-    if (!hasSelection()) setEndpointsEnabled(true);
+    if (!hasSelection()) list.setEndpointsEnabled(true);
     else {
-      if (line.ep1.selected == 0) setEndpointEnabled(line.ep1, false);
-      if (line.ep2.selected == 0) setEndpointEnabled(line.ep2, false);
+      if (line.ep1.selected == 0) list.setEndpointEnabled(line.ep1, false);
+      if (line.ep2.selected == 0) list.setEndpointEnabled(line.ep2, false);
     }
   }
 
@@ -672,8 +678,8 @@ public class MeasurePool implements DisplayListener {
     if (!selPoints.contains(point)) return;
     point.selected--;
     selPoints.remove(point);
-    if (!hasSelection()) setEndpointsEnabled(true);
-    else if (point.selected == 0) setEndpointEnabled(point, false);
+    if (!hasSelection()) list.setEndpointsEnabled(true);
+    else if (point.selected == 0) list.setEndpointEnabled(point, false);
   }
 
 
@@ -758,7 +764,7 @@ public class MeasurePool implements DisplayListener {
         y = line.ep2.y;
         z = line.ep2.z;
       }
-      if (z == slice) return;
+      if (z == slice) continue;
       float[][] samples1 = {
         {(float) (x - x_width), (float) (x + x_width)},
         {(float) (y - x_width), (float) (y + x_width)}
@@ -819,7 +825,7 @@ public class MeasurePool implements DisplayListener {
   }
 
   /**
-   * Converts a set of irregular sets with matching colors
+   * Converts a set of measurement points with matching colors
    * into a field and updates the data reference accordingly.
    */
   private void doPoints(Vector strips, Vector colors,
@@ -893,22 +899,22 @@ public class MeasurePool implements DisplayListener {
   /** Selects the given line. */
   private void select(MeasureLine line) {
     if (selLines.contains(line)) return;
-    if (!hasSelection()) setEndpointsEnabled(false);
+    if (!hasSelection()) list.setEndpointsEnabled(false);
     line.selected = true;
     line.ep1.selected++;
     line.ep2.selected++;
     selLines.add(line);
-    setEndpointEnabled(line.ep1, true);
-    setEndpointEnabled(line.ep2, true);
+    list.setEndpointEnabled(line.ep1, true);
+    list.setEndpointEnabled(line.ep2, true);
   }
 
   /** Selects the given marker. */
   private void select(MeasurePoint point) {
     if (selPoints.contains(point)) return;
-    if (!hasSelection()) setEndpointsEnabled(false);
+    if (!hasSelection()) list.setEndpointsEnabled(false);
     point.selected++;
     selPoints.add(point);
-    setEndpointEnabled(point, true);
+    list.setEndpointEnabled(point, true);
   }
 
   /** Deselects all measurements. */
@@ -927,21 +933,7 @@ public class MeasurePool implements DisplayListener {
       point.selected--;
     }
     selPoints.removeAllElements();
-    setEndpointsEnabled(true);
-  }
-
-  /** Toggles direct manipulation endpoints. */
-  private void setEndpointsEnabled(boolean enabled) {
-    int size = used.size();
-    for (int i=0; i<size; i++) {
-      PoolPoint pt = (PoolPoint) used.elementAt(i);
-      pt.toggle(enabled);
-    }
-  }
-
-  /** Toggles a direct manipulation endpoint. */
-  private void setEndpointEnabled(MeasurePoint point, boolean enabled) {
-    for (int i=0; i<point.pt.length; i++) point.pt[i].toggle(enabled);
+    list.setEndpointsEnabled(true);
   }
 
 }

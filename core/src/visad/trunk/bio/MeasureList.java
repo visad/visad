@@ -118,12 +118,17 @@ public class MeasureList {
     points.add(line.ep2);
     lines.add(line);
     if (updatePools) refreshPools(false);
+    boolean selection = bio.mm.pool2.hasSelection();
+    setEndpointEnabled(line.ep1, !selection || line.ep1.selected > 0);
+    setEndpointEnabled(line.ep2, !selection || line.ep2.selected > 0);
   }
 
   /** Adds the given measurement marker to the measurement list. */
   public void addMarker(MeasurePoint point, boolean updatePools) {
     points.add(point);
     if (updatePools) refreshPools(false);
+    setEndpointEnabled(point,
+      !bio.mm.pool2.hasSelection() || point.selected > 0);
   }
 
   /** Removes the given measurement line from the measurement list. */
@@ -155,6 +160,11 @@ public class MeasureList {
   /** Gets the list of measurement lines. */
   public Vector getLines() { return lines; }
 
+  /** Gets whether this list has any measurements. */
+  public boolean hasMeasurements() {
+    return !points.isEmpty() || !lines.isEmpty();
+  }
+
 
   // -- INTERNAL API METHODS --
 
@@ -165,6 +175,22 @@ public class MeasureList {
       if (bio.mm.pool3 != null) bio.mm.pool3.refresh(reconstruct);
     }
     bio.mm.changed = true;
+  }
+
+  /** Toggles direct manipulation endpoints. */
+  void setEndpointsEnabled(boolean enabled) {
+    int psize = points.size();
+    for (int i=0; i<psize; i++) {
+      MeasurePoint point = (MeasurePoint) points.elementAt(i);
+      setEndpointEnabled(point, enabled);
+    }
+  }
+
+  /** Toggles a direct manipulation endpoint. */
+  void setEndpointEnabled(MeasurePoint point, boolean enabled) {
+    for (int i=0; i<point.pt.length; i++) {
+      if (point.pt[i] != null) point.pt[i].toggle(enabled);
+    }
   }
 
 

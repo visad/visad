@@ -117,6 +117,8 @@ public class BioColorWidget extends JPanel {
 
   /** Chooses most desirable range type for this widget's color. */
   public void guessType() {
+    scalars.removeAllItems();
+    scalars.addItem("None");
     RealType[] rt = bio.sm.rtypes;
     for (int i=0; i<rt.length; i++) scalars.addItem(rt[i]);
 

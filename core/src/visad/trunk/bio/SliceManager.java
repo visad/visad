@@ -340,10 +340,18 @@ public class SliceManager
     this.filesAsSlices = filesAsSlices;
     if (filesAsSlices) doThumbs = false;
     index = 0;
-    setFile(true);
-    bio.horiz.updateSlider(timesteps);
-    bio.vert.updateSlider(slices);
-    bio.state.saveState(true);
+    boolean success = false;
+    try {
+      setFile(true);
+      success = true;
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    if (success) {
+      bio.horiz.updateSlider(timesteps);
+      bio.vert.updateSlider(slices);
+      bio.state.saveState(true);
+    }
   }
 
   /** Exports the stack of images at the current timestep. */
@@ -680,7 +688,13 @@ public class SliceManager
     });
     t.start();
     dialog.show();
-    dialog.checkException();
+    try { dialog.checkException(); }
+    catch (VisADException exc) {
+      JOptionPane.showMessageDialog(bio,
+        "Cannot import data from " + files[index].getName() + "\n" +
+        exc.getMessage(), "Cannot load file", JOptionPane.ERROR_MESSAGE);
+      throw exc;
+    }
   }
 
   /**
@@ -688,11 +702,11 @@ public class SliceManager
    * resulting data object is of the proper form, converting
    * image data into single-slice stack data if specified.
    */
-  private FieldImpl loadData(File file, boolean makeStack) {
+  private FieldImpl loadData(File file, boolean makeStack)
+    throws VisADException, RemoteException
+  {
     // load data from file
-    Data data = null;
-    try { data = loader.open(file.getPath()); }
-    catch (VisADException exc) { exc.printStackTrace(); }
+    Data data = loader.open(file.getPath());
 
     // convert data to field
     FieldImpl f = null;
@@ -711,19 +725,17 @@ public class SliceManager
     // convert single image to single-slice stack
     FieldImpl stack = f;
     if (f instanceof FlatField && makeStack) {
-      try {
-        FunctionType func = new FunctionType(SLICE_TYPE, f.getType());
-        stack = new FieldImpl(func, new Integer1DSet(1));
-        stack.setSample(0, f, false);
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
+      FunctionType func = new FunctionType(SLICE_TYPE, f.getType());
+      stack = new FieldImpl(func, new Integer1DSet(1));
+      stack.setSample(0, f, false);
     }
     return stack;
   }
 
   /** Sets the current file to match the current index. */
-  private void setFile(boolean initialize) {
+  private void setFile(boolean initialize)
+    throws VisADException, RemoteException
+  {
     bio.setWaitCursor(true);
     try {
       if (initialize) init(files, 0);
@@ -743,9 +755,9 @@ public class SliceManager
         }
       }
     }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-    bio.setWaitCursor(false);
+    finally {
+      bio.setWaitCursor(false);
+    }
   }
 
   /** Clears display mappings and references. */
@@ -950,7 +962,11 @@ public class SliceManager
 
     // switch index values
     if (new_index) {
-      if (!lowres) setFile(false);
+      if (!lowres) {
+        try { setFile(false); }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        catch (RemoteException exc) { exc.printStackTrace(); }
+      }
       MeasureList list = bio.mm.lists[index];
       bio.mm.pool2.set(list);
       if (bio.mm.pool3 != null) bio.mm.pool3.set(list);

@@ -103,7 +103,16 @@ public class MeasureManager {
    * and if not, prompts the user to save them.
    */
   public void checkSave() {
-    if (!changed) return;
+    boolean hasMeasure = false;
+    if (lists != null) {
+      for (int i=0; i<lists.length; i++) {
+        if (lists[i].hasMeasurements()) {
+          hasMeasure = true;
+          break;
+        }
+      }
+    }
+    if (!changed || !hasMeasure) return;
     int ans = JOptionPane.showConfirmDialog(bio,
       "Save measurements?", "BioVisAD",
       JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);

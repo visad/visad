@@ -46,9 +46,9 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** List of colors for drop-down color box. */
   private static final Color[] COLORS = {
-    Color.white, Color.lightGray, Color.gray, Color.darkGray, Color.black,
-    Color.red, Color.orange, Color.yellow, Color.green,
-    Color.cyan, Color.blue, Color.magenta, Color.pink
+    Color.white, Color.red, Color.orange, Color.green,
+    Color.cyan, Color.blue, Color.magenta, Color.pink,
+    Color.lightGray, Color.gray, Color.darkGray, Color.black
   };
 
   /** Placeholder for measurement coordinates label. */
@@ -118,6 +118,9 @@ public class MeasureToolPanel extends ToolPanel {
   /** Button for clearing all measurements. */
   private JButton clearAll;
 
+  /** Toggle for pilot line image stack alignment. */
+  private JCheckBox pilot;
+
 
   // -- LINE FUNCTIONS --
 
@@ -127,11 +130,11 @@ public class MeasureToolPanel extends ToolPanel {
   /** Label for displaying measurement distance. */
   private JLabel measureDist;
 
-  /** Button for distributing measurement object through all focal planes. */
-  private JCheckBox setStandard;
-
   /** Button for toggling whether SHIFT + right click does a merge. */
   private JToggleButton merge;
+
+  /** Button for distributing measurement object through all focal planes. */
+  private JCheckBox setStandard;
 
   /** Button for removing objects. */
   private JButton removeSelected;
@@ -271,12 +274,17 @@ public class MeasureToolPanel extends ToolPanel {
     controls.add(pad(p));
 
     // spacing
-    controls.add(Box.createVerticalStrut(15));
+    controls.add(Box.createVerticalStrut(5));
 
-    // merge button
-    merge = new JToggleButton("Merge");
-    merge.setEnabled(false);
-    controls.add(pad(merge));
+    // stack alignment pilot line checkbox
+    pilot = new JCheckBox("Use pilot line to align image stacks", false);
+    pilot.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        // CTR - TODO - pilot line checkbox
+      }
+    });
+    pilot.setEnabled(false);
+    controls.add(pad(pilot));
 
     // divider between global functions and measurement-specific functions
     controls.add(Box.createVerticalStrut(10));
@@ -308,9 +316,15 @@ public class MeasureToolPanel extends ToolPanel {
       public void doAction() { updateMeasureInfo(); }
     };
 
-    // set standard button
+    // merge button
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    merge = new JToggleButton("Merge");
+    merge.setEnabled(false);
+    p.add(merge);
+    p.add(Box.createHorizontalStrut(10));
+
+    // set standard button
     setStandard = new JCheckBox("Set standard");
     setStandard.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -487,6 +501,7 @@ public class MeasureToolPanel extends ToolPanel {
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     clearAll.setEnabled(enabled);
+    pilot.setEnabled(enabled);
     merge.setEnabled(enabled);
   }
 
@@ -500,7 +515,7 @@ public class MeasureToolPanel extends ToolPanel {
   public void updateSelection() {
     boolean enabled = bio.mm.pool2.hasSelection();
     setStandard.setEnabled(enabled && stdEnabled);
-    removeSelected.setEnabled(enabled);
+    updateRemove();
     colorLabel.setEnabled(enabled);
     colorList.setEnabled(enabled);
     groupLabel.setEnabled(enabled);
@@ -601,7 +616,6 @@ public class MeasureToolPanel extends ToolPanel {
   /** Updates the micron-related GUI components. */
   private void updateFileButtons() {
     boolean microns = useMicrons.isSelected();
-    useMicrons.setEnabled(microns);
     sliceDistLabel.setEnabled(microns);
     sliceDistance.setEnabled(microns);
     boolean b;
@@ -666,6 +680,19 @@ public class MeasureToolPanel extends ToolPanel {
     measureDist.setText(distSpace + dist + distSpace);
   }
 
+  /** Updates the remove button. */
+  private void updateRemove() {
+    MeasureThing[] selThings = bio.mm.pool2.getSelection();
+    boolean noStd = true;
+    for (int i=0; i<selThings.length; i++) {
+      if (selThings[i].stdId >= 0) {
+        noStd = false;
+        break;
+      }
+    }
+    removeSelected.setEnabled(noStd);
+  }
+
   /** Sets or unsets the given measurement as standard. */
   private void doStandard(MeasureThing thing, boolean std) {
     boolean isLine = thing instanceof MeasureLine;
@@ -722,6 +749,7 @@ public class MeasureToolPanel extends ToolPanel {
         }
       }
     }
+    updateRemove();
   }
 
 }

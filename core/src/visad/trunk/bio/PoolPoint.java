@@ -75,6 +75,16 @@ public class PoolPoint {
         RealTuple tuple = (RealTuple) ref.getData();
         if (tuple == null) return;
         double[] v = tuple.getValues();
+
+        // snap Z-coordinate to nearest slice
+        if (dim == 3) {
+          int numSlices = bio.sm.getNumberOfSlices();
+          int slice = (int) (v[2] + 0.5);
+          if (slice < 0) slice = 0;
+          else if (slice >= numSlices) slice = numSlices - 1;
+          v[2] = slice;
+        }
+
         point.setCoordinates(pt, v[0], v[1], dim == 3 ? v[2] : point.z);
       }
     };

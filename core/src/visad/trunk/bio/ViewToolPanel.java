@@ -116,6 +116,9 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
   /** Blue color map widget. */
   private BioColorWidget blue;
 
+  /** Toggle for colorizing image stack based on slice level. */
+  private JCheckBox colorize;
+
   /** Toggle for whether 2-D plane is user-selected arbitrarily. */
   private JCheckBox planeSelect;
 
@@ -363,6 +366,19 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     p.add(blue);
     controls.add(pad(p));
 
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
+    // colorize across slice level checkbox
+    colorize = new JCheckBox("Colorize image stack across slices", false);
+    colorize.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean c = colorize.isSelected();
+        // CTR - TODO - colorize across slice level checkbox
+      }
+    });
+    controls.add(pad(colorize));
+
     // divider between color functions and misc functions
     controls.add(Box.createVerticalStrut(10));
     controls.add(new Divider());
@@ -453,7 +469,7 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     brightness.setEnabled(enabled);
     contrastLabel.setEnabled(enabled);
     contrast.setEnabled(enabled);
-    planeSelect.setEnabled(enabled);
+    planeSelect.setEnabled(enabled && bio.sm.getNumberOfSlices() > 1);
     b = enabled && planeSelect.isSelected();
     sliceResLabel1.setEnabled(b);
     sliceResX.setEnabled(b);

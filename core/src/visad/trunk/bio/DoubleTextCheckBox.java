@@ -81,10 +81,10 @@ public class DoubleTextCheckBox extends JPanel
 
   /** Refreshes the state of the widget. */
   public void updateGUI() {
-    boolean checked = box.isSelected();
-    label.setEnabled(checked);
-    field1.setEnabled(checked);
-    field2.setEnabled(checked);
+    boolean enabled = box.isEnabled() && box.isSelected();
+    label.setEnabled(enabled);
+    field1.setEnabled(enabled);
+    field2.setEnabled(enabled);
   }
 
 
@@ -92,6 +92,12 @@ public class DoubleTextCheckBox extends JPanel
 
   /** Gets whether the checkbox is selected. */
   public boolean isSelected() { return box.isSelected(); }
+
+  /** Enables or disables the checkbox. */
+  public void setEnabled(boolean enabled) {
+    box.setEnabled(enabled);
+    updateGUI();
+  }
 
   /** Gets the value of the first text field. */
   public String getFirstValue() { return field1.getText(); }
