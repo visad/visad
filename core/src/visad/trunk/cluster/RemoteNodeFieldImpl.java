@@ -1,5 +1,5 @@
 //
-// RemoteClientFieldImpl.java
+// RemoteNodeFieldImpl.java
 //
 
 /*
@@ -33,11 +33,11 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteClientFieldImpl is the class for cluster client
+   RemoteNodeFieldImpl is the class for cluster node
    VisAD Field data objects.<P>
 */
-public class RemoteClientFieldImpl extends RemoteClientDataImpl
-       implements RemoteClientField {
+public class RemoteNodeFieldImpl extends RemoteNodeDataImpl
+       implements RemoteNodeField {
 
   private Field adaptedField = null;
   private int length;
@@ -46,7 +46,7 @@ public class RemoteClientFieldImpl extends RemoteClientDataImpl
      must call setupClusterData after constructor to finish the
      "construction"
   */
-  public RemoteClientFieldImpl(FunctionType type, Set set)
+  public RemoteNodeFieldImpl(FunctionType type, Set set)
          throws VisADException, RemoteException {
     super();
     if (type == null) {
@@ -59,12 +59,12 @@ public class RemoteClientFieldImpl extends RemoteClientDataImpl
     length = set.getLength();
   }
 
-  public void setSamples(RemoteClientDataImpl[] range)
+  public void setSamples(RemoteNodeDataImpl[] range)
          throws VisADException, RemoteException {
     setSamples(range, false);
   }
 
-  public void setSamples(RemoteClientDataImpl[] range, boolean copy)
+  public void setSamples(RemoteNodeDataImpl[] range, boolean copy)
          throws VisADException, RemoteException {
     if (range == null) {
       throw new ClusterException("range cannot be null");
@@ -312,7 +312,7 @@ public class RemoteClientFieldImpl extends RemoteClientDataImpl
 
   public String longString(String pre)
          throws VisADException, RemoteException {
-    return pre + "RemoteClientFieldImpl";
+    return pre + "RemoteNodeFieldImpl";
   }
 
 }

@@ -1,5 +1,5 @@
 //
-// RemoteClientFieldImpl.java
+// RemoteNodePartitionedFieldImpl.java
 //
 
 /*
@@ -33,11 +33,11 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteClientFieldImpl is the class for cluster client
-   VisAD Field data objects.<P>
+   RemoteNodePartitionedFieldImpl is the class for cluster node
+   VisAD Field data objects that are paritioned.<P>
 */
-public class RemoteClientFieldImpl extends RemoteClientDataImpl
-       implements RemoteClientField {
+public class RemoteNodePartitionedFieldImpl extends RemoteNodeDataImpl
+       implements RemoteNodePartitionedField {
 
   private Field adaptedField = null;
   private int length;
@@ -46,7 +46,7 @@ public class RemoteClientFieldImpl extends RemoteClientDataImpl
      must call setupClusterData after constructor to finish the
      "construction"
   */
-  public RemoteClientFieldImpl(FunctionType type, Set set)
+  public RemoteNodePartitionedFieldImpl(FunctionType type, Set set)
          throws VisADException, RemoteException {
     super();
     if (type == null) {
@@ -59,12 +59,12 @@ public class RemoteClientFieldImpl extends RemoteClientDataImpl
     length = set.getLength();
   }
 
-  public void setSamples(RemoteClientDataImpl[] range)
+  public void setSamples(RemoteNodeDataImpl[] range)
          throws VisADException, RemoteException {
     setSamples(range, false);
   }
 
-  public void setSamples(RemoteClientDataImpl[] range, boolean copy)
+  public void setSamples(RemoteNodeDataImpl[] range, boolean copy)
          throws VisADException, RemoteException {
     if (range == null) {
       throw new ClusterException("range cannot be null");
@@ -134,87 +134,87 @@ public class RemoteClientFieldImpl extends RemoteClientDataImpl
 
   public void setSample(RealTuple domain, Data range, boolean copy)
          throws VisADException, RemoteException {
-    throw new ClusterException("no setSample() method");
+    adaptedField.setSample(domain, range, copy);
   }
 
   public void setSample(RealTuple domain, Data range)
          throws VisADException, RemoteException {
-    throw new ClusterException("no setSample() method");
+    adaptedField.setSample(domain, range);
   }
 
   public void setSample(int index, Data range, boolean copy)
          throws VisADException, RemoteException {
-    throw new ClusterException("no setSample() method");
+    adaptedField.setSample(index, range, copy);
   }
 
   public void setSample(int index, Data range)
          throws VisADException, RemoteException {
-    throw new ClusterException("no setSample() method");
+    adaptedField.setSample(index, range);
   }
 
   public Field extract(int component)
          throws VisADException, RemoteException {
-    throw new ClusterException("no extract() method");
+    return adaptedField.extract(component);
   }
 
   public Field domainMultiply()
          throws VisADException, RemoteException {
-    throw new ClusterException("no domainMultiply() method");
+    return adaptedField.domainMultiply();
   }
 
   public Field domainMultiply(int depth)
          throws VisADException, RemoteException {
-    throw new ClusterException("no domainMultiply() method");
+    return adaptedField.domainMultiply(depth);
   }
 
   public Field domainFactor( RealType factor )
          throws VisADException, RemoteException {
-    throw new ClusterException("no domainFactor() method");
+    return adaptedField.domainFactor(factor);
   }
 
   public double[][] getValues()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getValues() method");
+    return adaptedField.getValues();
   }
 
   public double[][] getValues(boolean copy)
          throws VisADException, RemoteException {
-    throw new ClusterException("no getValues() method");
+    return adaptedField.getValues(copy);
   }
 
   public float[][] getFloats()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getFloats() method");
+    return adaptedField.getFloats();
   }
 
   public float[][] getFloats(boolean copy)
          throws VisADException, RemoteException {
-    throw new ClusterException("no getFloats() method");
+    return adaptedField.getFloats(copy);
   }
 
   public String[][] getStringValues()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getStringValues() method");
+    return adaptedField.getStringValues();
   }
 
   public Unit[] getDefaultRangeUnits()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getRangeCoordinateSystem() method");
+    return adaptedField.getDefaultRangeUnits();
   }
 
   public Unit[][] getRangeUnits()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getRangeCoordinateSystem() method");
+    return adaptedField.getRangeUnits();
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getRangeCoordinateSystem() method");
+    return adaptedField.getRangeCoordinateSystem();
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem(int i)
          throws VisADException, RemoteException {
-    throw new ClusterException("no getRangeCoordinateSystem() method");
+    return adaptedField.getRangeCoordinateSystem(i);
   }
 
   public boolean isFlatField() throws VisADException, RemoteException {
@@ -298,7 +298,7 @@ public class RemoteClientFieldImpl extends RemoteClientDataImpl
 
   public double[][] computeRanges(RealType[] reals)
          throws VisADException, RemoteException {
-    throw new ClusterException("no computeRanges(RealType[]) method");
+    return adaptedField.computeRanges(reals);
   }
 
   public Data adjustSamplingError(Data error, int error_mode)
@@ -312,7 +312,7 @@ public class RemoteClientFieldImpl extends RemoteClientDataImpl
 
   public String longString(String pre)
          throws VisADException, RemoteException {
-    return pre + "RemoteClientFieldImpl";
+    return pre + "RemoteNodePartitionedFieldImpl";
   }
 
 }
