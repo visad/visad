@@ -28,6 +28,8 @@ import visad.AnimationControl;
 import visad.Control;
 import visad.ControlEvent;
 import visad.DataDisplayLink;
+import visad.DataReference;
+import visad.DataReferenceImpl;
 import visad.DisplayEvent;
 import visad.DisplayImpl;
 import visad.DisplayMapEvent;
@@ -254,25 +256,34 @@ public class DisplayMonitorImpl
 
       DataDisplayLink link = dre.getDataDisplayLink();
 
-      RemoteReferenceLinkImpl rrl;
+      DataReference linkRef;
       try {
-        rrl = new RemoteReferenceLinkImpl(link);
-      } catch (RemoteException re) {
-re.printStackTrace();
-        // ignore attempt to link in a remote reference
-        rrl = null;
+        linkRef = link.getDataReference();
+      } catch (Exception e) {
+        linkRef = null;
       }
 
-      if (rrl != null) {
+      if (linkRef != null && linkRef instanceof DataReferenceImpl) {
+        RemoteReferenceLinkImpl rrl;
         try {
-          refEvt = new ReferenceMonitorEvent(MonitorEvent.REFERENCE_ADDED,
-                                             rrl);
-        } catch (VisADException ve) {
-          ve.printStackTrace();
-          refEvt = null;
+          rrl = new RemoteReferenceLinkImpl(link);
+        } catch (RemoteException re) {
+          re.printStackTrace();
+          // ignore attempt to link in a remote reference
+          rrl = null;
         }
-        if (refEvt != null) {
-          broadcaster.notifyListeners(refEvt);
+
+        if (rrl != null) {
+          try {
+            refEvt = new ReferenceMonitorEvent(MonitorEvent.REFERENCE_ADDED,
+                                               rrl);
+          } catch (VisADException ve) {
+            ve.printStackTrace();
+            refEvt = null;
+          }
+          if (refEvt != null) {
+            broadcaster.notifyListeners(refEvt);
+          }
         }
       }
       break;
