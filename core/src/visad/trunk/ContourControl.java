@@ -327,7 +327,7 @@ public class ContourControl extends Control {
       changed = true;
       mainContours = cc.mainContours;
     }
-    if (surfaceValue != cc.surfaceValue) {
+    if (!Util.isApproximatelyEqual(surfaceValue, cc.surfaceValue)) {
       changed = true;
       surfaceValue = cc.surfaceValue;
     }
@@ -379,11 +379,6 @@ public class ContourControl extends Control {
           levels[i] = cc.levels[i];
         }
       }
-    }
-
-    if (!Util.isApproximatelyEqual(base, cc.base)) {
-      changed = true;
-      base = cc.base;
     }
 
     if (dash != cc.dash) {
@@ -492,10 +487,6 @@ public class ContourControl extends Control {
     }
 
     if (!Util.isApproximatelyEqual(base, cc.base)) {
-      return false;
-    }
-
-    if (dash != cc.dash) {
       return false;
     }
 
