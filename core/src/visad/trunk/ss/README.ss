@@ -158,13 +158,15 @@ desired cell with a mouse button, or press the arrow keys.
                      adapter native C code compiled in order to import data
                      sets of those types.
       3-D (Java3D) - Sets the current cell's display dimension to 3-D.  This
-                     setting is the default, and requires Java3D.
+                     setting requires Java3D.
       2-D (Java2D) - Sets the current cell's display dimension to 2-D.  This
                      uses Java2D, which comes with JDK 1.2beta3.  However, in
                      this mode, nothing can be mapped to ZAxis, Latitude, or
                      Alpha.  For computers without OpenGL 3-D acceleration,
                      this mode will provide much better performance, but the
                      display quality will not be as good as 2-D (Java3D).
+                     This setting is the default, so that non-Java3D-enabled
+                     computers can still use the spreadsheet.
       2-D (Java3D) - Sets the current cell's display dimension to 2-D.  This
                      requires Java3D.  In this mode, nothing can be mapped to
                      ZAxis or Latitude (but things can be mapped to Alpha).

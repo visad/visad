@@ -59,6 +59,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                                    ItemListener,
                                                    MouseListener {
 
+  // CTR: temporary constant for enabling or disabling widgets
+  static final boolean WIDGETS_ENABLED = false;
+
   // starting size of the application, in percentage of screen size
   static final int WIDTH_PERCENT = 75;
   static final int HEIGHT_PERCENT = 75;
@@ -200,11 +203,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     cell.add(cellImport);
     cell.addSeparator();
 
-    CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", true);
+    CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)");
     CellDim3D3D.addItemListener(this);
     cell.add(CellDim3D3D);
 
-    CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)");
+    CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)", true);
     CellDim2D2D.addItemListener(this);
     cell.add(CellDim2D2D);
 
@@ -317,7 +320,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       JButton b = new JButton(toolFileOpen);
       b.setToolTipText("Import data");
       b.addActionListener(this);
-      b.setActionCommand("fileOpen");
+      b.setActionCommand("cellImport");
       toolbar.add(b);
     }
     toolbar.addSeparator();

@@ -92,7 +92,7 @@ public class BasicSSCell extends JPanel {
   static final int JAVA3D_2D = 3;
 
   /** Specifies whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D. */
-  int Dimension2D = JAVA3D_3D;
+  int Dimension2D = -1;
 
   /** Specifies this SSCell's DisplayListener. */
   DisplayListener DListen = null;
@@ -126,7 +126,7 @@ public class BasicSSCell extends JPanel {
     SSCellVector.addElement(this);
 
     DataRef = new DataReferenceImpl(Name);
-    VDisplay = new DisplayImplJ3D(Name);
+    setDimension(JAVA2D_2D);
     VDPanel = (JPanel) VDisplay.getComponent();
 
     setPreferredSize(new Dimension(0, 0));
@@ -309,7 +309,10 @@ public class BasicSSCell extends JPanel {
     if (!twoD && !java2d) dim = JAVA3D_3D;
     else if (twoD && java2d) dim = JAVA2D_2D;
     else dim = JAVA3D_2D;  // twoD && !java2d
+    setDimension(dim);
+  }
 
+  void setDimension(int dim) throws VisADException, RemoteException {
     if (Dimension2D == dim) return;
     Dimension2D = dim;
     clearDisplay();
