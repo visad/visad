@@ -45,8 +45,7 @@ import java.rmi.*;
    FlexibleTrackManipulation is the VisAD class for
    manipulation of flexible storm tracks (not straight lines)
 */
-public class FlexibleTrackManipulation extends Object
-  implements ControlListener {
+public class FlexibleTrackManipulation extends Object {
 
   private int ntimes = 0;
   private Tuple[] tuples;
@@ -66,7 +65,10 @@ public class FlexibleTrackManipulation extends Object
   private DirectManipulationRendererJ3D[] direct_manipulation_renderers;
   private TrackMonitor[] track_monitors;
 
-  private AnimationControl control = null;
+  private AnimationControl acontrol = null;
+  private ShapeControl shape_control1 = null;
+  private ShapeControl shape_control2 = null;
+  private ProjectionControl pcontrol = null;
 
   private DisplayImplJ3D display;
   private FieldImpl storm_track;
@@ -93,11 +95,16 @@ public class FlexibleTrackManipulation extends Object
     storm_track = st;
     display = d;
 
-    control = (AnimationControl) display.getControl(AnimationControl.class);
+    pcontrol = display.getProjectionControl();
+    ProjectionControlListener pcl = new ProjectionControlListener();
+    pcontrol.addControlListener(pcl);
+
+    acontrol = (AnimationControl) display.getControl(AnimationControl.class);
     // use a ControlListener on Display.Animation to fake
     // animation of the track
-    if (control != null) {
-      control.addControlListener(this);
+    if (acontrol != null) {
+      AnimationControlListener acl = new AnimationControlListener();
+      acontrol.addControlListener(acl);
     }
 
     FunctionType storm_track_type = (FunctionType) storm_track.getType();
@@ -284,13 +291,13 @@ public class FlexibleTrackManipulation extends Object
     VisADLineArray north_circle =
       VisADLineArray.merge(new VisADLineArray[] {circle, north});
 
-    ShapeControl shape_control1 = (ShapeControl) shape_map1.getControl();
+    shape_control1 = (ShapeControl) shape_map1.getControl();
     shape_control1.setShapeSet(new Integer1DSet(8));
     VisADLineArray[] line_shapes =
       {null, ell, circle, null, south_circle, south, north_circle, north};
     shape_control1.setShapes(line_shapes);
 
-    ShapeControl shape_control2 = (ShapeControl) shape_map2.getControl();
+    shape_control2 = (ShapeControl) shape_map2.getControl();
     shape_control2.setShapeSet(new Integer1DSet(8));
     VisADTriangleArray[] triangle_shapes =
       {null, null, null, filled_circle, null, filled_circle, null, filled_circle};
@@ -300,7 +307,7 @@ public class FlexibleTrackManipulation extends Object
     track_ref.setData(storm_track);
     display.addReference(track_ref);
     which_time = -1;
-    if (control == null) {
+    if (acontrol == null) {
       track_refs = new DataReferenceImpl[ntimes];
       direct_manipulation_renderers = new DirectManipulationRendererJ3D[ntimes];
       track_monitors = new TrackMonitor[ntimes];
@@ -325,7 +332,7 @@ public class FlexibleTrackManipulation extends Object
       track_monitors[0].addReference(track_refs[0]);
     }
 
-    if (control != null) control.setCurrent(0);
+    if (acontrol != null) acontrol.setCurrent(0);
   }
 
   public void endManipulation()
@@ -336,30 +343,63 @@ public class FlexibleTrackManipulation extends Object
     display.addReference(track_ref);
   }
 
-  private boolean first = true;
+  private boolean pfirst = true;
 
-  public void controlChanged(ControlEvent e)
-         throws VisADException, RemoteException {
-    which_time = -1;
-    if (direct_manipulation_renderers == null) return;
-    if (direct_manipulation_renderers[0] == null) return;
-    direct_manipulation_renderers[0].stop_direct();
+  class ProjectionControlListener implements ControlListener {
+    private double base_scale = 1.0;
+    private float last_cscale = 1.0f;
 
-    Set ts = control.getSet();
-    if (ts == null) return;
-    if (!time_set.equals(ts)) {
-      throw new CollectiveBarbException("time Set changed");
+    public void controlChanged(ControlEvent e)
+           throws VisADException, RemoteException {
+      double[] matrix = pcontrol.getMatrix();
+      double[] rot = new double[3];
+      double[] scale = new double[1];
+      double[] trans = new double[3];
+      MouseBehaviorJ3D.unmake_matrix(rot, scale, trans, matrix);
+
+      if (pfirst) {
+        pfirst = false;
+        base_scale = scale[0];
+        last_cscale = 1.0f;
+      }
+      else {
+        float cscale = (float) (base_scale / scale[0]);
+        float ratio = cscale / last_cscale;
+        if (ratio < 0.95f || 1.05f < ratio) {
+          last_cscale = cscale;
+          shape_control1.setScale(cscale);
+          shape_control2.setScale(cscale);
+        }
+      }
     }
+  }
 
-    int current = control.getCurrent();
-    if (current < 0) return;
-    which_time = current;
+  private boolean afirst = true;
 
-    track_refs[0].setData(tuples[current]);
-
-    if (first) {
-      first = false;
-      display.removeReference(track_ref);
+  class AnimationControlListener implements ControlListener {
+    public void controlChanged(ControlEvent e)
+           throws VisADException, RemoteException {
+      which_time = -1;
+      if (direct_manipulation_renderers == null) return;
+      if (direct_manipulation_renderers[0] == null) return;
+      direct_manipulation_renderers[0].stop_direct();
+  
+      Set ts = acontrol.getSet();
+      if (ts == null) return;
+      if (!time_set.equals(ts)) {
+        throw new CollectiveBarbException("time Set changed");
+      }
+  
+      int current = acontrol.getCurrent();
+      if (current < 0) return;
+      which_time = current;
+  
+      track_refs[0].setData(tuples[current]);
+  
+      if (afirst) {
+        afirst = false;
+        display.removeReference(track_ref);
+      }
     }
   }
 
@@ -376,7 +416,7 @@ public class FlexibleTrackManipulation extends Object
 
     public void doAction() throws VisADException, RemoteException {
       int time_index = this_time;
-      if (control != null) time_index = which_time;
+      if (acontrol != null) time_index = which_time;
       if (time_index < 0) return;
 
       Tuple storm = (Tuple) ref.getData();
@@ -389,8 +429,8 @@ public class FlexibleTrackManipulation extends Object
           visad.util.Util.isApproximatelyEqual(new_lon,
                  lons[time_index], EPS)) return;
 
-      if (first) {
-        first = false;
+      if (afirst) {
+        afirst = false;
         display.removeReference(track_ref);
       }
 
@@ -483,7 +523,7 @@ public class FlexibleTrackManipulation extends Object
         shapes[j] = (float) shape;
         tuples[j] = storm;
         storm_track.setSample(j, storm);
-        if (control == null) {
+        if (acontrol == null) {
           track_refs[j].setData(tuples[j]);
         }
       } // end for (int j=time_index+1; j<ntimes; j++)

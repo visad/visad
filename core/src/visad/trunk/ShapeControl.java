@@ -28,6 +28,8 @@ package visad;
 
 import java.rmi.*;
 
+import visad.util.Util;
+
 /**
    ShapeControl is the VisAD class for controlling Shape display scalars.<P>
 */
@@ -35,6 +37,9 @@ public class ShapeControl extends Control {
 
   private SimpleSet shapeSet = null;
   private VisADGeometryArray[] shapes = null;
+
+  // WLH 31 May 2000
+  private float scale = 1.0f;
 
   public ShapeControl(DisplayImpl d) {
     super(d);
@@ -133,6 +138,20 @@ public class ShapeControl extends Control {
     return sh;
   }
 
+  // WLH 31 May 2000
+  public void setScale(float s)
+         throws VisADException, RemoteException {
+    if (s == s) {
+      scale = s;
+      changeControl(true);
+    }
+  }
+
+  // WLH 31 May 2000
+  public float getScale() {
+    return scale;
+  }
+
   private boolean shapeSetEquals(SimpleSet newShapeSet)
   {
     if (shapeSet == null) {
@@ -205,6 +224,12 @@ public class ShapeControl extends Control {
       shapes = sc.shapes;
     }
 
+    // WLH 31 May 2000
+    if (!Util.isApproximatelyEqual(scale, sc.scale)) {
+      changed = true;
+      scale = sc.scale;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -227,6 +252,11 @@ public class ShapeControl extends Control {
       return false;
     }
 
+    // WLH 31 May 2000
+    if (!Util.isApproximatelyEqual(scale, sc.scale)) {
+      return false;
+    }
+
     return true;
   }
 
@@ -236,6 +266,7 @@ public class ShapeControl extends Control {
     if (shapes != null) {
       sc.shapes = (VisADGeometryArray[] )shapes.clone();
     }
+    sc.scale = scale;
     return sc;
   }
 }

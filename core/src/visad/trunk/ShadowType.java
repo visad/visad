@@ -1197,6 +1197,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             for (int i=0; i<len; i++) new_values[i] = values[0];
             values = new_values;
           }
+
+          // WLH 31 May 2000
+          float cscale = control.getScale();
+
           VisADGeometryArray[] arrays = control.getShapes(values);
           for (int i=0; i<arrays.length; i++) {
             if (range_select[0] != null) {
@@ -1217,6 +1221,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
               int npts = array.coordinates.length / 3;
               // offset shape location by spatial values
               float scale = (scales.length == 1) ? scales[0] : scales[i];
+
+              // WLH 31 May 2000
+              scale *= cscale;
+
               for (int k=0; k<array.coordinates.length; k+=3) {
                 array.coordinates[k] = x + scale * array.coordinates[k];
                 array.coordinates[k+1] = y + scale * array.coordinates[k+1];
