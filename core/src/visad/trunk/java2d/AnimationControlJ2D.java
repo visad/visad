@@ -72,7 +72,8 @@ public class AnimationControlJ2D extends AVControlJ2D
       // initialize the stepValues array
       try
       {
-          stepValues = new long[animationSet.getSet().getLength()];
+          Set set = animationSet.getSet();
+          if (set != null) stepValues = new long[set.getLength()];
       }
       catch (VisADException v) {;} 
       for (int i = 0; i<stepValues.length; i++)
