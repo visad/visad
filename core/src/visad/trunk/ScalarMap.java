@@ -1196,6 +1196,7 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
       copy(sm);
       return sm;
     } catch (Exception e) {
+      e.printStackTrace();
       return null;
     }
   }
@@ -1203,7 +1204,6 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
   protected void copy(ScalarMap map)
     throws VisADException, RemoteException
   {
-    //map.control = control;
     map.isScaled = isScaled;
     map.isManual = isManual;
     map.dataRange[0] = dataRange[0];
@@ -1215,7 +1215,9 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
     map.axisScale = (axisScale != null) ? axisScale.clone(map) : null;
     map.scale_flag = scale_flag;
     map.back_scale_flag = back_scale_flag;
-    map.setControl();
+    if (map.display != null) {
+      map.setControl();
+    }
   }
 
   /**
