@@ -50,6 +50,10 @@ public class MeasureFrame extends GUIFrame {
    */
   private static JFileChooser fileBox = Util.getVisADFileChooser();
 
+  static {
+    MathType.addTimeAlias("index");
+  }
+
   /** Image stack measurement object. */
   private ImageStackMeasure ism;
 
@@ -128,8 +132,9 @@ public class MeasureFrame extends GUIFrame {
               Tuple tuple = (Tuple) data;
               int len = tuple.getDimension();
               for (int i=0; i<len; i++) {
-                if (data instanceof FieldImpl) {
-                  field = (FieldImpl) data;
+                Data d = tuple.getComponent(i);
+                if (d instanceof FieldImpl) {
+                  field = (FieldImpl) d;
                   break;
                 }
               }
@@ -148,7 +153,7 @@ public class MeasureFrame extends GUIFrame {
 
             // set up mappings
             ScalarMap animMap = null;
-            ScalarMap[] maps = field.getType().guessMaps(true);
+            ScalarMap[] maps = field.getType().guessMaps(false);
             for (int i=0; i<maps.length; i++) {
               ScalarMap smap = maps[i];
               display.addMap(smap);

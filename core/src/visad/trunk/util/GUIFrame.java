@@ -123,17 +123,17 @@ public class GUIFrame extends JFrame implements ActionListener {
     try {
       method = getClass().getMethod(command, null);
     }
-    catch (NoSuchMethodException exc) { }
-    catch (SecurityException exc) { }
+    catch (NoSuchMethodException exc) { exc.printStackTrace(); }
+    catch (SecurityException exc) { exc.printStackTrace(); }
 
     // execute the method
     if (method != null) {
       try {
         method.invoke(this, null);
       }
-      catch (IllegalAccessException exc) { }
-      catch (IllegalArgumentException exc) { }
-      catch (InvocationTargetException exc) { }
+      catch (IllegalAccessException exc) { exc.printStackTrace(); }
+      catch (IllegalArgumentException exc) { exc.printStackTrace(); }
+      catch (InvocationTargetException exc) { exc.printStackTrace(); }
     }
   }
 

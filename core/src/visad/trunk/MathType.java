@@ -237,6 +237,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
     }
   }
 
+  private static Vector timeAliases = makeTimeAliasVector();
+
+  private static Vector makeTimeAliasVector() {
+    Vector v = new Vector();
+    v.add("time");
+    v.add("Time");
+    v.add("TIME");
+    return v;
+  }
+
+  /** Adds a ScalarType name that guessMaps should map to Animation. */
+  public static void addTimeAlias(String name) {
+    synchronized (timeAliases) {
+      timeAliases.add(name);
+    }
+  }
+
   /** Guesses at a set of &quot;default&quot; mappings for this MathType.
       Intuitively, first we look for a FunctionType with domain dimension 3,
       then a nested group of FunctionTypes with 'cumulative' domain
@@ -250,15 +267,15 @@ public abstract class MathType extends Object implements java.io.Serializable {
     MathType m = this;
 
     // set up aliases for "time" RealType to be mapped to Animation
-    // NOTE: other acceptable 1-D function domains could be added here,
-    //       by allocating a larger DataStruct array, then specifying
-    //              ds[*] = new DataStruct("X");
-    //       where "X" is the name of the 1-D function domain RealType
-    //       that is desired to be automatically mapped to Animation.
-    DataStruct[] ds = new DataStruct[3];
-    ds[0] = new DataStruct("time");
-    ds[1] = new DataStruct("Time");
-    ds[2] = new DataStruct("TIME");
+    DataStruct[] ds;
+    synchronized (timeAliases) {
+      int len = timeAliases.size();
+      ds = new DataStruct[len];
+      for (int i=0; i<len; i++) {
+        String name = (String) timeAliases.elementAt(i);
+        ds[i] = new DataStruct(name);
+      }
+    }
 
     // find a FunctionType whose 1-D domain is a RealType matching above
     findTimeFunction(m, ds);
