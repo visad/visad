@@ -13,5 +13,6 @@ the editor with:
   java visad.python.JPythonFrame
 Then open this file and choose "Command", "Run"
 """
-data = read("../ss/cut.gif")
+data = load("../ss/cut.gif")
+clearplot()
 plot(data)

@@ -52,7 +52,7 @@ public abstract class JPythonMethods {
   private static JFrame widgetFrame = null;
 
   /** reads in data from the given location (filename or URL) */
-  public static DataImpl read(String location) throws VisADException {
+  public static DataImpl load(String location) throws VisADException {
     return form.open(location);
   }
 
