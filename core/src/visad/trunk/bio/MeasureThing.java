@@ -64,6 +64,9 @@ public abstract class MeasureThing {
   /** Dimensionality of endpoints. */
   protected int dim;
 
+  /** Synchronization object for data references. */
+  protected Object dataLock = new Object();
+
   /** Constructs a MeasureThing. */
   public MeasureThing(int length, int dimension)
     throws VisADException, RemoteException
@@ -74,8 +77,14 @@ public abstract class MeasureThing {
     values = new RealTuple[len];
     cell = new CellImpl() {
       public void doAction() {
-        for (int i=0; i<len; i++) values[i] = (RealTuple) refs[i].getData();
-        if (m != null) m.values = values;
+        synchronized (dataLock) {
+          for (int i=0; i<len; i++) values[i] = (RealTuple) refs[i].getData();
+        }
+        if (m != null) {
+          RealTuple[] vals = new RealTuple[values.length];
+          System.arraycopy(values, 0, vals, 0, values.length);
+          m.setValues(vals);
+        }
       }
     };
     cell.disableAction();
@@ -109,14 +118,7 @@ public abstract class MeasureThing {
   }
 
   /** Hides the endpoints. */
-  public void hide() {
-    setMeasurement(null);
-    double[][] vals = new double[dim][len];
-    for (int i=0; i<dim; i++) {
-      for (int j=0; j<len; j++) vals[i][j] = Double.NaN;
-    }
-    setValues(vals);
-  }
+  public void hide() { setMeasurement(null); }
 
   /** Initializes the MathType. */
   public void setType(RealTupleType domain)
@@ -145,18 +147,28 @@ public abstract class MeasureThing {
 
   /** Links the given measurement. */
   public void setMeasurement(Measurement m) {
-    this.m = m;
-    if (m != null) setValues(m.values);
+    this.m = null;
+    if (m == null) {
+      double[][] vals = new double[dim][len];
+      for (int i=0; i<dim; i++) {
+        for (int j=0; j<len; j++) vals[i][j] = Double.NaN;
+      }
+      setValues(vals);
+    }
+    else {
+      setValues(m.getValues());
+      this.m = m;
+    }
   }
 
   /** Sets the values of the endpoints. */
-  public void setValues(double[][] values) {
-    if (values.length != dim) {
+  public void setValues(double[][] vals) {
+    if (vals.length != dim) {
       System.err.println("MeasureThing.setValues: invalid dimension");
       return;
     }
     for (int i=0; i<len; i++) {
-      if (values[i].length != len) {
+      if (vals[i].length != len) {
         System.err.println("MeasureThing.setValues: invalid length");
         return;
       }
@@ -166,7 +178,7 @@ public abstract class MeasureThing {
       RealTuple[] tuples = new RealTuple[len];
       for (int j=0; j<len; j++) {
         for (int i=0; i<dim; i++) {
-          reals[j][i] = new Real(ptypes[i], values[i][j]);
+          reals[j][i] = new Real(ptypes[i], vals[i][j]);
         }
         tuples[j] = new RealTuple(reals[j]);
       }
@@ -186,7 +198,11 @@ public abstract class MeasureThing {
     }
     try {
       if (getTypes) setType((RealTupleType) v[0].getType(), false);
-      for (int i=0; i<len; i++) refs[i].setData(v[i]);
+      cell.disableAction();
+      synchronized (dataLock) {
+        for (int i=0; i<len; i++) refs[i].setData(v[i]);
+      }
+      cell.enableAction();
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }

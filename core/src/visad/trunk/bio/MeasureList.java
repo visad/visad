@@ -43,9 +43,6 @@ public class MeasureList {
   /** List of measurements. */
   private Vector measureList;
 
-  /** Associated display. */
-  private DisplayImpl display;
-
   /** Default endpoint values for line. */
   private RealTuple[] lnVals;
 
@@ -56,8 +53,8 @@ public class MeasureList {
   private LinePool pool;
 
   /** Constructs a list of measurements. */
-  public MeasureList(DisplayImpl display, FieldImpl field, LinePool pool,
-    ScalarMap[] xyzMaps) throws VisADException, RemoteException
+  public MeasureList(FieldImpl field, LinePool pool, ScalarMap[] xyzMaps)
+    throws VisADException, RemoteException
   {
     FunctionType type = (FunctionType) field.getType();
     RealTupleType domain = type.getDomain();
@@ -81,7 +78,6 @@ public class MeasureList {
       pxr[i] = new Real(rt, (s1 + s2) / 2);
     }
     measureList = new Vector();
-    this.display = display;
     lnVals = new RealTuple[2];
     lnVals[0] = new RealTuple(p1r);
     lnVals[1] = new RealTuple(p2r);

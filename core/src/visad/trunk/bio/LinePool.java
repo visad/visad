@@ -75,12 +75,6 @@ public class LinePool implements DisplayListener {
     lnUsed = 0;
     ptUsed = 0;
     display.addDisplayListener(this);
-    try {
-      box = new SelectionBox();
-      box.setDisplay(display);
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
   /** Ensures the line pool is at least the given size. */
@@ -115,6 +109,10 @@ public class LinePool implements DisplayListener {
       }
       synchronized (this) {
         display.disableAction();
+        if (box == null) {
+          box = new SelectionBox();
+          box.setDisplay(display);
+        }
         for (int i=0; i<n; i++) {
           try {
             l[i].setDisplay(display);

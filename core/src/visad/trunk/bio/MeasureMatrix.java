@@ -77,7 +77,7 @@ public class MeasureMatrix {
           throw new VisADException("Data #" + i + " not a field");
         }
         FieldImpl slice = (FieldImpl) data;
-        matrix[index][i] = new MeasureList(display, slice, pool, xyzMaps);
+        matrix[index][i] = new MeasureList(slice, pool, xyzMaps);
       }
     }
     this.index = index;

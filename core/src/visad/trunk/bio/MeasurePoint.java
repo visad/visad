@@ -40,9 +40,9 @@ public class MeasurePoint extends MeasureThing {
   private static int maxId = 0;
   
   /** Id number for the point. */
-  int id;
+  private int id;
 
-  /** Constructs a measurement object to match the given field. */
+  /** Constructs a measurement point. */
   public MeasurePoint() throws VisADException, RemoteException {
     super(1, 2);
     id = maxId++;
@@ -59,7 +59,6 @@ public class MeasurePoint extends MeasureThing {
     }
     display = d;
     if (d == null) return;
-    d.disableAction();
 
     // configure display appropriately
     d.getGraphicsModeControl().setPointSize(5.0f);
@@ -67,8 +66,9 @@ public class MeasurePoint extends MeasureThing {
 
     // add endpoint
     addDirectManipRef(d, refs[0]);
-
-    d.enableAction();
   }
+
+  /** Gets the id number of the point. */
+  public int getId() { return id; }
 
 }

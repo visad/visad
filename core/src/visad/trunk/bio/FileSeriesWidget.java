@@ -50,8 +50,8 @@ public class FileSeriesWidget extends StepWidget {
   private ScalarMap animMap;
   private ScalarMap xMap;
   private ScalarMap yMap;
-  MeasureMatrix matrix;
-  DisplayImpl display;
+  private MeasureMatrix matrix;
+  private DisplayImpl display;
 
   /** Constructs a new FileSeriesWidget. */
   public FileSeriesWidget(boolean horizontal) {

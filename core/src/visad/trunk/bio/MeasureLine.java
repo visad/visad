@@ -44,7 +44,7 @@ public class MeasureLine extends MeasureThing {
   private static int maxId = 0;
 
   /** Id number for the line. */
-  int id;
+  private int id;
 
   /** Data reference for connecting line. */
   private DataReferenceImpl ref_line;
@@ -52,7 +52,7 @@ public class MeasureLine extends MeasureThing {
   /** Cell that ties line to endpoints. */
   private CellImpl lineCell;
 
-  /** Constructs a measurement object to match the given field. */
+  /** Constructs a measurement line. */
   public MeasureLine() throws VisADException, RemoteException {
     super(2, 2);
     ref_line = new DataReferenceImpl("line");
@@ -61,8 +61,11 @@ public class MeasureLine extends MeasureThing {
       public void doAction() {
         if (dtype == null) return;
         float[][] vals = null;
-        RealTuple p1 = (RealTuple) refs[0].getData();
-        RealTuple p2 = (RealTuple) refs[1].getData();
+        RealTuple p1, p2;
+        synchronized (dataLock) {
+          p1 = (RealTuple) refs[0].getData();
+          p2 = (RealTuple) refs[1].getData();
+        }
         if (p1 == null || p2 == null) return;
 
         // extract samples
@@ -112,15 +115,12 @@ public class MeasureLine extends MeasureThing {
   {
     if (display != null) {
       // remove measuring data from old display
-      display.disableAction();
       display.removeReference(refs[0]);
       display.removeReference(refs[1]);
       display.removeReference(ref_line);
-      display.enableAction();
     }
     display = d;
     if (d == null) return;
-    d.disableAction();
 
     // configure display appropriately
     d.getGraphicsModeControl().setPointSize(5.0f);
@@ -132,8 +132,6 @@ public class MeasureLine extends MeasureThing {
 
     // add connecting line
     d.addReference(ref_line);
-
-    d.enableAction();
   }
 
   /** Sets the line's color. */
@@ -168,7 +166,7 @@ public class MeasureLine extends MeasureThing {
   /** Links the given measurement. */
   public void setMeasurement(Measurement m) {
     super.setMeasurement(m);
-    if (m != null) setColor(m.color);
+    if (m != null) setColor(m.getColor());
   }
 
   protected void setValues(RealTuple[] v, boolean getTypes) {
@@ -176,5 +174,8 @@ public class MeasureLine extends MeasureThing {
     super.setValues(v, getTypes);
     lineCell.enableAction();
   }
+
+  /** Gets the id number of the line. */
+  public int getId() { return id; }
 
 }

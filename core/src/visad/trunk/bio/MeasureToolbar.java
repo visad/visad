@@ -131,7 +131,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     addLine = new JButton("New line");
     addLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        getList().addMeasurement();
+        MeasureList list = getList();
+        if (list != null) list.addMeasurement();
       }
     });
     addLine.setEnabled(false);
@@ -142,7 +143,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     addMarker = new JButton("New marker");
     addMarker.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        getList().addMeasurement(true);
+        MeasureList list = getList();
+        if (list != null) list.addMeasurement(true);
       }
     });
     addMarker.setEnabled(false);
@@ -320,8 +322,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     descriptionBox.setEnabled(enabled);
     if (enabled) {
       Measurement m = thing.getMeasurement();
-      colorList.setSelectedItem(m.color);
-      groupList.setSelectedItem(m.group);
+      colorList.setSelectedItem(m.getColor());
+      groupList.setSelectedItem(m.getGroup());
     }
   }
 
@@ -329,7 +331,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   private MeasureList getList() {
     int index = horiz.getValue() - 1;
     int slice = vert.getValue() - 1;
-    return horiz.matrix.getMeasureList(index, slice);
+    return horiz.getMatrix().getMeasureList(index, slice);
   }
 
   /** Pads a component or group of components with horizontal space. */

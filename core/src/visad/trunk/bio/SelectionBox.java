@@ -34,10 +34,10 @@ import visad.*;
  */
 public class SelectionBox {
 
-  private static final int DISTANCE = 10;
+  private static final int DISTANCE = 15;
 
   /** Data reference for first endpoint. */
-  private DataReferenceImpl[] refs = new DataReferenceImpl[4];
+  private DataReferenceImpl[] refs = new DataReferenceImpl[6];
 
   /** Currently selected thing. */
   private MeasureThing thing;
@@ -50,18 +50,18 @@ public class SelectionBox {
 
   /** Constructs a selection box. */
   public SelectionBox() throws VisADException, RemoteException {
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<refs.length; i++) {
       refs[i] = new DataReferenceImpl("box" + i);
       refs[i].setData(new Real(Double.NaN));
     }
     cell = new CellImpl() {
       public void doAction() {
-        synchronized (this) {
+        synchronized (cell) {
           Real[][] reals = null;
           if (thing == null) {
             // no measurement (no selection)
-            reals = new Real[4][2];
-            for (int i=0; i<4; i++) {
+            reals = new Real[refs.length][2];
+            for (int i=0; i<refs.length; i++) {
                for (int j=0; j<2; j++) reals[i][j] = new Real(Double.NaN);
             }
           }
@@ -89,6 +89,8 @@ public class SelectionBox {
                   {new Real(rtx, px + vx), new Real(rty, py - vy)},
                   {new Real(rtx, px - vx), new Real(rty, py + vy)},
                   {new Real(rtx, px + vx), new Real(rty, py + vy)},
+                  {new Real(Double.NaN), new Real(Double.NaN)},
+                  {new Real(Double.NaN), new Real(Double.NaN)}
                 };
               }
               catch (VisADException exc) { exc.printStackTrace(); }
@@ -120,11 +122,26 @@ public class SelectionBox {
                 double vx = DISTANCE / Math.sqrt(slope * slope + 1);
                 double vy = slope * vx;
 
+                double b1x = p1x - vx;
+                double b1y = p1y - vy;
+                double b2x = p2x - vx;
+                double b2y = p2y - vy;
+                double b3x = p1x + vx;
+                double b3y = p1y + vy;
+                double b4x = p2x + vx;
+                double b4y = p2y + vy;
+                double b5x = (b1x + b2x) / 2;
+                double b5y = (b1y + b2y) / 2;
+                double b6x = (b3x + b4x) / 2;
+                double b6y = (b3y + b4y) / 2;
+
                 reals = new Real[][] {
-                  {new Real(rtx, p1x - vx), new Real(rty, p1y - vy)},
-                  {new Real(rtx, p1x + vx), new Real(rty, p1y + vy)},
-                  {new Real(rtx, p2x - vx), new Real(rty, p2y - vy)},
-                  {new Real(rtx, p2x + vx), new Real(rty, p2y + vy)}
+                  {new Real(rtx, b1x), new Real(rty, b1y)},
+                  {new Real(rtx, b2x), new Real(rty, b2y)},
+                  {new Real(rtx, b3x), new Real(rty, b3y)},
+                  {new Real(rtx, b4x), new Real(rty, b4y)},
+                  {new Real(rtx, b5x), new Real(rty, b5y)},
+                  {new Real(rtx, b6x), new Real(rty, b6y)}
                 };
               }
               catch (VisADException exc) { exc.printStackTrace(); }
@@ -154,9 +171,7 @@ public class SelectionBox {
   {
     if (display != null) {
       // remove selection box from old display
-      display.disableAction();
-      for (int i=0; i<4; i++) display.removeReference(refs[i]);
-      display.enableAction();
+      for (int i=0; i<refs.length; i++) display.removeReference(refs[i]);
     }
     display = d;
     if (d == null) return;
@@ -168,9 +183,7 @@ public class SelectionBox {
       new ConstantMap(0.0f, Display.Blue),
       new ConstantMap(3.0f, Display.PointSize)
     };
-    d.disableAction();
-    for (int i=0; i<4; i++) d.addReference(refs[i], maps);
-    d.enableAction();
+    for (int i=0; i<refs.length; i++) d.addReference(refs[i], maps);
   }
 
   /** Selects the given measurement object. */

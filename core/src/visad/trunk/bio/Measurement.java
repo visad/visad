@@ -34,13 +34,13 @@ import visad.*;
 public class Measurement {
 
   /** Endpoint values of the measurement. */
-  RealTuple[] values;
+  private RealTuple[] values;
 
   /** Color of the measurement line. */
-  Color color = Color.white;
+  private Color color = Color.white;
 
   /** Group of the measurement. */
-  LineGroup group;
+  private LineGroup group;
 
   /** Constructs a measurement. */
   public Measurement(RealTuple[] values, Color color, LineGroup group) {
@@ -50,7 +50,9 @@ public class Measurement {
   }
 
   /** Sets the measurement endpoint values. */
-  public void setValues(RealTuple[] values) { this.values = values; }
+  public void setValues(RealTuple[] values) {
+    this.values = values;
+  }
 
   /** Sets the measurement group. */
   public void setGroup(LineGroup group) { this.group = group; }
