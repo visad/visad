@@ -1747,7 +1747,7 @@ for color_length = 3 this is 148 * Length
       }
       //-- compute color at field contour intervals
       float[] display_intervals = smap[0].scaleValues(intervals);
-      ColorControl color_control = (ColorControl)smap[0].getControl();
+      BaseColorControl color_control = (BaseColorControl)smap[0].getControl();
       float[][] temp = null;
       try {
        temp = color_control.lookupValues(display_intervals);
