@@ -94,35 +94,36 @@ public class Gridded3DSet extends GriddedSet {
            "Gridded3DSet: samples values may not be missing");
         }
       }
+    // Samples consistency test
+    float[] t000 = new float[3];
+    float[] t100 = new float[3];
+    float[] t010 = new float[3];
+    float[] t001 = new float[3];
+    float[] t110 = new float[3];
+    float[] t101 = new float[3];
+    float[] t011 = new float[3];
+    float[] t111 = new float[3];
+    for (int v=0; v<3; v++) {
+      t000[v] = Samples[v][0];
+      t100[v] = Samples[v][1];
+      t010[v] = Samples[v][LengthX];
+      t001[v] = Samples[v][LengthY*LengthX];
+      t110[v] = Samples[v][LengthX+1];
+      t101[v] = Samples[v][LengthY*LengthX+1];
+      t011[v] = Samples[v][(LengthY+1)*LengthX];
+      t111[v] = Samples[v][(LengthY+1)*LengthX+1];
+    }
+    Pos = (  ( (t100[1]-t000[1])*(t101[2]-t100[2])
+             - (t100[2]-t000[2])*(t101[1]-t100[1]) )
+              *(t110[0]-t100[0])  )
+        + (  ( (t100[2]-t000[2])*(t101[0]-t100[0])
+             - (t100[0]-t000[0])*(t101[2]-t100[2]) )
+              *(t110[1]-t100[1])  )
+        + (  ( (t100[0]-t000[0])*(t101[1]-t100[1])
+             - (t100[1]-t000[1])*(t101[0]-t100[0]) )
+              *(t110[2]-t100[2])  ) > 0;
+
       if (test) {
-        // Samples consistency test
-        float[] t000 = new float[3];
-        float[] t100 = new float[3];
-        float[] t010 = new float[3];
-        float[] t001 = new float[3];
-        float[] t110 = new float[3];
-        float[] t101 = new float[3];
-        float[] t011 = new float[3];
-        float[] t111 = new float[3];
-        for (int v=0; v<3; v++) {
-          t000[v] = Samples[v][0];
-          t100[v] = Samples[v][1];
-          t010[v] = Samples[v][LengthX];
-          t001[v] = Samples[v][LengthY*LengthX];
-          t110[v] = Samples[v][LengthX+1];
-          t101[v] = Samples[v][LengthY*LengthX+1];
-          t011[v] = Samples[v][(LengthY+1)*LengthX];
-          t111[v] = Samples[v][(LengthY+1)*LengthX+1];
-        }
-        Pos = (  ( (t100[1]-t000[1])*(t101[2]-t100[2])
-                 - (t100[2]-t000[2])*(t101[1]-t100[1]) )
-                  *(t110[0]-t100[0])  )
-            + (  ( (t100[2]-t000[2])*(t101[0]-t100[0])
-                 - (t100[0]-t000[0])*(t101[2]-t100[2]) )
-                  *(t110[1]-t100[1])  )
-            + (  ( (t100[0]-t000[0])*(t101[1]-t100[1])
-                 - (t100[1]-t000[1])*(t101[0]-t100[0]) )
-                  *(t110[2]-t100[2])  ) > 0;
         for (int k=0; k<LengthZ-1; k++) {
           for (int j=0; j<LengthY-1; j++) {
             for (int i=0; i<LengthX-1; i++) {
