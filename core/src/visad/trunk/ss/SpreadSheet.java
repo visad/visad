@@ -2080,7 +2080,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           }
         }
       }
-      selectCell(ci, cj);
+      if (CurX != ci || CurY != cj) selectCell(ci, cj);
     }
   }
 
@@ -2112,7 +2112,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Component c = e.getComponent();
     for (int j=0; j<NumVisY; j++) {
       for (int i=0; i<NumVisX; i++) {
-        if (c == DisplayCells[i][j]) selectCell(i, j);
+        if (c == DisplayCells[i][j] && (CurX != i || CurY != j)) {
+          selectCell(i, j);
+        }
       }
     }
     oldX = e.getX();
@@ -2257,14 +2259,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     DisplayCells[x][y].setSelected(true);
 
-    if (x != CurX || y != CurY) {
-      // update spreadsheet info
-      CurX = x;
-      CurY = y;
-      refreshFormulaBar();
-      refreshMenuCommands();
-      refreshDisplayMenuItems();
-    }
+    // update spreadsheet info
+    CurX = x;
+    CurY = y;
+    refreshFormulaBar();
+    refreshMenuCommands();
+    refreshDisplayMenuItems();
   }
 
   /** display an error in a message dialog */
