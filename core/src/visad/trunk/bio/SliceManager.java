@@ -46,6 +46,9 @@ public class SliceManager
   /** RealType for mapping timestep values to animation. */
   private static final RealType TIME_TYPE = RealType.getRealType("bio_time");
 
+  /** RealType for mapping slice values to select value and Z axis. */
+  private static final RealType SLICE_TYPE = RealType.getRealType("bio_slice");
+
   /** RealType for mapping to Red. */
   private static final RealType RED_TYPE = RealType.getRealType("bio_red");
 
@@ -209,6 +212,9 @@ public class SliceManager
   /** List of files containing current data series. */
   private File[] files;
 
+  /** Should each file be interpreted as a slice rather than a timestep? */
+  private boolean filesAsSlices;
+
   /** Number of timesteps in data series. */
   private int timesteps;
 
@@ -342,8 +348,9 @@ public class SliceManager
    * each file as a slice (instead of a timestep) if specified.
    */
   public void setSeries(File[] files, boolean filesAsSlices) {
-    // CTR - FIXME - implement filesAsSlices option
     this.files = files;
+    this.filesAsSlices = filesAsSlices;
+    if (filesAsSlices) doThumbs = false;
     index = 0;
     setFile(true);
     bio.horiz.updateSlider(timesteps);
@@ -366,19 +373,19 @@ public class SliceManager
           FieldImpl data = null;
           for (int i=0; i<timesteps; i++) {
             FieldImpl image;
-            FieldImpl field = loadData(files[i]);
+            FieldImpl f = filesAsSlices ? field : loadData(files[i], true);
             if (i == 0) {
               FunctionType image_type =
-                (FunctionType) field.getSample(0).getType();
+                (FunctionType) f.getSample(0).getType();
               FunctionType anim_type = new FunctionType(TIME_TYPE, image_type);
               Integer1DSet set = new Integer1DSet(TIME_TYPE, timesteps);
               data = new FieldImpl(anim_type, set);
             }
             if (planeSelect) {
               image = (FieldImpl) ps.extractSlice((FieldImpl)
-                field.domainMultiply(), res_x, res_y, res_x, res_y);
+                f.domainMultiply(), res_x, res_y, res_x, res_y);
             }
-            else image = (FieldImpl) field.getSample(slice);
+            else image = (FieldImpl) f.getSample(slice);
             data.setSample(i, image, false);
             dialog.setPercent(100 * (i + 1) / timesteps);
           }
@@ -516,42 +523,57 @@ public class SliceManager
           // reset measurements
           if (bio.mm.lists != null) bio.mm.clear();
 
-          // create low-resolution thumbnails for timestep animation
           field = null;
           collapsedField = null;
           FieldImpl[][] thumbs = null;
-          timesteps = f.length;
-          double scale = Double.NaN;
-          for (int i=0; i<timesteps; i++) {
-            // set up index so that current timestep is done last
-            if (!doThumbs) {
-              // no need to create thumbnails; skip to proper timestep
-              i = timesteps - 1;
+
+          if (filesAsSlices) {
+            // load data at all indices and compile into a single timestep
+            slices = f.length;
+            timesteps = 1;
+            for (int i=0; i<slices; i++) {
+              FieldImpl image = loadData(f[i], false);
+              if (image == null) return;
+              if (field == null) {
+                FunctionType stack_type =
+                  new FunctionType(SLICE_TYPE, image.getType());
+                field = new FieldImpl(stack_type, new Integer1DSet(slices));
+              }
+              field.setSample(i, image);
+              dialog.setPercent(100 * (i + 1) / slices);
             }
-            int ndx = i == timesteps - 1 ? curfile :
-              (i >= curfile ? i + 1 : i);
-            field = loadData(f[ndx]);
-            if (field == null) {
-              throw new VisADException(f[ndx].getName() +
-                " does not contain valid image stack data");
-            }
-            if (thumbs == null) {
-              slices = field.getLength();
-              mode_index = mode_slice = 0;
-            }
-            if (!doThumbs) {
-              // no need to create thumbnails; done loading
-              dialog.setPercent(100);
-              break;
-            }
-            if (thumbs == null) thumbs = new FieldImpl[timesteps][slices];
-            for (int j=0; j<slices; j++) {
-              FieldImpl image = (FieldImpl) field.getSample(j);
-              thumbs[ndx][j] = DualRes.rescale(image, thumbSize);
-              dialog.setPercent(
-                100 * (slices * i + j + 1) / (timesteps * slices));
+            doThumbs = false;
+          }
+          else if (doThumbs) {
+            // load data at all indices and create thumbnails
+            timesteps = f.length;
+            for (int i=0; i<timesteps; i++) {
+              // do current timestep last
+              int ndx = i == timesteps - 1 ? curfile :
+                (i >= curfile ? i + 1 : i);
+              field = loadData(f[ndx], true);
+              if (field == null) return;
+              if (thumbs == null) {
+                slices = field.getLength();
+                mode_index = mode_slice = 0;
+                thumbs = new FieldImpl[timesteps][slices];
+              }
+              for (int j=0; j<slices; j++) {
+                FieldImpl image = (FieldImpl) field.getSample(j);
+                thumbs[ndx][j] = DualRes.rescale(image, thumbSize);
+                dialog.setPercent(
+                  100 * (slices * i + j + 1) / (timesteps * slices));
+              }
             }
           }
+          else {
+            // load data at current index only
+            timesteps = f.length;
+            field = loadData(f[curfile], true);
+            dialog.setPercent(100);
+          }
+          if (field == null) return;
+
           hasThumbs = doThumbs;
           autoSwitch = hasThumbs;
 
@@ -643,10 +665,11 @@ public class SliceManager
   }
 
   /**
-   * Loads the data from the given file, and ensures
-   * that the given data object is of the proper form.
+   * Loads the data from the given file, and ensures that the
+   * resulting data object is of the proper form, converting
+   * image data into single-slice stack data if specified.
    */
-  private FieldImpl loadData(File file) {
+  private FieldImpl loadData(File file, boolean makeStack) {
     // load data from file
     Data data = null;
     try { data = loader.open(file.getPath()); }
@@ -668,10 +691,9 @@ public class SliceManager
 
     // convert single image to single-slice stack
     FieldImpl stack = f;
-    if (f instanceof FlatField) {
+    if (f instanceof FlatField && makeStack) {
       try {
-        FunctionType func = new FunctionType(
-          RealType.getRealType("slice"), f.getType());
+        FunctionType func = new FunctionType(SLICE_TYPE, f.getType());
         stack = new FieldImpl(func, new Integer1DSet(1));
         stack.setSample(0, f, false);
       }
@@ -686,8 +708,8 @@ public class SliceManager
     bio.setWaitCursor(true);
     try {
       if (initialize) init(files, 0);
-      else {
-        field = loadData(files[index]);
+      else if (!filesAsSlices) {
+        field = loadData(files[index], true);
         collapsedField = null;
         if (field != null) {
           ref2.setData(field);

@@ -144,6 +144,15 @@ public class SeriesChooser extends JPanel implements ActionListener {
     // create radio buttons
     treatTimestep = new JRadioButton("timestep");
     treatSlice = new JRadioButton("slice");
+    treatSlice.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = !treatSlice.isSelected();
+        thumbs.setEnabled(b);
+        thumbResX.setEnabled(b);
+        thumbLabel.setEnabled(b);
+        thumbResY.setEnabled(b);
+      }
+    });
     treatTimestep.setForeground(Color.black);
     treatSlice.setForeground(Color.black);
     treatTimestep.setSelected(true);
