@@ -461,7 +461,9 @@ public class ShowNCEPModel
     cf = getContentPane();
     cf.setLayout(new BoxLayout(cf, BoxLayout.X_AXIS) );
 
-    cf.add(buildControlPanel());
+    if (!isClient) {
+      cf.add(buildControlPanel());
+    }
     cf.add(vdisplay);
     setSize(1024,768);
     setVisible(true);
