@@ -700,7 +700,7 @@ public class GriddedSet extends SampledSet {
              neighbors[ii][3] = ii + LengthXY;
              neighbors[ii][4] = ii - LengthXY;
 
-             ii = iz*LengthXY + iy*LengthX - 1;
+             ii = iz*LengthXY + iy*LengthX + ( LengthX - 1);
              neighbors[ii] = new int[5];
              neighbors[ii][0] = ii - 1;
              neighbors[ii][1] = ii + LengthX;
