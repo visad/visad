@@ -493,8 +493,7 @@ public class GoesCollaboration extends Object {
   }
 
 
-  /** set up Displays; client is true for client and false for server;
-      return constructed Displays in displays array */
+  /** set up Displays; return constructed Displays in displays array */
   void setupDisplays(DisplayImpl[] displays)
        throws VisADException, RemoteException {
 

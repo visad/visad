@@ -1377,10 +1377,15 @@ public class Galaxy extends Object implements ActionListener {
 
   private native void ismgsc_c(float[] params, int[] sizes, float[] grid_a,
                                float[] image_a, float[] lons, float[] lats);
-  
+
+  /** Given coordinates (X,Y,Z) of pt in galaxy profile returns
+      two 1D arrays, xprof, yprof with NPROF_PT values each.
+      itype=1 gives xprof=distance from sun, yprof=density
+      itype=2 will give xprof=velocity, yprof=emission measure */
   private native void profile_c( int itype, int n_pts, float x, float y,
                                  float z, float[] xprof, float[] yprof );
 
+  /** Convert galactic X,Y,Z to sun_centered l,b,distance */
   private native void galtosol( float x, float y, float z, float[] lbd );
 
 } //- end class: Galaxy
