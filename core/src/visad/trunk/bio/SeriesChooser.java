@@ -59,6 +59,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
   /** Text field containing file extension. */
   private JComboBox type;
 
+  /** Toggle for creation of low-resolution thumbnails. */
+  private JCheckBox thumbs;
+
   /** Ok button. */
   private JButton ok;
 
@@ -75,18 +78,21 @@ public class SeriesChooser extends JPanel implements ActionListener {
   public SeriesChooser() {
     // create panels
     JPanel top = new JPanel();
-    JPanel mid = new JPanel();
+    JPanel mid1 = new JPanel();
+    JPanel mid2 = new JPanel();
     JPanel bottom = new JPanel();
-    JPanel midLeft = new JPanel();
-    JPanel midRight = new JPanel();
+    JPanel mid1Left = new JPanel();
+    JPanel mid1Right = new JPanel();
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
-    mid.setLayout(new BoxLayout(mid, BoxLayout.X_AXIS));
+    mid1.setLayout(new BoxLayout(mid1, BoxLayout.X_AXIS));
+    mid2.setLayout(new BoxLayout(mid2, BoxLayout.X_AXIS));
     bottom.setLayout(new BoxLayout(bottom, BoxLayout.X_AXIS));
-    midLeft.setLayout(new BoxLayout(midLeft, BoxLayout.Y_AXIS));
-    midRight.setLayout(new BoxLayout(midRight, BoxLayout.Y_AXIS));
+    mid1Left.setLayout(new BoxLayout(mid1Left, BoxLayout.Y_AXIS));
+    mid1Right.setLayout(new BoxLayout(mid1Right, BoxLayout.Y_AXIS));
     top.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    mid.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    mid1.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    mid2.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     bottom.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
     // create labels
@@ -109,6 +115,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
     Util.adjustTextField(prefix);
     type.setEditable(true);
 
+    // create check box
+    thumbs = new JCheckBox("Create low-resolution thumbnails", true);
+
     // create buttons
     JButton select = new JButton("Choose file");
     ok = new JButton("Ok");
@@ -127,19 +136,21 @@ public class SeriesChooser extends JPanel implements ActionListener {
 
     // lay out components
     add(top);
-    add(mid);
+    add(mid1);
+    add(mid2);
     add(bottom);
     top.add(l1);
     top.add(prefix);
-    mid.add(midLeft);
-    mid.add(midRight);
+    mid1.add(mid1Left);
+    mid1.add(mid1Right);
+    mid2.add(thumbs);
     bottom.add(select);
     bottom.add(ok);
     bottom.add(cancel);
-    midLeft.add(l2);
-    midLeft.add(count);
-    midRight.add(l3);
-    midRight.add(type);
+    mid1Left.add(l2);
+    mid1Left.add(count);
+    mid1Right.add(l3);
+    mid1Right.add(type);
   }
 
 
@@ -182,6 +193,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
 
   /** Gets the prefix of the selected file series. */
   public String getPrefix() { return prefix.getText(); }
+
+  /** Gets whether to make low-resolution thumbnails. */
+  public boolean getThumbs() { return thumbs.isSelected(); }
 
 
   // -- INTERNAL API METHODS --

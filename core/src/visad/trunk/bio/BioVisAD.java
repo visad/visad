@@ -263,6 +263,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
         // load first file in series
         File[] f = seriesBox.getSeries();
         prefix = seriesBox.getPrefix();
+        sm.setThumbnails(seriesBox.getThumbs());
         if (f == null || f.length < 1) {
           JOptionPane.showMessageDialog(frame,
             "Invalid series", "Cannot load series",

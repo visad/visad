@@ -77,6 +77,7 @@ public class BioColorMapWidget extends JPanel implements ItemListener {
 
   private BioVisAD bio;
   private DisplayRealType type;
+  private boolean changed;
 
 
   // -- CONSTRUCTOR --
@@ -106,6 +107,13 @@ public class BioColorMapWidget extends JPanel implements ItemListener {
   public RealType getSelectedItem() {
     Object o = scalars.getSelectedItem();
     return o instanceof RealType ? (RealType) o : null;
+  }
+
+  /** Gets whether the widget has changed since last method call. */
+  public boolean hasChanged() {
+    boolean b = changed;
+    changed = false;
+    return b;
   }
 
   /** Enables or disables this widget. */
@@ -165,6 +173,6 @@ public class BioColorMapWidget extends JPanel implements ItemListener {
 
   // -- INTERNAL API METHODS --
 
-  public void itemStateChanged(ItemEvent e) { bio.sm.reconfigureDisplays(); }
+  public void itemStateChanged(ItemEvent e) { changed = true; }
 
 }

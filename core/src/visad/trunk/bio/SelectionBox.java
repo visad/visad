@@ -209,7 +209,7 @@ public class SelectionBox {
           // select given object
           PoolPoint[] pts = thing.getPoints();
           for (int i=0; i<pts.length; i++) cell.addReference(pts[i].ref);
-          for (int i=0; i<6; i++) renderers[i].toggle(true);
+          for (int i=0; i<pts.length; i++) renderers[i].toggle(true);
         }
         cell.enableAction();
         if (thing == null) cell.doAction();

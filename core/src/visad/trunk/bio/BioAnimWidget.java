@@ -95,6 +95,7 @@ public class BioAnimWidget extends JPanel implements ControlListener {
 
   /** Links the animation widget with the given animation control. */
   public void setControl(AnimationControl control) {
+    if (this.control == control) return;
     if (this.control != null) this.control.removeControlListener(this);
     this.control = control;
     if (control != null) {

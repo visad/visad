@@ -60,20 +60,11 @@ public class ViewToolPanel extends ToolPanel {
   /** Toggle for hi-res image display. */
   private JToggleButton hiRes;
 
-  /** Toggle for low-resolution thumbnails. */
-  private JCheckBox thumbs;
+  /** Toggle for auto-switching between low and high resolutions. */
+  private JCheckBox autoSwitch;
   
   /** Animation widget. */
   private BioAnimWidget anim;
-
-  /** Toggle for grayscale mode. */
-  private JCheckBox grayscale;
-
-  /** Label for brightness. */
-  private JLabel brightnessLabel;
-
-  /** Slider for level of brightness. */
-  private JSlider brightness;
 
   /** Red color map widget. */
   private BioColorMapWidget red;
@@ -86,6 +77,18 @@ public class ViewToolPanel extends ToolPanel {
 
   /** Composite color map widget. */
   private BioColorMapWidget rgb;
+
+  /** Toggle for grayscale mode. */
+  private JCheckBox grayscale;
+
+  /** Label for brightness. */
+  private JLabel brightnessLabel;
+
+  /** Slider for level of brightness. */
+  private JSlider brightness;
+
+  /** Button for applying color map changes. */
+  private JButton applyColors;
 
 
   // -- CONSTRUCTOR --
@@ -149,14 +152,14 @@ public class ViewToolPanel extends ToolPanel {
     hiRes.setEnabled(false);
     controls.add(pad(p));
 
-    // thumbnails checkbox
-    thumbs = new JCheckBox("Create low-resolution thumbnails", true);
-    thumbs.addItemListener(new ItemListener() {
+    // auto-switch checkbox
+    autoSwitch = new JCheckBox("Auto-switch resolutions", true);
+    autoSwitch.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        bio.sm.setThumbnails(thumbs.isSelected());
+        // CTR - TODO
       }
     });
-    controls.add(pad(thumbs));
+    controls.add(pad(autoSwitch));
 
     // divider between resolution functions and animation functions
     controls.add(Box.createVerticalStrut(10));
@@ -197,25 +200,41 @@ public class ViewToolPanel extends ToolPanel {
     p.add(brightness);
     controls.add(p);
 
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
+    // composite color map widget
+    rgb = new BioColorMapWidget(bio, BioColorMapWidget.RGB);
+    controls.add(pad(rgb));
+
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
     // red color map widget
     red = new BioColorMapWidget(bio, BioColorMapWidget.RED);
-    red.setEnabled(false); // CTR - TEMP
     controls.add(pad(red));
 
     // green color map widget
     green = new BioColorMapWidget(bio, BioColorMapWidget.GREEN);
-    green.setEnabled(false); // CTR - TEMP
     controls.add(pad(green));
 
     // blue color map widget
     blue = new BioColorMapWidget(bio, BioColorMapWidget.BLUE);
-    blue.setEnabled(false); // CTR - TEMP
     controls.add(pad(blue));
 
-    // composite color map widget
-    rgb = new BioColorMapWidget(bio, BioColorMapWidget.RGB);
-    rgb.setEnabled(false); // CTR - TEMP
-    controls.add(pad(rgb));
+    // spacing
+    controls.add(Box.createVerticalStrut(5));
+
+    // color settings application button
+    JButton applyColors = new JButton("Apply color settings");
+    applyColors.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        boolean changed = red.hasChanged() || green.hasChanged() ||
+          blue.hasChanged() || rgb.hasChanged();
+        if (changed) bio.sm.reconfigureDisplays();
+      }
+    });
+    controls.add(pad(applyColors));
   }
 
 
@@ -264,13 +283,11 @@ public class ViewToolPanel extends ToolPanel {
       blue.getSelectedItem(),
       rgb.getSelectedItem()
     };
-    int nullCount = 0;
-    for (int i=0; i<rt.length; i++) if (rt[i] == null) nullCount++;
-    ScalarMap[] maps = new ScalarMap[rt.length - nullCount];
-    int c = 0;
+    ScalarMap[] maps = new ScalarMap[rt.length];
     for (int i=0; i<rt.length; i++) {
-      if (rt[i] == null) continue;
-      maps[c++] = new ScalarMap(rt[i], COLOR_TYPES[i]);
+      maps[i] = rt[i] == null ?
+        new ConstantMap(0.0, COLOR_TYPES[i]) :
+        new ScalarMap(rt[i], COLOR_TYPES[i]);
     }
     return maps;
   }
