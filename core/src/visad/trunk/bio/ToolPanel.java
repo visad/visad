@@ -70,24 +70,41 @@ public abstract class ToolPanel extends JScrollPane {
 
   // -- UTILITY METHODS --
 
-  /** Pads a component or group of components with horizontal space. */
-  public static JPanel pad(Component c) {
+  /**
+   * Pads a component or group of components with
+   * horizontal space on both sides.
+   */
+  public static JPanel pad(Component c) { return pad(c, true, true); }
+
+  /**
+   * Pads a component or group of components with
+   * horizontal space on one or both sides.
+   */
+  public static JPanel pad(Component c, boolean left, boolean right) {
     JPanel p;
     if (c instanceof JPanel) {
       p = (JPanel) c;
-      p.add(Box.createHorizontalGlue(), 0);
-      p.add(Box.createHorizontalStrut(5), 0);
-      p.add(Box.createHorizontalGlue());
-      p.add(Box.createHorizontalStrut(5));
+      if (left) {
+        p.add(Box.createHorizontalGlue(), 0);
+        p.add(Box.createHorizontalStrut(5), 0);
+      }
+      if (right) {
+        p.add(Box.createHorizontalGlue());
+        p.add(Box.createHorizontalStrut(5));
+      }
     }
     else {
       p = new JPanel();
       p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-      p.add(Box.createHorizontalStrut(5));
-      p.add(Box.createHorizontalGlue());
+      if (left) {
+        p.add(Box.createHorizontalStrut(5));
+        p.add(Box.createHorizontalGlue());
+      }
       p.add(c);
-      p.add(Box.createHorizontalGlue());
-      p.add(Box.createHorizontalStrut(5));
+      if (right) {
+        p.add(Box.createHorizontalGlue());
+        p.add(Box.createHorizontalStrut(5));
+      }
     }
     return p;
   }

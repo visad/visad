@@ -59,18 +59,6 @@ public class SliceManager
   private static final RealType BLUE_TYPE = RealType.getRealType("bio_blue");
 
 
-  // -- MEMORY ALLOCATION CONSTANTS --
-
-  /** Number of megabytes reserved for objects apart from image data. */
-  private static final int RESERVED = 16;
-
-  /** Number of bytes in a megabyte. */
-  private static final int MEGA = 1 << 20;
-
-  /** Number of bytes in a single image pixel. */
-  private static final int BYTES_PER_PIXEL = 8; // double = 64 bits
-
-
   // -- DATA TYPE INFORMATION --
 
   /** Domain type for 2-D image stack data. */

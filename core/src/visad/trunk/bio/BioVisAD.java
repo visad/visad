@@ -110,8 +110,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   // -- GUI COMPONENTS --
 
-  /** Series chooser for loading a series of data files. */
-  private SeriesChooser seriesBox;
+  /** Import dialog for loading data series. */
+  private ImportDialog importer;
+
+  /** Export dialog for saving data series. */
+  private ExportDialog exporter;
 
   /** Panel containing VisAD displays. */
   private JPanel displayPane;
@@ -144,10 +147,12 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   public BioVisAD() throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
-    seriesBox = new SeriesChooser();
+    importer = new ImportDialog();
+    exporter = new ExportDialog();
 
     // menu bar
     addMenuItem("File", "Open...", "fileOpen", 'o');
+    addMenuItem("File", "Export...", "fileExport", 'e');
     fileExportSlice = addSubMenu("File", "Export current slice", 's', false);
     fileExportTime = addSubMenu("File", "Export current timestep", 't', false);
     fileExportSnap = addSubMenu("File", "Export snapshot", 'n');
@@ -340,32 +345,41 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   // -- MENU COMMANDS --
 
-  /** Loads a series of datasets specified by the user. */
+  /** Loads a data series specified by the user. */
   public void fileOpen() {
     final JFrame frame = this;
     Util.invoke(false, new Runnable() {
       public void run() {
-        // get file series from file dialog
-        if (seriesBox.showDialog(frame) != SeriesChooser.APPROVE_OPTION) {
-          return;
-        }
+        // get file series from import dialog
+        if (importer.showDialog(frame) != ImportDialog.APPROVE_OPTION) return;
 
         // load first file in series
-        File[] f = seriesBox.getSeries();
-        prefix = seriesBox.getPrefix();
-        sm.setThumbnails(seriesBox.getThumbs(),
-          seriesBox.getThumbResX(), seriesBox.getThumbResY());
+        File[] f = importer.getSeries();
+        prefix = importer.getPrefix();
+        sm.setThumbnails(importer.getThumbs(),
+          importer.getThumbResX(), importer.getThumbResY());
         if (f == null || f.length < 1) {
           JOptionPane.showMessageDialog(frame,
             "Invalid series", "Cannot load series",
             JOptionPane.ERROR_MESSAGE);
           return;
         }
-        sm.setSeries(f, seriesBox.getFilesAsSlices());
+        sm.setSeries(f, importer.getFilesAsSlices());
         fileExportSlice.setEnabled(true);
         fileExportTime.setEnabled(true);
         exportSliceQT.setEnabled(CAN_DO_QT);
         exportTimeQT.setEnabled(CAN_DO_QT);
+      }
+    });
+  }
+
+  /** Exports the current dataset as specified by the user. */
+  public void fileExport() {
+    final JFrame frame = this;
+    Util.invoke(false, new Runnable() {
+      public void run() {
+        // display export dialog
+        if (exporter.showDialog(frame) != ExportDialog.APPROVE_OPTION) return;
       }
     });
   }
