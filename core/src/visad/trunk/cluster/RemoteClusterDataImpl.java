@@ -87,11 +87,18 @@ partitioned data on client has similar data trees on
 client and nodes
   leaf node on client is:
     DataImpl
-    Field with partitioned domain (RemoteClientPartitionedField)
+    Field with partitioned domain (RemoteClientPartitionedFieldImpl)
   non-leaf node on client is:
     Tuple (RemoteClientTupleImpl)
-    Field with non-partitioned domain (RemoteClientField)
-  leaf tree-nodes on cluster-nodes are usual data leaves
+    Field with non-partitioned domain (RemoteClientFieldImpl)
+  leaf tree-nodes on cluster-node is:
+    Field with partitioned domain
+      (RemoteNodePartitionedFieldImpl adapting FlatField)
+  non-leaf tree-nodes on cluster-node is:
+    Tuple (RemoteNodeTupleImpl)
+    Field with non-partitioned domain (RemoteNodeFieldImpl)
+    Field with partitioned domain
+      (RemoteNodePartitionedFieldImpl adapting FieldImpl)
 
 every object in data tree on client connects to objects
 in data trees on nodes

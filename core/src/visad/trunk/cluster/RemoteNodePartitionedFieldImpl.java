@@ -39,7 +39,9 @@ import java.rmi.server.UnicastRemoteObject;
 public class RemoteNodePartitionedFieldImpl extends RemoteNodeDataImpl
        implements RemoteNodePartitionedField {
 
+  private boolean flat; // true if adaptedField is a FlatField
   private Field adaptedField = null;
+  private DataReferenceImpl adaptedFieldRef = null;
   private int length;
 
   /**
@@ -55,44 +57,44 @@ public class RemoteNodePartitionedFieldImpl extends RemoteNodeDataImpl
     if (set == null) {
       throw new ClusterException("set cannot be null");
     }
-    adaptedField = new FieldImpl(type, set);
+    flat = type.getFlat();
+    if (flat) {
+      adaptedField = new FlatField(type, set);
+    }
+    else {
+      adaptedField = new FieldImpl(type, set);
+    }
+
+    // hack parent notify logic for non-RemoteNodeDataImpl range values
+    adaptedFieldRef = new DataReferenceImpl("adaptedFieldRef");
+    adaptedFieldRef.setData(adaptedField);
+    CellImpl adaptedFieldCell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        notifyReferences();
+      }
+    };
+    adaptedFieldCell.addReference(adaptedFieldRef);
+
     length = set.getLength();
   }
 
-  public void setSamples(RemoteNodeDataImpl[] range)
-         throws VisADException, RemoteException {
-    setSamples(range, false);
-  }
-
-  public void setSamples(RemoteNodeDataImpl[] range, boolean copy)
-         throws VisADException, RemoteException {
-    if (range == null) {
-      throw new ClusterException("range cannot be null");
-    }
-    if (range.length != length) {
-      throw new ClusterException("range length must match set length");
-    }
-
-    adaptedField.setSamples(range, false); // don't copy
-    // set this as parent
-    for (int i=0; i<length; i++) {
-      range[i].setParent(this);
-    }
-  }
+/* only DataImpl under RemoteNodePartitionedFieldImpl
+   so no setSamples(RemoteNodeDataImpl[] range) methods
+*/
 
   public void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException {
-    throw new ClusterException("no setSamples(Data[], boolean) method");
+    adaptedField.setSamples(range, copy);
   }
 
   public void setSamples(double[][] range)
          throws VisADException, RemoteException {
-    throw new ClusterException("no setSamples(double[][]) method");
+    adaptedField.setSamples(range);
   }
 
   public void setSamples(float[][] range)
          throws VisADException, RemoteException {
-    throw new ClusterException("no setSamples(float[][]) method");
+    adaptedField.setSamples(range);
   }
 
 
@@ -217,6 +219,7 @@ public class RemoteNodePartitionedFieldImpl extends RemoteNodeDataImpl
     return adaptedField.getRangeCoordinateSystem(i);
   }
 
+  /** even if flat == true, a cast of this to FlatField will fail */
   public boolean isFlatField() throws VisADException, RemoteException {
     return false;
   }
@@ -230,57 +233,57 @@ public class RemoteNodePartitionedFieldImpl extends RemoteNodeDataImpl
 
   public Data evaluate(Real domain)
          throws VisADException, RemoteException {
-    throw new ClusterException("no evaluate() method");
+    return adaptedField.evaluate(domain);
   }
 
   public Data evaluate(Real domain, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
-    throw new ClusterException("no evaluate() method");
+    return adaptedField.evaluate(domain, sampling_mode, error_mode);
   }
 
   public Data evaluate(RealTuple domain)
          throws VisADException, RemoteException {
-    throw new ClusterException("no evaluate() method");
+    return adaptedField.evaluate(domain);
   }
 
   public Data evaluate(RealTuple domain, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
-    throw new ClusterException("no evaluate() method");
+    return adaptedField.evaluate(domain, sampling_mode, error_mode);
   }
 
   public Field resample(Set set) throws VisADException, RemoteException {
-    throw new ClusterException("no resample() method");
+    return adaptedField.resample(set);
   }
 
   public Field resample(Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
-    throw new ClusterException("no resample() method");
+    return adaptedField.resample(set, sampling_mode, error_mode);
   }
 
   public Data derivative( RealTuple location, RealType[] d_partial_s,
                           MathType[] derivType_s, int error_mode )
          throws VisADException, RemoteException {
-    throw new ClusterException("no derivative() method");
+    return adaptedField.derivative(location, d_partial_s, derivType_s, error_mode);
   }
 
   public Data derivative( int error_mode )
          throws VisADException, RemoteException {
-    throw new ClusterException("no derivative() method");
+    return adaptedField.derivative(error_mode);
   }
 
   public Data derivative( MathType[] derivType_s, int error_mode )
          throws VisADException, RemoteException {
-    throw new ClusterException("no derivative() method");
+    return adaptedField.derivative(derivType_s, error_mode);
   }
 
   public Function derivative( RealType d_partial, int error_mode )
          throws VisADException, RemoteException {
-    throw new ClusterException("no derivative() method");
+    return adaptedField.derivative(d_partial, error_mode);
   }
 
   public Function derivative( RealType d_partial, MathType derivType, int error_mode )
          throws VisADException, RemoteException {
-    throw new ClusterException("no derivative() method");
+    return adaptedField.derivative(d_partial, derivType, error_mode);
   }
 
 

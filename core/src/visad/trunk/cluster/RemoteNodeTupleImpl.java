@@ -39,6 +39,7 @@ public class RemoteNodeTupleImpl extends RemoteNodeDataImpl
        implements RemoteNodeTuple {
 
   private Tuple adaptedTuple = null;
+  private DataReferenceImpl adaptedTupleRef = null;
 
   /**
      must call setupClusterData after constructor to finish the
@@ -63,10 +64,25 @@ public class RemoteNodeTupleImpl extends RemoteNodeDataImpl
     }
     adaptedTuple = new Tuple(datums, false); // no copy
     // set this as parent for RemoteNodeDataImpls
+    boolean any_local = false;
     for (int i=0; i<n; i++) {
       if (datums[i] instanceof RemoteNodeDataImpl) {
         ((RemoteNodeDataImpl) datums[i]).setParent(this);
       }
+      else {
+        any_local = true;
+      }
+    }
+    if (any_local) {
+      // hack parent notify logic for non-RemoteNodeDataImpl components
+      adaptedTupleRef = new DataReferenceImpl("adaptedTupleRef");
+      adaptedTupleRef.setData(adaptedTuple);
+      CellImpl adaptedTupleCell = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+          notifyReferences();
+        }
+      };
+      adaptedTupleCell.addReference(adaptedTupleRef);
     }
   }
 
