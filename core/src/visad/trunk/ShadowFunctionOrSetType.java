@@ -172,6 +172,7 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
     Range = range;
     if (this instanceof ShadowFunctionType) {
       Flat = (Range instanceof ShadowRealType) ||
+             (Range instanceof ShadowTextType) ||
              (Range instanceof ShadowTupleType &&
               ((ShadowTupleType) Range).isFlat());
       MultipleSpatialDisplayScalar = Domain.getMultipleSpatialDisplayScalar() ||

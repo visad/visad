@@ -168,6 +168,11 @@ System.out.println("Type = " + ((ScalarType) Type).getName() +
                                     "ShadowScalarType.checkIndices");
     }
 
+    anyContour = checkContour(local_display_indices);
+    anyFlow = checkFlow(local_display_indices);
+    anyShape = checkShape(local_display_indices);
+    anyText = checkText(local_display_indices);
+
     LevelOfDifficulty =
       testIndices(local_indices, local_display_indices, levelOfDifficulty);
     if (LevelOfDifficulty == NESTED) {

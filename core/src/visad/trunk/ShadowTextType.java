@@ -114,13 +114,13 @@ public class ShadowTextType extends ShadowScalarType {
     // add values to value_array according to SelectedMapVector
     if (getIsTerminal()) {
       // ????
-      // return terminalTupleOrScalar(group, display_values, text_value,
-      //                              text_control, valueArrayLength,
-      //                              valueToScalar, default_values,
-      //                              inherited_values, renderer, shadow_api);
+      return terminalTupleOrScalar(group, display_values, text_value,
+                                   text_control, valueArrayLength,
+                                   valueToScalar, default_values,
+                                   inherited_values, renderer, shadow_api);
     }
     else {
-      // nothing to render at a non-terminal RealType
+      // nothing to render at a non-terminal TextType
     }
     return false;
   }
