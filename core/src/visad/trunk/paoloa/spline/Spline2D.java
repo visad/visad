@@ -26,6 +26,7 @@ public class Spline2D {
 
   DataReference lambda_ref;
   DataReference noise_ref;
+  DataReference noise_button_ref;
   DataReference spline_ref;
   DataReference spline_fieldRef;
   DataReference true_fieldRef;
@@ -76,6 +77,7 @@ public class Spline2D {
 
     lambda_ref = new DataReferenceImpl("lambda_ref");
     noise_ref = new DataReferenceImpl("noise_ref");
+    noise_button_ref = new DataReferenceImpl("noise_button_ref");
     spline_ref = new DataReferenceImpl("spline_ref");
 
     //- get data
@@ -217,10 +219,10 @@ public class Spline2D {
       panel_d.setAlignmentY(JPanel.TOP_ALIGNMENT);
       panel_d.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-      JButton spline_button = new JButton("spline");
-      spline_button.addActionListener(this);
-      spline_button.setActionCommand("spline");
-      panel_d.add(spline_button);
+      JButton noise_button = new JButton("noise");
+      noise_button.addActionListener(this);
+      noise_button.setActionCommand("noise");
+      panel_d.add(noise_button);
 
       JButton GCV_button = new JButton("GCV");
       GCV_button.addActionListener(this);
@@ -338,31 +340,19 @@ public class Spline2D {
           last_noise_fac = noise_fac;
         }
       };
-      noise_cell.addReference( noise_ref );
+      noise_cell.addReference( noise_button_ref );
 
     }
 
     public void actionPerformed(ActionEvent e) {
       String cmd = e.getActionCommand();
-/*
-      if (cmd.equals("spline")) {
+      if (cmd.equals("noise")) {
         try {
-          for ( int ii = 0; ii < n_samples; ii++ ) {
-            range_values[ii] = ((Real)range_refs[ii].getData()).getValue();
-          }
-          val = ((Real)lambda_ref.getData()).getValue();
-          val = Math.pow(10.0, val);
-          mode = 1;
-          getspline_c( range_values, spline_range, val, mode);
-          f_range[0] = spline_range;
-          spline_field.setSamples( f_range );
+          noise_button_ref.setData(new Real(0.0));
         }
-        catch (VisADException exc) {
-        }
-        catch (RemoteException exc) {
-        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
       }
-*/
       if (cmd.equals("GCV")) {
         try {
           for ( int ii = 0; ii < n_samples; ii++ ) {
