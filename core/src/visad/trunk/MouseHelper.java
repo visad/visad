@@ -317,12 +317,12 @@ event_switch:
             behavior.instance_unmake_matrix(rot, scale, trans, ymatmul);
             ymul = trans[1];
 
-            double factor = xymul / Math.sqrt(xmul * xmul + ymul * ymul);
-            xmul *= factor;
-            ymul *= factor;
-
             // horrible hack, WLH 17 Aug 2000
             if (behavior instanceof visad.java2d.MouseBehaviorJ2D) {
+              double factor = xymul / Math.sqrt(xmul * xmul + ymul * ymul);
+              xmul *= factor;
+              ymul *= factor;
+
               xmul = Math.abs(xmul);
               ymul = -Math.abs(ymul);
             }
