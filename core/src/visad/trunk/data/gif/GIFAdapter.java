@@ -143,12 +143,12 @@ public class GIFAdapter
     RealType[] c_all = {c_red, c_green, c_blue};
     RealTupleType radiance = new RealTupleType(c_all);
 
-    RealType[] domain_components = {line, element};
+    RealType[] domain_components = {element, line};
     RealTupleType image_domain =
 			new RealTupleType(domain_components);
     Linear2DSet domain_set =
 			new Linear2DSet(image_domain,
-					(float) (width - 1.0), 0.0, width,
+					0.0, (float) (width - 1.0), width,
 					(float) (height - 1.0), 0.0, height);
     FunctionType image_type =
 			new FunctionType(image_domain, radiance);
