@@ -88,36 +88,47 @@ public class FrontDrawer extends Object {
   private static RealType front_green = null;
   private static RealType front_blue = null;
 
-  // this is just one of the many dumb ways to define front patterns
-  private int profile_length = -1;
-  private float[] front_profile_bot = null;
-  private float[] front_profile_top = null;
-  private int starts_length = -1;
-  private int[] front_starts = null;
-  private int[] front_lengths = null;
-  // length of color arrays is profile_length - 1
-  private int[] front_profile_red = null;
-  private int[] front_profile_green = null;
-  private int[] front_profile_blue = null;
+  // shapes for first segment of front
+  private int nfshapes = -1;
+  private float[][][] first_shapes = null;
+  private int[][][] first_tris = null;
+  private float[] first_red = null;
+  private float[] first_green = null;
+  private float[] first_blue = null;
+
+  // shapes for repeating segments of front, after first
+  private int nrshapes = -1;
+  private float[][][] repeat_shapes = null;
+  private int[][][] repeat_tris = null;
+  private float[] repeat_red = null;
+  private float[] repeat_green = null;
+  private float[] repeat_blue = null;
+
+  // length of each repeating segment in graphics coordinates
   private float segment_length;
 
+  // number of intervals in curve for each segment
+  private int profile_length = -1;
+
+  // size of filter window for smoothing curve
   private int filter_window = 1;
 
   /**
      cr should be null or cr.getData() should have MathType:
        Set(RealType.Latitude, RealType.Longitude)
-     profile_bot and profile_top must be same length
-     profile_red, profile_green and profile_blue must all
-       have length one less than profile_bot and profile_top
-       (they are colors of segments, not points)
+     fshapes is dimensioned [nfshapes][2][points_per_shape]
+     fred, fgreen and fblue are dimensioned [nfshapes]
+     rshapes is dimensioned [nrshapes][2][points_per_shape]
+     rred, rgreen and rblue are dimensioned [nrshapes]
      segment is length in graphics coordinates of entire profile
      fw is the filter window size for smoothing the curve
-
   */
   public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d,
-                     float segment, float[] profile_bot, float[] profile_top,
-                     int[] profile_red, int[] profile_green, int[] profile_blue,
-                     int fw)
+                     int fw, float segment,
+                     float[][][] fshapes,
+                     float[] fred, float[] fgreen, float[] fblue,
+                     float[][][] rshapes,
+                     float[] rred, float[] rgreen, float[] rblue)
          throws VisADException, RemoteException {
     try {
       initColormaps(d);
@@ -161,58 +172,93 @@ public class FrontDrawer extends Object {
     }
 
     display = d;
-
-    if (profile_bot == null || profile_top == null ||
-        profile_bot.length != profile_top.length) {
-      throw new VisADException("bad profile");
-    }
-    segment_length = segment;
-    profile_length = profile_bot.length;
-    front_profile_bot = new float[profile_length];
-    front_profile_top = new float[profile_length];
-    System.arraycopy(profile_bot, 0, front_profile_bot, 0, profile_length);
-    System.arraycopy(profile_top, 0, front_profile_top, 0, profile_length);
-    int profile_lengthm = profile_length - 1;
-    if (profile_red == null || profile_red.length != profile_lengthm ||
-        profile_green == null || profile_green.length != profile_lengthm ||
-        profile_blue == null || profile_blue.length != profile_lengthm) {
-      throw new VisADException("bad color profile");
-    }
-    // find segments of constant color
-    int[] starts = new int[profile_lengthm];
-    int[] lengths = new int[profile_lengthm];
-    int sti = -1;
-    int r = 0, g = 0, b = 0;
-    for (int i=0; i<profile_lengthm; i++) {
-      if (i != 0 && profile_red[i] == r &&
-          profile_green[i] == g && profile_blue[i] == b) {
-        lengths[sti]++;
-      }
-      else {
-        sti++;
-        starts[sti] = i;
-        lengths[sti] = 1;
-        r = profile_red[i];
-        g = profile_green[i];
-        b = profile_blue[i];
-      }
-    }
-    sti++;
-    front_starts = new int[sti];
-    front_lengths = new int[sti];
-    System.arraycopy(starts, 0, front_starts, 0, sti);
-    System.arraycopy(lengths, 0, front_lengths, 0, sti);
-    front_profile_red = new int[sti];
-    front_profile_green = new int[sti];
-    front_profile_blue = new int[sti];
-    for (int i=0; i<sti; i++) {
-      front_profile_red[i] = profile_red[front_starts[i]];
-      front_profile_green[i] = profile_green[front_starts[i]];
-      front_profile_blue[i] = profile_blue[front_starts[i]];
-    }
-    starts_length = sti;
-
     filter_window = fw;
+    segment_length = segment;
+
+    if (rshapes == null) {
+      throw new VisADException("bad rshapes");
+    }
+    nrshapes = rshapes.length;
+    for (int i=0; i<nrshapes; i++) {
+      if (rshapes[i] == null || rshapes[i].length != 2 ||
+          rshapes[i][0] == null || rshapes[i][1] == null ||
+          rshapes[i][0].length != rshapes[i][1].length) {
+        throw new VisADException("bad rshapes[" + i + "]");
+      }
+    }
+    if (rred == null || rred.length != nrshapes ||
+        rgreen == null || rgreen.length != nrshapes || 
+        rblue == null || rblue.length != nrshapes) {
+      throw new VisADException("bad fcolors");
+    }
+    repeat_tris = new int[nrshapes][][];
+    for (int i=0; i<nrshapes; i++) {
+      repeat_tris[i] = DelaunayCustom.fill(rshapes[i]);
+    }
+    repeat_shapes = new float[nrshapes][2][];
+    int rlen = 0;
+    for (int i=0; i<nrshapes; i++) {
+      int n = rshapes[i][0].length;
+      rlen += n;
+      repeat_shapes[i][0] = new float[n];
+      repeat_shapes[i][1] = new float[n];
+      System.arraycopy(rshapes[i][0], 0, repeat_shapes[i][0], 0, n);
+      System.arraycopy(rshapes[i][1], 0, repeat_shapes[i][1], 0, n);
+    }
+    profile_length = rlen;
+    repeat_red = new float[nrshapes];
+    repeat_green = new float[nrshapes];
+    repeat_blue = new float[nrshapes];
+    System.arraycopy(rred, 0, repeat_red, 0, nrshapes);
+    System.arraycopy(rgreen, 0, repeat_green, 0, nrshapes);
+    System.arraycopy(rblue, 0, repeat_blue, 0, nrshapes);
+
+    if (fshapes == null) {
+      // if no different first shapes, just use repeat shapes
+      nfshapes = nrshapes;
+      first_tris = repeat_tris;
+      first_shapes = repeat_shapes;
+      first_red = repeat_red;
+      first_green = repeat_green;
+      first_blue = repeat_blue;
+    }
+    else {
+      nfshapes = fshapes.length;
+      for (int i=0; i<nfshapes; i++) {
+        if (fshapes[i] == null || fshapes[i].length != 2 ||
+            fshapes[i][0] == null || fshapes[i][1] == null ||
+            fshapes[i][0].length != fshapes[i][1].length) {
+          throw new VisADException("bad fshapes[" + i + "]");
+        }
+      }
+      if (fred == null || fred.length != nfshapes ||
+          fgreen == null || fgreen.length != nfshapes || 
+          fblue == null || fblue.length != nfshapes) {
+        throw new VisADException("bad fcolors");
+      }
+      first_tris = new int[nfshapes][][];
+      for (int i=0; i<nfshapes; i++) {
+        first_tris[i] = DelaunayCustom.fill(fshapes[i]);
+      }
+      first_shapes = new float[nfshapes][2][];
+      int flen = 0;
+      for (int i=0; i<nfshapes; i++) {
+        int n = fshapes[i][0].length;
+        flen += n;
+        first_shapes[i][0] = new float[n];
+        first_shapes[i][1] = new float[n];
+        System.arraycopy(fshapes[i][0], 0, first_shapes[i][0], 0, n);
+        System.arraycopy(fshapes[i][1], 0, first_shapes[i][1], 0, n);
+      }
+      if (profile_length < flen) profile_length = flen;
+      first_red = new float[nfshapes];
+      first_green = new float[nfshapes];
+      first_blue = new float[nfshapes];
+      System.arraycopy(fred, 0, first_red, 0, nfshapes);
+      System.arraycopy(fgreen, 0, first_green, 0, nfshapes);
+      System.arraycopy(fblue, 0, first_blue, 0, nfshapes);
+    }
+    if (profile_length < 5) profile_length = 5;
 
     pcontrol = display.getProjectionControl();
     ProjectionControlListener pcl = new ProjectionControlListener();
@@ -387,6 +433,7 @@ public class FrontDrawer extends Object {
     return front;
   }
 
+/*
   public void curveToFront(float[][] curve, boolean flip)
          throws VisADException, RemoteException {
     int len = curve[0].length;
@@ -399,6 +446,7 @@ public class FrontDrawer extends Object {
       if (ip > len - 1) ip = len - 1;
       float yp = curve[0][ip] - curve[0][im];
       float xp = curve[1][ip] - curve[1][im];
+// OBSOLETE
       xp = -xp;
       float d = (float) Math.sqrt(xp * xp + yp * yp);
       if (flip) d = -d;
@@ -412,6 +460,7 @@ public class FrontDrawer extends Object {
     }
     float[][] front_bot = new float[2][];
     float[][] front_top = new float[2][];
+// OBSOLETE
     front_bot[lat_index] = lat_map.inverseScaleValues(fb[0]);
     front_bot[lon_index] = lon_map.inverseScaleValues(fb[1]);
     front_top[lat_index] = lat_map.inverseScaleValues(ft[0]);
@@ -424,6 +473,7 @@ public class FrontDrawer extends Object {
         int iend = ibase + front_lengths[istart];
         if (ibase > len - 1) break profile_loop;
         if (iend > len - 1) iend = len - 1;
+// OBSOLETE
         int n = 1 + iend - ibase;
         float[][] samples = new float[2][2 * n];
         for (int i=0; i<n; i++) {
@@ -435,6 +485,7 @@ public class FrontDrawer extends Object {
         Gridded2DSet set =
           new Gridded2DSet(curve_type, samples, 2, n);
         FlatField field = new FlatField(front_inner, set);
+// OBSOLETE
         float[][] values = new float[3][2 * n];
         float r = front_profile_red[istart] / 255.0f;
         float g = front_profile_green[istart] / 255.0f;
@@ -447,6 +498,49 @@ public class FrontDrawer extends Object {
         field.setSamples(values, false);
         innter_field_vector.addElement(field);
       }
+// OBSOLETE
+    }
+    int nfields = innter_field_vector.size();
+    Integer1DSet iset = new Integer1DSet(front_index, nfields);
+    front = new FieldImpl(front_type, iset);
+    FlatField[] fields = new FlatField[nfields];
+    for (int i=0; i<nfields; i++) {
+      fields[i] = (FlatField) innter_field_vector.elementAt(i);
+    }
+    front.setSamples(fields, false);
+  }
+*/
+  public void curveToFront(float[][] curve, boolean flip)
+         throws VisADException, RemoteException {
+    int len = curve[0].length;
+    for (int i=0; i<len; i++) {
+      int j = i % profile_length;
+    }
+
+/*
+    float[][] front_bot = new float[2][];
+    float[][] front_top = new float[2][];
+    front_bot[lat_index] = lat_map.inverseScaleValues(fb[0]);
+    front_bot[lon_index] = lon_map.inverseScaleValues(fb[1]);
+    front_top[lat_index] = lat_map.inverseScaleValues(ft[0]);
+    front_top[lon_index] = lon_map.inverseScaleValues(ft[1]);
+*/
+
+    Vector innter_field_vector = new Vector();
+    for (int iprofile=0; true; iprofile++) {
+        float[][] samples = null;
+        int [][] tris = null;
+        float[][][] new_samples = new float[1][][];
+        int[][][] new_tris = new int[1][][];
+        DelaunayCustom.clip(samples, tris, 1.0f, 0.0f, 0.0f,
+                            new_samples, new_tris);
+        DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
+        if (delaunay == null) break;
+        Irregular2DSet set =
+          new Irregular2DSet(curve_type, samples, null, null, null, delaunay);
+        FlatField field = new FlatField(front_inner, set);
+        // field.setSamples(values, false);
+        innter_field_vector.addElement(field);
 // some crazy bug - see Gridded3DSet.makeNormals()
     }
     int nfields = innter_field_vector.size();
@@ -615,14 +709,17 @@ public class FrontDrawer extends Object {
     // add display to JPanel
     panel.add(display.getComponent());
 
-    float[] bot_profile = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    float[] top_profile = {0.015f, 0.015f, 0.090f, 0.015f, 0.015f};
-    int[] red = {255, 255, 255, 255};
-    int[] green = {255, 255, 255, 255};
-    int[] blue = {255, 255, 255, 255};
+    // float[] bot_profile = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    // float[] top_profile = {0.015f, 0.015f, 0.090f, 0.015f, 0.015f};
+    float[][][] rshapes = {{{-0.1f, -0.1f, 0.1f, 0.1f},
+                            {-0.1f, 0.1f, 0.1f, -0.1f}}};
+    float[] red = {1.0f};
+    float[] green = {1.0f};
+    float[] blue = {1.0f};
     FrontDrawer fd =
-      new FrontDrawer(curve_ref, display, 0.1f, bot_profile, top_profile,
-                      red, green, blue, 8);
+      new FrontDrawer(curve_ref, display, 8, 0.1f, null, null, null, null,
+                      rshapes, red, green, blue);
+
 
     JPanel button_panel = new JPanel();
     button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
