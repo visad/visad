@@ -173,13 +173,18 @@ public abstract class ActionImpl
 
   /** enable and notify this Action */
   public void enableAction() {
+// XYZW
+// System.out.println("enableAction " + getName());
     enabled = true;
     notifyAction();
   }
 
   /** disable this Action and if necessary wait for end of doAction */
   public void disableAction() {
+// XYZW
+// System.out.println("disableAction " + getName());
     enabled = false;
+    // wait for possible current run() invocation to finish
     synchronized (lockEnabled) {
       enabled = false; // probably not necessary, just don't trust a nop
     }
@@ -330,6 +335,7 @@ public abstract class ActionImpl
   }
 
   void notifyAction() {
+// XYZW
 // if (getName() != null) DisplayImpl.printStack("notifyAction " + getName());
     requeue = true;
     if (pool == null) {

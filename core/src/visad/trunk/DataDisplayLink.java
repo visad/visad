@@ -215,11 +215,6 @@ public class DataDisplayLink extends ReferenceActionLink {
       display_indices = ShadowType.zeroIndices(
                   local_dpy.getDisplayScalarCount());
       value_indices = ShadowType.zeroIndices(local_dpy.getValueArrayLength());
-/*
-// XYZW
-System.out.println("prepareData valueArrayLength = " +
-                   local_dpy.getValueArrayLength());
-*/
       final int numControls = local_dpy.getNumberOfControls();
       isTransform = new boolean[numControls];
       for (int i=0; i<numControls; i++) isTransform[i] = false;

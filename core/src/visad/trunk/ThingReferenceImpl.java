@@ -118,6 +118,8 @@ public class ThingReferenceImpl extends Object implements ThingReference {
       share access to thing and ref */
   public synchronized long incTick()
          throws VisADException, RemoteException {
+// XYZW
+// if (getName() != null) DisplayImpl.printStack("incTick " + getName());
     Tick += 1;
     if (Tick == Long.MAX_VALUE) Tick = Long.MIN_VALUE + 1;
     if (ListenerVector != null) {

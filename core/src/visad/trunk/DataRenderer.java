@@ -188,10 +188,6 @@ public abstract class DataRenderer extends Object implements Cloneable {
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
-/*
-// XYZW
-System.out.println("prepareAction " + go + " " + initialize);
-*/
     any_changed = false;
     all_feasible = true;
     any_transform_control = false;
@@ -213,7 +209,6 @@ System.out.println("prepareAction " + go + " " + initialize);
         }
       }
 /*
-// XYZW
 System.out.println("prepareAction " + display.getName() + " " +
                    Links[i].getThingReference().getName() +
                    " Links[" + i + "].checkTicks() = " + Links[i].checkTicks() +
@@ -277,7 +272,6 @@ System.out.println("prepareAction " + display.getName() + " " +
 
     } // end for (int i=0; i<Links.length; i++)
 /*
-// XYZW
 System.out.println("any_changed = " + any_changed +
                    " all_feasible = " + all_feasible +
                    " any_transform_control = " + any_transform_control);

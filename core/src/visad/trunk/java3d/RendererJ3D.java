@@ -156,7 +156,6 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
     boolean any_changed = get_any_changed();
     boolean any_transform_control = get_any_transform_control();
 /*
-// XYZW
 System.out.println("doAction " + getDisplay().getName() + " " +
                    getLinks()[0].getThingReference().getName() +
                    " any_changed = " + any_changed +

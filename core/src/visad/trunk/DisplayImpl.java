@@ -1521,9 +1521,10 @@ if (initialize) {
           boolean this_transform = renderer.doAction();
           transform_done |= this_transform;
 /*
+// XYZW
           if (this_transform) {
             DataDisplayLink[] links = renderer.getLinks();
-            System.out.println("transform " +
+            System.out.println("transform " + getName() + " " +
                                links[0].getThingReference().getName());
           }
 */
@@ -1535,7 +1536,6 @@ if (initialize) {
           if (control != null) {
             control.init();
           }
-
           synchronized (ControlVector) {
             Enumeration controls = ControlVector.elements();
             while(controls.hasMoreElements()) {
