@@ -127,14 +127,7 @@ public class Measurement {
    * and distance between measurement slices.
    */
   public double getDistance(double mpp, double sd) {
-    double[][] vals = doubleValues();
-    double sum = 0;
-    for (int i=0; i<vals.length; i++) {
-      double distance =
-        (i == vals.length - 1 ? sd : mpp) * (vals[i][1] - vals[i][0]);
-      sum += distance * distance;
-    }
-    return Math.sqrt(sum);
+    return getDistance(doubleValues(), mpp, sd);
   }
 
   /** Gets the current endpoint values as an array of doubles. */
@@ -209,6 +202,21 @@ public class Measurement {
       things.copyInto(t);
     }
     for (int i=0; i<t.length; i++) if (t[i] != thing) t[i].refresh();
+  }
+
+  /**
+   * Gets the distance between the specified endpoints,
+   * using the given conversion value between pixels and microns,
+   * and distance between measurement slices.
+   */
+  static double getDistance(double[][] values, double mpp, double sd) {
+    double sum = 0;
+    for (int i=0; i<values.length; i++) {
+      double distance =
+        (i == values.length - 1 ? sd : mpp) * (values[i][1] - values[i][0]);
+      sum += distance * distance;
+    }
+    return Math.sqrt(sum);
   }
 
 }

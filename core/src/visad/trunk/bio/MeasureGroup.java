@@ -69,4 +69,10 @@ public class MeasureGroup {
   /** Gets the id number of the group. */
   public int getId() { return id; }
 
+
+  // -- INTERNAL API METHODS --
+
+  /** Sets the group's id. */
+  void setId(int id) { this.id = id; }
+
 }

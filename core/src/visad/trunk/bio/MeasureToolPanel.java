@@ -540,15 +540,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         }
       
         // restore measurements
-        try {
-          MeasureDataFile mdf = new MeasureDataFile(f);
-          if (fmicrons) {
-            double mpp = measureTools.getMicronsPerPixel();
-            double sd = measureTools.getSliceDistance();
-            bio.lists = mdf.read(mpp, sd);
-          }
-          else bio.lists = mdf.read();
-        }
+        try { new MeasureDataFile(bio, f).read(); }
         catch (IOException exc) { exc.printStackTrace(); }
         catch (VisADException exc) { exc.printStackTrace(); }
         bio.setWaitCursor(false);
@@ -573,13 +565,13 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         // save measurements
         File f = fileBox.getSelectedFile();
         try {
-          MeasureDataFile mdf = new MeasureDataFile(f);
+          MeasureDataFile mdf = new MeasureDataFile(bio, f);
           if (fmicrons) {
             double mpp = measureTools.getMicronsPerPixel();
             double sd = measureTools.getSliceDistance();
-            mdf.write(bio.lists, mpp, sd);
+            mdf.write(mpp, sd);
           }
-          else mdf.write(bio.lists);
+          else mdf.write();
         }
         catch (IOException exc) { exc.printStackTrace(); }
         bio.setWaitCursor(false);
