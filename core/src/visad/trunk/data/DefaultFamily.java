@@ -231,7 +231,7 @@ public class DefaultFamily
     {
       try {
 	data = node.open(name);
-      } catch (Exception e) {
+      } catch (Throwable t) {
 	return false;
       }
 
@@ -290,7 +290,7 @@ public class DefaultFamily
     {
       try {
 	data = node.open(url);
-      } catch (Exception e) {
+      } catch (Throwable t) {
 	return false;
       }
 
