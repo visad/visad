@@ -80,7 +80,6 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
     interval.addActionListener(this);
     base.addActionListener(this);
     surface.addActionListener(this);
-    //CTR: TODO: contourRange.addActionListener(this);
 
     // lay out Components
     addComponent(contours, gridbag, 1, 0, 1, 1, 0.0, 0.0);
