@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.RemoteException;
+import visad.util.Util;
 
 /**
  * Provides support for empirically-defined CoordinateSystem-s.  This is useful
@@ -257,7 +258,53 @@ EmpiricalCoordinateSystem
   toReference(double[][] values)
     throws SetException, VisADException
   {
-    return referenceCS.toReference(worldCS.fromReference(values));
+    GriddedSet set = worldCS.getGriddedSet();
+    int[] lens = set.getLengths();
+    int dim = lens.length;
+    double[][] samples = set.getDoubles(false);
+    double[][] tvalues = new double[values.length][values[0].length];
+    int[] save_index  = new int[values[0].length];
+    int start = 0;
+    int cnt = 0;
+    for (int i = 0; i < values[0].length; i++) {
+      boolean any = false;
+      for (int ii=start; ii<samples[0].length; ii++) {
+        boolean all = true;
+        for (int k = 0; k < dim; k++) {
+          if (!(Util.isApproximatelyEqual(values[k][i], samples[k][ii]))) {
+            all = false;
+          }
+        }
+        if (all) {
+          int k = i;
+          int[] indexI = new int[dim];
+          for (int j=0; j<dim-1; j++) {
+            tvalues[j][i] = k % lens[j];
+            k = k / lens[j];
+          }
+          tvalues[dim-1][i] = k;
+          start = i+1;
+          any = true;
+          break;
+        }
+        else {
+          start = 0;
+        }
+      }
+      if (!any) save_index[cnt++] = i;
+    }
+
+    if (cnt > 0) {
+      double[][] fvals = new double[dim][cnt];
+      for (int i = 0; i < dim; i++)
+        for (int k = 0; k < cnt; k++)
+          fvals[i][k] = values[i][save_index[k]];
+      double[][] n_fvals = worldCS.fromReference(fvals);
+      for (int i = 0; i < dim; i++)
+        for (int k = 0; k < cnt; k++)
+          tvalues[i][save_index[k]] = n_fvals[i][k];
+    }
+    return referenceCS.toReference(tvalues);
   }
 
   /**
@@ -303,7 +350,52 @@ EmpiricalCoordinateSystem
   toReference(float[][] values)
     throws SetException, VisADException
   {
-    return referenceCS.toReference(worldCS.fromReference(values));
+    GriddedSet set = worldCS.getGriddedSet();
+    int[] lens = set.getLengths();
+    int dim = lens.length;
+    float[][] samples = set.getSamples(false);
+    float[][] tvalues = new float[values.length][values[0].length];
+    int[] save_index  = new int[values[0].length];
+    int start = 0;
+    int cnt = 0;
+    for (int i = 0; i < values[0].length; i++) {
+      boolean any = false;
+      for (int ii=start; ii<samples[0].length; ii++) {
+        boolean all = true;
+        for (int k = 0; k < dim; k++) {
+          if (!(Util.isApproximatelyEqual(values[k][i], samples[k][ii]))) {
+            all = false;
+          }
+        }
+        if (all) {
+          int k = i;
+          int[] indexI = new int[dim];
+          for (int j=0; j<dim-1; j++) {
+            tvalues[j][i] = k % lens[j];
+            k = k / lens[j];
+          }
+          tvalues[dim-1][i] = k;
+          start = i+1;
+          any = true;
+          break;
+        }
+        else {
+          start = 0;
+        }
+      }
+      if (!any) save_index[cnt++] = i;
+    }
+    if (cnt > 0) {
+      float[][] fvals = new float[dim][cnt];
+      for (int i = 0; i < dim; i++)
+        for (int k = 0; k < cnt; k++)
+          fvals[i][k] = values[i][save_index[k]];
+      float[][] n_fvals = worldCS.fromReference(fvals);
+      for (int i = 0; i < dim; i++)
+        for (int k = 0; k < cnt; k++)
+          tvalues[i][save_index[k]] = n_fvals[i][k];
+    }
+    return referenceCS.toReference(tvalues);
   }
 
   /**
