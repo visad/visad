@@ -246,52 +246,6 @@ TAR_FILES = \
 	visad/java3d/*.h				\
 	visad/java3d/Makefile
 
-CLASS_FILES = \
-	DATE						\
-	visad/*.class					\
-	visad/java3d/*.class				\
-	visad/java2d/*.class				\
-	visad/util/*.class				\
-	visad/formula/*.class				\
-	visad/ss/*.class				\
-	visad/ss/*.gif					\
-	visad/collab/*.class				\
-	visad/data/*.class				\
-	visad/data/netcdf/*.class			\
-	visad/data/netcdf/units/*.class			\
-	visad/data/netcdf/in/*.class			\
-	visad/data/netcdf/out/*.class			\
-	ucar/multiarray/*.class				\
-	ucar/util/*.class				\
-	ucar/netcdf/*.class				\
-	ucar/tests/*.class				\
-	visad/data/fits/*.class				\
-	nom/tam/fits/*.class				\
-	nom/tam/util/*.class				\
-	nom/tam/test/*.class				\
-	visad/data/hdfeos/*.class			\
-	visad/data/hdfeos/hdfeosc/*.class		\
-	visad/data/vis5d/*.class			\
-	edu/wisc/ssec/mcidas/*.class			\
-	edu/wisc/ssec/mcidas/adde/*.class		\
-	visad/data/mcidas/*.class                       \
-	visad/data/gif/*.class				\
-	visad/data/visad/*.class			\
-	visad/data/hdf5/*.class				\
-	visad/data/hdf5/hdf5objects/*.class		\
-	ncsa/hdf/hdf5lib/*.class			\
-	ncsa/hdf/hdf5lib/exceptions/*.class		\
-	visad/jmet/*.class				\
-	visad/paoloa/*.class				\
-	visad/paoloa/spline/*.class			\
-	visad/aune/*.class				\
-	visad/benjamin/*.class				\
-	visad/rabin/*.class				\
-	visad/bom/*.class				\
-	visad/aeri/*.class				\
-	visad/georef/*.class				\
-	visad/examples/*.class
-
 VISAD_PACKAGES = \
 		visad \
 		visad.collab \
@@ -334,6 +288,15 @@ VISAD_PACKAGES = \
 		visad.bom \
 		visad.aeri \
 		visad.georef
+
+CLASS_FILES=	\
+	DATE \
+	`echo $(VISAD_PACKAGES) 'visad.examples ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
+	visad/ss/*.gif
+
+JAVA_FILES=	\
+	`echo $(VISAD_PACKAGES) 'visad.examples ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
+	visad/ss/*.gif
 
 tar:
 	date > DATE ; \
@@ -398,23 +361,7 @@ save:
 
 
 clear:
-	$(RM) *.java
-	$(RM) java3d/*.java java2d/*.java util/*.java formula/*.java
-	$(RM) ss/*.java ss/*.gif
-	$(RM) collab/*.java
-	$(RM) data/*.java data/netcdf/*.java data/netcdf/units/*.java
-	$(RM) data/netcdf/in/*.java data/netcdf/out/*.java
-	$(RM) data/fits/*.java data/hdf5/*.java data/hdf5/hdf5objects/*.java
-	$(RM) $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
-	$(RM) $(UCAR)/multiarray/*.java $(UCAR)/netcdf/*.java
-	$(RM) $(UCAR)/tests/*.java $(UCAR)/util/*.java
-	$(RM) $(NCSA)/*.java $(NCSA)/exceptions/*.java
-	$(RM) data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
-	$(RM) $(SSEC)/mcidas/*.java $(SSEC)/mcidas/adde/*.java
-	$(RM) data/mcidas/*.java jmet/*.java georef/*.java
-	$(RM) data/vis5d/*.java data/gif/*.java data/visad/*.java
-	$(RM) paoloa/*.java aune/*.java benjamin/*.java examples/*.java
-	$(RM) paoloa/spline/*.java rabin/*.java bom/*.java aeri/*.java
+	$(RM) $(JAVA_FILES)
 
 
 debug:
