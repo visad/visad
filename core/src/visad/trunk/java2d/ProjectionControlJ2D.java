@@ -41,7 +41,7 @@ public class ProjectionControlJ2D extends ProjectionControl {
   private transient AffineTransform Matrix;
   private double[] matrix;
 
-  private VisADCanvasJ2D canvas;
+  private transient VisADCanvasJ2D canvas;
 
   public ProjectionControlJ2D(DisplayImpl d) throws VisADException {
     super(d);
