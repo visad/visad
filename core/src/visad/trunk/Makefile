@@ -529,8 +529,8 @@ recompile:
 	      else							\
 		(cd $$dir;						\
 		 if [ ! -z "$(COMPILE_ALL)" ]; then			\
-		   echo $(JC) $(FLAGS) '*.java';			\
-		   $(JC) $(FLAGS) *.java;				\
+		   echo $(JC) $(JFLAGS) '*.java';			\
+		   $(JC) $(JFLAGS) *.java;				\
 		 fi;							\
 		 for j in *.java; do					\
 		   b=`basename $$j .java`;				\
