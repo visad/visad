@@ -414,7 +414,7 @@ class _vdisp:
       return linref
 
 
-  def drawBox(self, points, color=None, mathtype=None, style=None, width=None):
+  def drawBox(self, points, color=None, mathtype=None, style=None, width=None, boxref=None):
     """
     Draw a box on this display.  <points> is a 2 dimensional, list/tuple
     of points to connect a box diagonal, ordered as given in the
@@ -448,8 +448,11 @@ class _vdisp:
         lineseg = Gridded3DSet(RealTupleType(mathtype), points, len(points[0]))
 
       uset = UnionSet(lineseg_s)
-      linref = self.addData("box", uset, constmap)
-      return linref
+      if boxref is not None:
+        boxref.setData(uset)
+      else:
+        boxref = self.addData("box", uset, constmap)
+      return boxref
 
     else:
       x , y , z , disp = self.getDisplayMaps()
@@ -469,8 +472,11 @@ class _vdisp:
         lineseg = Gridded3DSet(dom, points, len(points[0]))
 
       uset = UnionSet(lineseg_s)
-      linref = self.addData("box", uset, constmap)
-      return linref
+      if boxref is not None:
+        boxref.setData(uset)
+      else:
+        boxref = self.addData("box", uset, constmap)
+      return boxref
 
 
   def showDisplay(self, width=300, height=300, 
