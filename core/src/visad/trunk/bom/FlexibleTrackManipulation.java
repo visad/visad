@@ -199,7 +199,6 @@ public class FlexibleTrackManipulation extends Object {
     shape_control2.setShapeSet(new Integer1DSet(8));
     shape_control2.setShapes(ga[1]);
 
-    display.addReference(track_ref);
     which_time = -1;
 
     if (need_monitor) {
@@ -207,7 +206,10 @@ public class FlexibleTrackManipulation extends Object {
       data_monitor.addReference(track_ref);
     }
 
-    if (acontrol != null) acontrol.setCurrent(0);
+    if (acontrol != null) {
+      acontrol.setCurrent(0);
+      display.addReference(track_ref);
+    }
   }
 
   class DataMonitor extends CellImpl {
@@ -484,7 +486,7 @@ public class FlexibleTrackManipulation extends Object {
     
         if (afirst) {
           afirst = false;
-          display.removeReference(track_ref);
+          if (acontrol != null) display.removeReference(track_ref);
         }
       } // end synchronized (data_lock)
     }
