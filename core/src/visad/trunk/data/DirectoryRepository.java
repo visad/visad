@@ -6,7 +6,7 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import visad.data.FormFamily;
 import visad.data.Repository;
-import visad.data.netcdf.plain.Plain;
+import visad.data.netcdf.Plain;
 
 
 /** 
