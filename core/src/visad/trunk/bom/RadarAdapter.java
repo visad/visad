@@ -113,8 +113,8 @@ public class RadarAdapter {
     RealTupleType ref = null;
     Radar2DCoordinateSystem rcs2d = null;
     Radar3DCoordinateSystem rcs3d = null;
-    float elevlow = 0.1f; // degrees
-    float elevres = 1.0f; // degrees
+    float elevlow = 0.5f; // degrees
+    float elevres = 0.1f; // degrees
     int nelev = 1;
     if (d3d) {
       ref = new RealTupleType
