@@ -227,7 +227,7 @@ public abstract class Delaunay implements java.io.Serializable {
                 for (int k=0; k<3; k++) {
                   if (Walk[othtri][k] == i) cside = k;
                 }
-                /* Edges[othtri][cside] = NumEdges; */
+                Edges[othtri][cside] = NumEdges;
               }
               Edges[i][j] = NumEdges++;
             }

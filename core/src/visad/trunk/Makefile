@@ -311,6 +311,7 @@ JAVAONE_FILES = \
 	aune/*.so					\
 	paoloa/*.so					\
 	data/vis5d/*.so					\
+	data/hdfeos/hdfeosc/*.so			\
 	visad.jar					\
 	paoloa/*.class					\
 	aune/*.class					\

@@ -36,14 +36,14 @@ package visad;
    5 samples (note index is 0-based):<P>
 
 <PRE>
-             second (Y) component
-
-   first      0   6  12  18  24
-              1   7  13  19  25
-    (X)       2   8  14  20  26
-              3   9  15  21  27
-  component   4  10  16  22  28
-              5  11  17  23  29
+<!-- -->             second (Y) component
+<!-- -->
+<!-- -->   first      0   6  12  18  24
+<!-- -->              1   7  13  19  25
+<!-- -->    (X)       2   8  14  20  26
+<!-- -->              3   9  15  21  27
+<!-- -->  component   4  10  16  22  28
+<!-- -->              5  11  17  23  29
 </PRE>
 */
 public class Linear2DSet extends Gridded2DSet
