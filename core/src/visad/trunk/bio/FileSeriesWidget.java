@@ -49,18 +49,11 @@ public class FileSeriesWidget extends BioStepWidget {
   // -- INTERNAL API METHODS --
 
   /** Updates the slider bounds. */
-  void updateSlider(int maximum) {
-    int max = 1;
-    if (maximum > 0) {
-      bio.toolMeasure.setEnabled(true);
-      setEnabled(true);
-      max = maximum;
-    }
-    else {
-      bio.toolMeasure.setEnabled(false);
-      setEnabled(false);
-    }
-    setBounds(1, max, 1);
+  public void updateSlider(int maximum) {
+    super.updateSlider(maximum);
+    boolean b = maximum > 0;
+    bio.toolView.setEnabled(b);
+    bio.toolMeasure.setEnabled(b);
   }
 
 }

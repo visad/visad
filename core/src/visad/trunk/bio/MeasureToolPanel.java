@@ -418,7 +418,7 @@ public class MeasureToolPanel extends ToolPanel {
     controls.add(p);
 
     // description label
-    descriptionLabel = new JLabel("Description");
+    descriptionLabel = new JLabel("Group description");
     descriptionLabel.setAlignmentX(SwingConstants.LEFT);
     descriptionLabel.setEnabled(false);
     controls.add(pad(descriptionLabel));

@@ -62,8 +62,9 @@ public class BioSpinWidget extends JPanel implements MouseListener {
     val = new JTextField("" + value);
     val.setEditable(false);
     FontMetrics fm = getFontMetrics(val.getFont());
-    val.setMaximumSize(
-      new Dimension(fm.stringWidth("x" + max), fm.getHeight()));
+    Dimension size = new Dimension(fm.stringWidth("x" + max), fm.getHeight());
+    val.setPreferredSize(size);
+    val.setMaximumSize(size);
     URL upImg = getClass().getResource("up.gif");
     URL downImg = getClass().getResource("down.gif");
     ImageIcon upIcon = null, downIcon = null;
@@ -79,6 +80,10 @@ public class BioSpinWidget extends JPanel implements MouseListener {
       up = new JButton(upIcon);
       down = new JButton(downIcon);
     }
+    up.setPreferredSize(new Dimension(
+      upIcon.getIconWidth() + 2, upIcon.getIconHeight() + 2));
+    down.setPreferredSize(new Dimension(
+      downIcon.getIconWidth() + 2, downIcon.getIconHeight() + 2));
     up.addMouseListener(this);
     down.addMouseListener(this);
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -123,12 +128,12 @@ public class BioSpinWidget extends JPanel implements MouseListener {
   /** Called when mouse button pressed. */
   public void mousePressed(MouseEvent e) {
     Object source = e.getSource();
-    if (source == up) {
+    if (source == up && up.isEnabled()) {
       upPressed = true;
       value++;
       if (value > max) value = max;
     }
-    else if (source == down) {
+    else if (source == down && down.isEnabled()) {
       downPressed = true;
       value--;
       if (value < min) value = min;

@@ -34,13 +34,35 @@ import visad.util.StepWidget;
  */
 public class BioStepWidget extends StepWidget {
 
+  // -- FIELDS --
+
   /** BioVisAD frame. */
   protected BioVisAD bio;
+
+
+  // -- CONSTRUCTOR --
 
   /** Constructs a BioStepWidget. */
   public BioStepWidget(BioVisAD biovis, boolean horizontal) {
     super(horizontal);
     bio = biovis;
+  }
+
+
+  // -- API METHODS --
+
+  /** Updates slider bounds. */
+  public void updateSlider(int maximum) {
+    if (maximum > 0) {
+      setEnabled(true);
+      max = maximum;
+    }
+    else {
+      setEnabled(false);
+      max = 1;
+    }
+    cur = 1;
+    setBounds(min, max, cur);
   }
 
 }

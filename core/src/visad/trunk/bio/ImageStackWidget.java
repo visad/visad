@@ -30,110 +30,19 @@ import java.rmi.RemoteException;
 import visad.*;
 
 /** ImageStackWidget is a GUI component for stepping through an image stack. */
-public class ImageStackWidget extends BioStepWidget
-  implements ControlListener, ScalarMapListener
-{
-
-  // -- FIELDS --
-
-  private ScalarMap smap;
-  private AnimationControl control;
-
+public class ImageStackWidget extends BioStepWidget {
 
   // -- CONSTRUCTOR --
 
   /** Constructs a new ImageStackWidget. */
-  public ImageStackWidget(BioVisAD biovis) {
-    super(biovis, false);
-  }
+  public ImageStackWidget(BioVisAD biovis) { super(biovis, false); }
 
 
   // -- API METHODS --
 
-  /** Links the widget with the given scalar map. */
-  public void setMap(ScalarMap smap) throws VisADException, RemoteException {
-    // verify scalar map
-    if (smap != null && !Display.Animation.equals(smap.getDisplayScalar())) {
-      throw new DisplayException("ImageStackWidget: " +
-        "ScalarMap must be to Display.Animation");
-    }
-
-    // remove old listeners
-    if (this.smap != null) smap.removeScalarMapListener(this);
-    if (control != null) control.removeControlListener(this);
-
-    // get control values
-    this.smap = smap;
-    control = (AnimationControl) smap.getControl();
-    updateSlider();
-
-    // add listeners
-    if (control != null) control.addControlListener(this);
-    if (smap != null) smap.addScalarMapListener(this);
-  }
-
-
-  // -- HELPER METHODS --
-
-  private void updateSlider() {
-    int max = 1;
-    int cur = 1;
-    if (control == null) setEnabled(false);
-    else {
-      setEnabled(true);
-      if (smap != null) max = (int) smap.getRange()[1] + 1;
-      cur = control.getCurrent() + 1;
-      if (cur < 1) cur = 1;
-      else if (cur > max) cur = max;
-    }
-    setBounds(1, max, cur);
-  }
-
-
-  // -- INTERNAL API METHODS --
-
   /** Updates the current image of the image stack. */
   public void updateStep() {
-    if (control != null && cur != control.getCurrent() + 1) {
-      try {
-        control.setCurrent(cur - 1);
-        bio.mm.pool2.setSlice(cur - 1);
-      }
-      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-    }
-  }
-
-  /** ControlListener method used for programmatically moving JSlider. */
-  public void controlChanged(ControlEvent e) {
-    if (control != null) {
-      int val = control.getCurrent() + 1;
-      if (step.getValue() != val) step.setValue(val);
-    }
-  }
-
-  /** ScalarMapListener method used to recompute JSlider bounds. */
-  public void mapChanged(ScalarMapEvent e) {
-    updateSlider();
-  }
-
-  /** ScalarMapListener method used to detect new AnimationControl. */
-  public void controlChanged(ScalarMapControlEvent evt) {
-    int id = evt.getId();
-    if (id == ScalarMapEvent.CONTROL_REMOVED ||
-      id == ScalarMapEvent.CONTROL_REPLACED)
-    {
-      evt.getControl().removeControlListener(this);
-      if (id == ScalarMapEvent.CONTROL_REMOVED) control = null;
-    }
-
-    if (id == ScalarMapEvent.CONTROL_REPLACED ||
-      id == ScalarMapEvent.CONTROL_ADDED)
-    {
-      control = (AnimationControl) evt.getScalarMap().getControl();
-      updateSlider();
-      if (control != null) control.addControlListener(this);
-    }
+    if (!step.getValueIsAdjusting()) bio.sm.setSlice(cur - 1);
   }
 
 }

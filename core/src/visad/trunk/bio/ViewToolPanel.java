@@ -51,9 +51,12 @@ public class ViewToolPanel extends ToolPanel {
   /** Toggle for hi-res image display. */
   private JToggleButton hiRes;
 
+  /** Toggle for low-resolution thumbnails. */
+  private JCheckBox thumbs;
+  
   /** Animation widget. */
   private BioAnimWidget anim;
-  
+
   /** Toggle for grayscale mode. */
   private JCheckBox grayscale;
 
@@ -96,7 +99,7 @@ public class ViewToolPanel extends ToolPanel {
     // lo-res toggle button
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    loRes = new JToggleButton("Lo-res", true);
+    loRes = new JToggleButton("Lo-res", false);
     loRes.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         loRes.setSelected(true);
@@ -104,10 +107,11 @@ public class ViewToolPanel extends ToolPanel {
         // CTR: TODO: implement lo res toggle
       }
     });
+    loRes.setEnabled(false);
     p.add(loRes);
 
     // hi-res toggle button
-    hiRes = new JToggleButton("Hi-res", false);
+    hiRes = new JToggleButton("Hi-res", true);
     hiRes.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         loRes.setSelected(false);
@@ -116,7 +120,17 @@ public class ViewToolPanel extends ToolPanel {
       }
     });
     p.add(hiRes);
+    hiRes.setEnabled(false);
     controls.add(pad(p));
+
+    // thumbnails checkbox
+    thumbs = new JCheckBox("Create low-resolution thumbnails", true);
+    thumbs.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        bio.sm.setThumbnails(thumbs.isSelected());
+      }
+    });
+    controls.add(pad(thumbs));
 
     // divider between resolution functions and animation functions
     controls.add(Box.createVerticalStrut(10));
@@ -127,6 +141,7 @@ public class ViewToolPanel extends ToolPanel {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     anim = new BioAnimWidget();
+    anim.setEnabled(false);
     p.add(anim);
     controls.add(pad(p));
 
@@ -164,7 +179,7 @@ public class ViewToolPanel extends ToolPanel {
   public void setEnabled(boolean enabled) {
     loRes.setEnabled(enabled);
     hiRes.setEnabled(enabled);
-    anim.setEnabled(enabled);
+    anim.setEnabled(enabled && bio.sm.hasThumbnails());
     grayscale.setEnabled(enabled);
     brightnessLabel.setEnabled(enabled);
     brightness.setEnabled(enabled);
