@@ -107,8 +107,12 @@ public class SatDisplay {
             }
 
             // select which band to show...
-            display.addMap(new ScalarMap( (RealType) rtype.getComponent(0),
-                                               Display.RGB) );
+            ScalarMap rgbmap = new ScalarMap( (RealType) rtype.getComponent(0),
+                                              Display.RGB);
+            ColorControl control = (ColorControl) rgbmap.getControl();
+            control.initGreyWedge();
+
+            display.addMap(rgbmap);
 
             DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
 
