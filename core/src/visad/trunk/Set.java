@@ -221,7 +221,7 @@ public abstract class Set extends DataImpl {
     return indexToValue(indices);
   }
 
-  void cram_samples(float[][] samples) {
+  public void cram_missing(boolean[] range_select) {
   }
 
   //

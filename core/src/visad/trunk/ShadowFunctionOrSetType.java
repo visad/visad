@@ -1629,10 +1629,14 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
           } // end if (isTextureMap)
           else if (curvedTexture) {
             if (range_select[0] != null) {
+              spatial_set.cram_missing(range_select[0]);
+              spatial_all_select = false;
+/* WLH 6 May 99
               color_values =
                 selectToColor(range_select, color_values, constant_color,
                               constant_alpha, missing_transparent);
               constant_alpha = Float.NaN;
+*/
             }
 
             // get domain_set sizes
@@ -1784,10 +1788,14 @@ if (size < 0.2) {
           }
           else if (spatialManifoldDimension == 1) {
             if (range_select[0] != null) {
+              spatial_set.cram_missing(range_select[0]);
+              spatial_all_select = false;
+/* WLH 6 May 99
               color_values =
                 selectToColor(range_select, color_values, constant_color,
                               constant_alpha, missing_transparent);
               constant_alpha = Float.NaN;
+*/
             }
             array = spatial_set.make1DGeometry(color_values);
             if (!spatial_all_select) array = array.removeMissing();
@@ -1795,10 +1803,14 @@ if (size < 0.2) {
           }
           else if (spatialManifoldDimension == 2) {
             if (range_select[0] != null) {
+              spatial_set.cram_missing(range_select[0]);
+              spatial_all_select = false;
+/* WLH 6 May 99
               color_values =
                 selectToColor(range_select, color_values, constant_color,
                               constant_alpha, missing_transparent);
               constant_alpha = Float.NaN;
+*/
             }
             array = spatial_set.make2DGeometry(color_values, indexed);
             if (!spatial_all_select) array = array.removeMissing();

@@ -154,8 +154,11 @@ public class Gridded1DDoubleSet extends GriddedSet {
     }
   }
 
-  void cram_samples(float[][] samples) {
-    Samples = Set.floatToDouble(samples);
+  public void cram_missing(boolean[] range_select) {
+    int n = Math.min(range_select.length, Samples[0].length);
+    for (int i=0; i<n; i++) {
+      if (!range_select[i]) Samples[0][i] = Double.NaN;
+    }
   }
 
   public float[][] getSamples(boolean copy) throws VisADException {

@@ -1318,6 +1318,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 //
 // need to account for spatial setRange scaling in flow
 //
+// also do transform for EarthVectorType
+//
 
       // compute and transform 'end points' of flow vectors
       float[][][] vector_ends = new float[2][][];
@@ -1512,9 +1514,6 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       try {
         if (spatialDimension == 0) {
           double[] values = new double[3];
-/* WLH 4 May 99
-          for (int i=0; i<3; i++) values[i] = samples[i][0];
-*/
           for (int i=0; i<3; i++) values[i] = spatial_values[i][0];
           RealTuple tuple =
             new RealTuple(Display.DisplaySpatialCartesianTuple, values);
@@ -1523,14 +1522,6 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         else {
           SetType type = new SetType(Display.DisplaySpatialCartesianTuple);
           // MEM
-/* WLH 4 May 99
-          Set new_set = domain_set.makeSpatial(type, samples);
-          if (range_select[0] != null) {
-            // a real hack - fix this someday
-            new_set.cram_samples(spatial_values);
-          }
-          return new_set;
-*/
           return domain_set.makeSpatial(type, spatial_values);
         }
       }
