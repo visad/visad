@@ -532,8 +532,8 @@ public class FileFlatField extends FlatField {
 
   /**
    * Clones this instance.  This implementation violates the general <code>
-   * clone()</code> in that the returned object will compare unequal to this
-   * instance.  As such, this method should probably not be invoked.
+   * clone()</code> contract in that the returned object will compare unequal to
+   * this instance.  As such, this method should probably not be invoked.
    *
    * @return                            A clone of this instance.
    */
