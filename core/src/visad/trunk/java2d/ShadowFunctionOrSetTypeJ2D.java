@@ -139,11 +139,6 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
 
     // System.out.println("anyText = " + anyText);
 
-    if (anyShape) {
-      throw new UnimplementedException("Shape not yet supported: " +
-                                       "ShadowFunctionOrSetTypeJ2D.doTransform");
-    }
-
     // get some precomputed values useful for transform
     // length of ValueArray
     int valueArrayLength = display.getValueArrayLength();
@@ -806,6 +801,24 @@ END MISSING TEST */
                            " pointMode = " + pointMode);
 */
         VisADGeometryArray array;
+
+        boolean anyShapeCreated = false;
+        VisADGeometryArray[] arrays =
+          assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
+                        valueToScalar, display, default_values, inherited_values,
+                        spatial_values, color_values, range_select);
+        if (arrays != null) {
+          for (int i=0; i<arrays.length; i++) {
+            array = arrays[i];
+            if (array != null) {
+              appearance = makeAppearance(mode, constant_alpha,
+                                          constant_color, array);
+              group.addChild(appearance);
+            }
+          }
+          anyShapeCreated = true;
+        }
+
         boolean anyTextCreated = false;
         if (anyText && text_values != null && text_control != null) {
           array = makeText(text_values, text_control, spatial_values,
@@ -817,6 +830,7 @@ END MISSING TEST */
             anyTextCreated = true;
           }
         }
+
         boolean anyFlowCreated = false;
         if (anyFlow) {
           // try Flow1
@@ -883,7 +897,7 @@ END MISSING TEST */
                 }
                 else if (spatialManifoldDimension == 2) {
                   if (spatial_set != null) {
-                    VisADGeometryArray[] arrays =
+                    arrays =
                       spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
                                                fvalues[4], display_values[i],
                                                color_values, swap);
@@ -923,7 +937,8 @@ END MISSING TEST */
             } // end if (real.equals(Display.IsoContour) && not inherited)
           } // end for (int i=0; i<valueArrayLength; i++)
         } // end if (anyContour)
-        if (!anyContourCreated && !anyFlowCreated && !anyTextCreated) {
+        if (!anyContourCreated && !anyFlowCreated &&
+            !anyTextCreated && !anyShapeCreated) {
           // MEM
           if (isTextureMap) {
             if (color_values == null) {
@@ -1148,53 +1163,100 @@ END MISSING TEST */
         }
 
         for (int i=0; i<domain_length; i++) {
+          VisADGroup branch = new VisADGroup();
           if (range_select[0] == null || range_select[0].length == 1 ||
               range_select[0][i] == range_select[0][i]) {
-            VisADGroup branch = new VisADGroup();
-            VisADPointArray array = new VisADPointArray();
-            array.vertexCount = 1;
-            coordinates = new float[3];
+            VisADGeometryArray array = null;
+
+            float[][] sp = new float[3][1];
             if (spatial_values[0].length > 1) {
-              coordinates[0] = spatial_values[0][i];
-              coordinates[1] = spatial_values[1][i];
-              coordinates[2] = spatial_values[2][i];
+              sp[0][0] = spatial_values[0][i];
+              sp[1][0] = spatial_values[1][i];
+              sp[2][0] = spatial_values[2][i];
             }
             else {
-              coordinates[0] = spatial_values[0][0];
-              coordinates[1] = spatial_values[1][0];
-              coordinates[2] = spatial_values[2][0];
+              sp[0][0] = spatial_values[0][0];
+              sp[1][0] = spatial_values[1][0];
+              sp[2][0] = spatial_values[2][0];
             }
-            array.coordinates = coordinates;
-            if (color_values != null) {
-              colors = new float[3];
-              if (color_values[0].length > 1) {
-                colors[0] = color_values[0][i];
-                colors[1] = color_values[1][i];
-                colors[2] = color_values[2][i];
+            float[][] co = new float[3][1];
+            if (color_values[0].length > 1) {
+              co[0][0] = color_values[0][i];
+              co[1][0] = color_values[1][i];
+              co[2][0] = color_values[2][i];
+            }
+            else {
+              co[0][0] = color_values[0][0];
+              co[1][0] = color_values[1][0];
+              co[2][0] = color_values[2][0];
+            }
+            float[][] ra = {{0.0f}};
+
+            boolean anyShapeCreated = false;
+            VisADGeometryArray[] arrays =
+              assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
+                            valueToScalar, display, default_values, inherited_values,
+                            sp, co, ra);
+            if (arrays != null) {
+              for (int j=0; j<arrays.length; j++) {
+                array = arrays[j];
+                if (array != null) {
+                  appearance = makeAppearance(mode, constant_alpha,
+                                              constant_color, array);
+                  branch.addChild(appearance);
+                }
+              }
+              anyShapeCreated = true;
+            }
+
+            boolean anyTextCreated = false;
+            if (anyText && text_values != null && text_control != null) {
+              String[] te = new String[1];
+              if (text_values.length > 1) {
+                te[0] = text_values[i];
               }
               else {
-                colors[0] = color_values[0][0];
-                colors[1] = color_values[1][0];
-                colors[2] = color_values[2][0];
+                te[0] = text_values[0];
               }
-              array.colors = colors;
+              array = makeText(te, text_control, spatial_values, co, ra);
+              if (array != null) {
+                appearance = makeAppearance(mode, constant_alpha,
+                                            constant_color, array);
+                branch.addChild(appearance);
+                anyTextCreated = true;
+              }
             }
-            appearance = makeAppearance(mode, constant_alpha,
-                                        constant_color, array);
-            branch.addChild(appearance);
-            swit.addChild(branch);
-            // System.out.println("addChild " + i + " of " + domain_length);
+
+            if (!anyShapeCreated && !anyTextCreated) {
+              array = new VisADPointArray();
+              array.vertexCount = 1;
+              coordinates = new float[3];
+              coordinates[0] = sp[0][0];
+              coordinates[1] = sp[1][0];
+              coordinates[2] = sp[2][0];
+              array.coordinates = coordinates;
+              if (color_values != null) {
+                colors = new float[3];
+                colors[0] = co[0][0];
+                colors[1] = co[1][0];
+                colors[2] = co[2][0];
+                array.colors = colors;
+              }
+              appearance = makeAppearance(mode, constant_alpha,
+                                          constant_color, array);
+              branch.addChild(appearance);
+              // System.out.println("addChild " + i + " of " + domain_length);
+            }
           }
           else { // (range_select[0][i] != range_select[0][i])
             if (control != null) {
               // add null VisADGroup as child to maintain order
-              VisADGroup branch = new VisADGroup(); // J2D
-              swit.addChild(branch);
               branch.addChild(new VisADAppearance());
               // System.out.println("addChild " + i + " of " + domain_length +
               //                    " MISSING");
             }
           }
+          swit.addChild(branch);
         } // end for (int i=0; i<domain_length; i++)
   
         control.addPair(swit, domain_set, renderer);

@@ -153,7 +153,7 @@ public interface Display extends Action {
   /** shape display scalar
       WLH - this should be a DisplayEnumeratedType */
   public final static DisplayRealType Shape =
-    new DisplayRealType("Shape", false, 0.0, true);
+    new DisplayRealType("Shape", true, 0.0, true);
  
   /** text display scalar
       WLH - this should be a DisplayTextType */

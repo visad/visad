@@ -810,6 +810,104 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     return array;
   }
 
+  /** collect and transform Shape DisplayRealType values from display_values;
+      offset by spatial_values, colored by color_values and selected by
+      range_select */
+  public static VisADGeometryArray[] assembleShape(float[][] display_values,
+                int valueArrayLength, int[] valueToMap, Vector MapVector,
+                int[] valueToScalar, DisplayImpl display,
+                float[] default_values, int[] inherited_values,
+                float[][] spatial_values, float[][] color_values,
+                float[][] range_select)
+         throws VisADException, RemoteException {
+    float[] values = null;
+    ShapeControl control = null;
+    for (int i=0; i<valueArrayLength; i++) {
+      if (display_values[i] != null) {
+        int displayScalarIndex = valueToScalar[i];
+        DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+
+        if (real.equals(Display.Shape)) {
+          values = display_values[i];
+          control = (ShapeControl)
+            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+        }
+      }
+    }
+    if (values == null || control == null) return null;
+    int len = values.length;
+
+    // color ??
+    int color_length = 0;
+    float r = 0.0f;
+    float g = 0.0f;
+    float b = 0.0f;
+    float a = 0.0f;
+    if (color_values != null) {
+      if (color_values[0].length > len) len = color_values[0].length;
+      color_length = color_values.length;
+      r = color_values[0][0];
+      g = color_values[1][0];
+      b = color_values[2][0];
+      if (color_length > 3) a = color_values[3][0];
+    }
+
+    if (spatial_values[0].length > len) len = spatial_values[0].length;
+    if (values.length < len) {
+      float[] new_values = new float[len];
+      for (int i=0; i<len; i++) new_values[i] = values[0];
+      values = new_values;
+    }
+    VisADGeometryArray[] arrays = control.getShapes(values);
+    float x = spatial_values[0][0];
+    float y = spatial_values[1][0];
+    float z = spatial_values[2][0];
+    for (int i=0; i<arrays.length; i++) {
+      VisADGeometryArray array = arrays[i];
+      if (range_select[0] != null) {
+        if (range_select[0].length == 1) {
+          if (range_select[0][0] != range_select[0][0]) array = null;
+        }
+        else {
+          if (range_select[0][i] != range_select[0][i]) array = null;
+        }
+      }
+      if (array != null) {
+        if (spatial_values[0].length > 1) {
+          x = spatial_values[0][i];
+          y = spatial_values[1][i];
+          z = spatial_values[2][i];
+        }
+        int npts = array.coordinates.length / 3;
+        // offset shape location by spatial values
+        for (int j=0; j<array.coordinates.length; j+=3) {
+          array.coordinates[j] += x;
+          array.coordinates[j+1] += y;
+          array.coordinates[j+2] += z;
+        }
+
+        // color ??
+        if (array.colors == null && color_values != null) {
+          array.colors = new float[color_length * npts];
+          if (color_values[0].length > 1) {
+            r = color_values[0][i];
+            g = color_values[1][i];
+            b = color_values[2][i];
+            if (color_length > 3) a = color_values[3][i];
+          }
+          for (int j=0; j<array.coordinates.length; j+=color_length) {
+            array.colors[j] = r;
+            array.colors[j+1] = g;
+            array.colors[j+2] = b;
+            if (color_length > 3) array.colors[j+3] = a;
+          }
+        }
+
+      }
+    } // end for (int i=0; i<arrays.length; i++)
+    return arrays;
+  }
+
   /** collect and transform spatial DisplayRealType values from display_values;
       add spatial offset DisplayRealType values;
       adjust flow1_values and flow2_values for any coordinate transform;

@@ -279,6 +279,12 @@ public class DisplayImplJ3D extends DisplayImpl {
       basicGeometry(vga, array, mode2d);
       return array;
     }
+    else if (vga instanceof VisADQuadArray) {
+      if (vga.vertexCount == 0) return null;
+      QuadArray array = new QuadArray(vga.vertexCount, makeFormat(vga));
+      basicGeometry(vga, array, mode2d);
+      return array;
+    }
     else {
       throw new DisplayException("DisplayImplJ3D.makeGeometry");
     }

@@ -230,6 +230,20 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     return appearance;
   }
 
+  /** collect and transform Shape DisplayRealType values from display_values;
+      offset by spatial_values, selected by range_select */
+  public static VisADGeometryArray[] assembleShape(float[][] display_values,
+                int valueArrayLength, int[] valueToMap, Vector MapVector,
+                int[] valueToScalar, DisplayImpl display,
+                float[] default_values, int[] inherited_values,
+                float[][] spatial_values, float[][] color_values,
+                float[][] range_select)
+         throws VisADException, RemoteException {
+    return ShadowType.assembleShape(display_values, valueArrayLength,
+           valueToMap, MapVector, valueToScalar, display, default_values,
+           inherited_values, spatial_values, color_values, range_select);
+  }
+
   /** collect and transform spatial DisplayRealType values from display_values;
       add spatial offset DisplayRealType values;
       adjust flow1_values and flow2_values for any coordinate transform;
@@ -381,6 +395,26 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       Appearance appearance;
       Shape3D shape;
 
+      boolean anyShapeCreated = false;
+      int[] valueToMap = display.getValueToMap();
+      Vector MapVector = display.getMapVector();
+      VisADGeometryArray[] arrays =
+        assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
+                      valueToScalar, display, default_values, inherited_values,
+                      spatial_values, color_values, range_select);
+      if (arrays != null) {
+        for (int i=0; i<arrays.length; i++) {
+          array = arrays[i];
+          if (array != null) {
+            geometry = display.makeGeometry(array);
+            appearance = makeAppearance(mode, null, constant_color, geometry);
+            shape = new Shape3D(geometry, appearance);
+            group.addChild(shape);
+          }
+        }
+        anyShapeCreated = true;
+      }
+
       boolean anyTextCreated = false;
       if (text_value != null && text_control != null) {
         String[] text_values = {text_value};
@@ -423,7 +457,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         anyFlowCreated = true;
       }
 
-      if (!anyFlowCreated && !anyTextCreated) {
+      if (!anyFlowCreated && !anyTextCreated && !anyShapeCreated) {
         array = makePointGeometry(spatial_values, null);
         if (array != null && array.vertexCount > 0) {
           geometry = display.makeGeometry(array);

@@ -35,7 +35,7 @@ public class VisADGeometryArray extends VisADSceneGraphObject {
   public int vertexFormat;
   public float[] coordinates;
   public float[] normals;
-  public float[] colors; // should this be bytes ????
+  public float[] colors;
   public float[] texCoords;
 
   public VisADGeometryArray() {
