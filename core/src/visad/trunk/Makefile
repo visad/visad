@@ -386,7 +386,7 @@ ALL_PACKAGES = \
 
 CLASS_FILES=	\
 	DATE \
-	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
+	`echo $(DOC_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
 	visad/ss/*.gif \
 	visad/util/*.jhf
 

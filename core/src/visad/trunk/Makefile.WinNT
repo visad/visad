@@ -616,8 +616,7 @@ visad\aeri\*.class \
 visad\data\amanda\*.class \
 visad\georef\*.class \
 visad\meteorology\*.class \
-visad\install\*.class \
-visad\examples\*.class
+visad\install\*.class
 
 classes:
 	cd ..
