@@ -522,6 +522,9 @@ public class DataUtility extends Object {
    * tuples of the GriddedSet will come from the domain of the FlatField and the
    * remaining components will come from the range of the FlatField.
    * @param field		The FlatField from which to create a GriddedSet.
+   * @param copy		Whether or not to copy the range values from
+   *				the field (i.e. <code>field.getFloats(copy)
+   *				</code>).
    * @return			The GriddedSet corresponding to the input
    *				FlatField.
    * @throws VisADException	Couldn't create necessary VisAD object.
