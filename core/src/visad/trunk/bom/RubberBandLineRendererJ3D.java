@@ -439,7 +439,7 @@ public class RubberBandLineRendererJ3D extends DirectManipulationRendererJ3D {
       int npoints = 1 * EDGE;
       float[][] c = new float[3][npoints];
       for (int i=0; i<EDGE; i++) {
-        float a = ((float) i) / EDGE;  // goes from 0...1
+        float a = ((float) i) / (EDGE - 1);  // goes from 0...1
         float b = 1.0f - a;            // goes from 1...0
         c[xindex][i] = b * first_x[xindex][0] + a * last_x[xindex][0];
         c[yindex][i] = b * first_x[yindex][0] + a * last_x[yindex][0];
