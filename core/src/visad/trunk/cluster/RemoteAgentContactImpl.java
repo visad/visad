@@ -1,5 +1,5 @@
 //
-// RemoteClientDataImpl.java
+// RemoteAgentContactImpl.java
 //
 
 /*
@@ -27,19 +27,17 @@ MA 02111-1307, USA
 package visad.cluster;
 
 import visad.*;
-
-import java.util.*;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteClientData is the class for cluster client
-   VisAD data objects.<P>
+   RemoteAgentContactImpl is the class used by ClusterAgents
+   on nodes to communicate back to the client.<P>
 */
-public class RemoteClientDataImpl extends RemoteClusterDataImpl
-       implements RemoteClientData {
+public class RemoteAgentContactImpl extends UnicastRemoteObject
+       implements RemoteAgentContact {
 
-  public RemoteClientDataImpl() throws RemoteException {
+  public RemoteAgentContactImpl() throws RemoteException {
   }
 
 }

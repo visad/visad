@@ -1,5 +1,5 @@
 //
-// RemoteClientDataImpl.java
+// RemoteNodeDataImpl.java
 //
 
 /*
@@ -33,13 +33,21 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteClientData is the class for cluster client
+   RemoteNodeData is the class for cluster node
    VisAD data objects.<P>
 */
-public class RemoteClientDataImpl extends RemoteClusterDataImpl
-       implements RemoteClientData {
+public class RemoteNodeDataImpl extends RemoteClusterDataImpl
+       implements RemoteNodeData {
 
-  public RemoteClientDataImpl() throws RemoteException {
+  Vector agents = new Vector();
+
+  public RemoteNodeDataImpl() throws RemoteException {
+  }
+
+  public RemoteAgentContact sendAgent(ClusterAgent agent)
+         throws RemoteException {
+    agents.addElement(agent);
+    return agent.getRemoteAgentContact();
   }
 
 }

@@ -77,7 +77,7 @@ cient connected to RemodeNodeDataImpl's on the nodes
 
 ClusterAgent, Serializable class sent from client to each node
 gets a Thread on arrival at node, return value from send of
-ClusterAgent is RemoteClusterContact (and Impl)
+ClusterAgent is RemoteAgentContact (and Impl)
 values from ClusterAgent back declared Serializable
 
 see page 60 of Java Enterprise in a Nutshell

@@ -1,5 +1,5 @@
 //
-// RemoteClientDataImpl.java
+// ClusterAgent.java
 //
 
 /*
@@ -27,20 +27,50 @@ MA 02111-1307, USA
 package visad.cluster;
 
 import visad.*;
-
-import java.util.*;
 import java.rmi.*;
-import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteClientData is the class for cluster client
-   VisAD data objects.<P>
+   ClusterAgent is the agent sent from client to nodes.<P>
 */
-public class RemoteClientDataImpl extends RemoteClusterDataImpl
-       implements RemoteClientData {
+public abstract class ClusterAgent extends Object
+       implements java.io.Serializable, Runnable {
 
-  public RemoteClientDataImpl() throws RemoteException {
+  /** source of agent */
+  private RemoteClientData source = null;
+
+  /** RemoteAgentContact for communicating back to client */
+  RemoteAgentContactImpl contact = null;
+
+  /** ClusterAgent is Serializable, mark as transient */
+  private transient Thread agentThread;
+
+  public ClusterAgent(RemoteClientData s) {
+    source = s;
   }
+
+  /** create and start Thread, and return contact */
+  public RemoteAgentContactImpl getRemoteAgentContact() {
+    agentThread = new Thread(this);
+    agentThread.start();
+    try {
+      contact = new RemoteAgentContactImpl();
+      return contact;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+
+  public void stop() {
+    agentThread = null;
+  }
+
+  public abstract void run();
+/*
+    Thread me = Thread.currentThread();
+    while (agentThread == me) {
+    }
+*/
 
 }
 
