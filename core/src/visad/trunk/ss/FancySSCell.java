@@ -160,12 +160,12 @@ public class FancySSCell extends BasicSSCell {
   }
 
   /** Shows the widgets for altering controls */
-  void showWidgetFrame() {
+  public void showWidgetFrame() {
     if (WidgetFrame != null) WidgetFrame.setVisible(true);
   }
 
   /** Hides the widgets for altering controls */
-  void hideWidgetFrame() {
+  public void hideWidgetFrame() {
     if (WidgetFrame != null) WidgetFrame.setVisible(false);
   }
 
