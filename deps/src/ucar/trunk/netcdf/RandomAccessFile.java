@@ -1,4 +1,4 @@
-// $Id: RandomAccessFile.java,v 1.6 2003-03-14 16:29:05 donm Exp $
+// $Id: RandomAccessFile.java,v 1.7 2005-01-13 20:36:10 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -53,7 +53,7 @@ import java.util.Date;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.6 2003-03-14 16:29:05 donm Exp $
+ * @version $Id: RandomAccessFile.java,v 1.7 2005-01-13 20:36:10 donm Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
@@ -151,8 +151,8 @@ implements DataInput, DataOutput {
      * mode is <code>"rw"</code> and the
      * file does not exist, then an attempt is made to create it.
      *
-     * @param      name   the system-dependent filename.
-     * @param      mode   the access mode.
+     * @param      filename     the system-dependent filename.
+     * @param      modeString   the access mode.
      * @exception  IllegalArgumentException  if the mode argument is not equal
      *               to <code>"r"</code> or to <code>"rw"</code>.
      * @exception  IOException               if an I/O error occurs.
@@ -183,8 +183,8 @@ implements DataInput, DataOutput {
      * mode is <code>"rw"</code> and the
      * file does not exist, then an attempt is made to create it.
      *
-     * @param      name   the system-dependent filename.
-     * @param      mode   the access mode.
+     * @param      filename     the system-dependent filename.
+     * @param      modeString   the access mode.
      * @exception  IllegalArgumentException  if the mode argument is not equal
      *               to <code>"r"</code> or to <code>"rw"</code>.
      * @exception  IOException               if an I/O error occurs.
@@ -201,10 +201,6 @@ implements DataInput, DataOutput {
      */
    public RandomAccessFile( String filename, String modeString, int bufferSize )
        throws IOException {
-
-
-
-
        this( filename,
              modeString.equals("r")? READ :
              (modeString.equals("rw")? WRITE | READ : 0),
@@ -225,8 +221,8 @@ implements DataInput, DataOutput {
      * <code>"r"</code>. If the mode is <code>"rw"</code> and the
      * file does not exist, then an attempt is made to create it.
      *
-     * @param      file   the file object.
-     * @param      mode   the access mode.
+     * @param      file         the file object.
+     * @param      modeString   the access mode.
      * @exception  IllegalArgumentException  if the mode argument is not equal
      *               to <code>"r"</code> or to <code>"rw"</code>.
      * @exception  IOException               if an I/O error occurs.
@@ -705,6 +701,7 @@ implements DataInput, DataOutput {
          if( bufferModified ) {
             flush( );
             bufferStart = dataEnd = dataSize = 0;
+            file.seek(filePosition); // JC added Oct 21, 2004
          }
          file.write( b, off, len );
          filePosition += len;
