@@ -316,6 +316,10 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     return value;
   }
 
+  // WLH Dec 2001
+  private int gx = -1;
+  private int gy = -1;
+
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
@@ -334,9 +338,18 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     }
     int length = Math.min(value[0].length, value[1].length);
     float[][] grid = new float[ManifoldDimension][length];
+
     // (gx, gy) is the current grid box guess
+/* WLH Dec 2001
     int gx = (LengthX-1)/2;
     int gy = (LengthY-1)/2;
+*/
+    // use value from last call as first guess, if reasonable
+    if (gx < 0 || gx >= LengthX || gy < 0 || gy >= LengthY) {
+      gx = (LengthX-1)/2;
+      gy = (LengthY-1)/2;
+    }
+
     boolean lowertri = true;
     for (int i=0; i<length; i++) {
       // grid box guess starts at previous box unless there was no solution
