@@ -24,6 +24,42 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+/*      PROXY
+
+ProxyRendererJ3D like ClientRendererJ3D, but without any Java3D
+UserRendererJ3D like ClientRendererJ3D, but ?
+
+  ClientRendererJ3D <--> nodes
+
+or
+
+  UserRendererJ3D     <--> ProxyRendererJ3D     <--> nodes
+  RemoteUserAgentImpl <--> RemoteProxyAgentImpl
+  RemoteUserAgent     <--> RemoteProxyAgent
+
+no Java3D on nodes or ProxyRendererJ3D
+  but ProxyRendererJ3D extends DefaultRendererJ3D and that
+  imports Java3D
+RemoteClientDataImpl on Client or Proxy, not on User
+
+ProxyDisplayRendererJ3D extends TransformOnlyDisplayRendererJ3D
+  like NodeDisplayRendererJ3D
+UserDisplayRendererJ3D extends DefaultDisplayRendererJ3D
+  like ClientDisplayRendererJ3D
+
+ProxyDisplayImplJ3D extends DisplayImplJ3D
+  super("display", new ProxyDisplayRendererJ3D(),
+        DisplayImplJ3D.TRANSFORM_ONLY);
+  its doAction() does nothing
+
+UserDummyDataImpl extends DataImpl
+  getType() from adaptedRemoteClientData
+  RemoteCellImpl triggered by adaptedRemoteClientData
+      calls notifyReferences()
+
+
+*/
+
 package visad.cluster;
 
 import visad.*;
@@ -53,7 +89,7 @@ public class ProxyRendererJ3D extends DefaultRendererJ3D {
 
   private DataDisplayLink link = null;
   private Data data = null;
-  private ClientDisplayRendererJ3D cdr = null;
+  private ProxyDisplayRendererJ3D pdr = null;
   private boolean cluster = true;
 
   private RemoteClientAgentImpl[] agents = null;
@@ -100,7 +136,7 @@ public class ProxyRendererJ3D extends DefaultRendererJ3D {
             cmaps[i] = (ConstantMap) cvector.elementAt(i);
           }
         }
-        cdr = (ClientDisplayRendererJ3D) display.getDisplayRenderer();
+        pdr = (ProxyDisplayRendererJ3D) display.getDisplayRenderer();
       }
 
       // get the data
