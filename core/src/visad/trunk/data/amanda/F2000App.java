@@ -58,6 +58,96 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.LabeledColorWidget;
 import visad.util.VisADSlider;
 
+class DisplayFrame
+  extends WindowAdapter
+{
+  private Display display;
+
+  DisplayFrame(String title, Display display, JPanel panel,
+               int width, int height)
+    throws VisADException, RemoteException
+  {
+    this.display = display;
+
+    JFrame frame = new JFrame(title);
+
+    frame.addWindowListener(this);
+
+    frame.getContentPane().add(panel);
+
+    frame.setSize(width, height);
+
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    frame.setLocation((screenSize.width - width)/2,
+                      (screenSize.height - height)/2);
+
+    frame.setVisible(true);
+  }
+
+  public void windowClosing(WindowEvent evt)
+  {
+    try { display.destroy(); } catch (Exception e) { }
+    System.exit(0);
+  }
+}
+
+class DisplayMaps
+{
+  ScalarMap trackmap, shapemap, letmap;
+
+  DisplayMaps(F2000Form form, Display display)
+    throws RemoteException, VisADException
+  {
+    // compute x, y and z ranges with unity aspect ratios
+    final double xrange = form.getXMax() - form.getXMin();
+    final double yrange = form.getYMax() - form.getYMin();
+    final double zrange = form.getZMax() - form.getZMin();
+    final double half_range = -0.5 * Math.max(xrange, Math.max(yrange, zrange));
+    final double xmid = 0.5 * (form.getXMax() + form.getXMin());
+    final double ymid = 0.5 * (form.getYMax() + form.getYMin());
+    final double zmid = 0.5 * (form.getZMax() + form.getZMin());
+    final double xmin = xmid - half_range;
+    final double xmax = xmid + half_range;
+    final double ymin = ymid - half_range;
+    final double ymax = ymid + half_range;
+    final double zmin = zmid - half_range;
+    final double zmax = zmid + half_range;
+
+    ScalarMap xmap = new ScalarMap(form.getX(), Display.XAxis);
+    display.addMap(xmap);
+    xmap.setRange(xmin, xmax);
+
+    ScalarMap ymap = new ScalarMap(form.getY(), Display.YAxis);
+    display.addMap(ymap);
+    ymap.setRange(ymin, ymax);
+
+    ScalarMap zmap = new ScalarMap(form.getZ(), Display.ZAxis);
+    display.addMap(zmap);
+    zmap.setRange(zmin, zmax);
+
+    // ScalarMap eventmap = new ScalarMap(form.getEventIndex(),
+    //                                    Display.SelectValue);
+    // display.addMap(eventmap);
+
+    this.trackmap = new ScalarMap(form.getTrackIndex(), Display.SelectValue);
+    display.addMap(this.trackmap);
+
+    // ScalarMap energymap = new ScalarMap(energy, Display.RGB);
+    // display.addMap(energymap);
+
+    this.shapemap = new ScalarMap(form.getAmplitude(), Display.Shape);
+    display.addMap(this.shapemap);
+
+    ScalarMap shape_scalemap = new ScalarMap(form.getAmplitude(),
+                                             Display.ShapeScale);
+    display.addMap(shape_scalemap);
+    shape_scalemap.setRange(-20.0, 50.0);
+
+    this.letmap = new ScalarMap(form.getLet(), Display.RGB);
+    display.addMap(this.letmap);
+  }
+}
+
 /** run 'java F2000App in_file' to display data.<br>
  *  try 'java F2000App 100events.r'
  */
@@ -89,51 +179,14 @@ public class F2000App
 
     DisplayImpl display = new DisplayImplJ3D("amanda");
 
-    // compute x, y and z ranges with unity aspect ratios
-    double xrange = form.getXMax() - form.getXMin();
-    double yrange = form.getYMax() - form.getYMin();
-    double zrange = form.getZMax() - form.getZMin();
-    double half_range = -0.5 * Math.max(xrange, Math.max(yrange, zrange));
-    double xmid = 0.5 * (form.getXMax() + form.getXMin());
-    double ymid = 0.5 * (form.getYMax() + form.getYMin());
-    double zmid = 0.5 * (form.getZMax() + form.getZMin());
-    double xmin = xmid - half_range;
-    double xmax = xmid + half_range;
-    double ymin = ymid - half_range;
-    double ymax = ymid + half_range;
-    double zmin = zmid - half_range;
-    double zmax = zmid + half_range;
-
-    ScalarMap xmap = new ScalarMap(form.getX(), Display.XAxis);
-    display.addMap(xmap);
-    xmap.setRange(xmin, xmax);
-    ScalarMap ymap = new ScalarMap(form.getY(), Display.YAxis);
-    display.addMap(ymap);
-    ymap.setRange(ymin, ymax);
-    ScalarMap zmap = new ScalarMap(form.getZ(), Display.ZAxis);
-    display.addMap(zmap);
-    zmap.setRange(zmin, zmax);
-    // ScalarMap eventmap = new ScalarMap(form.getEventIndex(), Display.SelectValue);
-    // display.addMap(eventmap);
-    ScalarMap trackmap = new ScalarMap(form.getTrackIndex(), Display.SelectValue);
-    display.addMap(trackmap);
-    // ScalarMap energymap = new ScalarMap(energy, Display.RGB);
-    // display.addMap(energymap);
-    ScalarMap shapemap = new ScalarMap(form.getAmplitude(), Display.Shape);
-    display.addMap(shapemap);
-    ScalarMap shape_scalemap = new ScalarMap(form.getAmplitude(),
-                                             Display.ShapeScale);
-    display.addMap(shape_scalemap);
-    shape_scalemap.setRange(-20.0, 50.0);
-    ScalarMap letmap = new ScalarMap(form.getLet(), Display.RGB);
-    display.addMap(letmap);
+    DisplayMaps maps = new DisplayMaps(form, display);
 
     // GraphicsModeControl mode = display.getGraphicsModeControl();
     // mode.setScaleEnable(true);
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
 
-    ShapeControl scontrol = (ShapeControl) shapemap.getControl();
+    ShapeControl scontrol = (ShapeControl) maps.shapemap.getControl();
     scontrol.setShapeSet(new Integer1DSet(form.getAmplitude(), 1));
     scontrol.setShapes(form.getCubeArray());
 
@@ -158,10 +211,16 @@ System.out.println("amanda MathType\n" + amanda.getType());
 
     CellImpl cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        int index = (int) ((Real) event_ref.getData()).getValue();
-        if (index < 0) index = 0;
-        else if (index > nevents) index = nevents;
-        amanda_ref.setData(amanda.getSample(index));
+        Real r = (Real )event_ref.getData();
+        if (r != null) {
+          int index = (int )r.getValue();
+          if (index < 0) {
+            index = 0;
+          } else if (index > nevents) {
+            index = nevents;
+          }
+          amanda_ref.setData(amanda.getSample(index));
+        }
       }
     };
     // link cell to hour_ref to trigger doAction whenever
@@ -175,7 +234,7 @@ System.out.println("amanda MathType\n" + amanda.getType());
     energy_widget.setMaximumSize(new Dimension(400, 250));
 */
     LabeledColorWidget let_widget =
-      new LabeledColorWidget(letmap);
+      new LabeledColorWidget(maps.letmap);
     let_widget.setMaximumSize(new Dimension(400, 250));
 
     VisADSlider event_slider = new VisADSlider("event", 0, nevents, 0, 1.0,
@@ -188,7 +247,7 @@ System.out.println("amanda MathType\n" + amanda.getType());
 
     widget_panel.add(let_widget);
     // widget_panel.add(new VisADSlider(eventmap));
-    widget_panel.add(new VisADSlider(trackmap));
+    widget_panel.add(new VisADSlider(maps.trackmap));
     widget_panel.add(event_slider);
 
     JPanel display_panel = (JPanel) display.getComponent();
@@ -203,22 +262,6 @@ System.out.println("amanda MathType\n" + amanda.getType());
     panel.add(widget_panel);
     panel.add(display_panel);
 
-    int WIDTH = 1200;
-    int HEIGHT = 800;
-
-    JFrame frame = new JFrame("VisAD AMANDA Viewer");
-
-    frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    frame.setSize(WIDTH, HEIGHT);
-    frame.getContentPane().add(panel);
-
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    frame.setLocation(screenSize.width/2 - WIDTH/2,
-                      screenSize.height/2 - HEIGHT/2);
-
-    frame.setVisible(true);
+    new DisplayFrame("VisAD AMANDA Viewer", display, panel, 1200, 800);
   }
 }
