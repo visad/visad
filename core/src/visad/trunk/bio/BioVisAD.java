@@ -53,8 +53,14 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Application title. */
   private static final String TITLE = "BioVisAD";
 
+  /** Amount of detail for color. */
+  static final int COLOR_DETAIL = 256;
+
   /** Starting brightness value. */
-  static final int NORMAL_BRIGHTNESS = 50;
+  static final int NORMAL_BRIGHTNESS = COLOR_DETAIL / 2;
+
+  /** Starting contrast value. */
+  static final int NORMAL_CONTRAST = COLOR_DETAIL / 2;
 
 
   // -- DISPLAYS --
@@ -198,11 +204,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     display3.getComponent().setVisible(threeD);
   }
 
-  /**
-   * Updates image color table to match the
-   * given grayscale and brightness values.
-   */
-  public void setImageColors(int brightness,
+  /** Updates image color table to match the given values. */
+  public void setImageColors(int brightness, int contrast,
     RealType red, RealType green, RealType blue)
   {
     // get color controls
@@ -210,34 +213,34 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     if (cc2 == null) return;
     ColorControl[] cc3 = sm.getColorControls3D();
 
-    // initialize each color table
+    double mid = COLOR_DETAIL / 2.0;
+    double center = (double) brightness / COLOR_DETAIL;
+    double slope;
+    if (contrast <= mid) slope = contrast / mid;
+    else slope = mid / (COLOR_DETAIL - contrast);
+
+    // initialize color tables
     for (int j=0; j<cc2.length; j++) {
-      float[][] table = new float[3][256];
-
-      // initialize table with appropriate colors
-      if (sm.rtypes[j].equals(red)) {
-        for (int i=0; i<256; i++) table[0][i] = i / 255.0f;
-      }
-      if (sm.rtypes[j].equals(green)) {
-        for (int i=0; i<256; i++) table[1][i] = i / 255.0f;
-      }
-      if (sm.rtypes[j].equals(blue)) {
-        for (int i=0; i<256; i++) table[2][i] = i / 255.0f;
-      }
-
-      // apply brightness (gamma correction)
-      double gamma = 1.0 -
-        (1.0 / NORMAL_BRIGHTNESS) * (brightness - NORMAL_BRIGHTNESS);
-      for (int i=0; i<256; i++) {
-        table[0][i] = (float) Math.pow(table[0][i], gamma);
-        table[1][i] = (float) Math.pow(table[1][i], gamma);
-        table[2][i] = (float) Math.pow(table[2][i], gamma);
+      float[][] table = new float[3][COLOR_DETAIL];
+      boolean r = sm.rtypes[j].equals(red);
+      boolean g = sm.rtypes[j].equals(green);
+      boolean b = sm.rtypes[j].equals(blue);
+      if (r || g || b) {
+        float[] values = new float[COLOR_DETAIL];
+        for (int i=0; i<COLOR_DETAIL; i++) {
+          values[i] = (float) (0.5 * slope * (i / mid - 1.0) + center);
+          if (values[i] < 0) values[i] = 0;
+          else if (values[i] > 1) values[i] = 1;
+        }
+        if (r) System.arraycopy(values, 0, table[0], 0, COLOR_DETAIL);
+        if (g) System.arraycopy(values, 0, table[1], 0, COLOR_DETAIL);
+        if (b) System.arraycopy(values, 0, table[2], 0, COLOR_DETAIL);
       }
 
       // set color table
       try {
-        cc2[j].setTable(table);
-        if (cc3 != null) cc3[j].setTable(table);
+        if (cc2[j] != null) cc2[j].setTable(table);
+        if (cc3 != null && cc3[j] != null) cc3[j].setTable(table);
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }

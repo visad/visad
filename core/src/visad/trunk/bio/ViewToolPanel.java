@@ -81,6 +81,12 @@ public class ViewToolPanel extends ToolPanel {
   /** Slider for level of brightness. */
   private JSlider brightness;
 
+  /** Label for contrast. */
+  private JLabel contrastLabel;
+
+  /** Slider for level of contrast. */
+  private JSlider contrast;
+
 
   // -- CONSTRUCTOR --
 
@@ -171,15 +177,34 @@ public class ViewToolPanel extends ToolPanel {
     // brightness label
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    JPanel colorLabels = new JPanel();
+    colorLabels.setLayout(new BoxLayout(colorLabels, BoxLayout.Y_AXIS));
     brightnessLabel = new JLabel("Brightness: ");
-    p.add(brightnessLabel);
+    colorLabels.add(brightnessLabel);
+
+    // contrast label
+    contrastLabel = new JLabel("Contrast: ");
+    colorLabels.add(contrastLabel);
+    p.add(colorLabels);
 
     // brightness slider
-    brightness = new JSlider(1, 100, BioVisAD.NORMAL_BRIGHTNESS);
+    JPanel colorSliders = new JPanel();
+    colorSliders.setLayout(new BoxLayout(colorSliders, BoxLayout.Y_AXIS));
+    brightness = new JSlider(0, BioVisAD.COLOR_DETAIL,
+      BioVisAD.NORMAL_BRIGHTNESS);
     brightness.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) { doColorTable(); }
     });
-    p.add(brightness);
+    colorSliders.add(brightness);
+
+    // contrast slider
+    contrast = new JSlider(0, BioVisAD.COLOR_DETAIL,
+      BioVisAD.NORMAL_CONTRAST);
+    contrast.addChangeListener(new ChangeListener() {
+      public void stateChanged(ChangeEvent e) { doColorTable(); }
+    });
+    colorSliders.add(contrast);
+    p.add(colorSliders);
     controls.add(p);
 
     // spacing
@@ -231,7 +256,7 @@ public class ViewToolPanel extends ToolPanel {
 
   /** Updates image color table, for brightness and color adjustments. */
   void doColorTable() {
-    bio.setImageColors(brightness.getValue(),
+    bio.setImageColors(brightness.getValue(), contrast.getValue(),
       red.getSelectedItem(), green.getSelectedItem(), blue.getSelectedItem());
   }
 

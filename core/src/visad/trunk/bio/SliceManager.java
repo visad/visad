@@ -335,7 +335,7 @@ public class SliceManager implements ControlListener {
           // reset measurements
           if (bio.mm.lists != null) bio.mm.clear();
 
-          // create low-res thumbnails for timestep animation
+          // create low-resolution thumbnails for timestep animation
           field = null;
           FieldImpl[][] thumbs = null;
           timesteps = f.length;
@@ -499,7 +499,20 @@ public class SliceManager implements ControlListener {
         }
       }
     }
-    return f;
+
+    // convert single image to single-slice stack
+    FieldImpl stack = f;
+    if (f instanceof FlatField) {
+      try {
+        FunctionType func = new FunctionType(
+          RealType.getRealType("slice"), f.getType());
+        stack = new FieldImpl(func, new Integer1DSet(1));
+        stack.setSample(0, f);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    return stack;
   }
 
   /** Sets the given file as the current one. */
