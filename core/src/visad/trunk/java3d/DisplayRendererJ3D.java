@@ -71,6 +71,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
    *  Data depictions */
   private BranchGroup direct = null;
 
+  // WLH 10 March 2000
+  private OrderedGroup non_direct = null;
+
   /** TransformGroup for ViewPlatform */
   TransformGroup vpTrans = null;
   /** MouseBehaviorJ3D */
@@ -336,6 +339,14 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     direct.setCapability(Node.ENABLE_PICK_REPORTING);
     trans.addChild(direct);
 
+    // WLH 10 March 2000
+    non_direct = new OrderedGroup();
+    non_direct.setCapability(Group.ALLOW_CHILDREN_READ);
+    non_direct.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    non_direct.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    non_direct.setCapability(Node.ENABLE_PICK_REPORTING);
+    trans.addChild(non_direct);
+
     cursor_trans = new TransformGroup();
     cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
     cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
@@ -389,7 +400,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   }
 
   public void addSceneGraphComponent(Group group) {
-    trans.addChild(group);
+    // WLH 10 March 2000
+    // trans.addChild(group);
+    non_direct.addChild(group);
   }
 
   public void addDirectManipulationSceneGraphComponent(Group group,
