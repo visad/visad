@@ -1028,7 +1028,9 @@ public abstract class DisplayRendererJ3D
   }
 
   public void setWaitFlag(boolean b) {
-    if (b != getWaitFlag()) {
+    boolean old = getWaitFlag();
+    super.setWaitFlag(b);
+    if (b != old) {
       ProjectionControl proj = getDisplay().getProjectionControl();
       try {
         if (proj != null) proj.setMatrix(proj.getMatrix());
@@ -1036,7 +1038,6 @@ public abstract class DisplayRendererJ3D
       catch (VisADException e) { }
       catch (RemoteException e) { }
     }
-    super.setWaitFlag(b);
   }
 
 }

@@ -868,10 +868,11 @@ public abstract class DisplayRendererJ2D
   }
 
   public void setWaitFlag(boolean b) {
-    if (b != getWaitFlag()) {
+    boolean old = getWaitFlag();
+    super.setWaitFlag(b);
+    if (b != old) {
       if (canvas != null) canvas.renderTrigger();
     }
-    super.setWaitFlag(b);
   }
 
 }
