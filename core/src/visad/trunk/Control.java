@@ -180,7 +180,7 @@ System.out.println(getClass().getName() + "  check  tickFlag = " + tickFlag +
         s = s + " (" + unit.toString() + ")";
       }
     }
-    String t = Integer.toString(current) + " of " +
+    String t = Integer.toString(current+1) + " of " +
                Integer.toString(set.getLength());
     getDisplayRenderer().setAnimationString(new String[] {s, t});
   }
