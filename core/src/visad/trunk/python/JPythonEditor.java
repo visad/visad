@@ -55,6 +55,7 @@ public class JPythonEditor extends TextEditor {
 
   /** names of useful methods from JPython interpreter class */
   private static final String[] methodNames = {
+    interp + ".eval(java.lang.String)",
     interp + ".exec(java.lang.String)",
     interp + ".execfile(java.lang.String)",
     interp + ".set(java.lang.String, org.python.core.PyObject)",
@@ -65,17 +66,20 @@ public class JPythonEditor extends TextEditor {
   private static final Method[] methods =
     FormulaUtil.stringsToMethods(methodNames);
 
+  /** method for evaluating a line of JPython code */
+  private static final Method eval = methods[0];
+
   /** method for executing a line of JPython code */
-  private static final Method exec = methods[0];
+  private static final Method exec = methods[1];
 
   /** method for executing a document containing JPython code */
-  private static final Method execfile = methods[1];
+  private static final Method execfile = methods[2];
 
   /** method for setting a JPython variable's value */
-  private static final Method set = methods[2];
+  private static final Method set = methods[3];
 
   /** method for getting a JPython variable's value */
-  private static final Method get = methods[3];
+  private static final Method get = methods[4];
 
   /** PythonInterpreter object */
   protected Object python = null;
@@ -110,6 +114,22 @@ public class JPythonEditor extends TextEditor {
       new ExtensionFileFilter("py", "JPython source code"));
   }
 
+  /** evaluates a line of JPython code */
+  public Object eval(String line) throws VisADException {
+    try {
+      return eval.invoke(python, new Object[] {line});
+    }
+    catch (IllegalAccessException exc) {
+      throw new VisADException(exc.toString());
+    }
+    catch (IllegalArgumentException exc) {
+      throw new VisADException(exc.toString());
+    }
+    catch (InvocationTargetException exc) {
+      throw new VisADException(exc.getTargetException().toString());
+    }
+  }
+
   /** executes a line of JPython code */
   public void exec(String line) throws VisADException {
     try {
@@ -122,7 +142,7 @@ public class JPythonEditor extends TextEditor {
       throw new VisADException(exc.toString());
     }
     catch (InvocationTargetException exc) {
-      throw new VisADException(exc.getTargetException().getMessage());
+      throw new VisADException(exc.getTargetException().toString());
     }
   }
 
@@ -138,7 +158,7 @@ public class JPythonEditor extends TextEditor {
       throw new VisADException(exc.toString());
     }
     catch (InvocationTargetException exc) {
-      throw new VisADException(exc.getTargetException().getMessage());
+      throw new VisADException(exc.getTargetException().toString());
     }
   }
 
@@ -154,7 +174,7 @@ public class JPythonEditor extends TextEditor {
       throw new VisADException(exc.toString());
     }
     catch (InvocationTargetException exc) {
-      throw new VisADException(exc.getTargetException().getMessage());
+      throw new VisADException(exc.getTargetException().toString());
     }
   }
 
@@ -170,7 +190,7 @@ public class JPythonEditor extends TextEditor {
       throw new VisADException(exc.toString());
     }
     catch (InvocationTargetException exc) {
-      throw new VisADException(exc.getTargetException().getMessage());
+      throw new VisADException(exc.getTargetException().toString());
     }
   }
 

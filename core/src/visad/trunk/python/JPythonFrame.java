@@ -30,6 +30,7 @@ import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 import visad.VisADException;
+import visad.ss.SpreadSheet;
 import visad.util.TextFrame;
 
 /** A GUI frame for editing JPython code in Java runtime. */
@@ -53,20 +54,42 @@ public class JPythonFrame extends TextFrame {
     addMenuItem("Command", "Run", "commandRun", 'r');
     addMenuItem("Command", "Compile", "commandCompile", 'c');
 
+    // add immediate text field
+    JPanel immediate = new JPanel();
+    immediate.setLayout(new BoxLayout(immediate, BoxLayout.X_AXIS));
+    final JTextField textLine = new JTextField();
+    SpreadSheet.adjustTextField(textLine);
+    textLine.setToolTipText(
+      "Enter a JPython command and press enter to execute it immediately");
+    textLine.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        try {
+          ((JPythonEditor) textPane).exec(textLine.getText());
+        }
+        catch (VisADException exc) {
+          showError(exc.getMessage());
+        }
+      }
+    });
+    immediate.add(new JLabel("Immediate: "));
+    immediate.add(textLine);
+    getContentPane().add(immediate);
+
     // change the title bar text
     setTitle("VisAD JPython Editor");
   }
 
   public void commandRun() {
-    if (pane.hasChanged()) {
+    if (textPane.hasChanged()) {
       int ans = JOptionPane.showConfirmDialog(this,
         "A save is required before execution. Okay to save?",
         getTitle(), JOptionPane.YES_NO_OPTION);
       if (ans != JOptionPane.YES_OPTION) return;
-      fileSave();
+      boolean success = fileSave();
+      if (!success) return;
     }
     try {
-      ((JPythonEditor) pane).run();
+      ((JPythonEditor) textPane).run();
     }
     catch (VisADException exc) {
       showError(exc.getMessage());
@@ -75,7 +98,7 @@ public class JPythonFrame extends TextFrame {
 
   public void commandCompile() {
     try {
-      ((JPythonEditor) pane).compile();
+      ((JPythonEditor) textPane).compile();
     }
     catch (VisADException exc) {
       showError(exc.getMessage());

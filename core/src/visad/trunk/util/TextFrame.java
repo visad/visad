@@ -36,7 +36,7 @@ import visad.VisADException;
 public class TextFrame extends GUIFrame implements UndoableEditListener {
 
   /** main frame component */
-  protected TextEditor pane;
+  protected TextEditor textPane;
 
   /** frame title */
   private String title = "VisAD Text Editor";
@@ -53,8 +53,8 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
 
   /** constructs a TextFrame from the given TextEditor object */
   public TextFrame(TextEditor textEdit) throws VisADException {
-    pane = textEdit;
-    pane.addUndoableEditListener(this);
+    textPane = textEdit;
+    textPane.addUndoableEditListener(this);
 
     // setup menu bar
     addMenuItem("File", "New", "fileNew", 'n');
@@ -74,6 +74,9 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
     getMenuItem("Edit", "Redo").setEnabled(false);
 
     // finish UI setup
+    JPanel pane = new JPanel();
+    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+    pane.add(textPane);
     setContentPane(pane);
     setTitle(title);
   }
@@ -93,10 +96,10 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
   private void refreshUndoMenuItems() {
     JMenuItem editUndo = getMenuItem("Edit", "Undo");
     JMenuItem editRedo = getMenuItem("Edit", "Redo");
-    editUndo.setEnabled(pane.canUndo());
-    editUndo.setText(pane.getUndoName());
-    editRedo.setEnabled(pane.canRedo());
-    editRedo.setText(pane.getRedoName());
+    editUndo.setEnabled(textPane.canUndo());
+    editUndo.setText(textPane.getUndoName());
+    editRedo.setEnabled(textPane.canRedo());
+    editRedo.setText(textPane.getRedoName());
   }
 
   /** refreshes the File Save menu item */
@@ -107,7 +110,7 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
 
   /** refreshes the frame's title bar */
   private void refreshTitleBar() {
-    String filename = pane.getFilename();
+    String filename = textPane.getFilename();
     super.setTitle(title + (filename == null ? "" : " - " + filename));
   }
 
@@ -127,29 +130,44 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
 
   /** display an error message in an error box */
   protected void showError(String msg) {
+    // strip off carriage returns
+    int i = 0;
+    int len = msg.length();
+    StringBuffer sb = new StringBuffer(len);
+    while (true) {
+      int index = msg.indexOf((char) 13, i);
+      if (index < 0) break;
+      sb.append(msg.substring(i, index));
+      i = index + 1;
+    }
+    sb.append(msg.substring(i));
+    msg = sb.toString();
     JOptionPane.showMessageDialog(this, msg, getTitle(),
       JOptionPane.ERROR_MESSAGE);
   }
 
   public void fileNew() {
     if (!verifyLoseChanges()) return;
-    pane.newFile();
+    textPane.newFile();
     refreshMenuItems(false);
     refreshTitleBar();
   }
 
   public void fileOpen() {
-    pane.openDialog();
+    textPane.openDialog();
     refreshMenuItems(false);
     refreshTitleBar();
   }
 
-  public void fileSave() {
-    File file = pane.getFile();
-    if (file == null) fileSaveAs();
+  /** @return true if save was successful */
+  public boolean fileSave() {
+    File file = textPane.getFile();
+    boolean success = false;
+    if (file == null) success = fileSaveAs();
     else {
       try {
-        pane.saveFile(file);
+        textPane.saveFile(file);
+        success = true;
       }
       catch (IOException exc) {
         // display error box
@@ -157,41 +175,44 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
       }
     }
     refreshSaveMenuItem(false);
+    return success;
   }
 
-  public void fileSaveAs() {
-    pane.saveDialog();
+  /** @return true if save was successful */
+  public boolean fileSaveAs() {
+    boolean success = textPane.saveDialog();
     refreshSaveMenuItem(false);
     refreshTitleBar();
+    return success;
   }
 
   public void fileExit() {
-    if (pane.hasChanged() && !verifyLoseChanges()) return;
+    if (textPane.hasChanged() && !verifyLoseChanges()) return;
     System.exit(0);
   }
 
   public void editUndo() {
-    pane.undo();
+    textPane.undo();
     refreshMenuItems(true);
   }
 
   public void editRedo() {
-    pane.redo();
+    textPane.redo();
     refreshMenuItems(true);
   }
 
   public void editCut() {
-    pane.cut();
+    textPane.cut();
     refreshMenuItems(true);
   }
 
   public void editCopy() {
-    pane.copy();
+    textPane.copy();
     refreshUndoMenuItems();
   }
 
   public void editPaste() {
-    pane.paste();
+    textPane.paste();
     refreshMenuItems(true);
   }
 
