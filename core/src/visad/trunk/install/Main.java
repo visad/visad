@@ -274,8 +274,10 @@ public class Main
     chooser.setList(dList);
     chooser.setFileSelectionMode(ChooserList.DIRECTORIES_ONLY);
     chooser.setDialogTitle(title);
+    chooser.setApproveButtonToolTipText("Select directory");
+    chooser.setApproveButtonText("Select...");
 
-    int option = chooser.showOpenDialog(null);
+    int option = chooser.showDialog(null, "Select directory");
     if (option == ChooserList.CANCEL_OPTION) {
       return null;
     }
@@ -302,9 +304,9 @@ public class Main
     }
     chooser.setFileSelectionMode(ChooserList.FILES_ONLY);
     chooser.setDialogTitle(title);
-    //chooser.setApproveButtonText("Choose...");
+    chooser.setApproveButtonToolTipText("Choose file");
 
-    int option = chooser.showOpenDialog(null);
+    int option = chooser.showDialog(null, "Choose file");
     if (option == ChooserList.CANCEL_OPTION) {
       return null;
     }
