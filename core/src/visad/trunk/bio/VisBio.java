@@ -917,7 +917,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
     });
   }
 
-  /** Packs the window, but ensure displays are square as well. */
+  /** Packs the window, but ensures displays are square as well. */
   private void doPack() {
     pack();
     Dimension d = displayPane.getSize();
