@@ -78,7 +78,7 @@ public abstract class ActionImpl
       if (pool == null) {
         // ...fill the pool; die if pool wasn't created
         try {
-          pool = new ThreadPool();
+          pool = new ThreadPool("ActionThread");
         } catch (Exception e) {
           System.err.println(e.getClass().getName() + ": " + e.getMessage());
           System.exit(1);
