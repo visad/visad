@@ -43,6 +43,8 @@ public interface AnimationControl extends AVControl {
   public void setCurrent(float value)
          throws VisADException, RemoteException;
  
+  public int getCurrent();
+
   public void setDirection(boolean dir)
          throws VisADException, RemoteException;
 

@@ -151,6 +151,7 @@ public abstract class DisplayRenderer extends Object {
         }
       }
     }
+    render_trigger();
   }
 
   /** create Strings in cursorStringVector from cursor location */
@@ -193,6 +194,10 @@ public abstract class DisplayRenderer extends Object {
         }
       } // end while(maps.hasMoreElements())
     } // end synchronized (cursorStringVector)
+    render_trigger();
+  }
+
+  public void render_trigger() {
   }
 
   public boolean legalDisplayScalar(DisplayRealType type) {
