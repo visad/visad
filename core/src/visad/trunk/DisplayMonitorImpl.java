@@ -448,6 +448,8 @@ public class DisplayMonitorImpl
         try {
           listener.stateChanged(e2);
         } catch (ConnectException ce) {
+          // restore failed event to table
+          table.put(list[i], evt);
           // let caller handle ConnectExceptions
           throw ce;
         } catch (Throwable t) {
