@@ -35,8 +35,7 @@ import java.net.URLConnection;
 import visad.jmet.*;
 import visad.*;
 import visad.data.mcidas.*;
-import visad.data.netcdf.*;
-import visad.data.netcdf.units.*;
+import visad.data.units.*;
 import edu.wisc.ssec.mcidas.*;
 import edu.wisc.ssec.mcidas.adde.*;
 
