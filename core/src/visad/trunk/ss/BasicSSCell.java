@@ -532,5 +532,10 @@ public class BasicSSCell extends JPanel {
     if (VCell != null) VCell.ShowErrors = ShowFormulaErrors;
   }
 
+  /** Returns true if any BasicSSCell is currently saving data */
+  public static boolean isSaving() {
+    return Saving > 0;
+  }
+
 }
 

@@ -781,8 +781,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // wait for files to finish saving
     Thread t = new Thread() {
       public void run() {
-        boolean b = false;
-        if (BasicSSCell.Saving > 0) b = true;
+        boolean b = BasicSSCell.isSaving();
         JFrame f = new JFrame("Please wait");
         if (b) {
           // display "please wait" message in new frame
@@ -801,7 +800,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
                         sSize.height/2 - fSize.height/2);
           f.setVisible(true);
         }
-        while (BasicSSCell.Saving > 0) {
+        while (BasicSSCell.isSaving()) {
           try {
             sleep(500);
           }

@@ -33,6 +33,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 // import needed Spread Sheet classes
+import visad.ss.BasicSSCell;
 import visad.ss.FancySSCell;
 import visad.ss.MappingDialog;
 
@@ -62,7 +63,7 @@ public class MiniSheet extends JFrame implements ActionListener {
     p.add(l);
   }
 
-  /** The two spreadsheet cells */
+  /** Two spreadsheet cells */
   private FancySSCell Cell1, Cell2;
 
   /** Two mapping buttons */
@@ -82,7 +83,7 @@ public class MiniSheet extends JFrame implements ActionListener {
     // end program when this frame is closed
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        System.exit(0);
+        quitProgram();
       }
     });
 
@@ -121,7 +122,7 @@ public class MiniSheet extends JFrame implements ActionListener {
     createLabel(left, "Type a formula into a cell's Formula text field");
     createLabel(left, "to compute the cell using that formula.");
     createLabel(left, "For example, try typing \"SQRT(CELL1) / 3\"");
-    createLabel(left, "into the second cell's Formula Text Field");
+    createLabel(left, "into the second cell's Formula text field");
     createLabel(left, "after loading data into the first cell.");
 
     // create panel for Quit button so the button can be centered
@@ -215,7 +216,7 @@ public class MiniSheet extends JFrame implements ActionListener {
   /** This method handles button presses */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
-    if (cmd.equals("quit")) System.exit(0);
+    if (cmd.equals("quit")) quitProgram();
     else if (cmd.equals("load1")) Cell1.loadDataDialog();
     else if (cmd.equals("load2")) Cell2.loadDataDialog();
     else if (cmd.equals("save1")) Cell1.saveDataDialog(true);
@@ -240,5 +241,24 @@ public class MiniSheet extends JFrame implements ActionListener {
     }
   }
 
+  /** Waits for files to finish saving before quitting */
+  void quitProgram() {
+    Thread t = new Thread() {
+      public void run() {
+        if (BasicSSCell.isSaving()) {
+          System.out.println("Please wait for MiniSheet to finish " +
+                             "saving files...");
+        }
+        while (BasicSSCell.isSaving()) {
+          try {
+            sleep(500);
+          }
+          catch (InterruptedException exc) { }
+        }
+        System.exit(0);
+      }
+    };
+    t.start();
+  }
 }
 
