@@ -65,7 +65,7 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
   private final static float LIMIT = 4.0f; // constant for TEST = 0
   private final static float ALPHA = 0.1f; // constant for TEST = 1
 
-/* WLH
+/* WLH */
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
@@ -268,6 +268,21 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
                 {texCoords[t+2], texCoords[t+3]};
             }
             accum++;
+
+            // WLH
+            if (earlycoord == null) {
+              earlycoord = new float[3];
+              if (normals != null) {
+                earlyno = new float[3];
+              }
+              if (color_length > 0) {
+                earlycol = new byte[color_length];
+              }
+              if (texCoords != null) {
+                earlytex = new float[2];
+              }
+            }
+
             nextPoint(accum, color_length, coords, nos, cols, texs,
                  coord, no, col, tex, lastcoord, lastno, lastcol,
                  lasttex, earlycoord, earlyno, earlycol, earlytex, kmr);
@@ -305,7 +320,7 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
       return array;
     }
   }
-*/
+/* */
 
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
@@ -977,8 +992,12 @@ System.out.println("any_split " + lons[i3] + " " + lons[i3 + 1] + " " +
         System.arraycopy(col, 0, lastcol, 0, color_length);
       }
       if (texCoords != null) {
+/* WLH 9 March 2000
         System.arraycopy(lasttex, 0, earlytex, 0, 3);
         System.arraycopy(tex, 0, lasttex, 0, 3);
+*/
+        System.arraycopy(lasttex, 0, earlytex, 0, 2);
+        System.arraycopy(tex, 0, lasttex, 0, 2);
       }
       return;
     }
