@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.8 1998-09-14 13:51:37 billh Exp $
+ * $Id: NcNumber.java,v 1.9 1998-09-15 19:16:42 billh Exp $
  */
 
 package visad.data.netcdf.in;
@@ -324,6 +324,7 @@ NcNumber
 	float[]		values = new float[npts];
 
         /* WLH 14 Sept 98 */
+/* WLH 15 Sept 98 - BACK OUT THIS CHANGE
         int [] origin = new int[var.getRank()];
         for (int i=0; i<origin.length; i++) origin[i] = 0;
         Class component_type = var.getComponentType();
@@ -336,12 +337,15 @@ NcNumber
           for (int i=0; i<dvals.length; i++) values[i] = (float) dvals[i];
         }
         else {
+*/
           IndexIterator	iter = new IndexIterator(lengths);
           for (int i = 0; i < npts; ++i) {
             values[i] = var.getFloat(iter.value());
             iter.incr();
           }
+/*
         }
+*/
 
 	vetter.vet(values);
 
