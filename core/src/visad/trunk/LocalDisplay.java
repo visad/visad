@@ -47,6 +47,14 @@ public interface LocalDisplay
   /** add a DisplayListener */
   void addDisplayListener(DisplayListener listener);
 
+  /**
+   * Removes a DisplayListener.
+   * @param listener		The listener to be removed.  Nothing happens
+   *				if the listener isn't registered with this
+   *				instance.
+   */
+  void removeDisplayListener(DisplayListener listener);
+
   /** link refs to this Display using the non-default renderer;
       must be local DataRendererImpls;
       this method may only be invoked after all links to ScalarMaps
