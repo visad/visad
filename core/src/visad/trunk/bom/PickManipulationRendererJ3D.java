@@ -76,6 +76,10 @@ public class PickManipulationRendererJ3D extends DirectManipulationRendererJ3D {
   private String whyNotDirect = null;
 
   /** possible values for whyNotDirect */
+  private final static String notSimpleField =
+    "not simple field";
+  private final static String notSimpleTuple =
+    "not simple tuple";
 
   private boolean stop = false;
 
@@ -92,6 +96,22 @@ public class PickManipulationRendererJ3D extends DirectManipulationRendererJ3D {
     link = Links[0];
 
     ref = link.getDataReference();
+
+    ShadowType shadow = link.getShadow().getAdaptedShadowType();
+    MathType type = link.getType();
+
+    if (type instanceof FunctionType) {
+      if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_FIELD) {
+        whyNotDirect = notSimpleField;
+        return;
+      }
+    }
+    else {
+      if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_TUPLE) {
+        whyNotDirect = notSimpleTuple;
+        return;
+      }
+    }
 
     setIsDirectManipulation(true);
   }

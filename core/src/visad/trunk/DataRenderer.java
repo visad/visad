@@ -1235,7 +1235,7 @@ if (map.badRange()) {
         return;
       }
       else if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_FIELD) {
-        whyNotDirect = notSimpleTuple;
+        whyNotDirect = notSimpleField;
         return;
       }
       else if (shadow.getMultipleSpatialDisplayScalar()) {
