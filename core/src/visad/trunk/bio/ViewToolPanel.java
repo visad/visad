@@ -87,6 +87,9 @@ public class ViewToolPanel extends ToolPanel {
   /** Slider for level of contrast. */
   private JSlider contrast;
 
+  /** Toggle for whether 2-D plane is user-selected arbitrarily. */
+  private JCheckBox planeSelect;
+
 
   // -- CONSTRUCTOR --
 
@@ -230,6 +233,21 @@ public class ViewToolPanel extends ToolPanel {
       public void itemStateChanged(ItemEvent e) { doColorTable(); }
     });
     controls.add(pad(blue));
+
+    // divider between color functions and slice functions
+    controls.add(Box.createVerticalStrut(10));
+    controls.add(new Divider());
+    controls.add(Box.createVerticalStrut(10));
+
+    // plane selector checkbox
+    planeSelect = new JCheckBox("Arbitrary data slice", false);
+    planeSelect.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        bio.sm.setPlaneSelect(planeSelect.isSelected());
+      }
+    });
+    planeSelect.setEnabled(false);
+    controls.add(pad(planeSelect));
   }
 
 
@@ -243,6 +261,9 @@ public class ViewToolPanel extends ToolPanel {
     anim.setEnabled(enabled && bio.sm.hasThumbnails());
     brightnessLabel.setEnabled(enabled);
     brightness.setEnabled(enabled);
+    contrastLabel.setEnabled(enabled);
+    contrast.setEnabled(enabled);
+    planeSelect.setEnabled(enabled);
   }
 
   /** Switches between lo-res and hi-res mode. */

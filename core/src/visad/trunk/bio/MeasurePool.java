@@ -256,8 +256,9 @@ public class MeasurePool implements DisplayListener {
 
       // check for any needed X's
       if (dim == 2) {
-        double x_width = 0.05 *
-          (bio.sm.xRange < bio.sm.yRange ? bio.sm.xRange : bio.sm.yRange);
+        double xRange = Math.abs(bio.sm.max_x - bio.sm.min_x);
+        double yRange = Math.abs(bio.sm.max_y - bio.sm.min_y);
+        double x_width = 0.05 * (xRange < yRange ? xRange : yRange);
         for (int j=0; j<values.length; j++) {
           double[] s = values[j].getValues();
           if (s[2] == slice) continue;

@@ -83,8 +83,8 @@ public class SliceManager implements ControlListener {
   /** List of range type components for image stack data. */
   RealType[] rtypes;
 
-  /** X and Y range of images. */
-  double xRange, yRange;
+  /** X, Y and Z bounds for the data. */
+  float min_x, max_x, min_y, max_y, min_z, max_z;
 
 
   // -- SLICE CONTROLS --
@@ -157,6 +157,12 @@ public class SliceManager implements ControlListener {
   /** BioVisAD frame. */
   private BioVisAD bio;
 
+  /** Plane selection object. */
+  private PlaneSelector ps;
+
+  /** Loader for opening data series. */
+  private DefaultFamily loader;
+
   /** List of files containing current data series. */
   private File[] files;
 
@@ -178,9 +184,6 @@ public class SliceManager implements ControlListener {
   /** Slice number of data at last resolution switch. */
   private int mode_slice;
 
-  /** Loader for opening data series. */
-  private final DefaultFamily loader = new DefaultFamily("bio_loader");
-
 
   // -- CONSTRUCTORS --
 
@@ -195,6 +198,8 @@ public class SliceManager implements ControlListener {
     autoSwitch = true;
     colorRange = new RealTupleType(
       new RealType[] {RED_TYPE, GREEN_TYPE, BLUE_TYPE});
+
+    loader = new DefaultFamily("bio_loader");
 
     // image stack references
     ref = new DataReferenceImpl("bio_ref");
@@ -262,6 +267,9 @@ public class SliceManager implements ControlListener {
 
   /** Sets whether to create low-resolution thumbnails of the data. */
   public void setThumbnails(boolean thumbnails) { doThumbs = thumbnails; }
+
+  /** Sets whether plane selection object is visible. */
+  public void setPlaneSelect(boolean value) { ps.toggle(value); }
 
   /** Links the data series to the given list of files. */
   public void setSeries(File[] files) {
@@ -372,7 +380,7 @@ public class SliceManager implements ControlListener {
                 // compute scale-down factor
                 GriddedSet set = (GriddedSet) image.getDomainSet();
                 int[] len = set.getLengths();
-/*
+                /* CTR - FIXME - determine whether this logic will work
                 long tsBytes = BYTES_PER_PIXEL * slices * len[0] * len[1];
                 long freeBytes = MEGA * (heapSize - RESERVED) - tsBytes;
                 freeBytes /= 4; // use quarter available, for safety (TEMP?)
@@ -381,7 +389,7 @@ public class SliceManager implements ControlListener {
                     "to compute image slice thumbnails");
                 }
                 scale = Math.sqrt((double) freeBytes / (timesteps * tsBytes));
-*/
+                */
                 long freeBytes = MEGA * thumbSize;
                 long fullBytes = BYTES_PER_PIXEL *
                   slices * timesteps * len[0] * len[1];
@@ -459,11 +467,6 @@ public class SliceManager implements ControlListener {
 
           bio.toolView.guessTypes();
           configureDisplays();
-
-          // CTR - FIXME - plane selector logic
-          //PlaneSelector ps = new PlaneSelector(bio);
-          //ps.init();
-          //ps.toggle(true);
 
           // initialize measurement list array
           bio.mm.initLists(timesteps);
@@ -652,24 +655,22 @@ public class SliceManager implements ControlListener {
     float[] hi = set.getHi();
 
     // x-axis range
-    float min_x = lo[0];
-    float max_x = hi[0];
-    xRange = Math.abs(max_x - min_x);
+    min_x = lo[0];
+    max_x = hi[0];
     if (min_x != min_x) min_x = 0;
     if (max_x != max_x) max_x = 0;
     x_map2.setRange(min_x, max_x);
 
     // y-axis range
-    float min_y = lo[1];
-    float max_y = hi[1];
-    yRange = Math.abs(max_y - min_y);
+    min_y = lo[1];
+    max_y = hi[1];
     if (min_y != min_y) min_y = 0;
     if (max_y != max_y) max_y = 0;
     y_map2.setRange(min_y, max_y);
 
     // select value range
-    float min_z = 0;
-    float max_z = slices - 1;
+    min_z = 0;
+    max_z = slices - 1;
     slice_map2.setRange(min_z, max_z);
 
     // color ranges
@@ -706,6 +707,10 @@ public class SliceManager implements ControlListener {
       anim_control3 = (AnimationControl) anim_map3.getControl();
     }
     value_control2.addControlListener(this);
+
+    // initialize plane selector
+    if (ps == null) ps = new PlaneSelector(bio);
+    ps.init();
 
     // set up color table characteristics
     bio.toolView.doColorTable();

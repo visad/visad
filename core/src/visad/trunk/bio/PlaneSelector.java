@@ -64,38 +64,76 @@ public class PlaneSelector {
         for (int i=0; i<len; i++) {
           t[i] = (RealTuple) refs[i + 1].getData();
           if (t[i] == null) {
-            // CTR - FIXME - use better values than 0.0
-            try {
-              refs[i + 1].setData(new RealTuple(new Real[] {
-                new Real(bio.sm.dtypes[0], 0.0),
-                new Real(bio.sm.dtypes[1], 0.0),
-                new Real(bio.sm.dtypes[2], 0.0)
-              }));
-            }
-            catch (VisADException exc) { exc.printStackTrace(); }
-            catch (RemoteException exc) { exc.printStackTrace(); }
+            if (bio.sm.dtypes == null) return;
+            double vx = i < 2 ? bio.sm.min_x : bio.sm.max_x;
+            double vy = i < 2 ? bio.sm.min_y : bio.sm.max_y;
+            double vz = i == 0 ? bio.sm.min_z : bio.sm.max_z;
+            setData(i, vx, vy, vz);
             return;
           }
         }
         MathType type = t[0].getType();
-        float[][] samples = new float[3][len];
+        float[][] samples = new float[3][len + 1];
         for (int j=0; j<len; j++) {
           double[] values = t[j].getValues();
+          double vx = values[0];
+          double vy = values[1];
+          double vz = values[2];
+          boolean cx1 = vx < bio.sm.min_x;
+          boolean cx2 = vx > bio.sm.max_x;
+          boolean cy1 = vy < bio.sm.min_y;
+          boolean cy2 = vy > bio.sm.max_y;
+          boolean cz1 = vz < bio.sm.min_z;
+          boolean cz2 = vz > bio.sm.max_z;
+          if (cx1) vx = bio.sm.min_x;
+          else if (cx2) vx = bio.sm.max_x;
+          if (cy1) vy = bio.sm.min_y;
+          else if (cy2) vy = bio.sm.max_y;
+          if (cz1) vz = bio.sm.min_z;
+          else if (cz2) vz = bio.sm.max_z;
+          boolean changed = cx1 || cx2 || cy1 || cy2 || cz1 || cz2;
+
+          // snap values to nearest box edge (must touch two of three axes)
+          double rx = Math.abs(bio.sm.max_x - bio.sm.min_x);
+          double ry = Math.abs(bio.sm.max_y - bio.sm.min_y);
+          double rz = Math.abs(bio.sm.max_z - bio.sm.min_z);
+          double dx1 = Math.abs(vx - bio.sm.min_x) / rx;
+          double dx2 = Math.abs(vx - bio.sm.max_x) / rx;
+          double dy1 = Math.abs(vy - bio.sm.min_y) / ry;
+          double dy2 = Math.abs(vy - bio.sm.max_y) / ry;
+          double dz1 = Math.abs(vz - bio.sm.min_z) / rz;
+          double dz2 = Math.abs(vz - bio.sm.max_z) / rz;
+          boolean xm = dx1 == 0 || dx2 == 0;
+          boolean ym = dy1 == 0 || dy2 == 0;
+          boolean zm = dz1 == 0 || dz2 == 0;
+          if (!xm && !ym || !xm && !zm || !ym && !zm) {
+            boolean axisx = dx1 < dx2;
+            boolean axisy = dy1 < dy2;
+            boolean axisz = dz1 < dz2;
+            double distx = axisx ? dx1 : dx2;
+            double disty = axisy ? dy1 : dy2;
+            double distz = axisz ? dz1 : dz2;
+            boolean snapx = distx <= distz || distx <= disty;
+            boolean snapy = disty <= distx || disty <= distz;
+            boolean snapz = !snapx || !snapy;
+            if (snapx) vx = axisx ? bio.sm.min_x : bio.sm.max_x;
+            if (snapy) vy = axisy ? bio.sm.min_y : bio.sm.max_y;
+            if (snapz) vz = axisz ? bio.sm.min_z : bio.sm.max_z;
+            changed = true;
+          }
+          if (changed) {
+            setData(j, vx, vy, vz);
+            return;
+          }
+
           for (int i=0; i<3; i++) samples[i][j] = (float) values[i];
         }
+        for (int i=0; i<3; i++) {
+          samples[i][len] = samples[i][1] + samples[i][2] - samples[i][0];
+        }
         try {
-          Gridded3DSet[] sets = new Gridded3DSet[len];
-          for (int i=0; i<len; i++) {
-            int i1 = (i + 1) % len;
-            float[][] pts = {
-              {samples[0][i], samples[0][i1]},
-              {samples[1][i], samples[1][i1]},
-              {samples[2][i], samples[2][i1]}
-            };
-            sets[i] = new Gridded3DSet(type, pts, 2);
-          }
-          UnionSet lines = new UnionSet(type, sets);
-          refs[0].setData(lines);
+          Gridded3DSet plane = new Gridded3DSet(type, samples, 2, 2);
+          refs[0].setData(plane);
         }
         catch (VisADException exc) { exc.printStackTrace(); }
         catch (RemoteException exc) { exc.printStackTrace(); }
@@ -147,7 +185,7 @@ public class PlaneSelector {
           new ConstantMap(1.0f, Display.Red),
           new ConstantMap(1.0f, Display.Green),
           new ConstantMap(1.0f, Display.Blue),
-          //new ConstantMap(0.5f, Display.Alpha),
+          new ConstantMap(0.5f, Display.Alpha),
           new ConstantMap(15.0f, Display.PointSize)
         };
       }
@@ -155,6 +193,22 @@ public class PlaneSelector {
       renderers[i].toggle(false);
       bio.display3.addReferences(renderers[i], refs[i], maps);
     }
+  }
+
+
+  // -- HELPER METHODS --
+
+  /** Moves the given reference point. */
+  private void setData(int i, double x, double y, double z) {
+    try {
+      refs[i + 1].setData(new RealTuple(new Real[] {
+        new Real(bio.sm.dtypes[0], x),
+        new Real(bio.sm.dtypes[1], y),
+        new Real(bio.sm.dtypes[2], z)
+      }));
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
 }

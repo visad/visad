@@ -159,7 +159,17 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       GraphicsModeControl gmc = display3.getGraphicsModeControl();
       gmc.setPointSize(5.0f);
       gmc.setLineWidth(2.0f);
-      display3.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
+      DisplayRendererJ3D renderer =
+        (DisplayRendererJ3D) display3.getDisplayRenderer();
+      renderer.setPickThreshhold(Float.MAX_VALUE);
+      /* CTR - FIXME - probably won't need clipping
+      renderer.setClip(0, true,  1.0f,  0.0f,  0.0f, -1.01f);
+      renderer.setClip(1, true, -1.0f,  0.0f,  0.0f, -1.01f);
+      renderer.setClip(2, true,  0.0f,  1.0f,  0.0f, -1.01f);
+      renderer.setClip(3, true,  0.0f, -1.0f,  0.0f, -1.01f);
+      renderer.setClip(4, true,  0.0f,  0.0f,  1.0f, -1.01f);
+      renderer.setClip(5, true,  0.0f,  0.0f, -1.0f, -1.01f);
+      */
       displayPane.add(display3.getComponent());
     }
 
