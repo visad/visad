@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: IndependentVar.java,v 1.1 1998-03-20 20:57:21 visad Exp $
+ * $Id: IndependentVar.java,v 1.2 1998-03-27 18:23:23 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -11,7 +11,7 @@ package visad.data.netcdf.out;
 import java.io.IOException;
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
-import visad.GriddedSet;
+import visad.SampledSet;
 import visad.Unit;
 import visad.data.BadFormException;
 
@@ -21,7 +21,7 @@ import visad.data.BadFormException;
  * in a VisAD data object as a netCDF variable.  An independent variable is a
  * netCDF variable that has been created because it was necessary to define
  * dependent netCDF variables in terms of an "index" co-ordinate.  This can
- * happen, for example, in a Fleld with a domain that's a GriddedSet
+ * happen, for example, in a Fleld with a domain that's a SampledSet
  * but not a LinearSet.
  */
 class
@@ -37,7 +37,7 @@ IndependentVar
     /**
      * The sampling domain set.
      */
-    protected final GriddedSet	set;
+    protected final SampledSet	set;
 
 
     /**
@@ -47,12 +47,16 @@ IndependentVar
      * @param dim	The netCDF dimension for the independent variable.
      * @param unit	The unit of the netCDF variable (may be 
      *			<code>null</code>).
+     * @param set	The VisAD SampledSet that "contains" the independent
+     *			variable.
+     * @param idim	The component index within the SampledSet associated
+     *			with the independent variable.
      * @exception BadFormException
      *			The netCDF variable cannot be represented.
      */
     protected
     IndependentVar(String name, Dimension dim, Unit unit,
-	    GriddedSet set, int idim)
+	    SampledSet set, int idim)
 	throws BadFormException
     {
 	super(name, Float.TYPE, new Dimension[] {dim}, myAttributes(unit));

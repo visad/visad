@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VisADAdapter.java,v 1.1 1998-03-26 21:25:20 visad Exp $
+ * $Id: VisADAdapter.java,v 1.2 1998-03-27 18:23:24 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -20,6 +20,7 @@ import visad.Field;
 import visad.FunctionType;
 import visad.Gridded1DSet;
 import visad.GriddedSet;
+import visad.IrregularSet;
 import visad.Linear1DSet;
 import visad.LinearSet;
 import visad.Real;
@@ -28,6 +29,7 @@ import visad.RealType;
 import visad.SampledSet;
 import visad.ScalarType;
 import visad.Set;
+import visad.SetType;
 import visad.Text;
 import visad.Tuple;
 import visad.UnimplementedException;
@@ -208,10 +210,10 @@ VisADAdapter
      * @param outerAccessor	The means for accessing the individual VisAD
      *				<code>Tuple</code> objects of the enclosing
      *				VisAD data object.
-     * @exception VisADException		Problem in core VisAD.
-     *		Probably some VisAD object couldn't be created.
-     * @exception RemoteException		Remote data access failure.
-     * @exception IOException			Data access failure.
+     * @exception VisADException	Problem in core VisAD.  Probably some
+     *					VisAD object couldn't be created.
+     * @exception RemoteException	Remote data access failure.
+     * @exception IOException		Local data access failure.
      */
     protected void
     visit(Tuple tuple, VisADAccessor outerAccessor)
@@ -231,203 +233,257 @@ VisADAdapter
      * @param outerAccessor	The means for accessing the individual VisAD
      *				<code>Field</code> objects of the enclosing
      *				VisAD data object.
-     * @exception UnimplementedException	Something that should be
-     *		implemented isn't yet.
-     * @exception BadFormException		The VisAD data object cannot be
-     *		adapted to a netCDF API
-     * @exception VisADException		Problem in core VisAD.
-     *		Probably some VisAD object couldn't be created.
-     * @exception RemoteException		Remote data access failure.
-     * @exception IOException			Data access failure.
+     * @postcondition		All netCDF dimensions and variables of
+     *				<code>field</code> will have been defined in
+     *				this class.
+     * @exception UnimplementedException
+     *					Something that should be implemented
+     *					isn't yet.
+     * @exception BadFormException	The VisAD data object cannot be adapted
+     *					to a netCDF API
+     * @exception VisADException	Problem in core VisAD.  Probably some
+     *					VisAD object couldn't be created.
+     * @exception RemoteException	Remote data access failure.
+     * @exception IOException		Local data access failure.
      */
     protected void
     visit(Field field, VisADAccessor outerAccessor)
 	throws RemoteException, VisADException, BadFormException,
 	    UnimplementedException, IOException
     {
-	Set	set = field.getDomainSet();
+	Set		set = field.getDomainSet();
+	Dimension[]	dims;
 
-	if (!(set instanceof SampledSet))
-	    throw new BadFormException("The netCDF data model can't " +
-		"handle a non-sampled domain");
-
-	// ELSE
-
-	if (!(set instanceof GriddedSet))
+	if (set instanceof LinearSet)
 	{
-	    int	rank = field.getDomainDimension();
-
-	    // TODO
-	    throw new UnimplementedException(
-		"Can't yet handle an irregularly-sampled domain");
+	    /*
+	     * The domain set is a cross-product of arithmetic
+	     * progressions.  This maps directly into the netCDF
+	     * data model -- possibly with coordinate variables.
+	     */
+	    dims = defineLinearSetDims((GriddedSet)set);
+	}				// the sample-domain is linear
+	else
+	if (set instanceof SampledSet)
+	{
+	    /*
+	     * The domain set is not an arithmetic progression.
+	     */
+	    dims = new Dimension[] {defineSampledSetDim((SampledSet)set)};
+	}
+	else
+	{
+	    throw new BadFormException(
+		"Can't handle a " + set.getClass().getName() + " domain set");
 	}
 
-	// ELSE
+	/*
+	 * Continue the definition process on the inner, VisAD data 
+	 * objects by visiting the first sample.  The dimension array
+	 * is converted to netCDF order (outermost dimension first).
+	 */
+	// System.out.println("visit(Field,...): RangeType: " +
+	    // field.getSample(0).getType());
+	visit(field.getSample(0),
+	    new FieldAccessor(reverse(dims), outerAccessor));
+    }
 
+
+    /**
+     * Define the netCDF dimensions of a VisAD LinearSet.
+     *
+     * @param set	The VisAD GriddedSet to be examined.
+     * @precondition	<code>set instanceof LinearSet</code>.
+     * @return		The netCDF dimensions of <code>set</code>.
+     * @postcondition	The netCDF dimensions and any associated coordinate
+     *			variables will have been defined in this class.
+     */
+    protected Dimension[]
+    defineLinearSetDims(GriddedSet set)
+	throws VisADException, BadFormException
+    {
+	int		rank = set.getDimension();
+	Dimension[]	dims = new Dimension[rank];
+	RealTupleType	domainType = ((SetType)set.getType()).getDomain();
+	Unit[]		units = set.getSetUnits();
+
+	/*
+	 * Define any necessary coordinate-variables.
+	 */
+	for (int idim = 0; idim < rank; ++idim)
 	{
-	    /*
-	     * The domain sample-set is a GriddedSet.
-	     */
+	    Linear1DSet	linear1DSet =
+		((LinearSet)set).getLinear1DComponent(idim);
+	    int		length = linear1DSet.getLength(0);
+	    String	name = 
+		((RealType)domainType.getComponent(idim)).getName();
 
-	    int			rank = set.getDimension();
-	    RealTupleType	domainMathType = 
-		((FunctionType)field.getType()).getDomain();
-	    Unit[]		dimUnits = field.getDomainUnits();
-	    String[]		dimNames = new String[rank];
-	    Dimension[]		dims;
+	    dims[idim] = new Dimension(name, length);
 
-	    for (int idim = 0; idim < rank; ++idim)
-		dimNames[idim] = 
-		    ((RealType)domainMathType.getComponent(idim)).getName();
-
-	    if (set instanceof LinearSet)
+	    if (linear1DSet.getFirst() != 0.0 ||
+		linear1DSet.getStep() != 1.0)
 	    {
 		/*
-		 * The sample domain is a cross-product of independent
-		 * arithmetic progressions.  This maps directly into the
-		 * netCDF data model.
+		 * The domain sampling has associated coordinate 
+		 * values; therefore, we define a corresponding
+		 * netCDF coordinate-variable.
 		 */
+		CoordVar var =
+		    new CoordVar(name, dims[idim], units[idim], linear1DSet);
 
-		dims = new Dimension[rank];
-
-		/*
-		 * Define any necessary coordinate-variables.
-		 */
-		for (int idim = 0; idim < rank; ++idim)
+		try
 		{
-		    Linear1DSet	linear1DSet =
-			((LinearSet)set).getLinear1DComponent(idim);
-		    int		length = linear1DSet.getLength(0);
-		    String	name = dimNames[idim];
-
-		    dims[idim] = new Dimension(name, length);
-
-		    if (linear1DSet.getFirst() != 0.0 ||
-		        linear1DSet.getStep() != 1.0)
-		    {
-			/*
-			 * The domain sampling has associated coordinate 
-			 * values; therefore, we define a corresponding
-			 * netCDF coordinate-variable.
-			 */
-			CoordVar var = new CoordVar(name, dims[idim],
-			    dimUnits[idim], linear1DSet);
-
-			try
-			{
-			    add(var, var);
-			}
-			catch (Exception e)
-			{
-			    throw new BadFormException(e.getMessage());
-			}
-		    }
-		}			// sample-domain dimension loop
-	    }				// the sample-domain is linear
-	    else
-	    if (rank == 1)
-	    {
-		/*
-                 * The domain set is 1-dimensional but not an arithmetic
-                 * progression.  The way to handle this in the standard
-                 * netCDF data model is to associate a coordinate
-                 * variable with the sample points.
-		 */
-
-		/*
-		 * Create the domain dimension.
-		 */
-		Dimension	dim = 
-		    new Dimension(dimNames[0], set.getLength());
-
-		dims = new Dimension[] { dim };
-
-		/*
-		 * Define the coordinate variable.
-		 */
+		    add(var, var);
+		}
+		catch (Exception e)
 		{
-		    CoordVar var = new CoordVar(dimNames[0], dim, dimUnits[0],
-			(Gridded1DSet)set);
-
-		    try
-		    {
-			add(var, var);
-		    }
-		    catch (Exception e)
-		    {
-			throw new BadFormException(e.getMessage());
-		    }
+		    throw new BadFormException(e.getMessage());
 		}
 	    }
-	    else
+	}			// sample-domain dimension loop
+
+	return dims;
+    }
+
+
+    /**
+     * Define the netCDF dimensions and variables of a VisAD SampledSet.
+     *
+     * @param set	The VisAD SampledSet to be examined.
+     * @return		The netCDF dimension of <code>set</code>.
+     * @postcondition	The netCDF dimension and any associated variables
+     *			will have been defined in this class.
+     * @exception VisADException	Problem in core VisAD.
+     * @exception BadFormException	<code>set</code> cannot be represented
+     *					in a netCDF dataset.
+     **/
+    protected Dimension
+    defineSampledSetDim(SampledSet set)
+	throws VisADException, BadFormException
+    {
+	int	rank = set.getManifoldDimension();
+
+	return rank == 1
+		    ? define1DDim(set)
+		    : defineNDDim(set);
+    }
+
+
+    /**
+     * Define the netCDF dimension of a 1-D SampledSet.  This dimension will
+     * have an associated, netCDF coordinate variable.
+     *
+     * @precondition	<code>set</code> is 1-D.
+     * @return		The netCDF dimension corresponding to the 1-D 
+     *			SampledSet.
+     * @postcondition	The netCDF dimension and any associated coordinate
+     *			variable will have been defined in this class.
+     * @exception VisADException	Problem in core VisAD.
+     * @exception BadFormException	<code>set</code> cannot be represented
+     *					in a netCDF dataset.
+     */
+    protected Dimension
+    define1DDim(SampledSet set)
+	throws VisADException, BadFormException
+    {
+	RealTupleType	domainType = ((SetType)set.getType()).getDomain();
+	String		name = 
+	    ((RealType)domainType.getComponent(0)).getName();
+	Dimension	dim = new Dimension(name, set.getLength());
+	Unit[]		units = set.getSetUnits();
+	CoordVar	var =
+	    new CoordVar(name, dim, units[0], (Gridded1DSet)set);
+
+	try
+	{
+	    add(var, var);
+	}
+	catch (Exception e)
+	{
+	    throw new BadFormException(e.getMessage());
+	}
+
+	return dim;
+    }
+
+
+    /**
+     * Define the netCDF dimension of a multi-dimensional SampledSet.
+     * This will be an "index" dimension with associated netCDF variables 
+     * that represent the independent coordinates of the domain set.
+     *
+     * @param set	The VisAD SampledSet to be examined and have 
+     *			a corresponding netCDF "index" dimension created
+     *			together with netCDF (independent) variables.
+     * @precondition	The rank of <code>set</code> is greater than 1.
+     * @return		The netCDF dimension corresponding to the
+     *			SampledSet.
+     * @postcondition	The netCDF dimension and associated independent
+     *			variables will have been defined in this class.
+     * @exception VisADException	Problem in core VisAD.
+     * @exception BadFormException	<code>set</code> cannot be represented
+     *					in a netCDF dataset.
+     */
+    protected Dimension
+    defineNDDim(SampledSet set)
+	throws VisADException, BadFormException
+    {
+	Dimension	dim;
+	RealTupleType	domainType = ((SetType)set.getType()).getDomain();
+	int		rank = domainType.getDimension();
+	Unit[]		units = set.getSetUnits();
+	String[]	names = new String[rank];
+
+	/*
+	 * Get the names.
+	 */
+	for (int idim = 0; idim < rank; ++idim)
+	    names[idim] = ((RealType)domainType.getComponent(idim)).getName();
+
+	/*
+	 * Define the "index" dimension.
+	 */
+	{
+	    int			len = names[0].length();
+
+	    for (int idim = 1; idim < rank; ++idim)
+		len += 1 + names[idim].length();
+	    len += 4;
+
+	    StringBuffer	name = new StringBuffer(len);
+
+	    name.append(names[0]);
+
+	    for (int idim = 1; idim < rank; ++idim)
 	    {
-		/*
-                 * The domain set is multi-dimensional and not a
-                 * cross-product of arithmetic progressions.  The
-                 * simplest way to handle this in the standard netCDF
-                 * data model is to represent *both* the independent and
-                 * dependent data as ordinary, one-dimensional netCDF
-                 * variables of an artificial "index" dimension.
-		 */
+		name.append("_");
+		name.append(names[idim]);
+	    }
+	    name.append("_ndx");
 
-		Dimension	dim;
+	    dim = new Dimension(name.toString(), set.getLength());
+	}
 
-		/*
-		 * Create the index dimension.
-		 */
-		{
-		    int		len = dimNames[0].length();
+	/*
+	 * Define the independent variables.
+	 */
+	for (int idim = 0; idim < rank; ++idim)
+	{
+	    IndependentVar	var =
+		new IndependentVar(names[idim], dim, units[idim],
+				    (SampledSet)set, idim);
 
-		    for (int idim = 1; idim < rank; ++idim)
-			len += 1 + dimNames[idim].length();
-		    len += 4;
+	    try
+	    {
+		add(var, var);
+	    }
+	    catch (Exception e)
+	    {
+		throw new BadFormException(e.getMessage());
+	    }
+	}
 
-		    StringBuffer	dimName = new StringBuffer(len);
-
-		    dimName.append(dimNames[0]);
-
-		    for (int idim = 1; idim < rank; ++idim)
-		    {
-			dimName.append("_");
-			dimName.append(dimNames[idim]);
-		    }
-		    dimName.append("_ndx");
-
-		    dim = new Dimension(dimName.toString(), set.getLength());
-		}
-
-		dims = new Dimension[] { dim };
-
-		/*
-		 * Define the independent variables.
-		 */
-		for (int idim = 0; idim < rank; ++idim)
-		{
-		    IndependentVar	var = new IndependentVar(
-			dimNames[idim], dim, dimUnits[idim], (GriddedSet)set,
-			idim);
-
-		    try
-		    {
-			add(var, var);
-		    }
-		    catch (Exception e)
-		    {
-			throw new BadFormException(e.getMessage());
-		    }
-		}
-	    }				// domain set is not LinearSet
-
-	    /*
-	     * Continue the definition process on the inner, VisAD data 
-	     * objects by visiting the first sample.  The dimension array
-	     * is converted to netCDF order (outermost dimension first).
-	     */
-	    // System.out.println("visit(Field,...): RangeType: " +
-		// field.getSample(0).getType());
-	    visit(field.getSample(0),
-		new FieldAccessor(reverse(dims), outerAccessor));
-	}				// domain set is a GriddedSet
+	return dim;
     }
 
 
