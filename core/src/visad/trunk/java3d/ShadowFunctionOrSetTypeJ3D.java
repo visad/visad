@@ -555,7 +555,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     else {
       ((Group) group).addChild(branch);
     }
-    ((Group) group).addChild(branch);
 
     ProjectionControlJ3D control =
       (ProjectionControlJ3D) display.getProjectionControl();
@@ -848,7 +847,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     else {
       ((Group) group).addChild(branch);
     }
-    ((Group) group).addChild(branch);
 
     ProjectionControlJ3D control =
       (ProjectionControlJ3D) display.getProjectionControl();
