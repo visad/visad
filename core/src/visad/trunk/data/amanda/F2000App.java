@@ -237,8 +237,8 @@ System.out.println("amanda MathType\n" + amanda.getType());
       new LabeledColorWidget(maps.letmap);
     let_widget.setMaximumSize(new Dimension(400, 250));
 
-    VisADSlider event_slider = new VisADSlider("event", 0, nevents, 0, 1.0,
-                                               event_ref,
+    VisADSlider event_slider = new VisADSlider("event", 0, nevents - 1,
+                                               0, 1.0, event_ref,
                                                form.getEventIndex());
 
     JPanel widget_panel = new JPanel();

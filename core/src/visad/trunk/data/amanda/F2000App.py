@@ -126,7 +126,7 @@ cell.addReference(event_ref)
 let_widget = LabeledColorWidget(maps.letmap)
 let_widget.setMaximumSize(Dimension(400,250))
 
-event_slider = VisADSlider("event", 0, nevents, 0, 1.0, event_ref,
+event_slider = VisADSlider("event", 0, nevents - 1, 0, 1.0, event_ref,
                            form.getEventIndex())
 
 widget_panel = JPanel()
