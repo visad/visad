@@ -110,7 +110,6 @@ public class FileFlatField extends FlatField {
     super( accessor.getFunctionType(), 
            getNullDomainSet(accessor.getFunctionType().getDomain()) );
 
-
     fileAccessor = accessor;
     cacheStrategy = strategy;
  

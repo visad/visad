@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: Repository.java,v 1.5 1998-02-23 14:33:10 steve Exp $
+ * $Id: Repository.java,v 1.6 1998-04-08 14:50:41 steve Exp $
  */
 
 package visad.data;
@@ -98,6 +98,7 @@ public abstract class Repository
      * and compatible with a data object.
      */
     public FormNode getForms(Data data)
+	throws VisADException, IOException, RemoteException
     {
 	return forms.getForms(data);
     }

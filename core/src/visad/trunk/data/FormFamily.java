@@ -17,12 +17,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: FormFamily.java,v 1.5 1998-02-23 14:33:10 steve Exp $
+ * $Id: FormFamily.java,v 1.6 1998-04-08 14:50:41 steve Exp $
  */
 
 package visad.data;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
@@ -145,6 +146,7 @@ FormFamily
      * Return the data forms that are compatible with a data object.
      */
     public FormNode getForms(Data data)
+	throws RemoteException, VisADException, IOException
     {
 	FormFamily	family = new FormFamily(getName());
 
