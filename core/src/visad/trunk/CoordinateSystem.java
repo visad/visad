@@ -58,8 +58,8 @@ public abstract class CoordinateSystem extends Object
    *                            Numeric values in this coordinate system shall
    *                            be in units of <code>units</code> unless
    *                            specified otherwise.  May be <code>null</code>
-   *				or an array of <code>null</code>-s.
-   * @throws VisADException	Couldn't create necessary VisAD object.
+   *                            or an array of <code>null</code>-s.
+   * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public CoordinateSystem(RealTupleType reference, Unit[] units)
          throws VisADException {
@@ -92,60 +92,129 @@ public abstract class CoordinateSystem extends Object
     }
   }
 
+  /**
+   * Return the reference RealTupleType for this CoordinateSystem.
+   * @return reference RealTupleType
+   */
   public RealTupleType getReference() {
     return Reference;
   }
 
+  /**
+   * Return the number of components in the reference RealTupleType.
+   * @return dimension of the reference.
+   */
   public int getDimension() {
     return DomainDimension;
   }
 
+  /**
+   * Return the Unit-s for this CoordinateSystem's reference 
+   * RealTupleType.  These are the units of the return values from 
+   * {@link #toReference}.
+   * @return  copy of the Unit-s array used at construction.
+   */
   public Unit[] getReferenceUnits() {
     return Reference.getDefaultUnits();
   }
 
+  /**
+   * Return the Unit-s for this CoordinateSystem.  The Unit-s
+   * are what's expected for the input data for the 
+   * {@link #toReference} method.
+   * @return  copy of the Unit-s array used at construction.
+   */
   public Unit[] getCoordinateSystemUnits() {
     return Unit.copyUnitsArray(CoordinateSystemUnits);
   }
 
-  /** convert RealTuple values to Reference coordinates;
-      for efficiency, input and output values are passed as
-      double[][] arrays rather than RealTuple[] arrays; the array
-      organization is double[tuple_dimension][number_of_tuples];
-      can modify and return argument array */
+  /** 
+   *  Convert RealTuple values to Reference coordinates;
+   *  for efficiency, input and output values are passed as
+   *  double[][] arrays rather than RealTuple[] arrays; the array
+   *  organization is double[tuple_dimension][number_of_tuples];
+   *  can modify and return argument array.
+   *  @param  value  array of values assumed to be in coordinateSystem
+   *                 units. Input array is not guaranteed to be immutable
+   *                 and could be used for return.
+   *  @return array of double values in reference coordinates and Unit-s.  
+   *  @throws VisADException  if problem with conversion.
+   */
   public abstract double[][] toReference(double[][] value) throws VisADException;
 
-  /** convert RealTuple values from Reference coordinates;
-      for efficiency, input and output values are passed as
-      double[][] arrays rather than RealTuple[] arrays; the array
-      organization is double[tuple_dimension][number_of_tuples];
-      can modify and return argument array */
+  /** 
+   *  Convert RealTuple values from Reference coordinates;
+   *  for efficiency, input and output values are passed as
+   *  double[][] arrays rather than RealTuple[] arrays; the array
+   *  organization is double[tuple_dimension][number_of_tuples];
+   *  can modify and return argument array.
+   *  @param  value  array of values assumed to be in reference
+   *                 Unit-s. Input array is not guaranteed to be immutable
+   *                 and could be used for return.
+   *  @return array of double values in CoordinateSystem Unit-s.  
+   *  @throws VisADException  if problem with conversion.
+   */
   public abstract double[][] fromReference(double[][] value) throws VisADException;
 
-  /** convert RealTuple values to Reference coordinates;
-      for efficiency, input and output values are passed as
-      double[][] arrays rather than RealTuple[] arrays; the array
-      organization is double[tuple_dimension][number_of_tuples];
-      can modify and return argument array;
-      for efficiency, subclasses should override this implementation */
+  /** 
+   *  Convert RealTuple values to Reference coordinates;
+   *  for efficiency, input and output values are passed as
+   *  float[][] arrays rather than RealTuple[] arrays; the array
+   *  organization is float[tuple_dimension][number_of_tuples];
+   *  can modify and return argument array.  This implementation
+   *  converts the input array to doubles and calls {@link
+   *  #toReference(double[][])} and then returns that converted 
+   *  double array back as a float array.  For efficiency, subclasses 
+   *  should override this implementation.
+   *  @param  value  array of values assumed to be in coordinateSystem
+   *                 units. Input array is not guaranteed to be immutable
+   *                 and could be used for return.
+   *  @return array of float values in reference coordinates and Unit-s.  
+   *  @throws VisADException  if problem with conversion.
+   */
   public float[][] toReference(float[][] value) throws VisADException {
     double[][] val = Set.floatToDouble(value);
     val = toReference(val);
     return Set.doubleToFloat(val);
   }
 
-  /** convert RealTuple values from Reference coordinates;
-      for efficiency, input and output values are passed as
-      double[][] arrays rather than RealTuple[] arrays; the array
-      organization is double[tuple_dimension][number_of_tuples];
-      can modify and return argument array
-      for efficiency, subclasses should override this implementation */
+  /** 
+   *  Convert RealTuple values from Reference coordinates;
+   *  for efficiency, input and output values are passed as
+   *  float[][] arrays rather than RealTuple[] arrays; the array
+   *  organization is float[tuple_dimension][number_of_tuples];
+   *  can modify and return argument array.  This implementation
+   *  converts the input array to doubles and calls {@link
+   *  #toReference(double[][])} and then returns that converted 
+   *  double array back as a float array.  For efficiency, subclasses 
+   *  should override this implementation.
+   *  @param  value  array of values assumed to be in reference
+   *                 Unit-s. Input array is not guaranteed to be immutable
+   *                 and could be used for return.
+   *  @return array of float values in this CoordinateSystem Unit-s.  
+   *  @throws VisADException  if problem with conversion.
+   */
   public float[][] fromReference(float[][] value) throws VisADException {
     double[][] val = Set.floatToDouble(value);
     val = fromReference(val);
     return Set.doubleToFloat(val);
   }
 
+  /**
+   * Check to see if a conversion can be done between values
+   * of one RealTupleType and another given the CoordinateSystems
+   * supplied.
+   * @param out              The output {@link RealTupleType}.
+   * @param coord_out        The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param in               The input {@link RealTupleType}.
+   * @param coord_in         The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   *
+   * @return true if conversion is possible.
+   */
   public static boolean canConvert(RealTupleType out, CoordinateSystem coord_out,
                                    RealTupleType in, CoordinateSystem coord_in) {
     if (out == null) return (in == null);
@@ -434,27 +503,33 @@ public abstract class CoordinateSystem extends Object
                         RealTupleType in, CoordinateSystem coord_in,
                         Unit[] units_in, ErrorEstimate[] errors_in,
                         float[][] value) throws VisADException {
+
     int n = out.getDimension();
     Unit[] units_free = new Unit[n];
+    float[][] old_value = value;
     value =
       transformCoordinatesFreeUnits(out, coord_out, units_free, errors_out,
                                     in, coord_in, units_in, errors_in, value);
+    // WLH 21 Nov 2001
+    if (value == old_value) {
+      value = new float[n][];
+      for (int i=0; i<n; i++) value[i] = old_value[i];
+    }
+
     ErrorEstimate[] sub_errors_out = new ErrorEstimate[1];
-    double[][] val = Set.floatToDouble(value);
     if (errors_out == null) {
       for (int i=0; i<n; i++) {
-        val[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                     null, val[i]);
+        value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
+                                       null, value[i]);
       }
     }
     else {
       for (int i=0; i<n; i++) {
-        val[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                     errors_out[i], val[i]);
+        value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
+                                       errors_out[i], value[i]);
         errors_out[i] = sub_errors_out[0];
       }
     }
-    value = Set.doubleToFloat(val);
     return value;
   }
 
@@ -497,14 +572,141 @@ public abstract class CoordinateSystem extends Object
                         RealTupleType in, CoordinateSystem coord_in,
                         Unit[] units_in, ErrorEstimate[] errors_in,
                         float[][] value) throws VisADException {
-    return Set.doubleToFloat(
-      transformCoordinatesFreeUnits(out, coord_out, units_out, errors_out,
-                                    in, coord_in, units_in, errors_in,
-                                    Set.floatToDouble(value) ) );
+    int n = in.getDimension();
+
+    // prepare for error calculations, if any
+    double[][] error_values = new double[1][1];
+    boolean any_transform = false;
+    boolean any_errors = false;
+    if (errors_in != null && errors_out != null) {
+      any_errors = true;
+      for (int i=0; i<n; i++) {
+        if (errors_in[i] == null) any_errors = false;
+      }
+    }
+    if (errors_out != null) {
+      // set default errors_out in case no transform
+      if (errors_in != null) {
+        for (int i=0; i<n; i++) errors_out[i] = errors_in[i];
+      }
+      else {
+        for (int i=0; i<n; i++) errors_out[i] = null;
+      }
+    }
+
+    // prepare for Unit calculations
+    Unit[] units = Unit.copyUnitsArray(units_in);
+    if (units == null) units = new Unit[n];
+    Unit[] error_units = Unit.copyUnitsArray(units);
+
+    if (units_out != null) {
+      // set default units_out in case no transform
+      for (int i=0; i<n; i++) units_out[i] = units[i];
+    }
+
+    // WLH 28 March 2000
+    // ensure coord_out and coord_in include any RealTupleType defaults
+    if (coord_out == null) coord_out = out.getCoordinateSystem();
+    if (coord_in == null) coord_in = in.getCoordinateSystem();
+
+    if (out.equals(in)) {
+      if (coord_in == null && coord_out == null) return value;
+      if (coord_in == null || coord_out == null) {
+        throw new CoordinateSystemException(
+          "CoordinateSystem.transformCoordinates: inconsistency");
+      }
+      if (!coord_in.equals(coord_out)) {
+        if (any_errors) {
+          if (!any_transform) {
+            error_values = ErrorEstimate.init_error_values(errors_in);
+          }
+          any_transform = true;
+          error_values = coord_in.toReference(error_values, error_units);
+          error_values = coord_out.fromReference(error_values, error_units);
+        }
+        value = coord_in.toReference(value, units);
+        value = coord_out.fromReference(value, units);
+      }
+    }
+    else { // !out.equals(in)
+      RealTupleType ref_out = out;
+      if (coord_out != null) {
+        ref_out = coord_out.getReference();
+        // WLH - this check for testing only - may eliminate later
+        if (out.getCoordinateSystem() == null ||
+            !out.getCoordinateSystem().getReference().equals(ref_out)) {
+          throw new CoordinateSystemException(
+            "CoordinateSystem.transformCoordinates: out Reference-s don't match");
+        }
+      }
+
+      RealTupleType ref_in = in;
+      if (coord_in != null) {
+        ref_in = coord_in.getReference();
+        // WLH - this check for testing only - may eliminate later
+        if (in.getCoordinateSystem() == null ||
+            !in.getCoordinateSystem().getReference().equals(ref_in)) {
+          throw new CoordinateSystemException(
+            "CoordinateSystem.transformCoordinates: in Reference-s don't match");
+        }
+      }
+
+      if (ref_out.equals(ref_in)) {
+        if (!in.equals(ref_in)) {
+          if (any_errors) {
+            if (!any_transform) {
+              error_values = ErrorEstimate.init_error_values(errors_in);
+            }
+            any_transform = true;
+            error_values = coord_in.toReference(error_values, error_units);
+          }
+          value = coord_in.toReference(value, units);
+        }
+        if (!out.equals(ref_out)) {
+          if (any_errors) {
+            if (!any_transform) {
+              error_values = ErrorEstimate.init_error_values(errors_in);
+            }
+            any_transform = true;
+            error_values = coord_out.fromReference(error_values, error_units);
+          }
+          value = coord_out.fromReference(value, units);
+        }
+      }
+      else { // !(ref_out.equals(ref_in)
+// WLH 4 July 2000 - should throw an Exception here -
+//                   but breaks too many things, so don't do it
+      }
+    } // end if (!out.equals(in))
+
+    // set return Unit-s
+    if (units_out != null) {
+      for (int i=0; i<n; i++) units_out[i] = units[i];
+    }
+    // set return ErrorEstimate-s
+    if (any_errors && any_transform) {
+      for (int i=0; i<n; i++) {
+        double error = Math.abs( error_values[i][2 * i + 1] -
+                                 error_values[i][2 * i] );
+        errors_out[i] = new ErrorEstimate(value[i], error, units_out[i]);
+      }
+    }
+    return value;
   }
 
-  /** if units are non-null, they are both the Unit[] of input value,
-      and a holder for Unit[] of output */
+  /** 
+   *  Convert values in Unit-s specified to Reference coordinates.
+   *  If units are non-null, they are both the Unit[] of input value,
+   *  and a holder for Unit[] of output.  
+   *  @param  value  array of values assumed to be in the Unit-s
+   *                 specified or CoordinateSystem units if null.
+   *  @param  units  Unit-s of input values.  If non-null, input values
+   *                 are converted to CoordinateSystem Unit-s (if they
+   *                 are non-null) before calling 
+   *                 {@link #toReference(double[][])}.
+   *  @return array of double values in reference coordinates and Unit-s.  
+   *  @throws VisADException  if problem with conversion.
+   */
   public double[][] toReference(double[][] value, Unit[] units)
          throws VisADException {
     int n = value.length;
@@ -525,9 +727,86 @@ public abstract class CoordinateSystem extends Object
     return toReference(value);
   }
 
-  /** if units are non-null, they are both the Unit[] of input value,
-      and a holder for Unit[] of output */
+  /** 
+   *  Convert values in Unit-s specified to Reference coordinates.
+   *  If units are non-null, they are both the Unit[] of input value,
+   *  and a holder for Unit[] of output.  
+   *  @param  value  array of values assumed to be in the Unit-s
+   *                 specified or CoordinateSystem units if null.
+   *  @param  units  Unit-s of input values.  If non-null, input values
+   *                 are converted to CoordinateSystem Unit-s (if they
+   *                 are non-null) before calling 
+   *                 {@link #toReference(float[][])}.
+   *  @return array of float values in reference coordinates and Unit-s.  
+   *  @throws VisADException  if problem with conversion.
+   */
+  public float[][] toReference(float[][] value, Unit[] units)
+         throws VisADException {
+    int n = value.length;
+    if (CoordinateSystemUnits != null) {
+      for (int i=0; i<n; i++) {
+        if (CoordinateSystemUnits[i] != null) {
+          value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i]);
+        }
+      }
+    }
+    Unit[] us = Reference.getDefaultUnits();
+    if (us != null) {
+      for (int i=0; i<n; i++) units[i] = us[i];
+    }
+    else {
+      for (int i=0; i<n; i++) units[i] = null;
+    }
+    return toReference(value);
+  }
+
+  /** 
+   *  Convert values in Unit-s specified to this CoordinateSystem's
+   *  Unit-s. If units are non-null, they are both the Unit[] of input value,
+   *  and a holder for Unit[] of output.  
+   *  @param  value  array of values assumed to be in the Unit-s
+   *                 specified or Reference units if null.
+   *  @param  units  Unit-s of input values.  If non-null, input values
+   *                 are converted to Reference Unit-s (if they
+   *                 are non-null) before calling 
+   *                 {@link #fromReference(double[][])}.
+   *  @return array of double values in CoordinateSystem Unit-s.  
+   *  @throws VisADException  if problem with conversion.
+   */
   public double[][] fromReference(double[][] value, Unit[] units)
+         throws VisADException {
+    int n = value.length;
+    Unit[] us = Reference.getDefaultUnits();
+    if (us != null) {
+      for (int i=0; i<n; i++) {
+        if (us[i] != null) {
+          value[i] = us[i].toThis(value[i], units[i]);
+        }
+      }
+    }
+    if (CoordinateSystemUnits != null) {
+      for (int i=0; i<n; i++) units[i] = CoordinateSystemUnits[i];
+    }
+    else {
+      for (int i=0; i<n; i++) units[i] = null;
+    }
+    return fromReference(value);
+  }
+
+  /** 
+   *  Convert values in Unit-s specified to this CoordinateSystem's
+   *  Unit-s. If units are non-null, they are both the Unit[] of input value,
+   *  and a holder for Unit[] of output.  
+   *  @param  value  array of values assumed to be in the Unit-s
+   *                 specified or Reference units if null.
+   *  @param  units  Unit-s of input values.  If non-null, input values
+   *                 are converted to Reference Unit-s (if they
+   *                 are non-null) before calling 
+   *                 {@link #fromReference(float[][])}.
+   *  @return array of float values in CoordinateSystem Unit-s.  
+   *  @throws VisADException  if problem with conversion.
+   */
+  public float[][] fromReference(float[][] value, Unit[] units)
          throws VisADException {
     int n = value.length;
     Unit[] us = Reference.getDefaultUnits();
