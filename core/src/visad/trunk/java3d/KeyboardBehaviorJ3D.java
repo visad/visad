@@ -71,11 +71,16 @@ public class KeyboardBehaviorJ3D extends Behavior
   /** Identifier for function to rotate negatively around the Y viewing axis*/
   public static final int ROTATE_Y_NEG = 12;
 
-  /** Maximum number of functions for this behavior */
+/* WLH 19 Feb 2001
+  // Maximum number of functions for this behavior
   private final int MAX_FUNCTIONS = 13;
 
   private int[] functionKeys = new int[MAX_FUNCTIONS];
   private int[] functionMods = new int[MAX_FUNCTIONS];
+*/
+  private int MAX_FUNCTIONS;
+  private int[] functionKeys = null;
+  private int[] functionMods = null;
  
   /**
    *  Condition that causes this Behavior to wake up.
@@ -132,6 +137,11 @@ public class KeyboardBehaviorJ3D extends Behavior
                                        2000000.0);
     this.setSchedulingBounds(bounds);
 
+    // WLH 19 Feb 2001
+    MAX_FUNCTIONS = 13;
+    functionKeys = new int[MAX_FUNCTIONS];
+    functionMods = new int[MAX_FUNCTIONS];
+
     // initialize array functions
     mapKeyToFunction(
       TRANSLATE_UP, KeyEvent.VK_UP, 
@@ -156,6 +166,26 @@ public class KeyboardBehaviorJ3D extends Behavior
       ROTATE_Z_POS, KeyEvent.VK_LEFT, InputEvent.SHIFT_MASK);
     mapKeyToFunction(
       ROTATE_Z_NEG, KeyEvent.VK_RIGHT, InputEvent.SHIFT_MASK);
+  }
+
+  // WLH 19 Feb 2001
+  public KeyboardBehaviorJ3D(DisplayRendererJ3D r, int num_functions) {
+    displayRenderer = r;
+    boolean mode2D = displayRenderer.getMode2D();
+    proj = displayRenderer.getDisplay().getProjectionControl();
+    mouseBehavior = displayRenderer.getMouseBehavior();
+
+    WakeupOnAWTEvent wakeup = new WakeupOnAWTEvent(KeyEvent.KEY_PRESSED);
+    WakeupCriterion[] wakeupCriteria = { wakeup };
+    wakeupCondition = new WakeupOr(wakeupCriteria);
+
+    Bounds bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0),
+                                       2000000.0);
+    this.setSchedulingBounds(bounds);
+
+    MAX_FUNCTIONS = num_functions;
+    functionKeys = new int[MAX_FUNCTIONS];
+    functionMods = new int[MAX_FUNCTIONS];
   }
 
   /**
