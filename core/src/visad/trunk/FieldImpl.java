@@ -2569,7 +2569,12 @@ public class FieldImpl extends FunctionImpl implements Field {
       // nothing to do
       return this;
     }
-    Field field = new FieldImpl((FunctionType) Type, set);
+
+    MathType range_type = ((FunctionType) Type).getRange();
+    RealTupleType domain_type = ((SetType) set.getType()).getDomain();
+    FunctionType func_type = new FunctionType(domain_type, range_type);
+    Field field = new FieldImpl(func_type, set);
+    // Field field = new FieldImpl((FunctionType) Type, set);
     if (isMissing()) return field;
 
     int dim = DomainSet.getDimension();
