@@ -252,7 +252,7 @@ set = Linear2DSet: Length = 393216
         float y2 = samples[1][1];
 
         double dist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-        int nsamp = (int) dist;
+        int nsamp = (int) (dist + 1.0);
         if (nsamp < 2) nsamp = 2;
         float[][] ss = new float[2][nsamp];
         for (int i=0; i<nsamp; i++) {
