@@ -553,7 +553,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    */
   public void setRange(double low, double hi, int remoteId)
          throws VisADException, RemoteException {
-    if (DisplayScalar.equals(Display.Animation)) return;
+    if (DisplayScalar.equals(Display.Animation)) {
+      System.err.println("Warning: setRange on " +
+        "ScalarMap to Display.Animation has no effect.");
+      return;
+    }
     isManual = true;
     setRange(null, low, hi, false, remoteId);
     if (scale == scale && offset == offset) {
