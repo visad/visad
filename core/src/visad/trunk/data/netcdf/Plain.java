@@ -3,11 +3,12 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.22 2001-08-28 17:13:42 steve Exp $
+ * $Id: Plain.java,v 1.23 2001-09-10 19:33:08 steve Exp $
  */
 
 package visad.data.netcdf;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -184,25 +185,57 @@ Plain
 
 
     /**
-     * Returns a VisAD data object corresponding to a URL.  The "query"
-     * component of the URL may comprise a comma-separated list of netCDF
-     * variable names.  The returned VisAD data object will contain only those
-     * variables in the netCDF dataset that are also named in the list.
+     * Returns a VisAD data object corresponding to a URL.  If the query
+     * component of the URL is <code>null</code>, then the returned object will
+     * contain all the variables in the netCDF dataset.  If the query component
+     * is non-<code>null</code>, then it must comprise a comma-separated list of
+     * netCDF variable names; the returned VisAD data object will contain only
+     * those variables in the netCDF dataset that are also named in the list
+     * (i.e. the intersection is returned).  Consequently, if the list is empty,
+     * then <code>null</code> is returned.
      *
-     * @param url	The URL of the netCDF dataset.
-     * @return		A VisAD object corresponding to the netCDF datset.
-     * @throws IOException
-     *			Open failure.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param url	      The URL of the netCDF dataset.
+     * @return		      A VisAD object corresponding to the netCDF datset
+     *                        or <code>null</code>.
+     * @throws FileNotFoundException
+     *			      if the URL specifies a file that doesn't exist.
+     * @throws IOException    if an I/O failure occurs.
+     * @throws VisADException if a necessary VisAD object couldn't be created.
      */
     public synchronized DataImpl
     open (URL url)
-	throws IOException, VisADException
+	throws FileNotFoundException, IOException, VisADException
     {
-	Set names = new TreeSet();
-	String query = url.getQuery();
+	/*
+	 * URL.getQuery() isn't used to accomodate JDK 1.2.
+	 */
+	String query;
+	{
+	    String file = url.getFile();
+	    int    i = file.indexOf('?');
+	    if (i == -1)
+	    {
+		query = null;
+	    }
+	    else
+	    {
+		query =
+		    i == file.length() - 1
+			? ""
+			: file.substring(i+1);
+		/*
+		 * The query component is removed from the URL because 
+		 * NetcdfFile can't handle it.
+		 */
+		url =
+		    new URL(
+			url.getProtocol(),
+			url.getHost(),
+			url.getPort(),
+			file.substring(0, i));
+	    }
+	}
+	Set    names = new TreeSet();
 	if (query != null)
 	{
 	    for (StringTokenizer st = new StringTokenizer(query, ",");
@@ -214,7 +247,7 @@ Plain
 	Netcdf netcdf = new NetcdfFile(url);
 	return
 	    new NetcdfAdapter(
-		names.size() == 0
+		query == null
 		    ? netcdf
 		    : new VariableFilter(netcdf, names),
 		quantityDB).getData();
@@ -283,12 +316,17 @@ Plain
 	    data = plain.open(inPath);
 	}
 
-	// System.out.println("Data:\n" + data);
-	System.out.println("data.getType().toString():\n" +
-	    data.getType());
-
-	System.out.println("Writing netCDF dataset \"" + outPath + "\"");
-
-	plain.save(outPath, data, /*replace=*/true);
+	if (data == null)
+	{
+	    System.out.println("No data");
+	}
+	else
+	{
+	    // System.out.println("Data:\n" + data);
+	    System.out.println("data.getType().toString():\n" +
+		data.getType());
+	    System.out.println("Writing netCDF dataset \"" + outPath + "\"");
+	    plain.save(outPath, data, /*replace=*/true);
+	}
     }
 }
