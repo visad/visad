@@ -665,10 +665,15 @@ public class Real extends Scalar {
       comp = new Double(getValue(defaultUnit)).compareTo(
 	     new Double(that.getValue(defaultUnit)));
       if (comp == 0) {
-	comp = 
-	  Error != null
-	    ? Error.compareTo(that.Error)
-	    : (that.Error == null ? 0 : -that.Error.compareTo(Error));
+	if (Error == null) {
+	  comp = that.Error == null ? 0 : -1;
+	}
+	else if (that.Error == null) {
+	  comp = 1;
+	}
+	else {
+	  comp = Error.compareTo(that.Error);
+	}
       }
     }
     catch (VisADException e)
@@ -687,6 +692,26 @@ public class Real extends Scalar {
   public boolean equals(Object obj) {
     return obj != null && obj instanceof Real && 
       getType().equals(((Real)obj).getType()) && compareTo(obj) == 0;
+  }
+
+  /**
+   * Returns the hash code of this Real.
+   * @return			The hash code of this Real.  If two Real-s are
+   *				semantically identical, then their hash codes
+   *				are equal.
+   */
+  public int hashCode() {
+    RealType	realType = (RealType)getType();
+    int		hashCode = realType.hashCode();
+    try
+    {
+      hashCode ^= new Double(getValue(realType.getDefaultUnit())).hashCode();
+    }
+    catch (VisADException e)
+    {}	// ignore because can't happen
+    if (Error != null)
+      hashCode ^= Error.hashCode();
+    return hashCode;
   }
 
   /** run 'java visad.Real' to test the Real class */
