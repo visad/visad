@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.7 1998-03-12 22:03:14 steve Exp $
+ * $Id: Plain.java,v 1.8 1998-03-20 20:56:29 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -21,6 +21,8 @@ import visad.UnimplementedException;
 import visad.VisADException;
 import visad.data.BadFormException;
 import visad.data.FormNode;
+import visad.data.netcdf.in.NetcdfAdapter;
+import visad.data.netcdf.out.DataAdapter;
 
 
 /**

@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.7 1998-03-12 22:03:10 steve Exp $
+ * $Id: NcNumber.java,v 1.1 1998-03-20 20:56:54 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 import java.io.IOException;
 import ucar.multiarray.IndexIterator;
@@ -28,7 +28,7 @@ import visad.data.BadFormException;
  */
 abstract class
 NcNumber
-    extends ImportVar
+    extends NcVar
 {
     /**
      * The value vetter.
@@ -171,6 +171,18 @@ NcNumber
     isTime()
     {
 	return isTime;
+    }
+
+
+    /**
+     * Return the rank of this variable.
+     *
+     * @return	The rank (i.e. number of netCDF dimensions) of the variable.
+     */
+    int
+    getRank()
+    {
+	return var.getRank();
     }
 
 

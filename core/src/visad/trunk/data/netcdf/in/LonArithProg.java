@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: LonArithProg.java,v 1.5 1998-03-12 22:03:05 steve Exp $
+ * $Id: LonArithProg.java,v 1.1 1998-03-20 20:56:41 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 
 /**

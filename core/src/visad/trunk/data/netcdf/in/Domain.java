@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Domain.java,v 1.7 1998-03-12 22:02:59 steve Exp $
+ * $Id: Domain.java,v 1.1 1998-03-20 20:56:38 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 import java.io.IOException;
 import visad.data.BadFormException;
@@ -47,7 +47,7 @@ Domain
     /**
      * The netCDF variables of the domain:
      */
-    protected final ImportVar[]	vars;
+    protected final NcVar[]	vars;
 
     /**
      * The VisAD sampled set of the domain:
@@ -66,7 +66,7 @@ Domain
      * @exception VisADException	Couldn't create necessary VisAD object.
      * @exception IOException		I/O error.
      */
-    Domain(ImportVar[] vars)
+    Domain(NcVar[] vars)
 	throws UnimplementedException, VisADException, IOException
     {
 	if (vars.length == 0)
@@ -126,7 +126,7 @@ Domain
      * @return	The array of adapted, netCDF variables defined over this
      *		domain.
      */
-    ImportVar[]
+    NcVar[]
     getVariables()
     {
 	return vars;

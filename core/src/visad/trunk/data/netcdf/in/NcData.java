@@ -3,12 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcData.java,v 1.4 1998-03-17 15:53:14 steve Exp $
+ * $Id: NcData.java,v 1.1 1998-03-20 20:56:45 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import visad.DataImpl;
 import visad.MathType;
 import visad.VisADException;
@@ -27,29 +28,39 @@ NcData
     protected MathType	mathType;
 
 
-    /**
-     * Factory method for constructing the proper type of NcData.
-     *
-     * @param vars	netCDF variables with the same domain.
-     */
-    static NcData
-    create(ImportVar[] vars)
+    /** Protected default constructor. */
+    protected
+    NcData()
     {
-	return (vars[0].getRank() == 0)
-		? NcScalar.create(vars)
-		: NcFunction.create(vars);
     }
 
 
     /**
-     * Protected initializer.
+     * Factory method for constructing the proper type of NcData.
      *
-     * @param mathType	The VisAD MathType of the adapted netCDF data object.
+     * @param vars	netCDF variables with the same domain.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
      */
-    protected void
-    initialize(MathType mathType)
+    static NcData
+    newNcData(NcVar[] vars)
+	throws VisADException, IOException
     {
-	this.mathType = mathType;
+	return (vars[0].getRank() == 0)
+		    ? (NcData)NcScalar.newNcScalar(vars)
+		    : (NcData)NcFunction.newNcFunction(vars);
+    }
+
+
+    /**
+     * Construct from a VisAD mathtype.
+     */
+    NcData(MathType type)
+    {
+	mathType = type;
     }
 
 

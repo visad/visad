@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DomainTable.java,v 1.7 1998-03-12 22:03:00 steve Exp $
+ * $Id: DomainTable.java,v 1.1 1998-03-20 20:56:39 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 
 import java.io.IOException;
@@ -49,14 +49,15 @@ DomainTable
      * @exception VisADException	Couldn't create necessary VisAD object.
      */
     void
-    put(ImportVar var)
+    put(NcVar var)
 	throws BadFormException, VisADException
     {
 	// System.out.println(this.getClass().getName() + 
 	    // ": table.size()=" + table.size());
 
-	Key	key = new Key(var.getDimensions());
-	Entry	entry = (Entry)table.get(key);
+	NcDim[]	dims = var.getDimensions();
+	Key		key = new Key(dims);
+	Entry		entry = (Entry)table.get(key);
 
 	if (entry == null)
 	{
@@ -239,7 +240,7 @@ DomainTable
 	/**
 	 * Construct.
 	 */
-	Entry(ImportVar var)
+	Entry(NcVar var)
 	    throws BadFormException, VisADException
 	{
 	    NcDim[]	dims = var.getDimensions();
@@ -267,7 +268,7 @@ DomainTable
 	 * Add a variable to the list of variables in this entry.
 	 */
 	void
-	add(ImportVar var)
+	add(NcVar var)
 	{
 	    if (!vars.contains(var))
 		vars.addElement(var);
@@ -277,10 +278,10 @@ DomainTable
 	/**
 	 * Return the variables in the domain.
 	 */
-	ImportVar[]
+	NcVar[]
 	getVariables()
 	{
-	    ImportVar[]	vec = new ImportVar[vars.size()];
+	    NcVar[]	vec = new NcVar[vars.size()];
 
 	    vars.copyInto(vec);
 

@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Vetter.java,v 1.4 1998-03-16 17:00:59 visad Exp $
+ * $Id: Vetter.java,v 1.1 1998-03-20 20:57:10 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Variable;
@@ -75,9 +75,9 @@ Vetter
     {
 	this.type = type;
 
-	fillValue = ImportVar.getDefaultFillValue(type);
-	minValid = ImportVar.getMinValid(type);
-	maxValid = ImportVar.getMaxValid(type);
+	fillValue = NcVar.getDefaultFillValue(type);
+	minValid = NcVar.getMinValid(type);
+	maxValid = NcVar.getMaxValid(type);
 
 	isTrivial = isTrivial();
     }

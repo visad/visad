@@ -3,11 +3,11 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ArithProg.java,v 1.5 1998-03-12 22:02:53 steve Exp $
+ * $Id: ArithProg.java,v 1.1 1998-03-20 20:56:36 visad Exp $
  */
 
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 
 /**

@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TupleAccessor.java,v 1.2 1998-03-12 22:03:17 steve Exp $
+ * $Id: TupleAccessor.java,v 1.1 1998-03-20 20:57:26 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.out;
 
 import java.io.IOException;
 import ucar.netcdf.Dimension;

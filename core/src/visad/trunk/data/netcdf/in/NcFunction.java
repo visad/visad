@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFunction.java,v 1.9 1998-03-17 15:54:24 steve Exp $
+ * $Id: NcFunction.java,v 1.1 1998-03-20 20:56:49 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 import java.io.IOException;
 import visad.CoordinateSystem;
@@ -34,105 +34,127 @@ import visad.VisADException;
 
 
 /**
- * The NcFunction class adapts an imported netCDF function to a VisAD function.
+ * The NcFunction class adapts an imported netCDF function to a VisAD 
+ * function.
  */
-class
+abstract class
 NcFunction
     extends	NcData
 {
     /**
-     * The netCDF dimensions of the function domain IN VisAD ORDER:
+     * The netCDF dimensions of the function domain IN VisAD ORDER.
      */
-    protected /*final*/ NcDim[]		dims;
+    protected final NcDim[]	domainDims;
 
     /**
-     * The netCDF variables of the function range:
+     * The associated netCDF variables.
      */
-    protected /*final*/ ImportVar[]	vars;
+    protected final NcVar[]	vars;
 
     /**
-     * Whether or not there's a textual component in the range.
+     * Whether or not at least one of the netCDF variables is textual.
      */
-    protected boolean			hasTextualComponent;
+    protected final boolean	hasTextualComponent;
 
 
     /**
-     * Protected default constructor.
+     * Factory method for creating the appropriate NcFunction from an array
+     * of adapted, netCDF variables.
+     *
+     * @param vars	The netCDF variables of the netCDF function.
+     * @precondition	All variables have the same netCDF shape.
+     * @precondition	<code>vars.length >= 1</code>.
+     * @precondition	The rank of the variables >= 1.
+     * @return		The adapted netCDF function.
+     * @exception VisADException
+     *			Couldn't create a necessary VisAD object.
+     * @exception IOException
+     *			Data access I/O failure.
+     * @exception UnimplementedException
+     *			Not implemented yet.
+     */
+    static NcFunction
+    newNcFunction(NcVar[] vars)
+	throws VisADException, IOException, UnimplementedException
+    {
+	NcVar	var = vars[0];
+
+	return (var.getRank() < 2 || !var.getDimensions()[0].isTime())
+		    ? (NcFunction)new NcRegFunction(vars)
+		    : (NcFunction)new NcNestedFunction(vars);
+    }
+
+
+    /**
+     * Protected constructor for derived classes.
+     *
+     * @param type	MathType of the VisAD function.
+     * @param dims	The netCDF dimensions comprising the domain of the
+     *			function in netCDF order.
      */
     protected
-    NcFunction()
+    NcFunction(FunctionType type, NcDim[] dims, NcVar[] vars)
     {
-    }
+	super(type);
 
-
-    /**
-     * Construct from an array of adapted, netCDF variables.
-     *
-     * @param vars	The netCDF variables that are defined over the same
-     *			domain and that constitude the range of the function.
-     * @precondition	All variables have the same (ordered) set of dimensions.
-     * @precondition	The variables aren't scalars.
-     * @exception UnimplementedException	Not yet!
-     * @exception VisADException		Couldn't create necessary 
-     *						VisAD object.
-     * @exception IOException			I/O error.
-     */
-    NcFunction(ImportVar[] vars)
-	throws UnimplementedException, VisADException, IOException
-    {
-	initialize(vars[0].getDimensions(), vars);
-    }
-
-
-    /**
-     * Protected initializer for derived classes.
-     *
-     * @param varDims	The netCDF dimensions comprising the domain of the
-     *			function.
-     * @param vars	The netCDF variables comprising the range of the
-     *			function.
-     * @precondition	All variables have the same (ordered) set of dimensions.
-     * @exception UnimplementedException	Not yet!
-     * @exception VisADException		Couldn't create necessary 
-     *						VisAD object.
-     * @exception IOException			I/O error.
-     */
-    protected void
-    initialize(NcDim[] varDims, ImportVar[] vars)
-	throws UnimplementedException, VisADException, IOException
-    {
+	domainDims = reverse(dims);
 	this.vars = vars;
-
-	/*
-	 * Because the VisAD and netCDF dimensional orderings are opposite,
-	 * we invert the sequence of dimensions.
-	 */
-	{
-	    int		rank = varDims.length;
-
-	    this.dims = new NcDim[rank];
-
-	    for (int idim = 0; idim < rank; ++idim)
-		this.dims[idim] = varDims[rank-1-idim];
-	}
-
-	initialize(new FunctionType(getDomainMathType(), getRangeMathType()));
+	hasTextualComponent = hasText(vars);
     }
 
 
     /**
-     * Return the VisAD MathType of the domain.
+     * Return the reversed ordering of the given, netCDF dimensions.
      *
-     * @return	The VisAD MathType of the domain of the function.
-     * @exception VisADException
-     *		Couldn't create a necessary VisAD object.
+     * @param dims	The array of netCDF dimensions to be reversed.
+     * @return		<code>varDims</code> with the order reversed.
      */
-    protected MathType
-    getDomainMathType()
+    protected static NcDim[]
+    reverse(NcDim[] dims)
+    {
+	int	rank = dims.length;
+	NcDim[]	newDims = new NcDim[rank];
+
+	for (int idim = 0; idim < rank; ++idim)
+	    newDims[idim] = dims[rank-1-idim];
+
+	return newDims;
+    }
+
+
+    /**
+     * Return the VisAD FunctionType for a function mapping from the the
+     * given netCDF dimensions to the given netCDF variables.
+     *
+     * @param dims	The netCDF dimensions comprising the domain in
+     *			netCDF order.
+     * @param vars	The netCDF variables comprising the function.
+     */
+    protected static FunctionType
+    getFunctionType(NcDim[] dims, NcVar[] vars)
+	throws VisADException
+    {
+	return
+	    new FunctionType(getDomainMathType(dims), getRangeMathType(vars));
+    }
+
+
+    /**
+     * Return the VisAD MathType of the domain of the given netCDF dimensions.
+     *
+     * @parm dims	The netCDF dimensions of the domain in netCDF order.
+     * @return		The VisAD MathType of the domain of the function.
+     * @exception VisADException
+     *			Couldn't create a necessary VisAD object.
+     */
+    protected static MathType
+    getDomainMathType(NcDim[] dims)
 	throws VisADException
     {
 	int		rank = dims.length;
 	MathType	type;
+
+	dims = reverse(dims);	// convert to VisAD order
 
 	if (rank == 1)
 	{
@@ -159,14 +181,12 @@ NcFunction
      * @exception VisADException
      *			Couldn't create a necessary VisAD object.
      */
-    protected MathType
-    getRangeMathType()
+    protected static MathType
+    getRangeMathType(NcVar[] vars)
 	throws VisADException
     {
 	int		nvars = vars.length;
 	MathType	type;
-
-	hasTextualComponent = false;
 
 	if (nvars == 0)
 	    type = null;
@@ -174,19 +194,10 @@ NcFunction
 	if (nvars == 1)
 	{
 	    type = vars[0].getMathType();
-	    if (type instanceof TextType)
-		hasTextualComponent = true;
 	}
 	else
 	{
-	    for (int i = 0; i < nvars; ++i)
-		if (vars[i].getMathType() instanceof TextType)
-		{
-		    hasTextualComponent = true;
-		    break;
-		}
-
-	    if (hasTextualComponent)
+	    if (hasText(vars))
 	    {
 		MathType[]	types = new MathType[nvars];
 
@@ -211,45 +222,30 @@ NcFunction
 
 
     /**
-     * Return the VisAD data object corresponding to this function.
+     * Indicate whether or not at least one of the given netCDF variables
+     * is textual.
      *
-     * @return		The VisAD data object corresponding to the function.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
-     * @exception IOException
-     *			Data access I/O failure.
+     * @param vars	The netCDF variables to be examined.
+     * @return		<code>true</code> if and only if at least one of the
+     *			netCDF variables is textual.
      */
-    DataImpl
-    getData()
-	throws IOException, VisADException
+    protected static boolean
+    hasText(NcVar[] vars)
     {
-	FieldImpl	field;
+	int		nvars = vars.length;
 
-	if (hasTextualComponent)
-	{
-	    // TODO: support text in Fields
-	    field = null;
-	}
-	else
-	{
-	    FlatField	flatField =
-		new FlatField((FunctionType)mathType, getDomainSet(),
-		    (CoordinateSystem)null, getRangeSets(),
-		    getRangeUnits());
+	for (int i = 0; i < nvars; ++i)
+	    if (vars[i].isText())
+		return true;
 
-	    flatField.setSamples(getRangeDoubles(), /*copy=*/false);
-
-	    field = flatField;
-	}
-
-	return field;
+	return false;
     }
 
 
     /**
-     * Return the domain-set of this function.
+     * Return the domain-set of the given, netCDF dimensions.
      *
+     * @param dims	The netCDF dimensions of the domain in VisAD order.
      * @return		The sampling domain-set of the function.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
@@ -257,13 +253,13 @@ NcFunction
      * @exception IOException
      *			Data access I/O failure.
      */
-    protected Set
-    getDomainSet()
+    protected static Set
+    getDomainSet(NcDim[] dims, MathType domain)
 	throws IOException, VisADException
     {
 	Set		domainSet;
 	int		rank = dims.length;
-	ImportVar[]	coordVars = new ImportVar[rank];
+	NcVar[]		coordVars = new NcVar[rank];
 	boolean		noCoordVars = true;
 	boolean	 	allCoordVarsAreArithProgs = true;
 	ArithProg[]	aps = new ArithProg[rank];
@@ -298,7 +294,7 @@ NcFunction
 	    /*
 	     * This domain has no co-ordinate variables.
 	     */
-	    domainSet = getIntegerSet();
+	    domainSet = getIntegerSet(dims, domain);
 	}
 	else
 	if (allCoordVarsAreArithProgs)
@@ -307,7 +303,7 @@ NcFunction
 	     * This domain has co-ordinate variables -- all of which are
 	     * arithmetic progressions.
 	     */
-	    domainSet = (Set)getLinearSet(aps, coordVars);
+	    domainSet = (Set)getLinearSet(dims, aps, coordVars, domain);
 	}
 	else
 	{
@@ -315,7 +311,7 @@ NcFunction
 	     * This domain has at least one co-ordinate variable which is 
 	     * not an arithmetic progression.  This is the general case.
 	     */
-	    domainSet = getGriddedSet(coordVars);
+	    domainSet = getGriddedSet(dims, coordVars, domain);
 	}
 
 	return domainSet;
@@ -323,14 +319,15 @@ NcFunction
 
 
     /**
-     * Return the IntegerSet of this function.
+     * Return the IntegerSet of the given, netCDF dimensions and domain.
      *
+     * @param dims	The netCDF dimensions of the domain in VisAD order.
      * @return		The IntegerSet of the domain of the function.
      * @precondition	The sampling domain-set of the function is (logically)
      *			an IntegerSet.
      */
-    protected GriddedSet
-    getIntegerSet()
+    protected static GriddedSet
+    getIntegerSet(NcDim[] dims, MathType domain)
 	throws VisADException
     {
 	int	rank = dims.length;
@@ -340,20 +337,22 @@ NcFunction
 	    lengths[idim] = dims[idim].getLength();
 
 	// TODO: add CoordinateSystem argument
-	return IntegerNDSet.create(
-	    ((FunctionType)mathType).getDomain(), lengths);
+	return IntegerNDSet.create(domain, lengths);
     }
 
 
     /**
-     * Return the LinearSet of this function.
+     * Return the LinearSet of the given dimensions, arithmetic progressions
+     * and coordinate variables.
      *
+     * @param dims	The netCDF dimensions of the domain in VisAD order.
      * @return		The LinearSet of the domain of the function.
      * @precondition	The sampling domain-set of this function is (logically)
      *			a LinearSet.
      */
-    protected LinearSet
-    getLinearSet(ArithProg[] aps, ImportVar[] coordVars)
+    protected static LinearSet
+    getLinearSet(NcDim[] dims, ArithProg[] aps, NcVar[] coordVars, 
+	    MathType domain)
 	throws VisADException
     {
 	int		rank = dims.length;
@@ -384,21 +383,23 @@ NcFunction
 	}
 
 	// TODO: add CoordinateSystem argument
-	return LinearNDSet.create(((FunctionType)mathType).getDomain(),
+	return LinearNDSet.create(domain,
 				    firsts, lasts, lengths,
 				    null, null, null);
     }
 
 
     /**
-     * Return the GriddedSet of this function.
+     * Return the GriddedSet of the given dimensions and coordinate
+     * variables.
      *
+     * @param dims	The netCDF dimensions of the domain in VisAD order.
      * @return		The GriddedSet of the domain of the function.
      * @precondition	The sampling domain-set of this function is a 
      *			GriddedSet.
      */
-    protected GriddedSet
-    getGriddedSet(ImportVar[] coordVars)
+    protected static GriddedSet
+    getGriddedSet(NcDim[] dims, NcVar[] coordVars, MathType domain)
 	throws VisADException, IOException
     {
 	int		rank = dims.length;
@@ -435,18 +436,17 @@ NcFunction
 	}
 
 	// TODO: add CoordinateSystem argument
-	return GriddedSet.create(
-	    ((FunctionType)mathType).getDomain(), values, lengths);
+	return GriddedSet.create(domain, values, lengths);
     }
 
 
     /**
-     * Return the range Sets of this function.
+     * Return the range Sets of the given, netCDF variables.
      *
      * @return	The range Sets of the function.
      */
-    protected Set[]
-    getRangeSets()
+    protected static Set[]
+    getRangeSets(NcVar[] vars)
     {
 	Set[]	sets = new Set[vars.length];
 
@@ -458,12 +458,12 @@ NcFunction
 
 
     /**
-     * Return the range Units of this function.
+     * Return the range Units of the given, netCDF variables.
      *
      * @return	The range units of the function.
      */
-    protected Unit[]
-    getRangeUnits()
+    protected static Unit[]
+    getRangeUnits(NcVar[] vars)
     {
 	Unit[]	units = new Unit[vars.length];
 
@@ -472,30 +472,4 @@ NcFunction
 
 	return units;
     }
-
-
-    /**
-     * Return the range values of this function as doubles.
-     *
-     * @return		The range values of the function.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
-     * @exception IOException
-     *			Data access I/O failure.
-     */
-    protected double[][]
-    getRangeDoubles()
-	throws VisADException, IOException
-    {
-	int		nvars = vars.length;
-	double[][]	values = new double[nvars][];
-
-	for (int ivar = 0; ivar < nvars; ++ivar)
-	    values[ivar] = vars[ivar].getDoubleValues();
-
-	return values;
-    }
 }
-
-

@@ -3,14 +3,16 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcTuple.java,v 1.3 1998-03-12 22:03:11 steve Exp $
+ * $Id: NcTuple.java,v 1.1 1998-03-20 20:57:03 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 import java.io.IOException;
 import visad.DataImpl;
 import visad.MathType;
+import visad.RealTupleType;
+import visad.RealType;
 import visad.Tuple;
 import visad.TupleType;
 import visad.VisADException;
@@ -33,6 +35,7 @@ NcTuple
      * Construct from an array of netCDF data objects.
      *
      * @param ncDatas	The netCDF data objects constituting the tuple.
+     * @precondition	<code>ncDatas.length >= 2</code>.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
@@ -40,15 +43,42 @@ NcTuple
     NcTuple(NcData[] ncDatas)
 	throws VisADException
     {
+	super(getTupleType(ncDatas));
 	this.ncDatas = ncDatas;
+    }
 
+
+    /**
+     * Return the VisAD MathType of the given, netCDF data objects.
+     *
+     * @param ncDatas	The netCDF data objects.
+     * @prcondition	<code>ncDatas.length >= 2</code>.
+     * @return		The VisAD MathType of the collection of netCDF data
+     *			objects.
+     */
+    private static TupleType
+    getTupleType(NcData[] ncDatas)
+	throws VisADException
+    {
 	int		numComponents = ncDatas.length;
 	MathType[]	mathTypes = new MathType[numComponents];
+	boolean		isRealTupleType = true;
 
 	for (int i = 0; i < numComponents; ++i)
-	    mathTypes[i] = ncDatas[i].getMathType();
+	{
+	    if (isRealTupleType
+		&& ((!(ncDatas[i] instanceof NcVar))
+		    || ((NcVar)ncDatas[i]).isText()))
+	    {
+		isRealTupleType = false;
+	    }
 
-	initialize(new TupleType(mathTypes));
+	    mathTypes[i] = ncDatas[i].getMathType();
+	}
+
+	return isRealTupleType
+		    ? new RealTupleType((RealType[])mathTypes)
+		    : new TupleType(mathTypes);
     }
 
 

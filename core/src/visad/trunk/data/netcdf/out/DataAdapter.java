@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAdapter.java,v 1.7 1998-03-17 20:48:42 steve Exp $
+ * $Id: DataAdapter.java,v 1.1 1998-03-20 20:57:13 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.out;
 
 import java.io.IOException;
 import java.rmi.RemoteException;

@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentVar.java,v 1.3 1998-03-12 22:02:58 steve Exp $
+ * $Id: DependentVar.java,v 1.1 1998-03-20 20:57:18 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.out;
 
 import java.io.IOException;
 import ucar.netcdf.Attribute;

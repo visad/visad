@@ -3,14 +3,16 @@ SUBPACKAGE	= netcdf
 include ../../macros.make
 
 GARBAGE		= plain.nc
-SUBDIR_TARGETS	= units/default units/classes units/all units/clean
-JAR_CLASSES	= *.class units/*.class
+SUBDIR_TARGETS	= in/default in/classes in/all in/clean \
+		  out/default out/classes out/all out/clean \
+		  units/default units/classes units/all units/clean
+JAR_CLASSES	= *.class in/*.class out/*.class units/*.class
 JARFILE		= visad.data.netcdf.jar
 
-default:	units/default
-all:		units/all
-jar:		units/classes
-clean:		units/clean
+default:	in/default out/default units/default
+all:		in/all out/all units/all
+jar:		in/classes out/classes units/classes
+clean:		in/clean out/clean units/clean
 
 include ../../rules.make
 

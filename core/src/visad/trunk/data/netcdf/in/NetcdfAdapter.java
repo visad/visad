@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.8 1998-03-17 15:54:56 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.1 1998-03-20 20:57:08 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -58,19 +58,20 @@ NetcdfAdapter
      * @exception IOException
      *			Data access I/O failure.
      */
+    public
     NetcdfAdapter(Netcdf netcdf)
 	throws VisADException, RemoteException, IOException
     {
 	this.netcdf = netcdf;
 
-	functionSet = setFunctionSet(netcdf);
+	functionSet = getFunctionSet(netcdf);
 
-	ncData = setOutermost(functionSet);
+	ncData = getOutermost(functionSet);
     }
 
 
     /**
-     * Set the VisAD data objects in the netCDF dataset.
+     * Return the VisAD data objects in the given netCDF dataset.
      *
      * @param netcdf	The netCDF dataset to be adapted.
      * @return		A hashtable of functions in the netCDF dataset.
@@ -83,7 +84,7 @@ NetcdfAdapter
      *			Data access I/O failure.
      */
     protected static Hashtable
-    setFunctionSet(Netcdf netcdf)
+    getFunctionSet(Netcdf netcdf)
 	throws VisADException, BadFormException, IOException
     {
 	DomainTable		domTable = new DomainTable(netcdf.size());
@@ -91,9 +92,9 @@ NetcdfAdapter
 	VariableIterator	varIter = netcdf.iterator();
 	while (varIter.hasNext())
 	{
-	    ImportVar	var = ImportVar.create(varIter.next(), netcdf);
+	    NcVar	var = NcVar.create(varIter.next(), netcdf);
 
-	    // TODO: support scalars
+	    // TODO: support scalars and text
 	    if (!var.isText() && !var.isCoordinateVariable() &&
 		var.getRank() > 0)
 	    {
@@ -108,12 +109,9 @@ NetcdfAdapter
 	{
 	    Domain	domain = domEnum.nextElement();
 	    NcDim[]	dims = domain.getDimensions();
-	    NcFunction	function =
-		(domain.getRank() <= 1 || !dims[0].isTime())
-		    ? new NcFunction(domain.getVariables())
-		    : new NcNestedFunction(domain.getVariables());
+	    NcData	ncData = NcData.newNcData(domain.getVariables());
 
-	    table.put(function.getMathType(), function);
+	    table.put(ncData.getMathType(), ncData);
 	}
 
 	return table;
@@ -121,10 +119,10 @@ NetcdfAdapter
 
 
     /**
-     * Set the outermost, netCDF data object.
+     * Return the outermost, netCDF data object in the given domain Dictionary.
      *
-     * @param functionSet	The set of functions in a netCDF dataset.
-     * @return			The outermost data object of netCDF dataset.
+     * @param functionSet	The domain dictionary of a netCDF dataset.
+     * @return			The outermost data object of the netCDF dataset.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
@@ -132,7 +130,7 @@ NetcdfAdapter
      *			Remote data access failure.
      */
     protected static NcData
-    setOutermost(Dictionary functionSet)
+    getOutermost(Dictionary functionSet)
 	throws VisADException, RemoteException
     {
 	NcData	data;
@@ -172,7 +170,7 @@ NetcdfAdapter
      * @exception IOException
      *			Data access I/O failure.
      */
-    DataImpl
+    public DataImpl
     getData()
 	throws IOException, VisADException
     {

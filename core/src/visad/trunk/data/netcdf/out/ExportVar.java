@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ExportVar.java,v 1.6 1998-03-12 22:03:01 steve Exp $
+ * $Id: ExportVar.java,v 1.1 1998-03-20 20:57:19 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.out;
 
 import java.io.IOException;
 import java.rmi.RemoteException;

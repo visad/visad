@@ -3,10 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.5 1998-03-12 22:03:06 steve Exp $
+ * $Id: NcDim.java,v 1.1 1998-03-20 20:56:47 visad Exp $
  */
 
-package visad.data.netcdf;
+package visad.data.netcdf.in;
 
 import ucar.netcdf.Dimension;
 import ucar.netcdf.Netcdf;
@@ -142,7 +142,7 @@ NcDim
      * @return	The netCDF coordinate variable associated with the dimension
      *		or <code>null</code> if there isn't one.
      */
-    ImportVar
+    NcVar
     getCoordVar()
     {
 	return null;
@@ -161,7 +161,7 @@ NcCoordDim
     /**
      * The associated coordinate variable.
      */
-    protected final ImportVar	coordVar;
+    protected final NcVar	coordVar;
 
 
     /**
@@ -179,7 +179,7 @@ NcCoordDim
 	throws VisADException
     {
 	super(dim);
-	coordVar = ImportVar.create(netcdf.get(dim.getName()), netcdf);
+	coordVar = NcVar.create(netcdf.get(dim.getName()), netcdf);
     }
 
 
@@ -201,7 +201,7 @@ NcCoordDim
      *
      * @return	The coordinate variable associated with the dimension.
      */
-    ImportVar
+    NcVar
     getCoordVar()
     {
 	return coordVar;

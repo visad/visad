@@ -3,11 +3,11 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CoordVar.java,v 1.7 1998-03-17 15:50:08 steve Exp $
+ * $Id: CoordVar.java,v 1.1 1998-03-20 20:57:12 visad Exp $
  */
 
 
-package visad.data.netcdf;
+package visad.data.netcdf.out;
 
 import java.io.IOException;
 import ucar.netcdf.Attribute;
