@@ -134,7 +134,7 @@ public class ShowNCEPModel
           boolean triedNum = false;
           if (!gotNum) {
             try {
-              num =  Integer.parseInt(args[i].substring(1));
+              num = Integer.parseInt(args[i]);
               triedNum = true;
             } catch (NumberFormatException nex) {
             }
@@ -146,10 +146,11 @@ public class ShowNCEPModel
                 System.out.println("invalid number of tabs (1-9) = "+num);
                 killMe = true;
               }
+              continue;
             }
           }
 
-          if (!triedNum && fileName == null) {
+          if (fileName == null) {
             fileName = args[i];
           } else {
             System.out.println("Ignoring extra argument \"" + args[i] + "\"");
