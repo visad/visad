@@ -33,6 +33,10 @@ import java.rmi.RemoteException;
 
 import java.util.Vector;
 
+import visad.collab.DisplaySync;
+import visad.collab.RemoteDisplayMonitor;
+import visad.collab.RemoteDisplaySync;
+
 /**
    RemoteDisplay is the interface for Remote Display-s.<P>
 */

@@ -464,6 +464,7 @@ debug:
 
 VISAD_PACKAGES = \
 		visad \
+		visad.collab \
 		visad.java3d \
 		visad.java2d \
 		visad.util \

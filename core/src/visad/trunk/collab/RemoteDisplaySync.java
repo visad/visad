@@ -20,25 +20,19 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
 
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import visad.VisADException;
+
 /**
- * <CODE>DisplayMonitorListener</CODE> is the interface for receivers of
- * <CODE>MonitorEvent</CODE>s.
+ * <CODE>RemoteDisplaySync</CODE> is the interface for stubs which are
+ * exported to <CODE>RemoteDisplay</CODE>s and used to send back events
+ * used for synchronization.
  */
-public interface DisplayMonitorListener
+public interface RemoteDisplaySync
+  extends DisplaySync, Remote
 {
-  /**
-   * Handles remote <CODE>Display</CODE> changes, causing
-   * the local <CODE>Display</CODE> to be changed to match.
-   *
-   * @param e The event to be processed.
-   *
-   * @exception RemoteException If there was an RMI-related problem.
-   * @exception RemoteVisADException If there was an internal problem.
-   */
-  void stateChanged(MonitorEvent e)
-    throws RemoteException, RemoteVisADException;
 }

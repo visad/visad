@@ -20,7 +20,10 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
+
+import visad.RemoteReferenceLink;
+import visad.VisADException;
 
 /**
  * <CODE>ReferenceMonitorEvent</CODE> is the VisAD class for

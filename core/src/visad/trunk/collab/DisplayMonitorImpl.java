@@ -20,9 +20,25 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
 
 import java.rmi.RemoteException;
+
+import visad.AnimationControl;
+import visad.Control;
+import visad.ControlEvent;
+import visad.DataDisplayLink;
+import visad.DisplayEvent;
+import visad.DisplayMapEvent;
+import visad.DisplayReferenceEvent;
+import visad.DisplayImpl;
+import visad.RemoteDisplay;
+import visad.RemoteReferenceLinkImpl;
+import visad.RemoteVisADException;
+import visad.ScalarMap;
+import visad.ScalarMapControlEvent;
+import visad.ScalarMapEvent;
+import visad.VisADException;
 
 /**
  * <TT>DisplayMonitorImpl</TT> is the <TT>Display</TT> monitor

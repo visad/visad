@@ -20,19 +20,15 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
 
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import visad.VisADException;
-
 /**
- * <CODE>RemoteDisplaySync</CODE> is the interface for stubs which are
- * exported to <CODE>RemoteDisplay</CODE>s and used to send back events
- * used for synchronization.
+ * <CODE>DisplaySync</CODE> is the interface for objects which synchronize
+ * a <CODE>Display</CODE> with one or more <CODE>RemoteDisplay</CODE>s.
  */
-public interface RemoteDisplaySync
-  extends DisplaySync, Remote
+public interface DisplaySync
+  extends DisplayMonitorListener
 {
 }

@@ -20,11 +20,20 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
 
 import java.rmi.RemoteException;
 
 import java.rmi.server.UnicastRemoteObject;
+
+import visad.Control;
+import visad.ControlEvent;
+import visad.DisplayEvent;
+import visad.RemoteDisplay;
+import visad.RemoteVisADException;
+import visad.ScalarMapControlEvent;
+import visad.ScalarMapEvent;
+import visad.VisADException;
 
 /**
  * <CODE>RemoteDisplayMonitorImpl</CODE> is the implementation of the VisAD

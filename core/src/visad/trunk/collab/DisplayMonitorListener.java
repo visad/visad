@@ -20,54 +20,27 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
 
 import java.rmi.RemoteException;
 
-import java.rmi.server.UnicastRemoteObject;
-
-import visad.VisADException;
+import visad.RemoteVisADException;
 
 /**
- * <CODE>RemoteDisplaySyncImpl</CODE> is the implementation of the VisAD
- * <CODE>RemoteDisplaySync</CODE> class.
+ * <CODE>DisplayMonitorListener</CODE> is the interface for receivers of
+ * <CODE>MonitorEvent</CODE>s.
  */
-public class RemoteDisplaySyncImpl
-  extends UnicastRemoteObject
-  implements RemoteDisplaySync
+public interface DisplayMonitorListener
 {
-  private final transient DisplaySyncImpl AdaptedSync;
-
   /**
-   * Creates a remotely-accessible wrapper for the specified
-   * <CODE>DisplaySync</CODE>
+   * Handles remote <CODE>Display</CODE> changes, causing
+   * the local <CODE>Display</CODE> to be changed to match.
    *
-   * @param dpySync The local <CODE>DisplaySync</CODE> object to adapt.
-   *
-   * @exception RemoteException If there was an RMI-related problem.
-   */
-  public RemoteDisplaySyncImpl(DisplaySyncImpl dpySync)
-    throws RemoteException
-  {
-    AdaptedSync = dpySync;
-  }
-
-  /**
-   * Forwards the event to the adapted remote <CODE>DisplaySync</CODE>
-   * object.
-   *
-   * @param evt The event to forward.
+   * @param e The event to be processed.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
    */
-  public void stateChanged(MonitorEvent evt)
-    throws RemoteException, RemoteVisADException
-  {
-    if (AdaptedSync == null) {
-      throw new RemoteVisADException("AdaptedSync is null");
-    }
-
-    AdaptedSync.stateChanged(evt);
-  }
+  void stateChanged(MonitorEvent e)
+    throws RemoteException, RemoteVisADException;
 }

@@ -20,12 +20,23 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
 
 import java.rmi.RemoteException;
 
 import java.util.ListIterator;
 import java.util.Vector;
+
+import visad.Control;
+import visad.ConstantMap;
+import visad.DataRenderer;
+import visad.DisplayImpl;
+import visad.RemoteDataReference;
+import visad.RemoteDisplayImpl;
+import visad.RemoteReferenceLink;
+import visad.RemoteVisADException;
+import visad.ScalarMap;
+import visad.VisADException;
 
 /**
  * <TT>DisplaySyncImpl</TT> is the <TT>Display</TT> synchronization

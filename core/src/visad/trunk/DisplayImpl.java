@@ -38,6 +38,13 @@ import java.awt.print.*;
 import javax.swing.*;
 import visad.util.*;
 
+import visad.collab.ControlMonitorEvent;
+import visad.collab.DisplayMonitor;
+import visad.collab.DisplayMonitorImpl;
+import visad.collab.DisplaySync;
+import visad.collab.DisplaySyncImpl;
+import visad.collab.MonitorEvent;
+
 /**
    DisplayImpl is the abstract VisAD superclass for display
    implementations.  It is runnable.<P>

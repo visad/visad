@@ -20,7 +20,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
 
 import java.io.EOFException;
 
@@ -33,6 +33,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
+
+import visad.Control;
+import visad.DisplayImpl;
+import visad.RemoteDisplay;
+import visad.RemoteVisADException;
+import visad.VisADException;
 
 import visad.util.ObjectCache;
 import visad.util.ThreadPool;

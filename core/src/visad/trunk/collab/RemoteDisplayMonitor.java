@@ -20,15 +20,16 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
 
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
- * <CODE>DisplaySync</CODE> is the interface for objects which synchronize
- * a <CODE>Display</CODE> with one or more <CODE>RemoteDisplay</CODE>s.
+ * <CODE>RemoteDisplayMonitor</CODE> is the interface for monitoring
+ * <CODE>RemoteDisplay</CODE>s.
  */
-public interface DisplaySync
-  extends DisplayMonitorListener
+public interface RemoteDisplayMonitor
+  extends DisplayMonitor, Remote
 {
 }

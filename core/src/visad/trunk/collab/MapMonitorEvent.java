@@ -20,7 +20,10 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.collab;
+
+import visad.ScalarMap;
+import visad.VisADException;
 
 /**
  * <CODE>MapMonitorEvent</CODE> is the VisAD class for

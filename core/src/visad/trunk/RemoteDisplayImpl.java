@@ -31,6 +31,15 @@ import java.awt.event.MouseEvent;
 import java.util.*;
 import java.rmi.*;
 
+import visad.collab.DisplayMonitor;
+import visad.collab.DisplayMonitorImpl;
+import visad.collab.DisplaySync;
+import visad.collab.DisplaySyncImpl;
+import visad.collab.RemoteDisplayMonitor;
+import visad.collab.RemoteDisplayMonitorImpl;
+import visad.collab.RemoteDisplaySync;
+import visad.collab.RemoteDisplaySyncImpl;
+
 /**
    RemoteDisplayImpl is the VisAD class for remote access to
    Display-s.<P>
