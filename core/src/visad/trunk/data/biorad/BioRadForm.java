@@ -40,6 +40,7 @@ public class BioRadForm extends Form implements FormFileInformer {
   /** Debugging flag. */
   static final boolean DEBUG = false;
 
+  /** Debugging level. 1=basic, 2=extended, 3=everything. */
   static final int DEBUG_LEVEL = 1;
 
   /** Numerical ID of a valid BioRad .PIC file. */
@@ -135,6 +136,21 @@ public class BioRadForm extends Form implements FormFileInformer {
     int q1 = (0x0000ff00 & val) >> 8;
     int q2 = (0x00ff0000 & val) >> 16;
     int q3 = (0xff000000 & val) >> 24;
+    byte[] b = new byte[4];
+    b[0] = (byte) q0;
+    b[1] = (byte) q1;
+    b[2] = (byte) q2;
+    b[3] = (byte) q3;
+    out.write(b, 0, 4);
+  }
+
+  /** Writes the given value as a float, in reverse byte order. */
+  static void writeFloat(DataOutputStream out, float val) throws IOException {
+    int q = Float.floatToIntBits(val);
+    int q0 = (0x000000ff & q) << 24;
+    int q1 = (0x0000ff00 & q) << 8;
+    int q2 = (0x00ff0000 & q) >> 8;
+    int q3 = (0xff000000 & q) >> 24;
     byte[] b = new byte[4];
     b[0] = (byte) q0;
     b[1] = (byte) q1;
@@ -242,17 +258,12 @@ public class BioRadForm extends Form implements FormFileInformer {
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
-    // CTR: TEMP:
-    if (true) throw new UnimplementedException("patience, almost working");
-
     // make list of data elements
     data = data.local();
     Vector v = new Vector();
     if (data instanceof Tuple) {
       Tuple t = (Tuple) data;
-      for (int i=0; i<t.getDimension(); i++) {
-        v.add(t.getComponent(i).local());
-      }
+      for (int i=0; i<t.getDimension(); i++) v.add(t.getComponent(i));
     }
     else v.add(data);
 
@@ -281,7 +292,7 @@ public class BioRadForm extends Form implements FormFileInformer {
         // found image sequence
         FieldImpl f = (FieldImpl) d;
         int flen = f.getLength();
-        for (int j=0; j<flen; j++) v_images.add(f.getSample(j).local());
+        for (int j=0; j<flen; j++) v_images.add(f.getSample(j));
       }
       else if (mt.equalsExceptName(table)) {
         // found color table
@@ -291,7 +302,7 @@ public class BioRadForm extends Form implements FormFileInformer {
         // found color table sequence
         FieldImpl f = (FieldImpl) d;
         int flen = f.getLength();
-        for (int j=0; j<flen; j++) v_tables.add(f.getSample(j).local());
+        for (int j=0; j<flen; j++) v_tables.add(f.getSample(j));
       }
       else if (mt.equalsExceptName(noteFunction)) {
         // found BioRad note tuple
@@ -299,7 +310,7 @@ public class BioRadForm extends Form implements FormFileInformer {
         FieldImpl f = (FieldImpl) d;
         int flen = f.getLength();
         for (int j=0; j<flen; j++) {
-          Tuple t = (Tuple) f.getSample(j).local();
+          Tuple t = (Tuple) f.getSample(j);
           Real r_level = (Real) t.getComponent(0);
           Real r_num = (Real) t.getComponent(1);
           Real r_status = (Real) t.getComponent(2);
@@ -538,20 +549,35 @@ public class BioRadForm extends Form implements FormFileInformer {
     writeShort(fout, color2);
     writeShort(fout, edited);
     writeShort(fout, lens);
-    fout.writeFloat(mag_factor);
+    writeFloat(fout, mag_factor);
     fout.write(new byte[] {0, 0, 0, 0, 0, 0}, 0, 6);
+    if (DEBUG && DEBUG_LEVEL >= 1) {
+      System.out.println("Wrote 76 header bytes.");
+    }
 
     // write image data
     fout.write(imageBytes, 0, imageBytes.length);
+    if (DEBUG && DEBUG_LEVEL >= 1) {
+      System.out.println("Wrote " + npic + " " + nx + " x " + ny + " image" +
+        (npic == 1 ? "" : "s") + " (" + imageBytes.length + " bytes).");
+    }
 
     // write notes
     for (int i=0; i<notes; i++) {
       BioRadNote note = (BioRadNote) v_notes.elementAt(i);
       note.write(fout, i != notes - 1);
     }
+    if (DEBUG && DEBUG_LEVEL >= 1) {
+      System.out.println("Wrote " + notes + " note" +
+        (notes == 1 ? "" : "s") + " (" + (96 * notes) + " bytes).");
+    }
 
     // write color tables
     fout.write(tableBytes, 0, tableBytes.length);
+    if (DEBUG && DEBUG_LEVEL >= 1) {
+      System.out.println("Wrote " + numTables + " table" +
+        (numTables == 1 ? "" : "s") + " (" + tableBytes.length + " bytes).");
+    }
 
     // close file
     fout.close();
@@ -679,11 +705,18 @@ public class BioRadForm extends Form implements FormFileInformer {
     // read color table
     int numLuts = 0;
     byte[][] lut = new byte[3][768];
-    try {
-      fin.read(lut[numLuts]);
-      numLuts++;
+    boolean eof = false;
+    while (!eof && numLuts < 3) {
+      try {
+        int ret = fin.read(lut[numLuts]);
+        if (ret == -1) eof = true;
+        else numLuts++;
+      }
+      catch (IOException exc) {
+        eof = true;
+        if (DEBUG) exc.printStackTrace();
+      }
     }
-    catch (IOException exc) { } // eof
     if (DEBUG && DEBUG_LEVEL >= 2) {
       System.out.println(numLuts + " color table" +
         (numLuts == 1 ? "" : "s") + " present.");

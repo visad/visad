@@ -179,23 +179,47 @@ public class BioRadNote {
 
   // MathTypes
 
+  /** RealType for level note element. */
+  private static final RealType rt_level = RealType.getRealType("level");
+
+  /** RealType for num note element. */
+  private static final RealType rt_num = RealType.getRealType("num");
+
+  /** RealType for status note element. */
+  private static final RealType rt_status = RealType.getRealType("status");
+
+  /** RealType for type note element. */
+  private static final RealType rt_type = RealType.getRealType("type");
+
+  /** RealType for x note element. */
+  private static final RealType rt_x = RealType.getRealType("x");
+
+  /** RealType for y note element. */
+  private static final RealType rt_y = RealType.getRealType("y");
+
+  /** TextType for text note element. */
+  private static final TextType tt_text = TextType.getTextType("text");
+
   /** MathType of a BioRad note. */
   static final TupleType noteTuple = makeNoteTuple();
   
   /** Creates BioRad note MathType. */
   private static TupleType makeNoteTuple() {
     try {
+      if (rt_level == null) System.out.println("rt_level is NULL!");
+      if (rt_num == null) System.out.println("rt_num is NULL!");
+      if (rt_status == null) System.out.println("rt_status is NULL!");
+      if (rt_type == null) System.out.println("rt_type is NULL!");
+      if (rt_x == null) System.out.println("rt_x is NULL!");
+      if (rt_y == null) System.out.println("rt_y is NULL!");
+      if (tt_text == null) System.out.println("tt_text is NULL!");
       return new TupleType(new MathType[] {
-        RealType.getRealType("level"),
-        RealType.getRealType("num"),
-        RealType.getRealType("status"),
-        RealType.getRealType("type"),
-        RealType.getRealType("x"),
-        RealType.getRealType("y"),
-        TextType.getTextType("text")
+        rt_level, rt_num, rt_status, rt_type, rt_x, rt_y, tt_text
       });
     }
-    catch (VisADException exc) { }
+    catch (VisADException exc) {
+      if (BioRadForm.DEBUG) exc.printStackTrace();
+    }
     return null;
   }
 
@@ -252,15 +276,20 @@ public class BioRadNote {
 
   /** Gets a simple VisAD Data object representing this note. */
   public DataImpl getNoteData() {
-    DataImpl[] d = new DataImpl[] {
-      new Real(level), new Real(num), new Real(status), new Real(type),
-      new Real(x), new Real(y), new Text(text)
-    };
     try {
-      return new Tuple(noteTuple, d);
+      DataImpl[] d = new DataImpl[] {
+        new Real(rt_level, level), new Real(rt_num, num),
+        new Real(rt_status, status), new Real(rt_type, type),
+        new Real(rt_x, x), new Real(rt_y, y), new Text(tt_text, text)
+      };
+      return new Tuple(noteTuple, d, false);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (BioRadForm.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (BioRadForm.DEBUG) exc.printStackTrace();
+    }
     return null;
   }
 
@@ -565,8 +594,8 @@ public class BioRadNote {
     if (first) {
       sb.append("NONE");
     }
-    sb.append(", type=" + noteNames[type] +
-      ", x=" + x + ", y=" + y + ", text=" + text.trim());
+    sb.append(", type=" + noteNames[type] + ", x=" + x + ", y=" + y +
+      ", text=" + (text == null ? "null" : text.trim()));
     return sb.toString();
   }
 
