@@ -1,3 +1,5 @@
+import java.awt.Component;
+
 import java.rmi.RemoteException;
 
 import visad.*;
@@ -7,8 +9,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test47
 	extends UISkeleton
 {
-  boolean hasClientServerMode() { return false; }
-
   public Test47() { }
 
   public Test47(String args[])
@@ -32,9 +32,37 @@ public class Test47
     FlatField histogram1 = new FlatField(ir_histogram, ir_set);
     histogram1.setSamples(values);
 
+    DisplayImpl display1 = new DisplayImplJ3D("display1");
+
+    display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+    display1.addMap(new ScalarMap(ir_radiance, Display.ShapeScale));
+    display1.addMap(new ScalarMap(count, Display.Green));
+    display1.addMap(new ConstantMap(1.0, Display.Blue));
+    display1.addMap(new ConstantMap(1.0, Display.Red));
+    ScalarMap shape_map = new ScalarMap(count, Display.Shape);
+    display1.addMap(shape_map);
+
+    DataReferenceImpl ref_histogram1;
+    ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+    ref_histogram1.setData(histogram1);
+    display1.addReference(ref_histogram1, null);
+
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = display1;
+
+    return dpys;
+  }
+
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap shape_map = (ScalarMap )dpys[0].getMapVector().lastElement();
+
+    RealType count = (RealType )shape_map.getScalar();
+
     float[][] counts = new float[][] {{0.0f, 1.0f, 2.0f, 3.0f}};
-    Gridded1DSet count_set;
-    count_set = new Gridded1DSet(count, counts, counts[0].length);
+
+    Gridded1DSet count_set = new Gridded1DSet(count, counts, counts[0].length);
 
     VisADLineArray cross = new VisADLineArray();
     cross.coordinates = new float[]
@@ -112,28 +140,11 @@ public class Test47
     VisADGeometryArray[] shapes;
     shapes = new VisADGeometryArray[] {one_two, cube, cross, cube};
 
-    DisplayImpl display1 = new DisplayImplJ3D("display1");
-
-    display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.ShapeScale));
-    display1.addMap(new ScalarMap(count, Display.Green));
-    display1.addMap(new ConstantMap(1.0, Display.Blue));
-    display1.addMap(new ConstantMap(1.0, Display.Red));
-    ScalarMap shape_map = new ScalarMap(count, Display.Shape);
-    display1.addMap(shape_map);
     ShapeControl shape_control = (ShapeControl) shape_map.getControl();
     shape_control.setShapeSet(count_set);
     shape_control.setShapes(shapes);
 
-    DataReferenceImpl ref_histogram1;
-    ref_histogram1 = new DataReferenceImpl("ref_histogram1");
-    ref_histogram1.setData(histogram1);
-    display1.addReference(ref_histogram1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    return null;
   }
 
   String getFrameTitle() { return "shape in Java3D"; }

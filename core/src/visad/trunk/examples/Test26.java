@@ -1,5 +1,7 @@
 import java.rmi.RemoteException;
 
+import java.util.Vector;
+
 import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
@@ -7,8 +9,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test26
 	extends TestSkeleton
 {
-  boolean hasClientServerMode() { return false; }
-
   public Test26() { }
 
   public Test26(String args[])
@@ -50,6 +50,21 @@ public class Test26
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
 
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = display1;
+
+    return dpys;
+  }
+
+  void setupUI(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    Vector v = dpys[0].getMapVector();
+
+    ScalarMap map1lat = (ScalarMap )v.elementAt(0);
+    ScalarMap map1lon = (ScalarMap )v.elementAt(1);
+    ScalarMap map1vis = (ScalarMap )v.elementAt(2);
+
     boolean forever = true;
     while (forever) {
       // delay(5000);
@@ -70,10 +85,6 @@ public class Test26
       map1vis.setRange(range1vis[1] + incvis, range1vis[0] - incvis);
     }
 
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
   }
 
   public String toString() { return ": scale"; }

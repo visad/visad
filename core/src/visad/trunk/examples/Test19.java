@@ -10,10 +10,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test19
 	extends UISkeleton
 {
-  VisADSlider slider;
-
-  boolean hasClientServerMode() { return false; }
-
   public Test19() { }
 
   public Test19(String args[])
@@ -70,11 +66,6 @@ public class Test19
     FieldImpl[] images19 = {image_sequence, image_stinger};
     Tuple big_tuple = new Tuple(images19);
 
-    final DataReference value_ref = new DataReferenceImpl("value");
-
-    slider =
-      new VisADSlider("value", 0, 100, 0, 0.01, value_ref, RealType.Generic);
-
     DisplayImpl display1;
     display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
     display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
@@ -85,21 +76,11 @@ public class Test19
     display1.addMap(new ConstantMap(0.5, Display.Red));
     ScalarMap map1value = new ScalarMap(RealType.Time, Display.SelectValue);
     display1.addMap(map1value);
-    final ValueControl value1control =
-      (ValueControl) map1value.getControl();
-    value1control.setValue(0.0);
 
     DataReferenceImpl ref_big_tuple;
     ref_big_tuple = new DataReferenceImpl("ref_big_tuple");
     ref_big_tuple.setData(big_tuple);
     display1.addReference(ref_big_tuple, null);
-
-    CellImpl cell = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        value1control.setValue(((Real) value_ref.getData()).getValue());
-      }
-    };
-    cell.addReference(value_ref);
 
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = display1;
@@ -109,7 +90,30 @@ public class Test19
 
   String getFrameTitle() { return "VisAD select slider"; }
 
-  Component getSpecialComponent() { return slider; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap map1value = (ScalarMap )dpys[0].getMapVector().lastElement();
+
+    final ValueControl value1control =
+      (ValueControl) map1value.getControl();
+    value1control.setValue(0.0);
+
+    final DataReference value_ref = new DataReferenceImpl("value");
+
+    VisADSlider slider =
+      new VisADSlider("value", 0, 100, 0, 0.01, value_ref, RealType.Generic);
+
+    CellImpl cell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        value1control.setValue(((Real) value_ref.getData()).getValue());
+      }
+    };
+    cell.addReference(value_ref);
+
+    return slider;
+  }
+
 
   public String toString() { return ": SelectValue"; }
 

@@ -10,10 +10,6 @@ import visad.util.AnimationWidget;
 public class Test03
 	extends UISkeleton
 {
-  AnimationWidget aw;
-
-  boolean hasClientServerMode() { return false; }
-
   public Test03() { }
 
   public Test03(String args[])
@@ -83,7 +79,6 @@ public class Test03
     ScalarMap map1animation = new ScalarMap(RealType.Time, Display.Animation);
     display1.addMap(map1animation);
 
-    aw = new AnimationWidget(map1animation, 3000);
     DataReferenceImpl ref_big_tuple =
       new DataReferenceImpl("ref_big_tuple");
     ref_big_tuple.setData(big_tuple);
@@ -97,7 +92,12 @@ public class Test03
 
   String getFrameTitle() { return "VisAD animation controls"; }
 
-  Component getSpecialComponent() { return aw; }
+  Component getSpecialComponent(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap map1animation = (ScalarMap )dpys[0].getMapVector().lastElement();
+    return new AnimationWidget(map1animation, 3000);
+  }
 
   public String toString()
   {

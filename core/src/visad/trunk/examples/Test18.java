@@ -7,8 +7,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test18
 	extends TestSkeleton
 {
-  boolean hasClientServerMode() { return false; }
-
   public Test18() { }
 
   public Test18(String args[])
@@ -78,10 +76,6 @@ public class Test18
     ScalarMap map1animation;
     map1animation = new ScalarMap(RealType.Time, Display.Animation);
     display1.addMap(map1animation);
-    AnimationControl animation1control =
-      (AnimationControl) map1animation.getControl();
-    animation1control.setOn(true);
-    animation1control.setStep(3000);
 
     DataReferenceImpl ref_big_tuple;
     ref_big_tuple = new DataReferenceImpl("ref_big_tuple");
@@ -92,6 +86,17 @@ public class Test18
     dpys[0] = display1;
 
     return dpys;
+  }
+
+  void setupUI(DisplayImpl[] dpys)
+	throws VisADException, RemoteException
+  {
+    ScalarMap map1animation = (ScalarMap )dpys[0].getMapVector().lastElement();
+
+    AnimationControl animation1control =
+      (AnimationControl) map1animation.getControl();
+    animation1control.setOn(true);
+    animation1control.setStep(3000);
   }
 
   public String toString() { return ": Animation different time extents"; }
