@@ -27,11 +27,15 @@ MA 02111-1307, USA
 package visad.data.visad;
 
 /**
-   Saveable is an empty interface. It is implemented by clases
-   that also implement visad.Data, to indicate that it should be
-   saved by visad.data.visad.VisADForm as if it were the parent
-   Data class. Otherwise it will be saved as a serialized object.
-*/
-public interface Saveable {
-}
-
+ * This interface is a "marker" used to indicate to the VisAD
+ * binary file code that an object should be saved in binary
+ * format.<br>
+ * <br>
+ * Any class which extends one of the base VisAD Data classes can
+ * implement Saveable to indicate that it should be saved as if
+ * it were the parent Data class.<br>
+ * <br>
+ * If a class which extends a base Data class does not implement
+ * Saveable, it will be saved as a serialized object.
+ */
+public interface Saveable { }
