@@ -585,6 +585,10 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     int[] inherited_values =
       ((ShadowFunctionOrSetType) adaptedShadowType).getInheritedValues();
 */
+/*
+System.out.println("valueArrayLength = " + valueArrayLength +
+                   " inherited_values.length = " + inherited_values.length);
+*/
     for (int i=0; i<valueArrayLength; i++) {
       if (inherited_values[i] > 0) {
         display_values[i] = new float[1];
