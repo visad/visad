@@ -134,6 +134,8 @@ public class ShadowTupleType extends ShadowType {
     int[] local_display_indices = sumDisplayIndices(display_indices);
     int[] local_value_indices = sumValueIndices(value_indices);
 
+    anyFlow = checkFlow(local_display_indices);
+
     markTransform(isTransform);
 
     // get value_indices arrays used by doTransform
@@ -320,6 +322,13 @@ public class ShadowTupleType extends ShadowType {
               (RealTupleType) componentWithRef[i].getType(),
               range_coord_sys, range_units, null, value);
  
+          if (getAnyFlow()) {
+            renderer.setEarthSpatialData(componentWithRef[i],
+                      component_reference, ref, ref.getDefaultUnits(),
+                      (RealTupleType) componentWithRef[i].getType(),
+                      new CoordinateSystem[] {range_coord_sys}, range_units);
+          }
+
           // map reference_values to appropriate DisplayRealType-s
           // MEM
           mapValues(display_values, reference_values,
@@ -330,6 +339,41 @@ public class ShadowTupleType extends ShadowType {
           values = null;
         } // end for (int i=0; i<refToComponent.length; i++)
       } // end if (refToComponent != null)
+
+      // setEarthSpatialData calls when no CoordinateSystem
+      if (this instanceof ShadowTupleType && getAnyFlow()) {
+        if (this instanceof ShadowRealTupleType) {
+          Unit[] range_units = value_units;
+          CoordinateSystem range_coord_sys =
+            ((RealTuple) data).getCoordinateSystem();
+          renderer.setEarthSpatialData((ShadowRealTupleType) this,
+                    null, null, null, (RealTupleType) this.getType(),
+                    new CoordinateSystem[] {range_coord_sys}, range_units);
+        }
+        else {
+          int start = 0;
+          int n = ((ShadowTupleType) this).getDimension();
+          for (int i=0; i<n ;i++) {
+            ShadowType component =
+              ((ShadowTupleType) this).getComponent(i);
+            if (component instanceof ShadowRealTupleType) {
+              Unit[] range_units = new Unit[n];
+              for (j=0; j<n; j++) range_units[j] = value_units[j + start];
+              CoordinateSystem range_coord_sys = ((RealTuple) ((Tuple) data).
+                    getComponent(i)).getCoordinateSystem();
+              renderer.setEarthSpatialData((ShadowRealTupleType)
+                      component, null, null,
+                      null, (RealTupleType) component.getType(),
+                      new CoordinateSystem[] {range_coord_sys}, range_units);
+              start += ((ShadowRealTupleType) component).getDimension();
+            }
+            else if (component instanceof ShadowRealType) {
+              start++;
+            }
+          }
+        }
+      }
+
     } // end if (length > 0)
 
     // get any text String and TextControl inherited from parent

@@ -265,11 +265,6 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       Remote DisplayListeners */
   private RemoteDisplayImpl rd = null;
 
-  /** return a captured image of the display */
-  public BufferedImage getImage() {
-    return displayRenderer.getImage();
-  }
-
   public void notifyListeners(int id)
          throws VisADException, RemoteException {
     if (ListenerVector != null) {
@@ -1082,6 +1077,18 @@ if (initialize) {
     }
   }
 
+  /** return a captured image of the display */
+  public BufferedImage getImage() {
+    return displayRenderer.getImage();
+  }
+
+  /** return a captured image of the display;
+      synchronize if sync */
+  public BufferedImage getImage(boolean sync) {
+    if (sync) new Syncher(this);
+    return displayRenderer.getImage();
+  }
+
   public String toString() {
     return toString("");
   }
@@ -1099,6 +1106,49 @@ if (initialize) {
       s = s + map.toString(pre + "    ");
     }
     return s;
+  }
+
+  private class Syncher extends Object implements DisplayListener {
+
+    private ProjectionControl control;
+    int count;
+
+    Syncher(DisplayImpl display) {
+      control = display.getProjectionControl();
+      count = -1;
+      display.disableAction();
+      display.addDisplayListener(this);
+      display.reDisplayAll();
+      display.enableAction();
+      try {
+        synchronized (this) {
+          wait();
+        }
+      }
+      catch(InterruptedException e) {
+      }
+      display.removeDisplayListener(this);
+    }
+
+    public void displayChanged(DisplayEvent e)
+           throws VisADException, RemoteException {
+      if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
+        count = 2;
+        control.setMatrix(control.getMatrix());
+      }
+      else if (e.getId() == DisplayEvent.FRAME_DONE) {
+        if (count > 0) {
+          control.setMatrix(control.getMatrix());
+          count--;
+        }
+        else if (count == 0) {
+          synchronized (this) {
+            notify();
+          }
+          count--;
+        }
+      }
+    }
   }
 
 }

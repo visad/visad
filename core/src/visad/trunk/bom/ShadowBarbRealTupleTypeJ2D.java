@@ -44,7 +44,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     super(t, link, parent);
   }
 
-  public VisADGeometryArray[] makeFlow(float[][] flow_values,
+  public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
@@ -53,13 +53,14 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     DataRenderer renderer = getLink().getRenderer();
     boolean direct = renderer.getIsDirectManipulation();
     if (direct && renderer instanceof BarbManipulationRendererJ2D) {
-      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
-                 flowScale, spatial_values, color_values, range_select,
-                 (BarbManipulationRendererJ2D) renderer);
+      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which,
+                 flow_values, flowScale, spatial_values, color_values,
+                 range_select, (BarbManipulationRendererJ2D) renderer);
     }
     else {
-      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
-                 flowScale, spatial_values, color_values, range_select, null);
+      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which, 
+                 flow_values, flowScale, spatial_values, color_values, 
+                 range_select, null);
     }
   }
 
@@ -67,9 +68,9 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
   private static final int NUM = 256;
 
   public static VisADGeometryArray[] staticMakeFlow(DisplayImpl display,
-               float[][] flow_values, float flowScale, float[][] spatial_values,
-               byte[][] color_values, boolean[][] range_select,
-               BarbManipulationRendererJ2D renderer)
+               int which, float[][] flow_values, float flowScale,
+               float[][] spatial_values, byte[][] color_values,
+               boolean[][] range_select, BarbManipulationRendererJ2D renderer)
          throws VisADException {
     if (flow_values[0] == null) return null;
  

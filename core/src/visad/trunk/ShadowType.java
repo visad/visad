@@ -1100,7 +1100,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 Set domain_set, boolean allSpatial, boolean set_for_shape,
                 int[] spatialDimensions, boolean[][] range_select,
                 float[][] flow1_values, float[][] flow2_values,
-                float[] flowScale, boolean[] swap)
+                float[] flowScale, boolean[] swap, DataRenderer renderer)
          throws VisADException, RemoteException {
     DisplayTupleType spatial_tuple = null;
     // number of spatial samples, default is 1
@@ -1115,11 +1115,15 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     float[][] offset_values = new float[3][];
     boolean[] offset_copy = {false, false, false};
 
+/* WLH 8 May 99
     // spatial map getRange() results for flow adjustment
     double[] ranges = new double[] {Double.NaN, Double.NaN, Double.NaN};
     // some helpers for this computing ranges
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
+*/
+    // indexed by tuple_index
+    int[] spatial_value_indices = {-1, -1, -1};
 
     for (int i=0; i<valueArrayLength; i++) {
       if (display_values[i] != null) {
@@ -1138,6 +1142,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           }
           spatial_tuple = tuple;
           int tuple_index = real.getTupleIndex();
+          spatial_value_indices[tuple_index] = i;
           spatial_values[tuple_index] = display_values[i];
           len = Math.max(len, display_values[i].length);
           display_values[i] = null; // MEM_WLH 27 March 99
@@ -1147,9 +1152,11 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             tuple_indices[spatialDimension] = tuple_index;
             spatialDimension++; // # non-inherited spatial dimensions
           }
+/* WLH 8 May 99
           double[] map_range =
             ((ScalarMap) MapVector.elementAt(valueToMap[i])).getRange();
           ranges[tuple_index] = map_range[1] - map_range[0];
+*/
         }
       } // end if (display_values[i] != null)
     } // end for (int i=0; i<valueArrayLength; i++)
@@ -1304,13 +1311,14 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       } // end if (spatial_tuple == Display.DisplaySpatialCartesianTuple)
     }
 
-    // adjust Flow values for coordinate transform
     // first equalize lengths of flow*_values and spatial_values
+    boolean anyFlow = false;
     int[] flen = {0, 0};
     float[][][] ff_values = {flow1_values, flow2_values};
     for (int k=0; k<2; k++) {
       for (int i=0; i<3; i++) {
         if (ff_values[k][i] != null) {
+          anyFlow = true;
           flen[k] = Math.max(flen[k], ff_values[k][i].length);
         }
       }
@@ -1320,6 +1328,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     if (flen[0] > 0) fillOut(flow1_values, len);
     if (flen[1] > 0) fillOut(flow2_values, len);
 
+/* WLH 8 May 99
     // adjust flow for spatial setRange scaling
     double max_range = -1.0;
     for (int i=0; i<3; i++) {
@@ -1358,48 +1367,33 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             }
           }
         }
-      }
-    }
-/*
-    for (int k=0; k<2; k++) {
-      for (int i=0; i<3; i++) {
-        if (ff_values[k][i] != null) {
-          for (int j=0; j<ff_values[k][i].length; j++) {
-            ff_values[k][i][j] *= ranges[i];
-          }
-        }
-      }
-    }
+      } // end if (ff_values[k][0] != null || ...)
+    } // end for (int k=0; k<2; k++)
 */
 
-    if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+    // adjust Flow values for coordinate transform
+    if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+      if (anyFlow) {
+        renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
+                 spatial_value_indices, display_values, default_values);
+      }
+    }
+    else {
+    // if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
       // transform tuple_values to DisplaySpatialCartesianTuple
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
 
-/* WLH 6 May 99
-      // adjust Flow values for coordinate transform
-      // first equalize lengths of flow*_values and spatial_values
-      int[] flen = {0, 0};
-      float[][][] ff_values = {flow1_values, flow2_values};
-      for (int k=0; k<2; k++) {
-        for (int i=0; i<3; i++) {
-          if (ff_values[k][i] != null) {
-            flen[k] = Math.max(flen[k], ff_values[k][i].length);
-          }
-        }
+      if (anyFlow) {
+        renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
+                 spatial_value_indices, display_values, default_values);
       }
-      len = Math.max(len, Math.max(flen[0], flen[1]));
-      fillOut(spatial_values, len);
-      if (flen[0] > 0) fillOut(flow1_values, len);
-      if (flen[1] > 0) fillOut(flow2_values, len);
-*/
 
+/* WLH 8 May 99
 //
 // need to do transform for EarthVectorType
 //   adjust for longitude shortening with latitude
 //     transform vector_ends by linear tangent to earth transform?
 //
-
       // compute and transform 'end points' of flow vectors
       float[][][] vector_ends = new float[2][][];
       for (int k=0; k<2; k++) {
@@ -1421,11 +1415,13 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           vector_ends[k] = coord.toReference(vector_ends[k]);
         } // end if (flen[k] > 0)
       } // end for (int k=0; k<2; k++)
+*/
 
       // transform spatial_values
       float[][] new_spatial_values = coord.toReference(spatial_values);
       for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
 
+/* WLH 8 May 99
       // subtract transformed spatial_values from transformed flow vectors
       for (int k=0; k<2; k++) {
         if (flen[k] > 0) {
@@ -1438,6 +1434,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           }
         }
       }
+*/
       missing_checked = new boolean[] {false, false, false};
     } // end if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple))
 
@@ -1619,7 +1616,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 float[][] flow2_values, float[] flowScale,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
-                float[] default_values, boolean[][] range_select)
+                float[] default_values, boolean[][] range_select,
+                DataRenderer renderer)
          throws VisADException, RemoteException {
 
     int[] valueToMap = display.getValueToMap();
@@ -1630,6 +1628,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     DisplayTupleType[] flow_tuple =
       {Display.DisplayFlow1Tuple, Display.DisplayFlow2Tuple};
 
+    boolean anyFlow = false;
+    ScalarMap[][] maps = new ScalarMap[2][3];
+
     for (int i=0; i<valueArrayLength; i++) {
       if (display_values[i] != null) {
         int displayScalarIndex = valueToScalar[i];
@@ -1637,18 +1638,20 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         DisplayTupleType tuple = real.getTuple();
         for (int k=0; k<2; k++) {
           if (flow_tuple[k].equals(tuple)) {
-
-            FlowControl control = (FlowControl)
-              ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+            ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+            FlowControl control = (FlowControl) map.getControl();
             flowScale[k] = control.getFlowScale();
             int flow_index = real.getTupleIndex();
             ff_values[k][flow_index] = display_values[i];
             flen[k] = Math.max(flen[k], display_values[i].length);
             display_values[i] = null; // MEM_WLH 27 March 99
+            maps[k][flow_index] = map;
+            anyFlow = true;
           }
         }
       }
     }
+    if (anyFlow) renderer.setFlowDisplay(maps, flowScale);
 
     //
     // TO_DO
@@ -1715,7 +1718,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
   private static final float BACK_SCALE = -0.15f;
   private static final float PERP_SCALE = 0.15f;
 
-  public VisADGeometryArray[] makeFlow(float[][] flow_values,
+  public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
@@ -2411,7 +2414,7 @@ System.out.println("color_values: nummissing = " + nummissing);
     boolean[][] range_select = new boolean[1][];
     assembleFlow(flow1_values, flow2_values, flowScale,
                  display_values, valueArrayLength, valueToScalar,
-                 display, default_values, range_select);
+                 display, default_values, range_select, renderer);
  
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
@@ -2424,8 +2427,8 @@ System.out.println("color_values: nummissing = " + nummissing);
     assembleSpatial(spatial_values, display_values, valueArrayLength,
                     valueToScalar, display, default_values,
                     inherited_values, null, false, false,
-                    spatialDimensions, range_select,
-                    flow1_values, flow2_values, flowScale, swap);
+                    spatialDimensions, range_select, flow1_values,
+                    flow2_values, flowScale, swap, renderer);
 
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
@@ -2517,7 +2520,7 @@ System.out.println("color_values: nummissing = " + nummissing);
 
       boolean anyFlowCreated = false;
       // try Flow1
-      arrays = makeFlow(flow1_values, flowScale[0], spatial_values,
+      arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0], spatial_values,
                        color_values, range_select);
       if (arrays != null) {
         for (int i=0; i<arrays.length; i++) {
@@ -2537,7 +2540,7 @@ System.out.println("color_values: nummissing = " + nummissing);
         anyFlowCreated = true;
       }
       // try Flow2
-      arrays = makeFlow(flow2_values, flowScale[1], spatial_values,
+      arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1], spatial_values,
                        color_values, range_select);
       if (arrays != null) {
         for (int i=0; i<arrays.length; i++) {

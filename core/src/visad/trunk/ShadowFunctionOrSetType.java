@@ -830,6 +830,13 @@ for (int i=0; i < 4; i++) {
             ref, null, ref.getDefaultUnits(), null,
             (RealTupleType) Domain.getType(), dataCoordinateSystem,
             domain_units, null, domain_values);
+
+        if (anyFlow) {
+          renderer.setEarthSpatialData(Domain, domain_reference, ref,
+                      ref.getDefaultUnits(), (RealTupleType) Domain.getType(),
+                      new CoordinateSystem[] {dataCoordinateSystem},
+                      domain_units);
+        }
  
         //
         // TO_DO
@@ -852,6 +859,14 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
 */
         // FREE
         reference_values = null;
+      }
+      else {
+        if (anyFlow) {
+          renderer.setEarthSpatialData(Domain, null, null,
+                      null, (RealTupleType) Domain.getType(),
+                      new CoordinateSystem[] {dataCoordinateSystem},
+                      domain_units);
+        }
       }
       // FREE
       domain_values = null;
@@ -914,6 +929,14 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                   ref, null, ref.getDefaultUnits(), null,
                   (RealTupleType) componentWithRef[i].getType(),
                   range_coord_sys[0], range_units, null, values);
+
+              if (anyFlow) {
+                renderer.setEarthSpatialData(componentWithRef[i],
+                      component_reference, ref, ref.getDefaultUnits(),
+                      (RealTupleType) componentWithRef[i].getType(),
+                      range_coord_sys, range_units);
+              }
+
             }
             else {
               // MEM
@@ -928,6 +951,14 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                     range_coord_sys[j], range_units, null, temp);
                 for (int k=0; k<n; k++) reference_values[k][j] = temp[k][0];
               }
+
+              if (anyFlow) {
+                renderer.setEarthSpatialData(componentWithRef[i],
+                      component_reference, ref, ref.getDefaultUnits(),
+                      (RealTupleType) componentWithRef[i].getType(),
+                      range_coord_sys, range_units);
+              }
+
             }
    
             // map reference_values to appropriate DisplayRealType-s
@@ -944,6 +975,42 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
             values = null;
           } // end for (int i=0; i<refToComponent.length; i++)
         } // end (refToComponent != null)
+
+        // setEarthSpatialData calls when no CoordinateSystem
+        if (Range instanceof ShadowTupleType && anyFlow) {
+          if (Range instanceof ShadowRealTupleType) {
+            Unit[] range_units = ((Field) data).getDefaultRangeUnits();
+            CoordinateSystem[] range_coord_sys =
+              ((Field) data).getRangeCoordinateSystem();
+            renderer.setEarthSpatialData((ShadowRealTupleType) Range,
+                      null, null, null, (RealTupleType) Range.getType(),
+                      range_coord_sys, range_units);
+          }
+          else {
+            int start = 0;
+            int n = ((ShadowTupleType) Range).getDimension();
+            for (int i=0; i<n ;i++) {
+              ShadowType range_component =
+                ((ShadowTupleType) Range).getComponent(i);
+              if (range_component instanceof ShadowRealTupleType) {
+                Unit[] dummy_units = ((Field) data).getDefaultRangeUnits();
+                Unit[] range_units = new Unit[n];
+                for (int j=0; j<n; j++) range_units[j] = dummy_units[j + start];
+                CoordinateSystem[] range_coord_sys =
+                  ((Field) data).getRangeCoordinateSystem(i);
+                renderer.setEarthSpatialData((ShadowRealTupleType)
+                      range_component, null, null,
+                      null, (RealTupleType) range_component.getType(),
+                      range_coord_sys, range_units);
+                start += ((ShadowRealTupleType) range_component).getDimension();
+              }
+              else if (range_component instanceof ShadowRealType) {
+                start++;
+              }
+            }
+          }
+        }
+
         // FREE
         range_values = null;
       } // end if (range_values != null)
@@ -1071,7 +1138,7 @@ if (color_values != null) {
       // MEM
       assembleFlow(flow1_values, flow2_values, flowScale,
                    display_values, valueArrayLength, valueToScalar,
-                   display, default_values, range_select);
+                   display, default_values, range_select, renderer);
 /*
 if (range_select[0] != null) {
   int numforced = 0;
@@ -1108,7 +1175,7 @@ if (range_select[0] != null) {
                         valueToScalar, display, default_values,
                         inherited_values, domain_set, Domain.getAllSpatial(),
                         anyContour, spatialDimensions, spatial_range_select,
-                        flow1_values, flow2_values, flowScale, swap);
+                        flow1_values, flow2_values, flowScale, swap, renderer);
 
       // WLH 29 April 99
       boolean spatial_all_select = true;
@@ -1372,7 +1439,7 @@ if (range_select[0] != null) {
         boolean anyFlowCreated = false;
         if (anyFlow) {
           // try Flow1
-          arrays = shadow_api.makeFlow(flow1_values, flowScale[0],
+          arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
                             spatial_values, color_values, range_select);
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
@@ -1386,7 +1453,7 @@ if (range_select[0] != null) {
           anyFlowCreated = true;
 
           // try Flow2
-          arrays = shadow_api.makeFlow(flow2_values, flowScale[1],
+          arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
                             spatial_values, color_values, range_select);
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {

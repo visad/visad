@@ -156,6 +156,11 @@ public abstract class DataRenderer extends Object {
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
+
+    // initialize flow stuff
+    lat_index = -1;
+    lon_index = -1;
+
     any_changed = false;
     all_feasible = true;
     any_transform_control = false;
@@ -349,6 +354,422 @@ if (map.badRange()) {
   public boolean isLegalTextureMap() {
     return true;
   }
+
+  /* ********************** */
+  /*  flow rendering stuff  */
+  /* ********************** */
+
+  //
+  // this is incorrect
+  //
+  // lat_index, lon_index and the booleans should be determined
+  // in check_indices, to be set and unset correctly as doTransform
+  // traverses the ShadowType tree
+  //
+
+  // value array (display_values) indices
+  //   ((ScalarMap) MapVector.elementAt(valueToMap[index]))
+  // can get these indices through shadow_data_out or shadow_data_in
+
+
+  // true if lat and lon in data_in & shadow_data_in is allSpatial
+  // or if lat and lon in data_in & lat_lon_by_coord
+  boolean lat_lon_in = false;
+  // true if lat and lon in data_out & shadow_data_out is allSpatial
+  boolean lat_lon_out = false;
+  // true if lat_lon_in and shadow_data_out is allSpatial
+  // i.e., map from lat, lon to display is through data CoordinateSystem
+  boolean lat_lon_by_coord = false;
+
+  int lat_lon_dimension = -1;
+
+  ShadowRealTupleType shadow_data_out = null;
+  RealTupleType data_out = null;
+  Unit[] data_units_out = null;
+  // CoordinateSystem data_coord_out is always null
+
+  ShadowRealTupleType shadow_data_in = null;
+  RealTupleType data_in = null;
+  Unit[] data_units_in = null;
+  CoordinateSystem[] data_coord_in = null; // may be one per point
+
+  // spatial ScalarMaps for allSpatial shadow_data_out
+  ScalarMap[] sdo_maps = null;
+  // spatial ScalarMaps for allSpatial shadow_data_in
+  ScalarMap[] sdi_maps = null;
+  int[] sdo_spatial_index = null;
+  int[] sdi_spatial_index = null;
+
+  // indices of RealType.Latitude and RealType.Longitude
+  // if lat_lon_in then indices in data_in
+  // if lat_lon_out then indices in data_out
+  // if lat_lon_spatial then values indices
+  int lat_index = -1;
+  int lon_index = -1;
+  // non-negative if lat & lon in a RealTupleType of length 3
+  int other_index = -1;
+  // true if other_index Units convertable to meter
+  boolean other_meters = false;
+
+  public int getEarthDimension() {
+    return lat_lon_dimension;
+  }
+
+  public Unit[] getEarthUnits() {
+    if (lat_lon_in) {
+      return data_units_in;
+    }
+    else if (lat_lon_out) {
+      return data_units_out;
+    }
+    else if (lat_lon_spatial) {
+      return new Unit[] {RealType.Latitude.getDefaultUnit(),
+                         RealType.Longitude.getDefaultUnit()};
+    }
+    else {
+      return null;
+    }
+  }
+
+  /** convert (lat, lon) or (lat, lon, other) values to
+      display (x, y, z) */
+  public float[][] earthToSpatial(float[][] locs)
+         throws VisADException {
+    if (locs.length != lat_lon_dimension) return null;
+
+    int size = locs[0].length;
+
+    float[][] tuple_locs = new float[lat_lon_dimension][];
+    float[][] spatial_locs = new float[3][];
+    tuple_locs[lat_index] = locs[0];
+    tuple_locs[lon_index] = locs[1];
+    if (lat_lon_dimension == 3) tuple_locs[other_index] = locs[2];
+
+    if (lat_lon_in) {
+      if (lat_lon_by_coord) {
+        if (data_coord_in.length == 1) {
+          tuple_locs = CoordinateSystem.transformCoordinates(data_out, null,
+                           data_units_out, null, data_in, data_coord_in[0],
+                           data_units_in, null, tuple_locs);
+        }
+        else {
+          float[][] temp = new float[lat_lon_dimension][1];
+          for (int j=0; j<size; j++) {
+            for (int k=0; k<lat_lon_dimension; k++) temp[k][0] = tuple_locs[k][j];
+              temp = CoordinateSystem.transformCoordinates(data_out, null,
+                             data_units_out, null, data_in, data_coord_in[j],
+                             data_units_in, null, temp);
+            for (int k=0; k<lat_lon_dimension; k++) tuple_locs[k][j] = temp[k][0];
+          }
+        }
+        for (int i=0; i<lat_lon_dimension; i++) {
+          spatial_locs[sdo_spatial_index[i]] =
+            sdo_maps[i].scaleValues(tuple_locs[i]);
+        }
+      }
+      else {
+        for (int i=0; i<lat_lon_dimension; i++) {
+          spatial_locs[sdi_spatial_index[i]] =
+            sdi_maps[i].scaleValues(tuple_locs[i]);
+        }
+      }
+    }
+    else if (lat_lon_out) {
+      for (int i=0; i<lat_lon_dimension; i++) {
+        spatial_locs[sdo_spatial_index[i]] =
+          sdo_maps[i].scaleValues(tuple_locs[i]);
+      }
+    }
+    else if (lat_lon_spatial) {
+      spatial_locs[lat_spatial_index] = lat_map.scaleValues(tuple_locs[0]);
+      spatial_locs[lon_spatial_index] = lon_map.scaleValues(tuple_locs[1]);
+    }
+    else {
+      return null;
+    }
+    for (int i=0; i<3; i++) {
+      if (spatial_locs[i] == null) {
+        spatial_locs[i] = new float[size];
+        float def = default_spatial_in[i];
+        for (int j=0; j<size; j++) spatial_locs[i][j] = def;
+      }
+    }
+    if (display_coordinate_system != null) {
+      spatial_locs = display_coordinate_system.toReference(spatial_locs);
+    }
+    return spatial_locs;
+  }
+
+  /** convert display (x, y, z) to (lat, lon) or (lat, lon, other)
+      values */
+  public float[][] spatialToEarth(float[][] locs) {
+    return null;
+  }
+
+  // from doTransform
+  public void setEarthSpatialData(ShadowRealTupleType s_d_i,
+                    ShadowRealTupleType s_d_o, RealTupleType d_o,
+                    Unit[] d_u_o, RealTupleType d_i,
+                    CoordinateSystem[] d_c_i, Unit[] d_u_i)
+         throws VisADException {
+
+    // first check for VectorRealType components mapped to flow
+    // TO_DO:  check here for flow mapped via CoordinateSystem
+    if (d_o != null && d_o instanceof RealVectorType) {
+      ScalarMap[] maps = new ScalarMap[3];
+      int k = getFlowMaps(s_d_o, maps);
+      if (k > -1) rvts[k] = (RealVectorType) d_o;
+    }
+    if (d_i != null && d_i instanceof RealVectorType) {
+      ScalarMap[] maps = new ScalarMap[3];
+      int k = getFlowMaps(s_d_i, maps);
+      if (k > -1) rvts[k] = (RealVectorType) d_i;
+    }
+
+    if (lat_index > -1 && lon_index > -1) return;
+    lat_index = -1;
+    lon_index = -1;
+    other_index = -1;
+    int n = 0;
+    int m = 0;
+    if (d_i != null) {
+      n = d_i.getDimension();
+      for (int i=0; i<n; i++) {
+        RealType real = (RealType) d_i.getComponent(i);
+        if (RealType.Latitude.equals(real)) lat_index = i;
+        if (RealType.Longitude.equals(real)) lon_index = i;
+      }
+    }
+    if (lat_index > -1 && lon_index > -1 && (n == 2 || n == 3)) {
+      if (s_d_i.getAllSpatial()) {
+        lat_lon_by_coord = false;
+        sdi_spatial_index = new int[s_d_i.getDimension()];
+        sdi_maps = getSpatialMaps(s_d_i, sdi_spatial_index);
+        if (sdi_maps == null) {
+          throw new DisplayException("sdi_maps null");
+        }
+      }
+      else if (s_d_o.getAllSpatial()) {
+        lat_lon_by_coord = true;
+        sdo_spatial_index = new int[s_d_o.getDimension()];
+        sdo_maps = getSpatialMaps(s_d_o, sdo_spatial_index);
+        if (sdo_maps == null) {
+          throw new DisplayException("sdo_maps null A");
+        }
+      }
+      else {
+        lat_index = -1;
+        lon_index = -1;
+        return;
+      }
+      lat_lon_in = true;
+      lat_lon_out = false;
+      lat_lon_spatial = false;
+      lat_lon_dimension = n;
+      if (n == 3) {
+        other_index = 3 - (lat_index + lon_index);
+        if (Unit.canConvert(d_u_i[other_index], CommonUnit.meter)) {
+          other_meters = true;
+        }
+      }
+    }
+    else {
+      lat_index = -1;
+      lon_index = -1;
+      if (d_o != null) {
+        m = d_o.getDimension();
+        for (int i=0; i<m; i++) {
+          RealType real = (RealType) d_o.getComponent(i);
+          if (RealType.Latitude.equals(real)) lat_index = i;
+          if (RealType.Longitude.equals(real)) lon_index = i;
+        }
+      }
+      if (lat_index < 0 || lon_index < 0 || !s_d_o.getAllSpatial() ||
+          !(m == 2 || m == 3)) {
+        lat_index = -1;
+        lon_index = -1;
+        return;
+      }
+      sdo_spatial_index = new int[s_d_o.getDimension()];
+      sdo_maps = getSpatialMaps(s_d_o, sdo_spatial_index);
+      if (sdo_maps == null) {
+        throw new DisplayException("sdo_maps null B");
+      }
+      lat_lon_out = true;
+      lat_lon_by_coord = false;
+      lat_lon_in = false;
+      lat_lon_spatial = false;
+      lat_lon_dimension = m;
+      if (m == 3) {
+        other_index = 3 - (lat_index + lon_index);
+        if (Unit.canConvert(d_u_i[other_index], CommonUnit.meter)) {
+          other_meters = true;
+        }
+      }
+    }
+    shadow_data_out = s_d_o;
+    data_out = d_o;
+    data_units_out = d_u_o;
+    shadow_data_in = s_d_i;
+    data_in = d_i;
+    data_units_in = d_u_i;
+    data_coord_in = d_c_i; // may be one per point
+  }
+
+  /** return array of spatial ScalarMap for srt, or null */
+  private ScalarMap[] getSpatialMaps(ShadowRealTupleType srt,
+                                     int[] spatial_index) {
+    int n = srt.getDimension();
+    ScalarMap[] maps = new ScalarMap[n];
+    for (int i=0; i<n; i++) {
+      ShadowRealType real = (ShadowRealType) srt.getComponent(i);
+      Enumeration ms = real.getSelectedMapVector().elements();
+      while (ms.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) ms.nextElement();
+        DisplayRealType dreal = map.getDisplayScalar();
+        DisplayTupleType tuple = dreal.getTuple();
+        if (tuple != null &&
+            (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+             (tuple.getCoordinateSystem() != null &&
+              tuple.getCoordinateSystem().getReference().equals(
+                  Display.DisplaySpatialCartesianTuple)))) {
+          maps[i] = map;
+          spatial_index[i] = dreal.getTupleIndex();
+          break;
+        }
+      }
+      if (maps[i] == null) return null;
+    }
+    return maps;
+  }
+
+  /** return array of flow ScalarMap for srt, or null */
+  private int getFlowMaps(ShadowRealTupleType srt, ScalarMap[] maps) {
+    int n = srt.getDimension();
+    maps[0] = null;
+    maps[1] = null;
+    maps[2] = null;
+    DisplayTupleType ftuple = null;
+    for (int i=0; i<n; i++) {
+      ShadowRealType real = (ShadowRealType) srt.getComponent(i);
+      Enumeration ms = real.getSelectedMapVector().elements();
+      while (ms.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) ms.nextElement();
+        DisplayRealType dreal = map.getDisplayScalar();
+        DisplayTupleType tuple = dreal.getTuple();
+        if (Display.DisplayFlow1Tuple.equals(tuple) ||
+            Display.DisplayFlow2Tuple.equals(tuple)) {
+          if (ftuple != null && !ftuple.equals(tuple)) return -1;
+          ftuple = tuple;
+          maps[i] = map;
+          break;
+        }
+      }
+      if (maps[i] == null) return -1;
+    }
+    return Display.DisplayFlow1Tuple.equals(ftuple) ? 0 : 1;
+  }
+
+  // if non-null, float[][] new_spatial_values =
+  //   display_coordinate_system.toReference(spatial_values);
+  CoordinateSystem display_coordinate_system = null;
+  // spatial_tuple and spatial_value_indices are set whether
+  //   display_coordinate_system is null or not
+  DisplayTupleType spatial_tuple = null;
+  // map from spatial_tuple tuple_index to value array indices
+  int[] spatial_value_indices = {-1, -1, -1};
+
+  float[] default_spatial_in = {0.0f, 0.0f, 0.0f};
+
+  // true if lat and lon mapped directly to spatial
+  boolean lat_lon_spatial = false;
+  ScalarMap lat_map = null;
+  ScalarMap lon_map = null;
+  int lat_spatial_index = -1;
+  int lon_spatial_index = -1;
+
+//
+//
+// ****    ****    need to get default spatial values    ****    ****
+//
+//
+
+  // from assembleSpatial
+  public void setEarthSpatialDisplay(CoordinateSystem coord,
+           DisplayTupleType t, DisplayImpl display, int[] indices,
+           float[][] display_values, float[] default_values)
+         throws VisADException {
+    display_coordinate_system = coord;
+    spatial_tuple = t;
+    spatial_value_indices = indices;
+    for (int i=0; i<3; i++) {
+      int default_index = display.getDisplayScalarIndex(
+              ((DisplayRealType) t.getComponent(i)) );
+      default_spatial_in[i] = default_values[default_index];
+    }
+
+    if (lat_index > -1 && lon_index > -1) return;
+
+    lat_index = -1;
+    lon_index = -1;
+    other_index = -1;
+
+    int valueArrayLength = display.getValueArrayLength();
+    int[] valueToScalar = display.getValueToScalar();
+    int[] valueToMap = display.getValueToMap();
+    Vector MapVector = display.getMapVector();
+
+    for (int i=0; i<valueArrayLength; i++) {
+      if (display_values[i] != null) {
+        ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+        ScalarType real = map.getScalar();
+        DisplayRealType dreal = map.getDisplayScalar();
+        DisplayTupleType tuple = dreal.getTuple();
+        if (tuple != null &&
+            (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+             (tuple.getCoordinateSystem() != null &&
+              tuple.getCoordinateSystem().getReference().equals(
+                  Display.DisplaySpatialCartesianTuple)))) {
+          if (RealType.Latitude.equals(real)) {
+            lat_index = 0;
+            lat_map = map;
+            lat_spatial_index = dreal.getTupleIndex();
+          }
+          if (RealType.Longitude.equals(real)) {
+            lon_index = 1;
+            lon_map = map;
+            lon_spatial_index = dreal.getTupleIndex();
+          }
+        }
+      }
+    }
+    if (lat_index > -1 && lon_index > -1) {
+      lat_lon_spatial = true;
+      lat_lon_dimension = 2;
+      lat_lon_out = false;
+      lat_lon_by_coord = false;
+      lat_lon_in = false;
+    }
+    else {
+      lat_lon_spatial = false;
+      lat_index = -1;
+      lon_index = -1;
+    }
+  }
+
+  // from doTransform
+  RealVectorType[] rvts = {null, null};
+
+  // from assembleFlow
+  ScalarMap[][] flow_maps = null;
+  float[] flow_scale = null;
+
+  public void setFlowDisplay(ScalarMap[][] maps, float[] fs) {
+    flow_maps = maps;
+    flow_scale = fs;
+  }
+
+
 
   /* *************************** */
   /*  direct manipulation stuff  */

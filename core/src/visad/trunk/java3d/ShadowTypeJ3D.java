@@ -258,13 +258,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                 Set domain_set, boolean allSpatial, boolean set_for_shape,
                 int[] spatialDimensions, boolean[][] range_select,
                 float[][] flow1_values, float[][] flow2_values,
-                float[] flowScale, boolean[] swap)
+                float[] flowScale, boolean[] swap, DataRenderer renderer)
          throws VisADException, RemoteException {
     return ShadowType.assembleSpatial(spatial_values, display_values,
            valueArrayLength, valueToScalar, display, default_values,
            inherited_values, domain_set, allSpatial, set_for_shape,
            spatialDimensions, range_select, flow1_values, flow2_values,
-           flowScale, swap);
+           flowScale, swap, renderer);
   }
 
   /** assemble Flow components;
@@ -273,19 +273,20 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                 float[][] flow2_values, float[] flowScale,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
-                float[] default_values, boolean[][] range_select)
+                float[] default_values, boolean[][] range_select,
+                DataRenderer renderer)
          throws VisADException, RemoteException {
     ShadowType.assembleFlow(flow1_values, flow2_values, flowScale,
                       display_values, valueArrayLength, valueToScalar,
-                      display, default_values, range_select);
+                      display, default_values, range_select, renderer);
   }
 
-  public VisADGeometryArray[] makeFlow(float[][] flow_values,
+  public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
-    return adaptedShadowType.makeFlow(flow_values, flowScale, spatial_values,
-           color_values, range_select);
+    return adaptedShadowType.makeFlow(which, flow_values, flowScale,
+           spatial_values, color_values, range_select);
   }
 
   public static VisADGeometryArray makeText(String[] text_values,

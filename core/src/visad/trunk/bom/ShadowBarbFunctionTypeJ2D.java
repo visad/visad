@@ -43,12 +43,13 @@ public class ShadowBarbFunctionTypeJ2D extends ShadowFunctionTypeJ2D {
     super(t, link, parent);
   }
 
-  public VisADGeometryArray[] makeFlow(float[][] flow_values,
+  public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
-    return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
-               flowScale, spatial_values, color_values, range_select, null);
+    return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which,
+               flow_values, flowScale, spatial_values, color_values,
+               range_select, null);
   }
 
 }
