@@ -91,6 +91,7 @@ public class CollectiveBarbManipulation extends Object
 
   private boolean barbs;
   private boolean force_station;
+  private boolean knots;
 
   private ConstantMap[] cmaps;
 
@@ -158,11 +159,15 @@ public class CollectiveBarbManipulation extends Object
 
      fs is true to indicate that d2 should switch to whatever
      station is being manipulated
+
+     kts is false to indicate no m/s to knots conversion in
+     wind barb renderers
   */
   public CollectiveBarbManipulation(FieldImpl wf,
                  DisplayImplJ3D d1, DisplayImplJ3D d2, ConstantMap[] cms,
                  boolean abs, float id, float od, float it, float ot,
-                 int sta, boolean need_monitor, boolean brbs, boolean fs)
+                 int sta, boolean need_monitor, boolean brbs, boolean fs,
+                 boolean kts)
          throws VisADException, RemoteException {
     wind_field = wf;
     display1 = d1;
@@ -176,6 +181,7 @@ public class CollectiveBarbManipulation extends Object
     curve_ref = null;
     barbs = brbs;
     force_station = fs;
+    knots = kts;
 
     station = sta;
 
@@ -454,6 +460,7 @@ public class CollectiveBarbManipulation extends Object
       else {
         barb_renderer = new SwellRendererJ3D();
       }
+      ((BarbRenderer) barb_renderer).setKnotsConvert(knots);
       display1.addReferences(barb_renderer, stations_ref, constantMaps());
       which_time = -1;
       station_refs = new DataReferenceImpl[nindex];
@@ -469,6 +476,7 @@ public class CollectiveBarbManipulation extends Object
         else {
           barb_manipulation_renderers[i] = new SwellManipulationRendererJ3D();
         }
+        ((BarbRenderer) barb_manipulation_renderers[i]).setKnotsConvert(knots);
         display1.addReferences(barb_manipulation_renderers[i], station_refs[i],
                                constantMaps());
         barb_monitors[i] = new BarbMonitor(station_refs[i], i);
@@ -603,6 +611,7 @@ public class CollectiveBarbManipulation extends Object
               barb_manipulation_renderers2[i] = new SwellManipulationRendererJ3D();
             }
           }
+          ((BarbRenderer) barb_manipulation_renderers2[i]).setKnotsConvert(knots);
           display2.addReferences(barb_manipulation_renderers2[i], time_refs[i],
                                  constantMaps());
           barb_monitors2[i] = new BarbMonitor2(time_refs[i], i);
@@ -646,6 +655,7 @@ public class CollectiveBarbManipulation extends Object
         else {
           barb_renderer = new SwellRendererJ3D();
         }
+        ((BarbRenderer) barb_renderer).setKnotsConvert(knots);
         display1.addReferences(barb_renderer, stations_ref, constantMaps());
       }
       if (display2 != null && time_refs != null) {
@@ -1091,7 +1101,7 @@ public class CollectiveBarbManipulation extends Object
     final CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
                                      0.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     0, false, (args.length == 0), true);
+                                     0, false, (args.length == 0), true, false);
 
     // construct invisible starter set
     Gridded2DSet set1 =
