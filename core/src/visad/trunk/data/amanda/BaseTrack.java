@@ -375,24 +375,28 @@ public abstract class BaseTrack
     Gridded3DSet[] sets = new Gridded3DSet[timeSteps.length];
     Gridded3DSet missingSet = null;
 
-    final float timeOrigin, xOrigin, yOrigin, zOrigin;
+    final float timeOrigin, timeFinal;
     if (timeSteps.length == 0) {
-      timeOrigin = time;
-      xOrigin = xstart;
-      yOrigin = ystart;
-      zOrigin = zstart;
+      timeOrigin = timeFinal = time;
       samples = null;
     } else {
       timeOrigin = timeSteps[0];
-
-      final double length = (timeOrigin - time) * SPEED_OF_LIGHT;
-
-      xOrigin = xstart + (float )(length * sinZenith * cosAzimuth);
-      yOrigin = ystart + (float )(length * sinZenith * sinAzimuth);
-      zOrigin = zstart + (float )(length * cosZenith);
-
+      timeFinal = timeSteps[timeSteps.length - 1];
       samples = new float[timeSteps.length + 1][3];
+    }
 
+    final double baseLength = (timeFinal - timeOrigin) * SPEED_OF_LIGHT;
+
+    final float xBaseDelta = (float )(baseLength * sinZenith * cosAzimuth);
+    final float yBaseDelta = (float )(baseLength * sinZenith * sinAzimuth);
+    final float zBaseDelta = (float )(baseLength * cosZenith);
+
+    final float xOrigin, yOrigin, zOrigin;
+    xOrigin = xstart + xBaseDelta;
+    yOrigin = ystart + yBaseDelta;
+    zOrigin = zstart + zBaseDelta;
+
+    if (samples != null) {
       samples[0][X_SAMPLE] = xOrigin;
       samples[0][Y_SAMPLE] = yOrigin;
       samples[0][Z_SAMPLE] = zOrigin;
@@ -402,14 +406,14 @@ public abstract class BaseTrack
 
       final double length = (timeSteps[i] - timeOrigin) * SPEED_OF_LIGHT;
 
-      float xDelta = (float )(length * sinZenith * cosAzimuth);
-      float yDelta = (float )(length * sinZenith * sinAzimuth);
-      float zDelta = (float )(length * cosZenith);
+      final float xDelta = (float )(length * sinZenith * cosAzimuth);
+      final float yDelta = (float )(length * sinZenith * sinAzimuth);
+      final float zDelta = (float )(length * cosZenith);
 
       float[][] locs = {
-        { xOrigin, xOrigin + xDelta },
-        { yOrigin, yOrigin + yDelta },
-        { zOrigin, zOrigin + zDelta },
+        { xOrigin, xOrigin - xDelta },
+        { yOrigin, yOrigin - yDelta },
+        { zOrigin, zOrigin - zDelta },
       };
 
       Gridded3DSet subSet;
