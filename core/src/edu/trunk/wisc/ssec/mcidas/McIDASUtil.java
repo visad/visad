@@ -158,8 +158,32 @@ public final class McIDASUtil
         int secs = ((int) Math.round(seconds * 1000))/1000;
         cal.set(Calendar.SECOND, secs);
         cal.set(Calendar.MILLISECOND, 0);
-        //System.out.println("Date = " + cal.getTime());
         return cal.getTime().getTime()/1000;
+    }
+
+    /**
+     * Convert seconds since the epoch (January 1, 1970, 00:00GMT) to
+     * day (yyyyddd) and time (hhmmss).  Java version of 
+     * 'mcsecstodaytime' except it returns an int array instead of pointers 
+     *
+     * @param    secs    seconds since the epoch
+     *
+     * @return  int[2] array with day (yyyyddd) as first element  and
+     *          time (hhmmss - packed integer) as second element.
+     */
+    public static int[] mcSecsToDayTime(long secs)
+    {
+        int[] retvals = new int[2];
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.clear();
+        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+        cal.setTime(new Date(secs*1000));
+        retvals[0] = (cal.get(cal.YEAR)*1000) + cal.get(cal.DAY_OF_YEAR);
+        retvals[1] = 
+            (cal.get(cal.HOUR_OF_DAY)*10000) + 
+            (cal.get(cal.MINUTE)*100) +
+            cal.get(cal.SECOND);
+        return retvals;
     }
 
     /**
