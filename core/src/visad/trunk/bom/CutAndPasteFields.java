@@ -68,6 +68,9 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
   private Field grids = null;
   private DisplayImpl display = null;
+  private int blend = 0;
+
+  private Object lock = new Object();
 
   private RealType t = null; // non-null if animation
   private RealType x = null;
@@ -119,17 +122,25 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
   private CutAndPasteFields thiscp = null;
 
+  public CutAndPasteFields(Field gs, DisplayImplJ3D d)
+         throws VisADException, RemoteException {
+    this(gs, d, 0);
+  }
+
   /**
      gs has MathType (t -> ((x, y) -> v)) or ((x, y) -> v)
-     conditions:
+     conditions on gs and display:
      1. x and y mapped to XAxis, YAxis, ZAxis
      2. (x, y) domain LinearSet
      3. if (t -> ...), then t is mapped to Animation
+     b is width of blend region
   */
-  public CutAndPasteFields(Field gs, DisplayImplJ3D d)
+  public CutAndPasteFields(Field gs, DisplayImplJ3D d, int b)
          throws VisADException, RemoteException {
     grids = gs;
     display = d;
+    if (b >= 0) blend = b;
+
     thiscp = this;
 
     FunctionType gstype = (FunctionType) gs.getType();
@@ -262,64 +273,76 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
     cell_xlyl = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        RealTuple rt = (RealTuple) ref_xlyl.getData();
-        double xl = ((Real) rt.getComponent(0)).getValue();
-        double yl = ((Real) rt.getComponent(1)).getValue();
-        if (!Util.isApproximatelyEqual(xl, xlow) ||
-            !Util.isApproximatelyEqual(yl, ylow)) {
-          xhi += (xl - xlow);
-          yhi += (yl - ylow);
-          xlow = xl;
-          ylow = yl;
-          drag();
+        synchronized (lock) {
+          RealTuple rt = (RealTuple) ref_xlyl.getData();
+          if (rt == null) return;
+          double xl = ((Real) rt.getComponent(0)).getValue();
+          double yl = ((Real) rt.getComponent(1)).getValue();
+          if (!Util.isApproximatelyEqual(xl, xlow) ||
+              !Util.isApproximatelyEqual(yl, ylow)) {
+            xhi += (xl - xlow);
+            yhi += (yl - ylow);
+            xlow = xl;
+            ylow = yl;
+            drag();
+          }
         }
       }
     };
 
     cell_xlyh = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        RealTuple rt = (RealTuple) ref_xlyh.getData();
-        double xl = ((Real) rt.getComponent(0)).getValue();
-        double yh = ((Real) rt.getComponent(1)).getValue();
-        if (!Util.isApproximatelyEqual(xl, xlow) ||
-            !Util.isApproximatelyEqual(yh, yhi)) {
-          xhi += (xl - xlow);
-          ylow += (yh - yhi);
-          xlow = xl;
-          yhi = yh;
-          drag();
+        synchronized (lock) {
+          RealTuple rt = (RealTuple) ref_xlyh.getData();
+          if (rt == null) return;
+          double xl = ((Real) rt.getComponent(0)).getValue();
+          double yh = ((Real) rt.getComponent(1)).getValue();
+          if (!Util.isApproximatelyEqual(xl, xlow) ||
+              !Util.isApproximatelyEqual(yh, yhi)) {
+            xhi += (xl - xlow);
+            ylow += (yh - yhi);
+            xlow = xl;
+            yhi = yh;
+            drag();
+          }
         }
       }
     };
 
     cell_xhyl = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        RealTuple rt = (RealTuple) ref_xhyl.getData();
-        double xh = ((Real) rt.getComponent(0)).getValue();
-        double yl = ((Real) rt.getComponent(1)).getValue();
-        if (!Util.isApproximatelyEqual(xh, xhi) ||
-            !Util.isApproximatelyEqual(yl, ylow)) {
-          xlow += (xh - xhi);
-          yhi += (yl - ylow);
-          xhi = xh;
-          ylow = yl;
-          drag();
+        synchronized (lock) {
+          RealTuple rt = (RealTuple) ref_xhyl.getData();
+          if (rt == null) return;
+          double xh = ((Real) rt.getComponent(0)).getValue();
+          double yl = ((Real) rt.getComponent(1)).getValue();
+          if (!Util.isApproximatelyEqual(xh, xhi) ||
+              !Util.isApproximatelyEqual(yl, ylow)) {
+            xlow += (xh - xhi);
+            yhi += (yl - ylow);
+            xhi = xh;
+            ylow = yl;
+            drag();
+          }
         }
       }
     };
 
     cell_xhyh = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        RealTuple rt = (RealTuple) ref_xhyh.getData();
-        double xh = ((Real) rt.getComponent(0)).getValue();
-        double yh = ((Real) rt.getComponent(1)).getValue();
-        if (!Util.isApproximatelyEqual(xh, xhi) ||
-            !Util.isApproximatelyEqual(yh, yhi)) {
-          xlow += (xh - xhi);
-          ylow += (yh - yhi);
-          xhi = xh;
-          yhi = yh;
-          drag();
+        synchronized (lock) {
+          RealTuple rt = (RealTuple) ref_xhyh.getData();
+          if (rt == null) return;
+          double xh = ((Real) rt.getComponent(0)).getValue();
+          double yh = ((Real) rt.getComponent(1)).getValue();
+          if (!Util.isApproximatelyEqual(xh, xhi) ||
+              !Util.isApproximatelyEqual(yh, yhi)) {
+            xlow += (xh - xhi);
+            ylow += (yh - yhi);
+            xhi = xh;
+            yhi = yh;
+            drag();
+          }
         }
       }
     };
@@ -327,51 +350,57 @@ public class CutAndPasteFields extends Object implements ActionListener {
     // rubber band box release
     cell_rbb = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        Set set = (Set) ref_rbb.getData();
-        if (set == null) return;
-        float[][] samples = set.getSamples();
-        if (samples == null) return;
-
-        xlow = samples[0][0];
-        ylow = samples[1][0];
-        xhi = samples[0][1];
-        yhi = samples[1][1];
-
-        if (xlow > xhi) {
-          double t = xlow;
-          xlow = xhi;
-          xhi = t;
+        synchronized (lock) {
+          Set set = (Set) ref_rbb.getData();
+          if (set == null) return;
+          float[][] samples = set.getSamples();
+          if (samples == null) return;
+  
+          xlow = samples[0][0];
+          ylow = samples[1][0];
+          xhi = samples[0][1];
+          yhi = samples[1][1];
+  
+          if (xlow > xhi) {
+            double t = xlow;
+            xlow = xhi;
+            xhi = t;
+          }
+          if (ylow > yhi) {
+            double t = ylow;
+            ylow = yhi;
+            yhi = t;
+          }
+  
+          if (!getIndices(true)) {
+            System.out.println("bad box");
+            return;
+          }
+          getRect();
+          replacedff = null;
+   
+          cell_rbb.removeReference(ref_rbb);
+          drag();
+          cell_xlyl.addReference(ref_xlyl);
+          cell_xlyh.addReference(ref_xlyh);
+          cell_xhyl.addReference(ref_xhyl);
+          cell_xhyh.addReference(ref_xhyh);
+  
+          display.disableAction();
+          xlylr.toggle(true);
+          xlyhr.toggle(true);
+          xhylr.toggle(true);
+          xhyhr.toggle(true);
+          rectr.toggle(true);
+          rbbr.toggle(false);
+          display.enableAction();
         }
-        if (ylow > yhi) {
-          double t = ylow;
-          ylow = yhi;
-          yhi = t;
-        }
-
-        if (!getIndices(true)) {
-          System.out.println("bad box");
-          return;
-        }
-        getRect();
-        replacedff = null;
- 
-        cell_rbb.removeReference(ref_rbb);
-        drag();
-        cell_xlyl.addReference(ref_xlyl);
-        cell_xlyh.addReference(ref_xlyh);
-        cell_xhyl.addReference(ref_xhyl);
-        cell_xhyh.addReference(ref_xhyh);
-
-        display.disableAction();
-        xlylr.toggle(true);
-        xlyhr.toggle(true);
-        xhylr.toggle(true);
-        xhyhr.toggle(true);
-        rectr.toggle(true);
-        rbbr.toggle(false);
-        display.enableAction();
       }
     };
+  }
+
+  public void setBlend(int b) {
+    if (b >= 0) blend = b;
   }
 
   private boolean getIndices(boolean rubber) throws VisADException {
@@ -491,7 +520,25 @@ public class CutAndPasteFields extends Object implements ActionListener {
         int i = ix + nx * iy;
         int j = (ix - ixlow) + rx * (iy - iylow);
         for (int k=0; k<rangedim; k++) replaced[k][j] = samples[k][i];
-        for (int k=0; k<rangedim; k++) samples[k][i] = cut[k][j];
+        if (blend == 0) {
+          for (int k=0; k<rangedim; k++) samples[k][i] = cut[k][j];
+        }
+        else {
+          int d = ix - ixlow;
+          if ((ixhi - ix) < d) d = ixhi - ix;
+          if ((iy - iylow) < d) d = iy - iylow;
+          if ((iyhi - iy) < d) d = iyhi - iy;
+          if (d > blend) {
+            for (int k=0; k<rangedim; k++) samples[k][i] = cut[k][j];
+          }
+          else {
+            float a = ((float) d) / ((float) blend);
+            float b = 1.0f - a;
+            for (int k=0; k<rangedim; k++) {
+              samples[k][i] = b * samples[k][i] + a * cut[k][j];
+            }
+          }
+        }
       }
     }
     ff.setSamples(samples, false);
@@ -511,10 +558,12 @@ public class CutAndPasteFields extends Object implements ActionListener {
   }
 
   public void start() throws VisADException, RemoteException {
-    cell_rbb.addReference(ref_rbb);
-    Gridded2DSet dummy_set = new Gridded2DSet(xy, null, 1);
-    ref_rbb.setData(dummy_set);
-    rbbr.toggle(true);
+    synchronized (lock) {
+      cell_rbb.addReference(ref_rbb);
+      Gridded2DSet dummy_set = new Gridded2DSet(xy, null, 1);
+      ref_rbb.setData(dummy_set);
+      rbbr.toggle(true);
+    }
   }
 
   private void drag() throws VisADException, RemoteException {
@@ -532,42 +581,46 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
   // BoxDragRendererJ3D button release
   public void drag_release() {
-    try {
-      replaceRect();
-    }
-    catch (VisADException e) {
-      if (debug) System.out.println("release fail: " + e.toString());
-    }
-    catch (RemoteException e) {
-      if (debug) System.out.println("release fail: " + e.toString());
+    synchronized (lock) {
+      try {
+        replaceRect();
+      }
+      catch (VisADException e) {
+        if (debug) System.out.println("release fail: " + e.toString());
+      }
+      catch (RemoteException e) {
+        if (debug) System.out.println("release fail: " + e.toString());
+      }
     }
   }
 
   public void stop() throws VisADException, RemoteException {
-    display.disableAction();
-    rbbr.toggle(false);
-    xlylr.toggle(false);
-    xlyhr.toggle(false);
-    xhylr.toggle(false);
-    xhyhr.toggle(false);
-    rectr.toggle(false);
-    ref_xlyl.setData(null);
-    ref_xlyh.setData(null);
-    ref_xhyl.setData(null);
-    ref_xhyh.setData(null);
-    ref_rect.setData(null);
-    display.enableAction();
-
-    try { cell_rbb.removeReference(ref_rbb); }
-    catch (ReferenceException e) { }
-    try { cell_xlyl.removeReference(ref_xlyl); }
-    catch (ReferenceException e) { }
-    try { cell_xlyh.removeReference(ref_xlyh); }
-    catch (ReferenceException e) { }
-    try { cell_xhyl.removeReference(ref_xhyl); }
-    catch (ReferenceException e) { }
-    try { cell_xhyh.removeReference(ref_xhyh); }
-    catch (ReferenceException e) { }
+    synchronized (lock) {
+      display.disableAction();
+      rbbr.toggle(false);
+      xlylr.toggle(false);
+      xlyhr.toggle(false);
+      xhylr.toggle(false);
+      xhyhr.toggle(false);
+      rectr.toggle(false);
+      ref_xlyl.setData(null);
+      ref_xlyh.setData(null);
+      ref_xhyl.setData(null);
+      ref_xhyh.setData(null);
+      ref_rect.setData(null);
+      display.enableAction();
+  
+      try { cell_rbb.removeReference(ref_rbb); }
+      catch (ReferenceException e) { }
+      try { cell_xlyl.removeReference(ref_xlyl); }
+      catch (ReferenceException e) { }
+      try { cell_xlyh.removeReference(ref_xlyh); }
+      catch (ReferenceException e) { }
+      try { cell_xhyl.removeReference(ref_xhyl); }
+      catch (ReferenceException e) { }
+      try { cell_xhyh.removeReference(ref_xhyh); }
+      catch (ReferenceException e) { }
+    }
   }
 
 
@@ -576,6 +629,16 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
   public static void main(String args[])
          throws VisADException, RemoteException {
+
+    int blend = 0;
+    if (args.length > 0) {
+      try {
+        blend = Integer.parseInt(args[0]);
+      }
+      catch(NumberFormatException e) {
+      }
+    }
+    if (blend < 0) blend = 0;
 
     // construct RealTypes for wind record components
     RealType x = new RealType("x");
@@ -660,7 +723,18 @@ public class CutAndPasteFields extends Object implements ActionListener {
     seq_ref.setData(field);
     display1.addReference(seq_ref);
 
-    CutAndPasteFields cp = new CutAndPasteFields(field, display1);
+    final CutAndPasteFields cp = new CutAndPasteFields(field, display1, blend);
+
+    final DataReferenceImpl blend_ref = new DataReferenceImpl("blend_ref");
+    VisADSlider blend_slider =
+      new VisADSlider("blend", 0, 10, 0, 1.0, blend_ref, RealType.Generic);
+    CellImpl blend_cell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        int blend = (int) ((Real) blend_ref.getData()).getValue();
+        cp.setBlend(blend);
+      }
+    };
+    blend_cell.addReference(blend_ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test CollectiveBarbManipulation");
@@ -696,6 +770,8 @@ public class CutAndPasteFields extends Object implements ActionListener {
     LabeledColorWidget lcw = new LabeledColorWidget(cmap);
     lcw.setMaximumSize(new Dimension(400, 200));
     panel2.add(lcw);
+    panel2.add(new JLabel(" "));
+    panel2.add(blend_slider);
     panel2.add(new JLabel(" "));
     panel2.add(panel3);
     panel2.setMaximumSize(new Dimension(400, 600));
