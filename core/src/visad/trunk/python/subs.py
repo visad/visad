@@ -962,7 +962,10 @@ class myFrame:
     self.desty(event)
 
   def desty(self, event):
-    self.display.destroy()
+    try:
+      self.display.destroy()
+    except:
+      pass
     self.frame.dispose()
 
   def __init__(self, display, width, height, title, 
