@@ -192,7 +192,8 @@ public class VisADSlider extends JPanel implements ChangeListener,
                                  "to a Display");
       }
       sRef = null;
-      sName = st.getName();
+      // sName = st.getName();
+      sName = smap.getScalarName();
       start = (float) control.getValue();
 
       if (min == min && max == max && start == start) {

@@ -108,7 +108,7 @@ public class ContourWidget
       throw new DisplayException("ContourWidget: ScalarMap must " +
                                  "be to Display.IsoContour");
     }
-    name = smap.getScalar().getName();
+    name = smap.getScalarName();
 
     // get control settings
     control = (ContourControl) smap.getControl();

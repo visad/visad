@@ -84,7 +84,7 @@ public class RangeWidget extends JPanel implements ActionListener,
 
     // lay out GUI
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(new JLabel("Range of " + map.getScalar().getName() + " mapped to " +
+    add(new JLabel("Range of " + map.getScalarName() + " mapped to " +
                    map.getDisplayScalar().getName().substring(7)));
     add(p);
 

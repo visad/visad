@@ -208,7 +208,7 @@ public class ColorMapWidget
                         boolean immediate)
     throws VisADException, RemoteException
   {
-    super(smap.getScalar().getName(), smap.getControl(),
+    super(smap.getScalarName(), smap.getControl(),
           (float )smap.getRange()[0], (float )smap.getRange()[1] + 1.0f);
 
     // make sure we're using a valid scalarmap

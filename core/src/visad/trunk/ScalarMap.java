@@ -76,6 +76,8 @@ public class ScalarMap extends Object
   /** set by setTicks if OldTick < NewTick; cleared by resetTicks */
   private boolean tickFlag;
 
+  private String scalarName = null;
+
   /** location of axis scale if DisplayScalar is XAxis, YAxis or ZAxis */
   private int axis = -1;
   private int axis_ordinal = -1;
@@ -129,6 +131,11 @@ public class ScalarMap extends Object
     OldTick = Long.MIN_VALUE;
     NewTick = Long.MIN_VALUE + 1;
     tickFlag = false;
+    if (Scalar != null) scalarName = Scalar.getName();
+  }
+
+  public String getScalarName() {
+    return scalarName;
   }
 
   /** invoke incTick on every application call to setRange */
@@ -571,6 +578,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
 
   public void setUnderscoreToBlank(boolean u2b) {
     underscore_to_blank = u2b;
+    if (Scalar != null) {
+      scalarName = Scalar.getName();
+      if (underscore_to_blank) {
+        scalarName = scalarName.replace('_', ' ');
+      }
+    }
   }
 
   private static final double SCALE = 0.06;
@@ -693,11 +706,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
 
     // draw RealType name
-    String label_name = Scalar.getName();
-    if (underscore_to_blank) {
-      label_name = label_name.replace('_', ' ');
-    }
-    arrays[1] = PlotText.render_label(label_name, startlabel,
+    arrays[1] = PlotText.render_label(scalarName, startlabel,
                                       base, up, true);
 /* WLH 26 July 99
     // draw number at bottom tick mark

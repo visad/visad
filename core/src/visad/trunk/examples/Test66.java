@@ -87,14 +87,22 @@ public class Test66
     dpy.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpy.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
 
-    dpy.addMap(new ScalarMap(visRadiance, Display.ZAxis));
+    ScalarMap vz = new ScalarMap(visRadiance, Display.ZAxis);
+    dpy.addMap(vz);
+    vz.setUnderscoreToBlank(true);
 
     dpy.addMap(new ConstantMap(0.5, Display.Red));
     dpy.addMap(new ScalarMap(visRadiance, Display.Green));
     dpy.addMap(new ConstantMap(0.5, Display.Blue));
 
-    dpy.addMap(new ScalarMap(irRadiance, Display.SelectRange));
-    dpy.addMap(new ScalarMap(irRadiance, Display.RGBA));
+    ScalarMap isr = new ScalarMap(irRadiance, Display.SelectRange);
+    dpy.addMap(isr);
+    isr.setUnderscoreToBlank(true);
+    ScalarMap irgb = new ScalarMap(irRadiance, Display.RGBA);
+    dpy.addMap(irgb);
+    irgb.setUnderscoreToBlank(true);
+
+    dpy.getGraphicsModeControl().setScaleEnable(true);
   }
 
   private void setupDisplayOne(LocalDisplay dpy,
@@ -108,8 +116,12 @@ public class Test66
     dpy.addMap(new ScalarMap(irRadiance, Display.Green));
     dpy.addMap(new ConstantMap(0.5, Display.Blue));
 
-    dpy.addMap(new ScalarMap(visRadiance, Display.IsoContour));
-    dpy.addMap(new ScalarMap(irRadiance, Display.RGB));
+    ScalarMap vic = new ScalarMap(visRadiance, Display.IsoContour);
+    dpy.addMap(vic);
+    vic.setUnderscoreToBlank(true);
+    ScalarMap irgb = new ScalarMap(irRadiance, Display.RGB);
+    dpy.addMap(irgb);
+    irgb.setUnderscoreToBlank(true);
 
     dpy.getGraphicsModeControl().setScaleEnable(true);
   }
@@ -138,8 +150,8 @@ public class Test66
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType visRadiance = new RealType("visRadiance", null, null);
-    RealType irRadiance = new RealType("irRadiance", null, null);
+    RealType visRadiance = new RealType("vis_radiance", null, null);
+    RealType irRadiance = new RealType("ir_radiance", null, null);
 
     setupDisplayZero(dpys[0], visRadiance, irRadiance);
     setupDisplayOne(dpys[1], visRadiance, irRadiance);

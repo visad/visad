@@ -117,7 +117,7 @@ public class RangeSlider extends JComponent implements MouseListener,
   static String nameOf(ScalarMap smap) {
     String n = "value = ";
     try {
-      n = smap.getScalar().getName() + " = ";
+      n = smap.getScalarName() + " = ";
     }
     catch (Exception exc) { }
     return n;
