@@ -674,7 +674,7 @@ public class AddeURLConnection extends URLConnection
       String testString, tempString;
       String groupString = null;
       String descrString = "all";
-      String sizeString = " 900000 ";
+      String sizeString = " 999990 ";
       String traceString = "trace=0";
       String numString = "num=1";
 
