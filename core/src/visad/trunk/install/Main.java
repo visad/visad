@@ -12,7 +12,6 @@ import javax.swing.JWindow;
 
 import visad.util.CmdlineGenericConsumer;
 import visad.util.CmdlineParser;
-import visad.install.Path;
 
 public class Main
   extends CmdlineGenericConsumer
@@ -107,6 +106,69 @@ public class Main
     }
 
     return 0;
+  }
+
+  /**
+   * Ugly hack to make JVM binaries executable.
+   */
+  private final void makeJVMBinariesExecutable()
+  {
+    // find all instances of 'chmod'
+    ArrayList chmodList = path.find("chmod");
+    if (chmodList == null || chmodList.size() == 0) {
+      // if no 'chmod' found, we're done
+      return;
+    }
+
+    // only care about one of them, so arbitrarily grab the first one
+    File chmod = (File )chmodList.get(0);
+
+    // get a handle for the JVM executable directory
+    File jvmBin = new File(javaInstallDir, "bin");
+    if (!jvmBin.exists()) {
+      // if JVM binary directory doesn't exist, we're done
+      return;
+    }
+
+    // get the list of JVM executables
+    String[] binFiles = jvmBin.list();
+    if (binFiles == null || binFiles.length == 0) {
+      // if JVM binary directory is empty, we're done
+      return;
+    }
+
+    // create an array holding the command to be executed
+    String[] cmd = new String[2 + binFiles.length];
+    cmd[0] = chmod.toString();
+    cmd[1] = "555";
+
+    // preload the directory path into the stringbuffer
+    StringBuffer buf = new StringBuffer(jvmBin.toString());
+    buf.append('/');
+
+    // remember the buffer length
+    final int len = buf.length();
+
+    // add all executables to the command list
+    for (int i = 0; i < binFiles.length; i++) {
+      buf.setLength(len);
+      buf.append(binFiles[i]);
+
+      cmd[i+2] = buf.toString();
+    }
+
+    Process p;
+    try {
+      p = Runtime.getRuntime().exec(cmd);
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+    }
+
+    try {
+      p.waitFor();
+    } catch (InterruptedException ie) {
+      ie.printStackTrace();
+    }
   }
 
   private final static File chooseDirectory(ChooserList chooser,
@@ -396,6 +458,8 @@ public class Main
       }
 
       Util.copyDirectory(installerJavaDir, javaInstallDir);
+
+      makeJVMBinariesExecutable();
 
       // if they want a cluster install, push the JVM out to the nodes
       if (clusterInstaller != null) {
