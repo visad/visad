@@ -282,7 +282,9 @@ public class AxisScale implements java.io.Serializable
     double SCALE =  labelSize/200.;
     double OFFSET = 1.05;
 
-    SCALE *= 0.8; // hack size for screen based
+    // WLH 20 Feb 2003 keep screen-based YAxis label in Frame
+    SCALE *= 0.6; // hack size for screen based
+    // SCALE *= 0.8; // hack size for screen based
 
     // Add 16-APR-2001 DRM
     int position = 0;

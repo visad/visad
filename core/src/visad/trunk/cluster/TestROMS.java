@@ -184,7 +184,7 @@ System.out.println("ntimes = " + ntimes);
     DataReference maplinesRef = new DataReferenceImpl("MapLines");
     maplinesRef.setData(map);
     ConstantMap[] maplinesConstantMap = new ConstantMap[]
-      {new ConstantMap(1.0, Display.ZAxis)};
+      {new ConstantMap(0.4, Display.ZAxis)};
     display.addReference(maplinesRef, maplinesConstantMap);
 
     DataReference dr = new DataReferenceImpl("history");

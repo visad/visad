@@ -441,7 +441,6 @@ classes:
 EXAMPLES_TAR_FILES = \
 	visad/examples/*.java				\
 	visad/examples/display_test.c			\
-	visad/examples/*.html				\
 	visad/examples/*.class
 
 examplesjar:
