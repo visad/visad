@@ -162,7 +162,7 @@ public class AreaAdapter {
       aux = af.getAux();
     } catch (Exception rmd) {
         throw new VisADException(
-            "Problem getting Area file directory or navigation");
+            "Problem getting Area file directory or navigation: " + rmd);
     }
 
     // extract the size of each dimension from the directory
