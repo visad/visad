@@ -1216,7 +1216,7 @@ class RubberBandZoomer:
   image is moved and zoomed to fill the window.
   """
 
-  def __init__(self,display, requireKey):
+  def __init__(self, display, requireKey, callback=None):
     """
     display is the display object.  requireKey = 0 (no key),
     = 1 (CTRL), = 2 (SHIFT)
@@ -1233,9 +1233,10 @@ class RubberBandZoomer:
 
     self.rbb = RubberBandBoxRendererJ3D(self.x, self.y, mask, mask)
     self.ref = addData('rbb',self.dummy_set,self.display, renderer=self.rbb)
+    self.callback = callback
     
     class MyCell(CellImpl):
-      def __init__(self, ref, disp):
+      def __init__(self, ref, disp, callback=None):
         self.ref = ref
         self.display = disp
         self.xm, self.ym, self.zm, self.d = getDisplayScalarMaps(disp)
@@ -1243,6 +1244,7 @@ class RubberBandZoomer:
         self.can = self.dr.getCanvas()
         self.mb = MouseBehaviorJ3D(self.dr)
         self.pc = self.display.getProjectionControl()
+        self.callback = callback
 
       def doAction(self):
 
@@ -1250,8 +1252,13 @@ class RubberBandZoomer:
         set = self.ref.getData()
         samples = set.getSamples()
         if samples is None: return  # no sense in going further
+        if self.callback is not None:  self.callback(samples)
+        self.zoomIt(samples)
+
+      def zoomIt(self, samples):
         xsv = self.xm.scaleValues((samples[0][0],samples[0][1]))
         ysv = self.ym.scaleValues((samples[1][0],samples[1][1]))
+
         xsc = (xsv[0] + xsv[1]) / 2.0
         ysc = (ysv[0] + ysv[1]) / 2.0
 
@@ -1293,8 +1300,19 @@ class RubberBandZoomer:
           pass
 
 
-    cell = MyCell(self.ref,self.display)
-    cell.addReference(self.ref)
+    self.cell = MyCell(self.ref,self.display,self.callback)
+    self.cell.addReference(self.ref)
+
+  def zoomit(self, samples):
+    """
+    To force a zoom with an array of samples, call this...
+    samples[2][] contains values for the corner points, in
+    the proper scalar type.  samples[0][] is x,y of upperleft.
+    samples[1][] is x,y is lower right.
+    
+    """
+    self.cell.zoomIt(samples)
+
 
 class HandlePickEvent(DisplayListener):
   """

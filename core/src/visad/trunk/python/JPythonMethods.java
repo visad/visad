@@ -2011,6 +2011,11 @@ public abstract class JPythonMethods {
     return (Set) ((Field)data).getDomainSet();
   }
 
+  public static int[] getDomainSizes(Data data)
+             throws VisADException, RemoteException {
+    return ((GriddedSet) ((Field)data).getDomainSet()).getLengths();
+  }
+
 
   /**
   * Replaces values in a FlatField with the constant given
