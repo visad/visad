@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMapWidget.java,v 1.26 1999-11-15 20:04:42 dglo Exp $
+@(#) $Id: ColorMapWidget.java,v 1.27 1999-11-16 22:19:36 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -37,10 +37,10 @@ import javax.swing.*;
 
 /**
  * A color widget that allows users to interactively map numeric data to
- * RGB/RGBA tuples based on the Vis5D color widget
+ * RGB/RGBA color maps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.26 $, $Date: 1999-11-15 20:04:42 $
+ * @version $Revision: 1.27 $, $Date: 1999-11-16 22:19:36 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -64,65 +64,97 @@ public class LabeledColorWidget
 
   private int components;
 
-  /** this will be labeled with the name of smap's RealType and
-      linked to the color control in smap;
-      the range of RealType values mapped to color is taken from
-      smap.getRange() - this allows a color widget to be used with
-      a range of values defined by auto-scaling from displayed Data;
-      if smap's range values are not available at the time this
-      constructor is invoked, the LabeledColorWidget becomes a
-      ScalarMapListener and sets its range when smap's range is set;
-      the DisplayRealType of smap must be Display.RGB or Display.RGBA
-      and should already be added to a Display */
+  /**
+   * Construct a <CODE>LabeledColorWidget</CODE> linked to the
+   * color control in the <CODE>ScalarMap</CODE> (which must be to either
+   * <CODE>Display.RGB</CODE> or </CODE>Display.RGBA</CODE> and already
+   * have been added to a <CODE>DIsplay</CODE>).
+   * It will be labeled with the name of the <CODE>ScalarMap</CODE>'s
+   * RealType and linked to the <CODE>ScalarMap</CODE>'s color control.
+   * The range of <CODE>RealType</CODE> values mapped to color is taken
+   * from the <CODE>ScalarMap's</CODE> range - this allows a color widget
+   * to be used with a range of values defined by auto-scaling from
+   * displayed data.
+   *
+   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
+   *
+   * @exception RemoteException If there is an RMI-related problem.
+   * @exception VisADException If there is a problem initializing the
+   *                           widget.
+   */
   public LabeledColorWidget(ScalarMap smap)
     throws VisADException, RemoteException
   {
     this(smap, null, true);
   }
 
-  /** this will be labeled with the name of smap's RealType and
-      linked to the color control in smap;
-      the range of RealType values (min, max) is mapped to color
-      as defined by an interactive color widget;
-      the DisplayRealType of smap must be Display.RGB or Display.RGBA
-      and should already be added to a Display
-      @deprecated - 'min' and 'max' are ignored
-  */
+  /**
+   * This method is deprecated, since <CODE>min</CODE> and <CODE>max</CODE>
+   * are ignored.
+   *
+   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
+   * @param min Ignored value.
+   * @param max Ignored value.
+   *
+   * @exception RemoteException If there is an RMI-related problem.
+   * @exception VisADException If there is a problem initializing the
+   *                           widget.
+   *
+   * @deprecated - 'min' and 'max' are ignored
+   */
   public LabeledColorWidget(ScalarMap smap, float min, float max)
     throws VisADException, RemoteException
   {
     this(smap, null, true);
   }
 
-  /** this will be labeled with the name of smap's RealType and
-      linked to the color control in smap;
-      the range of RealType values mapped to color is taken from
-      smap.getRange() - this allows a color widget to be used with
-      a range of values defined by auto-scaling from displayed Data;
-      if smap's range values are not available at the time this
-      constructor is invoked, the LabeledColorWidget becomes a
-      ScalarMapListener and sets its range when smap's range is set;
-      table initializes
-      the color lookup table, organized as float[TABLE_SIZE][n]
-      with values between 0.0f and 1.0f;
-      the DisplayRealType of smap must be Display.RGB or Display.RGBA
-      and should already be added to a Display */
+  /**
+   * Construct a <CODE>LabeledColorWidget</CODE> linked to the
+   * color control in the <CODE>ScalarMap</CODE> (which must be to either
+   * <CODE>Display.RGB</CODE> or </CODE>Display.RGBA</CODE> and already
+   * have been added to a <CODE>DIsplay</CODE>).
+   * It will be labeled with the name of the <CODE>ScalarMap</CODE>'s
+   * RealType and linked to the <CODE>ScalarMap</CODE>'s color control.
+   * The range of <CODE>RealType</CODE> values mapped to color is taken
+   * from the <CODE>ScalarMap's</CODE> range - this allows a color widget
+   * to be used with a range of values defined by auto-scaling from
+   * displayed data.
+   *
+   * The initial color table (if non-null)
+   * should be a <CODE>float[resolution][dimension]</CODE>, where
+   * <CODE>dimension</CODE> is either
+   * <CODE>3</CODE> for <CODE>Display.RGB</CODE> or
+   * <CODE>4</CODE> for <CODE>Display.RGB</CODE>) with values
+   * between <CODE>0.0f</CODE> and <CODE>1.0f</CODE>.
+   *
+   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
+   * @param table Initial color lookup table.
+   *
+   * @exception RemoteException If there is an RMI-related problem.
+   * @exception VisADException If there is a problem initializing the
+   *                           widget.
+   */
   public LabeledColorWidget(ScalarMap smap, float[][] table)
     throws VisADException, RemoteException
   {
     this(smap, table, true);
   }
 
-  /** this will be labeled with the name of smap's RealType and
-      linked to the color control in smap;
-      the range of RealType values (min, max) is mapped to color
-      as defined by an interactive color widget; table initializes
-      the color lookup table, organized as float[TABLE_SIZE][n]
-      with values between 0.0f and 1.0f;
-      the DisplayRealType of smap must be Display.RGB or Display.RGBA
-      and should already be added to a Display
-      @deprecated - 'min' and 'max' are ignored
-  */
+  /**
+   * This method is deprecated, since <CODE>min</CODE> and <CODE>max</CODE>
+   * are ignored.
+   *
+   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
+   * @param min Ignored value.
+   * @param max Ignored value.
+   * @param table Initial color lookup table.
+   *
+   * @exception RemoteException If there is an RMI-related problem.
+   * @exception VisADException If there is a problem initializing the
+   *                           widget.
+   *
+   * @deprecated - 'min' and 'max' are ignored
+   */
   public LabeledColorWidget(ScalarMap smap, float min, float max,
                             float[][] table)
     throws VisADException, RemoteException
@@ -130,11 +162,34 @@ public class LabeledColorWidget
     this(smap, table, true);
   }
 
-  /** construct a LabeledColorWidget linked to the color control
-      in map (which must be to Display.RGB), with range of
-      values (min, max), initial color table in format
-      float[TABLE_SIZE][n] with values between 0.0f and 1.0f, and
-      specified auto-scaling min and max behavior */
+  /**
+   * Construct a <CODE>LabeledColorWidget</CODE> linked to the
+   * color control in the <CODE>ScalarMap</CODE> (which must be to either
+   * <CODE>Display.RGB</CODE> or </CODE>Display.RGBA</CODE> and already
+   * have been added to a <CODE>DIsplay</CODE>).
+   * It will be labeled with the name of the <CODE>ScalarMap</CODE>'s
+   * RealType and linked to the <CODE>ScalarMap</CODE>'s color control.
+   * The range of <CODE>RealType</CODE> values mapped to color is taken
+   * from the <CODE>ScalarMap's</CODE> range - this allows a color widget
+   * to be used with a range of values defined by auto-scaling from
+   * displayed data.
+   *
+   * The initial color table (if non-null)
+   * should be a <CODE>float[resolution][dimension]</CODE>, where
+   * <CODE>dimension</CODE> is either
+   * <CODE>3</CODE> for <CODE>Display.RGB</CODE> or
+   * <CODE>4</CODE> for <CODE>Display.RGB</CODE>) with values
+   * between <CODE>0.0f</CODE> and <CODE>1.0f</CODE>.
+   *
+   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
+   * @param in_table Initial color lookup table.
+   * @param update <CODE>true</CODE> if the slider should follow the
+   *               <CODE>ScalarMap</CODE>'s range.
+   *
+   * @exception RemoteException If there is an RMI-related problem.
+   * @exception VisADException If there is a problem initializing the
+   *                           widget.
+   */
   public LabeledColorWidget(ScalarMap smap, float[][] in_table, boolean update)
     throws VisADException, RemoteException
   {
@@ -223,18 +278,33 @@ public class LabeledColorWidget
 
   private Dimension maxSize = null;
 
+  /**
+   * Get maximum size of this widget.
+   *
+   * @return The maximum size stored in a <CODE>Dimension</CODE> object.
+   */
   public Dimension getMaximumSize()
   {
     if (maxSize != null) return maxSize;
     else return super.getMaximumSize();
   }
 
-  /** set maximum size of widget using java.awt.Dimension */
+  /**
+   * Set maximum size of this widget.
+   *
+   * @param size Maximum size.
+   */
   public void setMaximumSize(Dimension size)
   {
     maxSize = size;
   }
 
+  /**
+   * Internal convenience routine used to update the slider.
+   *
+   * @param min Minimum value for slider.
+   * @param max Maximum value for slider.
+   */
   private void updateWidget(float min, float max)
   {
     float val = slider.getValue();
@@ -242,7 +312,12 @@ public class LabeledColorWidget
     slider.setBounds(min, max, val);
   }
 
-  /** ScalarMapListener method used with delayed auto-scaling */
+  /**
+   * If the <CODE>ScalarMap</CODE> changes, update the slider with
+   * the new range.
+   *
+   * @param evt Data from the changed <CODE>ScalarMap</CODE>.
+   */
   public void mapChanged(ScalarMapEvent e)
   {
     ScalarMap s = e.getScalarMap();
@@ -250,7 +325,13 @@ public class LabeledColorWidget
     updateWidget((float) range[0], (float) range[1]);
   }
 
-  /** ColorChangeListener method */
+  /**
+   * Forward changes from the <CODE>ColorWidget</CODE> to the
+   * <CODE>Control</CODE> associated with this widget's
+   * <CODE>ScalarMap</CODE>.
+   *
+   * @param evt Data from the changed <CODE>ColorWidget</CODE>.
+   */
   public void colorChanged(ColorChangeEvent e)
   {
     ColorMap map_e = widget.getColorMap();
@@ -271,7 +352,11 @@ public class LabeledColorWidget
     catch (RemoteException f) { }
   }
 
-  /** ActionListener method used with resetting color table */
+  /**
+   * Handle button presses.
+   *
+   * @param evt Data from the changed <CODE>Button</CODE>.
+   */
   public void actionPerformed(ActionEvent e)
   {
     if (e.getActionCommand().equals("reset")) {
@@ -306,6 +391,14 @@ public class LabeledColorWidget
     }
   }
 
+  /**
+   * If the color data in the <CODE>Control</CODE> associated with this
+   * widget's <CODE>ScalarMap</CODE> has changed, update the data in
+   * the <CODE>ColorMap</CODE> associated with this widget's
+   * <CODE>ColorWidget</CODE>.
+   *
+   * @param evt Data from the changed <CODE>Control</CODE>.
+   */
   public void controlChanged(ControlEvent e)
     throws VisADException, RemoteException
   {
@@ -329,6 +422,13 @@ public class LabeledColorWidget
     }
   }
 
+  /**
+   * Utility routine used to make a copy of a 2D <CODE>float</CODE> array.
+   *
+   * @param table Table to copy.
+   *
+   * @return The new copy.
+   */
   private static float[][] copy_table(float[][] table)
   {
     if (table == null || table[0] == null) return null;
@@ -346,6 +446,14 @@ public class LabeledColorWidget
     }
   }
 
+  /**
+   * Utility routine used convert a table with dimensions <CODE>[X][Y]</CODE>
+   * to a table with dimensions <CODE>[Y][X]</CODE>.
+   *
+   * @param table Table to reorganize.
+   *
+   * @return The reorganized table.
+   */
   private static float[][] table_reorg(float[][] table)
   {
     if (table == null || table[0] == null) return null;
@@ -368,7 +476,11 @@ public class LabeledColorWidget
     }
   }
 
-  /** Returns the ColorMap that the color widget is currently pointing to */
+  /**
+   * Returns the <CODE>ColorWidget</CODE> used by this widget.
+   *
+   * @return The <CODE>ColorWidget</CODE>.
+   */
   public ColorWidget getColorWidget()
   {
     return widget;
