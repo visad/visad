@@ -16,14 +16,14 @@ public class TCData {
   // Time
   static RealType rtTime = RealType.Time;
 
-  // Fix
-  static RealType rtFixID;
+  // Location
+  static RealType rtLocationID;
   static RealType rtLat;
   static RealType rtLon;
   static RealType rtError;
-  static RealType rtFixStyle;
-  static RealTupleType fixTuple;
-  static FunctionType fixFunction;
+  static RealType rtLocationStyle;
+  static RealTupleType locationTuple;
+  static FunctionType locationFunction;
 
   // Intensity
   static RealType rtIntensityID;
@@ -31,6 +31,7 @@ public class TCData {
   static RealType rtWindGust;
   static RealType rtCentralPressure;
   static RealType rtCategory;
+  static RealType rtIntensityStyle;
   static RealTupleType intensityTuple;
   static FunctionType intensityFunction;
 
@@ -57,7 +58,7 @@ public class TCData {
   static TextType ttTrackName;
   static RealType rtBaseDateTime;
   static RealType rtCreateDateTime;
-  static TextType ttDisplayType;
+  static TextType ttTrackStyle;
   static TupleType ttTrack;
   static FunctionType ftId2Track;
 
@@ -81,77 +82,78 @@ public class TCData {
   public TCData() throws VisADException {
     if (mtTC == null) {
       rtTime = RealType.Time;
-  
-      // Fix
-      rtFixID = RealType.getRealType("FixID", null, null);
+
+      // Location
+      rtLocationID = RealType.getRealType("LOCATIONID", null, null);
       rtLat = RealType.Latitude;
       rtLon = RealType.Longitude;
-      rtError = RealType.getRealType("Error", null, null);
-      rtFixStyle = RealType.getRealType("FixStyle", null, null);
-      RealTupleType fixTuple = new RealTupleType(new RealType[]
-       {rtFixID, rtLat, rtLon, rtError, rtFixStyle});
-      fixFunction = new FunctionType(rtTime, fixTuple);
-  
+      rtError = RealType.getRealType("ERROR", null, null);
+      rtLocationStyle = RealType.getRealType("LOCATIONSTYLE", null, null);
+      RealTupleType locationTuple = new RealTupleType(new RealType[]
+       {rtLocationID, rtLat, rtLon, rtError, rtLocationStyle});
+      locationFunction = new FunctionType(rtTime, locationTuple);
+
       // Intensity
-      rtIntensityID = RealType.getRealType("IntensityID", null, null);
-      rtWindMean = RealType.getRealType("WindMean", null, null);
-      rtWindGust = RealType.getRealType("WindGust", null, null);
-      rtCentralPressure = RealType.getRealType("CentralPressure", null, null);
-      rtCategory = RealType.getRealType("Category", null, null);
+      rtIntensityID = RealType.getRealType("INTENSITYID", null, null);
+      rtWindMean = RealType.getRealType("WINDMEAN", null, null);
+      rtWindGust = RealType.getRealType("WINDGUST", null, null);
+      rtCentralPressure = RealType.getRealType("CENTRALPRESSURE", null, null);
+      rtCategory = RealType.getRealType("CATEGORY", null, null);
+      //rtIntensityStyle = RealType.getRealType("INTENSITYSTYLE", null, null);
       RealTupleType intensityTuple = new RealTupleType(new RealType[]
         {rtIntensityID, rtWindMean, rtWindGust, rtCentralPressure, rtCategory});
       intensityFunction = new FunctionType(rtTime, intensityTuple);
-  
+
       // Size
-      rtSizeID = RealType.getRealType("SizeID", null, null);
-      rtGaleRadius = RealType.getRealType("GaleRadius", null, null);
-      rtStormRadius = RealType.getRealType("StormRadius", null, null);
-      rtHurricaneRadius = RealType.getRealType("HurricaneRadius", null, null);
-      rtRadiusOfMaximumWinds = RealType.getRealType("RadiusOfMaximumWinds", null, null);
-      rtSizeStyle = RealType.getRealType("SizeStyle", null, null);
+      rtSizeID = RealType.getRealType("SIZEID", null, null);
+      rtGaleRadius = RealType.getRealType("GALERADIUS", null, null);
+      rtStormRadius = RealType.getRealType("STORMRADIUS", null, null);
+      rtHurricaneRadius = RealType.getRealType("HURRICANERADIUS", null, null);
+      rtRadiusOfMaximumWinds = RealType.getRealType("RADIUSOFMAXIMUMWINDS", null, null);
+      rtSizeStyle = RealType.getRealType("SIZESTYLE", null, null);
       RealTupleType sizeTuple = new RealTupleType(new RealType[]
         {rtSizeID, rtGaleRadius, rtStormRadius, rtHurricaneRadius,
          rtRadiusOfMaximumWinds, rtSizeStyle});
       sizeFunction = new FunctionType(rtTime, sizeTuple);
-  
+
       // Steering
-      rtSteeringID = RealType.getRealType("SteeringID", null, null);
-      rtSteeringDirection = RealType.getRealType("SteeringDirection", null, null);
-      rtSteeringStyle = RealType.getRealType("SteeringStyle", null, null);
+      rtSteeringID = RealType.getRealType("STEERINGID", null, null);
+      rtSteeringDirection = RealType.getRealType("STEERINGDIRECTION", null, null);
+      rtSteeringStyle = RealType.getRealType("STEERINGSTYLE", null, null);
       RealTupleType steeringTuple = new RealTupleType(new RealType[]
         {rtSteeringID, rtSteeringDirection, rtSteeringStyle});
       steeringFunction = new FunctionType(rtTime, steeringTuple);
-  
+
       // Track
-      rtTrackID = RealType.getRealType("TrackID", null, null);
-      ttTrackType = TextType.getTextType("TrackType");
-      ttTrackName = TextType.getTextType("TrackName");
-      rtBaseDateTime = RealType.getRealType("BaseDateTime", null, null);
-      rtCreateDateTime = RealType.getRealType("CreateDateTime", null, null);
-      ttDisplayType = TextType.getTextType("DisplayType");
+      rtTrackID = RealType.getRealType("TRACKID", null, null);
+      ttTrackType = TextType.getTextType("TRACKTYPE");
+      ttTrackName = TextType.getTextType("TRACKNAME");
+      rtBaseDateTime = RealType.getRealType("BASEDATETIME", null, null);
+      rtCreateDateTime = RealType.getRealType("CREATEDATETIME", null, null);
+      ttTrackStyle = TextType.getTextType("TRACKSTYLE");
       ttTrack = new TupleType(new MathType[]
         {ttTrackType, ttTrackName, rtBaseDateTime, rtCreateDateTime,
-         ttDisplayType, fixFunction, intensityFunction, sizeFunction,
+         ttTrackStyle, locationFunction, intensityFunction, sizeFunction,
          steeringFunction});
       ftId2Track = new FunctionType(rtTrackID, ttTrack);
-  
+
       // Disturbance
-      rtDisturbanceID = RealType.getRealType("DisturbanceID", null, null);
-      ttCountry = TextType.getTextType("Country");
-      ttState = TextType.getTextType("State");
-      ttHistoricalName = TextType.getTextType("HistoricalName");
-      rtYear = RealType.getRealType("Year", null, null);
-      rtNumber = RealType.getRealType("Number", null, null);
-      rtOpenDate = RealType.getRealType("OpenDate", null, null);
-      rtCloseDate = RealType.getRealType("CloseDate", null, null);
-      rtArchiveMode = RealType.getRealType("ArchiveMode", null, null);
-      rtRealtimeMode = RealType.getRealType("RealtimeMode", null, null);
+      rtDisturbanceID = RealType.getRealType("DISTURBANCEID", null, null);
+      ttCountry = TextType.getTextType("COUNTRY");
+      ttState = TextType.getTextType("STATE");
+      ttHistoricalName = TextType.getTextType("HISTORICALNAME");
+      rtYear = RealType.getRealType("YEAR", null, null);
+      rtNumber = RealType.getRealType("NUM", null, null);
+      rtOpenDate = RealType.getRealType("OPENDATE", null, null);
+      rtCloseDate = RealType.getRealType("CLOSEDATE", null, null);
+      rtArchiveMode = RealType.getRealType("ARCHIVEMODE", null, null);
+      rtRealtimeMode = RealType.getRealType("REALTIMEMODE", null, null);
       TupleType ttDisturbance = new TupleType(new MathType[]
         {ttCountry, ttState, rtYear, rtNumber, ttHistoricalName,
          rtOpenDate, rtCloseDate, rtArchiveMode, rtRealtimeMode, ftId2Track});
       FunctionType ftId2Disturbance =
         new FunctionType(rtDisturbanceID, ttDisturbance);
-  
+
       mtTC = ftId2Disturbance;
     }
   }
@@ -164,10 +166,10 @@ public class TCData {
     return mtTC;
   }
 
-  public synchronized void addFix(int disturbanceID, int trackID, double time,
-                                  RealTuple fix)
+  public synchronized void addLocation(int disturbanceID, int trackID, double time,
+                                  RealTuple location)
          throws VisADException, RemoteException {
-    addToTrack(disturbanceID, trackID, time, 5, fixFunction, fix);
+    addToTrack(disturbanceID, trackID, time, 5, locationFunction, location);
   }
 
   public synchronized void addIntensity(int disturbanceID, int trackID, double time,
@@ -259,6 +261,8 @@ public class TCData {
     Gridded1DSet set =
       new Gridded1DSet(rtTrackID, new float[][] {{fid}}, 1);
     FieldImpl field = new FieldImpl(ftId2Track, set);
+    //au.gov.bom.fdb.debug.Debug.println(field);
+    //au.gov.bom.fdb.debug.Debug.println(track);
     field.setSample(0, track);
     return field;
   }
@@ -454,7 +458,7 @@ public class TCData {
   }
 
   public static Tuple makeDisturbance(String country, String state, int year,
-             int number, String historical_name, int open_date, int close_date,
+             int number, String historical_name, double open_date, double close_date,
              int archive_mode, int realtime_mode, FieldImpl tracks)
          throws VisADException, RemoteException {
     return new Tuple(new DataImpl[]
@@ -467,23 +471,25 @@ public class TCData {
   }
 
   public static Tuple makeTrack(String track_type, String track_name,
-             int base_date_time, int create_date_time, String display_type,
-             FlatField fixes, FlatField intensities, FlatField sizes,
+             // jk Feb 2001
+             // int base_date_time, int create_date_time, String display_type,
+             double base_date_time, double create_date_time, String display_type,
+             FlatField locations, FlatField intensities, FlatField sizes,
              FlatField steerings)
          throws VisADException, RemoteException {
 
     //jk : allow for null sizes
     if (sizes == null) sizes = TCData.makeMissingSizes();
     if (steerings == null) steerings = TCData.makeMissingSteerings();
-    // should also have same test for fixes & intensities & steerings
-    // + methods makeMissingFixes and makeMissingIntensities ?
+    // should also have same test for locations & intensities & steerings
+    // + methods makeMissingLocations and makeMissingIntensities ?
 
     return new Tuple(new DataImpl[]
       {new Text(ttTrackType, track_type), new Text(ttTrackName, track_name),
        new Real(rtBaseDateTime, base_date_time),
        new Real(rtCreateDateTime, create_date_time),
-       new Text(ttDisplayType, display_type),
-       fixes, intensities, sizes, steerings});
+       new Text(ttTrackStyle, display_type),
+       locations, intensities, sizes, steerings});
   }
 
   
@@ -516,41 +522,41 @@ public class TCData {
     return ffSizes;
   }
 
-  public static FlatField makeFixes(double[] times, int[] ids, float[] lats,
-              float[] lons, float[] errors, int[] fix_styles)
+  public static FlatField makeLocations(double[] times, int[] ids, float[] lats,
+              float[] lons, float[] errors, int[] location_styles)
          throws VisADException, RemoteException {
     if (times == null || ids == null || lats == null || lons == null ||
-        errors == null || fix_styles == null) {
+        errors == null || location_styles == null) {
       throw new VisADException("arguments may not be null");
     }
     int length = times.length;
     if (ids.length != length || lats.length != length || lons.length != length ||
-        errors.length != length || fix_styles.length != length) {
+        errors.length != length || location_styles.length != length) {
       throw new VisADException("argument lengths must match");
     }
     int[] permute = QuickSort.sort(times);
     Gridded1DDoubleSet set =
       new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
-    FlatField field = new FlatField(fixFunction, set);
+    FlatField field = new FlatField(locationFunction, set);
     float[] pids = new float[length];
     float[] plats = new float[length];
     float[] plons = new float[length];
     float[] perrors = new float[length];
-    float[] pfix_styles = new float[length];
+    float[] pLocation_styles = new float[length];
     for (int i=0; i<length; i++) {
       pids[i] = ids[permute[i]];
       plats[i] = lats[permute[i]];
       plons[i] = lons[permute[i]];
       perrors[i] = errors[permute[i]];
-      pfix_styles[i] = fix_styles[permute[i]];
+      pLocation_styles[i] = location_styles[permute[i]];
     }
-    float[][] values = {pids, plats, plons, perrors, pfix_styles};
+    float[][] values = {pids, plats, plons, perrors, pLocation_styles};
     field.setSamples(values, false);
     return field;
   }
 
   /**
-   * create a bunch of "intensities" which are measurements of 
+   * create a bunch of "intensities" which are measurements of
    * the intensity of a Tropical Cyclone at particular times
    *
    * input: arrays of times, ids, wind_means...
@@ -706,8 +712,8 @@ MathType:
                                 TrackName(Text),
                                 BaseDateTime,
                                 CreateDateTime,
-                                DisplayType(Text),
-                                (Time -> (FixID, Latitude, Longitude, Error, FixStyle)),
+                                TrackStyle(Text),
+                                (Time -> (LocationID, Latitude, Longitude, Error, LocationStyle)),
                                 (Time -> (IntensityID, WindMean, WindGust, CentralPressure, Category)),
                                 (Time -> (SizeID, GaleRadius, StormRadius, HurricaneRadius, RadiusOfMaximumWinds, SizeStyle)),
                                 (Time -> (SteeringID, SteeringDirection, SteeringStyle))))))

@@ -52,8 +52,9 @@ public class TCDataTest {
     float[] faErrors = {0.0f, 0.0f, 0.0f};
     int[] iaFix_styles = {2, 3, 4};
 
-    FlatField ffFixes = TCData.makeFixes( daTimes, iaFixIds, faLats, faLons, 
-                                     faErrors, iaFix_styles);
+    FlatField ffFixes =
+      TCData.makeLocations(daTimes, iaFixIds, faLats, faLons, 
+                           faErrors, iaFix_styles);
     // System.out.println("ffIntensities:\n" + ffFixes);
 
 

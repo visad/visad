@@ -91,7 +91,8 @@ public class AnimationSetControl extends Control {
          throws VisADException, RemoteException {
     set = s;
     if (parent != null) {
-      parent.setCurrent(0);
+      // parent.setCurrent(0);
+      parent.setCurrent(clipCurrent(parent.getCurrent()));
     }
     changeControl(!noChange);
   }

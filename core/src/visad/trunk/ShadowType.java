@@ -3111,8 +3111,8 @@ System.out.println("range = " + range[0] + " " + range[1] +
         String[] text_values = {text_value};
         array = shadow_api.makeText(text_values, text_control, spatial_values,
                                     color_values, range_select);
-        shadow_api.addToGroup(group, array, mode,
-                              constant_alpha, constant_color);
+        shadow_api.addTextToGroup(group, array, mode,
+                                  constant_alpha, constant_color);
         anyTextCreated = true;
       }
 
@@ -3363,6 +3363,13 @@ System.out.println("range = " + range[0] + " " + range[1] +
                             float constant_alpha, float[] constant_color)
          throws VisADException {
     return false;
+  }
+
+  public boolean addTextToGroup(Object group, VisADGeometryArray array,
+                            GraphicsModeControl mode,
+                            float constant_alpha, float[] constant_color)
+         throws VisADException {
+    return addToGroup(group, array, mode, constant_alpha, constant_color);
   }
 
   public void textureToGroup(Object group, VisADGeometryArray array,

@@ -383,6 +383,18 @@ public class CollectiveBarbManipulation extends Object
                        "ScalarMap to Animation");
       }
 
+      Vector tmap = display1.getMapVector();
+      for (int i=0; i<tmap.size(); i++) {
+        ScalarMap map = (ScalarMap) tmap.elementAt(i);
+        Control c = map.getControl();
+        if (control.equals(c)) {
+          if (!RealType.Time.equals(map.getScalar())) {
+            throw new CollectiveBarbException("must be Time mapped to " +
+                                              "Animation " + map.getScalar());
+          }
+        }
+      }
+
       // use a ControlListener on Display.Animation to fake
       // animation of manipulable barbs
       control.addControlListener(this);

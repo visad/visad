@@ -1956,8 +1956,8 @@ if (range_select[0] != null) {
         if (anyText && text_values != null && text_control != null) {
           array = shadow_api.makeText(text_values, text_control, spatial_values,
                                       color_values, range_select);
-          shadow_api.addToGroup(group, array, mode,
-                                constant_alpha, constant_color);
+          shadow_api.addTextToGroup(group, array, mode,
+                                    constant_alpha, constant_color);
           array = null;
           anyTextCreated = true;
         }
@@ -2633,8 +2633,8 @@ WLH 15 March 2000 */
               }
               array = shadow_api.makeText(te, text_control, spatial_values, co, ra);
               if (array != null) {
-                shadow_api.addToGroup(branch, array, mode,
-                                    constant_alpha, constant_color);
+                shadow_api.addTextToGroup(branch, array, mode,
+                                          constant_alpha, constant_color);
                 array = null;
                 anyTextCreated = true;
               }

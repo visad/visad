@@ -862,13 +862,31 @@ public abstract class DisplayRendererJ3D
     group.setCapability(BranchGroup.ALLOW_DETACH);
     group.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     group.addChild(shape);
-    if (labels != null)
-    {
-        GeometryArray labelGeometry = display.makeGeometry(labels);
-        Appearance labelAppearance =
-          ShadowTypeJ3D.makeAppearance(mode, null, null, labelGeometry, true);
-        Shape3D labelShape = new Shape3D(labelGeometry, labelAppearance);
-        group.addChild(labelShape);
+    if (labels != null) {
+      GeometryArray labelGeometry = display.makeGeometry(labels);
+      Appearance labelAppearance =
+        ShadowTypeJ3D.makeAppearance(mode, null, null, labelGeometry, true);
+      Shape3D labelShape = new Shape3D(labelGeometry, labelAppearance);
+
+      group.addChild(labelShape);
+
+
+      if (labels instanceof VisADTriangleArray) {
+        GeometryArray labelGeometry2 = display.makeGeometry(labels);
+        Appearance labelAppearance2 =
+          ShadowTypeJ3D.makeAppearance(mode, null, null, labelGeometry2, true);
+
+        // LineAttributes la = labelAppearance2.getLineAttributes();
+        // better without anti-aliasing
+        // la.setLineAntialiasingEnable(true);
+
+        PolygonAttributes pa = labelAppearance2.getPolygonAttributes();
+        pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
+        Shape3D labelShape2 = new Shape3D(labelGeometry2, labelAppearance2);
+        group.addChild(labelShape2);
+      }
+
+
     }
     // may only add BranchGroup to 'live' scale_on
     int dim = getMode2D() ? 2 : 3;

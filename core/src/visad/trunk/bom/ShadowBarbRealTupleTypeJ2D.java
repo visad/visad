@@ -65,7 +65,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
   }
 
 
-  private static final int NUM = 256;
+  private static final int NUM = 512;
 
   public static VisADGeometryArray[] staticMakeFlow(DisplayImpl display,
                int which, float[][] flow_values, float flowScale,
@@ -158,7 +158,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
           f2 = flow_values[2][j];
         }
 
-        if (numv[0] + NUM/4 > vx.length) {
+        if (numv[0] + NUM/2 > vx.length) {
           float[] cx = vx;
           float[] cy = vy;
           int l = 2 * vx.length;
@@ -178,7 +178,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
             System.arraycopy(cblue, 0, vblue, 0, cblue.length);
           }
         }
-        if (numt[0] + NUM/4 > tx.length) {
+        if (numt[0] + NUM/2 > tx.length) {
           float[] cx = tx;
           float[] cy = ty;
           int l = 2 * tx.length;

@@ -428,6 +428,57 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     }
   }
 
+  public boolean addTextToGroup(Object group, VisADGeometryArray array,
+                                GraphicsModeControl mode,
+                                float constant_alpha, float[] constant_color)
+         throws VisADException {
+    if (array != null && array.vertexCount > 0) {
+      // MEM - for coordinates if mode2d
+      GeometryArray geometry = display.makeGeometry(array);
+      TransparencyAttributes c_alpha = null;
+      if (constant_alpha == 1.0f) {
+        // constant opaque alpha = NONE
+        c_alpha = new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
+      }
+      else if (constant_alpha == constant_alpha) {
+        c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
+                                             constant_alpha);
+      }
+      else {
+        // WLH - 18 Aug 99 - how could this have gone undetected for so long?
+        // c_alpha = new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
+        c_alpha = new TransparencyAttributes(mode.getTransparencyMode(), 0.0f);
+      }
+      ColoringAttributes c_color = null;
+      if (constant_color != null && constant_color.length == 3) {
+        c_color = new ColoringAttributes();
+        c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
+      }
+      Appearance appearance =
+        makeAppearance(mode, c_alpha, c_color, geometry, false);
+      Shape3D shape = new Shape3D(geometry, appearance);
+      ((Group) group).addChild(shape);
+
+      if (array instanceof VisADTriangleArray) {
+        GeometryArray geometry2 = display.makeGeometry(array);
+        Appearance appearance2 =
+          makeAppearance(mode, c_alpha, c_color, geometry2, false);
+        // LineAttributes la = appearance2.getLineAttributes();
+        // better without anti-aliasing
+        // la.setLineAntialiasingEnable(true);
+        PolygonAttributes pa = appearance2.getPolygonAttributes();
+        pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
+        Shape3D shape2 = new Shape3D(geometry2, appearance2);
+        ((Group) group).addChild(shape2);
+      }
+
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
   public boolean allowConstantColorSurfaces() {
     return false;
   }

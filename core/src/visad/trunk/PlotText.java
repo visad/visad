@@ -445,6 +445,7 @@ public class PlotText extends Object {
       float x_plus = (float) (fsize_inv * gv.getGlyphMetrics(0).getAdvance());
 
 // System.out.println(str_index + " " + chars[0] + " " + x_plus + " " + fsize_inv);
+// System.out.println(str_index + " " + chars[0] + " " + ng);
       for (int ig=0; ig<ng; ig++) {
         Shape sh = gv.getGlyphOutline(ig);
         // pi only has SEG_MOVETO, SEG_LINETO, and SEG_CLOSE point types
@@ -499,12 +500,14 @@ public class PlotText extends Object {
           k = 0;
           path_count++;
         }
+
       } // end for (int ig=0; ig<ng; ig++)
+
       if (path_count == 1) {
 // System.out.println("  char  " + chars[0]);
         big_vector.addElement(samples_vector.elementAt(0));
       }
-      else { // (path_count > 1)
+      else if (path_count > 1) {
         // System.out.println("path_count = " + path_count +
         //                    " for char = " + chars[0]);
         float[][][] ss = new float[path_count][][];
@@ -512,14 +515,26 @@ public class PlotText extends Object {
           ss[i] = (float[][]) samples_vector.elementAt(i);
         }
         try {
-// System.out.println("  call link for  " + chars[0]);
-          big_vector.addElement(DelaunayCustom.link(ss));
+          if (path_count == 2 &&
+              (!DelaunayCustom.inside(ss[0], ss[1][0][0], ss[1][1][0]) &&
+               !DelaunayCustom.inside(ss[1], ss[0][0][0], ss[0][1][0]))) {
+            // don't link for disconnected paths link "i"
+// System.out.println("  no link for  " + chars[0] + " " + path_count);
+            for (int i=0; i<path_count; i++) {
+              big_vector.addElement(ss[i]);
+            }
+          }
+          else {
+// System.out.println("  call link for  " + chars[0] + " " + path_count);
+            big_vector.addElement(DelaunayCustom.link(ss));
+          }
         }
         catch (VisADException ex) {
           System.out.println(ex);
         }
       }
       samples_vector.removeAllElements();
+
       x_offset += x_plus;
     } // end for (int str_index=0; str_index<str_len; str_index++)
 
