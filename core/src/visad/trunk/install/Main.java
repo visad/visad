@@ -8,6 +8,10 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
+
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import javax.swing.JOptionPane;
 import javax.swing.JWindow;
@@ -20,6 +24,7 @@ public class Main
 {
   private static final String CLASSPATH_PROPERTY = "java.class.path";
 
+  private static final String ARCH_PROPERTY = "visad.install.arch";
   private static final String HOME_PROPERTY = "visad.install.home";
   private static final String PATH_PROPERTY = "visad.install.path";
 
@@ -39,7 +44,8 @@ public class Main
   private ArrayList jarList, javaList;
   private File installerJar;
   private JavaFile installerJava;
-  private File installerJavaDir;
+  private File installerJavaDir, installerJavaJar;
+  private String archStr;
   private String cPushStr;
 
   private boolean useSuppliedJava, downloadLatestJar;
@@ -334,8 +340,18 @@ public class Main
 
   private final void dumpInitialState()
   {
+    if (distDir != null && distDir.exists()) {
+      System.out.println("Distribution directory: " + distDir);
+    } else {
+      System.out.println("Distribution directory: UNKNOWN!");
+    }
+
     if (installerJavaDir != null) {
       System.out.println("Supplied java directory: " + installerJavaDir);
+    }
+
+    if (installerJavaJar != null) {
+      System.out.println("Supplied java jar file: " + installerJavaJar);
       System.out.println("Supplied java: " + installerJava);
     }
 
@@ -486,6 +502,13 @@ public class Main
       installerJar = extractInstallerFile(distDir, jarList);
     }
 
+    // die if we can't install anything
+    if (installerJar == null && jarURL == null) {
+      System.err.println("Couldn't find either distributed jar file" +
+                         " or jar file URL!");
+      System.exit(1);
+    }
+
     // no installer-supplied java found yet
     installerJava = null;
     installerJavaDir = null;
@@ -507,10 +530,21 @@ public class Main
       }
     }
 
-    if (jarURL == null && installerJar == null) {
-      System.err.println("Couldn't find either distributed jar file" +
-                         " or jar file URL!");
-      System.exit(1);
+    // fetch the architecture string
+    archStr = System.getProperty(ARCH_PROPERTY);
+    if (archStr != null && archStr.length() == 0) {
+      archStr = null;
+    }
+
+    // no installer-supplied java jar file found yet
+    installerJavaJar = null;
+
+    // if no supplied java dir was found, look for java jar file
+    if (installerJavaDir == null && archStr != null) {
+      File tmpFile = new File(distDir, "jdk-" + archStr + ".jar");
+      if (tmpFile.exists()) {
+        installerJavaJar = tmpFile;
+      }
     }
 
     // no cluster installation executable found yet
@@ -560,12 +594,26 @@ public class Main
 
     // install JVM
     if (useSuppliedJava) {
-      if (javaInstallDir.exists()) {
-        javaInstallDir = new File(javaInstallDir, installerJavaDir.getName());
-      }
-
       mon.setPhase("Copying JVM");
-      Util.copyDirectory(mon, installerJavaDir, javaInstallDir);
+      if (installerJavaDir != null) {
+        if (javaInstallDir.exists()) {
+          javaInstallDir = new File(javaInstallDir,
+                                    installerJavaDir.getName());
+        }
+
+        Util.copyDirectory(mon, installerJavaDir, javaInstallDir);
+      } else {
+        String jarTop = getJarTopDir(installerJavaJar);
+        if (jarTop == null && archStr != null) {
+          jarTop = "jdk-" + archStr;
+        }
+
+        if (jarTop != null) {
+          javaInstallDir = new File(javaInstallDir, jarTop);
+        }
+
+        Util.copyJar(mon, installerJavaJar, javaInstallDir);
+      }
 
       mon.setPhase("Setting JVM executable bits");
       makeJVMBinariesExecutable();
@@ -581,6 +629,49 @@ public class Main
     // all done
     mon.setPhase("Install finished!");
     try { Thread.sleep(2000); } catch (InterruptedException ie) { }
+  }
+
+  private String getJarTopDir(File source)
+  {
+    // try to open the jar file
+    JarFile jar;
+    try {
+      jar = new JarFile(source);
+    } catch (IOException ioe) {
+      return null;
+    }
+
+    String topDir = null;
+
+    Enumeration enum = jar.entries();
+    while (enum.hasMoreElements()) {
+      JarEntry entry = (JarEntry )enum.nextElement();
+
+      String entryName = entry.getName();
+
+      // skip manifest files
+      if (JarFile.MANIFEST_NAME.startsWith(entryName)) {
+        continue;
+      }
+
+      String dirName;
+
+      int dirIdx = entryName.indexOf(File.separatorChar);
+      if (dirIdx < 0) {
+        dirName = entryName;
+      } else {
+        dirName = entryName.substring(0, dirIdx);
+      }
+
+      if (topDir == null) {
+        topDir = dirName;
+      } else if (!topDir.equals(dirName)) {
+        topDir = null;
+        break;
+      }
+    }
+
+    return topDir;
   }
 
   /**
@@ -786,11 +877,18 @@ public class Main
   private final boolean queryUserUseSuppliedJava()
   {
     int result = JOptionPane.NO_OPTION;
-    if (installerJavaDir != null) {
-      String msg = "Would you like to install the supplied " +
-        " Java Development Kit " + installerJava.getMajor() + "." +
-        installerJava.getMinor() + " (" +
-        installerJava.getFullString() + ")?";
+    if (installerJavaDir != null || installerJavaJar != null) {
+      String msg;
+      if (installerJavaDir != null) {
+        msg = "Would you like to install the supplied " +
+          " Java Development Kit " + installerJava.getMajor() + "." +
+          installerJava.getMinor() + " (" +
+          installerJava.getFullString() + ")?";
+      } else {
+        msg = "Would you like to install the supplied " +
+          " Java Development Kit?";
+      }
+
       String title = "Install supplied JDK?";
 
       result = JOptionPane.showConfirmDialog(null, msg, title,

@@ -4,6 +4,7 @@
 
 # name of various properties passed to install app
 #
+ARCHPROP="visad.install.arch"
 HOMEPROP="visad.install.home"
 PATHPROP="visad.install.path"
 
@@ -56,6 +57,7 @@ fi
 # and away we go!
 #
 exec java $CPARG \
+	"-D$ARCHPROP=$ARCH" \
 	"-D$HOMEPROP=$DISTDIR" \
 	"-D$PATHPROP=$PATH" \
 		visad.install.Main
