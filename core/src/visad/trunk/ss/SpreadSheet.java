@@ -37,8 +37,8 @@ import com.sun.java.swing.event.*;
 // I/O package
 import java.io.*;
 
-// Net class
-import java.net.URL;
+// Net package
+import java.net.*;
 
 // RMI class
 import java.rmi.RemoteException;
@@ -886,24 +886,24 @@ public class SpreadSheet extends JFrame implements ActionListener,
       FormulaField.setText(DisplayCells[CurDisplay].getFormula());
     }
     else {
-      String f = DisplayCells[CurDisplay].getFilename();
-      if (f == null) f = "";
-      FormulaField.setText(f);
+      URL u = DisplayCells[CurDisplay].getFilename();
+      FormulaField.setText(u == null ? "" : u.toString());
     }
   }
 
   /** Update formula based on formula entered in formula bar */
   void updateFormula() {
     String newFormula = FormulaField.getText();
-    File f = new File(newFormula);
-    if (f.exists()) {
-      // check if filename has changed from last entry
-      String oldFormula = DisplayCells[CurDisplay].getFilename();
-      if (oldFormula == null) oldFormula = "";
-      if (oldFormula.equals(newFormula)) return;
-
-      // try to load the file
-      DisplayCells[CurDisplay].loadDataFile(f);
+    URL u;
+    try {
+      u = new URL(newFormula);
+    }
+    catch (MalformedURLException exc) {
+      u = SpreadSheet.class.getResource(newFormula);
+    }
+    if (u != null) {
+      // try to load the data from the URL
+      DisplayCells[CurDisplay].loadDataURL(u);
     }
     else {
       // check if formula has changed from last entry

@@ -10,10 +10,13 @@ import java.awt.*;
 import com.sun.java.swing.*;
 import com.sun.java.swing.border.*;
 
-// I/O packages
+// I/O package
 import java.io.*;
 
-// RMI classes
+// Net package
+import java.net.*;
+
+// RMI class
 import java.rmi.RemoteException;
 
 // Utility classes
@@ -24,7 +27,7 @@ import java.util.Enumeration;
 import visad.*;
 import visad.util.*;
 
-// VisAD classes
+// VisAD class
 import visad.data.BadFormException;
 
 /** FancySSCell is an extension of BasicSSCell with extra options, such
@@ -310,7 +313,7 @@ public class FancySSCell extends BasicSSCell {
     }
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(Parent,
-          "This combination of mappings is not valid:\n"+exc.toString(),
+          "This combination of mappings is not valid:\n" + exc.toString(),
           "VisAD FancySSCell error", JOptionPane.ERROR_MESSAGE);
     }
     catch (RemoteException exc) { }
@@ -318,13 +321,26 @@ public class FancySSCell extends BasicSSCell {
 
   /** Imports a data object from a given file name, in a separate thread */
   public void loadDataFile(File f) {
-    final File fn = f;
+    String filename = f.getPath();
+    URL u;
+    try {
+      u = new URL(filename);
+    }
+    catch (MalformedURLException exc) {
+      u = FancySSCell.class.getResource(filename);
+    }
+    loadDataURL(u);
+  }
+
+  /** Imports a data object from a given URL, in a separate thread */
+  public void loadDataURL(URL u) {
+    final URL url = u;
     final BasicSSCell cell = this;
     Runnable loadFile = new Runnable() {
       public void run() {
-        String msg = "VisAD could not load the dataset \""+fn.getName()+"\"\n";
+        String msg = "VisAD could not load the dataset \""+url.toString()+"\"\n";
         try {
-          cell.loadData(fn);
+          cell.loadData(url);
         }
         catch (BadFormException exc) {
           msg = msg+"VisAD does not support this file type.";

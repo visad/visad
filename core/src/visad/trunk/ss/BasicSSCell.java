@@ -25,17 +25,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.ss;
 
-// AWT packages
+// AWT package
 import java.awt.*;
 
 // JFC packages
 import com.sun.java.swing.*;
 import com.sun.java.swing.border.*;
 
-// I/O packages
+// I/O package
 import java.io.*;
 
-// RMI classes
+// Net package
+import java.net.*;
+
+// RMI class
 import java.rmi.RemoteException;
 
 // utility classes
@@ -66,8 +69,8 @@ public class BasicSSCell extends JPanel {
   /** Name of this BasicSSCell */
   String Name;
 
-  /** Filename from where data was imported, if any */
-  String Filename = null;
+  /** URL from where data was imported, if any */
+  URL Filename = null;
 
   /** BasicSSCell's associated VisAD Display */
   DisplayImpl VDisplay;
@@ -227,7 +230,16 @@ public class BasicSSCell extends JPanel {
 
     // construct Data
     try {
-      if (filename != null) loadData(new File(filename));
+      if (filename != null) {
+        URL u;
+        try {
+          u = new URL(filename);
+        }
+        catch (MalformedURLException exc) {
+          u = BasicSSCell.class.getResource(filename);
+        }
+        loadData(u);
+      }
     }
     catch (IOException exc) {
       throw new VisADException(exc.toString());
@@ -239,7 +251,7 @@ public class BasicSSCell extends JPanel {
 
   /** Returns the data string necessary to reconstruct this cell */
   public String getSSCellString() {
-    String s = "filename = " + Filename + "\n";
+    String s = "filename = " + Filename.toString() + "\n";
     s = s + "formula = " + getFormula() + "\n";
     s = s + "dim = " + Dimension2D + "\n";
     return s;
@@ -444,16 +456,16 @@ public class BasicSSCell extends JPanel {
   }
 
   /** Returns the file name from which the associated Data came, if any */
-  public String getFilename() {
+  public URL getFilename() {
     return Filename;
   }
 
-  /** Imports a data object from a given file name */
-  public void loadData(File f) throws BadFormException, IOException,
-                                      VisADException, RemoteException {
-    if (f == null || !f.exists()) return;
+  /** Imports a data object from a given URL */
+  public void loadData(URL u) throws BadFormException, IOException,
+                                     VisADException, RemoteException {
+    if (u == null) return;
     clearCell();
-    final String filename = f.getPath();
+    final URL url = u;
     IsBusy = true;
     JPanel pleaseWait = new JPanel();
     pleaseWait.setBackground(Color.black);
@@ -476,7 +488,7 @@ public class BasicSSCell extends JPanel {
     Data data = null;
     try {
       DefaultFamily loader = new DefaultFamily("loader");
-      data = loader.open(filename);
+      data = loader.open(url);
       loader = null;
     }
     finally {
@@ -485,7 +497,7 @@ public class BasicSSCell extends JPanel {
     }
     if (data != null) {
       setData(data);
-      Filename = filename;
+      Filename = url;
     }
     IsBusy = false;
   }
