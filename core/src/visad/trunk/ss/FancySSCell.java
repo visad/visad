@@ -85,21 +85,23 @@ public class FancySSCell extends BasicSSCell {
     hideWidgetFrame();
     WidgetFrame = null;
 
-    // create any necessary widgets
+    // create GraphicsModeControl widget
+    initWidgetFrame();
+    GMCWidget gmcw = new GMCWidget(VDisplay.getGraphicsModeControl());
+    addToFrame(gmcw);
+
+    // create any other necessary widgets
     for (int i=0; i<maps.length; i++) {
       DisplayRealType drt = maps[i].getDisplayScalar();
       if (drt == Display.RGB) {
-        if (WidgetFrame == null) initWidgetFrame();
         LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
         addToFrame(lw);
       }
       else if (drt == Display.RGBA) {
-        if (WidgetFrame == null) initWidgetFrame();
         LabeledRGBAWidget lw = new LabeledRGBAWidget(maps[i]);
         addToFrame(lw);
       }
       else if (drt == Display.SelectValue) {
-        if (WidgetFrame == null) initWidgetFrame();
         final DataReference ref = new DataReferenceImpl("value");
         VisADSlider vs = new VisADSlider("value", 0, 100, 0, 0.01, ref,
                                          RealType.Generic);
@@ -114,27 +116,22 @@ public class FancySSCell extends BasicSSCell {
         addToFrame(vs);
       }
       else if (drt == Display.SelectRange) {
-        if (WidgetFrame == null) initWidgetFrame();
         SelectRangeWidget srs = new SelectRangeWidget(maps[i]);
         addToFrame(srs);
       }
       else if (drt == Display.IsoContour) {
-        if (WidgetFrame == null) initWidgetFrame();
         ContourWidget cw = new ContourWidget(maps[i]);
         WidgetFrame.getContentPane().add(cw);
         addToFrame(cw);
       }
       else if (drt == Display.Animation) {
-        if (WidgetFrame == null) initWidgetFrame();
         AnimationWidget aw = new AnimationWidget(maps[i]);
         addToFrame(aw);
       }
 
       // show widget frame
-      if (WidgetFrame != null) {
-        WidgetFrame.pack();
-        WidgetFrame.setVisible(true);
-      }
+      WidgetFrame.pack();
+      WidgetFrame.setVisible(true);
     }
   }
 
