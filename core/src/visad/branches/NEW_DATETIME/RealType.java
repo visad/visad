@@ -42,22 +42,25 @@ public class RealType extends ScalarType {
   private boolean DefaultSetEverAccessed;
 
 
-  /** Cartesian spatial coordinates */
+  /** Cartesian spatial coordinate - X axis */
   public final static RealType XAxis = new RealType("XAxis", null, true);
+  /** Cartesian spatial coordinate - Y axis */
   public final static RealType YAxis = new RealType("YAxis", null, true);
+  /** Cartesian spatial coordinate - Z axis */
   public final static RealType ZAxis = new RealType("ZAxis", null, true);
 
-  /** Spherical spatial coordinates */
+  /** Spherical spatial coordinate for Latitude*/
   public final static RealType Latitude =
     new RealType("Latitude", CommonUnit.degree, true);
+  /** Spherical spatial coordinate for Longitude*/
   public final static RealType Longitude =
     new RealType("Longitude", CommonUnit.degree, true);
   public final static RealType Radius =
     new RealType("Radius", null, true);
 
-  /** Temporal coordinate */
+  /** Temporal coordinate with temporal origin 1970-01-01 00:00:00Z */
   public final static RealType Time =
-    new RealType("Time", SI.second, true);
+    new RealType("Time", CommonUnit.secondsSinceTheEpoch, true);
 
   /** generic RealType */
   public final static RealType Generic =

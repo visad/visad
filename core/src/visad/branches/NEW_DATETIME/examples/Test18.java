@@ -42,7 +42,7 @@ public class Test18
 
     // different time extents test
     // 2 May 99, 15:51:00
-    double start = new DateTime(1999, 122, 57060).getValue();
+    double start = new DateTime(1999, 122, 57060.).getValue();
     Set time_set = new Linear1DSet(time_type, start,
                               start + 3600.0 * (ntimes1 - 1.0), ntimes1);
     Set time_hornet = new Linear1DSet(time_type, start,

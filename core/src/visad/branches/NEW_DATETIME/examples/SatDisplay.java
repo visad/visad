@@ -76,7 +76,7 @@ public class SatDisplay {
             RealTupleType rtype = (RealTupleType)ftype.getRange();
 
             if (remap) {
-              int SIZE = 256;
+              int SIZE = 512;
               RealTupleType lat_lon =
                 ((CoordinateSystem) dtype.getCoordinateSystem()).getReference();
               Linear2DSet dset = new Linear2DSet(lat_lon, -4.0, 70.0, SIZE,

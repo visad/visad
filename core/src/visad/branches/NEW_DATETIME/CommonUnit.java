@@ -30,12 +30,20 @@ package visad;
 */
 public class CommonUnit extends Object {
 
+  /** CommonUnit for plane angle, not temperature */
   public static Unit degree = SI.radian.scale(Math.PI/180.0, true);
   public static Unit radian = SI.radian;
   public static Unit second = SI.second;
   public static Unit meterPerSecond =
     new DerivedUnit(new BaseUnit[] {SI.meter, SI.second},
                     new int[] {1, -1});
+  /** CommonUnit for seconds since the Epoch (i.e. 1970-01-01 00:00:00Z) */
+  public static Unit secondsSinceTheEpoch =
+        new OffsetUnit(
+            visad.data.netcdf.units.UnitParser.encodeTimestamp(
+                1970, 1, 1, 0, 0, 0, 0),
+            SI.second);
+
   /** all BaseUnits have exponent zero in dimensionless */
   public static Unit dimensionless = new DerivedUnit();
   /** promiscuous is compatible with any Unit; useful for constants;
