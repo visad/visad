@@ -300,7 +300,6 @@ compile: clean
 		visad.RemoteDataImpl visad.RemoteFunctionImpl \
 		visad.RemoteFieldImpl visad.RemoteServerImpl
 	javac java3d/*.java
-	javac java2d/*.java
 	javac util/*.java
 	javac data/*.java
 	-(cd .. && jar xvf ucar.jar)
@@ -319,6 +318,7 @@ compile: clean
 	-javac paoloa/*.java
 	-javac aune/*.java
 	-(cd examples && javac *.java)
+#	javac java2d/*.java
 
 clean:
 	${RM} *.class
