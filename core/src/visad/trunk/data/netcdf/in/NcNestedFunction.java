@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedFunction.java,v 1.3 1998-04-03 20:35:18 visad Exp $
+ * $Id: NcNestedFunction.java,v 1.4 1998-04-13 17:17:03 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -110,6 +110,8 @@ NcNestedFunction
      *
      * @param vars	The netCDF variables comprising the range of the
      *			function.
+     * @exception VisADException		Couldn't create necessary VisAD
+     *						object.
      */
     private static FunctionType
     getFunctionType(NcVar[] vars)
@@ -339,6 +341,11 @@ NcNestedFunction
 	}
 
 
+	/*
+	 * Write data into the backing file.  Not supported.
+	 *
+	 * @exception UnsupportedOperationException	Always thrown.
+	 */
 	public void
 	writeFile(int[] fileLocations, Data range)
 	    throws UnsupportedOperationException
@@ -347,6 +354,11 @@ NcNestedFunction
 	}
 
 
+	/*
+	 * Read data from the backing file.  Not supported.
+	 *
+	 * @exception UnsupportedOperationException	Always thrown.
+	 */
 	public double[][]
 	readFlatField(FlatField template, int[] fileLocation)
 	    throws UnsupportedOperationException
@@ -355,6 +367,11 @@ NcNestedFunction
 	}
 
 
+	/*
+	 * Write data to the backing file.  Not supported.
+	 *
+	 * @exception UnsupportedOperationException	Always thrown.
+	 */
 	public void
 	writeFlatField(double[][] values, FlatField template, 
 			int[] fileLocation)
@@ -364,6 +381,12 @@ NcNestedFunction
 	}
 
 
+	/*
+	 * Return the FlatField.
+	 *
+	 * @exception VisADException		Couldn't create necessary VisAD
+	 *					object.
+	 */
 	public FlatField
 	getFlatField()
 	    throws VisADException
