@@ -278,7 +278,8 @@ public abstract class ActionImpl
                                      "ThingReferenceImpl");
     }
     if (findReference(ref) != null) {
-      throw new TypeException("ActionImpl.addReference: link already exists");
+      throw new ReferenceException("ActionImpl.addReference: " +
+                                   "link already exists");
     }
     addLink(new ReferenceActionLink(ref, this, this, getLinkId()));
     notifyAction();
