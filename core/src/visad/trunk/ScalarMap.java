@@ -1196,7 +1196,6 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
       copy(sm);
       return sm;
     } catch (Exception e) {
-      e.printStackTrace();
       return null;
     }
   }
