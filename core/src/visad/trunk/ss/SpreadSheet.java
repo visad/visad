@@ -353,11 +353,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
                      "Auto-display controls", true);
     optASC.addItemListener(this);
     options.add(optASC);
-
-    CheckboxMenuItem optFormula = new CheckboxMenuItem(
-                     "Show formula and RMI error messages", true);
-    optFormula.addItemListener(this);
-    options.add(optFormula);
     options.addSeparator();
 
     MenuItem optWidget = new MenuItem("Show controls");
@@ -1557,14 +1552,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Handles checkbox menu item changes (dimension checkboxes) */
   public void itemStateChanged(ItemEvent e) {
     String item = (String) e.getItem();
-    if (item.equals("Show formula and RMI error messages")) {
-      for (int j=0; j<NumVisY; j++) {
-        for (int i=0; i<NumVisX; i++) {
-          DisplayCells[i][j].setShowFormulaErrors(e.getStateChange()
-                                               == ItemEvent.SELECTED);
-        }
-      }
-    }
     try {
       if (item.equals("3-D (Java3D)")) {
         DisplayCells[CurX][CurY].setDimension(false, false);

@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                   27 May 1999
+                                   22 June 1999
  
                                 Table of Contents
 
@@ -298,12 +298,6 @@ cell's mappings change, or the cell becomes highlighted.  If this option is
 unchecked, use the "Show VisAD controls" menu item or toolbar button to display
 the controls.  This option is checked by default.
 
-Show formula and RMI evaluation errors - If this option is checked, dialog
-boxes will pop up explaining why any formulas entered are illegal or could not
-be evaluated, as well as reporting any errors from RMI address imports.  If
-this option is not checked, the only notification of an error is a large X
-through the current cell.
-
 Show VisAD controls - Displays the set of controls relevant to the current cell
 (these controls are displayed by default, but could become hidden at a later
 time).  This option is not a checkbox, but rather just redisplays the Controls
@@ -331,9 +325,10 @@ data from that URL.  If you enter an RMI address, the Spread Sheet will try to
 import the data from that RMI address (see section 2.4).  If you enter a
 formula, it will attempt to parse and evaluate that formula.  If a formula
 entered is invalid for some reason, the answer cannot be computed, or the file,
-URL, or RMI address entered does not exist, the cell will have a large X
-through it instead of the normal data box.  If the data box appears, the cell
-was computed successfully and mappings can be set up.
+URL, or RMI address entered does not exist, the cell will have an explanation
+(i.e., a list of error messages) displayed inside instead of the normal data
+box.  If the data box appears, the cell was computed successfully and mappings
+can be set up.
 
 2.3.2.2 How To Enter Formulas
 
@@ -464,8 +459,8 @@ of VisADServ using the following RMI address in the formula bar:
     rmi://www.ssec.wisc.edu/VisADServ/B1
 
 Just like file names, URLs, and formulas, the Spread Sheet will load the data,
-showing the data box if the import was successful, or displaying a large X in
-the cell if there was a problem.
+showing the data box if the import was successful, or displaying error messages
+within the cell if there was a problem.
 
 In addition to having RMI address importing capability, the Spread Sheet
 can be set to export its cells as RMI objects like in the example above.  To
@@ -496,12 +491,24 @@ the Spread Sheet.
 
 The following bugs have been discovered and have not yet been fixed:
 
-1) The Spread Sheet will not import certain data sets correctly, due to
+1) The Spread Sheet may not import certain data sets correctly, due to
    incomplete implementations in VisAD file adapter forms.
 
 2) When resizing cells, if a cell is made to be as small as it can be
    in one or more dimensions, some extra space or a scroll bar will
    appear in the bottom or right-hand corners of the Spread Sheet window.
+
+3) In Windows, the first time a data set is imported, an error beginning with
+   "A nonfatal internal JIT (3.00.078(x)) error 'regvar' has occurred"
+   is displayed.  This error occurs whenever a VisAD application makes use
+   of the visad.data.DefaultFamily.open() method, and is a problem with the
+   Symantec JIT compiler for Windows.  This error is harmless and data sets
+   are still imported correctly (i.e., ignore this error message).
+
+4) When importing certain netCDF data sets, a series of errors beginning with
+   "Cannot decode unit" may be displayed.  These are warnings the netCDF
+   loader prints about unit types.  The Spread Sheet will still import the
+   netCDF data set correctly (i.e., these warnings can be safely ignored).
 
 If you find a bug in the Spread Sheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu and whibbard@macc.wisc.edu

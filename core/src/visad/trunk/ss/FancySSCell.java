@@ -318,7 +318,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** Clear the cell if no other cell depends on it; otherwise, ask the
-      user "Are you sure?"  Return true if the cell was cleared */
+      user &quot;Are you sure?&quot; return true if the cell was cleared */
   public boolean smartClear() throws VisADException, RemoteException {
     if (confirmClear()) {
       clearWidgetFrame();
@@ -329,7 +329,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** Permanently destroy this cell, asking user for confirmation first
-      if other cells depend on it.  Return true if the cell was destroyed */
+      if other cells depend on it; return true if the cell was destroyed */
   public boolean smartDestroy() throws VisADException, RemoteException {
     if (confirmClear()) {
       clearWidgetFrame();
@@ -344,7 +344,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       to its Display */
   public void addMapDialog() {
     // check whether this cell has data
-    if (!HasData) {
+    if (!hasData()) {
       JOptionPane.showMessageDialog(Parent,
           "This cell has no data",
           "FancySSCell error", JOptionPane.ERROR_MESSAGE);
@@ -508,7 +508,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
   /** Save to a file selected by the user, in netCDF or serialized format */
   public void saveDataDialog(boolean netcdf) {
-    if (!HasData) {
+    if (!hasData()) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",
                   "Nothing to save", JOptionPane.ERROR_MESSAGE);
       return;
@@ -569,9 +569,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   private void setHighlighted(boolean hl) {
     if (hl) setBorder(B_HIGH);
     else {
-      if (HasFormula) setBorder(B_FORM);
+      if (hasFormula()) setBorder(B_FORM);
       else if (RMIAddress != null) setBorder(B_RMI);
-      else if (HasData) setBorder(B_URL);
+      else if (hasData()) setBorder(B_URL);
       else setBorder(B_EMPTY);
     }
   }
