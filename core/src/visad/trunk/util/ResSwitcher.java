@@ -41,79 +41,16 @@ import visad.java3d.DisplayImplJ3D;
  * time.  When the display is idle, the high-resolution representation
  * is used for greater detail.
  */
-public class ResSwitcher implements ActivityHandler {
-
-  /** Debugging flag. */
-  private static final boolean DEBUG = true;
+public class ResSwitcher extends DualRes implements ActivityHandler {
 
   /** Display affected by resolution switcher. */
   private LocalDisplay display;
-
-  /** High-resolution data reference. */
-  private DataReferenceImpl hi_ref;
-  
-  /** Low-resolution data reference. */
-  private DataReferenceImpl lo_ref;
 
   /** High-resolution data renderer toggled by resolution switcher. */
   private DataRenderer hi_rend;
   
   /** Low-resolution data renderer toggled by resolution switcher. */
   private DataRenderer lo_rend;
-
-  /** Computational cell that scales down high-resolution data. */
-  private CellImpl cell;
-
-  /** Scale factor for low-resolution data. */
-  private double scale = 0.5;
-
-  /** Rescales a field by the given scale factor. */
-  public static FieldImpl rescale(FieldImpl field, double scale)
-    throws VisADException, RemoteException
-  {
-    Set set = field.getDomainSet();
-    if (!(set instanceof LinearSet)) return null;
-    LinearSet lset = (LinearSet) set;
-
-    // scale set to new resolution
-    int dim = set.getDimension();
-    Linear1DSet[] lin_sets = new Linear1DSet[dim];
-    for (int i=0; i<dim; i++) {
-      Linear1DSet lin1set = lset.getLinear1DComponent(i);
-      MathType type = lin1set.getType();
-      double first = lin1set.getFirst();
-      double last = lin1set.getLast();
-      int length = (int) (lin1set.getLength() * scale);
-      if (length < 1) length = 1;
-      CoordinateSystem coord_sys = lin1set.getCoordinateSystem();
-      Unit[] units = lin1set.getSetUnits();
-
-      lin_sets[i] = new Linear1DSet(type,
-        first, last, length, coord_sys, units, null);
-    }
-
-    // compute new linear set at new resolution
-    MathType type = set.getType();
-    CoordinateSystem coord_sys = set.getCoordinateSystem();
-    Unit[] units = set.getSetUnits();
-    Set nset;
-    if (dim == 1) {
-      nset = lin_sets[0];
-    }
-    else if (dim == 2) {
-      nset = new Linear2DSet(type, lin_sets, coord_sys, units, null);
-    }
-    else if (dim == 3) {
-      nset = new Linear3DSet(type, lin_sets, coord_sys, units, null);
-    }
-    else {
-      nset = new LinearNDSet(type, lin_sets, coord_sys, units, null);
-    }
-
-    // rescale data
-    return (FieldImpl)
-      field.resample(nset, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
-  }
 
   /**
    * Constructs a resolution switcher for swapping between high- and low-
@@ -122,42 +59,9 @@ public class ResSwitcher implements ActivityHandler {
   public ResSwitcher(LocalDisplay d, DataReferenceImpl ref)
     throws VisADException, RemoteException
   {
+    super(ref);
     display = d;
-    hi_ref = ref;
-    lo_ref = new DataReferenceImpl("ResSwitcher_ref");
     display.addReference(lo_ref);
-
-    cell = new CellImpl() {
-      public void doAction() {
-        try {
-          // compute low-resolution data representation
-          Data data = hi_ref.getData();
-          if (data == null || !(data instanceof FieldImpl)) return;
-          FieldImpl field = (FieldImpl) data;
-
-          // check if data is a timestack
-          FunctionType ftype = (FunctionType) data.getType();
-          RealTupleType domain = ftype.getDomain();
-          MathType range = ftype.getRange();
-          FieldImpl downfield;
-          if (domain.getDimension() == 1 && range instanceof FunctionType) {
-            // timestack; downsample each range component
-            downfield = new FieldImpl(ftype, field.getDomainSet());
-            int len = field.getLength();
-            for (int i=0; i<len; i++) {
-              Data sample = field.getSample(i);
-              if (!(sample instanceof FieldImpl)) return;
-              downfield.setSample(i, rescale((FieldImpl) sample, scale));
-            }
-          }
-          else downfield = rescale(field, scale);
-          lo_ref.setData(downfield);
-        }
-        catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-        catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-      }
-    };
-    cell.addReference(hi_ref);
 
     // get data renderers
     Vector dataRenderers = display.getRendererVector();
@@ -179,24 +83,12 @@ public class ResSwitcher implements ActivityHandler {
       }
     }
 
-    d.addActivityHandler(this);
+    display.addActivityHandler(this);
   }
 
   /** Unlinks the resolution switcher from its display. */
   public void unlink() throws VisADException {
     display.removeActivityHandler(this);
-  }
-
-  /**
-   * Sets the factor by which the low-resolution representation is
-   * scaled down from the high-resolution one.
-   */
-  public void setResolutionScale(double scale) throws VisADException {
-    if (scale > 1) this.scale = 1.0 / scale;
-    else {
-      throw new VisADException(
-        "ResSwitcher: scale factor must be greater than 1");
-    }
   }
 
   /** Swaps in the low-resolution data when the display is busy. */
