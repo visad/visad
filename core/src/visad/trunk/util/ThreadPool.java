@@ -204,6 +204,16 @@ waiting for other ActionImpls to run
     }
   }
 
+  /**
+   * Has the thread pool been closed?
+   *
+   * @return <tt>true</tt> if the pool has been terminated.
+   */
+  public boolean isTerminated()
+  {
+    return terminateThread;
+  }
+
   /** Add a task to the queue; tasks are executed as soon as a thread
    *  is available, in the order in which they are submitted
    */

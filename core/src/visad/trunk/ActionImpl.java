@@ -176,7 +176,7 @@ public abstract class ActionImpl
     }
 
     // WLH 17 Dec 2001
-    if (pool != null) {
+    if (pool != null && !pool.isTerminated()) {
       pool.queue(this);
     }
     run_links = null;
