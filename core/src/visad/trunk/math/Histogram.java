@@ -53,6 +53,15 @@ public class Histogram {
   public static FlatField makeHistogram(Data[] datums) {
     FlatField result = null;
     try {
+      if (datums == null || datums.length != 2) {
+        throw new VisADException("bad arguments");
+      }
+      if (!(datums[0] instanceof Field)) {
+        throw new VisADException("first argument must be a Field");
+      }
+      if (!(datums[1] instanceof Set)) {
+        throw new VisADException("second argument must be a Set");
+      }
       result = makeHistogram((Field) datums[0], (Set) datums[1]);
     }
     catch (VisADException e) {
@@ -99,7 +108,9 @@ public class Histogram {
     int len = set.getLength();
     float[][] hist_values = new float[1][len];
     for (int i=0; i<len; i++) hist_values[0][i] = 0.0f;
-    for (int j=0; j<indices.length; j++) hist_values[0][indices[j]]++;
+    for (int j=0; j<indices.length; j++) {
+      if (indices[j] >= 0) hist_values[0][indices[j]]++;
+    }
 
     FlatField result = new FlatField(htype, set);
     result.setSamples(hist_values);
@@ -128,25 +139,26 @@ public class Histogram {
 
     FlatField image = new FlatField(Field2d2, Domain2dSet);
     int len = Domain2dSet.getLength();
+    int ADD = len * len / 16;
     float[][] values = new float[2][len];
     for (int i=0; i<len; i++) {
       values[0][i] = (float) i;
-      values[1][i] = (float) ((i * i + SIZE) * Math.random());
+      values[1][i] = (float) ((i * i + ADD) * Math.random());
     }
     image.setSamples(values, false);
 
     Linear2DSet histSet =
-      new Linear2DSet(Range2d, 0.0, len - 1.0, len / SIZE,
-                               0.0, (len - 1.0) * (len - 1.0) + SIZE, len / SIZE);
+      new Linear2DSet(Range2d, 0.5 * SIZE, len - 0.5 * SIZE, len / SIZE,
+           0.5 * SIZE * len, len * len + ADD - 0.5 * SIZE * len, len / SIZE);
 
-    FlatField hist = makeHistogram(image, histSet);
+    FlatField hist = Histogram.makeHistogram(image, histSet);
 
     RealType count = RealType.getRealType("count");
 
     DisplayImplJ3D display1 = new DisplayImplJ3D("display1");
     display1.addMap(new ScalarMap(A, Display.XAxis));
     display1.addMap(new ScalarMap(B, Display.YAxis));
-    display1.addMap(new ScalarMap(count, Display.ZAxis));
+    if (args.length == 0) display1.addMap(new ScalarMap(count, Display.ZAxis));
     display1.addMap(new ScalarMap(count, Display.RGB));
 
     GraphicsModeControl gmc = display1.getGraphicsModeControl();

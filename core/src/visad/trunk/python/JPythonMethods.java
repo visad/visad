@@ -371,5 +371,11 @@ public abstract class JPythonMethods {
     return matrix.svd();
   }
 
+  /** return histogram */
+  public static FlatField hist(Field field, Set set)
+         throws VisADException, RemoteException {
+    return Histogram.makeHistogram(field, set);
+  }
+
 }
 
