@@ -5,6 +5,8 @@ from javax.swing import JFrame, JPanel
 from java.awt import BorderLayout, FlowLayout, Font
 import subs
 
+__mapname='outlsupu'
+
 def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD Image"):
 
   dom_1 = RealType.getRealType(domainType(data,0) )
@@ -30,6 +32,82 @@ def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD
   subs.setAspectRatio(disp, float(width)/float(height))
   subs.showDisplay(disp,width,height,title,None,None,panel)
   return disp
+
+#----------------------------------------------------------------------
+# mapimage displays a navigatedimage with a basemap on top
+def mapimage(imagedata, mapfile="outlsupw", panel=None, colortable=None, width=400, height=400, lat=None, lon=None, title="VisAD Image and Map"):
+
+  rng = RealType.getRealType(rangeType(imagedata,0))
+  rngMap = ScalarMap(rng, Display.RGB)
+  xMap = ScalarMap(RealType.Longitude, Display.XAxis)
+  yMap = ScalarMap(RealType.Latitude, Display.YAxis)
+  maps = (xMap, yMap, rngMap)
+  if lat is None or lon is None:
+    xl = len(getDomain(imagedata).getX())
+    yl = len(getDomain(imagedata).getY())
+    c=imagedata.getNavigation()
+    ll = c.toReference( ( (0,0,xl,xl),(0,yl,0,yl) ) )
+    import java.lang.Double.NaN as missing
+
+    if (min(ll[0]) == missing) or (min(ll[1]) == missing) or (min(ll[1]) == max(ll[1])) or (min(ll[0]) == max(ll[0])):
+      # compute delta from mid-point...as an estimate
+      xl2 = xl/2.0
+      yl2 = yl/2.0
+      ll2 = c.toReference( ( 
+                (xl2,xl2,xl2,xl2-10, xl2+10),(yl2,yl2-10,yl2+10,yl2,yl2)))
+      dlon = abs((ll2[1][4] - ll2[1][3])*xl/40.) + abs((ll2[0][4] - ll2[0][3])*yl/40.)
+
+      dlat = abs((ll2[0][2] - ll2[0][1])*yl/40.) + abs((ll2[1][2] - ll2[1][1])*xl/40.)
+
+      lonmin = max( -180., min(ll2[1][0] - dlon, min(ll[1])))
+      lonmax = min( 360., max(ll2[1][0] + dlon, max(ll[1])))
+
+      latmin = max(-90., min(ll2[0][0] - dlat, min(ll[0])))
+      latmax = min(90., max(ll2[0][0] + dlat, min(ll[0])))
+
+      xMap.setRange(lonmin, lonmax)
+      yMap.setRange(latmin, latmax)
+      print "computed lat/lon bounds=",latmin,latmax,lonmin,lonmax
+
+    else:
+      xMap.setRange(min(ll[1]), max(ll[1]))
+      yMap.setRange(min(ll[0]), max(ll[0]))
+
+  else:
+    yMap.setRange(lat[0], lat[1])
+    xMap.setRange(lon[0], lon[1])
+
+  disp = subs.makeDisplay(maps)
+
+  if colortable is None:
+    # make a gray-scale table
+    gray = []
+    for i in range(0,255):
+      gray.append( float(i)/255.)
+    colortable = (gray, gray, gray)
+
+  rngMap.getControl().setTable(colortable)
+  mapdata = load(mapfile)
+  drm = subs.addData("basemap", mapdata, disp)
+  dr=subs.addData("addeimage", imagedata, disp)
+  subs.setBoxSize(disp, .80, clip=1)
+  subs.setAspectRatio(disp, float(width)/float(height))
+  subs.showDisplay(disp,width,height,title,None,None,panel)
+  return disp
+
+  
+#----------------------------------------------------------------------------
+# use GetAreaGUI to repeatedly show an image
+
+def __showaddeimage(event):
+  mapimage(load(event.getActionCommand()),__mapname)
+
+def addeimage(mapname='outlsupu'):
+  global __mapname
+  __mapname = mapname
+  from edu.wisc.ssec.mcidas.adde import GetAreaGUI
+  __gag = GetAreaGUI("Show",0,0,actionPerformed=__showaddeimage)
+  __gag.show()
 
 #----------------------------------------------------------------------------
 # basic scatter plot between two fields.

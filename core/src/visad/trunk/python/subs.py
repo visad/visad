@@ -117,9 +117,7 @@ except:
 
 # define private fields for certains types and scalar mappings
 __py_text_type = RealType.getRealType("py_text_type")
-__py_text_map = ScalarMap(__py_text_type, Display.Text)
 __py_shape_type = RealType.getRealType("py_shape_type")
-__py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
 __py_shapes = None 
 __pcMatrix = None
 
@@ -128,7 +126,9 @@ __pcMatrix = None
 def makeDisplay3D(maps):
   global __py_shapes
   disp = DisplayImplJ3D("Jython3D")
+  __py_text_map = ScalarMap(__py_text_type, Display.Text)
   disp.addMap(__py_text_map)
+  __py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
   disp.addMap(__py_shape_map)
 
   if maps != None:  addMaps(disp, maps)
@@ -140,7 +140,9 @@ def makeDisplay3D(maps):
 def makeDisplay2D(maps):
   global __py_shapes
   disp = DisplayImplJ2D("Jython2D")
+  __py_text_map = ScalarMap(__py_text_type, Display.Text)
   disp.addMap(__py_text_map)
+  __py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
   disp.addMap(__py_shape_map)
 
   print "Using 2D"
@@ -166,7 +168,9 @@ def makeDisplay(maps):
       tdr = TwoDDisplayRendererJ3D() 
       disp = DisplayImplJ3D("Jython3D",tdr)
       addMaps(disp, maps)
+      __py_text_map = ScalarMap(__py_text_type, Display.Text)
       disp.addMap(__py_text_map)
+      __py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
       disp.addMap(__py_shape_map)
       __py_shapes = Shapes(disp, __py_shape_map)
     else:
