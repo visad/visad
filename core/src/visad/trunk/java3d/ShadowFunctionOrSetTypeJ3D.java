@@ -961,7 +961,10 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                   b = (b < 0) ? 0 : (b > 255) ? 255 : b;
                   a = (int) (color_values[3][k] * 255.0);
                   a = (a < 0) ? 0 : (a > 255) ? 255 : a;
+/* need this for Alpha01:
                   image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
+*/
+                  image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
                   k++;
                 }
                 for (int i=data_width; i<texture_width; i++) {
@@ -990,7 +993,10 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                   b = (int) (color_values[2][k] * 255.0);
                   b = (b < 0) ? 0 : (b > 255) ? 255 : b;
                   a = 255;
+/* need this for Alpha01:
                   image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
+*/
+                  image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
                   k++;
                 }
                 for (int i=data_width; i<texture_width; i++) {
@@ -1002,7 +1008,7 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                   image.setRGB(i, j, 0);
                 }
               }
-              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
+
 //
 // this doesn't work - why not?
 //            image.setRGB(0, 0, texture_width, texture_height,
