@@ -165,11 +165,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** File Save as serialized menu item */
   MenuItem FileSave2;
 
-  /** Display Edit mappings menu item */
-  MenuItem DispEdit;
+  /** Cell Edit mappings menu item */
+  MenuItem CellEdit;
 
-  /** Options Show controls menu item */
-  MenuItem OptWidget;
+  /** Cell Reset orientation menu item */
+  MenuItem CellReset;
+
+  /** Cell Show controls menu item */
+  MenuItem CellShow;
 
   /** File Save as netCDF toolbar button */
   JButton ToolSave;
@@ -177,20 +180,23 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Edit Paste toolbar button */
   JButton ToolPaste;
 
-  /** Display 3-D (Java3D) toolbar button */
+  /** Cell 3-D (Java3D) toolbar button */
   JButton Tool3D;
 
-  /** Display 2-D (Java3D) toolbar button */
+  /** Cell 2-D (Java3D) toolbar button */
   JButton Tool2D;
 
-  /** Display 2-D (Java2D) toolbar button */
+  /** Cell 2-D (Java2D) toolbar button */
   JButton ToolJ2D;
 
-  /** Display Edit mappings toolbar button */
+  /** Cell Edit mappings toolbar button */
   JButton ToolMap;
 
-  /** Options Show controls toolbar button */
+  /** Cell Show controls toolbar button */
   JButton ToolShow;
+
+  /** Cell Reset orientation toolbar button */
+  JButton ToolReset;
 
   /** formula bar checkbox toolbar button */
   JButton FormulaOk;
@@ -464,16 +470,46 @@ public class SpreadSheet extends JFrame implements ActionListener,
     setupSaveas.setActionCommand("setupSaveas");
     setup.add(setupSaveas);
 
+    // cell menu
+    Menu cell = new Menu("Cell");
+    menubar.add(cell);
+
+    CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", CanDo3D);
+    CellDim3D3D.addItemListener(this);
+    CellDim3D3D.setEnabled(CanDo3D);
+    cell.add(CellDim3D3D);
+
+    CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)", !CanDo3D);
+    CellDim2D2D.addItemListener(this);
+    cell.add(CellDim2D2D);
+
+    CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)", false);
+    CellDim2D3D.addItemListener(this);
+    CellDim2D3D.setEnabled(CanDo3D);
+    cell.add(CellDim2D3D);
+    cell.addSeparator();
+
+    CellEdit = new MenuItem("Edit mappings...");
+    CellEdit.addActionListener(this);
+    CellEdit.setActionCommand("cellEdit");
+    CellEdit.setEnabled(false);
+    cell.add(CellEdit);
+
+    CellReset = new MenuItem("Reset orientation");
+    CellReset.addActionListener(this);
+    CellReset.setActionCommand("cellReset");
+    CellReset.setEnabled(false);
+    cell.add(CellReset);
+
+    CellShow = new MenuItem("Show controls");
+    CellShow.addActionListener(this);
+    CellShow.setActionCommand("cellShow");
+    CellShow.setEnabled(false);
+    cell.add(CellShow);
+
     // display menu
     Menu disp = new Menu("Display");
     menubar.add(disp);
-
-    DispEdit = new MenuItem("Edit mappings...");
-    DispEdit.addActionListener(this);
-    DispEdit.setActionCommand("dispEdit");
-    DispEdit.setEnabled(false);
-    disp.add(DispEdit);
-    disp.addSeparator();
 
     MenuItem dispAddCol = new MenuItem("Add column");
     dispAddCol.addActionListener(this);
@@ -500,21 +536,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     dispTile.addActionListener(this);
     dispTile.setActionCommand("dispTile");
     disp.add(dispTile);
-    disp.addSeparator();
-
-    CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", CanDo3D);
-    CellDim3D3D.addItemListener(this);
-    CellDim3D3D.setEnabled(CanDo3D);
-    disp.add(CellDim3D3D);
-
-    CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)", !CanDo3D);
-    CellDim2D2D.addItemListener(this);
-    disp.add(CellDim2D2D);
-
-    CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)", false);
-    CellDim2D3D.addItemListener(this);
-    CellDim2D3D.setEnabled(CanDo3D);
-    disp.add(CellDim2D3D);
 
     // options menu
     Menu options = new Menu("Options");
@@ -534,13 +555,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
       AutoShowControls);
     AutoShowBox.addItemListener(this);
     options.add(AutoShowBox);
-    options.addSeparator();
-
-    OptWidget = new MenuItem("Show controls");
-    OptWidget.addActionListener(this);
-    OptWidget.setActionCommand("optWidget");
-    OptWidget.setEnabled(false);
-    options.add(OptWidget);
 
     // set up toolbar
     JToolBar toolbar = new JToolBar();
@@ -562,23 +576,23 @@ public class SpreadSheet extends JFrame implements ActionListener,
       "editPaste", false, toolbar);
     toolbar.addSeparator();
 
-    // display menu toolbar icons
+    // cell menu toolbar icons
     Tool3D = addToolbarButton("3d.gif", "3-D (Java3D)",
-      "disp3D", false, toolbar);
+      "cell3D", false, toolbar);
     ToolJ2D = addToolbarButton("j2d.gif", "2-D (Java2D)",
-      "dispJ2D", CanDo3D, toolbar);
+      "cellJ2D", CanDo3D, toolbar);
     Tool2D = addToolbarButton("2d.gif", "2-D (Java3D)",
-      "disp2D", CanDo3D, toolbar);
+      "cell2D", CanDo3D, toolbar);
     toolbar.addSeparator();
     ToolMap = addToolbarButton("mappings.gif", "Edit mappings",
-      "dispEdit", false, toolbar);
-
-    // options menu toolbar icons
+      "cellEdit", false, toolbar);
+    ToolReset = addToolbarButton("reset.gif", "Reset orientation",
+      "cellReset", false, toolbar);
     ToolShow = addToolbarButton("show.gif", "Show controls",
-      "optWidget", false, toolbar);
+      "cellShow", false, toolbar);
     toolbar.addSeparator();
 
-    // more display menu toolbar icons
+    // display menu toolbar icon
     addToolbarButton("tile.gif", "Tile cells", "dispTile", true, toolbar);
     toolbar.add(Box.createHorizontalGlue());
 
@@ -940,6 +954,131 @@ public class SpreadSheet extends JFrame implements ActionListener,
     FormulaOk.requestFocus();
     tileCells();
   }
+
+
+  // *** File menu methods ***
+
+  /** import a data set */
+  void loadDataSet() {
+    DisplayCells[CurX][CurY].loadDataDialog();
+  }
+
+  /** export a data set to netCDF format */
+  void exportDataSetNetcdf() {
+    try {
+      DisplayCells[CurX][CurY].saveDataDialog(new visad.data.netcdf.Plain());
+    }
+    catch (VisADException exc) {
+      displayErrorMessage("Cannot save the data. Unable to create " +
+        "a netCDF saver: " + exc.getMessage(), "VisAD SpreadSheet error");
+    }
+  }
+
+  /** export a data set to serialized data format */
+  void exportDataSetSerial() {
+    DisplayCells[CurX][CurY].saveDataDialog(new visad.data.visad.VisADForm());
+  }
+
+  /** do any necessary clean-up, then quit the program */
+  void quitProgram() {
+    // wait for files to finish saving
+    Thread t = new Thread() {
+      public void run() {
+        boolean b = BasicSSCell.isSaving();
+        JFrame f = new JFrame("Please wait");
+        if (b) {
+          // display "please wait" message in new frame
+          f.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          JPanel p = new JPanel();
+          f.setContentPane(p);
+          p.setBorder(new EmptyBorder(10, 20, 10, 20));
+          p.setLayout(new BorderLayout());
+          p.add("Center", new JLabel("Please wait while the VisAD " +
+                          "Spread Sheet finishes saving files..."));
+          f.setResizable(false);
+          f.pack();
+          Dimension sSize = Toolkit.getDefaultToolkit().getScreenSize();
+          Dimension fSize = f.getSize();
+          f.setLocation(sSize.width/2 - fSize.width/2,
+                        sSize.height/2 - fSize.height/2);
+          f.setVisible(true);
+        }
+        while (BasicSSCell.isSaving()) {
+          try {
+            sleep(200);
+          }
+          catch (InterruptedException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
+        }
+        if (b) {
+          f.setCursor(Cursor.getDefaultCursor());
+          f.setVisible(false);
+        }
+        System.exit(0);
+      }
+    };
+    t.start();
+  }
+
+
+  // *** Edit menu methods ***
+
+  /** move a cell from the screen to the clipboard */
+  void cutCell() {
+    if (DisplayCells[CurX][CurY].confirmClear()) {
+      copyCell();
+      clearCell(false);
+    }
+  }
+
+  /** copy a cell from the screen to the clipboard */
+  void copyCell() {
+    Clipboard = DisplayCells[CurX][CurY].getSaveString();
+    EditPaste.setEnabled(true);
+    ToolPaste.setEnabled(true);
+  }
+
+  /** copy a cell from the clipboard to the screen */
+  void pasteCell() {
+    if (Clipboard != null) {
+      try {
+        boolean b = DisplayCells[CurX][CurY].getAutoDetect();
+        DisplayCells[CurX][CurY].setAutoDetect(false);
+        DisplayCells[CurX][CurY].setSaveString(Clipboard);
+        DisplayCells[CurX][CurY].setAutoDetect(b);
+      }
+      catch (VisADException exc) {
+        displayErrorMessage("Cannot paste cell: " + exc.getMessage(),
+          "VisAD SpreadSheet error");
+      }
+      catch (RemoteException exc) {
+        displayErrorMessage("Cannot paste cell: " + exc.getMessage(),
+          "VisAD SpreadSheet error");
+      }
+    }
+  }
+
+  /** clear the mappings and formula of the current cell */
+  void clearCell(boolean checkSafe) {
+    try {
+      if (checkSafe) DisplayCells[CurX][CurY].smartClear();
+      else DisplayCells[CurX][CurY].clearCell();
+    }
+    catch (VisADException exc) {
+      displayErrorMessage("Cannot clear display mappings: " + exc.getMessage(),
+        "VisAD SpreadSheet error");
+    }
+    catch (RemoteException exc) {
+      displayErrorMessage("Cannot clear display mappings: " + exc.getMessage(),
+        "VisAD SpreadSheet error");
+    }
+    refreshFormulaBar();
+    refreshMenuCommands();
+  }
+
+
+  // *** Setup menu methods ***
 
   /** create a new spreadsheet file; return true if successful */
   boolean newFile(boolean safe) {
@@ -1461,99 +1600,23 @@ public class SpreadSheet extends JFrame implements ActionListener,
     saveFile();
   }
 
-  /** do any necessary clean-up, then quit the program */
-  void quitProgram() {
-    // wait for files to finish saving
-    Thread t = new Thread() {
-      public void run() {
-        boolean b = BasicSSCell.isSaving();
-        JFrame f = new JFrame("Please wait");
-        if (b) {
-          // display "please wait" message in new frame
-          f.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          JPanel p = new JPanel();
-          f.setContentPane(p);
-          p.setBorder(new EmptyBorder(10, 20, 10, 20));
-          p.setLayout(new BorderLayout());
-          p.add("Center", new JLabel("Please wait while the VisAD " +
-                          "Spread Sheet finishes saving files..."));
-          f.setResizable(false);
-          f.pack();
-          Dimension sSize = Toolkit.getDefaultToolkit().getScreenSize();
-          Dimension fSize = f.getSize();
-          f.setLocation(sSize.width/2 - fSize.width/2,
-                        sSize.height/2 - fSize.height/2);
-          f.setVisible(true);
-        }
-        while (BasicSSCell.isSaving()) {
-          try {
-            sleep(200);
-          }
-          catch (InterruptedException exc) {
-            if (BasicSSCell.DEBUG) exc.printStackTrace();
-          }
-        }
-        if (b) {
-          f.setCursor(Cursor.getDefaultCursor());
-          f.setVisible(false);
-        }
-        System.exit(0);
-      }
-    };
-    t.start();
-  }
 
-  /** move a cell from the screen to the clipboard */
-  void cutCell() {
-    if (DisplayCells[CurX][CurY].confirmClear()) {
-      copyCell();
-      clearCell(false);
-    }
-  }
+  // *** Cell menu methods ***
 
-  /** copy a cell from the screen to the clipboard */
-  void copyCell() {
-    Clipboard = DisplayCells[CurX][CurY].getSaveString();
-    EditPaste.setEnabled(true);
-    ToolPaste.setEnabled(true);
-  }
-
-  /** copy a cell from the clipboard to the screen */
-  void pasteCell() {
-    if (Clipboard != null) {
-      try {
-        boolean b = DisplayCells[CurX][CurY].getAutoDetect();
-        DisplayCells[CurX][CurY].setAutoDetect(false);
-        DisplayCells[CurX][CurY].setSaveString(Clipboard);
-        DisplayCells[CurX][CurY].setAutoDetect(b);
-      }
-      catch (VisADException exc) {
-        displayErrorMessage("Cannot paste cell: " + exc.getMessage(),
-          "VisAD SpreadSheet error");
-      }
-      catch (RemoteException exc) {
-        displayErrorMessage("Cannot paste cell: " + exc.getMessage(),
-          "VisAD SpreadSheet error");
-      }
-    }
-  }
-
-  /** clear the mappings and formula of the current cell */
-  void clearCell(boolean checkSafe) {
+  /** set the dimension of the current cell */
+  private void setDim(boolean threeD, boolean java3D) {
     try {
-      if (checkSafe) DisplayCells[CurX][CurY].smartClear();
-      else DisplayCells[CurX][CurY].clearCell();
+      DisplayCells[CurX][CurY].setDimension(threeD, java3D);
     }
     catch (VisADException exc) {
-      displayErrorMessage("Cannot clear display mappings: " + exc.getMessage(),
-        "VisAD SpreadSheet error");
+      displayErrorMessage("Cannot alter display dimension: " +
+        exc.getMessage(), "VisAD SpreadSheet error");
     }
     catch (RemoteException exc) {
-      displayErrorMessage("Cannot clear display mappings: " + exc.getMessage(),
-        "VisAD SpreadSheet error");
+      displayErrorMessage("Cannot alter display dimension: " +
+        exc.getMessage(), "VisAD SpreadSheet error");
     }
-    refreshFormulaBar();
-    refreshMenuCommands();
+    refreshDisplayMenuItems();
   }
 
   /** specify mappings from Data to Display */
@@ -1562,26 +1625,43 @@ public class SpreadSheet extends JFrame implements ActionListener,
     refreshMenuCommands();
   }
 
-  /** import a data set */
-  void loadDataSet() {
-    DisplayCells[CurX][CurY].loadDataDialog();
+  /** resets the display projection to its original value */
+  void resetOrientation() {
+    DisplayImpl display = DisplayCells[CurX][CurY].getDisplay();
+    if (display != null) {
+      ProjectionControl pc = display.getProjectionControl();
+      if (pc != null) {
+        int dim = DisplayCells[CurX][CurY].getDimension();
+        double[] matrix;
+        if (dim == 1) {
+          // 3-D (Java3D)
+          matrix = new double[]
+            {0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1};
+        }
+        else if (dim == 2) {
+          // 2-D (Java2D)
+          matrix = new double[] {1, 0, 0, -1, 0, 0};
+        }
+        else {
+          // 2-D (Java3D)
+          matrix = new double[]
+            {0.65, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 1};
+        }
+        try {
+          pc.setMatrix(matrix);
+        }
+        catch (VisADException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+      }
+    }
   }
 
-  /** export a data set to netCDF format */
-  void exportDataSetNetcdf() {
-    try {
-      DisplayCells[CurX][CurY].saveDataDialog(new visad.data.netcdf.Plain());
-    }
-    catch (VisADException exc) {
-      displayErrorMessage("Cannot save the data. Unable to create " +
-        "a netCDF saver: " + exc.getMessage(), "VisAD SpreadSheet error");
-    }
-  }
 
-  /** export a data set to serialized data format */
-  void exportDataSetSerial() {
-    DisplayCells[CurX][CurY].saveDataDialog(new visad.data.visad.VisADForm());
-  }
+  // *** Display menu methods ***
 
   /** add a column to the spreadsheet */
   synchronized void addColumn() {
@@ -1859,25 +1939,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     return true;
   }
 
-  /** ensure that the cells' preferred sizes match those of the labels */
-  private void synchLabelAndCellSizes() {
-    // resize spreadsheet cells
-    for (int j=0; j<NumVisY; j++) {
-      int h = VertLabel[j].getSize().height;
-      for (int i=0; i<NumVisX; i++) {
-        int w = HorizLabel[i].getSize().width;
-        DisplayCells[i][j].setPreferredSize(new Dimension(w, h));
-      }
-    }
-
-    // refresh display
-    HorizLabels.validate();
-    VertLabels.validate();
-    DisplayPanel.doLayout();
-    SCPane.validate();
-    refreshCells();
-  }
-
   /** resize all cells to exactly fill the entire pane, if possible */
   void tileCells() {
     Dimension paneSize = SCPane.getSize();
@@ -1899,6 +1960,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     synchLabelAndCellSizes();
   }
+
+
+  // *** Options menu methods ***
 
   /** toggle auto-dimension switching */
   void setAutoSwitch(boolean b) {
@@ -1923,6 +1987,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     AutoShowControls = b;
   }
+
+
+  // *** Toolbar methods ***
 
   /** update formula based on formula entered in formula bar */
   void updateFormula() {
@@ -1979,22 +2046,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** set the dimension of the current cell */
-  private void setDim(boolean threeD, boolean java3D) {
-    try {
-      DisplayCells[CurX][CurY].setDimension(threeD, java3D);
-    }
-    catch (VisADException exc) {
-      displayErrorMessage("Cannot alter display dimension: " +
-        exc.getMessage(), "VisAD SpreadSheet error");
-    }
-    catch (RemoteException exc) {
-      displayErrorMessage("Cannot alter display dimension: " +
-        exc.getMessage(), "VisAD SpreadSheet error");
-    }
-    refreshDisplayMenuItems();
-  }
-
 
   // *** Methods for refreshing GUI components when things change ***
 
@@ -2026,13 +2077,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasData();
-        DispEdit.setEnabled(b);
+        CellEdit.setEnabled(b);
         ToolMap.setEnabled(b);
         FileSave1.setEnabled(b);
         FileSave2.setEnabled(b);
         ToolSave.setEnabled(b);
+        CellReset.setEnabled(b);
+        ToolReset.setEnabled(b);
         b = DisplayCells[CurX][CurY].hasControls();
-        OptWidget.setEnabled(b);
+        CellShow.setEnabled(b);
         ToolShow.setEnabled(b);
       }
     });
@@ -2206,6 +2259,25 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
 
   // *** Methods for (re)constructing spreadsheet cells and labels ***
+
+  /** ensure that the cells' preferred sizes match those of the labels */
+  private void synchLabelAndCellSizes() {
+    // resize spreadsheet cells
+    for (int j=0; j<NumVisY; j++) {
+      int h = VertLabel[j].getSize().height;
+      for (int i=0; i<NumVisX; i++) {
+        int w = HorizLabel[i].getSize().width;
+        DisplayCells[i][j].setPreferredSize(new Dimension(w, h));
+      }
+    }
+
+    // refresh display
+    HorizLabels.validate();
+    VertLabels.validate();
+    DisplayPanel.doLayout();
+    SCPane.validate();
+    refreshCells();
+  }
 
   private void constructSpreadsheetCells(RemoteServer rs) {
     String[][] labels = new String[NumVisX][NumVisY];
@@ -2521,21 +2593,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("setupSave")) saveFile();
     else if (cmd.equals("setupSaveas")) saveasFile();
 
+    // cell menu commands
+    else if (cmd.equals("cellEdit")) createMappings();
+    else if (cmd.equals("cell3D")) setDim(false, false);
+    else if (cmd.equals("cellJ2D")) setDim(true, true);
+    else if (cmd.equals("cell2D")) setDim(true, false);
+    else if (cmd.equals("cellShow")) {
+      DisplayCells[CurX][CurY].showWidgetFrame();
+    }
+    else if (cmd.equals("cellReset")) resetOrientation();
+
     // display menu commands
-    else if (cmd.equals("dispEdit")) createMappings();
-    else if (cmd.equals("disp3D")) setDim(false, false);
-    else if (cmd.equals("dispJ2D")) setDim(true, true);
-    else if (cmd.equals("disp2D")) setDim(true, false);
     else if (cmd.equals("dispAddCol")) addColumn();
     else if (cmd.equals("dispAddRow")) addRow();
     else if (cmd.equals("dispDelCol")) deleteColumn();
     else if (cmd.equals("dispDelRow")) deleteRow();
     else if (cmd.equals("dispTile")) tileCells();
-
-    // options menu commands
-    else if (cmd.equals("optWidget")) {
-      DisplayCells[CurX][CurY].showWidgetFrame();
-    }
 
     // formula bar commands
     else if (cmd.equals("formulaCancel")) refreshFormulaBar();
