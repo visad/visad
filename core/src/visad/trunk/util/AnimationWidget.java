@@ -226,6 +226,36 @@ public class AnimationWidget
     ms.setText(Integer.toString(aMs));
   }
 
+  private void fixSliderUI()
+  {
+    int max = 1;
+    if(control != null) {
+      try {
+        Set set = control.getSet();
+        if (set != null) {
+          max = set.getLength();
+        }
+      } catch (VisADException ve) {
+      }
+    }
+
+    TimeSlider.setMaximum(max);
+    TimeSlider.setMinimum(1);
+
+    int maj;
+    if (max < 20) {
+      maj = max/4;
+    } else if (max < 30) {
+      maj = max/6;
+    } else {
+      maj = max/8;
+    }
+
+    TimeSlider.setMajorTickSpacing(maj);
+    TimeSlider.setMinorTickSpacing(maj/4);
+    TimeSlider.setPaintLabels(true);
+  }
+
   private void fixControlUI()
   {
     // update Stop/Go buttons
@@ -236,6 +266,9 @@ public class AnimationWidget
 
     // update speed text
     fixSpeedUI();
+
+    // update slider ticks
+    fixSliderUI();
   }
 
   /** 
@@ -323,22 +356,7 @@ public class AnimationWidget
    * ScalarMapListener method used to recompute JSlider bounds 
    */
   public void mapChanged(ScalarMapEvent e) {
-    if (control.getSet() != null) {
-      try {
-        int max = control.getSet().getLength();  /* DRM 1999-05-19 */
-        TimeSlider.setMaximum(max);
-        TimeSlider.setMinimum(1);
-        
-        int maj;
-        if (max < 20) maj = max/4;
-        else if (max < 30) maj = max/6;
-        else maj = max/8;
-        TimeSlider.setMajorTickSpacing(maj);
-        TimeSlider.setMinorTickSpacing(maj/4);
-        TimeSlider.setPaintLabels(true);
-      }
-      catch (VisADException exc) { }
-    }
+    fixSliderUI();
   }
 
   /** 
