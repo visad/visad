@@ -2282,10 +2282,10 @@ if (size < 0.2) {
             float ratioh = ((float) data_height) / ((float) texture_height);
 
             // WLH 27 Jan 2003
-            float half_width = 0.5f / ((float) data_width);
-            float half_height = 0.5f / ((float) data_height);
-            float width = 1.0f / ((float) data_width);
-            float height = 1.0f / ((float) data_height);
+            float half_width = 0.5f / ((float) texture_width);
+            float half_height = 0.5f / ((float) texture_height);
+            float width = 1.0f / ((float) texture_width);
+            float height = 1.0f / ((float) texture_height);
 
             int mt = 0;
             texCoords = new float[2 * nn];
