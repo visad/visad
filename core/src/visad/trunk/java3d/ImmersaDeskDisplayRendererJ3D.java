@@ -150,7 +150,7 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     ray_off = new BranchGroup();
     ray_switch.addChild(ray_off);
     ray_switch.addChild(ray_on);
-    ray_switch.setWhichChild(2); // initially on
+    ray_switch.setWhichChild(1); // initially on
     ray_geometry = new LineArray(2, LineArray.COORDINATES);
     ray_geometry.setCoordinates(0, init_ray_verts);
     ray_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);

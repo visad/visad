@@ -458,7 +458,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     box_off = new BranchGroup();
     box_switch.addChild(box_off);
     box_switch.addChild(box_on);
-    box_switch.setWhichChild(1); // initially off
+    box_switch.setWhichChild(1); // initially on
     try {
       setBoxOn(true);
     } catch (Exception e) {
