@@ -75,6 +75,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       and sampling for Animation */
   private boolean initialize = true;
 
+  /** set to indicate that ranges should be auto-scaled
+      every time data are displayed */
+  private boolean always_initialize = false;
+
   /** length of ValueArray of distinct DisplayRealType values;
       one per Single DisplayRealType that occurs in a ScalarMap,
       plus one per ScalarMap per non-Single DisplayRealType;
@@ -152,6 +156,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   public void reAutoScale() {
     initialize = true;
+  }
+
+  public void setAlwaysAutoScale(boolean a) {
+    always_initialize = a;
   }
 
   public void addReference(ThingReference ref)
@@ -448,6 +456,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         badScale |= renderer.getBadScale();
       }
       initialize = badScale;
+      if (always_initialize) initialize = true;
   
       if (shadow != null) {
         // apply RealType ranges and animationSampling
