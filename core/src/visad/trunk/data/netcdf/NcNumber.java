@@ -6,6 +6,7 @@ import ucar.netcdf.Variable;
 import visad.data.BadFormException;
 import visad.MathType;
 import visad.RealType;
+import visad.Unit;
 import visad.VisADException;
 
 
@@ -60,6 +61,16 @@ NcNumber
     NcNumber(String name, Class type, NcDim[] dims)
     {
 	super(name, type, dims);
+    }
+
+
+    /**
+     * Construct.
+     */
+    public
+    NcNumber(String name, Class type, NcDim[] dims, Unit unit)
+    {
+	super(name, type, dims, unit);
     }
 
 

@@ -6,6 +6,7 @@ import ucar.netcdf.Attribute;
 import visad.data.BadFormException;
 import visad.MathType;
 import visad.RealType;
+import visad.Unit;
 import visad.VisADException;
 
 
@@ -23,6 +24,26 @@ NcReal
     NcReal(Variable var, NcFile file)
     {
 	super(var, file);
+    }
+
+
+    /**
+     * Construct.
+     */
+    public
+    NcReal(String name, Class type, NcDim[] dims)
+    {
+	super(name, type, dims);
+    }
+
+
+    /**
+     * Construct.
+     */
+    public
+    NcReal(String name, Class type, NcDim[] dims, Unit unit)
+    {
+	super(name, type, dims, unit);
     }
 
 
@@ -58,14 +79,4 @@ NcReal
 		    ? fillValue/2
 		    : Double.MAX_VALUE;
      }
-
-
-    /**
-     * Construct.
-     */
-    public
-    NcReal(String name, Class type, NcDim[] dims)
-    {
-	super(name, type, dims);
-    }
 }

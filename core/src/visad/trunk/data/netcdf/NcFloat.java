@@ -1,8 +1,9 @@
 package visad.data.netcdf;
 
 
-import visad.data.BadFormException;
 import ucar.netcdf.Variable;
+import visad.Unit;
+import visad.data.BadFormException;
 
 
 /**
@@ -29,6 +30,16 @@ NcFloat
     NcFloat(String name, NcDim[] dims)
     {
 	super(name, Float.TYPE, dims);
+    }
+
+
+    /**
+     * Construct.
+     */
+    public
+    NcFloat(String name, NcDim[] dims, Unit unit)
+    {
+	super(name, Float.TYPE, dims, unit);
     }
 
 

@@ -3,12 +3,14 @@ package visad.data.netcdf;
 
 import java.io.IOException;
 import ucar.netcdf.ArrayInput;
+import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.DimensionIterator;
 import ucar.netcdf.Variable;
-import visad.data.BadFormException;
 import visad.MathType;
+import visad.Unit;
 import visad.VisADException;
+import visad.data.BadFormException;
 
 
 /**
@@ -81,6 +83,16 @@ NcVar
     public
     NcVar(String name, Class type, NcDim[] ncDims)
     {
+	this(name, type, ncDims, (Unit)null);
+    }
+
+
+    /**
+     * Construct.
+     */
+    public
+    NcVar(String name, Class type, NcDim[] ncDims, Unit unit)
+    {
 	this.file = null;
 	this.name = name;
 
@@ -89,7 +101,12 @@ NcVar
 	for (int i = 0; i < dims.length; ++i)
 	    dims[i] = ncDims[i].getDimension();
 
-	this.var = new Variable(name, type, dims, null);
+	Attribute[]	attributes = unit == null
+			    ? null
+			    : new Attribute[] {
+				new Attribute("unit", unit.toString())};
+
+	this.var = new Variable(name, type, dims, attributes);
     }
 
 
