@@ -1672,8 +1672,12 @@ if (initialize) {
             DataDisplayLink[] links = renderer.getLinks();
             for (int i=0; i<links.length; i++) {
               if (MathType.findScalarType(links[i].getType(), st)) {
+/* WLH relax addMap() & clearMap() 17 Dec 2002
                 throw new DisplayException("DisplayImpl.addMap(): " + 
                             "ScalarType may not occur in any DataReference");
+*/
+                DataReference ref = links[i].getDataReference();
+                if (ref != null) ref.incTick();
               }
             }
           }
@@ -1792,8 +1796,11 @@ if (initialize) {
     if (displayRenderer == null) return;
     synchronized (mapslock) {
       if (!RendererVector.isEmpty()) {
+/* WLH relax addMap() & clearMap() 17 Dec 2002
         throw new DisplayException("DisplayImpl.clearMaps: RendererVector " +
                                    "must be empty");
+*/
+        reDisplayAll();
       }
 
       Enumeration maps;

@@ -46,23 +46,49 @@ import java.awt.event.*;
    HSVDisplay is an application for interactively exploring
    the relation between the HSV and RGB color coordiantes.<P>
 */
-public class HSVDisplay extends Object {
+public class HSVDisplay extends Object implements ActionListener {
+
+  DisplayImplJ3D display1 = null;
+
+  RealType red = null;
+  RealType green = null;
+  RealType blue = null;
+
+  RealType hue = null;
+  RealType saturation = null;
+  RealType value = null;
+
+  ContourCell cell_hue = null;
+  ContourCell cell_saturation = null;
+  ContourCell cell_value = null;
+
+  ContourControl controlhcontour = null;
+  ContourControl controlscontour = null;
+  ContourControl controlvcontour = null;
+
+  int state = 0; // 0 - clear, 1 - maps, 2 - maps + color maps
 
   public static void main(String args[])
          throws IOException, VisADException, RemoteException {
 
+    HSVDisplay dummy = new HSVDisplay();
+  }
+
+  public HSVDisplay()
+         throws IOException, VisADException, RemoteException {
+
     // define an rgb color space
     // (not to be confused with system's RGB DisplayTupleType)
-    RealType red = RealType.getRealType("red");
-    RealType green = RealType.getRealType("green");
-    RealType blue = RealType.getRealType("blue");
+    red = RealType.getRealType("red");
+    green = RealType.getRealType("green");
+    blue = RealType.getRealType("blue");
     RealTupleType rgb = new RealTupleType(red, green, blue);
 
     // define an hsv color space
     // (not to be confused with system's HSV DisplayTupleType)
-    RealType hue = RealType.getRealType("hue", CommonUnit.degree);
-    RealType saturation = RealType.getRealType("saturation");
-    RealType value = RealType.getRealType("value");
+    hue = RealType.getRealType("hue", CommonUnit.degree);
+    saturation = RealType.getRealType("saturation");
+    value = RealType.getRealType("value");
     // note that we use the same HSVCoordinateSystem that the
     // system uses to define the relation between its RGB and HSV
     CoordinateSystem hsv_system = new HSVCoordinateSystem(rgb);
@@ -107,33 +133,10 @@ public class HSVDisplay extends Object {
                       RealType.Generic);
 
     // construct a Display
-    DisplayImplJ3D display1 = new DisplayImplJ3D("display1");
+    display1 = new DisplayImplJ3D("display1");
 
-    // map rgb to the Display spatial coordinates;
-    // iso-surfaces of hue, saturation and value will be
-    // transformed from hsv to rgb space
-    display1.addMap(new ScalarMap(red, Display.XAxis));
-    display1.addMap(new ScalarMap(green, Display.YAxis));
-    display1.addMap(new ScalarMap(blue, Display.ZAxis));
-
-    // color iso-surfaces
-    display1.addMap(new ScalarMap(hue, Display.Hue));
-    display1.addMap(new ScalarMap(saturation, Display.Saturation));
-    display1.addMap(new ScalarMap(value, Display.Value));
-
-    // construct mappings for interactive iso-surfaces of
-    // hue, saturation and value
-    ScalarMap maphcontour = new ScalarMap(hue, Display.IsoContour);
-    display1.addMap(maphcontour);
-    ContourControl controlhcontour = (ContourControl) maphcontour.getControl();
-
-    ScalarMap mapscontour = new ScalarMap(saturation, Display.IsoContour);
-    display1.addMap(mapscontour);
-    ContourControl controlscontour = (ContourControl) mapscontour.getControl();
-
-    ScalarMap mapvcontour = new ScalarMap(value, Display.IsoContour);
-    display1.addMap(mapvcontour);
-    ContourControl controlvcontour = (ContourControl) mapvcontour.getControl();
+    makeMaps();
+    makeColorMaps();
 
     display1.getGraphicsModeControl().setScaleEnable(true);
 
@@ -162,8 +165,31 @@ public class HSVDisplay extends Object {
 
     panel.add(display1.getComponent());
 
+    JPanel panel2 = new JPanel();
+    panel2.setLayout(new BoxLayout(panel2, BoxLayout.X_AXIS));
+    panel2.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    panel2.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+
+    JButton clear = new JButton("Clear");
+    clear.addActionListener(this);
+    clear.setActionCommand("clear");
+    panel2.add(clear);
+
+    JButton maps = new JButton("Maps");
+    maps.addActionListener(this);
+    maps.setActionCommand("maps");
+    panel2.add(maps);
+
+    JButton color = new JButton("Color");
+    color.addActionListener(this);
+    color.setActionCommand("color");
+    panel2.add(color);
+
+    panel.add(panel2);
+
     int WIDTH = 500;
-    int HEIGHT = 600;
+    int HEIGHT = 700;
 
     frame.setSize(WIDTH, HEIGHT);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -171,16 +197,89 @@ public class HSVDisplay extends Object {
                       screenSize.height/2 - HEIGHT/2);
     frame.setVisible(true);
 
-    HSVDisplay dummy = new HSVDisplay();
-    ContourCell cell_hue =
-      dummy. new ContourCell(controlhcontour, hue_ref);
+    cell_hue =
+      new ContourCell(controlhcontour, hue_ref);
     cell_hue.addReference(hue_ref);
-    ContourCell cell_saturation =
-      dummy. new ContourCell(controlscontour, saturation_ref);
+    cell_saturation =
+      new ContourCell(controlscontour, saturation_ref);
     cell_saturation.addReference(saturation_ref);
-    ContourCell cell_value =
-      dummy. new ContourCell(controlvcontour, value_ref);
+    cell_value =
+      new ContourCell(controlvcontour, value_ref);
     cell_value.addReference(value_ref);
+  }
+
+  /** This method handles button presses */
+  public void actionPerformed(ActionEvent e) {
+    String cmd = e.getActionCommand();
+    try {
+      if (cmd.equals("clear")) {
+        display1.clearMaps();
+        controlhcontour = null;
+        controlscontour = null;
+        controlvcontour = null;
+        setControls();
+        state = 0;
+      }
+      else if (cmd.equals("maps")) {
+        makeMaps();
+        setControls();
+      }
+      else if (cmd.equals("color")) {
+        makeColorMaps();
+      }
+    }
+    catch (VisADException ex) {
+      System.out.println("call clearMaps ex = " + ex);
+    }
+    catch (RemoteException ex) {
+      System.out.println("call clearMaps ex = " + ex);
+    }
+  }
+
+  private void makeMaps()
+          throws VisADException, RemoteException {
+    if (state != 0) return;
+    // map rgb to the Display spatial coordinates;
+    // iso-surfaces of hue, saturation and value will be
+    // transformed from hsv to rgb space
+    display1.addMap(new ScalarMap(red, Display.XAxis));
+    display1.addMap(new ScalarMap(green, Display.YAxis));
+    display1.addMap(new ScalarMap(blue, Display.ZAxis));
+
+    // construct mappings for interactive iso-surfaces of
+    // hue, saturation and value
+    ScalarMap maphcontour = new ScalarMap(hue, Display.IsoContour);
+    display1.addMap(maphcontour);
+    controlhcontour = (ContourControl) maphcontour.getControl();
+
+    ScalarMap mapscontour = new ScalarMap(saturation, Display.IsoContour);
+    display1.addMap(mapscontour);
+    controlscontour = (ContourControl) mapscontour.getControl();
+
+    ScalarMap mapvcontour = new ScalarMap(value, Display.IsoContour);
+    display1.addMap(mapvcontour);
+    controlvcontour = (ContourControl) mapvcontour.getControl();
+
+    state = 1;
+  }
+
+  private void makeColorMaps()
+          throws VisADException, RemoteException {
+    if (state != 1) return;
+
+    // color iso-surfaces
+    display1.addMap(new ScalarMap(hue, Display.Hue));
+    display1.addMap(new ScalarMap(saturation, Display.Saturation));
+    display1.addMap(new ScalarMap(value, Display.Value));
+
+    state = 2;
+  }
+
+  private void setControls()
+          throws VisADException, RemoteException {
+    cell_hue.setControl(controlhcontour);
+    cell_saturation.setControl(controlscontour);
+    cell_value.setControl(controlvcontour);
   }
 
   class ContourCell extends CellImpl {
@@ -188,18 +287,26 @@ public class HSVDisplay extends Object {
     DataReference ref;
     double value;
 
-    ContourCell(ContourControl c, DataReference r)
+    ContourCell(ContourControl cc, DataReference r)
            throws VisADException, RemoteException {
-      control = c;
+      control = cc;
       ref = r;
       value = ((Real) ref.getData()).getValue();
     }
 
+    public void setControl(ContourControl cc)
+           throws VisADException, RemoteException {
+      control = cc;
+      value = Double.NaN;
+      doAction();
+    }
+
     public void doAction() throws VisADException, RemoteException {
       double val = ((Real) ref.getData()).getValue();
-      if (val == val && val != value) {
-        control.setSurfaceValue((float) ((Real) ref.getData()).getValue());
-        control.enableContours(true);
+      ContourControl cc = control;
+      if (val == val && val != value && cc != null) {
+        cc.setSurfaceValue((float) ((Real) ref.getData()).getValue());
+        cc.enableContours(true);
         value = val;
       }
     }
