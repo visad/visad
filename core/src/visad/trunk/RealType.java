@@ -264,9 +264,10 @@ public class RealType extends ScalarType {
     }
   }
 
-  /** two RealType-s are equal if they have the same name; this allows
-      equality with a RealType copied from a remote Java virtual machine;
-      it doesn't matter whether DefaultUnit and DefaultSet are equal */
+  /** two RealType-s are equal if they have the same name, DefaultUnit,
+      DefaultSet and attrMask;
+      a RealType copied from a remote Java virtual machine may have
+      the same name but different values for other fields */
   public boolean equals(Object type) {
     if (!(type instanceof RealType)) return false;
 
