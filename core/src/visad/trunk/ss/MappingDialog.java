@@ -36,42 +36,44 @@ import javax.swing.event.*;
 import visad.*;
 
 /** MappingDialog is a dialog that lets the user create ScalarMaps */
-public class MappingDialog extends JDialog implements ActionListener,
-                                                      ListSelectionListener,
-                                                      MouseListener {
+public class MappingDialog extends JDialog
+  implements ActionListener, ListSelectionListener, MouseListener
+{
   /** Flag whether user hit Done or Cancel button */
   public boolean Confirm = false;
 
   /** ScalarMaps selected by the user */
   public ScalarMap[] ScalarMaps;
 
-  // These components affect each other
-  JComponent MathCanvas;
-  JScrollPane MathCanvasView;
-  JComponent CoordCanvas = null;
-  JScrollPane CoordCanvasView;
-  boolean CoordRefs;
-  JList MathList;
-  JComponent DisplayCanvas;
-  DefaultListModel CurMaps;
-  JList CurrentMaps;
-  JScrollPane CurrentMapsView;
-  String[] Scalars;
-  RealType[] MathTypes;
-  int[][] ScX;
-  int[][] ScY;
-  int[] ScW;
-  int ScH;
-  int[] ScB;
-  int[] StrWidth;
-  int[] StrHeight;
-  boolean[][][] Maps;
-  String[][][] CurMapLabel;
+  // GUI components
+  private JComponent MathCanvas;
+  private JScrollPane MathCanvasView;
+  private JComponent CoordCanvas = null;
+  private JScrollPane CoordCanvasView;
+  private boolean CoordRefs;
+  private JList MathList;
+  private JComponent DisplayCanvas;
+  private DefaultListModel CurMaps;
+  private JList CurrentMaps;
+  private JScrollPane CurrentMapsView;
 
-  static final Font Mono = new Font("Monospaced", Font.PLAIN, 11);
+  // state info
+  private String[] Scalars;
+  private RealType[] MathTypes;
+  private int[][] ScX;
+  private int[][] ScY;
+  private int[] ScW;
+  private int ScH;
+  private int[] ScB;
+  private int[] StrWidth;
+  private int[] StrHeight;
+  private boolean[][][] Maps;
+  private String[][][] CurMapLabel;
+
+  private static final Font Mono = new Font("Monospaced", Font.PLAIN, 11);
 
   /** names of system intrinsic DisplayRealTypes */
-  static final String[][] MapNames = {
+  private static final String[][] MapNames = {
     {"X Axis", "X Offset", "Latitude", "Flow1 X", "Flow2 X"},
     {"Y Axis", "Y Offset", "Longitude", "Flow1 Y", "Flow2 Y"},
     {"Z Axis", "Z Offset", "Radius", "Flow1 Z", "Flow2 Z"},
@@ -82,7 +84,7 @@ public class MappingDialog extends JDialog implements ActionListener,
   };
 
   /** list of system intrinsic DisplayRealTypes */
-  static final DisplayRealType[][] MapTypes = {
+  private static final DisplayRealType[][] MapTypes = {
     {Display.XAxis, Display.XAxisOffset, Display.Latitude,
      Display.Flow1X, Display.Flow2X},
     {Display.YAxis, Display.YAxisOffset, Display.Longitude,
@@ -100,20 +102,20 @@ public class MappingDialog extends JDialog implements ActionListener,
   };
 
   /** number of system intrinsic DisplayRealTypes */
-  static final int NumMaps = MapTypes.length;
+  private static final int NumMaps = MapTypes.length;
 
   /** display.gif image */
-  static Image DRT = null;
+  private static Image DRT = null;
 
-  /** Whether DRT image has been initialized */
-  static boolean Inited = false;
+  /** whether DRT image has been initialized */
+  private static boolean Inited = false;
 
-  /** For synchronization */
+  /** for synchronization */
   private Object Lock = new Object();
 
-  /** Pre-load the display.gif file, so it's ready when
+  /** pre-load the display.gif file, so it's ready when
       mapping dialog is requested */
-  static void initDialog() {
+  private static void initDialog() {
     if (DRT == null) {
       URL url = MappingDialog.class.getResource("display.gif");
       DRT = Toolkit.getDefaultToolkit().getImage(url);
@@ -121,9 +123,9 @@ public class MappingDialog extends JDialog implements ActionListener,
     Inited = true;
   }
 
-  /** Return a human-readable list of CoordinateSystem dependencies,
+  /** return a human-readable list of CoordinateSystem dependencies
       and fill in Vector v with CoordinateSystem reference RealTypes */
-  static String prettyCoordSys(MathType type, Vector v) {
+  private static String prettyCoordSys(MathType type, Vector v) {
     String s = "";
     if (type instanceof FunctionType) {
       s = s + pcsFunction((FunctionType) type, v);
@@ -211,23 +213,24 @@ public class MappingDialog extends JDialog implements ActionListener,
     return s;
   }
 
-  /** This MappingDialog's copy of DRT with certain DisplayRealTypes
+  /** this MappingDialog's copy of DRT with certain DisplayRealTypes
       blacked out as necessary */
-  Image MapTo;
+  private Image MapTo;
 
-  /** The MathType that this mapping dialog works with */
-  MathType type = null;
+  /** the MathType that this mapping dialog works with */
+  private MathType type = null;
 
-  /** Whether this mapping dialog allows mappings to Alpha and RGBA */
-  boolean AllowAlpha;
+  /** whether this mapping dialog allows mappings to Alpha and RGBA */
+  private boolean AllowAlpha;
 
-  /** Whether this mapping dialog allows mappings to Z-Axis, Latitude,
+  /** whether this mapping dialog allows mappings to Z-Axis, Latitude,
       and Z-Offset */
-  boolean Allow3D;
+  private boolean Allow3D;
 
-  /** Constructor for MappingDialog */
+  /** constructor for MappingDialog */
   public MappingDialog(Frame parent, Data data, ScalarMap[] startMaps,
-                       boolean allowAlpha, boolean allow3D) {
+    boolean allowAlpha, boolean allow3D)
+  {
     super(parent, "Set up data mappings", true);
     AllowAlpha = allowAlpha;
     Allow3D = allow3D;
@@ -328,6 +331,11 @@ public class MappingDialog extends JDialog implements ActionListener,
             g2.drawString(s, x, y+ScH+2);
           }
         }
+        // work-around for JDK 1.3 beta bug
+        Dimension d = MathCanvasView.getSize();
+        g2.setColor(Color.white);
+        g2.fillRect(StrWidth[0], 0, d.width, d.height);
+        g2.fillRect(0, StrHeight[0], StrWidth[0], d.height);
       }
     };
     MathCanvas.setMinimumSize(new Dimension(StrWidth[0], StrHeight[0]));
@@ -642,9 +650,9 @@ public class MappingDialog extends JDialog implements ActionListener,
     rsPanel.add(CurrentMapsView);
   }
 
-  /** Parse an array of prettyStrings to find out some information,
+  /** parse an array of prettyStrings to find out some information
       and eliminate duplicate RealTypes */
-  int[] extraPretty(String[] pStr, Vector[] v, int[] duplCount) {
+  private int[] extraPretty(String[] pStr, Vector[] v, int[] duplCount) {
     int numStrings = pStr.length;
     StrWidth = new int[numStrings];
     StrHeight = new int[numStrings];
@@ -761,7 +769,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     return numLines;
   }
 
-  /** Recursive quick-sort routine used to alphabetize scalars */
+  /** recursive quick-sort routine for alphabetizing scalars */
   private void sort(int lo0, int hi0) {
     int lo = lo0;
     int hi = hi0;
@@ -796,7 +804,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     if (lo < hi0) sort(lo, hi0);
   }
 
-  /** Clear a box in the "map to" canvas */
+  /** clear a box in the &quot;map to&quot; canvas */
   void eraseBox(int col, int row, Graphics g) {
     int x = 40*col;
     int y = 40*row;
@@ -807,7 +815,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Highlight a box in the "map to" canvas */
+  /** highlight a box in the &quot;map to&quot; canvas */
   void highlightBox(int col, int row, Graphics g) {
     int x = 40*col;
     int y = 40*row;
@@ -825,8 +833,8 @@ public class MappingDialog extends JDialog implements ActionListener,
     g.drawLine(x, y+n2, x+n1, y+39);
   }
 
+  /** clear all maps from the current mappings list */
   private void clearAll() {
-    // take all maps off list
     CurrentMaps.clearSelection(); // work-around for nasty swing bug
     CurMaps.removeAllElements();
     for (int i=0; i<CurMapLabel.length; i++) {
@@ -836,7 +844,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Handle button press events */
+  /** handle button press events */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
 
@@ -942,7 +950,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Handle list selection change events */
+  /** handle list selection change events */
   public void valueChanged(ListSelectionEvent e) {
     synchronized (Lock) {
       if (!e.getValueIsAdjusting()) {
@@ -963,7 +971,8 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  /** Handle mouse clicks in the MathType window and "map to" canvas */
+  /** handle mouse clicks in the MathType window and
+      &quot;map to&quot; canvas */
   public void mousePressed(MouseEvent e) {
     synchronized (Lock) {
       Component c = e.getComponent();
@@ -1035,10 +1044,16 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
   }
 
-  // unused MouseListener methods
+  /** unused MouseListener method */
   public void mouseEntered(MouseEvent e) { }
+
+  /** unused MouseListener method */
   public void mouseExited(MouseEvent e) { }
+  
+  /** unused MouseListener method */
   public void mouseClicked(MouseEvent e) { }
+
+  /** unused MouseListener method */
   public void mouseReleased(MouseEvent e) { }
 
 }
