@@ -1309,10 +1309,26 @@ public abstract class JPythonMethods {
    */
   public static FlatField field(String name, float[] values)
          throws VisADException, RemoteException {
+    return field("domain", name, values);
+  }
+
+  /**
+   * return a VisAD FlatField with default 1-D domain, with range values
+   * given by values array, and with given range RealType name
+   *
+   * @param   dom0            String defining domain RealType name
+   * @param   name            String defining range RealType name
+   * @param   values          float[] array defining range values of field
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static FlatField field(String dom0, String name, float[] values)
+         throws VisADException, RemoteException {
     if (values == null || values.length == 0) {
       throw new VisADException("bad values");
     }
-    RealType domain = RealType.getRealType("domain");
+    RealType domain = RealType.getRealType(dom0);
     return field(new Integer1DSet(domain, values.length), name, values);
   }
 
@@ -1385,14 +1401,32 @@ public abstract class JPythonMethods {
    */
   public static FlatField field(String name, float[][] values)
          throws VisADException, RemoteException {
+    return field("ImageLine", "ImageElement", name, values);
+  }
+
+  /**
+   * return a VisAD FlatField with named default 2-D domain, with range values
+   * given by values array and with given range RealType name
+   *
+   * @param   dom0            String defines first domain component
+   * @param   dom1            String defines second domain component
+   * @param   name            String defining range RealType name
+   * @param   values          float[][] array defining range values of field
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static FlatField field(
+       String dom0, String dom1, String rng, float[][] values)
+         throws VisADException, RemoteException {
     int[] temps = getValuesLengths(values);
     int values_len = temps[0];
     int min = temps[1];
     int max = temps[2];
-    RealType line = RealType.getRealType("ImageLine");
-    RealType element = RealType.getRealType("ImageElement");
-    RealTupleType domain = new RealTupleType(element, line);
-    return field(new Integer2DSet(domain, max, values_len), name, values);
+    RealType first = RealType.getRealType(dom0);
+    RealType second = RealType.getRealType(dom1);
+    RealTupleType domain = new RealTupleType(first, second);
+    return field(new Integer2DSet(domain, max, values_len), rng, values);
   }
 
   /**

@@ -19,7 +19,7 @@ saveDisplay(display, filename)
 addData(name, data, display, constantMaps=None, renderer=None, ref=None)
   add a Data object to a Display, and return a reference to the Data
 
-setPointerSize(display, size)
+setPointSize(display, size)
   set the size of points for point-type plots
 
 setAspectRatio(display, ratio)
