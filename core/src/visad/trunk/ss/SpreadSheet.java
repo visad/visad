@@ -868,6 +868,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       fr.close();
     }
+    catch (NumberFormatException exc) {
+      JOptionPane.showMessageDialog(this,
+          "The file " + file + " could not be loaded. " +
+          "Its format is incorrect.",
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
     catch (IOException exc) {
       JOptionPane.showMessageDialog(this,
           "The file " + file + " could not be loaded. " +

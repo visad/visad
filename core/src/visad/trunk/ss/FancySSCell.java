@@ -258,7 +258,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     super.setFormula(f);
   }
 
-  /** Specify whether the FancySSCell has a blue border or a gray border */
+  /** Specify whether the FancySSCell has a highlighted border */
   public void setSelected(boolean value) {
     if (Selected == value) return;
     Selected = value;
@@ -332,10 +332,15 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     else return false;
   }
 
-
   /** Let the user create ScalarMaps from the current SSPanel's Data
       to its Display */
   public void addMapDialog() {
+    if (IsRemote) {
+      JOptionPane.showMessageDialog(Parent, "Cannot change mappings on a " +
+        "cloned cell (yet)", "FancySSCell error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+
     // check whether this cell has data
     if (!hasData()) {
       JOptionPane.showMessageDialog(Parent, "This cell has no data",
@@ -395,9 +400,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     final BasicSSCell cell = this;
     Runnable loadFile = new Runnable() {
       public void run() {
-        String msg = "Could not load the dataset \"" +
-                     url.toString() + "\". ";
-        boolean success = true;
         try {
           cell.loadData(url);
           if (!cell.hasData()) {
@@ -405,29 +407,16 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
               "Error importing data", JOptionPane.ERROR_MESSAGE);
           }
         }
-        catch (BadFormException exc) {
-          msg = msg + "VisAD does not support this file type.";
-          success = false;
+        catch (VisADException exc) {
+          JOptionPane.showMessageDialog(Parent, exc.getMessage(),
+            "Error importing data", JOptionPane.ERROR_MESSAGE);
         }
         catch (RemoteException exc) {
-          msg = msg + "A remote error occurred: " + exc.getMessage();
-          success = false;
-        }
-        catch (IOException exc) {
-          msg = msg + "The file does not exist, or its data is corrupt.";
-          success = false;
-        }
-        catch (VisADException exc) {
-          msg = msg + "An error occurred: " + exc.toString();
-          success = false;
-        }
-        if (!success) {
-          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
-            JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(Parent, exc.getMessage(),
+            "Error importing data", JOptionPane.ERROR_MESSAGE);
         }
       }
     };
-    //new Delay();
     Thread t = new Thread(loadFile);
     t.start();
   }
@@ -437,37 +426,19 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     final String sname = s;
     Runnable loadRMI = new Runnable() {
       public void run() {
-        String msg = "Could not import data from the specified RMI address. ";
-        boolean success = true;
         try {
           loadRMI(sname);
         }
-        catch (MalformedURLException exc) {
-          msg = msg + "The address is not valid.";
-          success = false;
-        }
-        catch (NotBoundException exc) {
-          msg = msg + "An error occurred: " + exc.getMessage();
-          success = false;
-        }
-        catch (AccessException exc) {
-          msg = msg + "Could not obtain access to the data.";
-          success = false;
-        }
         catch (RemoteException exc) {
-          msg = msg + "A remote error occurred: " + exc.getMessage();
-          success = false;
+          JOptionPane.showMessageDialog(Parent, exc.getMessage(),
+            "Error importing data", JOptionPane.ERROR_MESSAGE);
         }
         catch (VisADException exc) {
-          success = false;
-        }
-        if (!success) {
-          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
-            JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(Parent, exc.getMessage(),
+            "Error importing data", JOptionPane.ERROR_MESSAGE);
         }
       }
     };
-    //new Delay();
     Thread t = new Thread(loadRMI);
     t.start();
   }
@@ -555,7 +526,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
       }
     };
-    //new Delay();
     Thread t = new Thread(saveFile);
     t.start();
   }
