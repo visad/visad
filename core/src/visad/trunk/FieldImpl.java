@@ -1646,7 +1646,14 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     else if ( n_linear == n_sets )  //- all Linear sets
     {
-       //- make new LinearNDSet --
+      Linear1DSet[] L1D_sets = new Linear1DSet[new_domainDim];
+      cnt = 0;
+      for ( int kk = 0; kk < n_sets; kk++ ) { 
+        for ( int jj = 0; jj < fac_sets[kk].getDimension(); jj++ ) {
+          L1D_sets[cnt++] = ((LinearSet)fac_sets[kk]).getLinear1DComponent(jj);
+        } 
+      }
+      new_set = new LinearNDSet(new_domain_type, L1D_sets);
     }
     else  //- some Linear, some Gridded --> GriddedNDSet
     {
