@@ -86,6 +86,10 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("kt"))   { out = "kt"; }
     else if (in.equalsIgnoreCase("kts"))  { out = "kt"; }
     else if (in.equalsIgnoreCase("g/kg")) { out = "g/kg"; }
+    else if (in.equalsIgnoreCase("degrees n")) { out = "degrees_north"; }
+    else if (in.equalsIgnoreCase("degrees e")) { out = "degrees_east"; }
+    else if (in.equalsIgnoreCase("degree n")) { out = "degrees_north"; }
+    else if (in.equalsIgnoreCase("degree e")) { out = "degrees_east"; }
 
     // the following are decidedly McIDAS
     else if (in.equalsIgnoreCase("paps")) { out = "Pa/s"; }
