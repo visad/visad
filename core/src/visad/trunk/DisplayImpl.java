@@ -935,6 +935,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       while (maps.hasMoreElements()) {
         ScalarMap map = ((ScalarMap) maps.nextElement());
         DisplayRealType dreal = map.getDisplayScalar();
+/* WLH 13 Feb 2001 - how could this ever have worked?
         if (dreal.isSingle()) {
           int j = getDisplayScalarIndex(dreal);
           if (scalarToValue[j] < 0) {
@@ -944,9 +945,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           map.setValueIndex(scalarToValue[j]);
         }
         else {
+*/
           map.setValueIndex(valueArrayLength);
           valueArrayLength++;
+/* WLH 13 Feb 2001
         }
+*/
       }
 
       // set valueToScalar and valueToMap arrays

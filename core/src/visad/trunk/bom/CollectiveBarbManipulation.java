@@ -48,6 +48,12 @@ import java.rmi.*;
 public class CollectiveBarbManipulation extends Object
   implements ControlListener {
 
+  private FunctionType wind_field_type = null;
+  private TupleType wind_type = null;
+  private RealType station_index = null;
+  private FunctionType wind_station_type = null;
+  private RealType time = null;
+
   private int nindex = 0;
   private int[] ntimes;
   private Tuple[][] tuples;
@@ -205,9 +211,9 @@ public class CollectiveBarbManipulation extends Object
                   "both be null");
     }
 
-    FunctionType wind_field_type = (FunctionType) wind_field.getType();
-    TupleType wind_type = null;
-    RealType station_index = null;
+    wind_field_type = (FunctionType) wind_field.getType();
+    wind_type = null;
+    station_index = null;
   
     try {
       station_index =
@@ -216,10 +222,8 @@ public class CollectiveBarbManipulation extends Object
         throw new CollectiveBarbException("wind_field bad MathType: " +
                      station_index + " cannot be RealType.Time");
       }
-      FunctionType wind_station_type =
-        (FunctionType) wind_field_type.getRange();
-      RealType time =
-        (RealType) wind_station_type.getDomain().getComponent(0);
+      wind_station_type = (FunctionType) wind_field_type.getRange();
+      time = (RealType) wind_station_type.getDomain().getComponent(0);
       if (!RealType.Time.equals(time)) {
         throw new CollectiveBarbException("wind_field bad MathType: " +
                      time + " must be RealType.Time");
@@ -254,6 +258,9 @@ public class CollectiveBarbManipulation extends Object
       throw new CollectiveBarbException("wind data must include Latitude " +
                "and Longitude " + lat_index + " " + lon_index);
     }
+
+
+// new data
 
     try {
       nindex = wind_field.getLength();
@@ -339,6 +346,10 @@ public class CollectiveBarbManipulation extends Object
       lats[i] = values[lat_index][0];
       lons[i] = values[lon_index][0];
     }
+
+
+// end new data
+
 
     azimuth_index = -1;
     radial_index = -1;
@@ -436,6 +447,10 @@ public class CollectiveBarbManipulation extends Object
       }
     }
 
+
+// new data
+
+
     for (int i=0; i<nindex; i++) {
       for (int j=0; j<ntimes[i]; j++) {
         Real[] reals = tuples[i][j].getRealComponents();
@@ -446,6 +461,10 @@ public class CollectiveBarbManipulation extends Object
       }
     }
  
+
+// end new data
+
+
     if (inner_time < 0.0 ||
         outer_time < inner_time) {
       throw new CollectiveBarbException("outer_time must be " +
@@ -456,6 +475,10 @@ public class CollectiveBarbManipulation extends Object
       throw new CollectiveBarbException("outer_distance must be " +
                                    "greater than distance_time");
     }
+
+
+// selective new data
+
 
     if (display1 != null) {
       control = (AnimationControl) display1.getControl(AnimationControl.class);
@@ -510,6 +533,10 @@ public class CollectiveBarbManipulation extends Object
       setStation(sta);
     }
 
+
+// end selective new data
+
+
     time_dir = 0;
 
     circle_ref = new DataReferenceImpl[] {null, null};
@@ -549,13 +576,22 @@ public class CollectiveBarbManipulation extends Object
 
   }
 
-  // public void addStation(FlatField station)
+  /** construct new wind station at (lat, lon) with initial winds = 0 */
   public void addStation(float lat, float lon)
          throws VisADException, RemoteException {
     synchronized (data_lock) {
       // construct FlatField station for global times at (lat, lon)
-      // all winds = 0 (?)
-      FlatField station = null;
+      FlatField station = new FlatField(wind_station_type, time_set);
+      int n = time_set.getLength();
+      int dim = wind_type.getNumberOfRealComponents();
+      float[][] values = new float[dim][n];
+      for (int i=0; i<n; i++) {
+        for (int j=0; j<dim; j++) values[j][i] = 0.0f;
+        values[lat_index][i] = lat;
+        values[lon_index][i] = lon;
+      }
+      station.setSamples(values, false);
+
       addStation(station);
     }
   }
@@ -566,6 +602,7 @@ public class CollectiveBarbManipulation extends Object
       // check MathType of station
       // add station to wind_field
       // increment nindex
+      // recompute time_set
       // fix everything else
 
 /*
@@ -575,6 +612,14 @@ public class CollectiveBarbManipulation extends Object
        [e.g., (Latitude, Longitude, (flow_dir, flow_speed))]
      if (nindex != wind_field.getLength()) {
 */
+
+
+
+
+
+
+
+
 
     }
   }
