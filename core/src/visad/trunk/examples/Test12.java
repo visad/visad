@@ -140,7 +140,12 @@ public class Test12
     throws RemoteException, VisADException
   {
     ScalarMap colorMap = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new LabeledColorWidget(new ColorMapWidget(colorMap, false));
+    if (dynamic) {
+      return new LabeledColorWidget(colorMap);
+    }
+    else {
+      return new LabeledColorWidget(new ColorMapWidget(colorMap, false));
+    }
   }
 
   public String toString() { return ": 2-D surface and ColorWidget"; }
