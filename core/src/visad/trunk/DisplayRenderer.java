@@ -196,6 +196,14 @@ public abstract class DisplayRenderer
 
   /**
    * Set the scale for the appropriate axis.
+   * @param  axisScale  AxisScale for this scale
+   * @throws  VisADException  couldn't set the scale
+   */
+  public abstract void setScale(AxisScale axisScale)
+         throws VisADException;
+
+  /**
+   * Set the scale for the appropriate axis.
    * @param  axis  axis for this scale (0 = XAxis, 1 = YAxis, 2 = ZAxis)
    * @param  axis_ordinal  position along the axis
    * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot

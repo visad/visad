@@ -875,16 +875,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         boolean scaleMade = axisScale.makeScale();
         if (scaleMade)
         {
-            //displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
-            if (scale_on) {
-                displayRenderer.setScale(
-                        axisScale.getAxis(),
-                        axisScale.getAxisOrdinal(),
-                        axisScale.getScaleArray(), 
-                        axisScale.getLabelArray(), 
-                        axisScale.getColor().getColorComponents(null));
-            }
-            scale_flag = false;
+          //displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
+          if (scale_on) {
+            displayRenderer.setScale(axisScale);
+          }
+          scale_flag = false;
         }
     }
   }

@@ -837,6 +837,20 @@ public abstract class DisplayRendererJ3D
 
   /**
    * Set the scale for the appropriate axis.
+   * @param  axisScale  AxisScale for this scale
+   * @throws  VisADException  couldn't set the scale
+   */
+  public void setScale(AxisScale axisScale)
+         throws VisADException {
+    setScale(axisScale.getAxis(),
+             axisScale.getAxisOrdinal(),
+             axisScale.getScaleArray(),
+             axisScale.getLabelArray(),
+             axisScale.getColor().getColorComponents(null));
+  }
+
+  /**
+   * Set the scale for the appropriate axis.
    * @param  axis  axis for this scale (0 = XAxis, 1 = YAxis, 2 = ZAxis)
    * @param  axis_ordinal  position along the axis
    * @param  array   <CODE>VisADLineArray</CODE> representing the scale plot
