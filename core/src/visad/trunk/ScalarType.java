@@ -47,6 +47,7 @@ public abstract class ScalarType extends MathType {
       throw new TypeException("ScalarType: name cannot be null");
     }
     if (name.indexOf(".") > -1 ||
+        name.indexOf(" ") > -1 ||
         name.indexOf("(") > -1 ||
         name.indexOf(")") > -1) {
       throw new TypeException("ScalarType: name cannot contain " +
