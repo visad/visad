@@ -45,6 +45,9 @@ public class DumpType {
   private static OutputStream os;
 
 
+  public static void dumpDataType(Data d) {
+    dumpDataType(d, System.out);
+  }
   /** Decomposes a VisAD Data object and lists out information
   * about its components.
   *
@@ -293,6 +296,10 @@ public class DumpType {
     return (String) n.substring(n.lastIndexOf("("));
   }
 
+
+  public static void dumpMathType(MathType t) {
+    dumpMathType(t, System.out);
+  }
 
   /** Decomposes a VisAD MathType and lists out information
   * about its components
