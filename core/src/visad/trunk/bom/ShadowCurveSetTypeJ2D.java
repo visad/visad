@@ -1,5 +1,5 @@
 //
-// ShadowCurveSetTypeJ3D.java
+// ShadowCurveSetTypeJ2D.java
 //
 
 /*
@@ -27,7 +27,7 @@ MA 02111-1307, USA
 package visad.bom;
 
 import visad.*;
-import visad.java3d.*;
+import visad.java2d.*;
 
 import java.util.*;
 import java.rmi.*;
@@ -35,27 +35,27 @@ import java.rmi.*;
 import javax.media.j3d.*;
 
 /**
-   The ShadowCurveSetTypeJ3D class shadows the SetType class for
-   CurveManipulationRendererJ3D, within a DataDisplayLink, under Java3D.<P>
+   The ShadowCurveSetTypeJ2D class shadows the SetType class for
+   CurveManipulationRendererJ2D, within a DataDisplayLink, under Java2D.<P>
 */
-public class ShadowCurveSetTypeJ3D extends ShadowSetTypeJ3D {
+public class ShadowCurveSetTypeJ2D extends ShadowSetTypeJ2D {
 
   /**
-   * Construct a new ShadowCurveSetTypeJ3D.
+   * Construct a new ShadowCurveSetTypeJ2D.
    * @param    t      MathType of data (must be a SetType)
    * @param    link   DataDisplayLink to DataReference
    * @param    parent parent ShadowType.
    * @throws VisADException  problem creating ShadowType
    * @throws RemoteException  problem with remote object creation.
    */
-  public ShadowCurveSetTypeJ3D(MathType t, DataDisplayLink link,
+  public ShadowCurveSetTypeJ2D(MathType t, DataDisplayLink link,
                                 ShadowType parent)
          throws VisADException, RemoteException {
     super(t, link, parent);
   }
 
   /** 
-   * Transform data into a Java3D scene graph.
+   * Transform data into a Java2D scene graph.
    * @param  group           group to add generated scene graph components 
    *                         (children) to
    * @param  value_array     inherited valueArray values;
@@ -84,12 +84,12 @@ public class ShadowCurveSetTypeJ3D extends ShadowSetTypeJ3D {
                                  "with manifold dimension = 1");
     }
 
-    ((CurveManipulationRendererJ3D) renderer).default_values = default_values;
+    ((CurveManipulationRendererJ2D) renderer).default_values = default_values;
 
     boolean post = ((ShadowFunctionOrSetType) getAdaptedShadowType()).
                         doTransform(group, data, value_array,
                                     default_values, renderer, this);
-    ensureNotEmpty(group);
+    //ensureNotEmpty(group);
     return post;
   }
 

@@ -1,5 +1,5 @@
 //
-// CurveManipulationRendererJ3D.java
+// CurveManipulationRendererJ2D.java
 //
 
 /*
@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.bom;
 
 import visad.*;
-import visad.java3d.*;
 import visad.java2d.*;
 
 import java.awt.*;
@@ -38,12 +37,12 @@ import java.rmi.*;
 
 
 /**
- * CurveManipulationRendererJ3D is the VisAD class for direct
+ * CurveManipulationRendererJ2D is the VisAD class for direct
  * manipulation rendering of curves under Java2D, where curves
  * are represented by UnionSets of Gridded2DSets with manifold
  * dimension = 2
  */
-public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D {
+public class CurveManipulationRendererJ2D extends DirectManipulationRendererJ2D {
 
   private int mouseModifiersMask = 0;
   private int mouseModifiersValue = 0;
@@ -53,9 +52,9 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
    * Construct a DataRenderer that supports direct manipulation of
    * representations of curves by UnionSets of Gridded2DSets
    * with manifold dimension = 2; the Set's domain RealTypes
-   * must be mapped to two of (XAxis, YAxis, ZAxis).
+   * must be mapped to (XAxis, YAxis);
    */
-  public CurveManipulationRendererJ3D () {
+  public CurveManipulationRendererJ2D () {
     this(0, 0);
   }
 
@@ -63,7 +62,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
    * Construct a DataRenderer that supports direct manipulation of
    * representations of curves by UnionSets of Gridded2DSets
    * with manifold dimension = 2; the Set's domain RealTypes
-   * must be mapped to two of (XAxis, YAxis, ZAxis).
+   * must be mapped to (XAxis, YAxis).
    * mmm and mmv determine whehter SHIFT or CTRL keys are required -
    * this is needed since this is a greedy DirectManipulationRenderer
    * that will grab any right mouse click (that intersects its 2-D
@@ -71,7 +70,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
    * @param  mmm  mouse modifiers
    * @param  mmv  mouse mask to check.
    */
-  public CurveManipulationRendererJ3D (int mmm, int mmv) {
+  public CurveManipulationRendererJ2D (int mmm, int mmv) {
     this(mmm, mmv, false);
   }
 
@@ -79,7 +78,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
    * Construct a DataRenderer that supports direct manipulation of
    * representations of curves by UnionSets of Gridded2DSets
    * with manifold dimension = 2; the Set's domain RealTypes
-   * must be mapped to two of (XAxis, YAxis, ZAxis).
+   * must be mapped to (XAxis, YAxis).
    * mmm and mmv determine whehter SHIFT or CTRL keys are required -
    * this is needed since this is a greedy DirectManipulationRenderer
    * that will grab any right mouse click (that intersects its 2-D
@@ -88,7 +87,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
    * @param  mmv  mouse mask to check.
    * @param  oo  if true, only one curve should exist at any one time.
    */
-  public CurveManipulationRendererJ3D (int mmm, int mmv, boolean oo) {
+  public CurveManipulationRendererJ2D (int mmm, int mmv, boolean oo) {
     super();
     mouseModifiersMask = mmm;
     mouseModifiersValue = mmv;
@@ -106,7 +105,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   public ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowCurveSetTypeJ3D(type, link, parent);
+    return new ShadowCurveSetTypeJ2D(type, link, parent);
   }
 
   private float[][] spatialValues = null;
@@ -141,7 +140,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   /** mapping from spatial axes to ScalarMaps */
   private ScalarMap[] directMap = {null, null, null};
   /** dimension of direct manipulation
-      (always 2 for CurveManipulationRendererJ3D) */
+      (always 2 for CurveManipulationRendererJ2D) */
   private int directManifoldDimension = 2;
   /** spatial DisplayTupleType other than
       DisplaySpatialCartesianTuple */
@@ -294,7 +293,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 // methods customized from DataRenderer:
 
   /** 
-   * Set spatialValues from ShadowType.doTransform.
+   * Set spatialValues from ShadowType.doTransform 
    * @param spatial_values  spatial values.
    */
   public synchronized void setSpatialValues(float[][] spatial_values) {
@@ -302,7 +301,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   }
 
   /** 
-   * Find minimum distance from ray to spatialValues.
+   * Find minimum distance from ray to spatialValues 
    * @param   origin     origin of ray
    * @param   direction  direction of the ray
    * @return  miniumum distance from ray to spatial values
@@ -389,7 +388,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   /**
    * This method is called when direct manipulation is occuring.
    * This adds points to the Gridded2DSet that comprises the current
-   * line being drawn. 
+   * line being drawn.
    * @param  ray              ray to dragging point of mouse
    * @param  first            true if this is the first point.
    * @param  mouseModifiers   modifiers used with mouse click.
@@ -793,13 +792,13 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
    * @return  new Renderer with same parameters.
    */
   public Object clone() {
-    return new CurveManipulationRendererJ3D(mouseModifiersMask,
+    return new CurveManipulationRendererJ2D(mouseModifiersMask,
                                             mouseModifiersValue, only_one);
   }
 
   private static final int N = 64;
 
-  /** test CurveManipulationRendererJ3D */
+  /** test CurveManipulationRendererJ2D */
   public static void main(String args[])
          throws VisADException, RemoteException {
     RealType x = RealType.getRealType("x");
@@ -809,42 +808,10 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     RealType c = RealType.getRealType("c");
     FunctionType ft = new FunctionType(xy, c);
 
-    // construct Java3D display and mappings
-    DisplayImpl display = null;
-    if (args.length == 0) {
-      display = new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
-    }
-    else {
-      display = new DisplayImplJ3D("display1");
-    }
-    if (args.length == 0 || args[0].equals("z")) {
-      display.addMap(new ScalarMap(x, Display.XAxis));
-      display.addMap(new ScalarMap(y, Display.YAxis));
-    }
-    else if (args[0].equals("x")) {
-      display.addMap(new ScalarMap(x, Display.YAxis));
-      display.addMap(new ScalarMap(y, Display.ZAxis));
-    }
-    else if (args[0].equals("y")) {
-      display.addMap(new ScalarMap(x, Display.XAxis));
-      display.addMap(new ScalarMap(y, Display.ZAxis));
-    }
-    else if (args[0].equals("radius")) {
-      display.addMap(new ScalarMap(x, Display.Longitude));
-      display.addMap(new ScalarMap(y, Display.Latitude));
-    }
-    else if (args[0].equals("lat")) {
-      display.addMap(new ScalarMap(x, Display.Longitude));
-      display.addMap(new ScalarMap(y, Display.Radius));
-    }
-    else if (args[0].equals("lon")) {
-      display.addMap(new ScalarMap(x, Display.Latitude));
-      display.addMap(new ScalarMap(y, Display.Radius));
-    }
-    else {
-      display.addMap(new ScalarMap(x, Display.Longitude));
-      display.addMap(new ScalarMap(y, Display.Latitude));
-    }
+    // construct Java2D display and mappings
+    DisplayImpl display  = new DisplayImplJ2D("display1");
+    display.addMap(new ScalarMap(x, Display.XAxis));
+    display.addMap(new ScalarMap(y, Display.YAxis));
     display.addMap(new ScalarMap(c, Display.RGB));
 
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
@@ -865,32 +832,25 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     DataReferenceImpl field_ref = new DataReferenceImpl("field");
     field_ref.setData(field);
     // display.addReference(field_ref);
-    DefaultRendererJ3D renderer = new DefaultRendererJ3D();
-    if (args.length > 0 && args[0].equals("radius")) {
-      ConstantMap[] cmaps = {new ConstantMap(0.99, Display.Radius)};
-      display.addReferences(renderer, field_ref, cmaps);
-    }
-    else {
-      display.addReferences(renderer, field_ref);
-      renderer.toggle(false);
-    }
+    DefaultRendererJ2D renderer = new DefaultRendererJ2D();
+    display.addReferences(renderer, field_ref);
+    renderer.toggle(false);
 
     // construct invisible starter set
-    Gridded2DSet set1 = (args.length > 0 && args[0].equals("radius")) ?
-      new Gridded2DSet(xy, new float[][] {{0.0f}, {0.0f}}, 1) :
-      new Gridded2DSet(xy, new float[][] {{-1000.0f}, {-1000.0f}}, 1);
+    Gridded2DSet set1 = 
+      new Gridded2DSet(xy, new float[][] {{0.0f}, {0.0f}}, 1) ;
     Gridded2DSet[] sets = {set1};
     UnionSet set = new UnionSet(xy, sets);
 
     DataReferenceImpl ref = new DataReferenceImpl("set");
     ref.setData(set);
     boolean only_one = (args.length > 1);
-    CurveManipulationRendererJ3D cmr =
-      new CurveManipulationRendererJ3D(0, 0, only_one);
+    CurveManipulationRendererJ2D cmr =
+      new CurveManipulationRendererJ2D(0, 0, only_one);
     display.addReferences(cmr, ref);
 
     // create JFrame (i.e., a window) for display and slider
-    JFrame frame = new JFrame("test CurveManipulationRendererJ3D");
+    JFrame frame = new JFrame("test CurveManipulationRendererJ2D");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
@@ -922,10 +882,12 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     fill.setActionCommand("fill");
     button_panel.add(fill);
     panel.add(button_panel);
+    /* Not available in Java 2D
     JButton lines = new JButton("lines");
     lines.addActionListener(cd);
     lines.setActionCommand("lines");
     button_panel.add(lines);
+    */
     panel.add(button_panel);
 
     // set size of JFrame and make it visible
@@ -933,86 +895,3 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     frame.setVisible(true);
   }
 }
-
-class CurveDelete implements ActionListener {
-
-  DataReferenceImpl ref;
-  DisplayImpl display;
-  boolean lines = false;
-  DataReferenceImpl new_ref;
-
-  CurveDelete(DataReferenceImpl r, DisplayImpl d) {
-    ref = r;
-    display = d;
-  }
-
-  public void actionPerformed(ActionEvent e) {
-    String cmd = e.getActionCommand();
-    if (cmd.equals("del")) {
-      try {
-        UnionSet set = (UnionSet) ref.getData();
-        SampledSet[] sets = set.getSets();
-        SampledSet[] new_sets = new SampledSet[sets.length - 1];
-        System.arraycopy(sets, 0, new_sets, 0, sets.length - 1);
-        ref.setData(new UnionSet(set.getType(), new_sets));
-      }
-      catch (VisADException ex) {
-      }
-      catch (RemoteException ex) {
-      }
-    }
-    else if (cmd.equals("fill")) {
-      UnionSet set = null;
-      try {
-        set = (UnionSet) ref.getData();
-        System.out.println("area = " + DelaunayCustom.computeArea(set));
-      }
-      catch (VisADException ex) {
-        System.out.println(ex.getMessage());
-      }
-      try {
-        // Irregular2DSet new_set = DelaunayCustom.fill(set);
-        Irregular2DSet new_set = DelaunayCustom.fillCheck(set, false);
-        if (new_ref == null) {
-          new_ref = new DataReferenceImpl("fill");
-          ConstantMap[] cmaps = new ConstantMap[]
-            {new ConstantMap(1.0, Display.Blue),
-             new ConstantMap(1.0, Display.Red),
-             new ConstantMap(0.0, Display.Green)};
-          DataRenderer renderer = 
-              (display instanceof DisplayImplJ3D)
-                  ? (DataRenderer) new DefaultRendererJ3D()
-                  : (DataRenderer) new DefaultRendererJ2D();
-          renderer.suppressExceptions(true);
-          display.addReferences(renderer, new_ref, cmaps);
-        }
-        new_ref.setData(new_set);
-      }
-      catch (VisADException ex) {
-        System.out.println(ex.getMessage());
-      }
-      catch (RemoteException ex) {
-        System.out.println(ex.getMessage());
-      }
-    }
-    else if (cmd.equals("lines")) {
-      try {
-        lines = !lines;
-        GraphicsModeControl mode = display.getGraphicsModeControl();
-        if (lines) {
-          mode.setPolygonMode(DisplayImplJ3D.POLYGON_LINE);
-        }
-        else {
-          mode.setPolygonMode(DisplayImplJ3D.POLYGON_FILL);
-        }
-      }
-      catch (VisADException ex) {
-        System.out.println(ex.getMessage());
-      }
-      catch (RemoteException ex) {
-        System.out.println(ex.getMessage());
-      }
-    }
-  }
-}
-
