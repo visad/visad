@@ -97,7 +97,7 @@ public class SatelliteImage extends SingleBandedImageImpl
     /** return new SatelliteImage with value 'op this' */
     public Data unary(int op, MathType new_type, 
                       int sampling_mode, int error_mode)
-                  throws VisADException 
+                  throws VisADException
     {
         return 
             new SatelliteImage(
