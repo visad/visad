@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.8 1999-09-20 20:22:02 steve Exp $
+ * $Id: BaseUnit.java,v 1.9 1999-12-14 19:24:25 steve Exp $
  */
 
 package visad;
@@ -646,6 +646,22 @@ public final class BaseUnit
 	throws UnitException
     {
 	return that.divide(derivedUnit);
+    }
+
+    /**
+     * Indicate whether this unit is convertible with another unit.  If one unit
+     * is convertible with another, then the <code>toThis(...)</code>/ and
+     * <code>toThat(...)</code> methods will not throw a UnitException.  Unit A
+     * is convertible with unit B if and only if unit B is convertible with unit
+     * A; hence, calling-order is irrelevant.
+     *
+     * @param unit	The other unit.
+     * @return		True if and only if this unit is convertible with the
+     *			other unit.
+     */
+    public boolean isConvertible(Unit unit)
+    {
+      return derivedUnit.isConvertible(unit);
     }
 
 /*

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.10 1999-09-20 20:22:03 steve Exp $
+ * $Id: DerivedUnit.java,v 1.11 1999-12-14 19:24:26 steve Exp $
  */
 
 package visad;
@@ -812,6 +812,33 @@ public final class DerivedUnit
         throws UnitException
     {
         return that.toThis(values, this);
+    }
+
+    /**
+     * Indicate whether this unit is convertible with another unit.  If one unit
+     * is convertible with another, then the <code>toThis(...)</code>/ and
+     * <code>toThat(...)</code> methods will not throw a UnitException.  Unit A
+     * is convertible with unit B if and only if unit B is convertible with unit
+     * A; hence, calling-order is irrelevant.
+     *
+     * @param unit	The other unit.
+     * @return		True if and only if this unit is convertible with the
+     *			other unit.
+     */
+    public boolean isConvertible(Unit unit)
+    {
+      boolean	isConvertible;
+      if (unit instanceof DerivedUnit)
+      {
+	DerivedUnit	that = (DerivedUnit)unit;
+	isConvertible =
+	  sameDimensionality(that) || reciprocalDimensionality(that);
+      }
+      else
+      {
+	isConvertible = unit.isConvertible(this);
+      }
+      return isConvertible;
     }
 
   /** added by WLH 11 Feb 98 */

@@ -198,6 +198,18 @@ public class PromiscuousUnit extends Unit {
     return values;
   }
 
+  /**
+   * Indicate whether this unit is convertible with another unit.  A
+   * PromiscuousUnit is always convertible with another unit.
+   *
+   * @param unit	The other unit.
+   * @return		True, always.
+   */
+  public boolean isConvertible(Unit unit)
+  {
+    return true;
+  }
+
   public boolean equals(Unit unit) {
     return (unit instanceof PromiscuousUnit);
   }

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.7 1999-09-20 19:22:28 steve Exp $
+ * $Id: ScaledUnit.java,v 1.8 1999-12-14 19:24:27 steve Exp $
  */
 
 package visad;
@@ -617,6 +617,22 @@ public final class ScaledUnit
         throws UnitException
     {
         return that.toThis(values, this);
+    }
+
+    /**
+     * Indicate whether this unit is convertible with another unit.  If one unit
+     * is convertible with another, then the <code>toThis(...)</code>/ and
+     * <code>toThat(...)</code> methods will not throw a UnitException.  Unit A
+     * is convertible with unit B if and only if unit B is convertible with unit
+     * A; hence, calling-order is irrelevant.
+     *
+     * @param unit	The other unit.
+     * @return		True if and only if this unit is convertible with the
+     *			other unit.
+     */
+    public boolean isConvertible(Unit unit)
+    {
+      return derivedUnit.isConvertible(unit);
     }
 
     /**

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.13 1999-09-20 20:22:03 steve Exp $
+ * $Id: Unit.java,v 1.14 1999-12-14 19:24:27 steve Exp $
  */
 
 package visad;
@@ -91,15 +91,22 @@ public abstract class Unit
     if (unita == null && unitb == null) return true;
     if (unita == null || unitb == null) return false;
     // WLH - real logic goes here
-    try {
-      unita.toThis(0.0, unitb);
-    }
-    catch (UnitException e) {
-      return false;
-    }
-    return true;
+    return unita.isConvertible(unitb);
   }
- 
+
+  /**
+   * Indicate whether this unit is convertible with another unit.  If one unit
+   * is convertible with another, then the <code>toThis(...)</code>/ and
+   * <code>toThat(...)</code> methods will not throw a UnitException.  Unit A
+   * is convertible with unit B if and only if unit B is convertible with unit
+   * A; hence, calling-order is irrelevant.
+   *
+   * @param unit	The other unit.
+   * @return		True if and only if this unit is convertible with the
+   *			other unit.
+   */
+  public abstract boolean isConvertible(Unit unit);
+
   /** apply canConvert elementwise to two Unit arrays */
   public static boolean canConvertArray(Unit[] unita, Unit[] unitb) {
     if (unita == null && unitb == null) return true;
