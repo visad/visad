@@ -488,7 +488,7 @@ clean:
 	      if [ -f $$dir/Makefile ]; then				\
 		(cd $$dir && make -k clean);				\
 	      else							\
-		(cd $$dir && $(RM) *.class);				\
+		(cd $$dir && $(RM) *.class *.o *.so);			\
 	      fi;							\
 	    fi;								\
 	  fi;								\
