@@ -705,7 +705,11 @@ public class SliceManager
                 thumbs = new FieldImpl[timesteps][slices];
               }
               for (int j=0; j<slices; j++) {
-                FieldImpl image = (FieldImpl) field.getSample(j);
+                Data sample = field.getSample(j);
+                if (!(sample instanceof FieldImpl)) {
+                  throw new VisADException("Field is not an image stack");
+                }
+                FieldImpl image = (FieldImpl) sample;
                 thumbs[ndx][j] = DualRes.rescale(image, thumbSize);
                 dialog.setPercent(
                   100 * (slices * i + j + 1) / (timesteps * slices));

@@ -136,6 +136,15 @@ public class VisBio extends GUIFrame implements ChangeListener {
   MeasureToolPanel toolMeasure;
 
 
+  // -- OUTPUT CONSOLES --
+
+  /** Standard output console. */
+  OutputConsole out;
+
+  /** Standard error console. */
+  OutputConsole err;
+
+
   // -- LOGIC MANAGEMENT OBJECTS --
 
   /** Object for handling slice logic. */
@@ -221,6 +230,10 @@ public class VisBio extends GUIFrame implements ChangeListener {
     super(true);
     setTitle(TITLE);
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    out = new OutputConsole("Output Console");
+    err = new OutputConsole("Error Console");
+    System.setOut(new PrintStream(out));
+    System.setErr(new PrintStream(err));
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
     importer = new ImportDialog();
     exporter = new ExportDialog(this);
@@ -249,6 +262,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
       String t = TOOL_PANELS[i];
       addMenuItem("Window", t, "window" + t, t.charAt(0));
     }
+    addMenuSeparator("Window");
+    addMenuItem("Window", "Output console", "windowOut", 'o');
+    addMenuItem("Window", "Error console", "windowErr", 'e');
 
     // help menu
     addMenuItem("Help", "Overview", "helpOverview", 'o');
@@ -269,21 +285,21 @@ public class VisBio extends GUIFrame implements ChangeListener {
     // memory usage label
     JPanel memoryPane = new JPanel();
     pane.add(memoryPane, BorderLayout.NORTH);
-    memoryLabel = new JLabel("Memory: total xxxx MB; used xxxx MB; xxx%");
+    memoryLabel = new JLabel("Memory: total xxxx MB; used xxxx MB (xxx%)");
     Thread t = new Thread(new Runnable() {
       public void run() {
         while (true) {
+          // update memory usage information twice per second
           double total = (double) Runtime.getRuntime().totalMemory();
           double free = (double) Runtime.getRuntime().freeMemory();
           double used = total - free;
-          final int percent = (int) (100.0 * (used / total));
-          final int t = (int) (total / 1000000);
-          final int u = (int) (used / 1000000);
+          int percent = (int) (100 * (used / total));
+          int t = (int) (total / 1000000);
+          int u = (int) (used / 1000000);
+          final String s = "Memory: total " + t + " MB; " +
+            "used " + u + " MB (" + percent + "%)";
           Util.invoke(false, new Runnable() {
-            public void run() {
-              memoryLabel.setText("Memory: total " + t + " MB; " +
-                "used " + u + " MB; " + percent + "%");
-            }
+            public void run() { memoryLabel.setText(s); }
           });
           try { Thread.sleep(500); }
           catch (InterruptedException exc) { }
@@ -754,6 +770,12 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
   /** Displays or switches to the Measure tool panel. */
   public void windowMeasure() { doWindow(3); }
+
+  /** Displays the output console window. */
+  public void windowOut() { out.show(); }
+
+  /** Displays the error console window. */
+  public void windowErr() { err.show(); }
 
   /** Brings up the help window on the Overview tab. */
   public void helpOverview() { doHelp(0); }
