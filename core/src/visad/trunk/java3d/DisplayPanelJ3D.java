@@ -38,6 +38,7 @@ public class DisplayPanelJ3D extends JPanel {
 
   private DisplayImplJ3D display;
   private DisplayRendererJ3D renderer;
+  private UniverseBuilderJ3D universe;
 
   public DisplayPanelJ3D(DisplayImplJ3D d) {
     this(d, null);
@@ -54,7 +55,7 @@ public class DisplayPanelJ3D extends JPanel {
     VisADCanvasJ3D canvas = new VisADCanvasJ3D(renderer, this, config);
     add(canvas);
 
-    UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
+    universe = new UniverseBuilderJ3D(canvas);
     BranchGroup scene =
       renderer.createSceneGraph(universe.view, universe.vpTrans, canvas);
     universe.addBranchGraph(scene);
@@ -67,6 +68,7 @@ public class DisplayPanelJ3D extends JPanel {
   public void destroy() {
     display = null;
     renderer = null;
+    if (universe != null) universe.destroy();
   }
 
 }

@@ -19,57 +19,68 @@ import javax.vecmath.*;
 public class UniverseBuilderJ3D extends Object {
 
     // User-specified canvas
-    Canvas3D canvas;
+    private Canvas3D canvas;
 
     // Scene graph elements that the user may want access to
-    VirtualUniverse         universe;
-    Locale                  locale;
-    TransformGroup          vpTrans;
-    View                    view;
+    private VirtualUniverse universe;
+    private Locale locale;
+    TransformGroup vpTrans;
+    View view;
+    private BranchGroup vpRoot;
+    private ViewPlatform vp;
 
     public UniverseBuilderJ3D(Canvas3D c) {
-        this.canvas = c;
+      canvas = c;
 
-        // Establish a virtual universe, with a single hi-res Locale
-        universe = new VirtualUniverse();
-        locale = new Locale(universe);
+      // Establish a virtual universe, with a single hi-res Locale
+      universe = new VirtualUniverse();
+      locale = new Locale(universe);
 
-        // Create a PhysicalBody and Physical Environment object
-        PhysicalBody body = new PhysicalBody();
-        PhysicalEnvironment environment = new PhysicalEnvironment();
+      // Create a PhysicalBody and Physical Environment object
+      PhysicalBody body = new PhysicalBody();
+      PhysicalEnvironment environment = new PhysicalEnvironment();
 
-        // Create a View and attach the Canvas3D and the physical
-        // body and environment to the view.
-        view = new View();
-        view.addCanvas3D(c);
-        view.setPhysicalBody(body);
-        view.setPhysicalEnvironment(environment);
+      // Create a View and attach the Canvas3D and the physical
+      // body and environment to the view.
+      view = new View();
+      view.addCanvas3D(c);
+      view.setPhysicalBody(body);
+      view.setPhysicalEnvironment(environment);
 
-        // Create a branch group node for the view platform
-        BranchGroup vpRoot = new BranchGroup();
+      // Create a branch group node for the view platform
+      vpRoot = new BranchGroup();
+      vpRoot.setCapability(BranchGroup.ALLOW_DETACH);
 
-        // Create a ViewPlatform object, and its associated
-        // TransformGroup object, and attach it to the root of the
-        // subgraph.  Attach the view to the view platform.
-        Transform3D t = new Transform3D();
-        t.set(new Vector3f(0.0f, 0.0f, 2.0f));
-        ViewPlatform vp = new ViewPlatform();
-        vpTrans = new TransformGroup(t);
-        vpTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-        vpTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+      // Create a ViewPlatform object, and its associated
+      // TransformGroup object, and attach it to the root of the
+      // subgraph.  Attach the view to the view platform.
+      Transform3D t = new Transform3D();
+      t.set(new Vector3f(0.0f, 0.0f, 2.0f));
+      vp = new ViewPlatform();
+      vpTrans = new TransformGroup(t);
+      vpTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+      vpTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 
-        vpTrans.addChild(vp);
-        vpRoot.addChild(vpTrans);
+      vpTrans.addChild(vp);
+      vpRoot.addChild(vpTrans);
 
-        view.attachViewPlatform(vp);
+      view.attachViewPlatform(vp);
 
-        // Attach the branch graph to the universe, via the Locale.
-        // The scene graph is now live!
-        locale.addBranchGraph(vpRoot);
+      // Attach the branch graph to the universe, via the Locale.
+      // The scene graph is now live!
+      locale.addBranchGraph(vpRoot);
     }
 
     public void addBranchGraph(BranchGroup bg) {
         locale.addBranchGraph(bg);
+    }
+
+    public void destroy() {
+      view.removeCanvas3D(canvas);
+      // according to Kelvin Chung, 26 Apr 2000, this should work
+      // but it throws a NullPointerException
+      // view.attachViewPlatform(null);
+      vpRoot.detach();
     }
 
 }

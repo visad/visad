@@ -39,6 +39,7 @@ public class DisplayAppletJ3D extends Applet {
 
   private DisplayImplJ3D display;
   private DisplayRendererJ3D renderer;
+  private UniverseBuilderJ3D universe;
 
   public DisplayAppletJ3D(DisplayImplJ3D d) {
     this(d, null);
@@ -54,7 +55,14 @@ public class DisplayAppletJ3D extends Applet {
     UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
     BranchGroup scene =
       renderer.createSceneGraph(universe.view, universe.vpTrans, canvas);
-    universe.addBranchGraph(scene); // J3D
+    universe.addBranchGraph(scene);
+  }
+
+  // WLH 17 Dec 2001
+  public void destroy() {
+    display = null;
+    renderer = null;
+    if (universe != null) universe.destroy();
   }
 
 }
