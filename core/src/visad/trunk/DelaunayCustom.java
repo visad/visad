@@ -496,6 +496,11 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
       region; return a decomposition of that region into triangles whose
       vertices are all boundary points from samples, as an Irregular2DSet */
   public static Irregular2DSet fill(UnionSet set) throws VisADException {
+    return fillCheck(set, true);
+  }
+
+  public static Irregular2DSet fillCheck(UnionSet set, boolean check)
+         throws VisADException {
     if (set == null) return null;
     if (set.getManifoldDimension() != 1) {
       throw new SetException("UnionSet must have manifold dimension = 1");
@@ -520,7 +525,7 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
     System.arraycopy(ss, 0, new_ss, 0, k);
     ss = new_ss;
     float[][] samples = link(ss);
-    int[][] tris = fill(samples);
+    int[][] tris = fillCheck(samples, check);
     if (tris == null || tris[0].length == 0) return null;
     DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
     if (delaunay == null) return null;

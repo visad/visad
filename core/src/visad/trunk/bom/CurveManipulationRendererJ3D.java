@@ -804,7 +804,8 @@ class CurveDelete implements ActionListener {
       try {
         UnionSet set = (UnionSet) ref.getData();
         System.out.println("area = " + DelaunayCustom.computeArea(set));
-        Irregular2DSet new_set = DelaunayCustom.fill(set);
+        // Irregular2DSet new_set = DelaunayCustom.fill(set);
+        Irregular2DSet new_set = DelaunayCustom.fillCheck(set, false);
         if (new_set != null) {
           if (new_ref == null) {
             new_ref = new DataReferenceImpl("fill");
