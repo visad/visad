@@ -368,7 +368,13 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
         other_offset = (direction[otherindex] < 0.0) ? 0.005f : -0.005f;
       }
       else if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
-        if (otherindex == 2) other_offset = 0.005f;
+        if (otherindex == 0) {
+          other_offset = (direction[2] < 0.0) ? 0.1f : -0.1f;
+        }
+        else if (otherindex == 1) {
+          other_offset = (direction[1] < 0.0) ? 0.1f : -0.1f;
+        }
+        else if (otherindex == 2) other_offset = 0.005f;
       }
 
       last_x = new float[][] {{clast_x[0][0]}, {clast_x[1][0]}, {clast_x[2][0]}};

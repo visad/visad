@@ -1846,7 +1846,7 @@ System.out.println("checkClose: distance = " + distance);
   private static final int HALF_GUESSES = 200;
   private static final int GUESSES = 2 * HALF_GUESSES + 1;
   private static final float RAY_POS_INC = 0.1f;
-  private static final int TRYS = 50;
+  private static final int TRYS = 10;
   private static final double EPS = 0.001f;
 
   public float findRayManifoldIntersection(boolean first, double[] origin,
@@ -1861,6 +1861,10 @@ System.out.println("checkClose: distance = " + distance);
     }
     else { // tuple != null
       CoordinateSystem tuplecs = tuple.getCoordinateSystem();
+      double adjust = Double.NaN;
+      if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
+        if (otherindex == 1) adjust = 360.0;
+      }
       if (first) {
         // generate a first guess ray_pos by brute force
         ray_pos = Float.NaN;
@@ -1870,6 +1874,11 @@ System.out.println("checkClose: distance = " + distance);
           guesses[0][i] = (float) (origin[0] + rp * direction[0]);
           guesses[1][i] = (float) (origin[1] + rp * direction[1]);
           guesses[2][i] = (float) (origin[2] + rp * direction[2]);
+          if (adjust == adjust) {
+            guesses[otherindex][i] = (float)
+              (((othervalue + 0.5 * adjust + guesses[otherindex][i]) % adjust) -
+               (othervalue + 0.5 * adjust));
+          }
         }
         guesses = tuplecs.fromReference(guesses);
         double distance = Double.MAX_VALUE;
@@ -1895,39 +1904,58 @@ System.out.println("checkClose: distance = " + distance);
       }
       if (ray_pos == ray_pos) {
         // use Newton's method to refine first guess
-        double error_limit = 10.0 * EPS;
-        if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
-          if (otherindex == 0) error_limit = 2.0;
-          else if (otherindex == 1) error_limit = 20.0; // there must be a bug
-        }
+        // double error_limit = 10.0 * EPS;
+        double error_limit = EPS;
         double r = ray_pos;
         double error = 1.0f;
         double[][] guesses = new double[3][3];
         int itry;
+// System.out.println("\nothervalue = " + (float) othervalue + " r = " + (float) r);
         for (itry=0; (itry<TRYS && r == r); itry++) {
           double rp = r + EPS;
           double rm = r - EPS;
           guesses[0][0] = origin[0] + rp * direction[0];
           guesses[1][0] = origin[1] + rp * direction[1];
           guesses[2][0] = origin[2] + rp * direction[2];
-          guesses[0][1] = origin[0] + ray_pos * direction[0];
-          guesses[1][1] = origin[1] + ray_pos * direction[1];
-          guesses[2][1] = origin[2] + ray_pos * direction[2];
+          guesses[0][1] = origin[0] + r * direction[0];
+          guesses[1][1] = origin[1] + r * direction[1];
+          guesses[2][1] = origin[2] + r * direction[2];
           guesses[0][2] = origin[0] + rm * direction[0];
           guesses[1][2] = origin[1] + rm * direction[1];
           guesses[2][2] = origin[2] + rm * direction[2];
+// System.out.println(" guesses = " + (float) guesses[0][1] + " " +
+//                    (float) guesses[1][1] + " " + (float) guesses[2][1]);
           guesses = tuplecs.fromReference(guesses);
+// System.out.println(" transformed = " + (float) guesses[0][1] + " " +
+//                    (float) guesses[1][1] + " " + (float) guesses[2][1]);
+          if (adjust == adjust) {
+            guesses[otherindex][0] =
+              ((othervalue + 0.5 * adjust + guesses[otherindex][0]) % adjust) -
+               (othervalue + 0.5 * adjust);
+            guesses[otherindex][1] =
+              ((othervalue + 0.5 * adjust + guesses[otherindex][1]) % adjust) -
+               (othervalue + 0.5 * adjust);
+            guesses[otherindex][2] =
+              ((othervalue + 0.5 * adjust + guesses[otherindex][2]) % adjust) -
+               (othervalue + 0.5 * adjust);
+          }
+// System.out.println(" adjusted = " + (float) guesses[0][1] + " " +
+//                    (float) guesses[1][1] + " " + (float) guesses[2][1]);
           double g = othervalue - guesses[otherindex][1];
           error = Math.abs(g);
           if (error <= EPS) break;
           double gp = othervalue - guesses[otherindex][0];
           double gm = othervalue - guesses[otherindex][2];
           double dg = (gp - gm) / (EPS + EPS);
+// System.out.println("r = " + (float) r + " g = " + (float) g + " gm = " +
+//                    (float) gm + " gp = " + (float) gp + " dg = " + (float) dg);
           r = r - g / dg;
         }
-        ray_pos = (float) r;
-        if (error > error_limit) {
-          // System.out.println("error = " + error);
+        if (error < error_limit) {
+          ray_pos = (float) r;
+        }
+        else {
+          // System.out.println("error = " + error + " itry = " + itry);
           ray_pos = Float.NaN;
         }
       }
