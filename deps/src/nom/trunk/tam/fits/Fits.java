@@ -16,6 +16,42 @@ import java.util.zip.GZIPInputStream;
 import nom.tam.util.*;
 
 
+abstract class FauxHDU
+	extends BasicHDU
+{
+  public FauxHDU() { super(null); }
+  public abstract void throwException() throws FitsException;
+  Data manufactureData() throws FitsException { throwException(); return null; }
+}
+
+class SkippedHDU
+	extends FauxHDU
+{
+  public SkippedHDU() { }
+  public void throwException()
+	throws FitsException
+  {
+    throw new FitsException("Skipped HDU");
+  }
+  public void info() { System.out.println("Skipped HDU"); }
+}
+
+class BadHDU
+	extends FauxHDU
+{
+  private FitsException exception;
+
+  public BadHDU(FitsException e) { exception = e; }
+  public void throwException()
+	throws FitsException
+  {
+    throw exception;
+  }
+  public void info() {
+    System.out.println("Bad HDU: " + exception.getMessage());
+  }
+}
+
 /** This class provides access to routines to allow users
   * to read and write FITS files.
   * <p>
@@ -322,13 +358,21 @@ public class Fits {
           return null;
       }
 
-      BasicHDU nextHDU = HDU.readHDU(dataStr);
-      if (nextHDU != null) {
-          HDUList.addElement(nextHDU);
-      } else {
+      BasicHDU nextHDU;
+      try {
+	nextHDU = HDU.readHDU(dataStr);
+      } catch (FitsException e) {
+	nextHDU = new BadHDU(e);
+      }
+      if (nextHDU == null) {
           atEOF = true;
+      } else {
+          HDUList.addElement(nextHDU);
       }
 
+      if (nextHDU instanceof FauxHDU) {
+	((FauxHDU )nextHDU).throwException();
+      }
       return nextHDU;
     }
 
@@ -347,6 +391,8 @@ public class Fits {
 
         if (!atEOF && !HDU.skipHDU(dataStr)) {
             atEOF = true;
+        } else {
+            HDUList.addElement(new SkippedHDU());
         }
     }
 
@@ -361,15 +407,26 @@ public class Fits {
 
       int size = currentSize();
       if (size > n) {
+	 BasicHDU hdu;
          try {
-             return (BasicHDU) HDUList.elementAt(n);
+             hdu = (BasicHDU) HDUList.elementAt(n);
          } catch (NoSuchElementException e) {
              throw new FitsException("Internal Error: Vector mismatch");
          }
+	 if (hdu instanceof FauxHDU) {
+	     ((FauxHDU )hdu).throwException();
+	 }
+	 return hdu;
       }
 
       for (int i=size; i <= n; i += 1) {
-          if (readHDU() == null) {
+	  BasicHDU hdu;
+	  try {
+	    hdu = readHDU();
+	  } catch (FitsException e) {
+	    hdu = new BadHDU(e);
+	  }
+          if (hdu == null) {
               return null;
           }
       }
