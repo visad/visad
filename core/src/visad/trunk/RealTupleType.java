@@ -57,10 +57,23 @@ public class RealTupleType extends TupleType {
   public static final RealTupleType SpatialCartesian3DTuple =
     new RealTupleType(components3c, true);
 
+
+  private static RealType[] components2e =
+    {RealType.Longitude, RealType.Latitude};
+  public final static RealTupleType SpatialEarth2DTuple =
+    new RealTupleType(components2e, true);
+
+  private static RealType[] components3e =
+    {RealType.Longitude, RealType.Latitude, RealType.Altitude};
+  public final static RealTupleType SpatialEarth3DTuple =
+    new RealTupleType(components3e, true);
+
+
   private static RealType[] components1t =
     {RealType.Time};
   public static final RealTupleType Time1DTuple =
     new RealTupleType(components1t, true);
+
 
   private static RealType[] components2g =
     {RealType.Generic, RealType.Generic};
@@ -71,6 +84,7 @@ public class RealTupleType extends TupleType {
     {RealType.Generic, RealType.Generic, RealType.Generic};
   public final static RealTupleType Generic3D =
     new RealTupleType(components3g, true);
+
 
   /** array of component types;
       default CoordinateSystem and Set are null */
