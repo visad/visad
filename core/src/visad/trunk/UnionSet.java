@@ -885,7 +885,13 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
   }
 
   public String longString(String pre) throws VisADException {
-    return pre + "UnionSet: Dimension = " + DomainDimension + "\n";
+    String s = pre + "UnionSet: Dimension = " + DomainDimension +
+               " Length = " + getLength() + "\n";
+    int n = Sets.length;
+    for (int i=0; i<n; i++) {
+      s = s + Sets[i].toString();
+    }
+    return s;
   }
 
 }
