@@ -1,6 +1,7 @@
 package visad.install;
 
 import java.io.File;
+import java.io.IOException;
 
 public class ClusterInstaller
 {
@@ -14,12 +15,14 @@ public class ClusterInstaller
     this.cPush = cPush;
   }
 
-  public boolean push(String target)
+  public Process push(String target)
+    throws IOException
   {
     return push(target, target);
   }
 
-  public boolean push(String source, String target)
+  public Process push(String source, String target)
+    throws IOException
   {
     if (runtime == null) {
       runtime = Runtime.getRuntime();
@@ -32,10 +35,6 @@ public class ClusterInstaller
     argList[1] = source;
     argList[2] = target;
 
-    try {
-      return (runtime.exec(argList).waitFor() == 0 ? true : false);
-    } catch (Exception e) {
-      return false;
-    }
+    return runtime.exec(argList);
   }
 }
