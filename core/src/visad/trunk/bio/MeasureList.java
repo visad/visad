@@ -63,11 +63,19 @@ public class MeasureList {
 
   /** Adds a measurement line to the measurement list. */
   public void addLine() {
+    double[] e1, e2;
+    if (bio.display2.getComponent().isVisible()) {
+      Dimension d = bio.display2.getComponent().getSize();
+      e1 = BioUtil.pixelToDomain(bio.display2, 0, 0);
+      e2 = BioUtil.pixelToDomain(bio.display2, d.width, d.height);
+    }
+    else {
+      e1 = new double[] {0, 0};
+      e2 = new double[] {bio.sm.res_x, bio.sm.res_y};
+    }
+
     // generate random acceptable endpoint start locations;
     // endpoints bisect a circle on the given Z-slice value
-    Dimension size = bio.display2.getComponent().getSize();
-    double[] e1 = BioUtil.pixelToDomain(bio.display2, 0, 0);
-    double[] e2 = BioUtil.pixelToDomain(bio.display2, size.width, size.height);
     int slice = bio.sm.getSlice();
     double cx = (e1[0] + e2[0]) / 2;
     double cy = (e1[1] + e2[1]) / 2;
