@@ -634,9 +634,9 @@ any = true;
             ym = ydd*(mc+1.0f)+0.0f;
             value = gg;
 
-            if (numv4[0]+100 >= maxv4) {
+            if (numv4[0]+1000 >= maxv4) {
               // allocate more space
-              maxv4 = 2 * (numv4[0]+100);
+              maxv4 = 2 * (numv4[0]+1000);
               float[][] tx = new float[][] {vx4[0]};
               float[][] ty = new float[][] {vy4[0]};
               vx4[0] = new float[maxv4];
@@ -645,9 +645,9 @@ any = true;
               System.arraycopy(ty[0], 0, vy4[0], 0, numv4[0]);
             }
 
-            if (numv3[0]+100 >= maxv3) {
+            if (numv3[0]+1000 >= maxv3) {
               // allocate more space
-              maxv3 = 2 * (numv3[0]+100);
+              maxv3 = 2 * (numv3[0]+1000);
               float[][] tx = new float[][] {vx3[0]};
               float[][] ty = new float[][] {vy3[0]};
               vx3[0] = new float[maxv3];
