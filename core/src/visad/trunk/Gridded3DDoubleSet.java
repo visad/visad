@@ -164,6 +164,15 @@ public class Gridded3DDoubleSet extends Gridded3DSet
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {
+    this(type, samples, lengthX, lengthY, lengthZ, coord_sys, units,
+         errors, copy, true);
+  }
+
+  public Gridded3DDoubleSet(MathType type, double[][] samples,
+               int lengthX, int lengthY, int lengthZ,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy, boolean test)
+               throws VisADException {
     super(type, null, lengthX, lengthY, lengthZ,
       coord_sys, units, errors, copy);
     if (samples == null) {
@@ -216,6 +225,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
           + (  ( (t100[0]-t000[0])*(t101[1]-t100[1])
                - (t100[1]-t000[1])*(t101[0]-t100[0]) )
                 *(t110[2]-t100[2])  ) > 0;
+    if (test) {
       for (int k=0; k<LengthZ-1; k++) {
         for (int j=0; j<LengthY-1; j++) {
           for (int i=0; i<LengthX-1; i++) {
@@ -317,6 +327,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
           }
         }
       }
+     } // end if (test)
     }
   }
 
