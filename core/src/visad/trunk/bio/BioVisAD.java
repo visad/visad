@@ -392,10 +392,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
         int rval = fileBox.showSaveDialog(frame);
         if (rval == JFileChooser.APPROVE_OPTION) {
           setWaitCursor(true);
-          String f = fileBox.getSelectedFile().getPath();
-          FieldImpl data = sm.buildAnimationStack();
-          try { fsaver.save(f, data, true); }
-          catch (IOException exc) { exc.printStackTrace(); }
+          String file = fileBox.getSelectedFile().getPath();
+          try { sm.exportAnimationStack(fsaver, file); }
           catch (VisADException exc) { exc.printStackTrace(); }
           setWaitCursor(false);
         }

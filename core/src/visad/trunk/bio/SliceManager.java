@@ -30,7 +30,7 @@ import java.io.File;
 import java.rmi.RemoteException;
 import javax.swing.JOptionPane;
 import visad.*;
-import visad.data.DefaultFamily;
+import visad.data.*;
 import visad.util.DualRes;
 
 /** SliceManager is the class encapsulating BioVisAD's slice logic. */
@@ -325,16 +325,57 @@ public class SliceManager
   }
 
   /**
+   * Exports an animation of the given 
    * Constructs a high-resolution data object of the animation
    * across all timesteps, at the current slice.
    */
-  public FieldImpl buildAnimationStack() {
-    /* CTR - TODO
-    // compile high-resolution animation data
-    FunctionType ftype = new FunctionType(time, 
-    FieldImpl data = new FieldImpl(
-    */
-    return null;
+  public void exportAnimationStack(Form saver, String file)
+    throws VisADException
+  {
+    final Form fsaver = saver;
+    final String f = file;
+    final ProgressDialog dialog = new ProgressDialog(bio,
+      "Compiling animation data");
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          // compile high-resolution animation data
+          FieldImpl data = null;
+          for (int i=0; i<timesteps; i++) {
+            FieldImpl image;
+            FieldImpl field = loadData(files[i]);
+            if (i == 0) {
+              FunctionType image_type =
+                (FunctionType) field.getSample(0).getType();
+              FunctionType anim_type = new FunctionType(TIME_TYPE, image_type);
+              Integer1DSet set = new Integer1DSet(TIME_TYPE, timesteps);
+              data = new FieldImpl(anim_type, set);
+            }
+            if (planeSelect) {
+              FieldImpl collapsedField = (FieldImpl) field.domainMultiply();
+              image = (FieldImpl) ps.extractSlice(
+                collapsedField, res_x, res_y, res_x, res_y);
+            }
+            else image = (FieldImpl) field.getSample(slice);
+            data.setSample(i, image, false);
+            dialog.setPercent(100 * (i + 1) / timesteps);
+          }
+
+          // save animation data to file
+          dialog.setText("Exporting animation");
+          fsaver.save(f, data, true);
+        }
+        catch (VisADException exc) { dialog.setException(exc); }
+        catch (Exception exc) {
+          dialog.setException(new VisADException(
+            exc.getClass() + ": " + exc.getMessage()));
+        }
+        dialog.kill();
+      }
+    });
+    t.start();
+    dialog.show();
+    dialog.checkException();
   }
 
 
@@ -524,7 +565,7 @@ public class SliceManager
             for (int j=0; j<timesteps; j++) {
               FieldImpl step = new FieldImpl(slice_function, lowres_set);
               step.setSamples(thumbs[j], false);
-              lowresField.setSample(j, step);
+              lowresField.setSample(j, step, false);
             }
           }
 
@@ -587,7 +628,7 @@ public class SliceManager
         FunctionType func = new FunctionType(
           RealType.getRealType("slice"), f.getType());
         stack = new FieldImpl(func, new Integer1DSet(1));
-        stack.setSample(0, f);
+        stack.setSample(0, f, false);
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
