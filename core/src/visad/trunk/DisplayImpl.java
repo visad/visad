@@ -798,6 +798,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     DataRenderer renderer = link.getRenderer();
     DataDisplayLink[] links = renderer.getLinks();
     synchronized (mapslock) {
+      renderer.clearAVControls(); // WLH 31 Oct 2000
       renderer.clearScene();
       RendererVector.removeElement(renderer);
     }
@@ -816,6 +817,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         Iterator renderers = RendererVector.iterator();
         while (renderers.hasNext()) {
           DataRenderer renderer = (DataRenderer) renderers.next();
+          renderer.clearAVControls(); // WLH 31 Oct 2000
           renderer.clearScene();
           DataDisplayLink[] links = renderer.getLinks();
           renderers.remove();
