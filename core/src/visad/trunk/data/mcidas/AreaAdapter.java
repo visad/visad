@@ -24,6 +24,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.data.mcidas;
 
+import edu.wisc.ssec.mcidas.*;
+
 import java.io.IOException;
 
 import java.net.MalformedURLException;
@@ -53,32 +55,17 @@ public class AreaAdapter {
   private int numLines, numEles, numBands;
   final int GVAR =  1196835154;    
 
-  /** Create a VisAD FlatField from a local McIDAS AREA file
-    * @param filename name of local file.
+  /** Create a VisAD FlatField from a local McIDAS AREA file or a URL.
+    * @param imageSource name of local file or a URL to locate file.
     * @exception IOException if there was a problem reading the file.
     * @exception VisADException if an unexpected problem occurs.
     */
-  public AreaAdapter(String filename) throws IOException, VisADException {
+  public AreaAdapter(String imageSource) throws IOException, VisADException {
     try {
-      AreaFile af = new AreaFile(filename);
+      AreaFile af = new AreaFile(imageSource);
       buildFlatField(af);
-    } catch (AreaFileException aef) {throw new
-        VisADException("Problem with McIDAS AREA file:"+aef);
-    }
-  }
-
-
-  /** Create a VisAD FlatField from a McIDAS AREA on the Web.
-    * @param URL (including filename) of remote file
-    * @exception IOException if there was a problem reading the file.
-    * @exception VisADException if an unexpected problem occurs.
-    */
-  public AreaAdapter(URL url) throws IOException, VisADException {
-    try {
-      AreaFile af = new AreaFile(url);
-      buildFlatField(af);
-    } catch (AreaFileException aef) {throw new
-        VisADException("Problem with McIDAS AREA file:"+aef);
+    } catch (AreaFileException afe) {throw new
+        VisADException("Problem with McIDAS AREA file: " + afe);
     }
   }
 
