@@ -176,7 +176,7 @@ public class AreaAdapter {
     // extract the number of bands (sensors) and make the VisAD type
     // NB: always zero now
     int bandNums[] = areaDirectory.getBands();
-    int numBands = bandNums.length;
+    int numBands = areaDirectory.getNumberOfBands();  // this might be different
 
     // create indicies into the data structure for the bands
     int[] bandIndices = new int[numBands];
@@ -395,6 +395,7 @@ public class AreaAdapter {
    *
    * @return image as a FlatField
    */
+
   public FlatField getData() {
     /*
     if (field.getRangeDimension() == 1) {
