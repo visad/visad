@@ -1087,8 +1087,16 @@ if (initialize) {
 // System.out.println("DisplayImpl invoke renderer.doAction " + i);
 // i++;
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
-          transform_done |= renderer.doAction();
-// System.out.println("DisplayImpl invoke renderer.doAction " + transform_done);
+
+          boolean this_transform = renderer.doAction();
+          transform_done |= this_transform;
+/*
+          if (this_transform) {
+            DataDisplayLink[] links = renderer.getLinks();
+            System.out.println("transform " +
+                               links[0].getThingReference().getName());
+          }
+*/
         }
         if (transform_done) {
 // System.out.println(getName() + " invoked " + i + " renderers");
