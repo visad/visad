@@ -8,6 +8,7 @@ import ucar.netcdf.Attribute;
 import ucar.netcdf.DimensionIterator;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
+import visad.CoordinateSystem;
 import visad.DoubleSet;
 import visad.FloatSet;
 import visad.Linear1DSet;
@@ -45,6 +46,16 @@ ImportVar
      */
     protected /*final*/ MathType	mathType;
 
+    /**
+     * The range set of the netCDF variable.
+     */
+    protected /*final*/ Set		set;
+
+    /**
+     * The units of the netCDF variable.
+     */
+    protected final Unit		unit;
+
 
     /**
      * Construct from a netCDF variable and dataset.
@@ -53,6 +64,37 @@ ImportVar
     {
 	this.var = var;
 	this.netcdf = netcdf;
+	unit = setUnit();
+    }
+
+
+    /**
+     * Determine the units of the netCDF variable.
+     *
+     * @return	The units of the variable or <code>null</code> if there
+     *		was no "unit" attribute or an error occurred during parsing.
+     */
+    private Unit
+    setUnit()
+    {
+	Unit		unit = null;
+	Attribute	attr = var.getAttribute("units");
+
+	if (attr == null)
+	    attr = var.getAttribute("unit");
+
+	if (attr != null && attr.isString())
+	{
+	    try
+	    {
+		unit = Parser.parse(attr.getStringValue());
+	    }
+	    catch (ParseException e)
+	    {
+	    }
+	}
+
+	return unit;
     }
 
 
@@ -256,6 +298,31 @@ ImportVar
 
 
     /**
+     * Get the units of this variable.
+     *
+     * @return	The unit of the variable or <code>null</code> if there isn't
+     *		one.
+     */
+    Unit
+    getUnit()
+    {
+	return unit;
+    }
+
+
+    /**
+     * Get the range set of this variable.
+     *
+     * @return	The range set of the variable.
+     */
+    Set
+    getSet()
+    {
+	return set;
+    }
+
+
+    /**
      * Indicate if the values of this variable are textual.
      */
     boolean
@@ -454,6 +521,7 @@ NcText
     {
 	super(var, netcdf);
 	mathType = new TextType(var.getName());
+	set = null;
     }
 
 
@@ -783,21 +851,21 @@ NcNumber
      * Construct.
      */
     NcNumber(Variable var, Netcdf netcdf)
-	throws BadFormException
+	throws BadFormException, VisADException
     {
 	super(var, netcdf);
-	vetter = new Vetter(var);
 	isCoordVar = setIsCoordVar();
 	isLongitude = setIsLongitude();
 	isTime = setIsTime();
 	mathType = RealType.getRealTypeByName(getName());
+	vetter = new Vetter(var);
     }
 
 
     /**
      * Set whether or not the variable is a co-ordinate variable.
      */
-    boolean
+    private boolean
     setIsCoordVar()
     {
 	if (var.getRank() == 1)
@@ -817,7 +885,7 @@ NcNumber
     /**
      * Set whether or not this variable is longitude.
      */
-    boolean
+    private boolean
     setIsLongitude()
     {
 	String	varName = var.getName();
@@ -832,28 +900,11 @@ NcNumber
     /**
      * Set whether or not this variable is temporal in nature.
      */
-    protected boolean
+    private boolean
     setIsTime()
     {
-	Attribute	attr = var.getAttribute("units");
-
-	if (attr != null && attr.isString())
-	{
-	    try
-	    {
-		Unit	unit = Parser.parse((String)attr.getValue());
-
-		if (Unit.canConvert(unit, SI.second) ||
-		    Unit.canConvert(unit, offsetTime))
-		{
-		    return true;
-		}
-	    }
-	    catch (ParseException e)
-	    {}
-	}
-
-	return false;
+	return Unit.canConvert(unit, SI.second) ||
+	       Unit.canConvert(unit, offsetTime);
     }
 
 
@@ -1008,7 +1059,7 @@ NcInteger
      * Construct.
      */
     NcInteger(Variable var, Netcdf netcdf)
-	throws BadFormException
+	throws BadFormException, VisADException
     {
 	super(var, netcdf);
     }
@@ -1067,11 +1118,22 @@ NcByte
     {
 	super(var, netcdf);
 
-	// TODO: support "units" attribute
+	/*
+	 * The following is complicated due to the circular dependency
+	 * between MathType and Set.
+	 */
+
+	RealType	realType = mathType == null
+	    ? new RealType(getName(), unit, (Set)null)
+	    : (RealType)mathType;
+
+	set = new Linear1DSet(realType, Byte.MIN_VALUE+1, Byte.MAX_VALUE, 
+		    Byte.MAX_VALUE - Byte.MIN_VALUE);
+
 	if (mathType == null)
 	{
-	    mathType = new RealType(getName(), (Unit)null, 
-			    new Linear1DSet(RealType.Generic, -127, 127, 255));			
+	    realType.setDefaultSet(set);
+	    mathType = realType;
 	}
     }
 
@@ -1114,13 +1176,22 @@ NcShort
     {
 	super(var, netcdf);
 
-	// TODO: support "units" attribute
+	/*
+	 * The following is complicated due to the circular dependency
+	 * between MathType and Set.
+	 */
+
+	RealType	realType = mathType == null
+	    ? new RealType(getName(), unit, (Set)null)
+	    : (RealType)mathType;
+
+	set = new Linear1DSet(realType, Short.MIN_VALUE+1, Short.MAX_VALUE, 
+		    Short.MAX_VALUE - Short.MIN_VALUE);
+
 	if (mathType == null)
 	{
-	    mathType = new RealType(getName(), (Unit)null, 
-			    new Linear1DSet(RealType.Generic,
-				Short.MIN_VALUE+1, Short.MAX_VALUE,
-				Short.MAX_VALUE - Short.MIN_VALUE));
+	    realType.setDefaultSet(set);
+	    mathType = realType;
 	}
     }
 
@@ -1163,11 +1234,22 @@ NcInt
     {
 	super(var, netcdf);
 
-	// TODO: support "units" attribute
+	/*
+	 * The following is complicated due to the circular dependency
+	 * between MathType and Set.
+	 */
+
+	RealType	realType = mathType == null
+	    ? new RealType(getName(), unit, (Set)null)
+	    : (RealType)mathType;
+
+	set = new FloatSet(realType, (CoordinateSystem)null,
+		    new Unit[] {unit});
+
 	if (mathType == null)
 	{
-	    mathType = new RealType(getName(), (Unit)null, 
-			    new FloatSet(RealType.Generic));
+	    realType.setDefaultSet(set);
+	    mathType = realType;
 	}
     }
 
@@ -1194,7 +1276,7 @@ NcReal
      * Construct.
      */
     NcReal(Variable var, Netcdf netcdf)
-	throws BadFormException
+	throws BadFormException, VisADException
     {
 	super(var, netcdf);
     }
@@ -1218,8 +1300,9 @@ NcFloat
 	Class	type = var.getComponentType();
 
 	/*
-	 * Integer.TYPE is left out of the following because a float cannot
-	 * accurately represent all possible integer values.
+         * Integer.TYPE is left out of the following because a Java
+         * Float has 24 bits of precision and, consequently, cannot
+         * accurately represent all possible 32-bit integer values.
 	 */
 	return type.equals(Float.TYPE) ||
 		type.equals(Short.TYPE) ||
@@ -1235,11 +1318,22 @@ NcFloat
     {
 	super(var, netcdf);
 
-	// TODO: support "units" attribute
+	/*
+	 * The following is complicated due to the circular dependency
+	 * between MathType and Set.
+	 */
+
+	RealType	realType = mathType == null
+	    ? new RealType(getName(), unit, (Set)null)
+	    : (RealType)mathType;
+
+	set = new FloatSet(realType, (CoordinateSystem)null,
+		    new Unit[] {unit});
+
 	if (mathType == null)
 	{
-	    mathType = new RealType(getName(), (Unit)null, 
-			    new FloatSet(RealType.Generic));
+	    realType.setDefaultSet(set);
+	    mathType = realType;
 	}
     }
 
@@ -1287,11 +1381,22 @@ NcDouble
     {
 	super(var, netcdf);
 
-	// TODO: support "units" attribute
+	/*
+	 * The following is complicated due to the circular dependency
+	 * between MathType and Set.
+	 */
+
+	RealType	realType = mathType == null
+	    ? new RealType(getName(), unit, (Set)null)
+	    : (RealType)mathType;
+
+	set = new DoubleSet(realType, (CoordinateSystem)null,
+		    new Unit[] {unit});
+
 	if (mathType == null)
 	{
-	    mathType = new RealType(getName(), (Unit)null, 
-			    new DoubleSet(RealType.Generic));
+	    realType.setDefaultSet(set);
+	    mathType = realType;
 	}
     }
 

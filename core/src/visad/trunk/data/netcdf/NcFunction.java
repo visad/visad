@@ -168,7 +168,7 @@ NcFunction
 	// TODO: Support units
 	FlatField	field =
 	    new FlatField((FunctionType)mathType, getDomainSet(),
-		(CoordinateSystem)null, getRangeSets(), (Unit[])null);
+		(CoordinateSystem)null, getRangeSets(), getRangeUnits());
 
 	field.setSamples(getRangeValues());
 
@@ -364,8 +364,27 @@ NcFunction
     protected Set[]
     getRangeSets()
     {
-	// TODO: implement
-	return null;
+	Set[]	sets = new Set[vars.length];
+
+	for (int i = 0; i < vars.length; ++i)
+	    sets[i] = ((NcNumber)vars[i]).getSet();
+
+	return sets;
+    }
+
+
+    /**
+     * Return the range units of this function.
+     */
+    protected Unit[]
+    getRangeUnits()
+    {
+	Unit[]	units = new Unit[vars.length];
+
+	for (int i = 0; i < vars.length; ++i)
+	    units[i] = ((NcNumber)vars[i]).getUnit();
+
+	return units;
     }
 
 

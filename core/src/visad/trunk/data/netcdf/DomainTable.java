@@ -290,29 +290,4 @@ DomainTable
 	    return id;
 	}
     }
-
-
-    /**
-     * Test this class.
-     *
-     * @exception Exception	Something went wrong.
-     */
-    public static void main(String[] args)
-	throws Exception
-    {
-	// TODO
-	/*
-	NcDim[]		dims = {new NcDim("dim0", 4), new NcDim("dim1", 5)};
-	ImportVar	var0 = new NcFloat("var0", dims);
-	ImportVar	var1 = new NcFloat("var1", dims);
-
-	DomainTable	domTable = new DomainTable(7);
-
-	domTable.add(var0);
-	domTable.add(var0);
-	domTable.add(var1);
-
-	System.out.println("main(): domain table:\n" + domTable.toString());
-	*/
-    }
 }
