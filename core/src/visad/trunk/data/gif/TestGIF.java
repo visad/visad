@@ -20,6 +20,8 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+package visad.data.gif;
+
 import java.io.IOException;
 
 import java.net.MalformedURLException;
