@@ -215,17 +215,25 @@ public class FormulaManager {
 
   /** assign a formula to a variable */
   public void assignFormula(String name, String formula)
-                            throws FormulaException, VisADException {
+    throws FormulaException, VisADException
+  {
     FormulaVar v = getVarByNameOrCreate(name);
     v.setFormula(formula);
+  }
+
+  /** blocks until this variable's formula is finished computing */
+  public void waitForFormula(String name)
+    throws FormulaException, VisADException
+  {
+    FormulaVar v = getVarByName(name);
+    v.waitForFormula();
   }
 
   /** set a variable to auto-update its formula based on a Text object
       referenced by a ThingReference (useful for remote formula updates) */
   public void setTextRef(String name, ThingReference textRef)
-                                      throws FormulaException,
-                                             VisADException,
-                                             RemoteException {
+    throws FormulaException, VisADException, RemoteException
+  {
     FormulaVar v = getVarByNameOrCreate(name);
     v.setTextRef(textRef);
   }

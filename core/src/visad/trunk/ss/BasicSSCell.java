@@ -1200,7 +1200,10 @@ public class BasicSSCell extends JPanel {
     if (rmi != null) loadRMI(rmi);
 
     // set up formula
-    if (formula != null && !formula.equals("")) setFormula(formula);
+    if (formula != null && !formula.equals("")) {
+      setFormula(formula);
+      waitForFormula();
+    }
 
     // set up mappings
     if (dnames != null) {
@@ -1212,7 +1215,7 @@ public class BasicSSCell extends JPanel {
         // get Vector of all ScalarTypes in this data object
         Vector types = new Vector();
         Data data = getData();
-        if (data != null) getRealTypes(getData(), types);
+        if (data != null) getRealTypes(data, types);
         int vLen = types.size();
         int dLen = Display.DisplayRealArray.length;
 
@@ -1238,8 +1241,14 @@ public class BasicSSCell extends JPanel {
 
           // construct mapping
           if (mapDomain == null || mapRange == null) {
-            System.err.println("Warning: maps pair (" + name + ", " +
-              q + ") is not a valid ScalarMap and will be ignored");
+            System.err.print("Warning: maps pair (" + name + ", " +
+              q + ") has an invalid ");
+            if (mapDomain == null && mapRange == null) {
+              System.err.print("domain and range");
+            }
+            else if (mapDomain == null) System.err.print("domain");
+            else System.err.print("range");
+            System.err.println(" and will be ignored");
             maps[j] = null;
           }
           else {
@@ -1867,6 +1876,11 @@ public class BasicSSCell extends JPanel {
 
     // update remote copy of Formula
     synchFormula();
+  }
+
+  /** blocks until this cell's formula is finished computing */
+  public void waitForFormula() throws VisADException, RemoteException {
+    fm.waitForFormula(Name);
   }
 
   /** return whether the BasicSSCell is in 2-D display mode */

@@ -40,7 +40,7 @@ public class FormulaVar extends ActionImpl {
   /** constant tag */
   public static RealType CONSTANT = createConstant();
 
-  /** create constant/fconst tag */
+  /** create constant tag */
   private static RealType createConstant() {
     RealType rt = null;
     String s = "visad/formula/constant";
@@ -71,6 +71,9 @@ public class FormulaVar extends ActionImpl {
   /** list of errors that have occurred during computation, in String form */
   private Vector errors = new Vector();
 
+  /** for synchronization */
+  private Object Lock = new Object();
+
   /** constructor without specified ThingReference */
   FormulaVar(String n, FormulaManager f) throws VisADException {
     this(n, f, null);
@@ -78,7 +81,8 @@ public class FormulaVar extends ActionImpl {
 
   /** constructor with specified ThingReference */
   FormulaVar(String n, FormulaManager f, ThingReference t)
-                                         throws VisADException {
+    throws VisADException
+  {
     super(n);
     fm = f;
     name = n;
@@ -109,89 +113,108 @@ public class FormulaVar extends ActionImpl {
   }
 
   /** add a dependency for this variable */
-  void setDependentOn(FormulaVar v) {
+  private void setDependentOn(FormulaVar v) {
     if (!depend.contains(v)) {
       depend.add(v);
       try {
         addReference(v.getReference());
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
     }
   }
 
   /** clear this variable's dependency list */
   private void clearDependencies() {
-    depend.removeAllElements();
-    try {
-      removeAllReferences();
+    synchronized (Lock) {
+      depend.removeAllElements();
+      try {
+        removeAllReferences();
+      }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
   }
 
   /** rebuild this variable's dependency list, then recompute this variable */
   private void rebuildDependencies() throws FormulaException {
     disableAction();
     clearDependencies();
-    if (formula != null) {
-      if (postfix == null) {
-        try {
-          // compute postfix expression
-          Object[] o = new Object[2];
-          o[0] = formula;
-          o[1] = fm;
-          String pf = formula;
+    synchronized (Lock) {
+      if (formula != null) {
+        if (postfix == null) {
           try {
-            pf = (String) FormulaUtil.invokeMethod(fm.ppMethod, o);
-          }
-          catch (IllegalAccessException exc) { }
-          catch (IllegalArgumentException exc) { }
-          catch (InvocationTargetException exc) { }
-          postfix = new Postfix(pf, fm);
-          int len = (postfix.tokens == null ? 0 : postfix.tokens.length);
-          for (int i=0; i<len; i++) {
-            String token = postfix.tokens[i];
-            if (postfix.codes[i] == Postfix.OTHER) {
-              Double d = null;
-              try {
-                d = Double.valueOf(token);
-              }
-              catch (NumberFormatException exc) { }
-              if (d == null) {
-                // token is a variable name
-                FormulaVar v = null;
+            // compute postfix expression
+            Object[] o = new Object[2];
+            o[0] = formula;
+            o[1] = fm;
+            String pf = formula;
+            try {
+              // run formula through user's pre-processing function
+              pf = (String) FormulaUtil.invokeMethod(fm.ppMethod, o);
+            }
+            catch (IllegalAccessException exc) {
+              if (DEBUG) exc.printStackTrace();
+            }
+            catch (IllegalArgumentException exc) {
+              if (DEBUG) exc.printStackTrace();
+            }
+            catch (InvocationTargetException exc) {
+              if (DEBUG) exc.printStackTrace();
+            }
+            postfix = new Postfix(pf, fm);
+            int len = (postfix.tokens == null ? 0 : postfix.tokens.length);
+            for (int i=0; i<len; i++) {
+              String token = postfix.tokens[i];
+              if (postfix.codes[i] == Postfix.OTHER) {
+                Double d = null;
                 try {
-                  v = fm.getVarByNameOrCreate(token);
+                  d = Double.valueOf(token);
                 }
-                catch (FormulaException exc) {
-                  evalError("\"" + token + "\" is an illegal variable name");
-                }
-                catch (VisADException exc) {
-                  evalError("Internal error: " + exc);
-                }
-                if (v != null) {
-                  if (v.isDependentOn(this)) {
-                    clearDependencies();
-                    throw new FormulaException("This formula creates " + 
-                                               "an infinite loop");
+                catch (NumberFormatException exc) { }
+                if (d == null) {
+                  // token is a variable name
+                  FormulaVar v = null;
+                  try {
+                    v = fm.getVarByNameOrCreate(token);
                   }
-                  setDependentOn(v);
+                  catch (FormulaException exc) {
+                    evalError("\"" + token + "\" is an illegal variable name");
+                  }
+                  catch (VisADException exc) {
+                    evalError("Internal error: " + exc);
+                  }
+                  if (v != null) {
+                    if (v.isDependentOn(this)) {
+                      clearDependencies();
+                      throw new FormulaException("This formula creates " + 
+                                                 "an infinite loop");
+                    }
+                    setDependentOn(v);
+                  }
                 }
               }
             }
           }
-        }
-        catch (FormulaException exc) {
-          evalError("Syntax error in formula: " + exc);
-          try {
-            tref.setThing(null);
-          }
-          catch (VisADException exc2) {
-            evalError("Internal error: " + exc2);
-          }
-          catch (RemoteException exc2) {
-            evalError("Internal error: " + exc2);
+          catch (FormulaException exc) {
+            evalError("Syntax error in formula: " + exc);
+            try {
+              tref.setThing(null);
+            }
+            catch (VisADException exc2) {
+              evalError("Internal error: " + exc2);
+            }
+            catch (RemoteException exc2) {
+              evalError("Internal error: " + exc2);
+            }
           }
         }
       }
@@ -207,11 +230,20 @@ public class FormulaVar extends ActionImpl {
       try {
         textRef.setThing(text);
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
     }
     postfix = null;
     rebuildDependencies();
+  }
+
+  /** waits for this formula to recompute */
+  void waitForFormula() {
+    synchronized (Lock) { }
   }
 
   /** reference to a Text object equal to this variable's formula */
@@ -234,8 +266,12 @@ public class FormulaVar extends ActionImpl {
             }
           }
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
     }
   };
@@ -325,14 +361,16 @@ public class FormulaVar extends ActionImpl {
 
   /** recompute this variable */
   public void doAction() {
-    try {
-      if (postfix != null) tref.setThing(compute(postfix));
-    }
-    catch (VisADException exc) {
-      evalError("Could not store final value in variable");
-    }
-    catch (RemoteException exc) {
-      evalError("Could not store final value in variable");
+    synchronized (Lock) {
+      try {
+        if (postfix != null) tref.setThing(compute(postfix));
+      }
+      catch (VisADException exc) {
+        evalError("Could not store final value in variable");
+      }
+      catch (RemoteException exc) {
+        evalError("Could not store final value in variable");
+      }
     }
   }
 
@@ -421,7 +459,9 @@ public class FormulaVar extends ActionImpl {
             Real r = (Real) popStack(stack);
             num = (int) r.getValue();
           }
-          catch (ClassCastException exc) { }
+          catch (ClassCastException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
           if (num < 0) {
             evalError("Syntax error in formula (b)");
             num = 1;
@@ -465,7 +505,9 @@ public class FormulaVar extends ActionImpl {
           try {
             num = Integer.parseInt(token) + 1;
           }
-          catch (NumberFormatException exc) { }
+          catch (NumberFormatException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
           if (num <= 0) {
             evalError("Syntax error in formula (c)");
             num = 1;
@@ -529,8 +571,12 @@ public class FormulaVar extends ActionImpl {
               try {
                 t = r.getThing();
               }
-              catch (VisADException exc) { }
-              catch (RemoteException exc) { }
+              catch (VisADException exc) {
+                if (DEBUG) exc.printStackTrace();
+              }
+              catch (RemoteException exc) {
+                if (DEBUG) exc.printStackTrace();
+              }
             }
             if (t == null) {
               evalError("Variable \"" + token + "\" has no value");

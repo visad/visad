@@ -115,7 +115,7 @@ public class MappingDialog extends JDialog
 
   /** pre-load the display.gif file, so it's ready when
       mapping dialog is requested */
-  private static void initDialog() {
+  static void initDialog() {
     if (DRT == null) {
       URL url = MappingDialog.class.getResource("display.gif");
       DRT = Toolkit.getDefaultToolkit().getImage(url);
