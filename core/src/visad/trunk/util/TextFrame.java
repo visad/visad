@@ -30,7 +30,6 @@ import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.event.*;
-import visad.VisADException;
 
 /** A GUI frame for editing text files. */
 public class TextFrame extends GUIFrame implements UndoableEditListener {
@@ -42,17 +41,17 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
   private String title = "VisAD Text Editor";
 
   /** constructs a TextFrame */
-  public TextFrame() throws VisADException {
+  public TextFrame() {
     this((String) null);
   }
 
   /** constructs a TextFrame containing text from the given filename */
-  public TextFrame(String filename) throws VisADException {
+  public TextFrame(String filename) {
     this(new TextEditor(filename));
   }
 
   /** constructs a TextFrame from the given TextEditor object */
-  public TextFrame(TextEditor textEdit) throws VisADException {
+  public TextFrame(TextEditor textEdit) {
     textPane = textEdit;
     textPane.addUndoableEditListener(this);
 
@@ -163,28 +162,18 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
 
   /** @return true if save was successful */
   public boolean fileSave() {
-    File file = textPane.getFile();
-    boolean success = false;
-    if (file == null) success = fileSaveAs();
-    else {
-      try {
-        textPane.saveFile(file);
-        success = true;
-      }
-      catch (IOException exc) {
-        // display error box
-        showError("Could not save the file.");
-      }
-    }
-    refreshSaveMenuItem(false);
+    boolean success = textPane.saveFile();
+    if (success) refreshSaveMenuItem(false);
     return success;
   }
 
   /** @return true if save was successful */
   public boolean fileSaveAs() {
     boolean success = textPane.saveDialog();
-    refreshSaveMenuItem(false);
-    refreshTitleBar();
+    if (success) {
+      refreshSaveMenuItem(false);
+      refreshTitleBar();
+    }
     return success;
   }
 
@@ -232,7 +221,7 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
   }
 
   /** tests the TextFrame class */
-  public static void main(String[] args) throws VisADException {
+  public static void main(String[] args) {
     final TextFrame frame = new TextFrame();
 
     // close program if frame is closed
@@ -243,7 +232,7 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
     });
 
     // display frame onscreen
-    frame.setBounds(100, 100, 500, 500);
+    frame.setBounds(100, 100, 500, 800);
     frame.setVisible(true);
   }
 

@@ -81,7 +81,7 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
     setViewportView(text);
 
     // provide support for undo and redo
-    text.getDocument().addUndoableEditListener(this);
+    addUndoableEditListener(this);
 
     // setup file chooser dialog box
     fileChooser = new JFileChooser(System.getProperty("user.dir"));
@@ -170,6 +170,24 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
     return true;
   }
 
+  /** saves the file under its current name */
+  public boolean saveFile() {
+    boolean success = false;
+    if (currentFile == null) success = saveDialog();
+    else {
+      try {
+        saveFile(currentFile);
+        success = true;
+      }
+      catch (IOException exc) {
+        // display error box
+        JOptionPane.showMessageDialog(this, "Could not save the file.",
+          "VisAD Text Editor", JOptionPane.ERROR_MESSAGE);
+      }
+    }
+    return success;
+  }
+
   /** undoes the last edit */
   public void undo() throws CannotUndoException {
     undo.undo();
@@ -245,7 +263,6 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
   /** handle undoable edits */
   public void undoableEditHappened(UndoableEditEvent e) {
     if (!e.getEdit().isSignificant()) return;
-
     undo.addEdit(e.getEdit());
     changed = true;
   }

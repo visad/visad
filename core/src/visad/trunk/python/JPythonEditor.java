@@ -26,36 +26,18 @@ MA 02111-1307, USA
 
 package visad.python;
 
-import java.io.*;
 import java.lang.reflect.*;
+import javax.swing.JOptionPane;
 import visad.VisADException;
 import visad.formula.FormulaUtil;
 import visad.util.*;
 
 /** An editor for writing and executing JPython code in Java runtime. */
-public class JPythonEditor extends TextEditor {
-
-  /** sequence of characters signifying a prepended line of text */
-  private static final String PREPEND_CODE = 
-    "from visad.python.JPythonMethods import ";
+public class JPythonEditor extends CodeEditor {
 
   /** text to be prepended to all JPython documents */
-  private static final String PREPENDED_TEXT = PREPEND_CODE + "*\n";
-
-  /** number of prepended lines */
-  private static final int NUM_PREPENDED = getNumPrepended();
-
-  /** determines the number of prepended lines */
-  private static int getNumPrepended() {
-    int count = 0;
-    int i = -1;
-    while (true) {
-      i = PREPENDED_TEXT.indexOf("\n", i + 1);
-      if (i < 0) break;
-      count++;
-    }
-    return count;
-  }
+  private static final String PREPENDED_TEXT =
+    "from visad.python.JPythonMethods import *\n";
 
   /** name of JPython interpreter class */
   private static final String interp = "org.python.util.PythonInterpreter";
@@ -136,20 +118,22 @@ public class JPythonEditor extends TextEditor {
       new ExtensionFileFilter("py", "JPython source code"));
   }
 
-  /** fixes the line number of the given line to match the displayed text */
-  private static String fixLine(String line) {
-    int index = line.indexOf("line ") + 5;
-    if (index < 0) return line;
-    int comma = line.indexOf(",", index);
+  /** adjusts the line number of the given error to match the displayed text,
+      and highlights that line of code to indicate the source of error */
+  private String handleError(String err) {
+    int index = err.indexOf("line ") + 5;
+    if (index < 0) return err; 
+    int comma = err.indexOf(",", index);
     int lineNum = -1;
     try {
-      lineNum = Integer.parseInt(line.substring(index, comma));
+      lineNum = Integer.parseInt(err.substring(index, comma));
     }
     catch (NumberFormatException exc) {
-      return line;
+      return err;
     }
-    lineNum -= NUM_PREPENDED;
-    return line.substring(0, index) + lineNum + line.substring(comma);
+    lineNum--;
+    highlightLine(lineNum);
+    return err.substring(0, index) + lineNum + err.substring(comma);
   }
 
   /** evaluates a line of JPython code */
@@ -184,7 +168,7 @@ public class JPythonEditor extends TextEditor {
     }
   }
 
-  /** executes the entire document */
+  /** executes the document as JPython source code */
   public void execfile(String filename) throws VisADException {
     try {
       execfile.invoke(python, new Object[] {filename});
@@ -196,7 +180,9 @@ public class JPythonEditor extends TextEditor {
       throw new VisADException(exc.toString());
     }
     catch (InvocationTargetException exc) {
-      throw new VisADException(fixLine(exc.getTargetException().toString()));
+      String error = exc.getTargetException().toString();
+      error = handleError(error);
+      throw new VisADException(error);
     }
   }
 
@@ -228,32 +214,35 @@ public class JPythonEditor extends TextEditor {
       throw new VisADException(exc.toString());
     }
     catch (InvocationTargetException exc) {
-      String error = exc.getTargetException().toString();
-      throw new VisADException(fixLine(error));
+      throw new VisADException(exc.getTargetException().toString());
     }
   }
 
   /** returns a string containing the text of the document */
   public String getText() {
-    return PREPENDED_TEXT + text.getText();
+    return PREPENDED_TEXT + super.getText();
   }
 
-  /** sets the text of this document to the current string */
+  /** sets the text of the document to the current string */
   public void setText(String text) {
-    while (text.startsWith(PREPEND_CODE)) {
-      int index = text.indexOf("\n");
-      text = text.substring(index + 1);
+    if (text.startsWith(PREPENDED_TEXT)) {
+      // strip off prepended text
+      text = text.substring(PREPENDED_TEXT.length());
     }
-    this.text.setText(text);
+    super.setText(text);
   }
 
   /** executes the JPython script */
   public void run() throws VisADException {
-    final String filename = getFilename();
-    if (filename == null || hasChanged()) {
-      throw new VisADException("A save is required before execution");
+    if (hasChanged()) {
+      int ans = JOptionPane.showConfirmDialog(this,
+        "A save is required before execution. Okay to save?",
+        "VisAD JPython Editor", JOptionPane.YES_NO_OPTION);
+      if (ans != JOptionPane.YES_OPTION) return;
+      boolean success = saveFile();
+      if (!success) return;
     }
-    execfile(filename);
+    execfile(getFilename());
   }
 
   /** compiles the JPython script to a Java class */
