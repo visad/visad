@@ -565,65 +565,59 @@ if (map.badRange()) {
 
     float[][] tuple_locs = new float[lat_lon_dimension][];
 
-
-
-
-/* must edit to invert mappings
     if (lat_lon_in) {
       if (lat_lon_by_coord) {
-        // transform 'RealTupleType data_in' to 'RealTupleType data_out'
+        // map spatial DisplayRealTypes to data_out
+        for (int i=0; i<lat_lon_dimension; i++) {
+          tuple_locs[i] =
+            sdo_maps[i].inverseScaleValues(spatial_locs[sdo_spatial_index[i]]);
+        }
+        // transform 'RealTupleType data_out' to 'RealTupleType data_in'
         if (data_coord_in.length == 1) {
           // one data_coord_in applies to all data points
-          tuple_locs = CoordinateSystem.transformCoordinates(data_out, null,
-                           data_units_out, null, data_in, data_coord_in[0],
-                           data_units_in, null, tuple_locs);
+          tuple_locs = CoordinateSystem.transformCoordinates(data_in,
+                           data_coord_in[0], data_units_in, null, data_out,
+                           null, data_units_out, null, tuple_locs);
         }
         else {
           // one data_coord_in per data point
           float[][] temp = new float[lat_lon_dimension][1];
           for (int j=0; j<size; j++) {
             for (int k=0; k<lat_lon_dimension; k++) temp[k][0] = tuple_locs[k][j];
-              temp = CoordinateSystem.transformCoordinates(data_out, null,
-                             data_units_out, null, data_in, data_coord_in[j],
-                             data_units_in, null, temp);
+              temp = CoordinateSystem.transformCoordinates(data_in,
+                             data_coord_in[j], data_units_in, null, data_out,
+                             null, data_units_out, null, temp);
             for (int k=0; k<lat_lon_dimension; k++) tuple_locs[k][j] = temp[k][0];
           }
         }
-        // map data_out to spatial DisplayRealTypes
-        for (int i=0; i<lat_lon_dimension; i++) {
-          spatial_locs[sdo_spatial_index[i]] =
-            sdo_maps[i].scaleValues(tuple_locs[i]);
-        }
       }
       else {
-        // map data_in to spatial DisplayRealTypes
+        // map spatial DisplayRealTypes to data_in
         for (int i=0; i<lat_lon_dimension; i++) {
-          spatial_locs[sdi_spatial_index[i]] =
-            sdi_maps[i].scaleValues(tuple_locs[i]);
+          tuple_locs[i] =
+            sdi_maps[i].inverseScaleValues(spatial_locs[sdi_spatial_index[i]]);
         }
       }
     }
     else if (lat_lon_out) {
-      // map data_out to spatial DisplayRealTypes
+      // map spatial DisplayRealTypes to data_out
       for (int i=0; i<lat_lon_dimension; i++) {
-        spatial_locs[sdo_spatial_index[i]] =
-          sdo_maps[i].scaleValues(tuple_locs[i]);
+        tuple_locs[i] =
+          sdo_maps[i].inverseScaleValues(spatial_locs[sdo_spatial_index[i]]);
       }
     }
     else if (lat_lon_spatial) {
-      // map lat & lon, not in allSpatial RealTupleType, to
-      // spatial DisplayRealTypes
-      spatial_locs[lat_spatial_index] = lat_map.scaleValues(tuple_locs[0]);
-      spatial_locs[lon_spatial_index] = lon_map.scaleValues(tuple_locs[1]);
+      // map spatial DisplayRealTypes to lat & lon, not in
+      // allSpatial RealTupleType
+      tuple_locs[0] = lat_map.inverseScaleValues(spatial_locs[lat_spatial_index]);
+      tuple_locs[1] = lat_map.inverseScaleValues(spatial_locs[lon_spatial_index]);
     }
     else {
       // should never happen
       return null;
     }
-*/
 
-
-    return null;
+    return tuple_locs;
   }
 
   // information from doTransform
@@ -921,7 +915,7 @@ if (map.badRange()) {
 
   /** arrays of length one for inverseScaleValues */
   private float[] f = new float[1];
-  private double[] d = new double[1];
+  private float[] d = new float[1];
   private float[][] value = new float[1][1];
 
   /** information calculated by checkDirect */
@@ -1404,10 +1398,10 @@ System.out.println("checkClose: distance = " + distance);
             d = getDirectMap(i).inverseScaleValues(f);
             // RealType rtype = (RealType) data.getType();
             RealType rtype = (RealType) type;
-            newData = new Real(rtype, d[0], rtype.getDefaultUnit(), null);
+            newData = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
             // create location string
             Vector vect = new Vector();
-            float g = (float) d[0];
+            float g = d[0];
             vect.addElement(rtype.getName() + " = " + g);
             getDisplayRenderer().setCursorStringVector(vect);
             break;
@@ -1427,9 +1421,9 @@ System.out.println("checkClose: distance = " + distance);
             d = getDirectMap(i).inverseScaleValues(f);
             Real c = (Real) ((RealTuple) data).getComponent(j);
             RealType rtype = (RealType) c.getType();
-            reals[j] = new Real(rtype, d[0], rtype.getDefaultUnit(), null);
+            reals[j] = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
             // create location string
-            float g = (float) d[0];
+            float g = d[0];
             vect.addElement(rtype.getName() + " = " + g);
           }
         }
@@ -1453,10 +1447,10 @@ System.out.println("checkClose: distance = " + distance);
         // convert d from default Unit to actual domain Unit of data
         Unit[] us = ((Field) data).getDomainUnits();
         if (us != null && us[0] != null) {
-          d[0] = us[0].toThis(d[0], rtype.getDefaultUnit());
+          d[0] = (float) us[0].toThis((double) d[0], rtype.getDefaultUnit());
         }
         // create location string
-        float g = (float) d[0];
+        float g = d[0];
         vect.addElement(rtype.getName() + " = " + g);
         // convert domain value to domain index
         Gridded1DSet set = (Gridded1DSet) ((Field) data).getDomainSet();

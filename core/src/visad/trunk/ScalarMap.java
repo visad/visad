@@ -683,12 +683,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       linear scaling (if applicable) the display_values array
       (DisplayRealType values); this is useful for direct
       manipulation and cursor labels */
-  public double[] inverseScaleValues(float[] values) {
+  public float[] inverseScaleValues(float[] values) {
     if (values == null) return null;
-    double[] new_values = new double[values.length];
+    float[] new_values = new float[values.length];
     if (isScaled) {
       for (int i=0; i<values.length; i++) {
-        new_values[i] = (values[i] - offset) / scale;
+        new_values[i] = (float) ((values[i] - offset) / scale);
       }
     }
     else {

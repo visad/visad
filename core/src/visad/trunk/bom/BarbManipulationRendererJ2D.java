@@ -87,7 +87,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   private float line_x, line_y, line_z;
   /** arrays of length one for inverseScaleValues */
   private float[] f = new float[1];
-  private double[] d = new double[1];
+  private float[] d = new float[1];
 
   /** DisplayFlow1Tuple or DisplayFlow2Tuple */
   private DisplayTupleType tuple;
@@ -299,9 +299,9 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
           d = directMap[i].inverseScaleValues(f);
           Real c = (Real) ((RealTuple) data).getComponent(j);
           RealType rtype = (RealType) c.getType();
-          reals[j] = new Real(rtype, d[0], rtype.getDefaultUnit(), null);
+          reals[j] = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
           // create location string
-          float g = (float) d[0];
+          float g = d[0];
           vect.addElement(rtype.getName() + " = " + g);
         }
       }
