@@ -35,30 +35,108 @@ import java.rmi.RemoteException;
 */
 public class NastiInstrument extends SounderInstrument
 {
+  static double[][] pressures = {
+    { 
+      50.,60.,70.,75.,80.,85.,90.,100.,125.,150.,175.,200.,
+      250.,300.,350.,400.,450.,500.,550.,600.,620.,640.,660.,680.,
+      700.,720.,740.,760.,780.,800.,820.,840.,860.,880.,900.,920.,
+      940.,960.,980.,1000. 
+    }
+  };
 
-  public NastiInstrument( String[] scalar_names,  //- names of retrieval/foward algorith parameters
-                          String[] units,         //- units of the above
-                          double[] model_parms    //- initial values of the above
-                                                )
-         throws VisADException, RemoteException
-  {
-    super(scalar_names, units, model_parms);
+  static float[] wavelengths = new float[9127];
+  static 
+  { 
+    for ( int i = 0; i < wavelengths.length; i++ ) {
+      wavelengths[i] = i;
+    }
   }
 
-  float[][] computeRetrieval(float[] radiances, double[] model_parms)
+  static String[] scalar_names =
   {
+    "gamma_t",
+    "gamma_w",
+    "emissivity"
+  };
+
+  static String[] default_units = new String[3];
+  static double[] default_model_parms = new double[3];
+
+
+  //-- use default model parameters
+  //
+  public NastiInstrument()
+         throws VisADException, RemoteException
+  {
+    super(scalar_names, default_units, default_model_parms);
+  }
+
+  //-- trusted, supply model paramters in correct order/units
+  //
+  public NastiInstrument( double[] model_parms )
+         throws VisADException, RemoteException
+  {
+    super(scalar_names, default_units, model_parms);
+  }
+
+
+  float[][] computeRetrieval(float[][] radiances, double[][] model_parms)
+  {
+
+
+
 
 
     //-nasti_retrvl_c(  );
     return null;
   }
 
-  float[] computeFoward(float[][] rtvl, double[] model_parms)
+  float[][] computeFoward(float[][] rtvl, double[][] model_parms)
   {
+
+
+
 
 
     //-nastirte_c(   );
     return null;
+  }
+
+  Sounding makeSounding()
+           throws VisADException, RemoteException
+  {
+    return new Sounding((Set.doubleToFloat(pressures))[0], null, null);
+  }
+
+  Sounding makeSounding(Sounding sounding)
+  {
+    try {
+      return (Sounding) sounding.resample((makeSounding()).getDomainSet());
+    }
+    catch (VisADException e) {
+      throw new VisADError(e.getMessage());
+    }
+    catch (RemoteException e) {
+      throw new VisADError(e.getMessage());
+    }
+  }
+
+  Spectrum makeSpectrum()
+           throws VisADException, RemoteException
+  {
+    return new Spectrum(wavelengths, null, null, null);
+  }
+
+  public void setGamma_t( double gamma_t ) {
+    model_parms[0][0] = gamma_t; 
+  }
+
+  public void setGamma_w( double gamma_w ) {
+    model_parms[0][1] = gamma_w;
+  }
+
+  public void setEmissivity( double emiss ) {
+    model_parms[0][2] = emiss;
   }
 
   private native void nastirte_c( float a, float b, int c, float d,

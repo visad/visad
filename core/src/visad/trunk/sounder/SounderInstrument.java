@@ -40,12 +40,10 @@ import java.rmi.RemoteException;
 */
 public abstract class SounderInstrument
 {
-  double[] model_parms;
+  double[][] model_parms;
   RealType[] model_parm_types;
   DataReferenceImpl[] parm_refs;
   int n_parms;
-
-
 
 
   public SounderInstrument(String[] names, String[] units, double[] parms)
@@ -58,7 +56,7 @@ public abstract class SounderInstrument
     }
 
     model_parm_types = new RealType[n_parms];
-    model_parms = new double[n_parms];
+    model_parms = new double[1][n_parms];
     parm_refs = new DataReferenceImpl[n_parms];
 
     CellImpl update_cell = new CellImpl()
@@ -66,7 +64,7 @@ public abstract class SounderInstrument
       public void doAction() throws VisADException, RemoteException
       {
         for ( int ii = 0; ii < n_parms; ii++ ) {
-          model_parms[ii] = ((Real)parm_refs[ii].getData()).getValue();
+          model_parms[0][ii] = ((Real)parm_refs[ii].getData()).getValue();
         }
       }
     };
@@ -84,9 +82,9 @@ public abstract class SounderInstrument
       }
 
       model_parm_types[ii] = new RealType(names[ii], u, null);
-      model_parms[ii] = parms[ii];
+      model_parms[0][ii] = parms[ii];
       parm_refs[ii] = new DataReferenceImpl(names[ii]);
-      parm_refs[ii].setData(new Real(model_parm_types[ii], model_parms[ii]));
+      parm_refs[ii].setData(new Real(model_parm_types[ii], model_parms[0][ii]));
     }
 
     for ( int ii = 0; ii < n_parms; ii++ ) {
@@ -99,27 +97,32 @@ public abstract class SounderInstrument
     return parm_refs;
   }
 
-  public void retrieval(Spectrum spectrum, Sounding sounding, Sounding firstGuess)
+  public Sounding retrieval(Spectrum spectrum, Sounding sounding)
   {
-    float[] radiances = null;
-
+    float[][] radiances = null;
 
     float[][] rtvl = computeRetrieval(radiances, model_parms);
+    return null;
   }
 
-  public void retrieval(Spectrum spectrum, Sounding sounding)
+  public Sounding retrieval(Spectrum spectrum)
   {
-    this.retrieval(spectrum, sounding, null);
+    return this.retrieval(spectrum, null);
   }
 
-  public void foward(Sounding sounding, Spectrum spectrum)
+  public Spectrum foward(Sounding sounding)
   {
     float[][] rtvl = null;
 
 
-    float[] spec = computeFoward(rtvl, model_parms);
+    float[][] spec = computeFoward(rtvl, model_parms);
+    return null;
   }
 
-  abstract float[][] computeRetrieval(float[] radiances, double[] model_parms);
-  abstract float[] computeFoward(float[][] rtvl, double[] model_parms);
+  abstract Sounding makeSounding() throws VisADException, RemoteException;
+  abstract Sounding makeSounding(Sounding sounding); 
+  abstract Spectrum makeSpectrum() throws VisADException, RemoteException;
+
+  abstract float[][] computeRetrieval(float[][] radiances, double[][] model_parms);
+  abstract float[][] computeFoward(float[][] rtvl, double[][] model_parms);
 }

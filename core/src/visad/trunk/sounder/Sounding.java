@@ -65,7 +65,11 @@ public class Sounding extends FlatField {
 
   //- this sounding's display
   //
-  Display display;
+  private Display soundingDisplay;
+
+  //- this sounding's DataReference
+  //
+  private DataReferenceImpl sounding_ref;
 
   /** pressures in hPa, temperatures and dewpoints in K */
   public Sounding(float[] pressures, float[] temperatures, float[] dewpoints)
@@ -93,6 +97,7 @@ public class Sounding extends FlatField {
       }
     }
     setSamples(new float[][] {temperatures, dewpoints});
+    sounding_ref = new DataReferenceImpl("sounding reference");
   }
 
   static private Gridded1DSet makePressureSet(float[] pressures)
@@ -103,30 +108,48 @@ public class Sounding extends FlatField {
     return new Gridded1DSet(Pressure, new float[][] {pressures}, pressures.length,
                             null, new Unit[] {udb.get("hPa")}, null);
   }
+
   public boolean addToDisplay( Display display )
+         throws VisADException, RemoteException
   {
-    if ( this.display != null ) {
+    if ( soundingDisplay != null ) {
       return false;
     }
-    this.display = display;
+    soundingDisplay = display;
+
+    soundingDisplay.removeAllReferences();
+    soundingDisplay.clearMaps();
+
+    soundingDisplay.addMap(new ScalarMap(Pressure, Display.YAxis));
+    soundingDisplay.addMap(new ScalarMap(Temperature, Display.XAxis));
+    soundingDisplay.addMap(new ScalarMap(DewPoint, Display.XAxis));
+    sounding_ref.setData(this);
+    soundingDisplay.addReference(sounding_ref);
+    
     return true;
   }
 
   public boolean addToDisplayWithDirectManipulation( Display display )
+         throws UnimplementedException
   {
-     return false;
+    throw new UnimplementedException("not yet implemented");
   }
 
   public boolean remove()
+         throws VisADException, RemoteException
   {
-    if ( this.display == null ) {
+    if ( soundingDisplay == null ) {
       return false;
     }
+    soundingDisplay.removeReference(sounding_ref);
+    soundingDisplay.clearMaps();
+    soundingDisplay = null;
     return true;
   }
 
   public boolean restore()
   {
+    //- ?
     return false;
   }
 

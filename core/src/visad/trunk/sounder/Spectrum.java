@@ -62,7 +62,11 @@ public class Spectrum extends FlatField {
 
   //- this spectrum's display
   //
-  Display display;
+  Display spectrumDisplay;
+
+  //- this spectrum's DataReference
+  //
+  DataReferenceImpl spectrum_ref;
 
   Unit domain_unit;
   Unit range_unit;
@@ -77,19 +81,20 @@ public class Spectrum extends FlatField {
     super(spectrumType, makeSet(wavelength_domain));
 
     int length = getLength();
-    if ( radiance_range.length != length) {
-      throw new VisADException("radiance_range should have same length as wavelengths");
-    }
     if (radiance_range == null) {
       radiance_range = new float[length];
       for (int i=0; i<length; i++) {
         radiance_range[i] = Float.NaN;
       }
     }
+    else if ( radiance_range.length != length ) {
+      throw new VisADException("radiance_range should have same length as wavelenghts"); 
+    }
     setSamples(new float[][] {radiance_range});
-    display = null;
+    spectrumDisplay = null;
     this.domain_unit = domain_unit;
     this.range_unit = range_unit;
+    spectrum_ref = new DataReferenceImpl("Spectrum reference");
   }
 
 
@@ -104,24 +109,38 @@ public class Spectrum extends FlatField {
   }
 
   public boolean addToDisplay( Display display )
+         throws VisADException, RemoteException
   {
-    if ( this.display != null ) {
+    if ( spectrumDisplay != null ) {
       return false;
     }
-    this.display = display;
+    spectrumDisplay = display;
+
+    spectrumDisplay.removeAllReferences();
+    spectrumDisplay.clearMaps();
+    spectrumDisplay.addMap(new ScalarMap(radiance, Display.YAxis));
+    spectrumDisplay.addMap(new ScalarMap(wavelength, Display.XAxis));
+    spectrum_ref.setData(this);
+    spectrumDisplay.addReference(spectrum_ref);
+
     return true;
   }
 
   public boolean remove()
+         throws VisADException, RemoteException
   {
-    if ( this.display == null ) {
+    if ( spectrumDisplay == null ) {
       return false;
     }
+    spectrumDisplay.removeReference(spectrum_ref);
+    spectrumDisplay.clearMaps();
+    spectrumDisplay = null;
     return true;
   }
 
   public boolean restore()
   {
+    //- ?
     return false;
   }
 
