@@ -28,6 +28,7 @@ package visad.java3d;
 import visad.*;
 
 import javax.media.j3d.*;
+import java.vecmath.*;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -379,12 +380,14 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
       if (!anyFlowCreated) {
         array = makePointGeometry(spatial_values, null);
-        geometry = display.makeGeometry(array);
-        appearance = makeAppearance(mode, null, constant_color, geometry);
-        shape = new Shape3D(geometry, appearance);
-        group.addChild(shape);
-        if (renderer instanceof DirectManipulationRendererJ3D) {
-          ((DirectManipulationRendererJ3D) renderer).setSpatialValues(spatial_values);
+        if (array != null) {
+          geometry = display.makeGeometry(array);
+          appearance = makeAppearance(mode, null, constant_color, geometry);
+          shape = new Shape3D(geometry, appearance);
+          group.addChild(shape);
+          if (renderer instanceof DirectManipulationRendererJ3D) {
+            ((DirectManipulationRendererJ3D) renderer).setSpatialValues(spatial_values);
+          }
         }
       }
       return false;

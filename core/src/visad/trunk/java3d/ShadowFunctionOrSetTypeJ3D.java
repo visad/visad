@@ -589,24 +589,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       // spatialDimensions[1] = spatialManifoldDimension
       int[] spatialDimensions = new int[2];
 
-/* WLH 24 Feb 98
-      boolean anyContour =
-        ((ShadowFunctionOrSetType) adaptedShadowType).getAnyContour();
-      boolean anyFlow =
-        ((ShadowFunctionOrSetType) adaptedShadowType).getAnyFlow();
-      boolean anyShape =
-        ((ShadowFunctionOrSetType) adaptedShadowType).getAnyShape();
-      if (anyShape) {
-        throw new UnimplementedException("ShadowFunctionOrSetTypeJ3D.doTransform" +
-                                         "Shape not yet supported");
-      }
-*/
-
       // MEM
-/*
-      Set spatial_set = domain_set;
-      spatial_values = new float[][] {{0.0f}, {0.0f}, {0.0f}};
-*/
       Set spatial_set = 
         assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
@@ -642,9 +625,10 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
 
       int color_length = Math.min(domain_length, color_values[0].length);
       int alpha_length = color_values[3].length;
-
-      // System.out.println("assembleColor, color_length = " + color_length);
-
+/*
+      System.out.println("assembleColor, color_length = " + color_length +
+                         "  " + color_values.length);
+*/
       Appearance appearance;
       TransparencyAttributes constant_alpha =
         new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
@@ -683,6 +667,11 @@ so expand constant alpha to variable alpha:
           for (int i=0; i<color_values[0].length; i++) {
             color_values[3][i] = v;
           }
+/*
+System.out.println("replicate alpha = " + v + " " + constant_alpha +
+                   " " + color_values[0].length + " " +
+                   color_values[3].length);
+*/
         }
 /*
   broken alpha
@@ -804,7 +793,7 @@ END MISSING TEST */
                     // System.out.println("makeIsoSurface at " + fvalues[0]);
                     array = spatial_set.makeIsoSurface(fvalues[0],
                                 display_values[i], color_values);
-                    // System.out.println("makeIsoSurface");
+                    // System.out.println("makeIsoSurface " + array.vertexCount);
                     if (array != null) {
                       // MEM
                       GeometryArray geometry = display.makeGeometry(array);
@@ -1240,7 +1229,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             // MEM
             GeometryArray geometry = display.makeGeometry(array);
             // System.out.println("array.makeGeometry");
-  
             //  FREE
             array = null;
             appearance = makeAppearance(mode, constant_alpha,
