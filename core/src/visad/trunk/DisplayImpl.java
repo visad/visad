@@ -1494,72 +1494,75 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     VisADException thrownVE = null;
     RemoteException thrownRE = null;
 
-    stop();
-
-    if (displayActivity != null) {
-      displayActivity.destroy();
-    }
-
-    // tell everybody we're going away
-    notifyListeners(new DisplayEvent(this, DisplayEvent.DESTROYED));
-
-    // remove all listeners
-    synchronized (ListenerVector) {
+    if (mapslock == null) mapslock = new Object();
+    synchronized (mapslock) {
+      stop();
+  
+      if (displayActivity != null) {
+        displayActivity.destroy();
+      }
+  
+      // tell everybody we're going away
+      notifyListeners(new DisplayEvent(this, DisplayEvent.DESTROYED));
+  
+      // remove all listeners
+      synchronized (ListenerVector) {
+        ListenerVector.removeAllElements();
+      }
+  
+      try {
+        removeAllReferences();
+      } catch (RemoteException re) {
+        thrownRE = re;
+      } catch (VisADException ve) {
+        thrownVE = ve;
+      }
+  
+      try {
+        clearMaps();
+      } catch (RemoteException re) {
+        thrownRE = re;
+      } catch (VisADException ve) {
+        thrownVE = ve;
+      }
+  
+      AnimationControl control =
+        (AnimationControl) getControl(AnimationControl.class);
+      if (control != null) {
+        control.stop();
+      }
+  
+      if (thrownVE != null) {
+        throw thrownVE;
+      }
+      if (thrownRE != null) {
+        throw thrownRE;
+      }
+  
+  // get rid of dangling references
+  /* done in clearMaps()
+      verify (RendererVector == null)
+      MapVector.removeAllElements();
+      ConstantMapVector.removeAllElements();
+      RealTypeVector.removeAllElements();
+  */
+      DisplayRealTypeVector.removeAllElements();
+      ControlVector.removeAllElements();
+      RendererSourceListeners.removeAllElements();
+      RmtSrcListeners.removeAllElements();
+      MessageListeners.removeAllElements();
       ListenerVector.removeAllElements();
-    }
-
-    try {
-      removeAllReferences();
-    } catch (RemoteException re) {
-      thrownRE = re;
-    } catch (VisADException ve) {
-      thrownVE = ve;
-    }
-
-    try {
-      clearMaps();
-    } catch (RemoteException re) {
-      thrownRE = re;
-    } catch (VisADException ve) {
-      thrownVE = ve;
-    }
-
-    AnimationControl control =
-      (AnimationControl) getControl(AnimationControl.class);
-    if (control != null) {
-      control.stop();
-    }
-
-    if (thrownVE != null) {
-      throw thrownVE;
-    }
-    if (thrownRE != null) {
-      throw thrownRE;
-    }
-
-// get rid of dangling references
-/* done in clearMaps()
-    verify (RendererVector == null)
-    MapVector.removeAllElements();
-    ConstantMapVector.removeAllElements();
-    RealTypeVector.removeAllElements();
-*/
-    DisplayRealTypeVector.removeAllElements();
-    ControlVector.removeAllElements();
-    RendererSourceListeners.removeAllElements();
-    RmtSrcListeners.removeAllElements();
-    MessageListeners.removeAllElements();
-    ListenerVector.removeAllElements();
-    Slaves.removeAllElements();
-    displayRenderer = null; // this disables most DisplayImpl methods
-    component = null;
-    mouse = null;
-    displayMonitor = null;
-    displaySync = null;
-    displayActivity = null;
-    printer = null;
-    rd = null;
-    widgetPanel = null;
+      Slaves.removeAllElements();
+      displayRenderer = null; // this disables most DisplayImpl methods
+      component = null;
+      mouse = null;
+      displayMonitor = null;
+      displaySync = null;
+      displayActivity = null;
+      printer = null;
+      rd = null;
+      widgetPanel = null;
+    } // end synchronized (mapslock)
   }
 
   /**
