@@ -79,6 +79,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** horizontal cell label's height */
   static final int LABEL_HEIGHT = 20;
 
+
   /** whether Java3D is enabled on this JVM */
   protected static boolean CanDo3D;
 
@@ -169,6 +170,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
   protected JTextField FormulaField;
 
 
+  /** the menu bar */
+  protected MenuBar Menubar;
+
+  /** the file menu */
+  protected Menu FileMenu;
+
+  /** the edit menu */
+  protected Menu EditMenu;
+
+  /** the setup menu */
+  protected Menu SetupMenu;
+
+  /** the cell menu */
+  protected Menu CellMenu;
+
+  /** the layout menu */
+  protected Menu LayoutMenu;
+
+  /** the options menu */
+  protected Menu OptionsMenu;
+
   /** Edit Paste menu item */
   protected MenuItem EditPaste;
 
@@ -192,6 +214,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Cell Show controls menu item */
   protected MenuItem CellShow;
+
+  /** the tool bar */
+  protected JToolBar Toolbar;
 
   /** File Save as netCDF toolbar button */
   protected JButton ToolSave;
@@ -502,227 +527,227 @@ public class SpreadSheet extends JFrame implements ActionListener,
     setContentPane(pane);
 
     // set up menus
-    MenuBar menubar = new MenuBar();
-    setMenuBar(menubar);
+    Menubar = new MenuBar();
+    setMenuBar(Menubar);
 
     // file menu
-    Menu file = new Menu("File");
-    menubar.add(file);
+    FileMenu = new Menu("File");
+    Menubar.add(FileMenu);
 
     MenuItem fileOpen = new MenuItem("Import data...");
     fileOpen.addActionListener(this);
     fileOpen.setActionCommand("fileOpen");
-    file.add(fileOpen);
+    FileMenu.add(fileOpen);
 
     FileSave1 = new MenuItem("Export data to netCDF...");
     FileSave1.addActionListener(this);
     FileSave1.setActionCommand("fileSaveNetcdf");
     FileSave1.setEnabled(false);
-    file.add(FileSave1);
+    FileMenu.add(FileSave1);
 
     FileSave2 = new MenuItem("Export serialized data...");
     FileSave2.addActionListener(this);
     FileSave2.setActionCommand("fileSaveSerial");
     FileSave2.setEnabled(false);
-    file.add(FileSave2);
+    FileMenu.add(FileSave2);
 
     FileSave3 = new MenuItem("Export data to HDF5...");
     FileSave3.addActionListener(this);
     FileSave3.setActionCommand("fileSaveHDF5");
     FileSave3.setEnabled(false);
-    file.add(FileSave3);
+    FileMenu.add(FileSave3);
 
-    file.addSeparator();
+    FileMenu.addSeparator();
 
     MenuItem fileExit = new MenuItem("Exit");
     fileExit.addActionListener(this);
     fileExit.setActionCommand("fileExit");
-    file.add(fileExit);
+    FileMenu.add(fileExit);
 
     // edit menu
-    Menu edit = new Menu("Edit");
-    menubar.add(edit);
+    EditMenu = new Menu("Edit");
+    Menubar.add(EditMenu);
 
     MenuItem editCut = new MenuItem("Cut");
     editCut.addActionListener(this);
     editCut.setActionCommand("editCut");
-    edit.add(editCut);
+    EditMenu.add(editCut);
 
     MenuItem editCopy = new MenuItem("Copy");
     editCopy.addActionListener(this);
     editCopy.setActionCommand("editCopy");
-    edit.add(editCopy);
+    EditMenu.add(editCopy);
 
     EditPaste = new MenuItem("Paste");
     EditPaste.addActionListener(this);
     EditPaste.setActionCommand("editPaste");
     EditPaste.setEnabled(false);
-    edit.add(EditPaste);
+    EditMenu.add(EditPaste);
 
     MenuItem editClear = new MenuItem("Clear");
     editClear.addActionListener(this);
     editClear.setActionCommand("editClear");
-    edit.add(editClear);
+    EditMenu.add(editClear);
 
     // setup menu
-    Menu setup = new Menu("Setup");
-    menubar.add(setup);
+    SetupMenu = new Menu("Setup");
+    Menubar.add(SetupMenu);
 
     MenuItem setupNew = new MenuItem("New spreadsheet file");
     setupNew.addActionListener(this);
     setupNew.setActionCommand("setupNew");
-    setup.add(setupNew);
+    SetupMenu.add(setupNew);
 
     MenuItem setupOpen = new MenuItem("Open spreadsheet file...");
     setupOpen.addActionListener(this);
     setupOpen.setActionCommand("setupOpen");
-    setup.add(setupOpen);
+    SetupMenu.add(setupOpen);
 
     MenuItem setupSave = new MenuItem("Save spreadsheet file");
     setupSave.addActionListener(this);
     setupSave.setActionCommand("setupSave");
-    setup.add(setupSave);
+    SetupMenu.add(setupSave);
 
     MenuItem setupSaveas = new MenuItem("Save spreadsheet file as...");
     setupSaveas.addActionListener(this);
     setupSaveas.setActionCommand("setupSaveas");
-    setup.add(setupSaveas);
+    SetupMenu.add(setupSaveas);
 
     // cell menu
-    Menu cell = new Menu("Cell");
-    menubar.add(cell);
+    CellMenu = new Menu("Cell");
+    Menubar.add(CellMenu);
 
     CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", CanDo3D);
     CellDim3D3D.addItemListener(this);
     CellDim3D3D.setEnabled(CanDo3D);
-    cell.add(CellDim3D3D);
+    CellMenu.add(CellDim3D3D);
 
     CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)", !CanDo3D);
     CellDim2D2D.addItemListener(this);
-    cell.add(CellDim2D2D);
+    CellMenu.add(CellDim2D2D);
 
     CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)", false);
     CellDim2D3D.addItemListener(this);
     CellDim2D3D.setEnabled(CanDo3D);
-    cell.add(CellDim2D3D);
+    CellMenu.add(CellDim2D3D);
 
-    cell.addSeparator();
+    CellMenu.addSeparator();
 
     CellPrint = new MenuItem("Print cell...");
     CellPrint.addActionListener(this);
     CellPrint.setActionCommand("cellPrint");
     CellPrint.setEnabled(false);
-    cell.add(CellPrint);
+    CellMenu.add(CellPrint);
 
-    cell.addSeparator();
+    CellMenu.addSeparator();
 
     CellEdit = new MenuItem("Edit mappings...");
     CellEdit.addActionListener(this);
     CellEdit.setActionCommand("cellEdit");
     CellEdit.setEnabled(false);
-    cell.add(CellEdit);
+    CellMenu.add(CellEdit);
 
     CellReset = new MenuItem("Reset orientation");
     CellReset.addActionListener(this);
     CellReset.setActionCommand("cellReset");
     CellReset.setEnabled(false);
-    cell.add(CellReset);
+    CellMenu.add(CellReset);
 
     CellShow = new MenuItem("Show controls");
     CellShow.addActionListener(this);
     CellShow.setActionCommand("cellShow");
     CellShow.setEnabled(false);
-    cell.add(CellShow);
+    CellMenu.add(CellShow);
 
     // layout menu
-    Menu lay = new Menu("Layout");
-    menubar.add(lay);
+    LayoutMenu = new Menu("Layout");
+    Menubar.add(LayoutMenu);
 
     MenuItem layAddCol = new MenuItem("Add column");
     layAddCol.addActionListener(this);
     layAddCol.setActionCommand("layAddCol");
-    lay.add(layAddCol);
+    LayoutMenu.add(layAddCol);
 
     MenuItem layAddRow = new MenuItem("Add row");
     layAddRow.addActionListener(this);
     layAddRow.setActionCommand("layAddRow");
-    lay.add(layAddRow);
+    LayoutMenu.add(layAddRow);
 
     MenuItem layDelCol = new MenuItem("Delete column");
     layDelCol.addActionListener(this);
     layDelCol.setActionCommand("layDelCol");
-    lay.add(layDelCol);
+    LayoutMenu.add(layDelCol);
 
     MenuItem layDelRow = new MenuItem("Delete row");
     layDelRow.addActionListener(this);
     layDelRow.setActionCommand("layDelRow");
-    lay.add(layDelRow);
+    LayoutMenu.add(layDelRow);
 
-    lay.addSeparator();
+    LayoutMenu.addSeparator();
 
     MenuItem layTile = new MenuItem("Tile cells");
     layTile.addActionListener(this);
     layTile.setActionCommand("layTile");
-    lay.add(layTile);
+    LayoutMenu.add(layTile);
 
     // options menu
-    Menu options = new Menu("Options");
-    menubar.add(options);
+    OptionsMenu = new Menu("Options");
+    Menubar.add(OptionsMenu);
 
     if (!CanDo3D) AutoSwitch = false;
     AutoSwitchBox = new CheckboxMenuItem("Auto-switch to 3-D", AutoSwitch);
     AutoSwitchBox.addItemListener(this);
     AutoSwitchBox.setEnabled(CanDo3D);
-    options.add(AutoSwitchBox);
+    OptionsMenu.add(AutoSwitchBox);
 
     AutoDetectBox = new CheckboxMenuItem("Auto-detect mappings", AutoDetect);
     AutoDetectBox.addItemListener(this);
-    options.add(AutoDetectBox);
+    OptionsMenu.add(AutoDetectBox);
 
     AutoShowBox = new CheckboxMenuItem("Auto-display controls",
       AutoShowControls);
     AutoShowBox.addItemListener(this);
-    options.add(AutoShowBox);
+    OptionsMenu.add(AutoShowBox);
 
     // set up toolbar
-    JToolBar toolbar = new JToolBar();
-    toolbar.setBackground(Color.lightGray);
-    toolbar.setBorder(new EtchedBorder());
-    toolbar.setFloatable(false);
-    pane.add(toolbar);
+    Toolbar = new JToolBar();
+    Toolbar.setBackground(Color.lightGray);
+    Toolbar.setBorder(new EtchedBorder());
+    Toolbar.setFloatable(false);
+    pane.add(Toolbar);
 
     // file menu toolbar icons
-    addToolbarButton("open.gif", "Import data", "fileOpen", true, toolbar);
+    addToolbarButton("open.gif", "Import data", "fileOpen", true, Toolbar);
     ToolSave = addToolbarButton("save.gif", "Export data to netCDF",
-      "fileSaveNetcdf", false, toolbar);
-    toolbar.addSeparator();
+      "fileSaveNetcdf", false, Toolbar);
+    Toolbar.addSeparator();
 
     // edit menu toolbar icons
-    addToolbarButton("cut.gif", "Cut", "editCut", true, toolbar);
-    addToolbarButton("copy.gif", "Copy", "editCopy", true, toolbar);
+    addToolbarButton("cut.gif", "Cut", "editCut", true, Toolbar);
+    addToolbarButton("copy.gif", "Copy", "editCopy", true, Toolbar);
     ToolPaste = addToolbarButton("paste.gif", "Paste",
-      "editPaste", false, toolbar);
-    toolbar.addSeparator();
+      "editPaste", false, Toolbar);
+    Toolbar.addSeparator();
 
     // cell menu toolbar icons
     Tool3D = addToolbarButton("3d.gif", "3-D (Java3D)",
-      "cell3D", false, toolbar);
+      "cell3D", false, Toolbar);
     ToolJ2D = addToolbarButton("j2d.gif", "2-D (Java2D)",
-      "cellJ2D", CanDo3D, toolbar);
+      "cellJ2D", CanDo3D, Toolbar);
     Tool2D = addToolbarButton("2d.gif", "2-D (Java3D)",
-      "cell2D", CanDo3D, toolbar);
-    toolbar.addSeparator();
+      "cell2D", CanDo3D, Toolbar);
+    Toolbar.addSeparator();
     ToolMap = addToolbarButton("mappings.gif", "Edit mappings",
-      "cellEdit", false, toolbar);
+      "cellEdit", false, Toolbar);
     ToolReset = addToolbarButton("reset.gif", "Reset orientation",
-      "cellReset", false, toolbar);
+      "cellReset", false, Toolbar);
     ToolShow = addToolbarButton("show.gif", "Show controls",
-      "cellShow", false, toolbar);
-    toolbar.addSeparator();
+      "cellShow", false, Toolbar);
+    Toolbar.addSeparator();
 
     // layout menu toolbar icon
-    addToolbarButton("tile.gif", "Tile cells", "layTile", true, toolbar);
-    toolbar.add(Box.createHorizontalGlue());
+    addToolbarButton("tile.gif", "Tile cells", "layTile", true, Toolbar);
+    Toolbar.add(Box.createHorizontalGlue());
 
     // set up formula bar
     JPanel formulaPanel = new JPanel();
@@ -1867,8 +1892,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           try {
             String name = String.valueOf(Letters.charAt(maxVisX)) +
               String.valueOf(j + 1);
-            FancySSCell f =
-              new FancySSCell(name, fm, null, IsSlave, null, this);
+            FancySSCell f = createCell(name, null);
             f.addSSCellChangeListener(this);
             f.addMouseListener(this);
             f.setAutoSwitch(AutoSwitch);
@@ -1949,8 +1973,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         try {
           String name = String.valueOf(Letters.charAt(i)) +
             String.valueOf(maxVisY + 1);
-          FancySSCell f =
-            new FancySSCell(name, fm, null, IsSlave, null, this);
+          FancySSCell f = createCell(name, null);
           f.addSSCellChangeListener(this);
           f.addMouseListener(this);
           f.setAutoSwitch(AutoSwitch);
@@ -2469,7 +2492,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           try {
             FancySSCell f = (FancySSCell) BasicSSCell.getSSCellByName(l[i][j]);
             if (f == null) {
-              f = new FancySSCell(l[i][j], fm, rs, IsSlave, null, this);
+              f = createCell(l[i][j], rs);
               f.addSSCellChangeListener(this);
               f.addMouseListener(this);
               f.setAutoSwitch(AutoSwitch);
@@ -2988,6 +3011,23 @@ public class SpreadSheet extends JFrame implements ActionListener,
         refreshDisplayMenuItems();
       }
     }
+  }
+
+
+  // *** SpreadSheet API methods ***
+
+  /** returns the JToolBar object for other programs to use
+      (e.g., add buttons) */
+  public JToolBar getToolbar() {
+    return Toolbar;
+  }
+
+  /** returns the spreadsheet cell class (which must extend FancySSCell)
+      used for creating spreadsheet cells at runtime */
+  protected FancySSCell createCell(String name, RemoteServer rs)
+    throws VisADException, RemoteException
+  {
+    return new FancySSCell(name, fm, rs, IsSlave, null, this);
   }
 
 
