@@ -239,7 +239,7 @@ public abstract class BaseColorControl extends Control {
       }
     } else if (newTable == null) {
       return false;
-    } else {
+    } else if (table != newTable) {
       if (table.length != newTable.length) {
         return false;
       } else {
