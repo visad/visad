@@ -29,7 +29,7 @@ def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD
   subs.setBoxSize(disp, .80)
   subs.setAspectRatio(disp, float(width)/float(height))
   subs.showDisplay(disp,width,height,title)
-  return
+  return disp
 
 #----------------------------------------------------------------------------
 # basic scatter plot between two fields.
@@ -48,7 +48,7 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
 
   subs.setAspectRatio(disp, float(width)/float(height))
   subs.showDisplay(disp,width,height,title)
-  return
+  return disp
 
 #----------------------------------------------------------------------------
 # quick look histogram - only first range component is used.
@@ -100,7 +100,7 @@ def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", col
   subs.setAspectRatio(disp, float(width)/float(height))
   subs.showDisplay(disp,width,height,title)
 
-  return
+  return disp
 
 
 #----------------------------------------------------------------------------
@@ -165,7 +165,7 @@ def contour(data, panel=None, enableLabels=1, interval=None, width=400, height=4
   subs.setAspectRatio(disp, float(width)/float(height))
   subs.showDisplay(disp,width,height,title)
 
-  return
+  return disp
 
 
 #----------------------------------------------------------------------------
@@ -237,7 +237,7 @@ def animation(data, panel=None, width=400, height=500, title="VisAD Animation"):
   subs.setAspectRatio(disp, float(width)/float(height))
   myAnimFrame(disp, widget, width, height, "Animation")
 
-  return
+  return disp
 
 class myAnimFrame:
   def desty(self, event):

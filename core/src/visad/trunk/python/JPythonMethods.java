@@ -33,6 +33,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.rmi.RemoteException;
 import java.util.Hashtable;
 import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
 
 import visad.*;
 import visad.math.*;
@@ -316,6 +318,49 @@ public abstract class JPythonMethods {
       frame = null;
       display.destroyCell();
       display = null;
+    }
+  }
+
+  /**
+   * clear the onscreen data display
+   *
+   * @throws  VisADException  part of data and display APIs, shouldn't occur
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  public static void saveplot(String filename) 
+                 throws VisADException, RemoteException, IOException {
+    saveplot(null, filename);
+  }
+
+  /**
+   * clear the onscreen data display with the given name
+   *
+   * @param   name            name of the display to clear
+   * @param   filename        name of the file to save display into
+   *
+   * @throws  VisADException  part of data and display APIs, shouldn't occur
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IOException part of data and display APIs, shouldn't occur
+   */
+  public static void saveplot(String name, String filename)
+    throws VisADException, RemoteException, IOException {
+
+    if (name == null) name = DEFAULT_NAME;
+    final BasicSSCell sscell = BasicSSCell.getSSCellByName(name);
+    final String fn = filename;
+    if (sscell != null) {
+      Runnable captureDisp = new Runnable() {
+        public void run() {
+          try {
+            sscell.captureImage(new File(fn));
+          } catch (Exception se) {
+            System.out.println("Error saving plot = "+se);
+          }
+        }
+      };
+
+      Thread ts = new Thread(captureDisp);
+      ts.start();
     }
   }
 
@@ -1866,6 +1911,12 @@ public abstract class JPythonMethods {
       System.out.println("- - - - - - - - - - - - - - - - - - - - - - - ");
       System.out.println("DataType analysis...");
       visad.jmet.DumpType.dumpDataType(d);
+  }
+
+  public static 
+       visad.data.mcidas.PointDataAdapter getPointDataAdapter(String request) 
+             throws VisADException, RemoteException {
+       return (new visad.data.mcidas.PointDataAdapter(request));
   }
 
 }

@@ -65,6 +65,10 @@ def makeDisplay(maps):
   
   return disp
 
+# save the display as a JPEG
+def saveDisplay(disp, filename):
+  from visad.util import Util
+  Util.captureDisplay(disp, filename)
 
 # add a Data object to a Display, and return a reference to the Data
 def addData(name, data, disp, constantMaps=None, renderer=None, ref=None):
