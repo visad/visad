@@ -961,7 +961,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       if (nan > 0) {
         float[][] new_s_values = new float[len][flen-nan];
         byte[][] new_c_values = color_values;
-        if (clen > 0) new_c_values = new byte[len][flen-nan];
+        if (clen > 0) new_c_values = new byte[clen][flen-nan];
         int c = 0;
         for (int i=0; i<flen; i++) {
           if (f[i] == f[i]) {
