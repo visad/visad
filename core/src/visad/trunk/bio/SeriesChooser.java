@@ -141,7 +141,7 @@ public class SeriesChooser extends JPanel implements ActionListener {
   }
 
   /** Returns the selected series of files in array form. */
-  public File[] getFileSeries() {
+  public File[] getSeries() {
     String p = prefix.getText();
     String c = count.getText();
     String t = (String) type.getSelectedItem();
@@ -151,11 +151,11 @@ public class SeriesChooser extends JPanel implements ActionListener {
       if (num < 1) num = 1;
     }
     catch (NumberFormatException exc) { }
-    boolean dot = (t == null || t.equals(""));
+    boolean dot = (t != null && !t.equals(""));
     if (dot) t = "." + t;
     File[] series = new File[num];
     for (int i=0; i<num; i++) {
-      String name = p + i + (dot ? t : "");
+      String name = p + (i + 1) + (dot ? t : "");
       series[i] = new File(name);
     }
     return series;

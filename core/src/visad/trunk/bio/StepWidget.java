@@ -34,134 +34,133 @@ import javax.swing.plaf.basic.BasicArrowButton;
 import java.rmi.RemoteException;
 import visad.*;
 
-/** StepWidget is a GUI component for stepping through a time stack. */
-public class StepWidget extends JPanel implements ActionListener,
-  ChangeListener, ControlListener, ScalarMapListener
+/**
+ * StepWidget is a slider GUI component with
+ * directional step arrows at either end.
+ */
+public class StepWidget extends JPanel
+  implements ActionListener, ChangeListener
 {
-  private static final boolean DEBUG = true;
+
+  protected static final boolean DEBUG = true;
   private static final int BUTTON_WIDTH = 25;
   private static final int BUTTON_HEIGHT = 25;
   private static final int GAP = 5;
+  private static final Dimension buttonSize =
+    new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
 
-  private JSlider step;
-  private JButton up;
-  private JButton down;
+  protected JSlider step;
+  private boolean horiz;
+  private JButton forward;
+  private JButton back;
 
-  private ScalarMap smap;
-  private AnimationControl control;
+  protected int min = 1;
+  protected int max = 1;
+  protected int cur = 1;
 
   /** Constructs a StepWidget. */
-  public StepWidget() throws VisADException, RemoteException {
+  public StepWidget(boolean horizontal) {
+    // determine orientation
+    horiz = horizontal;
+    int mainLayout, subLayout;
+    int backDir, stepDir, forwardDir;
+    Dimension gap;
+    Component glue1, glue2, glue3, glue4;
+    if (horizontal) {
+      mainLayout = BoxLayout.X_AXIS;
+      subLayout = BoxLayout.Y_AXIS;
+      backDir = BasicArrowButton.WEST;
+      stepDir = JSlider.HORIZONTAL;
+      forwardDir = BasicArrowButton.EAST;
+      gap = new Dimension(GAP, 0);
+      glue1 = Box.createVerticalGlue();
+      glue2 = Box.createVerticalGlue();
+      glue3 = Box.createVerticalGlue();
+      glue4 = Box.createVerticalGlue();
+    }
+    else {
+      mainLayout = BoxLayout.Y_AXIS;
+      subLayout = BoxLayout.X_AXIS;
+      backDir = BasicArrowButton.NORTH;
+      stepDir = JSlider.VERTICAL;
+      forwardDir = BasicArrowButton.SOUTH;
+      gap = new Dimension(0, GAP);
+      glue1 = Box.createHorizontalGlue();
+      glue2 = Box.createHorizontalGlue();
+      glue3 = Box.createHorizontalGlue();
+      glue4 = Box.createHorizontalGlue();
+    }
+
     // create panels
-    JPanel top = new JPanel();
-    JPanel bottom = new JPanel();
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
-    bottom.setLayout(new BoxLayout(bottom, BoxLayout.X_AXIS));
+    JPanel before = new JPanel();
+    JPanel after = new JPanel();
+    setLayout(new BoxLayout(this, mainLayout));
+    before.setLayout(new BoxLayout(before, subLayout));
+    after.setLayout(new BoxLayout(after, subLayout));
 
     // create components
-    up = new BasicArrowButton(BasicArrowButton.NORTH) {
-      public Dimension getPreferredSize() {
-        return new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
-      }
-      public Dimension getMaximumSize() {
-        return new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
-      }
+    back = new BasicArrowButton(backDir) {
+      public Dimension getPreferredSize() { return buttonSize; }
+      public Dimension getMaximumSize() { return buttonSize; }
     };
-    step = new JSlider(JSlider.VERTICAL, 1, 1, 1);
-    down = new BasicArrowButton(BasicArrowButton.SOUTH) {
-      public Dimension getPreferredSize() {
-        return new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
-      }
-      public Dimension getMaximumSize() {
-        return new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
-      }
+    step = new JSlider(stepDir, min, max, cur);
+    forward = new BasicArrowButton(forwardDir) {
+      public Dimension getPreferredSize() { return buttonSize; }
+      public Dimension getMaximumSize() { return buttonSize; }
     };
     step.setPaintTicks(true);
     step.setAlignmentX(JButton.LEFT_ALIGNMENT);
 
     // lay out components
-    add(top);
-    add(Box.createRigidArea(new Dimension(0, GAP)));
+    add(before);
+    add(Box.createRigidArea(gap));
     add(step);
-    add(Box.createRigidArea(new Dimension(0, GAP)));
-    add(bottom);
-    top.add(Box.createHorizontalGlue());
-    top.add(up);
-    top.add(Box.createHorizontalGlue());
-    bottom.add(Box.createHorizontalGlue());
-    bottom.add(down);
-    bottom.add(Box.createHorizontalGlue());
+    add(Box.createRigidArea(gap));
+    add(after);
+    before.add(glue1);
+    before.add(back);
+    before.add(glue2);
+    after.add(glue3);
+    after.add(forward);
+    after.add(glue4);
 
-    // listen for button press events
+    // listen for GUI events
+    back.addActionListener(this);
+    forward.addActionListener(this);
     step.addChangeListener(this);
-    up.addActionListener(this);
-    down.addActionListener(this);
 
     // disable controls
-    step.setEnabled(false);
-    up.setEnabled(false);
-    down.setEnabled(false);
+    setEnabled(false);
   }
 
-  /** Returns the minimum size of the StepWidget. */
+  /** Returns the minimum size of the widget. */
   public Dimension getMinimumSize() {
     Dimension min = getPreferredSize();
-    return new Dimension(min.width, 0);
+    return horiz ? new Dimension(0, min.height + 4 * GAP) :
+      new Dimension(min.width, 0);
   }
 
-  /** Returns the maximum size of the StepWidget. */
+  /** Returns the maximum size of the widget. */
   public Dimension getMaximumSize() {
     Dimension max = getPreferredSize();
-    return new Dimension(max.width, Integer.MAX_VALUE);
+    return horiz ? new Dimension(Integer.MAX_VALUE, max.height + 4 * GAP) :
+      new Dimension(max.width, Integer.MAX_VALUE);
   }
 
-  /** Links the StepWidget with the given scalar map. */
-  public void setMap(ScalarMap smap) throws VisADException, RemoteException {
-    // verify scalar map
-    if (smap != null && !Display.Animation.equals(smap.getDisplayScalar())) {
-      throw new DisplayException("StepWidget: " +
-        "ScalarMap must be to Display.Animation");
-    }
-
-    // remove old listeners
-    if (this.smap != null) smap.removeScalarMapListener(this);
-    if (control != null) control.removeControlListener(this);
-
-    // get control values
-    this.smap = smap;
-    control = (AnimationControl) smap.getControl();
-    fixControlUI();
-
-    // add listeners
-    if (control != null) control.addControlListener(this);
-    if (smap != null) smap.addScalarMapListener(this);
+  /** Enables or disables the widget. */
+  public void setEnabled(boolean enabled) {
+    step.setEnabled(enabled);
+    back.setEnabled(enabled);
+    forward.setEnabled(enabled);
   }
 
-  private void fixControlUI() {
-    // update slider ticks
-    int max = 1;
-    int cur = 1;
-    if (control == null) {
-      // disable controls
-      step.setEnabled(false);
-      up.setEnabled(false);
-      down.setEnabled(false);
-    }
-    else {
-      step.setEnabled(true);
-      up.setEnabled(true);
-      down.setEnabled(true);
-      try {
-        Set set = control.getSet();
-        if (set != null) max = set.getLength();
-      }
-      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-      cur = control.getCurrent() + 1;
-      if (cur < 1) cur = 1;
-      else if (cur > max) cur = max;
-    }
-    step.setMinimum(1);
+  /** Sets the minimum, maximum and current values of the slider. */
+  public void setBounds(int min, int max, int cur) {
+    this.min = min;
+    this.max = max;
+    this.cur = cur;
+
+    step.setMinimum(min);
     step.setMaximum(max);
     step.setValue(cur);
 
@@ -177,73 +176,28 @@ public class StepWidget extends JPanel implements ActionListener,
 
   /** ActionListener method used with JButtons. */
   public void actionPerformed(ActionEvent e) {
-    if (control == null) {
-      if (DEBUG) System.out.println("null AnimationControl");
-      return;
+    boolean direction = (e.getSource() == back);
+    if (horiz == direction) {
+      // move back
+      cur--;
+      if (cur < min) cur = max;
+      updateStep();
     }
-    Object o = e.getSource();
-    if (o == up) {
-      // move up one step
-      try {
-        control.setDirection(true);
-        control.takeStep();
-      }
-      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-    }
-    if (o == down) {
-      // move down one step
-      try {
-        control.setDirection(false);
-        control.takeStep();
-      }
-      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
+    else {
+      // move forward
+      cur++;
+      if (cur > max) cur = min;
+      updateStep();
     }
   }
 
   /** ChangeListener method used with JSlider. */
   public void stateChanged(ChangeEvent e) {
-    try {
-      if (control != null) {
-        int cur = step.getValue() - 1;
-        if (control.getCurrent() != cur) control.setCurrent(cur);
-      }
-    }
-    catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-    catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
+    cur = step.getValue();
+    updateStep();
   }
 
-  /** ControlListener method used for programmatically moving JSlider. */
-  public void controlChanged(ControlEvent e) {
-    if (control != null) {
-      int val = control.getCurrent() + 1;
-      if (step.getValue() != val) step.setValue(val);
-    }
-  }
-
-  /** ScalarMapListener method used to recompute JSlider bounds. */
-  public void mapChanged(ScalarMapEvent e) {
-    fixControlUI();
-  }
-
-  /** ScalarMapListener method used to detect new AnimationControl. */
-  public void controlChanged(ScalarMapControlEvent evt) {
-    int id = evt.getId();
-    if (id == ScalarMapEvent.CONTROL_REMOVED ||
-      id == ScalarMapEvent.CONTROL_REPLACED)
-    {
-      evt.getControl().removeControlListener(this);
-      if (id == ScalarMapEvent.CONTROL_REMOVED) control = null;
-    }
-
-    if (id == ScalarMapEvent.CONTROL_REPLACED ||
-      id == ScalarMapEvent.CONTROL_ADDED)
-    {
-      control = (AnimationControl) evt.getScalarMap().getControl();
-      fixControlUI();
-      if (control != null) control.addControlListener(this);
-    }
-  }
+  /** Override this method for specialized functionality. */
+  protected void updateStep() { }
 
 }

@@ -63,8 +63,11 @@ public class MeasureFrame extends GUIFrame {
   /** VisAD Display. */
   private DisplayImpl display;
 
-  /** Widget for stepping through the time stack. */
-  private StepWidget sw;
+  /** Widget for stepping through the image stack. */
+  private ImageStackWidget vertWidget;
+
+  /** Widget for stepping through data from the series of files. */
+  private FileSeriesWidget horizWidget;
 
   /** Synchronization object. */
   private Object lock = new Object();
@@ -81,29 +84,32 @@ public class MeasureFrame extends GUIFrame {
 
     // lay out components
     JPanel pane = new JPanel();
-    JPanel top = new JPanel();
-    JPanel bottom = new JPanel();
+    pane.setLayout(new BorderLayout());
     setContentPane(pane);
-    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-    top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
-    bottom.setLayout(new BoxLayout(bottom, BoxLayout.X_AXIS));
-    /*
-    top.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    bottom.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    */
-    pane.add(top);
-    pane.add(bottom);
-    sw = new StepWidget();
-    sw.setAlignmentY(StepWidget.TOP_ALIGNMENT);
-    top.add(sw);
+
+    // main display
     try {
       display = new DisplayImplJ3D("display", new TwoDDisplayRendererJ3D());
     }
     catch (Throwable t) {
       display = new DisplayImplJ2D("display");
     }
-    top.add(display.getComponent());
-    // CTR: TODO: bottom.add(cool horiz slider thingie)
+    pane.add(display.getComponent(), BorderLayout.CENTER);
+
+    // vertical slider
+    vertWidget = new ImageStackWidget(false);
+    vertWidget.setAlignmentY(ImageStackWidget.TOP_ALIGNMENT);
+    pane.add(vertWidget, BorderLayout.WEST);
+
+    // horizontal slider
+    horizWidget = new FileSeriesWidget(true);
+    horizWidget.setDisplay(display);
+    horizWidget.setWidget(vertWidget);
+    pane.add(horizWidget, BorderLayout.SOUTH);
+
+    // custom toolbar
+    // CTR: TODO
+    //pane.add(toolbar, BorderLayout.EAST);
   }
 
   /** Loads the given dataset. */
@@ -165,7 +171,7 @@ public class MeasureFrame extends GUIFrame {
       display.addReference(ref);
       ism = new ImageStackMeasure(field);
       ism.setDisplay(display);
-      if (animMap != null) sw.setMap(animMap);
+      if (animMap != null) vertWidget.setMap(animMap);
     }
     catch (Throwable t) { t.printStackTrace(); }
   }
@@ -205,7 +211,7 @@ public class MeasureFrame extends GUIFrame {
           }
 
           // load first file in series
-          File[] f = seriesBox.getFileSeries();
+          File[] f = seriesBox.getSeries();
           if (f == null || f.length < 1) {
             JOptionPane.showMessageDialog(frame,
               "Invalid series", "Cannot load series",
@@ -213,8 +219,7 @@ public class MeasureFrame extends GUIFrame {
             setCursor(Cursor.getDefaultCursor());
             return;
           }
-          loadFile(f[0]);
-          // CTR: TODO: finish this method... load up widgets and stuff
+          horizWidget.setSeries(f);
           setCursor(Cursor.getDefaultCursor());
         }
       }
