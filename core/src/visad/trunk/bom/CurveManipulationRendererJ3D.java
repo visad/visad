@@ -363,6 +363,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
       UnionSet newData = null;
 
+      // create location string
       Vector vect = new Vector();
       for (int i=0; i<3; i++) {
         int j = getAxisToComponent(i);
@@ -371,9 +372,20 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
           d = getDirectMap(i).inverseScaleValues(f);
           value[j] = d[0];
           RealType rtype = domain_reals[j];
-          // create location string
-          String valueString = new Real(rtype, d[0]).toValueString();
+
+          // WLH 31 Aug 2000
+          Real rr = new Real(rtype, d[0]);
+          Unit overrideUnit = getDirectMap(i).getOverrideUnit();
+          Unit rtunit = rtype.getDefaultUnit();
+          // units not part of Time string
+          if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+              !RealType.Time.equals(rtype)) {
+            double dval = overrideUnit.toThis((double) d[0], rtunit);
+            rr = new Real(rtype, dval, overrideUnit);
+          }
+          String valueString = rr.toValueString();
           vect.addElement(rtype.getName() + " = " + valueString);
+
         }
       }
       getDisplayRenderer().setCursorStringVector(vect);

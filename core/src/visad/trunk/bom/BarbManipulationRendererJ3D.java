@@ -530,8 +530,24 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
         if (j >= 0) {
           RealType rtype = (RealType) reals[j].getType();
           reals[j] = new Real(rtype, (double) x[i], rtype.getDefaultUnit(), null);
-          // create location string
-          vect.addElement(rtype.getName() + " = " + x[i]);
+
+          // WLH 31 Aug 2000
+          Real r = reals[j];
+          Unit overrideUnit = directMap[i].getOverrideUnit();
+          Unit rtunit = rtype.getDefaultUnit();
+          // units not part of Time string
+          if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+              !RealType.Time.equals(rtype)) {
+            double d = (float) overrideUnit.toThis((double) x[0], rtunit);
+            r = new Real(rtype, d, overrideUnit);
+            String valueString = r.toValueString();
+            vect.addElement(rtype.getName() + " = " + valueString);
+          }
+          else {
+            // create location string
+            vect.addElement(rtype.getName() + " = " + x[i]);
+          }
+
         }
       }
       getDisplayRenderer().setCursorStringVector(vect);

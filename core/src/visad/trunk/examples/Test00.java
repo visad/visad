@@ -52,7 +52,8 @@ public class Test00
   {
     GraphicsModeControl mode;
 
-    final RealType ir_radiance = new RealType("ir_radiance", null, null);
+    final RealType ir_radiance =
+      new RealType("ir_radiance", CommonUnit.degree, null);
     final RealType count = new RealType("count", CommonUnit.second, null);
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
     final RealType vis_radiance = new RealType("vis_radiance", null, null);
@@ -65,13 +66,16 @@ public class Test00
     RealTuple direct_tuple = new RealTuple(reals3);
 
     dpys[0].addMap(new ScalarMap(vis_radiance, Display.ZAxis));
-    dpys[0].addMap(new ScalarMap(ir_radiance, Display.XAxis));
+    ScalarMap irmap = new ScalarMap(ir_radiance, Display.XAxis);
+    dpys[0].addMap(irmap);
+    irmap.setOverrideUnit(CommonUnit.radian);
     dpys[0].addMap(new ScalarMap(count, Display.YAxis));
     dpys[0].addMap(new ScalarMap(count, Display.Green));
 
     mode = dpys[0].getGraphicsModeControl();
     mode.setPointSize(5.0f);
     mode.setPointMode(false);
+    mode.setScaleEnable(true);
 
     DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
     ref_direct.setData(direct);
@@ -101,6 +105,7 @@ public class Test00
     mode = dpys[1].getGraphicsModeControl();
     mode.setPointSize(5.0f);
     mode.setPointMode(false);
+    mode.setScaleEnable(true);
 
     dpys[1].addReferences(new DirectManipulationRendererJ3D(), refs1, null);
     dpys[1].addReferences(new DirectManipulationRendererJ3D(), refs2, null);

@@ -177,6 +177,24 @@ if (tickFlag) {
   public void animation_string(RealType real, Set set, double value,
               int current) throws VisADException {
     Unit[] units = set.getSetUnits();
+
+    // WLH 31 Aug 2000
+    Vector tmap = display.getMapVector();
+    Unit overrideUnit = null;
+    for (int i=0; i<tmap.size(); i++) {
+      ScalarMap map = (ScalarMap) tmap.elementAt(i);
+      Control c = map.getControl();
+      if (this.equals(c)) {
+        overrideUnit = map.getOverrideUnit();
+      }
+    }
+    // units not part of Time string
+    if (overrideUnit != null && units != null &&
+        !overrideUnit.equals(units[0]) && !RealType.Time.equals(real)) {
+      value = overrideUnit.toThis(value, units[0]);
+      units[0] = overrideUnit;
+    }
+
     String s = real.getName() + " = " +
       new Real(real, value, units == null ? null : units[0]).toValueString();
     String t = Integer.toString(current+1) + " of " +

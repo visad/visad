@@ -1692,7 +1692,18 @@ System.out.println("checkClose: distance = " + distance);
             float g = d[0];
             vect.addElement(rtype.getName() + " = " + g);
 */
-            String valueString = new Real(rtype, d[0]).toValueString();
+
+            // WLH 31 Aug 2000
+            Real r = new Real(rtype, d[0]);
+            Unit overrideUnit = getDirectMap(i).getOverrideUnit();
+            Unit rtunit = rtype.getDefaultUnit();
+            // units not part of Time string
+            if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+                !RealType.Time.equals(rtype)) {
+              double dval =  overrideUnit.toThis((double) d[0], rtunit);
+              r = new Real(rtype, dval, overrideUnit);
+            }
+            String valueString = r.toValueString();
             vect.addElement(rtype.getName() + " = " + valueString);
 
             getDisplayRenderer().setCursorStringVector(vect);
@@ -1720,7 +1731,18 @@ System.out.println("checkClose: distance = " + distance);
             float g = d[0];
             vect.addElement(rtype.getName() + " = " + g);
 */
-            String valueString = new Real(rtype, d[0]).toValueString();
+
+            // WLH 31 Aug 2000
+            Real r = new Real(rtype, d[0]);
+            Unit overrideUnit = getDirectMap(i).getOverrideUnit();
+            Unit rtunit = rtype.getDefaultUnit();
+            // units not part of Time string
+            if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+                !RealType.Time.equals(rtype)) {
+              double dval = overrideUnit.toThis((double) d[0], rtunit);
+              r = new Real(rtype, dval, overrideUnit);
+            }
+            String valueString = r.toValueString();
             vect.addElement(rtype.getName() + " = " + valueString);
 
           }
@@ -1743,15 +1765,36 @@ System.out.println("checkClose: distance = " + distance);
         f[0] = x[k];
         d = getDirectMap(k).inverseScaleValues(f);
         RealType rtype = (RealType) getDirectMap(k).getScalar();
+
+        // WLH 31 Aug 2000
+        // first, save value in default Unit
+        double dsave = d[0];
+
         // WLH 4 Jan 99
         // convert d from default Unit to actual domain Unit of data
         Unit[] us = ((Field) data).getDomainUnits();
         if (us != null && us[0] != null) {
           d[0] = (float) us[0].toThis((double) d[0], rtype.getDefaultUnit());
         }
+
+        // WLH 31 Aug 2000
+        Real r = new Real(rtype, dsave);
+        Unit overrideUnit = getDirectMap(k).getOverrideUnit();
+        Unit rtunit = rtype.getDefaultUnit();
+        // units not part of Time string
+        if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+            !RealType.Time.equals(rtype)) {
+          dsave = overrideUnit.toThis(dsave, rtunit);
+          r = new Real(rtype, dsave, overrideUnit);
+        }
+        String valueString = r.toValueString();
+        vect.addElement(rtype.getName() + " = " + valueString);
+
+/*
         // create location string
         float g = d[0];
         vect.addElement(rtype.getName() + " = " + g);
+*/
         // convert domain value to domain index
         Gridded1DSet set = (Gridded1DSet) ((Field) data).getDomainSet();
         value[0][0] = (float) d[0];
@@ -1800,7 +1843,18 @@ System.out.println("checkClose: distance = " + distance);
             g = (float) d[0];
             vect.addElement(rtype.getName() + " = " + g);
 */
-            String valueString = new Real(rtype, d[0]).toValueString();
+
+            // WLH 31 Aug 2000
+            r = new Real(rtype, d[0]);
+            overrideUnit = getDirectMap(i).getOverrideUnit();
+            rtunit = rtype.getDefaultUnit();
+            // units not part of Time string
+            if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+                !RealType.Time.equals(rtype)) {
+              double dval = overrideUnit.toThis((double) d[0], rtunit);
+              r = new Real(rtype, dval, overrideUnit);
+            }
+            valueString = r.toValueString();
             vect.addElement(rtype.getName() + " = " + valueString);
 
             thisD[j] = d[0];

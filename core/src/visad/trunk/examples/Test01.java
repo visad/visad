@@ -77,22 +77,29 @@ public class Test01
   {
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
     RealTupleType earth_location3d = new RealTupleType(types3d);
-    RealType vis_radiance = new RealType("vis_radiance", null, null);
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
+    RealType vis_radiance = new RealType("vis_radiance", CommonUnit.degree, null);
+    RealType ir_radiance = new RealType("ir_radiance", CommonUnit.degree, null);
     RealType[] types2 = {vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType grid_tuple = new FunctionType(earth_location3d, radiance);
 
-    float level = 2.5f;
     FlatField grid3d = FlatField.makeField(grid_tuple, size3d, false);
 
-    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    ScalarMap lat_map = new ScalarMap(RealType.Latitude, Display.YAxis);
+    dpys[0].addMap(lat_map);
+    // WLH 31 Aug 2000
+    lat_map.setOverrideUnit(CommonUnit.radian);
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
     map1color = new ScalarMap(ir_radiance, Display.RGB);
     dpys[0].addMap(map1color);
+    map1color.setOverrideUnit(CommonUnit.radian);
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     dpys[0].addMap(map1contour);
+    map1contour.setOverrideUnit(CommonUnit.radian);
+
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
+    mode.setScaleEnable(true);
 
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);

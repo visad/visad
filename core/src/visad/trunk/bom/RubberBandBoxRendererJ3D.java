@@ -364,10 +364,35 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
       Vector vect = new Vector();
       f[0] = xx[xindex][0];
       d = xmap.inverseScaleValues(f);
-      String valueString = new Real(x, d[0]).toValueString();
+
+      // WLH 31 Aug 2000
+      Real rr = new Real(x, d[0]);
+      Unit overrideUnit = xmap.getOverrideUnit();
+      Unit rtunit = x.getDefaultUnit();
+      // units not part of Time string
+      if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+          !RealType.Time.equals(x)) {
+        double dval =  overrideUnit.toThis((double) d[0], rtunit);
+        rr = new Real(x, dval, overrideUnit);
+      }   
+      String valueString = rr.toValueString();
+
       vect.addElement(x.getName() + " = " + valueString);
       f[0] = xx[yindex][0];
       d = ymap.inverseScaleValues(f);
+
+      // WLH 31 Aug 2000
+      rr = new Real(y, d[0]);
+      overrideUnit = ymap.getOverrideUnit();
+      rtunit = y.getDefaultUnit();
+      // units not part of Time string
+      if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+          !RealType.Time.equals(y)) {
+        double dval =  overrideUnit.toThis((double) d[0], rtunit);
+        rr = new Real(y, dval, overrideUnit);
+      }
+      valueString = rr.toValueString();
+
       valueString = new Real(y, d[0]).toValueString();
       vect.addElement(y.getName() + " = " + valueString);
       getDisplayRenderer().setCursorStringVector(vect);

@@ -484,7 +484,20 @@ public abstract class DisplayRenderer
             }
             float[] dval = map.inverseScaleValues(fval);
             RealType real = (RealType) map.getScalar();
-	    String valueString = new Real(real, dval[0]).toValueString();
+
+            // WLH 31 Aug 2000
+            Real r = new Real(real, dval[0]);
+            Unit overrideUnit = map.getOverrideUnit();
+            Unit rtunit = real.getDefaultUnit();
+            // units not part of Time string
+            if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
+                !RealType.Time.equals(real)) {
+              dval[0] = (float)
+                overrideUnit.toThis((double) dval[0], rtunit);
+              r = new Real(real, dval[0], overrideUnit);
+            }
+            String valueString = r.toValueString();
+
             String s = real.getName() + " = " + valueString;
             cursorStringVector.addElement(s);
           } // end if (tuple != null && ...)

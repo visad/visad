@@ -40,6 +40,12 @@ import java.util.*;
 public class ScalarMap extends Object
         implements Cloneable, java.io.Serializable, Comparable {
 
+  // WLH 31 Aug 2000
+  // display Unit to use rather than Scalar default Unit
+  private Unit overrideUnit = null;
+  // scale and offset for converting from Scalar default Unit to overrideUnit
+  private double override_scale, override_offset;
+
   private ScalarType Scalar;
   private DisplayRealType DisplayScalar;
 
@@ -134,6 +140,29 @@ public class ScalarMap extends Object
     NewTick = Long.MIN_VALUE + 1;
     tickFlag = false;
     if (Scalar != null) scalarName = Scalar.getName();
+  }
+
+  // WLH 31 Aug 2000
+  /** set display Unit to override default Unit of Scalar;
+      MUST be called before any data are displayed */
+  public void setOverrideUnit(Unit unit) throws VisADException {
+    if (!(Scalar instanceof RealType)) {
+      throw new UnitException("Scalar is not RealType");
+    }
+    Unit rtunit = ((RealType) Scalar).getDefaultUnit();
+    if (!Unit.canConvert(unit, rtunit)) {
+      throw new UnitException("unit not convertable with RealType default");
+    }
+    if (unit != null) {
+      overrideUnit = unit;
+      override_offset = overrideUnit.toThis(0.0, rtunit);
+      override_scale = overrideUnit.toThis(1.0, rtunit) - override_offset;
+    }
+  }
+
+  // WLH 31 Aug 2000
+  public Unit getOverrideUnit() {
+    return overrideUnit;
   }
 
   public String getScalarName() {
@@ -345,10 +374,18 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       (data[0], data[1]) defines range of data values (either passed
       in to setRange or computed by autoscaling logic) and
       (display[0], display[1]) defines range of display values;
-      so, data, display must each be passed in as double[2] arrays */
+      so, data, display must each be passed in as double[2] arrays;
+      note if overrideUnit != null, so and data are in overrideUnit */
   public boolean getScale(double[] so, double[] data, double[] display) {
-    so[0] = scale;
-    so[1] = offset;
+    // WLH 31 Aug 2000
+    if (overrideUnit != null) {
+      so[0] = scale * override_scale;
+      so[1] = scale * override_offset + offset;
+    }
+    else {
+      so[0] = scale;
+      so[1] = offset;
+    }
     data[0] = dataRange[0];
     data[1] = dataRange[1];
     display[0] = displayRange[0];
@@ -356,6 +393,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     return isScaled;
   }
 
+  /** note if overrideUnit != null, dataRange is in overrideUnit */
   public double[] getRange() {
     double[] range = {dataRange[0], dataRange[1]};
     return range;
@@ -476,7 +514,15 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
     else {
       dataRange[0] = low;
       dataRange[1] = hi;
+      // WLH 31 Aug 2000
+      // manual range is in overrideUnit. so convert to Scalar default Unit
+      if (overrideUnit != null) {
+        dataRange[0] = (dataRange[0] - override_offset) / override_scale;
+        dataRange[1] = (dataRange[1] - override_offset) / override_scale;
+      }
     }
+    // at this point dataRange is range for Scalar default Unit
+    //   even if (overrideUnit != null)
     if (isScaled) {
       if (dataRange[0] == Double.MAX_VALUE ||
           dataRange[1] == -Double.MAX_VALUE) {
@@ -493,6 +539,14 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
           dataRange[0] -= half;
           dataRange[1] += half;
         }
+
+        // WLH 31 Aug 2000
+        if (overrideUnit != null) {
+          // now convert dataRange to overrideUnit
+          dataRange[0] = dataRange[0] * override_scale + override_offset;
+          dataRange[1] = dataRange[1] * override_scale + override_offset;
+        }
+
         scale = (displayRange[1] - displayRange[0]) /
                 (dataRange[1] - dataRange[0]);
         offset = displayRange[0] - scale * dataRange[0];
@@ -511,6 +565,14 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
         dataRange[0] = Double.NaN;
         dataRange[1] = Double.NaN;
       }
+
+      // WLH 31 Aug 2000
+      if (overrideUnit != null) {
+        // now convert dataRange to overrideUnit
+        dataRange[0] = dataRange[0] * override_scale + override_offset;
+        dataRange[1] = dataRange[1] * override_scale + override_offset;
+      }
+
     }
 /*
 System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
@@ -827,15 +889,33 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     if (badRange()) {
       for (int i=0; i<values.length; i++) new_values[i] = Float.NaN;
     }
-    else if (isScaled) {
-      for (int i=0; i<values.length; i++) {
-        new_values[i] = (float) (offset + scale * values[i]);
-      }
-    }
     else {
-      for (int i=0; i<values.length; i++) {
-        new_values[i] = (float) values[i];
+// double[] old_values = values;
+      // WLH 31 Aug 2000
+      if (overrideUnit != null) {
+        try {
+          values =
+            overrideUnit.toThis(values, ((RealType) Scalar).getDefaultUnit());
+        }
+        catch (UnitException e) {
+        }
       }
+      if (isScaled) {
+        for (int i=0; i<values.length; i++) {
+          new_values[i] = (float) (offset + scale * values[i]);
+        }
+      }
+      else {
+        for (int i=0; i<values.length; i++) {
+          new_values[i] = (float) values[i];
+        }
+      }
+/*
+if (overrideUnit != null) {
+  System.out.println("values = " + old_values[0] + " " + values[0] + " " +
+                     new_values[0]);
+}
+*/
     }
 /* SRE 27 Oct 99
     System.out.println(
@@ -858,14 +938,32 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       new_values = new float[values.length];
       for (int i=0; i<values.length; i++) new_values[i] = Float.NaN;
     }
-    else if (isScaled) {
-      new_values = new float[values.length];
-      for (int i=0; i<values.length; i++) {
-        new_values[i] = (float) (offset + scale * values[i]);
-      }
-    }
     else {
-      new_values = values;
+// float[] old_values = values;
+      // WLH 31 Aug 2000
+      if (overrideUnit != null) {
+        try {
+          values =
+            overrideUnit.toThis(values, ((RealType) Scalar).getDefaultUnit());
+        }
+        catch (UnitException e) {
+        }
+      }
+      if (isScaled) {
+        new_values = new float[values.length];
+        for (int i=0; i<values.length; i++) {
+          new_values[i] = (float) (offset + scale * values[i]);
+        }
+      }
+      else {
+        new_values = values;
+      }
+/*
+if (overrideUnit != null) {
+  System.out.println("values = " + old_values[0] + " " + values[0] + " " +
+                     new_values[0]);
+}
+*/
     }
 /* SRE 27 Oct 99
     System.out.println(
@@ -891,6 +989,20 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       for (int i=0; i<values.length; i++) {
         new_values[i] = values[i];
       }
+    }
+    // WLH 31 Aug 2000
+    if (overrideUnit != null) {
+// float[] old_values = new_values;
+      try {
+        new_values =
+          overrideUnit.toThat(new_values, ((RealType) Scalar).getDefaultUnit());
+      }
+      catch (UnitException e) {
+      }
+/*
+System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
+                   new_values[0]);
+*/
     }
     return new_values;
   }
