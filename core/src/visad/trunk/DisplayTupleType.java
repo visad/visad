@@ -116,30 +116,41 @@ public class DisplayTupleType extends RealTupleType {
         Unit u = types[i].getDefaultUnit();
         if (u != null && Unit.canConvert(CommonUnit.degree, u)) {
 // System.out.println(types[i] + " unit " + u);
-          double[][] test = new double[n][3];
+          double[][] test = new double[n][37];
           for (int j=0; j<n; j++) {
             if (j == i) {
-              test[j][0] = u.toThis(0.0, CommonUnit.degree);
-              test[j][1] = u.toThis(180.0, CommonUnit.degree);
-              test[j][2] = u.toThis(360.0, CommonUnit.degree);
+              for (int k=0; k<37; k++) {
+                test[j][k] = u.toThis(10.0 * k, CommonUnit.degree);
+              }
             }
             else {
-              test[j][0] = defaults[j];
-              test[j][1] = defaults[j];
-              test[j][2] = defaults[j];
+              for (int k=0; k<37; k++) test[j][k] = defaults[j];
             }
           }
-// System.out.println(test[i][0] + " " + test[i][1] + " " + test[i][2]);
+// System.out.println(test[i][0] + " " + test[i][18] + " " + test[i][36]);
           double[][] tt = coord_sys.toReference(test);
           double diff180 = Math.sqrt(
-            (tt[0][1] - tt[0][0]) * (tt[0][1] - tt[0][0]) +
-            (tt[1][1] - tt[1][0]) * (tt[1][1] - tt[1][0]) +
-            (tt[2][1] - tt[2][0]) * (tt[2][1] - tt[2][0]));
+            (tt[0][18] - tt[0][0]) * (tt[0][18] - tt[0][0]) +
+            (tt[1][18] - tt[1][0]) * (tt[1][18] - tt[1][0]) +
+            (tt[2][18] - tt[2][0]) * (tt[2][18] - tt[2][0]));
           double diff360 = Math.sqrt(
-            (tt[0][2] - tt[0][0]) * (tt[0][2] - tt[0][0]) +
-            (tt[1][2] - tt[1][0]) * (tt[1][2] - tt[1][0]) +
-            (tt[2][2] - tt[2][0]) * (tt[2][2] - tt[2][0]));
-          if (diff360 < 0.01 * diff180) circulars[i] = true;
+            (tt[0][36] - tt[0][0]) * (tt[0][36] - tt[0][0]) +
+            (tt[1][36] - tt[1][0]) * (tt[1][36] - tt[1][0]) +
+            (tt[2][36] - tt[2][0]) * (tt[2][36] - tt[2][0]));
+          if (diff360 < 0.01 * diff180) {
+            circulars[i] = true;
+            double maxdiff = 0.0;
+            double mindiff = Double.MAX_VALUE;
+            for (int k=0; k<36; k++) {
+              double diff = Math.sqrt(
+                (tt[0][k+1] - tt[0][k]) * (tt[0][k+1] - tt[0][k]) +
+                (tt[1][k+1] - tt[1][k]) * (tt[1][k+1] - tt[1][k]) +
+                (tt[2][k+1] - tt[2][k]) * (tt[2][k+1] - tt[2][k]));
+              if (diff > maxdiff) maxdiff = diff;
+              if (diff < mindiff) mindiff = diff;
+            }
+            if (mindiff < 0.1 * maxdiff) circulars[i] = false;
+          }
 // System.out.println("diff180 = " + diff180 + " diff360 = " + diff360 +
 //                    " " + circulars[i]);
         } // end if (u != null && Unit.canConvert(CommonUnit.degree, u))
