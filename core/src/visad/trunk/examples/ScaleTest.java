@@ -122,7 +122,7 @@ public class ScaleTest extends JFrame {
         formatter.applyPattern("0.0E0");
         tScale.setNumberFormat(formatter);
         // calculate labels from user input (NB: format must be set first)
-        tScale.createStandardLabels(50, 10, 50, 40);
+        //tScale.createStandardLabels(50, 10, 50, 40);
 
         // set title
         tScale.setTitle(tScale.getTitle() + " (" + cel + ")");
@@ -337,6 +337,17 @@ public class ScaleTest extends JFrame {
                 }
             });
             p.add(visible);
+            add(p);
+
+            // Visibility
+            JCheckBox labelAll = 
+                new JCheckBox("Label All", scale.getLabelAllTicks());
+            labelAll.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    scale.setLabelAllTicks(((JCheckBox)e.getSource()).isSelected());
+                }
+            });
+            p.add(labelAll);
             add(p);
 
             // Side control
