@@ -97,9 +97,12 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
    * Abreviated Factory method for creating the proper gridded set
    * (Gridded1DSet, Gridded2DSet, etc.).
    *
+   * @param type                 MathType for the returned set
+   * @param samples              Set samples
    * @param lengths              The dimensionality of the manifold.  <code>
    *                             lengths[i}</code> contains the number of points
    *                             in the manifold for dimension <code>i</code>.
+   * @throws VisADException      problem creating the set
    */
   public static GriddedSet create(MathType type, float[][] samples,
                                   int[] lengths) throws VisADException {
@@ -110,9 +113,15 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
    * General Factory method for creating the proper gridded set
    * (Gridded1DSet, Gridded2DSet, etc.).
    *
+   * @param type                 MathType for the returned set
+   * @param samples              Set samples
    * @param lengths              The dimensionality of the manifold.  <code>
    *                             lengths[i}</code> contains the number of points
    *                             in the manifold for dimension <code>i</code>.
+   * @param coord_sys            CoordinateSystem for the GriddedSet
+   * @param units                Unit-s of the values in <code>samples</code>
+   * @param errors               ErrorEstimate-s for the values
+   * @throws VisADException      problem creating the set
    */
   public static GriddedSet create(MathType type, float[][] samples,
                                   int[] lengths, CoordinateSystem coord_sys,
@@ -122,6 +131,49 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
                   true, true);
   }
 
+  /**
+   * General Factory method for creating the proper gridded set
+   * (Gridded1DSet, Gridded2DSet, etc.).
+   *
+   * @param type                 MathType for the returned set
+   * @param samples              Set samples
+   * @param lengths              The dimensionality of the manifold.  <code>
+   *                             lengths[i}</code> contains the number of points
+   *                             in the manifold for dimension <code>i</code>.
+   * @param coord_sys            CoordinateSystem for the GriddedSet
+   * @param units                Unit-s of the values in <code>samples</code>
+   * @param errors               ErrorEstimate-s for the values
+   * @param copy                 make a copy of the samples
+   * @throws VisADException      problem creating the set
+   */
+  public static GriddedSet create(MathType type, float[][] samples,
+                                  int[] lengths, CoordinateSystem coord_sys,
+                                  Unit[] units, ErrorEstimate[] errors, 
+                                  boolean copy)
+         throws VisADException {
+    return create(type, samples, lengths, coord_sys, units, errors,
+                  copy, true);
+  }
+
+  /**
+   * General Factory method for creating the proper gridded set
+   * (Gridded1DSet, Gridded2DSet, etc.).
+   *
+   * @param type                 MathType for the returned set
+   * @param samples              Set samples
+   * @param lengths              The dimensionality of the manifold.  <code>
+   *                             lengths[i}</code> contains the number of points
+   *                             in the manifold for dimension <code>i</code>.
+   * @param coord_sys            CoordinateSystem for the GriddedSet
+   * @param units                Unit-s of the values in <code>samples</code>
+   * @param errors               ErrorEstimate-s for the values
+   * @param copy                 make a copy of the samples
+   * @param test                 test to make sure samples are valid.  Used
+   *                             for creating Gridded*DSets where the 
+   *                             manifold dimension is equal to the domain
+   *                             dimension
+   * @throws VisADException      problem creating the set
+   */
   private static GriddedSet create(MathType type, float[][] samples,
                            int[] lengths, CoordinateSystem coord_sys,
                            Unit[] units, ErrorEstimate[] errors,
