@@ -43,6 +43,7 @@ public class Event
     RealType.getRealType("Event_Index");
 
   public static TupleType tupleType;
+  public static Data missing = Hits.missing;
 
   static {
     try {

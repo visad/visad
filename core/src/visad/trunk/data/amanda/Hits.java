@@ -39,6 +39,7 @@ public class Hits
 {
   public static FunctionType functionType;
   public static FunctionType timeSequenceType;
+  public static FieldImpl missing;
 
   public static final RealType indexType =
     RealType.getRealType("Hits_Index");
@@ -56,11 +57,14 @@ public class Hits
 
       timeSequenceType = new FunctionType(RealType.Time, indexTupleType);
 
+      Gridded1DSet set = new Gridded1DSet(RealType.Time, new float[1][1], 1);
+      missing = new FieldImpl(timeSequenceType, set);
     } catch (VisADException ve) {
       ve.printStackTrace();
       functionType = null;
       timeSequenceType = null;
       indexTupleType = null;
+      missing = null;
     }
   }
 
