@@ -205,9 +205,7 @@ public class BasicSSCell extends JPanel {
           if (id == DisplayEvent.TRANSFORM_DONE && !setupComplete) {
             setupRemoteDataChangeCell();
           }
-          /* CTR: add the following line after dglo's changes are committed
           else if (id == DisplayEvent.MAPS_CLEARED) setVDPanel(false);
-          */
         }
       });
     }
@@ -1366,14 +1364,27 @@ public class BasicSSCell extends JPanel {
 
       if (!success) {
         // set up error message canvas
-        JComponent no3DCanvas = new JComponent() {
-          public void paint(Graphics g) {
-            g.setColor(Color.white);
-            g.drawString("This machine does not support 3-D displays.", 8, 20);
-            g.drawString("Switch the dimension to 2-D (Java2D) to " +
-                         "view this display.", 8, 35);
-          }
-        };
+        JComponent errorCanvas;
+        if (Dim == JAVA2D_2D) {
+          errorCanvas = new JComponent() {
+            public void paint(Graphics g) {
+              g.setColor(Color.white);
+              g.drawString("A serious error occurred while " +
+                           "constructing this display.", 8, 20);
+            }
+          };
+        }
+        else {
+          errorCanvas = new JComponent() {
+            public void paint(Graphics g) {
+              g.setColor(Color.white);
+              g.drawString("This machine does not support 3-D " +
+                           "displays.", 8, 20);
+              g.drawString("Switch the dimension to 2-D (Java2D) to " +
+                           "view this display.", 8, 35);
+            }
+          };
+        }
 
         // set up dummy display
         VDisplay = new DisplayImplJ2D("DUMMY");
@@ -1381,7 +1392,7 @@ public class BasicSSCell extends JPanel {
         // redraw cell
         synchronized (Lock) {
           removeAll();
-          add(no3DCanvas);
+          add(errorCanvas);
           validate();
           repaint();
         }

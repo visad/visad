@@ -443,6 +443,8 @@ visad.RemoteControlImpl \
 visad.RemoteDataImpl \
 visad.RemoteDataReferenceImpl \
 visad.RemoteDisplayImpl \
+visad.RemoteDisplayMonitorImpl \
+visad.RemoteDisplaySyncImpl \
 visad.RemoteFieldImpl \
 visad.RemoteFunctionImpl \
 visad.RemoteGraphicsModeControlImpl \
