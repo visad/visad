@@ -97,7 +97,7 @@ System.out.println("Type = " + ((ScalarType) Type).getName() +
         DisplayTupleType tuple =
           (DisplayTupleType) map.getDisplayScalar().getTuple();
         if (tuple != null &&
-            tuple != Display.DisplaySpatialCartesianTuple) {
+            !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
           CoordinateSystem coord_sys = tuple.getCoordinateSystem();
           if (coord_sys == null ||
               !coord_sys.getReference().equals(
