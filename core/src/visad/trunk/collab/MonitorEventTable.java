@@ -287,8 +287,8 @@ public class MonitorEventTable
      */
     public int compare(Object o1, Object o2)
     {
-      return (((MonitorEvent )(table.get(o2))).getSequenceNumber() -
-              ((MonitorEvent )(table.get(o1))).getSequenceNumber());
+      return (((MonitorEvent )(table.get(o1))).getSequenceNumber() -
+              ((MonitorEvent )(table.get(o2))).getSequenceNumber());
     }
 
     /**
