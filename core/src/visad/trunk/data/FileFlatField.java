@@ -429,4 +429,38 @@ public class FileFlatField extends FlatField {
       return getadaptedFlatField().clone();
     }
   }
+
+  public String toString()
+  {
+    synchronized (adaptedFlatFields)
+    {
+      String	string;
+      try
+      {
+	string = getadaptedFlatField().toString();
+      }
+      catch (Exception e)
+      {
+	string = e.getMessage();
+      }
+      return string;
+    }
+  }
+
+  public String longString(String pre)
+  {
+    synchronized (adaptedFlatFields)
+    {
+      String	string;
+      try
+      {
+	string = getadaptedFlatField().longString(pre);
+      }
+      catch (Exception e)
+      {
+	string = e.getMessage();
+      }
+      return string;
+    }
+  }
 }
