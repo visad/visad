@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BarSlider.java,v 1.2 1998-02-20 16:55:27 billh Exp $
+@(#) $Id: BarSlider.java,v 1.3 1998-03-10 14:20:31 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.awt.event.*;
  * The visad utillity sliding bar
  * 
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.2 $, $Date: 1998-02-20 16:55:27 $
+ * @version $Revision: 1.3 $, $Date: 1998-03-10 14:20:31 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -54,7 +54,7 @@ public class BarSlider extends Slider implements MouseListener, MouseMotionListe
 	
 	/** 
 	 * Construct a new bar slider with the givden lower, upper and initial values
-	 * @throws IllegalArgumenentException if lower is not less than initial or initial
+	 * @throws IllegalArgumentException if lower is not less than initial or initial
 	 * is not less than upper 
 	 */
 	public BarSlider(float lower, float upper, float initial) {
