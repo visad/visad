@@ -1,7 +1,5 @@
 /*
 
-@(#) $Id: ColorMapWidget.java,v 1.32 1999-11-17 15:27:48 dglo Exp $
-
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
@@ -48,25 +46,13 @@ import visad.VisADException;
 
 /**
  * A color widget that allows users to interactively map numeric data to
- * RGB/RGBA color maps.
- *
- * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.32 $, $Date: 1999-11-17 15:27:48 $
- * @since Visad Utility Library v0.7.1
+ * RGB/RGBA tuples in a <CODE>ScalarMap</CODE>.
  */
-public class LabeledColorWidget
-  extends Panel
-  implements ActionListener, ColorChangeListener, ControlListener,
-             ScalarMapListener
+public class ColorMapWidget
+  extends SimpleColorMapWidget
+  implements ColorChangeListener, ControlListener, ScalarMapListener
 {
-
-  private ArrowSlider slider;
-
-  private ColorWidget colorWidget;
-
-  private SliderLabel label;
-
-  private float[][] orig_table;
+  private Panel buttonPanel = null;
 
   BaseColorControl control;
 
@@ -88,27 +74,7 @@ public class LabeledColorWidget
    * @exception VisADException If there is a problem initializing the
    *                           widget.
    */
-  public LabeledColorWidget(ScalarMap smap)
-    throws VisADException, RemoteException
-  {
-    this(smap, null, true);
-  }
-
-  /**
-   * This method is deprecated, since <CODE>min</CODE> and <CODE>max</CODE>
-   * are ignored.
-   *
-   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
-   * @param min Ignored value.
-   * @param max Ignored value.
-   *
-   * @exception RemoteException If there is an RMI-related problem.
-   * @exception VisADException If there is a problem initializing the
-   *                           widget.
-   *
-   * @deprecated - 'min' and 'max' are ignored
-   */
-  public LabeledColorWidget(ScalarMap smap, float min, float max)
+  public ColorMapWidget(ScalarMap smap)
     throws VisADException, RemoteException
   {
     this(smap, null, true);
@@ -140,29 +106,7 @@ public class LabeledColorWidget
    * @exception VisADException If there is a problem initializing the
    *                           widget.
    */
-  public LabeledColorWidget(ScalarMap smap, float[][] table)
-    throws VisADException, RemoteException
-  {
-    this(smap, table, true);
-  }
-
-  /**
-   * This method is deprecated, since <CODE>min</CODE> and <CODE>max</CODE>
-   * are ignored.
-   *
-   * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
-   * @param min Ignored value.
-   * @param max Ignored value.
-   * @param table Initial color lookup table.
-   *
-   * @exception RemoteException If there is an RMI-related problem.
-   * @exception VisADException If there is a problem initializing the
-   *                           widget.
-   *
-   * @deprecated - 'min' and 'max' are ignored
-   */
-  public LabeledColorWidget(ScalarMap smap, float min, float max,
-                            float[][] table)
+  public ColorMapWidget(ScalarMap smap, float[][] table)
     throws VisADException, RemoteException
   {
     this(smap, table, true);
@@ -188,7 +132,7 @@ public class LabeledColorWidget
    * between <CODE>0.0f</CODE> and <CODE>1.0f</CODE>.
    *
    * @param smap <CODE>ScalarMap</CODE> to which this widget is bound.
-   * @param in_table Initial color lookup table.
+   * @param table Initial color lookup table.
    * @param update <CODE>true</CODE> if the slider should follow the
    *               <CODE>ScalarMap</CODE>'s range.
    *
@@ -196,9 +140,13 @@ public class LabeledColorWidget
    * @exception VisADException If there is a problem initializing the
    *                           widget.
    */
-  public LabeledColorWidget(ScalarMap smap, float[][] in_table, boolean update)
+  public ColorMapWidget(ScalarMap smap, float[][] table, boolean update)
     throws VisADException, RemoteException
   {
+    super(smap.getScalar().getName(), table,
+          (float )smap.getRange()[0], (float )smap.getRange()[1] + 1.0f);
+
+    // make sure we're using a valid scalarmap
     Control ctl = smap.getControl();
     if (!(ctl instanceof BaseColorControl)) {
       throw new DisplayException(getClass().getName() + ": ScalarMap must " +
@@ -207,176 +155,22 @@ public class LabeledColorWidget
 
     // save the control
     control = (BaseColorControl )ctl;
-    final int components = control.getNumberOfComponents();
-
-    // switch table row/column order
-    float[][] table = table_reorg(in_table);
-
-    // get minimum & maximum values
-    double[] range = smap.getRange();
-    float min = (float )range[0];
-    float max = (float )(range[1] + 1.0);
-
-    // set up user interface
-    colorWidget = new ColorWidget(new BaseRGBMap(table, components > 3));
-    slider = new ArrowSlider(min, max, (min + max) / 2,
-                             smap.getScalar().getName());
-    label = new SliderLabel(slider);
-
-    // add new widgets
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(colorWidget);
-    add(slider);
-    add(label);
-    add(buildButtons());
-
-    // set default slider values if not autoscaling
-    if (!update) {
-      updateSlider(min, max);
-    }
 
     // set up color table
     if (table == null) {
-      in_table = control.getTable();
-      table = table_reorg(in_table);
+      float[][] t = table_reorg(control.getTable());
+      ColorMap colorMap = new BaseRGBMap(t, t[0].length > 3);
+      colorWidget.setColorMap(colorMap);
     } else {
-      control.setTable(in_table);
+      control.setTable(table);
+      ((BaseRGBMap )colorWidget.getColorMap()).setValues(table);
     }
-    BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
-    map.setValues(table_reorg(table));
-
-    // save the original table for "reset" button
-    orig_table = copy_table(in_table);
 
     // listen for changes
     control.addControlListener(this);
     colorWidget.addColorChangeListener(this);
     if (update) {
       smap.addScalarMapListener(this);
-    }
-  }
-
-  /**
-   * Build "Reset" and "Grey Scale" button panel.
-   *
-   * @return Panel containing the buttons.
-   */
-  private Panel buildButtons()
-  {
-    Button reset = new Button("Reset") {
-        public Dimension getMinimumSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getPreferredSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getMaximumSize() {
-          return new Dimension(Integer.MAX_VALUE, 18);
-        }
-      };
-    reset.setActionCommand("reset");
-    reset.addActionListener(this);
-
-    Button grey = new Button("Grey Scale") {
-        public Dimension getMinimumSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getPreferredSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getMaximumSize() {
-          return new Dimension(Integer.MAX_VALUE, 18);
-        }
-      };
-    grey.setActionCommand("grey");
-    grey.addActionListener(this);
-
-    Panel panel = new Panel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    panel.add(reset);
-    panel.add(grey);
-
-    return panel;
-  }
-
-  private Dimension maxSize = null;
-
-  /**
-   * Get maximum size of this widget.
-   *
-   * @return The maximum size stored in a <CODE>Dimension</CODE> object.
-   */
-  public Dimension getMaximumSize()
-  {
-    if (maxSize != null) {
-      return maxSize;
-    }
-    return super.getMaximumSize();
-  }
-
-  /**
-   * Set maximum size of this widget.
-   *
-   * @param size Maximum size.
-   */
-  public void setMaximumSize(Dimension size)
-  {
-    maxSize = size;
-  }
-
-  /**
-   * Internal convenience routine used to update the slider.
-   *
-   * @param min Minimum value for slider.
-   * @param max Maximum value for slider.
-   */
-  void updateSlider(float min, float max)
-  {
-    float val = slider.getValue();
-    if (val != val || val <= min || val >= max) {
-      val = (min + max) / 2;
-    }
-    slider.setBounds(min, max, val);
-  }
-
-  /**
-   * Handle button presses.
-   *
-   * @param evt Data from the changed <CODE>Button</CODE>.
-   */
-  public void actionPerformed(ActionEvent evt)
-  {
-    if (evt.getActionCommand().equals("reset")) {
-      // reset color table to original values
-      try {
-        float[][] table = copy_table(orig_table);
-        control.setTable(table);
-        BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
-        map.setValues(table_reorg(table));
-      } catch (VisADException ve) {
-      } catch (RemoteException re) {
-      }
-    }
-    else if (evt.getActionCommand().equals("grey")) {
-      // reset color table to grey wedge
-      if (orig_table != null && orig_table[0] != null) {
-        int len = orig_table[0].length;
-        float[][] table = new float[orig_table.length][len];
-        float a = 1.0f / (len - 1.0f);
-        for (int j=0; j<len; j++) {
-          table[0][j] = table[1][j] = table[2][j] = j * a;
-          if (orig_table.length > 3) {
-            table[3][j] = 1.0f;
-          }
-        }
-        try {
-          control.setTable(table);
-          BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
-          map.setValues(table_reorg(table));
-        } catch (VisADException ve) {
-        } catch (RemoteException re) {
-        }
-      }
     }
   }
 
@@ -388,6 +182,16 @@ public class LabeledColorWidget
    * @param evt Data from the changed <CODE>ColorWidget</CODE>.
    */
   public void colorChanged(ColorChangeEvent evt)
+  {
+    updateControlFromColorMap();
+  }
+
+  /**
+   * Update the <CODE>Control</CODE> associated with this widget's
+   * <CODE>ScalarMap</CODE> with the data from this widget's
+   * <CODE>ColorWidget</CODE>.
+   */
+  private void updateControlFromColorMap()
   {
     // get the colormap
     ColorMap map_e = colorWidget.getColorMap();
@@ -489,78 +293,7 @@ public class LabeledColorWidget
   public void mapChanged(ScalarMapEvent evt)
   {
     double[] range = evt.getScalarMap().getRange();
-    updateSlider((float )range[0], (float )range[1]);
-  }
-
-  /**
-   * Utility routine used to make a copy of a 2D <CODE>float</CODE> array.
-   *
-   * @param table Table to copy.
-   *
-   * @return The new copy.
-   */
-  static float[][] copy_table(float[][] table)
-  {
-    if (table == null || table[0] == null) {
-      return null;
-    }
-
-    final int dim = table.length;
-    int len = table[0].length;
-
-    float[][] new_table = new float[dim][len];
-    try {
-      for (int i=0; i<dim; i++) {
-        System.arraycopy(table[i], 0, new_table[i], 0, len);
-      }
-      return new_table;
-    } catch (ArrayIndexOutOfBoundsException obe) {
-      return null;
-    }
-  }
-
-  /**
-   * Utility routine used convert a table with dimensions <CODE>[X][Y]</CODE>
-   * to a table with dimensions <CODE>[Y][X]</CODE>.
-   *
-   * @param table Table to reorganize.
-   *
-   * @return The reorganized table.
-   */
-  static float[][] table_reorg(float[][] table)
-  {
-    if (table == null || table[0] == null) {
-      return null;
-    }
-
-    final int dim = table.length;
-    int len = table[0].length;
-
-    float[][] out = new float[len][dim];
-    try {
-      for (int i=0; i<len; i++) {
-        out[i][0] = table[0][i];
-        out[i][1] = table[1][i];
-        out[i][2] = table[2][i];
-        if (dim > 3) {
-          out[i][3] = table[3][i];
-        }
-      }
-    } catch (ArrayIndexOutOfBoundsException obe) {
-      out = null;
-    }
-
-    return out;
-  }
-
-  /**
-   * Returns the <CODE>ColorWidget</CODE> used by this widget.
-   *
-   * @return The <CODE>ColorWidget</CODE>.
-   */
-  public ColorWidget getColorWidget()
-  {
-    return colorWidget;
+    updateSlider((float) range[0], (float) range[1]);
   }
 
   public static void main(String[] args)
@@ -581,7 +314,7 @@ public class LabeledColorWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new LabeledColorWidget(map));
+      f.getContentPane().add(new ColorMapWidget(map));
       f.pack();
       f.setVisible(true);
 
@@ -591,7 +324,7 @@ public class LabeledColorWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new LabeledColorWidget(map, null));
+      f.getContentPane().add(new ColorMapWidget(map, null));
       f.pack();
       f.setVisible(true);
 
@@ -601,7 +334,7 @@ public class LabeledColorWidget
             System.exit(0);
           }
         });
-      f.getContentPane().add(new LabeledColorWidget(map, null, false));
+      f.getContentPane().add(new ColorMapWidget(map, null, false));
       f.pack();
       f.setVisible(true);
 

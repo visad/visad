@@ -1,7 +1,5 @@
 /*
 
-@(#) $Id: LabeledColorWidget.java,v 1.13 1999-11-17 15:27:48 dglo Exp $
-
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
 Copyright (C) 1998 Nick Rasmussen
@@ -36,39 +34,20 @@ import java.rmi.RemoteException;
 
 import javax.swing.BoxLayout;
 
-import visad.BaseColorControl;
-import visad.Control;
-import visad.ControlEvent;
-import visad.ControlListener;
-import visad.DisplayException;
 import visad.ScalarMap;
-import visad.ScalarMapEvent;
-import visad.ScalarMapListener;
 import visad.VisADException;
 
 /**
  * A color widget that allows users to interactively map numeric data to
- * RGB/RGBA color maps.
- *
- * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.13 $, $Date: 1999-11-17 15:27:48 $
- * @since Visad Utility Library v0.7.1
+ * RGB/RGBA tuples in a <CODE>ScalarMap</CODE>.
  */
 public class LabeledColorWidget
   extends Panel
-  implements ActionListener, ColorChangeListener, ControlListener,
-             ScalarMapListener
+  implements ActionListener
 {
-
-  private ArrowSlider slider;
-
-  private ColorWidget colorWidget;
-
-  private SliderLabel label;
-
-  private float[][] orig_table;
-
-  BaseColorControl control;
+  ColorMapWidget wrappedWidget;
+  private float[][] original;
+  private float[][] grey = null;
 
   /**
    * Construct a <CODE>LabeledColorWidget</CODE> linked to the
@@ -199,61 +178,22 @@ public class LabeledColorWidget
   public LabeledColorWidget(ScalarMap smap, float[][] in_table, boolean update)
     throws VisADException, RemoteException
   {
-    Control ctl = smap.getControl();
-    if (!(ctl instanceof BaseColorControl)) {
-      throw new DisplayException(getClass().getName() + ": ScalarMap must " +
-                                 "be Display.RGB or Display.RGBA");
-    }
+    this(new ColorMapWidget(smap, in_table, update));
+  }
 
-    // save the control
-    control = (BaseColorControl )ctl;
-    final int components = control.getNumberOfComponents();
+  /**
+   *
+   */
+  public LabeledColorWidget(ColorMapWidget w)
+  {
+    wrappedWidget = w;
 
-    // switch table row/column order
-    float[][] table = table_reorg(in_table);
+    // save the initial table
+    original = wrappedWidget.copy_table(wrappedWidget.control.getTable());
 
-    // get minimum & maximum values
-    double[] range = smap.getRange();
-    float min = (float )range[0];
-    float max = (float )(range[1] + 1.0);
-
-    // set up user interface
-    colorWidget = new ColorWidget(new BaseRGBMap(table, components > 3));
-    slider = new ArrowSlider(min, max, (min + max) / 2,
-                             smap.getScalar().getName());
-    label = new SliderLabel(slider);
-
-    // add new widgets
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(colorWidget);
-    add(slider);
-    add(label);
+    add(wrappedWidget);
     add(buildButtons());
-
-    // set default slider values if not autoscaling
-    if (!update) {
-      updateSlider(min, max);
-    }
-
-    // set up color table
-    if (table == null) {
-      in_table = control.getTable();
-      table = table_reorg(in_table);
-    } else {
-      control.setTable(in_table);
-    }
-    BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
-    map.setValues(table_reorg(table));
-
-    // save the original table for "reset" button
-    orig_table = copy_table(in_table);
-
-    // listen for changes
-    control.addControlListener(this);
-    colorWidget.addColorChangeListener(this);
-    if (update) {
-      smap.addScalarMapListener(this);
-    }
   }
 
   /**
@@ -292,51 +232,10 @@ public class LabeledColorWidget
     grey.addActionListener(this);
 
     Panel panel = new Panel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    panel.add(reset);
-    panel.add(grey);
+    panel.add(reset, 0);
+    panel.add(grey, 1);
 
     return panel;
-  }
-
-  private Dimension maxSize = null;
-
-  /**
-   * Get maximum size of this widget.
-   *
-   * @return The maximum size stored in a <CODE>Dimension</CODE> object.
-   */
-  public Dimension getMaximumSize()
-  {
-    if (maxSize != null) {
-      return maxSize;
-    }
-    return super.getMaximumSize();
-  }
-
-  /**
-   * Set maximum size of this widget.
-   *
-   * @param size Maximum size.
-   */
-  public void setMaximumSize(Dimension size)
-  {
-    maxSize = size;
-  }
-
-  /**
-   * Internal convenience routine used to update the slider.
-   *
-   * @param min Minimum value for slider.
-   * @param max Maximum value for slider.
-   */
-  void updateSlider(float min, float max)
-  {
-    float val = slider.getValue();
-    if (val != val || val <= min || val >= max) {
-      val = (min + max) / 2;
-    }
-    slider.setBounds(min, max, val);
   }
 
   /**
@@ -348,219 +247,28 @@ public class LabeledColorWidget
   {
     if (evt.getActionCommand().equals("reset")) {
       // reset color table to original values
-      try {
-        float[][] table = copy_table(orig_table);
-        control.setTable(table);
-        BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
-        map.setValues(table_reorg(table));
-      } catch (VisADException ve) {
-      } catch (RemoteException re) {
-      }
-    }
-    else if (evt.getActionCommand().equals("grey")) {
+      wrappedWidget.setTable(original);
+    } else if (evt.getActionCommand().equals("grey")) {
       // reset color table to grey wedge
-      if (orig_table != null && orig_table[0] != null) {
-        int len = orig_table[0].length;
-        float[][] table = new float[orig_table.length][len];
-        float a = 1.0f / (len - 1.0f);
-        for (int j=0; j<len; j++) {
-          table[0][j] = table[1][j] = table[2][j] = j * a;
-          if (orig_table.length > 3) {
-            table[3][j] = 1.0f;
-          }
-        }
-        try {
-          control.setTable(table);
-          BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
-          map.setValues(table_reorg(table));
-        } catch (VisADException ve) {
-        } catch (RemoteException re) {
-        }
-      }
-    }
-  }
-
-  /**
-   * Forward changes from the <CODE>ColorWidget</CODE> to the
-   * <CODE>Control</CODE> associated with this widget's
-   * <CODE>ScalarMap</CODE>.
-   *
-   * @param evt Data from the changed <CODE>ColorWidget</CODE>.
-   */
-  public void colorChanged(ColorChangeEvent evt)
-  {
-    // get the colormap
-    ColorMap map_e = colorWidget.getColorMap();
-    if (map_e == null) {
-      return;
-    }
-
-    // stash some map-related constants
-    final int dim = map_e.getMapDimension();
-    final int res = map_e.getMapResolution();
-    final float scale = 1.0f / (res - 1.0f);
-
-    // construct a new table from the map data
-    float[][] table_e = new float[dim][res];
-    for (int i=0; i<res; i++) {
-      float[] t = map_e.getTuple(scale * i);
-      table_e[0][i] = t[0];
-      table_e[1][i] = t[1];
-      table_e[2][i] = t[2];
-      if (dim > 3) {
-        table_e[3][i] = t[3];
-      }
-    }
-
-    // save the new table to the Control
-    try {
-      control.setTable(table_e);
-    } catch (VisADException ve) {
-    } catch (RemoteException re) {
-    }
-  }
-
-  /**
-   * If the color data in the <CODE>Control</CODE> associated with this
-   * widget's <CODE>ScalarMap</CODE> has changed, update the data in
-   * the <CODE>ColorMap</CODE> associated with this widget's
-   * <CODE>ColorWidget</CODE>.
-   *
-   * @param evt Data from the changed <CODE>Control</CODE>.
-   */
-  public void controlChanged(ControlEvent evt)
-  {
-    // get the colormap
-    ColorMap map_e = colorWidget.getColorMap();
-    if (map_e == null) {
-      return;
-    }
-
-    // stash some map-related constants
-    final int dim = map_e.getMapDimension();
-    final int res = map_e.getMapResolution();
-    final float scale = 1.0f / (res - 1.0f);
-
-    // grab the Control's table
-    float[][] table = control.getTable();
-
-    boolean identical = true;
-    if (table == null || table.length != dim) {
-      // table is fundamentally different
-      identical = false;
-    } else {
-      for (int i = 0; i < dim; i++) {
-        if (table[i].length != res) {
-          // table resolution changed
-          identical = false;
-          break;
-        }
-      }
-
-      // if the basic table shape is unchanged...
-      if (identical) {
-        for (int i=0; i<res; i++) {
-          float[] t = map_e.getTuple(scale * i);
-          if (Math.abs(table[0][i] - t[0]) > 0.0001 ||
-              Math.abs(table[1][i] - t[1]) > 0.0001 ||
-              Math.abs(table[2][i] - t[2]) > 0.0001 ||
-              (dim > 3 && Math.abs(table[3][i] - t[3]) > 0.0001))
-          {
-            // table data changed
-            identical = false;
-            break;
+      if (grey == null) {
+        if (original != null && original[0] != null) {
+          final int num = original.length;
+          final int len = original[0].length;
+          grey = new float[num][len];
+          float a = 1.0f / (len - 1.0f);
+          for (int j=0; j<len; j++) {
+            grey[0][j] = grey[1][j] = grey[2][j] = j * a;
+            if (num > 3) {
+              grey[3][j] = 1.0f;
+            }
           }
         }
       }
-    }
 
-    // if the table has changed...
-    if (!identical) {
-      ((BaseRGBMap )map_e).setValues(table_reorg(table));
-    }
-  }
-
-  /**
-   * If the <CODE>ScalarMap</CODE> changes, update the slider with
-   * the new range.
-   *
-   * @param evt Data from the changed <CODE>ScalarMap</CODE>.
-   */
-  public void mapChanged(ScalarMapEvent evt)
-  {
-    double[] range = evt.getScalarMap().getRange();
-    updateSlider((float )range[0], (float )range[1]);
-  }
-
-  /**
-   * Utility routine used to make a copy of a 2D <CODE>float</CODE> array.
-   *
-   * @param table Table to copy.
-   *
-   * @return The new copy.
-   */
-  static float[][] copy_table(float[][] table)
-  {
-    if (table == null || table[0] == null) {
-      return null;
-    }
-
-    final int dim = table.length;
-    int len = table[0].length;
-
-    float[][] new_table = new float[dim][len];
-    try {
-      for (int i=0; i<dim; i++) {
-        System.arraycopy(table[i], 0, new_table[i], 0, len);
+      if (grey != null) {
+        wrappedWidget.setTable(grey);
       }
-      return new_table;
-    } catch (ArrayIndexOutOfBoundsException obe) {
-      return null;
     }
-  }
-
-  /**
-   * Utility routine used convert a table with dimensions <CODE>[X][Y]</CODE>
-   * to a table with dimensions <CODE>[Y][X]</CODE>.
-   *
-   * @param table Table to reorganize.
-   *
-   * @return The reorganized table.
-   */
-  static float[][] table_reorg(float[][] table)
-  {
-    if (table == null || table[0] == null) {
-      return null;
-    }
-
-    final int dim = table.length;
-    int len = table[0].length;
-
-    float[][] out = new float[len][dim];
-    try {
-      for (int i=0; i<len; i++) {
-        out[i][0] = table[0][i];
-        out[i][1] = table[1][i];
-        out[i][2] = table[2][i];
-        if (dim > 3) {
-          out[i][3] = table[3][i];
-        }
-      }
-    } catch (ArrayIndexOutOfBoundsException obe) {
-      out = null;
-    }
-
-    return out;
-  }
-
-  /**
-   * Returns the <CODE>ColorWidget</CODE> used by this widget.
-   *
-   * @return The <CODE>ColorWidget</CODE>.
-   */
-  public ColorWidget getColorWidget()
-  {
-    return colorWidget;
   }
 
   public static void main(String[] args)
