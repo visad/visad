@@ -271,14 +271,6 @@ public class RealTuple
     double[][] ranges = new double[2][n];
     for (int i=0; i<n; i++) {
       double value = ((Real) tupleComponents[i]).getValue();
-
-      // WLH 20 Nov 2001
-      Unit unit =
-        ((RealType) ((RealTupleType) Type).getComponent(i)).getDefaultUnit();
-      if (unit != null && !unit.equals(TupleUnits[i])) {
-        value = unit.toThis(value, TupleUnits[i]);
-      }
-
       if (value != value) return shadow;
       ranges[0][i] = value;
       ranges[1][i] = value;
