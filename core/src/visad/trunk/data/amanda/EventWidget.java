@@ -1,5 +1,3 @@
-import java.awt.Component;
-
 import java.rmi.RemoteException;
 
 import java.util.Date;
@@ -13,8 +11,8 @@ import javax.swing.JPanel;
 import visad.CellImpl;
 import visad.DataReferenceImpl;
 import visad.FieldImpl;
-import visad.PlotText;
 import visad.Real;
+import visad.ScalarMap;
 import visad.VisADException;
 
 import visad.data.amanda.AmandaFile;
@@ -31,12 +29,14 @@ public class EventWidget
 
   private GregorianCalendar cal;
 
+  private VisADSlider slider;
   private JLabel dateLabel;
+  private TrackWidget trackWidget;
 
-  private int index;
+  private Event thisEvent;
 
   public EventWidget(AmandaFile fileData, FieldImpl amanda,
-                     DataReferenceImpl amandaRef)
+                     DataReferenceImpl amandaRef, ScalarMap trackMap)
     throws RemoteException, VisADException
   {
     super();
@@ -47,15 +47,19 @@ public class EventWidget
 
     cal = new GregorianCalendar();
 
-    index = -1;
+    thisEvent = null;
 
-    // initialize this now in case buildSlider() causes it to be referenced
+    // initialize before buildSlider() in case it triggers a reference to them
+    trackWidget = new TrackWidget(trackMap);
     dateLabel = new JLabel();
+
+    slider = buildSlider(amanda);
 
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-    add(buildSlider(amanda));
+    add(slider);
     add(dateLabel);
+    add(trackWidget);
   }
 
   private VisADSlider buildSlider(FieldImpl amanda)
@@ -119,7 +123,10 @@ public class EventWidget
     return cal.getTime();
   }
 
-  public final int getIndex() { return index; }
+  public final Event getEvent() { return thisEvent; }
+  public final JLabel getLabel() { return dateLabel; }
+  public final VisADSlider getSlider() { return slider; }
+  public final TrackWidget getTrackWidget() { return trackWidget; }
 
   /**
    * This method is called whenever the event index is changed
@@ -129,15 +136,17 @@ public class EventWidget
   {
     amandaRef.setData(amanda.getSample(index));
 
-    Event evt = fileData.getEvent(index);
-    if (evt == null) {
+    thisEvent = fileData.getEvent(index);
+    if (thisEvent == null) {
       dateLabel.setText("*** NO DATE ***");
     } else {
-      dateLabel.setText(getDate(evt.getYear(), evt.getDay(),
-                                evt.getTime()).toGMTString());
-    }
-    this.invalidate();
+      dateLabel.setText(getDate(thisEvent.getYear(), thisEvent.getDay(),
+                                thisEvent.getTime()).toGMTString());
 
-    this.index = index;
+    }
+
+    trackWidget.setEvent(thisEvent);
+
+    this.invalidate();
   }
 }

@@ -75,6 +75,7 @@ class DisplayFrame
     frame.addWindowListener(this);
     frame.getContentPane().add(panel);
     frame.pack();
+    panel.invalidate();
 
     Dimension fSize = frame.getSize();
 
@@ -207,8 +208,6 @@ public class F2000App
     modulesRef.setData(modules);
     display.addReference(modulesRef);
 
-System.out.println("amanda MathType\n" + amanda.getType());
-
 /*
     LabeledColorWidget energyWidget = new LabeledColorWidget(energymap);
     widgetPanel.add(energyWidget);
@@ -219,10 +218,8 @@ System.out.println("amanda MathType\n" + amanda.getType());
     //   (if we don't left-align, BoxLayout hoses everything)
     letWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    EventWidget eventWidget = new EventWidget(file, amanda, amandaRef);
-
-    VisADSlider trackSlider = new VisADSlider(maps.trackmap, true, true);
-    trackSlider.hardcodeSizePercent(110); // leave room for label changes
+    EventWidget eventWidget = new EventWidget(file, amanda, amandaRef,
+                                              maps.trackmap);
 
     JPanel widgetPanel = new JPanel();
     widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
@@ -231,12 +228,17 @@ System.out.println("amanda MathType\n" + amanda.getType());
     widgetPanel.add(letWidget);
     // widgetPanel.add(new VisADSlider(eventmap));
     widgetPanel.add(eventWidget);
-    widgetPanel.add(trackSlider);
+    widgetPanel.add(javax.swing.Box.createHorizontalGlue());
 
     JPanel displayPanel = (JPanel )display.getComponent();
     Dimension dim = new Dimension(800, 800);
     displayPanel.setPreferredSize(dim);
     displayPanel.setMinimumSize(dim);
+
+    // if widgetPanel alignment doesn't match
+    //  displayPanel alignment, BoxLayout will freak out
+    widgetPanel.setAlignmentX(displayPanel.getAlignmentX());
+    widgetPanel.setAlignmentY(displayPanel.getAlignmentY());
 
     // create JPanel in frame
     JPanel panel = new JPanel();
