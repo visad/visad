@@ -51,9 +51,6 @@ public class FieldMeasure {
   /** The second endpoint of the measurement object. */
   private RealTuple p2;
 
-  /** The connecting line of the measurement object. */
-  private Gridded2DSet line;
-
   /** Data reference for first endpoint. */
   private DataReferenceImpl ref_p1;
 
@@ -65,6 +62,18 @@ public class FieldMeasure {
 
   /** Constructs a measurement object to match the given field. */
   public FieldMeasure(FieldImpl field) throws VisADException, RemoteException {
+    this(field, new DataReferenceImpl("p1"), new DataReferenceImpl("p2"),
+      new DataReferenceImpl("line"), true);
+  }
+
+  /**
+   * Constructs a measurement object to match the given field,
+   * using the specified data references.
+   */
+  public FieldMeasure(FieldImpl field, DataReferenceImpl p1_ref,
+    DataReferenceImpl p2_ref, DataReferenceImpl line_ref, boolean createCell)
+    throws VisADException, RemoteException
+  {
     FunctionType type = (FunctionType) field.getType();
     final RealTupleType domain = type.getDomain();
     Set set = field.getDomainSet();
@@ -84,35 +93,50 @@ public class FieldMeasure {
     this.field = field;
     p1 = new RealTuple(p1r);
     p2 = new RealTuple(p2r);
-    ref_p1 = new DataReferenceImpl("p1");
-    ref_p1.setData(p1);
-    ref_p2 = new DataReferenceImpl("p2");
-    ref_p2.setData(p2);
-    ref_line = new DataReferenceImpl("line");
-    ref_line.setData(line);
-    final int[] two = new int[] {2};
-    CellImpl cell = new CellImpl() {
-      public void doAction() {
-        float[][] samps = new float[len][2];
-        double[][] values = getValues();
-        for (int i=0; i<len; i++) {
-          samps[i][0] = (float) values[i][0];
-          samps[i][1] = (float) values[i][1];
+    ref_p1 = p1_ref;
+    ref_p2 = p2_ref;
+    ref_line = line_ref;
+
+    if (createCell) {
+      final int[] two = new int[] {2};
+      CellImpl cell = new CellImpl() {
+        public void doAction() {
+          float[][] samps = new float[len][2];
+          double[][] values = getValues();
+          if (values == null) return;
+          for (int i=0; i<len; i++) {
+            samps[i][0] = (float) values[i][0];
+            samps[i][1] = (float) values[i][1];
+          }
+          try {
+            GriddedSet line = new GriddedSet(domain, samps, two);
+            ref_line.setData(line);
+          }
+          catch (VisADException exc) {
+            exc.printStackTrace();
+          }
+          catch (RemoteException exc) {
+            exc.printStackTrace();
+          }
         }
-        try {
-          GriddedSet line = new GriddedSet(domain, samps, two);
-          ref_line.setData(line);
-        }
-        catch (VisADException exc) {
-          exc.printStackTrace();
-        }
-        catch (RemoteException exc) {
-          exc.printStackTrace();
-        }
-      }
-    };
-    cell.addReference(ref_p1);
-    cell.addReference(ref_p2);
+      };
+      cell.addReference(ref_p1);
+      cell.addReference(ref_p2);
+    }
+  }
+
+  /** Applies this measurement object's data to its data references. */
+  public void setActive(boolean active)
+    throws VisADException, RemoteException
+  {
+    if (active) {
+      ref_p1.setData(p1);
+      ref_p2.setData(p2);
+    }
+    else {
+      p1 = (RealTuple) ref_p1.getData();
+      p2 = (RealTuple) ref_p2.getData();
+    }
   }
 
   /** Adds the distance measuring data to the given display. */
@@ -162,6 +186,7 @@ public class FieldMeasure {
   public double[][] getValues() {
     RealTuple rt1 = (RealTuple) ref_p1.getData();
     RealTuple rt2 = (RealTuple) ref_p2.getData();
+    if (rt1 == null || rt2 == null) return null;
     int len = rt1.getDimension();
     double[][] values = new double[len][2];
     try {

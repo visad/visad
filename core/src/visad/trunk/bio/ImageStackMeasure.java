@@ -46,7 +46,7 @@ public class ImageStackMeasure {
   /** Domain set for image stack. */
   private GriddedSet gset;
 
-  /** This measurement object's associated FieldMeasure objects. */
+  /** This measurement object's associated FieldMeasure object. */
   private FieldMeasure[] stack;
 
   /** Current step in image stack. */
@@ -76,6 +76,10 @@ public class ImageStackMeasure {
     int[] lengths = gset.getLengths();
     int numImages = lengths[0];
     stack = new FieldMeasure[numImages];
+    DataReferenceImpl ref_p1 = new DataReferenceImpl("p1");
+    DataReferenceImpl ref_p2 = new DataReferenceImpl("p2");
+    DataReferenceImpl ref_line = new DataReferenceImpl("line");
+    boolean first = true;
     for (int i=0; i<numImages; i++) {
       Data data = imageStack.getSample(i);
       if (!(data instanceof FieldImpl)) {
@@ -86,13 +90,14 @@ public class ImageStackMeasure {
       if (itype.getDomain().getDimension() != 2) {
         throw new VisADException("Field #" + i + " not an image");
       }
-      stack[i] = new FieldMeasure(image);
+      stack[i] = new FieldMeasure(image, ref_p1, ref_p2, ref_line, first);
+      first = false;
     }
+    stack[0].setActive(true);
   }
 
   /** Determines the current step and updates measuring data accordingly. */
   private void updateStep() throws VisADException, RemoteException {
-    /* CTR: TEMP */ System.out.println("updateStep");
     int step;
     if (avc instanceof ValueControl) {
       ValueControl vc = (ValueControl) avc;
@@ -104,12 +109,11 @@ public class ImageStackMeasure {
     else { // avc instanceof AnimationControl
       AnimationControl ac = (AnimationControl) avc;
       step = ac.getCurrent();
-      /* CTR: TEMP */ System.out.println("Current = " + step);
     }
     if (display != null && current != step) {
-      stack[current].removeFromDisplay(display);
+      stack[current].setActive(false);
       current = step;
-      stack[current].addToDisplay(display);
+      stack[current].setActive(true);
     }
   }
 
@@ -137,6 +141,7 @@ public class ImageStackMeasure {
         }
       }
     });
+    if (display != null) stack[0].removeFromDisplay(display);
     stack[0].addToDisplay(d);
     current = 0;
     display = d;

@@ -111,15 +111,12 @@ public class StepWidget extends JPanel implements ActionListener,
       if (DEBUG) System.out.println("null AnimationControl");
       return;
     }
-    /* CTR: TEMP */ System.out.println("actionPerformed");
     Object o = e.getSource();
     if (o == back) {
       // move back one step
       try {
         control.setDirection(false);
-        /* CTR: TEMP */ System.out.println("Old current = " + control.getCurrent());
         control.takeStep();
-        /* CTR: TEMP */ System.out.println("Current = " + control.getCurrent());
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
@@ -128,9 +125,7 @@ public class StepWidget extends JPanel implements ActionListener,
       // move forward one step
       try {
         control.setDirection(true);
-        /* CTR: TEMP */ System.out.println("Old current = " + control.getCurrent());
         control.takeStep();
-        /* CTR: TEMP */ System.out.println("Current = " + control.getCurrent());
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
@@ -139,14 +134,11 @@ public class StepWidget extends JPanel implements ActionListener,
 
   /** ChangeListener method used with JSlider. */
   public void stateChanged(ChangeEvent e) {
-    /* CTR: TEMP */ System.out.println("stateChanged");
     try {
       if (control != null) {
         int cur = step.getValue() - 1;
         if (control.getCurrent() != cur) {
           control.setCurrent(cur);
-          /* CTR: TEMP */ System.out.println("Current -> " + (step.getValue() - 1));
-          /* CTR: TEMP */ System.out.println("Current = " + control.getCurrent());
         }
       }
     }
@@ -156,13 +148,10 @@ public class StepWidget extends JPanel implements ActionListener,
 
   /** ControlListener method used for programmatically moving JSlider. */
   public void controlChanged(ControlEvent e) {
-    /* CTR: TEMP */ System.out.println("controlChanged");
     if (control != null) {
       int val = control.getCurrent() + 1;
       if (step.getValue() != val) {
         step.setValue(val);
-        /* CTR: TEMP */ System.out.println("Step -> " + (control.getCurrent() + 1));
-        /* CTR: TEMP */ System.out.println("Step = " + step.getValue());
       }
     }
   }
@@ -191,14 +180,4 @@ public class StepWidget extends JPanel implements ActionListener,
     }
   }
 
-  /**
-   * Work-around for Swing bug where pack() doesn't display slider labels;
-   * actually, it still won't, but window will be the right size
-   */
-  /* CTR
-  public Dimension getPreferredSize() {
-    Dimension d = super.getPreferredSize();
-    return new Dimension(d.width, d.height + 18);
-  }
-  */
 }

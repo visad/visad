@@ -111,6 +111,10 @@ public class MeasureFrame extends GUIFrame {
       // CTR: need to search data for valid field subsection, but until then...
       FieldImpl field = (FieldImpl) data; // CTR silly hack :-P
 
+      // clear old display
+      display.removeAllReferences();
+      display.clearMaps();
+
       // set up mappings
       ScalarMap animMap = null;
       ScalarMap[] maps = field.getType().guessMaps(true);
