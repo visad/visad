@@ -1221,7 +1221,8 @@ public class CollectiveBarbManipulation extends Object
     Set stn_set = new Integer1DSet(stn, NSTAS * NSTAS);
     RealType time = RealType.Time;
     double start = new DateTime(1999, 122, 57060).getValue();
-    Set time_set = new Linear1DSet(time, start, start + 3000.0, NTIMES);
+    Set time_set = new Linear1DSet(time, start, start + 2700.0, NTIMES);
+    Set time_set2 = new Linear1DSet(time, start + 150.0, start + 2850.0, NTIMES);
 
     TupleType tuple_type = null;
     tuple_type = new TupleType(new MathType[]
@@ -1275,18 +1276,21 @@ public class CollectiveBarbManipulation extends Object
 
     // create an array of NSTAS by NSTAS winds
     FieldImpl field = new FieldImpl(stations_type, stn_set);
+    FieldImpl field2 = new FieldImpl(stations_type, stn_set);
     int m = 0;
     for (int i=0; i<NSTAS; i++) {
       for (int j=0; j<NSTAS; j++) {
         FlatField ff = new FlatField(station_type, time_set);
+        FlatField ff2 = new FlatField(station_type, time_set2);
         double[][] values = new double[6][NTIMES];
+        double[][] values2 = new double[6][NTIMES];
         for (int k=0; k<NTIMES; k++) {
           double u = 2.0 * i / (NSTAS - 1.0) - 1.0;
           double v = 2.0 * j / (NSTAS - 1.0) - 1.0;
   
           // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
           // set colors by wind components, just for grins
-          values[0][k] = 10. * u;
+          values[0][k] = 10.0 * u;
           values[1][k] = 10.0 * v - 40.0;
           double fx = 30.0 * u;
           double fy = 30.0 * v;
@@ -1297,9 +1301,18 @@ public class CollectiveBarbManipulation extends Object
           values[3][k] = fs;
           values[4][k] = u;
           values[5][k] = v;
+
+          values2[0][k] = 10.0 * u + 2.5; 
+          values2[1][k] = 10.0 * v - 40.0 + 2.5;
+          values2[2][k] = fd;
+          values2[3][k] = fs;
+          values2[4][k] = u;
+          values2[5][k] = v;
         }
         ff.setSamples(values);
         field.setSample(m, ff);
+        ff2.setSamples(values2);
+        field2.setSample(m, ff2);
         m++;
       }
     }
@@ -1312,9 +1325,23 @@ public class CollectiveBarbManipulation extends Object
     final CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
                                      500000.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     0, false, (args.length == 0), true, false,
+                                     // 0, false, (args.length == 0), true, false,
+                                     0, false, false, true, false,
                                      new double[] {0.0, 0.5, 0.5}, 1,
                                      new double[] {0.5, 0.5, 0.0}, 2);
+
+    ConstantMap[] cmaps2 = {
+      new ConstantMap(1.0, Display.Red),
+      new ConstantMap(0.0, Display.Green),
+      new ConstantMap(0.0, Display.Blue)};
+
+    final CollectiveBarbManipulation cbm2 = (args.length > 0) ?
+      new CollectiveBarbManipulation(field2, display1, display2, cmaps2, false,
+                                     500000.0f, 1000000.0f, 0.0f, 1000.0f,
+                                     0, false, true, true, false,
+                                     new double[] {0.0, 0.5, 0.5}, 1,
+                                     new double[] {0.5, 0.5, 0.0}, 2) :
+      null;
 
     // construct invisible starter set
     Gridded2DSet set1 =
@@ -1370,6 +1397,7 @@ public class CollectiveBarbManipulation extends Object
       public void doAction() throws VisADException, RemoteException {
         int sta = (int) ((Real) station_select_ref.getData()).getValue();
         if (0 <= sta && sta < NSTAS * NSTAS) cbm.setStation(sta);
+        if (0 <= sta && sta < NSTAS * NSTAS && cbm2 != null) cbm2.setStation(sta);
       }
     };
     cell.addReference(station_select_ref);
@@ -1382,6 +1410,7 @@ public class CollectiveBarbManipulation extends Object
           float[][] samples = csets[csets.length - 1].getSamples();
           if (samples != null && samples[0].length > 2) {
             cbm.setCollectiveCurve(false, set_ref, 0.0f, 1000.0f);
+            if (cbm2 != null) cbm2.setCollectiveCurve(false, set_ref, 0.0f, 1000.0f);
           }
         }
       }
@@ -1393,7 +1422,7 @@ public class CollectiveBarbManipulation extends Object
     button_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     button_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-    EndManipCBM emc = new EndManipCBM(cbm, set_ref);
+    EndManipCBM emc = new EndManipCBM(cbm, cbm2, set_ref);
     JButton end = new JButton("end manip");
     end.addActionListener(emc);
     end.setActionCommand("end");
@@ -1422,11 +1451,14 @@ public class CollectiveBarbManipulation extends Object
 
 class EndManipCBM implements ActionListener {
   CollectiveBarbManipulation cbm;
+  CollectiveBarbManipulation cbm2;
   DataReferenceImpl set_ref;
   int dir = 0;
 
-  EndManipCBM(CollectiveBarbManipulation c, DataReferenceImpl r) {
+  EndManipCBM(CollectiveBarbManipulation c, CollectiveBarbManipulation c2,
+              DataReferenceImpl r) {
     cbm = c;
+    cbm2 = c2;
     set_ref = r;
   }
 
@@ -1435,6 +1467,7 @@ class EndManipCBM implements ActionListener {
     if (cmd.equals("end")) {
       try {
         FieldImpl final_field = cbm.endManipulation();
+        FieldImpl final_field2 = (cbm2 != null) ? cbm2.endManipulation() : null;
       }
       catch (VisADException ex) {
       }
@@ -1457,6 +1490,9 @@ class EndManipCBM implements ActionListener {
         }
         set_ref.setData(new UnionSet(set.getType(), new_sets));
         cbm.setCollectiveParameters(false, 500000.0f, 1000000.0f, 0.0f, 1000.0f);
+        if (cbm2 != null) {
+          cbm2.setCollectiveParameters(false, 500000.0f, 1000000.0f, 0.0f, 1000.0f);
+        }
       }
       catch (VisADException ex) {
         ex.printStackTrace();
@@ -1468,6 +1504,7 @@ class EndManipCBM implements ActionListener {
     else if (cmd.equals("dir")) {
       dir = (dir == 0) ? +1 : ((dir > 0) ? -1 : 0);
       cbm.setTimeDir(dir);
+      if (cbm2 != null) cbm2.setTimeDir(dir);
     }
   }
 }
