@@ -64,19 +64,15 @@
     (*env)->ReleaseDoubleArrayElements(env, tb_j, tb, 0);
     (*env)->ReleaseDoubleArrayElements(env, rr_j, rr, 0);
   }
-
-/*
- * Class:     visad_paoloa_nesti_Nesti
- * Method:    nasti_retrvl_c
- * Signature: (IFFFF[F)V
- */
 JNIEXPORT void JNICALL Java_visad_paoloa_nesti_Nesti_nasti_1retrvl_1c
   (JNIEnv *env, jobject obj, jint rec_j, jfloat gt_j, jfloat gw_j, 
-   jfloat gts_j, jfloat e_j, jfloatArray pout_j)
+   jfloat gts_j, jfloat e_j, jfloatArray tair_j, jfloatArray pout_j)
 {
   jfloat *pout = (*env)->GetFloatArrayElements(env, pout_j, 0);
+  jfloat *tair = (*env)->GetFloatArrayElements(env, tair_j, 0);
 
-  nastimlretrwlmsx_(&rec_j, &gt_j, &gw_j, &gts_j, &e_j, pout);
+  nastimlretrwlmsx_(&rec_j, &gt_j, &gw_j, &gts_j, &e_j, tair, pout);
 
   (*env)->ReleaseFloatArrayElements(env, pout_j, pout, 0);
+  (*env)->ReleaseFloatArrayElements(env, tair_j, tair, 0);
 }

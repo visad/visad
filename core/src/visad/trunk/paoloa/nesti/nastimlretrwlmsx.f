@@ -1,4 +1,4 @@
-        subroutine nastimlretrwlmsx(kr,gamt,gamw,gamts,emis,pout)
+        subroutine nastimlretrwlmsx(kr,gamt,gamw,gamts,emis,tair,pout)
 C***********************************************************************
 C July 22, 1998:  Include shortwave; also bais correction 
 C***********************************************************************
@@ -38,7 +38,8 @@ c --------------------
 	dimension coef0(ntot),coef1(ntot)
 	dimension phssm(leng,ntot),dbdtb(nnew),dbdtbr(nnew)
 	dimension awf(nnew,ntot),atauw(nl),dtau(nl)
-	dimension datauw(nl),dbdt(nl),tair(lenp)
+c       dimension datauw(nl),dbdt(nl),tair(lenp)
+	dimension datauw(nl),dbdt(nl)
 	dimension gamval(ntot,ntot),xit(ntot,nnew),dtbeof(nnew)
         real*8    xtx(ntot,ntot),xiv(ntot,ntot)
 	dimension prtv0(leng),profm(lenp),fin(leng)
@@ -49,7 +50,7 @@ c --------------------
 c----------------------
         DIMENSION nch(nb),kuse(nnew),kusem(nnew)
         DIMENSION pobs(nl)
-	REAL*4 pout(lenp)
+	REAL*4 pout(lenp), tair(*)
 	DIMENSION trtv(nl),h2ortv(nl),o3rtv(nl)
         DIMENSION cortv(nl),n2ortv(nl),ch4rtv(nl)
 	DIMENSION prtvf(leng),prtvfm(leng)
@@ -246,7 +247,7 @@ c        gamts = 0.0001
         isw = 1
         ibias= 1
         ireal= 1
-        iges =  0
+        iges =  1
 c        emis = 1.0
         ref = 0.0
         cossun = 1.0
@@ -531,7 +532,7 @@ C **** Local Zenith Angle
 
 c	read(ltru,rec=kr) tair
 C **** For Radiosonde !!!!
-	read(ltru,rec=1) tair
+c       read(ltru,rec=1) tair
 
 c
  	do k=1,nnew

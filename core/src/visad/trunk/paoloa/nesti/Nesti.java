@@ -89,6 +89,8 @@ public class Nesti {
   // range of wave numbers form file
   float wnum_low;
   float wnum_hi;
+  float wnum_low_0;
+  float wnum_hi_0;
   int wnum_low_idx;
   int wnum_hi_idx;
 
@@ -127,6 +129,10 @@ public class Nesti {
   double[][] rr_values = new double[1][9127];
   double[][] rr_values_sub;
 
+  float[][] tt_values = new float[1][40];
+  float[][] wv_values = new float[1][40];
+  float[][] oz_values = new float[1][40];
+
   //-- declare DataReferences ---
   DataReference image_ref;
   DataReference white_cursor_ref;
@@ -142,6 +148,8 @@ public class Nesti {
   DataReference rtvl_wvRef;
   DataReference gamt_ref;
   DataReference gamw_ref;
+  DataReference gamts_ref;
+  DataReference emis_ref;
   DataReference foward_radiance_ref;
   DataReference retrieval_ref;
   DataReference spectrum_field_ref;
@@ -149,8 +157,10 @@ public class Nesti {
   DataReference wnum_low_ref;
   DataReference wnum_hi_ref;
   DataReference setBand_ref;
+  DataReference recenter_ref;
+  DataReference reset_ref;
 
-  int n_refs = 21;  //- # of above ---
+  int n_refs = 25;  //- # of above ---
 
 
   FunctionType press_tt;
@@ -248,6 +258,8 @@ public class Nesti {
     rtvl_wvRef = new DataReferenceImpl("rtvl_wvRef");
     gamt_ref = new DataReferenceImpl("gamt_ref");
     gamw_ref = new DataReferenceImpl("gamw_ref");
+    gamts_ref = new DataReferenceImpl("gamts_ref");
+    emis_ref = new DataReferenceImpl("emis_ref");
     foward_radiance_ref = new DataReferenceImpl("foward_radiance_ref");
     retrieval_ref = new DataReferenceImpl("retrieval_ref");
     spectrum_field_ref = new DataReferenceImpl("spectrum_field_ref");
@@ -255,6 +267,8 @@ public class Nesti {
     wnum_low_ref = new DataReferenceImpl("wnum_low_ref");
     wnum_hi_ref = new DataReferenceImpl("wnum_hi_ref");
     setBand_ref = new DataReferenceImpl("setBand_ref");
+    recenter_ref = new DataReferenceImpl("recenter_ref");
+    reset_ref = new DataReferenceImpl("reset_ref");
 
 
 //------ Initialize, File I/O  ------------------------
@@ -395,10 +409,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     Gridded1DSet domain = new Gridded1DSet( wnum1, samples, n_wnum );
     field_rr = new FlatField( wave_rad, domain );
 
-    float[][] tt_values = new float[1][40];
-    float[][] wv_values = new float[1][40];
-    float[][] oz_values = new float[1][40];
-
     tt_values[0] = tt;
     wv_values[0] = wv;
     oz_values[0] = oz;
@@ -459,7 +469,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       float[][] spectrum_samples = spectrum_set.getSamples(false);
       range_values = spectrum0.getValues();
 
-   //-System.out.println( lo[0]+"   "+hi[0] );
       if ((band1_lo >= lo[0])&&(band1_hi <= hi[0])) band1 = true;
       if ((band2_lo >= lo[0])&&(band2_hi <= hi[0])) band2 = true;
       if ((band3_lo >= lo[0])&&(band3_hi <= hi[0])) band3 = true;
@@ -507,9 +516,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         band3 = false;
       } 
 
-   //-System.out.println("k: "+k+" cnt_1: "+cnt_1+" cnt_2: "+cnt_2+" cnt_3: "+cnt_3);
-
-      
       System.arraycopy( samples_1[0], 0, new_spectrum[0], 0, cnt_1);
       System.arraycopy( samples_2[0], 0, new_spectrum[0], cnt_1, cnt_2);
       System.arraycopy( samples_3[0], 0, new_spectrum[0], (cnt_1+cnt_2), cnt_3);
@@ -573,6 +579,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     wnum_low_ref.setData(new Real(wnum1, wnum_low));
     wnum_hi_ref.setData(new Real(wnum1, wnum_hi));
 
+    wnum_low_0 = wnum_low;
+    wnum_hi_0 = wnum_hi;
+
 //-------- Done: Initialize -------------
 
     CellImpl foward_radiance_cell = new CellImpl() {
@@ -582,6 +591,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       float[][] tt_last_f;
       float[][] wv_last_f;
       float[][] oz_last_f;
+      FlatField field_tt;
+      FlatField field_wv;
+      FlatField field_oz;
       double[][] rr_values_a = new double[1][9127];
       boolean first = true;
 
@@ -633,6 +645,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
     CellImpl retrieval_cell = new CellImpl() {
       float[] p_out = new float[40*3+25];
+      float[] tair = new float[40*3+25];
+      double[][] tt_values_0;
+      double[][] wv_values_0;
+      double[][] oz_values_0;
       float[][] tt_values = new float[1][40];
       float[][] wv_values = new float[1][40];
       float[][] pp_values = new float[1][40];
@@ -643,11 +659,25 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         {
           float gamt = (float) (((Real)(gamt_ref.getData())).getValue());
           float gamw = (float) (((Real)(gamw_ref.getData())).getValue());
+          float gamts = (float) (((Real)(gamts_ref.getData())).getValue());
+          float emis = (float) (((Real)(emis_ref.getData())).getValue());
           gamt = (float)Math.pow(10d, (double)gamt);
+          gamts = (float)Math.pow(10d, (double)gamts);
           gamw = (float)Math.pow(10d, (double)gamw);
-          float gamts = 0.0001f;
-          float emis = 1.0f;
-          nasti_retrvl_c( rec, gamt, gamw, gamts, emis, p_out);
+
+          tt_values_0 = ((FlatField)field_ttRef.getData()).getValues();
+          wv_values_0 = ((FlatField)field_wvRef.getData()).getValues();
+          oz_values_0 = ((FlatField)field_ozRef.getData()).getValues();
+          
+          for ( int ii = 0; ii < 40; ii++ ) 
+          {
+            tair[ii] = (float) tt_values_0[0][ii];
+            tair[ii+40] = (float) wv_values_0[0][ii];
+            tair[ii+2*40] = (float) oz_values_0[0][ii];
+          }
+          tair[40+2*40] = tskin[0];
+
+          nasti_retrvl_c( rec, gamt, gamw, gamts, emis, tair, p_out);
 
           for ( int i = 0; i < 40; i++ ) {
             tt_values[0][i] = p_out[i];
@@ -686,7 +716,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             (Field) spectrum_field.getSample(i);
           try {
             radiance =
-           //-((Real) spectrum.evaluate(new Real(wnum1, wnum))).getValue();
               ((Real) spectrum.evaluate((Real)wnum_last_ref.getData())).getValue();
           }
           catch (VisADException e1) {
@@ -769,8 +798,43 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       // link white_cursor to white_cursor_cell
       white_cursor_cell.addReference(white_cursor_ref);
 
+    CellImpl reset_cell = new CellImpl() {
+      boolean first = true;
+      FlatField field_tt, field_wv, field_oz;
+      public void doAction() 
+      {
+        if (! first) {
+        try 
+        {
+          field_tt = new FlatField(press_tt, p_domain);
+          field_wv = new FlatField(press_wv, p_domain);
+          field_oz = new FlatField(press_oz, p_domain);
+          field_tt.setSamples(tt_values);
+          field_wv.setSamples(wv_values);
+          field_oz.setSamples(oz_values);
+          
+          field_ttRef.setData(field_tt);
+          field_wvRef.setData(field_wv);
+          field_ozRef.setData(field_oz);
+
+          foward_radiance_ref.setData(new Real(0.0));
+        }
+        catch ( VisADException ex ) {
+          System.out.println( ex.getMessage() );
+        }
+        catch ( RemoteException ex ) {
+          System.out.println( ex.getMessage() );
+        }
+        }
+        else {
+          first = false;
+        }
+      }
+    };
+    reset_cell.addReference(reset_ref);
+
     // create JFrame (i.e., a window) for display and slider
-    JFrame frame = new JFrame("Nesti VisAD Application");
+    JFrame frame = new JFrame("NAST-I VisAD Application");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
@@ -809,6 +873,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       refs[18] = new RemoteDataReferenceImpl((DataReferenceImpl)wnum_low_ref);
       refs[19] = new RemoteDataReferenceImpl((DataReferenceImpl)wnum_hi_ref);
       refs[20] = new RemoteDataReferenceImpl((DataReferenceImpl)setBand_ref);
+      refs[21] = new RemoteDataReferenceImpl((DataReferenceImpl)recenter_ref);
+      refs[22] = new RemoteDataReferenceImpl((DataReferenceImpl)reset_ref);
+      refs[23] = new RemoteDataReferenceImpl((DataReferenceImpl)gamts_ref);
+      refs[24] = new RemoteDataReferenceImpl((DataReferenceImpl)emis_ref);
 
       server_server.setDataReferences(refs);
     }
@@ -845,6 +913,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     wnum_low_ref = refs[18];
     wnum_hi_ref = refs[19];
     setBand_ref = refs[20];
+    recenter_ref = refs[21];
+    reset_ref = refs[22];
+    gamts_ref = refs[23];
+    emis_ref = refs[24];
 
     RealTupleType rt_type = ((FunctionType)image_ref.getType()).getDomain();
     image_element = (RealType)rt_type.getComponent(0);
@@ -863,6 +935,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
     wnum_low = (float)((Real)wnum_low_ref.getData()).getValue();
     wnum_hi = (float)((Real)wnum_hi_ref.getData()).getValue();
+    wnum_low_0 = wnum_low;
+    wnum_hi_0 = wnum_hi;
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("Nesti VisAD Application");
@@ -926,9 +1000,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     DisplayImpl rtvl_display;
     RealTuple init_white_cursor;
 
-    float[][] tt_values;
-    float[][] wv_values;
-    float[][] oz_values;
     double[][] rr_values_a;
 
     ConstantMap[] red = new ConstantMap[3];
@@ -945,6 +1016,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       else {
         cur = new double[3];
       }
+
+      Border etchedBorder5 =
+        new CompoundBorder(new EtchedBorder(),
+                           new EmptyBorder(5, 5, 5, 5));
 
       setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
       setAlignmentY(JPanel.TOP_ALIGNMENT);
@@ -968,32 +1043,78 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       r_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
       add(r_panel);
 
-      s_panel = new JPanel();
+      JPanel s_panel = new JPanel();
       s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.Y_AXIS)); 
-      s_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-      s_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+   //-s_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+      s_panel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
+      s_panel.setBorder(etchedBorder5);
+
+      s_panel.add(new JLabel("NAST-I Foward Radiance and Retrieval Application"));
+      s_panel.add(new JLabel("using VisAD  -  see:"));
+      s_panel.add(new JLabel("  "));
+      s_panel.add(new JLabel("  http://www.ssec.wisc.edu/~billh/visad.html"));
+      s_panel.add(new JLabel("  "));
+      s_panel.add(new JLabel("for more information about VisAD."));
+      s_panel.add(new JLabel("  "));
+      s_panel.add(new JLabel("William Hibbard, Paolo Antonelli and Tom Rink"));
+      s_panel.add(new JLabel("Space Science and Engineering Center"));
+      s_panel.add(new JLabel("University of Wisconsin - Madison"));
+      s_panel.add(new JLabel("  "));
+      s_panel.add(new JLabel("  "));
+      s_panel.add(new JLabel("  "));
+
+   //-l_panel.add(Box.createRigidArea(new Dimension(0,21)));
       l_panel.add(s_panel);
 
-      l_panel.add(new JLabel("Nesti Foward Radiance and Retrieval Application"));
-      l_panel.add(new JLabel("using VisAD  -  see:"));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  http://www.ssec.wisc.edu/~billh/visad.html"));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("for more information about VisAD."));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("William Hibbard, Paolo Antonelli and Tom Rink"));
-      l_panel.add(new JLabel("Space Science and Engineering Center"));
-      l_panel.add(new JLabel("University of Wisconsin - Madison"));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  "));
-      l_panel.add(new JLabel("  "));
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.Y_AXIS));
+   //-s_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+      s_panel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
+      s_panel.setBorder(etchedBorder5);
+      VisADSlider gamt_slider =
+        new VisADSlider(gamt_ref, -1f, 5f, 1f, RealType.Generic, "gamt");
+      s_panel.add(gamt_slider);
 
+      VisADSlider gamw_slider =
+        new VisADSlider(gamw_ref, -1f, 5f, 1f, RealType.Generic, "gamw");
+      s_panel.add(gamw_slider);
+
+      VisADSlider gamts_slider =
+        new VisADSlider(gamts_ref, -3f, 3f, -3f, RealType.Generic, "gamts");
+      s_panel.add(gamts_slider);
+
+      VisADSlider emis_slider =
+        new VisADSlider(emis_ref, 0f, 1f, 1f, RealType.Generic, "emis");
+      s_panel.add(emis_slider);
+      l_panel.add(s_panel);
+
+//---------- range control buttons --------
+
+      s_panel = new JPanel();
+      s_panel.setLayout( new BoxLayout(s_panel, BoxLayout.X_AXIS) );
+      s_panel.setBorder( etchedBorder5 );
+      JButton all = new JButton("ALL");
+      all.addActionListener(this);
+      all.setActionCommand("ALL");
+      s_panel.add( all );
+      JButton co2_1 = new JButton("CO2_1");
+      co2_1.addActionListener(this);
+      co2_1.setActionCommand("CO2_1");
+      s_panel.add( co2_1 );
+      JButton o3 = new JButton("O3");
+      o3.addActionListener(this);
+      o3.setActionCommand("O3");
+      s_panel.add( o3 );
+      JButton h2o = new JButton("H2O");
+      h2o.addActionListener(this);
+      h2o.setActionCommand("H2O");
+      s_panel.add( h2o );
+      JButton co2_2 = new JButton("CO2_2");
+      co2_2.addActionListener(this);
+      co2_2.setActionCommand("CO2_2");
+      s_panel.add( co2_2 );
+
+      l_panel.add(s_panel);
 
       // initial wave number in middle of spectrum
       wnum_last = (float)((Real)wnum_last_ref.getData()).getValue();
@@ -1068,11 +1189,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
  
       s_panel = new JPanel();
       s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+   //-s_panel.setMaximumSize(new Dimension(750,125));
       s_panel.add(img_display.getComponent());
-      s_panel.add(Box.createHorizontalStrut(0));
-      Border etchedBorder5 =
-        new CompoundBorder(new EtchedBorder(),
-                           new EmptyBorder(5, 5, 5, 5));
+   //-s_panel.add(Box.createHorizontalStrut(0));
       s_panel.setBorder(etchedBorder5);
       l_panel.add(s_panel);
 
@@ -1080,13 +1199,16 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
       // create color widget for atmosphericRadiance
       LabeledRGBWidget lw = new LabeledRGBWidget(radiance_map1);
-      Dimension d = new Dimension(400, 200);
+      Dimension d = new Dimension(400, 150);
       lw.setMaximumSize(d);
       s_panel = new JPanel();
       s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
       s_panel.add(lw);
+      s_panel.setMaximumSize(new Dimension(400,150));
       s_panel.setBorder(etchedBorder5);
       l_panel.add(s_panel);
+
+//------------------
 
       // create text field for entering wave number
       wpanel = new JPanel();
@@ -1098,6 +1220,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       Dimension msize = wnum_field.getMaximumSize();
       Dimension psize = wnum_field.getPreferredSize();
       msize.height = psize.height;
+      msize.width = 75;
       wnum_field.setMaximumSize(msize);
 
       wnum_field.addActionListener(this);
@@ -1105,7 +1228,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       wnum_field.setEnabled(true);
       wpanel.add(wnum_label);
       wpanel.add(wnum_field);
-      wpanel.add(Box.createRigidArea(new Dimension(10, 0)));
+  //- wpanel.add(Box.createRigidArea(new Dimension(10, 0)));
       c_panel.add(wpanel);
 
       wnum_field.setText(PlotText.shortString(wnum_last));
@@ -1180,7 +1303,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel = new JPanel();
       s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
       s_panel.add(spectrumDisplay.getComponent());
-      s_panel.add(Box.createHorizontalStrut(0));
       s_panel.setBorder(etchedBorder5);
       c_panel.add(s_panel);
 
@@ -1231,7 +1353,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel = new JPanel();
       s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
       s_panel.add(spectrum_diff_display.getComponent());
-      s_panel.add(Box.createHorizontalStrut(0));
       s_panel.setBorder(etchedBorder5);
       c_panel.add(s_panel);
 
@@ -1247,6 +1368,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel.add(recenter);
       c_panel.add(s_panel);
 
+  /**
 //---------- range control buttons --------
 
       s_panel = new JPanel();
@@ -1274,6 +1396,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel.add( co2_2 );
 
       c_panel.add(s_panel);
+   **/
 
 //----  observation profile (raob) Display  ----------
 
@@ -1347,9 +1470,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel = new JPanel();
       s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
       s_panel.add(raobDisplay.getComponent());
-      s_panel.add(Box.createHorizontalStrut(0));
+   //-s_panel.add(Box.createHorizontalStrut(0));
       s_panel.setBorder(etchedBorder5);
+      r_panel.add(Box.createRigidArea(new Dimension(0,21)));
       r_panel.add(s_panel);
+      r_panel.add(Box.createRigidArea(new Dimension(0,26)));
 
 //------- Computed (Retrieval) profile
 
@@ -1362,9 +1487,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       blue[0] = new ConstantMap(0.0, Display.Red);
       blue[1] = new ConstantMap(0.0, Display.Green);
       blue[2] = new ConstantMap(1.0, Display.Blue);
-
-      tt_values = new float[1][40];
-      wv_values = new float[1][40];
 
       if ( java2d ) {
         rtvl_display = new DisplayImplJ2D("retrieval display");
@@ -1398,17 +1520,13 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel = new JPanel();
       s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
       s_panel.add(rtvl_display.getComponent());
-      s_panel.add(Box.createHorizontalStrut(0));
       s_panel.setBorder(etchedBorder5);
       r_panel.add(s_panel);
 
       //- create retrieval controls panel
       s_panel = new JPanel();
-      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.Y_AXIS));
-      s_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-      s_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-      s_panel.add(Box.createHorizontalStrut(0));
-      s_panel.setBorder(etchedBorder5);
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+   //-s_panel.setBorder(etchedBorder5);
       r_panel.add(s_panel);
 
       // create button for retrieval compute
@@ -1417,18 +1535,17 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       retrieval.setActionCommand("retrieval");
       s_panel.add(retrieval);
 
-      VisADSlider gamt_slider =
-        new VisADSlider(gamt_ref, -1f, 5f, 1f, RealType.Generic, "gamt");
-      s_panel.add(gamt_slider);
-
-      VisADSlider gamw_slider =
-        new VisADSlider(gamw_ref, -1f, 5f, 1f, RealType.Generic, "gamw");
-      s_panel.add(gamw_slider);
+      JButton reset = new JButton("reset");
+      reset.addActionListener(this);
+      reset.setActionCommand("resetProfile");
+      s_panel.add(reset);
 
    if (!client) 
    {
       // CellImpl to change wave number when user moves red_cursor
       CellImpl red_cursor_cell = new CellImpl() {
+        float wnum_low;
+        float wnum_hi;
         public void doAction() throws VisADException, RemoteException {
           int i;
           if (skip_red) {
@@ -1436,6 +1553,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             return;
           }
           Real red_cursor = (Real) red_cursor_ref.getData();
+          wnum_low = (float)((Real)wnum_low_ref.getData()).getValue();
+          wnum_hi = (float)((Real)wnum_hi_ref.getData()).getValue();
           if (red_cursor == null) return;
           float wnum = (float) red_cursor.getValue();
 
@@ -1479,9 +1598,22 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
     };
 
+    CellImpl recenter_cell = new CellImpl() {
+      boolean first = true;
+      public void doAction() throws VisADException, RemoteException {
+        if (! first ) {
+          do_wzoom();
+        }
+        else {
+          first = false;
+        }
+      }
+    };
+
     if (!client) {
       wnum_field_cell.addReference(wnum_last_ref);
       setBand_cell.addReference(setBand_ref);
+      recenter_cell.addReference(recenter_ref);
     }
     else {
       RemoteCellImpl remote_wnum_field_cell =
@@ -1490,7 +1622,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
       RemoteCellImpl remote_setBand_cell =
         new RemoteCellImpl(setBand_cell);
-      remote_wnum_field_cell.addReference(setBand_ref);
+      remote_setBand_cell.addReference(setBand_ref);
+
+      RemoteCellImpl remote_recenter_cell =
+        new RemoteCellImpl(recenter_cell);
+      remote_recenter_cell.addReference(recenter_ref);
     }
   } //- end constructor ChannelImage
 
@@ -1511,12 +1647,15 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
     synchronized void do_wzoom() throws VisADException, RemoteException {
       if (wzoom) {
+        float wnum_last = (float)((Real)wnum_last_ref.getData()).getValue();
         wnum_map.setRange((double) (wnum_last - 10.0),
                           (double) (wnum_last + 10.0));
         wnum_map_diff.setRange((double) (wnum_last - 10.0),
                                (double) (wnum_last + 10.0));
       }
       else {
+        float wnum_low = (float)((Real)wnum_low_ref.getData()).getValue();
+        float wnum_hi = (float)((Real)wnum_hi_ref.getData()).getValue();
         wnum_map.setRange((double) wnum_low, (double) wnum_hi);
         wnum_map_diff.setRange((double) wnum_low, (double) wnum_hi);
       }
@@ -1550,11 +1689,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
 
         if (wnum == wnum) {
-          if (wnum < wnum_low) {
+          if (wnum < wnum_low_0) {
             wnum = wnum_low;
             wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
           }
-          if (wnum > wnum_hi) {
+          if (wnum > wnum_hi_0) {
             wnum = wnum_hi;
             wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
           }
@@ -1580,7 +1719,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       } // end if (cmd.equals("wavenum"))
       if (cmd.equals("recenter")) {
         try {
-          do_wzoom();
+          recenter_ref.setData(new Real(0.0));
+       //-do_wzoom();
         }
         catch (VisADException exc) {
           System.out.println(exc.getMessage());
@@ -1613,12 +1753,23 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           System.out.println(exc.getMessage());
         }
       }
+      if (cmd.equals("resetProfile"))
+      {
+        try {
+          reset_ref.setData(new Real(0.0));
+        }
+        catch (VisADException exc) {
+          System.out.println(exc.getMessage());
+        }
+        catch (RemoteException exc) {
+          System.out.println(exc.getMessage());
+        }
+      }
       if (cmd.equals("CO2_1") || cmd.equals("O3") ||
           cmd.equals("H2O") || cmd.equals("CO2_2") ||
           cmd.equals("ALL") )
       {
         try {
-      //- setBand( cmd );
           setBand_ref.setData(new Text(cmd));
         }
         catch ( VisADException e4 )  {
@@ -1677,33 +1828,53 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     {
       double CO2_1_lo = 700;
       double CO2_1_hi = 800;
+      double CO2_1_mp = 600;
       double CO2_2_lo = 2395;
       double CO2_2_hi = 2400;
+      double CO2_2_mp = 2397.5;
       double O3_lo = 1025;
       double O3_hi = 1075;
+      double O3_mp = 1050;
       double H2O_lo = 1200;
       double H2O_hi = 1600;
+      double H2O_mp = 1400;
+
+      double wnum_low = wnum_low_0;
+      double wnum_hi = wnum_hi_0;
 
       if ( band.equals("CO2_1") ) {
         wnum_map_diff.setRange( CO2_1_lo, CO2_1_hi );
         wnum_map.setRange( CO2_1_lo, CO2_1_hi );
+        wnum_low = CO2_1_lo;
+        wnum_hi = CO2_1_hi;
       }
       if ( band.equals("CO2_2") ) {
         wnum_map_diff.setRange( CO2_2_lo, CO2_2_hi );
         wnum_map.setRange( CO2_2_lo, CO2_2_hi );
+        wnum_low = CO2_2_lo;
+        wnum_hi = CO2_2_hi;
       }
       if ( band.equals("O3") ) {
         wnum_map_diff.setRange( O3_lo, O3_hi );
         wnum_map.setRange( O3_lo, O3_hi );
+        wnum_low = O3_lo;
+        wnum_hi = O3_hi;
       }
       if ( band.equals("H2O") ) {
         wnum_map_diff.setRange( H2O_lo, H2O_hi );
         wnum_map.setRange( H2O_lo, H2O_hi );
+        wnum_low = H2O_lo;
+        wnum_hi = H2O_hi;
       }
       if ( band.equals("ALL") ) {
-        wnum_map_diff.setRange( (double) wnum_low, (double) wnum_hi );
-        wnum_map.setRange( (double) wnum_low, (double) wnum_hi );
+        wnum_map_diff.setRange( (double) wnum_low_0, (double) wnum_hi_0 );
+        wnum_map.setRange( (double) wnum_low_0, (double) wnum_hi_0 );
+        wnum_low = wnum_low_0;
+        wnum_hi = wnum_hi_0;
       }
+
+      wnum_low_ref.setData(new Real(wnum1, wnum_low));
+      wnum_hi_ref.setData(new Real(wnum1, wnum_hi));
     }
   } //- end class ChannelImage
 
@@ -1715,5 +1886,5 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                                     int[] u, double[] vn, double[] tb, double[] rr );
 
   private native void nasti_retrvl_c( int rec, float gamt, float gamw, float gamts,
-                                      float emis, float[] pout );
+                                      float emis, float[] tair, float[] pout );
 }//- end: Nesti
