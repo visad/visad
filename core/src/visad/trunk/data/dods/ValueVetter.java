@@ -69,7 +69,7 @@ public class ValueVetter
     {}
 
     /**
-     * Constructs from valid-range limits, a fill-value, and a missing value.
+     * Constructs from a fill-value and a missing value.
      *
      * @param fill		The fill-value.  May be NaN.
      * @param missing		The missing-value value.  May be NaN.
@@ -189,47 +189,5 @@ public class ValueVetter
 		    : value;
 	}
 	return values;
-    }
-
-    /**
-     * Vets a value.
-     *
-     * @param value		The value to be processed.
-     */
-    public final float vet(float value)
-    {
-	return process(value);
-    }
-
-    /**
-     * Vets a value.
-     *
-     * @param value		The value to be processed.
-     */
-    public final float[] vet(float[] values)
-    {
-	return process(values);
-    }
-
-    /**
-     * Vets values.
-     *
-     * @param values		The values to be vetted.
-     * @return			Vetted values (same array as input).
-     */
-    public final double vet(double value)
-    {
-	return process(value);
-    }
-
-    /**
-     * Vets values.
-     *
-     * @param values		The values to be vetted.
-     * @return			Vetted values (same array as input).
-     */
-    public final double[] vet(double[] values)
-    {
-	return process(values);
     }
 }
