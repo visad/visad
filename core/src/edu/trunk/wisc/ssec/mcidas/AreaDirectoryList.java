@@ -40,6 +40,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 import java.util.ArrayList;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 
 /** 
@@ -207,6 +209,8 @@ public class AreaDirectoryList
     double resolutionLon = Double.NaN;
     double centerLat = Double.NaN;
     double centerLon = Double.NaN;
+    int band = 0;
+    String calname = " ", caldesc = " ";
 
     dirs = new ArrayList();
     int numBytes = 
@@ -227,7 +231,8 @@ public class AreaDirectoryList
         for (int i=0; i < AreaFile.AD_DIRSIZE; i++) {
           dir[i] = inputStream.readInt();
         }
-        if (isADDE) dir[0] = 0;
+
+        if (!isADDE) dir[0] = 0;
     
         // see if the directory needs to be byte-flipped
         if (dir[AreaFile.AD_VERSION] > 255 || flipwords) {
@@ -252,6 +257,13 @@ public class AreaDirectoryList
   */
     
         AreaDirectory ad = new AreaDirectory(dir);
+        int[] bands = ad.getBands();
+        int numBands = ad.getNumberOfBands();
+        // make a Vector to hold the band calibration info (if available)
+        Vector [] calInfo = new Vector[numBands];
+        for (int k=0; k<numBands; k++) {
+          calInfo[k] = new Vector();
+        }
   
         if (!isADDE) {
           numBytes = 0;
@@ -320,19 +332,44 @@ public class AreaDirectoryList
               } else {
                 resolutionLon = Double.NaN;
               }
-            } else if (cd.indexOf("Valid calibration") > -1) {
+            } else if (cd.indexOf("Valid calibration unit") > -1) {
               int m = cd.indexOf("=");
               if (m > 0) {
-              } else {
+                String cdd = cd.replace('"',' ');
+                StringTokenizer st = new StringTokenizer(cdd," ");
+                int n = st.countTokens();
+                band = 0;
+                calname = " ";
+                caldesc = " ";
+                boolean gotit = false;
+                for (int k=0; k<n; k++) {
+                  if (st.nextToken().trim().equals("band")) {
+                  gotit = true;
+                  break;
+                  }
+                }
+
+                if (gotit) {
+                  band = Integer.parseInt(st.nextToken().trim());
+                  st.nextToken();  // skip = sign
+                  calname = st.nextToken();
+                  caldesc = st.nextToken();
+                  for (int k=0; k<numBands; k++) {
+                    if (band == bands[k]) {
+                      calInfo[k].addElement(calname);
+                      calInfo[k].addElement(caldesc);
+                    }
+                  }
+                }
               }
               
-            }
-
+            } 
           }
           ad.setCenterLatitude(centerLat);
           ad.setCenterLongitude(centerLon);
           ad.setCenterLatitudeResolution(resolutionLat);
           ad.setCenterLongitudeResolution(resolutionLon);
+          ad.setCalInfo(calInfo);
 
           /* */
           numBytes = inputStream.readInt();
@@ -350,6 +387,88 @@ public class AreaDirectoryList
     } 
   }
   
+  /** returns the directory blocks for the requested images,
+   *  sorted into an array of AreaDirectories by time and
+   *  then bands as the second dimenison, if multiple directories
+   *  with the same ADDE position number are returned.
+   */
+
+   public AreaDirectory[][] getSortedDirs() throws AreaFileException {
+    if (status <= 0 || dirs.size() <= 0) {
+      throw new AreaFileException( "Error reading directory information");
+    }
+
+    // first gather up the positions and nominal times
+    Date[] dtg = new Date[numDirs];
+    int[] pos = new int[numDirs];
+    int[] insitu = new int[numDirs];
+    ArrayList al = new ArrayList();
+    ArrayList alt = null;
+
+    for (int i=0; i<numDirs; i++) {
+      AreaDirectory ad = (AreaDirectory) dirs.get(i);
+      dtg[i] = ad.getNominalTime();
+      pos[i] = ad.getValue(0);
+      insitu[i] = i;
+    }
+
+    Date ddd = null;
+    // now sort the values by date
+    for (int i=0; i<numDirs; i++) {
+      int swap = i;
+      for (int k=i+1; k<numDirs; k++) {
+        if (dtg[swap].compareTo(dtg[k]) > 0) swap = k;
+      }
+      if (swap != i) {
+        Date dtgt = dtg[i];
+        dtg[i] = dtg[swap];
+        dtg[swap] = dtgt;
+        int intt = pos[i];
+        pos[i] = pos[swap];
+        pos[swap] = intt;
+        intt = insitu[i];
+        insitu[i] = insitu[swap];
+        insitu[swap] = intt;
+      }
+
+      // look to see if date-time has changed
+      if ( (ddd == null) || (ddd.compareTo(dtg[i]) != 0)) {
+
+         if (ddd != null) al.add(alt);  // add the previous one if there
+
+         ddd = dtg[i];
+         alt = new ArrayList();
+      }
+
+      alt.add(dirs.get(insitu[i]) );  // copy the AreaDirectory entry over
+
+    }
+
+    // catch the very last one...
+    if (alt != null && alt.size() > 0) al.add(alt);
+
+    int num = al.size();
+
+    if (num == 0) return null;
+
+    // now make an array of AreaDirectory objects for return...
+    
+    AreaDirectory[][] ada = new AreaDirectory[num][];
+
+    for (int i=0; i<num; i++) {
+       alt = (ArrayList) al.get(i);
+       int knum = alt.size();
+       ada[i] = new AreaDirectory[knum];
+       for (int k=0; k<knum; k++) {
+         ada[i][k] = (AreaDirectory)alt.get(k);
+       }
+    }
+
+    return ada;
+   }
+
+
+
   /** 
    * returns the directory blocks for the requested images.  
    * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
@@ -403,5 +522,22 @@ public class AreaDirectoryList
     }
     AreaDirectoryList adl = new AreaDirectoryList(args[0]);
     System.out.println(adl.toString());
+
+    // print out test of getSortedDirs()
+    /*
+    AreaDirectory[][] ada = adl.getSortedDirs();
+    for (int i=0; i<ada.length; i++) {
+      Date dd = ada[i][0].getNominalTime();
+      System.out.print(dd+" ");
+      for (int k=0; k<ada[i].length; k++) {
+        int[] bands = ada[i][k].getBands();
+
+        for (int b=0; b<bands.length; b++) {
+          System.out.print(" "+bands[b]);
+        }
+      }
+      System.out.println(" ");
+    }
+    */
   }
 }
