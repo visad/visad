@@ -179,7 +179,7 @@ public class Test61
 
   public String toString()
   {
-    return ": volume rendering and ColorAlphaWidget";
+    return " smooth: volume rendering and ColorAlphaWidget";
   }
 
   public static void main(String[] args)

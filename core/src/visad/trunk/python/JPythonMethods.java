@@ -31,6 +31,7 @@ import java.awt.event.*;
 import java.rmi.RemoteException;
 import javax.swing.JFrame;
 import visad.*;
+import visad.math.*;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.data.*;
@@ -134,6 +135,18 @@ public abstract class JPythonMethods {
       display.destroy();
       display = null;
     }
+  }
+
+  /** does 1-D and 2-D (i.e., Matlab fft and fft2) */
+  public static FlatField fft(Field field)
+    throws VisADException, RemoteException {
+    return FFT.fourierTransform(field, true);
+  }
+
+  /** does 1-D and 2-D (i.e., Matlab fft and fft2) */
+  public static FlatField ifft(Field field) 
+    throws VisADException, RemoteException {
+    return FFT.fourierTransform(field, false);
   }
 
 }

@@ -165,6 +165,7 @@ SAVE_FILES = \
 	visad/browser/*.html				\
 	visad/util/*.java				\
 	visad/matrix/*.java				\
+	visad/math/*.java				\
 	visad/formula/*.java				\
 	visad/ss/*.java					\
 	visad/ss/*.gif					\
@@ -287,6 +288,7 @@ DOC_PACKAGES = \
 		visad.data.hdf5.hdf5objects \
 		visad.data.hdf5 \
 		visad.matrix \
+		visad.math \
 		visad.formula \
 		visad.ss \
 		visad.jmet \

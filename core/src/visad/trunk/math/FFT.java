@@ -25,7 +25,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad.matrix;
+package visad.math;
 
 import visad.*;
 import visad.util.*;

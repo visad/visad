@@ -90,6 +90,7 @@ visad\browser\*.java \
 visad\browser\*.html \
 visad\util\*.java \
 visad\matrix\*.java \
+visad\math\*.java \
 visad\formula\*.java \
 visad\ss\*.java \
 visad\ss\*.gif \
@@ -206,6 +207,7 @@ visad\browser\*.java \
 visad\browser\*.html \
 visad\util\*.java \
 visad\matrix\*.java \
+visad\math\*.java \
 visad\formula\*.java \
 visad\ss\*.java \
 visad\ss\*.gif \
@@ -301,6 +303,10 @@ save:
 		$(DEL) $(BACKUP)\visad\java3d\*.java
 	if exist $(BACKUP)\visad\java2d\*.java \
 		$(DEL) $(BACKUP)\visad\java2d\*.java
+	if exist $(BACKUP)\visad\matrix\*.java \
+		$(DEL) $(BACKUP)\visad\matrix\*.java
+	if exist $(BACKUP)\visad\math\*.java \
+		$(DEL) $(BACKUP)\visad\math\*.java
 	if exist $(BACKUP)\visad\python\*.java \
 		$(DEL) $(BACKUP)\visad\python\*.java
 	if exist $(BACKUP)\visad\browser\*.java \
@@ -396,6 +402,7 @@ visad\python\*.class \
 visad\browser\*.class \
 visad\util\*.class \
 visad\matrix\*.class \
+visad\math\*.class \
 visad\formula\*.class \
 visad\ss\*.class \
 visad\ss\*.gif \
@@ -464,6 +471,7 @@ clear:
 	if exist browser\*.java $(DEL) browser\*.java
 	if exist util\*.java $(DEL) util\*.java
 	if exist matrix\*.java $(DEL) matrix\*.java
+	if exist math\*.java $(DEL) math\*.java
 	if exist formula\*.java $(DEL) formula\*.java
 	if exist ss\*.java $(DEL) ss\*.java
 	if exist ss\*.gif $(DEL) ss\*.gif
@@ -513,6 +521,7 @@ clean:
 	if exist browser\*.class $(DEL) browser\*.class
 	if exist util\*.class $(DEL) util\*.class
 	if exist matrix\*.class $(DEL) matrix\*.class
+	if exist math\*.class $(DEL) math\*.class
 	if exist formula\*.class $(DEL) formula\*.class
 	if exist ss\*.class $(DEL) ss\*.class
 	if exist data\*.class $(DEL) data\*.class
@@ -605,6 +614,7 @@ $(NCSA)\exceptions\*.class \
 data\hdf5\hdf5objects\*.class \
 data\hdf5\*.class \
 python\*.class \
+math\*.class \
 browser\*.class \
 util\*.class \
 formula\*.class \
@@ -660,6 +670,7 @@ compile: clean
 	$(JC) $(JFLAGS) data\hdf5\hdf5objects\*.java
 	$(JC) $(JFLAGS) data\hdf5\*.java
 	$(JC) $(JFLAGS) python\*.java
+	$(JC) $(JFLAGS) math\*.java
 	$(JC) $(JFLAGS) browser\*.java
 	$(JC) $(JFLAGS) util\*.java
 	$(JC) $(JFLAGS) formula\*.java
@@ -698,6 +709,7 @@ visad.python \
 visad.browser \
 visad.util \
 visad.matrix \
+visad.math \
 visad.formula \
 visad.ss \
 visad.data \
