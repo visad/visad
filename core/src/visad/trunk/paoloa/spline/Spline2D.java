@@ -11,7 +11,6 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.util.VisADSlider;
-import visad.util.LabeledRGBWidget;
 import visad.data.netcdf.Plain;
 import java.rmi.RemoteException;
 import java.io.IOException;
