@@ -43,7 +43,7 @@ public interface RemoteProxyAgent extends Remote {
   public Serializable[] prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow, ConstantMap[] cmaps,
                                   ScalarMap[] maps, Control[] controls,
-                                  String name)
+                                  String name, long time_out)
          throws VisADException, RemoteException;
 
   public Serializable[] doTransform() throws VisADException, RemoteException;

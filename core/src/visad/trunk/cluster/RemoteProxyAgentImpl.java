@@ -46,8 +46,6 @@ public class RemoteProxyAgentImpl extends UnicastRemoteObject
   private RemoteClientAgentImpl focus_agent = null;
   private RemoteAgentContact[] contacts = null;
 
-  private long time_out = 10000;
-
   private int[] resolutions = null;
 
   private ConstantMap[] cmaps = null;
@@ -72,7 +70,7 @@ public class RemoteProxyAgentImpl extends UnicastRemoteObject
   public Serializable[] prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow, ConstantMap[] cms,
                                   ScalarMap[] ms, Control[] cos,
-                                  String name)
+                                  String name, long time_out)
          throws VisADException, RemoteException {
 
     cmaps = cms;

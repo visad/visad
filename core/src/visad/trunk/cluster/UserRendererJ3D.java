@@ -26,9 +26,6 @@ MA 02111-1307, USA
 
 /*      PROXY
 
-  ELIMINATE ProxyRendererJ3D, RemoteUserAgentImpl & RemoteUserAgent
-            ProxyDisplayRendererJ3D
-
 UserRendererJ3D like ClientRendererJ3D, but ?
 
   ClientRendererJ3D <--> nodes
@@ -74,28 +71,29 @@ import java.io.Serializable;
 */
 public class UserRendererJ3D extends DefaultRendererJ3D {
 
+  // no UserDummyDataImpl variable
+  // data access via RemoteProxyAgent
   private RemoteProxyAgent agent = null;
 
   private DisplayImpl display = null;
   private ConstantMap[] cmaps = null;
 
   private DataDisplayLink link = null;
-  private UserDummyDataImpl data = null;
-  private boolean cluster = true;
-
-  private RemoteClientAgentImpl[] agents = null;
-  private RemoteClientAgentImpl focus_agent = null;
-  private RemoteAgentContact[] contacts = null;
 
   private long time_out = 10000;
 
   private int[] resolutions = null;
 
   public UserRendererJ3D () {
-    this(10000);
+    this(null, 10000);
   }
 
-  public UserRendererJ3D (long to) {
+  public UserRendererJ3D (RemoteProxyAgent a) {
+    this(a, 10000);
+  }
+
+  public UserRendererJ3D (RemoteProxyAgent a, long to) {
+    agent = a;
     time_out = to;
   }
 
@@ -117,7 +115,6 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
                                   DataShadow shadow)
          throws VisADException, RemoteException {
 
-    UserDummyDataImpl old_data = data;
     DataDisplayLink[] Links = getLinks();
     if (Links != null && Links.length > 0) {
       link = Links[0];
@@ -134,28 +131,6 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
           }
         }
       }
-
-      // get the data
-      Data d = null;
-      try {
-        d = link.getData(); // PROXY
-      } catch (RemoteException re) {
-        if (visad.collab.CollabUtil.isDisconnectException(re)) {
-          getDisplay().connectionFailed(this, link);
-          removeLink(link);
-          return null;
-        }
-        throw re;
-      }
-      if (d == null) {
-        addException(
-          new DisplayException("Data is null"));
-      }
-      if (!(d instanceof UserDummyDataImpl)) {
-        addException(
-          new DisplayException("Data must be UserDummyDataImpl"));
-      }
-      data = (UserDummyDataImpl) d;
     }
 
     Vector map_vector = display.getMapVector();
@@ -169,7 +144,7 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
 
     Serializable[] responses =
       agent.prepareAction(go, initialize, shadow, cmaps, maps, controls,
-                          display.getName());
+                          display.getName(), time_out);
 
     // now do usual prepareAction()
     return super.prepareAction(go, initialize, shadow);
@@ -177,14 +152,21 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
 
   /** create a scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
-    if (link == null || data == null) {
+    Serializable[] responses = null;
+    try {
+      // responses are VisADGroups
+      responses = agent.doTransform();
+    }
+    catch (DisplayException e) {
+      addException(e);
+    }
+// System.out.println("UserRendererJ3D.doTransform messages received");
+
+    if (link == null) {
       addException(
         new DisplayException("Data is null: UserRendererJ3D.doTransform"));
+      responses = null;
     }
-
-    // responses are VisADGroups
-    Serializable[] responses = agent.doTransform();
-// System.out.println("UserRendererJ3D.doTransform messages received");
 
     // responses are VisADGroups
     // need to:
@@ -201,7 +183,7 @@ public class UserRendererJ3D extends DefaultRendererJ3D {
     branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
     branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
-    int n = responses.length;
+    int n = (responses == null) ? 0 : responses.length;
     for (int i=0; i<n; i++) {
       if (responses[i] != null) {
         VisADSceneGraphObject vsgo = (VisADSceneGraphObject) responses[i];

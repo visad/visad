@@ -41,12 +41,18 @@ import java.util.*;
  */
 public class UserDisplayRendererJ3D extends DefaultDisplayRendererJ3D {
 
-  public UserDisplayRendererJ3D () {
+  RemoteProxyAgent agent = null;
+
+  long time_out = 10000;
+
+  public UserDisplayRendererJ3D (RemoteProxyAgent a, long to) {
     super();
+    agent = a;
+    time_out = to;
   }
 
   public DataRenderer makeDefaultRenderer() {
-    return new UserRendererJ3D();
+    return new UserRendererJ3D(agent, time_out);
   }
 
   public boolean legalDataRenderer(DataRenderer renderer) {
