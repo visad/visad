@@ -519,11 +519,13 @@ public class PlotText extends Object {
 
     if (plot_index <= 0) return null;
 
-    float cxoff = Float.NaN;
-    float cyoff = Float.NaN;
-    float czoff = Float.NaN;
+/* grf 22 Jan 2004 - alter to get vertical justification correct
+*/
+    float cxoff = 0.0f;
+    float cyoff = 0.0f;
+    float czoff = 0.0f;
 
-    // LEFT is normal
+    // LEFT is normal (or TOP or BOTTOM)
     if (justification == TextControl.Justification.CENTER) {
       cxoff = (float)((cx - start_off[0])/2.);
       cyoff = (float)((cy - start_off[1])/2.);
@@ -535,7 +537,7 @@ public class PlotText extends Object {
       czoff = (float)(cz - start_off[2]);
     }
 
-    // BOTTOM is normal
+    // BOTTOM is normal (or LEFT or RIGHT)
     if (verticalJustification == TextControl.Justification.TOP) {
       final double height = WIDTH;
       cxoff += height * up_scaled[0];
@@ -548,7 +550,10 @@ public class PlotText extends Object {
       czoff += height * up_scaled[2] / 2.0;
     }
 
-    if (cxoff == cxoff) {
+
+/* grf 22 Jan 2004 - alter to get vertical justification correct
+*/
+    if (cxoff != 0.0f || cyoff != 0.0f || czoff != 0.0f) { 
       for (i=0; i<plot_index; i=i+3) {
         plot[i] = plot[i] - cxoff;
         plot[i+1] = plot[i+1] - cyoff;
@@ -912,11 +917,13 @@ public class PlotText extends Object {
     if (plot_index <= 0) return null;
 
     // now re-justify text along x-axis if need be.
-    float cxoff = Float.NaN;
-    float cyoff = Float.NaN;
-    float czoff = Float.NaN;
+/* grf 22 Jan 2004 - alter to get vertical justification correct
+*/
+    float cxoff = 0.0f;
+    float cyoff = 0.0f;
+    float czoff = 0.0f;
 
-    // LEFT is normal
+    // LEFT is normal (or TOP or BOTTOM)
     if (justification == TextControl.Justification.CENTER) {
       cxoff = (float)((cx - start_off[0])/2.);
       cyoff = (float)((cy - start_off[1])/2.);
@@ -928,7 +935,7 @@ public class PlotText extends Object {
 
     }
 
-    // BOTTOM is normal
+    // BOTTOM is normal (or LEFT or RIGHT)
     if (verticalJustification == TextControl.Justification.TOP) {
       final double height = WIDTH;
       cxoff += height * up_scaled[0];
@@ -941,7 +948,10 @@ public class PlotText extends Object {
       czoff += height * up_scaled[2] / 2.0;
     }
 
-    if (cxoff == cxoff) {
+/* grf 22 Jan 2004 - alter to get vertical justification correct
+   only alter if needed
+*/
+    if (cxoff != 0.0f || cyoff != 0.0f || czoff != 0.0f) { 
       for (int i=0; i<plot_index; i=i+3) {
         plot[i] = plot[i] - cxoff;
         plot[i+1] = plot[i+1] - cyoff;
@@ -1314,26 +1324,30 @@ public class PlotText extends Object {
      * Figure out how far to the 'left' our text should start
      */
     // x_offset = center ? -0.5f * x_offset : 0.0f;
-    if (justification == TextControl.Justification.LEFT) {
-      x_offset = 0.0f;
-    } else if (justification == TextControl.Justification.CENTER) {
+
+    // Set default to LEFT
+    if (justification == TextControl.Justification.CENTER) {
       x_offset = -0.5f * x_offset;
-    } else { // justification == TextControl.Justification.RIGHT) {
+    } else if (justification == TextControl.Justification.RIGHT) {
       x_offset = -1.0f * x_offset;
+    } else { // Default LEFT (or TOP or BOTTOM)
+      x_offset = 0.0f;
     }
     /*
      * abcd 20 March 2003
      * Figure out how far to 'up' our text should start
      */
-    float y_offset = 0.8f;
-    if (verticalJustification == TextControl.Justification.BOTTOM) {
-      y_offset = 0.0f;
-    } else if (verticalJustification == TextControl.Justification.CENTER) {
+/* grf 22 Jan 2004 - alter to get vertical justification correct
+   Set to default BOTTOM
+*/
+    float y_offset = (float)(0.8*scale);
+    if (verticalJustification == TextControl.Justification.CENTER) {
       y_offset = -0.5f * y_offset;
-    } else { // verticalJustification == TextControl.Justification.RIGHT) {
+    } else if ( verticalJustification == TextControl.Justification.TOP) {
       y_offset = -1.0f * y_offset;
+    } else { // BOTTOM (or LEFT or RIGHT)
+      y_offset = 0.0f;
     }
-
 
     int n = big_vector.size();
     VisADTriangleArray[] arrays = new VisADTriangleArray[n];

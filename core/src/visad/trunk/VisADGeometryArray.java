@@ -442,6 +442,7 @@ for (int i=0; i<vertexCount; i++) {
     }
     if (!any) return;
 
+    int color_length = -1;
     for (int i=0; i<n; i++) {
       if (arrays[i] == null) continue;
       count += arrays[i].vertexCount;
@@ -450,17 +451,21 @@ for (int i=0; i<vertexCount; i++) {
           texCoord_flag != (arrays[i].texCoords != null)) {
         throw new DisplayException("VisADGeometryArray.merge: formats don't match");
       }
+      // WLH 4 Feb 2004 - fix for kevin.manross3.txt
+      if (color_length < 0 && arrays[i].colors != null &&
+          arrays[i].coordinates != null) {
+        int c1 = arrays[i].colors.length;
+        int c2 = arrays[i].coordinates.length;
+        color_length = (c1 == c2) ? 3 : 4;
+      }
     }
+    if (color_length < 0) color_length = 3;
     float[] coordinates = new float[3 * count];
     byte[] colors = null;
     float[] normals = null;
     float[] texCoords = null;
     if (color_flag) {
-      // WLH 4 Feb 2004 - fix for kevin.manross3.txt
-      int c1 = arrays[0].colors.length;
-      int c2 = arrays[0].coordinates.length;
-      int mm = (c1 == c2) ? 3 : 4;
-      colors = new byte[mm * count];
+      colors = new byte[color_length * count];
     }
     if (normal_flag) {
       normals = new float[3 * count];
