@@ -36,7 +36,7 @@ public class PromiscuousUnit extends Unit {
 
   private PromiscuousUnit()
   {
-    super("promiscuous");
+    super("UniversalUnit");
   }
 
   /**
