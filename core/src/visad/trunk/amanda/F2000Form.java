@@ -56,6 +56,18 @@ public class F2000Form extends Form implements FormFileInformer {
 
   private static int num = 0;
 
+  private static RealType x = null;
+  private static RealType y = null;
+  private static RealType z = null;
+  private static RealType time = null;
+  private static RealType track_index = null;
+  private static RealType energy = null;
+  private static RealType hit_index = null;
+  private static RealType amplitude = null;
+  private static RealType tot = null;
+  private static RealType let = null;
+  private static RealType event_index = null;
+
   public F2000Form() {
     super("F2000Form" + num++);
   }
@@ -97,19 +109,43 @@ public class F2000Form extends Form implements FormFileInformer {
 
   private synchronized DataImpl open(InputStream is)
          throws BadFormException, VisADException, IOException {
-    RealType x = RealType.XAxis;
-    RealType y = RealType.YAxis;
-    RealType z = RealType.ZAxis;
-    RealType time = RealType.Time;
-    RealType energy =  RealType.getRealType("energy"); // track energy
-    RealType amplitude =  RealType.getRealType("amplitude"); // hit amplitude
-    RealType tot =  RealType.getRealType("tot"); // hit time-over-threshold
-    RealType let =  RealType.getRealType("let"); // hit leading-edge-time
+
+    if (x == null) {
+      // right handed coordinate system
+      x = RealType.XAxis; // positive eastward (along 0 longitude?)
+      y = RealType.YAxis; // positive along -90 longitude (?)
+      z = RealType.ZAxis; // positive up
+      // zenith = 0.0f toward -z (this is the "latitude")
+      // azimuth = 0.0f toward +x (this is the "longitude")
+      time = RealType.Time;
+      track_index = RealType.getRealType("track_index");
+      energy = RealType.getRealType("energy"); // track energy
+      hit_index = RealType.getRealType("hit_index");
+      amplitude = RealType.getRealType("amplitude"); // hit amplitude
+      tot = RealType.getRealType("tot"); // hit time-over-threshold
+      let = RealType.getRealType("let"); // hit leading-edge-time
+      event_index = RealType.getRealType("event_index");
+    }
 
     RealTupleType xyz = new RealTupleType(x, y, z);
+    RealTupleType track_range = new RealTupleType(time, energy);
+    FunctionType track_function_type = new FunctionType(xyz, track_range);
     RealType[] hit_reals = {x, y, z, amplitude, tot, let};
-    RealTupleType hit = new RealTupleType(hit_reals);
+    RealTupleType hit_type = new RealTupleType(hit_reals);
+    FunctionType tracks_function_type =
+      new FunctionType(track_index, track_function_type);
+    FunctionType hits_function_type = 
+      new FunctionType(hit_index, hit_type);
 
+    TupleType events_function_range = new TupleType(new MathType[]
+      {tracks_function_type, hits_function_type});
+    FunctionType events_function_type =
+      new FunctionType(event_index, events_function_range);
+
+    // array for saving 'last' values for F2000 '*' notation
+    int NLAST = 100;
+    last_values = new double[NLAST];
+    for (int i=0; i<NLAST; i++) last_values[i] = Double.NaN;
 
     InputStreamReader isr = new InputStreamReader(is);
     BufferedReader br = new BufferedReader(isr);
@@ -127,6 +163,8 @@ public class F2000Form extends Form implements FormFileInformer {
     int[] om_string = null;
     int[] om_ordinal_on_string = null;
 
+    Vector em_events = new Vector();
+
     try {
 
       // read V record
@@ -141,14 +179,16 @@ public class F2000Form extends Form implements FormFileInformer {
         if (tokens[0].equals("array")) {
           try {
             detector = tokens[1];
-            longitude = Float.parseFloat(tokens[2]);
-            latitude = Float.parseFloat(tokens[3]);
-            depth = Float.parseFloat(tokens[4]);
-            nstrings = Integer.parseInt(tokens[5]);
-            nmodule = Integer.parseInt(tokens[6]);
+            longitude = getFloat(tokens[2], 2);
+            latitude = getFloat(tokens[3], 3);
+            depth = getFloat(tokens[4], 4);
+            nstrings = getInt(tokens[5], 5);
+            nmodule = getInt(tokens[6], 6);
             if (nstrings < 1 || nmodule < 1) {
               throw new BadFormException("bad nstrings or nmodule\n" + line);
             }
+System.out.println("array " + detector + " " + longitude + " " + latitude + " " +
+                   depth + " " + nstrings + " " + nmodule + "\n" + line);
             om_x = new float[nmodule];
             om_y = new float[nmodule];
             om_z = new float[nmodule];
@@ -181,57 +221,79 @@ public class F2000Form extends Form implements FormFileInformer {
           break;
         }
         if (tokens[0].equals("om")) {
+          int number = 0;
           try {
             // convert 1-based to 0-based
-            int number = Integer.parseInt(tokens[1]) - 1;
-            om_ordinal_on_string[number] = Integer.parseInt(tokens[2]);
-            om_string[number] = Integer.parseInt(tokens[3]);
-            om_x[number] = Float.parseFloat(tokens[4]);
-            om_y[number] = Float.parseFloat(tokens[5]);
-            om_z[number] = Float.parseFloat(tokens[6]);
+            number = getInt(tokens[1], 11) - 1;
+            om_ordinal_on_string[number] = getInt(tokens[2], 12);
+            om_string[number] = getInt(tokens[3], 13);
+            om_x[number] = getFloat(tokens[4], 14);
+            om_y[number] = getFloat(tokens[5], 15);
+            om_z[number] = getFloat(tokens[6], 16);
           }
           catch(NumberFormatException e) {
             throw new BadFormException("bad number format with om\n" + line);
           }
+System.out.println("om " + number + " " + om_ordinal_on_string[number] + " " +
+                   om_string[number] + " " + om_x[number] + " " +
+                   om_y[number] + " " + om_z[number] + "\n" + line);
         }
       }
-
-      Vector em_events = new Vector();
 
       // read ES and EM events
       while (true) {
         tokens = getNext(br);
         if (tokens[0].equals("es")) {
           // ignore ES events for now
+System.out.println("es IGNORE \n" + line);
         }
         else if (tokens[0].equals("em")) {
+System.out.println("em \n" + line);
           // assemble EM event
           try {
-            int enr = Integer.parseInt(tokens[1]);
-            int year = Integer.parseInt(tokens[2]);
-            int day = Integer.parseInt(tokens[3]);
-            double em_time = Double.parseDouble(tokens[4]);
+            int enr = getInt(tokens[1], 21);
+            int year = getInt(tokens[2], 22);
+            int day = getInt(tokens[3], 23);
+            double em_time = getDouble(tokens[4], 24);
             // time shift in nsec of all times in event
-            double em_time_shift = Double.parseDouble(tokens[5]) * 0.000000001;
+            double em_time_shift = getDouble(tokens[5], 25) * 0.000000001;
           }
           catch(NumberFormatException e) {
             throw new BadFormException("bad number format with em\n" + line);
           }
           Vector tracks = new Vector();
           Vector hits = new Vector();
+          // read TR and HT records
           while (true) {
             tokens = getNext(br);
             if (tokens[0].equals("tr")) {
               try {
-                float xstart = Float.parseFloat(tokens[4]);
-                float ystart = Float.parseFloat(tokens[5]);
-                float zstart = Float.parseFloat(tokens[6]);
-                float zenith = Float.parseFloat(tokens[7]);
-                float azimuth = Float.parseFloat(tokens[8]);
-                float length = Float.parseFloat(tokens[9]);
-                float tr_energy = Float.parseFloat(tokens[10]);
-                double tr_time = Double.parseDouble(tokens[11]);
+                float xstart = getFloat(tokens[4], 34);
+                float ystart = getFloat(tokens[5], 35);
+                float zstart = getFloat(tokens[6], 36);
+                float zenith = getFloat(tokens[7], 37); // 0.0f toward -z
+                float azimuth = getFloat(tokens[8], 38); // 0.0f toward +x
+                float length = getFloat(tokens[9], 39);
+                float tr_energy = getFloat(tokens[10], 40);
+                float tr_time = getFloat(tokens[11], 41);
 
+                float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
+                float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
+                float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
+                float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
+                float zinc = length * zc;
+                float xinc = length * zs * ac;
+                float yinc = length * zs * as;
+
+                float[][] locs = {{xstart, xstart + xinc},
+                                  {ystart, ystart + yinc},
+                                  {zstart, zstart + zinc}};
+                Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
+                FlatField track_field =
+                  new FlatField(track_function_type, track_set);
+                float[][] values = {{tr_time, tr_time}, {tr_energy, tr_energy}};
+                track_field.setSamples(values, false);
+                tracks.addElement(track_field);
               }
               catch(NumberFormatException e) {
                 throw new BadFormException("bad number format with tr\n" + line);
@@ -240,36 +302,82 @@ public class F2000Form extends Form implements FormFileInformer {
             else if (tokens[0].equals("ht")) {
               try {
                 // convert 1-based to 0-based
-                int number = Integer.parseInt(tokens[1]) - 1;
-                float ht_amplitude = Float.parseFloat(tokens[2]);
-                float ht_let = Float.parseFloat(tokens[5]);
-                float ht_tot = Float.parseFloat(tokens[6]);
-                // om_x[number] ...
-
-
+                int number = getInt(tokens[1], 51) - 1;
+                float ht_amplitude = getFloat(tokens[2], 52);
+                float ht_let = getFloat(tokens[5], 55);
+                float ht_tot = getFloat(tokens[6], 56);
+                double[] values = {om_x[number], om_y[number], om_z[number],
+                                   ht_amplitude, ht_let, ht_tot};
+                RealTuple hit_tuple = new RealTuple(hit_type, values);
+                hits.addElement(hit_tuple);
               }
               catch(NumberFormatException e) {
                 throw new BadFormException("bad number format with ht\n" + line);
               }
             }
             else if (tokens[0].equals("ee")) {
+System.out.println("ee \n" + line);
+              // finish EM event
+              int ntracks = tracks.size();
+              int nhits = hits.size();
+              if (ntracks == 0 && nhits == 0) break;
+              Integer1DSet tracks_set = (ntracks == 0) ?
+                new Integer1DSet(track_index, 1) :
+                new Integer1DSet(track_index, ntracks);
+              FieldImpl tracks_field =
+                new FieldImpl(tracks_function_type, tracks_set);
+              if (ntracks > 0) {
+                FlatField[] track_fields = new FlatField[ntracks];
+                for (int i=0; i<ntracks; i++) {
+                  track_fields[i] = (FlatField) tracks.elementAt(i);
+                }
+                tracks_field.setSamples(track_fields, false);
+              }
+
+              Integer1DSet hits_set = (nhits == 0) ?
+                new Integer1DSet(hit_index, 1) :
+                new Integer1DSet(hit_index, nhits);
+              FlatField hits_field =
+                new FlatField(hits_function_type, hits_set);
+              if (nhits > 0) {
+                RealTuple[] hit_tuples = new RealTuple[nhits];
+                for (int i=0; i<nhits; i++) {
+                  hit_tuples[i] = (RealTuple) hits.elementAt(i);
+                }
+                hits_field.setSamples(hit_tuples, true);
+              }
+
+              Tuple em_tuple =
+                new Tuple(new Data[] {tracks_field, hits_field});
+              em_events.addElement(em_tuple);
               break;
             }
-          }
-          // finish EM event
-
-        }
-      }
+          } // end while (true) { // read TR and HT records
+        } // end else if (tokens[0].equals("em"))
+      } // end while (true) { // read ES and EM events
 
     }
     catch (IOException e) {
+System.out.println("IOException " + e.getMessage());
       // end of file - build Data object
-
+      int nevents = em_events.size();
+      Integer1DSet events_set = (nevents == 0) ? 
+        new Integer1DSet(event_index, 1) :
+        new Integer1DSet(event_index, nevents); 
+      FieldImpl events_field =
+        new FieldImpl(events_function_type, events_set);
+      if (nevents > 0) {
+        Tuple[] event_tuples = new Tuple[nevents];
+        for (int i=0; i<nevents; i++) {
+          event_tuples[i] = (Tuple) em_events.elementAt(i);
+        }
+        events_field.setSamples(event_tuples, false);
+      }
+      return events_field;
     }
-    return null;
   }
 
-  private static double[] last_values = new double[32];
+  private double[] last_values = null;
 
   private float getFloat(String token, int index)
           throws NumberFormatException {
@@ -297,7 +405,7 @@ public class F2000Form extends Form implements FormFileInformer {
     return value;
   }
 
-  private int getInteger(String token, int index)
+  private int getInt(String token, int index)
           throws NumberFormatException {
     int value = -1;
     if (token != null) {
@@ -315,7 +423,8 @@ public class F2000Form extends Form implements FormFileInformer {
   private String[] getNext(BufferedReader br) throws IOException {
     while (true) {
       line = br.readLine();
-      if (line == null || line.length() == 0) continue;
+      if (line == null) throw new IOException("EOF");
+      if (line.length() == 0) continue;
       line = line.toLowerCase();
       char fchar = line.charAt(0);
       if (fchar < 'a' || 'z' < fchar) continue; // skip comments
@@ -328,6 +437,7 @@ public class F2000Form extends Form implements FormFileInformer {
         tokens[i] = st.nextToken();
         i++;
       }
+      if (tokens[0].equals("end")) throw new IOException("EOF");
       return tokens;
     }
   }
@@ -345,15 +455,131 @@ public class F2000Form extends Form implements FormFileInformer {
       System.out.println("  'java visad.amanda.F2000Form in_file'");
     }
     F2000Form form = new F2000Form();
+    Data amanda = null;
     if (args[0].startsWith("http://")) {
       // with "ftp://" this throws "sun.net.ftp.FtpProtocolException: RETR ..."
       URL url = new URL(args[0]);
-      form.open(url);
+      amanda = form.open(url);
     }
     else {
-      form.open(args[0]);
+      amanda = form.open(args[0]);
     }
-    System.exit(0);
+    DisplayImpl display = new DisplayImplJ3D("amanda");
+    ScalarMap xmap = new ScalarMap(x, Display.XAxis);
+    display.addMap(xmap);
+    ScalarMap ymap = new ScalarMap(x, Display.YAxis);
+    display.addMap(ymap);
+    ScalarMap zmap = new ScalarMap(x, Display.ZAxis);
+    display.addMap(zmap);
+    ScalarMap eventmap = new ScalarMap(event_index, Display.SelectValue);
+    display.addMap(eventmap);
+    ScalarMap trackmap = new ScalarMap(track_index, Display.SelectValue);
+    display.addMap(trackmap);
+    ScalarMap energymap = new ScalarMap(energy, Display.RGB);
+    display.addMap(energymap);
+    ScalarMap shapemap = new ScalarMap(amplitude, Display.Shape);
+    display.addMap(shapemap);
+    ScalarMap shape_scalemap = new ScalarMap(amplitude, Display.ShapeScale);
+    display.addMap(shape_scalemap);
+    shape_scalemap.setRange(-50.0, 50.0);
+    ScalarMap letmap = new ScalarMap(let, Display.RGB);
+    display.addMap(letmap);
+
+    ShapeControl scontrol = (ShapeControl) shapemap.getControl();
+    scontrol.setShapeSet(new Integer1DSet(amplitude, 1));
+
+    VisADQuadArray cube = new VisADQuadArray();
+    cube.coordinates = new float[]
+      {0.1f,  0.1f, -0.1f,     0.1f, -0.1f, -0.1f,
+       0.1f, -0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
+      -0.1f, -0.1f, -0.1f,    -0.1f,  0.1f, -0.1f,
+      -0.1f,  0.1f, -0.1f,     0.1f,  0.1f, -0.1f,
+
+       0.1f,  0.1f,  0.1f,     0.1f, -0.1f,  0.1f,
+       0.1f, -0.1f,  0.1f,    -0.1f, -0.1f,  0.1f,
+      -0.1f, -0.1f,  0.1f,    -0.1f,  0.1f,  0.1f,
+      -0.1f,  0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+
+       0.1f,  0.1f,  0.1f,     0.1f,  0.1f, -0.1f,
+       0.1f,  0.1f, -0.1f,     0.1f, -0.1f, -0.1f,
+       0.1f, -0.1f, -0.1f,     0.1f, -0.1f,  0.1f,
+       0.1f, -0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+
+      -0.1f,  0.1f,  0.1f,    -0.1f,  0.1f, -0.1f,
+      -0.1f,  0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
+      -0.1f, -0.1f, -0.1f,    -0.1f, -0.1f,  0.1f,
+      -0.1f, -0.1f,  0.1f,    -0.1f,  0.1f,  0.1f,
+
+       0.1f,  0.1f,  0.1f,     0.1f,  0.1f, -0.1f,
+       0.1f,  0.1f, -0.1f,    -0.1f,  0.1f, -0.1f,
+      -0.1f,  0.1f, -0.1f,    -0.1f,  0.1f,  0.1f,
+      -0.1f,  0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+
+       0.1f, -0.1f,  0.1f,     0.1f, -0.1f, -0.1f,
+       0.1f, -0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
+      -0.1f, -0.1f, -0.1f,    -0.1f, -0.1f,  0.1f,
+      -0.1f, -0.1f,  0.1f,     0.1f, -0.1f,  0.1f};
+
+    cube.vertexCount = cube.coordinates.length / 3;
+    cube.normals = new float[144];
+    cube.normals = new float[144];
+    for (int i=0; i<24; i+=3) {
+      cube.normals[i]     =  0.0f;
+      cube.normals[i+1]   =  0.0f;
+      cube.normals[i+2]   = -1.0f;
+
+      cube.normals[i+24]  =  0.0f;
+      cube.normals[i+25]  =  0.0f;
+      cube.normals[i+26]  =  1.0f;
+
+      cube.normals[i+48]  =  1.0f;
+      cube.normals[i+49]  =  0.0f;
+      cube.normals[i+50]  =  0.0f;
+
+      cube.normals[i+72]  = -1.0f;
+      cube.normals[i+73]  =  0.0f;
+      cube.normals[i+74]  =  0.0f;
+
+      cube.normals[i+96]  =  0.0f;
+      cube.normals[i+97]  =  1.0f;
+      cube.normals[i+98]  =  0.0f;
+
+      cube.normals[i+120] =  0.0f;
+      cube.normals[i+121] = -1.0f;
+      cube.normals[i+122] =  0.0f;
+    }
+    scontrol.setShapes(new VisADGeometryArray[] {cube});
+
+    DataReferenceImpl amanda_ref = new DataReferenceImpl("amanda");
+    amanda_ref.setData(amanda);
+    display.addReference(amanda_ref);
+
+    JFrame frame = new JFrame("VisAD AERI Viewer");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    // create JPanel in frame
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    // panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    // panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    frame.getContentPane().add(panel);
+
+    JPanel widget_panel = (JPanel) display.getWidgetPanel();
+    Dimension d = new Dimension(400, 600);
+    widget_panel.setMaximumSize(d);
+    panel.add(widget_panel);
+    panel.add(display.getComponent());
+
+    int WIDTH = 1000;
+    int HEIGHT = 600;
+
+    frame.setSize(WIDTH, HEIGHT);
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    frame.setLocation(screenSize.width/2 - WIDTH/2,
+                      screenSize.height/2 - HEIGHT/2);
+    frame.setVisible(true);
   }
 
 }
