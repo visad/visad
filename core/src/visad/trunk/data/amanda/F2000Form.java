@@ -54,6 +54,9 @@ import java.awt.event.*;
 */
 public class F2000Form extends Form implements FormFileInformer {
 
+  private static final float LENGTH_SCALE = 1000.0f;
+  private static final float CUBE = 0.05f;
+
   private static int num = 0;
 
   private static RealType x = null;
@@ -67,6 +70,7 @@ public class F2000Form extends Form implements FormFileInformer {
   private static RealType tot = null;
   private static RealType let = null;
   private static RealType event_index = null;
+  private static RealType module_index = null;
 
   private double xmin = Double.MAX_VALUE;
   private double xmax = Double.MIN_VALUE;
@@ -133,6 +137,7 @@ public class F2000Form extends Form implements FormFileInformer {
       tot = RealType.getRealType("tot"); // hit time-over-threshold
       let = RealType.getRealType("let"); // hit leading-edge-time
       event_index = RealType.getRealType("event_index");
+      module_index = RealType.getRealType("module_index");
     }
 
     RealTupleType xyz = new RealTupleType(x, y, z);
@@ -149,6 +154,9 @@ public class F2000Form extends Form implements FormFileInformer {
       {tracks_function_type, hits_function_type});
     FunctionType events_function_type =
       new FunctionType(event_index, events_function_range);
+
+    FunctionType module_function_type =
+      new FunctionType(module_index, xyz);
 
     // array for saving 'last' values for F2000 '*' notation
     int NLAST = 100;
@@ -320,6 +328,7 @@ System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
                 float tr_time = getFloat(tokens[11], 41);
 
                 if (length > 1000.0f) length = 1000.0f;
+                if (length != length) length = -1.0f;
                 if (tr_energy != tr_energy) tr_energy = 1.0f;
 
                 float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
@@ -330,9 +339,17 @@ System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
                 float xinc = length * zs * ac;
                 float yinc = length * zs * as;
 
+/*
                 float[][] locs = {{xstart, xstart + xinc},
                                   {ystart, ystart + yinc},
                                   {zstart, zstart + zinc}};
+*/
+                float[][] locs = {{xstart - LENGTH_SCALE * xinc,
+                                   xstart + LENGTH_SCALE * xinc},
+                                  {ystart - LENGTH_SCALE * yinc,
+                                   ystart + LENGTH_SCALE * yinc},
+                                  {zstart - LENGTH_SCALE * zinc,
+                                   zstart + LENGTH_SCALE * zinc}};
 // System.out.println("tr (" + xstart + ", " + ystart + ", " +
 //                    zstart + "), (" + xinc + ", " +
 //                    yinc + ", " + zinc + ")\n" + line);
@@ -362,6 +379,7 @@ System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
 
                 // if (length > 1000.0f) length = 1000.0f;
                 if (length > 10000.0f) length = 10000.0f;
+                if (length != length) length = -1.0f;
                 if (tr_energy != tr_energy) tr_energy = 1.0f;
 
                 float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
@@ -372,9 +390,19 @@ System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
                 float xinc = length * zs * ac;
                 float yinc = length * zs * as;
 
+/*
                 float[][] locs = {{xstart, xstart + xinc},
                                   {ystart, ystart + yinc},
                                   {zstart, zstart + zinc}};
+*/
+                float[][] locs = {{xstart - LENGTH_SCALE * xinc,
+                                   xstart + LENGTH_SCALE * xinc},
+                                  {ystart - LENGTH_SCALE * yinc,
+                                   ystart + LENGTH_SCALE * yinc},
+                                  {zstart - LENGTH_SCALE * zinc,
+                                   zstart + LENGTH_SCALE * zinc}};
+// System.out.println("fit length = " + length + " azimuth = " + azimuth +
+//                    " zenith = " + zenith);
 // System.out.println("fit (" + xstart + ", " + ystart + ", " +
 //                    zstart + "), (" + xinc + ", " +
 //                    yinc + ", " + zinc + ") " + length + " " +
@@ -472,7 +500,20 @@ System.out.println("IOException " + e.getMessage());
         }
         events_field.setSamples(event_tuples, false);
       }
-      return events_field;
+      // return events_field;
+
+      Integer1DSet module_set = new Integer1DSet(module_index, nmodule);
+      FlatField module_field =
+        new FlatField(module_function_type, module_set);
+      float[][] msamples = new float[3][nmodule];
+      for (int i=0; i<nmodule; i++) {
+        msamples[0][i] = om_x[i];
+        msamples[1][i] = om_y[i];
+        msamples[2][i] = om_z[i];
+      }
+      module_field.setSamples(msamples);
+
+      return new Tuple(new Data[] {events_field, module_field});
     }
   }
 
@@ -579,17 +620,35 @@ System.out.println("IOException " + e.getMessage());
     else {
       temp = form.open(args[0]);
     }
-    final Data amanda = temp;
+
+    // compute x, y and z ranges with unity aspect ratios
+    double xrange = form.xmax - form.xmin;
+    double yrange = form.ymax - form.ymin;
+    double zrange = form.zmax - form.zmin;
+    double half_range = -.5 * Math.max(xrange, Math.max(yrange, zrange));
+    double xmid = 0.5 * (form.xmax + form.xmin);
+    double ymid = 0.5 * (form.ymax + form.ymin);
+    double zmid = 0.5 * (form.zmax + form.zmin);
+    double xmin = xmid - half_range;
+    double xmax = xmid + half_range;
+    double ymin = ymid - half_range;
+    double ymax = ymid + half_range;
+    double zmin = zmid - half_range;
+    double zmax = zmid + half_range;
+
+    final FieldImpl amanda = (FieldImpl) ((Tuple) temp).getComponent(0);
+    final FieldImpl modules = (FieldImpl) ((Tuple) temp).getComponent(1);
+
     DisplayImpl display = new DisplayImplJ3D("amanda");
     ScalarMap xmap = new ScalarMap(x, Display.XAxis);
     display.addMap(xmap);
-    xmap.setRange(form.xmin, form.xmax);
+    xmap.setRange(xmin, xmax);
     ScalarMap ymap = new ScalarMap(y, Display.YAxis);
     display.addMap(ymap);
-    ymap.setRange(form.ymin, form.ymax);
+    ymap.setRange(ymin, ymax);
     ScalarMap zmap = new ScalarMap(z, Display.ZAxis);
     display.addMap(zmap);
-    zmap.setRange(form.zmin, form.zmax);
+    zmap.setRange(zmin, zmax);
     // ScalarMap eventmap = new ScalarMap(event_index, Display.SelectValue);
     // display.addMap(eventmap);
     ScalarMap trackmap = new ScalarMap(track_index, Display.SelectValue);
@@ -601,47 +660,49 @@ System.out.println("IOException " + e.getMessage());
     ScalarMap shape_scalemap = new ScalarMap(amplitude, Display.ShapeScale);
     display.addMap(shape_scalemap);
     shape_scalemap.setRange(-20.0, 50.0);
-    // ScalarMap letmap = new ScalarMap(let, Display.RGB);
-    ScalarMap letmap = new ScalarMap(tot, Display.RGB);
+    ScalarMap letmap = new ScalarMap(let, Display.RGB);
+    // ScalarMap letmap = new ScalarMap(tot, Display.RGB);
     display.addMap(letmap);
 
     GraphicsModeControl mode = display.getGraphicsModeControl();
-    mode.setScaleEnable(true);
+    // mode.setScaleEnable(true);
+    DisplayRenderer displayRenderer = display.getDisplayRenderer();
+    displayRenderer.setBoxOn(false);
 
     ShapeControl scontrol = (ShapeControl) shapemap.getControl();
     scontrol.setShapeSet(new Integer1DSet(amplitude, 1));
 
     VisADQuadArray cube = new VisADQuadArray();
     cube.coordinates = new float[]
-      {0.1f,  0.1f, -0.1f,     0.1f, -0.1f, -0.1f,
-       0.1f, -0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
-      -0.1f, -0.1f, -0.1f,    -0.1f,  0.1f, -0.1f,
-      -0.1f,  0.1f, -0.1f,     0.1f,  0.1f, -0.1f,
+      {CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+      -CUBE, -CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
+      -CUBE,  CUBE, -CUBE,     CUBE,  CUBE, -CUBE,
 
-       0.1f,  0.1f,  0.1f,     0.1f, -0.1f,  0.1f,
-       0.1f, -0.1f,  0.1f,    -0.1f, -0.1f,  0.1f,
-      -0.1f, -0.1f,  0.1f,    -0.1f,  0.1f,  0.1f,
-      -0.1f,  0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+       CUBE,  CUBE,  CUBE,     CUBE, -CUBE,  CUBE,
+       CUBE, -CUBE,  CUBE,    -CUBE, -CUBE,  CUBE,
+      -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
+      -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
 
-       0.1f,  0.1f,  0.1f,     0.1f,  0.1f, -0.1f,
-       0.1f,  0.1f, -0.1f,     0.1f, -0.1f, -0.1f,
-       0.1f, -0.1f, -0.1f,     0.1f, -0.1f,  0.1f,
-       0.1f, -0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
+       CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,     CUBE, -CUBE,  CUBE,
+       CUBE, -CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
 
-      -0.1f,  0.1f,  0.1f,    -0.1f,  0.1f, -0.1f,
-      -0.1f,  0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
-      -0.1f, -0.1f, -0.1f,    -0.1f, -0.1f,  0.1f,
-      -0.1f, -0.1f,  0.1f,    -0.1f,  0.1f,  0.1f,
+      -CUBE,  CUBE,  CUBE,    -CUBE,  CUBE, -CUBE,
+      -CUBE,  CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+      -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
+      -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
 
-       0.1f,  0.1f,  0.1f,     0.1f,  0.1f, -0.1f,
-       0.1f,  0.1f, -0.1f,    -0.1f,  0.1f, -0.1f,
-      -0.1f,  0.1f, -0.1f,    -0.1f,  0.1f,  0.1f,
-      -0.1f,  0.1f,  0.1f,     0.1f,  0.1f,  0.1f,
+       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
+       CUBE,  CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
+      -CUBE,  CUBE, -CUBE,    -CUBE,  CUBE,  CUBE,
+      -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
 
-       0.1f, -0.1f,  0.1f,     0.1f, -0.1f, -0.1f,
-       0.1f, -0.1f, -0.1f,    -0.1f, -0.1f, -0.1f,
-      -0.1f, -0.1f, -0.1f,    -0.1f, -0.1f,  0.1f,
-      -0.1f, -0.1f,  0.1f,     0.1f, -0.1f,  0.1f};
+       CUBE, -CUBE,  CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+      -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
+      -CUBE, -CUBE,  CUBE,     CUBE, -CUBE,  CUBE};
 
     cube.vertexCount = cube.coordinates.length / 3;
     cube.normals = new float[144];
@@ -681,10 +742,14 @@ System.out.println("IOException " + e.getMessage());
     // amanda_ref.setData(amanda);
     display.addReference(amanda_ref);
 
+    final DataReferenceImpl modules_ref = new DataReferenceImpl("modules");
+    modules_ref.setData(modules);
+    display.addReference(modules_ref);
+
 System.out.println("amanda MathType\n" + amanda.getType());
 // visad.jmet.DumpType.dumpDataType(amanda, System.out);
 
-    final int nevents = ((Field) amanda).getLength();
+    final int nevents = amanda.getLength();
 
     final DataReference event_ref = new DataReferenceImpl("event");
     VisADSlider event_slider = new VisADSlider("event", 0, nevents, 0, 1.0,
@@ -694,7 +759,7 @@ System.out.println("amanda MathType\n" + amanda.getType());
         int index = (int) ((Real) event_ref.getData()).getValue();
         if (index < 0) index = 0;
         else if (index > nevents) index = nevents;
-        amanda_ref.setData(((FieldImpl) amanda).getSample(index));
+        amanda_ref.setData(amanda.getSample(index));
       }
     };
     // link cell to hour_ref to trigger doAction whenever
