@@ -133,10 +133,10 @@ public class Real extends Scalar {
           if (unit == null || data_unit == null) {
             u = null;
           }
-          else if (unit == Unit.promiscuous) {
+          else if (unit == CommonUnit.promiscuous) {
             u = data_unit;
           }
-          else if (data_unit == Unit.promiscuous) {
+          else if (data_unit == CommonUnit.promiscuous) {
             u = unit;
           }
           else if (Unit.canConvert(unit, data_unit)) {
@@ -210,19 +210,19 @@ public class Real extends Scalar {
           break;
         case ATAN2:
           value = Math.atan2(Value, value);
-          u = Unit.radian;
+          u = CommonUnit.radian;
           break;
         case ATAN2_DEGREES:
           value = Data.RADIANS_TO_DEGREES * Math.atan2(Value, value);
-          u = Unit.degree;
+          u = CommonUnit.degree;
           break;
         case INV_ATAN2:
           value = Math.atan2(value, Value);
-          u = Unit.radian;
+          u = CommonUnit.radian;
           break;
         case INV_ATAN2_DEGREES:
           value = Data.RADIANS_TO_DEGREES * Math.atan2(value, Value);
-          u = Unit.degree;
+          u = CommonUnit.degree;
           break;
         case REMAINDER:
           value = Value % value;
@@ -270,27 +270,27 @@ public class Real extends Scalar {
         break;
       case ACOS:
         value = Math.acos(Value);
-        u = Unit.radian;
+        u = CommonUnit.radian;
         break;
       case ACOS_DEGREES:
         value = Data.RADIANS_TO_DEGREES * Math.acos(Value);
-        u = Unit.degree;
+        u = CommonUnit.degree;
         break;
       case ASIN:
         value = Math.asin(Value);
-        u = Unit.radian;
+        u = CommonUnit.radian;
         break;
       case ASIN_DEGREES:
         value = Data.RADIANS_TO_DEGREES * Math.asin(Value);
-        u = Unit.degree;
+        u = CommonUnit.degree;
         break;
       case ATAN:
         value = Math.atan(Value);
-        u = Unit.radian;
+        u = CommonUnit.radian;
         break;
       case ATAN_DEGREES:
         value = Data.RADIANS_TO_DEGREES * Math.atan(Value);
-        u = Unit.degree;
+        u = CommonUnit.degree;
         break;
       case CEIL:
         value = Math.ceil(Value);
@@ -298,19 +298,19 @@ public class Real extends Scalar {
         break;
       case COS:
         // do cos in radians, unless unit is degrees
-        value = unit.equals(Unit.degree) ?
+        value = unit.equals(CommonUnit.degree) ?
                 Math.cos(Data.DEGREES_TO_RADIANS * Value) : Math.cos(Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case COS_DEGREES:
         // do cos in degrees, unless unit is radians
-        value = unit.equals(Unit.radian) ?
+        value = unit.equals(CommonUnit.radian) ?
                 Math.cos(Value) : Math.cos(Data.DEGREES_TO_RADIANS * Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case EXP:
         value = Math.exp(Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case FLOOR:
         value = Math.floor(Value);
@@ -318,7 +318,7 @@ public class Real extends Scalar {
         break;
       case LOG:
         value = Math.log(Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case RINT:
         value = Math.rint(Value);
@@ -330,31 +330,31 @@ public class Real extends Scalar {
         break;
       case SIN:
         // do sin in radians, unless unit is degrees
-        value = unit.equals(Unit.degree) ?
+        value = unit.equals(CommonUnit.degree) ?
                 Math.sin(Data.DEGREES_TO_RADIANS * Value) : Math.sin(Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case SIN_DEGREES:
         // do sin in degrees, unless unit is radians
-        value = unit.equals(Unit.radian) ?
+        value = unit.equals(CommonUnit.radian) ?
                 Math.sin(Value) : Math.sin(Data.DEGREES_TO_RADIANS * Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case SQRT:
         value = Math.sqrt(Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case TAN:
         // do tan in radians, unless unit is degrees
-        value = unit.equals(Unit.degree) ?
+        value = unit.equals(CommonUnit.degree) ?
                 Math.tan(Data.DEGREES_TO_RADIANS * Value) : Math.tan(Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case TAN_DEGREES:
         // do tan in degrees, unless unit is radians
-        value = unit.equals(Unit.radian) ?
+        value = unit.equals(CommonUnit.radian) ?
                 Math.tan(Value) : Math.tan(Data.DEGREES_TO_RADIANS * Value);
-        u = Unit.dimensionless.equals(unit) ? unit : null;
+        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
         break;
       case NEGATE:
         value = -Value;

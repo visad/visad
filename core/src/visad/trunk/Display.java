@@ -75,10 +75,10 @@ public interface Display extends Action {
 
   public final static DisplayRealType Latitude =
     new DisplayRealType("Latitude", true, -180.0, 180.0, 0.0,
-                        ProjectionControl.prototype, Unit.degree, true);
+                        ProjectionControl.prototype, CommonUnit.degree, true);
   public final static DisplayRealType Longitude =
     new DisplayRealType("Longitude", true, 0.0, 360.0, 0.0,
-                        ProjectionControl.prototype, Unit.degree, true);
+                        ProjectionControl.prototype, CommonUnit.degree, true);
   public final static DisplayRealType Radius =
     new DisplayRealType("Radius", true, 0.0, 2.0, 1.0,
                         ProjectionControl.prototype, true);

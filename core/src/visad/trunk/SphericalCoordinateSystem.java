@@ -32,7 +32,7 @@ package visad;
 class SphericalCoordinateSystem extends CoordinateSystem {
 
   private static Unit[] coordinate_system_units =
-    {Unit.degree, Unit.degree, null};
+    {CommonUnit.degree, CommonUnit.degree, null};
 
   public SphericalCoordinateSystem(RealTupleType reference) throws VisADException {
     super(reference, coordinate_system_units);

@@ -1066,10 +1066,10 @@ public class FlatField extends FieldImpl {
             if (RangeUnits[j] == null || units_out[j] == null) {
               u = null;
             }
-            else if (RangeUnits[j] == Unit.promiscuous) {
+            else if (RangeUnits[j] == CommonUnit.promiscuous) {
               u = units_out[j];
             }
-            else if (units_out[j] == Unit.promiscuous) {
+            else if (units_out[j] == CommonUnit.promiscuous) {
               u = RangeUnits[j];
             }
             else if (Unit.canConvert(RangeUnits[j], units_out[j])) {
@@ -1213,7 +1213,7 @@ public class FlatField extends FieldImpl {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.atan2(valuesJ[i], value2J[i]);
             }
-            units_out[j] = Unit.radian;
+            units_out[j] = CommonUnit.radian;
           }
           break;
         case ATAN2_DEGREES:
@@ -1224,7 +1224,7 @@ public class FlatField extends FieldImpl {
               valuesJ[i] = Data.RADIANS_TO_DEGREES *
                            Math.atan2(valuesJ[i], value2J[i]);
             }
-            units_out[j] = Unit.degree;
+            units_out[j] = CommonUnit.degree;
           }
           break;
         case INV_ATAN2:
@@ -1234,7 +1234,7 @@ public class FlatField extends FieldImpl {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.atan2(value2J[i], valuesJ[i]);
             }
-            units_out[j] = Unit.radian;
+            units_out[j] = CommonUnit.radian;
           }
           break;
         case INV_ATAN2_DEGREES:
@@ -1245,7 +1245,7 @@ public class FlatField extends FieldImpl {
               valuesJ[i] = Data.RADIANS_TO_DEGREES *
                            Math.atan2(value2J[i], valuesJ[i]);
             }
-            units_out[j] = Unit.degree;
+            units_out[j] = CommonUnit.degree;
           }
           break;
         case REMAINDER:
@@ -1391,10 +1391,10 @@ public class FlatField extends FieldImpl {
               if (RangeUnits[j] == null || units_out[j] == null) {
                 u = null;
               }
-              else if (RangeUnits[j] == Unit.promiscuous) {
+              else if (RangeUnits[j] == CommonUnit.promiscuous) {
                 u = units_out[j];
               }
-              else if (units_out[j] == Unit.promiscuous) {
+              else if (units_out[j] == CommonUnit.promiscuous) {
                 u = RangeUnits[j];
               }
               else if (Unit.canConvert(RangeUnits[j], units_out[j])) {
@@ -1495,27 +1495,27 @@ public class FlatField extends FieldImpl {
             for (int i=0; i<Length; i++) {
               valuesJ[i] = Math.atan2(valuesJ[i], value);
             }
-            units_out[j] = Unit.radian;
+            units_out[j] = CommonUnit.radian;
             break;
           case ATAN2_DEGREES:
             for (int i=0; i<Length; i++) {
               valuesJ[i] = Data.RADIANS_TO_DEGREES *
                            Math.atan2(valuesJ[i], value);
             }
-            units_out[j] = Unit.degree;
+            units_out[j] = CommonUnit.degree;
             break;
           case INV_ATAN2:
             for (int i=0; i<Length; i++) {
               valuesJ[i] = Math.atan2(value, valuesJ[i]);
             }
-            units_out[j] = Unit.radian;
+            units_out[j] = CommonUnit.radian;
             break;
           case INV_ATAN2_DEGREES:
             for (int i=0; i<Length; i++) {
               valuesJ[i] = Data.RADIANS_TO_DEGREES *
                            Math.atan2(value, valuesJ[i]);
             }
-            units_out[j] = Unit.degree;
+            units_out[j] = CommonUnit.degree;
             break;
           case REMAINDER:
             for (int i=0; i<Length; i++) {
@@ -1589,7 +1589,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.acos(valuesJ[i]);
           }
-          units_out[j] = Unit.radian;
+          units_out[j] = CommonUnit.radian;
         }
         break;
       case ACOS_DEGREES:
@@ -1598,7 +1598,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.acos(valuesJ[i]);
           }
-          units_out[j] = Unit.degree;
+          units_out[j] = CommonUnit.degree;
         }
         break;
       case ASIN:
@@ -1607,7 +1607,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.asin(valuesJ[i]);
           }
-          units_out[j] = Unit.radian;
+          units_out[j] = CommonUnit.radian;
         }
         break;
       case ASIN_DEGREES:
@@ -1616,7 +1616,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.asin(valuesJ[i]);
           }
-          units_out[j] = Unit.degree;
+          units_out[j] = CommonUnit.degree;
         }
         break;
       case ATAN:
@@ -1625,7 +1625,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.atan(valuesJ[i]);
           }
-          units_out[j] = Unit.radian;
+          units_out[j] = CommonUnit.radian;
         }
         break;
       case ATAN_DEGREES:
@@ -1634,7 +1634,7 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Data.RADIANS_TO_DEGREES * Math.atan(valuesJ[i]);
           }
-          units_out[j] = Unit.degree;
+          units_out[j] = CommonUnit.degree;
         }
         break;
       case CEIL:
@@ -1650,7 +1650,7 @@ public class FlatField extends FieldImpl {
         // do cos in degrees, unless unit is radians
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(Unit.degree)) {
+          if (RangeUnits[j].equals(CommonUnit.degree)) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.cos(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -1661,13 +1661,13 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case COS_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(Unit.radian)) {
+          if (RangeUnits[j].equals(CommonUnit.radian)) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.cos(valuesJ[i]);
             }
@@ -1678,7 +1678,7 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case EXP:
@@ -1688,7 +1688,7 @@ public class FlatField extends FieldImpl {
             valuesJ[i] = Math.exp(valuesJ[i]);
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case FLOOR:
@@ -1707,7 +1707,7 @@ public class FlatField extends FieldImpl {
             valuesJ[i] = Math.log(valuesJ[i]);
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case RINT:
@@ -1731,7 +1731,7 @@ public class FlatField extends FieldImpl {
       case SIN:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(Unit.degree)) {
+          if (RangeUnits[j].equals(CommonUnit.degree)) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.sin(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -1742,13 +1742,13 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case SIN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(Unit.radian)) {
+          if (RangeUnits[j].equals(CommonUnit.radian)) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.sin(valuesJ[i]);
             }
@@ -1759,7 +1759,7 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case SQRT:
@@ -1769,13 +1769,13 @@ public class FlatField extends FieldImpl {
             valuesJ[i] = Math.sqrt(valuesJ[i]);
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case TAN:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(Unit.degree)) {
+          if (RangeUnits[j].equals(CommonUnit.degree)) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.tan(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -1786,13 +1786,13 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case TAN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(Unit.radian)) {
+          if (RangeUnits[j].equals(CommonUnit.radian)) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.tan(valuesJ[i]);
             }
@@ -1803,7 +1803,7 @@ public class FlatField extends FieldImpl {
             }
           }
           units_out[j] =
-            Unit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
+            CommonUnit.dimensionless.equals(RangeUnits[j]) ? RangeUnits[j] : null;
         }
         break;
       case NEGATE:

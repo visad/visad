@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.2 1997-11-06 18:19:44 billh Exp $
+ * $Id: Unit.java,v 1.3 1997-11-14 13:49:40 billh Exp $
  */
 
 package visad;
@@ -28,12 +28,6 @@ public abstract class Unit
 /*
    added by Bill Hibbard for VisAD
 */
-
-  static Unit degree = SI.radian.scale(Math.PI/180.0, true);
-  static Unit radian = SI.radian;
-  static Unit second = SI.second;
-  static Unit dimensionless = new DerivedUnit();
-  static Unit promiscuous = PromiscuousUnit.promiscuous;
 
   /** convert a tuple of value arrays (a double[][]) */
   public static double[][] convertTuple(double[][] value, Unit[] units_in,
@@ -80,8 +74,8 @@ public abstract class Unit
       thus this method does not reflect open convertability
       of Unit.promiscuous */
   public static boolean canConvert(Unit unita, Unit unitb) {
-    if (unita == Unit.promiscuous) unita = null;
-    if (unitb == Unit.promiscuous) unitb = null;
+    if (unita == CommonUnit.promiscuous) unita = null;
+    if (unitb == CommonUnit.promiscuous) unitb = null;
     if (unita == null && unitb == null) return true;
     if (unita == null || unitb == null) return false;
     // WLH - real logic goes here
@@ -190,7 +184,7 @@ public abstract class Unit
     }
   }
 
-  private Unit scale(double amount, boolean b) {
+  Unit scale(double amount, boolean b) {
     return new ScaledUnit(amount, (BaseUnit)this);
   }
 

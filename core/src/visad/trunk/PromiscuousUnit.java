@@ -33,7 +33,7 @@ public class PromiscuousUnit extends Unit {
 
   private final String name = "promiscuous";
 
-  static final Unit promsicuous = new PromiscuousUnit();
+  static final Unit promiscuous = new PromiscuousUnit();
 
   private PromiscuousUnit() {
     super();
@@ -66,17 +66,17 @@ public class PromiscuousUnit extends Unit {
 
   Unit divide(BaseUnit that)
        throws UnitException {
-    return Unit.dimensionless.divide(that);
+    return CommonUnit.dimensionless.divide(that);
   }
 
   Unit divide(DerivedUnit that)
        throws UnitException {
-    return Unit.dimensionless.divide(that);
+    return CommonUnit.dimensionless.divide(that);
   }
 
   Unit divide(ScaledUnit that)
        throws UnitException {
-    return Unit.dimensionless.divide(that);
+    return CommonUnit.dimensionless.divide(that);
   }
 
 

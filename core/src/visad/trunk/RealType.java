@@ -43,9 +43,9 @@ public class RealType extends ScalarType {
 
   /** Spherical spatial coordinates */
   public final static RealType Latitude =
-    new RealType("Latitude", Unit.degree, true);
+    new RealType("Latitude", CommonUnit.degree, true);
   public final static RealType Longitude =
-    new RealType("Longitude", Unit.degree, true);
+    new RealType("Longitude", CommonUnit.degree, true);
   public final static RealType Radius =
     new RealType("Radius", null, true);
 
@@ -55,7 +55,7 @@ public class RealType extends ScalarType {
 
   /** generic RealType */
   public final static RealType Generic =
-    new RealType("GENERIC_REAL", Unit.promiscuous, true);
+    new RealType("GENERIC_REAL", CommonUnit.promiscuous, true);
 
   /** construct a RealType with given Unit and default set */
   public RealType(String name, Unit u, Set set) throws VisADException {
