@@ -314,6 +314,7 @@ public class MeasurePool implements DisplayListener {
             list.addMarker(merged, false);
           }
           list.refreshPools(true);
+          bio.toolMeasure.updateSelection();
           bio.toolMeasure.setMerge(false);
         }
         else {
@@ -428,6 +429,7 @@ public class MeasurePool implements DisplayListener {
     list.setCurrent(true);
     deselectAll();
     releaseAll();
+    bio.toolMeasure.updateSelection();
     refresh(true);
   }
 

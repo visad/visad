@@ -132,6 +132,7 @@ public class MeasureManager {
   /** Clears all measurements from all image slices. */
   public void clear() {
     for (int i=0; i<lists.length; i++) lists[i].removeAll();
+    bio.toolMeasure.updateSelection();
   }
 
   /** Gets measurement list for current index. */
