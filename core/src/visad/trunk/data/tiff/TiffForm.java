@@ -88,7 +88,7 @@ public class TiffForm extends Form
 
   // -- Fields --
 
-  /** Reflection tool for JAI calls. */
+  /** Reflection tool for ImageJ and JAI calls. */
   private ReflectedUniverse r;
 
   /** Flag indicating ImageJ is not installed. */
