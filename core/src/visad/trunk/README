@@ -200,7 +200,7 @@ these applications, you must add:
 to your LD_LIBRARY_PATH.
 
 
-7. Downloading VisAD Classes in Jar Files
+6. Downloading VisAD Classes in Jar Files
 
 If you want to write applications for VisAD but don't want
 to compile VisAD from source, you can dowload jar files that
@@ -265,7 +265,7 @@ is also a .tar file containing each of these .jar files):
   visad_gif.jar		// visad.data, visad.data.gif
 
 
-8. Problems
+7. Problems
 
 If you have problems, send en email message to the VisAD mailing
 list at:

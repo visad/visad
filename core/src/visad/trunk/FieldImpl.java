@@ -350,7 +350,38 @@ public class FieldImpl extends FunctionImpl implements Field {
     setSample(indices[0], range);
   }
 
+  public void setSample(int index, Data range)
+         throws VisADException, RemoteException {
+    setSample(index, range, true);
+  }
+ 
   /** set the range value at the index-th sample */
+  public void setSample(int index, Data range, boolean copy)
+         throws VisADException, RemoteException {
+    if (DomainSet == null) {
+      throw new FieldException("FieldImpl.setSample: DomainSet undefined");
+    }
+    if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
+      throw new TypeException("FieldImpl.setSample: bad range type");
+    }
+    if (index >= 0 && index < Length) {
+      synchronized (Range) {
+        MissingFlag = false;
+        if ( copy ) {
+          Range[index] = (Data) range.dataClone();
+        }
+        else {
+          Range[index] = range;
+        }
+        if (Range[index] instanceof DataImpl) {
+          ((DataImpl) Range[index]).setParent(this);
+        }
+      }
+    }
+    notifyReferences();
+  }
+
+/* WLH 9 March 98
   public void setSample(int index, Data range)
          throws VisADException, RemoteException {
     if (DomainSet == null) {
@@ -370,6 +401,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     notifyReferences();
   }
+*/
 
   /** test whether Field value is missing */
   public boolean isMissing() {
