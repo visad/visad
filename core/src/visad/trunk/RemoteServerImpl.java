@@ -106,6 +106,22 @@ public class RemoteServerImpl extends UnicastRemoteObject
     refs[index] = ref;
   }
 
+  /** add a new RemoteDataReferenceImpl to serve and extend array */
+  public synchronized void addDataReference(RemoteDataReferenceImpl ref) {
+    if (ref == null) return;
+
+    int len;
+    if (refs == null || refs.length == 0) len = 0;
+    else len = refs.length;
+
+    RemoteDataReferenceImpl[] nr = new RemoteDataReferenceImpl[len + 1];
+
+    if (len > 0) System.arraycopy(refs, 0, nr, 0, len);
+
+    nr[len] = ref;
+    refs = nr;
+  }
+
   /** set array of all RemoteDataReferences on this RemoteServer */
   public synchronized void setDataReferences(RemoteDataReferenceImpl[] rs) {
     if (rs == null) {
@@ -159,7 +175,7 @@ public class RemoteServerImpl extends UnicastRemoteObject
     throw new RemoteException("Display \"" + name + "\" not found");
   }
 
-  /** set all RemoteDisplayImpls to serve */
+  /** add a new RemoteDisplayImpls to serve and extend array */
   public synchronized void addDisplay(RemoteDisplayImpl rd) {
     if (rd == null) {
       return;
