@@ -146,6 +146,10 @@ public abstract class RendererJ3D extends DataRenderer {
     boolean any_changed = get_any_changed();
     boolean any_transform_control = get_any_transform_control();
     if (all_feasible && (any_changed || any_transform_control)) {
+/*
+System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
+                   " any_transform_control = " + any_transform_control);
+*/
       // exceptionVector.removeAllElements();
       clearAVControls();
       try {
