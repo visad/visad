@@ -50,6 +50,7 @@ import visad.java3d.*;
 // VisAD classes
 import visad.data.BadFormException;
 import visad.data.DefaultFamily;
+import visad.data.netcdf.Plain;
 
 /** BasicSSCell represents a single spreadsheet display cell.  BasicSSCells
     can be added to a VisAD user interface to provide some of the capabilities
@@ -63,6 +64,9 @@ public class BasicSSCell extends JPanel {
 
   /** VisAD object for loading data files. */
   static DefaultFamily Loader = new DefaultFamily("Loader");
+
+  /** VisAD object for saving data files. */
+  static Plain Saver = new Plain();
 
   /** Name of this BasicSSCell. */
   String Name;
@@ -96,6 +100,9 @@ public class BasicSSCell extends JPanel {
 
   /** Specifies this SSCell's DisplayListener. */
   DisplayListener DListen = null;
+
+  /** A counter for the number of cells currently saving data. */
+  static int Saving = 0;
 
   /** Specifies whether the BasicSSCell contains any data. */
   boolean HasData = false;
@@ -443,7 +450,7 @@ public class BasicSSCell extends JPanel {
   /** Imports a data object from a given file name. */
   public void loadData(File f) throws BadFormException, IOException,
                                       VisADException, RemoteException {
-    if (!f.exists()) return;
+    if (f == null || !f.exists()) return;
     clearCell();
     final String filename = f.getPath();
     IsBusy = true;
@@ -456,6 +463,7 @@ public class BasicSSCell extends JPanel {
     add(pleaseWait);
 
     validate();
+    paint(getGraphics());
     boolean error = false;
     Data data = null;
     try {
@@ -470,6 +478,15 @@ public class BasicSSCell extends JPanel {
       Filename = filename;
     }
     IsBusy = false;
+  }
+
+  /** Exports a data object to a given file name, in netCDF format. */
+  public void saveData(File f) throws BadFormException, IOException,
+                                      VisADException, RemoteException {
+    if (f == null || !HasData) return;
+    Saving++;
+    Saver.save(f.getPath(), DataRef.getData(), true);
+    Saving--;
   }
 
   public boolean hasData() {

@@ -148,6 +148,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     fileOpen.setActionCommand("fileOpen");
     file.add(fileOpen);
 
+    MenuItem fileSave = new MenuItem("Export data to netCDF...");
+    fileSave.addActionListener(this);
+    fileSave.setActionCommand("fileSave");
+    file.add(fileSave);
+
     file.addSeparator();
 
     MenuItem fileExit = new MenuItem("Exit");
@@ -262,6 +267,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
       b.setToolTipText("Import data");
       b.addActionListener(this);
       b.setActionCommand("fileOpen");
+      toolbar.add(b);
+    }
+    ImageIcon toolFileSave = new ImageIcon("save.gif");
+    if (toolFileSave != null) {
+      JButton b = new JButton(toolFileSave);
+      b.setToolTipText("Export data to netCDF");
+      b.addActionListener(this);
+      b.setActionCommand("fileSave");
       toolbar.add(b);
     }
     toolbar.addSeparator();
@@ -505,8 +518,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
 
-    // setup menu commands
-    if (cmd.equals("fileExit")) quitProgram();
+    // file menu commands
+    if (cmd.equals("fileOpen")) loadDataSet();
+    else if (cmd.equals("fileSave")) exportDataSet();
+    else if (cmd.equals("fileExit")) {
+      DisplayCells[CurDisplay].hideWidgetFrame();
+      setVisible(false);
+      quitProgram();
+    }
 
     // edit menu commands
     else if (cmd.equals("editCut")) cutCell();
@@ -519,9 +538,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("setupOpen")) openFile();
     else if (cmd.equals("setupSave")) saveFile();
     else if (cmd.equals("setupSaveas")) saveasFile();
-
-    // cell menu commands
-    else if (cmd.equals("fileOpen")) loadDataSet();
 
     // mappings menu commands
     else if (cmd.equals("dispEdit")) createMappings();
@@ -643,20 +659,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     SSFileDialog.setMode(FileDialog.SAVE);
     SSFileDialog.setVisible(true);
 
-    // get file
+    // get file and make sure it is valid
     String file = SSFileDialog.getFile();
     if (file == null) return;
     String dir = SSFileDialog.getDirectory();
     if (dir == null) return;
     File f = new File(dir, file);
-    if (f.exists()) {
-      // confirm save
-      int ans = JOptionPane.showConfirmDialog(null, "This file already "
-                                             +"exists.  Do you want to "
-                                             +"overwrite it?", "Warning",
-                                              JOptionPane.YES_NO_OPTION);
-      if (ans != JOptionPane.YES_OPTION) return;
-    }
     CurrentFile = f;
     setTitle("VisAD SpreadSheet - "+f.getPath());
     saveFile();
@@ -664,7 +672,43 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Does any necessary clean-up, then quits the program. */
   void quitProgram() {
-    System.exit(0);
+    // wait for files to finish saving
+    Thread t = new Thread() {
+      public void run() {
+        boolean b = false;
+        if (BasicSSCell.Saving > 0) b = true;
+        JFrame f = new JFrame("Please wait");
+        if (b) {
+          // display "please wait" message in new frame
+          f.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          JPanel p = new JPanel();
+          f.setContentPane(p);
+          p.setBorder(new EmptyBorder(10, 20, 10, 20));
+          p.setLayout(new BorderLayout());
+          p.add("Center", new JLabel("Please wait while the VisAD "
+                          +"SpreadSheet finishes saving files..."));
+          f.setResizable(false);
+          f.pack();
+          Dimension sSize = Toolkit.getDefaultToolkit().getScreenSize();
+          Dimension fSize = f.getSize();
+          f.setLocation(sSize.width/2 - fSize.width/2,
+                        sSize.height/2 - fSize.height/2);
+          f.setVisible(true);
+        }
+        while (BasicSSCell.Saving > 0) {
+          try {
+            sleep(500);
+          }
+          catch (InterruptedException exc) { }
+        }
+        if (b) {
+          f.setCursor(Cursor.getDefaultCursor());
+          f.setVisible(false);
+        }
+        System.exit(0);
+      }
+    };
+    t.start();
   }
 
   /** Moves a cell from the screen to the clipboard. */
@@ -689,7 +733,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurDisplay].setSSCellString(Clipboard);
       }
       catch (VisADException exc) {
-        //ErrorBox.showError("Could not paste cell: "+exc.toString());
         JOptionPane.showMessageDialog(this,
             "Could not paste cell: "+exc.toString(),
             "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
@@ -721,6 +764,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Allows the user to import a data set. */
   void loadDataSet() {
     DisplayCells[CurDisplay].loadDataDialog();
+  }
+
+  /** Allows the user to export a data set to netCDF format. */
+  void exportDataSet() {
+    DisplayCells[CurDisplay].saveDataDialog();
   }
 
   /** Makes sure the formula bar is displaying up-to-date info. */

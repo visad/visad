@@ -481,10 +481,8 @@ public class FancySSCell extends BasicSSCell {
   /** Loads a file selected by the user. */
   public void loadDataDialog() {
     // get file name from file dialog
-    if (FileBox == null) {
-      FileBox = new FileDialog(Parent);
-      FileBox.setMode(FileDialog.LOAD);
-    }
+    if (FileBox == null) FileBox = new FileDialog(Parent);
+    FileBox.setMode(FileDialog.LOAD);
     FileBox.setVisible(true);
 
     // make sure file exists
@@ -494,13 +492,68 @@ public class FancySSCell extends BasicSSCell {
     if (directory == null) return;
     File f = new File(directory, file);
     if (!f.exists()) {
-      JOptionPane.showMessageDialog(Parent, "The file does not exist",
+      JOptionPane.showMessageDialog(Parent, file+" does not exist",
                   "Cannot load file", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
     // load file
     loadDataFile(f);
+  }
+
+  /** Saves to a file selected by the user, in netCDF format. */
+  public void saveDataDialog() {
+    if (!HasData) {
+      JOptionPane.showMessageDialog(Parent, "This cell is empty.",
+                  "Nothing to save", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+
+    // get file name from file dialog
+    if (FileBox == null) FileBox = new FileDialog(Parent);
+    FileBox.setMode(FileDialog.SAVE);
+    FileBox.setVisible(true);
+
+    // make sure file is valid
+    String file = FileBox.getFile();
+    if (file == null) return;
+    String directory = FileBox.getDirectory();
+    if (directory == null) return;
+    File f = new File(directory, file);
+
+    // start new thread to save the file
+    final File fn = f;
+    final BasicSSCell cell = this;
+    Runnable saveFile = new Runnable() {
+      public void run() {
+        String msg = "VisAD could not save the dataset \""+fn.getName()+"\"\n";
+        try {
+          cell.saveData(fn);
+        }
+        catch (BadFormException exc) {
+          msg = msg+"A BadFormException occurred:\n"+exc.toString();
+          JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+        catch (RemoteException exc) {
+          msg = msg+"A RemoteException occurred:\n"+exc.toString();
+          JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+        catch (IOException exc) {
+          msg = msg+"An IOException occurred:\n"+exc.toString();
+          JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+        catch (VisADException exc) {
+          msg = msg+"An error occurred:\n"+exc.toString();
+          JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    };
+    Thread t = new Thread(saveFile);
+    t.start();
   }
 
   /** Sets the minimum size of the FancySSCell. */
