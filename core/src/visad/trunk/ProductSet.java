@@ -56,7 +56,7 @@ public class ProductSet extends SampledSet {
   ProductSet(MathType type, SampledSet[] sets, CoordinateSystem coord_sys,
              Unit[] units, ErrorEstimate[] errors, boolean copy)
              throws VisADException {
-    super(type, find_manifold_dim(sets), coord_sys, units, errors);
+    super(type, find_manifold_dim(sets, units), coord_sys, units, errors);
     int dim = 0;
     for (int i=0; i<sets.length; i++) {
       dim += sets[i].DomainDimension;
@@ -88,7 +88,7 @@ public class ProductSet extends SampledSet {
     }
   }
 
-  private static int find_manifold_dim(SampledSet[] sets)
+  private static int find_manifold_dim(SampledSet[] sets, Unit[] units)
           throws VisADException {
     if (sets == null || sets[0] == null) {
       throw new SetException("ProductSet: Sets cannot be missing");
@@ -98,6 +98,24 @@ public class ProductSet extends SampledSet {
     }
     int dim = 0;
     for (int i=0; i<sets.length; i++) {
+      if (units != null) {
+        int n = sets[i].getDimension();
+        if ((dim + n) > units.length) {
+          throw new SetException("ProductSet: Units do not match!");
+        }
+        Unit[] su = sets[i].getSetUnits();
+        if (su == null) {
+          throw new SetException("ProductSet: Units do not match!");
+        }
+        for (int j=0; j<n; j++) {
+          if (units[dim+j] != null || su[j] != null) {
+            if (units[dim+j] == null || su[j] == null ||
+                !units[dim+j].equals(su[j])) {
+              throw new SetException("ProductSet: Units do not match!");
+            }
+          }
+        }
+      }
       dim += sets[i].getManifoldDimension();
     }
     return dim;
