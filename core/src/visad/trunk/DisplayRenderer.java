@@ -230,6 +230,12 @@ public abstract class DisplayRenderer
 
   /**
    * Allow scales to be displayed if they are set on.
+   *
+   * Applications should use
+   * {@link GraphicsModeControl#setScaleEnable(boolean)
+   *  GraphicsModeControl.setScaleEnable}
+   * instead of this method.
+   *
    * @param  on   true to turn them on, false to set them invisible
    */
   public abstract void setScaleOn(boolean on);
