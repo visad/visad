@@ -712,10 +712,12 @@ public class MappingDialog extends JDialog implements ActionListener,
         for (int i=0; i<numScalars[j]; i++) numXY[i] = 0;
         int modifier = 0;
         for (int i=0; i<numScalars[j]; i++) {
-          // NOTE: This implementation assumes that Vector.indexOf(Object)
-          //       returns the FIRST index in the Vector occupied by that
-          //       Object (i.e., the closest to 0).
-          int ind = v[j].indexOf(v[j].elementAt(i));
+          Object o = v[j].elementAt(i);
+          int ind = i;
+          // find FIRST index in v[j] occupied by o
+          for (int k=i-1; k>=0; k--) {
+            if (v[j].elementAt(k) == o) ind = k;
+          }
           if (i == ind) trans[i] = ind - modifier;
           else {
             trans[i] = trans[ind];
