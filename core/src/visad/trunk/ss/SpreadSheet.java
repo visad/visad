@@ -801,21 +801,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Menubar.add(OptionsMenu);
 
     if (!CanDo3D) AutoSwitch = false;
-    AutoSwitchBox =
-      new CheckboxMenuItem("Auto-switch to 3-D", AutoSwitch && !IsRemote);
+    AutoSwitchBox = new CheckboxMenuItem("Auto-switch to 3-D",
+      AutoSwitch && !IsRemote);
     AutoSwitchBox.addItemListener(this);
     AutoSwitchBox.setEnabled(CanDo3D && !IsRemote);
     OptionsMenu.add(AutoSwitchBox);
 
-    AutoDetectBox =
-      new CheckboxMenuItem("Auto-detect mappings", AutoDetect && !IsRemote);
+    AutoDetectBox = new CheckboxMenuItem("Auto-detect mappings",
+      AutoDetect && !IsRemote);
     AutoDetectBox.addItemListener(this);
     AutoDetectBox.setEnabled(!IsRemote);
     OptionsMenu.add(AutoDetectBox);
 
-    AutoShowBox =
-      new CheckboxMenuItem("Auto-display controls", AutoShowControls);
+    AutoShowBox = new CheckboxMenuItem("Auto-display controls",
+      AutoShowControls && !IsSlave);
     AutoShowBox.addItemListener(this);
+    AutoShowBox.setEnabled(!IsSlave);
     OptionsMenu.add(AutoShowBox);
 
     // set up toolbar
@@ -1215,9 +1216,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Thread t = new Thread() {
       public void run() {
         boolean b = BasicSSCell.isSaving();
-        JFrame f = new JFrame("Please wait");
+        JFrame f = null;
         if (b) {
           // display "please wait" message in new frame
+          f = new JFrame("Please wait");
           f.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
           JPanel p = new JPanel();
           f.setContentPane(p);
@@ -3005,6 +3007,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       selectCell(ci, cj);
     }
+    else if (e.getId() == DisplayEvent.FRAME_DONE && IsSlave) {
+    }
   }
 
   /** handle key presses */
@@ -3137,6 +3141,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       else if (ct == SSCellChangeEvent.DISPLAY_CHANGE) {
         refreshShowControls();
+        if (IsSlave) {
+          // slaves cannot send DATA_CHANGE notification
+          refreshFormulaBar();
+          refreshMenuCommands();
+        }
       }
       else if (ct == SSCellChangeEvent.DIMENSION_CHANGE) {
         refreshDisplayMenuItems();
@@ -3294,9 +3303,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     JPanel buttons = new JPanel();
     buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
     final JButton ok = new JButton("Ok");
+    dialog.getRootPane().setDefaultButton(ok);
     buttons.add(ok);
     final JButton cancel = new JButton("Cancel");
     buttons.add(cancel);
+    final JButton quit = new JButton("Quit");
+    buttons.add(quit);
     pane.add(buttons);
 
     // handle important events
@@ -3391,6 +3403,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
           success[0] = false;
           dialog.setVisible(false);
         }
+        else if (o == quit) {
+          // wow, just up and quit
+          System.exit(0);
+        }
       }
     };
     serverChoice.addActionListener(handler);
@@ -3399,6 +3415,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     aloneChoice.addActionListener(handler);
     ok.addActionListener(handler);
     cancel.addActionListener(handler);
+    quit.addActionListener(handler);
 
     // display dialog
     dialog.pack();

@@ -49,7 +49,7 @@ import visad.util.DataUtility;
     presented in the VisAD SpreadSheet program.  Other capabilities, like the
     file loader and data mapping dialog boxes, are available only with a
     FancySSCell.<P> */
-public class BasicSSCell extends JPanel implements MouseListener {
+public class BasicSSCell extends JPanel {
 
   /** used for debugging */
   public static boolean DEBUG = false;
@@ -176,9 +176,6 @@ public class BasicSSCell extends JPanel implements MouseListener {
   /** this BasicSSCell's DisplayListeners */
   protected Vector DListen = new Vector();
 
-  /** this cell's MouseListeners, used only when this cell is a slave */
-  protected Vector SListen = new Vector();
-
   /** whether the BasicSSCell has a valid display on-screen */
   protected boolean HasDisplay = false;
 
@@ -282,10 +279,13 @@ public class BasicSSCell extends JPanel implements MouseListener {
       addDisplayListener(new DisplayListener() {
         public void displayChanged(DisplayEvent e) {
           int id = e.getId();
-          if (id == DisplayEvent.TRANSFORM_DONE) {
-            if (!setupComplete) setupRemoteDataChangeCell();
+          if (id == DisplayEvent.TRANSFORM_DONE ||
+            (id == DisplayEvent.FRAME_DONE && IsSlave && !hasDisplay()))
+          {
+            if (!setupComplete && !IsSlave) setupRemoteDataChangeCell();
             if (!hasDisplay()) {
               constructDisplay();
+              initVDPanel();
               setVDPanel(true);
             }
             // display has changed; notify listeners
@@ -743,101 +743,6 @@ public class BasicSSCell extends JPanel implements MouseListener {
     }
     catch (RemoteException exc) {
       if (DEBUG) exc.printStackTrace();
-    }
-  }
-
-  /** add a mouse listener to this SSCell */
-  public void addMouseListener(MouseListener l) {
-    super.addMouseListener(l);
-    if (IsSlave) {
-      synchronized (SListen) {
-        SListen.add(l);
-      }
-    }
-  }
-
-  /** remove a mouse listener from this SSCell */
-  public void removeMouseListener(MouseListener l) {
-    super.removeMouseListener(l);
-    if (IsSlave) {
-      synchronized (SListen) {
-        SListen.remove(l);
-      }
-    }
-  }
-
-  /** for slave cells, handle mouse pressed events */
-  public void mousePressed(MouseEvent e) {
-    // switch source of event to this cell
-    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
-      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
-      e.isPopupTrigger());
-
-    synchronized (SListen) {
-      for (int i=0; i<SListen.size(); i++) {
-        MouseListener l = (MouseListener) SListen.elementAt(i);
-        l.mousePressed(event);
-      }
-    }
-  }
-
-  /** for slave cells, handle mouse released events */
-  public void mouseReleased(MouseEvent e) {
-    // switch source of event to this cell
-    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
-      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
-      e.isPopupTrigger());
-
-    synchronized (SListen) {
-      for (int i=0; i<SListen.size(); i++) {
-        MouseListener l = (MouseListener) SListen.elementAt(i);
-        l.mouseReleased(event);
-      }
-    }
-  }
-
-  /** for slave cells, handle mouse clicked events */
-  public void mouseClicked(MouseEvent e) {
-    // switch source of event to this cell
-    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
-      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
-      e.isPopupTrigger());
-
-    synchronized (SListen) {
-      for (int i=0; i<SListen.size(); i++) {
-        MouseListener l = (MouseListener) SListen.elementAt(i);
-        l.mouseClicked(event);
-      }
-    }
-  }
-  
-  /** for slave cells, handle mouse entered events */
-  public void mouseEntered(MouseEvent e) {
-    // switch source of event to this cell
-    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
-      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
-      e.isPopupTrigger());
-
-    synchronized (SListen) {
-      for (int i=0; i<SListen.size(); i++) {
-        MouseListener l = (MouseListener) SListen.elementAt(i);
-        l.mouseEntered(event);
-      }
-    }
-  }
-
-  /** for slave cells, handle mouse exited events */
-  public void mouseExited(MouseEvent e) {
-    // switch source of event to this cell
-    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
-      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
-      e.isPopupTrigger());
-
-    synchronized (SListen) {
-      for (int i=0; i<SListen.size(); i++) {
-        MouseListener l = (MouseListener) SListen.elementAt(i);
-        l.mouseExited(event);
-      }
     }
   }
 
@@ -1760,7 +1665,8 @@ public class BasicSSCell extends JPanel implements MouseListener {
   public void addDisplayListener(DisplayListener d) {
     synchronized (DListen) {
       if (!DListen.contains(d)) {
-        VDisplay.addDisplayListener(d);
+        if (IsSlave) RemoteVSlave.addDisplayListener(d);
+        else VDisplay.addDisplayListener(d);
         DListen.add(d);
       }
     }
@@ -1770,7 +1676,8 @@ public class BasicSSCell extends JPanel implements MouseListener {
   public void removeDisplayListener(DisplayListener d) {
     synchronized (DListen) {
       if (DListen.contains(d)) {
-        VDisplay.removeDisplayListener(d);
+        if (IsSlave) RemoteVSlave.removeDisplayListener(d);
+        else VDisplay.removeDisplayListener(d);
         DListen.remove(d);
       }
     }
@@ -1959,9 +1866,9 @@ public class BasicSSCell extends JPanel implements MouseListener {
     if (!IsRemote) {
       synchronized (DListen) {
         // remove listeners temporarily
-        int dlen = DListen.size();
-        if (dlen > 0) {
-          for (int i=0; i<dlen; i++) {
+        int dLen = DListen.size();
+        if (dLen > 0) {
+          for (int i=0; i<dLen; i++) {
             DisplayListener d = (DisplayListener) DListen.elementAt(i);
             VDisplay.removeDisplayListener(d);
           }
@@ -2016,7 +1923,7 @@ public class BasicSSCell extends JPanel implements MouseListener {
         if (hasData()) setVDPanel(true);
 
         // put listeners back
-        for (int i=0; i<dlen; i++) {
+        for (int i=0; i<dLen; i++) {
           DisplayListener d = (DisplayListener) DListen.elementAt(i);
           VDisplay.addDisplayListener(d);
         }
@@ -2038,12 +1945,10 @@ public class BasicSSCell extends JPanel implements MouseListener {
   private void setDimClone() throws VisADException, RemoteException {
     synchronized (DListen) {
       // remove listeners temporarily
-      int dlen = DListen.size();
-      if (dlen > 0) {
-        for (int i=0; i<dlen; i++) {
-          DisplayListener d = (DisplayListener) DListen.elementAt(i);
-          VDisplay.removeDisplayListener(d);
-        }
+      int dLen = DListen.size();
+      for (int i=0; i<dLen; i++) {
+        DisplayListener d = (DisplayListener) DListen.elementAt(i);
+        VDisplay.removeDisplayListener(d);
       }
 
       // remove old display panel from cell
@@ -2055,11 +1960,14 @@ public class BasicSSCell extends JPanel implements MouseListener {
       // update remote slave display
       if (IsSlave) {
         if (RemoteVSlave != null) {
-          RemoteVSlave.removeMouseListener(this);
           RemoteVSlave.unlink();
+          // remove slave display's listeners temporarily
+          for (int i=0; i<dLen; i++) {
+            DisplayListener d = (DisplayListener) DListen.elementAt(i);
+            RemoteVSlave.removeDisplayListener(d);
+          }
         }
         RemoteVSlave = new RemoteSlaveDisplayImpl(RemoteVDisplay);
-        RemoteVSlave.addMouseListener(this);
       }
 
       // autodetect new dimension
@@ -2109,9 +2017,18 @@ public class BasicSSCell extends JPanel implements MouseListener {
       initVDPanel();
       if (success && hasData()) setVDPanel(true);
 
-      // put listeners back
-      for (int i=0; i<dlen; i++) {
+      // put slave display's listeners back
+      if (IsSlave) {
+        for (int i=0; i<dLen; i++) {
+          DisplayListener d = (DisplayListener) DListen.elementAt(i);
+          RemoteVSlave.addDisplayListener(d);
+        }
+      }
+
+      // put all listeners back
+      for (int i=0; i<dLen; i++) {
         DisplayListener d = (DisplayListener) DListen.elementAt(i);
+        if (IsSlave) RemoteVSlave.addDisplayListener(d);
         VDisplay.addDisplayListener(d);
       }
     }

@@ -32,7 +32,7 @@ import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
-import javax.swing.JComponent;
+import javax.swing.*;
 import visad.util.Util;
 
 /** RemoteSlaveDisplayImpl is an implementation of a slaved display that
@@ -43,8 +43,7 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   private RemoteDisplay display;
   private BufferedImage image;
   private JComponent component;
-  private Vector mListen = new Vector();
-  private Vector dListen = new Vector();
+  private Vector listen = new Vector();
 
   /** Construct a new slaved display linked to the given RemoteDisplay */
   public RemoteSlaveDisplayImpl(RemoteDisplay d) throws VisADException,
@@ -78,31 +77,28 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     return component;
   }
 
-  /** Add a mouse listener to this slave display */
-  public void addMouseListener(MouseListener l) {
-    synchronized (mListen) {
-      mListen.add(l);
-    }
-  }
-
-  /** Remove a mouse listener from this slave display */
-  public void removeMouseListener(MouseListener l) {
-    synchronized (mListen) {
-      mListen.remove(l);
-    }
-  }
-
-  /** Add a display listener to this slave display */
+  /** Add a display listener to this slave display.
+      The following display events are supported:<ul>
+      <li>DisplayEvent.FRAME_DONE
+      <li>DisplayEvent.MOUSE_PRESSED
+      <li>DisplayEvent.MOUSE_PRESSED_LEFT
+      <li>DisplayEvent.MOUSE_PRESSED_CENTER
+      <li>DisplayEvent.MOUSE_PRESSED_RIGHT
+      <li>DisplayEvent.MOUSE_RELEASED
+      <li>DisplayEvent.MOUSE_RELEASED_LEFT
+      <li>DisplayEvent.MOUSE_RELEASED_CENTER
+      <li>DisplayEvent.MOUSE_RELEASED_RIGHT
+      </ul> */
   public void addDisplayListener(DisplayListener l) {
-    synchronized (dListen) {
-      dListen.add(l);
+    synchronized (listen) {
+      listen.add(l);
     }
   }
 
   /** Remove a display listener from this slave display */
   public void removeDisplayListener(DisplayListener l) {
-    synchronized (dListen) {
-      dListen.remove(l);
+    synchronized (listen) {
+      listen.remove(l);
     }
   }
 
@@ -136,9 +132,9 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
 
     // notify listeners of display change
     DisplayEvent e = new DisplayEvent(display, DisplayEvent.FRAME_DONE);
-    synchronized (dListen) {
-      for (int i=0; i<dListen.size(); i++) {
-        DisplayListener l = (DisplayListener) dListen.elementAt(i);
+    synchronized (listen) {
+      for (int i=0; i<listen.size(); i++) {
+        DisplayListener l = (DisplayListener) listen.elementAt(i);
         try {
           l.displayChanged(e);
         }
@@ -152,48 +148,44 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   public void mouseClicked(MouseEvent e) {
     // This event currently generates a "type not recognized" error
     // sendMouseEvent(e);
-    
-    // notify listeners
-    synchronized (mListen) {
-      for (int i=0; i<mListen.size(); i++) {
-        MouseListener l = (MouseListener) mListen.elementAt(i);
-        l.mouseClicked(e);
-      }
-    }
   }
 
   public void mouseEntered(MouseEvent e) {
     sendMouseEvent(e);
-
-    // notify listeners
-    synchronized (mListen) {
-      for (int i=0; i<mListen.size(); i++) {
-        MouseListener l = (MouseListener) mListen.elementAt(i);
-        l.mouseEntered(e);
-      }
-    }
   }
 
   public void mouseExited(MouseEvent e) {
     sendMouseEvent(e);
-
-    // notify listeners
-    synchronized (mListen) {
-      for (int i=0; i<mListen.size(); i++) {
-        MouseListener l = (MouseListener) mListen.elementAt(i);
-        l.mouseExited(e);
-      }
-    }
   }
 
   public void mousePressed(MouseEvent e) {
     sendMouseEvent(e);
 
-    // notify listeners
-    synchronized (mListen) {
-      for (int i=0; i<mListen.size(); i++) {
-        MouseListener l = (MouseListener) mListen.elementAt(i);
-        l.mousePressed(e);
+    // notify display listeners
+    DisplayEvent de1 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED);
+    DisplayEvent de2 = null;
+    if (SwingUtilities.isLeftMouseButton(e)) {
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_LEFT);
+    }
+    else if (SwingUtilities.isMiddleMouseButton(e)) {
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_CENTER);
+    }
+    else if (SwingUtilities.isRightMouseButton(e)) {
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_PRESSED_RIGHT);
+    }
+    synchronized (listen) {
+      for (int i=0; i<listen.size(); i++) {
+        DisplayListener l = (DisplayListener) listen.elementAt(i);
+        try {
+          l.displayChanged(de1);
+          if (de2 != null) l.displayChanged(de2);
+        }
+        catch (VisADException exc) {
+          exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          exc.printStackTrace();
+        }
       }
     }
   }
@@ -201,11 +193,31 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   public void mouseReleased(MouseEvent e) {
     sendMouseEvent(e);
 
-    // notify listeners
-    synchronized (mListen) {
-      for (int i=0; i<mListen.size(); i++) {
-        MouseListener l = (MouseListener) mListen.elementAt(i);
-        l.mouseReleased(e);
+    // notify display listeners
+    DisplayEvent de1 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED);
+    DisplayEvent de2 = null;
+    if (SwingUtilities.isLeftMouseButton(e)) {
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_LEFT);
+    }
+    else if (SwingUtilities.isMiddleMouseButton(e)) {
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_CENTER);
+    }
+    else if (SwingUtilities.isRightMouseButton(e)) {
+      de2 = new DisplayEvent(display, DisplayEvent.MOUSE_RELEASED_RIGHT);
+    }
+    synchronized (listen) {
+      for (int i=0; i<listen.size(); i++) {
+        DisplayListener l = (DisplayListener) listen.elementAt(i);
+        try {
+          l.displayChanged(de1);
+          if (de2 != null) l.displayChanged(de2);
+        }
+        catch (VisADException exc) {
+          exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          exc.printStackTrace();
+        }
       }
     }
   }
