@@ -269,7 +269,7 @@ if(DEBUG_MATH)System.err.println("getData: OBJ_COORDSYS (" + OBJ_COORDSYS + ")")
         break;
       case OBJ_DATA:
 if(DEBUG_MATH)System.err.println("getData: OBJ_DATA (" + OBJ_DATA + ")");
-        return readData(file.readByte());
+        return readData();
       case OBJ_DATA_SERIAL:
 if(DEBUG_MATH)System.err.println("getData: OBJ_DATA_SERIAL (" + OBJ_DATA_SERIAL + ")");
         return (DataImpl )readSerializedObject();
@@ -325,9 +325,11 @@ if(DEBUG_CSYS)System.err.println("rdCSysS: === #"+i+": "+cSys[i]+")");
 
     return cSys;
   }
-  public DataImpl readData(byte dataType)
+  public DataImpl readData()
     throws IOException, VisADException
   {
+    final byte dataType = file.readByte();
+
     switch (dataType) {
     case DATA_DOUBLE_SET:
 if(DEBUG_DATA)System.err.println("rdData: DATA_DOUBLE_SET (" + dataType + ")");
@@ -348,7 +350,7 @@ if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_DOUBLE_SET (" + dataTy
 if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + dataType + ")");
       return readGriddedDoubleSet(dataType);
     case DATA_GRIDDED_3D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_DOUBLE_SET (" + dataType + ")");
       return readGriddedDoubleSet(dataType);
     case DATA_GRIDDED_SET:
 if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_SET (" + dataType + ")");
