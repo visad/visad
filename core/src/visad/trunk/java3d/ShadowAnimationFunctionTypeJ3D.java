@@ -191,6 +191,9 @@ public class ShadowAnimationFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           ((AnimationRendererJ3D) renderer).getSetSetOnReUseFrames()) {
         control.setSet(domain_set, true);
       }
+      else {
+        control.setCurrent(0);
+      }
 
       // render new frames
       for (int i=0; i<len; i++) {
