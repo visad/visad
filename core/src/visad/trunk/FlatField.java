@@ -1362,6 +1362,58 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return range;
   }
 
+  /*-  TDR  June 1998  */
+  private float[] unpackFloats( int s_index ) throws VisADException {
+    float[] range;
+    synchronized (FloatRange) {
+      if (isMissing()) {
+        range = new float[TupleDimension];
+        for (int i=0; i<TupleDimension; i++) {
+          range[i] = Float.NaN;
+        }
+        return range;
+      }
+      int[] index;
+      range = new float[TupleDimension];
+      float[][] range0;
+      float[] rangeI;
+      for (int i=0; i<TupleDimension; i++) {
+        switch (RangeMode[i]) {
+          case DOUBLE:
+            range[i] = (float) DoubleRange[i][s_index];
+            break;
+          case FLOAT:
+            range[i] = FloatRange[i][s_index];
+            break;
+          case BYTE:
+            index = new int[1];
+            byte[] ByteRangeI = ByteRange[i];
+            index[0] = ((int) ByteRangeI[s_index]) - MISSING1 - 1;
+            range0 = RangeSet[i].indexToValue(index);
+            range[i] = range0[0][0];
+            break;
+          case SHORT:
+            index = new int[1];
+            short[] ShortRangeI = ShortRange[i];
+            index[0] = ((int) ShortRangeI[s_index]) - MISSING2 - 1;
+            range0 = RangeSet[i].indexToValue(index);
+            range[i] = range0[0][0];
+            break;
+          case INT:
+            index = new int[1];
+            int[] IntRangeI = IntRange[i];
+            index[0] = ((int) IntRangeI[s_index]) - MISSING4 - 1;
+            range0 = RangeSet[i].indexToValue(index);
+            range[i] = range0[0][0];
+            break;
+          default:
+            throw new SetException("FlatField.unpackFloats: bad RangeMode");
+        }
+      }
+    }
+    return range;
+  }
+
   /**
    * Returns the range values in their default units as floats.
    *
@@ -4407,13 +4459,14 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
 
     // WLH 20 July 2000
     float[][] values = null;
-    if (sampling_errors || (10 * length > getLength())) {
+    if (sampling_errors || (10 * length > getLength()) || 
+        !shouldBeDouble() || sampling_mode == WEIGHTED_AVERAGE) {
       values = unpackFloats(false);
       // values = Set.doubleToFloat(unpackValues());
     }
 
-    double[][] new_values = new double[TupleDimension][length];
-    double[] new_valuesJ;
+    float[][] new_values = new float[TupleDimension][length];
+    float[] new_valuesJ;
     float[] valuesJ;
 
     if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof SimpleSet) {
@@ -4465,7 +4518,7 @@ for (i=0; i<ii; i++) {
               new_valuesJ[wedge[i]] = v;
             }
             else { // values outside grid
-              new_valuesJ[wedge[i]] = Double.NaN;
+              new_valuesJ[wedge[i]] = Float.NaN;
             }
           }
         }
@@ -4474,19 +4527,19 @@ for (i=0; i<ii; i++) {
         for (i=0; i<length; i++) {
           int len = indices[i] == null ? 0 : indices[i].length;
           if (len > 0) {
-            double[][] xvals = new double[len][];
+            float[][] xvals = new float[len][];
             for (k = 0; k<len; k++) {
-              xvals[k] = unpackValues(indices[i][k]);
+              xvals[k] = unpackFloats(indices[i][k]);
             }
             for (j=0; j<TupleDimension; j++) {
-              float v = (float) xvals[0][j] * coefs[i][0];
-              for (k=1; k<len; k++) v += (float) xvals[k][j] * coefs[i][k];
+              float v = xvals[0][j] * coefs[i][0];
+              for (k=1; k<len; k++) v += xvals[k][j] * coefs[i][k];
               new_values[j][wedge[i]] = v;
             }
           }         
           else { // values outside grid
             for (j=0; j<TupleDimension; j++) {
-              new_values[j][wedge[i]] = Double.NaN;
+              new_values[j][wedge[i]] = Float.NaN;
             }
           }
         }
@@ -4555,21 +4608,21 @@ for (i=0; i<ii; i++) {
           new_valuesJ = new_values[j];
           for (i=0; i<length; i++) {
             new_valuesJ[wedge[i]] =
-              ((indices[i] >= 0) ? valuesJ[indices[i]]: Double.NaN);
+              ((indices[i] >= 0) ? valuesJ[indices[i]]: Float.NaN);
           }
         }
       }
       else {
         for (i=0; i<length; i++) {
           if (indices[i] >= 0) {
-            double[] xvals = unpackValues(indices[i]);
+            float[] xvals = unpackFloats(indices[i]);
             for (j=0; j<TupleDimension; j++) {
-              new_values[j][wedge[i]] = (float) xvals[j];
+              new_values[j][wedge[i]] = xvals[j];
             }
           }
           else { // values outside grid
             for (j=0; j<TupleDimension; j++) {
-              new_values[j][wedge[i]] = Double.NaN;
+              new_values[j][wedge[i]] = Float.NaN;
             }
           }
         }
@@ -4634,8 +4687,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units, RangeCoordinateSystem,
                       range_errors_in, range_errors_out,
-                      Set.floatToDouble(oldvals), Set.floatToDouble(vals),
-                      new_values);
+                      oldvals, vals, new_values);
       }
       else if (Range instanceof TupleType && !(Range instanceof RealTupleType)) {
         int offset = 0;
@@ -4644,7 +4696,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
           MathType comp_type = ((TupleType) Range).getComponent(j);
           if (comp_type instanceof RealVectorType) {
             int mm = ((RealVectorType) comp_type).getDimension();
-            double[][] comp_vals = new double[mm][];
+            float[][] comp_vals = new float[mm][];
             for (int jj=0; jj<mm; jj++) {
               comp_vals[jj] = new_values[offset + jj];
             }
@@ -4659,8 +4711,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
                         ((SetType) set.getType()).getDomain(), coord_sys, units,
                         RangeCoordinateSystems[j],
                         comp_errors_in, comp_errors_out,
-                        Set.floatToDouble(oldvals), Set.floatToDouble(vals),
-                        comp_vals);
+                        oldvals, vals, comp_vals);
             for (int jj=0; jj<mm; jj++) {
               new_values[offset + jj] = comp_vals[jj];
             }

@@ -95,6 +95,41 @@ public class GridVectorType extends RealVectorType {
     return new_value;
   }
 
+  /** transform an array of vector values from a field, based on a
+      coordinate transform of the field domain.  This may use the
+      Jacobean of the coordinate transform, but may be more complex.
+      For example, vectors in m/s would not transform for a simple
+      rescaling transform.  Or the transform may be to a moving
+      coordinate system.
+
+      out, coord_out, units_out, in, coord_in, units_in are the
+      arguments to the corresponding call to transformCoordinates;
+      loc_errors_out are the ErrorEstimates for loc from that call;
+      inloc and outloc contain the input and output values from the
+      corresponding call to transformCoordinates;
+      coord_vector and errors_in are the CoordinateSystem and ErrorEstimates
+      associated with values;
+      value are the vector values (already resampled at loc);
+      return new value array;
+      return transformed ErrorEstimates in errors_out array */
+  public float[][] transformVectors(
+                        RealTupleType out, CoordinateSystem coord_out,
+                        Unit[] units_out, ErrorEstimate[] loc_errors_out,
+                        RealTupleType in, CoordinateSystem coord_in,
+                        Unit[] units_in, CoordinateSystem coord_vector,
+                        ErrorEstimate[] errors_in,
+                        ErrorEstimate[] errors_out,
+                        float[][] inloc, float[][] outloc,
+                        float[][] value)
+         throws VisADException, RemoteException {
+    int n = value.length;
+    float[][] new_value = new float[n][];
+    if (n > 2) new_value[2] = value[2];
+
+
+    return new_value;
+  }
+
 // ShadowType.java: need to account for spatial setRange scaling in flow
 
 }

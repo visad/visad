@@ -35,7 +35,7 @@ import java.util.Arrays;
  * methods were called, the previously calculated values are returned.
  *
  * @author Don Murray
- * @version $Revision: 1.2 $ $Date: 2002-01-07 18:42:05 $
+ * @version $Revision: 1.3 $ $Date: 2005-02-23 20:23:17 $
  */
 public class CachingCoordinateSystem extends CoordinateSystem {
 
@@ -201,4 +201,13 @@ public class CachingCoordinateSystem extends CoordinateSystem {
   public CoordinateSystem getCachedCoordinateSystem() {
       return myCS;
   }
+
+  /**
+   * A decriptive string of this CS.
+   * @return a descriptive String
+   */
+  public String toString() {
+      return "Cached CS: " + myCS.toString();
+  }
+
 }
