@@ -129,7 +129,9 @@ public class TextControl extends Control {
 
   public void setFont(Object f)
          throws VisADException, RemoteException {
-    if (f instanceof java.awt.Font || f instanceof visad.util.HersheyFont) {
+    if (f instanceof java.awt.Font || 
+        f instanceof visad.util.HersheyFont ||
+        f == null) {
       font = f;
       changeControl(true);
     } else {
