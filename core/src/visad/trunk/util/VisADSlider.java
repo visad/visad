@@ -58,6 +58,8 @@ public class VisADSlider extends JPanel {
   private SliderCell cell;
   private int lastCellValue;
   private int lastSliderValue;
+  private int lastCellValueState;
+  private int lastSliderValueState;
 
   private String head;
 
@@ -77,11 +79,18 @@ public class VisADSlider extends JPanel {
 
     lastCellValue = low - 1;
     lastSliderValue = low - 1;
+    lastCellValueState = 0;
+    lastSliderValueState = 0;
 
     Data real = ref.getData();
+    boolean real_value = false;
     if (real != null && (real instanceof Real)) {
       double v = ((Real) real).getValue() / scale;
-      if (v == v && low <= v && v <= hi) start = (int) v;
+      if (v == v && low <= v && v <= hi) {
+        start = (int) v;
+        real_value = true;
+        lastSliderValue = start;
+      }
     }
 
     slider = new JSlider(JSlider.HORIZONTAL, low, hi, start);
@@ -98,7 +107,9 @@ public class VisADSlider extends JPanel {
     slider.setMaximumSize(new Dimension(150, 20));
     add(slider);
     add(slider_label);
-    ref.setData(new Real(type, val));
+    if (!real_value) {
+      ref.setData(new Real(type, val));
+    }
 
     cell = new SliderCell();
     if (ref instanceof RemoteDataReference) {
@@ -120,9 +131,14 @@ public class VisADSlider extends JPanel {
       if (ival == lastCellValue) {
         // don't respond to slider state changes triggered
         // by SliderCell
-        lastCellValue = low - 1; // but only ignore first
+        if (lastCellValueState == 0) {
+          lastCellValueState = 1;
+        }
       }
       else { // ival != lastCellValue
+        if (lastCellValueState == 1) {
+          lastCellValue = low - 1;
+        }
         lastSliderValue = ival;
         if (first > 0) {
           try {
@@ -136,6 +152,7 @@ public class VisADSlider extends JPanel {
           catch (RemoteException ex) {
           }
 // hack for JDK 1.2 with Java3D
+repaint();
 update(getGraphics());
         }
         else {
@@ -153,14 +170,16 @@ update(getGraphics());
       int ival = (int) (val / scale);
       ival = Math.min(Math.max(ival, low), hi);
       if (ival == lastSliderValue) {
-        // don't respond to Real value chnages triggered
+        // don't respond to Real value changes triggered
         // by stateChanged
       }
       else {
         lastCellValue = ival;
+        lastCellValueState = 0;
         slider.setValue(ival);
 if (first > 0) {
   // hack for JDK 1.2 with Java3D
+  repaint();
   update(getGraphics());
 }
 else {

@@ -502,18 +502,6 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       else if (type instanceof ShadowFunctionTypeJ3D) {
         Vector vect = new Vector();
         if (first) lastIndex = -1;
-        if (lastIndex < 0) {
-          addPoint(x);
-        }
-        else {
-          lastX[3] = x[0];
-          lastX[4] = x[1];
-          lastX[5] = x[2];
-          addPoint(lastX);
-        }
-        lastX[0] = x[0];
-        lastX[1] = x[1];
-        lastX[2] = x[2];
         int k = getDomainAxis();
         f[0] = x[k]; 
         d = getDirectMap(k).inverseScaleValues(f);
@@ -530,6 +518,20 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
           lastIndex = -1;
           return;
         }
+
+        if (lastIndex < 0) {
+          addPoint(x);
+        }
+        else {
+          lastX[3] = x[0];
+          lastX[4] = x[1];
+          lastX[5] = x[2];
+          addPoint(lastX);
+        }
+        lastX[0] = x[0];
+        lastX[1] = x[1];
+        lastX[2] = x[2];
+
         int n;
         ShadowTypeJ3D range =
           (ShadowTypeJ3D) ((ShadowFunctionTypeJ3D) type).getRange();
