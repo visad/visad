@@ -38,7 +38,7 @@ public class ComboFileFilter extends FileFilter {
   /** description */
   private String desc;
 
-  /** construct a new filter for Combo AREA files */
+  /** construct a new filter from a list of other filters */
   public ComboFileFilter(FileFilter[] filters, String description) {
     filts = new FileFilter[filters.length];
     System.arraycopy(filters, 0, filts, 0, filters.length);
