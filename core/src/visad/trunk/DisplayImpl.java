@@ -420,6 +420,47 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     notifyAction();
   }
 
+
+  /* CTR 21 Sep 1999 - begin code for slaved displays */
+
+  private Vector Slaves = new Vector();
+
+  /** links a slave display to this display */
+  void addSlave(RemoteSlaveDisplayImpl display) {
+    if (!Slaves.contains(display)) Slaves.add(display);
+  }
+
+  /** removes a link between a slave display and this display */
+  void removeSlave(RemoteSlaveDisplayImpl display) {
+    if (Slaves.contains(display)) Slaves.remove(display);
+  }
+
+  /** removes all links between slave displays and this display */
+  void removeAllSlaves() {
+    Slaves.removeAllElements();
+  }
+
+  /** whether there are any slave displays linked to this display */
+  public boolean hasSlaves() {
+    return (!Slaves.isEmpty());
+  }
+
+  /** updates all linked slave displays with the given image */
+  public void updateSlaves(BufferedImage img) {
+    RemoteSlaveDisplayImpl d;
+    for (int i=0; i<Slaves.size(); i++) {
+      d = (RemoteSlaveDisplayImpl) Slaves.elementAt(i);
+      try {
+        d.sendImage(img);
+      }
+      catch (RemoteException e) {
+      }
+    }
+  }
+
+  /* CTR 21 Sep 1999 - end code for slaved displays */
+
+
   /** link ref to this Display; this method may only be invoked
       after all links to ScalarMaps have been made */
   public void addReference(ThingReference ref)
@@ -1143,6 +1184,11 @@ if (initialize) {
 
   public void setMouseBehavior(MouseBehavior m) {
     mouse = m;
+  }
+
+  // CTR 22 Sep 1999
+  public MouseBehavior getMouseBehavior() {
+    return mouse;
   }
 
   public double[] make_matrix(double rotx, double roty, double rotz,

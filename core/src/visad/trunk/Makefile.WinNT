@@ -448,6 +448,7 @@ visad.RemoteFunctionImpl \
 visad.RemoteGraphicsModeControlImpl \
 visad.RemoteReferenceLinkImpl \
 visad.RemoteServerImpl \
+visad.RemoteSlaveDisplayImpl \
 visad.RemoteThingImpl \
 visad.RemoteThingReferenceImpl
 

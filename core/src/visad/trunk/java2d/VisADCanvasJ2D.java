@@ -354,7 +354,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
       } // end if (!valid)
       if (tsave == null || !displayRenderer.anyCursorStringVector()) {
         if (g != null) g.drawImage(image, 0, 0, this);
-        if (captureFlag) {
+        if (captureFlag || display.hasSlaves()) {
 // System.out.println("image capture " + width + " " + height);
           captureFlag = false;
           if (component != null) {
@@ -369,6 +369,9 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
           gc.dispose();
           displayRenderer.notifyCapture();
 // System.out.println("image capture end");
+
+          // CTR 21 Sep 99 - send BufferedImage to any attached slaved displays
+          if (display.hasSlaves()) display.updateSlaves(captureImage);
         }
       }
       else {

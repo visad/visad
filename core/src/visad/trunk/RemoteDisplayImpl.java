@@ -41,6 +41,45 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     super(d);
   }
 
+
+  /* CTR 21 Sep 1999 - begin code for slaved displays */
+
+  /** links a slave display to this display */
+  void addSlave(RemoteSlaveDisplayImpl display) {
+    if (AdaptedAction != null) {
+      ((DisplayImpl) AdaptedAction).addSlave(display);
+    }
+  }
+
+  /** removes a link between a slave display and this display */
+  void removeSlave(RemoteSlaveDisplayImpl display) {
+    if (AdaptedAction != null) {
+      ((DisplayImpl) AdaptedAction).removeSlave(display);
+    }
+  }
+
+  /** removes all links between slave displays and this display */
+  void removeAllSlaves() {
+    if (AdaptedAction != null) {
+      ((DisplayImpl) AdaptedAction).removeAllSlaves();
+    }
+  }
+
+  /** whether there are any slave displays linked to this display */
+  public boolean hasSlaves() {
+    if (AdaptedAction == null) return false;
+    return ((DisplayImpl) AdaptedAction).hasSlaves();
+  }
+
+  /** get this display's MouseBehavior */
+  public MouseBehavior getMouseBehavior() {
+    if (AdaptedAction == null) return null;
+    return ((DisplayImpl) AdaptedAction).getMouseBehavior();
+  }
+
+  /* CTR 21 Sep 1999 - end code for slaved displays */
+
+
   /** link ref to this Display; this method may only be invoked
       after all links to ScalarMaps have been made */
   public void addReference(ThingReference ref)
