@@ -31,7 +31,8 @@ import java.awt.image.BufferedImage;
 import java.awt.event.*;
 import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.Hashtable;
+import java.util.Vector;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
@@ -66,6 +67,7 @@ public class MappingDialog extends JDialog
   private DefaultListModel CurMaps;
   private JList CurrentMaps;
   private JScrollPane CurrentMapsView;
+  private JLabel description;
 
 
   // -- State info --
@@ -497,7 +499,6 @@ public class MappingDialog extends JDialog
     JPanel topPanel2 = new JPanel();
     topPanel2.setLayout(new BoxLayout(topPanel2, BoxLayout.X_AXIS));
     contentPane.add(topPanel2);
-    contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
     // draw the pretty-print MathType sequence to an Image (slow!)
     final BufferedImage ppImg = new BufferedImage(
@@ -571,6 +572,14 @@ public class MappingDialog extends JDialog
     whitePanel.add(MathCanvasView);
     topPanel.add(whitePanel);
     topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+
+    // set up description label
+    description = new JLabel(" ");
+    JPanel descPanel = new JPanel();
+    descPanel.setLayout(new BoxLayout(descPanel, BoxLayout.X_AXIS));
+    contentPane.add(descPanel);
+    contentPane.add(Box.createRigidArea(new Dimension(0, 15)));
+    descPanel.add(description);
 
     // set up lower panel
     JPanel lowerPanel = new JPanel();
@@ -981,6 +990,26 @@ public class MappingDialog extends JDialog
   }
 
   /**
+   * Updates the description label to match the currently selected ScalarType.
+   */
+  private void updateDescriptionLabel(int i) {
+    RealType r = MathTypes[i];
+    Unit unit = r.getDefaultUnit();
+    Set set = r.getDefaultSet();
+    String u = unit == null ? "none" : unit.toString();
+    String s;
+    if (set == null) s = "none";
+    else {
+      String setType = set.getClass().getName();
+      int index = setType.lastIndexOf(".");
+      if (index >= 0) setType = setType.substring(index + 1);
+      int dim = set.getDimension();
+      s = setType + "(" + dim + ")";
+    }
+    description.setText("     " + Scalars[i] + ": Unit=" + u + "; Set=" + s);
+  }
+
+  /**
    * Handles button press events.
    */
   public void actionPerformed(ActionEvent e) {
@@ -1106,6 +1135,7 @@ public class MappingDialog extends JDialog
           else MathCanvas.scrollRectToVisible(r);
           MathCanvas.repaint();
           if (CoordRefs) CoordCanvas.repaint();
+          updateDescriptionLabel(i);
         }
       }
     }
@@ -1125,9 +1155,11 @@ public class MappingDialog extends JDialog
             if (!tuple.b) {
               Rectangle r = new Rectangle(tuple.x, tuple.y, ScW[i], ScH);
               if (r.contains(p)) {
+                // highlight clicked ScalarType
                 MathList.setSelectedIndex(i);
                 MathList.ensureIndexIsVisible(i);
                 MathCanvas.scrollRectToVisible(r);
+                updateDescriptionLabel(i);
                 return;
               }
             }
