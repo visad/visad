@@ -97,12 +97,6 @@ public class ContourWidget extends JPanel implements ActionListener,
   public ContourWidget(ScalarMap smap, float interv, float min, float max,
                        float ba, float surf, boolean update)
                        throws VisADException, RemoteException {
-    cInterval = interv;
-    cLo = min;
-    cHi = max;
-    cBase = ba;
-    cSurface = surf;
-
     // verify scalar map
     if (!Display.IsoContour.equals(smap.getDisplayScalar())) {
       throw new DisplayException("ContourWidget: ScalarMap must " +
@@ -110,10 +104,52 @@ public class ContourWidget extends JPanel implements ActionListener,
     }
     name = smap.getScalar().getName();
 
-    // set up control
+    // get control settings
     control = (ContourControl) smap.getControl();
-    control.enableLabels(false);
-    control.enableContours(true);
+
+    boolean[] flags = new boolean[2];
+    float[] values = new float[5];
+    control.getMainContours(flags, values);
+
+    // initialize flags from control settings
+    boolean contourFlag, labelFlag, dashFlag;
+    contourFlag = flags[0];
+    labelFlag = flags[1];
+    dashFlag = (values[1] < 0.0f);
+
+    // use either parameter value or (if param val is NaN) control value
+    boolean setSurface = false;
+    boolean setInterval = false;
+    if (surf == surf) {
+      cSurface = surf;
+      setSurface = true;
+    } else {
+      cSurface = values[0];
+    }
+    if (interv == interv) {
+      cInterval = interv;
+      setInterval = true;
+    } else {
+      cInterval = values[1];
+    }
+    if (min == min) {
+      cLo = min;
+      setInterval = true;
+    } else {
+      cLo = values[2];
+    }
+    if (max == max) {
+      cHi = max;
+      setInterval = true;
+    } else {
+      cHi = values[3];
+    }
+    if (ba == ba) {
+      cBase = ba;
+      setInterval = true;
+    } else {
+      cBase = values[4];
+    }
 
     // create JPanels
     JPanel top = new JPanel();
@@ -127,9 +163,9 @@ public class ContourWidget extends JPanel implements ActionListener,
     low.setLayout(new BoxLayout(low, BoxLayout.X_AXIS));
 
     // create JComponents
-    Contours = new JCheckBox("contours", true);
-    Labels = new JCheckBox("labels", false);
-    Dashed = new JCheckBox("dashed lines below base", false);
+    Contours = new JCheckBox("contours", contourFlag);
+    Labels = new JCheckBox("labels", labelFlag);
+    Dashed = new JCheckBox("dashed lines below base", dashFlag);
     JLabel intLabel = new JLabel("interval:");
     Interval = new JTextField("---");
 
@@ -152,8 +188,12 @@ public class ContourWidget extends JPanel implements ActionListener,
     Surface = new JSlider();
     ContourRange = new ContourRangeSlider(smap, cLo, cHi, this, update);
     if (!update) {
-      control.setSurfaceValue(cSurface);
-      control.setContourInterval(cInterval, cLo, cHi, cBase);
+      if (setSurface) {
+        control.setSurfaceValue(cSurface);
+      }
+      if (setInterval) {
+        control.setContourInterval(cInterval, cLo, cHi, cBase);
+      }
       updateWidgetSurface();
       updateWidgetRange();
     }
@@ -241,7 +281,9 @@ public class ContourWidget extends JPanel implements ActionListener,
     cBase = fval[4];
     cLo = fval[2];
     cHi = fval[3];
-    if (cSurface != cSurface) cSurface = (float) range[0];
+    if (cSurface != cSurface) {
+      cSurface = (float) range[0];
+    }
     updateWidgetSurface();
     updateWidgetRange();
   }
@@ -381,10 +423,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     }
 
     float interval = fvals[1];
-    boolean dashedState = false;
-    if (interval < 0.0f) {
-      dashedState = true;
-    }
+    boolean dashedState = (interval < 0.0f);
 
     if (Dashed.isSelected() != dashedState) {
       Dashed.setSelected(dashedState);
@@ -441,14 +480,29 @@ public class ContourWidget extends JPanel implements ActionListener,
     /** ScalarMapListener method used with delayed auto-scaling. */
     public void mapChanged(ScalarMapEvent e) {
       ScalarMap s = e.getScalarMap();
+      ContourControl cc = (ContourControl )s.getControl();
       double[] range = s.getRange();
+
       try {
+
+        minLimit = (float) range[0];
+        maxLimit = (float) range[1];
+
+        if (Math.abs(cLo - minLimit) > 0.0001 ||
+            Math.abs(cHi - maxLimit) > 0.0001)
+        {
+          cLo = minLimit;
+          cHi = maxLimit;
+        }
+
+        pappy.setSliderBounds(minLimit, maxLimit);
+
         pappy.detectValues(range);
-        float min = (float) range[0];
-        float max = (float) range[1];
-        pappy.setMinMax(min, max);
-        pappy.setSliderBounds(min, max);
-        setBounds(min, max);
+
+        float[] lhb = new float[3];
+        boolean[] dashes = new boolean[1];
+        float[] lvls = cc.getLevels(lhb, dashes);
+        setValues(lhb[0], lhb[1]);
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
