@@ -249,6 +249,12 @@ public class ThreadPool
     // give all the current tasks a chance to finish
     int timeout = tasks.size();
 
+    // don't allow thread to wait for itself
+    if (Thread.currentThread() instanceof ThreadMinnow) {
+      try { Thread.sleep(15000); } catch (InterruptedException ie) { }
+      return false;
+    }
+
     while (tasks.size() > 0) {
       try {
         synchronized (doneLock) {
