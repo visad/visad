@@ -72,6 +72,7 @@ public class HersheyFont {
    protected int characterSetMinX;
    protected int characterSetMaxX;
    protected int charactersInSet;
+   protected boolean fixedWidth = false;
 
    /** Default constructor.  Use the font 'futural'
     *
@@ -271,6 +272,27 @@ public class HersheyFont {
        return null;
      }
 
+   }
+
+   /** set whether this font is 'fixed width' or not (not =
+   *   proportional spacing)
+   *
+   *   Right now, only the 'wmo' font is defaulted to fixed.
+   */
+   public void setFixedWidth(boolean fw) {
+     fixedWidth = fw;
+     return;
+   }
+   /** indicate whether this is a fixed-width font
+   *
+   * @return true if name indicates fixed with (wmo...)
+   *
+   */
+   public boolean getFixedWidth() {
+     fixedWidth = false;
+     if (name.toLowerCase().startsWith("wmo")) fixedWidth = true;
+      // others?
+     return fixedWidth;
    }
 
    /** indicate whether this is a cursive font

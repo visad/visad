@@ -417,7 +417,7 @@ public class PlotText extends Object {
     double cy = start[1];
     double cz = start[2];
     int len = str.length();
-
+    boolean isFixed = font.getFixedWidth();
 
     // allow 2-point 3-component strokes per character
     int maxSeg = font.getMaxPoints();
@@ -467,13 +467,19 @@ public class PlotText extends Object {
 
         } else {
           // make the coordinates relative to 0
-          x = (float)(charVector[0][j] - charMinX[k]) /
-                            (float)(charMaxX[k] - charMinX[k]);
+          if (isFixed) {
+            x = (float)(charVector[0][j] - charMinX[k])
+                          / (float)(charSetMaxX - charSetMinX);
+          } else {
+            x = (float)(charVector[0][j] - charMinX[k])
+                          / (float)(charMaxX[k] - charMinX[k]);
+          }
 
           if (x > maxX) maxX = x;
 
           // invert y coordinate
-          y = (float) (charMaxY - charVector[1][j] )/ (charMaxY - charMinY);
+          y = (float) (charMaxY - charVector[1][j] )
+                           / (charMaxY - charMinY);
 
           px = (float) (cx + x * base[0] + y * up[0]);
           py = (float) (cy + x * base[1] + y * up[1]);
