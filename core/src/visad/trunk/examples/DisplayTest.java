@@ -2438,7 +2438,14 @@ public class DisplayTest extends Object {
           cube.normals[i+122] =  0.0f;
         }
 
-        shapes = new VisADGeometryArray[] {cross, cube, cross, cube};
+        double[] start = {0.0, 0.0, 0.0}; // text at origin
+        double[] base = {0.1, 0.0, 0.0};  // text out along XAxis
+        double[] up = {0.0, 0.1, 0.0};    // character up along YAxis
+        boolean center = true;            // center text
+        VisADLineArray one_two =
+          PlotText.render_label("1.2", start, base, up, center);
+
+        shapes = new VisADGeometryArray[] {one_two, cube, cross, cube};
 
         display1 = new DisplayImplJ3D("display1");
      

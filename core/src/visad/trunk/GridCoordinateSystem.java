@@ -28,11 +28,18 @@ package visad;
 /**
    GridCoordinateSystem is the VisAD CoordinateSystem class
    for grids defined by GriddedSets.<P>
+
+   It should be used as the CoordinateSystem of an IntegerSet
+   describing the set of grid values (so the dimensions of the
+   IntegerSet should match the dimensions of the GriddedSet
+   argument to the GridCoordinateSystem constructor) where
+   the reference RealTupleType describes the value space of the
+   GriddedSet.<P>
 */
 public class GridCoordinateSystem extends CoordinateSystem {
 
-  GriddedSet set;
-  int dimension;
+  private GriddedSet set;
+  private int dimension;
 
   public GridCoordinateSystem(GriddedSet s) throws VisADException {
     super(((SetType) s.getType()).getDomain(), null);
