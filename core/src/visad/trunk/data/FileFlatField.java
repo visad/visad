@@ -563,37 +563,23 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      String	string;
-      try
-      {
-	string = getadaptedFlatField().toString();
-      }
-      catch (Exception e)
-      {
-	string = e.getMessage();
-      }
-      return string;
+      return getadaptedFlatField().toString();
     }
   }
 
   public String longString(String pre)
   {
     if (adaptedFlatFields == null) {
-      return "Serialized FileFlatField";
+      return pre + "Serialized FileFlatField";
     }
 
     synchronized (adaptedFlatFields)
     {
-      String	string;
-      try
-      {
-	string = getadaptedFlatField().longString(pre);
+      try {
+	return getadaptedFlatField().longString(pre);
+      } catch (VisADException e) {
+	return pre + e.getMessage();
       }
-      catch (Exception e)
-      {
-	string = e.getMessage();
-      }
-      return string;
     }
   }
 }
