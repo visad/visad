@@ -140,7 +140,12 @@ public class UnionSet extends SampledSet {
       if (units0 != null || units != null) {
         if (units0 == null || units == null ||
             units0.length != units.length) {
-          throw new SetException("UnionSet: Units do not match!");
+          throw new SetException("UnionSet: Expected " +
+                                 (units0 == null ? "null" :
+                                  Integer.toString(units0.length)) +
+                                 " units for set " + i + ", not " +
+                                 (units == null ? "null" :
+                                  Integer.toString(units.length)));
         }
         for (int j=0; j<units0.length; j++) {
           if (units0[j] != null || units[j] != null) {
