@@ -122,8 +122,6 @@ public abstract class DisplayRenderer extends Object {
   public abstract void setCursorColor(float r, float g, float b);
 
   /** factory for constructing a subclass of Control appropriate
-  /** factory for constructing a subclass of Control appropriate
-  /** factory for constructing a subclass of Control appropriate
       for the graphics API and for this DisplayRenderer;
       invoked by ScalarMap when it is 'addMap'ed to a Display */
   public abstract Control makeControl(ScalarMap map);
