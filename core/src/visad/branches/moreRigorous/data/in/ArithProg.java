@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArithProg.java,v 1.8 2001-11-05 22:03:27 steve Exp $
+$Id: ArithProg.java,v 1.8.2.1 2001-11-05 23:51:35 steve Exp $
 */
 
 package visad.data.in;
@@ -38,8 +38,10 @@ public class ArithProg
     private long		n = 0;
     private double		first = Double.NaN;
     private double		last = Double.NaN;
-    private double		sumDelta = 0;
-    private double 		commDiff = Double.NaN;
+    private double              sumDel;
+    private double              meanDel;
+    private double              sumVarDel;
+    private double              meanVarDel;
     private boolean		isConsistent = true;
     private final double	fEps = 5e-5f;	// 5 * C FLT_EPS
     private final double	dEps = 5e-9;	// 5 * C DBL_EPS
@@ -184,26 +186,31 @@ public class ArithProg
 	}
 	else if (n == 1)
 	{
-	    double	delta = delta(last, value);
-	    commDiff = delta;
-	    sumDelta = delta;
+	    double del = delta(last, value);
+	    sumDel = del;
+	    meanDel = del;
+	    double uncDel = Math.abs(epsilon * (last + del));
+	    double varDel = uncDel * uncDel;
+	    sumVarDel = varDel;
+	    meanVarDel = varDel;
 	}
 	else
 	{
-	    double	delta = delta(last, value);
-	    double	eps =
-		commDiff == 0
-		    ? Math.abs(delta)
-		    : Math.abs(1.0 - Math.abs(delta / commDiff));
-	    if (eps <= epsilon)
+	    double del = delta(last, value);
+	    double errDel = del - meanDel;
+	    if (errDel*errDel > meanVarDel)
 	    {
-		sumDelta += delta;
-		commDiff = sumDelta / n;
+		isConsistent = false;
+		meanVarDel = Double.NaN;
 	    }
 	    else
 	    {
-		isConsistent = false;
-		commDiff = Double.NaN;
+		sumDel += del;
+		meanDel = sumDel / n;
+		double uncDel = Math.abs(epsilon * (last + del));
+		double varDel = uncDel * uncDel;
+		sumVarDel += varDel;
+		meanVarDel = sumVarDel / (n - 1);
 	    }
 	}
 	last = value;
@@ -291,7 +298,7 @@ public class ArithProg
 	    throw new VisADException(
 		getClass().getName() + ".getCommonDifference(): " +
 		"Sequence isn't an arithmetic progression");
-	return commDiff;
+	return meanDel;
     }
 
     /**
