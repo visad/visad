@@ -105,29 +105,27 @@ public class Contour2D extends Applet implements MouseListener {
    * Returns an array of contour values and an indication on whether to use
    * dashed lines below the base value.
    *
-   * @param interval		The contouring interval.  Must be non-zero.
-   *				If the interval is negative, then contour lines
-   *				less than the base will be drawn as dashed
-   *				lines.  Must not be NaN.
-   * @param low			The minimum contour value.  The returned array
-   *				will not contain a value below this.  Must not
-   *				be NaN.
-   * @param high		The maximum contour value.  The returned array
-   *				will not contain a value above this.  Must not
-   *				be NaN.
-   * @param ba			The base contour value.  The returned values
-   *				will be integer multiples of the interval
-   *				away from this this value. Must not be NaN.
-   * dash			Whether or not contour lines less than the base
-   *				should be drawn as dashed lines.  This is a
-   *				computed and returned value.
-   * @throws VisADException	The contour interval is zero or too small.
+   * @param interval            The contouring interval.  Must be non-zero.
+   *                            If the interval is negative, then contour lines
+   *                            less than the base will be drawn as dashed
+   *                            lines.  Must not be NaN.
+   * @param low                 The minimum contour value.  The returned array
+   *                            will not contain a value below this.  Must not
+   *                            be NaN.
+   * @param high                The maximum contour value.  The returned array
+   *                            will not contain a value above this.  Must not
+   *                            be NaN.
+   * @param ba                  The base contour value.  The returned values
+   *                            will be integer multiples of the interval
+   *                            away from this this value. Must not be NaN.
+   * dash                       Whether or not contour lines less than the base
+   *                            should be drawn as dashed lines.  This is a
+   *                            computed and returned value.
+   * @throws VisADException     The contour interval is zero or too small.
    */
   public static float[] intervalToLevels(float interval, float low,
                                          float high, float ba, boolean[] dash)
         throws VisADException {
-    float clow, chi;
-    float tmp1;
     float[] levs = null;
 
     if (interval == 0.0) {
@@ -141,28 +139,13 @@ public class Contour2D extends Applet implements MouseListener {
     }
 
     // compute list of contours
-    // compute clow and chi, low and high contour values in the box
-    tmp1 = (low - ba) / interval;
-    clow = ba + interval * ((int) (tmp1 + (tmp1 >= 0 ? 0.5 : -0.5)) - 1);
-    while (clow<low) {
-      clow += interval;
-    }
-
-    tmp1 = (high - ba) / interval;
-    chi = ba + interval * ((int) (tmp1 + (tmp1 >= 0 ? 0.5 : -0.5)) + 1);
-    while (chi>high) {
-      chi -= interval;
-    }
+    // compute nlo and nhi, for low and high contour values in the box
+    long nlo = Math.round((Math.ceil((low - ba) / Math.abs(interval))));
+    long nhi = Math.round((Math.floor((high - ba) / Math.abs(interval))));
 
     // how many contour lines are needed.
-    tmp1 = (chi-clow) / interval;
-    int numc = (int) (tmp1 + (tmp1 >= 0 ? 0.5 : -0.5)) + 1;
-/*
-    System.out.println("clow = " + clow + "chigh = " + chi +
-                       "tmp1 = " + tmp1 + "numc = " + numc);
-*/
+    int numc = (int) (nhi - nlo) + 1;
     if (numc < 1) return levs;
-
     if (numc > 1000) {
       throw new VisADException("Contour interval too small");
     }
@@ -173,10 +156,10 @@ public class Contour2D extends Applet implements MouseListener {
       throw new VisADException("Contour interval too small");
     }
 
-    levs[0] = clow;
-    for (int i = 1; i < numc; i++) {
-      levs[i] = levs[i-1] + interval;
+    for(int i = 0; i < numc; i++) {
+      levs[i] = ba + (nlo + i) * interval;
     }
+
     return levs;
   }
 
