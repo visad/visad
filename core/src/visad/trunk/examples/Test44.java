@@ -2,6 +2,8 @@ import java.awt.Component;
 
 import java.rmi.RemoteException;
 
+import java.util.Enumeration;
+
 import visad.*;
 
 import visad.java2d.DisplayImplJ2D;
@@ -69,11 +71,24 @@ public class Test44
   Component getSpecialComponent(DisplayImpl[] dpys)
 	throws VisADException, RemoteException
   {
-    ScalarMap text_map = (ScalarMap )dpys[0].getMapVector().lastElement();
+    boolean foundCtrl = false;
+    Enumeration enum = dpys[0].getMapVector().elements();
+    while (enum.hasMoreElements()) {
+      ScalarMap sm = (ScalarMap )enum.nextElement();
 
-    TextControl text_control = (TextControl) text_map.getControl();
-    text_control.setSize(0.75);
-    text_control.setCenter(true);
+      Control ctrl = sm.getControl();
+      if (ctrl != null && ctrl instanceof TextControl) {
+        TextControl text_control = (TextControl )ctrl;
+        text_control.setSize(0.75);
+        text_control.setCenter(true);
+        foundCtrl = true;
+      }
+    }
+
+    if (!foundCtrl) {
+      System.err.println("Didn't find a TextControl for this display!");
+      System.err.println("Don't be surprised if things don't work...");
+    }
 
     return null;
   }
