@@ -52,6 +52,7 @@ import visad.Tuple;
 import visad.VisADException;
 
 import visad.data.amanda.F2000Form;
+import visad.data.amanda.F2000Util;
 
 import visad.java3d.DisplayImplJ3D;
 
@@ -188,7 +189,7 @@ public class F2000App
 
     ShapeControl scontrol = (ShapeControl) maps.shapemap.getControl();
     scontrol.setShapeSet(new Integer1DSet(form.getAmplitude(), 1));
-    scontrol.setShapes(form.getCubeArray());
+    scontrol.setShapes(F2000Util.getCubeArray());
 
     final int nevents = amanda.getLength();
 

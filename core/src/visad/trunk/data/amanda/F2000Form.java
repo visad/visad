@@ -38,7 +38,6 @@ import visad.Data;
 import visad.DataImpl;
 import visad.RealType;
 import visad.VisADException;
-import visad.VisADQuadArray;
 
 import visad.data.BadFormException;
 import visad.data.Form;
@@ -71,72 +70,6 @@ public class F2000Form
   }
 
   public final RealType getAmplitude() { return AmandaFile.getAmplitudeType(); }
-
-  public static final VisADQuadArray[] getCubeArray()
-  {
-    VisADQuadArray cube = new VisADQuadArray();
-    cube.coordinates = new float[]
-      {CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,     CUBE,  CUBE, -CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE, -CUBE,  CUBE,
-       CUBE, -CUBE,  CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
-       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
-       CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,     CUBE, -CUBE,  CUBE,
-       CUBE, -CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       -CUBE,  CUBE,  CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
-       CUBE,  CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,    -CUBE,  CUBE,  CUBE,
-       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       CUBE, -CUBE,  CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,     CUBE, -CUBE,  CUBE};
-
-    cube.vertexCount = cube.coordinates.length / 3;
-    cube.normals = new float[144];
-    cube.normals = new float[144];
-    for (int i=0; i<24; i+=3) {
-      cube.normals[i]     =  0.0f;
-      cube.normals[i+1]   =  0.0f;
-      cube.normals[i+2]   = -1.0f;
-
-      cube.normals[i+24]  =  0.0f;
-      cube.normals[i+25]  =  0.0f;
-      cube.normals[i+26]  =  1.0f;
-
-      cube.normals[i+48]  =  1.0f;
-      cube.normals[i+49]  =  0.0f;
-      cube.normals[i+50]  =  0.0f;
-
-      cube.normals[i+72]  = -1.0f;
-      cube.normals[i+73]  =  0.0f;
-      cube.normals[i+74]  =  0.0f;
-
-      cube.normals[i+96]  =  0.0f;
-      cube.normals[i+97]  =  1.0f;
-      cube.normals[i+98]  =  0.0f;
-
-      cube.normals[i+120] =  0.0f;
-      cube.normals[i+121] = -1.0f;
-      cube.normals[i+122] =  0.0f;
-    }
-
-    return new VisADQuadArray[] {cube};
-  }
 
   public String[] getDefaultSuffixes()
   {

@@ -6,7 +6,7 @@ from java.awt import Dimension
 from javax.swing import BoxLayout, JPanel
 
 from visad import *
-from visad.data.amanda import F2000Form
+from visad.data.amanda import F2000Form, F2000Util
 from visad.java3d import DisplayImplJ3D
 from visad.util import LabeledColorWidget, VisADSlider
 
@@ -93,7 +93,7 @@ displayRenderer.setBoxOn(0)
 
 scontrol = maps.shapemap.getControl()
 scontrol.setShapeSet(Integer1DSet(form.getAmplitude(), 1))
-scontrol.setShapes(form.getCubeArray())
+scontrol.setShapes(F2000Util.getCubeArray())
 
 nevents = amanda.getLength()
 
