@@ -98,6 +98,7 @@ public class SimpleAnimate {
     AnimationControl animation_control =
       (AnimationControl) animation_map.getControl();
     animation_control.setStep(step);
+    animation_control.setOn(true);
 
     // link the Display to image_ref
     display.addReference(image_ref);
