@@ -34,15 +34,15 @@ import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
 
 import javax.swing.*;
-import javax.swing.event.*;
 
 import visad.*;
+import visad.browser.Convert;
 
 /** A widget that allows users to specify a ScalarMap's range scaling */
 public class RangeWidget extends JPanel implements ActionListener,
                                                    ScalarMapListener {
 
-  private JTextField data_low, data_hi;
+  private JTextField dataLow, dataHi;
 
   private ScalarMap map;
 
@@ -63,24 +63,24 @@ public class RangeWidget extends JPanel implements ActionListener,
     }
 
     // create JTextFields
-    data_low = new JTextField();
-    data_hi = new JTextField();
+    dataLow = new JTextField();
+    dataHi = new JTextField();
     updateTextFields(data);
 
     // limit JTextField heights
-    Dimension msize = data_low.getMaximumSize();
-    Dimension psize = data_low.getPreferredSize();
+    Dimension msize = dataLow.getMaximumSize();
+    Dimension psize = dataLow.getPreferredSize();
     msize.height = psize.height;
-    data_low.setMaximumSize(msize);
-    data_hi.setMaximumSize(msize);
+    dataLow.setMaximumSize(msize);
+    dataHi.setMaximumSize(msize);
 
     // create JPanel
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     p.add(new JLabel("low: "));
-    p.add(data_low);
+    p.add(dataLow);
     p.add(new JLabel(" hi: "));
-    p.add(data_hi);
+    p.add(dataHi);
 
     // lay out GUI
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -90,31 +90,48 @@ public class RangeWidget extends JPanel implements ActionListener,
 
     // add listeners
     map.addScalarMapListener(this);
-    data_low.addActionListener(this);
-    data_hi.addActionListener(this);
+    dataLow.addActionListener(this);
+    dataHi.addActionListener(this);
   }
 
   private void updateTextFields(double[] data) {
-    data_low.setText(PlotText.shortString(data[0]));
-    data_hi.setText(PlotText.shortString(data[1]));
+    // do not update range with truncated values
+    dataLow.removeActionListener(this);
+    dataHi.removeActionListener(this);
+
+    if (data[0] < data[1]) {
+      dataLow.setText(Convert.shortString(data[0], Convert.ROUND_DOWN));
+      dataHi.setText(Convert.shortString(data[1], Convert.ROUND_UP));
+    }
+    else {
+      dataLow.setText(Convert.shortString(data[0], Convert.ROUND_UP));
+      dataHi.setText(Convert.shortString(data[1], Convert.ROUND_DOWN));
+    }
+
+    dataLow.addActionListener(this);
+    dataHi.addActionListener(this);
+  }
+
+  private void updateScalarMap(double[] data) {
+    try {
+      map.setRange(data[0], data[1]);
+    }
+    catch (VisADException exc) {
+// exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+// exc.printStackTrace();
+    }
   }
 
   /** handle JTextField changes */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     double[] data = new double[2];
-    data[0] = Double.parseDouble(data_low.getText());
-    data[1] = Double.parseDouble(data_hi.getText());
+    data[0] = Double.parseDouble(dataLow.getText());
+    data[1] = Double.parseDouble(dataHi.getText());
 // System.out.println("actionPerformed " + data[0] + " " + data[1]);
-    try {
-      map.setRange(data[0], data[1]);
-    }
-    catch (VisADException exc) {
-// System.out.println(e);
-    }
-    catch (RemoteException exc) {
-// System.out.println(e);
-    }
+    updateScalarMap(data);
   }
 
   /** handle ScalarMap changes */
