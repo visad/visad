@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBAWidget.java,v 1.4 1998-07-30 23:53:06 billh Exp $
+@(#) $Id: LabeledRGBAWidget.java,v 1.5 1998-08-10 13:45:42 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import com.sun.java.swing.*;
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.4 $, $Date: 1998-07-30 23:53:06 $
+ * @version $Revision: 1.5 $, $Date: 1998-08-10 13:45:42 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBAWidget extends Panel implements ActionListener,
@@ -218,6 +218,17 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
         }
       }
     });
+  }
+
+  private Dimension d = null;
+
+  public Dimension getMaximumSize() {
+    if (d != null) return d;
+    else return super.getMaximumSize();
+  }
+
+  public void setMaximumSize(Dimension dd) {
+    d = dd;
   }
 
   /** ScalarMapListener method used with delayed auto-scaling. */

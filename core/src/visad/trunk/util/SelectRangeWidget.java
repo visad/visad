@@ -155,7 +155,8 @@ public class SelectRangeWidget extends Canvas implements MouseListener,
   public void mouseReleased(MouseEvent e) {
     minSlide = false;
     maxSlide = false;
-    drawLabels(getGraphics());
+    Graphics g = getGraphics();
+    if (g != null) drawLabels(g);
   }
   
   // unneeded MouseListener methods
@@ -229,7 +230,8 @@ public class SelectRangeWidget extends Canvas implements MouseListener,
     }
     catch (VisADException exc) { }
     catch (RemoteException exc ) { }
-    paint(getGraphics());
+    Graphics g = getGraphics();
+    if (g != null) paint(g);
   }
 
   private int lastW = 0;

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ArrowSlider.java,v 1.6 1998-07-30 20:30:02 curtis Exp $
+@(#) $Id: ArrowSlider.java,v 1.7 1998-08-10 13:45:41 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.awt.event.*;
  * A pointer slider for visad .
  * 
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.6 $, $Date: 1998-07-30 20:30:02 $
+ * @version $Revision: 1.7 $, $Date: 1998-08-10 13:45:41 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -122,7 +122,8 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
       notifyListeners(new SliderChangeEvent(SliderChangeEvent.VALUE_CHANGE, init));
 
       // won't update on repaint, so hit it with a big hammer
-      update(getGraphics());
+      Graphics g = getGraphics();
+      if (g != null) update(g);
       repaint();
     }
 
@@ -143,7 +144,8 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 		notifyListeners(new SliderChangeEvent(SliderChangeEvent.LOWER_CHANGE, value));
 		
 // won't update on repaint, so hit it with a big hammer
-update(getGraphics());
+Graphics g = getGraphics();
+if (g != null) update(g);
 		repaint();
 	}
 		
@@ -164,7 +166,8 @@ update(getGraphics());
 		notifyListeners(new SliderChangeEvent(SliderChangeEvent.UPPER_CHANGE, value));
 
 // won't update on repaint, so hit it with a big hammer
-update(getGraphics());
+Graphics g = getGraphics();
+if (g != null) update(g);
 		repaint();		
 	}
 	
@@ -188,7 +191,8 @@ update(getGraphics());
 		notifyListeners(new SliderChangeEvent(SliderChangeEvent.VALUE_CHANGE, value));
 
 // won't update on repaint, so hit it with a big hammer
-update(getGraphics());
+Graphics g = getGraphics();
+if (g != null) update(g);
 		repaint();		
 	}
 	

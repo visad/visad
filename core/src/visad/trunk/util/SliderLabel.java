@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SliderLabel.java,v 1.3 1998-07-30 20:30:06 curtis Exp $
+@(#) $Id: SliderLabel.java,v 1.4 1998-08-10 13:45:43 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -33,7 +33,7 @@ import java.awt.event.*;
  * and optionally, the bounds.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1998-07-30 20:30:06 $
+ * @version $Revision: 1.4 $, $Date: 1998-08-10 13:45:43 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -102,7 +102,8 @@ public class SliderLabel extends Panel implements SliderChangeListener {
 // won't update on repaint, so hit it with a big hammer
 // update(getGraphics());
 // but update isn't right, so hit it harder
-paint(getGraphics());
+Graphics g = getGraphics();
+if (g != null) paint(getGraphics());
 		repaint();
 	}
 	

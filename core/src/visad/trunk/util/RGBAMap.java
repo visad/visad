@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: RGBAMap.java,v 1.3 1998-07-30 20:30:04 curtis Exp $
+@(#) $Id: RGBAMap.java,v 1.4 1998-08-10 13:45:42 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * between the red, green, blue, and alpha curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1998-07-30 20:30:04 $
+ * @version $Revision: 1.4 $, $Date: 1998-08-10 13:45:42 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -184,7 +184,8 @@ public class RGBAMap extends ColorMap
 		}
 		
 // won't update on repaint, so hit it with a big hammer
-update(getGraphics());
+Graphics g = getGraphics();
+if (g != null) update(g);
 		repaint();
 	}	
 	

@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.util;
 
 import java.awt.Dimension;
+import java.awt.Graphics;
 
 import com.sun.java.swing.BoxLayout;
 import com.sun.java.swing.JLabel;
@@ -168,7 +169,8 @@ public class VisADSlider extends JPanel {
             }
 // hack for JDK 1.2 with Java3D
 repaint();
-update(getGraphics());
+Graphics g = getGraphics();
+if (g != null) update(g);
           }
           else {
             first++;
@@ -197,7 +199,8 @@ update(getGraphics());
 if (first > 0) {
   // hack for JDK 1.2 with Java3D
   repaint();
-  update(getGraphics());
+  Graphics g = getGraphics();
+  if (g != null) update(g);
 }
 else {
   first++;
