@@ -50,7 +50,7 @@ import java.rmi.RemoteException;
  * @author Don Murray
  * @author Jeffrey Albert Bergamini 
  *    (http://srproj.lib.calpoly.edu/projects/csc/jbergam/reports/final.html)
- * @version $Revision: 1.3 $ $Date: 2003-09-10 22:50:13 $
+ * @version $Revision: 1.4 $ $Date: 2003-11-18 23:40:38 $
  */
 public class UsgsDemAdapter {
 
@@ -764,8 +764,8 @@ public class UsgsDemAdapter {
           }
           reflectUni.setVar(
             "bounds", new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY));
-          reflectUni.setVar("zone", new Integer(zone));
-          reflectUni.setVar("north", new Boolean(true));
+          reflectUni.setVar("zone", zone);
+          reflectUni.setVar("north", true);
           cs = (CoordinateSystem)
             reflectUni.exec(
               "cs = new UTMCoordinateSystem(ellipsoid, zone, north, bounds)");

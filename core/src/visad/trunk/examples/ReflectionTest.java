@@ -58,9 +58,9 @@ public class ReflectionTest {
     r.exec("import visad.util.Util");
 
     // import some constants into reflected universe
-    r.setVar("false", new Boolean(false));
-    r.setVar("one_half", new Double(0.5));
-    r.setVar("size", new Integer(64));
+    r.setVar("false", false);
+    r.setVar("one_half", 0.5);
+    r.setVar("size", 64);
 
     // construct data object
     r.setVar("ir_radiance_name", "ir_radiance");

@@ -204,13 +204,13 @@ public class QTForm extends Form
       int[] lengths = set.getLengths();
       int kWidth = lengths[0];
       int kHeight = lengths[1];
-      r.setVar("numFrames", new Integer(numFrames));
-      r.setVar("kWidth", new Integer(kWidth));
-      r.setVar("kHeight", new Integer(kHeight));
+      r.setVar("numFrames", numFrames);
+      r.setVar("kWidth", kWidth);
+      r.setVar("kHeight", kHeight);
       r.exec("QTSession.open()");
 
       // set up QuickTime drawing objects
-      r.setVar("oneHalf", new Float(0.5f));
+      r.setVar("oneHalf", 0.5f);
       Component canv = (Component) r.exec(
         "canv = new QTCanvas(QTCanvas.kInitialSize, oneHalf, oneHalf)");
       JFrame frame = new JFrame();
@@ -224,7 +224,7 @@ public class QTForm extends Form
       Dimension dim = new Dimension(kWidth, kHeight);
       r.setVar("dim", dim);
       r.exec("qid = new QTImageDrawer(ip, dim, Redrawable.kMultiFrame)");
-      r.setVar("true", new Boolean(true));
+      r.setVar("true", true);
       r.exec("qid.setRedrawing(true)");
       r.exec("canv.setClient(qid, true)");
       frame.pack();
@@ -237,18 +237,18 @@ public class QTForm extends Form
         "StdQTConstants.createMovieFileDeleteCurFile");
       Integer i2 = (Integer) r.getVar(
         "StdQTConstants.createMovieFileDontCreateResFile");
-      r.setVar("flags", new Integer(i1.intValue() | i2.intValue()));
+      r.setVar("flags", i1.intValue() | i2.intValue());
       r.exec("theMovie = " +
         "Movie.createMovieFile(f, StdQTConstants.kMoviePlayer, flags)");
 
       // add content
       int kNoVolume = 0;
-      r.setVar("kNoVolume", new Integer(kNoVolume));
-      r.setVar("kVidTimeScale", new Integer(600));
+      r.setVar("kNoVolume", kNoVolume);
+      r.setVar("kVidTimeScale", 600);
 
-      r.setVar("fkWidth", new Float(kWidth));
-      r.setVar("fkHeight", new Float(kHeight));
-      r.setVar("fkNoVolume", new Float(kNoVolume));
+      r.setVar("fkWidth", kWidth);
+      r.setVar("fkHeight", kHeight);
+      r.setVar("fkNoVolume", kNoVolume);
       r.exec("vidTrack = theMovie.addTrack(fkWidth, fkHeight, fkNoVolume)");
       r.exec("vidMedia = new VideoMedia(vidTrack, kVidTimeScale)");
 
@@ -263,7 +263,7 @@ public class QTForm extends Form
       r.exec("imageHandle = new QTHandle(size, true)");
       r.exec("imageHandle.lock()");
       r.exec("compressedImage = RawEncodedImage.fromQTHandle(imageHandle)");
-      r.setVar("zero", new Integer(0));
+      r.setVar("zero", 0);
       r.exec("seq = new CSequence(gw, rect, pixsize, " +
         "StdQTConstants.kAnimationCodecType, " +
         "CodecComponent.bestFidelityCodec, " +
@@ -284,13 +284,13 @@ public class QTForm extends Form
         r.exec("info = seq.compressFrame(gw, rect, " +
           "StdQTConstants.codecFlagUpdatePrevious, compressedImage)");
         Integer sim = (Integer) r.exec("info.getSimilarity()");
-        if (sim.intValue() == 0) r.setVar("keyFrame", new Integer(0));
+        if (sim.intValue() == 0) r.setVar("keyFrame", 0);
         else {
           r.setVar("keyFrame", r.getVar("StdQTConstants.mediaSampleNotSync"));
         }
         r.exec("dataSize = info.getDataSize()");
-        r.setVar("one", new Integer(1));
-        r.setVar("frameRate", new Integer(FRAME_RATE));
+        r.setVar("one", 1);
+        r.setVar("frameRate", FRAME_RATE);
         r.exec("vidMedia.addSample(imageHandle, zero, dataSize, " +
           "frameRate, desc, one, keyFrame)");
       }
@@ -301,9 +301,9 @@ public class QTForm extends Form
       r.exec("qid.redraw(null)");
       r.exec("vidMedia.endEdits()");
 
-      r.setVar("kTrackStart", new Integer(0));
-      r.setVar("kMediaTime", new Integer(0));
-      r.setVar("kMediaRate", new Float(1.0f));
+      r.setVar("kTrackStart", 0);
+      r.setVar("kMediaTime", 0);
+      r.setVar("kMediaRate", 1.0f);
       r.exec("duration = vidMedia.getDuration()");
       r.exec(
         "vidTrack.insertMedia(kTrackStart, kMediaTime, duration, kMediaRate)");
@@ -398,7 +398,7 @@ public class QTForm extends Form
     if (noQT) throw new BadFormException(noQTmsg);
 
     // paint frame into image
-    r.setVar("time", new Integer(timeStep * block_number));
+    r.setVar("time", timeStep * block_number);
     r.exec("moviePlayer.setTime(time)");
     if (needsRedrawing) r.exec("qtip.redraw(null)");
     r.exec("qtip.updateConsumers(null)");
@@ -470,13 +470,13 @@ public class QTForm extends Form
       int trackMostLikely = 0;
       int trackNum = 0;
       while (++trackNum <= numTracks && trackMostLikely == 0) {
-        r.setVar("trackNum", new Integer(trackNum));
+        r.setVar("trackNum", trackNum);
         r.exec("imageTrack = m.getTrack(trackNum)");
         r.exec("d = imageTrack.getSize()");
         Integer w = (Integer) r.exec("d.getWidth()");
         if (w.intValue() > 0) trackMostLikely = trackNum;
       }
-      r.setVar("trackMostLikely", new Integer(trackMostLikely));
+      r.setVar("trackMostLikely", trackMostLikely);
       r.exec("imageTrack = m.getTrack(trackMostLikely)");
       r.exec("d = imageTrack.getSize()");
       Integer w = (Integer) r.exec("d.getWidth()");
