@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: WidgetLayout.java,v 1.4 1998-07-30 20:30:06 curtis Exp $
+@(#) $Id: WidgetLayout.java,v 1.5 2000-02-24 16:49:33 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,14 +25,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.*;
+import java.awt.AWTError;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
 
 /** 
  * A simple layout manager for use in the visad ColorWidget.  Stacks the first two
  * components vertically, and stretches them to fit the panel.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.4 $, $Date: 1998-07-30 20:30:06 $
+ * @version $Revision: 1.5 $, $Date: 2000-02-24 16:49:33 $
  * @since Visad Utility Library, 0.5
  */
 

@@ -30,8 +30,8 @@ package visad.util;
 import javax.swing.*;
 import javax.swing.event.*;
 
-// AWT package
-import java.awt.*;
+// AWT class
+import java.awt.Dimension;
 
 // RMI class
 import java.rmi.RemoteException;

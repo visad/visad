@@ -23,9 +23,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.Button;
 import java.awt.Dimension;
-import java.awt.Panel;
 import java.awt.FlowLayout;
 
 import java.awt.event.ActionEvent;

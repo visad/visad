@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SliderLabel.java,v 1.9 2000-02-24 16:00:53 donm Exp $
+@(#) $Id: SliderLabel.java,v 1.10 2000-02-24 16:49:32 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,8 +25,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 import javax.swing.JPanel;
 
 /**
@@ -34,7 +41,7 @@ import javax.swing.JPanel;
  * and optionally, the bounds.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.9 $, $Date: 2000-02-24 16:00:53 $
+ * @version $Revision: 1.10 $, $Date: 2000-02-24 16:49:32 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -201,7 +208,8 @@ public class SliderLabel extends JPanel implements SliderChangeListener {
 		Slider slider = new ArrowSlider();
 		SliderLabel label = new SliderLabel(slider, "test");
 		
-		Frame f = new Frame("Visad Slider Label");
+		javax.swing.JFrame f;
+		f = new javax.swing.JFrame("Visad Slider Label");
 		f.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {System.exit(0);}
 		});

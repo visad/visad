@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMap.java,v 1.7 2000-02-24 16:00:52 donm Exp $
+@(#) $Id: ColorMap.java,v 1.8 2000-02-24 16:49:29 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,8 +25,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.*;
+import java.awt.Color;
+
 import java.util.Vector;
+
 import javax.swing.JPanel;
 
 /** 
@@ -34,7 +36,7 @@ import javax.swing.JPanel;
  * class manages all of the listener notification for the ColorMaps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision 1.7 $, $Date: 2000-02-24 16:00:52 $
+ * @version $Revision 1.7 $, $Date: 2000-02-24 16:49:29 $
  * @since Visad Utility Library, 0.5
  */
 

@@ -27,8 +27,13 @@ MA 02111-1307, USA
 package visad.util;
 
 /* AWT packages */
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Dimension;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 /* JFC packages */
 import javax.swing.*;

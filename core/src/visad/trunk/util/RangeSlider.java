@@ -26,9 +26,20 @@ MA 02111-1307, USA
 
 package visad.util;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+
 import visad.PlotText;
 import visad.ScalarMap;
 

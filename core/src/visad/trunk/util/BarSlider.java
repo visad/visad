@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BarSlider.java,v 1.5 1998-07-30 20:30:02 curtis Exp $
+@(#) $Id: BarSlider.java,v 1.6 2000-02-24 16:49:28 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,14 +25,21 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * The visad utillity sliding bar
  * 
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.5 $, $Date: 1998-07-30 20:30:02 $
+ * @version $Revision: 1.6 $, $Date: 2000-02-24 16:49:28 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -79,7 +86,8 @@ public class BarSlider extends Slider implements MouseListener, MouseMotionListe
 	/** For testing puropses */
 	public static void main(String[] argv) {
 	
-		Frame frame = new Frame("Visad Bar Slider");
+		javax.swing.JFrame frame;
+		frame = new javax.swing.JFrame("Visad Bar Slider");
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {System.exit(0);}
 		});

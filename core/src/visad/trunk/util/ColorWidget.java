@@ -1,5 +1,5 @@
 /*
-@(#) $Id: ColorWidget.java,v 1.11 2000-02-18 20:44:02 dglo Exp $
+@(#) $Id: ColorWidget.java,v 1.12 2000-02-24 16:49:29 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -24,10 +24,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Dimension;
 
-import java.applet.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import java.applet.Applet;
 
 import java.rmi.RemoteException;
 
@@ -42,7 +44,7 @@ import visad.VisADException;
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.11 $, $Date: 2000-02-18 20:44:02 $
+ * @version $Revision: 1.12 $, $Date: 2000-02-24 16:49:29 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -105,7 +107,8 @@ public class ColorWidget extends Applet implements ColorChangeListener {
           throws RemoteException, VisADException
 	{
 
-		Frame frame = new Frame("VisAD Color Widget");
+		JFrame frame;
+		frame = new JFrame("VisAD Color Widget");
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {System.exit(0);}
 		});

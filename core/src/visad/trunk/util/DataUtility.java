@@ -42,15 +42,16 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
 
 // GUI handling
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 import javax.swing.*;
 
 // VisAD packages
 import visad.*;
 
 /** A general utility class for VisAD Data objects */
-public class DataUtility extends Object {
+public class DataUtility {
 
   private static boolean init = false;
   private static FunctionType simpleImageType;

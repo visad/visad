@@ -26,11 +26,16 @@ MA 02111-1307, USA
 
 package visad.util;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Dimension;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import java.rmi.RemoteException;
+
 import javax.swing.*;
 import javax.swing.event.*;
+
 import visad.*;
 
 /** A widget that allows users to specify a ScalarMap's range scaling */

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: WidgetTest.java,v 1.8 2000-02-18 20:44:04 dglo Exp $
+@(#) $Id: WidgetTest.java,v 1.9 2000-02-24 16:49:33 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,9 +25,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.applet.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import java.applet.Applet;
+
 import java.util.Vector;
 
 import javax.swing.*;
@@ -37,7 +39,7 @@ import javax.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision 1.2 $, $Date: 2000-02-18 20:44:04 $
+ * @version $Revision 1.2 $, $Date: 2000-02-24 16:49:33 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -52,7 +54,8 @@ public class WidgetTest extends Applet {
 		
 		ColorWidget widget = new ColorWidget();
 		
-		Frame f = new Frame("Visad Widget Test");
+		javax.swing.JFrame f;
+		f = new javax.swing.JFrame("Visad Widget Test");
 		f.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {System.exit(0);}
 		});

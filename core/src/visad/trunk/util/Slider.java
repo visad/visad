@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: Slider.java,v 1.4 2000-02-24 16:00:53 donm Exp $
+@(#) $Id: Slider.java,v 1.5 2000-02-24 16:49:32 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,8 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import java.awt.Panel;
 import java.util.Vector;
+
 import javax.swing.JPanel;
 
 /**
@@ -37,7 +37,7 @@ import javax.swing.JPanel;
  * orientation will be assumed by several other classes
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.4 $, $Date: 2000-02-24 16:00:53 $
+ * @version $Revision: 1.5 $, $Date: 2000-02-24 16:49:32 $
  * @since Visad Utility Library v0.7.1
  */
  

@@ -26,10 +26,6 @@ MA 02111-1307, USA
 
 package visad.util;
 
-/* AWT packages */
-import java.awt.*;
-import java.awt.event.*;
-
 /* RMI classes */
 import java.rmi.RemoteException;
 
