@@ -537,7 +537,7 @@ public class ContourWidget
     public void controlChanged(ScalarMapControlEvent evt) { }
 
     /** tell parent when the value changes */
-    void valuesUpdated() {
+    public void valuesUpdated() {
       try {
         pappy.setMinMax(minValue, maxValue);
       }

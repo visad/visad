@@ -186,7 +186,7 @@ public class SelectRangeWidget extends RangeSlider
   }
 
   /** tell parent when the value changes */
-  void valuesUpdated() {
+  public void valuesUpdated() {
     try {
       rangeControl.setRange(new float[] {minValue, maxValue});
     }
