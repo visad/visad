@@ -133,6 +133,7 @@ public class ArrayVariableAdapter
      *				corresponding VisAD data object returned.
      *				The array must be compatible with the array
      *				used to construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			The VisAD data object of this instance.  The
      *				object will be a {@link FieldImpl} and may be
      *				a {@link FlatField} or {@link 
@@ -142,7 +143,7 @@ public class ArrayVariableAdapter
      *				instance.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(DArray array)
+    public DataImpl data(DArray array, boolean copy)
 	throws VisADException, RemoteException
     {
 	RealTupleType	domainType = funcType.getDomain();
@@ -196,7 +197,7 @@ public class ArrayVariableAdapter
 	else
 	{
 	    field = new FieldImpl(funcType, domain);
-	    vectorAdapter.setField(vector, field, false);
+	    vectorAdapter.setField(vector, field, copy);
 	}
 	return field;
     }
