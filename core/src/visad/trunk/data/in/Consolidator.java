@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: Consolidator.java,v 1.4 2001-02-22 18:10:41 steve Exp $
+$Id: Consolidator.java,v 1.5 2001-03-01 21:14:27 steve Exp $
 */
 
 package visad.data.in;
@@ -48,11 +48,8 @@ public class Consolidator
     /**
      * Constructs from nothing.  The downstream data sink will be 
      * <code>null</code>.
-     *
-     * @throws VisADException	VisAD failure.
      */
     public Consolidator()
-	throws VisADException
     {
         this(null);
     }
@@ -62,10 +59,8 @@ public class Consolidator
      *
      * @param downstream	The downstream data sink.  May be 
      *				<code>null</code>.
-     * @throws VisADException	VisAD failure.
      */
     public Consolidator(DataSink downstream)
-	throws VisADException
     {
         super(downstream);
 	clear();
