@@ -129,6 +129,14 @@ public class ProgressDialog extends JDialog {
     if (exc != null) throw exc;
   }
 
+  /** Displays the dialog in a separate thread. */
+  public void go() {
+    Thread t = new Thread(new Runnable() {
+      public void run() { show(); }
+    });
+    t.start();
+  }
+  
   /** Hides the progress dialog. */
   public void kill() { super.setVisible(false); }
 
@@ -137,22 +145,17 @@ public class ProgressDialog extends JDialog {
 
   /** Launches the ProgressDialog GUI. */
   public static void main(String[] args) throws Exception {
-    final ProgressDialog dialog =
+    ProgressDialog dialog =
       new ProgressDialog((Frame) null, "Testing ProgressDialog");
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        int percent = 0;
-        while (percent <= 100) {
-          try { Thread.sleep((int) (Math.random() * 200)); }
-          catch (InterruptedException exc) { exc.printStackTrace(); }
-          dialog.setPercent(++percent);
-          if (percent == 90) dialog.setText("Almost done");
-        }
-        dialog.kill();
-      }
-    });
-    t.start();
-    dialog.show();
+    dialog.go();
+    int percent = 0;
+    while (percent <= 100) {
+      try { Thread.sleep((int) (Math.random() * 200)); }
+      catch (InterruptedException exc) { exc.printStackTrace(); }
+      dialog.setPercent(++percent);
+      if (percent == 90) dialog.setText("Almost done");
+    }
+    dialog.kill();
     dialog.checkException();
     System.exit(0);
   }

@@ -188,22 +188,16 @@ public class OptionDialog extends JPanel implements ActionListener {
       }
       /*
       if (qtjava == null) {
-        final ProgressDialog searching =
-          new ProgressDialog(dialog, "Searching");
-        Thread t = new Thread(new Runnable() {
-          public void run() {
-            File[] roots = File.listRoots();
-            for (int i=0; i<roots.length; i++) {
-              searching.setText("Searching " + roots[i].getAbsolutePath());
-              qtjava = searchQT(roots[i], filter);
-              if (qtjava != null) break;
-              searching.setPercent(100 * (i + 1) / roots.length);
-            }
-            searching.kill();
-          }
-        });
-        t.start();
-        searching.show();
+        ProgressDialog searching = new ProgressDialog(dialog, "Searching");
+        searching.go();
+        File[] roots = File.listRoots();
+        for (int i=0; i<roots.length; i++) {
+          searching.setText("Searching " + roots[i].getAbsolutePath());
+          qtjava = searchQT(roots[i], filter);
+          if (qtjava != null) break;
+          searching.setPercent(100 * (i + 1) / roots.length);
+        }
+        searching.kill();
       }
       */
     }

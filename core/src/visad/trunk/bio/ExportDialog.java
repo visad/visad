@@ -275,10 +275,10 @@ public class ExportDialog extends JPanel
     }
 
     // extract export format
-    Form form;
-    if (picFormat.isSelected()) form = new BioRadForm();
-    else if (tiffFormat.isSelected()) form = new TiffForm();
-    else if (qtFormat.isSelected()) form = new QTForm();
+    Form saver;
+    if (picFormat.isSelected()) saver = new BioRadForm();
+    else if (tiffFormat.isSelected()) saver = new TiffForm();
+    else if (qtFormat.isSelected()) saver = new QTForm();
     else {
       JOptionPane.showMessageDialog(bio, "Invalid file format",
         "Export error", JOptionPane.ERROR_MESSAGE);
@@ -304,143 +304,139 @@ public class ExportDialog extends JPanel
     if (ans != JOptionPane.YES_OPTION) return;
 
     // export data series
-    final ProgressDialog dialog = new ProgressDialog(bio, "Exporting");
-    final Form saver = form;
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        File[] infiles = bio.sm.getSeries();
-        boolean sliceSeries = bio.sm.getFilesAsSlices();
-        boolean needReload = !sliceSeries;
-        if (needReload) {
-          try { bio.sm.purgeData(true); }
-          catch (VisADException exc) { exc.printStackTrace(); }
-          catch (RemoteException exc) { exc.printStackTrace(); }
-        }
-        for (int i=0; i<series.length; i++) {
-          dialog.setText("Exporting " + series[i].getName());
-          DataImpl data;
-          try {
-            FlatField[] images;
+    ProgressDialog dialog = new ProgressDialog(bio, "Exporting");
+    dialog.go();
 
-            if (arbSlice) {
-              // data to export is arbitrary slice
-              if (sliceSeries) {
-                // loaded dataset is a slice series
-                images = new FlatField[1];
-                images[0] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
-                  bio.sm.getField().domainMultiply(), resX, resY, rx, ry);
-              }
-              else {
-                // loaded dataset is a timestep series
-                if (filesAsSlices) {
-                  // compile slice across timesteps
-                  images = new FlatField[numIndices];
-                  for (int j=0; j<numIndices; j++) {
-                    File f = infiles[minIndex + j];
-                    FieldImpl timestep = BioUtil.loadData(f, true);
-                    images[j] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
-                      timestep.domainMultiply(), resX, resY, rx, ry);
-                    float percent = (float) (j + 1) / numIndices;
-                    dialog.setPercent((int) (100 * percent));
-                  }
-                }
-                else {
-                  // compile timestep across slices
-                  images = new FlatField[1];
-                  File f = infiles[minIndex + i];
-                  FieldImpl timestep = BioUtil.loadData(f, true);
-                  images[0] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
-                    timestep.domainMultiply(), resX, resY, rx, ry);
-                }
-              }
-            }
-            else if (sliceSeries) {
-              // loaded dataset is a slice series
-              FieldImpl field = bio.sm.getField();
-              if (filesAsSlices) {
-                // single slice, all timesteps
-                images = new FlatField[1];
-                images[0] = (FlatField) field.getSample(minSlice + i);
-              }
-              else {
-                // single timestep, all slices
-                images = new FlatField[numSlices];
-                for (int j=0; j<numSlices; j++) {
-                  images[j] = (FlatField) field.getSample(minSlice + j);
-                  float percent = (float)
-                    (numSlices * i + (j + 1)) / (series.length * numSlices);
-                  dialog.setPercent((int) (100 * percent));
-                }
+    File[] infiles = bio.sm.getSeries();
+    boolean sliceSeries = bio.sm.getFilesAsSlices();
+    boolean needReload = !sliceSeries;
+    if (needReload) {
+      try { bio.sm.purgeData(true); }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    for (int i=0; i<series.length; i++) {
+      dialog.setText("Exporting " + series[i].getName());
+      DataImpl data;
+      try {
+        FlatField[] images;
+
+        if (arbSlice) {
+          // data to export is arbitrary slice
+          if (sliceSeries) {
+            // loaded dataset is a slice series
+            images = new FlatField[1];
+            images[0] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
+              bio.sm.getField().domainMultiply(), resX, resY, rx, ry);
+          }
+          else {
+            // loaded dataset is a timestep series
+            if (filesAsSlices) {
+              // compile slice across timesteps
+              images = new FlatField[numIndices];
+              for (int j=0; j<numIndices; j++) {
+                File f = infiles[minIndex + j];
+                FieldImpl timestep = BioUtil.loadData(f, true);
+                images[j] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
+                  timestep.domainMultiply(), resX, resY, rx, ry);
+                float percent = (float) (j + 1) / numIndices;
+                dialog.setPercent((int) (100 * percent));
               }
             }
             else {
-              // loaded dataset is a timestep series
-              if (filesAsSlices) {
-                // compile slice across timesteps
-                images = new FlatField[numIndices];
-                for (int j=0; j<numIndices; j++) {
-                  File f = infiles[minIndex + j];
-                  FieldImpl timestep = BioUtil.loadData(f, true);
-                  images[j] = (FlatField) timestep.getSample(minSlice + i);
-                  float percent = (float)
-                    (numIndices * i + (j + 1)) / (series.length * numIndices);
-                  dialog.setPercent((int) (100 * percent));
-                }
-              }
-              else {
-                // compile timestep across slices
-                images = new FlatField[numSlices];
-                File f = infiles[minIndex + i];
-                FieldImpl timestep = BioUtil.loadData(f, true);
-                for (int j=0; j<numSlices; j++) {
-                  images[j] = (FlatField) timestep.getSample(minSlice + j);
-                  float percent = (float)
-                    (numSlices * i + (j + 1)) / (series.length * numSlices);
-                  dialog.setPercent((int) (100 * percent));
-                }
-              }
+              // compile timestep across slices
+              images = new FlatField[1];
+              File f = infiles[minIndex + i];
+              FieldImpl timestep = BioUtil.loadData(f, true);
+              images[0] = (FlatField) bio.sm.arb.extractSlice((FieldImpl)
+                timestep.domainMultiply(), resX, resY, rx, ry);
             }
-            for (int j=0; j<images.length; j++) {
-              // resample images to proper size if necessary
-              GriddedSet set = (GriddedSet) images[j].getDomainSet();
-              int[] l = set.getLengths();
-              if (l[0] != resX || l[1] != resY) {
-                Set nset = new Linear2DSet(set.getType(),
-                  0, l[0] - 1, resX, 0, l[1] - 1, resY);
-                images[j] = (FlatField) images[j].resample(nset);
-              }
-            }
-            data = BioUtil.makeStack(images);
-            if (colors) {
-              //
-            }
-            if (align) {
-              //
-            }
-
-            // save image stack data to file
-            saver.save(series[i].getPath(), data, true);
           }
-          catch (VisADException exc) { dialog.setException(exc); }
-          catch (Exception exc) {
-            dialog.setException(new VisADException(
-              exc.getClass() + ": " + exc.getMessage()));
+        }
+        else if (sliceSeries) {
+          // loaded dataset is a slice series
+          FieldImpl field = bio.sm.getField();
+          if (filesAsSlices) {
+            // single slice, all timesteps
+            images = new FlatField[1];
+            images[0] = (FlatField) field.getSample(minSlice + i);
           }
-          float percent = (float) (i + 1) / series.length;
-          dialog.setPercent((int) (100 * percent));
+          else {
+            // single timestep, all slices
+            images = new FlatField[numSlices];
+            for (int j=0; j<numSlices; j++) {
+              images[j] = (FlatField) field.getSample(minSlice + j);
+              float percent = (float)
+                (numSlices * i + (j + 1)) / (series.length * numSlices);
+              dialog.setPercent((int) (100 * percent));
+            }
+          }
+        }
+        else {
+          // loaded dataset is a timestep series
+          if (filesAsSlices) {
+            // compile slice across timesteps
+            images = new FlatField[numIndices];
+            for (int j=0; j<numIndices; j++) {
+              File f = infiles[minIndex + j];
+              FieldImpl timestep = BioUtil.loadData(f, true);
+              images[j] = (FlatField) timestep.getSample(minSlice + i);
+              float percent = (float)
+                (numIndices * i + (j + 1)) / (series.length * numIndices);
+              dialog.setPercent((int) (100 * percent));
+            }
+          }
+          else {
+            // compile timestep across slices
+            images = new FlatField[numSlices];
+            File f = infiles[minIndex + i];
+            FieldImpl timestep = BioUtil.loadData(f, true);
+            for (int j=0; j<numSlices; j++) {
+              images[j] = (FlatField) timestep.getSample(minSlice + j);
+              float percent = (float)
+                (numSlices * i + (j + 1)) / (series.length * numSlices);
+              dialog.setPercent((int) (100 * percent));
+            }
+          }
+        }
+        for (int j=0; j<images.length; j++) {
+          // resample images to proper size if necessary
+          GriddedSet set = (GriddedSet) images[j].getDomainSet();
+          int[] l = set.getLengths();
+          if (l[0] != resX || l[1] != resY) {
+            Set nset = new Linear2DSet(set.getType(),
+              0, l[0] - 1, resX, 0, l[1] - 1, resY);
+            images[j] = (FlatField) images[j].resample(nset);
+          }
+        }
+        data = BioUtil.makeStack(images);
+        if (colors) {
+          //
+        }
+        if (align) {
+          //
         }
 
-        dialog.setText("Finishing");
-        if (needReload) {
-          try { bio.sm.setFile(false); }
-          catch (VisADException exc) { exc.printStackTrace(); }
-          catch (RemoteException exc) { exc.printStackTrace(); }
-        }
-        dialog.kill();
+        // save image stack data to file
+        saver.save(series[i].getPath(), data, true);
       }
-    });
-    t.start();
-    dialog.show();
+      catch (VisADException exc) { dialog.setException(exc); }
+      catch (Exception exc) {
+        dialog.setException(new VisADException(
+          exc.getClass() + ": " + exc.getMessage()));
+      }
+      float percent = (float) (i + 1) / series.length;
+      dialog.setPercent((int) (100 * percent));
+    }
+
+    dialog.setText("Finishing");
+    if (needReload) {
+      try { bio.sm.setFile(false); }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    dialog.kill();
+
     try { dialog.checkException(); }
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(bio,

@@ -181,8 +181,8 @@ public class AlignmentPlane extends PlaneSelector {
       }
     }
     index = -1; // force update
-    setIndex(0);
-    updatePlane();
+    setIndex(bio.sm.getIndex());
+    while (!updatePlane());
   }
 
 
