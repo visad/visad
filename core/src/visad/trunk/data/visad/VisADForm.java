@@ -24,6 +24,37 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+/*
+NOTES for future changes:
+
+1. For creating files as-you-go, rather than from an existing
+   Data object
+
+modified version of BinaryWriter.processFieldImpl() split into
+three methods:
+  a. open - write 'header' up to FLD_DATA_SAMPLES
+  b. call ber sample for process(fld.getSample(i))
+  c. close - write FLD_END
+
+2. To read with FileFlatFields
+
+need FileAccessor for each FlatField - it knows location in file
+use random access file I/O
+
+would be useful to know length of DATA_FLAT_FIELD to skip over
+on initial read through file, creating FileAccessors and
+FileFlatFields
+
+or, have variant of DATA_FLAT_FIELD for all floats or all doubles
+that replaces FLD_DATA_SAMPLES with FLD_FLOAT_SAMPLES or
+FLD_DOUBLE_SAMPLES
+
+Dave worked on adding length field to DATA_FLAT_FIELD, but not done
+because SetType has a default Set (recursive length) - but this is
+header information that has to be read anyways to create intial
+FileFlatField - so better to do FLD_FLOAT_SAMPLES, etc
+*/
+
 package visad.data.visad;
 
 import visad.*;
