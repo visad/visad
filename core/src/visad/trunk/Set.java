@@ -266,6 +266,15 @@ public abstract class Set extends DataImpl implements SetIface {
     return Length;
   }
 
+  /**
+   * A wrapper around {@link #getLength() getLength} for JPython.
+   *
+   * @return The number of elements in the Set
+   */
+  public int __len__() throws VisADException {
+    return Length;
+  }
+
   /** return an enumeration of sample indices in a spatially
       coherent order; this is useful for efficiency */
   public int[] getWedge() {
