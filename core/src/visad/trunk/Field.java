@@ -43,7 +43,7 @@ public interface Field extends Function {
       must be the same as the order of domain indices in the DomainSet;
       copy range objects if copy is true;
       should use same MathType object in each Data object in range array */
-  public abstract void setSamples(Data[] range, boolean copy)
+  void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException;
 
   /** set range array as range values of this Field;
@@ -51,7 +51,7 @@ public interface Field extends Function {
       float[number_of_range_components][number_of_range_samples];
       the order of range values must be the same as the order of domain
       indices in the DomainSet */
-  public void setSamples(double[][] range)
+  void setSamples(double[][] range)
          throws VisADException, RemoteException;
 
   /** set range array as range values of this Field;
@@ -59,57 +59,57 @@ public interface Field extends Function {
       float[number_of_range_components][number_of_range_samples];
       the order of range values must be the same as the order of domain
       indices in the DomainSet */
-  public void setSamples(float[][] range)
+  void setSamples(float[][] range)
          throws VisADException, RemoteException;
 
   /** get the domain Set */
-  public abstract Set getDomainSet() throws VisADException, RemoteException;
+  Set getDomainSet() throws VisADException, RemoteException;
 
   /** get number of samples */
-  public abstract int getLength() throws VisADException, RemoteException;
+  int getLength() throws VisADException, RemoteException;
 
   /** get the Units of the Real components of the domain Set (SetUnits) */
-  public abstract Unit[] getDomainUnits()
+  Unit[] getDomainUnits()
          throws VisADException, RemoteException;
 
   /** get the CoordinateSystem of the domain Set (DomainCoordinateSystem) */
-  public abstract CoordinateSystem getDomainCoordinateSystem()
+  CoordinateSystem getDomainCoordinateSystem()
          throws VisADException, RemoteException;
 
   /** get the range value at the index-th sample */
-  public abstract Data getSample(int index)
+  Data getSample(int index)
          throws VisADException, RemoteException;
 
   /** set the range value at the sample nearest to domain */
-  public abstract void setSample(RealTuple domain, Data range)
+  void setSample(RealTuple domain, Data range)
          throws VisADException, RemoteException;
 
   /** set the range value at the index-th sample */
-  public abstract void setSample(int index, Data range)
+  void setSample(int index, Data range)
          throws VisADException, RemoteException;
 
   /** assumes the range type of this is a Tuple and returns
       a Field with the same domain as this, but whose range
       samples consist of the specified Tuple component of the
       range samples of this; in shorthand, this[].component */
-  public abstract Field extract(int component)
+  Field extract(int component)
          throws VisADException, RemoteException;
 
   /** combine domains of two outermost nested Fields into a single
       domain and Field */
-  public Field domainMultiply()
+  Field domainMultiply()
          throws VisADException, RemoteException;
 
   /** combine domains to depth, if possible */
-  public Field domainMultiply(int depth)
+  Field domainMultiply(int depth)
          throws VisADException, RemoteException;
 
   /** factor Field domain into domains of two nested Fields */
-  public Field domainFactor( RealType factor )
+  Field domainFactor( RealType factor )
          throws VisADException, RemoteException;
 
   /** invokes getValues(true) */
-  public abstract double[][] getValues()
+  double[][] getValues()
          throws VisADException, RemoteException;
 
   /** get the 'Flat' components of this Field's range values
@@ -121,11 +121,11 @@ public interface Field extends Function {
       return array is dimensioned:
       double[number_of_flat_components][number_of_range_samples];
       return a copy if copy == true */
-  public abstract double[][] getValues(boolean copy)
+  double[][] getValues(boolean copy)
          throws VisADException, RemoteException;
  
   /** invokes getFloats(true) */
-  public abstract float[][] getFloats()
+  float[][] getFloats()
          throws VisADException, RemoteException;
  
   /** get the 'Flat' components of this Field's range values
@@ -137,34 +137,34 @@ public interface Field extends Function {
       return array is dimensioned:
       float[number_of_flat_components][number_of_range_samples];
       return a copy if copy == true */
-  public abstract float[][] getFloats(boolean copy)
+  float[][] getFloats(boolean copy)
          throws VisADException, RemoteException;
 
   /** get String values for Text components */
-  public String[][] getStringValues()
+  String[][] getStringValues()
          throws VisADException, RemoteException;
 
   /** get default range Unit-s for 'Flat' components */
-  public abstract Unit[] getDefaultRangeUnits()
+  Unit[] getDefaultRangeUnits()
          throws VisADException, RemoteException;
 
   /** get range Unit-s for 'Flat' components;
       second index may enumerate samples, if they differ */
-  public abstract Unit[][] getRangeUnits()
+  Unit[][] getRangeUnits()
          throws VisADException, RemoteException;
 
   /** get range CoordinateSystem for 'RealTuple' range;
       index may enumerate samples, if they differ */
-  public abstract CoordinateSystem[] getRangeCoordinateSystem()
+  CoordinateSystem[] getRangeCoordinateSystem()
          throws VisADException, RemoteException;
 
   /** get range CoordinateSystem for 'RealTuple' components;
       index may enumerate samples, if they differ */
-  public abstract CoordinateSystem[] getRangeCoordinateSystem(int component)
+  CoordinateSystem[] getRangeCoordinateSystem(int component)
          throws VisADException, RemoteException;
 
   /** return true if this a FlatField or a RemoteField adapting a FlatField */
-  public abstract boolean isFlatField()
+  boolean isFlatField()
          throws VisADException, RemoteException;
 
 
@@ -178,7 +178,7 @@ public interface Field extends Function {
    }
 </PRE>
 */
-  public abstract Enumeration domainEnumeration()
+  Enumeration domainEnumeration()
          throws VisADException, RemoteException;
 
 }

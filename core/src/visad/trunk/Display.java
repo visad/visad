@@ -52,133 +52,133 @@ public interface Display extends Action {
 
   /** system intrinsic DisplayRealType objects */
   /** spatial display scalars */
-  public final static DisplayRealType XAxis =
+  DisplayRealType XAxis =
     new DisplayRealType("XAxis", true, -1.0, 1.0, 0.0, true);
-  public final static DisplayRealType YAxis =
+  DisplayRealType YAxis =
     new DisplayRealType("YAxis", true, -1.0, 1.0, 0.0, true);
-  public final static DisplayRealType ZAxis =
+  DisplayRealType ZAxis =
     new DisplayRealType("ZAxis", true, -1.0, 1.0, 0.0, true);
 
-  public final static DisplayRealType Latitude =
+  DisplayRealType Latitude =
     new DisplayRealType("Latitude", true, -90.0, 90.0, 0.0,
                         CommonUnit.degree, true);
-  public final static DisplayRealType Longitude =
+  DisplayRealType Longitude =
     new DisplayRealType("Longitude", true, 0.0, 360.0, 0.0,
                         CommonUnit.degree, true);
-  public final static DisplayRealType Radius =
+  DisplayRealType Radius =
     new DisplayRealType("Radius", true, 0.01, 2.0, 1.0, true);
 
   /** list display scalar (default domain of DisplayField) */
-  public final static DisplayRealType List =
+  DisplayRealType List =
     new DisplayRealType("List", false, 0.0, true);
 
   /** color display scalars */
-  public final static DisplayRealType Red =
+  DisplayRealType Red =
     new DisplayRealType("Red", false, 0.0, 1.0, 1.0, null, true);
-  public final static DisplayRealType Green =
+  DisplayRealType Green =
     new DisplayRealType("Green", false, 0.0, 1.0, 1.0, null, true);
-  public final static DisplayRealType Blue =
+  DisplayRealType Blue =
     new DisplayRealType("Blue", false, 0.0, 1.0, 1.0, null, true);
 
-  public final static DisplayRealType RGB =
+  DisplayRealType RGB =
     new DisplayRealType("RGB", false, 0.0, 1.0, 0.0, true);
 
-  public final static DisplayRealType RGBA =
+  DisplayRealType RGBA =
     new DisplayRealType("RGBA", false, 0.0, 1.0, 0.0, true);
 
-  public final static DisplayRealType Hue =
+  DisplayRealType Hue =
     new DisplayRealType("Hue", false, 0.0, 360.0, 0.0,
                        CommonUnit.degree, true);
-  public final static DisplayRealType Saturation =
+  DisplayRealType Saturation =
     new DisplayRealType("Saturation", false, 0.0, 1.0, 0.0, null, true);
-  public final static DisplayRealType Value =
+  DisplayRealType Value =
     new DisplayRealType("Value", false, 0.0, 1.0, 1.0, null, true);
 
-  public final static DisplayRealType HSV =
+  DisplayRealType HSV =
     new DisplayRealType("HSV", false, 0.0, 1.0, 0.0, true);
 
-  public final static DisplayRealType Cyan =
+  DisplayRealType Cyan =
     new DisplayRealType("Cyan", false, 0.0, 1.0, 1.0, null, true);
-  public final static DisplayRealType Magenta =
+  DisplayRealType Magenta =
     new DisplayRealType("Magenta", false, 0.0, 1.0, 1.0, null, true);
-  public final static DisplayRealType Yellow =
+  DisplayRealType Yellow =
     new DisplayRealType("Yellow", false, 0.0, 1.0, 1.0, null, true);
 
-  public final static DisplayRealType CMY =
+  DisplayRealType CMY =
     new DisplayRealType("CMY", false, 0.0, 1.0, 0.0, true);
 
   /** Alpha is transparency */
-  public final static DisplayRealType Alpha =
+  DisplayRealType Alpha =
     new DisplayRealType("Alpha", false, 0.0, 1.0, 1.0, null, true);
 
   /** animation display scalar */
-  public final static DisplayRealType Animation =
+  DisplayRealType Animation =
     new DisplayRealType("Animation", true, 0.0, true);
 
   /** display scalar for selecting by a single value */
-  public final static DisplayRealType SelectValue =
+  DisplayRealType SelectValue =
     new DisplayRealType("SelectValue", false, 0.0, true);
 
   /** display scalar for selecting by a range of values */
-  public final static DisplayRealType SelectRange =
+  DisplayRealType SelectRange =
     new DisplayRealType("SelectRange", false, 0.0, true);
 
   /** iso-contour display scalar */
-  public final static DisplayRealType IsoContour =
+  DisplayRealType IsoContour =
     new DisplayRealType("IsoContour", false, 0.0, true);
 
   /** three flow display scalars */
-  public final static DisplayRealType Flow1X =
+  DisplayRealType Flow1X =
     new DisplayRealType("Flow1X", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
-  public final static DisplayRealType Flow1Y =
+  DisplayRealType Flow1Y =
     new DisplayRealType("Flow1Y", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
-  public final static DisplayRealType Flow1Z =
+  DisplayRealType Flow1Z =
     new DisplayRealType("Flow1Z", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
   /** second set of three flow display scalars */
-  public final static DisplayRealType Flow2X =
+  DisplayRealType Flow2X =
     new DisplayRealType("Flow2X", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
-  public final static DisplayRealType Flow2Y =
+  DisplayRealType Flow2Y =
     new DisplayRealType("Flow2Y", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
-  public final static DisplayRealType Flow2Z =
+  DisplayRealType Flow2Z =
     new DisplayRealType("Flow2Z", true, -1.0, 1.0, 0.0,
                         CommonUnit.meterPerSecond, true);
 
   /** spatial offset display scalars */
-  public final static DisplayRealType XAxisOffset =
+  DisplayRealType XAxisOffset =
     new DisplayRealType("XAxisOffset", false, -1.0, 1.0, 0.0, null, true);
-  public final static DisplayRealType YAxisOffset =
+  DisplayRealType YAxisOffset =
     new DisplayRealType("YAxisOffset", false, -1.0, 1.0, 0.0, null, true);
-  public final static DisplayRealType ZAxisOffset =
+  DisplayRealType ZAxisOffset =
     new DisplayRealType("ZAxisOffset", false, -1.0, 1.0, 0.0, null, true);
 
   /** shape display scalar
       WLH - this should be a DisplayEnumeratedType */
-  public final static DisplayRealType Shape =
+  DisplayRealType Shape =
     new DisplayRealType("Shape", false, 0.0, true);
 
   /** scale for Shape */
-  public final static DisplayRealType ShapeScale =
+  DisplayRealType ShapeScale =
     new DisplayRealType("ShapeScale", true, 0.01, 1.0, 1.0, true);
  
   /** text display scalar
       WLH - this should be a DisplayTextType */
-  public final static DisplayRealType Text =
+  DisplayRealType Text =
     new DisplayRealType("Text", true, true);
 
   /** point size and line width - ConstantMap only */
-  public final static DisplayRealType LineWidth =
+  DisplayRealType LineWidth =
     new DisplayRealType("LineWidth", true, 1.0, true);
-  public final static DisplayRealType PointSize =
+  DisplayRealType PointSize =
     new DisplayRealType("PointSize", true, 1.0, true);
 
   /** array of system intrinsic display scalars */
-  final static DisplayRealType[] DisplayRealArray =
+  DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
      RGB, RGBA, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
      Animation, SelectValue, SelectRange, IsoContour, Flow1X, Flow1Y, Flow1Z,
@@ -188,82 +188,82 @@ public interface Display extends Action {
 
   /** system intrinsic DisplayTupleType objects */
   /** system intrinsic DisplayTupleType for 3D Cartesian Spatial Coordinates */
-  public final static DisplayRealType[] components3c =
+  DisplayRealType[] components3c =
           {Display.XAxis, Display.YAxis, Display.ZAxis};
-  public final static DisplayTupleType DisplaySpatialCartesianTuple =
+  DisplayTupleType DisplaySpatialCartesianTuple =
     new DisplayTupleType(components3c, true);
 
   /** system intrinsic DisplayTupleType for 3D Spherical Spatial Coordinates,
       this defines a CoordinateSystem with Reference
       DisplaySpatialCartesianTuple */
-  public final static CoordinateSystem DisplaySphericalCoordSys =
+  CoordinateSystem DisplaySphericalCoordSys =
     new SphericalCoordinateSystem(DisplaySpatialCartesianTuple, true);
-  public static DisplayRealType[] components3s =
+  DisplayRealType[] components3s =
           {Latitude, Longitude, Radius};
-  public final static DisplayTupleType DisplaySpatialSphericalTuple =
+  DisplayTupleType DisplaySpatialSphericalTuple =
     new DisplayTupleType(components3s, DisplaySphericalCoordSys, true);
 
   /** system intrinsic DisplayTupleType for RGB Color Coordinates */
-  public final static DisplayRealType[] componentsrgb =
+  DisplayRealType[] componentsrgb =
           {Red, Green, Blue};
-  public final static DisplayTupleType DisplayRGBTuple =
+  DisplayTupleType DisplayRGBTuple =
     new DisplayTupleType(componentsrgb, true);
 
   /** system intrinsic DisplayTupleType for HSV Color Coordinates */
-  public final static CoordinateSystem DisplayHSVCoordSys =
+  CoordinateSystem DisplayHSVCoordSys =
     new HSVCoordinateSystem(DisplayRGBTuple, true);
-  public final static DisplayRealType[] componentshsv =
+  DisplayRealType[] componentshsv =
           {Hue, Saturation, Value};
-  public final static DisplayTupleType DisplayHSVTuple =
+  DisplayTupleType DisplayHSVTuple =
     new DisplayTupleType(componentshsv, DisplayHSVCoordSys, true);
 
   /** system intrinsic DisplayTupleType for CMY Color Coordinates */
-  public final static CoordinateSystem DisplayCMYCoordSys =
+  CoordinateSystem DisplayCMYCoordSys =
     new CMYCoordinateSystem(DisplayRGBTuple, true);
-  public final static DisplayRealType[] componentscmy =
+  DisplayRealType[] componentscmy =
           {Cyan, Magenta, Yellow};
-  public final static DisplayTupleType DisplayCMYTuple =
+  DisplayTupleType DisplayCMYTuple =
     new DisplayTupleType(componentscmy, DisplayCMYCoordSys, true);
 
   /** system intrinsic DisplayTupleType for first set of Flow components */
-  public final static DisplayRealType[] componentsflow1 =
+  DisplayRealType[] componentsflow1 =
           {Flow1X, Flow1Y, Flow1Z};
-  public final static DisplayTupleType DisplayFlow1Tuple =
+  DisplayTupleType DisplayFlow1Tuple =
     new DisplayTupleType(componentsflow1, true);
 
   /** system intrinsic DisplayTupleType for second set of Flow components */
-  public final static DisplayRealType[] componentsflow2 =
+  DisplayRealType[] componentsflow2 =
           {Flow2X, Flow2Y, Flow2Z};
-  public final static DisplayTupleType DisplayFlow2Tuple =
+  DisplayTupleType DisplayFlow2Tuple =
     new DisplayTupleType(componentsflow2, true);
 
   /** system intrinsic DisplayTupleType for Spatial Offset Coordinates */
-  public final static DisplayRealType[] componentsso =
+  DisplayRealType[] componentsso =
           {XAxisOffset, YAxisOffset, ZAxisOffset};
-  public final static DisplayTupleType DisplaySpatialOffsetTuple =
+  DisplayTupleType DisplaySpatialOffsetTuple =
     new DisplayTupleType(componentsso, true);
 
 
   /** create link to DataReference;
       invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
-  public abstract void addReference(DataReference ref,
+  void addReference(DataReference ref,
          ConstantMap[] constant_maps) throws VisADException, RemoteException;
 
   /** create link to DataReference;
       invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
-  public abstract void addReferences(DataRenderer renderer, DataReference ref,
+  void addReferences(DataRenderer renderer, DataReference ref,
                             ConstantMap[] constant_maps)
          throws VisADException, RemoteException;
 
   /** link map to this Display; this method may not be invoked
       after any links to DataReferences have been made */
-  public abstract void addMap(ScalarMap map)
+  void addMap(ScalarMap map)
          throws VisADException, RemoteException;
 
   /** clear set of ScalarMap-s associated with this display */
-  public abstract void clearMaps() throws VisADException, RemoteException;
+  void clearMaps() throws VisADException, RemoteException;
 
-  public abstract Vector getConstantMapVector()
+  Vector getConstantMapVector()
          throws VisADException, RemoteException;
 }
 

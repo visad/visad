@@ -55,14 +55,14 @@ public interface DataReference extends ThingReference {
       will be passed by copy and a remote data argument (i.e., an
       instance of RemoteData) will be passed by remote reference;
       invokes d.addReference(DataReference r) */
-  public abstract void setData(Data d) throws VisADException, RemoteException;
+  void setData(Data d) throws VisADException, RemoteException;
 
   /** get referenced Data object, or null if none */
-  public abstract Data getData() throws VisADException, RemoteException;
+  Data getData() throws VisADException, RemoteException;
 
   /** get MathType of referenced Data object, or null if none;
       this is more efficient than getData().getType() for
       RemoteDataReferences */
-  public abstract MathType getType() throws VisADException, RemoteException;
+  MathType getType() throws VisADException, RemoteException;
 }
 

@@ -35,13 +35,13 @@ import java.rmi.*;
 public interface ValueControl extends AVControl {
 
   /** set the selected value */
-  public abstract void setValue(double value)
+  void setValue(double value)
          throws VisADException, RemoteException;
 
-  public abstract void init() throws VisADException;
+  void init() throws VisADException;
 
   /** return the selected value */
-  public abstract double getValue();
+  double getValue();
 
 }
 

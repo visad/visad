@@ -35,16 +35,16 @@ import java.util.Vector;
    RemoteDisplay is the interface for Remote Display-s.<P>
 */
 public interface RemoteDisplay extends Remote, Display {
-  public abstract String getName() throws VisADException, RemoteException;
-  public abstract String getDisplayClassName() throws RemoteException;
-  public abstract int getDisplayAPI() throws VisADException, RemoteException;
-  public abstract String getDisplayRendererClassName() throws RemoteException;
-  public abstract Vector getMapVector() throws VisADException, RemoteException;
-  public abstract Vector getConstantMapVector()
+  String getName() throws VisADException, RemoteException;
+  String getDisplayClassName() throws RemoteException;
+  int getDisplayAPI() throws VisADException, RemoteException;
+  String getDisplayRendererClassName() throws RemoteException;
+  Vector getMapVector() throws VisADException, RemoteException;
+  Vector getConstantMapVector()
 	throws VisADException, RemoteException;
-  public abstract RemoteGraphicsModeControl getGraphicsModeControl()
+  RemoteGraphicsModeControl getGraphicsModeControl()
 	throws VisADException, RemoteException;
-  public abstract Vector getReferenceLinks()
+  Vector getReferenceLinks()
 	throws VisADException, RemoteException;
 }
 

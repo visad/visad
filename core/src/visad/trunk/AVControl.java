@@ -34,11 +34,11 @@ import java.util.*;
 */
 public interface AVControl {
 
-  public abstract void clearSwitches(DataRenderer re);
+  void clearSwitches(DataRenderer re);
 
-  public abstract void addControlListener(ControlListener listener);
+  void addControlListener(ControlListener listener);
 
-  public abstract void removeControlListener(ControlListener listener);
+  void removeControlListener(ControlListener listener);
 
 }
 

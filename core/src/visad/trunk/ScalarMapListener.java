@@ -36,7 +36,7 @@ import java.rmi.*;
 public interface ScalarMapListener extends EventListener {
 
   /** send a ScalarMapEvent to this ScalarMapListener */
-  public abstract void mapChanged(ScalarMapEvent e)
+  void mapChanged(ScalarMapEvent e)
          throws VisADException, RemoteException;
  
 }

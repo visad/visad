@@ -38,19 +38,19 @@ public interface Action extends ThingChangedListener {
 
   /** create link to a ThingReference;
       invokes ref.addThingChangedListener(ThingChangedListener l, long id) */
-  public abstract void addReference(ThingReference ref)
+  void addReference(ThingReference ref)
          throws VisADException, RemoteException;
 
   /** delete link to a ThingReference */
-  public abstract void removeReference(ThingReference ref)
+  void removeReference(ThingReference ref)
          throws VisADException, RemoteException;
 
   /** delete all links to ThingReferences */
-  public abstract void removeAllReferences()
+  void removeAllReferences()
          throws VisADException, RemoteException;
 
   /** return name of this Action */
-  public abstract String getName()
+  String getName()
          throws VisADException, RemoteException;
 
 }

@@ -35,38 +35,38 @@ import java.rmi.RemoteException;
 public interface RemoteGraphicsModeControl extends RemoteControl
 {
   /** return 'true' if the display is being rendered as a 2D object */
-  public abstract boolean getMode2D() throws VisADException, RemoteException;
+  boolean getMode2D() throws VisADException, RemoteException;
 
   /** get the width of line rendering */
-  public abstract float getLineWidth() throws VisADException, RemoteException;
+  float getLineWidth() throws VisADException, RemoteException;
 
   /** get the size for point rendering */
-  public abstract float getPointSize() throws VisADException, RemoteException;
+  float getPointSize() throws VisADException, RemoteException;
 
   /** if true, this will cause some rendering as points
       rather than lines or surfaces */
-  public abstract boolean getPointMode() throws VisADException, RemoteException;
+  boolean getPointMode() throws VisADException, RemoteException;
 
   /** if true, this will enable use of texture mapping, where appropriate */
-  public abstract boolean getTextureEnable() throws VisADException, RemoteException;
+  boolean getTextureEnable() throws VisADException, RemoteException;
 
   /** if true, this will enable numerical scales along display spatial axes */
-  public abstract boolean getScaleEnable() throws VisADException, RemoteException;
+  boolean getScaleEnable() throws VisADException, RemoteException;
 
   /** get graphics-API-specific transparency mode
       (e.g., SCREEN_DOOR, BLENDED) */
-  public abstract int getTransparencyMode() throws VisADException, RemoteException;
+  int getTransparencyMode() throws VisADException, RemoteException;
 
   /** get graphics-API-specific projection policy
       (e.g., PARALLEL_PROJECTION, PERSPECTIVE_PROJECTION) */
-  public abstract int getProjectionPolicy() throws VisADException, RemoteException;
+  int getProjectionPolicy() throws VisADException, RemoteException;
 
-  public abstract int getPolygonMode() throws VisADException, RemoteException;
+  int getPolygonMode() throws VisADException, RemoteException;
 
-  public abstract boolean getMissingTransparent()
+  boolean getMissingTransparent()
          throws VisADException, RemoteException;
 
-  public abstract int getCurvedSize()
+  int getCurvedSize()
          throws VisADException, RemoteException;
 
 }

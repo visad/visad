@@ -36,6 +36,6 @@ package visad;
 */
 public interface LinearSet {
 
-  public abstract Linear1DSet getLinear1DComponent(int i);
+  Linear1DSet getLinear1DComponent(int i);
 
 }

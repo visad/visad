@@ -46,23 +46,23 @@ import java.rmi.*;
 public interface ThingReference {
 
   /** invokes t.addReference((ThingReference r) */
-  public abstract void setThing(Thing t) throws VisADException, RemoteException;
+  void setThing(Thing t) throws VisADException, RemoteException;
  
-  public abstract Thing getThing() throws VisADException, RemoteException;
+  Thing getThing() throws VisADException, RemoteException;
  
-  public abstract long getTick() throws VisADException, RemoteException;
+  long getTick() throws VisADException, RemoteException;
 
-  public abstract long incTick() throws VisADException, RemoteException;
+  long incTick() throws VisADException, RemoteException;
 
-  public abstract String getName() throws VisADException, RemoteException;
+  String getName() throws VisADException, RemoteException;
 
-  public abstract void addThingChangedListener(ThingChangedListener l, long id)
+  void addThingChangedListener(ThingChangedListener l, long id)
          throws VisADException, RemoteException;
 
-  public abstract void removeThingChangedListener(ThingChangedListener l)
+  void removeThingChangedListener(ThingChangedListener l)
          throws VisADException, RemoteException;
 
-  public ThingChangedEvent acknowledgeThingChanged(Action a)
+  ThingChangedEvent acknowledgeThingChanged(Action a)
          throws VisADException, RemoteException;
 }
 

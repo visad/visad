@@ -41,12 +41,12 @@ public interface Cell extends Action {
       the Cell's doAction whenever the Data changes;
       these 'other' DataReferences are identified by their
       integer index */
-  public abstract void setOtherReference(int index, DataReference ref)
+  void setOtherReference(int index, DataReference ref)
          throws VisADException, RemoteException;
  
   /** return the non-triggering link to a DataReference
       identified by index */
-  public abstract DataReference getOtherReference(int index)
+  DataReference getOtherReference(int index)
          throws VisADException, RemoteException;
 
 }

@@ -36,11 +36,11 @@ import java.rmi.*;
 public interface Thing {
 
   /** add a ThingReference to this Thing object */
-  public void addReference(ThingReference r)
+  void addReference(ThingReference r)
          throws VisADException, RemoteException;
 
   /** remove a ThingReference from this Thing object */
-  public void removeReference(ThingReference r)
+  void removeReference(ThingReference r)
          throws VisADException, RemoteException;
 }
 

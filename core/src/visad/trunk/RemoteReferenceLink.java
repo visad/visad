@@ -37,12 +37,12 @@ import java.util.Vector;
 public interface RemoteReferenceLink extends Remote
 {
   /** return the name of the DataRenderer used to render this reference */
-  public String getRendererClassName() throws VisADException, RemoteException;
+  String getRendererClassName() throws VisADException, RemoteException;
 
   /** return a reference to the remote Data object */
-  public RemoteDataReference getReference()
+  RemoteDataReference getReference()
 	throws VisADException, RemoteException;
 
   /** return the list of ConstantMap-s which apply to this Data object */
-  public Vector getConstantMapVector() throws VisADException, RemoteException;
+  Vector getConstantMapVector() throws VisADException, RemoteException;
 }

@@ -35,10 +35,10 @@ public interface RemoteThing extends Remote, Thing {
 
   /** Tick is incremented in a RemoteThing object, rather than
       propogating Thing changes to RemoteThingReference-s */
-  public abstract long incTick() throws RemoteException;
+  long incTick() throws RemoteException;
 
   /** RemoteThingReference-s poll getTick() */
-  public abstract long getTick() throws RemoteException;
+  long getTick() throws RemoteException;
 
 }
 
