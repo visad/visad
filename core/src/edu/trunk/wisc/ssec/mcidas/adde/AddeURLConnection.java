@@ -94,7 +94,8 @@ import HTTPClient.UncompressInputStream;
  *   place=<placement>         placement of lat/lon or linele points (center 
  *                               or upperleft (def=center)) (imagedata only)
  *   pos=<position>            request an absolute or relative ADDE position 
- *                               number
+ *                               number.  May use <start> <end>.  Default
+ *                               for <end> is 0 if start<0, or =start otherwise.
  *   size=<lines> <elements>   size of image to be returned (imagedata only)
  *   unit=<unit>               to specify calibration units other than the 
  *                               default 
@@ -1227,7 +1228,7 @@ public class AddeURLConnection extends URLConnection
         // Mandatory strings
         String groupString = null;
         String descrString = "all";
-        String posString = "0 0";
+        String posString = "0";
         String traceString = "trace=0";
         String bandString = "band=all x";
         String auxString = "aux=yes";
@@ -1253,11 +1254,31 @@ public class AddeURLConnection extends URLConnection
             {
                 tempString = 
                     testString.substring(testString.indexOf("=") + 1);
-                posString = 
-                    tempString.equals("")    // check for no input ("pos=")
-                        ? "0 0"
-                        : tempString.equals("all")  // check for all request
-                                ? "1095519264" : tempString + " 0";
+                if (tempString.equals("")) {  // null string
+                  posString = "0";
+                } else {
+
+                  // see if a single argument
+                  StringTokenizer stp = new StringTokenizer(tempString," ");
+                  if (stp.countTokens() == 1) {
+                    if (tempString.equals("all")) {  // put in numeric
+                      posString =  "1095519264";
+
+                    } else {
+                      int posval = Integer.parseInt(stp.nextToken().trim());
+                      if (posval < 0) {  // if value < 0 insert 0 as ending
+                        posString = tempString + " 0";
+                      } else {
+                        posString = tempString;  // else default
+                      }
+                    }
+
+                  } else {  // more than one value...just copy it
+                    posString = tempString;
+                  }
+
+                }
+
             }
             // now get the rest of the keywords (but filter out non-needed)
             else
