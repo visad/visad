@@ -189,7 +189,6 @@ SAVE_FILES = \
 	ucar/multiarray/*.java				\
 	ucar/util/*.java				\
 	ucar/netcdf/*.java				\
-	ucar/netcdf/Makefile				\
 	ucar/tests/*.java				\
 	ucar/tests/test.nc				\
 	ucar/tests/test.out				\
@@ -229,7 +228,6 @@ SAVE_FILES = \
 	visad/aune/*.f					\
 	visad/aune/*.c					\
 	visad/aune/*.h					\
-	visad/benjamin/README.benjamin			\
 	visad/benjamin/Makefile				\
 	visad/benjamin/*.java				\
 	visad/benjamin/*.f				\
