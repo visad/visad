@@ -186,7 +186,6 @@ public class DisplaySyncImpl
   {
     Control lclCtl, rmtCtl;
 
-    monitor.addRemoteMonitorEvent(evt);
     switch (evt.getType()) {
     case MonitorEvent.MAP_ADDED:
       // forward to any listeners

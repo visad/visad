@@ -94,17 +94,6 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Caches this (remotely-originated) <TT>MonitorEvent</TT>
-   * for future reference.
-   *
-   * @param evt The event to cache.
-   */
-  public void addRemoteMonitorEvent(MonitorEvent evt)
-  {
-    broadcaster.addRemoteMonitorEvent(evt);
-  }
-
-  /**
    * Returns a suggestion for a unique listener identifier which is
    * equal to or greater than the supplied ID.
    *
@@ -134,10 +123,17 @@ public class DisplayMonitorImpl
       return;
     }
 
+    Control ctlClone = (Control )(evt.getControl().clone());
+    ControlMonitorEvent ctlEvt;
     try {
-      broadcaster.notifyListeners(new ControlMonitorEvent(MonitorEvent.CONTROL_CHANGED,
-                                           (Control )evt.getControl().clone()));
+      ctlEvt = new ControlMonitorEvent(MonitorEvent.CONTROL_CHANGED, ctlClone);
     } catch (VisADException ve) {
+      ve.printStackTrace();
+      ctlEvt = null;
+    }
+
+    if (ctlEvt != null) {
+      broadcaster.notifyListeners(ctlEvt);
     }
   }
 
@@ -149,6 +145,11 @@ public class DisplayMonitorImpl
    */
   public void controlChanged(ScalarMapControlEvent evt)
   {
+    // don't bother if nobody's listening
+    if (!broadcaster.hasListeners()) {
+      return;
+    }
+
     int id = evt.getId();
     if (id == ScalarMapEvent.CONTROL_REMOVED ||
         id == ScalarMapEvent.CONTROL_REPLACED)
@@ -181,6 +182,9 @@ public class DisplayMonitorImpl
       return;
     }
 
+    MapMonitorEvent mapEvt;
+    ReferenceMonitorEvent refEvt;
+
     switch (evt.getId()) {
     case DisplayEvent.MOUSE_PRESSED:
     case DisplayEvent.TRANSFORM_DONE:
@@ -194,31 +198,52 @@ public class DisplayMonitorImpl
     case DisplayEvent.MOUSE_RELEASED_RIGHT:
       break;
     case DisplayEvent.MAP_ADDED:
-      ScalarMap map = ((DisplayMapEvent )evt).getMap();
-
+      ScalarMap map = (ScalarMap )((DisplayMapEvent )evt).getMap().clone();
       try {
-        broadcaster.notifyListeners(new MapMonitorEvent(MonitorEvent.MAP_ADDED,
-                                         (ScalarMap )map.clone()));
+        mapEvt = new MapMonitorEvent(MonitorEvent.MAP_ADDED, map);
       } catch (VisADException ve) {
+        ve.printStackTrace();
+        mapEvt = null;
+      }
+      if (mapEvt != null) {
+        broadcaster.notifyListeners(mapEvt);
       }
       break;
     case DisplayEvent.MAPS_CLEARED:
       try {
-        broadcaster.notifyListeners(new MapMonitorEvent(MonitorEvent.MAPS_CLEARED, null));
+        mapEvt = new MapMonitorEvent(MonitorEvent.MAPS_CLEARED, null);
       } catch (VisADException ve) {
+        ve.printStackTrace();
+        mapEvt = null;
+      }
+      if (mapEvt != null) {
+        broadcaster.notifyListeners(mapEvt);
       }
       break;
     case DisplayEvent.REFERENCE_ADDED:
       DisplayReferenceEvent dre = (DisplayReferenceEvent )evt;
 
       DataDisplayLink link = dre.getDataDisplayLink();
+
+      RemoteReferenceLinkImpl rrl;
       try {
-        RemoteReferenceLinkImpl rrl = new RemoteReferenceLinkImpl(link);
-        ReferenceMonitorEvent refEvt;
-        refEvt = new ReferenceMonitorEvent(MonitorEvent.REFERENCE_ADDED, rrl);
-        broadcaster.notifyListeners(refEvt);
-      } catch (VisADException ve) {
-      } catch (RemoteException ve) {
+        rrl = new RemoteReferenceLinkImpl(link);
+      } catch (RemoteException re) {
+        // ignore attempt to link in a remote reference
+        rrl = null;
+      }
+
+      if (rrl != null) {
+        try {
+          refEvt = new ReferenceMonitorEvent(MonitorEvent.REFERENCE_ADDED,
+                                             rrl);
+        } catch (VisADException ve) {
+          ve.printStackTrace();
+          refEvt = null;
+        }
+        if (refEvt != null) {
+          broadcaster.notifyListeners(refEvt);
+        }
       }
       break;
 
@@ -263,11 +288,18 @@ public class DisplayMonitorImpl
       return;
     }
 
-    ScalarMap map = evt.getScalarMap();
+    ScalarMap mapClone = (ScalarMap )(evt.getScalarMap().clone());
+
+    MapMonitorEvent mapEvt;
     try {
-      broadcaster.notifyListeners(new MapMonitorEvent(MonitorEvent.MAP_CHANGED,
-                                          (ScalarMap )map.clone()));
+      mapEvt = new MapMonitorEvent(MonitorEvent.MAP_CHANGED, mapClone);
     } catch (VisADException ve) {
+      ve.printStackTrace();
+      mapEvt = null;
+    }
+
+    if (mapEvt != null) {
+      broadcaster.notifyListeners(mapEvt);
     }
   }
 

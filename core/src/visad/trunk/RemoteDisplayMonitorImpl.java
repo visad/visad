@@ -182,19 +182,6 @@ public class RemoteDisplayMonitorImpl
   /**
    * Unusable stub.  Unimplemented.
    *
-   * @param evt Ignored.
-   *
-   * @exception RemoteException <B>ALWAYS</B> thrown.
-   */
-  public void addRemoteMonitorEvent(MonitorEvent evt)
-    throws RemoteException
-  {
-   throw new RemoteException("Unimplemented");
-  }
-
-  /**
-   * Unusable stub.  Unimplemented.
-   *
    * @param originator Ignored.
    * @param ctl Ignored.
    *

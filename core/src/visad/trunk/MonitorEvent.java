@@ -101,6 +101,16 @@ public abstract class MonitorEvent
     return type;
   }
 
+  /*
+   * Gets a clone of the monitored object.
+   */
+  public abstract Object getClonedObject();
+
+  /*
+   * Gets the monitored object.
+   */
+  public abstract Object getObject();
+
   /**
    * Gets the originator of this <CODE>MonitorEvent</CODE>.
    */

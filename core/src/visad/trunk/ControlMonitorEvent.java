@@ -73,10 +73,26 @@ public class ControlMonitorEvent
     this.ctl = ctl;
   }
 
+  /*
+   * Gets a clone of the monitored object.
+   */
+  public Object getClonedObject()
+  {
+    return ctl.clone();
+  }
+
   /**
    * Gets the <CODE>Control</CODE> to which this event refers.
    */
   public Control getControl()
+  {
+    return ctl;
+  }
+
+  /*
+   * Gets the monitored object.
+   */
+  public Object getObject()
   {
     return ctl;
   }

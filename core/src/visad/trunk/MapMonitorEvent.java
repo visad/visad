@@ -73,10 +73,26 @@ public class MapMonitorEvent
     this.map = map;
   }
 
+  /*
+   * Gets a clone of the monitored object.
+   */
+  public Object getClonedObject()
+  {
+    return map.clone();
+  }
+
   /**
    * Gets the <CODE>ScalarMap</CODE> to which this event refers.
    */
   public ScalarMap getMap()
+  {
+    return map;
+  }
+
+  /*
+   * Gets the monitored object.
+   */
+  public Object getObject()
   {
     return map;
   }

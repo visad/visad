@@ -22,8 +22,9 @@ MA 02111-1307, USA
 
 package visad.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.ListIterator;
-import java.util.Vector;
 
 /**
  * A write-only cache of objects which are slowly purged over time.
@@ -47,7 +48,7 @@ public class ObjectCache
   /**
    * The list of caches.
    */
-  private static final transient Vector reaperList = new Vector();
+  private static final transient ArrayList reaperList = new ArrayList();
   /**
    * The current maximum generation.
    */
@@ -60,7 +61,8 @@ public class ObjectCache
   /**
    * The list of objects in this cache.
    */
-  private transient Vector cache = new Vector();
+  private transient ArrayList cache = new ArrayList();
+  private transient HashMap hash = new HashMap();
   /**
    * The current generation number for objects added to the cache.
    */
@@ -108,8 +110,12 @@ public class ObjectCache
   public ObjectCache(String name)
   {
     this.name = name;
-    reaperList.addElement(this);
+
     setGeneration(reaperGeneration);
+
+    synchronized (reaperList) {
+      reaperList.add(this);
+    }
   }
 
   /**
@@ -119,7 +125,14 @@ public class ObjectCache
    */
   public synchronized void add(Object obj)
   {
-    cache.add(new QueueMember(cacheGeneration, obj));
+    // don't try to cache null objects
+    if (obj == null) {
+      return;
+    }
+
+    QueueMember qm = new QueueMember(cacheGeneration, obj);
+    cache.add(qm);
+    hash.put(obj.getClass(), qm);
   }
 
   /**
@@ -133,6 +146,11 @@ public class ObjectCache
     while (iter.hasNext()) {
       QueueMember member = (QueueMember )iter.next();
       if (member.generation == generation) {
+        Class mClass = member.object.getClass();
+        if (member == hash.get(mClass)) {
+          hash.remove(mClass);
+        }
+
         iter.remove();
       }
     }
@@ -150,9 +168,8 @@ public class ObjectCache
       return true;
     }
 
-    ListIterator iter = cache.listIterator();
-    while (iter.hasNext()) {
-      Object q = ((QueueMember )iter.next()).object;
+    if (hash.containsKey(obj.getClass())) {
+      Object q = ((QueueMember )hash.get(obj.getClass())).object;
 
       // if the objects are equal...
       if (obj.equals(q)) {
@@ -206,7 +223,7 @@ public class ObjectCache
       int nextGeneration = reaperGeneration + 1;
       int purgeGeneration = reaperGeneration - numGenerations;
       for (int i = reaperList.size() - 1; i >= 0; i--) {
-        ObjectCache cache = (ObjectCache )reaperList.elementAt(i);
+        ObjectCache cache = (ObjectCache )reaperList.get(i);
         cache.setGeneration(nextGeneration);
         cache.purge(purgeGeneration);
       }

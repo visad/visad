@@ -22,15 +22,17 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.io.EOFException;
+
 import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.Vector;
 
 import visad.util.ObjectCache;
 import visad.util.ThreadPool;
@@ -48,20 +50,13 @@ public class MonitorBroadcaster
    * The list of objects interested in changes to the monitored
    * <TT>Display</TT>.
    */
-  private Vector ListenerVector;
-
-  /**
-   * The queue of events received from listeners -- used to suppress
-   * events generated due to changes in remote displays.
-   */
-  private ObjectCache objCache;
+  private ArrayList list;
 
   public MonitorBroadcaster(DisplayImpl dpy)
   {
     myDisplay = dpy;
 
-    ListenerVector = new Vector();
-    objCache = new ObjectCache(dpy.getName() + " Cache");
+    list = new ArrayList();
   }
 
   /**
@@ -77,11 +72,9 @@ public class MonitorBroadcaster
   public void addListener(DisplayMonitorListener listener, int id)
     throws VisADException
   {
-    if (ListenerVector == null) {
-      throw new VisADException("Null DisplayMonitor Listener Vector");
+    synchronized (list) {
+      list.add(new MonitorListener(listener, id));
     }
-
-    ListenerVector.addElement(new Listener(listener, id));
   }
 
   /**
@@ -92,14 +85,17 @@ public class MonitorBroadcaster
    */
   public int checkID(int id)
   {
-    ListIterator iter = ListenerVector.listIterator();
+    ListIterator iter = list.listIterator();
     while (iter.hasNext()) {
-      Listener li = (Listener )iter.next();
+      MonitorListener li = (MonitorListener )iter.next();
       if (li.getID() == id) {
-        if (nextListenerID == id) {
+        synchronized (list) {
+          if (nextListenerID == id) {
+            nextListenerID++;
+          }
           nextListenerID++;
         }
-        return nextListenerID++;
+        return nextListenerID;
       }
     }
 
@@ -122,8 +118,12 @@ public class MonitorBroadcaster
     // maximum number of rounds of ID negotiation
     final int MAX_ROUNDS = 20;
 
+    int rmtID;
+    synchronized (list) {
+      rmtID = nextListenerID++;
+    }
+
     int id;
-    int rmtID = nextListenerID++;
     int round = 0;
     do {
       id = rmtID;
@@ -155,7 +155,7 @@ public class MonitorBroadcaster
     throws RemoteException, RemoteVisADException
   {
     RemoteDisplayMonitor rdm = rd.getRemoteDisplayMonitor();
-    int id = negotiateUniqueID(rdm);
+    final int id = negotiateUniqueID(rdm);
 
     DisplaySyncImpl dsi = (DisplaySyncImpl )myDisplay.getDisplaySync();
     RemoteDisplaySyncImpl wrap = new RemoteDisplaySyncImpl(dsi);
@@ -185,7 +185,7 @@ public class MonitorBroadcaster
    */
   public boolean hasListeners()
   {
-    return (ListenerVector != null && ListenerVector.size() > 0);
+    return (list.size() > 0);
   }
 
   /**
@@ -196,23 +196,29 @@ public class MonitorBroadcaster
    */
   public void notifyListeners(MonitorEvent evt)
   {
-    if (evt == null) {
-      return;
-    }
+    final int evtID = evt.getOriginator();
 
-    boolean cached = objCache.isCached(evt);
-    if (cached) {
-      return;
-    }
-
-    ListIterator iter = ListenerVector.listIterator();
+    ListIterator iter = list.listIterator();
     while (iter.hasNext()) {
-      Listener li = (Listener )iter.next();
+      MonitorListener li = (MonitorListener )iter.next();
+
       if (li.isDead()) {
+        // delete dead listeners
         iter.remove();
-      } else {
-        li.addEvent(evt);
+        continue;
       }
+
+      if (li.eventSeen(evt)) {
+        // don't rebroadcast events
+        continue;
+      }
+
+      if (evtID == li.getID()) {
+        // don't return event to its source
+        continue;
+      }
+
+      li.addEvent(evt);
     }
   }
 
@@ -223,27 +229,16 @@ public class MonitorBroadcaster
    */
   public void removeListener(DisplayMonitorListener l)
   {
-    if (l != null && ListenerVector != null) {
-      ListIterator iter = ListenerVector.listIterator();
+    if (l != null) {
+      ListIterator iter = list.listIterator();
       while (iter.hasNext()) {
-        Listener li = (Listener )iter.next();
+        MonitorListener li = (MonitorListener )iter.next();
         if (li.getListener().equals(l)) {
           iter.remove();
           break;
         }
       }
     }
-  }
-
-  /**
-   * Caches this (remotely-originated) <TT>MonitorEvent</TT>
-   * for future reference.
-   *
-   * @param evt The event to cache.
-   */
-  public void addRemoteMonitorEvent(MonitorEvent evt)
-  {
-    objCache.add(evt);
   }
 
   /**
@@ -256,29 +251,7 @@ public class MonitorBroadcaster
    */
   public boolean hasEventQueued(int listenerID, Control ctl)
   {
-    if (ctl != null) {
-      ListIterator iter = ListenerVector.listIterator();
-      while (iter.hasNext()) {
-        Listener li = (Listener )iter.next();
-        if (li.getID() == listenerID) {
-          return li.hasControlEventQueued(ctl);
-        }
-      }
-    }
-
     return false;
-  }
-
-  /**
-   * Creates a new wrapper for a <TT>DisplayMonitorListener</TT>
-   * which is mapped to a unique ID.
-   *
-   * @param listener The <TT>DisplayMonitorListener</TT> to wrap.
-   */
-  private synchronized Listener
-    getNextListener(DisplayMonitorListener listener)
-  {
-    return new Listener(listener, nextListenerID++);
   }
 
   /**
@@ -339,14 +312,14 @@ public class MonitorBroadcaster
   class EventComparator
     implements Comparator
   {
-    private Hashtable table;
+    private HashMap table;
 
     /**
-     * Creates a new comparison class for the given <TT>Hashtable</TT>
+     * Creates a new comparison class for the given <TT>HashMap</TT>
      *
-     * @param tbl The <TT>Hashtable</TT> to use for comparisons.
+     * @param tbl The <TT>HashMap</TT> to use for comparisons.
      */
-    EventComparator(Hashtable tbl)
+    EventComparator(HashMap tbl)
     {
       table = tbl;
     }
@@ -407,95 +380,44 @@ public class MonitorBroadcaster
 
   /**
    * <TT>Listener</TT> is an encapsulation of all the data related to
-   * delivering events to a single <TT>DIsplayMonitorListener</TT>.
+   * delivering events to a single <TT>DisplayMonitorListener</TT>.
    */
-  class Listener
+  class MonitorListener
     implements Runnable
   {
-    private int id;
     private DisplayMonitorListener listener;
-    private boolean haveThread = false;
+    private int id;
+
     private boolean dead = false;
 
     private Object tableLock = new Object();
-    private Hashtable table = new Hashtable();
-    private Hashtable diverted = null;
+    private boolean haveThread = false;
+    private HashMap table = new HashMap();
+    private HashMap diverted = null;
 
-    /**
-     * Creates a new <TT>Listener</TT> with the specified ID.
-     *
-     * @param l The listener to which events will be sent.
-     * @param n The unique identifier for this listener.
-     */
-    public Listener(DisplayMonitorListener l, int n)
+    private ObjectCache cache;
+
+    MonitorListener(DisplayMonitorListener listener, int id)
     {
-      listener = l;
-      id = n;
+      this.listener = listener;
+      this.id = id;
 
-      if (listenerPool == null) {
-        startThreadPool();
-      }
+      cache = new ObjectCache("Cache#" + id);
     }
 
-    /**
-     * Starts event delivery.
-     */
-    private synchronized void startDelivery()
+    public void addEvent(MonitorEvent evt)
     {
-      if (haveThread) {
-        return;
-      }
-
-      // remember that we've started a thread
-      haveThread = true;
-
-      if (listenerPool == null) {
-        startThreadPool();
-      }
-      listenerPool.queue(this);
-    }
-
-    /**
-     * Adds the event to the specified table.
-     *
-     * @param tbl The <TT>Hashtable</TT> to which the event will be added.
-     * @param evt The event to add.
-     */
-    private void addEventToTable(Hashtable tbl, ControlMonitorEvent evt)
-    {
-      tbl.put(new ControlEventKey(evt.getControl()), evt);
-    }
-
-    /**
-     * Adds the event to the specified table.
-     *
-     * @param tbl The <TT>Hashtable</TT> to which the event will be added.
-     * @param evt The event to add.
-     */
-    private void addEventToTable(Hashtable tbl, MapMonitorEvent evt)
-    {
-      Object key = evt.getMap();
-      if (key == null) {
-        if (evt.getType() != MonitorEvent.MAPS_CLEARED) {
-          System.err.println("Got null map for " + evt);
-          return;
+      synchronized (tableLock) {
+        if (haveThread) {
+          if (diverted == null) {
+            diverted = new HashMap();
+          }
+          addEventToTable(diverted, evt);
+        } else {
+          addEventToTable(table, evt);
+          startDelivery();
         }
-
-        key = "null";
       }
-
-      tbl.put(key, evt);
-    }
-
-    /**
-     * Adds the event to the specified table.
-     *
-     * @param tbl The <TT>Hashtable</TT> to which the event will be added.
-     * @param evt The event to add.
-     */
-    private void addEventToTable(Hashtable tbl, ReferenceMonitorEvent evt)
-    {
-      tbl.put(evt.getLink(), evt);
     }
 
     /**
@@ -504,10 +426,10 @@ public class MonitorBroadcaster
      * <TT>addEventToTable</TT> method for this specific
      * <TT>MonitorEvent</TT> type.)
      *
-     * @param tbl The <TT>Hashtable</TT> to which the event will be added.
+     * @param tbl The <TT>HashMap</TT> to which the event will be added.
      * @param evt The event to add.
      */
-    private void addEventToTable(Hashtable tbl, MonitorEvent evt)
+    private void addEventToTable(HashMap tbl, MonitorEvent evt)
     {
       if (evt instanceof ControlMonitorEvent) {
         addEventToTable(tbl, (ControlMonitorEvent )evt);
@@ -522,133 +444,69 @@ public class MonitorBroadcaster
     }
 
     /**
-     * Delivers the event if possible, otherwise just queues it up for
-     * later delivery.
+     * Adds the event to the specified table.
      *
-     * @param evt The event to deliver.
+     * @param tbl The <TT>HashMap</TT> to which the event will be added.
+     * @param evt The event to add.
      */
-    public void addEvent(MonitorEvent evt)
+    private void addEventToTable(HashMap tbl, ControlMonitorEvent evt)
     {
-      int evtID = evt.getOriginator();
-      if (evtID == id) {
-        return;
-      }
-
-      Hashtable tbl;
       synchronized (tableLock) {
-        if (haveThread) {
-          if (diverted == null) {
-            diverted = new Hashtable();
-          }
-          addEventToTable(diverted, evt);
-        } else {
-          addEventToTable(table, evt);
-          startDelivery();
-        }
+        tbl.put(new ControlEventKey(evt.getControl()), evt);
       }
     }
 
     /**
-     * Gets the unique identifier for this <TT>Listener</TT>.
-     */
-    public int getID() { return id; }
-
-    /**
-     * Gets the actual <TT>DisplayMonitorListener</TT> for this
-     * <TT>Listener</TT>.
-     */
-    public DisplayMonitorListener getListener() { return listener; }
-
-    /**
-     * Returns <TT>true</TT> if there wass already a
-     * <TT>MonitorEvent</TT> queued for the specified
-     * <TT>Control</TT>.
+     * Adds the event to the specified table.
      *
-     * @param ctl The <TT>Control</TT>.
+     * @param tbl The <TT>HashMap</TT> to which the event will be added.
+     * @param evt The event to add.
      */
-    public boolean hasControlEventQueued(Control ctl)
+    private void addEventToTable(HashMap tbl, MapMonitorEvent evt)
     {
-      Object key = new ControlEventKey(ctl);
-      if (table != null && table.containsKey(key)) {
-        return true;
-      }
-      if (diverted != null && diverted.containsKey(key)) {
-        return true;
+      Object key = evt.getMap();
+      if (key == null) {
+        if (evt.getType() != MonitorEvent.MAPS_CLEARED) {
+          System.err.println("Got null map for " + evt);
+          return;
+        }
+
+        key = "null";
       }
 
-      return false;
-    }
-
-    /**
-     * Returns <TT>true</TT> if there were diverted events
-     *  to be delivered
-     */
-    private boolean undivertEvents()
-    {
-      final boolean undivert;
       synchronized (tableLock) {
-        // if there are events queued, restore them to the main table
-        undivert = (diverted != null);
-        if (undivert) {
-          table = diverted;
-          diverted = null;
-        }
+        tbl.put(key, evt);
       }
-
-      return undivert;
     }
 
     /**
-     * Returns <TT>true</TT> if this Listener is dead.
+     * Adds the event to the specified table.
+     *
+     * @param tbl The <TT>HashMap</TT> to which the event will be added.
+     * @param evt The event to add.
      */
-    public boolean isDead() { return dead; }
-
-    /**
-     * Delivers events to the remote listener.
-     */
-    public void run()
+    private void addEventToTable(HashMap tbl, ReferenceMonitorEvent evt)
     {
-      boolean delivered = false;
-      int attempts = 0;
-      do {
-        try {
-          deliverEventTable();
-          delivered = true;
-        } catch (ConnectException ce) {
-          if (attempts++ >= 10) {
-            // if we failed to connect for 10 times, give up
-            break;
-          }
-          try { Thread.sleep(500); } catch (InterruptedException ie) { }
-        } catch (RemoteException re) {
-          re.printStackTrace();
-        }
-      } while (!delivered || undivertEvents());
-
-      // mark this listener as dead
-      if (!delivered) {
-        dead = true;
+      synchronized (tableLock) {
+        tbl.put(evt.getLink(), evt);
       }
-
-      // indicate that the thread has exited
-      haveThread = false;
     }
 
     /**
      * Tries to deliver the queued events to this listener
      *
-     * @exception ConnectException If a connection could not be made to the
+     * @exception RemoteException If a connection could not be made to the
      * 					remote listener.
      */
     private void deliverEventTable()
-      throws ConnectException
+      throws RemoteException
     {
       // build the array of events
       Object[] list = new Object[table.size()];
-      Enumeration enum = table.keys();
+      Iterator iter = table.keySet().iterator();
       for (int i = list.length - 1; i >= 0; i--) {
-        if (enum.hasMoreElements()) {
-          list[i] = enum.nextElement();
+        if (iter.hasNext()) {
+          list[i] = iter.next();
         } else {
           list[i] = null;
         }
@@ -670,16 +528,157 @@ public class MonitorBroadcaster
         e2.setOriginator(id);
         try {
           listener.stateChanged(e2);
-        } catch (ConnectException ce) {
+        } catch (RemoteException re) {
           // restore failed event to table
           table.put(list[i], evt);
-          // let caller handle ConnectExceptions
-          throw ce;
+          // let caller handle RemoteExceptions
+          throw re;
         } catch (Throwable t) {
           // whine loudly about all other Exceptions
           t.printStackTrace();
         }
       }
+    }
+
+    /**
+     * Check to see if this listener has already seen the event.
+     *
+     * @param evt The event to examine.
+     *
+     * @return <TT>true</TT> if the event has been seen.
+     */
+    public boolean eventSeen(MonitorEvent evt)
+    {
+      Object obj = evt.getObject();
+      if (obj == null) {
+        // assume other side hasn't seen null events
+        return false;
+      }
+
+      // if we've already delivered this object, ignore it
+      if (cache.isCached(obj)) {
+        return true;
+      }
+
+      // remember this event for future reference
+      cache.add(evt.getClonedObject());
+      return false;
+    }
+
+    /**
+     * Get the unique identifier.
+     *
+     * @return the unique identifier.
+     */
+    int getID() { return id; }
+
+    /**
+     * Get the <TT>DisplayMonitorListener</TT>.
+     *
+     * @return the listener.
+     */
+    DisplayMonitorListener getListener() { return listener; }
+
+    /**
+     * Check to see if the connection is dead.
+     *
+     * @return <TT>true</TT> if the connection is dead.
+     */
+    public boolean isDead() { return dead; }
+
+    /**
+     * Delivers events to the remote listener.
+     */
+    public void run()
+    {
+      int attempts = 0;
+      boolean delivered = false;
+
+      while (!delivered || undivertEvents()) {
+        try {
+          deliverEventTable();
+          delivered = true;
+        } catch (RemoteException re) {
+          if (attempts++ < 10) {
+            // wait a bit, then try again to deliver the events
+            try { Thread.sleep(500); } catch (InterruptedException ie) { }
+          } else {
+            // if we failed to connect for 10 times, give up
+            break;
+          }
+        }
+      }
+
+      // mark this listener as dead
+      if (!delivered) {
+        dead = true;
+      }
+
+      // indicate that the thread has exited
+      haveThread = false;
+    }
+
+    /**
+     * Start event delivery.
+     */
+    private void startDelivery()
+    {
+      synchronized (tableLock) {
+        if (haveThread) {
+          return;
+        }
+
+        // remember that we've started a thread
+        haveThread = true;
+      }
+
+      if (listenerPool == null) {
+        startThreadPool();
+      }
+      listenerPool.queue(this);
+    }
+
+    private String description = null;
+
+    public String toString()
+    {
+      if (description == null) {
+        StringBuffer buf = new StringBuffer("Listener[");
+        buf.append(id);
+        buf.append('=');
+
+        String lName = listener.toString();
+        int stubIdx = lName.indexOf("_Stub[");
+        if (stubIdx > 0) {
+          lName = lName.substring(0, stubIdx);
+        }
+        buf.append(lName);
+
+        buf.append(" (");
+        buf.append(listener.getClass().getName());
+        buf.append(")]");
+        description = buf.toString();
+      }
+      return description;
+    }
+
+    /**
+     * Returns <TT>true</TT> if there were diverted events
+     *  to be delivered
+     */
+    private boolean undivertEvents()
+    {
+      final boolean undivert;
+      synchronized (tableLock) {
+        // if there are events queued, restore them to the main table
+        undivert = (diverted != null);
+        if (undivert) {
+          table = diverted;
+          diverted = null;
+        }
+      }
+
+      return undivert;
     }
   }
 }
