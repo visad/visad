@@ -156,15 +156,17 @@ sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
   private float TRAVEL_SPEED = 0.3f;
 
   // scale factors for head / wand translation (negative?)
-  private float HEAD_SCALE = 1.0f;
+  // NOTE - you may need to adjust these for your ImmersaDesk
+  private float HEAD_SCALE = 0.3f;
   private float WAND_SCALE = 1.0f;
 
   // offsets for head / wand translation
+  // NOTE - you may need to adjust these for your ImmersaDesk
   private float HEADX_OFFSET = 0.0f;
-  private float HEADY_OFFSET = 0.0f;
+  private float HEADY_OFFSET = -3.0f;
   private float HEADZ_OFFSET = 0.0f;
-  private float WANDX_OFFSET = 0.0f;
-  private float WANDY_OFFSET = 0.0f;
+  private float WANDX_OFFSET = -0.5f;
+  private float WANDY_OFFSET = -2.0f;
   private float WANDZ_OFFSET = 0.0f;
 
   // length of direct manipulation ray
@@ -223,9 +225,12 @@ sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
       wand_position[1] = sensor_positions[3 * WAND + 1];
       wand_position[2] = sensor_positions[3 * WAND + 2];
 
-      float elevation = sensor_angles[3 * WAND + ELEVATION];
-      float azimuth = sensor_angles[3 * WAND + AZIMUTH];
-      float roll = sensor_angles[3 * WAND + ROLL];
+      float elevation = (float)
+        (sensor_angles[3 * WAND + ELEVATION] * Data.DEGREES_TO_RADIANS);
+      float azimuth = (float)
+        (sensor_angles[3 * WAND + AZIMUTH] * Data.DEGREES_TO_RADIANS);
+      float roll = (float)
+        (sensor_angles[3 * WAND + ROLL] * Data.DEGREES_TO_RADIANS);
 
       // QUESTION? angles all 0.0 == wand pointed forward QUESTION?
       // start with unit vector in (0, 0, 0) wand orientation
@@ -234,17 +239,17 @@ sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
       float z = -1.0f;
 
       // QUESTION? is order of rotations: x, y then z QUESTION?
-      // rotate around x
+      // rotate elevation
       float xx = x;
       float yy = (float) (Math.cos(elevation) * y - Math.sin(elevation) * z);
-      float zz = (float) (Math.sin(elevation) * y + Math.cos(elevation) * z);
-      // rotate around y
-      x = (float) (Math.cos(azimuth) * zz + Math.sin(azimuth) * xx);
+      float zz = (float) (Math.cos(elevation) * z + Math.sin(elevation) * y);
+      // rotate azimuth
+      x = (float) (Math.cos(azimuth) * xx + Math.sin(azimuth) * zz);
       y = yy;
       z = (float) (Math.cos(azimuth) * zz - Math.sin(azimuth) * xx);
-      // rotate around z
-      wand_vector[0] = (float) (Math.cos(elevation) * x - Math.sin(elevation) * y);
-      wand_vector[1] = (float) (Math.sin(elevation) * x + Math.cos(elevation) * y);
+      // don't rotate roll
+      wand_vector[0] = x;
+      wand_vector[1] = y;
       wand_vector[2] = z;
 
       // move along wand direction when left button pressed
