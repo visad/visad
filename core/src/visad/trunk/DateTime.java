@@ -385,6 +385,50 @@ DateTime
     }
 
     /**
+     * Create a Gridded1DDoubleSet from an array of DateTimes
+     *
+     * @param  times  array of DateTimes.  Array cannot be null or only
+     *                have one entry.
+     *
+     * @return Gridded1DDouble set representing the array
+     * @throws VisADException  array is null or has only one element or
+     *                         couldn't create the GriddedDoubleSet
+     */
+    public static Gridded1DDoubleSet makeTimeSet(DateTime[] times)
+        throws VisADException
+    {
+        if (times == null || times.length < 2)
+            throw new VisADException(
+                "Must be at least 2 times to create a Gridded1DDoubleSet");
+        double[][] timeValues = new double[1][times.length];
+        for (int i = 0; i < times.length; i++) 
+            timeValues[0][i] = times[i].getValue();
+        return new Gridded1DDoubleSet(RealType.Time, timeValues, times.length);
+    }
+
+    /**
+     * Create a Gridded1DDoubleSet from an array of doubles of seconds
+     * since the epoch.
+     *
+     * @param  times  array of times in seconds since the epoch. Array 
+     *                cannot be null or only have one entry.
+     *
+     * @return Gridded1DDouble set representing the array
+     * @throws VisADException  array is null or has only one element or
+     *                         couldn't create the GriddedDoubleSet
+     */
+    public static Gridded1DDoubleSet makeTimeSet(double[] times)
+        throws VisADException
+    {
+        if (times == null || times.length < 2)
+            throw new VisADException(
+                "Must be at least 2 times to create a Gridded1DDoubleSet");
+        double[][] alltimes = new double[1][times.length];
+        for (int i = 0; i < times.length; i++) alltimes[0][i] = times[i];
+        return new Gridded1DDoubleSet(RealType.Time, alltimes, times.length);
+    }
+
+    /**
      * run 'java visad.DateTime' to test the DateTime class
      */
     public static void main(String args[]) throws VisADException {
