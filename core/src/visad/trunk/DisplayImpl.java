@@ -891,16 +891,16 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** decide whether an autoscale is needed */
   private boolean computeInitialize() {
     boolean init = false;
-    Vector tmap = (Vector) MapVector.clone();
-    Enumeration maps = tmap.elements();
-    while (maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      init |= map.doInitialize();
+    for (Iterator iter = ((java.util.List)MapVector.clone()).iterator();
+        !init && iter.hasNext();
+        init |= ((ScalarMap)iter.next()).doInitialize()) {
     }
-    AnimationControl control =
-      (AnimationControl) getControl(AnimationControl.class);
-    if (control != null) {
-      init |= (control.getSet() == null);
+    if (!init) {
+      AnimationControl control =
+        (AnimationControl) getControl(AnimationControl.class);
+      if (control != null) {
+        init |= (control.getSet() == null);
+      }
     }
     return init;
   }
