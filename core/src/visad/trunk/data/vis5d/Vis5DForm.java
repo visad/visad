@@ -29,7 +29,10 @@ package visad.data.vis5d;
 import visad.*;
 import visad.java3d.*;
 import visad.data.*;
+import visad.data.units.Parser;
+import visad.data.units.ParseException;
 import visad.util.*;
+import visad.jmet.DumpType;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;
@@ -60,6 +63,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
   private static int num = 0;
 
   private static boolean loaded = false;
+
 
   public Vis5DForm() {
     super("Vis5DForm" + num++);
@@ -97,6 +101,15 @@ public class Vis5DForm extends Form implements FormFileInformer {
 
   public synchronized DataImpl open(String id)
          throws BadFormException, IOException, VisADException {
+
+    Set space_set;
+    V5DStruct vv;
+    FunctionType v5d_type;
+    int nvars;
+    int grid_size;
+    FunctionType grid_type;
+    RealType[] vars;
+
     if (id == null) {
       throw new BadFormException("Vis5DForm.open: null name String");
     }
@@ -107,14 +120,14 @@ public class Vis5DForm extends Form implements FormFileInformer {
     byte[] varunits = new byte[20 * MAXVARS];
     float[] times = new float[MAXTIMES];
     float[] projargs = new float[MAXPROJARGS];
-    V5DStruct v = V5DStruct.v5d_open(name,
-                                     name.length,
-                                     sizes,
-                                     varnames,
-                                     varunits,
-                                     map_proj,
-                                     projargs,
-                                     times);
+    vv = V5DStruct.v5d_open(name,
+                            name.length,
+                            sizes,
+                            varnames,
+                            varunits,
+                            map_proj,
+                            projargs,
+                            times);
     if (sizes[0] < 1) {
       throw new BadFormException("Vis5DForm.open: bad file");
     }
@@ -122,17 +135,34 @@ public class Vis5DForm extends Form implements FormFileInformer {
     int nc = sizes[1];
     int nl = sizes[2];
     int ntimes = sizes[3];
-    int nvars = sizes[4];
+    nvars = sizes[4];
+    /*- TDR
     RealType time = RealType.getRealType("time");
+     */
+    RealType time = RealType.Time;
+
     RealType row = RealType.getRealType("row");
     RealType col = RealType.getRealType("col");
     RealType lev = RealType.getRealType("lev");
-    RealType[] vars = new RealType[nvars];
+    vars = new RealType[nvars];
     for (int i=0; i<nvars; i++) {
       int k = 10 * i;
+      int k2 = 20 * i;
       int m = k;
+      int m2 = k2;
       while (varnames[m] != 0) {m++;}
-      vars[i] = RealType.getRealType(new String(varnames, k, m - k));
+      while (varunits[m2] != 0) {m2++;}
+      String unit_spec = new String(varunits, k2, m2 - k2);
+      Unit unit = null;
+      if ( unit_spec != null ) {
+        try {
+          unit = Parser.parse(unit_spec);
+        }
+        catch (ParseException e) {
+          System.out.println(e.getMessage());
+        }
+      }
+      vars[i] = RealType.getRealType(new String(varnames, k, m - k), unit);
     }
     RealTupleType domain;
     if (nl > 1) {
@@ -143,13 +173,25 @@ public class Vis5DForm extends Form implements FormFileInformer {
     }
     RealTupleType range = new RealTupleType(vars);
     RealTupleType time_domain = new RealTupleType(time);
-    FunctionType grid_type = new FunctionType(domain, range);
-    FunctionType v5d_type = new FunctionType(time_domain, grid_type);
+    grid_type = new FunctionType(domain, range);
+    v5d_type = new FunctionType(time_domain, grid_type);
+
 
     float[][] timeses = new float[1][ntimes];
-    for (int i=0; i<ntimes; i++) timeses[0][i] = times[i];
-    Gridded1DSet time_set = new Gridded1DSet(time, timeses, ntimes);
-    Set space_set;
+    for (int i=0; i<ntimes; i++)  {
+      timeses[0][i] = times[i];
+    }
+    /*- TDR
+    Gridded1DSet time_set =
+      new Gridded1DSet(time, timeses, ntimes);
+     */
+    Unit v5d_time_unit = new OffsetUnit(
+                             visad.data.units.UnitParser.encodeTimestamp(
+                                1900, 1, 1, 0, 0, 0, 0), SI.second);
+    Gridded1DSet time_set =
+      new Gridded1DSet(time, timeses, ntimes,
+                       null, new Unit[] {v5d_time_unit}, null);
+
     if (nl > 1) {
       space_set = new Integer3DSet(nr, nc, nl);
     }
@@ -157,37 +199,66 @@ public class Vis5DForm extends Form implements FormFileInformer {
       space_set = new Integer2DSet(nr, nc);
     }
     FieldImpl v5d = new FieldImpl(v5d_type, time_set);
-    int grid_size = nr * nc * nl;
-    for (int i=0; i<ntimes; i++) {
-      float[][] data = new float[nvars][grid_size];
-      Linear1DSet[] range_sets = new Linear1DSet[nvars];
-      for (int j=0; j<nvars; j++) {
-        float[] ranges = new float[2];
-        v.v5d_read(i, j, ranges, data[j]);
-        if (ranges[0] >= 0.99E30 && ranges[1] <= -0.99E30) {
-          range_sets[j] = new Linear1DSet(0.0, 1.0, 255);
-        }
-        else {
-          if (ranges[0] > ranges[1]) {
-            throw new BadFormException("Vis5DForm.open: bad read " +
-                                       vars[j].getName());
-          }
-          range_sets[j] =
-            new Linear1DSet((double) ranges[0], (double) ranges[1], 255);
-        }
-        for (int k=0; k<grid_size; k++) {
-          if (data[j][k] > 0.5e35) data[j][k] = Float.NaN;
-        }
-      }
-      // FlatField grid =
-      //   new FlatField(grid_type, space_set, null, null, range_sets, null);
-      FlatField grid =
-        new FlatField(grid_type, space_set);
-      grid.setSamples(data, false);
-      v5d.setSample(i, grid);
+    grid_size = nr * nc * nl;
+
+    Vis5DFile v5dfile =
+      new Vis5DFile(id, vv, space_set, grid_type, vars, nvars, grid_size);
+
+    for (int i=0; i<ntimes; i++)
+    {
+      FlatField grid = getFlatField(v5dfile, i);
+      v5d.setSample(i, grid, false);
     }
+
     return v5d;
   }
+
+  public FlatField getFlatField(Vis5DFile v5dfile, int time_idx)
+         throws VisADException, IOException, BadFormException
+  {
+    return makeFlatField(v5dfile, time_idx);
+  }
+
+  public static FlatField makeFlatField(Vis5DFile v5dfile, int time_idx)
+         throws VisADException, IOException, BadFormException
+  {
+    int nvars = v5dfile.nvars;
+    int grid_size = v5dfile.grid_size;
+    FunctionType grid_type = v5dfile.grid_type;
+    Set space_set = v5dfile.space_set;
+    V5DStruct vv = v5dfile.vv;
+    RealType[] vars = v5dfile.vars;
+
+
+    float[][] data = new float[nvars][grid_size];
+    Linear1DSet[] range_sets = new Linear1DSet[nvars];
+    for (int j=0; j<nvars; j++) {
+      float[] ranges = new float[2];
+      vv.v5d_read(time_idx, j, ranges, data[j]);
+      if (ranges[0] >= 0.99E30 && ranges[1] <= -0.99E30) {
+        range_sets[j] = new Linear1DSet(0.0, 1.0, 255);
+      }
+      else {
+        if (ranges[0] > ranges[1]) {
+          throw new BadFormException("Vis5DForm.open: bad read " +
+                                       vars[j].getName());
+        }
+        range_sets[j] =
+          new Linear1DSet((double) ranges[0], (double) ranges[1], 255);
+      }
+      for (int k=0; k<grid_size; k++) {
+        if (data[j][k] > 0.5e35) data[j][k] = Float.NaN;
+      }
+    }
+    // FlatField grid =
+    //   new FlatField(grid_type, space_set, null, null, range_sets, null);
+    FlatField grid =
+      new FlatField(grid_type, space_set);
+    grid.setSamples(data, false);
+
+    return grid;
+  }
+
 
   public synchronized DataImpl open(URL url)
          throws BadFormException, VisADException, IOException {
@@ -212,6 +283,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     FieldImpl vis5d = null;
     try {
       vis5d = (FieldImpl) form.open(args[0]);
+      DumpType.dumpMathType(vis5d.getType());
     }
     catch (Exception e) {
       System.out.println(e.getMessage());

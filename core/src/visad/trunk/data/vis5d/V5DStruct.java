@@ -507,7 +507,12 @@ public class V5DStruct {
       for (i=0; i<v.NumTimes; i++) {
         day = v5dYYDDDtoDays(v.DateStamp[i]);
         time = v5dHHMMSStoSeconds(v.TimeStamp[i]);
+        /*-TDR
         times[i] = (day - first_day) * 24 * 60 * 60 + (time - first_time);
+         */
+        float ff = (((float)day)*24f*60f*60f + (float)time);
+        times[i] = ff;
+        System.out.println(v.DateStamp[i]+", "+ff);
       }
 
       map_proj[0] = v.Projection;
