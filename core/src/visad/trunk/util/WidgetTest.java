@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: WidgetTest.java,v 1.11 2001-11-27 22:30:28 dglo Exp $
+@(#) $Id: WidgetTest.java,v 1.12 2002-02-12 19:53:15 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -33,11 +33,10 @@ import java.applet.Applet;
 import javax.swing.*;
 
 /**
- * A color widget that allows users to interactively map numeric data to
- * RGB tuples based on the Vis5D color widget
+ * A program for testing the VisAD ColorWidget.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision 1.2 $, $Date: 2001-11-27 22:30:28 $
+ * @version $Revision 1.2 $, $Date: 2002-02-12 19:53:15 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -52,16 +51,18 @@ public class WidgetTest extends Applet {
 
     ColorWidget widget = new ColorWidget();
 
-    javax.swing.JFrame f;
-    f = new javax.swing.JFrame("Visad Widget Test");
+    JFrame f;
+    f = new JFrame("Visad Widget Test");
     f.addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {System.exit(0);}
       });
 
-    f.setLayout(new BoxLayout(f, BoxLayout.Y_AXIS));
-    f.add(widget);
-    f.add(slider);
-    f.add(label);
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+    p.add(widget);
+    p.add(slider);
+    p.add(label);
+    f.setContentPane(p);
 
     f.setSize(f.getPreferredSize());
     f.setVisible(true);
