@@ -3993,7 +3993,7 @@ for (int j=0; j<nvertex; j++) {
         float n0 = 0.0f;
         float n1 = 0.0f;
         float n2 = 0.0f;
-        float n, m, m0, m1, m2;
+        float n, m, m0, m1, m2, q0, q1, q2;
         for (int ip = -1; ip<=1; ip += 2) {
           for (int jp = -1; jp<=1; jp += 2) {
             int ii = i + ip;
@@ -4009,14 +4009,33 @@ for (int j=0; j<nvertex; j++) {
                    (coordinates[kj] - c0) * (coordinates[ki+1] - c1);
               m = (float) Math.sqrt(m0 * m0 + m1 * m1 + m2 * m2);
               if (ip == jp) {
-                n0 += m0 / m;
-                n1 += m1 / m;
-                n2 += m2 / m;
+                q0 = m0 / m;
+                q1 = m1 / m;
+                q2 = m2 / m;
               }
               else {
-                n0 -= m0 / m;
-                n1 -= m1 / m;
-                n2 -= m2 / m;
+                q0 = -m0 / m;
+                q1 = -m1 / m;
+                q2 = -m2 / m;
+              }
+              if (q0 == q0) {
+                n0 += q0;
+                n1 += q1;
+                n2 += q2;
+              }
+              else {
+/*
+System.out.println("m = " + m + " " + m0 + " " + m1 + " " + m2 + " " +
+                   n0 + " " + n1 + " " + n2 + " ip, jp = " + ip + " " + jp);
+System.out.println("k = " + k + " " + ki + " " + kj);
+System.out.println("c = " + c0 + " " + c1 + " " + c2);
+System.out.println("coordinates[ki] = " + coordinates[ki] + " " +
+                   coordinates[ki+1] + " " + coordinates[ki+2]); // == c ??
+System.out.println("coordinates[kj] = " + coordinates[kj] + " " +
+                   coordinates[kj+1] + " " + coordinates[kj+2]);
+System.out.println("LengthX = " + LengthX + " " + LengthY + " " +
+                   LengthX3);
+*/
               }
             }
           }
@@ -4025,6 +4044,15 @@ for (int j=0; j<nvertex; j++) {
         normals[k] = n0 / n;
         normals[k+1] = n1 / n;
         normals[k+2] = n2 / n;
+        if (normals[k] != normals[k]) {
+          normals[k] = 0.0f;
+          normals[k+1] = 0.0f;
+          normals[k+2] = -1.0f;
+        }
+/*
+System.out.println("makeNormals " + k + " " + normals[k] + " " + normals[k+1] + " " +
+                   normals[k+2]);
+*/
         k += 3;
       } // end for (int j=0; j<LengthX; j++)
     } // end for (int i=0; i<LengthY; i++)

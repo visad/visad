@@ -60,7 +60,6 @@ public class FrontDrawer extends Object {
 
   private Object data_lock = new Object();
 
-
   private DataReferenceImpl front_ref;
   private DefaultRendererJ3D front_renderer;
   private DataReferenceImpl curve_ref;
@@ -73,16 +72,33 @@ public class FrontDrawer extends Object {
   private ScalarMap lat_map = null;
   private ScalarMap lon_map = null;
 
-  private Gridded2DSet curve = null; // manifold dimension = 1
-  private Gridded2DSet front = null; // manifold dimension = 2
+  private static Object type_lock = new Object();
 
-  private SetType front_type = null;
+  private UnionSet init_curve = null; // manifold dimension = 1
+  private static SetType curve_type = null; // Set(Latitude, Longitude)
   private int lat_index = 0;
   private int lon_index = 1;
 
+  private FieldImpl front = null; //
+  // (front_index -> ((Latitude, Longitude) -> (front_red, front_green, front_blue)))
+  private static FunctionType front_type = null;
+  private static FunctionType front_inner = null;
+  private static RealType front_index = null;
+  private static RealType front_red = null;
+  private static RealType front_green = null;
+  private static RealType front_blue = null;
+
+  // this is just one of the many dumb ways to define front patterns
   private int profile_length = -1;
   private float[] front_profile_bot = null;
   private float[] front_profile_top = null;
+  private int starts_length = -1;
+  private int[] front_starts = null;
+  private int[] front_lengths = null;
+  // length of color arrays is profile_length - 1
+  private int[] front_profile_red = null;
+  private int[] front_profile_green = null;
+  private int[] front_profile_blue = null;
   private float segment_length;
 
   private int filter_window = 1;
@@ -90,29 +106,60 @@ public class FrontDrawer extends Object {
   /**
      cr should be null or cr.getData() should have MathType:
        Set(RealType.Latitude, RealType.Longitude)
+     profile_bot and profile_top must be same length
+     profile_red, profile_green and profile_blue must all
+       have length one less than profile_bot and profile_top
+       (they are colors of segments, not points)
+     segment is length in graphics coordinates of entire profile
+     fw is the filter window size for smoothing the curve
+
   */
   public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d,
-                     float[] profile_bot, float[] profile_top, float segment,
+                     float segment, float[] profile_bot, float[] profile_top,
+                     int[] profile_red, int[] profile_green, int[] profile_blue,
                      int fw)
          throws VisADException, RemoteException {
-    front_type =
-      new SetType(new RealTupleType(RealType.Latitude, RealType.Longitude));
+    synchronized (type_lock) {
+      if (curve_type == null) {
+        RealTupleType latlon =
+          new RealTupleType(RealType.Latitude, RealType.Longitude);
+        curve_type = new SetType(latlon);
+// (front_index -> ((Latitude, Longitude) -> (front_red, front_green, front_blue)))
+        front_index = RealType.getRealType("front_index");
+        front_red = RealType.getRealType("front_red");
+        front_green = RealType.getRealType("front_green");
+        front_blue = RealType.getRealType("front_blue");
+        RealTupleType rgb =
+          new RealTupleType(front_red, front_green, front_blue);
+        front_inner = new FunctionType(latlon, rgb);
+        front_type = new FunctionType(front_index, front_inner);
+      }
+    }
+
     if (cr == null) {
       curve_ref = new DataReferenceImpl("curve_ref");
     }
     else {
       curve_ref = cr;
     }
+    Gridded2DSet set =
+      new Gridded2DSet(curve_type, new float[][] {{0.0f}, {0.0f}}, 1); // ??
+    init_curve = new UnionSet(curve_type, new Gridded2DSet[] {set});
+
     Data data = curve_ref.getData();
-    if (data == null || !(data instanceof Gridded2DSet)) {
-      Gridded2DSet curve_set =
-        new Gridded2DSet(front_type, new float[][] {{0.0f}, {0.0f}}, 1); // ??
-      curve_ref.setData(curve_set);
+    Gridded2DSet curve_set = null;
+    if (data != null && data instanceof UnionSet) {
+      SampledSet[] sets = ((UnionSet) data).getSets();
+      if (sets[0] instanceof Gridded2DSet) {
+        curve_set = (Gridded2DSet) sets[0];
+      }
+    }
+    if (curve_set == null) {
+      curve_ref.setData(init_curve);
     }
     else {
-      Gridded2DSet curve_set = (Gridded2DSet) data;
       SetType st = (SetType) curve_set.getType();
-      if (!st.equals(front_type)) {
+      if (!st.equals(curve_type)) {
         SetType rft =
           new SetType(new RealTupleType(RealType.Longitude, RealType.Latitude));
         if (!st.equals(rft)) {
@@ -125,6 +172,21 @@ public class FrontDrawer extends Object {
 
     display = d;
 
+    try {
+      ScalarMap rmap = new ScalarMap(front_red, Display.Red);
+      rmap.setRange(0.0, 1.0);
+      display.addMap(rmap);
+      ScalarMap gmap = new ScalarMap(front_green, Display.Green);
+      gmap.setRange(0.0, 1.0);
+      display.addMap(gmap);
+      ScalarMap bmap = new ScalarMap(front_blue, Display.Blue);
+      bmap.setRange(0.0, 1.0);
+      display.addMap(bmap);
+    }
+    catch (VisADException e) {
+      if (debug) System.out.println("caught " + e.toString());
+    }
+
     if (profile_bot == null || profile_top == null ||
         profile_bot.length != profile_top.length) {
       throw new VisADException("bad profile");
@@ -135,6 +197,45 @@ public class FrontDrawer extends Object {
     front_profile_top = new float[profile_length];
     System.arraycopy(profile_bot, 0, front_profile_bot, 0, profile_length);
     System.arraycopy(profile_top, 0, front_profile_top, 0, profile_length);
+    int profile_lengthm = profile_length - 1;
+    if (profile_red == null || profile_red.length != profile_lengthm ||
+        profile_green == null || profile_green.length != profile_lengthm ||
+        profile_blue == null || profile_blue.length != profile_lengthm) {
+      throw new VisADException("bad color profile");
+    }
+    // find segments of constant color
+    int[] starts = new int[profile_lengthm];
+    int[] lengths = new int[profile_lengthm];
+    int sti = -1;
+    int r = 0, g = 0, b = 0;
+    for (int i=0; i<profile_lengthm; i++) {
+      if (i != 0 && profile_red[i] == r &&
+          profile_green[i] == g && profile_blue[i] == b) {
+        lengths[sti]++;
+      }
+      else {
+        sti++;
+        starts[sti] = i;
+        lengths[sti] = 1;
+        r = profile_red[i];
+        g = profile_green[i];
+        b = profile_blue[i];
+      }
+    }
+    sti++;
+    front_starts = new int[sti];
+    front_lengths = new int[sti];
+    System.arraycopy(starts, 0, front_starts, 0, sti);
+    System.arraycopy(lengths, 0, front_lengths, 0, sti);
+    front_profile_red = new int[sti];
+    front_profile_green = new int[sti];
+    front_profile_blue = new int[sti];
+    for (int i=0; i<sti; i++) {
+      front_profile_red[i] = profile_red[front_starts[i]];
+      front_profile_green[i] = profile_green[front_starts[i]];
+      front_profile_blue[i] = profile_blue[front_starts[i]];
+    }
+    starts_length = sti;
 
     filter_window = fw;
 
@@ -177,67 +278,142 @@ public class FrontDrawer extends Object {
     front_ref = new DataReferenceImpl("front");
     front_renderer = new DefaultRendererJ3D();
     front_renderer.suppressExceptions(true);
-
+    display.addReferences(front_renderer, front_ref);
   }
 
   // FrontManipulationRendererJ3D button release
   public void release() {
-    Data data = curve_ref.getData();
-    if (data == null || !(data instanceof Gridded2DSet)) {
-      if (debug) System.out.println("data null or not Gridded2DSet");
-      return;
-    }
-    Gridded2DSet curve_set = (Gridded2DSet) data;
-    if (curve_set.getManifoldDimension() != 1) {
-      if (debug) System.out.println("ManifoldDimension != 1");
-      return;
-    }
-    float[][] curve_samples = null;
     try {
-      curve_samples = curve_set.getSamples(false);
+      Data data = curve_ref.getData();
+      if (data == null || !(data instanceof UnionSet)) {
+        if (debug) System.out.println("data null or not UnionSet");
+        return;
+      }
+      SampledSet[] sets = ((UnionSet) data).getSets();
+      if (!(sets[0] instanceof Gridded2DSet)) {
+        if (debug) System.out.println("data not Gridded2DSet");
+        return;
+      }
+      Gridded2DSet curve_set = (Gridded2DSet) sets[0];
+      if (curve_set.getManifoldDimension() != 1) {
+        if (debug) System.out.println("ManifoldDimension != 1");
+        return;
+      }
+      float[][] curve_samples = null;
+      try {
+        curve_samples = curve_set.getSamples(false);
+      }
+      catch (VisADException e) {
+        if (debug) System.out.println("release " + e);
+        return;
+      }
+  
+      boolean flip = false;
+      double[] lat_range = lat_map.getRange();
+      double[] lon_range = lon_map.getRange();
+      if (lat_range[1] < lat_range[0]) flip = !flip;
+      if (lon_range[1] < lon_range[0]) flip = !flip;
+      if (curve_samples[lat_index][0] < 0.0) flip = !flip;
+      if (lon_index < lat_index) flip = !flip;
+      // if (debug) System.out.println("flip = " + flip);
+  
+      // transform curve to graphics coordinates
+      // in order to "draw" front in graphics coordinates, then
+      // transform back to (lat, lon)
+      float[][] curve = new float[2][];
+      curve[0] = lat_map.scaleValues(curve_samples[lat_index]);
+      curve[1] = lon_map.scaleValues(curve_samples[lon_index]);
+      // inverseScaleValues
+      // if (debug) System.out.println("curve length = " + curve[0].length);
+  
+      // resample curve uniformly along length
+      float increment = segment_length / profile_length;
+      curve = resample_curve(curve, increment);
+  
+      // lowpass filter curve
+      curve = smooth_curve(curve, filter_window);
+  
+      // resample smoothed curve
+      curve = resample_curve(curve, increment);
+  
+      int len = curve[0].length;
+      float[][] fb = new float[2][len];
+      float[][] ft = new float[2][len];
+      for (int i=0; i<len; i++) {
+        int im = i - 1;
+        int ip = i + 1;
+        if (im < 0) im = 0;
+        if (ip > len - 1) ip = len - 1;
+        float yp = curve[0][ip] - curve[0][im];
+        float xp = curve[1][ip] - curve[1][im];
+        xp = -xp;
+        float d = (float) Math.sqrt(xp * xp + yp * yp);
+        if (flip) d = -d;
+        xp = xp / d;
+        yp = yp / d;
+        int j = i % profile_length;
+        fb[0][i] = curve[0][i] + xp * front_profile_bot[j];
+        fb[1][i] = curve[1][i] + yp * front_profile_bot[j];
+        ft[0][i] = curve[0][i] + xp * front_profile_top[j];
+        ft[1][i] = curve[1][i] + yp * front_profile_top[j];
+      }
+      float[][] front_bot = new float[2][];
+      float[][] front_top = new float[2][];
+      front_bot[lat_index] = lat_map.inverseScaleValues(fb[0]);
+      front_bot[lon_index] = lon_map.inverseScaleValues(fb[1]);
+      front_top[lat_index] = lat_map.inverseScaleValues(ft[0]);
+      front_top[lon_index] = lon_map.inverseScaleValues(ft[1]);
+
+      Vector innter_field_vector = new Vector();
+      profile_loop: for (int iprofile=0; true; iprofile++) {
+        for (int istart=0; istart<starts_length; istart++) {
+          int ibase = iprofile * (profile_length - 1) + front_starts[istart];
+          int iend = ibase + front_lengths[istart];
+          if (ibase > len - 1) break profile_loop;
+          if (iend > len - 1) iend = len - 1;
+          int n = 1 + iend - ibase;
+          float[][] samples = new float[2][2 * n];
+          for (int i=0; i<n; i++) {
+            samples[0][2 * i] = front_bot[0][ibase + i];
+            samples[1][2 * i] = front_bot[1][ibase + i];
+            samples[0][2 * i + 1] = front_top[0][ibase + i];
+            samples[1][2 * i + 1] = front_top[1][ibase + i];
+          }
+          Gridded2DSet set =
+            new Gridded2DSet(curve_type, samples, 2, n);
+          FlatField field = new FlatField(front_inner, set);
+          float[][] values = new float[3][2 * n];
+          float r = front_profile_red[istart] / 255.0f;
+          float g = front_profile_green[istart] / 255.0f;
+          float b = front_profile_blue[istart] / 255.0f;
+          for (int i=0; i<2*n; i++) {
+            values[0][i] = r;
+            values[1][i] = g;
+            values[2][i] = b;
+          }
+          field.setSamples(values, false);
+          innter_field_vector.addElement(field);
+        }
+// some crazy bug - see Gridded3DSet.makeNormals()
+      }
+      int nfields = innter_field_vector.size();
+      Integer1DSet iset = new Integer1DSet(front_index, nfields);
+      front = new FieldImpl(front_type, iset);
+      FlatField[] fields = new FlatField[nfields];
+      for (int i=0; i<nfields; i++) {
+        fields[i] = (FlatField) innter_field_vector.elementAt(i);
+      }
+      front.setSamples(fields, false);
+      front_ref.setData(front);
+      curve_ref.setData(init_curve);
     }
     catch (VisADException e) {
-      if (debug) System.out.println("release " + e);
-      return;
     }
-
-    boolean flip = false;
-    double[] lat_range = lat_map.getRange();
-    double[] lon_range = lon_map.getRange();
-    if (lat_range[1] < lat_range[0]) flip = !flip;
-    if (lon_range[1] < lon_range[0]) flip = !flip;
-    if (curve_samples[lat_index][0] < 0.0) flip = !flip;
-    if (lon_index < lat_index) flip = !flip;
-/* ??
-    float lat_mul = (float) ((lat_range[1] - lat_range[0]) / 2.0);
-    float lon_mul = (float) ((lon_range[1] - lon_range[0]) / 2.0);
-*/
-
-    // transform curve to graphics coordinates
-    // in order to "draw" front in graphics coordinates, then
-    // transform back to (lat, lon)
-    float[][] curve = new float[2][];
-    curve[0] = lat_map.scaleValues(curve_samples[lat_index]);
-    curve[1] = lon_map.scaleValues(curve_samples[lon_index]);
-    // inverseScaleValues
-
-    // resample curve uniformly along length
-    float increment = segment_length / profile_length;
-    curve = resample_curve(curve, increment);
-
-    // lowpass filter curve
-    curve = smooth_curve(curve, filter_window);
-
-    // resample smoothed curve
-    curve = resample_curve(curve, increment);
-
-
-
+    catch (RemoteException e) {
+    }
 /*
-  private int profile_length = -1;
-  private float[] front_profile_bot = null;
-  private float[] front_profile_top = null;
-  private float segment_length;
+System.out.println("normal " + normals[k] + " " + normals[k+1] + " " +
+                   normals[k+2]);
 */
   }
 
@@ -396,8 +572,12 @@ public class FrontDrawer extends Object {
 
     float[] bot_profile = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     float[] top_profile = {0.025f, 0.025f, 0.050f, 0.025f, 0.025f};
+    int[] red = {255, 255, 255, 255};
+    int[] green = {255, 255, 255, 255};
+    int[] blue = {255, 255, 255, 255};
     FrontDrawer fd =
-      new FrontDrawer(curve_ref, display, bot_profile, top_profile, 0.1f, 2);
+      new FrontDrawer(curve_ref, display, 0.1f, bot_profile, top_profile,
+                      red, green, blue, 8);
 
     JPanel button_panel = new JPanel();
     button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
