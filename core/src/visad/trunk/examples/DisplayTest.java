@@ -131,7 +131,8 @@ public class DisplayTest extends Object {
         System.out.println("  0: direct manipulation");
         System.out.println("  1: colored iso-surfaces from regular grids");
         System.out.println("  2: colored iso-surfaces from irregular grids");
-        System.out.println("  3: Animation different time resolutions");
+        System.out.println("  3: Animation different time resolutions "
+                                +"and AnimationWidget");
         System.out.println("  4: spherical coordinates");
         System.out.println("  5: colored 2-D contours from regular grids "
                                +"and ContourWidget");
@@ -305,7 +306,7 @@ public class DisplayTest extends Object {
       case 3:
 
         System.out.println(test_case + ": test animation different " +
-                           "time resolutions");
+                           "time resolutions and AnimationWidget");
         size = 64;
         imaget1 = FlatField.makeField(image_tuple, size, false);
         FlatField wasp = FlatField.makeField(image_bumble, size, false);
@@ -347,15 +348,24 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         ScalarMap map1animation = new ScalarMap(RealType.Time, Display.Animation);
         display1.addMap(map1animation);
-        AnimationControl animation1control =
-          (AnimationControl) map1animation.getControl();
-        animation1control.setOn(true);
-        animation1control.setStep(3000);
 
+        AnimationWidget aw = new AnimationWidget(map1animation, 3000);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", aw);
+        
         DataReferenceImpl ref_big_tuple =
           new DataReferenceImpl("ref_big_tuple");
         ref_big_tuple.setData(big_tuple);
         display1.addReference(ref_big_tuple, null);
+
+        jframe = new JFrame("VisAD animation controls");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        jframe.getContentPane().add(big_panel);
+        jframe.pack();
+        jframe.setVisible(true);
 
         break;
 
@@ -405,6 +415,9 @@ public class DisplayTest extends Object {
         display1.addReference(ref_imaget1, null);
 
         jframe = new JFrame("VisAD contour controls");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
         jframe.getContentPane().add(big_panel);
         jframe.pack();
         jframe.setVisible(true);
@@ -899,7 +912,8 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         map1animation = new ScalarMap(RealType.Time, Display.Animation);
         display1.addMap(map1animation);
-        animation1control = (AnimationControl) map1animation.getControl();
+        AnimationControl animation1control =
+          (AnimationControl) map1animation.getControl();
         animation1control.setOn(true);
         animation1control.setStep(3000);
 
