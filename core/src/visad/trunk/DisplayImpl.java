@@ -698,7 +698,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     throws RemoteException, VisADException
   {
     for (int i = links.length - 1; i >= 0; i--) {
-      links[i].clearMaps();
+      if (links[i] != null) {
+        links[i].clearMaps();
+      }
     }
 
     super.removeLinks(links);
