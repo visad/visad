@@ -60,11 +60,9 @@ public class FitsForm
     throw new RuntimeException("Can't yet add FITS objects");
   }
 
-  public DataImpl open(String path)
-	throws BadFormException, RemoteException, VisADException
+  private DataImpl extractData(FitsAdapter fits)
+	throws RemoteException, VisADException
   {
-    FitsAdapter fits = new FitsAdapter(path);
-
     // save any exceptions
     ExceptionStack eStack = null;
 
@@ -103,10 +101,16 @@ public class FitsForm
     return di;
   }
 
+  public DataImpl open(String path)
+	throws BadFormException, RemoteException, VisADException
+  {
+    return extractData(new FitsAdapter(path));
+  }
+
   public DataImpl open(URL url)
 	throws BadFormException, VisADException, IOException
   {
-    throw new UnimplementedException("Can't yet open FITS URLs");
+    return extractData(new FitsAdapter(url));
   }
 
   public FormNode getForms(Data data)
