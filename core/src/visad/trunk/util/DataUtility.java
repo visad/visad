@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.util;
 
 // General Java
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.Enumeration;
@@ -503,52 +504,47 @@ public class DataUtility extends Object {
     }
     else if (newRangeType instanceof RealTupleType)
     {
-      FlatField	temporaryField;
       int	realTupleIndex = getComponentIndex(field, newRangeType);
       if (realTupleIndex >= 0)
       {
 	/*
 	 * The desired RealTuple range is a component of the input Field.
 	 */
-	temporaryField = (FlatField)field.extract(realTupleIndex);
+	result = (FlatField)field.extract(realTupleIndex);
       }
       else
       {
 	/*
 	 * The desired RealTuple range is not a component of the input Field.
+	 * Extract each component of the desired RealTuple into a separate
+	 * Field and then combine the Field-s.
 	 */
 	RealTupleType	newRangeRealTupleType = (RealTupleType)newRangeType;
 	int		componentCount = newRangeRealTupleType.getDimension();
-	FlatField[]	flatFields = new FlatField[componentCount];
-	for (int i = flatFields.length; --i >= 0; )
+	ArrayList	flatFields = new ArrayList(componentCount);
+	for (int i = 0; i < componentCount; ++i)
 	{
-	  RealType	componentType =
-	    (RealType)newRangeRealTupleType.getComponent(i);
-	  int	componentIndex = getComponentIndex(field, componentType);
-	  flatFields[i] = 
-	    componentIndex >= 0
-	      ? (FlatField)field.extract(componentIndex)
-	      : new FlatField(
-		  new FunctionType(getDomainType(field), componentType),
-		  field.getDomainSet());
+	  int	componentIndex =
+	    getComponentIndex(field, newRangeRealTupleType.getComponent(i));
+	  if (componentIndex >= 0)
+	    flatFields.add(field.extract(componentIndex));
 	}
-	temporaryField = (FlatField)FieldImpl.combine(flatFields);
+	if (flatFields.size() != componentCount)
+	{
+	  /* Not all desired components exist in the range of the input Field */
+	  result =
+	    new FlatField(
+	      new FunctionType(getDomainType(field), newRangeType),
+	      field.getDomainSet());
+	}
+	else
+	{
+	  /* All desired components exist in the range of the input Field */
+	  result =
+	    (FlatField)FieldImpl.combine(
+	      (FlatField[])flatFields.toArray(new FlatField[componentCount]));
+	}
       }
-      Unit[][]	temporaryRangeUnits = temporaryField.getRangeUnits();
-      Unit[]	rangeUnits = new Unit[temporaryRangeUnits.length];
-      for (int i = rangeUnits.length; --i >= 0; )
-	rangeUnits[i] = temporaryRangeUnits[i][0];
-      FlatField	newFlatField =
-	new FlatField(
-	  new FunctionType(getDomainType(field), newRangeType),
-	  field.getDomainSet(),
-	  (CoordinateSystem)null,
-	  (CoordinateSystem[])null,
-	  temporaryField.getRangeSets(),
-	  rangeUnits);
-      newFlatField.setRangeErrors(temporaryField.getRangeErrors());
-      newFlatField.setSamples(temporaryField.getValues(false), true);
-      result = newFlatField;
     }
     else if (newRangeType instanceof TupleType)
     {
@@ -606,8 +602,8 @@ public class DataUtility extends Object {
       RealTuple	realTuple2 = (RealTuple)obj2;
       try
       {
-	int		rank = realTuple1.getDimension();
-	int		comp = 0;
+	int	rank = realTuple1.getDimension();
+	int	comp = 0;
 	/*
 	 * Because Set rasterization has the last component as the outermost
 	 * dimension, the last tuple component is treated as the grossest one
@@ -634,6 +630,29 @@ public class DataUtility extends Object {
   }
 
   /**
+   * Provides support for comparing domain points that are reference to a
+   * particular Field.
+   */
+  private static class
+  ReferencedDomainPoint
+    implements Comparable
+  {
+    protected final RealTuple	sample;
+    protected final Field	field;
+    public ReferencedDomainPoint(RealTuple sample, Field field)
+    {
+      this.sample = sample;
+      this.field = field;
+    }
+    public int compareTo(Object obj)
+    {
+      return
+	RealTupleComparator.INSTANCE.compare(
+	  sample, ((ReferencedDomainPoint)obj).sample);
+    }
+  }
+
+  /**
    * Consolidates fields.
    * @param fields		The fields to consolidate.  Each field shall
    *				have the same FunctionType.
@@ -655,29 +674,37 @@ public class DataUtility extends Object {
     throws FieldException, TypeException, VisADException, RemoteException
   {
     /*
-     * Determine the consolidated domain.
+     * Identify valid fields.
      */
-    if (fields.length == 0)
+    ArrayList	validFields = new ArrayList(fields.length);
+    for (int i = 0; i < fields.length; ++i)
+    {
+      Field	field = fields[i];
+      if (!field.isMissing())
+	validFields.add(field);
+    }
+    if (validFields.size() == 0)
       throw new FieldException(
 	DataUtility.class.getName() + "(Field[]): Zero fields to consolidate");
-    FunctionType	funcType = (FunctionType)fields[0].getType();
-    TreeSet		consolidatedDomainTuples = 
-      new TreeSet(RealTupleComparator.INSTANCE);
-    for (int i = fields.length; --i >= 0; )
+
+    /*
+     * Determine the consolidated domain.
+     */
+    FunctionType		funcType = (FunctionType)fields[0].getType();
+    TreeSet	consolidatedDomainTuples = new TreeSet();
+    for (Iterator iter = validFields.iterator(); iter.hasNext(); )
     {
-	Field	field = fields[i];
-	if (!field.getType().equals(funcType))
-	  throw new TypeException("Field type mismatch");
-	if (!field.isMissing())
-	{
-	  for (Enumeration enum = field.domainEnumeration();
-	      enum.hasMoreElements(); )
-	  {
-	      RealTuple	domainSample = (RealTuple)enum.nextElement();
-	      consolidatedDomainTuples.add(domainSample);
-	  }
-	}
+      Field	field = (Field)iter.next();
+      if (!field.getType().equals(funcType))
+	throw new TypeException("Field type mismatch");
+      for (Enumeration enum = field.domainEnumeration();
+	  enum.hasMoreElements(); )
+      {
+	consolidatedDomainTuples.add(
+	  new ReferencedDomainPoint((RealTuple)enum.nextElement(), field));
+      }
     }
+
     /*
      * Create the consolidated field (with no range data).
      */
@@ -690,7 +717,7 @@ public class DataUtility extends Object {
 	iter.hasNext();
 	++sampleIndex)
     {
-      RealTuple	domainTuple = (RealTuple)iter.next();
+      RealTuple	domainTuple = ((ReferencedDomainPoint)iter.next()).sample;
       for (int i = domainFloats.length; --i >= 0; )
 	domainFloats[i][sampleIndex] =
 	  (float)((Real)domainTuple.getComponent(i)).getValue(domainUnits[i]);
@@ -716,37 +743,18 @@ public class DataUtility extends Object {
       field instanceof FlatField
 	? new FlatField(funcType, consolidatedDomain)
 	: new FieldImpl(funcType, consolidatedDomain);
+
     /*
      * Set the range of the consolidated field.
-    for (int i = fields.length; --i >= 0; )
-    {
-      Field	field = fields[i];
-      if (!field.isMissing())
-      {
-	for (Enumeration enum = field.domainEnumeration();
-	    enum.hasMoreElements(); )
-	{
-	    RealTuple	domainSample = (RealTuple)enum.nextElement();
-	    Data	rangeSample = field.evaluate(domainSample);
-	    if (!rangeSample.isMissing())
-	      consolidatedField.setSample(domainSample, rangeSample);
-	}
-      }
-    }
      */
     for (Iterator iter = consolidatedDomainTuples.iterator(); iter.hasNext(); )
     {
-      RealTuple	domainTuple = (RealTuple)iter.next();
-      for (int i  = fields.length; --i >= 0; )
-      {
-	Data	datum = fields[i].evaluate(domainTuple);
-	if (!datum.isMissing())
-	{
-	  consolidatedField.setSample(domainTuple, datum);
-	  break;
-	}
-      }
+      ReferencedDomainPoint	point = (ReferencedDomainPoint)iter.next();
+      RealTuple			domainTuple = point.sample;
+      consolidatedField.setSample(
+	domainTuple, point.field.evaluate(domainTuple));
     }
+
     return consolidatedField;
   }
 
