@@ -6,23 +6,24 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.11 2000-11-17 18:54:40 dglo Exp $
+ * $Id: StandardQuantityDB.java,v 1.12 2001-04-03 18:53:04 steve Exp $
  */
 
 package visad.data.netcdf;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import visad.data.units.ParseException;
 import visad.RealType;
 import visad.SI;
 import visad.TypeException;
+import visad.VisADError;
 import visad.VisADException;
-import visad.data.units.ParseException;
 
 
 /**
  * The following class implements a database of standard quantities.  It is
- * implemented as a singleton.  Instances of the class are immutable.
+ * implemented as a singleton.  Instances of the class are modifiable.
  *
  * @author Steven R. Emmerson
  */
@@ -36,18 +37,31 @@ StandardQuantityDB
     private static /*final*/ StandardQuantityDB	db;
 
 
+    static
+    {
+	try
+	{
+	    db = new StandardQuantityDB();
+	}
+	catch (Exception e)
+	{
+	    if (e instanceof RuntimeException)
+		throw (RuntimeException)e;
+	    throw new VisADError(
+		"visad.data.netcdf.<clinit>: Couldn't initialize class: " + e);
+	}
+    }
+
+
     /**
      * Returns an instance of this class.
      *
-     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws VisADException	Couldn't instantiate.
      */
-    public static synchronized StandardQuantityDB
+    public static StandardQuantityDB
     instance()
-      throws VisADException
+	throws VisADException
     {
-	if (db == null)
-	    db = new StandardQuantityDB();
-
 	return db;
     }
 
@@ -246,7 +260,7 @@ StandardQuantityDB
 	    super.add("ElectricFieldStrength", "V/m");
 
 	    /*
-	     * Photometry:
+	     * Photometry and Radiometry:
 	     */
 	    super.add("Illuminance", "lx");
 	    super.add("Irradiance", "W/m2");
