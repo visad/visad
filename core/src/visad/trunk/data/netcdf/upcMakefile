@@ -17,7 +17,11 @@ test:		small.test big.test pmsl.test #time.test
 
 include ../../rules.make
 
-.SUFFIXES:	.test .save .nc
+.SUFFIXES:	.test .save .run .nc
+.nc.run:
+	CLASSPATH=$(ROOTDIR):$$CLASSPATH $(JAVA) \
+	    $(PACKAGE_PREFIX)Plain $<
+
 .nc.save:
 	$(MAKE) -s $*.run >$@ 2>&1
 
