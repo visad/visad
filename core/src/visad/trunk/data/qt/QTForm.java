@@ -71,6 +71,7 @@ public class QTForm extends Form implements FormFileInformer {
       r.exec("import quicktime.app.image.QTImageDrawer");
       r.exec("import quicktime.app.image.QTImageProducer");
       r.exec("import quicktime.app.image.Redrawable");
+      r.exec("import quicktime.app.players.MoviePlayer");
       r.exec("import quicktime.io.OpenMovieFile");
       r.exec("import quicktime.io.QTFile");
       r.exec("import quicktime.qd.QDDimension");
