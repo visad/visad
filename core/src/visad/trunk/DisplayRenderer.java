@@ -405,6 +405,8 @@ public abstract class DisplayRenderer
   }
 
   public double getDirectAxisValue(RealType type) {
+    return getDirectAxisValue(type.getName());
+/* 27 Oct 2000
     synchronized (cursorStringVector) {
       if (cursorStringVector != null) {
         String name = type.getName();
@@ -427,7 +429,33 @@ public abstract class DisplayRenderer
       }
     }
     return Double.NaN;
+*/
   }
+
+  // 27 Oct 2000
+  public double getDirectAxisValue(String name) { 
+    synchronized (cursorStringVector) {
+      if (cursorStringVector != null) { 
+        Enumeration strings = cursorStringVector.elements();
+        while(strings.hasMoreElements()) {
+          String s = (String) strings.nextElement();
+          if (s.startsWith(name)) {
+            String t = s.substring(s.indexOf("=") + 2);
+            int i = t.indexOf(" ");
+            if (i >= 0) t = t.substring(0, i);
+            try {
+              double v = Double.valueOf(t).doubleValue();
+              return v;
+            }
+            catch (NumberFormatException e) {
+              return Double.NaN;
+            }
+          }
+        }
+      }
+    }
+    return Double.NaN;
+  } 
 
   /**
    * Set <CODE>Vector</CODE> of <CODE>String</CODE>s describing the
