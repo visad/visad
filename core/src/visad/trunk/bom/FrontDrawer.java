@@ -63,7 +63,7 @@ public class FrontDrawer extends Object {
 
   private DataReferenceImpl front_ref;
   private DefaultRendererJ3D front_renderer;
-  private DataReferenceImpl curve_ref;
+  private DataReferenceImpl curve_ref = null;
   private FrontManipulationRendererJ3D front_manipulation_renderer;
 
   private ReleaseCell release_cell;
@@ -764,20 +764,21 @@ public class FrontDrawer extends Object {
     }
   }
 
-  class ReleaseCell extends CellImpl {
+  private Gridded2DSet last_curve_set = null;
 
-    private Gridded2DSet last_curve_set = null;
+  class ReleaseCell extends CellImpl {
 
     public ReleaseCell() {
     }
 
     public void doAction() throws VisADException, RemoteException {
       synchronized (data_lock) {
-        Data data = curve_ref.getData();
+        Data data = null;
+        if (curve_ref != null) data = curve_ref.getData();
         Gridded2DSet curve_set = null;
         if (data == null || !(data instanceof UnionSet)) {
-          if (debug) System.out.println("data null or not UnionSet");
-          curve_ref.setData(init_curve);
+          // if (debug) System.out.println("data null or not UnionSet");
+          if (curve_ref != null) curve_ref.setData(init_curve);
           curve_set = last_curve_set;
         }
         else {
@@ -785,12 +786,12 @@ public class FrontDrawer extends Object {
           if (sets == null || sets.length == 0 ||
               !(sets[0] instanceof Gridded2DSet)) {
             if (debug) System.out.println("data not Gridded2DSet");
-            curve_ref.setData(init_curve);
+            if (curve_ref != null) curve_ref.setData(init_curve);
             curve_set = last_curve_set;
           }
           else if (sets[0].getManifoldDimension() != 1) {
             if (debug) System.out.println("ManifoldDimension != 1");
-            curve_ref.setData(init_curve);
+            if (curve_ref != null) curve_ref.setData(init_curve);
             curve_set = last_curve_set;
           }
           else {
@@ -799,7 +800,7 @@ public class FrontDrawer extends Object {
         }
         if (curve_set == null) {
           if (debug) System.out.println("curve_set is null");
-          curve_ref.setData(init_curve);
+          if (curve_ref != null) curve_ref.setData(init_curve);
           return;
         }
 
@@ -807,18 +808,18 @@ public class FrontDrawer extends Object {
         try {
           curve_samples = curve_set.getSamples(false);
           if (curve_samples == null || curve_samples[0].length < 2) {
-            curve_ref.setData(init_curve);
+            if (curve_ref != null) curve_ref.setData(init_curve);
             throw new VisADException("bad curve_samples");
           }
         }
         catch (VisADException e) {
           // if (debug) System.out.println("release " + e);
-          curve_ref.setData(init_curve);
+          if (curve_ref != null) curve_ref.setData(init_curve);
           curve_set = last_curve_set;
           try {
             if (curve_set != null) curve_samples = curve_set.getSamples(false);
             if (curve_samples == null || curve_samples[0].length < 2) {
-              curve_ref.setData(init_curve);
+              if (curve_ref != null) curve_ref.setData(init_curve);
               throw new VisADException("bad curve_samples");
             }
           }
@@ -885,9 +886,13 @@ public class FrontDrawer extends Object {
         }
   
         front_ref.setData(front);
-        curve_ref.setData(init_curve);
+        if (curve_ref != null) curve_ref.setData(init_curve);
       } // end synchronized (data_lock)
     }
+  }
+
+  public Gridded2DSet getCurve() {
+    return last_curve_set;
   }
 
   // FrontManipulationRendererJ3D button release
@@ -908,8 +913,26 @@ public class FrontDrawer extends Object {
   public void endManipulation()
          throws VisADException, RemoteException {
     synchronized (data_lock) {
-      display.removeReference(curve_ref);
+      if (curve_ref != null) display.removeReference(curve_ref);
+      curve_ref = null;
     }
+  }
+
+  /** called by the application to end manipulation;
+      returns the final front */
+  public FieldImpl endItAll()
+         throws VisADException, RemoteException {
+    synchronized (data_lock) {
+      if (curve_ref != null) display.removeReference(curve_ref);
+      curve_ref = null;
+      if (front_ref != null) {
+        display.removeReference(front_ref);
+        pcontrol.removeControlListener(pcl);
+        release_cell.removeReference(release_ref);
+      }
+      front_ref = null;
+    }
+    return front;
   }
 
   private static final float CLIP_DELTA = 0.001f;
