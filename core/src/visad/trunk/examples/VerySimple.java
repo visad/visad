@@ -44,6 +44,11 @@ public class VerySimple {
     // create a display for the image sequence
     DisplayImpl display = DataUtility.makeSimpleDisplay(image_sequence);
 
+    // start animation
+    AnimationControl control =
+      (AnimationControl) display.getControl(AnimationControl.class);
+    control.setOn(true);
+
     // create JFrame (i.e., a window) for the display
     JFrame frame = new JFrame("VerySimple VisAD Application");
 

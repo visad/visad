@@ -3385,7 +3385,7 @@ System.out.println("range = " + range[0] + " " + range[1] +
     return true;
   }
 
-  public boolean allowLinearContourEnable() {
+  public boolean allowLinearContour() {
     return true;
   }
 

@@ -682,7 +682,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 
     boolean isLinearContour3D = getIsLinearContour3D() &&
                                 domain_set instanceof Linear3DSet &&
-                                shadow_api.allowLinearContourEnable();
+                                shadow_api.allowLinearContour();
 
 /*
 System.out.println("doTransform.isTextureMap = " + isTextureMap + " " +
