@@ -36,7 +36,7 @@ public class Aeri
   FieldImpl advect_field;
   FieldImpl stations_field;
 
-  int n_stations = 1;
+  int n_stations = 5;
 
   double[] station_lat;
   double[] station_lon;
@@ -67,20 +67,16 @@ public class Aeri
     String[] rtvl_files = new String[n_stations];
 
     wind_files[0] = "./data/19991216_lamont_windprof.cdf";
-    /**
     wind_files[1] = "./data/19991216_hillsboro_windprof.cdf";
     wind_files[2] = "./data/19991216_morris_windprof.cdf";
     wind_files[3] = "./data/19991216_purcell_windprof.cdf";
     wind_files[4] = "./data/19991216_vici_windprof.cdf";
-    **/
 
     rtvl_files[0] = "./data/lamont_991216AG.cdf";
-    /**
     rtvl_files[1] = "./data/hillsboro_991216AG.cdf";
     rtvl_files[2] = "./data/morris_991216AG.cdf";
     rtvl_files[3] = "./data/purcell_991216AG.cdf";
     rtvl_files[4] = "./data/vici_991216AG.cdf";
-    **/
 
     FieldImpl[] winds = makeWinds(wind_files);
 
@@ -94,19 +90,18 @@ public class Aeri
     advect_type = new FunctionType(spatial_domain, advect_range);
     advect_field_type = new FunctionType(time, advect_type);
     
-  /**
     FieldImpl stations_field = 
         new FieldImpl(new FunctionType( stn_idx, advect_field_type),
                                         new Integer1DSet( stn_idx, n_stations, 
                                                           null, null, null));
-   **/
 
     for ( int kk = 0; kk < n_stations; kk++ )
     {
       advect_field = makeAdvect(winds[kk], rtvls[kk], kk);
-   //-stations_field.setSample(kk, advect_field);
+      stations_field.setSample(kk, advect_field);
     }
-    System.out.println(advect_field.getType().prettyString());
+    // System.out.println(advect_field.getType().prettyString());
+    System.out.println(stations_field.getType().prettyString());
 
     makeDisplay();
   }
@@ -128,8 +123,8 @@ public class Aeri
     display.addMap(new ScalarMap(advAge, Display.Alpha));
 
     DataReference advect_ref = new DataReferenceImpl("advect_ref");
-    advect_ref.setData(advect_field);
- //-advect_ref.setData(stations_field);
+    // advect_ref.setData(advect_field);
+    advect_ref.setData(stations_field);
 
     display.addReference(advect_ref);
   }
@@ -137,7 +132,6 @@ public class Aeri
   FieldImpl[] makeWinds(String[] files)
               throws VisADException, RemoteException, IOException
   {
-    int n_stations = files.length;
     DataImpl[] file_data = new DataImpl[n_stations];
     FieldImpl[] time_field = new FieldImpl[n_stations];
     double[][] time_offset = null;
@@ -169,12 +163,22 @@ public class Aeri
     dir = (RealType)((RealTupleType)f_type1.getRange()).getComponent(3);
     RealType[] r_types = { dir, spd };
  
-    CoordinateSystem cs = new WindPolarCoordinateSystem(RealTupleType.SpatialEarth2DTuple);
+/*
+    CoordinateSystem cs =
+      new WindPolarCoordinateSystem(RealTupleType.SpatialEarth2DTuple);
 
     RealTupleType ds = new RealTupleType(r_types, cs, null);
 
     RealType[] uv_types = { u_wind, v_wind }; 
     RealTupleType uv = new RealTupleType(uv_types);
+*/
+    /* WLH 28 Dec 99 */
+    RealType[] uv_types = { u_wind, v_wind }; 
+    // EarthVectorType uv = new EarthVectorType(uv_types); WLH meeds m/s
+    RealTupleType uv = new RealTupleType(uv_types);
+    CoordinateSystem cs = new WindPolarCoordinateSystem(uv);
+    RealTupleType ds = new RealTupleType(r_types, cs, null);
+
 
     FunctionType alt_to_ds = new FunctionType(altitude, ds);
     FunctionType alt_to_uv = new FunctionType(altitude, uv);
@@ -198,23 +202,25 @@ public class Aeri
       time_offset = new double[1][length];
       FlatField[] range_data = new FlatField[length];
 
+      double[][] samples = null; // WLH
       for ( int jj = 0; jj < length; jj++ )
       {
         Tuple range = (Tuple) time_field[ii].getSample(jj);
         time_offset[0][jj] = (double)((Real)range.getComponent(0)).getValue();  
 
         FlatField p_field = (FlatField) range.getComponent(10);
-        double[][] values = p_field.getValues();
+        double[][] values = p_field.getValues(); // WLH - (alt, ?, ?, dir, spd, ???)
         double[][] new_values = new double[2][values[0].length];
 
         if ( jj == 0 )  //- only do this once, vertical range gates don't change
         {
-          double[][] samples = new double[1][values[0].length];
+          samples = new double[1][values[0].length]; // WLH
           System.arraycopy(values[0], 0, samples[0], 0, samples[0].length);
           d_set = new Gridded1DSet(altitude, Set.doubleToFloat(samples), samples[0].length);
         }
         new_ff = new FlatField(alt_to_uv, d_set);
 
+/* WLH 28 Dec 99
         for ( int mm = 0; mm < values[0].length; mm++ )
         {
           if ( values[3][mm] == -9999 ) {
@@ -232,8 +238,78 @@ public class Aeri
           }
         }
         new_ff.setSamples(cs.toReference(new_values));
+*/
+
+/* WLH - fill in missing winds - this also extrapolates to missing
+start or end altitudes - but it does nothing if all winds are missing */
+        int n_not_miss = 0;
+        int[] not_miss = new int[values[0].length];
+        for ( int mm = 0; mm < values[0].length; mm++ )
+        {
+          if ( values[3][mm] == -9999 ) {
+            new_values[0][mm] = Float.NaN;
+          }
+          else {
+            new_values[0][mm] = values[3][mm];
+          }
+
+          if ( values[4][mm] == -9999 ) {
+            new_values[1][mm] = Float.NaN;
+          }
+          else {
+            new_values[1][mm] = values[4][mm];
+          }
+          if (new_values[0][mm] == new_values[0][mm] &&
+              new_values[1][mm] == new_values[1][mm]) {
+            not_miss[n_not_miss] = mm;
+            n_not_miss++;
+          }
+        }
+        if (0 < n_not_miss && n_not_miss < values[0].length) {
+          int nn = n_not_miss;
+          if (not_miss[0] > 0) nn += not_miss[0];
+          int endlen = values[0].length - (not_miss[n_not_miss-1]+1);
+          if (endlen > 0) nn += endlen;
+
+          float[][] newer_values = new float[2][nn];
+          float[][] newer_samples = new float[1][nn];
+          // fill in non-missing values
+          for (int i=0; i<n_not_miss; i++) {
+            newer_values[0][not_miss[0] + i] = (float) new_values[0][not_miss[i]];
+            newer_values[1][not_miss[0] + i] = (float) new_values[1][not_miss[i]];
+            newer_samples[0][not_miss[0] + i] = (float) samples[0][not_miss[i]];
+          }
+          // extrapolate if necessary for starting values
+          for (int i=0; i<not_miss[0]; i++) {
+            newer_values[0][i] = (float) new_values[0][not_miss[0]];
+            newer_values[1][i] = (float) new_values[1][not_miss[0]];
+            newer_samples[0][i] = (float) samples[0][not_miss[0]];
+          }
+          // extrapolate if necessary for ending values
+          for (int i=0; i<endlen; i++) {
+            newer_values[0][not_miss[0] + n_not_miss + i] =
+              (float) new_values[0][not_miss[n_not_miss-1]];
+            newer_values[1][not_miss[0] + n_not_miss + i] =
+              (float) new_values[1][not_miss[n_not_miss-1]];
+            newer_samples[0][not_miss[0] + n_not_miss + i] =
+              (float) samples[0][not_miss[n_not_miss-1]];
+          }
+          Gridded1DSet newer_d_set =
+            new Gridded1DSet(altitude, newer_samples, nn);
+          FlatField newer_ff = new FlatField(alt_to_uv, newer_d_set);
+          newer_ff.setSamples(cs.toReference(newer_values));
+          new_ff = (FlatField) newer_ff.resample(d_set,
+                                                 Data.WEIGHTED_AVERAGE,
+                                                 Data.NO_ERRORS );
+        }
+        else {
+          new_ff.setSamples(cs.toReference(new_values));
+        }
+/* end WLH - fill in missing winds */
+
         range_data[jj] = new_ff;
       }
+
 
       Gridded1DSet domain_set = new Gridded1DSet(domain_type, 
                                     Set.doubleToFloat(time_offset), length);
@@ -330,6 +406,9 @@ public class Aeri
           }
         }
         p_field.setSamples(new_values);
+        if (!f_type1.equals(p_field.getType())) {
+          p_field = (FlatField) p_field.changeMathType(f_type1);
+        }
         range_data[jj] = p_field;
       }
 
@@ -374,7 +453,7 @@ public class Aeri
     float alt;
     Set rtvls_domain;
     float[] rtvl_times;
-    double factor = .5*(1d/111000d);  //-knt to ms, m to degree
+    double factor = .5*(1.0/111000.0);  //-knt to ms, m to degree
 
     //- time(rtvl) -> (lon,lat,alt) -> (T,TD,WV,AGE)
     //
@@ -410,7 +489,7 @@ public class Aeri
     
     //- loop over rtvl sampling in time   -*
     //
-    for ( int tt = n_advect_pts; tt < rtvls.getLength(); tt++ )
+    for ( int tt = n_advect_pts; tt < len; tt++ )
     {
       rtvl_idx = tt;
       alt_to_wind = (FieldImpl)wind_to_rtvl_time.getSample(tt);
@@ -438,8 +517,13 @@ public class Aeri
           rtvl_time = rtvl_times[rtvl_idx - ii];
           age = rtvl_time - rtvl_time_0;
 
-          advect_locs[0][n_samples] = (float) (uv_wind[0][jj]*age*factor + station_lon[stn_idx]);
-          advect_locs[1][n_samples] = (float) (uv_wind[1][jj]*age*factor + station_lat[stn_idx]);
+// WLH - adjust for shortening of longitude with increasing latitude
+          double lat_radians = (Math.PI/180.0)*station_lat[stn_idx];
+          advect_locs[0][n_samples] = (float)
+            (uv_wind[0][jj]*age*factor/Math.cos(lat_radians) + station_lon[stn_idx]);
+          advect_locs[1][n_samples] = (float)
+            (uv_wind[1][jj]*age*factor + station_lat[stn_idx]);
+
           advect_locs[2][n_samples] = alt;
 
           double[][] vals = rtvl_on_wind[rtvl_idx - ii].getValues();
@@ -447,7 +531,7 @@ public class Aeri
           rtvl_vals[0][n_samples] = (float) vals[1][jj];
           rtvl_vals[1][n_samples] = (float) vals[2][jj];
           rtvl_vals[2][n_samples] = (float) vals[3][jj];
-          rtvl_vals[3][n_samples] = (float) age;
+          rtvl_vals[3][n_samples] = (float) (-age*age); // WLH - quadratic age fade
 
           n_samples++;
         }

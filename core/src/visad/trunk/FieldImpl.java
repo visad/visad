@@ -105,6 +105,11 @@ public class FieldImpl extends FunctionImpl implements Field {
       should use same MathType object in each Data object in range array */
   public void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException {
+    if (range == null) {
+      Range = new Data[Length];
+      MissingFlag = true;
+      return;
+    }
     if (range.length != Length) {
       throw new FieldException("FieldImpl.setSamples: bad array length");
     }
@@ -115,10 +120,10 @@ public class FieldImpl extends FunctionImpl implements Field {
       for (int i=0; i<Length; i++) {
         // WLH 9 Dec 99
         // if (range != null && !t.equalsExceptName(range[i].getType())) {
-        if (range != null && !t.equals(range[i].getType())) {
-          throw new TypeException("FieldImpl.setSamples: types don't match");
-        }
         if (range[i] != null) {
+          if (!t.equals(range[i].getType())) {
+            throw new TypeException("FieldImpl.setSamples: types don't match");
+          }
           if (copy) Range[i] = (Data) range[i].dataClone();
           else Range[i] = range[i];
         }
