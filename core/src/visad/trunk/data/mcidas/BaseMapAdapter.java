@@ -51,7 +51,7 @@ public class BaseMapAdapter {
   private MathType coordMathType;
   private int position, numSegments = 0;
   private int[][] segList;
-  private boolean isEastPositive = false;
+  private boolean isEastPositive = true;
 
 
   /** Create a VisAD UnionSet from a local McIDAS Base Map file

@@ -70,6 +70,7 @@ public class GVARnav {
 
   public boolean navTransformOK;
   private boolean isLineFlipped=false;
+  private boolean isEastPositive = true;
   private double lineOffset;
 
   final double PI=3.141592653589793d;
@@ -786,7 +787,7 @@ public class GVARnav {
       rlon = rlon * DEG;
 
        //  put longitude into mcidas form
-      rlon = -rlon;
+      if (!isEastPositive) rlon = -rlon;
 
        //  see if we have to convert to x y z coordinates
       if (itype == 2) {
@@ -849,7 +850,8 @@ public class GVARnav {
       }
 
       rlat = (double)latlon[indexLat][point]*RAD;
-      rlon = -(double)latlon[indexLon][point]*RAD;
+      rlon = (double)latlon[indexLon][point]*RAD;
+      if (!isEastPositive) rlon = -rlon;
 
      // transform lat/lon to elevation and scan angles
      // (used to be the gpoint routine...)
