@@ -184,6 +184,10 @@ public class AddeURLConnection extends URLConnection
   public final static int MDKS = 5;
   /** TXTG request type */
   public final static int TXTG = 6;
+  /** WTXG request type */
+  public final static int WTXG = 7;
+  /** OBTG request type */
+  public final static int OBTG = 8;
 
 
   // ADDE data types
@@ -191,6 +195,8 @@ public class AddeURLConnection extends URLConnection
   private final static int GRID  = 101;
   private final static int POINT = 102;
   private final static int TEXT  = 103;
+  private final static int WXTEXT  = 104;
+  private final static int OBTEXT  = 105;
 
   private int numBytes = 0;
   private int dataType = IMAGE;
@@ -255,6 +261,8 @@ public class AddeURLConnection extends URLConnection
     if (!request.startsWith("image") && 
         (!request.startsWith("datasetinfo")) &&
         (!request.startsWith("text")) &&
+        (!request.startsWith("wxtext")) &&
+        (!request.startsWith("obtext")) &&
         (!request.startsWith("grid"))   && 
         (!request.startsWith("point"))  )
     {
@@ -292,6 +300,16 @@ public class AddeURLConnection extends URLConnection
     {
         svc = (new String("txtg")).getBytes();
         reqType = TXTG;
+    }
+    else if (request.startsWith("wxtext"))
+    {
+        svc = (new String("wtxg")).getBytes();
+        reqType = WTXG;
+    }
+    else if (request.startsWith("obtext"))
+    {
+        svc = (new String("obtg")).getBytes();
+        reqType = OBTG;
     }
     else if (request.startsWith("image"))
     {
@@ -416,11 +434,17 @@ public class AddeURLConnection extends URLConnection
         case TXTG:
             sb = decodeTXTGString(uCmd);
             break;
+        case WTXG:
+            sb = decodeWTXGString(uCmd);
+            break;
+        case OBTG:
+            sb = decodeOBTGString(uCmd);
+            break;
     }
 
     // indefinitely use ADDE version 1 unless it's a GGET request
     sb.append(" version=");
-    sb.append((reqType == GGET) ? "A" : "1");
+    sb.append((reqType == GGET || reqType == WTXG) ? "A" : "1");
 
     // now convert to array of bytes for output since chars are two byte
     String cmd = new String(sb);
@@ -515,16 +539,17 @@ public class AddeURLConnection extends URLConnection
   }
 
 
-    /**
-     * Return the number of bytes being sent by the server for the 
-     * first record.
-     *
-     * @return  number of bytes send in the first record
-     */
-    public int getInitialRecordSize()
-    {
-        return numBytes;
-    }
+  /**
+   * Return the number of bytes being sent by the server for the 
+   * first record.
+   *
+   * @return  number of bytes send in the first record
+   */
+  public int getInitialRecordSize()
+  {
+      return numBytes;
+  }
+
 
     /**
      * Decode the ADDE request for image data.
@@ -1277,6 +1302,261 @@ public class AddeURLConnection extends URLConnection
         return buf;
     }
 
+
+    /**
+     * Decode the ADDE request for a weather text.
+     *
+     * <pre>
+     * there can be any valid combination of the following supported keywords:
+     *
+     *   group=<group>         weather text group (default= RTWXTEXT)
+     *   prod=<product>        predefind product name
+     *   apro=<val1 .. valn>   AFOS/AWIPS product headers to match (don't 
+     *                         use with wmo keyword
+     *   astn=<val1 .. valn>   AFOS/AWIPS stations to match
+     *   wmo= <val1 .. valn>   WMO product headers to match (don't 
+     *                         use with apro keyword
+     *   wstn=<val1 .. valn>   WMO stations to match
+     *   day=<start end>       range of days to search
+     *   dtime=<numhours>      maximum number of hours to search back (def=96)
+     *   match=<match strings> list of character match strings to find from text
+     *   num=<num>             number of matches to find (def=1)
+     *
+     * the following keywords are required:
+     *
+     *   day  (should default to current, but there's a bug)
+     *   apro, astn or wstn
+     *
+     * an example URL might look like:
+     *   adde://viper/text?group=textdata&file=myfile.txt
+     *   
+     * </pre>
+     */
+    public StringBuffer decodeWTXGString(String uCmd)
+    {
+        StringBuffer buf = new StringBuffer();
+        String testString;
+        String tempString;
+        String numString = "NUM=1";
+        String dTimeString = "DTIME=96.0000";
+        String traceString = "TRACE=0";
+        // Mandatory strings
+        String groupString = "RTWXTEXT";
+
+        StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
+        while (cmdTokens.hasMoreTokens())
+        {
+            testString = cmdTokens.nextToken();
+            // group, descr and pos are mandatory
+            if (testString.startsWith("grou"))
+            {
+                groupString = 
+                    testString.substring(testString.indexOf("=") + 1);
+            }
+            else
+            if (testString.startsWith("apro"))       // apro keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("astn"))       // astn keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("day"))       // day keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("mat"))        // match keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("prod"))       // prod keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("sour"))       // source keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("wmo"))       // wmo keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("wstn"))       // wstn keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("tra"))       // trace keyword
+            {
+                traceString = testString;
+            }
+            else
+            if (testString.startsWith("num"))       // num keyword
+            {
+                numString = testString;
+            }
+            else
+            if (testString.startsWith("dtim"))       // dtime keyword
+            {
+                dTimeString = testString;
+            }
+        } 
+
+        buf.append(" ");
+        buf.append(dTimeString);
+        buf.append(" ");
+        buf.append(numString);
+        buf.append(" ");
+        buf.append(traceString);
+        // now create command string
+        String posParams = 
+            new String(groupString + " ");
+        try
+        {
+            buf.insert(0, posParams);
+        }
+        catch (StringIndexOutOfBoundsException e)
+        {
+            System.out.println(e.toString());
+            buf = new StringBuffer("");
+        }
+        return buf;
+    }
+
+    /**
+     * Decode the ADDE request for a weather observation text.
+     *
+     * <pre>
+     * there can be any valid combination of the following supported keywords:
+     *
+     *
+     *   group=<group>         weather text group (default= RTWXTEXT)
+     *   descr=<descriptor>    weather text subgroup (default=SFCHOURLY)
+     *   id=<id1 id2 ... idn>  list of station ids
+     *   co=<co1 co2 ... con>  list of countries
+     *   reg=<reg1 reg2..regn> list of regions
+     *   newest=<day hour>     most recent time to allow in request 
+     *                         (def=current time)
+     *   oldest=<day hour>     oldest observation time to allow in request
+     *   type=<type>           numeric value for the type of ob
+     *   nhours=<numhours>     maximum number of hours to search
+     *   num=<num>             number of matches to find (def=1)
+     *
+     * the following keywords are required:
+     *
+     *   group
+     *   descr
+     *   id, co, or reg
+     *
+     * an example URL might look like:
+     *  adde://adde.ucar.edu/obtext?group=rtwxtext&descr=sfchourly&id=kden&num=2
+     *   
+     * </pre>
+     */
+    public StringBuffer decodeOBTGString(String uCmd)
+    {
+        StringBuffer buf = new StringBuffer();
+        String testString;
+        String tempString;
+        String numString = "NUM=1";
+        String traceString = "TRACE=0";
+        // Mandatory strings
+        String groupString = "RTWXTEXT";
+        String descrString = "SFCHOURLY";
+        String idreqString = "IDREQ=LIST";
+
+        StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
+        while (cmdTokens.hasMoreTokens())
+        {
+            testString = cmdTokens.nextToken();
+            // group, descr and pos are mandatory
+            if (testString.startsWith("grou"))
+            {
+                groupString = 
+                    testString.substring(testString.indexOf("=") + 1);
+            }
+            else
+            if (testString.startsWith("desc"))
+            {
+                descrString = 
+                    testString.substring(testString.indexOf("=") + 1);
+            }
+            else
+            if (testString.startsWith("id"))       // id keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("nhou"))       // nhour keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("new"))       // newest keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("old"))       // oldest keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("type"))       // type keyword
+            {
+                buf.append(" ");
+                buf.append(testString);
+            }
+            else
+            if (testString.startsWith("tra"))       // trace keyword
+            {
+                traceString = testString;
+            }
+            else
+            if (testString.startsWith("num"))       // num keyword
+            {
+                numString = testString;
+            }
+        } 
+
+        buf.append(" ");
+        buf.append(numString);
+        buf.append(" ");
+        buf.append(traceString);
+        // now create command string
+        String posParams = 
+            new String(groupString + " " + descrString + " " + idreqString);
+        try
+        {
+            buf.insert(0, posParams);
+        }
+        catch (StringIndexOutOfBoundsException e)
+        {
+            System.out.println(e.toString());
+            buf = new StringBuffer("");
+        }
+        return buf;
+    }
 
     /**
      * Decode the ADDE request for data set information.
