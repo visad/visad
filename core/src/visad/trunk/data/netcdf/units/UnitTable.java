@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.6 1999-05-24 22:28:57 steve Exp $
+ * $Id: UnitTable.java,v 1.7 1999-12-01 16:38:56 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -190,14 +190,35 @@ UnitTable
     protected String
     makePlural(String name)
     {
-	char	lastChar = name.charAt(name.length()-1);
-	return name +
-	    (lastChar == 'y'
-		? "ies"
-		: (lastChar == 's' || lastChar == 'x' ||
-		   lastChar == 'z' || name.endsWith("ch"))
-		  ? "es"
-		  : "s");
+	String	plural;
+	int	length = name.length();
+	char	lastChar = name.charAt(length-1);
+	if (lastChar != 'y')
+	{
+	    plural = name +
+		(lastChar == 's' || lastChar == 'x' ||
+		 lastChar == 'z' || name.endsWith("ch")
+		    ? "es"
+		    : "s");
+	}
+	else
+	{
+	    if (length == 1)
+	    {
+		plural = name + "s";
+	    }
+	    else
+	    {
+		char	penultimateChar = name.charAt(length-2);
+		plural =
+		    (penultimateChar == 'a' || penultimateChar == 'e' ||
+		     penultimateChar == 'i' || penultimateChar == 'o' ||
+		     penultimateChar == 'u')
+			? name + "s"
+			: name.substring(0, length-1) + "ies";
+	    }
+	}
+	return plural;
     }
 
 
