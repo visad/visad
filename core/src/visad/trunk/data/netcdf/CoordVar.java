@@ -36,6 +36,23 @@ CoordVar
 
 
     /**
+     * Return the fill-value object for a co-ordinate variable.  This is
+     * necessarily null because VisAD domain sample sets don't have missing
+     * values.
+     *
+     * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
+     *			<code>Float.TYPE</code>).
+     * @return		The default fill-value object for the given netCDF
+     *			type.
+     */
+    Number
+    getFillValueNumber(Class type)
+    {
+	return null;
+    }
+
+
+    /**
      * Return an array element identified by position.
      */
      public Object
@@ -53,6 +70,7 @@ CoordVar
 	    throw new IOException(e.getMessage());
 	}
      }
+
 
     /**
      * Indicate whether or not this co-ordinate variable is the same as

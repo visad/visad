@@ -59,20 +59,33 @@ ExportVar
 
 	fillObject = getFillValueObject(type);
 
-	Attribute[]	attrs = new Attribute[unit == null ? 1 : 2];
+	int		nattrs = (unit == null ? 0 : 1) +
+				 (fillObject == null ? 0 : 1);
+	Attribute[]	attrs;
 
-	/*
-	 * The following is necessary because the constructors
-	 * Attribute(String, Number) and Attribute(String, Object) both
-	 * exist and the compiler won't choose the "Number" constructor
-	 * if the argument is the common-type "Object".
-	 */
-	attrs[0] = fillObject instanceof Number
-		    ? new Attribute("_FillValue", (Number)fillObject)
-		    : new Attribute("_FillValue", (String)fillObject);
+	if (nattrs == 0)
+	    attrs = null;
+	else
+	{
+	    int	iattr = 0;
 
-	if (unit != null)
-	    attrs[1] = new Attribute("units", unit.toString());
+	    attrs = new Attribute[nattrs];
+
+	    /*
+	     * The following is necessary because the constructors
+	     * Attribute(String, Number) and Attribute(String, Object) both
+	     * exist and the compiler won't choose the "Number" constructor
+	     * if the argument is the common-type "Object".
+	     */
+	    if (fillObject != null)
+		attrs[iattr++] =
+		    fillObject instanceof Number
+			? new Attribute("_FillValue", (Number)fillObject)
+			: new Attribute("_FillValue", (String)fillObject);
+
+	    if (unit != null)
+		attrs[iattr++] = new Attribute("units", unit.toString());
+	}
 
 	protoVar = new ProtoVariable(name, type, reverse(dims), attrs);
     }
@@ -88,7 +101,7 @@ ExportVar
      *			type.
      * @exception BadFormException	Unknown netCDF type.
      */
-    static Object
+    Object
     getFillValueObject(Class type)
 	throws BadFormException
     {
@@ -115,7 +128,7 @@ ExportVar
 
     /**
      * Return the fill-value object for a numeric netCDF variable of the
-     * given type.
+     * given type.  Overridden in class CoordVar.
      *
      * @param type	netCDF type (e.g. <code>Character.TYPE</code>, 
      *			<code>Float.TYPE</code>).
@@ -123,7 +136,7 @@ ExportVar
      *			type.
      * @exception BadFormException	Unknown netCDF type.
      */
-    static Number
+    Number
     getFillValueNumber(Class type)
 	throws BadFormException
     {

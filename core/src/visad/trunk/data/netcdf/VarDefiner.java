@@ -99,20 +99,25 @@ VarDefiner
 	    Dimension[]		dims;
 
 	    // TODO: handle more cases
-	    // TODO: handle units
 	    if (domainMathType instanceof RealType && rank == 1)
 	    {
-		dimNames[0] = ((RealType)domainMathType).getName();
-		dimUnits[0] = null;
+		RealType	realType = (RealType)domainMathType;
+
+		dimNames[0] = realType.getName();
+		dimUnits[0] = realType.getDefaultUnit();
 	    }
 	    else
 	    if (domainMathType instanceof RealTupleType)
 	    {
+		RealTupleType	realTupleType = (RealTupleType)domainMathType;
+
 		for (int idim = 0; idim < rank; ++idim)
 		{
-		    dimNames[idim] = ((RealType)((RealTupleType)domainMathType).
-			getComponent(idim)).getName();
-		    dimUnits[0] = null;
+		    RealType	realType = (RealType)realTupleType.
+			getComponent(idim);
+
+		    dimNames[idim] = realType.getName();
+		    dimUnits[idim] = realType.getDefaultUnit();
 		}
 	    }
 	    else
