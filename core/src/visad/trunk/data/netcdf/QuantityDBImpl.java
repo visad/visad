@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDBImpl.java,v 1.4 2000-04-26 15:45:14 dglo Exp $
+ * $Id: QuantityDBImpl.java,v 1.5 2000-06-05 22:37:09 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -136,7 +136,7 @@ QuantityDBImpl
      * @param quantity		The quantity.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
-    protected synchronized void
+    public synchronized void
     add(String name, Quantity quantity)
 	throws VisADException
     {
@@ -148,6 +148,28 @@ QuantityDBImpl
 	quantitySet.add(quantity);
 	nameMap.put(new NameKey(name), quantity);
 	unitMap.put(new UnitKey(unit, quantity.getName()), quantity);
+    }
+
+
+    /**
+     * Adds given Quantity-s to the database.
+     *
+     * @param quantities	The quantities to be added.  The quantity will
+     *				be added under it own name.
+     * @return			The database resulting from the addition.  May
+     *				or may not be the original object.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public QuantityDB
+    add(Quantity[] quantities)
+	throws VisADException
+    {
+	for (int i = 0; i < quantities.length; i++)
+	{
+	    Quantity	quantity = quantities[i];
+	    add(quantity);
+	}
+	return this;
     }
 
 
