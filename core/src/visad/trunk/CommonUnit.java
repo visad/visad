@@ -76,6 +76,15 @@ public class CommonUnit extends Object {
 	System.out.println(
 	  "dimensionless.equals(new ScaledUnit(1.0))=" +
 	  dimensionless.equals(new ScaledUnit(1.0)));
+	System.out.println(
+	  "CommonUnit.dimensionless.isConvertible(SI.radian) = " +
+	   CommonUnit.dimensionless.isConvertible(SI.radian));
+	System.out.println(
+	  "CommonUnit.dimensionless.isConvertible(CommonUnit.degree) = " +
+	   CommonUnit.dimensionless.isConvertible(CommonUnit.degree));
+	System.out.println(
+	  "CommonUnit.degree.isConvertible(SI.radian) = " +
+	   CommonUnit.degree.isConvertible(SI.radian));
     }
 }
 
