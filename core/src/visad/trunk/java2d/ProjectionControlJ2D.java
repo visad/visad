@@ -27,6 +27,8 @@ package visad.java2d;
  
 import visad.*;
 
+import java.awt.geom.AffineTransform;
+
 import java.rmi.*;
 
 /**
@@ -36,27 +38,27 @@ import java.rmi.*;
 */
 public class ProjectionControlJ2D extends ProjectionControl {
 
-  private transient Transform3D Matrix; // J2D
+  private transient AffineTransform Matrix;
   private double[] matrix;
 
   public ProjectionControlJ2D(DisplayImpl d) {
     super(d);
-    Matrix = new Transform3D();  // J2D
-    matrix = new double[16];
-    Matrix.get(matrix);
+    Matrix = new AffineTransform();
+    matrix = new double[6];
+    Matrix.getMatrix(matrix);
   }
  
   public double[] getMatrix() {
-    double[] c = new double[16];
-    System.arraycopy(matrix, 0, c, 0, 16);
+    double[] c = new double[6];
+    System.arraycopy(matrix, 0, c, 0, 6);
     return c;
   }
 
   public void setMatrix(double[] m)
          throws VisADException, RemoteException {
-    System.arraycopy(m, 0, matrix, 0, 16);
-    Matrix = new Transform3D(matrix);
-    ((DisplayRendererJ2D) getDisplayRenderer()).setTransform3D(Matrix);
+    System.arraycopy(m, 0, matrix, 0, 6);
+    Matrix = new AffineTransform(matrix);
+    ((DisplayRendererJ2D) getDisplayRenderer()).setTransform2D(Matrix);
     changeControl(true);
   }
 

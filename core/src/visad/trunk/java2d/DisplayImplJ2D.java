@@ -39,7 +39,8 @@ visad.java2d design:
        ** done for GraphicsModeControl and ProjectionControl
        ** not for AnimationControl and ValueControl
      MouseBehaviorJ2/3D
-       visad.MouseBehaviorJND.processAWTEvents
+       extend visad.MouseBehavior
+       visad.MouseHelper.processEvents
        remove Transform3D constructor from make_matrix
      DefaultDisplayRendererJ2D/TwoDDisplayRendererJ3D
        common methods in visad.DisplayRenderer
@@ -53,6 +54,7 @@ visad.java2d design:
        scene graph stuff in DisplayRendererJ2D
 
      ** done
+     VisADRay
      VisADSceneGraphObject
        VisADGroup
          VisADSwitch
@@ -82,8 +84,9 @@ visad.java2d design:
          VisADLineStripArray
          VisADPointArray
          VisADTriangleArray
+         VisADQuadArray
  
-3. DisplayRendererJ2D
+3. VisADCanvasJ2D
      add BufferedImage[] array with element for each animation step
 
 4. DisplayImplJ2D.doAction
@@ -209,9 +212,7 @@ public class DisplayImplJ2D extends DisplayImpl {
     if (api == APPLETFRAME) {
       applet = new DisplayAppletJ2D(this);
       Component component = new MainFrame(applet, 256, 256);
-      // Component component = new AppletFrame(applet, 256, 256);
       setComponent(component);
-      // component.setTitle(name);
     }
     else if (api == JPANEL) {
       Component component = new DisplayPanelJ2D(this);

@@ -55,7 +55,8 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
 
   public boolean legalDisplayScalar(DisplayRealType type) {
     if (Display.ZAxis.equals(type) ||
-        Display.Latitude.equals(type)) return false;
+        Display.Latitude.equals(type) ||
+        Display.Alpha.equals(type)) return false;
     else return super.legalDisplayScalar(type);
   }
 
@@ -63,11 +64,14 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
       and direct manipulation root;
       create 3-D box, lights and MouseBehaviorJ2D for
       embedded user interface */
-  public VisADGroup createSceneGraph(View v, Canvas3D c)
+  public VisADGroup createSceneGraph(VisADCanvasJ2D c)
          throws DisplayException {
-    VisADGroup root = createBasicSceneGraph(v, c);
-    // check if already been done
-    if (mouse != null) return root;
+    VisADGroup root = getRoot();
+    if (root != null) return root;
+
+    // create MouseBehaviorJ2D for mouse interactions
+    mouse = new MouseBehaviorJ2D(this);
+    root = createBasicSceneGraph(c, mouse);
     TransformGroup trans = getTrans();
 
     // create the box containing data depictions
@@ -108,12 +112,6 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     // add cursor to cursor_on branch
     VisADGroup cursor_on = getCursorOnBranch();
     cursor_on.addChild(cursor);
-
-    // create the Behavior for mouse interactions
-    ProjectionControl proj = getDisplay().getProjectionControl();
-
-    // create MouseBehaviorJ2D
-    mouse = new MouseBehaviorJ2D(this);
 
     return root;
   }

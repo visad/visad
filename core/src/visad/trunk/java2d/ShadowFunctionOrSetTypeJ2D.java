@@ -96,6 +96,8 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
          throws VisADException, RemoteException { // J2D
 
     if (data.isMissing()) return false;
+    int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
+    if (LevelOfDifficulty == NOTHING_MAPPED) return false;
 
     // if transform has taken more than 500 milliseconds and there is
     // a flag requesting re-transform, throw a DisplayInterruptException
@@ -265,9 +267,15 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
       // get domain_set sizes
       data_width = X.getLength();
       data_height = Y.getLength();
+
       // texture sizes must be powers of 2
+/* WLH 25 June 98 - not in Java2D
       while (texture_width < data_width) texture_width *= 2; 
       while (texture_height < data_height) texture_height *= 2; 
+*/
+      texture_width = data_width;
+      texture_height = data_height;
+
 
       int[] tuple_index = new int[3];
       if (DomainComponents.length != 2) {
@@ -913,11 +921,19 @@ END MISSING TEST */
                                GeometryArray.TEXTURE_COORDINATE_2;
 
             // MEM
+/* WLH 25 June 98 XXX
             QuadArray geometry = new QuadArray(4, vertexFormat);
             geometry.setCoordinates(0, coordinates);
             geometry.setNormals(0, normals);
             geometry.setTextureCoordinates(0, texCoords);
             geometry.setColors(0, colors);
+*/
+            VisADQuadArray array = new VisADQuadArray();
+            array.vertexCount = 4;
+            array.coordinates = coordinates;
+            array.texCoords = texCoords;
+            array.colors = colors;
+            // array.normals = normals;
 
             // System.out.println("texture geometry");
    

@@ -30,6 +30,7 @@ import visad.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import java.awt.geom.AffineTransform;
 
 import java.util.*;
 import java.rmi.*;
@@ -41,7 +42,7 @@ import java.rmi.*;
    objects created by DataRenderer objects.<P>
 
    DisplayRendererJ2D also manages the overall relation of DataRenderer
-   output to Java2D and manages the scene graph.<P>
+   output to Java2D and manages the VisAD scene graph.<P>
 
    It creates the binding between Control objects and scene graph
    Behavior objects for direct manipulation of Control objects.<P>
@@ -51,28 +52,20 @@ import java.rmi.*;
 */
 public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
-  private BufferedImage[] images;
-  private boolean[] valid_images;
-
-  /** View associated with this VirtualUniverse */
-  private View view;
-  /** Canvas3D associated with this VirtualUniverse */
-  private Canvas3D canvas;
+  private VisADCanvasJ2D canvas;
 
   /** root VisADGroup of scene graph under Locale */
   private VisADGroup root = null;
-  /** single TransformGroup between root and VisADGroups for all
+  /** single AffineTransform applied to all
       Data depictions */
-  private TransformGroup trans = null;
-  /** VisADGroup between trans and all direct manipulation
+  private AffineTransform trans = null;
+  /** VisADGroup between root and all direct manipulation
       Data depictions */
   private VisADGroup direct = null;
-  /** Behavior for delayed removal of VisADGroups */
-  RemoveBehaviorJ2D remove = null;
 
-  /** TransformGroup between trans and cursor */
-  private TransformGroup cursor_trans = null;
-  /** single VisADSwitch between cursor_trans and cursor */
+  /** AffineTransform between trans and cursor */
+  private AffineTransform cursor_trans = null;
+  /** single VisADSwitch between root and cursor */
   private VisADSwitch cursor_switch = null;
   /** children of cursor_switch */
   private VisADGroup cursor_on = null, cursor_off = null;
@@ -81,7 +74,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   /** on / off state of direct manipulation location display */
   private boolean directOn = false;
 
-  /** single VisADSwitch between trans and scales */
+  /** single VisADSwitch between root and scales */
   private VisADSwitch scale_switch = null;
   /** children of scale_switch */
   private VisADGroup scale_on = null, scale_off = null;
@@ -101,25 +94,23 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
   public DisplayRendererJ2D () {
     super();
-    images = null;
-    valid_images = null;
   }
 
-  public void setDisplay(DisplayImpl d) throws VisADException {
-    super.setDisplay(d);
-    Component c = d.getComponent();
-    int width = c.getSize().width;
-    int height = c.getSize().height;
-    images = new BufferedImage[] {(BufferedImage) c.createImage(width, height)};
-    valid_images = new boolean[] {false};
+  /** render scene graph into canvas.images[current_image] */
+  public void render() {
+    // XXX
   }
 
   public VisADGroup getRoot() {
     return root;
   }
 
-  public TransformGroup getTrans() {
+  public AffineTransform getTrans() {
     return trans;
+  }
+
+  public VisADCanvasJ2D getCanvas() {
+    return canvas;
   }
 
   public VisADGroup getCursorOnBranch() {
@@ -153,33 +144,33 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       and direct manipulation root;
       create special graphics (e.g., 3-D box, SkewT background),
       any lights, any user interface embedded in scene */
-  public abstract VisADGroup createSceneGraph(View v, Canvas3D c)
+  public abstract VisADGroup createSceneGraph(VisADCanvasJ2D c)
          throws DisplayException;
 
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root */
-  public VisADGroup createBasicSceneGraph(View v, Canvas3D c) {
+  public VisADGroup createBasicSceneGraph(VisADCanvasJ2D c,
+         MouseBehaviorJ2D mouse) throws DisplayException {
     if (root != null) return root;
-    view = v;
-    // WLH 14 April 98
-    v.setDepthBufferFreezeTransparent(false);
     canvas = c;
+    canvas.addMouseBehavior(mouse);
     // Create the root of the branch graph
     root = new VisADGroup();
-    // create the TransformGroup that is the parent of
+    // create the AffineTransform that is applied to
     // Data object Group objects
-    trans = new TransformGroup();
-    root.addChild(trans);
+    trans = new AffineTransform();
 
     // initialize scale
-    double scale = 0.5;
+    // XXX - for Java2D, scale is controlled in VisADCanvasJ2D
+    // double scale = 0.5;
+    double scale = 1.0;
     ProjectionControl proj = getDisplay().getProjectionControl();
-    Transform3D tstart = new Transform3D(proj.getMatrix());
-    Transform3D t1 =
-      MouseBehaviorJ2D.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
-    t1.mul(tstart);
-    double[] matrix = new double[16];
-    t1.get(matrix);
+    AffineTransform tstart = new AffineTransform(proj.getMatrix());
+    AffineTransform t1 = new AffineTransform(
+      mouse.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
+    t1.concatenate(tstart);
+    double[] matrix = new double[6];
+    t1.getMatrix(matrix);
     try {
       proj.setMatrix(matrix);
     }
@@ -191,19 +182,11 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     // create the VisADGroup that is the parent of direct
     // manipulation Data object VisADGroup objects
     direct = new VisADGroup();
-    trans.addChild(direct);
+    root.addChild(direct);
 
-    // create removeBehavior
-    remove = new RemoveBehaviorJ2D(this);
-    BoundingSphere bounds =
-      new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
-    remove.setSchedulingBounds(bounds);
-    trans.addChild(remove);
-
-    cursor_trans = new TransformGroup();
-    trans.addChild(cursor_trans);
+    cursor_trans = new AffineTransform();
     cursor_switch = new VisADSwitch();
-    cursor_trans.addChild(cursor_switch);
+    root.addChild(cursor_switch);
     cursor_on = new VisADGroup();
     cursor_off = new VisADGroup();
     cursor_switch.addChild(cursor_off);
@@ -212,7 +195,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     cursorOn = false;
 
     scale_switch = new VisADSwitch();
-    trans.addChild(scale_switch);
+    root.addChild(scale_switch);
     scale_on = new VisADGroup();
     scale_off = new VisADGroup();
     scale_switch.addChild(scale_off);
@@ -222,32 +205,15 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return root;
   }
 
-  public void addSceneGraphComponent(Group group) {
-    trans.addChild(group);
+  public void addSceneGraphComponent(VisADGroup group)
+         throws DisplayException {
+    root.addChild(group);
   }
 
-  public void addDirectManipulationSceneGraphComponent(Group group,
-                         DirectManipulationRendererJ2D renderer) {
+  public void addDirectManipulationSceneGraphComponent(VisADGroup group,
+         DirectManipulationRendererJ2D renderer) throws DisplayException {
     direct.addChild(group);
     directs.addElement(renderer);
-
-/* WLH 12 Dec 97 - this didn't help - but might in future
-    if (last == null) {
-      direct.addChild(branch);
-    }
-    else {
-      int n = direct.numChildren();
-      for (int i=0; i<n; i++) {
-        if (last.equals(direct.getChild(i))) {
-          direct.setChild(branch, i);
-        }
-      }
-    }
-*/
-  }
-
-  public void switchScene(DataRenderer renderer, int index) {
-    remove.addRemove((RendererJ2D) renderer, index);
   }
 
   public void clearScene(DataRenderer renderer) {
@@ -278,7 +244,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     setCursorLoc();
   }
 
-  public void drag_cursor(PickRay ray, boolean first) {
+  public void drag_cursor(VisADRay ray, boolean first) {
     float o_x = (float) ray.position[0];
     float o_y = (float) ray.position[1];
     float o_z = (float) ray.position[2];
@@ -304,9 +270,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   }
 
   private void setCursorLoc() {
-    Transform3D t = new Transform3D();
-    t.setTranslation(new Vector3f(cursorX, cursorY, cursorZ));
-    cursor_trans.setTransform(t);
+    cursor_trans.setToTranslation((double) cursorX, (double) cursorY);
     if (cursorOn) {
       setCursorStringVector();
     }
@@ -314,12 +278,13 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
   /** whenever cursorOn or directOn is true, display
       Strings in cursorStringVector */
-  public void drawCursorStringVector(Canvas3D canvas) {
+  public void drawCursorStringVector(Graphics graphics) {
     // XXX GraphicsContext3D graphics = canvas.getGraphicsContext3D();
+    // XXX must also display cursor
     VisADAppearance appearance = new VisADAppearance();
-    ColoringAttributes color = new ColoringAttributes();
-    color.setColor(1.0f, 1.0f, 1.0f);
-    appearance.setColoringAttributes(color);
+    appearance.red = 1.0f;
+    appearance.green = 1.0f;
+    appearance.blue = 1.0f;
     // XXX graphics.setAppearance(appearance);
 
     Point3d position1 = new Point3d();
@@ -416,21 +381,13 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   }
 
   public DataRenderer findDirect(VisADRay ray) {
-    Point3d origin = new Point3d();
-    Vector3d direction = new Vector3d();
-    origin.x = ray.position[0];
-    origin.y = ray.position[1];
-    origin.z = ray.position[2];
-    direction.x = ray.vector[0];
-    direction.y = ray.vector[1];
-    direction.z = ray.vector[2];
     DirectManipulationRendererJ2D renderer = null;
     float distance = Float.MAX_VALUE;
     Enumeration renderers = directs.elements();
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ2D r =
         (DirectManipulationRendererJ2D) renderers.nextElement();
-      float d = r.checkClose(origin, direction);
+      float d = r.checkClose(ray.position, ray.vector);
       if (d < distance) {
         distance = d;
         renderer = r;
@@ -498,8 +455,8 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
   }
 
-  public void setTransform3D(Transform3D t) {
-    trans.setTransform(t);
+  public void setTransform2D(AffineTransform t) {
+    trans = new AffineTransform(t);
   }
 
   public Control makeControl(ScalarMap map) {

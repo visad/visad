@@ -32,26 +32,17 @@ import java.rmi.*;
 
 
 /**
-   RendererJ2D is the VisAD abstract super-class for graphics rendering
-   algorithms under Java2D.  These transform Data objects into 3-D
-   (or 2-D) depictions in a Display window.<P>
+   RendererJ2D is the VisAD abstract super-class for graphics
+   rendering algorithms under Java2D.  These transform Data
+   objects into 2-D depictions in a Display window.<P>
 
    RendererJ2D is not Serializable and should not be copied
    between JVMs.<P>
 */
 public abstract class RendererJ2D extends DataRenderer {
 
-  /** switch is parent of any VisADGroups created by this */
-  VisADSwitch sw;
-  /** parent of sw for 'detach' */
-  VisADGroup swParent; // J2D
-  /** index of current 'intended' child of VisADSwitch sw;
-      not necessarily == sw.getWhichChild() */
-  int currentIndex;
-  VisADGroup[] branches; // J2D
-  boolean[] switchFlags = {false, false, false};
-  boolean[] branchNonEmpty = {false, false, false};
-  int actualIndex;
+  /** parent of branch made by doAction */
+  VisADGroup swParent;
 
   public RendererJ2D() {
     super();
@@ -69,23 +60,8 @@ public abstract class RendererJ2D extends DataRenderer {
     setDisplayRenderer(d.getDisplayRenderer());
     setLinks(links);
 
-    // set up switch logic for clean VisADGroup replacement
-    sw = new VisADSwitch();
-
     swParent = new VisADGroup();
-    swParent.addChild(sw);
-    // make it 'live'
-    addSwitch((DisplayRendererJ2D) getDisplayRenderer(), swParent);
-
-    branches = new VisADGroup[3];
-    for (int i=0; i<3; i++) {
-      branches[i] = new VisADGroup();
-      sw.addChild(branches[i]);
-      // sw.setChild(branches[i], i);
-    }
-    sw.setWhichChild(currentIndex);
-    currentIndex = 0;
-    actualIndex = 0;
+    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
   }
 
   public ShadowType makeShadowFunctionType(
@@ -125,17 +101,17 @@ public abstract class RendererJ2D extends DataRenderer {
   }
 
   abstract void addSwitch(DisplayRendererJ2D displayRenderer,
-                          VisADGroup branch); // J2D
+                          VisADGroup branch);
 
   /** re-transform if needed;
       return false if not done */
   public boolean doAction() throws VisADException, RemoteException {
-    VisADGroup branch; // J2D
+    VisADGroup branch;
     boolean all_feasible = get_all_feasible();
     boolean any_changed = get_any_changed();
     boolean any_transform_control = get_any_transform_control();
     if (all_feasible && (any_changed || any_transform_control)) {
-     // exceptionVector.removeAllElements();
+      // exceptionVector.removeAllElements();
       clearAVControls();
       try {
         // doTransform creates a VisADGroup from a Data object
@@ -158,39 +134,12 @@ public abstract class RendererJ2D extends DataRenderer {
       }
 
       if (branch != null) {
-        int nextIndex = 0;
-        boolean doRemove = false;
-        synchronized (this) {
-          if (!branchNonEmpty[currentIndex]) {
-            branches[currentIndex].addChild(branch);
-            sw.setWhichChild(currentIndex);
-            actualIndex = currentIndex;
-            branchNonEmpty[currentIndex] = true;
-          }
-          else { // if (branchNonEmpty[currentIndex])
-            nextIndex = (currentIndex + 1) % 3;
-            while (branchNonEmpty[nextIndex]) {
-              try {
-                wait(5000);
-              }
-              catch(InterruptedException e) {
-                // note notify generates a normal return from wait rather
-                // than an Exception - control doesn't normally come here
-              }
-            }
-            branches[nextIndex].addChild(branch);
-            doRemove = true;
-            switchFlags[nextIndex] = true;
-            branchNonEmpty[nextIndex] = true;
-            currentIndex = nextIndex;
-          } // end if (branches[currentIndex].numChildren() != 0)
-        } // end synchronized (this)
-        if (doRemove) {
-          ((DisplayRendererJ2D) getDisplayRenderer()).
-                 switchScene(this, nextIndex);
-        }
+        swParent.setChild(branch, 0);
       }
       else { // if (branch == null)
+        if (swParent.numChildren() > 0) {
+          swParent.removeChild(0);
+        }
         all_feasible = false;
         set_all_feasible(all_feasible);
       }
@@ -204,30 +153,8 @@ public abstract class RendererJ2D extends DataRenderer {
     return all_feasible;
   }
 
-  synchronized boolean switchTransition(int index) {
-    // this is the same as (index - 1) % 3 but always positive
-    int i = (index + 2) % 3;
-    if (switchFlags[index]) {
-      if (actualIndex != i) {
-        return true;
-      }
-      sw.setWhichChild(index); // J2D
-      actualIndex = index;
-      switchFlags[index] = false;
-      return true;
-    }
-    else {
-      for (int m=0; m<branches[i].numChildren(); m++) { // J2D
-        branches[i].removeChild(m); // J2D
-      }
-      branchNonEmpty[i] = false;
-      notify();
-      return false;
-    }
-  }
-
   public void clearScene() {
-    swParent.detach(); // J2D
+    swParent.detach();
     ((DisplayRendererJ2D) getDisplayRenderer()).clearScene(this);
   }
 

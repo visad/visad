@@ -42,13 +42,9 @@ public class DisplayPanelJ2D extends JPanel {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     setAlignmentY(TOP_ALIGNMENT);
     setAlignmentX(LEFT_ALIGNMENT);
-    Canvas3D canvas = new VisADCanvasJ2D(renderer, this);
+    Canvas canvas = new VisADCanvasJ2D(renderer, this);
     add(canvas);
- 
-    UniverseBuilderJ2D universe = new UniverseBuilderJ2D(canvas);
-    VisADGroup scene = renderer.createSceneGraph(universe.view, canvas); // J2D
-    universe.addBranchGraph(scene);
-
+    VisADGroup scene = renderer.createSceneGraph(canvas);
   }
 
 }

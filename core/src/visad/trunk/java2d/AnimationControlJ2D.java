@@ -45,8 +45,6 @@ public class AnimationControlJ2D extends AVControlJ2D
   private ToggleControl animate;
   private RealType real;
 
-  private boolean alive = true;
-
   /** AnimationControlJ2D is Serializable, mark as transient */
   private transient Thread animationThread;
 
@@ -72,11 +70,11 @@ public class AnimationControlJ2D extends AVControlJ2D
 
   public void stop() {
     animationThread = null;
-    alive = false;
   }
  
   public void run() {
-    while (alive) {
+    Thread me = Thread.currentThread();
+    while (animationThread == me) {
       try {
         if (animate != null && animate.getOn()) {
           takeStep();
@@ -105,7 +103,9 @@ public class AnimationControlJ2D extends AVControlJ2D
          throws VisADException, RemoteException {
     if (animationSet != null) {
       current = animationSet.clipCurrent(c);
+/* WLH 26 June 98
       init();
+*/
     }
     else {
       current = 0;
@@ -117,7 +117,9 @@ public class AnimationControlJ2D extends AVControlJ2D
          throws VisADException, RemoteException {
     if (animationSet != null) {
       current = animationSet.getIndex(value);
+/* WLH 26 June 98
       init();
+*/
     }
     else {
       current = 0;
@@ -145,7 +147,9 @@ public class AnimationControlJ2D extends AVControlJ2D
     else current--;
     if (animationSet != null) {
       current = animationSet.clipCurrent(current);
+/* WLH 26 June 98
       init();
+*/
     }
     changeControl(true);
   }
