@@ -40,8 +40,7 @@ import javax.swing.*;
 // VisAD packages
 import visad.*;
 
-/** A class for constructing and manipulating VisAD Data
-    objects for images */
+/** A general utility class for VisAD Data objects */
 public class DataUtility extends Object {
 
   private static boolean init = false;
