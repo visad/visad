@@ -1835,6 +1835,15 @@ public class BasicSSCell extends JPanel {
       // remove cell from formula manager database
       fm.remove(Name);
     }
+    else if (IsSlave && RemoteVSlave != null) {
+      // disconnect remote slave client cleanly
+      try {
+        RemoteVSlave.unlink();
+      }
+      catch (RemoteException exc) {
+        problem = exc;
+      }
+    }
 
     // remove cell from static list
     SSCellVector.remove(this);
