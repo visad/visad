@@ -2512,11 +2512,16 @@ public class BasicSSCell extends JPanel {
       }
     }
     if (success) {
-      try {
-        VDisplay.destroy();
-      }
-      catch (Exception exc) {
-        if (DEBUG) exc.printStackTrace();
+      if (VDisplay != null) {
+        try {
+          VDisplay.destroy();
+        }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
       VDisplay = newDisplay;
       RemoteVDisplay = rmtDisplay;
