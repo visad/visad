@@ -848,7 +848,7 @@ compile: clean
 	$(JC) $(JFLAGS) ..\dods\dap\functions\*.java
 	$(JC) $(JFLAGS) ..\dods\dap\parser\*.java
 	$(JC) $(JFLAGS) ..\dods\util\*.java
-	$(JC) $(JFLAGS) ..\gnu\regexp\*.java \
+	$(JC) $(JFLAGS) ..\gnu\regexp\*.java
 	$(JC) $(JFLAGS) data\in\*.java
 	$(JC) $(JFLAGS) data\dods\*.java
 	$(JC) $(JFLAGS) data\netcdf\units\*.java

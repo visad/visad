@@ -1359,6 +1359,12 @@ public class FlatField extends FieldImpl {
   }
 
   /** set the range value at the index-th sample */
+  public void setSample(int index, Data range, boolean copy)
+         throws VisADException, RemoteException {
+    setSample(index, range); // copy flag meaningless for FlatField
+  }
+
+  /** set the range value at the index-th sample */
   public void setSample(int index, Data range)
          throws VisADException, RemoteException {
     double[][] values;
