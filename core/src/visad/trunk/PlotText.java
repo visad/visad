@@ -319,8 +319,20 @@ public class PlotText extends Object {
     // remember whether or not the number is negative
     boolean negative = (val < 0.0);
 
+    double orig_val = val;
+
     // now we only need to deal with a positive number
     val = Math.abs(val);
+
+    if (val < 0.001) {
+      for (int i=1; i<30; i++) {
+        val *= 10.0;
+        orig_val *= 10.0;
+        if (val >= 0.1) {
+          return shortString(orig_val) + "E-" + i;
+        }
+      }
+    }
 
     // build multiplier for saving significant digits
     // also build value used to round up insignificant digits
