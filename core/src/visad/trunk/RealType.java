@@ -701,6 +701,11 @@ public class RealType extends ScalarType {
   }
 
   /** create a new RealType, or return it if it already exists */
+  public static RealType getRealType(String name, Unit u) {
+    return getRealType(name, u, null, 0);
+  }
+
+  /** create a new RealType, or return it if it already exists */
   public static RealType getRealType(String name, int attrMask) {
     return getRealType(name, null, null, attrMask);
   }
