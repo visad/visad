@@ -232,6 +232,14 @@ public class Linear1DSet extends Gridded1DSet
     return flag;
   }
 
+  /**
+   * Get the indexed component (X is at 0 and is the only valid index)
+   *
+   * @param i Index of component
+   * @return The requested component
+   * @exception ArrayIndexOutOfBoundsException If an invalid index is
+   *                                           specified.
+   */
   public Linear1DSet getLinear1DComponent(int i) {
     if (i == 0) return this;
     else throw new ArrayIndexOutOfBoundsException("Invalid component index " +

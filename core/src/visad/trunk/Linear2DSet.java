@@ -228,6 +228,14 @@ public class Linear2DSet extends Gridded2DSet
             Y.equals(((Linear2DSet) set).getY()));
   }
 
+  /**
+   * Get the indexed component (X is at 0, Y is at 1)
+   *
+   * @param i Index of component
+   * @return The requested component
+   * @exception ArrayIndexOutOfBoundsException If an invalid index is
+   *                                           specified.
+   */
   public Linear1DSet getLinear1DComponent(int i) {
     if (i == 0) return getX();
     else if (i == 1) return getY();

@@ -1610,6 +1610,14 @@ for (int j=0; j<nvertex; j++) {
             Z.equals(((Linear3DSet) set).getZ()));
   }
 
+  /**
+   * Get the indexed component (X is at 0, Y is at 1, and Z is at 2)
+   *
+   * @param i Index of component
+   * @return The requested component
+   * @exception ArrayIndexOutOfBoundsException If an invalid index is
+   *                                           specified.
+   */
   public Linear1DSet getLinear1DComponent(int i) {
     if (i == 0) return getX();
     else if (i == 1) return getY();

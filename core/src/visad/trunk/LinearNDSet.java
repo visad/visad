@@ -274,6 +274,14 @@ public class LinearNDSet extends GriddedSet
     return true;
   }
 
+  /**
+   * Get the indexed component.
+   *
+   * @param i Index of component
+   * @return The requested component
+   * @exception ArrayIndexOutOfBoundsException If an invalid index is
+   *                                           specified.
+   */
   public Linear1DSet getLinear1DComponent(int i) {
     return L[i];
   }
