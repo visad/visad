@@ -1,4 +1,4 @@
-// $Id: RandomAccessFile.java,v 1.5 2002-05-29 18:31:36 steve Exp $
+// $Id: RandomAccessFile.java,v 1.6 2003-03-14 16:29:05 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -53,7 +53,7 @@ import java.util.Date;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.5 2002-05-29 18:31:36 steve Exp $
+ * @version $Id: RandomAccessFile.java,v 1.6 2003-03-14 16:29:05 donm Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
@@ -169,11 +169,46 @@ implements DataInput, DataOutput {
      */
    public RandomAccessFile( String filename, String modeString )
        throws IOException {
+       this (filename, modeString, defaultBufferSize);
+   }
+
+
+    /**
+     * Creates a random access file stream to read from, and optionally
+     * to write to, a file with the specified name.
+     * <p>
+     * The mode argument must either be equal to <code>"r"</code> or
+     * <code>"rw"</code>, indicating that the file is to be opened for
+     * input only or for both input and output, respectively.  If the
+     * mode is <code>"rw"</code> and the
+     * file does not exist, then an attempt is made to create it.
+     *
+     * @param      name   the system-dependent filename.
+     * @param      mode   the access mode.
+     * @exception  IllegalArgumentException  if the mode argument is not equal
+     *               to <code>"r"</code> or to <code>"rw"</code>.
+     * @exception  IOException               if an I/O error occurs.
+     * @exception  SecurityException         if a security manager exists, its
+     *               <code>checkRead</code> method is called with the name
+     *               argument to see if the application is allowed read access
+     *               to the file. If the mode argument is equal to
+     *               <code>"rw"</code>, its <code>checkWrite</code> method also
+     *               is called with the name argument to see if the application
+     *               is allowed write access to the file. Either of these may
+     *               result in a security exception.
+     * @see        java.lang.SecurityException
+     * @see        java.lang.SecurityManager#checkRead(java.lang.String)
+     */
+   public RandomAccessFile( String filename, String modeString, int bufferSize )
+       throws IOException {
+
+
+
 
        this( filename,
              modeString.equals("r")? READ :
              (modeString.equals("rw")? WRITE | READ : 0),
-             defaultBufferSize );
+             bufferSize );
    }
 
     /**

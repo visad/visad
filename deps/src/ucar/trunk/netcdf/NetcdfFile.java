@@ -1,4 +1,4 @@
-// $Id: NetcdfFile.java,v 1.8 2003-02-03 20:08:32 donm Exp $
+// $Id: NetcdfFile.java,v 1.9 2003-03-14 16:29:05 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -53,7 +53,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @see Netcdf
  * @author $Author: donm $
- * @version $Revision: 1.8 $ $Date: 2003-02-03 20:08:32 $
+ * @version $Revision: 1.9 $ $Date: 2003-03-14 16:29:05 $
  */
 public class NetcdfFile	extends AbstractNetcdf {
 
@@ -175,15 +175,15 @@ public class NetcdfFile	extends AbstractNetcdf {
 	 */
         this.url = null;
         file = new File(path);
-        raf = new RandomAccessFile(file, "r");
-    }
-    else
-    {
+        raf = new RandomAccessFile (path, "r", 204800);
+    }   else   {
 	/* Defensive copy */
 	this.url =
 	    new URL(url.getProtocol(), url.getHost(), url.getPort(), path);
 	file = null;
-	raf = new HTTPRandomAccessFile(this.url);
+	//Use a pretty big buffer to reduce the number of seeks
+	raf = new HTTPRandomAccessFile(this.url, 204800);
+	//raf = new HTTPRandomAccessFile(this.url);
     }
     readV1(raf);
     initRecSize();
@@ -830,9 +830,8 @@ public class NetcdfFile	extends AbstractNetcdf {
                         throws IOException {
                 final int [] dimensions = (int []) shape.clone();
                 final int [] products = new int[dimensions.length];
-                final int product = MultiArrayImpl.numberOfElements(dimensions,
-                                products);
-                final Object storage = Array.newInstance(
+                final int product = MultiArrayImpl.numberOfElements(dimensions,           products);
+                final Object storage = Array.newInstance (
                         meta.getComponentType(),
                         product);
                 final int contig = iocount(origin, shape);
@@ -842,17 +841,25 @@ public class NetcdfFile	extends AbstractNetcdf {
                 for(int ii = 0; ii < limits.length; ii++)
                         limits[ii] += origin[ii];
 
-                final OffsetIndexIterator odo = new OffsetIndexIterator(origin,
-                        limits);
-                for(int begin = 0; odo.notDone(); odo.advance(contig),
-                         begin += contig)
-                {
-                        final long offset = computeOffset(odo.value());
-                        readArray(offset, storage, begin, contig);
+                final OffsetIndexIterator odo = new OffsetIndexIterator(origin, limits);
 
+
+		int cnt = 0;
+
+
+                for(int begin = 0; 
+		    odo.notDone (); 
+		    odo.advance (contig), begin += contig)
+                {
+                        final long offset = computeOffset (odo.value());
+                        readArray(offset, storage, begin, contig);
+			cnt++;
                 }
-                return new MultiArrayImpl(dimensions, products,
-                        storage);
+
+		MultiArray result = new MultiArrayImpl(dimensions, products,  storage);
+
+
+                return result;
         }
 
         /*
@@ -1392,19 +1399,16 @@ public class NetcdfFile	extends AbstractNetcdf {
                 super(var);
         }
 
-        void
-	    readArray(long offset, Object into, int begin, int nelems)
+        void  readArray(long offset, Object into, int begin, int nelems)
 	    throws IOException {
 	    //	    if (begin+nelems>100)
-		//		ucar.unidata.util.LogUtil.call1 ("V1.readArray", " size= " + (begin+nelems));
 	    float [] values = (float []) into;
-	    raf.seek(offset);
+	    raf.seek (offset);
 	    final int end = begin + nelems;
 	    for(int ii = begin; ii < end; ii++) {
 		values[ii] = raf.readFloat();
 	    }
-	    //	    if (begin+nelems>100)
-	    //		ucar.unidata.util.LogUtil.call2 ("V1.readArray");
+
         }
 
         public float
@@ -1853,6 +1857,12 @@ public class NetcdfFile	extends AbstractNetcdf {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.15  2003/03/04 22:26:32  jeffmc
+   Add a new ctor that takes buffer size and cleanup some old debug in netcdffile
+
+   Revision 1.14  2003/03/04 22:23:22  jeffmc
+   Create the httprandomaccess file with a largish buffer size
+
    Revision 1.13  2003/01/21 21:24:05  jeffmc
    Add a getStorage method that returns the raw multiarray object
 

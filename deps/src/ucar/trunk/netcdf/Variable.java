@@ -1,4 +1,4 @@
-// $Id: Variable.java,v 1.5 2003-02-03 20:08:32 donm Exp $
+// $Id: Variable.java,v 1.6 2003-03-14 16:29:05 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -41,7 +41,7 @@ import java.io.IOException;
  * @see ProtoVariable
  * @see MultiArray
  * @author $Author: donm $
- * @version $Revision: 1.5 $ $Date: 2003-02-03 20:08:32 $
+ * @version $Revision: 1.6 $ $Date: 2003-03-14 16:29:05 $
  */
 
 public class
