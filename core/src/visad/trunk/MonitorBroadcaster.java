@@ -349,6 +349,82 @@ public class MonitorBroadcaster
   }
 
   /**
+   * Cache to track recently seen events
+   */
+  class EventCache
+  {
+    String name;
+    ObjectCache cache;
+
+    public EventCache(String name)
+    {
+      this.name = name;
+      cache = new ObjectCache(name);
+    }
+
+    public void add(MonitorEvent evt)
+    {
+      // HACK ALERT!!!
+      //  If this is a MAPS_CLEARED event, delete all added map events
+      //  If this is a MAP_ADDED event, delete any clear events
+      switch (evt.getType()) {
+      case MonitorEvent.MAPS_CLEARED:
+        deleteEvents(MonitorEvent.MAP_ADDED);
+        break;
+      case MonitorEvent.MAP_ADDED:
+        deleteEvents(MonitorEvent.MAPS_CLEARED);
+        break;
+      }
+      Object obj = getClonedObject(evt);
+      cache.add(obj);
+    }
+
+    private void deleteEvents(int type)
+    {
+      Iterator iter = cache.keys();
+      while (iter.hasNext()) {
+        Object key = iter.next();
+        Object obj = cache.get(key);
+        if (obj instanceof MonitorEvent) {
+          MonitorEvent evt = (MonitorEvent )obj;
+          if (evt.getType() == type) {
+            cache.remove(key);
+          }
+        }
+      }
+    }
+
+    private Object getClonedObject(MonitorEvent evt)
+    {
+      if (evt instanceof ControlMonitorEvent) {
+        return ((ControlMonitorEvent )evt).getControl().clone();
+      }
+
+      return evt.clone();
+    }
+
+    private Object getObject(MonitorEvent evt)
+    {
+      if (evt instanceof ControlMonitorEvent) {
+        return ((ControlMonitorEvent )evt).getControl();
+      }
+
+      return evt;
+    }
+
+    public boolean isCached(MonitorEvent evt)
+    {
+      Object obj = getObject(evt);
+      if (obj == null) {
+        // assume other side hasn't seen null events
+        return false;
+      }
+
+      return cache.isCached(obj);
+    }
+  }
+
+  /**
    * Used as key for ControlEvents in listener queue
    */
   class ControlEventKey
@@ -395,14 +471,14 @@ public class MonitorBroadcaster
     private HashMap table = new HashMap();
     private HashMap diverted = null;
 
-    private ObjectCache cache;
+    private EventCache cache;
 
     MonitorListener(DisplayMonitorListener listener, int id)
     {
       this.listener = listener;
       this.id = id;
 
-      cache = new ObjectCache("Cache#" + id);
+      cache = new EventCache("Cache#" + id);
     }
 
     public void addEvent(MonitorEvent evt)
@@ -549,29 +625,14 @@ public class MonitorBroadcaster
      */
     private boolean eventSeen(MonitorEvent evt)
     {
-      Object obj = getObject(evt);
-      if (obj == null) {
-        // assume other side hasn't seen null events
-        return false;
-      }
-
       // if we've already delivered this object, ignore it
-      if (cache.isCached(obj)) {
+      if (cache.isCached(evt)) {
         return true;
       }
 
       // remember this event for future reference
-      cache.add(getClonedObject(evt));
+      cache.add(evt);
       return false;
-    }
-
-    private Object getClonedObject(MonitorEvent evt)
-    {
-      if (evt instanceof ControlMonitorEvent) {
-	return ((ControlMonitorEvent )evt).getControl().clone();
-      }
-
-      return evt.clone();
     }
 
     /**
@@ -587,15 +648,6 @@ public class MonitorBroadcaster
      * @return the listener.
      */
     DisplayMonitorListener getListener() { return listener; }
-
-    private Object getObject(MonitorEvent evt)
-    {
-      if (evt instanceof ControlMonitorEvent) {
-	return ((ControlMonitorEvent )evt).getControl();
-      }
-
-      return evt;
-    }
 
     /**
      * Check to see if the connection is dead.
