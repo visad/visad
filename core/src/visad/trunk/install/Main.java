@@ -520,6 +520,22 @@ public class Main
     mon.setPhase("Starting install");
     mon.setVisible(true);
 
+    // install jar
+    if (downloadLatestJar) {
+      mon.setPhase("Downloading jar file");
+      new Download(jarURL, jarInstallDir);
+    } else {
+      mon.setPhase("Copying jar file");
+      Util.copyFile(mon, installerJar, jarInstallDir, ".old");
+    }
+
+    // if they want a cluster install, push the jar file out to the nodes
+    if (clusterInstaller != null) {
+        mon.setPhase("Pushing jar file to cluster");
+      clusterPush(null, getPath(new File(jarInstallDir, JAR_NAME)),
+                  getPath(jarInstallDir));
+    }
+
     // install JVM
     if (useSuppliedJava) {
       if (javaInstallDir.exists()) {
@@ -540,22 +556,7 @@ public class Main
       }
     }
 
-    // install jar
-    if (downloadLatestJar) {
-      mon.setPhase("Downloading jar file");
-      new Download(jarURL, jarInstallDir);
-    } else {
-      mon.setPhase("Copying jar file");
-      Util.copyFile(mon, installerJar, jarInstallDir, ".old");
-    }
-
-    // if they want a cluster install, push the jar file out to the nodes
-    if (clusterInstaller != null) {
-        mon.setPhase("Pushing jar file to cluster");
-      clusterPush(null, getPath(new File(jarInstallDir, JAR_NAME)),
-                  getPath(jarInstallDir));
-    }
-
+    // all done
     mon.setPhase("Install finished!");
     try { Thread.sleep(2000); } catch (InterruptedException ie) { }
   }
@@ -593,10 +594,10 @@ public class Main
    */
   private final void queryUser()
   {
-    final int STEP_USE_SUPPLIED = 0;
-    final int STEP_INSTALL_JAVA = 1;
-    final int STEP_INSTALL_JAR = 2;
-    final int STEP_DOWNLOAD_JAR = 3;
+    final int STEP_INSTALL_JAR = 0;
+    final int STEP_DOWNLOAD_JAR = 1;
+    final int STEP_USE_SUPPLIED = 2;
+    final int STEP_INSTALL_JAVA = 3;
     final int STEP_CLUSTER = 4;
     final int STEP_FINISHED = 5;
 
@@ -604,93 +605,136 @@ public class Main
     while (step < STEP_FINISHED) {
       switch (step) {
       case STEP_USE_SUPPLIED:
-        if (installerJavaDir == null) {
-          useSuppliedJava = false;
-        } else {
-          String usMsg = "Would you like to install the supplied " +
-            " Java Development Kit " + installerJava.getMajor() + "." +
-            installerJava.getMinor() + " (" +
-            installerJava.getFullString() + ")?";
-
-          int n = JOptionPane.showConfirmDialog(null, usMsg,
-                                                "Install supplied JDK?",
-                                                JOptionPane.YES_NO_OPTION);
-          useSuppliedJava = (n == JOptionPane.YES_OPTION);
-        }
+        queryUserUseSuppliedJava();
         step++;
         break;
       case STEP_INSTALL_JAVA:
-        javaInstallDir = jvmToUse = null;
-        if (useSuppliedJava) {
-          javaInstallDir = chooseDirectory(chooser, null,
-                                           "Select the directory in which the JDK should be installed");
-          if (javaInstallDir == null) {
-            step--;
-          } else if (javaInstallDir.canWrite()) {
-            step++;
-          } else {
-            JOptionPane.showMessageDialog(null,
-                                          "Cannot write to that directory!",
-                                          "Bad directory?",
-                                          JOptionPane.ERROR_MESSAGE);
-          }
-        } else {
-          jvmToUse = chooseFile(chooser, javaList,
-                                "Select the java program to use");
-          if (jvmToUse == null) {
-            step--;
-          } else {
-            step++;
-          }
-        }
+        step += queryUserInstallJava();
         break;
       case STEP_INSTALL_JAR:
-        jarInstallDir = chooseDirectory(chooser, jarList,
-                                        "Select the directory where the VisAD jar file should be installed");
-        if (jarInstallDir == null) {
-          step--;
-        } else if (jarInstallDir.canWrite()) {
-          step++;
-        } else {
-          JOptionPane.showMessageDialog(null,
-                                        "Cannot write to that directory!",
-                                        "Bad directory?",
-                                        JOptionPane.ERROR_MESSAGE);
-        }
+        step += queryUserInstallJar();
         break;
       case STEP_DOWNLOAD_JAR:
-        if (installerJar == null) {
-          downloadLatestJar = true;
-        } else {
-          String djMsg = "Would you like to download the latest " +
-            JAR_NAME + "?";
-
-          int n = JOptionPane.showConfirmDialog(null, djMsg,
-                                                "Download latest " +
-                                                JAR_NAME + "?",
-                                                JOptionPane.YES_NO_OPTION);
-          downloadLatestJar = (n == JOptionPane.YES_OPTION);
-        }
+        queryUserDownloadJar();
         step++;
         break;
       case STEP_CLUSTER:
-        if (cPushStr == null) {
-          clusterInstaller = null;
-        } else {
-          String cMsg =
-            "Would you like to push everything out to the cluster?";
-
-          int n = JOptionPane.showConfirmDialog(null, cMsg,
-                                                "Push files to cluster?",
-                                                JOptionPane.YES_NO_OPTION);
-          if (n == JOptionPane.YES_OPTION) {
-            clusterInstaller = new ClusterInstaller(cPushStr);
-          }
-        }
+        queryUserClusterPush();
         step++;
         break;
       }
     }
+  }
+
+  private void queryUserClusterPush()
+  {
+    int result = JOptionPane.NO_OPTION;
+    if (cPushStr != null) {
+      String cMsg =
+        "Would you like to push everything out to the cluster?";
+
+      result = JOptionPane.showConfirmDialog(null, cMsg,
+                                             "Push files to cluster?",
+                                             JOptionPane.YES_NO_OPTION);
+    }
+
+    if (result != JOptionPane.YES_OPTION) {
+      clusterInstaller = null;
+    } else {
+      clusterInstaller = new ClusterInstaller(cPushStr);
+    }
+  }
+
+  private void queryUserDownloadJar()
+  {
+    int result = JOptionPane.YES_OPTION;
+    if (installerJar != null) {
+      String djMsg = "Would you like to download the latest " +
+        JAR_NAME + "?";
+
+      result = JOptionPane.showConfirmDialog(null, djMsg,
+                                             "Download latest " +
+                                             JAR_NAME + "?",
+                                             JOptionPane.YES_NO_OPTION);
+    }
+
+    downloadLatestJar = (result == JOptionPane.YES_OPTION);
+  }
+
+  /**
+   * @return -1 if [Cancel] button was pressed,
+   *          0 if a bad directory was selected,
+   *          1 if a valid choice was made.
+   */
+  private int queryUserInstallJar()
+  {
+    jarInstallDir = chooseDirectory(chooser, jarList,
+                                    "Select the directory where the VisAD jar file should be installed");
+
+    if (jarInstallDir == null) {
+      return -1;
+    }
+
+    if (!jarInstallDir.canWrite()) {
+      JOptionPane.showMessageDialog(null,
+                                    "Cannot write to that directory!",
+                                    "Bad directory?",
+                                    JOptionPane.ERROR_MESSAGE);
+      return 0;
+    }
+
+    return 1;
+  }
+
+  /**
+   * @return -1 if [Cancel] button was pressed,
+   *          0 if a bad directory was selected,
+   *          1 if a valid choice was made.
+   */
+  private int queryUserInstallJava()
+  {
+    javaInstallDir = jvmToUse = null;
+    if (useSuppliedJava) {
+      javaInstallDir = chooseDirectory(chooser, null,
+                                       "Select the directory in which the JDK should be installed");
+      if (javaInstallDir == null) {
+        return -1;
+      }
+
+      if (!javaInstallDir.canWrite()) {
+        JOptionPane.showMessageDialog(null,
+                                      "Cannot write to that directory!",
+                                      "Bad directory?",
+                                      JOptionPane.ERROR_MESSAGE);
+        return 0;
+      }
+    } else {
+      jvmToUse = chooseFile(chooser, javaList,
+                            "Select the java program to use");
+      if (jvmToUse == null) {
+        return -1;
+      }
+    }
+
+    return 1;
+  }
+
+  private void queryUserUseSuppliedJava()
+  {
+    if (installerJavaDir == null) {
+      useSuppliedJava = false;
+      return;
+    }
+
+    String usMsg = "Would you like to install the supplied " +
+      " Java Development Kit " + installerJava.getMajor() + "." +
+      installerJava.getMinor() + " (" +
+      installerJava.getFullString() + ")?";
+
+    int n = JOptionPane.showConfirmDialog(null, usMsg,
+                                          "Install supplied JDK?",
+                                          JOptionPane.YES_NO_OPTION);
+    useSuppliedJava = (n == JOptionPane.YES_OPTION);
   }
 
   public static final void main(String[] args)
