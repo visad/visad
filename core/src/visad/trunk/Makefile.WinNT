@@ -42,8 +42,9 @@ default:
 JC = javac
 JFLAGS = -J-mx32m
 DEL = del
-DOC = javadoc -d
 DOCS_DIR = ..\docs
+DOC = javadoc
+DOCFLAGS = -d $(DOCS_DIR)
 FITS = ..\nom\tam
 UCAR = ..\ucar
 
@@ -432,5 +433,5 @@ visad.benjamin
 
 docs:
 	if not exist $(DOCS_DIR) mkdir $(DOCS_DIR)
-	$(DOC) $(DOCS_DIR) $(VISAD_PACKAGES)
+	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
 

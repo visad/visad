@@ -39,8 +39,9 @@ default:
 JC = javac
 JFLAGS = -J-mx32m
 RM = rm -f
-DOC = javadoc -d
 DOCS_DIR = ../docs
+DOC = javadoc -d
+DOCFLAGS = -d $(DOCS_DIR)
 FITS = ../nom/tam
 UCAR = ../ucar
 
@@ -355,7 +356,7 @@ visad.benjamin
 
 docs:
 	@if [ ! -d $(DOCS_DIR) ]; then mkdir $(DOCS_DIR); fi   
-	$(DOC) $(DOCS_DIR) $(VISAD_PACKAGES)
+	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
 
 
 JAVAONE_FILES = \
