@@ -573,7 +573,8 @@ public class BaseMapAdapter {
         Gridded2DSet[] basemaplines = new Gridded2DSet[sets.size()];
         sets.copyInto(basemaplines);
 
-        maplines = new UnionSet(coordMathType,basemaplines);
+        maplines = new UnionSet(coordMathType,basemaplines, 
+                                null, null, null, false);
       }
 
     } catch (Exception em) {em.printStackTrace(); return null;}
