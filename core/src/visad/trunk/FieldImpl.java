@@ -523,12 +523,12 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
 
     int dimension = DomainSet.getDimension();
-    float[][] vals = new float[dimension][1];
+    double[][] vals = new double[dimension][1];
     for (int j=0; j<dimension; j++) {
-      vals[j][0] = ((float) ((Real) ((RealTuple) domain).getComponent(j)).getValue());
+      vals[j][0] = ((Real) ((RealTuple) domain).getComponent(j)).getValue();
     }
     // always use simple resampling for set
-    int[] indices = DomainSet.valueToIndex(vals);
+    int[] indices = DomainSet.doubleToIndex(vals);
     setSample(indices[0], range, copy);
   }
 
