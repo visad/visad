@@ -1014,10 +1014,11 @@ public class CollectiveBarbManipulation extends Object
     Gridded2DSet[] sets = {set1};
     UnionSet set = new UnionSet(earth, sets);
 
-    DataReferenceImpl set_ref = new DataReferenceImpl("set_ref");
+    final DataReferenceImpl set_ref = new DataReferenceImpl("set_ref");
     set_ref.setData(set);
     int mask = InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK;
-    display1.addReferences(new CurveManipulationRendererJ3D(mask, mask), set_ref);
+    display1.addReferences(new CurveManipulationRendererJ3D(mask, mask, true),
+                           set_ref);
 
     cbm.setCollectiveCurve(false, set_ref, 0.0f, 1000.0f);
 
@@ -1066,6 +1067,20 @@ public class CollectiveBarbManipulation extends Object
       }
     };
     cell.addReference(station_select_ref);
+
+    CellImpl cell2 = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        UnionSet cset = (UnionSet) set_ref.getData();
+        SampledSet[] csets = cset.getSets();
+        if (csets.length > 0) {
+          float[][] samples = csets[csets.length - 1].getSamples();
+          if (samples != null && samples[0].length > 2) {
+            cbm.setCollectiveCurve(false, set_ref, 0.0f, 1000.0f);
+          }
+        }
+      }
+    };
+    cell2.addReference(set_ref);
 
     JPanel button_panel = new JPanel();
     button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
@@ -1119,13 +1134,24 @@ class EndManipCBM implements ActionListener {
       try {
         UnionSet set = (UnionSet) set_ref.getData();
         SampledSet[] sets = set.getSets();
-        SampledSet[] new_sets = new SampledSet[sets.length - 1];
-        System.arraycopy(sets, 0, new_sets, 0, sets.length - 1);
+        int n = sets.length - 1;
+        SampledSet[] new_sets = null;
+        if (n > 0) {
+          new_sets = new SampledSet[n];
+          System.arraycopy(sets, 0, new_sets, 0, n);
+        }
+        else {
+          new_sets = new SampledSet[] {new Gridded2DSet(set.getType(),
+                           new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2)};
+        }
         set_ref.setData(new UnionSet(set.getType(), new_sets));
+        cbm.setCollectiveParameters(false, 0.0f, 1000000.0f, 0.0f, 1000.0f);
       }
       catch (VisADException ex) {
+        ex.printStackTrace();
       }
       catch (RemoteException ex) {
+        ex.printStackTrace();
       }
     }
   }
