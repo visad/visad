@@ -63,6 +63,7 @@ public class Test26
 
     ScalarMap map1lat = new ScalarMap(RealType.Latitude, Display.YAxis);
     dpys[0].addMap(map1lat);
+    map1lat.setScalarName("Distance to Wall (m)");
     ScalarMap map1lon = new ScalarMap(RealType.Longitude, Display.XAxis);
     map1lon.setScaleEnable(false);
     dpys[0].addMap(map1lon);

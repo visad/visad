@@ -140,6 +140,10 @@ public class ScalarMap extends Object
     return scalarName;
   }
 
+  public void setScalarName(String name) {
+    scalarName = name;
+  }
+
   /** invoke incTick on every application call to setRange */
   public long incTick() {
     if (display != null) display.controlChanged();
