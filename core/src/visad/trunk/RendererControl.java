@@ -26,10 +26,13 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.awt.Color;
+
 import java.rmi.RemoteException;
 
-import visad.util.Util;
 import java.util.Enumeration;
+
+import visad.util.Util;
 
 /**
  * <CODE>RendererControl</CODE> is the VisAD class for controlling
@@ -68,6 +71,19 @@ public class RendererControl
   }
 
   /**
+   * Set the background color.
+   * @param color background color
+   */
+    public void setBackgroundColor(Color color)
+    throws RemoteException, VisADException
+  {
+    final float r = (float )color.getRed() / 255.0f;
+    final float g = (float )color.getGreen() / 255.0f;
+    final float b = (float )color.getBlue() / 255.0f;
+    setBackgroundColor(r, g, b);
+  }
+
+  /**
    * Set the background color.  All specified values should be in the range
    * <CODE>[0.0f - 1.0f]</CODE>.
    * @param r Red value.
@@ -98,6 +114,21 @@ public class RendererControl
   public float[] getForegroundColor()
   {
     return foregroundColor;
+  }
+
+  /**
+   * Convenience method to set the foreground color (box, cursor and axes).   
+   * Overrides any previous calls to setCursorColor, setBoxColor and 
+   * ScalarMap.setScaleColor().
+   * @param color foreground color
+   */
+  public void setForegroundColor(Color color)
+    throws RemoteException, VisADException
+  {
+    final float r = (float )color.getRed() / 255.0f;
+    final float g = (float )color.getGreen() / 255.0f;
+    final float b = (float )color.getBlue() / 255.0f;
+    setForegroundColor(r, g, b);
   }
 
   /**
@@ -156,6 +187,19 @@ public class RendererControl
   }
 
   /**
+   * Set the box color.
+   * @param color box color
+   */
+  public void setBoxColor(Color color)
+    throws RemoteException, VisADException
+  {
+    final float r = (float )color.getRed() / 255.0f;
+    final float g = (float )color.getGreen() / 255.0f;
+    final float b = (float )color.getBlue() / 255.0f;
+    setBoxColor(r, g, b);
+  }
+
+  /**
    * Set the box color.  All specified values should be in the range
    * <CODE>[0.0f - 1.0f]</CODE>.
    * @param r Red value.
@@ -191,6 +235,19 @@ public class RendererControl
   public float[] getCursorColor()
   {
     return cursorColor;
+  }
+
+  /**
+   * Set the cursor color.
+   * @param color cursor color
+   */
+  public void setCursorColor(Color color)
+    throws RemoteException, VisADException
+  {
+    final float r = (float )color.getRed() / 255.0f;
+    final float g = (float )color.getGreen() / 255.0f;
+    final float b = (float )color.getBlue() / 255.0f;
+    setCursorColor(r, g, b);
   }
 
   /**

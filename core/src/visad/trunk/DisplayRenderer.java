@@ -271,6 +271,24 @@ public abstract class DisplayRenderer
   }
 
   /**
+   * Set the background color.
+   * @param color background color
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setBackgroundColor(Color color)
+    throws RemoteException, VisADException
+  {
+    final float r = (float )color.getRed() / 255.0f;
+    final float g = (float )color.getGreen() / 255.0f;
+    final float b = (float )color.getBlue() / 255.0f;
+    setBackgroundColor(r, g, b);
+  }
+
+  /**
    * Set the background color.  All specified values should be in the
    * range <CODE>[0.0f - 1.0f]</CODE>.
    * @param r Red value.
@@ -289,6 +307,24 @@ public abstract class DisplayRenderer
       throw new VisADException("DisplayRenderer not yet assigned to a Display");
     }
     rendererControl.setBackgroundColor(r, g, b);
+  }
+
+  /**
+   * Set the foreground color (box, cursor and scales).
+   * @param color foreground color
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setForegroundColor(Color color)
+    throws RemoteException, VisADException
+  {
+    final float r = (float )color.getRed() / 255.0f;
+    final float g = (float )color.getGreen() / 255.0f;
+    final float b = (float )color.getBlue() / 255.0f;
+    setForegroundColor(r, g, b);
   }
 
   /**
@@ -323,6 +359,24 @@ public abstract class DisplayRenderer
       throw new VisADException("DisplayRenderer not yet assigned to a Display");
     }
     return rendererControl.getBoxOn();
+  }
+
+  /**
+   * Set the box color.
+   * @param color box color
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setBoxColor(Color color)
+    throws RemoteException, VisADException
+  {
+    final float r = (float )color.getRed() / 255.0f;
+    final float g = (float )color.getGreen() / 255.0f;
+    final float b = (float )color.getBlue() / 255.0f;
+    setBoxColor(r, g, b);
   }
 
   /**
@@ -382,6 +436,24 @@ public abstract class DisplayRenderer
       throw new VisADException("DisplayRenderer not yet assigned to a Display");
     }
     return rendererControl.getCursorColor();
+  }
+
+  /**
+   * Set the cursor color.
+   * @param color cursor color
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setCursorColor(Color color)
+    throws RemoteException, VisADException
+  {
+    final float r = (float )color.getRed() / 255.0f;
+    final float g = (float )color.getGreen() / 255.0f;
+    final float b = (float )color.getBlue() / 255.0f;
+    setCursorColor(r, g, b);
   }
 
   /**
