@@ -54,6 +54,9 @@ public class ScalarMap extends Object
   private transient Control control;
   // unique Display this ScalarMap is part of
   private transient DisplayImpl display;
+  // locks for control and display
+  private transient Object display_lock = new Object();
+  private transient Object control_lock = new Object();
 
   /** true if dataRange set by application;
       disables automatic setting */
@@ -147,27 +150,32 @@ public class ScalarMap extends Object
   }
  
   /** set tickFlag according to OldTick and NewTick */
-  public synchronized void setTicks() {
-    tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+  // public synchronized void setTicks() {
+  public void setTicks() {
+    synchronized (control_lock) {
+      tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
 /*
 System.out.println(Scalar + " -> " + DisplayScalar +
                    "  set  tickFlag = " + tickFlag);
 */
-    OldTick = NewTick;
-    if (control != null) control.setTicks();
+      OldTick = NewTick;
+      if (control != null) control.setTicks();
+    }
   }
  
-  public synchronized boolean peekTicks(DataRenderer r, DataDisplayLink link) {
-    if (control == null) {
+  // public synchronized boolean peekTicks(DataRenderer r, DataDisplayLink link) {
+  public boolean peekTicks(DataRenderer r, DataDisplayLink link) {
+    synchronized (control_lock) {
+      if (control == null) {
 /*
 boolean flag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
 if (flag) {
   System.out.println(Scalar + " -> " + DisplayScalar + "  peek  flag = " + flag);
 }
 */
-      return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
-    }
-    else {
+        return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+      }
+      else {
 /*
 boolean flag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
 boolean cflag = control.peekTicks(r, link);
@@ -176,35 +184,42 @@ if (flag || cflag) {
                      flag + " cflag = " + cflag);
 }
 */
-      return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick)) ||
-             control.peekTicks(r, link);
+        return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick)) ||
+               control.peekTicks(r, link);
+      }
     }
   }
 
   /** return true if application called setRange */
-  public synchronized boolean checkTicks(DataRenderer r, DataDisplayLink link) {
-    if (control == null) {
+  // public synchronized boolean checkTicks(DataRenderer r, DataDisplayLink link) {
+  public boolean checkTicks(DataRenderer r, DataDisplayLink link) {
+    synchronized (control_lock) {
+      if (control == null) {
 /*
 System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
                    tickFlag);
 */
-      return tickFlag;
-    }
-    else {
+        return tickFlag;
+      }
+      else {
 /*
 boolean cflag = control.checkTicks(r, link);
 System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " + 
                    tickFlag + " cflag = " + cflag); 
 */
-      return tickFlag || control.checkTicks(r, link);
+        return tickFlag || control.checkTicks(r, link);
+      }
     }
   }
 
   /** reset tickFlag */
-  synchronized void resetTicks() {
+  // synchronized void resetTicks() {
+  void resetTicks() {
+    synchronized (control_lock) {
 // System.out.println(Scalar + " -> " + DisplayScalar + "  reset");
-    tickFlag = false;
-    if (control != null) control.resetTicks();
+      tickFlag = false;
+      if (control != null) control.resetTicks();
+    }
   }
 
   /** get the ScalarType that is the map domain */
@@ -228,38 +243,46 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    * <code>null</code>; consequently, information stored in the Control might
    * have to be reestablished.
    */
-  synchronized void nullDisplay()
+  // synchronized void nullDisplay()
+  void nullDisplay()
     throws RemoteException, VisADException
   {
-    if (control != null) {
-      // stop animation before killing control
-      if (control instanceof AnimationControl) {
-        ((AnimationControl) control).stop();
-      }
+    synchronized (control_lock) {
+      if (control != null) {
+        // stop animation before killing control
+        if (control instanceof AnimationControl) {
+          ((AnimationControl) control).stop();
+        }
 
-      ScalarMapControlEvent evt;
-      evt = new ScalarMapControlEvent(this, ScalarMapEvent.CONTROL_REMOVED,
-                                      control);
-      notifyCtlListeners(evt);
+        ScalarMapControlEvent evt;
+        evt = new ScalarMapControlEvent(this, ScalarMapEvent.CONTROL_REMOVED,
+                                        control);
+        notifyCtlListeners(evt);
+      }
+      control = null;
     }
 
-    display = null;
-    control = null;
+    synchronized (display_lock) {
+      display = null;
+    }
     ScalarIndex = -1;
     DisplayScalarIndex = -1;
     scale_flag = back_scale_flag;
   }
 
   /** set the DisplayImpl this ScalarMap is linked to */
-  synchronized void setDisplay(DisplayImpl d)
+  // synchronized void setDisplay(DisplayImpl d)
+  void setDisplay(DisplayImpl d)
                throws VisADException {
-    if (d.equals(display)) return;
-    if (display != null) {
-      throw new DisplayException("ScalarMap.setDisplay: ScalarMap cannot belong" +
-                                 " to two Displays");
+    synchronized (display_lock) {
+      if (d.equals(display)) return;
+      if (display != null) {
+        throw new DisplayException("ScalarMap.setDisplay: ScalarMap cannot belong" +
+                                   " to two Displays");
+      }
+      display = d;
+      if (scale_flag) makeScale();
     }
-    display = d;
-    if (scale_flag) makeScale();
   }
 
   /**
@@ -279,33 +302,37 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
   }
 
   /** create Control for DisplayScalar */
-  synchronized void setControl() throws VisADException, RemoteException {
-    if (display == null) {
-      throw new DisplayException("ScalarMap.setControl: not part of " +
-                                 "any Display");
-    }
-
-    int evtID;
-    Control evtCtl;
-    if (control != null) {
-      evtID = ScalarMapEvent.CONTROL_REPLACED;
-      evtCtl = control;
-    } else {
-      evtID = ScalarMapEvent.CONTROL_ADDED;
-      evtCtl = null;
-    }
-
-    control = display.getDisplayRenderer().makeControl(this);
-    if (control != null) {
-      display.addControl(control);
-
-      if (evtCtl == null) {
+  // synchronized void setControl() throws VisADException, RemoteException {
+  void setControl() throws VisADException, RemoteException {
+    synchronized (control_lock) {
+      int evtID;
+      Control evtCtl;
+      if (control != null) {
+        evtID = ScalarMapEvent.CONTROL_REPLACED;
         evtCtl = control;
+      } else {
+        evtID = ScalarMapEvent.CONTROL_ADDED;
+        evtCtl = null;
       }
-    }
 
-    if (control != null || evtCtl != null) {
-      notifyCtlListeners(new ScalarMapControlEvent(this, evtID, evtCtl));
+      synchronized (display_lock) {
+        if (display == null) {
+          throw new DisplayException("ScalarMap.setControl: not part of " +
+                                     "any Display");
+        }
+        control = display.getDisplayRenderer().makeControl(this);
+        if (control != null) {
+          display.addControl(control);
+
+          if (evtCtl == null) {
+            evtCtl = control;
+          }
+        }
+      }
+
+      if (control != null || evtCtl != null) {
+        notifyCtlListeners(new ScalarMapControlEvent(this, evtID, evtCtl));
+      }
     }
   }
 
@@ -379,7 +406,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
 
   /** set range used for linear map from Scalar to
       DisplayScalar values */
-  private synchronized void setRange(DataShadow shadow, double low, double hi,
+  // private synchronized void setRange(DataShadow shadow, double low, double hi,
+  private void setRange(DataShadow shadow, double low, double hi,
           boolean unit_flag) throws VisADException, RemoteException {
     int i = ScalarIndex;
     if (shadow != null) {
@@ -464,38 +492,34 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                    " to " + dataRange[1] + " scale: " + scale + " " + offset);
 */
     if (DisplayScalar.equals(Display.Animation) && shadow != null) {
-      if (control != null) {
-        Set set = shadow.animationSampling;
-        if (set == null) {
-          return;
-          // WLH - should never happen
-          // set = shadow.animationRangeSampling;
-          // throw new DisplayException("ScalarMap.setRange: animationRangeSampling");
+      synchronized (control_lock) {
+        if (control != null) {
+          Set set = shadow.animationSampling;
+          if (set == null) {
+            return;
+          }
+          ((AnimationControl) control).setSet(set, true);
         }
-        // dglo 24 Nov 1998 -- Dead code
-        // if (set == null) {
-        //   set = new Linear1DSet(Scalar, dataRange[0], dataRange[1], 100);
-        // }
-        ((AnimationControl) control).setSet(set, true);
       }
     }
     else if (DisplayScalar.equals(Display.IsoContour)) {
-      if (control != null) {
-        boolean[] bvalues = new boolean[2];
-        float[] values = new float[5];
-        ((ContourControl) control).getMainContours(bvalues, values);
-        if (shadow == null) {
-          // don't set surface value for auto-scale
-          values[0] = (float) dataRange[0]; // surfaceValue
+      synchronized (control_lock) {
+        if (control != null) {
+          boolean[] bvalues = new boolean[2];
+          float[] values = new float[5];
+          ((ContourControl) control).getMainContours(bvalues, values);
+          if (shadow == null) {
+            // don't set surface value for auto-scale
+            values[0] = (float) dataRange[0]; // surfaceValue
+          }
+          // CTR: 29 Jul 1999: interval should never be zero
+          float f = (float) (dataRange[1] - dataRange[0]) / 10.0f;
+          if (f != 0.0f) values[1] = f; // contourInterval
+          values[2] = (float) dataRange[0]; // lowLimit
+          values[3] = (float) dataRange[1]; // hiLimit
+          values[4] = (float) dataRange[0]; // base
+          ((ContourControl) control).setMainContours(bvalues, values, true);
         }
-        // CTR: 29 Jul 1999: interval should never be zero
-        float f = (float) (dataRange[1] - dataRange[0]) / 10.0f;
-        if (f != 0.0f) values[1] = f;
-        //values[1] = (float) (dataRange[1] - dataRange[0]) / 10.0f; // contourInterval
-        values[2] = (float) dataRange[0]; // lowLimit
-        values[3] = (float) dataRange[1]; // hiLimit
-        values[4] = (float) dataRange[0]; // base
-        ((ContourControl) control).setMainContours(bvalues, values, true);
       }
     }
     else if (DisplayScalar.equals(Display.XAxis) ||
@@ -595,7 +619,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
 
   private void makeScale()
           throws VisADException {
-    DisplayRenderer displayRenderer = display.getDisplayRenderer();
+    DisplayRenderer displayRenderer = null;
+    synchronized (display_lock) {
+      if (display == null) return;
+      displayRenderer = display.getDisplayRenderer();
+    }
+    if (displayRenderer == null) return;
     axis = (DisplayScalar.equals(Display.XAxis)) ? 0 :
            (DisplayScalar.equals(Display.YAxis)) ? 1 : 2;
     if (axis_ordinal < 0) {

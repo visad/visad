@@ -1,5 +1,5 @@
 /*
-@(#) $Id: ColorWidget.java,v 1.13 2000-03-14 16:56:47 dglo Exp $
+@(#) $Id: ColorWidget.java,v 1.14 2000-04-19 18:37:20 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -44,7 +44,7 @@ import visad.VisADException;
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.13 $, $Date: 2000-03-14 16:56:47 $
+ * @version $Revision: 1.14 $, $Date: 2000-04-19 18:37:20 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -123,25 +123,38 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 
   /** The vector containing the ColorChangeListeners */
   private Vector listeners = new Vector();
+  private Object listeners_lock = new Object();
 
   /** Add a ColorChangeListener to the listeners list */
-  public synchronized void addColorChangeListener(ColorChangeListener c) {
-    if (!listeners.contains(c)) {
-      listeners.addElement(c);
+  // public synchronized void addColorChangeListener(ColorChangeListener c) {
+  public void addColorChangeListener(ColorChangeListener c) {
+    synchronized (listeners_lock) {
+      if (!listeners.contains(c)) {
+        listeners.addElement(c);
+      }
     }
   }
 
   /** Remove a ColorChangeListener from the listeners list */
-  public synchronized void removeColorChangeListener(ColorChangeListener c) {
-    if (listeners.contains(c)) {
-      listeners.removeElement(c);
+  // public synchronized void removeColorChangeListener(ColorChangeListener c) {
+  public void removeColorChangeListener(ColorChangeListener c) {
+    synchronized (listeners_lock) {
+      if (listeners.contains(c)) {
+        listeners.removeElement(c);
+      }
     }
   }
 
   /** Notify the ColorChangeListerers that the color widget has changed */
-  protected synchronized void notifyListeners(ColorChangeEvent e) {
-    for (int i = 0; i < listeners.size(); i++) {
-      ColorChangeListener c = (ColorChangeListener) listeners.elementAt(i);
+  // protected synchronized void notifyListeners(ColorChangeEvent e) {
+  protected void notifyListeners(ColorChangeEvent e) {
+    Vector listeners_clone = null;
+    synchronized (listeners_lock) {
+      listeners_clone = (Vector) listeners.clone();
+    }
+    for (int i = 0; i < listeners_clone.size(); i++) {
+      ColorChangeListener c =
+        (ColorChangeListener) listeners_clone.elementAt(i);
       c.colorChanged(e);
     }
   }

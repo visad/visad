@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: Slider.java,v 1.6 2000-03-14 16:56:48 dglo Exp $
+@(#) $Id: Slider.java,v 1.7 2000-04-19 18:37:20 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -37,7 +37,7 @@ import javax.swing.JPanel;
  * orientation will be assumed by several other classes
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.6 $, $Date: 2000-03-14 16:56:48 $
+ * @version $Revision: 1.7 $, $Date: 2000-04-19 18:37:20 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -76,25 +76,38 @@ public abstract class Slider extends JPanel {
 
   /** The vector containing the SliderChangeListeners */
   protected Vector listeners = new Vector();
+  private Object listeners_lock = new Object();
 
   /** Add a SliderChangeListener to the listeners list */
-  public synchronized void addSliderChangeListener(SliderChangeListener s) {
-    if (!listeners.contains(s)) {
-      listeners.addElement(s);
+  // public synchronized void addSliderChangeListener(SliderChangeListener s) {
+  public void addSliderChangeListener(SliderChangeListener s) {
+    synchronized (listeners_lock) {
+      if (!listeners.contains(s)) {
+        listeners.addElement(s);
+      }
     }
   }
 
   /** Remove a SliderChangeListener from the listeners list */
-  public synchronized void removeSliderChangeListener(SliderChangeListener s) {
-    if (listeners.contains(s)) {
-      listeners.removeElement(s);
+  // public synchronized void removeSliderChangeListener(SliderChangeListener s) {
+  public void removeSliderChangeListener(SliderChangeListener s) {
+    synchronized (listeners_lock) {
+      if (listeners.contains(s)) {
+        listeners.removeElement(s);
+      }
     }
   }
 
   /** Notify the ColorChangeListerers that the color widget has changed */
-  protected synchronized void notifyListeners(SliderChangeEvent e) {
-    for (int i = 0; i < listeners.size(); i++) {
-      SliderChangeListener s = (SliderChangeListener) listeners.elementAt(i);
+  // protected synchronized void notifyListeners(SliderChangeEvent e) {
+  protected void notifyListeners(SliderChangeEvent e) {
+    Vector listeners_clone = null;
+    synchronized (listeners_lock) {
+      listeners_clone = (Vector) listeners.clone();
+    }
+    for (int i = 0; i < listeners_clone.size(); i++) {
+      SliderChangeListener s =
+        (SliderChangeListener) listeners_clone.elementAt(i);
       s.sliderChanged(e);
     }
   }

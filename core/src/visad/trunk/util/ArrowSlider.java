@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ArrowSlider.java,v 1.12 2000-03-14 17:18:38 dglo Exp $
+@(#) $Id: ArrowSlider.java,v 1.13 2000-04-19 18:37:19 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -39,7 +39,7 @@ import java.awt.event.WindowEvent;
  * A pointer slider for visad .
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.12 $, $Date: 2000-03-14 17:18:38 $
+ * @version $Revision: 1.13 $, $Date: 2000-04-19 18:37:19 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -58,6 +58,8 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
   Dimension minSize = null;
   Dimension prefSize = null;
   Dimension maxSize = null;
+
+  private Object lock = new Object();
 
   /** Construct a new arrow slider with the default values */
   public ArrowSlider() {
@@ -118,18 +120,21 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 
   /* CTR: 29 Jul 1998: added setBounds method */
   /** Sets new minimum, maximum, and initial values for this slider */
-  public synchronized void setBounds(float min, float max, float init) {
-    if (min > max) {
-      throw new IllegalArgumentException("ArrowSlider: min cannot be "
-                                         +"greater than max");
+  // public synchronized void setBounds(float min, float max, float init) {
+  public void setBounds(float min, float max, float init) {
+    synchronized (lock) {
+      if (min > max) {
+        throw new IllegalArgumentException("ArrowSlider: min cannot be "
+                                           +"greater than max");
+      }
+      if (init < min || init > max) {
+        throw new IllegalArgumentException("ArrowSlider: initial value "
+                                           +"must be between min and max");
+      }
+      lower = min;
+      upper = max;
+      val = init;
     }
-    if (init < min || init > max) {
-      throw new IllegalArgumentException("ArrowSlider: initial value "
-                                         +"must be between min and max");
-    }
-    lower = min;
-    upper = max;
-    val = init;
     notifyListeners(new SliderChangeEvent(SliderChangeEvent.LOWER_CHANGE, min));
     notifyListeners(new SliderChangeEvent(SliderChangeEvent.UPPER_CHANGE, max));
     notifyListeners(new SliderChangeEvent(SliderChangeEvent.VALUE_CHANGE, init));
@@ -145,13 +150,15 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
   }
 
   /** Sets the minimum value for this slider */
-  public synchronized void setMinimum(float value) {
+  // public synchronized void setMinimum(float value) {
+  public void setMinimum(float value) {
+    synchronized (lock) {
+      if (value > val || (value == val && value == upper)) {
+        throw new IllegalArgumentException("ArrowSlider: Attemped to set new minimum value greater than the current value");
+      }
 
-    if (value > val || (value == val && value == upper)) {
-      throw new IllegalArgumentException("ArrowSlider: Attemped to set new minimum value greater than the current value");
+      lower = value;
     }
-
-    lower = value;
 
     notifyListeners(new SliderChangeEvent(SliderChangeEvent.LOWER_CHANGE, value));
 
@@ -166,13 +173,15 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
   }
 
   /** Sets the maximum value of this scrolbar */
-  public synchronized void setMaximum(float value){
+  // public synchronized void setMaximum(float value){
+  public void setMaximum(float value){
+    synchronized (lock) {
+      if (value < val || (value == val && value == lower)) {
+        throw new IllegalArgumentException("ArrowSlider: Attemped to set new maximum value less than the current value");
+      }
 
-    if (value < val || (value == val && value == lower)) {
-      throw new IllegalArgumentException("ArrowSlider: Attemped to set new maximum value less than the current value");
+      upper = value;
     }
-
-    upper = value;
 
     notifyListeners(new SliderChangeEvent(SliderChangeEvent.UPPER_CHANGE, value));
 
@@ -190,13 +199,16 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
    * Sets the current value of the slider
    * @throws IllegalArgumentException if the new value is out of bounds for the slider
    */
-  public synchronized void setValue(float value) {
+  // public synchronized void setValue(float value) {
+  public void setValue(float value) {
+    synchronized (lock) {
 
-    if (value > upper || value < lower) {
-      throw new IllegalArgumentException("ArrowSlider: Attemped to set new value out of slider range");
+      if (value > upper || value < lower) {
+        throw new IllegalArgumentException("ArrowSlider: Attemped to set new value out of slider range");
+      }
+
+      val = value;
     }
-
-    val = value;
 
     notifyListeners(new SliderChangeEvent(SliderChangeEvent.VALUE_CHANGE, value));
 
