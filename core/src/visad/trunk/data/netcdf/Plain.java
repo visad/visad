@@ -156,8 +156,8 @@ Plain
 	Data	data = plain.open(inPath);
 
 	// System.out.println("Data:\n" + data.longString());
-	// System.out.println("data.getType().toString():\n" +
-	    // data.getType());
+	System.out.println("data.getType().toString():\n" +
+	    data.getType());
 
 	System.out.println("Writing netCDF dataset \"" + outPath + "\"");
 
