@@ -185,10 +185,20 @@ public class FrontDrawer extends Object {
        0.01f, 0.01f, 0.01f, 0.03f, 0.037f, 0.03f, 0.01f, 0.01f, 0.04f, 0.01f}}},
 
     // STATIONARY_FRONT = 3
+    {{{0.09f, 0.11f, 0.1275f, 0.145f, 0.1625f, 0.18f, 0.2f,
+       0.2f, 0.1775f, 0.155f, 0.1175f, 0.09f},
+      {0.0f, 0.0f, -0.02f, -0.027f, -0.02f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.01f}},
+     {{0.0f, 0.02f, 0.045f, 0.07f, 0.09f,
+       0.09f, 0.07f, 0.045f, 0.02f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.04f, 0.01f, 0.0f}}},
+/*
     {{{0.0f, 0.025f, 0.05f, 0.07f, 0.0875f, 0.105f, 0.1225f, 0.14f, 0.17f, 0.2f,
        0.2f, 0.17f, 0.14f, 0.105f, 0.07f, 0.05f, 0.025f, 0.0f},
       {0.0f, 0.0f, 0.0f, 0.0f, -0.02f, -0.027f, -0.02f, 0.0f, 0.0f, 0.0f,
        0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.04f, 0.01f}}},
+*/
 
     // CONVERGENCE = 4
     {{{0.0f, 0.03f, 0.035f, 0.01f, 0.05f, 0.1f, 0.15f, 0.2f,
@@ -321,21 +331,21 @@ public class FrontDrawer extends Object {
   };
 
   private static final float[][] rredarray = {
+    {0.0f},
     {1.0f},
     {1.0f},
-    {1.0f},
-    {1.0f},
+    {1.0f, 0.0f},
     {1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
+    {0.5f},
+    {0.5f},
     {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f, 1.0f}, // DRY_LINE = 14
+    {0.5f},
+    {0.5f},
+    {0.5f, 0.5f}, // DRY_LINE = 14
     {1.0f},
     {1.0f, 1.0f}, // LIFTED_INDEX = 16
     {1.0f},
@@ -345,21 +355,21 @@ public class FrontDrawer extends Object {
   };
 
   private static final float[][] rgreenarray = {
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
+    {0.0f},
+    {0.0f},
+    {0.0f},
+    {0.0f, 0.0f},
     {1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
+    {0.3f},
+    {0.3f},
     {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f, 1.0f}, // DRY_LINE = 14
+    {0.5f},
+    {0.5f},
+    {0.3f, 0.3f}, // DRY_LINE = 14
     {1.0f},
     {1.0f, 1.0f}, // LIFTED_INDEX = 16
     {1.0f},
@@ -370,20 +380,20 @@ public class FrontDrawer extends Object {
 
   private static final float[][] rbluearray = {
     {1.0f},
+    {0.0f},
     {1.0f},
-    {1.0f},
-    {1.0f},
+    {0.0f, 1.0f},
     {1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
     {1.0f, 1.0f},
+    {0.0f},
+    {0.0f},
     {1.0f},
     {1.0f},
     {1.0f},
-    {1.0f},
-    {1.0f},
-    {1.0f, 1.0f}, // DRY_LINE = 14
+    {0.0f, 0.0f}, // DRY_LINE = 14
     {1.0f},
     {1.0f, 1.0f}, // LIFTED_INDEX = 16
     {1.0f},
@@ -440,8 +450,8 @@ public class FrontDrawer extends Object {
     null,
     null,
     null,
-    {1.0f},
-    {1.0f},
+    {0.5f},
+    {0.5f},
     null,
     null,
     null,
@@ -464,8 +474,8 @@ public class FrontDrawer extends Object {
     null,
     null,
     null,
-    {1.0f},
-    {1.0f},
+    {0.5f},
+    {0.5f},
     null,
     null,
     null,
@@ -499,6 +509,20 @@ public class FrontDrawer extends Object {
     null
   };
 
+  /** manipulable front with predefined pattern front_type and
+      user specified color arrays */
+  public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d, int fw,
+                     int front_type,
+                     float[] fred, float[] fgreen, float[] fblue,
+                     float[] rred, float[] rgreen, float[] rblue)
+         throws VisADException, RemoteException {
+    this(cr, d, fw, segmentarray[front_type],
+         fshapesarray[front_type], fred, fgreen, fblue,
+         rshapesarray[front_type], rred, rgreen, rblue);
+  }
+
+  /** manipulable front with predefined pattern front_type and
+      default color arrays */
   public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d, int fw,
                      int front_type)
          throws VisADException, RemoteException {
@@ -799,7 +823,7 @@ public class FrontDrawer extends Object {
             }
           }
           catch (VisADException ee) {
-            if (debug) System.out.println("release " + ee);
+            // if (debug) System.out.println("release " + ee);
             return;
           }
         }
@@ -1233,10 +1257,10 @@ public class FrontDrawer extends Object {
       new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
     display.addMap(lonmap);
-    lonmap.setRange(-10.0, 10.0);
+    lonmap.setRange(0.0, 20.0);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
-    latmap.setRange(-10.0, 10.0);
+    latmap.setRange(-40.0, -20.0);
 
     initColormaps(display);
 
