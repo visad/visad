@@ -210,7 +210,8 @@ public class TestArea {
 
     try {
 
-    System.out.println("aa="+aa);
+    //System.out.println("aa="+aa);
+    System.out.println("DateTime= "+aa.getNominalTime());
     System.out.println("imaget.getDomainSet()="+imaget.getDomainSet() );
     System.out.println("imaget.getDomain.getType="+imaget.getDomainSet().getType() );
  /*  This is diagnostic output only...
