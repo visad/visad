@@ -1,3 +1,7 @@
+//
+// PointDataAdapter.java
+//
+
 /*
 VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
@@ -34,238 +38,244 @@ import visad.jmet.MetUnits;
  *
  * @author  Don Murray, Unidata
  */
-public class PointDataAdapter
-{
+public class PointDataAdapter {
 
-    AddePointDataReader reader;
-    FieldImpl field = null;
-    private boolean debug = false;
+  AddePointDataReader reader;
+  FieldImpl field = null;
+  private boolean debug = false;
 
 
-    /**
-     * Construct a PointDataAdapter using the adde request passed as a string.
-     *
-     * @param  addePointRequest  - string representing the ADDE request
-     * @throws VisADException  bad request, no data available, VisAD error
-     */
-    public PointDataAdapter(String addePointRequest)
-        throws VisADException
-    {
-        try
-        {
-            reader = new AddePointDataReader(addePointRequest);
-	    debug = addePointRequest.indexOf("debug=true") > 0;
-        }
-        catch (AddeException excp)
-        {
-            throw new VisADException("Problem accessing data");
-        }
-        makeField();
-    }
-
-    // out of this will either come a FieldImpl, a ObservationDBImpl,
-    // or a StationObDBImpl
-    private void makeField()
-        throws VisADException
-    {
-        // First, let's make a generic FieldImpl from the data
-        // the structure will be index -> parameter tuple
-        // get all the stuff from the reader
-        int[][] data;
-        String[] units;
-        String[] params;
-	Unit[] defaultUnits;
-        int[] scalingFactors;
-        try
-        {
-            data = reader.getData();
-            units = reader.getUnits();
-            params = reader.getParams();
-            scalingFactors = reader.getScales();
-        }
-        catch (AddeException ae)
-        {
-            throw new VisADException("Error retrieving data info");
-        }
-               
-        int numObs = data[0].length;
-        if (numObs == 0)
-            throw new VisADException("No data available");
-	if (debug) System.out.println("Number of observations = " + numObs);
-
-        RealType domainType = RealType.getRealType("index");
-        Integer1DSet domain = new Integer1DSet(domainType, numObs);
-        
-        // now make range (Tuple) type
-        MetUnits unitTranslator = new MetUnits();
-        int numParams = params.length;
-	if (debug) System.out.println("Number of parameters = " + numParams);
-        ScalarType[] types = new ScalarType[numParams];
-	defaultUnits = new Unit[numParams];
-        boolean noText = true;
-        for (int i = 0; i < numParams; i++)
-        {
-            // get the name
-            String name = params[i];
-
-            if (units[i].equalsIgnoreCase("CHAR"))
-            {
-                noText = false;
-                types[i] = TextType.getTextType(params[i]);
-            } 
-	    else
-	    {
-                // make the unit
-                Unit unit = null;
-                try
-                {
-                   unit = 
-		       (!name.equalsIgnoreCase("LON") )
-	                   ? Parser.parse(unitTranslator.makeSymbol(units[i]))
-	                   : Parser.parse("degrees_west");  // fix McIDAS conv.
-                }
-                catch (NoSuchUnitException ne) {
-                   System.out.println("Unknown unit: " + units[i] + " for " + name);
-	           unit = null;
-                }
-                catch (ParseException pe) { unit = null;}
-	        defaultUnits[i] = unit;
-  
-            /*
-            if (units[i].equalsIgnoreCase("CHAR"))
-            {
-                noText = false;
-                types[i] = TextType.getTextType(params[i]);
-            }
-            else
-            {
-	    */
-	        if (debug) System.out.println(params[i] + " has units " + unit);
-	        if (debug) {
-		  System.out.println("scaling factor = " + scalingFactors[i]);
-		}
-                types[i] = getQuantity(params[i], unit);
-		//types[i] = RealType.getRealType(params[i], unit, (Set) null);
-            }
-        }
-        TupleType rangeType;
-        if (noText)  // all reals
-        {
-            RealType[] newTypes = new RealType[types.length];
-            for (int i = 0; i < types.length; i++)
-                newTypes[i] = (RealType) types[i];
-            rangeType = new RealTupleType(newTypes);
-        }
-        else
-        {
-            rangeType = new TupleType(types);
-        }
-        FunctionType functionType = 
-            new FunctionType(domainType, rangeType);
-        field = new FieldImpl(functionType, domain); 
-
-        // now, fill in the data
-        for (int i = 0; i < numObs; i++)
-        {
-            Scalar[] scalars = (noText == true) ? new Real[numParams]
-	                                        : new Scalar[numParams];
-            for (int j = 0; j < numParams; j++)
-            {
-                try
-                {
-                    if (types[j] instanceof TextType)
-                    {
-                        scalars[j] = 
-                            new Text( (TextType) types[j], 
-                                     McIDASUtil.intBitsToString(data[j][i]));
-                    }
-                    else
-                    {
-                        double value =
-                            data[j][i] == McIDASUtil.MCMISSING
-                              ? Double.NaN
-                              : data[j][i]/Math.pow(10.0, 
-                                  (double) scalingFactors[j] );
-                        scalars[j] =
-                            new Real(
-			        (RealType) types[j], value, defaultUnits[j]);
-		        if ((j == 0 || j == 1) && (Math.abs(value) > 180))
-			{
-			    System.out.println("bad data = " + scalars[j]);
-			}
-                    }
-                }
-                catch (VisADException e) {;}
-            }
-            try
-            {
-                field.setSample(i, (noText == true)
-		                       ? new RealTuple((Real[]) scalars)
-				       : new Tuple(scalars));
-            }
-            catch (java.rmi.RemoteException e) {;}
-        }
-    }
-
-    /**
-     * Get the VisAD Data object that represents the output from the
-     * request.
-     *
-     * @return  requested data
-     */
-    public DataImpl getData()
-    {
-        return field;
-    }
-
-    /**  
-     * test with 'java visad.data.mcidas.PointDataAdapter args' 
-     * @param args ADDE point data request
-     */
-    public static void main(String[] args)
-        throws Exception
-    {
-        if (args.length == 0) 
-        {
-            System.out.println("You must specify an ADDE Point Data URL");
-            System.exit(-1);
-        }
-        try
-        {
-            PointDataAdapter pda = new PointDataAdapter(args[0]);
-            Field data = (Field) pda.getData();
-            System.out.println(data.getType());
-            /*
-            int length = data.getDomainSet().getLength() - 1;
-            System.out.println(
-                "Sample "+ length + " = " + data.getSample(length));
-            */
-        }
-        catch (VisADException ve)
-        {
-            System.out.println("Error reading data");
-        }
-    }
-
-    /**
-     * First cut at a standard quantities database.
-     */
-    private RealType getQuantity(String name, Unit unit) 
+  /**
+   * Construct a PointDataAdapter using the adde request passed as a string.
+   *
+   * @param  addePointRequest  - string representing the ADDE request
+   * @throws VisADException  bad request, no data available, VisAD error
+   */
+  public PointDataAdapter(String addePointRequest)
       throws VisADException
+  {
+    try
     {
-        RealType type = null;
-        if (name.equalsIgnoreCase("lat")) {
-	   type = RealType.Latitude;
-	   type.alias(name);
-	} else if (name.equalsIgnoreCase("lon")) {
-	   type = RealType.Longitude;
-	   type.alias(name);
-	} else if (name.equalsIgnoreCase("z")) {
-	   type = RealType.Altitude;
-	   type.alias(name);
-	} else {
-	   type = RealType.getRealType(name, unit);
-	}
-	return type;
+      reader = new AddePointDataReader(addePointRequest);
+      debug = addePointRequest.indexOf("debug=true") > 0;
     }
+    catch (AddeException excp)
+    {
+      throw new VisADException("Problem accessing data");
+    }
+    makeField();
+  }
+
+  // out of this will either come a FieldImpl, a ObservationDBImpl,
+  // or a StationObDBImpl
+  private void makeField()
+      throws VisADException
+  {
+    // First, let's make a generic FieldImpl from the data
+    // the structure will be index -> parameter tuple
+    // get all the stuff from the reader
+    int[][] data;
+    String[] units;
+    String[] params;
+    Unit[] defaultUnits;
+    int[] scalingFactors;
+    try
+    {
+      data = reader.getData();
+      units = reader.getUnits();
+      params = reader.getParams();
+      scalingFactors = reader.getScales();
+    }
+    catch (AddeException ae)
+    {
+      throw new VisADException("Error retrieving data info");
+    }
+             
+    int numObs = data[0].length;
+    if (numObs == 0)
+        throw new VisADException("No data available");
+    if (debug) System.out.println("Number of observations = " + numObs);
+
+    RealType domainType = RealType.getRealType("index");
+    Integer1DSet domain = new Integer1DSet(domainType, numObs);
+      
+    // now make range (Tuple) type
+    MetUnits unitTranslator = new MetUnits();
+    int numParams = params.length;
+    if (debug) System.out.println("Number of parameters = " + numParams);
+    ScalarType[] types = new ScalarType[numParams];
+    defaultUnits = new Unit[numParams];
+    boolean noText = true;
+    for (int i = 0; i < numParams; i++)
+    {
+      // get the name
+      String name = params[i];
+
+      if (units[i].equalsIgnoreCase("CHAR"))
+      {
+        noText = false;
+        types[i] = TextType.getTextType(params[i]);
+      } 
+      else
+      {
+        // make the unit
+        Unit unit = null;
+        try
+        {
+           unit = 
+               (!name.equalsIgnoreCase("LON") )
+                   ? Parser.parse(unitTranslator.makeSymbol(units[i]))
+                   : Parser.parse("degrees_west");  // fix McIDAS conv.
+        }
+        catch (NoSuchUnitException ne) {
+           System.out.println("Unknown unit: " + units[i] + " for " + name);
+           unit = null;
+        }
+        catch (ParseException pe) { unit = null;}
+        defaultUnits[i] = unit;
+
+        if (debug) {
+          System.out.println(params[i] + " has units " + unit);
+          System.out.println("scaling factor = " + scalingFactors[i]);
+        }
+        types[i] = getQuantity(params[i], unit);
+      }
+    }
+
+    TupleType rangeType;
+    if (noText)  // all Reals
+    {
+      RealType[] newTypes = new RealType[types.length];
+      for (int i = 0; i < types.length; i++) {
+        newTypes[i] = (RealType) types[i];
+      }
+      rangeType = new RealTupleType(newTypes);
+    }
+    else // all Texts or mixture of Text and Reals
+    {
+      rangeType = new TupleType(types);
+    }
+
+    // make the field
+    FunctionType functionType = new FunctionType(domainType, rangeType);
+    field = (noText) 
+            ? new FlatField(functionType, domain)
+            : new FieldImpl(functionType, domain); 
+
+    // now, fill in the data
+    for (int i = 0; i < numObs; i++)
+    {
+      Scalar[] scalars = (noText == true) ? new Real[numParams]
+                                          : new Scalar[numParams];
+      for (int j = 0; j < numParams; j++)
+      {
+        if (types[j] instanceof TextType) {
+        try
+        {
+          scalars[j] = 
+              new Text( (TextType) types[j], 
+                       McIDASUtil.intBitsToString(data[j][i]));
+        }
+        catch (VisADException ex) {;} // shouldn't happen
+      } 
+      else
+      {
+          double value =
+              data[j][i] == McIDASUtil.MCMISSING
+                ? Double.NaN
+                : data[j][i]/Math.pow(10.0, 
+                    (double) scalingFactors[j] );
+          try
+          {
+            scalars[j] =
+              new Real(
+                  (RealType) types[j], value, defaultUnits[j]);
+          } catch (VisADException excp) {  // units problem
+             scalars[j] = new Real((RealType) types[j], value);
+          }
+      }
+    }
+    try
+    {
+      field.setSample(i, (noText == true)
+                             ? new RealTuple((Real[]) scalars)
+                             : new Tuple(scalars));
+    }
+    catch (VisADException e) {e.printStackTrace();} 
+    catch (java.rmi.RemoteException e) {;}
+    }
+  }
+
+  /**
+   * Get the VisAD Data object that represents the output from the
+   * request.
+   *
+   * @return  requested data
+   */
+  public DataImpl getData()
+  {
+    return field;
+  }
+
+  /**  
+   * test with 'java visad.data.mcidas.PointDataAdapter args' 
+   * @param args ADDE point data request
+   */
+  public static void main(String[] args)
+      throws Exception
+  {
+    if (args.length == 0) 
+    {
+      System.out.println("You must specify an ADDE Point Data URL");
+      System.exit(-1);
+    }
+    try
+    {
+      PointDataAdapter pda = new PointDataAdapter(args[0]);
+      Field data = (Field) pda.getData();
+      //System.out.println(data.getType());
+      visad.jmet.DumpType.dumpDataType(data);
+      /*
+      int length = data.getDomainSet().getLength() - 1;
+      System.out.println(
+              "Sample "+ length + " = " + data.getSample(length));
+      */
+    }
+    catch (VisADException ve)
+    {
+      System.out.println("Error reading data");
+    }
+  }
+
+  /**
+   * First cut at a standard quantities database.
+   */
+  private RealType getQuantity(String name, Unit unit) 
+    throws VisADException
+  {
+    RealType type = null;
+    if (name.equalsIgnoreCase("lat")) {
+      type = RealType.Latitude;
+      type.alias(name);
+    } else if (name.equalsIgnoreCase("lon")) {
+      type = RealType.Longitude;
+      type.alias(name);
+    } else if (name.equalsIgnoreCase("z")) {
+      type = RealType.Altitude;
+      type.alias(name);
+    } else {
+      type = RealType.getRealType(name, unit);
+      if (type == null) {
+        System.err.println("Problem creating RealType with name " +
+                        name + " and unit " + unit);
+        type = RealType.getRealTypeByName(name);
+        if (type == null) {  // Still a problem
+           throw new VisADException(
+              "getQuantity(): Couldn't create RealType for " + name);
+        }
+        System.err.println("Using RealType with name " + name);
+      }
+    }
+    return type;
+  }
 }
