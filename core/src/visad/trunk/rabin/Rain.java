@@ -9,6 +9,7 @@ package visad.rabin;
 import visad.*;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
+import visad.java3d.DirectManipulationRendererJ3D;
 import visad.util.VisADSlider;
 import visad.util.LabeledRGBWidget;
 import visad.data.vis5d.Vis5DForm;
@@ -34,8 +35,10 @@ public class Rain implements ControlListener {
     new CellImpl[N_ROWS][N_COLUMNS];
   static final DisplayImpl[][] displays =
     new DisplayImpl[N_ROWS][N_COLUMNS];
-  static final boolean[][] color_maps =
+  static final boolean[][] display_done =
     new boolean[N_ROWS][N_COLUMNS];
+
+
   static final Real ten = new Real(10.0);
   static final Real one = new Real(1.0);
   static final Real three = new Real(3.0);
@@ -45,16 +48,22 @@ public class Rain implements ControlListener {
   static final int WIDTH = 1100;
   static final int HEIGHT = 900;
 
-  static final float MIN = 0.0f;
-  static final float MAX = 200.0f;
+  static final double MIN = 0.0;
+  static final double MAX = 300.0;
 
   static DataReference ref300 = null;
   static DataReference ref1_4 = null;
+  static DataReference refMAX = null;
+  static DataReference ref_cursor = null;
 
 
   static LabeledRGBWidget color_widget = null;
   static ColorControl color_control = null;
   static ColorControl[][] color_controls = new ColorControl[N_ROWS][N_COLUMNS];
+  static ScalarMap color_map = null;
+  static ScalarMap[][] color_maps = new ScalarMap[N_ROWS][N_COLUMNS];
+
+  static RealTupleType cursor_type = null;
 
   static Rain rain = null;
 
@@ -69,6 +78,8 @@ public class Rain implements ControlListener {
           throws VisADException, RemoteException {
     ref300 = new DataReferenceImpl("num300");
     ref1_4 = new DataReferenceImpl("num1_4");
+    refMAX = new DataReferenceImpl("colorMAX");
+    ref_cursor = new DataReferenceImpl("cursor");
   }
 
   private void makeRain(String args[])
@@ -98,17 +109,34 @@ public class Rain implements ControlListener {
     RealType x_domain = (RealType) domain.getComponent(0);
     RealType y_domain = (RealType) domain.getComponent(1);
     RealTupleType range = (RealTupleType) grid_type.getRange();
+    RealType rangeC1 = (RealType) range.getComponent(0);
     int dim = range.getDimension();
     RealType[] range_types = new RealType[dim];
     for (int i=0; i<dim; i++) {
       range_types[i] = (RealType) range.getComponent(i);
     }
 
-/*
-    DataReference vis5d_ref = new DataReferenceImpl("vis5d_ref");
-    vis5d_ref.setData(vis5d);
-*/
- 
+    // create cursor
+    RealType shape = new RealType("shape");
+    RealTupleType cursor_type = new RealTupleType(x_domain, y_domain, shape);
+    SampledSet grid_set =
+      (SampledSet) ((FlatField) vis5d.getSample(0)).getDomainSet();
+    float[] lows = grid_set.getLow();
+    float[] his = grid_set.getHi();
+    double cursorx = 0.5 * (lows[0] + his[0]);
+    double cursory = 0.5 * (lows[1] + his[1]);
+    RealTuple cursor =
+      new RealTuple(cursor_type, new double[] {cursorx, cursory, 0.0});
+    ref_cursor.setData(cursor);
+    Gridded1DSet shape_count_set =
+      new Gridded1DSet(shape, new float[][] {{0.0f, 1.0f}}, 2);
+    VisADLineArray cross = new VisADLineArray();
+    cross.coordinates = new float[]
+      {0.1f,  0.0f, 0.0f,    -0.1f,  0.0f, 0.0f,
+       0.0f, -0.1f, 0.0f,     0.0f,  0.1f, 0.0f};
+    cross.vertexCount = cross.coordinates.length / 3;
+    VisADGeometryArray[] shapes = {cross, cross};
+
     //
     // construct JFC user interface
     //
@@ -166,7 +194,14 @@ public class Rain implements ControlListener {
                                             new TwoDDisplayRendererJ3D());
         displays[i][j].addMap(new ScalarMap(x_domain, Display.XAxis));
         displays[i][j].addMap(new ScalarMap(y_domain, Display.YAxis));
-        color_maps[i][j] = false;
+
+        ScalarMap shape_map = new ScalarMap(shape, Display.Shape);
+        displays[i][j].addMap(shape_map);
+        ShapeControl shape_control = (ShapeControl) shape_map.getControl();
+        shape_control.setShapeSet(shape_count_set);
+        shape_control.setShapes(shapes);
+
+        display_done[i][j] = false;
         JPanel d_panel = (JPanel) displays[i][j].getComponent();
         Border etchedBorder10 =
           new CompoundBorder(new EtchedBorder(),
@@ -177,26 +212,19 @@ public class Rain implements ControlListener {
     } // end for (int i=0; i<N_COLUMNS; i++)
 
 
-    // does not crash Java
-    DisplayImplJ3D dummy_display = new DisplayImplJ3D("dummy");
-    ScalarMap dummy_map = new ScalarMap(range_types[0], Display.RGB);
-    dummy_display.addMap(dummy_map);
-    ColorControl dummy_control = (ColorControl) dummy_map.getControl();
-    final LabeledRGBWidget dummy_widget =
-      new LabeledRGBWidget(dummy_map, MIN, MAX, null, false);
-    {
-      Dimension d = new Dimension(500, 170);
-      dummy_widget.setMaximumSize(d);
-    }
-    left_panel.add(dummy_widget);
-
-
     VisADSlider slider300 = new VisADSlider("num300", 0, 600, 300, 1.0,
                                             ref300, RealType.Generic);
     VisADSlider slider1_4 = new VisADSlider("num1_4", 0, 280, 140, 0.01,
                                             ref1_4, RealType.Generic);
+    VisADSlider sliderMAX = new VisADSlider("colorMAX", 0, 1000, ((int) MAX),
+                                            1.0, refMAX, RealType.Generic);
+
     left_panel.add(slider300);
+    left_panel.add(new JLabel("  "));
     left_panel.add(slider1_4);
+    left_panel.add(new JLabel("  "));
+    left_panel.add(sliderMAX);
+    left_panel.add(new JLabel("  "));
 
     // cell A1
     displays[0][0].addMap(new ScalarMap(range_types[0], Display.Red));
@@ -205,7 +233,7 @@ public class Rain implements ControlListener {
     displays[0][0].addMap(new ScalarMap(time, Display.Animation));
     cell_refs[0][0].setData(vis5d);
     displays[0][0].addReference(cell_refs[0][0]);
-    color_maps[0][0] = true;
+    display_done[0][0] = true;
 
     // cell B1
     cells[0][1] = new CellImpl() {
@@ -222,7 +250,28 @@ public class Rain implements ControlListener {
     displays[0][1].addMap(new ScalarMap(range_types[1], Display.Green));
     displays[0][1].addMap(new ScalarMap(range_types[2], Display.Blue));
     displays[0][1].addReference(cell_refs[0][1]);
-    color_maps[0][1] = true;
+    display_done[0][1] = true;
+
+
+
+    color_map = new ScalarMap(rangeC1, Display.RGB);
+    displays[0][2].addMap(color_map);
+    color_widget = new LabeledRGBWidget(color_map, (float) MIN, (float) MAX);
+    Dimension d = new Dimension(500, 170);
+    color_widget.setMaximumSize(d);
+    color_map.setRange(MIN, MAX);
+
+    left_panel.add(color_widget);
+
+    color_control = (ColorControl) color_map.getControl();
+    // listener sets all non-null color_controls[i][j]
+    // for ControlEvents from color_control
+    color_control.addControlListener(rain);
+    controlChanged(null);
+  
+    displays[0][2].addReference(cell_refs[0][2]);
+    displays[0][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    display_done[0][2] = true;
 
     // cell C1
     cells[0][2] = new CellImpl() {
@@ -230,30 +279,6 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 0);
         if (field != null) {
           cell_refs[0][2].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[0][2] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            ScalarMap color_map = new ScalarMap(rt, Display.RGB);
-            displays[0][2].addMap(color_map);
-            color_widget = new LabeledRGBWidget(color_map, MIN, MAX, null, false);
-            Dimension d = new Dimension(500, 170);
-            color_widget.setMaximumSize(d);
-
-            SwingUtilities.invokeLater(new Runnable() {
-              public void run() {
-                left_panel.remove(dummy_widget);
-                left_panel.add(color_widget, 0);
-              }
-            });
-
-            color_control = (ColorControl) color_map.getControl();
-            // listener sets all non-null color_controls[i][j]
-            // for ControlEvents from color_control
-            color_control.addControlListener(rain);
-
-            displays[0][2].addReference(cell_refs[0][2]);
-            color_maps[0][2] = true;
-          }
         }
       }
     };
@@ -267,15 +292,7 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 1);
         if (field != null) {
           cell_refs[1][0].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[1][0] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            ScalarMap color_map = new ScalarMap(rt, Display.RGB);
-            displays[0][2].addMap(color_map);
-            color_controls[1][0] = (ColorControl) color_map.getControl();
-            displays[1][0].addReference(cell_refs[1][0]);
-            color_maps[1][0] = true;
-          }
+          finishDisplay(field, 1, 0);
         }
       }
     };
@@ -289,13 +306,7 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 2);
         if (field != null) {
           cell_refs[1][1].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[1][1] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            displays[1][1].addMap(new ScalarMap(rt, Display.RGB));
-            displays[1][1].addReference(cell_refs[1][1]);
-            color_maps[1][1] = true;
-          }
+          finishDisplay(field, 1, 1);
         }
       }
     };
@@ -309,13 +320,7 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 3);
         if (field != null) {
           cell_refs[1][2].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[1][2] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            displays[1][2].addMap(new ScalarMap(rt, Display.RGB));
-            displays[1][2].addReference(cell_refs[1][2]);
-            color_maps[1][2] = true;
-          }
+          finishDisplay(field, 1, 2);
         }
       }
     };
@@ -329,13 +334,7 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 4);
         if (field != null) {
           cell_refs[2][0].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[2][0] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            displays[2][0].addMap(new ScalarMap(rt, Display.RGB));
-            displays[2][0].addReference(cell_refs[2][0]);
-            color_maps[2][0] = true;
-          }
+          finishDisplay(field, 2, 0);
         }
       }
     };
@@ -349,13 +348,7 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 5);
         if (field != null) {
           cell_refs[2][1].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[2][1] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            displays[2][1].addMap(new ScalarMap(rt, Display.RGB));
-            displays[2][1].addReference(cell_refs[2][1]);
-            color_maps[2][1] = true;
-          }
+          finishDisplay(field, 2, 1);
         }
       }
     };
@@ -384,13 +377,7 @@ public class Rain implements ControlListener {
           field = (FlatField) field.divide(fifty_three);
 
           cell_refs[2][2].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[2][2] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            displays[2][2].addMap(new ScalarMap(rt, Display.RGB));
-            displays[2][2].addReference(cell_refs[2][2]);
-            color_maps[2][2] = true;
-          }
+          finishDisplay(field, 2, 2);
         }
       }
     };
@@ -408,13 +395,7 @@ public class Rain implements ControlListener {
         if (field != null) {
           field = (FlatField) field.extract(6);
           cell_refs[3][0].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[3][0] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            displays[3][0].addMap(new ScalarMap(rt, Display.RGB));
-            displays[3][0].addReference(cell_refs[3][0]);
-            color_maps[3][0] = true;
-          }
+          finishDisplay(field, 3, 0);
         }
       }
     };
@@ -427,13 +408,7 @@ public class Rain implements ControlListener {
         if (field != null) {
           field = (FlatField) field.extract(7);
           cell_refs[3][1].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[3][1] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            displays[3][1].addMap(new ScalarMap(rt, Display.RGB));
-            displays[3][1].addReference(cell_refs[3][1]);
-            color_maps[3][1] = true;
-          }
+          finishDisplay(field, 3, 1);
         }
       }
     };
@@ -446,17 +421,26 @@ public class Rain implements ControlListener {
         if (field != null) {
           field = (FlatField) field.extract(8);
           cell_refs[3][2].setData(field);
-          FunctionType type = (FunctionType) field.getType();
-          if (!color_maps[3][2] && type != null) {
-            RealType rt = (RealType) type.getRange();
-            displays[3][2].addMap(new ScalarMap(rt, Display.RGB));
-            displays[3][2].addReference(cell_refs[3][2]);
-            color_maps[3][2] = true;
-          }
+          finishDisplay(field, 3, 2);
         }
       }
     };
     cells[3][2].addReference(cell_refs[0][1]);
+
+    Cell cellMAX =  new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        double max = ((Real) refMAX.getData()).getValue();
+        color_map.setRange(MIN, max);
+        for (int i=0; i<N_ROWS; i++) {
+          for (int j=0; j<N_COLUMNS; j++) {
+            if (color_maps[i][j] != null) {
+              color_maps[i][j].setRange(MIN, max);
+            }
+          }
+        }
+      }
+    };
+    cellMAX.addReference(refMAX);
 
     // make the JFrame visible
     frame.setVisible(true);
@@ -475,14 +459,35 @@ public class Rain implements ControlListener {
     return field;
   }
 
+  public static void finishDisplay(FlatField field, int i, int j)
+         throws VisADException, RemoteException {
+    FunctionType type = (FunctionType) field.getType();
+    if (!display_done[i][j] && type != null) {
+      RealType rt = (RealType) type.getRange();
+      color_maps[i][j] = new ScalarMap(rt, Display.RGB);
+      displays[i][j].addMap(color_maps[i][j]);
+      color_maps[i][j].setRange(MIN, MAX);
+      color_controls[i][j] = (ColorControl) color_maps[i][j].getControl();
+      if (color_control != null) { 
+        float[][] table = color_control.getTable();
+        if (table != null) color_controls[i][j].setTable(table);
+      }
+      displays[i][j].addReference(cell_refs[i][j]);
+      displays[i][j].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+      display_done[i][j] = true;
+    }
+  }
+
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
-    float[][] table = color_control.getTable();
-    if (table != null) {
-      for (int i=0; i<N_ROWS; i++) {
-        for (int j=0; j<N_COLUMNS; j++) {
-          if (color_controls[i][j] != null) {
-            color_controls[i][j].setTable(table);
+    if (color_control != null) {
+      float[][] table = color_control.getTable();
+      if (table != null) {
+        for (int i=0; i<N_ROWS; i++) {
+          for (int j=0; j<N_COLUMNS; j++) {
+            if (color_controls[i][j] != null) {
+              color_controls[i][j].setTable(table);
+            }
           }
         }
       }

@@ -457,7 +457,10 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         anyFlowCreated = true;
       }
 
+/* WLH 25 March 99
       if (!anyFlowCreated && !anyTextCreated && !anyShapeCreated) {
+*/
+      if (!anyFlowCreated && !anyTextCreated) {
         array = makePointGeometry(spatial_values, null);
         if (array != null && array.vertexCount > 0) {
           geometry = display.makeGeometry(array);

@@ -36,19 +36,32 @@ import java.awt.Event;
 */
 public class ScalarMapEvent extends Event {
 
+  /** values for id */
+  public final static int AUTO_SCALE = 1;
+  public final static int MANUAL = 2;
+
+  private int id = 0; // WLH 25 March 99
+
   private ScalarMap map; // source of event
 
-  public ScalarMapEvent(ScalarMap m) {
+  public ScalarMapEvent(ScalarMap m, boolean auto) {
     // don't pass map as the source, since source
     // is transient inside Event
     super(null, 0, null);
     map = m;
+    id = auto ? AUTO_SCALE : MANUAL;
   }
 
   /** get the ScalarMap that sent this ScalarMapEvent (or
       a copy if the ScalarMap was on a different JVM) */
   public ScalarMap getScalarMap() {
     return map;
+  }
+
+  /** get the ID type of this event; legal ID's are
+      ScalarMapEvent.AUTO_SCALE, ScalarMapEvent.MANUAL */
+  public int getId() {
+    return id;
   }
 
 }

@@ -440,14 +440,15 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       }
     }
 
-    if (shadow != null && dataRange[0] == dataRange[0] &&
+    if (dataRange[0] == dataRange[0] &&
         dataRange[1] == dataRange[1] && ListenerVector != null) {
       synchronized (ListenerVector) {
+        boolean auto = (shadow != null);
         Enumeration listeners = ListenerVector.elements();
         while (listeners.hasMoreElements()) {
           ScalarMapListener listener =
             (ScalarMapListener) listeners.nextElement();
-          listener.mapChanged(new ScalarMapEvent(this));
+          listener.mapChanged(new ScalarMapEvent(this, auto));
         }
       }
     }
@@ -463,7 +464,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     if (dataRange[0] == dataRange[0] &&
         dataRange[1] == dataRange[1]) {
       try {
-        listener.mapChanged(new ScalarMapEvent(this));
+        listener.mapChanged(new ScalarMapEvent(this, false));
       }
       catch (VisADException e) {
       }

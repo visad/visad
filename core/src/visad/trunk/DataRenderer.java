@@ -728,7 +728,7 @@ System.out.println("checkClose: distance = " + distance);
   }
 
   public synchronized void drag_direct(VisADRay ray, boolean first) {
-    // System.out.println("drag_direct " + first);
+    // System.out.println("drag_direct " + first + " " + type);
     if (spatialValues == null || ref == null || shadow == null) return;
     float o_x = (float) ray.position[0];
     float o_y = (float) ray.position[1];

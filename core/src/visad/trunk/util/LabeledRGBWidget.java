@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBWidget.java,v 1.14 1998-12-31 23:22:44 billh Exp $
+@(#) $Id: LabeledRGBWidget.java,v 1.15 1999-03-25 18:02:42 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.14 $, $Date: 1998-12-31 23:22:44 $
+ * @version $Revision: 1.15 $, $Date: 1999-03-25 18:02:42 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBWidget extends Panel implements ActionListener,
@@ -160,7 +160,9 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
     add(panel);
 
     // enable auto-scaling
-    if (update) smap.addScalarMapListener(this);
+    if (update) {
+      smap.addScalarMapListener(this);
+    }
     else {
       smap.setRange(min, max);
       updateWidget(min, max);

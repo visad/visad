@@ -56,6 +56,7 @@ public class DataReferenceImpl extends ThingReferenceImpl
   public void setData(Data d)
          throws VisADException, RemoteException {
     setThing(d);
+// DisplayImpl.printStack(getName());
   }
 
   /** method for use by RemoteDataReferenceImpl that adapts this
