@@ -777,7 +777,10 @@ if (map.badRange()) {
       // transform non-Cartesian spatial DisplayRealTypes to Cartesian
       if (spatial_locs != null && spatial_locs.length > 0 &&
           spatial_locs[0] != null && spatial_locs[0].length > 0) {
-        spatial_locs = display_coordinate_system.toReference(spatial_locs);
+        // DRM 14 Apr 2003 - could do transform in place
+        //spatial_locs = display_coordinate_system.toReference(spatial_locs);
+        spatial_locs = 
+          display_coordinate_system.toReference(Set.copyFloats(spatial_locs));
       }
     }
     return spatial_locs;
@@ -820,7 +823,10 @@ if (map.badRange()) {
     }
     if (display_coordinate_system != null) {
       // transform Cartesian spatial DisplayRealTypes to non-Cartesian
-      spatial_locs = display_coordinate_system.fromReference(spatial_locs);
+      // DRM 14 Apr 2003 - could do transform in place
+      //spatial_locs = display_coordinate_system.fromReference(spatial_locs);
+      spatial_locs = 
+          display_coordinate_system.fromReference(Set.copyFloats(spatial_locs));
     }
     base_spatial_locs[0] = spatial_locs[0];
     base_spatial_locs[1] = spatial_locs[1];
