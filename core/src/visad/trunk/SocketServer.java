@@ -28,11 +28,12 @@ package visad;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
+import java.awt.image.*;
 import java.net.*;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.util.Vector;
+import visad.util.Util;
 
 /** SocketServer wraps around a VisAD display, providing support for
     stand-alone remote displays (i.e., not dependent on the VisAD packages)
@@ -54,8 +55,14 @@ public class SocketServer implements DisplayListener {
   /** the server's associated VisAD display */
   private DisplayImpl display;
 
+  /** flag that signals when the display's image should be recaptured */
+  private DataReferenceImpl dirtyFlag;
+
+  /** flag that prevents getImage() calls from signaling a FRAME_DONE event */
+  private boolean flag;
+
   /** array of image data extracted from the VisAD display */
-  private int[] pixels;
+  private byte[] pixels;
 
   /** height of image */
   private int h;
@@ -182,8 +189,64 @@ public class SocketServer implements DisplayListener {
     commThread = new Thread(comm);
     commThread.start();
 
+    // create a "dirty flag" for monitoring when clients need to be updated
+    try {
+      dirtyFlag = new DataReferenceImpl("dirtyFlag");
+      dirtyFlag.setData(new Real(0.0));
+    }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+
     // listen for changes to the display
     display.addDisplayListener(this);
+
+    // construct a cell that sends the latest image to the clients
+    final DisplayListener l = this;
+    CellImpl cell = new CellImpl() {
+      public synchronized void doAction()
+        throws VisADException, RemoteException
+      {
+        // get the latest image
+        display.removeDisplayListener(l);
+        BufferedImage image = display.getImage();
+
+        // get width and height
+        w = image.getWidth();
+        h = image.getHeight();
+
+        // grab pixels from the image
+        int[] pix = new int[w * h];
+        image.getRGB(0, 0, w, h, pix, 0, w);
+
+        // convert pixels to byte array
+        pixels = Util.intToBytes(pix);
+
+        synchronized (clientSockets) {
+          // update all clients with latest image
+          for (int i=0; i<clientSockets.size(); i++) {
+            DataOutputStream out =
+              (DataOutputStream) clientOutputs.elementAt(i);
+            updateClient(out);
+          }
+        }
+        display.addDisplayListener(l);
+      }
+    };
+
+    // link the above triggered Cell to the dirty flag
+    try {
+      cell.addReference(dirtyFlag);
+    }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
   }
 
   /** get the socket port used by this SocketServer */
@@ -191,24 +254,15 @@ public class SocketServer implements DisplayListener {
     return port;
   }
 
-  /** extract image data from the VisAD display */
-  public void extractPixels() {
-    BufferedImage image = display.getImage();
-    w = image.getWidth();
-    h = image.getHeight();
-    pixels = new int[w * h];
-    image.getRGB(0, 0, w, h, pixels, 0, w);
-  }
-
   /** send the latest image from the display to the given output stream */
-  public void updateClient(DataOutputStream out) {
+  private void updateClient(DataOutputStream out) {
     try {
       // send image width and height to the output stream
       out.writeInt(w);
       out.writeInt(h);
 
       // send pixel data to the output stream
-      for (int i=0; i<pixels.length; i++) out.writeInt(pixels[i]);
+      out.write(pixels);
     }
     catch (IOException exc) {
       if (DEBUG) exc.printStackTrace();
@@ -219,17 +273,9 @@ public class SocketServer implements DisplayListener {
   public void displayChanged(DisplayEvent e)
     throws VisADException, RemoteException
   {
-    if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
-      // update the extracted pixels to match the latest display image
-      extractPixels();
-
-      // send new pixels out to all clients
-      synchronized (clientSockets) {
-        for (int i=0; i<clientSockets.size(); i++) {
-          DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
-          updateClient(out);
-        }
-      }
+    if (e.getId() == DisplayEvent.FRAME_DONE) {
+      // signal that image needs to be recaptured
+      dirtyFlag.setData(new Real(0.0));
     }
   }
 

@@ -115,4 +115,56 @@ public class Util
   {
     return isApproximatelyEqual(a, b, 0.000000001);
   }
+
+  /**
+   * Converts an array of ints to an array of bytes. Each integer is cut into
+   * four byte-size pieces, making the resulting byte array four times the
+   * length of the input int array.
+   *
+   * @param ints The array of ints to be converted to a byte array
+   *
+   * @return An array of bytes corresponding to the original int array.
+   */
+  public static byte[] intToBytes(int[] ints)
+  {
+    int len = ints.length;
+    byte[] bytes = new byte[4 * len];
+    for (int i=0; i<len; i++) {
+      int q = ints[i];
+      bytes[4 * i] = (byte) (q & 0x000000ff);
+      bytes[4 * i + 1] = (byte) ((q & 0x0000ff00) >> 8);
+      bytes[4 * i + 2] = (byte) ((q & 0x00ff0000) >> 16);
+      bytes[4 * i + 3] = (byte) ((q & 0xff000000) >> 24);
+    }
+    return bytes;
+  }
+
+  /**
+   * Converts an array of bytes to an array of ints. Each group of four bytes
+   * form a single int, making the resulting int array one fourth the length
+   * of the input byte array. Note that trailing elements of the bytes array
+   * will be ignored.
+   *
+   * @param bytes The array of bytes to be converted to an int array
+   *
+   * @return An array of ints corresponding to the original byte array.
+   */
+  public static int[] bytesToInt(byte[] bytes)
+  {
+    int len = bytes.length / 4;
+    int[] ints = new int[len];
+    for (int i=0; i<len; i++) {
+      // This byte decoding method is not very good; is there a better way?
+      int q3 = bytes[4 * i + 3] << 24;
+      int q2 = bytes[4 * i + 2] << 16;
+      int q1 = bytes[4 * i + 1] << 8;
+      int q0 = bytes[4 * i];
+      if (q2 < 0) q2 += 16777216;
+      if (q1 < 0) q1 += 65536;
+      if (q0 < 0) q0 += 256;
+      ints[i] = q3 | q2 | q1 | q0;
+    }
+    return ints;
+  }
+
 }
