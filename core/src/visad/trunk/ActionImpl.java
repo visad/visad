@@ -172,20 +172,21 @@ public abstract class ActionImpl extends Object
           if (checkTicks()) {
             doAction();
           }
+          Enumeration links;
           synchronized (LinkVector) {
-            Enumeration links = LinkVector.elements();
-            while (links.hasMoreElements()) {
-              ReferenceActionLink link =
-                (ReferenceActionLink) links.nextElement();
-              if (link.getBall()) {
-                link.setBall(false);
-                ThingReference ref = link.getThingReference();
-                ThingChangedEvent e =
-                  ref.acknowledgeThingChanged(link.getAction());
-                if (e != null) {
-                  thingChanged(e);
-                  dontSleep = true;
-                }
+            links = ((Vector) LinkVector.clone()).elements();
+          }
+          while (links.hasMoreElements()) {
+            ReferenceActionLink link =
+              (ReferenceActionLink) links.nextElement();
+            if (link.getBall()) {
+              link.setBall(false);
+              ThingReference ref = link.getThingReference();
+              ThingChangedEvent e =
+                ref.acknowledgeThingChanged(link.getAction());
+              if (e != null) {
+                thingChanged(e);
+                dontSleep = true;
               }
             }
           }
