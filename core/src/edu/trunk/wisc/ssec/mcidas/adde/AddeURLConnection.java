@@ -258,7 +258,7 @@ public class AddeURLConnection extends URLConnection
     // keep original to preserve case for user= clause
     String requestOriginal = url.getFile().substring(1);
     String request = requestOriginal.toLowerCase();
-    debug = request.indexOf("debug=true") >= 0;
+    debug = debug || request.indexOf("debug=true") >= 0;
 
     if (!request.startsWith("image") && 
         (!request.startsWith("datasetinfo")) &&
