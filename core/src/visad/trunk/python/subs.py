@@ -566,6 +566,38 @@ class Shapes:
         self.shape = VisADQuadArray()
         self.shape.coordinates = (scale, scale, 0, scale, -scale, 0,
                                   -scale, -scale, 0, -scale, scale, 0)
+      elif type == "cube":
+        self.shape = VisADQuadArray()
+        self.shape.coordinates = (scale, scale, -scale,  scale, -scale, -scale,
+                   scale, -scale, -scale,    -scale, -scale, -scale,
+                  -scale, -scale, -scale,    -scale,  scale, -scale,
+                  -scale,  scale, -scale,     scale,  scale, -scale,
+
+                   scale,  scale,  scale,     scale, -scale,  scale,
+                   scale, -scale,  scale,    -scale, -scale,  scale,
+                  -scale, -scale,  scale,    -scale,  scale,  scale,
+                  -scale,  scale,  scale,     scale,  scale,  scale,
+
+                   scale,  scale,  scale,     scale,  scale, -scale,
+                   scale,  scale, -scale,     scale, -scale, -scale,
+                   scale, -scale, -scale,     scale, -scale,  scale,
+                   scale, -scale,  scale,     scale,  scale,  scale,
+
+                  -scale,  scale,  scale,    -scale,  scale, -scale,
+                  -scale,  scale, -scale,    -scale, -scale, -scale,
+                  -scale, -scale, -scale,    -scale, -scale,  scale,
+                  -scale, -scale,  scale,    -scale,  scale,  scale,
+
+                   scale,  scale,  scale,     scale,  scale, -scale,
+                   scale,  scale, -scale,    -scale,  scale, -scale,
+                  -scale,  scale, -scale,    -scale,  scale,  scale,
+                  -scale,  scale,  scale,     scale,  scale,  scale,
+
+                   scale, -scale,  scale,     scale, -scale, -scale,
+                   scale, -scale, -scale,    -scale, -scale, -scale,
+                  -scale, -scale, -scale,    -scale, -scale,  scale,
+                  -scale, -scale,  scale,     scale, -scale,  scale)
+
       elif type == "solid_triangle":
         self.shape = VisADTriangleArray()
         self.shape.coordinates = ( -scale, -scale/2, 0,  
