@@ -123,7 +123,7 @@ import java.util.StringTokenizer;
  *                               position number
  *   select=<select clause>    to specify which data is required
  *   param=<param list>        what parameters to return
- *   max=<max return>          maximum number of obs to return
+ *   num=<max>                 maximum number of obs to return
  *   
  * The following keywords are required:
  *
@@ -1134,7 +1134,7 @@ public class AddeURLConnection extends URLConnection
      *                               position number
      *   select=<select clause>    to specify which data is required
      *   param=<param list>        what parameters to return
-     *   max=<max return>          maximum number of obs to return
+     *   num=<max>                 maximum number of obs to return
      *   user=<user_id>            ADDE user identification
      *   proj=<proj #>             a valid ADDE project number
      *   trace=<0/1>               setting to 1 tells server to write debug 
@@ -1152,10 +1152,6 @@ public class AddeURLConnection extends URLConnection
     private StringBuffer decodeMDKSString(String uCmd)
     {
         StringBuffer buf = new StringBuffer();
-        boolean latFlag = false;
-        boolean lonFlag = false;
-        String latString = null;
-        String lonString = null;
         String testString = null;
         // Mandatory strings
         String groupString = null;
@@ -1165,8 +1161,7 @@ public class AddeURLConnection extends URLConnection
                                 // Options strings
         String posString = "pos=0";
         String traceString = "trace=0";
-        String versionString = "version=1";
-        String spaceString = "spac=1";
+        // String versionString = "version=1";
         String selectString = "";
         String parmString = "";
 
@@ -1192,14 +1187,28 @@ public class AddeURLConnection extends URLConnection
                 selectString = testString;
             }
             else
+            // in McIDAS Clients the parameter request string contains param=
+            // but the adde server looks for parm=
+            // this bit of code forces this change so that Java Clients behave
+            // the same as McIDAS Clients
+            if (testString.startsWith("par")) 
+            {
+                parmString = 
+                   "parm=" + testString.substring(testString.indexOf("=") + 1) ;
+            }
+            else
+            // similarly, McIDAS Clients use num= but the server wants max=
+            if (testString.startsWith("num"))
+            {
+                maxString = 
+                   "max=" + testString.substring(testString.indexOf("=") + 1) ;
+            }
+            else
+            // allow for clever people who really know that the server uses
+            // max =  :-)
             if (testString.startsWith("max"))
             {
                 maxString = testString;
-            }
-            else
-            if (testString.startsWith("par"))
-            {
-                parmString = testString;
             }
             // now get the rest of the keywords (but filter out non-needed)
             else
@@ -1212,11 +1221,6 @@ public class AddeURLConnection extends URLConnection
             {
                 posString = testString;
             }
-            else
-            if (testString.startsWith("num"))       
-            {
-                numString = testString;
-            }
         } 
         // buf.append(" ");
         // buf.append(traceString);
@@ -1224,11 +1228,8 @@ public class AddeURLConnection extends URLConnection
         // now create command string
         StringBuffer posParams = 
             new StringBuffer(
-                 // groupString + " " + descrString + " " + selectString + " " + paramString + " " + maxString + " " + posString);
-                 // groupString + " " + descrString + " " + maxString + " " + posString + " " + selectString + " " + traceString + " " + versionString + " " + parmString);
-                 // groupString + " " + descrString + " " + parmString + " " + selectString + " " + posString + " " + traceString + " " + maxString);
                  groupString + " " + descrString + " " + parmString + " " + selectString + " " + posString + " " + traceString + " " + maxString);
-                                System.out.println("String passed to server = " + posParams);
+        System.out.println("String passed to server = " + posParams);
 
         // stuff it in at the beginning
         try
