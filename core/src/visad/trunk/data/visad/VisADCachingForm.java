@@ -100,7 +100,7 @@ public class VisADCachingForm
     }
   }
 
-  DataImpl readData(BinaryReader rdr)
+  public DataImpl readData(BinaryReader rdr)
     throws IOException, VisADException
   {
     // don't close the file here, it might be needed by a FileFlatField

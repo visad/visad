@@ -189,7 +189,7 @@ public class VisADForm extends Form implements FormFileInformer {
     }
   }
 
-  DataImpl readData(BinaryReader rdr)
+  public DataImpl readData(BinaryReader rdr)
     throws IOException, VisADException
   {
     DataImpl di = rdr.getData();
@@ -197,7 +197,7 @@ public class VisADForm extends Form implements FormFileInformer {
     return di;
   }
 
-  DataImpl readSerial(InputStream inputStream)
+  public DataImpl readSerial(InputStream inputStream)
     throws ClassNotFoundException, IOException
   {
     BufferedInputStream bufferedStream = new BufferedInputStream(inputStream);
