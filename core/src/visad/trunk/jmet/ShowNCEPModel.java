@@ -125,41 +125,8 @@ public class ShowNCEPModel
     directory = ".";
     ng = null;
 
-    JMenuBar mb = new JMenuBar();
-    JMenu fileMenu = new JMenu("File");
-
-    JMenuItem menuFile = new JMenuItem("Open File");
-    menuFile.addActionListener(this);
-    menuFile.setActionCommand("menuFile");
-    fileMenu.add(menuFile);
-
-    JMenuItem menuQuit = new JMenuItem("Exit");
-    menuQuit.addActionListener(this);
-    menuQuit.setActionCommand("menuQuit");
-    fileMenu.add(menuQuit);
-
-    ButtonGroup menuSelectors = new ButtonGroup();
-
-    JMenu mapMenu = new JMenu("Map");
-    JRadioButtonMenuItem menuNA = new JRadioButtonMenuItem("North America",true);
-    menuNA.addActionListener(this);
-    menuNA.setActionCommand("menuNA");
-    mapMenu.add(menuNA);
-    menuSelectors.add(menuNA);
-
-    JRadioButtonMenuItem menuWorld = new JRadioButtonMenuItem("World",false);
-    menuWorld.addActionListener(this);
-    menuWorld.setActionCommand("menuWorld");
-    mapMenu.add(menuWorld);
-    menuSelectors.add(menuWorld);
-
     //MapFile = "../data/mcidas/OUTLAUST";
     MapFile = "../data/mcidas/OUTLUSAM";
-
-    mb.add(fileMenu);
-    mb.add(mapMenu);
-    setJMenuBar(mb);
-
 
   // define the VisAD mappings for the Data and Display
 
@@ -194,6 +161,7 @@ public class ShowNCEPModel
     ScalarMap ani = new ScalarMap(time_type, Display.Animation);
     di.addMap(ani);
     ca = (AnimationControl) ani.getControl();
+    ca.setOn(false);
 
     statLabel = new JLabel("Please choose a data file...");
     statLabel.setForeground(Color.black);
@@ -232,27 +200,90 @@ public class ShowNCEPModel
       colorTable[2][i] = .6f;
     }
     ccmap.setTable(colorTable);
-    Color mapco = new Color(154,0,154);
 
-    vdisplay = (JPanel) di.getComponent();
-    vdisplay.setPreferredSize(new Dimension(700,700) );
-    vdisplay.setAlignmentX(Component.LEFT_ALIGNMENT);
-    vdisplay.setAlignmentY(Component.TOP_ALIGNMENT);
+    buildUI();
 
+    } catch (Exception e) {e.printStackTrace(System.out); System.exit(1);}
 
-  /****************** UI widgets ************************/
+  }
 
-      
-    cf = getContentPane();
-    cf.setLayout(new BoxLayout(cf, BoxLayout.X_AXIS) );
+  private void buildMenuBar()
+  {
+    JMenuBar mb = new JMenuBar();
+    JMenu fileMenu = new JMenu("File");
 
-    JPanel p1 = new JPanel();
-    p1.setLayout(new BoxLayout(p1, BoxLayout.Y_AXIS) );
-    p1.setAlignmentX(Component.CENTER_ALIGNMENT);
-    p1.setAlignmentY(Component.TOP_ALIGNMENT);
-    p1.setMaximumSize(new Dimension(300,Short.MAX_VALUE) );
-    p1.setMinimumSize(new Dimension(300,400) );
-    p1.setPreferredSize(new Dimension(300,400) );
+    JMenuItem menuFile = new JMenuItem("Open File");
+    menuFile.addActionListener(this);
+    menuFile.setActionCommand("menuFile");
+    fileMenu.add(menuFile);
+
+    JMenuItem menuQuit = new JMenuItem("Exit");
+    menuQuit.addActionListener(this);
+    menuQuit.setActionCommand("menuQuit");
+    fileMenu.add(menuQuit);
+
+    ButtonGroup menuSelectors = new ButtonGroup();
+
+    JMenu mapMenu = new JMenu("Map");
+    JRadioButtonMenuItem menuNA = new JRadioButtonMenuItem("North America",true);
+    menuNA.addActionListener(this);
+    menuNA.setActionCommand("menuNA");
+    mapMenu.add(menuNA);
+    menuSelectors.add(menuNA);
+
+    JRadioButtonMenuItem menuWorld = new JRadioButtonMenuItem("World",false);
+    menuWorld.addActionListener(this);
+    menuWorld.setActionCommand("menuWorld");
+    mapMenu.add(menuWorld);
+    menuSelectors.add(menuWorld);
+
+    mb.add(fileMenu);
+    mb.add(mapMenu);
+    setJMenuBar(mb);
+  }
+
+  private Component buildMapControls()
+  {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS) );
+    panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    panel.add(mapColor);
+    panel.add(Box.createRigidArea(new Dimension(10,10) ) );
+    panel.add(showMap);
+
+    return panel;
+  }
+
+  private Component buildSpeedControl()
+  {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS) );
+    panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    panel.setAlignmentY(Component.CENTER_ALIGNMENT);
+
+    speedSlider = new JSlider(JSlider.HORIZONTAL,1,20,10);
+    speedSlider.setMaximumSize(speedSlider.getPreferredSize() );
+    speedSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
+    speedSlider.addChangeListener(this);
+
+    speedValue = 3;
+
+    panel.add(new JLabel("Speed"));
+    panel.add(speedSlider);
+
+    return panel;
+  }
+
+  private Component buildAnimationControls()
+  {
+    backward = new JButton(" < ");
+    backward.setAlignmentX(Component.CENTER_ALIGNMENT);
+    backward.setMaximumSize(backward.getMaximumSize() );
+    backward.setMinimumSize(backward.getMaximumSize() );
+    backward.setPreferredSize(backward.getMaximumSize() );
+    backward.addActionListener(this);
+    backward.setActionCommand("backward");
 
     start_stop = new JButton("Animate");
     start_stop.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -261,13 +292,43 @@ public class ShowNCEPModel
     start_stop.setPreferredSize(start_stop.getMaximumSize() );
     start_stop.addActionListener(this);
     start_stop.setActionCommand("start_stop");
+
     isLooping = false;
-    ca.setOn(false);
+
+    forward = new JButton(" > ");
+    forward.setAlignmentX(Component.CENTER_ALIGNMENT);
+    forward.setMaximumSize(forward.getMaximumSize() );
+    forward.setMinimumSize(forward.getMaximumSize() );
+    forward.setPreferredSize(forward.getMaximumSize() );
+    forward.addActionListener(this);
+    forward.setActionCommand("forward");
+
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS) );
+    panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    panel.add(backward);
+    panel.add(start_stop);
+    panel.add(forward);
+    panel.add(buildSpeedControl());
+
+    return panel;
+  }
+
+  private Component buildControlPanel()
+  {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS) );
+    panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    panel.setAlignmentY(Component.TOP_ALIGNMENT);
+    panel.setMaximumSize(new Dimension(300,Short.MAX_VALUE) );
+    panel.setMinimumSize(new Dimension(300,400) );
+    panel.setPreferredSize(new Dimension(300,400) );
 
     mapColor = new JButton("Map Color");
     mapColor.addActionListener(this);
     mapColor.setActionCommand("mapColor");
-    mapColor.setBackground(mapco);
+    mapColor.setBackground(new Color(154,0,154));
 
     showMap = new JCheckBox("Make map visible");
     showMap.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -282,79 +343,46 @@ public class ShowNCEPModel
     snapButton.setPreferredSize(snapButton.getMaximumSize() );
     snapButton.addActionListener(this);
     snapButton.setActionCommand("snapButton");
-    isLooping = false;
-    ca.setOn(false);
 
-    backward = new JButton(" < ");
-    backward.setAlignmentX(Component.CENTER_ALIGNMENT);
-    backward.setMaximumSize(backward.getMaximumSize() );
-    backward.setMinimumSize(backward.getMaximumSize() );
-    backward.setPreferredSize(backward.getMaximumSize() );
-    backward.addActionListener(this);
-    backward.setActionCommand("backward");
+    panel.add(Box.createRigidArea(new Dimension(10,10) ) );
+    panel.add(snapButton);
+    panel.add(Box.createRigidArea(new Dimension(10,10) ) );
 
-    forward = new JButton(" > ");
-    forward.setAlignmentX(Component.CENTER_ALIGNMENT);
-    forward.setMaximumSize(forward.getMaximumSize() );
-    forward.setMinimumSize(forward.getMaximumSize() );
-    forward.setPreferredSize(forward.getMaximumSize() );
-    forward.addActionListener(this);
-    forward.setActionCommand("forward");
-
-    JPanel p3 = new JPanel();
-    p3.setLayout(new BoxLayout(p3, BoxLayout.Y_AXIS) );
-    p3.setAlignmentX(Component.CENTER_ALIGNMENT);
-    p3.setAlignmentY(Component.CENTER_ALIGNMENT);
-    speedSlider = new JSlider(JSlider.HORIZONTAL,1,20,10);
-    speedSlider.setMaximumSize(speedSlider.getPreferredSize() );
-    speedSlider.setAlignmentX(Component.CENTER_ALIGNMENT);
-    speedSlider.addChangeListener(this);
-    speedValue = 3;
-    p3.add(new JLabel("Speed"));
-    p3.add(speedSlider);
-
-    JPanel p2 = new JPanel();
-    p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS) );
-    p2.setAlignmentX(Component.CENTER_ALIGNMENT);
-    p2.add(backward);
-    p2.add(start_stop);
-    p2.add(forward);
-    p2.add(p3);
-    
-    p1.add(Box.createRigidArea(new Dimension(10,10) ) );
-    p1.add(snapButton);
-    p1.add(Box.createRigidArea(new Dimension(10,10) ) );
-    JPanel p4 = new JPanel();
-    p4.setLayout(new BoxLayout(p4, BoxLayout.X_AXIS) );
-    p4.setAlignmentX(Component.CENTER_ALIGNMENT);
-    p4.add(mapColor);
-    p4.add(Box.createRigidArea(new Dimension(10,10) ) );
-    p4.add(showMap);
-
-    p1.add(p4);
-    p1.add(p2);
+    panel.add(buildMapControls());
+    panel.add(buildAnimationControls());
 
     for (int i=0; i<ncp.length; i++) {
       tabby.addTab("Data", ncp[i]);
     }
 
-    p1.add(Box.createRigidArea(new Dimension(10,30) ) );
-    p1.add(tabby);
+    panel.add(Box.createRigidArea(new Dimension(10,30) ) );
+    panel.add(tabby);
 
-    p1.add(Box.createVerticalGlue() );
-    p1.add(Box.createRigidArea(new Dimension(10,10) ) );
+    panel.add(Box.createVerticalGlue() );
+    panel.add(Box.createRigidArea(new Dimension(10,10) ) );
     statLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    p1.add(statLabel);
+    panel.add(statLabel);
 
-    cf.add(p1);
+    return panel;
+  }
+
+  private void buildUI()
+  {
+    buildMenuBar();
+
+    vdisplay = (JPanel) di.getComponent();
+    vdisplay.setPreferredSize(new Dimension(700,700) );
+    vdisplay.setAlignmentX(Component.LEFT_ALIGNMENT);
+    vdisplay.setAlignmentY(Component.TOP_ALIGNMENT);
+
+    cf = getContentPane();
+    cf.setLayout(new BoxLayout(cf, BoxLayout.X_AXIS) );
+
+    cf.add(buildControlPanel());
     cf.add(vdisplay);
     setSize(1024,768);
     setVisible(true);
-
-    } catch (Exception e) {e.printStackTrace(System.out); System.exit(1);}
-
   }
-
 
   public void actionPerformed(ActionEvent e) {
     cmd = e.getActionCommand();
