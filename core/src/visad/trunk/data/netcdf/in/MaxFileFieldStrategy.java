@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: MaxFileFieldStrategy.java,v 1.1 2001-01-08 17:13:49 steve Exp $
+ * $Id: MaxFileFieldStrategy.java,v 1.2 2001-03-28 16:04:16 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -56,7 +56,7 @@ public class MaxFileFieldStrategy
     /**
      * Returns the Merger for cosolidating virtual data objects together.  The
      * Merger returned by this method is that returned by {@link
-     * FlatMerger.instance()} -- which doesn't merge FlatFields together.
+     * FlatMerger#instance()} -- which doesn't merge FlatFields together.
      * @return			The Merger for cosolidating virtual data 
      *				objects together.
      * @see Merger
