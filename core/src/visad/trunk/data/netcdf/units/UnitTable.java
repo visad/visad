@@ -1,8 +1,8 @@
 /*
- * Copyright 1997, University Corporation for Atmospheric Research
+ * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.1 1997-11-17 19:35:11 steve Exp $
+ * $Id: UnitTable.java,v 1.2 1998-02-23 15:58:46 steve Exp $
  */
 
 package visad.data.netcdf.units;

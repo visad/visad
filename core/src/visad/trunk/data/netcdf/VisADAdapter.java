@@ -1,3 +1,10 @@
+/*
+ * Copyright 1998, University Corporation for Atmospheric Research
+ * See file LICENSE for copying and redistribution conditions.
+ *
+ * $Id: VisADAdapter.java,v 1.5 1998-02-23 15:58:33 steve Exp $
+ */
+
 package visad.data.netcdf;
 
 

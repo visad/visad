@@ -1,3 +1,10 @@
+/*
+ * Copyright 1998, University Corporation for Atmospheric Research
+ * See file LICENSE for copying and redistribution conditions.
+ *
+ * $Id: NcData.java,v 1.2 1998-02-23 15:58:21 steve Exp $
+ */
+
 package visad.data.netcdf;
 
 
