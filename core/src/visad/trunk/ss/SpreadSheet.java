@@ -1001,13 +1001,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** Handles display changes */
   public void displayChanged(DisplayEvent e) {
-    FancySSCell fcell = (FancySSCell)
-                        BasicSSCell.getSSCellByDisplay(e.getDisplay());
-    int c = -1;
-    for (int i=0; i<NumVisDisplays; i++) {
-      if (fcell == DisplayCells[i]) c = i;
+    if (e.getId() == DisplayEvent.MOUSE_PRESSED) {
+      FancySSCell fcell = (FancySSCell)
+                          BasicSSCell.getSSCellByDisplay(e.getDisplay());
+      int c = -1;
+      for (int i=0; i<NumVisDisplays; i++) {
+        if (fcell == DisplayCells[i]) c = i;
+      }
+      selectCell(c);
     }
-    selectCell(c);
   }
 
   /** Selects the specified cell, updating screen info */
