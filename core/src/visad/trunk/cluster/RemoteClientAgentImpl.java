@@ -61,6 +61,7 @@ public class RemoteClientAgentImpl extends UnicastRemoteObject
   // should be called only for focus_agent
   public void sendToClient(int ind, Serializable message)
          throws RemoteException {
+System.out.println("RemoteClientAgentImpl.sendToClient " + ind + " " + message);
     if (0 <= ind && ind < responses.length) {
       responses[ind] = message;
       boolean all = true;
@@ -81,11 +82,13 @@ public class RemoteClientAgentImpl extends UnicastRemoteObject
          throws VisADException, RemoteException {
     int nagents = contacts.length;
     responses = new Serializable[nagents];
+    not_all = true;
     for (int i=0; i<nagents; i++) {
       responses[i] = null;
       contacts[i].sendToNode(message);
+System.out.println("RemoteClientAgentImpl.broadcastWithResponses " +
+                   i + " " + message);
     }
-    not_all = true;
     while (not_all) {
       synchronized (this) {
         try {

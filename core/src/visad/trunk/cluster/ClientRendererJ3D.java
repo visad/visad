@@ -461,8 +461,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     }
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
-// never printed
-// System.out.println("ClientRendererJ3D.computeRanges messages received");
+System.out.println("ClientRendererJ3D.computeRanges messages received");
     DataShadow new_shadow = (DataShadow) responses[0];
     int n = responses.length;
     for (int i=1; i<n; i++) {

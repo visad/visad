@@ -229,7 +229,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
         }
       }
       String rs = s.substring(0, len[0]);
-      ret_type = RealType.getRealType(rs);
+      String t = s.substring(len[0]);
+      if (t.startsWith("(Text)")) {
+        ret_type = TextType.getTextType(rs);
+        len[0] += 6;
+      }
+      else {
+        ret_type = RealType.getRealType(rs);
+      }
       return ret_type;
     }
     else {
