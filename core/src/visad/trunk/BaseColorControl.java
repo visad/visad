@@ -96,6 +96,10 @@ public abstract class BaseColorControl extends Control {
     initTableGreyWedge(table, components);
   }
 
+  public void initVis5D() {
+    initTableVis5D(table, components);
+  }
+
   /** Get the number of components of the range */
   public int getNumberOfComponents() { return components; }
 
