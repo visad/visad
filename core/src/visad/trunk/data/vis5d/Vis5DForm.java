@@ -696,9 +696,11 @@ public class Vis5DForm extends Form implements FormFileInformer {
    //-range_types[i] = (RealType) range.getComponent(i);
       range_types[i] = (RealType) tmp[i];
       contour_maps[i] = new ScalarMap(range_types[i], Display.IsoContour);
-      display.addMap(contour_maps[i]);
-      contour_controls[i] = (ContourControl) contour_maps[i].getControl();
-      contour_controls[i].enableContours(false);
+      try {
+          display.addMap(contour_maps[i]);
+          contour_controls[i] = (ContourControl) contour_maps[i].getControl();
+          contour_controls[i].enableContours(false);
+      } catch (BadMappingException bme) {;} // handle case of duplicate names
       range_refs[i] = new DataReferenceImpl(range_types[i].getName() + "_ref");
     }
 
