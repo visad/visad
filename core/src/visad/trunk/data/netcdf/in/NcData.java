@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcData.java,v 1.2 1998-03-23 18:11:51 visad Exp $
+ * $Id: NcData.java,v 1.3 1998-04-02 20:49:43 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -82,5 +82,22 @@ NcData
      */
     abstract DataImpl
     getData()
+	throws VisADException, IOException;
+
+
+    /**
+     * Return a proxy for the VisAD data object corresponding to this 
+     * netCDF data object.
+     *
+     * @return		The VisAD data object corresponding to the netCDF data
+     *			object.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    abstract DataImpl
+    getProxy()
 	throws VisADException, IOException;
 }

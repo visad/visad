@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedFunction.java,v 1.1 1998-03-20 20:56:51 visad Exp $
+ * $Id: NcNestedFunction.java,v 1.2 1998-04-02 20:49:44 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -19,6 +19,7 @@ import visad.Set;
 import visad.UnimplementedException;
 import visad.Unit;
 import visad.VisADException;
+import visad.data.netcdf.UnsupportedOperationException;
 
 
 /**
@@ -122,7 +123,7 @@ NcNestedFunction
     /**
      * Return the VisAD data object corresponding to this function.
      *
-     * @return		The VisAD MathType of the function.
+     * @return		The VisAD data object corresponding to the function.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
@@ -140,6 +141,25 @@ NcNestedFunction
 	field.setSamples(getRangeFlatFields(), /*copy=*/false);
 
 	return field;
+    }
+
+
+    /**
+     * Return a proxy for the VisAD data object corresponding to this function.
+     *
+     * @return		The VisAD data object corresponding to the function.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    DataImpl
+    getProxy()
+	throws IOException, VisADException
+    {
+	// TODO: implement NcNestedFunction.getProxy()
+	throw new UnsupportedOperationException();
     }
 
 
@@ -178,7 +198,7 @@ NcNestedFunction
      * @exception IOException
      *			Data access I/O failure.
      */
-    private FlatField
+    FlatField
     getFlatField(int ipt)
 	throws IOException, VisADException
     {

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.6 1998-04-02 16:05:24 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.7 1998-04-02 20:49:48 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -235,8 +235,6 @@ NetcdfAdapter
      * Return the VisAD data object corresponding to the given MathType.
      *
      * @param type	The MathType of the data object to be returned.
-     * @prerequisite	<code>type</code> is a node in 
-     *			<code>getMathType()</code>'s return-value.
      * @return		The data object corresponding to <code>type</code>
      *			or <code>null</code> if there's no such object.
      * @exception VisADException
@@ -258,9 +256,34 @@ NetcdfAdapter
 
 
     /**
+     * Return a proxy for the VisAD data object corresponding to the given
+     * MathType.
+     *
+     * @param type	The MathType of the data object to be returned.
+     * @return		The data object corresponding to <code>type</code>
+     *			or <code>null</code> if there's no such object.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    protected DataImpl
+    getProxy(MathType type)
+	throws IOException, VisADException
+    {
+	NcData	ncData = (NcData)map.get(type);
+
+	return ncData == null
+		? null
+		: ncData.getProxy();
+    }
+
+
+    /**
      * Test this class.
      *
-     * @param args	Runtime arguments.  Ignored.
+     * @param args		File pathnames.
      * @exception Exception	Something went wrong.
      */
     public static void

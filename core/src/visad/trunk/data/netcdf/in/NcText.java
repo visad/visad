@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcText.java,v 1.2 1998-03-23 18:11:55 visad Exp $
+ * $Id: NcText.java,v 1.3 1998-04-02 20:49:46 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -196,7 +196,7 @@ NcText
 	else
 	{
 	    /* Non-scalar text variable (i.e. an array of Strings). */
-	    strings = null;	// TODO
+	    strings = null;	// TODO: support array of Strings
 	}
 
 	return strings;
@@ -236,7 +236,7 @@ NcText
 	else
 	{
 	    /* Non-scalar text variable (i.e. an array of Strings). */
-	    texts = null;	// TODO
+	    texts = null;	// TODO: support array of Strings
 	}
 
 	return texts;

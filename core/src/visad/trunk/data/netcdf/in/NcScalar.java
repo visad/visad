@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcScalar.java,v 1.3 1998-03-25 15:22:44 visad Exp $
+ * $Id: NcScalar.java,v 1.4 1998-04-02 20:49:46 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -100,6 +100,19 @@ NcScalarVar
 	throws IOException, VisADException
     {
 	return var.getData()[0];
+    }
+
+
+    /**
+     * Return a proxy for the corresponding VisAD data object.
+     *
+     * @return	The corresponding VisAD data object.
+     */
+    DataImpl
+    getProxy()
+	throws IOException, VisADException
+    {
+	return getData();
     }
 }
 
@@ -209,5 +222,18 @@ NcScalarVars
 	}
 
 	return tuple;
+    }
+
+
+    /**
+     * Return a proxy for the corresponding VisAD data object.
+     *
+     * @return	The corresponding VisAD data object.
+     */
+    DataImpl
+    getProxy()
+	throws VisADException, RemoteException, IOException
+    {
+	return getData();
     }
 }

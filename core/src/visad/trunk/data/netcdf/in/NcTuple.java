@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcTuple.java,v 1.3 1998-03-30 18:20:16 visad Exp $
+ * $Id: NcTuple.java,v 1.4 1998-04-02 20:49:48 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -96,6 +96,31 @@ NcTuple
 
 	for (int i = 0; i < ncDatas.length; ++i)
 	    datas[i] = ncDatas[i].getData();
+
+	return new Tuple((TupleType)mathType, datas, /*copy=*/false);
+    }
+
+
+    /**
+     * Return a proxy for the VisAD data object corresponding to this 
+     * netCDF data object.
+     *
+     * @return		The VisAD data object corresponding to the netCDF
+     *			data object.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    DataImpl
+    getProxy()
+	throws VisADException, IOException
+    {
+	DataImpl[]	datas = new DataImpl[ncDatas.length];
+
+	for (int i = 0; i < ncDatas.length; ++i)
+	    datas[i] = ncDatas[i].getProxy();
 
 	return new Tuple((TupleType)mathType, datas, /*copy=*/false);
     }

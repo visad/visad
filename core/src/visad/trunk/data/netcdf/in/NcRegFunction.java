@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcRegFunction.java,v 1.1 1998-03-20 20:56:56 visad Exp $
+ * $Id: NcRegFunction.java,v 1.2 1998-04-02 20:49:45 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -31,6 +31,8 @@ import visad.TupleType;
 import visad.UnimplementedException;
 import visad.Unit;
 import visad.VisADException;
+import visad.data.FileFlatField;
+import visad.data.CacheStrategy;
 
 
 /**
@@ -98,6 +100,24 @@ NcRegFunction
 	}
 
 	return field;
+    }
+
+
+    /**
+     * Return a proxy for the VisAD data object corresponding to this function.
+     *
+     * @return		The VisAD data object corresponding to the function.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    DataImpl
+    getProxy()
+	throws IOException, VisADException
+    {
+	return new FileFlatField(new Accessor(this), (CacheStrategy)null);
     }
 
 
