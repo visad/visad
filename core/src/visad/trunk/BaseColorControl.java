@@ -129,7 +129,8 @@ public class BaseColorControl
   }
 
   /**
-   * Initialize table to the Vis5D colormap.
+   * Initialize table to the Vis5D colormap (opaque
+   *   blue-green-red rainbow).
    *
    * @param table Table to be initialized.
    *
@@ -272,8 +273,8 @@ public class BaseColorControl
 
   /**
    * Define the color lookup by a <CODE>Function</CODE>, whose
-   * <CODE>MathType</CODE> must have a 1-D domain and an N-D
-   * <CODE>RealTupleType</CODE> range; the domain and range
+   * <CODE>MathType</CODE> must have a 1-D domain and a 3-D or
+   * 4-D <CODE>RealTupleType</CODE> range; the domain and range
    * <CODE>Real</CODE>s must vary over the range (0.0, 1.0)
    *
    * @param func The new <CODE>Function</CODE>.

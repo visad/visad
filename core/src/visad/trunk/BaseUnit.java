@@ -433,6 +433,16 @@ public final class BaseUnit
             that + "\" to unit \"" + this + "\"");
     }
 
+    /**
+     * Convert values to this unit from a base unit.
+     *
+     * @param values    The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @return          The converted values in units of this unit.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
     float[] toThis(float[] values, BaseUnit that)
         throws UnitException
     {
@@ -597,7 +607,6 @@ public final class BaseUnit
     }
 
 
-  // added by WLH 11 Feb 98
   /**
    * Indicates whether or not this instance equals a unit.
    *
@@ -686,17 +695,5 @@ public final class BaseUnit
     {
       return unit == null ? false : derivedUnit.isConvertible(unit);
     }
-
-/*
-   added by Bill Hibbard for VisAD
-   so that BaseUnits from different JVM's can be equal
-*/
-/*
-  public boolean equals(Unit unit) {
-    if (!(unit instanceof BaseUnit)) return false;
-    return quantityName.equals(((BaseUnit) unit).quantityName) &&
-           unitName.equals(((BaseUnit) unit).unitName);
-  }
-*/
 
 }

@@ -27,8 +27,8 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   BadMappingException is an exception for an error with a
-   VisAD display that has a simple recovery.<P>
+   BadMappingException is an exception for an error with
+   ScalarMaps in a VisAD display.<P>
 */
 public class BadMappingException extends DisplayException {
 
