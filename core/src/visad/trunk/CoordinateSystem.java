@@ -174,9 +174,15 @@ public abstract class CoordinateSystem extends Object
                         double[][] value) throws VisADException {
     int n = out.getDimension();
     Unit[] units_free = new Unit[n];
+    double[][] old_value = value;
     value =
       transformCoordinatesFreeUnits(out, coord_out, units_free, errors_out,
                                     in, coord_in, units_in, errors_in, value);
+    // WLH 21 Nov 2001
+    if (value == old_value) {
+      value = new double[n][];
+      for (int i=0; i<n; i++) value[i] = old_value[i];
+    }
 
     ErrorEstimate[] sub_errors_out = new ErrorEstimate[1];
     if (errors_out == null) {

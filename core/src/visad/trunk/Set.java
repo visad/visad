@@ -350,16 +350,17 @@ public abstract class Set extends DataImpl implements SetIface {
     // all indices in this
     int[] indices = getWedge();
     // all values in this
-    double[][] values = indexToDouble(indices);
+    double[][] old_values = indexToDouble(indices); // WLH 21 Nov 2001
     // transform values from this to set
     ErrorEstimate[] errors_out = new ErrorEstimate[1];
-    values = CoordinateSystem.transformCoordinates(
+
+    double[][] values = CoordinateSystem.transformCoordinates(
                    ((SetType) set.getType()).getDomain(),
                    set.getCoordinateSystem(), set.getSetUnits(),
                    null /* set.getSetErrors() */,
                    ((SetType) Type).getDomain(),
                    DomainCoordinateSystem,
-                   SetUnits, null /* SetErrors */, values);
+                   SetUnits, null /* SetErrors */, old_values);
     // find indices of set not covered by this
     int set_length = set.getLength();
     boolean[] set_indices = new boolean[set_length];
@@ -390,6 +391,7 @@ public abstract class Set extends DataImpl implements SetIface {
         set_indices[0] = false;
       }
     }
+
     // now set_indices = true for indices of set not covered by this
     int num_new = 0;
     for (int i=0; i<set_length; i++) if (set_indices[i]) num_new++;
@@ -404,8 +406,10 @@ public abstract class Set extends DataImpl implements SetIface {
         num_new++;
       }
     }
+
     // get uncovered values
     double[][] new_values = set.indexToDouble(new_indices);
+
     // transform values for Units and CoordinateSystem
     new_values = CoordinateSystem.transformCoordinates(
                      ((SetType) Type).getDomain(),
@@ -413,12 +417,15 @@ public abstract class Set extends DataImpl implements SetIface {
                      ((SetType) set.getType()).getDomain(),
                      set.getCoordinateSystem(), set.getSetUnits(),
                      null /* set.getSetErrors() */, new_values);
+
     // merge uncovered values with values of this
     double[][] all_values = new double[1][length + num_new];
-    for (int i=0; i<length; i++) all_values[0][i] = values[0][i];
+    // WLH 21 Nov 2001
+    for (int i=0; i<length; i++) all_values[0][i] = old_values[0][i];
     for (int i=0; i<num_new; i++) {
       all_values[0][length + i] = new_values[0][i];
     }
+
     // sort all_values then construct Gridded1DSet
     // just use ErrorEstimates from this
     QuickSort.sort(all_values[0]);

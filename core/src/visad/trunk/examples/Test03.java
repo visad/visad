@@ -75,13 +75,19 @@ public class Test03
 
     // different time resolution test
     // 2 May 99, 15:51:00
-    double start = new DateTime(1999, 122, 57060).getValue();
+    DateTime base = new DateTime(1999, 122, 57060);
+    double start = base.getValue();
     Set time_set =
       new Linear1DSet(time_type, start, start + 3000.0, ntimes1);
+    Unit v5d_time_unit = new OffsetUnit(
+                             visad.data.units.UnitParser.encodeTimestamp(
+                                1900, 1, 1, 0, 0, 0, 0), SI.second);
+    start = base.getValue(v5d_time_unit);
     double[][] times =
       {{start, start + 600.0, start + 1200.0,
         start + 1800.0, start + 2400.0, start + 3000.0}};
-    Set time_hornet = new Gridded1DDoubleSet(time_type, times, 6);
+    Set time_hornet = new Gridded1DDoubleSet(time_type, times, 6,
+                                   null, new Unit[] {v5d_time_unit}, null);
 
     FieldImpl image_sequence = new FieldImpl(time_images, time_set);
     FieldImpl image_stinger = new FieldImpl(time_bee, time_hornet);
