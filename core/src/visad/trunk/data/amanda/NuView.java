@@ -87,99 +87,11 @@ public class NuView
 
     display = new DisplayImplJ3D("amanda");
 
-    final double halfRange = getMaxRange(file) / 2.0;
-
-    ScalarMap xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
-    setRange(xMap, file.getXMin(), file.getXMax(), halfRange);
-    display.addMap(xMap);
-
-    ScalarMap yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
-    setRange(yMap, file.getYMin(), file.getYMax(), halfRange);
-    display.addMap(yMap);
-
-    ScalarMap zMap = new ScalarMap(RealType.ZAxis, Display.ZAxis);
-    setRange(zMap, file.getZMin(), file.getZMax(), halfRange);
-    display.addMap(zMap);
-
-    ScalarMap shapeMap = new ScalarMap(Hit.amplitudeType, Display.Shape);
-    display.addMap(shapeMap);
-
-    ScalarMap trackMap =
-      new ScalarMap(BaseTrack.indexType, Display.SelectValue);
-    display.addMap(trackMap);
-
-    ShapeControl sctl = (ShapeControl )shapeMap.getControl();
-    sctl.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
-    sctl.setShapes(F2000Util.getCubeArray());
-
-    ScalarMap shapeScaleMap =
-      new ScalarMap(Hit.amplitudeType, Display.ShapeScale);
-    display.addMap(shapeScaleMap);
-    shapeScaleMap.setRange(-20.0, 50.0);
-
-    ScalarMap colorMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
-    display.addMap(colorMap);
-
-    // invert color table so colors match what is expected
-    BaseColorControl colorCtl = (BaseColorControl )colorMap.getControl();
-    final int numColors = colorCtl.getNumberOfColors();
-    final int numComps = colorCtl.getNumberOfComponents();
-    float[][] table = colorCtl.getTable();
-    for (int i = 0; i < numColors / 2; i++) {
-      final int swaploc = numColors - (i + 1);
-      for (int j = 0; j < numComps; j++) {
-        float tmp = table[j][i];
-        table[j][i] = table[j][swaploc];
-        table[j][swaploc] = tmp;
-      }
-    }
-    colorCtl.setTable(table);
-
-    ScalarMap animMap = new ScalarMap(RealType.Time, Display.Animation);
-    display.addMap(animMap);
-
-    DisplayRenderer displayRenderer = display.getDisplayRenderer();
-    displayRenderer.setBoxOn(false);
-
-    final DataReferenceImpl eventRef = new DataReferenceImpl("event");
-    // data set by eventWidget below
-    display.addReference(eventRef);
-
-    final DataReferenceImpl trackRef = new DataReferenceImpl("track");
-    // data set by eventWidget below
-    display.addReference(trackRef);
-
-    final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
-    modulesRef.setData(file.makeModuleData());
-    display.addReference(modulesRef);
-
-    LabeledColorWidget colorWidget = new LabeledColorWidget(colorMap);
-    // align along left side, to match VisADSlider alignment
-    //   (if we don't left-align, BoxLayout hoses everything)
-    colorWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-    AnimationControl animCtl = (AnimationControl )animMap.getControl();
-
-    EventWidget eventWidget = new EventWidget(file, eventRef, trackRef,
-                                              animCtl, trackMap);
-
-    AnimationWidget animWidget;
-    try {
-      animWidget = new AnimationWidget(animMap);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      animWidget = null;
-    }
-
     JPanel widgetPanel = new JPanel();
     widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
     widgetPanel.setMaximumSize(new Dimension(400, 600));
 
-    widgetPanel.add(colorWidget);
-    widgetPanel.add(eventWidget);
-    if (animWidget != null) {
-      widgetPanel.add(animWidget);
-    }
+    buildMainDisplay(display, file, widgetPanel);
 
     widgetPanel.add(Box.createHorizontalGlue());
 
@@ -214,6 +126,89 @@ public class NuView
                       (screenSize.height - fSize.height)/2);
 
     frame.setVisible(true);
+  }
+
+  private static final void buildMainDisplay(DisplayImpl dpy, AmandaFile file,
+                                             JPanel widgetPanel)
+    throws RemoteException, VisADException
+  {
+    final double halfRange = getMaxRange(file) / 2.0;
+
+    ScalarMap xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
+    setRange(xMap, file.getXMin(), file.getXMax(), halfRange);
+    dpy.addMap(xMap);
+
+    ScalarMap yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
+    setRange(yMap, file.getYMin(), file.getYMax(), halfRange);
+    dpy.addMap(yMap);
+
+    ScalarMap zMap = new ScalarMap(RealType.ZAxis, Display.ZAxis);
+    setRange(zMap, file.getZMin(), file.getZMax(), halfRange);
+    dpy.addMap(zMap);
+
+    ScalarMap shapeMap = new ScalarMap(Hit.amplitudeType, Display.Shape);
+    dpy.addMap(shapeMap);
+
+    ScalarMap trackMap =
+      new ScalarMap(BaseTrack.indexType, Display.SelectValue);
+    dpy.addMap(trackMap);
+
+    ShapeControl sctl = (ShapeControl )shapeMap.getControl();
+    sctl.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
+    sctl.setShapes(F2000Util.getCubeArray());
+
+    ScalarMap shapeScaleMap =
+      new ScalarMap(Hit.amplitudeType, Display.ShapeScale);
+    dpy.addMap(shapeScaleMap);
+    shapeScaleMap.setRange(-20.0, 50.0);
+
+    ScalarMap colorMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
+    dpy.addMap(colorMap);
+
+    // invert color table so colors match what is expected
+    invertColorTable(colorMap);
+
+    ScalarMap animMap = new ScalarMap(RealType.Time, Display.Animation);
+    dpy.addMap(animMap);
+
+    DisplayRenderer dpyRenderer = dpy.getDisplayRenderer();
+    dpyRenderer.setBoxOn(false);
+
+    final DataReferenceImpl eventRef = new DataReferenceImpl("event");
+    // data set by eventWidget below
+    dpy.addReference(eventRef);
+
+    final DataReferenceImpl trackRef = new DataReferenceImpl("track");
+    // data set by eventWidget below
+    dpy.addReference(trackRef);
+
+    final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
+    modulesRef.setData(file.makeModuleData());
+    dpy.addReference(modulesRef);
+
+    LabeledColorWidget colorWidget = new LabeledColorWidget(colorMap);
+    // align along left side, to match VisADSlider alignment
+    //   (if we don't left-align, BoxLayout hoses everything)
+    colorWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    AnimationControl animCtl = (AnimationControl )animMap.getControl();
+
+    EventWidget eventWidget = new EventWidget(file, eventRef, trackRef,
+                                              animCtl, trackMap);
+
+    AnimationWidget animWidget;
+    try {
+      animWidget = new AnimationWidget(animMap);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      animWidget = null;
+    }
+
+    widgetPanel.add(colorWidget);
+    widgetPanel.add(eventWidget);
+    if (animWidget != null) {
+      widgetPanel.add(animWidget);
+    }
   }
 
   public int checkKeyword(String mainName, int thisArg, String[] args)
@@ -255,6 +250,37 @@ public class NuView
     fileName = null;
   }
 
+  private static final void invertColorTable(ScalarMap colorMap)
+  {
+    BaseColorControl colorCtl = (BaseColorControl )colorMap.getControl();
+    final int numColors = colorCtl.getNumberOfColors();
+    final int numComps = colorCtl.getNumberOfComponents();
+    float[][] table = colorCtl.getTable();
+    for (int i = 0; i < numColors / 2; i++) {
+      final int swaploc = numColors - (i + 1);
+      for (int j = 0; j < numComps; j++) {
+        float tmp = table[j][i];
+        table[j][i] = table[j][swaploc];
+        table[j][swaploc] = tmp;
+      }
+    }
+
+    try {
+      colorCtl.setTable(table);
+    } catch (RemoteException re) {
+      System.err.println("Couldn't invert color table");
+      re.printStackTrace();
+    } catch (VisADException ve) {
+      System.err.println("Couldn't invert color table");
+      ve.printStackTrace();
+    }
+  }
+
+  public String keywordUsage()
+  {
+    return " fileName";
+  }
+
   private static final AmandaFile openFile(String fileName)
     throws VisADException
   {
@@ -272,11 +298,6 @@ public class NuView
     }
 
     return file;
-  }
-
-  public String keywordUsage()
-  {
-    return " fileName";
   }
 
   public String optionUsage()
