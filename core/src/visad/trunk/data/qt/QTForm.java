@@ -62,45 +62,16 @@ public class QTForm extends Form
 
   private static int num = 0;
 
-
-  // -- Fields --
+  /** Flag indicating QuickTime for Java is not installed. */
+  private static boolean noQT = false;
 
   /** Reflection tool for QuickTime for Java calls. */
-  private ReflectedUniverse r;
+  private static final ReflectedUniverse r = constructUniverse();
 
-  /** Flag indicating QuickTime for Java is not installed. */
-  private boolean noQT = false;
-
-  /** Filename of current QuickTime movie. */
-  private String current_id;
-
-  /** Number of images in current QuickTime movie. */
-  private int numImages;
-
-  /** Time increment between frames. */
-  private int timeStep;
-
-  /** Image containing current frame. */
-  private Image img;
-
-  /** Flag indicating QuickTime frame needs to be redrawn. */
-  private boolean needsRedrawing;
-
-  /** Flag indicating whether ImageJ supports the current TIFF stack. */
-  private boolean canUseImageJ;
-
-  /** Percent complete with current operation. */
-  private double percent;
-
-
-  // -- Constructor --
-
-  /** Constructs a new QuickTime movie file form. */
-  public QTForm() {
-    super("QTForm" + num++);
+  private static ReflectedUniverse constructUniverse() {
     boolean needClose = false;
+    ReflectedUniverse r = new ReflectedUniverse();
     try {
-      r = new ReflectedUniverse();
       r.exec("import quicktime.QTSession");
       r.exec("QTSession.open()");
       needClose = true;
@@ -133,10 +104,43 @@ public class QTForm extends Form
       noQT = true;
     }
     finally {
-      try { r.exec("QTSession.close()"); }
-      catch (VisADException exc) { }
+      if (needClose) {
+        try { r.exec("QTSession.close()"); }
+        catch (VisADException exc) { }
+      }
     }
+    return r;
   }
+
+
+  // -- Fields --
+
+  /** Filename of current QuickTime movie. */
+  private String current_id;
+
+  /** Number of images in current QuickTime movie. */
+  private int numImages;
+
+  /** Time increment between frames. */
+  private int timeStep;
+
+  /** Image containing current frame. */
+  private Image img;
+
+  /** Flag indicating QuickTime frame needs to be redrawn. */
+  private boolean needsRedrawing;
+
+  /** Flag indicating whether ImageJ supports the current TIFF stack. */
+  private boolean canUseImageJ;
+
+  /** Percent complete with current operation. */
+  private double percent;
+
+
+  // -- Constructor --
+
+  /** Constructs a new QuickTime movie file form. */
+  public QTForm() { super("QTForm" + num++); }
 
 
   // -- FormFileInformer methods --
@@ -472,44 +476,6 @@ public class QTForm extends Form
       r.exec("QTSession.close()");
       throw new BadFormException("Open movie failed: " + e.getMessage());
     }
-
-/*
-    // determine whether ImageJ can handle the file
-    TiffDecoder tdec = new TiffDecoder("", id);
-    canUseImageJ = true;
-    try {
-      FileInfo[] info = tdec.getTiffInfo();
-    }
-    catch (IOException exc) {
-      String msg = exc.getMessage();
-      if (msg.startsWith("Unsupported BitsPerSample")
-        || msg.startsWith("Unsupported SamplesPerPixel")
-        || msg.startsWith("ImageJ cannot open compressed TIFF files"))
-      {
-        canUseImageJ = false;
-      }
-      else throw exc;
-    }
-
-    // determine number of images in TIFF file
-    if (canUseImageJ) {
-      ImagePlus image = new Opener().openImage(id);
-      numImages = image.getStackSize();
-    }
-    else {
-      if (noJai) throw new BadFormException(NO_JAI);
-      try {
-        r.setVar("tiff", "tiff");
-        r.setVar("file", new File(id));
-        r.exec("id = ImageCodec.createImageDecoder(tiff, file, null)");
-        Object ni = r.exec("id.getNumPages()");
-        numImages = ((Integer) ni).intValue();
-      }
-      catch (VisADException exc) {
-        throw new BadFormException(exc.getMessage());
-      }
-    }
-*/
 
     current_id = id;
   }
