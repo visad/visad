@@ -49,6 +49,11 @@ public class WindPolarCoordinateSystem extends CoordinateSystem {
     super(reference, coordinate_system_units);
   }
 
+  /** simple constructor for "static" conversions */
+  public WindPolarCoordinateSystem() throws VisADException {
+    this(new RealTupleType(RealType.Longitude, RealType.Radius));
+  }
+
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 2) {
       throw new CoordinateSystemException("WindPolarCoordinateSystem." +

@@ -1,6 +1,6 @@
 
 //
-// AreaFileException.java
+// RadarFileException.java
 //
 
 /*
