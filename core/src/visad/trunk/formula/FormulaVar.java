@@ -34,7 +34,7 @@ import visad.*;
 public class FormulaVar extends ActionImpl {
 
   /** for testing purposes */
-  private static boolean DEBUG = false;
+  static boolean DEBUG = false;
 
   /** constant tag */
   public static RealType CONSTANT = createConstant();

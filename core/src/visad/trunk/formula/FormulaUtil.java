@@ -71,7 +71,9 @@ public class FormulaUtil {
         clas = Class.forName(c);
       }
       catch (ClassNotFoundException exc) {
-        // ERROR: Class c does not exist!
+        if (FormulaVar.DEBUG) {
+          System.out.println("ERROR: Class c does not exist!");
+        }
         methods[j] = null;
         continue;
       }
@@ -92,7 +94,9 @@ public class FormulaUtil {
           param[i] = Class.forName(a[i]);
         }
         catch (ClassNotFoundException exc) {
-          // ERROR: Class a[i] does not exist!
+          if (FormulaVar.DEBUG) {
+            System.out.println("ERROR: Class a[i] does not exist!");
+          }
           methods[j] = null;
           continue;
         }
@@ -102,7 +106,9 @@ public class FormulaUtil {
         method = clas.getMethod(m, param);
       }
       catch (NoSuchMethodException exc) {
-        // ERROR: Method m does not exist!
+        if (FormulaVar.DEBUG) {
+          System.out.println("ERROR: Method m does not exist!");
+        }
         methods[j] = null;
         continue;
       }
