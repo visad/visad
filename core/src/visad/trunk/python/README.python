@@ -64,8 +64,128 @@ for more information about it.  And see:
 for a tutorial on the Python language.
 
 
+4. The VisAD Python Library Functions
+
+This is a list of functions specially designed for accessing VisAD
+from Python scripts.  For a more complete description, see the VisAD
+JavaDoc, available on-line at: http://www.ssec.wisc.edu/~dglo/visad/
+
+Note however that any VisAD class or method is accessible from Python
+scripts.
 
 
+  abs(data) - return pointwise absolute value of data
+
+  acos(data) - return pointwise arccos value of data, in radians
+
+  acosDegrees(data) - return pointwise arccos value of data, in degrees
+  
+  asin(data) - return pointwise arcsin value of data, in radians
+  
+  asinDegrees(data) - return pointwise arcsin value of data, in degrees
+  
+  atan(data) - return pointwise arctan value of data, in radians
+  
+  atanDegrees(data) - return pointwise arctan value of data, in degrees
+  
+  atan2(data1, data2) - return pointwise tan value of data1 / data2, in radians
+  
+  atan2Degrees(data1, data2) - return pointwise tan value of data1 / data2, in degrees
+  
+  ceil(data) - return pointwise ceil value of data (smallest integer not less than)
+  
+  chol(data) - return matrix Cholesky Decomposition of data
+  
+  clearplot() - clear the onscreen data display
+  
+  cond(data) - return matrix condition of data (ratio of largest to
+               smallest singular value)
+  
+  cos(data) - return pointwise cos value of data
+  
+  cosDegrees(data) - return pointwise cos value of data
+  
+  det(data) - return matrix determinant of data
+  
+  eig(data) - return matrix Eigenvalue Decomposition of data
+  
+  exp(data) - return pointwise exp value of data
+  
+  fft(field) - return forward Fourier transform of field
+  
+  field(float[] values) - return a VisAD Field
+  
+  field(float[][] values) - return a VisAD Field
+  
+  field(Set set, String name, float[] values) - return a VisAD Field
+  
+  field(Set set, String name, float[][] values) - return a VisAD Field
+  
+  field(String name, float[] values) - return a VisAD Field
+  
+  field(String name, float[][] values) - return a VisAD Field
+  
+  floor(data) - return pointwise floor value of data (largest integer
+                not greater than)
+  
+  hist(field, int[] ranges) - return histogram of field values
+  
+  hist(field, int[] ranges, int[] sizes) - return histogram of field values
+  
+  hist(field, set) - return histogram of field values
+  
+  ifft(field) - return backward Fourier transform of field
+  
+  inverse(data) - return matrix inverse of data
+  
+  load(String location) - reads in data from the given location (filename or URL)
+  
+  log(data) - return pointwise log value of data
+  
+  lu(data) - return matrix LU Decomposition of data
+  
+  matrixMultiply(data1, data2) - return matrix multiply of data1 * data2
+  
+  max(data1, data2) - return pointwise maximum value of data1 and data2
+  
+  min(data1, data2) - return pointwise minimum value of data1 and data2
+  
+  norm1(data) - return matrix one norm of data (maximum column sum)
+  
+  norm2(data) - return matrix two norm of data (maximum singular value)
+  
+  normF(data) - return matrix Frobenius norm of data (sqrt of sum of
+                squares of all elements)
+  
+  normInf(data) - return matrix infinity norm of data (maximum row sum)
+  
+  plot(data) - plot data
+  
+  plot(data, red, green, blue) - plot data
+  
+  qr(data) - return matrix QR Decomposition of data
+  
+  rank(data) - return matrix effective numerical rank (from SVD) of data
+  
+  round(data) - return pointwise round value of data (closest integer)
+  
+  sin(data) - return pointwise sin value of data, assuming radians
+  
+  sinDegrees(data) - return pointwise sin value of data, assuming degrees
+  
+  solve(data1, data2) - return matrix soluton X of data1 * X = data2
+  
+  sqrt(data) - return pointwise square root value of data
+  
+  svd(data) - return matrix Singular Value Decomposition of data
+  
+  tan(data) - return pointwise tan value of data, assuming radians
+  
+  tanDegrees(data) - return pointwise tan value of data, assuming degrees
+  
+  trace(data) - return matrix trace of data (sum of the diagonal elements)
+  
+  transpose(data) - return matrix transpose of data
 
 
 

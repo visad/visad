@@ -165,7 +165,7 @@ public abstract class JPythonMethods {
    * @throws  VisADException  part of data and display APIs, shouldn't occur
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  static void clearplot() throws VisADException, RemoteException {
+  public static void clearplot() throws VisADException, RemoteException {
     if (display != null) {
       displayFrame.setVisible(false);
       displayFrame.dispose();
