@@ -62,7 +62,7 @@ public class ArrayVariableAdapter
 		 */
 		realTypes[rank-1-i] =
 		    RealType.getRealType(
-			array.getDimension(i).getName() + "_dim");
+			array.getDimension(i).getName() + "_ndx");
 	    }
 	    catch (InvalidParameterException e)
 	    {
