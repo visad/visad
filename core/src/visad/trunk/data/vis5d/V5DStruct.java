@@ -1227,7 +1227,15 @@ public class V5DStruct {
       // hack dates and times if out of order, in order to accept
       // 'invalid' files that Vis5D will accept
       if (date1 < date0 || (date1 == date0 && time1 <= time0)) {
-        time1 = time0 + 1;
+        int inc = 1;
+        if (i > 1) {
+          int j = (v5dHHMMSStoSeconds(TimeStamp[i - 1]) -
+                   v5dHHMMSStoSeconds(TimeStamp[i - 2])) +
+                  86400 * (v5dYYDDDtoDays(DateStamp[i - 1]) -
+                           v5dYYDDDtoDays(DateStamp[i - 2]));
+          if (j > 0) inc = j;
+        }
+        time1 = time0 + inc;
         date1 = date0;
         if (time1 >= 86400) {
           time1 = 0;
