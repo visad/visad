@@ -444,8 +444,8 @@ public class MappingDialog extends JDialog implements ActionListener,
           CurMapLabel[i][j][k] = Scalars[i] + " -> " + MapNames[j][k];
           if (startMaps != null) {
             for (int m=0; m<startMaps.length; m++) {
-              if (startMaps[m].getScalar() == MathTypes[i] &&
-                  startMaps[m].getDisplayScalar() == MapTypes[j][k]) {
+              if (startMaps[m].getScalar().equals(MathTypes[i]) &&
+                  startMaps[m].getDisplayScalar().equals(MapTypes[j][k])) {
                 Maps[i][j][k] = true;
                 CurMaps.addElement(CurMapLabel[i][j][k]);
               }

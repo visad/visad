@@ -76,6 +76,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
   // server for spreadsheet cells, if any
   RemoteServerImpl rsi = null;
 
+  // information needed for spreadsheet cloning
+  // CTR: START HERE
+  // these values all need to be updated whenever they change locally...
+  // if the client tries to change them, then it will update ONLY this
+  // info, and the server will change it, then it will propagate back to
+  // the client, just like everything else.
+  // need:
+  // Real NumVisX
+  // Real NumVisY
+  // Tuple Cols = ("A", "B", ..., "X")
+  // RealTuple Rows = (1, 2, ..., X)
+  // RealTuple ColWidths = (50, 50, 70, ..., 80)
+  // RealTuple RowHeights = (70, 40, 43, ..., 56)
+
   // whether this JVM supports Java3D (detected on SpreadSheet launch)
   boolean CanDo3D = true;
 
@@ -1859,11 +1873,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public void ssCellChanged(SSCellChangeEvent e) {
     FancySSCell f = (FancySSCell) e.getSSCell();
     if (DisplayCells[CurX][CurY] == f) {
-      if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
+      int ct = e.getChangeType();
+      if (ct == SSCellChangeEvent.DATA_CHANGE) {
         refreshFormulaBar();
         refreshMenuCommands();
       }
-      else refreshDisplayMenuItems();
+      else if (ct == SSCellChangeEvent.DIMENSION_CHANGE) {
+        refreshDisplayMenuItems();
+      }
     }
   }
 

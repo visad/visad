@@ -1379,22 +1379,18 @@ public class BasicSSCell extends JPanel {
                                                       IOException,
                                                       VisADException,
                                                       RemoteException {
-    if (IsRemote) {
-      throw new UnimplementedException("Cannot saveData " +
-        "on a cloned cell (yet).");
-    }
-
-    if (f == null || !hasData()) return;
+    Data d = getData();
+    if (f == null || d == null) return;
     Saving++;
     try {
       if (netcdf) {
         Plain saver = new Plain();
-        saver.save(f.getPath(), DataRef.getData(), true);
+        saver.save(f.getPath(), d, true);
         saver = null;
       }
       else {
         VisADForm saver = new VisADForm();
-        saver.save(f.getPath(), DataRef.getData(), true);
+        saver.save(f.getPath(), d, true);
         saver = null;
       }
     }
@@ -1403,8 +1399,8 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** whether the cell has data */
-  public boolean hasData() {
+  /** return the data of this cell */
+  public Data getData() {
     if (IsRemote) {
       Vector v = null;
       try {
@@ -1412,9 +1408,24 @@ public class BasicSSCell extends JPanel {
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
-      return v != null && !v.isEmpty();
+      if (v == null || v.isEmpty()) return null;
+      RemoteReferenceLink rrli = (RemoteReferenceLink) v.elementAt(0);
+      if (rrli == null) return null;
+      try {
+        DataReference dr = rrli.getReference();
+        if (dr == null) return null;
+        return dr.getData();
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+      return null;
     }
-    else return DataRef.getData() != null;
+    else return DataRef.getData();
+  }
+
+  /** whether the cell has data */
+  public boolean hasData() {
+    return getData() != null;
   }
 
   /** whether the cell has a formula */

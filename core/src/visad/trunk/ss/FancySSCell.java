@@ -118,18 +118,20 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** Re-auto-detect mappings when this cell's data changes */
   public void ssCellChanged(SSCellChangeEvent e) {
     if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
-      // attempt to auto-detect mappings for new data
-      Data value = null;
-      try {
-        value = (Data) fm.getThing(Name);
+      if (!IsRemote) {
+        // attempt to auto-detect mappings for new data
+        Data value = null;
+        try {
+          value = (Data) fm.getThing(Name);
+        }
+        catch (ClassCastException exc) { }
+        catch (VisADException exc) { }
+        try {
+          if (value != null) autoDetectMappings();
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
       }
-      catch (ClassCastException exc) { }
-      catch (VisADException exc) { }
-      try {
-        if (value != null) autoDetectMappings();
-      }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
 
       // refresh border color
       setHighlighted(Selected);
@@ -239,7 +241,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   void autoDetectMappings() throws VisADException, RemoteException {
     if (AutoDetect) {
       Data data = null;
-      data = DataRef.getData();
+      data = getData();
       MathType mt = null;
       try {
         if (data != null) mt = data.getType();
@@ -335,28 +337,21 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** Let the user create ScalarMaps from the current SSPanel's Data
       to its Display */
   public void addMapDialog() {
-    if (IsRemote) {
-      JOptionPane.showMessageDialog(Parent, "Cannot change mappings on a " +
-        "cloned cell (yet)", "FancySSCell error", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-
     // check whether this cell has data
-    if (!hasData()) {
+    Data data = getData();
+    if (data == null) {
       JOptionPane.showMessageDialog(Parent, "This cell has no data",
         "FancySSCell error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
     // get mappings from mapping dialog
-    Data data = DataRef.getData();
     ScalarMap[] maps = null;
     if (VDisplay != null) {
       Vector mapVector = VDisplay.getMapVector();
-      maps = new ScalarMap[mapVector.size()];
-      for (int i=0; i<mapVector.size(); i++) {
-        maps[i] = (ScalarMap) mapVector.elementAt(i);
-      }
+      int len = mapVector.size();
+      maps = (len > 0 ? new ScalarMap[len] : null);
+      for (int i=0; i<len; i++) maps[i] = (ScalarMap) mapVector.elementAt(i);
     }
     MappingDialog mapDialog = new MappingDialog(Parent, data, maps,
                               Dim != JAVA2D_2D || AutoSwitch,
@@ -370,6 +365,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
     // make sure user did not cancel the operation
     if (!mapDialog.Confirm) return;
+
+    if (IsRemote) {
+      JOptionPane.showMessageDialog(Parent, "Cannot change mappings on a " +
+        "cloned cell (yet)", "FancySSCell error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
 
     // clear old mappings
     try {
