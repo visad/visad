@@ -49,7 +49,8 @@ public class Test21
     GraphicsModeControl mode = display1.getGraphicsModeControl();
     mode.setPointSize(2.0f);
     mode.setPointMode(false);
-    // mode.setMissingTransparent(true);
+    mode.setMissingTransparent(true);
+    mode.setTextureEnable(false);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
