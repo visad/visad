@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.28 2001-12-19 22:40:44 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.29 2001-12-20 15:43:08 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -177,7 +177,9 @@ NetcdfAdapter
         throws IOException, VisADException, RemoteException, BadFormException,
             OutOfMemoryError
     {
-        return getData(strategy);
+        synchronized(getClass()) {
+            return getData(strategy);
+        }
     }
 
     /**
@@ -203,7 +205,9 @@ NetcdfAdapter
     {
         if (data == null)
         {
-            data = strategy.getData(this);
+            synchronized(getClass()) {
+                data = strategy.getData(this);
+            }
         }
 
         return data;
