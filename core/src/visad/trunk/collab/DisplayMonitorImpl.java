@@ -184,6 +184,7 @@ public class DisplayMonitorImpl
 
   public DisplayMonitorImpl(DisplayImpl dpy, boolean cl)
   {
+System.out.println("DisplayMonitorImpl " + dpy.getName() + " " + cl);
     Name = dpy.getName() + ":Mon";
 
     dpy.addDisplayListener(this);
@@ -620,8 +621,9 @@ public class DisplayMonitorImpl
     }
 
     // WLH 7 Dec 2000
+    // WLH 12 April 2001 change "!cluster" to "cluster"
     // if (evt.getId() == ScalarMapEvent.AUTO_SCALE) {
-    if (evt.getId() == ScalarMapEvent.AUTO_SCALE && !cluster) {
+    if (evt.getId() == ScalarMapEvent.AUTO_SCALE && cluster) {
       // ignore internal autoscale events
       return;
     }

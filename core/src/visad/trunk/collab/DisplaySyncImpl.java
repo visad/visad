@@ -74,6 +74,7 @@ public class DisplaySyncImpl
   public DisplaySyncImpl(DisplayImpl dpy, boolean cl)
     throws RemoteException
   {
+System.out.println("DisplaySyncImpl " + dpy.getName() + " " + cl);
     Name = dpy.getName() + ":Sync";
     myDisplay = dpy;
     monitor = dpy.getDisplayMonitor();
