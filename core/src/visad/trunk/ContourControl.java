@@ -444,17 +444,17 @@ public class ContourControl extends Control {
 
     if (levels == null) {
       if (cc.levels != null) {
-	return false;
+        return false;
       }
     } else {
       // make sure array lengths match
       if (cc.levels == null || levels.length != cc.levels.length) {
-	return false;
+        return false;
       }
       // copy remote values
       for (int i = 0; i < levels.length; i++) {
         if (Math.abs(levels[i] - cc.levels[i]) > 0.0001) {
-	  return false;
+          return false;
         }
       }
     }
