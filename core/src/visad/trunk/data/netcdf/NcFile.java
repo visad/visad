@@ -126,16 +126,16 @@ NcFile
     public NcVar[]
     getVariables()
     {
-	VariableIterator	iter = file.iterator();
 	NcVar[]			vars = new NcVar[numVars];
+	int			ivar = 0;
 
-	for (int i = 0; i < vars.length; ++i)
+	for (VariableIterator iter = file.iterator(); iter.hasNext(); )
 	{
 	    Variable	var = iter.next();
 
 	    // TODO: support textual variables
 	    if (!var.getComponentType().equals(Character.TYPE))
-		vars[i] = NcVar.instantiate(var, this);
+		vars[ivar++] = NcVar.instantiate(var, this);
 	}
 
 	return vars;
