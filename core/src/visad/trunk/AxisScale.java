@@ -168,7 +168,7 @@ public class AxisScale implements java.io.Serializable
   
 // WLH 24 Nov 2000
     ProjectionControl pcontrol = display.getProjectionControl();
-    double[] aspect = pcontrol.getAspect2();
+    double[] aspect = pcontrol.getAspectCartesian();
 
 /* WLH 24 Nov 2000
     double XMIN = -1.0;

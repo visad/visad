@@ -364,7 +364,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     if (!(this instanceof ConstantMap)) {
       ProjectionControl pcontrol = display.getProjectionControl();
       try {
-        setAspectCartesian(pcontrol.getAspect2());
+        setAspectCartesian(pcontrol.getAspectCartesian());
       }
       catch (RemoteException e) {
       }

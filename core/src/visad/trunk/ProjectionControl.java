@@ -217,7 +217,7 @@ public abstract class ProjectionControl extends Control {
     getDisplay().setAspectCartesian(asp);
   }
 
-  public double[] getAspect2() {
+  public double[] getAspectCartesian() {
     return (double[]) asp.clone();
   }
 
