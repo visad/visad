@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.1 2000-11-17 18:54:45 dglo Exp $
+ * $Id: DefaultUnitsDB.java,v 1.2 2001-05-02 15:13:02 steve Exp $
  */
 
 package visad.data.units;
@@ -486,6 +486,7 @@ DefaultUnitsDB
 	ps("T",			get("Wb").divide(get("m").pow(2)));
 	ps("H",			get("Wb").divide(get("A")));
 
+	pn("newton",		"N");
 	pn("hertz",		"Hz");
 	pn("watt",		"W");
 	px("force",		"standard free fall");
