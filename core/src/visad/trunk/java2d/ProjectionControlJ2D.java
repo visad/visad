@@ -43,6 +43,11 @@ public class ProjectionControlJ2D extends ProjectionControl {
 
   private transient VisADCanvasJ2D canvas;
 
+  /** 
+   * Construct a new ProjectionControl for the display in question.
+   * @param d  display to control.
+   * @throws  VisADException    some VisAD error
+   */
   public ProjectionControlJ2D(DisplayImpl d) throws VisADException {
     super(d);
 /* WLH 5 April 99
@@ -53,8 +58,15 @@ public class ProjectionControlJ2D extends ProjectionControl {
     Matrix.getMatrix(matrix);
     ((DisplayRendererJ2D) getDisplayRenderer()).setTransform2D(Matrix);
     canvas = null;
+    saveProjection();
   }
 
+  /** 
+   * Set the matrix that defines the graphics projection 
+   * @param m array of the matrix values (6 elements in Java2D case) 
+   * @throws VisADException   some VisAD error
+   * @throws RemoteException  Java RMI failure.
+   */
   public void setMatrix(double[] m)
          throws VisADException, RemoteException {
     super.setMatrix(m);
@@ -70,6 +82,12 @@ public class ProjectionControlJ2D extends ProjectionControl {
     changeControl(false);
   }
 
+  /** 
+   * Set aspect ratio of axes.
+   * @param aspect ratios; 2 elements for Java2D 
+   * @throws VisADException   invalid array length or some other VisAD failure.
+   * @throws RemoteException  Java RMI failure.
+   */
   public void setAspect(double[] aspect)
          throws VisADException, RemoteException {
     if (aspect == null || aspect.length != 2) {
@@ -83,6 +101,7 @@ public class ProjectionControlJ2D extends ProjectionControl {
     double[] m = new double[MATRIX2D_LENGTH];
     mat.getMatrix(m);
     setMatrix(getDisplay().multiply_matrix(mult, m));
+    saveProjection();
   }
 
   private AffineTransform init() {
@@ -94,4 +113,3 @@ public class ProjectionControlJ2D extends ProjectionControl {
   }
 
 }
-

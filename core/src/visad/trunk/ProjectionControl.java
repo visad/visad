@@ -39,15 +39,28 @@ import visad.util.Util;
 public abstract class ProjectionControl extends Control {
   /** matrix[] shouldn't be used by non-ProjectionControl classes */
   protected double[] matrix = null;
+  private double[] savedProjectionMatrix = null;
 
+  /** Length of a 2D matrix */
   public static final int MATRIX2D_LENGTH = 6;
+  /** Major dimension of the 2D matrix */
   public static final int MATRIX2D_MAJOR = 3;
+  /** Minor dimension of the 2D matrix */
   public static final int MATRIX2D_MINOR = 2;
 
+  /** Length of a 2D matrix */
   public static final int MATRIX3D_LENGTH = 16;
+  /** Major dimension of the 3D matrix */
   public static final int MATRIX3D_MAJOR = 4;
+  /** Minor dimension of the 3D matrix */
   public static final int MATRIX3D_MINOR = 4;
 
+  /**
+   * Construct a ProjectionControl for the display in question.
+   * @param d  display to control
+   * @throws VisADException  d already has a ProjectionControl or some other
+   *                         VisAD Error
+   */
   public ProjectionControl(DisplayImpl d) throws VisADException {
     super(d);
     if (d.getProjectionControl() != null) {
@@ -55,16 +68,24 @@ public abstract class ProjectionControl extends Control {
     }
   }
 
-  /** get matrix (16 elements in Java3D case, 6 elements in
-      Java2D case) that defines the graphics projection */
+  /** 
+   * Get the matrix that defines the graphics projection 
+   * @return array of the matrix values (16 elements in Java3D case, 
+   *          6 elements in Java2D case) 
+   */
   public double[] getMatrix() {
     double[] c = new double[matrix.length];
     System.arraycopy(matrix, 0, c, 0, matrix.length);
     return c;
   }
 
-  /** set matrix (16 elements in Java3D case, 6 elements in
-      Java2D case) that defines the graphics projection */
+  /** 
+   * Set the matrix that defines the graphics projection 
+   * @param m array of the matrix values (16 elements in Java3D case, 
+   *          6 elements in Java2D case) 
+   * @throws VisADException   invalid matrix length
+   * @throws RemoteException  Java RMI failure.
+   */
   public void setMatrix(double[] m)
          throws VisADException, RemoteException {
     if (m.length != matrix.length) {
@@ -74,7 +95,11 @@ public abstract class ProjectionControl extends Control {
     System.arraycopy(m, 0, matrix, 0, matrix.length);
   }
 
-  /** get a string that can be used to reconstruct this control later */
+  /** 
+   * Get a string that can be used to reconstruct this control later 
+   * @return String representation of this object that can be used for
+   *         reconstruction.
+   */
   public String getSaveString() {
     final int len = matrix.length;
 
@@ -111,7 +136,12 @@ public abstract class ProjectionControl extends Control {
     return sb.toString();
   }
 
-  /** reconstruct this control using the specified save string */
+  /** 
+   * Set the properties of this control using the specified save string 
+   * @param save  String to use for setting the properties.
+   * @throws VisADException   VisAD failure.
+   * @throws RemoteException  Java RMI failure.
+   */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
@@ -156,13 +186,60 @@ public abstract class ProjectionControl extends Control {
     setMatrix(m);
   }
 
-  /** set aspect ratio; 3 elements for Java3D, 2 for Java2D */
+  /** 
+   * Set aspect ratio of axes
+   * @param aspect ratios; 3 elements for Java3D, 2 for Java2D 
+   * @throws VisADException   VisAD failure.
+   * @throws RemoteException  Java RMI failure.
+   */
   public abstract void setAspect(double[] aspect)
          throws VisADException, RemoteException;
 
+  /**
+   * Saves the current display projection matrix.  The projection may 
+   * later be restored by the method <code>resetProjection()</code>.
+   * @see #resetProjection()
+   */
+  public void saveProjection()
+  {
+    savedProjectionMatrix = getMatrix();
+  }
+
+  /** 
+   * Get the matrix that defines the saved graphics projection 
+   * @return array of the matrix values (16 elements in Java3D case, 
+   *          6 elements in Java2D case) 
+   */
+  public double[] getSavedProjectionMatrix() {
+    double[] c = new double[savedProjectionMatrix.length];
+    System.arraycopy(
+      savedProjectionMatrix, 0, c, 0, savedProjectionMatrix.length);
+    return c;
+  }
+  /**
+   * Restores to projection matrix at time of last <code>saveProjection()</code>
+   * call -- if one was made -- or to initial projection otherwise.
+   * @see #saveProjection()
+   * @throws VisADException   VisAD failure.
+   * @throws RemoteException  Java RMI failure.
+   */
+  public void resetProjection()
+         throws VisADException, RemoteException
+  {
+    setMatrix(savedProjectionMatrix);
+  }
+
+  /** Default scaling factor for 2D matrix */
   public static final double SCALE2D = 0.65;
+  /** Inverse of  SCALE2D */
   public static final double INVSCALE2D = 1.0 / SCALE2D;
 
+  /**
+   * Convert a 2D matrix to a 3D matrix, retaining the scale and aspect
+   * of the 2D matrix.
+   * @param matrix  2D matrix to convert
+   * @throws  VisADException  wrong length for matrix (not MATRIX2D_LENGTH)
+   */
   public static double[] matrix2DTo3D(double[] matrix)
          throws VisADException {
     if (matrix.length != MATRIX2D_LENGTH) {
@@ -182,6 +259,12 @@ public abstract class ProjectionControl extends Control {
     return mat;
   }
 
+  /**
+   * Convert a 3D matrix to a 2D matrix, retaining the scale and aspect
+   * of the 3D matrix.
+   * @param matrix  3D matrix to convert
+   * @throws  VisADException  wrong length for matrix (not MATRIX3D_LENGTH)
+   */
   public static double[] matrix3DTo2D(double[] matrix)
          throws VisADException {
     if (matrix.length != MATRIX3D_LENGTH) {
@@ -198,6 +281,15 @@ public abstract class ProjectionControl extends Control {
     return mat;
   }
 
+  /**
+   * Convert a 3D matrix to a 2D matrix or vice-versa, retaining the scale 
+   * and aspect of the original matrix.  Helper interface to pass an unknown
+   * matrix to <CODE>matrix3DTo2D</CODE> or <CODE>matrix2DTo3D</CODE>.
+   * @see #matrix3DTo2D
+   * @see #matrix2DTo3D
+   * @param matrix  matrix to convert
+   * @throws  VisADException  wrong length for matrix (not MATRIX3D_LENGTH)
+   */
   public static double[] matrixDConvert(double[] matrix)
          throws VisADException {
     if (matrix.length == MATRIX3D_LENGTH) {
@@ -210,6 +302,7 @@ public abstract class ProjectionControl extends Control {
                                MATRIX3D_LENGTH + " or " + MATRIX2D_LENGTH);
   }
 
+  /** clear all 'pairs' in switches that involve re */
   public void clearSwitches(DataRenderer re) {
   }
 
@@ -236,7 +329,12 @@ public abstract class ProjectionControl extends Control {
     return true;
   }
 
-  /** copy the state of a remote control to this control */
+  /** 
+   * Copy the state of a remote control to this control 
+   * @param  rmt  remote control
+   * @throws VisADException  rmt is null or not a ProjectionControl or
+   *                         some other VisAD error
+   */
   public void syncControl(Control rmt)
         throws VisADException
   {
@@ -261,6 +359,12 @@ public abstract class ProjectionControl extends Control {
     }
   }
 
+  /**
+   * Check to see if the object in question is equal to this ProjectionControl.
+   * The two are equal if they are both ProjectionControls and their projection
+   * matrices are equal.
+   * @param o  object in question.
+   */
   public boolean equals(Object o)
   {
     if (!super.equals(o)) {
@@ -276,6 +380,10 @@ public abstract class ProjectionControl extends Control {
     return true;
   }
 
+  /**
+   * Create a clone of this ProjectionControl.
+   * @return  clone
+   */
   public Object clone()
   {
     ProjectionControl pc = (ProjectionControl )super.clone();
@@ -286,6 +394,10 @@ public abstract class ProjectionControl extends Control {
     return pc;
   }
 
+  /**
+   * A string representation of this ProjectionControl.
+   * @return human readable string that tells the properties of this control.
+   */
   public String toString()
   {
     StringBuffer buf = new StringBuffer("ProjectionControl[");

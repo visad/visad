@@ -54,16 +54,15 @@ public class ProjectionControlJ3D extends ProjectionControl {
   int which_child = 2; // initial view along Z axis (?)
 
   // DRM 6 Nov 2000
-  private double[] savedProjectionMatrix;   
-  /** View of the Postive X face of the display cube */
+  /** View of the postive X face of the display cube */
   public static final int X_PLUS = 0;
   /** View of the negative X face of the display cube */
   public static final int X_MINUS = 1;
-  /** View of the Postive Y face of the display cube */
+  /** View of the postive Y face of the display cube */
   public static final int Y_PLUS = 2;
   /** View of the negative Y face of the display cube */
   public static final int Y_MINUS = 3;
-  /** View of the Postive Z face of the display cube */
+  /** View of the postive Z face of the display cube */
   public static final int Z_PLUS = 4;
   /** View of the negative Z face of the display cube */
   public static final int Z_MINUS = 5;
@@ -198,29 +197,6 @@ System.out.println("which_child = " + which_child + "  " + dx +
   }
 
   /**
-   * Saves the current display 3-D to 2-D projection.  The projection may 
-   * later be restored by the method <code>resetProjection()</code>.
-   * @see #resetProjection()
-   */
-  public void saveProjection()
-  {
-    savedProjectionMatrix = getMatrix();
-  }
-
-  /**
-   * Restores to projection matrix at time of last <code>saveProjection()</code>
-   * call -- if one was made -- or to initial projection otherwise.
-   * @see #saveProjection()
-   * @throws VisADException   VisAD failure.
-   * @throws RemoteException  Java RMI failure.
-   */
-  public void resetProjection()
-    throws VisADException, RemoteException
-  {
-      setMatrix(savedProjectionMatrix);
-  }
-
-  /**
    * Set the projection so the requested view is displayed.
    * @param  view  one of the static view fields (X_PLUS, X_MINUS, etc).  This
    *               will set the view so the selected face is orthogonal to
@@ -264,7 +240,8 @@ System.out.println("which_child = " + which_child + "  " + dx +
           getDisplay().make_matrix(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
    }
-   setMatrix(getDisplay().multiply_matrix(viewMatrix, savedProjectionMatrix));
+   setMatrix(
+     getDisplay().multiply_matrix(viewMatrix, getSavedProjectionMatrix()));
  }
 
   /** SwitchProjection is an inner class of ProjectionControlJ3D for
