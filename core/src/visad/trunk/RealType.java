@@ -188,14 +188,7 @@ public class RealType extends ScalarType {
         case Data.MAX:
         case Data.MIN:
           if ( unit == null || thisUnit == null ) {
-            newUnit = null;
-            newName = "Generic_nullUnit";
-            try {
-              newType = new RealType( newName, newUnit, null );
-            }
-            catch ( TypeException e ) {
-              newType = RealType.getRealTypeByName( newName );
-            }
+            newType = this;
           }
           else if ( thisUnit.equals( CommonUnit.promiscuous ) ) {
             newType = type;
@@ -324,7 +317,12 @@ public class RealType extends ScalarType {
       case Data.ATAN_DEGREES:
         newUnit = CommonUnit.degree;
         newName = "Generic_"+newUnit.toString();
-        newType = new RealType( newName, newUnit, null );
+        try {
+          newType = new RealType( newName, newUnit, null );
+        }
+        catch ( TypeException e ) {
+          newType = RealType.getRealTypeByName( newName );
+        }
         break;
       case Data.COS:
       case Data.COS_DEGREES:
@@ -342,7 +340,13 @@ public class RealType extends ScalarType {
         else {
           newName = "Generic_"+newUnit.toString();
         }
-        newType = new RealType( newName, newUnit, null );
+
+        try {
+          newType = new RealType( newName, newUnit, null );
+        }
+        catch ( TypeException e ) {
+          newType = RealType.getRealTypeByName( newName );
+        }
         break;
       default:
         throw new ArithmeticException("RealType.binary: illegal operation");

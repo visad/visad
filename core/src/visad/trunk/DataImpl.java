@@ -223,7 +223,17 @@ public abstract class DataImpl extends ThingImpl
   /** unary operations */
   public Data unary(int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+    /*-  TDR June 1998
     throw new TypeException("DataImpl.unary");
+    */
+    MathType new_type = Type.unary( op );
+    return unary( op, new_type, sampling_mode, error_mode );
+  }
+  
+  /*- TDR June 1998  */
+  public Data unary( int op, MathType new_type, int sampling_mode, int error_mode )
+              throws VisADException, RemoteException {
+    throw new TypeException("DataImpl: unary");
   }
 
   /** a list of unary operations using default modes for

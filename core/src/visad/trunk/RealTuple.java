@@ -222,14 +222,29 @@ public class RealTuple extends Tuple {
     }
   }
 
+  /*-  TDR  July 1998
   public Data unary(int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+  */
+  public Data unary(int op, MathType new_type,
+                    int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    if ( new_type == null ) {
+      throw new TypeException("unary: new_type may not be null");
+    }
+
+    if ( !Type.equalsExceptName(new_type)) {
+      throw new TypeException("unary: new_type doesn't match return type");
+    }
+    RealTupleType RT_type= (RealTupleType)new_type;
+
     if (isMissing()) return new RealTuple((RealTupleType) Type);
     Real[] reals = new Real[tupleComponents.length];
     for (int j=0; j<tupleComponents.length; j++) {
-      reals[j] = (Real) tupleComponents[j].unary(op, sampling_mode, error_mode);
+      reals[j] = (Real) tupleComponents[j].unary(op, RT_type.getComponent(j), 
+                                                 sampling_mode, error_mode);
     }
-    return new RealTuple((RealTupleType) Type, reals, TupleCoordinateSystem);
+    return new RealTuple((RealTupleType) new_type, reals, TupleCoordinateSystem);
   }
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)

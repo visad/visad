@@ -506,8 +506,20 @@ public class FieldImpl extends FunctionImpl implements Field {
 
 
   /** return new Field with value 'op this' */
+  /*- TDR  July  1998 
   public Data unary(int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+  */
+  public Data unary(int op, MathType new_type, int sampling_mode, 
+                    int error_mode )
+              throws VisADException, RemoteException {
+    if ( new_type == null ) {
+      throw new TypeException("unary: new_type may not be null");
+    }
+    if ( !Type.equalsExceptName(new_type)) {
+      throw new TypeException("unary: new_type doesn't match return type");
+    }
+    MathType m_type = ((FunctionType)new_type).getRange();
     // create (initially missing) Field for return
     Field new_field = new FieldImpl((FunctionType) Type, DomainSet);
     if (isMissing()) return new_field;
@@ -516,7 +528,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     for (int i=0; i<Length; i++) {
       synchronized (Range) {
         range[i] = (Range[i] == null) ? null :
-                   Range[i].unary(op, sampling_mode, error_mode);
+                   Range[i].unary(op, m_type, sampling_mode, error_mode);
       }
     }
     new_field.setSamples(range, false);

@@ -178,6 +178,11 @@ public interface Data extends Thing {
   public abstract Data unary(int op, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 
+  /*- TDR June 1998  */
+  public abstract Data unary(int op, MathType new_type, int sampling_mode,
+                             int error_mode )
+         throws VisADException, RemoteException;
+
   /** a list of unary operations using default modes for
       sampling and error estimation */
   public abstract Data abs() throws VisADException, RemoteException;

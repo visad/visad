@@ -280,6 +280,17 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     }
     return AdaptedData.unary(op, sampling_mode, error_mode);
   }
+
+  /*- TDR July 1998  */
+  public Data unary(int op, MathType new_type, 
+                    int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteDataImpl.unary " +
+                                     "AdaptedData is null");
+    }
+    return AdaptedData.unary(op, new_type, sampling_mode, error_mode);
+  }
  
   /** a list of unary operations using default modes for
       sampling and error estimation */

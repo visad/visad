@@ -215,12 +215,28 @@ public class Tuple extends DataImpl {
     }
   }
 
+  /*- TDR  July 1998
   public Data unary(int op, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
-    if (isMissing()) return new Tuple((TupleType) Type);
+  */
+  public Data unary(int op, MathType new_type, 
+                    int sampling_mode, int error_mode)
+         throws VisADException, RemoteException {
+    if ( new_type == null ) {
+      throw new TypeException("unary: new_type may not be null");
+    }
+
+    if ( !Type.equalsExceptName( new_type )) {
+       throw new TypeException("unary: new_type doesn't match return type");
+    }
+    TupleType T_type = (TupleType)new_type;
+    
+    if (isMissing()) return new Tuple((TupleType) new_type);
+
     Data[] datums = new Data[tupleComponents.length];
     for (int j=0; j<tupleComponents.length; j++) {
-      datums[j] = tupleComponents[j].unary(op, sampling_mode, error_mode);
+      datums[j] = tupleComponents[j].unary(op, T_type.getComponent(j), 
+                                           sampling_mode, error_mode);
     }
     return new Tuple(datums);
   }

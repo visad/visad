@@ -1640,10 +1640,15 @@ public class FlatField extends FieldImpl {
 
 
   /** return new FlatField with value 'op this' */
-  public Data unary(int op, int sampling_mode, int error_mode)
+  public Data unary(int op, MathType new_type, int sampling_mode, int error_mode)
               throws VisADException {
     // use DoubleSet rather than RangeSet for intermediate computation results
     if (isMissing()) return cloneDouble();
+
+    /*- TDR July 1998  */
+    if ( new_type == null ) {
+      throw new TypeException("unary: new_type may not be null");
+    }
 
     double[][] values = unpackValues();
 
@@ -1908,7 +1913,10 @@ public class FlatField extends FieldImpl {
     }
 
     // create a FlatField for return
+    /*- TDR July 1998
     FlatField new_field = cloneDouble(units_out, errors_out);
+    */
+    FlatField new_field = cloneDouble(new_type, units_out, errors_out);
 
     new_field.packValues(values, false);
     // new_field.DoubleRange = values; 

@@ -293,10 +293,14 @@ public class Real extends Scalar {
 
   /** unary function on a Real; override some trig functions based
       on Unit; transcental functions destroy Unit */
-  public Data unary(int op, int sampling_mode, int error_mode)
+  public Data unary(int op, MathType new_type, int sampling_mode, int error_mode)
               throws VisADException {
     double value;
     Unit u;
+    /*- TDR  June 1998  */
+    if ( new_type == null ) {
+      throw new TypeException("unary: new_type may not be null");
+    }
     switch (op) {
       case ABS:
         value = Math.abs(Value);
@@ -398,10 +402,17 @@ public class Real extends Scalar {
         throw new ArithmeticException("Real.unary: illegal operation");
     }
     if (error_mode == NO_ERRORS || Error == null) {
+      /*- TDR June 1998
       return new Real(((RealType) Type), value, u, null);
+      */
+      return new Real((RealType) new_type, value, u, null);
     }
     else {
+      /*- TDR June 1998
       return new Real(((RealType) Type), value, u,
+                      new ErrorEstimate(value, u, op, Error, error_mode));
+      */
+      return new Real((RealType) new_type, value, u,
                       new ErrorEstimate(value, u, op, Error, error_mode));
     }
   }
