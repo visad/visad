@@ -761,7 +761,8 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
     // construct invisible starter set
     Gridded2DSet set1 =
-      new Gridded2DSet(xy, new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2);
+      // new Gridded2DSet(xy, new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2);
+      new Gridded2DSet(xy, new float[][] {{-1000.0f}, {-1000.0f}}, 1);
     Gridded2DSet[] sets = {set1};
     UnionSet set = new UnionSet(xy, sets);
 
@@ -854,7 +855,7 @@ class CurveDelete implements ActionListener {
       try {
         // Irregular2DSet new_set = DelaunayCustom.fill(set);
         Irregular2DSet new_set = DelaunayCustom.fillCheck(set, false);
-        if (new_set != null) {
+        if (new_set != null) { // avoid "data is null", but get vestage fill
           if (new_ref == null) {
             new_ref = new DataReferenceImpl("fill");
             ConstantMap[] cmaps = new ConstantMap[]
