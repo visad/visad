@@ -47,9 +47,9 @@ public class VisADLineArray extends VisADGeometryArray {
       }
     }
     float[] coordinates = new float[3 * count];
-    float[] colors = null;
+    byte[] colors = null;
     if (color_flag) {
-      colors = new float[3 * count];
+      colors = new byte[3 * count];
     }
     int k = 0;
     int m = 0;
@@ -59,9 +59,9 @@ public class VisADLineArray extends VisADGeometryArray {
         coordinates[k++] = c[j];
       }
       if (color_flag) {
-        c = arrays[i].colors;
+        byte[] b = arrays[i].colors;
         for (int j=0; j<3*arrays[i].vertexCount; j++) {
-          colors[m++] = c[j];
+          colors[m++] = b[j];
         }
       }
     }

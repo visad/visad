@@ -220,11 +220,11 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
       }
     }
 
-    float[][] range_select =
+    boolean[][] range_select =
       assembleSelect(display_values, 1, valueArrayLength,
                      valueToScalar, display);
 
-    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
+    if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       return false;
     }

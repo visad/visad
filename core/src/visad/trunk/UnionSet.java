@@ -228,7 +228,7 @@ public class UnionSet extends SampledSet {
   }
 
   /** create a 2-D GeometryArray from this Set and color_values */
-  public VisADGeometryArray make2DGeometry(float[][] color_values)
+  public VisADGeometryArray make2DGeometry(byte[][] color_values)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("UnionSet.make2DGeometry: " +
@@ -248,9 +248,9 @@ public class UnionSet extends SampledSet {
     int base = 0;
     for (int i=0; i<n; i++) {
       int len = Sets[i].Length;
-      float[][] c = null;
+      byte[][] c = null;
       if (color_values != null) {
-        c = new float[dim][len];
+        c = new byte[dim][len];
         for (int j=0; j<dim; j++) {
           for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
         }
@@ -268,7 +268,7 @@ public class UnionSet extends SampledSet {
   }
 
   /** create a 1-D GeometryArray from this Set and color_values */
-  public VisADGeometryArray make1DGeometry(float[][] color_values)
+  public VisADGeometryArray make1DGeometry(byte[][] color_values)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("UnionSet.make1DGeometry: " +
@@ -288,9 +288,9 @@ public class UnionSet extends SampledSet {
     int base = 0;
     for (int i=0; i<n; i++) {
       int len = Sets[i].Length;
-      float[][] c = null;
+      byte[][] c = null;
       if (color_values != null) {
-        c = new float[dim][len];
+        c = new byte[dim][len];
         for (int j=0; j<dim; j++) {
           for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];
         }
@@ -311,7 +311,7 @@ public class UnionSet extends SampledSet {
       and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval, float low,
                       float hi, float base, float[] fieldValues,
-                      float[][] color_values, boolean[] swap)
+                      byte[][] color_values, boolean[] swap)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new DisplayException("UnionSet.makeIsoLines: " +
@@ -331,7 +331,7 @@ public class UnionSet extends SampledSet {
     int kbase = 0;
     for (int i=0; i<n; i++) {
       int len = Sets[i].Length;
-      float[][] c = new float[dim][len];
+      byte[][] c = new byte[dim][len];
       float[] f = new float[len];
       for (int j=0; j<dim; j++) {
         for (int k=0; k<len; k++) c[j][k] = color_values[j][kbase + k];
@@ -354,7 +354,7 @@ public class UnionSet extends SampledSet {
   }
  
   public VisADGeometryArray makeIsoSurface(float isolevel,
-         float[] fieldValues, float[][] color_values)
+         float[] fieldValues, byte[][] color_values)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new DisplayException("UnionSet.makeIsoSurface: " +
@@ -375,7 +375,7 @@ public class UnionSet extends SampledSet {
     int base = 0;
     for (int i=0; i<n; i++) {
       int len = Sets[i].Length;
-      float[][] c = new float[dim][len];
+      byte[][] c = new byte[dim][len];
       float[] f = new float[len];
       for (int j=0; j<dim; j++) {
         for (int k=0; k<len; k++) c[j][k] = color_values[j][base + k];

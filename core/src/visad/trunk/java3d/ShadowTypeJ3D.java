@@ -180,7 +180,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
-                float[][] color_values) throws VisADException {
+                byte[][] color_values) throws VisADException {
     return ShadowType.makePointGeometry(spatial_values, color_values);
   }
 
@@ -236,8 +236,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                 int valueArrayLength, int[] valueToMap, Vector MapVector,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
-                float[][] spatial_values, float[][] color_values,
-                float[][] range_select, int index)
+                float[][] spatial_values, byte[][] color_values,
+                boolean[][] range_select, int index)
          throws VisADException, RemoteException {
     return ShadowType.assembleShape(display_values, valueArrayLength,
            valueToMap, MapVector, valueToScalar, display, default_values,
@@ -256,7 +256,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
                 Set domain_set, boolean allSpatial, boolean set_for_shape,
-                int[] spatialDimensions, float[][] range_select,
+                int[] spatialDimensions, boolean[][] range_select,
                 float[][] flow1_values, float[][] flow2_values,
                 float[] flowScale, boolean[] swap)
          throws VisADException, RemoteException {
@@ -273,7 +273,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                 float[][] flow2_values, float[] flowScale,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
-                float[] default_values, float[][] range_select)
+                float[] default_values, boolean[][] range_select)
          throws VisADException, RemoteException {
     ShadowType.assembleFlow(flow1_values, flow2_values, flowScale,
                       display_values, valueArrayLength, valueToScalar,
@@ -282,7 +282,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   public static VisADGeometryArray makeFlow(float[][] flow_values,
                 float flowScale, float[][] spatial_values,
-                float[][] color_values, float[][] range_select)
+                byte[][] color_values, boolean[][] range_select)
          throws VisADException {
     return ShadowType.makeFlow(flow_values, flowScale, spatial_values,
            color_values, range_select);
@@ -290,7 +290,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   public static VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
-                float[][] color_values, float[][] range_select)
+                byte[][] color_values, boolean[][] range_select)
          throws VisADException {
     return ShadowType.makeText(text_values, text_control, spatial_values,
                                color_values, range_select);
@@ -298,21 +298,23 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /** composite and transform color and Alpha DisplayRealType values
       from display_values, and return as (Red, Green, Blue, Alpha) */
-  public static float[][] assembleColor(float[][] display_values,
+  public static byte[][] assembleColor(float[][] display_values,
                 int valueArrayLength, int[] valueToScalar,
                 DisplayImpl display, float[] default_values,
-                float[][] range_select)
+                boolean[][] range_select, boolean[] single_missing)
          throws VisADException, RemoteException {
     return ShadowType.assembleColor(display_values, valueArrayLength,
-           valueToScalar, display, default_values, range_select);
+           valueToScalar, display, default_values, range_select,
+           single_missing);
   }
 
   /** return a composite of SelectRange DisplayRealType values from
       display_values, as 0.0 for select and Double.Nan for no select
       (these values can be added to other DisplayRealType values) */
-  public static float[][] assembleSelect(float[][] display_values, int domain_length,
-                                        int valueArrayLength, int[] valueToScalar,
-                                        DisplayImpl display) throws VisADException {
+  public static boolean[][] assembleSelect(float[][] display_values,
+                             int domain_length, int valueArrayLength,
+                             int[] valueToScalar, DisplayImpl display)
+         throws VisADException {
     return ShadowType.assembleSelect(display_values, domain_length,
            valueArrayLength, valueToScalar, display);
   }
@@ -336,12 +338,12 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];
     float[] flowScale = new float[2];
-    float[][] range_select = new float[1][];
+    boolean[][] range_select = new boolean[1][];
     assembleFlow(flow1_values, flow2_values, flowScale,
                  display_values, valueArrayLength, valueToScalar,
                  display, default_values, range_select);
  
-    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
+    if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       ensureNotEmpty(group);
       return false;
@@ -356,17 +358,18 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                     spatialDimensions, range_select,
                     flow1_values, flow2_values, flowScale, swap);
 
-    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
+    if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       ensureNotEmpty(group);
       return false;
     }
  
-    float[][] color_values =
+    boolean[] single_missing = {false, false, false, false};
+    byte[][] color_values =
       assembleColor(display_values, valueArrayLength, valueToScalar,
-                    display, default_values, range_select);
+                    display, default_values, range_select, single_missing);
  
-    if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
+    if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       ensureNotEmpty(group);
       return false;
@@ -377,9 +380,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       // only manage Spatial, Color and Alpha here
       // i.e., the 'dots'
  
+/* MEM_WLH
       if (color_values[0][0] != color_values[0][0] ||
           color_values[1][0] != color_values[1][0] ||
           color_values[2][0] != color_values[2][0]) {
+*/
+      if (single_missing[0] || single_missing[1] ||
+          single_missing[2]) {
         // System.out.println("single missing alpha");
         // a single missing color value, so render nothing
         ensureNotEmpty(group);
@@ -387,8 +394,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       }
       // put single color in appearance
       ColoringAttributes constant_color = new ColoringAttributes();
-      constant_color.setColor(color_values[0][0], color_values[1][0],
-                              color_values[2][0]);
+      constant_color.setColor(byteToFloat(color_values[0][0]),
+                              byteToFloat(color_values[1][0]),
+                              byteToFloat(color_values[2][0]));
 
       VisADGeometryArray array;
       GeometryArray geometry;

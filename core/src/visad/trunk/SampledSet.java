@@ -247,7 +247,7 @@ public abstract class SampledSet extends SimpleSet {
 
   /** create a 1-D GeometryArray from this Set and color_values;
       only used by Irregular3DSet and Gridded3DSet */
-  public VisADGeometryArray make1DGeometry(float[][] color_values)
+  public VisADGeometryArray make1DGeometry(byte[][] color_values)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("SampledSet.make1DGeometry: " +
@@ -281,7 +281,7 @@ public abstract class SampledSet extends SimpleSet {
       the Irregular3DSet implementation should resample to a
       Gridded3DSet and use Texture3D;
       only used by Irregular3DSet and Gridded3DSet */
-  public VisADGeometryArray make3DGeometry(float[][] color_values)
+  public VisADGeometryArray make3DGeometry(byte[][] color_values)
          throws VisADException {
     if (ManifoldDimension != 1) {
       throw new SetException("SampledSet.make1DGeometry: " +
@@ -292,7 +292,7 @@ public abstract class SampledSet extends SimpleSet {
 
   /** create a PointArray from this Set and color_values;
       can be applied to  ManifoldDimension = 1, 2 or 3 */
-  public VisADGeometryArray makePointGeometry(float[][] color_values)
+  public VisADGeometryArray makePointGeometry(byte[][] color_values)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("SampledSet.makePointGeometry: " +
@@ -307,14 +307,14 @@ public abstract class SampledSet extends SimpleSet {
   /** copy and transpose Samples (from this Set( and color_values
       into array; if color_length == 3 don't use color_values[3] */
   void setGeometryArray(VisADGeometryArray array, int color_length,
-                        float[][] color_values) throws VisADException {
+                        byte[][] color_values) throws VisADException {
     setGeometryArray(array, getSamples(false), color_length, color_values);
   }
 
   /** copy and transpose samples and color_values into array;
       if color_length == 3 don't use color_values[3] */
   static void setGeometryArray(VisADGeometryArray array, float[][] samples,
-                               int color_length, float[][] color_values)
+                               int color_length, byte[][] color_values)
        throws VisADException {
     if (samples == null || samples.length != 3) {
       throw new SetException("SampledSet.setGeometryArray: " +
@@ -334,7 +334,7 @@ public abstract class SampledSet extends SimpleSet {
     if (color_values != null) {
       color_length = Math.min(color_length, color_values.length);
       // MEM
-      float[] colors = new float[color_length * len];
+      byte[] colors = new byte[color_length * len];
       j = 0;
       if (color_length == 4) {
         for (int i=0; i<len; i++) {

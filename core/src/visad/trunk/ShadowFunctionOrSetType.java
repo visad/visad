@@ -23,6 +23,108 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+
+/*
+MEM - memory use reduction strategy:
+
+changes marked by MEM_WLH
+
+1. if (isTexture) no assembleSpatial  NOT NEEDED
+
+  but if (isTexture) then domain_values = null,
+  so spatial display_values[i] = null so assembleSpatial
+  does nothing (except construct a SingletonSet spatial_set)
+
+2. byte[][] assembleColor  DONE
+
+  this has a bad space / time tradeoff in makeIso*,
+  so create a boolean in GMC to choose between
+  (Irregular3DSet, Gridded3DSet) and their slower extensions
+
+3. after use, set  display_values[i] = null;  DONE
+
+  done in many ShadowType.assemble*  - marked by MEM_WLH
+
+4. don't fill arrays that won't get used
+
+  are there any of these ??
+
+5. replace getValues() by getFloats(false)
+  already done for getSamples
+
+6. assembleColors first  DONE
+
+7. boolean[] range_select
+
+8. in-line byteToFloat and floatToByte  DONE
+  VisADCanvasJ2D, Gridded3DSet, Irregular3DSet
+
+N. iso-surface computation uses:
+
+  Irregular3DSet.makeIsosurface:
+
+float[len] fieldValues
+float[3 or 4][len] auxValues (color_values)
+float[3][nvertex] fieldVertices
+float[3 or 4][nvertex] auxLevels
+int[1][npolygons][3 or 4] polyToVert
+int[1][nvertex][nverts[i]] vertToPoly
+
+int[Delan.Tri.length][4] polys
+int[Delan.NumEdges] globalToVertex
+float[DomainDimension][Delan.NumEdges] edgeInterp
+float[3 or 4][Delan.NumEdges] auxInterp
+
+
+
+
+  Gridded3DSet.makeIsoSurface:
+
+start with nvertex_estimate = 4 * npolygons + 100
+
+int[num_cubes] ptFLAG
+int[xdim_x_ydim_x_zdim] ptAUX
+int[num_cubes+1] pcube
+float[1][4 * npolygons] VX
+float[1][4 * npolygons] VY
+float[1][4 * npolygons] VZ
+float[3 or 4][nvet] color_temps
+float[3 or 4][len] cfloat
+int[7 * npolygons] Vert_f_Pol
+int[1][36 * npolygons] Pol_f_Vert
+
+  number of bytes = 268 (or 284) * npolygons +
+                    24 (or 28) * len
+
+isosurf:
+
+float[3][len] samples
+float[3 or 4][nvertex_estimate] tempaux
+
+  number of bytes = 48 (or 64) * npolygons +
+                    12 * len
+
+
+float[npolygons] NxA, NxB, NyA, NyB, NzA, NzB
+float[npolygons] Pnx, Pny, Pnz
+float[nvertex] NX, NY, NZ
+
+  number of bytes = 84 * npolygons
+
+make_normals:
+
+none
+
+
+  total number of bytes = 36 (or 40) * len +
+                          400 (to 432) * npolygons
+
+so if len = 0.5M and npolygons = 0.1M
+bytes = 20M + 43.2M = 63.2M
+
+*/
+
+
 package visad;
 
 import java.util.*;
@@ -38,9 +140,9 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
   ShadowRealTupleType Domain;
   ShadowType Range; // null for ShadowSetType
 
-  /** this is an array of ShadowRealType-s that are ShadowRealType
-      components of Range or ShadowRealType components of
-      ShadowRealTupleType components of Range;
+  /** RangeComponents is an array of ShadowRealType-s that are
+      ShadowRealType components of Range or ShadowRealType
+      components of ShadowRealTupleType components of Range;
       a non-ShadowRealType and non-ShadowTupleType Range is marked
       by null;
       components of a ShadowTupleType Range that are neither
@@ -491,7 +593,7 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
     float[] coordinates = null;
     float[] texCoords = null;
     float[] normals = null;
-    float[] colors = null;
+    byte[] colors = null;
     int data_width = 0;
     int data_height = 0;
     int texture_width = 1;
@@ -625,8 +727,8 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
       normals[10] = n1;
       normals[11] = n2;
 
-      colors = new float[12];
-      for (int i=0; i<12; i++) colors[i] = 0.5f;
+      colors = new byte[12];
+      for (int i=0; i<12; i++) colors[i] = (byte) 127;
 /*
 for (int i=0; i < 4; i++) {
   System.out.println("i = " + i + " texCoords = " + texCoords[2 * i] + " " +
@@ -644,6 +746,7 @@ for (int i=0; i < 4; i++) {
       domain_values = domain_set.getSamples(false);
 
       // convert values to default units (used in display)
+      // MEM & FREE
       domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
       // System.out.println("got domain_values: domain_length = " + domain_length);
 
@@ -679,8 +782,8 @@ for (int i=0; i < 4; i++) {
         //
   
         // map reference_values to appropriate DisplayRealType-s
-        // MEM
         ShadowRealType[] DomainReferenceComponents = getDomainReferenceComponents();
+        // MEM
         mapValues(display_values, reference_values, DomainReferenceComponents);
 /*
 for (int i=0; i<DomainReferenceComponents.length; i++) {
@@ -702,15 +805,15 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
 
       // get range_values for RealType and RealTupleType
       // components, in defaultUnits for RealType-s
-      // MEM
-      double[][] range_values = ((Field) data).getValues();
+      // MEM - may copy (in convertTuple)
+      float[][] range_values = ((Field) data).getFloats(false);
   
       // System.out.println("got range_values");
   
       if (range_values != null) {
         // map range_values to appropriate DisplayRealType-s
-        // MEM
         ShadowRealType[] RangeComponents = getRangeComponents();
+        // MEM
         mapValues(display_values, range_values, RangeComponents);
    
         // System.out.println("mapped range_values");
@@ -728,7 +831,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
           for (int i=0; i<refToComponent.length; i++) {
             int n = componentWithRef[i].getDimension();
             int start = refToComponent[i];
-            double[][] values = new double[n][];
+            float[][] values = new float[n][];
             for (int j=0; j<n; j++) values[j] = range_values[j + start];
             ShadowRealTupleType component_reference =
               componentWithRef[i].getReference();
@@ -747,7 +850,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                 ((Field) data).getRangeCoordinateSystem(componentIndex[i]);
             }
   
-            double[][] reference_values = null;
+            float[][] reference_values = null;
             if (range_coord_sys.length == 1) {
               // MEM
               reference_values =
@@ -757,8 +860,9 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                   range_coord_sys[0], range_units, null, values);
             }
             else {
-              reference_values = new double[n][domain_length];
-              double[][] temp = new double[n][1];
+              // MEM
+              reference_values = new float[n][domain_length];
+              float[][] temp = new float[n][1];
               for (int j=0; j<domain_length; j++) {
                 for (int k=0; k<n; k++) temp[k][0] = values[k][j];
                 temp =
@@ -827,12 +931,12 @@ System.out.println("Range is ShadowTupleType, text_values[0] = " +
     // get array that composites SelectRange components
     // range_select is null if all selected
     // MEM
-    float[][] range_select =
+    boolean[][] range_select =
       assembleSelect(display_values, domain_length, valueArrayLength,
                      valueToScalar, display);
 
     if (range_select[0] != null && range_select[0].length == 1 &&
-        range_select[0][0] != range_select[0][0]) {
+        !range_select[0][0]) {
       // single missing value in range_select[0], so render nothing
       return false;
     }
@@ -858,15 +962,35 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
 
       boolean pointMode = mode.getPointMode();
 
+
+      // MEM_WLH - this moved
+      boolean[] single_missing = {false, false, false, false};
+      // assemble an array of RGBA values
+      // MEM
+      byte[][] color_values =
+        assembleColor(display_values, valueArrayLength, valueToScalar,
+                      display, default_values, range_select,
+                      single_missing);
+ /*
+if (color_values != null) {
+  System.out.println("color_values.length = " + color_values.length +
+                     " color_values[0].length = " + color_values[0].length);
+  System.out.println(color_values[0][0] + " " + color_values[1][0] +
+                     " " + color_values[2][0]);
+}
+*/
+
+
       float[][] flow1_values = new float[3][];
       float[][] flow2_values = new float[3][];
       float[] flowScale = new float[2];
+      // MEM
       assembleFlow(flow1_values, flow2_values, flowScale,
                    display_values, valueArrayLength, valueToScalar,
                    display, default_values, range_select);
  
       if (range_select[0] != null && range_select[0].length == 1 &&
-          range_select[0][0] != range_select[0][0]) {
+          !range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
         return false;
       }
@@ -883,16 +1007,25 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       // flags for swapping rows and columns in contour labels
       boolean[] swap = {false, false, false};
 
-      // MEM
+      // MEM - but not if isTextureMap
       Set spatial_set = 
         assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
                         inherited_values, domain_set, Domain.getAllSpatial(),
                         anyContour, spatialDimensions, range_select,
                         flow1_values, flow2_values, flowScale, swap);
-
+/*
+System.out.println("assembleSpatial  (spatial_set == null) = " +
+  (spatial_set == null));
+if (spatial_set != null) {
+  System.out.println("spatial_set.length = " + spatial_set.getLength());
+}
+System.out.println("  spatial_values lengths = " + spatial_values[0].length +
+  " " + spatial_values[1].length + " " + spatial_values[2].length);
+System.out.println("  isTextureMap = " + isTextureMap);
+*/
       if (range_select[0] != null && range_select[0].length == 1 &&
-          range_select[0][0] != range_select[0][0]) {
+          !range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
         return false;
       }
@@ -904,12 +1037,15 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
  
       int spatial_length = Math.min(domain_length, spatial_values[0].length);
 
+/* MEM_WLH - move this up
+      boolean[] single_missing = {false, false, false, false};
       // assemble an array of RGBA values
       // MEM
-      float[][] color_values =
+      byte[][] color_values =
         assembleColor(display_values, valueArrayLength, valueToScalar,
-                      display, default_values, range_select);
-/*
+                      display, default_values, range_select,
+                      single_missing);
+
 if (color_values != null) {
   System.out.println("color_values.length = " + color_values.length +
                      " color_values[0].length = " + color_values[0].length);
@@ -917,8 +1053,9 @@ if (color_values != null) {
                      " " + color_values[2][0]);
 }
 */
+
       if (range_select[0] != null && range_select[0].length == 1 &&
-          range_select[0][0] != range_select[0][0]) {
+          !range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
         return false;
       }
@@ -935,17 +1072,23 @@ if (color_values != null) {
 
       // note alpha_length <= color_length
       if (alpha_length == 1) {
+/* MEM_WLH
         if (color_values[3][0] != color_values[3][0]) {
+*/
+        if (single_missing[3]) {
           // a single missing alpha value, so render nothing
           // System.out.println("single missing alpha");
           return false;
         }
         // System.out.println("single alpha " + color_values[3][0]);
         // constant alpha, so put it in appearance
+/* MEM_WLH
         if (color_values[3][0] > 0.999999f) {
+*/
+        if (color_values[3][0] == -1) {  // = 255 unsigned
           constant_alpha = 0.0f;
           // remove alpha from color_values
-          float[][] c = new float[3][];
+          byte[][] c = new byte[3][];
           c[0] = color_values[0];
           c[1] = color_values[1];
           c[2] = color_values[2];
@@ -959,12 +1102,12 @@ if (color_values != null) {
           broken alpha - put it back when alpha fixed
           constant_alpha =
             new TransparencyAttributes(TransparencyAttributes.NICEST,
-                                       1.0f - color_values[3][0]);
+                             1.0f - byteToFloat(color_values[3][0]));
    so expand constant alpha to variable alpha
    and note no alpha in Java2D:
 */
-          float v = color_values[3][0];
-          color_values[3] = new float[color_values[0].length];
+          byte v = color_values[3][0];
+          color_values[3] = new byte[color_values[0].length];
           for (int i=0; i<color_values[0].length; i++) {
             color_values[3][i] = v;
           }
@@ -977,7 +1120,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
 /*
         broken alpha - put it back when alpha fixed
         // remove alpha from color_values
-        float[][] c = new float[3][];
+        byte[][] c = new byte[3][];
         c[0] = color_values[0];
         c[1] = color_values[1];
         c[2] = color_values[2];
@@ -987,21 +1130,30 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
       if (color_length == 1) {
         if (spatialManifoldDimension == 1 ||
             shadow_api instanceof visad.java2d.ShadowTypeJ2D) {
+/* MEM_WLH
           if (color_values[0][0] != color_values[0][0] ||
               color_values[1][0] != color_values[1][0] ||
               color_values[2][0] != color_values[2][0]) {
+*/
+          if (single_missing[0] || single_missing[1] ||
+              single_missing[2]) {
             // System.out.println("single missing color");
             // a single missing color value, so render nothing
             return false;
           }
+/* MEM_WLH
           constant_color = new float[] {color_values[0][0], color_values[1][0],
                                         color_values[2][0]};
+*/
+          constant_color = new float[] {byteToFloat(color_values[0][0]),
+                                        byteToFloat(color_values[1][0]),
+                                        byteToFloat(color_values[2][0])};
           color_values = null; // in this case, alpha doesn't matter
         }
         else {
           // constant color doesn't work for surfaces in Java3D
           // because of lighting
-          float[][] c = new float[color_values.length][domain_length];
+          byte[][] c = new byte[color_values.length][domain_length];
           for (int i=0; i<color_values.length; i++) {
             for (int j=0; j<domain_length; j++) {
               c[i][j] = color_values[i][0];
@@ -1012,7 +1164,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
       } // end if (color_length == 1)
 
       if (range_select[0] != null && range_select[0].length == 1 &&
-          range_select[0][0] != range_select[0][0]) {
+          !range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
         return false;
       }
@@ -1033,7 +1185,7 @@ END MISSING TEST */
 
         //
         // TO_DO
-        // missing color_values and select_values
+        // missing color_values and range_select
         //
         // in Java3D:
         // NaN color component values are rendered as 1.0
@@ -1120,8 +1272,9 @@ END MISSING TEST */
                   int len = range_select[0].length;
                   if (len == 1 || display_values[i].length == 1) break;
                   for (int j=0; j<len; j++) {
-                    // range_select[0][j] is either 0.0f or Float.NaN -
-                    display_values[i][j] += range_select[0][j];
+                    if (!range_select[0][j]) {
+                      display_values[i][j] = Float.NaN;
+                    }
                   }
                 }
                 if (spatialManifoldDimension == 3) {
@@ -1193,11 +1346,11 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
           if (isTextureMap) {
             if (color_values == null) {
               // must be color_values array for texture mapping
-              color_values = new float[3][domain_length];
+              color_values = new byte[3][domain_length];
               for (int i=0; i<domain_length; i++) {
-                color_values[0][i] = constant_color[0];
-                color_values[1][i] = constant_color[1];
-                color_values[2][i] = constant_color[2];
+                color_values[0][i] = floatToByte(constant_color[0]);
+                color_values[1][i] = floatToByte(constant_color[1]);
+                color_values[2][i] = floatToByte(constant_color[2]);
               }
             }
             if (range_select[0] != null && range_select[0].length > 1) {
@@ -1209,28 +1362,28 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                 alpha = constant_alpha;
               }
               if (color_values.length < 4) {
-                float[][] c = new float[4][];
+                byte[][] c = new byte[4][];
                 c[0] = color_values[0];
                 c[1] = color_values[1];
                 c[2] = color_values[2];
-                c[3] = new float[len];
-                for (int i=0; i<len; i++) c[3][i] = alpha;
+                c[3] = new byte[len];
+                for (int i=0; i<len; i++) c[3][i] = floatToByte(alpha);
                 constant_alpha = Float.NaN;
                 color_values = c;
               }
               for (int i=0; i<len; i++) {
-                if (range_select[0][i] != range_select[0][i]) {
+                if (!range_select[0][i]) {
                   // make missing pixel invisible (transparent)
-                  color_values[3][i] = 0.0f;
+                  color_values[3][i] = 0;
                 }
               }
 */
               for (int i=0; i<len; i++) {
-                if (range_select[0][i] != range_select[0][i]) {
+                if (!range_select[0][i]) {
                   // make missing pixel black
-                  color_values[0][i] = 0.0f;
-                  color_values[1][i] = 0.0f;
-                  color_values[2][i] = 0.0f;
+                  color_values[0][i] = 0;
+                  color_values[1][i] = 0;
+                  color_values[2][i] = 0;
                 }
               }
             } // end if (range_select[0] != null)
@@ -1252,6 +1405,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                                         BufferedImage.TYPE_INT_ARGB);
               for (int j=0; j<data_height; j++) {
                 for (int i=0; i<data_width; i++) {
+/* MEM_WLH
                   r = (int) (color_values[0][k] * 255.0);
                   r = (r < 0) ? 0 : (r > 255) ? 255 : r;
                   g = (int) (color_values[1][k] * 255.0);
@@ -1260,6 +1414,15 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                   b = (b < 0) ? 0 : (b > 255) ? 255 : b;
                   a = (int) (color_values[3][k] * 255.0);
                   a = (a < 0) ? 0 : (a > 255) ? 255 : a;
+*/
+                  r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                                 color_values[0][k];
+                  g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                                 color_values[1][k];
+                  b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                                 color_values[2][k];
+                  a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
+                                                 color_values[3][k];
                   // image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
                   image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
                   k++;
@@ -1282,13 +1445,22 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                                         BufferedImage.TYPE_INT_ARGB);
               for (int j=0; j<data_height; j++) {
                 for (int i=0; i<data_width; i++) {
+/* MEM_WLH
                   r = (int) (color_values[0][k] * 255.0);
                   r = (r < 0) ? 0 : (r > 255) ? 255 : r;
                   g = (int) (color_values[1][k] * 255.0);
                   g = (g < 0) ? 0 : (g > 255) ? 255 : g;
                   b = (int) (color_values[2][k] * 255.0);
                   b = (b < 0) ? 0 : (b > 255) ? 255 : b;
+*/
+                  r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                                 color_values[0][k];
+                  g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                                 color_values[1][k];
+                  b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                                 color_values[2][k];
                   a = 255;
+
                   // image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
                   image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
                   k++;
@@ -1331,8 +1503,10 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             }
             for (int j=0; j<len; j++) {
               // range_select[0][j] is either 0.0f or Float.NaN -
-              // adding Float.NaN will move the point off the screen
-              spatial_values[0][j] += range_select[0][j];
+              // setting to Float.NaN will move points off the screen
+              if (!range_select[0][j]) {
+                spatial_values[0][j] = Float.NaN;
+              }
             }
             /* CTR: 13 Oct 1998 - call new makePointGeometry signature */
             array = makePointGeometry(spatial_values, color_values, true);
@@ -1420,7 +1594,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
         for (int i=0; i<domain_length; i++) {
           Object branch = shadow_api.makeBranch();
           if (range_select[0] == null || range_select[0].length == 1 ||
-              range_select[0][i] == range_select[0][i]) {
+              range_select[0][i]) {
             VisADGeometryArray array = null;
 
             float[][] sp = new float[3][1];
@@ -1434,7 +1608,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
               sp[1][0] = spatial_values[1][0];
               sp[2][0] = spatial_values[2][0];
             }
-            float[][] co = new float[3][1];
+            byte[][] co = new byte[3][1];
             if (color_values[0].length > 1) {
               co[0][0] = color_values[0][i];
               co[1][0] = color_values[1][i];
@@ -1445,7 +1619,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
               co[1][0] = color_values[1][0];
               co[2][0] = color_values[2][0];
             }
-            float[][] ra = {{0.0f}};
+            boolean[][] ra = {{true}};
 
             boolean anyShapeCreated = false;
             VisADGeometryArray[] arrays =
@@ -1456,7 +1630,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
               for (int j=0; j<arrays.length; j++) {
                 array = arrays[j];
                 shadow_api.addToGroup(branch, array, mode,
-                                    constant_alpha, constant_color);
+                                      constant_alpha, constant_color);
                 array = null;
 /* why null constant_alpha?
                 appearance = makeAppearance(mode, null, constant_color, geometry);
@@ -1493,7 +1667,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
               coordinates[2] = sp[2][0];
               array.coordinates = coordinates;
               if (color_values != null) {
-                colors = new float[3];
+                colors = new byte[3];
                 colors[0] = co[0][0];
                 colors[1] = co[1][0];
                 colors[2] = co[2][0];
@@ -1505,7 +1679,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
               // System.out.println("addChild " + i + " of " + domain_length);
             }
           }
-          else { // (range_select[0][i] != range_select[0][i])
+          else { // if (range_select[0][i])
 /* WLH 18 Aug 98
    empty BranchGroup or Shape3D may cause NullPointerException
    from Shape3DRetained.setLive
@@ -1547,7 +1721,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
 
       //
       // TO_DO
-      // SelectRange (use float[] range_select from assembleSelect),
+      // SelectRange (use boolean[][] range_select from assembleSelect),
       //   SelectValue, Animation
       // DataRenderer.isTransformControl temporary hack:
       // SelectRange.isTransform,
@@ -1595,7 +1769,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
       }
       for (int i=0; i<domain_length; i++) {
         if (range_select[0] == null || range_select[0].length == 1 ||
-            range_select[0][i] == range_select[0][i]) {
+            range_select[0][i]) {
           if (text_values != null && text_control != null) {
             shadow_api.setText(text_values[i], text_control);
           }
@@ -1626,7 +1800,7 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
                                              renderer);
           }
         }
-        else { // (range_select[0][i] != range_select[0][i])
+        else { // if (!range_select[0][i])
           if (control != null) {
             // add null BranchGroup as child to maintain order
             Object branch = shadow_api.makeBranch();

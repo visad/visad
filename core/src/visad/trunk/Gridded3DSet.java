@@ -1383,7 +1383,7 @@ public class Gridded3DSet extends GriddedSet {
       and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval,
                   float lowlimit, float highlimit, float base,
-                  float[] fieldValues, float[][] color_values,
+                  float[] fieldValues, byte[][] color_values,
                   boolean[] swap) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new DisplayException("Gridded3DSet.makeIsoLines: " +
@@ -1404,12 +1404,26 @@ public class Gridded3DSet extends GriddedSet {
     int maxv4 = maxv3;
 
     int color_length = (color_values != null) ? color_values.length : 0;
-    float[][] color_levels1 = null;
-    float[][] color_levels2 = null;
+    byte[][] color_levels1 = null;
+    byte[][] color_levels2 = null;
     if (color_length > 0) {
-      color_levels1 = new float[color_length][maxv1];
-      color_levels2 = new float[color_length][maxv2];
+      color_levels1 = new byte[color_length][maxv1];
+      color_levels2 = new byte[color_length][maxv2];
+/* MEM_WLH
+      cfloat = new float[color_values.length][];
+      for (int i = 0; i< color_values.length; i++) {
+        if (color_values[i] != null) {
+          cfloat[i] = new float[color_values[i].length];
+          for (int j=0; j<color_values[i].length; j++) {
+            int k = color_values[i][j];
+            if (k < 0) k += 256;
+            cfloat[i][j] = (k / 255.0f);
+          }
+        }
+      }
+*/
     }
+
     float[][] vx1 = new float[1][maxv1];
     float[][] vy1 = new float[1][maxv1];
     float[][] vx2 = new float[1][maxv2];
@@ -1433,12 +1447,28 @@ public class Gridded3DSet extends GriddedSet {
     vx1 = null;
     System.arraycopy(vy1[0], 0, grid1[1], 0, numv1[0]);
     vy1 = null;
+
     if (color_length > 0) {
-      float[][] a = new float[color_length][numv1[0]];
+      byte[][] a = new byte[color_length][numv1[0]];
       for (int i=0; i<color_length; i++) {
         System.arraycopy(color_levels1[i], 0, a[i], 0, numv1[0]);
       }
       color_levels1 = a;
+/* MEM_WLH
+      c1 = new byte[color_levels1.length][];
+      for (int i = 0; i< color_levels1.length; i++) {
+        if (color_levels1[i] != null) {
+          c1[i] = new byte[color_levels1[i].length];
+          for (int j=0; j<color_levels1[i].length; j++) {
+            int k = (int) (color_levels1[i][j] * 255.0);
+            k = (k < 0) ? 0 : (k > 255) ? 255 : k;
+            c1[i][j] = (byte) ((k < 128) ? k : k - 256);
+          }
+        }
+      }
+      // FREE
+      color_levels1 = null;
+*/
     }
 
     float[][] grid2 = new float[2][numv2[0]];
@@ -1446,12 +1476,28 @@ public class Gridded3DSet extends GriddedSet {
     vx2 = null;
     System.arraycopy(vy2[0], 0, grid2[1], 0, numv2[0]);
     vy2 = null;
+
     if (color_length > 0) {
-      float[][] a = new float[color_length][numv2[0]];
+      byte[][] a = new byte[color_length][numv2[0]];
       for (int i=0; i<color_length; i++) {
         System.arraycopy(color_levels2[i], 0, a[i], 0, numv2[0]);
       }
       color_levels2 = a;
+/* MEM_WLH
+      c2 = new byte[color_levels2.length][];
+      for (int i = 0; i< color_levels2.length; i++) {
+        if (color_levels2[i] != null) {
+          c2[i] = new byte[color_levels2[i].length];
+          for (int j=0; j<color_levels2[i].length; j++) {
+            int k = (int) (color_levels2[i][j] * 255.0);
+            k = (k < 0) ? 0 : (k > 255) ? 255 : k;
+            c2[i][j] = (byte) ((k < 128) ? k : k - 256);
+          }
+        }
+      }
+      // FREE
+      color_levels2 = null;
+*/
     }
 
     // temporary label orientation hack
@@ -1490,12 +1536,10 @@ public class Gridded3DSet extends GriddedSet {
     arrays[0] = new VisADLineArray();
     setGeometryArray(arrays[0], gridToValue(grid1), 3, color_levels1);
     grid1 = null;
-    color_levels1 = null;
 
     arrays[1] = new VisADLineArray();
     setGeometryArray(arrays[1], gridToValue(grid2), 3, color_levels2);
     grid2 = null;
-    color_levels2 = null;
 
     arrays[2] = new VisADLineArray();
     setGeometryArray(arrays[2], gridToValue(grid_label), 0, null);
@@ -1912,7 +1956,7 @@ public class Gridded3DSet extends GriddedSet {
 
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
-                float[] fieldValues, float[][] color_values)
+                float[] fieldValues, byte[][] color_values)
          throws VisADException {
     boolean debug = false;
 
@@ -1965,9 +2009,22 @@ public class Gridded3DSet extends GriddedSet {
     float[][] VY = new float[1][nvertex_estimate];
     float[][] VZ = new float[1][nvertex_estimate];
 
-    float[][] color_temps = null;
+    byte[][] color_temps = null;
     if (color_values != null) {
-      color_temps = new float[color_values.length][];
+      color_temps = new byte[color_values.length][];
+/* MEM_WLH
+      cfloat = new float[color_values.length][];
+      for (int t = 0; t< color_values.length; t++) {
+        if (color_values[t] != null) {
+          cfloat[t] = new float[color_values[t].length];
+          for (int j=0; j<color_values[t].length; j++) {
+            int k = color_values[t][j];
+            if (k < 0) k += 256;
+            cfloat[t][j] = (k / 255.0f);
+          }
+        }
+      }
+*/
     }
 
     int[] Pol_f_Vert = new int[ix];
@@ -2000,15 +2057,25 @@ for (int j=0; j<nvertex; j++) {
     VY = null;
     VZ = null;
 
-    float[][] color_levels = null;
+    byte[][] color_levels = null;
     if (color_values != null) {
-      color_levels = new float[color_values.length][nvertex];
+      color_levels = new byte[color_values.length][nvertex];
       System.arraycopy(color_temps[0], 0, color_levels[0], 0, nvertex);
       System.arraycopy(color_temps[1], 0, color_levels[1], 0, nvertex);
       System.arraycopy(color_temps[2], 0, color_levels[2], 0, nvertex);
       if (color_temps.length > 3) {
         System.arraycopy(color_temps[3], 0, color_levels[3], 0, nvertex);
       }
+/* MEM_WLH
+      color_levels = new byte[color_values.length][nvertex];
+      for (int t=0; t<color_values.length; t++) {
+        for (int j=0; j<nvertex; j++) {
+          int k = (int) (color_temps[t][j] * 255.0);
+          k = (k < 0) ? 0 : (k > 255) ? 255 : k;
+          color_levels[t][j] = (byte) ((k < 128) ? k : k - 256);
+        }
+      }
+*/
       // take the garbage out
       color_temps = null;
     }
@@ -2268,7 +2335,7 @@ for (int j=0; j<nvertex; j++) {
   private int isosurf( float isovalue, int[] ptFLAG, int nvertex_estimate,
                        int npolygons, float[] ptGRID, int xdim, int ydim,
                        int zdim, float[][] VX, float[][] VY, float[][] VZ,
-                       float[][] auxValues, float[][] auxLevels,
+                       byte[][] auxValues, byte[][] auxLevels,
                        int[][] Pol_f_Vert, int[] Vert_f_Pol )
           throws VisADException {
 
@@ -2294,6 +2361,8 @@ for (int j=0; j<nvertex; j++) {
     int xdim_x_ydim = xdim*ydim;
     int nvet;
  
+    int t;
+
     float[][] samples = getSamples(false);
 
     int naux = (auxValues != null) ? auxValues.length : 0;
@@ -2317,7 +2386,7 @@ for (int j=0; j<nvertex; j++) {
     }
 
     // temporary storage of auxLevels structure
-    float[][] tempaux = (naux > 0) ? new float[naux][nvertex_estimate] : null;
+    byte[][] tempaux = (naux > 0) ? new byte[naux][nvertex_estimate] : null;
 
     bellow = rear = 0;  above = front = 1;
 
@@ -2370,20 +2439,20 @@ for (int j=0; j<nvertex; j++) {
                           nvertex_estimate = 2 * (nvet + 12);
                           if (naux > 0) {
                             for (int i=0; i<naux; i++) {
-                              float[] t = tempaux[i];
-                              tempaux[i] = new float[nvertex_estimate];
-                              System.arraycopy(t, 0, tempaux[i], 0, nvet);
+                              byte[] tt = tempaux[i];
+                              tempaux[i] = new byte[nvertex_estimate];
+                              System.arraycopy(tt, 0, tempaux[i], 0, nvet);
                             }
                           }
-                          float[] t = VX[0];
+                          float[] tt = VX[0];
                           VX[0] = new float[nvertex_estimate];
-                          System.arraycopy(t, 0, VX[0], 0, t.length);
-                          t = VY[0];
+                          System.arraycopy(tt, 0, VX[0], 0, tt.length);
+                          tt = VY[0];
                           VY[0] = new float[nvertex_estimate];
-                          System.arraycopy(t, 0, VY[0], 0, t.length);
-                          t = VZ[0];
+                          System.arraycopy(tt, 0, VY[0], 0, tt.length);
+                          tt = VZ[0];
                           VZ[0] = new float[nvertex_estimate];
-                          System.arraycopy(t, 0, VZ[0], 0, t.length);
+                          System.arraycopy(tt, 0, VZ[0], 0, tt.length);
                           int big_ix = 9 * (nvertex_estimate + 50);
                           int[] it = Pol_f_Vert[0];
                           Pol_f_Vert[0] = new int[big_ix];
@@ -2452,8 +2521,18 @@ for (int j=0; j<nvertex; j++) {
              VZ[0][nvet] = (float) cp * samples[2][pt + ydim] + (1.0f-cp) * samples[2][pt];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt] < 0) ?
+                     ((float) auxValues[j][pt]) + 256.0f :
+                     ((float) auxValues[j][pt]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim] +
                                   (1.0f-cp) * auxValues[j][pt];
+*/
              }
 
              calc_edge[1] = nvet;
@@ -2478,8 +2557,18 @@ for (int j=0; j<nvertex; j++) {
              VZ[0][nvet] = (float) cp * samples[2][pt + 1] + (1.0f-cp) * samples[2][pt];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + 1] < 0) ?
+                     ((float) auxValues[j][pt + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + 1]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt] < 0) ?
+                     ((float) auxValues[j][pt]) + 256.0f :
+                     ((float) auxValues[j][pt]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1] +
                                   (1.0f-cp) * auxValues[j][pt];
+*/
              }
 
              calc_edge[2] = nvet;
@@ -2507,8 +2596,18 @@ for (int j=0; j<nvertex; j++) {
                         (1.0f-cp) * samples[2][pt];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt] < 0) ?
+                     ((float) auxValues[j][pt]) + 256.0f :
+                     ((float) auxValues[j][pt]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + xdim_x_ydim] +
                                   (1.0f-cp) * auxValues[j][pt];
+*/
              }
 
              calc_edge[3] = nvet;
@@ -2536,8 +2635,18 @@ for (int j=0; j<nvertex; j++) {
                         (1.0f-cp) * samples[2][pt + ydim];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
+                     ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim + 1]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
                                   (1.0f-cp) * auxValues[j][pt + ydim];
+*/
              }
 
              calc_edge[4] = nvet;
@@ -2566,8 +2675,18 @@ for (int j=0; j<nvertex; j++) {
                         (1.0f-cp) * samples[2][pt + ydim];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
                                   (1.0f-cp) * auxValues[j][pt + ydim];
+*/
              }
 
              calc_edge[5] = nvet;
@@ -2596,8 +2715,18 @@ for (int j=0; j<nvertex; j++) {
                         (1.0f-cp) * samples[2][pt + 1];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
+                     ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim + 1]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + 1] < 0) ?
+                     ((float) auxValues[j][pt + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + 1]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
                                   (1.0f-cp) * auxValues[j][pt + 1];
+*/
              }
 
              calc_edge[6] = nvet;
@@ -2626,8 +2755,18 @@ for (int j=0; j<nvertex; j++) {
                         (1.0f-cp) * samples[2][pt + 1];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + 1] < 0) ?
+                     ((float) auxValues[j][pt + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + 1]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
                                   (1.0f-cp) * auxValues[j][pt + 1];
+*/
              }
 
              calc_edge[7] = nvet;
@@ -2652,8 +2791,18 @@ for (int j=0; j<nvertex; j++) {
                     (1.0f-cp) * samples[2][pt + ydim + 1];
 
          for (int j=0; j<naux; j++) {
+           t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+               (1.0f - cp) * ((auxValues[j][pt + ydim + 1] < 0) ?
+                 ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                 ((float) auxValues[j][pt + ydim + 1]) ) );
+           tempaux[j][nvet] = (byte)
+             ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
            tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
                               (1.0f-cp) * auxValues[j][pt + ydim + 1];
+*/
          }
 
          calc_edge[8] = nvet;
@@ -2681,8 +2830,18 @@ for (int j=0; j<nvertex; j++) {
                         (1.0f-cp) * samples[2][pt + xdim_x_ydim];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + xdim_x_ydim]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
                                   (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+*/
              }
 
              calc_edge[9] = nvet;
@@ -2711,8 +2870,18 @@ for (int j=0; j<nvertex; j++) {
                         (1.0f-cp) * samples[2][pt + xdim_x_ydim];
 
              for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + xdim_x_ydim]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
                                   (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+*/
              }
 
              calc_edge[10] = nvet;
@@ -2737,8 +2906,18 @@ for (int j=0; j<nvertex; j++) {
                     (1.0f-cp) * samples[2][pt + ydim + xdim_x_ydim];
 
          for (int j=0; j<naux; j++) {
+           t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+               (1.0f - cp) * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) );
+           tempaux[j][nvet] = (byte)
+             ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
            tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
                               (1.0f-cp) * auxValues[j][pt + ydim + xdim_x_ydim];
+*/
          }
 
          calc_edge[11] = nvet;
@@ -2762,8 +2941,18 @@ for (int j=0; j<nvertex; j++) {
                     (1.0f-cp) * samples[2][pt + 1 + xdim_x_ydim];
 
          for (int j=0; j<naux; j++) {
+           t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+               (1.0f - cp) * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) );
+           tempaux[j][nvet] = (byte)
+             ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
            tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
                               (1.0f-cp) * auxValues[j][pt + 1 + xdim_x_ydim];
+*/
          }
 
          calc_edge[12] = nvet;
@@ -2817,8 +3006,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * Samples[2][pt + ydim];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
+                      ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + 1]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
                                    (1.0f-cp) * auxValues[j][pt + ydim];
+*/
               }
 
               P_array[ 2*xx + bellow*yy + iy*xdim + (ix+1) ] = nvet;
@@ -2849,8 +3048,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * samples[2][pt + ydim];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
                                    (1.0f-cp) * auxValues[j][pt + ydim];
+*/
               }
 
               P_array[ 2*xx + 2*yy + front*zz + iy ] = nvet;
@@ -2881,8 +3090,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * samples[2][pt + 1];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
+                      ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + 1]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + 1] < 0) ?
+                      ((float) auxValues[j][pt + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + 1]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
                                    (1.0f-cp) * auxValues[j][pt + 1];
+*/
               }
 
               P_array[ bellow*xx + ix*ydim + (iy+1) ] = nvet;
@@ -2913,8 +3132,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * samples[2][pt + 1];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + 1] < 0) ?
+                      ((float) auxValues[j][pt + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + 1]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
                                    (1.0f-cp) * auxValues[j][pt + 1];
+*/
               }
 
               P_array[ 2*xx + 2*yy + rear*zz + (iy+1) ] = nvet;
@@ -2945,8 +3174,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * samples[2][pt + ydim + 1];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + ydim + 1] < 0) ?
+                      ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + 1]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
                                    (1.0f-cp) * auxValues[j][pt + ydim + 1];
+*/
               }
 
               P_array[ 2*xx + 2*yy + front*zz + (iy+1) ] = nvet;
@@ -2977,8 +3216,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * samples[2][pt + xdim_x_ydim];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + xdim_x_ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
                                    (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+*/
               }
 
               P_array[ above*xx + ix*ydim + iy ] = nvet;
@@ -3009,8 +3258,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * samples[2][pt + xdim_x_ydim];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + xdim_x_ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
                                    (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+*/
               }
 
               P_array[ 2*xx + above*yy + iy*xdim + ix ] = nvet;
@@ -3041,8 +3300,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * samples[2][pt + ydim + xdim_x_ydim];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
                                    (1.0f-cp) * auxValues[j][pt + ydim + xdim_x_ydim];
+*/
               }
 
               P_array[ 2*xx + above*yy + iy*xdim + (ix+1) ] = nvet;
@@ -3073,8 +3342,18 @@ for (int j=0; j<nvertex; j++) {
                          (1.0f-cp) * samples[2][pt + 1 + xdim_x_ydim];
 
               for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
                                    (1.0f-cp) * auxValues[j][pt + 1 + xdim_x_ydim];
+*/
               }
 
               P_array[ above*xx + ix*ydim + (iy+1) ] = nvet;
@@ -3105,7 +3384,7 @@ for (int j=0; j<nvertex; j++) {
 
     // copy tempaux array into auxLevels array
     for (int i=0; i<naux; i++) {
-      auxLevels[i] = new float[nvet];
+      auxLevels[i] = new byte[nvet];
       System.arraycopy(tempaux[i], 0, auxLevels[i], 0, nvet);
     }
 
@@ -3437,7 +3716,7 @@ for (int j=0; j<nvertex; j++) {
   }
 
   /** create a 2-D GeometryArray from this Set and color_values */
-  public VisADGeometryArray make2DGeometry(float[][] color_values)
+  public VisADGeometryArray make2DGeometry(byte[][] color_values)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("Gridded3DSet.make2DGeometry: " +

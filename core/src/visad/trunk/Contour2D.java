@@ -76,8 +76,8 @@ public class Contour2D extends Applet implements MouseListener {
                       float vx2[][], float vy2[][],  int maxv2, int[] numv2,
                       float vx3[][], float vy3[][],  int maxv3, int[] numv3,
                       float vx4[][], float vy4[][],  int maxv4, int[] numv4,
-                      float[][] auxValues, float[][] auxLevels1,
-                      float[][] auxLevels2, boolean[] swap )
+                      byte[][] auxValues, byte[][] auxLevels1,
+                      byte[][] auxLevels2, boolean[] swap )
                           throws VisADException {
     PlotDigits plot = new PlotDigits();
     int ir, ic;
@@ -94,7 +94,9 @@ public class Contour2D extends Applet implements MouseListener {
     int nump, ip;
     int numv;
 
-    float[][] auxLevels = null;
+    int t;
+
+    byte[][] auxLevels = null;
     int naux = (auxValues != null) ? auxValues.length : 0;
     if (naux > 0) {
       if (auxLevels1 == null || auxLevels1.length != naux ||
@@ -108,7 +110,7 @@ public class Contour2D extends Applet implements MouseListener {
                                 +"auxValues lengths don't match");
         }
       }
-      auxLevels = new float[naux][maxsize];
+      auxLevels = new byte[naux][maxsize];
     }
     else {
       if (auxLevels1 != null || auxLevels2 != null) {
@@ -215,15 +217,15 @@ public class Contour2D extends Applet implements MouseListener {
         // test for missing
         if (gd != gd) continue;
 
-        float[] auxa = null;
-        float[] auxb = null;
-        float[] auxc = null;
-        float[] auxd = null;
+        byte[] auxa = null;
+        byte[] auxb = null;
+        byte[] auxc = null;
+        byte[] auxd = null;
         if (naux > 0) {
-          auxa = new float[naux];
-          auxb = new float[naux];
-          auxc = new float[naux];
-          auxd = new float[naux];
+          auxa = new byte[naux];
+          auxb = new byte[naux];
+          auxc = new byte[naux];
+          auxd = new byte[naux];
           for (int i=0; i<naux; i++) {
             auxa[i] = auxValues[i][(ic) * nr + (ir)];
             auxb[i] = auxValues[i][(ic) * nr + (ir+1)];
@@ -272,9 +274,9 @@ public class Contour2D extends Applet implements MouseListener {
           if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
             // allocate more space
             maxsize = 2 * maxsize;
-            int[] t = ipnt;
+            int[] tt = ipnt;
             ipnt = new int[2 * maxsize];
-            System.arraycopy(t, 0, ipnt, 0, nump);
+            System.arraycopy(tt, 0, ipnt, 0, nump);
             float[] tx = vx;
             float[] ty = vy;
             vx = new float[maxsize];
@@ -282,8 +284,8 @@ public class Contour2D extends Applet implements MouseListener {
             System.arraycopy(tx, 0, vx, 0, numv);
             System.arraycopy(ty, 0, vy, 0, numv);
             if (naux > 0) {
-              float[][] ta = auxLevels;
-              auxLevels = new float[naux][maxsize];
+              byte[][] ta = auxLevels;
+              auxLevels = new byte[naux][maxsize];
               for (int i=0; i<naux; i++) {
                 System.arraycopy(ta[i], 0, auxLevels[i], 0, numv);
               }
@@ -394,8 +396,22 @@ public class Contour2D extends Applet implements MouseListener {
                 float ratioba = (gg-ga)/gba;
                 float ratioca = (gg-ga)/gca;
                 for (int i=0; i<naux; i++) {
+                  t = (int) ( (1.0f - ratioba) * ((auxa[i] < 0) ?
+                        ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                      ratioba * ((auxb[i] < 0) ?
+                        ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) );
+                  auxLevels[i][numv] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                  t = (int) ( (1.0f - ratioca) * ((auxa[i] < 0) ?
+                        ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                      ratioca * ((auxc[i] < 0) ?
+                        ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                  auxLevels[i][numv+1] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                   auxLevels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
                   auxLevels[i][numv+1] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+*/
                 }
               }
 
@@ -425,8 +441,22 @@ public class Contour2D extends Applet implements MouseListener {
                 float ratioba = (gg-ga)/gba;
                 float ratiodb = (gg-gb)/gdb;
                 for (int i=0; i<naux; i++) {
+                  t = (int) ( (1.0f - ratioba) * ((auxa[i] < 0) ?
+                        ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                      ratioba * ((auxb[i] < 0) ?
+                        ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) );
+                  auxLevels[i][numv] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                  t = (int) ( (1.0f - ratiodb) * ((auxb[i] < 0) ?
+                        ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) +
+                      ratiodb * ((auxd[i] < 0) ?
+                        ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                  auxLevels[i][numv+1] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                   auxLevels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
                   auxLevels[i][numv+1] = auxb[i] + (auxd[i]-auxb[i]) * ratiodb;
+*/
                 }
               }
 
@@ -452,8 +482,22 @@ public class Contour2D extends Applet implements MouseListener {
                 float ratioca = (gg-ga)/gca;
                 float ratiodb = (gg-gb)/gdb;
                 for (int i=0; i<naux; i++) {
+                  t = (int) ( (1.0f - ratioca) * ((auxa[i] < 0) ?
+                        ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                      ratioca * ((auxc[i] < 0) ?
+                        ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                  auxLevels[i][numv] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                  t = (int) ( (1.0f - ratiodb) * ((auxb[i] < 0) ?
+                        ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) +
+                      ratiodb * ((auxd[i] < 0) ?
+                        ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                  auxLevels[i][numv+1] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                   auxLevels[i][numv] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
                   auxLevels[i][numv+1] = auxb[i] + (auxd[i]-auxb[i]) * ratiodb;
+*/
                 }
               }
 
@@ -479,8 +523,22 @@ public class Contour2D extends Applet implements MouseListener {
                 float ratioca = (gg-ga)/gca;
                 float ratiodc = (gg-gc)/gdc;
                 for (int i=0; i<naux; i++) {
+                  t = (int) ( (1.0f - ratioca) * ((auxa[i] < 0) ?
+                        ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                      ratioca * ((auxc[i] < 0) ?
+                        ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                  auxLevels[i][numv] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                  t = (int) ( (1.0f - ratiodc) * ((auxc[i] < 0) ?
+                        ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) +
+                      ratiodc * ((auxd[i] < 0) ?
+                        ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                  auxLevels[i][numv+1] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                   auxLevels[i][numv] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
                   auxLevels[i][numv+1] = auxc[i] + (auxd[i]-auxc[i]) * ratiodc;
+*/
                 }
               }
 
@@ -506,8 +564,22 @@ public class Contour2D extends Applet implements MouseListener {
                 float ratioba = (gg-ga)/gba;
                 float ratiodc = (gg-gc)/gdc;
                 for (int i=0; i<naux; i++) {
+                  t = (int) ( (1.0f - ratioba) * ((auxa[i] < 0) ?
+                        ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                      ratioba * ((auxb[i] < 0) ?
+                        ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) );
+                  auxLevels[i][numv] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                  t = (int) ( (1.0f - ratiodc) * ((auxc[i] < 0) ?
+                        ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) +
+                      ratiodc * ((auxd[i] < 0) ?
+                        ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                  auxLevels[i][numv+1] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                   auxLevels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
                   auxLevels[i][numv+1] = auxc[i] + (auxd[i]-auxc[i]) * ratiodc;
+*/
                 }
               }
 
@@ -537,16 +609,60 @@ public class Contour2D extends Applet implements MouseListener {
                 float ratioca = (gg-ga)/gca;
                 float ratiodb = (gg-gb)/gdb;
                 for (int i=0; i<naux; i++) {
+                  t = (int) ( (1.0f - ratioba) * ((auxa[i] < 0) ?
+                        ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                      ratioba * ((auxb[i] < 0) ?
+                        ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) );
+                  auxLevels[i][numv] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                   auxLevels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
+*/
                   if ( (gg>gv) ^ (ga<gb) ) {
+                    t = (int) ( (1.0f - ratioca) * ((auxa[i] < 0) ?
+                          ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                        ratioca * ((auxc[i] < 0) ?
+                          ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                    auxLevels[i][numv+1] = (byte)
+                      ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256)));
+                    t = (int) ( (1.0f - ratiodb) * ((auxb[i] < 0) ?
+                          ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) +
+                        ratiodb * ((auxd[i] < 0) ?
+                          ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                    auxLevels[i][numv+2] = (byte)
+                      ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256)));
+/* MEM_WLH
                     auxLevels[i][numv+1] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
                     auxLevels[i][numv+2] = auxb[i] + (auxd[i]-auxb[i]) * ratiodb;
+*/
                   }
                   else {
+                    t = (int) ( (1.0f - ratiodb) * ((auxb[i] < 0) ?
+                          ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) +
+                        ratiodb * ((auxd[i] < 0) ?
+                          ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                    auxLevels[i][numv+1] = (byte)
+                      ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256)));
+                    t = (int) ( (1.0f - ratioca) * ((auxa[i] < 0) ?
+                          ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                        ratioca * ((auxc[i] < 0) ?
+                          ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                    auxLevels[i][numv+2] = (byte)
+                      ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256)));
+/* MEM_WLH
                     auxLevels[i][numv+1] = auxb[i] + (auxd[i]-auxb[i]) * ratiodb;
                     auxLevels[i][numv+2] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+*/
                   }
+                  t = (int) ( (1.0f - ratiodc) * ((auxc[i] < 0) ?
+                        ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) +
+                      ratiodc * ((auxd[i] < 0) ?
+                        ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                  auxLevels[i][numv+3] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                   auxLevels[i][numv+3] = auxc[i] + (auxd[i]-auxc[i]) * ratiodc;
+*/
                 }
               }
 
@@ -601,8 +717,22 @@ public class Contour2D extends Applet implements MouseListener {
                 float ratiodb = (gg-gb)/gdb;
                 float ratiodc = (gg-gc)/gdc;
                 for (int i=0; i<naux; i++) {
+                  t = (int) ( (1.0f - ratiodb) * ((auxb[i] < 0) ?
+                        ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) +
+                      ratiodb * ((auxd[i] < 0) ?
+                        ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                  auxLevels[i][numv] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                  t = (int) ( (1.0f - ratiodc) * ((auxc[i] < 0) ?
+                        ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) +
+                      ratiodc * ((auxd[i] < 0) ?
+                        ((float) auxd[i]) + 256.0f : ((float) auxd[i]) ) );
+                  auxLevels[i][numv+1] = (byte)
+                    ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                   auxLevels[i][numv] = auxb[i] + (auxb[i]-auxb[i]) * ratiodb;
                   auxLevels[i][numv+1] = auxc[i] + (auxd[i]-auxc[i]) * ratiodc;
+*/
                 }
               }
 
@@ -662,8 +792,8 @@ public class Contour2D extends Applet implements MouseListener {
               System.arraycopy(ty[0], 0, vy2[0], 0, numv2[0]);
               if (naux > 0) {
                 for (int i=0; i<naux; i++) {
-                  float[] ta = auxLevels2[i];
-                  auxLevels2[i] = new float[maxv2];
+                  byte[] ta = auxLevels2[i];
+                  auxLevels2[i] = new byte[maxv2];
                   System.arraycopy(ta, 0, auxLevels2[i], 0, numv2[0]);
                 }
               }
@@ -695,8 +825,8 @@ public class Contour2D extends Applet implements MouseListener {
               System.arraycopy(ty[0], 0, vy1[0], 0, numv1[0]);
               if (naux > 0) {
                 for (int i=0; i<naux; i++) { 
-                  float[] ta = auxLevels1[i];
-                  auxLevels1[i] = new float[maxv1];
+                  byte[] ta = auxLevels1[i];
+                  auxLevels1[i] = new byte[maxv1];
                   System.arraycopy(ta, 0, auxLevels1[i], 0, numv1[0]);
                 }
               }

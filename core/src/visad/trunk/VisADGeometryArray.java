@@ -36,7 +36,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
   public int vertexFormat;
   public float[] coordinates;
   public float[] normals;
-  public float[] colors;
+  public byte[] colors;
   public float[] texCoords;
 
   public VisADGeometryArray() {
@@ -67,11 +67,11 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       }
     }
     float[] coordinates = new float[3 * count];
-    float[] colors = null;
+    byte[] colors = null;
     float[] normals = null;
     float[] texCoords = null;
     if (color_flag) {
-      colors = new float[3 * count];
+      colors = new byte[3 * count];
     }
     if (normal_flag) {
       normals = new float[3 * count];
@@ -87,9 +87,9 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
         coordinates[k++] = c[j];
       }
       if (color_flag) {
-        c = arrays[i].colors;
+        byte[] b = arrays[i].colors;
         for (int j=0; j<3*arrays[i].vertexCount; j++) {
-          colors[m++] = c[j];
+          colors[m++] = b[j];
         }
       }
       if (normal_flag) {
@@ -121,7 +121,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
       string = string + "\n coordinates = " + floatArrayString(coordinates);
     }
     if (colors != null) {
-      string = string + "\n colores = " + floatArrayString(colors);
+      string = string + "\n colors = " + byteArrayString(colors);
     }
     if (normals != null) {
       string = string + "\n normals = " + floatArrayString(normals);
@@ -134,6 +134,12 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
   }
 
   static String floatArrayString(float[] value) {
+    String string = "";
+    for (int i=0; i<value.length; i++) string = string + " " + value[i];
+    return string;
+  }
+
+  static String byteArrayString(byte[] value) {
     String string = "";
     for (int i=0; i<value.length; i++) string = string + " " + value[i];
     return string;
@@ -153,7 +159,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
                        normals.length);
     }
     if (colors != null) {
-      array.colors = new float[colors.length];
+      array.colors = new byte[colors.length];
       System.arraycopy(colors, 0, array.colors, 0,
                        colors.length);
     }

@@ -320,22 +320,22 @@ public abstract class Set extends DataImpl {
     throw new SetException("Set.makeSpatial: not valid for this Set");
   }
 
-  public VisADGeometryArray make1DGeometry(float[][] color_values)
+  public VisADGeometryArray make1DGeometry(byte[][] color_values)
          throws VisADException {
     throw new SetException("Set.make1DGeometry: not valid for this Set");
   }
 
-  public VisADGeometryArray make2DGeometry(float[][] color_values)
+  public VisADGeometryArray make2DGeometry(byte[][] color_values)
          throws VisADException {
     throw new SetException("Set.make2DGeometry: not valid for this Set");
   }
 
-  public VisADGeometryArray make3DGeometry(float[][] color_values)
+  public VisADGeometryArray make3DGeometry(byte[][] color_values)
          throws VisADException {
     throw new SetException("Set.make3DGeometry: not valid for this Set");
   }
 
-  public VisADGeometryArray makePointGeometry(float[][] color_values)
+  public VisADGeometryArray makePointGeometry(byte[][] color_values)
          throws VisADException {
     throw new SetException("Set.makePointGeometry: not valid for this Set");
   }
@@ -344,13 +344,13 @@ public abstract class Set extends DataImpl {
       and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval, float low,
                       float hi, float base, float[] fieldValues,
-                      float[][] color_values, boolean[] swap)
+                      byte[][] color_values, boolean[] swap)
          throws VisADException {
     throw new SetException("Set.makeIsoLines: not valid for this Set");
   }
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
-         float[] fieldValues, float[][] color_values)
+         float[] fieldValues, byte[][] color_values)
          throws VisADException {
     throw new SetException("Set.makeIsoSurface: not valid for this Set");
   }

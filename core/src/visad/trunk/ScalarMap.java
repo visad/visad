@@ -661,16 +661,20 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       (RealType values) */
   public float[] scaleValues(float[] values) {
     if (values == null || badRange()) return null;
-    float[] new_values = new float[values.length];
+    float[] new_values = null;
     if (isScaled) {
+      new_values = new float[values.length];
       for (int i=0; i<values.length; i++) {
         new_values[i] = (float) (offset + scale * values[i]);
       }
     }
     else {
+      new_values = values;
+/* MEM_WLH
       for (int i=0; i<values.length; i++) {
         new_values[i] = values[i];
       }
+*/
     }
       return new_values;
   }

@@ -465,7 +465,7 @@ so:
         int count = array.vertexCount;
         if (count == 0) return;
         float[] coordinates = array.coordinates;
-        float[] colors = array.colors;
+        byte[] colors = array.colors;
         if (colors == null) {
           if (appearance.color_flag) {
             float red = (float) Math.max(Math.min(appearance.red, 1.0f), 0.0f);
@@ -478,9 +478,11 @@ so:
           }
         }
         else {
+/* MEM_WLH
           for (int i=0; i<colors.length; i++) {
             colors[i] = (float) Math.max(Math.min(colors[i], 1.0f), 0.0f);
           }
+*/
         }
         if (array instanceof VisADPointArray ||
             array instanceof VisADLineArray ||
@@ -545,7 +547,18 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 for (int i=0; i<3*count; i += 3) {
                   if (coordinates[i] == coordinates[i] &&
                       coordinates[i+1] == coordinates[i+1]) {
-                    g2.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
+                    g2.setColor(new Color(
+                      ((colors[j] < 0) ? (((int) colors[j]) + 256) :
+                                         ((int) colors[j]) ),
+                      ((colors[j+1] < 0) ? (((int) colors[j+1]) + 256) :
+                                         ((int) colors[j+1]) ),
+                      ((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
+                                         ((int) colors[j+2]) ) ));
+/* MEM_WLH
+                    g2.setColor(new Color(ShadowType.byteToFloat(colors[j]),
+                                          ShadowType.byteToFloat(colors[j+1]),
+                                          ShadowType.byteToFloat(colors[j+2])));
+*/
                     g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
                                                   size, size));
                   }
@@ -572,9 +585,28 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 int j = 0;
                 int jinc = (colors.length == coordinates.length) ? 3 : 4;
                 for (int i=0; i<3*count; i += 6) {
-                  g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
-                                        0.5f * (colors[j+1] + colors[j+jinc+1]),
-                                        0.5f * (colors[j+2] + colors[j+jinc+2])));
+                  g2.setColor(new Color(
+                    (((colors[j] < 0) ? (((int) colors[j]) + 256) :
+                                        ((int) colors[j]) ) +
+                     ((colors[j+jinc] < 0) ? (((int) colors[j+jinc]) + 256) :
+                                        ((int) colors[j+jinc]) ) ) / 2,
+                    (((colors[j+1] < 0) ? (((int) colors[j+1]) + 256) :
+                                        ((int) colors[j+1]) ) +
+                     ((colors[j+jinc+1] < 0) ? (((int) colors[j+jinc+1]) + 256) :
+                                        ((int) colors[j+jinc+1]) ) ) / 2,
+                    (((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
+                                        ((int) colors[j+2]) ) +
+                     ((colors[j+jinc+2] < 0) ? (((int) colors[j+jinc+2]) + 256) :
+                                        ((int) colors[j+jinc+2]) ) ) / 2 ));
+/* MEM_WLH
+                  g2.setColor(new Color(
+                    0.5f * (ShadowType.byteToFloat(colors[j]) +
+                            ShadowType.byteToFloat(colors[j+jinc])),
+                    0.5f * (ShadowType.byteToFloat(colors[j+1]) +
+                            ShadowType.byteToFloat(colors[j+jinc+1])),
+                    0.5f * (ShadowType.byteToFloat(colors[j+2]) +
+                            ShadowType.byteToFloat(colors[j+jinc+2]))));
+*/
                   j += 2 * jinc;
                   g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
                                            coordinates[i+3], coordinates[i+4]));
@@ -594,11 +626,20 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
 
               float lastx = coordinates[base];
               float lasty = coordinates[base+1];
-              float lastr = 0.0f, lastg = 0.0f, lastb = 0.0f;
+              int lastr = 0, lastg = 0, lastb = 0;
+              int thisr, thisg, thisb;
               if (colors != null) {
-                lastr = colors[base];
-                lastg = colors[base+1];
-                lastb = colors[base+2];
+                lastr = (colors[base] < 0) ? (((int) colors[base]) + 256) :
+                                             ((int) colors[base]);
+                lastg = (colors[base+1] < 0) ? (((int) colors[base+1]) + 256) :
+                                               ((int) colors[base+1]);
+                lastb = (colors[base+2] < 0) ? (((int) colors[base+2]) + 256) :
+                                               ((int) colors[base+2]);
+/* MEM_WLH
+                lastr = ShadowType.byteToFloat(colors[base]);
+                lastg = ShadowType.byteToFloat(colors[base+1]);
+                lastb = ShadowType.byteToFloat(colors[base+2]);
+*/
               }
               if (colors == null) {
                 for (int i=3; i<3*count; i += 3) {
@@ -613,12 +654,23 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 int jinc = (colors.length == coordinates.length) ? 3 : 4;
                 int j = jinc;
                 for (int i=3; i<3*count; i += 3) {
-                  g2.setColor(new Color(0.5f * (lastr + colors[base+j]),
-                                        0.5f * (lastg + colors[base+j+1]),
-                                        0.5f * (lastb + colors[base+j+2])));
-                  lastr = colors[base+j];
-                  lastg = colors[base+j+1];
-                  lastb = colors[base+j+2];
+                  thisr = (colors[base+j] < 0) ? (((int) colors[base+j]) + 256) :
+                                               ((int) colors[base+j]);
+                  thisg = (colors[base+j+1] < 0) ? (((int) colors[base+j+1]) + 256) :
+                                                 ((int) colors[base+j+1]);
+                  thisb = (colors[base+j+2] < 0) ? (((int) colors[base+j+2]) + 256) :
+                                                 ((int) colors[base+j+2]);
+/* MEM_WLH
+                  thisr = ShadowType.byteToFloat(colors[base+j]);
+                  thisg = ShadowType.byteToFloat(colors[base+j+1]);
+                  thisb = ShadowType.byteToFloat(colors[base+j+2]);
+*/
+                  g2.setColor(new Color((lastr + thisr) / 2,
+                                        (lastg + thisg) / 2,
+                                        (lastb + thisb) / 2));
+                  lastr = thisr;
+                  lastg = thisg;
+                  lastb = thisb;
                   j += jinc;
                   g2.draw(new Line2D.Float(lastx, lasty,
                                            coordinates[base+i],
@@ -649,9 +701,36 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             int jinc = (colors.length == coordinates.length) ? 3 : 4;
             for (int i=0; i<3*count; i += 9) {
               g2.setColor(new Color(
-                0.33f * (colors[j] + colors[j+jinc] + colors[j+2*jinc]),
-                0.33f * (colors[j+1] + colors[j+jinc+1] + colors[j+2*jinc+1]),
-                0.33f * (colors[j+2] + colors[j+jinc+2] + colors[j+2*jinc+2])));
+                (((colors[j] < 0) ? (((int) colors[j]) + 256) :
+                                    ((int) colors[j]) ) +
+                 ((colors[j+jinc] < 0) ? (((int) colors[j+jinc]) + 256) :
+                                    ((int) colors[j+jinc]) ) +
+                 ((colors[j+2*jinc] < 0) ? (((int) colors[j+2*jinc]) + 256) :
+                                    ((int) colors[j+2*jinc]) ) ) / 3,
+                (((colors[j+1] < 0) ? (((int) colors[j+1]) + 256) :
+                                    ((int) colors[j+1]) ) +
+                 ((colors[j+jinc+1] < 0) ? (((int) colors[j+jinc+1]) + 256) :
+                                    ((int) colors[j+jinc+1]) ) +
+                 ((colors[j+2*jinc+1] < 0) ? (((int) colors[j+2*jinc+1]) + 256) :
+                                    ((int) colors[j+2*jinc+1]) ) ) / 3,
+                (((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
+                                    ((int) colors[j+2]) ) +
+                 ((colors[j+jinc+2] < 0) ? (((int) colors[j+jinc+2]) + 256) :
+                                    ((int) colors[j+jinc+2]) ) +
+                 ((colors[j+2*jinc+2] < 0) ? (((int) colors[j+2*jinc+2]) + 256) :
+                                    ((int) colors[j+2*jinc+2]) ) ) / 3 ));
+/* MEM_WLH
+              g2.setColor(new Color(
+                0.33f * (ShadowType.byteToFloat(colors[j]) +
+                         ShadowType.byteToFloat(colors[j+jinc]) +
+                         ShadowType.byteToFloat(colors[j+2*jinc])),
+                0.33f * (ShadowType.byteToFloat(colors[j+1]) +
+                         ShadowType.byteToFloat(colors[j+jinc+1]) +
+                         ShadowType.byteToFloat(colors[j+2*jinc+1])),
+                0.33f * (ShadowType.byteToFloat(colors[j+2]) +
+                         ShadowType.byteToFloat(colors[j+jinc+2]) +
+                         ShadowType.byteToFloat(colors[j+2*jinc+2]))));
+*/
               j += 3 * jinc;
               GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
@@ -681,12 +760,45 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             int jinc = (colors.length == coordinates.length) ? 3 : 4;
             for (int i=0; i<3*count; i += 12) {
               g2.setColor(new Color(
-                0.25f * (colors[j] + colors[j+jinc] +
-                         colors[j+2*jinc] + colors[j+3*jinc]),
-                0.25f * (colors[j+1] + colors[j+jinc+1] +
-                         colors[j+2*jinc+1] + colors[j+3*jinc+1]),
-                0.25f * (colors[j+2] + colors[j+jinc+2] +
-                         colors[j+2*jinc+2] + colors[j+3*jinc+2])));
+                (((colors[j] < 0) ? (((int) colors[j]) + 256) :
+                                    ((int) colors[j]) ) +
+                 ((colors[j+jinc] < 0) ? (((int) colors[j+jinc]) + 256) :
+                                    ((int) colors[j+jinc]) ) +
+                 ((colors[j+2*jinc] < 0) ? (((int) colors[j+2*jinc]) + 256) :
+                                    ((int) colors[j+2*jinc]) ) +
+                 ((colors[j+3*jinc] < 0) ? (((int) colors[j+3*jinc]) + 256) :
+                                    ((int) colors[j+3*jinc]) ) ) / 4,
+                (((colors[j+1] < 0) ? (((int) colors[j+1]) + 256) :
+                                    ((int) colors[j+1]) ) +
+                 ((colors[j+jinc+1] < 0) ? (((int) colors[j+jinc+1]) + 256) :
+                                    ((int) colors[j+jinc+1]) ) +
+                 ((colors[j+2*jinc+1] < 0) ? (((int) colors[j+2*jinc+1]) + 256) :
+                                    ((int) colors[j+2*jinc+1]) ) +
+                 ((colors[j+3*jinc+1] < 0) ? (((int) colors[j+3*jinc+1]) + 256) :
+                                    ((int) colors[j+3*jinc+1]) ) ) / 4,
+                (((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
+                                    ((int) colors[j+2]) ) +
+                 ((colors[j+jinc+2] < 0) ? (((int) colors[j+jinc+2]) + 256) :
+                                    ((int) colors[j+jinc+2]) ) +
+                 ((colors[j+2*jinc+2] < 0) ? (((int) colors[j+2*jinc+2]) + 256) :
+                                    ((int) colors[j+2*jinc+2]) ) +
+                 ((colors[j+3*jinc+2] < 0) ? (((int) colors[j+3*jinc+2]) + 256) :
+                                    ((int) colors[j+3*jinc+2]) ) ) / 4 ));
+/* MEM_WLH
+              g2.setColor(new Color(
+                0.25f * (ShadowType.byteToFloat(colors[j]) +
+                         ShadowType.byteToFloat(colors[j+jinc]) +
+                         ShadowType.byteToFloat(colors[j+2*jinc]) +
+                         ShadowType.byteToFloat(colors[j+3*jinc])),
+                0.25f * (ShadowType.byteToFloat(colors[j+1]) +
+                         ShadowType.byteToFloat(colors[j+jinc+1]) +
+                         ShadowType.byteToFloat(colors[j+2*jinc+1]) +
+                         ShadowType.byteToFloat(colors[j+3*jinc+1])),
+                0.25f * (ShadowType.byteToFloat(colors[j+2]) +
+                         ShadowType.byteToFloat(colors[j+jinc+2]) +
+                         ShadowType.byteToFloat(colors[j+2*jinc+2]) +
+                         ShadowType.byteToFloat(colors[j+3*jinc+2]))));
+*/
               j += 4 * jinc;
               GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
@@ -728,12 +840,36 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
               for (int i=base+2; i<base+count; i++) {
                 int index2 = indices[i];
                 g2.setColor(new Color(
-                  0.33f * (colors[jinc*index0] + colors[jinc*index1] +
-                           colors[jinc*index2]),
-                  0.33f * (colors[jinc*index0+1] + colors[jinc*index1+1] +
-                           colors[jinc*index2+1]),
-                  0.33f * (colors[jinc*index0+2] + colors[jinc*index1+2] +
-                           colors[jinc*index2+2])));
+                  (((colors[jinc*index0] < 0) ? (((int) colors[jinc*index0]) + 256) :
+                                      ((int) colors[jinc*index0]) ) +
+                   ((colors[jinc*index1] < 0) ? (((int) colors[jinc*index1]) + 256) :
+                                      ((int) colors[jinc*index1]) ) +
+                   ((colors[jinc*index2] < 0) ? (((int) colors[jinc*index2]) + 256) :
+                                      ((int) colors[jinc*index2]) ) ) / 3,
+                  (((colors[jinc*index0+1] < 0) ? (((int) colors[jinc*index0+1]) + 256) :
+                                      ((int) colors[jinc*index0+1]) ) +
+                   ((colors[jinc*index1+1] < 0) ? (((int) colors[jinc*index1+1]) + 256) :
+                                      ((int) colors[jinc*index1+1]) ) +
+                   ((colors[jinc*index2+1] < 0) ? (((int) colors[jinc*index2+1]) + 256) :
+                                      ((int) colors[jinc*index2+1]) ) ) / 3,
+                  (((colors[jinc*index0+2] < 0) ? (((int) colors[jinc*index0+2]) + 256) :
+                                      ((int) colors[jinc*index0+2]) ) +
+                   ((colors[jinc*index1+2] < 0) ? (((int) colors[jinc*index1+2]) + 256) :
+                                      ((int) colors[jinc*index1+2]) ) +
+                   ((colors[jinc*index2+2] < 0) ? (((int) colors[jinc*index2+2]) + 256) :
+                                      ((int) colors[jinc*index2+2]) ) ) / 3 ));
+/* MEM_WLH
+                g2.setColor(new Color(
+                  0.33f * (ShadowType.byteToFloat(colors[jinc*index0]) +
+                           ShadowType.byteToFloat(colors[jinc*index1]) +
+                           ShadowType.byteToFloat(colors[jinc*index2])),
+                  0.33f * (ShadowType.byteToFloat(colors[jinc*index0+1]) +
+                           ShadowType.byteToFloat(colors[jinc*index1+1]) +
+                           ShadowType.byteToFloat(colors[jinc*index2+1])),
+                  0.33f * (ShadowType.byteToFloat(colors[jinc*index0+2]) +
+                           ShadowType.byteToFloat(colors[jinc*index1+2]) +
+                           ShadowType.byteToFloat(colors[jinc*index2+2]))));
+*/
                 GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
                 path.moveTo(coordinates[3*index0], coordinates[3*index0+1]);
                 path.lineTo(coordinates[3*index1], coordinates[3*index1+1]);
@@ -759,7 +895,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                     AffineTransform t) {
     VisADGeometryArray array = appearance.array;
     if (array == null) return;
-    float[] colors = array.colors;
+    byte[] colors = array.colors;
     if (colors == null) {
       if (appearance.color_flag) {
         graphics.setColor(new Color(appearance.red, appearance.green,
@@ -797,7 +933,18 @@ System.out.println("drawAppearance: VisADPointArray, count = " + count);
         int jinc = (colors.length == coordinates.length) ? 3 : 4;
         j = 0;
         for (int i=0; i<2*count; i += 2) {
-          graphics.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
+          graphics.setColor(new Color(
+            ((colors[j] < 0) ? (((int) colors[j]) + 256) :
+                               ((int) colors[j]) ),
+            ((colors[j+1] < 0) ? (((int) colors[j+1]) + 256) :
+                                 ((int) colors[j+1]) ),
+            ((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
+                                 ((int) colors[j+2]) ) ));
+/* MEM_WLH
+          graphics.setColor(new Color(ShadowType.byteToFloat(colors[j]),
+                                      ShadowType.byteToFloat(colors[j+1]),
+                                      ShadowType.byteToFloat(colors[j+2])));
+*/
           j += jinc;
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
                             (int) newcoords[i], (int) newcoords[i+1]);
@@ -822,9 +969,28 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
         int jinc = (colors.length == coordinates.length) ? 3 : 4;
         j = 0;
         for (int i=0; i<2*count; i += 4) {
-          graphics.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
-                                      0.5f * (colors[j+1] + colors[j+jinc+1]),
-                                      0.5f * (colors[j+2] + colors[j+jinc+2])));
+          graphics.setColor(new Color(
+            (((colors[j] < 0) ? (((int) colors[j]) + 256) :
+                                ((int) colors[j]) ) +
+             ((colors[j+jinc] < 0) ? (((int) colors[j+jinc]) + 256) :
+                                     ((int) colors[j+jinc]) ) ) / 2,
+            (((colors[j+1] < 0) ? (((int) colors[j+1]) + 256) :
+                                  ((int) colors[j+1]) ) +
+             ((colors[j+jinc+1] < 0) ? (((int) colors[j+jinc+1]) + 256) :
+                                       ((int) colors[j+jinc+1]) ) ) / 2,
+            (((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
+                                  ((int) colors[j+2]) ) +
+             ((colors[j+jinc+2] < 0) ? (((int) colors[j+jinc+2]) + 256) :
+                                       ((int) colors[j+jinc+2]) ) ) / 2 ));
+/* MEM_WLH
+          graphics.setColor(new Color(
+                    0.5f * (ShadowType.byteToFloat(colors[j]) +
+                            ShadowType.byteToFloat(colors[j+jinc])),
+                    0.5f * (ShadowType.byteToFloat(colors[j+1]) +
+                            ShadowType.byteToFloat(colors[j+jinc+1])),
+                    0.5f * (ShadowType.byteToFloat(colors[j+2]) +
+                            ShadowType.byteToFloat(colors[j+jinc+2]))));
+*/
           j += 2 * jinc;
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
                             (int) newcoords[i+2], (int) newcoords[i+3]);

@@ -731,7 +731,7 @@ System.out.println("testIndices: LevelOfDifficulty = " + LevelOfDifficulty +
   /** helpers for doTransform; they are in ShadowType
       because they are independent of graphics library */
 
-  /** map values into display_values according to ScalarMap-s in reals */
+  /** map values to display_values according to ScalarMap-s in reals */
   public static void mapValues(float[][] display_values, double[][] values,
                                ShadowRealType[] reals) throws VisADException {
     int n = values.length;
@@ -811,12 +811,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
 /* CTR: 13 Oct 1998 - BEGIN CHANGES */
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
-                float[][] color_values) throws VisADException {
+                byte[][] color_values) throws VisADException {
     return makePointGeometry(spatial_values, color_values, false);
   }
 
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
-                float[][] color_values, boolean compress)
+                byte[][] color_values, boolean compress)
                                         throws VisADException {
     if (spatial_values == null) {
       throw new DisplayException("bad spatial_values: " +
@@ -836,8 +836,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       for (int i=0; i<flen; i++) if (f[i] != f[i]) nan++;
       if (nan > 0) {
         float[][] new_s_values = new float[len][flen-nan];
-        float[][] new_c_values = color_values;
-        if (clen > 0) new_c_values = new float[len][flen-nan];
+        byte[][] new_c_values = color_values;
+        if (clen > 0) new_c_values = new byte[len][flen-nan];
         int c = 0;
         for (int i=0; i<flen; i++) {
           if (f[i] == f[i]) {
@@ -869,8 +869,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 int valueArrayLength, int[] valueToMap, Vector MapVector,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
-                float[][] spatial_values, float[][] color_values,
-                float[][] range_select, int index)
+                float[][] spatial_values, byte[][] color_values,
+                boolean[][] range_select, int index)
          throws VisADException, RemoteException {
 
     int total_length = 0;
@@ -878,10 +878,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     float x = spatial_values[0][0];
     float y = spatial_values[1][0];
     float z = spatial_values[2][0];
-    float r = 0.0f;
-    float g = 0.0f;
-    float b = 0.0f;
-    float a = 0.0f;
+    byte r = 0;
+    byte g = 0;
+    byte b = 0;
+    byte a = 0;
     int color_length = 0;
     if (color_values != null) {
       color_length = color_values.length;
@@ -899,6 +899,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         if (real.equals(Display.ShapeScale)) {
           if (index < 0) {
             scales = display_values[i];
+            display_values[i] = null; // MEM_WLH 27 March 99
           }
           else {
             if (display_values[i].length == 1) {
@@ -927,6 +928,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         if (real.equals(Display.Shape)) {
           if (index < 0) {
             values = display_values[j];
+            display_values[j] = null; // MEM_WLH 27 March 99
           }
           else {
             if (display_values[j].length == 1) {
@@ -959,10 +961,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             VisADGeometryArray array = arrays[i];
             if (range_select[0] != null) {
               if (range_select[0].length == 1) {
-                if (range_select[0][0] != range_select[0][0]) array = null;
+                if (!range_select[0][0]) array = null;
               }
               else {
-                if (range_select[0][i] != range_select[0][i]) array = null;
+                if (!range_select[0][i]) array = null;
               }
             }
             if (array != null) {
@@ -981,7 +983,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
               }
       
               if (array.colors == null && color_values != null) {
-                array.colors = new float[color_length * npts];
+                array.colors = new byte[color_length * npts];
                 if (color_values[0].length > 1) {
                   r = color_values[0][i];
                   g = color_values[1][i];
@@ -1030,7 +1032,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
                 Set domain_set, boolean allSpatial, boolean set_for_shape,
-                int[] spatialDimensions, float[][] range_select,
+                int[] spatialDimensions, boolean[][] range_select,
                 float[][] flow1_values, float[][] flow2_values,
                 float[] flowScale, boolean[] swap)
          throws VisADException, RemoteException {
@@ -1066,6 +1068,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           int tuple_index = real.getTupleIndex();
           spatial_values[tuple_index] = display_values[i];
           len = Math.max(len, display_values[i].length);
+          display_values[i] = null; // MEM_WLH 27 March 99
           spatialDimensions[0]++; // spatialDomainDimension
           if (inherited_values[i] == 0) {
             // don't count inherited spatial dimensions
@@ -1160,8 +1163,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         missing_checked[i] = true;
         if (v != v || Float.isInfinite(v)) {
           // missing with length = 1, so nothing to render
-          range_select[0] = new float[1];
-          range_select[0][0] = Float.NaN;
+          range_select[0] = new boolean[1];
+          range_select[0][0] = false;
           return null;
         }
         if (len > 1) {
@@ -1362,6 +1365,7 @@ System.out.println(" ");
               off = null;
             }
           }
+          display_values[i] = null; // MEM_WLH 27 March 99
           offset_len = Math.max(offset_len, offset_values[tuple_index].length);
         } // end if (Display.DisplaySpatialOffsetTuple.equals(tuple))
       } // end if (display_values[i] != null)
@@ -1377,8 +1381,8 @@ System.out.println(" ");
         if (offset_values[i][0] != offset_values[i][0] ||
             Float.isInfinite(offset_values[i][0])) {
           // missing with length = 1, so nothing to render
-          range_select[0] = new float[1];
-          range_select[0][0] = Float.NaN;
+          range_select[0] = new boolean[1];
+          range_select[0][0] = false;
           return null;
         }
       }
@@ -1421,16 +1425,16 @@ System.out.println(" ");
           if (spatial_values[i][j] != spatial_values[i][j] ||
               Float.isInfinite(spatial_values[i][j])) {
             if (range_select[0] == null) {
-              range_select[0] = new float[len];
-              for (int k=0; k<len; k++) range_select[0][k] = 0.0f;
+              range_select[0] = new boolean[len];
+              for (int k=0; k<len; k++) range_select[0][k] = true;
             }
             else if (range_select[0].length < len) {
               // assume range_select[0].length == 1
-              float[] r = new float[len];
+              boolean[] r = new boolean[len];
               for (int k=0; k<len; k++) r[k] = range_select[0][0];
               range_select[0] = r;
             }
-            range_select[0][j] = Float.NaN;
+            range_select[0][j] = false;
             spatial_values[i][j] = 0.0f;
           }
         }
@@ -1477,7 +1481,7 @@ System.out.println(" ");
                 float[][] flow2_values, float[] flowScale,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
-                float[] default_values, float[][] range_select)
+                float[] default_values, boolean[][] range_select)
          throws VisADException, RemoteException {
 
     int[] valueToMap = display.getValueToMap();
@@ -1502,6 +1506,7 @@ System.out.println(" ");
             int flow_index = real.getTupleIndex();
             ff_values[k][flow_index] = display_values[i];
             flen[k] = Math.max(flen[k], display_values[i].length);
+            display_values[i] = null; // MEM_WLH 27 March 99
           }
         }
       }
@@ -1533,8 +1538,8 @@ System.out.println(" ");
             missing_checked[i] = true;
             if (v != v) {
               // missing with length = 1, so nothing to render
-              range_select[0] = new float[1];
-              range_select[0][0] = Float.NaN;
+              range_select[0] = new boolean[1];
+              range_select[0][0] = false;
               return;
             }
             if (flen[k] > 1) {
@@ -1549,16 +1554,16 @@ System.out.println(" ");
             for (int j=0; j<flen[k]; j++) {
               if (ff_values[k][i][j] != ff_values[k][i][j]) {
                 if (range_select[0] == null) {
-                  range_select[0] = new float[flen[k]];
-                  for (int m=0; m<flen[k]; m++) range_select[0][m] = 0.0f;
+                  range_select[0] = new boolean[flen[k]];
+                  for (int m=0; m<flen[k]; m++) range_select[0][m] = true;
                 }
                 else if (range_select[0].length < flen[k]) {
                   // assume range_select[0].length == 1
-                  float[] r = new float[flen[k]];
+                  boolean[] r = new boolean[flen[k]];
                   for (int m=0; m<flen[k]; m++) r[m] = range_select[0][0];
                   range_select[0] = r;
                 }
-                range_select[0][j] = Float.NaN;
+                range_select[0][j] = false;
                 ff_values[k][i][j] = 0.0f;
               }
             } // end for (int j=0; j<flen[k]; j++)
@@ -1574,7 +1579,7 @@ System.out.println(" ");
 
   public static VisADGeometryArray makeFlow(float[][] flow_values,
                 float flowScale, float[][] spatial_values,
-                float[][] color_values, float[][] range_select)
+                byte[][] color_values, boolean[][] range_select)
          throws VisADException {
     if (flow_values[0] == null) return null;
     VisADLineArray array = new VisADLineArray();
@@ -1587,7 +1592,7 @@ System.out.println(" ");
     }
     else {
       for (int j=0; j<range_select[0].length; j++) {
-        if (range_select[0][j] == range_select[0][j]) rlen++;
+        if (range_select[0][j]) rlen++;
       }
     }
     if (rlen == 0) return null;
@@ -1601,8 +1606,7 @@ System.out.println(" ");
     // arrow head vector
     float a0 = 0.0f, a1 = 0.0f, a2 = 0.0f;
     for (int j=0; j<len; j++) {
-      if (range_select[0] == null ||
-          range_select[0][j] == range_select[0][j]) {
+      if (range_select[0] == null || range_select[0][j]) {
         if (flen == 1) {
           f0 = flowScale * flow_values[0][0];
           f1 = flowScale * flow_values[1][0];
@@ -1655,12 +1659,11 @@ System.out.println(" ");
     // array.vertexFormat = COORDINATES;
 
     if (color_values != null) {
-      float[] colors = new float[12 * rlen];
+      byte[] colors = new byte[12 * rlen];
       m = 0;
       float c0 = 0.0f, c1 = 0.0f, c2 = 0.0f;
       for (int j=0; j<len; j++) {
-        if (range_select[0] == null ||
-            range_select[0][j] == range_select[0][j]) {
+        if (range_select[0] == null || range_select[0][j]) {
           int k1 = m;
           int k2 = m;
           int k3 = m;
@@ -1689,14 +1692,14 @@ System.out.println(" ");
 
   public static VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
-                float[][] color_values, float[][] range_select)
+                byte[][] color_values, boolean[][] range_select)
          throws VisADException { 
     if (text_values == null || text_values.length == 0 ||
         text_control == null) return null;
 
-    float r = 0.0f;
-    float g = 0.0f;
-    float b = 0.0f;
+    byte r = 0;
+    byte g = 0;
+    byte b = 0;
     if (color_values != null) {
       r = color_values[0][0];
       g = color_values[1][0];
@@ -1713,7 +1716,7 @@ System.out.println(" ");
     int k = 0;
     for (int i=0; i<n; i++) {
       if (range_select[0] == null || range_select[0].length == 1 ||
-          range_select[0][i] == range_select[0][i]) {
+          range_select[0][i]) {
 /*
 System.out.println("makeText, i = " + i + " text = " + text_values[i] +
                    " spatial_values = " + spatial_values[0][i] + " " +
@@ -1730,7 +1733,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
             g = color_values[1][k];
             b = color_values[2][k];
           }
-          float[] colors = new float[len];
+          byte[] colors = new byte[len];
           for (int j=0; j<len; j+=3) {
             colors[j] = r;
             colors[j+1] = g;
@@ -1749,10 +1752,10 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
 
   /** composite and transform color and Alpha DisplayRealType values
       from display_values, and return as (Red, Green, Blue, Alpha) */
-  public static float[][] assembleColor(float[][] display_values,
+  public static byte[][] assembleColor(float[][] display_values,
                 int valueArrayLength, int[] valueToScalar,
                 DisplayImpl display, float[] default_values,
-                float[][] range_select)
+                boolean[][] range_select, boolean[] single_missing)
          throws VisADException, RemoteException {
     float[][] rgba_values = new float[4][];
     float[] rgba_value_counts = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -1763,7 +1766,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
     float[] tuple_singles = new float[3];
     float[] tuple_single_counts = {0.0f, 0.0f, 0.0f};
 
-    // mark array to kkep track of which valueIndices have
+    // mark array to keep track of which valueIndices have
     // contributed to display color_tuples
     boolean[] mark = new boolean[valueArrayLength];
     for (int i=0; i<valueArrayLength; i++) mark[i] = false;
@@ -1804,6 +1807,8 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
               else { // (len != 1)
                 singleComposite(index, tuple_values, tuple_value_counts, values);
               }
+              // FREE
+              display_values[i] = null; // MEM_WLH 27 March 99
               mark[i] = true;
             } // end if (color_tuple == null || color_tuple.equals(tuple))
           } // end if component of a color tuple
@@ -1869,6 +1874,8 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           else { // (len != 1)
             colorComposite(rgba_values, rgba_value_counts, color_values);
           }
+          // FREE
+          display_values[i] = null; // MEM_WLH 27 March 99
         } // end if (real.equals(Display.RGB) || HSV || CMY)
         if (real.equals(Display.RGBA)) {
           ColorAlphaControl control = (ColorAlphaControl)
@@ -1890,6 +1897,8 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
               color_values[index] = null;
             }
           }
+          // FREE
+          display_values[i] = null; // MEM_WLH 27 March 99
         } // end if (real.equals(Display.RGBA))
         if (real.equals(Display.Alpha)) {
           if (len == 1) {
@@ -1899,6 +1908,8 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           else {
             singleComposite(3, rgba_values, rgba_value_counts, values);
           }
+          // FREE
+          display_values[i] = null; // MEM_WLH 27 March 99
         } // end if (real.equals(Display.Alpha))
         // no need for 'mark[i] = true;' in this loop
       } // end if (values != null && !mark[i])
@@ -1943,17 +1954,20 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
       for (int j=0; j<len; j++) {
         if (rgba_values[i][j] != rgba_values[i][j]) {
           if (range_select[0] == null) {
-            range_select[0] = new float[big_len];
-            for (int k=0; k<big_len; k++) range_select[0][k] = 0.0f;
+            range_select[0] = new boolean[big_len];
+            for (int k=0; k<big_len; k++) range_select[0][k] = true;
           }
           if (len > 1) {
-            range_select[0][j] = Float.NaN;
+            range_select[0][j] = false;
             rgba_values[i][j] = 0.0f;
           }
           else {
-            for (int k=0; k<big_len; k++) range_select[0][k] = Float.NaN;
+            for (int k=0; k<big_len; k++) range_select[0][k] = false;
             // leave any single color value missing -
             // this will prevent anything from being rendered
+            // MEM_WLH
+            rgba_values[i][j] = 0.0f;
+            single_missing[i] = true;
           }
         }
       } // end for (int j=0; j<len; j++)
@@ -1964,7 +1978,45 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
     // should colors be clamped to range (0.0f, 1.0f)?
     //
 
+/* MEM_WLH
     return rgba_values;
+*/
+    // MEM_WLH
+    // page 291 of Java3D book says byte colors are [0, 255] range
+    byte[][] b = new byte[rgba_values.length][];
+    for (int i=0; i<rgba_values.length; i++) {
+      if (rgba_values[i] != null) {
+        int len = rgba_values[i].length;
+        b[i] = new byte[len];
+        for (int j=0; j<len; j++) {
+          int k = (int) (rgba_values[i][j] * 255.0);
+          k = (k < 0) ? 0 : (k > 255) ? 255 : k;
+          b[i][j] = (byte) ((k < 128) ? k : k - 256);
+        }
+      }
+    }
+    return b;
+  }
+
+  public static final float byteToFloat(byte b) {
+    return (b < 0) ? (((float) b) + 256.0f) / 255.0f : ((float) b) / 255.0f;
+    //
+    //  no 255.0f divide:
+    // return ((b < 0) ? ((float) b) + 256.0f : ((float) b));
+  }
+
+  public static final byte floatToByte(float f) {
+/*
+    int k = (int) (f * 255.0);
+    k = (k < 0) ? 0 : (k > 255) ? 255 : k;
+    return (byte) ((k < 128) ? k : k - 256);
+*/
+    int k = (int) (f * 255.0);
+    return (byte) ( (k < 0) ? 0 : ((k > 255) ? -1 : ((k < 128) ? k : k - 256) ) );
+    //
+    // no 255.0f multiply:
+    // return ((byte) ( ((int) f) < 0 ? 0 : ((int) f) > 255 ? -1 :
+    //          ((int) f) < 128 ? ((byte) f) : ((byte) (f - 256.0f)) ));
   }
 
   static void colorSum(int nindex, float[][] tuple_values,
@@ -2089,12 +2141,13 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
   /** return a composite of SelectRange DisplayRealType values from
       display_values, as 0.0 for select and Double.Nan for no select
       (these values can be added to other DisplayRealType values) */
-  public static float[][] assembleSelect(float[][] display_values, int domain_length,
-                                        int valueArrayLength, int[] valueToScalar,
-                                        DisplayImpl display) throws VisADException {
+  public static boolean[][] assembleSelect(float[][] display_values,
+                             int domain_length, int valueArrayLength,
+                             int[] valueToScalar, DisplayImpl display)
+         throws VisADException {
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
-    float[][] range_select = new float[1][];
+    boolean[][] range_select = new boolean[1][];
     boolean anySelect = false;
     for (int i=0; i<valueArrayLength; i++) {
       float[] values = display_values[i];
@@ -2104,9 +2157,9 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
         if (real.equals(Display.SelectRange)) {
           if (range_select[0] == null) {
             // MEM
-            range_select[0] = new float[domain_length];
+            range_select[0] = new boolean[domain_length];
             for (int j=0; j<domain_length; j++) {
-              range_select[0][j] = 0.0f;
+              range_select[0][j] = true;
             }
           }
           RangeControl control = (RangeControl)
@@ -2115,7 +2168,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           if (values.length == 1) {
             if (values[0] < range[0] || range[1] < values[0]) {
               for (int j=0; j<domain_length; j++) {
-                range_select[0][j] = Float.NaN;
+                range_select[0][j] = false;
               }
               anySelect = true;
             }
@@ -2123,11 +2176,13 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           else {
             for (int j=0; j<values.length; j++) {
               if (values[j] < range[0] || range[1] < values[j]) {
-                range_select[0][j] = Float.NaN;
+                range_select[0][j] = false;
                 anySelect = true;
               }
             }
           }
+          // FREE
+          display_values[i] = null; // MEM_WLH 27 March 99
         } // end if (real.equals(Display.SelectRange))
       } // end if (values != null)
     } // end for (int i=0; i<valueArrayLength; i++)

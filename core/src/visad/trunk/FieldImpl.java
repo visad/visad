@@ -189,11 +189,32 @@ public class FieldImpl extends FunctionImpl implements Field {
     return values;
   }
 
+  public float[][] getFloats()
+         throws VisADException, RemoteException {
+    return getFloats(true);
+  }
+ 
   /** get range values for 'Flat' components in their default range
       Units (as defined by the range of this FieldImpl's
       FunctionType); the return array is dimensioned
-      double[number_of_range_components][number_of_range_samples] */
+      float[number_of_range_components][number_of_range_samples];
+      copy is ignored for FieldImpl */
+  public float[][] getFloats(boolean copy)
+         throws VisADException, RemoteException {
+    return Set.doubleToFloat(getValues(copy));
+  }
+
   public double[][] getValues()
+         throws VisADException, RemoteException {
+    return getValues(true);
+  }
+
+  /** get range values for 'Flat' components in their default range
+      Units (as defined by the range of this FieldImpl's
+      FunctionType); the return array is dimensioned
+      double[number_of_range_components][number_of_range_samples];
+      copy is ignored for FieldImpl */
+  public double[][] getValues(boolean copy)
          throws VisADException, RemoteException {
     RealType[] realComponents = ((FunctionType) Type).getRealComponents();
     if (realComponents == null) return null;

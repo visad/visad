@@ -85,8 +85,8 @@ public class Test46
         0.0f,  0.1f,  0.0f};
     tri.vertexCount = tri.coordinates.length / 3;
     // explicitly set colors in tri to override any color ScalarMaps
-    tri.colors = new float[]
-      {1.0f, 1.0f, 0.0f,  1.0f, 1.0f, 0.0f,  1.0f, 1.0f, 0.0f};
+    tri.colors = new byte[]
+      {-1, -1, 0,  -1, -1, 0,  -1, -1, 0};
 
     VisADQuadArray square = new VisADQuadArray();
     square.coordinates = new float[]

@@ -433,13 +433,12 @@ public class Irregular3DSet extends IrregularSet {
       and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval,
                   float lowlimit, float highlimit, float base,
-                  float[] fieldValues, float[][] color_values,
+                  float[] fieldValues, byte[][] color_values,
                   boolean[] swap) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new DisplayException("Irregular3DSet.makeIsoLines: " +
                                  "ManifoldDimension must be 2");
     }
-
 
     int[][] Tri = Delan.Tri;
     float[][] samples = getSamples(false);
@@ -451,10 +450,10 @@ public class Irregular3DSet extends IrregularSet {
     int maxv = 2 * 2 * Length;
 
     int color_length = (color_values != null) ? color_values.length : 0;
-    float[][] color_levels = null;
+    byte[][] color_levels = null;
     if (color_length > 0) {
       if (color_length > 3) color_length = 3; // no alpha for lines
-      color_levels = new float[color_length][maxv];
+      color_levels = new byte[color_length][maxv];
     }
     float[] vx = new float[maxv];
     float[] vy = new float[maxv];
@@ -479,17 +478,28 @@ public class Irregular3DSet extends IrregularSet {
       // test for missing
       if (gc != gc) continue;
 
-      float[] auxa = null;
-      float[] auxb = null;
-      float[] auxc = null;
+      byte[] auxa = null;
+      byte[] auxb = null;
+      byte[] auxc = null;
       if (color_length > 0) {
-        auxa = new float[color_length];
-        auxb = new float[color_length];
-        auxc = new float[color_length];
+        auxa = new byte[color_length];
+        auxb = new byte[color_length];
+        auxc = new byte[color_length];
         for (int i=0; i<color_length; i++) {
           auxa[i] = color_values[i][va];
           auxb[i] = color_values[i][vb];
           auxc[i] = color_values[i][vc];
+/* MEM_WLH
+          int k = color_values[i][va];
+          if (k < 0) k += 256;
+          auxa[i] = (k / 255.0f);
+          k = color_values[i][vb];
+          if (k < 0) k += 256;
+          auxb[i] = (k / 255.0f);
+          k = color_values[i][vc];
+          if (k < 0) k += 256;
+          auxc[i] = (k / 255.0f);
+*/
         }
       }
 
@@ -525,8 +535,8 @@ public class Irregular3DSet extends IrregularSet {
         if (numv+8 >= maxv) {
           // allocate more space
           maxv = 2 * maxv;
-          float[][] t = color_levels;
-          color_levels = new float[color_length][maxv];
+          byte[][] t = color_levels;
+          color_levels = new byte[color_length][maxv];
           for (int i=0; i<color_length; i++) {
             System.arraycopy(t[i], 0, color_levels[i], 0, numv);
           }
@@ -544,6 +554,7 @@ public class Irregular3DSet extends IrregularSet {
         float gba, gca, gcb;
         float ratioba, ratioca, ratiocb;
         int ii;
+        int t;
  
         // make sure gg is within contouring limits
         if (gg < gn) continue;
@@ -570,8 +581,22 @@ public class Irregular3DSet extends IrregularSet {
 
             if (color_length > 0) {
               for (int i=0; i<color_length; i++) {
+                t = (int) ( (1.0f - ratioba) * ((auxa[i] < 0) ?
+                      ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                    ratioba * ((auxb[i] < 0) ?
+                      ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) );
+                color_levels[i][numv] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                t = (int) ( (1.0f - ratioca) * ((auxa[i] < 0) ?
+                      ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                    ratioca * ((auxc[i] < 0) ?
+                      ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                color_levels[i][numv+1] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 color_levels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
                 color_levels[i][numv+1] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+*/
               }
             }
 
@@ -594,8 +619,22 @@ public class Irregular3DSet extends IrregularSet {
  
             if (color_length > 0) {
               for (int i=0; i<color_length; i++) {
+                t = (int) ( (1.0f - ratioba) * ((auxa[i] < 0) ?
+                      ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                    ratioba * ((auxb[i] < 0) ?
+                      ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) );
+                color_levels[i][numv] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                t = (int) ( (1.0f - ratiocb) * ((auxb[i] < 0) ?
+                      ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) +
+                    ratiocb * ((auxc[i] < 0) ?
+                      ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                color_levels[i][numv+1] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 color_levels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
                 color_levels[i][numv+1] = auxb[i] + (auxc[i]-auxb[i]) * ratiocb;
+*/
               }
             }
  
@@ -618,8 +657,22 @@ public class Irregular3DSet extends IrregularSet {
  
             if (color_length > 0) {
               for (int i=0; i<color_length; i++) {
+                t = (int) ( (1.0f - ratioca) * ((auxa[i] < 0) ?
+                      ((float) auxa[i]) + 256.0f : ((float) auxa[i]) ) +
+                    ratioca * ((auxc[i] < 0) ?
+                      ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                color_levels[i][numv] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+                t = (int) ( (1.0f - ratiocb) * ((auxb[i] < 0) ?
+                      ((float) auxb[i]) + 256.0f : ((float) auxb[i]) ) +
+                    ratiocb * ((auxc[i] < 0) ?
+                      ((float) auxc[i]) + 256.0f : ((float) auxc[i]) ) );
+                color_levels[i][numv+1] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
                 color_levels[i][numv] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
                 color_levels[i][numv+1] = auxb[i] + (auxc[i]-auxb[i]) * ratiocb;
+*/
               }
             }
  
@@ -647,12 +700,22 @@ public class Irregular3DSet extends IrregularSet {
     vx = null;
     vy = null;
     vz = null;
-    float[][] colors = null;
+    byte[][] colors = null;
     if (color_length > 0) {
-      colors = new float[3][numv];
+      colors = new byte[3][numv];
       System.arraycopy(color_levels[0], 0, colors[0], 0, numv);
       System.arraycopy(color_levels[1], 0, colors[1], 0, numv);
       System.arraycopy(color_levels[2], 0, colors[2], 0, numv);
+/* MEM_WLH
+      colors = new byte[3][numv];
+      for (int i=0; i<3; i++) {
+        for (int j=0; j<numv; j++) {
+          int k = (int) (color_levels[i][j] * 255.0);
+          k = (k < 0) ? 0 : (k > 255) ? 255 : k;
+          colors[i][j] = (byte) ((k < 128) ? k : k - 256);
+        }
+      }
+*/
       color_levels = null;
     }
     setGeometryArray(arrays[0], coordinates, 3, colors);
@@ -662,7 +725,7 @@ public class Irregular3DSet extends IrregularSet {
   }
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
-         float[] fieldValues, float[][] color_values)
+         float[] fieldValues, byte[][] color_values)
          throws VisADException {
 
     if (ManifoldDimension != 3) {
@@ -671,14 +734,46 @@ public class Irregular3DSet extends IrregularSet {
     }
 
     float[][] fieldVertices = new float[3][];
-    float[][] color_levels = null;
+    byte[][] color_levels = null;
     if (color_values != null) {
-      color_levels = new float[color_values.length][];
+      color_levels = new byte[color_values.length][];
+/* MEM_WLH
+      cfloat = new float[color_values.length][];
+      for (int i = 0; i< color_levels.length; i++) {
+        if (color_values[i] != null) {
+          cfloat[i] = new float[color_values[i].length];
+          for (int j=0; j<color_values[i].length; j++) {
+            int k = color_values[i][j];
+            if (k < 0) k += 256;
+            cfloat[i][j] = (k / 255.0f);
+          }
+        }
+      }
+*/
     }
     int[][][] polyToVert = new int[1][][];
     int[][][] vertToPoly = new int[1][][];
     makeIsosurface(isolevel, fieldValues, color_values, fieldVertices,
                    color_levels, polyToVert, vertToPoly);
+
+/* MEM_WLH
+    byte[][] c = null;
+    if (color_levels != null) {
+      c = new byte[color_levels.length][];
+      for (int i = 0; i< color_levels.length; i++) {
+        if (color_levels[i] != null) {
+          c[i] = new byte[color_levels[i].length];
+          for (int j=0; j<color_levels[i].length; j++) {
+            int k = (int) (color_levels[i][j] * 255.0);
+            k = (k < 0) ? 0 : (k > 255) ? 255 : k;
+            c[i][j] = (byte) ((k < 128) ? k : k - 256);
+          }
+        }
+      }
+      // FREE
+      color_levels = null;
+    }
+*/
 
     int nvertex = vertToPoly[0].length;
     int npolygons = polyToVert[0].length;
@@ -706,95 +801,6 @@ public class Irregular3DSet extends IrregularSet {
 
     // take the garbage out
     NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
-
-
-/*
-    // without poly_triangle_stripe
-    int ntris = npolygons;
-    for (int i=0; i<npolygons; i++) {
-      if (polyToVert[0][i].length > 3) ntris++;
-    }
-    VisADTriangleArray array = new VisADTriangleArray();
-    array.vertexCount = 3 * ntris;
-    float[][] coordinates = new float[3][3 * ntris];
-    float[] normals = new float[9 * ntris];
-    float[][] colors = null;
-    if (color_levels != null) {
-      colors = new float[color_levels.length][3 * ntris];
-    }
-    int j = 0;
-    int jn = 0;
-    for (int i=0; i<npolygons; i++) {
-      int a = polyToVert[0][i][0];
-      int b = polyToVert[0][i][1];
-      int c = polyToVert[0][i][2];
-      for (int k=0; k<3; k++) {
-        coordinates[k][j] = fieldVertices[k][a];
-        coordinates[k][j + 1] = fieldVertices[k][b];
-        coordinates[k][j + 2] = fieldVertices[k][c];
-      }
-      normals[jn] = NX[a];
-      normals[jn + 1] = NY[a];
-      normals[jn + 2] = NZ[a];
-      normals[jn + 3] = NX[b];
-      normals[jn + 4] = NY[b];
-      normals[jn + 5] = NZ[b];
-      normals[jn + 6] = NX[c];
-      normals[jn + 7] = NY[c];
-      normals[jn + 8] = NZ[c];
-      if (color_levels != null) {
-        for (int k=0; k<3; k++) {
-          colors[k][j] = color_levels[k][a];
-          colors[k][j + 1] = color_levels[k][b];
-          colors[k][j + 2] = color_levels[k][c];
-        }
-        if (color_levels.length > 3) {
-          colors[4][j] = color_levels[4][a];
-          colors[4][j + 1] = color_levels[4][b];
-          colors[4][j + 2] = color_levels[4][c];
-        }
-      }
-      j += 3;
-      jn += 9;
-      if (polyToVert[0][i].length > 3) {
-        int d = polyToVert[0][i][3];
-        for (int k=0; k<3; k++) {
-          coordinates[k][j] = fieldVertices[k][a];
-          coordinates[k][j + 1] = fieldVertices[k][c];
-          coordinates[k][j + 2] = fieldVertices[k][d];
-        }
-        normals[jn] = NX[a];
-        normals[jn + 1] = NY[a];
-        normals[jn + 2] = NZ[a];
-        normals[jn + 3] = NX[c];
-        normals[jn + 4] = NY[c];
-        normals[jn + 5] = NZ[c];
-        normals[jn + 6] = NX[d];
-        normals[jn + 7] = NY[d];
-        normals[jn + 8] = NZ[d];
-        if (color_levels != null) {
-          for (int k=0; k<3; k++) {
-            colors[k][j] = color_levels[k][a];
-            colors[k][j + 1] = color_levels[k][c];
-            colors[k][j + 2] = color_levels[k][d];
-          }
-          if (color_levels.length > 3) {
-            colors[4][j] = color_levels[4][a];
-            colors[4][j + 1] = color_levels[4][c];
-            colors[4][j + 2] = color_levels[4][d];
-          }
-        }
-        j += 3;
-        jn += 9;
-      }
-    }
-    vertToPoly = null;
-    polyToVert = null;
-    setGeometryArray(array, coordinates, 4, colors);
-    array.normals = normals;
-    normals = null;
-*/
- 
 
 
 
@@ -839,8 +845,6 @@ public class Irregular3DSet extends IrregularSet {
     // array.vertexFormat |= NORMALS;
     array.normals = normals;
 
-
-
     return array;
   }
 
@@ -856,8 +860,8 @@ public class Irregular3DSet extends IrregularSet {
       return pointers from polys to vertices in
              polyToVert[1][npolygons][4]; */
   private void makeIsosurface(float isolevel, float[] fieldValues,
-                              float[][] auxValues, float[][] fieldVertices,
-                              float[][] auxLevels, int[][][] polyToVert,
+                              byte[][] auxValues, float[][] fieldVertices,
+                              byte[][] auxLevels, int[][][] polyToVert,
                               int[][][] vertToPoly) throws VisADException {
     boolean DEBUG = false;
     if (ManifoldDimension != 3) {
@@ -924,7 +928,9 @@ public class Irregular3DSet extends IrregularSet {
     for (int i=0; i<Delan.NumEdges; i++) edgeInterp[0][i] = Float.NaN;
 
     // global edges temporary storage array for aux levels
-    float[][] auxInterp = (naux > 0) ? new float[naux][Delan.NumEdges] : null;
+    byte[][] auxInterp = (naux > 0) ? new byte[naux][Delan.NumEdges] : null;
+
+    int t;
 
     int nvertex = 0;
     int npolygons = 0;
@@ -989,7 +995,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e0] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v1];
             edgeInterp[2][e0] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v1];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) );
+              auxInterp[j][e0] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e0] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v1];
+*/
             }
             globalToVertex[e0] = nvertex;
             nvertex++;
@@ -1005,7 +1021,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e1] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v2];
             edgeInterp[2][e1] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v2];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) );
+              auxInterp[j][e1] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e1] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v2];
+*/
             }
             globalToVertex[e1] = nvertex;
             nvertex++;
@@ -1021,7 +1047,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e2] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v3];
             edgeInterp[2][e2] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e2] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e2] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e2] = nvertex;
             nvertex++;
@@ -1062,7 +1098,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e0] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v1];
             edgeInterp[2][e0] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v1];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) );
+              auxInterp[j][e0] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e0] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v1];
+*/
             }
             globalToVertex[e0] = nvertex;
             nvertex++;
@@ -1078,7 +1124,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
             edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) +
+                  (1.0f - a) * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) );
+              auxInterp[j][e3] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
+*/
             }
             globalToVertex[e3] = nvertex;
             nvertex++;
@@ -1094,7 +1150,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
             edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e4] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e4] = nvertex;
             nvertex++;
@@ -1136,7 +1202,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e1] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v2];
             edgeInterp[2][e1] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v2];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) );
+              auxInterp[j][e1] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e1] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v2];
+*/
             }
             globalToVertex[e1] = nvertex;
             nvertex++;
@@ -1152,7 +1228,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e2] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v3];
             edgeInterp[2][e2] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e2] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e2] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e2] = nvertex;
             nvertex++;
@@ -1168,7 +1254,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
             edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e4] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e4] = nvertex;
             nvertex++;
@@ -1184,7 +1280,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
             edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) +
+                  (1.0f - a) * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) );
+              auxInterp[j][e3] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
+*/
             }
             globalToVertex[e3] = nvertex;
             nvertex++;
@@ -1227,7 +1333,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e1] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v2];
             edgeInterp[2][e1] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v2];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) );
+              auxInterp[j][e1] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e1] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v2];
+*/
             }
             globalToVertex[e1] = nvertex;
             nvertex++;
@@ -1243,7 +1359,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
             edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) +
+                  (1.0f - a) * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) );
+              auxInterp[j][e3] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
+*/
             }
             globalToVertex[e3] = nvertex;
             nvertex++;
@@ -1259,7 +1385,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e5] = (float) a*Samples[1][v2] + (1-a)*Samples[1][v3];
             edgeInterp[2][e5] = (float) a*Samples[2][v2] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e5] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e5] = (float) a*auxValues[j][v2] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e5] = nvertex;
             nvertex++;
@@ -1301,7 +1437,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e0] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v1];
             edgeInterp[2][e0] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v1];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) );
+              auxInterp[j][e0] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e0] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v1];
+*/
             }
             globalToVertex[e0] = nvertex;
             nvertex++;
@@ -1317,7 +1463,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e2] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v3];
             edgeInterp[2][e2] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e2] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e2] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e2] = nvertex;
             nvertex++;
@@ -1333,7 +1489,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e5] = (float) a*Samples[1][v2] + (1-a)*Samples[1][v3];
             edgeInterp[2][e5] = (float) a*Samples[2][v2] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e5] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e5] = (float) a*auxValues[j][v2] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e5] = nvertex;
             nvertex++;
@@ -1349,7 +1515,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
             edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) +
+                  (1.0f - a) * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) );
+              auxInterp[j][e3] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
+*/
             }
             globalToVertex[e3] = nvertex;
             nvertex++;
@@ -1393,7 +1569,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e0] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v1];
             edgeInterp[2][e0] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v1];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) );
+              auxInterp[j][e0] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e0] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v1];
+*/
             }
             globalToVertex[e0] = nvertex;
             nvertex++;
@@ -1409,7 +1595,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e1] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v2];
             edgeInterp[2][e1] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v2];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) );
+              auxInterp[j][e1] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e1] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v2];
+*/
             }
             globalToVertex[e1] = nvertex;
             nvertex++;
@@ -1425,7 +1621,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e5] = (float) a*Samples[1][v2] + (1-a)*Samples[1][v3];
             edgeInterp[2][e5] = (float) a*Samples[2][v2] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e5] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e5] = (float) a*auxValues[j][v2] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e5] = nvertex;
             nvertex++;
@@ -1441,7 +1647,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
             edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e4] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e4] = nvertex;
             nvertex++;
@@ -1485,7 +1701,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e2] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v3];
             edgeInterp[2][e2] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v0] < 0) ?
+                    ((float) auxValues[j][v0]) + 256.0f :
+                    ((float) auxValues[j][v0]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e2] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e2] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e2] = nvertex;
             nvertex++;
@@ -1501,7 +1727,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
             edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v1] < 0) ?
+                    ((float) auxValues[j][v1]) + 256.0f :
+                    ((float) auxValues[j][v1]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e4] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e4] = nvertex;
             nvertex++;
@@ -1517,7 +1753,17 @@ public class Irregular3DSet extends IrregularSet {
             edgeInterp[1][e5] = (float) a*Samples[1][v2] + (1-a)*Samples[1][v3];
             edgeInterp[2][e5] = (float) a*Samples[2][v2] + (1-a)*Samples[2][v3];
             for (int j=0; j<naux; j++) {
+              t = (int) ( a * ((auxValues[j][v2] < 0) ?
+                    ((float) auxValues[j][v2]) + 256.0f :
+                    ((float) auxValues[j][v2]) ) +
+                  (1.0f - a) * ((auxValues[j][v3] < 0) ?
+                    ((float) auxValues[j][v3]) + 256.0f :
+                    ((float) auxValues[j][v3]) ) );
+              auxInterp[j][e5] = (byte)
+                ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
               auxInterp[j][e5] = (float) a*auxValues[j][v2] + (1-a)*auxValues[j][v3];
+*/
             }
             globalToVertex[e5] = nvertex;
             nvertex++;
@@ -1538,8 +1784,8 @@ public class Irregular3DSet extends IrregularSet {
           // on to the next tetrahedron
           npolygons++;
           break;
-      }
-    }
+      } // end switch (index)
+    } // end for (int i=0; i<trilength; i++)
 
 
 
@@ -1628,15 +1874,16 @@ public class Irregular3DSet extends IrregularSet {
     fieldVertices[1] = new float[nvertex];
     fieldVertices[2] = new float[nvertex];
     for (int j=0; j<naux; j++) {
-      auxLevels[j] = new float[nvertex];
+      auxLevels[j] = new byte[nvertex];
     }
     for (int i=0; i<Delan.NumEdges; i++) {
-      if (globalToVertex[i] >= 0) {
-        fieldVertices[0][globalToVertex[i]] = edgeInterp[0][i];
-        fieldVertices[1][globalToVertex[i]] = edgeInterp[1][i];
-        fieldVertices[2][globalToVertex[i]] = edgeInterp[2][i];
+      int k = globalToVertex[i];
+      if (k >= 0) {
+        fieldVertices[0][k] = edgeInterp[0][i];
+        fieldVertices[1][k] = edgeInterp[1][i];
+        fieldVertices[2][k] = edgeInterp[2][i];
         for (int j=0; j<naux; j++) {
-          auxLevels[j][globalToVertex[i]] = auxInterp[j][i];
+          auxLevels[j][k] = auxInterp[j][i];
         }
       }
     }
@@ -2175,7 +2422,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
   }
 
   /** create a 2-D GeometryArray from this Set and color_values */
-  public VisADGeometryArray make2DGeometry(float[][] color_values)
+  public VisADGeometryArray make2DGeometry(byte[][] color_values)
          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("Irregular3DSet.make2DGeometry: " +

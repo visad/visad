@@ -120,10 +120,15 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
   public void adjustZ(float[] coordinates) {
     if (display.getDisplayRenderer().getMode2D()) {
+      for (int i=2; i<coordinates.length; i+=3) {
+        coordinates[i] = DisplayImplJ3D.BACK2D;
+      }
+/* WLH 27 March 99
       coordinates[2] = DisplayImplJ3D.BACK2D;
       coordinates[5] = DisplayImplJ3D.BACK2D;
       coordinates[8] = DisplayImplJ3D.BACK2D;
       coordinates[11] = DisplayImplJ3D.BACK2D;
+*/
     }
   }
 
@@ -158,6 +163,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                             float constant_alpha, float[] constant_color)
          throws VisADException {
     if (array != null && array.vertexCount > 0) {
+      // MEM - for coordinates if mode2d
       GeometryArray geometry = display.makeGeometry(array);
       TransparencyAttributes c_alpha = null;
       if (constant_alpha == 0.0f) {
@@ -329,12 +335,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
     }
     AccumulationVector.removeAllElements();
-  }
-
-  private class myWritableRaster extends WritableRaster {
-    myWritableRaster(SampleModel sm, Point p) {
-      super(sm, p);
-    }
   }
 
 }

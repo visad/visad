@@ -91,6 +91,7 @@ TAR_FILES = \
 	ucar/tests/test.nc				\
 	ucar/tests/test.out				\
 	visad/data/hdfeos/*.java			\
+	visad/data/hdfeos/README.hdfeos			\
 	visad/data/hdfeos/hdfeosc/*.java		\
 	visad/data/hdfeos/hdfeosc/*.c			\
 	visad/data/hdfeos/hdfeosc/*.h			\

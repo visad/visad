@@ -91,6 +91,10 @@ public interface Field extends Function {
   public Field domainFactor( RealType factor )
          throws VisADException, RemoteException;
 
+  /** invokes getValues(true) */
+  public abstract double[][] getValues()
+         throws VisADException, RemoteException;
+
   /** get the 'Flat' components of this Field's range values
       in their default range Units (as defined by the range of
       the Field's FunctionType); if the range type is a RealType
@@ -98,10 +102,27 @@ public interface Field extends Function {
       its RealType components and RealType components of its
       RealTupleType components are all 'Flat' components; the
       return array is dimensioned:
-      double[number_of_flat_components][number_of_range_samples] */
-  public abstract double[][] getValues()
+      double[number_of_flat_components][number_of_range_samples];
+      return a copy if copy == true */
+  public abstract double[][] getValues(boolean copy)
          throws VisADException, RemoteException;
  
+  /** invokes getFloats(true) */
+  public abstract float[][] getFloats()
+         throws VisADException, RemoteException;
+ 
+  /** get the 'Flat' components of this Field's range values
+      in their default range Units (as defined by the range of
+      the Field's FunctionType); if the range type is a RealType
+      it is a 'Flat' component, if the range type is a TupleType
+      its RealType components and RealType components of its
+      RealTupleType components are all 'Flat' components; the
+      return array is dimensioned:
+      float[number_of_flat_components][number_of_range_samples];
+      return a copy if copy == true */
+  public abstract float[][] getFloats(boolean copy)
+         throws VisADException, RemoteException;
+
   /** get String values for Text components */
   public String[][] getStringValues()
          throws VisADException, RemoteException;

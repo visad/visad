@@ -151,6 +151,24 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     return ((FieldImpl) AdaptedData).domainFactor(factor);
   }
 
+  public float[][] getFloats()
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.getValues: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).getFloats();
+  }
+ 
+  public float[][] getFloats(boolean copy)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.getValues: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).getFloats(copy);
+  }
+
   public double[][] getValues() 
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
@@ -160,6 +178,15 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     return ((FieldImpl) AdaptedData).getValues();
   }
  
+  public double[][] getValues(boolean copy)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.getValues: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).getValues(copy);
+  }
+
   public String[][] getStringValues()
          throws VisADException, RemoteException {
     if (AdaptedData == null) {

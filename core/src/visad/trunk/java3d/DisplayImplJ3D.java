@@ -246,7 +246,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       }
       if (vga.colors != null) {
         System.out.println("expand vga.colors");
-        float[] cols = new float[len];
+        byte[] cols = new float[len];
         for (int k=0; k<count; k++) {
           int i = 3 * k;
           int j = 3 * vga.indices[k];
