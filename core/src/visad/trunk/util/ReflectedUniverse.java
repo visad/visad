@@ -197,13 +197,14 @@ public class ReflectedUniverse {
     if (dot >= 0) {
       // get field value of variable
       Object var = variables.get(varName.substring(0, dot).trim());
+      Class varClass = var instanceof Class ? (Class) var : var.getClass();
       String fieldName = varName.substring(dot + 1).trim();
       Field field;
       try {
-        field = var.getClass().getField(fieldName);
+        field = varClass.getField(fieldName);
       }
       catch (NoSuchFieldException exc) {
-        throw new VisADException("No such field: " + fieldName);
+        throw new VisADException("No such field: " + varName);
       }
       Object fieldVal;
       try {
