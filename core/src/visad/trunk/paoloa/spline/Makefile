@@ -39,9 +39,9 @@ SOURCE = gcvspl.f tpspline.f
 #
 RM = rm -f
 
-default: Spline.class Spline2D.class Spline.so Spline2D.so
+default: Spline.class Spline2D.class libSpline.so libSpline2D.so
 
-Spline.so: SplineImp.o gcvspl.o
+libSpline.so: SplineImp.o gcvspl.o
 	${SHLD} ${SHLDFLAGS} -o libSpline.so \
 		SplineImp.o gcvspl.o \
 		-lM77 -lF77 -lsunmath -lm -lc
@@ -50,11 +50,12 @@ SplineImp.o: visad_paoloa_spline_Spline.h
 
 visad_paoloa_spline_Spline.h: Spline.class
 	javah -jni visad.paoloa.spline.Spline
+	touch visad_paoloa_spline_Spline.h
 
 Spline.class: Spline.java
 	javac Spline.java
 
-Spline2D.so: Spline2DImp.o tpspline.o
+libSpline2D.so: Spline2DImp.o tpspline.o
 	${SHLD} ${SHLDFLAGS} -o libSpline2D.so \
 		Spline2DImp.o tpspline.o \
 		-lM77 -lF77 -lsunmath -lm -lc
@@ -63,6 +64,7 @@ Spline2DImp.o: visad_paoloa_spline_Spline2D.h
 
 visad_paoloa_spline_Spline2D.h: Spline2D.class
 	javah -jni visad.paoloa.spline.Spline2D
+	touch visad_paoloa_spline_Spline2D.h
 
 Spline2D.class: Spline2D.java
 	javac Spline2D.java
