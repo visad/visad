@@ -119,7 +119,6 @@ TAR_FILES = \
 	visad/Gridded2D.txt				\
 	visad/Gridded3D.txt				\
 	visad/contour.html				\
-	visad/delaunay.html				\
 	visad/plotdigits.html
 
 tar:
@@ -252,7 +251,6 @@ SAVE_FILES = \
 	visad/Gridded2D.txt				\
 	visad/Gridded3D.txt				\
 	visad/contour.html				\
-	visad/delaunay.html				\
 	visad/plotdigits.html
 
 save:
