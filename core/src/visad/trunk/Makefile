@@ -145,6 +145,98 @@ NCSA = ../ncsa/hdf/hdf5lib
 .java.class:
 	$(JC) $(JFLAGS) $<
 
+SAVE_FILES = \
+	visad/README					\
+	visad/DEDICATION				\
+	visad/NOTICE					\
+	visad/LICENSE					\
+	visad/DATE					\
+	visad/Makefile					\
+	visad/Makefile.WinNT				\
+	visad/README.nexusrmi				\
+	visad/rmic_script				\
+	visad/*.java					\
+	visad/examples/*.java				\
+	visad/java3d/*.java				\
+	visad/java2d/*.java				\
+	visad/util/*.java				\
+	visad/formula/*.java				\
+	visad/ss/*.java					\
+	visad/ss/*.gif					\
+	visad/ss/README.ss				\
+	visad/collab/*.java				\
+	visad/data/*.java				\
+	visad/data/netcdf/*.java			\
+	visad/data/netcdf/units/*.java			\
+	visad/data/netcdf/units/*.jj			\
+	visad/data/netcdf/in/*.java			\
+	visad/data/netcdf/out/*.java			\
+	visad/data/fits/*.java				\
+	nom/tam/fits/*.java				\
+	nom/tam/util/*.java				\
+	nom/tam/test/*.java				\
+	ucar/COPYRIGHT					\
+	ucar/VERSION					\
+	ucar/multiarray/*.java				\
+	ucar/util/*.java				\
+	ucar/netcdf/*.java				\
+	ucar/netcdf/Makefile				\
+	ucar/tests/*.java				\
+	ucar/tests/test.nc				\
+	ucar/tests/test.out				\
+	visad/data/hdfeos/*.java			\
+	visad/data/hdfeos/hdfeosc/*.java		\
+	visad/data/hdfeos/hdfeosc/*.c			\
+	visad/data/hdfeos/hdfeosc/*.h			\
+	visad/data/hdfeos/hdfeosc/Makefile		\
+	edu/wisc/ssec/mcidas/*.java			\
+	edu/wisc/ssec/mcidas/adde/*.java		\
+	visad/data/mcidas/*.java                        \
+	visad/data/mcidas/README.mcidas                 \
+	visad/data/vis5d/*.java				\
+	visad/data/gif/*.java				\
+	visad/data/visad/*.java				\
+	visad/data/hdf5/*.java				\
+	visad/data/hdf5/hdf5objects/*.java		\
+	ncsa/hdf/hdf5lib/*.java				\
+	ncsa/hdf/hdf5lib/exceptions/*.java		\
+	visad/jmet/*.java				\
+	visad/paoloa/README.paoloa			\
+	visad/paoloa/Makefile				\
+	visad/paoloa/*.java				\
+	visad/paoloa/*.f				\
+	visad/paoloa/*.c				\
+	visad/paoloa/*.h				\
+	visad/paoloa/spline/Makefile			\
+	visad/paoloa/spline/*.java			\
+	visad/paoloa/spline/*.f				\
+	visad/paoloa/spline/*.c				\
+	visad/paoloa/spline/*.h				\
+	visad/aune/README.aune				\
+	visad/aune/Makefile				\
+	visad/aune/shsize.fcm				\
+	visad/aune/*.java				\
+	visad/aune/*.f					\
+	visad/aune/*.c					\
+	visad/aune/*.h					\
+	visad/benjamin/README.benjamin                  \
+	visad/benjamin/Makefile                         \
+	visad/benjamin/*.java                           \
+	visad/benjamin/*.f                              \
+	visad/benjamin/*.c                              \
+	visad/benjamin/*.h                              \
+	visad/benjamin/switch.inp                       \
+	visad/benjamin/*.table                          \
+	visad/rabin/*.java                              \
+	visad/bom/*.java                                \
+	visad/aeri/*.java                               \
+	visad/georef/*.java                               \
+	visad/Gridded1D.txt				\
+	visad/Gridded2D.txt				\
+	visad/Gridded3D.txt				\
+	visad/contour.html				\
+	visad/plotdigits.html
+
 TAR_FILES = \
 	visad/README					\
 	visad/DEDICATION				\
@@ -244,39 +336,6 @@ TAR_FILES = \
 	visad/contour.html				\
 	visad/plotdigits.html
 
-tar:
-	date > DATE ; \
-	cd .. ; \
-	tar -cvf visad_src-2.0.tar $(TAR_FILES) ; \
-	compress visad_src-2.0.tar ; \
-	mv visad_src-2.0.tar.Z visad ; \
-	cd visad ; \
-	ln visad_src-2.0.tar.Z visadsrc.taz ; \
-	ls -l visad_src-2.0.tar.Z visadsrc.taz
-
-jar:
-	date > DATE ; \
-	cd .. ; \
-	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
-	mv visad_src-2.0.jar visad ; \
-	cd visad ; \
-	ln visad_src-2.0.jar visadsrc.jar ; \
-	ls -l visad_src-2.0.jar visadsrc.jar
-
-jar_split:
-	date > DATE ; \
-	cd .. ; \
-	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
-	mv visad_src-2.0.jar visad ; \
-	cd visad ; \
-	split -b 1400000 visad_src-2.0.jar visad_ ; \
-	ls -l visad_a*
-
-unjar_split:
-	cd .. ; \
-	cat visad_a* > visad_src-2.0.jar ;
-	jar xvf visad_src-2.0.jar
-
 CLASS_FILES = \
 	DATE						\
 	visad/*.class					\
@@ -323,150 +382,6 @@ CLASS_FILES = \
 	visad/georef/*.class				\
 	visad/examples/*.class
 
-
-classes:
-	cd .. ; \
-	date > DATE ; \
-	jar cvf visad.jar $(CLASS_FILES) ; \
-	tar -cvf visad.tar visad.jar
-
-EXAMPLES_TAR_FILES = \
-	visad/examples/*.java				\
-	visad/examples/*.class
-
-examplesjar:
-	cd .. ; \
-	jar cvf visad_examples.jar $(EXAMPLES_TAR_FILES) ; \
-	mv visad_examples.jar visad ; \
-	cd visad ; \
-	ls -l visad_examples.jar
-
-
-SAVE_FILES = \
-	visad/README					\
-	visad/DEDICATION				\
-	visad/NOTICE					\
-	visad/LICENSE					\
-	visad/DATE					\
-	visad/Makefile					\
-	visad/Makefile.WinNT				\
-	visad/README.nexusrmi				\
-	visad/rmic_script				\
-	visad/*.java					\
-	visad/examples/*.java				\
-	visad/java3d/*.java				\
-	visad/java2d/*.java				\
-	visad/util/*.java				\
-	visad/formula/*.java				\
-	visad/ss/*.java					\
-	visad/ss/*.gif					\
-	visad/ss/README.ss				\
-	visad/collab/*.java				\
-	visad/data/*.java				\
-	visad/data/netcdf/*.java			\
-	visad/data/netcdf/units/*.java			\
-	visad/data/netcdf/units/*.jj			\
-	visad/data/netcdf/in/*.java			\
-	visad/data/netcdf/out/*.java			\
-	visad/data/fits/*.java				\
-	nom/tam/fits/*.java				\
-	nom/tam/util/*.java				\
-	nom/tam/test/*.java				\
-	ucar/COPYRIGHT					\
-	ucar/VERSION					\
-	ucar/multiarray/*.java				\
-	ucar/util/*.java				\
-	ucar/netcdf/*.java				\
-	ucar/netcdf/Makefile				\
-	ucar/tests/*.java				\
-	ucar/tests/test.nc				\
-	ucar/tests/test.out				\
-	visad/data/hdfeos/*.java			\
-	visad/data/hdfeos/hdfeosc/*.java		\
-	visad/data/hdfeos/hdfeosc/*.c			\
-	visad/data/hdfeos/hdfeosc/*.h			\
-	visad/data/hdfeos/hdfeosc/Makefile		\
-	edu/wisc/ssec/mcidas/*.java			\
-	edu/wisc/ssec/mcidas/adde/*.java		\
-	visad/data/mcidas/*.java                        \
-	visad/data/mcidas/README.mcidas                 \
-	visad/data/vis5d/*.java				\
-	visad/data/gif/*.java				\
-	visad/data/visad/*.java				\
-	visad/data/hdf5/*.java				\
-	visad/data/hdf5/hdf5objects/*.java		\
-	ncsa/hdf/hdf5lib/*.java				\
-	ncsa/hdf/hdf5lib/exceptions/*.java		\
-	visad/jmet/*.java				\
-	visad/paoloa/README.paoloa			\
-	visad/paoloa/Makefile				\
-	visad/paoloa/*.java				\
-	visad/paoloa/*.f				\
-	visad/paoloa/*.c				\
-	visad/paoloa/*.h				\
-	visad/paoloa/spline/Makefile			\
-	visad/paoloa/spline/*.java			\
-	visad/paoloa/spline/*.f				\
-	visad/paoloa/spline/*.c				\
-	visad/paoloa/spline/*.h				\
-	visad/aune/README.aune				\
-	visad/aune/Makefile				\
-	visad/aune/shsize.fcm				\
-	visad/aune/*.java				\
-	visad/aune/*.f					\
-	visad/aune/*.c					\
-	visad/aune/*.h					\
-	visad/benjamin/README.benjamin                  \
-	visad/benjamin/Makefile                         \
-	visad/benjamin/*.java                           \
-	visad/benjamin/*.f                              \
-	visad/benjamin/*.c                              \
-	visad/benjamin/*.h                              \
-	visad/benjamin/switch.inp                       \
-	visad/benjamin/*.table                          \
-	visad/rabin/*.java                              \
-	visad/bom/*.java                                \
-	visad/aeri/*.java                               \
-	visad/georef/*.java                               \
-	visad/Gridded1D.txt				\
-	visad/Gridded2D.txt				\
-	visad/Gridded3D.txt				\
-	visad/contour.html				\
-	visad/plotdigits.html
-
-save:
-	/bin/rm -rf backup
-	mkdir backup
-	cd .. && tar -cvf save.tar $(SAVE_FILES)
-	cd backup && tar -xvf ../../save.tar
-	rm -f ../save.tar
-	wc `find backup -name '*.java' -print`
-
-
-clear:
-	$(RM) *.java
-	$(RM) java3d/*.java java2d/*.java util/*.java formula/*.java
-	$(RM) ss/*.java ss/*.gif
-	$(RM) collab/*.java
-	$(RM) data/*.java data/netcdf/*.java data/netcdf/units/*.java
-	$(RM) data/netcdf/in/*.java data/netcdf/out/*.java
-	$(RM) data/fits/*.java data/hdf5/*.java data/hdf5/hdf5objects/*.java
-	$(RM) $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
-	$(RM) $(UCAR)/multiarray/*.java $(UCAR)/netcdf/*.java
-	$(RM) $(UCAR)/tests/*.java
-	$(RM) $(NCSA)/*.java $(NCSA)/exceptions/*.java
-	$(RM) data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
-	$(RM) $(SSEC)/mcidas/*.java $(SSEC)/mcidas/adde/*.java
-	$(RM) data/mcidas/*.java jmet/*.java georef/*.java
-	$(RM) data/vis5d/*.java data/gif/*.java data/visad/*.java
-	$(RM) paoloa/*.java aune/*.java benjamin/*.java examples/*.java
-	$(RM) paoloa/spline/*.java rabin/*.java bom/*.java aeri/*.java
-
-
-debug:
-	make compile \
-	"JFLAGS = -J-mx32m -g"
-
 VISAD_PACKAGES = \
 		visad \
 		visad.collab \
@@ -509,6 +424,93 @@ VISAD_PACKAGES = \
 		visad.bom \
 		visad.aeri \
 		visad.georef
+
+tar:
+	date > DATE ; \
+	cd .. ; \
+	tar -cvf visad_src-2.0.tar $(TAR_FILES) ; \
+	compress visad_src-2.0.tar ; \
+	mv visad_src-2.0.tar.Z visad ; \
+	cd visad ; \
+	ln visad_src-2.0.tar.Z visadsrc.taz ; \
+	ls -l visad_src-2.0.tar.Z visadsrc.taz
+
+jar:
+	date > DATE ; \
+	cd .. ; \
+	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
+	mv visad_src-2.0.jar visad ; \
+	cd visad ; \
+	ln visad_src-2.0.jar visadsrc.jar ; \
+	ls -l visad_src-2.0.jar visadsrc.jar
+
+jar_split:
+	date > DATE ; \
+	cd .. ; \
+	jar cvf visad_src-2.0.jar $(TAR_FILES) ; \
+	mv visad_src-2.0.jar visad ; \
+	cd visad ; \
+	split -b 1400000 visad_src-2.0.jar visad_ ; \
+	ls -l visad_a*
+
+unjar_split:
+	cd .. ; \
+	cat visad_a* > visad_src-2.0.jar ;
+	jar xvf visad_src-2.0.jar
+
+
+classes:
+	cd .. ; \
+	date > DATE ; \
+	jar cvf visad.jar $(CLASS_FILES) ; \
+	tar -cvf visad.tar visad.jar
+
+
+EXAMPLES_TAR_FILES = \
+	visad/examples/*.java				\
+	visad/examples/*.class
+
+examplesjar:
+	cd .. ; \
+	jar cvf visad_examples.jar $(EXAMPLES_TAR_FILES) ; \
+	mv visad_examples.jar visad ; \
+	cd visad ; \
+	ls -l visad_examples.jar
+
+
+save:
+	/bin/rm -rf backup
+	mkdir backup
+	cd .. && tar -cvf save.tar $(SAVE_FILES)
+	cd backup && tar -xvf ../../save.tar
+	rm -f ../save.tar
+	wc `find backup -name '*.java' -print`
+
+
+clear:
+	$(RM) *.java
+	$(RM) java3d/*.java java2d/*.java util/*.java formula/*.java
+	$(RM) ss/*.java ss/*.gif
+	$(RM) collab/*.java
+	$(RM) data/*.java data/netcdf/*.java data/netcdf/units/*.java
+	$(RM) data/netcdf/in/*.java data/netcdf/out/*.java
+	$(RM) data/fits/*.java data/hdf5/*.java data/hdf5/hdf5objects/*.java
+	$(RM) $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
+	$(RM) $(UCAR)/multiarray/*.java $(UCAR)/netcdf/*.java
+	$(RM) $(UCAR)/tests/*.java
+	$(RM) $(NCSA)/*.java $(NCSA)/exceptions/*.java
+	$(RM) data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
+	$(RM) $(SSEC)/mcidas/*.java $(SSEC)/mcidas/adde/*.java
+	$(RM) data/mcidas/*.java jmet/*.java georef/*.java
+	$(RM) data/vis5d/*.java data/gif/*.java data/visad/*.java
+	$(RM) paoloa/*.java aune/*.java benjamin/*.java examples/*.java
+	$(RM) paoloa/spline/*.java rabin/*.java bom/*.java aeri/*.java
+
+
+debug:
+	make compile \
+	"JFLAGS = -J-mx32m -g"
+
 
 clean:
 	$(RM) *.class *~
