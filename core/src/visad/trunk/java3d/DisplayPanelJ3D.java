@@ -39,6 +39,7 @@ public class DisplayPanelJ3D extends JPanel {
   private DisplayImplJ3D display;
   private DisplayRendererJ3D renderer;
   private UniverseBuilderJ3D universe;
+  private VisADCanvasJ3D canvas;
 
   public DisplayPanelJ3D(DisplayImplJ3D d) {
     this(d, null, null);
@@ -53,8 +54,7 @@ public class DisplayPanelJ3D extends JPanel {
     setAlignmentY(TOP_ALIGNMENT);
     setAlignmentX(LEFT_ALIGNMENT);
 */
-    VisADCanvasJ3D canvas = (c != null) ? c :
-                            new VisADCanvasJ3D(renderer, config);
+    canvas = (c != null) ? c : new VisADCanvasJ3D(renderer, config);
     canvas.setComponent(this);
     add(canvas);
 
@@ -67,8 +67,14 @@ public class DisplayPanelJ3D extends JPanel {
     setMinimumSize(new java.awt.Dimension(0, 0));
   }
 
+  public void setVisible(boolean v){
+    super.setVisible(v);
+    canvas.setVisible(v);
+  }
+
   // WLH 17 Dec 2001
   public void destroy() {
+    canvas = null;
     display = null;
     renderer = null;
     if (universe != null) {
