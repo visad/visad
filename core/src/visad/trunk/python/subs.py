@@ -167,6 +167,19 @@ def setAspects(display, x, y, z):
   """
   display.getProjectionControl().setAspectCartesian( (x, y, z))
 
+def rotateBox(display, azimuth, declination):
+  """
+  Rotate the 3D display box to the azimuth angle (0-360) and
+  declination angle (all in degrees).  Code from Unidata.
+  """
+  zangle = 180 - azimuth
+  aziMat = display.make_matrix(0, 0, zangle, 1, 0, 0, 0)
+  pc = display.getProjectionControl()
+  comb = display.multiply_matrix(aziMat, pc.getMatrix())
+  decMat = display.make_matrix(declination, 0, 0, 1, 0, 0, 0)
+  comb2 = display.multiply_matrix(decMat,comb)
+  pc.setMatrix(comb2)
+
 def maximizeBox(display, clip=1):
   """
   Set the size of the VisAD 'box' for the <display> to 95%.  If
