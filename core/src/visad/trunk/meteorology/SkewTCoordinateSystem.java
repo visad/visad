@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTCoordinateSystem.java,v 1.1 1998-08-12 17:17:21 visad Exp $
+ * $Id: SkewTCoordinateSystem.java,v 1.2 1998-08-17 18:40:48 steve Exp $
  */
 
 package visad.meteorology;
@@ -63,7 +63,7 @@ SkewTCoordinateSystem
     private static final double	CANONICAL_MAX_P            = 1050.0;
     private static final double	CANONICAL_MIN_T_AT_MAX_P   =  -46.5;
     private static final double	CANONICAL_MAX_T_AT_MAX_P   =   52.0;
-    private static final double	CANONICAL_ISOTHERM_TANGENT =    1.0;
+    private static final double	CANONICAL_ISOTHERM_TANGENT =    1.2;
 
 
     static
@@ -228,6 +228,20 @@ SkewTCoordinateSystem
 
 
     /**
+     * Transforms a real coordinate to a display coordinate.
+     */
+    public double[]
+    toReference(double pressure, double temperature)
+    {
+	double[][]	xyCoords = toReference(
+	    new double[][] {new double[] {pressure}, new double[] {temperature},
+			    new double[] {0}});
+
+	return new double[] {xyCoords[0][0], xyCoords[1][0]};
+    }
+
+
+    /**
      * Transforms display coordinates to real coordinates.
      *
      * @param coords    Display coordinates: <code>coords[0][i]</code>
@@ -267,6 +281,20 @@ SkewTCoordinateSystem
 	}
 
 	return coords;
+    }
+
+
+    /**
+     * Transforms a display coordinate to a real coordinate.
+     */
+    public double[]
+    fromeference(double x, double y)
+    {
+	double[][]	ptCoords = fromReference(
+	    new double[][] {new double[] {x}, new double[] {y},
+			    new double[] {}});
+
+	return new double[] {ptCoords[0][0], ptCoords[1][0]};
     }
 
 

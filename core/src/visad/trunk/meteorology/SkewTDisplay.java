@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.2 1998-08-12 17:44:33 visad Exp $
+ * $Id: SkewTDisplay.java,v 1.3 1998-08-17 18:40:48 steve Exp $
  */
 
 package visad.meteorology;
@@ -26,10 +26,13 @@ import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.ScalarMap;
+import visad.SI;
 import visad.Set;
+import visad.Unit;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
 import visad.data.netcdf.QuantityMap;
+import visad.data.netcdf.units.Parser;
 import visad.java2d.DisplayImplJ2D;
 
 
@@ -75,7 +78,12 @@ SkewTDisplay
     /**
      * The interval between isotherms.
      */
-    private final float				deltaTemperature = 5f;
+    private final float				deltaTemperature = 10f;
+
+    /**
+     * The interval between potential isotherms.
+     */
+    private final float				deltaPotentialTemperature = 10f;
 
     /**
      * The base isotherm.
@@ -121,10 +129,23 @@ SkewTDisplay
 	{
 	    configureDisplayForSounding(sounding);
 
-	    DataReferenceImpl	isothermRef = configureDisplayForIsotherms();
+	    /*
+	     * Map the X and Y coordinates of the various background fields
+	     * to the display X and Y coordinates.
+	     */
+	    ScalarMap	xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
+	    ScalarMap	yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
+	    display.addMap(xMap);
+	    display.addMap(yMap);
+
+	    DataReferenceImpl	temperatureRef = 
+		configureDisplayForTemperature();
+	    DataReferenceImpl	potentialTemperatureRef =
+		configureDisplayForPotentialTemperature();
 
 	    display.addReference(soundingRef);
-	    display.addReference(isothermRef);
+	    display.addReference(temperatureRef);
+	    // display.addReference(potentialTemperatureRef);
 
 	    displayInitialized = true;
 	}
@@ -132,12 +153,12 @@ SkewTDisplay
 
 
     /**
-     * Configure display for isotherms.
+     * Configure display for temperature field.
      *
-     * @return	Display data-reference to isotherms.
+     * @return	Display data-reference to temperature field.
      */
     protected DataReferenceImpl
-    configureDisplayForIsotherms()
+    configureDisplayForTemperature()
 	throws	VisADException, RemoteException
     {
 	/*
@@ -146,7 +167,7 @@ SkewTDisplay
 	 */
 	MathType	domainType = 
 	    new RealTupleType(new RealType[] {RealType.XAxis, RealType.YAxis});
-	RealType	rangeType = new RealType("temperature contour");
+	RealType	rangeType = new RealType("temperature_contour");
 	FunctionType	funcType = new FunctionType(domainType, rangeType);
 	Set		set = new Linear2DSet(
 	    domainType,
@@ -161,16 +182,6 @@ SkewTDisplay
 	    new float[][] {xyCoords[0], xyCoords[1], new float[] {}});
 
 	temperature.setSamples(new float[][] {ptCoords[1]}, /*copy=*/false);
-
-	/*
-	 * Map the X and Y coordinates of the field to the display X and Y
-	 * coordinates.
-	 */
-	ScalarMap	xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
-	ScalarMap	yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
-
-	display.addMap(xMap);
-	display.addMap(yMap);
 
 	/*
 	 * Establish the isotherm contours.
@@ -192,6 +203,87 @@ SkewTDisplay
 	isothermRef.setData(temperature);
 
 	return isothermRef;
+    }
+
+
+    /**
+     * Configure display for dry potential temperature.
+     *
+     * @return	Display data-reference to isotherms.
+     */
+    protected DataReferenceImpl
+    configureDisplayForPotentialTemperature()
+	throws	VisADException, RemoteException
+    {
+	Unit	kelvin = SI.kelvin;
+	Unit	skewTTempUnit = skewTCoordSys.getTemperatureUnit();
+
+	/*
+	 * Define a field of potential temperature which will result in correct
+	 * isotherm contours.
+	 */
+	int		nx = 10;
+	int		ny = 10;
+	MathType	domainType = 
+	    new RealTupleType(new RealType[] {RealType.XAxis, RealType.YAxis});
+	RealType	rangeType = 
+	    new RealType("potential_temperature", skewTTempUnit, /*(Set)*/null);
+	FunctionType	funcType = new FunctionType(domainType, rangeType);
+	Linear2DSet	set = new Linear2DSet(
+	    domainType,
+	    skewTCoordSys.viewport.x, 
+	    skewTCoordSys.viewport.x + skewTCoordSys.viewport.width, nx,
+	    skewTCoordSys.viewport.y,
+	    skewTCoordSys.viewport.y + skewTCoordSys.viewport.height, ny);
+	FlatField	potentialTemperature = new FlatField(funcType, set);
+	float		referencePressure = 1000.0f;	// millibars
+	/*
+	 * The following value is take from "An Introduction to Boundary
+	 * Layer Meteorology" by Roland B. Stull; chapter 13 (Boundary Layer
+	 * Clouds).
+	 */
+	float		kappa = 0.286f;
+	float[][]	xyCoords = set.getSamples();
+	float[][]	ptCoords = skewTCoordSys.fromReference(
+	    new float[][] {xyCoords[0], xyCoords[1], {}});
+	float[]		pressures = ptCoords[0];
+	float[]		temperatures = ptCoords[1];
+
+	temperatures = skewTTempUnit.toThat(temperatures, kelvin);
+
+	for (int iy = 0; iy < ny; iy++)
+	{
+	    float	pressure = pressures[iy*nx];
+	    double	factor = Math.pow(referencePressure/pressure, kappa);
+
+	    for (int ix = 0; ix < nx; ++ix)
+		temperatures[iy*nx+ix] *= factor;
+	}
+
+	temperatures = skewTTempUnit.toThis(temperatures, kelvin);
+
+	potentialTemperature.setSamples(new float[][] {temperatures},
+	    /*copy=*/false);
+
+	/*
+	 * Establish the isotherm contours.
+	 */
+	ScalarMap	contourMap = new ScalarMap(rangeType,
+	    Display.IsoContour);
+	display.addMap(contourMap);
+
+	ContourControl	control = (ContourControl)contourMap.getControl();
+	control.setContourInterval(deltaPotentialTemperature,
+	    -40f, 170f, baseIsotherm);
+
+	/*
+	 * Create a data-reference for the contours.
+	 */
+	DataReferenceImpl	potentialTemperatureRef =
+	    new DataReferenceImpl("potentialTemperatureRef");
+	potentialTemperatureRef.setData(potentialTemperature);
+
+	return potentialTemperatureRef;
     }
 
 
