@@ -13,12 +13,15 @@ import visad.DisplayImpl;
 import visad.java3d.DisplayImplJ3D;
 import visad.data.netcdf.*;
 import visad.bom.WindPolarCoordinateSystem;
+import visad.data.mcidas.BaseMapAdapter;
+import visad.data.mcidas.AreaForm;
 import java.rmi.RemoteException;
 import java.io.IOException;
 import visad.data.visad.VisADForm;
 
 
 public class Aeri 
+       implements ScalarMapListener
 {
   RealType latitude;
   RealType longitude;
@@ -52,6 +55,21 @@ public class Aeri
   double[] station_alt;
   double[] station_id;
 
+  BaseMapAdapter baseMap;
+  DataReference map_ref;
+
+  ScalarMap xmap;
+  ScalarMap ymap;
+  ScalarMap zmap;
+  boolean xmapEvent = false;
+  boolean ymapEvent = false;
+  boolean firstEvent = false;
+
+  float latmin, latmax;
+  float lonmin, lonmax;
+  float del_lat, del_lon;
+  double[] x_range, y_range;
+
                 
   public static void main(String args[])
          throws VisADException, RemoteException, IOException
@@ -71,7 +89,6 @@ public class Aeri
       init_from_cdf();
     }
      
-
     makeDisplay();
   }
 
@@ -153,31 +170,87 @@ public class Aeri
     temp = (RealType) rtt.getComponent(0);
     dwpt = (RealType) rtt.getComponent(1);
     wvmr = (RealType) rtt.getComponent(2);
-    advAge = (RealType) rtt.getComponent(3);
   }
 
   void makeDisplay()
        throws VisADException, RemoteException, IOException
   {
+    del_lon = 5f;
+    del_lat = 1.5f;
+
+    baseMap = new BaseMapAdapter("./data/OUTLUSAM");
+    map_ref = new DataReferenceImpl("map");
+
+    if ( baseMap.isEastPositive() )
+    {
+      baseMap.setEastPositive(false);
+    }
 
     DisplayImpl display = new DisplayImplJ3D("aeri", DisplayImplJ3D.APPLETFRAME);
+    GraphicsModeControl mode = display.getGraphicsModeControl();
+    mode.setScaleEnable(false);
+    DisplayRenderer dr = display.getDisplayRenderer();
+    dr.setBoxOn(false);
 
-    display.addMap(new ScalarMap(longitude, Display.XAxis));
-    display.addMap(new ScalarMap(latitude, Display.YAxis));
-    display.addMap(new ScalarMap(altitude, Display.ZAxis));
-    // display.addMap(new ScalarMap(wvmr, Display.RGB));
-    display.addMap(new ScalarMap(advAge, Display.RGB)); // actually RH
-    ScalarMap map = new ScalarMap(time, Display.Animation);
-    display.addMap(map);
-    AnimationControl control = (AnimationControl) map.getControl();
+    xmap = new ScalarMap(longitude, Display.XAxis);
+    xmap.addScalarMapListener(this);
+    ymap = new ScalarMap(latitude, Display.YAxis);
+    ymap.addScalarMapListener(this);
+    zmap = new ScalarMap(altitude, Display.ZAxis);
+
+    display.addMap(xmap);
+    display.addMap(ymap);
+    display.addMap(zmap);
+    display.addMap(new ScalarMap(wvmr, Display.RGB));
+    ScalarMap tmap = new ScalarMap(time, Display.Animation);
+    display.addMap(tmap);
+    AnimationControl control = (AnimationControl) tmap.getControl();
     control.setStep(100);
-    // display.addMap(new ScalarMap(advAge, Display.Alpha));
 
     DataReference advect_ref = new DataReferenceImpl("advect_ref");
-    // advect_ref.setData(advect_field);
     advect_ref.setData(stations_field);
 
+    ConstantMap[] map_constMap = 
+      new ConstantMap[] 
+    {
+      new ConstantMap(1., Display.Red),
+      new ConstantMap(1., Display.Green),
+      new ConstantMap(1., Display.Blue), 
+      new ConstantMap(-.99, Display.ZAxis)
+    };
+
     display.addReference(advect_ref);
+    display.addReference(map_ref, map_constMap);
+  }
+
+  public void mapChanged(ScalarMapEvent e)
+       throws VisADException, RemoteException
+  {
+    if ( xmap.equals(e.getScalarMap()) ) {
+      xmapEvent = true;
+    }
+    else if ( ymap.equals(e.getScalarMap()) ) {
+      ymapEvent = true;
+    }
+    if (( xmapEvent && ymapEvent ) && !(firstEvent) ) {
+      x_range = xmap.getRange();
+      y_range = ymap.getRange();
+      latmin = (float)y_range[0];
+      latmax = (float)y_range[1];
+      lonmin = (float)x_range[0];
+      lonmax = (float)x_range[1];
+      baseMap.setLatLonLimits(latmin-del_lat, latmax+del_lat, 
+                              lonmin-del_lon, lonmax+del_lon);
+      DataImpl map = baseMap.getData();
+      map_ref.setData(map);
+      firstEvent = true;
+      xmap.setRange(lonmax, lonmin);
+      ymap.setRange(latmin, latmax);
+    }
+  }
+
+  public void controlChanged(ScalarMapControlEvent e)
+  {
   }
 
   FieldImpl[] makeWinds(String[] files)
@@ -584,10 +657,8 @@ start or end altitudes - but it does nothing if all winds are missing */
           rtvl_vals[2][n_samples] = (float) vals[3][jj];
       /**- TDR, take out for no-transparancy
           rtvl_vals[3][n_samples] = (float) (-age*age); // WLH - quadratic age fade
-          rtvl_vals[3][n_samples] = (float) age;
        **/
-          rtvl_vals[3][n_samples] = (float)
-            relativeHumidity(vals[1][jj], vals[2][jj]); // actually relative humidity
+          rtvl_vals[3][n_samples] = (float) age;
 
           n_samples++;
         }
@@ -615,72 +686,4 @@ start or end altitudes - but it does nothing if all winds are missing */
     }
     return advect_field;
   }
-
-  /** saturation vapor pressure over water.  t in kelvin.
-  *
-  */
-  public static double satVapPres(double t) {
-    double coef[]={6.1104546,0.4442351,1.4302099e-2, 2.6454708e-4,
-              3.0357098e-6, 2.0972268e-8, 6.0487594e-11,-1.469687e-13};
-
-    // sat vap pressures every 5C from -50 to -200
-    double escold[] = {
-      0.648554685769663908E-01, 0.378319512256073479E-01,
-      0.222444934288790197E-01, 0.131828928424683120E-01,
-      0.787402077141244848E-02, 0.473973049488473318E-02,
-      0.287512035504357928E-02, 0.175743037675810294E-02,
-      0.108241739518850975E-02, 0.671708939185605941E-03,
-      0.419964702632039404E-03, 0.264524363863469876E-03,
-      0.167847963736813220E-03, 0.107285397631620379E-03,
-      0.690742634496135612E-04, 0.447940489768084267E-04,
-      0.292570419563937303E-04, 0.192452912634994161E-04,
-      0.127491372410747951E-04, 0.850507010275505138E-05,
-      0.571340025334971129E-05, 0.386465029673876238E-05,
-      0.263210971965005286E-05, 0.180491072930570428E-05,
-      0.124607850555816049E-05, 0.866070571346870824E-06,
-      0.605982217668895538E-06, 0.426821197943242768E-06,
-      0.302616508514379476E-06, 0.215963854234913987E-06,
-      0.155128954578336869E-06};
-
-    double temp = t - 273.16;
-    double retval;
-
-    if (temp != temp) {
-      retval = Double.NaN;
-    }
-    else if (temp > -50.) {
-
-      retval = ( coef[0] + temp*(coef[1] + temp*(coef[2] + temp*(coef[3] +
-      temp*(coef[4] + temp*(coef[5] + temp*(coef[6] + temp*coef[7])))))) );
-    }
-    else {
-       double tt = (-temp - 50.)/5.;
-       int inx = (int) tt;
-       if (inx < escold.length) {
-         retval = escold[inx] + (tt % 1.)*(escold[inx+1]-escold[inx]);
-       } else {
-         retval = 1e-7;
-       }
-
-    }
-
-    return retval;
-  }
-
-  /** mixing ratio
-  *
-  */
-  public static double mixingRatio(double t, double p) {
-    double e = satVapPres(t);
-    return ( 621.97*e/(p - e) );
-  }
-
-  /** relative humidity
-  *
-  */
-  public static double relativeHumidity(double t, double td) {
-    return (satVapPres(td) / satVapPres(t));
-  }
-
-
 }
