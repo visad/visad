@@ -51,6 +51,7 @@ public class BaseMapAdapter {
   private MathType coordMathType;
   private int position, numSegments = 0;
   private int[][] segList;
+  private boolean isEastPositive = false;
 
 
   /** Create a VisAD UnionSet from a local McIDAS Base Map file
@@ -119,6 +120,9 @@ public class BaseMapAdapter {
     } else {
       lonMax = (int) (lonmax*10000.f);
     }
+
+    //System.out.println("Lat min/max = "+latMin+" "+latMax);
+    //System.out.println("Lon min/max = "+lonMin+" "+lonMax);
 
     return;
   }
@@ -214,8 +218,8 @@ public class BaseMapAdapter {
 
     /* 
       for (int i=0; i<4; i++) {
-        System.out.println("Point "+i+" Lat/long="+
-                       latlon[0][i]+" "+latlon[1][i]);
+        System.out.println("Point "+i+"  Line/Ele="+linele[0][i]+" "+
+          linele[1][i]+" Lat/long="+ latlon[0][i]+" "+latlon[1][i]);
       }
      */
 
@@ -277,10 +281,25 @@ public class BaseMapAdapter {
       }
       // check for lat/lon bounds...
       if (segList[segmentPointer][0] > latMax ||
-          segList[segmentPointer][1] < latMin ||
-          segList[segmentPointer][2] > lonMax ||
-          segList[segmentPointer][3] < lonMin) {
-        continue;
+            segList[segmentPointer][1] < latMin) {continue;}
+            
+      if (isEastPositive) {  
+        int mx = -segList[segmentPointer][2];
+        int mn = -segList[segmentPointer][3];
+
+        if (lonMax > 1800000 ) {
+          if ( mx < 0) mx = mx + 3600000;
+          if ( mn < 0) mn = mn + 3600000;
+        }
+
+        if ( mx > lonMax ) {continue;}
+        if ( mn < lonMin ) {continue;}
+
+      } else {
+        if (segList[segmentPointer][0] > latMax ||
+            segList[segmentPointer][1] < latMin ||
+            segList[segmentPointer][2] > lonMax ||
+            segList[segmentPointer][3] < lonMin) { continue; }
       }
 
       return segList[segmentPointer][5] / 2;
@@ -310,6 +329,11 @@ public class BaseMapAdapter {
         lon = din.readInt();
         lalo[0][i] = (float) lat/10000.f;
         lalo[1][i] = (float) lon/10000.f;
+        if (isEastPositive) {
+          lalo[1][i] = -lalo[1][i];
+          if (lalo[1][i] < 0 && lonMax > 1800000) 
+                lalo[1][i] = 360.f+lalo[1][i];
+        }
       }
     } catch (IOException e) {
           throw new VisADException("Base Map: read past EOF");
@@ -347,6 +371,8 @@ public class BaseMapAdapter {
 
         if (isCoordinateSystem) {
           linele = cs.fromReference(lalo);
+          //System.out.println(" lat/lon->line/ele = "+lalo[0][0]+ " "+lalo[1][0]+" -> "+linele[0][0]+" "+linele[1][0]);
+
           boolean missing = false;
 
           for (int i=0; i<ll; i++) {
@@ -378,5 +404,9 @@ public class BaseMapAdapter {
 
     return maplines;
 
+  }
+
+  public void setEastPositive(boolean value) {
+    isEastPositive = value;
   }
 }
