@@ -34,7 +34,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Vector;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import ncsa.hdf.hdf5lib.H5;
@@ -152,6 +152,42 @@ public class Util
   public static boolean isApproximatelyEqual(double a, double b)
   {
     return isApproximatelyEqual(a, b, 0.000000001);
+  }
+
+  /**
+   * Return a string representation of the current date and time.
+   */
+  public static String getTimestamp() {
+    StringBuffer sb = new StringBuffer();
+    Calendar cal = Calendar.getInstance();
+    int year = cal.get(Calendar.YEAR);
+    int month = cal.get(Calendar.MONTH);
+    int day = cal.get(Calendar.DAY_OF_MONTH);
+    int hour = cal.get(Calendar.HOUR_OF_DAY);
+    int min = cal.get(Calendar.MINUTE);
+    int sec = cal.get(Calendar.SECOND);
+    int milli = cal.get(Calendar.MILLISECOND);
+    sb.append(year);
+    sb.append("/");
+    if (month < 10) sb.append("0");
+    sb.append(month + 1);
+    sb.append("/");
+    if (day < 10) sb.append("0");
+    sb.append(day);
+    sb.append(", ");
+    if (hour < 10) sb.append("0");
+    sb.append(hour);
+    sb.append(":");
+    if (min < 10) sb.append("0");
+    sb.append(min);
+    sb.append(":");
+    if (sec < 10) sb.append("0");
+    sb.append(sec);
+    sb.append(".");
+    if (milli < 100) sb.append("0");
+    if (milli < 10) sb.append("0");
+    sb.append(milli);
+    return sb.toString();
   }
 
   /**
