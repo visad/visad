@@ -46,85 +46,85 @@ import java.util.TimeZone;
  * Instances are immutable.
  */
 public final class OffsetUnit
-    extends	Unit
-    implements	Serializable
+    extends     Unit
+    implements  Serializable
 {
     /**
      * The associated (unoffset) scaled unit.
      */
-    final ScaledUnit	scaledUnit;
+    final ScaledUnit    scaledUnit;
 
     /**
      * The offset for this unit (e.g. 273.15 for the celsius unit when
      * the kelvin unit is associated scaled unit).
      */
-    final double	offset;
+    final double        offset;
 
     /**
      * The date formatter.
      * @serial
      */
-    private static SimpleDateFormat	dateFormat;
+    private static SimpleDateFormat     dateFormat;
 
     /**
      * The arbitrary time origin.
      * @serial
      */
-    private static double		offsetUnitOrigin;
+    private static double               offsetUnitOrigin;
 
     /**
      * The millisecond unit.
      */
-    private static Unit			millisecond;
+    private static Unit                 millisecond;
 
     static
     {
-	try
-	{
-	    dateFormat =
-		(SimpleDateFormat)DateFormat.getDateInstance(
-		    DateFormat.SHORT, Locale.US);
-	    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-	    dateFormat.applyPattern("yyyy-MM-dd HH:mm:ss.SSS 'UTC'");
-	    Calendar	calendar =
-		new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-	    calendar.clear();
-	    calendar.set(2001, 0, 1, 0, 0, 0);	// data.netcdf.units.UnitParser
-	    offsetUnitOrigin = calendar.getTime().getTime();
-	    millisecond = SI.second.scale(0.001).clone("ms");
-	}
-	catch (Exception e)
-	{
-	    System.err.println(
-		"OffsetUnit.<clinit>: Couldn't initialize class: " + e);
-	    System.exit(1);
-	}
+        try
+        {
+            dateFormat =
+                (SimpleDateFormat)DateFormat.getDateInstance(
+                    DateFormat.SHORT, Locale.US);
+            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            dateFormat.applyPattern("yyyy-MM-dd HH:mm:ss.SSS 'UTC'");
+            Calendar    calendar =
+                new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+            calendar.clear();
+            calendar.set(2001, 0, 1, 0, 0, 0);  // data.netcdf.units.UnitParser
+            offsetUnitOrigin = calendar.getTime().getTime();
+            millisecond = SI.second.scale(0.001).clone("ms");
+        }
+        catch (Exception e)
+        {
+            System.err.println(
+                "OffsetUnit.<clinit>: Couldn't initialize class: " + e);
+            System.exit(1);
+        }
     }
 
 
     /**
      * Construct an offset, dimensionless unit.  The identifier will be empty.
      *
-     * @param offset	The amount of offset.
+     * @param offset    The amount of offset.
      */
     public OffsetUnit(double offset)
     {
-	  this(offset, "");
+          this(offset, "");
     }
 
     /**
      * Construct an offset, dimensionless unit with an identifier.
      *
-     * @param offset		The amount of offset.
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.
+     * @param offset            The amount of offset.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.
      *
      */
     public OffsetUnit(double offset, String identifier)
     {
-	super(identifier);
-	this.offset = offset;
-	scaledUnit = new ScaledUnit(1.0);
+        super(identifier);
+        this.offset = offset;
+        scaledUnit = new ScaledUnit(1.0);
     }
 
     /**
@@ -132,27 +132,27 @@ public final class OffsetUnit
      * of the base unit if the offset is zero; otherwise, the identifier will
      * be <code>null</code>.
      *
-     * @param offset	The amount of offset.
-     * @param that	The base unit.
+     * @param offset    The amount of offset.
+     * @param that      The base unit.
      */
     public OffsetUnit(double offset, BaseUnit that)
     {
-	this(offset, that, offset == 0 ? that.getIdentifier() : null);
+        this(offset, that, offset == 0 ? that.getIdentifier() : null);
     }
 
     /**
      * Construct an offset unit from a base unit and an identifier.
      *
-     * @param offset		The amount of offset.
-     * @param that		The base unit.
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.
+     * @param offset            The amount of offset.
+     * @param that              The base unit.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.
      */
     public OffsetUnit(double offset, BaseUnit that, String identifier)
     {
-	super(identifier);
-	this.offset = offset;
-	scaledUnit = new ScaledUnit(1.0, that);
+        super(identifier);
+        this.offset = offset;
+        scaledUnit = new ScaledUnit(1.0, that);
     }
 
     /**
@@ -160,27 +160,27 @@ public final class OffsetUnit
      * that of the derived unit if the offset is 0; otherwise; the identifier
      * will be <code>null</code>.
      *
-     * @param offset	The amount of offset.
-     * @param that	The derived unit.
+     * @param offset    The amount of offset.
+     * @param that      The derived unit.
      */
     public OffsetUnit(double offset, DerivedUnit that)
     {
-	this(offset, that, offset == 0 ? that.getIdentifier() : null);
+        this(offset, that, offset == 0 ? that.getIdentifier() : null);
     }
 
     /**
      * Construct an offset unit from a derived unit and an identifier.
      *
-     * @param offset		The amount of offset.
-     * @param that		The derived unit.
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.
+     * @param offset            The amount of offset.
+     * @param that              The derived unit.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.
      */
     public OffsetUnit(double offset, DerivedUnit that, String identifier)
     {
-	super(identifier);
-	this.offset = offset;
-	scaledUnit = new ScaledUnit(1.0, that);
+        super(identifier);
+        this.offset = offset;
+        scaledUnit = new ScaledUnit(1.0, that);
     }
 
     /**
@@ -188,27 +188,27 @@ public final class OffsetUnit
      * that of the scaled unit if the offset is 0; otherwise; the identifier
      * will be <code>null</code>.
      *
-     * @param offset	The amount of offset.
-     * @param that	The scaled unit.
+     * @param offset    The amount of offset.
+     * @param that      The scaled unit.
      */
     public OffsetUnit(double offset, ScaledUnit that)
     {
-	this(offset, that, offset == 0 ? that.getIdentifier() : null);
+        this(offset, that, offset == 0 ? that.getIdentifier() : null);
     }
 
     /**
      * Construct an offset unit from a scaled unit and an identifier.
      *
-     * @param offset		The amount of offset.
-     * @param that		The scaled unit.
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.
+     * @param offset            The amount of offset.
+     * @param that              The scaled unit.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.
      */
     public OffsetUnit(double offset, ScaledUnit that, String identifier)
     {
-	super(identifier);
-	this.offset = offset;
-	scaledUnit = that;
+        super(identifier);
+        this.offset = offset;
+        scaledUnit = that;
     }
 
     /**
@@ -216,27 +216,27 @@ public final class OffsetUnit
      * that of the offset unit if the offset is 0; otherwise; the identifier
      * will be <code>null</code>.
      *
-     * @param offset	The amount of offset.
-     * @param that	The given unit.
+     * @param offset    The amount of offset.
+     * @param that      The given unit.
      */
     public OffsetUnit(double offset, OffsetUnit that)
     {
-	this(offset, that, offset == 0 ? that.getIdentifier() : null);
+        this(offset, that, offset == 0 ? that.getIdentifier() : null);
     }
 
     /**
      * Construct an offset unit from an offset unit and an identifier..
      *
-     * @param offset		The amount of offset.
-     * @param that		The given unit.
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.
+     * @param offset            The amount of offset.
+     * @param that              The given unit.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.
      */
     public OffsetUnit(double offset, OffsetUnit that, String identifier)
     {
-	super(identifier);
-	this.offset = offset + that.offset;
-	scaledUnit = that.scaledUnit;
+        super(identifier);
+        this.offset = offset + that.offset;
+        scaledUnit = that.scaledUnit;
     }
 
     /**
@@ -244,114 +244,114 @@ public final class OffsetUnit
      */
     protected boolean isTime()
     {
-	return SI.second.isConvertible(this);
+        return SI.second.isConvertible(scaledUnit);
     }
 
     /**
      * Clones this unit, changing the identifier.
-     * @param identifier	The name or abbreviation for the cloned unit.
-     *				May be <code>null</code> or empty.
+     * @param identifier        The name or abbreviation for the cloned unit.
+     *                          May be <code>null</code> or empty.
      */
     protected Unit protectedClone(String identifier)
     {
-	return new OffsetUnit(0, this, identifier);
+        return new OffsetUnit(0, this, identifier);
     }
 
     /**
      * Raise an offset unit to a power.
      *
-     * @param power		The power to raise this unit by.
+     * @param power             The power to raise this unit by.
      */
     public Unit pow(int power)
     {
-	return scaledUnit.pow(power);
+        return scaledUnit.pow(power);
     }
 
     /**
      * Returns the N-th root of this unit.
      *
-     * @param root	The root to take (e.g. 2 means square root).  May not
-     *			be zero.
-     * @return		The unit corresponding to the <code>root</code>-th root
-     *			of this unit.
+     * @param root      The root to take (e.g. 2 means square root).  May not
+     *                  be zero.
+     * @return          The unit corresponding to the <code>root</code>-th root
+     *                  of this unit.
      * @throws IllegalArgumentException
-     *			The root value is zero or the resulting unit would have
-     *			a non-integral unit dimension.
+     *                  The root value is zero or the resulting unit would have
+     *                  a non-integral unit dimension.
      */
     public Unit root(int root)
-	throws IllegalArgumentException
+        throws IllegalArgumentException
     {
-	return scaledUnit.root(root);
+        return scaledUnit.root(root);
     }
 
     /**
      * Raise an offset unit to a power.
      *
-     * @param power		The power to raise this unit by.
+     * @param power             The power to raise this unit by.
      */
     public Unit pow(double power)
     {
-	return scaledUnit.pow(power);
+        return scaledUnit.pow(power);
     }
 
     /**
      * Return the definition of this unit.
      *
      * @return          The definition of this unit (e.g. "K @ 273.15" for
-     *			degree celsius).
+     *                  degree celsius).
      */
     public String getDefinition()
     {
-	String	definition;
-	String	scaledString = scaledUnit.toString();
+        String  definition;
+        String  scaledString = scaledUnit.toString();
 
-	if (scaledString.indexOf(' ') != -1)
-	    scaledString = "(" + scaledString + ")";
-	if (!isTime())
-	{
-	    definition = scaledString + " @ " + offset;
-	}
-	else
-	{
-	    try
-	    {
-		definition =
-		    scaledString + " since " +
-		    dateFormat.format(
-			new Date((long)(
-			    millisecond.toThis(
-				offset, scaledUnit) + offsetUnitOrigin)));
-	    }
-	    catch (UnitException e)
-	    {
-		definition = e.toString();
-	    }		// can't happen
-	}
-	return definition;
+        if (scaledString.indexOf(' ') != -1)
+            scaledString = "(" + scaledString + ")";
+        if (!isTime())
+        {
+            definition = scaledString + " @ " + offset;
+        }
+        else
+        {
+            try
+            {
+                definition =
+                    scaledString + " since " +
+                    dateFormat.format(
+                        new Date((long)(
+                            millisecond.toThis(
+                                offset, scaledUnit) + offsetUnitOrigin)));
+            }
+            catch (UnitException e)
+            {
+                definition = e.toString();
+            }           // can't happen
+        }
+        return definition;
     }
 
     /**
      * Multiply an offset unit by another unit.
      *
-     * @param that		The unit with which to multiply this unit.
-     * @exception UnitException	Can't multiply units.
+     * @param that              The unit with which to multiply this unit.
+     * @exception UnitException Can't multiply units.
      */
     public Unit multiply(Unit that)
-	throws UnitException
+        throws UnitException
     {
-	return that.multiply(scaledUnit);
+        return that.multiply(scaledUnit);
     }
 
     /**
      * Divide an offset unit by another unit.
      *
-     * @param that		The unit to divide into this unit.
-     * @exception UnitException	Can't divide units.
+     * @param that              The unit to divide into this unit.
+     * @exception UnitException Can't divide units.
      */
     public Unit divide(Unit that)
-	throws UnitException
+        throws UnitException
     {
-	return that.divideInto(scaledUnit);
+        return that.divideInto(scaledUnit);
     }
 
     /**
@@ -359,89 +359,89 @@ public final class OffsetUnit
      *
      * @param that      The unit to be divide by this unit.
      * @return          The quotient of the two units.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	Meaningless operation.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    Meaningless operation.
      */
     protected Unit divideInto(Unit that)
-	throws UnitException
+        throws UnitException
     {
-	return that.divide(scaledUnit);
+        return that.divide(scaledUnit);
     }
 
     /**
      * Convert values to this unit from another unit.
      *
-     * @param values	The values to be converted.
+     * @param values    The values to be converted.
      * @param that      The unit of <code>values</code>.
      * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	The units are not convertible.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
      */
     public double[] toThis(double[] values, Unit that)
-	throws UnitException
+        throws UnitException
     {
-	double[]	newValues = that.toThat(values, scaledUnit);
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] -= offset;
-	return newValues;
+        double[]        newValues = that.toThat(values, scaledUnit);
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] -= offset;
+        return newValues;
     }
 
     /**
      * Convert values to this unit from another unit.
      *
-     * @param values	The values to be converted.
+     * @param values    The values to be converted.
      * @param that      The unit of <code>values</code>.
      * @return          The converted values in units of this unit.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	The units are not convertible.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
      */
     public float[] toThis(float[] values, Unit that)
         throws UnitException
     {
-	float[]	newValues = that.toThat(values, scaledUnit);
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] -= offset;
-	return newValues;
+        float[] newValues = that.toThat(values, scaledUnit);
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] -= offset;
+        return newValues;
     }
 
     /**
      * Convert values from this unit to another unit.
      *
-     * @param values	The values to be converted in units of this unit.
+     * @param values    The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
      * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	The units are not convertible.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
      */
     public double[] toThat(double values[], Unit that)
-	throws UnitException
+        throws UnitException
     {
-	double[]	newValues = (double[])values.clone();
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] += offset;
-	return that.toThis(newValues, scaledUnit);
+        double[]        newValues = (double[])values.clone();
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] += offset;
+        return that.toThis(newValues, scaledUnit);
     }
 
     /**
      * Convert values from this unit to another unit.
      *
-     * @param values	The values to be converted in units of this unit.
+     * @param values    The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
      * @return          The converted values.
-     * @require		The units are convertible.
-     * @promise		Neither unit has been modified.
-     * @throws UnitException	The units are not convertible.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
      */
     public float[] toThat(float values[], Unit that)
         throws UnitException
     {
-	float[]	newValues = (float[])values.clone();
-	for (int i = 0; i < newValues.length; ++i)
-	    newValues[i] += offset;
-	return that.toThis(newValues, scaledUnit);
+        float[] newValues = (float[])values.clone();
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] += offset;
+        return that.toThis(newValues, scaledUnit);
     }
 
     /**
@@ -452,7 +452,7 @@ public final class OffsetUnit
      * example, the absolute unit corresponding to degrees celsius is degrees
      * kelvin -- and calling this method on a degrees celsius unit obtains a
      * degrees kelvin unit.
-     * @return		The absolute unit corresponding to this unit.
+     * @return          The absolute unit corresponding to this unit.
      */
     public Unit
     getAbsoluteUnit()
@@ -467,62 +467,67 @@ public final class OffsetUnit
      * is convertible with unit B if and only if unit B is convertible with unit
      * A; hence, calling-order is irrelevant.
      *
-     * @param unit	The other unit.
-     * @return		True if and only if this unit is convertible with the
-     *			other unit.
+     * @param unit      The other unit.
+     * @return          True if and only if this unit is convertible with the
+     *                  other unit.
      */
     public boolean isConvertible(Unit unit)
     {
-      return scaledUnit.isConvertible(unit);
+      return
+	unit == null
+	  ? false
+	  : isTime()
+	    ? (unit instanceof OffsetUnit && ((OffsetUnit)unit).isTime()) 
+	    : scaledUnit.isConvertible(unit);
     }
 
     /**
      * Test this class.
      *
-     * @param args		Arguments (ignored).
-     * @exception UnitException	A problem occurred.
+     * @param args              Arguments (ignored).
+     * @exception UnitException A problem occurred.
      */
     public static void main(String[] args)
-	throws UnitException
+        throws UnitException
     {
-	BaseUnit	degK = SI.kelvin;
-	Unit		degC = new OffsetUnit(273.15, degK);
-	ScaledUnit	degR = new ScaledUnit(1/1.8, degK);
-	Unit		degF = new OffsetUnit(459.67, degR);
-	Unit		degF2 = degF.pow(2);;
+        BaseUnit        degK = SI.kelvin;
+        Unit            degC = new OffsetUnit(273.15, degK);
+        ScaledUnit      degR = new ScaledUnit(1/1.8, degK);
+        Unit            degF = new OffsetUnit(459.67, degR);
+        Unit            degF2 = degF.pow(2);;
 
-	System.out.println("degC=\"" + degC + "\"");
+        System.out.println("degC=\"" + degC + "\"");
 
-	System.out.println("degF=\"" + degF + "\"");
+        System.out.println("degF=\"" + degF + "\"");
 
-	System.out.println("degF.toThis(0,degC)=" +
-	    degF.toThis(0,degC));
+        System.out.println("degF.toThis(0,degC)=" +
+            degF.toThis(0,degC));
 
-	System.out.println("degF.toThat(32,degC)=" +
-	    degF.toThat(32,degC));
+        System.out.println("degF.toThat(32,degC)=" +
+            degF.toThat(32,degC));
 
-	double[] values;
+        double[] values;
 
-	values = degF.toThis(new double[] {0,100},degC);
-	System.out.println("degF.toThis({0,100},degC)=" +
-	    values[0] + "," + values[1]);
+        values = degF.toThis(new double[] {0,100},degC);
+        System.out.println("degF.toThis({0,100},degC)=" +
+            values[0] + "," + values[1]);
 
-	values = degF.toThat(new double[] {32,212},degC);
-	System.out.println("degF.toThat({32,212},degC)=" +
-	    values[0] + "," + values[1]);
+        values = degF.toThat(new double[] {32,212},degC);
+        System.out.println("degF.toThat({32,212},degC)=" +
+            values[0] + "," + values[1]);
 
-	System.out.println("degF.pow(2)=" + degF.pow(2));
-	System.out.println("degF.multiply(degC)=" + degF.multiply(degC));
-	System.out.println("degC.multiply(degF)=" + degC.multiply(degF));
-	System.out.println("degF.divide(degC)=" + degF.divide(degC));
-	System.out.println("degC.divide(degF)=" + degC.divide(degF));
+        System.out.println("degF.pow(2)=" + degF.pow(2));
+        System.out.println("degF.multiply(degC)=" + degF.multiply(degC));
+        System.out.println("degC.multiply(degF)=" + degC.multiply(degF));
+        System.out.println("degF.divide(degC)=" + degF.divide(degC));
+        System.out.println("degC.divide(degF)=" + degC.divide(degF));
 
-	System.out.println("degF2.pow(0.5)=" + degF2.pow(0.5));
+        System.out.println("degF2.pow(0.5)=" + degF2.pow(0.5));
 
-	System.out.println("new OffsetUnit(0,SI.second).toString()=" +
-	    new OffsetUnit(0,SI.second).toString());
-	System.out.println("new OffsetUnit(-1.8e9,SI.second).toString()=" +
-	    new OffsetUnit(-1.8e9,SI.second).toString());
+        System.out.println("new OffsetUnit(0,SI.second).toString()=" +
+            new OffsetUnit(0,SI.second).toString());
+        System.out.println("new OffsetUnit(-1.8e9,SI.second).toString()=" +
+            new OffsetUnit(-1.8e9,SI.second).toString());
     }
 
   public boolean equals(Unit unit) {

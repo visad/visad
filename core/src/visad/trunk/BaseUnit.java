@@ -606,7 +606,7 @@ public final class BaseUnit
      */
     public boolean isConvertible(Unit unit)
     {
-      return derivedUnit.isConvertible(unit);
+      return unit == null ? false : derivedUnit.isConvertible(unit);
     }
 
 /*

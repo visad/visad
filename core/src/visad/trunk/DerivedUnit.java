@@ -907,15 +907,22 @@ public final class DerivedUnit
     public boolean isConvertible(Unit unit)
     {
       boolean	isConvertible;
-      if (unit instanceof DerivedUnit)
+      if (unit == null)
       {
-	DerivedUnit	that = (DerivedUnit)unit;
-	isConvertible =
-	  sameDimensionality(that) || reciprocalDimensionality(that);
+        isConvertible = false;
       }
       else
       {
-	isConvertible = unit.isConvertible(this);
+        if (unit instanceof DerivedUnit)
+        {
+	  DerivedUnit	that = (DerivedUnit)unit;
+	  isConvertible =
+	    sameDimensionality(that) || reciprocalDimensionality(that);
+        }
+        else
+        {
+	  isConvertible = unit.isConvertible(this);
+        }
       }
       return isConvertible;
     }
