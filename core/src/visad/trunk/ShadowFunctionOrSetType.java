@@ -2974,19 +2974,24 @@ WLH 15 March 2000 */
       int[] intData = null;
       if (db instanceof DataBufferInt) {
         intData = ((DataBufferInt)db).getData();
+        image = new BufferedImage(colorModel, raster, false, null);
       }
       else {
 // System.out.println("byteData 3 1");
+        image = new BufferedImage(texture_width, texture_height,
+                                  BufferedImage.TYPE_INT_RGB);
         intData = new int[texture_width * texture_height];
+/*
         ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB); 
         int[] nBits = {8, 8, 8};
         colorModel =
           new ComponentColorModel(cs, nBits, false, false, Transparency.OPAQUE, 0); 
         raster = 
           colorModel.createCompatibleWritableRaster(texture_width, texture_height);
+*/
       }
 
-      image = new BufferedImage(colorModel, raster, false, null);
+      // image = new BufferedImage(colorModel, raster, false, null);
       // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
       int k = 0;
       int m = 0;
@@ -3016,6 +3021,8 @@ WLH 15 March 2000 */
       // WLH 2 Nov 2000
       if (!(db instanceof DataBufferInt)) {
 // System.out.println("byteData 3 2");
+        image.setRGB(0, 0, texture_width, texture_height, intData, 0, texture_width);
+/*
         byte[] byteData = ((DataBufferByte)raster.getDataBuffer()).getData();
         k = 0;
         for (int i=0; i<intData.length; i++) {
@@ -3023,6 +3030,7 @@ WLH 15 March 2000 */
           byteData[k++] = (byte) ((intData[i] >> 8) & 255);
           byteData[k++] = (byte) ((intData[i] >> 16) & 255);
         }
+*/
 /* WLH 4 Nov 2000, from com.sun.j3d.utils.geometry.Text2D
         // For now, jdk 1.2 only handles ARGB format, not the RGBA we want
         BufferedImage bImage = new BufferedImage(width, height,
@@ -3039,10 +3047,6 @@ WLH 15 March 2000 */
         Color myTextColor = new Color(color.x, color.y, color.z, 1f);
         offscreenGraphics.setColor(myTextColor);
         offscreenGraphics.drawString(text, 0, height - descent);
-*/
-/* WLH 4 Nov 2000, see MultiTextureTest.java in
-/home2/billh/j2sdk1_3_0beta_refresh/demo/java3d/TextureTest/
-but use BufferedImage.TYPE_INT_ARGB
 */
       }
 
