@@ -51,14 +51,19 @@ public abstract class MathType extends Object implements java.io.Serializable {
   /** true if this MathType is defined by the system */
   boolean SystemIntrinsic;
 
+  /** this constructor assumes it is not creating an instrinsic MathType */
   public MathType() {
-    super();
-    SystemIntrinsic = false;
+    this(false);
   }
 
+  /**
+   * Create a MathType
+   *
+   * @param b <tt>true</tt> if this is an intrinsic MathType
+   */
   MathType(boolean b) {
     super();
-    SystemIntrinsic = true;
+    SystemIntrinsic = b;
   }
 
   /** ScalarTypes are equal if they have the same name;
