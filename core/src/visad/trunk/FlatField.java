@@ -1572,7 +1572,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                                     RangeCoordinateSystems[i]);
         }
       }
-      return new Tuple(datums);
+      return new Tuple(datums, false);
     }
   }
 
