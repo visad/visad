@@ -41,6 +41,10 @@ public class ShapeControl extends Control {
   // WLH 31 May 2000
   private float scale = 1.0f;
 
+  // WLH 6 Aug 2001
+  private boolean autoScale = false;
+  private ProjectionControlListener pcl = null;
+
   public ShapeControl(DisplayImpl d) {
     super(d);
   }
@@ -243,6 +247,12 @@ public class ShapeControl extends Control {
       scale = sc.scale;
     }
 
+    // WLH 6 Aug 2001
+    if (autoScale != sc.autoScale) {
+      // changed = true;
+      setAutoScale(sc.autoScale);
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -251,6 +261,37 @@ public class ShapeControl extends Control {
                                  " changed: " + re.getMessage());
       }
     }
+  }
+
+  public void setAutoScale(boolean auto)
+         throws VisADException {
+    if (auto == autoScale) return;
+    DisplayImpl display = getDisplay();
+    DisplayRenderer dr = display.getDisplayRenderer();
+    MouseBehavior mouse = dr.getMouseBehavior();
+    ProjectionControl pc = display.getProjectionControl();
+    if (auto) {
+      pcl = new ProjectionControlListener(mouse, this, pc);
+      pc.addControlListener(pcl);
+    }
+    else {
+      pc.removeControlListener(pcl);
+    }
+    autoScale = auto;
+    try {
+      changeControl(true);
+    }
+    catch (RemoteException e) {
+    }
+  }
+
+  public void nullControl() {
+    try {
+      setAutoScale(false);
+    }
+    catch (VisADException e) {
+    }
+    super.nullControl();
   }
 
   public boolean equals(Object o)
@@ -281,5 +322,47 @@ public class ShapeControl extends Control {
     }
     sc.scale = scale;
     return sc;
+  }
+
+
+  class ProjectionControlListener implements ControlListener {
+    private boolean pfirst = true;
+    private MouseBehavior mouse;
+    private ProjectionControl pcontrol;
+    private ShapeControl shapeControl;
+    private double base_scale = 1.0;
+    private float last_cscale = 1.0f;
+    private double base_size = 1.0;
+
+    ProjectionControlListener(MouseBehavior m, ShapeControl s,
+                              ProjectionControl p) {
+      mouse = m;
+      shapeControl = s;
+      pcontrol = p;
+    }
+
+    public void controlChanged(ControlEvent e)
+           throws VisADException, RemoteException {
+      double[] matrix = pcontrol.getMatrix();
+      double[] rot = new double[3];
+      double[] scale = new double[1];
+      double[] trans = new double[3];
+      mouse.instance_unmake_matrix(rot, scale, trans, matrix);
+
+      if (pfirst) {
+        pfirst = false;
+        base_scale = scale[0];
+        last_cscale = 1.0f;
+        base_size = shapeControl.getScale();
+      }
+      else {
+        float cscale = (float) (base_scale / scale[0]);
+        float ratio = cscale / last_cscale;
+        if (ratio < 0.95f || 1.05f < ratio) {
+          last_cscale = cscale;
+          shapeControl.setScale((float) base_size * cscale);
+        }
+      }
+    }
   }
 }
