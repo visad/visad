@@ -179,7 +179,7 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
       Unit unit = null;
       if (units != null) unit = units[0];
       if (unit != null) {
-        s = s + " " + unit.toString();
+        s = s + " (" + unit.toString() +")";
       }
       getDisplayRenderer().setAnimationString(s);
 

@@ -167,7 +167,7 @@ public class AnimationControlJ3D extends AVControlJ3D
       Unit unit = null;
       if (units != null) unit = units[0];
       if (unit != null) {
-        s = s + " " + unit.toString();
+        s = s + " (" + unit.toString() + ")";
       }
       getDisplayRenderer().setAnimationString(s);
 

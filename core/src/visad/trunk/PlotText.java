@@ -64,6 +64,8 @@ public class PlotText extends Object {
                  .2,.8, .1,.8 },
     space[] = { 0,0 },
     score[] = { 0,0, .4,0 },
+    paren[] = { .1,0, 0,.4, .1,.8 },
+    unparen[] = { .3,0, .4,.4, .3,.8 },
     aa[] = { 0,0, 0,.7, .1,.8, .3,.8, .4,.7, .4,.4, 0,.4,
              .4,.4, .4,0 },
     bb[] = { 0,0, 0,.8, .3,.8, .4,.7, .4,.5, .3,.4, 0,.4,
@@ -101,7 +103,7 @@ public class PlotText extends Object {
 
   static double[][] index =
     { zero, one, two, three, four, five, six, seven, eight, nine,
-    dash, dot, equal, curl, uncurl, space, score,
+    dash, dot, equal, curl, uncurl, space, score, paren, unparen,
     aa, bb, cc, dd, ee, ff, gg, hh, ii, jj,
     kk, ll, mm, nn, oo, pp, qq, rr, ss, tt,
     uu, vv, ww, xx, yy, zz };
@@ -109,12 +111,12 @@ public class PlotText extends Object {
   /* width of vector chars */
   static double[] width = { 0.6, 0.2, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6,
     0.6, 0.6, 0.6, 0.3, 0.6,
-    0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6,
+    0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6,
     0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6,
     0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6 };
   /* vertices in each char */
   static int[] verts = { 5, 2, 6, 7, 5, 6, 6, 4, 7, 5, 2, 5,
-    4, 9, 9, 0, 2, 9, 12, 8, 7, 7, 6, 10, 6, 6, 7, 6, 3, 5, 4,
+    4, 9, 9, 0, 2, 3, 3, 9, 12, 8, 7, 7, 6, 10, 6, 6, 7, 6, 3, 5, 4,
     9, 7, 13, 9, 12, 4, 6, 3, 5, 6, 5, 4 };
   
   /**
@@ -202,12 +204,16 @@ public class PlotText extends Object {
           k = 15;
         else if (str.charAt(i) == '_')
           k = 16;
+        else if (str.charAt(i) == '(')
+          k = 17;
+        else if (str.charAt(i) == ')')
+          k = 18;
         else if (str.charAt(i) >= '0' && str.charAt(i) <= '9')
           k = str.charAt(i) - '0';
         else if (str.charAt(i) >= 'a' && str.charAt(i) <= 'z')
-          k = str.charAt(i) - 'a' + 17;
+          k = str.charAt(i) - 'a' + 19;
         else if (str.charAt(i) >= 'A' && str.charAt(i) <= 'Z')
-          k = str.charAt(i) - 'A' + 17;
+          k = str.charAt(i) - 'A' + 19;
         else continue;
         sw += width[k];
       }
@@ -233,12 +239,16 @@ public class PlotText extends Object {
         k = 15;
       else if (str.charAt(i) == '_')
         k = 16;
+      else if (str.charAt(i) == '(')
+        k = 17;
+      else if (str.charAt(i) == ')')
+        k = 18;
       else if (str.charAt(i) >= '0' && str.charAt(i) <= '9')
         k = str.charAt(i) - '0';
       else if (str.charAt(i) >= 'a' && str.charAt(i) <= 'z')
-        k = str.charAt(i) - 'a' + 17;
+        k = str.charAt(i) - 'a' + 19;
       else if (str.charAt(i) >= 'A' && str.charAt(i) <= 'Z')
-        k = str.charAt(i) - 'A' + 17;
+        k = str.charAt(i) - 'A' + 19;
       else continue;
 
       /* make the vertex array for this character */

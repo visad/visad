@@ -194,12 +194,12 @@ public abstract class DisplayRenderer extends Object {
             if (unit != null) {
               String unit_string;
               if (unit.equals(CommonUnit.degree)) {
-                unit_string = "degrees";
+                unit_string = "(degrees)";
               }
               else {
                 unit_string = unit.toString();
               }
-              s = s + " " + unit_string;
+              s = s + " (" + unit_string + ")";
             }
             cursorStringVector.addElement(s);
           } // end if (tuple != null && ...)
