@@ -81,7 +81,7 @@ public class PointDataAdapter {
     int[] scalingFactors;
     try
     {
-      data = reader.getData();
+      data = reader.getData(reader.OB_ORDER);
       units = reader.getUnits();
       params = reader.getParams();
       scalingFactors = reader.getScales();
@@ -91,7 +91,8 @@ public class PointDataAdapter {
       throw new VisADException("Error retrieving data info");
     }
              
-    int numObs = data[0].length;
+    //int numObs = data[0].length;
+    int numObs = data.length;
     if (numObs == 0)
         throw new VisADException("No data available");
     if (debug) System.out.println("Number of observations = " + numObs);
@@ -180,16 +181,19 @@ public class PointDataAdapter {
           {
             scalars[j] = 
                 new Text( (TextType) types[j], 
-                         McIDASUtil.intBitsToString(data[j][i]));
+                         McIDASUtil.intBitsToString(data[i][j]));
+                         //McIDASUtil.intBitsToString(data[j][i]));
           }
           catch (VisADException ex) {;} // shouldn't happen
         } 
         else
         {
             double value =
-                data[j][i] == McIDASUtil.MCMISSING
+                //data[j][i] == McIDASUtil.MCMISSING
+                data[i][j] == McIDASUtil.MCMISSING
                   ? Double.NaN
-                  : data[j][i]/Math.pow(10.0, 
+                  //: data[j][i]/Math.pow(10.0, 
+                  : data[i][j]/Math.pow(10.0, 
                       (double) scalingFactors[j] );
             try
             {
