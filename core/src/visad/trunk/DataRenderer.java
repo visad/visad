@@ -446,14 +446,20 @@ if (map.badRange()) {
     else {
       units = null;
     }
+    int lat = lat_index;
+    int lon = lon_index;
+    int other = other_index;
     if (units == null) {
       return null;
     }
     else if (units.length == 2) {
-      return new Unit[] {units[lat_index], units[lon_index]};
+      return new Unit[] {lat >= 0 ? units[lat] : null,
+                         lon >= 0 ? units[lon] : null};
     }
     else if (units.length == 3) {
-      return new Unit[] {units[lat_index], units[lon_index], units[other_index]};
+      return new Unit[] {lat >= 0 ? units[lat] : null,
+                         lon >= 0 ? units[lon] : null,
+                         other >= 0 ? units[other] : null};
     }
     else {
       return null;
@@ -463,15 +469,17 @@ if (map.badRange()) {
   public float getLatLonRange() {
     double[] rlat = null;
     double[] rlon = null;
+    int lat = lat_index;
+    int lon = lon_index;
     if ((lat_lon_out && !lat_lon_out_by_coord) ||
         (lat_lon_in && lat_lon_in_by_coord)) {
-      rlat = sdo_maps[lat_index].getRange();
-      rlon = sdo_maps[lon_index].getRange();
+      rlat = lat >= 0 ? sdo_maps[lat].getRange() : new double[] {Double.NaN, Double.NaN};
+      rlon = lon >= 0 ? sdo_maps[lon].getRange() : new double[] {Double.NaN, Double.NaN};
     }
     else if ((lat_lon_in && !lat_lon_in_by_coord) ||
              (lat_lon_out && lat_lon_out_by_coord)) {
-      rlat = sdi_maps[lat_index].getRange();
-      rlon = sdi_maps[lon_index].getRange();
+      rlat = lat >= 0 ? sdi_maps[lat].getRange() : new double[] {Double.NaN, Double.NaN};
+      rlon = lon >= 0 ? sdi_maps[lon].getRange() : new double[] {Double.NaN, Double.NaN};
     }
     else if (lat_lon_spatial) {
       rlat = lat_map.getRange();
@@ -491,6 +499,9 @@ if (map.badRange()) {
       display (x, y, z) */
   public float[][] earthToSpatial(float[][] locs, float[] vert)
          throws VisADException {
+    int lat = lat_index;
+    int lon = lon_index;
+    int other = other_index;
     if (lat_index < 0 || lon_index < 0) return null;
 
     int size = locs[0].length;
@@ -519,9 +530,9 @@ if (map.badRange()) {
     // permute (lat, lon, other) to data RealTupleType
     float[][] tuple_locs = new float[lat_lon_dimension][];
     float[][] spatial_locs = new float[3][];
-    tuple_locs[lat_index] = locs[0];
-    tuple_locs[lon_index] = locs[1];
-    if (lat_lon_dimension == 3) tuple_locs[other_index] = locs[2];
+    tuple_locs[lat] = locs[0];
+    tuple_locs[lon] = locs[1];
+    if (lat_lon_dimension == 3) tuple_locs[other] = locs[2];
 
     int vert_index = -1; // non-lat/lon index for lat_lon_dimension = 2
 
@@ -609,9 +620,9 @@ if (map.badRange()) {
       // map lat & lon, not in allSpatial RealTupleType, to
       // spatial DisplayRealTypes
       spatial_locs[lat_spatial_index] =
-        lat_map.scaleValues(tuple_locs[lat_index]);
+        lat_map.scaleValues(tuple_locs[lat]);
       spatial_locs[lon_spatial_index] =
-        lon_map.scaleValues(tuple_locs[lon_index]);
+        lon_map.scaleValues(tuple_locs[lon]);
       vert_index = 3 - (lat_spatial_index + lon_spatial_index);
     }
     else {
@@ -653,6 +664,9 @@ if (map.badRange()) {
       values */
   public float[][] spatialToEarth(float[][] spatial_locs)
          throws VisADException {
+    int lat = lat_index;
+    int lon = lon_index;
+    int other = other_index;
     if (lat_index < 0 || lon_index < 0) return null;
     if (spatial_locs.length != 3) return null;
 
@@ -750,9 +764,9 @@ if (map.badRange()) {
     else if (lat_lon_spatial) {
       // map spatial DisplayRealTypes to lat & lon, not in
       // allSpatial RealTupleType
-      tuple_locs[lat_index] =
+      tuple_locs[lat] =
         lat_map.inverseScaleValues(spatial_locs[lat_spatial_index]);
-      tuple_locs[lon_index] =
+      tuple_locs[lon] =
         lon_map.inverseScaleValues(spatial_locs[lon_spatial_index]);
     }
     else {
@@ -762,9 +776,9 @@ if (map.badRange()) {
 
     // permute data RealTupleType to (lat, lon, other)
     float[][] locs = new float[lat_lon_dimension][];
-    locs[0] = tuple_locs[lat_index];
-    locs[1] = tuple_locs[lon_index];
-    if (lat_lon_dimension == 3) locs[2] = tuple_locs[other_index];
+    locs[0] = tuple_locs[lat];
+    locs[1] = tuple_locs[lon];
+    if (lat_lon_dimension == 3) locs[2] = tuple_locs[other];
 
     return locs;
   }
