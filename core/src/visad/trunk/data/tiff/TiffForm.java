@@ -26,48 +26,22 @@ MA 02111-1307, USA
 
 package visad.data.tiff;
 
-import java.awt.Image;
-import java.awt.image.*;
-import java.lang.reflect.*;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.util.Hashtable;
 import visad.*;
 import visad.data.*;
-import visad.util.*;
 
 /**
  * TiffForm is the VisAD data form for the TIFF file format.
- * The following table indicates features that the form supports:<p>
  *
- * <table border=1><tr>
- * <td>&nbsp;</td>
- * <td><b>uncompressed</b></td>
- * <td><b>compressed (LZW)</b></td>
- * </tr><tr>
- * <td><b>single image</b></td>
- * <td>read and write</td>
- * <td>read only (with JAI)</td>
- * </tr><tr>
- * <td><b>multi-page</b></td>
- * <td>read and write</td>
- * <td>read only (with JAI)</td>
- * </tr></table><p>
- *
- * This form requires ImageJ, available from the
- * <a href="http://rsb.info.nih.gov/ij/download.html">ImageJ</a> web site.
- *
- * Note that features marked with &quot;(with JAI)&quot; also require
- * the Java Advanced Imaging (JAI) package, available at Sun's
- * <a href="http://java.sun.com/products/java-media/jai/index.html">
- * Java Advanced Imaging</a> web site.
- *
- * Also, no support for reading TIFF data from URLs is provided.
- * However, the visad.data.jai package provides limited support for
- * importing single-image TIFF data from a URL.
+ * This form has been rewritten from scratch to stand alone without any
+ * third party libraries. There are undoubtably some flavors of TIFF not
+ * supported, but vanilla TIFFs should be readable.
  */
-public class TiffForm extends Form
-  implements FormFileInformer, FormBlockReader, FormProgressInformer
+public class TiffForm extends Form implements FormFileInformer,
+  FormBlockReader, FormProgressInformer
 {
 
   // -- Static fields --
@@ -78,37 +52,29 @@ public class TiffForm extends Form
   /** Legal TIFF SUFFIXES. */
   private static final String[] SUFFIXES = { "tif", "tiff" };
 
-  /** Message produced when attempting to use ImageJ without it installed. */
-  private static final String NO_IJ = "This feature requires ImageJ, " +
-    "available online at http://rsb.info.nih.gov/ij/download.html";
-
-  /** Message produced when attempting to use JAI without it installed. */
-  private static final String NO_JAI = "This feature requires JAI, " +
-    "available from Sun at http://java.sun.com/products/java-media/jai/";
-
 
   // -- Fields --
 
-  /** Reflection tool for ImageJ and JAI calls. */
-  private ReflectedUniverse r;
-
-  /** Flag indicating ImageJ is not installed. */
-  private boolean noImageJ = false;
-
-  /** Flag indicating JAI is not installed. */
-  private boolean noJai = false;
-
-  /** Filename of current TIFF stack. */
+  /** Filename of the current TIFF. */
   private String currentId;
 
-  /** Number of images in current TIFF stack. */
-  private int numImages;
+  /** Random access file for the current TIFF. */
+  private RandomAccessFile in;
 
-  /** Flag indicating whether ImageJ supports the current TIFF stack. */
-  private boolean canUseImageJ;
+  /** List of IFDs for the current TIFF. */
+  private Hashtable[] ifds;
+
+  /** Number of images in the current TIFF stack. */
+  private int numImages;
 
   /** Percent complete with current operation. */
   private double percent;
+
+  /** An instance of the old TIFF form, for use if this one fails. */
+  private LegacyTiffForm legacy;
+
+  /** Flag indicating the current file requires the legacy TIFF form. */
+  private boolean needLegacy;
 
 
   // -- Constructor --
@@ -116,57 +82,14 @@ public class TiffForm extends Form
   /** Constructs a new TIFF file form. */
   public TiffForm() {
     super("TiffForm" + formCount++);
-    r = new ReflectedUniverse();
-
-    // ImageJ imports
-    try {
-      r.exec("import ij.ImagePlus");
-      r.exec("import ij.ImageStack");
-      r.exec("import ij.io.FileInfo");
-      r.exec("import ij.io.FileSaver");
-      r.exec("import ij.io.Opener");
-      r.exec("import ij.io.TiffDecoder");
-      r.exec("import ij.process.ColorProcessor");
-      r.exec("import ij.process.ImageProcessor");
-    }
-    catch (VisADException exc) { noImageJ = true; }
-
-    // JAI imports
-    try {
-      r.exec("import com.sun.media.jai.codec.ImageDecodeParam");
-      r.exec("import com.sun.media.jai.codec.ImageDecoder");
-      r.exec("import com.sun.media.jai.codec.ImageCodec");
-    }
-    catch (VisADException exc) { noJai = true; }
+    legacy = new LegacyTiffForm();
   }
 
 
-  // -- FormFileInformer methods --
-
-  /** Checks if the given string is a valid filename for a TIFF file. */
-  public boolean isThisType(String name) {
-    for (int i=0; i<SUFFIXES.length; i++) {
-      if (name.toLowerCase().endsWith(SUFFIXES[i])) return true;
-    }
-    return false;
-  }
-
-  /** Checks if the given block is a valid header for a TIFF file. */
-  public boolean isThisType(byte[] block) {
-    return false;
-  }
-
-  /** Returns the default file SUFFIXES for the TIFF file format. */
-  public String[] getDefaultSuffixes() {
-    String[] s = new String[SUFFIXES.length];
-    System.arraycopy(SUFFIXES, 0, s, 0, SUFFIXES.length);
-    return s;
-  }
-
-  // -- API methods --
+  // -- TiffForm API methods --
 
   /**
-   * Saves a VisAD Data object to an uncompressed TIFF file.
+   * Saves a VisAD Data object to a TIFF file.
    *
    * @param id        Filename of TIFF file to save.
    * @param data      VisAD Data to convert to TIFF format.
@@ -175,81 +98,8 @@ public class TiffForm extends Form
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
-    if (noImageJ) throw new BadFormException(NO_IJ);
-
-    percent = 0;
-    FlatField[] fields = DataUtility.getImageFields(data);
-    if (fields == null) {
-      throw new BadFormException(
-        "Data type must be image or time sequence of images");
-    }
-    r.setVar("id", id);
-    if (fields.length > 1) {
-      // save as multi-page TIFF
-      Object is = null;
-      for (int i=0; i<fields.length; i++) {
-        r.setVar("ips", extractImage(fields[i]));
-        if (is == null) {
-          r.exec("w = ips.getWidth()");
-          r.exec("h = ips.getHeight()");
-          r.exec("cm = ips.getColorModel()");
-          r.exec("is = new ImageStack(w, h, cm)");
-          is = r.getVar("is");
-        }
-        r.setVar("si", "" + i);
-
-        // ugly, ugly, UGLY!
-        //
-        // There are two methods:
-        //  - ImageStack.addSlice(String, Object)
-        //  - ImageStack.addSlice(String, ImageProcessor)
-        //
-        // But since addSlice(String, Object) is declared first,
-        // ReflectedUniverse always matches it first, and thus it is
-        // impossible to call addSlice(String, ImageProcessor).
-        //
-        // We must fall back to basic Java reflection to accomplish this...
-
-        //r.exec("is.addSlice(si, ips)");
-        try {
-          Class imageStack = Class.forName("ij.ImageStack");
-          Class imageProcessor = Class.forName("ij.process.ImageProcessor");
-          Method addSlice = imageStack.getMethod("addSlice",
-            new Class[] {String.class, imageProcessor});
-          addSlice.invoke(is, new Object[] {"" + i, r.getVar("ips")});
-        }
-        catch (ClassNotFoundException exc) {
-          throw new BadFormException(
-            "Reflection exception: class not found: " + exc.getMessage());
-        }
-        catch (NoSuchMethodException exc) {
-          throw new BadFormException(
-            "Reflection exception: no such method: " + exc.getMessage());
-        }
-        catch (IllegalAccessException exc) {
-          throw new BadFormException(
-            "Reflection exception: illegal access: " + exc.getMessage());
-        }
-        catch (InvocationTargetException exc) {
-          throw new BadFormException(
-            "Reflection exception: " + exc.getTargetException().getMessage());
-        }
-
-        percent = (double) (i + 1) / fields.length;
-      }
-      r.exec("image = new ImagePlus(id, is)");
-      r.exec("sav = new FileSaver(image)");
-      r.exec("sav.saveAsTiffStack(id)");
-    }
-    else {
-      // save as single image TIFF
-      r.setVar("ip", extractImage(fields[0]));
-      r.exec("image = new ImagePlus(id, ip)");
-      r.exec("sav = new FileSaver(image)");
-      r.exec("sav.saveAsTiff(id)");
-    }
-
-    percent = -1;
+    // save is not yet implemented; delegate to legacy form
+    legacy.save(id, data, replace);
   }
 
   /**
@@ -308,139 +158,111 @@ public class TiffForm extends Form
     throw new BadFormException("TiffForm.open(URL)");
   }
 
+  /** Returns the data forms that are compatible with the given data object. */
   public FormNode getForms(Data data) {
     return null;
   }
 
 
-  // -- FormBlockReader methods --
+  // -- FormBlockReader API methods --
 
+  /** Obtains the specified image from the given TIFF file. */
   public DataImpl open(String id, int block_number)
     throws BadFormException, IOException, VisADException
   {
-    if (!id.equals(currentId)) initFile(id);
-
-    if (block_number < 0 || block_number >= numImages) {
-      throw new BadFormException("Invalid image number: " + block_number);
+    if (id.equals(currentId) && needLegacy) {
+      return legacy.open(id, block_number);
     }
+    try {
+      if (!id.equals(currentId)) initFile(id);
 
-    Image img = null;
-
-    if (canUseImageJ) {
-      if (noImageJ) throw new BadFormException(NO_IJ);
-      r.exec("stack = image.getStack()");
-      r.setVar("bn1", block_number + 1);
-      r.exec("ip = stack.getProcessor(bn1)");
-      r.exec("img = ip.createImage()");
-      img = (Image) r.getVar("img");
-    }
-    else {
-      if (noJai) throw new BadFormException(NO_JAI);
-      try {
-        r.setVar("i", block_number);
-        RenderedImage ri =
-          (RenderedImage) r.exec("id.decodeAsRenderedImage(i)");
-        WritableRaster wr = ri.copyData(null);
-        ColorModel cm = ri.getColorModel();
-        img = new BufferedImage(cm, wr, false, null);
+      if (block_number < 0 || block_number >= numImages) {
+        throw new BadFormException("Invalid image number: " + block_number);
       }
-      catch (VisADException exc) {
-        throw new BadFormException(exc.getMessage());
-      }
+
+      return TiffTools.getImage(ifds[block_number], in);
     }
-    return DataUtility.makeField(img);
+    catch (BadFormException exc) {
+      if (exc.getMessage().startsWith("Sorry")) {
+        needLegacy = true;
+        return open(id, block_number);
+      }
+      else throw exc;
+    }
   }
 
+  /** Determines the number of images in the given TIFF file. */
   public int getBlockCount(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
+    if (id.equals(currentId) && needLegacy) return legacy.getBlockCount(id);
+    try {
+      if (!id.equals(currentId)) initFile(id);
+      return numImages;
+    }
+    catch (BadFormException exc) {
+      if (exc.getMessage().startsWith("Sorry")) {
+        needLegacy = true;
+        return getBlockCount(id);
+      }
+      else throw exc;
+    }
   }
 
-  public void close() throws BadFormException, IOException, VisADException { }
+  /** Closes any open files. */
+  public void close() throws BadFormException, IOException, VisADException {
+    if (needLegacy) legacy.close();
+    if (in != null) in.close();
+    in = null;
+    ifds = null;
+    currentId = null;
+    needLegacy = false;
+  }
 
 
-  // -- FormProgressInformer methods --
+  // -- FormFileInformer API methods --
 
-  public double getPercentComplete() { return percent; }
+  /** Checks if the given string is a valid filename for a TIFF file. */
+  public boolean isThisType(String name) {
+    for (int i=0; i<SUFFIXES.length; i++) {
+      if (name.toLowerCase().endsWith(SUFFIXES[i])) return true;
+    }
+    return false;
+  }
+
+  /** Checks if the given block is a valid header for a TIFF file. */
+  public boolean isThisType(byte[] block) {
+    return TiffTools.isValidHeader(block);
+  }
+
+  /** Returns the default file SUFFIXES for the TIFF file format. */
+  public String[] getDefaultSuffixes() {
+    String[] s = new String[SUFFIXES.length];
+    System.arraycopy(SUFFIXES, 0, s, 0, SUFFIXES.length);
+    return s;
+  }
+
+
+  // -- FormProgressInformer API methods --
+
+  /** Gets the percentage complete of the form's current operation. */
+  public double getPercentComplete() {
+    if (needLegacy) return legacy.getPercentComplete();
+    return percent;
+  }
 
 
   // -- Helper methods --
 
-  /**
-   * Converts a FlatField of the form <tt>((x, y) -&gt; (r, g, b))</tt>
-   * to an ImageJ ImageProcessor object.
-   */
-  private Object extractImage(FlatField field) throws VisADException {
-    GriddedSet set = (GriddedSet) field.getDomainSet();
-    int[] wh = set.getLengths();
-    int w = wh[0];
-    int h = wh[1];
-    double[][] samples = field.getValues();
-    int[] pixels = new int[samples[0].length];
-    if (samples.length == 3) {
-      for (int i=0; i<samples[0].length; i++) {
-        int red = (int) samples[0][i] & 0x000000ff;
-        int green = (int) samples[1][i] & 0x000000ff;
-        int blue = (int) samples[2][i] & 0x000000ff;
-        pixels[i] = red << 16 | green << 8 | blue;
-      }
-    }
-    else if (samples.length == 1) {
-      for (int i=0; i<samples[0].length; i++) {
-        int val = (int) samples[0][i] & 0x000000ff;
-        pixels[i] = val << 16 | val << 8 | val;
-      }
-    }
-    r.setVar("w", w);
-    r.setVar("h", h);
-    r.setVar("pixels", pixels);
-    r.exec("cp = new ColorProcessor(w, h, pixels)");
-    return r.getVar("cp");
-  }
-
+  /** Initializes the given TIFF file. */
   private void initFile(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (noImageJ) throw new BadFormException(NO_IJ);
-
-    // close any currently open files
     close();
-
-    // determine whether ImageJ can handle the file
-    r.setVar("id", id);
-    r.setVar("empty", "");
-    r.exec("tdec = new TiffDecoder(empty, id)");
-    canUseImageJ = true;
-    try {
-      r.exec("info = tdec.getTiffInfo()");
-    }
-    catch (VisADException exc) {
-      canUseImageJ = false;
-    }
-
-    // determine number of images in TIFF file
-    if (canUseImageJ) {
-      r.exec("opener = new Opener()");
-      r.exec("image = opener.openImage(id)");
-      r.exec("numImages = image.getStackSize()");
-      numImages = ((Integer) r.getVar("numImages")).intValue();
-    }
-    else {
-      if (noJai) throw new BadFormException(NO_JAI);
-      try {
-        r.setVar("tiff", "tiff");
-        r.setVar("file", new File(id));
-        r.exec("id = ImageCodec.createImageDecoder(tiff, file, null)");
-        numImages = ((Integer) r.exec("id.getNumPages()")).intValue();
-      }
-      catch (VisADException exc) {
-        throw new BadFormException(exc.getMessage());
-      }
-    }
-
     currentId = id;
+    in = new RandomAccessFile(id, "r");
+    ifds = TiffTools.getIFDs(in);
+    numImages = ifds.length;
   }
 
 

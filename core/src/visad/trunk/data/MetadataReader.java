@@ -32,7 +32,7 @@ import visad.VisADException;
 
 /**
  * MetadataReader is the VisAD interface for reading in
- * a file's associated metadata (other than pixel data). 
+ * a file's associated metadata (other than pixel data).
  */
 public interface MetadataReader {
 
@@ -41,16 +41,16 @@ public interface MetadataReader {
    * @param field the name associated with the metadata field
    * @return the value, or null should the field not exist
    */
-  Object getMetadataValue(String id, String field) 
+  Object getMetadataValue(String id, String field)
     throws BadFormException, IOException, VisADException;
-    
+
   /**
-   * Obtains a hashtable containing all metadata field/value pairs from 
+   * Obtains a hashtable containing all metadata field/value pairs from
    * the given file.
    * @param id the filename
    * @return the hashtable containing all metadata associated with the file
    */
-  Hashtable getMetadata(String id) 
+  Hashtable getMetadata(String id)
     throws BadFormException, IOException, VisADException;
-    
+
 }

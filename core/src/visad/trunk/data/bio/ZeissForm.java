@@ -195,7 +195,8 @@ public class ZeissForm extends Form implements FormBlockReader,
   {
     if (id != currentId) initFile(id);
 
-    Hashtable ifdEntries = TiffTools.getIFDHash(r, actualImages[blockNumber]);
+    Hashtable ifdEntries = LegacyTiffTools.getIFDHash(r,
+      actualImages[blockNumber]);
     Vector entryData;
     byte[] byteArray;
     int stripOffsets, stripOffsetCount, stripBytes;
@@ -245,8 +246,8 @@ public class ZeissForm extends Form implements FormBlockReader,
       byteArray = new byte[stripInfo[i][1]];
       r.read(byteArray);
       // System.out.println("   Read " + byteArray.length + " bytes");
-      if (TiffTools.getIFDValue(ifdEntries, 259) == 5) {
-        byteArray = TiffTools.lzwUncompress(byteArray);
+      if (LegacyTiffTools.getIFDValue(ifdEntries, 259) == 5) {
+        byteArray = LegacyTiffTools.lzwUncompress(byteArray);
       }
       System.arraycopy(byteArray, 0, imageData, current, byteArray.length);
       current += byteArray.length;
@@ -259,13 +260,15 @@ public class ZeissForm extends Form implements FormBlockReader,
     //System.out.println(" photoint: " + photoint);
     FlatField frameField = null;
     if (photoint == 2) {
-      int[] bitsPerSample =
-         TiffTools.getIFDArray(r, (Vector) ifdEntries.get(new Integer(258)));
-      BitBuffer bb = new BitBuffer(new ByteArrayInputStream(imageData));
+      int[] bitsPerSample = LegacyTiffTools.getIFDArray(r,
+        (Vector) ifdEntries.get(new Integer(258)));
+      LegacyBitBuffer bb = new LegacyBitBuffer(
+        new ByteArrayInputStream(imageData));
 
       float[][] flatSamples =
         new float[bitsPerSample.length][dimensions[0] * dimensions[1]];
-      if (TiffTools.getIFDValue(ifdEntries, 317) == 2) { // use differencing
+      if (LegacyTiffTools.getIFDValue(ifdEntries, 317) == 2) {
+        // use differencing
         int currentVal, currentByte = 0;
         for (int c = 0; c < bitsPerSample.length; c++) {
           for (int y = 0; y < dimensions[1]; y++) {
@@ -301,11 +304,13 @@ public class ZeissForm extends Form implements FormBlockReader,
       frameField.setSamples(flatSamples);
     }
     else if (photoint == 1) {
-      int bitsPerSample = TiffTools.getIFDValue(ifdEntries, 258);
-      BitBuffer bb = new BitBuffer(new ByteArrayInputStream(imageData));
+      int bitsPerSample = LegacyTiffTools.getIFDValue(ifdEntries, 258);
+      LegacyBitBuffer bb = new LegacyBitBuffer(
+        new ByteArrayInputStream(imageData));
       // could be broken, assumes 8 bit depth.
       float[][] flatSamples = new float[1][dimensions[0] * dimensions[1]];
-      if (TiffTools.getIFDValue(ifdEntries, 317) == 2) { // use differencing
+      if (LegacyTiffTools.getIFDValue(ifdEntries, 317) == 2) {
+        // use differencing
         int currentVal, currentByte = 0;
         for (int y = 0; y < dimensions[1]; y++) {
           currentVal = 0;
@@ -460,7 +465,7 @@ public class ZeissForm extends Form implements FormBlockReader,
   {
     r = new RandomAccessFile(id, "r");
     currentId = id;
-    dimensions = TiffTools.getTIFFDimensions(r);
+    dimensions = LegacyTiffTools.getTIFFDimensions(r);
     // System.out.println(dimensions[0] + " x " +
     //   dimensions[1] + " x " + dimensions[2]);
     pixelSet = new Linear2DSet(domainTuple, 0, dimensions[0] - 1,
@@ -473,14 +478,14 @@ public class ZeissForm extends Form implements FormBlockReader,
     actualImages = new int[dimensions[2]];
     int imageNum = 0;
     for (int i = 0; i < dimensions[2]; i++) {
-      temp = TiffTools.getIFDHash(r, i);
-      if (TiffTools.getIFDValue(temp, 254) == 0) {
+      temp = LegacyTiffTools.getIFDHash(r, i);
+      if (LegacyTiffTools.getIFDValue(temp, 254) == 0) {
         actualImages[imageNum] = i;
         imageNum++;
       }
       tempArray =
-          TiffTools.getIFDArray(r, (Vector) temp.get(new Integer(258)));
-      comp = TiffTools.getIFDValue(temp, 259);
+          LegacyTiffTools.getIFDArray(r, (Vector) temp.get(new Integer(258)));
+      comp = LegacyTiffTools.getIFDValue(temp, 259);
       if (comp != 1) {
         // System.out.println(" Compression used: " + comp);
       }

@@ -32,12 +32,12 @@ import java.util.*;
 
 import visad.*;
 import visad.data.*;
-import visad.data.tiff.BitBuffer;
-import visad.data.tiff.TiffTools;
+import visad.data.tiff.LegacyBitBuffer;
+import visad.data.tiff.LegacyTiffTools;
 
 /**
  * MetamorphForm is the VisAD data format adapter for Metamorph STK files.
- * @author Eric Kjellman egkjellman@wisc.edu
+ * @author Eric Kjellman egkjellman at wisc.edu
  */
 public class MetamorphForm extends Form implements FormBlockReader,
   FormFileInformer, FormProgressInformer, MetadataReader
@@ -276,13 +276,13 @@ public class MetamorphForm extends Form implements FormBlockReader,
   {
     if (id != currentId) initFile(id);
     int[] bitsPerPixel = null;
-    int photoInterp = TiffTools.getPhotometricInterpretation(r);
+    int photoInterp = LegacyTiffTools.getPhotometricInterpretation(r);
     Vector v = (Vector) ifdHash.get(new Integer(BITS_PER_SAMPLE_FIELD)); // bpp
     if (v == null) {
       throw new BadFormException("Bits per sample field not found");
     }
     if (photoInterp == 2) { // RGB color
-      bitsPerPixel = TiffTools.getIFDArray(r, v);
+      bitsPerPixel = LegacyTiffTools.getIFDArray(r, v);
     }
     else { // assume it's grayscale
       bitsPerPixel = new int[] {((Integer) v.get(2)).intValue()};
@@ -292,8 +292,8 @@ public class MetamorphForm extends Form implements FormBlockReader,
       throw new BadFormException("Strip offset field not found");
     }
     // Skip ahead to the correct point in the file.
-    r.seek(TiffTools.getIFDArray(r, v)[0]);
-    BitBuffer bb = new BitBuffer(new FileInputStream(currentId));
+    r.seek(LegacyTiffTools.getIFDArray(r, v)[0]);
+    LegacyBitBuffer bb = new LegacyBitBuffer(new FileInputStream(currentId));
     bb.skipBits(8 * r.getFilePointer());
 
     // Check whether it's RGB or grayscale and read file in appropriately.
@@ -395,7 +395,7 @@ public class MetamorphForm extends Form implements FormBlockReader,
 
     Hashtable metadata = new Hashtable();
     if (id != currentId) initFile(id);
-    int offset = TiffTools.getIFDValue(ifdHash, UIC4TAG);
+    int offset = LegacyTiffTools.getIFDValue(ifdHash, UIC4TAG);
     if (offset < 0) {
       throw new BadFormException("UIC4TAG not found");
     }
@@ -412,7 +412,7 @@ public class MetamorphForm extends Form implements FormBlockReader,
     while (currentcode != 0) {
        toread = new byte[2];
        r.read(toread);
-       currentcode = TiffTools.batoi(toread);
+       currentcode = LegacyTiffTools.batoi(toread);
        toread = new byte[4]; // this is default.
 
        // variable declarations, because switch is dumb.
@@ -805,9 +805,9 @@ public class MetamorphForm extends Form implements FormBlockReader,
   {
     r = new RandomAccessFile(id, "r");
     currentId = id;
-    ifdHash = TiffTools.getIFDHash(r);
-    // Gets dimensions from TiffTools, but here it's not quite right.
-    dimensions = TiffTools.getTIFFDimensions(r);
+    ifdHash = LegacyTiffTools.getIFDHash(r);
+    // Gets dimensions from LegacyTiffTools, but here it's not quite right.
+    dimensions = LegacyTiffTools.getTIFFDimensions(r);
     if (dimensions == null) {
       throw new BadFormException("Metamorph dimensions not found");
     }
