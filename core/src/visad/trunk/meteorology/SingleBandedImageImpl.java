@@ -1,6 +1,4 @@
 //
-//  SingleBandedImageImpl.java
-//
 
 /*
 VisAD system for interactive analysis and visualization of numerical
@@ -31,6 +29,7 @@ import java.rmi.RemoteException;
 import visad.*;
 import visad.georef.*;
 import java.rmi.RemoteException;
+import visad.util.DataUtility;
 
 /**
  * An implementation for representing single-banded planar 
@@ -83,7 +82,10 @@ public class SingleBandedImageImpl
                           String desc)
         throws VisADException
     {
-        super((FunctionType) image.getType(), image.getDomainSet());
+        super((FunctionType) image.getType(), image.getDomainSet(),
+              image.getRangeCoordinateSystem()[0],
+              image.getRangeSets(), 
+              DataUtility.getRangeUnits(image));
 
         // vet the range
         if (((FunctionType) 
@@ -99,7 +101,7 @@ public class SingleBandedImageImpl
         {
             if (!image.isMissing()) 
             {
-                setSamples(image.getValues());
+                setSamples(image.getFloats(false), true);
                 setRangeErrors(image.getRangeErrors());
                 setMaxMinValues();
             }
@@ -241,11 +243,11 @@ public class SingleBandedImageImpl
             }
             else
             {
-                double[] values = getValues(0);
+                double[] values = getValues(false)[0];
                 for (int i = 0; i < values.length; i++)
                 {
                     // initialize on first non-missing value
-                    if (values[i] != Double.NaN)
+                    if (!Double.isNaN(values[i]))
                     {
                         if (min == Double.MIN_VALUE)  // initialize first time
                         {
