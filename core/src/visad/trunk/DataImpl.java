@@ -498,10 +498,16 @@ public abstract class DataImpl extends ThingImpl
   public double[][] computeRanges(RealType[] reals)
          throws VisADException, RemoteException {
     synchronized (lock) {
+
+/* WLH 11 May 2001
       if (rdisplay == null) {
         // construct offscreen dummy display
         rdisplay = new DisplayImplJ2D("dummy", 4, 4);
       }
+*/
+      // construct offscreen dummy display
+      rdisplay = new DisplayImplJ2D("dummy", 4, 4);
+
       if (reals == null || reals.length == 0) return null;
       int n = reals.length;
       ScalarMap[] maps = new ScalarMap[n];
