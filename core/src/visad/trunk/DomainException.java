@@ -29,7 +29,7 @@ package visad;
 /**
  * Supports exceptions for bad or invalid or inappropriate domains of Fields.<P>
  */
-public class DomainException extends VisADException {
+public class DomainException extends FieldException {
   public DomainException() { super(); }
   public DomainException(String s) { super(s); }
 }
