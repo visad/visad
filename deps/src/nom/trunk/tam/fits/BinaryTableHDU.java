@@ -137,7 +137,6 @@ public class BinaryTableHDU
              String card = myHeader.getCard(lastMark+j);
 
              if (card == null) {
-                 System.out.println("mark to "+(lastMark+j));
                  myHeader.unsetMark();
                  break;
              } else if ( !(card.substring(0,8).equals("COMMENT ") ||
