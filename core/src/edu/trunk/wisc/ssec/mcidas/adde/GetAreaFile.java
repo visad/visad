@@ -75,14 +75,17 @@ public class GetAreaFile implements ActionListener {
       System.out.println("    -v  (verbose text output)");
       System.out.println("    -gui = use GUI interface (no other options should be used with this)");
       System.out.println(" Note: for multi-argument options (like -s), you need to enclose the values in quotes. e.g., -s \"200 200\"");
-      System.exit(0);
+      return;
     }
 
     paramValues = new String[paramNames.length];
 
     // first try to get all the command line parameters
     outputFile = doArguments(args);
-    if (outputFile == null) System.exit(1);
+    if (outputFile == null) {
+      System.out.println("No output file specified...");
+      return;
+    }
 
     // now go for the properties file
     pars = fetchParams(paramFile);
@@ -141,7 +144,7 @@ public class GetAreaFile implements ActionListener {
       } else {
         gag.status("File not saved!!!");
       }
-    System.exit(0);
+    return;
     }
 
   }
