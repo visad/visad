@@ -78,6 +78,27 @@ def colorimage(red_data, green_data, blue_data, panel=None, colortable=None, wid
   subs.showDisplay(disp,width,height,title,None,None,panel)
   return disp
 
+def resampleImage(imagedata, maxpoints=1024):
+  """
+  Resample an image to a domain that will display as a texture
+  map.  This is only a stop-gap for now.  Default is 1024,
+  but needs to be adjusted for your card.  Return the resampled
+  image.
+  """
+  dom = getDomain(imagedata)
+  xc = dom.getX()
+  yc = dom.getY()
+  xl = len(xc)
+  yl = len(yc)
+  if xl > maxpoints or yl > maxpoints:
+    print "Resampling image from",yl,"x",xl,"to",min(yl,maxpoints),"x",min(xl,maxpoints)
+    imagedata = resample(imagedata, makeDomain(dom.getType(),
+                         xc.getFirst(), xc.getLast(), min(xl, maxpoints),
+                         yc.getFirst(), yc.getLast(), min(yl, maxpoints) ) )
+  
+  return imagedata
+
+
 #----------------------------------------------------------------------
 # mapimage displays a navigatedimage with a basemap on top
 def mapimage(imagedata, mapfile="outlsupw", panel=None, colortable=None, width=400, height=400, lat=None, lon=None, title="VisAD Image and Map"):

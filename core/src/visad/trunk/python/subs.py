@@ -120,13 +120,13 @@ class _vdisp:
     return self.shapes.addShape(ts, color=color, index=index, autoScale=0)
 
 
-  def saveDisplay(self,filename):
+  def saveDisplay(self,filename, display_wait=1, file_write_wait=1):
     """
     Save the display <disp> as a JPEG, given the filename to use. This
     will wait for the display to be 'done'.
     """
     from visad.util import Util
-    Util.captureDisplay(self, filename, 1)
+    Util.captureDisplay(self, filename, display_wait, file_write_wait)
 
 
   def addData(self, name, data, constantMaps=None, renderer=None, ref=None, zlayer=None):
