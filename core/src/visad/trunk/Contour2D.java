@@ -266,7 +266,7 @@ boolean anynotmissing = false;
     numv3[0] = 0;
     numv4[0] = 0;
 
-    if (values != null) return; // WLH 24 Aug 99
+    if (values == null) return; // WLH 24 Aug 99
 
 /*  DRM: 1999-05-19 - Not needed since dash is a boolean
     // check for bad contour interval
