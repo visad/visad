@@ -38,7 +38,9 @@ import java.rmi.RemoteException;
 import java.util.*;
 
 /*
-extend MouseBehaviorJ3D to:
+WandBehaviorJ3D extends MouseBehaviorJ3D:
+  how does it get wake up?
+
   draw ray from wand for direct manipulation (right button)
   also to drive cursor location from wand (center button)
   rotation, scale, translate (left button)?

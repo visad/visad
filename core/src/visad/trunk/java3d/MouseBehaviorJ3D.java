@@ -59,12 +59,15 @@ public class MouseBehaviorJ3D extends Behavior
 
   MouseHelper helper = null;
 
+  public MouseBehaviorJ3D() {
+  }
+
   public MouseBehaviorJ3D(DisplayRendererJ3D r) {
     helper = new MouseHelper(r, this);
     display_renderer = r;
     display = display_renderer.getDisplay();
 
-    WakeupCriterion[] conditions = new WakeupCriterion[5]; // J3D
+    WakeupCriterion[] conditions = new WakeupCriterion[5];
     conditions[0] = new WakeupOnAWTEvent(MouseEvent.MOUSE_DRAGGED);
     conditions[1] = new WakeupOnAWTEvent(MouseEvent.MOUSE_ENTERED);
     conditions[2] = new WakeupOnAWTEvent(MouseEvent.MOUSE_EXITED);
