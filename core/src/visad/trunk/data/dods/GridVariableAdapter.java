@@ -162,11 +162,45 @@ public class GridVariableAdapter
 		/*
 		 * NOTE: "domainAdapters" is in VisAD order (innermost first).
 		 */
+		boolean	isLinear = true;
 		for (int i = 0; i < rank; ++i)
+		{
 		    domainSets[i] = (SampledSet)
 			domainAdapters[i].data(
 			    (DArray)grid.getVar(rank-i));
-		domain = new ProductSet(funcType.getDomain(), domainSets);
+		    isLinear &= domainSets[i] instanceof Linear1DSet;
+		}
+		if (!isLinear)
+		{
+		    domain = new ProductSet(funcType.getDomain(), domainSets);
+		}
+		else
+		{
+		    Linear1DSet[]	linearSets = new Linear1DSet[rank];
+		    for (int i = 0; i < rank; ++i)
+			linearSets[i] = (Linear1DSet)domainSets[i];
+		    if (rank == 2)
+		    {
+			domain = new Linear2DSet(linearSets);
+		    }
+		    else if (rank == 3)
+		    {
+			domain = new Linear3DSet(linearSets);
+		    }
+		    else
+		    {
+			RealType[]	realTypes = new RealType[rank];
+			for (int i = 0; i < rank; ++i)
+			{
+			    realTypes[i] = (RealType)
+				((SetType)linearSets[i].getType()).getDomain()
+				.getComponent(0);
+			}
+			domain =
+			    new LinearNDSet(
+				new RealTupleType(realTypes), linearSets);
+		    }
+		}
 	    }
 	    DArray	array = (DArray)grid.getVar(0);
 	    if (isFlat)
