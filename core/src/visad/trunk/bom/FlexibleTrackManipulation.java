@@ -51,6 +51,7 @@ public class FlexibleTrackManipulation extends Object {
 
   private int ntimes = 0;
   private Tuple[] tuples;
+  private boolean[] tuple_change;
   private int which_time = -1;
 
   private Set time_set = null;
@@ -269,6 +270,7 @@ public class FlexibleTrackManipulation extends Object {
       try {
         ntimes = storm_track.getLength();
         tuples = new Tuple[ntimes];
+        tuple_change = new boolean[ntimes];
         lats = new float[ntimes];
         lons = new float[ntimes];
         old_lats = new float[ntimes];
@@ -277,6 +279,7 @@ public class FlexibleTrackManipulation extends Object {
         time_set = storm_track.getDomainSet();
         for (int j=0; j<ntimes; j++) {
           tuples[j] = (Tuple) storm_track.getSample(j);
+          tuple_change[j] = false;
           Real[] reals = tuples[j].getRealComponents();
           lats[j] = (float) reals[lat_index].getValue();
           lons[j] = (float) reals[lon_index].getValue();
@@ -297,7 +300,8 @@ public class FlexibleTrackManipulation extends Object {
         for (int i=0; i<ntimes; i++) {
           track_refs[i] = new DataReferenceImpl("station_ref" + i);
           track_refs[i].setData(tuples[i]);
-          direct_manipulation_renderers[i] = new DirectManipulationRendererJ3D();
+          direct_manipulation_renderers[i] =
+            new FTMDirectManipulationRendererJ3D(this);
           display.addReferences(direct_manipulation_renderers[i], track_refs[i]);
           track_monitors[i] = new TrackMonitor(track_refs[i], i);
           track_monitors[i].addReference(track_refs[i]);
@@ -309,7 +313,8 @@ public class FlexibleTrackManipulation extends Object {
         track_monitors = new TrackMonitor[1];
         track_refs[0] = new DataReferenceImpl("station_ref");
         track_refs[0].setData(tuples[0]);
-        direct_manipulation_renderers[0] = new DirectManipulationRendererJ3D();
+        direct_manipulation_renderers[0] =
+          new FTMDirectManipulationRendererJ3D(this);
         display.addReferences(direct_manipulation_renderers[0], track_refs[0]);
         track_monitors[0] = new TrackMonitor(track_refs[0], 0);
         track_monitors[0].addReference(track_refs[0]);
@@ -632,7 +637,16 @@ public class FlexibleTrackManipulation extends Object {
           lons[j] = (float) lon;
           shapes[j] = (float) shape;
           tuples[j] = storm;
-          storm_track.setSample(j, storm);
+
+// release
+          // storm_track.setSample(j, tuples[j]);
+          if (direct_on) {
+            tuple_change[j] = true;
+          }
+          else {
+            storm_track.setSample(j, tuples[j]);
+          }
+
           if (acontrol == null) {
             track_refs[j].setData(tuples[j]);
           }
@@ -649,6 +663,55 @@ public class FlexibleTrackManipulation extends Object {
    */
   public DataRenderer[] getManipulationRenderers() {
     return direct_manipulation_renderers;
+  }
+
+  private boolean direct_on = false;
+
+  public void release() {
+    synchronized (data_lock) {
+      try {
+        for (int i=0; i<ntimes; i++) {
+          if (tuple_change[i]) {
+            tuple_change[i] = false;
+            storm_track.setSample(i, tuples[i]);
+          }
+        }
+      }
+      catch (VisADException e) {
+      }
+      catch (RemoteException e) {
+      }
+      direct_on = false;
+    }
+  }
+
+  public void start() {
+    synchronized (data_lock) {
+      direct_on = true;
+    }
+  }
+
+  class FTMDirectManipulationRendererJ3D extends DirectManipulationRendererJ3D {
+    FlexibleTrackManipulation ftm;
+
+    FTMDirectManipulationRendererJ3D(FlexibleTrackManipulation f) {
+      super();
+      ftm = f;
+    }
+
+    /** mouse button released, ending direct manipulation */
+    public void release_direct() {
+      ftm.release();
+    }
+
+    public void drag_direct(VisADRay ray, boolean first,
+                                         int mouseModifiers) {
+      if (first) {
+        ftm.start();
+      }
+      super.drag_direct(ray, first, mouseModifiers);
+    }
+
   }
 
   private static final int NTIMES = 8;
