@@ -120,7 +120,9 @@ public class ShapeControl extends Control {
     }
     else {
       for (int i=0; i<indices.length; i++) {
-        if (0 <= indices[i] && indices[i] < shapes.length) {
+        if (0 <= indices[i] && indices[i] < shapes.length &&
+            shapes[indices[i]] != null)
+        {
           sh[i] = (VisADGeometryArray) shapes[indices[i]].clone();
         }
         else {
