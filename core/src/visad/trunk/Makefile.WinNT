@@ -140,6 +140,7 @@ visad\$(NCSA)\exceptions\*.java
 
 JAR_FILES2 = \
 visad\jmet\*.java \
+visad\meteorology\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
 visad\paoloa\*.java \
@@ -255,6 +256,7 @@ visad\$(NCSA)\exceptions\*.java
 
 SAVE_FILES2 = \
 visad\jmet\*.java \
+visad\meteorology\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
 visad\paoloa\*.java \
@@ -373,6 +375,8 @@ save:
 		$(DEL) $(BACKUP)\visad\$(NCSA)\exceptions\*.java
 	if exist $(BACKUP)\visad\jmet\*.java \
 		$(DEL) $(BACKUP)\visad\jmet\*.java
+	if exist $(BACKUP)\visad\meteorology\*.java \
+		$(DEL) $(BACKUP)\visad\meteorology\*.java
 	if exist $(BACKUP)\visad\paoloa\*.java \
 		$(DEL) $(BACKUP)\visad\paoloa\*.java
 	if exist $(BACKUP)\visad\paoloa\spline\*.java \
@@ -437,6 +441,7 @@ visad\data\hdf5\hdf5objects\*.class \
 visad\$(NCSA)\*.class \
 visad\$(NCSA)\exceptions\*.class \
 visad\jmet\*.class \
+visad\meteorology\*.class \
 visad\paoloa\*.class \
 visad\paoloa\spline\*.class \
 visad\aune\*.class \
@@ -504,6 +509,7 @@ clear:
 	if exist $(NCSA)\*.java $(DEL) $(NCSA)\*.java
 	if exist $(NCSA)\exceptions\*.java $(DEL) $(NCSA)\exceptions\*.java
 	if exist jmet\*.java $(DEL) jmet\*.java
+	if exist meteorology\*.java $(DEL) meteorology\*.java
 	if exist paoloa\*.java $(DEL) paoloa\*.java
 	if exist paoloa\spline\*.java $(DEL) paoloa\spline\*.java
 	if exist aune\*.java $(DEL) aune\*.java
@@ -553,6 +559,7 @@ clean:
 	if exist $(NCSA)\*.class $(DEL) $(NCSA)\*.class
 	if exist $(NCSA)\exceptions\*.class $(DEL) $(NCSA)\exceptions\*.class
 	if exist jmet\*.class $(DEL) jmet\*.class
+	if exist meteorology\*.class $(DEL) meteorology\*.class
 	if exist paoloa\*.class $(DEL) paoloa\*.class
 	if exist paoloa\spline\*.class $(DEL) paoloa\spline\*.class
 	if exist aune\*.class $(DEL) aune\*.class
@@ -625,6 +632,7 @@ util\*.class \
 formula\*.class \
 ss\*.class \
 jmet\*.class \
+meteorology\*.class \
 paoloa\*.class \
 paoloa\spline\*.class \
 benjamin\*.class \
@@ -682,6 +690,7 @@ compile: clean
 	$(JC) $(JFLAGS) formula\*.java
 	$(JC) $(JFLAGS) ss\*.java
 	$(JC) $(JFLAGS) jmet\*.java
+	$(JC) $(JFLAGS) meteorology\*.java
 	$(JC) $(JFLAGS) paoloa\*.java
 	$(JC) $(JFLAGS) paoloa\spline\*.java
 	$(JC) $(JFLAGS) benjamin\*.java
@@ -743,6 +752,7 @@ ncsa.hdf.hdf5lib.exceptions \
 visad.data.hdf5 \
 visad.data.hdf5.hdf5objects \
 visad.jmet \
+visad.meteorology \
 visad.paoloa \
 visad.paoloa.spline \
 visad.aune \

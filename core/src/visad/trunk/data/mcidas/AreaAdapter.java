@@ -41,6 +41,9 @@ import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
 
+// WLH 24 August 2000
+import visad.meteorology.*;
+
 /** this is an adapter for McIDAS AREA images */
 
 public class AreaAdapter {
@@ -261,4 +264,44 @@ public class AreaAdapter {
   {
       return new DateTime(areaDirectory.getStartTime());
   }
+
+// WLH 24 August 2000
+  /**
+   * Retrieves the first (and/or only) band in an image as a SingleBandedImage
+   *
+   * @return  SingleBandedImage representation of the FlatField from getData().
+   *          If there is navigation associated with the image, the returned
+   *          image is a NavigatedImage.
+   */
+  public SingleBandedImage getImage()
+      throws VisADException
+  {
+    FlatField firstBand;
+    if (field.getRangeDimension() > 1)
+    {
+      try
+      {
+        firstBand = ((FlatField) field.extract(0));
+      }
+      catch (RemoteException excp)
+      {
+        throw new VisADException("AreaAdapter.getImage(): RemoteException");
+      }
+    }
+    else
+    {
+      firstBand = field;
+    }
+    return
+      cs == null
+        ? (SingleBandedImage)
+           new SingleBandedImageImpl(firstBand,
+                                     getNominalTime(),
+                                     "McIDAS Image")
+        : (SingleBandedImage)
+           new NavigatedImage(firstBand,
+                              getNominalTime(),
+                              "McIDAS Image");
+  }
+
 }

@@ -210,6 +210,7 @@ SAVE_FILES = \
 	ncsa/hdf/hdf5lib/*.java				\
 	ncsa/hdf/hdf5lib/exceptions/*.java		\
 	visad/jmet/*.java				\
+	visad/meteorology/*.java			\
 	visad/paoloa/README.paoloa			\
 	visad/paoloa/Makefile				\
 	visad/paoloa/*.java				\
@@ -294,6 +295,7 @@ DOC_PACKAGES = \
 		visad.formula \
 		visad.ss \
 		visad.jmet \
+		visad.meteorology \
 		visad.paoloa \
 		visad.paoloa.spline \
 		visad.aune \
