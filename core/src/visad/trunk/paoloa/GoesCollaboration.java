@@ -15,6 +15,7 @@ import visad.java3d.DirectManipulationRendererJ3D;
 
 
 // Java packages
+import java.io.File;
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
 import java.rmi.AccessException;
@@ -199,6 +200,25 @@ public class GoesCollaboration extends Object {
     }
     else { // args.length == 0
       // this is a server
+
+      /* CTR: 30 Sep 1998 */
+      // check for the existence of necessary data files
+      {
+        File f1 = new File("data_obs_1.dat");
+        File f2 = new File("goesrtcf");
+        if (!f1.exists() || !f2.exists()) {
+          System.out.println("This program requires the data files " +
+                             "\"data_obs_1.dat\"");
+          System.out.println("and \"goesrtcf\", available at:");
+          System.out.println("   ftp://demedici.ssec.wisc.edu/pub/visad-2.0/" +
+                             "paoloa-files.tar.Z");
+          System.exit(1);
+        }
+        if (!f2.exists()) {
+          System.out.println("");
+          System.exit(2);
+        }
+      }
 
       // try to set up a RemoteServer
       server_server = new RemoteServerImpl(null);

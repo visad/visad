@@ -14,6 +14,7 @@ import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.java3d.DirectManipulationRendererJ3D;
 
 // Java packages
+import java.io.File;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
@@ -96,7 +97,7 @@ public class GoesRetrieval extends Object {
   public static void main(String args[])
          throws VisADException, RemoteException {
     // load native method library
-    System.loadLibrary("GoesRetrieval");
+    //System.loadLibrary("GoesRetrieval");
     // construct GoesRetrieval application
     GoesRetrieval goes = new GoesRetrieval();
   }
@@ -153,6 +154,25 @@ public class GoesRetrieval extends Object {
   */
   public GoesRetrieval()
          throws VisADException, RemoteException {
+
+    /* CTR: 30 Sep 1998 */
+    // check for existence of necessary data files
+    {
+      File f1 = new File("data_obs_1.dat");
+      File f2 = new File("goesrtcf");
+      if (!f1.exists() || !f2.exists()) {
+        System.out.println("This program requires the data files " +
+                           "\"data_obs_1.dat\"");
+        System.out.println("and \"goesrtcf\", available at:");
+        System.out.println("   ftp://demedici.ssec.wisc.edu/pub/visad-2.0/" +
+                           "paoloa-files.tar.Z");
+        System.exit(1);
+      }
+      if (!f2.exists()) {
+        System.out.println("");
+        System.exit(2);
+      }
+    }
 
     //
     // construct function domain sampling Sets
