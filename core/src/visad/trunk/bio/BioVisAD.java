@@ -108,6 +108,12 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Tool panel for adjusting viewing parameters. */
   ViewToolPanel toolView;
 
+  /** Tool panel for manipulating colors. */
+  ColorToolPanel toolColor;
+
+  /** Tool panel for managing image alignment, spacing and drift correction. */
+  AlignToolPanel toolAlign;
+
   /** Tool panel for performing measurement operations. */
   MeasureToolPanel toolMeasure;
 
@@ -238,6 +244,14 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     // viewing tool panel
     toolView = new ViewToolPanel(this);
     tabs.addTab("View", toolView);
+
+    // color tool panel
+    toolColor = new ColorToolPanel(this);
+    tabs.addTab("Color", toolColor);
+
+    // alignment tool panel
+    toolAlign = new AlignToolPanel(this);
+    tabs.addTab("Align", toolAlign);
 
     // measurement tool panel
     toolMeasure = new MeasureToolPanel(this);
@@ -571,7 +585,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     RealType green = g.equals("null") ? null : RealType.getRealType(g);
     RealType blue = b.equals("null") ? null : RealType.getRealType(b);
     sm.restoreState(fin);
-    toolView.setColors(bright, cont, red, green, blue);
+    toolColor.setColors(bright, cont, red, green, blue);
   }
 
 

@@ -133,12 +133,6 @@ public class MeasurePool implements DisplayListener {
   /** Data renderer for rubber band box. */
   private DataRenderer boxRenderer;
 
-  /** Data reference for pilot line. */
-  private DataReferenceImpl pilotLine;
-
-  /** Data renderer for pilot line. */
-  private DataRenderer pilotRenderer;
-
 
   // -- CONSTRUCTOR --
 
@@ -155,7 +149,6 @@ public class MeasurePool implements DisplayListener {
       dashedLines = new DataReferenceImpl("bio_dashed_lines");
       coloredPoints = new DataReferenceImpl("bio_colored_points");
       rubberBand = new DataReferenceImpl("bio_rubber_band");
-      pilotLine = new DataReferenceImpl("bio_pilot_line");
     }
     catch (VisADException exc) { exc.printStackTrace(); }
 
@@ -172,8 +165,7 @@ public class MeasurePool implements DisplayListener {
         Vector solidColors = new Vector();
         Vector dashedColors = new Vector();
         Vector pointColors = new Vector();
-        Vector pilotStrips = new Vector();
-        Vector pilotColors = new Vector();
+        boolean sel = hasSelection();
 
         // compute list of line strips
         Vector lines = list.getLines();
@@ -185,20 +177,16 @@ public class MeasurePool implements DisplayListener {
           if (dim == 2) {
             boolean b1 = line.ep1.z == slice;
             boolean b2 = line.ep2.z == slice;
-            if (line.ep1.pt[pid] != null) line.ep1.pt[pid].toggle(b1);
-            if (line.ep2.pt[pid] != null) line.ep2.pt[pid].toggle(b2);
+            boolean t1 = b1 && (!sel || line.ep1.selected > 0);
+            boolean t2 = b2 && (!sel || line.ep2.selected > 0);
+            if (line.ep1.pt[pid] != null) line.ep1.pt[pid].toggle(t1);
+            if (line.ep2.pt[pid] != null) line.ep2.pt[pid].toggle(t2);
             if (!b1 && !b2) continue;
           }
 
           // create gridded set from this line
           GriddedSet set = doSet(new MeasurePoint[] {line.ep1, line.ep2});
-          if (line.pilot) {
-            pilotStrips.add(set);
-            pilotColors.add(Color.white);
-            pilotColors.add(Color.white);
-            continue;
-          }
-          else if (line.selected) {
+          if (line.selected) {
             dashedStrips.add(set);
             dashedColors.add(line.color);
             dashedColors.add(line.color);
@@ -222,18 +210,12 @@ public class MeasurePool implements DisplayListener {
           // ensure endpoint is on this slice
           if (dim == 2 && point.z != slice) continue;
 
-          // ensure pilot endpoints aren't visible in 2-D pool
-          if (dim == 2 && point.pilot) continue;
-
           pointStrips.add(point);
           pointColors.add(point.selected > 0 ? Color.yellow : point.color);
         }
 
         doLines(solidStrips, solidColors, solidLines, lineRenderer);
         doLines(dashedStrips, dashedColors, dashedLines, dashedRenderer);
-        if (dim == 3) {
-          doLines(pilotStrips, pilotColors, pilotLine, pilotRenderer);
-        }
         doPoints(pointStrips, pointColors, coloredPoints, pointRenderer);
       }
     };
@@ -410,16 +392,6 @@ public class MeasurePool implements DisplayListener {
       display.addReferences(boxRenderer, rubberBand);
     }
 
-    // pilot line
-    if (dim == 3) {
-      pilotRenderer = display.getDisplayRenderer().makeDefaultRenderer();
-      pilotRenderer.suppressExceptions(true);
-      pilotRenderer.toggle(false);
-      display.addReferences(pilotRenderer, pilotLine, new ConstantMap[] {
-        new ConstantMap(3.0f, Display.LineWidth)
-      });
-    }
-
     // direct manipulation endpoints
     int total = free.size();
     for (int i=0; i<total; i++) ((PoolPoint) free.elementAt(i)).init();
@@ -465,9 +437,6 @@ public class MeasurePool implements DisplayListener {
     refresh(true);
   }
 
-  /** Toggles whether the pool's pilot line is visible. */
-  public void togglePilot(boolean enabled) { pilotRenderer.toggle(enabled); }
-
   /** Refreshes the measurement endpoints in the pool. */
   public synchronized void refresh(boolean reconstruct) {
     if (list == null) return;
@@ -478,7 +447,6 @@ public class MeasurePool implements DisplayListener {
     display.disableAction();
     for (int i=0; i<size; i++) {
       MeasurePoint point = (MeasurePoint) points.elementAt(i);
-      if (dim == 2 && point.pilot) continue;
       if (point.pt[pid] == null) point.pt[pid] = lease(point);
       point.pt[pid].toggle(dim == 3 || point.z == slice);
     }

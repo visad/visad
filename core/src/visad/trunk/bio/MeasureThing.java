@@ -43,9 +43,6 @@ public abstract class MeasureThing {
   /** Standard id tag. -1 if not a standard line. */
   int stdId = -1;
 
-  /** Whether this measurement is part of the pilot line. */
-  boolean pilot;
-
   /** Sets the color of this measurement to match the given color. */
   public abstract void setColor(Color color);
 

@@ -106,14 +106,7 @@ public class ImportDialog extends JPanel implements ActionListener {
     dialog.getRootPane().setDefaultButton(ok);
     chooser.clearFields();
     dialog.setContentPane(this);
-
-    // hack so that thumbnail resolution text fields are wide enough
-    String v1 = thumbs.getFirstValue();
-    String v2 = thumbs.getSecondValue();
-    thumbs.setValues("9999", "9999");
     dialog.pack();
-    thumbs.setValues(v1, v2);
-
     Util.centerWindow(dialog);
     dialog.setVisible(true);
     return rval;

@@ -161,12 +161,12 @@ public class MeasureManager {
     File f = fileBox.getSelectedFile();
     try {
       MeasureDataFile mdf = new MeasureDataFile(bio, f);
-      if (bio.toolMeasure.getUseMicrons()) {
-        double mw = bio.toolMeasure.getMicronWidth();
-        double mh = bio.toolMeasure.getMicronHeight();
+      if (bio.toolAlign.getUseMicrons()) {
+        double mw = bio.toolAlign.getMicronWidth();
+        double mh = bio.toolAlign.getMicronHeight();
         double mx = mw / bio.sm.res_x;
         double my = mh / bio.sm.res_y;
-        double sd = bio.toolMeasure.getSliceDistance();
+        double sd = bio.toolAlign.getSliceDistance();
         mdf.write(mx, my, sd);
       }
       else mdf.write();

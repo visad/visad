@@ -82,9 +82,6 @@ public class MeasureToolPanel extends ToolPanel {
   /** Flag marking whether set standard checkbox can be enabled. */
   private boolean stdEnabled = true;
 
-  /** Flag marking whether pilot line has been initialized. */
-  private boolean pilotInited = false;
-
 
   // -- FILE IO FUNCTIONS --
 
@@ -96,18 +93,6 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Button for restoring measurements from a file. */
   private JButton restoreLines;
-
-  /**
-   * Check box for indicating file should be saved or restored
-   * using a micron-pixel conversion of the given width and height.
-   */
-  private DoubleTextCheckBox useMicrons;
-
-  /** Label for distance between slices. */
-  private JLabel sliceDistLabel;
-
-  /** Text field for specifying distance (in microns) between slices. */
-  private JTextField sliceDistance;
 
 
   // -- GLOBAL FUNCTIONS --
@@ -126,9 +111,6 @@ public class MeasureToolPanel extends ToolPanel {
 
   /** Button for clearing all measurements. */
   private JButton clearAll;
-
-  /** Toggle for pilot line image stack alignment. */
-  private JCheckBox pilot;
 
 
   // -- LINE FUNCTIONS --
@@ -204,36 +186,6 @@ public class MeasureToolPanel extends ToolPanel {
     p.add(restoreLines);
     controls.add(pad(p));
 
-    // microns vs pixels checkbox
-    useMicrons = new DoubleTextCheckBox(
-      "Use microns instead of pixels", "by", "", "", false);
-    final MeasureToolPanel tool = this;
-    useMicrons.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) { tool.updateFileButtons(); }
-    });
-    useMicrons.setEnabled(false);
-    controls.add(pad(useMicrons));
-
-    // slice distance label
-    p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    sliceDistLabel = new JLabel("Microns between slices: ");
-    sliceDistLabel.setForeground(Color.black);
-    sliceDistLabel.setEnabled(false);
-    p.add(sliceDistLabel);
-
-    // distance between slices text box
-    sliceDistance = new JTextField();
-    Util.adjustTextField(sliceDistance);
-    sliceDistance.getDocument().addDocumentListener(new DocumentListener() {
-      public void changedUpdate(DocumentEvent e) { tool.updateFileButtons(); }
-      public void insertUpdate(DocumentEvent e) { tool.updateFileButtons(); }
-      public void removeUpdate(DocumentEvent e) { tool.updateFileButtons(); }
-    });
-    sliceDistance.setEnabled(false);
-    p.add(sliceDistance);
-    controls.add(pad(p));
-
     // spacing
     controls.add(Box.createVerticalStrut(15));
 
@@ -286,6 +238,7 @@ public class MeasureToolPanel extends ToolPanel {
     p.add(Box.createHorizontalStrut(5));
 
     // clear all measurements button
+    final MeasureToolPanel tool = this;
     clearAll = new JButton("Clear all");
     clearAll.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -300,36 +253,6 @@ public class MeasureToolPanel extends ToolPanel {
     clearAll.setEnabled(false);
     p.add(clearAll);
     controls.add(pad(p));
-
-    // spacing
-    controls.add(Box.createVerticalStrut(5));
-
-    // stack alignment pilot line checkbox
-    pilot = new JCheckBox("Use pilot line to align image stacks", false);
-    pilot.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        boolean doPilot = pilot.isSelected();
-        if (!pilotInited) {
-          int index = bio.sm.getIndex();
-          for (int j=0; j<bio.mm.lists.length; j++) {
-            MeasureList list = bio.mm.lists[j];
-            boolean update = j == index;
-            MeasurePoint ep1 = new MeasurePoint(
-              bio.sm.min_x, bio.sm.min_y, bio.sm.min_z);
-            MeasurePoint ep2 = new MeasurePoint(
-              bio.sm.min_x, bio.sm.min_y, bio.sm.max_z);
-            MeasureLine line = new MeasureLine(ep1, ep2,
-              Color.white, BioVisAD.noneGroup, false);
-            ep1.pilot = ep2.pilot = line.pilot = true;
-            list.addLine(line, update);
-          }
-          pilotInited = true;
-        }
-        bio.mm.pool3.togglePilot(doPilot);
-      }
-    });
-    pilot.setEnabled(false);
-    controls.add(pad(pilot));
 
     // divider between global functions and measurement-specific functions
     controls.add(Box.createVerticalStrut(10));
@@ -524,22 +447,17 @@ public class MeasureToolPanel extends ToolPanel {
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
     if (enabled) {
-      useMicrons.setEnabled(true);
       measureLabel.setEnabled(true);
       restoreLines.setEnabled(true);
       updateFileButtons();
     }
     else {
-      useMicrons.setEnabled(false);
       measureLabel.setEnabled(false);
       saveLines.setEnabled(false);
       restoreLines.setEnabled(false);
-      sliceDistLabel.setEnabled(false);
-      sliceDistance.setEnabled(false);
     }
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
-    pilot.setEnabled(enabled);
     merge.setEnabled(enabled);
     //undo.setEnabled(enabled);
     clearAll.setEnabled(enabled);
@@ -594,54 +512,17 @@ public class MeasureToolPanel extends ToolPanel {
     }
   }
 
-  /** Gets whether microns should be used instead of pixels. */
-  public boolean getUseMicrons() { return useMicrons.isSelected(); }
-
-  /** Gets the image width in microns entered by the user. */
-  public double getMicronWidth() {
-    double d = Convert.getDouble(useMicrons.getFirstValue());
-    return d <= 0 ? Double.NaN : d;
-  }
-
-  /** Gets the image height in microns entered by the user. */
-  public double getMicronHeight() {
-    double d = Convert.getDouble(useMicrons.getSecondValue());
-    return d <= 0 ? Double.NaN : d;
-  }
-
-  /** Gets the micron distance between slices entered by the user. */
-  public double getSliceDistance() {
-    double d = Convert.getDouble(sliceDistance.getText());
-    return d <= 0 ? Double.NaN : d;
-  }
-
 
   // -- INTERNAL API METHODS --
 
   /** Updates GUI to match internal information. */
   void updateInfo(boolean microns, double mx, double my, double sd) {
-    double mw = bio.sm.res_x * mx;
-    double mh = bio.sm.res_y * my;
-
-    // update micron info
-    if (microns) useMicrons.setValues("" + mw, "" + mh);
-    else useMicrons.setValues("", "");
-    sliceDistance.setText(microns ? "" + sd : "");
-    useMicrons.setSelected(microns);
-
     // update groups
     groupList.removeAllItems();
     for (int i=0; i<bio.mm.groups.size(); i++) {
       groupList.addItem(bio.mm.groups.elementAt(i));
     }
     descriptionBox.setText("");
-  }
-
-  /** Sets the slice distance to match the specified one. */
-  void setSliceDistance(double sd) {
-    String dist = "" + sd;
-    if (dist.equals(sliceDistance.getText())) return;
-    sliceDistance.setText(dist);
   }
 
   /** Sets the merge toggle button's status. */
@@ -652,26 +533,24 @@ public class MeasureToolPanel extends ToolPanel {
   /** Gets the merge toggle button's status. */
   boolean getMerge() { return merge.isSelected(); }
 
-
-  // -- HELPER METHODS --
-
   /** Updates the micron-related GUI components. */
-  private void updateFileButtons() {
-    boolean microns = useMicrons.isSelected();
-    sliceDistLabel.setEnabled(microns);
-    sliceDistance.setEnabled(microns);
+  void updateFileButtons() {
+    boolean microns = bio.toolAlign.getUseMicrons();
     boolean b;
     if (microns) {
-      double mw = getMicronWidth();
-      double mh = getMicronHeight();
-      double sd = getSliceDistance();
+      double mw = bio.toolAlign.getMicronWidth();
+      double mh = bio.toolAlign.getMicronHeight();
+      double sd = bio.toolAlign.getSliceDistance();
       b = mw == mw && mh == mh && sd == sd;
     }
     else b = true;
-    bio.toolView.updateAspect(!microns);
+    bio.toolAlign.updateAspect(!microns);
     saveLines.setEnabled(b);
     updateMeasureInfo();
   }
+
+
+  // -- HELPER METHODS --
 
   /** Updates the text in the measurement information box. */
   private void updateMeasureInfo() {
@@ -679,12 +558,12 @@ public class MeasureToolPanel extends ToolPanel {
     String dist = "";
     if (bio.mm.pool2.hasSingleSelection()) {
       Object thing = bio.mm.pool2.getSelection()[0];
-      boolean use = useMicrons.isSelected();
-      double mw = getMicronWidth();
-      double mh = getMicronHeight();
+      boolean use = bio.toolAlign.getUseMicrons();
+      double mw = bio.toolAlign.getMicronWidth();
+      double mh = bio.toolAlign.getMicronHeight();
       double mx = mw / bio.sm.res_x;
       double my = mw / bio.sm.res_y;
-      double sd = getSliceDistance();
+      double sd = bio.toolAlign.getSliceDistance();
       boolean microns = use && mx == mx && my == my && sd == sd;
       if (!microns) mx = my = sd = 1;
       String unit = microns ? "µ" : "pix";

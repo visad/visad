@@ -61,8 +61,8 @@ public class DoubleTextCheckBox extends JPanel
     box.addItemListener(this);
     label = new JLabel(label2);
     label.setForeground(Color.black);
-    field1 = new JTextField(value1);
-    field2 = new JTextField(value2);
+    field1 = new WideTextField(value1);
+    field2 = new WideTextField(value2);
     field1.getDocument().addDocumentListener(this);
     field2.getDocument().addDocumentListener(this);
     Util.adjustTextField(field1);
@@ -149,6 +149,29 @@ public class DoubleTextCheckBox extends JPanel
       ActionListener l = (ActionListener) listeners.elementAt(i);
       l.actionPerformed(e);
     }
+  }
+
+
+  // -- HELPER CLASSES --
+
+  private class WideTextField extends JTextField {
+
+    private static final int MIN_WIDTH = 30;
+
+    public WideTextField(String value) { super(value); }
+
+    public Dimension getMinimumSize() {
+      Dimension d = super.getMinimumSize();
+      d.width = MIN_WIDTH;
+      return d;
+    }
+
+    public Dimension getPreferredSize() {
+      Dimension d = super.getMinimumSize();
+      if (d.width < MIN_WIDTH) d.width = MIN_WIDTH;
+      return d;
+    }
+
   }
 
 }

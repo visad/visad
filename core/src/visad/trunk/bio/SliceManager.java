@@ -624,7 +624,7 @@ public class SliceManager
             ref_next.setData(lowresField);
           }
 
-          bio.toolView.guessTypes();
+          bio.toolColor.guessTypes();
           configureDisplays();
 
           // initialize measurement list array
@@ -973,7 +973,7 @@ public class SliceManager
     bio.display3.addDisplayListener(this);
 
     // set up color table characteristics
-    bio.toolView.doColorTable();
+    bio.toolColor.doColorTable();
 
     // update arbitrary slice range with a reasonable default setting
     double range_x = max_x - min_x;

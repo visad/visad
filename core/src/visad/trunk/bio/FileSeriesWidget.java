@@ -54,6 +54,8 @@ public class FileSeriesWidget extends BioStepWidget {
     super.updateSlider(maximum);
     boolean b = maximum > 0;
     bio.toolView.setEnabled(b);
+    bio.toolColor.setEnabled(b);
+    bio.toolAlign.setEnabled(b);
     bio.toolMeasure.setEnabled(b);
   }
 
