@@ -1969,6 +1969,7 @@ public class BasicSSCell extends JPanel {
   private static final String j33 = "visad.java3d.DefaultDisplayRendererJ3D";
   private static final String j22 = "visad.java2d.DefaultDisplayRendererJ2D";
   private static final String j32 = "visad.java3d.TwoDDisplayRendererJ3D";
+  private static final String jir = "visad.bom.ImageRendererJ3D";
 
   /** update the dimension of a cloned cell to match that of the server */
   private void setDimClone() throws VisADException, RemoteException {
@@ -1990,7 +1991,7 @@ public class BasicSSCell extends JPanel {
 
       // autodetect new dimension
       String s = RemoteVDisplay.getDisplayRendererClassName();
-      if (s.equals(j33)) Dim = JAVA3D_3D;
+      if (s.equals(j33) || s.equals(jir)) Dim = JAVA3D_3D;
       else if (s.equals(j22)) Dim = JAVA2D_2D;
       else if (s.equals(j32)) Dim = JAVA3D_2D;
 
