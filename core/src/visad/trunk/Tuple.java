@@ -40,6 +40,10 @@ public class Tuple extends DataImpl implements TupleIface {
   /** construct a Tuple object with missing value */
   public Tuple(TupleType type) {
     super(type);
+    if (type instanceof RealTupleType &&
+        !(this instanceof RealTuple)) {
+      throw new VisADError("must construct as RealTupleType");
+    }
   }
 
   /** construct a Tuple object from a type and an array of Data objects */
@@ -54,6 +58,10 @@ public class Tuple extends DataImpl implements TupleIface {
     super(type);
     if (!checkTupleType(type, datums)) {
       throw new TypeException("Tuple: type does not match data");
+    }
+    if (type instanceof RealTupleType &&
+        !(this instanceof RealTuple)) {
+      throw new TypeException("must construct as RealTupleType");
     }
     int n = datums.length;
     tupleComponents = new Data[n];
