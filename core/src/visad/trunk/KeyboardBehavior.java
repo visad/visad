@@ -31,35 +31,35 @@ public interface KeyboardBehavior {
 
   // standard keyboard functions
   /** Identifier for function to translate the display upwards */
-  public static final int TRANSLATE_UP = 0;
+  int TRANSLATE_UP = 0;
 
   /** Identifier for function to translate the display downwards */
-  public static final int TRANSLATE_DOWN = 1;
+  int TRANSLATE_DOWN = 1;
 
   /** Identifier for function to translate the display to the left */
-  public static final int TRANSLATE_LEFT = 2;
+  int TRANSLATE_LEFT = 2;
 
   /** Identifier for function to translate the display to the right */
-  public static final int TRANSLATE_RIGHT = 3;
+  int TRANSLATE_RIGHT = 3;
 
   /** Identifier for function to zoom in the display */
-  public static final int ZOOM_IN = 4;
+  int ZOOM_IN = 4;
 
   /** Identifier for function to zoom out the display */
-  public static final int ZOOM_OUT = 5;
+  int ZOOM_OUT = 5;
 
   /** 
    * Identifier for function to reset the display to the original projection
    * or last saved projection 
    * @see visad.ProjectionControl#resetProjection()
    */
-  public static final int RESET = 6;
+  int RESET = 6;
 
   /** 
    * Mask to indicate there are no modifiers for this key.
    * @see #mapKeyToFunction(int function, int keycode, int modifiers)
    */
-  public static final int NO_MASK = 0;
+  int NO_MASK = 0;
 
   /**
    * Maps key represented by keycode & modifiers to the given function.
@@ -71,18 +71,18 @@ public interface KeyboardBehavior {
    * @param  keycode   <CODE>KeyEvent</CODE> virtual keycodes 
    * @param  modifiers <CODE>InputEvent</CODE> key mask
    */
-  public void mapKeyToFunction(int function, int keycode, int modifiers);
+  void mapKeyToFunction(int function, int keycode, int modifiers);
 
   /**
    *  Process a key event.  Determines whether a meaningful key was pressed.
    *  place.
    *  @param  even  KeyEvent stimulus
    */
-  public void processKeyEvent(KeyEvent event);
+  void processKeyEvent(KeyEvent event);
 
   /** 
    * Executes the given function. 
    * @param  function   function to perform (TRANSLATE_UP, ZOOM_IN, etc)
    */
-  public void execFunction(int function);
+  void execFunction(int function);
 }
