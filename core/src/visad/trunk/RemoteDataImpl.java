@@ -33,7 +33,7 @@ import java.rmi.server.UnicastRemoteObject;
 /**
    RemoteDataImpl is the VisAD remote adapter for DataImpl.<P>
 */
-public abstract class RemoteDataImpl extends RemoteThingImpl
+public class RemoteDataImpl extends RemoteThingImpl
        implements RemoteData {
 
   /** 'this' is the Remote adaptor for AdaptedData (which is local);
