@@ -251,7 +251,7 @@ public class FlexibleTrackManipulation extends Object {
                lat_index + " " + lon_index + " " + shape_index);
     }
 
-    setupData(storm_track);
+    setupData(storm_track, true, true);
 
     // Store geometry array in shapes
     shape_control1 = (ShapeControl) shape_map1.getControl();
@@ -283,12 +283,13 @@ public class FlexibleTrackManipulation extends Object {
     public void doAction() throws VisADException, RemoteException {
       synchronized (data_lock) {
         FieldImpl st = (FieldImpl) track_ref.getData();
-        boolean change = false;
+        boolean length_change = false;
+        boolean value_change = false;
         if (!storm_track_type.equals(st.getType())) {
           throw new VisADException("storm_track MathType may not change");
         }
-        if (ntimes != st.getLength()) change = true;
-        if (!change) {
+        if (ntimes != st.getLength()) length_change = true;
+        if (st.getLength() >= ntimes) {
           for (int j=0; j<ntimes; j++) {
             Real[] reals = ((Tuple) st.getSample(j)).getRealComponents();
             if (!visad.util.Util.isApproximatelyEqual(lats[j],
@@ -297,14 +298,17 @@ public class FlexibleTrackManipulation extends Object {
                            (float) reals[lon_index].getValue()) ||
                 !visad.util.Util.isApproximatelyEqual(shapes[j],
                            (float) reals[shape_index].getValue())) {
-              change = true;
+              value_change = true;
               break;
             }
           }
         }
+        else {
+          value_change = true;
+        }
         storm_track = st;
-        if (change) {
-          setupData(storm_track);
+        if (length_change || value_change) {
+          setupData(storm_track, length_change, value_change);
         }
         else {
           setupTuples(storm_track);
@@ -314,7 +318,8 @@ public class FlexibleTrackManipulation extends Object {
   }
 
 
-  private void setupData(FieldImpl storm_track)
+  private void setupData(FieldImpl storm_track, boolean length_change,
+                         boolean value_change)
           throws VisADException, RemoteException {
     synchronized (data_lock) {
       if (storm_track_type == null) {
@@ -325,8 +330,10 @@ public class FlexibleTrackManipulation extends Object {
           throw new DisplayException("storm track MathType changed");
         }
       }
+
+      boolean special = length_change && !value_change;
   
-      if (track_refs != null) {
+      if (track_refs != null && !special) {
         for (int i=0; i<track_refs.length; i++) {
           display.removeReference(track_refs[i]);
           track_monitors[i].removeReference(track_refs[i]);
@@ -334,6 +341,8 @@ public class FlexibleTrackManipulation extends Object {
         }
       }
   
+      int old_ntimes = ntimes;
+
       try {
         ntimes = storm_track.getLength();
         tuples = new Tuple[ntimes];
@@ -360,54 +369,67 @@ public class FlexibleTrackManipulation extends Object {
                        storm_track_type);
       }
   
-// abcd 23 August 2001
-      display.disableAction();
       if (acontrol == null) {
+
+        DataReferenceImpl[] old_track_refs = track_refs;
+        DirectManipulationRendererJ3D[] old_direct_manipulation_renderers =
+          direct_manipulation_renderers;
+        TrackMonitor[] old_track_monitors = track_monitors;
+        ConstantMap[][] old_constant_maps = constant_maps;
+
         track_refs = new DataReferenceImpl[ntimes];
         direct_manipulation_renderers = new DirectManipulationRendererJ3D[ntimes];
         track_monitors = new TrackMonitor[ntimes];
         constant_maps = new ConstantMap[ntimes][];
         for (int i=0; i<ntimes; i++) {
-          track_refs[i] = new DataReferenceImpl("station_ref" + i);
-          track_refs[i].setData(tuples[i]);
-          direct_manipulation_renderers[i] =
+          if (!special || i >= old_ntimes) {
+            track_refs[i] = new DataReferenceImpl("station_ref" + i);
+            track_refs[i].setData(tuples[i]);
+            direct_manipulation_renderers[i] =
+              new FTMDirectManipulationRendererJ3D(this);
+            // abcd 23 August 2001
+            ConstantMap[] foo = {
+              new ConstantMap(shapeColour[0], Display.Red),
+              new ConstantMap(shapeColour[1], Display.Green),
+              new ConstantMap(shapeColour[2], Display.Blue)
+            };
+            constant_maps[i] = foo;
+  
+            display.addReferences(direct_manipulation_renderers[i],
+  		track_refs[i], constant_maps[i]);
+            track_monitors[i] = new TrackMonitor(track_refs[i], i);
+            track_monitors[i].addReference(track_refs[i]);
+          }
+          else { // special && i < old_ntimes
+            track_refs[i] = old_track_refs[i];
+            direct_manipulation_renderers[i] = old_direct_manipulation_renderers[i];
+            constant_maps[i] = old_constant_maps[i];
+            track_monitors[i] = old_track_monitors[i];
+          }
+        }
+      }
+      else {
+        if (!special) {
+          track_refs = new DataReferenceImpl[1];
+          direct_manipulation_renderers = new DirectManipulationRendererJ3D[1];
+          track_monitors = new TrackMonitor[1];
+          constant_maps = new ConstantMap[1][];
+          track_refs[0] = new DataReferenceImpl("station_ref");
+          track_refs[0].setData(tuples[0]);
+          direct_manipulation_renderers[0] =
             new FTMDirectManipulationRendererJ3D(this);
-// abcd 23 August 2001
-          ConstantMap[] foo = {
+          // abcd 23 August 2001
+          constant_maps[0] = new ConstantMap[] {
             new ConstantMap(shapeColour[0], Display.Red),
             new ConstantMap(shapeColour[1], Display.Green),
             new ConstantMap(shapeColour[2], Display.Blue)
           };
-          constant_maps[i] = foo;
-
-          display.addReferences(direct_manipulation_renderers[i],
-		track_refs[i], constant_maps[i]);
-          track_monitors[i] = new TrackMonitor(track_refs[i], i);
-          track_monitors[i].addReference(track_refs[i]);
+          display.addReferences(direct_manipulation_renderers[0],
+  		track_refs[0], constant_maps[0]);
+          track_monitors[0] = new TrackMonitor(track_refs[0], 0);
+          track_monitors[0].addReference(track_refs[0]);
         }
       }
-      else {
-        track_refs = new DataReferenceImpl[1];
-        direct_manipulation_renderers = new DirectManipulationRendererJ3D[1];
-        track_monitors = new TrackMonitor[1];
-        constant_maps = new ConstantMap[1][];
-        track_refs[0] = new DataReferenceImpl("station_ref");
-        track_refs[0].setData(tuples[0]);
-        direct_manipulation_renderers[0] =
-          new FTMDirectManipulationRendererJ3D(this);
-// abcd 23 August 2001
-        constant_maps[0] = new ConstantMap[] {
-          new ConstantMap(shapeColour[0], Display.Red),
-          new ConstantMap(shapeColour[1], Display.Green),
-          new ConstantMap(shapeColour[2], Display.Blue)
-        };
-        display.addReferences(direct_manipulation_renderers[0],
-		track_refs[0], constant_maps[0]);
-        track_monitors[0] = new TrackMonitor(track_refs[0], 0);
-        track_monitors[0].addReference(track_refs[0]);
-      }
-//abcd
-      display.enableAction();
     } // end synchronized (data_lock)
   }
 
