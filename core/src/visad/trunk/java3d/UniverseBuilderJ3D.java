@@ -21,15 +21,15 @@ import javax.vecmath.*;
 public class UniverseBuilderJ3D extends Object {
 
     // User-specified canvas
-    Canvas3D canvas; // J3D
+    Canvas3D canvas;
 
     // Scene graph elements that the user may want access to
-    VirtualUniverse         universe; // J3D
-    Locale                  locale; // J3D
-    TransformGroup          vpTrans; // J3D
-    View                    view; // J3D
+    VirtualUniverse         universe;
+    Locale                  locale;
+    TransformGroup          vpTrans;
+    View                    view;
 
-    public UniverseBuilderJ3D(Canvas3D c) { // J3D
+    public UniverseBuilderJ3D(Canvas3D c) {
         this.canvas = c;
 
         // Establish a virtual universe, with a single hi-res Locale

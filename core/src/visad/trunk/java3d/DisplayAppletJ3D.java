@@ -47,7 +47,8 @@ public class DisplayAppletJ3D extends Applet {
     add("Center", canvas);
  
     UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
-    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas);
+    BranchGroup scene =
+      renderer.createSceneGraph(universe.view, universe.vpTrans, canvas);
     universe.addBranchGraph(scene); // J3D
   }
 

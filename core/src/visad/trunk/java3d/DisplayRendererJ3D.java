@@ -70,6 +70,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   /** Behavior for delayed removal of BranchGroups */
   RemoveBehaviorJ3D remove = null;
 
+  /** TransformGroup for ViewPlatform */
+  TransformGroup vpTrans = null;
+  /** MouseBehaviorJ3D */
+  MouseBehaviorJ3D mouse = null;
+  double back_clip = 0.0;
+  double front_clip = 0.0;
+
   /** background attached to root */
   private Background background = null;
 
@@ -209,15 +216,22 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       and direct manipulation root;
       create special graphics (e.g., 3-D box, SkewT background),
       any lights, any user interface embedded in scene */
-  public abstract BranchGroup createSceneGraph(View v,
-                  VisADCanvasJ3D c);
+  public abstract BranchGroup createSceneGraph(View v, TransformGroup vpTrans,
+                                               VisADCanvasJ3D c);
 
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root */
-  public BranchGroup createBasicSceneGraph(View v,
-         VisADCanvasJ3D c, MouseBehaviorJ3D mouse) {
+  public BranchGroup createBasicSceneGraph(View v, TransformGroup vpTrans,
+         VisADCanvasJ3D c, MouseBehaviorJ3D m) {
     if (root != null) return root;
+
+    mouse = m;
     view = v;
+    back_clip = view.getBackClipDistance();
+    front_clip = view.getFrontClipDistance();
+    // System.out.println("back_clip = " + back_clip + " front_clip = " + front_clip);
+    // back_clip = 10.0 front_clip = 0.1
+
     // WLH 14 April 98
     v.setDepthBufferFreezeTransparent(false);
     canvas = c;
@@ -226,14 +240,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     // create the TransformGroup that is the parent of
     // Data object Group objects
     setTransform3D(null);
-/* WLH 5 April 99
-    trans = new TransformGroup();
-    trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-    trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-    trans.setCapability(Group.ALLOW_CHILDREN_READ);
-    trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
-*/
     root.addChild(trans);
 
     // create background
@@ -244,25 +250,6 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     background.setApplicationBounds(bound2);
     root.addChild(background);
 
-/* WLH 5 April 99 - moved to ProjectionControlJ3D.java
-    // initialize scale
-    double scale = 0.5;
-    ProjectionControl proj = getDisplay().getProjectionControl();
-    Transform3D tstart = new Transform3D(proj.getMatrix());
-    Transform3D t1 = new Transform3D(
-      mouse.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
-    t1.mul(tstart);
-    double[] matrix = new double[16];
-    t1.get(matrix);
-    try {
-      proj.setMatrix(matrix);
-    }
-    catch (VisADException e) {
-    }
-    catch (RemoteException e) {
-    }
-*/
- 
     // create the BranchGroup that is the parent of direct
     // manipulation Data object BranchGroup objects
     direct = new BranchGroup();
@@ -641,7 +628,23 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
       trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     }
-    if (t != null) trans.setTransform(t);
+    if (t != null) {
+      trans.setTransform(t);
+/*
+      double[] mat = new double[16];
+      t.get(mat);
+      double[] rot = new double[3];
+      double[] translate = new double[3];
+      double[] scale = new double[1];
+      mouse.unmake_matrix(rot, scale, translate, mat);
+      // System.out.println("scale = " + scale[0]);
+      double new_back = 2.0 + (scale[0] / 0.5) * (back_clip - 2.0);
+      double new_front = 2.0 + (scale[0] / 0.5) * (front_clip - 2.0);
+      view.setBackClipDistance(new_back); // this is pretty broken
+      view.setFrontClipDistance(new_front); // this is very broken
+      // System.out.println("new_back = " + new_back + " new_front = " + new_front);
+*/
+    }
   }
 
   public Control makeControl(ScalarMap map) {

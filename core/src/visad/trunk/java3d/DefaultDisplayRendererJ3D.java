@@ -87,14 +87,15 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
       and direct manipulation root;
       create 3-D box, lights and MouseBehaviorJ3D for
       embedded user interface */
-  public BranchGroup createSceneGraph(View v, VisADCanvasJ3D c) {
+  public BranchGroup createSceneGraph(View v, TransformGroup vpTrans,
+                                      VisADCanvasJ3D c) {
     BranchGroup root = getRoot();
     if (root != null) return root;
 
     // create MouseBehaviorJ3D for mouse interactions
     mouse = new MouseBehaviorJ3D(this);
     getDisplay().setMouseBehavior(mouse);
-    root = createBasicSceneGraph(v, c, mouse);
+    root = createBasicSceneGraph(v, vpTrans, c, mouse);
     TransformGroup trans = getTrans();
 
     // create the box containing data depictions

@@ -47,13 +47,16 @@ public class ProjectionControlJ3D extends ProjectionControl {
 
   public ProjectionControlJ3D(DisplayImpl d) throws VisADException {
     super(d);
-/* WLH 5 April 99
-    Matrix = new Transform3D();  // J3D
-*/
+    // WLH 8 April 99
+    Matrix = new Transform3D();
+    matrix = new double[16];
+    Matrix.get(matrix);
+/* WLH 8 April 99
     Matrix = init();
     matrix = new double[16];
     Matrix.get(matrix);
     ((DisplayRendererJ3D) getDisplayRenderer()).setTransform3D(Matrix);
+*/
   }
  
   public double[] getMatrix() {
@@ -82,13 +85,14 @@ public class ProjectionControlJ3D extends ProjectionControl {
     Transform3D mat = init();
     double[] m = new double[16];
     mat.get(m);
-    setMatrix(getDisplay().multiply_matrix(mult, matrix));
+    setMatrix(getDisplay().multiply_matrix(mult, m));
   }
 
   private Transform3D init() {
     Transform3D mat = new Transform3D();
     // initialize scale
     double scale = 0.5;
+    if (getDisplayRenderer().getMode2D()) scale = 0.65;
     Transform3D t1 = new Transform3D(
       MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
     mat.mul(t1);

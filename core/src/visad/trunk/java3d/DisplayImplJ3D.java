@@ -133,8 +133,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   }
 
   private void initialize(int api)
-	throws VisADException
-  {
+	throws VisADException, RemoteException {
     // a ProjectionControl always exists
     projection = new ProjectionControlJ3D(this);
     addControl(projection);
@@ -155,6 +154,8 @@ public class DisplayImplJ3D extends DisplayImpl {
     else {
       throw new DisplayException("DisplayImplJ3D: bad graphics API " + api);
     }
+    // initialize projection
+    projection.setAspect(new double[] {1.0, 1.0, 1.0});
 
     // a GraphicsModeControl always exists
     mode = new GraphicsModeControlJ3D(this);
