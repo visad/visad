@@ -172,7 +172,7 @@ public abstract class Delaunay implements java.io.Serializable {
     if (copy) {
       samp = new float[dim][nrs];
       for (int i=0; i<dim; i++) {
-        System.arraycopy(samples, 0, samp, 0, nrs);
+        System.arraycopy(samples[i], 0, samp[i], 0, nrs);
       }
     }
     else {
