@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.3 1998-02-20 16:53:32 billh Exp $
+ * $Id: DerivedUnit.java,v 1.4 1998-03-14 12:56:59 billh Exp $
  */
 
 package visad;
@@ -192,7 +192,7 @@ public final class DerivedUnit
     /**
      * Construct a derived unit from the number of base units it will contain.
      */
-    private DerivedUnit(int n)
+    DerivedUnit(int n)
     {
 	factors = new Factor[n];
     }

@@ -293,3 +293,36 @@ compile:
 	cd examples ; \
 	javac *.java
 
+
+
+JAVAONE_FILES = \
+	DATE						\
+	dot_cshrc					\
+	visad_src-2.0.jar				\
+	data/vis5d/QLQ.v5d				\
+	examples/small.jpg				\
+	examples/bill.gif				\
+	examples/images.nc				\
+	examples/pmsl.nc				\
+	examples/ngc1316o.fits				\
+	paoloa/data_obs_1.dat				\
+	paoloa/data_sou_1.dat				\
+	paoloa/goesrtcf					\
+	aune/*.so					\
+	paoloa/*.so					\
+	data/vis5d/*.so					\
+	visad.jar					\
+	paoloa/*.class					\
+	aune/*.class					\
+	examples/*.class				\
+	www/*
+
+
+
+javaone:
+	date > DATE ; \
+	cp ../visad.jar . ; \
+	cp ../../.cshrc dot_cshrc ; \
+	jar cvf ssecj1.jar $(JAVAONE_FILES)
+
+
