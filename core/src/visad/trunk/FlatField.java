@@ -729,6 +729,11 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
 
 
+  /** update a subset of a FlatField's range samples, where
+      start is the index of the first sample to update and
+      range[0].length is the number of samples to update;
+      the array is dimensioned
+      double[number_of_range_components][number_of_range_samples] */
   public void setSamples(int start, double[][] range)
          throws VisADException, RemoteException
   {
