@@ -322,7 +322,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           DataRenderer renderer;
           try {
             String newClass = link.getRendererClassName();
-            if (newClass == defaultClass) {
+            if (newClass.equals(defaultClass)) {
               renderer = null;
             } else {
               Object obj = Class.forName(newClass).newInstance();
