@@ -231,8 +231,8 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
     //determine the initial (minimum) length of the flag pole
     if (swell_height >= 0.1f) {
       // normalize direction
-      x0 = f0 / swell_height;
-      y0 = f1 / swell_height;
+      x0 = -f0 / swell_height;
+      y0 = -f1 / swell_height;
  
       float start_arrow = 0.9f * sscale;
       float end_arrow = 1.9f * sscale;
