@@ -435,9 +435,6 @@
       case 23:
       case 25:
         origin = valueExpression();
-                if (isTime)
-                    {if (true) throw new ParseException(
-                        "time unit with non-timestamp origin");}
                 {if (true) return origin;}
         break;
       default:

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitParser.jj,v 1.12 1999-09-02 16:05:43 steve Exp $
+ * $Id: UnitParser.jj,v 1.13 2000-04-21 21:07:07 steve Exp $
  */
 
 options
@@ -425,9 +425,6 @@ double shiftExpression() :
 	|
 	    origin=valueExpression()
 	    {
-		if (isTime)
-		    throw new ParseException(
-			"time unit with non-timestamp origin");
 		return origin;
 	    }
     )
