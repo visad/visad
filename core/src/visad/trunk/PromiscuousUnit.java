@@ -34,7 +34,8 @@ public class PromiscuousUnit extends Unit {
 
   static final Unit promiscuous = new PromiscuousUnit();
 
-  private PromiscuousUnit() {
+  private PromiscuousUnit() 
+  {
     super("promiscuous");
   }
 
@@ -46,7 +47,7 @@ public class PromiscuousUnit extends Unit {
    * @throws UnitException	Promiscuous units may not be cloned.  Always 
    *				thrown.
    */
-  public Unit clone(String identifier)
+  protected Unit protectedClone(String identifier)
     throws UnitException
   {
     throw new UnitException("Promiscuous units may not be cloned");

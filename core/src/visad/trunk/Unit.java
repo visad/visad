@@ -7,12 +7,14 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.12 1999-08-26 20:43:16 steve Exp $
+ * $Id: Unit.java,v 1.13 1999-09-20 20:22:03 steve Exp $
  */
 
 package visad;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * A class that represents a unit of a quantity.
@@ -24,11 +26,16 @@ import java.io.Serializable;
 public abstract class Unit
        implements Serializable
 {
-  /*
+  /**
    * The identifier (name or abbreviation) for this unit.
    * @serial
    */
-  private final String	identifier;
+  private final String		identifier;
+
+  /**
+   * The identifier -> unit map.
+   */
+  private static final Map	identifierMap = new WeakHashMap();
 
 /*
    added by Bill Hibbard for VisAD
@@ -198,7 +205,7 @@ public abstract class Unit
      */
     protected Unit()
     {
-      this(null);
+      this.identifier = null;
     }
 
     /**
@@ -208,10 +215,45 @@ public abstract class Unit
      */
     protected Unit(String identifier)
     {
-      this.identifier =
-	identifier == null
-	  ? null
-	  : identifier.replace(' ', '_');	// ensure no whitespace
+      try
+      {
+	identifier = adjustCheckAndCache(identifier);
+      }
+      catch (UnitExistsException e)
+      {
+	System.err.println("WARNING: " + e);
+      }
+      this.identifier = identifier;
+    }
+
+    /**
+     * Adjusts, checks, and caches a unit identifier and its unit.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     * @param unit		The unit to be associated with the identifier.
+     * @throws UnitExistsException
+     *				A different unit with the same, non-null and
+     *				non-empty identifier already exists.  The
+     *				identifier and unit are not cached.
+     */
+    protected final String
+    adjustCheckAndCache(String identifier)
+      throws UnitExistsException
+    {
+      if (identifier != null && identifier.length() > 0)
+      {
+	identifier = identifier.replace(' ', '_');	// ensure no whitespace
+	/*
+	synchronized(identifierMap)
+	{
+	  Unit	previous = (Unit)identifierMap.get(identifier);
+	  if (previous != null)
+	    throw new UnitExistsException(identifier);
+	  identifierMap.put(identifier, this);
+	}
+	*/
+      }
+      return identifier;
     }
 
     /**
@@ -221,7 +263,23 @@ public abstract class Unit
      * @throws UnitException	The unit may not be cloned.  This will only
      *				occur if <code>getIdentifier()!=null</code>.
      */
-    public abstract Unit clone(String identifier) throws UnitException;
+    public Unit clone(String identifier)
+      throws UnitException
+    {
+      return protectedClone(adjustCheckAndCache(identifier));
+    }
+
+    /**
+     * Clones this unit, changing the identifier.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.  It shall
+     *				have already passed the
+     *				adjustCheckAndCache() method.
+     * @throws UnitException	The unit may not be cloned.  This will only
+     *				occur if <code>getIdentifier()!=null</code>.
+     */
+    protected abstract Unit protectedClone(String identifier)
+      throws UnitException;
 
     /**
      * Raise this unit to a power.

@@ -61,8 +61,13 @@ docs:		doc
 doc:		javadocs
 
 javadocs:	$(DOCDIR) FORCE
-	$(JAVADOC) -J-mx64m -d $(DOCDIR) -overview overview.html \
+	$(JAVADOC) \
+	    -J-mx64m \
+	    -d $(DOCDIR) \
+	    -overview overview.html \
+	    -doctitle 'VisAD API Specification' \
 	    -windowtitle 'VisAD API Specification' \
+	    -use \
 	    visad \
 	    visad.data \
 	    visad.data.fits \

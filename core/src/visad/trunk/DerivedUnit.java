@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.9 1999-08-26 20:43:15 steve Exp $
+ * $Id: DerivedUnit.java,v 1.10 1999-09-20 20:22:03 steve Exp $
  */
 
 package visad;
@@ -81,8 +81,8 @@ public final class DerivedUnit
      */
     public DerivedUnit(BaseUnit[] baseUnits, int[] powers)
     {
-	this(newFactors(baseUnits, powers), 
-	  baseUnits.length == 1 ? baseUnits[0].getIdentifier() : null);
+	  this(newFactors(baseUnits, powers), 
+	    baseUnits.length == 1 ? baseUnits[0].getIdentifier() : null);
     }
 
     /**
@@ -114,17 +114,6 @@ public final class DerivedUnit
 	for (int i = 0; i < baseUnits.length; ++i)
 	    factors[i] = new Factor(baseUnits[i], powers[i]);
 	return factors;
-    }
-
-    /**
-     * Construct a derived unit from a derived unit.  The identifier will be
-     * that of the input derived unit.
-     *
-     * @param that	The derived unit.
-     */
-    public DerivedUnit(DerivedUnit that)
-    {
-	this(that.factors, that.getIdentifier());
     }
 
     /**
@@ -184,7 +173,7 @@ public final class DerivedUnit
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
      */
-    public Unit clone(String identifier)
+    protected Unit protectedClone(String identifier)
     {
       return new DerivedUnit(this, identifier);
     }
@@ -259,22 +248,33 @@ public final class DerivedUnit
      */
     public String getDefinition()
     {
-	StringBuffer	buf = new StringBuffer(80);
+	String	definition;
 
-	for (int i = 0; i < factors.length; ++i)
+	if (factors == null)
 	{
-	    if (factors[i].power == 1)
-		buf.append(factors[i].baseUnit.toString() + ".");
-	    else
-	    if (factors[i].power != 0)
-		buf.append(factors[i].baseUnit.toString() +
-		    factors[i].power + ".");
+	    /* Probably exception thrown during construction */
+	    definition = "<unconstructed DerivedUnit>";
 	}
+	else
+	{
+	    StringBuffer	buf = new StringBuffer(80);
 
-	if (buf.length() > 0)
-	    buf.setLength(buf.length()-1);
+	    for (int i = 0; i < factors.length; ++i)
+	    {
+		if (factors[i].power == 1)
+		    buf.append(factors[i].baseUnit.toString() + ".");
+		else
+		if (factors[i].power != 0)
+		    buf.append(factors[i].baseUnit.toString() +
+			factors[i].power + ".");
+	    }
 
-	return buf.toString();
+	    if (buf.length() > 0)
+		buf.setLength(buf.length()-1);
+
+	    definition = buf.toString();
+	}
+	return definition;
     }
 
     /**

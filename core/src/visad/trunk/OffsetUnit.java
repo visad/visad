@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.5 1999-08-26 20:43:15 steve Exp $
+ * $Id: OffsetUnit.java,v 1.6 1999-09-20 20:22:03 steve Exp $
  */
 
 package visad;
@@ -42,11 +42,10 @@ public final class OffsetUnit
      * Construct an offset, dimensionless unit.  The identifier will be empty.
      *
      * @param offset	The amount of offset.
-     *
      */
     public OffsetUnit(double offset)
     {
-	this(offset, "");
+	  this(offset, "");
     }
 
     /**
@@ -181,7 +180,7 @@ public final class OffsetUnit
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
      */
-    public Unit clone(String identifier)
+    protected Unit protectedClone(String identifier)
     {
 	return new OffsetUnit(0, this, identifier);
     }

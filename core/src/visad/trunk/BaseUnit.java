@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.7 1999-08-26 20:43:14 steve Exp $
+ * $Id: BaseUnit.java,v 1.8 1999-09-20 20:22:02 steve Exp $
  */
 
 package visad;
@@ -562,7 +562,7 @@ public final class BaseUnit
      *				May be <code>null</code> or empty.
      * @throws UnitException	Base units may not be cloned.  Always thrown.
      */
-    public Unit clone(String identifier)
+    protected Unit protectedClone(String identifier)
       throws UnitException
     {
       throw new UnitException("Base units may not be cloned");
