@@ -3,19 +3,16 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfQuantityDB.java,v 1.1 1998-06-23 14:35:49 visad Exp $
+ * $Id: NetcdfQuantityDB.java,v 1.2 1998-08-12 19:03:04 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 import ucar.netcdf.Variable;
 import visad.data.netcdf.Quantity;
-import visad.data.netcdf.QuantityDB;
-import visad.data.netcdf.StandardQuantityDB;
+import visad.data.netcdf.QuantityMap;
 import visad.Unit;
 import visad.VisADException;
-import visad.data.netcdf.units.NoSuchUnitException;
-import visad.data.netcdf.units.ParseException;
 
 
 /**
@@ -23,71 +20,8 @@ import visad.data.netcdf.units.ParseException;
  */
 public class
 NetcdfQuantityDB
-    extends	QuantityDB
+    extends	QuantityMap
 {
-    /**
-     * The singleton instance.
-     */
-    private static NetcdfQuantityDB	db;
-
-
-    /**
-     * Construct.
-     */
-    private NetcdfQuantityDB()
-	throws VisADException
-    {
-	super(StandardQuantityDB.instance());
-
-	try
-	{
-	    add("lat", super.get("latitude", "degrees_north"));	// alias
-	    add("lon", super.get("longitude", "degrees_east"));	// alias
-	    add("pressure reduced to MSL", "hectopascals");	// new
-	}
-	catch (ParseException e)
-	{
-	    /*
-	     * This shouldn't happen because the above strings should be
-	     * correct.
-	     */
-	    throw new VisADException(e.getMessage());
-	}
-    }
-
-
-    /**
-     * Return the singleton instance of this database.
-     */
-    public static NetcdfQuantityDB
-    instance()
-	throws VisADException
-    {
-	if (db == null)
-	    db = new NetcdfQuantityDB();
-
-	return db;
-    }
-
-
-    /**
-     * Return the VisAD quantity corresponding to the best combination of
-     * name and unit.
-     *
-     * @param name	The name of the quantity.
-     * @param unit	The unit of the quantity.  May be <code>null</code>.
-     * @return		The corresponding, unique, VisAD quantity or 
-     *			<code>null</code> if no such quantity exists.
-     */
-    protected Quantity
-    getBest(String name, Unit unit)
-    {
-	return unit == null
-		    ? getIfUnique(name)
-		    : get(name, unit);
-    }
-
-
     /**
      * Return the VisAD quantity corresponding to the best combination of
      * long name, name, and unit.
@@ -99,26 +33,23 @@ NetcdfQuantityDB
      * @return		The corresponding, unique, VisAD quantity or 
      *			<code>null</code> if no such quantity exists.
      */
-    protected Quantity
+    protected static Quantity
     getBest(String longName, String name, Unit unit)
     {
 	Quantity	quantity = longName == null
 					? null
 					: getBest(longName, unit);
 
-	if (quantity == null)
-	{
-	    quantity = getBest(name, unit);
-	}
-
-	return quantity;
+	return quantity != null
+		? quantity
+		: getBest(name, unit);
     }
 
 
     /**
      * Return the VisAD quantity corresponding to a netCDF dimension.
      */
-    public Quantity
+    public static Quantity
     get(NcDim dim)
     {
 	return getBest(dim.getLongName(), dim.getName(), dim.getUnit());
@@ -128,7 +59,7 @@ NetcdfQuantityDB
     /**
      * Return the VisAD quantity corresponding to an adapted, netCDF variable.
      */
-    public Quantity
+    public static Quantity
     get(NcVar var)
     {
 	return getBest(var.getLongName(), var.getName(), var.getUnit());
@@ -138,7 +69,7 @@ NetcdfQuantityDB
     /**
      * Return the VisAD quantity corresponding to a netCDF variable.
      */
-    public Quantity
+    public static Quantity
     get(Variable var)
     {
 	return getBest(NcVar.getLongName(var), var.getName(), 
