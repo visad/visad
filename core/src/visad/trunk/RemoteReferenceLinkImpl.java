@@ -64,7 +64,16 @@ public class RemoteReferenceLinkImpl extends UnicastRemoteObject
   public String getRendererClassName()
 	throws VisADException, RemoteException
   {
-    return link.getRenderer().getClass().getName();
+    if (link == null) {
+      return null;
+    }
+
+    DataRenderer rend = link.getRenderer();
+    if (rend == null) {
+      return null;
+    }
+
+    return rend.getClass().getName();
   }
 
   /** return a reference to the remote Data object */
@@ -109,7 +118,11 @@ public class RemoteReferenceLinkImpl extends UnicastRemoteObject
   {
     StringBuffer buf = new StringBuffer();
     try {
-      buf.append(link.getDataReference().getName());
+      if (link == null) {
+        buf.append("<null>");
+      } else {
+        buf.append(link.getDataReference().getName());
+      }
       buf.append(" -> ");
       buf.append(getRendererClassName());
     } catch (RemoteException e) {

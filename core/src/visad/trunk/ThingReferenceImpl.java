@@ -131,6 +131,9 @@ public class ThingReferenceImpl extends Object implements ThingReference {
     }
     if (ListenerVector == null) return null;
     ThingChangedLink listener = findThingChangedLink(a);
+    if (listener == null) {
+      return null;
+    }
     return listener.acknowledgeThingChangedEvent();
   }
 
@@ -138,6 +141,9 @@ public class ThingReferenceImpl extends Object implements ThingReference {
          throws VisADException {
     if (ListenerVector == null) return null;
     ThingChangedLink listener = findThingChangedLink(a);
+    if (listener == null) {
+      return null;
+    }
     return listener.acknowledgeThingChangedEvent();
   }
 
