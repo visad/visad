@@ -53,15 +53,15 @@ public class MappingDialog extends JDialog implements ActionListener,
   public ScalarMap[] ScalarMaps;
 
   // These components affect each other
-  Canvas MathCanvas;
-  ScrollPane MathCanvasView;
+  JComponent MathCanvas;
+  JScrollPane MathCanvasView;
   JList MathList;
   Canvas DisplayCanvas;
   DefaultListModel CurMaps;
   JList CurrentMaps;
   JScrollPane CurrentMapsView;
-  Vector Scalars;
-  Vector MathTypes;
+  String[] Scalars;
+  RealType[] MathTypes;
   int[] ScX;
   int[] ScY;
   int[] ScW;
@@ -129,10 +129,16 @@ public class MappingDialog extends JDialog implements ActionListener,
     contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
-    // set up "MathType" label
-    Scalars = new Vector();
-    MathTypes = new Vector();
-    parseMathType(data, Scalars, MathTypes);
+    // parse MathType
+    Vector mathVector = new Vector();
+    parseMathType(data, mathVector);
+    int num = mathVector.size();
+    Scalars = new String[num];
+    MathTypes = new RealType[num];
+    for (int i=0; i<num; i++) {
+      MathTypes[i] = (RealType) mathVector.elementAt(i);
+      Scalars[i] = MathTypes[i].getName();
+    }
     String mt = null;
     try {
       mt = data.getType().prettyString();
@@ -141,6 +147,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     catch (RemoteException exc) { }
     final String[] mtype = extraPretty(mt);
 
+    // set up "MathType" label
     JLabel l0 = new JLabel("MathType:");
     l0.setAlignmentX(JLabel.CENTER_ALIGNMENT);
     contentPane.add(l0);
@@ -156,12 +163,13 @@ public class MappingDialog extends JDialog implements ActionListener,
     Graphics g = img.getGraphics();
     g.setFont(Mono);
     g.setColor(Color.black);
+
     for (int i=0; i<mtype.length; i++) {
       g.drawString(mtype[i], 5, (ScH+2)*(i+1));
     }
 
     // set up MathType canvas
-    MathCanvas = new Canvas() {
+    MathCanvas = new JComponent() {
       public void paint(Graphics g) {
         // draw "pretty-print" MathType using image
         g.setFont(Mono);
@@ -171,42 +179,29 @@ public class MappingDialog extends JDialog implements ActionListener,
           g.setColor(Color.blue);
           int x = ScX[ind]+5;
           int y = (ScH+2)*ScY[ind];
-          String s = (String) Scalars.elementAt(ind);
+          String s = (String) Scalars[ind];
           g.fillRect(x, y+6, ScW[ind], ScH);
           g.setColor(Color.white);
           g.drawString(s, x, y+ScH+2);
         }
       }
-
-      public Dimension getMinimumSize() {
-        return new Dimension(StrWidth, StrHeight);
-      }
-
-      public Dimension getPreferredSize() {
-        return new Dimension(StrWidth, StrHeight);
-      }
     };
+    MathCanvas.setMinimumSize(new Dimension(StrWidth, StrHeight));
+    MathCanvas.setPreferredSize(new Dimension(StrWidth, StrHeight));
     MathCanvas.addMouseListener(this);
     MathCanvas.setBackground(Color.white);
 
     // set up MathCanvas's ScrollPane
-    MathCanvasView = new ScrollPane() {
-      public Dimension getMinimumSize() {
-        return new Dimension(0, 0);
-      }
-
-      public Dimension getPreferredSize() {
-        return new Dimension(0, 70);
-      }
-    };
-    Adjustable hadj = MathCanvasView.getHAdjustable();
-    Adjustable vadj = MathCanvasView.getVAdjustable();
-    hadj.setBlockIncrement(5*ScH+10);
-    hadj.setUnitIncrement(ScH+2);
-    vadj.setBlockIncrement(5*ScH+10);
-    vadj.setUnitIncrement(ScH+2);
+    MathCanvasView = new JScrollPane(MathCanvas);
+    MathCanvasView.setMinimumSize(new Dimension(0, 0));
+    MathCanvasView.setPreferredSize(new Dimension(0, 70));
     MathCanvasView.setBackground(Color.white);
-    MathCanvasView.add(MathCanvas);
+    JScrollBar horiz = MathCanvasView.getHorizontalScrollBar();
+    JScrollBar verti = MathCanvasView.getVerticalScrollBar();
+    horiz.setBlockIncrement(5*ScH+10);
+    horiz.setUnitIncrement(ScH+2);
+    verti.setBlockIncrement(5*ScH+10);
+    verti.setUnitIncrement(ScH+2);
     topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
     topPanel.add(MathCanvasView);
     topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
@@ -224,7 +219,6 @@ public class MappingDialog extends JDialog implements ActionListener,
     lowerPanel.add(lsPanel);
 
     // begin set up "current mappings" list
-    int num = Scalars.size();
     CurMaps = new DefaultListModel();
     CurMaps.ensureCapacity(num*35);
     CurrentMaps = new JList(CurMaps);
@@ -236,10 +230,10 @@ public class MappingDialog extends JDialog implements ActionListener,
       for (int j=0; j<7; j++) {
         for (int k=0; k<5; k++) {
           Maps[i][j][k] = false;
-          CurMapLabel[i][j][k] = Scalars.elementAt(i)+" -> "+MapNames[j][k];
+          CurMapLabel[i][j][k] = Scalars[i]+" -> "+MapNames[j][k];
           if (startMaps != null) {
             for (int m=0; m<startMaps.length; m++) {
-              if (startMaps[m].getScalar() == (RealType) MathTypes.elementAt(i)
+              if (startMaps[m].getScalar() == MathTypes[i]
                         && startMaps[m].getDisplayScalar() == MapTypes[j][k]) {
                 Maps[i][j][k] = true;
                 CurMaps.addElement(CurMapLabel[i][j][k]);
@@ -411,10 +405,10 @@ public class MappingDialog extends JDialog implements ActionListener,
     String[] retStr = new String[numLines];
     int lineNum = 0;
     int lastLine = 0;
-    String scalar = (String) Scalars.elementAt(0);
+    String scalar = (String) Scalars[0];
     int scalarNum = 0;
     int scalarLen = scalar.length();
-    int numScalars = Scalars.size();
+    int numScalars = Scalars.length;
     ScX = new int[numScalars];
     ScY = new int[numScalars];
     ScW = new int[numScalars];
@@ -424,10 +418,12 @@ public class MappingDialog extends JDialog implements ActionListener,
     StrHeight = (ScH+2)*numLines+10;
 
     // extract info from prettyString
-    for (int i=0; i<len+1; i++) {
+    int i = 0;
+    while (i <= len) {
       // fill in array of strings
       if (i == len || pStr.charAt(i) == '\n') {
         String lnStr = pStr.substring(lastLine, i);
+        lnStr = lnStr+" ";  // stupid FontMetrics bug work-around
         int lnStrLen = fm.stringWidth(lnStr);
         if (lnStrLen > StrWidth) StrWidth = lnStrLen;
         retStr[lineNum++] = lnStr;
@@ -435,23 +431,26 @@ public class MappingDialog extends JDialog implements ActionListener,
       }
 
       // fill in scalar info
-      if (i+scalarLen <= len && pStr.substring(i, i+scalarLen).equals(scalar)) {
+      if (i+scalarLen <= len &&
+          pStr.substring(i, i+scalarLen).equals(scalar)) {
         ScX[scalarNum] = fm.stringWidth(pStr.substring(lastLine, i));
         ScY[scalarNum] = lineNum;
         ScW[scalarNum] = fm.stringWidth(scalar);
         scalarNum++;
+        i += scalarLen;
         if (scalarNum < numScalars) {
-          scalar = (String) Scalars.elementAt(scalarNum);
+          scalar = (String) Scalars[scalarNum];
           scalarLen = scalar.length();
         }
       }
+      else i++;
     }
 
     return retStr;
   }
 
   /** Returns a Vector of Strings containing the ScalarType names. */
-  void parseMathType(Data data, Vector strs, Vector objs) {
+  void parseMathType(Data data, Vector objs) {
     MathType dataType;
     try {
       dataType = data.getType();
@@ -464,50 +463,50 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
 
     if (dataType instanceof FunctionType) {
-      parseFunction((FunctionType) dataType, strs, objs);
+      parseFunction((FunctionType) dataType, objs);
     }
     else if (dataType instanceof SetType) {
-      parseSet((SetType) dataType, strs, objs);
+      parseSet((SetType) dataType, objs);
     }
     else if (dataType instanceof TupleType) {
-      parseTuple((TupleType) dataType, strs, objs);
+      parseTuple((TupleType) dataType, objs);
     }
-    else parseScalar((ScalarType) dataType, strs, objs);
+    else parseScalar((ScalarType) dataType, objs);
   }
 
   /** Used by parseMathType. */
-  void parseFunction(FunctionType mathType, Vector strs, Vector objs) {
+  void parseFunction(FunctionType mathType, Vector objs) {
     // extract domain
     RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain, strs, objs);
+    parseTuple((TupleType) domain, objs);
 
     // extract range
     MathType range = mathType.getRange();
     if (range instanceof FunctionType) {
-      parseFunction((FunctionType) range, strs, objs);
+      parseFunction((FunctionType) range, objs);
     }
     else if (range instanceof SetType) {
-      parseSet((SetType) range, strs, objs);
+      parseSet((SetType) range, objs);
     }
     else if (range instanceof TupleType) {
-      parseTuple((TupleType) range, strs, objs);
+      parseTuple((TupleType) range, objs);
     }
-    else parseScalar((ScalarType) range, strs, objs);
+    else parseScalar((ScalarType) range, objs);
 
     return;
   }
 
   /** Used by parseMathType. */
-  void parseSet(SetType mathType, Vector strs, Vector objs) {
+  void parseSet(SetType mathType, Vector objs) {
     // extract domain
     RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain, strs, objs);
+    parseTuple((TupleType) domain, objs);
 
     return;
   }
 
   /** Used by parseMathType. */
-  void parseTuple(TupleType mathType, Vector strs, Vector objs) {
+  void parseTuple(TupleType mathType, Vector objs) {
     // extract components
     for (int i=0; i<mathType.getDimension(); i++) {
       MathType cType = null;
@@ -518,25 +517,23 @@ public class MappingDialog extends JDialog implements ActionListener,
 
       if (cType != null) {
         if (cType instanceof FunctionType) {
-          parseFunction((FunctionType) cType, strs, objs);
+          parseFunction((FunctionType) cType, objs);
         }
         else if (cType instanceof SetType) {
-          parseSet((SetType) cType, strs, objs);
+          parseSet((SetType) cType, objs);
         }
         else if (cType instanceof TupleType) {
-          parseTuple((TupleType) cType, strs, objs);
+          parseTuple((TupleType) cType, objs);
         }
-        else parseScalar((ScalarType) cType, strs, objs);
+        else parseScalar((ScalarType) cType, objs);
       }
     }
     return;
   }
 
   /** Used by parseMathType. */
-  void parseScalar(ScalarType mathType, Vector strs, Vector objs) {
-    String name = mathType.getName();
-    if (mathType instanceof RealType) {
-      strs.addElement(name);
+  void parseScalar(ScalarType mathType, Vector objs) {
+    if (mathType instanceof RealType && !objs.contains(mathType)) {
       objs.addElement(mathType);
     }
   }
@@ -617,13 +614,12 @@ public class MappingDialog extends JDialog implements ActionListener,
           for (int k=0; k<5; k++) {
             if (Maps[i][j][k]) {
               try {
-                ScalarMaps[s++] = new ScalarMap((RealType)
-                                  MathTypes.elementAt(i), MapTypes[j][k]);
+                ScalarMaps[s++] = new ScalarMap(MathTypes[i], MapTypes[j][k]);
               }
               catch (VisADException exc) {
                 okay = false;
                 JOptionPane.showMessageDialog(this, "The mapping ("
-                        +Scalars.elementAt(i)+" -> "+MapNames[j][k]
+                        +Scalars[i]+" -> "+MapNames[j][k]
                         +") is not valid.", "Illegal mapping",
                          JOptionPane.ERROR_MESSAGE);
               }
@@ -646,6 +642,9 @@ public class MappingDialog extends JDialog implements ActionListener,
       if ((JList) e.getSource() == MathList) {
         DisplayCanvas.paint(DisplayCanvas.getGraphics());
         int i = MathList.getSelectedIndex();
+        Rectangle r = new Rectangle(ScX[i]+5, (ScH+2)*ScY[i]+6, ScW[i], ScH);
+        MathList.ensureIndexIsVisible(i);
+        MathCanvas.scrollRectToVisible(r);
         MathCanvas.repaint();
       }
     }
@@ -660,6 +659,8 @@ public class MappingDialog extends JDialog implements ActionListener,
         Rectangle r = new Rectangle(ScX[i]+5, (ScH+2)*ScY[i]+6, ScW[i], ScH);
         if (r.contains(p)) {
           MathList.setSelectedIndex(i);
+          MathList.ensureIndexIsVisible(i);
+          MathCanvas.scrollRectToVisible(r);
           break;
         }
       }

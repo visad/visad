@@ -60,7 +60,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                                    MouseListener {
 
   // starting size of the application, in percentage of screen size
-  static final int WIDTH_PERCENT = 75;
+  static final int WIDTH_PERCENT = 60;
   static final int HEIGHT_PERCENT = 75;
 
   // minimum VisAD display size, including display border
@@ -96,8 +96,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   File CurrentFile = null;
 
   public static void main(String[] argv) { 
-    int cols = 4;
-    int rows = 3;
+    int cols = 2;
+    int rows = 2;
     if (argv.length > 1) {
       try {
         cols = Integer.parseInt(argv[0]);
