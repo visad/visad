@@ -1,6 +1,6 @@
 
 //
-// DefaultDisplayRendererJ3D.java
+// DefaultDisplayRendererJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
 
 import visad.*;
 
@@ -36,30 +36,30 @@ import java.util.*;
 
 
 /**
-   DefaultDisplayRendererJ3D is the VisAD class for the default background
+   DefaultDisplayRendererJ2D is the VisAD class for the default background
    and metadata rendering algorithm under Java3D.<P>
 */
-public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
+public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
 
   /** color of box  */
-  ColoringAttributes box_color = null; // J3D
-  MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
+  ColoringAttributes box_color = null; // J2D
+  MouseBehaviorJ2D mouse = null; // Behavior for mouse interactions
 
-  public DefaultDisplayRendererJ3D () {
+  public DefaultDisplayRendererJ2D () {
     super();
   }
 
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root;
-      create 3-D box, lights and MouseBehaviorJ3D for
+      create 3-D box, lights and MouseBehaviorJ2D for
       embedded user interface */
-  public BranchGroup createSceneGraph(View v, Canvas3D c) { // J3D
-    BranchGroup root = createBasicSceneGraph(v, c); // J3D
+  public BranchGroup createSceneGraph(View v, Canvas3D c) { // J2D
+    BranchGroup root = createBasicSceneGraph(v, c); // J2D
     if (mouse != null) return root;
-    TransformGroup trans = getTrans(); // J3D
+    TransformGroup trans = getTrans(); // J2D
 
     // create the box containing data depictions
-    LineArray box_geometry = new LineArray(24, LineArray.COORDINATES); // J3D
+    LineArray box_geometry = new LineArray(24, LineArray.COORDINATES); // J2D
     box_geometry.setCoordinates(0, box_verts);
     Appearance box_appearance = new Appearance();
     box_color = new ColoringAttributes();
@@ -71,21 +71,21 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     // first child of trans
     trans.addChild(box);
 
-    BranchGroup cursor_on = getCursorOnBranch(); // J3D
-    LineArray cursor_geometry = new LineArray(6, LineArray.COORDINATES); // J3D
+    BranchGroup cursor_on = getCursorOnBranch(); // J2D
+    LineArray cursor_geometry = new LineArray(6, LineArray.COORDINATES); // J2D
     cursor_geometry.setCoordinates(0, cursor_verts);
-    Shape3D cursor = new Shape3D(cursor_geometry, box_appearance); // J3D
+    Shape3D cursor = new Shape3D(cursor_geometry, box_appearance); // J2D
     cursor_on.addChild(cursor);
  
     // create the Behavior for mouse interactions
     ProjectionControl proj = getDisplay().getProjectionControl();
 
-    // create MouseBehaviorJ3D
-    mouse = new MouseBehaviorJ3D(this);
+    // create MouseBehaviorJ2D
+    mouse = new MouseBehaviorJ2D(this);
     BoundingSphere bounds =
-      new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0); // J3D
-    mouse.setSchedulingBounds(bounds); // J3D
-    trans.addChild(mouse); // J3D
+      new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0); // J2D
+    mouse.setSchedulingBounds(bounds); // J2D
+    trans.addChild(mouse); // J2D
 
     // create ambient light, directly under root (not transformed)
 /* WLH 27 Jan 98

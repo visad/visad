@@ -1,6 +1,6 @@
 
 //
-// DisplayImplJ3D.java
+// DisplayImplJ2D.java
 //
 
 /*
@@ -23,7 +23,121 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+/*
+
+visad.java2d design:
+ 
+0. common code in ClassNameJ2D and ClassNameJ3D
+     DirectManipulationRendererJ2/3D
+       common methods in visad.DataRenderer
+     GraphicsModeControlJ2/3D
+       why isn't GraphicsModeControl a class
+       where we can put common methods ? ? ? ?
+       all *ControlJ3D extend Control and implement interfaces
+       --> looks like interfaces could be abstract classes
+             extending Control
+     MouseBehaviorJ2/3D
+       visad.MouseBehaviorJND.processAWTEvents
+       remove Transform3D constructor from make_matrix
+     DefaultDisplayRendererJ2D/TwoDDisplayRendererJ3D
+       common methods in visad.DisplayRenderer
+     ShadowFunctionOrSetTypeJ2/3D, ShadowRealTypeJ2/3D and
+       ShadowTupleTypeJ2/3D ShadowTypeJ2/3D adapt common
+       methods in visad.Shadow*Type
+
+1. add VisAD-specific scene graph classes:
+ 
+     canvas, root, trans, direct, cursor_trans & other
+       scene graph stuff in DisplayRendererJ2D
+
+     VisADSceneGraphObject
+       VisADGroup
+         VisADSwitch
+       VisADAppearance
+         incl VisADGeometryArray
+         incl Image "texture"
+         incl red, green, blue, alpha
+         linewidth and pointsize in GraphicsModeControl
+       (VisADTexture2D not needed; Image in VisADAppearance)
+         texture.setImage(0, image2d);
+         new Shape3D(geometry, appearance);
+         appearance.setTexture(texture);
+       (VisADShape not needed; VisADGeometryArray in VisADAppearance)
+       (VisADTransform not needed; trans in DisplayRendererJnD)
+       (hence VisADBranchGroup not needed; a VisADBranchGroup
+        is a VisADGroup that is not a VisADSwitch)
+ 
+ 
+2. add VisADSceneGraphObject as parent of
+   existing VisAD-specific scene graph classes:
+
+     VisADSceneGraphObject
+       VisADGeometryArray
+         VisADIndexedTriangleStripArray
+         VisADLineArray
+         VisADLineStripArray
+         VisADPointArray
+         VisADTriangleArray
+ 
+3. DisplayRendererJ2D
+     add Image[] array with element for each animation step
+
+4. DisplayImplJ2D.doAction
+     scratch Image[] array
+     super.doAction()
+     re-build Image[] element for current time step
+
+5. AnimationControlJ2D.selectSwitches()
+     index = super.selectSwitches();
+     if (Image[index] == null) re-build Image[index];
+     drawImage(Image[index]);
+       (build Image[index] using Component.createImage -
+        see ObjectAnim Java2D code example)
+ 
+6. ValueControlJ2D.selectSwitches()
+     super.selectSwitches();
+     scratch Image[] array
+     set value
+     re-build Image[] element for current time step
+
+7. ProjectionControlJ2D.setMatrix()
+     scratch Image[] array
+     set projection
+     re-build Image[] element for current time step
+ 
+8. VisADCanvasJ2D.renderField()
+     invokes DisplayRendererJ2D.drawCursorStringVector()
+     which draws cursor strings, Exception strings,
+       WaitFlag & Animation string
+     add draw of extra_branch from
+       DirectManipulationRendererJ2D.addPoint
+     invoke after any drawImage(Image[index])
+ 
+9. DirectManipulationRendererJ2D
+     doTransform: create branch and extra_branch
+     addPoint: add to extra_branch
+
+10. MouseBehaviorJ2D
+     just do AWTEvent's
+
+11. DefaultDisplayRendererJ2D = TwoDDisplayRendererJ2D
+     legalDisplayScalar?
+
+12. DisplayAppletJ2D delete
+
+13. DisplayImplJ2D.makeGeometry() = return vga;
+
+14. DisplayRendererJ2D.render(int index)
+
+15. RemoveBehaviorJ2D delete
+
+16. UniverseBuilderJ2D delete
+
+NN. renderer thread or Control call-backs ? ? ? ?
+
+*/
+
+package visad.java2d;
 
 import visad.*;
 
@@ -39,66 +153,66 @@ import com.sun.j3d.utils.applet.MainFrame;
 // import com.sun.j3d.utils.applet.AppletFrame;
 
 /**
-   DisplayImplJ3D is the VisAD class for displays that use
+   DisplayImplJ2D is the VisAD class for displays that use
    Java 3D.  It is runnable.<P>
 
-   DisplayImplJ3D is not Serializable and should not be copied
+   DisplayImplJ2D is not Serializable and should not be copied
    between JVMs.<P>
 */
-public class DisplayImplJ3D extends DisplayImpl {
+public class DisplayImplJ2D extends DisplayImpl {
 
   /** legal values for api */
   public static final int JPANEL = 1;
   public static final int APPLETFRAME = 2;
   /** this is used for APPLETFRAME */
-  private DisplayAppletJ3D applet = null;
+  private DisplayAppletJ2D applet = null;
 
-  private ProjectionControlJ3D projection = null;
-  private GraphicsModeControlJ3D mode = null;
+  private ProjectionControlJ2D projection = null;
+  private GraphicsModeControlJ2D mode = null;
 
-  /** constructor with DefaultDisplayRendererJ3D */
-  public DisplayImplJ3D(String name)
+  /** constructor with DefaultDisplayRendererJ2D */
+  public DisplayImplJ2D(String name)
          throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRendererJ3D(), JPANEL);
+    this(name, new DefaultDisplayRendererJ2D(), JPANEL);
   }
 
   /** constructor with non-DefaultDisplayRenderer */
-  public DisplayImplJ3D(String name, DisplayRendererJ3D renderer)
+  public DisplayImplJ2D(String name, DisplayRendererJ2D renderer)
          throws VisADException, RemoteException {
     this(name, renderer, JPANEL);
   }
 
   /** constructor with DefaultDisplayRenderer */
-  public DisplayImplJ3D(String name, int api)
+  public DisplayImplJ2D(String name, int api)
          throws VisADException, RemoteException {
-    this(name, new DefaultDisplayRendererJ3D(), api);
+    this(name, new DefaultDisplayRendererJ2D(), api);
   }
 
   /** constructor with non-DefaultDisplayRenderer */
-  public DisplayImplJ3D(String name, DisplayRendererJ3D renderer, int api)
+  public DisplayImplJ2D(String name, DisplayRendererJ2D renderer, int api)
          throws VisADException, RemoteException {
     super(name, renderer);
 
     // a GraphicsModeControl always exists
-    mode = new GraphicsModeControlJ3D(this);
+    mode = new GraphicsModeControlJ2D(this);
     addControl(mode);
     // a ProjectionControl always exists
-    projection = new ProjectionControlJ3D(this);
+    projection = new ProjectionControlJ2D(this);
     addControl(projection);
 
     if (api == APPLETFRAME) {
-      applet = new DisplayAppletJ3D(this);
+      applet = new DisplayAppletJ2D(this);
       Component component = new MainFrame(applet, 256, 256);
       // Component component = new AppletFrame(applet, 256, 256);
       setComponent(component);
       // component.setTitle(name);
     }
     else if (api == JPANEL) {
-      Component component = new DisplayPanelJ3D(this);
+      Component component = new DisplayPanelJ2D(this);
       setComponent(component);
     }
     else {
-      throw new DisplayException("DisplayImplJ3D: bad graphicsApi");
+      throw new DisplayException("DisplayImplJ2D: bad graphicsApi");
     }
   }
 
@@ -110,7 +224,7 @@ public class DisplayImplJ3D extends DisplayImpl {
     return mode;
   }
 
-  public DisplayAppletJ3D getApplet() {
+  public DisplayAppletJ2D getApplet() {
     return applet;
   }
 
@@ -268,7 +382,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       return array;
     }
     else {
-      throw new DisplayException("DisplayImplJ3D.makeGeometry");
+      throw new DisplayException("DisplayImplJ2D.makeGeometry");
     }
   }
 

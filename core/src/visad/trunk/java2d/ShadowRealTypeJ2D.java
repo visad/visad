@@ -1,6 +1,6 @@
 
 //
-// ShadowRealTypeJ3D.java
+// ShadowRealTypeJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -33,14 +33,14 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   The ShadowRealTypeJ3D class shadows the RealType class,
+   The ShadowRealTypeJ2D class shadows the RealType class,
    within a DataDisplayLink.<P>
 */
-public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
+public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
 
   private Vector AccumulationVector = new Vector();
 
-  public ShadowRealTypeJ3D(MathType type, DataDisplayLink link, ShadowType parent)
+  public ShadowRealTypeJ2D(MathType type, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(type, link, parent);
     adaptedShadowType =
@@ -133,7 +133,7 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
       // cannot be any Reference when RealType is terminal
       return terminalTupleOrReal(group, display_values, valueArrayLength,
                                  valueToScalar, default_values,
-                                 inherited_values, renderer); // J3D
+                                 inherited_values, renderer); // J2D
     }
     else {
       // nothing to render at a non-terminal RealType
@@ -143,7 +143,7 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Group group) throws VisADException { // J3D
+  void postProcess(Group group) throws VisADException { // J2D
     if (adaptedShadowType.getIsTerminal()) {
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
@@ -152,7 +152,7 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
         // transform AccumulationVector
         group.addChild(data_group);
 */
-        throw new UnimplementedException("ShadowRealTypeJ3D.postProcess: " +
+        throw new UnimplementedException("ShadowRealTypeJ2D.postProcess: " +
                                          "terminal LEGAL");
       }
       else {

@@ -1,6 +1,6 @@
 
 //
-// ShadowRealTupleTypeJ3D.java
+// ShadowRealTupleTypeJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -31,19 +31,19 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   The ShadowRealTupleTypeJ3D class shadows the RealTupleType class,
+   The ShadowRealTupleTypeJ2D class shadows the RealTupleType class,
    within a DataDisplayLink, under Java3D.<P>
 */
-public class ShadowRealTupleTypeJ3D extends ShadowTupleTypeJ3D {
+public class ShadowRealTupleTypeJ2D extends ShadowTupleTypeJ2D {
 
-  ShadowRealTupleTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
+  ShadowRealTupleTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(t, link, parent);
         int n = ((TupleType) t).getDimension();
-    tupleComponents = new ShadowRealTypeJ3D[n];
+    tupleComponents = new ShadowRealTypeJ2D[n];
     ShadowRealType[] components = new ShadowRealType[n];
     for (int i=0; i<n; i++) {
-      ShadowRealTypeJ3D shadow = (ShadowRealTypeJ3D)
+      ShadowRealTypeJ2D shadow = (ShadowRealTypeJ2D)
         ((TupleType) Type).getComponent(i).buildShadowType(Link, this);
       tupleComponents[i] = shadow;
       components[i] = (ShadowRealType) shadow.getAdaptedShadowType();

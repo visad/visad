@@ -1,6 +1,6 @@
 
 //
-// TwoDDisplayRendererJ3D.java
+// TwoDDisplayRendererJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
 
 import visad.*;
 
@@ -36,18 +36,18 @@ import java.util.*;
 
 
 /**
-   TwoDDisplayRendererJ3D is the VisAD class for 2-D background
+   TwoDDisplayRendererJ2D is the VisAD class for 2-D background
    and metadata rendering under Java3D.<P>
 */
-public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
+public class TwoDDisplayRendererJ2D extends DisplayRendererJ2D {
 
   /** box outline for data */
-  Shape3D box = null; // J3D
+  Shape3D box = null; // J2D
   /** color of box */
-  ColoringAttributes box_color = null; // J3D
-  MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
+  ColoringAttributes box_color = null; // J2D
+  MouseBehaviorJ2D mouse = null; // Behavior for mouse interactions
 
-  public TwoDDisplayRendererJ3D () {
+  public TwoDDisplayRendererJ2D () {
     super();
   }
 
@@ -63,10 +63,10 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root;
-      create 3-D box, lights and MouseBehaviorJ3D for
+      create 3-D box, lights and MouseBehaviorJ2D for
       embedded user interface */
-  public BranchGroup createSceneGraph(View v, Canvas3D c) { // J3D
-    BranchGroup root = createBasicSceneGraph(v, c); // J3D
+  public BranchGroup createSceneGraph(View v, Canvas3D c) { // J2D
+    BranchGroup root = createBasicSceneGraph(v, c); // J2D
     if (mouse != null) return root;
     TransformGroup trans = getTrans();
 
@@ -92,8 +92,8 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     // create the Behavior for mouse interactions
     ProjectionControl proj = getDisplay().getProjectionControl();
 
-    // create MouseBehaviorJ3D
-    mouse = new MouseBehaviorJ3D(this);
+    // create MouseBehaviorJ2D
+    mouse = new MouseBehaviorJ2D(this);
     BoundingSphere bounds =
       new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
     mouse.setSchedulingBounds(bounds);

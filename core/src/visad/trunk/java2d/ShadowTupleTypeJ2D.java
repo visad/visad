@@ -1,6 +1,6 @@
 
 //
-// ShadowTupleTypeJ3D.java
+// ShadowTupleTypeJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -33,24 +33,24 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   The ShadowTupleTypeJ3D class shadows the TupleType class,
+   The ShadowTupleTypeJ2D class shadows the TupleType class,
    within a DataDisplayLink.<P>
 */
-public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
+public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
 
-  ShadowTypeJ3D[] tupleComponents;
+  ShadowTypeJ2D[] tupleComponents;
   private Vector AccumulationVector = new Vector();
 
-  ShadowTupleTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
+  ShadowTupleTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
                   throws VisADException, RemoteException {
     super(t, link, parent);
-    if (this instanceof ShadowRealTupleTypeJ3D) return;
+    if (this instanceof ShadowRealTupleTypeJ2D) return;
 
     int n = ((TupleType) t).getDimension();
-    tupleComponents = new ShadowTypeJ3D[n];
+    tupleComponents = new ShadowTypeJ2D[n];
     ShadowType[] components = new ShadowType[n];
     for (int i=0; i<n; i++) {
-      ShadowTypeJ3D shadow = (ShadowTypeJ3D)
+      ShadowTypeJ2D shadow = (ShadowTypeJ2D)
         ((TupleType) Type).getComponent(i).buildShadowType(Link, this);
       tupleComponents[i] = shadow;
       components[i] = shadow.getAdaptedShadowType();
@@ -65,7 +65,7 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
     return tupleComponents.length;
   }
 
-  public ShadowTypeJ3D getComponent(int i) {
+  public ShadowTypeJ2D getComponent(int i) {
     return tupleComponents[i];
   }
 
@@ -92,7 +92,7 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
     if (data.isMissing()) return false;
 
     if (!(data instanceof Tuple)) {
-      throw new DisplayException("ShadowTupleTypeJ3D.doTransform: " +
+      throw new DisplayException("ShadowTupleTypeJ2D.doTransform: " +
                                  "data must be Tuple");
     }
 
@@ -211,7 +211,7 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
     if (adaptedShadowType.getIsTerminal()) {
       return terminalTupleOrReal(group, display_values, valueArrayLength,
                                  valueToScalar, default_values,
-                                 inherited_values, renderer); // J3D
+                                 inherited_values, renderer); // J2D
     }
     else { // if (!isTerminal)
       boolean post = false;
@@ -228,7 +228,7 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
         Data component = tuple.getComponent(i);
         if (!(component instanceof Real) &&
             !(component instanceof RealTuple)) {
-          ShadowTypeJ3D component_type = (ShadowTypeJ3D) getComponent(i);
+          ShadowTypeJ2D component_type = (ShadowTypeJ2D) getComponent(i);
           post |= component_type.doTransform(group, component, value_array,
                                              default_values, renderer);
         }
@@ -248,7 +248,7 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
         // transform AccumulationVector
         group.addChild(data_group);
 */
-        throw new UnimplementedException("ShadowTupleTypeJ3D.postProcess: " +
+        throw new UnimplementedException("ShadowTupleTypeJ2D.postProcess: " +
                                          "terminal LEGAL");
       }
       else {

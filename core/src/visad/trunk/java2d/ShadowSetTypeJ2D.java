@@ -1,6 +1,6 @@
 
 //
-// ShadowSetTypeJ3D.java
+// ShadowSetTypeJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -31,12 +31,12 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   The ShadowSetTypeJ3D class shadows the SetType class,
+   The ShadowSetTypeJ2D class shadows the SetType class,
    within a DataDisplayLink, under Java3D.<P>
 */
-public class ShadowSetTypeJ3D extends ShadowFunctionOrSetTypeJ3D {
+public class ShadowSetTypeJ2D extends ShadowFunctionOrSetTypeJ2D {
 
-  ShadowSetTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
+  ShadowSetTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(t, link, parent);
   }

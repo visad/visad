@@ -1,6 +1,6 @@
 
 //
-// DisplayAppletJ3D.java
+// DisplayAppletJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
  
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -34,21 +34,21 @@ import java.awt.BorderLayout;
 
 import javax.media.j3d.*;
 
-public class DisplayAppletJ3D extends Applet {
+public class DisplayAppletJ2D extends Applet {
 
-  private DisplayImplJ3D display;
-  private DisplayRendererJ3D renderer;
+  private DisplayImplJ2D display;
+  private DisplayRendererJ2D renderer;
 
-  public DisplayAppletJ3D(DisplayImplJ3D d) {
+  public DisplayAppletJ2D(DisplayImplJ2D d) {
     display = d;
-    renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
+    renderer = (DisplayRendererJ2D) display.getDisplayRenderer();
     setLayout(new BorderLayout());
-    Canvas3D canvas = new VisADCanvasJ3D(renderer, this);
+    Canvas3D canvas = new VisADCanvasJ2D(renderer, this);
     add("Center", canvas);
  
-    UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
+    UniverseBuilderJ2D universe = new UniverseBuilderJ2D(canvas);
     BranchGroup scene = renderer.createSceneGraph(universe.view, canvas);
-    universe.addBranchGraph(scene); // J3D
+    universe.addBranchGraph(scene); // J2D
   }
 
 }

@@ -1,6 +1,6 @@
 
 //
-// ShadowTextTypeJ3D.java
+// ShadowTextTypeJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -31,12 +31,12 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   The ShadowTextTypeJ3D class shadows the TextType class,
+   The ShadowTextTypeJ2D class shadows the TextType class,
    within a DataDisplayLink, under Java3D.<P>
 */
-public class ShadowTextTypeJ3D extends ShadowTypeJ3D {
+public class ShadowTextTypeJ2D extends ShadowTypeJ2D {
 
-  ShadowTextTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
+  ShadowTextTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
                  throws VisADException, RemoteException {
     super(t, link, parent);
     adaptedShadowType =

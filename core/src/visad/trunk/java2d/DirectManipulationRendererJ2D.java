@@ -1,6 +1,6 @@
 
 //
-// DirectManipulationRendererJ3D.java
+// DirectManipulationRendererJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -35,10 +35,10 @@ import java.rmi.*;
 
 
 /**
-   DirectManipulationRendererJ3D is the VisAD class for the default graphics rendering
+   DirectManipulationRendererJ2D is the VisAD class for the default graphics rendering
    algorithm.<P>
 */
-public class DirectManipulationRendererJ3D extends RendererJ3D {
+public class DirectManipulationRendererJ2D extends RendererJ2D {
 
   BranchGroup branch = null;
 
@@ -54,7 +54,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
 
   /** for use in drag_direct */
   private transient DataDisplayLink link = null;
-  private transient ShadowTypeJ3D type = null;
+  private transient ShadowTypeJ2D type = null;
   private transient DataReference ref = null;
 
   /** point on direct manifold line or plane */
@@ -106,14 +106,14 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
   private final static String domainSet =
     "domain Set must be Gridded1DSet";
 
-  public DirectManipulationRendererJ3D () {
+  public DirectManipulationRendererJ2D () {
     super();
   }
 
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
     if (links == null || links.length != 1) {
-      throw new DisplayException("DirectManipulationRendererJ3D.setLinks: " +
+      throw new DisplayException("DirectManipulationRendererJ2D.setLinks: " +
                                  "must be exactly one DataDisplayLink");
     }
     super.setLinks(links, d);
@@ -212,11 +212,11 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       }
    
       if (domainAxis == -1) {
-        throw new DisplayException("DirectManipulationRendererJ3D.checkDirect:" +
+        throw new DisplayException("DirectManipulationRendererJ2D.checkDirect:" +
                                    "too few spatial domain");
       }
       if (directManifoldDimension < 2) {
-        throw new DisplayException("DirectManipulationRendererJ3D.checkDirect:" +
+        throw new DisplayException("DirectManipulationRendererJ2D.checkDirect:" +
                                    "directManifoldDimension < 2");
       }
     }
@@ -382,10 +382,10 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     }
     array.coordinates = x;
     array.vertexCount = count;
-    DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
+    DisplayImplJ2D display = (DisplayImplJ2D) getDisplay();
     GeometryArray geometry = display.makeGeometry(array);
     Appearance appearance =
-      ShadowTypeJ3D.makeAppearance(display.getGraphicsModeControl(),
+      ShadowTypeJ2D.makeAppearance(display.getGraphicsModeControl(),
                                    null, null, geometry);
     Shape3D shape = new Shape3D(geometry, appearance);
     BranchGroup group = new BranchGroup();
@@ -474,7 +474,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     try {
       Data newData = null;
       Data data = link.getData();
-      if (type instanceof ShadowRealTypeJ3D) {
+      if (type instanceof ShadowRealTypeJ2D) {
         addPoint(x);
         for (int i=0; i<3; i++) {
           if (getAxisToComponent(i) >= 0) {
@@ -492,7 +492,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
         }
         ref.setData(newData);
       }
-      else if (type instanceof ShadowRealTupleTypeJ3D) {
+      else if (type instanceof ShadowRealTupleTypeJ2D) {
         addPoint(x);
         int n = ((RealTuple) data).getDimension();
         Real[] reals = new Real[n];
@@ -519,7 +519,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
         newData = new RealTuple(reals);
         ref.setData(newData);
       }
-      else if (type instanceof ShadowFunctionTypeJ3D) {
+      else if (type instanceof ShadowFunctionTypeJ2D) {
         Vector vect = new Vector();
         if (first) lastIndex = -1;
         int k = getDomainAxis();
@@ -553,13 +553,13 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
         lastX[2] = x[2];
 
         int n;
-        ShadowTypeJ3D range =
-          (ShadowTypeJ3D) ((ShadowFunctionTypeJ3D) type).getRange();
-        if (range instanceof ShadowRealTypeJ3D) {
+        ShadowTypeJ2D range =
+          (ShadowTypeJ2D) ((ShadowFunctionTypeJ2D) type).getRange();
+        if (range instanceof ShadowRealTypeJ2D) {
           n = 1;
         }
         else {
-          n = ((ShadowRealTupleTypeJ3D) range).getDimension();
+          n = ((ShadowRealTupleTypeJ2D) range).getDimension();
         }
         double[] thisD = new double[n];
         boolean[] directComponent = new boolean[n];
@@ -638,7 +638,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
         for (int j=0; j<n; j++) {
           lastD[j] = thisD[j];
         }
-      } // end else if (type instanceof ShadowFunctionTypeJ3D)
+      } // end else if (type instanceof ShadowFunctionTypeJ2D)
     } // end try
     catch (VisADException e) {
       // do nothing
@@ -662,12 +662,12 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
 
     // values needed by drag_direct, which cannot throw Exceptions
-    type = (ShadowTypeJ3D) link.getShadow();
+    type = (ShadowTypeJ2D) link.getShadow();
 
     // check type and maps for valid direct manipulation
     if (!getIsDirectManipulation()) {
       throw new BadDirectManipulationException(
-        "DirectManipulationRendererJ3D.doTransform: " + getWhyNotDirect());
+        "DirectManipulationRendererJ2D.doTransform: " + getWhyNotDirect());
     }
 
     // initialize valueArray to missing
@@ -681,7 +681,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     if (data == null) {
       branch = null;
       addException(
-        new DisplayException("DirectManipulationRendererJ3D." +
+        new DisplayException("DirectManipulationRendererJ2D." +
                              "doTransform: Data is null"));
     }
     else {
@@ -692,7 +692,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     return branch;
   }
 
-  void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch) {
+  void addSwitch(DisplayRendererJ2D displayRenderer, BranchGroup branch) {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);
   }
 

@@ -1,6 +1,6 @@
 
 //
-// DefaultRendererJ3D.java
+// DefaultRendererJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
 
 import visad.*;
 
@@ -34,10 +34,10 @@ import java.rmi.*;
 
 
 /**
-   DefaultRendererJ3D is the VisAD class for the default graphics
+   DefaultRendererJ2D is the VisAD class for the default graphics
    rendering algorithm under Java3D.<P>
 */
-public class DefaultRendererJ3D extends RendererJ3D {
+public class DefaultRendererJ2D extends RendererJ2D {
 
   // System.currentTimeMillis() when doTransform started
   long start_time;
@@ -45,25 +45,25 @@ public class DefaultRendererJ3D extends RendererJ3D {
 
   DataDisplayLink link;
 
-  public DefaultRendererJ3D () {
+  public DefaultRendererJ2D () {
     super();
   }
 
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
     if (links == null || links.length != 1) {
-      throw new DisplayException("DefaultRendererJ3D.setLinks: must be " +
+      throw new DisplayException("DefaultRendererJ2D.setLinks: must be " +
                                  "exactly one DataDisplayLink");
     }
     super.setLinks(links, d);
   }
 
   /** create a BranchGroup scene graph for Data in links[0] */
-  public BranchGroup doTransform() throws VisADException, RemoteException { // J3D
+  public BranchGroup doTransform() throws VisADException, RemoteException { // J2D
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
     link = getLinks()[0];
-    ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
+    ShadowTypeJ2D type = (ShadowTypeJ2D) link.getShadow();
 
     // initialize valueArray to missing
     int valueArrayLength = getDisplay().getValueArrayLength();
@@ -76,7 +76,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
     if (data == null) {
       branch = null;
       addException(
-        new DisplayException("DefaultRendererJ3D.doTransform: Data is null"));
+        new DisplayException("DefaultRendererJ2D.doTransform: Data is null"));
     }
     else {
       start_time = System.currentTimeMillis();
@@ -91,7 +91,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
     return branch;
   }
 
-  void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch) {
+  void addSwitch(DisplayRendererJ2D displayRenderer, BranchGroup branch) {
     displayRenderer.addSceneGraphComponent(branch);
   }
 

@@ -1,6 +1,6 @@
 
 //
-// ShadowTypeJ3D.java
+// ShadowTypeJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -35,27 +35,27 @@ import java.util.Enumeration;
 import java.rmi.*;
 
 /**
-   The ShadowTypeJ3D hierarchy shadows the MathType hierarchy,
+   The ShadowTypeJ2D hierarchy shadows the MathType hierarchy,
    within a DataDisplayLink, under Java3D.<P>
 */
-public abstract class ShadowTypeJ3D extends ShadowType {
+public abstract class ShadowTypeJ2D extends ShadowType {
 
-  /** basic information about this ShadowTypeJ3D */
+  /** basic information about this ShadowTypeJ2D */
   MathType Type; // MathType being shadowed
   transient DataDisplayLink Link;
-  transient DisplayImplJ3D display;
+  transient DisplayImplJ2D display;
   transient private Data data; // from Link.getData()
-  private ShadowTypeJ3D Parent;
+  private ShadowTypeJ2D Parent;
 
   ShadowType adaptedShadowType;
 
-  ShadowTypeJ3D(MathType type, DataDisplayLink link, ShadowType parent)
+  ShadowTypeJ2D(MathType type, DataDisplayLink link, ShadowType parent)
              throws VisADException, RemoteException {
     super(type, link, getAdaptedParent(parent));
     Type = type;
     Link = link;
-    display = (DisplayImplJ3D) link.getDisplay();
-    Parent = (ShadowTypeJ3D) parent;
+    display = (DisplayImplJ2D) link.getDisplay();
+    Parent = (ShadowTypeJ2D) parent;
     data = link.getData();
   }
 
@@ -151,13 +151,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       this is default (for ShadowTextType) */
   boolean doTransform(Group group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
-          throws VisADException, RemoteException { // J3D
+          throws VisADException, RemoteException { // J2D
     return false;
   }
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Group group) throws VisADException { // J3D
+  void postProcess(Group group) throws VisADException { // J2D
   }
 
 
@@ -184,7 +184,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   static Appearance makeAppearance(GraphicsModeControl mode,
                       TransparencyAttributes constant_alpha,
                       ColoringAttributes constant_color,
-                      GeometryArray geometry) { // J3D
+                      GeometryArray geometry) { // J2D
     Appearance appearance = new Appearance();
 
     LineAttributes line = new LineAttributes();
@@ -265,7 +265,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   public static VisADGeometryArray makeFlow(float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 float[][] color_values, float[][] range_select)
-         throws VisADException { // J3D
+         throws VisADException { // J2D
     return ShadowType.makeFlow(flow_values, flowScale, spatial_values,
            color_values, range_select);
   }
@@ -385,8 +385,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
           appearance = makeAppearance(mode, null, constant_color, geometry);
           shape = new Shape3D(geometry, appearance);
           group.addChild(shape);
-          if (renderer instanceof DirectManipulationRendererJ3D) {
-            ((DirectManipulationRendererJ3D) renderer).setSpatialValues(spatial_values);
+          if (renderer instanceof DirectManipulationRendererJ2D) {
+            ((DirectManipulationRendererJ2D) renderer).setSpatialValues(spatial_values);
           }
         }
       }
@@ -397,13 +397,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       // add values to value_array according to SelectedMapVector-s
       // of RealType-s in components (including Reference)
       //
-      // accumulate Vector of value_array-s at this ShadowTypeJ3D,
+      // accumulate Vector of value_array-s at this ShadowTypeJ2D,
  
       // to be rendered in a post-process to scanning data
 /*
       return true;
 */
-      throw new UnimplementedException("ShadowTypeJ3D.terminalTupleOrReal: " +
+      throw new UnimplementedException("ShadowTypeJ2D.terminalTupleOrReal: " +
                                        "terminal LEGAL");
     }
   }

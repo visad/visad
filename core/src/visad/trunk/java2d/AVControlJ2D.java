@@ -1,6 +1,6 @@
 
 //
-// AVControlJ3D.java
+// AVControlJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
 
 import visad.*;
 
@@ -33,18 +33,18 @@ import java.util.Vector;
 import java.util.Enumeration;
 
 /**
-   AVControlJ3D is the VisAD abstract superclass for AnimationControlJ3D
-   and ValueControlJ3D.<P>
+   AVControlJ2D is the VisAD abstract superclass for AnimationControlJ2D
+   and ValueControlJ2D.<P>
 */
-public abstract class AVControlJ3D extends Control implements AVControl {
+public abstract class AVControlJ2D extends Control implements AVControl {
 
   Vector switches = new Vector();
 
-  public AVControlJ3D(DisplayImplJ3D d) {
+  public AVControlJ2D(DisplayImplJ2D d) {
     super(d);
   }
 
-  void addPair(Switch sw, Set se, DataRenderer re) { // J3D
+  void addPair(Switch sw, Set se, DataRenderer re) { // J2D
     switches.addElement(new SwitchSet(sw, se, re));
   }
 
@@ -71,7 +71,7 @@ public abstract class AVControlJ3D extends Control implements AVControl {
                              fvalues);
       // compute set index from converted value
       int [] indices = set.valueToIndex(values);
-      ss.swit.setWhichChild(indices[0]); // J3D
+      ss.swit.setWhichChild(indices[0]); // J2D
     }
   }
 
@@ -86,14 +86,14 @@ public abstract class AVControlJ3D extends Control implements AVControl {
     }
   }
 
-  /** SwitchSet is an inner class of AVControlJ3D for
+  /** SwitchSet is an inner class of AVControlJ2D for
       (Switch, Set, DataRenderer) structures */
   private class SwitchSet extends Object {
-    Switch swit; // J3D
+    Switch swit; // J2D
     Set set;
     DataRenderer renderer;
  
-    SwitchSet(Switch sw, Set se, DataRenderer re) { // J3D
+    SwitchSet(Switch sw, Set se, DataRenderer re) { // J2D
       swit = sw;
       set = se;
       renderer = re;

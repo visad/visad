@@ -1,6 +1,6 @@
 
 //
-// DisplayRendererJ3D.java
+// DisplayRendererJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
 
 import visad.*;
 
@@ -38,20 +38,20 @@ import java.rmi.*;
 
 
 /**
-   DisplayRendererJ3D is the VisAD abstract super-class for background and
+   DisplayRendererJ2D is the VisAD abstract super-class for background and
    metadata rendering algorithms.  These complement depictions of Data
    objects created by DataRenderer objects.<P>
 
-   DisplayRendererJ3D also manages the overall relation of DataRenderer
+   DisplayRendererJ2D also manages the overall relation of DataRenderer
    output to Java3D and manages the scene graph.<P>
 
    It creates the binding between Control objects and scene graph
    Behavior objects for direct manipulation of Control objects.<P>
 
-   DisplayRendererJ3D is not Serializable and should not be copied
+   DisplayRendererJ2D is not Serializable and should not be copied
    between JVMs.<P>
 */
-public abstract class DisplayRendererJ3D extends DisplayRenderer {
+public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
   /** View associated with this VirtualUniverse */
   private View view;
@@ -67,7 +67,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       Data depictions */
   private BranchGroup direct = null;
   /** Behavior for delayed removal of BranchGroups */
-  RemoveBehaviorJ3D remove = null;
+  RemoveBehaviorJ2D remove = null;
 
   /** TransformGroup between trans and cursor */
   private TransformGroup cursor_trans = null;
@@ -98,7 +98,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   /** start value for cursor */
   private float point_x, point_y, point_z;
 
-  public DisplayRendererJ3D () {
+  public DisplayRendererJ2D () {
     super();
   }
 
@@ -176,7 +176,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     ProjectionControl proj = getDisplay().getProjectionControl();
     Transform3D tstart = new Transform3D(proj.getMatrix());
     Transform3D t1 =
-      MouseBehaviorJ3D.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
+      MouseBehaviorJ2D.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
     t1.mul(tstart);
     double[] matrix = new double[16];
     t1.get(matrix);
@@ -198,7 +198,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     trans.addChild(direct);
 
     // create removeBehavior
-    remove = new RemoveBehaviorJ3D(this);
+    remove = new RemoveBehaviorJ2D(this);
     BoundingSphere bounds =
       new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
     remove.setSchedulingBounds(bounds);
@@ -245,7 +245,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   }
 
   public void addDirectManipulationSceneGraphComponent(Group group,
-                         DirectManipulationRendererJ3D renderer) {
+                         DirectManipulationRendererJ2D renderer) {
     direct.addChild(group);
     directs.addElement(renderer);
 
@@ -265,7 +265,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   }
 
   public void switchScene(DataRenderer renderer, int index) {
-    remove.addRemove((RendererJ3D) renderer, index);
+    remove.addRemove((RendererJ2D) renderer, index);
   }
 
   public void clearScene(DataRenderer renderer) {
@@ -377,7 +377,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         try {
           VisADLineArray array =
             PlotText.render_label(string, start, base, up, false);
-          graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+          graphics.draw(((DisplayImplJ2D) getDisplay()).makeGeometry(array));
           start[1] -= 1.2 * up[1];
         }
         catch (VisADException e) {
@@ -401,7 +401,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         try {
           VisADLineArray array =
             PlotText.render_label(string, startl, base, up, false);
-          graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+          graphics.draw(((DisplayImplJ2D) getDisplay()).makeGeometry(array));
           startl[1] += 1.2 * up[1];
         }
         catch (VisADException e) {
@@ -412,7 +412,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       try {
         VisADLineArray array =
           PlotText.render_label("please wait . . .", startl, base, up, false);
-        graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+        graphics.draw(((DisplayImplJ2D) getDisplay()).makeGeometry(array));
         startl[1] += 1.2 * up[1];
       }
       catch (VisADException e) {
@@ -431,7 +431,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       try {
         VisADLineArray array =
           PlotText.render_label(animation_string, starta, base, up, false);
-        graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+        graphics.draw(((DisplayImplJ2D) getDisplay()).makeGeometry(array));
         starta[1] -= 1.2 * up[1];
       }
       catch (VisADException e) {
@@ -439,16 +439,16 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
   }
 
-  public DirectManipulationRendererJ3D findDirect(PickRay ray) {
+  public DirectManipulationRendererJ2D findDirect(PickRay ray) {
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
     ray.get(origin, direction);
-    DirectManipulationRendererJ3D renderer = null;
+    DirectManipulationRendererJ2D renderer = null;
     float distance = Float.MAX_VALUE;
     Enumeration renderers = directs.elements();
     while (renderers.hasMoreElements()) {
-      DirectManipulationRendererJ3D r =
-        (DirectManipulationRendererJ3D) renderers.nextElement();
+      DirectManipulationRendererJ2D r =
+        (DirectManipulationRendererJ2D) renderers.nextElement();
       float d = r.checkClose(origin, direction);
       if (d < distance) {
         distance = d;
@@ -481,13 +481,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
          throws VisADException {
     // add array to scale_on
     // replace any existing at axis, axis_ordinal
-    DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
+    DisplayImplJ2D display = (DisplayImplJ2D) getDisplay();
     GeometryArray geometry = display.makeGeometry(array);
     GraphicsModeControl mode = display.getGraphicsModeControl();
     ColoringAttributes color = new ColoringAttributes();
     color.setColor(scale_color[0], scale_color[1], scale_color[2]);
     Appearance appearance =
-      ShadowTypeJ3D.makeAppearance(mode, null, color, geometry);
+      ShadowTypeJ2D.makeAppearance(mode, null, color, geometry);
     Shape3D shape = new Shape3D(geometry, appearance);
     BranchGroup group = new BranchGroup();
     group.setCapability(BranchGroup.ALLOW_DETACH);
@@ -525,7 +525,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   public Control makeControl(ScalarMap map) {
     DisplayRealType type = map.getDisplayScalar();
-    DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
+    DisplayImplJ2D display = (DisplayImplJ2D) getDisplay();
     if (type == null) return null;
     if (type.equals(Display.XAxis) ||
         type.equals(Display.YAxis) ||
@@ -533,7 +533,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
         type.equals(Display.Latitude) ||
         type.equals(Display.Longitude) ||
         type.equals(Display.Radius)) {
-      return (ProjectionControlJ3D) display.getProjectionControl();
+      return (ProjectionControlJ2D) display.getProjectionControl();
     }
     else if (type.equals(Display.RGB) ||
              type.equals(Display.HSV) ||
@@ -546,12 +546,12 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     else if (type.equals(Display.Animation)) {
       // note only one RealType may be mapped to Animation
       // so control must be null
-      Control control = display.getControl(AnimationControlJ3D.class);
+      Control control = display.getControl(AnimationControlJ2D.class);
       if (control != null) return control;
-      else return new AnimationControlJ3D(display, map.getScalar());
+      else return new AnimationControlJ2D(display, map.getScalar());
     }
     else if (type.equals(Display.SelectValue)) {
-      return new ValueControlJ3D(display);
+      return new ValueControlJ2D(display);
     }
     else if (type.equals(Display.SelectRange)) {
       return new RangeControl(display);
@@ -582,7 +582,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   }
 
   public DataRenderer makeDefaultRenderer() {
-    return new DefaultRendererJ3D();
+    return new DefaultRendererJ2D();
   }
 
 }

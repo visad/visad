@@ -1,6 +1,6 @@
 
 //
-// ValueControlJ3D.java
+// ValueControlJ2D.java
 //
 
 /*
@@ -23,22 +23,22 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
 
 import visad.*;
 
 import java.rmi.*;
 
 /**
-   ValueControlJ3D is the VisAD class for controlling SelectValue
+   ValueControlJ2D is the VisAD class for controlling SelectValue
    display scalars under Java3D.<P>
 */
-public class ValueControlJ3D extends AVControlJ3D
+public class ValueControlJ2D extends AVControlJ2D
        implements ValueControl {
 
   private double Value;
 
-  public ValueControlJ3D(DisplayImplJ3D d) {
+  public ValueControlJ2D(DisplayImplJ2D d) {
     super(d);
     Value = 0.0;
   }

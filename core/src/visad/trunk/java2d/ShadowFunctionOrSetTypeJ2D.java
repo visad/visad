@@ -1,6 +1,6 @@
 
 //
-// ShadowFunctionOrSetTypeJ3D.java
+// ShadowFunctionOrSetTypeJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -37,23 +37,23 @@ import java.awt.*;
 import java.awt.image.*;
 
 /**
-   The ShadowFunctionOrSetTypeJ3D is an abstract parent for
-   ShadowFunctionTypeJ3D and ShadowSetTypeJ3D.<P>
+   The ShadowFunctionOrSetTypeJ2D is an abstract parent for
+   ShadowFunctionTypeJ2D and ShadowSetTypeJ2D.<P>
 */
-public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
+public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
 
-  ShadowRealTupleTypeJ3D Domain;
-  ShadowTypeJ3D Range; // null for ShadowSetTypeJ3D
+  ShadowRealTupleTypeJ2D Domain;
+  ShadowTypeJ2D Range; // null for ShadowSetTypeJ2D
 
   private Vector AccumulationVector = new Vector();
 
-  ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
+  ShadowFunctionOrSetTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(t, link, parent);
-    if (this instanceof ShadowFunctionTypeJ3D) {
-      Domain = (ShadowRealTupleTypeJ3D)
+    if (this instanceof ShadowFunctionTypeJ2D) {
+      Domain = (ShadowRealTupleTypeJ2D)
                ((FunctionType) Type).getDomain().buildShadowType(link, this);
-      Range = (ShadowTypeJ3D)
+      Range = (ShadowTypeJ2D)
               ((FunctionType) Type).getRange().buildShadowType(link, this);
       adaptedShadowType =
         new ShadowFunctionType(t, link, getAdaptedParent(parent),
@@ -61,7 +61,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                        Range.getAdaptedShadowType());
     }
     else {
-      Domain = (ShadowRealTupleTypeJ3D)
+      Domain = (ShadowRealTupleTypeJ2D)
                ((SetType) Type).getDomain().buildShadowType(Link, this);
       Range = null;
       adaptedShadowType =
@@ -70,18 +70,18 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     }
   }
 
-  public ShadowRealTupleTypeJ3D getDomain() {
+  public ShadowRealTupleTypeJ2D getDomain() {
     return Domain;
   }
 
-  public ShadowTypeJ3D getRange() {
+  public ShadowTypeJ2D getRange() {
     return Range;
   }
 
   /** clear AccumulationVector */
   public void preProcess() throws VisADException {
     AccumulationVector.removeAllElements();
-    if (this instanceof ShadowFunctionTypeJ3D) {
+    if (this instanceof ShadowFunctionTypeJ2D) {
       Range.preProcess();
     }
   }
@@ -93,27 +93,27 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       return true if need post-process */
   public boolean doTransform(Group group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
-         throws VisADException, RemoteException { // J3D
+         throws VisADException, RemoteException { // J2D
 
     if (data.isMissing()) return false;
 
     // if transform has taken more than 500 milliseconds and there is
     // a flag requesting re-transform, throw a DisplayInterruptException
     boolean time_flag = false;
-    if (renderer instanceof DefaultRendererJ3D) {
-      if (((DefaultRendererJ3D) renderer).time_flag) {
+    if (renderer instanceof DefaultRendererJ2D) {
+      if (((DefaultRendererJ2D) renderer).time_flag) {
         time_flag = true;
       }
       else {
         if (500 < System.currentTimeMillis() -
-                  ((DefaultRendererJ3D) renderer).start_time) {
-          ((DefaultRendererJ3D) renderer).time_flag = true;
+                  ((DefaultRendererJ2D) renderer).start_time) {
+          ((DefaultRendererJ2D) renderer).time_flag = true;
           time_flag = true;
         }
       }
     }
     if (time_flag) {
-      DataDisplayLink link = ((DefaultRendererJ3D) renderer).link;
+      DataDisplayLink link = ((DefaultRendererJ2D) renderer).link;
       if (link.peekTicks()) {
         throw new DisplayInterruptException("please wait . . .");
       }
@@ -134,7 +134,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       ((ShadowFunctionOrSetType) adaptedShadowType).getAnyShape();
 
     if (anyShape) {
-      throw new UnimplementedException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+      throw new UnimplementedException("ShadowFunctionOrSetTypeJ2D.doTransform" +
                                        "Shape not yet supported");
     }
 
@@ -185,7 +185,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     Set domain_set = null;
     Unit[] dataUnits = null;
     CoordinateSystem dataCoordinateSystem = null;
-    if (this instanceof ShadowFunctionTypeJ3D) {
+    if (this instanceof ShadowFunctionTypeJ2D) {
       // currently only implemented for Field
       // must eventually extend to Function
       if (!(data instanceof Field)) {
@@ -196,13 +196,13 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       dataUnits = ((Function) data).getDomainUnits();
       dataCoordinateSystem = ((Function) data).getDomainCoordinateSystem();
     }
-    else if (this instanceof ShadowSetTypeJ3D) {
+    else if (this instanceof ShadowSetTypeJ2D) {
       domain_set = (Set) data;
       dataUnits = ((Set) data).getSetUnits();
       dataCoordinateSystem = ((Set) data).getCoordinateSystem();
     }
     else {
-      throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform: " +
+      throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform: " +
                           "must be ShadowFunctionType or ShadowSetType");
     }
 
@@ -238,9 +238,9 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
     int texture_width = 1;
     int texture_height = 1;
     if (isTextureMap) {
-      if (renderer instanceof DirectManipulationRendererJ3D) {
-        throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
-                                   " DirectManipulationRendererJ3D");
+      if (renderer instanceof DirectManipulationRendererJ2D) {
+        throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform" +
+                                   " DirectManipulationRendererJ2D");
       }
       Linear1DSet X = null;
       Linear1DSet Y = null;
@@ -271,7 +271,7 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
 
       int[] tuple_index = new int[3];
       if (DomainComponents.length != 2) {
-        throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+        throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform" +
                                    " domain dimension != 2");
       }
       for (int i=0; i<DomainComponents.length; i++) {
@@ -283,13 +283,13 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
         DisplayTupleType tuple = real.getTuple();
         if (tuple == null ||
             !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-          throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+          throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform" +
                                      " isTextureMap with bad tuple");
         }
         // get spatial index
         tuple_index[i] = real.getTupleIndex();
         if (maps.hasMoreElements()) {
-          throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+          throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform" +
                                      " isTextureMap with multiple");
         }
       } // end for (int i=0; i<DomainComponents.length; i++)
@@ -449,7 +449,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       domain_values = null;
     } // end if (!isTextureMap)
 
-    if (this instanceof ShadowFunctionTypeJ3D) {
+    if (this instanceof ShadowFunctionTypeJ2D) {
 
       // get range_values for RealType and RealTupleType
       // components, in defaultUnits for RealType-s
@@ -536,7 +536,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
         // FREE
         range_values = null;
       } // end if (range_values != null)
-    } // end if (this instanceof ShadowFunctionTypeJ3D)
+    } // end if (this instanceof ShadowFunctionTypeJ2D)
 
     //
     // NOTE -
@@ -856,7 +856,7 @@ END MISSING TEST */
           // MEM
           if (isTextureMap) {
             if (color_values == null) {
-              throw new DisplayException("ShadowFunctionOrSetTypeJ3D." +
+              throw new DisplayException("ShadowFunctionOrSetTypeJ2D." +
                                ".doTransform: no color or alpha values");
             }
             if (range_select[0] != null && range_select[0].length > 1) {
@@ -961,7 +961,8 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                   b = (b < 0) ? 0 : (b > 255) ? 255 : b;
                   a = (int) (color_values[3][k] * 255.0);
                   a = (a < 0) ? 0 : (a > 255) ? 255 : a;
-                  image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
+                  // image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
+                  image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
                   k++;
                 }
                 for (int i=data_width; i<texture_width; i++) {
@@ -990,7 +991,8 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                   b = (int) (color_values[2][k] * 255.0);
                   b = (b < 0) ? 0 : (b > 255) ? 255 : b;
                   a = 255;
-                  image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
+                  // image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
+                  image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
                   k++;
                 }
                 for (int i=data_width; i<texture_width; i++) {
@@ -1002,7 +1004,6 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                   image.setRGB(i, j, 0);
                 }
               }
-              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
 //
 // this doesn't work - why not?
 //            image.setRGB(0, 0, texture_width, texture_height,
@@ -1103,9 +1104,9 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
 java.lang.ArrayIndexOutOfBoundsException: 4096
         at java.awt.image.MultiBandPackedSampleModel.setPixel(MultiBandPackedSampleModel.java:541)
         at java.awt.image.WritableRaster.setPixel(WritableRaster.java:338)
-        at visad.java3d.ShadowFunctionOrSetTypeJ3D.doTransform(ShadowFunctionOrSetTypeJ3D.java:959)
-        at visad.java3d.DefaultRendererJ3D.doTransform(DefaultRendererJ3D.java:71)
-        at visad.java3d.RendererJ3D.doAction(RendererJ3D.java:153)
+        at visad.java3d.ShadowFunctionOrSetTypeJ2D.doTransform(ShadowFunctionOrSetTypeJ2D.java:959)
+        at visad.java3d.DefaultRendererJ2D.doTransform(DefaultRendererJ2D.java:71)
+        at visad.java3d.RendererJ2D.doAction(RendererJ2D.java:153)
         at visad.DisplayImpl.doAction(DisplayImpl.java:355)
         at visad.ActionImpl.run(ActionImpl.java:145)
         at java.lang.Thread.run(Thread.java:484)
@@ -1236,8 +1237,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                                         constant_color, geometry);
             Shape3D shape = new Shape3D(geometry, appearance);
             group.addChild(shape);
-            if (renderer instanceof DirectManipulationRendererJ3D) {
-              ((DirectManipulationRendererJ3D) renderer).
+            if (renderer instanceof DirectManipulationRendererJ2D) {
+              ((DirectManipulationRendererJ2D) renderer).
                                    setSpatialValues(spatial_values);
             }
           }
@@ -1285,7 +1286,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
       boolean post = false;
 
-      AVControlJ3D control = null;
+      AVControlJ2D control = null;
       Switch swit = null;
       int index = -1;
 
@@ -1296,14 +1297,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
           if (real.equals(Display.Animation) ||
               real.equals(Display.SelectValue)) {
-            swit = new Switch(); // J3D
+            swit = new Switch(); // J2D
             swit.setCapability(Switch.ALLOW_SWITCH_READ);
             swit.setCapability(Switch.ALLOW_SWITCH_WRITE);
             swit.setCapability(BranchGroup.ALLOW_DETACH);
             swit.setCapability(Group.ALLOW_CHILDREN_READ);
             swit.setCapability(Group.ALLOW_CHILDREN_WRITE);
             index = i;
-            control = (AVControlJ3D)
+            control = (AVControlJ2D)
               ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
             break;
           }
@@ -1333,7 +1334,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             }
           }
           if (control != null) {
-            BranchGroup branch = new BranchGroup(); // J3D
+            BranchGroup branch = new BranchGroup(); // J2D
             branch.setCapability(BranchGroup.ALLOW_DETACH);
             swit.addChild(branch);
             post |= Range.doTransform(branch, ((Field) data).getSample(i),
@@ -1348,7 +1349,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         else { // (range_select[0][i] != range_select[0][i])
           if (control != null) {
             // add null Sjape3D as child to maintain order
-            BranchGroup branch = new BranchGroup(); // J3D
+            BranchGroup branch = new BranchGroup(); // J2D
             branch.setCapability(BranchGroup.ALLOW_DETACH);
             swit.addChild(branch);
             branch.addChild(new Shape3D());
@@ -1391,7 +1392,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       }
     }
     else {
-      if (this instanceof ShadowFunctionTypeJ3D) {
+      if (this instanceof ShadowFunctionTypeJ2D) {
         Range.postProcess(group);
       }
     }

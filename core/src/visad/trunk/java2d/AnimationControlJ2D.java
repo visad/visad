@@ -1,6 +1,6 @@
 
 //
-// AnimationControlJ3D.java
+// AnimationControlJ2D.java
 //
 
 /*
@@ -23,19 +23,19 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
 import java.rmi.*;
 
 /**
-   AnimationControlJ3D is the VisAD class for controlling Animation
+   AnimationControlJ2D is the VisAD class for controlling Animation
    display scalars under Java3D.<P>
 
    WLH - manipulate a list of Switch nodes in scene graph.<P>
 */
-public class AnimationControlJ3D extends AVControlJ3D
+public class AnimationControlJ2D extends AVControlJ2D
        implements Runnable, AnimationControl {
 
   private int current;
@@ -47,10 +47,10 @@ public class AnimationControlJ3D extends AVControlJ3D
 
   private boolean alive = true;
 
-  /** AnimationControlJ3D is Serializable, mark as transient */
+  /** AnimationControlJ2D is Serializable, mark as transient */
   private transient Thread animationThread;
 
-  public AnimationControlJ3D(DisplayImplJ3D d, RealType r) {
+  public AnimationControlJ2D(DisplayImplJ2D d, RealType r) {
     super(d);
     real = r;
     current = 0;
@@ -66,7 +66,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
-  AnimationControlJ3D() {
+  AnimationControlJ2D() {
     this(null, null);
   }
 
@@ -84,11 +84,11 @@ public class AnimationControlJ3D extends AVControlJ3D
       }
       catch (VisADException v) {
         v.printStackTrace();
-        throw new VisADError("AnimationControlJ3D.run: " + v.toString());
+        throw new VisADError("AnimationControlJ2D.run: " + v.toString());
       }
       catch (RemoteException v) {
         v.printStackTrace();
-        throw new VisADError("AnimationControlJ3D.run: " + v.toString());
+        throw new VisADError("AnimationControlJ2D.run: " + v.toString());
       }
       try {
         synchronized (this) {
@@ -133,7 +133,7 @@ public class AnimationControlJ3D extends AVControlJ3D
 
   public void setStep(int st) throws VisADException, RemoteException {
     if (st < 0) {
-      throw new DisplayException("AnimationControlJ3D.setStep: " +
+      throw new DisplayException("AnimationControlJ2D.setStep: " +
                                  "step must be > 0");
     }
     step = st;

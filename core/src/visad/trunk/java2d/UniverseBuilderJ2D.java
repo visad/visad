@@ -1,13 +1,13 @@
 
 //
-// UniverseBuilderJ3D.java
+// UniverseBuilderJ2D.java
 //
 
 /*
    copied from Sun's Java 3D API Specification. version 1.0
 */
 
-package visad.java3d;
+package visad.java2d;
 
 import visad.*;
 
@@ -18,18 +18,18 @@ import java.awt.event.*;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
-public class UniverseBuilderJ3D extends Object {
+public class UniverseBuilderJ2D extends Object {
 
     // User-specified canvas
-    Canvas3D canvas; // J3D
+    Canvas3D canvas; // J2D
 
     // Scene graph elements that the user may want access to
-    VirtualUniverse         universe; // J3D
-    Locale                  locale; // J3D
-    TransformGroup          vpTrans; // J3D
-    View                    view; // J3D
+    VirtualUniverse         universe; // J2D
+    Locale                  locale; // J2D
+    TransformGroup          vpTrans; // J2D
+    View                    view; // J2D
 
-    public UniverseBuilderJ3D(Canvas3D c) { // J3D
+    public UniverseBuilderJ2D(Canvas3D c) { // J2D
         this.canvas = c;
 
         // Establish a virtual universe, with a single hi-res Locale

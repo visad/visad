@@ -1,6 +1,6 @@
 
 //
-// ShadowFunctionTypeJ3D.java
+// ShadowFunctionTypeJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -31,12 +31,12 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   The ShadowFunctionTypeJ3D class shadows the FunctionType class,
+   The ShadowFunctionTypeJ2D class shadows the FunctionType class,
    within a DataDisplayLink, under Java3D.<P>
 */
-public class ShadowFunctionTypeJ3D extends ShadowFunctionOrSetTypeJ3D {
+public class ShadowFunctionTypeJ2D extends ShadowFunctionOrSetTypeJ2D {
 
-  ShadowFunctionTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
+  ShadowFunctionTypeJ2D(MathType t, DataDisplayLink link, ShadowType parent)
       throws VisADException, RemoteException {
     super(t, link, parent);
   }

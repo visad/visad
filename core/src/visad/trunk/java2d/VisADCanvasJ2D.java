@@ -1,6 +1,6 @@
 
 //
-// VisADCanvasJ3D.java
+// VisADCanvasJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
  
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
  
@@ -32,15 +32,16 @@ import javax.media.j3d.*;
 import java.awt.*;
  
 /**
-   VisADCanvasJ3D is the VisAD extension of Canvas3D
+   VisADCanvasJ2D is the VisAD extension of Canvas3D
 */
 
-public class VisADCanvasJ3D extends Canvas3D { // J3D
+public class VisADCanvasJ2D extends Canvas3D { // J2D
 
-  private DisplayRendererJ3D displayRenderer;
+  private DisplayRendererJ2D displayRenderer;
   private Component component;
+  Dimension prefSize = new Dimension(0, 0);
 
-  VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c) {
+  VisADCanvasJ2D(DisplayRendererJ2D renderer, Component c) {
     super(null);
     displayRenderer = renderer;
     component = c;
@@ -48,6 +49,10 @@ public class VisADCanvasJ3D extends Canvas3D { // J3D
 
   public void renderField(int i) {
     displayRenderer.drawCursorStringVector(this);
+  }
+
+  public Dimension getPreferredSize() {
+    return prefSize;
   }
 
 }

@@ -1,6 +1,6 @@
 
 //
-// RendererJ3D.java
+// RendererJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
 
 import visad.*;
 
@@ -34,45 +34,45 @@ import java.rmi.*;
 
 
 /**
-   RendererJ3D is the VisAD abstract super-class for graphics rendering
+   RendererJ2D is the VisAD abstract super-class for graphics rendering
    algorithms under Java3D.  These transform Data objects into 3-D
    (or 2-D) depictions in a Display window.<P>
 
-   RendererJ3D is not Serializable and should not be copied
+   RendererJ2D is not Serializable and should not be copied
    between JVMs.<P>
 */
-public abstract class RendererJ3D extends DataRenderer {
+public abstract class RendererJ2D extends DataRenderer {
 
   /** switch is parent of any BranchGroups created by this */
-  Switch sw; // J3D
+  Switch sw; // J2D
   /** parent of sw for 'detach' */
-  BranchGroup swParent; // J3D
+  BranchGroup swParent; // J2D
   /** index of current 'intended' child of Switch sw;
       not necessarily == sw.getWhichChild() */
   int currentIndex;
-  BranchGroup[] branches; // J3D
+  BranchGroup[] branches; // J2D
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
   int actualIndex;
 
-  public RendererJ3D() {
+  public RendererJ2D() {
     super();
   }
 
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
     if (getDisplay() != null || getLinks() != null) {
-      throw new DisplayException("RendererJ3D.setLinks: already set");
+      throw new DisplayException("RendererJ2D.setLinks: already set");
     }
-    if (!(d instanceof DisplayImplJ3D)) {
-      throw new DisplayException("RendererJ3D.setLinks: must be DisplayImplJ3D");
+    if (!(d instanceof DisplayImplJ2D)) {
+      throw new DisplayException("RendererJ2D.setLinks: must be DisplayImplJ2D");
     }
     setDisplay(d);
     setDisplayRenderer(d.getDisplayRenderer());
     setLinks(links);
 
     // set up switch logic for clean BranchGroup replacement
-    sw = new Switch(); // J3D
+    sw = new Switch(); // J2D
     sw.setCapability(Group.ALLOW_CHILDREN_READ);
     sw.setCapability(Group.ALLOW_CHILDREN_WRITE);
     sw.setCapability(Group.ALLOW_CHILDREN_EXTEND);
@@ -83,7 +83,7 @@ public abstract class RendererJ3D extends DataRenderer {
     swParent.setCapability(BranchGroup.ALLOW_DETACH);
     swParent.addChild(sw);
     // make it 'live'
-    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
+    addSwitch((DisplayRendererJ2D) getDisplayRenderer(), swParent);
 
     branches = new BranchGroup[3];
     for (int i=0; i<3; i++) {
@@ -102,46 +102,46 @@ public abstract class RendererJ3D extends DataRenderer {
   public ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowFunctionTypeJ3D(type, link, parent);
+    return new ShadowFunctionTypeJ2D(type, link, parent);
   }
  
   public ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowRealTupleTypeJ3D(type, link, parent);
+    return new ShadowRealTupleTypeJ2D(type, link, parent);
   }
  
   public ShadowType makeShadowRealType(
          RealType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowRealTypeJ3D(type, link, parent);
+    return new ShadowRealTypeJ2D(type, link, parent);
   }
  
   public ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowSetTypeJ3D(type, link, parent);
+    return new ShadowSetTypeJ2D(type, link, parent);
   }
  
   public ShadowType makeShadowTextType(
          TextType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowTextTypeJ3D(type, link, parent);
+    return new ShadowTextTypeJ2D(type, link, parent);
   }
  
   public ShadowType makeShadowTupleType(
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowTupleTypeJ3D(type, link, parent);
+    return new ShadowTupleTypeJ2D(type, link, parent);
   }
 
-  abstract void addSwitch(DisplayRendererJ3D displayRenderer,
-                          BranchGroup branch); // J3D
+  abstract void addSwitch(DisplayRendererJ2D displayRenderer,
+                          BranchGroup branch); // J2D
 
   /** re-transform if needed;
       return false if not done */
   public boolean doAction() throws VisADException, RemoteException {
-    BranchGroup branch; // J3D
+    BranchGroup branch; // J2D
     boolean all_feasible = get_all_feasible();
     boolean any_changed = get_any_changed();
     boolean any_transform_control = get_any_transform_control();
@@ -197,7 +197,7 @@ public abstract class RendererJ3D extends DataRenderer {
           } // end if (branches[currentIndex].numChildren() != 0)
         } // end synchronized (this)
         if (doRemove) {
-          ((DisplayRendererJ3D) getDisplayRenderer()).
+          ((DisplayRendererJ2D) getDisplayRenderer()).
                  switchScene(this, nextIndex);
         }
       }
@@ -222,14 +222,14 @@ public abstract class RendererJ3D extends DataRenderer {
       if (actualIndex != i) {
         return true;
       }
-      sw.setWhichChild(index); // J3D
+      sw.setWhichChild(index); // J2D
       actualIndex = index;
       switchFlags[index] = false;
       return true;
     }
     else {
-      for (int m=0; m<branches[i].numChildren(); m++) { // J3D
-        branches[i].removeChild(m); // J3D
+      for (int m=0; m<branches[i].numChildren(); m++) { // J2D
+        branches[i].removeChild(m); // J2D
       }
       branchNonEmpty[i] = false;
       notify();
@@ -238,8 +238,8 @@ public abstract class RendererJ3D extends DataRenderer {
   }
 
   public void clearScene() {
-    swParent.detach(); // J3D
-    ((DisplayRendererJ3D) getDisplayRenderer()).clearScene(this);
+    swParent.detach(); // J2D
+    ((DisplayRendererJ2D) getDisplayRenderer()).clearScene(this);
   }
 
   /** create a BranchGroup scene graph for Data in links;
@@ -251,7 +251,7 @@ public abstract class RendererJ3D extends DataRenderer {
       2. if Data has not changed, then use Control.checkTicks loop like in
          prepareAction to determine which Control-s have changed */
   public abstract BranchGroup doTransform()
-         throws VisADException, RemoteException; // J3D
+         throws VisADException, RemoteException; // J2D
 
 }
 

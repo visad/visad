@@ -1,6 +1,6 @@
 
 //
-// DisplayPanelJ3D.java
+// DisplayPanelJ2D.java
 //
 
 /*
@@ -23,43 +23,35 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
  
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
  
 // GUI handling
+import java.awt.*;
 import java.awt.swing.*;
-import java.awt.swing.border.*;
 // import com.sun.java.swing.*;
 // import com.sun.java.swing.border.*;
 
-import java.awt.BorderLayout;
-import java.awt.event.*;
-
 import javax.media.j3d.*;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.net.*;
+public class DisplayPanelJ2D extends JPanel {
 
-public class DisplayPanelJ3D extends JPanel {
+  private DisplayImplJ2D display;
+  private DisplayRendererJ2D renderer;
 
-  private DisplayImplJ3D display;
-  private DisplayRendererJ3D renderer;
-
-  public DisplayPanelJ3D(DisplayImplJ3D d) {
+  public DisplayPanelJ2D(DisplayImplJ2D d) {
     display = d;
-    renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
-    setLayout(new BorderLayout());
-    Canvas3D canvas = new VisADCanvasJ3D(renderer, this);
-    add("Center", canvas);
- 
-    UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
-    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas); // J3D
-    universe.addBranchGraph(scene);
+    renderer = (DisplayRendererJ2D) display.getDisplayRenderer();
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+    setAlignmentY(TOP_ALIGNMENT);
     setAlignmentX(LEFT_ALIGNMENT);
+    Canvas3D canvas = new VisADCanvasJ2D(renderer, this);
+    add(canvas);
+ 
+    UniverseBuilderJ2D universe = new UniverseBuilderJ2D(canvas);
+    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas); // J2D
+    universe.addBranchGraph(scene);
 
   }
 

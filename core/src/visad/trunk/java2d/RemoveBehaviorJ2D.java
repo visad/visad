@@ -1,6 +1,6 @@
 
 //
-// RemoveBehaviorJ3D.java
+// RemoveBehaviorJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
  
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
  
@@ -35,25 +35,25 @@ import java.awt.*;
 import java.util.*;
 
 /**
-   RemoveBehaviorJ3D is the VisAD class for Java3D behaviors that
+   RemoveBehaviorJ2D is the VisAD class for Java3D behaviors that
    remove BranchGroups after waiting for at least 1 frame.<P>
 */
 
-public class RemoveBehaviorJ3D extends Behavior { // J3D
+public class RemoveBehaviorJ2D extends Behavior { // J2D
 
   /** DisplayRenderer for Display */
-  DisplayRendererJ3D display_renderer;
+  DisplayRendererJ2D display_renderer;
 
   boolean waiting = false;
 
   Vector removeVector = new Vector();
 
-  public RemoveBehaviorJ3D(DisplayRendererJ3D r) {
+  public RemoveBehaviorJ2D(DisplayRendererJ2D r) {
     display_renderer = r;
     waiting = false;
   }
 
-  public synchronized void addRemove(RendererJ3D renderer, int index) {
+  public synchronized void addRemove(RendererJ2D renderer, int index) {
     removeVector.addElement(new RendererIndexCount(renderer, index, 1));
     if (!waiting) {
       setWakeup();
@@ -92,11 +92,11 @@ public class RemoveBehaviorJ3D extends Behavior { // J3D
   }
 
   private class RendererIndexCount extends Object {
-    RendererJ3D renderer;
+    RendererJ2D renderer;
     int index;
     int count;
 
-    RendererIndexCount(RendererJ3D r, int i, int c) {
+    RendererIndexCount(RendererJ2D r, int i, int c) {
       renderer = r;
       index = i;
       count = c;

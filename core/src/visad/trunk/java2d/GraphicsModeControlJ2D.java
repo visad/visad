@@ -1,6 +1,6 @@
 
 //
-// GraphicsModeControlJ3D.java
+// GraphicsModeControlJ2D.java
 //
 
 /*
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.java3d;
+package visad.java2d;
  
 import visad.*;
 
@@ -32,13 +32,13 @@ import java.rmi.*;
 import javax.media.j3d.*;
 
 /**
-   GraphicsModeControlJ3D is the VisAD class for controlling various
+   GraphicsModeControlJ2D is the VisAD class for controlling various
    mode settings for rendering.<P>
 
-   A GraphicsModeControlJ3D is not linked to any DisplayRealType or
+   A GraphicsModeControlJ2D is not linked to any DisplayRealType or
    ScalarMap.  It is linked to a DisplayImpl.<P>
 */
-public class GraphicsModeControlJ3D extends Control
+public class GraphicsModeControlJ2D extends Control
        implements GraphicsModeControl {
 
   private float lineWidth; // for LineAttributes; >= 1.0
@@ -52,7 +52,7 @@ public class GraphicsModeControlJ3D extends Control
   /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION */
   private int projectionPolicy;
 
-  public GraphicsModeControlJ3D(DisplayImpl d) {
+  public GraphicsModeControlJ2D(DisplayImpl d) {
     super(d);
     lineWidth = 1.0f;
     pointSize = 1.0f;
@@ -79,7 +79,7 @@ public class GraphicsModeControlJ3D extends Control
   public void setLineWidth(float width)
          throws VisADException, RemoteException {
     if (width < 1.0f) {
-      throw new DisplayException("GraphicsModeControlJ3D." +
+      throw new DisplayException("GraphicsModeControlJ2D." +
                                  "setLineWidth: width < 1.0");
     }
     lineWidth = width;
@@ -93,7 +93,7 @@ public class GraphicsModeControlJ3D extends Control
   public void setPointSize(float size)
          throws VisADException, RemoteException {
     if (size < 1.0f) {
-      throw new DisplayException("GraphicsModeControlJ3D." +
+      throw new DisplayException("GraphicsModeControlJ2D." +
                                  "setPointSize: size < 1.0");
     }
     pointSize = size;
@@ -146,7 +146,7 @@ public class GraphicsModeControlJ3D extends Control
       changeControl(true);
     }
     else {
-      throw new DisplayException("GraphicsModeControlJ3D." +
+      throw new DisplayException("GraphicsModeControlJ2D." +
                                  "setTransparencyMode: bad mode");
     }
   }
@@ -156,15 +156,15 @@ public class GraphicsModeControlJ3D extends Control
     if (policy == View.PARALLEL_PROJECTION ||
         policy == View.PERSPECTIVE_PROJECTION) {
       projectionPolicy = policy;
-      DisplayRendererJ3D displayRenderer =
-        (DisplayRendererJ3D) getDisplayRenderer();
+      DisplayRendererJ2D displayRenderer =
+        (DisplayRendererJ2D) getDisplayRenderer();
       if (displayRenderer != null) {
         displayRenderer.getView().setProjectionPolicy(projectionPolicy);
       }
       changeControl(true);
     }
     else {
-      throw new DisplayException("GraphicsModeControlJ3D." +
+      throw new DisplayException("GraphicsModeControlJ2D." +
                                  "setProjectionPolicy: bad policy");
     }
   }
