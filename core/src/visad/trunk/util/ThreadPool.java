@@ -38,7 +38,7 @@ public class ThreadPool
   private static final String DEFAULT_PREFIX = "Minnow";
 
 /* WLH 11 April 2001
-there's a deadlock possibility here, if runing ActionImpls are
+there's a deadlock possibility here, if running ActionImpls are
 waiting for other ActionImpls to run
 */
   private static final int DEFAULT_MIN_THREADS = 5; // WLH 11 April 2001
