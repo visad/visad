@@ -226,7 +226,7 @@ public class NuView
 
     AnimationControl animCtl = (AnimationControl )animMap.getControl();
 
-    HistogramWidget histoWidget = new HistogramWidget();
+    HistogramWidget histoWidget = new HistogramWidget(colorMap);
 
     EventWidget eventWidget = new EventWidget(file, eventRef, trackRef,
                                               animCtl, trackMap, histoWidget);

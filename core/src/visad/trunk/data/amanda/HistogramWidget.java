@@ -34,12 +34,15 @@ public class HistogramWidget
     }
   }
 
+  private ScalarMap dpyColorMap;
   private DataReferenceImpl ref;
   private ScalarMap xMap, yMap, cMap;
 
-  public HistogramWidget()
+  public HistogramWidget(ScalarMap dpyColorMap)
     throws RemoteException, VisADException
   {
+    this.dpyColorMap = dpyColorMap;
+
     DisplayImplJ2D dpy = new DisplayImplJ2D("histogram");
 
     xMap = new ScalarMap(countType, Display.XAxis);
@@ -70,7 +73,7 @@ public class HistogramWidget
   public void setEvent(Event evt)
     throws RemoteException, VisADException
   {
-    float[][] histoData = evt.makeHistogram(xMap, yMap, cMap);
+    float[][] histoData = evt.makeHistogram(xMap, yMap, cMap, dpyColorMap);
 
     Gridded2DSet set = new Gridded2DSet(histoType, histoData,
                                         histoData[0].length);
