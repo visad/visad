@@ -53,6 +53,15 @@ public class ShadowRealTypeJ2D extends ShadowScalarTypeJ2D {
 
   /** transform data into a Java2D VisADSceneGraphObject;
       return true if need post-process */
+  public boolean doTransform(VisADGroup group, Data data, float[] value_array,
+                      float[] default_values, DataRenderer renderer)
+         throws VisADException, RemoteException {
+    return ((ShadowRealType) adaptedShadowType).
+                       doTransform(group, data, value_array,
+                                   default_values, renderer, this);
+  }
+
+/* WLH 7 May 99
   boolean doTransform(VisADGroup group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
@@ -126,6 +135,7 @@ public class ShadowRealTypeJ2D extends ShadowScalarTypeJ2D {
     }
     return false;
   }
+*/
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */

@@ -55,6 +55,17 @@ public class ShadowTextTypeJ3D extends ShadowScalarTypeJ3D {
  
   /** transform data into a Java3D scene graph;
       return true if need post-process */
+  public boolean doTransform(Group group, Data data, float[] value_array,
+                      float[] default_values, DataRenderer renderer)
+         throws VisADException, RemoteException {
+    boolean post = ((ShadowTextType) adaptedShadowType).
+                        doTransform(group, data, value_array,
+                                    default_values, renderer, this);
+    ensureNotEmpty(group);
+    return post;
+  }
+
+/* WLH 7 May 99
   boolean doTransform(Group group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
@@ -127,13 +138,12 @@ public class ShadowTextTypeJ3D extends ShadowScalarTypeJ3D {
 
     // add values to value_array according to SelectedMapVector
     if (adaptedShadowType.getIsTerminal()) {
-/* ????
       // cannot be any Reference when RealType is terminal
-      return terminalTupleOrScalar(group, display_values, text_value,
-                                   text_control, valueArrayLength,
-                                   valueToScalar, default_values,
-                                   inherited_values, renderer);
-*/
+      // ????
+      // return terminalTupleOrScalar(group, display_values, text_value,
+      //                              text_control, valueArrayLength,
+      //                              valueToScalar, default_values,
+      //                              inherited_values, renderer);
     }
     else {
       // nothing to render at a non-terminal RealType
@@ -141,6 +151,7 @@ public class ShadowTextTypeJ3D extends ShadowScalarTypeJ3D {
     ensureNotEmpty(group);
     return false;
   }
+*/
  
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */

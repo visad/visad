@@ -39,5 +39,84 @@ public class ShadowRealType extends ShadowScalarType {
     super(type, link, parent);
   }
 
+  /** transform data into a (Java3D or Java2D) scene graph;
+      add generated scene graph components as children of group;
+      group is Group (Java3D) or VisADGroup (Java2D);
+      value_array are inherited valueArray values;
+      default_values are defaults for each display.DisplayRealTypeVector;
+      return true if need post-process */
+  public boolean doTransform(Object group, Data data, float[] value_array,
+                             float[] default_values, DataRenderer renderer,
+                             ShadowType shadow_api)
+         throws VisADException, RemoteException {
+
+    if (data.isMissing()) return false;
+    if (LevelOfDifficulty == NOTHING_MAPPED) return false;
+
+    if (!(data instanceof Real)) {
+      throw new DisplayException("data must be Real: " +
+                                 "ShadowRealType.doTransform");
+    }
+ 
+    // get some precomputed values useful for transform
+    // length of ValueArray
+    int valueArrayLength = display.getValueArrayLength();
+    // mapping from ValueArray to DisplayScalar
+    int[] valueToScalar = display.getValueToScalar();
+    // mapping from ValueArray to MapVector
+    int[] valueToMap = display.getValueToMap();
+    Vector MapVector = display.getMapVector();
+ 
+    // array to hold values for various mappings
+    float[][] display_values = new float[valueArrayLength][];
+ 
+    // get values inherited from parent;
+    // assume these do not include SelectRange, SelectValue
+    // or Animation values - see temporary hack in
+    // DataRenderer.isTransformControl
+    int[] inherited_values = getInheritedValues();
+    for (int i=0; i<valueArrayLength; i++) {
+      if (inherited_values[i] > 0) {
+        display_values[i] = new float[1];
+        display_values[i][0] = value_array[i];
+      }
+    }
+ 
+    Real real = (Real) data;
+
+    RealType rtype = (RealType) getType();
+    RealType[] realComponents = {rtype};
+    double[][] value = new double[1][1];
+    value[0][0] = real.getValue(rtype.getDefaultUnit());
+    ShadowRealType[] RealComponents = {this};
+    mapValues(display_values, value, RealComponents);
+
+    // get any text String and TextControl inherited from parent
+    String text_value = getParentText();
+    TextControl text_control = getParentTextControl();
+
+    boolean[][] range_select =
+      assembleSelect(display_values, 1, valueArrayLength,
+                     valueToScalar, display);
+ 
+    if (range_select[0] != null && !range_select[0][0]) {
+      // data not selected
+      return false;
+    }
+
+    // add values to value_array according to SelectedMapVector
+    if (getIsTerminal()) {
+      // cannot be any Reference when RealType is terminal
+      return terminalTupleOrScalar(group, display_values, text_value,
+                                   text_control, valueArrayLength,
+                                   valueToScalar, default_values,
+                                   inherited_values, renderer, shadow_api);
+    }
+    else {
+      // nothing to render at a non-terminal RealType
+    }
+    return false;
+  }
+
 }
 

@@ -2584,7 +2584,7 @@ System.out.println("color_values: nummissing = " + nummissing);
  
       // to be rendered in a post-process to scanning data
       throw new UnimplementedException("terminal LEGAL unimplemented: " +
-                                       "ShadowTypeJ3D.terminalTupleOrReal");
+                                       "ShadowType.terminalTupleOrReal");
     }
   }
 
@@ -2639,6 +2639,12 @@ System.out.println("color_values: nummissing = " + nummissing);
 
   public boolean recurseRange(Object group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
+         throws VisADException, RemoteException {
+    return false;
+  }
+
+  public boolean recurseComponent(int i, Object group, Data data,
+             float[] value_array, float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
     return false;
   }

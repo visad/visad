@@ -53,6 +53,15 @@ public class ShadowTextTypeJ2D extends ShadowScalarTypeJ2D {
  
   /** transform data into a Java2D VisADSceneGraphObject;
       return true if need post-process */
+  public boolean doTransform(VisADGroup group, Data data, float[] value_array,
+                      float[] default_values, DataRenderer renderer)
+         throws VisADException, RemoteException {
+    return ((ShadowTextType) adaptedShadowType).
+                       doTransform(group, data, value_array,
+                                   default_values, renderer, this);
+  }
+
+/* WLH 7 May 99
   boolean doTransform(VisADGroup group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
@@ -118,19 +127,18 @@ public class ShadowTextTypeJ2D extends ShadowScalarTypeJ2D {
 
     // add values to value_array according to SelectedMapVector
     if (adaptedShadowType.getIsTerminal()) {
-/* ????
-      // cannot be any Reference when RealType is terminal
-      return terminalTupleOrScalar(group, display_values, text_value,
-                                   text_control, valueArrayLength,
-                                   valueToScalar, default_values,
-                                   inherited_values, renderer);
-*/
+      // ????
+      // return terminalTupleOrScalar(group, display_values, text_value,
+      //                              text_control, valueArrayLength,
+      //                              valueToScalar, default_values,
+      //                              inherited_values, renderer);
     }
     else {
       // nothing to render at a non-terminal RealType
     }
     return false;
   }
+*/
  
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */

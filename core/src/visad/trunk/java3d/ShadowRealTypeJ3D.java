@@ -55,6 +55,17 @@ public class ShadowRealTypeJ3D extends ShadowScalarTypeJ3D {
 
   /** transform data into a Java3D scene graph;
       return true if need post-process */
+  public boolean doTransform(Group group, Data data, float[] value_array,
+                      float[] default_values, DataRenderer renderer)
+         throws VisADException, RemoteException {
+    boolean post = ((ShadowRealType) adaptedShadowType).
+                        doTransform(group, data, value_array,
+                                    default_values, renderer, this);
+    ensureNotEmpty(group);
+    return post;
+  }
+
+/* WLH 7 May 99
   boolean doTransform(Group group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
@@ -136,6 +147,7 @@ public class ShadowRealTypeJ3D extends ShadowScalarTypeJ3D {
     ensureNotEmpty(group);
     return false;
   }
+*/
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
