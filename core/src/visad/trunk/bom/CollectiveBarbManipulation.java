@@ -47,14 +47,21 @@ public class CollectiveBarbManipulation extends Object
 
   private int nindex = 0;
   private int[] ntimes;
-  private int max_ntimes = 0;
   private Tuple[][] tuples;
   private FlatField[] wind_stations;
   private Set[] time_sets;
   private int which_time = -1;
   private int[] which_times;
 
-  private DisplayImplJ3D display;
+  private Set time_set = null;
+  private int global_ntimes = 0;
+  private double[] times;
+  private int[][] global_to_station; // [nindex][global_ntimes]
+  private int[][] station_to_global; // [nindex][ntimes[i]]
+
+  private float[] lats;
+  private float[] lons;
+
   private DataReferenceImpl stations_ref;
   private DataReferenceImpl[] station_refs;
   private BarbRendererJ3D barb_renderer;
@@ -63,19 +70,53 @@ public class CollectiveBarbManipulation extends Object
 
   private AnimationControl control = null;
 
+  private DisplayImplJ3D display;
+  private FieldImpl wind_field;
+  private boolean absolute;
+  private float inner_distance;
+  private float outer_distance;
+  private double inner_time;
+  private double outer_time;
+
+  int azimuth_index;
+  int radial_index;
+  int lat_index;
+  int lon_index;
+
+  int last_sta = -1;
+  int last_time = -1;
+  Tuple[][] old_tuples;
+
+  private float[][] azimuths;
+  private float[][] radials;
+  private float[][] old_azimuths;
+  private float[][] old_radials;
+
   /**
-     wind_field should have MathType:
+     wf should have MathType:
        (station_index -> (Time -> tuple))
      where tuple is flat and includes RealTypes mapped to:
        Flow1Azimuth
        Flow1Radial
        Latitude
        Longitude
+     in the DisplayImpl d;
+     absolute indicates absolute or relative value adjustment
+     influence is 1.0 inside inner_*, 0.0 outside outer_*,
+     and linear between
   */
-  public CollectiveBarbManipulation(FieldImpl wind_field,
-                                     DisplayImplJ3D d)
+  public CollectiveBarbManipulation(FieldImpl wf,
+                 DisplayImplJ3D d, boolean abs,
+                 float id, float od, float it, float ot)
          throws VisADException, RemoteException {
+    wind_field = wf;
     display = d;
+    absolute = abs;
+    inner_distance = id;
+    outer_distance = od;
+    inner_time = it;
+    outer_time = ot;
+
     control = (AnimationControl) display.getControl(AnimationControl.class);
     if (control == null) {
       throw new CollectiveBarbException("display must include " +
@@ -112,8 +153,8 @@ public class CollectiveBarbManipulation extends Object
 
       nindex = wind_field.getLength();
       ntimes = new int[nindex];
-      max_ntimes = 0;
       tuples = new Tuple[nindex][];
+      old_tuples = new Tuple[nindex][];
       which_times = new int[nindex];
       wind_stations = new FlatField[nindex];
       time_sets = new Set[nindex];
@@ -121,10 +162,13 @@ public class CollectiveBarbManipulation extends Object
         wind_stations[i] = (FlatField) wind_field.getSample(i);
         ntimes[i] = wind_stations[i].getLength();
         time_sets[i] = wind_stations[i].getDomainSet();
-        if (ntimes[i] > max_ntimes) max_ntimes = ntimes[i];
         tuples[i] = new Tuple[ntimes[i]];
+        old_tuples[i] = new Tuple[ntimes[i]];
         for (int j=0; j<ntimes[i]; j++) {
           tuples[i][j] = (Tuple) wind_stations[i].getSample(j);
+          Real[] reals = tuples[i][j].getRealComponents();
+          azimuths[i][j] = (float) reals[azimuth_index].getValue();
+          radials[i][j] = (float) reals[radial_index].getValue();
         }
       }
     }
@@ -133,10 +177,10 @@ public class CollectiveBarbManipulation extends Object
                      wind_field_type);
     }
 
-    int azimuth_index = -1;
-    int radial_index = -1;
-    int lat_index = -1;
-    int lon_index = -1;
+    azimuth_index = -1;
+    radial_index = -1;
+    lat_index = -1;
+    lon_index = -1;
     Vector scalar_map_vector = display.getMapVector();
     int tuple_dim = wind_type.getDimension();
     RealType[] reals = wind_type.getRealComponents();
@@ -172,11 +216,19 @@ public class CollectiveBarbManipulation extends Object
                " " + azimuth_index + " " + radial_index);
     }
 
+    lats = new float[nindex];
+    lons = new float[nindex];
+    for (int i=0; i<nindex; i++) {
+      float[][] values = wind_stations[i].getFloats(false);
+      lats[i] = values[lat_index][0];
+      lons[i] = values[lon_index][0];
+    }
+
     stations_ref = new DataReferenceImpl("stations_ref");
     stations_ref.setData(wind_field);
     barb_renderer = new BarbRendererJ3D();
     display.addReferences(barb_renderer, stations_ref);
-    barb_renderer.toggle(false);
+    // barb_renderer.toggle(false);
     which_time = -1;
     station_refs = new DataReferenceImpl[nindex];
     barb_manipulation_renderers = new BarbManipulationRendererJ3D[nindex];
@@ -206,32 +258,55 @@ public class CollectiveBarbManipulation extends Object
       barb_manipulation_renderers[i].stop_direct();
     }
 
-    Set time_set = control.getSet();
-    if (time_set == null) return;
+    Set ts = control.getSet();
+    if (ts == null) return;
+    if (time_set == null) {
+      time_set = ts;
+      global_ntimes = time_set.getLength();
+      times = new double[global_ntimes];
+      global_to_station = new int[nindex][global_ntimes];
+      station_to_global = new int[nindex][];
+      for (int i=0; i<nindex; i++) {
+        station_to_global[i] = new int[ntimes[i]];
+        for (int j=0; j<ntimes[i]; j++) station_to_global[i][j] = -1;
+      }
+      RealTupleType in = ((SetType) time_set.getType()).getDomain();
+      for (int j=0; j<global_ntimes; j++) {
+        int[] indices = {j};
+        double[][] fvalues = time_set.indexToDouble(indices);
+        times[j] = fvalues[0][0];
+        for (int i=0; i<nindex; i++) {
+          RealTupleType out = ((SetType) time_sets[i].getType()).getDomain();
+          double[][] values = CoordinateSystem.transformCoordinates(
+                                   out, time_sets[i].getCoordinateSystem(),
+                                   time_sets[i].getSetUnits(),
+                                   null /* errors */,
+                                   in, time_set.getCoordinateSystem(),
+                                   time_set.getSetUnits(),
+                                   null /* errors */, fvalues);
+          if (time_sets[i].getLength() == 1) {
+            indices = new int[] {0};
+          }
+          else {
+            indices = time_sets[i].doubleToIndex(values);
+          }
+          global_to_station[i][j] = indices[0];
+          station_to_global[i][indices[0]] = j;
+        } // end for (int i=0; i<nindex; i++)
+      } // end for (int j=0; j<global_ntimes; j++)
+    }
+    else { // time_set != null
+      if (!time_set.equals(ts)) {
+        throw new CollectiveBarbException("time Set changed");
+      }
+    }
+
     int current = control.getCurrent();
     if (current < 0) return;
     which_time = current;
-    int[] indices = {current};
-    double[][] fvalues = time_set.indexToDouble(indices);
-    double value = fvalues[0][0];
-    if (value != value) return;
-    RealTupleType in = ((SetType) time_set.getType()).getDomain();
 
     for (int i=0; i<nindex; i++) {
-      RealTupleType out = ((SetType) time_sets[i].getType()).getDomain();
-      double[][] values = CoordinateSystem.transformCoordinates(
-                               out, time_sets[i].getCoordinateSystem(),
-                               time_sets[i].getSetUnits(), null /* errors */,
-                               in, time_set.getCoordinateSystem(),
-                               time_set.getSetUnits(),
-                               null /* errors */, fvalues);
-      if (time_sets[i].getLength() == 1) {
-        indices = new int[] {0};
-      }
-      else {
-        indices = time_sets[i].doubleToIndex(values);
-      }
-      int index = indices[0];
+      int index = global_to_station[i][current];
       if (index < tuples[i].length) {
         station_refs[i].setData(tuples[i][index]);
         which_times[i] = index;
@@ -257,13 +332,24 @@ public class CollectiveBarbManipulation extends Object
     public void doAction() throws VisADException, RemoteException {
       int time_index = which_times[sta_index];
       if (time_index < 0) return;
+
+      if (last_sta != sta_index || last_time != time_index) {
+        for (int i=0; i<nindex; i++) {
+          for (int j=0; j<ntimes[i]; j++) {
+            old_tuples[i][j] = tuples[i][j];
+            old_azimuths[i][j] = azimuths[i][j];
+            old_radials[i][j] = radials[i][j];
+          }
+        }
+      }
+
       Tuple wind = (Tuple) ref.getData();
       wind_stations[sta_index].setSample(time_index, wind);
       tuples[sta_index][time_index] = wind;
     }
   }
 
-  private static final int NSTAS = 3;
+  private static final int NSTAS = 5; // actually NSTAS * NSTAS
   private static final int NTIMES = 10;
 
   public static void main(String args[])
@@ -388,7 +474,8 @@ public class CollectiveBarbManipulation extends Object
     frame.setSize(500, 700);
     frame.setVisible(true);
     CollectiveBarbManipulation cbm =
-      new CollectiveBarbManipulation(field, display);
+      new CollectiveBarbManipulation(field, display, false,
+                                     0.0f, 1.0f, 0.0f, 1.0f);
   }
 }
 

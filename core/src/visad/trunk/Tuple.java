@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
+import java.util.Vector;
 
 /**
    Tuple is the general VisAD data class for vectors.
@@ -123,6 +124,28 @@ public class Tuple extends DataImpl {
     else {
       return new TupleType(types);
     }
+  }
+
+  public Real[] getRealComponents()
+         throws VisADException, RemoteException {
+    Vector reals = new Vector();
+    for (int i=0; i<tupleComponents.length; i++) {
+      if (tupleComponents[i] instanceof Real) {
+        reals.addElement(tupleComponents[i]);
+      }
+      else if (tupleComponents[i] instanceof RealTuple) {
+        RealTuple rt = (RealTuple) tupleComponents[i]; 
+        for (int j=0; j<rt.getDimension(); j++) {
+          reals.addElement(rt.getComponent(j));
+        }
+      }
+    }
+    if (reals.size() == 0) return null;
+    Real[] realComponents = new Real[reals.size()];
+    for (int i=0; i<reals.size(); i++) {
+      realComponents[i] = (Real) reals.elementAt(i);
+    }
+    return realComponents;
   }
 
   /** return number of components */
