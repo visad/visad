@@ -140,6 +140,10 @@ public abstract class ScalarType extends MathType implements Comparable {
     return Name;
   }
 
+  public String getNameWithBlanks() {
+    return getName().replace('_', ' ');
+  }
+
   /**
    * Get the <CODE>ScalarType</CODE> which has the specified name.
    *
