@@ -126,7 +126,606 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
   public abstract String prettyString(int indent);
 
-  /** run 'java visad.MathType' to test MathType.prettyString() */
+  /** Guesses at a set of &quot;default&quot; mappings for this MathType.
+      Intuitively, first we look for a FunctionType with domain dimension 3,
+      then a nested group of FunctionTypes with 'cumulative' domain
+      dimension 3.  Next we look for a FunctionType or nested group of
+      FunctionTypes with domain dimension 2.  Last, we look for a
+      FunctionType with domain dimension 1.  Nested groups of FunctionTypes
+      may be nested with TupleTypes, which is indicated by some of the
+      MathType templates.
+  */
+  public ScalarMap[] guessMaps(boolean threeD) {
+    MathType m = this;
+
+    // set up aliases for "time" RealType to be mapped to Animation
+    // NOTE: other acceptable 1-D function domains could be added here,
+    //       by allocating a larger DataStruct array, then specifying
+    //              ds[*] = new DataStruct("X");
+    //       where "X" is the name of the 1-D function domain RealType
+    //       that is desired to be automatically mapped to Animation.
+    DataStruct[] ds = new DataStruct[3];
+    ds[0] = new DataStruct("time");
+    ds[1] = new DataStruct("Time");
+    ds[2] = new DataStruct("TIME");
+
+    // find a FunctionType whose 1-D domain is a RealType matching above
+    findTimeFunction(m, ds);
+    int timeFunc = -1;
+    for (int i=0; i<ds.length; i++) {
+      if (ds[i].fvalid && ds[i].funcs.size() > 0) {
+        timeFunc = i;
+        break;
+      }
+    }
+
+    // compile a list of FunctionTypes to search through for template matching
+    Vector flist = new Vector();
+    if (timeFunc < 0) buildFunctionList(m, flist);
+    else {
+      // found a "time" RealType; only search ranges of "time" FunctionTypes
+      for (int i=0; i<ds[timeFunc].funcs.size(); i++) {
+        FunctionType f = (FunctionType) ds[timeFunc].funcs.elementAt(i);
+        buildFunctionList(f.getRange(), flist);
+      }
+    }
+
+    // look for matches between templates and FunctionTypes list
+    int numfuncs = flist.size();
+    for (int template=(threeD ? 0 : 4); template<8; template++) {
+      for (int fi=0; fi<numfuncs; fi++) {
+        FunctionType ft = (FunctionType) flist.elementAt(fi);
+        switch (template) {
+          case 0: // 3-D ONLY
+            //   ((x, y, z) -> (..., a, ...))
+            //   ((x, y, z) -> a)
+            // x -> X, y -> Y, z -> Z, a -> IsoContour
+            if (!ft.getFlat()) break;
+            RealTupleType domain = ft.getDomain();
+            if (domain.getDimension() != 3) break;
+            MathType range = ft.getRange();
+            RealType x, y, z;
+            try {
+              x = (RealType) domain.getComponent(0);
+              y = (RealType) domain.getComponent(1);
+              z = (RealType) domain.getComponent(2);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            RealType a;
+            if (range instanceof RealType) {
+              a = (RealType) range;
+              try {
+                ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
+                smaps[0] = new ScalarMap(x, Display.XAxis);
+                smaps[1] = new ScalarMap(y, Display.YAxis);
+                smaps[2] = new ScalarMap(z, Display.ZAxis);
+                smaps[3] = new ScalarMap(a, Display.IsoContour);
+                if (timeFunc >= 0) {
+                  Object o = ds[timeFunc].funcs.elementAt(0);
+                  RealTupleType rtt = ((FunctionType) o).getDomain();
+                  RealType time = (RealType) rtt.getComponent(0);
+                  smaps[4] = new ScalarMap(time, Display.Animation);
+                }
+                return smaps;
+              }
+              catch (VisADException exc) { }
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType mt;
+                try {
+                  mt = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  break;
+                }
+                if (mt instanceof RealType) {
+                  a = (RealType) mt;
+                  try {
+                    ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
+                    smaps[0] = new ScalarMap(x, Display.XAxis);
+                    smaps[1] = new ScalarMap(y, Display.YAxis);
+                    smaps[2] = new ScalarMap(z, Display.ZAxis);
+                    smaps[3] = new ScalarMap(a, Display.IsoContour);
+                    if (timeFunc >= 0) {
+                      Object o = ds[timeFunc].funcs.elementAt(0);
+                      RealTupleType rtt = ((FunctionType) o).getDomain();
+                      RealType time = (RealType) rtt.getComponent(0);
+                      smaps[4] = new ScalarMap(time, Display.Animation);
+                    }
+                    return smaps;
+                  }
+                  catch (VisADException exc) {
+                    break;
+                  }
+                }
+              }
+            }
+            break;
+
+          case 1: // 3-D ONLY
+            //   (z -> ((x, y) -> (..., a, ...)))
+            //   (z -> (..., ((x, y) -> (..., a, ...)), ...))
+            //   (z -> ((x, y) -> a))
+            //   (z -> (..., ((x, y) -> a), ...))
+            // x -> X, y -> Y, z -> Z, a -> IsoContour
+            domain = ft.getDomain();
+            if (domain.getDimension() != 1) break;
+            try {
+              z = (RealType) domain.getComponent(0);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            range = ft.getRange();
+            FunctionType rf = null;
+            if (range instanceof FunctionType) {
+              rf = (FunctionType) range;
+              if (!rf.getFlat() || rf.getDomain().getDimension() != 2) break;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  rf = null;
+                  break;
+                }
+                if (ttci instanceof FunctionType) {
+                  FunctionType ftci = (FunctionType) ttci;
+                  if (ftci.getFlat() && ftci.getDomain().getDimension() == 2) {
+                    rf = ftci;
+                  }
+                  break;
+                }
+              }
+            }
+            if (rf == null) break;
+            RealTupleType rfd = rf.getDomain();
+            try {
+              x = (RealType) rfd.getComponent(0);
+              y = (RealType) rfd.getComponent(1);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            range = rf.getRange();
+            a = null;
+            if (range instanceof RealType) {
+              a = (RealType) range;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  break;
+                }
+                if (ttci instanceof RealType) {
+                  a = (RealType) ttci;
+                  break;
+                }
+              }
+            }
+            if (a == null) break;
+            try {
+              ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
+              smaps[0] = new ScalarMap(x, Display.XAxis);
+              smaps[1] = new ScalarMap(y, Display.YAxis);
+              smaps[2] = new ScalarMap(z, Display.ZAxis);
+              smaps[3] = new ScalarMap(a, Display.IsoContour);
+              if (timeFunc >= 0) {
+                Object o = ds[timeFunc].funcs.elementAt(0);
+                RealTupleType rtt = ((FunctionType) o).getDomain();
+                RealType time = (RealType) rtt.getComponent(0);
+                smaps[4] = new ScalarMap(time, Display.Animation);
+              }
+              return smaps;
+            }
+            catch (VisADException exc) {
+              break;
+            }
+
+          case 2: // 3-D ONLY
+            //   ((x, y) -> (z -> (..., a, ...)))
+            //   ((x, y) -> (..., (z -> (..., a, ...)), ...))
+            //   ((x, y) -> (z -> a))
+            //   ((x, y) -> (..., (z -> a), ...))
+            // x -> X, y -> Y, z -> Z, a -> RGB
+            //
+            domain = ft.getDomain();
+            if (domain.getDimension() != 2) break;
+            try {
+              x = (RealType) domain.getComponent(0);
+              y = (RealType) domain.getComponent(1);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            range = ft.getRange();
+            rf = null;
+            if (range instanceof FunctionType) {
+              rf = (FunctionType) range;
+              if (!rf.getFlat() || rf.getDomain().getDimension() != 1) break;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  rf = null;
+                  break;
+                }
+                if (ttci instanceof FunctionType) {
+                  FunctionType ftci = (FunctionType) ttci;
+                  if (ftci.getFlat() && ftci.getDomain().getDimension() == 1) {
+                    rf = ftci;
+                  }
+                  break;
+                }
+              }
+            }
+            if (rf == null) break;
+            rfd = rf.getDomain();
+            try {
+              z = (RealType) rfd.getComponent(0);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            range = rf.getRange();
+            a = null;
+            if (range instanceof RealType) {
+              a = (RealType) range;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  break;
+                }
+                if (ttci instanceof RealType) {
+                  a = (RealType) ttci;
+                  break;
+                }
+              }
+            }
+            if (a == null) break;
+            try {
+              ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
+              smaps[0] = new ScalarMap(x, Display.XAxis);
+              smaps[1] = new ScalarMap(y, Display.YAxis);
+              smaps[2] = new ScalarMap(z, Display.ZAxis);
+              smaps[3] = new ScalarMap(a, Display.IsoContour);
+              if (timeFunc >= 0) {
+                Object o = ds[timeFunc].funcs.elementAt(0);
+                RealTupleType rtt = ((FunctionType) o).getDomain();
+                RealType time = (RealType) rtt.getComponent(0);
+                smaps[4] = new ScalarMap(time, Display.Animation);
+              }
+              return smaps;
+            }
+            catch (VisADException exc) {
+              break;
+            }
+
+          case 3: // 3-D ONLY
+            //   (x -> (y -> (z -> (..., a, ...))))
+            //   (x -> (..., (y -> (z -> (..., a, ...))), ...))
+            //   (x -> (y -> (..., z -> (..., a, ...)), ...))
+            //   (x -> (..., (y -> (..., (z -> (..., a, ...)), ...)), ...))
+            //   (x -> (y -> (z -> a)))
+            //   (x -> (..., (y -> (z -> a)), ...))
+            //   (x -> (y -> (..., (z -> a), ...)))
+            //   (x -> (..., (y -> (..., (z -> a), ...)), ...))
+            // x -> X, y -> Y, z -> Z, a -> RGB
+            domain = ft.getDomain();
+            if (domain.getDimension() != 1) break;
+            try {
+              x = (RealType) domain.getComponent(0);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            // find nested "y"
+            range = ft.getRange();
+            rf = null;
+            if (range instanceof FunctionType) {
+              rf = (FunctionType) range;
+              if (rf.getDomain().getDimension() != 1) break;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  rf = null;
+                  break;
+                }
+                if (ttci instanceof FunctionType) {
+                  FunctionType ftci = (FunctionType) ttci;
+                  if (ftci.getDomain().getDimension() == 1) {
+                    rf = ftci;
+                  }
+                  break;
+                }
+              }
+            }
+            if (rf == null) break;
+            rfd = rf.getDomain();
+            try {
+              y = (RealType) rfd.getComponent(0);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            // find nested "z"
+            range = rf.getRange();
+            rf = null;
+            if (range instanceof FunctionType) {
+              rf = (FunctionType) range;
+              if (rf.getDomain().getDimension() != 1) break;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  rf = null;
+                  break;
+                }
+                if (ttci instanceof FunctionType) {
+                  FunctionType ftci = (FunctionType) ttci;
+                  if (ftci.getDomain().getDimension() == 1) {
+                    rf = ftci;
+                  }
+                  break;
+                }
+              }
+            }
+            if (rf == null) break;
+            rfd = rf.getDomain();
+            try {
+              z = (RealType) rfd.getComponent(0);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            // find nested "a"
+            range = rf.getRange();
+            a = null;
+            if (range instanceof RealType) {
+              a = (RealType) range;
+            }
+            else if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  break;
+                }
+                if (ttci instanceof RealType) {
+                  a = (RealType) ttci;
+                  break;
+                }
+              }
+            }
+            if (a == null) break;
+            try {
+              ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
+              smaps[0] = new ScalarMap(x, Display.XAxis);
+              smaps[1] = new ScalarMap(y, Display.YAxis);
+              smaps[2] = new ScalarMap(z, Display.ZAxis);
+              smaps[3] = new ScalarMap(a, Display.IsoContour);
+              if (timeFunc >= 0) {
+                Object o = ds[timeFunc].funcs.elementAt(0);
+                RealTupleType rtt = ((FunctionType) o).getDomain();
+                RealType time = (RealType) rtt.getComponent(0);
+                smaps[4] = new ScalarMap(time, Display.Animation);
+              }
+              return smaps;
+            }
+            catch (VisADException exc) {
+              break;
+            }
+
+          case 4: // 2-D or 3-D
+            //   ((x, y) -> (..., r, ..., g, ..., b, ...))
+            // x -> X, y -> Y, r -> Red, g -> Green, b -> Blue
+            //   ((x, y) -> (..., a, ...))
+            //   ((x, y) -> a)
+            // x -> X, y -> Y, a -> RGB
+            if (!ft.getFlat()) break;
+            domain = ft.getDomain();
+            if (domain.getDimension() != 2) break;
+            try {
+              x = (RealType) domain.getComponent(0);
+              y = (RealType) domain.getComponent(1);
+            }
+            catch (VisADException exc) {
+              break;
+            }
+            range = ft.getRange();
+            RealType[] rgb = new RealType[3];
+            int rgbc = 0;
+            if (range instanceof TupleType) {
+              TupleType tt = (TupleType) range;
+              for (int i=0; i<tt.getDimension(); i++) {
+                MathType ttci;
+                try {
+                  ttci = tt.getComponent(i);
+                }
+                catch (VisADException exc) {
+                  break;
+                }
+                if (ttci instanceof RealType) {
+                  rgb[rgbc++] = (RealType) ttci;
+                }
+              }
+            }
+            else if (range instanceof RealType) {
+              rgb[rgbc++] = (RealType) range;
+            }
+            if (rgbc == 0) break;
+            if (rgbc < 3) {
+              try {
+                ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 3 : 4];
+                smaps[0] = new ScalarMap(x, Display.XAxis);
+                smaps[1] = new ScalarMap(y, Display.YAxis);
+                smaps[2] = new ScalarMap(rgb[0], Display.RGB);
+                if (timeFunc >= 0) {
+                  Object o = ds[timeFunc].funcs.elementAt(0);
+                  RealTupleType rtt = ((FunctionType) o).getDomain();
+                  RealType time = (RealType) rtt.getComponent(0);
+                  smaps[3] = new ScalarMap(time, Display.Animation);
+                }
+                return smaps;
+              }
+              catch (VisADException exc) { }
+            }
+            else {
+              try {
+                ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 5 : 6];
+                smaps[0] = new ScalarMap(x, Display.XAxis);
+                smaps[1] = new ScalarMap(y, Display.YAxis);
+                smaps[2] = new ScalarMap(rgb[0], Display.Red);
+                smaps[3] = new ScalarMap(rgb[1], Display.Green);
+                smaps[4] = new ScalarMap(rgb[2], Display.Blue);
+                if (timeFunc >= 0) {
+                  Object o = ds[timeFunc].funcs.elementAt(0);
+                  RealTupleType rtt = ((FunctionType) o).getDomain();
+                  RealType time = (RealType) rtt.getComponent(0);
+                  smaps[5] = new ScalarMap(time, Display.Animation);
+                }
+              }
+              catch (VisADException exc) { }
+            }
+            break;
+
+          case 5: // 2-D or 3-D
+            //   (x -> (y -> (..., a, ...)))
+            //   (x -> (y -> a))
+            // 3-D: x -> X, y -> Y, a -> Z
+            // 2-D: x -> X, y -> Y, a -> RGB
+            //
+            break;
+
+          case 6: // 2-D or 3-D
+            //   (x -> (..., a, ...))
+            //   (x -> a)
+            // x -> X, a -> Y
+            //
+            break;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /** used by guessMaps to recursively build a list of FunctionTypes to
+      attempt template matching with */
+  private void buildFunctionList(MathType mt, Vector list) {
+    if (mt instanceof TupleType) {
+      TupleType tt = (TupleType) mt;
+      for (int i=0; i<tt.getDimension(); i++) {
+        try {
+          buildFunctionList(tt.getComponent(i), list);
+        }
+        catch (VisADException exc) { }
+      }
+    }
+    else if (mt instanceof SetType) {
+      SetType st = (SetType) mt;
+      buildFunctionList(st.getDomain(), list);
+    }
+    else if (mt instanceof FunctionType) list.addElement(mt);
+    return;
+  }
+
+  /** used by guessMaps to recursively find a "time" RealType inside
+      a 1-D function domain */
+  private void findTimeFunction(MathType mt, DataStruct[] info) {
+    if (mt instanceof TupleType) {
+      TupleType tt = (TupleType) mt;
+      // search each element of the tuple
+      for (int i=0; i<tt.getDimension(); i++) {
+        MathType tc = null;
+        try {
+          tc = tt.getComponent(i);
+        }
+        catch (VisADException exc) { }
+        findTimeFunction(tc, info);
+      }
+    }
+    else if (mt instanceof SetType) {
+      SetType st = (SetType) mt;
+      // search set's domain
+      findTimeFunction(st.getDomain(), info);
+    }
+    else if (mt instanceof FunctionType) {
+      FunctionType ft = (FunctionType) mt;
+      RealTupleType domain = ft.getDomain();
+      MathType range = ft.getRange();
+      RealType rtc0 = null;
+      try {
+        rtc0 = (RealType) domain.getComponent(0);
+      }
+      catch (VisADException exc) { }
+      boolean found = false;
+      if (rtc0 != null && domain.getDimension() == 1) {
+        // search function's domain for RealType with matching name
+        String rtname = rtc0.getName();
+        for (int i=0; i<info.length; i++) {
+          if (rtname.equals(info[i].name)) {
+            info[i].funcs.addElement(ft);
+            found = true;
+          }
+        }
+      }
+      // search function's domain
+      if (!found) findTimeFunction(domain, info);
+      // search function's range
+      findTimeFunction(range, info);
+    }
+    else if (mt instanceof RealType) {
+      RealType rt = (RealType) mt;
+      String rtname = rt.getName();
+      for (int i=0; i<info.length; i++) {
+        // invalidate RealTypes not in a 1-D function domain
+        if (rtname.equals(info[i].name)) info[i].fvalid = false;
+      }
+    }
+    return;
+  }
+
+  /** run 'java visad.MathType' to test MathType.prettyString()
+      and MathType.guessMaps() */
   public static void main(String args[])
          throws VisADException, RemoteException {
     RealType X = new RealType("Xxxxxx", null, null);
@@ -156,6 +755,20 @@ public abstract class MathType extends Object implements java.io.Serializable {
     FunctionType big_function = new FunctionType(Range2d, tuple);
 
     System.out.println(big_function.prettyString());
+  }
+
+  /** used by guessMaps to store miscellaneous information
+      throughout findTimeFunction's recursive calls */
+  private class DataStruct {
+    /** whether this DataStruct's funcs are valid */
+    boolean fvalid = true;
+    /** The name of the RealType in the domain of the FunctionTypes in funcs */
+    String name;
+    /** FunctionType objects with 1-D domains which match name */
+    Vector funcs = new Vector();
+
+    /** constructor */
+    DataStruct(String s) { name = s; }
   }
 
 }
