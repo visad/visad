@@ -104,9 +104,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
                      DataReference ref, RealType rt) throws VisADException,
                                                             RemoteException {
     this(ref, null, (float) (lo * scale), (float) (hi * scale),
-// WLH 1 Dec 98     (float) (st * scale), hi - lo + 1,
                     (float) (st * scale), hi - lo,
-                    (ref.getData() instanceof Real) ? null : rt, n);
+                    (ref == null || ref.getData() instanceof Real) ? null : rt,
+                    n);
   }
 
   /** construct a VisADSlider from a ScalarMap that maps to
