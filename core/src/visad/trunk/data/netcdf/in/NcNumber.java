@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.4 1998-06-23 14:35:48 visad Exp $
+ * $Id: NcNumber.java,v 1.5 1998-07-07 14:30:45 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -22,6 +22,7 @@ import visad.SI;
 import visad.Set;
 import visad.SimpleSet;
 import visad.Unit;
+import visad.TypeException;
 import visad.VisADException;
 import visad.data.BadFormException;
 import visad.data.netcdf.in.NetcdfQuantityDB;
@@ -116,12 +117,14 @@ NcNumber
 
 	if (realType == null)
 	{
-	    realType = RealType.getRealTypeByName(var.getName());
-
-	    if (realType == null)
+	    try
 	    {
 		realType = new RealType(var.getName(), getUnit(var), 
 					/*Set=*/null);	// default set
+	    }
+	    catch (TypeException e)
+	    {
+		realType = RealType.getRealTypeByName(var.getName());
 	    }
 	}
 
