@@ -270,9 +270,43 @@ public class RangeSlider extends JComponent implements MouseListener,
     repaint();
   }
 
+  /** draws the slider from scratch */
+  public void paint(Graphics g) {
+    int w = getSize().width;
+
+    // clear old graphics
+    g.setColor(Color.black);
+    g.fillRect(0, 0, w, SLIDER_PREF_HEIGHT);
+
+    // draw slider lines
+    int right = w - 1;
+    g.setColor(Color.white);
+    g.drawLine(0, GRIP_MIDDLE_Y, right, GRIP_MIDDLE_Y);
+    g.drawLine(0, GRIP_TOP_Y-4, 0, GRIP_TOP_Y+SLIDER_LINE_HEIGHT);
+    g.drawLine(0, GRIP_TOP_Y-4, SLIDER_LINE_WIDTH, GRIP_TOP_Y-4);
+    g.drawLine(0, GRIP_TOP_Y+SLIDER_LINE_HEIGHT,
+               SLIDER_LINE_WIDTH, GRIP_TOP_Y+SLIDER_LINE_HEIGHT);
+    g.drawLine(right, GRIP_TOP_Y-4, right, GRIP_TOP_Y+SLIDER_LINE_HEIGHT);
+    g.drawLine(right, GRIP_TOP_Y-4, right-SLIDER_LINE_WIDTH, GRIP_TOP_Y-4);
+    g.drawLine(right, GRIP_TOP_Y+SLIDER_LINE_HEIGHT,
+               right-SLIDER_LINE_WIDTH, GRIP_TOP_Y+SLIDER_LINE_HEIGHT);
+
+    // refresh everything
+    lSlideMoved = true;
+    rSlideMoved = true;
+    textChanged = true;
+    paintMinimum(g);
+  }
+
   /** repaints anything that needs it */
   public void repaint() {
     Graphics g = getGraphics();
+    paintMinimum(getGraphics());
+    g.dispose();
+  }
+
+  private void paintMinimum(Graphics g)
+  {
     if (g == null) return;
     int w = getSize().width;
     if (lSlideMoved) {
@@ -303,7 +337,6 @@ public class RangeSlider extends JComponent implements MouseListener,
     lSlideMoved = false;
     rSlideMoved = false;
     textChanged = false;
-    g.dispose();
   }
 
   /** use current 'minPercent' and 'maxPercent' values to compute
@@ -329,44 +362,6 @@ public class RangeSlider extends JComponent implements MouseListener,
       textChanged = true;
       maxGrip = maxNew;
     }
-  }
-
-  /** draws the slider from scratch */
-  public void paint(Graphics g) {
-    int w = getSize().width;
-
-    // draw background
-    g.setColor(Color.black);
-    g.fillRect(0, 0, w, SLIDER_PREF_HEIGHT);
-
-    // draw slider lines
-    int right = w - 1;
-    g.setColor(Color.white);
-    g.drawLine(0, GRIP_MIDDLE_Y, right, GRIP_MIDDLE_Y);
-    g.drawLine(0, GRIP_TOP_Y-4, 0, GRIP_TOP_Y+SLIDER_LINE_HEIGHT);
-    g.drawLine(0, GRIP_TOP_Y-4, SLIDER_LINE_WIDTH, GRIP_TOP_Y-4);
-    g.drawLine(0, GRIP_TOP_Y+SLIDER_LINE_HEIGHT,
-               SLIDER_LINE_WIDTH, GRIP_TOP_Y+SLIDER_LINE_HEIGHT);
-    g.drawLine(right, GRIP_TOP_Y-4, right, GRIP_TOP_Y+SLIDER_LINE_HEIGHT);
-    g.drawLine(right, GRIP_TOP_Y-4, right-SLIDER_LINE_WIDTH, GRIP_TOP_Y-4);
-    g.drawLine(right, GRIP_TOP_Y+SLIDER_LINE_HEIGHT,
-               right-SLIDER_LINE_WIDTH, GRIP_TOP_Y+SLIDER_LINE_HEIGHT);
-
-    // draw labels
-    drawLabels(g, w);
-
-    // draw grippers
-    g.setColor(Color.yellow);
-    int[] xpts = {minGrip-GRIP_WIDTH, minGrip+1, minGrip+1};
-    int[] ypts = {GRIP_MIDDLE_Y, GRIP_TOP_Y, GRIP_BOTTOM_Y};
-    g.fillPolygon(xpts, ypts, 3);
-    xpts = new int[] {maxGrip+GRIP_WIDTH-1, maxGrip, maxGrip};
-    ypts = new int[] {GRIP_MIDDLE_Y, GRIP_TOP_Y, GRIP_BOTTOM_Y};
-    g.fillPolygon(xpts, ypts, 3);
-
-    // draw pink rectangle between grippers
-    g.setColor(Color.pink);
-    g.fillRect(minGrip+1, GRIP_MIDDLE_Y, maxGrip-minGrip-1, 3);
   }
 
   private float lastMin = 0.0f;
