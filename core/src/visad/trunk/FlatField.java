@@ -85,7 +85,7 @@ import visad.util.DataUtility;
    must support range types that are Tuple's of RealType's and
    RealTupleType's.<P>
 */
-public class FlatField extends FieldImpl {
+public class FlatField extends FieldImpl implements FlatFieldIface {
 
   private int TupleDimension; // dimension of Type.getFlatRange()
   private Set RangeSet[]; // one 1-D Set per range components
