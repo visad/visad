@@ -232,8 +232,10 @@ System.out.println("doAction " + getDisplay().getName() + " " +
             branchNonEmpty[currentIndex] = true;
           }
           else { // if (branchNonEmpty[currentIndex])
-            flush(branches[currentIndex]);
-            branches[currentIndex].setChild(branch, 0);
+            if (!(branches[currentIndex].getChild(0) == branch)) {// TDR, Nov 02
+              flush(branches[currentIndex]);
+              branches[currentIndex].setChild(branch, 0);
+            }
           } // end if (branchNonEmpty[currentIndex])
         } // end synchronized (this)
       }
