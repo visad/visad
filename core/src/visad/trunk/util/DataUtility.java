@@ -28,6 +28,7 @@ package visad.util;
 
 // General Java
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.PixelGrabber;
 import java.io.IOException;
@@ -220,6 +221,69 @@ public class DataUtility {
     }
 
     return field;
+  }
+
+  /**
+   * Converts a flat field of the form <tt>((x, y) -&gt; (r, g, b))</tt>
+   * to an AWT Image.
+   */
+  public static Image extractImage(FlatField field) {
+    try {
+      Gridded2DSet set = (Gridded2DSet) field.getDomainSet();
+      int[] wh = set.getLengths();
+      int w = wh[0];
+      int h = wh[1];
+      double[][] samples = field.getValues();
+      int[] pixels = new int[samples[0].length];
+      if (samples.length == 3) {
+        for (int i=0; i<samples[0].length; i++) {
+          int r = (int) samples[0][i] & 0x000000ff;
+          int g = (int) samples[1][i] & 0x000000ff;
+          int b = (int) samples[2][i] & 0x000000ff;
+          pixels[i] = r << 16 | g << 8 | b;
+        }
+      }
+      else if (samples.length == 1) {
+        for (int i=0; i<samples[0].length; i++) {
+          int v = (int) samples[0][i] & 0x000000ff;
+          pixels[i] = v << 16 | v << 8 | v;
+        }
+      }
+      BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+      bi.setRGB(0, 0, w, h, pixels, 0, w);
+      return bi;
+    }
+    catch (VisADException exc) {
+      return null;
+    }
+  }
+
+  public static FlatField[] getImageFields(Data data) {
+    FlatField[] fields = null;
+    String pcImageType = "((e, l) -> v)";
+    String rgbImageType = "((e, l) -> (r, g, b))";
+    String pcTimeType = "(t -> " + pcImageType + ")";
+    String rgbTimeType = "(t -> " + rgbImageType + ")";
+    try {
+      MathType type = data.getType();
+      if (type.equalsExceptName(MathType.stringToType(pcTimeType)) ||
+        type.equalsExceptName(MathType.stringToType(rgbTimeType)))
+      {
+        FieldImpl fi = (FieldImpl) data;
+        int len = fi.getLength();
+        fields = new FlatField[len];
+        for (int i=0; i<len; i++) fields[i] = (FlatField) fi.getSample(i);
+      }
+      else if (type.equalsExceptName(MathType.stringToType(pcImageType)) ||
+        type.equalsExceptName(MathType.stringToType(rgbImageType)))
+      {
+        fields = new FlatField[1];
+        fields[0] = (FlatField) data;
+      }
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    return fields;
   }
 
   public static DisplayImpl makeSimpleDisplay(DataImpl data)
