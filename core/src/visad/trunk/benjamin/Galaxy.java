@@ -804,6 +804,11 @@ public class Galaxy extends Object implements ActionListener {
     // color widget for sky map
     lw = new LabeledRGBWidget(rgbmap);
 
+/* WLH 26 Jan 99
+   need DisplayImpl.clearMap(ScalarMap map)
+   or link ColorControls
+*/
+
     // set iso-levels every 30 degrees for lat/lon contour lines
     ContourControl loncontrol = (ContourControl) lonmap.getControl();
     loncontrol.enableContours(true);

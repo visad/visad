@@ -263,10 +263,13 @@ public class RealType extends ScalarType {
             switch (op) {
               case Data.MULTIPLY:
                 newUnit = thisUnit.multiply( unit );
+                break; // WLH 26 Jan 99
               case Data.DIVIDE:
                 newUnit = thisUnit.divide( unit );
+                break; // WLH 26 Jan 99
               case Data.INV_DIVIDE:
                 newUnit = unit.divide( thisUnit );
+                break; // WLH 26 Jan 99
             }
             newName = getUniqueGenericName( names, newUnit.toString());
           }
