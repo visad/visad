@@ -209,7 +209,7 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
         int oldnv = numv[0];
         int oldnt = numt[0];
         float mbarb[] =
-          ((BarbManipulationRendererJ3D) renderer).makeVector(south[j],
+          ((BarbRenderer) renderer).makeVector(south[j],
                    spatial_values[0][j], spatial_values[1][j],
                    spatial_values[2][j], scale, pt_size, f0, f1, vx, vy, vz,
                    numv, tx, ty, tz, numt);

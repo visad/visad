@@ -40,7 +40,8 @@ import java.rmi.*;
    BarbManipulationRendererJ3D is the VisAD class for direct
    manipulation rendering of wind barbs under Java3D
 */
-public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D {
+public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D
+       implements BarbRenderer {
 
   /** this DataRenderer supports direct manipulation for Tuple
       representations of wind barbs; two of the Tuple's Real components
@@ -565,7 +566,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     }
   }
 
-  float[] makeVector(boolean south, float x, float y, float z,
+  public float[] makeVector(boolean south, float x, float y, float z,
                           float scale, float pt_size, float f0, float f1,
                           float[] vx, float[] vy, float[] vz, int[] numv,
                           float[] tx, float[] ty, float[] tz, int[] numt) {

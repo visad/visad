@@ -521,7 +521,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
   }
 
   /** draw swell, f0 and f1 in meters */
-  float[] makeVector(boolean south, float x, float y, float z,
+  public float[] makeVector(boolean south, float x, float y, float z,
                           float scale, float pt_size, float f0, float f1,
                           float[] vx, float[] vy, float[] vz, int[] numv,
                           float[] tx, float[] ty, float[] tz, int[] numt) {

@@ -41,13 +41,17 @@ import java.rmi.*;
    wind barbs under Java3D - otherwise it behaves just
    like DefaultRendererJ3D
 */
-public class BarbRendererJ3D extends DefaultRendererJ3D {
+public class BarbRendererJ3D extends DefaultRendererJ3D
+       implements BarbRenderer {
+
+  private BarbManipulationRendererJ3D bmr;
 
   /** this DataRenderer supports direct manipulation for RealTuple
       representations of wind barbs; four of the RealTuple's Real
       components must be mapped to XAxis, YAxis, Flow1X and Flow1Y */
   public BarbRendererJ3D () {
     super();
+    bmr = new BarbManipulationRendererJ3D();
   }
 
   public ShadowType makeShadowFunctionType(
@@ -78,6 +82,14 @@ public class BarbRendererJ3D extends DefaultRendererJ3D {
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowBarbTupleTypeJ3D(type, link, parent);
+  }
+
+  public float[] makeVector(boolean south, float x, float y, float z,
+                          float scale, float pt_size, float f0, float f1,
+                          float[] vx, float[] vy, float[] vz, int[] numv,
+                          float[] tx, float[] ty, float[] tz, int[] numt) { 
+    return bmr.makeVector(south, x, y, z, scale, pt_size, f0, f1, vx, vy, vz,
+                          numv, tx, ty, tz, numt);
   }
 
   static final int N = 5;

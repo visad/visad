@@ -43,11 +43,44 @@ import java.rmi.*;
 // public class TrackManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
 
+  float x_size;
+  float y_size;
+  float angle;
+  private static int NE = 32;
+  float[] x_ellipse = new float[NE + 1];
+  float[] y_ellipse = new float[NE + 1];
+
   /** this DataRenderer supports direct manipulation for Tuple
       representations of storm tracks; two of the Tuple's Real components
       must be mapped to Flow1X and Flow1Y, or Flow2X and Flow2Y */
-  public TrackManipulationRendererJ3D () {
+  public TrackManipulationRendererJ3D (float xs, float ys, float ang) {
     super();
+    x_size = (float) Math.abs(xs);
+    y_size = (float) Math.abs(ys);
+    angle = ang;
+    float sa = (float) Math.sin(ang * Data.DEGREES_TO_RADIANS);
+    float ca = (float) Math.cos(ang * Data.DEGREES_TO_RADIANS);
+    for (int i=0; i<NE+1; i++) {
+      double b = 2.0 * Math.PI * i / NE;
+      float xe = (float) (x_size * Math.cos(b));
+      float ye = (float) (y_size * Math.sin(b));
+      x_ellipse[i] = ca * xe + sa * ye;
+      y_ellipse[i] = ca * ye - sa * xe;
+    }
+  }
+
+  private float step(float x, float y) {
+    double dist = 2.0 * (x_size + y_size);
+    float step = -1.0f;
+    for (int i=0; i<NE+1; i++) {
+      double d = Math.abs(x * y_ellipse[i] - y * x_ellipse[i]);
+      if (d < dist) {
+        dist = d;
+        step = (float) Math.sqrt(x_ellipse[i] * x_ellipse[i] +
+                                 y_ellipse[i] * y_ellipse[i]);
+      }
+    }
+    return step;
   }
 
   public ShadowType makeShadowRealTupleType(
@@ -83,7 +116,7 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
   private static final float EPS = 0.00001f;
 
   /** draw track, f0 and f1 in meters */
-  float[] makeVector(boolean south, float x, float y, float z,
+  public float[] makeVector(boolean south, float x, float y, float z,
                           float scale, float pt_size, float f0, float f1,
                           float[] vx, float[] vy, float[] vz, int[] numv,
                           float[] tx, float[] ty, float[] tz, int[] numt) {
@@ -96,15 +129,15 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     mbarb[0] = x;
     mbarb[1] = y;
 
-    float track_height = (float) Math.sqrt(f0 * f0 + f1 * f1);
-    if (track_height < EPS) track_height = EPS;
+    float track_length = (float) Math.sqrt(f0 * f0 + f1 * f1);
+    if (track_length < EPS) track_length = EPS;
 
     int lenv = vx.length;
     int nv = numv[0];
 
     // normalize direction
-    x0 = -f0 / track_height;
-    y0 = -f1 / track_height;
+    x0 = -f0 / track_length;
+    y0 = -f1 / track_length;
 
     float start_arrow = 0.9f * sscale;
     float end_arrow = 1.9f * sscale;
@@ -114,7 +147,7 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     x2 = (x + x0 * end_arrow);
     y2 = (y + y0 * end_arrow);
 
-    float real_end = track_height * sscale;
+    float real_end = track_length * sscale;
     x5 = (x + x0 * real_end);
     y5 = (y + y0 * real_end);
 
@@ -173,7 +206,7 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     RealType green = new RealType("green");
     RealType track_degree = new RealType("track_degree",
                           CommonUnit.degree, null);
-    RealType track_height = new RealType("track_height",
+    RealType track_length = new RealType("track_length",
                           CommonUnit.meter, null);
 
     // construct Java3D display and mappings that govern
@@ -189,7 +222,7 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     ScalarMap tracka_map = new ScalarMap(track_degree, Display.Flow1Azimuth);
     display.addMap(tracka_map);
     tracka_map.setRange(0.0, 360.0); // do this for track rendering
-    ScalarMap trackh_map = new ScalarMap(track_height, Display.Flow1Radial);
+    ScalarMap trackh_map = new ScalarMap(track_length, Display.Flow1Radial);
     display.addMap(trackh_map);
     trackh_map.setRange(0.0, 1.0); // do this for track rendering
     FlowControl flow_control = (FlowControl) trackh_map.getControl();
@@ -208,11 +241,11 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     double fh = Math.sqrt(fx * fx + fy * fy);
 
     // track record is a RealTuple (lon, lat,
-    // track_degree, track_height, red, green)
+    // track_degree, track_length, red, green)
     // set colors by track components, just for grins
     RealTuple tuple = new RealTuple(new Real[]
       {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-       new Real(track_degree, fa), new Real(track_height, fh),
+       new Real(track_degree, fa), new Real(track_length, fh),
        new Real(red, u), new Real(green, v)});
 
     // construct reference for track record
@@ -223,7 +256,9 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     // so user can change barb by dragging it
     // drag with right mouse button and shift to change direction
     // drag with right mouse button and no shift to change speed
-    display.addReferences(new TrackManipulationRendererJ3D(), ref);
+    TrackManipulationRendererJ3D renderer =
+      new TrackManipulationRendererJ3D(0.2f, 0.1f, 0.0f);
+    display.addReferences(renderer, ref);
 
     // link track record to a CellImpl that will listen for changes
     // and print them
@@ -269,8 +304,8 @@ class TrackGetterJ3D extends CellImpl {
     float lon = (float) ((Real) tuple.getComponent(0)).getValue();
     float lat = (float) ((Real) tuple.getComponent(1)).getValue();
     float dir = (float) ((Real) tuple.getComponent(2)).getValue();
-    float height = (float) ((Real) tuple.getComponent(3)).getValue();
-    System.out.println("track = (" + dir + ", " + height + ") at (" +
+    float length = (float) ((Real) tuple.getComponent(3)).getValue();
+    System.out.println("track = (" + dir + ", " + length + ") at (" +
                        + lat + ", " + lon +")");
   }
 
