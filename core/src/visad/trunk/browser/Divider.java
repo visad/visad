@@ -34,36 +34,101 @@ import java.awt.*;
 public class Divider extends Component {
 
   /**
+   * Constant for horizontal divider alignment.
+   */
+  public static final int HORIZONTAL = 1;
+
+  /**
+   * Constant for vertical divider alignment.
+   */
+  public static final int VERTICAL = 2;
+
+  /**
+   * Orientation for this divider.
+   */
+  private int orientation;
+
+  /**
+   * Constructor for horizontal divider.
+   */
+  public Divider() {
+    this(HORIZONTAL);
+  }
+
+  /**
+   * Constructor for divider in the given orientation.
+   *
+   * @param orientation Divider.HORIZONTAL or Divider.VERTICAL
+   */
+  public Divider(int orientation) {
+    this.orientation = orientation;
+  }
+
+  /**
    * Paints the divider.
    */
   public void paint(Graphics g) {
-    int w = getSize().width;
-    g.setColor(Color.white);
-    g.drawRect(0, 0, w-2, 6);
-    g.drawRect(2, 2, w-4, 2);
-    g.setColor(Color.black);
-    g.drawRect(1, 1, w-3, 3);
+    if (orientation == HORIZONTAL) {
+      int w = getSize().width;
+      g.setColor(Color.white);
+      g.drawRect(0, 0, w-2, 6);
+      g.drawRect(2, 2, w-4, 2);
+      g.setColor(Color.black);
+      g.drawRect(1, 1, w-3, 3);
+    }
+    else if (orientation == VERTICAL) {
+      int h = getSize().height;
+      g.setColor(Color.white);
+      g.drawRect(0, 0, 6, h-2);
+      g.drawRect(2, 2, 2, h-4);
+      g.setColor(Color.black);
+      g.drawRect(1, 1, 3, h-3);
+    }
   }
 
   /**
    * Gets the divider's minimum size.
    */
   public Dimension getMinimumSize() {
-    return new Dimension(0, 6);
+    if (orientation == HORIZONTAL) {
+      return new Dimension(0, 6);
+    }
+    else if (orientation == VERTICAL) {
+      return new Dimension(6, 0);
+    }
+    else {
+      return new Dimension(0, 0);
+    }
   }
 
   /**
    * Gets the divider's preferred size.
    */
   public Dimension getPreferredSize() {
-    return new Dimension(0, 6);
+    if (orientation == HORIZONTAL) {
+      return new Dimension(0, 6);
+    }
+    else if (orientation == VERTICAL) {
+      return new Dimension(6, 0);
+    }
+    else {
+      return new Dimension(0, 0);
+    }
   }
 
   /**
    * Gets the divider's maximum size.
    */
   public Dimension getMaximumSize() {
-    return new Dimension(Integer.MAX_VALUE, 6);
+    if (orientation == HORIZONTAL) {
+      return new Dimension(Integer.MAX_VALUE, 6);
+    }
+    else if (orientation == VERTICAL) {
+      return new Dimension(6, Integer.MAX_VALUE);
+    }
+    else {
+      return new Dimension(0, 0);
+    }
   }
 
 }
