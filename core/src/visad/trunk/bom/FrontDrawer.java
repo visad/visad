@@ -155,12 +155,12 @@ public class FrontDrawer extends Object {
     0.2f, // LOW_LEVEL_JET = 12
     0.2f, // UPPER_LEVEL_JET = 13
     0.1f, // DRY_LINE = 14
-    0.2f,
-    0.2f,
-    0.2f,
-    0.2f,
-    0.2f,
-    0.2f
+    0.05f, // TOTAL_TOTALS = 15
+    0.1f, // LIFTED_INDEX = 16
+    0.15f, // ISOTHERMS = 17
+    0.1f, // THICKNESS_RIDGE = 18
+    0.05f, // LOWER_THERMAL_TROUGH = 19
+    0.1f // UPPER_THERMAL_TROUGH = 20
   };
 
   private static final float[][][][] rshapesarray = {
@@ -270,30 +270,52 @@ public class FrontDrawer extends Object {
        0.05f, 0.0f},
       {0.0f, 0.0f,
        0.01f, 0.01f}},
-
      {{0.06f, 0.09f,
        0.09f, 0.06f},
       {-0.005f, -0.005f,
        0.015f, 0.015f}}},
 
     // TOTAL_TOTALS = 15
-
+    {{{0.0f, 0.035f,
+       0.035f, 0.0f},
+      {0.0f, 0.0f,
+       0.01f, 0.01f}}},
 
     // LIFTED_INDEX = 16
-
+    {{{0.0f, 0.05f,
+       0.05f, 0.0f},
+      {0.0f, 0.0f,
+       0.01f, 0.01f}},
+     {{0.06f, 0.09f,
+       0.09f, 0.06f},
+      {-0.005f, -0.005f,
+       0.015f, 0.015f}}},
 
     // ISOTHERMS = 17
-
+    {{{0.0f, 0.0f, 0.04f, 0.08f,
+       0.08f, 0.04f, 0.0f, 0.0f,
+       0.02f, 0.02f, 0.06f,
+       0.06f, 0.02f, 0.02f},
+      {0.0f, -0.02f, -0.02f, -0.02f,
+       0.02f, 0.02f, 0.02f, 0.0f,
+       0.0f, 0.01f, 0.01f,
+       -0.01f, -0.01f, 0.0f}}},
 
     // THICKNESS_RIDGE = 18
-
+    {{{0.0f, 0.05f, 0.1f,
+       0.1f, 0.05f, 0.0f},
+      {0.01f, -0.06f, 0.01f,
+       0.06f, -0.01f, 0.06f}}},
 
     // LOWER_THERMAL_TROUGH = 19
-
+    {{{0.0f, 0.045f,
+       0.045f, 0.0f},
+      {-0.01f, -0.01f,
+       0.02f, 0.02f}}},
 
     // UPPER_THERMAL_TROUGH = 20
-
-
+    {{{0.0f, 0.04f, 0.02f},
+      {0.0f, 0.0f, 0.04f}}},
 
   };
 
@@ -314,7 +336,7 @@ public class FrontDrawer extends Object {
     {1.0f},
     {1.0f, 1.0f}, // DRY_LINE = 14
     {1.0f},
-    {1.0f},
+    {1.0f, 1.0f}, // LIFTED_INDEX = 16
     {1.0f},
     {1.0f},
     {1.0f},
@@ -338,7 +360,7 @@ public class FrontDrawer extends Object {
     {1.0f},
     {1.0f, 1.0f}, // DRY_LINE = 14
     {1.0f},
-    {1.0f},
+    {1.0f, 1.0f}, // LIFTED_INDEX = 16
     {1.0f},
     {1.0f},
     {1.0f},
@@ -362,7 +384,7 @@ public class FrontDrawer extends Object {
     {1.0f},
     {1.0f, 1.0f}, // DRY_LINE = 14
     {1.0f},
-    {1.0f},
+    {1.0f, 1.0f}, // LIFTED_INDEX = 16
     {1.0f},
     {1.0f},
     {1.0f},
@@ -400,6 +422,7 @@ public class FrontDrawer extends Object {
     null,
     null,
     null,
+    null,
     null
   };
 
@@ -418,6 +441,7 @@ public class FrontDrawer extends Object {
     null,
     {1.0f},
     {1.0f},
+    null,
     null,
     null,
     null,
@@ -446,6 +470,7 @@ public class FrontDrawer extends Object {
     null,
     null,
     null,
+    null,
     null
   };
        
@@ -464,6 +489,7 @@ public class FrontDrawer extends Object {
     null,
     {1.0f},
     {1.0f},
+    null,
     null,
     null,
     null,
@@ -721,16 +747,19 @@ public class FrontDrawer extends Object {
         Data data = curve_ref.getData();
         if (data == null || !(data instanceof UnionSet)) {
           if (debug) System.out.println("data null or not UnionSet");
+          curve_ref.setData(init_curve);
           return;
         }
         SampledSet[] sets = ((UnionSet) data).getSets();
         if (!(sets[0] instanceof Gridded2DSet)) {
           if (debug) System.out.println("data not Gridded2DSet");
+          curve_ref.setData(init_curve);
           return;
         }
         Gridded2DSet curve_set = (Gridded2DSet) sets[0];
         if (curve_set.getManifoldDimension() != 1) {
           if (debug) System.out.println("ManifoldDimension != 1");
+          curve_ref.setData(init_curve);
           return;
         }
         float[][] curve_samples = null;
@@ -739,6 +768,11 @@ public class FrontDrawer extends Object {
         }
         catch (VisADException e) {
           if (debug) System.out.println("release " + e);
+          curve_ref.setData(init_curve);
+          return;
+        }
+        if (curve_samples == null || curve_samples[0].length < 2) {
+          curve_ref.setData(init_curve);
           return;
         }
     
@@ -778,7 +812,14 @@ public class FrontDrawer extends Object {
             break;
           }
           catch (VisADException e) {
-            fw = 2 * fw;
+            int n = old_curve[0].length;
+            if (n > 2) {
+              float[][] no = new float[2][n - 2];
+              System.arraycopy(old_curve[0], 1, no[0], 0, n - 2);
+              System.arraycopy(old_curve[1], 1, no[1], 0, n - 2);
+              old_curve = no;
+            }
+            if (tries < 2) fw = 2 * fw;
             // if (debug) System.out.println("retry filter window = " + fw + " " + e);
             if (tries == 9) {
               System.out.println("cannot smooth curve");
