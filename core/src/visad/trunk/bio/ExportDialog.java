@@ -29,12 +29,16 @@ package visad.bio;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.rmi.RemoteException;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.event.*;
-import visad.VisADException;
+import visad.*;
 import visad.browser.Divider;
 import visad.data.*;
+import visad.data.biorad.BioRadForm;
+import visad.data.qt.QTForm;
+import visad.data.tiff.TiffForm;
 import visad.util.*;
 
 /** ExportDialog provides a set of options for exporting a 4-D data series. */
@@ -103,8 +107,10 @@ public class ExportDialog extends JPanel
     doColors = new JCheckBox("Save color adjustments", true);
     doAlign = new JCheckBox("Save alignment", true);
     timeOnly = new JCheckBox("Save current timestep only");
-    sliceOnly = new JCheckBox("Save current slice only");
+    timeOnly.setActionCommand("timeOnly");
     timeOnly.addActionListener(this);
+    sliceOnly = new JCheckBox("Save current slice only");
+    sliceOnly.setActionCommand("sliceOnly");
     sliceOnly.addActionListener(this);
 
     // output format
@@ -130,9 +136,11 @@ public class ExportDialog extends JPanel
       "Use alternate resolution", "by", "", "", false);
     exportTimesteps = new DoubleTextCheckBox(
       "Only export timesteps", "through", "", "", false);
+    exportTimesteps.setActionCommand("exportTimesteps");
+    exportTimesteps.addActionListener(this);
     exportSlices = new DoubleTextCheckBox(
       "Only export slices", "through", "", "", false);
-    exportTimesteps.addActionListener(this);
+    exportSlices.setActionCommand("exportSlices");
     exportSlices.addActionListener(this);
 
     // lay out output format
@@ -220,20 +228,22 @@ public class ExportDialog extends JPanel
     if (first < 0 && last >= 0) chooser.start.setText("1");
 
     // default export values
-    int minSlice = 1;
-    int maxSlice = bio.sm.getNumberOfSlices();
-    int minIndex = 1;
-    int maxIndex = bio.sm.getNumberOfIndices();
+    int min_slice = 1;
+    int max_slice = bio.sm.getNumberOfSlices();
+    int min_index = 1;
+    int max_index = bio.sm.getNumberOfIndices();
     int resX = bio.sm.res_x;
     int resY = bio.sm.res_y;
 
     // extract export parameters from GUI
-    boolean colors = doColors.isSelected();
-    boolean align = doAlign.isSelected();
-    if (timeOnly.isSelected()) minIndex = maxIndex = bio.sm.getIndex() + 1;
-    if (sliceOnly.isSelected()) minSlice = maxSlice = bio.sm.getSlice() + 1;
-    File[] series = chooser.getSeries();
-    boolean filesAsSlices = chooser.getFilesAsSlices();
+    final boolean colors = doColors.isSelected();
+    final boolean align = doAlign.isSelected();
+    final boolean singleTime = timeOnly.isSelected();
+    final boolean singleSlice = sliceOnly.isSelected();
+    if (singleTime) min_index = max_index = bio.sm.getIndex() + 1;
+    if (singleSlice) min_slice = max_slice = bio.sm.getSlice() + 1;
+    final File[] series = chooser.getSeries();
+    final boolean filesAsSlices = chooser.getFilesAsSlices();
     if (altRes.isSelected()) {
       try {
         int x = Integer.parseInt(altRes.getFirstValue());
@@ -247,8 +257,8 @@ public class ExportDialog extends JPanel
       try {
         int min = Integer.parseInt(exportTimesteps.getFirstValue());
         int max = Integer.parseInt(exportTimesteps.getSecondValue());
-        minIndex = min;
-        maxIndex = max;
+        min_index = min;
+        max_index = max;
       }
       catch (NumberFormatException exc) { }
     }
@@ -256,101 +266,177 @@ public class ExportDialog extends JPanel
       try {
         int min = Integer.parseInt(exportSlices.getFirstValue());
         int max = Integer.parseInt(exportSlices.getSecondValue());
-        minSlice = min;
-        maxSlice = max;
+        min_slice = min;
+        max_slice = max;
       }
       catch (NumberFormatException exc) { }
     }
 
+    // extract export format
+    Form form;
+    if (picFormat.isSelected()) form = new BioRadForm();
+    else if (tiffFormat.isSelected()) form = new TiffForm();
+    else if (qtFormat.isSelected()) form = new QTForm();
+    else {
+      JOptionPane.showMessageDialog(bio, "Invalid file format",
+        "Export error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
+
     // confirm export parameters
-    int numSlices = maxSlice - minSlice + 1;
-    int numIndices = maxIndex - minIndex + 1;
-    String s = "Export slice" + (numSlices == 1 ? " #" + minSlice :
-      "s " + minSlice + " through " + maxSlice) + " at timestep" +
-      (numIndices == 1 ? " #" + minIndex : "s " + minIndex + " through " +
-      maxIndex) + " to file" + (series.length == 1 ? " " + series[0] :
-      "s " + series[0] + " through " + series[series.length - 1]) + "?";
+    final int minSlice = min_slice - 1;
+    final int maxSlice = max_slice - 1;
+    final int minIndex = min_index - 1;
+    final int maxIndex = max_index - 1;
+    final int numSlices = maxSlice - minSlice + 1;
+    final int numIndices = maxIndex - minIndex + 1;
+    final boolean arbSlice = singleSlice && bio.sm.getPlaneSelect();
+    String s = "Export " + (arbSlice ? "arbitrary slice" : "slice" +
+      (numSlices == 1 ? " #" + min_slice : "s " + min_slice + " through " +
+      max_slice)) + " at timestep" + (numIndices == 1 ? " #" + min_index :
+      "s " + min_index + " through " + max_index) + " to file" +
+      (series.length == 1 ? " " + series[0] : "s " + series[0] +
+      " through " + series[series.length - 1]) + "?";
     int ans = JOptionPane.showConfirmDialog(bio, s, "BioVisAD",
       JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
     if (ans != JOptionPane.YES_OPTION) return;
 
     // export data series
-    // CTR - TODO - export data series
-    /*
-  // Exports the stack of images at the current timestep.
-  public void exportImageStack(Form saver, String file) {
-    setMode(false);
-    final Form fsaver = saver;
-    final String f = file;
-    final ProgressDialog dialog = new ProgressDialog(bio,
-      "Exporting image stack");
+    final ProgressDialog dialog = new ProgressDialog(bio, "Exporting");
+    final Form saver = form;
     Thread t = new Thread(new Runnable() {
       public void run() {
-        try {
-          // save image stack data to file
-          fsaver.save(f, field, true);
+        File[] infiles = bio.sm.getSeries();
+        boolean sliceSeries = bio.sm.getFilesAsSlices();
+        boolean needReload = !sliceSeries;
+        if (needReload) {
+          try { bio.sm.purgeData(true); }
+          catch (VisADException exc) { exc.printStackTrace(); }
+          catch (RemoteException exc) { exc.printStackTrace(); }
         }
-        catch (VisADException exc) { dialog.setException(exc); }
-        catch (Exception exc) {
-          dialog.setException(new VisADException(
-            exc.getClass() + ": " + exc.getMessage()));
-        }
-        dialog.setPercent(100);
-        dialog.kill();
-      }
-    });
-    t.start();
-    dialog.show();
-    dialog.checkException();
-  }
+        for (int i=0; i<series.length; i++) {
+          dialog.setText("Exporting " + series[i].getName());
+          DataImpl data;
+          try {
+            FlatField[] images;
 
-  // Exports an animation of the current slice across all timesteps.
-  public void exportSliceAnimation(Form saver, String file) {
-    final Form fsaver = saver;
-    final String ff = file;
-    final ProgressDialog dialog = new ProgressDialog(bio,
-      "Compiling animation data");
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        try {
-          // compile high-resolution animation data
-          FieldImpl data = null;
-          for (int i=0; i<timesteps; i++) {
-            FieldImpl image;
-            FieldImpl f = filesAsSlices ? field : loadData(files[i], true);
-            if (i == 0) {
-              FunctionType image_type =
-                (FunctionType) f.getSample(0).getType();
-              FunctionType anim_type = new FunctionType(TIME_TYPE, image_type);
-              Integer1DSet set = new Integer1DSet(TIME_TYPE, timesteps);
-              data = new FieldImpl(anim_type, set);
+            if (arbSlice) {
+              // data to export is arbitrary slice
+              int rx = bio.sm.res_x;
+              int ry = bio.sm.res_y;
+              if (sliceSeries) {
+                // loaded dataset is a slice series
+                images = new FlatField[1];
+                images[0] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
+                  bio.sm.getField().domainMultiply(), rx, ry, rx, ry);
+              }
+              else {
+                // loaded dataset is a timestep series
+                if (filesAsSlices) {
+                  // compile slice across timesteps
+                  images = new FlatField[numIndices];
+                  for (int j=0; j<numIndices; j++) {
+                    File f = infiles[minIndex + j];
+                    FieldImpl timestep = SliceManager.loadData(f, true);
+                    images[j] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
+                      timestep.domainMultiply(), rx, ry, rx, ry);
+                    float percent = (float) (j + 1) / numIndices;
+                    dialog.setPercent((int) (100 * percent));
+                  }
+                }
+                else {
+                  // compile timestep across slices
+                  images = new FlatField[1];
+                  File f = infiles[minIndex + i];
+                  FieldImpl timestep = SliceManager.loadData(f, true);
+                  images[0] = (FlatField) bio.sm.ps.extractSlice((FieldImpl)
+                    timestep.domainMultiply(), rx, ry, rx, ry);
+                }
+              }
             }
-            if (planeSelect) {
-              image = (FieldImpl) ps.extractSlice((FieldImpl)
-                f.domainMultiply(), res_x, res_y, res_x, res_y);
+            else if (sliceSeries) {
+              // loaded dataset is a slice series
+              FieldImpl field = bio.sm.getField();
+              if (filesAsSlices) {
+                // single slice, all timesteps
+                images = new FlatField[1];
+                images[0] = (FlatField) field.getSample(minSlice + i);
+              }
+              else {
+                // single timestep, all slices
+                images = new FlatField[numSlices];
+                for (int j=0; j<numSlices; j++) {
+                  images[j] = (FlatField) field.getSample(minSlice + j);
+                  float percent = (float)
+                    (numSlices * i + (j + 1)) / (series.length * numSlices);
+                  dialog.setPercent((int) (100 * percent));
+                }
+              }
             }
-            else image = (FieldImpl) f.getSample(slice);
-            data.setSample(i, image, false);
-            dialog.setPercent(100 * (i + 1) / timesteps);
+            else {
+              // loaded dataset is a timestep series
+              if (filesAsSlices) {
+                // compile slice across timesteps
+                images = new FlatField[numIndices];
+                for (int j=0; j<numIndices; j++) {
+                  File f = infiles[minIndex + j];
+                  FieldImpl timestep = SliceManager.loadData(f, true);
+                  images[j] = (FlatField) timestep.getSample(minSlice + i);
+                  float percent = (float)
+                    (numIndices * i + (j + 1)) / (series.length * numIndices);
+                  dialog.setPercent((int) (100 * percent));
+                }
+              }
+              else {
+                // compile timestep across slices
+                images = new FlatField[numSlices];
+                File f = infiles[minIndex + i];
+                FieldImpl timestep = SliceManager.loadData(f, true);
+                for (int j=0; j<numSlices; j++) {
+                  images[j] = (FlatField) timestep.getSample(minSlice + j);
+                  float percent = (float)
+                    (numSlices * i + (j + 1)) / (series.length * numSlices);
+                  dialog.setPercent((int) (100 * percent));
+                }
+              }
+            }
+            data = SliceManager.makeStack(images);
+            if (colors) {
+              // CTR - TODO - apply color settings to export
+            }
+            if (align) {
+              // CTR - TODO - apply alignment settings to export
+            }
+
+            // save image stack data to file
+            saver.save(series[i].getPath(), data, true);
           }
-
-          // save animation data to file
-          dialog.setText("Exporting animation");
-          fsaver.save(ff, data, true);
+          catch (VisADException exc) { dialog.setException(exc); }
+          catch (Exception exc) {
+            dialog.setException(new VisADException(
+              exc.getClass() + ": " + exc.getMessage()));
+          }
+          float percent = (float) (i + 1) / series.length;
+          dialog.setPercent((int) (100 * percent));
         }
-        catch (VisADException exc) { dialog.setException(exc); }
-        catch (Exception exc) {
-          dialog.setException(new VisADException(
-            exc.getClass() + ": " + exc.getMessage()));
+
+        dialog.setText("Finishing");
+        if (needReload) {
+          try { bio.sm.setFile(false); }
+          catch (VisADException exc) { exc.printStackTrace(); }
+          catch (RemoteException exc) { exc.printStackTrace(); }
         }
         dialog.kill();
       }
     });
     t.start();
     dialog.show();
-    dialog.checkException();
-  }
-    */
+    try { dialog.checkException(); }
+    catch (VisADException exc) {
+      JOptionPane.showMessageDialog(bio,
+        "Cannot export data\n" + exc.getMessage(),
+        "Export error", JOptionPane.ERROR_MESSAGE);
+    }
   }
 
 
@@ -376,7 +462,21 @@ public class ExportDialog extends JPanel
     else if (command.equals("qtFormat")) {
       chooser.type.setSelectedIndex(2);
     }
-    else { computeEnd(); }
+    else {
+      if (command.equals("sliceOnly")) {
+        exportSlices.setEnabled(!sliceOnly.isSelected());
+      }
+      else if (command.equals("timeOnly")) {
+        exportTimesteps.setEnabled(!timeOnly.isSelected());
+      }
+      else if (command.equals("exportSlices")) {
+        sliceOnly.setEnabled(!exportSlices.isSelected());
+      }
+      else if (command.equals("exportTimesteps")) {
+        timeOnly.setEnabled(!exportTimesteps.isSelected());
+      }
+      computeEnd();
+    }
   }
 
   public void changedUpdate(DocumentEvent e) { computeEnd(); }
@@ -428,72 +528,6 @@ public class ExportDialog extends JPanel
         maxSlice - minSlice : maxIndex - minIndex;
       chooser.end.setText("" + (startVal + q));
     }
-  }
-
-  /*
-  public void exportSliceTIFF() {
-    exportData(new TiffForm(), new String[] {"tif", "tiff"},
-      "TIFF stacks", false);
-  };
-
-  public void exportSlicePIC() {
-    exportData(new BioRadForm(), new String[] {"pic"},
-      "Bio-Rad PIC files", false);
-  }
-
-  public void exportSliceQT() {
-    exportData(new QTForm(), new String[] {"mov", "qt"},
-      "QuickTime movies", false);
-  }
-
-  public void exportTimeTIFF() {
-    exportData(new TiffForm(), new String[] {"tif", "tiff"},
-      "TIFF stacks", true);
-  };
-
-  public void exportTimePIC() {
-    exportData(new BioRadForm(), new String[] {"pic"},
-      "Bio-Rad PIC files", true);
-  }
-
-  public void exportTimeQT() {
-    exportData(new QTForm(), new String[] {"mov", "qt"},
-      "QuickTime movies", true);
-  }
-  */
-
-  /**
-   * Exports a slice animation sequence using the given file form.
-   * If stack is true, the current image stack is exported.
-   * If stack is false, the current slice animation sequence is exported.
-   */
-  private void exportData(BioVisAD biovis, Form saver, String[] exts,
-    String desc, boolean stack)
-  {
-    /* CTR - TODO - exportData rewrite
-    final BioVisAD bio = biovis;
-    final Form fsaver = saver;
-    final String[] fexts = exts;
-    final String fdesc = desc;
-    final boolean fstack = stack;
-    Util.invoke(false, new Runnable() {
-      public void run() {
-        JFileChooser fileBox = new JFileChooser();
-        fileBox.setFileFilter(new ExtensionFileFilter(fexts, fdesc));
-        int rval = fileBox.showSaveDialog(bio);
-        if (rval == JFileChooser.APPROVE_OPTION) {
-          bio.setWaitCursor(true);
-          String file = fileBox.getSelectedFile().getPath();
-          try {
-            if (fstack) bio.sm.exportImageStack(fsaver, file);
-            else bio.sm.exportSliceAnimation(fsaver, file);
-          }
-          catch (VisADException exc) { exc.printStackTrace(); }
-          bio.setWaitCursor(false);
-        }
-      }
-    });
-    */
   }
 
 }

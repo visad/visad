@@ -38,6 +38,10 @@ public class SliceManager
   implements ControlListener, DisplayListener, PlaneListener
 {
 
+  /** Loader for opening data series. */
+  private static DefaultFamily loader = new DefaultFamily("bio_loader");
+
+
   // -- DATA TYPE CONSTANTS --
 
   /** RealType for mapping measurements to Z axis. */
@@ -104,7 +108,10 @@ public class SliceManager
   ValueControl value_control2;
 
   /** Plane selection object. */
-  private PlaneSelector ps;
+  PlaneSelector ps;
+
+  /** Image stack alignment plane. */
+  private PlaneSelector align;
 
   /** Is arbitrary plane selection on? */
   private boolean planeSelect;
@@ -114,6 +121,9 @@ public class SliceManager
 
   /** Has arbitrary plane moved since last right mouse button press? */
   private boolean planeChanged;
+
+  /** Is image stack alignment on? */
+  private boolean alignStacks;
 
   /** Is volume rendering display mode on? */
   private boolean volume;
@@ -206,9 +216,6 @@ public class SliceManager
   /** BioVisAD frame. */
   private BioVisAD bio;
 
-  /** Loader for opening data series. */
-  private DefaultFamily loader;
-
   /** List of files containing current data series. */
   private File[] files;
 
@@ -245,10 +252,9 @@ public class SliceManager
     planeSelect = false;
     continuous = false;
     planeChanged = false;
+    alignStacks = false;
     colorRange = new RealTupleType(
       new RealType[] {RED_TYPE, GREEN_TYPE, BLUE_TYPE});
-
-    loader = new DefaultFamily("bio_loader");
 
     // data references
     ref2 = new DataReferenceImpl("bio_ref2");
@@ -338,8 +344,13 @@ public class SliceManager
   }
 
   /** Sets whether arbitrary plane is continuously updated. */
-  public void setPlaneUpdate(boolean continuous) {
-    this.continuous = continuous;
+  public void setPlaneContinuous(boolean value) { continuous = value; }
+
+  /** Sets whether to do image stack alignment. */
+  public void setAlignStacks(boolean value) {
+    if (bio.display3 == null) return;
+    alignStacks = value;
+    align.toggle(value);
   }
 
   /** Sets whether 3-D display should use image stack or volume rendering. */
@@ -371,6 +382,18 @@ public class SliceManager
     }
   }
 
+  /** Returns the current data series file list. */
+  public File[] getSeries() { return files; }
+
+  /** Returns whether each file is a single slice of one timestep. */
+  public boolean getFilesAsSlices() { return filesAsSlices; }
+
+  /** Returns the field data currently in memory. */
+  public FieldImpl getField() { return field; }
+
+  /** Gets whether arbitrary plane selection is in effect. */
+  public boolean getPlaneSelect() { return planeSelect; }
+
 
   // -- INTERNAL API METHODS --
 
@@ -396,6 +419,49 @@ public class SliceManager
   public void planeChanged() {
     planeChanged = true;
     if (continuous) updateSlice();
+  }
+
+  /** Dumps current dataset and takes out the garbage, to conserve memory. */
+  void purgeData(boolean refs) throws VisADException, RemoteException {
+    if (refs) {
+      FunctionType ftype = (FunctionType) field.getType();
+      field = new FieldImpl(ftype, field.getDomainSet());
+      ref2.setData(field);
+      ref3.setData(field);
+    }
+    else field = null;
+    System.gc();
+  }
+
+  /** Sets the current file to match the current index. */
+  void setFile(boolean initialize)
+    throws VisADException, RemoteException
+  {
+    bio.setWaitCursor(true);
+    try {
+      if (initialize) init(files, 0);
+      else if (!filesAsSlices) {
+        purgeData(true);
+
+        // load new data
+        field = loadData(files[index], true);
+        collapsedField = null;
+        if (field != null) {
+          ref2.setData(field);
+          ref3.setData(field);
+        }
+        else {
+          bio.setWaitCursor(false);
+          JOptionPane.showMessageDialog(bio,
+            files[index].getName() + " does not contain an image stack",
+            "Cannot load file", JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+      }
+    }
+    finally {
+      bio.setWaitCursor(false);
+    }
   }
 
   /** Ensures slices are set up properly for animation. */
@@ -486,8 +552,7 @@ public class SliceManager
   private void init(File[] files, int index) throws VisADException {
     final File[] f = files;
     final int curfile = index;
-    final ProgressDialog dialog = new ProgressDialog(bio,
-      "Loading data" + (doThumbs ? " and creating thumbnails" : ""));
+    final ProgressDialog dialog = new ProgressDialog(bio, "Loading");
 
     Thread t = new Thread(new Runnable() {
       public void run() {
@@ -509,6 +574,7 @@ public class SliceManager
             slices = f.length;
             timesteps = 1;
             for (int i=0; i<slices; i++) {
+              dialog.setText("Loading " + f[i].getName());
               FieldImpl image = loadData(f[i], false);
               if (image == null) return;
               if (field == null) {
@@ -528,11 +594,8 @@ public class SliceManager
               // do current timestep last
               int ndx = i == timesteps - 1 ? curfile :
                 (i >= curfile ? i + 1 : i);
-
-              // dump old dataset (for garbage collection)
-              field = null;
-              System.gc();
-
+              purgeData(false);
+              dialog.setText("Loading " + f[ndx].getName());
               field = loadData(f[ndx], true);
               if (field == null) return;
               if (thumbs == null) {
@@ -550,6 +613,7 @@ public class SliceManager
           else {
             // load data at current index only
             timesteps = f.length;
+            dialog.setText("Loading " + f[curfile].getName());
             field = loadData(f[curfile], true);
             if (field == null) return;
             slices = field.getLength();
@@ -652,77 +716,6 @@ public class SliceManager
         "Cannot import data from " + files[index].getName() + "\n" +
         exc.getMessage(), "Cannot load file", JOptionPane.ERROR_MESSAGE);
       throw exc;
-    }
-  }
-
-  /**
-   * Loads the data from the given file, and ensures that the
-   * resulting data object is of the proper form, converting
-   * image data into single-slice stack data if specified.
-   */
-  private FieldImpl loadData(File file, boolean makeStack)
-    throws VisADException, RemoteException
-  {
-    // load data from file
-    Data data = loader.open(file.getPath());
-
-    // convert data to field
-    FieldImpl f = null;
-    if (data instanceof FieldImpl) f = (FieldImpl) data;
-    else if (data instanceof Tuple) {
-      Tuple tuple = (Tuple) data;
-      Data[] d = tuple.getComponents();
-      for (int i=0; i<d.length; i++) {
-        if (d[i] instanceof FieldImpl) {
-          f = (FieldImpl) d[i];
-          break;
-        }
-      }
-    }
-
-    // convert single image to single-slice stack
-    FieldImpl stack = f;
-    if (f instanceof FlatField && makeStack) {
-      FunctionType func = new FunctionType(SLICE_TYPE, f.getType());
-      stack = new FieldImpl(func, new Integer1DSet(1));
-      stack.setSample(0, f, false);
-    }
-    return stack;
-  }
-
-  /** Sets the current file to match the current index. */
-  private void setFile(boolean initialize)
-    throws VisADException, RemoteException
-  {
-    bio.setWaitCursor(true);
-    try {
-      if (initialize) init(files, 0);
-      else if (!filesAsSlices) {
-        // dump old dataset (for garbage collection)
-        field = new FieldImpl((FunctionType) field.getType(),
-          field.getDomainSet());
-        ref2.setData(field);
-        ref3.setData(field);
-        System.gc();
-
-        // load new data
-        field = loadData(files[index], true);
-        collapsedField = null;
-        if (field != null) {
-          ref2.setData(field);
-          ref3.setData(field);
-        }
-        else {
-          bio.setWaitCursor(false);
-          JOptionPane.showMessageDialog(bio,
-            files[index].getName() + " does not contain an image stack",
-            "Cannot load file", JOptionPane.ERROR_MESSAGE);
-          return;
-        }
-      }
-    }
-    finally {
-      bio.setWaitCursor(false);
     }
   }
 
@@ -959,14 +952,21 @@ public class SliceManager
     }
     value_control2.addControlListener(this);
 
-    // initialize plane selector
     if (bio.display3 != null) {
+      // initialize plane selector
       if (ps == null) {
         ps = new PlaneSelector(bio.display3);
         ps.addListener(this);
       }
       ps.init(dtypes[0], dtypes[1], dtypes[2],
         min_x, min_y, min_z, max_x, max_y, max_z);
+
+      // initialize alignment plane
+      if (align == null) {
+        align = new PlaneSelector(bio.display3);
+      }
+      align.init(dtypes[0], dtypes[1], dtypes[2],
+        Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN, Float.NaN);
     }
 
     // adjust display aspect ratio
@@ -1070,6 +1070,47 @@ public class SliceManager
     MeasureList list = bio.mm.lists[index];
     bio.mm.pool2.set(list);
     if (bio.mm.pool3 != null) bio.mm.pool3.set(list);
+  }
+
+
+  // -- UTILITY METHODS --
+
+  /**
+   * Loads the data from the given file, and ensures that the
+   * resulting data object is of the proper form, converting
+   * image data into single-slice stack data if specified.
+   */
+  public static FieldImpl loadData(File file, boolean makeStack)
+    throws VisADException, RemoteException
+  {
+    // load data from file
+    Data data = loader.open(file.getPath());
+
+    // convert data to field
+    FieldImpl f = null;
+    if (data instanceof FieldImpl) f = (FieldImpl) data;
+    else if (data instanceof Tuple) {
+      Tuple tuple = (Tuple) data;
+      Data[] d = tuple.getComponents();
+      for (int i=0; i<d.length; i++) {
+        if (d[i] instanceof FieldImpl) {
+          f = (FieldImpl) d[i];
+          break;
+        }
+      }
+    }
+    return makeStack && f instanceof FlatField ?
+      makeStack(new FlatField[] {(FlatField) f}) : f;
+  }
+
+  /** Converts an array of images to an image stack. */
+  public static FieldImpl makeStack(FlatField[] f)
+    throws VisADException, RemoteException
+  {
+    FunctionType func = new FunctionType(SLICE_TYPE, f[0].getType());
+    FieldImpl stack = new FieldImpl(func, new Integer1DSet(f.length));
+    for (int i=0; i<f.length; i++) stack.setSample(i, f[i], false);
+    return stack;
   }
 
 }

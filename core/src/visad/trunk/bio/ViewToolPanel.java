@@ -273,7 +273,7 @@ public class ViewToolPanel extends ToolPanel {
     sliceUpdate = new JCheckBox("Update continuously", false);
     sliceUpdate.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        bio.sm.setPlaneUpdate(sliceUpdate.isSelected());
+        bio.sm.setPlaneContinuous(sliceUpdate.isSelected());
       }
     });
     sliceUpdate.setEnabled(false);

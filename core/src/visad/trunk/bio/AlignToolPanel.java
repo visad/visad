@@ -127,7 +127,7 @@ public class AlignToolPanel extends ToolPanel {
     drift.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean doDrift = drift.isSelected();
-        // CTR - TODO - drift correction
+        bio.sm.setAlignStacks(doDrift);
       }
     });
     drift.setEnabled(false);
