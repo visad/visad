@@ -939,7 +939,10 @@ public class AddeURLConnection extends URLConnection
         } else if (testString.startsWith("fho")) {
           buf.append(" ");
           buf.append("vt=");
-          buf.append(testString.substring(testString.indexOf("=") + 1));
+          String iHMS = 
+             testString.substring(testString.indexOf("=") + 1).trim();
+          buf.append(iHMS);
+          if (iHMS.length() < 5) buf.append("0000");
 
         } else if (testString.startsWith("day")) {
           buf.append(" ");
