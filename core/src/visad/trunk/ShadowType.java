@@ -1043,13 +1043,18 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       // len = 1 in this case
       spatialDimensions[1] = 0; // spatialManifoldDimension
     }
-/* WLH 21 Aug 98
-    else if (!allSpatial) {
-*/
+    else if (domain_set == null) {
+      spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
+    }
+/* WLH 24 Sept 98
     else if (!allSpatial || domain_set == null) {
       spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
       if (domain_set != null &&
           (set_for_shape || spatialDimensions[0] < 2)) {
+*/
+    else if (!allSpatial) {
+      spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
+      if (set_for_shape || spatialDimensions[0] < 2) {
         // cannot inherit Set topology from Field domain, so
         // construct IrregularSet topology of appropriate dimension
         RealType[] reals = new RealType[spatialDimension];
@@ -1060,27 +1065,35 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         }
         RealTupleType tuple_type = new RealTupleType(reals);
         // MEM
-        switch (spatialDimension) {
-          case 1:
-            domain_set =
-              new Irregular1DSet(tuple_type, samples, null,
-                                 null, null, false);
-            break;
-          case 2:
-            domain_set =
-              new Irregular2DSet(tuple_type, samples, null,
-                                 null, null, null, false);
-            break;
-          case 3:
-            domain_set =
-              new Irregular3DSet(tuple_type, samples, null,
-                                 null, null, null, false);
-            break;
+        try {
+          switch (spatialDimension) {
+            case 1:
+              domain_set =
+                new Irregular1DSet(tuple_type, samples, null,
+                                   null, null, false);
+              break;
+            case 2:
+              domain_set =
+                new Irregular2DSet(tuple_type, samples, null,
+                                   null, null, null, false);
+              break;
+            case 3:
+              domain_set =
+                new Irregular3DSet(tuple_type, samples, null,
+                                   null, null, null, false);
+              break;
+          }
+        }
+        catch (VisADException e) {
+          domain_set = null;
         }
         // System.out.println("IrregularSet done");
-      } // end if domain_set != null && (set_for_shape || spatialDimensions[0] < 2)
+      } // end if (set_for_shape || spatialDimensions[0] < 2)
+      else { /* WLH 24 Sept 98 */
+        domain_set = null;
+      }
     }
-    else { // spatialDimension > 0 && allSpatial
+    else { // spatialDimension > 0 && allSpatial && domain_set != null
       // spatialManifoldDimension
       spatialDimensions[1] = domain_set.getManifoldDimension();
     }

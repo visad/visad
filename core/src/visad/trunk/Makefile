@@ -163,7 +163,11 @@ CLASS_FILES = \
 	visad/data/hdfeos/hdfeosc/*.class		\
 	visad/data/vis5d/*.class			\
 	visad/data/gif/*.class				\
-	visad/data/visad/*.class
+	visad/data/visad/*.class			\
+	visad/paoloa/*.class				\
+	visad/aune/*.class				\
+	visad/benjamin/*.class				\
+	visad/examples/*.class
 
 
 classes:

@@ -340,6 +340,9 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
 
+    // throw an Exception if too many Forms for list
+    FormNode junk = list[i];
+
     while (i < list.length) {
       list[i++] = null;
     }
