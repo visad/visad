@@ -966,15 +966,25 @@ for (int i=0; i < 4; i++) {
         coordinatesX[i12 + 9 + tuple_index[2]] = limits[2][1];
       }
 
-      texCoordsX = new float[12 * data_width];
-      texCoordsY = new float[12 * data_height];
-      texCoordsZ = new float[12 * data_depth];
       float ratiow = ((float) data_width) / ((float) texture_width);
       float ratioh = ((float) data_height) / ((float) texture_height);
       float ratiod = ((float) data_depth) / ((float) texture_depth);
-      shadow_api.setTex3DCoords(texCoordsX, 0, ratiow, ratioh, ratiod);
-      shadow_api.setTex3DCoords(texCoordsY, 1, ratiow, ratioh, ratiod);
-      shadow_api.setTex3DCoords(texCoordsZ, 2, ratiow, ratioh, ratiod);
+
+/* WLH 3 June 99 - comment this out until Texture3D works on NT (etc)
+      texCoordsX =
+        shadow_api.setTex3DCoords(data_width, 0, ratiow, ratioh, ratiod);
+      texCoordsY =
+        shadow_api.setTex3DCoords(data_height, 1, ratiow, ratioh, ratiod);
+      texCoordsZ =
+        shadow_api.setTex3DCoords(data_depth, 2, ratiow, ratioh, ratiod);
+*/
+
+      texCoordsX =
+        shadow_api.setTexStackCoords(data_width, 0, ratiow, ratioh, ratiod);
+      texCoordsY =
+        shadow_api.setTexStackCoords(data_height, 1, ratiow, ratioh, ratiod);
+      texCoordsZ =
+        shadow_api.setTexStackCoords(data_depth, 2, ratiow, ratioh, ratiod);
 
       normalsX = new float[12 * data_width];
       normalsY = new float[12 * data_height];
@@ -2183,6 +2193,7 @@ if (size < 0.2) {
             VisADQuadArray qarrayYrev = reverse(qarrayY);
             VisADQuadArray qarrayZrev = reverse(qarrayZ);
 
+/* WLH 3 June 99 - comment this out until Texture3D works on NT (etc)
             BufferedImage[] images =
               createImages(2, data_width, data_height, data_depth,
                            texture_width, texture_height, texture_depth,
@@ -2192,6 +2203,26 @@ if (size < 0.2) {
                                         images, mode, constant_alpha,
                                         constant_color, texture_width,
                                         texture_height, texture_depth, renderer);
+*/
+
+            BufferedImage[] images2 =
+              createImages(2, data_width, data_height, data_depth,
+                           texture_width, texture_height, texture_depth,
+                           color_values);
+            BufferedImage[] images1 =
+              createImages(1, data_width, data_height, data_depth,
+                           texture_width, texture_height, texture_depth,
+                           color_values);
+            BufferedImage[] images0 =
+              createImages(0, data_width, data_height, data_depth,
+                           texture_width, texture_height, texture_depth,
+                           color_values);
+            shadow_api.textureStackToGroup(group, qarrayX, qarrayY, qarrayZ,
+                                    qarrayXrev, qarrayYrev, qarrayZrev,
+                                    images2, images1, images0,
+                                    mode, constant_alpha, constant_color,
+                                    texture_width, texture_height, texture_depth,
+                                    renderer);
 
             // System.out.println("isTexture3D done");
             return false;
@@ -2798,17 +2829,20 @@ if (size < 0.2) {
     int count = array.vertexCount;
     qarray.vertexCount = count;
     int color_length = array.colors.length / count;
+    int tex_length = array.texCoords.length / count;
     int i3 = 0;
     int k3 = 3 * (count - 1);
     int ic = 0;
     int kc = color_length * (count - 1);
+    int it = 0;
+    int kt = tex_length * (count - 1);
     for (int i=0; i<count; i++) {
       qarray.coordinates[i3] = array.coordinates[k3];
       qarray.coordinates[i3 + 1] = array.coordinates[k3 + 1];
       qarray.coordinates[i3 + 2] = array.coordinates[k3 + 2];
-      qarray.texCoords[i3] = array.texCoords[k3];
-      qarray.texCoords[i3 + 1] = array.texCoords[k3 + 1];
-      qarray.texCoords[i3 + 2] = array.texCoords[k3 + 2];
+      qarray.texCoords[it] = array.texCoords[kt];
+      qarray.texCoords[it + 1] = array.texCoords[kt + 1];
+      if (tex_length == 3) qarray.texCoords[it + 2] = array.texCoords[kt + 2];
       qarray.normals[i3] = array.normals[k3];
       qarray.normals[i3 + 1] = array.normals[k3 + 1];
       qarray.normals[i3 + 2] = array.normals[k3 + 2];
@@ -2820,6 +2854,8 @@ if (size < 0.2) {
       k3 -= 3;
       ic += color_length;
       kc -= color_length;
+      it += tex_length;
+      kt -= tex_length;
     }
     return qarray;
   }

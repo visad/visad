@@ -148,9 +148,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     texCoords[7] = 1.0f - ratioh;
   }
 
-  public void setTex3DCoords(float[] texCoords, int axis, float ratiow,
-                             float ratioh, float ratiod) {
-    int length = texCoords.length / 12;
+  public float[] setTex3DCoords(int length, int axis, float ratiow,
+                                float ratioh, float ratiod) {
+    float[] texCoords = new float[12 * length];
     if (axis == 2) {
       for (int i=0; i<length; i++) {
         int i12 = i * 12;
@@ -217,6 +217,64 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         texCoords[i12 + 11] = ratiod;
       }
     }
+    return texCoords;
+  }
+
+  public float[] setTexStackCoords(int length, int axis, float ratiow,
+                                   float ratioh, float ratiod) {
+    float[] texCoords = new float[8 * length];
+    if (axis == 2) {
+      for (int i=0; i<length; i++) {
+        int i8 = i * 8;
+        // corner 0
+        texCoords[i8] = 0.0f;
+        texCoords[i8 + 1] = 1.0f;
+        // corner 1
+        texCoords[i8 + 2] = ratiow;
+        texCoords[i8 + 3] = 1.0f;
+        // corner 2
+        texCoords[i8 + 4] = ratiow;
+        texCoords[i8 + 5] = 1.0f - ratioh;
+        // corner 3
+        texCoords[i8 + 6] = 0.0f;
+        texCoords[i8 + 7] = 1.0f - ratioh;
+      }
+    }
+    else if (axis == 1) {
+      for (int i=0; i<length; i++) {
+        int i8 = i * 8;
+        // corner 0
+        texCoords[i8] = 0.0f;
+        texCoords[i8 + 1] = 1.0f - ratiod;
+        // corner 1
+        texCoords[i8 + 2] = ratiow;
+        texCoords[i8 + 3] = 1.0f - ratiod;
+        // corner 2
+        texCoords[i8 + 4] = ratiow;
+        texCoords[i8 + 5] = 1.0f;
+        // corner 3
+        texCoords[i8 + 6] = 0.0f;
+        texCoords[i8 + 7] = 1.0f;
+      }
+    }
+    else if (axis == 0) {
+      for (int i=0; i<length; i++) {
+        int i8 = i * 8;
+        // corner 0
+        texCoords[i8] = ratioh;
+        texCoords[i8 + 1] = 1.0f - ratiod;
+        // corner 1
+        texCoords[i8 + 2] = 0.0f;
+        texCoords[i8 + 3] = 1.0f - ratiod;
+        // corner 2
+        texCoords[i8 + 4] = 0.0f;
+        texCoords[i8 + 5] = 1.0f;
+        // corner 3
+        texCoords[i8 + 6] = ratioh;
+        texCoords[i8 + 7] = 1.0f;
+      }
+    }
+    return texCoords;
   }
 
   public Vector getTextMaps(int i, int[] textIndices) {
@@ -405,6 +463,219 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     ProjectionControlJ3D control =
       (ProjectionControlJ3D) display.getProjectionControl();
     control.addPair(swit, renderer);
+  }
+
+  public void textureStackToGroup(Object group, VisADGeometryArray arrayX,
+                    VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
+                    VisADGeometryArray arrayXrev,
+                    VisADGeometryArray arrayYrev,
+                    VisADGeometryArray arrayZrev,
+                    BufferedImage[] images2,
+                    BufferedImage[] images1,
+                    BufferedImage[] images0,
+                    GraphicsModeControl mode,
+                    float constant_alpha, float[] constant_color,
+                    int texture_width, int texture_height,
+                    int texture_depth, DataRenderer renderer)
+         throws VisADException {
+
+    GeometryArray[] geometryX = makeGeometrys(arrayX);
+    GeometryArray[] geometryY = makeGeometrys(arrayY);
+    GeometryArray[] geometryZ = makeGeometrys(arrayZ);
+/* not needed ??
+    GeometryArray[] geometryXrev = makeGeometrys(arrayXrev);
+    GeometryArray[] geometryYrev = makeGeometrys(arrayYrev);
+    GeometryArray[] geometryZrev = makeGeometrys(arrayZrev);
+*/
+
+    // create Attributes for Appearances
+    TransparencyAttributes c_alpha = null;
+    if (constant_alpha == 1.0f) {
+      // constant opaque alpha = NONE
+      c_alpha = null;
+    }
+    else if (constant_alpha == constant_alpha) {
+      // c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
+      c_alpha = new TransparencyAttributes(TransparencyAttributes.BLENDED,
+                                           constant_alpha);
+    }
+    else {
+      c_alpha = new TransparencyAttributes();
+      c_alpha.setTransparencyMode(TransparencyAttributes.BLENDED);
+    }
+    ColoringAttributes c_color = null;
+    if (constant_color != null && constant_color.length == 3) {
+      c_color = new ColoringAttributes();
+      c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
+    }
+    TextureAttributes texture_attributes = new TextureAttributes();
+    texture_attributes.setTextureMode(TextureAttributes.MODULATE);
+    texture_attributes.setPerspectiveCorrectionMode(
+                          TextureAttributes.NICEST);
+
+    OrderedGroup branchX = new OrderedGroup();
+    int data_depth = geometryX.length;
+    Shape3D[] shapeX = new Shape3D[data_depth];
+    for (int i=0; i<data_depth; i++) {
+      Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+                                        texture_width, texture_height);
+      ImageComponent2D image2d =
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, images0[i]);
+      texture.setImage(0, image2d);
+      Appearance appearance =
+        makeAppearance(mode, c_alpha, null, geometryX[i], true);
+      appearance.setTextureAttributes(texture_attributes);
+      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setEnable(true);
+      appearance.setTexture(texture);
+      shapeX[i] = new Shape3D(geometryX[i], appearance);
+      branchX.addChild(shapeX[i]);
+    }
+    OrderedGroup branchXrev = new OrderedGroup();
+    for (int i=data_depth-1; i>=0; i--) {
+      Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+                                        texture_width, texture_height);
+      ImageComponent2D image2d =
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, images0[i]);
+      texture.setImage(0, image2d);
+      Appearance appearance =
+        makeAppearance(mode, c_alpha, null, geometryX[i], true);
+      appearance.setTextureAttributes(texture_attributes);
+      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setEnable(true);
+      appearance.setTexture(texture);
+      shapeX[i] = new Shape3D(geometryX[i], appearance);
+      branchXrev.addChild(shapeX[i]);
+    }
+    shapeX = null;
+
+    OrderedGroup branchY = new OrderedGroup();
+    int data_height = geometryY.length;
+    Shape3D[] shapeY = new Shape3D[data_height];
+    for (int i=0; i<data_height; i++) {
+      Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+                                        texture_width, texture_depth);
+      // flip texture on Y axis
+      ImageComponent2D image2d =
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA,
+                             images1[(data_height - 1) - i]);
+      texture.setImage(0, image2d);
+      Appearance appearance =
+        makeAppearance(mode, c_alpha, null, geometryY[i], true);
+      appearance.setTextureAttributes(texture_attributes);
+      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setEnable(true);
+      appearance.setTexture(texture);
+      shapeY[i] = new Shape3D(geometryY[i], appearance);
+      branchY.addChild(shapeY[i]);
+    }
+    OrderedGroup branchYrev = new OrderedGroup();
+    for (int i=data_height-1; i>=0; i--) {
+      Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+                                        texture_width, texture_depth);
+      // flip texture on Y axis
+      ImageComponent2D image2d =
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA,
+                             images1[(data_height - 1) - i]);
+      texture.setImage(0, image2d);
+      Appearance appearance =
+        makeAppearance(mode, c_alpha, null, geometryY[i], true);
+      appearance.setTextureAttributes(texture_attributes);
+      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setEnable(true);
+      appearance.setTexture(texture);
+      shapeY[i] = new Shape3D(geometryY[i], appearance);
+      branchYrev.addChild(shapeY[i]);
+    }
+    shapeY = null;
+
+    OrderedGroup branchZ = new OrderedGroup();
+    int data_width = geometryZ.length;
+    Shape3D[] shapeZ = new Shape3D[data_width];
+    for (int i=0; i<data_width; i++) {
+      Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+                                        texture_height, texture_depth);
+      ImageComponent2D image2d =
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, images2[i]);
+      texture.setImage(0, image2d);
+      Appearance appearance =
+        makeAppearance(mode, c_alpha, null, geometryZ[i], true);
+      appearance.setTextureAttributes(texture_attributes);
+      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setEnable(true);
+      appearance.setTexture(texture);
+      shapeZ[i] = new Shape3D(geometryZ[i], appearance);
+      branchZ.addChild(shapeZ[i]);
+    }
+    OrderedGroup branchZrev = new OrderedGroup();
+    for (int i=data_width-1; i>=0; i--) {
+      Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+                                        texture_height, texture_depth);
+      ImageComponent2D image2d =
+        new ImageComponent2D(ImageComponent.FORMAT_RGBA, images2[i]);
+      texture.setImage(0, image2d);
+      Appearance appearance =
+        makeAppearance(mode, c_alpha, null, geometryZ[i], true);
+      appearance.setTextureAttributes(texture_attributes);
+      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      texture.setEnable(true);
+      appearance.setTexture(texture);
+      shapeZ[i] = new Shape3D(geometryZ[i], appearance);
+      branchZrev.addChild(shapeZ[i]);
+    }
+    shapeZ = null;
+
+    Switch swit = (Switch) makeSwitch();
+    swit.addChild(branchX);
+    swit.addChild(branchY);
+    swit.addChild(branchZ);
+    swit.addChild(branchXrev);
+    swit.addChild(branchYrev);
+    swit.addChild(branchZrev);
+    ((Group) group).addChild(swit);
+
+    ProjectionControlJ3D control =
+      (ProjectionControlJ3D) display.getProjectionControl();
+    control.addPair(swit, renderer);
+  }
+
+  GeometryArray[] makeGeometrys(VisADGeometryArray array)
+                  throws VisADException {
+    int count = array.vertexCount;
+    int depth = count / 4;
+    int color_length = array.colors.length / count;
+    int tex_length = array.texCoords.length / count;
+
+    GeometryArray[] geometrys = new GeometryArray[depth];
+    for (int d=0; d<depth; d++) {
+      int i12 = d * 4 * 3;
+      int i4c = d * 4 * color_length;
+      int i4t = d * 4 * tex_length;
+      VisADQuadArray qarray = new VisADQuadArray();
+      qarray.vertexCount = 4;
+      qarray.coordinates = new float[12];
+      qarray.texCoords = new float[tex_length * 4];
+      qarray.colors = new byte[color_length * 4];
+      qarray.normals = new float[12];
+      for (int i=0; i<12; i++) {
+        qarray.coordinates[i] = array.coordinates[i12 + i];
+        qarray.normals[i] = array.normals[i12 + i];
+      }
+      for (int i=0; i<4*color_length; i++) {
+        qarray.colors[i] = array.colors[i4c + i];
+      }
+      for (int i=0; i<4*tex_length; i++) {
+        qarray.texCoords[i] = array.texCoords[i4t + i];
+      }
+      geometrys[d] = display.makeGeometry(qarray);
+    }
+    return geometrys;
   }
 
   public Object makeSwitch() {

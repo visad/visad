@@ -270,8 +270,8 @@ boolean anynotmissing = false;
   
     xdd = ((nr-1)-0.0f)/(nr-1.0f); // = 1.0
     ydd = ((nc-1)-0.0f)/(nc-1.0f); // = 1.0
-    xd = xdd - 0.000001f;
-    yd = ydd - 0.000001f;
+    xd = xdd - 0.0001f;
+    yd = ydd - 0.0001f;
 
     /*
      * set up mark array

@@ -2786,8 +2786,14 @@ System.out.println("color_values: nummissing = " + nummissing);
   public void setTexCoords(float[] texCoords, float ratiow, float ratioh) {
   }
 
-  public void setTex3DCoords(float[] texCoords, int axis, float ratiow,
-                             float ratioh, float ratiod) {
+  public float[] setTex3DCoords(int length, int axis, float ratiow,
+                                float ratioh, float ratiod) {
+    return null;
+  }
+
+  public float[] setTexStackCoords(int length, int axis, float ratiow,
+                                   float ratioh, float ratiod) {
+    return null;
   }
 
   public Vector getTextMaps(int i, int[] textIndices) {
@@ -2817,6 +2823,21 @@ System.out.println("color_values: nummissing = " + nummissing);
                     float constant_alpha, float[] constant_color,
                     int texture_width, int texture_height, int texture_depth,
                     DataRenderer renderer)
+         throws VisADException {
+  }
+
+  public void textureStackToGroup(Object group, VisADGeometryArray arrayX,
+                    VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
+                    VisADGeometryArray arrayXrev,
+                    VisADGeometryArray arrayYrev,
+                    VisADGeometryArray arrayZrev,
+                    BufferedImage[] images2,
+                    BufferedImage[] images1,
+                    BufferedImage[] images0,
+                    GraphicsModeControl mode,
+                    float constant_alpha, float[] constant_color,
+                    int texture_width, int texture_height,
+                    int texture_depth, DataRenderer renderer)
          throws VisADException {
   }
 
