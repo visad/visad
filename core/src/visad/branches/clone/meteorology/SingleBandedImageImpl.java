@@ -216,28 +216,6 @@ public class SingleBandedImageImpl
                 startTime, description);
     }
 
-    /**
-     * Override clone in FlatField so we carry the metadata with
-     * us (and to make sure that the clone is a SingleBandedImage.
-     * @return  new SingleBandedImage which is a clone of this one.
-     */
-    public Object clone()
-    {
-        SingleBandedImage newImage;
-        try
-        {
-            newImage = 
-                new SingleBandedImageImpl(
-                    (FlatField) super.clone(), startTime, description);
-        }
-        catch (VisADException excp)
-        {
-            throw new VisADError(
-                "SingleBandedImageImpl.clone(): VisADException occurred");
-        }
-        return newImage;
-    }
-
     private void setMaxMinValues()
         throws VisADException
     {
