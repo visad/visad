@@ -401,14 +401,17 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
             captureImage =
               new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
           }
-          Graphics gc = captureImage.getGraphics();
-          gc.drawImage(image, 0, 0, this);
-          gc.dispose();
-          displayRenderer.notifyCapture();
+          // CTR 2 June 2000 - captureImage can be null
+          if (captureImage != null) {
+            Graphics gc = captureImage.getGraphics();
+            gc.drawImage(image, 0, 0, this);
+            gc.dispose();
+            displayRenderer.notifyCapture();
 // System.out.println("image capture end");
 
-          // CTR 21 Sep 99 - send BufferedImage to any attached slaved displays
-          if (display.hasSlaves()) display.updateSlaves(captureImage);
+            // CTR 21 Sep 99 - send BufferedImage to any attached slaved displays
+            if (display.hasSlaves()) display.updateSlaves(captureImage);
+          }
         }
       }
       else {

@@ -611,7 +611,7 @@ public class BasicSSCell extends JPanel {
     // finish GUI setup
     initVDPanel();
     setPreferredSize(new Dimension(0, 0));
-    setBackground(Color.black);
+    setBackground(IsSlave ? Color.darkGray : Color.black);
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
   }
 
@@ -1840,7 +1840,7 @@ public class BasicSSCell extends JPanel {
   }
 
   private void setDimension(int dim) throws VisADException, RemoteException {
-    if (IsSlave || Dim == dim) return;
+    if (Dim == dim) return;
     Dim = dim;
 
     if (!IsRemote) {
