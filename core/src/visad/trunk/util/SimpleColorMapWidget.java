@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.30 1999-11-16 22:54:36 dglo Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.31 1999-11-16 22:57:13 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -51,7 +51,7 @@ import visad.VisADException;
  * RGB/RGBA color maps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.30 $, $Date: 1999-11-16 22:54:36 $
+ * @version $Revision: 1.31 $, $Date: 1999-11-16 22:57:13 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -59,9 +59,6 @@ public class LabeledColorWidget
   implements ActionListener, ColorChangeListener, ControlListener,
              ScalarMapListener
 {
-
-  private final int TABLE_SIZE;
-  private final float SCALE;
 
   private ArrowSlider slider;
 
@@ -72,8 +69,6 @@ public class LabeledColorWidget
   private float[][] orig_table;
 
   BaseColorControl control;
-
-  private int components;
 
   /**
    * Construct a <CODE>LabeledColorWidget</CODE> linked to the
@@ -212,7 +207,7 @@ public class LabeledColorWidget
 
     // save the control
     control = (BaseColorControl )ctl;
-    components = control.getNumberOfComponents();
+    final int components = control.getNumberOfComponents();
 
     // switch table row/column order
     float[][] table = table_reorg(in_table);
@@ -249,10 +244,6 @@ public class LabeledColorWidget
     }
     BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
     map.setValues(table_reorg(table));
-
-    // initialize some constants
-    TABLE_SIZE = map.getMapResolution();
-    SCALE = 1.0f / (TABLE_SIZE - 1.0f);
 
     // save the original table for "reset" button
     orig_table = copy_table(in_table);
@@ -339,7 +330,7 @@ public class LabeledColorWidget
    * @param min Minimum value for slider.
    * @param max Maximum value for slider.
    */
-  private void updateSlider(float min, float max)
+  void updateSlider(float min, float max)
   {
     float val = slider.getValue();
     if (val != val || val <= min || val >= max) {
@@ -374,7 +365,7 @@ public class LabeledColorWidget
         float a = 1.0f / (len - 1.0f);
         for (int j=0; j<len; j++) {
           table[0][j] = table[1][j] = table[2][j] = j * a;
-          if (components > 3) {
+          if (orig_table.length > 3) {
             table[3][j] = 1.0f;
           }
         }
@@ -398,17 +389,30 @@ public class LabeledColorWidget
    */
   public void colorChanged(ColorChangeEvent evt)
   {
+    // get the colormap
     ColorMap map_e = colorWidget.getColorMap();
-    float[][] table_e = new float[components][TABLE_SIZE];
-    for (int i=0; i<TABLE_SIZE; i++) {
-      float[] t = map_e.getTuple(SCALE * i);
+    if (map_e == null) {
+      return;
+    }
+
+    // stash some map-related constants
+    final int dim = map_e.getMapDimension();
+    final int res = map_e.getMapResolution();
+    final float scale = 1.0f / (res - 1.0f);
+
+    // construct a new table from the map data
+    float[][] table_e = new float[dim][res];
+    for (int i=0; i<res; i++) {
+      float[] t = map_e.getTuple(scale * i);
       table_e[0][i] = t[0];
       table_e[1][i] = t[1];
       table_e[2][i] = t[2];
-      if (components > 3) {
+      if (dim > 3) {
         table_e[3][i] = t[3];
       }
     }
+
+    // save the new table to the Control
     try {
       control.setTable(table_e);
     } catch (VisADException ve) {
@@ -425,23 +429,52 @@ public class LabeledColorWidget
    * @param evt Data from the changed <CODE>Control</CODE>.
    */
   public void controlChanged(ControlEvent evt)
-    throws VisADException, RemoteException
   {
+    // get the colormap
+    ColorMap map_e = colorWidget.getColorMap();
+    if (map_e == null) {
+      return;
+    }
+
+    // stash some map-related constants
+    final int dim = map_e.getMapDimension();
+    final int res = map_e.getMapResolution();
+    final float scale = 1.0f / (res - 1.0f);
+
+    // grab the Control's table
     float[][] table = control.getTable();
 
-    ColorMap map_e = colorWidget.getColorMap();
     boolean identical = true;
-    for (int i=0; i<TABLE_SIZE; i++) {
-      float[] t = map_e.getTuple(SCALE * i);
-      if (Math.abs(table[0][i] - t[0]) > 0.0001 ||
-          Math.abs(table[1][i] - t[1]) > 0.0001 ||
-          Math.abs(table[2][i] - t[2]) > 0.0001 ||
-          (components > 3 && Math.abs(table[3][i] - t[3]) > 0.0001))
-      {
-        identical = false;
-        break;
+    if (table == null || table.length != dim) {
+      // table is fundamentally different
+      identical = false;
+    } else {
+      for (int i = 0; i < dim; i++) {
+        if (table[i].length != res) {
+          // table resolution changed
+          identical = false;
+          break;
+        }
+      }
+
+      // if the basic table shape is unchanged...
+      if (identical) {
+        for (int i=0; i<res; i++) {
+          float[] t = map_e.getTuple(scale * i);
+          if (Math.abs(table[0][i] - t[0]) > 0.0001 ||
+              Math.abs(table[1][i] - t[1]) > 0.0001 ||
+              Math.abs(table[2][i] - t[2]) > 0.0001 ||
+              (dim > 3 && Math.abs(table[3][i] - t[3]) > 0.0001))
+          {
+            // table data changed
+            identical = false;
+            break;
+          }
+        }
       }
     }
+
+    // if the table has changed...
     if (!identical) {
       ((BaseRGBMap )map_e).setValues(table_reorg(table));
     }
@@ -466,7 +499,7 @@ public class LabeledColorWidget
    *
    * @return The new copy.
    */
-  private static float[][] copy_table(float[][] table)
+  static float[][] copy_table(float[][] table)
   {
     if (table == null || table[0] == null) {
       return null;
@@ -494,7 +527,7 @@ public class LabeledColorWidget
    *
    * @return The reorganized table.
    */
-  private static float[][] table_reorg(float[][] table)
+  static float[][] table_reorg(float[][] table)
   {
     if (table == null || table[0] == null) {
       return null;
