@@ -67,9 +67,12 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
-    // WLH 13 March 2000
-    // if (coord_sys == null) return this;
-    if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem) {
+    // DRM 19 March 2002
+    //if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem) {
+    //  return this;
+    //}
+    if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem ||
+        coordinates == null) {
       return this;
     }
 
