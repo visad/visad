@@ -470,15 +470,18 @@ recompile:
 		     (echo "$(JC) $(JFLAGS) $$j" &&			\
 		      $(JC) $(JFLAGS) $$j || true);			\
 		   fi;							\
+		   rmicomp=;						\
 		   case "$$b" in					\
-		   *Remote*Impl)					\
+		   *Remote*Impl) rmicomp=1;;				\
+		   NetcdfServer) rmicomp=1;;				\
+		   esac;						\
+		   if [ ! -z "$$rmicomp" ]; then			\
 		     set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
 		     if [ $${b}_Stub.class != $$1 ]; then		\
 		       (echo "${RMIC} -d $$root $$i.$$b" &&		\
 			${RMIC} -d $$root $$i.$$b || true);		\
 		     fi;						\
-		     ;;							\
-		   esac;						\
+		   fi;							\
 		 done);							\
 	      fi;							\
 	    fi;								\
