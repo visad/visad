@@ -350,6 +350,13 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
       coordinates[9 + tuple_index[1]] = limits[1][1];
       coordinates[9 + tuple_index[2]] = value2;
 
+      if (display.getDisplayRenderer().getMode2D()) {
+        coordinates[2] = DisplayImplJ3D.BACK2D;
+        coordinates[5] = DisplayImplJ3D.BACK2D;
+        coordinates[8] = DisplayImplJ3D.BACK2D;
+        coordinates[11] = DisplayImplJ3D.BACK2D;
+      }
+
       texCoords = new float[8];
       float ratiow = ((float) data_width) / ((float) texture_width);
       float ratioh = ((float) data_height) / ((float) texture_height);
@@ -1300,8 +1307,12 @@ System.out.println("Texture.NICEST = " + Texture.NICEST); // 1
 System.out.println("Texture.BASE_LEVEL_POINT = " + Texture.BASE_LEVEL_POINT); // 2
 System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); // 3
 */
+/* for interpolation:
             texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
             texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+*/
+            texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+            texture.setMagFilter(Texture.BASE_LEVEL_POINT);
             texture.setEnable(true);
             // end of from TextureLoader
             //

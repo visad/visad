@@ -76,7 +76,7 @@ public class SetType extends MathType {
   public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
-    throw new UnimplementedException("binary");
+    throw new UnimplementedException("SetType.binary");
   }
 
   /*- TDR July 1998  */

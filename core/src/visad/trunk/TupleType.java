@@ -235,6 +235,38 @@ public class TupleType extends MathType {
   public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
+    if (type == null) {
+      throw new TypeException("TupleType.binary: type may not be null" );
+    }
+    if (type instanceof RealTupleType) {
+      throw new TypeException("TupleType.binary: types don't match" );
+    }
+    else if (type instanceof TupleType) {
+      int n_comps = tupleComponents.length;
+      MathType[] new_types = new MathType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        MathType type_component = ((TupleType) type).getComponent(ii);
+        new_types[ii] = (this.getComponent(ii)).binary( type_component, op, names );
+      }
+      return new TupleType( new_types );
+    }
+    else if (type instanceof RealType) {
+      int n_comps = tupleComponents.length;
+      MathType[] new_types = new MathType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        new_types[ii] = (this.getComponent(ii)).binary( type, op, names );
+      }
+      return new TupleType( new_types );
+    }
+    else if (type instanceof FunctionType &&
+             ((FunctionType) type).getRange().equalsExceptName(this)) {
+      return new FunctionType(((FunctionType) type).getDomain(),
+        ((FunctionType) type).getRange().binary(this, DataImpl.invertOp(op), names));
+    }
+    else {
+      throw new TypeException("TupleType.binary: types don't match" );
+    }
+/* WLH 10 Sept 98
     int n_comps = tupleComponents.length;
     MathType[] new_types = new MathType[ n_comps ];
     for ( int ii = 0; ii < n_comps; ii++ ) {
@@ -242,6 +274,7 @@ public class TupleType extends MathType {
     }
 
     return new TupleType( new_types );
+*/
   }
 
   /*- TDR July 1998  */

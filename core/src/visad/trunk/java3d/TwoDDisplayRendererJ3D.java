@@ -122,6 +122,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     return root;
   }
 
+/*
   private static final float[] box_verts = {
      // front face
          -1.0f, -1.0f,  0.3f,                       -1.0f,  1.0f,  0.3f,
@@ -134,8 +135,8 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
           0.0f,  0.1f,  0.3f,                        0.0f, -0.1f,  0.3f,
           0.1f,  0.0f,  0.3f,                       -0.1f,  0.0f,  0.3f
   };
+*/
 
-/*
   private static final float[] box_verts = {
      // front face
          -1.0f, -1.0f,  0.0f,                       -1.0f,  1.0f,  0.0f,
@@ -148,6 +149,5 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
           0.0f,  0.1f,  0.0f,                        0.0f, -0.1f,  0.0f,
           0.1f,  0.0f,  0.0f,                       -0.1f,  0.0f,  0.0f
   };
-*/
 }
 

@@ -47,6 +47,9 @@ import com.sun.j3d.utils.applet.MainFrame;
 */
 public class DisplayImplJ3D extends DisplayImpl {
 
+  /** distance behind for surfaces in 2-D mode */
+  public static final float BACK2D = -0.3f;
+
   /** legal values for api */
   public static final int JPANEL = 1;
   public static final int APPLETFRAME = 2;
@@ -133,7 +136,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       IndexedTriangleStripArray array =
         new IndexedTriangleStripArray(vga.vertexCount, makeFormat(vga),
                                       vgb.indexCount, vgb.stripVertexCounts);
-      basicGeometry(vga, array, false);
+      basicGeometry(vga, array, mode2d);
       if (vga.coordinates != null) {
         array.setCoordinateIndices(0, vgb.indices);
       }
@@ -245,14 +248,14 @@ public class DisplayImplJ3D extends DisplayImpl {
       if (vga.vertexCount == 0) return null;
       PointArray array =
         new PointArray(vga.vga.vertexCount, makeFormat(vga));
-      basicGeometry(vga, array, mode2d);
+      basicGeometry(vga, array, false);
       return array;
 */
     }
     else if (vga instanceof VisADLineArray) {
       if (vga.vertexCount == 0) return null;
       LineArray array = new LineArray(vga.vertexCount, makeFormat(vga));
-      basicGeometry(vga, array, mode2d);
+      basicGeometry(vga, array, false);
       return array;
     }
     else if (vga instanceof VisADLineStripArray) {
@@ -261,19 +264,19 @@ public class DisplayImplJ3D extends DisplayImpl {
       LineStripArray array =
         new LineStripArray(vga.vertexCount, makeFormat(vga),
                            vgb.stripVertexCounts);
-      basicGeometry(vga, array, mode2d);
+      basicGeometry(vga, array, false);
       return array;
     }
     else if (vga instanceof VisADPointArray) {
       if (vga.vertexCount == 0) return null;
       PointArray array = new PointArray(vga.vertexCount, makeFormat(vga));
-      basicGeometry(vga, array, mode2d);
+      basicGeometry(vga, array, false);
       return array;
     }
     else if (vga instanceof VisADTriangleArray) {
       if (vga.vertexCount == 0) return null;
       TriangleArray array = new TriangleArray(vga.vertexCount, makeFormat(vga));
-      basicGeometry(vga, array, false);
+      basicGeometry(vga, array, mode2d);
       return array;
     }
     else {
@@ -288,7 +291,7 @@ public class DisplayImplJ3D extends DisplayImpl {
         int len = vga.coordinates.length;
         float[] coords = new float[len];
         System.arraycopy(vga.coordinates, 0, coords, 0, len);
-        for (int i=2; i<len; i+=3) coords[i] = 0.3f;
+        for (int i=2; i<len; i+=3) coords[i] = BACK2D;
         array.setCoordinates(0, coords);
       }
     }

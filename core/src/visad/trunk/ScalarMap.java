@@ -95,13 +95,15 @@ public class ScalarMap extends Object implements java.io.Serializable {
       throw new DisplayException("ScalarMap: display_scalar may not be List");
     }
     boolean text = display_scalar.getText();
-    if (text && !(scalar instanceof TextType)) {
-      throw new DisplayException("ScalarMap: RealType scalar cannot be " +
-                                 "used with TextType display_scalar");
-    }
-    if (!text && !(scalar instanceof RealType)) {
-      throw new DisplayException("ScalarMap: TextType scalar cannot be " +
-                                 "used with RealType display_scalar");
+    if (scalar != null) {
+      if (text && !(scalar instanceof TextType)) {
+        throw new DisplayException("ScalarMap: RealType scalar cannot be " +
+                                   "used with TextType display_scalar");
+      }
+      if (!text && !(scalar instanceof RealType)) {
+        throw new DisplayException("ScalarMap: TextType scalar cannot be " +
+                                   "used with RealType display_scalar");
+      }
     }
     control = null;
     Scalar = scalar;

@@ -70,7 +70,18 @@ public class TextType extends ScalarType {
   public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
+    if (type == null) {
+      throw new TypeException("TextType.binary: type may not be null" );
+    }
+    if (type instanceof TextType) {
+      return this;
+    }
+    else {
+      throw new TypeException("TextType.binary: types don't match" );
+    }
+/* WLH 10 Sept 98
     throw new UnimplementedException("TextType: binary");
+*/
   }
 
   /*- TDR July 1998  */

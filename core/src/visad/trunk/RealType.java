@@ -176,15 +176,20 @@ public class RealType extends ScalarType {
 
     return newType;
   }
+
   /*- TDR July 1998  */
   public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
+/* WLH 10 Sept 98 */
+    if (type == null) {
+      throw new TypeException("TupleType.binary: type may not be null" );
+    }
+
     Unit newUnit = null;
     MathType newType = null;
     String newName = null;
-    if ( type instanceof RealType )
-    {
+    if (type instanceof RealType) {
       Unit unit = ((RealType)type).getDefaultUnit();
       Unit thisUnit = DefaultUnit;
 
@@ -330,9 +335,39 @@ public class RealType extends ScalarType {
     else if ( type instanceof FunctionType ) {
       return type.binary( this, DataImpl.invertOp(op), names );
     }
+/* WLH 10 Sept 98 - not necessary
+    else if (type instanceof RealTupleType) {
+      int n_comps = ((TupleType) type).getDimension();
+      RealType[] new_types = new RealType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        new_types[ii] = (RealType)
+          (((TupleType) type).getComponent(ii)).binary(this,
+                                       DataImpl.invertOp(op), names);
+      }
+      return new RealTupleType( new_types );
+    }
+    else if (type instanceof TupleType) {
+      int n_comps = ((TupleType) type).getDimension();
+      MathType[] new_types = new MathType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        new_types[ii] =
+          (((TupleType) type).getComponent(ii)).binary(this,
+                                       DataImpl.invertOp(op), names);
+      }
+      return new TupleType( new_types );
+    }
+    else if (type instanceof FunctionType) {
+      return new FunctionType(((FunctionType) type).getDomain(),
+        ((FunctionType) type).getRange().binary(this, DataImpl.invertOp(op), names));
+    }
+    else {
+      throw new TypeException("RealType.binary: types don't match" );
+    }
+*/
 
     return newType;
   }
+
   /*- TDR July 1998 */
   public MathType unary( int op, Vector names )
          throws VisADException

@@ -174,6 +174,38 @@ public class RealTupleType extends TupleType {
   public MathType binary( MathType type, int op, Vector names )
                   throws VisADException
   {
+    if (type == null) {
+      throw new TypeException("RealTupleType.binary: type may not be null" );
+    }
+    if (type instanceof RealTupleType) {
+      int n_comps = getDimension();
+      RealType[] new_types = new RealType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        RealType type_component =
+          (RealType) ((RealTupleType) type).getComponent(ii);
+        new_types[ii] =
+          (RealType) (this.getComponent(ii)).binary( type_component, op, names );
+      }
+      return new RealTupleType( new_types );
+    }
+    else if (type instanceof RealType) {
+      int n_comps = getDimension();
+      RealType[] new_types = new RealType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        new_types[ii] =
+          (RealType) (this.getComponent(ii)).binary( type, op, names );
+      }
+      return new RealTupleType( new_types );
+    }
+    else if (type instanceof FunctionType &&
+             ((FunctionType) type).getRange().equalsExceptName(this)) {
+      return new FunctionType(((FunctionType) type).getDomain(),
+        ((FunctionType) type).getRange().binary(this, DataImpl.invertOp(op), names));
+    }
+    else {
+      throw new TypeException("RealTupleType.binary: types don't match" );
+    }
+/* WLH 10 Sept 98
     int n_comps = getDimension();
     MathType new_type = null;
     if (type instanceof RealTupleType) 
@@ -202,6 +234,7 @@ public class RealTupleType extends TupleType {
       new_type = type.binary( this, DataImpl.invertOp(op), names );
     }
     return new_type;
+*/
   }
 
   public MathType unary( int op, Vector names )

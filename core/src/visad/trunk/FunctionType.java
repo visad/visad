@@ -239,9 +239,30 @@ public class FunctionType extends MathType {
   public MathType binary( MathType type, int op, Vector names )
          throws VisADException
   {
+    if (type == null) {
+      throw new TypeException("FunctionType.binary: type may not be null" );
+    }
+    if (equalsExceptName(type)) {
+      return new FunctionType(Domain,
+             Range.binary(((FunctionType)type).getRange(), op, names));
+    }
+    else if (type instanceof RealType ||
+             getRange().equalsExceptName(type)) {
+      return new FunctionType(Domain, Range.binary(type, op, names));
+    }
+    else if (type instanceof FunctionType &&
+             ((FunctionType) type).getRange().equalsExceptName(this)) {
+      return new FunctionType(((FunctionType) type).getDomain(),
+        ((FunctionType) type).getRange().binary(this, DataImpl.invertOp(op), names));
+    }
+    else {
+      throw new TypeException("FunctionType.binary: types don't match");
+    }
+/* WLH 10 Sept 98
     MathType m_type = (type instanceof FunctionType) ? 
                       ((FunctionType)type).getRange() : type;
     return (MathType) new FunctionType( Domain, Range.binary( m_type, op, names ));
+*/
   }
 
   /*- TDR July 1998  */
