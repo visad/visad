@@ -88,6 +88,68 @@ public class BinaryWriter
     file = null;
   }
 
+  private int computeDoubleMatrixBytes(double[][] matrix)
+  {
+    if (matrix == null) {
+      return 4;
+    }
+
+    int len = 4;
+    for (int i = 0; i < matrix.length; i++) {
+      len += 4 + (matrix[i].length * 8);
+    }
+
+    return len;
+  }
+
+  private int computeFloatMatrixBytes(float[][] matrix)
+  {
+    if (matrix == null) {
+      return 4;
+    }
+
+    int len = 4;
+    for (int i = 0; i < matrix.length; i++) {
+      len += 4 + (matrix[i].length * 4);
+    }
+
+    return len;
+  }
+
+  private int computeIntegerMatrixBytes(double[][] matrix)
+  {
+    if (matrix == null) {
+      return 4;
+    }
+
+    int len = 4;
+    for (int i = 0; i < matrix.length; i++) {
+      len += 4 + (matrix[i].length * 4);
+    }
+
+    return len;
+  }
+
+  private int computeDoubleArrayBytes(double[] array)
+  {
+    return (array == null ? 0 : 4 + (array.length * 8));
+  }
+
+  private int computeFloatArrayBytes(float[] array)
+  {
+    return (array == null ? 0 : 4 + (array.length * 4));
+  }
+
+  private int computeIntegerArrayBytes(int[] array)
+  {
+    return (array == null ? 0 : 4 + (array.length * 4));
+  }
+
+  private int computeStringBytes(String str)
+  {
+    return 4 + (str == null ? 0 : str.length());
+  }
+
   public void flush()
     throws IOException
   {
@@ -96,6 +158,22 @@ public class BinaryWriter
     }
 
     file.flush();
+  }
+
+  private byte[] getSerializedObject(Object obj)
+    throws IOException
+  {
+    java.io.ByteArrayOutputStream outBytes;
+    outBytes = new java.io.ByteArrayOutputStream();
+
+    java.io.ObjectOutputStream outStream;
+    outStream = new java.io.ObjectOutputStream(outBytes);
+
+    outStream.writeObject(obj);
+    outStream.flush();
+    outStream.close();
+
+    return outBytes.toByteArray();
   }
 
   private void initVars()
@@ -149,9 +227,13 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("wrFldI: type (" + type + ")");
       throw new VisADException("Couldn't write FunctionType " + type);
     }
 
+    final int objLen = -1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrFldI: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrFldI: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrFldI: DATA_FIELD (" + dataType + ")");
       file.writeByte(dataType);
 
@@ -248,9 +330,13 @@ if(DEBUG_DATA&&!DEBUG_UNIT){
       unitsIndex = writeUnits(units);
     }
 
+    final int objLen = -1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrFlFld: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrFlFld: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrFlFld: DATA_FLAT_FIELD (" + DATA_FLAT_FIELD + ")");
       file.writeByte(DATA_FLAT_FIELD);
 
@@ -637,9 +723,17 @@ if(DEBUG_DATA)System.err.println("wrL1DSet: punt "+set.getClass().getName());
       unitsIndex = writeUnits(units);
     }
 
+    final int objLen = 5 +
+      1 + computeFloatArrayBytes(list) +
+      (csIndex < 0 ? 0 : 5) +
+      (unitsIndex == null ? 0 : 1 + computeIntegerArrayBytes(unitsIndex)) +
+      1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrL1DSet: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrL1DSet: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrL1DSet: DATA_LIST1D_SET (" + DATA_LIST1D_SET + ")");
       file.writeByte(DATA_LIST1D_SET);
 
@@ -713,8 +807,11 @@ if(DEBUG_DATA)System.err.println("wrPrSet: punt "+set.getClass().getName());
       errorsIndex = writeErrorEstimates(errors);
     }
 
+    final int objLen = -1;
+
     try {
       file.writeByte(OBJ_DATA);
+      file.writeInt(objLen);
       file.writeByte(DATA_PRODUCT_SET);
 
       file.writeInt(typeIndex);
@@ -776,8 +873,15 @@ if(DEBUG_DATA&&!DEBUG_ERRE)System.err.println("wrRl: ErrEst (" + error + ")");
         errIndex = writeErrorEstimate(error);
       }
 
+      final int objLen = 13 +
+        (uIndex < 0 ? 0 : 5) +
+        (errIndex < 0 ? 0 : 5) +
+        1;
+
 if(DEBUG_DATA)System.err.println("wrRl: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrRl: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrRl: DATA_REAL (" + DATA_REAL + ")");
       file.writeByte(DATA_REAL);
 
@@ -857,9 +961,13 @@ if(DEBUG_DATA&&!DEBUG_CSYS)System.err.println("wrRlTpl: coordSys (" + cs + ")");
       }
     }
 
+    final int objLen = -1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrRlTpl: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrRlTpl: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrRlTpl: DATA_REAL_TUPLE (" + DATA_REAL_TUPLE + ")");
       file.writeByte(DATA_REAL_TUPLE);
 
@@ -968,9 +1076,13 @@ if(DEBUG_DATA)System.err.println("wrSglSet: punt "+set.getClass().getName());
       errorsIndex = writeErrorEstimates(errors);
     }
 
+    final int objLen = -1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrSglSet: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrSglSet: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrSglSet: DATA_SINGLETON_SET (" + DATA_SINGLETON_SET + ")");
       file.writeByte(DATA_SINGLETON_SET);
 
@@ -1023,9 +1135,15 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("wrTxt: MathType (" + type + ")");
       throw new VisADException("Couldn't write TextType " + type);
     }
 
+    final int objLen = 5 +
+      computeStringBytes(value) +
+      1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrTxt: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrTxt: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrTxt: DATA_TEXT (" + DATA_TEXT + ")");
       file.writeByte(DATA_TEXT);
 
@@ -1067,9 +1185,13 @@ if(DEBUG_DATA)System.err.println("wrTup: punt "+t.getClass().getName());
       throw new VisADException("Couldn't write TupleType " + type);
     }
 
+    final int objLen = -1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrTup: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrTup: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrTup: DATA_TUPLE (" + DATA_TUPLE + ")");
       file.writeByte(DATA_TUPLE);
 
@@ -1119,8 +1241,11 @@ if(DEBUG_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
       throw new VisADException("Couldn't write SetType " + type);
     }
 
+    final int objLen = -1;
+
     try {
       file.writeByte(OBJ_DATA);
+      file.writeInt(objLen);
       file.writeByte(DATA_UNION_SET);
 
       file.writeInt(typeIndex);
@@ -1199,12 +1324,28 @@ if(DEBUG_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
     }
 
     try {
+      byte[] serialObj = getSerializedObject(cSys);
+
+      final int objLen = 4 +
+        serialObj.length +
+        1;
+
 if(DEBUG_CSYS)System.err.println("wrCSys: OBJ_COORDSYS (" + OBJ_COORDSYS + ")");
       file.writeByte(OBJ_COORDSYS);
+if(DEBUG_CSYS)System.err.println("wrCSys: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_CSYS)System.err.println("wrCSys: index (" + index + ")");
       file.writeInt(index);
 
-      writeSerializedObject(FLD_COORDSYS_SERIAL, cSys);
+if(DEBUG_CSYS)System.err.println("wrCSys: FLD_COORDSYS_SERIAL (" + FLD_COORDSYS_SERIAL + ")");
+      file.writeByte(FLD_COORDSYS_SERIAL);
+if(DEBUG_CSYS)System.err.println("wrCSys: serialObj (" + serialObj.length + " bytes)");
+      for (int i = 0; i < serialObj.length; i++) {
+        file.writeByte(serialObj[i]);
+      }
+
+if(DEBUG_CSYS)System.err.println("wrCSys: FLD_END (" + FLD_END + ")");
+      file.writeByte(FLD_END);
     } catch (IOException ioe) {
       throw new VisADException("Couldn't write file: " +
                                ioe.getClass().getName() + ": " +
@@ -1362,8 +1503,12 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrDblMtx: #" + i + "," + j + " (" + mat
         uIndex = writeUnit(unit);
       }
 
+      final int objLen = 28 + (uIndex < 0 ? 0 : 5) + 1;
+
 if(DEBUG_ERRE)System.err.println("wrErrEst: OBJ_ERROR (" + OBJ_ERROR + ")");
       file.writeByte(OBJ_ERROR);
+if(DEBUG_ERRE)System.err.println("wrErrEst: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_ERRE)System.err.println("wrErrEst: index (" + index + ")");
       file.writeInt(index);
 
@@ -1462,8 +1607,13 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrFltMtx: #" + i + "," + j + " (" + mat
       int dIndex = writeMathType(ft.getDomain());
       int rIndex = writeMathType(ft.getRange());
 
+      // total number of bytes written for this object
+      final int objLen = 14;
+
 if(DEBUG_MATH)System.err.println("wrFuTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
+if(DEBUG_MATH)System.err.println("wrFuTy: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_MATH)System.err.println("wrFuTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrFuTy: MATH_FUNCTION (" + MATH_FUNCTION + ")");
@@ -1551,9 +1701,19 @@ if(DEBUG_DATA)System.err.println("wrGrDblSet: punt "+set.getClass().getName());
       errorsIndex = writeErrorEstimates(errors);
     }
 
+    final int objLen = 6 +
+      computeDoubleMatrixBytes(samples) +
+      computeIntegerArrayBytes(lengths) +
+      (csIndex < 0 ? 0 : 5) +
+      (unitsIndex == null ? 0 : 1 + computeIntegerArrayBytes(unitsIndex)) +
+      (errorsIndex == null ? 0 : 1 + computeIntegerArrayBytes(errorsIndex)) +
+      1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrGrDblSet: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrGrDblSet: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrGrDblSet: " +
                                  (dataType == DATA_GRIDDED_1D_DOUBLE_SET ?
                                   "DATA_GRIDDED_1D_DOUBLE" :
@@ -1676,8 +1836,17 @@ if(DEBUG_DATA)System.err.println("wrGrSet: punt "+set.getClass().getName());
       errorsIndex = writeErrorEstimates(errors);
     }
 
+    final int objLen = 5 +
+      computeFloatMatrixBytes(samples) +
+      computeIntegerArrayBytes(lengths) +
+      (csIndex < 0 ? 0 : 4) +
+      (unitsIndex == null ? 0 : computeIntegerArrayBytes(unitsIndex)) +
+      (errorsIndex == null ? 0 : computeIntegerArrayBytes(errorsIndex)) +
+      1;
+
     try {
       file.writeByte(OBJ_DATA);
+      file.writeInt(objLen);
       file.writeByte(dataType);
 
       file.writeInt(typeIndex);
@@ -1828,9 +1997,13 @@ if(DEBUG_DATA)System.err.println("wrIntSet: punt "+set.getClass().getName());
       errorsIndex = writeErrorEstimates(errors);
     }
 
+    final int objLen = -1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrIntSet: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrIntSet: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrIntSet: " +
                                  (dataType == DATA_INTEGER_1D_SET ?
                                   "DATA_INTEGER_1D_SET" :
@@ -1961,8 +2134,11 @@ if(DEBUG_DATA)System.err.println("wrIrrSet: punt "+set.getClass().getName());
       errorsIndex = writeErrorEstimates(errors);
     }
 
+    final int objLen = -1;
+
     try {
       file.writeByte(OBJ_DATA);
+      file.writeInt(objLen);
       file.writeByte(dataType);
 
       file.writeInt(typeIndex);
@@ -2103,8 +2279,11 @@ if(DEBUG_DATA)System.err.println("wrLinSet: punt "+set.getClass().getName());
       errorsIndex = writeErrorEstimates(errors);
     }
 
+    final int objLen = -1;
+
     try {
       file.writeByte(OBJ_DATA);
+      file.writeInt(objLen);
       file.writeByte(dataType);
 
       file.writeInt(typeIndex);
@@ -2191,8 +2370,16 @@ if(DEBUG_MATH)System.err.println("wrQuant: serialized Quantity (" + qt.getClass(
 
       Set dfltSet = qt.getDefaultSet();
 
+      // total number of bytes written for this object
+      final int objLen = 5 +
+        computeStringBytes(nameStr) +
+        computeStringBytes(unitStr) +
+        (dfltSet == null ? 0 : 1) + 1;
+
 if(DEBUG_MATH)System.err.println("wrQuant: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
+if(DEBUG_MATH)System.err.println("wrQuant: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_MATH)System.err.println("wrQuant: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrQuant: MATH_QUANTITY (" + MATH_QUANTITY + ")");
@@ -2257,8 +2444,16 @@ if(DEBUG_MATH)System.err.println("wrRlTuTy: coordSys (" + cs + ")");
         csIndex = writeCoordinateSystem(cs);
       }
 
+      final int objLen = 9 +
+        (dim * 4) +
+        (csIndex == -1 ? 0 : 5) +
+        (dfltSet == null ? 0 : 1) +
+        1;
+
 if(DEBUG_MATH)System.err.println("wrRlTuTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
+if(DEBUG_MATH)System.err.println("wrRlTuTy: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_MATH)System.err.println("wrRlTuTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrRlTuTy: MATH_REAL_TUPLE (" + MATH_REAL_TUPLE + ")");
@@ -2325,8 +2520,16 @@ if(DEBUG_MATH&&!DEBUG_UNIT)System.err.println("wrRlTy: Unit (" + u + ")");
         uIndex = writeUnit(u);
       }
 
+      final int objLen = 9 +
+        computeStringBytes(name) +
+        (uIndex < 0 ? 0 : 5) +
+        (dfltSet == null ? 0 : 1) +
+        1;
+
 if(DEBUG_MATH)System.err.println("wrRlTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
+if(DEBUG_MATH)System.err.println("wrRlTy: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_MATH)System.err.println("wrRlTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrRlTy: MATH_REAL (" + MATH_REAL + ")");
@@ -2469,8 +2672,12 @@ if(DEBUG_MATH)System.err.println("wrSetTy: serialized SetType (" + st.getClass()
         dIndex = writeMathType(domain);
       }
 
+      final int objLen = 10;
+
 if(DEBUG_MATH)System.err.println("wrSetTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
+if(DEBUG_MATH)System.err.println("wrSetTy: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_MATH)System.err.println("wrSetTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrSetTy: MATH_SET (" + MATH_SET + ")");
@@ -2530,9 +2737,16 @@ if(DEBUG_DATA&&!DEBUG_UNIT){
       unitsIndex = writeUnits(units);
     }
 
+    final int objLen = 5 +
+      (csIndex < 0 ? 0 : 5) +
+      (unitsIndex == null ? 0 : 1 + computeIntegerArrayBytes(unitsIndex)) +
+      1;
+
     try {
 if(DEBUG_DATA)System.err.println("wrSimSet: OBJ_DATA (" + OBJ_DATA + ")");
       file.writeByte(OBJ_DATA);
+if(DEBUG_DATA)System.err.println("wrSimSet: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_DATA)System.err.println("wrSimSet: dataType (" + dataType + ")");
       file.writeByte(dataType);
 
@@ -2591,8 +2805,14 @@ if(DEBUG_MATH)System.err.println("wrTxTy: serialized TextType (" + tt.getClass()
 
       String name = tt.getName();
 
+      final int objLen = 5 +
+        computeStringBytes(name) +
+        1;
+
 if(DEBUG_MATH)System.err.println("wrTxTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
+if(DEBUG_MATH)System.err.println("wrTxTy: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_MATH)System.err.println("wrTxTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrTxTy: MATH_TEXT (" + MATH_TEXT + ")");
@@ -2632,15 +2852,16 @@ if(DEBUG_MATH)System.err.println("wrTuTy: serialized TupleType (" + tt.getClass(
         return index;
       }
 
+      final int objLen = 5 + (dim * 4) + 1;
+
 if(DEBUG_MATH)System.err.println("wrTuTy: OBJ_MATH (" + OBJ_MATH + ")");
       file.writeByte(OBJ_MATH);
+if(DEBUG_MATH)System.err.println("wrTuTy: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_MATH)System.err.println("wrTuTy: index (" + index + ")");
       file.writeInt(index);
 if(DEBUG_MATH)System.err.println("wrTuTy: MATH_TUPLE (" + MATH_TUPLE + ")");
       file.writeByte(MATH_TUPLE);
-
-if(DEBUG_MATH)System.err.println("wrTuTy: dim (" + dim + ")");
-      file.writeInt(dim);
 
       for (int i = 0; i < dim; i++) {
 if(DEBUG_MATH)System.err.println("wrTuTy: type index #" + i + " (" + types[i] + ")");
@@ -2676,9 +2897,16 @@ if(DEBUG_MATH)System.err.println("wrTuTy: FLD_END (" + FLD_END + ")");
       throw new VisADException("Couldn't cache Unit " + u);
     }
 
+    final int objLen = 4 +
+      computeStringBytes(uId) +
+      computeStringBytes(uDef) +
+      1;
+
     try {
 if(DEBUG_UNIT)System.err.println("wrU: OBJ_UNIT (" + OBJ_UNIT + ")");
       file.writeByte(OBJ_UNIT);
+if(DEBUG_UNIT)System.err.println("wrU: objLen (" + objLen + ")");
+      file.writeInt(objLen);
 if(DEBUG_UNIT)System.err.println("wrU: index (" + index + ")");
       file.writeInt(index);
 

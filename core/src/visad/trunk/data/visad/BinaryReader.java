@@ -106,7 +106,8 @@ public class BinaryReader
   private void cacheCoordinateSystem()
     throws IOException
   {
-    // read the index number for this CoordinateSystem
+    final int objLen = file.readInt();
+if(DEBUG_CSYS)System.err.println("cchCS: objLen (" + objLen + ")");
     final int index = file.readInt();
 if(DEBUG_CSYS)System.err.println("cchCS: index (" + index + ")");
 
@@ -117,7 +118,8 @@ if(DEBUG_CSYS)System.err.println("cchCS: index (" + index + ")");
 if(DEBUG_CSYS)System.err.println("cchCS: FLD_COORDSYS_SERIAL (" + FLD_COORDSYS_SERIAL + ")");
 
     // read the CoordinateSystem data
-    CoordinateSystem cs = (CoordinateSystem )readSerializedObject();
+if(DEBUG_CSYS)System.err.println("cchCS: serialObj (" + (objLen-5) + " bytes)");
+    CoordinateSystem cs = (CoordinateSystem )readSerializedObject(objLen-5);
 
     cSysCache.add(index, cs);
   }
@@ -125,6 +127,8 @@ if(DEBUG_CSYS)System.err.println("cchCS: FLD_COORDSYS_SERIAL (" + FLD_COORDSYS_S
   private void cacheErrorEstimate()
     throws IOException, VisADException
   {
+    final int objLen = file.readInt();
+if(DEBUG_ERRE)System.err.println("cchErrEst: objLen (" + objLen + ")");
     // read the index number for this ErrorEstimate
     final int index = file.readInt();
 if(DEBUG_ERRE)System.err.println("cchErrEst: index (" + index + ")");
@@ -167,6 +171,9 @@ if(DEBUG_ERRE)System.err.println("cchErrEst: FLD_END ("+FLD_END+")");
   private MathType cacheMathType()
     throws IOException, VisADException
   {
+    final int objLen = file.readInt();
+if(DEBUG_MATH)System.err.println("cchTy: objLen (" + objLen + ")");
+
     // read the index number for this MathType
     final int index = file.readInt();
 if(DEBUG_MATH)System.err.println("cchTy: index (" + index + ")");
@@ -193,7 +200,7 @@ if(DEBUG_MATH)System.err.println("rdMthTy: MATH_TEXT (" + MATH_TEXT + ")");
       return readTextType(index);
     case MATH_TUPLE:
 if(DEBUG_MATH)System.err.println("rdMthTy: MATH_TUPLE (" + MATH_TUPLE + ")");
-      return readTupleType(index);
+      return readTupleType(index, objLen - 5);
     default:
       throw new VisADException("Unknown Math type " + mathType);
     }
@@ -202,6 +209,9 @@ if(DEBUG_MATH)System.err.println("rdMthTy: MATH_TUPLE (" + MATH_TUPLE + ")");
   private void cacheUnit()
     throws IOException, VisADException
   {
+    final int objLen = file.readInt();
+if(DEBUG_UNIT)System.err.println("cchU: objLen (" + objLen + ")");
+
     // read the index number for this Unit
     final int index = file.readInt();
 if(DEBUG_UNIT)System.err.println("cchU: index (" + index + ")");
@@ -322,104 +332,105 @@ if(DEBUG_CSYS)System.err.println("rdCSysS: === #"+i+": "+cSys[i]+")");
   public DataImpl readData()
     throws IOException, VisADException
   {
+    final int objLen = file.readInt();
     final byte dataType = file.readByte();
 
     switch (dataType) {
     case DATA_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_DOUBLE_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readSimpleSet(dataType);
     case DATA_FIELD:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FIELD (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_FIELD (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readFieldImpl();
     case DATA_FLAT_FIELD:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FLAT_FIELD (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_FLAT_FIELD (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readFlatField();
     case DATA_FLOAT_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FLOAT_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_FLOAT_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readSimpleSet(dataType);
     case DATA_GRIDDED_1D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_DOUBLE_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readGriddedDoubleSet(dataType);
     case DATA_GRIDDED_2D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readGriddedDoubleSet(dataType);
     case DATA_GRIDDED_3D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_DOUBLE_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readGriddedDoubleSet(dataType);
     case DATA_GRIDDED_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readGriddedSet(dataType);
     case DATA_GRIDDED_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readGriddedSet(dataType);
     case DATA_GRIDDED_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readGriddedSet(dataType);
     case DATA_GRIDDED_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readGriddedSet(dataType);
     case DATA_INTEGER_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_1D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readIntegerSet(dataType);
     case DATA_INTEGER_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_2D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readIntegerSet(dataType);
     case DATA_INTEGER_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_3D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readIntegerSet(dataType);
     case DATA_INTEGER_ND_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_ND_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_ND_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readIntegerSet(dataType);
     case DATA_IRREGULAR_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_1D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readIrregularSet(dataType);
     case DATA_IRREGULAR_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_2D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readIrregularSet(dataType);
     case DATA_IRREGULAR_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_3D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readIrregularSet(dataType);
     case DATA_IRREGULAR_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readIrregularSet(dataType);
     case DATA_LINEAR_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_1D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readLinearSet(dataType);
     case DATA_LINEAR_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_2D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readLinearSet(dataType);
     case DATA_LINEAR_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_3D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readLinearSet(dataType);
     case DATA_LINEAR_ND_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_ND_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_ND_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readLinearSet(dataType);
     case DATA_LINEAR_LATLON_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_LATLON_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_LATLON_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readLinearSet(dataType);
     case DATA_LIST1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LIST1D_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LIST1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readList1DSet();
     case DATA_PRODUCT_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_PRODUCT_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_PRODUCT_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readProductSet();
     case DATA_REAL:
-if(DEBUG_DATA)System.err.println("rdData: DATA_REAL (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_REAL (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readReal();
     case DATA_REAL_TUPLE:
-if(DEBUG_DATA)System.err.println("rdData: DATA_REAL_TUPLE (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_REAL_TUPLE (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readRealTuple();
     case DATA_SINGLETON_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_SINGLETON_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_SINGLETON_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readSingletonSet();
     case DATA_TEXT:
-if(DEBUG_DATA)System.err.println("rdData: DATA_TEXT (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_TEXT (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readText();
     case DATA_TUPLE:
-if(DEBUG_DATA)System.err.println("rdData: DATA_TUPLE (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_TUPLE (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readTuple();
     case DATA_UNION_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_UNION_SET (" + dataType + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_UNION_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       return readUnionSet();
     default:
       throw new IOException("Unknown Data type " + dataType);
@@ -1943,6 +1954,12 @@ if(DEBUG_DATA)System.err.println("rdSplSetS: len (" + len + ")");
     throws IOException
   {
     final int len = file.readInt();
+    return readSerializedObject(len);
+  }
+
+  private Object readSerializedObject(int len)
+    throws IOException
+  {
     if (len <= 0) {
       throw new IOException("Corrupted file (bad serialized object length)");
     }
@@ -2227,12 +2244,10 @@ if(DEBUG_DATA)System.err.println("rdTpl: FLD_END (" + FLD_END + ")");
     return new Tuple(tt, components);
   }
 
-  private TupleType readTupleType(int index)
+  private TupleType readTupleType(int index, int objLen)
     throws IOException, VisADException
   {
-    final int dim = file.readInt();
-if(DEBUG_MATH)System.err.println("rdTuTy: dim (" + dim + ")");
-    MathType[] list = readMathTypes(dim);
+    MathType[] list = readMathTypes((objLen - 1) / 4);
 
     final byte endByte = file.readByte();
 if(DEBUG_MATH)System.err.println("rdTuTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
