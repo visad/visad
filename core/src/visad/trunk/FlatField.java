@@ -1923,250 +1923,314 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       }
 
       /*
-       * Ensure that the numeric values and units are in rational form, i.e. one
-       * in which ratios of data values make sense (e.g. Temperature values in
-       * kelvin rather than celsius).
+       * Some variable renamings for clarity in the following:
        */
-      units_in = (Unit[])RangeUnits.clone();
-      errors_in = (ErrorEstimate[])RangeErrors.clone();
-      makeRational(values, units_in, errors_in);
-      makeRational(value2, units_out, errors_out);
+      Unit[]          thisUnits = (Unit[])RangeUnits.clone();
+      Unit[]          thatUnits = units_out;
+      double[][]      thisValues = values;
+      double[][]      thatValues = value2;
+      ErrorEstimate[] thisErrs = (ErrorEstimate[])RangeErrors.clone();
+      ErrorEstimate[] thatErrs = errors_out;
+      /*
+       * Default values. The following switch might set "outUnits".
+       */
+      Unit[]          outUnits = new Unit[TupleDimension];
 
-/*
- roles from Real.binary:
-   units_in[j]     --  unit
-   units_out[j]     --  data_unit, u
-   errors_in[j]   --  Error
-   errors_out[j]    --  dError
-*/
-
-      int i, j; // loop indices
-      double[] valuesJ, value2J;
+      /*
+       * Set the output values.  NOTE: The input array (thisValues) is also
+       * used to store the output numeric values.
+       */
       switch (op) {
         case ADD:
         case SUBTRACT:
         case INV_SUBTRACT:
         case MAX:
         case MIN:
-          for (j=0; j<TupleDimension; j++) {
-            Unit u;
+          for (int j=0; j<TupleDimension; j++) {
+	    if (thisUnits[j] == null || thatUnits[j] == null) {
+	      outUnits[j] = null;
+	    }
+	    else if (thisUnits[j] == CommonUnit.promiscuous) {
+	      outUnits[j] = thatUnits[j].getAbsoluteUnit();
+	    }
+	    else if (thatUnits[j] == CommonUnit.promiscuous) {
+	      outUnits[j] = thisUnits[j].getAbsoluteUnit();
+	    }
+	    else {
+	      try {
+		outUnits[j] = thisUnits[j].getAbsoluteUnit();
+		boolean convertThis = !outUnits[j].equals(thisUnits[j]);
+		boolean convertThat = !outUnits[j].equals(thatUnits[j]);
 
-            if (units_in[j] == null || units_out[j] == null) {
-              u = null;
-            }
-            else if (units_in[j] == CommonUnit.promiscuous) {
-              u = units_out[j];
-            }
-            else if (units_out[j] == CommonUnit.promiscuous) {
-              u = units_in[j];
-            }
-            else if (Unit.canConvert(units_in[j], units_out[j])) {
-              u = units_in[j];
-              value2[j] = units_in[j].toThis(value2[j], units_out[j]);
-              // scale data.ErrorEstimate for Unit.toThis
-              if (error_mode != NO_ERRORS && errors_out[j] != null) {
-                double error = 0.5 * errors_out[j].getErrorValue();
-                double mean = errors_out[j].getMean();
-                double a = units_in[j].toThis(mean + error, units_out[j]);
-                double b = units_in[j].toThis(mean - error, units_out[j]);
-                double new_error = Math.abs(a - b);
-                double new_mean = 0.5 * (a + b);
-                errors_out[j] =
-                  new ErrorEstimate(new_mean, new_error, units_in[j]);
-              }
-            }
-            else {
-              u = null;
-            }
-            units_out[j] = u;
-          }
-          switch (op) {
-            case ADD:
-              for (j=0; j<TupleDimension; j++) {
-                valuesJ = values[j];
-                value2J = value2[j];
-                for (i=0; i<Length; i++) {
-                  valuesJ[i] += value2J[i];
-                }
-              }
-              break;
-            case SUBTRACT:
-              for (j=0; j<TupleDimension; j++) {
-                valuesJ = values[j];
-                value2J = value2[j];
-                for (i=0; i<Length; i++) {
-                  valuesJ[i] -= value2J[i];
-                }
-              }
-              break;
-            case INV_SUBTRACT:
-              for (j=0; j<TupleDimension; j++) {
-                valuesJ = values[j];
-                value2J = value2[j];
-                for (i=0; i<Length; i++) {
-                  valuesJ[i] = value2J[i] - valuesJ[i];
-                }
-              }
-              break;
-            case MAX:
-              for (j=0; j<TupleDimension; j++) {
-                valuesJ = values[j];
-                value2J = value2[j];
-                for (i=0; i<Length; i++) {
-                  valuesJ[i] = Math.max(valuesJ[i], value2J[i]);
-                }
-              }
-              break;
-            case MIN:
-            default:
-              for (j=0; j<TupleDimension; j++) {
-                valuesJ = values[j];
-                value2J = value2[j];
-                for (i=0; i<Length; i++) {
-                  valuesJ[i] = Math.min(valuesJ[i], value2J[i]);
-                }
-              }
-              break;
-          }
-          break;
+		if (convertThis)
+		  thisValues[j] =
+		    outUnits[j].toThis(thisValues[j], thisUnits[j]);
+
+		if (convertThat)
+		  thatValues[j] =
+		    outUnits[j].toThis(thatValues[j], thatUnits[j]);
+
+		if (error_mode != NO_ERRORS &&
+		  thisErrs[j] != null && thatErrs[j] != null) {
+
+		  if (convertThis) {
+		    Unit	errUnit = thisErrs[j].getUnit();
+
+		    if (errUnit == null)
+		      errUnit = thisUnits[j];
+
+		    double err = 0.5 * thisErrs[j].getErrorValue();
+		    double mean = thisErrs[j].getMean();
+		    double a = outUnits[j].toThis(mean + err, errUnit);
+		    double b = outUnits[j].toThis(mean - err, errUnit);
+		    mean = (a + b) / 2;
+		    err = Math.abs(a - b);
+		    thisErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
+		  }
+
+		  if (convertThat) {
+		    Unit	errUnit = thatErrs[j].getUnit();
+
+		    if (errUnit == null)
+		      errUnit = thatUnits[j];
+
+		    double err = 0.5 * thatErrs[j].getErrorValue();
+		    double mean = thatErrs[j].getMean();
+		    double a = outUnits[j].toThis(mean + err, errUnit);
+		    double b = outUnits[j].toThis(mean - err, errUnit);
+		    mean = (a + b) / 2;
+		    err = Math.abs(a - b);
+		    thatErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
+		  }
+		}
+	      }
+	      catch (UnitException e) {		// inconvertible units
+		outUnits[j] = null;
+	      }
+	    }
+	    switch (op) {
+	      case ADD:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] += thatValues[j][i];
+		break;
+	      case SUBTRACT:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] -= thatValues[j][i];
+		break;
+	      case INV_SUBTRACT:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = thatValues[j][i] - thisValues[j][i];
+		break;
+	      case MAX:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] =
+		    Math.max(thisValues[j][i], thatValues[j][i]);
+		break;
+	      case MIN:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] =
+		    Math.min(thisValues[j][i], thatValues[j][i]);
+		break;
+	    }
+	  }
+	  break;
+
         case MULTIPLY:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] *= value2J[i];
-            }
-            if (units_in[j] == null || units_out[j] == null) {
-              units_out[j] = null;
-            }
-            else {
-              units_out[j] = units_in[j].multiply(units_out[j]);
-            }
-          }
-          break;
         case DIVIDE:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] /= value2J[i];
-            }
-            if (units_in[j] == null || units_out[j] == null) {
-              units_out[j] = null;
-            }
-            else {
-              units_out[j] = units_in[j].divide(units_out[j]);
-            }
-          }
-          break;
         case INV_DIVIDE:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = value2J[i] / valuesJ[i];
-            }
-            if (units_in[j] == null || units_out[j] == null) {
-              units_out[j] = null;
-            }
-            else {
-              units_out[j] = units_out[j].divide(units_in[j]);
-            }
-          }
-          break;
+          for (int j=0; j<TupleDimension; j++) {
+	    if (thisUnits[j] != null) {
+	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thisUnits[j])) {
+		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
+		thisUnits[j] = absUnit;
+	      }
+	    }
+	    if (thatUnits[j] != null) {
+	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thatUnits[j])) {
+		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+		thatUnits[j] = absUnit;
+	      }
+	    }
+	    if (thisUnits[j] == null || thatUnits[j] == null) {
+	      outUnits[j] = null;
+	    }
+	    else {
+	      switch(op) {
+		case MULTIPLY:
+		  outUnits[j] = 
+                    thisUnits[j].equals(CommonUnit.promiscuous)
+                      ? thatUnits[j]
+                      : thatUnits[j].equals(CommonUnit.promiscuous)
+                        ? thisUnits[j]
+                        : thisUnits[j].multiply(thatUnits[j]);
+		  break;
+		case DIVIDE:
+		  outUnits[j] =
+                    thatUnits[j].equals(CommonUnit.promiscuous)
+                      ? thisUnits[j]
+                      : thisUnits[j].divide(thatUnits[j]);
+		  break;
+		case INV_DIVIDE:
+		  outUnits[j] = 
+                    thisUnits[j].equals(CommonUnit.promiscuous)
+                      ? thatUnits[j]
+                      : thatUnits[j].divide(thisUnits[j]);
+		  break;
+	      }
+	    }
+	    switch(op) {
+	      case MULTIPLY:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] *= thatValues[j][i];
+		break;
+	      case DIVIDE:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] /= thatValues[j][i];
+		break;
+	      case INV_DIVIDE:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = thatValues[j][i] / thisValues[j][i];
+		break;
+	    }
+	  }
+	  break;
+
         case POW:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.pow(valuesJ[i], value2J[i]);
-            }
-            units_out[j] = null;
-          }
+	  for (int j=0; j<TupleDimension; j++) {
+	    if (thisUnits[j] != null) {
+	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thisUnits[j])) {
+		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
+		thisUnits[j] = absUnit;
+	      }
+	    }
+	    if (thatUnits[j] != null && 
+		!CommonUnit.promiscuous.equals(thatUnits[j])) {
+	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thatUnits[j])) {
+		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+		thatUnits[j] = absUnit;
+	      }
+	    }
+	    if (thisUnits[j] != null && (
+		thisUnits[j].equals(CommonUnit.promiscuous) ||
+		thisUnits[j].equals(CommonUnit.dimensionless))) {
+	      outUnits[j] = thisUnits[j];
+	    }
+	    else {
+	      outUnits[j] = null;
+	    }
+	    for (int i=0; i<Length; i++)
+	      thisValues[j][i] = Math.pow(thisValues[j][i], thatValues[j][i]);
+	  }
           break;
+
         case INV_POW:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.pow(value2J[i], valuesJ[i]);
-            }
-            units_out[j] = null;
-          }
+          for (int j=0; j<TupleDimension; j++) {
+	    if (thatUnits[j] != null) {
+	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thatUnits[j])) {
+		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+		thatUnits[j] = absUnit;
+	      }
+	    }
+	    if (thisUnits[j] != null && 
+		!CommonUnit.promiscuous.equals(thisUnits[j])) {
+	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thisUnits[j])) {
+		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
+		thisUnits[j] = absUnit;
+	      }
+	    }
+	    if (thatUnits[j] != null && (
+		thatUnits[j].equals(CommonUnit.promiscuous) ||
+		thatUnits[j].equals(CommonUnit.dimensionless))) {
+	      outUnits[j] = thatUnits[j];
+	    }
+	    else {
+	      outUnits[j] = null;
+	    }
+            for (int i=0; i<Length; i++)
+	      thisValues[j][i] = Math.pow(thatValues[j][i], thisValues[j][i]);
+	  }
           break;
+
         case ATAN2:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.atan2(valuesJ[i], value2J[i]);
-            }
-            units_out[j] = CommonUnit.radian;
+	case ATAN2_DEGREES:
+	case INV_ATAN2:
+	case INV_ATAN2_DEGREES:
+	case REMAINDER:
+	case INV_REMAINDER:
+          for (int j=0; j<TupleDimension; j++) {
+	    if (thisUnits[j] != null && thatUnits[j] != null) {
+	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thisUnits[j])) {
+		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
+		thisUnits[j] = absUnit;
+	      }
+	      if (!absUnit.equals(thatUnits[j])) {
+		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+		thatUnits[j] = absUnit;
+	      }
+	    }
+	    switch(op) {
+	      case ATAN2:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] =
+		    Math.atan2(thisValues[j][i], thatValues[j][i]);
+		outUnits[j] = CommonUnit.radian;
+		break;
+	      case ATAN2_DEGREES:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = Data.RADIANS_TO_DEGREES * 
+		    Math.atan2(thisValues[j][i], thatValues[j][i]);
+		outUnits[j] = CommonUnit.degree;
+		break;
+	      case INV_ATAN2:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] =
+		    Math.atan2(thatValues[j][i], thisValues[j][i]);
+		outUnits[j] = CommonUnit.radian;
+		break;
+	      case INV_ATAN2_DEGREES:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = Data.RADIANS_TO_DEGREES * 
+		    Math.atan2(thatValues[j][i], thisValues[j][i]);
+		outUnits[j] = CommonUnit.degree;
+		break;
+	      case REMAINDER:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] %= thatValues[j][i];
+		outUnits[j] = thisUnits[j];
+		break;
+	      case INV_REMAINDER:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = thatValues[j][i] % thisValues[j][i];
+		outUnits[j] = thatUnits[j];
+		break;
+	    }
           }
           break;
-        case ATAN2_DEGREES:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Data.RADIANS_TO_DEGREES *
-                           Math.atan2(valuesJ[i], value2J[i]);
-            }
-            units_out[j] = CommonUnit.degree;
-          }
-          break;
-        case INV_ATAN2:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Math.atan2(value2J[i], valuesJ[i]);
-            }
-            units_out[j] = CommonUnit.radian;
-          }
-          break;
-        case INV_ATAN2_DEGREES:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = Data.RADIANS_TO_DEGREES *
-                           Math.atan2(value2J[i], valuesJ[i]);
-            }
-            units_out[j] = CommonUnit.degree;
-          }
-          break;
-        case REMAINDER:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] %= value2J[i];
-            }
-            units_out[j] = units_in[j];
-          }
-          break;
-        case INV_REMAINDER:
-          for (j=0; j<TupleDimension; j++) {
-            valuesJ = values[j];
-            value2J = value2[j];
-            for (i=0; i<Length; i++) {
-              valuesJ[i] = value2J[i] % valuesJ[i];
-            }
-          }
-          break;
+
+	default:
+	  throw new ArithmeticException("FlatField.binary: illegal operation");
       }
 
-      // compute ErrorEstimates for result
-      for (j=0; j<TupleDimension; j++) {
+      /*
+       * Compute ErrorEstimate-s for the result.
+       */
+      ErrorEstimate[] outErrs = new ErrorEstimate[TupleDimension];
+      for (int j=0; j<TupleDimension; j++) {
         if (error_mode == NO_ERRORS ||
-            errors_in[j] == null || errors_out[j] == null) {
-          errors_out[j] = null;
+            thisErrs[j] == null || thatErrs[j] == null) {
+          outErrs[j] = null;
         }
         else {
-          errors_out[j] =
-            new ErrorEstimate(values[j], units_out[j], op, errors_in[j],
-                              errors_out[j], error_mode);
+          outErrs[j] =
+            new ErrorEstimate(thisValues[j], outUnits[j], op, thisErrs[j],
+                              thatErrs[j], error_mode);
         }
       }
 
@@ -2174,9 +2238,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       /*- TDR June  1998
       FlatField new_field = cloneDouble(units_out, errors_out);
       */
-      FlatField new_field = cloneDouble( new_type, units_out, errors_out);
+      FlatField new_field = cloneDouble( new_type, outUnits, outErrs);
 
-      new_field.packValues(values, false);
+      new_field.packValues(thisValues, false);
       // new_field.DoubleRange = values;
       new_field.clearMissing();
       return new_field;
@@ -2266,188 +2330,315 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       }
 
       /*
-       * Ensure that the numeric values and units are in rational form, i.e. one
-       * in which ratios of data values make sense (e.g. Temperature values in
-       * kelvin rather than celsius).
+       * Some variable renamings for clarity in the following:
        */
-      Unit[]		units_in = (Unit[])RangeUnits.clone();
-      ErrorEstimate[]	errors_in = (ErrorEstimate[])RangeErrors.clone();;
-      makeRational(values, units_in, errors_in);
-      makeRational(vals, units_out, errors_out);
+      Unit[]          thisUnits = (Unit[])RangeUnits.clone();
+      Unit[]          thatUnits = units_out;
+      double[][]      thisValues = values;
+      double[]        thatValues = new double[vals.length];
+      ErrorEstimate[] thisErrs = (ErrorEstimate[])RangeErrors.clone();
+      ErrorEstimate[] thatErrs = errors_out;
+      /*
+       * Default (null) values. The following switch might set "outUnits".
+       */
+      Unit[]          outUnits = new Unit[TupleDimension];
 
-/*
- roles from Real.binary:
-   units_in[j]     --  unit
-   units_out[j]     --  data_unit, u
-   errors_in[j]   --  Error
-   errors_out[j]    --  dError
-*/
+      for (int j = 0; j < vals.length; j++)
+	thatValues[j] = vals[j][0];
 
-      for (int j=0; j<TupleDimension; j++) {
-        double value = vals[j][0];
-        double[] valuesJ = values[j];
-        switch (op) {
-          case ADD:
-          case SUBTRACT:
-          case INV_SUBTRACT:
-          case MAX:
-          case MIN:
-            Unit u;
+      /*
+       * Set the output values.  NOTE: The input array (thisValues) is also
+       * used to store the output numeric values.
+       */
+      switch (op) {
+	case ADD:
+	case SUBTRACT:
+	case INV_SUBTRACT:
+	case MAX:
+	case MIN:
+          for (int j=0; j<TupleDimension; j++) {
+	    if (thisUnits[j] == null || thatUnits[j] == null) {
+	      outUnits[j] = null;
+	    }
+	    else if (thisUnits[j] == CommonUnit.promiscuous) {
+	      outUnits[j] = thatUnits[j].getAbsoluteUnit();
+	    }
+	    else if (thatUnits[j] == CommonUnit.promiscuous) {
+	      outUnits[j] = thisUnits[j].getAbsoluteUnit();
+	    }
+	    else {
+	      try {
+		outUnits[j] = thisUnits[j].getAbsoluteUnit();
+		boolean convertThis = !outUnits[j].equals(thisUnits[j]);
+		boolean convertThat = !outUnits[j].equals(thatUnits[j]);
 
-            if (units_in[j] == null || units_out[j] == null) {
-              u = null;
-            }
-            else if (units_in[j] == CommonUnit.promiscuous) {
-              u = units_out[j];
-            }
-            else if (units_out[j] == CommonUnit.promiscuous) {
-              u = units_in[j];
-            }
-            else if (Unit.canConvert(units_in[j], units_out[j])) {
-              u = units_in[j];
-              value = units_in[j].toThis(value, units_out[j]);
-              if (error_mode == NO_ERRORS && errors_out[j] != null) {
-                // scale data.ErrorEstimate for Unit.toThis
-                double error = 0.5 * errors_out[j].getErrorValue();
-                double mean = errors_out[j].getMean();
-                double a = units_in[j].toThis(mean + error, units_out[j]);
-                double b = units_in[j].toThis(mean - error, units_out[j]);
-                double new_error = Math.abs(a - b);
-                double new_mean = 0.5 * (a + b);
-                errors_out[j] =
-                  new ErrorEstimate(new_mean, new_error, units_in[j]);
-              }
-            }
-            else {
-              u = null;
-            }
-            units_out[j] = u;
-            switch (op) {
-              case ADD:
-                for (int i=0; i<Length; i++) {
-                  valuesJ[i] += value;
-                }
-                break;
-              case SUBTRACT:
-                for (int i=0; i<Length; i++) {
-                  valuesJ[i] -= value;
-                }
-                break;
-              case INV_SUBTRACT:
-                for (int i=0; i<Length; i++) {
-                  valuesJ[i] = value - valuesJ[i];
-                }
-                break;
-              case MAX:
-                for (int i=0; i<Length; i++) {
-                  valuesJ[i] = Math.max(valuesJ[i], value);
-                }
-                break;
-              case MIN:
-              default:
-                for (int i=0; i<Length; i++) {
-                  valuesJ[i] = Math.min(valuesJ[i], value);
-                }
-                break;
-            }
-            break;
-          case MULTIPLY:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] *= value;
-            }
-            if (units_in[j] == null || units_out[j] == null) {
-              units_out[j] = null;
-            }
-            else {
-              units_out[j] = units_in[j].multiply(units_out[j]);
-            }
-            break;
-          case DIVIDE:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] /= value;
-            }
-            if (units_in[j] == null || units_out[j] == null) {
-              units_out[j] = null;
-            }
-            else {
-              units_out[j] = units_in[j].divide(units_out[j]);
-            }
-            break;
-          case INV_DIVIDE:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] = value / valuesJ[i];
-            }
-            if (units_in[j] == null || units_out[j] == null) {
-              units_out[j] = null;
-            }
-            else {
-              units_out[j] = units_out[j].divide(units_in[j]);
-            }
-            break;
-          case POW:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] = Math.pow(valuesJ[i], value);
-            }
-            units_out[j] = CommonUnit.dimensionless.equals(units_in[j])
-	      ? CommonUnit.dimensionless : null;
-            break;
-          case INV_POW:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] = Math.pow(value, valuesJ[i]);
-            }
-            units_out[j] = null;
-            break;
-          case ATAN2:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] = Math.atan2(valuesJ[i], value);
-            }
-            units_out[j] = CommonUnit.radian;
-            break;
-          case ATAN2_DEGREES:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] = Data.RADIANS_TO_DEGREES *
-                           Math.atan2(valuesJ[i], value);
-            }
-            units_out[j] = CommonUnit.degree;
-            break;
-          case INV_ATAN2:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] = Math.atan2(value, valuesJ[i]);
-            }
-            units_out[j] = CommonUnit.radian;
-            break;
-          case INV_ATAN2_DEGREES:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] = Data.RADIANS_TO_DEGREES *
-                           Math.atan2(value, valuesJ[i]);
-            }
-            units_out[j] = CommonUnit.degree;
-            break;
-          case REMAINDER:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] %= value;
-            }
-            units_out[j] = units_in[j];
-            break;
-          case INV_REMAINDER:
-            for (int i=0; i<Length; i++) {
-              valuesJ[i] = value % valuesJ[i];
-            }
-            // units_out[j] = units_out[j];
-            break;
-        }
-      } // end for (int j=0; j<TupleDimension; j++)
+		if (convertThis)
+		  thisValues[j] =
+		    outUnits[j].toThis(thisValues[j], thisUnits[j]);
 
-      // compute ErrorEstimates for result
+		if (convertThat)
+		  thatValues[j] =
+		    outUnits[j].toThis(thatValues[j], thatUnits[j]);
+
+		if (error_mode != NO_ERRORS &&
+		  thisErrs[j] != null && thatErrs[j] != null) {
+
+		  if (convertThis) {
+		    Unit	errUnit = thisErrs[j].getUnit();
+
+		    if (errUnit == null)
+		      errUnit = thisUnits[j];
+
+		    double err = 0.5 * thisErrs[j].getErrorValue();
+		    double mean = thisErrs[j].getMean();
+		    double a = outUnits[j].toThis(mean + err, errUnit);
+		    double b = outUnits[j].toThis(mean - err, errUnit);
+		    mean = (a + b) / 2;
+		    err = Math.abs(a - b);
+		    thisErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
+		  }
+
+		  if (convertThat) {
+		    Unit	errUnit = thatErrs[j].getUnit();
+
+		    if (errUnit == null)
+		      errUnit = thatUnits[j];
+
+		    double err = 0.5 * thatErrs[j].getErrorValue();
+		    double mean = thatErrs[j].getMean();
+		    double a = outUnits[j].toThis(mean + err, errUnit);
+		    double b = outUnits[j].toThis(mean - err, errUnit);
+		    mean = (a + b) / 2;
+		    err = Math.abs(a - b);
+		    thatErrs[j] = new ErrorEstimate(mean, err, outUnits[j]);
+		  }
+		}
+	      }
+	      catch (UnitException e) {		// inconvertible units
+		outUnits[j] = null;
+	      }
+	    }
+	    switch (op) {
+	      case ADD:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] += thatValues[j];
+		break;
+	      case SUBTRACT:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] -= thatValues[j];
+		break;
+	      case INV_SUBTRACT:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = thatValues[j] - thisValues[j][i];
+		break;
+	      case MAX:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = Math.max(thisValues[j][i], thatValues[j]);
+		break;
+	      case MIN:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = Math.min(thisValues[j][i], thatValues[j]);
+		break;
+	    }
+	  }
+	  break;
+
+        case MULTIPLY:
+        case DIVIDE:
+        case INV_DIVIDE:
+          for (int j=0; j<TupleDimension; j++) {
+	    if (thisUnits[j] != null) {
+	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thisUnits[j])) {
+		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
+		thisUnits[j] = absUnit;
+	      }
+	    }
+	    if (thatUnits[j] != null) {
+	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thatUnits[j])) {
+		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+		thatUnits[j] = absUnit;
+	      }
+	    }
+	    if (thisUnits[j] == null || thatUnits[j] == null) {
+	      outUnits[j] = null;
+	    }
+	    else {
+	      switch(op) {
+		case MULTIPLY:
+		  outUnits[j] =
+                    thisUnits[j].equals(CommonUnit.promiscuous)
+                      ? thatUnits[j]
+                      : thatUnits[j].equals(CommonUnit.promiscuous)
+                        ? thisUnits[j]
+                        : thisUnits[j].multiply(thatUnits[j]);
+		  break;
+		case DIVIDE:
+		  outUnits[j] =
+                    thatUnits[j].equals(CommonUnit.promiscuous)
+                      ? thisUnits[j]
+                      : thisUnits[j].divide(thatUnits[j]);
+		  break;
+		case INV_DIVIDE:
+		  outUnits[j] =
+                    thisUnits[j].equals(CommonUnit.promiscuous)
+                      ? thatUnits[j]
+                      : thatUnits[j].divide(thisUnits[j]);
+		  break;
+	      }
+	    }
+	    switch(op) {
+	      case MULTIPLY:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] *= thatValues[j];
+		break;
+	      case DIVIDE:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] /= thatValues[j];
+		break;
+	      case INV_DIVIDE:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = thatValues[j] / thisValues[j][i];
+		break;
+	    }
+	  }
+	  break;
+
+        case POW:
+	  for (int j=0; j<TupleDimension; j++) {
+	    if (thisUnits[j] != null) {
+	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thisUnits[j])) {
+		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
+		thisUnits[j] = absUnit;
+	      }
+	    }
+	    if (thatUnits[j] != null && 
+		!CommonUnit.promiscuous.equals(thatUnits[j])) {
+	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thatUnits[j])) {
+		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+		thatUnits[j] = absUnit;
+	      }
+	    }
+	    if (thisUnits[j] != null && (
+		thisUnits[j].equals(CommonUnit.promiscuous) ||
+		thisUnits[j].equals(CommonUnit.dimensionless))) {
+	      outUnits[j] = thisUnits[j];
+	    }
+	    else {
+	      outUnits[j] = null;
+	    }
+            for (int i=0; i<Length; i++)
+	      thisValues[j][i] = Math.pow(thisValues[j][i], thatValues[j]);
+	  }
+          break;
+
+        case INV_POW:
+          for (int j=0; j<TupleDimension; j++) {
+	    if (thatUnits[j] != null) {
+	      Unit absUnit = thatUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thatUnits[j])) {
+		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+		thatUnits[j] = absUnit;
+	      }
+	    }
+	    if (thisUnits[j] != null && 
+		!CommonUnit.promiscuous.equals(thisUnits[j])) {
+	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thisUnits[j])) {
+		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
+		thisUnits[j] = absUnit;
+	      }
+	    }
+	    if (thatUnits[j] != null && (
+		thatUnits[j].equals(CommonUnit.promiscuous) ||
+		thatUnits[j].equals(CommonUnit.dimensionless))) {
+	      outUnits[j] = thatUnits[j];
+	    }
+	    else {
+	      outUnits[j] = null;
+	    }
+            for (int i=0; i<Length; i++)
+	      thisValues[j][i] = Math.pow(thatValues[j], thisValues[j][i]);
+	  }
+          break;
+
+        case ATAN2:
+	case ATAN2_DEGREES:
+	case INV_ATAN2:
+	case INV_ATAN2_DEGREES:
+	case REMAINDER:
+	case INV_REMAINDER:
+          for (int j=0; j<TupleDimension; j++) {
+	    if (thisUnits[j] != null && thatUnits[j] != null) {
+	      Unit absUnit = thisUnits[j].getAbsoluteUnit();
+	      if (!absUnit.equals(thisUnits[j])) {
+		thisValues[j] = absUnit.toThis(thisValues[j], thisUnits[j]);
+		thisUnits[j] = absUnit;
+	      }
+	      if (!absUnit.equals(thatUnits[j])) {
+		thatValues[j] = absUnit.toThis(thatValues[j], thatUnits[j]);
+		thatUnits[j] = absUnit;
+	      }
+	    }
+	    switch(op) {
+	      case ATAN2:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] =
+		    Math.atan2(thisValues[j][i], thatValues[j]);
+		outUnits[j] = CommonUnit.radian;
+		break;
+	      case ATAN2_DEGREES:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = Data.RADIANS_TO_DEGREES * 
+		    Math.atan2(thisValues[j][i], thatValues[j]);
+		outUnits[j] = CommonUnit.degree;
+		break;
+	      case INV_ATAN2:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] =
+		    Math.atan2(thatValues[j], thisValues[j][i]);
+		outUnits[j] = CommonUnit.radian;
+		break;
+	      case INV_ATAN2_DEGREES:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = Data.RADIANS_TO_DEGREES * 
+		    Math.atan2(thatValues[j], thisValues[j][i]);
+		outUnits[j] = CommonUnit.degree;
+		break;
+	      case REMAINDER:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] %= thatValues[j];
+		outUnits[j] = thisUnits[j];
+		break;
+	      case INV_REMAINDER:
+		for (int i=0; i<Length; i++)
+		  thisValues[j][i] = thatValues[j] % thisValues[j][i];
+		outUnits[j] = thatUnits[j];
+		break;
+	    }
+          }
+          break;
+
+	default:
+	  throw new ArithmeticException("FlatField.binary: illegal operation");
+      }
+
+      /*
+       * Compute ErrorEstimate-s for the result.
+       */
+      ErrorEstimate[] outErrs = new ErrorEstimate[TupleDimension];
       for (int j=0; j<TupleDimension; j++) {
         if (error_mode == NO_ERRORS ||
-            errors_in[j] == null || errors_out[j] == null) {
-          errors_out[j] = null;
+            thisErrs[j] == null || thatErrs[j] == null) {
+          outErrs[j] = null;
         }
         else {
-          errors_out[j] =
-            new ErrorEstimate(values[j], units_out[j], op, errors_in[j],
-                              errors_out[j], error_mode);
+          outErrs[j] =
+            new ErrorEstimate(thisValues[j], outUnits[j], op, thisErrs[j],
+                              thatErrs[j], error_mode);
         }
       }
 
@@ -2455,9 +2646,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       /*- TDR June  1998
       FlatField new_field = cloneDouble(units_out, errors_out);
       */
-      FlatField new_field = cloneDouble( new_type, units_out, errors_out);
+      FlatField new_field = cloneDouble( new_type, outUnits, outErrs);
 
-      new_field.packValues(values, false);
+      new_field.packValues(thisValues, false);
       // new_field.DoubleRange = values;
       new_field.clearMissing();
       return new_field;
