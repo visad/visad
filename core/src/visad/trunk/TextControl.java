@@ -64,13 +64,13 @@ public class TextControl extends Control {
     String name;
 
     /** Predefined value for left justification */
-    public static final Justification LEFT = new Justification("Left");;
+    public static final Justification LEFT = new Justification("Left");
 
     /** Predefined value for center justification */
-    public static final Justification CENTER = new Justification("Center");;
+    public static final Justification CENTER = new Justification("Center");
 
     /** Predefined value for right justification */
-    public static final Justification RIGHT = new Justification("Right");;
+    public static final Justification RIGHT = new Justification("Right");
 
     /**
      * Constructor - simply store the name
