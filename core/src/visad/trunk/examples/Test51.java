@@ -34,9 +34,11 @@ import java.awt.image.BufferedImage;
 
 import java.rmi.RemoteException;
 
+import javax.media.j3d.*;
+
 import visad.*;
 
-import visad.java3d.DisplayImplJ3D;
+import visad.java3d.*;
 
 public class Test51
   extends TestSkeleton
@@ -113,6 +115,16 @@ public class Test51
     jframe1.setVisible(true);
 
     while (true) {
+/*
+VisADCanvasJ3D canvas =
+  ((DisplayRendererJ3D) dpys[0].getDisplayRenderer()).getCanvas();
+Screen3D scr = canvas.getScreen3D();
+System.out.println(scr.getPhysicalScreenHeight() + " " +
+                   scr.getPhysicalScreenWidth() + " " +
+                   scr.getSize().getHeight() + " " +
+                   scr.getSize().getWidth());
+// prints 0.28899555555555556 0.3612444444444445 1024.0 1280.0
+*/
       Graphics gp = panel1.getGraphics();
       BufferedImage image = dpys[0].getImage();
       gp.drawImage(image, 0, 0, panel1);
