@@ -1,5 +1,5 @@
 # Makefile.WinNT for VisAD version 2.0
-# For use with WinNT (e.g., Microsoft's NMAKE, available at:
+# For use with Windows 95/98/NT (e.g., Microsoft's NMAKE, available at:
 #      ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe)
 # To compile VisAD using this Makefile, type:
 #      nmake -f Makefile.WinNT compile
