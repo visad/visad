@@ -1,7 +1,9 @@
 package visad.install;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import java.net.URL;
 
@@ -108,6 +110,64 @@ public class Main
     return 0;
   }
 
+  private void clusterPush(String source, String target)
+  {
+    Process p;
+    try {
+      p = clusterInstaller.push(source, target);
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+      return;
+    }
+
+    try { p.getOutputStream().close(); } catch (IOException ioe) { }
+
+    BufferedReader in,err;
+    in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+    err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+
+    /*
+     * This loop will hang if too much output is sent to 'err' 
+     * without anything being sent to 'in'
+     */
+    boolean looping = true;
+    while (looping) {
+      if (in != null) {
+        try {
+          String line = in.readLine();
+          if (line == null) {
+            in = null;
+            looping = (err != null);
+          }
+        } catch (IOException ioe) {
+          ioe.printStackTrace();
+          break;
+        }
+      }
+
+      if (err != null) {
+        try {
+          if (err.ready() || in == null) {
+            String line = err.readLine();
+            if (line == null) {
+              err = null;
+              looping = (in != null);
+            }
+          }
+        } catch (IOException ioe) {
+          ioe.printStackTrace();
+          break;
+        }
+      }
+    }
+
+    try {
+      p.waitFor();
+    } catch (InterruptedException ie) {
+      ie.printStackTrace();
+    }
+  }
+
   /**
    * Ugly hack to make JVM binaries executable.
    */
@@ -162,6 +222,7 @@ public class Main
       p = Runtime.getRuntime().exec(cmd);
     } catch (IOException ioe) {
       ioe.printStackTrace();
+      return;
     }
 
     try {
@@ -463,8 +524,8 @@ public class Main
 
       // if they want a cluster install, push the JVM out to the nodes
       if (clusterInstaller != null) {
-        clusterInstaller.push(javaInstallDir.toString(),
-                              javaInstallDir.getParent().toString());
+        clusterPush(javaInstallDir.toString(),
+                    javaInstallDir.getParent().toString());
       }
     }
 
@@ -477,8 +538,8 @@ public class Main
 
     // if they want a cluster install, push the jar file out to the nodes
     if (clusterInstaller != null) {
-      clusterInstaller.push(getPath(new File(jarInstallDir, JAR_NAME)),
-                            getPath(jarInstallDir));
+      clusterPush(getPath(new File(jarInstallDir, JAR_NAME)),
+                  getPath(jarInstallDir));
     }
   }
 
