@@ -19,10 +19,47 @@ import javax.swing.JPanel;
 public class ProgressMonitor
   extends JFrame
 {
-  private boolean showDetails;
+  class DetailLabel
+    extends JLabel
+  {
+    private String text;
+    private boolean show;
+
+    public DetailLabel(String text, boolean show)
+    {
+      super(text);
+
+      this.text = text;
+      this.show = show;
+    }
+
+    public final boolean isShown() { return show; }
+
+    public final void setText(String text)
+    {
+      this.text = text;
+
+      if (show) {
+        super.setText(text);
+      }
+    }
+
+    final void toggleShown()
+    {
+      show = !show;
+      if (show) {
+        super.setText(text);
+      } else {
+        super.setText("");
+        this.invalidate();
+      }
+    }
+  }
+
   private Font labelFont;
 
-  private JLabel phaseLabel, detailLabel;
+  private JLabel phaseLabel;
+  private DetailLabel detailLabel;
   private JCheckBox detailBox;
 
   public ProgressMonitor()
@@ -43,8 +80,6 @@ public class ProgressMonitor
   public ProgressMonitor(Font labelFont, boolean showDetails)
   {
     super("Installation Progress Monitor");
-
-    this.showDetails = showDetails;
 
     //
     // compute label height & width
@@ -70,7 +105,7 @@ public class ProgressMonitor
     phaseLabel.setPreferredSize(d);
     phaseLabel.setMaximumSize(d);
 
-    detailLabel = new JLabel("");
+    detailLabel = new DetailLabel("", showDetails);
     detailLabel.setFont(labelFont);
     detailLabel.setMinimumSize(d);
     detailLabel.setPreferredSize(d);
@@ -82,7 +117,10 @@ public class ProgressMonitor
       {
         public void itemStateChanged(ItemEvent e)
         {
-          toggleShowDetails();
+          detailLabel.toggleShown();
+          if (detailLabel.isShown()) {
+            pack();
+          }
         }
       });
 
@@ -106,13 +144,11 @@ public class ProgressMonitor
     pack();
   }
 
-  public final boolean isDetailShown() { return showDetails; }
+  public final boolean isDetailShown() { return detailLabel.isShown(); }
 
   public final void setDetail(String detail)
   {
-    if (showDetails) {
-      detailLabel.setText(detail);
-    }
+    detailLabel.setText(detail);
   }
 
   public final void setPhase(String phase)
@@ -123,11 +159,6 @@ public class ProgressMonitor
 
   private final void toggleShowDetails()
   {
-    showDetails = !showDetails;
-    if (!showDetails) {
-      detailLabel.setText("");
-      invalidate();
-      pack();
-    }
+    detailLabel.toggleShown();
   }
 }
