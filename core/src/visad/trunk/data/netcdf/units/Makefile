@@ -26,6 +26,7 @@ test:	classes	\
 	UnitParser.test
 
 UnitParser.java:	UnitParser.jj
+classes:		UnitParser.java
 ASCII_CharStream.java:	UnitParser.java
 ParseException.java:	UnitParser.java
 Token.java:		UnitParser.java
