@@ -40,9 +40,16 @@ public class ShapeControl extends Control {
     super(d);
   }
 
-  /** set the SimpleSet that defines the mapping from RealType
-      values to indices into an array of shapes;
-      the domain dimension of set must be 1 */
+  /**
+   * Sets the SimpleSet that defines the mapping from RealType values to indices
+   * into an array of shapes.  This method <em>must be called before</em> the
+   * setShapes() method to avoid a subsequent NullPointerException in the
+   * running of the display.
+   *
+   * @param set			1-D set of values that defines the mapping from
+   *				RealType values to indices into the array of 
+   *				shapes.  The domain dimension shall be 1.
+   */
   public synchronized void setShapeSet(SimpleSet set)
          throws VisADException, RemoteException {
     if (set == null) {
@@ -71,9 +78,16 @@ public class ShapeControl extends Control {
     changeControl(true);
   }
  
-  /** set the array of shapes associated with indices 0
-      through shapes.length; the VisADGeometryArray class
-      hierarchy defines various kinds of shapes */
+  /**
+   * Sets the array of shapes.  The array is accessed by index determined from
+   * the value-to-index mapping established by the <code>setShapeSet()</code>
+   * method.  The VisADGeometryArray class hierarchy defines various kinds of
+   * shapes.  This method <em>must be called after</em> the setShapeSet()
+   * method to avoid a subsequent NullPointerException in the running of the
+   * display.
+   *
+   * @param shs			The array of shapes.
+   */
   public synchronized void setShapes(VisADGeometryArray[] shs)
          throws VisADException, RemoteException {
     if (shapeSet == null) return;
