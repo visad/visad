@@ -2856,8 +2856,18 @@ public class FieldImpl extends FunctionImpl implements Field {
       clone.Range = new Data[Range.length];
 
       for (int i = 0; i < Range.length; i++) {
-        if (Range[i] != null)
-	  clone.Range[i] = (Data)Range[i].clone();
+        if (Range[i] != null) {
+          try {
+            /*
+             * Data.dataClone() is invoked because Data.clone() doesn't and
+             * can't exist.
+             */
+	    clone.Range[i] = (Data)Range[i].dataClone();
+          }
+          catch (RemoteException ex) {
+            throw new RuntimeException(ex.toString());
+          }
+        }
       }
     }
 
