@@ -26,6 +26,7 @@ import java.awt.*;
 import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
+import visad.java2d.DisplayImplJ2D;
 
 public class Test69
   extends UISkeleton
@@ -50,6 +51,7 @@ public class Test69
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
     dpys[0] = new DisplayImplJ3D("display");
+    // dpys[0] = new DisplayImplJ2D("display");
     return dpys;
   }
 
@@ -63,7 +65,11 @@ public class Test69
     TupleType text_tuple = new TupleType(mtypes);
     FunctionType text_function = new FunctionType(RealType.Time, text_tuple);
 
-    String[] names = new String[] {"abc", "defg", "hijkl", "mnopqr"};
+    String[] names = new String[] {"a b c d e f g h i j k l m",
+                                   "nopqrstuvwxyz",
+                                   "A B C D E F G H I J K L M",
+                                   "NOPQRSTUVWXYZ",
+                                   "0123456789  - + = / [ ] ( ) { }"};
     int ntimes1 = names.length;
     Set time_set =
       new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
@@ -71,8 +77,8 @@ public class Test69
     FieldImpl text_field = new FieldImpl(text_function, time_set);
 
     for (int i=0; i<ntimes1; i++) {
-      Data[] td = {new Real(RealType.Latitude, 40.0 * i - 60.0),
-                   new Real(RealType.Longitude, 80.0 * (ntimes1 - i) - 120.0),
+      Data[] td = {new Real(RealType.Latitude, 30.0 * i - 60.0),
+                   new Real(RealType.Longitude, 60.0 * (ntimes1 - i) - 120.0),
                    new Text(text, names[i])};
 
       Tuple tt = new Tuple(text_tuple, td);
@@ -85,6 +91,7 @@ public class Test69
     Font font = new Font("Serif", Font.PLAIN, 60);
     tcontrol.setFont(font);
     tcontrol.setSphere(sphere);
+    tcontrol.setCenter(true);
     if (sphere) {
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
       dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));

@@ -2323,9 +2323,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           }
           else {
             as[k] = PlotText.render_font(text_values[i], font,
-                                         (float) (size * FONT_SCALE),
-                                         center, spatial_sphere[0][i],
-                                         spatial_sphere[1][i], spatial_sphere[2][i]);
+                                         start, base, up, center);
           }
           int len = (as[k] == null) ? 0 : as[k].coordinates.length;
           if (len > 0) {
@@ -2345,6 +2343,20 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
               coordinates[m++] = cs[2][j];
             }
             as[k].coordinates = coordinates; // not necessary
+            if (font != null) {
+              float[] normals = as[k].normals;
+              for (int j3=0; j3<len; j3+=3) {
+                float c = (float)
+                  Math.sqrt(coordinates[j3 + 0] * coordinates[j3 + 0] +
+                            coordinates[j3 + 1] * coordinates[j3 + 1] +
+                            coordinates[j3 + 2] * coordinates[j3 + 2]);
+                float cinv = (c == 0.0f) ? 1.0f : 1.0f / c;
+                normals[j3 + 0] = cinv * coordinates[j3 + 0];
+                normals[j3 + 1] = cinv * coordinates[j3 + 1];
+                normals[j3 + 2] = cinv * coordinates[j3 + 2];
+              }
+              as[k].normals = normals; // not necessary
+            }
           }
         }
         else { // !sphere
@@ -2356,9 +2368,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           }
           else {
             as[k] = PlotText.render_font(text_values[i], font,
-                                         (float) (size * FONT_SCALE),
-                                         center, spatial_values[0][i],
-                                         spatial_values[1][i], spatial_values[2][i]);
+                                         start, base, up, center);
           }
         }
         int len = (as[k] == null) ? 0 : as[k].coordinates.length;

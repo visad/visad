@@ -414,14 +414,16 @@ public class PlotText extends Object {
    * @return VisADTriangleArray of all the triangles needed to draw the
    * characters in this string
   */
-  public static VisADTriangleArray render_font(String str, Font font, float size,
-                         boolean center, float x, float y, float z) {
+  public static VisADTriangleArray render_font(String str, Font font,
+            double[] start, double[] base, double[] up, boolean center) {
+            // float size, boolean center, float x, float y, float z) {
     VisADTriangleArray array = null;
 
 // System.out.println("x, y, z = " + x + " " + y + " " + z);
-// System.out.println("size, center = " + size + " " + center);
+// System.out.println("center = " + center);
 
-    float fsize = size / font.getSize();
+    float fsize = font.getSize();
+    float fsize_inv = 1.0f / fsize;
 
     // ??
     // Graphics2D g2 = null;
@@ -432,9 +434,11 @@ public class PlotText extends Object {
     FontRenderContext frc =
       new FontRenderContext(at, isAntiAliased, usesFractionalMetrics);
 
+    double flatness = 0.05; // ??
+
     Vector big_vector = new Vector();
-    double flatness = size; // ??
-    float[][] big_samples = new float[2][500];
+    int big_len = 1000;
+    float[][] big_samples = new float[2][big_len];
     float[] seg = new float[6];
 
     int str_len = str.length();
@@ -447,6 +451,7 @@ public class PlotText extends Object {
       if (ng == 0) continue;
       int path_count = 0;
       Vector samples_vector = new Vector();
+      float x_plus = (float) (fsize_inv * gv.getLogicalBounds().getWidth());
       for (int ig=0; ig<ng; ig++) {
         Shape sh = gv.getGlyphOutline(ig);
         // pi only has SEG_MOVETO, SEG_LINETO, and SEG_CLOSE point types
@@ -467,9 +472,16 @@ public class PlotText extends Object {
               }
               // NOTE falls through to SEG_LINETO to add first point
             case PathIterator.SEG_LINETO:
-              big_samples[0][k] = fsize * seg[0] + x_offset;
-              big_samples[1][k] = -fsize * seg[1];
+              big_samples[0][k] = x_offset + fsize_inv * seg[0];
+              big_samples[1][k] = - fsize_inv * seg[1];
               k++;
+              if (k >= big_len) {
+                float[][] bs = new float[2][2 * big_len];
+                System.arraycopy(big_samples[0], 0, bs[0], 0, big_len);
+                System.arraycopy(big_samples[1], 0, bs[1], 0, big_len);
+                big_samples = bs;
+                big_len = 2 * big_len;
+              }
               break;
             case PathIterator.SEG_CLOSE:
               if (k > 0) {
@@ -515,8 +527,10 @@ public class PlotText extends Object {
         }
       }
       samples_vector.removeAllElements();
-      x_offset += size;
+      x_offset += x_plus;
     } // end for (int str_index=0; str_index<str_len; str_index++)
+
+    x_offset = center ? -0.5f * x_offset : 0.0f;
 
     int n = big_vector.size();
     VisADTriangleArray[] arrays = new VisADTriangleArray[n];
@@ -535,15 +549,18 @@ public class PlotText extends Object {
       float[] coordinates = new float[9 * m];
       for (int j=0; j<m; j++) {
         int j9 = 9 * j;
-        coordinates[j9 + 0] = x + samples[0][tris[j][0]];
-        coordinates[j9 + 1] = y + samples[1][tris[j][0]];
-        coordinates[j9 + 2] = z;
-        coordinates[j9 + 3] = x + samples[0][tris[j][1]];
-        coordinates[j9 + 4] = y + samples[1][tris[j][1]];
-        coordinates[j9 + 5] = z;
-        coordinates[j9 + 6] = x + samples[0][tris[j][2]];
-        coordinates[j9 + 7] = y + samples[1][tris[j][2]];
-        coordinates[j9 + 8] = z;
+        for (int tj=0; tj<3; tj++) {
+          int j3 = j9 + 3 * tj;
+          coordinates[j3 + 0] = (float)
+            (start[0] + base[0] * (samples[0][tris[j][tj]] + x_offset) +
+                        up[0] * samples[1][tris[j][tj]]);
+          coordinates[j3 + 1] = (float)
+            (start[1] + base[1] * (samples[0][tris[j][tj]] + x_offset) +
+                        up[1] * samples[1][tris[j][tj]]);
+          coordinates[j3 + 2] = (float)
+            (start[2] + base[2] * (samples[0][tris[j][tj]] + x_offset) +
+                        up[2] * samples[1][tris[j][tj]]);
+        }
       }
       float[] normals = new float[9 * m];
       for (int j=0; j<3*m; j++) {
@@ -558,6 +575,7 @@ public class PlotText extends Object {
       arrays[i].normals = normals;
 // System.out.println("array[" + i + "] has " + m + " tris");
     } // end for (int i=0; i<n; i++)
+
     array = new VisADTriangleArray();
     try {
       VisADGeometryArray.merge(arrays, array);

@@ -476,6 +476,55 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
     if (nn == 1) return s;
     if (s[0].length < 3) return null;
 
+    // compute which paths are inside other paths
+    // this assumes that paths do not intersect
+    boolean[][] in = new boolean[nn][nn];
+    for (int ii=0; ii<nn; ii++) {
+      for (int jj=0; jj<nn; jj++) {
+        if (ii == jj) {
+          in[ii][jj] = false;
+        }
+        else {
+          in[ii][jj] = inside(ss[ii], ss[jj][0][0], ss[jj][1][0]);
+        }
+      }
+    }
+
+    // sort paths so no early path is inside a later path
+    for (int ii=0; ii<nn; ii++) {
+      boolean any_outer = false;
+      for (int jj=ii; jj<nn; jj++) {
+        // don't allow short path as outer path
+        boolean in_any = (ss[jj][0].length < 3);
+        for (int kk=ii; kk<nn; kk++) {
+          if (in[kk][jj]) { in_any = true; break; }
+        }
+        if (!in_any) {
+          any_outer = true;
+          if (ii != jj) {
+            float[][] tss = ss[ii];
+            ss[ii] = ss[jj];
+            ss[jj] = tss;
+            boolean[] tin = in[ii];
+            in[ii] = in[jj];
+            in[jj] = tin;
+            for (int kk=0; kk<nn; kk++) {
+              boolean tb = in[kk][ii];
+              in[kk][ii] = in[kk][jj];
+              in[kk][jj] = tb;
+            }
+          }
+          break;
+        }
+        if (!any_outer) {
+          // this should never happen and indicates paths must
+          // intersect, but don't throw an Exception
+          // just muddle through
+        }
+      }
+    }
+
+    // compute orientations of paths
     boolean[] orient = new boolean[nn];
     for (int ii=1; ii<nn; ii++) {
       float area = 0.0f;
@@ -493,6 +542,8 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
       if (t[0].length < 3) continue;
       int n = s[0].length;
       int m = t[0].length;
+
+      // find closest points between paths in s and t
       float distance = Float.MAX_VALUE;
       int near_i = -1;
       int near_j = -1;
@@ -508,15 +559,15 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
         }
       }
       if (near_i < 0) continue;
-      int ip = (near_i < n - 1) ? near_i + 1 : 0;
-      int im = (0 < near_i) ? near_i - 1 : n - 1;
-      int jp = (near_j < m - 1) ? near_j + 1 : 0;
-      int jm = (0 < near_j) ? near_j - 1 : m - 1;
-      boolean in = inside(s, t[0][near_j], t[1][near_j]);
-      boolean flip = ((orient[0] == orient[ii]) == in);
-// System.out.println("orient[0] = " + orient[0] + " orient[" + ii + "] = " +
-//                    orient[ii] + " in = " + in + " flip = " + flip);
 
+      // decide if need to flip order of traversing path in t
+      boolean inn = in[00][ii];
+      // inn = inside(s, t[0][near_j], t[1][near_j]);
+      boolean flip = ((orient[0] == orient[ii]) == inn);
+// System.out.println("orient[0] = " + orient[0] + " orient[" + ii + "] = " +
+//                    orient[ii] + " inn = " + inn + " flip = " + flip);
+
+      // link paths in s and t at nearest points
       int new_n = n + m + 2;
       float[][] new_s = new float[2][new_n];
       int k = 0;
@@ -551,11 +602,12 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
       System.arraycopy(s[1], near_i, new_s[1], k, n - near_i);
       s[0] = new_s[0];
       s[1] = new_s[1];
+
+      // nudge link points away from each other
       int b1m = (b1 > 0) ? b1 - 1 : new_n - 1;
       int a1p = (a1 < new_n - 1) ? a1 + 1 : 0;
       int b2m = (b2 > 0) ? b2 - 1 : new_n - 1;
       int a2p = (a2 < new_n - 1) ? a2 + 1 : 0;
-
       new_s[0][b1] = SELF * new_s[0][b1] + PULL * new_s[0][b1m];
       new_s[1][b1] = SELF * new_s[1][b1] + PULL * new_s[1][b1m];
       new_s[0][a1] = SELF * new_s[0][a1] + PULL * new_s[0][a1p];
