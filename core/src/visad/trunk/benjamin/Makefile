@@ -13,7 +13,7 @@ SLIB = Galaxy
 # these Fortran functions compile correctly under sparc Solaris
 # 2.5.1
 #
-OBJS = mw.o species_rd.o errmsg.o tcdensity.o dmdsm.o util.o \
+OBJS = GalaxyImp.o mw.o species_rd.o errmsg.o tcdensity.o dmdsm.o util.o \
 	profile.o galtosol.o
 
 # name of the generated JNI header file
