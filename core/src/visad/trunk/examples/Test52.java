@@ -95,8 +95,8 @@ public class Test52
     panel1.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     jframe.setContentPane(panel1);
     jframe.pack();
-    jframe.setVisible(true);
     jframe.setSize(300, 300);
+    jframe.setVisible(true);
 
     while (true) {
       Graphics gp = panel1.getGraphics();
