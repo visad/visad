@@ -239,7 +239,7 @@ public class SliceManager implements ControlListener {
   }
 
   /** Clears the display, then reapplies mappings and references. */
-  void reconfigureDisplay() {
+  void reconfigureDisplays() {
     try {
       bio.display2.disableAction();
       if (bio.display3 != null) bio.display3.disableAction();
@@ -387,13 +387,10 @@ public class SliceManager implements ControlListener {
             lowres_fields = new FieldImpl[slices];
             lowresRefs = new DataReferenceImpl[slices];
             lowresRenderers = new DataRenderer[slices];
-            DisplayRenderer dr = bio.display2.getDisplayRenderer();
             for (int j=0; j<slices; j++) {
               lowres_fields[j] = new FieldImpl(time_function, lowres_set);
               lowres_fields[j].setSamples(thumbs[j], false);
               lowresRefs[j] = new DataReferenceImpl("bio_lowres" + j);
-              lowresRenderers[j] = dr.makeDefaultRenderer();
-              lowresRenderers[j].toggle(false);
             }
           }
 
@@ -407,7 +404,7 @@ public class SliceManager implements ControlListener {
             }
           }
 
-          // CTR - TODO - initialize color widgets properly
+          bio.toolView.refreshColorWidgets();
           configureDisplays();
 
           // initialize measurement list array
@@ -503,15 +500,23 @@ public class SliceManager implements ControlListener {
     bio.display2.addMap(g_map2);
     bio.display2.addMap(b_map2);
 
-    // CTR - TODO - full range component color support - grab state from GUI
-    bio.display2.addMap(new ScalarMap(rtypes[0], Display.RGB));
+    // add color maps according to state of color mapping widgets
+    ScalarMap[] maps = bio.toolView.getColorMaps();
+    for (int i=0; i<maps.length; i++) bio.display2.addMap(maps[i]);
 
     // set up 2-D data references
+    boolean on = renderer2 == null ? true : renderer2.getEnabled();
     renderer2 = bio.display2.getDisplayRenderer().makeDefaultRenderer();
+    renderer2.toggle(on);
     bio.display2.addReferences(renderer2, ref);
     if (doThumbs) {
+      DisplayRenderer dr = bio.display2.getDisplayRenderer();
       for (int j=0; j<slices; j++) {
         if (j == slices - 1) bio.display2.enableAction(); // CTR - TEMP HACK
+        on = lowresRenderers[j] == null ?
+          false : lowresRenderers[j].getEnabled();
+        lowresRenderers[j] = dr.makeDefaultRenderer();
+        lowresRenderers[j].toggle(on);
         bio.display2.addReferences(lowresRenderers[j], lowresRefs[j]);
       }
     }
@@ -541,11 +546,14 @@ public class SliceManager implements ControlListener {
       bio.display3.addMap(g_map3);
       bio.display3.addMap(b_map3);
 
-      // CTR - TODO - full range component color support - grab state from GUI
-      bio.display3.addMap(new ScalarMap(rtypes[0], Display.RGB));
+      // add color maps according to state of color mapping widgets
+      maps = bio.toolView.getColorMaps();
+      for (int i=0; i<maps.length; i++) bio.display3.addMap(maps[i]);
 
       // set up 3-D data references
+      on = renderer3 == null ? true : renderer3.getEnabled();
       renderer3 = bio.display3.getDisplayRenderer().makeDefaultRenderer();
+      renderer3.toggle(on);
       bio.display3.addReferences(renderer3, ref);
       bio.mm.pool3.init();
     }

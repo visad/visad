@@ -35,7 +35,7 @@ import visad.*;
  * BioColorMapWidget is a widget for controlling mappings
  * from range scalars to color scalars.
  */
-public class BioColorMapWidget extends JPanel {
+public class BioColorMapWidget extends JPanel implements ItemListener {
 
   // -- CONSTANTS --
 
@@ -55,7 +55,7 @@ public class BioColorMapWidget extends JPanel {
   public static final int HSV = 11;
 
   private static final DisplayRealType[] COLOR_TYPES = {
-    Display.Red, Display.Green, Display.RGB,
+    Display.Red, Display.Green, Display.Blue, Display.RGB,
     Display.Cyan, Display.Magenta, Display.Yellow, Display.CMY,
     Display.Hue, Display.Saturation, Display.Value, Display.HSV
   };
@@ -77,7 +77,6 @@ public class BioColorMapWidget extends JPanel {
 
   private BioVisAD bio;
   private DisplayRealType type;
-  private ScalarMap map;
 
 
   // -- CONSTRUCTOR --
@@ -94,11 +93,7 @@ public class BioColorMapWidget extends JPanel {
     };
     scalars = new JComboBox();
     scalars.addItem("None");
-    scalars.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        bio.sm.reconfigureDisplay();
-      }
-    });
+    scalars.addItemListener(this);
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     add(color);
     add(scalars);
@@ -106,6 +101,12 @@ public class BioColorMapWidget extends JPanel {
 
 
   // -- API METHODS --
+
+  /** Gets the currently selected RealType, or null of None. */
+  public RealType getSelectedItem() {
+    Object o = scalars.getSelectedItem();
+    return o instanceof RealType ? (RealType) o : null;
+  }
 
   /** Enables or disables this widget. */
   public void setEnabled(boolean enabled) {
@@ -115,10 +116,55 @@ public class BioColorMapWidget extends JPanel {
 
   /** Refreshes the combo box to contain the current range types. */
   public void refreshTypes() {
-    for (int i=0; i<bio.sm.rtypes.length; i++) {
-      scalars.addItem(bio.sm.rtypes[i]);
+    scalars.removeItemListener(this);
+    RealType[] rt = bio.sm.rtypes;
+    for (int i=0; i<rt.length; i++) scalars.addItem(rt[i]);
+
+    // Autodetect types
+
+    // Case 1: rtypes.length == 1
+    //   RGB, CMY, & HSV -> rtypes[0]
+    //   Other           -> None
+
+    if (rt.length == 1) {
+      if (type.equals(Display.RGB) || type.equals(Display.CMY) ||
+        type.equals(Display.HSV))
+      {
+        scalars.setSelectedItem(rt[0]);
+      }
+      else scalars.setSelectedIndex(0); // None
     }
-    // CTR - TODO - autodetect types - huh?
+
+    // Case 2: rtypes.length > 1
+    //   R, C & H -> rtypes[0]
+    //   G, M & S -> rtypes[1]
+    //   B, Y & V -> rtypes[2] (if rtypes.length > 2)
+    //   Other    -> None
+
+    else {
+      if (type.equals(Display.Red) || type.equals(Display.Cyan) ||
+        type.equals(Display.Hue))
+      {
+        scalars.setSelectedItem(rt[0]);
+      }
+      else if (type.equals(Display.Green) || type.equals(Display.Magenta) ||
+        type.equals(Display.Saturation))
+      {
+        scalars.setSelectedItem(rt[1]);
+      }
+      else if (type.equals(Display.Blue) || type.equals(Display.Yellow) ||
+        type.equals(Display.Value))
+      {
+        scalars.setSelectedItem(rt.length > 2 ? rt[2] : null);
+      }
+      else scalars.setSelectedIndex(0); // None
+    }
+    scalars.addItemListener(this);
   }
+
+
+  // -- INTERNAL API METHODS --
+
+  public void itemStateChanged(ItemEvent e) { bio.sm.reconfigureDisplays(); }
 
 }

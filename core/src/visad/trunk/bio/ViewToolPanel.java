@@ -39,6 +39,13 @@ import visad.browser.Divider;
  */
 public class ViewToolPanel extends ToolPanel {
 
+  // -- CONSTANTS --
+
+  private static final DisplayRealType[] COLOR_TYPES = {
+    Display.Red, Display.Green, Display.Blue, Display.RGB
+  };
+
+
   // -- GUI COMPONENTS --
 
   /** Toggle for 2-D display mode. */
@@ -192,18 +199,22 @@ public class ViewToolPanel extends ToolPanel {
 
     // red color map widget
     red = new BioColorMapWidget(bio, BioColorMapWidget.RED);
+    red.setEnabled(false); // CTR - TEMP
     controls.add(pad(red));
 
     // green color map widget
     green = new BioColorMapWidget(bio, BioColorMapWidget.GREEN);
+    green.setEnabled(false); // CTR - TEMP
     controls.add(pad(green));
 
     // blue color map widget
     blue = new BioColorMapWidget(bio, BioColorMapWidget.BLUE);
+    blue.setEnabled(false); // CTR - TEMP
     controls.add(pad(blue));
 
     // composite color map widget
     rgb = new BioColorMapWidget(bio, BioColorMapWidget.RGB);
+    rgb.setEnabled(false); // CTR - TEMP
     controls.add(pad(rgb));
   }
 
@@ -236,5 +247,32 @@ public class ViewToolPanel extends ToolPanel {
 
   /** Sets the animation widget's animation control. */
   void setControl(AnimationControl control) { anim.setControl(control); }
+
+  /** Refreshes the color combo boxes to contain the current range types. */
+  void refreshColorWidgets() {
+    red.refreshTypes();
+    green.refreshTypes();
+    blue.refreshTypes();
+    rgb.refreshTypes();
+  }
+
+  /** Gets the current color maps indicated by the color combo boxes. */
+  ScalarMap[] getColorMaps() throws VisADException {
+    RealType[] rt = {
+      red.getSelectedItem(),
+      green.getSelectedItem(),
+      blue.getSelectedItem(),
+      rgb.getSelectedItem()
+    };
+    int nullCount = 0;
+    for (int i=0; i<rt.length; i++) if (rt[i] == null) nullCount++;
+    ScalarMap[] maps = new ScalarMap[rt.length - nullCount];
+    int c = 0;
+    for (int i=0; i<rt.length; i++) {
+      if (rt[i] == null) continue;
+      maps[c++] = new ScalarMap(rt[i], COLOR_TYPES[i]);
+    }
+    return maps;
+  }
 
 }

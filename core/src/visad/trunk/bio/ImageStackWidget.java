@@ -41,8 +41,6 @@ public class ImageStackWidget extends BioStepWidget {
   // -- API METHODS --
 
   /** Updates the current image of the image stack. */
-  public void updateStep() {
-    if (!step.getValueIsAdjusting()) bio.sm.setSlice(cur - 1);
-  }
+  public void updateStep() { bio.sm.setSlice(cur - 1); }
 
 }
