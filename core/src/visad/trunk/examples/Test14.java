@@ -78,34 +78,25 @@ public class Test14
       DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
       ref_direct.setData(direct);
       DataReference[] refs141 = {ref_direct};
-      dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs141, null);
+      dpys[0].addReferences(new DirectManipulationRendererJ3D(),
+                            refs141, null);
 
       DataReferenceImpl ref_direct_tuple;
       ref_direct_tuple = new DataReferenceImpl("ref_direct_tuple");
       ref_direct_tuple.setData(direct_tuple);
       DataReference[] refs142 = {ref_direct_tuple};
-      dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs142, null);
+      dpys[0].addReferences(new DirectManipulationRendererJ3D(),
+                            refs142, null);
 
       DataReferenceImpl ref_histogram1;
       ref_histogram1 = new DataReferenceImpl("ref_histogram1");
       ref_histogram1.setData(histogram1);
       DataReference[] refs143 = {ref_histogram1};
-      dpys[0].addReferences(new DirectManipulationRendererJ3D(), refs143, null);
+      dpys[0].addReferences(new DirectManipulationRendererJ3D(),
+                            refs143, null);
 
-      // create local DataReferenceImpls
-      DataReferenceImpl[] data_refs = new DataReferenceImpl[3];
-      data_refs[0] = ref_histogram1;
-      data_refs[1] = ref_direct;
-      data_refs[2] = ref_direct_tuple;
-
-      // create RemoteDataReferences
-      RemoteDataReferenceImpl[] rem_data_refs;
-      rem_data_refs = new RemoteDataReferenceImpl[3];
-      rem_data_refs[0] = new RemoteDataReferenceImpl(data_refs[0]);
-      rem_data_refs[1] = new RemoteDataReferenceImpl(data_refs[1]);
-      rem_data_refs[2] = new RemoteDataReferenceImpl(data_refs[2]);
-
-      RemoteServerImpl obj = new RemoteServerImpl(rem_data_refs);
+      RemoteServerImpl obj = new RemoteServerImpl();
+      obj.addDisplay((DisplayImpl) dpys[0]);
       Naming.rebind("///RemoteServerTest", obj);
 
       System.out.println("RemoteServer bound in registry");

@@ -32,6 +32,7 @@ public class Test15
   extends TestSkeleton
 {
   private String domain;
+  private RemoteServer remote_obj = null;
 
   boolean hasClientServerMode() { return false; }
 
@@ -61,20 +62,8 @@ public class Test15
     throws RemoteException, VisADException
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
-    return dpys;
-  }
-
-  void setupServerData(LocalDisplay[] dpys)
-    throws RemoteException, VisADException
-  {
-    if (!(dpys[0] instanceof DisplayImpl)) {
-      throw new VisADException("Expected DisplayImpl, got " +
-                               dpys[0].getClass().getName());
-    }
 
     try {
-
       System.out.println("RemoteClientTestImpl.main: begin remote activity");
       System.out.println("  to " + domain);
 
@@ -88,43 +77,20 @@ public class Test15
 
       System.out.println("connected");
 
-      RemoteDataReference histogram_ref = remote_obj.getDataReference(0);
-      RemoteDataReference direct_ref = remote_obj.getDataReference(1);
-      RemoteDataReference direct_tuple_ref = remote_obj.getDataReference(2);
-
-      RealTupleType dtype;
-      dtype = (RealTupleType) direct_tuple_ref.getData().getType();
-
-      dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(0),
-                                    Display.XAxis));
-      dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(1),
-                                    Display.YAxis));
-      dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(2),
-                                    Display.ZAxis));
-
-      GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
-      mode.setPointSize(5.0f);
-      mode.setPointMode(false);
-
-      RemoteDisplayImpl remote_display1;
-      remote_display1 = new RemoteDisplayImpl((DisplayImpl )dpys[0]);
-
-      DataReference[] refs151 = {histogram_ref};
-      remote_display1.addReferences(new DirectManipulationRendererJ3D(),
-                                    refs151, null);
-
-      DataReference[] refs152 = {direct_ref};
-      remote_display1.addReferences(new DirectManipulationRendererJ3D(),
-                                    refs152, null);
-
-      DataReference[] refs153 = {direct_tuple_ref};
-      remote_display1.addReferences(new DirectManipulationRendererJ3D(),
-                                    refs153, null);
+      RemoteDisplay rmtDpy = remote_obj.getDisplay(0);
+      dpys[0] = new DisplayImplJ3D(rmtDpy);
     }
     catch (Exception e) {
       System.out.println("collaboration client exception: " + e.getMessage());
       e.printStackTrace(System.out);
     }
+
+    return dpys;
+  }
+
+  void setupServerData(LocalDisplay[] dpys)
+    throws RemoteException, VisADException
+  {
   }
 
   public String toString()
