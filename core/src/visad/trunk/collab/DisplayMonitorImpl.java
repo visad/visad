@@ -184,7 +184,7 @@ public class DisplayMonitorImpl
 
   public DisplayMonitorImpl(DisplayImpl dpy, boolean cl)
   {
-System.out.println("DisplayMonitorImpl " + dpy.getName() + " " + cl);
+// System.out.println("DisplayMonitorImpl " + dpy.getName() + " " + cl);
     Name = dpy.getName() + ":Mon";
 
     dpy.addDisplayListener(this);
