@@ -12,7 +12,6 @@ CC = cc
 AR = ar -r
 
 LD = $(CC)
-LDOPT = -G
 
 OBJECTS = SWopenImp.o \
 	SWattachImp.o SWinqswathImp.o SWinqdimsImp.o \
@@ -43,7 +42,7 @@ GDfdims.o: GDfdims.c
 	$(CC) -c $*.c $(JAVAINCS) $(HDFINCS) $(HDFEOSINCS)
 
 hdfeosLib: $(OBJECTS) hdfeos_ext
-	$(LD) $(LDOPT) $(OBJECTS) $(HDFEOSLIBS) $(HDFLIBS) $(FLAGS) -o $(SLIBDIR)/lib$(SLIB).so
+	$(LD) $(LDOPT) $(OBJECTS) $(HDFEOSLIBS) $(HDFLIBS) $(SYSLIBS) -o $(SLIBDIR)/lib$(SLIB).so
 clean:
 	rm -f so_locations
 	rm -f $(SLIBDIR)/lib$(SLIB).so
@@ -51,6 +50,6 @@ clean:
 	rm -f *.o
 
 solaris:
-	@make ARCH=solaris FLAGS="-lnsl -lm" all
+	@make ARCH=solaris SYSLIBS="-lnsl -lm" LDOPT="-G" all
 irix:
-	@make ARCH=irix FLAGS="-lm" all
+	@make ARCH=irix SYSLIBS="-lm" LDOPT="-shared -Wl,-x" all
