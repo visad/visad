@@ -29,6 +29,7 @@ package visad.cluster;
 import visad.*;
 import visad.java3d.*;
 import visad.java2d.*;
+import visad.util.ContourWidget;
 import visad.data.gif.GIFForm;
 
 import java.rmi.*;
@@ -210,13 +211,14 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
 
     // FunctionType image_type = (FunctionType) image.getType();
     // RealTupleType domain_type = image_type.getDomain();
-    RealType line = (RealType) domain_type.getComponent(0);
-    RealType element = (RealType) domain_type.getComponent(1);
+    RealType element = (RealType) domain_type.getComponent(0);
+    RealType line = (RealType) domain_type.getComponent(1);
     RealTupleType range_type = (RealTupleType) image_type.getRange();
     RealType red = (RealType) range_type.getComponent(0);
     display.addMap(new ScalarMap(line, Display.YAxis));
     display.addMap(new ScalarMap(element, Display.XAxis));
-    display.addMap(new ScalarMap(red, Display.IsoContour));
+    ScalarMap contour_map = new ScalarMap(red, Display.IsoContour);
+    display.addMap(contour_map);
 
     // link data to the display
     DataReferenceImpl ref = new DataReferenceImpl("image");
@@ -242,9 +244,10 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
 
     // add display to JPanel
     panel.add(display.getComponent());
+    panel.add(new ContourWidget(contour_map));
 
     // set size of JFrame and make it visible
-    frame.setSize(500, 500);
+    frame.setSize(500, 700);
     frame.setVisible(true);
   }
 

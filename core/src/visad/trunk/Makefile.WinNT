@@ -763,8 +763,17 @@ visad.collab.RemoteDisplaySyncImpl \
 visad.collab.RemoteEventProviderImpl
 
 RMIC_CLUSTER_FILES = \
+visad.cluster.RemoteAgentContactImpl \
+visad.cluster.RemoteClientAgentImpl \
+visad.cluster.RemoteClientDataImpl \
+visad.cluster.RemoteClientFieldImpl \
+visad.cluster.RemoteClientPartitionedFieldImpl \
+visad.cluster.RemoteClientTupleImpl \
 visad.cluster.RemoteClusterDataImpl \
-visad.cluster.RemoteClientDataImpl
+visad.cluster.RemoteNodeDataImpl \
+visad.cluster.RemoteNodeFieldImpl \
+visad.cluster.RemoteNodePartitionedFieldImpl \
+visad.cluster.RemoteNodeTupleImpl
 
 recompile: \
 *.class \
