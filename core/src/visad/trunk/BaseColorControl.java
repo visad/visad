@@ -52,14 +52,8 @@ public abstract class BaseColorControl extends Control {
     super(d);
     this.components = components;
     tableLength = DEFAULT_TABLE_LENGTH;
-    table = new float[components][tableLength + 1];
+    table = new float[components][tableLength];
     initTableVis5D(table, components);
-    table[0][DEFAULT_TABLE_LENGTH] = table[0][DEFAULT_TABLE_LENGTH - 1];
-    table[1][DEFAULT_TABLE_LENGTH] = table[1][DEFAULT_TABLE_LENGTH - 1];
-    table[2][DEFAULT_TABLE_LENGTH] = table[2][DEFAULT_TABLE_LENGTH - 1];
-    if (components > 3) {
-      table[3][DEFAULT_TABLE_LENGTH] = table[3][DEFAULT_TABLE_LENGTH - 1];
-    }
   }
  
   // initialize table to a grey wedge
@@ -149,11 +143,9 @@ public abstract class BaseColorControl extends Control {
     }
     synchronized (lock) {
       tableLength = t[0].length;
-      table = new float[components][tableLength + 1];
+      table = new float[components][tableLength];
       for (int j=0; j<components; j++) {
         System.arraycopy(t[j], 0, table[j], 0, tableLength);
-        // guard for table overflow on scaling in lookupValues
-        table[j][tableLength] = t[j][tableLength - 1];
       }
       function = null;
     }
@@ -174,13 +166,16 @@ public abstract class BaseColorControl extends Control {
     if (values == null) {
       return null;
     }
-    int len = values.length;
+
+    final int tblEnd = tableLength - 1;
+    final int valLen = values.length;
+
     float[][] colors = null;
     synchronized (lock) {
       if (table != null) {
-        colors = new float[components][len];
+        colors = new float[components][valLen];
         float scale = (float) tableLength;
-        for (int i=0; i<len; i++) {
+        for (int i=0; i<valLen; i++) {
           if (values[i] != values[i]) {
             colors[0][i] = Float.NaN;
             colors[1][i] = Float.NaN;
@@ -201,12 +196,12 @@ public abstract class BaseColorControl extends Control {
                 colors[3][i] = table[3][0];
               }
             }
-            else if (tableLength < j) {
-              colors[0][i] = table[0][tableLength];
-              colors[1][i] = table[1][tableLength];
-              colors[2][i] = table[2][tableLength];
+            else if (tableLength <= j) {
+              colors[0][i] = table[0][tblEnd];
+              colors[1][i] = table[1][tblEnd];
+              colors[2][i] = table[2][tblEnd];
               if (components > 3) {
-                colors[3][i] = table[3][tableLength];
+                colors[3][i] = table[3][tblEnd];
               }
             }
             else {
@@ -315,7 +310,7 @@ public abstract class BaseColorControl extends Control {
         }
         synchronized (lock) {
           table = bcc.table;
-          tableLength = table[0].length - 1;
+          tableLength = table[0].length;
           function = null;
         }
         try {
