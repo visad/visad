@@ -1048,6 +1048,10 @@ END MISSING TEST */
 
         return false;
       }
+      else if (LevelOfDifficulty == SIMPLE_ANIMATE_FIELD) {
+
+        return false;
+      }
       else { // must be LevelOfDifficulty == LEGAL
         // add values to value_array according to SelectedMapVector-s
         // of RealType-s in Domain (including Reference) and Range
@@ -1144,7 +1148,7 @@ END MISSING TEST */
         }
         else { // (range_select[0][i] != range_select[0][i])
           if (control != null) {
-            // add null Sjape3D as child to maintain order
+            // add null VisADGroup as child to maintain order
             VisADGroup branch = new VisADGroup(); // J2D
             swit.addChild(branch);
             branch.addChild(new VisADAppearance());

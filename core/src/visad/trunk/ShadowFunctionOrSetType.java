@@ -212,7 +212,12 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
 
       LevelOfDifficulty =
         testIndices(local_indices, local_display_indices, levelOfDifficulty);
-
+/*
+System.out.println("ShadowFunctionOrSetType.checkIndices 1:" +
+                   " LevelOfDifficulty = " + LevelOfDifficulty +
+                   " isTerminal = " + isTerminal +
+                   " Type = " + Type.prettyString());
+*/
       // compute Domain type
       if (!Domain.getMappedDisplayScalar()) {
         Dtype = D0;
@@ -225,6 +230,9 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
       }
       else if (checkR2D2(Domain.getDisplayIndices())) {
         Dtype = D2;
+      }
+      else if (checkAnimationOrValue(Domain.getDisplayIndices()) > 0) {
+        Dtype = D4;
       }
       else {
         Dtype = Dbad;
@@ -257,12 +265,22 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
 
       if (LevelOfDifficulty == NESTED) {
         if (Dtype != Dbad && Rtype != Rbad) {
-          LevelOfDifficulty = SIMPLE_FIELD;
+          if (Dtype == D4) {
+            LevelOfDifficulty = SIMPLE_ANIMATE_FIELD;
+          }
+          else {
+            LevelOfDifficulty = SIMPLE_FIELD;
+          }
         }
         else {
           LevelOfDifficulty = LEGAL;
         }
       }
+/*
+System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
+                   " LevelOfDifficulty = " + LevelOfDifficulty +
+                   " Dtype = " + Dtype + " Rtype = " + Rtype);
+*/
 
       if (this instanceof ShadowFunctionType) {
         // test for texture mapping
@@ -303,9 +321,11 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
       LevelOfDifficulty = Range.checkIndices(local_indices, local_display_indices,
                                              local_value_indices, isTransform,
                                              levelOfDifficulty);
+/*
+System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
+                   " LevelOfDifficulty = " + LevelOfDifficulty);
+*/
     }
-
-
 
     return LevelOfDifficulty;
   }

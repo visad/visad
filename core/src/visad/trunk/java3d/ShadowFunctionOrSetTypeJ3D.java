@@ -575,7 +575,10 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
     }
 
     // System.out.println("assembleSelect");
- 
+ /*
+System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal() +
+                   " LevelOfDifficulty = " + LevelOfDifficulty);
+*/
     if (adaptedShadowType.getIsTerminal()) {
       if (!((ShadowFunctionOrSetType) adaptedShadowType).getFlat()) {
         throw new DisplayException("terminal but not Flat");
@@ -1286,6 +1289,96 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
         return false;
       }
+      else if (LevelOfDifficulty == SIMPLE_ANIMATE_FIELD) {
+
+        AVControlJ3D control = null;
+        Switch swit = null;
+        int index = -1;
+  
+        for (int i=0; i<valueArrayLength; i++) {
+          float[] values = display_values[i];
+          if (values != null) {
+            int displayScalarIndex = valueToScalar[i];
+            DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+            if (real.equals(Display.Animation) ||
+                real.equals(Display.SelectValue)) {
+              swit = new Switch(); // J3D
+              swit.setCapability(Switch.ALLOW_SWITCH_READ);
+              swit.setCapability(Switch.ALLOW_SWITCH_WRITE);
+              swit.setCapability(BranchGroup.ALLOW_DETACH);
+              swit.setCapability(Group.ALLOW_CHILDREN_READ);
+              swit.setCapability(Group.ALLOW_CHILDREN_WRITE);
+              index = i;
+              control = (AVControlJ3D)
+                ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+              break;
+            }
+          } // end if (values != null)
+        } // end for (int i=0; i<valueArrayLength; i++)
+  
+        if (control == null) {
+          throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform: " +
+                                     "bad SIMPLE_ANIMATE_FIELD");
+        }
+  
+        for (int i=0; i<domain_length; i++) {
+          if (range_select[0] == null || range_select[0].length == 1 ||
+              range_select[0][i] == range_select[0][i]) {
+            BranchGroup branch = new BranchGroup(); // J3D
+            branch.setCapability(BranchGroup.ALLOW_DETACH);
+            VisADPointArray array = new VisADPointArray();
+            array.vertexFormat = 1;
+            coordinates = new float[3];
+            if (spatial_values[0].length > 1) {
+              coordinates[0] = spatial_values[0][i];
+              coordinates[1] = spatial_values[1][i];
+              coordinates[2] = spatial_values[2][i];
+            }
+            else {
+              coordinates[0] = spatial_values[0][0];
+              coordinates[1] = spatial_values[1][0];
+              coordinates[2] = spatial_values[2][0];
+            }
+            array.coordinates = coordinates;
+            if (color_values != null) {
+              colors = new float[3];
+              if (color_values[0].length > 1) {
+                colors[0] = color_values[0][i];
+                colors[1] = color_values[1][i];
+                colors[2] = color_values[2][i];
+              }
+              else {
+                colors[0] = color_values[0][0];
+                colors[1] = color_values[1][0];
+                colors[2] = color_values[2][0];
+              }
+              array.colors = colors;
+            }
+            GeometryArray geometry = display.makeGeometry(array);
+            appearance = makeAppearance(mode, constant_alpha,
+                                        constant_color, geometry);
+            Shape3D shape = new Shape3D(geometry, appearance);
+            branch.addChild(shape);
+            swit.addChild(branch);
+            System.out.println("addChild " + i + " of " + domain_length);
+          }
+          else { // (range_select[0][i] != range_select[0][i])
+            // add null BranchGroup as child to maintain order
+            BranchGroup branch = new BranchGroup(); // J3D
+            branch.setCapability(BranchGroup.ALLOW_DETACH);
+            branch.addChild(new Shape3D());
+            swit.addChild(branch);
+            System.out.println("addChild " + i + " of " + domain_length +
+                               " MISSING");
+          }
+        } // end for (int i=0; i<domain_length; i++)
+  
+        control.addPair(swit, domain_set, renderer);
+        control.init();
+        group.addChild(swit);
+
+        return false;
+      }
       else { // must be LevelOfDifficulty == LEGAL
         // add values to value_array according to SelectedMapVector-s
         // of RealType-s in Domain (including Reference) and Range
@@ -1388,7 +1481,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         }
         else { // (range_select[0][i] != range_select[0][i])
           if (control != null) {
-            // add null Sjape3D as child to maintain order
+            // add null BranchGroup as child to maintain order
             BranchGroup branch = new BranchGroup(); // J3D
             branch.setCapability(BranchGroup.ALLOW_DETACH);
             swit.addChild(branch);

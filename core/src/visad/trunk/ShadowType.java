@@ -36,8 +36,9 @@ public abstract class ShadowType extends Object
        implements java.io.Serializable {
 
   /** possible values for LevelOfDifficulty */
-  public static final int NOTHING_MAPPED = 5;
-  public static final int SIMPLE_TUPLE = 4;
+  public static final int NOTHING_MAPPED = 6;
+  public static final int SIMPLE_TUPLE = 5;
+  public static final int SIMPLE_ANIMATE_FIELD = 4;
   public static final int SIMPLE_FIELD = 3;
   public static final int NESTED = 2;
   public static final int LEGAL = 1;
@@ -77,7 +78,7 @@ public abstract class ShadowType extends Object
 
   /** Dtype and Rtype used only with ShadowSetType and
       Flat ShadowFunctionType */
-  int Dtype; // Domain Type: D0, D1, D2, D3 or Dbad
+  int Dtype; // Domain Type: D0, D1, D2, D3, D4 or Dbad
   int Rtype; // Range Type: R0, R1, R2, R3, R4 or Rbad
   /** possible values for Dtype */
   static final int D0 = 0; // (Unmapped)*
@@ -86,7 +87,8 @@ public abstract class ShadowType extends Object
   static final int D2 = 2; // (SpatialOffset, Spatial, Color, Alpha,
                            //  Range, Unmapped)*
   static final int D3 = 3; // (Color, Alpha, Range, Unmapped)*
-  static final int Dbad = 4;
+  static final int D4 = 4; // (Animation, Value)*
+  static final int Dbad = 5;
   /** possible values for Rtype */
   static final int R0 = 0; // (Unmapped)*
   static final int R1 = 1; // (Color, Alpha, Range, Unmapped)*
@@ -600,8 +602,9 @@ public abstract class ShadowType extends Object
       LevelOfDifficulty = NOTHING_MAPPED;
     }
 /*
-    System.out.println("LevelOfDifficulty = " + LevelOfDifficulty +
-                       " Type = " + Type);
+System.out.println("testIndices: LevelOfDifficulty = " + LevelOfDifficulty +
+                   " isTerminal = " + isTerminal +
+                   " Type = " + Type.prettyString());
 */
     return LevelOfDifficulty;
   }
