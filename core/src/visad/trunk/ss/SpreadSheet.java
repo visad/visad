@@ -167,6 +167,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** File Save as serialized menu item */
   protected MenuItem FileSave2;
 
+  // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
+  /** File Save as serialized menu item */
+  MenuItem FileSave3;
+
   /** Cell Edit mappings menu item */
   protected MenuItem CellEdit;
 
@@ -468,6 +472,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     FileSave2.setActionCommand("fileSaveSerial");
     FileSave2.setEnabled(false);
     file.add(FileSave2);
+
+    // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
+    FileSave3 = new MenuItem("Export data to HDF5...");
+    FileSave3.addActionListener(this);
+    FileSave3.setActionCommand("fileSaveHDF5");
+    FileSave3.setEnabled(false);
+        try { // do not add file save menuitem for HDF5 if HDF5Form is not found
+      ClassLoader.getSystemClassLoader().loadClass("visad.data.hdf5.HDF5Form");
+      file.add(FileSave3);
+    } catch (ClassNotFoundException e) {}
 
     file.addSeparator();
 
@@ -897,15 +911,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
           // extract new cell information
           boolean b = getColRowServer();
           if (b == IsRemote) { // keep sheet from receiving its own updates
-            String[][] cellNames = getNewCellNames();
-            if (cellNames == null) return;
+            String[][] cellNamesx = getNewCellNames();
+            if (cellNamesx == null) return;
             int oldNVX = NumVisX;
             int oldNVY = NumVisY;
-            NumVisX = cellNames.length;
-            NumVisY = cellNames[0].length;
+            NumVisX = cellNamesx.length;
+            NumVisY = cellNamesx[0].length;
             if (NumVisX != oldNVX || NumVisY != oldNVY) {
               // reconstruct spreadsheet cells and labels
-              reconstructSpreadsheet(cellNames, null, null, frs);
+              reconstructSpreadsheet(cellNamesx, null, null, frs);
               if (!IsRemote) synchColRow();
             }
           }
@@ -958,6 +972,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** import a data set */
   void loadDataSet() {
     DisplayCells[CurX][CurY].loadDataDialog();
+  }
+
+  // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
+  void exportDataSetHDF5() {
+    Object hdf5form = null;
+    try {
+      ClassLoader cl = ClassLoader.getSystemClassLoader();
+      Class hdf5form_class = cl.loadClass("visad.data.hdf5.HDF5Form");
+      hdf5form = hdf5form_class.newInstance();
+    } catch (Exception e) {}
+
+    if (hdf5form != null) {
+      DisplayCells[CurX][CurY].saveDataDialog((visad.data.Form)hdf5form);
+    }
   }
 
   /** export a data set to netCDF format */
@@ -2109,6 +2137,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
         ToolMap.setEnabled(b);
         FileSave1.setEnabled(b);
         FileSave2.setEnabled(b);
+        // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
+        FileSave3.setEnabled(b);
         ToolSave.setEnabled(b);
         CellReset.setEnabled(b);
         ToolReset.setEnabled(b);
@@ -2603,6 +2633,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (cmd.equals("fileOpen")) loadDataSet();
     else if (cmd.equals("fileSaveNetcdf")) exportDataSetNetcdf();
     else if (cmd.equals("fileSaveSerial")) exportDataSetSerial();
+    // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
+    else if (cmd.equals("fileSaveHDF5")) exportDataSetHDF5();
     else if (cmd.equals("fileExit")) {
       DisplayCells[CurX][CurY].hideWidgetFrame();
       setVisible(false);

@@ -62,6 +62,7 @@ DOCFLAGS = -d $(DOC_DIR)
 FITS = ..\nom\tam
 UCAR = ..\ucar
 SSEC = ..\edu\wisc\ssec
+NCSA = ..\ncsa\hdf\hdf5lib
 
 JAR_FILES1 = \
 visad\README \
@@ -114,6 +115,11 @@ visad\data\mcidas\README.mcidas \
 visad\data\gif\*.java \
 visad\data\gif\sseclogo.gif \
 visad\data\visad\*.java \
+visad\data\hdf5\*.java \
+visad\data\hdf5\COPYING \
+visad\data\hdf5\hdf5objects\*.java \
+visad\$(NCSA)\*.java
+visad\$(NCSA)\exceptions\*.java
 visad\jmet\*.java
 
 JAR_FILES2 = \
@@ -213,6 +219,10 @@ visad\$(SSEC)\mcidas\adde\*.java \
 visad\data\mcidas\*.java \
 visad\data\mcidas\README.mcidas \
 visad\data\visad\*.java \
+visad\data\hdf5\*.java \
+visad\data\hdf5\hdf5objects\*.java \
+visad\$(NCSA)\*.java \
+visad\$(NCSA)\exceptions\*.java \
 visad\jmet\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
@@ -308,6 +318,14 @@ save:
 		$(DEL) $(BACKUP)\visad\data\gif\*.java
 	if exist $(BACKUP)\visad\data\visad\*.java \
 		$(DEL) $(BACKUP)\visad\data\visad\*.java
+	if exist $(BACKUP)\visad\data\hdf5\*.java \
+		$(DEL) $(BACKUP)\visad\data\hdf5\*.java
+	if exist $(BACKUP)\visad\data\hdf5\hdf5objects\*.java \
+		$(DEL) $(BACKUP)\visad\data\hdf5\hdf5objects\*.java
+	if exist $(BACKUP)\visad\$(NCSA)\*.java \
+		$(DEL) $(BACKUP)\visad\$(NCSA)\*.java
+	if exist $(BACKUP)\visad\$(NCSA)\exceptions\*.java \
+		$(DEL) $(BACKUP)\visad\$(NCSA)\exceptions\*.java
 	if exist $(BACKUP)\visad\jmet\*.java \
 		$(DEL) $(BACKUP)\visad\jmet\*.java
 	if exist $(BACKUP)\visad\paoloa\*.java \
@@ -358,6 +376,10 @@ visad\$(SSEC)\mcidas\adde\*.class \
 visad\data\mcidas\*.class \
 visad\data\gif\*.class \
 visad\data\visad\*.class \
+visad\data\hdf5\*.class \
+visad\data\hdf5\hdf5objects\*.class \
+visad\$(NCSA)\*.class \
+visad\$(NCSA)\exceptions\*.class \
 visad\jmet\*.class \
 visad\paoloa\*.class \
 visad\paoloa\spline\*.class \
@@ -403,6 +425,10 @@ clear:
 	if exist $(SSEC)\mcidas\adde\*.java $(DEL) $(SSEC)\mcidas\adde\*.java
 	if exist data\mcidas\*.java $(DEL) data\mcidas\*.java
 	if exist data\visad\*.java $(DEL) data\visad\*.java
+	if exist data\hdf5\*.java $(DEL) data\hdf5\*.java
+	if exist data\hdf5\hdf5objects\*.java $(DEL) data\hdf5\hdf5objects\*.java
+	if exist $(NCSA)\*.java $(DEL) $(NCSA)\*.java
+	if exist $(NCSA)\exceptions\*.java $(DEL) $(NCSA)\exceptions\*.java
 	if exist jmet\*.java $(DEL) jmet\*.java
 	if exist paoloa\*.java $(DEL) paoloa\*.java
 	if exist paoloa\spline\*.java $(DEL) paoloa\spline\*.java
@@ -440,6 +466,10 @@ clean:
 	if exist data\mcidas\*.class $(DEL) data\mcidas\*.class
 	if exist data\gif\*.class $(DEL) data\gif\*.class
 	if exist data\visad\*.class $(DEL) data\visad\*.class
+	if exist data\hdf5\*.class $(DEL) data\hdf5\*.class
+	if exist data\hdf5\hdf5objects\*.class $(DEL) data\hdf5\hdf5objects\*.class
+	if exist $(NCSA)\*.class $(DEL) $(NCSA)\*.class
+	if exist $(NCSA)\exceptions\*.class $(DEL) $(NCSA)\exceptions\*.class
 	if exist jmet\*.class $(DEL) jmet\*.class
 	if exist paoloa\*.class $(DEL) paoloa\*.class
 	if exist paoloa\spline\*.class $(DEL) paoloa\spline\*.class
@@ -490,6 +520,10 @@ data\gif\*.class \
 data\visad\*.class \
 data\hdfeos\hdfeosc\*.class \
 data\hdfeos\*.class \
+$(NCSA)\*.class \
+$(NCSA)\exceptions\*.class \
+data\hdf5\hdf5objects\*.class \
+data\hdf5\*.class \
 formula\*.class \
 util\*.class \
 ss\*.class \
@@ -531,6 +565,10 @@ compile: clean
 	$(JC) $(JFLAGS) data\visad\*.java
 	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
 	$(JC) $(JFLAGS) data\hdfeos\*.java
+	$(JC) $(JFLAGS) $(NCSA)\exceptions\*.java
+	$(JC) $(JFLAGS) $(NCSA)\*.java
+	$(JC) $(JFLAGS) data\hdf5\hdf5objects\*.java
+	$(JC) $(JFLAGS) data\hdf5\*.java
 	$(JC) $(JFLAGS) formula\*.java
 	$(JC) $(JFLAGS) util\*.java
 	$(JC) $(JFLAGS) ss\*.java
@@ -579,6 +617,10 @@ visad.data.gif \
 edu.wisc.ssec.mcidas \
 visad.data.mcidas \
 visad.data.visad \
+ncsa.hdf.hdf5lib \
+ncsa.hdf.hdf5lib.exceptions \
+visad.data.hdf5 \
+visad.data.hdf5.hdf5objects \
 visad.jmet \
 visad.paoloa \
 visad.paoloa.spline \

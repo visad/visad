@@ -109,6 +109,7 @@ DOCFLAGS = -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
 FITS = ../nom/tam
 UCAR = ../ucar
 SSEC = ../edu/wisc/ssec
+NCSA = ../ncsa/hdf/hdf5lib
 
 ############################################################################
 # Customizations
@@ -196,6 +197,11 @@ TAR_FILES = \
 	visad/data/gif/*.java				\
 	visad/data/gif/sseclogo.gif			\
 	visad/data/visad/*.java				\
+	visad/data/hdf5/*.java				\
+	visad/data/hdf5/COPYING				\
+	visad/data/hdf5/hdf5objects/*.java		\
+	ncsa/hdf/hdf5lib				\
+	ncsa/hdf/hdf5lib/exceptions			\
 	visad/jmet/*.java				\
 	visad/paoloa/README.paoloa			\
 	visad/paoloa/Makefile				\
@@ -295,6 +301,10 @@ CLASS_FILES = \
 	visad/data/mcidas/*.class                       \
 	visad/data/gif/*.class				\
 	visad/data/visad/*.class			\
+	visad/data/hdf5/*.class				\
+	visad/data/hdf5/hdf5objects/*.class		\
+	ncsa/hdf/hdf5lib/*.class			\
+	ncsa/hdf/hdf5lib/exceptions/*.class		\
 	visad/jmet/*.class				\
 	visad/paoloa/*.class				\
 	visad/paoloa/spline/*.class			\
@@ -362,6 +372,10 @@ SAVE_FILES = \
 	visad/data/vis5d/*.java				\
 	visad/data/gif/*.java				\
 	visad/data/visad/*.java				\
+	visad/data/hdf5/*.java				\
+	visad/data/hdf5/hdf5objects/*.java		\
+	ncsa/hdf/hdf5lib/*.java				\
+	ncsa/hdf/hdf5lib/exceptions/*.java		\
 	visad/jmet/*.java				\
 	visad/paoloa/README.paoloa			\
 	visad/paoloa/Makefile				\
@@ -399,24 +413,27 @@ SAVE_FILES = \
 	visad/plotdigits.html
 
 save:
-	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/formula/*.java backup/visad/ss/*.java backup/visad/ss/*.gif backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/edu/wisc/ssec/mcidas/*.java backup/edu/wisc/ssec/mcidas/adde/*.java backup/visad/data/mcidas/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/ucar/multiarray/*.java backup/ucar/util/*.java backup/ucar/netcdf/*.java backup/ucar/tests/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/data/visad/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java backup/visad/rabin/*.java backup/visad/bom/*.java backup/visad/aeri/*.java backup/visad/jmet/*.java backup/visad/paoloa/spline/*.java ; \
+	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/formula/*.java backup/visad/ss/*.java backup/visad/ss/*.gif backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/edu/wisc/ssec/mcidas/*.java backup/edu/wisc/ssec/mcidas/adde/*.java backup/visad/data/mcidas/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/ucar/multiarray/*.java backup/ucar/util/*.java backup/ucar/netcdf/*.java backup/ucar/tests/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/data/visad/*.java backup/visad/data/hdf5/*.java backup/visad/data/hdf5/hdf5objects/*.java backup/ncsa/hdf/hdf5lib/*.java backup/ncsa/hdf/hdf5lib/exceptions/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java backup/visad/rabin/*.java backup/visad/bom/*.java backup/visad/aeri/*.java backup/visad/jmet/*.java backup/visad/paoloa/spline/*.java ; \
 	cd .. ; \
 	tar -cvf save.tar $(SAVE_FILES) ; \
 	cd visad/backup ; \
 	tar -xvf ../../save.tar ; \
 	rm ../../save.tar ; \
 	cd .. ; \
-	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/formula/*.java backup/visad/ss/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/edu/wisc/ssec/mcidas/*.java backup/edu/wisc/ssec/mcidas/adde/*.java backup/visad/data/mcidas/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/ucar/multiarray/*.java backup/ucar/util/*.java backup/ucar/netcdf/*.java backup/ucar/tests/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/data/visad/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java backup/visad/rabin/*.java backup/visad/bom/*.java backup/visad/aeri/*.java backup/visad/jmet/*.java backup/visad/paoloa/spline/*.java
+	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/formula/*.java backup/visad/ss/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/edu/wisc/ssec/mcidas/*.java backup/edu/wisc/ssec/mcidas/adde/*.java backup/visad/data/mcidas/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/ucar/multiarray/*.java backup/ucar/util/*.java backup/ucar/netcdf/*.java backup/ucar/tests/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/data/visad/*.java backup/visad/data/hdf5/*.java backup/visad/data/hdf5/hdf5objects/*.java backup/ncsa/hdf/hdf5lib/*.java backup/ncsa/hdf/hdf5lib/exceptions/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java backup/visad/benjamin/*.java backup/visad/rabin/*.java backup/visad/bom/*.java backup/visad/aeri/*.java backup/visad/jmet/*.java backup/visad/paoloa/spline/*.java
 
 
 clear:
 	$(RM) *.java
-	$(RM) java3d/*.java java2d/*.java util/*.java formula/*.java ss/*.java ss/*.gif
+	$(RM) java3d/*.java java2d/*.java util/*.java formula/*.java
+	$(RM) ss/*.java ss/*.gif
 	$(RM) data/*.java data/netcdf/*.java data/netcdf/units/*.java
 	$(RM) data/netcdf/in/*.java data/netcdf/out/*.java
-	$(RM) data/fits/*.java
+	$(RM) data/fits/*.java data/hdf5/*.java data/hdf5/hdf5objects/*.java
 	$(RM) $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
-	$(RM) $(UCAR)/multiarray/*.java $(UCAR)/netcdf/*.java $(UCAR)/tests/*.java
+	$(RM) $(UCAR)/multiarray/*.java $(UCAR)/netcdf/*.java
+	$(RM) $(UCAR)/tests/*.java
+	$(RM) $(NCSA)/*.java $(NCSA)/exceptions/*.java
 	$(RM) data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
 	$(RM) $(SSEC)/mcidas/*.java $(SSEC)/mcidas/adde/*.java
 	$(RM) data/mcidas/*.java jmet/*.java
@@ -455,6 +472,10 @@ VISAD_PACKAGES = \
 		visad.data.visad \
 		visad.data.hdfeos.hdfeosc \
 		visad.data.hdfeos \
+		ncsa.hdf.hdf5lib.exceptions \
+		ncsa.hdf.hdf5lib \
+		visad.data.hdf5.hdf5objects \
+		visad.data.hdf5 \
 		visad.formula \
 		visad.ss \
 		visad.jmet \

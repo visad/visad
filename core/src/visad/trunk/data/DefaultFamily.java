@@ -376,6 +376,15 @@ public class DefaultFamily
       i++;
     } catch (Throwable t) {
     }
+    // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
+    try {
+      Object hdf5form = null;
+      ClassLoader cl = ClassLoader.getSystemClassLoader();
+      Class hdf5form_class = cl.loadClass("visad.data.hdf5.HDF5Form");
+      hdf5form = hdf5form_class.newInstance();
+      if (hdf5form != null) list[i++] = (Form)hdf5form;
+    } catch (Throwable t) {
+    }
 
     // throw an Exception if too many Forms for list
     FormNode junk = list[i];
