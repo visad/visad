@@ -940,8 +940,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else CellDim2D2D.setState(false);
     if (dim == BasicSSCell.JAVA3D_2D) CellDim2D3D.setState(true);
     else CellDim2D3D.setState(false);
-    // update auto-detect check mark
-    OptAuto.setState(DisplayCells[CurDisplay].getAutoDetect());
   }
 
   /** Handles checkbox menu item changes (dimension checkboxes) */
