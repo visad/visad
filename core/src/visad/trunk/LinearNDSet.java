@@ -79,6 +79,39 @@ public class LinearNDSet extends GriddedSet
     return lengths;
   }
 
+  /**
+   * General Factory method for creating the proper linear set
+   * (Linear1DSet, Linear2DSet, etc.).
+   */
+  public static LinearSet create(MathType type, double[] firsts,
+                                  double[] lasts, int[] lengths)
+         throws VisADException {
+    return create(type, firsts, lasts, lengths, null, null, null);
+  }
+ 
+  public static LinearSet create(MathType type, double[] firsts, double[] lasts,
+                                  int[] lengths, CoordinateSystem coord_sys,
+                                  Unit[] units, ErrorEstimate[] errors)
+         throws VisADException {
+    switch (firsts.length) {
+      case 1:
+        return new Linear1DSet(type, firsts[0], lasts[0], lengths[0],
+                                coord_sys, units, errors);
+      case 2:
+        return new Linear2DSet(type, firsts[0], lasts[0], lengths[0],
+                                firsts[1], lasts[1], lengths[1],
+                                coord_sys, units, errors);
+      case 3:
+        return new Linear3DSet(type, firsts[0], lasts[0], lengths[0],
+                                firsts[1], lasts[1], lengths[1],
+                                firsts[2], lasts[2], lengths[2],
+                                coord_sys, units, errors);
+      default:
+        return new LinearNDSet(type, firsts, lasts, lengths,
+                               coord_sys, units, errors);
+    }
+  }
+
   static Linear1DSet[] get_linear1d_array(MathType type, double[] firsts,
                     double[] lasts, int[] lengths) throws VisADException {
     // used by LinearNDSet and IntegerNDSet constructors
