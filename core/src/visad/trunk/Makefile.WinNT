@@ -85,7 +85,8 @@ visad\$(FITS)\test\*.java \
 visad\$(UCAR)\COPYRIGHT \
 visad\$(UCAR)\VERSION \
 visad\$(UCAR)\multiarray\*.java \
-visad\$(UCAR)\multiarray\*.java \
+visad\$(UCAR)\netcdf\*.java \
+visad\$(UCAR)\netcdf\Makefile \
 visad\$(UCAR)\tests\*.java \
 visad\$(UCAR)\tests\test.nc \
 visad\$(UCAR)\tests\test.out \
@@ -181,7 +182,8 @@ visad\$(FITS)\test\*.java \
 visad\$(UCAR)\COPYRIGHT \
 visad\$(UCAR)\VERSION \
 visad\$(UCAR)\multiarray\*.java \
-visad\$(UCAR)\multiarray\*.java \
+visad\$(UCAR)\netcdf\*.java \
+visad\$(UCAR)\netcdf\Makefile \
 visad\$(UCAR)\tests\*.java \
 visad\$(UCAR)\tests\test.nc \
 visad\$(UCAR)\tests\test.out \
