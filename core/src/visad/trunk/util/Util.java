@@ -63,6 +63,16 @@ public class Util
       return false;
     }
 
+    if (Float.isInfinite(a)) {
+      if (Float.isInfinite(b)) {
+        return ((a < 0.0 && b < 0.0) || (a > 0.0 && b > 0.0));
+      }
+
+      return false;
+    } else if (Float.isInfinite(b)) {
+      return false;
+    }
+
     if (Math.abs(a - b) < epsilon) {
       return true;
     }
@@ -105,6 +115,16 @@ public class Util
     if (Double.isNaN(a)) {
       return Double.isNaN(b);
     } else if (Double.isNaN(b)) {
+      return false;
+    }
+
+    if (Double.isInfinite(a)) {
+      if (Double.isInfinite(b)) {
+        return ((a < 0.0 && b < 0.0) || (a > 0.0 && b > 0.0));
+      }
+
+      return false;
+    } else if (Double.isInfinite(b)) {
       return false;
     }
 
