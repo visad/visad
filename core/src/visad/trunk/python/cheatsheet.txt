@@ -49,7 +49,7 @@ saveplot(display, filename)
 
 data = hist(data, (dim, bins))
 data = hist(data, (ranges))
-data = hist(data, ranges, sizes)
+data = hist(data, (ranges), (sizes))
   Compute a binned dataset (useful for historgram-type analysis)
   See quickgraphs.
 
@@ -298,6 +298,26 @@ class SelectField(selectMapName, data)
     getScalarMap(this) - returns the ScalarMap to add to display
        for this SelectField object
     getSelectField(this) - returns the Field to add to the display.
+
+class HandlePickEvent(display, handler)
+   Helper class for interfacing to the VisAD Display when
+   the user drags the mouse around with both buttons
+   pressed (which causes a cursor to appear and the domain
+   readout values to be shown).  When the mouse buttons
+   are released, the applications 'handler' will be called.
+   'handler' method should have two parameters: x,y that
+   will get the domain coordinate values on the x and y
+   axes.
+
+class RubberBandZoomer(display, requireKey)
+  Class to define a Rubber Band Box zoom capability
+  for a display.  Once invoked, a drag with right mouse
+  button creates a RubberBandBox.  When released, the
+  image is moved and zoomed to fill the window.  The
+  'display' is just that.  The 'requireKey' is 0 for
+  no simultaneous key, =1 for CTRL, =2 for SHIFT. Useful
+  because other manipulation renderers might get events
+  as well.
 
 
 from 'graph.py'.....

@@ -9,13 +9,15 @@ try: # try/except for pydoc
           Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple, \
           VisADLineArray, VisADQuadArray, VisADTriangleArray, \
           VisADGeometryArray, ConstantMap, Integer1DSet, FunctionType, \
-          ScalarMap, Display, Integer1DSet, FieldImpl, CellImpl
+          ScalarMap, Display, Integer1DSet, FieldImpl, CellImpl, \
+          DisplayListener, DisplayEvent
           
 
   from types import StringType
   from visad.ss import BasicSSCell
   from visad.java2d import DisplayImplJ2D, DisplayRendererJ2D
   from visad.bom import RubberBandBoxRendererJ3D
+  from java.lang import Double
 
   # define private fields for certains types and scalar mappings
   __py_text_type = RealType.getRealType("py_text_type")
@@ -255,10 +257,13 @@ def zoomBox(display, factor):
   except:
     pass
 
-def enableRubberBandBox():
-  RubberBandZoomer()
-
-
+def enableRubberBandBoxZoomer(display,useKey):
+  """
+  Method to attach a Rubber Band Box zoomer to this
+  display.  Once attached, it is there foreever!  The useKey
+  parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
+  """
+  RubberBandZoomer(display,useKey)
 
 def getDisplayScalarMaps(display, includeShapes=0):
   """
@@ -851,11 +856,29 @@ class SelectField:
     return this.selectField
 
 class RubberBandZoomer:
-  def __init__(self,display):
+  """
+  Class to define a Rubber Band Box zoom capability
+  for a display.  Once invoked, a drag with right mouse
+  button creates a RubberBandBox.  When released, the
+  image is moved and zoomed to fill the window.
+  """
+
+  def __init__(self,display, requireKey):
+    """
+    display is the display object.  requireKey = 0 (no key),
+    = 1 (CTRL), = 2 (SHIFT), or = 3 (META).
+    """
     self.x, self.y, self.z, self.display = getDisplayMaps(display)
     self.xy = RealTupleType(self.x, self.y)
     self.dummy_set = Gridded2DSet(self.xy,None,1)
-    self.rbb = RubberBandBoxRendererJ3D(self.x, self.y, 0,0)
+    mask = 0
+    from java.awt.event import InputEvent
+    if requireKey == 1: 
+      mask = InputEvent.CTRL_MASK
+    elif requireKey == 2:
+      mask = InputEvent.SHIFT_MASK
+
+    self.rbb = RubberBandBoxRendererJ3D(self.x, self.y, mask, mask)
     self.ref = addData('rbb',self.dummy_set,self.display, renderer=self.rbb)
     
     class MyCell(CellImpl):
@@ -902,15 +925,66 @@ class RubberBandZoomer:
         tm = self.mb.make_matrix(0,0,0,1,(xc - xsc),(yc - ysc),0)
         tsm = self.mb.multiply_matrix( mat, tm)
 
-        # compute matrix to re-scale
-        ratio = min(abs((x1 - x0)/(xsv[0]-xsv[1])) , 
-                    abs((y1 - y0)/(ysv[0]-ysv[1])))
-        ts = self.mb.make_matrix(0,0,0,ratio,0,0,0)
-        newm = self.mb.multiply_matrix( ts, tsm)
+        try:
+          # compute the ratio if possible
+          ratio = min(abs((x1 - x0)/(xsv[0]-xsv[1])) , 
+                      abs((y1 - y0)/(ysv[0]-ysv[1])))
 
-        # apply the stuff
-        self.pc.setMatrix(newm)
+          ts = self.mb.make_matrix(0,0,0,ratio,0,0,0)
+          newm = self.mb.multiply_matrix( ts, tsm)
+
+          # apply the stuff
+          self.pc.setMatrix(newm)
+
+        except:
+          pass
+
 
     cell = MyCell(self.ref,self.display)
     cell.addReference(self.ref)
+
+class HandlePickEvent(DisplayListener):
+  """
+  Helper class for interfacing to the VisAD Display when
+  the user drags the mouse around with both buttons
+  pressed (which causes a cursor to appear and the domain
+  readout values to be shown).  When the mouse buttons
+  are released, the applications 'handler' will be called.
+  """
+
+  def __init__(self, display, handler):
+    """
+    The 'display' is the display.  The 'handler' is the
+    method in the caller's program that will be called
+    when the user releases the buttons.  It must have
+    two parameters: x,y that will get the values of
+    the domain values for the x- and y-axis, respectively.
+    """
+    self.x, self.y, self.z, self.display=subs.getDisplayMaps(display)
+    self.dr = self.display.getDisplayRenderer()
+    self.display.addDisplayListener(self)
+    self.handler = handler
+
+  def displayChanged(self, event):
+    """
+    Handle event
+    """
+    # first, confirm this is only a drag, with no other key down
+    try:
+      ie = event.getInputEvent()
+      if ie.isControlDown(): return
+      if ie.isShiftDown(): return
+    except:
+      pass
+
+    # multiple MOUSE_RELEASE type events will happen,
+    # but only one has values...
+
+    if event.getId() == DisplayEvent.MOUSE_RELEASED:
+      self.xx = self.dr.getDirectAxisValue(self.x)
+      self.yy = self.dr.getDirectAxisValue(self.y)
+      if not Double(self.xx).isNaN():  # there will be NaN values
+        self.display.disableAction()
+        self.handler(self.xx, self.yy)  # to get a new image
+        self.display.enableAction()
 
