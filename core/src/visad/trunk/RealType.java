@@ -72,7 +72,7 @@ public class RealType extends ScalarType {
   public final static RealType Longitude =
     new RealType("Longitude", CommonUnit.degree, true);
   public final static RealType Altitude =
-    new RealType("Longitude", CommonUnit.meter, true);
+    new RealType("Altitude", CommonUnit.meter, true);
   public final static RealType Radius =
     new RealType("Radius", null, true);
 
