@@ -21,7 +21,7 @@ directory is a directory in your CLASSPATH (which we will refer
 to as '/parent_dir' through the rest of this README file).
 Then get:
 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
  
 If you have previously downloaded the VisAD source you
 should run 'make clear' in your visad directory to clear
@@ -143,11 +143,11 @@ Java interfaces.
 You can build the necessary libraries from source or on
 Sparc Solaris you can simply download:
 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/libhdfeos.so
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/libhdfeos.so
 
 into your visad/data/hdfeos/hdfeosc directory, and download
 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/libvis5d.so
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/libvis5d.so
 
 into your visad/data/vis5d directory.
 
@@ -223,7 +223,7 @@ to your LD_LIBRARY_PATH.
 Note that the applications in visad/paoloa require data files
 available from:
 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/paoloa.files.tar.Z
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/paoloa.files.tar.Z
 
 
 6. Downloading VisAD Classes in Jar Files
@@ -232,7 +232,7 @@ If you want to write applications for VisAD but don't want
 to compile VisAD from source, you can dowload a jar file that
 includes the VisAD classes.  This file is:
 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.jar
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/visad.jar
 
 Once you've got visad.jar simply add:
 
