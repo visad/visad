@@ -192,6 +192,7 @@
                  unit = new DerivedUnit();       // dimensionless derived unit
              if (origin != 0 || (originSpecified && isTime))
                  unit = unit.shift(origin);
+             // System.out.println("unitSpec(): unit=" + unit);
              {if (true) return unit;}
          }
          catch (UnitException e)
@@ -209,10 +210,14 @@
     label_1:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case INTEGER:
+      case REAL:
       case WHITESPACE:
       case DIVIDE:
+      case NAME:
       case 23:
       case 24:
+      case 25:
         ;
         break;
       default:
@@ -220,11 +225,26 @@
         break label_1;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case INTEGER:
+      case REAL:
       case WHITESPACE:
+      case NAME:
       case 23:
       case 24:
-        multiply();
+      case 25:
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case WHITESPACE:
+        case 23:
+        case 24:
+          multiply();
+          break;
+        default:
+          jj_la1[3] = jj_gen;
+          ;
+        }
         unit2 = powerExpression();
+                 // System.out.println("unitProductList(): unit1=" + unit1);
+                 // System.out.println("unitProductList(): unit2=" + unit2);
                  try
                  {
                      unit1 = unit1.multiply(unit2);
@@ -233,6 +253,8 @@
                  {
                      {if (true) throw new ParseException("Couldn't multiply units");}
                  }
+                 // System.out.println("unitProductList(): unit1=" + unit1);
+
         break;
       case DIVIDE:
         jj_consume_token(DIVIDE);
@@ -245,13 +267,16 @@
                  {
                      {if (true) throw new ParseException("Couldn't divide units");}
                  }
+                 // System.out.println("unitProductList(): unit1=" + unit1);
+
         break;
       default:
-        jj_la1[3] = jj_gen;
+        jj_la1[4] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
     }
+         // System.out.println("unitProductList(): unit1=" + unit1);
          {if (true) return unit1;}
     throw new Error("Missing return statement in function");
   }
@@ -268,7 +293,7 @@
       jj_consume_token(WHITESPACE);
       break;
     default:
-      jj_la1[4] = jj_gen;
+      jj_la1[5] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -297,7 +322,7 @@
         jj_consume_token(26);
         break;
       default:
-        jj_la1[5] = jj_gen;
+        jj_la1[6] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -309,7 +334,7 @@
           jj_consume_token(27);
           break;
         default:
-          jj_la1[6] = jj_gen;
+          jj_la1[7] = jj_gen;
           ;
         }
         t = jj_consume_token(INTEGER);
@@ -324,15 +349,16 @@
                      }
         break;
       default:
-        jj_la1[7] = jj_gen;
+        jj_la1[8] = jj_gen;
         ;
       }
       break;
     default:
-      jj_la1[8] = jj_gen;
+      jj_la1[9] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+         // System.out.println("powerExpression(): unit=" + unit);
          {if (true) return unit;}
     throw new Error("Missing return statement in function");
   }
@@ -346,6 +372,7 @@
          {
              {if (true) throw new NoSuchUnitException("Unit not in database");}
          }
+         // System.out.println("nameExpression(): unit=" + unit);
          {if (true) return unit;}
     throw new Error("Missing return statement in function");
   }
@@ -370,12 +397,12 @@
                                  "negative sign follows decimal point");}
           break;
         default:
-          jj_la1[9] = jj_gen;
+          jj_la1[10] = jj_gen;
           ;
         }
         break;
       default:
-        jj_la1[10] = jj_gen;
+        jj_la1[11] = jj_gen;
         ;
       }
       break;
@@ -393,7 +420,7 @@
                  value = new Double(t.image).doubleValue();
       break;
     default:
-      jj_la1[11] = jj_gen;
+      jj_la1[12] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -422,7 +449,7 @@
                  {if (true) return origin;}
       break;
     default:
-      jj_la1[12] = jj_gen;
+      jj_la1[13] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -443,7 +470,7 @@
       jj_consume_token(26);
       break;
     default:
-      jj_la1[13] = jj_gen;
+      jj_la1[14] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -464,7 +491,7 @@
         ;
         break;
       default:
-        jj_la1[14] = jj_gen;
+        jj_la1[15] = jj_gen;
         break label_2;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -480,7 +507,7 @@
                  value1 /= value2;
         break;
       default:
-        jj_la1[15] = jj_gen;
+        jj_la1[16] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -516,7 +543,7 @@
         jj_consume_token(WHITESPACE);
         break;
       default:
-        jj_la1[16] = jj_gen;
+        jj_la1[17] = jj_gen;
         ;
       }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -535,7 +562,7 @@
                          second = new Float(timeSpec.nextToken()).floatValue();
         break;
       default:
-        jj_la1[17] = jj_gen;
+        jj_la1[18] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -549,7 +576,7 @@
           jj_consume_token(WHITESPACE);
           break;
         default:
-          jj_la1[18] = jj_gen;
+          jj_la1[19] = jj_gen;
           ;
         }
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -587,18 +614,18 @@
                          }
           break;
         default:
-          jj_la1[19] = jj_gen;
+          jj_la1[20] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
         break;
       default:
-        jj_la1[20] = jj_gen;
+        jj_la1[21] = jj_gen;
         ;
       }
       break;
     default:
-      jj_la1[21] = jj_gen;
+      jj_la1[22] = jj_gen;
       ;
     }
          if (month < 1 || month > 12 ||
@@ -621,8 +648,8 @@
   public Token token, jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[22];
-  final private int[] jj_la1_0 = {0x800,0x2804090,0x1801100,0x1801100,0x1800100,0x2004000,0x8000000,0x8000010,0x2804090,0x10,0x800000,0x800090,0x2840090,0x2800090,0x801090,0x801090,0x100,0x400010,0x100,0x404010,0x404110,0x400110,};
+  final private int[] jj_la1 = new int[23];
+  final private int[] jj_la1_0 = {0x800,0x2804090,0x3805190,0x1800100,0x3805190,0x1800100,0x2004000,0x8000000,0x8000010,0x2804090,0x10,0x800000,0x800090,0x2840090,0x2800090,0x801090,0x801090,0x100,0x400010,0x100,0x404010,0x404110,0x400110,};
 
   public UnitParser(java.io.InputStream stream) {
     jj_input_stream = new ASCII_CharStream(stream, 1, 1);
@@ -630,7 +657,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
   public void ReInit(java.io.InputStream stream) {
@@ -639,7 +666,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
   public UnitParser(UnitParserTokenManager tm) {
@@ -647,7 +674,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
   public void ReInit(UnitParserTokenManager tm) {
@@ -655,7 +682,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 22; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 23; i++) jj_la1[i] = -1;
   }
 
   final private Token jj_consume_token(int kind) throws ParseException {
@@ -710,7 +737,7 @@
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 22; i++) {
+    for (int i = 0; i < 23; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitParser.jj,v 1.9 1998-12-16 16:08:27 steve Exp $
+ * $Id: UnitParser.jj,v 1.10 1998-12-16 20:27:43 steve Exp $
  */
 
 options
@@ -253,8 +253,7 @@ Unit unitProductList() :
 {
     unit1=powerExpression()
     (
-	    // LOOKAHEAD(multiply())
-	    multiply() unit2=powerExpression()
+	    [LOOKAHEAD(1) multiply()] unit2=powerExpression()
 	    {
 		try
 		{
@@ -317,6 +316,7 @@ Unit powerExpression() :
 		    "(" unit=unitProductList() ")"
 	    )
 	    [
+		LOOKAHEAD(1)
 		[
 		    "^"
 		]

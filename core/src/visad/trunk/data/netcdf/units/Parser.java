@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Parser.java,v 1.5 1998-12-16 16:08:27 steve Exp $
+ * $Id: Parser.java,v 1.6 1998-12-16 20:27:43 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -91,6 +91,8 @@ Parser
 	    "m2/s-1",
 	    "m2/s^-1",
 	    ".5 m/(.25 s)2",
+	    "m.m-1.m",
+	    "2.0 m 1/2 s-1*(m/s^1)^-1 (1e9 m-1)(1e9 s-1)-1.m/s"
 	};
 
 	for (int i = 0; i < specs.length; ++i)
