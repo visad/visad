@@ -84,7 +84,8 @@ public class PolarStereographic extends CoordinateSystem
     this(reference, r_major, r_minor, lon_center, lat_center, 0, 0);
   }
 
-  /*-  GRIB/AWIPS friendly static methods
+  /*-  GRIB/AWIPS friendly static methods. 
+       Note: Lon/Lat must be in unit radians
    ---------------------------------------------*/
 
   public static PolarStereographic 
@@ -95,7 +96,8 @@ public class PolarStereographic extends CoordinateSystem
                                                      )
          throws VisADException
   {
-    return makePolarStereographic(reference, 6367470, 6367470, La1, Lo1, Lov, 60);
+    return makePolarStereographic(reference, 6367470, 6367470, La1, Lo1, Lov, 
+                                  60*Data.DEGREES_TO_RADIANS);
   }
                                          
   public static PolarStereographic
@@ -110,21 +112,17 @@ public class PolarStereographic extends CoordinateSystem
          throws VisADException
   {
     PolarStereographic ps =
-      new PolarStereographic( reference, r_major, r_minor,
-                              Lov*Data.DEGREES_TO_RADIANS,
-                              lat_center*Data.DEGREES_TO_RADIANS, 0, 0);
-   
-                                               
-    double[][] values = ps.fromReference(new double[][] { {Lo1*Data.DEGREES_TO_RADIANS},
-                                                          {La1*Data.DEGREES_TO_RADIANS} });
+      new PolarStereographic(reference, r_major, r_minor, Lov, lat_center, 0, 0);
+
+    double[][] values =
+      ps.fromReference(new double[][] {{Lo1}, {La1}});
     
     double false_easting = values[0][0];
     double false_northing = values[1][0];
 
     return 
       new PolarStereographic(reference,
-                             r_major, r_minor,
-                             Lov, lat_center,
+                             r_major, r_minor, Lov, lat_center,
                              -false_easting, -false_northing);
   }
 
@@ -298,11 +296,11 @@ public class PolarStereographic extends CoordinateSystem
     RealType[] reals = {RealType.Longitude, RealType.Latitude};
     RealTupleType reference = new RealTupleType(reals);
 
-    CoordinateSystem cs = new PolarStereographic( reference, 
+    CoordinateSystem cs = new PolarStereographic( reference,
                                                   r_major,
                                                   r_minor,
                                                   center_lon,
-                                                  center_lat, 
+                                                  center_lat,
                                                   false_easting,
                                                   false_northing );
 
@@ -325,5 +323,21 @@ public class PolarStereographic extends CoordinateSystem
     for ( int i=0; i<values_R[0].length; i++) {
       System.out.println(values_R[0][i]+",  "+values_R[1][i]);
     }
+
+
+    PolarStereographic ps = 
+      makePolarStereographic(reference, -20.826*Data.DEGREES_TO_RADIANS,
+                             -150.000*Data.DEGREES_TO_RADIANS,
+                             -105.000*Data.DEGREES_TO_RADIANS);
+
+    values = ps.fromReference(new double[][] {{-150*Data.DEGREES_TO_RADIANS},
+                                              {-20.826*Data.DEGREES_TO_RADIANS}});
+    System.out.println("x: "+values[0][0]);
+    System.out.println("y: "+values[1][0]);
+
+    values = ps.fromReference(new double[][] {{-105*Data.DEGREES_TO_RADIANS},
+                                              {90*Data.DEGREES_TO_RADIANS}});
+    System.out.println("x: "+values[0][0]);
+    System.out.println("y: "+values[1][0]);
   }
 }
