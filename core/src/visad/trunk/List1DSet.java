@@ -35,8 +35,8 @@ public class List1DSet extends SimpleSet {
   float[] data;
 
   /** construct a List1DSet with a non-default CoordinateSystem */
-  List1DSet(float[] d, MathType type, CoordinateSystem coord_sys,
-            Unit[] units) throws VisADException {
+  public List1DSet(float[] d, MathType type, CoordinateSystem coord_sys,
+                   Unit[] units) throws VisADException {
     super(type, coord_sys, units, null);
     if (DomainDimension != 1) {
       throw new SetException("List1DSet: type must be 1-D");
