@@ -105,6 +105,10 @@ public abstract class RemoteFunctionImpl extends RemoteDataImpl
                                                  sampling_mode, error_mode);
   }
 
+  public Field resample(Set set) throws VisADException, RemoteException {
+    return resample(set, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+  }
+
   /** can decide whether to return the local FieldImpl returned by
       ((FunctionImpl) AdaptedData).resample, or whether to return a
       RemoteFunctionImpl adapted for that FieldImpl;
