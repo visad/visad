@@ -4229,6 +4229,11 @@ for (int j=0; j<nvertex; j++) {
                     break;
                 }
                 else {
+                    // WLH 5 May 2004 - fix bug vintage 1990 or 91
+                    if (iST > 0) {
+                      Tri_Stripe[iST] = Tri_Stripe[iST-1];
+                      iST++;
+                    }
                     Tri_Stripe[iST++] = vA;
                     i = vA;
                     vA = vB;
