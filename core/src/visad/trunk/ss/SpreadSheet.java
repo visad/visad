@@ -534,8 +534,8 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         fin.close();
       }
       catch (IOException exc) {
-        System.out.println("Could not read file " + dfile);
         if (BasicSSCell.DEBUG) exc.printStackTrace();
+        System.out.println("Could not read file " + dfile);
       }
       if (line != null) {
         final boolean ssfile = line.equals(SSFileHeader);
@@ -553,9 +553,9 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
               }
             }
             catch (Exception exc) {
+              if (BasicSSCell.DEBUG) exc.printStackTrace();
               System.out.println("Could not load file " + filename +
                 "into the SpreadSheet");
-              if (BasicSSCell.DEBUG) exc.printStackTrace();
             }
           }
         });
@@ -938,9 +938,15 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         }
         catch (VisADException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage(
+            "Unable to compute data object from \"" + newItem + "\"", exc,
+            "VisAD SpreadSheet error");
         }
         catch (RemoteException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage(
+            "Unable to compute data object from \"" + newItem + "\"", exc,
+            "VisAD SpreadSheet error");
         }
       }
     };
@@ -1205,6 +1211,8 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       }
       catch (VisADException exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();
+        displayErrorMessage("Remote cell error (1)",
+          exc, "VisAD SpreadSheet error");
       }
       catch (RemoteException exc) {
         try {
@@ -1212,9 +1220,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         }
         catch (VisADException exc2) {
           if (BasicSSCell.DEBUG) exc2.printStackTrace();
+          displayErrorMessage("Remote cell error (2)",
+            exc2, "VisAD SpreadSheet error");
         }
         catch (RemoteException exc2) {
           if (BasicSSCell.DEBUG) exc2.printStackTrace();
+          displayErrorMessage("Remote cell error (3)",
+            exc2, "VisAD SpreadSheet error");
         }
       }
     }
@@ -1363,9 +1375,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
                 }
                 catch (VisADException exc) {
                   if (BasicSSCell.DEBUG) exc.printStackTrace();
+                  displayErrorMessage("Cannot destroy cell (1)", exc,
+                    "VisAD SpreadSheet error");
                 }
                 catch (RemoteException exc) {
                   if (BasicSSCell.DEBUG) exc.printStackTrace();
+                  displayErrorMessage("Cannot destroy cell (2)", exc,
+                    "VisAD SpreadSheet error");
                 }
               }
             }
@@ -1417,7 +1433,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       }
       catch (RemoteException exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();
-        displayErrorMessage("Cannot paste cell: ", exc,
+        displayErrorMessage("Cannot paste cell", exc,
           "VisAD SpreadSheet error");
       }
     }
@@ -1441,12 +1457,12 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     }
     catch (VisADException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
-      displayErrorMessage("Cannot clear display mappings: ", exc,
+      displayErrorMessage("Cannot clear display mappings", exc,
         "VisAD SpreadSheet error");
     }
     catch (RemoteException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
-      displayErrorMessage("Cannot clear display mappings: ", exc,
+      displayErrorMessage("Cannot clear display mappings", exc,
         "VisAD SpreadSheet error");
     }
     refreshFormulaBar();
@@ -1496,9 +1512,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
             }
             catch (VisADException exc) {
               if (BasicSSCell.DEBUG) exc.printStackTrace();
+              displayErrorMessage("Cannot clear cell (1)", exc,
+                "VisAD SpreadSheet error");
             }
             catch (RemoteException exc) {
               if (BasicSSCell.DEBUG) exc.printStackTrace();
+              displayErrorMessage("Cannot clear cell (2)", exc,
+                "VisAD SpreadSheet error");
             }
           }
         }
@@ -1850,9 +1870,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         }
         catch (VisADException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Invalid save string", exc,
+            "VisAD SpreadSheet error");
         }
         catch (RemoteException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Invalid save string", exc,
+            "VisAD SpreadSheet error");
         }
       }
     }
@@ -2119,9 +2143,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         }
         catch (VisADException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Cannot reset orientation", exc,
+            "VisAD SpreadSheet error");
         }
         catch (RemoteException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Cannot reset orientation", exc,
+            "VisAD SpreadSheet error");
         }
       }
     }
@@ -2362,9 +2390,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         }
         catch (VisADException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Cannot destroy cell (3)", exc,
+            "VisAD SpreadSheet error");
         }
         catch (RemoteException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Cannot destroy cell (4)", exc,
+            "VisAD SpreadSheet error");
         }
         DisplayCells[CurX][j] = null;
       }
@@ -2426,9 +2458,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
         }
         catch (VisADException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Cannot destroy cell (5)", exc,
+            "VisAD SpreadSheet error");
         }
         catch (RemoteException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Cannot destroy cell (6)", exc,
+            "VisAD SpreadSheet error");
         }
         DisplayCells[i][CurY] = null;
       }
@@ -3033,9 +3069,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
           }
           catch (VisADException exc) {
             if (BasicSSCell.DEBUG) exc.printStackTrace();
+            displayErrorMessage("Cannot destroy cell (7)", exc,
+              "VisAD SpreadSheet error");
           }
           catch (RemoteException exc) {
             if (BasicSSCell.DEBUG) exc.printStackTrace();
+            displayErrorMessage("Cannot destroy cell (8)", exc,
+              "VisAD SpreadSheet error");
           }
           DisplayCells[i][j] = null;
         }

@@ -1067,6 +1067,7 @@ public class BasicSSCell extends JPanel
       beginWait(true);
 
       Data data = null;
+      boolean success = true;
       try {
         // load file or URL
         DefaultFamily loader = new DefaultFamily("loader");
@@ -1084,19 +1085,22 @@ public class BasicSSCell extends JPanel
       }
       catch (OutOfMemoryError err) {
         if (DEBUG) err.printStackTrace();
+        success = false;
         throw new VisADException("Not enough memory to import the data.");
       }
       catch (BadFormException exc) {
         if (DEBUG) exc.printStackTrace();
+        success = false;
         throw new VisADException(
           "The source could not be converted to VisAD data.");
       }
       catch (VisADException exc) {
         if (DEBUG) exc.printStackTrace();
+        success = false;
         throw exc;
       }
       finally {
-        endWait(false);
+        endWait(!success);
       }
       if (data == null) {
         throw new VisADException("Could not load data from source " + source);
@@ -1139,6 +1143,7 @@ public class BasicSSCell extends JPanel
       if (!IsRemote) {
         // SERVER: obtain data from RMI address
         beginWait(true);
+        boolean success = true;
         try {
           // attempt to obtain data from RMI server
           int len = source.length();
@@ -1180,32 +1185,38 @@ public class BasicSSCell extends JPanel
         }
         catch (ClassCastException exc) {
           if (DEBUG) exc.printStackTrace();
+          success = false;
           throw new VisADException("The name of the RMI server is not valid.");
         }
         catch (MalformedURLException exc) {
           if (DEBUG) exc.printStackTrace();
+          success = false;
           throw new VisADException("The name of the RMI server is not valid.");
         }
         catch (NotBoundException exc) {
           if (DEBUG) exc.printStackTrace();
+          success = false;
           throw new VisADException(
             "The remote data specified does not exist.");
         }
         catch (AccessException exc) {
           if (DEBUG) exc.printStackTrace();
+          success = false;
           throw new VisADException(
             "Could not gain access to the remote data.");
         }
         catch (RemoteException exc) {
           if (DEBUG) exc.printStackTrace();
+          success = false;
           throw new VisADException("Could not connect to the RMI server.");
         }
         catch (VisADException exc) {
           if (DEBUG) exc.printStackTrace();
+          success = false;
           throw exc;
         }
         finally {
-          endWait(false);
+          endWait(!success);
         }
       }
 
