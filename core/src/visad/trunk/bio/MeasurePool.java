@@ -79,6 +79,9 @@ public class MeasurePool implements DisplayListener {
   /** Current image slice value. */
   private int slice;
 
+  /** Flag indicating measurements have changed. */
+  private boolean needMeasureSave;
+
 
   // -- POOL ELEMENT FIELDS --
 
@@ -217,6 +220,8 @@ public class MeasurePool implements DisplayListener {
         doLines(solidStrips, solidColors, solidLines, lineRenderer);
         doLines(dashedStrips, dashedColors, dashedLines, dashedRenderer);
         doPoints(pointStrips, pointColors, coloredPoints, pointRenderer);
+        bio.mm.changed = true;
+        needMeasureSave = true;
       }
     };
 
@@ -551,18 +556,21 @@ public class MeasurePool implements DisplayListener {
     int y = e.getY();
     int mods = e.getModifiers();
     boolean left = (mods & InputEvent.BUTTON1_MASK) != 0;
+    boolean right = (mods & InputEvent.BUTTON3_MASK) != 0;
     boolean shift = (mods & InputEvent.SHIFT_MASK) != 0;
     boolean ctrl = (mods & InputEvent.CTRL_MASK) != 0;
 
-    // ignore CTRL events and non-left button events
-    if (ctrl || !left) return;
+    // ignore CTRL events
+    if (ctrl) return;
 
-    if (id == DisplayEvent.MOUSE_PRESSED) {
+    if (left && id == DisplayEvent.MOUSE_PRESSED) {
+      // left press - remember mouse click location for line selection
       mx = x;
       my = y;
       m_shift = shift;
     }
-    else if (id == DisplayEvent.MOUSE_RELEASED) {
+    else if (left && id == DisplayEvent.MOUSE_RELEASED) {
+      // left release - determine line selection
       if (x == mx && y == my) {
         if (list == null || dim != 2) return;
         Vector lines = list.getLines();
@@ -640,6 +648,13 @@ public class MeasurePool implements DisplayListener {
           bio.toolMeasure.updateSelection();
           list.refreshPools(true);
         }
+      }
+    }
+    else if (right && id == DisplayEvent.MOUSE_RELEASED) {
+      // right release - save measurements if necessary
+      if (needMeasureSave) {
+        bio.state.saveState(false);
+        needMeasureSave = false;
       }
     }
   }

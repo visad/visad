@@ -229,9 +229,7 @@ public class MeasureToolPanel extends ToolPanel {
     // undo button
     undo = new JButton("Undo");
     undo.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        // CTR - TODO - undo
-      }
+      public void actionPerformed(ActionEvent e) { bio.state.undo(); }
     });
     undo.setEnabled(false);
     p.add(undo);
@@ -462,7 +460,7 @@ public class MeasureToolPanel extends ToolPanel {
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     merge.setEnabled(enabled);
-    //undo.setEnabled(enabled);
+    undo.setEnabled(enabled);
     clearAll.setEnabled(enabled);
   }
 

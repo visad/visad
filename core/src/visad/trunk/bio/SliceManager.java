@@ -743,6 +743,7 @@ public class SliceManager
 
         bio.display2.enableAction();
         if (bio.display3 != null) bio.display3.enableAction();
+        bio.state.saveState(false); // save initial measurement file
         dialog.kill();
       }
     });

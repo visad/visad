@@ -47,6 +47,9 @@ public class StateManager {
   /** Temp file for storing temporary measurement information. */
   private File lines;
 
+  /** Temp file for storing undo measurement information. */
+  private File oldLines;
+
   /** Thread for saving state information. */
   private Thread saveThread;
 
@@ -64,14 +67,17 @@ public class StateManager {
 
   /** Constructs a BioVisAD state management object. */
   public StateManager(BioVisAD biovis) {
-    this(biovis, new File("biovisad.tmp"), new File("lines.tmp"));
+    this(biovis, "biovisad.tmp", "lines.tmp", "linesold.tmp");
   }
 
   /** Constructs a BioVisAD state management object. */
-  public StateManager(BioVisAD biovis, File state, File lines) {
+  public StateManager(BioVisAD biovis,
+    String state, String lines, String oldLines)
+  {
     bio = biovis;
-    this.state = state;
-    this.lines = lines;
+    this.state = new File(state);
+    this.lines = new File(lines);
+    this.oldLines = new File(oldLines);
   }
 
 
@@ -85,6 +91,22 @@ public class StateManager {
       bio.restoreState(fin);
       fin.close();
       if (lines.exists()) new MeasureDataFile(bio, lines).read();
+    }
+    catch (IOException exc) { exc.printStackTrace(); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    restoring = false;
+  }
+
+  /** Restores the previous measurement state. */
+  public void undo() {
+    restoring = true;
+    try {
+      if (oldLines.exists()) {
+        new MeasureDataFile(bio, oldLines).read();
+        File temp = oldLines;
+        oldLines = lines;
+        lines = temp;
+      }
     }
     catch (IOException exc) { exc.printStackTrace(); }
     catch (VisADException exc) { exc.printStackTrace(); }
@@ -109,6 +131,8 @@ public class StateManager {
               }
               if (measureDirty) {
                 measureDirty = false;
+                if (oldLines.exists()) oldLines.delete();
+                if (lines.exists()) lines.renameTo(oldLines);
                 new MeasureDataFile(bio, lines).write(); // do measurements
               }
             }
@@ -137,8 +161,9 @@ public class StateManager {
 
   /** Deletes state-related temp files. */
   public void destroy() {
-    state.delete();
-    lines.delete();
+    if (state.exists()) state.delete();
+    if (lines.exists()) lines.delete();
+    if (oldLines.exists()) oldLines.delete();
   }
 
 }
