@@ -798,11 +798,13 @@ class CurveDelete implements ActionListener {
         UnionSet set = (UnionSet) ref.getData();
         SampledSet[] sets = set.getSets();
         SampledSet[] new_sets = new SampledSet[sets.length];
+        float area = 0.0f;
         int k = 0;	
         for (int i=0; i<sets.length; i++) {
           float[][] samples = sets[i].getSamples();
           if (samples == null || samples[0].length < 3) continue;
           try {
+            area += DelaunayCustom.computeArea(samples);
             int[][] tris = DelaunayCustom.fill(samples);
             if (tris == null || tris[0].length == 0) continue;
             DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
@@ -815,6 +817,7 @@ class CurveDelete implements ActionListener {
           }
         }
         if (k > 0) {
+          System.out.println("area = " + area);
           sets = new SampledSet[k];
           System.arraycopy(new_sets, 0, sets, 0, k);
           DataReferenceImpl new_ref = new DataReferenceImpl("fill");

@@ -153,6 +153,32 @@ public class DelaunayCustom extends Delaunay {
     return false;
   }
 
+  public static float computeArea(float[][] samples) throws VisADException {
+    if (samples == null) return 0.0f;
+    if (samples.length != 2 || samples[0].length != samples[1].length) {
+      throw new VisADException("samples argument bad dimensions");
+    }
+    if (samples[0].length < 3) return 0.0f;
+    if (checkSelfIntersection(samples)) {
+      throw new VisADException("path self intersects");
+    }
+    int n = samples[0].length;
+
+    // build circular boundary list
+    int[] next = new int[n];
+    for (int i=0; i<n-1; i++) {
+      next[i] = i+1;
+    }
+    next[n-1] = 0;
+
+    float area = 0.0f;
+    for (int i=0; i<n; i++) {
+      area +=
+        samples[0][i] * samples[1][next[i]] - samples[0][next[i]] * samples[1][i];
+    }
+    return (float) Math.abs(0.5 * area);
+  }
+
   /** assume that float[2][number_of_points] samples describes the
       boundary of a simply connected plane region; return a decomposition
       of that region into triangles whose vertices are all boundary
