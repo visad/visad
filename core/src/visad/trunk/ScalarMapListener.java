@@ -47,4 +47,15 @@ public interface ScalarMapListener
    */
   void mapChanged(ScalarMapEvent evt)
     throws VisADException, RemoteException;
+
+  /**
+   * Receive a <CODE>ScalarMapEvent</CODE> when the map control changes.
+   *
+   * @param evt the event
+   *
+   * @exception VisADException If there is a problem notifying this listener.
+   * @exception RemoteException If there was an RMI-related problem.
+   */
+  void controlChanged(ScalarMapControlEvent evt)
+    throws VisADException, RemoteException;
 }
