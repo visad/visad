@@ -219,6 +219,12 @@ public class Fits {
         }
     }
 
+    private static boolean isCompressed(String filename)
+    {
+      int len = filename.length();
+      return (len > 2 && (filename.substring(len-3).equalsIgnoreCase(".gz")));
+    }
+
     /** Associate the FITS object with a file or URL.
       *
       * The string is assumed to be a URL if it begins with
@@ -239,10 +245,9 @@ public class Fits {
           throw new FitsException("Null FITS Identifier String");
       }
 
-      int len = filename.length();
-      boolean compressed = len > 2 &&
-         (filename.substring(len-3).equalsIgnoreCase(".gz"));
+      boolean compressed = isCompressed(filename);
 
+      int len = filename.length();
       if (len > 4 && filename.substring(0,5).equalsIgnoreCase("http:") ) {
           // This seems to be a URL.
           URL myURL;
@@ -283,7 +288,7 @@ public class Fits {
       * @exception FitsException Thrown if unable to use the specified URL.
       */
     public Fits (URL myURL) throws FitsException {
-        this(myURL, false);
+        this(myURL, isCompressed(myURL.getFile()));
     }
 
     /** Return all HDUs for the Fits object.   If the
