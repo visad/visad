@@ -105,7 +105,7 @@ def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", col
 
 #----------------------------------------------------------------------------
 # a simple line plot for one parameter
-def lineplot(data, panel=None, colortable=None, width=400, height=400, title="Line Plot"):
+def lineplot(data, panel=None, color=None, width=400, height=400, title="Line Plot"):
   domt = domainType(data)
   rngt = rangeType(data)
   xaxis = ScalarMap(domt[0], Display.XAxis)
@@ -113,8 +113,19 @@ def lineplot(data, panel=None, colortable=None, width=400, height=400, title="Li
   axes = (xaxis, yaxis)
 
   disp = subs.makeDisplay( axes )
+  constmap = None
+  if color is not None:
+    from visad import ConstantMap
+    from java.awt import Color
+    red = float(color.getRed())/255.
+    green = float(color.getGreen())/255.
+    blue = float(color.getBlue())/255.
 
-  dr=subs.addData("Lineplot", data, disp)
+    constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
+           ConstantMap(blue,Display.Blue) )
+
+
+  dr=subs.addData("Lineplot", data, disp, constmap)
   subs.setBoxSize(disp, .70)
   showAxesScales(disp, 1)
   setAxesScalesFont(axes, Font("Monospaced", Font.PLAIN, 18))
