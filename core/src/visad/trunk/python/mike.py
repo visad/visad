@@ -11,7 +11,8 @@ ftype = makeType(" (time -> ( (x, y, z) -> value) )")
 # make the (1,...,n) sampling for the time domain
 fdom = makeDomain("time", 1, n, n)
 
-# make the (1,...,n) x (1,...,n) x (1,...,n) sampling for the grid domain
+# make the (1,...,n) x (1,...,n) x (1,...,n) sampling for the
+#   grid domain
 gdom = makeDomain("(x, y, z)", 1, n, n,  1, n, n,  1, n, n)
 
 # create the time sequence data object (a VisAD FieldImpl)
