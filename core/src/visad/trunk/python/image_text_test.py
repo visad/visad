@@ -1,7 +1,6 @@
 from visad.python.JPythonMethods import *
 import subs, graph
 from visad import Real, RealTuple, RealType, DataReferenceImpl
-from visad import Display, ScalarMap
 from visad.java3d import DefaultRendererJ3D
 from visad.bom import DiscoverableZoom
 
@@ -14,21 +13,20 @@ print "Image size = ",ydim," by",xdim
 cs = ds.getCoordinateSystem()
 
 rangetype = a.getType().getRange()
-maps=subs.makeMaps(RealType.Latitude, "y", RealType.Longitude, "x")
-tm = ScalarMap(rangetype[0], Display.Text)
-maps.append(tm)
+maps=subs.makeMaps(RealType.Latitude, "y", RealType.Longitude, "x", rangetype[0], "text")
 disp=subs.makeDisplay3D(maps)
 
 pcontrol = disp.getProjectionControl()
 dzoom = DiscoverableZoom()
 pcontrol.addControlListener(dzoom)
 
-tcontrol = tm.getControl()
+tcontrol = maps[2].getControl()
 tcontrol.setAutoSize(1)
 
 rends = []
-for i in range (400, 420):
-  for j in range (420, 440):
+
+for i in range (ydim/2, ydim/2 + 20):
+  for j in range (xdim/2, xdim/2 + 20):
 
     ref = DataReferenceImpl("data")
     latlon = cs.toReference( ( (j,), (i,) ))
