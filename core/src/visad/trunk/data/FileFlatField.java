@@ -114,11 +114,9 @@ public class FileFlatField extends FlatField {
     fileAccessor = accessor;
     cacheStrategy = strategy;
 
-    synchronized (adaptedFlatFields) {
-      // '0' is in legal range of adaptedFlatFieldIndex,
-      // but not owned by this
-      adaptedFlatFieldIndex = 0;
-    }
+    // '0' is in legal range of adaptedFlatFieldIndex,
+    // but not owned by this
+    adaptedFlatFieldIndex = 0;
   }
 
   private static Set getNullDomainSet(RealTupleType type)
