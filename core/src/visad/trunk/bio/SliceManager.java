@@ -509,7 +509,7 @@ public class SliceManager implements ControlListener {
     renderer2 = bio.display2.getDisplayRenderer().makeDefaultRenderer();
     renderer2.toggle(on);
     bio.display2.addReferences(renderer2, ref);
-    if (doThumbs) {
+    if (hasThumbs) {
       DisplayRenderer dr = bio.display2.getDisplayRenderer();
       for (int j=0; j<slices; j++) {
         if (j == slices - 1) bio.display2.enableAction(); // CTR - TEMP HACK
@@ -643,10 +643,12 @@ public class SliceManager implements ControlListener {
 
     // switch resolution
     if (lowres) {
-      lowresRenderers[slice].toggle(true);
-      for (int i=0; i<lowresRenderers.length; i++) {
-        if (i == slice) continue;
-        lowresRenderers[i].toggle(false);
+      if (hasThumbs) {
+        lowresRenderers[slice].toggle(true);
+        for (int i=0; i<lowresRenderers.length; i++) {
+          if (i == slice) continue;
+          lowresRenderers[i].toggle(false);
+        }
       }
       renderer2.toggle(false);
       if (bio.display3 != null) renderer3.toggle(false);
@@ -654,8 +656,10 @@ public class SliceManager implements ControlListener {
     else {
       renderer2.toggle(true);
       if (bio.display3 != null) renderer3.toggle(true);
-      for (int i=0; i<lowresRenderers.length; i++) {
-        lowresRenderers[i].toggle(false);
+      if (hasThumbs) {
+        for (int i=0; i<lowresRenderers.length; i++) {
+          lowresRenderers[i].toggle(false);
+        }
       }
     }
   }
