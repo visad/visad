@@ -44,12 +44,13 @@ public class Test10
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String[] args)
+  int checkExtraKeyword(String testName, int argc, String[] args)
   {
     if (fileName == null) {
       fileName = args[argc];
     } else {
-      System.err.println("Ignoring extra filename \"" + args[argc] + "\"");
+      System.err.println(testName + ": Ignoring extra filename \"" +
+                         args[argc] + "\"");
     }
 
     return 1;

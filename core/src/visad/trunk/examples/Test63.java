@@ -41,7 +41,7 @@ public class Test63
 
   private boolean twoD = false;
 
-  int checkExtraKeyword(int argc, String[] args)
+  int checkExtraKeyword(String testName, int argc, String[] args)
   {
     twoD = true;
     return 1;

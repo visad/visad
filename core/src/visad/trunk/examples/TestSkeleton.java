@@ -52,14 +52,14 @@ public abstract class TestSkeleton
     startThreads();
   }
 
-  int checkExtraOption(char ch, int argc, String[] args)
+  int checkExtraOption(String progName, char ch, int argc, String[] args)
   {
     return 0;
   }
 
   String extraOptionUsage() { return ""; }
 
-  int checkExtraKeyword(int argc, String[] args)
+  int checkExtraKeyword(String progName, int argc, String[] args)
   {
     return 0;
   }
@@ -72,68 +72,69 @@ public abstract class TestSkeleton
   {
     boolean usage = false;
 
-    for (int argc = 0; argc < args.length; argc++) {
-      if (args[argc].startsWith("-") && args[argc].length() == 2) {
-        if (argc >= args.length) {
-          System.err.println("Missing argument for \"" + args[argc] + "\"\n");
-          usage = true;
-        } else {
-          char ch = args[argc].charAt(1);
+    String className = getClass().getName();
+    int pt = className.lastIndexOf('.');
+    final int ds = className.lastIndexOf('$');
+    if (ds > pt) {
+      pt = ds;
+    }
+    String progName = className.substring(pt == -1 ? 0 : pt + 1);
 
-          String str, result;
+    for (int i = 0; args != null && i < args.length; i++) {
+      if (args[i].length() > 0 && args[i].charAt(0) == '-') {
+        char ch = args[i].charAt(1);
 
-          switch (ch) {
-          case 'c':
-            if (startServer) {
-              System.err.println("Cannot specify both '-c' and '-s'!");
-              usage = true;
-            } else {
-              ++argc;
-              if (argc >= args.length) {
-                System.err.println("Missing hostname for '-c'");
-                usage = true;
-              } else if (!hasClientServerMode()) {
-                System.err.println("Client/server mode not supported" +
-                                   " for this test");
-                usage = true;
-              } else {
-                hostName = args[argc];
-              }
-            }
-            break;
-          case 's':
-            if (hostName != null) {
-              System.err.println("Cannot specify both '-c' and '-s'!");
-              usage = true;
-            } else {
-              if (!hasClientServerMode()) {
-                System.err.println("Client/server mode not supported" +
-                                   " for this test");
-                usage = true;
-              } else {
-                startServer = true;
-              }
-            }
-            break;
-          default:
-            int handled = checkExtraOption(ch, argc+1, args);
-            if (handled > 0) {
-              argc += (handled - 1);
-            } else {
-              System.err.println(getClass().getName() +
-                                 ": Unknown option \"-" + ch + "\"");
-              usage = true;
-            }
-            break;
+        String str, result;
+
+        switch (ch) {
+        case 'c':
+          str = (args[i].length() > 2 ? args[i].substring(2) :
+                 ((i + 1) < args.length ? args[++i] : null));
+          if (str == null) {
+            System.err.println(progName + ": Missing hostname for \"-c\"");
+            usage = true;
+          } else if (!hasClientServerMode()) {
+            System.err.println("Client/server mode not supported" +
+                               " for " + progName);
+            usage = true;
+          } else if (startServer) {
+            System.err.println(progName +
+                               ": Cannot specify both '-c' and '-s'!");
+            usage = true;
+          } else {
+            hostName = str;
           }
+          break;
+        case 's':
+          if (hostName != null) {
+            System.err.println(progName +
+                               ": Cannot specify both '-c' and '-s'!");
+            usage = true;
+          } else if (!hasClientServerMode()) {
+            System.err.println("Client/server mode not supported" +
+                               " for " + progName);
+            usage = true;
+          } else {
+            startServer = true;
+          }
+          break;
+        default:
+          int handled = checkExtraOption(progName, ch, i+1, args);
+          if (handled > 0) {
+            i += (handled - 1);
+          } else {
+            System.err.println(progName + ": Unknown option \"-" + ch + "\"");
+            usage = true;
+          }
+          break;
         }
       } else {
-        int handled = checkExtraKeyword(argc, args);
+        int handled = checkExtraKeyword(progName, i, args);
         if (handled > 0) {
-          argc += (handled - 1);
+          i += (handled - 1);
         } else {
-          System.err.println(getClass().getName() + ": Unknown keyword \"" +
-                             args[argc] + "\"");
+          System.err.println(progName + ": Unknown keyword \"" +
+                             args[i] + "\"");
           usage = true;
         }
       }

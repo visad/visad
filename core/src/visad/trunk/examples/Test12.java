@@ -44,7 +44,7 @@ public class Test12
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String[] args)
+  int checkExtraKeyword(String testName, int argc, String[] args)
   {
     dynamic = true;
     return 1;

@@ -49,7 +49,7 @@ public class Test37
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String[] args) {
+  int checkExtraKeyword(String testName, int argc, String[] args) {
     reverse = true;
     return 1;
   }

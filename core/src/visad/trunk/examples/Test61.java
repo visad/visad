@@ -50,7 +50,7 @@ public class Test61
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String[] args) {
+  int checkExtraKeyword(String testName, int argc, String[] args) {
     nice = true;
     return 1;
   }

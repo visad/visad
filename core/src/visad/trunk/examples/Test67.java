@@ -41,7 +41,7 @@ public class Test67
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String[] args)
+  int checkExtraKeyword(String testName, int argc, String[] args)
   {
     int d = 0;
     try {
@@ -49,7 +49,7 @@ public class Test67
     }
     catch (NumberFormatException exc) { }
     if (d < 1 || d > 3) {
-      System.err.println("Ignoring parameter \"" + args[argc] +
+      System.err.println(testName + ": Ignoring parameter \"" + args[argc] +
         "\": dimension must be 1, 2 or 3");
     } else {
       dim = d;

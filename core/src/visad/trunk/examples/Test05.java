@@ -49,7 +49,7 @@ public class Test05
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String[] args) {
+  int checkExtraKeyword(String testName, int argc, String[] args) {
     uneven = true;
     return 1;
   }

@@ -41,7 +41,7 @@ public class Test68
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String[] args)
+  int checkExtraKeyword(String testName, int argc, String[] args)
   {
     int d = 0;
     try {
@@ -49,7 +49,7 @@ public class Test68
     }
     catch (NumberFormatException exc) { }
     if (d < 1 || d > 9999) {
-      System.err.println("Ignoring parameter \"" + args[argc] +
+      System.err.println(testName + ": Ignoring parameter \"" + args[argc] +
         "\": port must be between 1 and 9999");
     } else {
       port = d;
