@@ -28,6 +28,7 @@ import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.Vector;
 
 /** 
  * AreaDirectory interface for the metadata of McIDAS 'area' file format 
@@ -47,6 +48,7 @@ public class AreaDirectory
   private double centerLongitude;
   private double centerLatitudeResolution;
   private double centerLongitudeResolution;
+  private Vector[] calInfo = null;
   private String calType;
   private String memo;
   private String[] sensors = {"derived data",
@@ -143,10 +145,18 @@ public class AreaDirectory
                 "DMSP F-12",
                 "DMSP F-13",
                 "DMSP F-14",
-                "DMSP F-15",
+                "DMSP F-15", // 94
                 "FY-1B",
                 "FY-1C",
-                "FY-1D"};
+                "FY-1D",
+                "", 
+                "",
+                "",
+                "MODIS 1KM", // 100
+                "MODIS",
+                "MODIS",
+                "MODIS",
+                "MODIS"};
 
   /**
    * Create an AreaDirectory from the raw block of data of
@@ -192,18 +202,19 @@ public class AreaDirectory
     }
   */
     // Pull out some of the important information
-    nominalTime = 
-      new Date(1000* McIDASUtil.mcDayTimeToSecs(
+    nominalTime = new Date(1000* McIDASUtil.mcDayTimeToSecs(
           dir[AreaFile.AD_IMGDATE], 
             dir[AreaFile.AD_IMGTIME]));
+
     if (dir[AreaFile.AD_STARTDATE] == 0 &&
-      dir[AreaFile.AD_STARTTIME] == 0)
-      startTime = nominalTime;
+        dir[AreaFile.AD_STARTTIME] == 0)
+                             startTime = nominalTime;
     else
       startTime = new Date( 1000* 
               McIDASUtil.mcDayTimeToSecs(
                 dir[AreaFile.AD_STARTDATE],
                 dir[AreaFile.AD_STARTTIME]));
+    
     int numbands = dir[AreaFile.AD_NUMBANDS];
     bands = new int[numbands];
     int j = 0;
@@ -216,6 +227,17 @@ public class AreaDirectory
         j++;
       }
       if (j > numbands) break;
+    }
+    if (numbands > 32) {
+      for (int i=0; i<32; i++) {
+        int bandmask = 1 << i;
+        if ( (bandmask & dir[AreaFile.AD_BANDMAP+1]) == bandmask)
+        {
+          bands[j] = i+33 ;
+          j++;
+        }
+        if (j > numbands) break;
+      }
     }
     // get memo field
     int[] memoArray = new int[8];
@@ -313,6 +335,27 @@ public class AreaDirectory
   {
     return dir[AreaFile.AD_NUMELEMS];
   }
+
+  /**
+   * set the band calibration info (Vector)
+   * array order is identical to bands array, each Vector
+   * element is a pair of String values: first, the code value and
+   * second the descriptive name.
+   *
+   * @param the list of calibration parameters
+   */
+   public void setCalInfo(Vector[] v) {
+     calInfo = v;
+   }
+
+   /** get the valid band calibration information
+   *
+   * @return array of Vectors of Strings of calibration info
+   */
+   public Vector[] getCalInfo() {
+     return calInfo;
+   }
+
 
   /**
    * returns the bands in each of the images
