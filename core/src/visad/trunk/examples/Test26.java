@@ -69,7 +69,7 @@ public class Test26
     */
     // New Way
     AxisScale latScale = map1lat.getAxisScale();
-    latScale.setLabel("Distance to Wall (m)");
+    latScale.setTitle("Distance to Wall (m)");
     latScale.setColor(java.awt.Color.green);
     latScale.setFont(java.awt.Font.decode("serif"));
 
