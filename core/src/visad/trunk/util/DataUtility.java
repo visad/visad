@@ -60,8 +60,8 @@ public class DataUtility extends Object {
       simpleImageType = (FunctionType)
         MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
       imageDomain = simpleImageType.getDomain();
-      line = (RealType) imageDomain.getComponent(0);
-      element = (RealType) imageDomain.getComponent(1);
+      line = (RealType) imageDomain.getComponent(1);
+      element = (RealType) imageDomain.getComponent(0);
       MathType range = simpleImageType.getRange();
       if (range instanceof RealType) {
         radiance = (RealType) range;

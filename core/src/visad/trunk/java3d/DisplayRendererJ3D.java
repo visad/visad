@@ -399,6 +399,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     canvas.getPixelLocationInImagePlate(1, 10, position1);
     canvas.getPixelLocationInImagePlate(10, 10, position2);
     canvas.getPixelLocationInImagePlate(1, 1, position3);
+
     Transform3D t = new Transform3D();
     canvas.getImagePlateToVworld(t);
     t.transform(position1);

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBAWidget.java,v 1.9 1998-12-02 12:04:40 billh Exp $
+@(#) $Id: LabeledRGBAWidget.java,v 1.10 1998-12-21 16:12:20 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.9 $, $Date: 1998-12-02 12:04:40 $
+ * @version $Revision: 1.10 $, $Date: 1998-12-21 16:12:20 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBAWidget extends Panel implements ActionListener,
@@ -121,11 +121,28 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
     };
     reset.setActionCommand("reset");
     reset.addActionListener(this);
+    Button grey = new Button("Grey Scale") {
+      public Dimension getMinimumSize() {
+        return new Dimension(0, 18);
+      }
+      public Dimension getPreferredSize() {
+        return new Dimension(0, 18);
+      }
+      public Dimension getMaximumSize() {
+        return new Dimension(Integer.MAX_VALUE, 18);
+      }
+    };
+    grey.setActionCommand("grey");
+    grey.addActionListener(this);
+    Panel panel = new Panel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.add(reset);
+    panel.add(grey);
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     add(widget);
     add(slider);
     add(label);
-    add(reset);
+    add(panel);
 
     // enable auto-scaling
     if (update) smap.addScalarMapListener(this);
@@ -206,6 +223,23 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
       // reset color table to original values
       try {
         float[][] table = copy_table(orig_table);
+        colorAlphaControl.setTable(table);
+        ((RGBAMap) widget.getColorMap()).setValues(table_reorg(table));
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
+    else if (e.getActionCommand().equals("grey")) {
+      // reset color table to grey wedge
+      try {
+        float[][] table = copy_table(orig_table);
+        float a = 1.0f / (table[0].length - 1.0f);
+        for (int j=0; j<table[0].length; j++) {
+            table[0][j] = j * a;
+            table[1][j] = j * a;
+            table[2][j] = j * a;
+            table[3][j] = 1.0f;
+        }
         colorAlphaControl.setTable(table);
         ((RGBAMap) widget.getColorMap()).setValues(table_reorg(table));
       }

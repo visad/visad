@@ -48,7 +48,7 @@ import com.sun.j3d.utils.applet.MainFrame;
 public class DisplayImplJ3D extends DisplayImpl {
 
   /** distance behind for surfaces in 2-D mode */
-  public static final float BACK2D = -0.3f;
+  public static final float BACK2D = -2.0f;
 
   /** legal values for api */
   public static final int JPANEL = 1;
