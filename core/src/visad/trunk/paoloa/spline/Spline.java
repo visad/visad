@@ -57,17 +57,9 @@ public class Spline {
   Real[] reals;
   ConstantMap[][] cmaps;
 
-  // type 'java visad.paoloa.Spline file' to run this application
   public static void main(String args[])
          throws VisADException, RemoteException, IOException 
   {
-    if (args.length < 1) {
-
-    //System.out.println("To run this program, type " +
-    //                   "\"java visad.paoloa.Spline file\"");
-    //return;
-    }
-
     System.loadLibrary("Spline");
     Spline spline = new Spline("file");
   }
@@ -93,7 +85,7 @@ public class Spline {
     reals = new Real[ n_samples ];
     cmaps = new ConstantMap[ n_samples ][];
     double x_c = 0.0;
-    noise_fac = 0.5; 
+    noise_fac = 0.1; 
     last_noise_fac = noise_fac;
     for ( int ii = 0; ii < n_samples; ii++ )
     {
@@ -126,28 +118,22 @@ public class Spline {
     d_array[0] = true_values;
     true_field.setSamples(d_array);
     
-
-    // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("Spline VisAD Application");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
 
-    // create JPanel in JFrame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-    // create user interface
     SplinePanel spline_panel = new SplinePanel();
 
     // add image-spectrum interfaces to the JFrame
     panel.add(spline_panel);
 
     frame.getContentPane().add(spline_panel);
-    // set size of JFrame and make it visible
-    // frame.setSize(400, 900);
     frame.setSize(500, 500);
     frame.setVisible(true);
   }
@@ -160,11 +146,8 @@ public class Spline {
       new CompoundBorder(new EtchedBorder(),
                          new EmptyBorder(5, 5, 5, 5));
 
-    // construct an interface 
     SplinePanel() throws VisADException, RemoteException 
     {
-
-      //-  GUI layout
       setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
       setAlignmentY(JPanel.TOP_ALIGNMENT);
       setAlignmentX(JPanel.LEFT_ALIGNMENT);
@@ -174,7 +157,6 @@ public class Spline {
       panel_a.setAlignmentY(JPanel.TOP_ALIGNMENT);
       panel_a.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-      //- create image Display using Java3D in 2-D mode
       DisplayImpl display1 = null;
       if (!java2d) {
         try {
@@ -195,7 +177,6 @@ public class Spline {
       panel_a.setBorder(etchedBorder5);
       add( panel_a );
 
-      //-  create a panel for lamda slider and compute spline button
       panel_b = new JPanel();
       panel_b.setLayout(new BoxLayout(panel_b, BoxLayout.X_AXIS));
       panel_b.setAlignmentY(JPanel.TOP_ALIGNMENT);
@@ -206,12 +187,10 @@ public class Spline {
       panel_c.setAlignmentY(JPanel.TOP_ALIGNMENT);
       panel_c.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-      //-  create noise_slider
       VisADSlider noise_slider = 
-        new VisADSlider(noise_ref, -1f, 1f, .1f, RealType.Generic, "noise");
+        new VisADSlider(noise_ref, 0f, 1f, .1f, RealType.Generic, "noise");
       panel_c.add(noise_slider);
 
-      //-  create lambda slider
       VisADSlider lambda_slider = 
         new VisADSlider(lambda_ref, -10f, 0f, .5f, RealType.Generic, "lambda");
       panel_c.add(lambda_slider);
@@ -222,13 +201,11 @@ public class Spline {
       panel_d.setAlignmentY(JPanel.TOP_ALIGNMENT);
       panel_d.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-      //-  create spline button
       JButton spline_button = new JButton("spline");
       spline_button.addActionListener(this);
       spline_button.setActionCommand("spline");
       panel_d.add(spline_button);
 
-      //-  create GCV button
       JButton GCV_button = new JButton("GCV");
       GCV_button.addActionListener(this);
       GCV_button.setActionCommand("GCV");
@@ -314,17 +291,21 @@ public class Spline {
           spline_field.setSamples( f_range );
         }
       };
-      // link spline_button to spline_cell
       lambda_cell.addReference( lambda_ref );
 
       CellImpl noise_cell = new CellImpl() {
-        double[] noise = new double[ n_samples ];
+        double[] noise_a = new double[ n_samples ];
         public void doAction() throws VisADException, RemoteException {
           double noise_fac = ((Real)noise_ref.getData()).getValue();
           for ( int ii = 0; ii < n_samples; ii++ ) {
             range_values[ii] = ((Real)range_refs[ii].getData()).getValue();
-            noise[ii] = (range_values[ii] - true_values[ii])/last_noise_fac;
-            range_values[ii] = true_values[ii] + noise_fac*noise[ii];
+            if ( last_noise_fac == 0 ) {
+              noise_a[ii] = noise[ii];
+            }
+            else {
+              noise_a[ii] = (range_values[ii] - true_values[ii])/last_noise_fac;
+            }
+            range_values[ii] = true_values[ii] + noise_fac*noise_a[ii];
             range_refs[ii].setData( new Real(RealType.YAxis, range_values[ii]));
           }
           val = ((Real)lambda_ref.getData()).getValue();
