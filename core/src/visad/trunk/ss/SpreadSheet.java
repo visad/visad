@@ -497,8 +497,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     msize.height = psize.height;
     FormulaField.setMaximumSize(msize);
 
-    /* CTR: 23 June 1999:
-       When a tool tip is being displayed, there is a bug where GUI
+    /* When a tool tip is being displayed, there is a bug where GUI
        components cannot be repainted; this tool tip has been removed
        to decrease the frequency of this bug's occurrence.
     FormulaField.setToolTipText("Enter a file name, URL, RMI address, " +
@@ -625,19 +624,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       catch (NotBoundException exc) {
         success = false;
-        exc.printStackTrace(); // CTR: TEMP
       }
       catch (RemoteException exc) {
         success = false;
-        exc.printStackTrace(); // CTR: TEMP
       }
       catch (MalformedURLException exc) {
         success = false;
-        exc.printStackTrace(); // CTR: TEMP
       }
       constructSpreadsheetCells(rs);
       if (success) {
-        sTitle = sTitle + " [collaborative mode: " + clone + "]";
+        bTitle = bTitle + " [collaborative mode: " + clone + "]";
       }
     }
     else {
@@ -765,7 +761,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (ans != JOptionPane.YES_OPTION) return false;
     }
 
-    // clear all cells (in smart order to prevent error dialogs)
+    // clear all cells (in smart order to prevent errors)
     boolean[][] b = new boolean[NumVisX][NumVisY];
     for (int j=0; j<NumVisY; j++) {
       for (int i=0; i<NumVisX; i++) b[i][j] = false;
@@ -1136,7 +1132,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           DisplayCells[i][j].setAutoSwitch(AutoSwitch);
           DisplayCells[i][j].setAutoDetect(AutoDetect);
           DisplayCells[i][j].setAutoShowControls(AutoShowControls);
-          DisplayCells[i][j].setDimension(!CanDo3D, !CanDo3D);
+          if (rs == null) DisplayCells[i][j].setDimension(!CanDo3D, !CanDo3D);
           DisplayCells[i][j].setDisplayListener(this);
           DisplayCells[i][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
                                                             MIN_VIS_HEIGHT));

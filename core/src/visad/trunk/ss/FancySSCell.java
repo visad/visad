@@ -247,7 +247,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
       if (mt != null) {
-        boolean allow3D = Dimension2D != JAVA2D_2D || AutoSwitch;
+        boolean allow3D = (Dim != JAVA2D_2D || AutoSwitch);
         setMapsAuto(mt.guessMaps(allow3D));
       }
     }
@@ -354,8 +354,8 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       }
     }
     MappingDialog mapDialog = new MappingDialog(Parent, data, maps,
-                              Dimension2D != JAVA2D_2D || AutoSwitch,
-                              Dimension2D == JAVA3D_3D || AutoSwitch);
+                              Dim != JAVA2D_2D || AutoSwitch,
+                              Dim == JAVA3D_3D || AutoSwitch);
     mapDialog.pack();
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension mds = mapDialog.getSize();

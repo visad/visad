@@ -27,13 +27,10 @@ package visad.ss;
 
 import java.awt.*;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.*;
 import java.rmi.*;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.border.*;
 import visad.*;
 import visad.data.*;
 import visad.data.netcdf.Plain;
@@ -49,14 +46,47 @@ import visad.java3d.*;
     FancySSCell.<P> */
 public class BasicSSCell extends JPanel {
 
+  /** constant for use with Dim variable */
+  public static final int JAVA3D_3D = 1;
+
+  /** constant for use with Dim variable */
+  public static final int JAVA2D_2D = 2;
+
+  /** constant for use with Dim variable */
+  public static final int JAVA3D_2D = 3;
+
+
+  /** FormulaManager object used by all BasicSSCells with formulas */
+  static final FormulaManager fm = FormulaUtil.createStandardManager();
+
   /** list of SSCells on this JVM */
-  static Vector SSCellVector = new Vector();
+  static final Vector SSCellVector = new Vector();
 
   /** counter for the number of cells currently saving data */
   static int Saving = 0;
 
+
   /** name of this BasicSSCell */
   String Name;
+
+  /** associated VisAD DisplayPanel */
+  JPanel VDPanel;
+
+  /** associated VisAD Display */
+  DisplayImpl VDisplay;
+
+  /** associated VisAD RemoteDisplay */
+  RemoteDisplay RemoteVDisplay = null;
+
+  /** associated VisAD RemoteServer */
+  RemoteServer RemoteVServer = null;
+
+  /** associated VisAD DataReference */
+  DataReferenceImpl DataRef;
+
+  /** associated VisAD RemoteDataReference */
+  RemoteDataReferenceImpl RemoteDataRef;
+
 
   /** URL from where data was imported, if any */
   URL Filename = null;
@@ -67,47 +97,45 @@ public class BasicSSCell extends JPanel {
   /** formula of this BasicSSCell, if any */
   String Formula = "";
 
+  /** whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D */
+  int Dim = -1;
+
+  /** errors currently being displayed in this cell, if any */
+  String[] Errors;
+
+
+  /** list of servers to which this cell has been added */
+  Vector Servers = new Vector();
+
   /** whether this display is remote */
   boolean IsRemote;
 
-  /** BasicSSCell's associated VisAD DisplayPanel */
-  JPanel VDPanel;
 
-  /** BasicSSCell's associated VisAD Display */
-  DisplayImpl VDisplay;
+  /** remote clone's copy of Filename */
+  RemoteDataReference RemoteFilename;
 
-  /** BasicSSCell's associated VisAD RemoteDisplay */
-  RemoteDisplay RemoteVDisplay = null;
+  /** remote clone's copy of RMIAddress */
+  RemoteDataReference RemoteRMIAddress;
 
-  /** BasicSSCell's associated VisAD DataReference */
-  DataReferenceImpl DataRef;
+  /** remote clone's copy of Formula */
+  RemoteDataReference RemoteFormula;
 
-  /** BasicSSCell's associated VisAD RemoteDataReference */
-  RemoteDataReferenceImpl RemoteDataRef;
+  /** remote clone's copy of Dim */
+  RemoteDataReference RemoteDim;
 
-  /** constant for use with Dimension2D variable */
-  static final int JAVA3D_3D = 1;
+  /** remote clone's copy of Errors */
+  RemoteDataReference RemoteErrors;
 
-  /** constant for use with Dimension2D variable */
-  static final int JAVA2D_2D = 2;
-
-  /** constant for use with Dimension2D variable */
-  static final int JAVA3D_2D = 3;
-
-  /** FormulaManager object used by all BasicSSCells with formulas */
-  static final FormulaManager fm = FormulaUtil.createStandardManager();
 
   /** this BasicSSCell's DisplayListener */
   DisplayListener DListen = null;
-
-  /** whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D */
-  int Dimension2D = -1;
 
   /** whether the BasicSSCell has mappings from Data to Display */
   boolean HasMappings = false;
 
   /** prevents simultaneous GUI manipulation */
   private Object Lock = new Object();
+
 
   /** construct a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
@@ -132,53 +160,246 @@ public class BasicSSCell extends JPanel {
     Name = name;
     SSCellVector.add(this);
 
-    if (rs != null) RemoteVDisplay = rs.getDisplay(name);
+    if (rs != null) {
+      RemoteVServer = rs;
+      RemoteVDisplay = rs.getDisplay(Name);
+    }
     IsRemote = (RemoteVDisplay != null);
 
-    CellImpl ucell = new CellImpl() {
-      public void doAction() {
-        // redisplay this cell's data when it changes
-        Data value = null;
-        try {
-          value = (Data) fm.getThing(Name);
-        }
-        catch (ClassCastException exc) {
-          setError("Final value is not of the correct type.");
-        }
-        catch (FormulaException exc) {
-          setError("The formula could not be evaluated.");
-        }
+    if (IsRemote) {
+      RemoteFilename = rs.getDataReference(name + "_Filename");
+      RemoteRMIAddress = rs.getDataReference(name + "_RMIAddress");
+      RemoteFormula = rs.getDataReference(name + "_Formula");
+      RemoteDim = rs.getDataReference(name + "_Dim");
+      RemoteErrors = rs.getDataReference(name + "_Errors");
 
-        if (value == null) {
-          // no value; clear display
+      setDimClone();
+    }
+    else {
+      CellImpl ucell = new CellImpl() {
+        public void doAction() {
+          // redisplay this cell's data when it changes
+          Data value = null;
           try {
-            clearDisplay();
+            value = (Data) fm.getThing(Name);
           }
-          catch (VisADException exc) {
-            setError("Unable to clear old data.");
+          catch (ClassCastException exc) {
+            setError("Final value is not of the correct type.");
           }
-          catch (RemoteException exc) {
-            setError("Unable to clear old data.");
+          catch (FormulaException exc) {
+            setError("The formula could not be evaluated.");
+          }
+
+          if (value == null) {
+            // no value; clear display
+            try {
+              clearDisplay();
+            }
+            catch (VisADException exc) {
+              setError("Unable to clear old data.");
+            }
+            catch (RemoteException exc) {
+              setError("Unable to clear old data.");
+            }
+          }
+          else {
+            // update cell's data
+            setVDPanel(true);
+          }
+          String[] es = fm.getErrors(Name);
+          if (es != null) setErrors(es);
+          notifyListeners(SSCellChangeEvent.DATA_CHANGE);
+        }
+      };
+      DataRef = new DataReferenceImpl(name);
+      RemoteDataRef = new RemoteDataReferenceImpl(DataRef);
+      fm.createVar(Name, DataRef);
+      ucell.addReference(DataRef);
+
+      // set up remote copies of data for remote cloning
+      DataReferenceImpl drFile = new DataReferenceImpl(Name + "_Filename");
+      RemoteFilename = new RemoteDataReferenceImpl(drFile);
+      synchFilename();
+      DataReferenceImpl drRMI = new DataReferenceImpl(Name + "_RMIAddress");
+      RemoteRMIAddress = new RemoteDataReferenceImpl(drRMI);
+      synchRMIAddress();
+      DataReferenceImpl drForm = new DataReferenceImpl(Name + "_Formula");
+      RemoteFormula = new RemoteDataReferenceImpl(drForm);
+      synchFormula();
+      DataReferenceImpl drDim = new DataReferenceImpl(Name + "_Dim");
+      RemoteDim = new RemoteDataReferenceImpl(drDim);
+      synchDim();
+      DataReferenceImpl drErr = new DataReferenceImpl(Name + "_Errors");
+      RemoteErrors = new RemoteDataReferenceImpl(drErr);
+      synchErrors();
+
+      setDimension(JAVA2D_2D);
+    }
+
+    // update cell when remote filename changes
+    CellImpl lFilenameCell = new CellImpl() {
+      public void doAction() {
+        try {
+          Text nFile = (Text) RemoteFilename.getData();
+          String s = nFile.getValue();
+          URL newFilename = (s.equals("") ? null : new URL(s));
+          if (IsRemote) {
+            Filename = newFilename;
+          }
+          else {
+            loadData(newFilename);
           }
         }
-        else {
-          // update cell's data
-          setVDPanel(true);
-        }
-        String[] es = fm.getErrors(Name);
-        if (es != null) setErrors(es);
-        notifyListeners(SSCellChangeEvent.DATA_CHANGE);
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+        catch (MalformedURLException exc) { }
+        catch (IOException exc) { }
       }
     };
-    DataRef = new DataReferenceImpl(name);
-    RemoteDataRef = new RemoteDataReferenceImpl(DataRef);
-    fm.createVar(Name, DataRef);
-    ucell.addReference(DataRef);
-    setDimension(JAVA2D_2D);
+    RemoteCellImpl rFilenameCell = new RemoteCellImpl(lFilenameCell);
+    rFilenameCell.addReference(RemoteFilename);
+
+    // update cell when remote RMI address changes
+    CellImpl lRMIAddressCell = new CellImpl() {
+      public void doAction() {
+        try {
+          Text nRMI = (Text) RemoteRMIAddress.getData();
+          String newRMIAddress = nRMI.getValue();
+          if (newRMIAddress.equals("")) newRMIAddress = null;
+          if (IsRemote) {
+            RMIAddress = newRMIAddress;
+          }
+          else {
+            loadRMI(newRMIAddress);
+          }
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+        catch (MalformedURLException exc) { }
+        catch (NotBoundException exc) { }
+      }
+    };
+    RemoteCellImpl rRMIAddressCell = new RemoteCellImpl(lRMIAddressCell);
+    rRMIAddressCell.addReference(RemoteRMIAddress);
+
+    // update cell when remote formula changes
+    CellImpl lFormulaCell = new CellImpl() {
+      public void doAction() {
+        try {
+          Text nForm = (Text) RemoteFormula.getData();
+          String newFormula = nForm.getValue();
+          setFormula(newFormula);
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+      }
+    };
+    RemoteCellImpl rFormulaCell = new RemoteCellImpl(lFormulaCell);
+    rFormulaCell.addReference(RemoteFormula);
+
+    // update cell when remote dimension changes
+    CellImpl lDimCell = new CellImpl() {
+      public void doAction() {
+        try {
+          Real nDim = (Real) RemoteDim.getData();
+          int newDim = (int) nDim.getValue();
+          if (IsRemote) setDimClone();
+          else setDimension(newDim);
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+      }
+    };
+    RemoteCellImpl rDimCell = new RemoteCellImpl(lDimCell);
+    rDimCell.addReference(RemoteDim);
+
+    // update cell when remote errors change
+    CellImpl lErrorsCell = new CellImpl() {
+      public void doAction() {
+        try {
+          Data d = RemoteErrors.getData();
+          Tuple nErr = (d instanceof Tuple ? (Tuple) d : null);
+          String[] newErrors;
+          if (nErr == null) newErrors = null;
+          else {
+            int len = nErr.getDimension();
+            newErrors = new String[len];
+            for (int i=0; i<len; i++) {
+              newErrors[i] = ((Text) nErr.getComponent(i)).getValue();
+            }
+          }
+          setErrors(newErrors);
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+      }
+    };
+    RemoteCellImpl rErrorsCell = new RemoteCellImpl(lErrorsCell);
+    rErrorsCell.addReference(RemoteErrors);
+
+    // finish GUI setup
     VDPanel = (JPanel) VDisplay.getComponent();
     setPreferredSize(new Dimension(0, 0));
     setBackground(Color.black);
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+  }
+
+  private void synchFilename() {
+    try {
+      Text nFile = new Text(Filename == null ? "" : Filename.toString());
+      RemoteFilename.setData(nFile);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+  }
+
+  private void synchRMIAddress() {
+    try {
+      Text nRMI = new Text(RMIAddress == null ? "" : RMIAddress);
+      RemoteRMIAddress.setData(nRMI);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+  }
+
+  private void synchFormula() {
+    try {
+      Text nForm = new Text(Formula);
+      RemoteFormula.setData(nForm);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+  }
+
+  private void synchDim() {
+    try {
+      Real nDim = new Real(Dim);
+      RemoteDim.setData(nDim);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+  }
+
+  private void synchErrors() {
+    try {
+      Data nErrors;
+      if (Errors != null) {
+        int len = Errors.length;
+        Text[] t = new Text[len];
+        TextType[] tt = new TextType[len];
+        for (int i=0; i<len; i++) {
+          t[i] = new Text(Errors[i]);
+          tt[i] = (TextType) t[i].getType();
+        }
+        nErrors = new Tuple(new TupleType(tt), t);
+      }
+      else {
+        nErrors = new Text("");
+      }
+      RemoteErrors.setData(nErrors);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
   }
 
   /** get this SSCell's name */
@@ -198,6 +419,7 @@ public class BasicSSCell extends JPanel {
 
   /** add or remove VDPanel from this BasicSSCell */
   void setVDPanel(boolean value) {
+    // redraw cell
     synchronized (Lock) {
       removeAll();
       if (value) add(VDPanel);
@@ -214,6 +436,17 @@ public class BasicSSCell extends JPanel {
 
   /** display errors in this BasicSSCell, or setErrors(null) for no errors */
   void setErrors(String[] msg) {
+    boolean noChange = true;
+    int oLen = (Errors == null ? 0 : Errors.length);
+    int nLen = (msg == null ? 0 : msg.length);
+    if (oLen != nLen) noChange = false;
+    else {
+      for (int i=0; i<(oLen < nLen ? oLen : nLen); i++) {
+        if (!Errors[i].equals(msg[i])) noChange = false;
+      }
+    }
+    if (noChange) return;
+
     JComponent ErrorCanvas;
     if (msg == null) ErrorCanvas = null;
     else {
@@ -228,27 +461,41 @@ public class BasicSSCell extends JPanel {
         }
       };
     }
+    Errors = msg;
+
+    // update remote copy of Errors
+    synchErrors();
+
+    // redraw cell
     synchronized (Lock) {
       removeAll();
-      if (ErrorCanvas != null) {
-        add(ErrorCanvas);
-      }
+      if (ErrorCanvas != null) add(ErrorCanvas);
       validate();
       repaint();
     }
   }
 
-  /** add this SSCell to the given RemoteServer. SSCell servers must call this
-      method for each cell before clients can clone the cells with the
-      BasicSSCell(String name, RemoteServer rs) constructor, and before
-      the cells can be exported as RMI addresses */
+  /** add this SSCell to the given RemoteServer. SSCell servers must call
+      this method for each cell before clients can clone the cells with
+      the BasicSSCell(String name, RemoteServer rs) constructor, and
+      before the cells can be exported as RMI addresses */
   public void addToRemoteServer(RemoteServerImpl rs) throws RemoteException {
+    if (rs == null) return;
     if (IsRemote) {
       throw new RemoteException("This cell is a clone of another cell!");
     }
-    else {
-      rs.addDataReference(RemoteDataRef);
-      rs.addDisplay((RemoteDisplayImpl) RemoteVDisplay);
+
+    synchronized (Servers) {
+      if (!Servers.contains(rs)) {
+        rs.addDataReference(RemoteDataRef);
+        rs.addDisplay((RemoteDisplayImpl) RemoteVDisplay);
+        rs.addDataReference((RemoteDataReferenceImpl) RemoteFilename);
+        rs.addDataReference((RemoteDataReferenceImpl) RemoteRMIAddress);
+        rs.addDataReference((RemoteDataReferenceImpl) RemoteFormula);
+        rs.addDataReference((RemoteDataReferenceImpl) RemoteDim);
+        rs.addDataReference((RemoteDataReferenceImpl) RemoteErrors);
+        Servers.add(rs);
+      }
     }
   }
 
@@ -546,34 +793,37 @@ public class BasicSSCell extends JPanel {
 
   /** return the data string necessary to reconstruct this cell */
   public String getSSCellString() {
-    String s = "filename = " + (Filename == null ?
-                               "null" : Filename.toString()) + "\n";
-    s = s + "rmi = " + RMIAddress + "\n";
-    s = s + "formula = " + Formula + "\n";
-    s = s + "dim = " + Dimension2D + "\n";
-    s = s + "maps = ";
-    ScalarMap[] maps = null;
-    if (VDisplay != null) {
-      Vector mapVector = VDisplay.getMapVector();
-      int mvs = mapVector.size();
-      if (mvs > 0) {
-        for (int i=0; i<mvs; i++) {
-          ScalarMap m = (ScalarMap) mapVector.elementAt(i);
-          ScalarType domain = m.getScalar();
-          DisplayRealType range = m.getDisplayScalar();
-          int q = -1;
-          for (int j=0; j<Display.DisplayRealArray.length; j++) {
-            if (range.equals(Display.DisplayRealArray[j])) q = j;
+    if (IsRemote) return null;
+    else {
+      String s = "filename = " + (Filename == null ?
+                                 "null" : Filename.toString()) + "\n";
+      s = s + "rmi = " + RMIAddress + "\n";
+      s = s + "formula = " + Formula + "\n";
+      s = s + "dim = " + Dim + "\n";
+      s = s + "maps = ";
+      ScalarMap[] maps = null;
+      if (VDisplay != null) {
+        Vector mapVector = VDisplay.getMapVector();
+        int mvs = mapVector.size();
+        if (mvs > 0) {
+          for (int i=0; i<mvs; i++) {
+            ScalarMap m = (ScalarMap) mapVector.elementAt(i);
+            ScalarType domain = m.getScalar();
+            DisplayRealType range = m.getDisplayScalar();
+            int q = -1;
+            for (int j=0; j<Display.DisplayRealArray.length; j++) {
+              if (range.equals(Display.DisplayRealArray[j])) q = j;
+            }
+            if (i > 0) s = s + " ";
+            s = s + domain.getName() + " " + q;
           }
-          if (i > 0) s = s + " ";
-          s = s + domain.getName() + " " + q;
+          s = s + "\n";
         }
-        s = s + "\n";
+        else s = s + "null\n";
       }
       else s = s + "null\n";
+      return s;
     }
-    else s = s + "null\n";
-    return s;
   }
 
   /** set up the DisplayListener for this cell */
@@ -611,16 +861,26 @@ public class BasicSSCell extends JPanel {
 
   /** whether other cells are dependent on this one */
   public boolean othersDepend() {
-    try {
-      return !fm.canBeRemoved(Name);
-    }
-    catch (FormulaException exc) {
-      return false;
+    // NOTE: Cloned cells currently cannot detect whether or not
+    //       other cells depend on them.
+    if (IsRemote) return false;
+    else {
+      try {
+        return !fm.canBeRemoved(Name);
+      }
+      catch (FormulaException exc) {
+        return false;
+      }
     }
   }
 
   /** clear this cell's mappings */
   public void clearMaps() throws VisADException, RemoteException {
+    if (IsRemote) {
+      throw new UnimplementedException("Cannot clearMaps " +
+        "on a cloned cell (yet).");
+    }
+
     if (hasMappings()) {
       VDisplay.removeReference(DataRef);
       VDisplay.clearMaps();
@@ -647,12 +907,17 @@ public class BasicSSCell extends JPanel {
       list of created cells */
   public void destroyCell() throws VisADException, RemoteException {
     clearCell();
-    fm.remove(Name);
+    if (!IsRemote) fm.remove(Name);
     SSCellVector.remove(this);
   }
 
   /** set this cell's Data to data */
   public void setData(Data data) throws VisADException, RemoteException {
+    if (IsRemote) {
+      throw new UnimplementedException("Cannot setData " +
+        "on a cloned cell (yet).");
+    }
+
     fm.setThing(Name, data);
 
     if (data != null) {
@@ -679,43 +944,109 @@ public class BasicSSCell extends JPanel {
   }
 
   private void setDimension(int dim) throws VisADException, RemoteException {
-    if (Dimension2D == dim) return;
-    Dimension2D = dim;
+    if (Dim == dim) return;
+    Dim = dim;
 
-    // save current mappings for restoration after dimension switch
-    ScalarMap[] maps = null;
-    if (VDisplay != null) {
-      Vector mapVector = VDisplay.getMapVector();
-      int mvs = mapVector.size();
-      if (mvs > 0) {
-        maps = new ScalarMap[mvs];
-        for (int i=0; i<mvs; i++) {
-          maps[i] = (ScalarMap) mapVector.elementAt(i);
+    if (!IsRemote) {
+      // remove listener temporarily
+      if (DListen != null) VDisplay.removeDisplayListener(DListen);
+
+      // save current mappings for restoration after dimension switch
+      ScalarMap[] maps = null;
+      if (VDisplay != null) {
+        Vector mapVector = VDisplay.getMapVector();
+        int mvs = mapVector.size();
+        if (mvs > 0) {
+          maps = new ScalarMap[mvs];
+          for (int i=0; i<mvs; i++) {
+            maps[i] = (ScalarMap) mapVector.elementAt(i);
+          }
         }
       }
+
+      // clear display completely
+      clearDisplay();
+
+      synchronized (Servers) {
+        // remove old display from all RemoteServers
+        int len = Servers.size();
+        for (int i=0; i<len; i++) {
+          RemoteServerImpl rsi = (RemoteServerImpl) Servers.elementAt(i);
+          rsi.removeDisplay((RemoteDisplayImpl) RemoteVDisplay);
+        }
+
+        // switch display dimension
+        if (Dim == JAVA3D_3D) VDisplay = new DisplayImplJ3D(Name);
+        else if (Dim == JAVA2D_2D) VDisplay = new DisplayImplJ2D(Name);
+        else { // Dim == JAVA3D_2D
+          TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
+          VDisplay = new DisplayImplJ3D(Name, tdr);
+        }
+        RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
+
+        // add new display to all RemoteServers
+        for (int i=0; i<len; i++) {
+          RemoteServerImpl rsi = (RemoteServerImpl) Servers.elementAt(i);
+          rsi.addDisplay((RemoteDisplayImpl) RemoteVDisplay);
+        }
+      }
+
+      // put mappings back
+      if (maps != null) {
+        try {
+          setMaps(maps);
+        }
+        catch (VisADException exc) { }
+      }
+
+      // reinitialize display
+      VDPanel = (JPanel) VDisplay.getComponent();
+      if (hasData()) setVDPanel(true);
+
+      // put listener back
+      if (DListen != null) VDisplay.addDisplayListener(DListen);
+
+      // broadcast dimension change event
+      notifyListeners(SSCellChangeEvent.DIMENSION_CHANGE);
     }
+
+    // update remote copy of Dim
+    synchDim();
+  }
+
+  private static final String j33 = "visad.java3d.DefaultDisplayRendererJ3D";
+  private static final String j22 = "visad.java2d.DefaultDisplayRendererJ2D";
+  private static final String j32 = "visad.java3d.TwoDDisplayRendererJ3D";
+
+  /** update the dimension of a cloned cell to match that of the server */
+  private void setDimClone() throws VisADException, RemoteException {
 
     // remove listener temporarily
     if (DListen != null) VDisplay.removeDisplayListener(DListen);
 
-    // clear display completely
-    clearDisplay();
+    // remove old display panel from cell
+    setVDPanel(false);
 
-    // switch display dimension
-    if (Dimension2D == JAVA3D_3D) {
-      if (IsRemote) VDisplay = new DisplayImplJ3D(RemoteVDisplay);
-      else VDisplay = new DisplayImplJ3D(Name);
+    // get updated display from server
+    RemoteVDisplay = RemoteVServer.getDisplay(Name);
+
+    // autodetect new dimension
+    String s = RemoteVDisplay.getDisplayRendererClassName();
+    if (s.equals(j33)) Dim = JAVA3D_3D;
+    else if (s.equals(j22)) Dim = JAVA2D_2D;
+    else if (s.equals(j32)) Dim = JAVA3D_2D;
+
+    // construct new display from server's display
+    if (Dim == JAVA3D_3D) {
+      VDisplay = new DisplayImplJ3D(RemoteVDisplay);
     }
-    else if (Dimension2D == JAVA2D_2D) {
-      if (IsRemote) VDisplay = new DisplayImplJ2D(RemoteVDisplay);
-      else VDisplay = new DisplayImplJ2D(Name);
+    else if (Dim == JAVA2D_2D) {
+      VDisplay = new DisplayImplJ2D(RemoteVDisplay);
     }
-    else {  // Dimension2D == JAVA3D_2D
+    else { // Dim == JAVA3D_2D
       TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
-      if (IsRemote) VDisplay = new DisplayImplJ3D(RemoteVDisplay, tdr);
-      else VDisplay = new DisplayImplJ3D(Name, tdr);
+      VDisplay = new DisplayImplJ3D(RemoteVDisplay, tdr);
     }
-    if (!IsRemote) RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
 
     // reinitialize display
     VDPanel = (JPanel) VDisplay.getComponent();
@@ -724,13 +1055,7 @@ public class BasicSSCell extends JPanel {
     // put listener back
     if (DListen != null) VDisplay.addDisplayListener(DListen);
 
-    // put mappings back
-    if (maps != null) {
-      try {
-        setMaps(maps);
-      }
-      catch (VisADException exc) { }
-    }
+    // broadcast dimension change event
     notifyListeners(SSCellChangeEvent.DIMENSION_CHANGE);
   }
 
@@ -741,11 +1066,14 @@ public class BasicSSCell extends JPanel {
     Formula = "";
     fm.assignFormula(Name, nf);
     Formula = nf;
+
+    // update remote copy of Formula
+    synchFormula();
   }
 
   /** return whether the BasicSSCell is in 2-D display mode */
   public int getDimension() {
-    return Dimension2D;
+    return Dim;
   }
 
   /** return the associated DataReference object */
@@ -789,6 +1117,7 @@ public class BasicSSCell extends JPanel {
       pWait.add(new JLabel("Please wait..."));
       pWait.add(Box.createHorizontalGlue());
     }
+    // redraw cell
     synchronized (Lock) {
       if (waiting) {
         remove(pWait);
@@ -806,6 +1135,11 @@ public class BasicSSCell extends JPanel {
   /** import a data object from a given URL */
   public void loadData(URL u) throws BadFormException, IOException,
                                      VisADException, RemoteException {
+    if (IsRemote) {
+      throw new UnimplementedException("Cannot loadData " +
+        "on a cloned cell (yet).");
+    }
+
     if (u == null) return;
     clearDisplay();
     setFormula(null);
@@ -815,8 +1149,8 @@ public class BasicSSCell extends JPanel {
 
     Data data = null;
     try {
-      // file detection -- only necessary because some Data Forms
-      //                   lack open(URL) capability
+      // file detection --
+      // necessary because some Data Forms lack open(URL) capability
       String s = u.toString();
       boolean f = false;
       String file = null;
@@ -846,8 +1180,14 @@ public class BasicSSCell extends JPanel {
                                        AccessException,
                                        RemoteException,
                                        VisADException {
+    if (IsRemote) {
+      throw new UnimplementedException("Cannot loadRMI " +
+        "on a cloned cell (yet).");
+    }
+
     // example of RMI address: rmi://www.myaddress.com/MyServer/A1
-    if (s == null || !s.startsWith("rmi://")) {
+    if (s == null) return;
+    if (!s.startsWith("rmi://")) {
       throw new VisADException("RMI address must begin with \"rmi://\"");
     }
     clearDisplay();
@@ -861,7 +1201,7 @@ public class BasicSSCell extends JPanel {
       int end = s.lastIndexOf("/");
       if (end < 6) end = len;
       String server = s.substring(4, end);
-      String object = (end < len-1) ? s.substring(end+1, len) : "";
+      String object = (end < len - 1) ? s.substring(end + 1, len) : "";
       RemoteServer rs = null;
       rs = (RemoteServer) Naming.lookup(server);
       RemoteDataReference ref = rs.getDataReference(object);
@@ -902,6 +1242,11 @@ public class BasicSSCell extends JPanel {
                                                       IOException,
                                                       VisADException,
                                                       RemoteException {
+    if (IsRemote) {
+      throw new UnimplementedException("Cannot saveData " +
+        "on a cloned cell (yet).");
+    }
+
     if (f == null || !hasData()) return;
     Saving++;
     try {
