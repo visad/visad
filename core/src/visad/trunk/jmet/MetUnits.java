@@ -91,6 +91,7 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("degree n")) { out = "degrees_north"; }
     else if (in.equalsIgnoreCase("degree e")) { out = "degrees_east"; }
     else if (in.equalsIgnoreCase("gp m")) { out = "gpm"; }
+    else if (in.equalsIgnoreCase("gp_m")) { out = "gpm"; }
 
     // the following are decidedly McIDAS
     else if (in.equalsIgnoreCase("paps")) { out = "Pa/s"; }
