@@ -23,6 +23,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
+
 package visad.georef;
 
 import visad.*;
@@ -30,8 +31,10 @@ import java.rmi.RemoteException;
 
 /**
  * RealTuple implementation of EarthLocation for representing a 
- * location on the earth's surface in terms of latitude/longitude 
- * and altitude above sea level
+ * location on the earth's surface in terms of latitude,  longitude 
+ * and altitude above sea level.  In this implementation, the RealTuple
+ * is (latitude, longitude, altitude) and has a MathType of
+ * RealTupleType.LatitudeLongitudeAltitude.
  *
  * @author  Don Murray, Unidata
  */
@@ -60,7 +63,6 @@ public class EarthLocationTuple extends RealTuple
               (CoordinateSystem) null
               );
         latlon = new LatLonTuple(lat, lon);
-        //this.alt = (Real) getComponent(2);
         this.alt = alt;
     }
 

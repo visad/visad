@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.georef;
 
 import visad.Text;
+import visad.TextType;
 
 /**
  *  An interface for a named earth location.
@@ -35,10 +36,10 @@ public interface NamedLocation extends EarthLocation
 {
     /**
      * Return a unique identifier. This might be a Text object 
-     * representing the ICAO 4 letter id like "KDEN", a WMO block 
-     * and station number as a string like "72518", or some other 
-     * identifying string (ex: "intersection of 5th and Main" or
-     * "Point A")
+     * representing the name of the station (e.g.: "Denver"), the ICAO 
+     * 4 letter id (e.g., "KDEN"), a WMO block and station number 
+     * as a string (e.g., "72565"), or some other identifying string 
+     * (i.e., "intersection of Mitchell and 47th" or "Point A", or "A")
      *
      * @return  Text whose getValue() method returns the identifier
      */
