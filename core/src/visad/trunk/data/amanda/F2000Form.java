@@ -220,11 +220,6 @@ public class F2000Form
     return open(inputStream);
   }
 
-  private final void clearCachedValues()
-  {
-    BaseCache.clearAll();
-  }
-
   private String nextLine(BufferedReader rdr)
     throws IOException
   {
@@ -236,7 +231,7 @@ public class F2000Form
     return line;
   }
 
-  private double getDouble(String tokenName, String token)
+  private double parseDouble(String tokenName, String token)
     throws NumberFormatException
   {
     double value;
@@ -267,7 +262,7 @@ public class F2000Form
     return value;
   }
 
-  private float getFloat(String tokenName, String token)
+  private float parseFloat(String tokenName, String token)
     throws NumberFormatException
   {
     float value;
@@ -298,7 +293,7 @@ public class F2000Form
     return value;
   }
 
-  private int getInt(String tokenName, String token)
+  private int parseInt(String tokenName, String token)
     throws NumberFormatException
   {
     int value;
@@ -380,11 +375,11 @@ public class F2000Form
     String detector = tok.nextToken();
     int nstrings, nmodules;
     try {
-      float longitude = getFloat("raLon", tok.nextToken());
-      float latitude = getFloat("raLat", tok.nextToken());
-      float depth = getFloat("raDepth", tok.nextToken());
-      nstrings = getInt("raNStr", tok.nextToken());
-      nmodules = getInt("raNMod", tok.nextToken());
+      float longitude = parseFloat("raLon", tok.nextToken());
+      float latitude = parseFloat("raLat", tok.nextToken());
+      float depth = parseFloat("raDepth", tok.nextToken());
+      nstrings = parseInt("raNStr", tok.nextToken());
+      nmodules = parseInt("raNMod", tok.nextToken());
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad ARRAY line \"" + line + "\": " +
                                  e.getMessage());
@@ -406,7 +401,7 @@ public class F2000Form
 
     int number;
     try {
-      number = getInt("omNum", numStr) - 1;
+      number = parseInt("omNum", numStr) - 1;
     } catch(NumberFormatException e) {
       throw new BadFormException("unparseable module number \"" + numStr +
                                  "\" in \"" + line + "\"");
@@ -424,11 +419,11 @@ public class F2000Form
     int stringOrder, string;
     float x, y, z;
     try {
-      stringOrder = getInt("modOrd", tok.nextToken());
-      string = getInt("modStr", tok.nextToken());
-      x = getFloat("modX", tok.nextToken());
-      y = getFloat("modY", tok.nextToken());
-      z = getFloat("modZ", tok.nextToken());
+      stringOrder = parseInt("modOrd", tok.nextToken());
+      string = parseInt("modStr", tok.nextToken());
+      x = parseFloat("modX", tok.nextToken());
+      y = parseFloat("modY", tok.nextToken());
+      z = parseFloat("modZ", tok.nextToken());
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad OM line \"" + line + "\": " +
                                  e.getMessage());
@@ -494,14 +489,14 @@ public class F2000Form
 
     float xstart, ystart, zstart, zenith, azimuth, length, energy, time;
     try {
-      xstart = getFloat("trXStart", tok.nextToken());
-      ystart = getFloat("trYStart", tok.nextToken());
-      zstart = getFloat("trZStart", tok.nextToken());
-      zenith = getFloat("trZenith", tok.nextToken()); // 0.0f toward -z
-      azimuth = getFloat("trAzimuth", tok.nextToken()); // 0.0f toward +x
-      length = getFloat("trLength", tok.nextToken());
-      energy = getFloat("trEnergy", tok.nextToken());
-      time = getFloat("trTime", tok.nextToken());
+      xstart = parseFloat("trXStart", tok.nextToken());
+      ystart = parseFloat("trYStart", tok.nextToken());
+      zstart = parseFloat("trZStart", tok.nextToken());
+      zenith = parseFloat("trZenith", tok.nextToken()); // 0.0f toward -z
+      azimuth = parseFloat("trAzimuth", tok.nextToken()); // 0.0f toward +x
+      length = parseFloat("trLength", tok.nextToken());
+      energy = parseFloat("trEnergy", tok.nextToken());
+      time = parseFloat("trTime", tok.nextToken());
     } catch(NumberFormatException e) {
       throw new BadFormException("bad TRACK line \"" + line + "\": " +
                                  e.getMessage());
@@ -522,14 +517,14 @@ public class F2000Form
     tok.nextToken();
 
     try {
-      xstart = getFloat("fitXStart", tok.nextToken());
-      ystart = getFloat("fitYStart", tok.nextToken());
-      zstart = getFloat("fitZStart", tok.nextToken());
-      zenith = getFloat("fitZenith", tok.nextToken()); // 0.0f toward -z
-      azimuth = getFloat("fitAzimuth", tok.nextToken()); // 0.0f toward +x
-      time = getFloat("fitTime", tok.nextToken());
-      length = getFloat("fitLength", tok.nextToken());
-      energy = getFloat("fitEnergy", tok.nextToken());
+      xstart = parseFloat("fitXStart", tok.nextToken());
+      ystart = parseFloat("fitYStart", tok.nextToken());
+      zstart = parseFloat("fitZStart", tok.nextToken());
+      zenith = parseFloat("fitZenith", tok.nextToken()); // 0.0f toward -z
+      azimuth = parseFloat("fitAzimuth", tok.nextToken()); // 0.0f toward +x
+      time = parseFloat("fitTime", tok.nextToken());
+      length = parseFloat("fitLength", tok.nextToken());
+      energy = parseFloat("fitEnergy", tok.nextToken());
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad FIT line \"" + line + "\": " +
                                  e.getMessage());
@@ -547,7 +542,7 @@ public class F2000Form
       token = "-" + token.substring(dotIdx + 1);
     }
 
-    return getInt(tokenName, token);
+    return parseInt(tokenName, token);
   }
 
   private final RealTuple readHit(String line, StringTokenizer tok,
@@ -567,14 +562,14 @@ public class F2000Form
 
     float amplitude, let, tot;
     try {
-      amplitude = getFloat("htAmp", tok.nextToken());
+      amplitude = parseFloat("htAmp", tok.nextToken());
 
       // skip next two tokens
       tok.nextToken();
       tok.nextToken();
 
-      let = getFloat("htLet", tok.nextToken());
-      tot = getFloat("htTot", tok.nextToken());
+      let = parseFloat("htLet", tok.nextToken());
+      tot = parseFloat("htTot", tok.nextToken());
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad HIT line \"" + line + "\": " +
                                  e.getMessage());
@@ -608,12 +603,12 @@ public class F2000Form
     // assemble EM event
 /* XXX don't do anything, since it's all thrown away
     try {
-      int number = getInt("emNum", tok.nextToken());
-      int year = getInt("emYear", tok.nextToken());
-      int day = getInt("emDay", tok.nextToken());
-      double em_time = getDouble("emTime", tok.nextToken());
+      int number = parseInt("emNum", tok.nextToken());
+      int year = parseInt("emYear", tok.nextToken());
+      int day = parseInt("emDay", tok.nextToken());
+      double em_time = parseDouble("emTime", tok.nextToken());
       // time shift in nsec of all times in event
-      double em_time_shift = getDouble("emTimeShift", tok.nextToken()) * 0.000000001;
+      double em_time_shift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad EM line \"" + line + "\": " +
                                  e.getMessage());
