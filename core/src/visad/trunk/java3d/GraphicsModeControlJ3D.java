@@ -38,8 +38,7 @@ import javax.media.j3d.*;
    A GraphicsModeControlJ3D is not linked to any DisplayRealType or
    ScalarMap.  It is linked to a DisplayImpl.<P>
 */
-public class GraphicsModeControlJ3D extends Control
-       implements GraphicsModeControl {
+public class GraphicsModeControlJ3D extends GraphicsModeControl {
 
   private float lineWidth; // for LineAttributes; >= 1.0
   private float pointSize; // for PointAttributes; >= 1.0

@@ -40,8 +40,9 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
 
   private Vector AccumulationVector = new Vector();
 
-  public ShadowRealTypeJ3D(MathType type, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
+  public ShadowRealTypeJ3D(MathType type, DataDisplayLink link,
+                           ShadowType parent)
+         throws VisADException, RemoteException {
     super(type, link, parent);
     adaptedShadowType =
       new ShadowRealType(type, link, getAdaptedParent(parent));

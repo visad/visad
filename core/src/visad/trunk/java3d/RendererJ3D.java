@@ -44,13 +44,13 @@ import java.rmi.*;
 public abstract class RendererJ3D extends DataRenderer {
 
   /** switch is parent of any BranchGroups created by this */
-  Switch sw; // J3D
+  Switch sw;
   /** parent of sw for 'detach' */
-  BranchGroup swParent; // J3D
+  BranchGroup swParent;
   /** index of current 'intended' child of Switch sw;
       not necessarily == sw.getWhichChild() */
   int currentIndex;
-  BranchGroup[] branches; // J3D
+  BranchGroup[] branches;
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
   int actualIndex;
@@ -136,7 +136,7 @@ public abstract class RendererJ3D extends DataRenderer {
   }
 
   abstract void addSwitch(DisplayRendererJ3D displayRenderer,
-                          BranchGroup branch); // J3D
+                          BranchGroup branch);
 
   /** re-transform if needed;
       return false if not done */

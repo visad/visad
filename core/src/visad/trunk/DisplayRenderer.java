@@ -121,6 +121,21 @@ public abstract class DisplayRenderer extends Object {
 
   public abstract double[] getCursor();
 
+  public abstract void setCursorOn(boolean on);
+
+  public abstract void depth_cursor(VisADRay ray);
+
+  public abstract void drag_cursor(VisADRay ray, boolean first);
+
+  public abstract void setDirectOn(boolean on);
+
+  public abstract void drag_depth(float diff);
+
+  public abstract boolean anyDirects();
+
+  // actually returns a direct manipulation renderer
+  public abstract DataRenderer findDirect(VisADRay ray);
+
   public Vector getCursorStringVector() {
     return (Vector) cursorStringVector.clone();
   }

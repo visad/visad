@@ -41,8 +41,9 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
   ShadowTypeJ3D[] tupleComponents;
   private Vector AccumulationVector = new Vector();
 
-  ShadowTupleTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
-                  throws VisADException, RemoteException {
+  public ShadowTupleTypeJ3D(MathType t, DataDisplayLink link,
+                            ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
     if (this instanceof ShadowRealTupleTypeJ3D) return;
 

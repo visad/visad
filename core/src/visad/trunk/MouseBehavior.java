@@ -1,6 +1,6 @@
 
 //
-// ShadowFunctionTypeJ3D.java
+// MouseBehavior.java
 //
 
 /*
@@ -22,25 +22,21 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-
-package visad.java3d;
  
-import visad.*;
-
-import java.util.*;
-import java.rmi.*;
-
+package visad;
+ 
 /**
-   The ShadowFunctionTypeJ3D class shadows the FunctionType class,
-   within a DataDisplayLink, under Java3D.<P>
+   MouseBehavior is the VisAD interface for mouse behaviors
+   for Java3D and Java2D
 */
-public class ShadowFunctionTypeJ3D extends ShadowFunctionOrSetTypeJ3D {
 
-  public ShadowFunctionTypeJ3D(MathType t, DataDisplayLink link,
-                               ShadowType parent)
-         throws VisADException, RemoteException {
-    super(t, link, parent);
-  }
+public interface MouseBehavior {
+
+  public abstract VisADRay cursorRay(double[] cursor);
+
+  public abstract VisADRay findRay(int screen_x, int screen_y);
+
+  public abstract double[] multiply_matrix(double[] a, double[] b);
 
 }
 

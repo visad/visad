@@ -289,7 +289,6 @@ public abstract class SampledSet extends SimpleSet {
       coordinates[j++] = samples[2][i];
     }
     array.coordinates = coordinates;
-    // array.vertexFormat |= COORDINATES;
     if (color_values != null) {
       color_length = Math.min(color_length, color_values.length);
       // MEM

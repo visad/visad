@@ -1,8 +1,8 @@
-
+ 
 //
-// ShadowFunctionTypeJ3D.java
+// VisADRay.java
 //
-
+ 
 /*
 VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
@@ -22,24 +22,19 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-
-package visad.java3d;
  
-import visad.*;
-
-import java.util.*;
-import java.rmi.*;
-
+package visad;
+ 
 /**
-   The ShadowFunctionTypeJ3D class shadows the FunctionType class,
-   within a DataDisplayLink, under Java3D.<P>
+   VisADRay stands in for j3d.PickRay
+   and is Serializable.<P>
 */
-public class ShadowFunctionTypeJ3D extends ShadowFunctionOrSetTypeJ3D {
+public class VisADRay implements java.io.Serializable {
 
-  public ShadowFunctionTypeJ3D(MathType t, DataDisplayLink link,
-                               ShadowType parent)
-         throws VisADException, RemoteException {
-    super(t, link, parent);
+  public double[] position = new double[3];
+  public double[] vector = new double[3];
+
+  public VisADRay() {
   }
 
 }

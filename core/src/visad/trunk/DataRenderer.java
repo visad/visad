@@ -192,6 +192,11 @@ public abstract class DataRenderer extends Object {
     return isDirectManipulation;
   }
 
+  public void drag_direct(VisADRay ray, boolean first) {
+    throw new VisADError("DataRenderer.drag_direct: not direct " +
+                         "manipulation renderer");
+  }
+
   public boolean getBadScale() {
     boolean badScale = false;
     for (int i=0; i<Links.length; i++) {

@@ -36,8 +36,9 @@ import java.rmi.*;
 */
 public class ShadowSetTypeJ3D extends ShadowFunctionOrSetTypeJ3D {
 
-  ShadowSetTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
+  public ShadowSetTypeJ3D(MathType t, DataDisplayLink link,
+                          ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
   }
 

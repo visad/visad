@@ -49,8 +49,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   ShadowType adaptedShadowType;
 
-  ShadowTypeJ3D(MathType type, DataDisplayLink link, ShadowType parent)
-             throws VisADException, RemoteException {
+  public ShadowTypeJ3D(MathType type, DataDisplayLink link,
+                       ShadowType parent)
+         throws VisADException, RemoteException {
     super(type, link, getAdaptedParent(parent));
     Type = type;
     Link = link;

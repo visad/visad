@@ -47,7 +47,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
   private Vector AccumulationVector = new Vector();
 
-  ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
+  public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
+                                    ShadowType parent)
       throws VisADException, RemoteException {
     super(t, link, parent);
     if (this instanceof ShadowFunctionTypeJ3D) {

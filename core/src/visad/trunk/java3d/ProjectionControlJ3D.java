@@ -36,10 +36,13 @@ import javax.media.j3d.*;
    from 3-D to 2-D.  It manipulates a TransformGroup node in the
    scene graph.<P>
 */
+/* WLH 17 June 98
 public class ProjectionControlJ3D extends Control
        implements ProjectionControl {
+*/
+public class ProjectionControlJ3D extends ProjectionControl {
 
-  private transient Transform3D Matrix; // J3D
+  private transient Transform3D Matrix;
   private double[] matrix;
 
   public ProjectionControlJ3D(DisplayImpl d) {
@@ -50,7 +53,9 @@ public class ProjectionControlJ3D extends Control
   }
  
   public double[] getMatrix() {
-    return matrix;
+    double[] c = new double[16];
+    System.arraycopy(matrix, 0, c, 0, 16);
+    return c;
   }
 
   public void setMatrix(double[] m)

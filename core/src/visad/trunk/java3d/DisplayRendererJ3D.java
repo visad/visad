@@ -175,8 +175,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     double scale = 0.5;
     ProjectionControl proj = getDisplay().getProjectionControl();
     Transform3D tstart = new Transform3D(proj.getMatrix());
-    Transform3D t1 =
-      MouseBehaviorJ3D.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
+    Transform3D t1 = new Transform3D(
+      MouseHelper.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
     t1.mul(tstart);
     double[] matrix = new double[16];
     t1.get(matrix);
@@ -280,13 +280,18 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return cursor;
   }
 
-  public void depth_cursor(PickRay ray) {
+  public void depth_cursor(VisADRay ray) {
+    line_x = (float) ray.vector[0];
+    line_y = (float) ray.vector[1];
+    line_z = (float) ray.vector[2];
+/*
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
     ray.get(origin, direction);
     line_x = (float) direction.x;
     line_y = (float) direction.y;
     line_z = (float) direction.z;
+*/
     point_x = cursorX;
     point_y = cursorY;
     point_z = cursorZ;
@@ -299,7 +304,14 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     setCursorLoc();
   }
 
-  public void drag_cursor(PickRay ray, boolean first) {
+  public void drag_cursor(VisADRay ray, boolean first) {
+    float o_x = (float) ray.position[0];
+    float o_y = (float) ray.position[1];
+    float o_z = (float) ray.position[2];
+    float d_x = (float) ray.vector[0];
+    float d_y = (float) ray.vector[1];
+    float d_z = (float) ray.vector[2];
+/*
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
     ray.get(origin, direction);
@@ -309,6 +321,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     float d_x = (float) direction.x;
     float d_y = (float) direction.y;
     float d_z = (float) direction.z;
+*/
     if (first) {
       line_x = d_x;
       line_y = d_y;
@@ -439,10 +452,17 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
   }
 
-  public DirectManipulationRendererJ3D findDirect(PickRay ray) {
+  // public DirectManipulationRendererJ3D findDirect(PickRay ray) {
+  public DataRenderer findDirect(VisADRay ray) {
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
-    ray.get(origin, direction);
+    origin.x = ray.position[0];
+    origin.y = ray.position[1];
+    origin.z = ray.position[2];
+    direction.x = ray.vector[0];
+    direction.y = ray.vector[1];
+    direction.z = ray.vector[2];
+    // ray.get(origin, direction);
     DirectManipulationRendererJ3D renderer = null;
     float distance = Float.MAX_VALUE;
     Enumeration renderers = directs.elements();

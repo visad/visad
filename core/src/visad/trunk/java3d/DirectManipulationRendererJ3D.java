@@ -393,9 +393,16 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     branch.addChild(group);
   }
 
-  synchronized void drag_direct(PickRay ray, boolean first) {
+  public synchronized void drag_direct(VisADRay ray, boolean first) {
     // System.out.println("drag_direct " + first);
     if (spatialValues == null || ref == null || type == null) return;
+    float o_x = (float) ray.position[0];
+    float o_y = (float) ray.position[1];
+    float o_z = (float) ray.position[2];
+    float d_x = (float) ray.vector[0];
+    float d_y = (float) ray.vector[1];
+    float d_z = (float) ray.vector[2];
+/*
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
     ray.get(origin, direction);
@@ -405,6 +412,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     float d_x = (float) direction.x;
     float d_y = (float) direction.y;
     float d_z = (float) direction.z;
+*/
 
     if (first) {
       point_x = spatialValues[0][closeIndex];

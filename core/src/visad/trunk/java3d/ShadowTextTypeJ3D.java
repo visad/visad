@@ -36,8 +36,9 @@ import java.rmi.*;
 */
 public class ShadowTextTypeJ3D extends ShadowTypeJ3D {
 
-  ShadowTextTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
-                 throws VisADException, RemoteException {
+  public ShadowTextTypeJ3D(MathType t, DataDisplayLink link,
+                           ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
     adaptedShadowType =
       new ShadowTextType(t, link, getAdaptedParent(parent));

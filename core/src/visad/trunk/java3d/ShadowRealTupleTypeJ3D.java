@@ -36,8 +36,9 @@ import java.rmi.*;
 */
 public class ShadowRealTupleTypeJ3D extends ShadowTupleTypeJ3D {
 
-  ShadowRealTupleTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
+  public ShadowRealTupleTypeJ3D(MathType t, DataDisplayLink link,
+                                ShadowType parent)
+         throws VisADException, RemoteException {
     super(t, link, parent);
         int n = ((TupleType) t).getDimension();
     tupleComponents = new ShadowRealTypeJ3D[n];
