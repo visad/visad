@@ -171,8 +171,10 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
     float[] texCoords = null;
     float[] normals = null;
     float[] colors = null;
-    int texture_width = 0;
-    int texture_height = 0;
+    int data_width = 0;
+    int data_height = 0;
+    int texture_width = 1;
+    int texture_height = 1;
     if (isTextureMap) {
       if (renderer instanceof DirectManipulationRendererJ3D) {
         throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
@@ -199,8 +201,12 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
       limits = Unit.convertTuple(limits, dataUnits, domain_units);
 
       // get domain_set sizes
-      texture_width = X.getLength();
-      texture_height = Y.getLength();
+      data_width = X.getLength();
+      data_height = Y.getLength();
+      // texture sizes must be powers of 2
+      while (texture_width < data_width) texture_width *= 2; 
+      while (texture_height < data_height) texture_height *= 2; 
+
       int[] tuple_index = new int[3];
       if (DomainComponents.length != 2) {
         throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
@@ -255,14 +261,16 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
       coordinates[9 + tuple_index[2]] = value2;
 
       texCoords = new float[8];
+      float ratiow = ((float) data_width) / ((float) texture_width);
+      float ratioh = ((float) data_height) / ((float) texture_height);
       // corner 0
       texCoords[0] = 0.0f;
-      texCoords[1] = 0.0f;
+      texCoords[1] = 1.0f - ratioh;
       // corner 1
-      texCoords[2] = 1.0f;
-      texCoords[3] = 0.0f;
+      texCoords[2] = ratiow;
+      texCoords[3] = 1.0f - ratioh;
       // corner 2
-      texCoords[4] = 1.0f;
+      texCoords[4] = ratiow;
       texCoords[5] = 1.0f;
       // corner 3
       texCoords[6] = 0.0f;
@@ -555,7 +563,7 @@ for (int i=0; i < 4; i++) {
 
       Appearance appearance;
       TransparencyAttributes constant_alpha =
-        new TransparencyAttributes(mode.getTransparencyMode(), 0.0f);
+        new TransparencyAttributes(mode.getTransparencyMode(), 1.0f);
       ColoringAttributes constant_color = null;
       // note alpha_length <= color_length
       if (alpha_length == 1) {
@@ -857,54 +865,123 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
             ImageComponent2D image2d = null;
             int[] rgbArray = new int[texture_width * texture_height];
             if (color_values.length > 3) {
-              for (int i=0; i<domain_length; i++) {
-                int r, g, b, a;
-                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
-                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
-                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
-                rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a;
-              }
-// transparency does not work yet
+              int k = 0;
+              int r, g, b, a;
               image = new BufferedImage(texture_width, texture_height,
                                         BufferedImage.TYPE_INT_ARGB);
-              int k = 0;
-              for (int j=0; j<texture_height; j++) {
-                for (int i=0; i<texture_width; i++) {
-                  image.setRGB(i, j, rgbArray[k++]);
+              for (int j=0; j<data_height; j++) {
+                for (int i=0; i<data_width; i++) {
+                  r = (int) (color_values[0][k] * 255.0);
+                  r = (r < 0) ? 0 : (r > 255) ? 255 : r;
+                  g = (int) (color_values[1][k] * 255.0);
+                  g = (g < 0) ? 0 : (g > 255) ? 255 : g;
+                  b = (int) (color_values[2][k] * 255.0);
+                  b = (b < 0) ? 0 : (b > 255) ? 255 : b;
+                  a = (int) (color_values[3][k] * 255.0);
+                  a = (a < 0) ? 0 : (a > 255) ? 255 : a;
+                  image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
+                  k++;
+                }
+                for (int i=data_width; i<texture_width; i++) {
+                  image.setRGB(i, j, 0);
                 }
               }
-              // image.setRGB(0, 0, texture_width, texture_height,
-              //              rgbArray, 0, texture_width);
+              for (int j=data_height; j<texture_height; j++) {
+                for (int i=0; i<texture_width; i++) {
+                  image.setRGB(i, j, 0);
+                }
+              }
+              // transparency does not work yet
               image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
             }
-            else {
-              for (int i=0; i<domain_length; i++) {
-                int r, g, b, a;
-                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
-                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
-                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                a = 255;
-                rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a; 
-              }
+            else { // (color_values.length == 3)
+              int k = 0;
+              int r, g, b, a;
               image = new BufferedImage(texture_width, texture_height,
                                         BufferedImage.TYPE_INT_ARGB);
-              int k = 0;
-              for (int j=0; j<texture_height; j++) {
-                for (int i=0; i<texture_width; i++) {
-                  image.setRGB(i, j, rgbArray[k++]);
+              for (int j=0; j<data_height; j++) {
+                for (int i=0; i<data_width; i++) {
+                  r = (int) (color_values[0][k] * 255.0);
+                  r = (r < 0) ? 0 : (r > 255) ? 255 : r;
+                  g = (int) (color_values[1][k] * 255.0);
+                  g = (g < 0) ? 0 : (g > 255) ? 255 : g;
+                  b = (int) (color_values[2][k] * 255.0);
+                  b = (b < 0) ? 0 : (b > 255) ? 255 : b;
+                  a = 255;
+                  image.setRGB(i, j, ((r << 24) | (g << 16) | (b << 8) | a));
+                  k++;
+                }
+                for (int i=data_width; i<texture_width; i++) {
+                  image.setRGB(i, j, 0);
                 }
               }
-              //
-              // this does not work ??? why not ???
-              // image.setRGB(0, 0, texture_width, texture_height,
-              //              rgbArray, 0, texture_width);
-              //
+              for (int j=data_height; j<texture_height; j++) {
+                for (int i=0; i<texture_width; i++) {
+                  image.setRGB(i, j, 0);
+                }
+              }
               image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
-            }
+//
+// this doesn't work - why not?
+//            image.setRGB(0, 0, texture_width, texture_height,
+//                         rgbArray, 0, texture_width);
+//
+// this doesn't work either - why not?
+//            for (int j=0; j<texture_height; j++) {
+//              image.setRGB(0, j, texture_width, 1,
+//                           rgbArray, j*texture_width, texture_width);
+//            }
+//
+
+              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
+            } // end if (color_values.length == 3)
 /* */
 
-/*
+/* this doesn't work - setRGB must have a bug
+
+            BufferedImage image = null;
+            ImageComponent2D image2d = null;
+            int[] rgbArray = new int[texture_width];
+            if (color_values.length > 3) {
+              image = new BufferedImage(texture_width, texture_height,
+                                        BufferedImage.TYPE_INT_ARGB);
+              int k = 0;
+              for (int j=0; j<texture_height; j++) {
+                for (int i=0; i<texture_width; i++) {
+                  int r, g, b, a;
+                  r = Math.min(255, Math.max(0, (int) (color_values[0][k] * 255.0)));
+                  g = Math.min(255, Math.max(0, (int) (color_values[1][k] * 255.0)));
+                  b = Math.min(255, Math.max(0, (int) (color_values[2][k] * 255.0)));
+                  a = Math.min(255, Math.max(0, (int) (color_values[3][k] * 255.0)));
+                  rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a;
+                }
+                
+              }
+              // transparency does not work yet
+              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
+            }
+            else { // !(color_values.length > 3)
+              image = new BufferedImage(texture_width, texture_height,
+                                        BufferedImage.TYPE_INT_ARGB);
+              int k = 0;
+              for (int j=0; j<texture_height; j++) {
+                for (int i=0; i<texture_width; i++) {
+                  int r, g, b, a;
+                  r = Math.min(255, Math.max(0, (int) (color_values[0][k] * 255.0)));
+                  g = Math.min(255, Math.max(0, (int) (color_values[1][k] * 255.0)));
+                  b = Math.min(255, Math.max(0, (int) (color_values[2][k] * 255.0)));
+                  a = 255; // TO_DO  does 255 == opaque ??  ??  ??
+                  rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a; 
+                }
+                image.setRGB(0, j, texture_width, 1, rgbArray, 0, texture_width);
+              }
+              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
+            }
+*/
+
+
+/* this doesn't work - but is deep in the intricacies of java.awt.image
+   so who would expect it to
             DirectColorModel cm =
               new DirectColorModel(32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
 
@@ -925,7 +1002,7 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                 g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
                 b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
                 a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
-                rgbArray[i] = (a << 24) | (r << 16) | (g << 8) | b;
+                rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a;
               }
             }
             else {
@@ -934,8 +1011,8 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                 r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
                 g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
                 b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                a = 128;
-                rgbArray[i] = (a << 24) | (r << 16) | (g << 8) | b;
+                a = 255;
+                rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a;
               }
             }
  
@@ -959,8 +1036,7 @@ java.lang.ArrayIndexOutOfBoundsException: 4096
             ImageComponent2D image2d =
               new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
 */
-
-/*
+/* ditto for this
             // DataBuffer dataBuffer =
             //   new DataBuffer(dataType, texture_width * texture_height);
 
@@ -973,7 +1049,7 @@ java.lang.ArrayIndexOutOfBoundsException: 4096
                 g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
                 b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
                 a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
-                dataBuffer.setElem(i, (a << 24) | (r << 16) | (g << 8) | b);
+                dataBuffer.setElem(i, (r << 24) | (g << 16) | (b << 8) | a);
               }
             }
             else {
@@ -982,8 +1058,8 @@ java.lang.ArrayIndexOutOfBoundsException: 4096
                 r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
                 g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
                 b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                a = 128;
-                dataBuffer.setElem(i, (a << 24) | (r << 16) | (g << 8) | b);
+                a = 255;
+                dataBuffer.setElem(i, (r << 24) | (g << 16) | (b << 8) | a);
               }
             }
 

@@ -27,6 +27,8 @@ package visad.java3d;
  
 import visad.*;
 
+import java.rmi.*;
+
 import javax.media.j3d.*;
 
 /**
@@ -43,6 +45,8 @@ public class GraphicsModeControlJ3D extends Control
   private float pointSize; // for PointAttributes; >= 1.0
   private boolean pointMode; // true => points in place of lines and surfaces
   private boolean textureEnable; // true => allow use of texture mapping
+  private boolean scaleEnable; // true => display X, Y and Z scales
+
   /** for TransparencyAttributes; see list below in setTransparencyMode */
   private int transparencyMode;
   /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION */
@@ -53,9 +57,14 @@ public class GraphicsModeControlJ3D extends Control
     lineWidth = 1.0f;
     pointSize = 1.0f;
     pointMode = false;
-    textureEnable = false;
+    textureEnable = true;
+    scaleEnable = false;
+    // NICEST, FASTEST and BLENDED do not solve the depth precedence problem
     // note SCREEN_DOOR does not seem to work with variable transparency
-    transparencyMode = TransparencyAttributes.FASTEST; // J3D
+    // transparencyMode = TransparencyAttributes.NICEST;
+    transparencyMode = TransparencyAttributes.FASTEST;
+    // transparencyMode = TransparencyAttributes.BLENDED;
+    // transparencyMode = TransparencyAttributes.SCREEN_DOOR;
   }
  
   public boolean getMode2D() {
@@ -66,58 +75,73 @@ public class GraphicsModeControlJ3D extends Control
     return lineWidth;
   }
 
-  public void setLineWidth(float width) throws VisADException {
+  public void setLineWidth(float width)
+         throws VisADException, RemoteException {
     if (width < 1.0f) {
       throw new DisplayException("GraphicsModeControlJ3D." +
                                  "setLineWidth: width < 1.0");
     }
     lineWidth = width;
-    changeControl();
+    changeControl(true);
   }
 
   public float getPointSize() {
     return pointSize;
   }
 
-  public void setPointSize(float size) throws VisADException {
+  public void setPointSize(float size)
+         throws VisADException, RemoteException {
     if (size < 1.0f) {
       throw new DisplayException("GraphicsModeControlJ3D." +
                                  "setPointSize: size < 1.0");
     }
     pointSize = size;
-    changeControl();
+    changeControl(true);
   }
 
   public boolean getPointMode() {
     return pointMode;
   }
 
-  public void setTextureEnable(boolean enable) {
+  public void setPointMode(boolean mode)
+         throws VisADException, RemoteException {
+    pointMode = mode;
+    changeControl(true);
+  }
+
+  public void setTextureEnable(boolean enable)
+         throws VisADException, RemoteException {
     textureEnable = enable;
-    changeControl();
+    changeControl(true);
   }
 
   public boolean getTextureEnable() {
     return textureEnable;
   }
 
-  public void setPointMode(boolean mode) {
-    pointMode = mode;
-    changeControl();
+  public void setScaleEnable(boolean enable)
+         throws VisADException, RemoteException {
+    scaleEnable = enable;
+    changeControl(true);
+  }
+ 
+  public boolean getScaleEnable() {
+    return scaleEnable;
   }
 
   public int getTransparencyMode() {
     return transparencyMode;
   }
 
-  public void setTransparencyMode(int mode) throws VisADException { // J3D
+  public void setTransparencyMode(int mode)
+         throws VisADException, RemoteException {
     if (mode == TransparencyAttributes.SCREEN_DOOR ||
         mode == TransparencyAttributes.BLENDED ||
         mode == TransparencyAttributes.NONE ||
         mode == TransparencyAttributes.FASTEST ||
         mode == TransparencyAttributes.NICEST) {
       transparencyMode = mode;
-      changeControl();
+      changeControl(true);
     }
     else {
       throw new DisplayException("GraphicsModeControlJ3D." +
@@ -125,7 +149,8 @@ public class GraphicsModeControlJ3D extends Control
     }
   }
 
-  public void setProjectionPolicy(int policy) throws VisADException { // J3D
+  public void setProjectionPolicy(int policy)
+         throws VisADException, RemoteException {
     if (policy == View.PARALLEL_PROJECTION ||
         policy == View.PERSPECTIVE_PROJECTION) {
       projectionPolicy = policy;
@@ -134,11 +159,16 @@ public class GraphicsModeControlJ3D extends Control
       if (displayRenderer != null) {
         displayRenderer.getView().setProjectionPolicy(projectionPolicy);
       }
+      changeControl(true);
     }
     else {
       throw new DisplayException("GraphicsModeControlJ3D." +
                                  "setProjectionPolicy: bad policy");
     }
+  }
+
+  public int getProjectionPolicy() {
+    return projectionPolicy;
   }
 
 }

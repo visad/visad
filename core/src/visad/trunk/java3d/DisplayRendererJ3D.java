@@ -34,7 +34,7 @@ import javax.media.j3d.*;
 import java.vecmath.*;
 
 import java.util.*;
-import java.rmi.*; // ??
+import java.rmi.*;
 
 
 /**
@@ -54,32 +54,37 @@ import java.rmi.*; // ??
 public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   /** View associated with this VirtualUniverse */
-  private View view; // J3D
+  private View view;
   /** Canvas3D associated with this VirtualUniverse */
-  private Canvas3D canvas; // J3D
+  private Canvas3D canvas;
 
   /** root BranchGroup of scene graph under Locale */
-  private BranchGroup root = null; // J3D
+  private BranchGroup root = null;
   /** single TransformGroup between root and BranchGroups for all
       Data depictions */
-  private TransformGroup trans = null; // J3D
+  private TransformGroup trans = null;
   /** BranchGroup between trans and all direct manipulation
       Data depictions */
-  private BranchGroup direct = null; // J3D
+  private BranchGroup direct = null;
   /** Behavior for delayed removal of BranchGroups */
   RemoveBehavior remove = null;
 
   /** TransformGroup between trans and cursor */
-  private TransformGroup cursor_trans = null; // J3D
+  private TransformGroup cursor_trans = null;
   /** single Switch between cursor_trans and cursor */
-  private Switch cursor_switch = null; // J3D
+  private Switch cursor_switch = null;
   /** children of cursor_switch */
-  private BranchGroup cursor_on = null, cursor_off = null; // J3D
+  private BranchGroup cursor_on = null, cursor_off = null;
   /** on / off state of cursor */
   private boolean cursorOn = false;
   /** on / off state of direct manipulation location display */
   private boolean directOn = false;
 
+  /** single Switch between trans and scales */
+  private Switch scale_switch = null;
+  /** children of scale_switch */
+  private BranchGroup scale_on = null, scale_off = null;
+  /** on / off state of cursor in GraphicsModeControl */
 
   /** distance threshhold for successful pick */
   private static final float PICK_THRESHHOLD = 0.05f;
@@ -97,34 +102,34 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     super();
   }
 
-  public View getView() { // J3D
+  public View getView() {
     return view;
   }
 
-  public Canvas3D getCanvas() { // J3D
+  public Canvas3D getCanvas() {
     return canvas;
   }
 
-  public BranchGroup getRoot() { // J3D
+  public BranchGroup getRoot() {
     return root;
   }
 
-  public TransformGroup getTrans() { // J3D
+  public TransformGroup getTrans() {
     return trans;
   }
 
-  public BranchGroup getCursorOnBranch() { // J3D
+  public BranchGroup getCursorOnBranch() {
     return cursor_on;
   }
 
   public void setCursorOn(boolean on) {
     cursorOn = on;
     if (on) {
-      cursor_switch.setWhichChild(1); // set cursor on // J3D
+      cursor_switch.setWhichChild(1); // set cursor on
       setCursorStringVector();
     }
     else {
-      cursor_switch.setWhichChild(0); // set cursor off // J3D
+      cursor_switch.setWhichChild(0); // set cursor off
       setCursorStringVector(null);
       // cursorStringVector.removeAllElements();
     }
@@ -138,7 +143,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
   }
 
-  public BranchGroup getDirect() { // J3D
+  public BranchGroup getDirect() {
     return direct;
   }
 
@@ -146,11 +151,11 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       and direct manipulation root;
       create special graphics (e.g., 3-D box, SkewT background),
       any lights, any user interface embedded in scene */
-  public abstract BranchGroup createSceneGraph(View v, Canvas3D c); // J3D
+  public abstract BranchGroup createSceneGraph(View v, Canvas3D c);
 
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root */
-  public BranchGroup createBasicSceneGraph(View v, Canvas3D c) { // J3D
+  public BranchGroup createBasicSceneGraph(View v, Canvas3D c) {
     if (root != null) return root;
     view = v;
     canvas = c;
@@ -175,7 +180,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     t1.mul(tstart);
     double[] matrix = new double[16];
     t1.get(matrix);
-    proj.setMatrix(matrix);
+    try {
+      proj.setMatrix(matrix);
+    }
+    catch (VisADException e) {
+    }
+    catch (RemoteException e) {
+    }
  
     // create the BranchGroup that is the parent of direct
     // manipulation Data object BranchGroup objects
@@ -213,10 +224,23 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     cursor_switch.setWhichChild(0); // initially off
     cursorOn = false;
 
+    scale_switch = new Switch();
+    scale_switch.setCapability(Switch.ALLOW_SWITCH_READ);
+    scale_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    trans.addChild(scale_switch);
+    scale_on = new BranchGroup();
+    scale_on.setCapability(Group.ALLOW_CHILDREN_READ);
+    scale_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    scale_on.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    scale_off = new BranchGroup();
+    scale_switch.addChild(scale_off);
+    scale_switch.addChild(scale_on);
+    scale_switch.setWhichChild(0); // initially off
+
     return root;
   }
 
-  public void addSceneGraphComponent(Group group) { // J3D
+  public void addSceneGraphComponent(Group group) {
     trans.addChild(group);
   }
 
@@ -225,7 +249,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     direct.addChild(group);
     directs.addElement(renderer);
 
-/* WLH 12 Dec 97 - this didn't help
+/* WLH 12 Dec 97 - this didn't help - but might in future
     if (last == null) {
       direct.addChild(branch);
     }
@@ -256,7 +280,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return cursor;
   }
 
-  public void depth_cursor(PickRay ray) { // J3D
+  public void depth_cursor(PickRay ray) {
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
     ray.get(origin, direction);
@@ -275,7 +299,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     setCursorLoc();
   }
 
-  public void drag_cursor(PickRay ray, boolean first) { // J3D
+  public void drag_cursor(PickRay ray, boolean first) {
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
     ray.get(origin, direction);
@@ -303,7 +327,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     setCursorLoc();
   }
 
-  private void setCursorLoc() { // J3D
+  private void setCursorLoc() {
     Transform3D t = new Transform3D();
     t.setTranslation(new Vector3f(cursorX, cursorY, cursorZ));
     cursor_trans.setTransform(t);
@@ -314,7 +338,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   /** whenever cursorOn or directOn is true, display
       Strings in cursorStringVector */
-  public void drawCursorStringVector(Canvas3D canvas) { // J3D
+  public void drawCursorStringVector(Canvas3D canvas) {
     GraphicsContext3D graphics = canvas.getGraphicsContext3D();
     Appearance appearance = new Appearance();
     ColoringAttributes color = new ColoringAttributes();
@@ -382,7 +406,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
   }
 
-  public DirectManipulationRendererJ3D findDirect(PickRay ray) { // J3D
+  public DirectManipulationRendererJ3D findDirect(PickRay ray) {
     Point3d origin = new Point3d();
     Vector3d direction = new Vector3d();
     ray.get(origin, direction);
@@ -410,7 +434,25 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return !directs.isEmpty();
   }
 
-  public void setTransform3D(Transform3D t) { // J3D
+  public void setScale(int axis, int axis_ordinal,
+              VisADLineArray array) throws VisADException {
+    // add array to scale_on
+    // replace any existing at axis, axis_ordinal
+    DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
+    GeometryArray geometry = display.makeGeometry(array);
+    GraphicsModeControl mode = display.getGraphicsModeControl();
+    Appearance appearance =
+      ShadowTypeJ3D.makeAppearance(mode, null, null, geometry);
+    Shape3D shape = new Shape3D(geometry, appearance);
+    BranchGroup group = new BranchGroup();
+    group.setCapability(BranchGroup.ALLOW_DETACH);
+    group.addChild(shape);
+    // may only add BranchGroup to 'live' scale_on
+    scale_on.addChild(group);
+
+  }
+
+  public void setTransform3D(Transform3D t) {
     trans.setTransform(t);
   }
 
@@ -429,6 +471,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
              type.equals(Display.HSV) ||
              type.equals(Display.CMY)) {
       return new ColorControl(display);
+    }
+    else if (type.equals(Display.RGBA)) {
+      return new ColorAlphaControl(display);
     }
     else if (type.equals(Display.Animation)) {
       Control control = display.getControl(AnimationControlJ3D.class);

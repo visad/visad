@@ -27,6 +27,8 @@ package visad.java3d;
 
 import visad.*;
 
+import java.rmi.*;
+
 /**
    ValueControlJ3D is the VisAD class for controlling SelectValue
    display scalars under Java3D.<P>
@@ -41,10 +43,11 @@ public class ValueControlJ3D extends AVControlJ3D
     Value = 0.0;
   }
  
-  public void setValue(double value) throws VisADException {
+  public void setValue(double value)
+         throws VisADException, RemoteException {
     Value = value;
     selectSwitches(Value);
-    changeControl();
+    changeControl(true);
   }
 
   public void init() throws VisADException {

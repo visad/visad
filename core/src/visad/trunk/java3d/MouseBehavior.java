@@ -32,6 +32,7 @@ import java.awt.event.*;
 import javax.media.j3d.*;
 import java.vecmath.*;
 
+import java.rmi.*;
 import java.awt.*;
 import java.util.*;
 
@@ -258,7 +259,13 @@ public class MouseBehavior extends Behavior { // J3D
                   t1.mul(tstart);
                   double[] matrix = new double[16];
                   t1.get(matrix);
-                  proj.setMatrix(matrix);
+                  try {
+                    proj.setMatrix(matrix);
+                  }
+                  catch (VisADException e) {
+                  }
+                  catch (RemoteException e) {
+                  }
                 }
               }
               else if (mousePressed2) {
@@ -283,7 +290,13 @@ public class MouseBehavior extends Behavior { // J3D
                     t1.mul(tstart);
                     double[] matrix = new double[16];
                     t1.get(matrix);
-                    proj.setMatrix(matrix);
+                    try {
+                      proj.setMatrix(matrix);
+                    }
+                    catch (VisADException e) {
+                    }
+                    catch (RemoteException e) {
+                    }
                   }
                 }
                 else {

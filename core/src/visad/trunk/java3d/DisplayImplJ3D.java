@@ -42,9 +42,11 @@ import com.sun.j3d.utils.applet.AppletFrame;
 // GUI handling
 import java.awt.swing.*;
 import java.awt.swing.border.*;
-// import com.sun.java.swing.*;
-// import com.sun.java.swing.border.*;
 
+//
+// this is commented out so that visad.java3d can be compiled
+// independently of visad.data.netcdf
+//
 // import visad.data.netcdf.Plain;
 
 /**
@@ -374,7 +376,7 @@ public class DisplayImplJ3D extends DisplayImpl {
         System.out.println("  0: direct manipulation");
         System.out.println("  1: iso-surfaces from regular grids");
         System.out.println("  2: iso-surfaces from irregular grids");
-        System.out.println("  3: animation different time resolutions");
+        System.out.println("  3: Animation different time resolutions");
         System.out.println("  4: spherical coordinates");
         System.out.println("  5: 2-D contours from regular grids");
         System.out.println("  6: 2-D contours from irregular grids");
@@ -392,8 +394,14 @@ public class DisplayImplJ3D extends DisplayImpl {
         System.out.println("        second parameter is server IP name");
         System.out.println("  16: texture mapping");
         System.out.println("  17: constant transparency");
-        System.out.println("  18: animation different time extents");
-        System.out.println("  19: select value");
+        System.out.println("  18: Animation different time extents");
+        System.out.println("  19: SelectValue");
+        System.out.println("  20: 2-D surface and ColorAlphaWidget");
+        System.out.println("  21: SelectRange");
+        System.out.println("  22: Hue & Saturation");
+        System.out.println("  23: Cyan & Magenta");
+        System.out.println("  24: HSV");
+        System.out.println("  25: CMY");
 
         return;
 
@@ -686,9 +694,16 @@ public class DisplayImplJ3D extends DisplayImpl {
         break;
  
       case 10:
- 
-        System.out.println(test_case + ": test netCDF adapter");
+        System.out.println(test_case + ": netCDF test commented out");
+        System.out.println(" must un-comment it to run it");
 /*
+        //
+        // this is commented out so that visad.java3d can be compiled
+        // independently of visad.data.netcdf
+        //
+        // to un-comment it, also un-comment the import of Plain
+        //
+        System.out.println(test_case + ": test netCDF adapter");
         Plain plain = new Plain();
         FlatField netcdf_data = (FlatField) plain.open("pmsl.nc");
         // System.out.println("netcdf_data = " + netcdf_data);
@@ -696,9 +711,9 @@ public class DisplayImplJ3D extends DisplayImpl {
 
         display1 = new DisplayImplJ3D("display1", APPLETFRAME);
         // compute ScalarMaps from type components
-        FunctionType ftype = (FunctionType) netcdf_data.getType();
-        RealTupleType dtype = ftype.getDomain();
-        MathType rtype = ftype.getRange();
+        ftype = (FunctionType) netcdf_data.getType();
+        dtype = ftype.getDomain();
+        MathType rntype = ftype.getRange();
         int n = dtype.getDimension();
         display1.addMap(new ScalarMap((RealType) dtype.getComponent(0),
                                       Display.XAxis));
@@ -710,19 +725,19 @@ public class DisplayImplJ3D extends DisplayImpl {
           display1.addMap(new ScalarMap((RealType) dtype.getComponent(2),
                                         Display.ZAxis));
         }
-        if (rtype instanceof RealType) {
-          display1.addMap(new ScalarMap((RealType) rtype, Display.Green));
+        if (rntype instanceof RealType) {
+          display1.addMap(new ScalarMap((RealType) rntype, Display.Green));
           if (n <= 2) {
-            display1.addMap(new ScalarMap((RealType) rtype, Display.ZAxis));
+            display1.addMap(new ScalarMap((RealType) rntype, Display.ZAxis));
           }
         }
-        else if (rtype instanceof RealTupleType) {
-          int m = ((RealTupleType) rtype).getDimension();
-          RealType rr = (RealType) ((RealTupleType) rtype).getComponent(0);
+        else if (rntype instanceof RealTupleType) {
+          int m = ((RealTupleType) rntype).getDimension();
+          RealType rr = (RealType) ((RealTupleType) rntype).getComponent(0);
           display1.addMap(new ScalarMap(rr, Display.Green));
           if (n <= 2) {
             if (m > 1) {
-              rr = (RealType) ((RealTupleType) rtype).getComponent(1);
+              rr = (RealType) ((RealTupleType) rntype).getComponent(1);
             }
             display1.addMap(new ScalarMap(rr, Display.ZAxis));
           }
@@ -733,8 +748,11 @@ public class DisplayImplJ3D extends DisplayImpl {
         DataReferenceImpl ref_netcdf = new DataReferenceImpl("ref_netcdf");
         ref_netcdf.setData(netcdf_data);
         display1.addReference(ref_netcdf, null);
-*/
 
+        System.out.println("now save and re-read data");
+        plain.save("save.nc", netcdf_data, true);
+        netcdf_data = (FlatField) plain.open("save.nc");
+*/
         break;
 
       case 11:
@@ -897,6 +915,7 @@ public class DisplayImplJ3D extends DisplayImpl {
           System.out.println("RemoteServer bound in registry");
         }
         catch (Exception e) {
+          System.out.println("\n\nDid you run 'rmiregistry &' first?\n\n");
           System.out.println("collaboration server exception: " + e.getMessage());
           e.printStackTrace();
         }
@@ -968,7 +987,7 @@ public class DisplayImplJ3D extends DisplayImpl {
  
         System.out.println(test_case + ": test texture mapping");
  
-        size = 64;
+        size = 47;
         imaget1 = FlatField.makeField(image_tuple, size, false);
  
         display1 = new DisplayImplJ3D("display1", APPLETFRAME);
@@ -1131,6 +1150,182 @@ public class DisplayImplJ3D extends DisplayImpl {
         frame.add(slider);
         frame.setSize(300, 60);
         frame.setVisible(true);
+
+        break;
+
+      case 20:
+ 
+        System.out.println(test_case + ": test 2-D surface and ColorAlphaWidget");
+        System.out.println(" (known problems with Java3D transparency)");
+ 
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+ 
+        color1map = new ScalarMap(ir_radiance, Display.RGBA);
+        display1.addMap(color1map);
+ 
+        LabeledRGBAWidget lwa =
+          new LabeledRGBAWidget(color1map, 0.0f, 32.0f);
+ 
+        frame = new Frame("VisAD Color Alpha Widget");
+        frame.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        frame.add(lwa);
+        frame.setSize(lwa.getPreferredSize());
+        frame.setVisible(true);
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        break;
+
+      case 21:
+
+        System.out.println(test_case + ": test select range");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        final DataReference value_low_ref = new DataReferenceImpl("value_low");
+        final DataReference value_hi_ref = new DataReferenceImpl("value_hi");
+
+        VisADSlider slider_low =
+          new VisADSlider("value low", 0, 64, 0, 1.0, value_low_ref,
+                          RealType.Generic);
+        VisADSlider slider_hi =
+          new VisADSlider("value hi", 0, 64, 64, 1.0, value_hi_ref,
+                          RealType.Generic);
+
+        JFrame jframe = new JFrame("VisAD select slider");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        jframe.setSize(300, 120);
+        jframe.setVisible(true);
+
+        JPanel big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(slider_low);
+        big_panel.add(slider_hi);
+        jframe.getContentPane().add(big_panel);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+ 
+        ScalarMap range1map = new ScalarMap(ir_radiance, Display.SelectRange);
+        display1.addMap(range1map);
+
+        mode = display1.getGraphicsModeControl();
+        mode.setPointSize(2.0f);
+        mode.setPointMode(false);
+
+        final RangeControl range1control =
+          (RangeControl) range1map.getControl();
+        range1control.setRange(new float[] {0.0f, 100.0f});
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+
+        cell = new CellImpl() {
+          public void doAction() throws VisADException, RemoteException {
+            range1control.setRange(new float[]
+             {(float) ((Real) value_low_ref.getData()).getValue(),
+              (float) ((Real) value_hi_ref.getData()).getValue()});
+          }
+        };
+        cell.addReference(value_low_ref);
+        cell.addReference(value_hi_ref);
+
+        break;
+
+      case 22:
+
+        System.out.println(test_case + ": test Hue & Saturation");
+        size = 8;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.Saturation));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.Hue));
+        display1.addMap(new ConstantMap(1.0, Display.Value));
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        break;
+
+      case 23:
+
+        System.out.println(test_case + ": test Cyan & Magenta");
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.Cyan));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.Magenta));
+        display1.addMap(new ConstantMap(0.5, Display.Yellow));
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 24:
+
+        System.out.println(test_case + ": test HSV");
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.HSV));
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 25:
+
+        System.out.println(test_case + ": test CMY");
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.CMY));
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
 
         break;
 

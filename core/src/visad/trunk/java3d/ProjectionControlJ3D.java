@@ -27,6 +27,8 @@ package visad.java3d;
  
 import visad.*;
 
+import java.rmi.*;
+
 import javax.media.j3d.*;
 
 /**
@@ -51,11 +53,12 @@ public class ProjectionControlJ3D extends Control
     return matrix;
   }
 
-  public void setMatrix(double[] m) {
+  public void setMatrix(double[] m)
+         throws VisADException, RemoteException {
     System.arraycopy(m, 0, matrix, 0, 16);
     Matrix = new Transform3D(matrix);
     ((DisplayRendererJ3D) getDisplayRenderer()).setTransform3D(Matrix);
-    changeControl();
+    changeControl(true);
   }
 
 }

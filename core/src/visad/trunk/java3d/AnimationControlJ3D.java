@@ -80,7 +80,11 @@ public class AnimationControlJ3D extends AVControlJ3D
           takeStep();
         }
       }
-      catch(VisADException v) {
+      catch (VisADException v) {
+        v.printStackTrace();
+        throw new VisADError("AnimationControlJ3D.run: " + v.toString());
+      }
+      catch (RemoteException v) {
         v.printStackTrace();
         throw new VisADError("AnimationControlJ3D.run: " + v.toString());
       }
@@ -95,35 +99,38 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
-  public void setCurrent(int c) throws VisADException {
+  public void setCurrent(int c)
+         throws VisADException, RemoteException {
     current = c;
-    changeControl();
+    changeControl(true);
     if (animationSet != null) {
       init();
     }
   }
  
-  public void setDirection(boolean dir) {
+  public void setDirection(boolean dir)
+         throws VisADException, RemoteException {
     direction = dir;
-    changeControl();
+    changeControl(true);
   }
 
-  public void setStep(int st) throws VisADException {
+  public void setStep(int st) throws VisADException, RemoteException {
     if (st < 0) {
-      throw new DisplayException("AnimationControlJ3D.setStep: step must be > 0");
+      throw new DisplayException("AnimationControlJ3D.setStep: " +
+                                 "step must be > 0");
     }
     step = st;
-    changeControl();
+    changeControl(true);
   }
 
-  public void takeStep() throws VisADException {
+  public void takeStep() throws VisADException, RemoteException {
     if (direction) current++;
     else current--;
     if (animationSet != null) {
       current = animationSet.clipCurrent(current);
       init();
     }
-    changeControl();
+    changeControl(true);
   }
 
   public void init() throws VisADException {
@@ -141,13 +148,15 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
-  public void setSet(Set s) throws VisADException {
+  public void setSet(Set s)
+         throws VisADException, RemoteException {
     setSet(s, false);
   }
  
-  /** noChange = true to not trigger changeControl, used by
-      ScalarMap.setRange */
-  public void setSet(Set s, boolean noChange) throws VisADException {
+  /** changeControl(!noChange) to not trigger re-transform,
+      used by ScalarMap.setRange */
+  public void setSet(Set s, boolean noChange)
+         throws VisADException, RemoteException {
     if (animationSet != null) {
       animationSet.setSet(s, noChange);
     }
@@ -162,13 +171,15 @@ public class AnimationControlJ3D extends AVControlJ3D
     }
   }
 
-  public void setOn(boolean o) {
+  public void setOn(boolean o)
+         throws VisADException, RemoteException {
     if (animate != null) {
       animate.setOn(o);
     }
   }
 
-  public void toggle() {
+  public void toggle()
+         throws VisADException, RemoteException {
     if (animate != null) {
       animate.setOn(!animate.getOn());
     }

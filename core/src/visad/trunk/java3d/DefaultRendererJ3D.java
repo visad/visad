@@ -66,11 +66,18 @@ public class DefaultRendererJ3D extends RendererJ3D {
       valueArray[i] = Float.NaN;
     }
 
-    type.preProcess();
-    boolean post_process =
-      type.doTransform(branch, link.getData(), valueArray,
-                       link.getDefaultValues(), this);
-    if (post_process) type.postProcess(branch);
+    Data data = link.getData();
+    if (data == null) {
+      branch = null;
+      addException("Data is null");
+    }
+    else {
+      type.preProcess();
+      boolean post_process =
+        type.doTransform(branch, data, valueArray,
+                         link.getDefaultValues(), this);
+      if (post_process) type.postProcess(branch);
+    }
     link.clearData();
     return branch;
   }
