@@ -1146,7 +1146,7 @@ if (initialize) {
 
   /** get a GUI component containing this Display's Control widgets,
       creating the widgets as necessary */
-  public Component getWidgetPanel() {
+  public Container getWidgetPanel() {
     if (needWidgetRefresh) {
       synchronized (MapVector) {
         // construct widget panel if needed

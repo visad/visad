@@ -202,7 +202,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** whether the cell has any associated controls */
   public boolean hasControls() {
     if (VDisplay == null) return false;
-    JComponent jc = VDisplay.getWidgetPanel();
+    Container jc = VDisplay.getWidgetPanel();
     if (jc == null) return false;
     return (jc.getComponentCount() > 0);
   }

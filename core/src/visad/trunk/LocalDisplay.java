@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.awt.Component;
+import java.awt.Container;
 
 import java.awt.image.BufferedImage;
 
@@ -79,7 +80,7 @@ public interface LocalDisplay
 
   /** get a GUI component containing this Display's Control widgets,
       creating the widgets as necessary */
-  Component getWidgetPanel();
+  Container getWidgetPanel();
 
   double[] make_matrix(double rotx, double roty, double rotz,
                        double scale,
