@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.5 1998-12-16 16:25:20 steve Exp $
+ * $Id: StandardQuantityDB.java,v 1.6 1998-12-28 17:44:32 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -202,9 +202,9 @@ StandardQuantityDB
       super.add("CurrentDensity", "A/m2");
       super.add("Inductance", "H");
       super.add("MagneticFlux", "Wb");
-      super.add("MagneticFlux density", "T");
-      super.add("MagneticField strength", "A/m");
-      super.add("ElectricField strength", "V/m");
+      super.add("MagneticFluxDensity", "T");
+      super.add("MagneticFieldStrength", "A/m");
+      super.add("ElectricFieldStrength", "V/m");
 
       /*
        * Photometry:

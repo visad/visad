@@ -192,7 +192,6 @@
                  unit = new DerivedUnit();       // dimensionless derived unit
              if (origin != 0 || (originSpecified && isTime))
                  unit = unit.shift(origin);
-             // System.out.println("unitSpec(): unit=" + unit);
              {if (true) return unit;}
          }
          catch (UnitException e)
@@ -243,8 +242,6 @@
           ;
         }
         unit2 = powerExpression();
-                 // System.out.println("unitProductList(): unit1=" + unit1);
-                 // System.out.println("unitProductList(): unit2=" + unit2);
                  try
                  {
                      unit1 = unit1.multiply(unit2);
@@ -253,8 +250,6 @@
                  {
                      {if (true) throw new ParseException("Couldn't multiply units");}
                  }
-                 // System.out.println("unitProductList(): unit1=" + unit1);
-
         break;
       case DIVIDE:
         jj_consume_token(DIVIDE);
@@ -267,8 +262,6 @@
                  {
                      {if (true) throw new ParseException("Couldn't divide units");}
                  }
-                 // System.out.println("unitProductList(): unit1=" + unit1);
-
         break;
       default:
         jj_la1[4] = jj_gen;
@@ -276,7 +269,6 @@
         throw new ParseException();
       }
     }
-         // System.out.println("unitProductList(): unit1=" + unit1);
          {if (true) return unit1;}
     throw new Error("Missing return statement in function");
   }
@@ -358,7 +350,6 @@
       jj_consume_token(-1);
       throw new ParseException();
     }
-         // System.out.println("powerExpression(): unit=" + unit);
          {if (true) return unit;}
     throw new Error("Missing return statement in function");
   }
@@ -372,7 +363,6 @@
          {
              {if (true) throw new NoSuchUnitException("Unit not in database");}
          }
-         // System.out.println("nameExpression(): unit=" + unit);
          {if (true) return unit;}
     throw new Error("Missing return statement in function");
   }
