@@ -180,7 +180,7 @@ public class SocketDataTest extends JFrame implements ActionListener {
       try {
         data = loader.open(file);
       }
-      catch (IOException exc) {
+      catch (BadFormException exc) {
         throw new VisADException(exc.getMessage());
       }
     }

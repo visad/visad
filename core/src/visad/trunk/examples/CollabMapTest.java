@@ -117,7 +117,7 @@ public class CollabMapTest extends JFrame implements ActionListener {
       try {
         data = loader.open(arg);
       }
-      catch (IOException exc) {
+      catch (BadFormException exc) {
         System.err.println("The specified data file could not be loaded. " +
           "The file is missing, corrupt, or of the wrong type.");
         exc.printStackTrace();
