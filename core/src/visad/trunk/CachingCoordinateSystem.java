@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2002 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -35,7 +35,7 @@ import java.util.Arrays;
  * methods were called, the previously calculated values are returned.
  *
  * @author Don Murray
- * @version $Revision: 1.1 $ $Date: 2001-11-06 17:39:07 $
+ * @version $Revision: 1.2 $ $Date: 2002-01-07 18:42:05 $
  */
 public class CachingCoordinateSystem extends CoordinateSystem {
 
