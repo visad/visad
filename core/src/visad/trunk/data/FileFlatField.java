@@ -530,8 +530,20 @@ public class FileFlatField extends FlatField {
      return true;
   }
 
+  /**
+   * Clones this instance.  This implementation violates the general <code>
+   * clone()</code> contract in that the returned object will compare unequal to
+   * this instance.  As such, this method should probably not be invoked.
+   *
+   * @return                            A clone of this instance.
+   */
   public Object clone()
   {
+    /*
+     * This implementation should probably just throw a 
+     * CloneNotSupportedException but can't because FlatField.clone() doesn't.
+     */
+      
     FlatField fld = getAdaptedFlatField();
     if (fld == null) {
       return null;

@@ -45,5 +45,24 @@ public abstract class Scalar
    *				is semantically identical to the object.
    */
   public abstract boolean equals(Object obj);
+
+  /**
+   * Clones this instance.
+   *
+   * @return                      A clone of this instance.
+   */
+  public final Object clone() {
+      /*
+       * Steve Emmerson believes that this implementation should return
+       * "this" to reduce resouce-usage but Bill believes that doing so is
+       * counter-intuitive and might harm applications.
+       */
+    try {
+      return super.clone();
+    }
+    catch (CloneNotSupportedException ex) {
+      throw new RuntimeException("Assertion failure");
+    }
+  }
 }
 

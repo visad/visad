@@ -35,7 +35,7 @@ import java.rmi.*;
 */
 // public abstract class ThingImpl  WLH 8 July 2000
 public class ThingImpl
-       implements Thing, java.io.Serializable {
+       implements Thing, Cloneable, java.io.Serializable {
 
   class RemotePair {
     RemoteThingReference ref;
@@ -184,6 +184,32 @@ public class ThingImpl
         }
       }
     }
+  }
+
+  /**
+   * <p>Clones this instance.  Information on the set of listeners to changes in
+   * this instance is not cloned, so -- following the general contract of the
+   * <code>clone() </code> method -- subclasses should not test for equality of
+   * the set of listeners in any <code>equals(Object)</code> method.</p>
+   *
+   * <p>This implementation never throws {@link CloneNotSupportException}.</p>
+   *
+   * @return                            A clone of this instance.
+   * @throws CloneNotSupportedException if cloning isn't supported.
+   */
+  public Object clone() throws CloneNotSupportedException {
+    ThingImpl clone;
+    
+    try {
+      clone = (ThingImpl)super.clone();
+    }
+    catch (CloneNotSupportedException ex) {
+      throw new Error("Assertion failure");  // can't happen
+    }
+
+    clone.references = new Vector();
+
+    return clone;
   }
 
 }

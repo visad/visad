@@ -362,6 +362,5 @@ public interface Data extends Thing {
       RemoteDataImpl.dataClone returns clone inherited from
       UnicastRemoteObject */
   Object dataClone() throws RemoteException;
-
 }
 

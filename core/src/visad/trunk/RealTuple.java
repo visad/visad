@@ -39,7 +39,11 @@ public class RealTuple
 
   private CoordinateSystem TupleCoordinateSystem;
 
-  private Unit[] TupleUnits; // simply copies of Unit-s from Real tupleComponents
+  /*
+   * Simply copies of Unit-s from Real tupleComponents.
+   * Will be null if RealTuple(RealTupleType) constructor is used.
+   */
+  private Unit[] TupleUnits;
 
   /** construct a RealTuple object with the missing value */
   public RealTuple(RealTupleType type) {
@@ -58,14 +62,14 @@ public class RealTuple
       type.getCoordinateSystem.getReference() */
   public RealTuple(RealTupleType type, Real[] reals, CoordinateSystem coord_sys)
          throws VisADException, RemoteException {
-    super(type, reals);
+    super(type, reals, false);  // copy == false because Reals are immutable
     init_coord_sys(coord_sys);
   }
 
   /** construct a RealTuple according to an array of Real objects */
   public RealTuple(Real[] reals)
          throws VisADException, RemoteException {
-    super(reals);
+    super(reals, false);  // copy == false because Reals are immutable
     init_coord_sys(null);
   }
 
@@ -301,22 +305,23 @@ public class RealTuple
                                   shadow, shad_ref, ranges);
   }
 
-  public Object clone() {
-    RealTuple tuple;
+  /**
+   * Clones this instance.
+   *
+   * @return                    A clone of this instance.
+   */
+  public final Object clone() {
+      /*
+       * I (Steve Emmerson) believe that this implementation should return
+       * "this" to reduce the memory-footprint but Bill believes that doing so
+       * would be counter-intuitive and might harm applications.
+       */
     try {
-      Real[] comps = new Real[tupleComponents.length];
-      for (int i=0; i<tupleComponents.length; i++) {
-        comps[i] = (Real) tupleComponents[i];
-      }
-      tuple = new RealTuple((RealTupleType) Type, comps, TupleCoordinateSystem);
+      return super.clone();
     }
-    catch (VisADException e) {
-      throw new VisADError("RealTuple.clone: VisADException occurred");
+    catch (CloneNotSupportedException ex) {
+      throw new RuntimeException("Assertion failure");
     }
-    catch (RemoteException e) {
-      throw new VisADError("RealTuple.clone: RemoteException occurred");
-    }
-    return tuple;
   }
 
   /**

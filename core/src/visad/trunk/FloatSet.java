@@ -77,14 +77,19 @@ public class FloatSet extends SimpleSet {
   public boolean isMissing() {
     return false;
   }
-
-  public Object clone() {
-    try {
-      return new FloatSet(Type, DomainCoordinateSystem, SetUnits);
-    }
-    catch (VisADException e) {
-      throw new VisADError("FloatSet.clone: " + e.toString());
-    }
+  
+  /**
+   * Clones this instance.
+   *
+   * @return                      A clone of this instance.
+   */
+  public final Object clone() {
+      /*
+       * Steve Emmerson believes that this implementation should return
+       * "this" to reduce the memory-footprint but Bill believes that doing so
+       * would be counter-intuitive and might harm applications.
+       */
+      return super.clone();
   }
 
   public Object cloneButType(MathType type) throws VisADException {

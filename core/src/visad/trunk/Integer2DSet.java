@@ -90,18 +90,6 @@ public class Integer2DSet extends Linear2DSet
     return sets;
   }
 
-  public Object clone() {
-    try {
-      Integer1DSet[] sets = {(Integer1DSet) X.clone(),
-                             (Integer1DSet) Y.clone()};
-      return new Integer2DSet(Type, sets, DomainCoordinateSystem,
-                              SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("Integer2DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     Integer1DSet[] sets = {(Integer1DSet) X.clone(),
                            (Integer1DSet) Y.clone()};

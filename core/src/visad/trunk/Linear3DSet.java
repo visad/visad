@@ -1640,19 +1640,6 @@ for (int j=0; j<nvertex; j++) {
     else throw new ArrayIndexOutOfBoundsException("Invalid component index");
   }
 
-  public Object clone() {
-    try {
-      Linear1DSet[] sets = {(Linear1DSet) X.clone(),
-                            (Linear1DSet) Y.clone(),
-                            (Linear1DSet) Z.clone()};
-      return new Linear3DSet(Type, sets, DomainCoordinateSystem,
-                             SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("Linear3DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     Linear1DSet[] sets = {(Linear1DSet) X.clone(),
                           (Linear1DSet) Y.clone(),

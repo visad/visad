@@ -2903,22 +2903,6 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
     } // end if (!indexed)
   }
 
-  public Object clone() {
-    try {
-      if (ManifoldDimension == 1) {
-        return new Irregular3DSet(Type, Samples, newToOld, oldToNew,
-                              DomainCoordinateSystem, SetUnits, SetErrors);
-      }
-      else {
-        return new Irregular3DSet(Type, Samples, DomainCoordinateSystem,
-                                  SetUnits, SetErrors, Delan);
-      }
-    }
-    catch (VisADException e) {
-      throw new VisADError("Irregular3DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     if (ManifoldDimension == 1) {
       return new Irregular3DSet(type, Samples, newToOld, oldToNew,

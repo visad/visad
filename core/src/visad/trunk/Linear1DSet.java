@@ -264,16 +264,6 @@ public class Linear1DSet extends Gridded1DSet
                                                   i);
   }
 
-  public Object clone() {
-    try {
-      return new Linear1DSet(Type, First, Last, Length, DomainCoordinateSystem,
-                             SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("Linear1DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     return new Linear1DSet(type, First, Last, Length, DomainCoordinateSystem,
                            SetUnits, SetErrors);

@@ -168,7 +168,7 @@ public class Real
          new ErrorEstimate(value, 0.0, RealType.Generic.getDefaultUnit()), true);
   }
 
-  /** trusted constructor for clone and other constructors */
+  /** trusted constructor for other constructors */
   private Real(RealType type, double value, Unit u, ErrorEstimate error,
                boolean b) {
     super(type);
@@ -605,10 +605,6 @@ public class Real
   /** clone this, but with a new Unit */
   public Real cloneButUnit(Unit u) throws VisADException {
     return new Real((RealType) Type, Value, u, Error);
-  }
-
-  public Object clone() {
-    return new Real((RealType) Type, Value, unit, Error, true);
   }
 
   public String toString() {

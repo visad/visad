@@ -27,11 +27,25 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   Irregular2DSet represents a finite set of samples of R^2.<P>
-
-   No Irregular2DSet with ManifoldDimension = 1.  Use
-   Gridded2DSet with ManifoldDimension = 1 instead.<P>
-*/
+ * <P>{@link IrregularSet} for a finite number of samples of R².</P>
+ *
+ * <P>NOTE: There is no {@link Irregular2DSet} with a manifold dimension equal
+ * to one.  Use {@link Gridded2DSet} with a manifold dimension equal to one
+ * instead.</P>
+ *
+ * <p>When you call an {@link Irregular2DSet} constructor without a {@link
+ * Delaunay} argument, the constructor uses the {@link Delaunay#factory()}
+ * method to implictly compute a Delaunay triangulation. 3000 points is the
+ * current break-point from Watson's algorithm to Clarkson's algorithm. So,
+ * currently, at 3001 points you start using Clarkson's algorithm, which rounds
+ * coordinates to integers.  If your values are small enough that integer
+ * rounding will merge some of them to the same value (and hence create
+ * colinear or colocated points), there will be trouble. One approach is
+ * to scale your coordinates up so integer rounding does not merge values.
+ * Another is to ensure that you use Watson's algorithm by using <code>new
+ * DelaunayWatson(samples)</code> as the {@link Delaunay} argument of the {@link
+ * Irregular2DSet} constructor.</p>
+ */
 public class Irregular2DSet extends IrregularSet {
 
   private float LowX, HiX, LowY, HiY;
@@ -396,22 +410,6 @@ public class Irregular2DSet extends IrregularSet {
         indices[i] = ival;
         weights[i] = wval;
       }
-    }
-  }
-
-  public Object clone() {
-    try {
-      if (ManifoldDimension == 1) {
-        return new Irregular2DSet(Type, Samples, newToOld, oldToNew,
-                              DomainCoordinateSystem, SetUnits, SetErrors);
-      }
-      else {
-        return new Irregular2DSet(Type, Samples, DomainCoordinateSystem,
-                                  SetUnits, SetErrors, Delan);
-      }
-    }
-    catch (VisADException e) {
-      throw new VisADError("Irregular2DSet.clone: " + e.toString());
     }
   }
 

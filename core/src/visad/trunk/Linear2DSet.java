@@ -261,18 +261,6 @@ public class Linear2DSet extends Gridded2DSet
     }
   }
 
-  public Object clone() {
-    try {
-      Linear1DSet[] sets = {(Linear1DSet) X.clone(),
-                            (Linear1DSet) Y.clone()};
-      return new Linear2DSet(Type, sets, DomainCoordinateSystem,
-                             SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("Linear2DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     Linear1DSet[] sets = {(Linear1DSet) X.clone(),
                           (Linear1DSet) Y.clone()};

@@ -238,14 +238,18 @@ public class IrregularSet extends SampledSet {
     }
   }
 
+  /**
+   * Clones this instance.
+   *
+   * @return                            A clone of this instance.
+   */
   public Object clone() {
-    try {
-      return new IrregularSet(Type, Samples, DomainCoordinateSystem,
-                            SetUnits, SetErrors, Delan);
-    }
-    catch (VisADException e) {
-      throw new VisADError("IrregularSet.clone: " + e.toString());
-    }
+    IrregularSet clone = (IrregularSet)super.clone();
+
+    if (Delan != null)
+      clone.Delan = (Delaunay)Delan.clone();
+
+    return clone;
   }
 
   public Object cloneButType(MathType type) throws VisADException {

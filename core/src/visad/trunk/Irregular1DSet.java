@@ -140,16 +140,6 @@ public class Irregular1DSet extends IrregularSet {
     return HiX;
   }
 
-  public Object clone() {
-    try {
-      return new Irregular1DSet(Type, Samples, DomainCoordinateSystem,
-                              SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("Irregular1DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     return new Irregular1DSet(type, Samples, DomainCoordinateSystem,
                              SetUnits, SetErrors);

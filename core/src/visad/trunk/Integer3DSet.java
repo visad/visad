@@ -94,19 +94,6 @@ public class Integer3DSet extends Linear3DSet
     return sets;
   }
 
-  public Object clone() {
-    try {
-      Integer1DSet[] sets = {(Integer1DSet) X.clone(),
-                             (Integer1DSet) Y.clone(),
-                             (Integer1DSet) Z.clone()};
-      return new Integer3DSet(Type, sets, DomainCoordinateSystem,
-                              SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("Integer3DSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     Integer1DSet[] sets = {(Integer1DSet) X.clone(),
                            (Integer1DSet) Y.clone(),

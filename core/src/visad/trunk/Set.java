@@ -45,9 +45,11 @@ import java.rmi.*;
 //
 
 /**
-   Set is the abstract superclass of the VisAD hierarchy of sets.<P>
-   Sets are subsets of R^n for n>0.  Set objects are immutable.<P>
-*/
+ * <P>Set is the abstract superclass of the VisAD hierarchy of sets.<P>
+ *
+ * <P>Set-s are subsets of R^n for n>0.  For the most part, Set objects are
+ * immutable (but see {@link SampledSet#getSamples(boolean)}).<P>
+ */
 public abstract class Set extends DataImpl implements SetIface {
 
   int DomainDimension; // this is a subset of R^DomainDimension
@@ -678,8 +680,19 @@ public abstract class Set extends DataImpl implements SetIface {
   /** test for equality */
   public abstract boolean equals(Object set);
 
-  /** clone this Set */
-  public abstract Object clone();
+  /**
+   * Clones this instance.
+   *
+   * @return                            A clone of this instance.
+   */
+  public Object clone() {
+    try {
+      return super.clone();
+    }
+    catch (CloneNotSupportedException ex) {
+      throw new RuntimeException("Assertion failure");  // can't happen
+    }
+  }
 
   /** copy this Set, but give it a new MathType;
       this is safe, since constructor checks consistency of

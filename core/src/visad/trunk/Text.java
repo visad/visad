@@ -54,12 +54,6 @@ public class Text extends Scalar {
     Value = value;
   }
 
-  // used by clone
-  private Text(TextType type, String value, boolean b) {
-    super(type);
-    Value = value;
-  }
-
   public String getValue() {
     return Value;
   }
@@ -86,10 +80,6 @@ public class Text extends Scalar {
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException {
     return shadow;
-  }
-
-  public Object clone() {
-    return new Text((TextType) Type, Value, true);
   }
 
   public String toString() {

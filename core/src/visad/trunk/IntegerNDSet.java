@@ -131,20 +131,6 @@ public class IntegerNDSet extends LinearNDSet
     return ss;
   }
 
-  public Object clone() {
-    try {
-      int[] lens = new int[DomainDimension];
-      for (int j=0; j<DomainDimension; j++) {
-        lens[j] = L[j].getLength();
-      }
-      return new IntegerNDSet(Type, lens, DomainCoordinateSystem,
-                            SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("IntegerNDSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     int[] lens = new int[DomainDimension];
     for (int j=0; j<DomainDimension; j++) {

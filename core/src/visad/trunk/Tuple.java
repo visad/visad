@@ -30,19 +30,22 @@ import java.rmi.*;
 import java.util.Vector;
 
 /**
-   Tuple is the general VisAD data class for vectors.
-   Tuple objects are immutable.<P>
+   <P>Tuple is the general VisAD data class for vectors.
+   Tuple objects are immutable in the sense that the sequence of {@link Data}
+   objects cannot be modified; Tuple objects are mutable, however, in the
+   sense that a contained {@link Data} object might be mutable (e.g. it might
+   be a {@link Field} with modifiable range values).</P>
 */
 public class Tuple extends DataImpl implements TupleIface {
 
-  Data[] tupleComponents;
+  Data[] tupleComponents;  // might be null (see Tuple(TupleType))
 
   /** construct a Tuple object with missing value */
   public Tuple(TupleType type) {
     super(type);
     if (type instanceof RealTupleType &&
         !(this instanceof RealTuple)) {
-      throw new VisADError("must construct as RealTupleType");
+      throw new VisADError("must construct as RealTuple");
     }
   }
 
@@ -61,7 +64,7 @@ public class Tuple extends DataImpl implements TupleIface {
     }
     if (type instanceof RealTupleType &&
         !(this instanceof RealTuple)) {
-      throw new TypeException("must construct as RealTupleType");
+      throw new TypeException("must construct as RealTuple");
     }
     int n = datums.length;
     tupleComponents = new Data[n];
@@ -160,9 +163,17 @@ public class Tuple extends DataImpl implements TupleIface {
     return realComponents;
   }
 
-  /** return array of components */
+  /** Returns the components that constitute this instance.  If this instance
+   * has no components, then <code>null</code> is returned.  A returned array
+   * may be modified without affecting the behavior of this instance.
+   *
+   * @return                    The components of this instance or <code>
+   *                            null</code>.
+   */
   public Data[] getComponents() {
-    return tupleComponents;
+    return tupleComponents == null
+      ? (Data[])null
+      : (Data[])tupleComponents.clone();
   }
 
   /** return number of components */
@@ -175,7 +186,22 @@ public class Tuple extends DataImpl implements TupleIface {
     }
   }
 
-  /** return component for i between 0 and getDimension() - 1 */
+  /**
+   * Returns a component of this instance.  If this instance has no components,
+   * then an object of the appropriate {@link MathType} is created that has
+   * no data and is returned.  A returned component is the actual component of
+   * this instance and is not a copy or clone.
+   *
+   * @param i                     The zero-based index of the coponent to
+   *                              return.
+   * @return                      The <code>i</code>-th component of this
+   *                              instance.
+   * @throws VisADException       if this instance has no components and
+   *                              couldn't create one with no data.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   * @throws TypeException        if the index is less than zero or greater than
+   *                              <code>getDimension()-1</code>.
+   */
   public Data getComponent(int i) throws VisADException, RemoteException {
     if (isMissing()) {
       return ((TupleType) Type).getComponent(i).missingData();
@@ -184,7 +210,7 @@ public class Tuple extends DataImpl implements TupleIface {
       return (Data) tupleComponents[i];
     }
     else {
-      throw new TypeException("Tuple: component index out of range");
+      throw new TypeException("Tuple: component index out of range: " + i);
     }
   }
 
@@ -346,27 +372,44 @@ public class Tuple extends DataImpl implements TupleIface {
     return getDimension();
   }
 
-  public Object clone() {
-    Tuple tuple;
-    try {
-      if (tupleComponents == null) {
-        tuple = new Tuple((TupleType )getType());
-      } else {
-        int n = tupleComponents.length;
-        Data[] datums = new Data[n];
-        for (int i=0; i<n; i++) {
-          datums[i] = (Data) tupleComponents[i].dataClone();
+  /**
+   * <p>Clones this instance.  The <code>clone()</code> method of each 
+   * component is invoked.</p>
+   *
+   * <p>This implementation throws {@link CloneNotSupportedException} if and
+   * only if one of the components throws it.</p>
+   *
+   * @return                            A clone of this instance.
+   * @throws CloneNotSupportedException if cloning isn't supported.
+   */
+  public Object clone() throws CloneNotSupportedException {
+    Tuple clone = (Tuple)super.clone();
+
+    if (clone.tupleComponents != null) {
+      clone.tupleComponents = new Data[tupleComponents.length];
+
+      for (int i = 0; i < tupleComponents.length; i++) {
+	Data comp = tupleComponents[i];
+
+	if (comp == null) {
+	  clone.tupleComponents[i] = null;
         }
-        tuple = new Tuple(datums);
+        else {
+          try {
+            /*
+             * Data.dataClone() is invoked because Data.clone() doesn't and
+             * can't exist.
+             */
+	    clone.tupleComponents[i] = (Data)tupleComponents[i].dataClone();
+          }
+          catch (RemoteException ex) {
+            throw new RuntimeException(ex.toString());
+          }
+        }
       }
     }
-    catch (VisADException e) {
-      throw new VisADError("Tuple.clone: VisADException occurred");
-    }
-    catch (RemoteException e) {
-      throw new VisADError("Tuple.clone: RemoteException occurred");
-    }
-    return tuple;
+
+    return clone;
   }
 
   public String longString(String pre)
@@ -381,9 +424,10 @@ public class Tuple extends DataImpl implements TupleIface {
   }
 
   /**
-   * Indicates if this Tuple is identical to another object.
-   * @param obj		The other object.
-   * @return		<code>true</code> if and only if the other object is
+   * Indicates if this Tuple is identical to an object.
+   *
+   * @param obj		The object.
+   * @return		<code>true</code> if and only if the object is
    *			a Tuple and both Tuple-s have identical component
    *			sequences.
    */

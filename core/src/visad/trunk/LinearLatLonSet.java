@@ -397,18 +397,6 @@ public class LinearLatLonSet extends Linear2DSet {
             Y.equals(((LinearLatLonSet) set).getY()));
   }
 
-  public Object clone() {
-    try {
-      Linear1DSet[] sets = {(Linear1DSet) X.clone(),
-                            (Linear1DSet) Y.clone()};
-      return new LinearLatLonSet(Type, sets, DomainCoordinateSystem,
-                                 SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("LinearLatLonSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     Linear1DSet[] sets = {(Linear1DSet) X.clone(),
                           (Linear1DSet) Y.clone()};

@@ -907,16 +907,6 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     return hashCode;
   }
 
-  public Object clone() {
-    try {
-      return new GriddedSet(Type, Samples, Lengths, DomainCoordinateSystem,
-                            SetUnits, SetErrors);
-    }
-    catch (VisADException e) {
-      throw new VisADError("GriddedSet.clone: " + e.toString());
-    }
-  }
-
   public Object cloneButType(MathType type) throws VisADException {
     return new GriddedSet(type, Samples, Lengths, DomainCoordinateSystem,
                           SetUnits, SetErrors);

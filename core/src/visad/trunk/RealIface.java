@@ -108,13 +108,6 @@ public interface RealIface
     throws VisADException;
 
   /*
-   * Returns a clone of this instance.
-   *
-   * @return			A clone of this instance.
-   */
-  Object clone();
-
-  /*
    * Returns a string representation of this instance.
    *
    * @return			A string representation of this instance.

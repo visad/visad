@@ -97,7 +97,13 @@ public class List1DSet extends SimpleSet {
     if (!equalUnitAndCS((Set) set)) return false;
     if (Length != ((Set) set).Length) return false;
     for (int i=0; i<Length; i++) {
-      if (data[i] != ((List1DSet) set).data[i]) return false;
+      /*
+       * The use of Float.floatToIntBits(...) in the following accomodates 
+       * Float.NaN values and matches the equals(...) method.
+       */
+      if (Float.floatToIntBits(data[i]) !=
+          Float.floatToIntBits(((List1DSet) set).data[i]))
+        return false;
     }
     return true;
   }
@@ -115,16 +121,6 @@ public class List1DSet extends SimpleSet {
       hashCodeSet = true;
     }
     return hashCode;
-  }
-
-  public Object clone() {
-    try {
-      return new List1DSet(data, getType(), DomainCoordinateSystem,
-                           SetUnits);
-    }
-    catch (VisADException e) {
-      throw new VisADError("List1DSet.clone: " + e.toString());
-    }
   }
 
   public Object cloneButType(MathType type) throws VisADException {

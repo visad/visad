@@ -608,9 +608,16 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
   }
 
-  /** set ErrorEstimates associated with each RealType
-      component of range */
-  public void setRangeErrors(ErrorEstimate[] errors) throws VisADException {
+  /**
+   * Sets the ErrorEstimates associated with each RealType component of the
+   * range.  <code>errors[i]</code> is the {@link ErrorEstimate} for the 
+   * <code>i</code>-th {@link RealType} component.
+   *
+   * @param errors          The error estimates for the range values.
+   * @throws FieldException if <code>errors</code> is non-<code>null</code> and
+   *                        <code>errors.length != getRangeDimension()</code>.
+   */
+  public void setRangeErrors(ErrorEstimate[] errors) throws FieldException {
     synchronized (RangeErrors) {
       if (errors == null) {
         for (int i=0; i<TupleDimension; i++) {
@@ -960,8 +967,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
   }
 
-  /** pack an array of floats into field sample values according to the
-      RangeSet-s; copies data */
+  /**
+   * Pack an array of floats into field sample values according to the
+   * RangeSet-s; copies data.
+   *
+   * @throws VisADException if {@link #nullRanges()} fails.
+   */
   private void packValues(float[][] range, boolean copy)
           throws VisADException {
     // NOTE INVERTED ORDER OF range ARRAY INDICES !!!
@@ -1031,9 +1042,18 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return unpackValues(true);
   }
 
-  /** unpack an array of doubles from field sample values according to the
-      RangeSet-s; returns a copy if copy == true */
-  private double[][] unpackValues(boolean copy) throws VisADException {
+  /**
+   * Unpacks an array of doubles from field sample values according to the
+   * RangeSet-s; returns a copy if copy == true.
+   *
+   * @param copy            Whether or not to return a copy.
+   * @throws SetException   if an element of {@link #RangeMode} contains an
+   *                        unknown value.
+   * @throws VisADException if {@link Set.indexToValue(int)} on a range set
+   *                        fails.
+   */
+  private double[][] unpackValues(boolean copy)
+      throws SetException, VisADException {
     double[][] range;
     synchronized (DoubleRange) {
       if (isMissing()) {
@@ -1704,7 +1724,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     notifyReferences();
   }
 
-  /** set various arrays of range values to missing */
+  /**
+   * Sets various arrays of range values to missing.
+   *
+   * @throws VisADException if a {@link Set#getLength()} invocation on a range
+   *                        set fails.
+   */
   private void nullRanges() throws VisADException {
     synchronized (DoubleRange) {
       // DoubleRange = new double[TupleDimension][];
@@ -4053,23 +4078,47 @@ if (pr) System.out.println("value = " + new_values[0][0]);
                          RangeCoordinateSystems, RangeSet, RangeUnits);
   }
 
-  /** deep copy values but shallow copy Type, Set-s, CoordinateSystem-s,
-      Unit-s and ErrorEstimate-s (they are all immutable) */
+  /**
+   * Clones this instance.  Immutable fields are shallow copied.  Range
+   * values, however, are deep copied.
+   *
+   * <p> Note that it is possible to simultaneously modify the domain-set of
+   * both this instance and the clone by modifying the values in the array
+   * returned by invoking <code>getSamples(false)</code> on the domain-set of
+   * either this instance or the clone.  Don't do this unless you enjoy 
+   * debugging.</p>
+   *
+   * @return                  A clone of this instance.
+   * @throws RuntimeException if a {@link VisADException} occurs.
+   */
   public Object clone() {
-    FlatField field;
+    FlatField clone;
+    
     try {
-      field =
-        new FlatField((FunctionType) Type, DomainSet, RangeCoordinateSystem,
-                      RangeCoordinateSystems, RangeSet, RangeUnits);
-      if (isMissing()) return field;
-      double[][] values = unpackValues();
-      field.packValues(values, true);
-      field.setRangeErrors(RangeErrors);
+      clone = (FlatField)super.clone();
     }
-    catch (VisADException e) {
-      throw new VisADError("FlatField.clone: VisADException occurred");
+    catch (CloneNotSupportedException ex) {
+      throw new Error("Assertion failure");  // can't happen
     }
-    return field;
+
+    synchronized(DoubleRange) {
+      if (!MissingFlag) {
+        try {
+	  clone.packValues(unpackValues(true), false);
+        }
+        catch (VisADException ex) {
+          throw new RuntimeException(ex.toString());
+        }
+        try {
+          clone.setRangeErrors(RangeErrors);
+        }
+        catch (FieldException ex) {
+          throw new Error("Assertion failure");  // can't happen
+        }
+      }
+    }
+
+    return clone;
   }
 
   String valuesString() throws VisADException {
