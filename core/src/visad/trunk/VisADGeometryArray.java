@@ -456,7 +456,11 @@ for (int i=0; i<vertexCount; i++) {
     float[] normals = null;
     float[] texCoords = null;
     if (color_flag) {
-      colors = new byte[3 * count];
+      // WLH 4 Feb 2004 - fix for kevin.manross3.txt
+      int c1 = arrays[0].colors.length;
+      int c2 = arrays[0].coordinates.length;
+      int mm = (c1 == c2) ? 3 : 4;
+      colors = new byte[mm * count];
     }
     if (normal_flag) {
       normals = new float[3 * count];
@@ -476,7 +480,8 @@ for (int i=0; i<vertexCount; i++) {
       }
       if (color_flag) {
         byte[] b = arrays[i].colors;
-        for (int j=0; j<3*arrays[i].vertexCount; j++) {
+        // WLH 4 Feb 2004 - fix for kevin.manross3.txt
+        for (int j=0; j<b.length; j++) {
           colors[kc++] = b[j];
         }
       }
