@@ -1569,4 +1569,23 @@ public class DataUtility {
     return sample;
   }
 
+  /**
+   * Gets the units of the (flat) components of the range of a FlatField.
+   *
+   * @param field             The FlatField.
+   * @return                  The units of the (flat) components of the
+   *                          range of the FlatField.  Won't be
+   *                          <code>null</code>.
+   */
+  public static Unit[] getRangeUnits(FlatField field) {
+
+      Unit[][] units  = field.getRangeUnits();
+      Unit[]   result = new Unit[units.length];
+
+      for (int i = result.length; --i >= 0; ) {
+          result[i] = units[i][0];
+      }
+
+      return result;
+  }
 }
