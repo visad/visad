@@ -87,6 +87,8 @@ public class CollectiveBarbManipulation extends Object
   private double outer_time;
   private DataReference curve_ref = null;
 
+  private ConstantMap[] cmaps;
+
   private int azimuth_index;
   private int radial_index;
   private int azimuth_index2;
@@ -138,13 +140,14 @@ public class CollectiveBarbManipulation extends Object
      during manipulation
   */
   public CollectiveBarbManipulation(FieldImpl wf,
-                 DisplayImplJ3D d1, DisplayImplJ3D d2,
+                 DisplayImplJ3D d1, DisplayImplJ3D d2, ConstantMap[] cms,
                  boolean abs, float id, float od, float it, float ot,
                  int sta, boolean need_monitor)
          throws VisADException, RemoteException {
     wind_field = wf;
     display1 = d1;
     display2 = d2;
+    cmaps = cms;
     absolute = abs;
     inner_distance = id;
     outer_distance = od;
@@ -191,8 +194,9 @@ public class CollectiveBarbManipulation extends Object
  
     lat_index = -1;
     lon_index = -1;
-    int tuple_dim = wind_type.getDimension();
+    // int tuple_dim = wind_type.getDimension();
     RealType[] real_types = wind_type.getRealComponents();
+    int tuple_dim = real_types.length;
     for (int i=0; i<tuple_dim; i++) {
       RealType real = real_types[i];
       if (RealType.Latitude.equals(real)) {
@@ -403,7 +407,7 @@ public class CollectiveBarbManipulation extends Object
       stations_ref = new DataReferenceImpl("stations_ref");
       stations_ref.setData(wind_field);
       barb_renderer = new BarbRendererJ3D();
-      display1.addReferences(barb_renderer, stations_ref);
+      display1.addReferences(barb_renderer, stations_ref, constantMaps());
       which_time = -1;
       station_refs = new DataReferenceImpl[nindex];
       barb_manipulation_renderers = new BarbManipulationRendererJ3D[nindex];
@@ -413,7 +417,8 @@ public class CollectiveBarbManipulation extends Object
         station_refs[i].setData(tuples[i][0]);
         which_times[i] = -1;
         barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
-        display1.addReferences(barb_manipulation_renderers[i], station_refs[i]);
+        display1.addReferences(barb_manipulation_renderers[i], station_refs[i],
+                               constantMaps());
         barb_monitors[i] = new BarbMonitor(station_refs[i], i);
         barb_monitors[i].addReference(station_refs[i]);
       }
@@ -505,7 +510,8 @@ public class CollectiveBarbManipulation extends Object
         else {
           barb_manipulation_renderers2[i] = new BarbManipulationRendererJ3D();
         }
-        display2.addReferences(barb_manipulation_renderers2[i], time_refs[i]);
+        display2.addReferences(barb_manipulation_renderers2[i], time_refs[i],
+                               constantMaps());
         barb_monitors2[i] = new BarbMonitor2(time_refs[i], i);
         barb_monitors2[i].addReference(time_refs[i]);
       }
@@ -516,6 +522,16 @@ public class CollectiveBarbManipulation extends Object
         time_refs[i].setData(tuples2[station][i]);
       }
     }
+  }
+
+  private ConstantMap[] constantMaps() {
+    if (cmaps == null || cmaps.length == 0) return null;
+    int n = cmaps.length;
+    ConstantMap[] cms = new ConstantMap[n];
+    for (int i=0; i<n; i++) {
+      cms[i] = (ConstantMap) cmaps[i].clone();
+    }
+    return cms;
   }
 
   /** called by the application to end manipulation;
@@ -530,7 +546,7 @@ public class CollectiveBarbManipulation extends Object
         barb_monitors[i].stop();
       }
       barb_renderer = new BarbRendererJ3D();
-      display1.addReferences(barb_renderer, stations_ref);
+      display1.addReferences(barb_renderer, stations_ref, constantMaps());
     }
     if (display2 != null && time_refs != null) {
       int n = time_refs.length;
@@ -951,8 +967,13 @@ public class CollectiveBarbManipulation extends Object
       }
     }
 
+    ConstantMap[] cmaps = {
+      new ConstantMap(1.0, Display.Red),
+      new ConstantMap(0.0, Display.Green),
+      new ConstantMap(0.0, Display.Blue)};
+
     final CollectiveBarbManipulation cbm =
-      new CollectiveBarbManipulation(field, display1, display2, false,
+      new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
                                      0.0f, 1000000.0f, 0.0f, 1000.0f,
                                      0, false);
 

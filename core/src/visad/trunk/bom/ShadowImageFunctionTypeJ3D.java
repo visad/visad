@@ -153,169 +153,240 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       // check that range is single RealType mapped to RGB only
       ShadowRealType[] RangeComponents = adaptedShadowType.getRangeComponents();
-      Vector mvector = RangeComponents[0].getSelectedMapVector();
-      if (mvector.size() != 1) {
-        throw new BadMappingException("image values must be mapped to RGB only");
+      int rangesize = RangeComponents.length;
+      if (rangesize != 1 && rangesize != 3) {
+        throw new BadMappingException("image values must single or triple");
       }
-      ScalarMap cmap = (ScalarMap) mvector.elementAt(0);
-      int color_length;
-      if (Display.RGB.equals(cmap.getDisplayScalar())) {
-        color_length = 3;
-      }
-      else if (Display.RGBA.equals(cmap.getDisplayScalar())) {
-        color_length = 4;
+      ScalarMap cmap  = null;
+      ScalarMap[] cmaps = null;
+      int[] permute = {-1, -1, -1};
+      int color_length = 3;
+      if (rangesize == 1) {
+        Vector mvector = RangeComponents[0].getSelectedMapVector();
+        if (mvector.size() != 1) {
+          throw new BadMappingException("image values must be mapped to RGB only");
+        }
+        cmap = (ScalarMap) mvector.elementAt(0);
+        if (Display.RGB.equals(cmap.getDisplayScalar())) {
+          color_length = 3;
+        }
+        else if (Display.RGBA.equals(cmap.getDisplayScalar())) {
+          color_length = 4;
+        }
+        else {
+          throw new BadMappingException("image values must be mapped to RGB or RGBA");
+        }
       }
       else {
-        throw new BadMappingException("image values must be mapped to RGB or RGBA");
+        cmaps = new ScalarMap[3];
+        for (int i=0; i<3; i++) {
+          Vector mvector = RangeComponents[i].getSelectedMapVector();
+          if (mvector.size() != 1) {
+            throw new BadMappingException("image values must be mapped to color only");
+          }
+          cmaps[i] = (ScalarMap) mvector.elementAt(0);
+          if (Display.Red.equals(cmap.getDisplayScalar())) {
+            permute[0] = i;
+          }
+          else if (Display.Green.equals(cmap.getDisplayScalar())) {
+            permute[1] = i;
+          }
+          else if (Display.Blue.equals(cmap.getDisplayScalar())) {
+            permute[2] = i;
+          }
+          else {
+            throw new BadMappingException("image values must be mapped to Red, " +
+                                          "Green or Blue only");
+          }
+        }
+        if (permute[0] < 0 || permute[1] < 0 || permute[2] < 0) {
+          throw new BadMappingException("image values must be mapped to Red, " +
+                                        "Green and Blue");
+        }
       }
+
       constant_alpha =
         default_values[display.getDisplayScalarIndex(Display.Alpha)];
 
-      // build texture colors in color_ints array
-      BaseColorControl control = (BaseColorControl) cmap.getControl();
-      float[][] table = control.getTable();
-      byte[][] bytes = null;
-      Set rset = null;
-      boolean is_default_unit = false;
-      if (data instanceof FlatField) {
-        // for fast byte color lookup, need:
-        // 1. range data values are packed in bytes
-        bytes = ((FlatField) data).grabBytes();
-        // 2. range set is Linear1DSet
-        Set[] rsets = ((FlatField) data). getRangeSets();
-        if (rsets != null) rset = rsets[0];
-        // 3. data Unit equals default Unit
-        RealType rtype = (RealType) RangeComponents[0].getType();
-        Unit def_unit = rtype.getDefaultUnit();
-        if (def_unit == null) {
-          is_default_unit = true;
-        }
-        else {
-          Unit[][] data_units = ((FlatField) data).getRangeUnits();
-          Unit data_unit = (data_units == null) ? null : data_units[0][0];
-          is_default_unit = def_unit.equals(data_unit);
-        }
-      }
       int[] color_ints = new int[domain_length];
-      if (table != null) {
-        // combine color table RGB components into ints
-        int[] itable = new int[table[0].length];
-        // int r, g, b, a = 255;
-        int r, g, b;
-        int c = (int) (255.0 * (1.0f - constant_alpha));
-        int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-        for (int j=0; j<table[0].length; j++) {
-          c = (int) (255.0 * table[0][j]);
-          r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-          c = (int) (255.0 * table[1][j]);
-          g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-          c = (int) (255.0 * table[2][j]);
-          b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-          if (color_length == 4) {
-            c = (int) (255.0 * table[3][j]);
-            a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+      if (cmap != null) {
+        // build texture colors in color_ints array
+        BaseColorControl control = (BaseColorControl) cmap.getControl();
+        float[][] table = control.getTable();
+        byte[][] bytes = null;
+        Set rset = null;
+        boolean is_default_unit = false;
+        if (data instanceof FlatField) {
+          // for fast byte color lookup, need:
+          // 1. range data values are packed in bytes
+          bytes = ((FlatField) data).grabBytes();
+          // 2. range set is Linear1DSet
+          Set[] rsets = ((FlatField) data). getRangeSets();
+          if (rsets != null) rset = rsets[0];
+          // 3. data Unit equals default Unit
+          RealType rtype = (RealType) RangeComponents[0].getType();
+          Unit def_unit = rtype.getDefaultUnit();
+          if (def_unit == null) {
+            is_default_unit = true;
           }
-          itable[j] = ((a << 24) | (r << 16) | (g << 8) | b);
+          else {
+            Unit[][] data_units = ((FlatField) data).getRangeUnits();
+            Unit data_unit = (data_units == null) ? null : data_units[0][0];
+            is_default_unit = def_unit.equals(data_unit);
+          }
         }
-        int tblEnd = table[0].length - 1;
-        // get scale for color table
-        double table_scale = (double) table[0].length;
-
-        if (bytes != null && bytes[0] != null && is_default_unit &&
-            rset != null && rset instanceof Linear1DSet) {
-          // fast since FlatField with bytes, data Unit equals default
-          // Unit and range set is Linear1DSet
-          // get "scale and offset" for Linear1DSet
-          double first = ((Linear1DSet) rset).getFirst();
-          double step = ((Linear1DSet) rset).getStep();
-          // get scale and offset for ScalarMap
-          double[] so = new double[2];
-          double[] da = new double[2];
-          double[] di = new double[2];
-          cmap.getScale(so, da, di);
-          double scale = so[0];
-          double offset = so[1];
-          // combine scales and offsets for Set, ScalarMap and color table
-          float mult = (float) (table_scale * scale * step);
-          float add = (float) (table_scale * (offset + scale * first));
-
-          // build table for fast color lookup
-          int[] fast_table = new int[256];
-          for (int j=0; j<256; j++) {
-            int index = j - 1;
-            if (index < 0) {
-              fast_table[j] = 0; // missing
+        if (table != null) {
+          // combine color table RGB components into ints
+          int[] itable = new int[table[0].length];
+          // int r, g, b, a = 255;
+          int r, g, b;
+          int c = (int) (255.0 * (1.0f - constant_alpha));
+          int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+          for (int j=0; j<table[0].length; j++) {
+            c = (int) (255.0 * table[0][j]);
+            r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            c = (int) (255.0 * table[1][j]);
+            g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            c = (int) (255.0 * table[2][j]);
+            b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            if (color_length == 4) {
+              c = (int) (255.0 * table[3][j]);
+              a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
             }
-            else {
-              int k = (int) (add + mult * index);
-              // clip to table
-              fast_table[j] =
-                (k < 0) ? itable[0] : ((k > tblEnd) ? itable[tblEnd] : itable[k]);
+            itable[j] = ((a << 24) | (r << 16) | (g << 8) | b);
+          }
+          int tblEnd = table[0].length - 1;
+          // get scale for color table
+          double table_scale = (double) table[0].length;
+  
+          if (bytes != null && bytes[0] != null && is_default_unit &&
+              rset != null && rset instanceof Linear1DSet) {
+            // fast since FlatField with bytes, data Unit equals default
+            // Unit and range set is Linear1DSet
+            // get "scale and offset" for Linear1DSet
+            double first = ((Linear1DSet) rset).getFirst();
+            double step = ((Linear1DSet) rset).getStep();
+            // get scale and offset for ScalarMap
+            double[] so = new double[2];
+            double[] da = new double[2];
+            double[] di = new double[2];
+            cmap.getScale(so, da, di);
+            double scale = so[0];
+            double offset = so[1];
+            // combine scales and offsets for Set, ScalarMap and color table
+            float mult = (float) (table_scale * scale * step);
+            float add = (float) (table_scale * (offset + scale * first));
+  
+            // build table for fast color lookup
+            int[] fast_table = new int[256];
+            for (int j=0; j<256; j++) {
+              int index = j - 1;
+              if (index < 0) {
+                fast_table[j] = 0; // missing
+              }
+              else {
+                int k = (int) (add + mult * index);
+                // clip to table
+                fast_table[j] =
+                  (k < 0) ? itable[0] : ((k > tblEnd) ? itable[tblEnd] : itable[k]);
+              }
             }
+  
+            // now do fast lookup from byte values to color ints
+            byte[] bytes0 = bytes[0];
+            for (int i=0; i<domain_length; i++) {
+              color_ints[i] = fast_table[((int) bytes0[i]) - MISSING1];
+            }
+            bytes = null; // take out the garbage
           }
-
-          // now do fast lookup from byte values to color ints
-          byte[] bytes0 = bytes[0];
-          for (int i=0; i<domain_length; i++) {
-            color_ints[i] = fast_table[((int) bytes0[i]) - MISSING1];
+          else {
+            // medium speed way to build texture colors
+            bytes = null; // take out the garbage
+            float[][] values = ((Field) data).getFloats(false);
+            values[0] = cmap.scaleValues(values[0]);
+  
+            // now do fast lookup from byte values to color ints
+            float[] values0 = values[0];
+            for (int i=0; i<domain_length; i++) {
+              if (values0[i] != values0[i]) {
+                color_ints[i] = 0; // missing
+              }
+              else {
+                int j = (int) (table_scale * values0[i]);
+                // clip to table
+                color_ints[i] =
+                  (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
+              }
+            }
+            values = null; // take out the garbage
           }
-          bytes = null; // take out the garbage
         }
-        else {
-          // medium speed way to build texture colors
+        else { // if (table == null)
+          // slower, more general way to build texture colors
           bytes = null; // take out the garbage
           float[][] values = ((Field) data).getFloats(false);
           values[0] = cmap.scaleValues(values[0]);
-
-          // now do fast lookup from byte values to color ints
-          float[] values0 = values[0];
+          // call lookupValues which will use function since table == null
+          float[][] color_values = control.lookupValues(values[0]);
+          // combine color RGB components into ints
+          // int r, g, b, a = 255;
+          int r, g, b;
+          int c = (int) (255.0 * (1.0f - constant_alpha));
+          int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
           for (int i=0; i<domain_length; i++) {
-            if (values0[i] != values0[i]) {
+            if (values[0][i] != values[0][i]) {
               color_ints[i] = 0; // missing
             }
             else {
-              int j = (int) (table_scale * values0[i]);
-              // clip to table
-              color_ints[i] =
-                (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
+              c = (int) (255.0 * color_values[0][i]);
+              r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              c = (int) (255.0 * color_values[1][i]);
+              g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              c = (int) (255.0 * color_values[2][i]);
+              b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              if (color_length == 4) {
+                c = (int) (255.0 * color_values[3][i]);
+                a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              }
+              color_ints[i] = ((a << 24) | (r << 16) | (g << 8) | b);
             }
           }
-          values = null; // take out the garbage
+          // take out the garbage
+          values = null;
+          color_values = null;
         }
       }
-      else { // if (table == null)
-        // slower, more general way to build texture colors
-        bytes = null; // take out the garbage
+      else if (cmaps != null) {
         float[][] values = ((Field) data).getFloats(false);
-        values[0] = cmap.scaleValues(values[0]);
-        // call lookupValues which will use function since table == null
-        float[][] color_values = control.lookupValues(values[0]);
-        // combine color RGB components into ints
-        // int r, g, b, a = 255;
+        float[][] new_values = new float[3][];
+        new_values[0] = cmaps[permute[0]].scaleValues(values[permute[0]]);
+        new_values[1] = cmaps[permute[1]].scaleValues(values[permute[1]]);
+        new_values[2] = cmaps[permute[2]].scaleValues(values[permute[2]]);
+        values = new_values;
         int r, g, b;
         int c = (int) (255.0 * (1.0f - constant_alpha));
         int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
         for (int i=0; i<domain_length; i++) {
-          if (values[0][i] != values[0][i]) {
+          if (values[0][i] != values[0][i] ||
+              values[1][i] != values[1][i] ||
+              values[2][i] != values[2][i]) {
             color_ints[i] = 0; // missing
           }
           else {
-            c = (int) (255.0 * color_values[0][i]);
+            c = (int) (255.0 * values[0][i]);
             r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-            c = (int) (255.0 * color_values[1][i]);
+            c = (int) (255.0 * values[1][i]);
             g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-            c = (int) (255.0 * color_values[2][i]);
+            c = (int) (255.0 * values[2][i]);
             b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-            if (color_length == 4) {
-              c = (int) (255.0 * color_values[3][i]);
-              a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-            }
             color_ints[i] = ((a << 24) | (r << 16) | (g << 8) | b);
           }
         }
         // take out the garbage
         values = null;
-        color_values = null;
+      }
+      else {
+        throw new BadMappingException("cmap == null and cmaps == null ??");
       }
 
 // System.out.println("end colors " + (System.currentTimeMillis() - link.start_time));

@@ -56,6 +56,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   // MathTypes that data must equalsExceptNames()
   private MathType image_sequence_type, image_type;
   private MathType image_sequence_type2, image_type2;
+  private MathType image_sequence_type3, image_type3;
 
   // flag to indicate:
   // 1. That the images in a new time sequence are identical to
@@ -75,6 +76,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       image_type2 =
         MathType.stringToType("((ImageElement, ImageLine) -> (ImageValue))");
       image_sequence_type2 = new FunctionType(RealType.Time, image_type2);
+      image_type3 =
+        MathType.stringToType("((ImageElement, ImageLine) -> (Red, Green, Blue))");
+      image_sequence_type3 = new FunctionType(RealType.Time, image_type3);
     }
     catch (VisADException e) {
       throw new VisADError(e.getMessage());
@@ -139,10 +143,12 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       // image or a sequence of single-band images
       MathType mtype = link.getType();
       if (image_sequence_type.equalsExceptName(mtype) ||
-          image_sequence_type2.equalsExceptName(mtype)) {
+          image_sequence_type2.equalsExceptName(mtype) ||
+          image_sequence_type3.equalsExceptName(mtype)) {
       }
       else if (image_type.equalsExceptName(mtype) ||
-               image_type2.equalsExceptName(mtype)) {
+               image_type2.equalsExceptName(mtype) ||
+               image_type3.equalsExceptName(mtype)) {
       }
       else {
         reUseFrames = false;
