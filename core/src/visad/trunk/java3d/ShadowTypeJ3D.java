@@ -154,7 +154,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       default_values are defaults for each display.DisplayRealTypeVector;
       return true if need post-process;
       this is default (for ShadowTextType) */
-  public boolean doTransform(Group group, Data data, float[] value_array,
+  public boolean doTransform(Object group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)
           throws VisADException, RemoteException {
     return false;
@@ -162,7 +162,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Group group) throws VisADException { // J3D
+  void postProcess(Object group) throws VisADException {
   }
 
 
@@ -345,7 +345,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
            valueArrayLength, valueToScalar, display, shadow_api);
   }
 
-  public boolean terminalTupleOrScalar(Group group, float[][] display_values,
+  public boolean terminalTupleOrScalar(Object group, float[][] display_values,
                                 String text_value, TextControl text_control,
                                 int valueArrayLength, int[] valueToScalar,
                                 float[] default_values, int[] inherited_values,
@@ -361,7 +361,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /** this is a work-around for the NullPointerException at
       javax.media.j3d.Shape3DRetained.setLive(Shape3DRetained.java:448) */
-  public void ensureNotEmpty(Group group) {
+  public void ensureNotEmpty(Object obj) {
+    if (!(obj instanceof Group)) return;
+    Group group = (Group) obj;
     if (group.numChildren() > 0) return;
     GeometryArray geometry =
       new PointArray(1, GeometryArray.COORDINATES | GeometryArray.COLOR_3);

@@ -65,7 +65,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   }
 
   // transform data into a depiction under group
-  public boolean doTransform(Group group, Data data, float[] value_array,
+  public boolean doTransform(Object group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
@@ -857,7 +857,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       boolean[] old_mark = null;
       int old_len = 0;
       boolean reuse = ((ImageRendererJ3D) renderer).getReUseFrames();
-      if (((BranchGroup) group).numChildren() > 0) {
+      if (group instanceof BranchGroup &&
+          ((BranchGroup) group).numChildren() > 0) {
         Node g = ((BranchGroup) group).getChild(0);
         if (g instanceof Switch) {
           old_swit = (Switch) g;
@@ -885,7 +886,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             }
           }
         }
-      }
+      } // end if (((BranchGroup) group).numChildren() > 0)
 
       // create frames for new scene graph
       // Set aset = control.getSet();
@@ -944,7 +945,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
       }
       // make sure group is live
-      ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
+      if (group instanceof BranchGroup) {
+        ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
+      }
       // change animation sampling, but don't trigger re-transform
       if (((ImageRendererJ3D) renderer).getReUseFrames()) {
         control.setSet(domain_set, true);

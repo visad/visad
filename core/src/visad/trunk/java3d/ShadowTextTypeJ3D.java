@@ -56,7 +56,7 @@ public class ShadowTextTypeJ3D extends ShadowScalarTypeJ3D {
 
   /** transform data into a Java3D scene graph;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, float[] value_array,
+  public boolean doTransform(Object group, Data data, float[] value_array,
                       float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
     boolean post = ((ShadowTextType) adaptedShadowType).
@@ -68,15 +68,10 @@ public class ShadowTextTypeJ3D extends ShadowScalarTypeJ3D {
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Group group) throws VisADException {
+  void postProcess(Object group) throws VisADException {
     if (adaptedShadowType.getIsTerminal()) {
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
-/*
-        Group data_group = null;
-        // transform AccumulationVector
-        group.addChild(data_group);
-*/
         throw new UnimplementedException("terminal LEGAL unimplemented: " +
                                          "ShadowTextTypeJ3D.postProcess");
       }

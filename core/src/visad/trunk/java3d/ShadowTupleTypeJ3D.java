@@ -87,7 +87,7 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
 
   /** transform data into a Java3D scene graph;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, float[] value_array,
+  public boolean doTransform(Object group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
     boolean post = ((ShadowTupleType) adaptedShadowType).
@@ -100,21 +100,16 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
   public boolean recurseComponent(int i, Object group, Data data,
              float[] value_array, float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
-    return tupleComponents[i].doTransform((Group) group, data, value_array,
+    return tupleComponents[i].doTransform(group, data, value_array,
                                           default_values, renderer);
   }
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  public void postProcess(Group group) throws VisADException {
+  public void postProcess(Object group) throws VisADException {
     if (adaptedShadowType.getIsTerminal()) {
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
-/*
-        Group data_group = null;
-        // transform AccumulationVector
-        group.addChild(data_group);
-*/
         throw new UnimplementedException("terminal LEGAL unimplemented: " +
                                          "ShadowTupleTypeJ3D.postProcess");
       }

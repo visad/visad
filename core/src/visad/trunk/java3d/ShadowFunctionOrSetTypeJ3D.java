@@ -94,7 +94,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       value_array are inherited valueArray values;
       default_values are defaults for each display.DisplayRealTypeVector;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, float[] value_array,
+  public boolean doTransform(Object group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
@@ -934,7 +934,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   public boolean recurseRange(Object group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
-    return Range.doTransform((Group) group, data, value_array,
+    return Range.doTransform(group, data, value_array,
                              default_values, renderer);
   }
 
@@ -948,15 +948,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  public void postProcess(Group group) throws VisADException {
+  public void postProcess(Object group) throws VisADException {
     if (((ShadowFunctionOrSetType) adaptedShadowType).getFlat()) {
       int LevelOfDifficulty = getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
-/*
-        Group data_group = null;
-        // transform AccumulationVector
-        group.addChild(data_group);
-*/
         throw new UnimplementedException("terminal LEGAL unimplemented: " +
                                          "ShadowFunctionOrSetTypeJ3D.postProcess");
       }
