@@ -149,6 +149,16 @@ public abstract class DisplayRendererJ3D
   public void destroy() {
     if (canvas != null) canvas.stop();
     if (mouse != null) mouse.destroy();
+    if (root != null) {
+      root.detach();
+      root = null;
+    }
+    trans = null;
+    vpTrans = null;
+    non_direct = null;
+    view = null;
+    canvas = null;
+    directs = null;
   }
 
   /**
@@ -440,6 +450,7 @@ public abstract class DisplayRendererJ3D
     canvas = c;
     // Create the root of the branch graph
     root = new BranchGroup();
+    root.setCapability(BranchGroup.ALLOW_DETACH);
     root.setCapability(Group.ALLOW_CHILDREN_READ);
     root.setCapability(Group.ALLOW_CHILDREN_WRITE);
     root.setCapability(Group.ALLOW_CHILDREN_EXTEND);
