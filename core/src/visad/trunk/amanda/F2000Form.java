@@ -555,15 +555,16 @@ System.out.println("IOException " + e.getMessage());
       System.out.println("  'java visad.amanda.F2000Form in_file'");
     }
     F2000Form form = new F2000Form();
-    Data amanda = null;
+    Data temp = null;
     if (args[0].startsWith("http://")) {
       // with "ftp://" this throws "sun.net.ftp.FtpProtocolException: RETR ..."
       URL url = new URL(args[0]);
-      amanda = form.open(url);
+      temp = form.open(url);
     }
     else {
-      amanda = form.open(args[0]);
+      temp = form.open(args[0]);
     }
+    final Data amanda = temp;
     DisplayImpl display = new DisplayImplJ3D("amanda");
     ScalarMap xmap = new ScalarMap(x, Display.XAxis);
     display.addMap(xmap);
@@ -574,8 +575,8 @@ System.out.println("IOException " + e.getMessage());
     ScalarMap zmap = new ScalarMap(z, Display.ZAxis);
     display.addMap(zmap);
     zmap.setRange(form.zmin, form.zmax);
-    ScalarMap eventmap = new ScalarMap(event_index, Display.SelectValue);
-    display.addMap(eventmap);
+    // ScalarMap eventmap = new ScalarMap(event_index, Display.SelectValue);
+    // display.addMap(eventmap);
     ScalarMap trackmap = new ScalarMap(track_index, Display.SelectValue);
     display.addMap(trackmap);
     // ScalarMap energymap = new ScalarMap(energy, Display.RGB);
@@ -661,12 +662,28 @@ System.out.println("IOException " + e.getMessage());
     // SelectValue bug?
     // amanda = ((FieldImpl) amanda).getSample(99);
 
-    DataReferenceImpl amanda_ref = new DataReferenceImpl("amanda");
-    amanda_ref.setData(amanda);
+    final DataReferenceImpl amanda_ref = new DataReferenceImpl("amanda");
+    // amanda_ref.setData(amanda);
     display.addReference(amanda_ref);
 
 System.out.println("amanda MathType\n" + amanda.getType());
-visad.jmet.DumpType.dumpDataType(amanda, System.out);
+// visad.jmet.DumpType.dumpDataType(amanda, System.out);
+
+
+    final DataReference event_ref = new DataReferenceImpl("event");
+    VisADSlider event_slider = new VisADSlider("event", 0, 99, 0, 1.0,
+                                               event_ref, event_index);
+    Cell cell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        int index = (int) ((Real) event_ref.getData()).getValue();
+        if (index < 0) index = 0;
+        else if (index > 99) index = 99;
+        amanda_ref.setData(((FieldImpl) amanda).getSample(index));
+      }
+    };
+    // link cell to hour_ref to trigger doAction whenever
+    // 'hour' value changes
+    cell.addReference(event_ref);
 
     JFrame frame = new JFrame("VisAD AERI Viewer");
     frame.addWindowListener(new WindowAdapter() {
@@ -693,8 +710,9 @@ visad.jmet.DumpType.dumpDataType(amanda, System.out);
     widget_panel.add(let_widget);
     d = new Dimension(400, 250);
     let_widget.setMaximumSize(d);
-    widget_panel.add(new VisADSlider(eventmap));
+    // widget_panel.add(new VisADSlider(eventmap));
     widget_panel.add(new VisADSlider(trackmap));
+    widget_panel.add(event_slider);
     d = new Dimension(400, 600);
     widget_panel.setMaximumSize(d);
     panel.add(widget_panel);
