@@ -91,11 +91,25 @@ public class VisADCanvasJ2D extends JPanel
 
     width = getSize().width;
     height = getSize().height;
+
+    if (width <= 0) width = 1;
+    if (height <= 0) height = 1;
+
     length = 1;
     images = new BufferedImage[] {(BufferedImage) createImage(width, height)};
     aux_image = createImage(width, height);
     valid_images = new boolean[] {false};
-    tgeometry = null;
+
+    int w = width;
+    int h = height;
+    AffineTransform trans = displayRenderer.getTrans();
+    tgeometry = new AffineTransform();
+    tgeometry.setToTranslation(0.5 * w, 0.5 * h);
+    AffineTransform s1 = new AffineTransform();
+    int wh = (w < h) ? w : h;
+    s1.setToScale(0.33 * wh, 0.33 * wh);
+    tgeometry.concatenate(s1);
+    tgeometry.concatenate(trans);
 
     ComponentListener cl = new ComponentAdapter() {
       public void componentResized(ComponentEvent e) {
@@ -108,6 +122,13 @@ public class VisADCanvasJ2D extends JPanel
     setForeground(Color.white);
 
     new Delay();
+
+    if (images[0] == null) {
+      images =
+        new BufferedImage[] {(BufferedImage) createImage(width, height)};
+      aux_image = createImage(width, height);
+      valid_images = new boolean[] {false};
+    }
 
     renderThread = new Thread(this);
     renderThread.start();
@@ -131,7 +152,15 @@ public class VisADCanvasJ2D extends JPanel
       {new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)};
     aux_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     valid_images = new boolean[] {false};
-    tgeometry = null;
+
+    AffineTransform trans = displayRenderer.getTrans();
+    tgeometry = new AffineTransform();
+    tgeometry.setToTranslation(0.5 * w, 0.5 * h);
+    AffineTransform s1 = new AffineTransform();
+    int wh = (w < h) ? w : h;
+    s1.setToScale(0.33 * wh, 0.33 * wh);
+    tgeometry.concatenate(s1);
+    tgeometry.concatenate(trans);
 
     setBackground(Color.black);
     setForeground(Color.white);
@@ -309,6 +338,17 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
   public void run() {
     Thread me = Thread.currentThread();
     while (renderThread == me) {
+      if (component != null) {
+        Graphics g = getGraphics();
+        if (g != null) {
+          paintComponent(g);
+          g.dispose();
+        }
+      }
+      else {
+        paintComponent(null);
+      }
+
       try {
         synchronized (this) {
           if (!wakeup) {
@@ -322,16 +362,6 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
       }
       synchronized (this) {
         wakeup = false;
-      }
-      if (component != null) {
-        Graphics g = getGraphics();
-        if (g != null) {
-          paintComponent(g);
-          g.dispose();
-        }
-      }
-      else {
-        paintComponent(null);
       }
     }
   }
@@ -361,6 +391,10 @@ System.out.println("VisADCanvasJ2D.paint: current = " + current_image +
     synchronized (images) {
       if (0 <= current_image && current_image < length) {
         image = images[current_image];
+        if (image == null) {
+          createImages(-1);
+          image = images[current_image];
+        }
         valid = valid_images[current_image];
         w = width;
         h = height;
@@ -370,6 +404,7 @@ System.out.println("VisADCanvasJ2D.paint: current = " + current_image +
         }
       }
     }
+
 /*
 System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
                    " length = " + length + " w, h = " + w + " " + h +
