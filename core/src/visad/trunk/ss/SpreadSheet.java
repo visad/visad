@@ -82,6 +82,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
   int NumVisY;
   int NumVisDisplays;
 
+  // whether this JVM supports Java3D (detected on SpreadSheet launch)
+  boolean CanDo3D = true;
+
+  // whether cells should automatically switch dimensions and detect mappings
+  boolean AutoSwitch3D = true;
+  boolean AutoMap = true;
+
   // display-related arrays and variables
   Panel DisplayPanel;
   JPanel ScrollPanel;
@@ -96,8 +103,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   JButton ToolPaste;
   JButton FormulaOk;
   CheckboxMenuItem CellDim3D3D, CellDim2D2D, CellDim2D3D;
-  CheckboxMenuItem CellAuto;
-  CheckboxMenuItem WinFormula;
+  CheckboxMenuItem OptSwitch, OptAuto, OptFormula;
   int CurDisplay = 0;
 
   String Clipboard = null;
@@ -134,6 +140,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     });
     setBackground(Color.white);
+
+    // test for Java3D availability
+    try {
+      DisplayImplJ3D test = new DisplayImplJ3D("test");
+    }
+    catch (UnsatisfiedLinkError err) {
+      CanDo3D = false;
+    }
+    catch (VisADException exc) {
+      CanDo3D = false;
+    }
+    catch (RemoteException exc) {
+      CanDo3D = false;
+    }
 
     // set up the content pane
     JPanel pane = new JPanel();
@@ -225,35 +245,42 @@ public class SpreadSheet extends JFrame implements ActionListener,
     disp.add(dispEdit);
     disp.addSeparator();
 
-    CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)");
+    CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", CanDo3D);
     CellDim3D3D.addItemListener(this);
+    CellDim3D3D.setEnabled(CanDo3D);
     disp.add(CellDim3D3D);
 
-    CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)", true);
+    CellDim2D2D = new CheckboxMenuItem("2-D (Java2D)", !CanDo3D);
     CellDim2D2D.addItemListener(this);
     disp.add(CellDim2D2D);
 
-    CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)");
+    CellDim2D3D = new CheckboxMenuItem("2-D (Java3D)", false);
     CellDim2D3D.addItemListener(this);
+    CellDim3D3D.setEnabled(CanDo3D);
     disp.add(CellDim2D3D);
-    disp.addSeparator();
 
-    CellAuto = new CheckboxMenuItem("Auto-detect mappings", true);
-    CellAuto.addItemListener(this);
-    disp.add(CellAuto);
+    // options menu
+    Menu options = new Menu("Options");
+    menubar.add(options);
 
-    // window menu
-    Menu window = new Menu("Window");
-    menubar.add(window);
+    OptSwitch = new CheckboxMenuItem("Auto-switch to 3-D", CanDo3D);
+    OptSwitch.addItemListener(this);
+    OptSwitch.setEnabled(CanDo3D);
+    options.add(OptSwitch);
 
-    MenuItem winWidget = new MenuItem("Show VisAD controls");
-    winWidget.addActionListener(this);
-    winWidget.setActionCommand("winWidget");
-    window.add(winWidget);
+    OptAuto = new CheckboxMenuItem("Auto-detect mappings", true);
+    OptAuto.addItemListener(this);
+    options.add(OptAuto);
 
-    WinFormula = new CheckboxMenuItem("Show formula error messages", true);
-    WinFormula.addItemListener(this);
-    window.add(WinFormula);
+    OptFormula = new CheckboxMenuItem("Show formula error messages", true);
+    OptFormula.addItemListener(this);
+    options.add(OptFormula);
+    options.addSeparator();
+
+    MenuItem optWidget = new MenuItem("Show VisAD controls");
+    optWidget.addActionListener(this);
+    optWidget.setActionCommand("optWidget");
+    options.add(optWidget);
 
     // set up toolbar
     URL url;
@@ -340,7 +367,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       b.setAlignmentY(JButton.CENTER_ALIGNMENT);
       b.setToolTipText("Show VisAD controls");
       b.addActionListener(this);
-      b.setActionCommand("winWidget");
+      b.setActionCommand("optWidget");
       toolbar.add(b);
     }
     toolbar.add(Box.createHorizontalGlue());
@@ -560,6 +587,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       try {
         DisplayCells[i] = new FancySSCell(name, this);
         DisplayCells[i].addMouseListener(this);
+        DisplayCells[i].setAutoSwitch(CanDo3D);
+        DisplayCells[i].setDimension(!CanDo3D, !CanDo3D);
         DisplayCells[i].setDisplayListener(this);
         DisplayCells[i].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
                                                        MIN_VIS_HEIGHT));
@@ -616,7 +645,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("dispEdit")) createMappings();
 
     // window menu commands
-    else if (cmd.equals("winWidget")) {
+    else if (cmd.equals("optWidget")) {
       DisplayCells[CurDisplay].showWidgetFrame();
     }
 
@@ -901,7 +930,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (dim == BasicSSCell.JAVA3D_2D) CellDim2D3D.setState(true);
     else CellDim2D3D.setState(false);
     // update auto-detect check mark
-    CellAuto.setState(DisplayCells[CurDisplay].getAutoDetect());
+    OptAuto.setState(DisplayCells[CurDisplay].getAutoDetect());
   }
 
   /** Handles checkbox menu item changes (dimension checkboxes) */
@@ -923,9 +952,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
       else if (item.equals("2-D (Java3D)")) {
         DisplayCells[CurDisplay].setDimension(true, false);
       }
+      else if (item.equals("Auto-switch to 3-D")) {
+        boolean b = e.getStateChange() == ItemEvent.SELECTED;
+        for (int i=0; i<NumVisDisplays; i++) DisplayCells[i].setAutoSwitch(b);
+      }
       else if (item.equals("Auto-detect mappings")) {
-        DisplayCells[CurDisplay].setAutoDetect(e.getStateChange()
-                                            == ItemEvent.SELECTED);
+        boolean b = e.getStateChange() == ItemEvent.SELECTED;
+        for (int i=0; i<NumVisDisplays; i++) DisplayCells[i].setAutoDetect(b);
       }
       refreshDisplayMenuItems();
     }

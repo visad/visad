@@ -307,7 +307,7 @@ public class BasicSSCell extends JPanel {
 
   /** Sets the BasicSSCell to 2-D or 3-D display with Java2D or Java3D */
   public void setDimension(boolean twoD, boolean java2d)
-                              throws VisADException, RemoteException {
+                           throws VisADException, RemoteException {
     int dim;
     if (!twoD && java2d) return;
     if (!twoD && !java2d) dim = JAVA3D_3D;
@@ -316,15 +316,18 @@ public class BasicSSCell extends JPanel {
     setDimension(dim);
   }
 
-  void setDimension(int dim) throws VisADException, RemoteException {
+  private void setDimension(int dim) throws VisADException, RemoteException {
     if (Dimension2D == dim) return;
     Dimension2D = dim;
     ScalarMap[] maps = null;
     if (VDisplay != null) {
       Vector mapVector = VDisplay.getMapVector();
-      maps = new ScalarMap[mapVector.size()];
-      for (int i=0; i<mapVector.size(); i++) {
-        maps[i] = (ScalarMap) mapVector.elementAt(i);
+      int mvs = mapVector.size();
+      if (mvs > 0) {
+        maps = new ScalarMap[mapVector.size()];
+        for (int i=0; i<mapVector.size(); i++) {
+          maps[i] = (ScalarMap) mapVector.elementAt(i);
+        }
       }
     }
     clearDisplay();

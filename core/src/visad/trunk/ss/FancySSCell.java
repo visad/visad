@@ -47,11 +47,11 @@ public class FancySSCell extends BasicSSCell {
   /** Specifies whether this cell is selected */
   boolean Selected = false;
 
-  /** Specified whether this cell should auto-detect mappings for data */
-  boolean AutoDetect = true;
+  /** Specifies whether this cell should auto-switch to 3-D */
+  boolean AutoSwitch = true;
 
-  /** file dialog box */
-  static FileDialog FileBox;
+  /** Specifies whether this cell should auto-detect mappings for data */
+  boolean AutoDetect = true;
 
   /** constructor */
   public FancySSCell(String name, String info, Frame parent)
@@ -68,6 +68,26 @@ public class FancySSCell extends BasicSSCell {
 
   public FancySSCell(String name) throws VisADException, RemoteException {
     this(name, null, null);
+  }
+
+  /** Switches to 3-D mode if necessary and available, then calls setMaps() */
+  public void setMapsAuto(ScalarMap[] maps) throws VisADException,
+                                                   RemoteException {
+    if (AutoSwitch && maps != null) {
+      int need = 0;
+      for (int i=0; i<maps.length; i++) {
+        DisplayRealType drt = maps[i].getDisplayScalar();
+        if (drt.equals(Display.ZAxis) || drt.equals(Display.Latitude)) {
+          need = 2;
+        }
+        if (drt.equals(Display.Alpha) || drt.equals(Display.RGBA)) {
+          if (need < 1) need = 1;
+        }
+      }
+      // switch to Java3D mode if needed
+      setDimension(need == 1, need == 0);
+    }
+    setMaps(maps);
   }
 
   /** Sets the ScalarMaps for this cell and creates needed control widgets */
@@ -159,17 +179,16 @@ public class FancySSCell extends BasicSSCell {
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
       if (mt != null) {
-        ScalarMap[] smaps = mt.guessMaps(Dimension2D != JAVA2D_2D);
-        setMaps(smaps);
+        boolean allow3D = Dimension2D != JAVA2D_2D || AutoSwitch;
+        setMapsAuto(mt.guessMaps(allow3D));
       }
     }
   }
 
-  /** Sets the dimension for this cell, and re-applies existing ScalarMaps */
+  /** Sets the dimension for this cell */
   public void setDimension(boolean twoD, boolean java2d)
-                              throws VisADException, RemoteException {
+                           throws VisADException, RemoteException {
     super.setDimension(twoD, java2d);
-    // TO DO: RE-APPLY EXISTING SCALAR MAPS HERE
   }
 
   /** Specifies whether the FancySSCell has a blue border or a gray border */
@@ -189,6 +208,16 @@ public class FancySSCell extends BasicSSCell {
       paint(g);
       g.dispose();
     }
+  }
+
+  /** Specifies whether this FancySSCell should auto-switch to 3-D */
+  public void setAutoSwitch(boolean value) {
+    AutoSwitch = value;
+  }
+
+  /** Returns whether this FancySSCell auto-switches to 3-D */
+  public boolean getAutoSwitch() {
+    return AutoSwitch;
   }
 
   /** Specifies whether this FancySSCell should auto-detect its mappings */
@@ -274,7 +303,7 @@ public class FancySSCell extends BasicSSCell {
 
     // set up new mappings
     try {
-      setMaps(mapDialog.ScalarMaps);
+      setMapsAuto(mapDialog.ScalarMaps);
     }
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(Parent,
@@ -323,14 +352,14 @@ public class FancySSCell extends BasicSSCell {
   /** Loads a file selected by the user */
   public void loadDataDialog() {
     // get file name from file dialog
-    if (FileBox == null) FileBox = new FileDialog(Parent);
-    FileBox.setMode(FileDialog.LOAD);
-    FileBox.setVisible(true);
+    FileDialog fileBox = new FileDialog(Parent);
+    fileBox.setMode(FileDialog.LOAD);
+    fileBox.setVisible(true);
 
     // make sure file exists
-    String file = FileBox.getFile();
+    String file = fileBox.getFile();
     if (file == null) return;
-    String directory = FileBox.getDirectory();
+    String directory = fileBox.getDirectory();
     if (directory == null) return;
     File f = new File(directory, file);
     if (!f.exists()) {
@@ -352,14 +381,14 @@ public class FancySSCell extends BasicSSCell {
     }
 
     // get file name from file dialog
-    if (FileBox == null) FileBox = new FileDialog(Parent);
-    FileBox.setMode(FileDialog.SAVE);
-    FileBox.setVisible(true);
+    FileDialog fileBox = new FileDialog(Parent);
+    fileBox.setMode(FileDialog.SAVE);
+    fileBox.setVisible(true);
 
     // make sure file is valid
-    String file = FileBox.getFile();
+    String file = fileBox.getFile();
     if (file == null) return;
-    String directory = FileBox.getDirectory();
+    String directory = fileBox.getDirectory();
     if (directory == null) return;
     File f = new File(directory, file);
 
