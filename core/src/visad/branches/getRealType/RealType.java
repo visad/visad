@@ -714,8 +714,8 @@ public class RealType extends ScalarType {
       throw new NullPointerException();
     /*
      * The following should catch most of the times that an instance with the
-     * given name was previously-created -- without the performance-hit of a
-     * try-block.
+     * given name was previously-created -- without the performance-hit of 
+     * catching an exception.
      */
     RealType rt = getRealTypeByName(name);
     if (rt == null)
@@ -757,8 +757,8 @@ public class RealType extends ScalarType {
       throw new NullPointerException();
     /*
      * The following should catch most of the times that an instance with the
-     * given name was previously-created -- without the performance-hit of a
-     * try-block.
+     * given name was previously-created -- without the performance-hit of 
+     * catching an exception.
      */
     RealType rt = getRealTypeByName(name);
     if (rt != null)
@@ -767,7 +767,7 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if (u == null ? rt.DefaultUnit != null : !u.isConvertible(rt.DefaultUnit))
+      if (!Unit.canConvert(u, rt.DefaultUnit))
         rt = null;
     }
     else
@@ -809,8 +809,8 @@ public class RealType extends ScalarType {
       throw new NullPointerException();
     /*
      * The following should catch most of the times that an instance with the
-     * given name was previously-created -- without the performance-hit of a
-     * try-block.
+     * given name was previously-created -- without the performance-hit of 
+     * catching an exception.
      */
     RealType rt = getRealTypeByName(name);
     if (rt != null)
@@ -861,8 +861,8 @@ public class RealType extends ScalarType {
       throw new NullPointerException();
     /*
      * The following should catch most of the times that an instance with the
-     * given name was previously-created -- without the performance-hit of a
-     * try-block.
+     * given name was previously-created -- without the performance-hit of 
+     * catching an exception.
      */
     RealType rt = getRealTypeByName(name);
     if (rt != null)
@@ -871,9 +871,7 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if ((u == null
-            ? rt.DefaultUnit != null 
-            : !u.isConvertible(rt.DefaultUnit)) ||
+      if (!Unit.canConvert(u, rt.DefaultUnit) ||
           (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)))
       {
         rt = null;
@@ -918,8 +916,8 @@ public class RealType extends ScalarType {
       throw new NullPointerException();
     /*
      * The following should catch most of the times that an instance with the
-     * given name was previously-created -- without the performance-hit of a
-     * try-block.
+     * given name was previously-created -- without the performance-hit of 
+     * catching an exception.
      */
     RealType rt = getRealTypeByName(name);
     if (rt != null)
@@ -928,13 +926,8 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if ((u == null ?
-            rt.DefaultUnit != null 
-            : !u.isConvertible(rt.DefaultUnit)) ||
-          rt.attrMask != attrMask)
-      {
+      if (!Unit.canConvert(u, rt.DefaultUnit) || rt.attrMask != attrMask)
         rt = null;
-      }
     }
     else
     {
@@ -976,8 +969,8 @@ public class RealType extends ScalarType {
       throw new NullPointerException();
     /*
      * The following should catch most of the times that an instance with the
-     * given name was previously-created -- without the performance-hit of a
-     * try-block.
+     * given name was previously-created -- without the performance-hit of 
+     * catching an exception.
      */
     RealType rt = getRealTypeByName(name);
     if (rt != null)
@@ -986,9 +979,7 @@ public class RealType extends ScalarType {
        * Ensure that the previously-created instance conforms to the input
        * arguments.
        */
-      if ((u == null ?
-            rt.DefaultUnit != null 
-            : !u.isConvertible(rt.DefaultUnit)) ||
+      if (!Unit.canConvert(u, rt.DefaultUnit) ||
           (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)) ||
           rt.attrMask != attrMask)
       {
