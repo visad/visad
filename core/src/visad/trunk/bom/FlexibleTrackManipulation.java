@@ -220,7 +220,7 @@ public class FlexibleTrackManipulation extends Object {
         if (ntimes != st.getLength()) change = true;
         if (!change) {
           for (int j=0; j<ntimes; j++) {
-            Real[] reals = ((Tuple) storm_track.getSample(j)).getRealComponents();
+            Real[] reals = ((Tuple) st.getSample(j)).getRealComponents();
             if (!visad.util.Util.isApproximatelyEqual(lats[j],
                            (float) reals[lat_index].getValue()) ||
                 !visad.util.Util.isApproximatelyEqual(lons[j],

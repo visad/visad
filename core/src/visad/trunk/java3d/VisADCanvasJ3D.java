@@ -34,6 +34,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 
+import java.lang.reflect.*;
+
 /**
    VisADCanvasJ3D is the VisAD extension of Canvas3D
 */
@@ -47,6 +49,10 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   boolean captureFlag = false;
   BufferedImage captureImage = null;
+
+  // size of image for off screen rendering
+  private int width;
+  private int height;
 
   private static GraphicsConfiguration defaultConfig = makeConfig();
 
@@ -70,6 +76,48 @@ public class VisADCanvasJ3D extends Canvas3D {
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = c;
+  }
+
+  private static final double METER_RATIO = (0.0254 / 90.0); // from Java3D docs
+
+  /**
+   * Constructor for offscreen rendering.
+   * @param renderer
+   * @param w
+   * @param h
+   */
+  VisADCanvasJ3D(DisplayRendererJ3D renderer, int w, int h)
+      throws VisADException {
+
+    super(defaultConfig);
+    throw new VisADException("For off screen rendering in Java3D\n" +
+           "please edit visad/java3d/VisADCanvasJ3D.java as follows:\n" +
+           "remove or comment-out \"super(defaultConfig);\" and the\n" +
+           "  throw statement for this Exception,\n" +
+           "and un-comment the body of this constructor");
+/*
+    super(defaultConfig, true);
+    width = w;
+    height = h;
+    BufferedImage image =
+      new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    ImageComponent2D image2d =
+      new ImageComponent2D(ImageComponent2D.FORMAT_RGB, image);
+    ImageComponent2D buffer = null;
+    setOffScreenBuffer(buffer);
+    Screen3D screen = getScreen3D();
+    screen.setSize(width, height);
+    double width_in_meters = width * METER_RATIO;
+    double height_in_meters = height * METER_RATIO;
+    screen.setPhysicalScreenWidth(width_in_meters);
+    screen.setPhysicalScreenHeight(height_in_meters);
+*/
+/*
+would like to use reflection to invoke:
+public Canvas3D(java.awt.GraphicsConfiguration graphicsConfiguration,
+                boolean offScreen)
+*/
+
   }
 
   public void renderField(int i) {
