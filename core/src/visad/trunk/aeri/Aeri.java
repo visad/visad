@@ -331,31 +331,38 @@ public class Aeri
     float[][] locs = new float[3][2];
 
     for ( int kk = 0; kk < n_stations; kk++ ) {
-      Set set = ((FieldImpl)((FieldImpl)
-        stations_field.getSample(kk)).getSample(20)).getDomainSet();
-      float[][] samples = set.getSamples(false);
-      float[] lo = ((SampledSet)set).getLow();
-      float[] hi = ((SampledSet)set).getHi();
+      boolean any = false;
+      float hgt = Float.MIN_VALUE;
+      FieldImpl station = (FieldImpl) stations_field.getSample(kk);
+      if (station == null) continue;
+      int len = station.getLength();
+      for (int i=0; i<len; i++) {
+        FieldImpl pole = (FieldImpl) station.getSample(i);
+        if (pole == null || pole.getLength() < 2) continue;
+        Set set = pole.getDomainSet();
+        float[][] samples = set.getSamples(false);
+        // float[] lo = ((SampledSet)set).getLow();
+        float[] hi = ((SampledSet)set).getHi();
+        if (hi[2] > hgt) hgt = hi[2];
+        if (!any) {
+          any = true;
 
-      locs[0][0] = samples[0][0];
-      locs[1][0] = samples[1][0];
-      // locs[2][0] = lo[2];
+          locs[0][0] = samples[0][0];
+          locs[1][0] = samples[1][0];
+          locs[0][1] = samples[0][0];
+          locs[1][1] = samples[1][0];
+
+          if (samples[0][0] > lat_max) lat_max = samples[0][0];
+          if (samples[0][0] < lat_min) lat_min = samples[0][0];
+          if (samples[1][0] > lon_max) lon_max = samples[1][0];
+          if (samples[1][0] < lon_min) lon_min = samples[1][0];
+        }
+      }
       locs[2][0] = 0.0f;
-
-      locs[0][1] = samples[0][0];
-      locs[1][1] = samples[1][0];
-      // locs[2][1] = hi[2];
-      locs[2][1] = height_limit;
-
-      if (hi[2] > hgt_max) hgt_max = hi[2];
-      if (samples[0][0] > lat_max) lat_max = samples[0][0];
-      if (samples[0][0] < lat_min) lat_min = samples[0][0];
-      if (samples[1][0] > lon_max) lon_max = samples[1][0];
-      if (samples[1][0] < lon_min) lon_min = samples[1][0];
-
+      locs[2][1] = hgt;
       set_s[kk] = new Gridded3DSet(spatial_domain, locs, 2, null, null, null);
-
 // System.out.println("set_s[" + kk + "] = " + set_s[kk]);
+      if (hgt > hgt_max) hgt_max = hgt;
     }
     return new UnionSet(spatial_domain, set_s);
   }
