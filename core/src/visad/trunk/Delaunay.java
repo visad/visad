@@ -29,7 +29,7 @@ import java.io.*;
 import java.util.*;
 
 // packages for main method
-import com.sun.java.swing.*;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.rmi.RemoteException;

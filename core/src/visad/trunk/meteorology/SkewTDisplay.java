@@ -3,12 +3,12 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.14 1998-11-16 18:23:49 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.15 1998-12-02 12:04:31 billh Exp $
  */
 
 package visad.meteorology;
 
-import com.sun.java.swing.JFrame;
+import javax.swing.JFrame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;

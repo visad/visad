@@ -41,8 +41,8 @@ import java.rmi.RemoteException;
 import java.io.IOException;
 import java.awt.*;
 import java.awt.event.*;
-import com.sun.java.swing.*;
-import com.sun.java.swing.border.*;
+import javax.swing.*;
+import javax.swing.border.*;
 
 public class Nesti {
 
