@@ -56,6 +56,7 @@ Unpacking VisAD will create the following sub-directories:
   visad/data/hdfeos		// VisAD - HDF-EOS file adapter
   visad/data/hdfeos/hdfeosc	// native interface to HDF-EOS
   visad/data/vis5d		// VisAD - Vis5D file adapter
+  visad/data/mcidas		// VisAD - McIDAS file adapter
   visad/data/gif		// VisAD - GIF file adapter
   visad/data/visad		// VisAD serialized object file adapter
   visad/paoloa			// GoesCollaboration application
@@ -270,6 +271,7 @@ these packages:
   visad.data.hdfeos		// VisAD - HDF-EOS file adapter
   visad.data.hdfeos.hdfeosc	// native interface to HDF-EOS
   visad.data.vis5d		// VisAD - Vis5D file adapter
+  visad.data.mcidas		// VisAD - McIDAS file adapter
   visad.data.gif		// VisAD - GIF file adapter
   nom.tam.fits			// Java FITS file binding
   nom.tam.util			// Java FITS file binding
