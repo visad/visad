@@ -131,6 +131,11 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
+      list[i] = new VisADForm(true);
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
       list[i] = new AreaForm();
       i++;
     } catch (Throwable t) {
