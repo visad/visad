@@ -44,8 +44,9 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
    * coordinate system and units are the default from the set type.  The error
    * estimate is null.
    *
-   * @param type		The type of the set.  The underlying tuple
-   *				must only have one component.
+   * @param type		The type of the set.  If a {@link 
+   *				RealTupleType}, then it must only have one
+   *				component.
    * @param samples             The values in the set.
    *                            <code>samples[0][i]</code> is the value of
    *                            the ith sample point.  Must be sorted (either
@@ -61,8 +62,9 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
   /**
    * Constructs a 1-D sorted sequence with no regular interval.
    *
-   * @param type		The type of the set.  The underlying tuple
-   *				must only have one component.
+   * @param type		The type of the set.  If a {@link 
+   *				RealTupleType}, then it must only have one
+   *				component.
    * @param samples             The values in the set.
    *                            <code>samples[0][i]</code> is the value of
    *                            the ith sample point.  Must be sorted (either
@@ -89,8 +91,9 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
   /**
    * Constructs a 1-D sorted sequence with no regular interval.
    *
-   * @param type		The type of the set.  The underlying tuple
-   *				must only have one component.
+   * @param type		The type of the set.  If a {@link 
+   *				RealTupleType}, then it must only have one
+   *				component.
    * @param samples             The values in the set.
    *                            <code>samples[0][i]</code> is the value of
    *                            the ith sample point.  Must be sorted (either
