@@ -210,6 +210,7 @@ SAVE_FILES = \
 	ucar/tests/test.out				\
 	dods/dap/*.java					\
 	dods/dap/parser/*.java				\
+	dods/dap/Server/*.java				\
 	dods/util/*.java				\
 	gnu/regexp/*.java				\
 	visad/data/hdfeos/*.java			\
