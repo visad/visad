@@ -84,6 +84,8 @@ visad\java3d\*.java \
 visad\java3d\*.c \
 visad\java2d\*.java \
 visad\util\*.java \
+visad\matrix\*.java \
+visad\formula\*.java \
 visad\ss\*.java \
 visad\ss\*.gif \
 visad\ss\README.ss \
@@ -125,10 +127,10 @@ visad\data\hdf5\*.java \
 visad\data\hdf5\COPYING \
 visad\data\hdf5\hdf5objects\*.java \
 visad\$(NCSA)\*.java \
-visad\$(NCSA)\exceptions\*.java \
-visad\jmet\*.java
+visad\$(NCSA)\exceptions\*.java
 
 JAR_FILES2 = \
+visad\jmet\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
 visad\paoloa\*.java \
@@ -170,7 +172,7 @@ jar:
 	time /t >> DATE
 	cd ..
 	jar cvf visad_src-2.0.jar $(JAR_FILES1)
-        jar uvf visad_src-2.0.jar $(JAR_FILES2)
+	jar uvf visad_src-2.0.jar $(JAR_FILES2)
 	move visad_src-2.0.jar visad
 	cd visad
 	copy visad_src-2.0.jar visadsrc.jar
@@ -178,7 +180,7 @@ jar:
 
 BACKUP = backup
 
-SAVE_FILES = \
+SAVE_FILES1 = \
 visad\README \
 visad\DEDICATION \
 visad\NOTICE \
@@ -193,6 +195,7 @@ visad\examples\*.html \
 visad\java3d\*.java \
 visad\java2d\*.java \
 visad\util\*.java \
+visad\matrix\*.java \
 visad\formula\*.java \
 visad\ss\*.java \
 visad\ss\*.gif \
@@ -231,7 +234,9 @@ visad\data\visad\*.java \
 visad\data\hdf5\*.java \
 visad\data\hdf5\hdf5objects\*.java \
 visad\$(NCSA)\*.java \
-visad\$(NCSA)\exceptions\*.java \
+visad\$(NCSA)\exceptions\*.java
+
+SAVE_FILES2 = \
 visad\jmet\*.java \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
@@ -356,7 +361,8 @@ save:
 		$(DEL) $(BACKUP)\visad\aeri\*.java
 	if exist $(BACKUP)\visad\georef\*.java \
 		$(DEL) $(BACKUP)\visad\georef\*.java
-	jar cvf $(BACKUP)\save.jar $(SAVE_FILES)
+	jar cvf $(BACKUP)\save.jar $(SAVE_FILES1)
+	jar uvf $(BACKUP)\save.jar $(SAVE_FILES2)
 	cd $(BACKUP)
 	jar xvf save.jar
 	$(DEL) save.jar
@@ -367,6 +373,7 @@ visad\*.class \
 visad\java3d\*.class \
 visad\java2d\*.class \
 visad\util\*.class \
+visad\matrix\*.class \
 visad\formula\*.class \
 visad\ss\*.class \
 visad\ss\*.gif \
@@ -429,6 +436,7 @@ clear:
 	if exist java3d\*.java $(DEL) java3d\*.java
 	if exist java2d\*.java $(DEL) java2d\*.java
 	if exist util\*.java $(DEL) util\*.java
+	if exist matrix\*.java $(DEL) matrix\*.java
 	if exist formula\*.java $(DEL) formula\*.java
 	if exist ss\*.java $(DEL) ss\*.java
 	if exist ss\*.gif $(DEL) ss\*.gif
@@ -473,6 +481,7 @@ clean:
 	if exist java3d\*.class $(DEL) java3d\*.class
 	if exist java2d\*.class $(DEL) java2d\*.class
 	if exist util\*.class $(DEL) util\*.class
+	if exist matrix\*.class $(DEL) matrix\*.class
 	if exist formula\*.class $(DEL) formula\*.class
 	if exist ss\*.class $(DEL) ss\*.class
 	if exist data\*.class $(DEL) data\*.class
@@ -557,8 +566,8 @@ $(NCSA)\*.class \
 $(NCSA)\exceptions\*.class \
 data\hdf5\hdf5objects\*.class \
 data\hdf5\*.class \
-formula\*.class \
 util\*.class \
+formula\*.class \
 ss\*.class \
 jmet\*.class \
 paoloa\*.class \
@@ -606,8 +615,8 @@ compile: clean
 	$(JC) $(JFLAGS) $(NCSA)\*.java
 	$(JC) $(JFLAGS) data\hdf5\hdf5objects\*.java
 	$(JC) $(JFLAGS) data\hdf5\*.java
-	$(JC) $(JFLAGS) formula\*.java
 	$(JC) $(JFLAGS) util\*.java
+	$(JC) $(JFLAGS) formula\*.java
 	$(JC) $(JFLAGS) ss\*.java
 	$(JC) $(JFLAGS) jmet\*.java
 	$(JC) $(JFLAGS) paoloa\*.java
@@ -636,6 +645,7 @@ visad.collab \
 visad.java3d \
 visad.java2d \
 visad.util \
+visad.matrix \
 visad.formula \
 visad.ss \
 visad.data \

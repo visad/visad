@@ -161,6 +161,7 @@ SAVE_FILES = \
 	visad/java3d/*.java				\
 	visad/java2d/*.java				\
 	visad/util/*.java				\
+	visad/matrix/*.java				\
 	visad/formula/*.java				\
 	visad/ss/*.java					\
 	visad/ss/*.gif					\
@@ -277,6 +278,7 @@ DOC_PACKAGES = \
 		ncsa.hdf.hdf5lib \
 		visad.data.hdf5.hdf5objects \
 		visad.data.hdf5 \
+		visad.matrix \
 		visad.formula \
 		visad.ss \
 		visad.jmet \
