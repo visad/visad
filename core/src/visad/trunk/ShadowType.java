@@ -80,6 +80,7 @@ public abstract class ShadowType extends Object
   boolean isTextureMap;
   boolean curvedTexture;
   boolean isTexture3D;
+  boolean isLinearContour3D;
 
   /** Dtype and Rtype used only with ShadowSetType and
       Flat ShadowFunctionType */
@@ -137,6 +138,7 @@ public abstract class ShadowType extends Object
     isTextureMap = false;
     curvedTexture = false;
     isTexture3D = false;
+    isLinearContour3D = false;
     LevelOfDifficulty = NOTHING_MAPPED;
     MultipleSpatialDisplayScalar = false;
     MultipleDisplayScalar = false;
@@ -165,6 +167,10 @@ public abstract class ShadowType extends Object
 
   public boolean getIsTexture3D() {
     return isTexture3D;
+  }
+
+  public boolean getIsLinearContour3D() {
+    return isLinearContour3D;
   }
 
   public int[] getRefToComponent() {
@@ -533,6 +539,29 @@ public abstract class ShadowType extends Object
     return true;
   }
 
+  /** test for display_indices in (IsoContour, Color, Alpha, Range, Unmapped) */
+  boolean checkContourColorAlphaRange(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (real.equals(Display.IsoContour)) continue;
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayRGBTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayRGBTuple)))) continue;  // Color
+      if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
+          real.equals(Display.Alpha) ||
+          real.equals(Display.HSV) ||
+          real.equals(Display.CMY)) continue;  // more Color
+      if (real.equals(Display.SelectRange)) continue;
+      return false;
+    }
+    return true;
+  }
+
   /** test for display_indices in (Spatial, SpatialOffset, Color, Alpha,
       Range, Flow, Shape, ShapeScale, Text, Unmapped) */
   boolean checkR2D2(int[] display_indices) throws RemoteException {
@@ -578,6 +607,7 @@ public abstract class ShadowType extends Object
 
   /** test for display_indices in (Spatial, SpatialOffset, Color,
       Range, Unmapped) */
+/* WLH 16 July 2000
   boolean checkSpatialColorRange(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
@@ -603,10 +633,11 @@ public abstract class ShadowType extends Object
     }
     return true;
   }
+*/
 
   /** test for display_indices in (Spatial, SpatialOffset, Color,
       Alpha, Range, Unmapped) */
-  boolean checkSpatialColorAlphaRange(int[] display_indices) throws RemoteException {
+  boolean checkSpatialOffsetColorAlphaRange(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
@@ -618,6 +649,34 @@ public abstract class ShadowType extends Object
             Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
       // SpatialOffset
       if (Display.DisplaySpatialOffsetTuple.equals(tuple)) continue;
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayRGBTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayRGBTuple)))) continue;  // Color
+      if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
+          real.equals(Display.Alpha) ||
+          real.equals(Display.HSV) ||
+          real.equals(Display.CMY)) continue;  // more Color
+      if (real.equals(Display.SelectRange)) continue;
+      return false;
+    }
+    return true;
+  }
+
+  /** test for display_indices in (Spatial, Color,
+      Alpha, Range, Unmapped) */
+  boolean checkSpatialColorAlphaRange(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
       if (tuple != null &&
           (tuple.equals(Display.DisplayRGBTuple) ||
            (tuple.getCoordinateSystem() != null &&
@@ -3055,6 +3114,21 @@ System.out.println("range = " + range[0] + " " + range[1] +
          throws VisADException {
     boolean anyContourCreated = false;
 
+    ScalarMap[] spatial_maps = {null, null, null};
+    for (int i=0; i<valueArrayLength; i++) {
+      int displayScalarIndex = valueToScalar[i];
+      DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+      if (real.equals(Display.XAxis)) {
+        spatial_maps[0] = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+      }
+      else if (real.equals(Display.YAxis)) {
+        spatial_maps[1] = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+      }
+      else if (real.equals(Display.ZAxis)) {
+        spatial_maps[2] = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+      }
+    }
+
     VisADGeometryArray[] arrays = null;
     for (int i=0; i<valueArrayLength; i++) {
       int displayScalarIndex = valueToScalar[i];
@@ -3091,11 +3165,22 @@ System.out.println("range = " + range[0] + " " + range[1] +
             if (fvalues[0] == fvalues[0]) {
               if (spatial_set != null) {
                 // System.out.println("makeIsoSurface at " + fvalues[0]);
-                array = spatial_set.makeIsoSurface(fvalues[0],
-                            display_values[i], color_values, indexed);
+// System.out.println("start makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
+                boolean isLinearContour3D = getIsLinearContour3D() &&
+                                            spatial_set instanceof Linear3DSet;
+                if (isLinearContour3D) {
+                  array = ((Linear3DSet) spatial_set).makeLinearIsoSurface(fvalues[0],
+                              display_values[i], color_values, indexed, spatial_maps);
+                }
+                else {
+                  array = spatial_set.makeIsoSurface(fvalues[0],
+                              display_values[i], color_values, indexed);
+                }
+// System.out.println("end makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
                 // System.out.println("makeIsoSurface " + array.vertexCount);
                 shadow_api.addToGroup(group, array, mode,
                                       constant_alpha, constant_color);
+// System.out.println("end addToGroup " + (System.currentTimeMillis() - Link.start_time));
                 array = null;
               }
             }

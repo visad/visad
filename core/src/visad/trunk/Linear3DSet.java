@@ -280,6 +280,1314 @@ public class Linear3DSet extends Gridded3DSet
     return arrays;
   }
 
+  /* almost identical with Gridded3DSet.makeIsoSurface, except:
+     1. spatial_maps argument
+     2. compute 'float[] sos' array
+     3. call linear_isosurf rather than isosurf, with added sos argument
+  */
+  public VisADGeometryArray makeLinearIsoSurface(float isolevel,
+         float[] fieldValues, byte[][] color_values, boolean indexed,
+         ScalarMap[] spatial_maps)
+         throws VisADException {
+    boolean debug = false;
+
+    int      i, NVT, cnt;
+    int      size_stripe;
+    int      xdim_x_ydim, xdim_x_ydim_x_zdim;
+    int      num_cubes, nvertex, npolygons;
+    int      ix, iy, ii;
+    int nvertex_estimate;
+
+    if (ManifoldDimension != 3) {
+      throw new DisplayException("Gridded3DSet.makeIsoSurface: " +
+                                 "ManifoldDimension must be 3");
+    }
+
+    /* adapt isosurf algorithm to Gridded3DSet variables */
+    // NOTE X & Y swap
+    int xdim = LengthY;
+    int ydim = LengthX;
+    int zdim = LengthZ;
+
+    float[] ptGRID = fieldValues;
+
+    xdim_x_ydim = xdim * ydim;
+    xdim_x_ydim_x_zdim = xdim_x_ydim * zdim;
+    num_cubes = (xdim-1) * (ydim-1) * (zdim-1);
+
+    int[]  ptFLAG = new int[ num_cubes ];
+    int[]  ptAUX  = new int[ xdim_x_ydim_x_zdim ];
+    int[]  pcube  = new int[ num_cubes+1 ];
+
+    // System.out.println("pre-flags: isolevel = " + isolevel +
+    //                    " xdim, ydim, zdim = " + xdim + " " + ydim + " " + zdim);
+
+    npolygons = flags( isolevel, ptFLAG, ptAUX, pcube,
+                       ptGRID, xdim, ydim, zdim );
+
+    if (debug) System.out.println("npolygons= "+npolygons);
+
+    if (npolygons == 0) return null;
+
+    // take the garbage out
+    pcube = null;
+
+    nvertex_estimate = 4 * npolygons + 100;
+    ix = 9 * (nvertex_estimate + 50);
+    iy = 7 * npolygons;
+
+    float[][] VX = new float[1][nvertex_estimate];
+    float[][] VY = new float[1][nvertex_estimate];
+    float[][] VZ = new float[1][nvertex_estimate];
+
+    byte[][] color_temps = null;
+    if (color_values != null) {
+      color_temps = new byte[color_values.length][];
+    }
+
+    int[] Pol_f_Vert = new int[ix];
+    int[] Vert_f_Pol = new int[iy];
+    int[][] arg_Pol_f_Vert = new int[][] {Pol_f_Vert};
+
+    // get scales and offsets from linear grid coordinates to graphics coordinates
+    float[] sos = new float[6];
+    Linear1DSet xset = getX();
+    double first = xset.getFirst();
+    double step = xset.getStep();
+    double[] so = new double[2];
+    double[] data = new double[2];
+    double[] display = new double[2];
+    spatial_maps[0].getScale(so, data, display);
+    sos[0] = (float) (so[1] + so[0] * first); // overall X offset
+    sos[1] = (float) (so[0] * step);          // overall X scale
+
+    Linear1DSet yset = getY();
+    first = yset.getFirst();
+    step = yset.getStep();
+    spatial_maps[1].getScale(so, data, display);
+    sos[2] = (float) (so[1] + so[0] * first); // overall Y offset
+    sos[3] = (float) (so[0] * step);          // overall Y scale
+
+    Linear1DSet zset = getZ();
+    first = zset.getFirst();
+    step = zset.getStep();
+    spatial_maps[2].getScale(so, data, display);
+    sos[4] = (float) (so[1] + so[0] * first); // overall Z offset
+    sos[5] = (float) (so[0] * step);          // overall Z scale
+
+    nvertex = linear_isosurf( isolevel, ptFLAG, nvertex_estimate, npolygons,
+                              ptGRID, xdim, ydim, zdim, VX, VY, VZ,
+                              color_values, color_temps, arg_Pol_f_Vert, Vert_f_Pol,
+                              sos );
+    Pol_f_Vert = arg_Pol_f_Vert[0];
+
+    if (nvertex == 0) return null;
+
+    // take the garbage out
+    ptFLAG = null;
+    ptAUX = null;
+/*
+for (int j=0; j<nvertex; j++) {
+  System.out.println("iso vertex[" + j + "] " + VX[0][j] + " " + VY[0][j] +
+                     " " + VZ[0][j]);
+}
+*/
+    float[][] fieldVertices = new float[3][nvertex];
+    // NOTE - NO X & Y swap
+    System.arraycopy(VX[0], 0, fieldVertices[0], 0, nvertex);
+    System.arraycopy(VY[0], 0, fieldVertices[1], 0, nvertex);
+    System.arraycopy(VZ[0], 0, fieldVertices[2], 0, nvertex);
+    // take the garbage out
+    VX = null;
+    VY = null;
+    VZ = null;
+
+    byte[][] color_levels = null;
+    if (color_values != null) {
+      color_levels = new byte[color_values.length][nvertex];
+      System.arraycopy(color_temps[0], 0, color_levels[0], 0, nvertex);
+      System.arraycopy(color_temps[1], 0, color_levels[1], 0, nvertex);
+      System.arraycopy(color_temps[2], 0, color_levels[2], 0, nvertex);
+      if (color_temps.length > 3) {
+        System.arraycopy(color_temps[3], 0, color_levels[3], 0, nvertex);
+      }
+      // take the garbage out
+      color_temps = null;
+    }
+
+    if (debug) System.out.println("nvertex= "+nvertex);
+
+    float[] NxA = new float[npolygons];
+    float[] NxB = new float[npolygons];
+    float[] NyA = new float[npolygons];
+    float[] NyB = new float[npolygons];
+    float[] NzA = new float[npolygons];
+    float[] NzB = new float[npolygons];
+
+    float[] Pnx = new float[npolygons];
+    float[] Pny = new float[npolygons];
+    float[] Pnz = new float[npolygons];
+
+    float[] NX = new float[nvertex];
+    float[] NY = new float[nvertex];
+    float[] NZ = new float[nvertex];
+
+    make_normals( fieldVertices[0], fieldVertices[1],  fieldVertices[2],
+                  NX, NY, NZ, nvertex, npolygons, Pnx, Pny, Pnz,
+                  NxA, NxB, NyA, NyB, NzA, NzB, Pol_f_Vert, Vert_f_Pol);
+
+    // take the garbage out
+    NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
+
+    float[] normals = new float[3 * nvertex];
+    int j = 0;
+    for (i=0; i<nvertex; i++) {
+      normals[j++] = (float) NX[i];
+      normals[j++] = (float) NY[i];
+      normals[j++] = (float) NZ[i];
+    }
+    // take the garbage out
+    NX = NY = NZ = null;
+
+    /* ----- Find PolyTriangle Stripe */
+    // temporary array to hold maximum possible polytriangle strip
+    int[] stripe = new int[6 * npolygons];
+    int[] vet_pol = new int[npolygons];
+    size_stripe = poly_triangle_stripe( vet_pol, stripe, nvertex,
+                                        npolygons, Pol_f_Vert, Vert_f_Pol );
+
+    // take the garbage out
+    Pol_f_Vert = null;
+    Vert_f_Pol = null;
+
+    if (indexed) {
+      VisADIndexedTriangleStripArray array =
+        new VisADIndexedTriangleStripArray();
+
+      // set up indices
+      array.indexCount = size_stripe;
+      array.indices = new int[size_stripe];
+      System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
+      array.stripVertexCounts = new int[1];
+      array.stripVertexCounts[0] = size_stripe;
+      // take the garbage out
+      stripe = null;
+
+      // set coordinates and colors
+      setGeometryArray(array, fieldVertices, 4, color_levels);
+      // take the garbage out
+      fieldVertices = null;
+      color_levels = null;
+
+      // array.vertexFormat |= NORMALS;
+      array.normals = normals;
+
+      if (debug) {
+        System.out.println("size_stripe= "+size_stripe);
+        for(ii=0;ii<size_stripe;ii++) System.out.println(+array.indices[ii]);
+      }
+      return array;
+    }
+    else { // if (!indexed)
+      VisADTriangleStripArray array = new VisADTriangleStripArray();
+      array.stripVertexCounts = new int[] {size_stripe};
+      array.vertexCount = size_stripe;
+
+      array.normals = new float[3 * size_stripe];
+      int k = 0;
+      for (i=0; i<3*size_stripe; i+=3) {
+        j = 3 * stripe[k];
+        array.normals[i] = normals[j];
+        array.normals[i+1] = normals[j+1];
+        array.normals[i+2] = normals[j+2];
+        k++;
+      }
+      normals = null;
+
+      array.coordinates = new float[3 * size_stripe];
+      k = 0;
+      for (i=0; i<3*size_stripe; i+=3) {
+        j = stripe[k];
+        array.coordinates[i] = fieldVertices[0][j];
+        array.coordinates[i+1] = fieldVertices[1][j];
+        array.coordinates[i+2] = fieldVertices[2][j];
+        k++;
+      }
+      fieldVertices = null;
+
+      if (color_levels != null) {
+        int color_length = color_levels.length;
+        array.colors = new byte[color_length * size_stripe];
+        k = 0;
+        if (color_length == 4) {
+          for (i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_levels[0][j];
+            array.colors[i+1] = color_levels[1][j];
+            array.colors[i+2] = color_levels[2][j];
+            array.colors[i+3] = color_levels[3][j];
+            k++;
+          }
+        }
+        else { // if (color_length == 3)
+          for (i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_levels[0][j];
+            array.colors[i+1] = color_levels[1][j];
+            array.colors[i+2] = color_levels[2][j];
+            k++;
+          }
+        }
+      }
+      color_levels = null;
+      stripe = null;
+      return array;
+    } // end if (!indexed)
+  }
+
+  /* almost identical with Gridded3DSet.isosurf, except:
+     1. sos argument
+     2. compute xo, xs, yo, ys, zo, zs, and using them instead of samples
+     3. not using samples array
+  */
+  private int linear_isosurf( float isovalue, int[] ptFLAG, int nvertex_estimate,
+                              int npolygons, float[] ptGRID, int xdim, int ydim,
+                              int zdim, float[][] VX, float[][] VY, float[][] VZ,
+                              byte[][] auxValues, byte[][] auxLevels,
+                              int[][] Pol_f_Vert, int[] Vert_f_Pol, float[] sos )
+          throws VisADException {
+
+    int  ix, iy, iz, caseA, above, bellow, front, rear, mm, nn;
+    int  ii, jj, kk, ncube, cpl, pvp, pa, ve;
+    int[] calc_edge = new int[13];
+    int  xx, yy, zz;
+    float    cp;
+    float  vnode0 = 0;
+    float  vnode1 = 0;
+    float  vnode2 = 0;
+    float  vnode3 = 0;
+    float  vnode4 = 0;
+    float  vnode5 = 0;
+    float  vnode6 = 0;
+    float  vnode7 = 0;
+    int  pt = 0;
+    int  n_pol;
+    int  aa;
+    int  bb;
+    int  temp;
+    float  nodeDiff;
+    int xdim_x_ydim = xdim*ydim;
+    int nvet;
+
+    int t;
+
+    // use these instead of samples
+    float xo = sos[0];
+    float xs = sos[1];
+    float yo = sos[2];
+    float ys = sos[3];
+    float zo = sos[4];
+    float zs = sos[5];
+    // don't use samples
+    // float[][] samples = getSamples(false);
+
+    int naux = (auxValues != null) ? auxValues.length : 0;
+    if (naux > 0) {
+      if (auxLevels == null || auxLevels.length != naux) {
+        throw new SetException("Gridded3DSet.isosurf: "
+                              +"auxLevels length doesn't match");
+      }
+      for (int i=0; i<naux; i++) {
+        if (auxValues[i].length != Length) {
+          throw new SetException("Gridded3DSet.isosurf: "
+                                +"auxValues lengths don't match");
+        }
+      }
+    }
+    else {
+      if (auxLevels != null) {
+        throw new SetException("Gridded3DSet.isosurf: "
+                              +"auxValues null but auxLevels not null");
+      }
+    }
+
+    // temporary storage of auxLevels structure
+    byte[][] tempaux = (naux > 0) ? new byte[naux][nvertex_estimate] : null;
+
+    bellow = rear = 0;  above = front = 1;
+
+    /* Initialize the Auxiliar Arrays of Pointers */
+/* WLH 25 Oct 97
+    ix = 9 * (npolygons*2 + 50);
+    iy = 7 * npolygons;
+    ii = ix + iy;
+*/
+    for (jj=0; jj<Pol_f_Vert[0].length; jj++) {
+      Pol_f_Vert[0][jj] = BIG_NEG;
+    }
+    for (jj=8; jj<Pol_f_Vert[0].length; jj+=9) {
+      Pol_f_Vert[0][jj] = 0;
+    }
+    for (jj=0; jj<Vert_f_Pol.length; jj++) {
+      Vert_f_Pol[jj] = BIG_NEG;
+    }
+    for (jj=6; jj<Vert_f_Pol.length; jj+=7) {
+      Vert_f_Pol[jj] = 0;
+    }
+
+    /* Allocate the auxiliar edge vectors
+    size ixPlane = (xdim - 1) * ydim = xdim_x_ydim - ydim
+    size iyPlane = (ydim - 1) * xdim = xdim_x_ydim - xdim
+    size izPlane = xdim
+    */
+
+    xx = xdim_x_ydim - ydim;
+    yy = xdim_x_ydim - xdim;
+    zz = ydim;
+    ii = 2 * (xx + yy + zz);
+
+    int[] P_array = new int[ii];
+
+    /* Calculate the Vertex of the Polygons which edges were
+       calculated above */
+    nvet = ncube = cpl = pvp = 0;
+
+
+        for ( iz = 0; iz < zdim - 1; iz++ ) {
+
+            for ( ix = 0; ix < xdim - 1; ix++ ) {
+
+                for ( iy = 0; iy < ydim - 1; iy++ ) {
+                    if ( (ptFLAG[ncube] != 0 & ptFLAG[ncube] != 0xFF) ) {
+
+                        if (nvet + 12 > nvertex_estimate) {
+                          // allocate more space
+                          nvertex_estimate = 2 * (nvet + 12);
+                          if (naux > 0) {
+                            for (int i=0; i<naux; i++) {
+                              byte[] tt = tempaux[i];
+                              tempaux[i] = new byte[nvertex_estimate];
+                              System.arraycopy(tt, 0, tempaux[i], 0, nvet);
+                            }
+                          }
+                          float[] tt = VX[0];
+                          VX[0] = new float[nvertex_estimate];
+                          System.arraycopy(tt, 0, VX[0], 0, tt.length);
+                          tt = VY[0];
+                          VY[0] = new float[nvertex_estimate];
+                          System.arraycopy(tt, 0, VY[0], 0, tt.length);
+                          tt = VZ[0];
+                          VZ[0] = new float[nvertex_estimate];
+                          System.arraycopy(tt, 0, VZ[0], 0, tt.length);
+                          int big_ix = 9 * (nvertex_estimate + 50);
+                          int[] it = Pol_f_Vert[0];
+                          Pol_f_Vert[0] = new int[big_ix];
+                          for (jj=0; jj<Pol_f_Vert[0].length; jj++) {
+                            Pol_f_Vert[0][jj] = BIG_NEG;
+                          }
+                          for (jj=8; jj<Pol_f_Vert[0].length; jj+=9) {
+                            Pol_f_Vert[0][jj] = 0;
+                          }
+                          System.arraycopy(it, 0, Pol_f_Vert[0], 0, it.length);
+                        }
+
+           /* WLH 2 April 99 */
+           vnode0 = ptGRID[pt];
+           vnode1 = ptGRID[pt + ydim];
+           vnode2 = ptGRID[pt + 1];
+           vnode3 = ptGRID[pt + ydim + 1];
+           vnode4 = ptGRID[pt + xdim_x_ydim];
+           vnode5 = ptGRID[pt + ydim + xdim_x_ydim];
+           vnode6 = ptGRID[pt + 1 + xdim_x_ydim];
+           vnode7 = ptGRID[pt + 1 + ydim + xdim_x_ydim];
+
+                        if ( (ptFLAG[ncube] < MAX_FLAG_NUM) ) {
+                        /*  fill_Vert_f_Pol(ncube); */
+
+                                  kk  = pol_edges[ptFLAG[ncube]][2];
+                                  aa = ptFLAG[ncube];
+                                  bb = 4;
+                                  pa  = pvp;
+                                  n_pol = pol_edges[ptFLAG[ncube]][1];
+                                  for (ii=0; ii < n_pol; ii++) {
+                                      Vert_f_Pol[pa+6] = ve = kk&MASK;
+                                      ve+=pa;
+                                      for (jj=pa; jj<ve && jj<pa+6; jj++) {
+
+                                            Vert_f_Pol[jj] = pol_edges[aa][bb];
+                                            bb++;
+                                            if (bb >= 16) {
+                                                aa++;
+                                                bb -= 16;
+                                            }
+                                      }
+                                           kk >>= 4;    pa += 7;
+                                  }
+                        /* end  fill_Vert_f_Pol(ncube); */
+                        /* */
+
+         /* find_vertex(); */
+/* WLH 2 April 99
+           vnode0 = ptGRID[pt];
+           vnode1 = ptGRID[pt + ydim];
+           vnode2 = ptGRID[pt + 1];
+           vnode3 = ptGRID[pt + ydim + 1];
+           vnode4 = ptGRID[pt + xdim_x_ydim];
+           vnode5 = ptGRID[pt + ydim + xdim_x_ydim];
+           vnode6 = ptGRID[pt + 1 + xdim_x_ydim];
+           vnode7 = ptGRID[pt + 1 + ydim + xdim_x_ydim];
+*/
+
+
+   if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0002) != 0) ) {  /* cube vertex 0-1 */
+         if ( (iz != 0) || (iy != 0) ) {
+           calc_edge[1] = P_array[ bellow*xx + ix*ydim + iy ];
+         }
+         else {
+             cp = ( ( isovalue - vnode0 ) / ( vnode1 - vnode0 ) );
+             VX[0][nvet] = xo + xs * (cp + ix);
+             VY[0][nvet] = yo + ys * iy;
+             VZ[0][nvet] = zo + zs * iz;
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim] + (1.0f-cp) * samples[0][pt];
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim] + (1.0f-cp) * samples[1][pt];
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim] + (1.0f-cp) * samples[2][pt];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt] < 0) ?
+                     ((float) auxValues[j][pt]) + 256.0f :
+                     ((float) auxValues[j][pt]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim] +
+                                  (1.0f-cp) * auxValues[j][pt];
+*/
+             }
+
+             calc_edge[1] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0004) != 0) ) {  /* cube vertex 0-2 */
+         if ( (iz != 0) || (ix != 0) ) {
+           calc_edge[2] = P_array[ 2*xx + bellow*yy + iy*xdim + ix ];
+         }
+         else {
+             cp = ( ( isovalue - vnode0 ) / ( vnode2 - vnode0 ) );
+             VX[0][nvet] = xo + xs * ix;
+             VY[0][nvet] = yo + ys * (cp + iy);
+             VZ[0][nvet] = zo + zs * iz;
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + 1] + (1.0f-cp) * samples[0][pt];
+             VY[0][nvet] = (float) cp * samples[1][pt + 1] + (1.0f-cp) * samples[1][pt];
+             VZ[0][nvet] = (float) cp * samples[2][pt + 1] + (1.0f-cp) * samples[2][pt];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + 1] < 0) ?
+                     ((float) auxValues[j][pt + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + 1]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt] < 0) ?
+                     ((float) auxValues[j][pt]) + 256.0f :
+                     ((float) auxValues[j][pt]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1] +
+                                  (1.0f-cp) * auxValues[j][pt];
+*/
+             }
+
+             calc_edge[2] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0008) != 0) ) {  /* cube vertex 0-4 */
+         if ( (ix != 0) || (iy != 0) ) {
+           calc_edge[3] = P_array[ 2*xx + 2*yy + rear*zz + iy ];
+         }
+         else {
+             cp = ( ( isovalue - vnode0 ) / ( vnode4 - vnode0 ) );
+             VX[0][nvet] = xo + xs * ix;
+             VY[0][nvet] = yo + ys * iy;
+             VZ[0][nvet] = zo + zs * (cp + iz);
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt];
+             VY[0][nvet] = (float) cp * samples[1][pt + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt];
+             VZ[0][nvet] = (float) cp * samples[2][pt + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt] < 0) ?
+                     ((float) auxValues[j][pt]) + 256.0f :
+                     ((float) auxValues[j][pt]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt];
+*/
+             }
+
+             calc_edge[3] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0010) != 0) ) {  /* cube vertex 1-3 */
+         if ( (iz != 0) ) {
+           calc_edge[4] =  P_array[ 2*xx + bellow*yy + iy*xdim + (ix+1) ];
+         }
+         else {
+             cp = ( ( isovalue - vnode1 ) / ( vnode3 - vnode1 ) );
+             VX[0][nvet] = xo + xs * (ix+1);
+             VY[0][nvet] = yo + ys * (cp + iy);
+             VZ[0][nvet] = zo + zs * iz;
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim + 1] +
+                        (1.0f-cp) * samples[0][pt + ydim];
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim + 1] +
+                        (1.0f-cp) * samples[1][pt + ydim];
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim + 1] +
+                        (1.0f-cp) * samples[2][pt + ydim];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
+                     ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim + 1]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
+                                  (1.0f-cp) * auxValues[j][pt + ydim];
+*/
+             }
+
+             calc_edge[4] = nvet;
+             P_array[ 2*xx + bellow*yy + iy*xdim + (ix+1) ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0020) != 0) ) {  /* cube vertex 1-5 */
+         if ( (iy != 0) ) {
+           calc_edge[5] = P_array[ 2*xx + 2*yy + front*zz + iy ];
+         }
+         else {
+             cp = ( ( isovalue - vnode1 ) / ( vnode5 - vnode1 ) );
+             VX[0][nvet] = xo + xs * (ix+1);
+             VY[0][nvet] = yo + ys * iy;
+             VZ[0][nvet] = zo + zs * (cp + iz);
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt + ydim];
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt + ydim];
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt + ydim];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt + ydim];
+*/
+             }
+
+             calc_edge[5] = nvet;
+             P_array[ 2*xx + 2*yy + front*zz + iy ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0040) != 0) ) {  /* cube vertex 2-3 */
+         if ( (iz != 0) ) {
+           calc_edge[6] = P_array[ bellow*xx + ix*ydim + (iy+1) ];
+         }
+         else {
+             cp = ( ( isovalue - vnode2 ) / ( vnode3 - vnode2 ) );
+             VX[0][nvet] = xo + xs * (cp + ix);
+             VY[0][nvet] = yo + ys * (iy+1);
+             VZ[0][nvet] = zo + zs * iz;
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim + 1] +
+                        (1.0f-cp) * samples[0][pt + 1];
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim + 1] +
+                        (1.0f-cp) * samples[1][pt + 1];
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim + 1] +
+                        (1.0f-cp) * samples[2][pt + 1];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
+                     ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim + 1]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + 1] < 0) ?
+                     ((float) auxValues[j][pt + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + 1]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
+                                  (1.0f-cp) * auxValues[j][pt + 1];
+*/
+             }
+
+             calc_edge[6] = nvet;
+             P_array[ bellow*xx + ix*ydim + (iy+1) ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0080) != 0) ) {  /* cube vertex 2-6 */
+         if ( (ix != 0) ) {
+           calc_edge[7] = P_array[ 2*xx + 2*yy + rear*zz + (iy+1) ];
+         }
+         else {
+             cp = ( ( isovalue - vnode2 ) / ( vnode6 - vnode2 ) );
+             VX[0][nvet] = xo + xs * ix;
+             VY[0][nvet] = yo + ys * (iy+1);
+             VZ[0][nvet] = zo + zs * (cp + iz);
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt + 1];
+             VY[0][nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt + 1];
+             VZ[0][nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt + 1];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + 1] < 0) ?
+                     ((float) auxValues[j][pt + 1]) + 256.0f :
+                     ((float) auxValues[j][pt + 1]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt + 1];
+*/
+             }
+
+             calc_edge[7] = nvet;
+             P_array[ 2*xx + 2*yy + rear*zz + (iy+1) ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0100) != 0) ) {  /* cube vertex 3-7 */
+         cp = ( ( isovalue - vnode3 ) / ( vnode7 - vnode3 ) );
+         VX[0][nvet] = xo + xs * (ix+1);
+         VY[0][nvet] = yo + ys * (iy+1);
+         VZ[0][nvet] = zo + zs * (cp + iz);
+/*
+         VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[0][pt + ydim + 1];
+         VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[1][pt + ydim + 1];
+         VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[2][pt + ydim + 1];
+*/
+
+         for (int j=0; j<naux; j++) {
+           t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+               (1.0f - cp) * ((auxValues[j][pt + ydim + 1] < 0) ?
+                 ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                 ((float) auxValues[j][pt + ydim + 1]) ) );
+           tempaux[j][nvet] = (byte)
+             ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+           tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                              (1.0f-cp) * auxValues[j][pt + ydim + 1];
+*/
+         }
+
+         calc_edge[8] = nvet;
+         P_array[ 2*xx + 2*yy + front*zz + (iy+1) ] = nvet;
+         nvet++;
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0200) != 0) ) {  /* cube vertex 4-5 */
+         if ( (iy != 0) ) {
+           calc_edge[9] = P_array[ above*xx + ix*ydim + iy ];
+         }
+         else {
+             cp = ( ( isovalue - vnode4 ) / ( vnode5 - vnode4 ) );
+             VX[0][nvet] = xo + xs * (cp + ix);
+             VY[0][nvet] = yo + ys * iy;
+             VZ[0][nvet] = zo + zs * (iz+1);
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt + xdim_x_ydim];
+             VY[0][nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt + xdim_x_ydim];
+             VZ[0][nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt + xdim_x_ydim];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + xdim_x_ydim]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+*/
+             }
+
+             calc_edge[9] = nvet;
+             P_array[ above*xx + ix*ydim + iy ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0400) != 0) ) {  /* cube vertex 4-6 */
+         if ( (ix != 0) ) {
+           calc_edge[10] = P_array[ 2*xx + above*yy + iy*xdim + ix ];
+         }
+         else {
+             cp = ( ( isovalue - vnode4 ) / ( vnode6 - vnode4 ) );
+             VX[0][nvet] = xo + xs * ix;
+             VY[0][nvet] = yo + ys * (cp + iy);
+             VZ[0][nvet] = zo + zs * (iz+1);
+/*
+             VX[0][nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt + xdim_x_ydim];
+             VY[0][nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt + xdim_x_ydim];
+             VZ[0][nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt + xdim_x_ydim];
+*/
+
+             for (int j=0; j<naux; j++) {
+               t = (int) ( cp * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) +
+                   (1.0f - cp) * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                     ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                     ((float) auxValues[j][pt + xdim_x_ydim]) ) );
+               tempaux[j][nvet] = (byte)
+                 ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+*/
+             }
+
+             calc_edge[10] = nvet;
+             P_array[ 2*xx + above*yy + iy*xdim + ix ] = nvet;
+             nvet++;
+         }
+     }
+    if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0800) != 0) ) {  /* cube vertex 5-7 */
+         cp = ( ( isovalue - vnode5 ) / ( vnode7 - vnode5 ) );
+         VX[0][nvet] = xo + xs * (ix+1);
+         VY[0][nvet] = yo + ys * (cp + iy);
+         VZ[0][nvet] = zo + zs * (iz+1);
+/*
+         VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[0][pt + ydim + xdim_x_ydim];
+         VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[1][pt + ydim + xdim_x_ydim];
+         VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[2][pt + ydim + xdim_x_ydim];
+*/
+
+         for (int j=0; j<naux; j++) {
+           t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+               (1.0f - cp) * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) );
+           tempaux[j][nvet] = (byte)
+             ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+           tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                              (1.0f-cp) * auxValues[j][pt + ydim + xdim_x_ydim];
+*/
+         }
+
+         calc_edge[11] = nvet;
+         P_array[ 2*xx + above*yy + iy*xdim + (ix+1) ] = nvet;
+         nvet++;
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x1000) != 0) ) {  /* cube vertex 6-7 */
+         cp = ( ( isovalue - vnode6 ) / ( vnode7 - vnode6 ) );
+         VX[0][nvet] = xo + xs * (cp + ix);
+         VY[0][nvet] = yo + ys * (iy+1);
+         VZ[0][nvet] = zo + zs * (iz+1);
+/*
+         VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[0][pt + 1 + xdim_x_ydim];
+         VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[1][pt + 1 + xdim_x_ydim];
+         VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[2][pt + 1 + xdim_x_ydim];
+*/
+
+         for (int j=0; j<naux; j++) {
+           t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+               (1.0f - cp) * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                 ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                 ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) );
+           tempaux[j][nvet] = (byte)
+             ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+           tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                              (1.0f-cp) * auxValues[j][pt + 1 + xdim_x_ydim];
+*/
+         }
+
+         calc_edge[12] = nvet;
+         P_array[ above*xx + ix*ydim + (iy+1) ] = nvet;
+         nvet++;
+     }
+
+         /* end  find_vertex(); */
+                         /* update_data_structure(ncube); */
+                             kk = pol_edges[ptFLAG[ncube]][2];
+                             nn = pol_edges[ptFLAG[ncube]][1];
+                             for (ii=0; ii<nn; ii++) {
+                                  mm = pvp+(kk&MASK);
+                                  for (jj=pvp; jj<mm; jj++) {
+                                      Vert_f_Pol [jj] = ve = calc_edge[Vert_f_Pol [jj]];
+                            //        Pol_f_Vert[0][ve*9 + (Pol_f_Vert[0][ve*9 + 8])++]  = cpl;
+                                      temp = Pol_f_Vert[0][ve*9 + 8];
+                                      Pol_f_Vert[0][ve*9 + temp] = cpl;
+                                      Pol_f_Vert[0][ve*9 + 8] = temp + 1;
+                                  }
+                                  kk >>= 4;    pvp += 7;    cpl++;
+                             }
+                         /* end  update_data_structure(ncube); */
+                        }
+                        else { // !(ptFLAG[ncube] < MAX_FLAG_NUM)
+       /* find_vertex_invalid_cube(ncube); */
+
+    ptFLAG[ncube] &= 0x1FF;
+    if ( (ptFLAG[ncube] != 0 & ptFLAG[ncube] != 0xFF) )
+    { if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0010) != 0) )     /* cube vertex 1-3 */
+/* WLH 24 Oct 97
+      {   if (!(iz != 0 ) && vnode3 < INV_VAL && vnode1 < INV_VAL)
+      {   if (!(iz != 0 ) && !Float.isNaN(vnode3) && !Float.isNaN(vnode1))
+*/
+      // test for not missing
+      {   if (!(iz != 0 ) && vnode3 == vnode3 && vnode1 == vnode1)
+        {
+/* WLH 26 Oct 97
+              nodeDiff = vnode3 - vnode1;
+              cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iy;
+              VX[0][nvet] = ix+1;
+              VY[0][nvet] = cp;
+              VZ[0][nvet] = iz;
+*/
+              cp = ( ( isovalue - vnode1 ) / ( vnode3 - vnode1 ) );
+              VX[0][nvet] = (float) cp * Samples[0][pt + ydim + 1] +
+                         (1.0f-cp) * Samples[0][pt + ydim];
+              VY[0][nvet] = (float) cp * Samples[1][pt + ydim + 1] +
+                         (1.0f-cp) * Samples[1][pt + ydim];
+              VZ[0][nvet] = (float) cp * Samples[2][pt + ydim + 1] +
+                         (1.0f-cp) * Samples[2][pt + ydim];
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
+                      ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + 1]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
+                                   (1.0f-cp) * auxValues[j][pt + ydim];
+*/
+              }
+
+              P_array[ 2*xx + bellow*yy + iy*xdim + (ix+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0020) != 0) )    /* cube vertex 1-5 */
+/* WLH 24 Oct 97
+      {   if (!(iy != 0) && vnode5 < INV_VAL && vnode1 < INV_VAL)
+      {   if (!(iy != 0) && !Float.isNaN(vnode5) && !Float.isNaN(vnode1))
+*/
+      // test for not missing
+      {   if (!(iy != 0) && vnode5 == vnode5 && vnode1 == vnode1)
+        {
+              cp = ( ( isovalue - vnode1 ) / ( vnode5 - vnode1 ) );
+              VX[0][nvet] = xo + xs * (ix+1);
+              VY[0][nvet] = yo + ys * iy;
+              VZ[0][nvet] = zo + zs * (cp + iz);
+/*
+              VX[0][nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + ydim];
+              VY[0][nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + ydim];
+              VZ[0][nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + ydim];
+*/
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + ydim];
+*/
+              }
+
+              P_array[ 2*xx + 2*yy + front*zz + iy ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0040) != 0) )     /* cube vertex 2-3 */
+/* WLH 24 Oct 97
+      {   if (!(iz != 0) && vnode3 < INV_VAL && vnode2 < INV_VAL)
+      {   if (!(iz != 0) && !Float.isNaN(vnode3) && !Float.isNaN(vnode2))
+*/
+      // test for not missing
+      {   if (!(iz != 0) && vnode3 == vnode3 && vnode2 == vnode2)
+        {
+              cp = ( ( isovalue - vnode2 ) / ( vnode3 - vnode2 ) );
+              VX[0][nvet] = xo + xs * (cp + ix);
+              VY[0][nvet] = yo + ys * (iy+1);
+              VZ[0][nvet] = zo + zs * iz;
+/*
+              VX[0][nvet] = (float) cp * samples[0][pt + ydim + 1] +
+                         (1.0f-cp) * samples[0][pt + 1];
+              VY[0][nvet] = (float) cp * samples[1][pt + ydim + 1] +
+                         (1.0f-cp) * samples[1][pt + 1];
+              VZ[0][nvet] = (float) cp * samples[2][pt + ydim + 1] +
+                         (1.0f-cp) * samples[2][pt + 1];
+*/
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
+                      ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + 1]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + 1] < 0) ?
+                      ((float) auxValues[j][pt + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + 1]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
+                                   (1.0f-cp) * auxValues[j][pt + 1];
+*/
+              }
+
+              P_array[ bellow*xx + ix*ydim + (iy+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0080) != 0) )  /* cube vertex 2-6 */
+/* WLH 24 Oct 97
+      {   if (!(ix != 0) && vnode6 < INV_VAL && vnode2 < INV_VAL)
+      {   if (!(ix != 0) && !Float.isNaN(vnode6) && !Float.isNaN(vnode2))
+*/
+      // test for not missing
+      {   if (!(ix != 0) && vnode6 == vnode6 && vnode2 == vnode2)
+        {
+              cp = ( ( isovalue - vnode2 ) / ( vnode6 - vnode2 ) );
+              VX[0][nvet] = xo + xs * ix;
+              VY[0][nvet] = yo + ys * (iy+1);
+              VZ[0][nvet] = zo + zs * (cp + iz);
+/*
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + 1];
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + 1];
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + 1];
+*/
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + 1] < 0) ?
+                      ((float) auxValues[j][pt + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + 1]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + 1];
+*/
+              }
+
+              P_array[ 2*xx + 2*yy + rear*zz + (iy+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0100) != 0) )     /* cube vertex 3-7 */
+/* WLH 24 Oct 97
+      {   if (vnode7 < INV_VAL && vnode3 < INV_VAL)
+      {   if (!Float.isNaN(vnode7) && !Float.isNaN(vnode3))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode3 == vnode3)
+          {
+              cp = ( ( isovalue - vnode3 ) / ( vnode7 - vnode3 ) );
+              VX[0][nvet] = xo + xs * (ix+1);
+              VY[0][nvet] = yo + ys * (iy+1);
+              VZ[0][nvet] = zo + zs * (cp + iz);
+/*
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + ydim + 1];
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + ydim + 1];
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + ydim + 1];
+*/
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + ydim + 1] < 0) ?
+                      ((float) auxValues[j][pt + ydim + 1]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + 1]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + ydim + 1];
+*/
+              }
+
+              P_array[ 2*xx + 2*yy + front*zz + (iy+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0200) != 0) )    /* cube vertex 4-5 */
+/* WLH 24 Oct 97
+      {   if (!(iy != 0) && vnode5 < INV_VAL && vnode4 < INV_VAL)
+      {   if (!(iy != 0) && !Float.isNaN(vnode5) && !Float.isNaN(vnode4))
+*/
+      // test for not missing
+      {   if (!(iy != 0) && vnode5 == vnode5 && vnode4 == vnode4)
+        {
+              cp = ( ( isovalue - vnode4 ) / ( vnode5 - vnode4 ) );
+              VX[0][nvet] = xo + xs * (cp + ix);
+              VY[0][nvet] = yo + ys * iy;
+              VZ[0][nvet] = zo + zs * (iz+1);
+/*
+              VX[0][nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + xdim_x_ydim];
+              VY[0][nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + xdim_x_ydim];
+              VZ[0][nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + xdim_x_ydim];
+*/
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + xdim_x_ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+*/
+              }
+
+              P_array[ above*xx + ix*ydim + iy ] = nvet;
+              nvet++;
+          }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0400) != 0) )     /* cube vertex 4-6 */
+/* WLH 24 Oct 97
+      {   if (!(ix != 0) && vnode6 < INV_VAL && vnode4 < INV_VAL)
+      {   if (!(ix != 0) && !Float.isNaN(vnode6) && !Float.isNaN(vnode4))
+*/
+      // test for not missing
+      {   if (!(ix != 0) && vnode6 == vnode6 && vnode4 == vnode4)
+          {
+              cp = ( ( isovalue - vnode4 ) / ( vnode6 - vnode4 ) );
+              VX[0][nvet] = xo + xs * ix;
+              VY[0][nvet] = yo + ys * (cp + iy);
+              VZ[0][nvet] = zo + zs * (iz+1);
+/*
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + xdim_x_ydim];
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + xdim_x_ydim];
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + xdim_x_ydim];
+*/
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + xdim_x_ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+*/
+              }
+
+              P_array[ 2*xx + above*yy + iy*xdim + ix ] = nvet;
+              nvet++;
+          }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0800) != 0) )     /* cube vertex 5-7 */
+/* WLH 24 Oct 97
+      {   if (vnode7 < INV_VAL && vnode5 < INV_VAL)
+      {   if (!Float.isNaN(vnode7) && !Float.isNaN(vnode5))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode5 == vnode5)
+        {
+              cp = ( ( isovalue - vnode5 ) / ( vnode7 - vnode5 ) );
+              VX[0][nvet] = xo + xs * (ix+1);
+              VY[0][nvet] = yo + ys * (cp + iy);
+              VZ[0][nvet] = zo + zs * (iz+1);
+/*
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + ydim + xdim_x_ydim];
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + ydim + xdim_x_ydim];
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + ydim + xdim_x_ydim];
+*/
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + ydim + xdim_x_ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + ydim + xdim_x_ydim];
+*/
+              }
+
+              P_array[ 2*xx + above*yy + iy*xdim + (ix+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x1000) != 0) )     /* cube vertex 6-7 */
+/* WLH 24 Oct 97
+      {   if (vnode7 < INV_VAL && vnode6 < INV_VAL)
+      {   if (!Float.isNaN(vnode7) && !Float.isNaN(vnode6))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode6 == vnode6)
+        {
+              cp = ( ( isovalue - vnode6 ) / ( vnode7 - vnode6 ) );
+              VX[0][nvet] = xo + xs * (cp + ix);
+              VY[0][nvet] = yo + ys * (iy+1);
+              VZ[0][nvet] = zo + zs * (iz+1);
+/*
+              VX[0][nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + 1 + xdim_x_ydim];
+              VY[0][nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + 1 + xdim_x_ydim];
+              VZ[0][nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + 1 + xdim_x_ydim];
+*/
+
+              for (int j=0; j<naux; j++) {
+                t = (int) ( cp * ((auxValues[j][pt + 1 + ydim + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + ydim + xdim_x_ydim]) ) +
+                    (1.0f - cp) * ((auxValues[j][pt + 1 + xdim_x_ydim] < 0) ?
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) + 256.0f :
+                      ((float) auxValues[j][pt + 1 + xdim_x_ydim]) ) );
+                tempaux[j][nvet] = (byte)
+                  ( (t < 0) ? 0 : ((t > 255) ? -1 : ((t < 128) ? t : t - 256) ) );
+/* MEM_WLH
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + 1 + xdim_x_ydim];
+*/
+              }
+
+              P_array[ above*xx + ix*ydim + (iy+1) ] = nvet;
+              nvet++;
+        }
+      }
+     }
+        /* end  find_vertex_invalid_cube(ncube); */
+
+                        }
+                    } /* end  if (exist_polygon_in_cube(ncube)) */
+                    ncube++; pt++;
+                } /* end  for ( iy = 0; iy < ydim - 1; iy++ ) */
+             /* swap_planes(Z,rear,front); */
+                caseA = rear;
+                rear = front;
+                front = caseA;
+                pt++;
+             /* end  swap_planes(Z,rear,front); */
+            } /* end  for ( ix = 0; ix < xdim - 1; ix++ ) */
+           /*  swap_planes(XY,bellow,above); */
+               caseA = bellow;
+               bellow = above;
+               above = caseA;
+            pt += ydim;
+           /* end  swap_planes(XY,bellow,above); */
+        } /* end  for ( iz = 0; iz < zdim - 1; iz++ ) */
+
+    // copy tempaux array into auxLevels array
+    for (int i=0; i<naux; i++) {
+      auxLevels[i] = new byte[nvet];
+      System.arraycopy(tempaux[i], 0, auxLevels[i], 0, nvet);
+    }
+
+    return nvet;
+  }
+
+
   public boolean equals(Object set) {
     if (!(set instanceof Linear3DSet) || set == null) return false;
     if (this == set) return true;

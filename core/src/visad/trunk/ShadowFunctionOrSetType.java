@@ -398,8 +398,8 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
         curvedTexture = getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
                         Domain.getDimension() == 2 &&
                         Domain.getAllSpatial() &&
-                        checkSpatialColorAlphaRange(Domain.getDisplayIndices()) &&
-                        checkSpatialColorAlphaRange(Range.getDisplayIndices()) &&
+                        checkSpatialOffsetColorAlphaRange(Domain.getDisplayIndices()) &&
+                        checkSpatialOffsetColorAlphaRange(Range.getDisplayIndices()) &&
                         checkAny(Range.getDisplayIndices()) &&
                         display.getGraphicsModeControl().getTextureEnable() &&
                         !display.getGraphicsModeControl().getPointMode();
@@ -421,6 +421,20 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        display.getGraphicsModeControl().getTextureEnable() &&
                        !display.getGraphicsModeControl().getPointMode();
 
+        // note GgraphicsModeControl.setTextureEnable(false) disables this
+        isLinearContour3D =
+                       getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
+                       ((FunctionType) getType()).getReal() &&   // ??
+                       Domain.getDimension() == 3 &&
+                       Domain.getAllSpatial() &&
+                       checkSpatialColorAlphaRange(Domain.getDisplayIndices()) &&
+                       !Domain.getSpatialReference() &&
+                       Display.DisplaySpatialCartesianTuple.equals(
+                               Domain.getDisplaySpatialTuple() ) &&
+                       checkContourColorAlphaRange(Range.getDisplayIndices()) &&
+                       checkContour(Range.getDisplayIndices()) &&
+                       display.getGraphicsModeControl().getTextureEnable();
+
 /*
 System.out.println("checkIndices.isTextureMap = " + isTextureMap + " " +
                    !getMultipleDisplayScalar() + " " +
@@ -440,8 +454,8 @@ System.out.println("checkIndices.curvedTexture = " + curvedTexture + " " +
                     (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +
                     (Domain.getDimension() == 2) + " " +
                     Domain.getAllSpatial() + " " +
-                    checkSpatialColorAlphaRange(Domain.getDisplayIndices()) + " " +
-                    checkSpatialColorAlphaRange(Range.getDisplayIndices()) + " " +
+                    checkSpatialOffsetColorAlphaRange(Domain.getDisplayIndices()) + " " +
+                    checkSpatialOffsetColorAlphaRange(Range.getDisplayIndices()) + " " +
                     checkAny(Range.getDisplayIndices()) + " " +
                     display.getGraphicsModeControl().getTextureEnable() + " " +
                     !display.getGraphicsModeControl().getPointMode() );
@@ -498,7 +512,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     // a flag requesting re-transform, throw a DisplayInterruptException
     DataDisplayLink link = renderer.getLink();
 
-// System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
+// System.out.println("\nstart doTransform " + (System.currentTimeMillis() - link.start_time));
 
     if (link != null) {
       boolean time_flag = false;
@@ -666,6 +680,9 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 
     // WLH 1 April 2000
     boolean range3D = isTexture3D && anyRange(Domain.getDisplayIndices());
+
+    boolean isLinearContour3D = getIsLinearContour3D() &&
+                                domain_set instanceof Linear3DSet;
 
 /*
 System.out.println("doTransform.isTextureMap = " + isTextureMap + " " +
@@ -1109,7 +1126,8 @@ for (int i=0; i < 4; i++) {
     }
     // WLH 1 April 2000
     // else { // !isTextureMap && !isTexture3D
-    if (!isTextureMap && (!isTexture3D || range3D)) {
+    // WLH 16 July 2000 - add '&& !isLinearContour3D'
+    if (!isTextureMap && (!isTexture3D || range3D) && !isLinearContour3D) {
 
 // System.out.println("start domain " + (System.currentTimeMillis() - link.start_time));
 
@@ -1683,9 +1701,16 @@ if (range_select[0] != null) {
         shadow_api.assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
                         inherited_values, domain_set, Domain.getAllSpatial(),
-                        anyContour, spatialDimensions, spatial_range_select,
+                        anyContour && !isLinearContour3D,
+                        spatialDimensions, spatial_range_select,
                         flow1_values, flow2_values, flowScale, swap, renderer,
                         shadow_api);
+
+      if (isLinearContour3D) {
+        spatial_set = domain_set;
+        spatialDimensions[0] = 3;
+        spatialDimensions[1] = 3;
+      }
 
       // WLH 29 April 99
       boolean spatial_all_select = true;
@@ -1964,111 +1989,24 @@ if (range_select[0] != null) {
         boolean anyContourCreated = false;
         if (anyContour) {
 
+/* Test01 at 64 x 64 x 64
+domain 701, 491
+range 20, 20
+assembleColor 210, 201
+assembleSpatial 130, 140
+makeIsoSurface 381, 520
+makeGeometry 350, 171
+  all makeGeometry time in calls to Java3D constructors, setCoordinates, etc
+*/
+
+// System.out.println("start makeContour " + (System.currentTimeMillis() - link.start_time));
           anyContourCreated =
             shadow_api.makeContour(valueArrayLength, valueToScalar,
                        display_values, inherited_values, MapVector, valueToMap,
                        domain_length, range_select, spatialManifoldDimension,
                        spatial_set, color_values, indexed, group, mode,
                        swap, constant_alpha, constant_color, shadow_api);
-/* WLH 16 March 2000
-          for (int i=0; i<valueArrayLength; i++) {
-            int displayScalarIndex = valueToScalar[i];
-            DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
-            if (real.equals(Display.IsoContour) &&
-                display_values[i] != null &&
-                display_values[i].length == domain_length &&
-                inherited_values[i] == 0) {
-              // non-inherited IsoContour, so generate contours
-              array = null;
-              ContourControl control = (ContourControl)
-                ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
-              boolean[] bvalues = new boolean[2];
-              float[] fvalues = new float[5];
-              control.getMainContours(bvalues, fvalues);
-              if (bvalues[0]) {
-                if (range_select[0] != null) {
-                  int len = range_select[0].length;
-                  if (len == 1 || display_values[i].length == 1) break;
-
-                  // WLH 30 July 99
-                  int dlen = display_values[i].length;
-                  float[] temp = display_values[i];
-                  display_values[i] = new float[dlen];
-                  System.arraycopy(temp, 0, display_values[i], 0, dlen);
-
-                  for (int j=0; j<len; j++) {
-                    if (!range_select[0][j]) {
-                      display_values[i][j] = Float.NaN;
-                    }
-                  }
-                }
-                if (spatialManifoldDimension == 3) {
-                  if (fvalues[0] == fvalues[0]) {
-                    if (spatial_set != null) {
-                      // System.out.println("makeIsoSurface at " + fvalues[0]);
-                      array = spatial_set.makeIsoSurface(fvalues[0],
-                                  display_values[i], color_values, indexed);
-                      // System.out.println("makeIsoSurface " + array.vertexCount);
-                      shadow_api.addToGroup(group, array, mode,
-                                            constant_alpha, constant_color);
-                      array = null;
-                    }
-                  }
-                  anyContourCreated = true;
-                }
-                else if (spatialManifoldDimension == 2) {
-                  if (spatial_set != null) {
-
-                    float[] lowhibase = new float[3];
-                    boolean[] dashes = {false};
-                    float[] levs = control.getLevels(lowhibase, dashes);
-                    arrays =
-                      spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
-                                               lowhibase[2], display_values[i],
-                                               color_values, swap, dashes[0]);
-
-// System.out.println("makeIsoLines");
-                    if (arrays != null && arrays.length > 0 && arrays[0] != null &&
-                        arrays[0].vertexCount > 0) {
-                      shadow_api.addToGroup(group, arrays[0], mode,
-                                            constant_alpha, constant_color);
-                      arrays[0] = null;
-                      if (bvalues[1] && arrays[2] != null) {
-
-// System.out.println("makeIsoLines with labels arrays[2].vertexCount = " +
-//                    arrays[2].vertexCount);
-
-                        // draw labels
-                        array = arrays[2];
-                        //  FREE
-                        arrays = null;
-                      }
-                      else if ((!bvalues[1]) && arrays[1] != null) {
-
-// System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
-//                    arrays[1].vertexCount);
-
-                        // fill in contour lines in place of labels
-                        array = arrays[1];
-                        //  FREE
-                        arrays = null;
-                      }
-                      else {
-                        array = null;
-                      }
-                      if (array != null) {
-                        shadow_api.addToGroup(group, array, mode,
-                                              constant_alpha, constant_color);
-                        array = null;
-                      }
-                    }
-                  } // end if (spatial_set != null)
-                  anyContourCreated = true;
-                } // end if (spatialManifoldDimension == 2)
-              } // end if (bvalues[0])
-            } // end if (real.equals(Display.IsoContour) && not inherited)
-          } // end for (int i=0; i<valueArrayLength; i++)
-*/
+// System.out.println("end makeContour " + (System.currentTimeMillis() - link.start_time));
         } // end if (anyContour)
 
         if (!anyContourCreated && !anyFlowCreated &&
@@ -2590,6 +2528,8 @@ WLH 15 March 2000 */
         if (renderer.getIsDirectManipulation()) {
           renderer.setSpatialValues(spatial_values);
         }
+
+// System.out.println("end doTransform " + (System.currentTimeMillis() - link.start_time));
 
         return false;
       } // end if (LevelOfDifficulty == SIMPLE_FIELD)

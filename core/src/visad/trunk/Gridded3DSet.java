@@ -2394,7 +2394,7 @@ for (int j=0; j<nvertex; j++) {
     } // end if (!indexed)
   }
 
-  private static int flags( float isovalue, int[] ptFLAG, int[] ptAUX, int[] pcube,
+  public static int flags( float isovalue, int[] ptFLAG, int[] ptAUX, int[] pcube,
                             float[] ptGRID, int xdim, int ydim, int zdim ) {
       int ii, jj, ix, iy, iz, cb, SF, bcase;
       int num_cubes, num_cubes_xy, num_cubes_y;
