@@ -427,8 +427,7 @@ public class MapProjectionDisplay extends DisplayImplJ3D
             this.mapProjection = mapProjection;
             latIndex = mapProjection.getLatitudeIndex();
             lonIndex = mapProjection.getLongitudeIndex();
-            java.awt.geom.Rectangle2D.Double bounds = 
-                (java.awt.geom.Rectangle2D.Double) 
+            java.awt.geom.Rectangle2D bounds = 
                     mapProjection.getDefaultMapArea();
             /*
             System.out.println("X = " + bounds.getX() +
