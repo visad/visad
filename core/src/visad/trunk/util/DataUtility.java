@@ -230,7 +230,7 @@ public class DataUtility {
    */
   public static Image extractImage(FlatField field, boolean reverse) {
     try {
-      Gridded2DSet set = (Gridded2DSet) field.getDomainSet();
+      GriddedSet set = (GriddedSet) field.getDomainSet();
       int[] wh = set.getLengths();
       int w = wh[0];
       int h = wh[1];
