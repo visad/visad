@@ -29,6 +29,7 @@ package visad;
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
+import visad.util.Util;
 
 /**
    Contour2D is a class equipped with a 2-D contouring function.<P>
@@ -975,7 +976,6 @@ any = true;
                 vx[numv] = xx;
                 numv++;
                 o_flags[ir][ic][n_lines[ir][ic]] = (byte)1 + (byte)32;
-                //o_flags[ir][ic][n_lines[ir][ic]] = (byte)1;
                 n_lines[ir][ic]++;
                 if (( (gdb) < 0 ? -(gdb) : (gdb) ) < 0.0000001)
                   vy[numv] = yy;
@@ -983,7 +983,6 @@ any = true;
                   vy[numv] = yy+yd*(gg-gb)/gdb;
                 vx[numv] = xx+xd;
                 o_flags[ir][ic][n_lines[ir][ic]] = (byte)7 + (byte)32;
-                //o_flags[ir][ic][n_lines[ir][ic]] = (byte)7;
                 n_lines[ir][ic]++;
                 numv++;
               }
@@ -995,7 +994,6 @@ any = true;
                 vx[numv] = xx+xd;
                 numv++;
                 o_flags[ir][ic][n_lines[ir][ic]] = (byte)2 + (byte)32;
-                //o_flags[ir][ic][n_lines[ir][ic]] = (byte)2;
                 n_lines[ir][ic]++;
                 if (( (gca) < 0 ? -(gca) : (gca) ) < 0.0000001)
                   vy[numv] = yy;
@@ -1004,7 +1002,6 @@ any = true;
                 vx[numv] = xx;
                 numv++;
                 o_flags[ir][ic][n_lines[ir][ic]] = (byte)4 + (byte)32;
-                //o_flags[ir][ic][n_lines[ir][ic]] = (byte)4;
                 n_lines[ir][ic]++;
               }
               if (( (gdc) < 0 ? -(gdc) : (gdc) ) < 0.0000001)
@@ -1013,7 +1010,6 @@ any = true;
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
-              //-System.out.println("case: 6, ir: "+ir+", ic: "+ic);
               break;
 
             case 7:
@@ -1324,6 +1320,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           float[] x_avg = new float[2];
           float[] y_avg = new float[2];
 
+
           if (numc > 1)
           { //-- first/next ctr line midpoints
             int idx  = v_idx;
@@ -1508,27 +1505,25 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           il++;
           for ( il = 1; il < numc; il++ )
           {
-            v_idx = start + dir*il*2;
-            o_idx = o_start + dir*il;
+            v_idx          = start + dir*il*2;
+            o_idx          = o_start + dir*il;
             int v_idx_last = v_idx - 2*dir;
-            int cc = cc_start + dir*il;
+            int cc         = cc_start + dir*il;
 
             if (o_flags[o_idx] != last_o) //- contour line case change
             {
               byte[] side_s      = new byte[2];
               byte[] last_side_s = new byte[2];
+              byte[] b_arg       = new byte[2];
               boolean flip;
+     
+              getBoxSide(vx, vy, xx, xd, yy, yd, v_idx, dir, o_flags[o_idx], b_arg);
+              side_s[0] = b_arg[0];
+              side_s[1] = b_arg[1];
+              getBoxSide(vx, vy, xx, xd, yy, yd, v_idx_last, dir, last_o, b_arg);
+              last_side_s[0] = b_arg[0];
+              last_side_s[1] = b_arg[1];
 
-              for (int kk = 0; kk < 2; kk++) {
-                if (vy[v_idx+kk*dir] == yy)             side_s[kk]   = 0; // a-b
-                if (vy[v_idx+kk*dir] == (yy + yd))      side_s[kk]   = 2; // c-d
-                if (vx[v_idx+kk*dir] == xx)             side_s[kk]   = 3; // a-c
-                if (vx[v_idx+kk*dir] == (xx + xd))      side_s[kk]   = 1; // b-d
-                if (vy[v_idx_last+kk*dir] == yy)        last_side_s[kk] = 0;
-                if (vy[v_idx_last+kk*dir] == (yy + yd)) last_side_s[kk] = 2;
-                if (vx[v_idx_last+kk*dir] == xx)        last_side_s[kk] = 3;
-                if (vx[v_idx_last+kk*dir] == (xx + xd)) last_side_s[kk] = 1;
-              }
 
               if (side_s[0] == last_side_s[0]) {
                 flip = false;
@@ -1557,8 +1552,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                 vv2[1]      = vy[v_idx+dir];
 
                 vv[0][0]    = vx[v_idx];
-                vv[0][1]    = vy[v_idx];
-                vv[1][0]    = vx[v_idx+dir];
+                vv[1][0]    = vy[v_idx];
+                vv[0][1]    = vx[v_idx+dir];
                 vv[1][1]    = vy[v_idx+dir];
               }
               else {
@@ -1568,8 +1563,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                 vv2[1]      = vy[v_idx];
 
                 vv[0][0]    = vx[v_idx+dir];
-                vv[0][1]    = vy[v_idx+dir];
-                vv[1][0]    = vx[v_idx];
+                vv[1][0]    = vy[v_idx+dir];
+                vv[0][1]    = vx[v_idx];
                 vv[1][1]    = vy[v_idx];
               }
               vv1_last[0]   = vx[v_idx_last];
@@ -1578,8 +1573,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               vv2_last[1]   = vy[v_idx_last+dir];
 
               vv_last[0][0] = vx[v_idx_last];
-              vv_last[0][1] = vy[v_idx_last];
-              vv_last[1][0] = vx[v_idx_last+dir];
+              vv_last[1][0] = vy[v_idx_last];
+              vv_last[0][1] = vx[v_idx_last+dir];
               vv_last[1][1] = vy[v_idx_last+dir];
 
 
@@ -1588,28 +1583,27 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                          tri, cnt_tri, t_idx, tri_color, color_bin,
                          cc, color_length, grd_normals, n_idx, tri_normals);
 
+              byte[] b_arg2 = new byte[2];
+              getBoxSide(vv[0], vv[1], xx, xd, yy, yd, 0, dir, o_flags[o_idx], b_arg);
+              getBoxSide(vv_last[0], vv_last[1], xx, xd, yy, yd, 0, dir, last_o, b_arg2);
+              
+
               for (int kk = 0; kk < 2; kk++) { //- close off corners
                 float[] vvx = new float[2];
                 float[] vvy = new float[2];
                 byte side   = 0;
                 byte last_s = 0;
-                if (vv[kk][1] == yy)              side   = 0;
-                if (vv[kk][1] == (yy + yd))       side   = 2;
-                if (vv[kk][0] == xx)              side   = 3;
-                if (vv[kk][0] == (xx + xd))       side   = 1;
-                if (vv_last[kk][1] == yy)         last_s = 0;
-                if (vv_last[kk][1] == (yy + yd))  last_s = 2;
-                if (vv_last[kk][0] == xx)         last_s = 3;
-                if (vv_last[kk][0] == (xx + xd))  last_s = 1;
 
+                side = b_arg[kk];
+                last_s = b_arg2[kk];
 
                 if ( side != last_s ) {
                   if ((side == 0 && last_s == 3) ||
                       (side == 3 && last_s == 0))
                   {  //- case 1
                     fillToNearCorner(xx, yy, xd, yd, 0, (byte)1, cnt_tri, 1,
-                      new float[] {vv[kk][0], vv_last[kk][0]},
-                      new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
+                      new float[] {vv[0][kk], vv_last[0][kk]},
+                      new float[] {vv[1][kk], vv_last[1][kk]}, nc, nr,
                       crnr_color, crnr_out, tri, t_idx, tri_color,
                       grd_normals, n_idx, tri_normals, closed);
                   }
@@ -1617,8 +1611,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       (side == 1 && last_s == 0))
                   {  //- case 2
                     fillToNearCorner(xx, yy, xd, yd, 0, (byte)2, cnt_tri, 1,
-                      new float[] {vv[kk][0], vv_last[kk][0]},
-                      new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
+                      new float[] {vv[0][kk], vv_last[0][kk]},
+                      new float[] {vv[1][kk], vv_last[1][kk]}, nc, nr,
                       crnr_color, crnr_out, tri, t_idx, tri_color,
                       grd_normals, n_idx, tri_normals, closed);
                   }
@@ -1626,8 +1620,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       (side == 3 && last_s == 2))
                   {  //- case 4
                     fillToNearCorner(xx, yy, xd, yd, 0, (byte)4, cnt_tri, 1,
-                      new float[] {vv[kk][0], vv_last[kk][0]},
-                      new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
+                      new float[] {vv[0][kk], vv_last[0][kk]},
+                      new float[] {vv[1][kk], vv_last[1][kk]}, nc, nr,
                       crnr_color, crnr_out, tri, t_idx, tri_color,
                       grd_normals, n_idx, tri_normals, closed);
                   }
@@ -1635,8 +1629,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       (side == 1 && last_s == 2))
                   {  //- case 7
                     fillToNearCorner(xx, yy, xd, yd, 0, (byte)7, cnt_tri, 1,
-                      new float[] {vv[kk][0], vv_last[kk][0]},
-                      new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
+                      new float[] {vv[0][kk], vv_last[0][kk]},
+                      new float[] {vv[1][kk], vv_last[1][kk]}, nc, nr,
                       crnr_color, crnr_out, tri, t_idx, tri_color,
                       grd_normals, n_idx, tri_normals, closed);
                   }
@@ -1644,20 +1638,19 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       (side == 0 && last_s == 2))
                   {  //- case 5
                     if (side == 0) {
-                      vvx[0] = vv[kk][0];
-                      vvy[0] = vv[kk][1];
-                      vvx[1] = vv_last[kk][0];
-                      vvy[1] = vv_last[kk][1];
+                      vvx[0] = vv[0][kk];
+                      vvy[0] = vv[1][kk];
+                      vvx[1] = vv_last[0][kk];
+                      vvy[1] = vv_last[1][kk];
                     }
                     else {
-                      vvx[0] = vv_last[kk][0];
-                      vvy[0] = vv_last[kk][1];
-                      vvx[1] = vv[kk][0];
-                      vvy[1] = vv[kk][1];
+                      vvx[0] = vv_last[0][kk];
+                      vvy[0] = vv_last[1][kk];
+                      vvx[1] = vv[0][kk];
+                      vvy[1] = vv[1][kk];
                     }
                     int flag = -1;
                     if (((closed[0] & 4)==0)&&((closed[0] & 1)==0)) flag = 1;
-
                     fillToSide(xx, yy, xd, yd, 0, (byte)5, flag, cnt_tri, 1,
                        vvx, vvy, nc, nr,
                        crnr_color, crnr_out, tri, t_idx, tri_color,
@@ -1667,16 +1660,16 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       (side == 3 && last_s == 1))
                   {  //- case 3
                     if (side == 3) {
-                      vvx[0] = vv[kk][0];
-                      vvy[0] = vv[kk][1];
-                      vvx[1] = vv_last[kk][0];
-                      vvy[1] = vv_last[kk][1];
+                      vvx[0] = vv[0][kk];
+                      vvy[0] = vv[1][kk];
+                      vvx[1] = vv_last[0][kk];
+                      vvy[1] = vv_last[1][kk];
                     }
                     else {
-                      vvx[0] = vv_last[kk][0];
-                      vvy[0] = vv_last[kk][1];
-                      vvx[1] = vv[kk][0];
-                      vvy[1] = vv[kk][1];
+                      vvx[0] = vv_last[0][kk];
+                      vvy[0] = vv_last[1][kk];
+                      vvx[1] = vv[0][kk];
+                      vvy[1] = vv[1][kk];
                     }
                     int flag = -1;
                     if (((closed[0] & 4)==0)&&((closed[0] & 8)==0)) flag = 1;
@@ -1748,6 +1741,111 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           }
 
         }//--- end fillGridBox
+
+  private static void getBoxSide(float[] vx, float[] vy,
+                                 float xx, float xd, float yy, float yd,
+                                 int v_idx, byte o_flag, byte[] side)
+  {
+    /*
+    if (vy[v_idx] == yy)          side[0]  = 0; // a-b
+    if (vy[v_idx] == (yy + yd))   side[0]  = 2; // c-d
+    if (vx[v_idx] == xx)          side[0]  = 3; // a-c
+    if (vx[v_idx] == (xx + xd))   side[0]  = 1; // b-d
+    */
+
+    switch (o_flag) {
+      case 1:
+        side[0] = 3;
+        if (vy[v_idx] == yy) side[0] = 0;
+        break;
+      case 2:
+        side[0] = 1;
+        if (vy[v_idx] == yy) side[0] = 0;
+        break;
+      case 4:
+        side[0] = 3;
+        if (vy[v_idx] == (yy + yd)) side[0] = 2;
+        break;
+      case 7:
+        side[0] = 1;
+        if (vy[v_idx] == (yy + yd)) side[0] = 2;
+        break;
+      case 3:
+        side[0] = 1;
+        if (vx[v_idx] == xx) side[0] = 3;
+        break;
+      case 5:
+        side[0] = 0;
+        if (vy[v_idx] == (yy + yd)) side[0] = 2;
+        break;
+    } 
+  }
+  private static void getBoxSide(float[] vx, float[] vy,
+                                 float xx, float xd, float yy, float yd,
+                                 int v_idx, int dir, byte o_flag, byte[] side)
+  {
+    /*
+    if (vy[v_idx] == yy)          side[0]  = 0; // a-b
+    if (vy[v_idx] == (yy + yd))   side[0]  = 2; // c-d
+    if (vx[v_idx] == xx)          side[0]  = 3; // a-c
+    if (vx[v_idx] == (xx + xd))   side[0]  = 1; // b-d
+    */
+
+    if (o_flag==1 || o_flag==2 || o_flag==4 || o_flag==7) {
+      if ((vx[v_idx] == vx[v_idx+dir*1]) &&
+          (vy[v_idx] == vy[v_idx+dir*1])) {
+      //if (Util.isApproximatelyEqual(vx[v_idx], vx[v_idx+dir*1]) &&
+      //    Util.isApproximatelyEqual(vy[v_idx], vy[v_idx+dir*1])) {
+        if (o_flag==1) {
+          side[0] = 0;
+          side[1] = 3;
+        }
+        if (o_flag==2) {
+          side[0] = 1;
+          side[1] = 0;
+        }
+        if (o_flag==4) {
+          side[0] = 3;
+          side[1] = 2;
+        }
+        if (o_flag==7) {
+          side[0] = 1;
+          side[1] = 2;
+        }
+        return;
+      }
+    }
+
+    for (int kk = 0; kk < 2; kk++) {
+      int ii = v_idx + kk*dir;
+      switch (o_flag) {
+        case 1:
+          side[kk] = 3;
+          if (vy[ii] == yy) side[kk] = 0;
+          break;
+        case 2:
+          side[kk] = 1;
+          if (vy[ii] == yy) side[kk] = 0;
+          break;
+        case 4:
+          side[kk] = 3;
+          if (vy[ii] == (yy + yd)) side[kk] = 2;
+          break;
+        case 7:
+          side[kk] = 1;
+          if (vy[ii] == (yy + yd)) side[kk] = 2;
+          break;
+        case 3:
+          side[kk] = 1;
+          if (vx[ii] == xx) side[kk] = 3;
+          break;
+        case 5:
+          side[kk] = 0;
+          if (vy[ii] == (yy + yd)) side[kk] = 2;
+          break;
+      }
+    }
+  }
 
   private static void interpNormals(float vx, float vy, float xx, float yy,
                                     int nc, int nr, float xd, float yd,
@@ -1995,9 +2093,15 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     byte[] cntr_color = null;
     int cntr_clr  = Integer.MIN_VALUE;
 
-    //- Vertices for the tris in the middle region
     float[][] edge_points = new float[2][8];
+    boolean[] edge_point_a_corner =
+      {false, false, false, false, false, false, false, false};
+    boolean[] edge_point_out =
+      {false, false, false, false, false, false, false, false};
+    boolean this_crnr_out = false;
+    int     n_crnr_out = 0;
     
+    //- fill corners
     for (int kk = 0; kk < cases.length; kk++) {
       switch(cases[kk]) {
         case 1:
@@ -2012,6 +2116,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           s_idx  = 0;
           ns_idx = 1;
           tmp = crnr_color[0];
+          this_crnr_out = crnr_out[0];
           break;
         case 2:
           nn = n2;
@@ -2025,6 +2130,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           s_idx  = 0;
           ns_idx = 1;
           tmp = crnr_color[1];
+          this_crnr_out = crnr_out[1];
           break;
         case 4:
           nn = n4;
@@ -2038,6 +2144,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           s_idx  = 1;
           ns_idx = 0;
           tmp = crnr_color[2];
+          this_crnr_out = crnr_out[2];
           break;
         case 7:
           nn = n7;
@@ -2051,6 +2158,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           s_idx  = 0;
           ns_idx = 1;
           tmp = crnr_color[3];
+          this_crnr_out = crnr_out[3];
           break;
       }
 
@@ -2060,6 +2168,11 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         edge_points[0][n_pt] = xxx;
         edge_points[1][n_pt] = yyy;
         cntr_color           = tmp;
+        edge_point_a_corner[pt]   = true;
+        edge_point_a_corner[n_pt] = true;
+        edge_point_out[pt] = this_crnr_out;
+        edge_point_out[n_pt] = this_crnr_out;
+        if (this_crnr_out) n_crnr_out++;
       }
       else if ( nn == 1) {
         fillToNearCorner(xx, yy, xd, yd, 0, (byte)cases[kk], cnt_tri, dir,
@@ -2141,6 +2254,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
     //- fill remainder with tris all sharing center point
     //----------------------------------------------------
+    if (n_crnr_out == 2) { //- don't fill center region
+      return;
+    }
 
     if (cntr_color == null) { //- All corners were closed off
       cntr_color = new byte[color_length];
@@ -2155,6 +2271,10 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       if (kk == (edge_points[0].length - 1)) {
         pt   = 0;
         n_pt = 7;
+      }
+
+      if (edge_point_a_corner[pt] || edge_point_a_corner[n_pt]) {
+        if(edge_point_out[pt] || edge_point_out[n_pt]) continue;
       }
 
       for (int c=0; c<color_length; c++) {
@@ -2175,11 +2295,13 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                     xd, yd, grd_normals, n_idx, tri_normals);
       tt++;
 
+      //- center point
       for (int c=0; c<color_length; c++) {
         tri_color[c][tt] = cntr_color[c];
       }
       tri[0][tt]       = xx + xd*0.5f;
       tri[1][tt]       = yy + yd*0.5f;
+      //- center normal, interpolate from corners
       float[] nrm = {0f, 0f, 0f};
       for (int ic=0; ic<2; ic++) {
         for (int ir=0; ir<2; ir++) {
@@ -2188,6 +2310,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           nrm[2] += 0.25*grd_normals[nc+ic][nr+ir][2];
         }
       }
+      //- renormalize normal
       float mag = (float) 
         Math.sqrt(nrm[0]*nrm[0] + nrm[1]*nrm[1] + nrm[2]*nrm[2]);
       nrm[0] /= mag;
