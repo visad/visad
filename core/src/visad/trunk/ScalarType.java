@@ -51,7 +51,7 @@ public abstract class ScalarType extends MathType {
         name.indexOf("(") > -1 ||
         name.indexOf(")") > -1) {
       throw new TypeException("ScalarType: name cannot contain " +
-                              ". ( or ) " + name);
+                              "space . ( or ) " + name);
     }
     Enumeration scalars = ScalarVector.elements();
     while (scalars.hasMoreElements()) {
