@@ -67,7 +67,6 @@ abstract class BaseCache
   private static ArrayList allCache = new ArrayList();
 
   BaseCache() { allCache.add(this); }
-  abstract void clearValue();
 
   static void clearAll()
   {
@@ -76,6 +75,8 @@ abstract class BaseCache
       ((BaseCache )allCache.get(i)).clearValue();
     }
   }
+
+  abstract void clearValue();
 }
 
 class DoubleCache
@@ -178,150 +179,61 @@ public class F2000Form
     super("F2000Form#" + num++);
   }
 
-  public boolean isThisType(String name)
-  {
-    return name.endsWith(".r");
-  }
-
-  public boolean isThisType(byte[] block)
-  {
-    return false;
-  }
-
-  public String[] getDefaultSuffixes()
-  {
-    String[] suff = { "r" };
-    return suff;
-  }
-
-  public synchronized void save(String id, Data data, boolean replace)
-    throws BadFormException, IOException, RemoteException, VisADException
-  {
-    throw new BadFormException("F2000Form.save");
-  }
-
   public synchronized void add(String id, Data data, boolean replace)
     throws BadFormException
   {
     throw new BadFormException("F2000Form.add");
   }
 
-  public synchronized DataImpl open(String id)
-    throws BadFormException, IOException, VisADException
+  private final Tuple buildData(ArrayList emEvents, Module[] om)
+    throws VisADException
   {
-    FileInputStream fileStream = new FileInputStream(id);
-    return open(fileStream);
-  }
+    // Field of Tuples of track and hit Fields
+    final int nevents = emEvents.size();
+    Integer1DSet eventsSet =
+      new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
+    FieldImpl events_field =
+      new FieldImpl(eventsFunctionType, eventsSet);
+    if (nevents > 0) {
+      Tuple[] event_tuples = (Tuple[] )emEvents.toArray(new Tuple[nevents]);
+      try {
+        events_field.setSamples(event_tuples, false);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+      }
+    }
+    // return events_field;
 
-  public synchronized DataImpl open(URL url)
-    throws BadFormException, VisADException, IOException
-  {
-    InputStream inputStream = url.openStream();
-    return open(inputStream);
-  }
-
-  private String nextLine(BufferedReader rdr)
-    throws IOException
-  {
-    String line = rdr.readLine();
-    if (line != null) {
-      line = line.trim().toLowerCase();
+    final int nmodules = om.length;
+    Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
+    FlatField module_field =
+      new FlatField(moduleFunctionType, moduleSet);
+    float[][] msamples = new float[3][nmodules];
+    for (int i = 0; i < nmodules; i++) {
+      if (om[i] == null) {
+        msamples[0][i] = msamples[1][i] = msamples[2][i] = Float.NaN;
+      } else {
+        msamples[0][i] = om[i].getX();
+        msamples[1][i] = om[i].getY();
+        msamples[2][i] = om[i].getZ();
+      }
+    }
+    try {
+      module_field.setSamples(msamples);
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      return null;
     }
 
-    return line;
-  }
-
-  private double parseDouble(String tokenName, String token)
-    throws NumberFormatException
-  {
-    double value;
-    if (token == null) {
-      value = Double.NaN;
-    } else if (token.equals("inf")) {
-      value = Double.POSITIVE_INFINITY;
-    } else if (token.equals("-inf")) {
-      value = Double.NEGATIVE_INFINITY;
-    } else if (token.equals("?")) {
-      value = Double.NaN;
-    } else if (token.equals("nan")) {
-      value = Double.NaN;
-    } else if (token.equals("*")) {
-      value = ((DoubleCache )lastCache.get(tokenName)).getValue();
-    } else {
-      value = Double.parseDouble(token);
+    Tuple t;
+    try {
+      t = new Tuple(new Data[] {events_field, module_field});
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      t = null;
     }
 
-    // save value in case next reference uses '*' to access it
-    DoubleCache cache = (DoubleCache )lastCache.get(tokenName);
-    if (cache == null) {
-      lastCache.put(tokenName, new DoubleCache(value));
-    } else {
-      cache.setValue(value);
-    }
-
-    return value;
-  }
-
-  private float parseFloat(String tokenName, String token)
-    throws NumberFormatException
-  {
-    float value;
-    if (token == null) {
-      value = Float.NaN;
-    } else if (token.equals("inf")) {
-      value = Float.POSITIVE_INFINITY;
-    } else if (token.equals("-inf")) {
-      value = Float.NEGATIVE_INFINITY;
-    } else if (token.equals("?")) {
-      value = Float.NaN;
-    } else if (token.equals("nan")) {
-      value = Float.NaN;
-    } else if (token.equals("*")) {
-      value = ((FloatCache )lastCache.get(tokenName)).getValue();
-    } else {
-      value = Float.parseFloat(token);
-    }
-
-    // save value in case next reference uses '*' to access it
-    FloatCache cache = (FloatCache )lastCache.get(tokenName);
-    if (cache == null) {
-      lastCache.put(tokenName, new FloatCache(value));
-    } else {
-      cache.setValue(value);
-    }
-
-    return value;
-  }
-
-  private int parseInt(String tokenName, String token)
-    throws NumberFormatException
-  {
-    int value;
-    if (token == null) {
-      value = -1;
-    } else if (token.equals("inf")) {
-      value = Integer.MAX_VALUE;
-    } else if (token.equals("-inf")) {
-      value = Integer.MIN_VALUE;
-    } else if (token.equals("?")) {
-      value = -1;
-    } else if (token.equals("nan")) {
-      value = -1;
-    } else if (token.equals("*")) {
-      value = ((IntCache )lastCache.get(tokenName)).getValue();
-    } else {
-      value = Integer.parseInt(token);
-    }
-
-    // save value in case next reference uses '*' to access it
-    IntCache cache = (IntCache )lastCache.get(tokenName);
-    if (cache == null) {
-      lastCache.put(tokenName, new IntCache(value));
-    } else {
-      cache.setValue(value);
-    }
-
-    return value;
+    return t;
   }
 
   private void createTypes()
@@ -367,253 +279,6 @@ public class F2000Form
       new FunctionType(moduleIndexType, xyz);
 
     typesCreated = true;
-  }
-
-  private int readArrayLine(String line, StringTokenizer tok)
-    throws BadFormException
-  {
-    String detector = tok.nextToken();
-    int nstrings, nmodules;
-    try {
-      float longitude = parseFloat("raLon", tok.nextToken());
-      float latitude = parseFloat("raLat", tok.nextToken());
-      float depth = parseFloat("raDepth", tok.nextToken());
-      nstrings = parseInt("raNStr", tok.nextToken());
-      nmodules = parseInt("raNMod", tok.nextToken());
-    } catch(NumberFormatException e) {
-      throw new BadFormException("Bad ARRAY line \"" + line + "\": " +
-                                 e.getMessage());
-    }
-
-    if (nstrings < 1 || nmodules < 1) {
-      throw new BadFormException("Bad ARRAY line \"" + line + "\": " +
-                                 (nstrings < 1 ? "nstrings < 1" :
-                                  "nmodule < 1"));
-    }
-
-    return nmodules;
-  }
-
-  private final Module readOMLine(String line, StringTokenizer tok, Module[] om)
-    throws BadFormException
-  {
-    String numStr = tok.nextToken();
-
-    int number;
-    try {
-      number = parseInt("omNum", numStr) - 1;
-    } catch(NumberFormatException e) {
-      throw new BadFormException("unparseable module number \"" + numStr +
-                                 "\" in \"" + line + "\"");
-    }
-
-    if (number < 0 || number >= om.length) {
-      throw new BadFormException("bad module number \"" + numStr +
-                                 "\" in \"" + line + "\"");
-    } else if (om[number] != null) {
-      System.err.println("Warning: Ignoring duplicate module #" + number +
-                         " in \"" + line + "\"");
-      return null;
-    }
-
-    int stringOrder, string;
-    float x, y, z;
-    try {
-      stringOrder = parseInt("modOrd", tok.nextToken());
-      string = parseInt("modStr", tok.nextToken());
-      x = parseFloat("modX", tok.nextToken());
-      y = parseFloat("modY", tok.nextToken());
-      z = parseFloat("modZ", tok.nextToken());
-    } catch(NumberFormatException e) {
-      throw new BadFormException("Bad OM line \"" + line + "\": " +
-                                 e.getMessage());
-    }
-
-    om[number] = new Module(x, y, z, string, stringOrder);
-
-    return om[number];
-  }
-
-  private final FlatField makeField(float xstart, float ystart, float zstart,
-                                    float zenith, float azimuth, float length,
-                                    float energy, float time, float maxLength)
-    throws VisADException
-  {
-    if (length > maxLength) {
-      length = maxLength;
-    } else if (length != length) {
-      length = -1.0f;
-    }
-    if (energy != energy) {
-      energy = 1.0f;
-    }
-
-    float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
-    float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
-    float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
-    float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-    float zinc = length * zc;
-    float xinc = length * zs * ac;
-    float yinc = length * zs * as;
-
-    float[][] locs = {{xstart - LENGTH_SCALE * xinc,
-                       xstart + LENGTH_SCALE * xinc},
-                      {ystart - LENGTH_SCALE * yinc,
-                       ystart + LENGTH_SCALE * yinc},
-                      {zstart - LENGTH_SCALE * zinc,
-                       zstart + LENGTH_SCALE * zinc}};
-    // construct Field for fit
-    Gridded3DSet set = new Gridded3DSet(xyz, locs, 2);
-    FlatField field =
-      new FlatField(trackFunctionType, set);
-    float[][] values = {{time, time}, {energy, energy}};
-
-    try {
-      field.setSamples(values, false);
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      return null;
-    }
-
-    return field;
-  }
-
-  private final FlatField readTrack(String line, StringTokenizer tok)
-    throws VisADException
-  {
-    // TR nr parent type xstart ystart zstart zenith azimuth length energy time
-    // skip first three fields
-    for (int i = 0; i < 3; i++) {
-      tok.nextToken();
-    }
-
-    float xstart, ystart, zstart, zenith, azimuth, length, energy, time;
-    try {
-      xstart = parseFloat("trXStart", tok.nextToken());
-      ystart = parseFloat("trYStart", tok.nextToken());
-      zstart = parseFloat("trZStart", tok.nextToken());
-      zenith = parseFloat("trZenith", tok.nextToken()); // 0.0f toward -z
-      azimuth = parseFloat("trAzimuth", tok.nextToken()); // 0.0f toward +x
-      length = parseFloat("trLength", tok.nextToken());
-      energy = parseFloat("trEnergy", tok.nextToken());
-      time = parseFloat("trTime", tok.nextToken());
-    } catch(NumberFormatException e) {
-      throw new BadFormException("bad TRACK line \"" + line + "\": " +
-                                 e.getMessage());
-    }
-
-    return makeField(xstart, ystart, zstart, zenith, azimuth, length,
-                     energy, time, 1000.f);
-  }
-
-  private final FlatField readFit(String line, StringTokenizer tok)
-    throws VisADException
-  {
-    // FIT id type xstart ystart zstart zenith azimuth time length energy
-    float xstart, ystart, zstart, zenith, azimuth, length, energy, time;
-
-    // skip ID field
-    tok.nextToken();
-    tok.nextToken();
-
-    try {
-      xstart = parseFloat("fitXStart", tok.nextToken());
-      ystart = parseFloat("fitYStart", tok.nextToken());
-      zstart = parseFloat("fitZStart", tok.nextToken());
-      zenith = parseFloat("fitZenith", tok.nextToken()); // 0.0f toward -z
-      azimuth = parseFloat("fitAzimuth", tok.nextToken()); // 0.0f toward +x
-      time = parseFloat("fitTime", tok.nextToken());
-      length = parseFloat("fitLength", tok.nextToken());
-      energy = parseFloat("fitEnergy", tok.nextToken());
-    } catch(NumberFormatException e) {
-      throw new BadFormException("Bad FIT line \"" + line + "\": " +
-                                 e.getMessage());
-    }
-
-    return makeField(xstart, ystart, zstart, zenith, azimuth, length,
-                     energy, time, 10000.f);
-  }
-
-  private int parseChannel(String tokenName, String token)
-    throws NumberFormatException
-  {
-    final int dotIdx = token.indexOf('.');
-    if (dotIdx >= 0) {
-      token = "-" + token.substring(dotIdx + 1);
-    }
-
-    return parseInt(tokenName, token);
-  }
-
-  private final RealTuple readHit(String line, StringTokenizer tok,
-                                  Module[] om)
-    throws VisADException
-  {
-    String chanStr = tok.nextToken();
-    int number = parseChannel("htNum", chanStr);
-    if (number < 0) {
-      System.err.println("Warning: Ignoring HIT for secondary channel \"" +
-                         chanStr + "\"");
-      return null;
-    }
-
-    // convert module index (1-based) to array index (0-based)
-    number--;
-
-    float amplitude, let, tot;
-    try {
-      amplitude = parseFloat("htAmp", tok.nextToken());
-
-      // skip next two tokens
-      tok.nextToken();
-      tok.nextToken();
-
-      let = parseFloat("htLet", tok.nextToken());
-      tot = parseFloat("htTot", tok.nextToken());
-    } catch(NumberFormatException e) {
-      throw new BadFormException("Bad HIT line \"" + line + "\": " +
-                                 e.getMessage());
-    }
-
-    RealTuple rt;
-    if (om[number] == null) {
-      System.err.println("Warning: Module not found for HIT line \"" +
-                         line + "\"");
-      rt = null;
-    } else {
-      double[] values = {om[number].getX(), om[number].getY(),
-                         om[number].getZ(),
-                         amplitude, let, tot};
-
-      // construct Tuple for hit
-      try {
-        rt = new RealTuple(hitType, values);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-        rt = null;
-      }
-    }
-
-    return rt;
-  }
-
-  private final void startEvent(String line, StringTokenizer tok)
-    throws BadFormException
-  {
-    // assemble EM event
-/* XXX don't do anything, since it's all thrown away
-    try {
-      int number = parseInt("emNum", tok.nextToken());
-      int year = parseInt("emYear", tok.nextToken());
-      int day = parseInt("emDay", tok.nextToken());
-      double em_time = parseDouble("emTime", tok.nextToken());
-      // time shift in nsec of all times in event
-      double em_time_shift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
-    } catch(NumberFormatException e) {
-      throw new BadFormException("Bad EM line \"" + line + "\": " +
-                                 e.getMessage());
-    }
-*/
   }
 
   private final Tuple finishEvent(ArrayList emTracks, ArrayList emHits)
@@ -674,55 +339,179 @@ public class F2000Form
     return t;
   }
 
-  private final Tuple buildData(ArrayList emEvents, Module[] om)
+  public final RealType getAmplitude() { return amplitudeType; }
+
+  public static final VisADQuadArray[] getCubeArray()
+  {
+    VisADQuadArray cube = new VisADQuadArray();
+    cube.coordinates = new float[]
+      {CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+       -CUBE, -CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
+       -CUBE,  CUBE, -CUBE,     CUBE,  CUBE, -CUBE,
+
+       CUBE,  CUBE,  CUBE,     CUBE, -CUBE,  CUBE,
+       CUBE, -CUBE,  CUBE,    -CUBE, -CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
+       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
+
+       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
+       CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,     CUBE, -CUBE,  CUBE,
+       CUBE, -CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
+
+       -CUBE,  CUBE,  CUBE,    -CUBE,  CUBE, -CUBE,
+       -CUBE,  CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
+
+       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
+       CUBE,  CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
+       -CUBE,  CUBE, -CUBE,    -CUBE,  CUBE,  CUBE,
+       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
+
+       CUBE, -CUBE,  CUBE,     CUBE, -CUBE, -CUBE,
+       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
+       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
+       -CUBE, -CUBE,  CUBE,     CUBE, -CUBE,  CUBE};
+
+    cube.vertexCount = cube.coordinates.length / 3;
+    cube.normals = new float[144];
+    cube.normals = new float[144];
+    for (int i=0; i<24; i+=3) {
+      cube.normals[i]     =  0.0f;
+      cube.normals[i+1]   =  0.0f;
+      cube.normals[i+2]   = -1.0f;
+
+      cube.normals[i+24]  =  0.0f;
+      cube.normals[i+25]  =  0.0f;
+      cube.normals[i+26]  =  1.0f;
+
+      cube.normals[i+48]  =  1.0f;
+      cube.normals[i+49]  =  0.0f;
+      cube.normals[i+50]  =  0.0f;
+
+      cube.normals[i+72]  = -1.0f;
+      cube.normals[i+73]  =  0.0f;
+      cube.normals[i+74]  =  0.0f;
+
+      cube.normals[i+96]  =  0.0f;
+      cube.normals[i+97]  =  1.0f;
+      cube.normals[i+98]  =  0.0f;
+
+      cube.normals[i+120] =  0.0f;
+      cube.normals[i+121] = -1.0f;
+      cube.normals[i+122] =  0.0f;
+    }
+
+    return new VisADQuadArray[] {cube};
+  }
+
+  public String[] getDefaultSuffixes()
+  {
+    String[] suff = { "r" };
+    return suff;
+  }
+
+  public final RealType getEventIndex() { return eventIndexType; }
+
+  public synchronized FormNode getForms(Data data)
+  {
+    return null;
+  }
+
+  public final RealType getLet() { return letType; }
+  public final RealType getTrackIndex() { return trackIndexType; }
+
+  public final RealType getX() { return xType; }
+  public final double getXMax() { return xmax; }
+  public final double getXMin() { return xmin; }
+
+  public final RealType getY() { return yType; }
+  public final double getYMax() { return ymax; }
+  public final double getYMin() { return ymin; }
+
+  public final RealType getZ() { return zType; }
+  public final double getZMax() { return zmax; }
+  public final double getZMin() { return zmin; }
+
+  public boolean isThisType(String name)
+  {
+    return name.endsWith(".r");
+  }
+
+  public boolean isThisType(byte[] block)
+  {
+    return false;
+  }
+
+  private final FlatField makeField(float xstart, float ystart, float zstart,
+                                    float zenith, float azimuth, float length,
+                                    float energy, float time, float maxLength)
     throws VisADException
   {
-    // Field of Tuples of track and hit Fields
-    final int nevents = emEvents.size();
-    Integer1DSet eventsSet =
-      new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
-    FieldImpl events_field =
-      new FieldImpl(eventsFunctionType, eventsSet);
-    if (nevents > 0) {
-      Tuple[] event_tuples = (Tuple[] )emEvents.toArray(new Tuple[nevents]);
-      try {
-        events_field.setSamples(event_tuples, false);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-      }
+    if (length > maxLength) {
+      length = maxLength;
+    } else if (length != length) {
+      length = -1.0f;
     }
-    // return events_field;
+    if (energy != energy) {
+      energy = 1.0f;
+    }
 
-    final int nmodules = om.length;
-    Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
-    FlatField module_field =
-      new FlatField(moduleFunctionType, moduleSet);
-    float[][] msamples = new float[3][nmodules];
-    for (int i = 0; i < nmodules; i++) {
-      if (om[i] == null) {
-        msamples[0][i] = msamples[1][i] = msamples[2][i] = Float.NaN;
-      } else {
-        msamples[0][i] = om[i].getX();
-        msamples[1][i] = om[i].getY();
-        msamples[2][i] = om[i].getZ();
-      }
-    }
+    float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
+    float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
+    float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
+    float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
+    float zinc = length * zc;
+    float xinc = length * zs * ac;
+    float yinc = length * zs * as;
+
+    float[][] locs = {{xstart - LENGTH_SCALE * xinc,
+                       xstart + LENGTH_SCALE * xinc},
+                      {ystart - LENGTH_SCALE * yinc,
+                       ystart + LENGTH_SCALE * yinc},
+                      {zstart - LENGTH_SCALE * zinc,
+                       zstart + LENGTH_SCALE * zinc}};
+    // construct Field for fit
+    Gridded3DSet set = new Gridded3DSet(xyz, locs, 2);
+    FlatField field =
+      new FlatField(trackFunctionType, set);
+    float[][] values = {{time, time}, {energy, energy}};
+
     try {
-      module_field.setSamples(msamples);
+      field.setSamples(values, false);
     } catch (RemoteException re) {
       re.printStackTrace();
       return null;
     }
 
-    Tuple t;
-    try {
-      t = new Tuple(new Data[] {events_field, module_field});
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      t = null;
+    return field;
+  }
+
+  private String nextLine(BufferedReader rdr)
+    throws IOException
+  {
+    String line = rdr.readLine();
+    if (line != null) {
+      line = line.trim().toLowerCase();
     }
 
-    return t;
+    return line;
+  }
+
+  public synchronized DataImpl open(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    FileInputStream fileStream = new FileInputStream(id);
+    return open(fileStream);
+  }
+
+  public synchronized DataImpl open(URL url)
+    throws BadFormException, VisADException, IOException
+  {
+    InputStream inputStream = url.openStream();
+    return open(inputStream);
   }
 
   private synchronized DataImpl open(InputStream is)
@@ -882,91 +671,305 @@ public class F2000Form
     return buildData(emEvents, om);
   }
 
-  public synchronized FormNode getForms(Data data)
+  private int parseChannel(String tokenName, String token)
+    throws NumberFormatException
   {
-    return null;
-  }
-
-  public static final VisADQuadArray[] getCubeArray()
-  {
-    VisADQuadArray cube = new VisADQuadArray();
-    cube.coordinates = new float[]
-      {CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,     CUBE,  CUBE, -CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE, -CUBE,  CUBE,
-       CUBE, -CUBE,  CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
-       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
-       CUBE,  CUBE, -CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,     CUBE, -CUBE,  CUBE,
-       CUBE, -CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       -CUBE,  CUBE,  CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,    -CUBE,  CUBE,  CUBE,
-
-       CUBE,  CUBE,  CUBE,     CUBE,  CUBE, -CUBE,
-       CUBE,  CUBE, -CUBE,    -CUBE,  CUBE, -CUBE,
-       -CUBE,  CUBE, -CUBE,    -CUBE,  CUBE,  CUBE,
-       -CUBE,  CUBE,  CUBE,     CUBE,  CUBE,  CUBE,
-
-       CUBE, -CUBE,  CUBE,     CUBE, -CUBE, -CUBE,
-       CUBE, -CUBE, -CUBE,    -CUBE, -CUBE, -CUBE,
-       -CUBE, -CUBE, -CUBE,    -CUBE, -CUBE,  CUBE,
-       -CUBE, -CUBE,  CUBE,     CUBE, -CUBE,  CUBE};
-
-    cube.vertexCount = cube.coordinates.length / 3;
-    cube.normals = new float[144];
-    cube.normals = new float[144];
-    for (int i=0; i<24; i+=3) {
-      cube.normals[i]     =  0.0f;
-      cube.normals[i+1]   =  0.0f;
-      cube.normals[i+2]   = -1.0f;
-
-      cube.normals[i+24]  =  0.0f;
-      cube.normals[i+25]  =  0.0f;
-      cube.normals[i+26]  =  1.0f;
-
-      cube.normals[i+48]  =  1.0f;
-      cube.normals[i+49]  =  0.0f;
-      cube.normals[i+50]  =  0.0f;
-
-      cube.normals[i+72]  = -1.0f;
-      cube.normals[i+73]  =  0.0f;
-      cube.normals[i+74]  =  0.0f;
-
-      cube.normals[i+96]  =  0.0f;
-      cube.normals[i+97]  =  1.0f;
-      cube.normals[i+98]  =  0.0f;
-
-      cube.normals[i+120] =  0.0f;
-      cube.normals[i+121] = -1.0f;
-      cube.normals[i+122] =  0.0f;
+    final int dotIdx = token.indexOf('.');
+    if (dotIdx >= 0) {
+      token = "-" + token.substring(dotIdx + 1);
     }
 
-    return new VisADQuadArray[] {cube};
+    return parseInt(tokenName, token);
   }
 
-  public final RealType getAmplitude() { return amplitudeType; }
-  public final RealType getLet() { return letType; }
-  public final RealType getEventIndex() { return eventIndexType; }
-  public final RealType getTrackIndex() { return trackIndexType; }
+  private double parseDouble(String tokenName, String token)
+    throws NumberFormatException
+  {
+    double value;
+    if (token == null) {
+      value = Double.NaN;
+    } else if (token.equals("inf")) {
+      value = Double.POSITIVE_INFINITY;
+    } else if (token.equals("-inf")) {
+      value = Double.NEGATIVE_INFINITY;
+    } else if (token.equals("?")) {
+      value = Double.NaN;
+    } else if (token.equals("nan")) {
+      value = Double.NaN;
+    } else if (token.equals("*")) {
+      value = ((DoubleCache )lastCache.get(tokenName)).getValue();
+    } else {
+      value = Double.parseDouble(token);
+    }
 
-  public final RealType getX() { return xType; }
-  public final double getXMax() { return xmax; }
-  public final double getXMin() { return xmin; }
+    // save value in case next reference uses '*' to access it
+    DoubleCache cache = (DoubleCache )lastCache.get(tokenName);
+    if (cache == null) {
+      lastCache.put(tokenName, new DoubleCache(value));
+    } else {
+      cache.setValue(value);
+    }
 
-  public final RealType getY() { return yType; }
-  public final double getYMax() { return ymax; }
-  public final double getYMin() { return ymin; }
+    return value;
+  }
 
-  public final RealType getZ() { return zType; }
-  public final double getZMax() { return zmax; }
-  public final double getZMin() { return zmin; }
+  private float parseFloat(String tokenName, String token)
+    throws NumberFormatException
+  {
+    float value;
+    if (token == null) {
+      value = Float.NaN;
+    } else if (token.equals("inf")) {
+      value = Float.POSITIVE_INFINITY;
+    } else if (token.equals("-inf")) {
+      value = Float.NEGATIVE_INFINITY;
+    } else if (token.equals("?")) {
+      value = Float.NaN;
+    } else if (token.equals("nan")) {
+      value = Float.NaN;
+    } else if (token.equals("*")) {
+      value = ((FloatCache )lastCache.get(tokenName)).getValue();
+    } else {
+      value = Float.parseFloat(token);
+    }
+
+    // save value in case next reference uses '*' to access it
+    FloatCache cache = (FloatCache )lastCache.get(tokenName);
+    if (cache == null) {
+      lastCache.put(tokenName, new FloatCache(value));
+    } else {
+      cache.setValue(value);
+    }
+
+    return value;
+  }
+
+  private int parseInt(String tokenName, String token)
+    throws NumberFormatException
+  {
+    int value;
+    if (token == null) {
+      value = -1;
+    } else if (token.equals("inf")) {
+      value = Integer.MAX_VALUE;
+    } else if (token.equals("-inf")) {
+      value = Integer.MIN_VALUE;
+    } else if (token.equals("?")) {
+      value = -1;
+    } else if (token.equals("nan")) {
+      value = -1;
+    } else if (token.equals("*")) {
+      value = ((IntCache )lastCache.get(tokenName)).getValue();
+    } else {
+      value = Integer.parseInt(token);
+    }
+
+    // save value in case next reference uses '*' to access it
+    IntCache cache = (IntCache )lastCache.get(tokenName);
+    if (cache == null) {
+      lastCache.put(tokenName, new IntCache(value));
+    } else {
+      cache.setValue(value);
+    }
+
+    return value;
+  }
+
+  private int readArrayLine(String line, StringTokenizer tok)
+    throws BadFormException
+  {
+    String detector = tok.nextToken();
+    int nstrings, nmodules;
+    try {
+      float longitude = parseFloat("raLon", tok.nextToken());
+      float latitude = parseFloat("raLat", tok.nextToken());
+      float depth = parseFloat("raDepth", tok.nextToken());
+      nstrings = parseInt("raNStr", tok.nextToken());
+      nmodules = parseInt("raNMod", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad ARRAY line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    if (nstrings < 1 || nmodules < 1) {
+      throw new BadFormException("Bad ARRAY line \"" + line + "\": " +
+                                 (nstrings < 1 ? "nstrings < 1" :
+                                  "nmodule < 1"));
+    }
+
+    return nmodules;
+  }
+
+  private final FlatField readFit(String line, StringTokenizer tok)
+    throws VisADException
+  {
+    // FIT id type xstart ystart zstart zenith azimuth time length energy
+    float xstart, ystart, zstart, zenith, azimuth, length, energy, time;
+
+    // skip ID field
+    tok.nextToken();
+    tok.nextToken();
+
+    try {
+      xstart = parseFloat("fitXStart", tok.nextToken());
+      ystart = parseFloat("fitYStart", tok.nextToken());
+      zstart = parseFloat("fitZStart", tok.nextToken());
+      zenith = parseFloat("fitZenith", tok.nextToken()); // 0.0f toward -z
+      azimuth = parseFloat("fitAzimuth", tok.nextToken()); // 0.0f toward +x
+      time = parseFloat("fitTime", tok.nextToken());
+      length = parseFloat("fitLength", tok.nextToken());
+      energy = parseFloat("fitEnergy", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad FIT line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    return makeField(xstart, ystart, zstart, zenith, azimuth, length,
+                     energy, time, 10000.f);
+  }
+
+  private final RealTuple readHit(String line, StringTokenizer tok,
+                                  Module[] om)
+    throws VisADException
+  {
+    String chanStr = tok.nextToken();
+    int number = parseChannel("htNum", chanStr);
+    if (number < 0) {
+      System.err.println("Warning: Ignoring HIT for secondary channel \"" +
+                         chanStr + "\"");
+      return null;
+    }
+
+    // convert module index (1-based) to array index (0-based)
+    number--;
+
+    float amplitude, let, tot;
+    try {
+      amplitude = parseFloat("htAmp", tok.nextToken());
+
+      // skip next two tokens
+      tok.nextToken();
+      tok.nextToken();
+
+      let = parseFloat("htLet", tok.nextToken());
+      tot = parseFloat("htTot", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad HIT line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    RealTuple rt;
+    if (om[number] == null) {
+      System.err.println("Warning: Module not found for HIT line \"" +
+                         line + "\"");
+      rt = null;
+    } else {
+      double[] values = {om[number].getX(), om[number].getY(),
+                         om[number].getZ(),
+                         amplitude, let, tot};
+
+      // construct Tuple for hit
+      try {
+        rt = new RealTuple(hitType, values);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+        rt = null;
+      }
+    }
+
+    return rt;
+  }
+
+  private final Module readOMLine(String line, StringTokenizer tok, Module[] om)
+    throws BadFormException
+  {
+    String numStr = tok.nextToken();
+
+    int number;
+    try {
+      number = parseInt("omNum", numStr) - 1;
+    } catch(NumberFormatException e) {
+      throw new BadFormException("unparseable module number \"" + numStr +
+                                 "\" in \"" + line + "\"");
+    }
+
+    if (number < 0 || number >= om.length) {
+      throw new BadFormException("bad module number \"" + numStr +
+                                 "\" in \"" + line + "\"");
+    } else if (om[number] != null) {
+      System.err.println("Warning: Ignoring duplicate module #" + number +
+                         " in \"" + line + "\"");
+      return null;
+    }
+
+    int stringOrder, string;
+    float x, y, z;
+    try {
+      stringOrder = parseInt("modOrd", tok.nextToken());
+      string = parseInt("modStr", tok.nextToken());
+      x = parseFloat("modX", tok.nextToken());
+      y = parseFloat("modY", tok.nextToken());
+      z = parseFloat("modZ", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad OM line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    om[number] = new Module(x, y, z, string, stringOrder);
+
+    return om[number];
+  }
+
+  private final FlatField readTrack(String line, StringTokenizer tok)
+    throws VisADException
+  {
+    // TR nr parent type xstart ystart zstart zenith azimuth length energy time
+    // skip first three fields
+    for (int i = 0; i < 3; i++) {
+      tok.nextToken();
+    }
+
+    float xstart, ystart, zstart, zenith, azimuth, length, energy, time;
+    try {
+      xstart = parseFloat("trXStart", tok.nextToken());
+      ystart = parseFloat("trYStart", tok.nextToken());
+      zstart = parseFloat("trZStart", tok.nextToken());
+      zenith = parseFloat("trZenith", tok.nextToken()); // 0.0f toward -z
+      azimuth = parseFloat("trAzimuth", tok.nextToken()); // 0.0f toward +x
+      length = parseFloat("trLength", tok.nextToken());
+      energy = parseFloat("trEnergy", tok.nextToken());
+      time = parseFloat("trTime", tok.nextToken());
+    } catch(NumberFormatException e) {
+      throw new BadFormException("bad TRACK line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+
+    return makeField(xstart, ystart, zstart, zenith, azimuth, length,
+                     energy, time, 1000.f);
+  }
+
+  public synchronized void save(String id, Data data, boolean replace)
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
+    throw new BadFormException("F2000Form.save");
+  }
+
+  private final void startEvent(String line, StringTokenizer tok)
+    throws BadFormException
+  {
+    // assemble EM event
+/* XXX don't do anything, since it's all thrown away
+    try {
+      int number = parseInt("emNum", tok.nextToken());
+      int year = parseInt("emYear", tok.nextToken());
+      int day = parseInt("emDay", tok.nextToken());
+      double em_time = parseDouble("emTime", tok.nextToken());
+      // time shift in nsec of all times in event
+      double em_time_shift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
+    } catch(NumberFormatException e) {
+      throw new BadFormException("Bad EM line \"" + line + "\": " +
+                                 e.getMessage());
+    }
+*/
+  }
 }
