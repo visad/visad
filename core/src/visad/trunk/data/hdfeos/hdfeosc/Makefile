@@ -1,5 +1,11 @@
 SLIB = hdfeos
 SLIBDIR = .
+
+# JAVADIR should be the top-level JDK1.2 directory
+# JAVAINCS should list all the necessary include files under JAVADIR
+#
+JAVADIR = /usr/local/jdk1.2beta4
+J_INC =  ${JAVADIR}/include
 JAVAINCS = -I${J_INC} -I${J_INC}/${ARCH}
 
 HDFINCS = -I${HDF_INC}
@@ -23,11 +29,22 @@ OBJECTS = SWopenImp.o \
 	GDprojinfoImp.o GDgridinfoImp.o GDinqattrsImp.o \
 	EHchkfidImp.o EHcloseImp.o GDreadfieldImp.o
 
-default:
-	@echo " use:  'make solaris' or 'make irix' "
-	@exit 1
+.SUFFIXES : .java .class
 
-all: hdfeosLib
+.java.class:
+	javac $<
+
+default: all
+
+all:: HdfeosLib.class
+
+all::
+	@UNAME=`uname -s`; \
+	case "$$UNAME" in \
+	IRIX*) make irix;; \
+	SunOS*) make solaris;; \
+	*) echo "Unknown system type $$UNAME"; exit 1;; \
+	esac
 
 hdfeos_ext: SWfdims.o GDfdims.o
 	$(AR) libhdfeos_ext.a SWfdims.o GDfdims.o
@@ -49,7 +66,14 @@ clean:
 	rm -f libhdfeos_ext.a
 	rm -f *.o
 
-solaris:
-	@make ARCH=solaris SYSLIBS="-lnsl -lm" LDOPT="-G" all
-irix:
-	@make ARCH=irix SYSLIBS="-lm" LDOPT="-shared -Wl,-x" all
+required_macros:
+	@if [ -z "$(HDF_INC)" ]; then echo "HDF_INC is undefined"; exit 1; fi
+	@if [ -z "$(HDF_LIB)" ]; then echo "HDF_LIB is undefined"; exit 1; fi
+	@if [ -z "$(HDFEOS_INC)" ]; then echo "HDFEOS_INC is undefined"; exit 1; fi
+	@if [ -z "$(HDFEOS_LIB)" ]; then echo "HDFEOS_LIB is undefined"; exit 1; fi
+
+solaris: required_macros
+	@make ARCH=solaris SYSLIBS="-lnsl -lm" LDOPT="-G" hdfeosLib
+
+irix: required_macros
+	@make ARCH=irix SYSLIBS="-lm" LDOPT="-shared -Wl,-x" hdfeosLib
