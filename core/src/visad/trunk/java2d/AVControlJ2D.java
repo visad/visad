@@ -53,7 +53,7 @@ public abstract class AVControlJ2D extends Control implements AVControl {
     if (value != value) return;
     float[][] fvalues = new float[1][1];
     fvalues[0][0] = (float) value;
-    Enumeration pairs = switches.elements();
+    Enumeration pairs = ((Vector) switches.clone()).elements();
     while (pairs.hasMoreElements()) {
       SwitchSet ss = (SwitchSet) pairs.nextElement();
       Set set = ss.set;
@@ -75,7 +75,7 @@ public abstract class AVControlJ2D extends Control implements AVControl {
 
   /** clear all 'pairs' in switches that involve re */
   public void clearSwitches(DataRenderer re) {
-    Enumeration pairs = switches.elements();
+    Enumeration pairs = ((Vector) switches.clone()).elements();
     while (pairs.hasMoreElements()) {
       SwitchSet ss = (SwitchSet) pairs.nextElement();
       if (ss.renderer.equals(re)) {

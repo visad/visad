@@ -458,7 +458,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   public DataRenderer findDirect(VisADRay ray) {
     DirectManipulationRendererJ3D renderer = null;
     float distance = Float.MAX_VALUE;
-    Enumeration renderers = directs.elements();
+    Enumeration renderers = ((Vector) directs.clone()).elements();
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ3D r =
         (DirectManipulationRendererJ3D) renderers.nextElement();

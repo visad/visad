@@ -192,21 +192,23 @@ public class ShadowRealType extends ShadowType {
   }
 
   public Vector getSelectedMapVector() {
-    return SelectedMapVector;
+    return (Vector) SelectedMapVector.clone();
   }
 
   /** mark Control-s as needing re-Transform */
   void markTransform(boolean[] isTransform) {
-    Enumeration maps = SelectedMapVector.elements();
-    while(maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
-      DisplayRealType real = map.getDisplayScalar();
-      if (real.equals(Display.Animation) ||
-          real.equals(Display.SelectValue) ||
-          real.equals(Display.SelectRange)) {
-        Control control = map.getControl();
-        if (control != null) {
-          isTransform[control.getIndex()] = true;
+    synchronized (SelectedMapVector) {
+      Enumeration maps = SelectedMapVector.elements();
+      while(maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        DisplayRealType real = map.getDisplayScalar();
+        if (real.equals(Display.Animation) ||
+            real.equals(Display.SelectValue) ||
+            real.equals(Display.SelectRange)) {
+          Control control = map.getControl();
+          if (control != null) {
+            isTransform[control.getIndex()] = true;
+          }
         }
       }
     }

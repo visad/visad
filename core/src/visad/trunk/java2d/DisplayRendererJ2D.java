@@ -285,7 +285,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   public boolean anyCursorStringVector() {
     if (cursorOn) return true;
 
-    Enumeration renderers = directs.elements();
+    Enumeration renderers = ((Vector) directs.clone()).elements();
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ2D r =
         (DirectManipulationRendererJ2D) renderers.nextElement();
@@ -324,7 +324,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
 
     // draw direct manipulation extra_branch's
-    Enumeration renderers = directs.elements();
+    Enumeration renderers = ((Vector) directs.clone()).elements();
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ2D r =
         (DirectManipulationRendererJ2D) renderers.nextElement();
@@ -381,7 +381,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   public DataRenderer findDirect(VisADRay ray) {
     DirectManipulationRendererJ2D renderer = null;
     float distance = Float.MAX_VALUE;
-    Enumeration renderers = directs.elements();
+    Enumeration renderers = ((Vector) directs.clone()).elements();
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ2D r =
         (DirectManipulationRendererJ2D) renderers.nextElement();

@@ -346,13 +346,15 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** remove all DataReferences */
   public void removeAllReferences()
          throws VisADException, RemoteException {
-    Enumeration renderers = RendererVector.elements();
-    while (renderers.hasMoreElements()) {
-      DataRenderer renderer = (DataRenderer) renderers.nextElement();
-      renderer.clearScene();
-      DataDisplayLink[] links = renderer.getLinks();
-      RendererVector.removeElement(renderer);
-      removeLinks(links);
+    synchronized (RendererVector) {
+      Enumeration renderers = RendererVector.elements();
+      while (renderers.hasMoreElements()) {
+        DataRenderer renderer = (DataRenderer) renderers.nextElement();
+        renderer.clearScene();
+        DataDisplayLink[] links = renderer.getLinks();
+        RendererVector.removeElement(renderer);
+        removeLinks(links);
+      }
     }
     initialize = true;
   }
@@ -373,7 +375,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     }
     displayRenderer.setWaitFlag(true);
     // set tickFlag-s in changed Control-s
-    Enumeration maps = MapVector.elements();
+    // clone MapVector to avoid need for synchronized access
+    // WLH 13 July 98
+    Vector tmap = (Vector) MapVector.clone();
+    Enumeration maps = tmap.elements();
     while (maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
       map.setTicks();
@@ -384,7 +389,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     int[] scalarToValue = new int[n];
     for (int i=0; i<n; i++) scalarToValue[i] = -1;
     valueArrayLength = 0;
-    maps = MapVector.elements();
+    maps = tmap.elements();
     while (maps.hasMoreElements()) {
       ScalarMap map = ((ScalarMap) maps.nextElement());
       DisplayRealType dreal = map.getDisplayScalar();
@@ -405,12 +410,12 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     // set valueToScalar and valueToMap arrays
     valueToScalar = new int[valueArrayLength];
     valueToMap = new int[valueArrayLength];
-    maps = MapVector.elements();
+    maps = tmap.elements();
     while (maps.hasMoreElements()) {
       ScalarMap map = ((ScalarMap) maps.nextElement());
       DisplayRealType dreal = map.getDisplayScalar();
       valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
-      valueToMap[map.getValueIndex()] = MapVector.indexOf(map);
+      valueToMap[map.getValueIndex()] = tmap.indexOf(map);
     }
 
     DataShadow shadow = null;
@@ -429,15 +434,15 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
     if (shadow != null) {
       // apply RealType ranges and animationSampling
-      maps = MapVector.elements();
+      maps = tmap.elements();
       while(maps.hasMoreElements()) {
         ScalarMap map = ((ScalarMap) maps.nextElement());
         map.setRange(shadow);
       }
     }
 
-    ScalarMap.equalizeFlow(MapVector, Display.DisplayFlow1Tuple);
-    ScalarMap.equalizeFlow(MapVector, Display.DisplayFlow2Tuple);
+    ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
+    ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
 
     renderers = temp.elements();
     while (renderers.hasMoreElements()) {
@@ -445,7 +450,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       renderer.doAction();
     }
     // clear tickFlag-s in Control-s
-    maps = MapVector.elements();
+    maps = tmap.elements();
     while(maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
       map.resetTicks();
@@ -619,11 +624,11 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   }
 
   public Vector getMapVector() {
-    return MapVector;
+    return (Vector) MapVector.clone();
   }
 
   public Vector getConstantMapVector() {
-    return ConstantMapVector;
+    return (Vector) ConstantMapVector.clone();
   }
 
   public void addControl(Control control) {
@@ -647,7 +652,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   }
 
   public Vector getControlVector() {
-    return ControlVector;
+    return (Vector) ControlVector.clone();
   }
 
   public int getValueArrayLength() {

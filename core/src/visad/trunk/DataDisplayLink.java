@@ -68,7 +68,8 @@ public class DataDisplayLink extends ReferenceActionLink {
 
     if (constant_maps != null) {
       for (int i=0; i<constant_maps.length; i++) {
-        Enumeration maps = ConstantMapVector.elements();
+        // WLH 13 July 98
+        Enumeration maps = ((Vector) ConstantMapVector.clone()).elements();
         while(maps.hasMoreElements()) {
           ScalarMap map = (ScalarMap) maps.nextElement();
           if (map.getDisplayScalar().equals(constant_maps[i].getDisplayScalar())) {
@@ -92,7 +93,7 @@ public class DataDisplayLink extends ReferenceActionLink {
   }
 
   public Vector getSelectedMapVector() {
-    return SelectedMapVector;
+    return (Vector) SelectedMapVector.clone();
   }
 
   public void addSelectedMapVector(ScalarMap map) {
@@ -132,14 +133,20 @@ public class DataDisplayLink extends ReferenceActionLink {
         ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue());
     }
     // middle priority: DisplayImpl.ConstantMapVector
+    Vector temp =
+      (Vector) ((DisplayImpl) local_action).getConstantMapVector().clone();
+    Enumeration maps = temp.elements();
+/* WLH 13 July 98
     Enumeration maps =
       ((DisplayImpl) local_action).getConstantMapVector().elements();
+*/
     while(maps.hasMoreElements()) {
       ConstantMap map = (ConstantMap) maps.nextElement();
       defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();
     }
     // highest priority: this.ConstantMapVector
-    maps = ConstantMapVector.elements();
+    // WLH 13 July 98
+    maps =((Vector) ConstantMapVector.clone()).elements();
     while(maps.hasMoreElements()) {
       ConstantMap map = (ConstantMap) maps.nextElement();
       defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();

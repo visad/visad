@@ -119,11 +119,13 @@ public class DisplayRealType extends RealType {
   }
 
   private static DisplayRealType getDisplayRealTypeByName(String name) {
-    Enumeration reals = DisplayRealTypeVector.elements();
-    while (reals.hasMoreElements()) {
-      DisplayRealType real = (DisplayRealType) reals.nextElement();
-      if (real.getName().equals(name)) {
-        return real;
+    synchronized (DisplayRealTypeVector) {
+      Enumeration reals = DisplayRealTypeVector.elements();
+      while (reals.hasMoreElements()) {
+        DisplayRealType real = (DisplayRealType) reals.nextElement();
+        if (real.getName().equals(name)) {
+          return real;
+        }
       }
     }
     return null;
