@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.12 2000-04-24 22:50:07 steve Exp $
+ * $Id: DerivedUnit.java,v 1.13 2000-04-26 14:59:23 dglo Exp $
  */
 
 package visad;
@@ -71,7 +71,7 @@ public final class DerivedUnit
     }
 
     /**
-     * Construct a derived unit from an array base units and powers.  The 
+     * Construct a derived unit from an array base units and powers.  The
      * identifier of the unit with be that of the base unit if there's only
      * one base unit; otherwise, the identifier will be <code>null</code>.
      *
@@ -81,7 +81,7 @@ public final class DerivedUnit
      */
     public DerivedUnit(BaseUnit[] baseUnits, int[] powers)
     {
-	  this(newFactors(baseUnits, powers), 
+	  this(newFactors(baseUnits, powers),
 	    baseUnits.length == 1 ? baseUnits[0].getIdentifier() : null);
     }
 
@@ -182,7 +182,7 @@ public final class DerivedUnit
      * Raise a derived unit to a power.
      *
      * @param power	The power to raise this unit by.
-     * @return		The unit resulting from raising this unit to 
+     * @return		The unit resulting from raising this unit to
      *			<code>power</code>.
      * @promise		The unit has not been modified.
      */
@@ -209,10 +209,10 @@ public final class DerivedUnit
     /**
      * Raise a derived unit to a power.
      *
-     * @param power		The power to raise this unit by.  If this unit 
+     * @param power		The power to raise this unit by.  If this unit
      *				is not dimensionless, then the value must be
      *				integral.
-     * @return			The unit resulting from raising this unit to 
+     * @return			The unit resulting from raising this unit to
      *				<code>power</code>.
      * @throws IllegalArgumentException
      *				This unit is not dimensionless and <code>power
@@ -319,7 +319,7 @@ public final class DerivedUnit
 
 	System.out.println("speed=\"" + speed + "\"");
 	System.out.println("speed.pow(2)=\"" + speed.pow(2) + "\"");
-	System.out.println("speed.pow(2.0+ULP)=\"" + 
+	System.out.println("speed.pow(2.0+ULP)=\"" +
 	    speed.pow(ChoiceFormat.nextDouble(2.0)) + "\"");
 
 	System.out.println("speed*meter=\"" + speed.multiply(meter) + "\"");
@@ -362,9 +362,9 @@ public final class DerivedUnit
 	}
 	try
 	{
-	    System.out.println("speed.pow(2+2*ULP)=\"" + 
+	    System.out.println("speed.pow(2+2*ULP)=\"" +
 		speed.pow(
-		  ChoiceFormat.nextDouble(ChoiceFormat.nextDouble(2.0))) 
+		  ChoiceFormat.nextDouble(ChoiceFormat.nextDouble(2.0)))
 		+ "\"");
 	    System.err.println("ERROR: IllegalArgumentException not thrown!");
 	    System.exit(1);
@@ -600,7 +600,7 @@ public final class DerivedUnit
      * a derived unit.
      *
      * @param that	The derived unit.
-     * @return		<code>true</code> if and only if the unit 
+     * @return		<code>true</code> if and only if the unit
      *			dimensionalities are reciprocals of each other
      *			(e.g. Length/Time and Time/Length).
      */
@@ -712,25 +712,25 @@ public final class DerivedUnit
         throws UnitException
     {
         float[] newValues;
- 
+
         if (sameDimensionality(that))
         {
             newValues = new float[values.length];
- 
+
             for (int i = 0; i < values.length; ++i)
                 newValues[i] = values[i];
         }
         else if (reciprocalDimensionality(that))
         {
             newValues = new float[values.length];
- 
+
             for (int i = 0; i < values.length; ++i)
                 newValues[i] = 1.0f / values[i];
         }
         else
             throw new UnitException("Attempt to convert from unit \"" +
                 that + "\" to unit \"" + this + "\"");
- 
+
         return newValues;
     }
 

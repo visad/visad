@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -47,9 +47,9 @@ public interface ThingReference {
 
   /** invokes t.addReference((ThingReference r) */
   void setThing(Thing t) throws VisADException, RemoteException;
- 
+
   Thing getThing() throws VisADException, RemoteException;
- 
+
   long getTick() throws VisADException, RemoteException;
 
   long incTick() throws VisADException, RemoteException;

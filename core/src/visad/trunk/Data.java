@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -121,7 +121,7 @@ public interface Data extends Thing {
       is the MathType of the result; sampling_mode may be
       Data.NEAREST_NEIGHBOR or Data.WEIGHTED_AVERAGE; error_mode
       may be Data.INDEPENDENT, Data.DEPENDENT or Data.NO_ERRORS */
-  Data binary(Data data, int op, MathType new_type, 
+  Data binary(Data data, int op, MathType new_type,
                               int sampling_mode, int error_mode )
          throws VisADException, RemoteException;
 

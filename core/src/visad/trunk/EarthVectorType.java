@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -68,7 +68,7 @@ public class EarthVectorType extends RealVectorType {
     super(a, b);
   }
 
-  public EarthVectorType(RealType a, RealType b, RealType c) 
+  public EarthVectorType(RealType a, RealType b, RealType c)
          throws VisADException {
     super(a, b, c);
   }

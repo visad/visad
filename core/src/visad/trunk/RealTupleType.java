@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -50,8 +50,8 @@ public class RealTupleType extends TupleType {
   private static RealType[] components2c =
     {RealType.XAxis, RealType.YAxis};
   /**
-   * System intrinsic 
-   * RealTupleType for (RealType.XAxis, RealType.YAxis) 
+   * System intrinsic
+   * RealTupleType for (RealType.XAxis, RealType.YAxis)
    */
   public static final RealTupleType SpatialCartesian2DTuple =
     new RealTupleType(components2c, true);
@@ -60,8 +60,8 @@ public class RealTupleType extends TupleType {
   private static RealType[] components3c =
     {RealType.XAxis, RealType.YAxis, RealType.ZAxis};
   /**
-   * System intrinsic 
-   * for (RealType.XAxis, RealType.YAxis, RealType.ZAxis) 
+   * System intrinsic
+   * for (RealType.XAxis, RealType.YAxis, RealType.ZAxis)
    */
   public static final RealTupleType SpatialCartesian3DTuple =
     new RealTupleType(components3c, true);
@@ -69,9 +69,9 @@ public class RealTupleType extends TupleType {
 
   private static RealType[] components2e =
     {RealType.Longitude, RealType.Latitude};
-  /** 
+  /**
    * System intrinsic
-   * for (RealType.Longitude, RealType.Latitude) 
+   * for (RealType.Longitude, RealType.Latitude)
    */
   public final static RealTupleType SpatialEarth2DTuple =
     new RealTupleType(components2e, true);
@@ -79,9 +79,9 @@ public class RealTupleType extends TupleType {
 
   private static RealType[] componentsll =
     {RealType.Latitude, RealType.Longitude};
-  /** 
+  /**
    * System intrinsic
-   * for (RealType.Latitude, RealType.Longitude) 
+   * for (RealType.Latitude, RealType.Longitude)
    */
   public final static RealTupleType LatitudeLongitudeTuple =
     new RealTupleType(componentsll, true);
@@ -89,7 +89,7 @@ public class RealTupleType extends TupleType {
 
   private static RealType[] components3e =
     {RealType.Longitude, RealType.Latitude, RealType.Altitude};
-  /** 
+  /**
    * System intrinsic
    * for (RealType.Longitude, RealType.Latitude, RealType.Altitude)
    */
@@ -99,9 +99,9 @@ public class RealTupleType extends TupleType {
 
   private static RealType[] componentslla =
     {RealType.Latitude, RealType.Longitude, RealType.Altitude};
-  /** 
+  /**
    * System intrinsic
-   * for (RealType.Latitude, RealType.Longitude, RealType.Altitude) 
+   * for (RealType.Latitude, RealType.Longitude, RealType.Altitude)
    */
   public final static RealTupleType LatitudeLongitudeAltitude =
     new RealTupleType(componentslla, true);
@@ -109,8 +109,8 @@ public class RealTupleType extends TupleType {
 
   private static RealType[] components1t =
     {RealType.Time};
-  /** 
-   * System intrinsic for (RealType.Time) 
+  /**
+   * System intrinsic for (RealType.Time)
    */
   public static final RealTupleType Time1DTuple =
     new RealTupleType(components1t, true);
@@ -118,16 +118,16 @@ public class RealTupleType extends TupleType {
 
   private static RealType[] components2g =
     {RealType.Generic, RealType.Generic};
-  /** 
-   * System intrinsic for (RealType.Generic, RealType.Generic) 
+  /**
+   * System intrinsic for (RealType.Generic, RealType.Generic)
    */
   public final static RealTupleType Generic2D =
     new RealTupleType(components2g, true);
 
-  private static RealType[] components3g = 
+  private static RealType[] components3g =
     {RealType.Generic, RealType.Generic, RealType.Generic};
-  /** 
-   * System intrinsic 
+  /**
+   * System intrinsic
    * for (RealType.Generic, RealType.Generic, RealType.Generic)
    */
   public final static RealTupleType Generic3D =
@@ -252,7 +252,7 @@ public class RealTupleType extends TupleType {
    * information, if it exists, will be lost.
    *
    * @param type		The other  MathType.
-   * @param op			The arithmetic operation (see 
+   * @param op			The arithmetic operation (see
    *				<code>Data</code>).
    * @param names		Database of names.
    * @return                    The MathType corresponding to the specified
@@ -303,7 +303,7 @@ public class RealTupleType extends TupleType {
 /* WLH 10 Sept 98
     int n_comps = getDimension();
     MathType new_type = null;
-    if (type instanceof RealTupleType) 
+    if (type instanceof RealTupleType)
     {
       RealType[] R_types = new RealType[ n_comps ];
       for ( int ii = 0; ii < n_comps; ii++ ) {
@@ -312,19 +312,19 @@ public class RealTupleType extends TupleType {
       }
       new_type = new RealTupleType( R_types, DefaultCoordinateSystem, null );
     }
-    else if (type instanceof RealType) 
-    { 
+    else if (type instanceof RealType)
+    {
       RealType[] R_types = new RealType[ n_comps ];
       for ( int ii = 0; ii < n_comps; ii++ ) {
         R_types[ii] = (RealType) getComponent(ii).binary( type, op, names );
       }
       new_type = new RealTupleType( R_types, DefaultCoordinateSystem, null );
     }
-    else if (type instanceof TupleType) 
+    else if (type instanceof TupleType)
     {
       throw new TypeException();
     }
-    else if (type instanceof FunctionType ) 
+    else if (type instanceof FunctionType )
     {
       new_type = type.binary( this, DataImpl.invertOp(op), names );
     }

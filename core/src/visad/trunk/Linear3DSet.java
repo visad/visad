@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -126,7 +126,7 @@ public class Linear3DSet extends Gridded3DSet
     int[] indexY = new int[length];
     int[] indexZ = new int[length];
     float[][] values = new float[3][length];
- 
+
     for (int i=0; i<length; i++) {
       if (0 <= index[i] && index[i] < Length) {
         indexX[i] = index[i] % LengthX;
@@ -259,7 +259,7 @@ public class Linear3DSet extends Gridded3DSet
 /* Now the 'brick' has dimensions lengthX * lengthY * lengthZ
    and locations in each of X, Y and Z are in arithmetic
    progression, ranging from firstX to lastX in X, etc.
- 
+
    The color component are laid out as follows: */
     float red, green, blue, alpha;
     for (int x=0; x<lengthX; x++) {
@@ -276,7 +276,7 @@ public class Linear3DSet extends Gridded3DSet
        perpendicular to X, Y and Z */
     VisADTriangleStripArray[] arrays = {new VisADTriangleStripArray(),
       new VisADTriangleStripArray(), new VisADTriangleStripArray()};
- 
+
     return arrays;
   }
 

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -44,7 +44,7 @@ public class FunctionType extends MathType {
   private boolean Real;  // true if range is RealType or RealTupleType
   private boolean Flat;  // true if Real or if range is Flat TupleType
 
-  /** this is an array of RealType-s that are RealType 
+  /** this is an array of RealType-s that are RealType
       components of Range or RealType components of
       RealTupleType components of Range;
       a non_realType and non-TupleType Range is marked by null;
@@ -265,7 +265,7 @@ public class FunctionType extends MathType {
       throw new TypeException("FunctionType.binary: types don't match");
     }
 /* WLH 10 Sept 98
-    MathType m_type = (type instanceof FunctionType) ? 
+    MathType m_type = (type instanceof FunctionType) ?
                       ((FunctionType)type).getRange() : type;
     return (MathType) new FunctionType( Domain, Range.binary( m_type, op, names ));
 */

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -248,7 +248,7 @@ public class RealTuple extends Tuple {
     if (isMissing()) return new RealTuple((RealTupleType) Type);
     Real[] reals = new Real[tupleComponents.length];
     for (int j=0; j<tupleComponents.length; j++) {
-      reals[j] = (Real) tupleComponents[j].unary(op, RT_type.getComponent(j), 
+      reals[j] = (Real) tupleComponents[j].unary(op, RT_type.getComponent(j),
                                                  sampling_mode, error_mode);
     }
     return new RealTuple((RealTupleType) new_type, reals, TupleCoordinateSystem);
@@ -361,7 +361,7 @@ w + rt2 = (16, 15, 14)
 w - rt2 = (4, 5, 6)
 w * rt2 = (60, 50, 40)
 w / rt2 = (1.66667, 2, 2.5)
-iris 202% 
+iris 202%
 
 */
 

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -39,7 +39,7 @@ public abstract class ThingImpl
   class RemotePair {
     RemoteThingReference ref;
     RemoteThing data;
-   
+
     RemotePair(RemoteThingReference r, RemoteThing d)
         throws ReferenceException {
       if (r == null) {
@@ -53,7 +53,7 @@ public abstract class ThingImpl
       ref = r;
       data = d;
     }
-   
+
     public boolean equals(Object pair) {
 
       // make sure we're comparing against another RemotePair
@@ -154,7 +154,7 @@ public abstract class ThingImpl
     }
   }
 
-  /** notify local ThingReferenceImpl-s that this ThingImpl has changed; 
+  /** notify local ThingReferenceImpl-s that this ThingImpl has changed;
       incTick in RemoteThingImpl for RemoteThingReferenceImpl-s;
       would like 'default' visibility here, but must be declared
       'public' because it is defined in the Thing interface */

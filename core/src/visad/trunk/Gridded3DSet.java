@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -234,7 +234,7 @@ public class Gridded3DSet extends GriddedSet {
                       int lengthY) throws VisADException {
     this(type, samples, lengthX, lengthY, null, null, null);
   }
- 
+
   /** a 3-D set with manifold dimension = 2; samples array is
       organized float[3][number_of_samples] where lengthX * lengthY
       = number_of_samples; no geometric constraint on samples; the
@@ -264,7 +264,7 @@ public class Gridded3DSet extends GriddedSet {
     LengthY = Lengths[1];
     LowZ = Low[2];
     HiZ = Hi[2];
- 
+
     // no Samples consistency test
   }
 
@@ -274,7 +274,7 @@ public class Gridded3DSet extends GriddedSet {
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
   }
- 
+
   /** a 3-D set with manifold dimension = 1; samples array is
       organized float[3][number_of_samples] where lengthX =
       number_of_samples; no geometric constraint on samples;
@@ -299,7 +299,7 @@ public class Gridded3DSet extends GriddedSet {
     HiY = Hi[1];
     LowZ = Low[2];
     HiZ = Hi[2];
- 
+
     // no Samples consistency test
   }
 
@@ -430,7 +430,7 @@ public class Gridded3DSet extends GriddedSet {
       if (igx > LengthX-2) igx = LengthX-2;
       if (igy < 0) igy = 0;
       if (igy > LengthY-2) igy = LengthY-2;
- 
+
       // set up conversion to 1D Samples array
       int[][] s = { {LengthX*igy+igx,           // (0, 0)
                      LengthX*(igy+1)+igx},      // (0, 1)
@@ -499,7 +499,7 @@ for (int j=0; j<3; j++) {
       // determine tetrahedralization type
       boolean evencube = ((igx+igy+igz) % 2 == 0);
 
-      // calculate distances from integer grid point 
+      // calculate distances from integer grid point
       float s, t, u;
       if (evencube) {
         s = gx - igx;
@@ -509,7 +509,7 @@ for (int j=0; j<3; j++) {
       else {
         s = 1 + igx - gx;
         t = 1 + igy - gy;
-        u = 1 + igz - gz; 
+        u = 1 + igz - gz;
       }
 
       // Define vertices of grid box
@@ -704,11 +704,11 @@ for (int j=0; j<3; j++) {
         gx = (LengthX-1)/2;
         gy = (LengthY-1)/2;
         gz = (LengthZ-1)/2;
-      } 
+      }
       int tetnum = 5;  // Tetrahedron number in which to start search
       // if the iteration loop fails, the result should be NaN
       grid[0][i] = grid[1][i] = grid[2][i] = Float.NaN;
-      for (int itnum=0; itnum<2*(LengthX+LengthY+LengthZ); itnum++) { 
+      for (int itnum=0; itnum<2*(LengthX+LengthY+LengthZ); itnum++) {
         // determine tetrahedralization type
         boolean evencube = ((gx+gy+gz) % 2 == 0);
 
@@ -882,17 +882,17 @@ for (int j=0; j<3; j++) {
             }
 /* WLH 5 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
-              s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
+              s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]);
               t = (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
             }
             else if (M[1]*P[1] != N[1]*O[1]) {
-              s = (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]); 
+              s = (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]);
               t = (M[1]*X[1] + O[1]*Y[1])/(N[1]*O[1] - M[1]*P[1]);
             }
-            else { 
-              s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
+            else {
+              s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]);
               t = (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
-            } 
+            }
 */
             d0 = A[0]-E[0];
             d1 = A[1]-E[1];
@@ -1033,17 +1033,17 @@ for (int j=0; j<3; j++) {
             }
 /* WLH 5 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
-              s = 1 - (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
+              s = 1 - (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]);
               t = (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
             }
             else if (M[1]*P[1] != N[1]*O[1]) {
-              s = 1 - (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]); 
+              s = 1 - (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]);
               t = (M[1]*X[1] + O[1]*Y[1])/(N[1]*O[1] - M[1]*P[1]);
             }
-            else { 
-              s = 1 - (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
+            else {
+              s = 1 - (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]);
               t = (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
-            } 
+            }
 */
             d0 = F[0]-B[0];
             d1 = F[1]-B[1];
@@ -1184,15 +1184,15 @@ for (int j=0; j<3; j++) {
             }
 /* WLH 5 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
-              s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
+              s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]);
               t = 1 - (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
             }
             else if (M[1]*P[1] != N[1]*O[1]) {
-              s = (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]); 
+              s = (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]);
               t = 1 - (M[1]*X[1] + O[1]*Y[1])/(N[1]*O[1] - M[1]*P[1]);
             }
             else {
-              s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
+              s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]);
               t = 1 - (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
             }
 */
@@ -1335,15 +1335,15 @@ for (int j=0; j<3; j++) {
             }
 /* WLH 5 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
-              s = 1 - (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
+              s = 1 - (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]);
               t = 1 - (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
             }
             else if (M[1]*P[1] != N[1]*O[1]) {
-              s = 1 - (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]); 
+              s = 1 - (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]);
               t = 1 - (M[1]*X[1] + O[1]*Y[1])/(N[1]*O[1] - M[1]*P[1]);
             }
             else {
-              s = 1 - (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
+              s = 1 - (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]);
               t = 1 - (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
             }
 */
@@ -1541,15 +1541,15 @@ for (int j=0; j<3; j++) {
             }
 /* WLH 3 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
-              s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
+              s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]);
               t = (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
             }
             else if (M[1]*P[1] != N[1]*O[1]) {
-              s = (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]); 
+              s = (N[1]*X[1] + P[1]*Y[1])/(M[1]*P[1] - N[1]*O[1]);
               t = (M[1]*X[1] + O[1]*Y[1])/(N[1]*O[1] - M[1]*P[1]);
             }
             else {
-              s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
+              s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]);
               t = (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
             }
 */
@@ -1601,7 +1601,7 @@ for (int j=0; j<3; j++) {
       }
       // allow estimations up to 0.5 boxes outside of defined samples
       if ( (grid[0][i] < -0.5) || (grid[0][i] > LengthX-0.5)
-        || (grid[1][i] < -0.5) || (grid[1][i] > LengthY-0.5) 
+        || (grid[1][i] < -0.5) || (grid[1][i] > LengthY-0.5)
         || (grid[2][i] < -0.5) || (grid[2][i] > LengthZ-0.5) ) {
         grid[0][i] = grid[1][i] = grid[2][i] = Float.NaN;
       }
@@ -2103,31 +2103,31 @@ for color_length = 3 this is 148 * Length
 
   static final int sp_cases[] =
   {
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 256, 257, 000, 000, 000, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 258, 000, 000, 259, 000, 000, 000, 000, 000, 
-    000, 000, 000, 260, 000, 000, 000, 292, 000, 293, 
-    261, 280, 000, 000, 000, 000, 000, 000, 262, 000, 
-    000, 294, 263, 281, 264, 282, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
-    000, 295, 000, 000, 000, 265, 000, 266, 296, 283, 
-    000, 000, 000, 000, 000, 000, 000, 267, 000, 000, 
-    000, 000, 000, 268, 000, 000, 000, 000, 000, 000, 
-    000, 269, 297, 284, 000, 270, 000, 000, 271, 000, 
-    285, 000, 000, 000, 000, 000, 000, 000, 000, 272, 
-    000, 000, 000, 273, 000, 000, 000, 000, 000, 000, 
-    000, 274, 000, 000, 298, 286, 000, 275, 276, 000, 
-    000, 000, 287, 000, 000, 000, 000, 277, 000, 278, 
-    279, 000, 000, 299, 000, 288, 000, 289, 000, 000, 
-    000, 000, 000, 000, 000, 000, 290, 000, 000, 291, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 256, 257, 000, 000, 000, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 258, 000, 000, 259, 000, 000, 000, 000, 000,
+    000, 000, 000, 260, 000, 000, 000, 292, 000, 293,
+    261, 280, 000, 000, 000, 000, 000, 000, 262, 000,
+    000, 294, 263, 281, 264, 282, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000,
+    000, 295, 000, 000, 000, 265, 000, 266, 296, 283,
+    000, 000, 000, 000, 000, 000, 000, 267, 000, 000,
+    000, 000, 000, 268, 000, 000, 000, 000, 000, 000,
+    000, 269, 297, 284, 000, 270, 000, 000, 271, 000,
+    285, 000, 000, 000, 000, 000, 000, 000, 000, 272,
+    000, 000, 000, 273, 000, 000, 000, 000, 000, 000,
+    000, 274, 000, 000, 298, 286, 000, 275, 276, 000,
+    000, 000, 287, 000, 000, 000, 000, 277, 000, 278,
+    279, 000, 000, 299, 000, 288, 000, 289, 000, 000,
+    000, 000, 000, 000, 000, 000, 290, 000, 000, 291,
     000, 000, 000, 000, 000, 000
   };
 
@@ -2143,7 +2143,7 @@ for color_length = 3 this is 148 * Length
     Xn, Yn, Zn, incXn, incYn, incZn
   };
 
-  static final int NTAB[] = 
+  static final int NTAB[] =
   {   0,1,2,       1,2,0,       2,0,1,
       0,1,3,2,     1,2,0,3,     2,3,1,0,     3,0,2,1,
       0,1,4,2,3,   1,2,0,3,4,   2,3,1,4,0,   3,4,2,0,1,   4,0,3,1,2,
@@ -2186,7 +2186,7 @@ for color_length = 3 this is 148 * Length
     int zdim = LengthZ;
 
     float[] ptGRID = fieldValues;
- 
+
     xdim_x_ydim = xdim * ydim;
     xdim_x_ydim_x_zdim = xdim_x_ydim * zdim;
     num_cubes = (xdim-1) * (ydim-1) * (zdim-1);
@@ -2312,7 +2312,7 @@ for (int j=0; j<nvertex; j++) {
     if (indexed) {
       VisADIndexedTriangleStripArray array =
         new VisADIndexedTriangleStripArray();
-  
+
       // set up indices
       array.indexCount = size_stripe;
       array.indices = new int[size_stripe];
@@ -2321,16 +2321,16 @@ for (int j=0; j<nvertex; j++) {
       array.stripVertexCounts[0] = size_stripe;
       // take the garbage out
       stripe = null;
-  
+
       // set coordinates and colors
       setGeometryArray(array, fieldVertices, 4, color_levels);
       // take the garbage out
       fieldVertices = null;
       color_levels = null;
-  
+
       // array.vertexFormat |= NORMALS;
       array.normals = normals;
-  
+
       if (debug) {
         System.out.println("size_stripe= "+size_stripe);
         for(ii=0;ii<size_stripe;ii++) System.out.println(+array.indices[ii]);
@@ -2341,7 +2341,7 @@ for (int j=0; j<nvertex; j++) {
       VisADTriangleStripArray array = new VisADTriangleStripArray();
       array.stripVertexCounts = new int[] {size_stripe};
       array.vertexCount = size_stripe;
-  
+
       array.normals = new float[3 * size_stripe];
       int k = 0;
       for (i=0; i<3*size_stripe; i+=3) {
@@ -2352,7 +2352,7 @@ for (int j=0; j<nvertex; j++) {
         k++;
       }
       normals = null;
-  
+
       array.coordinates = new float[3 * size_stripe];
       k = 0;
       for (i=0; i<3*size_stripe; i+=3) {
@@ -2363,7 +2363,7 @@ for (int j=0; j<nvertex; j++) {
         k++;
       }
       fieldVertices = null;
-  
+
       if (color_levels != null) {
         int color_length = color_levels.length;
         array.colors = new byte[color_length * size_stripe];
@@ -2459,7 +2459,7 @@ for (int j=0; j<nvertex; j++) {
     /* Analyse Special Cases in FLAG */
     ii = npolygons = 0;
     while ( TRUE )
-    {  
+    {
         for (; ii < num_cubes; ii++) {
             if ( ((ptFLAG[ii] != 0) && (ptFLAG[ii] != 0xFF)) &&
                  ptFLAG[ii] < MAX_FLAG_NUM) break;
@@ -2602,7 +2602,7 @@ for (int j=0; j<nvertex; j++) {
     float  nodeDiff;
     int xdim_x_ydim = xdim*ydim;
     int nvet;
- 
+
     int t;
 
     float[][] samples = getSamples(false);
@@ -3614,7 +3614,7 @@ for (int j=0; j<nvertex; j++) {
       }
      }
         /* end  find_vertex_invalid_cube(ncube); */
- 
+
                         }
                     } /* end  if (exist_polygon_in_cube(ncube)) */
                     ncube++; pt++;
@@ -3750,7 +3750,7 @@ for (int j=0; j<nvertex; j++) {
 
        swap_flag = ( (swap_flag != 0) ? 0 : 1 );
     }
- 
+
     /* Normalize the Normals */
     for ( i=0; i<nvertex; i++ )  /* Vectorized */
     {   len = (float) Math.sqrt(NX[i]*NX[i] + NY[i]*NY[i] + NZ[i]*NZ[i]);
@@ -4046,7 +4046,7 @@ for (int j=0; j<nvertex; j++) {
     if (indexed) {
       VisADIndexedTriangleStripArray array =
         new VisADIndexedTriangleStripArray();
-  
+
       // set up indices into 2-D grid
       array.indexCount = (LengthY - 1) * (2 * LengthX);
       int[] indices = new int[array.indexCount];
@@ -4064,10 +4064,10 @@ for (int j=0; j<nvertex; j++) {
       array.indices = indices;
       // take the garbage out
       indices = null;
-  
+
       // set coordinates and colors
       setGeometryArray(array, 4, color_values);
-  
+
       // calculate normals
       float[] coordinates = array.coordinates;
       float[] normals = makeNormals(coordinates, LengthX, LengthY);
@@ -4077,14 +4077,14 @@ for (int j=0; j<nvertex; j++) {
     else { // if (!indexed)
       VisADTriangleStripArray array = new VisADTriangleStripArray();
       float[][] samples = getSamples(false);
-  
+
       array.stripVertexCounts = new int[LengthY - 1];
       for (int i=0; i<LengthY-1; i++) {
         array.stripVertexCounts[i] = 2 * LengthX;
       }
       int len = (LengthY - 1) * (2 * LengthX);
       array.vertexCount = len;
-  
+
       // calculate normals
       float[] normals = new float[3 * Length];
       int k = 0;
@@ -4134,9 +4134,9 @@ for (int j=0; j<nvertex; j++) {
           k3++;
         } // end for (int j=0; j<LengthX; j++)
       } // end for (int i=0; i<LengthY; i++)
-  
+
       array.normals = new float[3 * len];
-  
+
       // shuffle normals into array.normals
       k = 0;
       int LengthX3 = 3 * LengthX;
@@ -4221,7 +4221,7 @@ if (size < 0.2) nsmall++;
               array.colors[k+1] = color_values[1][m+LengthX];
               array.colors[k+2] = color_values[2][m+LengthX];
               k += color_length;
-              m++;    
+              m++;
             }
           }
         }
@@ -4260,7 +4260,7 @@ if (size < 0.2) nsmall++;
                               DomainCoordinateSystem, SetUnits, SetErrors);
     }
     else {
-      return new Gridded3DSet(type, Samples, LengthX, 
+      return new Gridded3DSet(type, Samples, LengthX,
                               DomainCoordinateSystem, SetUnits, SetErrors);
     }
   }
@@ -4446,8 +4446,8 @@ if (size < 0.2) nsmall++;
 
 iris 28% java visad.Gridded3DSet < Gridded3D.txt
 num_dimensions = 3, num_coords = 27
- 
-Lengths = 3 3 3 wedge = 
+
+Lengths = 3 3 3 wedge =
  0
  1
  2
@@ -4462,22 +4462,22 @@ Samples (3 x 3 x 3):
 . . .
 #25:    32.343298, 39.600872, 36.238975
 #26:    49.919754, 40.119875, 36.018752
- 
+
 gridToValue test:
 (-0.4, -0.4, -0.4)      -->  10.819755, -0.172592, 5.179111
 (0.5, -0.4, -0.4)       -->  32.683689, 1.262111, 5.359499
 . . .
 (1.5, 2.4, 2.4)         -->  43.844996, 48.904708, 40.008508
 (2.4, 2.4, 2.4)         -->  59.663807, 49.37181, 39.810308
- 
+
 valueToGrid test:
 10.819755, -0.172592, 5.179111  -->  (-0.4, -0.4, -0.4)
 32.683689, 1.262111, 5.359499   -->  (0.5, -0.4, -0.4)
 . . .
 43.844996, 48.904708, 40.008508 -->  (1.5, 2.4, 2.4)
 59.663807, 49.37181, 39.810308  -->  (2.4, 2.4, 2.4)
- 
-iris 29% 
+
+iris 29%
 
 */
 

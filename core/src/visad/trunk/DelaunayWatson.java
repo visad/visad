@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -41,7 +41,7 @@ import java.util.*;
  * nnsort() was written by Dave Watson and uses the algorithm described in -
  *    Watson, D.F., 1981, Computing the n-dimensional Delaunay tessellation
  *          with application to Voronoi polytopes:
- *                                      The Computer J., 24(2), p. 167-172. 
+ *                                      The Computer J., 24(2), p. 167-172.
  *
  * additional information about this algorithm can be found in -
  *    CONTOURING: A guide to the analysis and display of spatial data,
@@ -193,25 +193,25 @@ Loop1:
                          - wrk[1][0] * wrk[0][2]) / xx;
         }
         else {
-          xx = (wrk[0][0] * (wrk[1][1] * wrk[2][2] - wrk[2][1] * wrk[1][2])) 
-             - (wrk[0][1] * (wrk[1][0] * wrk[2][2] - wrk[2][0] * wrk[1][2])) 
+          xx = (wrk[0][0] * (wrk[1][1] * wrk[2][2] - wrk[2][1] * wrk[1][2]))
+             - (wrk[0][1] * (wrk[1][0] * wrk[2][2] - wrk[2][0] * wrk[1][2]))
              + (wrk[0][2] * (wrk[1][0] * wrk[2][1] - wrk[2][0] * wrk[1][1]));
           ccr[id[i4]][0] = ((wrk[0][3] * (wrk[1][1] * wrk[2][2]
-                           - wrk[2][1] * wrk[1][2])) 
+                           - wrk[2][1] * wrk[1][2]))
                           - (wrk[0][1] * (wrk[1][3] * wrk[2][2]
-                           - wrk[2][3] * wrk[1][2])) 
+                           - wrk[2][3] * wrk[1][2]))
                           + (wrk[0][2] * (wrk[1][3] * wrk[2][1]
                            - wrk[2][3] * wrk[1][1]))) / xx;
           ccr[id[i4]][1] = ((wrk[0][0] * (wrk[1][3] * wrk[2][2]
-                           - wrk[2][3] * wrk[1][2])) 
+                           - wrk[2][3] * wrk[1][2]))
                           - (wrk[0][3] * (wrk[1][0] * wrk[2][2]
-                           - wrk[2][0] * wrk[1][2])) 
+                           - wrk[2][0] * wrk[1][2]))
                           + (wrk[0][2] * (wrk[1][0] * wrk[2][3]
                            - wrk[2][0] * wrk[1][3]))) / xx;
           ccr[id[i4]][2] = ((wrk[0][0] * (wrk[1][1] * wrk[2][3]
-                           - wrk[2][1] * wrk[1][3])) 
+                           - wrk[2][1] * wrk[1][3]))
                           - (wrk[0][1] * (wrk[1][0] * wrk[2][3]
-                           - wrk[2][0] * wrk[1][3])) 
+                           - wrk[2][0] * wrk[1][3]))
                           + (wrk[0][3] * (wrk[1][0] * wrk[2][1]
                            - wrk[2][0] * wrk[1][1]))) / xx;
         }
@@ -339,8 +339,8 @@ Loop1:
         }
       }
       else {
-        xx = ((wrk[0][0] * (wrk[1][1] * wrk[2][2] - wrk[2][1] * wrk[1][2])) 
-           -  (wrk[0][1] * (wrk[1][0] * wrk[2][2] - wrk[2][0] * wrk[1][2])) 
+        xx = ((wrk[0][0] * (wrk[1][1] * wrk[2][2] - wrk[2][1] * wrk[1][2]))
+           -  (wrk[0][1] * (wrk[1][0] * wrk[2][2] - wrk[2][0] * wrk[1][2]))
            +  (wrk[0][2] * (wrk[1][0] * wrk[2][1] - wrk[2][0] * wrk[1][1])));
         if (fabs(xx) > EPSILON) {
           if (xx < 0)

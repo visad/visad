@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -75,10 +75,10 @@ public class ContourControl extends Control {
     lowLimit = Float.NaN;
     hiLimit = Float.NaN;
     base = Float.NaN;
- 
+
     horizontalContourSlice = false;
     verticalContourSlice = false;
- 
+
     horizontalSliceLow = Float.NaN;
     horizontalSliceHi = Float.NaN;
     horizontalSliceStep = Float.NaN;
@@ -86,7 +86,7 @@ public class ContourControl extends Control {
     verticalSliceHi = Float.NaN;
     verticalSliceStep = Float.NaN;
   }
- 
+
   void setMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException, RemoteException {
     setMainContours(bvalues, fvalues, false);
@@ -173,7 +173,7 @@ public class ContourControl extends Control {
                        !Util.isApproximatelyEqual(hiLimit, hi);
       lowLimit = low;
       hiLimit = hi;
-  
+
       // adapt to 'new' descriptors
       if (arithmeticProgression) {
         boolean[] dashes = {false};
@@ -198,7 +198,7 @@ public class ContourControl extends Control {
           change = false;
         }
       }
-  
+
       if (change) changeControl(true);
       in = false;
     }

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -315,14 +315,14 @@ public class ShadowTupleType extends ShadowType {
             range_coord_sys = ((RealTuple) ((Tuple) data).
                     getComponent(componentIndex[i])).getCoordinateSystem();
           }
- 
+
           // MEM
           double[][] reference_values =
             CoordinateSystem.transformCoordinates(
               ref, null, ref.getDefaultUnits(), null,
               (RealTupleType) componentWithRef[i].getType(),
               range_coord_sys, range_units, null, values);
- 
+
           // WLH 13 March 2000
           // if (getAnyFlow()) {
             renderer.setEarthSpatialData(componentWithRef[i],
@@ -387,7 +387,7 @@ public class ShadowTupleType extends ShadowType {
               ShadowRealTupleType component_reference =
                 ((ShadowRealTupleType) component).getReference();
               RealTupleType ref = (component_reference == null) ? null :
-                                  (RealTupleType) component_reference.getType(); 
+                                  (RealTupleType) component_reference.getType();
               Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
               renderer.setEarthSpatialData((ShadowRealTupleType) component,
                       component_reference, ref, ref_units,

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -29,7 +29,7 @@ package visad;
 /**
    IrregularSet is implemented by those Set sub-classes whose samples
    do not form any ordered pattern.  It is a M-dimensional array of
-   points in R^N where ManifoldDimension = M <= N = DomainDimension.<P> 
+   points in R^N where ManifoldDimension = M <= N = DomainDimension.<P>
 
    The order of the samples is the rasterization of the orders of
    the 1D components, with the first component increasing fastest.
@@ -155,15 +155,15 @@ public class IrregularSet extends SampledSet {
     }
     else if ( ManifoldDimension < 4 )
     {
-        
+
       int[][] Vertices = Delan.Vertices;
       int[][] Tri = Delan.Tri;
       int n_samples = Vertices.length;
       int n_triangles;
       int cnt, ii, jj, kk, tt, index;
       int[] indeces;
-      
-      for ( ii = 0; ii < n_samples; ii++ ) 
+
+      for ( ii = 0; ii < n_samples; ii++ )
       {
         indeces = new int[n_samples];
         n_triangles = Vertices[ii].length;
@@ -192,7 +192,7 @@ public class IrregularSet extends SampledSet {
     }
     else
     {
-      throw new UnimplementedException("getNeighbors(): ManifoldDimension > 3 "); 
+      throw new UnimplementedException("getNeighbors(): ManifoldDimension > 3 ");
     }
   }
 

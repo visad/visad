@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -65,11 +65,11 @@ public abstract class FlowControl extends Control {
     VerticalStreamSlice = false;
     barbOrientation = SH_ORIENTATION;    // DRM 9-Sept-1999
     TrajectorySet = null;
- 
+
     HorizontalVectorSliceHeight = 0.0;
     HorizontalStreamSliceHeight = 0.0;
   }
- 
+
   /** set scale length for flow vectors (default is 0.02f) */
   public void setFlowScale(float scale)
          throws VisADException, RemoteException {
@@ -82,30 +82,30 @@ public abstract class FlowControl extends Control {
     return flowScale;
   }
 
-  /** 
-   * set barb orientation for wind barbs (default is southern hemisphere) 
+  /**
+   * set barb orientation for wind barbs (default is southern hemisphere)
    *
-   * @param  orientation   wind barb orientation 
-   *                       (NH_ORIENTATION or SH_ORIENTATION); 
+   * @param  orientation   wind barb orientation
+   *                       (NH_ORIENTATION or SH_ORIENTATION);
    */
   public void setBarbOrientation(int orientation)
-         throws VisADException, RemoteException 
+         throws VisADException, RemoteException
   {
     // make sure it is one or the other
     if (orientation == SH_ORIENTATION || orientation == NH_ORIENTATION)
        barbOrientation = orientation;
-    else 
+    else
       throw new VisADException( "Invalid orientation value: " + orientation);
     changeControl(true);
   }
-    
-  /** 
-   * Get barb orientation for wind barbs 
-   * 
+
+  /**
+   * Get barb orientation for wind barbs
+   *
    * @return orientation (false = northern hemisphere)
    */
   public int getBarbOrientation() {
-    return barbOrientation; 
+    return barbOrientation;
   }
 
   /** copy the state of a remote control to this control */

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -32,22 +32,22 @@ import visad.java2d.DisplayImplJ2D;
 
 /**
 (Fulker)
-   DataImpl is the superclass for VisAD's data hierarchy, inheriting 
-   the Data interface.  Data objects are immutable except for the range 
+   DataImpl is the superclass for VisAD's data hierarchy, inheriting
+   the Data interface.  Data objects are immutable except for the range
    values of Field objects.<p>
 
    VisAD Data objects are finite approximations to math objects
-   that include scalars, tuples (i.e., n-dimensional vectors), functions, 
-   and certain forms of sets.  Hence, all Data objects possess a MathType, 
-   which identifies the corresponding concept and is <b>not</b> a synonym 
-   for the data class, even though the class names for a Data object and 
-   its corresponding MathType object (Set and SetType, e.g.) may be 
-   similar.  In order to approximate their corresponding mathematical 
-   entities, Data objects may use text strings or finite representations 
-   of real numbers.  Also, any Data object may take the value 'missing', 
+   that include scalars, tuples (i.e., n-dimensional vectors), functions,
+   and certain forms of sets.  Hence, all Data objects possess a MathType,
+   which identifies the corresponding concept and is <b>not</b> a synonym
+   for the data class, even though the class names for a Data object and
+   its corresponding MathType object (Set and SetType, e.g.) may be
+   similar.  In order to approximate their corresponding mathematical
+   entities, Data objects may use text strings or finite representations
+   of real numbers.  Also, any Data object may take the value 'missing',
    and any sub-object of a Data object may take the value 'missing'.<p>
 
-   All of the Java arithmetical operations are defined for Data objects, 
+   All of the Java arithmetical operations are defined for Data objects,
    to the extent that they make sense for the types involved.<p>
 (/Fulker)<p>
 
@@ -100,7 +100,7 @@ public abstract class DataImpl extends ThingImpl
     return Type;
   }
 
-  /** notify local DataReferenceImpl-s that this DataImpl has changed; 
+  /** notify local DataReferenceImpl-s that this DataImpl has changed;
       incTick in RemoteDataImpl for RemoteDataReferenceImpl-s;
       would like 'default' visibility here, but must be declared
       'public' because it is defined in the Data interface */
@@ -123,7 +123,7 @@ public abstract class DataImpl extends ThingImpl
     return binary( data, op, new_type, sampling_mode, error_mode );
   }
 
-  public Data binary( Data data, int op, MathType new_type, 
+  public Data binary( Data data, int op, MathType new_type,
                       int sampling_mode, int error_mode )
               throws VisADException, RemoteException {
     throw new TypeException("DataImpl.binary");
@@ -233,7 +233,7 @@ public abstract class DataImpl extends ThingImpl
     MathType new_type = Type.unary( op, new Vector() );
     return unary( op, new_type, sampling_mode, error_mode );
   }
-  
+
   /*- TDR June 1998  */
   public Data unary( int op, MathType new_type, int sampling_mode, int error_mode )
               throws VisADException, RemoteException {
@@ -680,7 +680,7 @@ public abstract class DataImpl extends ThingImpl
 
   public static void main(String args[])
          throws VisADException, RemoteException {
- 
+
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
     RealTupleType earth_location3d = new RealTupleType(types3d);
     RealType vis_radiance = new RealType("vis_radiance", null, null);

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -160,7 +160,7 @@ public abstract class DataRenderer extends Object {
     any_changed = false;
     all_feasible = true;
     any_transform_control = false;
- 
+
     for (int i=0; i<Links.length; i++) {
       changed[i] = false;
       DataReference ref = Links[i].getDataReference();
@@ -202,7 +202,7 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
           }
         }
       } // end if (Links[i].checkTicks() || !feasible[i] || go)
- 
+
       if (feasible[i]) {
         // check if this Data includes any changed Controls
         Enumeration maps = Links[i].getSelectedMapVector().elements();
@@ -292,31 +292,31 @@ if (map.badRange()) {
   public abstract ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
- 
+
   /** factory for constructing a subclass of ShadowType appropriate
       for the graphics API, that also adapts ShadowRealTupleType */
   public abstract ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
- 
+
   /** factory for constructing a subclass of ShadowType appropriate
       for the graphics API, that also adapts ShadowRealType */
   public abstract ShadowType makeShadowRealType(
          RealType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
- 
+
   /** factory for constructing a subclass of ShadowType appropriate
       for the graphics API, that also adapts ShadowSetType */
   public abstract ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
- 
+
   /** factory for constructing a subclass of ShadowType appropriate
       for the graphics API, that also adapts ShadowTextType */
   public abstract ShadowType makeShadowTextType(
          TextType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
- 
+
   /** factory for constructing a subclass of ShadowType appropriate
       for the graphics API, that also adapts ShadowTupleType */
   public abstract ShadowType makeShadowTupleType(
@@ -989,7 +989,7 @@ if (map.badRange()) {
   // from assembleFlow
   ScalarMap[][] flow_maps = null;
   float[] flow_scale = null;
- 
+
   public void setFlowDisplay(ScalarMap[][] maps, float[] fs) {
     flow_maps = maps;
     flow_scale = fs;
@@ -1141,7 +1141,7 @@ if (map.badRange()) {
   /** spatial DisplayTupleType other than
       DisplaySpatialCartesianTuple */
   DisplayTupleType tuple;
- 
+
   /** possible values for whyNotDirect */
   private final static String notRealFunction =
     "FunctionType must be Real";
@@ -1255,7 +1255,7 @@ if (map.badRange()) {
         axisToComponent[i] = -1;
         directMap[i] = null;
       }
-   
+
       directManifoldDimension =
         setDirectMap((ShadowRealType) domain.getComponent(0), -1, true);
       if (range instanceof ShadowRealType) {
@@ -1269,7 +1269,7 @@ if (map.badRange()) {
             setDirectMap((ShadowRealType) r.getComponent(i), i, false);
         }
       }
-   
+
       if (domainAxis == -1) {
         whyNotDirect = tooFewSpatial;
         return;
@@ -1338,7 +1338,7 @@ if (map.badRange()) {
         axisToComponent[i] = -1;
         directMap[i] = null;
       }
-   
+
       directManifoldDimension = 0;
       for (int i=0; i<((ShadowRealTupleType) shadow).getDimension(); i++) {
         directManifoldDimension += setDirectMap((ShadowRealType)
@@ -1427,19 +1427,19 @@ if (map.badRange()) {
   private int getDirectManifoldDimension() {
     return directManifoldDimension;
   }
- 
+
   public String getWhyNotDirect() {
     return whyNotDirect;
   }
- 
+
   private int getAxisToComponent(int i) {
     return axisToComponent[i];
   }
- 
+
   private ScalarMap getDirectMap(int i) {
     return directMap[i];
   }
- 
+
   private int getDomainAxis() {
     return domainAxis;
   }
@@ -1652,7 +1652,7 @@ System.out.println("checkClose: distance = " + distance);
         Vector vect = new Vector();
         if (first) lastIndex = -1;
         int k = getDomainAxis();
-        f[0] = x[k]; 
+        f[0] = x[k];
         d = getDirectMap(k).inverseScaleValues(f);
         RealType rtype = (RealType) getDirectMap(k).getScalar();
         // WLH 4 Jan 99
@@ -1806,15 +1806,15 @@ System.out.println("checkClose: distance = " + distance);
   public void checkDirect() throws VisADException, RemoteException {
     isDirectManipulation = false;
   }
- 
+
   public void setIsDirectManipulation(boolean b) {
     isDirectManipulation = b;
   }
- 
+
   public boolean getIsDirectManipulation() {
     return isDirectManipulation;
   }
- 
+
 /*
   public void drag_direct(VisADRay ray, boolean first) {
     throw new VisADError("DataRenderer.drag_direct: not direct " +

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -79,14 +79,14 @@ public class Irregular2DSet extends IrregularSet {
   }
 
   /* shortcut constructor for constructing Irregular2DSet
-     using Delaunay from existing Irregular2DSet */ 
+     using Delaunay from existing Irregular2DSet */
 /* CTR: 1-12-98
   public Irregular2DSet(MathType type, float[][] samples,
                  Irregular2DSet delaunay_set) throws VisADException {
     this(type, samples, delaunay_set, null, null, null, true);
   }
 */
- 
+
   /* complete constructor for constructing Irregular2DSet
      using Delaunay from existing Irregular2DSet */
 /* CTR: 1-12-98
@@ -102,7 +102,7 @@ public class Irregular2DSet extends IrregularSet {
                  CoordinateSystem coord_sys, Unit[] units,
                  ErrorEstimate[] errors, boolean copy)
                  throws VisADException {
-    super(type, samples, delaunay_set.getManifoldDimension(), 
+    super(type, samples, delaunay_set.getManifoldDimension(),
           coord_sys, units, errors, copy);
     int dim = delaunay_set.getManifoldDimension();
     if (dim != 2) {
@@ -128,7 +128,7 @@ public class Irregular2DSet extends IrregularSet {
                int[] new2old, int[] old2new) throws VisADException {
     this(type, samples, new2old, old2new, null, null, null, true);
   }
- 
+
   /** complete constructor for constructing Irregular2DSet
       using sort from existing Irregular1DSet */
   public Irregular2DSet(MathType type, float[][] samples,
@@ -227,7 +227,7 @@ public class Irregular2DSet extends IrregularSet {
       tri[i] = -1;
       boolean foundit = false;
       if (curtri < 0) curtri = 0;
-      for (int itnum=0; (itnum<Delan.Tri.length) && !foundit; itnum++) { 
+      for (int itnum=0; (itnum<Delan.Tri.length) && !foundit; itnum++) {
         // define data
         int t0 = Delan.Tri[curtri][0];
         int t1 = Delan.Tri[curtri][1];
@@ -247,7 +247,7 @@ public class Irregular2DSet extends IrregularSet {
         float tval2 = (Ax-Cx)*(Py-Cy) - (Ay-Cy)*(Px-Cx);
         boolean test0 = (tval0 == 0) || ( (tval0 > 0) == (
                         (Bx-Ax)*(Cy-Ay) - (By-Ay)*(Cx-Ax) > 0) );
-        boolean test1 = (tval1 == 0) || ( (tval1 > 0) == ( 
+        boolean test1 = (tval1 == 0) || ( (tval1 > 0) == (
                         (Cx-Bx)*(Ay-By) - (Cy-By)*(Ax-Bx) > 0) );
         boolean test2 = (tval2 == 0) || ( (tval2 > 0) == (
                         (Ax-Cx)*(By-Cy) - (Ay-Cy)*(Bx-Cx) > 0) );
@@ -498,7 +498,7 @@ valueToInterp test:
 366.0, 421.0    --> [2, 5, 7]   weight total: 1.0
 445.0, 91.0     --> [1, 3, 4]   weight total: 1.0
 
-iris 137% 
+iris 137%
 
 */
 

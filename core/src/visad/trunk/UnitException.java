@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitException.java,v 1.4 1999-09-20 20:22:04 steve Exp $
+ * $Id: UnitException.java,v 1.5 2000-04-26 15:00:03 dglo Exp $
  */
 
 package visad;
@@ -19,7 +19,7 @@ package visad;
  * This is part of Steve Emmerson's Unit package that has been
  * incorporated into VisAD.
  */
-public class UnitException 
+public class UnitException
     extends VisADException    // change by Bill Hibbard for VisAD
 {
     /**

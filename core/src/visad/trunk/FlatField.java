@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -55,31 +55,31 @@ import visad.util.DataUtility;
    if Latitude is one component of Field values, then any computation
    involving Latitude can be applied in a tight loop to all Latitude's
    in the Field.<P>
-   
+
    FlatField's support range types more general than RealTuple's.  To
    understand the motive, consider a set of observations that include
    Latitude, Longitude, Altitude, Pressure, Temperature, etc.  We can
    organize these as a Field whose range values have the Tuple type:<P>
  <PRE>
-  
+
      (Latitude, Longitude, Altitude, Pressure, Temperature, ...)
 
-</PRE>  
+</PRE>
    However, in order to declare that (Latitude, Longitude, Altitude)
    is a coordinate system with coordinate transform functions to other
    spatial coordinate systems, we need to organize:<P>
 <PRE>
-   
+
      (Latitude, Longitude, Altitude)
-   
-</PRE>  
+
+</PRE>
    as a RealTupleType.  Hence the range type of the Field of observations
    must be:<P>
 <PRE>
-   
+
      ((Latitude, Longitude, Altitude), Pressure, Temperature, ...)
-   
-</PRE>  
+
+</PRE>
    which is not a RealTupleType (since one of its components is a
    RealTupleType).  In order to process such data efficiently, FlatField's
    must support range types that are Tuple's of RealType's and
@@ -116,7 +116,7 @@ public class FlatField extends FieldImpl {
 
   private static final int DOUBLE = 1;
   private static final int FLOAT = 2;
-  private static final int LONG = 3; // not currently used because array 
+  private static final int LONG = 3; // not currently used because array
                                      // indices are int's
   private static final int INT = 4;
   private static final int SHORT = 5;
@@ -372,7 +372,7 @@ public class FlatField extends FieldImpl {
         for (int i=0; i<TupleDimension; i++) {
 	  RealType componentType = (RealType)FlatRange.getComponent(i);
 	  Unit componentUnit = units[i];
-	  RangeUnits[i] = 
+	  RangeUnits[i] =
 	    componentUnit == null || !componentType.isInterval()
 	      ? componentUnit
 	      : componentUnit.getAbsoluteUnit();
@@ -384,7 +384,7 @@ public class FlatField extends FieldImpl {
       else {
         type_units = new Unit[1];
         type_units[0] = ((RealType) RangeType).getDefaultUnit();
-      }   
+      }
       if (RangeCoordinateSystem != null &&
           !Unit.canConvertArray(RangeCoordinateSystem.getCoordinateSystemUnits(),
                                 type_units)) {
@@ -463,7 +463,7 @@ public class FlatField extends FieldImpl {
         for (int i=0; i<TupleDimension; i++) {
 	  RealType componentType = (RealType)FlatRange.getComponent(i);
 	  Unit componentUnit = units[i];
-	  RangeUnits[i] = 
+	  RangeUnits[i] =
 	    componentUnit == null || !componentType.isInterval()
 	      ? componentUnit
 	      : componentUnit.getAbsoluteUnit();
@@ -483,7 +483,7 @@ public class FlatField extends FieldImpl {
           }
         }
         else {
-          sub_type_units = new Unit[1]; 
+          sub_type_units = new Unit[1];
           sub_type_units[0] = ((RealType) component).getDefaultUnit();
           m = 1;
           sub_range_units = new Unit[1];
@@ -564,7 +564,7 @@ public class FlatField extends FieldImpl {
    *				component.  Won't be <code>null</code> and will
    *				be of length 1.  The single element might be
    *				<code>null</code>.
-   * @throws TypeException	The type of the range is either RealType or 
+   * @throws TypeException	The type of the range is either RealType or
    *				RealTupleType.
    */
   public CoordinateSystem[] getRangeCoordinateSystem(int i)
@@ -643,7 +643,7 @@ public class FlatField extends FieldImpl {
          throws VisADException, RemoteException {
     setSamples(range, null, true);
   }
- 
+
   /** set range array as range values of this FlatField;
       the array is dimensioned
       float[number_of_range_components][number_of_range_samples];
@@ -703,7 +703,7 @@ public class FlatField extends FieldImpl {
        (errors != null && errors.length != TupleDimension)) {
       throw new FieldException("FlatField.setSamples: bad tuple length");
     }
- 
+
     for (int i=0; i<TupleDimension; i++) {
       if (range[i].length != Length) {
         throw new FieldException("setSamples: bad array length");
@@ -1113,7 +1113,7 @@ public class FlatField extends FieldImpl {
   public float[][] getFloats() throws VisADException {
     return getFloats(true);
   }
- 
+
   /** get this FlatField's range values in their default range
       Units (as defined by the range of the FlatField's
       FunctionType); the return array is dimensioned
@@ -1217,7 +1217,7 @@ public class FlatField extends FieldImpl {
     }
 
     MathType RangeType = ((FunctionType) Type).getRange();
-    if (RangeType instanceof RealType) { 
+    if (RangeType instanceof RealType) {
       return new Real((RealType) RangeType, range[0][0],
                       RangeUnits[0], RangeErrors[0]);
     }
@@ -1240,7 +1240,7 @@ public class FlatField extends FieldImpl {
         if (type instanceof RealType) {
           datums[i] = new Real((RealType) type, range[j][0],
                                RangeUnits[j], RangeErrors[j]);
-          j++;    
+          j++;
         }
         else { // type instanceof RealTupleType
           int m = ((RealTupleType) type).getDimension();
@@ -1429,7 +1429,7 @@ public class FlatField extends FieldImpl {
       IntRange = new int[TupleDimension][];
       ShortRange = new short[TupleDimension][];
       ByteRange = new byte[TupleDimension][];
-  
+
       for (int i=0; i<TupleDimension; i++) {
         if (RangeSet[i] instanceof DoubleSet) {
           RangeMode[i] = DOUBLE;
@@ -2432,7 +2432,7 @@ public class FlatField extends FieldImpl {
     FlatField new_field = cloneDouble(new_type, units_out, errors_out);
 
     new_field.packValues(values, false);
-    // new_field.DoubleRange = values; 
+    // new_field.DoubleRange = values;
     new_field.clearMissing();
     return new_field;
   }
@@ -2485,7 +2485,7 @@ public class FlatField extends FieldImpl {
 
   /** extract field from this[].component;
       this is OK, when we get around to it */
-  public Field extract(int component) 
+  public Field extract(int component)
          throws VisADException, RemoteException
   {
     Set domainSet = getDomainSet();
@@ -2496,11 +2496,11 @@ public class FlatField extends FieldImpl {
     CoordinateSystem coord_sys;
     MathType m_type;
     int ii, jj, compSize;
-    
+
     int[] flat_indeces;
 
     if ( rangeType instanceof RealType )
-    { 
+    {
       if ( component != 0 ) {
         throw new VisADException("extract: component index must be zero");
       }
@@ -2508,14 +2508,14 @@ public class FlatField extends FieldImpl {
         return this;
       }
     }
-    else 
-    { 
+    else
+    {
       n_comps = ((TupleType)rangeType).getDimension();
       if ( (component+1) > n_comps ) {
         throw new VisADException("extract: component index too large");
       }
     }
- 
+
     MathType new_range = ((TupleType)rangeType).getComponent( component );
     FunctionType new_type = new FunctionType( domainType, new_range);
 
@@ -2524,29 +2524,29 @@ public class FlatField extends FieldImpl {
     for ( ii = 0; ii < component; ii++ )
     {
       m_type = ((TupleType)rangeType).getComponent(ii);
-      if ( m_type instanceof RealType ) 
+      if ( m_type instanceof RealType )
       {
         cnt++;
       }
-      else 
+      else
       {
         cnt += ((RealTupleType)m_type).getDimension();
         t_cnt++;
       }
     }
 
-    if ( new_range instanceof RealType ) 
+    if ( new_range instanceof RealType )
     {
       compSize = 1;
       flat_indeces = new int[compSize];
-      flat_indeces[0] = cnt; 
+      flat_indeces[0] = cnt;
       coord_sys = null;
     }
-    else 
+    else
     {
       compSize = ((RealTupleType)new_range).getDimension();
       flat_indeces = new int[ compSize ];
-      for ( jj = 0; jj < compSize; jj++ ) 
+      for ( jj = 0; jj < compSize; jj++ )
       {
         flat_indeces[jj] = cnt++;
       }
@@ -2557,14 +2557,14 @@ public class FlatField extends FieldImpl {
     Unit[] units_out = new Unit[ compSize ];
     Set[] rangeSet_out = new Set[ compSize ];
 
-    for ( ii = 0; ii < compSize; ii++ ) 
+    for ( ii = 0; ii < compSize; ii++ )
     {
       units_out[ii] = RangeUnits[ flat_indeces[ii] ];
       errors_out[ii] = RangeErrors[ flat_indeces[ii] ];
       rangeSet_out[ii] = RangeSet[ flat_indeces[ii] ];
-    } 
+    }
 
-    FlatField new_field = new FlatField( new_type, domainSet, coord_sys, null, 
+    FlatField new_field = new FlatField( new_type, domainSet, coord_sys, null,
                                          rangeSet_out, units_out );
     new_field.setRangeErrors( errors_out );
 
@@ -2577,7 +2577,7 @@ public class FlatField extends FieldImpl {
       System.arraycopy( values, 0, new_values[ii], 0, n_samples );
     }
     new_field.setSamples( new_values );
-    
+
     return new_field;
   }
 
@@ -2700,15 +2700,15 @@ public class FlatField extends FieldImpl {
 
     if ( !transform ) {
       D_units = domainSet.getSetUnits();
-    } 
-    else { 
+    }
+    else {
       D_units = d_reference.getDefaultUnits();
     }
 
   //- Create derivative Units array   -*
     for ( ii = 0; ii < n_partials; ii++ ) {
       for ( jj = 0; jj < TupleDimension; jj++ ) {
-        if (( R_units == null)||( D_units == null )) 
+        if (( R_units == null)||( D_units == null ))
         {
           derivUnits[ii][jj] = null;
         }
@@ -2716,11 +2716,11 @@ public class FlatField extends FieldImpl {
         {
           derivUnits[ii][jj] = null;
         }
-        else 
+        else
         {
           derivUnits[ii][jj] = R_units[jj][0].divide( D_units[ u_index[ii] ] );
         }
-     
+
       }
     }
 
@@ -2762,11 +2762,11 @@ public class FlatField extends FieldImpl {
     double[][][] p_derivatives = null;
     DataImpl[] datums = new DataImpl[ n_partials ];
     ErrorEstimate[][] rangeErrors_out = new ErrorEstimate[ n_partials ][ TupleDimension ];
-    if ( thisDomainFlag ) 
+    if ( thisDomainFlag )
     {
       p_derivatives = new double[ n_partials ][ TupleDimension ][ n_samples ];
       for ( ii = 0; ii < n_partials; ii++ ) {
-        datums[ii] = (DataImpl) cloneDouble( derivType_s[ii], derivUnits[ii], null ); 
+        datums[ii] = (DataImpl) cloneDouble( derivType_s[ii], derivUnits[ii], null );
       }
       if ( isMissing() ) {
         if ( n_partials == 1 )
@@ -2779,7 +2779,7 @@ public class FlatField extends FieldImpl {
         }
       }
     }
-    else 
+    else
     {
       p_derivatives = new double[ n_partials ][ TupleDimension ][ 1 ];
       if ( isMissing() ) {
@@ -2791,7 +2791,7 @@ public class FlatField extends FieldImpl {
         }
       }
     }
-  
+
     if ( !isMissing() )  //- skip computations. if thisDomainFlag is also set, then
                          //- method would have already returned.
     {
@@ -2907,7 +2907,7 @@ public class FlatField extends FieldImpl {
         float[][] evalSamples;
         float[][] org_Samples = domainSet.getSamples(false);
 
-        new_field = (FlatField) resample( new SingletonSet(location, null, null, null ), 
+        new_field = (FlatField) resample( new SingletonSet(location, null, null, null ),
                                 Data.WEIGHTED_AVERAGE, error_mode );
 
         evalSamples = (new_field.getDomainSet()).getSamples(false);
@@ -3011,7 +3011,7 @@ public class FlatField extends FieldImpl {
 
     }
 
-    } //-not missing branch  -* 
+    } //-not missing branch  -*
 
 
     double[][] s_samples = null;
@@ -3159,7 +3159,7 @@ public class FlatField extends FieldImpl {
     // use DoubleSet rather than RangeSet for intermediate computation results
     Set[] sets = new Set[TupleDimension];
     for (int i=0; i<TupleDimension; i++) {
-      SetType set_type = 
+      SetType set_type =
         new SetType(((FunctionType) Type).getFlatRange().getComponent(i));
       sets[i] = new DoubleSet(set_type);
     }
@@ -3341,7 +3341,7 @@ for (i=0; i<length; i++) {
             }
           }
           range_errors_out[j] =
-            new ErrorEstimate(new_values[j], error, RangeUnits[j]); 
+            new ErrorEstimate(new_values[j], error, RangeUnits[j]);
         }
       }
     }
@@ -3350,7 +3350,7 @@ for (i=0; i<length; i++) {
         if (range_errors_in[j] != null) {
           range_errors_out[j] =
             new ErrorEstimate(new_values[j], range_errors_in[j].getErrorValue(),
-                              RangeUnits[j]); 
+                              RangeUnits[j]);
         }
       }
     }
@@ -3409,7 +3409,7 @@ for (i=0; i<length; i++) {
       }
     } // end if (coord_transform)
     new_field.packValues(new_values, false);
-    // new_field.DoubleRange = new_values; 
+    // new_field.DoubleRange = new_values;
     new_field.setRangeErrors(range_errors_out);
     new_field.clearMissing();
     return new_field;
@@ -3588,7 +3588,7 @@ for (i=0; i<length; i++) {
     double[][] values = unpackValues();
     field.packValues(values, false);
     // field.DoubleRange = values;
-    field.setRangeErrors(errors); 
+    field.setRangeErrors(errors);
     field.clearMissing();
     return field;
     */
@@ -3637,7 +3637,7 @@ for (i=0; i<length; i++) {
       if (isMissing()) return field;
       double[][] values = unpackValues();
       field.packValues(values, true);
-      field.setRangeErrors(RangeErrors); 
+      field.setRangeErrors(RangeErrors);
     }
     catch (VisADException e) {
       throw new VisADError("FlatField.clone: VisADException occurred");
@@ -3987,16 +3987,16 @@ for (i=0; i<length; i++) {
                                     double first1, double last1, int length1,
                                     double first2, double last2, int length2)
           throws VisADException, RemoteException {
- 
+
     double step1 = (last1 - first1) / (length1 - 1);
     double step2 = (last2 - first2) / (length2 - 1);
- 
+
     Linear2DSet imageset =
       new Linear2DSet(type.getDomain(), first1, last1, length1,
                                         first2, last2, length2);
- 
+
     FlatField image = new FlatField(type, imageset);
- 
+
     Random random = new Random();
     double[][] data = new double[2][length1 * length2];
     for (int i=0; i<length1; i++) {

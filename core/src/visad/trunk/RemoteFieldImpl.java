@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -187,7 +187,7 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     }
     return ((FieldImpl) AdaptedData).getFloats();
   }
- 
+
   public float[][] getFloats(boolean copy)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
@@ -197,7 +197,7 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     return ((FieldImpl) AdaptedData).getFloats(copy);
   }
 
-  public double[][] getValues() 
+  public double[][] getValues()
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
       throw new RemoteVisADException("RemoteFieldImpl.getValues: " +
@@ -205,7 +205,7 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     }
     return ((FieldImpl) AdaptedData).getValues();
   }
- 
+
   public double[][] getValues(boolean copy)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
@@ -224,7 +224,7 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     return ((FieldImpl) AdaptedData).getStringValues();
   }
 
-  public Unit[] getDefaultRangeUnits() 
+  public Unit[] getDefaultRangeUnits()
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
       throw new RemoteVisADException("RemoteFieldImpl.getDefaultRangeUnits: " +

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -206,7 +206,7 @@ public class FieldImpl extends FunctionImpl implements Field {
          throws VisADException, RemoteException {
     return getFloats(true);
   }
- 
+
   /** get range values for 'Flat' components in their default range
       Units (as defined by the range of this FieldImpl's
       FunctionType); the return array is dimensioned
@@ -278,7 +278,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     return values;
   }
- 
+
   /** set range array as range values of this FieldImpl;
       this must have a Flat range; the array is dimensioned
       float[number_of_range_components][number_of_range_samples];
@@ -380,7 +380,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     Unit[] default_units = getDefaultRangeUnits();
 
     MathType RangeType = ((FunctionType) Type).getRange();
- 
+
     for (int i=0; i<Length; i++) {
       Data range = Range[i];
       if (range == null || range.isMissing()) {
@@ -412,7 +412,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     return units;
   }
- 
+
   /** get range CoordinateSystem for 'RealTuple' range;
       second index enumerates samples */
   /** return range CoordinateSystem assuming range type is
@@ -444,7 +444,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     return cs;
   }
- 
+
   /** get range CoordinateSystem for 'RealTuple' components;
       second index enumerates samples */
   public CoordinateSystem[] getRangeCoordinateSystem(int component)
@@ -536,7 +536,7 @@ public class FieldImpl extends FunctionImpl implements Field {
          throws VisADException, RemoteException {
     setSample(index, range, true);
   }
- 
+
   /** set the range value at the index-th sample */
   public void setSample(int index, Data range, boolean copy)
          throws VisADException, RemoteException {
@@ -574,7 +574,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
   /** return new Field with value 'this op data';
       test for various relations between types of this and data */
-  /*- TDR  May 1998 
+  /*- TDR  May 1998
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
    */
@@ -668,11 +668,11 @@ public class FieldImpl extends FunctionImpl implements Field {
 
 
   /** return new Field with value 'op this' */
-  /*- TDR  July  1998 
+  /*- TDR  July  1998
   public Data unary(int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
   */
-  public Data unary(int op, MathType new_type, int sampling_mode, 
+  public Data unary(int op, MathType new_type, int sampling_mode,
                     int error_mode )
               throws VisADException, RemoteException {
     if ( new_type == null ) {
@@ -742,7 +742,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     boolean allFlat = true;            //- all fields in array are FlatFields.
     Field field_0 = fields[0];         //- first field in array, "this".
     FunctionType new_type;             //- type of result.
-    n_fields = fields.length;       
+    n_fields = fields.length;
     MathType[] fieldRange_s = new MathType[ n_fields ];
     MathType[][] rangeComp_s = new MathType[ n_fields ][];
     FunctionType[] fieldType_s = new FunctionType[ n_fields ];
@@ -755,17 +755,17 @@ public class FieldImpl extends FunctionImpl implements Field {
     int n_dims;
     int length;
     int cnt = 0;
-    
+
     n_fields = fields.length;
     n_comps = 0;
 
     for ( ii = 0; ii < n_fields; ii++ )
     {
-      if ( ii == 0 ) 
+      if ( ii == 0 )
       {
         domainDim = field_0.getDomainDimension();
-      } 
-      else if ( domainDim != fields[ii].getDomainDimension() ) 
+      }
+      else if ( domainDim != fields[ii].getDomainDimension() )
       {
         throw new VisADException( "FieldImpl.combine: domain dimensions of input"+
                                   "fields must match" );
@@ -786,7 +786,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         rangeComp_s[ii][0] = range;
         n_comps++;
       }
-      else if ( range instanceof RealTupleType ) 
+      else if ( range instanceof RealTupleType )
       {
         rangeComp_s[ii] = new MathType[ 1];
         rangeComp_s[ii][0] = range;
@@ -801,7 +801,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         n_comps += n_dims;
       }
-      else 
+      else
       {
         rangeComp_s[ii] = new MathType[1];
         rangeComp_s[ii][0] = range;
@@ -813,7 +813,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     domainType_0 = ((FunctionType)field_0.getType()).getDomain();
     n_samples_0 = domainSet_0.getLength();
 
-    if ( allFlat ) 
+    if ( allFlat )
     {
       int n_sets;
       int n_sys;
@@ -828,8 +828,8 @@ public class FieldImpl extends FunctionImpl implements Field {
       Vector m_types = new Vector();
       Vector r_types = new Vector();
 
-      for ( ii = 0; ii < n_fields; ii++ ) 
-      { 
+      for ( ii = 0; ii < n_fields; ii++ )
+      {
         field = fields[ii];
         fieldRange = fieldRange_s[ii];
 
@@ -846,7 +846,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           n_dims = ((RealTupleType)fieldRange).getDimension();
           tupleDim += n_dims;
           rangeCoordSys_s = field.getRangeCoordinateSystem();
-          if ( rangeCoordSys_s[0] == null ) 
+          if ( rangeCoordSys_s[0] == null )
           {
             for ( jj = 0; jj < n_dims; jj++ )
             {
@@ -856,7 +856,7 @@ public class FieldImpl extends FunctionImpl implements Field {
               coordsys_s.add( null );
             }
           }
-          else 
+          else
           {
             m_types.add( fieldRange );
             coordsys_s.add( rangeCoordSys_s[0] );
@@ -865,19 +865,19 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         else //- must be Flat TupleType   -*
         {
-          for ( jj = 0; jj < rangeComp_s[ii].length; jj++ ) 
+          for ( jj = 0; jj < rangeComp_s[ii].length; jj++ )
           {
             rangeCoordSys_s = field.getRangeCoordinateSystem(jj);
             m_type = rangeComp_s[ii][jj];
 
-            if ( m_type instanceof RealType ) 
+            if ( m_type instanceof RealType )
             {
               r_types.add( m_type );
               m_types.add( m_type );
               coordsys_s.add( rangeCoordSys_s[0] );
               tupleDim++;
             }
-            else if ( m_type instanceof RealTupleType ) 
+            else if ( m_type instanceof RealTupleType )
             {
               n_dims = ((RealTupleType)m_type).getDimension();
               tupleDim += n_dims;
@@ -890,7 +890,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                   coordsys_s.add( null );
                 }
               }
-              else 
+              else
               {
                 m_types.add( m_type );
                 coordsys_s.add( rangeCoordSys_s[0] );
@@ -901,8 +901,8 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
       }
 
-      if ( allReal ) 
-      { 
+      if ( allReal )
+      {
         length = r_types.size();
         RealType[] r_array =  new RealType[ length ];
         for ( ii = 0; ii < length; ii++ ) {
@@ -910,7 +910,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         new_range = new RealTupleType( r_array );
       }
-      else 
+      else
       {
         length = m_types.size();
         MathType[] m_array =  new MathType[ length ];
@@ -919,15 +919,15 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         new_range = new TupleType( m_array );
       }
-      
+
       new_type = new FunctionType( domainType_0, new_range );
 
       length = coordsys_s.size();
       CoordinateSystem[] all_rangeCoordSys_s = new CoordinateSystem[ length ];
-      for ( ii = 0; ii < length; ii++ ) 
+      for ( ii = 0; ii < length; ii++ )
       {
         all_rangeCoordSys_s[ii] = (CoordinateSystem) coordsys_s.elementAt(ii);
-      } 
+      }
 
       Set[] rangeSets;
       Set[] new_rangeSets = new Set[ tupleDim ];
@@ -942,7 +942,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       int cnt_u = 0;
       int n_coordsys = 0;
       int n_units;
- 
+
       for ( ii = 0; ii < n_fields; ii++ )
       {
         f_field = (FlatField) fields[ii].local();
@@ -970,11 +970,11 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         System.arraycopy( sub_units, 0, new_rangeUnits, cnt_u, n_units );
         cnt_u += n_units;
-        
+
         //-  get range values for each field, and combine into one array  -*
 
         values = f_field.getValues();
-        for ( jj = 0; jj < values.length; jj++ ) 
+        for ( jj = 0; jj < values.length; jj++ )
         {
           System.arraycopy( values[jj], 0, new_values[cnt_b++], 0, n_samples_0 );
         }
@@ -982,7 +982,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
       //- data and metadata collected.  Make new flatfield  -*
 
-      if ( new_type.getReal() ) 
+      if ( new_type.getReal() )
       {
         new_field = new FlatField( new_type, domainSet_0, null, null,
                                    new_rangeSets, null );
@@ -1018,20 +1018,20 @@ public class FieldImpl extends FunctionImpl implements Field {
         {
           field = (Field) fields[ii].local();
         }
-        else 
+        else
         {
           field = fields[ii].resample( domainSet_0, sampling_mode, error_mode );
         }
 
         fieldRange = fieldRange_s[ii];
-        if ( fieldRange instanceof RealType ) 
+        if ( fieldRange instanceof RealType )
         {
           sub_types.add( fieldRange );
           for ( kk = 0; kk < n_samples_0; kk++ ) {
             v_array[kk].add( field.getSample(kk) );
           }
         }
-        else if ( fieldRange instanceof RealTupleType ) 
+        else if ( fieldRange instanceof RealTupleType )
         {
           if ( ((RealTupleType)fieldRange).getCoordinateSystem() != null )
           {
@@ -1040,8 +1040,8 @@ public class FieldImpl extends FunctionImpl implements Field {
             for ( kk = 0; kk < n_samples_0; kk++ ) {
               v_array[kk].add( field.getSample(kk) );
             }
-          } 
-          else 
+          }
+          else
           {
             n_dims = ((RealTupleType)fieldRange).getDimension();
             for ( jj = 0; jj < n_dims; jj++ )
@@ -1067,10 +1067,10 @@ public class FieldImpl extends FunctionImpl implements Field {
             }
             allReal = false;
           }
-          else 
+          else
           {
             n_dims = ((TupleType)fieldRange).getDimension();
-            for ( ii = 0; ii < n_dims; ii++ ) 
+            for ( ii = 0; ii < n_dims; ii++ )
             {
               m_type = ((TupleType)fieldRange).getComponent(ii);
               if ( m_type instanceof RealType )
@@ -1080,7 +1080,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                   v_array[kk].add( ((Tuple)field.getSample(kk)).getComponent(ii));
                 }
               }
-              else if ( m_type instanceof RealTupleType ) 
+              else if ( m_type instanceof RealTupleType )
               {
                 if ( ((RealTupleType)m_type).getCoordinateSystem() != null )
                 {
@@ -1089,8 +1089,8 @@ public class FieldImpl extends FunctionImpl implements Field {
                   for ( kk = 0; kk < n_samples_0; kk++ ) {
                     v_array[kk].add( ((Tuple)field.getSample(kk)).getComponent(ii));
                   }
-                } 
-                else 
+                }
+                else
                 {
                   for ( jj = 0; jj < ((RealTupleType)m_type).getDimension(); jj++ )
                   {
@@ -1107,7 +1107,7 @@ public class FieldImpl extends FunctionImpl implements Field {
             }
           }
         }
-        else if ( fieldRange instanceof FunctionType ) 
+        else if ( fieldRange instanceof FunctionType )
         {
           sub_types.add( fieldRange );
           for ( kk = 0; kk < n_samples_0; kk++ ) {
@@ -1119,7 +1119,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
       int size = sub_types.size();
 
-      if ( allReal ) 
+      if ( allReal )
       {
         RealType[] r_types = new RealType[ size ];
         for ( ii = 0; ii < size; ii++ ) {
@@ -1127,7 +1127,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         new_range = new RealTupleType( r_types );
       }
-      else 
+      else
       {
         MathType[] m_types = new MathType[ size ];
         for ( ii = 0; ii < size; ii++ ) {
@@ -1135,7 +1135,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         new_range = new TupleType( m_types );
       }
-     
+
       new_type = new FunctionType( domainType_0, new_range );
 
       new_field = new FieldImpl( new_type, domainSet_0 );
@@ -1144,7 +1144,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       {
         size = v_array[ii].size();
         data_s = new Data[ size ];
-        for ( jj = 0; jj < size; jj++ ) 
+        for ( jj = 0; jj < size; jj++ )
         {
           data_s[jj] = (Data) v_array[ii].elementAt( jj );
         }
@@ -1191,7 +1191,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     MathType new_range = ((TupleType)rangeType).getComponent( component );
     FunctionType new_type = new FunctionType( domainType, new_range);
-   
+
     if ( new_range instanceof RealType )
     {
       new_unit = new Unit[1];
@@ -1204,7 +1204,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         real = (Real) getSample(ii);
         value = real.getValue();
         unit = real.getUnit();
-      
+
         values[0][ii] = new_unit[0].toThis( value, unit );
       }
 
@@ -1231,7 +1231,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           t_values[jj][0] = ((Real)r_tuple.getComponent(jj)).getValue();
         }
 
-        t_values = CoordinateSystem.transformCoordinates( 
+        t_values = CoordinateSystem.transformCoordinates(
                         (RealTupleType)new_range, coord_out, unit_out, null,
                         (RealTupleType)new_range, coord_in, unit_in, null, t_values );
 
@@ -1247,7 +1247,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     {
       new_field = new FlatField( new_type, domainSet );
       dim = ((TupleType)new_range).getDimension();
-      
+
       t_dim = 0;
       n_coordsys = 0;
       for ( ii = 0; ii < dim; ii++ )
@@ -1270,7 +1270,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
       values = new double[ t_dim ][ n_samples ];
 
-   
+
       t_dim = 0;
       for ( ii = 0; ii < n_samples; ii++ )
       {
@@ -1284,7 +1284,7 @@ public class FieldImpl extends FunctionImpl implements Field {
             values[t_dim][ii] = ((Real)((Tuple)rangeData).getComponent(jj)).getValue();
             t_dim++;
           }
-          else 
+          else
           {
             r_tuple = (RealTuple) ((Tuple)rangeData).getComponent(jj);
             for ( kk = 0; kk < ((RealTupleType)m_type).getDimension(); kk++ )
@@ -1297,7 +1297,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       }
       ((FlatField)new_field).setSamples( values );
     }
-    else 
+    else
     {
       new_field = new FieldImpl( new_type, domainSet );
 
@@ -1333,7 +1333,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     double[][] old_range_values = null;
     Data range;
     Data[] new_range_data = null;
-   
+
     int ii, jj, kk, cnt;
     int mm, nn, index;
 
@@ -1353,7 +1353,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       }
     }
     new_domain_type = new RealTupleType(r_types);
- 
+
     if ( DomainSet instanceof LinearSet )
     {
       factor_domain = ((LinearSet)DomainSet).getLinear1DComponent( factorIndex );
@@ -1395,7 +1395,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       int[] sub_set_idx = new int[n_sets - 1];
       int[] sub_set_lengths = new int[n_sets - 1];
       cnt = 0;
-      for ( kk = 0; kk < n_sets; kk++ ) { 
+      for ( kk = 0; kk < n_sets; kk++ ) {
         SetType s_type = (SetType) sets[kk].getType();
         if ((sub_factor_index = s_type.getDomain().getIndex((MathType)factor)) > 0 ) {
           factor_set = sets[kk];
@@ -1412,8 +1412,8 @@ public class FieldImpl extends FunctionImpl implements Field {
 
       int factor_set_dim = factor_set.getDimension();
       int n_sub_sets = sub_sets.length;
-  
-      if ( factor_set_dim == 1 ) 
+
+      if ( factor_set_dim == 1 )
       {
         fin_factor_set = factor_set;
         new_lengths = new int[n_sub_sets];
@@ -1426,19 +1426,19 @@ public class FieldImpl extends FunctionImpl implements Field {
           new_domain = (Set) sub_sets[0];
         }
         factor_domain = factor_set;
-        System.arraycopy(sub_set_lengths, 0, new_lengths, 0, n_sub_sets); 
-        System.arraycopy(sub_set_idx, 0, sub_domain, 0, n_sub_sets); 
+        System.arraycopy(sub_set_lengths, 0, new_lengths, 0, n_sub_sets);
+        System.arraycopy(sub_set_idx, 0, sub_domain, 0, n_sub_sets);
         for ( ii = 0; ii < n_sub_sets; ii++ ) {
-          dim_lengths[sub_set_idx[ii]] = sub_set_lengths[ii]; 
+          dim_lengths[sub_set_idx[ii]] = sub_set_lengths[ii];
         }
         dim_lengths[fac_set_idx] = fac_set_len;
       }
-      else if (!(factor_set instanceof LinearNDSet )) 
-      { 
+      else if (!(factor_set instanceof LinearNDSet ))
+      {
         throw new VisADException(
           "cannot factor into "+factor_set.getClass());
       }
-      else 
+      else
       {
         MathType n_type = null;
         new_lengths = new int[n_sub_sets + 1];
@@ -1462,9 +1462,9 @@ public class FieldImpl extends FunctionImpl implements Field {
         cnt += fac_set_idx;
         new_lengths[fac_set_idx] = new_set.getLength();
         cnt += 1;
-        System.arraycopy(sub_set_lengths, fac_set_idx, new_lengths, cnt, 
+        System.arraycopy(sub_set_lengths, fac_set_idx, new_lengths, cnt,
                          (n_sub_sets - fac_set_idx));
-        System.arraycopy(sub_set_idx, fac_set_idx, sub_domain, cnt, 
+        System.arraycopy(sub_set_idx, fac_set_idx, sub_domain, cnt,
                          (n_sub_sets - fac_set_idx));
       }
     }
@@ -1512,7 +1512,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       for ( int t = 0; t < indexes.length; t++ ) {
         work[k] += dim_product[sub_domain[t]]*indexes[t];
       }
-    } 
+    }
 
     if ( isFlatField() )
     {
@@ -1594,7 +1594,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         {
           throw new FieldException("MathType "+m_type.prettyString());
         }
-        else if ( depth_max >= col_depth ) 
+        else if ( depth_max >= col_depth )
         {
           depth_max = col_depth;
         }
@@ -1621,10 +1621,10 @@ public class FieldImpl extends FunctionImpl implements Field {
         fac_sets = new SampledSet[length];
         for ( int ii = 0; ii < length; ii++ ) {
           fac_sets[(length-1) - ii] = last_set[ii];
-        } 
+        }
         return fac_sets;
       }
- 
+
       public Object[] getRangeArray() {
         return collapse_array;
       }
@@ -1658,13 +1658,13 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
       }
 
-      public void collapse( Data data )  
+      public void collapse( Data data )
              throws VisADException, RemoteException
       {
-        if ( depth == depth_max ) 
+        if ( depth == depth_max )
         {
-          if ( flat ) 
-          { 
+          if ( flat )
+          {
             double[][] values = ((FieldImpl)data).getValues();
             collapse_array[cnt++] = values;
           }
@@ -1673,7 +1673,7 @@ public class FieldImpl extends FunctionImpl implements Field {
             collapse_array[cnt++] = data;
           }
         }
-        else 
+        else
         {
           depth++;
           n_samples = (((Field)data).getDomainSet()).getLength();
@@ -1708,9 +1708,9 @@ public class FieldImpl extends FunctionImpl implements Field {
           {
             return false;
           }
-          if ( !(depth == (depth_max)) ) 
+          if ( !(depth == (depth_max)) )
           {
-            if ( !(setsEqual(range_data)) ) 
+            if ( !(setsEqual(range_data)) )
             {
               return false;
             }
@@ -1738,7 +1738,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     SetType[] set_types = new SetType[n_sets];
     int new_length = 1;
-    for ( int kk = 0; kk < n_sets; kk++ ) 
+    for ( int kk = 0; kk < n_sets; kk++ )
     {
       new_length *= fac_sets[kk].getLength();
       new_domainDim += fac_sets[kk].getDimension();
@@ -1772,10 +1772,10 @@ public class FieldImpl extends FunctionImpl implements Field {
     {
       Linear1DSet[] L1D_sets = new Linear1DSet[new_domainDim];
       cnt = 0;
-      for ( int kk = 0; kk < n_sets; kk++ ) { 
+      for ( int kk = 0; kk < n_sets; kk++ ) {
         for ( int jj = 0; jj < fac_sets[kk].getDimension(); jj++ ) {
           L1D_sets[cnt++] = ((LinearSet)fac_sets[kk]).getLinear1DComponent(jj);
-        } 
+        }
       }
       new_set = new LinearNDSet(new_domain_type, L1D_sets);
     }
@@ -1788,7 +1788,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       float[][] samples;
       float[][] new_samples = new float[new_domainDim][new_length];
       float[][] sub_samples = new float[new_domainDim][];
-      
+
       int[][] manifoldLengths = new int[new_domainDim][];
       int[][] manifoldIndexes = new int[new_domainDim][];
       int[] new_lengths = new int[new_manifoldDim];
@@ -1818,7 +1818,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       }
 
       int[] indexes = new int[new_manifoldDim];
-      for ( int k = 0; k < new_length; k++ ) 
+      for ( int k = 0; k < new_length; k++ )
       {
         int k2 = k;
         for ( int j = (new_manifoldDim - 1); j >= 0; j-- ) {
@@ -1830,7 +1830,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           k2 -= temp*indexes[j];
         }
 
-        for ( int ii = 0; ii < new_domainDim; ii++ ) 
+        for ( int ii = 0; ii < new_domainDim; ii++ )
         {
           int sub_index = 0;
           for ( int mm = (manifoldIndexes[ii].length - 1); mm >= 0; mm-- ) {
@@ -1843,17 +1843,17 @@ public class FieldImpl extends FunctionImpl implements Field {
           }
           new_samples[ii][k] = sub_samples[ii][sub_index];
         }
-      } 
-    
-      new_set = new GriddedSet(new_domain_type, new_samples, new_lengths ); 
+      }
+
+      new_set = new GriddedSet(new_domain_type, new_samples, new_lengths );
     }
     Field new_field;
-    if ( new_function_type.getFlat() ) 
+    if ( new_function_type.getFlat() )
     {
       new_field = new FlatField( new_function_type, new_set );
-      int tup_dim = 
+      int tup_dim =
         (new_function_type.getFlatRange()).getDimension();
-      double[][] new_values = 
+      double[][] new_values =
         new double[tup_dim][new_length];
 
       cnt = 0;
@@ -1906,7 +1906,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     error_mode = Data.NO_ERRORS;
     int sampling_mode = Data.WEIGHTED_AVERAGE;
-    
+
     if ( location != null )
     {
       thisDomainFlag = false;
@@ -2108,7 +2108,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           newRange = rangeDiff.binary( deltaDomain, Data.DIVIDE, RangeType,
                                        sampling_mode, error_mode );
 
-          new_fields[kk].setSample( ii, newRange ); 
+          new_fields[kk].setSample( ii, newRange );
         }
       }
     }
@@ -2225,14 +2225,14 @@ public class FieldImpl extends FunctionImpl implements Field {
           {
             dotproduct = 0;
 
-            for ( dd = 0; dd < domainDim; dd++ ) 
+            for ( dd = 0; dd < domainDim; dd++ )
             {
               dotproduct += uvecPoint[kk][dd]*u_vectors[pp][dd];
             }
 
             inv_dotproduct = 1f/dotproduct;
 
-            if ( ! Float.isInfinite(inv_dotproduct) ) 
+            if ( ! Float.isInfinite(inv_dotproduct) )
             {
               sum_weights += weights[ii][kk];
               factor = inv_dotproduct*weights[ii][kk];
@@ -2268,7 +2268,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
   }
 
-  public Data derivative( int error_mode ) 
+  public Data derivative( int error_mode )
          throws VisADException, RemoteException
   {
     MathType[] derivType_s = null;
@@ -2398,7 +2398,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           coefs = new float[2 * dim][];
           ((SimpleSet) DomainSet).valueToInterp(error_values, error_indices,
                                                 error_coefs);
-   
+
           for (int j=0; j<dim; j++) {
             Data a = null;
             Data b = null;
@@ -2815,7 +2815,7 @@ class FieldEnumerator implements Enumeration {
 
     void permute()
     {
-      for ( int k = 0; k < product; k++ ) 
+      for ( int k = 0; k < product; k++ )
       {
         int k2 = k;
         for ( int j = (n_dims-1); j == 0; j-- ) {
@@ -2829,7 +2829,7 @@ class FieldEnumerator implements Enumeration {
         for ( int t = 0; t < indexes.length; t++ ) {
           work[k] += dim_product[sub_domain[t]]*indexes[(n_dims-1) - t];
         }
-      }    
+      }
     }
   }
  **/

@@ -1,13 +1,13 @@
 //
 // VisADIndexedTriangleStripArray.java
 //
- 
+
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad;
- 
+
 /**
    VisADIndexedTriangleStripArray stands in for
    j3d.IndexedTriangleStripArray and is Serializable.<P>
@@ -247,8 +247,8 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
             int s4 = 4 * mid_second;
             int i4 = 4 * indices[i];
             int ip4 = 4 * indices[i+1];
-            cols[f4] = ShadowType.floatToByte( 
-              alpha * ShadowType.byteToFloat(colors[i4]) + 
+            cols[f4] = ShadowType.floatToByte(
+              alpha * ShadowType.byteToFloat(colors[i4]) +
               beta * ShadowType.byteToFloat(colors[ip4]));
             cols[f4+1] = ShadowType.floatToByte(
               alpha * ShadowType.byteToFloat(colors[i4+1]) +
@@ -343,8 +343,8 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
             int s4 = 4 * mid_second;
             int im4 = 4 * indices[i-1];
             int ip4 = 4 * indices[i+1];
-            cols[f4] = ShadowType.floatToByte( 
-              alpha * ShadowType.byteToFloat(colors[im4]) + 
+            cols[f4] = ShadowType.floatToByte(
+              alpha * ShadowType.byteToFloat(colors[im4]) +
               beta * ShadowType.byteToFloat(colors[ip4]));
             cols[f4+1] = ShadowType.floatToByte(
               alpha * ShadowType.byteToFloat(colors[im4+1]) +
@@ -402,7 +402,7 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
             point = mid_second;
             accum = 3;
             inds[ind_index++] = early;
-            inds[ind_index++] = last; 
+            inds[ind_index++] = last;
             inds[ind_index++] = point;
 
             point = indices[i+1];
@@ -703,7 +703,7 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
       string = string + stripVertexCounts[i] + " ";
     }
     string = string + "\n indices = ";
-    for (int i=0; i<indices.length; i++) { 
+    for (int i=0; i<indices.length; i++) {
       string = string + indices[i] + " ";
     }
     return string;

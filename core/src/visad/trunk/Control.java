@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -107,7 +107,7 @@ public abstract class Control extends Object
 // System.out.println(getClass().getName() + "  set  NewTick = " + NewTick);
     return NewTick;
   }
- 
+
   /** set tickFlag according to OldTick and NewTick */
   public synchronized void setTicks() {
     if (isSet) return; // WLH 22 Aug 99
@@ -160,7 +160,7 @@ if (tickFlag) {
   public boolean subCheckTicks(DataRenderer r, DataDisplayLink link) {
     return false;
   }
- 
+
   /** run peekTicks on any sub-Controls;
       this default for no sub-Controls */
   public boolean subPeekTicks(DataRenderer r, DataDisplayLink link) {
@@ -177,7 +177,7 @@ if (tickFlag) {
   public void animation_string(RealType real, Set set, double value,
               int current) throws VisADException {
     Unit[] units = set.getSetUnits();
-    String s = real.getName() + " = " + 
+    String s = real.getName() + " = " +
       new Real(real, value, units == null ? null : units[0]).toValueString();
     String t = Integer.toString(current+1) + " of " +
                Integer.toString(set.getLength());

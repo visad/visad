@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -53,7 +53,7 @@ public class PlotText extends Object {
   /* vector characters  -- (100 + x) value indicates beginning of segment */
   /* characters are ordered by ASCII collating sequence, starting at 0x20 */
   static float[][] charCodes = {
-      
+
 	{100f,0f}, // sp
 	{101f,8f,1f,3f,3f,3f,3f,8f,1f,8f,101f,1f,1f,0f,3f,0f,3f,1f,1f,1f}, // !
 	{101f,8f,0f,5f,104f,8f,3f,5f}, // "
@@ -138,7 +138,7 @@ public class PlotText extends Object {
 	{105f,-4f,5f,1f,4f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,5f,3f,5f,1f,5f,5f}, // q
 	{100f,5f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f}, // r
 	{105f,4f,3f,5f,2f,5f,0f,4f,0f,3f,5f,2f,5f,1f,3f,0f,2f,0f,0f,1f}, // s
-	// {105f,4f,4f,5f,3f,5f,1f,3.5f,3f,3f,4f,3f,5f,1f,4f,0f,3f,0f,1f,1f}, // s 
+	// {105f,4f,4f,5f,3f,5f,1f,3.5f,3f,3f,4f,3f,5f,1f,4f,0f,3f,0f,1f,1f}, // s
 	{102.5f,8f,2.5f,0f,100.5f,5f,4.5f,5f}, // t
 	{100f,5f,0f,1f,1f,0f,3f,0f,5f,3f,5f,5f,5f,0f}, // u
 	{100f,5f,0f,3f,2.5f,0f,5f,3f,5f,5f}, // v
@@ -147,7 +147,7 @@ public class PlotText extends Object {
 	{100f,5f,0f,3f,3f,0f,5f,3f,5f,5f,5f,-3f,3f,-4f}, // y
 	{100f,5f,5f,5f,0f,0f,5f,0f}, // z
 	{104f,8f,3f,8f,2f,4.5f,1f,4.5f,2f,4.5f,3f,0f,4f,0f}, // {
-	{103.5f,8f,3.5f,0f}, // | 
+	{103.5f,8f,3.5f,0f}, // |
 	{102f,8f,3f,8f,4f,4.5f,5f,4.5f,4f,4.5f,3f,0f,2f,0f}, // }
 	{100f,4f,1f,5f,3f,4f,4f,5f}, // ~
 	{100f,0f} // RO
@@ -163,7 +163,7 @@ public class PlotText extends Object {
    * @param  line  line number for multi-line text (0 = first line)
    * @param  c  color (not used yet)
    *
-   * @return VisADLineArray of all the vectors needed to draw the 
+   * @return VisADLineArray of all the vectors needed to draw the
    * characters in this string
   */
   public static VisADLineArray render_label(int axis, double pos, String str,
@@ -171,7 +171,7 @@ public class PlotText extends Object {
     double XMIN = -1.0;
     double YMIN = -1.0;
     double ZMIN = -1.0;
-   
+
     /* base line and up vectors */
     double[] bx = { 0.07, 0.0, 0.0 }, ux = { 0.0, 0.07, 0.07 };
     double[] by = { 0.0, 0.07, 0.0 }, uy = { -0.07, 0.0, -0.07 };
@@ -215,7 +215,7 @@ public class PlotText extends Object {
    * @param  up  (x,y,z) of "up" direction vector
    * @param  center is <CODE>true</CODE> if string is to be centered
    *
-   * @return VisADLineArray of all the vectors needed to draw the 
+   * @return VisADLineArray of all the vectors needed to draw the
    * characters in this string
   */
   public static VisADLineArray render_label(String str, double[] start,
@@ -227,14 +227,14 @@ public class PlotText extends Object {
     double startz = 0.0;
     double sw;
     int i, j, k, v2, len;
-  
+
     cx = start[0];
     cy = start[1];
     cz = start[2];
     len = str.length();
     // allow 20 2-point 3-component strokes per character
     float[] plot = new float[120 * len];
-  
+
     if (center) {
       /* calculate string width for center justify - fixed width font*/
       sw = WIDTH * (float) len;
@@ -242,7 +242,7 @@ public class PlotText extends Object {
       cy -= sw * base[1] / 2.0;
       cz -= sw * base[2] / 2.0;
     }
-  
+
     int plot_index = 0;
 
     /* draw left justified text */
@@ -250,7 +250,7 @@ public class PlotText extends Object {
     for (i=0; i<len; i++) {
       k = str.charAt(i) - 32;
       if (k < 0 || k > 127) continue; // invalid - just skip
-      
+
       int verts = charCodes[k].length/2;
 
       /* make the vertex array for this character */

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -84,7 +84,7 @@ public class PlotDigits extends Applet implements MouseListener {
     int ib, ie, llin = 0, llel = 0, m;
     int i;
     NumVerts = 0;
-  
+
     // extract digits from gg:
     // jg - integer to left of decimal of float gg
     // j1, j2, j3 - integers to right of decimal of float gg
@@ -136,7 +136,7 @@ public class PlotDigits extends Applet implements MouseListener {
     if (xmk < 0) xmk = -xmk;
     ymk = ym-yk;
     if (ymk < 0) ymk = -ymk;
-  
+
     if (swap[0]) {
       hgt = ymk/1.2f;
       h = xmk/(dig+0.2f);
@@ -192,7 +192,7 @@ public class PlotDigits extends Applet implements MouseListener {
         col = col-hgt;
       }
     }
-  
+
     // PLOT 100THS
     if (j2 != 0 || j3 != 0) {
       ib = lt[j2+1];
@@ -227,7 +227,7 @@ public class PlotDigits extends Applet implements MouseListener {
         col = col-hgt;
       }
     }
-  
+
     // PLOT 10THS
     if (j1 != 0 || j2 != 0 || j3 != 0) {
       // PLOT DIGIT RIGHT OF DECIMAL
@@ -302,7 +302,7 @@ public class PlotDigits extends Applet implements MouseListener {
         col = col-0.5f*hgt;
       }
     }
-  
+
     // PLOT DIGITS LEFT OF DECIMAL
     // 100:
     do {
@@ -340,8 +340,8 @@ public class PlotDigits extends Applet implements MouseListener {
         col = col-hgt;
       }
     } while (jg != 0);
-  
-  
+
+
     if (isign < 0) {
       // PLOT MINUS SIGN
       if (swap[0]) {

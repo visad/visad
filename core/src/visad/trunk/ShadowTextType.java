@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -50,15 +50,15 @@ public class ShadowTextType extends ShadowScalarType {
                              float[] default_values, DataRenderer renderer,
                              ShadowType shadow_api)
          throws VisADException, RemoteException {
- 
+
     if (data.isMissing()) return false;
     if (LevelOfDifficulty == NOTHING_MAPPED) return false;
- 
+
     if (!(data instanceof Text)) {
       throw new DisplayException("data must be Text: " +
                                  "ShadowTextType.doTransform");
     }
- 
+
     // get some precomputed values useful for transform
     // length of ValueArray
     int valueArrayLength = display.getValueArrayLength();
@@ -67,10 +67,10 @@ public class ShadowTextType extends ShadowScalarType {
     // mapping from ValueArray to MapVector
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
- 
+
     // array to hold values for various mappings
     float[][] display_values = new float[valueArrayLength][];
- 
+
 // ????
     // get values inherited from parent;
     // assume these do not include SelectRange, SelectValue
@@ -83,16 +83,16 @@ public class ShadowTextType extends ShadowScalarType {
         display_values[i][0] = value_array[i];
       }
     }
- 
+
     boolean[][] range_select =
       shadow_api.assembleSelect(display_values, 1, valueArrayLength,
                      valueToScalar, display, shadow_api);
- 
+
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       return false;
     }
- 
+
     // get any text String and TextControl inherited from parent
     String text_value = shadow_api.getParentText();
     TextControl text_control = shadow_api.getParentTextControl();

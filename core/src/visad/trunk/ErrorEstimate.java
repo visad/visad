@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -169,13 +169,13 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
       NumberNotMissing = 0;
       Mean = Double.NaN;
       Error = Double.NaN;
-    } 
+    }
     else {
       NumberNotMissing = 1;
       Mean = value;
       Error = unary(op, a, error_mode);
     }
-  } 
+  }
 
   /** construct an ErrorEstimate for an array of values with an error */
   public ErrorEstimate(double[] value, double error, Unit u) {
@@ -245,7 +245,7 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = binary(op, a, b, error_mode);
-    } 
+    }
     else {
       Mean = Double.NaN;
       Error = Double.NaN;
@@ -279,7 +279,7 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     }
   }
 
-  /** construct Error for an array of values that is the result of a unary 
+  /** construct Error for an array of values that is the result of a unary
       operator; a is the ErrorEstimate for the operand */
   public ErrorEstimate(double[] value, Unit u, int op, ErrorEstimate a,
                        int error_mode) throws VisADException {
@@ -293,8 +293,8 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
       if (!Double.isNaN(value[i])) {
         NumberNotMissing++;
         sum += value[i];
-      } 
-    } 
+      }
+    }
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = unary(op, a, error_mode);

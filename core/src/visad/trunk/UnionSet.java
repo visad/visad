@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -42,12 +42,12 @@ public class UnionSet extends SampledSet {
 
   SampledSet[] Sets;
 
-  /** 
+  /**
    * Construct a UnionSet with an array of SampledSets with null errors.
    * CoordinateSystem and Units are defaults from type.
-   * 
+   *
    * @param  type  MathType for the sets.  Sets the CoordinateSystem and Units.
-   * @param  sets  array of SampledSets.  All sets must match in domain 
+   * @param  sets  array of SampledSets.  All sets must match in domain
    *               dimension and manifold dimension and no sets in the
    *               array can be null.  There must be at least one SampledSet
    *               in the array (i.e. sets.length != 0).
@@ -64,7 +64,7 @@ public class UnionSet extends SampledSet {
   // WLH - 24 Sept 99
   // public UnionSet(MathType type, SampledSet[] sets,
   private UnionSet(MathType type, SampledSet[] sets,
-                  CoordinateSystem coord_sys, Unit[] units, 
+                  CoordinateSystem coord_sys, Unit[] units,
                   ErrorEstimate[] errors) throws VisADException {
     this(type, sets, coord_sys, units, errors, true);
   }
@@ -151,12 +151,12 @@ public class UnionSet extends SampledSet {
     return mdim;
   }
 
-  /** 
+  /**
    * Construct a UnionSet with an array of SampledSets
-   * 
-   * @param  sets  array of SampledSets.  All sets must match in domain 
-   *               dimension and manifold dimension, CoordinateSystem, 
-   *               and Units. and no sets in the array can be null.  
+   *
+   * @param  sets  array of SampledSets.  All sets must match in domain
+   *               dimension and manifold dimension, CoordinateSystem,
+   *               and Units. and no sets in the array can be null.
    *               There must be at least one SampledSet
    *               in the array (i.e. sets.length != 0).
    *
@@ -166,9 +166,9 @@ public class UnionSet extends SampledSet {
     this(sets[0].getType(), sets, null, null, null, true);
   }
 
-  /** 
+  /**
    * Return a SampledSet that is a UnionSet of ProductSets of
-   * GriddedSets and IrregularSets 
+   * GriddedSets and IrregularSets
    *
    * @return  resulting UnionSet of ProductSets
    * @exception  VisADException  problem creating the UnionSet
@@ -182,7 +182,7 @@ public class UnionSet extends SampledSet {
           Sets[i] instanceof IrregularSet) {
         sets[i] = Sets[i];
       }
-      else if (Sets[i] instanceof ProductSet) { 
+      else if (Sets[i] instanceof ProductSet) {
         sets[i] = ((ProductSet) Sets[i]).product();
       }
       else if (Sets[i] instanceof UnionSet) {
@@ -214,10 +214,10 @@ public class UnionSet extends SampledSet {
     return new UnionSet(getType(), summands);
   }
 
-  /** 
+  /**
    * Create a UnionSet that is the cross product of this UnionSet and
    * the input SampledSet.
-   * 
+   *
    * @param  set   input SampledSet
    * @return a SampledSet that is a UnionSet of ProductSets of
    *           this UnionSet and the input SampledSet
@@ -251,10 +251,10 @@ public class UnionSet extends SampledSet {
     return union;
   }
 
-  /** 
+  /**
    * Create a UnionSet that is the inverse cross product of this UnionSet and
    * the input SampledSet.
-   * 
+   *
    * @param  set   input SampledSet
    *
    * @return       a SampledSet that is a UnionSet of inverse ProductSets of
@@ -485,7 +485,7 @@ public class UnionSet extends SampledSet {
     }
     return arrays2;
   }
- 
+
   public VisADGeometryArray makeIsoSurface(float isolevel,
          float[] fieldValues, byte[][] color_values, boolean indexed)
          throws VisADException {
@@ -718,9 +718,9 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
     }
   }
 
-  /** 
-   * Clone this UnionSet, but give it a new MathType; this is safe, 
-   * since constructor checks consistency of DomainCoordinateSystem 
+  /**
+   * Clone this UnionSet, but give it a new MathType; this is safe,
+   * since constructor checks consistency of DomainCoordinateSystem
    * and SetUnits with type.
    *
    * @param   type   new MathType for the UnionSet

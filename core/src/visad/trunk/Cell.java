@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -43,7 +43,7 @@ public interface Cell extends Action {
       integer index */
   void setOtherReference(int index, DataReference ref)
          throws VisADException, RemoteException;
- 
+
   /** return the non-triggering link to a DataReference
       identified by index */
   DataReference getOtherReference(int index)

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -87,9 +87,9 @@ public class LinearLatLonSet extends Linear2DSet {
 
   private void setParameters() throws VisADException, UnitException {
     MathType    type0 = ((SetType)getType()).getDomain().getComponent(0);
- 
+
     latI = RealType.Latitude.equals(type0) ? 0 : 1;
- 
+
     if (latI == 0) {
       lonI = 1;
       lat = X;
@@ -99,13 +99,13 @@ public class LinearLatLonSet extends Linear2DSet {
       lat = Y;
       lon = X;
     }
- 
+
     Unit[] units = getSetUnits();
     halfPiLat = SI.radian.toThat(0.5*Math.PI, units[latI]);
     halfPiLon = SI.radian.toThat(0.5*Math.PI, units[lonI]);
     twoPiLon = 4.0 * halfPiLon;
   }
- 
+
   private void setLatLonUnits()
   {
   }

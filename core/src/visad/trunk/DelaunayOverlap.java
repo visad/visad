@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -48,7 +48,7 @@ public class DelaunayOverlap extends Delaunay {
      occur, but for data with the left and right bowed inwards,
      overlapping triangles are more likely.  The latter type of
      data is also more likely to have a greater number of
-     Type 3 lost points. */ 
+     Type 3 lost points. */
 
   // topology signature of grid boxes
   private boolean sig;
@@ -1578,7 +1578,7 @@ public class DelaunayOverlap extends Delaunay {
 
             // current --> next
             walk[trilen][0] = -1;
-            
+
             // current <--> previous
             if (firsttri) {
               ltrinum[curledge] = trilen;

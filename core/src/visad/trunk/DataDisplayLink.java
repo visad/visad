@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -50,7 +50,7 @@ public class DataDisplayLink extends ReferenceActionLink {
 
   /** Vector of ScalarMap-s applying to this Data */
   private Vector SelectedMapVector = new Vector();
- 
+
   /** default values for DisplayIndices, determined by:
       1. this.ConstantMapVector
       2. Display.ConstantMapVector
@@ -144,7 +144,7 @@ public class DataDisplayLink extends ReferenceActionLink {
     MathType type = data.getType();
 
     SelectedMapVector.removeAllElements();
- 
+
     // calculate default values for DisplayRealType-s
     // lowest priority: DisplayRealType.DefaultValue
     int n = ((DisplayImpl) local_action).getDisplayScalarCount();
@@ -185,7 +185,7 @@ public class DataDisplayLink extends ReferenceActionLink {
       ConstantMap map = (ConstantMap) maps.nextElement();
       defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();
     }
- 
+
     try {
       renderer.clearExceptions();
 

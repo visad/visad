@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -64,7 +64,7 @@ public class DelaunayClarkson extends Delaunay {
   /* we need to have two indices for every pointer into basis_s and
      simplex arrays, because they are two-dimensional arrays of
      blocks.  ( _bn = block number ) */
-  
+
   // for the pseudo-pointers
   private static final int INFINITY = -2;      // replaces infinity
   private static final int NOVAL = -1;         // replaces null
@@ -73,11 +73,11 @@ public class DelaunayClarkson extends Delaunay {
   private int[][]   a3s;                // output array
   private int       a3size;             // output array maximum size
   private int       nts = 0;            // # output objects
-  
+
   private static final int max_blocks = 10000; // max # basis/simplex blocks
   private static final int Nobj = 10000;
   private static final int MAXDIM = 8;         // max dimension
-  
+
   private int    dim;
   private int    p;
   private long   pnum;
@@ -139,7 +139,7 @@ public class DelaunayClarkson extends Delaunay {
   private int[][][] sbt_neigh_simp_bn = new int[max_blocks][][];
   private int[][][] sbt_neigh_basis = new int[max_blocks][][];
   private int[][][] sbt_neigh_basis_bn = new int[max_blocks][][];
-  
+
   private int   simplex_list = NOVAL;
   private int   simplex_list_bn;
   private int   ch_root;
@@ -183,7 +183,7 @@ public class DelaunayClarkson extends Delaunay {
     double dd,
            Sb = 0;
     double scale;
-  
+
     bbt_sqa[v_bn][v] = 0;
     for (int i=0; i<rdim; i++) {
       bbt_sqa[v_bn][v] += bbt_vecs[v_bn][i][v] * bbt_vecs[v_bn][i][v];
@@ -198,7 +198,7 @@ public class DelaunayClarkson extends Delaunay {
     for (int j=0; j<250; j++) {
       int    xx = rdim;
       double labound;
-  
+
       for (int i=0; i<rdim; i++) {
         bbt_vecs[v_bn][i][v] = bbt_vecs[v_bn][rdim+i][v];
       }
@@ -223,17 +223,17 @@ public class DelaunayClarkson extends Delaunay {
         bbt_sqa[v_bn][v] += bbt_vecs[v_bn][rdim+i][v]
                           * bbt_vecs[v_bn][rdim+i][v];
       }
-  
+
       if (2*bbt_sqb[v_bn][v] >= bbt_sqa[v_bn][v]) return 1;
-  
+
       // scale up vector
       if (j < 10) {
         labound = Math.floor(Math.log(bbt_sqa[v_bn][v])/ln2) / 2;
         max_scale = exact_bits-labound-0.66*(k-2)-1;
         if (max_scale < 1) max_scale = 1;
-  
+
         if (j == 0) {
-  
+
           ldetbound = 0;
           Sb = 0;
           for (int l=k-1; l>0; l--) {
@@ -257,9 +257,9 @@ public class DelaunayClarkson extends Delaunay {
         bbt_lscale[v_bn][v] += lscale;
         scale = (lscale < 20) ? 1 << lscale : Math.pow(2, lscale);
       }
-  
+
       while (xx < 2*rdim) bbt_vecs[v_bn][xx++][v] *= scale;
-  
+
       for (int i=k-1; i>0; i--) {
         q = sbt_neigh_basis[s_bn][i][s];
         q_bn = sbt_neigh_basis_bn[s_bn][i][s];
@@ -277,7 +277,7 @@ public class DelaunayClarkson extends Delaunay {
     if (failcount++ < 10) System.out.println("reduce_inner failed!");
     return 0;
   }
-  
+
   private int reduce(int[] v, int[] v_bn, int rp, int s, int s_bn, int k) {
     if (v[0] == NOVAL) {
       v[0] = basis_s_list != NOVAL ? basis_s_list : new_block_basis_s();
@@ -321,13 +321,13 @@ public class DelaunayClarkson extends Delaunay {
     }
     return reduce_inner(v[0], v_bn[0], s, s_bn, k);
   }
-  
+
   private void get_basis_sede(int s, int s_bn) {
     int   k=1;
     int   q, q_bn;
     int[] curt = new int[1];
     int[] curt_bn = new int[1];
-  
+
     if (sbt_neigh_vert[s_bn][0][s] == INFINITY && cdim > 1) {
       int t_vert, t_simp, t_simp_bn, t_basis, t_basis_bn;
       t_vert = sbt_neigh_vert[s_bn][0][s];
@@ -345,7 +345,7 @@ public class DelaunayClarkson extends Delaunay {
       sbt_neigh_simp_bn[s_bn][k][s] = t_simp_bn;
       sbt_neigh_basis[s_bn][k][s] = t_basis;
       sbt_neigh_basis_bn[s_bn][k][s] = t_basis_bn;
-  
+
       q = sbt_neigh_basis[s_bn][0][s];
       q_bn = sbt_neigh_basis_bn[s_bn][0][s];
       if ((q != NOVAL) && --bbt_ref_count[q_bn][q] == 0) {
@@ -359,7 +359,7 @@ public class DelaunayClarkson extends Delaunay {
         basis_s_list = q;
         basis_s_list_bn = q_bn;
       }
-  
+
       sbt_neigh_basis[s_bn][0][s] = ttbp;
       sbt_neigh_basis_bn[s_bn][0][s] = ttbp_bn;
       bbt_ref_count[ttbp_bn][ttbp]++;
@@ -394,13 +394,13 @@ public class DelaunayClarkson extends Delaunay {
       k++;
     }
   }
-  
+
   private int sees(int rp, int s, int s_bn) {
     double  dd, dds;
     int     q, q_bn, q1, q1_bn, q2, q2_bn;
     int[]   curt = new int[1];
     int[]   curt_bn = new int[1];
-  
+
     if (b == NOVAL) {
       b = (basis_s_list != NOVAL) ? basis_s_list : new_block_basis_s();
       b_bn = basis_s_list_bn;
@@ -474,7 +474,7 @@ public class DelaunayClarkson extends Delaunay {
           if (bbt_sqb[q_bn][q] != 0) break;
         }
       }
-  
+
       for (int i=0; i<cdim; i++) {
         q = sbt_neigh_basis[s_bn][i][s];
         q_bn = sbt_neigh_basis_bn[s_bn][i][s];
@@ -542,7 +542,7 @@ public class DelaunayClarkson extends Delaunay {
     }
     return 0;
   }
-  
+
   private int new_block_simplex() {
     sbt_next[nsb] = new int[Nobj];
     sbt_next_bn[nsb] = new int[Nobj];
@@ -603,7 +603,7 @@ public class DelaunayClarkson extends Delaunay {
     int t;
     int t_bn;
     int tms = 0;
-  
+
     vnum--;
     if (s != NOVAL) {
       st2[tms] = s;
@@ -643,7 +643,7 @@ public class DelaunayClarkson extends Delaunay {
       }
       else {
         int[] vfp = new int[cdim];
-  
+
         if (t != NOVAL) {
           for (int j=0; j<cdim; j++) vfp[j] = sbt_neigh_vert[t_bn][j][t];
           for (int j=0; j<cdim; j++) {
@@ -673,7 +673,7 @@ public class DelaunayClarkson extends Delaunay {
     }
     ret[0] = NOVAL;
   }
-  
+
   /**
      make neighbor connections between newly created simplices incident to p.
   */
@@ -684,7 +684,7 @@ public class DelaunayClarkson extends Delaunay {
     int tf, tf_bn;
     int ccj, ccj_bn;
     int xfi;
-  
+
     if (s == NOVAL) return;
     for (int i=0; (sbt_neigh_vert[s_bn][i][s] != p) && (i<cdim); i++);
     if (sbt_visit[s_bn][s] == pnum) return;
@@ -722,18 +722,18 @@ public class DelaunayClarkson extends Delaunay {
         sf = tf;
         sf_bn = tf_bn;
       } while (sbt_peak_vert[sf_bn][sf] != NOVAL);
-  
+
       sbt_neigh_simp[s_bn][i][s] = sf;
       sbt_neigh_simp_bn[s_bn][i][s] = sf_bn;
       for (l=0; (sbt_neigh_vert[sf_bn][l][sf] != xf) && (l<cdim); l++);
       sbt_neigh_simp[sf_bn][l][sf] = s;
       sbt_neigh_simp_bn[sf_bn][l][sf] = s_bn;
-  
+
       connect(sf, sf_bn);
     }
-  
+
   }
-  
+
   /**
      visit simplices s with sees(p,s), and make a facet for every neighbor
      of s not seen by p.
@@ -742,23 +742,23 @@ public class DelaunayClarkson extends Delaunay {
     int n, n_bn;
     int q, q_bn;
     int j;
-  
+
     if (seen == NOVAL) {
       ret[0] = NOVAL;
       return;
     }
     sbt_peak_vert[seen_bn][seen] = p;
-  
+
     for (int i=0; i<cdim; i++) {
       n = sbt_neigh_simp[seen_bn][i][seen];
       n_bn = sbt_neigh_simp_bn[seen_bn][i][seen];
-  
+
       if (pnum != sbt_visit[n_bn][n]) {
         sbt_visit[n_bn][n] = pnum;
         if (sees(p, n, n_bn) != 0) make_facets(n, n_bn, voidp, voidp_bn);
       }
       if (sbt_peak_vert[n_bn][n] != NOVAL) continue;
-  
+
       ns = (simplex_list != NOVAL) ? simplex_list : new_block_simplex();
       ns_bn = simplex_list_bn;
       simplex_list = sbt_next[ns_bn][ns];
@@ -783,19 +783,19 @@ public class DelaunayClarkson extends Delaunay {
         sbt_neigh_basis_bn[ns_bn][j][ns]
                         = sbt_neigh_basis_bn[seen_bn][j][seen];
       }
-  
+
       for (j=0; j<cdim; j++) {
         q = sbt_neigh_basis[seen_bn][j][seen];
         q_bn = sbt_neigh_basis_bn[seen_bn][j][seen];
         if (q != NOVAL) bbt_ref_count[q_bn][q]++;
       }
-  
+
       sbt_visit[ns_bn][ns] = 0;
       sbt_peak_vert[ns_bn][ns] = NOVAL;
       sbt_normal[ns_bn][ns] = NOVAL;
       sbt_peak_simp[ns_bn][ns] = seen;
       sbt_peak_simp_bn[ns_bn][ns] = seen_bn;
-  
+
       q = sbt_neigh_basis[ns_bn][i][ns];
       q_bn = sbt_neigh_basis_bn[ns_bn][i][ns];
       if (q != NOVAL && --bbt_ref_count[q_bn][q] == 0) {
@@ -810,7 +810,7 @@ public class DelaunayClarkson extends Delaunay {
         basis_s_list_bn = q_bn;
       }
       sbt_neigh_basis[ns_bn][i][ns] = NOVAL;
-  
+
       sbt_neigh_vert[ns_bn][i][ns] = p;
       for (j=0; (sbt_neigh_simp[n_bn][j][n] != seen
                   || sbt_neigh_simp_bn[n_bn][j][n] != seen_bn)
@@ -822,7 +822,7 @@ public class DelaunayClarkson extends Delaunay {
     ret[0] = ns;
     ret_bn[0] = ns_bn;
   }
-  
+
   /**
      p lies outside flat containing previous sites;
      make p a vertex of every current simplex, and create some new simplices.
@@ -830,7 +830,7 @@ public class DelaunayClarkson extends Delaunay {
   private void extend_simplices(int s, int s_bn, int[] ret, int[] ret_bn) {
     int q, q_bn;
     int ns, ns_bn;
-  
+
     if (sbt_visit[s_bn][s] == pnum) {
       if (sbt_peak_vert[s_bn][s] != NOVAL) {
         ret[0] = sbt_neigh_simp[s_bn][cdim-1][s];
@@ -858,7 +858,7 @@ public class DelaunayClarkson extends Delaunay {
       basis_s_list_bn = q_bn;
     }
     sbt_normal[s_bn][s] = NOVAL;
-  
+
     q = sbt_neigh_basis[s_bn][0][s];
     q_bn = sbt_neigh_basis_bn[s_bn][0][s];
     if (q != NOVAL && --bbt_ref_count[q_bn][q] == 0) {
@@ -868,12 +868,12 @@ public class DelaunayClarkson extends Delaunay {
       bbt_sqa[q_bn][q] = 0;
       bbt_sqb[q_bn][q] = 0;
       for (int j=0; j<2*rdim; j++) bbt_vecs[q_bn][j][q] = 0;
-  
+
       basis_s_list = q;
       basis_s_list_bn = q_bn;
     }
     sbt_neigh_basis[s_bn][0][s] = NOVAL;
-  
+
     if (sbt_peak_vert[s_bn][s] == NOVAL) {
       int[] esretp = new int[1];
       int[] esretp_bn = new int[1];
@@ -908,13 +908,13 @@ public class DelaunayClarkson extends Delaunay {
         sbt_neigh_basis[ns_bn][j][ns] = sbt_neigh_basis[s_bn][j][s];
         sbt_neigh_basis_bn[ns_bn][j][ns] = sbt_neigh_basis_bn[s_bn][j][s];
       }
-  
+
       for (int j=0; j<cdim; j++) {
         q = sbt_neigh_basis[s_bn][j][s];
         q_bn = sbt_neigh_basis_bn[s_bn][j][s];
         if (q != NOVAL) bbt_ref_count[q_bn][q]++;
       }
-  
+
       sbt_neigh_simp[s_bn][cdim-1][s] = ns;
       sbt_neigh_simp_bn[s_bn][cdim-1][s] = ns_bn;
       sbt_peak_vert[ns_bn][ns] = NOVAL;
@@ -941,7 +941,7 @@ public class DelaunayClarkson extends Delaunay {
     ret_bn[0] = ns_bn;
     return;
   }
-  
+
   /**
      return a simplex s that corresponds to a facet of the
      current hull, and sees(p, s).
@@ -949,7 +949,7 @@ public class DelaunayClarkson extends Delaunay {
   private void search(int root, int root_bn, int[] ret, int[] ret_bn) {
     int s, s_bn;
     int tms = 0;
-  
+
     st[tms] = sbt_peak_simp[root_bn][root];
     st_bn[tms] = sbt_peak_simp_bn[root_bn][root];
     tms++;
@@ -1012,7 +1012,7 @@ public class DelaunayClarkson extends Delaunay {
     dim = samples.length;
     nrs = samples[0].length;
     for (int i=1; i<dim; i++) nrs = Math.min(nrs, samples[i].length);
-    
+
     if (nrs <= dim) throw new SetException("DelaunayClarkson: "
                                           +"not enough samples");
     if (dim > MAXDIM) throw new SetException("DelaunayClarkson: "
@@ -1040,13 +1040,13 @@ public class DelaunayClarkson extends Delaunay {
     rdim = dim+1;
     if (rdim > MAXDIM) throw new SetException(
               "dimension bound MAXDIM exceeded; rdim="+rdim+"; dim="+dim);
-  
+
     pnb = basis_s_list != NOVAL ? basis_s_list : new_block_basis_s();
     pnb_bn = basis_s_list_bn;
     basis_s_list = bbt_next[pnb_bn][pnb];
     basis_s_list_bn = bbt_next_bn[pnb_bn][pnb];
     bbt_next[pnb_bn][pnb] = NOVAL;
-  
+
     ttbp = basis_s_list != NOVAL ? basis_s_list : new_block_basis_s();
     ttbp_bn = basis_s_list_bn;
     basis_s_list = bbt_next[ttbp_bn][ttbp];
@@ -1057,7 +1057,7 @@ public class DelaunayClarkson extends Delaunay {
     bbt_sqa[ttbp_bn][ttbp] = 0;
     bbt_sqb[ttbp_bn][ttbp] = 0;
     for (int j=0; j<2*rdim; j++) bbt_vecs[ttbp_bn][j][ttbp] = 0;
-  
+
     root = NOVAL;
     p = INFINITY;
     ib = (basis_s_list != NOVAL) ? basis_s_list : new_block_basis_s();
@@ -1067,15 +1067,15 @@ public class DelaunayClarkson extends Delaunay {
     bbt_ref_count[ib_bn][ib] = 1;
     bbt_vecs[ib_bn][2*rdim-1][ib] = bbt_vecs[ib_bn][rdim-1][ib] = 1;
     bbt_sqa[ib_bn][ib] = bbt_sqb[ib_bn][ib] = 1;
-  
+
     root = (simplex_list != NOVAL) ? simplex_list : new_block_simplex();
     root_bn = simplex_list_bn;
     simplex_list = sbt_next[root_bn][root];
     simplex_list_bn = sbt_next_bn[root_bn][root];
-  
+
     ch_root = root;
     ch_root_bn = root_bn;
-  
+
     s = (simplex_list != NOVAL) ? simplex_list : new_block_simplex();
     s_bn = simplex_list_bn;
     simplex_list = sbt_next[s_bn][s];
@@ -1110,7 +1110,7 @@ public class DelaunayClarkson extends Delaunay {
     sbt_peak_simp_bn[s_bn][s] = root_bn;
     while (cdim < rdim) {
       int oof = 0;
-  
+
       if (s_num == 0) p = 0;
       else p++;
       for (int i=0; i<dim; i++) {
@@ -1118,10 +1118,10 @@ public class DelaunayClarkson extends Delaunay {
       }
       s_num++;
       pnum = (s_num*dim-1)/dim + 2;
-  
+
       cdim++;
       sbt_neigh_vert[root_bn][cdim-1][root] = sbt_peak_vert[root_bn][root];
-  
+
       q = sbt_neigh_basis[root_bn][cdim-1][root];
       q_bn = sbt_neigh_basis_bn[root_bn][cdim-1][root];
       if (q != NOVAL && --bbt_ref_count[q_bn][q] == 0) {
@@ -1132,12 +1132,12 @@ public class DelaunayClarkson extends Delaunay {
         bbt_sqa[q_bn][q] = 0;
         bbt_sqb[q_bn][q] = 0;
         for (int l=0; l<2*rdim; l++) bbt_vecs[q_bn][l][q] = 0;
-  
+
         basis_s_list = q;
         basis_s_list_bn = q_bn;
       }
       sbt_neigh_basis[root_bn][cdim-1][root] = NOVAL;
-  
+
       get_basis_sede(root, root_bn);
       if (sbt_neigh_vert[root_bn][0][root] == INFINITY) oof = 1;
       else {
@@ -1168,7 +1168,7 @@ public class DelaunayClarkson extends Delaunay {
       make_facets(retp[0], retp_bn[0], ret2p, ret2p_bn);
       connect(ret2p[0], ret2p_bn[0]);
     }
-  
+
     a3size = rdim*nrs;
     a3s = new int[rdim][a3size+MAXDIM+1];
     visit_triang_gen(root, root_bn, 1, retp, retp_bn);

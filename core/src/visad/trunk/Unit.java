@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.17 2000-04-25 20:14:37 steve Exp $
+ * $Id: Unit.java,v 1.18 2000-04-26 15:00:02 dglo Exp $
  */
 
 package visad;
@@ -122,15 +122,15 @@ public abstract class Unit
     }
     return true;
   }
- 
+
   /** copy a Unit[] array;
       this is a helper for Set, RealTupleType, CoordinateSystem, etc */
   public static Unit[] copyUnitsArray(Unit[] units) {
     return units == null ? null : (Unit[])units.clone();
   }
- 
+
   public abstract boolean equals(Unit unit);
- 
+
   /** transform Units; unit_in and error_in are the Unit and ErrorEstimate
       associated with value; unit_out is the target Unit;
       value is the array of values to transform; return new value array;
@@ -139,7 +139,7 @@ public abstract class Unit
                         Unit unit_out, ErrorEstimate[] errors_out,
                         Unit unit_in, ErrorEstimate error_in,
                         double[] value) throws VisADException {
- 
+
     if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
       return value;
@@ -147,7 +147,7 @@ public abstract class Unit
     else {
       // convert value array
       double[] val = unit_out.toThis(value, unit_in);
- 
+
       // construct new ErrorEstimate, if needed
       if (error_in == null) {
         errors_out[0] = null;
@@ -161,7 +161,7 @@ public abstract class Unit
                     unit_out.toThis(mean - error, unit_in) );
         errors_out[0] = new ErrorEstimate(val, new_error, unit_out);
       }
- 
+
       // return value array
       return val;
     }
@@ -171,7 +171,7 @@ public abstract class Unit
                         Unit unit_out, ErrorEstimate[] errors_out,
                         Unit unit_in, ErrorEstimate error_in,
                         float[] value) throws VisADException {
- 
+
     if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
       return value;
@@ -179,7 +179,7 @@ public abstract class Unit
     else {
       // convert value array
       float[] val = unit_out.toThis(value, unit_in);
- 
+
       // construct new ErrorEstimate, if needed
       if (error_in == null) {
         errors_out[0] = null;
@@ -193,7 +193,7 @@ public abstract class Unit
                     unit_out.toThis(mean - error, unit_in) );
         errors_out[0] = new ErrorEstimate(val, new_error, unit_out);
       }
- 
+
       // return value array
       return val;
     }
@@ -295,7 +295,7 @@ public abstract class Unit
      * @return		The resulting unit.
      * @require		The unit is not an offset unit.
      * @promise		The unit has not been modified.
-     * @exception	UnitException	It's meaningless to raise this unit 
+     * @exception	UnitException	It's meaningless to raise this unit
      *					by a power.
      */
     public abstract Unit pow(int power)
@@ -306,7 +306,7 @@ public abstract class Unit
      *
      * @param power	The power to raise this unit by.  If this unit is
      *			not dimensionless, then the value must be integral.
-     * @return		The unit resulting from raising this unit to 
+     * @return		The unit resulting from raising this unit to
      *			<code>power</code>.
      * @throws UnitException	It's meaningless to raise this unit by a power.
      * @throws IllegalArgumentException
@@ -334,7 +334,7 @@ public abstract class Unit
 	if (this instanceof ScaledUnit)
 	    return new ScaledUnit(amount, (ScaledUnit)this);
 	if (this instanceof OffsetUnit)
-	    return new OffsetUnit(((OffsetUnit)this).offset/amount, 
+	    return new OffsetUnit(((OffsetUnit)this).offset/amount,
 		new ScaledUnit(amount, ((OffsetUnit)this).scaledUnit));
 
 	throw new UnitException("Unknown unit subclass: " + this);
@@ -370,7 +370,7 @@ public abstract class Unit
     /**
      * Multiply this unit by another unit.
      *
-     * @param that		The given unit to multiply this unit by.  
+     * @param that		The given unit to multiply this unit by.
      * @return			The resulting unit.
      * @throws UnitException	It's meaningless to divide these units.
      */
@@ -485,7 +485,7 @@ public abstract class Unit
     /**
      * Returns a string representation of this unit.
      *
-     * @return		The string representation of this unit.  Won't be 
+     * @return		The string representation of this unit.  Won't be
      *			<code>null</code> but may be empty.
      */
     public final String toString()

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -43,14 +43,14 @@ public class Real extends Scalar {
   /**
    * Constructs a Real object.  This is the most general constructor.
    * @param type		The type of the Real.
-   * @param value		The value of the Real.  May be 
+   * @param value		The value of the Real.  May be
    *				<code>Double.NaN</code>.
    * @param u			The unit of the Real.  May be <code>null</code>.
-   *				If non-<code>null</code> and 
+   *				If non-<code>null</code> and
    *				<code>type.isInterval()</code> returns true,
    *				then the unit will actually be
    *				<code>u.getAbsoluteUnit()</code>.
-   * @param error		Error estimate of the Real.  May be 
+   * @param error		Error estimate of the Real.  May be
    *				<code>null</code>.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
@@ -70,10 +70,10 @@ public class Real extends Scalar {
    * Constructs a Real object.  The error estimate will be based on a numeric
    * value.
    * @param type		The type of the Real.
-   * @param value		The value of the Real.  May be 
+   * @param value		The value of the Real.  May be
    *				<code>Double.NaN</code>.
    * @param u			The unit of the Real.  May be <code>null</code>.
-   *				If non-<code>null</code> and 
+   *				If non-<code>null</code> and
    *				<code>type.isInterval()</code> returns true,
    *				then the unit will actually be
    *				<code>u.getAbsoluteUnit()</code>.
@@ -93,10 +93,10 @@ public class Real extends Scalar {
   /**
    * Constructs a Real object.  The error estimate will be <code>null</code>.
    * @param type		The type of the Real.
-   * @param value		The value of the Real.  May be 
+   * @param value		The value of the Real.  May be
    *				<code>Double.NaN</code>.
    * @param u			The unit of the Real.  May be <code>null</code>.
-   *				If non-<code>null</code> and 
+   *				If non-<code>null</code> and
    *				<code>type.isInterval()</code> returns true,
    *				then the unit will actually be
    *				<code>u.getAbsoluteUnit()</code>.
@@ -112,7 +112,7 @@ public class Real extends Scalar {
    * the RealType and the error estimate will be <code>null</code>.
    * @param type		The type of the Real.
    * @param value		The value of the Real in units of
-   *				<code>type.getDefaultUnit()</code>.  May be 
+   *				<code>type.getDefaultUnit()</code>.  May be
    *				<code>Double.NaN</code>.
    */
   public Real(RealType type, double value) {
@@ -134,7 +134,7 @@ public class Real extends Scalar {
    * <code>RealType.Generic</code>, the unit of the Real will be
    * <code>RealType.Generic.getDefaultUnit()</code>, and the error estimate
    * will be based on a numeric value.
-   * @param value		The value of the Real.  May be 
+   * @param value		The value of the Real.  May be
    *				<code>Double.NaN</code>.
    * @param error		Value for constructing an error estimate for the
    *				Real in units of
@@ -147,11 +147,11 @@ public class Real extends Scalar {
   }
 
   /**
-   * Constructs a generic Real object.  The RealType of the Real will be 
+   * Constructs a generic Real object.  The RealType of the Real will be
    * <code>RealType.Generic</code>, the unit of the Real will be
    * <code>RealType.Generic.getDefaultUnit()</code>, and the error estimate
    * will be 0.0.
-   * @param value		The value of the Real.  May be 
+   * @param value		The value of the Real.  May be
    *				<code>Double.NaN</code>.
    */
   public Real(double value) {
@@ -311,7 +311,7 @@ public class Real extends Scalar {
           break;
         case POW:
           opValue = Math.pow(thisValue, thatValue);
-          u = thisUnit.equals(CommonUnit.dimensionless) 
+          u = thisUnit.equals(CommonUnit.dimensionless)
 	    ? CommonUnit.dimensionless : null;
           break;
         case INV_POW:
@@ -690,7 +690,7 @@ public class Real extends Scalar {
    *				is semantically identical to the object.
    */
   public boolean equals(Object obj) {
-    return obj != null && obj instanceof Real && 
+    return obj != null && obj instanceof Real &&
       getType().equals(((Real)obj).getType()) && compareTo(obj) == 0;
   }
 

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -84,14 +84,14 @@ public class Contour2D extends Applet implements MouseListener {
                       float vx4[][], float vy4[][],  int maxv4, int[] numv4,
                       byte[][] auxValues, byte[][] auxLevels1,
                       byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap )
-                          throws VisADException 
+                          throws VisADException
   {
     boolean[] dashes = {false};
     float[] intervals =
       intervalToLevels(interval, lowlimit, highlimit, base, dashes);
     boolean dash = dashes[0];
 
-    contour( g, nr, nc, intervals, 
+    contour( g, nr, nc, intervals,
              lowlimit, highlimit, base, dash,
              vx1, vy1,  maxv1, numv1,
              vx2, vy2,  maxv2, numv2,
@@ -286,10 +286,10 @@ boolean anynotmissing = false;
       idash = 0;
     }
 */
-  
+
     nrm = nr-1;
     ncm = nc-1;
-  
+
     xdd = ((nr-1)-0.0f)/(nr-1.0f); // = 1.0
     ydd = ((nc-1)-0.0f)/(nc-1.0f); // = 1.0
     xd = xdd - 0.0001f;
@@ -446,7 +446,7 @@ else {
         tmp1 = ( (ga) > (gb) ? (ga) : (gb) );
         tmp2 = ( (gc) > (gd) ? (gc) : (gd) );
         gx = ( (tmp1) > (tmp2) ? (tmp1) : (tmp2) );
-  
+
 /*  remove for new signature, replace with code below
         // compute clow and chi, low and high contour values in the box
         tmp1 = (gn-base) / interval;
@@ -466,11 +466,11 @@ else {
         // how many contour lines in the box:
         tmp1 = (chi-clow) / interval;
         numc = 1+( (tmp1) >= 0 ? (int) ((tmp1) + 0.5) : (int) ((tmp1)-0.5) );
-  
+
         // gg is current contour line value
         gg = clow;
 */
-        
+
         low = 0;
         hi = myvals.length - 1;
         if (myvals[low] > gx || myvals[hi] < gn) // no contours
@@ -491,7 +491,7 @@ else {
 
 /*
 if (!any && numc > 0) {
-  System.out.println("numc = " + numc + " clow = " + myvals[low] + 
+  System.out.println("numc = " + numc + " clow = " + myvals[low] +
                      " chi = " + myvals[hi]);
   any = true;
 }
@@ -550,7 +550,7 @@ if (!any && numc > 0) {
             float xk, yk, xm, ym, value;
 
             // Insert a label
-  
+
             // BOX TO AVOID
             kc = ic-lc2-lcc;
             kr = ir-lr2-lrr;
@@ -685,7 +685,7 @@ if (!any && numc > 0) {
             case 2:
               gba = gb-ga;
               gdb = gd-gb;
- 
+
               if (naux > 0) {
                 float ratioba = (gg-ga)/gba;
                 float ratiodb = (gg-gb)/gdb;
@@ -726,7 +726,7 @@ if (!any && numc > 0) {
             case 3:
               gca = gc-ga;
               gdb = gd-gb;
- 
+
               if (naux > 0) {
                 float ratioca = (gg-ga)/gca;
                 float ratiodb = (gg-gb)/gdb;
@@ -808,7 +808,7 @@ if (!any && numc > 0) {
             case 5:
               gba = gb-ga;
               gdc = gd-gc;
- 
+
               if (naux > 0) {
                 float ratioba = (gg-ga)/gba;
                 float ratiodc = (gg-gc)/gdc;
@@ -961,7 +961,7 @@ if (!any && numc > 0) {
             case 7:
               gdb = gd-gb;
               gdc = gd-gc;
- 
+
               if (naux > 0) {
                 float ratiodb = (gg-gb)/gdb;
                 float ratiodc = (gg-gc)/gdc;
@@ -1023,9 +1023,9 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         }  // for il       -- NOTE:  gg incremented in for statement
       }  // for ic
     }  // for ir
- 
+
     ipnt[nump] = numv;
- 
+
     // copy vertices from vx, vy arrays to either v1 or v2 arrays
     ip = 0;
     for (ir=0;ir<nrm && ip<ipnt.length-1;ir++) {
@@ -1079,7 +1079,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               System.arraycopy(tx[0], 0, vx1[0], 0, numv1[0]);
               System.arraycopy(ty[0], 0, vy1[0], 0, numv1[0]);
               if (naux > 0) {
-                for (int i=0; i<naux; i++) { 
+                for (int i=0; i<naux; i++) {
                   byte[] ta = auxLevels1[i];
                   auxLevels1[i] = new byte[maxv1];
                   System.arraycopy(ta, 0, auxLevels1[i], 0, numv1[0]);

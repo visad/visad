@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -63,7 +63,7 @@ public class Linear1DSet extends Gridded1DSet
     Length = length;
     if (Length < 1) throw new SetException("Linear1DSet: bad # samples");
     Step = (Length < 2) ? 1.0 : (Last - First) / (Length - 1);
-    Invstep = 1.0 / Step; 
+    Invstep = 1.0 / Step;
     LowX = (float) Math.min(First, First + Step * (Length - 1));
     HiX = (float) Math.max(First, First + Step * (Length - 1));
     Low[0] = LowX;

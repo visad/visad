@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -80,7 +80,7 @@ public class LinearNDSet extends GriddedSet
   }
 
   /** construct an N-dimensional set as the product of N arithmetic
-      progressions (lengths[i] samples between firsts[i] and lasts[i]), 
+      progressions (lengths[i] samples between firsts[i] and lasts[i]),
       coordinate_system and units must be compatible with defaults for
       type, or may be null; errors may be null */
   public LinearNDSet(MathType type, double[] firsts, double[] lasts, int[] lengths,
@@ -106,7 +106,7 @@ public class LinearNDSet extends GriddedSet
          throws VisADException {
     return create(type, firsts, lasts, lengths, null, null, null);
   }
- 
+
   public static LinearSet create(MathType type, double[] firsts, double[] lasts,
                                   int[] lengths, CoordinateSystem coord_sys,
                                   Unit[] units, ErrorEstimate[] errors)

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -127,11 +127,11 @@ public interface Field extends Function {
       return a copy if copy == true */
   double[][] getValues(boolean copy)
          throws VisADException, RemoteException;
- 
+
   /** invokes getFloats(true) */
   float[][] getFloats()
          throws VisADException, RemoteException;
- 
+
   /** get the 'Flat' components of this Field's range values
       in their default range Units (as defined by the range of
       the Field's FunctionType); if the range type is a RealType

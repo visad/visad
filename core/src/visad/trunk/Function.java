@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -88,7 +88,7 @@ public interface Function extends Data {
       propogate errors according to error_mode */
   Function derivative( RealType d_partial, int error_mode )
          throws VisADException, RemoteException;
- 
+
   /** return the derivative of this Function with respect to d_partial;
       set result MathType to derivType; d_partial may occur in this
       Function's domain RealTupleType, or, if the domain has a

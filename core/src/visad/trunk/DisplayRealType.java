@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -114,7 +114,7 @@ public class DisplayRealType extends RealType {
                          double def, Unit unit)
          throws VisADException {
     super("Display" + name, unit, null);
-    System = false; 
+    System = false;
     Single = single;
     LowValue = low;
     HiValue = hi;
@@ -195,9 +195,9 @@ public class DisplayRealType extends RealType {
 
   /**
    * Sets the DisplayTupleType to which this DisplayRealType will belong.
-   * @param t			The DisplayTupleType of which this 
+   * @param t			The DisplayTupleType of which this
    *				DisplayRealType will be a component.
-   * @param i			The 0-based component-index for this 
+   * @param i			The 0-based component-index for this
    *				DisplayRealType.
    */
   public void setTuple(DisplayTupleType t, int i) {

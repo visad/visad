@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -37,13 +37,13 @@ import java.text.FieldPosition;
  * DateTime is a class of objects for holding date and time information.
  * DateTime objects are immutable.<P>
  *
- * Internally, the object uses seconds since the epoch 
+ * Internally, the object uses seconds since the epoch
  * (1970-01-01 00:00:00Z) as the temporal reference.
  * @see java.lang.System#currentTimeMillis()
- * 
+ *
  */
-public final class 
-DateTime 
+public final class
+DateTime
     extends     Real
 {
 
@@ -65,7 +65,7 @@ DateTime
      *
      * @throws  VisADException  unit conversion problem
      */
-    public DateTime(Real real) 
+    public DateTime(Real real)
             throws VisADException
     {
         super( RealType.Time,
@@ -84,11 +84,11 @@ DateTime
      *
      * @throws  VisADException  unit conversion problem
      */
-    public DateTime(double seconds) 
+    public DateTime(double seconds)
             throws VisADException
     {
-        this(new Real(RealType.Time, 
-                      seconds, 
+        this(new Real(RealType.Time,
+                      seconds,
                       CommonUnit.secondsSinceTheEpoch));
     }
 
@@ -99,11 +99,11 @@ DateTime
      *
      * @throws  VisADException  unit conversion problem
      */
-    public DateTime(Date date) 
+    public DateTime(Date date)
             throws VisADException
     {
-        this(new Real(RealType.Time, 
-                      date.getTime()/1000., 
+        this(new Real(RealType.Time,
+                      date.getTime()/1000.,
                       CommonUnit.secondsSinceTheEpoch));
     }
 
@@ -112,10 +112,10 @@ DateTime
      *
      * @throws  VisADException  unit conversion problem
      */
-    public DateTime() 
+    public DateTime()
             throws VisADException
     {
-        this(new Real(RealType.Time, 
+        this(new Real(RealType.Time,
                       System.currentTimeMillis()/1000.,
                       CommonUnit.secondsSinceTheEpoch));
     }
@@ -130,10 +130,10 @@ DateTime
      *
      * @throws  VisADException  invalid day or seconds.  Days must be
      *                          greater than zero and seconds must be greater
-     *                          than zero and less than or equal to the 
+     *                          than zero and less than or equal to the
      *                          seconds in a day.
      */
-    public DateTime(int year, int day, double seconds) 
+    public DateTime(int year, int day, double seconds)
             throws VisADException
     {
         this(fromYearDaySeconds(year, day, seconds));
@@ -149,7 +149,7 @@ DateTime
      *
      * @throws  VisADException  invalid day or seconds.  Days must be
      *                          greater than zero and seconds must be greater
-     *                          than zero and less than or equal to the 
+     *                          than zero and less than or equal to the
      *                          seconds in a day.
      */
     public static Real fromYearDaySeconds(int year, int day, double seconds)
@@ -167,7 +167,7 @@ DateTime
 */
 
         // require positive day
-        if (day < 1) 
+        if (day < 1)
         {
             throw new VisADException(
                               "DateTime.fromYearDaySeconds: invalid day");
@@ -182,26 +182,26 @@ DateTime
     }
 
     /** trusted method for initializers */
-    private static Real fromYearDaySecondsTrusted(int year, 
-                                                  int day, 
-                                                  double seconds) 
+    private static Real fromYearDaySecondsTrusted(int year,
+                                                  int day,
+                                                  double seconds)
              throws VisADException
     {
         GregorianCalendar cal = new GregorianCalendar();
         cal.clear();
         cal.setTimeZone(defaultTimeZone);        // use GMT as default
         if (year == 0) year = -1;                // set to 1 BC
-        cal.set(Calendar.ERA, year < 0 
+        cal.set(Calendar.ERA, year < 0
                                 ? GregorianCalendar.BC
                                 : GregorianCalendar.AD);
         cal.set(Calendar.YEAR, Math.abs(year));
-    
-        /* 
+
+        /*
            allow us to specify # of days since the year began without having
            worry about leap years and seconds since the day began, instead
            of in the minute.  Saves on some calculations.
         */
-        cal.setLenient(true);         
+        cal.setLenient(true);
 
         cal.set(Calendar.DAY_OF_YEAR, day);
         int temp = (int) Math.round(seconds * 1000);
@@ -210,7 +210,7 @@ DateTime
         cal.set(Calendar.SECOND, secs);
         cal.set(Calendar.MILLISECOND, millis);
 
-        return new Real( RealType.Time, 
+        return new Real( RealType.Time,
                          cal.getTime().getTime()/1000.,
                          CommonUnit.secondsSinceTheEpoch );
     }
@@ -220,7 +220,7 @@ DateTime
      *
      * @return this object
      */
-    public Real getReal() 
+    public Real getReal()
     {
         return this;
     }
@@ -238,11 +238,11 @@ DateTime
      * @return  String representing the date/time.  Default is
      *          <nobr>yyyy-MM-dd HH:mm:ssZ</nobr> (ex: 1999-05-04 15:27:08Z)
      */
-    public String toString() 
+    public String toString()
     {
         return formattedString(
-            (!formatPattern.equals(isoTimeFmtPattern)) 
-                ? formatPattern 
+            (!formatPattern.equals(isoTimeFmtPattern))
+                ? formatPattern
                 : (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC)
                     ? isoTimeFmtPattern + " 'BCE'"
                     : isoTimeFmtPattern
@@ -253,7 +253,7 @@ DateTime
      * Gets a string that represents just the value portion of this
      * DateTime -- but with full semantics.
      *
-     * @return  String representing the date/time in the form 
+     * @return  String representing the date/time in the form
      *          <nobr>yyyy-MM-dd HH:mm:ssZ</nobr> (ex: 1999-05-04 15:27:08Z)
      */
     public String toValueString() {
@@ -279,19 +279,19 @@ DateTime
         SimpleDateFormat sdf = new SimpleDateFormat();
         sdf.setTimeZone(timezone);
         if (pattern != null) sdf.applyPattern(pattern);
-        return new String((sdf.format(utcCalendar.getTime(), buf, 
+        return new String((sdf.format(utcCalendar.getTime(), buf,
                                 new FieldPosition(0))).toString());
     }
 
     /**
      * Return a string representing the "date" portion of this DateTime
      *
-     * @return  String representing the date (UTC) in the form 
+     * @return  String representing the date (UTC) in the form
      *          yyyy-MM-dd (ex: 1999-05-04).
      */
-    public String dateString() 
+    public String dateString()
     {
-        String pattern = 
+        String pattern =
                   (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC)
                             ? "yyyy-MM-dd 'BCE'"
                             : "yyyy-MM-dd";
@@ -301,10 +301,10 @@ DateTime
     /**
      * Return a string representing the "time" portion of this DateTime
      *
-     * @return  String representing the time (UTC) in the form 
+     * @return  String representing the time (UTC) in the form
      *          HH:mm:ssZ (ex: 15:27:08Z)
      */
-    public String timeString() 
+    public String timeString()
     {
         return formattedString("HH:mm:ss'Z'", defaultTimeZone);
     }
@@ -312,11 +312,11 @@ DateTime
     /**
      * Set the format of the output of the toString() method.  All DateTime
      * objects created in the JVM once this is set will use the new format
-     * so be very careful in your use of this method.  
+     * so be very careful in your use of this method.
      *
      * The pattern uses the time format syntax of java.text.SimpleDateFormat.
      * @see java.text.SimpleDateFormat
-     * If you want to use a time zone other than the default, 
+     * If you want to use a time zone other than the default,
      * @see #setFormatTimeZone
      *
      * @param   pattern         time format string
@@ -327,7 +327,7 @@ DateTime
     }
 
     /**
-     * Return the format pattern used in the output of the toString() method.  
+     * Return the format pattern used in the output of the toString() method.
      * The pattern uses the time format syntax of java.text.SimpleDateFormat.
      * @see java.text.SimpleDateFormat
      *
@@ -354,7 +354,7 @@ DateTime
     }
 
     /**
-     * Return the TimeZone used in the output of the toString() method.  
+     * Return the TimeZone used in the output of the toString() method.
      *
      * @return  time zone
      */
@@ -384,8 +384,8 @@ DateTime
         return super.compareTo( (DateTime) oo );
     }
 
-    /** 
-     * run 'java visad.DateTime' to test the DateTime class 
+    /**
+     * run 'java visad.DateTime' to test the DateTime class
      */
     public static void main(String args[]) throws VisADException {
 
@@ -397,20 +397,20 @@ DateTime
         a = new DateTime(1959, 284, 36600.);
 
         System.out.println(
-                      "\n\ttoString()        = " + a + 
+                      "\n\ttoString()        = " + a +
                       "\n\tdateString()      = " + a.dateString() +
                       "\n\ttimeString()      = " + a.timeString() +
                       "\n\tformattedString() = " +
                       a.formattedString("(EEE) dd-MMM-yy hh:mm:SS.sss z",
                                                TimeZone.getTimeZone("EST")) +
-                      "\n\t  (using pattern " + 
+                      "\n\t  (using pattern " +
                       "'(EEE) dd-MMM-yy hh:mm:SS.sss z' and timezone 'EST')");
 
         // test using DateTime(Real r) where r has correct units and type
         System.out.println("\nIncrementing 5 times by 20 days each time:\n");
-        for (int i = 0; i < 5; i++) 
+        for (int i = 0; i < 5; i++)
         {
-              r = new Real(RealType.Time, 
+              r = new Real(RealType.Time,
                            a.getValue() + 20 * secondsPerDay,
                            CommonUnit.secondsSinceTheEpoch);
               a = new DateTime(r);
@@ -429,7 +429,7 @@ DateTime
                     "\nInitialized with a BCE date DateTime(-5, 196, 24493.):");
         a = new DateTime(-5, 193, 24493.);
         System.out.println(
-                      "\n\ttoString()        = " + a + 
+                      "\n\ttoString()        = " + a +
                       "\n\tdateString()      = " + a.dateString() +
                       "\n\ttimeString()      = " + a.timeString());
 
@@ -439,7 +439,7 @@ DateTime
         System.out.println("\nInitialized with current Date(): " + a);
         a = new DateTime(date.getTime()/1000.);
         System.out.println(
-                  "\nInitialized with current seconds since the epoch: " 
+                  "\nInitialized with current seconds since the epoch: "
                             + a + "\n");
 
     }

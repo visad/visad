@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -29,7 +29,7 @@ package visad;
 /**
    GriddedSet is implemented by those Set sub-classes whose samples
    lie on a rectangular grid topology (but note the geometry need
-   not be rectangular).  It is a M-dimensional array of points in 
+   not be rectangular).  It is a M-dimensional array of points in
    R^N where ManifoldDimension = M <= N = DomainDimension.<P>
 
    The order of the samples is the rasterization of the orders of
@@ -99,7 +99,7 @@ public class GriddedSet extends SampledSet {
                                   int[] lengths) throws VisADException {
     return create(type, samples, lengths, null, null, null);
   }
- 
+
   /**
    * General Factory method for creating the proper gridded set
    * (Gridded1DSet, Gridded2DSet, etc.).
@@ -123,7 +123,7 @@ public class GriddedSet extends SampledSet {
       throw new SetException("GriddedSet.create: manifold_dimension greater " +
                              "than domain_dimension");
     }
- 
+
     switch (domain_dimension) {
       case 1:
         return new Gridded1DSet(type, samples,
@@ -606,14 +606,14 @@ public class GriddedSet extends SampledSet {
            neighbors[ii][2] = ii - LengthX;
            neighbors[ii][3] = ii + LengthXY;
 
-           ii = (LengthZ - 1)*LengthXY + ix; 
+           ii = (LengthZ - 1)*LengthXY + ix;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii - 1;
            neighbors[ii][1] = ii + 1;
            neighbors[ii][2] = ii + LengthX;
            neighbors[ii][3] = ii - LengthXY;
 
- 
+
            ii = (LengthZ - 1)*LengthXY + (LengthY-1)*LengthX + ix;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii - 1;
@@ -622,7 +622,7 @@ public class GriddedSet extends SampledSet {
            neighbors[ii][3] = ii - LengthXY;
          }
 
-         for ( iz = 1; iz < (LengthZ - 1); iz++ ) 
+         for ( iz = 1; iz < (LengthZ - 1); iz++ )
          {
            ii = iz*LengthXY;
            neighbors[ii] = new int[4];
@@ -643,7 +643,7 @@ public class GriddedSet extends SampledSet {
            neighbors[ii][0] = ii + 1;
            neighbors[ii][1] = ii - LengthX;
            neighbors[ii][2] = ii + LengthXY;
-           neighbors[ii][3] = ii - LengthXY; 
+           neighbors[ii][3] = ii - LengthXY;
 
            ii = iz*LengthXY + (LengthXY - 1);
            neighbors[ii] = new int[4];
@@ -655,7 +655,7 @@ public class GriddedSet extends SampledSet {
 
          //- sides:
 
-         for ( iy = 1; iy < (LengthY - 1); iy++ ) 
+         for ( iy = 1; iy < (LengthY - 1); iy++ )
          {
            for ( ix = 1; ix < ( LengthX - 1); ix++ )
            {
@@ -667,7 +667,7 @@ public class GriddedSet extends SampledSet {
              neighbors[ii][3] = ii - LengthX;
              neighbors[ii][4] = ii + LengthXY;
 
-             ii = (LengthZ - 1)*LengthXY + iy*LengthX + ix; 
+             ii = (LengthZ - 1)*LengthXY + iy*LengthX + ix;
              neighbors[ii] = new int[5];
              neighbors[ii][0] = ii + 1;
              neighbors[ii][1] = ii - 1;
@@ -677,7 +677,7 @@ public class GriddedSet extends SampledSet {
            }
          }
 
-         for ( iz = 1; iz < (LengthZ - 1); iz++ ) 
+         for ( iz = 1; iz < (LengthZ - 1); iz++ )
          {
            for ( ix = 1; ix < ( LengthX - 1); ix++ )
            {
@@ -699,7 +699,7 @@ public class GriddedSet extends SampledSet {
            }
          }
 
-         for ( iz = 1; iz < (LengthZ - 1); iz++ ) 
+         for ( iz = 1; iz < (LengthZ - 1); iz++ )
          {
            for ( iy = 1; iy < ( LengthY - 1); iy++ )
            {

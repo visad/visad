@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -160,16 +160,16 @@ public abstract class SampledSet extends SimpleSet {
         n_points = neighbors[ii].length;
         weights[ii] = new float[ n_points ];
 
-        for ( int kk = 0; kk < n_points; kk++ ) 
+        for ( int kk = 0; kk < n_points; kk++ )
         {
           distance_squared = 0f;
           for ( int tt = 0; tt < DomainDimension; tt++ )
           {
-            diff =  samples[tt][ii] - samples[tt][ neighbors[ii][kk] ]; 
+            diff =  samples[tt][ii] - samples[tt][ neighbors[ii][kk] ];
             distance_squared += diff*diff;
           }
           lambda_squared = ( distance_squared*constant )/pi_squared;
-      
+
           weights[ii][kk] =
             (float) Math.exp( (double)(-1f*(distance_squared/lambda_squared)) );
         }
@@ -215,7 +215,7 @@ public abstract class SampledSet extends SimpleSet {
       }
       indices[i] = real.getIndex();
     }
- 
+
     for (int i=0; i<DomainDimension; i++) {
       int k = indices[i];
       double min = Low[i];

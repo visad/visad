@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -31,36 +31,36 @@ package visad;
  * for (CylRadius, CylAzimuth, CylZAxis) with a Cartesian Reference,
  * (XAxis, YAxis, ZAxis) and with CylAzimuth in degrees.<P>
  */
-public class CylindricalCoordinateSystem 
-    extends CoordinateSystem 
+public class CylindricalCoordinateSystem
+    extends CoordinateSystem
 {
 
     private static Unit[] coordinate_system_units =
         {null, CommonUnit.degree, null};
 
-    /** construct a CoordinateSystem for (radius, azimuth, zaxis) relative 
+    /** construct a CoordinateSystem for (radius, azimuth, zaxis) relative
      *  to a 3-D Cartesian reference; this constructor supplies units =
      *  {null, CommonUnit.Degree, null} to the super
      *  constructor, in order to ensure Unit compatibility with its
-     *  use of trigonometric functions 
+     *  use of trigonometric functions
      *
      * @param    reference    Cartesian reference in the order of x, y, z
      * @throws   VisADException  necessary VisAD object could not be created
      */
-    public CylindricalCoordinateSystem(RealTupleType reference) 
-        throws VisADException 
+    public CylindricalCoordinateSystem(RealTupleType reference)
+        throws VisADException
     {
         super(reference, coordinate_system_units);
     }
 
     /** trusted constructor for initializers */
-    CylindricalCoordinateSystem(RealTupleType reference, boolean b) 
+    CylindricalCoordinateSystem(RealTupleType reference, boolean b)
     {
         super(reference, coordinate_system_units, b);
     }
 
     /**
-     * Convert cylindrical coordinates (radius, azimuth, z) to 
+     * Convert cylindrical coordinates (radius, azimuth, z) to
      * Cartesian coordinates (x, y, z).  Input array must have
      * a length of 3 and be in the correct order.
      *
@@ -71,10 +71,10 @@ public class CylindricalCoordinateSystem
      * @throws  CoordinateSystemException  if input array is null or wrong
      *                                     dimension.
      */
-    public double[][] toReference(double[][] tuples) 
-        throws VisADException 
+    public double[][] toReference(double[][] tuples)
+        throws VisADException
     {
-        if (tuples == null || tuples.length != 3) 
+        if (tuples == null || tuples.length != 3)
         {
             throw new CoordinateSystemException(
                 "CylindricalCoordinateSystem.toReference: " +
@@ -82,7 +82,7 @@ public class CylindricalCoordinateSystem
         }
         int len = tuples[0].length;
         double[][] value = new double[3][len];
-        for (int i = 0; i < len; i++) 
+        for (int i = 0; i < len; i++)
         {
             if (tuples[0][i] < 0.0)   // radius < 0
             {
@@ -90,11 +90,11 @@ public class CylindricalCoordinateSystem
                 value[1][i] = Double.NaN;
                 value[2][i] = Double.NaN;
             }
-            else 
+            else
             {
-                double cosaz = 
+                double cosaz =
                     Math.cos(Data.DEGREES_TO_RADIANS * tuples[1][i]);
-                double sinaz = 
+                double sinaz =
                     Math.sin(Data.DEGREES_TO_RADIANS * tuples[1][i]);
                 value[0][i] = tuples[0][i] * cosaz;
                 value[1][i] = tuples[0][i] * sinaz;
@@ -105,7 +105,7 @@ public class CylindricalCoordinateSystem
     }
 
     /**
-     * Convert Cartesian coordinates (x, y, z) to 
+     * Convert Cartesian coordinates (x, y, z) to
      * cylindrical coordinates (radius, azimuth, z).  Input array must have
      * a length of 3 and be in the correct order.
      *
@@ -116,10 +116,10 @@ public class CylindricalCoordinateSystem
      * @throws  CoordinateSystemException  if input array is null or wrong
      *                                     dimension.
      */
-    public double[][] fromReference(double[][] tuples) 
-        throws VisADException 
+    public double[][] fromReference(double[][] tuples)
+        throws VisADException
     {
-        if (tuples == null || tuples.length != 3) 
+        if (tuples == null || tuples.length != 3)
         {
             throw new CoordinateSystemException(
                 "CylindricalCoordinateSystem.fromReference: " +
@@ -127,12 +127,12 @@ public class CylindricalCoordinateSystem
         }
         int len = tuples[0].length;
         double[][] value = new double[3][len];
-        for (int i = 0; i < len; i++) 
+        for (int i = 0; i < len; i++)
         {
-            value[0][i] = Math.sqrt(tuples[0][i] * tuples[0][i] + 
+            value[0][i] = Math.sqrt(tuples[0][i] * tuples[0][i] +
                                     tuples[1][i] * tuples[1][i]);
-            value[1][i] = 
-                Data.RADIANS_TO_DEGREES * 
+            value[1][i] =
+                Data.RADIANS_TO_DEGREES *
                     Math.atan2(tuples[1][i], tuples[0][i]);
             if (value[1][i] < 0.0) value[1][i] += 360.0;
             value[2][i] = tuples[2][i];
@@ -141,7 +141,7 @@ public class CylindricalCoordinateSystem
     }
 
     /**
-     * Convert cylindrical coordinates (radius, azimuth, z) to 
+     * Convert cylindrical coordinates (radius, azimuth, z) to
      * Cartesian coordinates (x, y, z).  Input array must have
      * a length of 3 and be in the correct order.
      *
@@ -152,10 +152,10 @@ public class CylindricalCoordinateSystem
      * @throws  CoordinateSystemException  if input array is null or wrong
      *                                     dimension.
      */
-    public float[][] toReference(float[][] tuples) 
-        throws VisADException 
+    public float[][] toReference(float[][] tuples)
+        throws VisADException
     {
-        if (tuples == null || tuples.length != 3) 
+        if (tuples == null || tuples.length != 3)
         {
             throw new CoordinateSystemException(
                 "CylindricalCoordinateSystem.toReference: " +
@@ -163,7 +163,7 @@ public class CylindricalCoordinateSystem
         }
         int len = tuples[0].length;
         float[][] value = new float[3][len];
-        for (int i=0; i<len ;i++) 
+        for (int i=0; i<len ;i++)
         {
             if (tuples[0][i] < 0.0)   // radius < 0
             {
@@ -171,11 +171,11 @@ public class CylindricalCoordinateSystem
                 value[1][i] = Float.NaN;
                 value[2][i] = Float.NaN;
             }
-            else 
+            else
             {
-                float cosaz = 
+                float cosaz =
                     (float) Math.cos(Data.DEGREES_TO_RADIANS * tuples[1][i]);
-                float sinaz = 
+                float sinaz =
                     (float) Math.sin(Data.DEGREES_TO_RADIANS * tuples[1][i]);
                 value[0][i] = tuples[0][i] * cosaz;
                 value[1][i] = tuples[0][i] * sinaz;
@@ -184,9 +184,9 @@ public class CylindricalCoordinateSystem
         }
         return value;
     }
- 
+
     /**
-     * Convert Cartesian coordinates (x, y, z) to 
+     * Convert Cartesian coordinates (x, y, z) to
      * cylindrical coordinates (radius, azimuth, z).  Input array must have
      * a length of 3 and be in the correct order.
      *
@@ -197,10 +197,10 @@ public class CylindricalCoordinateSystem
      * @throws  CoordinateSystemException  if input array is null or wrong
      *                                     dimension.
      */
-    public float[][] fromReference(float[][] tuples) 
-        throws VisADException 
+    public float[][] fromReference(float[][] tuples)
+        throws VisADException
     {
-        if (tuples == null || tuples.length != 3) 
+        if (tuples == null || tuples.length != 3)
         {
             throw new CoordinateSystemException(
                 "CylindricalCoordinateSystem.fromReference: " +
@@ -208,12 +208,12 @@ public class CylindricalCoordinateSystem
         }
         int len = tuples[0].length;
         float[][] value = new float[3][len];
-        for (int i=0; i<len ;i++) 
+        for (int i=0; i<len ;i++)
         {
             value[0][i] = (float) Math.sqrt(tuples[0][i] * tuples[0][i] +
                                             tuples[1][i] * tuples[1][i]);
             value[1][i] = (float)
-                (Data.RADIANS_TO_DEGREES * 
+                (Data.RADIANS_TO_DEGREES *
                     Math.atan2(tuples[1][i], tuples[0][i]));
             if (value[1][i] < 0.0f) value[1][i] += 360.0f;
             value[2][i] = tuples[2][i];
@@ -226,7 +226,7 @@ public class CylindricalCoordinateSystem
      * @param cs the CoordinateSystem in question
      *
      */
-    public boolean equals(Object cs) 
+    public boolean equals(Object cs)
     {
         return (cs instanceof CylindricalCoordinateSystem);
     }

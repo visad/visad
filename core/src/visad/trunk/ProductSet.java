@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -588,7 +588,7 @@ valueToInterp test:
 (30.0, 36.0, -150.0)    ==> indices [18, 34, 19, 35],  weight total = 1.0
 (70.0, 65.0, -120.0)    ==> indices [22, 38, 23, 39, 18, 34, 19, 35],  weight total = 1.0
 
-iris 22% 
+iris 22%
 
 */
 

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -85,7 +85,7 @@ public class Irregular3DSet extends IrregularSet {
     newToOld = null;
   }
 
-  /** construct Irregular3DSet using Delaunay from existing 
+  /** construct Irregular3DSet using Delaunay from existing
       IrregularSet (must have ManifoldDimension = 2 or 3) */
 /* CTR: 1-12-98
   public Irregular3DSet(MathType type, float[][] samples,
@@ -93,7 +93,7 @@ public class Irregular3DSet extends IrregularSet {
     this(type, samples, delaunay_set, null, null, null, true);
   }
 */
- 
+
   /** construct Irregular3DSet using Delaunay from existing
       IrregularSet (must have ManifoldDimension = 2 or 3) */
 /* CTR: 1-12-98
@@ -137,7 +137,7 @@ public class Irregular3DSet extends IrregularSet {
                int[] new2old, int[] old2new) throws VisADException {
     this(type, samples, new2old, old2new, null, null, null, true);
   }
- 
+
   /** construct Irregular3DSet using sort from existing
       Irregular1DSet */
   public Irregular3DSet(MathType type, float[][] samples,
@@ -528,7 +528,7 @@ public class Irregular3DSet extends IrregularSet {
       while (chi>gx) {
         chi -= interval;
       }
- 
+
       // how many contour lines in the box:
       tmp1 = (chi-clow) / interval;
       int numc = 1+( (tmp1) >= 0 ? (int) ((tmp1) + 0.5) : (int) ((tmp1)-0.5) );
@@ -564,7 +564,7 @@ public class Irregular3DSet extends IrregularSet {
         float ratioba, ratioca, ratiocb;
         int ii;
         int t;
- 
+
         // make sure gg is within contouring limits
         if (gg < gn) continue;
         if (gg > gx) break;
@@ -579,7 +579,7 @@ public class Irregular3DSet extends IrregularSet {
         if (ii > 3) ii = 7 - ii;
         if (ii <= 0) continue;
 
- 
+
         switch (ii) {
           case 1:
             gba = gb-ga;
@@ -622,10 +622,10 @@ public class Irregular3DSet extends IrregularSet {
           case 2:
             gba = gb-ga;
             gcb = gc-gb;
- 
+
             ratioba = (gg-ga)/gba;
             ratiocb = (gg-gb)/gcb;
- 
+
             if (color_length > 0) {
               for (int i=0; i<color_length; i++) {
                 t = (int) ( (1.0f - ratioba) * ((auxa[i] < 0) ?
@@ -646,7 +646,7 @@ public class Irregular3DSet extends IrregularSet {
 */
               }
             }
- 
+
             vx[numv] = samples[0][va] + (samples[0][vb]-samples[0][va]) * ratioba;
             vy[numv] = samples[1][va] + (samples[1][vb]-samples[1][va]) * ratioba;
             vz[numv] = samples[2][va] + (samples[2][vb]-samples[2][va]) * ratioba;
@@ -660,10 +660,10 @@ public class Irregular3DSet extends IrregularSet {
           case 3:
             gca = gc-ga;
             gcb = gc-gb;
- 
+
             ratioca = (gg-ga)/gca;
             ratiocb = (gg-gb)/gcb;
- 
+
             if (color_length > 0) {
               for (int i=0; i<color_length; i++) {
                 t = (int) ( (1.0f - ratioca) * ((auxa[i] < 0) ?
@@ -684,7 +684,7 @@ public class Irregular3DSet extends IrregularSet {
 */
               }
             }
- 
+
             vx[numv] = samples[0][va] + (samples[0][vc]-samples[0][va]) * ratioca;
             vy[numv] = samples[1][va] + (samples[1][vc]-samples[1][va]) * ratioca;
             vz[numv] = samples[2][va] + (samples[2][vc]-samples[2][va]) * ratioca;
@@ -825,7 +825,7 @@ public class Irregular3DSet extends IrregularSet {
     NX = NY = NZ = null;
 
     int[] stripe = new int[6 * npolygons];
- 
+
     int size_stripe =
       poly_triangle_stripe(stripe, nvertex, npolygons,
                            vertToPoly[0], polyToVert[0]);
@@ -836,7 +836,7 @@ public class Irregular3DSet extends IrregularSet {
     if (indexed) {
       VisADIndexedTriangleStripArray array =
         new VisADIndexedTriangleStripArray();
-  
+
       // set up indices
       array.indexCount = size_stripe;
       array.indices = new int[size_stripe];
@@ -845,13 +845,13 @@ public class Irregular3DSet extends IrregularSet {
       array.stripVertexCounts[0] = size_stripe;
       // take the garbage out
       stripe = null;
-  
+
       // set coordinates and colors
       setGeometryArray(array, fieldVertices, 4, color_levels);
       // take the garbage out
       fieldVertices = null;
       color_levels = null;
-  
+
       // array.vertexFormat |= NORMALS;
       array.normals = normals;
       return array;
@@ -860,7 +860,7 @@ public class Irregular3DSet extends IrregularSet {
       VisADTriangleStripArray array = new VisADTriangleStripArray();
       array.stripVertexCounts = new int[] {size_stripe};
       array.vertexCount = size_stripe;
-   
+
       array.normals = new float[3 * size_stripe];
       int k = 0;
       for (int i=0; i<3*size_stripe; i+=3) {
@@ -871,7 +871,7 @@ public class Irregular3DSet extends IrregularSet {
         k++;
       }
       normals = null;
-   
+
       array.coordinates = new float[3 * size_stripe];
       k = 0;
       for (int i=0; i<3*size_stripe; i+=3) {
@@ -882,7 +882,7 @@ public class Irregular3DSet extends IrregularSet {
         k++;
       }
       fieldVertices = null;
-   
+
       if (color_levels != null) {
         int color_length = color_levels.length;
         array.colors = new byte[color_length * size_stripe];
@@ -1886,7 +1886,7 @@ public class Irregular3DSet extends IrregularSet {
         System.out.println(s + "\n");
       }
     }
- 
+
 
     // build nverts helper array
     int[] nverts = new int[nvertex];
@@ -1977,7 +1977,7 @@ public class Irregular3DSet extends IrregularSet {
 
   /* from Contour3D.java, used by make_normals */
   static final float  EPS_0 = (float) 1.0e-5;
- 
+
 /* copied from Contour3D.java */
   private static void make_normals(float[] VX, float[] VY, float[] VZ,
                    float[] NX, float[] NY, float[] NZ, int nvertex,
@@ -2140,7 +2140,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 
        swap_flag = ( (swap_flag != 0) ? 0 : 1 );
    } // end for ( k = 2; k < max_vert_per_pol; k++ )
- 
+
     /* Normalize the Normals */
     for ( i=0; i<nvertex; i++ ) {  /* Vectorized */
         len = (float) Math.sqrt(NX[i]*NX[i] + NY[i]*NY[i] + NZ[i]*NZ[i]);
@@ -2161,7 +2161,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
       0,1,5,2,4,3, 1,2,0,3,5,4, 2,3,1,4,0,5, 3,4,2,5,1,0, 4,5,3,0,2,1,
       5,0,4,1,3,2
   };
- 
+
   /* from Contour3D.java, used by poly_triangle_stripe */
   static final int ITAB[] =
   {   0,2,1,       1,0,2,       2,1,0,
@@ -2170,7 +2170,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
       0,5,1,4,2,3, 1,0,2,5,3,4, 2,1,3,0,4,5, 3,2,4,1,5,0, 4,3,5,2,0,1,
       5,4,0,3,1,2
   };
- 
+
   /* from Contour3D.java, used by poly_triangle_stripe */
   static final int STAB[] =  { 0, 9, 25, 50 };
 
@@ -2573,7 +2573,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
           } // end if (j < 0 || tri[j] != null)
           if (sp < 0) break;
         } // end while (true)
-      } // end if (tri[ii] == null) 
+      } // end if (tri[ii] == null)
     } // end for (int ii=0; ii<npolygons; ii++)
 
     float[][] samples = getSamples(false);
@@ -2597,7 +2597,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
 
     // take the garbage out
     NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
- 
+
     float[] normals = new float[3 * nvertex];
     int j = 0;
     for (int i=0; i<nvertex; i++) {
@@ -2613,7 +2613,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
     int size_stripe =
       poly_triangle_stripe(stripe, nvertex, npolygons,
                            Delan.Vertices, Delan.Tri);
- 
+
     if (indexed) {
       VisADIndexedTriangleStripArray array =
         new VisADIndexedTriangleStripArray();
@@ -2642,7 +2642,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
       VisADTriangleStripArray array = new VisADTriangleStripArray();
       array.stripVertexCounts = new int[] {size_stripe};
       array.vertexCount = size_stripe;
-   
+
       array.normals = new float[3 * size_stripe];
       int k = 0;
       for (int i=0; i<3*size_stripe; i+=3) {
@@ -2653,7 +2653,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
         k++;
       }
       normals = null;
-   
+
       array.coordinates = new float[3 * size_stripe];
       k = 0;
       for (int i=0; i<3*size_stripe; i+=3) {
@@ -2664,7 +2664,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
         k++;
       }
       samples = null;
-   
+
       if (color_values != null) {
         int color_length = color_values.length;
         array.colors = new byte[color_length * size_stripe];
@@ -2743,7 +2743,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
     }
     System.out.println(iSet3D.Delan.Tri.length
                      +" tetrahedrons in tetrahedralization.");
-    
+
 
     // test valueToIndex function
     System.out.println("\nvalueToIndex test:");

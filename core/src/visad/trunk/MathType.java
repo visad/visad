@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -29,21 +29,21 @@ package visad;
 import java.rmi.*;
 import java.util.Vector;
 
-/** 
+/**
 (Fulker)
    MathType is the superclass for VisAD's hierarchy of mathematical types.
-   It encompasses the mathematical concepts of scalars, tuples (i.e., 
+   It encompasses the mathematical concepts of scalars, tuples (i.e.,
    n-dimensional vectors), functions, and certain forms of sets.<p>
 
-   VisAD <b>Data</b> objects are finite approximations to math objects.  
-   Every Data object possesses a MathType, which characterizes the 
-   mathematical object that the data approximate.  This MathType is not 
+   VisAD <b>Data</b> objects are finite approximations to math objects.
+   Every Data object possesses a MathType, which characterizes the
+   mathematical object that the data approximate.  This MathType is not
    synonymous with the class of the Data object, even though the class
-   names for a Data object and its corresponding MathType object (Set 
+   names for a Data object and its corresponding MathType object (Set
    and SetType, e.g.) may be similar.<p>
 
-   MathType objects are immutable; one implication is that the setDefaultSet 
-   method (in RealTupleType) can be invoked only <b>prior</b> to using the 
+   MathType objects are immutable; one implication is that the setDefaultSet
+   method (in RealTupleType) can be invoked only <b>prior</b> to using the
    related getDefaultSet method.<p>
 (/Fulker)<p>
 
@@ -953,16 +953,16 @@ public abstract class MathType extends Object implements java.io.Serializable {
     RealType X = new RealType("Xxxxxx", null, null);
     RealType Y = new RealType("Yyyyyy", null, null);
     RealType Z = new RealType("Zzzzzz", null, null);
- 
+
     RealType A = new RealType("Aaaaaa", null, null);
     RealType B = new RealType("Bbbbbb", null, null);
- 
+
     RealType[] domain2d = {X, Y};
     RealTupleType Domain2d = new RealTupleType(domain2d);
- 
+
     RealType[] range2d = {A, B};
     RealTupleType Range2d = new RealTupleType(range2d);
- 
+
     // construct first MathType
     FunctionType Field2d1 = new FunctionType(Domain2d, A);
     FunctionType Field2d2 = new FunctionType(Domain2d, Range2d);
@@ -994,7 +994,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
     RealTupleType Range3d = new RealTupleType(new RealType[] {Rxx, Gxx, Bxx});
     FunctionType image = new FunctionType(Domain2d, Range3d);
     function = new FunctionType(Domain1d, image);
- 
+
     // test prettyString() again
     System.out.println("prettyString for second MathType:");
     String s2 = function.prettyString();

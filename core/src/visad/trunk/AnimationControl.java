@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -35,22 +35,22 @@ import java.rmi.*;
 public interface AnimationControl extends AVControl {
 
   void stop();
- 
+
   void run();
 
   /** set the current ordinal step number = c */
   void setCurrent(int c)
          throws VisADException, RemoteException;
- 
+
   /** set the current step by the value of the RealType
       mapped to Display.Animation */
   void setCurrent(double value)
          throws VisADException, RemoteException;
- 
+
   /** get the current ordinal step number */
   int getCurrent();
 
-  /** 
+  /**
    * Set the animation direction.
    *
    * @param    dir     true for forward, false for backward
@@ -64,7 +64,7 @@ public interface AnimationControl extends AVControl {
 
   /** Get the animation direction.
    *
-   *  @return	true for forward, false for backward 
+   *  @return	true for forward, false for backward
    */
   boolean getDirection();
 
@@ -78,7 +78,7 @@ public interface AnimationControl extends AVControl {
    */
   long[] getSteps();
 
-  /** 
+  /**
    * Set the dwell rate between animation steps to a constant value
    *
    * @param  st   dwell time in milliseconds
@@ -90,12 +90,12 @@ public interface AnimationControl extends AVControl {
   void setStep(int st)
          throws VisADException, RemoteException;
 
-  /** 
+  /**
    * set the dwell time for individual steps.
    *
    * @param   steps   an array of dwell rates for each step in the animation
-   *                  If the length of the array is less than the number of 
-   *                  frames in the animation, the subsequent step values will 
+   *                  If the length of the array is less than the number of
+   *                  frames in the animation, the subsequent step values will
    *                  be set to the value of the last step.
    *
    * @throws  VisADException   Couldn't create necessary VisAD object.  The
@@ -105,8 +105,8 @@ public interface AnimationControl extends AVControl {
   void setSteps(int[] steps)
          throws VisADException, RemoteException;
 
-  /** 
-   * advance one step (forward or backward) 
+  /**
+   * advance one step (forward or backward)
    *
    * @throws  VisADException   Couldn't create necessary VisAD object.  No
    *                           step is taken.
@@ -122,7 +122,7 @@ public interface AnimationControl extends AVControl {
 
   void setSet(Set s)
          throws VisADException, RemoteException;
- 
+
   /** changeControl(!noChange) to not trigger re-transform,
       used by ScalarMap.setRange */
   void setSet(Set s, boolean noChange)
@@ -131,7 +131,7 @@ public interface AnimationControl extends AVControl {
   /** return true if automatic stepping is on */
   boolean getOn();
 
-  /** 
+  /**
    * Set automatic stepping on or off.
    *
    * @param  o  true = turn stepping on, false = turn stepping off
@@ -143,8 +143,8 @@ public interface AnimationControl extends AVControl {
   void setOn(boolean o)
          throws VisADException, RemoteException;
 
-  /** 
-   * toggle automatic stepping between off and on 
+  /**
+   * toggle automatic stepping between off and on
    *
    * @throws  VisADException   Couldn't create necessary VisAD object.  No
    *                           change in automatic stepping occurs.

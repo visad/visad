@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -148,7 +148,7 @@ public class ScalarMap extends Object
     if (NewTick == Long.MAX_VALUE) NewTick = Long.MIN_VALUE + 1;
     return NewTick;
   }
- 
+
   /** set tickFlag according to OldTick and NewTick */
   // public synchronized void setTicks() {
   public void setTicks() {
@@ -162,7 +162,7 @@ System.out.println(Scalar + " -> " + DisplayScalar +
       if (control != null) control.setTicks();
     }
   }
- 
+
   // public synchronized boolean peekTicks(DataRenderer r, DataDisplayLink link) {
   public boolean peekTicks(DataRenderer r, DataDisplayLink link) {
     synchronized (control_lock) {
@@ -204,8 +204,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       else {
 /*
 boolean cflag = control.checkTicks(r, link);
-System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " + 
-                   tickFlag + " cflag = " + cflag); 
+System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
+                   tickFlag + " cflag = " + cflag);
 */
         return tickFlag || control.checkTicks(r, link);
       }
@@ -286,8 +286,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
   }
 
   /**
-   * Gets the Control for the DisplayScalar.  The Control is constructed 
-   * when this ScalarMap is linked to a Display via an invocation of the 
+   * Gets the Control for the DisplayScalar.  The Control is constructed
+   * when this ScalarMap is linked to a Display via an invocation of the
    * Display's <code>addMap()</code> method.  Not all ScalarMaps have Controls,
    * generally depending on the ScalarMap's DisplayRealType.  If a ScalarMap
    * is removed from a Display (via the <code>Display.clearMaps()</code> method,
@@ -578,7 +578,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       }
     }
   }
- 
+
   /** remove a ScalarMapListener */
   public void removeScalarMapListener(ScalarMapListener listener) {
     if (listener != null && ListenerVector != null) {
@@ -639,8 +639,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     // compute graphics positions
     double[] base = null; // vector from one character to another
     double[] up = null; // vector from bottom of character to top
-    double[] startn = null; // -1.0 position 
-    double[] startp = null; // +1.0 position 
+    double[] startn = null; // -1.0 position
+    double[] startp = null; // +1.0 position
 
     double XMIN = -1.0;
     double YMIN = -1.0;
@@ -881,7 +881,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     double low = Double.MAX_VALUE;
     double hi = -Double.MAX_VALUE;
     boolean anyAuto = false;
- 
+
     Enumeration maps = mapVector.elements();
     while(maps.hasMoreElements()) {
       ScalarMap map = ((ScalarMap) maps.nextElement());

@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseQuantity.java,v 1.2 1999-05-24 21:07:30 steve Exp $
+ * $Id: BaseQuantity.java,v 1.3 2000-04-26 14:59:14 dglo Exp $
  */
 
 package visad;
@@ -60,7 +60,7 @@ public final class BaseQuantity
   {
     try
     {
-      add("electric current", 
+      add("electric current",
 	new String[] {SI.ampere.quantityName(), "current"});
       add("luminous intensity", SI.candela.quantityName());
       add("thermodynamic temperature",
@@ -259,7 +259,7 @@ public final class BaseQuantity
    * Retrieve a base quantity from the database based on a
    * match of either the name or an alias.  Try the name first.
    *
-   * @param name		The name or an alias of the base quantity to 
+   * @param name		The name or an alias of the base quantity to
    *				be retrieved.
    * @return			The base quantity in the database corresponding
    *				to <code>name</code> or <code>null</code> if

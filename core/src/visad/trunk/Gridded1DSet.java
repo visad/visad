@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -140,7 +140,7 @@ public class Gridded1DSet extends GriddedSet {
    *			<code>j</code>th point.
    * @return		Indices of nearest points.  RETURN_VALUE<code>[i]</code>
    *			will contain the index of the point in the set closest
-   *			to <code>value[][i]</code> or <code>-1</code> if 
+   *			to <code>value[][i]</code> or <code>-1</code> if
    *			<code>value[][i]</code> lies outside the set.
    */
   public int[] valueToIndex(float[][] value) throws VisADException {
@@ -381,8 +381,8 @@ public class Gridded1DSet extends GriddedSet {
 
 iris 25% java visad.Gridded1DSet < Gridded1D.txt
 num_dimensions = 1, num_coords = 20
- 
-Lengths = 20 wedge = 
+
+Lengths = 20 wedge =
  0
  1
 . . .
@@ -408,8 +408,8 @@ valueToGrid test:
 . . .
 32.163677       -->  (18.5)
 43.211212       -->  (19.4)
- 
-iris 26% 
+
+iris 26%
 
 */
 

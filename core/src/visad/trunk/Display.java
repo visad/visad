@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -38,11 +38,11 @@ import java.rmi.*;
 <LI>Display data according to a set of mappings from RealType's
     (e.g., Latitude, Time, Pressure) to DisplayRealType's (e.g.,
     XAxis, RGB, Animation).<P>
-   
+
 <LI>Allow user extensions, to define new DisplayRealType's,
     new DisplayRealTuple's (and hence new display
     CoordinateSsystem's), and new rendering algorithms.<P>
-   
+
 <LI>Support direct manipulation through 3-D user interface
     widgets embedded in 3-D data displays.<P>
 
@@ -196,7 +196,7 @@ public interface Display extends Action {
   /** scale for Shape */
   DisplayRealType ShapeScale =
     new DisplayRealType("ShapeScale", true, 0.01, 1.0, 1.0, true);
- 
+
   /** text display scalar
       WLH - this should be a DisplayTextType */
   DisplayRealType Text =
@@ -235,19 +235,19 @@ public interface Display extends Action {
   DisplayTupleType DisplaySpatialSphericalTuple =
     new DisplayTupleType(components3s, DisplaySphericalCoordSys, true);
 
-  /** 
-   * defines a CoordinateSystem with Reference DisplaySpatialCartesianTuple 
+  /**
+   * defines a CoordinateSystem with Reference DisplaySpatialCartesianTuple
    */
   CoordinateSystem DisplayCylindricalCoordSys =
     new CylindricalCoordinateSystem(DisplaySpatialCartesianTuple, true);
-  /** 
+  /**
    * DisplayRealType array of CylRadius, CylAzimuth, CylZAxis
-   * for Cylindrical Coordinates 
+   * for Cylindrical Coordinates
    */
   DisplayRealType[] componentscyl =
           {CylRadius, CylAzimuth, CylZAxis};
-  /** 
-   * System intrinsic DisplayTupleType for Cylindrical Coordinates 
+  /**
+   * System intrinsic DisplayTupleType for Cylindrical Coordinates
    */
   DisplayTupleType DisplaySpatialCylindricalTuple =
     new DisplayTupleType(componentscyl, DisplayCylindricalCoordSys, true);

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -79,7 +79,7 @@ public abstract class ScalarType extends MathType implements Comparable {
    * @param obj		The other object of the same type.
    * @return		A value less than zero, zero, or greater than zero
    *			depending on whether this object is considered less
-   *			than, equal to, or greater than the other object, 
+   *			than, equal to, or greater than the other object,
    *			respectively.
    */
   public int compareTo(Object obj) {
@@ -99,7 +99,7 @@ public abstract class ScalarType extends MathType implements Comparable {
 
   /**
    * Obtains the hash code for this object.  If
-   * <code>scalarType1.equals(scalarType2)</code>, then 
+   * <code>scalarType1.equals(scalarType2)</code>, then
    * <code>scalarType1.hashCode() == scalarType2.hashCode()</code>.
    *
    * @return		The hash code for this object.

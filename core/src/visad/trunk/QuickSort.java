@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -127,18 +127,18 @@ public class QuickSort {
     else {
       int lo = lo0;
       int hi = hi0;
- 
+
       // start in the middle
       double mid = a[(lo0+hi0)/2];
- 
+
       // loop through the array until indices cross
       while (lo <= hi) {
         // find lo-most element >= partition element
         while ( (lo < hi0) && (a[lo] < mid) ) ++lo;
- 
+
         // find hi-most element <= partition element
         while ( (hi > lo0) && (a[hi] > mid) ) --hi;
- 
+
         // swap indices if they have not crossed
         if (lo <= hi) {
           int P = p[lo];
@@ -151,7 +151,7 @@ public class QuickSort {
       }
       // sort the left partition if necessary
       if (lo0 < hi) sort(a, p, lo0, hi);
- 
+
       // sort the right partition if necessary
       if (lo < hi0) sort(a, p, lo, hi0);
     }
@@ -220,7 +220,7 @@ Creating array of 500000 random elements...
 Creation of random elements took 11.691 seconds.
 Sorting...done.
 Sort of elements took 4.953 seconds.
-iris 100% 
+iris 100%
 
 */
 

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -182,7 +182,7 @@ public abstract class ProjectionControl extends Control {
     return mat;
   }
 
-  public static double[] matrix3DTo2D(double[] matrix) 
+  public static double[] matrix3DTo2D(double[] matrix)
          throws VisADException {
     if (matrix.length != MATRIX3D_LENGTH) {
       throw new DisplayException("matrix3DTo2D: input length must be " +
@@ -198,7 +198,7 @@ public abstract class ProjectionControl extends Control {
     return mat;
   }
 
-  public static double[] matrixDConvert(double[] matrix) 
+  public static double[] matrixDConvert(double[] matrix)
          throws VisADException {
     if (matrix.length == MATRIX3D_LENGTH) {
       return matrix3DTo2D(matrix);

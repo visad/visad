@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -396,7 +396,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
     HiY = Hi[1];
     LowZ = Low[2];
     HiZ = Hi[2];
- 
+
     // no Samples consistency test
   }
 
@@ -572,7 +572,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       if (igx > LengthX-2) igx = LengthX-2;
       if (igy < 0) igy = 0;
       if (igy > LengthY-2) igy = LengthY-2;
- 
+
       // set up conversion to 1D Samples array
       int[][] s = { {LengthX*igy+igx,           // (0, 0)
                      LengthX*(igy+1)+igx},      // (0, 1)
@@ -632,7 +632,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       // determine tetrahedralization type
       boolean evencube = ((igx+igy+igz) % 2 == 0);
 
-      // calculate distances from integer grid point 
+      // calculate distances from integer grid point
       double s, t, u;
       if (evencube) {
         s = gx - igx;
@@ -642,7 +642,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       else {
         s = 1 + igx - gx;
         t = 1 + igy - gy;
-        u = 1 + igz - gz; 
+        u = 1 + igz - gz;
       }
 
       // Define vertices of grid box
@@ -834,11 +834,11 @@ public class Gridded3DDoubleSet extends Gridded3DSet
         gx = (LengthX-1)/2;
         gy = (LengthY-1)/2;
         gz = (LengthZ-1)/2;
-      } 
+      }
       int tetnum = 5;  // Tetrahedron number in which to start search
       // if the iteration loop fails, the result should be NaN
       grid[0][i] = grid[1][i] = grid[2][i] = Double.NaN;
-      for (int itnum=0; itnum<2*(LengthX+LengthY+LengthZ); itnum++) { 
+      for (int itnum=0; itnum<2*(LengthX+LengthY+LengthZ); itnum++) {
         // determine tetrahedralization type
         boolean evencube = ((gx+gy+gz) % 2 == 0);
 
@@ -1591,7 +1591,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       }
       // allow estimations up to 0.5 boxes outside of defined samples
       if ( (grid[0][i] < -0.5) || (grid[0][i] > LengthX-0.5)
-        || (grid[1][i] < -0.5) || (grid[1][i] > LengthY-0.5) 
+        || (grid[1][i] < -0.5) || (grid[1][i] > LengthY-0.5)
         || (grid[2][i] < -0.5) || (grid[2][i] > LengthZ-0.5) ) {
         grid[0][i] = grid[1][i] = grid[2][i] = Double.NaN;
       }

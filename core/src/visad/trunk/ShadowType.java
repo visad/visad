@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -249,7 +249,7 @@ public abstract class ShadowType extends Object
           }
 */
           if (doRef && component instanceof ShadowRealTupleType) {
-            ShadowRealTupleType ref = 
+            ShadowRealTupleType ref =
               ((ShadowRealTupleType) component).getReference();
             if (ref != null && ref.getMappedDisplayScalar()) {
               refToComponent[rj] = j;
@@ -313,11 +313,11 @@ public abstract class ShadowType extends Object
   public boolean getAnyContour() {
     return anyContour;
   }
- 
+
   public boolean getAnyFlow() {
     return anyFlow;
   }
- 
+
   public boolean getAnyShape() {
     return anyShape;
   }
@@ -878,7 +878,7 @@ System.out.println("testIndices: LevelOfDifficulty = " + LevelOfDifficulty +
   public DisplayImpl getDisplay() {
     return display;
   }
- 
+
   public MathType getType() {
     return Type;
   }
@@ -1063,7 +1063,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                                  "ShadowType.makePointGeometry: bad");
     }
     VisADPointArray array = new VisADPointArray();
- 
+
     if (compress) {
       // redimension arrays to eliminate Float.NaN values
       int len = spatial_values.length;
@@ -1222,7 +1222,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                 array.coordinates[k+1] = y + scale * array.coordinates[k+1];
                 array.coordinates[k+2] = z + scale * array.coordinates[k+2];
               }
-      
+
               if (array.colors == null && color_values != null) {
                 array.colors = new byte[color_length * npts];
                 if (color_values[0].length > 1) {
@@ -1238,7 +1238,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                   if (color_length > 3) array.colors[k+3] = a;
                 }
               }
-      
+
             }
           } // end for (int i=0; i<arrays.length; i++)
           total_length += arrays.length;
@@ -1482,7 +1482,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             swap[2] = (simax < 0.0f);
           }
         }
-      } // end if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) 
+      } // end if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple))
     }
 
     // first equalize lengths of flow*_values and spatial_values
@@ -2107,7 +2107,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     if (spatial_values[0] == null) return null;
 
     VisADLineArray array = new VisADLineArray();
- 
+
     int len = spatial_values[0].length;
     int flen = flow_values[0].length;
     int rlen = 0; // number of non-missing values
@@ -2258,7 +2258,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
   public VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
-         throws VisADException { 
+         throws VisADException {
     if (text_values == null || text_values.length == 0 ||
         text_control == null) return null;
 
@@ -2513,7 +2513,7 @@ System.out.println("color_values: nummissing = " + nummissing);
           // nothing mapped to this color component, so use default
           int default_index = getDefaultColorIndex(display, index);
 /* WLH 7 Feb 98
-          int default_index = 
+          int default_index =
             index == 0 ? display.getDisplayScalarIndex(Display.Red) :
             (index == 1 ? display.getDisplayScalarIndex(Display.Green) :
              (index == 2 ? display.getDisplayScalarIndex(Display.Blue) :
@@ -2795,16 +2795,16 @@ System.out.println("range = " + range[0] + " " + range[1] +
                                 float[] default_values, int[] inherited_values,
                                 DataRenderer renderer, ShadowType shadow_api)
           throws VisADException, RemoteException {
- 
+
     GraphicsModeControl mode = (GraphicsModeControl)
       display.getGraphicsModeControl().clone();
-    float pointSize = 
+    float pointSize =
       default_values[display.getDisplayScalarIndex(Display.PointSize)];
     mode.setPointSize(pointSize, true);
     float lineWidth =
       default_values[display.getDisplayScalarIndex(Display.LineWidth)];
     mode.setLineWidth(lineWidth, true);
- 
+
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];
     float[] flowScale = new float[2];
@@ -2813,7 +2813,7 @@ System.out.println("range = " + range[0] + " " + range[1] +
                  display_values, valueArrayLength, valueToScalar,
                  display, default_values, range_select, renderer,
                  shadow_api);
- 
+
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       return false;
@@ -2832,22 +2832,22 @@ System.out.println("range = " + range[0] + " " + range[1] +
       // data not selected
       return false;
     }
- 
+
     boolean[] single_missing = {false, false, false, false};
     byte[][] color_values =
       shadow_api.assembleColor(display_values, valueArrayLength, valueToScalar,
             display, default_values, range_select, single_missing, shadow_api);
- 
+
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       return false;
     }
- 
+
     int LevelOfDifficulty = getLevelOfDifficulty();
     if (LevelOfDifficulty == SIMPLE_TUPLE) {
       // only manage Spatial, Color and Alpha here
       // i.e., the 'dots'
- 
+
       if (single_missing[0] || single_missing[1] ||
           single_missing[2]) {
         // System.out.println("single missing alpha");
@@ -2945,7 +2945,7 @@ System.out.println("range = " + range[0] + " " + range[1] +
       // of RealType-s in components (including Reference)
       //
       // accumulate Vector of value_array-s at this ShadowTypeJ3D,
- 
+
       // to be rendered in a post-process to scanning data
       throw new UnimplementedException("terminal LEGAL unimplemented: " +
                                        "ShadowType.terminalTupleOrReal");

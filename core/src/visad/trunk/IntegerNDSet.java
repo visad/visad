@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -62,7 +62,7 @@ public class IntegerNDSet extends LinearNDSet
          throws VisADException {
     return create(type, lengths, null, null, null);
   }
- 
+
   /**
    * General factory method for creating the proper integer set
    * (Integer1DSet, Integer2DSet, etc.).
@@ -97,7 +97,7 @@ public class IntegerNDSet extends LinearNDSet
     for (int i=0; i<n; i++) reals[i] = RealType.Generic;
     return new SetType(new RealTupleType(reals));
   }
-    
+
   private static double[] get_firsts(int[] lengths) {
     double[] firsts = new double[lengths.length];
     for (int j=0; j<lengths.length; j++) firsts[j] = 0.0;

@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDimension.java,v 1.2 1998-11-16 18:23:37 steve Exp $
+ * $Id: QuantityDimension.java,v 1.3 2000-04-26 14:59:43 dglo Exp $
  */
 
 package visad;
@@ -136,10 +136,10 @@ public final class QuantityDimension
   /**
    * Compare a shorter dimensional quantity to a longer one.
    *
-   * @precondition	<code>shorter.exponents.length <= 
+   * @precondition	<code>shorter.exponents.length <=
    *			longer.exponents.length</code>.
    */
-  private static int compare(QuantityDimension shorter, 
+  private static int compare(QuantityDimension shorter,
     QuantityDimension longer)
   {
     int	n = 0;

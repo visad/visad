@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -145,7 +145,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
   }
- 
+
   /** a 2-D set with manifold dimension = 1; samples array is
       organized float[2][number_of_samples] where lengthX =
       number_of_samples; no geometric constraint on samples;
@@ -168,7 +168,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     LengthX = Lengths[0];
     LowY = Low[1];
     HiY = Hi[1];
- 
+
     // no Samples consistency test
   }
 
@@ -186,7 +186,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       // not used - over-ridden by Linear2DSet.indexToValue
       int indexX, indexY;
       float[][] grid = new float[ManifoldDimension][length];
-  
+
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
           indexX = index[i] % LengthX;
@@ -648,8 +648,8 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
 
 iris 26% java visad.Gridded2DSet < Gridded2D.txt
 num_dimensions = 2, num_coords = 20
- 
-Lengths = 5 4  wedge = 
+
+Lengths = 5 4  wedge =
  0
  1
  2
@@ -668,22 +668,22 @@ Samples (5 x 4):
 . . .
 #18:    40.213987, 19.230974
 #19:    46.293732, 18.239872
- 
+
 gridToValue test:
 (-0.4, -0.4)    -->  11.100636, 43.15516
 (0.5, -0.4)     -->  16.396571, 43.027161
 . . .
 (3.5, 3.4)      -->  44.087403, 15.515757
 (4.4, 3.4)      -->  49.559174, 14.623765
- 
+
 valueToGrid test:
 11.100636, 43.15516     -->  (-0.4, -0.4)
 16.396571, 43.027161    -->  (0.5, -0.4)
 . . .
 44.087403, 15.515757    -->  (3.5, 3.4)
 49.559174, 14.623765    -->  (4.4, 3.4)
- 
-iris 27% 
+
+iris 27%
 
 */
 

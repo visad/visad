@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -59,7 +59,7 @@ public class Integer2DSet extends Linear2DSet
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
     super(type, sets, coord_sys, units, errors);
-  } 
+  }
 
   /** construct a 2-dimensional set with values
       {0, 1, ..., length1-1} x {0, 1, ..., length2-1};

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -50,7 +50,7 @@ public class RealType extends ScalarType {
 
   /**
    * The interval attribute.  This attribute should be used during construction
-   * of a RealType if the RealType refers to an interval (e.g. length 
+   * of a RealType if the RealType refers to an interval (e.g. length
    * difference, delta temperature).  In general, RealType-s that are temporal
    * in nature should have this attribute because the "time" variable in most
    * formulae actually refer to time differences (e.g. "time since the beginning
@@ -95,7 +95,7 @@ public class RealType extends ScalarType {
   public final static RealType Generic =
     new RealType("GENERIC_REAL", CommonUnit.promiscuous, true);
 
- 
+
   /**
    * Constructs from a name (two RealTypes are equal if their names are equal).
    * Assumes <code>null</code> for the default Unit and default Set and that the
@@ -106,7 +106,7 @@ public class RealType extends ScalarType {
   public RealType(String name) throws VisADException {
     this(name, 0);
   }
- 
+
   /**
    * Constructs from a name (two RealTypes are equal if their names are equal)
    * and whether or not the RealType refers to an interval (e.g. length
@@ -158,7 +158,7 @@ public class RealType extends ScalarType {
     if (set != null && set.getDimension() != 1) {
       throw new SetException("RealType: default set dimension != 1");
     }
-    DefaultUnit = 
+    DefaultUnit =
       u != null && isSet(attrMask, INTERVAL) ? u.getAbsoluteUnit() : u;
     DefaultSet = set;
     DefaultSetEverAccessed = false;
@@ -198,7 +198,7 @@ public class RealType extends ScalarType {
   /**
    * Indicates whether or not this RealType refers to an interval (e.g.
    * length difference, delta temperature).
-   * @return			Whether or not this RealType refers to an 
+   * @return			Whether or not this RealType refers to an
    *				interval.
    */
   public final boolean isInterval() {
@@ -240,7 +240,7 @@ public class RealType extends ScalarType {
                                " so cannot change");
     }
     DefaultSet = sampling;
- 
+
     if (DefaultUnit != null && DefaultSet != null) {
       Unit[] us = {DefaultUnit};
       if (!Unit.canConvertArray(us, DefaultSet.getSetUnits())) {
@@ -351,7 +351,7 @@ public class RealType extends ScalarType {
         case Data.ATAN2:
         case Data.INV_ATAN2:
         case Data.ATAN2_DEGREES:
-        case Data.INV_ATAN2_DEGREES: 
+        case Data.INV_ATAN2_DEGREES:
         default:
       }
 
@@ -370,7 +370,7 @@ public class RealType extends ScalarType {
 	    newName = newName(getName(), newAttrMask);
 	    newUnit = null;
 	  }
-	  else if ( unit == null ) { 
+	  else if ( unit == null ) {
 	    newName = newName(((RealType)type).getName(), newAttrMask);
 	    newUnit = null;
 	  }
@@ -484,7 +484,7 @@ public class RealType extends ScalarType {
 
         case Data.ATAN2_DEGREES:
           newUnit = CommonUnit.degree;
-        case Data.INV_ATAN2_DEGREES: 
+        case Data.INV_ATAN2_DEGREES:
           newUnit = CommonUnit.degree;
           newName = getUniqueGenericName( names, "deg" );
           try {
@@ -738,8 +738,8 @@ public class RealType extends ScalarType {
     return getName();
   }
 
-  public static void main( String[] args ) 
-         throws VisADException 
+  public static void main( String[] args )
+         throws VisADException
   {
 
   //- Tests for unary   --*
@@ -747,7 +747,7 @@ public class RealType extends ScalarType {
     RealType real_R = new RealType( "Red_Brightness", null, null );
     RealType real_G = new RealType( "Green_Brightness", null, null );
     RealType real_B = new RealType( "Blue_Brightness", null, null );
-    RealType[] reals = { real_R, real_G, real_B }; 
+    RealType[] reals = { real_R, real_G, real_B };
 
     RealTupleType RGBtuple = new RealTupleType( reals );
 
@@ -776,19 +776,19 @@ public class RealType extends ScalarType {
 
     real_A = RealType.Generic;
  // real_A = new RealType( "temperature", SI.kelvin, null );
-    m_type = RGBtuple.binary( real_A, Data.ADD, new Vector() );  
+    m_type = RGBtuple.binary( real_A, Data.ADD, new Vector() );
       System.out.println( m_type.toString() );
 
-    m_type = RGBtuple.binary( real_A, Data.MULTIPLY, new Vector() );  
+    m_type = RGBtuple.binary( real_A, Data.MULTIPLY, new Vector() );
       System.out.println( m_type.toString() );
 
-    m_type = RGBtuple.binary( real_A, Data.POW, new Vector() );  
+    m_type = RGBtuple.binary( real_A, Data.POW, new Vector() );
       System.out.println( m_type.toString() );
 
-    m_type = RGBtuple.binary( real_A, Data.ATAN2, new Vector() );  
+    m_type = RGBtuple.binary( real_A, Data.ATAN2, new Vector() );
       System.out.println( m_type.toString() );
 
-    m_type = RGBtuple.binary( real_A, Data.ATAN2_DEGREES, new Vector() );  
+    m_type = RGBtuple.binary( real_A, Data.ATAN2_DEGREES, new Vector() );
       System.out.println( m_type.toString() );
 
     // and finally, force an Exception

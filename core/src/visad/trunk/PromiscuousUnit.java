@@ -1,13 +1,13 @@
 //
 // PromiscuousUnit.java
 //
- 
+
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad;
- 
+
 /**
    PromiscuousUnit is the VisAD class for units
    that are convertable with any other Unit.<P>
@@ -34,7 +34,7 @@ public class PromiscuousUnit extends Unit {
 
   static final Unit promiscuous = new PromiscuousUnit();
 
-  private PromiscuousUnit() 
+  private PromiscuousUnit()
   {
     super("promiscuous");
   }
@@ -44,7 +44,7 @@ public class PromiscuousUnit extends Unit {
    * an exception because promiscuous units may not be cloned.
    * @param identifier		The name or abbreviation for the cloned unit.
    *				May be <code>null</code> or empty.
-   * @throws UnitException	Promiscuous units may not be cloned.  Always 
+   * @throws UnitException	Promiscuous units may not be cloned.  Always
    *				thrown.
    */
   protected Unit protectedClone(String identifier)
@@ -64,7 +64,7 @@ public class PromiscuousUnit extends Unit {
     return getIdentifier();
   }
 
-  public Unit pow(int power) 
+  public Unit pow(int power)
 	throws UnitException {
     return this;
   }
@@ -73,7 +73,7 @@ public class PromiscuousUnit extends Unit {
 	throws UnitException {
     return this;
   }
- 
+
   public Unit multiply(Unit that)
        throws UnitException {
     return that;

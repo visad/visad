@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -724,12 +724,12 @@ Integer2DSet: Length = 16384
 
 Integer1DSet: Length = 256
 
- iset1d 
- iset2d 
+ iset1d
+ iset2d
 
 1
 12 12 14 12 10
-iris 236% 
+iris 236%
 
 */
 

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -64,7 +64,7 @@ public class ShadowRealTupleType extends ShadowTupleType {
       whose permutation == -1 from ConstantMap-s or from
       DisplayRealType.DefaultValue */
   private int[] permutation;
- 
+
   public ShadowRealTupleType(MathType t, DataDisplayLink link, ShadowType parent,
                              ShadowType[] tcs, ShadowType adapter)
          throws VisADException, RemoteException {

@@ -1,13 +1,13 @@
 //
 // VisADTriangleStripArray.java
 //
- 
+
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad;
- 
+
 /**
    VisADTriangleStripArray stands in for
    j3d.TriangleStripArray and is Serializable.<P>
@@ -71,7 +71,7 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
     // WLH 13 March 2000
     // if (coord_sys == null) return this;
-    if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem) { 
+    if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem) {
       return this;
     }
 
@@ -1259,9 +1259,9 @@ s   i
 t   s
 
                     1
-No  No              /\      
-                   /  \    
-                  /    \  
+No  No              /\
+                   /  \
+                  /    \
                  /      \
                 /        \
                /          \
@@ -1270,12 +1270,12 @@ No  No              /\
             /                \
            /                  \
           0                    2
-                    
-    
+
+
                     1
-No  Yes             /\      
-                   /  \    
-                  /    \  
+No  Yes             /\
+                   /  \
+                  /    \
                  /      \
                 /        \ 2
                /          \
@@ -1287,9 +1287,9 @@ No  Yes             /\
 
 
                     1, 7
-Yes No              /\      
-                   /  \    
-                  /    \  
+Yes No              /\
+                   /  \
+                  /    \
                  /      \
           0, 5* /        \
                /          \

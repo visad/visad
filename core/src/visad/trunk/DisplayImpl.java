@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -416,7 +416,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public void addDisplayListener(DisplayListener listener) {
     ListenerVector.addElement(listener);
   }
- 
+
   /** remove a DisplayListener */
   public void removeDisplayListener(DisplayListener listener) {
     if (listener != null) {
@@ -682,7 +682,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         if (constant_maps == null) {
           links[i] = new DataDisplayLink(refs[i], this, this, null,
                                          renderer, getLinkId());
-        }   
+        }
         else {
           links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
                                          renderer, getLinkId());
@@ -693,7 +693,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         if (constant_maps == null) {
           links[i] = new DataDisplayLink(refs[i], this, display, null,
                                          renderer, getLinkId());
-        }   
+        }
         else {
           links[i] = new DataDisplayLink(refs[i], this, display, constant_maps[i],
                                          renderer, getLinkId());
@@ -812,7 +812,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         ScalarMap map = (ScalarMap) maps.nextElement();
         map.setTicks();
       }
-  
+
       // set ScalarMap.valueIndex-s and valueArrayLength
       int n = getDisplayScalarCount();
       int[] scalarToValue = new int[n];
@@ -835,7 +835,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           valueArrayLength++;
         }
       }
-   
+
       // set valueToScalar and valueToMap arrays
       valueToScalar = new int[valueArrayLength];
       valueToMap = new int[valueArrayLength];
@@ -1024,7 +1024,7 @@ if (initialize) {
               map.getDisplayScalar() + " for ConstantMap only");
       }
       map.setDisplay(this);
-  
+
       if (map instanceof ConstantMap) {
         synchronized (ConstantMapVector) {
           Enumeration maps = ConstantMapVector.elements();
@@ -1404,9 +1404,9 @@ if (initialize) {
 
   /** return the ProjectionControl associated with this DisplayImpl */
   public abstract ProjectionControl getProjectionControl();
- 
+
   /** return the GraphicsModeControl associated with this DisplayImpl */
-  public abstract GraphicsModeControl getGraphicsModeControl(); 
+  public abstract GraphicsModeControl getGraphicsModeControl();
 
   /** wait for millis milliseconds
    *  @deprecated Use <CODE>new visad.util.Delay(millis)</CODE> instead.
@@ -1591,8 +1591,8 @@ if (initialize) {
    */
   public Printable getPrintable()
   {
-    if (printer == null) 
-      printer = 
+    if (printer == null)
+      printer =
         new Printable() {
           public int print(Graphics g, PageFormat pf, int pi)
              throws PrinterException
@@ -1603,9 +1603,9 @@ if (initialize) {
             }
             BufferedImage image = DisplayImpl.this.getImage();
             g.drawImage(
-                image, 
-                (int) pf.getImageableX(), 
-                (int) pf.getImageableY(), 
+                image,
+                (int) pf.getImageableX(),
+                (int) pf.getImageableY(),
                 DisplayImpl.this.component);
             return Printable.PAGE_EXISTS;
           }

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.9 2000-04-24 22:50:08 steve Exp $
+ * $Id: ScaledUnit.java,v 1.10 2000-04-26 14:59:52 dglo Exp $
  */
 
 package visad;
@@ -199,7 +199,7 @@ public final class ScaledUnit
      * Raises this unit to a power.
      *
      * @param power	The power to raise this unit by.
-     * @return		The unit resulting from raising this unit to 
+     * @return		The unit resulting from raising this unit to
      *			<code>power</code>.
      * @promise		This unit has not been modified.
      */
@@ -214,7 +214,7 @@ public final class ScaledUnit
      *
      * @param power	The power to raise this unit by.  If this unit is
      *			not dimensionless, then the value must be integral.
-     * @return		The unit resulting from raising this unit to 
+     * @return		The unit resulting from raising this unit to
      *			<code>power</code>.
      * @throws IllegalArgumentException
      *			This unit is not dimensionless and <code>power</code>
@@ -416,12 +416,12 @@ public final class ScaledUnit
 
 	System.out.println("milePerHour*poundPerSec=\"" +
 	    milePerHour.multiply(poundPerSec) + "\"");
-	System.out.println("poundPerSec*milePerHour=\"" + 
+	System.out.println("poundPerSec*milePerHour=\"" +
 	    poundPerSec.multiply(milePerHour) + "\"");
 
-	System.out.println("milePerHour/poundPerSec=\"" + 
+	System.out.println("milePerHour/poundPerSec=\"" +
 	    milePerHour.divide(poundPerSec) + "\"");
-	System.out.println("poundPerSec/milePerHour=\"" + 
+	System.out.println("poundPerSec/milePerHour=\"" +
 	    poundPerSec.divide(milePerHour) + "\"");
 
 	System.out.println("milePerHour.toThis(1,meterPerSec)=" +

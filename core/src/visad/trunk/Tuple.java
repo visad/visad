@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -231,7 +231,7 @@ public class Tuple extends DataImpl {
   public Data unary(int op, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
   */
-  public Data unary(int op, MathType new_type, 
+  public Data unary(int op, MathType new_type,
                     int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if ( new_type == null ) {
@@ -242,12 +242,12 @@ public class Tuple extends DataImpl {
        throw new TypeException("unary: new_type doesn't match return type");
     }
     TupleType T_type = (TupleType)new_type;
-    
+
     if (isMissing()) return new Tuple((TupleType) new_type);
 
     Data[] datums = new Data[tupleComponents.length];
     for (int j=0; j<tupleComponents.length; j++) {
-      datums[j] = tupleComponents[j].unary(op, T_type.getComponent(j), 
+      datums[j] = tupleComponents[j].unary(op, T_type.getComponent(j),
                                            sampling_mode, error_mode);
     }
     return new Tuple(datums);

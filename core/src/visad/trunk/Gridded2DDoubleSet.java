@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -73,7 +73,7 @@ public class Gridded2DDoubleSet extends Gridded2DSet
          throws VisADException {
     this(type, Set.floatToDouble(samples), lengthX, null, null, null, true);
   }
- 
+
   /** a 2-D set with manifold dimension = 1; samples array is
       organized float[2][number_of_samples] where lengthX =
       number_of_samples; no geometric constraint on samples;
@@ -177,7 +177,7 @@ public class Gridded2DDoubleSet extends Gridded2DSet
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
   }
- 
+
   /** a 2-D set with manifold dimension = 1; samples array is
       organized double[2][number_of_samples] where lengthX =
       number_of_samples; no geometric constraint on samples;
@@ -199,7 +199,7 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     LengthX = Lengths[0];
     LowY = Low[1];
     HiY = Hi[1];
- 
+
     // no Samples consistency test
   }
 
@@ -273,7 +273,7 @@ public class Gridded2DDoubleSet extends Gridded2DSet
       // not used - over-ridden by Linear2DSet.indexToValue
       int indexX, indexY;
       double[][] grid = new double[ManifoldDimension][length];
-  
+
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
           indexX = index[i] % LengthX;

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -47,7 +47,7 @@ public class ShapeControl extends Control {
    * running of the display.
    *
    * @param set			1-D set of values that defines the mapping from
-   *				RealType values to indices into the array of 
+   *				RealType values to indices into the array of
    *				shapes.  The domain dimension shall be 1.
    */
   public synchronized void setShapeSet(SimpleSet set)
@@ -77,7 +77,7 @@ public class ShapeControl extends Control {
     }
     changeControl(true);
   }
- 
+
   /**
    * Sets the array of shapes.  The array is accessed by index determined from
    * the value-to-index mapping established by the <code>setShapeSet()</code>

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.10 2000-04-24 22:50:07 steve Exp $
+ * $Id: BaseUnit.java,v 1.11 2000-04-26 14:59:15 dglo Exp $
  */
 
 package visad;
@@ -52,7 +52,7 @@ public final class BaseUnit
      * Raise a base unit to a power.
      *
      * @param power	The power to raise this unit by.
-     * @return		The unit resulting from raising this unit to 
+     * @return		The unit resulting from raising this unit to
      *			<code>power</code>.
      * @promise		This unit has not been modified.
      */
@@ -66,7 +66,7 @@ public final class BaseUnit
      *
      * @param power	The power to raise this unit by.  The value must be
      *			integral.
-     * @return		The unit resulting from raising this unit to 
+     * @return		The unit resulting from raising this unit to
      *			<code>power</code>.
      * @throws IllegalArgumentException
      *			<code>power</code> has a non-integral value.
@@ -112,7 +112,7 @@ public final class BaseUnit
      * Create a new base unit from the name of a quantity and the name
      * of a unit.  The unit abbreviation will be the same as the unit name.
      *
-     * @param quantityName	The name of the associated quantity (e.g. 
+     * @param quantityName	The name of the associated quantity (e.g.
      *				"Length").
      * @param unitName		The name for the unit (e.g. "meter").
      * @return          	A new base unit or the previously created one
@@ -136,7 +136,7 @@ public final class BaseUnit
      * Create a new base unit from from the name of a quantity, the name of
      * a unit, and the unit's abbreviation.
      *
-     * @param quantityName	The name of the associated quantity (e.g. 
+     * @param quantityName	The name of the associated quantity (e.g.
      *				"Length").
      * @param unitName		The name for the unit (e.g. "meter").
      * @param abbreviation	The abbreviation for the unit (e.g. "m").
@@ -161,16 +161,16 @@ public final class BaseUnit
 	if (baseUnit == null)
 	    return new BaseUnit(unitName, abbreviation, quantityName);
 
-	if (baseUnit.unitName.equals(unitName) && 
+	if (baseUnit.unitName.equals(unitName) &&
 	    baseUnit.getIdentifier().equals(abbreviation))
 	{
 	    return baseUnit;
 	}
 
-	throw new UnitException("Attempt to redefine quantity \"" + 
-	    quantityName + "\" base unit from \"" + 
-	    baseUnit.unitName + "(" + baseUnit.getIdentifier() + ")" + 
-	    "\" to \"" + 
+	throw new UnitException("Attempt to redefine quantity \"" +
+	    quantityName + "\" base unit from \"" +
+	    baseUnit.unitName + "(" + baseUnit.getIdentifier() + ")" +
+	    "\" to \"" +
 	    unitName + "(" + abbreviation + ")" + "\"");
     }
 
@@ -236,7 +236,7 @@ public final class BaseUnit
 	BaseUnit	second = BaseUnit.addBaseUnit("Time", "second", "s");
 
 	System.out.println("meter*second=\"" + meter.multiply(second) + "\"");
-	System.out.println("meter/(Unit)second=\"" + 
+	System.out.println("meter/(Unit)second=\"" +
 	    meter.divide((Unit)second) + "\"");
 
 	System.out.println("meter.toThis(5,meter)=" + meter.toThis(5,meter));
@@ -249,22 +249,22 @@ public final class BaseUnit
 
 	double[] values = meter.toThis(new double[] {1,2},meter);
 
-	System.out.println("meter.toThis({1,2},meter)=" + 
+	System.out.println("meter.toThis({1,2},meter)=" +
 	    values[0] + "," + values[1]);
 
 	values = meter.toThat(new double[] {1,2},meter);
 
-	System.out.println("meter.toThat({1,2},meter)=" + 
+	System.out.println("meter.toThat({1,2},meter)=" +
 	    values[0] + "," + values[1]);
 
 	values = meter.toThis(new double[] {1,2},(Unit)meter);
 
-	System.out.println("meter.toThis({1,2},(Unit)meter)=" + 
+	System.out.println("meter.toThis({1,2},(Unit)meter)=" +
 	    values[0] + "," + values[1]);
 
 	values = meter.toThat(new double[] {1,2},(Unit)meter);
 
-	System.out.println("meter.toThat({1,2},(Unit)meter)=" + 
+	System.out.println("meter.toThat({1,2},(Unit)meter)=" +
 	    values[0] + "," + values[1]);
 
 	System.out.println("Checking exceptions:");
@@ -333,13 +333,13 @@ public final class BaseUnit
         if (equals(that))
         {
             float[]    newValues = new float[values.length];
- 
+
             for (int i = 0; i < values.length; ++i)
                 newValues[i] = values[i];
- 
+
             return newValues;
         }
- 
+
         throw new UnitException("Attempt to convert from unit \"" +
             that + "\" to unit \"" + this + "\"");
     }
@@ -419,13 +419,13 @@ public final class BaseUnit
         if (equals(that))
         {
             float[]    newValues = new float[values.length];
- 
+
             for (int i = 0; i < values.length; ++i)
                 newValues[i] = values[i];
- 
+
             return newValues;
         }
- 
+
         throw new UnitException("Attempt to convert from unit \"" +
             this + "\" to unit \"" + that + "\"");
     }
@@ -509,7 +509,7 @@ public final class BaseUnit
     {
       throw new UnitException("Base units may not be cloned");
     }
-      
+
 
   /** added by WLH 11 Feb 98 */
   public boolean equals(Unit unit) {

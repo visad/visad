@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -100,7 +100,7 @@ public class Irregular1DSet extends IrregularSet {
   public float[][] indexToValue(int[] index) throws VisADException {
     int[] newIndex = new int[index.length];
     for (int i=0; i<index.length; i++) {
-      newIndex[i] = 
+      newIndex[i] =
           (0 <= index[i] && index[i] < Length) ? oldToNew[index[i]] : -1;
     }
     float[][] value = SortedSet.indexToValue(newIndex);
@@ -251,7 +251,7 @@ valueToInterp test:
 110.0   --> [8, 8, 9]   weight total: 1.0
 120.0   --> [9, 9, 8]   weight total: 1.0
 130.0   --> [9, 9]      weight total: 1.0
-iris 57% 
+iris 57%
 
 */
 

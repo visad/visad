@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -153,7 +153,7 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
   ShadowRealType[] RangeComponents; // null for ShadowSetType
   ShadowRealType[] DomainComponents;
   ShadowRealType[] DomainReferenceComponents;
- 
+
   /** true if range is ShadowRealType or Flat ShadowTupleType
       not the same as FunctionType.Flat;
       also true for ShadowSetType */
@@ -288,7 +288,7 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
         }
         else if (Range instanceof ShadowScalarType) {
           ((ShadowScalarType) Range).incrementIndices(local_indices);
-          local_display_indices = addIndices(local_display_indices, 
+          local_display_indices = addIndices(local_display_indices,
             ((ShadowScalarType) Range).getDisplayIndices());
           local_value_indices = addIndices(local_value_indices,
             ((ShadowScalarType) Range).getValueIndices());
@@ -543,7 +543,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 
     // array to hold values for various mappings
     float[][] display_values = new float[valueArrayLength][];
- 
+
     // get values inherited from parent;
     // assume these do not include SelectRange, SelectValue
     // or Animation values - see temporary hack in
@@ -1131,9 +1131,9 @@ for (int i=0; i < 4; i++) {
         // MEM
         mapValues(display_values, domain_values, DomainComponents);
       }
-   
+
       // System.out.println("mapped domain_values");
-  
+
       ShadowRealTupleType domain_reference = Domain.getReference();
 
 /*
@@ -1238,13 +1238,13 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
                       domain_units);
         // WLH 13 Macrh 2000
         // }
- 
+
         //
         // TO_DO
         // adjust any RealVectorTypes in range
         // see FlatField.resample and FieldImpl.resample
         //
-  
+
 // System.out.println("start map reference " + (System.currentTimeMillis() - link.start_time));
 
         // map reference_values to appropriate DisplayRealType-s
@@ -1305,17 +1305,17 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       // components, in defaultUnits for RealType-s
       // MEM - may copy (in convertTuple)
       float[][] range_values = ((Field) data).getFloats(false);
-  
+
       // System.out.println("got range_values");
-  
+
       if (range_values != null) {
         // map range_values to appropriate DisplayRealType-s
         ShadowRealType[] RangeComponents = getRangeComponents();
         // MEM
         mapValues(display_values, range_values, RangeComponents);
-   
+
         // System.out.println("mapped range_values");
-  
+
         //
         // transform any range CoordinateSystem-s
         // into display_values, then mapValues
@@ -1325,7 +1325,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
         int[] componentIndex = getComponentIndex();
 
         if (refToComponent != null) {
-  
+
           for (int i=0; i<refToComponent.length; i++) {
             int n = componentWithRef[i].getDimension();
             int start = refToComponent[i];
@@ -1347,7 +1347,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
               range_coord_sys =
                 ((Field) data).getRangeCoordinateSystem(componentIndex[i]);
             }
-  
+
             float[][] reference_values = null;
             if (range_coord_sys.length == 1) {
               // MEM
@@ -1391,7 +1391,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
               // }
 
             }
-   
+
             // map reference_values to appropriate DisplayRealType-s
             // MEM
 /* WLH 17 April 99
@@ -1637,7 +1637,7 @@ if (range_select[0] != null) {
       boolean[][] spatial_range_select = new boolean[1][];
 
       // MEM - but not if isTextureMap
-      Set spatial_set = 
+      Set spatial_set =
         shadow_api.assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
                         inherited_values, domain_set, Domain.getAllSpatial(),
@@ -1698,7 +1698,7 @@ System.out.println("  isTextureMap = " + isTextureMap);
       int spatialManifoldDimension = spatialDimensions[1];
 
       // System.out.println("assembleSpatial");
- 
+
       int spatial_length = Math.min(domain_length, spatial_values[0].length);
 
       int color_length = Math.min(domain_length, color_values[0].length);
@@ -2490,7 +2490,7 @@ WLH 15 March 2000 */
                 spatial_set.cram_missing(range_select[0]);
                 spatial_all_select = false;
               }
-              else { 
+              else {
                 if (color_values == null) {
                   color_values = new byte[4][domain_length];
                   for (int i=0; i<domain_length; i++) {
@@ -2528,7 +2528,7 @@ WLH 15 March 2000 */
             throw new DisplayException("bad spatialManifoldDimension: " +
                                        "ShadowFunctionOrSetType.doTransform");
           }
-  
+
           if (array != null && array.vertexCount > 0) {
             shadow_api.addToGroup(group, array, mode,
                                   constant_alpha, constant_color);
@@ -2540,7 +2540,7 @@ WLH 15 March 2000 */
             }
           }
         } // end if (!anyContourCreated && !anyFlowCreated &&
-          //         !anyTextCreated && !anyShapeCreated) 
+          //         !anyTextCreated && !anyShapeCreated)
         return false;
       } // end if (LevelOfDifficulty == SIMPLE_FIELD)
       else if (LevelOfDifficulty == SIMPLE_ANIMATE_FIELD) {
@@ -2548,7 +2548,7 @@ WLH 15 March 2000 */
         Control control = null;
         Object swit = null;
         int index = -1;
-  
+
         for (int i=0; i<valueArrayLength; i++) {
           float[] values = display_values[i];
           if (values != null) {
@@ -2564,12 +2564,12 @@ WLH 15 March 2000 */
             }
           } // end if (values != null)
         } // end for (int i=0; i<valueArrayLength; i++)
-  
+
         if (control == null) {
           throw new DisplayException("bad SIMPLE_ANIMATE_FIELD: " +
                                      "ShadowFunctionOrSetType.doTransform");
         }
-  
+
         for (int i=0; i<domain_length; i++) {
           Object branch = shadow_api.makeBranch();
           if (range_select[0] == null || range_select[0].length == 1 ||
@@ -2619,7 +2619,7 @@ WLH 15 March 2000 */
               anyShapeCreated = true;
               arrays = null;
             }
-    
+
             boolean anyTextCreated = false;
             if (anyText && text_values != null && text_control != null) {
               String[] te = new String[1];
@@ -2671,7 +2671,7 @@ WLH 15 March 2000 */
           }
           shadow_api.addToSwitch(swit, branch);
         } // end for (int i=0; i<domain_length; i++)
-  
+
         shadow_api.addSwitch(group, swit, control, domain_set, renderer);
         return false;
       }  // end if (LevelOfDifficulty == SIMPLE_ANIMATE_FIELD)
@@ -3031,7 +3031,7 @@ WLH 15 March 2000 */
         images[d] = new BufferedImage(colorModel, raster, false, null);
 /* WLH 23 Feb 2000
         if (axis == 1) {
-          images[(data_depth-1) - d] = 
+          images[(data_depth-1) - d] =
             new BufferedImage(colorModel, raster, false, null);
         }
         else {

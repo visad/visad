@@ -1,13 +1,13 @@
 //
 // VisADLineStripArray.java
 //
- 
+
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad;
- 
+
 /**
    VisADLineStripArray stands in for j3d.LineStripArray
    and is Serializable.<P>
@@ -96,7 +96,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
       float var_ratio = 0.0f;
       float max_ratio = 0.0f;
       int num_ratio = 0;
-  
+
       last_i = 0; // start i for each vertex strip
       for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
         for (int i=last_i; i<last_i+stripVertexCounts[i_svc]-1; i++) {
@@ -181,7 +181,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
     int[] svcs = new int[coordinates.length];
     int svc_index = 0;
     last_i = 0; // start i for each vertex strip
- 
+
     int[] km = {0, 0};
     j = 0;
     boolean any_split = false;
@@ -226,7 +226,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
       }
       last_i += stripVertexCounts[i_svc]*3;
     } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
- 
+
     if (!any_split) {
       return this;
     }
@@ -277,7 +277,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
     int[] svcs = new int[coordinates.length];
     int svc_index = 0;
     int last_i = 0; // start i for each vertex strip
- 
+
     int[] km = {0, 0};
     int j = 0;
     boolean any_split = false;
@@ -409,7 +409,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
       }
       last_i += stripVertexCounts[i_svc]*3;
     } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
- 
+
     if (!any_split) {
       return this;
     }
@@ -473,7 +473,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
     int[] svcs = new int[coordinates.length / 4];
     int svc_index = 0;
     int last_i = 0; // start i for each vertex strip
- 
+
     int k = 0;
     int m = 0;
     int j = 0;
@@ -482,7 +482,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
       int accum = 0; // strip counter
       j = color_length * last_i / 3;
       for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3) {
- 
+
         if (coordinates[i] == coordinates[i] &&
             coordinates[i+1] == coordinates[i+1] &&
             coordinates[i+2] == coordinates[i+2]) {
@@ -529,7 +529,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
       }
       last_i += stripVertexCounts[i_svc]*3;
     } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
- 
+
     if (!any_missing) {
       return this;
     }
