@@ -591,7 +591,7 @@ public class Contour2D extends Applet implements MouseListener {
           } // switch
 
           // If contour level is negative, make dashed line
-          if (gg < 0.0 && idash==1) {
+          if (gg < base && idash==1) {
             float vxa, vya, vxb, vyb;
             vxa = vx[numv-2];
             vya = vy[numv-2];
