@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcData.java,v 1.3 1998-03-12 22:03:05 steve Exp $
+ * $Id: NcData.java,v 1.4 1998-03-17 15:53:14 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -25,6 +25,20 @@ NcData
      * The VisAD MathType of the data object.
      */
     protected MathType	mathType;
+
+
+    /**
+     * Factory method for constructing the proper type of NcData.
+     *
+     * @param vars	netCDF variables with the same domain.
+     */
+    static NcData
+    create(ImportVar[] vars)
+    {
+	return (vars[0].getRank() == 0)
+		? NcScalar.create(vars)
+		: NcFunction.create(vars);
+    }
 
 
     /**

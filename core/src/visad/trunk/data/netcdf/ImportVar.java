@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ImportVar.java,v 1.6 1998-03-12 22:03:03 steve Exp $
+ * $Id: ImportVar.java,v 1.7 1998-03-17 15:52:56 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -16,6 +16,7 @@ import ucar.netcdf.DimensionIterator;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.CoordinateSystem;
+import visad.Data;
 import visad.DoubleSet;
 import visad.FloatSet;
 import visad.Linear1DSet;
@@ -24,6 +25,7 @@ import visad.OffsetUnit;
 import visad.RealType;
 import visad.SI;
 import visad.Set;
+import visad.Text;
 import visad.TextType;
 import visad.Unit;
 import visad.VisADException;
@@ -33,7 +35,7 @@ import visad.data.netcdf.units.Parser;
 
 
 /**
- * The ImportVar class provides an abstract class for adapting a netCDF
+ * The ImportVar class provides an abstract class for decorating a netCDF
  * variable that's being imported to a VisAD API.
  */
 abstract class
@@ -75,18 +77,20 @@ ImportVar
     {
 	this.var = var;
 	this.netcdf = netcdf;
-	unit = setUnit();
+	unit = getUnit(var);
     }
 
 
     /**
      * Determine the units of the netCDF variable.
      *
-     * @return	The units of the variable or <code>null</code> if there
-     *		was no "unit" attribute or an error occurred during parsing.
+     * @param var	The netCDF variable to have it's units returned.
+     * @return		The units of the variable or <code>null</code> if there
+     *			was no "unit" attribute or an error occurred during 
+     *			parsing.
      */
-    private Unit
-    setUnit()
+    private static Unit
+    getUnit(Variable var)
     {
 	Unit		unit = null;
 	Attribute	attr = var.getAttribute("units");
@@ -569,6 +573,19 @@ ImportVar
     abstract double[]
     getDoubleValues(int ipt)
 	throws IOException;
+
+    /**
+     * Return the variable as a VisAD data object.
+     *
+     * @return			The VisAD data object corresponding to the
+     *				Variable.
+     * @exception IOException   I/O error.
+     */
+    /*
+    abstract Data
+    getData()
+	throws IOException;
+     */
 }
 
 
@@ -695,6 +712,44 @@ NcText
     getDoubleValues(int ipt)
     {
 	throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     * Return the variable as a VisAD data object.
+     *
+     * @return			The VisAD data object corresponding to the
+     *				Variable.
+     * @exception IOException   I/O error.
+     */
+    Data
+    getData()
+	throws IOException, VisADException
+    {
+	Data	data;
+
+	if (getRank() == 1)
+	{
+	    /* Scalar text variable (i.e. a String). */
+
+	    StringBuffer	string = new StringBuffer(getLengths()[0]);
+
+	    for (IndexIterator iter = new IndexIterator(getLengths());
+		 iter.notDone();
+		 iter.incr())
+	    {
+		string.append(var.getChar(iter.value()));
+	    }
+
+	    data = new Text((TextType)getMathType(), string.toString());
+	}
+	else
+	{
+	    /* Non-scalar text variable (i.e. an array of Strings). */
+	    data = null;	// TODO
+	}
+
+	return data;
     }
 }
 
