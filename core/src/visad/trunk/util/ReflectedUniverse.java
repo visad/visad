@@ -237,7 +237,8 @@ public class ReflectedUniverse {
 
   /** Registers a variable in the universe. */
   public void setVar(String varName, Object obj) {
-    variables.put(varName, obj);
+    if (obj == null) variables.remove(varName);
+    else variables.put(varName, obj);
   }
 
   /** Registers a variable of primitive type boolean in the universe. */
