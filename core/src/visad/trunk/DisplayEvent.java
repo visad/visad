@@ -52,14 +52,28 @@ public class DisplayEvent extends Event {
 
   private int id = 0;
 
+  private int mouse_x = 0, mouse_y = 0; // MouseEvent position
+
   private Display display; // source of event
 
+/* WLH 30 Aug 99
   public DisplayEvent(Display d, int id_d) {
     // don't pass display as the source, since source
     // is transient inside Event
     super(null, 0, null);
     display = d;
     id = id_d;
+  }
+*/
+
+  public DisplayEvent(Display d, int id_d, int x, int y) {
+    // don't pass display as the source, since source
+    // is transient inside Event
+    super(null, 0, null);
+    display = d;
+    id = id_d;
+    mouse_x = x;
+    mouse_y = y;
   }
 
   /** get the DisplayImpl that sent this DisplayEvent (or
@@ -74,6 +88,14 @@ public class DisplayEvent extends Event {
       DisplayEvent.MOUSE_PRESSED_CENTER, DisplayEvent.FRAME_DONE */
   public int getId() {
     return id;
+  }
+
+  public int getX() {
+    return mouse_x;
+  }
+
+  public int getY() {
+    return mouse_y;
   }
 
 }

@@ -400,7 +400,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
       }
       // WLH 15 March 99
       try {
-        display.notifyListeners(DisplayEvent.FRAME_DONE);
+        display.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
       }
       catch (VisADException e) {}
       catch (RemoteException e) {}

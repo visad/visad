@@ -87,7 +87,7 @@ public class VisADCanvasJ3D extends Canvas3D { // J3D
     }
     // WLH 15 March 99
     try {
-      display.notifyListeners(DisplayEvent.FRAME_DONE);
+      display.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
     }
     catch (VisADException e) {}
     catch (RemoteException e) {}

@@ -357,7 +357,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       Remote DisplayListeners */
   private RemoteDisplayImpl rd = null;
 
-  public void notifyListeners(int id)
+  public void notifyListeners(int id, int x, int y)
          throws VisADException, RemoteException {
     if (ListenerVector != null) {
       synchronized (ListenerVector) {
@@ -369,10 +369,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
             if (rd == null) {
               rd = new RemoteDisplayImpl(this);
             }
-            listener.displayChanged(new DisplayEvent(rd, id));
+            listener.displayChanged(new DisplayEvent(rd, id, x, y));
           }
           else {
-            listener.displayChanged(new DisplayEvent(this, id));
+            listener.displayChanged(new DisplayEvent(this, id, x, y));
           }
         }
       }
@@ -824,7 +824,7 @@ if (initialize) {
             }
           }
 
-          notifyListeners(DisplayEvent.TRANSFORM_DONE);
+          notifyListeners(DisplayEvent.TRANSFORM_DONE, 0, 0);
         }
 
       }

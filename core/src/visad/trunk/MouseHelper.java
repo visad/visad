@@ -99,6 +99,9 @@ public class MouseHelper {
       System.out.println("MouseHelper.processStimulus: non-" +
                          "MouseEvent");
     }
+    int mouse_x = ((MouseEvent) event).getX();
+    int mouse_y = ((MouseEvent) event).getY();
+
 event_switch:
     switch (event.getID()) {
       case MouseEvent.MOUSE_ENTERED:
@@ -111,7 +114,8 @@ event_switch:
         if (mouseEntered &&
             !mouseCombo1 && !mouseCombo2 && !mouseCombo3) {
           try {
-            display.notifyListeners(DisplayEvent.MOUSE_PRESSED);
+            display.notifyListeners(DisplayEvent.MOUSE_PRESSED,
+                                    mouse_x, mouse_y);
           }
           catch (VisADException e) {
           }
@@ -227,7 +231,8 @@ event_switch:
             // WLH 19 July 99
             if (mctrl == 0 && !z1Pressed) {
               try {
-                display.notifyListeners(DisplayEvent.MOUSE_PRESSED_LEFT);
+                display.notifyListeners(DisplayEvent.MOUSE_PRESSED_LEFT,
+                                        mouse_x, mouse_y);
               }
               catch (VisADException e) {
               }
@@ -265,7 +270,8 @@ event_switch:
             //- TDR, Oct. 1998
             if (!t2Pressed && !z2Pressed) {
               try {
-                display.notifyListeners(DisplayEvent.MOUSE_PRESSED_CENTER);
+                display.notifyListeners(DisplayEvent.MOUSE_PRESSED_CENTER,
+                                        mouse_x, mouse_y);
               }
               catch (VisADException e) {
               }
@@ -292,7 +298,8 @@ event_switch:
             }
             // WLH 19 July 99
             try {
-              display.notifyListeners(DisplayEvent.MOUSE_PRESSED_RIGHT);
+              display.notifyListeners(DisplayEvent.MOUSE_PRESSED_RIGHT,
+                                      mouse_x, mouse_y);
             }
             catch (VisADException e) {
             }
