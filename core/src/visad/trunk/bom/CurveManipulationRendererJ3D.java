@@ -258,6 +258,9 @@ System.out.println("checkClose: distance = " + distance);
     stop = true;
   }
 
+  int which_set = -1;
+  int which_point = -1;
+
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     // System.out.println("drag_direct " + first + " " + type);
@@ -399,6 +402,7 @@ System.out.println("checkClose: distance = " + distance);
 
       UnionSet newData = null;
       UnionSet data = (UnionSet) link.getData();
+      if (data == null) return;
       SampledSet[] sets = data.getSets();
       int n = sets.length;
 
@@ -418,10 +422,8 @@ System.out.println("checkClose: distance = " + distance);
       }
       getDisplayRenderer().setCursorStringVector(vect);
 
-System.out.println("value = " + value[0] + " " + value[1]);
-
-      if (first) {
-        if (closeIndex < 0) {
+      if (closeIndex < 0) {
+        if (first) {
           SampledSet[] new_sets = new SampledSet[n+1];
           System.arraycopy(sets, 0, new_sets, 0, n);
           float[][] new_samples = {{value[0]}, {value[1]}};
@@ -430,12 +432,7 @@ System.out.println("value = " + value[0] + " " + value[1]);
                                          data.getSetUnits(), null);
           newData = new UnionSet(type, new_sets);
         }
-        else {
-          newData = data;
-        }
-      }
-      else { // !first
-        if (closeIndex < 0) {
+        else { // !first
           float[][] samples = sets[n-1].getSamples(false);
           int m = samples[0].length;
           float[][] new_samples = new float[2][m+1];
@@ -448,12 +445,195 @@ System.out.println("value = " + value[0] + " " + value[1]);
                                        data.getSetUnits(), null);
           newData = new UnionSet(type, sets);
         }
-        else {
-          newData = data;
+      }
+      else { // closeIndex >= 0
+        if (first) {
+          which_set = -1;
+          which_point = -1;
+          int w = closeIndex;
+          int len = 0;
+          for (int i=0; i<n; i++) {
+            len = sets[i].getLength();
+            if (w < len) {
+              which_set = i;
+              which_point = w;
+              break;
+            }
+            w -= len;
+          }
+          if (which_set < 0) return; // shouldn't happen
+          float[][] samples = sets[which_set].getSamples(false);
+          if (which_point == 0) {
+            samples = invert(samples);
+            which_point = len - 1;
+          }
+          samples[0][which_point] = value[0];
+          samples[1][which_point] = value[1];
+
+          // int m = samples[0].length;
+          if (which_point == (len - 1)) {
+            sets = rotate(sets, which_set);
+            which_set = n - 1;
+            closeIndex = -1;
+          }
+          // sets[which_set]= new Gridded2DSet(type, samples, m,
+          sets[which_set]= new Gridded2DSet(type, samples, len,
+                                     data.getCoordinateSystem(),
+                                     data.getSetUnits(), null);
+          newData = new UnionSet(type, sets);
+        }
+        else { // !first
+          if (which_set < 0) return; // shouldn't happen
+          float[][] samples = sets[which_set].getSamples(false);
+          int len = samples[0].length;
+
+          // figure out which direction to look for new nearest point
+          int dir = 0;
+          if (which_point == 0) {
+            dir = 1; // cannot happen
+          }
+          else if (which_point == len - 1) {
+            dir = -1; // cannot happen
+          }
+          else {
+            float v0 = value[0] - samples[0][which_point];
+            float v1 = value[1] - samples[1][which_point];
+            float vp0 = samples[0][which_point + 1] - samples[0][which_point];
+            float vp1 = samples[1][which_point + 1] - samples[1][which_point];
+            float vm0 = samples[0][which_point - 1] - samples[0][which_point];
+            float vm1 = samples[1][which_point - 1] - samples[1][which_point];
+            float v = (float) Math.sqrt(v0 * v0 + v1 + v1);
+            float vp = (float) Math.sqrt(vp0 * vp0 + vp1 + vp1);
+            float vm = (float) Math.sqrt(vm0 * vm0 + vm1 + vm1);
+            float pp = (v0 * vp0 + v1 * vp1) / v * vp;
+            float mm = (v0 * vm0 + v1 * vm1) / v * vm;
+            dir = (pp > mm) ? 1 : -1;
+          }
+
+          float distance = Float.MAX_VALUE; // actually distance squared
+          int new_point = -1;
+          if (dir > 0) {
+            for (int i=which_point + 1; i<len; i++) {
+              float d = (samples[0][i] - value[0]) * (samples[0][i] - value[0]) +
+                        (samples[1][i] - value[1]) * (samples[1][i] - value[1]);
+              if (d < distance) {
+                distance = d;
+                new_point = i;
+              }
+            }
+            if (new_point < 0) return; // shouldn't happen
+            if (which_point + 1 == new_point) {
+              if (which_point + 2 == len) {
+                samples[0][which_point + 1] = value[0];
+                samples[1][which_point + 1] = value[1];
+                which_point = which_point + 1;
+              }
+              else {
+                float[][] new_samples = new float[2][len + 1];
+                System.arraycopy(samples[0], 0, new_samples[0], 0, which_point + 1);
+                System.arraycopy(samples[1], 0, new_samples[1], 0, which_point + 1);
+                new_samples[0][which_point + 1] = value[0];
+                new_samples[1][which_point + 1] = value[1];
+                System.arraycopy(samples[0], which_point + 1, new_samples[0],
+                                 which_point + 2, len - (which_point + 1));
+                System.arraycopy(samples[1], which_point + 1, new_samples[1],
+                                 which_point + 2, len - (which_point + 1));
+                samples = new_samples;
+                which_point = which_point + 1;
+                len++;
+              }
+            }
+            else if (which_point + 2 == new_point) {
+              samples[0][which_point + 1] = value[0];
+              samples[1][which_point + 1] = value[1];
+              which_point = which_point + 1;
+            }
+            else { // which_point + 2 < new_point
+              int new_len = len - (new_point - (which_point + 2));
+              float[][] new_samples = new float[2][new_len];
+              System.arraycopy(samples[0], 0, new_samples[0], 0, which_point + 1);
+              System.arraycopy(samples[1], 0, new_samples[1], 0, which_point + 1);
+              new_samples[0][which_point + 1] = value[0];
+              new_samples[1][which_point + 1] = value[1];
+              System.arraycopy(samples[0], new_point, new_samples[0],
+                               which_point + 2, len - new_point);
+              System.arraycopy(samples[1], new_point, new_samples[1],
+                               which_point + 2, len - new_point);
+              samples = new_samples;
+              which_point = which_point + 1;
+              len = new_len;
+            }
+          }
+          else { // if (dir < 0)
+            for (int i=0; i<which_point; i++) {
+              float d = (samples[0][i] - value[0]) * (samples[0][i] - value[0]) +
+                        (samples[1][i] - value[1]) * (samples[1][i] - value[1]);
+              if (d < distance) {
+                distance = d;
+                new_point = i;
+              }
+            }
+            if (new_point < 0) return; // shouldn't happen
+            if (new_point == which_point - 1) {
+              if (which_point - 1 == 0) {
+                samples[0][which_point - 1] = value[0];
+                samples[1][which_point - 1] = value[1];
+                which_point = which_point - 1;
+              }
+              else {
+                float[][] new_samples = new float[2][len + 1];
+                System.arraycopy(samples[0], 0, new_samples[0], 0, which_point);
+                System.arraycopy(samples[1], 0, new_samples[1], 0, which_point);
+                new_samples[0][which_point] = value[0];
+                new_samples[1][which_point] = value[1];
+                System.arraycopy(samples[0], which_point, new_samples[0],
+                                 which_point + 1, len - which_point);
+                System.arraycopy(samples[1], which_point, new_samples[1],
+                                 which_point + 1, len - which_point);
+                samples = new_samples;
+                len++;
+              }
+            }
+            else if (new_point == which_point - 2) {
+              samples[0][which_point - 1] = value[0];
+              samples[1][which_point - 1] = value[1];
+              which_point = which_point - 1;
+            }
+            else { // new_point < which_point - 2
+              int new_len = len - ((which_point - 2) - new_point);
+              float[][] new_samples = new float[2][new_len];
+              System.arraycopy(samples[0], 0, new_samples[0], 0, new_point + 1);
+              System.arraycopy(samples[1], 0, new_samples[1], 0, new_point + 1);
+              new_samples[0][new_point + 1] = value[0];
+              new_samples[1][new_point + 1] = value[1];
+              System.arraycopy(samples[0], which_point, new_samples[0],
+                               new_point + 2, len - which_point);
+              System.arraycopy(samples[1], which_point, new_samples[1],
+                               new_point + 2, len - which_point);
+              samples = new_samples;
+              which_point = new_point + 1;
+              len = new_len;
+            }
+          } // if end (dir < 0)
+
+
+          if (which_point == 0) {
+            samples = invert(samples);
+            which_point = len - 1;
+          }
+
+          if (which_point == (len - 1)) {
+            sets = rotate(sets, which_set);
+            which_set = n - 1;
+            closeIndex = -1;
+          }
+          sets[which_set]= new Gridded2DSet(type, samples, len,
+                                     data.getCoordinateSystem(),
+                                     data.getSetUnits(), null);
+          newData = new UnionSet(type, sets);
+
         }
       }
-
-System.out.println("closeIndex = " + closeIndex + "  newData = " + newData);
 
       ref.setData(newData);
       link.clearData();
@@ -471,8 +651,31 @@ System.out.println("closeIndex = " + closeIndex + "  newData = " + newData);
     }
   }
 
+  private float[][] invert(float[][] samples) {
+    int m = samples[0].length;
+    float[][] new_samples = new float[2][m];
+    int m1 = m - 1;
+    for (int i=0; i<m; i++) {
+      new_samples[0][i] = samples[0][m1 - i];
+      new_samples[1][i] = samples[1][m1 - i];
+    }
+    return new_samples;
+  }
 
-  static final int N = 5;
+  private SampledSet[] rotate(SampledSet[] sets, int which_set) {
+    int n = sets.length;
+    int k = (n - 1) - which_set;
+    if (k == 0) return sets;
+    SampledSet[] new_sets = new SampledSet[n];
+    if (which_set > 0) {
+      System.arraycopy(sets, 0, new_sets, 0, which_set);
+    }
+    if (k > 0) {
+      System.arraycopy(sets, which_set + 1, new_sets, which_set, k);
+    }
+    new_sets[n - 1] = sets[which_set];
+    return new_sets;
+  }
 
   /** test CurveManipulationRendererJ3D */
   public static void main(String args[])
@@ -482,10 +685,9 @@ System.out.println("closeIndex = " + closeIndex + "  newData = " + newData);
     RealType lon = RealType.Longitude;
     RealTupleType earth = new RealTupleType(lat, lon);
 
-    // construct straight south flowing river1
-    float[][] points1 = {{3.0f, 2.0f, 1.0f, 0.0f},
-                         {0.0f, 0.0f, 0.0f, 0.0f}};
-    Gridded2DSet set1 = new Gridded2DSet(earth, points1, 4);
+    // construct invisible starter set
+    Gridded2DSet set1 =
+      new Gridded2DSet(earth, new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2);
     Gridded2DSet[] sets = {set1};
     UnionSet set = new UnionSet(earth, sets);
 

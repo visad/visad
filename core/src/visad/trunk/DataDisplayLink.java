@@ -128,7 +128,8 @@ public class DataDisplayLink extends ReferenceActionLink {
 
   /** Prepare to render data (include feasibility check);
       return false if infeasible */
-  public boolean prepareData() throws VisADException, RemoteException {
+  public synchronized boolean prepareData()
+         throws VisADException, RemoteException {
     int[] indices;
     int[] display_indices;
     int[] value_indices;
@@ -234,7 +235,7 @@ public class DataDisplayLink extends ReferenceActionLink {
     return shadow;
   }
 
-  public Data getData()
+  public synchronized Data getData()
          throws VisADException, RemoteException {
 /* WLH 14 Feb 98 */
     if (data == null) {
@@ -244,7 +245,7 @@ public class DataDisplayLink extends ReferenceActionLink {
   }
 
 /* WLH 14 Feb 98 */
-  public void clearData() {
+  public synchronized void clearData() {
     data = null;
   }
 
