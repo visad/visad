@@ -28,6 +28,7 @@ package visad.bio;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.rmi.RemoteException;
 import java.util.Vector;
 import javax.swing.*;
@@ -103,9 +104,6 @@ public class MeasureToolPanel extends ToolPanel {
   /** Button for toggling whether SHIFT + right click does a merge. */
   private JToggleButton merge;
 
-  /** Button for undoing last measurement change. */
-  private JButton undo;
-
   /** Button for clearing all measurements. */
   private JButton clearAll;
 
@@ -159,7 +157,11 @@ public class MeasureToolPanel extends ToolPanel {
       public void actionPerformed(ActionEvent e) {
         int rval = exportBox.showSaveDialog(panel);
         if (rval != JFileChooser.APPROVE_OPTION) return;
-        bio.mm.export(exportBox.getSelectedFile());
+        File file = exportBox.getSelectedFile();
+        if (file.getName().indexOf(".") < 0) {
+          file = new File(file.getAbsolutePath() + ".txt");
+        }
+        bio.mm.export(file);
       }
     });
     export.setToolTipText(
@@ -213,16 +215,6 @@ public class MeasureToolPanel extends ToolPanel {
     merge.setToolTipText("Allows for merging multiple measurement endpoints");
     merge.setEnabled(false);
     p.add(merge);
-    p.add(Box.createHorizontalStrut(5));
-
-    // undo button
-    undo = new JButton("Undo");
-    undo.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) { bio.state.undo(); }
-    });
-    undo.setToolTipText("Retracts the previous measurement action");
-    undo.setEnabled(false);
-    p.add(undo);
     p.add(Box.createHorizontalStrut(5));
 
     // clear all measurements button
@@ -454,7 +446,6 @@ public class MeasureToolPanel extends ToolPanel {
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
     merge.setEnabled(enabled);
-    undo.setEnabled(enabled);
     clearAll.setEnabled(enabled);
   }
 

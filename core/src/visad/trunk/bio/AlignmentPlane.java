@@ -39,6 +39,12 @@ import visad.util.Util;
  */
 public class AlignmentPlane extends PlaneSelector {
 
+  // -- CONSTANTS --
+
+  /** Header for alignment plane data in state file. */
+  private static final String ALIGN_HEADER = "# Alignment";
+
+
   // -- FIELDS --
 
   /** VisBio frame. */
@@ -93,6 +99,7 @@ public class AlignmentPlane extends PlaneSelector {
 
   /** Writes the alignment plane state to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println(ALIGN_HEADER);
     fout.println(numIndices);
     for (int ndx=0; ndx<numIndices; ndx++) {
       for (int i=0; i<3; i++) {
@@ -103,6 +110,9 @@ public class AlignmentPlane extends PlaneSelector {
 
   /** Restores the plane selector state from the given input stream. */
   void restoreState(BufferedReader fin) throws IOException, VisADException {
+    if (!fin.readLine().trim().equals(ALIGN_HEADER)) {
+      throw new VisADException("AlignmentPlane: incorrect state format");
+    }
     numIndices = Integer.parseInt(fin.readLine());
     pos = new double[numIndices][3][3];
     for (int ndx=0; ndx<numIndices; ndx++) {
@@ -119,6 +129,7 @@ public class AlignmentPlane extends PlaneSelector {
 
   /** Refreshes the plane data from its endpoint locations. */
   protected boolean refresh() {
+    if (bio.state.restoring) return true;
     for (int i=0; i<3; i++) {
       RealTuple tuple = (RealTuple) refs[i + 2].getData();
       if (tuple == null) continue;
@@ -130,25 +141,33 @@ public class AlignmentPlane extends PlaneSelector {
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
 
+    double[] p1 = pos[index][0], p2 = pos[index][1], p3 = pos[index][2];
     double[] m = {1, 1, 1};
     if (locked) {
       // maintain constant endpoint distances
-      double d12 = BioUtil.getDistance(pos[index][0], pos[index][1], m);
+      double d12 = BioUtil.getDistance(p1, p2, m);
       if (!Util.isApproximatelyEqual(dist12, d12)) {
-        // CTR - TODO - adjust 2nd endpoint
+        // snap 2nd endpoint to bounding sphere
+        double lamda = dist12 / d12;
+        double x = p1[0] + lamda * (p2[0] - p1[0]);
+        double y = p1[1] + lamda * (p2[1] - p1[1]);
+        double z = p1[2] + lamda * (p2[2] - p1[2]);
+        setData(1, x, y, z);
+        return false;
       }
-      double d13 = BioUtil.getDistance(pos[index][0], pos[index][2], m);
-      double d23 = BioUtil.getDistance(pos[index][1], pos[index][2], m);
+      double d13 = BioUtil.getDistance(p1, p3, m);
+      double d23 = BioUtil.getDistance(p2, p3, m);
       if (!Util.isApproximatelyEqual(dist13, d13) ||
         !Util.isApproximatelyEqual(dist23, d23))
       {
-        // CTR - TODO - adjust 3rd endpoint
+        // snap 3rd endpoint to bounding circle
+        return false;
       }
     }
     else {
-      dist12 = BioUtil.getDistance(pos[index][0], pos[index][1], m);
-      dist13 = BioUtil.getDistance(pos[index][0], pos[index][2], m);
-      dist23 = BioUtil.getDistance(pos[index][1], pos[index][2], m);
+      dist12 = BioUtil.getDistance(p1, p2, m);
+      dist13 = BioUtil.getDistance(p1, p3, m);
+      dist23 = BioUtil.getDistance(p2, p3, m);
     }
 
     if (!super.refresh()) return false;

@@ -42,19 +42,28 @@ public class MeasureManager {
   /** Variable names for each dimension. */
   private static final String[] VARIABLES = { "x", "y", "slice" };
 
-  /** Data file label for beginning of file. */
-  private static final String BEGIN_LABEL = "# VisBio measurement data file";
+  /** Label for beginning of measurement data in state file. */
+  private static final String MEASURE_LABEL = "# Measurements";
 
-  /** Data file label for line denoting unit type. */
+  /** Label for beginning of export file. */
+  private static final String BEGIN_LABEL = "# VisBio measurements";
+
+  /** Label for line denoting unit type. */
   private static final String UNIT_LABEL = "Unit = ";
 
-  /** Data file label for start of standard measurement matrices. */
+  /** Label for start of standard measurement tables. */
   private static final String STANDARD_LABEL = "# Standard measurements";
 
-  /** Data file label for start of master group list. */
+  /** Label for start of master group list. */
   private static final String GROUP_LABEL = "# Groups";
 
-  /** Data file label for start of master measurement list. */
+  /** Label for start of lines list in state file. */
+  private static final String LINE_LABEL = "# Lines";
+
+  /** Label for start of markers list in state file. */
+  private static final String POINT_LABEL = "# Markers";
+
+  /** Label for start of master measurement list. */
   private static final String ALL_LABEL = "# All measurements";
 
 
@@ -126,8 +135,8 @@ public class MeasureManager {
    */
   public void export(File file) {
     if (bio.mm.lists == null) return;
-    double[] m = getMicronDistances();
-    double mx = m[0] / bio.sm.res_x, my = m[1] / bio.sm.res_y, sd = m[2];
+
+    // prepare file for writing
     PrintWriter fout;
     try {
       fout = new PrintWriter(new FileWriter(file));
@@ -137,16 +146,25 @@ public class MeasureManager {
       return;
     }
 
+    // compile measurement data
+    double[] m = getMicronDistances();
+    boolean microns = m[0] == m[0] && m[1] == m[1] && m[2] == m[2];
+    if (microns) {
+      m[0] /= bio.sm.res_x;
+      m[1] /= bio.sm.res_y;
+    }
+    else m[0] = m[1] = m[2] = 1;
+    int[] lengths = new int[2];
+    Vector v = new Vector();
+
     int numIndices = bio.mm.lists.length;
     int numSlices = bio.sm.getNumberOfSlices();
     int numStd = MeasureToolPanel.maxId;
     MData[][][] stdData = new MData[numStd][numIndices][numSlices];
-    boolean microns = mx == mx && my == my && sd == sd;
-    if (!microns) mx = my = sd = 1;
-    Vector v = new Vector();
 
     // compile measurement data
-    int minLen = 2, maxLen = 1;
+    int minLen = 2;
+    int maxLen = 1;
     for (int index=0; index<numIndices; index++) {
       MeasureList list = bio.mm.lists[index];
       Vector lines = list.getLines();
@@ -163,7 +181,7 @@ public class MeasureManager {
         int g = line.color.getGreen();
         int b = line.color.getBlue();
         MData data = new MData(index, line.stdId,
-          line.group.getId(), mx, my, sd, vals, r, g, b);
+          line.group.getId(), m[0], m[1], m[2], vals, r, g, b);
         if (data.stdId >= 0) {
           // add to standard measurement list
           stdData[data.stdId][index][data.slice] = data;
@@ -174,7 +192,8 @@ public class MeasureManager {
       int psize = points.size();
       for (int i=0; i<psize; i++) {
         MeasurePoint point = (MeasurePoint) points.elementAt(i);
-        if (!point.lines.isEmpty()) {
+        int plen = point.lines.size();
+        if (point.lines.size() > 0) {
           // skip points that aren't markers
           continue;
         }
@@ -183,7 +202,7 @@ public class MeasureManager {
         int g = point.color.getGreen();
         int b = point.color.getBlue();
         MData data = new MData(index, point.stdId,
-          point.group.getId(), mx, my, sd, vals, r, g, b);
+          point.group.getId(), m[0], m[1], m[2], vals, r, g, b);
         if (data.stdId >= 0) {
           // add to standard measurement list
           stdData[data.stdId][index][data.slice] = data;
@@ -196,84 +215,91 @@ public class MeasureManager {
     // write file
     fout.println(BEGIN_LABEL);
     fout.println();
-    fout.println(UNIT_LABEL +
-      (microns ? "microns (" + mx + ", " + my + ", " + sd + ")" : "pixels"));
+    fout.println(UNIT_LABEL + (microns ?
+      "microns (" + m[0] + ", " + m[1] + ", " + m[2] + ")" : "pixels"));
     fout.println();
     fout.println();
 
     // standard measurements
-    fout.println(STANDARD_LABEL);
-    for (int std=0; std<numStd; std++) {
-      MData d = stdData[std][0][0];
-      if (d == null) continue;
-      int gid = d.groupId;
-      MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
-      fout.println();
-      fout.println("[" + std + "] " + group.getName());
-      String tabs = "";
-      for (int slice=0; slice<numSlices; slice++) tabs = tabs + "\t";
-      int len = d.values[0].length;
-      if (len == 2) fout.print("distance" + tabs);
-      for (int i=0; i<2; i++) {
-        for (int j=0; j<len; j++) {
-          fout.print(VARIABLES[i] + (j + 1));
-          if (i < 1 || j < len - 1) fout.print(tabs);
-        }
-      }
-      fout.println();
-      for (int index=0; index<numIndices; index++) {
-        // distance
-        if (len == 2) {
-          for (int slice=0; slice<numSlices; slice++) {
-            fout.print(stdData[std][index][slice].dist + "\t");
-          }
-        }
-        // values
+    if (numStd > 0) {
+      fout.println(STANDARD_LABEL);
+      for (int std=0; std<numStd; std++) {
+        MData d = stdData[std][0][0];
+        if (d == null) continue;
+        int gid = d.groupId;
+        MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
+        fout.println();
+        fout.println("[" + std + "] " + group.getName());
+        String tabs = "";
+        for (int slice=0; slice<numSlices; slice++) tabs = tabs + "\t";
+        int len = d.values[0].length;
+        if (len == 2) fout.print("distance" + tabs);
         for (int i=0; i<2; i++) {
           for (int j=0; j<len; j++) {
-            for (int slice=0; slice<numSlices; slice++) {
-              fout.print(stdData[std][index][slice].values[i][j]);
-              if (i < 1 || j < len - 1 || slice < numSlices - 1) {
-                fout.print("\t");
-              }
-            }
+            fout.print(VARIABLES[i] + (j + 1));
+            if (i < 1 || j < len - 1) fout.print(tabs);
           }
         }
         fout.println();
+        for (int index=0; index<numIndices; index++) {
+          // distance
+          if (len == 2) {
+            for (int slice=0; slice<numSlices; slice++) {
+              fout.print(stdData[std][index][slice].dist + "\t");
+            }
+          }
+          // values
+          for (int i=0; i<2; i++) {
+            for (int j=0; j<len; j++) {
+              for (int slice=0; slice<numSlices; slice++) {
+                fout.print(stdData[std][index][slice].values[i][j]);
+                if (i < 1 || j < len - 1 || slice < numSlices - 1) {
+                  fout.print("\t");
+                }
+              }
+            }
+          }
+          fout.println();
+        }
       }
+      fout.println();
+      fout.println();
     }
-    fout.println();
-    fout.println();
 
     // output group information
-    fout.println(GROUP_LABEL);
-    fout.println();
-    fout.println("No\tName\tDescription");
     int numGroups = bio.mm.groups.size();
-    for (int g=0; g<numGroups; g++) {
-      MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(g);
-      fout.println(g + "\t" + group.getName() + "\t" + group.getDescription());
+    if (numGroups > 1) {
+      fout.println(GROUP_LABEL);
+      fout.println();
+      fout.println("No\tName\tDescription");
+      for (int g=0; g<numGroups; g++) {
+        MeasureGroup grp = (MeasureGroup) bio.mm.groups.elementAt(g);
+        fout.println(g + "\t" + grp.getName() + "\t" + grp.getDescription());
+      }
+      fout.println();
+      fout.println();
     }
-    fout.println();
-    fout.println();
 
     // output all measurement information
-    fout.println(ALL_LABEL);
-    for (int i=minLen; i<=maxLen; i++) {
-      int size = v.size();
-      boolean doHeader = true;
-      for (int j=0; j<size; j++) {
-        MData data = (MData) v.elementAt(j);
-        int len = data.values[0].length;
-        if (i != len) continue;
-        if (doHeader) {
-          fout.println();
-          fout.println(getHeader(i));
-          doHeader = false;
+    if (maxLen >= minLen) {
+      fout.println(ALL_LABEL);
+      for (int i=lengths[0]; i<=lengths[1]; i++) {
+        int size = v.size();
+        boolean doHeader = true;
+        for (int j=0; j<size; j++) {
+          MData data = (MData) v.elementAt(j);
+          int len = data.values[0].length;
+          if (i != len) continue;
+          if (doHeader) {
+            fout.println();
+            fout.println(getHeader(i));
+            doHeader = false;
+          }
+          fout.println(data);
         }
-        fout.println(data);
       }
     }
+    fout.close();
   }
 
 
@@ -281,11 +307,15 @@ public class MeasureManager {
 
   /** Writes the current measurements to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println(MEASURE_LABEL);
     write(fout);
   }
 
   /** Restores the current measurements from the given input stream. */
   void restoreState(BufferedReader fin) throws IOException, VisADException {
+    if (!fin.readLine().equals(MEASURE_LABEL)) {
+      throw new VisADException("MeasureManager: incorrect state format");
+    }
     read(fin);
   }
 
@@ -300,153 +330,82 @@ public class MeasureManager {
   private void write(PrintWriter fout) throws IOException {
     if (bio.mm.lists == null) return;
     int numIndices = bio.mm.lists.length;
-    int numSlices = bio.sm.getNumberOfSlices();
-    int numStd = MeasureToolPanel.maxId;
-    MData[][][] stdData = new MData[numStd][numIndices][numSlices];
-    double[] m = getMicronDistances();
-    double mw = m[0], mh = m[1], sd = m[2];
-    boolean microns = mw == mw && mh == mh && sd == sd;
-    Vector v = new Vector();
+    fout.println(numIndices);
 
-    // compile measurement data
-    int minLen = 2, maxLen = 1;
+    // output micron information
+    double[] m = getMicronDistances();
+    boolean microns = m[0] == m[0] && m[1] == m[1] && m[2] == m[2];
+    fout.println(UNIT_LABEL + (microns ?
+      "microns (" + m[0] + ", " + m[1] + ", " + m[2] + ")" : "pixels"));
+
+    // output group information
+    fout.println(GROUP_LABEL);
+    int numGroups = bio.mm.groups.size();
+    for (int g=0; g<numGroups; g++) {
+      MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(g);
+      fout.println(g);
+      fout.println(group.getName());
+      fout.println(group.getDescription());
+    }
+
+    // output marker information
+    fout.println(POINT_LABEL);
+    for (int index=0; index<numIndices; index++) {
+      MeasureList list = bio.mm.lists[index];
+      Vector lines = list.getLines();
+      Vector points = list.getPoints();
+      int psize = points.size();
+      fout.println(psize);
+      for (int i=0; i<psize; i++) {
+        MeasurePoint point = (MeasurePoint) points.elementAt(i);
+        fout.println(point.x);
+        fout.println(point.y);
+        fout.println(point.z);
+        fout.println(point.stdId);
+        fout.println(point.group.getId());
+        fout.println(point.color.getRed());
+        fout.println(point.color.getGreen());
+        fout.println(point.color.getBlue());
+        int plen = point.lines.size();
+        fout.println(plen);
+        for (int j=0; j<plen; j++) {
+          MeasureLine line = (MeasureLine) point.lines.elementAt(j);
+          fout.println(lines.indexOf(line));
+        }
+      }
+    }
+
+    // output line information
+    fout.println(LINE_LABEL);
     for (int index=0; index<numIndices; index++) {
       MeasureList list = bio.mm.lists[index];
       Vector lines = list.getLines();
       Vector points = list.getPoints();
       int lsize = lines.size();
+      fout.println(lsize);
       for (int i=0; i<lsize; i++) {
         MeasureLine line = (MeasureLine) lines.elementAt(i);
-        double[][] vals = {
-          {line.ep1.x, line.ep2.x},
-          {line.ep1.y, line.ep2.y},
-          {line.ep1.z, line.ep2.z}
-        };
-        int r = line.color.getRed();
-        int g = line.color.getGreen();
-        int b = line.color.getBlue();
-        MData data = new MData(index, line.stdId,
-          line.group.getId(), 1, 1, 1, vals, r, g, b);
-        if (data.stdId >= 0) {
-          // add to standard measurement list
-          stdData[data.stdId][index][data.slice] = data;
-        }
-        v.add(data);
-        maxLen = 2;
-      }
-      int psize = points.size();
-      for (int i=0; i<psize; i++) {
-        MeasurePoint point = (MeasurePoint) points.elementAt(i);
-        if (!point.lines.isEmpty()) {
-          // skip points that aren't markers
-          continue;
-        }
-        double[][] vals = { {point.x}, {point.y}, {point.z} };
-        int r = point.color.getRed();
-        int g = point.color.getGreen();
-        int b = point.color.getBlue();
-        MData data = new MData(index, point.stdId,
-          point.group.getId(), 1, 1, 1, vals, r, g, b);
-        if (data.stdId >= 0) {
-          // add to standard measurement list
-          stdData[data.stdId][index][data.slice] = data;
-        }
-        v.add(data);
-        minLen = 1;
-      }
-    }
-
-    // write file
-    fout.println(BEGIN_LABEL);
-    fout.println();
-    fout.println(UNIT_LABEL +
-      (microns ? "microns (" + mw + ", " + mh + ", " + sd + ")" : "pixels"));
-    fout.println();
-    fout.println();
-
-    // standard measurements
-    fout.println(STANDARD_LABEL);
-    for (int std=0; std<numStd; std++) {
-      MData d = stdData[std][0][0];
-      if (d == null) continue;
-      int gid = d.groupId;
-      MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
-      fout.println();
-      fout.println("[" + std + "] " + group.getName());
-      String tabs = "";
-      for (int slice=0; slice<numSlices; slice++) tabs = tabs + "\t";
-      int len = d.values[0].length;
-      if (len == 2) fout.print("distance" + tabs);
-      for (int i=0; i<2; i++) {
-        for (int j=0; j<len; j++) {
-          fout.print(VARIABLES[i] + (j + 1));
-          if (i < 1 || j < len - 1) fout.print(tabs);
-        }
-      }
-      fout.println();
-      for (int index=0; index<numIndices; index++) {
-        // distance
-        if (len == 2) {
-          for (int slice=0; slice<numSlices; slice++) {
-            fout.print(stdData[std][index][slice].dist + "\t");
-          }
-        }
-        // values
-        for (int i=0; i<2; i++) {
-          for (int j=0; j<len; j++) {
-            for (int slice=0; slice<numSlices; slice++) {
-              fout.print(stdData[std][index][slice].values[i][j]);
-              if (i < 1 || j < len - 1 || slice < numSlices - 1) {
-                fout.print("\t");
-              }
-            }
-          }
-        }
-        fout.println();
-      }
-    }
-    fout.println();
-    fout.println();
-
-    // output group information
-    fout.println(GROUP_LABEL);
-    fout.println();
-    fout.println("No\tName\tDescription");
-    int numGroups = bio.mm.groups.size();
-    for (int g=0; g<numGroups; g++) {
-      MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(g);
-      fout.println(g + "\t" + group.getName() + "\t" + group.getDescription());
-    }
-    fout.println();
-    fout.println();
-
-    // output all measurement information
-    fout.println(ALL_LABEL);
-    for (int i=minLen; i<=maxLen; i++) {
-      int size = v.size();
-      boolean doHeader = true;
-      for (int j=0; j<size; j++) {
-        MData data = (MData) v.elementAt(j);
-        int len = data.values[0].length;
-        if (i != len) continue;
-        if (doHeader) {
-          fout.println();
-          fout.println(getHeader(i));
-          doHeader = false;
-        }
-        fout.println(data);
+        fout.println(points.indexOf(line.ep1));
+        fout.println(points.indexOf(line.ep2));
+        fout.println(line.stdId);
+        fout.println(line.group.getId());
+        fout.println(line.color.getRed());
+        fout.println(line.color.getGreen());
+        fout.println(line.color.getBlue());
       }
     }
   }
 
   /** Reads in measurements from the given input stream. */
   private void read(BufferedReader fin) throws IOException, VisADException {
+    if (bio.mm.lists == null) return;
+    int numIndices = Integer.parseInt(fin.readLine());
+
+    // read in micron information
     double mw = Double.NaN, mh = Double.NaN, sd = Double.NaN;
     boolean microns = false;
     String ln = "";
-
-    // read in unit data
-    while (!ln.startsWith(UNIT_LABEL)) ln = fin.readLine().trim();
+    while (!ln.startsWith(UNIT_LABEL)) ln = fin.readLine();
     if (ln.indexOf("microns") > 0) {
       microns = true;
       int left = ln.indexOf("(");
@@ -454,58 +413,23 @@ public class MeasureManager {
       StringTokenizer st =
         new StringTokenizer(ln.substring(left + 1, right), ",");
       if (st.countTokens() == 3) {
-        mw = Double.parseDouble(st.nextToken().trim());
-        mh = Double.parseDouble(st.nextToken().trim());
-        sd = Double.parseDouble(st.nextToken().trim());
+        mw = Double.parseDouble(st.nextToken());
+        mh = Double.parseDouble(st.nextToken());
+        sd = Double.parseDouble(st.nextToken());
       }
       else microns = false;
     }
 
-    // read in group data
-    while (!ln.equals(GROUP_LABEL)) ln = fin.readLine().trim();
-    while (!ln.startsWith("No")) ln = fin.readLine().trim();
-    Vector groups = new Vector();
-    while (true) {
-      ln = fin.readLine().trim();
-      if (ln == null || ln.equals("")) break;
-      groups.add(ln);
-    }
-
-    // read in measurement data
-    while (!ln.equals(ALL_LABEL)) ln = fin.readLine().trim();
-    Vector v = new Vector();
-    int len = 0;
+    // read in group information
+    bio.mm.groups.removeAllElements();
+    while (!ln.equals(GROUP_LABEL)) ln = fin.readLine();
     while (true) {
       ln = fin.readLine();
-      if (ln == null) break;
-      ln = ln.trim();
-      if (ln.startsWith("Timestep")) {
-        // determine number of endpoints
-        int ndx = ln.lastIndexOf("slice2");
-        len = ndx >= 0 ? 2 : 1;
-      }
-      if (ln.equals("") || ln.startsWith("#") ||
-        ln.startsWith("Timestep"))
-      {
-        continue;
-      }
-      v.add(new MData(ln, len, 1, 1, 1));
-    }
-
-    // clear old group data
-    int gsize = groups.size();
-    bio.mm.groups.removeAllElements();
-
-    // set up new groups
-    for (int i=0; i<gsize; i++) {
-      String g = (String) groups.elementAt(i);
-      StringTokenizer st = new StringTokenizer(g, "\t");
-      int id = Integer.parseInt(st.nextToken());
-      String name = st.nextToken();
-      String desc = st.hasMoreTokens() ? st.nextToken() : "";
-      if (id == VisBio.noneGroup.getId()) {
-        bio.mm.groups.add(VisBio.noneGroup);
-      }
+      if (ln.equals("") || ln.startsWith("#")) break;
+      int id = Integer.parseInt(ln);
+      String name = fin.readLine();
+      String desc = fin.readLine();
+      if (id == VisBio.noneGroup.getId()) bio.mm.groups.add(VisBio.noneGroup);
       else {
         MeasureGroup group = new MeasureGroup(bio, name);
         group.setDescription(desc);
@@ -514,51 +438,69 @@ public class MeasureManager {
       }
     }
 
-    // clear old measurements
-    for (int i=0; i<bio.mm.lists.length; i++) bio.mm.lists[i].removeAll();
-
-    // set up measurements
-    int size = v.size();
-    int index = bio.sm.getIndex();
-    for (int k=0; k<size; k++) {
-      MData data = (MData) v.elementAt(k);
-      MeasureList list = bio.mm.lists[data.index];
-      len = data.values[0].length;
-      RealTuple[] values = new RealTuple[len];
-      for (int j=0; j<len; j++) {
-        Real[] reals = new Real[3];
-        for (int i=0; i<3; i++) {
-          reals[i] = new Real(i < 2 ?
-            bio.sm.dtypes[i] : SliceManager.Z_TYPE, data.values[i][j]);
+    // read in marker information
+    while (!ln.equals(POINT_LABEL)) ln = fin.readLine();
+    int[][][] endpts = new int[numIndices][][];
+    for (int index=0; index<numIndices; index++) {
+      MeasureList list = bio.mm.lists[index];
+      int psize = Integer.parseInt(fin.readLine());
+      endpts[index] = new int[psize][];
+      for (int i=0; i<psize; i++) {
+        double x = Double.parseDouble(fin.readLine());
+        double y = Double.parseDouble(fin.readLine());
+        double z = Double.parseDouble(fin.readLine());
+        int stdId = Integer.parseInt(fin.readLine());
+        int gid = Integer.parseInt(fin.readLine());
+        int r = Integer.parseInt(fin.readLine());
+        int g = Integer.parseInt(fin.readLine());
+        int b = Integer.parseInt(fin.readLine());
+        int plen = Integer.parseInt(fin.readLine());
+        endpts[index][i] = new int[plen];
+        for (int j=0; j<plen; j++) {
+          endpts[index][i][j] = Integer.parseInt(fin.readLine());
         }
-        values[j] = new RealTuple(reals);
-      }
-      Color color = new Color(data.r, data.g, data.b);
-      MeasureGroup group =
-        (MeasureGroup) bio.mm.groups.elementAt(data.groupId);
-      if (data.stdId >= bio.toolMeasure.maxId) {
-        bio.toolMeasure.maxId = data.stdId + 1;
-      }
-      if (len == 1) {
-        double x = data.values[0][0];
-        double y = data.values[1][0];
-        double z = data.values[2][0];
+        Color color = new Color(r, g, b);
+        MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
         MeasurePoint point = new MeasurePoint(x, y, z, color, group);
-        point.setStdId(data.stdId);
+        point.setStdId(stdId);
         list.addMarker(point, false);
       }
-      else if (len == 2) {
-        double x1 = data.values[0][0];
-        double y1 = data.values[1][0];
-        double z1 = data.values[2][0];
-        double x2 = data.values[0][1];
-        double y2 = data.values[1][1];
-        double z2 = data.values[2][1];
-        MeasurePoint ep1 = new MeasurePoint(x1, y1, z1, color, group);
-        MeasurePoint ep2 = new MeasurePoint(x2, y2, z2, color, group);
+    }
+
+    // read in line information
+    while (!ln.equals(LINE_LABEL)) ln = fin.readLine();
+    for (int index=0; index<numIndices; index++) {
+      MeasureList list = bio.mm.lists[index];
+      Vector points = list.getPoints();
+      int lsize = Integer.parseInt(fin.readLine());
+      for (int i=0; i<lsize; i++) {
+        int ep1_ndx = Integer.parseInt(fin.readLine());
+        int ep2_ndx = Integer.parseInt(fin.readLine());
+        int stdId = Integer.parseInt(fin.readLine());
+        int gid = Integer.parseInt(fin.readLine());
+        int r = Integer.parseInt(fin.readLine());
+        int g = Integer.parseInt(fin.readLine());
+        int b = Integer.parseInt(fin.readLine());
+        Color color = new Color(r, g, b);
+        MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
+        MeasurePoint ep1 = (MeasurePoint) points.elementAt(ep1_ndx);
+        MeasurePoint ep2 = (MeasurePoint) points.elementAt(ep2_ndx);
         MeasureLine line = new MeasureLine(ep1, ep2, color, group, false);
-        line.setStdId(data.stdId);
         list.addLine(line, false);
+      }
+    }
+
+    // finish up marker configuration
+    for (int index=0; index<numIndices; index++) {
+      MeasureList list = bio.mm.lists[index];
+      Vector lines = list.getLines();
+      Vector points = list.getPoints();
+      for (int i=0; i<endpts[index].length; i++) {
+        MeasurePoint point = (MeasurePoint) points.elementAt(i);
+        int[] pts = endpts[index][i];
+        for (int j=0; j<pts.length; j++) {
+          point.lines.add((MeasureLine) lines.elementAt(pts[j]));
+        }
       }
     }
 

@@ -62,6 +62,9 @@ public class AlignToolPanel extends ToolPanel {
   /** Toggle for drift correction. */
   private JCheckBox drift;
 
+  /** Toggle for drift correction shape lockdown. */
+  private JCheckBox lock;
+
 
   // -- CONSTRUCTOR --
 
@@ -134,12 +137,23 @@ public class AlignToolPanel extends ToolPanel {
     drift.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean doDrift = drift.isSelected();
-        bio.sm.setAlignStacks(doDrift);
+        bio.sm.align.toggle(doDrift);
       }
     });
     drift.setToolTipText("Toggles image stack alignment mode");
     drift.setEnabled(false);
     controls.add(pad(drift));
+
+    // drift correction shape lockdown checkbox
+    lock = new JCheckBox("Lock size and shape", false);
+    lock.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean doLock = lock.isSelected();
+        bio.sm.align.setLocked(doLock);
+      }
+    });
+    lock.setEnabled(false);
+    controls.add(pad(lock));
   }
 
 
@@ -154,7 +168,8 @@ public class AlignToolPanel extends ToolPanel {
       useMicrons.setEnabled(true);
       zAspect.setEnabled(true);
       bio.toolMeasure.updateFileButtons();
-      drift.setEnabled(true);
+      //drift.setEnabled(true);
+      //lock.setEnabled(true);
     }
     else {
       useMicrons.setEnabled(false);
@@ -162,6 +177,7 @@ public class AlignToolPanel extends ToolPanel {
       sliceDistance.setEnabled(false);
       zAspect.setEnabled(false);
       drift.setEnabled(false);
+      lock.setEnabled(false);
     }
   }
 

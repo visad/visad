@@ -54,7 +54,7 @@ public class StateManager {
   private boolean dirty = false;
 
   /** Is state currently being restored? */
-  private boolean restoring = false;
+  boolean restoring = false;
 
   /** Has the user saved the most recent state? */
   private boolean saved = true;
@@ -82,6 +82,7 @@ public class StateManager {
 
   /** Restores the previous state from the backup temp file. */
   public void undo() {
+    if (!oldState.exists()) return;
     restoreState(oldState);
     File temp = oldState;
     oldState = state;
@@ -92,7 +93,7 @@ public class StateManager {
   public void saveState() {
     if (restoring) return;
     dirty = true;
-    if (saveThread == null) {
+    if (saveThread == null || !saveThread.isAlive()) {
       saveThread = new Thread(new Runnable() {
         public void run() {
           while (dirty) {
@@ -104,8 +105,8 @@ public class StateManager {
           }
         }
       });
+      saveThread.start();
     }
-    if (!saveThread.isAlive()) saveThread.start();
   }
 
   /** Restores the state from the given state file. */

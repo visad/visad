@@ -38,6 +38,12 @@ import visad.java3d.DirectManipulationRendererJ3D;
  */
 public class PlaneSelector {
 
+  // -- CONSTANTS --
+
+  /** Header for plane selector data in state file. */
+  private static final String PLANE_HEADER = "# Plane selector";
+
+
   // -- FIELDS --
 
   /** Associated display. */
@@ -202,6 +208,7 @@ public class PlaneSelector {
 
   /** Writes the plane selector state to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println(PLANE_HEADER);
     for (int i=2; i<refs.length; i++) {
       RealTuple tuple = (RealTuple) refs[i].getData();
       Real[] r = tuple == null ?
@@ -215,6 +222,9 @@ public class PlaneSelector {
 
   /** Restores the plane selector state from the given input stream. */
   void restoreState(BufferedReader fin) throws IOException, VisADException {
+    if (!fin.readLine().trim().equals(PLANE_HEADER)) {
+      throw new VisADException("PlaneSelector: incorrect state format");
+    }
     for (int i=0; i<refs.length-2; i++) {
       try {
         double x = Double.parseDouble(fin.readLine().trim());

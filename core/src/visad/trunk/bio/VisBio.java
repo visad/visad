@@ -216,6 +216,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
     fileExport.setEnabled(false);
+    addMenuItem("Edit", "Undo", "editUndo", 'u');
     addMenuItem("Help", "Overview", "helpOverview", 'o');
     addMenuItem("Help", "QuickTime", "helpQuickTime", 'q');
     addMenuItem("Help", "About", "helpAbout", 'a');
@@ -548,7 +549,11 @@ public class VisBio extends GUIFrame implements ChangeListener {
     int rval = stateBox.showSaveDialog(this);
     if (rval == JFileChooser.APPROVE_OPTION) {
       setWaitCursor(true);
-      state.saveState(stateBox.getSelectedFile());
+      File file = stateBox.getSelectedFile();
+      if (file.getName().indexOf(".") < 0) {
+        file = new File(file.getAbsolutePath() + ".txt");
+      }
+      state.saveState(file);
       setWaitCursor(false);
     }
   }
@@ -633,6 +638,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
     System.exit(0);
   }
 
+  /** Undoes the last action taken. */
+  public void editUndo() { state.undo(); }
+
   /** Brings up the help window on the Overview tab. */
   public void helpOverview() { doHelp(0); }
 
@@ -701,8 +709,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
     RealType red = r.equals("null") ? null : RealType.getRealType(r);
     RealType green = g.equals("null") ? null : RealType.getRealType(g);
     RealType blue = b.equals("null") ? null : RealType.getRealType(b);
-    sm.restoreState(fin);
     toolColor.setColors(bright, cont, model, comp, red, green, blue);
+    sm.restoreState(fin);
+    mm.restoreState(fin);
   }
 
 

@@ -38,6 +38,12 @@ public class SliceManager
   implements ControlListener, DisplayListener, PlaneListener
 {
 
+  // -- CONSTANTS --
+
+  /** Header for slice manager data in state file. */
+  private static final String SM_HEADER = "# Slice manager";
+
+
   // -- DATA TYPE CONSTANTS --
 
   /** RealType for mapping measurements to Z axis. */
@@ -120,9 +126,6 @@ public class SliceManager
 
   /** Has arbitrary plane moved since last right mouse button press? */
   private boolean planeChanged;
-
-  /** Is image stack alignment on? */
-  private boolean alignStacks;
 
   /** Is volume rendering display mode on? */
   private boolean volume;
@@ -254,7 +257,6 @@ public class SliceManager
     planeSelect = false;
     continuous = false;
     planeChanged = false;
-    alignStacks = false;
     colorRange = new RealTupleType(
       new RealType[] {RED_TYPE, GREEN_TYPE, BLUE_TYPE});
 
@@ -343,13 +345,6 @@ public class SliceManager
 
   /** Sets whether arbitrary plane is continuously updated. */
   public void setPlaneContinuous(boolean value) { continuous = value; }
-
-  /** Sets whether to do image stack alignment. */
-  public void setAlignStacks(boolean value) {
-    if (bio.display3 == null) return;
-    alignStacks = value;
-    align.toggle(value);
-  }
 
   /** Sets whether 3-D display should use image stack or volume rendering. */
   public void setVolumeRender(boolean volume) {
@@ -521,6 +516,7 @@ public class SliceManager
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
+    if (widgets == null) return;
     for (int i=0; i<widgets.length; i++) {
       float[][] table = widgets[i].getTable();
       try {
@@ -572,6 +568,7 @@ public class SliceManager
 
   /** Writes the current program state to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println(SM_HEADER);
     fout.println(files.length);
     for (int i=0; i<files.length; i++) fout.println(files[i].getPath());
     fout.println(filesAsSlices);
@@ -586,6 +583,9 @@ public class SliceManager
 
   /** Restores the current program state from the given input stream. */
   void restoreState(BufferedReader fin) throws IOException, VisADException {
+    if (!fin.readLine().trim().equals(SM_HEADER)) {
+      throw new VisADException("SliceManager: incorrect state format");
+    }
     int len = Integer.parseInt(fin.readLine().trim());
     File[] files = new File[len];
     for (int i=0; i<len; i++) files[i] = new File(fin.readLine().trim());
@@ -595,8 +595,22 @@ public class SliceManager
     int thumbY = Integer.parseInt(fin.readLine().trim());
     int sliceX = Integer.parseInt(fin.readLine().trim());
     int sliceY = Integer.parseInt(fin.readLine().trim());
-    setThumbnails(thumbs, thumbX, thumbY);
-    setSeries(files, fas);
+    boolean equal = doThumbs == thumbs && thumbSize[0] == thumbX &&
+      thumbSize[1] == thumbY && len == timesteps && filesAsSlices == fas;
+    if (equal) {
+      for (int i=0; i<len; i++) {
+        String path = files[i].getAbsolutePath();
+        if (!path.equals(this.files[i].getAbsolutePath())) {
+          equal = false;
+          break;
+        }
+      }
+    }
+    if (!equal) {
+      // dataset is different; load it
+      setThumbnails(thumbs, thumbX, thumbY);
+      setSeries(files, fas);
+    }
     if (arb != null) arb.restoreState(fin);
     if (align != null) align.restoreState(fin);
   }

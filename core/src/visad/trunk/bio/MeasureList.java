@@ -114,8 +114,8 @@ public class MeasureList {
 
   /** Adds the given measurement line to the measurement list. */
   public void addLine(MeasureLine line, boolean updatePools) {
-    points.add(line.ep1);
-    points.add(line.ep2);
+    if (!points.contains(line.ep1)) points.add(line.ep1);
+    if (!points.contains(line.ep2)) points.add(line.ep2);
     lines.add(line);
     if (updatePools) refreshPools(false);
     boolean selection = bio.mm.pool2.hasSelection();
