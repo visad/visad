@@ -754,7 +754,7 @@ public class SliceManager
       bio.next.removeAllReferences();
       bio.next.clearMaps();
     }
-    bio.toolRender.removeAllWidgets();
+    bio.toolColor.removeAllWidgets();
   }
 
   /** Configures display mappings and references. */
@@ -870,7 +870,8 @@ public class SliceManager
       for (int i=0; i<rtypes.length; i++) {
         rmaps3[i] = new ScalarMap(rtypes[i], Display.RGBA);
         bio.display3.addMap(rmaps3[i]);
-        bio.toolRender.addWidget(new LabeledColorWidget(rmaps3[i]));
+        bio.toolColor.addWidget(rmaps3[i].getScalarName(),
+          new LabeledColorWidget(rmaps3[i]));
       }
 
       // set up 3-D data references

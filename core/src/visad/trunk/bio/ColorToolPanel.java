@@ -83,8 +83,14 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
   /** Toggle for colorizing image stack based on slice level. */
   private JCheckBox colorize;
 
+  /** Combo box for choosing color widgets. */
+  private JComboBox selector;
+
 
   // -- OTHER FIELDS --
+
+  /** Number of components in the tool panel. */
+  private int cc = 0;
 
   /** Should changes to the color components be ignored? */
   private boolean ignore = false;
@@ -121,6 +127,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     brightnessValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
     p.add(brightnessValue);
     controls.add(pad(p));
+    cc++;
 
     // contrast label
     p = new JPanel();
@@ -149,9 +156,11 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     contrastValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
     p.add(contrastValue);
     controls.add(pad(p));
+    cc++;
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
+    cc++;
 
     // red color map widget
     p = new JPanel();
@@ -170,6 +179,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     blue.addItemListener(this);
     p.add(blue);
     controls.add(pad(p));
+    cc++;
 
     // composite checkbox
     composite = new JCheckBox("Composite image coloring", false);
@@ -183,6 +193,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       }
     });
     controls.add(pad(composite));
+    cc++;
 
     // colorize across slice level checkbox
     colorize = new JCheckBox("Colorize image stack across slices", false);
@@ -191,6 +202,20 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     });
     colorize.setEnabled(false);
     controls.add(pad(colorize));
+    cc++;
+
+    // color widget selector
+    selector = new JComboBox();
+    selector.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        int ndx = selector.getSelectedIndex() + cc;
+        for (int i=cc; i<controls.getComponentCount(); i++) {
+          controls.getComponent(i).setVisible(i == ndx);
+        }
+      }
+    });
+    controls.add(pad(selector));
+    cc++;
   }
 
 
@@ -202,6 +227,20 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     brightness.setEnabled(enabled);
     contrastLabel.setEnabled(enabled);
     contrast.setEnabled(enabled);
+  }
+
+  /** Adds a widget to the tool panel. */
+  public void addWidget(String s, JComponent c) {
+    selector.addItem(s);
+    c.setVisible(selector.getItemCount() == 1);
+    controls.add(c);
+  }
+
+  /** Removes all widgets from the tool panel. */
+  public void removeAllWidgets() {
+    selector.removeAllItems();
+    int size = controls.getComponentCount();
+    for (int i=controls.getComponentCount(); i>cc; i--) controls.remove(cc);
   }
 
 

@@ -67,6 +67,9 @@ public class ViewToolPanel extends ToolPanel {
   /** Button for zooming out on 3-D display. */
   private JButton zoomOut3;
 
+  /** Toggle for 3-D volume rendering. */
+  private JCheckBox volume;
+
   /** Toggle for preview displays. */
   private JCheckBox preview;
 
@@ -150,7 +153,7 @@ public class ViewToolPanel extends ToolPanel {
         zoomIn3.setEnabled(b);
         zoomReset3.setEnabled(b);
         zoomOut3.setEnabled(b);
-        bio.toolRender.volume.setEnabled(b);
+        volume.setEnabled(b);
       }
     });
     threeD.setEnabled(okay3d);
@@ -180,6 +183,17 @@ public class ViewToolPanel extends ToolPanel {
     zoomOut3.setEnabled(okay3d);
     p.add(zoomOut3);
     controls.add(pad(p));
+
+    // 3-D volume rendering checkbox
+    volume = new JCheckBox("Render 3-D image stack as a volume", false);
+    volume.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = volume.isSelected();
+        bio.setVolume(b);
+      }
+    });
+    volume.setEnabled(okay3d);
+    controls.add(pad(volume));
 
     // Preview checkbox
     preview = new JCheckBox("Previous/next preview displays", false);
