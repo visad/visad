@@ -563,8 +563,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     display.addReferences(renderer, image_ref);
     // display.addReference(image_ref);
 
-    // wait len seconds
-    new Delay(len * 1000);
+    // wait 4 * len seconds
+    new Delay(len * 4000);
 
     // substitute a new image sequence for the old one
     for (int i=0; i<len; i++) {

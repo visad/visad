@@ -40,16 +40,21 @@ import java.rmi.*;
 */
 public abstract class DataRenderer extends Object implements Cloneable {
 
+  /** DisplayImpl this is associated with */
   private DisplayImpl display = null;
+
   /** used to insert output into scene graph */
   private DisplayRenderer displayRenderer = null;
 
   /** links to Data to be renderer by this */
   private transient DataDisplayLink[] Links = null;
-  /** flag from DataDisplayLink.prepareData */
+
+  /** flag from DataDisplayLink.prepareData() */
   private boolean[] feasible; // it's a miracle if this is correct
+
   private boolean[] is_null; // WLH 7 May 2001
-  /** flag to indicate that DataDisplayLink.prepareData was invoked */
+
+  /** flag to indicate that DataDisplayLink.prepareData() was invoked */
   private boolean[] changed;
 
   private boolean any_changed;
@@ -57,60 +62,102 @@ public abstract class DataRenderer extends Object implements Cloneable {
   private boolean any_transform_control;
 
   /** a Vector of BadMappingException and UnimplementedException
-      Strings generated during the last invocation of doAction */
+      Strings generated during the last invocation of doAction() */
   private Vector exceptionVector = new Vector();
 
+  /** flag indicating whether to suppress Exceptions
+      generated during doAction() */
   private boolean suppress_exceptions = false;
 
+  /** flag for visibility of Data depictions */
   protected boolean enabled = true;
 
+  /**
+   * construct a DataRenderer
+   */
   public DataRenderer() {
     Links = null;
     display = null;
   }
 
+  /**
+   * clear Vector of Exceptions generated during doAction()
+   */
   public void clearExceptions() {
     exceptionVector.removeAllElements();
   }
 
+  /**
+   * set a flag indicating whether to suppress Exceptions
+   * generated during doAction()
+   */
   public void suppressExceptions(boolean suppress) {
     suppress_exceptions = suppress;
   }
     
-  /** add message from BadMappingException or
-      UnimplementedException to exceptionVector */
+  /**
+   * add a BadMappingException or UnimplementedException to
+   * Vector of Exceptions generated during doAction()
+   * @param error Exception to add
+   */
   public void addException(Exception error) {
     if (display == null) return;
     exceptionVector.addElement(error);
     // System.out.println(error.getMessage());
   }
 
-  /** this returns a Vector of Strings from the BadMappingExceptions
-      and UnimplementedExceptions generated during the last invocation
-      of this DataRenderer's doAction method;
-      there is no need to over-ride this method, but it may be invoked
-      by DisplayRenderer; gets a clone of exceptionVector to avoid
-      concurrent access by Display thread */
+  /**
+   * there is no need to over-ride this method, but it may be invoked
+   * by DisplayRenderer; gets a clone of exceptionVector to avoid
+   * concurrent access by Display thread
+   * @return a Vector of Strings from the BadMappingExceptions
+   * and UnimplementedExceptions generated during the last invocation
+   * of this DataRenderer's doAction method;
+   */
   public Vector getExceptionVector() {
     return (suppress_exceptions ? new Vector() : (Vector) exceptionVector.clone());
   }
 
+  /**
+   * @return flag indicating whether depiction generation is feasible
+   * for all linked Data
+   */
   public boolean get_all_feasible() {
     return all_feasible;
   }
 
+  /**
+   * @return flag indicating whether any linked Data have changed
+   * since last invocation of prepareAction()
+   */
   public boolean get_any_changed() {
     return any_changed;
   }
 
+  /**
+   * @return flag indicating whether any Controls associated with
+   * ScalarMaps applying to any linked Data have changed and require
+   * re-transform
+   */
   public boolean get_any_transform_control() {
     return any_transform_control;
   }
 
+  /**
+   * set flag indicating whether depiction generation is feasible
+   * for all linked Data
+   * @param b value to set in flag
+   */
   public void set_all_feasible(boolean b) {
     all_feasible = b;
   }
 
+  /**
+   * set DataDisplayLinks for linked Data, and set associated DisplayImpl
+   * @param links array of DataDisplayLinks to set
+   * @param associated DisplayImpl to set
+   * @throws VisADException a VisAD error occurred
+   */
   public abstract void setLinks(DataDisplayLink[] links, DisplayImpl d)
            throws VisADException;
 
@@ -132,6 +179,12 @@ public abstract class DataRenderer extends Object implements Cloneable {
     return enabled;
   }
 
+  /**
+   * set DataDisplayLinks for linked Data, including constructing
+   * arrays of booleans associated with DataDisplayLinks; called by
+   * setLinks(DataDisplayLink[], DisplayImpl)
+   * @param links array of DataDisplayLinks to set
+   */
   public synchronized void setLinks(DataDisplayLink[] links) {
     if (display == null) return;
     if (links == null || links.length == 0) return;
@@ -145,28 +198,48 @@ public abstract class DataRenderer extends Object implements Cloneable {
     }
   }
 
-  /** return an array of links to Data objects to be rendered;
-      Data objects are accessed by DataDisplayLink.getData() */
+  /**
+   * @return an array of DataDisplayLinks to Data objects to be rendered
+   * (Data objects are accessed by DataDisplayLink.getData())
+   */
   public DataDisplayLink[] getLinks() {
     return Links;
   }
 
+  /**
+   * @return DisplayImpl associated with this DataRenderer
+   */
   public DisplayImpl getDisplay() {
     return display;
   }
 
+  /**
+   * set DisplayImpl associated with this DataRenderer
+   * @param d DisplayImpl to set
+   */
   public void setDisplay(DisplayImpl d) {
     display = d;
   }
 
+  /**
+   * @return  associated with this DataRenderer
+   */
   public DisplayRenderer getDisplayRenderer() {
     return displayRenderer;
   }
 
+  /**
+   * set DisplayRenderer associated with this DataRenderer
+   * @param r DisplayRenderer to set
+   */
   public void setDisplayRenderer(DisplayRenderer r) {
     displayRenderer = r;
   }
 
+  /**
+   * @return flag indicating whether there is any pending need
+   * for re-transform for this DataRenderer
+   */
   public boolean checkAction() {
     if (display == null) return false;
     for (int i=0; i<Links.length; i++) {
@@ -186,8 +259,20 @@ public abstract class DataRenderer extends Object implements Cloneable {
     return false;
   }
 
-  /** check if re-transform is needed; if initialize is true then
-      compute ranges for RealType-s and Animation sampling */
+  /**
+   * check if re-transform is needed; if initialize is true then
+   * compute ranges for RealTypes and Animation sampling
+   * @param go flag indicating that re-transform is required for
+   *           at least one DataRenderer linked to DisplayImpl
+   * @param initialize flag indicating that initialization (i.e.,
+   *                   auto-scaling) is required
+   * @param shadow DataShadow shared by prepareAction() method of
+   *               all DataRenderers linked to DisplayImpl
+   * @return DataShadow containing ranges and animation sampling
+   *         Set (return null if no need for initialization)
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
@@ -240,7 +325,6 @@ System.out.println("prepareAction " + display.getName() + " " +
 
         if (!feasible[i]) {
           all_feasible = false;
-          // WLH 31 March 99
           clearBranch();
         }
         if (initialize && feasible[i]) {
@@ -283,6 +367,20 @@ System.out.println("any_changed = " + any_changed +
     return shadow;
   }
 
+  /**
+   * Compute ranges of values for each RealType in
+   * DisplayImpl.RealTypeVector.
+   * @param data Data object in which to compute ranges of RealType values
+   * @param type ShadowType generated for MathType of data
+   * @param shadow DataShadow instance whose contained double[][]
+   *               array and animation sampling Set are modified
+   *               according to RealType values in data, and used
+   *               as return value
+   * @return DataShadow instance containing double[][] array
+   *         of RealType ranges, and an animation sampling Set
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public DataShadow computeRanges(Data data, ShadowType type, DataShadow shadow)
          throws VisADException, RemoteException {
     if (display == null) return null;
@@ -296,23 +394,31 @@ System.out.println("any_changed = " + any_changed +
     return shadow;
   }
 
-  /** clear scene graph component */
+  /**
+   * clear part of Display scene graph generated by this DataRenderer
+   */
   public abstract void clearBranch();
 
-  /** re-transform if needed;
-      return false if not done */
-  /** transform linked Data objects into a display list, if
-      any Data object values have changed or relevant Controls
-      have changed; DataRenderers that assume the default
-      implementation of DisplayImpl.doAction can determine
-      whether re-transform is needed by:
-        (get_all_feasible() && (get_any_changed() || get_any_transform_control()));
-      these flags are computed by the default DataRenderer
-      implementation of prepareAction;
-      the return boolean is true if the transform was done
-      successfully */
+  /**
+   * transform linked Data objects into a scene graph depiction,
+   * if any Data object values have changed or relevant Controls
+   * have changed; DataRenderers that assume the default
+   * implementation of DisplayImpl.doAction can determine
+   * whether re-transform is needed by:
+   *   (get_all_feasible() &&
+   *    (get_any_changed() || get_any_transform_control()))
+   * these flags are computed by the default DataRenderer
+   * implementation of prepareAction()
+   * @return flag indicating if the transform was done successfully
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public abstract boolean doAction() throws VisADException, RemoteException;
 
+  /**
+   * @return flag indicating whether initialization (i.e.,
+   *         auto-scale) is needed on next re-transform
+   */
   public boolean getBadScale(boolean anyBadMap) {
     if (display == null) return false;
     boolean badScale = false;
@@ -344,8 +450,10 @@ if (map.badRange()) {
     return badScale;
   }
 
-  /** clear any display list created by the most recent doAction
-      invocation */
+  /**
+   * clear any scene graph created by this DataRenderer, and
+   * clear all instance variables
+   */
   public void clearScene() {
 // test for display == null in methods
     display = null;
@@ -377,6 +485,10 @@ if (map.badRange()) {
     tuple = null;
   }
 
+  /**
+   * clear all information associated with AnimationControls
+   * and ValueControls created by this DataRenderer
+   */
   public void clearAVControls() {
     if (display == null) return;
     Enumeration controls = display.getControls(AVControl.class).elements();
@@ -393,49 +505,134 @@ if (map.badRange()) {
     lon_index = -1;
   }
 
-  /** factory for constructing a subclass of ShadowType appropriate
-      for the graphics API, that also adapts ShadowFunctionType;
-      these factories are invoked by the buildShadowType methods of
-      the MathType subclasses, which are invoked by
-      DataDisplayLink.prepareData, which is invoked by
-      DataRenderer.prepareAction */
+  /**
+   * factory method for constructing a subclass of ShadowType appropriate
+   * for the graphics API, that also adapts ShadowFunctionType;
+   * ShadowType trees are constructed that 'shadow' the MathType trees of
+   * Data to be depicted, via recursive calls to buildShadowType() methods
+   * of MathType sub-classes, to DataRenderer.makeShadow*Type() methods,
+   * to Shadow*Type constructors, then back to buildShadowType() methods;
+   * the recursive call chain is initiated by DataDisplayLink.prepareData()
+   * calls to buildShadowType() methods of MathType sub-classes;
+   * @param type FunctionType that returned ShadowType will shadow
+   * @param link DataDisplayLink linking Data to be depicted
+   * @param parent parent in ShadowType tree structure
+   * @return constructed ShadowType
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public abstract ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
 
-  /** factory for constructing a subclass of ShadowType appropriate
-      for the graphics API, that also adapts ShadowRealTupleType */
+  /**
+   * factory for constructing a subclass of ShadowType appropriate
+   * for the graphics API, that also adapts ShadowRealTupleType;
+   * ShadowType trees are constructed that 'shadow' the MathType trees of
+   * Data to be depicted, via recursive calls to buildShadowType() methods 
+   * of MathType sub-classes, to DataRenderer.makeShadow*Type() methods, 
+   * to Shadow*Type constructors, then back to buildShadowType() methods;
+   * the recursive call chain is initiated by DataDisplayLink.prepareData()
+   * calls to buildShadowType() methods of MathType sub-classes;
+   * @param type FunctionType that returned ShadowType will shadow
+   * @param link DataDisplayLink linking Data to be depicted
+   * @param parent parent in ShadowType tree structure
+   * @return constructed ShadowType
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public abstract ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
 
-  /** factory for constructing a subclass of ShadowType appropriate
-      for the graphics API, that also adapts ShadowRealType */
+  /**
+   * factory for constructing a subclass of ShadowType appropriate
+   * for the graphics API, that also adapts ShadowRealType;
+   * ShadowType trees are constructed that 'shadow' the MathType trees of
+   * Data to be depicted, via recursive calls to buildShadowType() methods
+   * of MathType sub-classes, to DataRenderer.makeShadow*Type() methods,
+   * to Shadow*Type constructors, then back to buildShadowType() methods;
+   * the recursive call chain is initiated by DataDisplayLink.prepareData()
+   * calls to buildShadowType() methods of MathType sub-classes;
+   * @param type FunctionType that returned ShadowType will shadow
+   * @param link DataDisplayLink linking Data to be depicted
+   * @param parent parent in ShadowType tree structure
+   * @return constructed ShadowType 
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public abstract ShadowType makeShadowRealType(
          RealType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
 
-  /** factory for constructing a subclass of ShadowType appropriate
-      for the graphics API, that also adapts ShadowSetType */
+  /**
+   * factory for constructing a subclass of ShadowType appropriate
+   * for the graphics API, that also adapts ShadowSetType;
+   * ShadowType trees are constructed that 'shadow' the MathType trees of
+   * Data to be depicted, via recursive calls to buildShadowType() methods
+   * of MathType sub-classes, to DataRenderer.makeShadow*Type() methods,
+   * to Shadow*Type constructors, then back to buildShadowType() methods;
+   * the recursive call chain is initiated by DataDisplayLink.prepareData()
+   * calls to buildShadowType() methods of MathType sub-classes;
+   * @param type FunctionType that returned ShadowType will shadow
+   * @param link DataDisplayLink linking Data to be depicted
+   * @param parent parent in ShadowType tree structure
+   * @return constructed ShadowType 
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public abstract ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
 
-  /** factory for constructing a subclass of ShadowType appropriate
-      for the graphics API, that also adapts ShadowTextType */
+  /**
+   * factory for constructing a subclass of ShadowType appropriate
+   * for the graphics API, that also adapts ShadowTextType;
+   * ShadowType trees are constructed that 'shadow' the MathType trees of
+   * Data to be depicted, via recursive calls to buildShadowType() methods
+   * of MathType sub-classes, to DataRenderer.makeShadow*Type() methods,
+   * to Shadow*Type constructors, then back to buildShadowType() methods;
+   * the recursive call chain is initiated by DataDisplayLink.prepareData()
+   * calls to buildShadowType() methods of MathType sub-classes;
+   * @param type FunctionType that returned ShadowType will shadow
+   * @param link DataDisplayLink linking Data to be depicted
+   * @param parent parent in ShadowType tree structure
+   * @return constructed ShadowType 
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public abstract ShadowType makeShadowTextType(
          TextType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
 
-  /** factory for constructing a subclass of ShadowType appropriate
-      for the graphics API, that also adapts ShadowTupleType */
+  /**
+   * factory for constructing a subclass of ShadowType appropriate
+   * for the graphics API, that also adapts ShadowTupleType;
+   * ShadowType trees are constructed that 'shadow' the MathType trees of
+   * Data to be depicted, via recursive calls to buildShadowType() methods
+   * of MathType sub-classes, to DataRenderer.makeShadow*Type() methods,
+   * to Shadow*Type constructors, then back to buildShadowType() methods;
+   * the recursive call chain is initiated by DataDisplayLink.prepareData()
+   * calls to buildShadowType() methods of MathType sub-classes;
+   * @param type FunctionType that returned ShadowType will shadow
+   * @param link DataDisplayLink linking Data to be depicted
+   * @param parent parent in ShadowType tree structure
+   * @return constructed ShadowType 
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public abstract ShadowType makeShadowTupleType(
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException;
 
-  /** DataRenderer-specific decision about which Controls require re-transform;
-      may be over-ridden by DataRenderer sub-classes; this decision may use
-      some values computed by link.prepareData */
+  /**
+   * DataRenderer-specific decision about which Controls require
+   * re-transform; may be over-ridden by DataRenderer sub-classes;
+   * this decision may use some values computed by link.prepareData()
+   * @param control Control being judged whether it needs re-transform
+   * @param link DataDisplayLink possibly involved in decision
+   * @return flag indicating whether re-transform is needed
+   */
   public boolean isTransformControl(Control control, DataDisplayLink link) {
     if (display == null) return false;
     if (control instanceof ProjectionControl ||
@@ -458,11 +655,18 @@ if (map.badRange()) {
     return true;
   }
 
-  /** used for transform time-out hack */
+  /**
+   * used by ShadowFunctionOrSetType for transform time-out hack
+   * @return single DataDisplayLink (over-ridden by sub-classes)
+   */
   public DataDisplayLink getLink() {
     return null;
   }
 
+  /**
+   * @return flag indicating whether texture mapping is legal
+   *         for this DataRenderer
+   */
   public boolean isLegalTextureMap() {
     return true;
   }
@@ -476,69 +680,106 @@ if (map.badRange()) {
   // can get these indices through shadow_data_out or shadow_data_in
 
 
-  // true if lat and lon in data_in & shadow_data_in is allSpatial
-  // or if lat and lon in data_in & lat_lon_in_by_coord
+  /** true if lat and lon in data_in & shadow_data_in is allSpatial
+      or if lat and lon in data_in & lat_lon_in_by_coord */
   boolean lat_lon_in = false;
-  // true if lat_lon_in and shadow_data_out is allSpatial
-  // i.e., map from lat, lon to display is through data CoordinateSystem
+  /** true if lat_lon_in and shadow_data_out is allSpatial, i.e.,
+      map from lat, lon to display is through data CoordinateSystem */
   boolean lat_lon_in_by_coord = false;
-  // true if lat and lon in data_out & shadow_data_out is allSpatial
+  /** true if lat and lon in data_out & shadow_data_out is allSpatial */
   boolean lat_lon_out = false;
-  // true if lat_lon_out and shadow_data_in is allSpatial
-  // i.e., map from lat, lon to display is inverse via data CoordinateSystem
+  /** true if lat_lon_out and shadow_data_in is allSpatial, i.e.,
+      map from lat, lon to display is inverse via data CoordinateSystem */
   boolean lat_lon_out_by_coord = false;
 
+  /** earth dimension, either 2, 3 or -1 (for none) */
   int lat_lon_dimension = -1;
 
+  /** Shadow of reference RealTupleType in Data */
   ShadowRealTupleType shadow_data_out = null;
+  /** reference RealTupleType in Data */
   RealTupleType data_out = null;
+  /** Units of reference RealTupleType in Data */
   Unit[] data_units_out = null;
   // CoordinateSystem data_coord_out is always null
 
+  /** Shadow of RealTupleType with reference in Data */
   ShadowRealTupleType shadow_data_in = null;
+  /** RealTupleType with reference in Data */
   RealTupleType data_in = null;
+  /** Units of RealTupleType with reference in Data */
   Unit[] data_units_in = null;
-  CoordinateSystem[] data_coord_in = null; // may be one per point
+  /** CoordinateSystems relating data_in to data_out,
+      usually just one, but may be one per point */
+  CoordinateSystem[] data_coord_in = null;
 
-  // spatial ScalarMaps for allSpatial shadow_data_out
+  /** spatial ScalarMaps for allSpatial shadow_data_out */
   ScalarMap[] sdo_maps = null;
-  // spatial ScalarMaps for allSpatial shadow_data_in
+  /** spatial ScalarMaps for allSpatial shadow_data_in */
   ScalarMap[] sdi_maps = null;
+  /** indices in DisplayTupleType of DisplayRealTypes in sdo_maps */
   int[] sdo_spatial_index = null;
+  /** indices in DisplayTupleType of DisplayRealTypes in sdi_maps */
   int[] sdi_spatial_index = null;
 
-  // indices of RealType.Latitude and RealType.Longitude
-  // if lat_lon_in then indices in data_in
-  // if lat_lon_out then indices in data_out
-  // if lat_lon_spatial then values indices
+  /** index of RealType.Latitude
+      if lat_lon_in then index in data_in
+      if lat_lon_out then index in data_out
+      if lat_lon_spatial then values index */
   int lat_index = -1;
+  /** index of RealType.Longitude
+      if lat_lon_in then index in data_in
+      if lat_lon_out then index in data_out
+      if lat_lon_spatial then values indices */
   int lon_index = -1;
-  // non-negative if lat & lon in a RealTupleType of length 3
+  /** other index if lat & lon in a RealTupleType of length 3,
+      otherwise -1 */
   int other_index = -1;
-  // true if other_index Units convertable to meter
+  /** true if other_index Units convertable to meter */
   boolean other_meters = false;
 
-  // from doTransform
+  /** RealVectorTypes (extends RealTupleType) mapped to flow1 and
+      flow2, to be tested for being instances of EarthVectorType;
+      values will be either data_in, data_out or null */
   RealVectorType[] rvts = {null, null};
 
+  /**
+   * @param index 0 or 1 for flow1 and flow2
+   * @return RealVectorType (extends RealTupleType) mapped to flow1 or
+   *         flow2 (values will be either data_in, data_out or null)
+   */
   public RealVectorType getRealVectorTypes(int index) {
     if (index == 0 || index == 1) return rvts[index];
     else return null;
   }
 
+  /**
+   * @return indices of RealType.Latitude and RealType.Longitude
+   *         in data_in, data_out, or just spatial value array
+   */
   public int[] getLatLonIndices() {
     return new int[] {lat_index, lon_index};
   }
 
+  /**
+   * @param indices indices of RealType.Latitude and RealType.Longitude
+   *                in data_in, data_out, or just spatial value array
+   */
   public void setLatLonIndices(int[] indices) {
     lat_index = indices[0];
     lon_index = indices[1];
   }
 
+  /**
+   * @return earth dimension, either 2, 3 or -1 (for none)
+   */
   public int getEarthDimension() {
     return lat_lon_dimension;
   }
 
+  /**
+   * @return Units of earth coordinates used in Data
+   */
   public Unit[] getEarthUnits() {
     if (display == null) return null;
     Unit[] units = null;
@@ -575,6 +816,9 @@ if (map.badRange()) {
     }
   }
 
+  /**
+   * @return maximum of display ranges of latitude and longitude
+   */
   public float getLatLonRange() {
     if (display == null) return 1.0f;
     double[] rlat = null;
@@ -583,13 +827,17 @@ if (map.badRange()) {
     int lon = lon_index;
     if ((lat_lon_out && !lat_lon_out_by_coord) ||
         (lat_lon_in && lat_lon_in_by_coord)) {
-      rlat = lat >= 0 ? sdo_maps[lat].getRange() : new double[] {Double.NaN, Double.NaN};
-      rlon = lon >= 0 ? sdo_maps[lon].getRange() : new double[] {Double.NaN, Double.NaN};
+      rlat = lat >= 0 ? sdo_maps[lat].getRange() :
+                        new double[] {Double.NaN, Double.NaN};
+      rlon = lon >= 0 ? sdo_maps[lon].getRange() :
+                        new double[] {Double.NaN, Double.NaN};
     }
     else if ((lat_lon_in && !lat_lon_in_by_coord) ||
              (lat_lon_out && lat_lon_out_by_coord)) {
-      rlat = lat >= 0 ? sdi_maps[lat].getRange() : new double[] {Double.NaN, Double.NaN};
-      rlon = lon >= 0 ? sdi_maps[lon].getRange() : new double[] {Double.NaN, Double.NaN};
+      rlat = lat >= 0 ? sdi_maps[lat].getRange() :
+                        new double[] {Double.NaN, Double.NaN};
+      rlon = lon >= 0 ? sdi_maps[lon].getRange() :
+                        new double[] {Double.NaN, Double.NaN};
     }
     else if (lat_lon_spatial) {
       rlat = lat_map.getRange();
@@ -605,14 +853,31 @@ if (map.badRange()) {
     return (dlat > dlon) ? (float) dlat : (float) dlon;
   }
 
-  /** convert (lat, lon) or (lat, lon, other) values to
-      display (x, y, z) */
+  /**
+   * convert (lat, lon) or (lat, lon, other) values to display (x, y, z)
+   * @param locs (lat, lon) or (lat, lon, other) coordinates
+   * @param vert vertical flow component (if non-null, used to
+   *             adjust non-lat/lon spatial_locs
+   * @return display (x, y, z) coordinates
+   * @throws VisADException a VisAD error occurred
+   */
   public float[][] earthToSpatial(float[][] locs, float[] vert)
          throws VisADException {
     if (display == null) return null;
     return earthToSpatial(locs, vert, null);
   }
 
+  /**
+   * convert (lat, lon) or (lat, lon, other) values to display (x, y, z)
+   * @param locs (lat, lon) or (lat, lon, other) coordinates
+   * @param vert vertical flow component (if non-null, used to
+   *        adjust non-lat/lon spatial_locs
+   * @param base_spatial_locs saved spatial_locs argument from
+   *        spatialToEarth() call used to fill in any null members
+   *        of return array
+   * @return display (x, y, z) coordinates
+   * @throws VisADException a VisAD error occurred
+   */
   public float[][] earthToSpatial(float[][] locs, float[] vert,
                                   float[][] base_spatial_locs)
          throws VisADException {
@@ -786,8 +1051,12 @@ if (map.badRange()) {
     return spatial_locs;
   }
 
-  /** convert display (x, y, z) to (lat, lon) or (lat, lon, other)
-      values */
+  /**
+   * convert display (x, y, z) to (lat, lon) or (lat, lon, other) values
+   * @param spatial_locs display (x, y, z) coordinates
+   * @return (lat, lon) or (lat, lon, other) coordinates
+   * @throws VisADException a VisAD error occurred
+   */
   public float[][] spatialToEarth(float[][] spatial_locs)
          throws VisADException {
     if (display == null) return null;
@@ -795,6 +1064,14 @@ if (map.badRange()) {
     return spatialToEarth(spatial_locs, base_spatial_locs);
   }
 
+  /**
+   * convert display (x, y, z) to (lat, lon) or (lat, lon, other) values
+   * @param spatial_locs display (x, y, z) coordinates
+   * @param base_spatial_locs float[3][] array used to return member
+   *        arrays of spatial_locs argument
+   * @return (lat, lon) or (lat, lon, other) coordinates
+   * @throws VisADException a VisAD error occurred
+   */
   public float[][] spatialToEarth(float[][] spatial_locs,
                                   float[][] base_spatial_locs)
          throws VisADException {
@@ -924,7 +1201,25 @@ if (map.badRange()) {
     return locs;
   }
 
-  // information from doTransform
+  /**
+   * save information about relation between earth and display
+   * spatial coordinates, IF the arguments do define the relation
+   * @param s_d_i candidate shadow_data_in
+   *              (Shadow of RealTupleType with reference in Data)
+   * @param s_d_o candidate shadow_data_out
+   *              (Shadow of reference RealTupleType in Data)
+   * @param d_o candidate data_out
+   *            (reference RealTupleType in Data)
+   * @param d_u_o candidate data_units_out
+   *              (Units of reference RealTupleType in Data)
+   * @param d_i candidate data_in
+   *            (RealTupleType with reference in Data)
+   * @param d_c_i candidate data_coord_in
+   *              (CoordinateSystems relating data_in to data_out)
+   * @param d_u_i candidate data_units_in
+   *              (Units of RealTupleType with reference in Data)
+   * @throws VisADException a VisAD error occurred
+   */
   public void setEarthSpatialData(ShadowRealTupleType s_d_i,
                     ShadowRealTupleType s_d_o, RealTupleType d_o,
                     Unit[] d_u_o, RealTupleType d_i,
@@ -1057,7 +1352,15 @@ if (map.badRange()) {
     return;
   }
 
-  /** return array of spatial ScalarMap for srt, or null */
+  /**
+   * get information about spatial ScalarMaps of components in srt
+   * @param srt tuple of ShadowRealTypes
+   * @param spatial_index array with length equal to number of
+   *        components in srt, used to return indices in
+   *        DisplayTupleTypes of DisplayRealType mapped from
+   *        RealTypes of corresponding components in srt
+   * @return array of spatial ScalarMaps for components in srt (or null)
+   */
   private ScalarMap[] getSpatialMaps(ShadowRealTupleType srt,
                                      int[] spatial_index) {
     if (display == null) return null;
@@ -1087,7 +1390,14 @@ if (map.badRange()) {
     return maps;
   }
 
-  /** return array of flow ScalarMap for srt, or null */
+  /**
+   * determine whether Flow1 or Flow2 is used by given ShadowRealTupleType
+   * @param srt tuple of ShadowRealTypes
+   * @param maps array with length equal to number of components in srt,
+   *             used to return ScalarMaps to Flow from RealTypes of
+   *             corresponding components in srt
+   * @return 0 for Flow1, 1 for Flow2, or -1 for neither (or both - error)
+   */
   private int getFlowMaps(ShadowRealTupleType srt, ScalarMap[] maps) {
     if (display == null) return -1;
     int n = srt.getDimension();
@@ -1116,48 +1426,70 @@ if (map.badRange()) {
   }
 
 
-/* WLH 15 April 2000
-  // from assembleFlow
-  ScalarMap[][] flow_maps = null;
-  float[] flow_scale = null;
-
-  public void setFlowDisplay(ScalarMap[][] maps, float[] fs) {
-    flow_maps = maps;
-    flow_scale = fs;
-  }
-*/
-
-  // if non-null, float[][] new_spatial_values =
-  //   display_coordinate_system.toReference(spatial_values);
+  /** if non-null, float[][] new_spatial_values =
+      display_coordinate_system.toReference(spatial_values); */
   CoordinateSystem display_coordinate_system = null;
-  // spatial_tuple and spatial_value_indices are set whether
-  //   display_coordinate_system is null or not
+
+  /** spatial DisplayTupleType; set whether
+      display_coordinate_system is null or not */
   DisplayTupleType spatial_tuple = null;
-  // map from spatial_tuple tuple_index to value array indices
+
+  /** map from spatial_tuple tuple_index to value array indices;
+      set whether display_coordinate_system is null or not */
   int[] spatial_value_indices = {-1, -1, -1};
 
+  /** default values for spatial DisplayRealTypes */
   float[] default_spatial_in = {0.0f, 0.0f, 0.0f};
 
-  // true if lat and lon mapped directly to spatial
+  /** true if lat and lon mapped directly to spatial */
   boolean lat_lon_spatial = false;
+
+  /** ScalarMap from RealType.Latitude */
   ScalarMap lat_map = null;
+
+  /** ScalarMap from RealType.Longitude */
   ScalarMap lon_map = null;
+
+  /** index of lat_map DisplayRealType in DisplayTupleType */
   int lat_spatial_index = -1;
+
+  /** index of lon_map DisplayRealType in DisplayTupleType */
   int lon_spatial_index = -1;
 
-  // spatial map getRange() results for flow adjustment
+  /** array of normalized (i.e., max = 1.0) ranges for spatial
+      ScalarMaps, for flow adjustment */
   double[] ranges = null;
 
+  /**
+   * @return array of normalized (i.e., max = 1.0) ranges for spatial 
+   *         ScalarMaps, for flow adjustment
+   */
   public double[] getRanges() {
     return ranges;
   }
 
-  // WLH 4 March 2000
+  /**
+   * @return CoordinateSystem for spatial DisplayTupleType
+   *         (null if DisplaySpatialCartesianTuple)
+   */
   public CoordinateSystem getDisplayCoordinateSystem() {
     return display_coordinate_system ;
   }
 
-  // information from assembleSpatial
+  /**
+   * save information from ShadowType.assembleSpatial() about
+   * relation between earth and display spatial coordinates
+   * @param coord CoordinateSystem for spatial DisplayTupleType
+   *              (null if DisplaySpatialCartesianTuple)
+   * @param t spatial DisplayTupleType
+   * @param display the DisplayImpl
+   * @param indices indices in display_values array for 3 spatial
+   *                coordinates
+   * @param default_values default values for 3 spatial coordinates
+   * @param r double[3] array of normalized (i.e., max = 1.0)
+   *          ranges for spatial ScalarMaps, for flow adjustment
+   * @throws VisADException a VisAD error occurred
+   */
   public void setEarthSpatialDisplay(CoordinateSystem coord,
            DisplayTupleType t, DisplayImpl display, int[] indices,
            float[] default_values, double[] r)
@@ -1166,9 +1498,6 @@ if (map.badRange()) {
     display_coordinate_system = coord;
     spatial_tuple = t;
     System.arraycopy(indices, 0, spatial_value_indices, 0, 3);
-/* WLH 5 Dec 99
-    spatial_value_indices = indices;
-*/
     ranges = r;
     for (int i=0; i<3; i++) {
       int default_index = display.getDisplayScalarIndex(
@@ -1234,8 +1563,8 @@ if (map.badRange()) {
 
   /** if Function, last domain index and range values */
   private int lastIndex = -1;
-  double[] lastD = null;
-  float[] lastX = new float[6];
+  private double[] lastD = null;
+  private float[] lastX = new float[6];
 
   /** index into spatialValues found by checkClose */
   private int closeIndex = -1;
@@ -1279,7 +1608,7 @@ if (map.badRange()) {
   private int directManifoldDimension = 0;
   /** spatial DisplayTupleType other than
       DisplaySpatialCartesianTuple */
-  DisplayTupleType tuple = null;
+  private DisplayTupleType tuple = null;
 
   /** possible values for whyNotDirect */
   private final static String notRealFunction =
@@ -1319,6 +1648,17 @@ if (map.badRange()) {
 
   private int LastMouseModifiers = 0;
 
+  /**
+   * determine if direct manipulation is feasible for the Data
+   * objects rendered by this, and for the ScalarMaps linked to
+   * the associated DisplayImpl;
+   * "returns" its result by calls to setIsDirectManipulation()
+   * called by checkDirect() method of DirectManipulationRendererJ2D
+   * and DirectManipulationRendererJ3D, basically just to share
+   * code between those two classes
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public synchronized void realCheckDirect()
          throws VisADException, RemoteException {
     if (display == null) return;
@@ -1382,9 +1722,6 @@ if (map.badRange()) {
         return;
       }
       if (!tuple.equals(rtuple)) {
-/* WLH 3 Aug 98
-      if (!Display.DisplaySpatialCartesianTuple.equals(rtuple)) {
-*/
         whyNotDirect = rangeNotSpatial;
         return;
       }
@@ -1455,16 +1792,6 @@ if (map.badRange()) {
         return;
       }
       setIsDirectManipulation(true);
-/* WLH 3 Aug 98
-      if (domainAxis == -1) {
-        throw new DisplayException("DataRenderer.realCheckDirect:" +
-                                   "too few spatial domain");
-      }
-      if (directManifoldDimension < 2) {
-        throw new DisplayException("DataRenderer.realCheckDirect:" +
-                                   "directManifoldDimension < 2");
-      }
-*/
     }
     else if (type instanceof RealTupleType) {
       //
@@ -1484,10 +1811,6 @@ if (map.badRange()) {
                 (tuple != null &&
                  tuple.getCoordinateSystem().getReference().equals(
                  Display.DisplaySpatialCartesianTuple)) )) {
-/* WLH 3 Aug 98
-      else if (!Display.DisplaySpatialCartesianTuple.equals(
-                   ((ShadowRealTupleType) shadow).getDisplaySpatialTuple())) {
-*/
         whyNotDirect = nonSpatial;
         return;
       }
@@ -1495,9 +1818,6 @@ if (map.badRange()) {
         whyNotDirect = viaReference;
         return;
       }
-/* WLH 3 Aug 98
-      setIsDirectManipulation(true);
-*/
       if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
         tuple = null;
       }
@@ -1536,16 +1856,9 @@ if (map.badRange()) {
                 (tuple != null &&
                  tuple.getCoordinateSystem().getReference().equals(
                  Display.DisplaySpatialCartesianTuple)) )) {
-/* WLH 3 Aug 98
-      else if(!Display.DisplaySpatialCartesianTuple.equals(
-                   ((ShadowRealType) shadow).getDisplaySpatialTuple())) {
-*/
         whyNotDirect = nonSpatial;
         return;
       }
-/* WLH 3 Aug 98
-      setIsDirectManipulation(true);
-*/
       if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
         tuple = null;
       }
@@ -1555,7 +1868,8 @@ if (map.badRange()) {
         axisToComponent[i] = -1;
         directMap[i] = null;
       }
-      directManifoldDimension = setDirectMap((ShadowRealType) shadow, 0, false);
+      directManifoldDimension =
+        setDirectMap((ShadowRealType) shadow, 0, false);
       boolean twod = displayRenderer.getMode2D();
       if (tuple != null &&
           (!twod && directManifoldDimension != 3 ||
@@ -1567,9 +1881,18 @@ if (map.badRange()) {
     } // end else if (type instanceof RealType)
   }
 
-  /** set directMap and axisToComponent (domain = false) or
-      domainAxis (domain = true) from real; called by realCheckDirect */
-  synchronized int setDirectMap(ShadowRealType real, int component, boolean domain) {
+  /**
+   * set directMap and axisToComponent (domain = false) or domainAxis
+   * (domain = true) from real; called by realCheckDirect()
+   * @param real shadow of RealType in a ScalarMap
+   * @param component index of real in a ShadowRealTupleType
+   *                  -1 if real is a domain, 0 if range not in tuple
+   * @param domain true if real occurs in a Function domain
+   * @return direct manifold dimension (i.e., degrees of freedom
+   *         of manipulation)
+   */
+  synchronized int setDirectMap(ShadowRealType real, int component,
+                                boolean domain) {
     if (display == null) return 0;
     Enumeration maps = real.getSelectedMapVector().elements();
     while (maps.hasMoreElements()) {
@@ -1577,13 +1900,9 @@ if (map.badRange()) {
       DisplayRealType dreal = map.getDisplayScalar();
       DisplayTupleType tuple = dreal.getTuple();
       if (Display.DisplaySpatialCartesianTuple.equals(tuple) ||
-          // WLH 23 Jan 2002
           (tuple != null && tuple.getCoordinateSystem() != null &&
            Display.DisplaySpatialCartesianTuple.equals(
              tuple.getCoordinateSystem().getReference() )) ) {
-//          (tuple != null &&
-//           tuple.getCoordinateSystem().getReference().equals(
-//           Display.DisplaySpatialCartesianTuple)) ) {
         int index = dreal.getTupleIndex();
         if (domain) {
           domainAxis = index;
@@ -1598,33 +1917,66 @@ if (map.badRange()) {
     return 0;
   }
 
+  /**
+   * @return direct manifold dimension (i.e., degrees of freedom
+   *         of manipulation)
+   */
   private int getDirectManifoldDimension() {
     return directManifoldDimension;
   }
 
+  /**
+   * @return String with reason MathType and ScalarMaps do not
+   *         qualify for direct manipulation
+   */
   public String getWhyNotDirect() {
     return whyNotDirect;
   }
 
+  /**
+   * @param index of a spatial axis
+   * @return index of tuple component for spatial axis i
+   */
   private int getAxisToComponent(int i) {
     return axisToComponent[i];
   }
 
+  /**
+   * @param index of a spatial axis
+   * @return ScalarMap for spatial axis i
+   */
   private ScalarMap getDirectMap(int i) {
     return directMap[i];
   }
 
+  /**
+   * @return spatial axis for Function domain
+   */
   private int getDomainAxis() {
     return domainAxis;
   }
 
-  /** set spatialValues from ShadowType.doTransform */
+  /**
+   * set spatial values for Data depiction; used to detect when
+   * direct manipulation mouse selects a point of a Data depiction
+   * @param spatial_values float[3][number_of_points] of 3-D locations
+   *                       of depiction points
+   */
   public synchronized void setSpatialValues(float[][] spatial_values) {
     // these are X, Y, Z values
     spatialValues = spatial_values;
   }
 
-  /** find minimum distance from ray to spatialValues */
+  /**
+   * find minimum distance from ray to spatialValues; save index of
+   * point with minimum distance in closeIndex; reset lastIndex to -1
+   * (Field domain index of Field range value last modified by
+   *  drag_direct())
+   * @param origin 3-D origin of ray
+   * @param direction 3-D direction of ray
+   * @return minimum distance of ray to any point in spatialValues
+   *         (spatial values for Data depiction)
+   */
   public synchronized float checkClose(double[] origin, double[] direction) {
     float distance = Float.MAX_VALUE;
     if (display == null) return distance;
@@ -1667,24 +2019,49 @@ System.out.println("checkClose: distance = " + distance);
     return distance;
   }
 
-  /** mouse button released, ending direct manipulation */
+  /**
+   * called when mouse button is released ending direct manipulation;
+   * intended to be over-ridden by DataRenderer extensions that need
+   * to act on this event
+   */
   public synchronized void release_direct() {
   }
 
-  /** discontinue dragging this DataRenderer;
-      this method is not a general disable */
+  /**
+   * discontinue manipulating Data values for current mouse drag;
+   * (this only applies to the current mouse drag and is not a
+   *  general disable)
+   */
   public void stop_direct() {
     stop = true;
   }
 
+  /**
+   * @return value of InputEvent.getModifiers() from most recent
+   *         direct manipulation mouse click
+   */
   public int getLastMouseModifiers() {
     return LastMouseModifiers;
   }
 
+  /**
+   * called by MouseHelper.processEvent() to set LastMouseModifiers
+   * @param mouseModifiers value of InputEvent.getModifiers() from
+   *                       last direct manipulation mouse click
+   */
   public void setLastMouseModifiers(int mouseModifiers) {
     LastMouseModifiers = mouseModifiers;
   }
 
+  /**
+   * modify Data values based on direct manipulation mouse actions
+   * @param ray 3-D graphics coordinates of ray corresponding to
+   *            mouse screen location
+   * @param first flag if this is first call (for MouseEvent.MOUSE_PRESSED,
+   *              not for MouseEvent.MOUSE_DRAGGED)
+   * @param mouseModifiers value of InputEvent.getModifiers() from
+   *                       most recent direct manipulation mouse click
+   */
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     if (display == null) return;
@@ -2057,25 +2434,47 @@ System.out.println("checkClose: distance = " + distance);
     }
   }
 
+  /**
+   * add point for temporary rendering; intended to be
+   * over-ridden by graphics-API-specific extensions of
+   * DataRenderer
+   * @param x 3-D graphics coordinates of point to render
+   * @throws VisADException a VisAD error occurred
+   */
   public void addPoint(float[] x) throws VisADException {
   }
-
-
 
   /** flag indicating whether DirectManipulationRenderer is valid
       for this ShadowType */
   private boolean isDirectManipulation;
 
-  /** set isDirectManipulation = true if this DataRenderer
-      supports direct manipulation for its linked Data */
+  /**
+   * set isDirectManipulation = true if this DataRenderer supports
+   * direct manipulation for the MathType of its linked Data, and
+   * for its ScalarMaps; intended to be over-ridden by extensions of
+   * DataRenderer
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void checkDirect() throws VisADException, RemoteException {
     isDirectManipulation = false;
   }
 
+  /**
+   * set value of isDirectManipulation flag (indicating whether this
+   * DataRenderer supports direct manipulation for its MathType and
+   * ScalarMaps)
+   * @param b value to set in isDirectManipulation
+   */
   public void setIsDirectManipulation(boolean b) {
     isDirectManipulation = b;
   }
 
+  /**
+   * @return value of isDirectManipulation flag (indicating whether this
+   *         DataRenderer supports direct manipulation for its MathType
+   *         and ScalarMaps)
+   */
   public boolean getIsDirectManipulation() {
     return isDirectManipulation;
   }
@@ -2084,14 +2483,21 @@ System.out.println("checkClose: distance = " + distance);
       "crawl" toward the cursor instead of jumping to it immediately. */
   protected boolean pickCrawlToCursor = true;
 
-  /** sets whether points affected by direct manipulation should
-      "crawl" toward the cursor instead of jumping to it immediately. */
+  /**
+   * set pickCrawlToCursor flag indicating whether Data points being
+   * manipulated should "crawl" toward the cursor instead of jumping
+   * to it immediately
+   * @param b value to set in pickCrawlToCursor
+   */
   public void setPickCrawlToCursor(boolean b) {
     pickCrawlToCursor = b;
   }
 
-  /** gets whether points affected by direct manipulation should
-      "crawl" toward the cursor instead of jumping to it immediately. */
+  /**
+   * @return pickCrawlToCursor flag indicating whether Data points being
+   *         manipulated should "crawl" toward the cursor instead of
+   *         jumping to it immediately
+   */
   public boolean getPickCrawlToCursor() {
     return pickCrawlToCursor;
   }
@@ -2103,6 +2509,21 @@ System.out.println("checkClose: distance = " + distance);
   private static final int TRYS = 10;
   private static final double EPS = 0.001f;
 
+  /**
+   * find intersection of a ray and a 2-D manifold, using Newton's method
+   * @param first flag requesting to generate a first guess ray position
+   *              by brute force search
+   * @param origin 3-D graphics coordinates of ray origin
+   * @param direction 3-D graphics coordinates of ray direction
+   * @param tuple spatial DisplayTupleType used to define 2-D manifold
+   *              (manifold is defined by fixing value of one component
+   *               of 3-D tuple)
+   * @param otherindex index of tuple component to be fixed
+   * @param othervalue value at which to fix otherindex tuple component
+   * @return parameter of point along ray of ray-manifold intersection
+   *        (point = origin + parameter * direction)
+   * @throws VisADException a VisAD error occurred
+   */
   public float findRayManifoldIntersection(boolean first, double[] origin,
                              double[] direction, DisplayTupleType tuple,
                              int otherindex, float othervalue)
@@ -2222,6 +2643,8 @@ System.out.println("checkClose: distance = " + distance);
   /**
    * <b>WARNING!</b>
    * Do <b>NOT</b> use this routine unless you know what you are doing!
+   * remove link from Links[] array when remote connection fails
+   * @param link DataDisplayLink to remove
    */
   public void removeLink(DataDisplayLink link)
   {
@@ -2257,6 +2680,9 @@ System.out.println("checkClose: distance = " + distance);
     Links = newLinks;
   }
 
+  /**
+   * @return a copy of this DataRenderer
+   */
   public abstract Object clone() throws CloneNotSupportedException;
 
 }
