@@ -670,8 +670,6 @@ public class DisplayImplJ3D extends DisplayImpl {
   }
 
   public void destroy() throws VisADException, RemoteException {
-    // WLH 17 Dec 2001
-    // ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas().stop();
     ((DisplayRendererJ3D) getDisplayRenderer()).destroy();
     super.destroy();
     applet = null;

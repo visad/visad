@@ -1338,10 +1338,11 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       while (renderers.hasNext()) {
         DataRenderer renderer = (DataRenderer) renderers.next();
         renderer.clearAVControls(); // WLH 31 Oct 2000
-        renderer.clearScene();
+        // renderer.clearScene();
         DataDisplayLink[] links = renderer.getLinks();
         renderers.remove();
         removeLinks(links);
+        renderer.clearScene();
       }
       RendererVector.removeAllElements();
 
