@@ -35,7 +35,6 @@ import visad.java2d.DisplayImplJ2D;
 import visad.java2d.DirectManipulationRendererJ2D;
 import visad.util.VisADSlider;
 import visad.util.LabeledRGBWidget;
-import visad.util.SelectRangeWidget;
 import visad.data.netcdf.Plain;
 import java.rmi.RemoteException;
 import java.io.IOException;
