@@ -142,7 +142,6 @@ public class DefaultFamily
 	  } catch (Error e) {
             // WLH 19 Feb 2000 - needed for HDF5
 	  }
-	} else {
 	}
       }
 
@@ -483,16 +482,55 @@ public class DefaultFamily
     * Open a local data object using the first appropriate Form.
     */
   public synchronized DataImpl open(String id)
-	throws BadFormException, IOException, VisADException
+	throws BadFormException, VisADException
   {
     OpenStringForm o = new OpenStringForm(id);
-    if (!o.run()) {
-      throw new BadFormException("Data object \"" + id +
-				 "\" not compatible with \"" + getName() +
-				 "\" data family");
+
+    DataImpl data;
+    IOException strEx;
+
+    try {
+      if (!o.run()) {
+        data = null;
+      } else {
+        data = o.getData();
+      }
+      strEx = null;
+    } catch (IOException ioe) {
+      data = null;
+      strEx = ioe;
     }
 
-    return o.getData();
+    if (data == null) {
+      URL url;
+      try {
+        url = new URL(id);
+      } catch (MalformedURLException mue) {
+        url = null;
+      }
+
+      if (url != null) {
+        OpenURLForm u = new OpenURLForm(url);
+
+        try {
+          if (!u.run()) {
+            data = null;
+          } else {
+            data = u.getData();
+          }
+        } catch (Exception e) {
+          data = null;
+        }
+      }
+    }
+
+    if (data == null) {
+      throw new BadFormException("Data object \"" + id +
+                                 "\" not compatible with \"" + getName() +
+                                 "\" data family");
+    }
+
+    return data;
   }
 
   /**
@@ -526,16 +564,9 @@ public class DefaultFamily
     DefaultFamily fr = new DefaultFamily("sample");
 
     for (int i = 0; i < args.length; i++) {
-      URL url = null;
-      try {
-        url = new URL(args[i]);
-      }
-      catch (MalformedURLException exc) { }
       Data data;
-      if (url != null) System.out.println("Trying URL " + url.toString());
-      else System.out.println("Trying file " + args[i]);
-      if (url == null) data = fr.open(args[i]);
-      else data = fr.open(url);
+      System.out.println("Trying file " + args[i]);
+      data = fr.open(args[i]);
       System.out.println(args[i] + ": " + data.getType().prettyString());
     }
   }
