@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.1 1998-06-22 18:32:03 visad Exp $
+ * $Id: StandardQuantityDB.java,v 1.2 1998-08-12 18:42:48 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -14,7 +14,6 @@ package visad.data.netcdf;
 import java.io.Serializable;
 import visad.SI;
 import visad.VisADException;
-import visad.data.netcdf.units.NoSuchUnitException;
 import visad.data.netcdf.units.ParseException;
 
 
@@ -24,7 +23,8 @@ import visad.data.netcdf.units.ParseException;
  *
  * @author Steven R. Emmerson
  */
-public final class StandardQuantityDB
+public final class
+StandardQuantityDB
   extends	QuantityDB
   implements	Serializable
 {
@@ -35,15 +35,35 @@ public final class StandardQuantityDB
 
 
   /**
-   * Default constructor.  Private to ensure use of the instance() method.
+   * Return an instance of this class.
    *
    * @exception VisADException	Couldn't create necessary VisAD object.
    */
-  private StandardQuantityDB()
+  public static synchronized StandardQuantityDB
+  instance()
     throws VisADException
   {
-    super(/*otherDB=*/null);
+    if (db == null)
+	db = new StandardQuantityDB();
 
+    return db;
+  }
+
+
+  /**
+   * Constucts, given nothing.  Protected to ensure use of the instance()
+   * method.
+   *
+   * @param otherDB		The quantity database for the get...()
+   *				methods to search after this one if no
+   *				entry found.  May be <code>null</code>.
+   *
+   * @exception VisADException	Couldn't create necessary VisAD object.
+   */
+  protected 
+  StandardQuantityDB()
+    throws VisADException
+  {
     String	name;
 
     try {
@@ -240,12 +260,12 @@ public final class StandardQuantityDB
       super.add("geodetic longitude", "degrees_east");
       super.add("latitude", "degrees_north");
       super.add("longitude", "degrees_east");
+      super.add("lat", "degrees_north");
+      super.add("lon", "degrees_east");
       super.add("elevation", "m");
       super.add("altitude", "m");
       super.add("depth", "m");
 
-    } catch (NoSuchUnitException e) {	// shouldn't happen
-      throw new VisADException(e.getMessage());
     } catch (ParseException e) {	// shouldn't happen
       throw new VisADException(e.getMessage());
     }
@@ -271,17 +291,14 @@ public final class StandardQuantityDB
 
 
   /**
-   * Return an instance of this database.
-   *
-   * @return			An instance of the database.
-   * @exception VisADException	Couldn't create necessary VisAD object.
+   * Tests this class.
    */
-  public static StandardQuantityDB instance()
-    throws VisADException
+  public static void
+  main(String[] args)
+    throws	Exception
   {
-    if (db == null)
-      db = new StandardQuantityDB();
+    StandardQuantityDB	db = StandardQuantityDB.instance();
 
-    return db;
+    System.out.println("latitude={" + db.get("latitude", SI.radian) + "}");
   }
 }
