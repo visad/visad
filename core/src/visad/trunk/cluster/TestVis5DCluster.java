@@ -53,6 +53,8 @@ public class TestVis5DCluster extends Object {
     int node_divide = 2;
     int number_of_nodes = node_divide * node_divide;
 
+    RemoteNodeField[] node_v5ds = new RemoteNodeField[number_of_nodes];
+  
     if (args == null || args.length < 2) {
       System.out.println("usage: 'java visad.cluster.TestVis5DCluster " +
                          "n file.v5d'");
@@ -87,11 +89,7 @@ public class TestVis5DCluster extends Object {
       System.out.println("cannot open " + args[1]);
       return;
     }
-/*
-new Integer2DSet(imageDomain, nelements, nlines));
-MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
-*/
-
+  
     FunctionType v5d_type = (FunctionType) v5d.getType();
 System.out.println("v5d_type = " + v5d_type);
     Set time_set = v5d.getDomainSet();
@@ -113,46 +111,30 @@ System.out.println("v5d_type = " + v5d_type);
         (FunctionType) ((TupleType) v5d_range_type).getComponent(1);
       grid0 = (FlatField) ((Tuple) v5d_range0).getComponent(0);
     }
-    RealTupleType domain_type = grid_type.getDomain();
-
-
-    RealTupleType time_tuple = v5d_type.getDomain();
-    RealType time = (RealType) time_tuple.getComponent(0);
-    RealType x = (RealType) domain_type.getComponent(0);
-    RealType y = (RealType) domain_type.getComponent(1);
-    RealType z = (RealType) domain_type.getComponent(2);
-    RealType val = (RealType) grid_type.getRange();
-    RealType val2 =
-      (grid_type2 == null) ? null : (RealType) grid_type2.getRange();
-
 
     Gridded3DSet domain_set = (Gridded3DSet) grid0.getDomainSet();
-    int x_len = domain_set.getLength(0);
-    int y_len = domain_set.getLength(1);
-    int z_len = domain_set.getLength(2);
-    int len = domain_set.getLength();
-    float[][] samples = domain_set.getSamples(false);
-    float[][] ps_samples = new float[3][number_of_nodes];
-    for (int i=0; i<node_divide; i++) {
-      int ie = i * (x_len - 1) / (node_divide - 1);
-      for (int j=0; j<node_divide; j++) {
-        int je = j * (y_len - 1) / (node_divide - 1);
-        int k = i + node_divide * j;
-        int ke = ie + x_len * (je + y_len * (z_len / 2));
-        ps_samples[0][k] = samples[0][ke];
-        ps_samples[1][k] = samples[1][ke];
-        ps_samples[2][k] = samples[2][ke];
-      }
-    }
-    Gridded3DSet ps =
-      new Gridded3DSet(domain_type, ps_samples,
-                       node_divide, node_divide, 1,
-                       domain_set.getCoordinateSystem(),
-                       domain_set.getSetUnits(), null);
+    Gridded3DSet ps = makePS(domain_set, node_divide);
 
-    RemoteNodeField[] node_v5ds = new RemoteNodeField[number_of_nodes];
-  
     if (!client) {
+      RealTupleType domain_type = grid_type.getDomain();
+  
+  
+      RealTupleType time_tuple = v5d_type.getDomain();
+      RealType time = (RealType) time_tuple.getComponent(0);
+      RealType x = (RealType) domain_type.getComponent(0);
+      RealType y = (RealType) domain_type.getComponent(1);
+      RealType z = (RealType) domain_type.getComponent(2);
+      RealType val = (RealType) grid_type.getRange();
+      RealType val2 =
+        (grid_type2 == null) ? null : (RealType) grid_type2.getRange();
+  
+  
+      float[][] samples = domain_set.getSamples(false);
+      int x_len = domain_set.getLength(0);
+      int y_len = domain_set.getLength(1);
+      int z_len = domain_set.getLength(2);
+      int len = domain_set.getLength();
+
       Gridded3DSet[] subsets = new Gridded3DSet[number_of_nodes];
   
       int k = id - 1;
@@ -199,15 +181,21 @@ System.out.println("sub_len = " + sub_len + " out of len = " + len);
           Tuple v5d_tuple = (Tuple) v5d_sample;
           int ngrids = v5d_tuple.getDimension();
           RemoteNodeDataImpl[] subsubgrids = new RemoteNodeDataImpl[ngrids];
+          FlatField[] combinegrids = new FlatField[ngrids];
           for (int j=0; j<ngrids; j++) {
             FlatField grid = (FlatField) v5d_tuple.getComponent(j);
-            FlatField subgrid = (FlatField) grid.resample(subsets[k]);
-            subsubgrids[j] = new RemoteNodePartitionedFieldImpl(subgrid);
+            combinegrids[j] = (FlatField) grid.resample(subsets[k]);
+            // subsubgrids[j] =
+            //   new RemoteNodePartitionedFieldImpl(combinegrids[j]);
           }
-          subgrids[i] = new RemoteNodeTupleImpl(subsubgrids);
+          // subgrids[i] = new RemoteNodeTupleImpl(subsubgrids);
+          FlatField subgrid = (FlatField) FieldImpl.combine(combinegrids);
+          subgrids[i] = new RemoteNodePartitionedFieldImpl(subgrid);
         }
       }
-      node_v5ds[k] = new RemoteNodeFieldImpl(v5d_type, time_set);
+      FunctionType new_v5d_type =
+        new FunctionType(time_tuple, subgrids[0].getType());
+      node_v5ds[k] = new RemoteNodeFieldImpl(new_v5d_type, time_set);
       node_v5ds[k].setSamples(subgrids, false);
 
 
@@ -226,6 +214,7 @@ System.out.println("sub_len = " + sub_len + " out of len = " + len);
       return;
     } // end if (!client)
 
+    // this is all client code
     for (int k=0; k<number_of_nodes; k++) {
       String url = "///TestVis5DCluster" + k;
       try {
@@ -236,6 +225,10 @@ System.out.println("sub_len = " + sub_len + " out of len = " + len);
         return;
       }
     }
+
+    v5d_type = (FunctionType) node_v5ds[0].getType();
+System.out.println("new v5d_type = " + v5d_type);
+    time_set = node_v5ds[0].getDomainSet();
 
     RemoteClientFieldImpl client_v5d =
       new RemoteClientFieldImpl(v5d_type, time_set);
@@ -265,26 +258,31 @@ System.out.println("sub_len = " + sub_len + " out of len = " + len);
     }
 */
 
-/*
+    grid_type = (FunctionType) v5d_type.getRange();
+    RealTupleType domain_type = grid_type.getDomain();
+  
+  
     RealTupleType time_tuple = v5d_type.getDomain();
     RealType time = (RealType) time_tuple.getComponent(0);
     RealType x = (RealType) domain_type.getComponent(0);
     RealType y = (RealType) domain_type.getComponent(1);
     RealType z = (RealType) domain_type.getComponent(2);
-    RealType val = grid_type.getRange();
-*/
+    RealTupleType val_tuple = (RealTupleType) grid_type.getRange();
+    int nvals = val_tuple.getDimension();
+    RealType[] vals = new RealType[nvals];
+    for (int i=0; i<nvals; i++) {
+      vals[i] = (RealType) val_tuple.getComponent(i);
+    }
 
     ScalarMap animation_map = new ScalarMap(time, Display.Animation);
     display.addMap(animation_map);
     display.addMap(new ScalarMap(x, Display.XAxis));
     display.addMap(new ScalarMap(y, Display.YAxis));
     display.addMap(new ScalarMap(z, Display.ZAxis));
-    ScalarMap contour_map = new ScalarMap(val, Display.IsoContour);
-    display.addMap(contour_map);
-    ScalarMap contour_map2 = null;
-    if (val2 != null) {
-      contour_map2 = new ScalarMap(val2, Display.IsoContour);
-      display.addMap(contour_map2);
+    ScalarMap[] contour_maps = new ScalarMap[nvals];
+    for (int i=0; i<nvals; i++) {
+      contour_maps[i] = new ScalarMap(vals[i], Display.IsoContour);
+      display.addMap(contour_maps[i]);
     }
 
     // link data to the display
@@ -312,9 +310,9 @@ System.out.println("sub_len = " + sub_len + " out of len = " + len);
     // add display to JPanel
     panel.add(display.getComponent());
     panel.add(new AnimationWidget(animation_map));
-    panel.add(new ContourWidget(contour_map));
-    if (val2 != null) {
-      panel.add(new ContourWidget(contour_map2));
+    panel.add(new ContourWidget(contour_maps[0]));
+    if (nvals > 1) {
+      panel.add(new ContourWidget(contour_maps[1]));
     }
 
     // set size of JFrame and make it visible
@@ -322,6 +320,33 @@ System.out.println("sub_len = " + sub_len + " out of len = " + len);
     frame.setVisible(true);
   }
 
+  private static Gridded3DSet makePS(Gridded3DSet domain_set, int node_divide)
+          throws VisADException {
+    int number_of_nodes = node_divide * node_divide;
+    int x_len = domain_set.getLength(0);
+    int y_len = domain_set.getLength(1);
+    int z_len = domain_set.getLength(2);
+    int len = domain_set.getLength();
+    float[][] samples = domain_set.getSamples(false);
+    float[][] ps_samples = new float[3][number_of_nodes];
+    for (int i=0; i<node_divide; i++) {
+      int ie = i * (x_len - 1) / (node_divide - 1);
+      for (int j=0; j<node_divide; j++) {
+        int je = j * (y_len - 1) / (node_divide - 1);
+        int k = i + node_divide * j;
+        int ke = ie + x_len * (je + y_len * (z_len / 2));
+        ps_samples[0][k] = samples[0][ke];
+        ps_samples[1][k] = samples[1][ke];
+        ps_samples[2][k] = samples[2][ke];
+      }
+    }
+    Gridded3DSet ps =
+      new Gridded3DSet(domain_set.getType(), ps_samples,
+                       node_divide, node_divide, 1,
+                       domain_set.getCoordinateSystem(),
+                       domain_set.getSetUnits(), null);
+    return ps;
+  }
 
 /*
     Real r = new Real(0);

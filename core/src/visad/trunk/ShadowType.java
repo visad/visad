@@ -3294,8 +3294,12 @@ System.out.println("range = " + range[0] + " " + range[1] +
 
                 // WLH 4 May 2001
                 if (array != null) {
-                  array = array.adjustLongitude(renderer);
-                  array = array.adjustSeam(renderer);
+                  try {
+                    array = array.adjustLongitude(renderer);
+                    array = array.adjustSeam(renderer);
+                  }
+                  catch (Exception e) {
+                  }
                 }
 
 // System.out.println("end makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
@@ -3323,10 +3327,14 @@ System.out.println("range = " + range[0] + " " + range[1] +
               if (arrays != null) {
                 for (int j=0; j<arrays.length; j++) {
                   if (arrays[j] != null) {
-                    arrays[j] = arrays[j].adjustLongitude(renderer);
+                    try {
+                      arrays[j] = arrays[j].adjustLongitude(renderer);
 // System.out.println("adjustLongitude " + j + " done");
-                    arrays[j] = arrays[j].adjustSeam(renderer);
+                      arrays[j] = arrays[j].adjustSeam(renderer);
 // System.out.println("adjustSeam " + j + " done");
+                    }
+                    catch (Exception e) {
+                    }
                   }
                 }
               }
