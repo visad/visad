@@ -1,5 +1,5 @@
 //
-// JamaLUDecomposition.java
+// JamaQRDecomposition.java
 //
 
 /*
@@ -35,27 +35,27 @@ import visad.*;
 import visad.formula.FormulaUtil;
 
 /**
- * JamaLUDecomposition is a VisAD wrapper for JAMA LUDecompositions.
+ * JamaQRDecomposition is a VisAD wrapper for JAMA QRDecompositions.
  * This class requires the
  * <a href="http://math.nist.gov/javanumerics/jama/">JAMA package</a>.
  */
-public class JamaLUDecomposition extends Tuple {
+public class JamaQRDecomposition extends Tuple {
 
-  private static final RealType LUL_row =
-    RealType.getRealType("LU_L_row");
+  private static final RealType QRQ_row =
+    RealType.getRealType("QR_Q_row");
 
-  private static final RealType LUL_column =
-    RealType.getRealType("LU_L_column");
+  private static final RealType QRQ_column =
+    RealType.getRealType("QR_Q_column");
 
-  private static final RealType LUL_value =
-    RealType.getRealType("LU_L_value");
+  private static final RealType QRQ_value =
+    RealType.getRealType("QR_Q_value");
 
-  private static final FunctionType LULType = constructLFunction();
+  private static final FunctionType QRQType = constructQFunction();
 
-  private static FunctionType constructLFunction() {
+  private static FunctionType constructQFunction() {
     try {
-      RealTupleType tuple = new RealTupleType(LUL_row, LUL_column);
-      FunctionType function = new FunctionType(tuple, LUL_value);
+      RealTupleType tuple = new RealTupleType(QRQ_row, QRQ_column);
+      FunctionType function = new FunctionType(tuple, QRQ_value);
       return function;
     }
     catch (VisADException exc) {
@@ -64,21 +64,21 @@ public class JamaLUDecomposition extends Tuple {
     }
   }
 
-  private static final RealType LUU_row =
-    RealType.getRealType("LU_U_row");
+  private static final RealType QRR_row =
+    RealType.getRealType("QR_R_row");
 
-  private static final RealType LUU_column =
-    RealType.getRealType("LU_U_column");
+  private static final RealType QRR_column =
+    RealType.getRealType("QR_R_column");
 
-  private static final RealType LUU_value =
-    RealType.getRealType("LU_U_value");
+  private static final RealType QRR_value =
+    RealType.getRealType("QR_R_value");
 
-  private static final FunctionType LUUType = constructUFunction();
+  private static final FunctionType QRRType = constructRFunction();
 
-  private static FunctionType constructUFunction() {
+  private static FunctionType constructRFunction() {
     try {
-      RealTupleType tuple = new RealTupleType(LUU_row, LUU_column);
-      FunctionType function = new FunctionType(tuple, LUU_value);
+      RealTupleType tuple = new RealTupleType(QRR_row, QRR_column);
+      FunctionType function = new FunctionType(tuple, QRR_value);
       return function;
     }
     catch (VisADException exc) {
@@ -87,17 +87,21 @@ public class JamaLUDecomposition extends Tuple {
     }
   }
 
-  private static final RealType pivot_domain =
-    RealType.getRealType("pivot_domain");
+  private static final RealType QRH_row =
+    RealType.getRealType("QR_H_row");
 
-  private static final RealType pivot_value =
-    RealType.getRealType("pivot_value");
+  private static final RealType QRH_column =
+    RealType.getRealType("QR_H_column");
 
-  private static final FunctionType pivotType = constructPFunction();
+  private static final RealType QRH_value =
+    RealType.getRealType("QR_H_value");
 
-  private static FunctionType constructPFunction() {
+  private static final FunctionType QRHType = constructHFunction();
+
+  private static FunctionType constructHFunction() {
     try {
-      FunctionType function = new FunctionType(pivot_domain, pivot_value);
+      RealTupleType tuple = new RealTupleType(QRH_row, QRH_column);
+      FunctionType function = new FunctionType(tuple, QRH_value);
       return function;
     }
     catch (VisADException exc) {
@@ -132,25 +136,23 @@ public class JamaLUDecomposition extends Tuple {
   private static final Class classQRDecomposition = classes[4];
   private static final Class classSingularValueDecomposition = classes[5];
 
-  /** associated JAMA LUDecomposition object */
-  private Object lud;
+  /** associated JAMA QRDecomposition object */
+  private Object qrd;
 
-  /** useful methods from Jama.LUDecomposition class */
+  /** useful methods from Jama.QRDecomposition class */
   private static final Method[] methods =
     constructMethods();
 
   private static Method[] constructMethods() {
-    Method[] ms = new Method[7];
+    Method[] ms = new Method[5];
     try {
       Class[] param = new Class[] {};
-      ms[0] = classLUDecomposition.getMethod("getL", param);
-      ms[1] = classLUDecomposition.getMethod("getU", param);
-      ms[2] = classLUDecomposition.getMethod("getPivot", param);
-      ms[3] = classLUDecomposition.getMethod("getDoublePivot", param);
-      ms[4] = classLUDecomposition.getMethod("det", param);
-      ms[5] = classLUDecomposition.getMethod("isNonsingular", param);
+      ms[0] = classQRDecomposition.getMethod("getH", param);
+      ms[1] = classQRDecomposition.getMethod("getQ", param);
+      ms[2] = classQRDecomposition.getMethod("getR", param);
+      ms[3] = classQRDecomposition.getMethod("isFullRank", param);
       param = new Class[] {classMatrix};
-      ms[6] = classLUDecomposition.getMethod("solve", param);
+      ms[4] = classQRDecomposition.getMethod("solve", param);
     }
     catch (NoSuchMethodException e) {
       e.printStackTrace();
@@ -158,21 +160,19 @@ public class JamaLUDecomposition extends Tuple {
     return ms;
   }
 
-  private static final Method getL = methods[0];
-  private static final Method getU = methods[1];
-  private static final Method getPivot = methods[2];
-  private static final Method getDoublePivot = methods[3];
-  private static final Method det = methods[4];
-  private static final Method isNonsingular = methods[5];
-  private static final Method solve = methods[6];
+  private static final Method getH = methods[0];
+  private static final Method getQ = methods[1];
+  private static final Method getR = methods[2];
+  private static final Method isFullRank = methods[3];
+  private static final Method solve = methods[4];
 
-  private static final Constructor matrixLUDecomposition =
+  private static final Constructor matrixQRDecomposition =
     constructConstructor();
 
   private static Constructor constructConstructor() {
     try {
       Class[] param = new Class[] {classMatrix};
-      return classLUDecomposition.getConstructor(param);
+      return classQRDecomposition.getConstructor(param);
     }
     catch (NoSuchMethodException e) {
       e.printStackTrace();
@@ -183,60 +183,55 @@ public class JamaLUDecomposition extends Tuple {
   // Constructors
 
   /**
-   * Construct a new JamaLUDecomposition from a JamaMatrix.
+   * Construct a new JamaQRDecomposition from a JamaMatrix.
    */
-  public JamaLUDecomposition(JamaMatrix matrix)
+  public JamaQRDecomposition(JamaMatrix matrix)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    this(matrixLUDecomposition.newInstance(new Object[] {matrix.getMatrix()}),
+    this(matrixQRDecomposition.newInstance(new Object[] {matrix.getMatrix()}),
          false);
   }
 
-  JamaLUDecomposition(Object lu, boolean copy)
+  JamaQRDecomposition(Object qr, boolean copy)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    super(makeDatums(lu), copy);
-    lud = ((JamaMatrix) getComponent(0)).getStash();
+    super(makeDatums(qr), copy);
+    qrd = ((JamaMatrix) getComponent(0)).getStash();
   }
 
-  private static Data[] makeDatums(Object lu)
+  private static Data[] makeDatums(Object qr)
           throws VisADException, RemoteException, IllegalAccessException,
                  InstantiationException, InvocationTargetException {
-    Object l = getL.invoke(lu, new Object[] {});
-    JamaMatrix jl =
-      new JamaMatrix(l, LULType, null, null, null, null, null);
-    jl.setStash(lu);
+    Object q = getQ.invoke(qr, new Object[] {});
+    JamaMatrix jq =
+      new JamaMatrix(q, QRQType, null, null, null, null, null);
+    jq.setStash(qr);
 
-    Object u = getU.invoke(lu, new Object[] {});
-    JamaMatrix ju =
-      new JamaMatrix(u, LUUType, null, null, null, null, null);
+    Object r = getR.invoke(qr, new Object[] {});
+    JamaMatrix jr =
+      new JamaMatrix(r, QRQType, null, null, null, null, null);
 
-
-    double[] pivot = (double[]) getDoublePivot.invoke(lu, new Object[] {});
-    FlatField pf = new FlatField(pivotType, new Integer1DSet(pivot.length));
-    pf.setSamples(new double[][] {pivot});
-
-    return new Data[] {jl, ju, pf};
+    return new Data[] {jq, jr};
   }
 
 
   // New methods
 
   /**
-   * Return the associated JAMA LUDecomposition object.
+   * Return the associated JAMA QRDecomposition object.
    */
-  public Object getLUDecomposition() {
-    return lud;
+  public Object getQRDecomposition() {
+    return qrd;
   }
 
   // Method wrappers for JAMA Matrix functionality
 
   /**
-   * Get L
-   * @return     L matrix
+   * Get Q
+   * @return     Q matrix
    */
-  public JamaMatrix getL() throws VisADException, RemoteException {
-    if (classLUDecomposition == null) {
+  public JamaMatrix getQ() throws VisADException, RemoteException {
+    if (classQRDecomposition == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
@@ -244,59 +239,38 @@ public class JamaLUDecomposition extends Tuple {
   }
 
   /**
-   * Get U
-   * @return     U matrix
+   * Get R
+   * @return     R matrix
    */
-  public JamaMatrix getU() throws VisADException, RemoteException {
-    if (classLUDecomposition == null) {
+  public JamaMatrix getR() throws VisADException, RemoteException {
+    if (classQRDecomposition == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
     return (JamaMatrix) getComponent(1);
   }
 
-  public double det()
+  public JamaMatrix getH()
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (classLUDecomposition == null) {
+    if (classQRDecomposition == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
-    double val = ((Double) det.invoke(lud, new Object[] {})).doubleValue();
-    return val;
+    Object m = getH.invoke(qrd, new Object[] {});
+    return new JamaMatrix(m, QRHType, null, null, null, null, null);
   }
 
-  public double[] getDoublePivot() throws VisADException, RemoteException {
-    if (classLUDecomposition == null) {
-      throw new VisADException("you need to install Jama from " +
-                               "http://math.nist.gov/javanumerics/jama/");
-    }
-    FlatField pf = (FlatField) getComponent(2);
-    double[][] p = pf.getValues(false);
-    return p[0];
-  }
-
-  public int[] getPivot()
+  public boolean isFullRank()
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (classLUDecomposition == null) {
+    if (classQRDecomposition == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
-    int[] p = (int[]) getPivot.invoke(lud, new Object[] {});
-    return p;
-  }
-
-  public boolean isNonsingular()
-         throws VisADException, RemoteException, IllegalAccessException,
-                InstantiationException, InvocationTargetException {
-    if (classLUDecomposition == null) {
-      throw new VisADException("you need to install Jama from " +
-                               "http://math.nist.gov/javanumerics/jama/");
-    }
-    boolean ns =
-      ((Boolean) isNonsingular.invoke(lud, new Object[] {})).booleanValue();
-    return ns;
+    boolean fr =
+      ((Boolean) isFullRank.invoke(qrd, new Object[] {})).booleanValue();
+    return fr;
   }
 
   /**
@@ -307,11 +281,11 @@ public class JamaLUDecomposition extends Tuple {
   public JamaMatrix solve(JamaMatrix B)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    if (classLUDecomposition == null) {
+    if (classQRDecomposition == null) {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
-    Object m = solve.invoke(lud, new Object[] {B.getMatrix()});
+    Object m = solve.invoke(qrd, new Object[] {B.getMatrix()});
     return new JamaMatrix(m);
   }
 

@@ -102,7 +102,7 @@ public class JamaCholeskyDecomposition extends Tuple {
     try {
       Class[] param = new Class[] {};
       ms[0] = classCholeskyDecomposition.getMethod("getL", param);
-      ms[1] = classCholeskyDecomposition.getMethod("getSPD", param);
+      ms[1] = classCholeskyDecomposition.getMethod("isSPD", param);
       param = new Class[] {classMatrix};
       ms[2] = classCholeskyDecomposition.getMethod("solve", param);
     }
@@ -113,7 +113,7 @@ public class JamaCholeskyDecomposition extends Tuple {
   }
 
   private static final Method getL = methods[0];
-  private static final Method getSPD = methods[1];
+  private static final Method isSPD = methods[1];
   private static final Method solve = methods[2];
 
   private static final Constructor matrixCholeskyDecomposition =
@@ -138,15 +138,20 @@ public class JamaCholeskyDecomposition extends Tuple {
   public JamaCholeskyDecomposition(JamaMatrix matrix)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    super(makeDatums(matrix), false);
+    this(matrixCholeskyDecomposition.newInstance(new Object[] {matrix.getMatrix()}),
+         false);
+  }
+
+  JamaCholeskyDecomposition(Object c, boolean copy)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    super(makeDatums(c), copy);
     cd = ((JamaMatrix) getComponent(0)).getStash();
   }
 
-  private static Data[] makeDatums(JamaMatrix matrix)
+  private static Data[] makeDatums(Object c)
           throws VisADException, IllegalAccessException,
                  InstantiationException, InvocationTargetException {
-    Object c =
-      matrixCholeskyDecomposition.newInstance(new Object[] {matrix.getMatrix()});
     Object m = getL.invoke(c, new Object[] {});
 
     JamaMatrix jm =
@@ -180,7 +185,7 @@ public class JamaCholeskyDecomposition extends Tuple {
     return (JamaMatrix) getComponent(0);
   }
 
-  public boolean getSPD()
+  public boolean isSPD()
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
     if (classCholeskyDecomposition == null) {
@@ -188,7 +193,7 @@ public class JamaCholeskyDecomposition extends Tuple {
                                "http://math.nist.gov/javanumerics/jama/");
     }
     boolean spd = ((Boolean)
-      getSPD.invoke(cd, new Object[] {})).booleanValue();
+      isSPD.invoke(cd, new Object[] {})).booleanValue();
     return spd;
   }
 

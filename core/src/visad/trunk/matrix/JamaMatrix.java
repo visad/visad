@@ -108,7 +108,7 @@ public class JamaMatrix extends FlatField {
     constructMethods();
 
   private static Method[] constructMethods() {
-    Method[] ms = new Method[46];
+    Method[] ms = new Method[51];
     try {
       Class[] param = new Class[] {};
       ms[0] = classMatrix.getMethod("getColumnDimension", param);
@@ -178,6 +178,12 @@ public class JamaMatrix extends FlatField {
       ms[44] = classMatrix.getMethod("print", param);
       param = new Class[] {BufferedReader.class};
       ms[45] = classMatrix.getMethod("read", param);
+      param = new Class[] {};
+      ms[46] = classMatrix.getMethod("chol", param);
+      ms[47] = classMatrix.getMethod("eig", param);
+      ms[48] = classMatrix.getMethod("lu", param);
+      ms[49] = classMatrix.getMethod("qr", param);
+      ms[50] = classMatrix.getMethod("svd", param);
     }
     catch (NoSuchMethodException e) {
       e.printStackTrace();
@@ -231,6 +237,11 @@ public class JamaMatrix extends FlatField {
   private static final Method print3 = methods[43];
   private static final Method print4 = methods[44];
   private static final Method read = methods[45];
+  private static final Method chol = methods[46];
+  private static final Method eig = methods[47];
+  private static final Method lu = methods[48];
+  private static final Method qr = methods[49];
+  private static final Method svd = methods[50];
 
   /** constructors from Jama.Matrix class */
   private static final Constructor[] constructors =
@@ -345,23 +356,19 @@ public class JamaMatrix extends FlatField {
   public static void main(String[] args)
          throws VisADException, RemoteException {
     double[][] e1 = { {3, 4, 5},
-                      {10, 8, 6},
-                      {2, 1, 0} };
+                      {10, 18, 6},
+                      {2, -1, 0} };
     double[][] e2 = { {6, 4, 2},
                       {-4, -3, -2},
                       {1, 1, 1} };
-    JamaMatrix m1 = null;
-    JamaMatrix m2 = null;
-    JamaMatrix m3 = null;
-    JamaMatrix m4 = null;
     try {
-System.out.println("get = " + get);
-System.out.println("getMatrix2 = " + getMatrix2);
-      m1 = new JamaMatrix(e1);
-      m2 = new JamaMatrix(e2);
-      m3 = convertToMatrix(m1.add(m2));
-      m4 = m1.plus(m2);
-System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
+      System.out.println("get = " + get);
+      System.out.println("getMatrix2 = " + getMatrix2);
+      JamaMatrix m1 = new JamaMatrix(e1);
+      JamaMatrix m2 = new JamaMatrix(e2);
+      JamaMatrix m3 = convertToMatrix(m1.add(m2));
+      JamaMatrix m4 = m1.plus(m2);
+      System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
       System.out.println("m1:");
       m1.print(1, 0);
       System.out.println("m2:");
@@ -371,6 +378,36 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
       System.out.println("m4 = m1 + m2 (JAMA):");
       m4.print(1, 0);
       System.out.println("m4 = " + m4);
+
+      JamaSingularValueDecomposition svd4 = m4.svd();
+      System.out.println("m4 svd U:");
+      svd4.getU().print(1, 0);
+      System.out.println("m4 svd S:");
+      svd4.getS().print(1, 0);
+      System.out.println("m4 svd V:");
+      svd4.getV().print(1, 0);
+
+      JamaQRDecomposition qr4 = m4.qr();
+      System.out.println("m4 qr Q:");
+      qr4.getQ().print(1, 0);
+      System.out.println("m4 qr R:");
+      qr4.getR().print(1, 0);
+
+      JamaLUDecomposition lu4 = m4.lu();
+      System.out.println("m4 lu L:");
+      lu4.getL().print(1, 0);
+      System.out.println("m4 lu U:");
+      lu4.getU().print(1, 0);
+
+      JamaEigenvalueDecomposition ev4 = m4.eig();
+      System.out.println("m4 eig D:");
+      ev4.getD().print(1, 0);
+      System.out.println("m4 eig V:");
+      ev4.getV().print(1, 0);
+
+      JamaCholeskyDecomposition chol4 = m4.chol();
+      System.out.println("m4 chol L:");
+      chol4.getL().print(1, 0);
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -1315,6 +1352,61 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
     }
     Object m = read.invoke(null, new Object[] {input});
     return new JamaMatrix(m);
+  }
+
+  public JamaCholeskyDecomposition chol()
+         throws IOException, VisADException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    if (classMatrix == null) {
+      throw new VisADException("you need to install Jama from " +
+                               "http://math.nist.gov/javanumerics/jama/");
+    }
+    Object c = chol.invoke(matrix, new Object[] {});
+    return new JamaCholeskyDecomposition(c, false);
+  }
+
+  public JamaEigenvalueDecomposition eig()
+         throws IOException, VisADException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    if (classMatrix == null) {
+      throw new VisADException("you need to install Jama from " +
+                               "http://math.nist.gov/javanumerics/jama/");
+    }
+    Object e = eig.invoke(matrix, new Object[] {});
+    return new JamaEigenvalueDecomposition(e, false);
+  }
+
+  public JamaLUDecomposition lu()
+         throws IOException, VisADException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    if (classMatrix == null) {
+      throw new VisADException("you need to install Jama from " +
+                               "http://math.nist.gov/javanumerics/jama/");
+    }
+    Object l = lu.invoke(matrix, new Object[] {});
+    return new JamaLUDecomposition(l, false);
+  }
+
+  public JamaQRDecomposition qr()
+         throws IOException, VisADException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    if (classMatrix == null) {
+      throw new VisADException("you need to install Jama from " +
+                               "http://math.nist.gov/javanumerics/jama/");
+    }
+    Object q = qr.invoke(matrix, new Object[] {});
+    return new JamaQRDecomposition(q, false);
+  }
+
+  public JamaSingularValueDecomposition svd()
+         throws IOException, VisADException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    if (classMatrix == null) {
+      throw new VisADException("you need to install Jama from " +
+                               "http://math.nist.gov/javanumerics/jama/");
+    }
+    Object s = svd.invoke(matrix, new Object[] {});
+    return new JamaSingularValueDecomposition(s, false);
   }
 
 }

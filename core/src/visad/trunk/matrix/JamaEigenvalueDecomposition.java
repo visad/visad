@@ -177,15 +177,20 @@ public class JamaEigenvalueDecomposition extends Tuple {
   public JamaEigenvalueDecomposition(JamaMatrix matrix)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
-    super(makeDatums(matrix), false);
+    this(matrixEigenvalueDecomposition.newInstance(new Object[] {matrix.getMatrix()}),
+         false);
+  }
+
+  JamaEigenvalueDecomposition(Object e, boolean copy)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    super(makeDatums(e), copy);
     ed = ((JamaMatrix) getComponent(0)).getStash();
   }
 
-  private static Data[] makeDatums(JamaMatrix matrix)
+  private static Data[] makeDatums(Object e)
           throws VisADException, RemoteException, IllegalAccessException,
                  InstantiationException, InvocationTargetException {
-    Object e =
-      matrixEigenvalueDecomposition.newInstance(new Object[] {matrix.getMatrix()});
     Object m = getV.invoke(e, new Object[] {});
     JamaMatrix jm =
       new JamaMatrix(m, eigenVType, null, null, null, null, null);
