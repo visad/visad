@@ -621,6 +621,7 @@ public class BasicSSCell extends JPanel {
       list of created cells */
   public void destroyCell() throws VisADException, RemoteException {
     clearCell();
+    fm.remove(Name);
     SSCellVector.remove(this);
   }
 
