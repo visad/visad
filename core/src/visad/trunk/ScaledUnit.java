@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.3 1998-02-20 16:53:39 billh Exp $
+ * $Id: ScaledUnit.java,v 1.4 1998-08-07 15:26:56 steve Exp $
  */
 
 package visad;
@@ -206,7 +206,8 @@ public final class ScaledUnit
      */
     Unit divideInto(DerivedUnit that)
     {
-	return new ScaledUnit(1.0/amount, (ScaledUnit)that.divide(derivedUnit));
+	return
+	  new ScaledUnit(1.0/amount, (DerivedUnit)that.divide(derivedUnit));
     }
 
     /**
