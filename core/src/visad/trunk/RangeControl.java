@@ -33,6 +33,7 @@ import java.rmi.*;
 */
 public class RangeControl extends Control {
 
+  private boolean initialized = false;
   private float RangeLow;
   private float RangeHi;
 
@@ -41,13 +42,31 @@ public class RangeControl extends Control {
     RangeLow = 0.0f;
     RangeHi = 0.0f;
   }
- 
+
+  /** initialize the range of selected values as (range[0], range[1]) */
+  public void initializeRange(float[] range)
+    throws VisADException, RemoteException
+  {
+    if (!initialized) {
+      RangeLow = range[0];
+      RangeHi = range[1];
+      initialized = (RangeLow == RangeLow && RangeHi == RangeHi);
+    } else {
+      setRange(range);
+    }
+  }
+
   /** set the range of selected values as (range[0], range[1]) */
   public void setRange(float[] range)
          throws VisADException, RemoteException {
-    RangeLow = range[0];
-    RangeHi = range[1];
-    changeControl(true);
+    if (RangeLow != RangeLow || Math.abs(RangeLow - range[0]) > 0.0001 ||
+        RangeHi != RangeHi || Math.abs(RangeHi - range[1]) > 0.0001)
+    {
+      RangeLow = range[0];
+      RangeHi = range[1];
+      initialized = (RangeLow == RangeLow && RangeHi == RangeHi);
+      changeControl(true);
+    }
   }
 
   /** return the range of selected values */
@@ -58,5 +77,9 @@ public class RangeControl extends Control {
     return range;
   }
 
+  public String toString()
+  {
+    return "RangeControl[" + RangeLow + "," + RangeHi + "]";
+  }
 }
 
