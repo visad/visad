@@ -91,14 +91,18 @@ public abstract class Unit
     return new_value;
   }
 
-  /** return true if unita and unitb are convertable;
-      canConvert & canConvertArray are static in order to
-      be able to test null Unit-s, which are 'missing'
-      (i.e., unknown) Unit-s;
-      Unit.promiscuous is convertable with any Unit, but
-      not compatible with non-promiscuous default Unit-s;
-      thus this method does not reflect open convertability
-      of Unit.promiscuous */
+  /**
+   * Indicates if values in two units are convertible.  The values of two units
+   * are convertible if each unit is either <code>null</code> or the promiscuous
+   * unit, or if one unit is neither <code>null</code> nor the promiscuous unit
+   * and the other unit is either the promiscuous unit or a convertible unit.
+   *
+   * @param unita                One unit.
+   * @param unitb                The other unit.
+   * @return                     <code>true</code> if and only if values in the
+   *                             the two units are convertible.
+   * @see #isConvertible(Unit)
+   */
   public static boolean canConvert(Unit unita, Unit unitb) {
     if (CommonUnit.promiscuous.equals(unita)) unita = null;
     if (CommonUnit.promiscuous.equals(unitb)) unitb = null;
