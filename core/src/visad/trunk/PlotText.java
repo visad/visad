@@ -323,33 +323,72 @@ public class PlotText extends Object {
     return array;
   }
 
+  // number of significant digits after the decimal point
+  public static final int places = 3;
+
   /** make a short string for value for use in slider label */
-  public static String shortString(double val) {
-    String s = null;
-    int is = (val < 0.0) ? -1 : 1;
+  public static String shortString(double val)
+  {
+    // remember whether or not the number is negative
+    boolean negative = (val < 0.0);
+
+    // now we only need to deal with a positive number
     val = Math.abs(val);
-    int i = (int) (1000 * val);
-    int i1000 = i / 1000;
-    int i1 = i - 1000 * i1000;
-    String s1000 = (is > 0) ? Integer.toString(i1000) :
-                              "-" + Integer.toString(i1000);
-    if (i1 == 0) {
-      s = s1000;
+
+    // build multiplier for saving significant digits
+    int mult = 1;
+    for (int p = places; p > 0; p--) {
+      mult *= 10;
     }
-    else {
-      String s1 = Integer.toString(i1);
-      if (s1.length() == 3) {
-        s = s1000 + "." + s1;
-      }
-      else if (s1.length() == 2) {
-        s = s1000 + ".0" + s1;
-      }
-      else {
-        s = s1000 + ".00" + s1;
-      }
+
+    // break into digits before (preDot) and after (postDot) the decimal point
+    long l = (long) (val * mult);
+    long preDot = l / mult;
+    int postDot = (int )(l % mult);
+
+    // format the pre-decimal point number
+    // Integer.toString() is faster than Long.toString(); use it if possible
+    String num;
+    if (preDot <= Integer.MAX_VALUE) {
+      num = Integer.toString((int )preDot);
+    } else {
+      num = Long.toString(preDot);
     }
-    return s;
+
+    // if there's nothing after the decimal point, use the whole number
+    if (postDot == 0) {
+
+      // make sure we don't return "-0"
+      if (negative && preDot != 0) {
+        return "-" + num;
+      }
+
+      return num;
+    }
+
+    // start building the string
+    StringBuffer buf = new StringBuffer(num.length() + 5);
+
+    // add sign (if necessary), pre-decimal point digits and decimal point
+    if (negative) {
+      buf.append('-');
+    }
+    buf.append(num);
+    buf.append('.');
+
+    // format the post-decimal point digits
+    num = Integer.toString(postDot);
+
+    // add leading zeros if necessary
+    int nlen = num.length();
+    for (int p = places; p > nlen; p--) {
+      buf.append('0');
+    }
+
+    // add actual digits
+    buf.append(num);
+
+    // return the final string
+    return buf.toString();
   }
-
 }
-
