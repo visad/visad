@@ -344,6 +344,27 @@ boolean anynotmissing = false;
         float gv, gn, gx;
         float tmp1, tmp2;
 
+        if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
+          // allocate more space
+          maxsize = 2 * maxsize;
+          int[] tt = ipnt; 
+          ipnt = new int[2 * maxsize];
+          System.arraycopy(tt, 0, ipnt, 0, nump);
+          float[] tx = vx;
+          float[] ty = vy;
+          vx = new float[maxsize];
+          vy = new float[maxsize];
+          System.arraycopy(tx, 0, vx, 0, numv);
+          System.arraycopy(ty, 0, vy, 0, numv);
+          if (naux > 0) {
+            byte[][] ta = auxLevels;
+            auxLevels = new byte[naux][maxsize];
+            for (int i=0; i<naux; i++) {
+              System.arraycopy(ta[i], 0, auxLevels[i], 0, numv);
+            }
+          }
+        }
+
         // save index of first vertex in this grid box
         ipnt[nump++] = numv;
 
@@ -467,9 +488,11 @@ if (!any && numc > 0) {
   any = true;
 }
 */
+
         for (il=0; il<numc; il++) {
 
           gg = myvals[low+il];
+
           if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
             // allocate more space
             maxsize = 2 * maxsize;
