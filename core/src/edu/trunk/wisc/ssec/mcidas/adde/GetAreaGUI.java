@@ -1,4 +1,4 @@
-//
+
 // GetAreaGUI.java
 //
 
@@ -83,7 +83,7 @@ public class GetAreaGUI extends JPanel {
   String[] bandNames;
   AddeSatBands asb;
   boolean closeOnAction = true;
-  boolean useDefaults = true;
+  boolean useDefaults = false;
   boolean gotUserDefaults = false;
   String propFile;
   String cmdout=null;
@@ -852,7 +852,7 @@ public class GetAreaGUI extends JPanel {
         PanelListMag.add(LinesElesPanel, gridBagConstraints2);
         
         userDefaultsCheckBox.setToolTipText("Check this box to use your defaults for size and location");
-        userDefaultsCheckBox.setSelected(true);
+        userDefaultsCheckBox.setSelected(false);
         userDefaultsCheckBox.setText("Use my defaults");
         userDefaultsCheckBox.setAlignmentX(0.5F);
         userDefaultsCheckBox.addActionListener(new java.awt.event.ActionListener() {
