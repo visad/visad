@@ -91,7 +91,7 @@ public class McIDASGridReader {
       System.out.println("# rows & cols = "+rows+" "+cols);
 
       double scale = mgd.getParamScale();
-      System.out.println("param scale = "+scale+" gridType="+mgd.getGridType());
+      //System.out.println("param scale = "+scale+" gridType="+mgd.getGridType());
 
       double[] data = new double[rows*cols];
       int n = 0;
