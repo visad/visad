@@ -90,14 +90,14 @@ public class SSCellData {
   private String[] errors;
 
   /**
-   * Whether other data depends on this data.
-   */
-  private boolean othersDepend;
-
-  /**
    * The formula manager of the data's spreadsheet cell.
    */
   private FormulaManager fm;
+
+  /**
+   * Whether other data depends on this data.
+   */
+  boolean othersDepend;
 
   /**
    * VisAD Cell for monitoring local data changes.

@@ -195,25 +195,8 @@ public class SSCellImpl extends CellImpl {
     }
     else cellData.ssCell.updateDisplay();
 
-    /* CTR: this logic is wrong; disable UPDATE_DEPENDENCIES for now
-    if (!cellData.ssCell.isRemote()) {
-      // SERVER: notify linked cells of formula dependency changes
-      boolean canBeRemoved = true;
-      try {
-        canBeRemoved = fm.canBeRemoved(varName);
-      }
-      catch (FormulaException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-      }
-      try {
-        cellData.ssCell.sendMessage(BasicSSCell.UPDATE_DEPENDENCIES, varName,
-          canBeRemoved ? FALSE : TRUE);
-      }
-      catch (RemoteException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-      }
-    }
-    */
+    // update dependencies for all cells
+    cellData.ssCell.updateDependencies();
 
     // broadcast data change event
     cellData.ssCell.notifySSCellListeners(

@@ -70,7 +70,7 @@ public class BasicSSCell extends JPanel
    * <li>2 = Collaboration messages.
    * <li>3 = All exceptions.
    */
-  public static int DEBUG_LEVEL = 1;
+  public static int DEBUG_LEVEL = 2;
 
 
   // --- STATIC UTILITY METHODS ---
@@ -458,8 +458,6 @@ public class BasicSSCell extends JPanel
   // The reason for this behavior is that only the server computes formulas,
   // and consequently only servers can compute whether a given data object
   // is dependent on other data objects.
-  //
-  // CTR: UPDATE_DEPENDENCIES messages are temporarily disabled.
 
   // 4) New clients call STATUS to request the current status of the cell.
   // Servers answer with a cell status report by calling STATUS with the
@@ -874,6 +872,49 @@ public class BasicSSCell extends JPanel
     addDisplayListener(this);
     NewClient = true;
     sendMessage(STATUS, "", null);
+  }
+
+  // -- Manage dependencies --
+
+  /**
+   * Broadcasts updated cell dependencies to all clients.
+   */
+  static void updateDependencies() {
+    // check every data object of each cell for changes in dependency status
+    synchronized (SSCellVector) {
+      int len = SSCellVector.size();
+      for (int i=0; i<len; i++) {
+        BasicSSCell cell = (BasicSSCell) SSCellVector.elementAt(i);
+        if (!cell.isRemote()) {
+          synchronized (cell.CellData) {
+            int len2 = cell.CellData.size();
+            for (int j=0; j<len2; j++) {
+              SSCellData cellData = (SSCellData) cell.CellData.elementAt(j);
+              if (!cellData.ssCell.isRemote()) {
+                String varName = cellData.getVariableName();
+                boolean canBeRemoved = true;
+                try {
+                  canBeRemoved = cell.fm.canBeRemoved(varName);
+                }
+                catch (FormulaException exc) {
+                  if (DEBUG) exc.printStackTrace();
+                }
+                if (canBeRemoved == cellData.othersDepend) {
+                  try {
+                    // notify linked cells of dependency status change
+                    cellData.ssCell.sendMessage(UPDATE_DEPENDENCIES, varName,
+                      canBeRemoved ? SSCellImpl.FALSE : SSCellImpl.TRUE);
+                  }
+                  catch (RemoteException exc) {
+                    if (DEBUG) exc.printStackTrace();
+                  }
+                } // if canBeRemoved == cellData.othersDepend
+              } // if cellData.ssCell.isRemote
+            } // for j
+          } // synchronized cell.CellData
+        } // if cell.isRemote
+      } // for i
+    } // synchronized SSCellVector
   }
 
 
@@ -2490,7 +2531,8 @@ public class BasicSSCell extends JPanel
       if (ilen != slen || ilen != tlen) {
         warn("some data object entries are corrupt and will be ignored");
       }
-      int len = ilen < slen && ilen < tlen ? ilen : (slen < tlen ? slen : tlen);
+      int len =
+        ilen < slen && ilen < tlen ? ilen : (slen < tlen ? slen : tlen);
       setDisplayEnabled(false);
       for (int i=0; i<len; i++) {
         int id = ((Integer) ids.elementAt(i)).intValue();
@@ -2701,7 +2743,7 @@ public class BasicSSCell extends JPanel
         sendMessage(SET_ERRORS, null, stringsToTuple(errors));
       }
       catch (RemoteException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
+        if (DEBUG) exc.printStackTrace();
       }
     }
   }

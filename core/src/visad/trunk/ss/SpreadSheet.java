@@ -3211,6 +3211,10 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       try {
         Display d = e.getDisplay();
         name = d.getName();
+        if (name.endsWith(".remote")) {
+          // cloned cells need ".remote" stripped from their names
+          name = name.substring(0, name.length() - 7);
+        }
       }
       catch (VisADException exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();
