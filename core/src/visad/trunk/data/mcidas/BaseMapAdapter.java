@@ -428,7 +428,7 @@ public class BaseMapAdapter {
 
       }
 
-      if (sets.size() > 0)  // make sure we have something to do
+      if (sets.size() > 1)  // need at least two for a UnionSet
       {
         Gridded2DSet[] basemaplines = new Gridded2DSet[sets.size()];
         sets.copyInto(basemaplines);
