@@ -47,8 +47,8 @@ import javax.media.j3d.*;
 // import com.sun.j3d.utils.applet.AppletFrame;
 
 // GUI handling
-import java.awt.swing.*;
-import java.awt.swing.border.*;
+import com.sun.java.swing.*;
+import com.sun.java.swing.border.*;
 
 // file format adapters
 import visad.data.netcdf.Plain;
@@ -667,9 +667,6 @@ public class DisplayTest extends Object {
         DataReferenceImpl[] data_refs;
         RemoteDataReferenceImpl[] rem_data_refs;
      
-        // Create and install a security manager
-        System.setSecurityManager(new RMISecurityManager());
-
         try {
 
           size = 64;
