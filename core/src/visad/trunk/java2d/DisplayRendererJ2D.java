@@ -274,72 +274,6 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
   }
 
-  /** this assumes only VisADPointArray or VisADLineArray */
-/*
-  public static void drawAppearance(Graphics graphics, VisADAppearance appearance,
-                                    AffineTransform t) {
-    VisADGeometryArray array = appearance.array;
-    if (array == null) return;
-    float[] colors = array.colors;
-    if (colors == null) {
-      graphics.setColor(new Color(appearance.red, appearance.green,
-                                  appearance.blue));
-    }
-    int count = array.vertexCount;
-    float[] coordinates = array.coordinates;
-    float[] oldcoords = new float[2*count];
-    int j = 0;
-    for (int i=0; i<3*count; i += 3) {
-      oldcoords[j++] = coordinates[i];
-      oldcoords[j++] = coordinates[i+1];
-    }
-    float[] newcoords = new float[2 * count];
-    t.transform(oldcoords, 0, newcoords, 0, count);
-    if (array instanceof VisADPointArray) {
-      if (colors == null) {
-        for (int i=0; i<2*count; i += 2) {
-          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
-                            (int) newcoords[i], (int) newcoords[i+1]);
-        }
-      }
-      else { // colors != null
-        int jinc = (colors.length == coordinates.length) ? 3 : 4;
-        int j = 0;
-        for (int i=0; i<2*count; i += 2) {
-          graphics.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
-          j += jinc;
-          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
-                            (int) newcoords[i], (int) newcoords[i+1]);
-        }
-      }
-    }
-    else if (array instanceof VisADLineArray) {
-      if (colors == null) {
-        for (int i=0; i<2*count; i += 4) {
-          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
-                            (int) newcoords[i+2], (int) newcoords[i+3]);
-        }
-      }
-      else { // colors != null
-        int jinc = (colors.length == coordinates.length) ? 3 : 4;
-        int j = 0;
-        for (int i=0; i<2*count; i += 4) {
-          graphics.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
-                                      0.5f * (colors[j+1] + colors[j+jinc+1]),
-                                      0.5f * (colors[j+2] + colors[j+jinc+2])));
-          j += jinc;
-          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
-                            (int) newcoords[i+2], (int) newcoords[i+3]);
-        }
-      }
-    }
-    else {
-      throw new VisADError("DisplayRendererJ2D.drawAppearance: " +
-                           "bad VisADGeometryArray type");
-    }
-  }
-*/
-
   /** whenever cursorOn or directOn is true, display
       Strings in cursorStringVector */
   public void drawCursorStringVector(Graphics graphics,
@@ -348,9 +282,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     AffineTransform t = new AffineTransform(tgeometry);
     if (cursorOn) {
       t.concatenate(cursor_trans);
-      VisADAppearance appearance = null;
-      VisADLineArray array = null;
-      appearance = (VisADAppearance) cursor_on.getChild(0);
+      VisADAppearance appearance = (VisADAppearance) cursor_on.getChild(0);
       if (appearance != null) {
         VisADCanvasJ2D.drawAppearance(graphics, appearance, t);
       }

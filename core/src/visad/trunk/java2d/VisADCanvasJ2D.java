@@ -197,6 +197,7 @@ public class VisADCanvasJ2D extends Canvas
         valid = valid_images[current_image];
         w = width;
         h = height;
+        tsave = (tgeometry == null) ? null : new AffineTransform(tgeometry);
       }
     }
 /*
@@ -223,29 +224,24 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
           tgeometry.concatenate(s1);
           tgeometry.concatenate(trans);
           tsave = new AffineTransform(tgeometry);
+          g2.setTransform(tgeometry);
         }
-        g2.setTransform(tgeometry);
         try {
           if (animate_control != null) animate_control.init();
           render(g2, root);
         }
         catch (VisADException e) {
         }
-
-        //
-        // note java.awt.GradientPaint for smooth 1-D color
-        // just use average color of line or triangle
-        //
-
-      } // end if (!valid)
-      else { // valid
         synchronized (images) {
-          tgeometry = image.createGraphics().getTransform();
-          tsave = new AffineTransform(tgeometry);
+          if (0 <= current_image && current_image < length) {
+            valid_images[current_image] = true;
+          }
         }
-      }
+      } // end if (!valid)
       g.drawImage(image, 0, 0, this);
-      displayRenderer.drawCursorStringVector(g, tsave, w, h);
+      if (tsave != null) {
+        displayRenderer.drawCursorStringVector(g, tsave, w, h);
+      }
     } // end if (image != null)
   }
 
@@ -334,6 +330,7 @@ so:
           double dsize = (array instanceof VisADPointArray) ?
                            mode.getPointSize() :
                            mode.getLineWidth();
+          if (dsize < 1.05) dsize = 1.05; // hack for Java2D problem
           double[] pts = {0.0, 0.0, 0.0, dsize, dsize, 0.0};
           double[] newpts = new double[6];
           try {
@@ -348,6 +345,7 @@ so:
           double yy = (newpts[4] - newpts[0]) * (newpts[4] - newpts[0]) +
                       (newpts[5] - newpts[1]) * (newpts[5] - newpts[1]);
           float size = (float) (0.5 * (Math.sqrt(xx) + Math.sqrt(yy)));
+          g2.setStroke(new BasicStroke(size));
 /*
 System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                    xx + " " + yy +
@@ -378,69 +376,22 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             }
           }
           else if (array instanceof VisADLineArray) {
-            if (Math.abs(dsize - 1.0) < 0.2) {
-System.out.println("narrow line dsize = " + dsize);
-              drawAppearance(g2, appearance, tg);
-/*
-              if (colors == null) {
-                for (int i=0; i<3*count; i += 6) {
-                  g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
-                                           coordinates[i+3], coordinates[i+4]));
-                }
+            if (colors == null) {
+              for (int i=0; i<3*count; i += 6) {
+                g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
+                                         coordinates[i+3], coordinates[i+4]));
               }
-              else { // colors != null
-                int j = 0;
-                int jinc = (colors.length == coordinates.length) ? 3 : 4;
-                for (int i=0; i<3*count; i += 6) {
-                  g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
-                                        0.5f * (colors[j+1] + colors[j+jinc+1]),
-                                        0.5f * (colors[j+2] + colors[j+jinc+2])));
-                  j += jinc;
-                  g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
-                                           coordinates[i+3], coordinates[i+4]));
-                }
-              }
-*/
             }
-            else { // !(Math.abs(dsize - 1.0) < 0.2)
-System.out.println("wide line dsize = " + dsize);
-              if (colors == null) {
-                for (int i=0; i<3*count; i += 6) {
-                  float epsx = coordinates[i+4] - coordinates[i+1];
-                  float epsy = coordinates[i] - coordinates[i+3];
-                  float epsl = (float) Math.sqrt(epsx * epsx + epsy * epsy);
-                  epsx *= (0.5f * size / epsl);
-                  epsy *= (0.5f * size / epsl);
-                  GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
-                  path.moveTo(coordinates[i] - epsx, coordinates[i+1] - epsy);
-                  path.lineTo(coordinates[i] + epsx, coordinates[i+1] + epsy);
-                  path.lineTo(coordinates[i+3] + epsx, coordinates[i+4] + epsy);
-                  path.lineTo(coordinates[i+3] - epsx, coordinates[i+4] - epsy);
-                  path.closePath();
-                  g2.fill(path);
-                }
-              }
-              else { // colors != null
-                int j = 0;
-                int jinc = (colors.length == coordinates.length) ? 3 : 4;
-                for (int i=0; i<3*count; i += 6) {
-                  g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]), 
-                                        0.5f * (colors[j+1] + colors[j+jinc+1]),
-                                        0.5f * (colors[j+2] + colors[j+jinc+2])));
-                  j += jinc;
-                  float epsx = coordinates[i+4] - coordinates[i+1];
-                  float epsy = coordinates[i] - coordinates[i+3];
-                  float epsl = (float) Math.sqrt(epsx * epsx + epsy * epsy);
-                  epsx *= (0.5f * size / epsl);
-                  epsy *= (0.5f * size / epsl);
-                  GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
-                  path.moveTo(coordinates[i] - epsx, coordinates[i+1] - epsy);
-                  path.lineTo(coordinates[i] + epsx, coordinates[i+1] + epsy);
-                  path.lineTo(coordinates[i+3] + epsx, coordinates[i+4] + epsy);
-                  path.lineTo(coordinates[i+3] - epsx, coordinates[i+4] - epsy);
-                  path.closePath();
-                  g2.fill(path);
-                }
+            else { // colors != null
+              int j = 0;
+              int jinc = (colors.length == coordinates.length) ? 3 : 4;
+              for (int i=0; i<3*count; i += 6) {
+                g2.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
+                                      0.5f * (colors[j+1] + colors[j+jinc+1]),
+                                      0.5f * (colors[j+2] + colors[j+jinc+2])));
+                j += jinc;
+                g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
+                                         coordinates[i+3], coordinates[i+4]));
               }
             }
           }
@@ -453,78 +404,29 @@ System.out.println("wide line dsize = " + dsize);
               lastg = colors[1];
               lastb = colors[2];
             }
-            if (Math.abs(dsize - 1.0) < 0.2) {
-              if (colors == null) {
-                for (int i=3; i<3*count; i += 3) {
-                  g2.draw(new Line2D.Float(lastx, lasty,
-                                           coordinates[i], coordinates[i+1]));
-                  lastx = coordinates[i];
-                  lasty = coordinates[i+1];
-                }
-              }
-              else {
-                int jinc = (colors.length == coordinates.length) ? 3 : 4;
-                int j = jinc;
-                for (int i=3; i<3*count; i += 3) {
-                  g2.setColor(new Color(0.5f * (lastr + colors[j]),
-                                        0.5f * (lastg + colors[j+1]),
-                                        0.5f * (lastb + colors[j+2])));
-                  lastr = colors[j];
-                  lastg = colors[j+1];
-                  lastb = colors[j+2];
-                  j += jinc;
-                  g2.draw(new Line2D.Float(lastx, lasty,
-                                           coordinates[i], coordinates[i+1]));
-                  lastx = coordinates[i];
-                  lasty = coordinates[i+1];
-                }
+            if (colors == null) {
+              for (int i=3; i<3*count; i += 3) {
+                g2.draw(new Line2D.Float(lastx, lasty,
+                                         coordinates[i], coordinates[i+1]));
+                lastx = coordinates[i];
+                lasty = coordinates[i+1];
               }
             }
-            else { // !(Math.abs(dsize - 1.0) < 0.2)
-              if (colors == null) {
-                for (int i=3; i<3*count; i += 3) {
-                  float epsx = coordinates[i+1] - lasty;
-                  float epsy = lastx - coordinates[i];
-                  float epsl = (float) Math.sqrt(epsx * epsx + epsy * epsy);
-                  epsx *= (0.5f * size / epsl);
-                  epsy *= (0.5f * size / epsl);
-                  GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
-                  path.moveTo(lastx - epsx, lasty - epsy);
-                  path.lineTo(lastx + epsx, lasty + epsy);
-                  path.lineTo(coordinates[i] + epsx, coordinates[i+1] + epsy);
-                  path.lineTo(coordinates[i] - epsx, coordinates[i+1] - epsy);
-                  path.closePath();
-                  g2.fill(path);
-                  lastx = coordinates[i];
-                  lasty = coordinates[i+1];
-                }
-              }
-              else { // colors != null
-                int jinc = (colors.length == coordinates.length) ? 3 : 4;
-                int j = jinc;
-                for (int i=3; i<3*count; i += 3) {
-                  g2.setColor(new Color(0.5f * (lastr + colors[j]),
-                                        0.5f * (lastg + colors[j+1]),
-                                        0.5f * (lastb + colors[j+2])));
-                  lastr = colors[j];
-                  lastg = colors[j+1];
-                  lastb = colors[j+2];
-                  j += jinc;
-                  float epsx = coordinates[i+1] - lasty;
-                  float epsy = lastx - coordinates[i];
-                  float epsl = (float) Math.sqrt(epsx * epsx + epsy * epsy);
-                  epsx *= (0.5f * size / epsl);
-                  epsy *= (0.5f * size / epsl);
-                  GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
-                  path.moveTo(lastx - epsx, lasty - epsy);
-                  path.lineTo(lastx + epsx, lasty + epsy);
-                  path.lineTo(coordinates[i] + epsx, coordinates[i+1] + epsy);
-                  path.lineTo(coordinates[i] - epsx, coordinates[i+1] - epsy);
-                  path.closePath();
-                  g2.fill(path);
-                  lastx = coordinates[i];
-                  lasty = coordinates[i+1];
-                }
+            else {
+              int jinc = (colors.length == coordinates.length) ? 3 : 4;
+              int j = jinc;
+              for (int i=3; i<3*count; i += 3) {
+                g2.setColor(new Color(0.5f * (lastr + colors[j]),
+                                      0.5f * (lastg + colors[j+1]),
+                                      0.5f * (lastb + colors[j+2])));
+                lastr = colors[j];
+                lastg = colors[j+1];
+                lastb = colors[j+2];
+                j += jinc;
+                g2.draw(new Line2D.Float(lastx, lasty,
+                                         coordinates[i], coordinates[i+1]));
+                lastx = coordinates[i];
+                lasty = coordinates[i+1];
               }
             }
           }
@@ -653,6 +555,10 @@ System.out.println("wide line dsize = " + dsize);
     if (colors == null) {
       graphics.setColor(new Color(appearance.red, appearance.green,
                                   appearance.blue));
+/*
+System.out.println("drawAppearance: color = " + appearance.red + " " +
+                   appearance.green + " " + appearance.blue);
+*/
     }
     int count = array.vertexCount;
     float[] coordinates = array.coordinates;
@@ -665,6 +571,9 @@ System.out.println("wide line dsize = " + dsize);
     float[] newcoords = new float[2 * count];
     t.transform(oldcoords, 0, newcoords, 0, count);
     if (array instanceof VisADPointArray) {
+/*
+System.out.println("drawAppearance: VisADPointArray, count = " + count);
+*/
       if (colors == null) {
         for (int i=0; i<2*count; i += 2) {
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
@@ -683,10 +592,17 @@ System.out.println("wide line dsize = " + dsize);
       }
     }
     else if (array instanceof VisADLineArray) {
+/*
+System.out.println("drawAppearance: VisADLineArray, count = " + count);
+*/
       if (colors == null) {
         for (int i=0; i<2*count; i += 4) {
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
                             (int) newcoords[i+2], (int) newcoords[i+3]);
+/*
+System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
+                   newcoords[i+2] + " " + newcoords[i+3]);
+*/
         }
       }
       else { // colors != null

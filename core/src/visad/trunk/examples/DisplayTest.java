@@ -24,9 +24,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 import visad.*;
+
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
+
+import visad.java2d.DisplayImplJ2D;
+import visad.java2d.DirectManipulationRendererJ2D;
+
 import visad.util.*;
 
 import java.util.Vector;
@@ -156,6 +161,7 @@ public class DisplayTest extends Object {
         System.out.println("  31: scatter diagram");
         System.out.println("  32 file_name: FITS adapter");
         System.out.println("  33: ColorWidget with non-default table");
+        System.out.println("  34: direct manipulation in Java2D");
 
         return;
 
@@ -1466,6 +1472,71 @@ public class DisplayTest extends Object {
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
  
+        break;
+
+      case 34:
+
+        System.out.println(test_case + ": test direct manipulation in Java2D");
+        size = 64;
+        histogram1 = FlatField.makeField(ir_histogram, size, false);
+        direct = new Real(ir_radiance, 2.0);
+        reals3 = new Real[] {new Real(count, 1.0), new Real(ir_radiance, 2.0),
+                             new Real(vis_radiance, 1.0)};
+        direct_tuple = new RealTuple(reals3);
+    
+        display1 = new DisplayImplJ2D("display1");
+        display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display1.addMap(new ScalarMap(count, Display.YAxis));
+        display1.addMap(new ScalarMap(count, Display.Green));
+    
+        mode = display1.getGraphicsModeControl();
+        mode.setPointSize(5.0f);
+        mode.setPointMode(false);
+
+        ref_direct = new DataReferenceImpl("ref_direct");
+        ref_direct.setData(direct);
+        refs1 = new DataReferenceImpl[] {ref_direct};
+        display1.addReferences(new DirectManipulationRendererJ2D(), refs1, null);
+     
+        ref_direct_tuple = new DataReferenceImpl("ref_direct_tuple");
+        ref_direct_tuple.setData(direct_tuple);
+        refs2 = new DataReference[] {ref_direct_tuple};
+        display1.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
+     
+        ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+        ref_histogram1.setData(histogram1);
+        refs3 = new DataReference[] {ref_histogram1};
+        display1.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
+
+        display2 = new DisplayImplJ2D("display2");
+        display2.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display2.addMap(new ScalarMap(count, Display.YAxis));
+        display2.addMap(new ScalarMap(count, Display.Green));
+     
+        mode2 = display2.getGraphicsModeControl();
+        mode2.setPointSize(5.0f);
+        mode2.setPointMode(false);
+     
+        display2.addReferences(new DirectManipulationRendererJ2D(), refs1, null);
+        display2.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
+        display2.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
+
+        Frame frame1 = new Frame("Java2D display 1");
+        frame1.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        frame1.add(display1.getComponent());
+        frame1.setSize(256, 256);
+        frame1.setVisible(true);
+
+        Frame frame2 = new Frame("Java2D display 2");
+        frame2.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        frame2.add(display2.getComponent());
+        frame2.setSize(256, 256);
+        frame2.setVisible(true);
+
         break;
 
     } // end switch(test_case)

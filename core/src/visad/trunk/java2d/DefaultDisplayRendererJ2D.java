@@ -75,14 +75,7 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
 
     // create the box containing data depictions
     VisADLineArray box_array = new VisADLineArray();
-    float[] coordinates = new float[8 * 3];
-    int j = 0;
-    for (int i=0; i<8; i++) {
-      coordinates[i] = box_verts[j++];
-      coordinates[8 + i] = box_verts[j++];
-      coordinates[16 + i] = box_verts[j++];
-    }
-    box_array.coordinates = coordinates;
+    box_array.coordinates = box_verts;
     box_array.vertexCount = 8;
 
     box = new VisADAppearance();
@@ -95,14 +88,7 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
  
     // create cursor
     VisADLineArray cursor_array = new VisADLineArray();
-    coordinates = new float[4 * 3];
-    j = 0;
-    for (int i=0; i<4; i++) {
-      coordinates[i] = cursor_verts[j++];
-      coordinates[4 + i] = cursor_verts[j++];
-      coordinates[8 + i] = cursor_verts[j++];
-    }
-    cursor_array.coordinates = coordinates;
+    cursor_array.coordinates = cursor_verts;
     cursor_array.vertexCount = 4;
 
     cursor = new VisADAppearance();
