@@ -28,9 +28,7 @@ package visad.data.tiff;
 
 import java.io.*;
 
-// TODO: Actually document this.
-// This is still being modified and added to.
-
+/** A class for reading arbitrary numbers of bits from an input stream. */
 public class BitBuffer {
 
   private InputStream in;
@@ -42,14 +40,17 @@ public class BitBuffer {
   private int[] frontmask;
   private boolean eofFlag;
 
-
   public BitBuffer(InputStream i) throws IOException {
     bytebuffer = new byte[8192];
     in = i;
     currentbyte = 0;
     currentbit = 0;
     eofByte = in.read(bytebuffer);
+    // System.out.println(" eofByte: " + eofByte);
     eofFlag = false;
+    if (eofByte < 1) {
+      eofFlag = true;
+    }
     backmask = new int[] {0x0000, 0x0001, 0x0003, 0x0007,
                           0x000F, 0x001F, 0x003F, 0x007F};
     frontmask = new int[] {0x0000, 0x0080, 0x00C0, 0x00E0,
@@ -67,8 +68,9 @@ public class BitBuffer {
       newbyte++;
     }
     if (newbyte >= eofByte) {
-      // The byte to skip to is out of the current block
-      if (eofByte != 8192) { // we actually reached the end of the file
+      // The byte to skip to is out of the current block.
+      if (eofByte != 8192) {
+        // meaning yeah, we actually reached the end of the file.
 //        System.out.println("1");
         eofFlag = true;
         currentbyte = eofByte;
@@ -82,7 +84,7 @@ public class BitBuffer {
         newbyte -= 8192; // need to account for the current buffer.
         long skipped = -1;
         // This part may not suffice. Why would in.skip() fail?
-        while (skipped != 0) {
+        while(skipped != 0) {
           skipped = in.skip(newbyte);
           newbyte -= skipped;
         }
@@ -91,14 +93,18 @@ public class BitBuffer {
           // file is assumed to be finished.
 //          System.out.println("3");
           eofFlag = true;
-        } else { // Otherwise, we have bytes we can still read:
+        }
+        else {
+          // Otherwise, we have bytes we can still read:
 //          System.out.println("4");
           currentbyte = 0;
           currentbit = (int) newbit;
           eofByte = in.read(bytebuffer);
         }
       }
-    } else { // The byte to skip to is in the current block, and readable
+    }
+    else {
+      // The byte to skip to is in the current block, and readable
       currentbyte = (int) newbyte;
       currentbit = (int) newbit;
     }
@@ -108,6 +114,9 @@ public class BitBuffer {
   public int getBits(int bitstoread)
     throws IOException, FileNotFoundException
   {
+    if (bitstoread == 0) {
+      return 0;
+    }
     if (eofFlag) {
       return -1; // Already at end of file
     }
@@ -121,7 +130,8 @@ public class BitBuffer {
           tostore += (cb<0 ? (int) 256 + cb : (int) cb);
           bitstoread -= 8;
           currentbyte++;
-        } else {
+        }
+        else {
           tostore = tostore << (8 - currentbit);
           tostore += ((int) bytebuffer[currentbyte]) &
             backmask[8 - currentbit];
@@ -129,7 +139,8 @@ public class BitBuffer {
           currentbit = 0;
           currentbyte++;
         }
-      } else {
+      }
+      else {
 //        System.out.println(bitstoread);
         tostore = tostore << bitstoread;
 
@@ -163,6 +174,7 @@ public class BitBuffer {
 
 // Test method.
 
+/*
   public static void main(String[] args) throws Exception {
     BitBuffer b = new BitBuffer(new FileInputStream(new File(args[0])));
     int i = 1;
@@ -177,5 +189,6 @@ public class BitBuffer {
 //      b.skipBits(65536);
     }
   }
+*/
 
 }
