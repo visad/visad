@@ -85,6 +85,16 @@ public interface LocalDisplay
    * @return			A clone of the list of DataRenderer-s.
    */
   Vector getRendererVector();
+  
+  /** only called for Control objects associated with 'single'
+      DisplayRealType-s */
+  Control getControl(Class c);
+
+  /** find specified occurance for Control object of the specified class */
+  Control getControl(Class c, int inst);
+
+  /** find all Control objects of the specified class */
+  Vector getControls(Class c);
 
   /** return the GraphicsModeControl associated with this Display */
   GraphicsModeControl getGraphicsModeControl();
