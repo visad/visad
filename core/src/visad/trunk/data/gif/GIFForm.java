@@ -73,11 +73,8 @@ public class GIFForm
   public DataImpl open(URL url)
 	throws BadFormException, VisADException, IOException
   {
-    try {
-      return new GIFAdapter(url).getData();
-    } catch (IOException e) {
-      throw new VisADException("IOException: " + e.getMessage());
-    }
+    GIFAdapter ga = new GIFAdapter(url);
+    return ga.getData();
   }
 
   public FormNode getForms(Data data)
