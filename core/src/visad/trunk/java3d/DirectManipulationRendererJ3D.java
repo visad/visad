@@ -51,7 +51,8 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       RealType components of a RealTuple object must be mapped
       to XAxis, YAxis or YAxis; the domain RealType and at
       least one RealType range component of a Field object
-      must be mapped to XAxis, YAxis or YAxis */
+      must be mapped to XAxis, YAxis or ZAxis
+*/
   public DirectManipulationRendererJ3D () {
     super();
   }

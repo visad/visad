@@ -641,7 +641,7 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
   }
 
   /** set directMap and axisToComponent (domain = false) or
-      domainAxis (domain = true) from real; called by checkDirect */
+      domainAxis (domain = true) from real; called by realCheckDirect */
   synchronized int setDirectMap(ShadowRealType real, int component, boolean domain) {
     Enumeration maps = real.getSelectedMapVector().elements();
     while(maps.hasMoreElements()) {

@@ -42,8 +42,7 @@ import java.rmi.*;
    Real object must be mapped to XAxis, YAxis or YAxis; at least one
    of the RealType components of a RealTuple object must be mapped to
    XAxis, YAxis or YAxis; the domain RealType and at least one RealType
-   range component of a Field object must be mapped to XAxis, YAxis or
-   YAxis
+   range component of a Field object must be mapped to XAxis or YAxis
 */
 public class DirectManipulationRendererJ2D extends RendererJ2D {
 
@@ -111,7 +110,7 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
     extra_branch.addChild(appearance);
   }
 
-  VisADGroup getExtraBranch() {
+  public VisADGroup getExtraBranch() {
     return extra_branch;
   }
 
