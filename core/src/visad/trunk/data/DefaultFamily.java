@@ -104,13 +104,17 @@ public class DefaultFamily
 	FormNode node = (FormNode)enum.nextElement();
 
 	if (node instanceof FormFileInformer) {
-	  if (check((FormFileInformer )node)) {
-	    try {
+          // WLH 19 Feb 2000 - switch order ot try and check
+          // needed for HDF5
+	  try {
+	    if (check((FormFileInformer) node)) {
 	      if (function(node)) {
 		return true;
 	      }
-	    } catch (Exception e) {
 	    }
+	  } catch (Exception e) {
+	  } catch (Error e) {
+            // WLH 19 Feb 2000 - needed for HDF5
 	  }
 	}
       }
@@ -126,13 +130,17 @@ public class DefaultFamily
 	FormNode node = (FormNode)enum.nextElement();
 
 	if (node instanceof FormFileInformer) {
-	  if (((FormFileInformer )node).isThisType(block)) {
-	    try {
+          // WLH 19 Feb 2000 - switch order ot try and check
+          // needed for HDF5
+	  try {
+	    if (((FormFileInformer )node).isThisType(block)) {
 	      if (function(node)) {
 		return true;
 	      }
-	    } catch (Exception e) {
 	    }
+	  } catch (Exception e) {
+	  } catch (Error e) {
+            // WLH 19 Feb 2000 - needed for HDF5
 	  }
 	} else {
 	}
