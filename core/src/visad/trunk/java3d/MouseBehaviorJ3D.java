@@ -245,7 +245,9 @@ public class MouseBehaviorJ3D extends Behavior
 
     // get screen coordinates
     Point2d coords = new Point2d();
+/* WLH 6 April 2001
     canvas.getPixelLocationFromImagePlate(pos, coords);
+*/
     return new int[] {(int) coords.x, (int) coords.y};
   }
 
