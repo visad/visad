@@ -64,6 +64,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
   static final int LABEL_WIDTH = 30;
   static final int LABEL_HEIGHT = 20;
 
+  // this spreadsheet's base title
+  String bTitle;
+
   // spreadsheet file dialog
   FileDialog SSFileDialog = null;
 
@@ -98,49 +101,66 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public static void main(String[] argv) { 
     String usage = "\n" +
                    "Usage: java [-mx###m] visad.ss.SpreadSheet " +
-                   "[cols rows]\n\n" +
+                   "[cols rows] [-server server_name]\n\n" +
                    "### = Maximum megabytes of memory to use\n" +
                    "cols = Number of columns in this Spread Sheet\n" +
-                   "rows = Number of rows in this Spread Sheet\n";
+                   "rows = Number of rows in this Spread Sheet\n" +
+                   "-server server_name = Initialize this Spread Sheet as " +
+                                         "an RMI server named server_name\n";
     int cols = 2;
     int rows = 2;
+    String servname = null;
     int len = argv.length;
     if (len > 0) {
       int ix = 0;
 
       // parse command line flags
-      while (ix < len && argv[ix].charAt(0) == '-') {
-        // unknown flag
-        System.out.println("Unknown option: " + argv[ix]);
-        System.out.println(usage);
-        System.exit(1);
+      while (ix < len) {
+        if (argv[ix].charAt(0) == '-') {
+          if (ix < len-1 && argv[ix].equals("-server")) {
+            servname = argv[++ix];
+          }
+          else {
+            // unknown flag
+            System.out.println("Unknown option: " + argv[ix]);
+            System.out.println(usage);
+            System.exit(1);
+          }
+        }
+        else {
+          // parse number of rows and columns
+          boolean success = true;
+          if (ix < len-1) {
+            try {
+              cols = Integer.parseInt(argv[ix]);
+              rows = Integer.parseInt(argv[++ix]);
+              if (rows < 1 || cols < 1 || cols > Letters.length()) {
+                success = false;
+              }
+            }
+            catch (NumberFormatException exc) {
+              success = false;
+            }
+            if (!success) {
+              System.out.println("Invalid number of columns and rows: " +
+                                 argv[ix-1] + " x " + argv[ix]);
+              System.out.println(usage);
+              System.exit(2);
+            }
+          }
+        }
         ix++;
       }
-
-      // parse number of rows and columns
-      if (len > ix+1) {
-        try {
-          cols = Integer.parseInt(argv[ix]);
-          rows = Integer.parseInt(argv[ix+1]);
-        }
-        catch (NumberFormatException exc) {
-          System.out.println("Invalid number of columns and rows: " +
-                             argv[ix] + " x " + argv[ix+1]);
-          System.out.println(usage);
-          System.exit(2);
-        }
-      }
     }
-    if (cols > Letters.length()) cols = Letters.length();
-    if (cols < 1) cols = 1;
-    if (rows < 1) rows = 1;
     SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
-                                     cols, rows, "VisAD SpreadSheet");
+                                     cols, rows, servname,
+                                     "VisAD Spread Sheet");
   }
 
   /** constructor for the SpreadSheet class */
-  public SpreadSheet(int sWidth, int sHeight,
-                     int cols, int rows, String sTitle) {
+  public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
+                     String server, String sTitle) {
+    bTitle = sTitle;
     NumVisX = cols;
     NumVisY = rows;
     NumVisDisplays = NumVisX*NumVisY;
@@ -289,7 +309,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     OptAuto.addItemListener(this);
     options.add(OptAuto);
 
-    OptFormula = new CheckboxMenuItem("Show formula error messages", true);
+    OptFormula = new CheckboxMenuItem("Show formula and RMI error messages",
+                                      true);
     OptFormula.addItemListener(this);
     options.add(OptFormula);
     options.addSeparator();
@@ -626,8 +647,52 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
 
+    // initialize RemoteServer
+    if (server != null) {
+      RemoteDataReferenceImpl[] rdri =
+          new RemoteDataReferenceImpl[NumVisDisplays];
+      boolean success = true;
+      for (int i=0; i<NumVisDisplays; i++) {
+        rdri[i] = DisplayCells[i].getRemoteDataRef();
+      }
+      try {
+        RemoteServerImpl rsi = new RemoteServerImpl(rdri);
+        Naming.rebind("//:/" + server, rsi);
+      }
+      catch (java.rmi.ConnectException exc) {
+        final SpreadSheet ss = this;
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            JOptionPane.showMessageDialog(ss,
+              "Unable to export cells as RMI addresses.  Make sure you are " +
+              "running rmiregistry before launching the Spread Sheet in " +
+              "server mode.",
+              "Failed to initialize RemoteServer", JOptionPane.ERROR_MESSAGE);
+          }
+        });
+        success = false;
+      }
+      catch (MalformedURLException exc) {
+        final SpreadSheet ss = this;
+        final String sname = server;
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            JOptionPane.showMessageDialog(ss,
+              "Unable to export cells as RMI addresses.  " +
+              "The name \"" + sname + "\" is not valid.",
+              "Failed to initialize RemoteServer", JOptionPane.ERROR_MESSAGE);
+          }
+        });
+        success = false;
+      }
+      catch (RemoteException exc) {
+        success = false;
+      }
+      if (success) bTitle = bTitle + " (" + server + ")";
+    }
+
     // display window on screen
-    setTitle(sTitle);
+    setTitle(bTitle);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     int appWidth = (int) (0.01*sWidth*screenSize.width);
     int appHeight = (int) (0.01*sHeight*screenSize.height);
@@ -691,7 +756,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       catch (RemoteException exc) { }
     }
     CurrentFile = null;
-    setTitle("VisAD SpreadSheet");
+    setTitle(bTitle);
   }
 
   /** Opens an existing spreadsheet file */
@@ -750,7 +815,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     CurrentFile = f;
-    setTitle("VisAD SpreadSheet - "+f.getPath());
+    setTitle(bTitle + " - "+f.getPath());
   }
 
   /** Saves a spreadsheet file under its current name */
@@ -788,7 +853,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (dir == null) return;
     File f = new File(dir, file);
     CurrentFile = f;
-    setTitle("VisAD SpreadSheet - "+f.getPath());
+    setTitle(bTitle + " - " + f.getPath());
     saveFile();
   }
 
@@ -904,7 +969,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     else {
       URL u = DisplayCells[CurDisplay].getFilename();
-      FormulaField.setText(u == null ? "" : u.toString());
+      String s = DisplayCells[CurDisplay].getRMIAddress();
+      String f = (u == null ? (s == null ? "" : s) : u.toString());
+      FormulaField.setText(f);
     }
   }
 
@@ -931,6 +998,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (u != null) {
       // try to load the data from the URL
       DisplayCells[CurDisplay].loadDataURL(u);
+    }
+    else if (newFormula.startsWith("rmi://")) {
+      // try to load the data from a server using RMI
+      DisplayCells[CurDisplay].loadDataRMI(newFormula);
     }
     else {
       // check if formula has changed from last entry

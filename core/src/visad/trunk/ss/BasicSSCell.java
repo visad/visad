@@ -30,7 +30,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
-import java.rmi.RemoteException;
+import java.rmi.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -61,6 +61,9 @@ public class BasicSSCell extends JPanel {
   /** URL from where data was imported, if any */
   URL Filename = null;
 
+  /** RMI address from where data was imported, if any */
+  String RMIAddress = null;
+
   /** formula of this BasicSSCell, if any */
   String Formula = "";
 
@@ -69,6 +72,9 @@ public class BasicSSCell extends JPanel {
 
   /** BasicSSCell's associated VisAD DataReference */
   DataReferenceImpl DataRef;
+
+  /** BasicSSCell's associated VisAD RemoteDataReference */
+  RemoteDataReferenceImpl RemoteDataRef;
 
   /** BasicSSCell's associated VisAD DisplayPanel */
   JPanel VDPanel;
@@ -251,6 +257,7 @@ public class BasicSSCell extends JPanel {
       }
     };
     DataRef = new DataReferenceImpl(name);
+    RemoteDataRef = new RemoteDataReferenceImpl(DataRef);
     fm.createVar(Name, DataRef);
     ucell.addReference(DataRef);
     setDimension(JAVA2D_2D);
@@ -795,6 +802,7 @@ public class BasicSSCell extends JPanel {
   public void clearCell() throws VisADException, RemoteException {
     setFormula(null);
     Filename = null;
+    RMIAddress = null;
     clearDisplay();
     setData(null);
   }
@@ -831,6 +839,8 @@ public class BasicSSCell extends JPanel {
   private void setDimension(int dim) throws VisADException, RemoteException {
     if (Dimension2D == dim) return;
     Dimension2D = dim;
+
+    // save current mappings for restoration after dimension switch
     ScalarMap[] maps = null;
     if (VDisplay != null) {
       Vector mapVector = VDisplay.getMapVector();
@@ -843,7 +853,13 @@ public class BasicSSCell extends JPanel {
       }
     }
 
+    // remove listener temporarily
     if (DListen != null) VDisplay.removeDisplayListener(DListen);
+
+    // clear display completely
+    clearDisplay();
+
+    // switch display dimension
     if (Dimension2D == JAVA3D_3D) {
       VDisplay = new DisplayImplJ3D(Name);
     }
@@ -853,15 +869,19 @@ public class BasicSSCell extends JPanel {
     else {  // Dimension2D == JAVA3D_2D
       VDisplay = new DisplayImplJ3D(Name, new TwoDDisplayRendererJ3D());
     }
-    if (DListen != null) VDisplay.addDisplayListener(DListen);
 
-    clearDisplay();
+    // reinitialize display
     VDPanel = (JPanel) VDisplay.getComponent();
     if (HasData) {
       add(VDPanel);
       validate();
       HasDisplay = true;
     }
+
+    // put listener back
+    if (DListen != null) VDisplay.addDisplayListener(DListen);
+
+    // put mappings back
     if (maps != null) {
       try {
         setMaps(maps);
@@ -894,14 +914,53 @@ public class BasicSSCell extends JPanel {
     return DataRef;
   }
 
+  /** return the associated RemoteDataReference object */
+  public RemoteDataReferenceImpl getRemoteDataRef() {
+    return RemoteDataRef;
+  }
+
   /** return the file name from which the associated Data came, if any */
   public URL getFilename() {
     return Filename;
   }
 
+  /** return the RMI address from which the associated Data came, if any */
+  public String getRMIAddress() {
+    return RMIAddress;
+  }
+
   /** return the formula for this BasicSSCell, if any */
   public String getFormula() {
     return Formula;
+  }
+
+  /** used by toggleWait */
+  private JPanel pWait = null;
+
+  /** used by toggleWait */
+  private boolean waiting = false;
+
+  /** used by loadData and loadRMI */
+  private void toggleWait() {
+    if (pWait == null) {
+      pWait = new JPanel();
+      pWait.setBackground(Color.black);
+      pWait.setLayout(new BoxLayout(pWait, BoxLayout.X_AXIS));
+      pWait.add(Box.createHorizontalGlue());
+      pWait.add(new JLabel("Please wait..."));
+      pWait.add(Box.createHorizontalGlue());
+    }
+    if (waiting) {
+      remove(pWait);
+      repaint();
+      waiting = false;
+    }
+    else {
+      add(pWait);
+      validate();
+      repaint();
+      waiting = true;
+    }
   }
 
   /** import a data object from a given URL */
@@ -910,26 +969,14 @@ public class BasicSSCell extends JPanel {
     if (u == null) return;
     clearDisplay();
     Filename = null;
+    RMIAddress = null;
+    toggleWait();
 
-    final URL url = u;
-    JPanel pleaseWait = new JPanel();
-    pleaseWait.setBackground(Color.black);
-    pleaseWait.setLayout(new BoxLayout(pleaseWait, BoxLayout.X_AXIS));
-    pleaseWait.add(Box.createHorizontalGlue());
-    pleaseWait.add(new JLabel("Please wait..."));
-    pleaseWait.add(Box.createHorizontalGlue());
-    add(pleaseWait);
-
-    // redraw cell
-    validate();
-    repaint();
-
-    boolean error = false;
     Data data = null;
     try {
       // file detection -- only necessary because some Data Forms
       //                   lack open(URL) capability
-      String s = url.toString();
+      String s = u.toString();
       boolean f = false;
       String file = null;
       if (s.length() >= 6 && s.substring(0, 6).equalsIgnoreCase("file:/")) {
@@ -938,18 +985,82 @@ public class BasicSSCell extends JPanel {
       }
       DefaultFamily loader = new DefaultFamily("loader");
       if (f) data = loader.open(file);
-      else data = loader.open(url);
+      else data = loader.open(u);
       loader = null;
     }
     finally {
-      remove(pleaseWait);
-      repaint();
+      toggleWait();
     }
     if (data != null) {
       setData(data);
-      Filename = url;
+      Filename = u;
     }
     else setData(null);
+  }
+
+  /** import a data object from a given RMI address, and automatically
+      update this cell whenever the remote data object changes */
+  public void loadRMI(String s) throws MalformedURLException,
+                                       NotBoundException,
+                                       AccessException,
+                                       RemoteException,
+                                       VisADException {
+    // example of RMI address: rmi://www.myaddress.com/MyServer/A1
+    if (s == null || !s.startsWith("rmi://")) {
+      throw new VisADException("RMI address must begin with \"rmi://\"");
+    }
+    clearDisplay();
+    Filename = null;
+    RMIAddress = null;
+    toggleWait();
+
+    try {
+      int len = s.length();
+      int end = s.lastIndexOf("/");
+      if (end < 6) end = len;
+      String server = s.substring(4, end);
+      String object = (end < len-1) ? s.substring(end+1, len) : "";
+      RemoteServer rs = null;
+      rs = (RemoteServer) Naming.lookup(server);
+      RemoteDataReference ref = rs.getDataReference(object);
+      if (ref == null) {
+        throw new VisADException("Could not import remote object called " +
+                                 "\"" + object + "\"");
+      }
+      final RemoteDataReference rref = ref;
+      final BasicSSCell cell = this;
+      CellImpl lcell = new CellImpl() {
+        public void doAction() {
+          // update local data when remote data changes
+          try {
+            cell.setData(rref.getData().local());
+          }
+          catch (NullPointerException exc) {
+            if (ShowFormulaErrors) {
+              showMsg("RMI error", "Remote data is null");
+            }
+          }
+          catch (VisADException exc) {
+            if (ShowFormulaErrors) {
+              showMsg("RMI error",
+                      "An error occurred when updating the remote data");
+            }
+          }
+          catch (RemoteException exc) {
+            if (ShowFormulaErrors) {
+              showMsg("RMI error",
+                      "Unable to import updated remote data");
+            }
+          }
+        }
+      };
+      RemoteCellImpl rcell = new RemoteCellImpl(lcell);
+      rcell.addReference(ref);
+    }
+    finally {
+      toggleWait();
+    }
+    RMIAddress = s;
   }
 
   /** export a data object to a given file name, in netCDF format */

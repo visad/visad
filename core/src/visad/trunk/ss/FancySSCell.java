@@ -28,7 +28,7 @@ package visad.ss;
 import java.awt.*;
 import java.io.*;
 import java.net.*;
-import java.rmi.RemoteException;
+import java.rmi.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -175,7 +175,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
   /** Used by setMaps() method */
   private void initWidgetFrame() {
-    WidgetFrame = new JFrame("VisAD controls (" + Name + ")");
+    WidgetFrame = new JFrame("Controls (" + Name + ")");
     Container pane = WidgetFrame.getContentPane();
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
     first = true;
@@ -297,7 +297,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     if (!HasData) {
       JOptionPane.showMessageDialog(Parent,
           "This cell has no data",
-          "VisAD FancySSCell error", JOptionPane.ERROR_MESSAGE);
+          "FancySSCell error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -336,7 +336,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(Parent,
           "This combination of mappings is not valid:\n" + exc.toString(),
-          "VisAD FancySSCell error", JOptionPane.ERROR_MESSAGE);
+          "FancySSCell error", JOptionPane.ERROR_MESSAGE);
     }
     catch (RemoteException exc) { }
   }
@@ -347,8 +347,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     final BasicSSCell cell = this;
     Runnable loadFile = new Runnable() {
       public void run() {
-        String msg = "VisAD could not load the dataset \"" +
+        String msg = "Could not load the dataset \"" +
                      url.toString() + "\"\n";
+        boolean success = true;
         try {
           cell.loadData(url);
           if (!cell.hasData()) {
@@ -360,27 +361,66 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
         catch (BadFormException exc) {
           msg = msg + "VisAD does not support this file type.";
-          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
-                                        JOptionPane.ERROR_MESSAGE);
+          success = false;
         }
         catch (RemoteException exc) {
           msg = msg + "A RemoteException occurred:\n" + exc.toString();
-          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
-                                        JOptionPane.ERROR_MESSAGE);
+          success = false;
         }
         catch (IOException exc) {
           msg = msg + "The file does not exist, or its data is corrupt.";
-          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
-                                        JOptionPane.ERROR_MESSAGE);
+          success = false;
         }
         catch (VisADException exc) {
           msg = msg + "An error occurred:\n" + exc.toString();
+          success = false;
+        }
+        if (!success) {
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
                                         JOptionPane.ERROR_MESSAGE);
         }
       }
     };
     Thread t = new Thread(loadFile);
+    t.start();
+  }
+
+  /** Imports a data object from a server using RMI, in a separate thread */
+  public void loadDataRMI(String s) {
+    final String sname = s;
+    Runnable loadRMI = new Runnable() {
+      public void run() {
+        String msg = "Could not import data from the specified RMI address.\n";
+        boolean success = true;
+        try {
+          loadRMI(sname);
+        }
+        catch (MalformedURLException exc) {
+          msg = msg + "The address is not valid.";
+          success = false;
+        }
+        catch (NotBoundException exc) {
+          msg = msg + "";
+          success = false;
+        }
+        catch (AccessException exc) {
+          msg = msg + "Could not obtain access to the data.";
+          success = false;
+        }
+        catch (RemoteException exc) {
+          msg = msg + "A remote error occurred.";
+          success = false;
+        }
+        catch (VisADException exc) {
+          success = false;
+        }
+        if (!success) {
+          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    };
+    Thread t = new Thread(loadRMI);
     t.start();
   }
 
@@ -439,7 +479,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     final boolean nc = netcdf;
     Runnable saveFile = new Runnable() {
       public void run() {
-        String msg = "VisAD could not save the dataset \"" + fn.getName() +
+        String msg = "Could not save the dataset \"" + fn.getName() +
                      "\" as a " + (nc ? "netCDF file"
                                       : "serialized data file") + ".\n";
         try {
