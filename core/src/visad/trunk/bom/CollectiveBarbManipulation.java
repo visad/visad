@@ -453,6 +453,7 @@ public class CollectiveBarbManipulation extends Object
 
     if (display1 != null) display1.enableAction();
     if (display2 != null) display2.enableAction();
+
   }
 
 
@@ -621,6 +622,8 @@ public class CollectiveBarbManipulation extends Object
       // check MathType of station
       FunctionType ftype = (FunctionType) station.getType();
       if (!wind_station_type.equals(ftype)) {
+        if (display1 != null) display1.enableAction();
+        if (display2 != null) display2.enableAction();
         throw new CollectiveBarbException("station type doesn't match");
       }
 
@@ -637,11 +640,22 @@ public class CollectiveBarbManipulation extends Object
       wind_field = new_wind_field;
       stations_ref.setData(wind_field);
 
-      // recompute internal data
-      setupData();
-      setupStations();
+      try {
+        // recompute internal data
+        setupData();
+        setupStations();
+      }
+      catch (VisADException e) {
+        if (display1 != null) display1.enableAction();
+        if (display2 != null) display2.enableAction();
+        throw e;
+      }
+      catch (RemoteException e) {
+        if (display1 != null) display1.enableAction();
+        if (display2 != null) display2.enableAction();
+        throw e;
+      }
     }
-    new Delay(1000);
     if (display1 != null) display1.enableAction();
     if (display2 != null) display2.enableAction();
   }
