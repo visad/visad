@@ -523,7 +523,7 @@ public class RubberBandLineRendererJ3D extends DirectManipulationRendererJ3D {
       group.setCapability(Group.ALLOW_CHILDREN_READ);
       group.setCapability(BranchGroup.ALLOW_DETACH);
       group.addChild(shape);
-      branch.addChild(group);
+      if (branch != null) branch.addChild(group);
     } // end try
     catch (VisADException e) {
       // do nothing
