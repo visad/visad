@@ -401,19 +401,19 @@ public class AddeURLConnection extends URLConnection
     int numBinaryBytes = 0;
     if (binaryData != null) numBinaryBytes = binaryData.length;
 
-    if (ob.length > REQUEST_SIZE) 
+    if (ob.length > REQUEST_SIZE)
     {
       dos.writeInt(ob.length + numBinaryBytes); // number of additional bytes
       dos.writeInt(ob.length);                  // number of bytes in request
-      for (int i=1; i < REQUEST_SIZE; i++) {
+      for (int i=0; i < REQUEST_SIZE - 4; i++) {  // - 4 accounts for prev line
         dos.writeByte(0);
       }
       dos.write(ob,0,ob.length);
-
     } else {
+      // System.out.println("numBinaryBytes= " + numBinaryBytes);
       dos.writeInt(numBinaryBytes);
       dos.write(ob, 0, ob.length);
-      for (int i=ob.length; i < REQUEST_SIZE; i++) {
+      for (int i=0; i < REQUEST_SIZE - ob.length; i++) {
         dos.writeByte(' ');
       }
     }
@@ -1125,8 +1125,12 @@ public class AddeURLConnection extends URLConnection
         return buf;
     }
 
+
     /**
      * Decode the ADDE request for point data.
+     *
+     * If the request contains specific parameters (eg param=t),
+     * then the class variable binaryData is set to this param string
      *
      *   group=<groupname>         ADDE group name
      *   descr=<descriptor>        ADDE descriptor name
@@ -1134,11 +1138,21 @@ public class AddeURLConnection extends URLConnection
      *                               position number
      *   select=<select clause>    to specify which data is required
      *   param=<param list>        what parameters to return
-     *   num=<max>                 maximum number of obs to return
+     *                             eg param=t[c]
+     *                             note that the units [c] are ignored by server
+     *                             it is the clients task to convert units
+     *                             Note that if "param=" is used, 
+     *                             binaryData is set to the
+     *                             (processed) parameter list
+     *   max=<max>                 maximum number of obs to return
      *   user=<user_id>            ADDE user identification
      *   proj=<proj #>             a valid ADDE project number
      *   trace=<0/1>               setting to 1 tells server to write debug 
      *                               trace file (imagedata, imagedirectory)
+     *   binaryData=<param list>   because an unlimited number of parameters may
+     *                             be requested, these must be packaged up at the end
+     *                             of the adde request, and this is known as the
+     *                             "binary data" part of the request
      *
      * the following keywords are required:
      *
@@ -1156,14 +1170,22 @@ public class AddeURLConnection extends URLConnection
         // Mandatory strings
         String groupString = null;
         String descrString = null;
-        String maxString = "max=1000";
+        String maxString = "max=1";
         String numString = "";
-                                // Options strings
+        // Options strings
         String posString = "pos=0";
         String traceString = "trace=0";
-        // String versionString = "version=1";
         String selectString = "";
         String parmString = "";
+        String justTheParametersString = "";
+        String justTheSelectString = "";
+        String sBinaryData = "";
+        // in hard coded notation, the binaryData for "param=t" would look like:
+        // binaryData = new byte[4];
+        // binaryData[0] = (byte) 'T';
+        // binaryData[1] = (byte) ' ';
+        // binaryData[2] = (byte) ' ';
+        // binaryData[3] = (byte) ' ';
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
@@ -1182,19 +1204,31 @@ public class AddeURLConnection extends URLConnection
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("select"))
-            {
-                selectString = testString;
-            }
-            else
             // in McIDAS Clients the parameter request string contains param=
             // but the adde server looks for parm=
             // this bit of code forces this change so that Java Clients behave
             // the same as McIDAS Clients
             if (testString.startsWith("par")) 
             {
+                justTheParametersString = 
+                    testString.substring(testString.indexOf("=") + 1) ;
                 parmString = 
-                   "parm=" + testString.substring(testString.indexOf("=") + 1) ;
+                   "parm=" + justTheParametersString;
+                // System.out.println("paramString = " + parmString);
+                sBinaryData =   
+                    new String(decodePARAMString(justTheParametersString));
+                sBinaryData = sBinaryData.toUpperCase();
+                binaryData = sBinaryData.getBytes();
+            }
+            else
+            if (testString.startsWith("select"))
+            {
+                justTheSelectString = 
+                    testString.substring(testString.indexOf("=") + 1) ;
+                selectString = 
+                   "select=" + new String(
+                       decodeSELECTString(justTheSelectString));
+                System.out.println("Server selectString = " + selectString);
             }
             else
             // similarly, McIDAS Clients use num= but the server wants max=
@@ -1222,20 +1256,18 @@ public class AddeURLConnection extends URLConnection
                 posString = testString;
             }
         } 
-        // buf.append(" ");
-        // buf.append(traceString);
 
         // now create command string
         StringBuffer posParams = 
             new StringBuffer(
                  groupString + " " + descrString + " " + parmString + " " + selectString + " " + posString + " " + traceString + " " + maxString);
-        System.out.println("String passed to server = " + posParams);
+        // System.out.println("String passed to server = " + posParams);
 
         // stuff it in at the beginning
         try
         {
             buf.insert(0, posParams);
-            System.out.println("buf = " + buf);
+            // System.out.println("buf = " + buf);
         }
         catch (StringIndexOutOfBoundsException e)
         {
@@ -1244,4 +1276,152 @@ public class AddeURLConnection extends URLConnection
         }
         return buf;
     }
+
+    /**
+     * Helper function for decodeMDKSString to decode
+     * the "param=" part of a point data request
+     *
+     *   Input
+     *   justTheParametersString   The parameter list which follows "param=" eg
+     *                             "id dir spd t[c] td[c]"
+     *   Output
+     *   method return String      parameter list (padded to length 4 for server)
+     *                             without any units (units are ignored by server) eg
+     *                             "id  dir spd t   td  "
+     * </pre>
+     */
+     private String decodePARAMString(String justTheParametersString) {
+
+        String testString = null;
+        String thisParam = null;
+        String thisUnit  = null;
+        StringBuffer buf = new StringBuffer();
+        StringTokenizer paramTokens = 
+            new StringTokenizer(justTheParametersString, " ");
+        while (paramTokens.hasMoreTokens())
+        {
+            testString = (paramTokens.nextToken()).trim();
+            StringTokenizer thisParamToken = 
+                new StringTokenizer(testString, "[]");
+            thisParam = new String((thisParamToken.nextToken()).trim());
+                                                buf.append(thisParam);
+            for (int i=thisParam.length(); i < 4; i++) {
+                buf.append(" ");
+            }
+
+            if (thisParamToken.hasMoreTokens()) {
+            // note that the units are ignored by the server
+            // it is the client's responsibility to do unit conversion
+                thisUnit = (thisParamToken.nextToken()).trim();
+                // System.out.println("This Unit = " + thisUnit);
+            }
+        }
+
+
+        return (buf.toString());
+    }
+
+    /**
+     * Helper function for decodeMDKSString to decode
+     * the "select=" part of a point data request
+     *
+     *   Input
+     *   justTheSelectString   The select list which follows "select=" eg
+     *                'id ymml; time 12 18; day 1999316; t[c] 20 30; td 270 276'
+     *   Output
+     *   method return String  The select list formatted for the server eg
+     *                'id ymml' 'time 12 to 18' 'day 1999316' 't 20 to 30 c' 'td 270 to 276'
+     *
+     *   Reference
+     *   McIDAS 7.6 source code: m0psort.for
+     *
+     * </pre>
+     */
+    private String decodeSELECTString(String justTheSelectString) {
+
+        String testString = null;
+        String entireSelectString = null;
+        // String trimmedSelectString = null;
+        String thisSelect = null;
+        String thisUnit  = null;
+        StringBuffer buf = new StringBuffer();
+        StringTokenizer entireSelectToken = 
+            new StringTokenizer(justTheSelectString, "'");
+        entireSelectString = (entireSelectToken.nextToken()).trim();
+        //
+        // Break SELECT string up into parts
+        //
+        StringTokenizer selectTokens = 
+            new StringTokenizer(entireSelectString, ";");
+        while (selectTokens.hasMoreTokens())
+        {
+            thisSelect = (selectTokens.nextToken()).trim();
+            // System.out.println(" this Select = " + thisSelect);
+            //
+            // Break into individual clauses eg:
+            // t[c] 20 30
+            //
+            StringTokenizer thisSelectToken = 
+                new StringTokenizer(thisSelect, " ");
+            int tokenCount = thisSelectToken.countTokens();
+            thisSelect = new String(thisSelectToken.nextToken());
+            // System.out.println("this Select = " + thisSelect);
+
+            //
+            // Check to see if any units are involved eg:
+                                                // t[c]
+            if (thisSelect.indexOf("[") > 0) {
+                StringTokenizer thisUnitToken = 
+                    new StringTokenizer(thisSelect, "[]");
+                if (thisUnitToken.hasMoreTokens()) {
+                    thisSelect = new String((thisUnitToken.nextToken()).trim());
+                    buf.append("'" + thisSelect);
+                    if (thisUnitToken.hasMoreTokens()) {
+                        thisUnit = 
+                            new String((thisUnitToken.nextToken()).trim());
+                    }
+                }
+            } else {
+                // no units involved eg:
+                // t
+                buf.append("'" + thisSelect);
+           }
+
+           //
+           // Check for first numeric value eg if select='t[c] 20 30':
+           // 20
+           //
+           if (thisSelectToken.hasMoreTokens()) {
+                thisSelect = thisSelectToken.nextToken();
+                // System.out.println("this Select = " + thisSelect);
+                buf.append(" " + thisSelect);
+           }
+
+           //
+           // Check for second numeric value eg if select='t[c] 20 30':
+           // 30
+           //
+           if (thisSelectToken.hasMoreTokens()) {
+                thisSelect = thisSelectToken.nextToken();
+                // server requires TO for a range of values eg:
+                // 20 to 30
+                buf.append(" TO " + thisSelect);
+                // System.out.println("this Select = " + thisSelect);
+           }
+
+           //
+           // add unit if specified
+           //
+           if (thisUnit != null) {
+               buf.append(" " + thisUnit);
+               thisUnit = null;
+           }
+
+           buf.append("' ");
+        }
+
+
+        return (buf.toString());
+    }
+
 }
