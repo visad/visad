@@ -79,13 +79,17 @@ public class FloatSet extends SimpleSet {
   }
   
   /**
-   * Clones this instance.  Because instances of this class are immutable, this
-   * implementation simply returns this instance.
+   * Clones this instance.
    *
    * @return                      A clone of this instance.
    */
   public final Object clone() {
-      return this;
+      /*
+       * I (Steve Emmerson) believe that this implementation should return
+       * "this" to reduce the memory-footprint but Bill believes that doing so
+       * would be counter-intuitive and might harm applications.
+       */
+      return super.clone;
   }
 
   public Object cloneButType(MathType type) throws VisADException {

@@ -47,13 +47,17 @@ public abstract class Scalar
   public abstract boolean equals(Object obj);
 
   /**
-   * Clones this instance.  Because instances of this class are immutable, this
-   * implementation simply returns this instance.
+   * Clones this instance.
    *
    * @return                      A clone of this instance.
    */
   public final Object clone() {
-      return this;
+      /*
+       * I (Steve Emmerson) believe that this implementation should return
+       * "this" to reduce resouce-usage but Bill believes that doing so is
+       * counter-intuitive and might harm applications.
+       */
+      return super.clone();
   }
 }
 

@@ -306,13 +306,17 @@ public class RealTuple
   }
 
   /**
-   * Clones this instance.  Because instances are immutable, this instance is
-   * returned.
+   * Clones this instance.
    *
    * @return                    A clone of this instance.
    */
   public final Object clone() {
-    return this;
+      /*
+       * I (Steve Emmerson) believe that this implementation should return
+       * "this" to reduce the memory-footprint but Bill believes that doing so
+       * would be counter-intuitive and might harm applications.
+       */
+    return super.clone();
   }
 
   /**
