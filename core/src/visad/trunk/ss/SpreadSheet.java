@@ -31,6 +31,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.rmi.*;
+import java.rmi.registry.*;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -757,26 +758,48 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (server != null) {
       // initialize RemoteServer
       boolean success = true;
-      try {
-        rsi = new RemoteServerImpl();
-        Naming.rebind("//:/" + server, rsi);
-      }
-      catch (java.rmi.ConnectException exc) {
-        displayErrorMessage("Unable to export cells as RMI addresses. " +
-          "Make sure you are running rmiregistry before launching the " +
-          "Spread Sheet in server mode.", "Failed to initialize RemoteServer");
-        success = false;
-      }
-      catch (MalformedURLException exc) {
-        displayErrorMessage("Unable to export cells as RMI addresses. " +
-          "The name \"" + server + "\" is not valid.",
-          "Failed to initialize RemoteServer");
-        success = false;
-      }
-      catch (RemoteException exc) {
-        displayErrorMessage("Unable to export cells as RMI addresses: " +
-          exc.getMessage(), "Failed to initialize RemoteServer");
-        success = false;
+      boolean registryStarted = false;
+      while (true) {
+        try {
+          rsi = new RemoteServerImpl();
+          Naming.rebind("//:/" + server, rsi);
+          break;
+        }
+        catch (java.rmi.ConnectException exc) {
+          if (!registryStarted) {
+            try {
+              LocateRegistry.createRegistry(Registry.REGISTRY_PORT);
+              registryStarted = true;
+            }
+            catch (RemoteException rexc) {
+              displayErrorMessage("Unable to autostart rmiregistry. " +
+                "Please start rmiregistry before launching the " +
+                "Spread Sheet in server mode.",
+                "Failed to initialize RemoteServer");
+              success = false;
+            }
+          }
+          else {
+            displayErrorMessage("Unable to export cells as RMI addresses. " +
+              "Make sure you are running rmiregistry before launching the " +
+              "Spread Sheet in server mode.",
+              "Failed to initialize RemoteServer");
+            success = false;
+          }
+        }
+        catch (MalformedURLException exc) {
+          displayErrorMessage("Unable to export cells as RMI addresses. " +
+            "The name \"" + server + "\" is not valid.",
+            "Failed to initialize RemoteServer");
+          success = false;
+        }
+        catch (RemoteException exc) {
+          displayErrorMessage("Unable to export cells as RMI addresses: " +
+            exc.getMessage(), "Failed to initialize RemoteServer");
+          success = false;
+        }
+
+        if (!success) break;
       }
 
       // set up info for spreadsheet cloning
