@@ -182,32 +182,36 @@ if (tickFlag) {
       java2d.AnimationControlJ2D */
   public void animation_string(RealType real, Set set, double value,
               int current) throws VisADException {
-    Unit[] units = set.getSetUnits();
+    if (set != null) {
+      Unit[] units = set.getSetUnits();
 
-    // WLH 31 Aug 2000
-    Vector tmap = display.getMapVector();
-    Unit overrideUnit = null;
-    for (int i=0; i<tmap.size(); i++) {
-      ScalarMap map = (ScalarMap) tmap.elementAt(i);
-      Control c = map.getControl();
-      if (this.equals(c)) {
-        overrideUnit = map.getOverrideUnit();
+      // WLH 31 Aug 2000
+      Vector tmap = display.getMapVector();
+      Unit overrideUnit = null;
+      for (int i=0; i<tmap.size(); i++) {
+        ScalarMap map = (ScalarMap) tmap.elementAt(i);
+        Control c = map.getControl();
+        if (this.equals(c)) {
+          overrideUnit = map.getOverrideUnit();
+        }
       }
+      // units not part of Time string
+      if (overrideUnit != null && units != null &&
+          !overrideUnit.equals(units[0]) && 
+          (!Unit.canConvert(units[0], CommonUnit.secondsSinceTheEpoch) ||
+           units[0].getAbsoluteUnit().equals(units[0]))) {
+        value = overrideUnit.toThis(value, units[0]);
+        units[0] = overrideUnit;
+      }
+  
+      String s = real.getName() + " = " +
+        new Real(real, value, units == null ? null : units[0]).toValueString();
+      String t = Integer.toString(current+1) + " of " +
+                 Integer.toString(set.getLength());
+      getDisplayRenderer().setAnimationString(new String[] {s, t});
+    } else { // null set
+      getDisplayRenderer().setAnimationString(new String[] {null, null});
     }
-    // units not part of Time string
-    if (overrideUnit != null && units != null &&
-        !overrideUnit.equals(units[0]) && 
-        (!Unit.canConvert(units[0], CommonUnit.secondsSinceTheEpoch) ||
-         units[0].getAbsoluteUnit().equals(units[0]))) {
-      value = overrideUnit.toThis(value, units[0]);
-      units[0] = overrideUnit;
-    }
-
-    String s = real.getName() + " = " +
-      new Real(real, value, units == null ? null : units[0]).toValueString();
-    String t = Integer.toString(current+1) + " of " +
-               Integer.toString(set.getLength());
-    getDisplayRenderer().setAnimationString(new String[] {s, t});
   }
 
   void setIndex(int index) {

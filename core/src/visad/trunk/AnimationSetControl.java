@@ -89,6 +89,10 @@ public class AnimationSetControl extends Control {
       ScalarMap.setRange */
   public void setSet(Set s, boolean noChange)
          throws VisADException, RemoteException {
+    if (set != null && set.equals(s) || 
+        set == null && s == null) {
+        return;
+    }
     set = s;
     if (parent != null) {
       // parent.setCurrent(0);

@@ -189,7 +189,7 @@ public class AnimationControlJ3D extends AVControlJ3D
 
   /** Get the animation direction.
    *
-   *  @return	true for forward, false for backward
+   *  @return   true for forward, false for backward
    */
   public boolean getDirection()
   {
@@ -285,13 +285,13 @@ public class AnimationControlJ3D extends AVControlJ3D
   }
 
   public void init() throws VisADException {
-    if (animationSet != null &&
-        animationSet.getSet() != null) {
-      double value = animationSet.getValue(current);
-      Set set = animationSet.getSet();
-
-      animation_string(real, set, value, current);
-      selectSwitches(value, set);
+    if (animationSet != null) { 
+      //if (animationSet.getSet() != null) {
+        double value = animationSet.getValue(current);
+        Set set = animationSet.getSet();
+  
+        animation_string(real, set, value, current);
+        selectSwitches(value, set);
     }
   }
 
@@ -305,35 +305,52 @@ public class AnimationControlJ3D extends AVControlJ3D
   }
 
   /**
-   * <p>Sets the set of times in this animation control.  If the argument set is
-   * equal to the current set, then nothing is done.</p>
+   * <p>Sets the set of times in this animation control.  If the argument 
+   * set is equal to the current set, then nothing is done.</p>
    *
    * @param s                     The set of times.
-   * @throws NullPointerException if the argument is <code>null</code>.
    * @throws VisADException       if a VisAD failure occurs.
    * @throws RemoteException      if a Java RMI failure occurs.
    */
   public void setSet(Set s)
          throws VisADException, RemoteException {
-    if (animationSet == null || !s.equals(animationSet.getSet())) {
+    if (s == null && animationSet != null && 
+        animationSet.getSet() == null) return;  // check for null/null
+    if (animationSet == null || 
+        (s != null && !s.equals(animationSet.getSet()))) {
       setSet(s, false);
-      if (s.getLength() != stepValues.length)
-      {
-	  stepValues = new long[s.getLength()];
-	  for (int i = 0; i < stepValues.length; i++)
-	  {
-	      stepValues[i] = step;
-	  }
+      // have to do this i animationSet == null
+      if (s == null) {
+        stepValues = new long[] {step};
+        current = 0;
+      } else if (s.getLength() != stepValues.length) {
+        stepValues = new long[s.getLength()];
+        for (int i = 0; i < stepValues.length; i++)
+        {
+          stepValues[i] = step;
+        }
       }
     }
   }
 
-  /** changeControl(!noChange) to not trigger re-transform,
-      used by ScalarMap.setRange */
+  /**
+   * <p>Sets the set of times in this animation control.  If the argument 
+   * set is equal to the current set, then nothing is done.</p>
+   *
+   * @param s                     The set of times.
+   * @param noChange              changeControl(!noChange) to not trigger 
+   *                              re-transform, used by ScalarMap.setRange
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   public void setSet(Set s, boolean noChange)
          throws VisADException, RemoteException {
     if (animationSet != null) {
-      if (s.getLength() != stepValues.length)
+      if (s == null) {
+          stepValues = new long[] {step};
+          current = 0;
+      } 
+      else if (s.getLength() != stepValues.length)
       {
           stepValues = new long[s.getLength()];
           for (int i = 0; i < stepValues.length; i++)

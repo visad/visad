@@ -120,11 +120,27 @@ public interface AnimationControl extends AVControl {
   /** get Set of RealType values for animation steps */
   Set getSet();
 
+  /**
+   * <p>Sets the set of times in this animation control.  If the argument 
+   * set is equal to the current set, then nothing is done.</p>
+   *
+   * @param s                     The set of times.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   void setSet(Set s)
          throws VisADException, RemoteException;
 
-  /** changeControl(!noChange) to not trigger re-transform,
-      used by ScalarMap.setRange */
+  /**
+   * <p>Sets the set of times in this animation control.  If the argument 
+   * set is equal to the current set, then nothing is done.</p>
+   *
+   * @param s                     The set of times.
+   * @param noChange              changeControl(!noChange) to not trigger 
+   *                              re-transform, used by ScalarMap.setRange
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   void setSet(Set s, boolean noChange)
          throws VisADException, RemoteException;
 

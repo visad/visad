@@ -727,9 +727,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     if (DisplayScalar.equals(Display.Animation) && shadow != null) {
       if (control != null) {
         Set set = shadow.animationSampling;
+        /* DRM: 04 Jan 2003
         if (set == null) {
           return;
         }
+        */
         ((AnimationControl) control).setSet(set, true);
       }
     }
