@@ -535,7 +535,7 @@ public class AREACoordinateSystem
    */
   public Rectangle2D getDefaultMapArea() 
   { 
-      return new Rectangle2D.Double(0.0, 0.0, elements-1, lines-1);
+      return new Rectangle2D.Double(0.0, 0.0, elements, lines);
   }
 
   /**

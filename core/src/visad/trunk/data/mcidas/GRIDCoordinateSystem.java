@@ -123,7 +123,7 @@ public class GRIDCoordinateSystem
    */
   public Rectangle2D getDefaultMapArea() 
   { 
-      return new Rectangle2D.Double(0.0, 0.0, columns-1, rows-1);
+      return new Rectangle2D.Double(0.0, 0.0, columns, rows);
   }
 
   /**
