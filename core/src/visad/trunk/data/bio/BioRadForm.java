@@ -145,8 +145,6 @@ public class BioRadForm extends Form implements FormBlockReader,
 
   // -- Static fields --
 
-  private static CacheStrategy strategy = new CacheStrategy();
-
   /** Form instantiation counter. */
   private static int count = 0;
 
@@ -219,14 +217,10 @@ public class BioRadForm extends Form implements FormBlockReader,
 
   // -- FormNode API methods --
 
-  /**
-   * Saves a VisAD Data object to Bio-Rad PIC
-   * format at the given location.
-   */
+  /** Saves a VisAD Data object to Bio-Rad PIC format at the given location. */
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
-  /* CTR TEMP
     // make list of data elements
     data = data.local();
     Vector v = new Vector();
@@ -237,9 +231,9 @@ public class BioRadForm extends Form implements FormBlockReader,
     else v.add(data);
 
     // look for matching data types
-    Vector v_images = new Vector();
-    Vector v_tables = new Vector();
-    Vector v_notes = new Vector();
+    Vector vImages = new Vector();
+    Vector vTables = new Vector();
+    Vector vNotes = new Vector();
     Real ramp1minType = null;
     Real ramp1maxType = null;
     Real byteFormatType = null;
@@ -255,48 +249,48 @@ public class BioRadForm extends Form implements FormBlockReader,
       MathType mt = d.getType();
       if (mt.equalsExceptName(image)) {
         // found image
-        v_images.add(d);
+        vImages.add(d);
       }
       else if (mt.equalsExceptName(imageSequence)) {
         // found image sequence
         FieldImpl f = (FieldImpl) d;
         int flen = f.getLength();
-        for (int j=0; j<flen; j++) v_images.add(f.getSample(j));
+        for (int j=0; j<flen; j++) vImages.add(f.getSample(j));
       }
       else if (mt.equalsExceptName(table)) {
         // found color table
-        v_tables.add(d);
+        vTables.add(d);
       }
       else if (mt.equalsExceptName(tableSequence)) {
         // found color table sequence
         FieldImpl f = (FieldImpl) d;
         int flen = f.getLength();
-        for (int j=0; j<flen; j++) v_tables.add(f.getSample(j));
+        for (int j=0; j<flen; j++) vTables.add(f.getSample(j));
       }
       else if (mt.equalsExceptName(noteFunction)) {
         // found Bio-Rad note tuple
-        v_notes.removeAllElements();
+        vNotes.removeAllElements();
         FieldImpl f = (FieldImpl) d;
         int flen = f.getLength();
         for (int j=0; j<flen; j++) {
           Tuple t = (Tuple) f.getSample(j);
-          Real r_level = (Real) t.getComponent(0);
-          Real r_num = (Real) t.getComponent(1);
-          Real r_status = (Real) t.getComponent(2);
-          Real r_type = (Real) t.getComponent(3);
-          Real r_x = (Real) t.getComponent(4);
-          Real r_y = (Real) t.getComponent(5);
-          Text t_text = (Text) t.getComponent(6);
-          int level = (int) r_level.getValue();
-          int num = (int) r_num.getValue();
-          int status = (int) r_status.getValue();
-          int type = (int) r_type.getValue();
-          int x = (int) r_x.getValue();
-          int y = (int) r_y.getValue();
-          String text = t_text.getValue();
+          Real rtLevel = (Real) t.getComponent(0);
+          Real rtNum = (Real) t.getComponent(1);
+          Real rtStatus = (Real) t.getComponent(2);
+          Real rtType = (Real) t.getComponent(3);
+          Real rtX = (Real) t.getComponent(4);
+          Real rtY = (Real) t.getComponent(5);
+          Text ttText = (Text) t.getComponent(6);
+          int level = (int) rtLevel.getValue();
+          int num = (int) rtNum.getValue();
+          int status = (int) rtStatus.getValue();
+          int type = (int) rtType.getValue();
+          int x = (int) rtX.getValue();
+          int y = (int) rtY.getValue();
+          String text = ttText.getValue();
           BioRadNote note =
             new BioRadNote(level, num, status, type, x, y, text);
-          v_notes.add(note);
+          vNotes.add(note);
         }
         hasNoteTuple = true;
       }
@@ -349,7 +343,7 @@ public class BioRadForm extends Form implements FormBlockReader,
                   BioRadNote.NOTE_STATUS_ALL | BioRadNote.NOTE_STATUS_POSITION,
                   BioRadNote.NOTE_TYPE_VARIABLE, 0, 0,
                   rtName + " " + ((Real) d).getValue());
-                v_notes.add(note);
+                vNotes.add(note);
                 ok = true;
               }
             }
@@ -365,9 +359,9 @@ public class BioRadForm extends Form implements FormBlockReader,
     // validate image data
     int xlen = -1;
     int ylen = -1;
-    int numImages = v_images.size();
+    int numImages = vImages.size();
     for (int i=0; i<numImages; i++) {
-      Object o = v_images.elementAt(i);
+      Object o = vImages.elementAt(i);
       if (!(o instanceof FlatField)) {
         throw new BadFormException("Invalid image data");
       }
@@ -402,7 +396,7 @@ public class BioRadForm extends Form implements FormBlockReader,
 
     // try to extract unit information if necessary
     if (!hasNoteTuple) {
-      FlatField d = (FlatField) v_images.elementAt(0);
+      FlatField d = (FlatField) vImages.elementAt(0);
       Set set = d.getDomainSet();
       if (set instanceof Linear2DSet) {
         Linear2DSet lset = (Linear2DSet) set;
@@ -413,18 +407,18 @@ public class BioRadForm extends Form implements FormBlockReader,
         Unit yu = u[1];
         BioRadNote xNote = BioRadNote.getUnitNote(xu, xset, true);
         BioRadNote yNote = BioRadNote.getUnitNote(yu, yset, false);
-        if (xNote != null) v_notes.add(xNote);
-        if (yNote != null) v_notes.add(yNote);
+        if (xNote != null) vNotes.add(xNote);
+        if (yNote != null) vNotes.add(yNote);
       }
     }
 
     // validate color table data
-    int numTables = v_tables.size();
+    int numTables = vTables.size();
     if (numTables > 3) {
       throw new BadFormException("Too many color tables");
     }
     for (int i=0; i<numTables; i++) {
-      Object o = v_tables.elementAt(i);
+      Object o = vTables.elementAt(i);
       if (!(o instanceof FlatField)) {
         throw new BadFormException("Invalid color table data");
       }
@@ -446,7 +440,7 @@ public class BioRadForm extends Form implements FormBlockReader,
     int npic = numImages;
     int ramp1min = ramp1minType == null ? 0 : (int) ramp1minType.getValue();
     int ramp1max = ramp1maxType == null ? 255 : (int) ramp1maxType.getValue();
-    int notes = v_notes.size();
+    int notes = vNotes.size();
     int byteFormat =
       byteFormatType == null ? 1 : (int) byteFormatType.getValue();
     int imageNumber = 0;
@@ -459,7 +453,7 @@ public class BioRadForm extends Form implements FormBlockReader,
     int color2 = 7;
     int edited = 1;
     int lens = lensType == null ? 0 : (int) lensType.getValue();
-    float mag_factor =
+    float magFactor =
       magFactorType == null ? 0f : (float) magFactorType.getValue();
 
     // extract image data
@@ -468,7 +462,7 @@ public class BioRadForm extends Form implements FormBlockReader,
       // word format (16 bits per pixel)
       imageBytes = new byte[2 * npic * nx * ny];
       for (int i=0; i<npic; i++) {
-        FlatField d = (FlatField) v_images.elementAt(i);
+        FlatField d = (FlatField) vImages.elementAt(i);
         double[][] samples = d.getValues(false);
         double[] samp = samples[0];
         for (int j=0; j<samp.length; j++) {
@@ -485,7 +479,7 @@ public class BioRadForm extends Form implements FormBlockReader,
       // byte format (8 bits per pixel)
       imageBytes = new byte[npic * nx * ny];
       for (int i=0; i<npic; i++) {
-        FlatField d = (FlatField) v_images.elementAt(i);
+        FlatField d = (FlatField) vImages.elementAt(i);
         double[][] samples = d.getValues(false);
         double[] samp = samples[0];
         for (int j=0; j<samp.length; j++) {
@@ -498,7 +492,7 @@ public class BioRadForm extends Form implements FormBlockReader,
     // extract color table data
     byte[] tableBytes = new byte[numTables * 768];
     for (int i=0; i<numTables; i++) {
-      FlatField d = (FlatField) v_tables.elementAt(i);
+      FlatField d = (FlatField) vTables.elementAt(i);
       double[][] samples = d.getValues(false);
       double[] sr = samples[0];
       double[] sg = samples[1];
@@ -532,7 +526,7 @@ public class BioRadForm extends Form implements FormBlockReader,
     writeShort(fout, color2);
     writeShort(fout, edited);
     writeShort(fout, lens);
-    writeFloat(fout, mag_factor);
+    writeFloat(fout, magFactor);
     fout.write(new byte[] {0, 0, 0, 0, 0, 0}, 0, 6);
     if (DEBUG && DEBUG_LEVEL >= 1) {
       System.out.println("Wrote 76 header bytes.");
@@ -547,7 +541,7 @@ public class BioRadForm extends Form implements FormBlockReader,
 
     // write notes
     for (int i=0; i<notes; i++) {
-      BioRadNote note = (BioRadNote) v_notes.elementAt(i);
+      BioRadNote note = (BioRadNote) vNotes.elementAt(i);
       note.write(fout, i != notes - 1);
     }
     if (DEBUG && DEBUG_LEVEL >= 1) {
@@ -564,7 +558,6 @@ public class BioRadForm extends Form implements FormBlockReader,
 
     // close file
     fout.close();
-  */
   }
 
   /**
