@@ -9,12 +9,13 @@ try: # try/except for pydoc
           Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple, \
           VisADLineArray, VisADQuadArray, VisADTriangleArray, \
           VisADGeometryArray, ConstantMap, Integer1DSet, FunctionType, \
-          ScalarMap, Display, Integer1DSet, FieldImpl
+          ScalarMap, Display, Integer1DSet, FieldImpl, CellImpl
           
 
   from types import StringType
   from visad.ss import BasicSSCell
   from visad.java2d import DisplayImplJ2D, DisplayRendererJ2D
+  from visad.bom import RubberBandBoxRendererJ3D
 
   # define private fields for certains types and scalar mappings
   __py_text_type = RealType.getRealType("py_text_type")
@@ -27,7 +28,7 @@ except:
 # try to get 3D
 __ok3d = 1
 try:
-  from visad.java3d import DisplayImplJ3D, TwoDDisplayRendererJ3D, DisplayRendererJ3D
+  from visad.java3d import DisplayImplJ3D, TwoDDisplayRendererJ3D, DisplayRendererJ3D,MouseBehaviorJ3D
 except:
   __ok3d = 0
 
@@ -239,9 +240,68 @@ def makeCube(display):
 
   display.getGraphicsModeControl().setProjectionPolicy(0)
 
+def zoomBox(display, factor):
+  """
+  Zoom the display by 'factor' (1.0 does nothing...). Related:
+  setBoxSize().
+  """
+  mouseBehavior = display.getMouseBehavior()
+  pc = display.getProjectionControl()
+  currentMatrix = pc.getMatrix()
+  scaleMatrix = mouseBehavior.make_matrix( 0, 0, 0, factor, 0, 0, 0)
+  scaleMatrix = mouseBehavior.multiply_matrix( scaleMatrix, currentMatrix);
+  try:
+    pc.setMatrix(scaleMatrix)
+  except:
+    pass
+
+def enableRubberBandBox():
+  RubberBandZoomer()
+
+
+
+def getDisplayScalarMaps(display, includeShapes=0):
+  """
+  Return a list of the scalarmaps mappings for the <display>. The list
+  elements are ordered: x,y,z,display.  If <includeShapes> is
+  true, then mappings for Shape will be appended.  The <display>
+  may be a Display, or the name of a 'plot()' window.
+  """
+
+  if type(display) == StringType:
+    d = BasicSSCell.getSSCellByName(display)
+    disp = d.getDisplay()
+    maps = d.getMaps()
+
+  elif isinstance(display, DisplayImpl):
+    maps = display.getMapVector()
+    disp = display
+
+  else:
+    maps = None
+    disp = None
+
+  x = y = z = shape = None
+  if maps != None:
+    for m in maps:
+      if m.getDisplayScalar().toString() == "DisplayXAxis":
+        x = m
+      if m.getDisplayScalar().toString() == "DisplayYAxis":
+        y = m
+      if m.getDisplayScalar().toString() == "DisplayZAxis":
+        z = m
+      if m.getDisplayScalar().toString() == "DisplayShape":
+        shape = m
+  
+  if includeShapes:
+    return [x,y,z,disp,shape]
+  else:
+    return [x,y,z,disp]
+
+
 def getDisplayMaps(display, includeShapes=0):
   """
-  Return a list of the mappings for the <display>. The list
+  Return a list of the type mappings for the <display>. The list
   elements are ordered: x,y,z,display.  If <includeShapes> is
   true, then mappings for Shape will be appended.  The <display>
   may be a Display, or the name of a 'plot()' window.
@@ -789,3 +849,68 @@ class SelectField:
     Return the Field to add() to a display.
     """
     return this.selectField
+
+class RubberBandZoomer:
+  def __init__(self,display):
+    self.x, self.y, self.z, self.display = getDisplayMaps(display)
+    self.xy = RealTupleType(self.x, self.y)
+    self.dummy_set = Gridded2DSet(self.xy,None,1)
+    self.rbb = RubberBandBoxRendererJ3D(self.x, self.y, 0,0)
+    self.ref = addData('rbb',self.dummy_set,self.display, renderer=self.rbb)
+    
+    class MyCell(CellImpl):
+      def __init__(self, ref, disp):
+        self.ref = ref
+        self.display = disp
+        self.xm, self.ym, self.zm, self.d = getDisplayScalarMaps(disp)
+        self.dr = self.display.getDisplayRenderer()
+        self.can = self.dr.getCanvas()
+        self.mb = MouseBehaviorJ3D(self.dr)
+        self.pc = self.display.getProjectionControl()
+
+      def doAction(self):
+
+        # get the 'box' coordinates of the RB box
+        set = self.ref.getData()
+        samples = set.getSamples()
+        if samples is None: return  # no sense in going further
+        xsv = self.xm.scaleValues((samples[0][0],samples[0][1]))
+        ysv = self.ym.scaleValues((samples[1][0],samples[1][1]))
+        xsc = (xsv[0] + xsv[1]) / 2.0
+        ysc = (ysv[0] + ysv[1]) / 2.0
+
+        # compute the 'box' coordinates of the corners of Canvas
+        canvasDim = self.can.getSize()
+        sc = self.mb.findRay( 0, 0 )
+        a = sc.position[2]/sc.vector[2]
+        x0 = sc.position[0] - a*sc.vector[0]
+        y0 = sc.position[1] - a*sc.vector[1]
+
+        sc = self.mb.findRay( canvasDim.width, canvasDim.height )
+        a = sc.position[2]/sc.vector[2]
+        x1 = sc.position[0] - a*sc.vector[0]
+        y1 = sc.position[1] - a*sc.vector[1]
+
+        # center point of the canvas
+        xc = (x0 + x1)/2
+        yc = (y0 + y1)/2
+
+        # do the matrix changes.....
+        mat = self.pc.getMatrix()
+
+        # compute matrix to translate 
+        tm = self.mb.make_matrix(0,0,0,1,(xc - xsc),(yc - ysc),0)
+        tsm = self.mb.multiply_matrix( mat, tm)
+
+        # compute matrix to re-scale
+        ratio = min(abs((x1 - x0)/(xsv[0]-xsv[1])) , 
+                    abs((y1 - y0)/(ysv[0]-ysv[1])))
+        ts = self.mb.make_matrix(0,0,0,ratio,0,0,0)
+        newm = self.mb.multiply_matrix( ts, tsm)
+
+        # apply the stuff
+        self.pc.setMatrix(newm)
+
+    cell = MyCell(self.ref,self.display)
+    cell.addReference(self.ref)
+
