@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.java3d;
 
 import visad.*;
+import visad.util.Delay;
 
 import javax.media.j3d.*;
 
@@ -97,12 +98,17 @@ public class VisADCanvasJ3D extends Canvas3D {
   VisADCanvasJ3D(DisplayRendererJ3D renderer, int w, int h)
       throws VisADException {
 
+// to enable off screen rendering (if you have Java3D version 1.2.1
+// of higher installed), comment out the following six lines (the
+// super and throw statements)
     super(defaultConfig);
     throw new VisADException("\n\nFor off screen rendering in Java3D\n" +
            "please edit visad/java3d/VisADCanvasJ3D.java as follows:\n" +
            "remove or comment-out \"super(defaultConfig);\" and the\n" +
            "  throw statement for this Exception,\n" +
-           "and un-comment the body of this constructor");
+           "and un-comment the body of this constructor\n");
+
+// AND uncomment the rest of this constructor
 /*
     super(defaultConfig, true);
     displayRenderer = renderer;
@@ -117,18 +123,14 @@ public class VisADCanvasJ3D extends Canvas3D {
       new ImageComponent2D(ImageComponent2D.FORMAT_RGB, image);
     setOffScreenBuffer(image2d);
     Screen3D screen = getScreen3D();
-    screen.setSize(width, height);
-    double width_in_meters = width * METER_RATIO;
-    double height_in_meters = height * METER_RATIO;
+    int screen_width = 1280;
+    int screen_height = 1024;
+    screen.setSize(screen_width, screen_height);
+    double width_in_meters = screen_width * METER_RATIO;
+    double height_in_meters = screen_height * METER_RATIO;
     screen.setPhysicalScreenWidth(width_in_meters);
     screen.setPhysicalScreenHeight(height_in_meters);
 */
-/*
-would like to use reflection to invoke:
-public Canvas3D(java.awt.GraphicsConfiguration graphicsConfiguration,
-                boolean offScreen)
-*/
-
   }
 
   public boolean getOffscreen() {
@@ -187,7 +189,7 @@ public Canvas3D(java.awt.GraphicsConfiguration graphicsConfiguration,
 
   public static void main(String[] args)
          throws RemoteException, VisADException {
-    DisplayImplJ3D display = new DisplayImplJ3D("offscreen", 200, 200);
+    DisplayImplJ3D display = new DisplayImplJ3D("offscreen", 300, 300);
 
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -226,6 +228,7 @@ public Canvas3D(java.awt.GraphicsConfiguration graphicsConfiguration,
       Graphics gp = panel1.getGraphics();
       BufferedImage image = display.getImage();
       gp.drawImage(image, 0, 0, panel1);
+      System.out.println("drawImage");
       gp.dispose();
       try {
         Thread.sleep(1000);

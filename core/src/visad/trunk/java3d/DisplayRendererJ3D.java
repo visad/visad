@@ -175,6 +175,8 @@ public abstract class DisplayRendererJ3D
           canvas.captureFlag = true;
           if (canvas.getOffscreen()) {
             canvas.renderOffScreenBuffer();
+            // hangs
+            // canvas.waitForOffScreenRendering();
           }
           try {
             proj.setMatrix(proj.getMatrix());
