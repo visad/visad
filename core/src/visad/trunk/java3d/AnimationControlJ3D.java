@@ -129,7 +129,10 @@ public class AnimationControlJ3D extends AVControlJ3D
       catch(InterruptedException e) {
         // control doesn't normally come here
       }
-    }
+    } // end while (animationThread == me)
+    animationSet = null;
+    animate = null;
+    real = null;
   }
 
   public int getCurrent() {

@@ -25,18 +25,40 @@ MA 02111-1307, USA
 */
 
 /*
+MEMORY LEAK
 
-VisAD display logic efficiencies:
-
-1. Special cases of MathTypes, ScalarMaps and Sets
-   for more efficient memory use
-
-2. Unify java2d and java3d logic
-
-3. Make scene graph 'live' during build
-
-4. Attach 'ShadowData' tree of scene graph nodes to DataDisplayLink,
-   use it to replace scene graph components during replace
+DisplayImplJ3D.destrory()
+  DisplayRendererJ3D.destroy()
+    VisADCanvasJ3D.stop()
+      stopRenderer()
+      DisplayPanelJ3D.destroy()
+        display, renderer = null;
+        universe.destroy()
+      DisplayAppletJ3D.destroy()
+        display, renderer = null;
+        universe.destroy()
+      display, component = null
+    MouseBehaviorJ3D.destroy()
+      helper, display, display_renderer = null
+    root.detach()
+    root, trans, vpTrans, non_direct, view, canvas = null
+  DisplayImpl.destroy()
+    stop()
+      removeThingChangedListener() for all links
+      LinkVector.removeAllElements()
+      pool.queue(this)
+      run_links = null
+    DisplayActivity.destroy()
+    notify listeners
+    remove all listeners
+    clearMaps()
+      check RendererVector empty
+      MapVector.removeAllElements()
+      ConstantMapVector.removeAllElements()
+      RealTypeVector.removeAllElements()
+    AnimationControlJ3D.stop()
+      animationThread = null // causes run() to exit
+  applet, projection, mode = null;
 
 */
 
@@ -652,6 +674,9 @@ public class DisplayImplJ3D extends DisplayImpl {
     // ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas().stop();
     ((DisplayRendererJ3D) getDisplayRenderer()).destroy();
     super.destroy();
+    applet = null;
+    projection = null;
+    mode = null;
   }
 
 }

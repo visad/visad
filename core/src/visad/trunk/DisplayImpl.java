@@ -301,6 +301,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   private void copyRefLinks(RemoteDisplay rmtDpy, DataReference[] localRefs)
   {
     Vector ml;
+    if (rmtDpy == null) return;
     try {
       ml = rmtDpy.getReferenceLinks();
     } catch (UnmarshalException ue) {
@@ -752,6 +753,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       throw new ReferenceException("DisplayImpl.addReference: ref " +
                                    "must be DataReference");
     }
+    if (displayRenderer == null) return;
     addReference((DataReference) ref, null);
   }
 
@@ -776,7 +778,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       throw new ReferenceException("DisplayImpl.replaceReference: ref " +
                                    "must be DataReference");
     }
-
+    if (displayRenderer == null) return;
     replaceReference(rDpy, (DataReference )ref, null);
   }
 
@@ -793,6 +795,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   void addLink(DataDisplayLink link)
         throws VisADException, RemoteException
   {
+    if (displayRenderer == null) return;
     addLink(link, true);
   }
 
@@ -811,6 +814,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   private void addLink(DataDisplayLink link, boolean syncRemote)
         throws VisADException, RemoteException
   {
+    if (displayRenderer == null) return;
     super.addLink((ReferenceActionLink )link);
     if (syncRemote) {
       notifyListeners(new DisplayReferenceEvent(this,
@@ -846,6 +850,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       throw new RemoteVisADException("DisplayImpl.addReference: requires " +
                                      "DataReferenceImpl");
     }
+    if (displayRenderer == null) return;
     if (findReference(ref) != null) {
       throw new TypeException("DisplayImpl.addReference: link already exists");
     }
@@ -884,6 +889,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
                                ConstantMap[] constant_maps)
     throws VisADException, RemoteException
   {
+    if (displayRenderer == null) return;
     replaceReferences(rDpy, null, new DataReference[] {ref},
                       new ConstantMap[][] {constant_maps});
   }
@@ -913,6 +919,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       throw new TypeException("DisplayImpl.adaptedAddReference: " +
                               "link already exists");
     }
+    if (displayRenderer == null) return;
     DataRenderer renderer = displayRenderer.makeDefaultRenderer();
     DataDisplayLink[] links = {new DataDisplayLink(ref, this, display, constant_maps,
                                                    renderer, getLinkId())};
@@ -1138,6 +1145,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
                              ConstantMap[][] constant_maps,
                              boolean syncRemote)
          throws VisADException, RemoteException {
+    if (displayRenderer == null) return;
     // N.B. This method is called by all replaceReference() methods
     if (refs.length < 1) {
       throw new DisplayException("DisplayImpl.addReferences: must have at " +
@@ -1202,6 +1210,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
                                 ConstantMap[][] constant_maps)
     throws VisADException, RemoteException
   {
+    if (displayRenderer == null) return;
     if (renderer == null) {
       renderer = displayRenderer.makeDefaultRenderer();
     }
@@ -1216,6 +1225,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   void adaptedAddReferences(DataRenderer renderer, DataReference[] refs,
        RemoteDisplay display, ConstantMap[][] constant_maps)
        throws VisADException, RemoteException {
+    if (displayRenderer == null) return;
     if (refs.length < 1) {
       throw new DisplayException("DisplayImpl.addReferences: must have at " +
                                  "least one DataReference");
@@ -1283,6 +1293,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   void removeLinks(DataDisplayLink[] links)
     throws RemoteException, VisADException
   {
+    if (displayRenderer == null) return;
     for (int i = links.length - 1; i >= 0; i--) {
       if (links[i] != null) {
         links[i].clearMaps();
@@ -1299,6 +1310,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       mix of local and remote, we tolerate either here */
   void adaptedDisplayRemoveReference(DataReference ref)
        throws VisADException, RemoteException {
+    if (displayRenderer == null) return;
     DataDisplayLink link = (DataDisplayLink) findReference(ref);
     // don't throw an Exception if link is null: users may try to
     // remove all DataReferences added by a call to addReferences
@@ -1317,6 +1329,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public void removeAllReferences()
          throws VisADException, RemoteException {
 
+    if (displayRenderer == null) return;
     // WLH 29 Jan 2001
     Vector temp = (Vector) RendererVector.clone();
 
@@ -1397,11 +1410,36 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     if (thrownRE != null) {
       throw thrownRE;
     }
+
+// get rid of dangling references
+/* done in clearMaps()
+    verify (RendererVector == null)
+    MapVector.removeAllElements();
+    ConstantMapVector.removeAllElements();
+    RealTypeVector.removeAllElements();
+*/
+    DisplayRealTypeVector.removeAllElements();
+    ControlVector.removeAllElements();
+    RendererSourceListeners.removeAllElements();
+    RmtSrcListeners.removeAllElements();
+    MessageListeners.removeAllElements();
+    ListenerVector.removeAllElements();
+    displayRenderer = null; // this disables most DisplayImpl methods
+    component = null;
+    mouse = null;
+    displayMonitor = null;
+    displaySync = null;
+    displayActivity = null;
+    printer = null;
+    rd = null;
+    Slaves = null;
+    widgetPanel = null;
   }
 
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {
+    if (displayRenderer == null) return;
     if (mapslock == null) return;
     synchronized (mapslock) {
       if (RendererVector == null || displayRenderer == null) {
@@ -1620,6 +1658,7 @@ if (initialize) {
 
   public void addMap(ScalarMap map, int remoteId)
          throws VisADException, RemoteException {
+    if (displayRenderer == null) return;
     synchronized (mapslock) {
       int index;
       if (!RendererVector.isEmpty()) {
@@ -1717,6 +1756,7 @@ if (initialize) {
   void addDisplayScalar(ScalarMap map) {
     int index;
 
+    if (displayRenderer == null) return;
     DisplayRealType dreal = map.getDisplayScalar();
     synchronized (DisplayRealTypeVector) {
       DisplayTupleType tuple = dreal.getTuple();
@@ -1748,6 +1788,7 @@ if (initialize) {
       can only be invoked when no DataReference-s are
       linked to this Display */
   public void clearMaps() throws VisADException, RemoteException {
+    if (displayRenderer == null) return;
     synchronized (mapslock) {
       if (!RendererVector.isEmpty()) {
         throw new DisplayException("DisplayImpl.clearMaps: RendererVector " +
@@ -1860,10 +1901,12 @@ if (initialize) {
   public int getConnectionID(RemoteDisplay rmtDpy)
     throws RemoteException
   {
+    if (displayMonitor == null) return DisplayMonitor.UNKNOWN_LISTENER_ID;
     return displayMonitor.getConnectionID(rmtDpy);
   }
 
   public void addControl(Control control) {
+    if (displayRenderer == null) return;
     if (control != null && !ControlVector.contains(control)) {
       ControlVector.addElement(control);
       control.setIndex(ControlVector.indexOf(control));
@@ -1900,6 +1943,7 @@ if (initialize) {
    */
   private Control getControls(Class ctlClass, Vector v, int inst)
   {
+    if (displayRenderer == null) return null;
     if (ctlClass == null) {
       return null;
     }
@@ -1949,6 +1993,7 @@ if (initialize) {
   /** get a GUI component containing this Display's Control widgets,
       creating the widgets as necessary */
   public Container getWidgetPanel() {
+    if (displayRenderer == null) return null;
     if (needWidgetRefresh) {
       synchronized (MapVector) {
         // construct widget panel if needed
@@ -2023,6 +2068,7 @@ if (initialize) {
 
   /** add a component to the widget panel */
   private void addToWidgetPanel(Component c, boolean divide) {
+    if (displayRenderer == null) return;
     if (divide) widgetPanel.add(new Divider());
     widgetPanel.add(c);
   }
@@ -2143,6 +2189,7 @@ if (initialize) {
   /** return a captured image of the display;
       synchronize if sync */
   public BufferedImage getImage(boolean sync) {
+    if (displayRenderer == null) return null;
     Thread thread = Thread.currentThread();
     String name = thread.getName();
     if (thread.equals(getCurrentActionThread()) ||
@@ -2438,6 +2485,7 @@ if (initialize) {
 // WLH 24 Nov 2000
   void setAspectCartesian(double[] aspect)
        throws VisADException, RemoteException {
+    if (displayRenderer == null) return;
     if (mapslock == null) return;
     synchronized (mapslock) {
       // clone MapVector to avoid need for synchronized access
@@ -2473,6 +2521,7 @@ if (initialize) {
   public void addActivityHandler(ActivityHandler ah)
     throws VisADException
   {
+    if (displayRenderer == null) return;
     if (displayActivity == null) {
       displayActivity = new DisplayActivity(this);
     }
@@ -2490,6 +2539,7 @@ if (initialize) {
   public void removeActivityHandler(ActivityHandler ah)
     throws VisADException
   {
+    if (displayRenderer == null) return;
     if (displayActivity == null) {
       displayActivity = new DisplayActivity(this);
     }
