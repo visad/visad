@@ -26,6 +26,10 @@ MA 02111-1307, USA
 
 package visad;
 
+/*
+for polygon algorithms: http://www.exaflop.org/docs/cgafaq/cga2.html
+*/
+
 /**
    DelaunayCustom is a set of constructors to create an instance
    of Delaunay by passing in a pre-computed triangulation.
