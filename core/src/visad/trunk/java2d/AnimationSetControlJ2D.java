@@ -36,7 +36,7 @@ import java.rmi.*;
 */
 public class AnimationSetControlJ2D extends AnimationSetControl {
 
-  private VisADCanvasJ2D canvas;
+  private transient VisADCanvasJ2D canvas;
 
   public AnimationSetControlJ2D(DisplayImpl d, AnimationControl p) {
     super(d, p);
