@@ -51,7 +51,7 @@ public abstract class AVControlJ3D extends Control implements AVControl {
 
   public abstract void init() throws VisADException;
 
-  void selectSwitches(double value, Set animation_set)
+  public void selectSwitches(double value, Set animation_set)
        throws VisADException {
     // check for missing
     if (value != value) return;

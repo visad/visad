@@ -49,7 +49,7 @@ public abstract class AVControlJ2D extends Control implements AVControl {
 
   abstract void init() throws VisADException;
 
-  void selectSwitches(double value, Set animation_set)
+  public void selectSwitches(double value, Set animation_set)
        throws VisADException {
     // check for missing
     if (value != value) return;
