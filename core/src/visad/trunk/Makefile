@@ -335,6 +335,7 @@ clean:
 	    fi;								\
 	  fi;								\
 	done
+	-(cd examples && $(RM) *.class)
 
 compile: clean
 	$(JC) $(JFLAGS) *.java
@@ -360,6 +361,7 @@ compile: clean
 	    fi;								\
 	  fi;								\
 	done
+	-(cd examples && $(JC) $(JFLAGS) *.java)
 
 docs:
 	@if [ ! -d $(DOCS_DIR) ]; then mkdir $(DOCS_DIR); fi   
