@@ -6,7 +6,6 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import visad.data.FormFamily;
 import visad.data.Repository;
-import visad.data.netcdf.Plain;
 
 
 /** 
@@ -54,9 +53,6 @@ public class DirectoryRepository extends Repository
 	if (!dir.canRead())
 	    throw new BadRepositoryException("Repository " + dirString +
 		" is not readable");
-
-	// Add the default data forms.
-	forms = new FormFamily("netCDF").addFormNode(new Plain());
     }
 
 
