@@ -177,6 +177,7 @@ public class AddeURLConnection extends URLConnection
   private int numBytes = 0;
   private int dataType = IMAGE;
   private byte[] binaryData = null;   // byte array to hold extra binary data
+  private boolean debug = false;
 
   /**
    *
@@ -221,8 +222,8 @@ public class AddeURLConnection extends URLConnection
 
     // see if we can use the URL passed in
     
-    //System.out.println("host from URL: " + url.getHost());
-    //System.out.println("file from URL: " + url.getFile());
+    if (debug) System.out.println("host from URL: " + url.getHost());
+    if (debug) System.out.println("file from URL: " + url.getFile());
     
 
     // verify the service requested is for image, not grid or md data
@@ -305,7 +306,7 @@ public class AddeURLConnection extends URLConnection
     // prep for real thing - get cmd from file part of URL
     int test = request.indexOf("?");
     String uCmd = (test >=0) ? request.substring(test+1) : request;
-    //System.out.println(uCmd);
+    if (debug) System.out.println(uCmd);
 
     int startIdx;
     int endIdx;
@@ -391,7 +392,7 @@ public class AddeURLConnection extends URLConnection
     // now convert to array of bytes for output since chars are two byte
     String cmd = new String(sb);
     cmd = cmd.toUpperCase();
-    //System.out.println(cmd);
+    if (debug) System.out.println(cmd);
     byte [] ob = cmd.getBytes();
 
     // Write out the data.  There are 2 cases:
@@ -414,7 +415,7 @@ public class AddeURLConnection extends URLConnection
       }
       dos.write(ob,0,ob.length);
     } else {
-      // System.out.println("numBinaryBytes= " + numBinaryBytes);
+      if (debug)  System.out.println("numBinaryBytes= " + numBinaryBytes);
       dos.writeInt(numBinaryBytes);
       dos.write(ob, 0, ob.length);
       for (int i=0; i < REQUEST_SIZE - ob.length; i++) {
@@ -434,7 +435,7 @@ public class AddeURLConnection extends URLConnection
       String errMsg = new String(trailer, ERRMSG_OFFS, ERRMSG_SIZE);
       throw new AddeURLException(errMsg);
     }
-    //System.out.println("server is sending: " + numBytes + " bytes");
+    if (debug) System.out.println("server is sending: " + numBytes + " bytes");
 
 
     // if we made it to here, we're getting data
@@ -908,8 +909,10 @@ public class AddeURLConnection extends URLConnection
           buf.append(" ");
           buf.append(testString);
 
+        /*
         } else {
           System.out.println("Unknown token = "+testString);
+        */
         } 
       }
       buf.append(" ");
@@ -1218,7 +1221,7 @@ public class AddeURLConnection extends URLConnection
                     testString.substring(testString.indexOf("=") + 1) ;
                 parmString = 
                    "parm=" + justTheParametersString;
-                // System.out.println("paramString = " + parmString);
+                if (debug)  System.out.println("paramString = " + parmString);
                 sBinaryData =   
                     new String(decodePARAMString(justTheParametersString));
                 sBinaryData = sBinaryData.toUpperCase();
@@ -1232,7 +1235,8 @@ public class AddeURLConnection extends URLConnection
                 selectString = 
                    "select=" + new String(
                        decodeSELECTString(justTheSelectString));
-                System.out.println("Server selectString = " + selectString);
+                if (debug) 
+                    System.out.println("Server selectString = " + selectString);
             }
             else
             // similarly, McIDAS Clients use num= but the server wants max=
@@ -1265,13 +1269,13 @@ public class AddeURLConnection extends URLConnection
         StringBuffer posParams = 
             new StringBuffer(
                  groupString + " " + descrString + " " + parmString + " " + selectString + " " + posString + " " + traceString + " " + maxString);
-        // System.out.println("String passed to server = " + posParams);
+        if (debug) System.out.println("String passed to server = " + posParams);
 
         // stuff it in at the beginning
         try
         {
             buf.insert(0, posParams);
-            // System.out.println("buf = " + buf);
+            if (debug) System.out.println("buf = " + buf);
         }
         catch (StringIndexOutOfBoundsException e)
         {
@@ -1317,7 +1321,7 @@ public class AddeURLConnection extends URLConnection
             // note that the units are ignored by the server
             // it is the client's responsibility to do unit conversion
                 thisUnit = (thisParamToken.nextToken()).trim();
-                // System.out.println("This Unit = " + thisUnit);
+                if (debug) System.out.println("This Unit = " + thisUnit);
             }
         }
 
@@ -1360,7 +1364,7 @@ public class AddeURLConnection extends URLConnection
         while (selectTokens.hasMoreTokens())
         {
             thisSelect = (selectTokens.nextToken()).trim();
-            // System.out.println(" this Select = " + thisSelect);
+            if (debug) System.out.println(" this Select = " + thisSelect);
             //
             // Break into individual clauses eg:
             // t[c] 20 30
@@ -1369,7 +1373,7 @@ public class AddeURLConnection extends URLConnection
                 new StringTokenizer(thisSelect, " ");
             int tokenCount = thisSelectToken.countTokens();
             thisSelect = new String(thisSelectToken.nextToken());
-            // System.out.println("this Select = " + thisSelect);
+            if (debug) System.out.println("this Select = " + thisSelect);
 
             //
             // Check to see if any units are involved eg:
@@ -1397,7 +1401,7 @@ public class AddeURLConnection extends URLConnection
            //
            if (thisSelectToken.hasMoreTokens()) {
                 thisSelect = thisSelectToken.nextToken();
-                // System.out.println("this Select = " + thisSelect);
+                if (debug) System.out.println("this Select = " + thisSelect);
                 buf.append(" " + thisSelect);
            }
 
@@ -1410,7 +1414,7 @@ public class AddeURLConnection extends URLConnection
                 // server requires TO for a range of values eg:
                 // 20 to 30
                 buf.append(" TO " + thisSelect);
-                // System.out.println("this Select = " + thisSelect);
+                if (debug) System.out.println("this Select = " + thisSelect);
            }
 
            //
