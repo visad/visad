@@ -48,7 +48,7 @@ public class ShadowBarbRealTypeJ2D extends ShadowRealTypeJ2D {
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
     return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
-               flowScale, spatial_values, color_values, range_select);
+               flowScale, spatial_values, color_values, range_select, null);
   }
 
 }

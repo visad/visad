@@ -52,17 +52,24 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     // is this needed?
     DataRenderer renderer = getLink().getRenderer();
     boolean direct = renderer.getIsDirectManipulation();
-
-    return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
-               flowScale, spatial_values, color_values, range_select);
+    if (direct && renderer instanceof BarbManipulationRendererJ2D) {
+      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
+                 flowScale, spatial_values, color_values, range_select,
+                 (BarbManipulationRendererJ2D) renderer);
+    }
+    else {
+      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
+                 flowScale, spatial_values, color_values, range_select, null);
+    }
   }
 
 
   private static final int NUM = 256;
 
   public static VisADGeometryArray[] staticMakeFlow(DisplayImpl display,
-         float[][] flow_values, float flowScale, float[][] spatial_values,
-         byte[][] color_values, boolean[][] range_select)
+               float[][] flow_values, float flowScale, float[][] spatial_values,
+               byte[][] color_values, boolean[][] range_select,
+               BarbManipulationRendererJ2D renderer)
          throws VisADException {
     if (flow_values[0] == null) return null;
  
@@ -172,8 +179,12 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         }
         int oldnv = numv[0];
         int oldnt = numt[0];
-        makeBarb(south, spatial_values[0][j], spatial_values[1][j],
-                 scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt);
+        float mbarb[] =
+          makeBarb(south, spatial_values[0][j], spatial_values[1][j],
+                   scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt);
+        if (renderer != null) {
+          renderer.setBarbSpatialValues(mbarb);
+        }
         int nv = numv[0];
         int nt = numt[0];
         if (color_values != null) {
@@ -274,15 +285,19 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
   /** adapted from Justin Baker's WindBarb, which is adapted from
       Mark Govett's barbs.pro IDL routine
   */
-  static void makeBarb(boolean south, float x, float y, float scale,
-                       float pt_size, float f0, float f1,
-                       float[] vx, float[] vy, int[] numv,
-                       float[] tx, float[] ty, int[] numt) {
+  static float[] makeBarb(boolean south, float x, float y, float scale,
+                          float pt_size, float f0, float f1,
+                          float[] vx, float[] vy, int[] numv,
+                          float[] tx, float[] ty, int[] numt) {
 
     float wsp25,slant,barb,d,c195,s195;
     float x0,y0;
     float x1,y1,x2,y2,x3,y3;
     int nbarb50,nbarb10,nbarb5;
+
+    float[] mbarb = new float[4];
+    mbarb[0] = x;
+    mbarb[1] = y;
 
     // convert meters per second to knots
     f0 *= (3600.0 / 1853.248);
@@ -357,13 +372,14 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         d = d + 0.125f * scale;
         x1=(x + x0 * d);
         y1=(y + y0 * d);
-
+/* WLH 24 April 99
         vx[nv] = x;
         vy[nv] = y;
         nv++;
         vx[nv] = x1;
         vy[nv] = y1;
         nv++;
+*/
 // System.out.println("wsp25 " + x + " " + y + "" + x1 + " " + y1);
         // g.drawLine(x, y, x1, y1);
       }
@@ -393,13 +409,14 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
 // System.out.println("barb10 " + j + " " + x1 + " " + y1 + "" + x2 + " " + y2);
         // g.drawLine(x1,y1,x2,y2);
       }
- 
+/* WLH 24 April 99
       vx[nv] = x;
       vy[nv] = y;
       nv++;
       vx[nv] = x1;
       vy[nv] = y1;
       nv++;
+*/
 // System.out.println("line " + x + " " + y + "" + x1 + " " + y1);
       // g.drawLine(x,y,x1,y1);
  
@@ -408,13 +425,14 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         d = d +0.125f * scale;
         x1 = (x + x0 * d);
         y1 = (y + y0 * d);
-
+/* WLH 24 April 99
         vx[nv] = x;
         vy[nv] = y;
         nv++;
         vx[nv] = x1;
         vy[nv] = y1;
         nv++;
+*/
 // System.out.println("line50 " + x + " " + y + "" + x1 + " " + y1);
         // g.drawLine(x,y,x1,y1);
       }
@@ -457,6 +475,17 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
         x1=x3;
         y1=y3;
       }
+
+      // WLH 24 April 99 - now plot the pole
+      vx[nv] = x;
+      vy[nv] = y;
+      nv++;
+      vx[nv] = x1;
+      vy[nv] = y1;
+      nv++;
+
+      mbarb[2] = x1;
+      mbarb[3] = y1;
     }
     else { // if (wnd_spd < 2.5)
  
@@ -522,11 +551,14 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
       nv++;
 // System.out.println("circle " + x + " " + y + "" + rad);
       // g.drawOval(x-rad,y-rad,2*rad,2*rad);
+
+      mbarb[2] = x;
+      mbarb[3] = y;
     }
 
     numv[0] = nv;
     numt[0] = nt;
-    return;
+    return mbarb;
   }
 
 }

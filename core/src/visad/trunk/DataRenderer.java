@@ -643,7 +643,7 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
       domainAxis (domain = true) from real; called by realCheckDirect */
   synchronized int setDirectMap(ShadowRealType real, int component, boolean domain) {
     Enumeration maps = real.getSelectedMapVector().elements();
-    while(maps.hasMoreElements()) {
+    while (maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
       DisplayRealType dreal = map.getDisplayScalar();
       DisplayTupleType tuple = dreal.getTuple();
@@ -737,7 +737,8 @@ System.out.println("checkClose: distance = " + distance);
   public synchronized void release_direct() {
   }
 
-  public synchronized void drag_direct(VisADRay ray, boolean first) {
+  public synchronized void drag_direct(VisADRay ray, boolean first,
+                                       int mouseModifiers) {
     // System.out.println("drag_direct " + first + " " + type);
     if (spatialValues == null || ref == null || shadow == null) return;
     float o_x = (float) ray.position[0];

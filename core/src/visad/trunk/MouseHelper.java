@@ -62,6 +62,8 @@ public class MouseHelper {
   /** combinations of Mouse Buttons and keys pressed;
       z -- SHIFT, t -- CONTROL */
   private boolean z1Pressed, t1Pressed, z2Pressed, t2Pressed;
+  /** ((InputEvent) event).getModifiers() when mouse pressed */
+  private int mouseModifiers;
 
   /** flag for 2-D mode */
   private boolean mode2D;
@@ -120,6 +122,7 @@ event_switch:
           int m3 = m & InputEvent.BUTTON3_MASK;
           int mctrl = m & InputEvent.CTRL_MASK;
           int mshift = m & InputEvent.SHIFT_MASK;
+          mouseModifiers = m;
 
           if (m1 != 0) {
             if (mousePressed2 || m2 != 0) {
@@ -272,7 +275,8 @@ event_switch:
                   display_renderer.findDirect(direct_ray);
                 if (direct_renderer != null) {
                   display_renderer.setDirectOn(true);
-                  direct_renderer.drag_direct(direct_ray, true);
+                  direct_renderer.drag_direct(direct_ray, true,
+                                              mouseModifiers);
                 }
               }
             }
@@ -323,6 +327,7 @@ event_switch:
           display_renderer.setDirectOn(false);
           direct_renderer = null;
         }
+        mouseModifiers = 0;
         break;
       case MouseEvent.MOUSE_DRAGGED:
         if (mousePressed1 || mousePressed2 || mousePressed3 ||
@@ -412,7 +417,7 @@ event_switch:
             if (direct_renderer != null) {
               VisADRay direct_ray = behavior.findRay(current_x, current_y);
               if (direct_ray != null) {
-                direct_renderer.drag_direct(direct_ray, false);
+                direct_renderer.drag_direct(direct_ray, false, mouseModifiers);
               }
             }
           }

@@ -59,15 +59,38 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   private String whyNotDirect = null;
   private final static String notRealTupleType =
     "not RealTuple";
+  private final static String multipleFlowTuples =
+    "mappings to both Flow1 and Flow2";
+  private final static String multipleFlowMapping =
+    "RealType with multiple flow mappings";
+  private final static String noFlow =
+    "must be RealTypes mapped to flow X and flow Y";
+
 
   /** for use in drag_direct */
   private transient DataDisplayLink link = null;
   private transient DataReference ref = null;
   private transient MathType type = null;
-  private transient ShadowType shadow = null;
-  /** spatial DisplayTupleType other than
-      DisplaySpatialCartesianTuple */
+  private transient ShadowRealTupleType shadow = null;
+
+  /** point on direct manifold line or plane */
+  private float point_x, point_y, point_z;
+  /** normalized direction of line or perpendicular to plane */
+  private float line_x, line_y, line_z;
+  /** arrays of length one for inverseScaleValues */
+  private float[] f = new float[1];
+  private double[] d = new double[1];
+
+  /** DisplayFlow1Tuple or DisplayFlow2Tuple */
   private DisplayTupleType tuple;
+  /** mapping from flow components to RealTuple components */
+  private int[] flowToComponent = {-1, -1, -1};
+  /** mapping from flow components to ScalarMaps */
+  private ScalarMap[] directMap = {null, null, null};
+
+  /** (barbValues[0], barbValues[1]) = (x, y) barb head location
+      (barbValues[2], barbValues[3]) = (x, y) barb tail location */
+  private float[] barbValues = null;
 
   public String getWhyNotDirect() {
     return whyNotDirect;
@@ -79,16 +102,61 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     // must customize
     setIsDirectManipulation(false);
 
+    DisplayImpl display = getDisplay();
     link = getLinks()[0];
     ref = link.getDataReference();
-    shadow = link.getShadow().getAdaptedShadowType();
     type = link.getType();
     tuple = null;
     if (!(type instanceof RealTupleType)) {
       whyNotDirect = notRealTupleType;
+      return;
     }
-    // . . .
+    flowToComponent = new int[] {-1, -1, -1};
+    directMap = new ScalarMap[] {null, null, null};
+    shadow = (ShadowRealTupleType) link.getShadow().getAdaptedShadowType();
+    DisplayTupleType[] tuples = {tuple};
+    whyNotDirect = findFlow(shadow, display, tuples, flowToComponent);
+    if (whyNotDirect != null) return;
+    if (tuples == null || flowToComponent[0] < 0 || flowToComponent[1] < 0) {
+      whyNotDirect = noFlow;
+      return;
+    }
+    // needs more, will find out when we write drag_direct
     setIsDirectManipulation(true);
+  }
+
+  private String findFlow(ShadowRealTupleType shadow,
+                          DisplayImpl display, DisplayTupleType[] tuples,
+                          int[] flowToComponent) {
+    ShadowRealType[] components = shadow.getRealComponents();
+    for (int i=0; i<components.length; i++) {
+      int num_flow_per_real = 0;
+      Enumeration maps = components[i].getSelectedMapVector().elements();
+      while (maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        DisplayRealType dreal = map.getDisplayScalar();
+        DisplayTupleType tuple = dreal.getTuple();
+        if (Display.DisplayFlow1Tuple.equals(tuple) ||
+            Display.DisplayFlow2Tuple.equals(tuple)) {
+          if (tuples[0] != null) {
+            if (!tuples[0].equals(tuple)) {
+              return multipleFlowTuples;
+            }
+          }
+          else {
+            tuples[0] = tuple;
+          }
+          num_flow_per_real++;
+          if (num_flow_per_real > 1) {
+            return multipleFlowMapping;
+          }
+          int index = dreal.getTupleIndex();
+          flowToComponent[index] = i;
+          directMap[index] = map;
+        }
+      }
+    }
+    return null;
   }
 
   public void addPoint(float[] x) throws VisADException {
@@ -133,29 +201,123 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   release_direct
 */
 
-  private float[][] spatialValues = null;
-
   /** set spatialValues from ShadowType.doTransform */
   public synchronized void setSpatialValues(float[][] spatial_values) {
-    // these are X, Y, Z values
-    spatialValues = spatial_values;
+    // spatialValues = spatial_values;
   }
 
-  /** find minimum distance from ray to spatialValues */
+  public synchronized void setBarbSpatialValues(float[] mbarb) {
+    // these are X, Y, Z values
+    barbValues = mbarb;
+  }
+
+  /** find minimum distance from ray to barbValues */
   public synchronized float checkClose(double[] origin, double[] direction) {
-    float distance = Float.MAX_VALUE;
-    // . . .
-    return distance;
+    if (barbValues == null) return Float.MAX_VALUE;
+    float o_x = (float) origin[0];
+    float o_y = (float) origin[1];
+    float o_z = (float) origin[2];
+    float d_x = (float) direction[0];
+    float d_y = (float) direction[1];
+    float d_z = (float) direction[2];
+/*
+System.out.println("origin = " + o_x + " " + o_y + " " + o_z);
+System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
+*/
+    float x = barbValues[2] - o_x;
+    float y = barbValues[3] - o_y;
+    float z = 0.0f - o_z;
+    float dot = x * d_x + y * d_y + z * d_z;
+    x = x - dot * d_x;
+    y = y - dot * d_y;
+    z = z - dot * d_z;
+    return (float) Math.sqrt(x * x + y * y + z * z); // distance
   }
 
   /** mouse button released, ending direct manipulation */
   public synchronized void release_direct() {
   }
 
-  public synchronized void drag_direct(VisADRay ray, boolean first) {
+  public synchronized void drag_direct(VisADRay ray, boolean first,
+                                       int mouseModifiers) {
     // System.out.println("drag_direct " + first + " " + type);
-    if (spatialValues == null || ref == null || shadow == null) return;
-    // . . .
+    if (barbValues == null || ref == null || shadow == null) return;
+    // modify direction if mshift != 0
+    int mshift = mouseModifiers & InputEvent.SHIFT_MASK;
+
+    float o_x = (float) ray.position[0];
+    float o_y = (float) ray.position[1];
+    float o_z = (float) ray.position[2];
+    float d_x = (float) ray.vector[0];
+    float d_y = (float) ray.vector[1];
+    float d_z = (float) ray.vector[2];
+
+    if (first) {
+      point_x = barbValues[2];
+      point_y = barbValues[3];
+      point_z = 0.0f;
+      line_x = 0.0f;
+      line_y = 0.0f;
+      line_z = 1.0f;
+    } // end if (first)
+
+    float[] x = new float[3]; // x marks the spot
+    // DirectManifoldDimension = 2
+    // intersect ray with plane
+    float dot = (point_x - o_x) * line_x +
+                (point_y - o_y) * line_y +
+                (point_z - o_z) * line_z;
+    float dot2 = d_x * line_x + d_y * line_y + d_z * line_z;
+    if (dot2 == 0.0) return;
+    dot = dot / dot2;
+    // x is intersection
+    x[0] = o_x + dot * d_x;
+    x[1] = o_y + dot * d_y;
+    x[2] = o_z + dot * d_z;
+
+    try {
+      Data newData = null;
+      Data data = link.getData();
+      // type is a RealTupleType
+/* maybe later, if needed for performance
+      float[] xx = {x[0], x[1], x[2]};
+      addPoint(xx);
+*/
+      int n = ((RealTuple) data).getDimension();
+      Real[] reals = new Real[n];
+      Vector vect = new Vector();
+      for (int i=0; i<3; i++) {
+        int j = flowToComponent[i];
+        if (j >= 0) {
+          f[0] = x[i];
+          d = directMap[i].inverseScaleValues(f);
+          Real c = (Real) ((RealTuple) data).getComponent(j);
+          RealType rtype = (RealType) c.getType();
+          reals[j] = new Real(rtype, d[0], rtype.getDefaultUnit(), null);
+          // create location string
+          float g = (float) d[0];
+          vect.addElement(rtype.getName() + " = " + g);
+        }
+      }
+      getDisplayRenderer().setCursorStringVector(vect);
+      for (int j=0; j<n; j++) {
+        if (reals[j] == null) {
+          reals[j] = (Real) ((RealTuple) data).getComponent(j);
+        }
+      }
+      newData = new RealTuple(reals);
+      ref.setData(newData);
+    }
+    catch (VisADException e) {
+      // do nothing
+      System.out.println("drag_direct " + e);
+      e.printStackTrace();
+    }
+    catch (RemoteException e) {
+      // do nothing
+      System.out.println("drag_direct " + e);
+      e.printStackTrace();
+    }
   }
 
   static final int N = 5;

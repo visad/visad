@@ -48,7 +48,7 @@ public class ShadowBarbFunctionTypeJ2D extends ShadowFunctionTypeJ2D {
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
     return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
-               flowScale, spatial_values, color_values, range_select);
+               flowScale, spatial_values, color_values, range_select, null);
   }
 
 }
