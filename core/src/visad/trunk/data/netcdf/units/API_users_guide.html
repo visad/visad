@@ -23,19 +23,17 @@ understands and decodes the same syntax used by the UDUNITS package.</P>
 
 <H2 ALIGN=CENTER>Typical Use</H2>
 
-<P>Typical use of the netCDF-units package will consists of creating a
-new parser and then making repeted calls to the member function of the
-parser to decode a unit specification. For example</P>
+<P>Typical use of the netCDF-units package will simply consist of 
+repeted calls to the member function 
+of the parser to decode a unit specification. For example</P>
 
 <UL>
 <P><TT>import visad.Unit;<BR>
-import visad.data.netcdf.units.UnitParser;<BR>
+import visad.data.netcdf.units.Parser;<BR>
 <BR>
-UnitParser unitParser = new UnitParser();</TT></P>
-
-<P><TT>while ((String unitSpec = getUnitSpecSomehow()) != null)<BR>
+while ((String unitSpec = getUnitSpecSomehow()) != null)<BR>
 {<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;Unit unit = UnitParser.parseSpec(unitSpec);<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;Unit unit = Parser.parse(unitSpec);<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;...<BR>
 }</TT></P>
 </UL>
