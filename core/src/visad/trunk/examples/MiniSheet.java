@@ -35,7 +35,6 @@ import java.awt.event.*;
 // import needed Spread Sheet classes
 import visad.ss.BasicSSCell;
 import visad.ss.FancySSCell;
-import visad.ss.MappingDialog;
 
 /** MiniSheet is a &quot;toy&quot; version of visad.ss.SpreadSheet,
     with only two cells.  It demonstrates how the developer can use
