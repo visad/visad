@@ -4064,10 +4064,16 @@ if (pr) System.out.println("value = " + new_values[0][0]);
    * debugging.</p>
    *
    * @return                            A clone of this instance.
-   * @throws CloneNotSupportedException if cloning isn't supported
    */
-  public Object clone() throws CloneNotSupportedException {
-    FlatField clone = (FlatField)super.clone();
+  public Object clone() {
+    FlatField clone;
+    
+    try {
+      clone = (FlatField)super.clone();
+    }
+    catch (CloneNotSupportedException ex) {
+      throw new RuntimeException("Assertion failure");  // can't happen
+    }
 
     synchronized(DoubleRange) {
       if (!MissingFlag) {
