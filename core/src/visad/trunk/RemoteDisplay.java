@@ -35,6 +35,7 @@ import java.util.Vector;
 */
 public interface RemoteDisplay extends Remote, Display {
   public abstract String getName() throws VisADException, RemoteException;
+  public abstract String getDisplayClassName() throws RemoteException;
   public abstract String getDisplayRendererClassName() throws RemoteException;
   public abstract Vector getMapVector() throws VisADException, RemoteException;
   public abstract Vector getConstantMapVector()

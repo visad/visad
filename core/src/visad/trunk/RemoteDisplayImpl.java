@@ -172,6 +172,10 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     ((DisplayImpl) AdaptedAction).clearMaps();
   }
 
+  public String getDisplayClassName() throws RemoteException {
+    return AdaptedAction.getClass().getName();
+  }
+
   public String getDisplayRendererClassName() throws RemoteException {
     DisplayRenderer dr = ((DisplayImpl )AdaptedAction).getDisplayRenderer();
     return dr.getClass().getName();
