@@ -727,7 +727,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 /* WLH 22 Aug 2001
     initialize = true;
 */
-    initialize = computeInitialize();
+    initialize |= computeInitialize();
 
 // printStack("addReference");
     notifyAction();
@@ -794,7 +794,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 /* WLH 22 Aug 2001
     initialize = true;
 */  
-    initialize = computeInitialize();
+    initialize |= computeInitialize();
 
 // printStack("adaptedAddReference");
     notifyAction();
@@ -1050,7 +1050,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 /* WLH 22 Aug 2001
     initialize = true;
 */  
-    initialize = computeInitialize();
+    initialize |= computeInitialize();
 
 // printStack("addReferences");
     notifyAction();
@@ -1140,7 +1140,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 /* WLH 22 Aug 2001
     initialize = true;
 */  
-    initialize = computeInitialize();
+    initialize |= computeInitialize();
 
 // printStack("adaptedAddReferences");
     notifyAction();

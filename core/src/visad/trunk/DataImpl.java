@@ -515,6 +515,7 @@ public abstract class DataImpl extends ThingImpl
       rdisplay.disableAction();
       DataReference ref = new DataReferenceImpl("dummy");
       ref.setData(this);
+      rdisplay.reAutoScale();
       rdisplay.addReference(ref);
       new Syncher(); // wait for TRANSFORM_DONE
       double[][] ranges = new double[n][];
