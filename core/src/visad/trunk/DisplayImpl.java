@@ -1029,6 +1029,7 @@ if (initialize) {
         map.setControl();
       } // end !(map instanceof ConstantMap)
       addDisplayScalar(map);
+      notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_ADDED, map));
     }
   }
 
@@ -1089,6 +1090,9 @@ if (initialize) {
         }
         ConstantMapVector.removeAllElements();
       }
+
+      notifyListeners(new DisplayEvent(this, DisplayEvent.MAPS_CLEARED));
+
       synchronized (ControlVector) {
         // clear Control-s associated with this Display
         ControlVector.removeAllElements();
