@@ -299,5 +299,40 @@ public abstract class ProjectionControl extends Control {
     return true;
   }
 
+  public String toString()
+  {
+    StringBuffer buf = new StringBuffer("ProjectionControl[");
+    if (matrix == null) {
+      buf.append("null");
+    } else {
+      int major, minor;
+      if (matrix.length == MATRIX2D_LENGTH) {
+        major = 3;
+        minor = 2;
+      } else if (matrix.length == MATRIX3D_LENGTH) {
+        major = 4;
+        minor = 4;
+      } else {
+        major = 1;
+        minor = matrix.length;
+      }
+
+      int offset = 0;
+      for (int i = 0; i < major; i++) {
+        if (i > 0) {
+          buf.append(',');
+        }
+        for (int j = 0; j < minor; j++) {
+          buf.append(j == 0 ? '(' : ',');
+          buf.append(matrix[offset + j]);
+        }
+        buf.append(')');
+        offset += minor;
+      }
+    }
+
+    buf.append(']');
+    return buf.toString();
+  }
 }
 

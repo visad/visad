@@ -353,4 +353,31 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
 
     return true;
   }
+
+  public String toString()
+  {
+    StringBuffer buf = new StringBuffer("GraphicsModeControlJ3D[");
+
+    buf.append("lw ");
+    buf.append(lineWidth);
+    buf.append(",ps ");
+    buf.append(pointSize);
+
+    buf.append(pointMode ? "pm" : "!pm");
+    buf.append(textureEnable ? "te" : "!te");
+    buf.append(scaleEnable ? "se" : "!se");
+    buf.append(missingTransparent ? "mt" : "!mt");
+
+    buf.append(",tm ");
+    buf.append(transparencyMode);
+    buf.append(",pp ");
+    buf.append(projectionPolicy);
+    buf.append(",pm ");
+    buf.append(polygonMode);
+    buf.append(",cs ");
+    buf.append(curvedSize);
+
+    buf.append(']');
+    return buf.toString();
+  }
 }
