@@ -34,7 +34,11 @@ import java.rmi.*;
    A GraphicsModeControl is not linked to any DisplayRealType or
    ScalarMap.  It is linked to a DisplayImpl.<P>
 */
-public interface GraphicsModeControl {
+public abstract class GraphicsModeControl extends Control {
+
+  public GraphicsModeControl(DisplayImpl d) {
+    super(d);
+  }
 
   public abstract boolean getMode2D();
 

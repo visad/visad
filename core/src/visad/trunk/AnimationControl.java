@@ -72,15 +72,5 @@ public interface AnimationControl extends AVControl {
   public void toggle()
          throws VisADException, RemoteException;
 
-/* WLH 25 Feb 98
-  public void subSetTicks(DataRenderer r, DataDisplayLink link);
-
-  public boolean subCheckTicks(DataRenderer r, DataDisplayLink link);
-
-  public boolean subPeekTicks(DataRenderer r, DataDisplayLink link);
-
-  public void subResetTicks(DataRenderer r, DataDisplayLink link);
-*/
-
 }
 

@@ -33,12 +33,12 @@ import java.awt.Image;
 */
 public class VisADAppearance extends VisADSceneGraphObject {
 
-  private VisADGeometryArray array = null;
-  private Image image = null;
-  private boolean color_flag = false;
-  private float red, blue, green;
-  private boolean alpha_flag = false;
-  private float alpha;
+  public VisADGeometryArray array = null;
+  public Image image = null;
+  public boolean color_flag = false;
+  public float red, blue, green;
+  public boolean alpha_flag = false;
+  public float alpha;
 
   public VisADAppearance() {
   }

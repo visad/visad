@@ -31,7 +31,11 @@ import java.rmi.*;
    ProjectionControl is the VisAD interface for controlling the Projection
    from 3-D to 2-D.<P>
 */
-public interface ProjectionControl {
+public abstract class ProjectionControl extends Control {
+
+  public ProjectionControl(DisplayImpl d) {
+    super(d);
+  }
 
   public abstract double[] getMatrix();
 
