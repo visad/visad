@@ -1483,12 +1483,20 @@ if (initialize) {
 
   /** return a captured image of the display */
   public BufferedImage getImage() {
-    return displayRenderer.getImage();
+    return getImage(false);
+    // return displayRenderer.getImage();  WLH 4 April 2000
   }
 
   /** return a captured image of the display;
       synchronize if sync */
   public BufferedImage getImage(boolean sync) {
+    Thread thread = Thread.currentThread();
+    String name = thread.getName();
+    if (thread.equals(getCurrentActionThread()) ||
+        name.startsWith("J3D-Renderer") ||
+        name.startsWith("AWT-EventQueue")) {
+      throw new VisADError("cannot call getImage() from Thread: " + name);
+    }
     if (sync) new Syncher(this);
     return displayRenderer.getImage();
   }

@@ -49,6 +49,8 @@ public abstract class ActionImpl
   private boolean enabled = true;
   private Object lockEnabled = new Object();
 
+  private Thread currentActionThread = null;
+
   String Name;
 
   /** Vector of ReferenceActionLink-s;
@@ -176,8 +178,13 @@ public abstract class ActionImpl
     }
   }
 
+  public Thread getCurrentActionThread() {
+    return currentActionThread;
+  }
+
   /** code executed by a thread to manage updates to the corresponding Thing */
   public void run() {
+    currentActionThread = Thread.currentThread();
     synchronized (lockEnabled) {
       if (enabled) {
         try {
@@ -219,6 +226,7 @@ public abstract class ActionImpl
       }
 
     } // end synchronized (lockEnabled)
+    currentActionThread = null;
   }
 
   public abstract void doAction() throws VisADException, RemoteException;
