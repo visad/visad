@@ -1014,7 +1014,7 @@ public class BioRadForm extends Form implements FormBlockReader,
     // set up image domain set
     imageSet = new Linear2DSet(xy,
       horizOffset, horizOffset + (nx - 1) * horizStep, nx,
-      vertOffset, vertOffset + (ny - 1) * vertStep, ny,
+      vertOffset + (ny - 1) * vertStep, vertOffset, ny,
       null, new Unit[] {horizUnit, vertUnit}, null);
   }
 
