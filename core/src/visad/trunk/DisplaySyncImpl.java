@@ -73,38 +73,6 @@ public class DisplaySyncImpl
   }
 
   /**
-   * Finds the first map associated with this <TT>Display</TT>
-   * which matches the specified <TT>ScalarMap</TT>.
-   *
-   * @param map The <TT>ScalarMap</TT> to find.
-   */
-  private ScalarMap findMap(ScalarMap map)
-  {
-    ScalarMap found = null;
-
-    boolean isConstMap;
-    Vector v;
-    if (map instanceof ConstantMap) {
-      v = myDisplay.getConstantMapVector();
-      isConstMap = true;
-    } else {
-      v = myDisplay.getMapVector();
-      isConstMap = false;
-    }
-
-    ListIterator iter = v.listIterator();
-    while (iter.hasNext()) {
-      ScalarMap sm = (ScalarMap )iter.next();
-      if (sm.equals(map)) {
-        found = sm;
-        break;
-      }
-    }
-
-    return found;
-  }
-
-  /**
    * Adds the specified data reference to this <TT>Display</TT>.
    *
    * @param link The link to the remote data reference.
@@ -180,10 +148,42 @@ public class DisplaySyncImpl
   }
 
   /**
+   * Finds the first map associated with this <TT>Display</TT>
+   * which matches the specified <TT>ScalarMap</TT>.
+   *
+   * @param map The <TT>ScalarMap</TT> to find.
+   */
+  private ScalarMap findMap(ScalarMap map)
+  {
+    ScalarMap found = null;
+
+    boolean isConstMap;
+    Vector v;
+    if (map instanceof ConstantMap) {
+      v = myDisplay.getConstantMapVector();
+      isConstMap = true;
+    } else {
+      v = myDisplay.getMapVector();
+      isConstMap = false;
+    }
+
+    ListIterator iter = v.listIterator();
+    while (iter.hasNext()) {
+      ScalarMap sm = (ScalarMap )iter.next();
+      if (sm.equals(map)) {
+        found = sm;
+        break;
+      }
+    }
+
+    return found;
+  }
+
+  /**
    * Handles remote <TT>Display</TT> changes, causing
    * the local <TT>Display</TT> to be changed to match.
    *
-   * @param e The event to be processed.
+   * @param evt The event to be processed.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
