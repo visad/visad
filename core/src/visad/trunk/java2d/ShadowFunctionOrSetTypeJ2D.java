@@ -774,7 +774,10 @@ END MISSING TEST */
           for (int i=0; i<valueArrayLength; i++) {
             int displayScalarIndex = valueToScalar[i];
             DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
-            if (real.equals(Display.IsoContour) && inherited_values[i] == 0) {
+            // WLH 17 Aug 98
+            if (real.equals(Display.IsoContour) &&
+                display_values[i] != null &&
+                inherited_values[i] == 0) {
               // non-inherited IsoContour, so generate contours
               array = null;
               ContourControl control = (ContourControl)
