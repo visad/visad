@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.18 2000-04-26 15:00:02 dglo Exp $
+ * $Id: Unit.java,v 1.19 2000-10-31 19:48:52 dglo Exp $
  */
 
 package visad;
@@ -372,7 +372,7 @@ public abstract class Unit
      *
      * @param that		The given unit to multiply this unit by.
      * @return			The resulting unit.
-     * @throws UnitException	It's meaningless to divide these units.
+     * @throws UnitException	It's meaningless to multiply these units.
      */
     public abstract Unit multiply(Unit that)
 	throws UnitException;
