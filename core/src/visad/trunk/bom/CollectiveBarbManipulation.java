@@ -1518,11 +1518,11 @@ public class CollectiveBarbManipulation extends Object
 
     CellImpl cell3 = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        RealTuple rt = (RealTuple) point_ref.getData();
-        float lat = (float) ((Real) rt.getComponent(0)).getValue();
-        float lon = (float) ((Real) rt.getComponent(1)).getValue();
-        if (lat == lat && lon == lon) {
-          cbm.addStation(lat, lon);
+        RealTuple rt3 = (RealTuple) point_ref.getData();
+        float lat3 = (float) ((Real) rt3.getComponent(0)).getValue();
+        float lon3 = (float) ((Real) rt3.getComponent(1)).getValue();
+        if (lat3 == lat3 && lon3 == lon3) {
+          cbm.addStation(lat3, lon3);
         }
       }
     };
