@@ -48,7 +48,7 @@ DateTime
 
     // Time related variables
     private static final double secondsPerDay = (double) (24 * 60 * 60);
-    private static final GregorianCalendar utcCalendar =
+    private final GregorianCalendar utcCalendar =
                           new GregorianCalendar(TimeZone.getTimeZone("GMT"));
     private static final String isoTimeFmtPattern = "yyyy-MM-dd HH:mm:ss'Z'";
 
@@ -276,8 +276,8 @@ DateTime
         SimpleDateFormat sdf = new SimpleDateFormat();
         sdf.setTimeZone(timezone);
         if (pattern != null) sdf.applyPattern(pattern);
-        return (sdf.format(utcCalendar.getTime(), buf, 
-                                new FieldPosition(0))).toString();
+        return new String((sdf.format(utcCalendar.getTime(), buf, 
+                                new FieldPosition(0))).toString());
     }
 
     /**
