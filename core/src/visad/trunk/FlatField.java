@@ -2137,22 +2137,30 @@ public class FlatField extends FieldImpl {
     int n_samples = domainSet.getLength();
     MathType rangeType = ((FunctionType)Type).getRange();
     MathType domainType = ((FunctionType)Type).getDomain();
-    int n_comps = ((TupleType)rangeType).getDimension();
+    int n_comps;
     CoordinateSystem coord_sys;
     MathType m_type;
     int ii, jj, compSize;
     
     int[] flat_indeces;
 
-    if (!( rangeType instanceof TupleType) ) 
-    {
-      throw new VisADException("extract: range type must be TupleType");
+    if ( rangeType instanceof RealType )
+    { 
+      if ( component != 0 ) {
+        throw new VisADException("extract: component index must be zero");
+      }
+      else {
+        return this;
+      }
     }
-    else if ( ( component + 1 ) > n_comps ) 
-    {
-      throw new VisADException("extract: component selection too large");
+    else 
+    { 
+      n_comps = ((TupleType)rangeType).getDimension();
+      if ( (component+1) > n_comps ) {
+        throw new VisADException("extract: component index too large");
+      }
     }
-
+ 
     MathType new_range = ((TupleType)rangeType).getComponent( component );
     FunctionType new_type = new FunctionType( domainType, new_range);
 
