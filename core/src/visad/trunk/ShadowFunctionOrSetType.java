@@ -2777,21 +2777,25 @@ WLH 15 March 2000 */
       Object swit = null;
       int index = -1;
 
-      for (int i=0; i<valueArrayLength; i++) {
-        float[] values = display_values[i];
-        if (values != null) {
-          int displayScalarIndex = valueToScalar[i];
-          DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
-          if (real.equals(Display.Animation) ||
-              real.equals(Display.SelectValue)) {
-            swit = shadow_api.makeSwitch();
-            index = i;
-            control =
-              ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
-            break;
-          }
-        } // end if (values != null)
-      } // end for (int i=0; i<valueArrayLength; i++)
+      if (DomainComponents.length == 1) {
+        RealType real = (RealType) DomainComponents[0].getType();
+        for (int i=0; i<valueArrayLength; i++) {
+          ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+          float[] values = display_values[i];
+          if (values != null && real.equals(map.getScalar())) {
+            int displayScalarIndex = valueToScalar[i];
+            DisplayRealType dreal =
+              display.getDisplayScalar(displayScalarIndex);
+            if (dreal.equals(Display.Animation) ||
+                dreal.equals(Display.SelectValue)) {
+              swit = shadow_api.makeSwitch();
+              index = i;
+              control = map.getControl();
+              break;
+            }
+          } // end if (values != null && real.equals(map.getScalar()))
+        } // end for (int i=0; i<valueArrayLength; i++)
+      } // end if (DomainComponents.length == 1)
 
       if (control != null) {
         shadow_api.addSwitch(group, swit, control, domain_set, renderer);
