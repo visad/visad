@@ -10,6 +10,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import visad.AnimationControl;
 import visad.CellImpl;
 import visad.DataReferenceImpl;
 import visad.FieldImpl;
@@ -26,33 +27,36 @@ public class EventWidget
   extends JPanel
 {
   private AmandaFile fileData;
-  private FieldImpl eventFld;
   private DataReferenceImpl eventRef;
+  private AnimationControl animCtl;
 
   private GregorianCalendar cal;
 
   private VisADSlider slider;
+  private int sliderLength;
+
   private JLabel dateLabel;
+
   private TrackWidget trackWidget;
 
   private Event thisEvent;
 
-  public EventWidget(AmandaFile fileData, FieldImpl eventFld,
-                     DataReferenceImpl eventRef)
+  public EventWidget(AmandaFile fileData, DataReferenceImpl eventRef,
+                     AnimationControl animCtl)
     throws RemoteException, VisADException
   {
-    this(fileData, eventFld, eventRef, null);
+    this(fileData, eventRef, animCtl, null);
   }
 
-  public EventWidget(AmandaFile fileData, FieldImpl eventFld,
-                     DataReferenceImpl eventRef, ScalarMap trackMap)
+  public EventWidget(AmandaFile fileData, DataReferenceImpl eventRef,
+                     AnimationControl animCtl, ScalarMap trackMap)
     throws RemoteException, VisADException
   {
     super();
 
     this.fileData = fileData;
-    this.eventFld = eventFld;
     this.eventRef = eventRef;
+    this.animCtl = animCtl;
 
     cal = new GregorianCalendar();
 
@@ -66,7 +70,7 @@ public class EventWidget
     }
     dateLabel = new JLabel();
 
-    slider = buildSlider(eventFld);
+    slider = buildSlider(fileData.getNumberOfEvents());
 
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
@@ -75,14 +79,14 @@ public class EventWidget
     if (trackWidget != null) add(trackWidget);
   }
 
-  private VisADSlider buildSlider(FieldImpl eventFld)
+  private VisADSlider buildSlider(int initialLength)
     throws RemoteException, VisADException
   {
     final DataReferenceImpl eventRef = new DataReferenceImpl("event");
 
-    final int nEvents = eventFld.getLength();
+    sliderLength = initialLength;
 
-    VisADSlider slider = new VisADSlider("event", 0, nEvents - 1, 0, 1.0,
+    VisADSlider slider = new VisADSlider("event", 0, initialLength - 1, 0, 1.0,
                                          eventRef, Event.indexType, true);
     slider.hardcodeSizePercent(110); // leave room for label changes
 
@@ -96,8 +100,8 @@ public class EventWidget
           int index = (int )r.getValue();
           if (index < 0) {
             index = 0;
-          } else if (index > nEvents) {
-            index = nEvents;
+          } else if (index > sliderLength) {
+            index = sliderLength;
           }
           indexChanged(index);
         }
@@ -145,12 +149,16 @@ public class EventWidget
   private void indexChanged(int index)
     throws RemoteException, VisADException
   {
-    eventRef.setData(eventFld.getSample(index));
-
     thisEvent = fileData.getEvent(index);
     if (thisEvent == null) {
+      eventRef.setData(Event.missing);
       dateLabel.setText("*** NO DATE ***");
     } else {
+      FieldImpl seq = thisEvent.makeTimeSequence();
+
+      eventRef.setData(seq);
+      animCtl.setSet(seq.getDomainSet());
+
       dateLabel.setText(getDate(thisEvent.getYear(), thisEvent.getDay(),
                                 thisEvent.getTime()).toGMTString());
 

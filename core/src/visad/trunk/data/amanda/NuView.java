@@ -40,6 +40,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import visad.AnimationControl;
 import visad.BaseColorControl;
 import visad.DataReferenceImpl;
 import visad.Display;
@@ -136,15 +137,12 @@ public class NuView
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
 
-    final FieldImpl eventsFld = file.makeEventData();
-    final FieldImpl modulesFld = file.makeModuleData();
-
     final DataReferenceImpl eventRef = new DataReferenceImpl("event");
     // data set by eventWidget below
     display.addReference(eventRef);
 
     final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
-    modulesRef.setData(modulesFld);
+    modulesRef.setData(file.makeModuleData());
     display.addReference(modulesRef);
 
     LabeledColorWidget colorWidget = new LabeledColorWidget(colorMap);
@@ -152,7 +150,9 @@ public class NuView
     //   (if we don't left-align, BoxLayout hoses everything)
     colorWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    EventWidget eventWidget = new EventWidget(file, eventsFld, eventRef);
+    AnimationControl animCtl = (AnimationControl )animMap.getControl();
+
+    EventWidget eventWidget = new EventWidget(file, eventRef, animCtl);
 
     AnimationWidget animWidget;
     try {
