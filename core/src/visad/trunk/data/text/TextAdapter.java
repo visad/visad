@@ -199,6 +199,11 @@ public class TextAdapter {
     }
 
     maps = makeMT(maps);
+    if (maps == null) {
+      throw new visad.data.BadFormException(
+        "TextAdapter: Invalid or missing MathType");
+    }
+
     // System.out.println("Specified MathType = "+maps);
 
     // but first, we need to get the column headers because they
@@ -345,7 +350,7 @@ public class TextAdapter {
             } else if (tok.toLowerCase().startsWith("fmt")) {
               hdrFormatStrings[i] = val.trim();
             } else {
-              throw new VisADException("Invalid token name: "+s);
+              throw new VisADException("TextAdapter: invalid token name: "+s);
             }
 
           }
@@ -768,7 +773,7 @@ public class TextAdapter {
     for (int i=0; i<numDom; i++) {
 
       if (gotDomainRanges[i]) {
-        lset[i] = new Linear1DSet(domainRanges[0][i], 
+        lset[i] = new Linear1DSet(domType.getComponent(i), domainRanges[0][i], 
                             domainRanges[1][i], numVal);
 
         if (debug) System.out.println("lset from domain = "+lset[i]);
@@ -957,6 +962,12 @@ public class TextAdapter {
 
   private String makeMT(String s) {
 
+    int k = s.indexOf("->");
+    if (k < 0) {
+      System.out.println("TextAdapter: invalid MathType form; -> required");
+      return null;
+    }
+
     StringBuffer sb = new StringBuffer("");
     for (int i=0; i<s.length(); i++) {
       String r = s.substring(i,i+1);
@@ -964,12 +975,8 @@ public class TextAdapter {
               sb.append(r);
       }
     }
+
     String t = sb.toString();
-    int k = t.indexOf("->");
-    if (k < 0) {
-      System.out.println("Invalid MathType form: -> required:"+k);
-      return null;
-    }
 
     if (t.charAt(k-1) != ')' ) {
       if (t.charAt(k+2) != '(' ) {
@@ -1157,5 +1164,16 @@ public class TextAdapter {
 
     return set;
   }
+
+  /*  uncomment to test
+  public static void main(String[] args) throws Exception {
+    if (args.length == 0) {
+      System.out.println("Must supply a filename");
+      System.exit(1);
+    }
+    TextAdapter ta = new TextAdapter(args[0]);
+    System.out.println(ta.getData().getType());
+  }
+  */
 
 }
