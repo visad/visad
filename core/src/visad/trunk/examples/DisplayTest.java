@@ -72,7 +72,9 @@ public class DisplayTest extends Object {
     RealType count = new RealType("count", null, null);
 
     RealType[] types = {RealType.Latitude, RealType.Longitude};
+    RealType[] typesxx = {RealType.Longitude, RealType.Latitude};
     RealTupleType earth_location = new RealTupleType(types);
+    RealTupleType earth_locationxx = new RealTupleType(typesxx);
 
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
     RealTupleType earth_location3d = new RealTupleType(types3d);
@@ -86,6 +88,7 @@ public class DisplayTest extends Object {
     FunctionType image_tuple = new FunctionType(earth_location, radiance);
     FunctionType image_vis = new FunctionType(earth_location, vis_radiance);
     FunctionType image_ir = new FunctionType(earth_location, ir_radiance);
+    FunctionType image_tuplexx = new FunctionType(earth_locationxx, radiance);
 
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
 
@@ -134,7 +137,7 @@ public class DisplayTest extends Object {
         System.out.println("  6: colored 2-D contours from irregular grids");
         System.out.println("  7: variable transparency");
         System.out.println("  8: offset");
-        System.out.println("  9 file_name: GIF / JPEG reader");
+        System.out.println("  9 file_name: GIF / JPEG reader using Java2D");
         System.out.println("  10 file_name: netCDF adapter");
         System.out.println("  11: CoordinateSystem and Unit");
         System.out.println("  12: 2-D surface and ColorWidget");
@@ -165,7 +168,7 @@ public class DisplayTest extends Object {
         System.out.println("  34: direct manipulation in Java2D");
         System.out.println("  35: direct manipulation linking Java2D and Java3D");
         System.out.println("  36: polar coordinates in Java2D");
-        System.out.println("  37: colored contours from regular grids in Java2D");
+        System.out.println("  37 swap: colored contours from regular grids in Java2D");
         System.out.println("  38: colored contours from irregular grids in Java2D");
         System.out.println("  39: color array and ColorWidget in Java2D");
         System.out.println("  40: polar direct manipulation in Java2D");
@@ -468,7 +471,7 @@ public class DisplayTest extends Object {
  
       case 9:
  
-        System.out.println(test_case + ": test GIF / JPEG reader");
+        System.out.println(test_case + ": test GIF / JPEG reader using Java2D");
 
         if (args.length < 2) {
           System.out.println("must specify GIF or JPEG file name");
@@ -479,7 +482,7 @@ public class DisplayTest extends Object {
         GIFForm gif_form = new GIFForm();
         imaget1 = (FlatField) gif_form.open(name);
 
-        display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+        display1 = new DisplayImplJ2D("display1");
 
         // compute ScalarMaps from type components
         ftype = (FunctionType) imaget1.getType();
@@ -499,6 +502,15 @@ public class DisplayTest extends Object {
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
+
+        jframe = new JFrame("GIF / JPEG in Java2D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe.getContentPane().add(display1.getComponent());
+        jframe.setSize(256, 256);
+        jframe.setVisible(true);
  
         break;
  
@@ -1659,12 +1671,18 @@ public class DisplayTest extends Object {
 
         System.out.println(test_case + ": test colored contours from " +
                            "regular grids in Java2D");
+
         size = 64;
-        imaget1 = FlatField.makeField(image_tuple, size, false);
+        if (args.length < 2) {
+          imaget1 = FlatField.makeField(image_tuple, size, false);
+        }
+        else {
+          imaget1 = FlatField.makeField(image_tuplexx, size, false);
+        }
 
         display1 = new DisplayImplJ2D("display1");
-        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
         display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
         display1.addMap(new ScalarMap(ir_radiance, Display.Green));
         display1.addMap(new ConstantMap(0.5, Display.Blue));
         display1.addMap(new ConstantMap(0.5, Display.Red));
