@@ -48,17 +48,31 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
   private RealType y = null;
   private RealTupleType xy = null;
 
+  private int mouseModifiersMask = 0;
+  private int mouseModifiersValue = 0;
+
   private BranchGroup branch = null;
   private BranchGroup group = null;
 
   /** this DirectManipulationRenderer is quite different - it does not
       render its data, but only place values into its DataReference
       on right mouse button release;
-      it uses x and y to determine spatial ScalarMaps */
+      it uses xarg and yarg to determine spatial ScalarMaps */
   public RubberBandBoxRendererJ3D (RealType xarg, RealType yarg) {
+    this(xarg, yarg, 0, 0);
+  }
+
+  /** xarg and yarg determine spatial ScalarMaps;
+      mmm and mmv determine whehter SHIFT or CTRL keys are required -
+      this is needed since this is a greedy DirectManipulationRenderer
+      that will grab any right mouse click (that intersects its 2-D
+      sub-manifold) */
+  public RubberBandBoxRendererJ3D (RealType xarg, RealType yarg, int mmm, int mmv) {
     super();
     x = xarg;
     y = yarg;
+    mouseModifiersMask = mmm;
+    mouseModifiersValue = mmv;
   }
 
   /** don't render - just return BranchGroup for scene graph to
@@ -237,8 +251,14 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
 
   /** check if ray intersects sub-manifold */
   public synchronized float checkClose(double[] origin, double[] direction) {
+    int mouseModifiers = getLastMouseModifiers();
+    if ((mouseModifiers & mouseModifiersMask) != mouseModifiersValue) {
+      return Float.MAX_VALUE;
+    }
+
     try {
-      float r = findRayManifoldIntersection(true, origin, direction);
+      float r = findRayManifoldIntersection(true, origin, direction, tuple,
+                                            otherindex, othervalue);
       if (r == r) {
         return 0.0f;
       }
@@ -249,101 +269,6 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
     catch (VisADException ex) {
       return Float.MAX_VALUE;
     }
-  }
-
-  //
-  // may eventually move all this down to DataRenderer and
-  // generally support manifold dimension = 2 when !mode2d
-  //
-  private float ray_pos; // save last ray_pos as first guess for next
-  private static final int HALF_GUESSES = 200;
-  private static final int GUESSES = 2 * HALF_GUESSES + 1;
-  private static final float RAY_POS_INC = 0.1f;
-  private static final int TRYS = 50;
-  private static final double EPS = 0.001f;
-
-  private float findRayManifoldIntersection(boolean first,
-                             double[] origin, double[] direction)
-          throws VisADException {
-    ray_pos = Float.NaN;
-    if (otherindex < 0) return ray_pos;
-    if (tuple == null) {
-      ray_pos = (float)
-        ((othervalue - origin[otherindex]) / direction[otherindex]);
-    }
-    else { // tuple != null
-      if (first) {
-        // generate a first guess ray_pos by brute force
-        ray_pos = Float.NaN;
-        float[][] guesses = new float[3][GUESSES];
-        for (int i=0; i<GUESSES; i++) {
-          float rp = (i - HALF_GUESSES) * RAY_POS_INC;
-          guesses[0][i] = (float) (origin[0] + rp * direction[0]);
-          guesses[1][i] = (float) (origin[1] + rp * direction[1]);
-          guesses[2][i] = (float) (origin[2] + rp * direction[2]);
-        }
-        guesses = tuplecs.fromReference(guesses);
-        double distance = Double.MAX_VALUE;
-        float lastg = 0.0f;
-        for (int i=0; i<GUESSES; i++) {
-          float g = othervalue - guesses[otherindex][i];
-          // first, look for nearest zero crossing and interpolate
-          if (i > 0 && ((g < 0.0f && lastg >= 0.0f) || (g >= 0.0f && lastg < 0.0f))) {
-            float r = (float)
-              (i - (Math.abs(g) / (Math.abs(lastg) + Math.abs(g))));
-            ray_pos = (r - HALF_GUESSES) * RAY_POS_INC;
-            break;
-          }
-          lastg = g;
-
-          // otherwise look for closest to zero
-          double d = Math.abs(othervalue - guesses[otherindex][i]);
-          if (d < distance) {
-            distance = d;
-            ray_pos = (i - HALF_GUESSES) * RAY_POS_INC;
-          }
-        } // end for (int i=0; i<GUESSES; i++)
-      }
-      if (ray_pos == ray_pos) {
-        // use Newton's method to refine first guess
-        double error_limit = 10.0 * EPS;
-        if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
-          if (otherindex == 0) error_limit = 2.0;
-          else if (otherindex == 1) error_limit = 20.0; // there must be a bug
-        }
-        double r = ray_pos;
-        double error = 1.0f;
-        double[][] guesses = new double[3][3];
-        int itry;
-        for (itry=0; (itry<TRYS && r == r); itry++) {
-          double rp = r + EPS;
-          double rm = r - EPS;
-          guesses[0][0] = origin[0] + rp * direction[0];
-          guesses[1][0] = origin[1] + rp * direction[1];
-          guesses[2][0] = origin[2] + rp * direction[2];
-          guesses[0][1] = origin[0] + ray_pos * direction[0];
-          guesses[1][1] = origin[1] + ray_pos * direction[1];
-          guesses[2][1] = origin[2] + ray_pos * direction[2];
-          guesses[0][2] = origin[0] + rm * direction[0];
-          guesses[1][2] = origin[1] + rm * direction[1];
-          guesses[2][2] = origin[2] + rm * direction[2];
-          guesses = tuplecs.fromReference(guesses);
-          double g = othervalue - guesses[otherindex][1];
-          error = Math.abs(g);
-          if (error <= EPS) break;
-          double gp = othervalue - guesses[otherindex][0];
-          double gm = othervalue - guesses[otherindex][2];
-          double dg = (gp - gm) / (EPS + EPS);
-          r = r - g / dg;
-        }
-        ray_pos = (float) r;
-        if (error > error_limit) {
-          // System.out.println("error = " + error);
-          ray_pos = Float.NaN;
-        }
-      }
-    } // end (tuple != null)
-    return ray_pos;
   }
 
   /** mouse button released, ending direct manipulation */
@@ -402,7 +327,8 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
     double[] direction = ray.vector;
 
     try {
-      float r = findRayManifoldIntersection(true, origin, direction);
+      float r = findRayManifoldIntersection(true, origin, direction, tuple,
+                                            otherindex, othervalue);
       if (r != r) {
         if (group != null) group.detach();
         return;
@@ -411,10 +337,7 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
                       {(float) (origin[1] + r * direction[1])},
                       {(float) (origin[2] + r * direction[2])}};
       if (tuple != null) xx = tuplecs.fromReference(xx);
-/*
-System.out.println("drag_direct x = " + xx[0][0] + " " + xx[1][0] + " " + xx[2][0] +
-                   " " + first);
-*/
+
       if (first) {
         first_x = xx;
         cum_lon = 0.0f;
@@ -439,10 +362,7 @@ System.out.println("drag_direct x = " + xx[0][0] + " " + xx[1][0] + " " + xx[2][
       valueString = new Real(y, d[0]).toValueString();
       vect.addElement(y.getName() + " = " + valueString);
       getDisplayRenderer().setCursorStringVector(vect);
-/*
-System.out.println("origin " + origin[0] + " " + origin[1] + " " + origin[2]);
-System.out.println("direction " + direction[0] + " " + direction[1] + " " + direction[2]);
-*/
+
       float other_offset = 0.0f;
       if (tuple == null) {
         other_offset = (direction[otherindex] < 0.0) ? 0.005f : -0.005f;
@@ -544,7 +464,6 @@ System.out.println("direction " + direction[0] + " " + direction[1] + " " + dire
   /** test RubberBandBoxRendererJ3D */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    // construct RealTypes for wind record components
     RealType x = new RealType("x");
     RealType y = new RealType("y");
     RealTupleType xy = new RealTupleType(x, y);
@@ -601,7 +520,8 @@ System.out.println("direction " + direction[0] + " " + direction[1] + " " + dire
     Gridded2DSet dummy_set = new Gridded2DSet(xy, null, 1);
     final DataReferenceImpl ref = new DataReferenceImpl("set");
     ref.setData(dummy_set);
-    display.addReferences(new RubberBandBoxRendererJ3D(x, y), ref);
+    int m = (args.length > 1) ? InputEvent.CTRL_MASK : 0;
+    display.addReferences(new RubberBandBoxRendererJ3D(x, y, m, m), ref);
 
     CellImpl cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {

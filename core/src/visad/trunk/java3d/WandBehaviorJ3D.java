@@ -297,7 +297,7 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
 
         if (!last_right) {
           // first point
-          direct_renderer = display_renderer.findDirect(direct_ray);
+          direct_renderer = display_renderer.findDirect(direct_ray, 0);
           if (direct_renderer != null) {
             display_renderer.setDirectOn(true);
             direct_renderer.drag_direct(direct_ray, true, 0);

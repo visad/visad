@@ -374,9 +374,10 @@ public abstract class DisplayRenderer
    * the specified ray.
    * @param ray The ray used to look for a nearby direct manipulation
    *            renderer.
+   * @param mouseModifiers Value of InputEvent.getModifiers().
    * @return DataRenderer or <CODE>null</CODE>.
    */
-  public abstract DataRenderer findDirect(VisADRay ray);
+  public abstract DataRenderer findDirect(VisADRay ray, int mouseModifiers);
 
   public void setCursorStringOn(boolean on) {
     cursor_string = on;

@@ -623,13 +623,14 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
   }
 
-  public DataRenderer findDirect(VisADRay ray) {
+  public DataRenderer findDirect(VisADRay ray, int mouseModifiers) {
     DirectManipulationRendererJ2D renderer = null;
     float distance = Float.MAX_VALUE;
     Enumeration renderers = ((Vector) directs.clone()).elements();
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ2D r =
         (DirectManipulationRendererJ2D) renderers.nextElement();
+      r.setLastMouseModifiers(mouseModifiers);
       float d = r.checkClose(ray.position, ray.vector);
       if (d < distance) {
         distance = d;

@@ -44,12 +44,25 @@ import java.rmi.*;
 */
 public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 
+  private int mouseModifiersMask = 0;
+  private int mouseModifiersValue = 0;
+
   /** this DataRenderer supports direct manipulation for
       representations of curves by UnionSets of Gridded2DSets
       with manifold dimension = 2; the Set's domain RealTypes
       must be mapped to two of (XAxis, YAxis, ZAxis) */
   public CurveManipulationRendererJ3D () {
+    this(0, 0);
+  }
+
+  /** mmm and mmv determine whehter SHIFT or CTRL keys are required -
+      this is needed since this is a greedy DirectManipulationRenderer
+      that will grab any right mouse click (that intersects its 2-D
+      sub-manifold) */
+  public CurveManipulationRendererJ3D (int mmm, int mmv) {
     super();
+    mouseModifiersMask = mmm;
+    mouseModifiersValue = mmv;
   }
 
   public ShadowType makeShadowSetType(
@@ -95,6 +108,10 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   /** spatial DisplayTupleType other than
       DisplaySpatialCartesianTuple */
   DisplayTupleType tuple;
+  private CoordinateSystem tuplecs;
+
+  private int otherindex = -1;
+  private float othervalue;
 
   /** possible values for whyNotDirect */
   private final static String notSetType =
@@ -143,6 +160,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       return;
     }
 
+    int[] indices = {-1, -1};
     for (int i=0; i<components.length; i++) {
       Enumeration maps = components[i].getSelectedMapVector().elements();
       while (maps.hasMoreElements()) {
@@ -150,23 +168,45 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
         DisplayRealType dreal = map.getDisplayScalar();
         DisplayTupleType tuple = dreal.getTuple();
         if (tuple != null &&
-            Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+            (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+             (tuple.getCoordinateSystem() != null &&
+              tuple.getCoordinateSystem().getReference().equals(
+              Display.DisplaySpatialCartesianTuple)))) {
           int index = dreal.getTupleIndex();
           axisToComponent[index] = i;
           directMap[index] = map;
+          indices[i] = index;
         }
       } // end while (maps.hasMoreElements())
     }
 
-    if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
-      tuple = null;
+    if (indices[0] < 0 || indices[1] < 0) {
+      whyNotDirect = domainNotSpatial;
+      return;
     }
 
+    // get default value for other component of tuple
+    otherindex = 3 - (indices[0] + indices[1]);
+    DisplayRealType dreal = (DisplayRealType) tuple.getComponent(otherindex);
+    int index = getDisplay().getDisplayScalarIndex(dreal);
+    othervalue = (index > 0) ? default_values[index] :
+                               (float) dreal.getDefaultValue();
+
+    if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+      tuple = null;
+      tuplecs = null;
+    }
+    else {
+      tuplecs = tuple.getCoordinateSystem();
+    }
+
+/* WLH 11 June 2000
     boolean twod = getDisplayRenderer().getMode2D();
     if (tuple != null && !twod) {
       whyNotDirect = badCoordSysManifoldDim;
       return;
     }
+*/
 
     directManifoldDimension = 2;
     setIsDirectManipulation(true);
@@ -201,47 +241,54 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
   /** find minimum distance from ray to spatialValues */
   public synchronized float checkClose(double[] origin, double[] direction) {
+    int mouseModifiers = getLastMouseModifiers();
+    if ((mouseModifiers & mouseModifiersMask) != mouseModifiersValue) {
+      return Float.MAX_VALUE;
+    }
+
     float distance = Float.MAX_VALUE;
     closeIndex = -1;
-    if (spatialValues == null) {
-      return 0.0f;
-    }
-    float o_x = (float) origin[0];
-    float o_y = (float) origin[1];
-    float o_z = (float) origin[2];
-    float d_x = (float) direction[0];
-    float d_y = (float) direction[1];
-    float d_z = (float) direction[2];
-/*
-System.out.println("origin = " + o_x + " " + o_y + " " + o_z);
-System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
-*/
-    for (int i=0; i<spatialValues[0].length; i++) {
-      float x = spatialValues[0][i] - o_x;
-      float y = spatialValues[1][i] - o_y;
-      float z = spatialValues[2][i] - o_z;
-      float dot = x * d_x + y * d_y + z * d_z;
-      x = x - dot * d_x;
-      y = y - dot * d_y;
-      z = z - dot * d_z;
-      float d = (float) Math.sqrt(x * x + y * y + z * z);
-      if (d < distance) {
-        distance = d;
-        closeIndex = i;
+    if (spatialValues != null) {
+      float o_x = (float) origin[0];
+      float o_y = (float) origin[1];
+      float o_z = (float) origin[2];
+      float d_x = (float) direction[0];
+      float d_y = (float) direction[1];
+      float d_z = (float) direction[2];
+  
+      for (int i=0; i<spatialValues[0].length; i++) {
+        float x = spatialValues[0][i] - o_x;
+        float y = spatialValues[1][i] - o_y;
+        float z = spatialValues[2][i] - o_z;
+        float dot = x * d_x + y * d_y + z * d_z;
+        x = x - dot * d_x;
+        y = y - dot * d_y;
+        z = z - dot * d_z;
+        float d = (float) Math.sqrt(x * x + y * y + z * z);
+        if (d < distance) {
+          distance = d;
+          closeIndex = i;
+        }
+  
       }
-/*
-System.out.println("spatialValues["+i+"] = " + spatialValues[0][i] + " " +
-spatialValues[1][i] + " " + spatialValues[2][i] + " d = " + d);
-*/
+      if (distance <= getDisplayRenderer().getPickThreshhold()) {
+        return distance;
+      }
+    } // end if (spatialValues != null)
+    closeIndex = -1;
+    try {
+      float r = findRayManifoldIntersection(true, origin, direction, tuple,
+                                            otherindex, othervalue);
+      if (r == r) {
+        return 0.0f;
+      }
+      else {
+        return Float.MAX_VALUE;
+      }
     }
-    if (distance > getDisplayRenderer().getPickThreshhold()) {
-      closeIndex = -1;
-      return 0.0f;
+    catch (VisADException ex) {
+      return Float.MAX_VALUE;
     }
-/*
-System.out.println("checkClose: distance = " + distance);
-*/
-    return distance;
   }
 
   /** mouse button released, ending direct manipulation */
@@ -268,131 +315,22 @@ System.out.println("checkClose: distance = " + distance);
       if (stop) return;
     }
 
-    float o_x = (float) ray.position[0];
-    float o_y = (float) ray.position[1];
-    float o_z = (float) ray.position[2];
-    float d_x = (float) ray.vector[0];
-    float d_y = (float) ray.vector[1];
-    float d_z = (float) ray.vector[2];
-
-    // leave logic about getDirectManifoldDimension in, in case
-    // CurveManipulationRendererJ3D is ever extended to include
-    // ManifoldDimension != 2
-    if (first) {
-      int lineAxis = -1;
-      if (getDirectManifoldDimension() == 3) {
-        // coord sys ok
-        line_x = d_x;
-        line_y = d_y;
-        line_z = d_z;
-      }
-      else {
-        if (getDirectManifoldDimension() == 2) {
-          if (getDisplayRenderer().getMode2D()) {
-            // coord sys ok
-            lineAxis = 2;
-          }
-          else {
-            for (int i=0; i<3; i++) {
-              if (getAxisToComponent(i) < 0) {
-                lineAxis = i;
-              }
-            }
-          }
-        }
-        else if (getDirectManifoldDimension() == 1) {
-          for (int i=0; i<3; i++) {
-            if (getAxisToComponent(i) >= 0) {
-              lineAxis = i;
-            }
-          }
-        }
-        line_x = (lineAxis == 0) ? 1.0f : 0.0f;
-        line_y = (lineAxis == 1) ? 1.0f : 0.0f;
-        line_z = (lineAxis == 2) ? 1.0f : 0.0f;
-      }
-      if (closeIndex < 0) {
-        if (lineAxis < 0) return; // don't know how to do this
-        DisplayRealType dreal = null;
-        try {
-          dreal = (DisplayRealType)
-            Display.DisplaySpatialCartesianTuple.getComponent(lineAxis);
-        }
-        catch (VisADException e) {
-          // do nothing
-          System.out.println("drag_direct " + e);
-          e.printStackTrace();
-        }
-        int line_index = getDisplay().getDisplayScalarIndex(dreal);
-        float lineAxisValue = (line_index > 0) ? default_values[line_index] :
-                                                 (float) dreal.getDefaultValue();
-        if (lineAxis == 0) {
-          float intersect = (lineAxisValue - o_x) / d_x;
-          point_x = lineAxisValue;
-          point_y = o_y + intersect * d_y;
-          point_z = o_z + intersect * d_z;
-        }
-        else if (lineAxis == 1) {
-          float intersect = (lineAxisValue - o_y) / d_y;
-          point_x = o_x + intersect * d_x;
-          point_y = lineAxisValue;
-          point_z = o_z + intersect * d_z;
-        }
-        else { // lineAxis == 2
-          float intersect = (lineAxisValue - o_z) / d_z;
-          point_x = o_x + intersect * d_x;
-          point_y = o_y + intersect * d_y;
-          point_z = lineAxisValue;
-        }
-      }
-      else { // closeIndex >= 0
-        point_x = spatialValues[0][closeIndex];
-        point_y = spatialValues[1][closeIndex];
-        point_z = spatialValues[2][closeIndex];
-      }
-    } // end if (first)
-
-    float[] x = new float[3]; // x marks the spot
-    if (getDirectManifoldDimension() == 1) {
-      // find closest point on line to ray
-      // logic from vis5d/cursor.c
-      // line o_, d_ to line point_, line_
-      float ld = d_x * line_x + d_y * line_y + d_z * line_z;
-      float od = o_x * d_x + o_y * d_y + o_z * d_z;
-      float pd = point_x * d_x + point_y * d_y + point_z * d_z;
-      float ol = o_x * line_x + o_y * line_y + o_z * line_z;
-      float pl = point_x * line_x + point_y * line_y + point_z * line_z;
-      if (ld * ld == 1.0f) return;
-      float t = ((pl - ol) - (ld * (pd - od))) / (ld * ld - 1.0f);
-      // x is closest point
-      x[0] = point_x + t * line_x;
-      x[1] = point_y + t * line_y;
-      x[2] = point_z + t * line_z;
-    }
-    else { // getDirectManifoldDimension() = 2 or 3
-      // intersect ray with plane
-      float dot = (point_x - o_x) * line_x +
-                  (point_y - o_y) * line_y +
-                  (point_z - o_z) * line_z;
-      float dot2 = d_x * line_x + d_y * line_y + d_z * line_z;
-      if (dot2 == 0.0) return;
-      dot = dot / dot2;
-      // x is intersection
-      x[0] = o_x + dot * d_x;
-      x[1] = o_y + dot * d_y;
-      x[2] = o_z + dot * d_z;
-    }
+    double[] origin = ray.position;
+    double[] direction = ray.vector;
 
     try {
-      float[] xx = {x[0], x[1], x[2]};
-      if (tuple != null) {
-        float[][] cursor = {{x[0]}, {x[1]}, {x[2]}};
-        float[][] new_cursor =
-          tuple.getCoordinateSystem().fromReference(cursor);
-        x[0] = new_cursor[0][0];
-        x[1] = new_cursor[1][0];
-        x[2] = new_cursor[2][0];
+      float r = findRayManifoldIntersection(true, origin, direction, tuple,
+                                            otherindex, othervalue);
+      if (r != r) {
+        return;
       }
+      float[][] xcs = {{(float) (origin[0] + r * direction[0])},
+                      {(float) (origin[1] + r * direction[1])},
+                      {(float) (origin[2] + r * direction[2])}};
+      float[] xx = {xcs[0][0], xcs[1][0], xcs[2][0]};
+      if (tuple != null) xcs = tuplecs.fromReference(xcs);
+      float[] x = {xcs[0][0], xcs[1][0], xcs[2][0]};
+
       addPoint(xx);
 
       UnionSet newData = null;
@@ -697,33 +635,91 @@ System.out.println("checkClose: distance = " + distance);
     return new_sets;
   }
 
+
+  private static final int N = 64;
+
   /** test CurveManipulationRendererJ3D */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    // construct RealTypes for wind record components
-    RealType lat = RealType.Latitude;
-    RealType lon = RealType.Longitude;
-    RealTupleType earth = new RealTupleType(lat, lon);
+    RealType x = new RealType("x");
+    RealType y = new RealType("y");
+    RealTupleType xy = new RealTupleType(x, y);
+
+    RealType c = new RealType("c");
+    FunctionType ft = new FunctionType(xy, c);
+
+    // construct Java3D display and mappings
+    DisplayImpl display = null;
+    if (args.length == 0) {
+      display = new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
+    }
+    else {
+      display = new DisplayImplJ3D("display1");
+    }
+    if (args.length == 0 || args[0].equals("z")) {
+      display.addMap(new ScalarMap(x, Display.XAxis));
+      display.addMap(new ScalarMap(y, Display.YAxis));
+    }
+    else if (args[0].equals("x")) {
+      display.addMap(new ScalarMap(x, Display.YAxis));
+      display.addMap(new ScalarMap(y, Display.ZAxis));
+    }
+    else if (args[0].equals("y")) {
+      display.addMap(new ScalarMap(x, Display.XAxis));
+      display.addMap(new ScalarMap(y, Display.ZAxis));
+    }
+    else if (args[0].equals("radius")) {
+      display.addMap(new ScalarMap(x, Display.Longitude));
+      display.addMap(new ScalarMap(y, Display.Latitude));
+    }
+    else if (args[0].equals("lat")) {
+      display.addMap(new ScalarMap(x, Display.Longitude));
+      display.addMap(new ScalarMap(y, Display.Radius));
+    }
+    else if (args[0].equals("lon")) {
+      display.addMap(new ScalarMap(x, Display.Latitude));
+      display.addMap(new ScalarMap(y, Display.Radius));
+    }
+    else {
+      display.addMap(new ScalarMap(x, Display.Longitude));
+      display.addMap(new ScalarMap(y, Display.Latitude));
+    }
+    display.addMap(new ScalarMap(c, Display.RGB));
+
+    Integer2DSet fset = new Integer2DSet(xy, N, N);
+    FlatField field = new FlatField(ft, fset);
+    float[][] values = new float[1][N * N];
+    int k = 0;
+    for (int i=0; i<N; i++) {
+      for (int j=0; j<N; j++) {
+        values[0][k++] = (i - N / 2) * (j - N / 2);
+      }
+    }
+    field.setSamples(values);
+    DataReferenceImpl field_ref = new DataReferenceImpl("field");
+    field_ref.setData(field);
+    // display.addReference(field_ref);
+    DefaultRendererJ3D renderer = new DefaultRendererJ3D();
+    if (args.length > 0 && args[0].equals("radius")) {
+      ConstantMap[] cmaps = {new ConstantMap(0.99, Display.Radius)};
+      display.addReferences(renderer, field_ref, cmaps);
+    }
+    else {
+      display.addReferences(renderer, field_ref);
+      renderer.toggle(false);
+    }
 
     // construct invisible starter set
     Gridded2DSet set1 =
-      new Gridded2DSet(earth, new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2);
+      // new Gridded2DSet(xy, null, 1);
+      new Gridded2DSet(xy, new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2);
     Gridded2DSet[] sets = {set1};
-    UnionSet set = new UnionSet(earth, sets);
-
-    // construct Java3D display and mappings
-    DisplayImpl display =
-      new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
-    ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
-    display.addMap(lonmap);
-    lonmap.setRange(-1.0, 1.0);
-    ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
-    display.addMap(latmap);
-    latmap.setRange(0.0, 3.0);
+    UnionSet set = new UnionSet(xy, sets);
 
     DataReferenceImpl ref = new DataReferenceImpl("set");
     ref.setData(set);
-    display.addReferences(new CurveManipulationRendererJ3D(), ref);
+    int m = (args.length > 1) ? InputEvent.CTRL_MASK : 0;
+    display.addReferences(new CurveManipulationRendererJ3D(m, m), ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test CurveManipulationRendererJ3D");

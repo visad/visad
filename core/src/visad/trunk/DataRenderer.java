@@ -1508,7 +1508,7 @@ System.out.println("checkClose: distance = " + distance);
     return LastMouseModifiers;
   }
 
-  void setLastMouseModifiers(int mouseModifiers) {
+  public void setLastMouseModifiers(int mouseModifiers) {
     LastMouseModifiers = mouseModifiers;
   }
 
@@ -1842,13 +1842,98 @@ System.out.println("checkClose: distance = " + distance);
     return isDirectManipulation;
   }
 
-/*
-  public void drag_direct(VisADRay ray, boolean first) {
-    throw new VisADError("DataRenderer.drag_direct: not direct " +
-                         "manipulation renderer");
-  }
-*/
+  private float ray_pos; // save last ray_pos as first guess for next
+  private static final int HALF_GUESSES = 200;
+  private static final int GUESSES = 2 * HALF_GUESSES + 1;
+  private static final float RAY_POS_INC = 0.1f;
+  private static final int TRYS = 50;
+  private static final double EPS = 0.001f;
 
+  public float findRayManifoldIntersection(boolean first, double[] origin,
+                             double[] direction, DisplayTupleType tuple,
+                             int otherindex, float othervalue)
+          throws VisADException {
+    ray_pos = Float.NaN;
+    if (otherindex < 0) return ray_pos;
+    if (tuple == null) {
+      ray_pos = (float)
+        ((othervalue - origin[otherindex]) / direction[otherindex]);
+    }
+    else { // tuple != null
+      CoordinateSystem tuplecs = tuple.getCoordinateSystem();
+      if (first) {
+        // generate a first guess ray_pos by brute force
+        ray_pos = Float.NaN;
+        float[][] guesses = new float[3][GUESSES];
+        for (int i=0; i<GUESSES; i++) {
+          float rp = (i - HALF_GUESSES) * RAY_POS_INC;
+          guesses[0][i] = (float) (origin[0] + rp * direction[0]);
+          guesses[1][i] = (float) (origin[1] + rp * direction[1]);
+          guesses[2][i] = (float) (origin[2] + rp * direction[2]);
+        }
+        guesses = tuplecs.fromReference(guesses);
+        double distance = Double.MAX_VALUE;
+        float lastg = 0.0f;
+        for (int i=0; i<GUESSES; i++) {
+          float g = othervalue - guesses[otherindex][i];
+          // first, look for nearest zero crossing and interpolate
+          if (i > 0 && ((g < 0.0f && lastg >= 0.0f) || (g >= 0.0f && lastg < 0.0f))) {
+            float r = (float)
+              (i - (Math.abs(g) / (Math.abs(lastg) + Math.abs(g))));
+            ray_pos = (r - HALF_GUESSES) * RAY_POS_INC;
+            break;
+          }
+          lastg = g;
+
+          // otherwise look for closest to zero
+          double d = Math.abs(othervalue - guesses[otherindex][i]);
+          if (d < distance) {
+            distance = d;
+            ray_pos = (i - HALF_GUESSES) * RAY_POS_INC;
+          }
+        } // end for (int i=0; i<GUESSES; i++)
+      }
+      if (ray_pos == ray_pos) {
+        // use Newton's method to refine first guess
+        double error_limit = 10.0 * EPS;
+        if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
+          if (otherindex == 0) error_limit = 2.0;
+          else if (otherindex == 1) error_limit = 20.0; // there must be a bug
+        }
+        double r = ray_pos;
+        double error = 1.0f;
+        double[][] guesses = new double[3][3];
+        int itry;
+        for (itry=0; (itry<TRYS && r == r); itry++) {
+          double rp = r + EPS;
+          double rm = r - EPS;
+          guesses[0][0] = origin[0] + rp * direction[0];
+          guesses[1][0] = origin[1] + rp * direction[1];
+          guesses[2][0] = origin[2] + rp * direction[2];
+          guesses[0][1] = origin[0] + ray_pos * direction[0];
+          guesses[1][1] = origin[1] + ray_pos * direction[1];
+          guesses[2][1] = origin[2] + ray_pos * direction[2];
+          guesses[0][2] = origin[0] + rm * direction[0];
+          guesses[1][2] = origin[1] + rm * direction[1];
+          guesses[2][2] = origin[2] + rm * direction[2];
+          guesses = tuplecs.fromReference(guesses);
+          double g = othervalue - guesses[otherindex][1];
+          error = Math.abs(g);
+          if (error <= EPS) break;
+          double gp = othervalue - guesses[otherindex][0];
+          double gm = othervalue - guesses[otherindex][2];
+          double dg = (gp - gm) / (EPS + EPS);
+          r = r - g / dg;
+        }
+        ray_pos = (float) r;
+        if (error > error_limit) {
+          // System.out.println("error = " + error);
+          ray_pos = Float.NaN;
+        }
+      }
+    } // end (tuple != null)
+    return ray_pos;
+  }
 
 }
 

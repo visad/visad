@@ -290,7 +290,7 @@ event_switch:
                 behavior.findRay(current_x, current_y);
               if (direct_ray != null) {
                 direct_renderer =
-                  display_renderer.findDirect(direct_ray);
+                  display_renderer.findDirect(direct_ray, mouseModifiers);
                 if (direct_renderer != null) {
                   display_renderer.setDirectOn(true);
                   direct_renderer.setLastMouseModifiers(mouseModifiers);
