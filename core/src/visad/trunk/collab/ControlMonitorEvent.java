@@ -29,12 +29,12 @@ import visad.VisADException;
  * <CODE>ControlMonitorEvent</CODE> is the VisAD class for
  * <CODE>Control</CODE>-related <CODE>Event</CODE>s
  * from display monitors.  They are sourced by <CODE>DisplayMonitor</CODE>
- * objects and received by <CODE>DisplayMonitorListener</CODE> objects.
+ * objects and received by <CODE>MonitorCallback</CODE> objects.
  */
 public class ControlMonitorEvent
   extends MonitorEvent
 {
-  Control ctl;
+  private Control ctl;
 
   /**
    * Creates a <CODE>ControlMonitorEvent</CODE> for the specified
@@ -122,9 +122,43 @@ public class ControlMonitorEvent
   /**
    * Returns a <CODE>String</CODE> representation of this object.
    */
+  public String OLDtoString()
+  {
+    StringBuffer buf = new StringBuffer("ControlMonitorEvent[");
+buf.append('#');buf.append(getSequenceNumber());buf.append(' ');
+    buf.append(getTypeName());
+    buf.append(',');
+    buf.append(getOriginator());
+    buf.append(',');
+    buf.append(ctl);
+    buf.append(']');
+    return buf.toString();
+  }
+
+  /**
+   * Returns a <CODE>String</CODE> representation of this object.
+   */
   public String toString()
   {
-    return "ControlMonitorEvent[" + getTypeName() + "," + getOriginator() +
-      "," + ctl + "]";
+    StringBuffer buf = new StringBuffer("CMonEvt[");
+buf.append('#');buf.append(getSequenceNumber());buf.append(' ');
+
+    if (getType() != CONTROL_CHANGED) {
+      buf.append(getTypeName());
+    }
+
+    int orig = getOriginator();
+    if (orig == -1) {
+      buf.append(" Lcl");
+    } else {
+      buf.append("Rmt ");
+      buf.append(orig);
+    }
+
+    buf.append(' ');
+    buf.append(visad.Debug.getCtlString(ctl));
+
+    buf.append(']');
+    return buf.toString();
   }
 }

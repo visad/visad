@@ -22,8 +22,32 @@ MA 02111-1307, USA
 
 package visad.collab;
 
-public interface EventTable
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+import java.rmi.server.UnicastRemoteObject;
+
+import visad.RemoteVisADException;
+
+public class RemoteEventProviderImpl
+  extends UnicastRemoteObject
+  implements RemoteEventProvider
 {
-  MonitorEvent add(MonitorEvent evt);
-  MonitorEvent removeEvent(MonitorEvent evt);
+  private MonitorSyncer syncer;
+
+  public RemoteEventProviderImpl(MonitorSyncer syncer)
+    throws RemoteException
+  {
+    this.syncer = syncer;
+  }
+
+  public MonitorEvent getEvent(Object key)
+    throws RemoteException, RemoteVisADException
+  {
+    if (syncer == null) {
+      throw new RemoteVisADException("syncer is null");
+    }
+
+    return syncer.getEvent(key);
+  }
 }

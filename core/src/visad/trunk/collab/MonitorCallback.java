@@ -27,20 +27,17 @@ import java.rmi.RemoteException;
 import visad.RemoteVisADException;
 
 /**
- * <CODE>DisplayMonitorListener</CODE> is the interface for receivers of
+ * <CODE>MonitorCallback</CODE> is the interface for receivers of
  * <CODE>MonitorEvent</CODE>s.
  */
-public interface DisplayMonitorListener
+public interface MonitorCallback
 {
   /**
-   * Handles remote <CODE>Display</CODE> changes, causing
-   * the local <CODE>Display</CODE> to be changed to match.
-   *
-   * @param e The event to be processed.
+   * Alert the callback object that an event is ready.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
    */
-  void stateChanged(MonitorEvent evt)
+  void eventReady(RemoteEventProvider provider, Object key)
     throws RemoteException, RemoteVisADException;
 }

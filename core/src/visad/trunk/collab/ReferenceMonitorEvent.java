@@ -29,12 +29,12 @@ import visad.VisADException;
  * <CODE>ReferenceMonitorEvent</CODE> is the VisAD class for
  * <CODE>RemoteReferenceLink</CODE>-related events from display monitors.
  * They are sourced by <CODE>DisplayMonitor</CODE> objects and received by
- * <CODE>DisplayMonitorListener</CODE> objects.
+ * <CODE>MonitorCallback</CODE> objects.
  */
 public class ReferenceMonitorEvent
   extends MonitorEvent
 {
-  RemoteReferenceLink link;
+  private RemoteReferenceLink link;
 
   /**
    * Creates a <CODE>ReferenceMonitorEvent</CODE> for the specified
@@ -127,7 +127,23 @@ public class ReferenceMonitorEvent
    */
   public String toString()
   {
-    return "ReferenceMonitorEvent[" + getTypeName() + "," +  getOriginator() +
-      "," + link + "]";
+    StringBuffer buf = new StringBuffer("ReferenceMonitorEvent[");
+buf.append('#');buf.append(getSequenceNumber());buf.append(' ');
+
+    buf.append(getTypeName());
+
+    int orig = getOriginator();
+    if (orig == -1) {
+      buf.append(" Lcl ");
+    } else {
+      buf.append(" Rmt ");
+      buf.append(orig);
+    }
+
+    buf.append(' ');
+    buf.append(link);
+
+    buf.append(']');
+    return buf.toString();
   }
 }

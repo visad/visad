@@ -22,6 +22,7 @@ MA 02111-1307, USA
 
 package visad.collab;
 
+import visad.ConstantMap;
 import visad.ScalarMap;
 import visad.VisADException;
 
@@ -29,12 +30,12 @@ import visad.VisADException;
  * <CODE>MapMonitorEvent</CODE> is the VisAD class for
  * <CODE>ScalarMap</CODE>-related events from display monitors.
  * They are sourced by <CODE>DisplayMonitor</CODE> objects and received by
- * <CODE>DisplayMonitorListener</CODE> objects.
+ * <CODE>MonitorCallback</CODE> objects.
  */
 public class MapMonitorEvent
   extends MonitorEvent
 {
-  ScalarMap map;
+  private ScalarMap map;
 
   /**
    * Creates a <CODE>MapMonitorEvent</CODE> for the specified
@@ -135,7 +136,34 @@ public class MapMonitorEvent
    */
   public String toString()
   {
-    return "MapMonitorEvent[" + getTypeName() + "," +  getOriginator() +
-      "," + map + "]";
+    StringBuffer buf = new StringBuffer("MapMonitorEvent[");
+buf.append('#');buf.append(getSequenceNumber());buf.append(' ');
+
+    buf.append(getTypeName());
+
+    int orig = getOriginator();
+    if (orig == -1) {
+      buf.append(" Lcl");
+    } else {
+      buf.append(" Rmt ");
+      buf.append(orig);
+    }
+
+    if (map == null) {
+      buf.append(" <null>");
+    } else if (map instanceof ConstantMap) {
+      buf.append(' ');
+      buf.append(((ConstantMap )map).getConstant());
+      buf.append(" -> ");
+      buf.append(map.getDisplayScalar());
+    } else {
+      buf.append(' ');
+      buf.append(map.getScalar());
+      buf.append(" -> ");
+      buf.append(map.getDisplayScalar());
+    }
+
+    buf.append(']');
+    return buf.toString();
   }
 }

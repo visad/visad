@@ -27,7 +27,6 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import visad.RemoteVisADException;
-import visad.VisADException;
 
 /**
  * <CODE>RemoteDisplaySyncImpl</CODE> is the implementation of the VisAD
@@ -60,31 +59,21 @@ public class RemoteDisplaySyncImpl
   }
 
   /**
-   * Forwards the event to the adapted remote <CODE>DisplaySync</CODE>
-   * object.
+   * Notifies remote event consumer that an event is ready.
    *
-   * @param evt The event to forward.
+   * @param consumer Event consumer
+   * @param key Key used to access event.
    *
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
    */
-  public void stateChanged(MonitorEvent evt)
+  public void eventReady(RemoteEventProvider provider, Object key)
     throws RemoteException, RemoteVisADException
   {
     if (AdaptedSync == null) {
       throw new RemoteVisADException("AdaptedSync is null");
     }
 
-    AdaptedSync.stateChanged(evt);
-  }
-
-  public MonitorEvent removeEvent(MonitorEvent evt)
-    throws RemoteException, RemoteVisADException
-  {
-    if (AdaptedSync == null) {
-      throw new RemoteVisADException("AdaptedSync is null");
-    }
-
-    return AdaptedSync.removeEvent(evt);
+    AdaptedSync.eventReady(provider, key);
   }
 }

@@ -26,7 +26,7 @@ package visad.collab;
  * <CODE>MonitorEvent</CODE> is the VisAD superclass for events from
  * display monitors.<P>
  * They are sourced by <CODE>DisplayMonitor</CODE> objects and received by
- * <CODE>DisplayMonitorListener</CODE> objects.
+ * <CODE>MonitorCallback</CODE> objects.
  */
 public abstract class MonitorEvent
   implements java.io.Serializable
@@ -170,6 +170,19 @@ public abstract class MonitorEvent
    */
   public String toString()
   {
-    return "MonitorEvent[" + getTypeName() + "," + originator + "]";
+    StringBuffer buf = new StringBuffer("MonitorEvent[");
+buf.append('#');buf.append(getSequenceNumber());buf.append(' ');
+
+    buf.append(getTypeName());
+
+    if (originator == -1) {
+      buf.append(" Lcl");
+    } else {
+      buf.append(" Rmt ");
+      buf.append(originator);
+    }
+
+    buf.append(']');
+    return buf.toString();
   }
 }

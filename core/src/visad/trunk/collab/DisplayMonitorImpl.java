@@ -24,6 +24,9 @@ package visad.collab;
 
 import java.rmi.RemoteException;
 
+import java.util.ArrayList;
+import java.util.ListIterator;
+
 import visad.AnimationControl;
 import visad.Control;
 import visad.ControlEvent;
@@ -51,21 +54,28 @@ import visad.VisADException;
 public class DisplayMonitorImpl
   implements DisplayMonitor
 {
+  private int nextListenerID = 0;
+
   /**
    * The name of this display monitor.
    */
   private String Name;
 
   /**
-   * The synchronization object for the monitored display
+   * The <TT>Display</TT> being monitored.
    */
-  private DisplaySync sync;
+  private DisplayImpl myDisplay;
 
   /**
    * The list of objects interested in changes to the monitored
    * <TT>Display</TT>.
    */
-  private transient MonitorBroadcaster broadcaster;
+  private ArrayList listeners;
+
+  /**
+   * The synchronization object for the monitored display
+   */
+  private DisplaySync sync;
 
   /**
    * Creates a monitor for the specified <TT>Display</TT>.
@@ -81,7 +91,10 @@ public class DisplayMonitorImpl
     Name = dpy.getName() + ":Mon";
 
     dpy.addDisplayListener(this);
-    broadcaster = new MonitorBroadcaster(dpy);
+
+    myDisplay = dpy;
+
+    listeners = new ArrayList();
   }
 
   /**
@@ -94,10 +107,13 @@ public class DisplayMonitorImpl
    * @exception VisADException If the listener <TT>Vector</TT>
    * 				is uninitialized.
    */
-  public void addListener(DisplayMonitorListener listener, int id)
-    throws VisADException
+  public void addListener(MonitorCallback listener, int id)
+    throws RemoteException, VisADException
   {
-    broadcaster.addListener(listener, id);
+    MonitorSyncer ms = new MonitorSyncer(myDisplay.getName(), listener, id);
+    synchronized (listeners) {
+      listeners.add(ms);
+    }
   }
 
   /**
@@ -113,7 +129,31 @@ public class DisplayMonitorImpl
   public void addRemoteListener(RemoteDisplay rd)
     throws RemoteException, RemoteVisADException
   {
-    broadcaster.addRemoteListener(rd);
+    RemoteDisplayMonitor rdm = rd.getRemoteDisplayMonitor();
+    final int id = negotiateUniqueID(rdm);
+
+    DisplaySyncImpl dsi = (DisplaySyncImpl )myDisplay.getDisplaySync();
+    RemoteDisplaySyncImpl wrap = new RemoteDisplaySyncImpl(dsi);
+    try {
+      rdm.addListener(wrap, id);
+    } catch (Exception e) {
+e.printStackTrace();
+      throw new RemoteVisADException("Couldn't make this object" +
+                                     " a listener for the remote display");
+    }
+
+    boolean unwind = false;
+    try {
+      addListener(rd.getRemoteDisplaySync(), id);
+    } catch (Exception e) {
+      unwind = true;
+    }
+
+    if (unwind) {
+      removeListener(wrap);
+      throw new RemoteVisADException("Couldn't add listener for the" +
+                                     " remote display to this object");
+    }
   }
 
   /**
@@ -124,7 +164,23 @@ public class DisplayMonitorImpl
    */
   public int checkID(int id)
   {
-    return broadcaster.checkID(id);
+    synchronized (listeners) {
+      boolean failed = true;
+      while (failed) {
+        failed = false;
+        ListIterator iter = listeners.listIterator();
+        while (iter.hasNext()) {
+          MonitorSyncer li = (MonitorSyncer )iter.next();
+          if (li.getID() == id) {
+            id = nextListenerID++;
+            failed = true;
+            break;
+          }
+        }
+      }
+    }
+
+    return id;
   }
 
   /**
@@ -137,7 +193,7 @@ public class DisplayMonitorImpl
   public void controlChanged(ControlEvent evt)
   {
     // don't bother if nobody's listening
-    if (!broadcaster.hasListeners()) {
+    if (!hasListeners()) {
       return;
     }
 
@@ -156,15 +212,7 @@ public class DisplayMonitorImpl
     }
 
     if (ctlEvt != null) {
-      try {
-        MonitorEvent rEvt = sync.removeEvent(ctlEvt);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-      } catch (RemoteVisADException rve) {
-        rve.printStackTrace();
-      }
-
-      broadcaster.notifyListeners(ctlEvt);
+      notifyListeners(ctlEvt);
     }
   }
 
@@ -177,7 +225,7 @@ public class DisplayMonitorImpl
   public void controlChanged(ScalarMapControlEvent evt)
   {
     // don't bother if nobody's listening
-    if (!broadcaster.hasListeners()) {
+    if (!hasListeners()) {
       return;
     }
 
@@ -209,7 +257,7 @@ public class DisplayMonitorImpl
   public void displayChanged(DisplayEvent evt)
   {
     // don't bother if nobody's listening
-    if (!broadcaster.hasListeners()) {
+    if (!hasListeners()) {
       return;
     }
 
@@ -237,25 +285,28 @@ public class DisplayMonitorImpl
         mapEvt = null;
       }
       if (mapEvt != null) {
-        broadcaster.notifyListeners(mapEvt);
+        notifyListeners(mapEvt);
       }
       break;
     case DisplayEvent.MAPS_CLEARED:
+      boolean sendClear;
       try {
-        if (!sync.isLocalClear()) {
-          break;
-        }
+        sendClear = sync.isLocalClear();
       } catch (RemoteException re) {
+        sendClear = false;
       }
 
-      try {
-        mapEvt = new MapMonitorEvent(MonitorEvent.MAPS_CLEARED, null);
-      } catch (VisADException ve) {
-        ve.printStackTrace();
-        mapEvt = null;
-      }
-      if (mapEvt != null) {
-        broadcaster.notifyListeners(mapEvt);
+      if (sendClear) {
+        try {
+          mapEvt = new MapMonitorEvent(MonitorEvent.MAPS_CLEARED, null);
+        } catch (VisADException ve) {
+          ve.printStackTrace();
+          mapEvt = null;
+        }
+
+        if (mapEvt != null) {
+          notifyListeners(mapEvt);
+        }
       }
       break;
     case DisplayEvent.REFERENCE_ADDED:
@@ -289,19 +340,31 @@ public class DisplayMonitorImpl
             refEvt = null;
           }
           if (refEvt != null) {
-            broadcaster.notifyListeners(refEvt);
+            notifyListeners(refEvt);
           }
         }
       }
       break;
 
     default:
-      System.err.println("DisplayMonitorImpl.displayChange: " + Name +
+      System.err.println("DisplayMonitorImpl.displayChanged: " + Name +
                          " got " + evt.getClass().getName() + " " + evt +
                          "=>" + evt.getDisplay());
       System.exit(1);
       break;
     }
+  }
+
+  /**
+   * Returns <TT>true</TT> if there is a <TT>MonitorEvent</TT>
+   * for the specified <TT>Control</TT> waiting to be delivered to
+   * any listener.
+   *
+   * @param ctl The <TT>Control</TT> being found.
+   */
+  public boolean hasEventQueued(Control ctl)
+  {
+    return hasEventQueued(0, ctl, true);
   }
 
   /**
@@ -314,7 +377,49 @@ public class DisplayMonitorImpl
    */
   public boolean hasEventQueued(int listenerID, Control ctl)
   {
-    return broadcaster.hasEventQueued(listenerID, ctl);
+    return hasEventQueued(listenerID, ctl, false);
+  }
+
+
+  /**
+   * Returns <TT>true</TT> if there is a <TT>MonitorEvent</TT>
+   * for the specified <TT>Control</TT> waiting to be delivered to the
+   * listener with the specified id.
+   *
+   * @param listenerID The identifier for the listener.
+   * @param ctl The <TT>Control</TT> being found.
+   * @param anyListener return <TT>true</TT> if there is a
+   *                    <TT>MonitorEvent</TT> queued for any
+   *                    listener.
+   */
+  private boolean hasEventQueued(int listenerID, Control ctl,
+                                 boolean anyListener)
+  {
+    boolean result = false;
+
+    synchronized (listeners) {
+      ListIterator iter = listeners.listIterator();
+      while (iter.hasNext()) {
+        MonitorSyncer li = (MonitorSyncer )iter.next();
+
+        if (anyListener || listenerID == li.getID()) {
+          result = li.hasControlEventQueued(ctl);
+          if (!anyListener || result) {
+            break;
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Returns <TT>true</TT> if there are listeners for this display.
+   */
+  private boolean hasListeners()
+  {
+    return (listeners.size() > 0);
   }
 
   /**
@@ -327,7 +432,7 @@ public class DisplayMonitorImpl
   public void mapChanged(ScalarMapEvent evt)
   {
     // don't bother if nobody's listening
-    if (!broadcaster.hasListeners()) {
+    if (!hasListeners()) {
       return;
     }
 
@@ -347,8 +452,47 @@ public class DisplayMonitorImpl
     }
 
     if (mapEvt != null) {
-      broadcaster.notifyListeners(mapEvt);
+      notifyListeners(mapEvt);
     }
+  }
+
+  /**
+   * Negotiates a listener identifier which is unique for both this
+   * <TT>DisplayMonitor</TT> and the remote <TT>DisplayMonitor</TT>.
+   *
+   * @param rdm The remote <TT>DisplayMonitor</TT> to negotiate with.
+   *
+   * @exception RemoteException If there was an RMI-related problem.
+   * @exception RemoteVisADException If negotiations failed to converge
+   * 					upon a common ID.
+   */
+  private int negotiateUniqueID(RemoteDisplayMonitor rdm)
+    throws RemoteException, RemoteVisADException
+  {
+    // maximum number of rounds of ID negotiation
+    final int MAX_ROUNDS = 20;
+
+    int rmtID;
+    synchronized (listeners) {
+      rmtID = nextListenerID++;
+    }
+
+    int id;
+    int round = 0;
+    do {
+      id = rmtID;
+      rmtID = rdm.checkID(id);
+      if (rmtID != id) {
+        id = checkID(rmtID);
+      }
+      round++;
+    } while (id != rmtID && round < MAX_ROUNDS);
+
+    if (round >= MAX_ROUNDS) {
+      throw new RemoteVisADException("ID negotiation failed");
+    }
+
+    return id;
   }
 
   /**
@@ -359,7 +503,48 @@ public class DisplayMonitorImpl
    */
   public void notifyListeners(MonitorEvent evt)
   {
-    broadcaster.notifyListeners(evt);
+    final int evtID = evt.getOriginator();
+
+    synchronized (listeners) {
+      ListIterator iter = listeners.listIterator();
+      while (iter.hasNext()) {
+        MonitorSyncer li = (MonitorSyncer )iter.next();
+
+        if (li.isDead()) {
+          // delete dead listeners
+          iter.remove();
+          continue;
+        }
+
+        if (evtID == li.getID()) {
+          // don't return event to its source
+          continue;
+        }
+
+        li.addEvent(evt);
+      }
+    }
+  }
+
+  /**
+   * Stops forwarding <TT>MonitorEvent</TT>s to the specified listener.
+   *
+   * @param l Listener to remove.
+   */
+  public void removeListener(MonitorCallback l)
+  {
+    if (l != null) {
+      synchronized (listeners) {
+        ListIterator iter = listeners.listIterator();
+        while (iter.hasNext()) {
+          MonitorSyncer li = (MonitorSyncer )iter.next();
+          if (li.getListener().equals(l)) {
+            iter.remove();
+            break;
+          }
+        }
+      }
+    }
   }
 
   /**

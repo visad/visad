@@ -24,6 +24,9 @@ package visad.collab;
 
 import java.rmi.RemoteException;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Vector;
@@ -39,20 +42,30 @@ import visad.RemoteVisADException;
 import visad.ScalarMap;
 import visad.VisADException;
 
+import visad.util.ThreadPool;
+
 public class DisplaySyncImpl
-  extends EventListener
-  implements DisplaySync
+  implements Comparator, DisplaySync, Runnable
 {
-  private DisplayMonitor monitor;
+  private String Name;
   private DisplayImpl myDisplay;
+  private DisplayMonitor monitor;
 
   private Object mapClearSync = new Object();
   private int mapClearCount = 0;
 
+  private boolean dead = false;
+
+  private Object tableLock = new Object();
+  private Thread thisThread = null;
+
+  private HashMap current = new HashMap();
+  private HashMap diverted = null;
+
   public DisplaySyncImpl(DisplayImpl dpy)
     throws RemoteException
   {
-    super(dpy.getName() + ":Sync");
+    Name = dpy.getName() + ":Sync";
     myDisplay = dpy;
     monitor = dpy.getDisplayMonitor();
     monitor.setDisplaySync(this);
@@ -133,6 +146,12 @@ public class DisplaySyncImpl
     }
   }
 
+  public int compare(Object o1, Object o2)
+  {
+    return (((MonitorEvent )o1).getSequenceNumber() -
+            ((MonitorEvent )o2).getSequenceNumber());
+  }
+
   /**
    * Finds the first map associated with this <TT>Display</TT>
    * which matches the specified <TT>ScalarMap</TT>.
@@ -166,42 +185,76 @@ public class DisplaySyncImpl
   }
 
   /**
-   * Attempt to deliver the queued events.
-   *
-   * @exception RemoteException If a connection could not be made to the
-   * 					remote listener.
+   * Start event callback.
    */
-  void deliverEventTable(EventTable tbl)
-    throws RemoteException
+  public void eventReady(RemoteEventProvider provider, Object key)
   {
-    MonitorEventTable mTable = (MonitorEventTable )tbl;
-
-    // deliver events
-    Iterator iter = mTable.keyIterator();
-    while (iter.hasNext()) {
-      Object key = iter.next();
-
-      MonitorEvent evt = (MonitorEvent )mTable.remove(key);
-      if (evt == null) {
-        System.err.println("Skipping null event for key " + key);
-        continue;
-      }
-
-      try {
-        deliverOneEvent(evt);
-      } catch (RemoteException re) {
-        // restore failed event to table
-        mTable.restore(key, evt);
-        // let caller handle RemoteExceptions
-        throw re;
-      } catch (Throwable t) {
-        // whine loudly about all other Exceptions
-        t.printStackTrace();
+    synchronized (tableLock) {
+      if (thisThread != null) {
+        if (diverted == null) {
+          diverted = new HashMap();
+        }
+        diverted.put(key, provider);
+      } else {
+        current.put(key, provider);
+        thisThread = new Thread(this);
+        thisThread.start();
       }
     }
   }
 
-  private void deliverOneEvent(MonitorEvent evt)
+  public String getName() { return Name; }
+
+  public boolean isLocalClear()
+  {
+    boolean result = true;
+    synchronized (mapClearSync) {
+      if (mapClearCount > 0) {
+        mapClearCount--;
+        result = false;
+      }
+    }
+
+    return result;
+  }
+
+  public boolean isThreadRunning()
+  {
+    return (thisThread != null);
+  }
+
+  private void processMap(HashMap map)
+  {
+    MonitorEvent[] list = new MonitorEvent[map.size()];
+
+    // build the array of events
+    Iterator iter = map.keySet().iterator();
+    for (int i = list.length - 1; i >= 0; i--) {
+      if (iter.hasNext()) {
+        String key = (String )iter.next();
+        list[i] = (MonitorEvent )map.get(key);
+      } else {
+        list[i] = null;
+      }
+    }
+
+    // sort events by order of creation
+    Arrays.sort(list, this);
+
+    for (int i = 0; i < list.length; i++) {
+      try {
+        processOneEvent(list[i]);
+      } catch (RemoteException re) {
+        System.err.println("While processing " + list[i] + ":");
+        re.printStackTrace();
+      } catch (RemoteVisADException rve) {
+        System.err.println("While processing " + list[i] + ":");
+        rve.printStackTrace();
+      }
+    }
+  }
+
+  private void processOneEvent(MonitorEvent evt)
     throws RemoteException, RemoteVisADException
   {
     Control lclCtl, rmtCtl;
@@ -217,9 +270,6 @@ public class DisplaySyncImpl
         if (!myDisplay.getRendererVector().isEmpty()) {
           System.err.println("Late addMap: " + rmtMap);
         } else {
-          // forward to any listeners
-          monitor.notifyListeners(evt);
-
           try {
             myDisplay.addMap(rmtMap);
           } catch (VisADException ve) {
@@ -231,9 +281,6 @@ public class DisplaySyncImpl
       }
       break;
     case MonitorEvent.MAP_CHANGED:
-      // forward to any listeners
-      monitor.notifyListeners(evt);
-
       rmtMap = ((MapMonitorEvent )evt).getMap();
       lclMap = findMap(rmtMap);
       if (lclMap == null) {
@@ -251,9 +298,6 @@ public class DisplaySyncImpl
       }
       break;
     case MonitorEvent.MAPS_CLEARED:
-      // forward to any listeners
-      monitor.notifyListeners(evt);
-
       try {
         myDisplay.removeAllReferences();
         myDisplay.clearMaps();
@@ -265,9 +309,6 @@ public class DisplaySyncImpl
       }
       break;
     case MonitorEvent.REFERENCE_ADDED:
-      // forward to any listeners
-      monitor.notifyListeners(evt);
-
       RemoteReferenceLink ref = ((ReferenceMonitorEvent )evt).getLink();
       try {
         addLink(ref);
@@ -316,9 +357,6 @@ public class DisplaySyncImpl
                                            " not changed by " + Name + ": " +
                                            ve.getMessage());
           }
-
-          // forward to any listeners
-          monitor.notifyListeners(evt);
         }
       }
 
@@ -328,24 +366,47 @@ public class DisplaySyncImpl
     }
   }
 
-  EventTable getNewEventTable() { return new MonitorEventTable(Name); }
-
-  public boolean isLocalClear()
+  private HashMap requestEventTable(HashMap table)
+    throws RemoteException
   {
-    boolean result = true;
-    synchronized (mapClearSync) {
-      if (mapClearCount > 0) {
-        mapClearCount--;
-        result = false;
+    HashMap map = null;
+
+    Iterator iter = table.keySet().iterator();
+    while (iter.hasNext()) {
+      String key = (String )iter.next();
+      RemoteEventProvider provider = (RemoteEventProvider )table.get(key);
+      iter.remove();
+
+      MonitorEvent evt = requestOneEvent(key, provider);
+      if (evt != null) {
+        if (map == null) {
+          map = new HashMap();
+        }
+        map.put(key, evt);
       }
     }
 
-    return result;
+    return map;
   }
 
-  public void stateChanged(MonitorEvent evt)
-    throws RemoteException, RemoteVisADException
+  private MonitorEvent requestOneEvent(String key,
+                                       RemoteEventProvider provider)
+    throws RemoteException
   {
+    // get the event
+    MonitorEvent evt;
+    try {
+      evt = provider.getEvent(key);
+    } catch (RemoteVisADException rve) {
+      rve.printStackTrace();
+      throw new RemoteException(rve.getMessage());
+    }
+
+    if (evt == null) {
+      // if it's already been picked up, we're done
+      return null;
+    }
+
     switch (evt.getType()) {
     case MonitorEvent.MAPS_CLEARED:
       synchronized (mapClearSync) {
@@ -353,15 +414,97 @@ public class DisplaySyncImpl
       }
       break;
     case MonitorEvent.CONTROL_CHANGED:
-      if (monitor.hasEventQueued(evt.getOriginator(),
-                                 ((ControlMonitorEvent )evt).getControl()))
-      {
+      boolean result;
+      try {
+        result = monitor.hasEventQueued(evt.getOriginator(),
+                                        ((ControlMonitorEvent )evt).getControl());
+      } catch (RemoteException re) {
+        re.printStackTrace();
+        result = false;
+      }
+
+      if (result) {
         // drop this event since we're about to override it
-        return;
+        return null;
       }
       break;
     }
 
-    addEvent(evt);
+    return evt;
+  }
+
+  /**
+   * Requests events from the remote provider(s).
+   */
+  public void run()
+  {
+    HashMap map = null;
+
+    boolean done = false;
+    try {
+
+      int attempts = 0;
+      while (!done) {
+        HashMap newMap;
+        try {
+          newMap = requestEventTable(current);
+          done = true;
+        } catch (RemoteException re) {
+          if (attempts++ < 10) {
+            // wait a bit, then try again to request the events
+            try { Thread.sleep(500); } catch (InterruptedException ie) { }
+            newMap = null;
+          } else {
+            // if we failed to connect for 10 times, give up
+            dead = true;
+            break;
+          }
+        }
+
+        if (map == null) {
+          map = newMap;
+        } else if (newMap != null) {
+          map.putAll(newMap);
+        }
+
+        if (done) {
+          synchronized (tableLock) {
+            if (!undivertEvents()) {
+              break;
+            }
+
+            done = false;
+          }
+        }
+      }
+    } finally {
+
+      if (map != null) {
+        processMap(map);
+      }
+
+      // indicate that the thread has exited
+      synchronized (tableLock) {
+        thisThread = null;
+      }
+    }
+  }
+
+  /**
+   * Returns <TT>true</TT> if there were diverted requests.
+   */
+  private boolean undivertEvents()
+  {
+    final boolean undivert;
+    synchronized (tableLock) {
+      // if there are events queued, restore them to the main table
+      undivert = (diverted != null);
+      if (undivert) {
+        current = diverted;
+        diverted = null;
+      }
+    }
+
+    return undivert;
   }
 }

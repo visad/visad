@@ -31,10 +31,8 @@ import visad.RemoteVisADException;
  * a <CODE>Display</CODE> with one or more <CODE>RemoteDisplay</CODE>s.
  */
 public interface DisplaySync
-  extends DisplayMonitorListener
+  extends MonitorCallback
 {
   boolean isLocalClear()
     throws RemoteException;
-  MonitorEvent removeEvent(MonitorEvent evt)
-    throws RemoteException, RemoteVisADException;
 }

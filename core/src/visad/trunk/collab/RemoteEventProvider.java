@@ -25,12 +25,11 @@ package visad.collab;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-/**
- * <CODE>RemoteDisplaySync</CODE> is the interface for stubs which are
- * exported to <CODE>RemoteDisplay</CODE>s and used to send back events
- * used for synchronization.
- */
-public interface RemoteDisplaySync
-  extends DisplaySync, Remote
+import visad.RemoteVisADException;
+
+public interface RemoteEventProvider
+  extends Remote
 {
+  MonitorEvent getEvent(Object key)
+    throws RemoteException, RemoteVisADException;
 }

@@ -145,7 +145,7 @@ public class RemoteDisplayMonitorImpl
    * @exception RemoteException If there was an RMI-related problem.
    * @exception RemoteVisADException If there was an internal problem.
    */
-  public void addListener(DisplayMonitorListener l, int id)
+  public void addListener(MonitorCallback l, int id)
     throws RemoteException, RemoteVisADException
   {
     if (AdaptedMonitor == null) {
@@ -197,6 +197,19 @@ public class RemoteDisplayMonitorImpl
    * @exception RemoteException <B>ALWAYS</B> thrown.
    */
   public boolean hasEventQueued(int originator, Control ctl)
+    throws RemoteException
+  {
+    throw new RemoteException("Unimplemented");
+  }
+
+  /**
+   * Unusable stub.  Unimplemented.
+   *
+   * @param ctl Ignored.
+   *
+   * @exception RemoteException <B>ALWAYS</B> thrown.
+   */
+  public boolean hasEventQueued(Control ctl)
     throws RemoteException
   {
     throw new RemoteException("Unimplemented");
