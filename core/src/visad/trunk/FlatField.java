@@ -3481,12 +3481,18 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       (error_mode == NO_ERRORS) ? new ErrorEstimate[dim] : set.getSetErrors();
 
     // create (initially missing) FlatField for return
-    // use DoubleSet rather than RangeSet for intermediate computation results
     Set[] sets = new Set[TupleDimension];
     for (int i=0; i<TupleDimension; i++) {
       SetType set_type =
         new SetType(((FunctionType) Type).getFlatRange().getComponent(i));
-      sets[i] = new DoubleSet(set_type);
+      // WLH 26 Nov 2001
+      // sets[i] = new DoubleSet(set_type);
+      if (sampling_mode == Data.NEAREST_NEIGHBOR) {
+        sets[i] = RangeSet[i];
+      }
+      else {
+        sets[i] = new FloatSet(set_type);
+      }
     }
 
     // WLH 30 April 99
