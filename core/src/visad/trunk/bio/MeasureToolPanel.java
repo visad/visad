@@ -42,6 +42,8 @@ import visad.util.Util;
  */
 public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
+  // -- CONSTANTS --
+
   /** List of colors for drop-down color box. */
   private static final Color[] COLORS = {
     Color.white, Color.lightGray, Color.gray, Color.darkGray, Color.black,
@@ -53,13 +55,17 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   private static final String INFO_LABEL =
     "   (000.000, 000.000)-(000.000, 000.000): distance=000.000";
 
+
+  // -- GLOBAL VARIABLES --
+
   /** First free id number for standard measurements. */
   static int maxId = 0;
 
 
-  /** File chooser for loading and saving data. */
-  JFileChooser fileBox = Util.getVisADFileChooser();
+  // -- FIELDS --
 
+  /** File chooser for loading and saving data. */
+  private JFileChooser fileBox = Util.getVisADFileChooser();
 
   /** New group dialog box. */
   private GroupDialog groupBox = new GroupDialog();
@@ -71,7 +77,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   private CellImpl cell;
 
   /** Flag marking whether to ignore next set standard checkbox toggle. */
-  boolean ignoreNextStandard = false;
+  private boolean ignoreNextStandard = false;
 
   /** Flag marking whether to ignore group list changes. */
   private boolean ignoreGroup = false;
@@ -235,8 +241,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     addLine = new JButton("New line");
     addLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        MeasureList list = getList();
-        if (list != null) list.addMeasurement();
+        bio.getList().addMeasurement();
       }
     });
     addLine.setEnabled(false);
@@ -247,8 +252,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     addMarker = new JButton("New marker");
     addMarker.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        MeasureList list = getList();
-        if (list != null) list.addMeasurement(true);
+        bio.getList().addMeasurement(1);
       }
     });
     addMarker.setEnabled(false);
@@ -272,7 +276,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
           if (thing != null) {
             Measurement m = thing.getMeasurement();
             double[][] vals = m.doubleValues();
-            if (thing instanceof MeasureLine) {
+            if (thing.getLength() == 2) {
               String v1x = Convert.shortString(vals[0][0]);
               String v1y = Convert.shortString(vals[1][0]);
               String v2x = Convert.shortString(vals[0][1]);
@@ -308,16 +312,16 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         }
         boolean std = setStandard.isSelected();
         Measurement m = thing.getMeasurement();
-        int index = bio.horiz.getValue() - 1;
-        int slice = bio.vert.getValue() - 1;
+        int index = bio.getIndex();
+        int slice = bio.getSlice();
         if (std) {
           // set standard
           m.stdId = maxId++;
-          MeasureList[][] lists = bio.matrix.getMeasureLists();
-          for (int j=0; j<lists.length; j++) {
-            for (int i=0; i<lists[j].length; i++) {
+          int numSlices = bio.getNumberOfSlices();
+          for (int j=0; j<bio.lists.length; j++) {
+            for (int i=0; i<numSlices; i++) {
               if (j == index && i == slice) continue;
-              lists[j][i].addMeasurement((Measurement) m.clone(), false);
+              bio.lists[j].addMeasurement(new Measurement(m, i), true);
             }
           }
         }
@@ -333,24 +337,15 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
           }
           int stdId = m.stdId;
           m.stdId = -1;
-          MeasureList[][] lists = bio.matrix.getMeasureLists();
-          for (int j=0; j<lists.length; j++) {
-            for (int i=0; i<lists[j].length; i++) {
-              if (j == index && i == slice) continue;
-              Measurement[] mlist = lists[j][i].getMeasurements();
-              for (int k=0; k<mlist.length; k++) {
-                if (mlist[k].stdId == stdId) {
-                  lists[j][i].removeMeasurement(mlist[k], false);
-                  break;
-                }
+          for (int j=0; j<bio.lists.length; j++) {
+            Measurement[] mlist = bio.lists[j].getMeasurements();
+            for (int k=0; k<mlist.length; k++) {
+              if (mlist[k].stdId == stdId) {
+                bio.lists[j].removeMeasurement(mlist[k], true);
               }
             }
           }
         }
-      }
-    });
-    setStandard.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
       }
     });
     setStandard.setEnabled(false);
@@ -361,7 +356,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     removeThing = new JButton("Remove");
     removeThing.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        getList().removeMeasurement(thing.getMeasurement());
+        bio.getList().removeMeasurement(thing.getMeasurement());
       }
     });
     removeThing.setEnabled(false);
@@ -381,11 +376,8 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     colorList.setRenderer(new ColorRenderer());
     colorList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        if (thing instanceof MeasureLine) {
-          MeasureLine line = (MeasureLine) thing;
-          int index = colorList.getSelectedIndex();
-          line.setColor(COLORS[index]);
-        }
+        int index = colorList.getSelectedIndex();
+        thing.setColor(COLORS[index]);
       }
     });
     colorList.setEnabled(false);
@@ -402,7 +394,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
     // group list
     groupList = new JComboBox();
-    groupList.addItem(new MeasureGroup("NONE"));
+    groupList.addItem(new MeasureGroup(bio, "NONE"));
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         if (ignoreGroup) return;
@@ -421,7 +413,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         int rval = groupBox.showDialog(null);
         if (rval == GroupDialog.APPROVE_OPTION) {
           String name = groupBox.getGroupName();
-          MeasureGroup group = new MeasureGroup(name);
+          MeasureGroup group = new MeasureGroup(bio, name);
           groupList.addItem(group);
           groupList.setSelectedItem(group);
         }
@@ -462,16 +454,11 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     addMarker.setEnabled(enabled);
   }
 
-  /** Updates the tool panel's contents. */
-  public void update() {
-    // CTR: TODO: MeasureToolPanel.update()
-  }
-
   /** Selects the given measurement object. */
   public void select(MeasureThing thing) {
     this.thing = thing;
     boolean enabled = thing != null;
-    boolean line = thing instanceof MeasureLine;
+    boolean line = enabled && thing.getLength() == 2;
     setStandard.setEnabled(enabled);
     removeThing.setEnabled(enabled);
     colorLabel.setEnabled(enabled && line);
@@ -493,8 +480,8 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
         cell.disableAction();
         cell.removeAllReferences();
         if (enabled) {
-          DataReference[] refs = thing.getReferences();
-          for (int i=0; i<refs.length; i++) cell.addReference(refs[i]);
+          PoolPoint[] pts = thing.getPoints();
+          for (int i=0; i<pts.length; i++) cell.addReference(pts[i].ref);
         }
         cell.enableAction();
         if (!enabled) cell.doAction();
@@ -526,11 +513,11 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     final boolean fmicrons = microns;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        bio.setWaitCursor(true);
         // get file name from file dialog
         fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
         if (fileBox.showOpenDialog(bio) != JFileChooser.APPROVE_OPTION) {
-          setCursor(Cursor.getDefaultCursor());
+          bio.setWaitCursor(false);
           return;
         }
       
@@ -540,7 +527,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
           JOptionPane.showMessageDialog(bio,
             f.getName() + " does not exist", "Cannot load file",
             JOptionPane.ERROR_MESSAGE);
-          setCursor(Cursor.getDefaultCursor());
+          bio.setWaitCursor(false);
           return;
         }
       
@@ -550,13 +537,13 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
           if (fmicrons) {
             double mpp = measureTools.getMicronsPerPixel();
             double sd = measureTools.getSliceDistance();
-            mdf.readMatrix(bio.matrix, mpp, sd);
+            bio.lists = mdf.read(mpp, sd);
           }
-          else mdf.readMatrix(bio.matrix);
+          else bio.lists = mdf.read();
         }
         catch (IOException exc) { exc.printStackTrace(); }
         catch (VisADException exc) { exc.printStackTrace(); }
-        setCursor(Cursor.getDefaultCursor());
+        bio.setWaitCursor(false);
       }
     });
   }
@@ -567,11 +554,11 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     final boolean fmicrons = microns;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        bio.setWaitCursor(true);
         // get file name from file dialog
         fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
         if (fileBox.showSaveDialog(bio) != JFileChooser.APPROVE_OPTION) {
-          setCursor(Cursor.getDefaultCursor());
+          bio.setWaitCursor(false);
           return;
         }
     
@@ -582,12 +569,12 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
           if (fmicrons) {
             double mpp = measureTools.getMicronsPerPixel();
             double sd = measureTools.getSliceDistance();
-            mdf.writeMatrix(bio.matrix, mpp, sd);
+            mdf.write(bio.lists, mpp, sd);
           }
-          else mdf.writeMatrix(bio.matrix);
+          else mdf.write(bio.lists);
         }
         catch (IOException exc) { exc.printStackTrace(); }
-        setCursor(Cursor.getDefaultCursor());
+        bio.setWaitCursor(false);
       }
     });
   }
@@ -596,9 +583,9 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   void updateGroupList() {
     ignoreGroup = true;
     groupList.removeAllItems();
-    int size = MeasureGroup.groups.size();
+    int size = bio.groups.size();
     for (int i=0; i<size; i++) {
-      MeasureGroup group = (MeasureGroup) MeasureGroup.groups.elementAt(i);
+      MeasureGroup group = (MeasureGroup) bio.groups.elementAt(i);
       groupList.addItem(group);
     }
     ignoreGroup = false;
@@ -627,7 +614,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     if (thing != null) {
       Measurement m = thing.getMeasurement();
       double[][] vals = m.doubleValues();
-      if (thing instanceof MeasureLine) {
+      if (thing.getLength() == 2) {
         String v1x = Convert.shortString(vals[0][0]);
         String v1y = Convert.shortString(vals[1][0]);
         String v2x = Convert.shortString(vals[0][1]);
@@ -645,13 +632,6 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
       for (int i=0; i<space; i++) text = " " + text + " ";
     }
     measureInfo.setText("   " + text);
-  }
-
-  /** Gets the current measurement list from the slider widgets. */
-  private MeasureList getList() {
-    int index = bio.horiz.getValue() - 1;
-    int slice = bio.vert.getValue() - 1;
-    return bio.matrix.getMeasureList(index, slice);
   }
 
 }

@@ -33,238 +33,120 @@ import visad.java2d.*;
 import visad.java3d.*;
 
 /**
- * MeasureThing maintains a collection of endpoints
- * for measuring distances in a field.
+ * MeasureThing maintains a collection of line-connected
+ * points for measuring distances in a field.
  */
-public abstract class MeasureThing {
+public class MeasureThing {
+
+  // -- FIELDS --
 
   /** Associated display. */
-  protected DisplayImpl display;
-
-  /** Associated data renderers. */
-  protected DataRenderer[] renderers;
-
-  /** Associated data references. */
-  protected DataReferenceImpl[] refs;
-
-  /** Flag marking visibility. */
-  protected boolean visible;
+  protected MeasurePool pool;
 
   /** Associated measurement. */
   protected Measurement m;
 
+  /** Associated measurement pool points. */
+  protected PoolPoint[] pts;
+
   /** Cell that ties endpoint values to measurement values. */
   protected CellImpl cell;
 
-  /** Domain type. */
-  protected RealTupleType dtype;
 
-  /** Domain component type for each endpoint. */
-  protected RealType[] ptypes;
-
-  /** Endpoint values. */
-  protected RealTuple[] values;
-
-  /** Number of endpoints. */
-  protected int len;
-
-  /** Dimensionality of endpoints. */
-  protected int dim;
-
-  /** Synchronization object for data references. */
-  protected Object dataLock = new Object();
+  // -- CONSTRUCTOR --
 
   /** Constructs a MeasureThing. */
-  public MeasureThing(int length, int dimension)
-    throws VisADException, RemoteException
-  {
-    this.len = length;
-    this.dim = dimension;
-    refs = new DataReferenceImpl[len];
-    visible = true;
-    values = new RealTuple[len];
+  public MeasureThing(MeasurePool pool, Measurement mm) {
+    this.pool = pool;
+    this.m = mm;
+    pts = pool.lease(this);
+    m.addThing(this);
+
+    // cell for updating Measurement whenever endpoints change
+    final int dim = pool.getDimension();
     cell = new CellImpl() {
       public void doAction() {
-        if (m != null) {
-          synchronized (dataLock) {
-            for (int i=0; i<len; i++) {
-              values[i] = (RealTuple) refs[i].getData();
+        RealTuple[] values = new RealTuple[pts.length];
+        for (int i=0; i<pts.length; i++) {
+          values[i] = (RealTuple) pts[i].ref.getData();
+          if (values[i] == null) return;
+        }
+        if (dim == 2) values = BioVisAD.copy(values);
+        else {
+          // snap measurement endpoints to nearest slice plane
+          try {
+            for (int i=0; i<values.length; i++) {
+              Real[] reals = values[i].getRealComponents();
+              for (int j=0; j<reals.length-1; j++) {
+                reals[j] = (Real) reals[j].clone();
+              }
+              Real r = reals[reals.length - 1];
+              reals[reals.length - 1] = new Real((RealType) r.getType(),
+                Math.round(r.getValue()), r.getUnit(), r.getError());
+              values[i] = new RealTuple(reals);
             }
           }
-          RealTuple[] vals = new RealTuple[values.length];
-          System.arraycopy(values, 0, vals, 0, values.length);
-          m.setValues(vals);
+          catch (VisADException exc) { exc.printStackTrace(); }
+          catch (RemoteException exc) { exc.printStackTrace(); }
         }
+        m.setValues(values);
       }
     };
     cell.disableAction();
-    for (int i=0; i<len; i++) {
-      refs[i] = new DataReferenceImpl("p" + i);
-      cell.addReference(refs[i]);
-    }
+    try { for (int i=0; i<pts.length; i++) cell.addReference(pts[i].ref); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
     cell.enableAction();
   }
 
-  /**
-   * Adds the given data reference to the specified display
-   * using a direct manipulation renderer.
-   */
-  public static DataRenderer addDirectManipRef(DisplayImpl d,
-    DataReferenceImpl ref) throws VisADException, RemoteException
-  {
-    DataRenderer renderer = d instanceof DisplayImplJ3D ?
-      (DataRenderer) new DirectManipulationRendererJ3D() :
-      (DataRenderer) new DirectManipulationRendererJ2D();
-    d.addReferences(renderer, new DataReference[] {ref}, null);
-    return renderer;
-  }
 
-  /** Adds the distance measuring data to the given display. */
-  public abstract void setDisplay(DisplayImpl d)
-    throws VisADException, RemoteException;
+  // -- API METHODS --
 
   /** Sets the color. */
-  public abstract void setColor(Color color);
+  public void setColor(Color color) { m.setColor(color); }
 
   /** Sets the group. */
-  public void setGroup(MeasureGroup group) {
-    if (m != null) m.setGroup(group);
-  }
+  public void setGroup(MeasureGroup group) { m.setGroup(group); }
 
-  /** Shows or hides the endpoints. */
-  protected void setVisible(boolean visible) {
-    if (this.visible == visible) return;
-    this.visible = visible;
-    if (renderers != null) {
-      for (int i=0; i<renderers.length; i++) renderers[i].toggle(visible);
-    }
-  }
-
-  /** Hides the endpoints. */
-  public void hide() { setMeasurement(null); }
-
-  /** Initializes the MathType. */
-  public void setType(RealTupleType domain)
-    throws VisADException, RemoteException
-  {
-    setType(domain, true);
-  }
-
-  private void setType(RealTupleType domain, boolean fillVals)
-    throws VisADException, RemoteException
-  {
-    dtype = domain;
-    ptypes = new RealType[dim];
-    for (int i=0; i<dim; i++) ptypes[i] = (RealType) domain.getComponent(i);
-    if (fillVals) {
-      Real[] r = new Real[dim];
-      for (int i=0; i<dim; i++) r[i] = new Real(ptypes[i], Double.NaN);
-      RealTuple tuple = new RealTuple(r);
-      RealTuple[] vals = new RealTuple[len];
-      for (int i=0; i<len; i++) vals[i] = tuple;
-      setValues(vals, false);
-    }
-  }
-
-  /** Links the given measurement. */
-  public void setMeasurement(Measurement m) {
-    if (this.m != m && this.m != null) this.m.removeThing(this);
-    if (m != null) m.addThing(this);
-    this.m = m;
-    refresh();
-  }
+  /**
+   * Terminates this measurement object's measurement, causing all linked
+   * measurement objects to return their points to the measurement pool.
+   */
+  public void kill() { m.kill(); }
 
   /** Updates the endpoint values to match the linked measurement. */
   public void refresh() {
-    if (m == null) setVisible(false);
+    if (m.killed) pool.release(this);
     else {
-      double[][] values = m.doubleValues();
-      double[][] vals = new double[dim][len];
-      int size = values.length < dim ? values.length : dim;
-      for (int i=0; i<size; i++) {
-        System.arraycopy(values[i], 0, vals[i], 0, len);
-      }
-      setValues(vals);
-      setColor(m.getColor());
-      setVisible(true);
-    }
-  }
-
-  /** Sets the values of the endpoints. */
-  public void setValues(double[][] vals) {
-    if (vals.length != dim) {
-      System.err.println("MeasureThing.setValues: invalid dimension");
-      return;
-    }
-    for (int i=0; i<dim; i++) {
-      if (vals[i].length != len) {
-        System.err.println("MeasureThing.setValues: invalid length");
-        return;
-      }
-    }
-    Real[][] reals = new Real[len][dim];
-    try {
-      RealTuple[] tuples = new RealTuple[len];
-      for (int j=0; j<len; j++) {
-        for (int i=0; i<dim; i++) {
-          reals[j][i] = new Real(ptypes[i], vals[i][j]);
-        }
-        tuples[j] = new RealTuple(reals[j]);
-      }
-      setValues(tuples, false);
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-  }
-
-  /** Sets the values of the endpoints to match the given RealTuples. */
-  public void setValues(RealTuple[] v) { setValues(v, true); }
-
-  protected void setValues(RealTuple[] v, boolean getTypes) {
-    if (v.length != len) {
-      System.err.println("MeasureThing.setValues: invalid length");
-      return;
-    }
-
-    // verify that new data is distinct from old data
-    boolean equal = true;
-    for (int i=0; i<len; i++) {
-      if (!v[i].equals(values[i])) {
-        equal = false;
-        break;
-      }
-    }
-    if (equal) return;
-
-    try {
-      if (getTypes) setType((RealTupleType) v[0].getType(), false);
-      cell.disableAction();
-      synchronized (dataLock) {
-        for (int i=0; i<len; i++) {
-          int vdim = v[i].getDimension();
-          if (vdim != dim) {
-            System.err.println("MeasureThing.setValues: " +
-              "dimension doesn't match (" + vdim + " != " + dim + ")");
-          }
-          refs[i].setData(v[i]);
+      RealTuple[] values = BioVisAD.copy(m.getValues());
+      try {
+        int dim = pool.getDimension();
+        int slice = pool.getSlice();
+        for (int i=0; i<values.length; i++) {
+          // for 2-D, toggle point on only if slice matches
+          double[] s = values[i].getValues();
+          pts[i].toggle(dim != 2 || s[2] == slice);
+          pts[i].ref.setData(values[i]);
         }
       }
-      cell.enableAction();
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
     }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
   /** Gets the associated measurement. */
   public Measurement getMeasurement() { return m; }
 
-  /** Gets the values of the endpoints. */
-  public RealTuple[] getValues() { return values; }
+  /** Gets the measurement color. */
+  public Color getColor() { return m.getColor(); }
 
-  /** Gets the domain type for the values. */
-  public RealTupleType getDomain() { return dtype; }
+  /** Gets the number of endpoints. */
+  public int getLength() { return m.getLength(); }
 
   /** Gets the data references for the measurement. */
-  public DataReference[] getReferences() { return refs; }
+  public PoolPoint[] getPoints() { return pts; }
+
+  /** Gets the endpoint values. */
+  public RealTuple[] getValues() { return m.getValues(); }
 
 }

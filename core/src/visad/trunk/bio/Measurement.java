@@ -31,14 +31,18 @@ import java.rmi.RemoteException;
 import java.util.Vector;
 import javax.swing.SwingUtilities;
 import visad.*;
+import visad.util.Util;
 
 /**
- * Measurement represents the values of a measurement line or point.
+ * A Measurement object represents the values of one measurement (a collection
+ * of points forming a single point, line, or higher vertex shape).
  * One Measurement object can be shared by multiple MeasureThings
- * (multiple Displays), and all displays will be updated when any one
- * changes, or when the Measurement is changed directly.
+ * (i.e., multiple displays), and all MeasureThings will be updated when
+ * any one changes, or when the Measurement is changed directly.
  */
 public class Measurement {
+
+  // -- FIELDS --
 
   /** Endpoint values of the measurement. */
   protected RealTuple[] values;
@@ -55,10 +59,24 @@ public class Measurement {
   /** ID for "standard" measurement. */
   int stdId = -1;
 
+  /** Flag marking whether measurement has been deleted. */
+  boolean killed = false;
+
+
+  // -- CONSTRUCTORS --
 
   /** Constructs a measurement. */
   public Measurement(RealTuple[] values) {
     this(values, Color.white, null);
+  }
+
+  /**
+   * Constructs a measurement equal to the given measurement,
+   * except for its Z-slice value, which is set equal to the specified value.
+   */
+  public Measurement(Measurement m, int slice) {
+    this(BioVisAD.copy(m.values, slice), m.color, m.group);
+    stdId = m.stdId;
   }
 
   /** Constructs a measurement with associated color and measurement group. */
@@ -69,31 +87,88 @@ public class Measurement {
     this.group = group;
   }
 
+
+  // -- API METHODS --
+
   /** Sets the measurement endpoint values. */
   public void setValues(RealTuple[] values) {
-    if (values.length != this.values.length) {
-      System.err.println("Warning: measurement lengths don't match");
-      return;
-    }
-
-    // extract endpoint values from RealTuples
-    double[][] new_vals = doubleValues(values);
-    double[][] old_vals = doubleValues(this.values);
-    int len = values.length;
-    int dim = new_vals.length;
-    if (dim != old_vals.length) {
-      System.err.println("Warning: measurement dimensions don't match");
-      return;
-    }
+    if (Util.arraysEqual(this.values, values)) return;
     this.values = values;
-
     refreshThings();
   }
+
+  /** Sets the measurement line color. */
+  public void setColor(Color color) {
+    if (this.color.equals(color)) return;
+    this.color = color;
+    refreshThings();
+  }
+
+  /** Deletes this measurement. */
+  public void kill() {
+    if (killed) return;
+    killed = true;
+    refreshThings();
+  }
+
+  /** Sets the measurement group. */
+  public void setGroup(MeasureGroup group) { this.group = group; }
+
+  /** Gets number of endpoints in this measurement. */
+  public int getLength() { return values.length; }
+
+  /** Gets dimensionality of each endpoint in this measurement. */
+  public int getDimension() { return values[0].getDimension(); }
+
+  /** Gets the measurement endpoint values. */
+  public RealTuple[] getValues() { return values; }
+
+  /** Gets the current distance between the endpoints. */
+  public double getDistance() {
+    double[][] vals = doubleValues();
+    double sum = 0;
+    for (int i=0; i<vals.length; i++) {
+      double distance = vals[i][1] - vals[i][0];
+      sum += distance * distance;
+    }
+    return Math.sqrt(sum);
+  }
+
+  /** Gets the current endpoint values as an array of doubles. */
+  public double[][] doubleValues() {
+    int len = values.length;
+    if (len < 1) return null;
+    for (int i=0; i<len; i++) if (values[i] == null) return null;
+
+    int dim = values[0].getDimension();
+    double[][] vals = new double[dim][len];
+    try {
+      for (int i=0; i<dim; i++) {
+        for (int j=0; j<len; j++) {
+          Real r = (Real) values[j].getComponent(i);
+          vals[i][j] = r.getValue();
+        }
+      }
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+    return vals;
+  }
+
+  /** Gets the measurement line color. */
+  public Color getColor() { return color; }
+
+  /** Gets the measurement group. */
+  public MeasureGroup getGroup() { return group; }
+
+
+  // -- INTERNAL API METHODS --
 
   /** Links the given MeasureThing to the measurement. */
   void addThing(MeasureThing thing) {
     synchronized (things) {
       things.add(thing);
+      thing.refresh();
     }
   }
 
@@ -122,80 +197,6 @@ public class Measurement {
         }
       });
     }
-  }
-
-  /** Sets the measurement group. */
-  public void setGroup(MeasureGroup group) { this.group = group; }
-
-  /** Sets the measurement line color. */
-  public void setColor(Color color) {
-    if (this.color.equals(color)) return;
-    this.color = color;
-    refreshThings();
-  }
-
-  /** Gets the measurement endpoint values. */
-  public RealTuple[] getValues() { return values; }
-
-  /** Gets the measurement group. */
-  public MeasureGroup getGroup() { return group; }
-
-  /** Gets the measurement line color. */
-  public Color getColor() { return color; }
-
-  /** Gets number of endpoints in this measurement. */
-  public int getLength() { return values.length; }
-
-  /** Gets dimensionality of each endpoint in this measurement. */
-  public int getDimension() {
-    return values == null ? -1 : values[0].getDimension();
-  }
-
-  /** Gets whether this measurement is a point (only one endpoint). */
-  public boolean isPoint() { return values.length == 1; }
-
-  /** Gets the current distance between the endpoints. */
-  public double getDistance() {
-    double[][] vals = doubleValues();
-    double sum = 0;
-    for (int i=0; i<vals.length; i++) {
-      double distance = vals[i][1] - vals[i][0];
-      sum += distance * distance;
-    }
-    return Math.sqrt(sum);
-  }
-
-  /** Gets the current endpoint values as an array of doubles. */
-  public double[][] doubleValues() { return doubleValues(values); }
-
-  /** Converts the given RealTuple array to an array of doubles. */
-  private static double[][] doubleValues(RealTuple[] values) {
-    int len = values.length;
-    if (len < 1) return null;
-    for (int i=0; i<len; i++) if (values[i] == null) return null;
-
-    int dim = values[0].getDimension();
-    double[][] vals = new double[dim][len];
-    try {
-      for (int i=0; i<dim; i++) {
-        for (int j=0; j<len; j++) {
-          Real r = (Real) values[j].getComponent(i);
-          vals[i][j] = r.getValue();
-        }
-      }
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-    return vals;
-  }
-
-  /** Gets a copy of this measurement. */
-  public Object clone() {
-    RealTuple[] vals = new RealTuple[values.length];
-    System.arraycopy(values, 0, vals, 0, values.length);
-    Measurement m = new Measurement(vals, color, group);
-    m.stdId = stdId;
-    return m;
   }
 
 }

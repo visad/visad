@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
-import java.awt.Color;
+import java.awt.*;
 import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.*;
@@ -34,64 +34,70 @@ import visad.*;
 /** MeasureList maintains a list of measurements between points in a field. */
 public class MeasureList {
 
-  /** Associated matrix of measurements. */
-  private MeasureMatrix mm;
+  // -- FIELDS --
+
+  /** BioVisAD frame. */
+  private BioVisAD bio;
 
   /** List of measurements. */
   private Vector measureList;
 
-  /** Default endpoint values for line. */
-  private RealTuple[] lnVals;
-
-  /** Default endpoint values for point. */
-  private RealTuple[] ptVals;
-
-  /** Slice of measurements on this list. */
-  private int slice;
-
-  /** RealTypes for measurements. */
-  private RealType[] types;
-
-  /** Pool of measurements. */
-  private MeasurePool pool;
-
-  /** Pool of measurements for 3-D display. */
-  private MeasurePool pool3d;
-
   /** Constructs a list of measurements. */
-  public MeasureList(MeasureMatrix mm, Real[] p1r, Real[] p2r, Real[] pxr,
-    int slice, MeasurePool pool, MeasurePool pool3d)
-    throws VisADException, RemoteException
-  {
-    this.mm = mm;
+  public MeasureList(BioVisAD biovis) throws VisADException, RemoteException {
+    bio = biovis;
     measureList = new Vector();
-    types = new RealType[p1r.length];
-    for (int i=0; i<p1r.length; i++) types[i] = (RealType) p1r[i].getType();
-    lnVals = new RealTuple[2];
-    lnVals[0] = new RealTuple(p1r);
-    lnVals[1] = new RealTuple(p2r);
-    ptVals = new RealTuple[1];
-    ptVals[0] = new RealTuple(pxr);
-    this.slice = slice;
-    this.pool = pool;
-    this.pool3d = pool3d;
   }
 
   /** Adds a measurement line to the measurement list. */
-  public void addMeasurement() { addMeasurement(false); }
+  public void addMeasurement() { addMeasurement(2); }
 
-  /** Adds a measurement (line or point) to the measurement list. */
-  public void addMeasurement(boolean point) {
-    addMeasurement(point, Color.white,
-      (MeasureGroup) MeasureGroup.groups.elementAt(0));
+  /**
+   * Adds a measurement with the given number of endpoints
+   * to the measurement list.
+   */
+  public void addMeasurement(int len) { addMeasurement(len, bio.getSlice()); }
+
+  /**
+   * Adds a measurement with the given number of endpoints
+   * and Z-slice value to the measurement list.
+   */
+  public void addMeasurement(int len, int slice) {
+    addMeasurement(len, slice, Color.white,
+      (MeasureGroup) bio.groups.elementAt(0));
   }
 
-  /** Adds a measurement (line or point) to the measurement list. */
-  public void addMeasurement(boolean point, Color color, MeasureGroup group) {
-    RealTuple[] vals = point ? ptVals : lnVals;
-    Measurement m =
-      new Measurement(point ? ptVals : lnVals, color, group);
-    addMeasurement(m, true);
+  /**
+   * Adds a measurement with the given number of endpoints,
+   * Z-slice value, color and group to the measurement list.
+   */
+  public void addMeasurement(int len, int slice,
+    Color color, MeasureGroup group)
+  {
+    // generate some random acceptable endpoint start locations; endpoints
+    // are equally spaced points around a circle on the given Z-slice value
+    Dimension size = bio.display2.getComponent().getSize();
+    double[] e1 = bio.pool2.pixelToDomain(0, 0);
+    double[] e2 = bio.pool2.pixelToDomain(size.width, size.height);
+    double cx = (e1[0] + e2[0]) / 2;
+    double cy = (e1[1] + e2[1]) / 2;
+    double rx = Math.abs(e2[0] - cx);
+    double ry = Math.abs(e2[1] - cy);
+    double r = 0.75 * (rx < ry ? rx : ry);
+    double theta = 2 * Math.PI * Math.random();
+    double inc = 2 * Math.PI / len;
+    RealTuple[] tuples = new RealTuple[len];
+    for (int i=0; i<len; i++) {
+      double t = theta + i * inc;
+      Real[] reals = {
+        new Real(bio.dtypes[0], r * Math.cos(t) + cx),
+        new Real(bio.dtypes[1], r * Math.sin(t) + cy),
+        new Real(BioVisAD.Z_TYPE, slice)
+      };
+      try { tuples[i] = new RealTuple(reals); }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    addMeasurement(new Measurement(tuples, color, group), true);
   }
 
   /** Adds a measurement to the measurement list. */
@@ -99,30 +105,32 @@ public class MeasureList {
     if (measureList.contains(m)) return;
     measureList.add(m);
     if (updatePool) {
-      pool.add(m);
-      if (pool3d != null) pool3d.add(m);
+      bio.pool2.add(m);
+      if (bio.pool3 != null) bio.pool3.add(m);
     }
   }
 
   /** Removes a measurement from the measurement list. */
   public void removeMeasurement(Measurement m) { removeMeasurement(m, true); }
 
+  /** Removes a measurement, notifying the measurement pool if specified. */
   void removeMeasurement(Measurement m, boolean updatePool) {
     if (!measureList.contains(m)) return;
     measureList.remove(m);
     if (updatePool) {
       Measurement[] mm = getMeasurements();
-      pool.set(mm);
-      if (pool3d != null) pool3d.set(mm);
+      bio.pool2.set(mm);
+      if (bio.pool3 != null) bio.pool3.set(mm);
     }
   }
 
+  /** Removes all measurements, notifying the measurement pool if specified. */
   void removeAllMeasurements(boolean updatePool) {
     measureList.removeAllElements();
     if (updatePool) {
       Measurement[] mm = getMeasurements();
-      pool.set(mm);
-      if (pool3d != null) pool3d.set(mm);
+      bio.pool2.set(mm);
+      if (bio.pool3 != null) bio.pool3.set(mm);
     }
   }
 
@@ -133,8 +141,5 @@ public class MeasureList {
     measureList.copyInto(m);
     return m;
   }
-
-  /** Gets the RealTypes for the measurements. */
-  public RealType[] getTypes() { return types; }
 
 }

@@ -27,8 +27,10 @@ MA 02111-1307, USA
 package visad.bio;
 
 import java.awt.event.*;
+import java.rmi.RemoteException;
 import javax.swing.*;
 import javax.swing.event.*;
+import visad.*;
 import visad.browser.Convert;
 
 /**
@@ -36,6 +38,12 @@ import visad.browser.Convert;
  * adjusting viewing parameters.
  */
 public class ViewToolPanel extends ToolPanel implements SwingConstants {
+
+  // -- CONSTANTS --
+
+  /** Starting brightness value. */
+  private static final int NORMAL_BRIGHTNESS = 50;
+
 
   // -- GUI COMPONENTS --
 
@@ -129,10 +137,7 @@ public class ViewToolPanel extends ToolPanel implements SwingConstants {
     // grayscale checkbox
     grayscale = new JCheckBox("Grayscale", true);
     grayscale.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        boolean gray = grayscale.isSelected();
-        bio.vert.setGrayscale(gray);
-      }
+      public void itemStateChanged(ItemEvent e) { doColorTable(); }
     });
     controls.add(pad(grayscale));
 
@@ -145,9 +150,7 @@ public class ViewToolPanel extends ToolPanel implements SwingConstants {
     // brightness slider
     brightness = new JSlider(1, 100, 50);
     brightness.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-        bio.vert.setBrightness(brightness.getValue());
-      }
+      public void stateChanged(ChangeEvent e) { doColorTable(); }
     });
     p.add(brightness);
     controls.add(p);
@@ -163,9 +166,34 @@ public class ViewToolPanel extends ToolPanel implements SwingConstants {
     brightness.setEnabled(enabled);
   }
 
-  /** Updates the tool panel's contents. */
-  public void update() {
-    // CTR: TODO: ViewToolPanel.update()
+  /** Updates image color table, for grayscale and brightness adjustments. */
+  private void doColorTable() {
+    float[][] table = grayscale.isSelected() ?
+      ColorControl.initTableGreyWedge(new float[3][256]) :
+      ColorControl.initTableVis5D(new float[3][256]);
+
+    // apply brightness (actually gamma correction)
+    double gamma = 1.0 -
+      (1.0 / NORMAL_BRIGHTNESS) * (brightness.getValue() - NORMAL_BRIGHTNESS);
+    for (int i=0; i<256; i++) {
+      table[0][i] = (float) Math.pow(table[0][i], gamma);
+      table[1][i] = (float) Math.pow(table[1][i], gamma);
+      table[2][i] = (float) Math.pow(table[2][i], gamma);
+    }
+
+    // get color controls
+    ColorControl cc2 = (ColorControl)
+      bio.display2.getControl(ColorControl.class);
+    ColorControl cc3 = bio.display3 == null ? null :
+      (ColorControl) bio.display3.getControl(ColorControl.class);
+
+    // set color tables
+    try {
+      if (cc2 != null) cc2.setTable(table);
+      if (cc3 != null) cc3.setTable(table);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
 }

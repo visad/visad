@@ -33,17 +33,22 @@ import visad.*;
 public class ImageStackWidget extends BioStepWidget
   implements ControlListener, ScalarMapListener
 {
-  private static final int NORMAL_BRIGHTNESS = 50;
+
+  // -- FIELDS --
 
   private ScalarMap smap;
   private AnimationControl control;
-  private boolean grayscale = false;
-  private int brightness = NORMAL_BRIGHTNESS;
+
+
+  // -- CONSTRUCTOR --
 
   /** Constructs a new ImageStackWidget. */
-  public ImageStackWidget(BioVisAD biovis, boolean horizontal) {
-    super(biovis, horizontal);
+  public ImageStackWidget(BioVisAD biovis) {
+    super(biovis, false);
   }
+
+
+  // -- API METHODS --
 
   /** Links the widget with the given scalar map. */
   public void setMap(ScalarMap smap) throws VisADException, RemoteException {
@@ -67,47 +72,8 @@ public class ImageStackWidget extends BioStepWidget
     if (smap != null) smap.addScalarMapListener(this);
   }
 
-  /** Toggles grayscale color mode. */
-  public void setGrayscale(boolean grayscale) {
-    this.grayscale = grayscale;
-    doColorTable();
-  }
 
-  /** Sets image brightness. */
-  public void setBrightness(int brightness) {
-    this.brightness = brightness;
-    doColorTable();
-  }
-
-  private void doColorTable() {
-    float[][] table = grayscale ?
-      ColorControl.initTableGreyWedge(new float[3][256]) :
-      ColorControl.initTableVis5D(new float[3][256]);
-
-    // apply brightness (actually gamma correction)
-    double gamma = 1.0 -
-      (1.0 / NORMAL_BRIGHTNESS) * (brightness - NORMAL_BRIGHTNESS);
-    for (int i=0; i<256; i++) {
-      table[0][i] = (float) Math.pow(table[0][i], gamma);
-      table[1][i] = (float) Math.pow(table[1][i], gamma);
-      table[2][i] = (float) Math.pow(table[2][i], gamma);
-    }
-
-    // get color controls
-    DisplayImpl display2 = bio.matrix.getDisplay();
-    DisplayImpl display3 = bio.matrix.getDisplay3d();
-    ColorControl cc2 = (ColorControl) display2.getControl(ColorControl.class);
-    ColorControl cc3 = display3 == null ? null :
-      (ColorControl) display3.getControl(ColorControl.class);
-
-    // set color tables
-    try {
-      if (cc2 != null) cc2.setTable(table);
-      if (cc3 != null) cc3.setTable(table);
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-  }
+  // -- HELPER METHODS --
 
   private void updateSlider() {
     int max = 1;
@@ -127,12 +93,15 @@ public class ImageStackWidget extends BioStepWidget
     setBounds(1, max, cur);
   }
 
+
+  // -- INTERNAL API METHODS --
+
   /** Updates the current image of the image stack. */
   public void updateStep() {
     if (control != null && cur != control.getCurrent() + 1) {
       try {
         control.setCurrent(cur - 1);
-        bio.matrix.setSlice(cur - 1);
+        bio.pool2.setSlice(cur - 1);
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }

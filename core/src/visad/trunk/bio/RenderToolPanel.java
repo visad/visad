@@ -34,20 +34,10 @@ import javax.swing.*;
  */
 public class RenderToolPanel extends ToolPanel implements SwingConstants {
 
-  // -- CONSTRUCTOR --
-
   /** Constructs a rendering tool panel. */
   public RenderToolPanel(BioVisAD biovis) { super(biovis); }
 
   /** Enables or disables this tool panel. */
-  public void setEnabled(boolean enabled) {
-    // CTR: TODO: RenderToolPanel.setEnabled()
-  }
-
-  /** Updates the tool panel's contents. */
-  public void update() {
-    // CTR: TODO: RenderToolPanel.update()
-  }
-
+  public void setEnabled(boolean enabled) { }
 
 }

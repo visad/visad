@@ -33,6 +33,8 @@ import visad.util.StepWidget;
  * directional step arrows at either end, used by BioVisAD.
  */
 public class BioStepWidget extends StepWidget {
+
+  /** BioVisAD frame. */
   protected BioVisAD bio;
 
   /** Constructs a BioStepWidget. */

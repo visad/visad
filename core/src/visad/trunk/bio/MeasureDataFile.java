@@ -36,27 +36,36 @@ import visad.*;
  */
 public class MeasureDataFile {
 
+  // -- FIELDS --
+
   /** Filename containing the measurement data. */
   private File file;
+
+
+  // -- CONSTRUCTOR --
 
   /** Constructs a measurement data file. */
   public MeasureDataFile(File file) { this.file = file; }
 
-  /** Writes the specified measurement matrix to the data file. */
-  public void writeMatrix(MeasureMatrix mm) throws IOException {
-    writeMatrix(mm, Double.NaN, Double.NaN);
+
+  // -- API METHODS --
+
+  /** Writes the specified measurement lists to the data file. */
+  public void write(MeasureList[] lists) throws IOException {
+    write(lists, Double.NaN, Double.NaN);
   }
 
   /**
-   * Writes the specified measurement matrix to the data file,
+   * Writes the specified measurement lists to the data file,
    * using the given conversion value between pixels and microns,
    * and distance between measurement slices.
    */
-  public void writeMatrix(MeasureMatrix mm, double mpp, double sd)
+  public void write(MeasureList[] lists, double mpp, double sd)
     throws IOException
   {
-    // CTR - TODO - mpp and sd
-    MeasureList[][] lists = mm.getMeasureLists();
+    // CTR - TODO
+    System.out.println("MeasureDataFile.write"); // CTR - TEMP
+/* CTR: TEMP
     Vector lines = new Vector();
     Vector points = new Vector();
     int numIndices = lists.length;
@@ -192,22 +201,25 @@ public class MeasureDataFile {
       fout.println(point);
     }
     fout.close();
+CTR: TEMP */
   }
 
-  /** Sets the given measurement matrix to match data from the data file. */
-  public void readMatrix(MeasureMatrix mm) throws IOException, VisADException {
-    readMatrix(mm, Double.NaN, Double.NaN);
+  /** Reads data from the data file into an array of measurement lists. */
+  public MeasureList[] read() throws IOException, VisADException {
+    return read(Double.NaN, Double.NaN);
   }
 
   /**
-   * Sets the given measurement matrix to match data from the data file,
+   * Reads data from the data file into an array of measurement lists,
    * using the given conversion values between pixels and microns,
    * and distance between measurement slices.
    */
-  public void readMatrix(MeasureMatrix mm, double mpp, double sd)
+  public MeasureList[] read(double mpp, double sd)
     throws IOException, VisADException
   {
-    // CTR - TODO - mpp and sd
+    // CTR - TODO
+    System.out.println("MeasureDataFile.read"); // CTR - TEMP
+/* CTR: TEMP
     BufferedReader fin = new BufferedReader(new FileReader(file));
     String line = "";
 
@@ -312,7 +324,12 @@ public class MeasureDataFile {
     }
 
     mm.refresh();
+CTR: TEMP */
+    return null; // CTR: TEMP
   }
+
+
+  // -- HELPER CLASSES --
 
   /** Measurement data structure. */
   public class MData {

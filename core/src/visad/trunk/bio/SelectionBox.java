@@ -34,38 +34,53 @@ import visad.*;
  */
 public class SelectionBox {
 
-  static final int DISTANCE = 15;
+  // -- CONSTANTS --
 
-  /** Data reference for first endpoint. */
+  /** Distance from measurement to display selection box. */
+  private static final int DISTANCE = 15;
+
+
+  // -- FIELDS --
+
+  /** Data references for the endpoints. */
   private DataReferenceImpl[] refs = new DataReferenceImpl[6];
+
+  /** Data renderers for the data references. */
+  private DataRenderer[] renderers = new DataRenderer[6];
 
   /** Currently selected thing. */
   private MeasureThing thing;
 
-  /** Computation cell for linking selection with measurement object. */
-  private CellImpl cell;
-
   /** Associated display. */
   private DisplayImpl display;
 
+  /** Computation cell for linking selection with measurement object. */
+  private CellImpl cell;
+
+
+  // -- CONSTRUCTOR --
+
   /** Constructs a selection box. */
-  public SelectionBox() throws VisADException, RemoteException {
-    for (int i=0; i<refs.length; i++) {
-      refs[i] = new DataReferenceImpl("box" + i);
-      refs[i].setData(new Real(Double.NaN));
+  public SelectionBox(DisplayImpl d) {
+    display = d;
+
+    // construct data references
+    try {
+      for (int i=0; i<refs.length; i++) {
+        refs[i] = new DataReferenceImpl("bio_box" + i);
+      }
     }
+    catch (VisADException exc) { exc.printStackTrace(); }
+
+    // set up cell that links selection box with selected object
     cell = new CellImpl() {
       public void doAction() {
         synchronized (cell) {
           Real[][] reals = null;
           if (thing == null) {
             // no measurement (no selection)
-            reals = new Real[refs.length][2];
-            for (int i=0; i<refs.length; i++) {
-               for (int j=0; j<2; j++) reals[i][j] = new Real(Double.NaN);
-            }
           }
-          else if (thing instanceof MeasurePoint) {
+          else if (thing.getLength() == 1) {
             // measurement is a point
             RealTuple[] values = thing.getValues();
             RealTuple p = values[0];
@@ -97,7 +112,7 @@ public class SelectionBox {
               catch (RemoteException exc) { exc.printStackTrace(); }
             }
           }
-          else if (thing instanceof MeasureLine) {
+          else if (thing.getLength() == 2) {
             // measurement is a line
             RealTuple[] values = thing.getValues();
             RealTuple p1 = values[0];
@@ -148,6 +163,10 @@ public class SelectionBox {
               catch (RemoteException exc) { exc.printStackTrace(); }
             }
           }
+          else {
+            // measurement is unsupported
+            System.err.println("SelectionBox: warning: cannot select object");
+          }
 
           if (reals == null) return;
           RealTuple[] tuples = new RealTuple[refs.length];
@@ -162,20 +181,51 @@ public class SelectionBox {
         }
       }
     };
+
+    // configure selection box renderers
+    DisplayRenderer displayRenderer = display.getDisplayRenderer();
+    for (int i=0; i<refs.length; i++) {
+      renderers[i] = displayRenderer.makeDefaultRenderer();
+      renderers[i].suppressExceptions(true);
+      renderers[i].toggle(false);
+    }
   }
 
-  /** Adds the selection box to the given display. */
-  public void setDisplay(DisplayImpl d)
-    throws VisADException, RemoteException
-  {
-    if (display != null) {
-      // remove selection box from old display
-      for (int i=0; i<refs.length; i++) display.removeReference(refs[i]);
-    }
-    display = d;
-    if (d == null) return;
 
-    // add selection box to new display
+  // -- API METHODS --
+
+  /**
+   * Selects the given measurement object.
+   *
+   * Currently, only measurement objects with one or two endpoints
+   * are supported.
+   */
+  public void select(MeasureThing thing) {
+    synchronized (cell) {
+      try {
+        cell.disableAction();
+        this.thing = thing;
+        cell.removeAllReferences();
+        if (thing == null) {
+          // hide selection box
+          for (int i=0; i<renderers.length; i++) renderers[i].toggle(false);
+        }
+        else {
+          // select given object
+          PoolPoint[] pts = thing.getPoints();
+          for (int i=0; i<pts.length; i++) cell.addReference(pts[i].ref);
+          for (int i=0; i<6; i++) renderers[i].toggle(true);
+        }
+        cell.enableAction();
+        if (thing == null) cell.doAction();
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+  }
+
+  /** Adds the selection box to its display. */
+  public void init() throws VisADException, RemoteException {
     for (int i=0; i<refs.length; i++) {
       ConstantMap[] maps = {
         new ConstantMap(1.0f, Display.Red),
@@ -183,26 +233,7 @@ public class SelectionBox {
         new ConstantMap(0.0f, Display.Blue),
         new ConstantMap(3.0f, Display.PointSize)
       };
-      d.addReference(refs[i], maps);
-    }
-  }
-
-  /** Selects the given measurement object. */
-  public void select(MeasureThing thing) {
-    synchronized (cell) {
-      try {
-        cell.disableAction();
-        this.thing = thing;
-        cell.removeAllReferences();
-        if (thing != null) {
-          DataReference[] refs = thing.getReferences();
-          for (int i=0; i<refs.length; i++) cell.addReference(refs[i]);
-        }
-        cell.enableAction();
-        if (thing == null) cell.doAction();
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
+      display.addReferences(renderers[i], refs[i], maps);
     }
   }
 

@@ -26,33 +26,33 @@ MA 02111-1307, USA
 
 package visad.bio;
 
-import java.util.Vector;
-
 /** MeasureGroup represents a possible grouping for measurements. */
 public class MeasureGroup {
 
-  /** First free id number for groups. */
-  static int maxId = 0;
-
-  /** List of all groups. */
-  static Vector groups = new Vector();
+  // -- FIELDS --
 
   /** Name of the group. */
-  String name;
+  private String name;
 
   /** Description of the group. */
-  String description;
+  private String description;
 
   /** Id number for the group. */
-  int id;
+  private int id;
+
+
+  // -- CONSTRUCTOR --
 
   /** Constructs a measurement group. */
-  public MeasureGroup(String name) {
+  public MeasureGroup(BioVisAD biovis, String name) {
     this.name = name;
     description = "";
-    id = maxId++;
-    groups.add(this);
+    id = biovis.maxId++;
+    biovis.groups.add(this);
   }
+
+
+  // -- API METHODS --
 
   /** Sets the group's description. */
   public void setDescription(String desc) { description = desc; }

@@ -36,14 +36,19 @@ import visad.util.Util;
 /** SeriesChooser provides a mechanism for selecting a series of files. */
 public class SeriesChooser extends JPanel implements ActionListener {
 
-  /** List of standard file series types. */
-  private static String[] types = {"PIC", "tiff", "gif", "jpg"};
+  // -- CONSTANTS --
 
   /** Return value if approve (ok) is chosen. */
   public static final int APPROVE_OPTION = 1;
 
   /** Return value if cancel is chosen. */
   public static final int CANCEL_OPTION = 2;
+
+  /** List of standard file series types. */
+  private static final String[] types = {"PIC", "tiff", "gif", "jpg"};
+
+
+  // -- FIELDS --
 
   /** Text field containing file prefix. */
   private JTextField prefix;
@@ -56,6 +61,15 @@ public class SeriesChooser extends JPanel implements ActionListener {
 
   /** Ok button. */
   private JButton ok;
+
+  /** Currently visible dialog. */
+  private JDialog dialog;
+
+  /** Return value of dialog. */
+  private int rval;
+
+
+  // -- CONSTRUCTOR --
 
   /** Creates a file series chooser dialog. */
   public SeriesChooser() {
@@ -128,11 +142,8 @@ public class SeriesChooser extends JPanel implements ActionListener {
     midRight.add(type);
   }
 
-  /** Currently visible dialog. */
-  private JDialog dialog;
 
-  /** Return value of dialog. */
-  private int rval;
+  // -- API METHODS --
 
   /** Displays a dialog using this series chooser. */
   public int showDialog(Frame parent) {
@@ -171,6 +182,9 @@ public class SeriesChooser extends JPanel implements ActionListener {
 
   /** Gets the prefix of the selected file series. */
   public String getPrefix() { return prefix.getText(); }
+
+
+  // -- INTERNAL API METHODS --
 
   /** Handles button press events. */
   public void actionPerformed(ActionEvent e) {

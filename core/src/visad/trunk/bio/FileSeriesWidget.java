@@ -39,29 +39,26 @@ import visad.data.DefaultFamily;
  */
 public class FileSeriesWidget extends BioStepWidget {
 
-  static final RealType COLOR_TYPE = RealType.getRealType("color");
+  // -- FIELDS --
 
   private final DefaultFamily loader = new DefaultFamily("loader");
-  private DataReferenceImpl ref;
   private File[] files;
   private int curFile;
-  private ScalarMap animMap2, xMap2, yMap2;
-  private ScalarMap xMap3, yMap3, zMap3, zMap3b;
+
+
+  // -- CONSTRUCTOR --
 
   /** Constructs a new FileSeriesWidget. */
-  public FileSeriesWidget(BioVisAD biovis, boolean horizontal) {
-    super(biovis, horizontal);
-    try {
-      ref = new DataReferenceImpl("ref");
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
+  public FileSeriesWidget(BioVisAD biovis) {
+    super(biovis, true);
   }
+
+
+  // -- API METHODS --
 
   /** Links the FileSeriesWidget with the given series of files. */
   public void setSeries(File[] files) {
     this.files = files;
-    bio.matrix = new MeasureMatrix(files.length,
-      bio.display2, bio.display3, bio.toolMeasure);
     loadFile(true);
     updateSlider();
   }
@@ -71,8 +68,14 @@ public class FileSeriesWidget extends BioStepWidget {
     if (files != null && curFile != cur - 1 && !step.getValueIsAdjusting()) {
       curFile = cur - 1;
       loadFile(false);
+      Measurement[] m = bio.lists[curFile].getMeasurements();
+      bio.pool2.set(m);
+      bio.pool3.set(m);
     }
   }
+
+
+  // -- HELPER METHODS --
 
   private void updateSlider() {
     int max = 1;
@@ -89,11 +92,8 @@ public class FileSeriesWidget extends BioStepWidget {
     setBounds(1, max, 1);
   }
 
-  private void loadFile(boolean doMaps) {
-    JRootPane pane = getRootPane();
-    if (pane != null) {
-      pane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    }
+  private void loadFile(boolean initialize) {
+    bio.setWaitCursor(true);
     File f = files[curFile];
     Data data = null;
     try {
@@ -101,113 +101,26 @@ public class FileSeriesWidget extends BioStepWidget {
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
     if (data == null) {
-      if (pane != null) pane.setCursor(Cursor.getDefaultCursor());
+      bio.setWaitCursor(false);
       JOptionPane.showMessageDialog(this,
         "Cannot import data from " + f.getName(),
         "Cannot load file", JOptionPane.ERROR_MESSAGE);
       return;
     }
-    FieldImpl field = null;
-    if (data instanceof FieldImpl) field = (FieldImpl) data;
-    else if (data instanceof Tuple) {
-      Tuple tuple = (Tuple) data;
-      int len = tuple.getDimension();
-      for (int i=0; i<len; i++) {
-        try {
-          Data d = tuple.getComponent(i);
-          if (d instanceof FieldImpl) {
-            field = (FieldImpl) d;
-            break;
-          }
-        }
-        catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-        catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-      }
-    }
-    if (field == null) {
-      if (pane != null) pane.setCursor(Cursor.getDefaultCursor());
-      JOptionPane.showMessageDialog(this,
-        f.getName() + " does not contain an image stack",
-        "Cannot load file", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-
-    if (doMaps && bio.display2 != null) {
-      try {
-        // clear old displays
-        bio.display2.removeAllReferences();
-        bio.display2.clearMaps();
-        if (bio.display3 != null) {
-          bio.display3.removeAllReferences();
-          bio.display3.clearMaps();
-        }
-      }
-      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-
-      // set up mappings
-      animMap2 = xMap2 = yMap2 = null;
-      xMap3 = yMap3 = zMap3 = null;
-      ScalarMap[] maps = field.getType().guessMaps(false);
-      for (int i=0; i<maps.length; i++) {
-        ScalarMap smap2 = maps[i];
-        DisplayRealType drt = smap2.getDisplayScalar();
-        boolean anim = Display.Animation.equals(drt);
-        ScalarMap smap3 = anim ? null : (ScalarMap) smap2.clone();
-        if (anim) {
-          animMap2 = smap2;
-          if (bio.display3 != null) {
-            try {
-              smap3 = zMap3 = new ScalarMap(smap2.getScalar(), Display.ZAxis);
-            }
-            catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-          }
-        }
-        else if (Display.XAxis.equals(drt)) {
-          xMap2 = smap2;
-          if (bio.display3 != null) xMap3 = smap3;
-        }
-        else if (Display.YAxis.equals(drt)) {
-          yMap2 = smap2;
-          if (bio.display3 != null) yMap3 = smap3;
-        }
-        try {
-          bio.display2.addMap(smap2);
-          if (bio.display3 != null) bio.display3.addMap(smap3);
-        }
-        catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-        catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-      }
-
-      // add mapping to RGB
-      bio.vert.setGrayscale(true); // default to grayscale color mode
-      try {
-        ScalarMap colorMap = new ScalarMap(COLOR_TYPE, Display.RGB);
-        colorMap.setRange(0, 255);
-        bio.display2.addMap(colorMap);
-        bio.display2.addReference(ref);
-        if (bio.display3 != null) {
-          bio.display3.addMap((ScalarMap) colorMap.clone());
-          zMap3b = new ScalarMap(MeasureMatrix.ZAXIS_TYPE, Display.ZAxis);
-          bio.display3.addMap(zMap3b);
-          bio.display3.addReference(ref);
-        }
-      }
-      catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-      catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-    }
-
     try {
-      ref.setData(field);
-      bio.matrix.init(field, new ScalarMap[][] {
-        {xMap2, xMap3}, {yMap2, yMap3}, {zMap3, zMap3b}
-      });
-      bio.matrix.setIndex(curFile);
-      if (bio.vert != null && animMap2 != null) bio.vert.setMap(animMap2);
+      boolean success = initialize ?
+        bio.init(data, files.length) : bio.setData(data) != null;
+      if (!success) {
+        bio.setWaitCursor(false);
+        JOptionPane.showMessageDialog(this,
+          f.getName() + " does not contain an image stack",
+          "Cannot load file", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
     }
-    catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
-    catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-    if (pane != null) pane.setCursor(Cursor.getDefaultCursor());
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+    bio.setWaitCursor(false);
   }
 
 }

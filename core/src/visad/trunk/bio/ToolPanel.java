@@ -46,7 +46,6 @@ public abstract class ToolPanel extends JPanel implements SwingConstants {
   /** Constructs a tool panel. */
   public ToolPanel(BioVisAD biovis) {
     bio = biovis;
-
     // CTR: TODO: fix scroll bar problem
 
     // outer pane with vertical scroll bar
@@ -81,14 +80,11 @@ public abstract class ToolPanel extends JPanel implements SwingConstants {
   /** Enables or disables this tool panel. */
   public abstract void setEnabled(boolean enabled);
 
-  /** Updates the tool panel's contents. */
-  public abstract void update();
-
 
   // -- UTILITY METHODS --
 
   /** Pads a component or group of components with horizontal space. */
-  protected static JPanel pad(Component c) {
+  public static JPanel pad(Component c) {
     JPanel p;
     if (c instanceof JPanel) {
       p = (JPanel) c;

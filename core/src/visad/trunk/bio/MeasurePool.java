@@ -32,190 +32,162 @@ import java.util.Vector;
 import visad.*;
 
 /**
- * MeasurePool maintains a pool of measurements
- * (lines and points) in the given display.
+ * MeasurePool maintains a pool of manipulable points and a set of
+ * connecting lines, for interactive data measurement in the given display.
  */
 public class MeasurePool implements DisplayListener {
 
-  /** Minimum number of lines in the measurement pool. */
-  static final int MINIMUM_SIZE = 16;
+  // -- CONSTANTS --
+
+  /** Number of extra points to add when number of points is expanded. */
+  private static final int BUFFER_SIZE = 15;
 
   /** Maximum pixel distance for picking. */
   private static final int PICKING_THRESHOLD = 10;
 
+
+  // -- FIELDS --
+
+  /** BioVisAD frame. */
+  private BioVisAD bio;
+
   /** Associated VisAD display. */
   private DisplayImpl display;
-
-  /** Associated measurement tool panel. */
-  private MeasureToolPanel measureTools;
 
   /** Associated selection box. */
   private SelectionBox box;
 
+  /** Internal list of free PoolPoints. */
+  private Vector free;
+
+  /** Internal list of MeasureThings using PoolPoints. */
+  private Vector things;
+
+  /** Data reference for colored line segments. */
+  private DataReferenceImpl lines;
+
+  /** Data renderer for colored line segments. */
+  private DataRenderer line_renderer;
+
+  /** Cell for updating connecting lines when an endpoint changes. */
+  private CellImpl cell;
+
   /** Dimensionality of measurement pool's display. */
   private int dim;
 
-  /** Number of lines/points in a block. */
-  private int blockSize;
+  /** Image slice value. */
+  private int slice;
 
-  /** Total number of lines/points. */
-  private int size;
 
-  /** Internal list of MeasureLine objects. */
-  private Vector lines;
-
-  /** Number of lines allocated. */
-  private int lnUsed;
-
-  /** Line ID counter. */
-  int maxLnId = 0;
-
-  /** Internal list of MeasurePoint objects. */
-  private Vector points;
-
-  /** Number of points allocated. */
-  private int ptUsed;
-
-  /** Point ID counter. */
-  int maxPtId = 0;
-
+  // -- CONSTRUCTOR --
 
   /** Constructs a pool of measurements. */
-  public MeasurePool(DisplayImpl display, MeasureToolPanel measureTools,
-    int dim, int blockSize)
-  {
-    lines = new Vector();
-    points = new Vector();
+  public MeasurePool(BioVisAD biovis, DisplayImpl display, int dim) {
+    bio = biovis;
     this.display = display;
-    this.measureTools = measureTools;
     this.dim = dim;
-    this.blockSize = blockSize < 1 ? 1 : blockSize;
-    size = 0;
-    lnUsed = 0;
-    ptUsed = 0;
-    display.addDisplayListener(this);
-  }
-
-  /** Ensures the measurement pool is at least the given size. */
-  public void expand(int size) { expand(size, true); }
-
-  /** Ensures the measurement pool is at least the given size. */
-  public void expand(int size, boolean handleDisplay) {
-    if (this.size == 0) {
-      System.err.println("MeasurePool.expand: warning: " +
-        "Cannot expand from zero without domain type");
-      return;
-    }
-    MeasureLine line = (MeasureLine) lines.elementAt(0);
-    RealTupleType domain = line.getDomain();
-    expand(size, domain, handleDisplay);
-  }
-
-  /** Ensures the measurement pool is at least the given size. */
-  public void expand(int size, RealTupleType domain) {
-    expand(size, domain, true);
-  }
-
-  /** Ensures the measurement pool is at least the given size. */
-  public void expand(int size, RealTupleType domain, boolean handleDisplay) {
-    if (size <= this.size) return;
-    int n = size - this.size;
-    if (n % blockSize > 0) n += blockSize - n % blockSize;
-    MeasureLine[] l = new MeasureLine[n];
-    MeasurePoint[] p = new MeasurePoint[n];
+    box = new SelectionBox(display);
+    free = new Vector();
+    things = new Vector();
     try {
-      for (int i=0; i<n; i++) {
-        l[i] = new MeasureLine(dim, this);
-        l[i].setType(domain);
-        l[i].hide();
-        lines.add(l[i]);
-        p[i] = new MeasurePoint(dim, this);
-        p[i].setType(domain);
-        p[i].hide();
-        points.add(p[i]);
-      }
-      synchronized (this) {
-        if (handleDisplay) {
-          display.disableAction();
-          if (box == null) {
-            box = new SelectionBox();
-            box.setDisplay(display);
-          }
-        }
-        for (int i=0; i<n; i++) {
-          try {
-            l[i].setDisplay(display);
-            p[i].setDisplay(display);
-          }
-          catch (VisADException exc) { exc.printStackTrace(); }
-          catch (RemoteException exc) { exc.printStackTrace(); }
-        }
-        if (handleDisplay) display.enableAction();
-      }
-      this.size += n;
+      // add lines reference to display
+      lines = new DataReferenceImpl("bio_colored_lines");
+      line_renderer = display.getDisplayRenderer().makeDefaultRenderer();
+      line_renderer.suppressExceptions(true);
+      line_renderer.toggle(false);
     }
     catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
+
+    cell = new CellImpl() {
+      public void doAction() { refreshLines(); }
+    };
+
+    display.addDisplayListener(this);
+    expand(BUFFER_SIZE, false);
+  }
+
+
+  // -- API METHODS --
+
+  /** Adds all references to the associated display. */
+  public void init() throws VisADException, RemoteException {
+    int total = free.size();
+    for (int i=0; i<total; i++) ((PoolPoint) free.elementAt(i)).init();
+    box.init();
+    display.addReferences(line_renderer, lines);
+  }
+
+  /** Grants the given measurement object use of a number of pool points. */
+  public PoolPoint[] lease(MeasureThing thing) {
+    int num = thing.getLength();
+    expand(num, true);
+    PoolPoint[] pts = new PoolPoint[num];
+    for (int i=0; i<num; i++) {
+      pts[i] = (PoolPoint) free.lastElement();
+      free.remove(free.size() - 1);
+    }
+    things.add(thing);
+    return pts;
   }
 
   /**
-   * Sets the endpoint values for all lines in the
-   * measurement pool to match the given measurements.
+   * Returns the given measurement object's pool points
+   * to the measurement pool.
    */
-  public void set(Measurement[] m) {
-    int size = m.length;
+  public void release(MeasureThing thing) {
+    PoolPoint[] pts = thing.getPoints();
+    for (int i=0; i<pts.length; i++) {
+      pts[i].toggle(false);
+      free.add(pts[i]);
+    }
+    things.remove(thing);
+  }
 
-    // deselect
+  /** Returns all pool points to the measurement pool. */
+  public void releaseAll() {
+    // deselect first
     if (box != null) box.select(null);
-    if (measureTools != null) measureTools.select(null);
+    bio.toolMeasure.select(null);
 
-    // set each reference accordingly
-    expand(size);
-    lnUsed = 0;
-    ptUsed = 0;
-    for (int i=0; i<size; i++) {
-      if (m[i].isPoint()) {
-        // measurement is a point
-        MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed++);
-        point.setMeasurement(m[i]);
-      }
-      else {
-        // measurement is a line
-        MeasureLine line = (MeasureLine) lines.elementAt(lnUsed++);
-        line.setMeasurement(m[i]);
-      }
-    }
-
-    // hide extra points
-    for (int i=ptUsed; i<this.size; i++) {
-      MeasurePoint point = (MeasurePoint) points.elementAt(i);
-      point.hide();
-    }
-
-    // hide extra lines
-    for (int i=lnUsed; i<this.size; i++) {
-      MeasureLine line = (MeasureLine) lines.elementAt(i);
-      line.hide();
+    while (!things.isEmpty()) {
+      release((MeasureThing) things.lastElement());
     }
   }
 
-  /** Sets a line in the measurement pool to match the given measurement. */
+  /** Creates measurement pool objects to match the given measurements. */
+  public void set(Measurement[] m) {
+    // release old leases
+    releaseAll();
+
+    // register new leases
+    expand(m.length, true);
+    for (int i=0; i<m.length; i++) new MeasureThing(this, m[i]);
+    refreshLines();
+  }
+
+  /** Adds a measurement pool object to match the given measurement. */
   public void add(Measurement m) {
-    if (m.isPoint()) {
-      // measurement is a point
-      expand(ptUsed + 1);
-      MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed);
-      point.setMeasurement(m);
-      ptUsed++;
-    }
-    else {
-      // measurement is a line
-      expand(lnUsed + 1);
-      MeasureLine line = (MeasureLine) lines.elementAt(lnUsed);
-      line.setMeasurement(m);
-      lnUsed++;
-    }
+    expand(1, true);
+    MeasureThing thing = new MeasureThing(this, m);
   }
+
+  /** Sets the current image slice value. */
+  public void setSlice(int slice) {
+    this.slice = slice;
+    cell.disableAction();
+    int size = things.size();
+    for (int i=0; i<size; i++) ((MeasureThing) things.elementAt(i)).refresh();
+    cell.enableAction();
+  }
+
+  /** Gets the current image slice value. */
+  public int getSlice() { return slice; }
+
+  /** Gets the display's dimensionality. */
+  public int getDimension() { return dim; }
+
+
+  // -- INTERNAL API METHODS --
 
   private int cursor_x, cursor_y;
 
@@ -229,44 +201,38 @@ public class MeasurePool implements DisplayListener {
       cursor_y = y;
     }
     else if (id == DisplayEvent.MOUSE_RELEASED_LEFT &&
-      x == cursor_x && y == cursor_y && (ptUsed > 0 || lnUsed > 0))
+      x == cursor_x && y == cursor_y)
     {
       // get domain coordinates of mouse click
-      double[] coords = cursorToDomain(pixelToCursor(x, y));
+      double[] coords = pixelToDomain(x, y);
 
       // compute maximum distance threshold
-      Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-      int w = size.width;
-      int h = size.height;
-      double[] e1 = cursorToDomain(pixelToCursor(0, 0));
-      double[] e2 = cursorToDomain(pixelToCursor(PICKING_THRESHOLD, 0));
+      double[] e1 = pixelToDomain(0, 0);
+      double[] e2 = pixelToDomain(PICKING_THRESHOLD, 0);
       double threshold = e2[0] - e1[0];
 
-      // find closest line
+      // find closest object
       int index = -1;
       double mindist = Double.MAX_VALUE;
-      MouseBehavior mb = display.getMouseBehavior();
-      for (int i=0; i<lnUsed; i++) {
-        MeasureLine line = (MeasureLine) lines.elementAt(i);
-        double[][] vals = line.getMeasurement().doubleValues();
-        double dist = distance(vals[0][0], vals[1][0],
-          vals[0][1], vals[1][1], coords[0], coords[1]);
-        if (dist < mindist) {
-          mindist = dist;
-          index = i;
+      int size = things.size();
+      for (int i=0; i<size; i++) {
+        MeasureThing thing = (MeasureThing) things.elementAt(i);
+        int len = thing.getLength();
+        if (len > 2) continue;
+        double[][] values = thing.getMeasurement().doubleValues();
+        double dist;
+        if (len == 1) {
+          // compute point distance
+          double dx = values[0][0] - coords[0];
+          double dy = values[1][0] - coords[1];
+          dist = Math.sqrt(dx * dx + dy * dy);
         }
-      }
-
-      // find closest point
-      boolean pt = false;
-      for (int i=0; i<ptUsed; i++) {
-        MeasurePoint point = (MeasurePoint) points.elementAt(i);
-        double[][] vals = point.getMeasurement().doubleValues();
-        double dx = vals[0][0] - coords[0];
-        double dy = vals[1][0] - coords[1];
-        double dist = Math.sqrt(dx * dx + dy * dy);
+        else {
+          // compute line distance
+          dist = distance(values[0][0], values[1][0],
+            values[0][1], values[1][1], coords[0], coords[1]);
+        }
         if (dist < mindist) {
-          pt = true;
           mindist = dist;
           index = i;
         }
@@ -275,19 +241,182 @@ public class MeasurePool implements DisplayListener {
       // highlight picked line or point
       if (mindist > threshold) {
         if (box != null) box.select(null);
-        if (measureTools != null) measureTools.select(null);
-      }
-      else if (pt) {
-        MeasurePoint point = (MeasurePoint) points.elementAt(index);
-        if (box != null) box.select(point);
-        if (measureTools != null) measureTools.select(point);
+        if (bio.toolMeasure != null) bio.toolMeasure.select(null);
       }
       else {
-        MeasureLine line = (MeasureLine) lines.elementAt(index);
-        if (box != null) box.select(line);
-        if (measureTools != null) measureTools.select(line);
+        MeasureThing thing = (MeasureThing) things.elementAt(index);
+        if (box != null) box.select(thing);
+        if (bio.toolMeasure != null) bio.toolMeasure.select(thing);
       }
     }
+  }
+
+
+  // -- HELPER METHODS --
+
+  /** Ensures the pool has at least the given number of free points. */
+  private void expand(int size, boolean init) {
+    // compute number of PoolPoints to add
+    int total = free.size();
+    if (size <= total) return;
+    int n = size - total + BUFFER_SIZE;
+
+    // add new PoolPoints to display
+    cell.disableAction();
+    display.disableAction();
+    for (int i=0; i<n; i++) {
+      PoolPoint pt = new PoolPoint(display, "p" + (total + n));
+      try {
+        cell.addReference(pt.ref);
+        if (init) pt.init();
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+      free.add(pt);
+    }
+    display.enableAction();
+    cell.enableAction();
+  }
+
+  /** Refreshes the connecting lines of the measurements in the pool. */
+  private void refreshLines() {
+    // redraw line segments when endpoints change
+    Vector strips = new Vector();
+    Vector colors = new Vector();
+
+    // compute list of line strips
+    int size = things.size();
+    for (int i=0; i<size; i++) {
+      MeasureThing thing = (MeasureThing) things.elementAt(i);
+      Color color = thing.getColor();
+
+      // create line strip
+      RealTuple[] values = thing.getValues();
+      if (dim == 2) {
+        boolean okay = false;
+        for (int j=0; j<values.length; j++) {
+          double[] s = values[j].getValues();
+          if (s[2] == slice) okay = true;
+        }
+        if (!okay) continue;
+      }
+
+      if (values.length == 1) {
+        // point - no line segments needed
+        continue;
+      }
+      else if (values.length == 2) {
+        // line - one segment needed
+        double[] s0 = values[0].getValues();
+        double[] s1 = values[1].getValues();
+        try {
+          GriddedSet set;
+          if (dim == 2) {
+            float[][] samples = {
+              {(float) s0[0], (float) s1[0]},
+              {(float) s0[1], (float) s1[1]}
+            };
+            set = new Gridded2DSet(bio.domain2, samples, 2);
+          }
+          else { // dim == 3
+            float[][] samples = {
+              {(float) s0[0], (float) s1[0]},
+              {(float) s0[1], (float) s1[1]},
+              {(float) s0[2], (float) s1[2]}
+            };
+            set = new Gridded3DSet(bio.domain3, samples, 2);
+          }
+          strips.add(set);
+        }
+        catch (VisADException exc) { exc.printStackTrace(); }
+      }
+      else {
+        // multi-vertex shape - line strip loop needed
+        float[][] samples = new float[dim][values.length + 1];
+        for (int j=0; j<values.length; j++) {
+          double[] s = values[j].getValues();
+          for (int k=0; k<dim; k++) samples[k][j] = (float) s[k];
+        }
+        double[] s = values[0].getValues();
+        for (int k=0; k<dim; k++) samples[k][values.length] = (float) s[k];
+        try {
+          GriddedSet set;
+          if (dim == 2) {
+            set =
+              new Gridded2DSet(bio.domain2, samples, values.length + 1);
+          }
+          else { // dim == 3
+            set =
+              new Gridded3DSet(bio.domain3, samples, values.length + 1);
+          }
+          strips.add(set);
+        }
+        catch (VisADException exc) { exc.printStackTrace(); }
+      }
+      if (values.length > 1) {
+        for (int k=0; k<values.length; k++) colors.add(color);
+      }
+
+      // check for any needed X's
+      if (dim == 2) {
+        double x_width = 0.05 *
+          (bio.xRange < bio.yRange ? bio.xRange : bio.yRange);
+        for (int j=0; j<values.length; j++) {
+          double[] s = values[j].getValues();
+          if (s[2] == slice) continue;
+          float[][] samples1 = {
+            {(float) (s[0] - x_width), (float) (s[0] + x_width)},
+            {(float) (s[1] - x_width), (float) (s[1] + x_width)}
+          };
+          float[][] samples2 = {
+            {(float) (s[0] - x_width), (float) (s[0] + x_width)},
+            {(float) (s[1] + x_width), (float) (s[1] - x_width)}
+          };
+          try {
+            strips.add(new Gridded2DSet(bio.domain2, samples1, 2));
+            strips.add(new Gridded2DSet(bio.domain2, samples2, 2));
+            for (int k=0; k<4; k++) colors.add(color);
+          }
+          catch (VisADException exc) { exc.printStackTrace(); }
+        }
+      }
+    }
+
+    size = strips.size();
+    if (size == 0) line_renderer.toggle(false);
+    else {
+      // compile line strips into UnionSet
+      GriddedSet[] sets = new GriddedSet[size];
+      strips.copyInto(sets);
+      Color[] line_colors = new Color[colors.size()];
+      colors.copyInto(line_colors);
+      try {
+        RealTupleType domain = dim == 2 ? bio.domain2 : bio.domain3;
+        UnionSet set = new UnionSet(domain, sets);
+        FunctionType function =
+          new FunctionType(domain, bio.colorRange);
+        FlatField field = new FlatField(function, set);
+
+        // assign color values to line segments
+        double[][] samples = new double[3][line_colors.length];
+        for (int j=0; j<line_colors.length; j++) {
+          samples[0][j] = line_colors[j].getRed();
+          samples[1][j] = line_colors[j].getGreen();
+          samples[2][j] = line_colors[j].getBlue();
+        }
+        field.setSamples(samples);
+
+        lines.setData(field);
+        line_renderer.toggle(true);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+  }
+
+  /** Converts the given pixel coordinates to domain coordinates. */
+  double[] pixelToDomain(int x, int y) {
+    return cursorToDomain(pixelToCursor(x, y));
   }
 
   /** Converts the given pixel coordinates to cursor coordinates. */
