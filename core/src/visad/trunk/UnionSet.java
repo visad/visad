@@ -49,16 +49,24 @@ public class UnionSet extends SampledSet {
   /** create the union of the sets array; coordinate_system
       and units must be compatible with defaults for type,
       or may be null; errors may be null */
-  public UnionSet(MathType type, SampledSet[] sets,
+  // WLH - 24 Sept 99
+  // public UnionSet(MathType type, SampledSet[] sets,
+  private UnionSet(MathType type, SampledSet[] sets,
                   CoordinateSystem coord_sys, Unit[] units, 
                   ErrorEstimate[] errors) throws VisADException {
     this(type, sets, coord_sys, units, errors, true);
   }
 
-  UnionSet(MathType type, SampledSet[] sets, CoordinateSystem coord_sys,
+  // WLH - 24 Sept 99
+  // UnionSet(MathType type, SampledSet[] sets, CoordinateSystem coord_sys,
+  private UnionSet(MathType type, SampledSet[] sets, CoordinateSystem coord_sys,
              Unit[] units, ErrorEstimate[] errors, boolean copy)
              throws VisADException {
+/* WLH - 24 Sept 99
     super(type, find_manifold_dim(sets), coord_sys, units, errors);
+*/
+    super(type, find_manifold_dim(sets), sets[0].getCoordinateSystem(),
+          sets[0].getSetUnits(), null);
     DomainDimension = sets[0].DomainDimension;
     if (copy) {
       Sets = new SampledSet[sets.length];
