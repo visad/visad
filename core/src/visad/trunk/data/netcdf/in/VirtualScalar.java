@@ -3,12 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualScalar.java,v 1.4 2001-11-06 17:55:55 steve Exp $
+ * $Id: VirtualScalar.java,v 1.5 2001-11-07 15:44:05 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 
+import java.lang.reflect.Array;
 import java.io.IOException;
 import ucar.netcdf.Variable;
 import visad.*;
@@ -165,7 +166,7 @@ VirtualScalar
      */
     public DataImpl
     getData(Context context)
-	throws IOException, VisADException, InvalidContextException
+	throws VisADException, InvalidContextException, IOException
     {
 	return getDataFactory().newData(context, this);
     }
