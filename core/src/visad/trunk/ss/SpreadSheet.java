@@ -37,7 +37,6 @@ import javax.swing.event.*;
 import visad.*;
 import visad.data.BadFormException;
 import visad.java3d.*;
-import visad.util.Delay;
 
 /** SpreadSheet is a user interface for VisAD that supports
     multiple 3-D displays (FancySSCells).<P>*/
@@ -72,9 +71,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   FileDialog SSFileDialog = null;
 
   // number of VisAD displays
-  int NumVisX;
-  int NumVisY;
-  int NumVisDisplays;
+  int NumVisX, NumVisY;
+  int MaxVisX, MaxVisY;
 
   // server for spreadsheet cells, if any
   RemoteServerImpl rsi = null;
@@ -170,9 +168,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
                      String server, String sTitle) {
     bTitle = sTitle;
-    NumVisX = cols;
-    NumVisY = rows;
-    NumVisDisplays = NumVisX*NumVisY;
+    NumVisX = MaxVisX = cols;
+    NumVisY = MaxVisY = rows;
     MappingDialog.initDialog();
     addKeyListener(this);
     addWindowListener(new WindowAdapter() {
@@ -303,6 +300,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     dispAddRow.addActionListener(this);
     dispAddRow.setActionCommand("dispAddRow");
     disp.add(dispAddRow);
+
+    MenuItem dispDelCol = new MenuItem("Delete column");
+    dispDelCol.addActionListener(this);
+    dispDelCol.setActionCommand("dispDelCol");
+    disp.add(dispDelCol);
+
+    MenuItem dispDelRow = new MenuItem("Delete row");
+    dispDelRow.addActionListener(this);
+    dispDelRow.setActionCommand("dispDelRow");
+    disp.add(dispDelRow);
     disp.addSeparator();
 
     CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", CanDo3D);
@@ -685,9 +692,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // initialize RemoteServer
     if (server != null) {
       RemoteDataReferenceImpl[] rdri =
-          new RemoteDataReferenceImpl[NumVisDisplays];
+          new RemoteDataReferenceImpl[NumVisX*NumVisY];
       boolean success = true;
-      for (int i=0; i<NumVisDisplays; i++) {
+      for (int i=0; i<NumVisX*NumVisY; i++) {
         rdri[i] = DisplayCells[i%NumVisX][i/NumVisX].getRemoteDataRef();
       }
       try {
@@ -767,6 +774,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("dispEdit")) createMappings();
     else if (cmd.equals("dispAddCol")) addColumn();
     else if (cmd.equals("dispAddRow")) addRow();
+    else if (cmd.equals("dispDelCol")) deleteColumn();
+    else if (cmd.equals("dispDelRow")) deleteRow();
 
     // window menu commands
     else if (cmd.equals("optWidget")) {
@@ -783,7 +792,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Creates a new spreadsheet file */
-  void newFile(boolean safe) {
+  public void newFile(boolean safe) {
     if (safe) {
       int ans = JOptionPane.showConfirmDialog(this,
                 "Clear all spreadsheet cells?", "Are you sure?",
@@ -820,7 +829,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Opens an existing spreadsheet file */
-  void openFile() {
+  public void openFile() {
     if (SSFileDialog == null) SSFileDialog = new FileDialog(this);
     SSFileDialog.setMode(FileDialog.LOAD);
     SSFileDialog.setVisible(true);
@@ -916,7 +925,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Saves a spreadsheet file under its current name */
-  void saveFile() {
+  public void saveFile() {
     if (CurrentFile == null) saveasFile();
     else {
       try {
@@ -939,7 +948,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Saves a spreadsheet file under a new name */
-  void saveasFile() {
+  public void saveasFile() {
     if (SSFileDialog == null) SSFileDialog = new FileDialog(this);
     SSFileDialog.setMode(FileDialog.SAVE);
     SSFileDialog.setVisible(true);
@@ -956,7 +965,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Does any necessary clean-up, then quits the program */
-  void quitProgram() {
+  public void quitProgram() {
     // wait for files to finish saving
     Thread t = new Thread() {
       public void run() {
@@ -996,7 +1005,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Moves a cell from the screen to the clipboard */
-  void cutCell() {
+  public void cutCell() {
     if (DisplayCells[CurX][CurY].confirmClear()) {
       copyCell();
       clearCell(false);
@@ -1004,14 +1013,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Copies a cell from the screen to the clipboard */
-  void copyCell() {
+  public void copyCell() {
     Clipboard = DisplayCells[CurX][CurY].getSSCellString();
     EditPaste.setEnabled(true);
     ToolPaste.setEnabled(true);
   }
 
   /** Copies a cell from the clipboard to the screen */
-  void pasteCell() {
+  public void pasteCell() {
     if (Clipboard != null) {
       try {
         boolean b = DisplayCells[CurX][CurY].getAutoDetect();
@@ -1029,7 +1038,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Clears the mappings and formula of the current cell */
-  void clearCell(boolean checkSafe) {
+  public void clearCell(boolean checkSafe) {
     try {
       if (checkSafe) DisplayCells[CurX][CurY].smartClear();
       else DisplayCells[CurX][CurY].clearCell();
@@ -1045,22 +1054,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Allows the user to specify mappings from Data to Display */
-  void createMappings() {
+  public void createMappings() {
     DisplayCells[CurX][CurY].addMapDialog();
   }
 
   /** Allows the user to import a data set */
-  void loadDataSet() {
+  public void loadDataSet() {
     DisplayCells[CurX][CurY].loadDataDialog();
   }
 
   /** Allows the user to export a data set to netCDF format */
-  void exportDataSetNetcdf() {
+  public void exportDataSetNetcdf() {
     DisplayCells[CurX][CurY].saveDataDialog(true);
   }
 
   /** Allow the user to export a data set to serialized data format */
-  void exportDataSetSerial() {
+  public void exportDataSetSerial() {
     DisplayCells[CurX][CurY].saveDataDialog(false);
   }
 
@@ -1075,12 +1084,71 @@ public class SpreadSheet extends JFrame implements ActionListener,
     ToolSave.setEnabled(b);
   }
 
+  private void reconstructHoriz(JPanel[] newLabels, JComponent[] newDrag,
+                                FancySSCell[][] fcells) {
+    // reconstruct horizontal spreadsheet label layout
+    HorizLabel = newLabels;
+    HorizDrag = newDrag;
+    HorizPanel.setLayout(new SSLayout(2*NumVisX-1, 1, MIN_VIS_WIDTH,
+                                      LABEL_HEIGHT, 0, 0, true));
+    for (int i=0; i<NumVisX; i++) {
+      HorizPanel.add(HorizLabel[i]);
+      if (i < NumVisX-1) HorizPanel.add(HorizDrag[i]);
+    }
+
+    // reconstruct spreadsheet cell layout
+    DisplayCells = fcells;
+    DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
+                                        MIN_VIS_HEIGHT, 5, 5, false));
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) {
+        DisplayPanel.add(DisplayCells[i][j]);
+      }
+    }
+
+    // refresh display
+    HorizPanel.doLayout();
+    for (int i=0; i<NumVisX; i++) HorizLabel[i].doLayout();
+    DisplayPanel.doLayout();
+    SCPane.doLayout();
+  }
+
+  private void reconstructVert(JPanel[] newLabels, JComponent[] newDrag,
+                               FancySSCell[][] fcells) {
+    // reconstruct vertical spreadsheet label layout
+    VertLabel = newLabels;
+    VertDrag = newDrag;
+    VertPanel.setLayout(new SSLayout(1, 2*NumVisY-1, LABEL_WIDTH,
+                                     MIN_VIS_HEIGHT, 0, 0, true));
+    for (int i=0; i<NumVisY; i++) {
+      VertPanel.add(VertLabel[i]);
+      if (i < NumVisY-1) VertPanel.add(VertDrag[i]);
+    }
+
+    // reconstruct spreadsheet cell layout
+    DisplayCells = fcells;
+    DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
+                                        MIN_VIS_HEIGHT, 5, 5, false));
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) {
+        DisplayPanel.add(DisplayCells[i][j]);
+      }
+    }
+
+    // refresh display
+    VertPanel.doLayout();
+    for (int j=0; j<NumVisY; j++) VertLabel[j].doLayout();
+    DisplayPanel.doLayout();
+    SCPane.doLayout();
+  }
+
   /** Adds a column to the spreadsheet */
-  void addColumn() {
-    if (NumVisX < 26) {
+  public void addColumn() {
+    if (MaxVisX < 26) {
       // re-layout horizontal spreadsheet labels
       JPanel[] newLabels = new JPanel[NumVisX+1];
       JComponent[] newDrag = new JComponent[NumVisX];
+      HorizPanel.removeAll();
       for (int i=0; i<NumVisX-1; i++) {
         newLabels[i] = HorizLabel[i];
         newDrag[i] = HorizDrag[i];
@@ -1112,7 +1180,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) fcells[i][j] = DisplayCells[i][j];
         try {
-          String name = String.valueOf(Letters.charAt(NumVisX)) +
+          String name = String.valueOf(Letters.charAt(MaxVisX)) +
                         String.valueOf(j + 1);
           fcells[NumVisX][j] = new FancySSCell(name, this);
           fcells[NumVisX][j].addSSCellChangeListener(this);
@@ -1138,40 +1206,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
 
       NumVisX++;
-
-      // reconstruct horizontal spreadsheet label layout
-      HorizLabel = newLabels;
-      HorizDrag = newDrag;
-      HorizPanel.setLayout(new SSLayout(2*NumVisX-1, 1, MIN_VIS_WIDTH,
-                                        LABEL_HEIGHT, 0, 0, true));
-      for (int i=0; i<NumVisX; i++) {
-        HorizPanel.add(HorizLabel[i]);
-        if (i < NumVisX-1) HorizPanel.add(HorizDrag[i]);
-      }
-
-      // reconstruct spreadsheet cell layout
-      DisplayCells = fcells;
-      DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
-                                          MIN_VIS_HEIGHT, 5, 5, false));
-      for (int j=0; j<NumVisY; j++) {
-        for (int i=0; i<NumVisX; i++) {
-          DisplayPanel.add(DisplayCells[i][j]);
-        }
-      }
-
-      // redraw components
-      HorizPanel.doLayout();
-      for (int i=0; i<NumVisX; i++) HorizLabel[i].doLayout();
-      DisplayPanel.doLayout();
-      SCPane.doLayout();
+      MaxVisX++;
+      reconstructHoriz(newLabels, newDrag, fcells);
     }
   }
 
   /** Adds a row to the spreadsheet */
-  void addRow() {
+  public void addRow() {
     // re-layout vertical spreadsheet labels
     JPanel[] newLabels = new JPanel[NumVisY+1];
     JComponent[] newDrag = new JComponent[NumVisY];
+    VertPanel.removeAll();
     for (int i=0; i<NumVisY-1; i++) {
       newLabels[i] = VertLabel[i];
       newDrag[i] = VertDrag[i];
@@ -1204,7 +1249,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int j=0; j<NumVisY; j++) fcells[i][j] = DisplayCells[i][j];
       try {
         String name = String.valueOf(Letters.charAt(i)) +
-                      String.valueOf(NumVisY + 1);
+                      String.valueOf(MaxVisY + 1);
         fcells[i][NumVisY] = new FancySSCell(name, this);
         fcells[i][NumVisY].addSSCellChangeListener(this);
         fcells[i][NumVisY].addMouseListener(this);
@@ -1227,36 +1272,102 @@ public class SpreadSheet extends JFrame implements ActionListener,
                  "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
     }
-
     NumVisY++;
+    MaxVisY++;
+    reconstructVert(newLabels, newDrag, fcells);
+  }
 
-    // reconstruct vertical spreadsheet label layout
-    VertLabel = newLabels;
-    VertDrag = newDrag;
-    VertPanel.setLayout(new SSLayout(1, 2*NumVisY-1, LABEL_WIDTH,
-                                     MIN_VIS_HEIGHT, 0, 0, true));
-    for (int i=0; i<NumVisY; i++) {
-      VertPanel.add(VertLabel[i]);
-      if (i < NumVisY-1) VertPanel.add(VertDrag[i]);
+  /** Deletes a column from the spreadsheet */
+  public boolean deleteColumn() {
+    // make sure at least one column will be left
+    if (NumVisX == 1) {
+        JOptionPane.showMessageDialog(this, "This is the last column!",
+          "Cannot delete column", JOptionPane.ERROR_MESSAGE);
+      return false;
     }
-
-    // reconstruct spreadsheet cell layout
-    DisplayCells = fcells;
-    DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
-                                        MIN_VIS_HEIGHT, 5, 5, false));
+    // make sure no cells are dependent on columns about to be deleted
     for (int j=0; j<NumVisY; j++) {
-      for (int i=0; i<NumVisX; i++) {
-        DisplayPanel.add(DisplayCells[i][j]);
+      if (DisplayCells[CurX][j].othersDepend()) {
+        JOptionPane.showMessageDialog(this, "Other cells depend on cells " +
+          "from this column.  Make sure that no cells depend on this column " +
+          "before attempting to delete it.", "Cannot delete column",
+          JOptionPane.ERROR_MESSAGE);
+        return false;
       }
     }
 
-    // redraw components
-    VertPanel.doLayout();
-    for (int j=0; j<NumVisY; j++) VertLabel[j].doLayout();
-    DisplayPanel.doLayout();
-    SCPane.doLayout();
+    // re-layout horizontal spreadsheet labels
+    JPanel[] newLabels = new JPanel[NumVisX-1];
+    JComponent[] newDrag = new JComponent[NumVisX-2];
+    HorizPanel.removeAll();
+    for (int i=0; i<CurX; i++) {
+      newLabels[i] = HorizLabel[i];
+      if (i < NumVisX-2) newDrag[i] = HorizDrag[i];
+    }
+    for (int i=CurX+1; i<NumVisX; i++) {
+      newLabels[i-1] = HorizLabel[i];
+      if (i < NumVisX-2) newDrag[i-1] = HorizDrag[i];
+    }
+
+    // re-layout spreadsheet cells
+    FancySSCell[][] fcells = new FancySSCell[NumVisX-1][NumVisY];
+    DisplayPanel.removeAll();
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<CurX; i++) fcells[i][j] = DisplayCells[i][j];
+      for (int i=CurX+1; i<NumVisX; i++) fcells[i-1][j] = DisplayCells[i][j];
+    }
+    NumVisX--;
+    if (CurX > NumVisX-1) CurX = NumVisX-1;
+    reconstructHoriz(newLabels, newDrag, fcells);
+    return true;
   }
+
+  /** Deletes a row from the spreadsheet */
+  public boolean deleteRow() {
+    // make sure at least one row will be left
+    if (NumVisY == 1) {
+        JOptionPane.showMessageDialog(this, "This is the last row!",
+          "Cannot delete row", JOptionPane.ERROR_MESSAGE);
+      return false;
+    }
     
+    // make sure no cells are dependent on rows about to be deleted
+    for (int i=0; i<NumVisX; i++) {
+      if (DisplayCells[i][CurY].othersDepend()) {
+        JOptionPane.showMessageDialog(this, "Other cells depend on cells " +
+          "from this row.  Make sure that no cells depend on this row " +
+          "before attempting to delete it.", "Cannot delete row",
+          JOptionPane.ERROR_MESSAGE);
+        return false;
+      }
+    }
+
+    // re-layout vertical spreadsheet labels
+    JPanel[] newLabels = new JPanel[NumVisY-1];
+    JComponent[] newDrag = new JComponent[NumVisY-2];
+    VertPanel.removeAll();
+    for (int i=0; i<CurY; i++) {
+      newLabels[i] = VertLabel[i];
+      if (i < NumVisY-2) newDrag[i] = VertDrag[i];
+    }
+    for (int i=CurY+1; i<NumVisY; i++) {
+      newLabels[i-1] = VertLabel[i];
+      if (i < NumVisY-2) newDrag[i-1] = VertDrag[i];
+    }
+
+    // re-layout spreadsheet cells
+    FancySSCell[][] fcells = new FancySSCell[NumVisX][NumVisY-1];
+    DisplayPanel.removeAll();
+    for (int i=0; i<NumVisX; i++) {
+      for (int j=0; j<CurY; j++) fcells[i][j] = DisplayCells[i][j];
+      for (int j=CurY+1; j<NumVisY; j++) fcells[i][j-1] = DisplayCells[i][j];
+    }
+    NumVisY--;
+    if (CurY > NumVisY-1) CurY = NumVisY-1;
+    reconstructVert(newLabels, newDrag, fcells);
+    return true;
+  }
+
   /** Make sure the formula bar is displaying up-to-date info */
   void refreshFormulaBar() {
     if (DisplayCells[CurX][CurY].hasFormula()) {
@@ -1416,7 +1527,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Selects the specified cell, updating screen info */
-  void selectCell(int x, int y) {
+  public void selectCell(int x, int y) {
     if (x < 0 || x >= NumVisX || y < 0 || y >= NumVisY
                               || (x == CurX && y == CurY)) return;
 
