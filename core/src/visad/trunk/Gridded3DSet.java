@@ -748,8 +748,6 @@ public class Gridded3DSet extends GriddedSet {
     float[] Y = new float[3];
 
 
-
-
     for (int i=0; i<length; i++) {
       // a flag indicating whether point is off the grid
       boolean offgrid = false;
@@ -767,7 +765,6 @@ public class Gridded3DSet extends GriddedSet {
         }
         continue;
       }
-
       // test for missing
       if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
         gx = (LengthX-1)/2;
@@ -778,7 +775,27 @@ public class Gridded3DSet extends GriddedSet {
       // if the iteration loop fails, the result should be NaN
       grid[0][i] = grid[1][i] = grid[2][i] = Float.NaN;
 
-
+      //--TDR, don't let value and initial guess be too far apart
+      float v_x, v_y, v_z;
+      v_x = value[0][i];
+      v_y = value[1][i];
+      v_z = value[2][i];
+      int ii = LengthX*LengthY*LengthZ - 1;
+      int gii = (int) gz*LengthX*LengthY+gy*LengthX+gx;
+      float sx = Samples[0][gii];
+      float sy = Samples[1][gii];
+      float sz = Samples[2][gii];
+      if ( Math.sqrt((v_x-sx)*(v_x-sx)+(v_y-sy)*(v_y-sy)+(v_z-sz)*(v_z-sz)) >
+           0.5*Math.sqrt((Samples[0][0]-Samples[0][ii])*(Samples[0][0]-Samples[0][ii])+
+                         (Samples[1][0]-Samples[1][ii])*(Samples[1][0]-Samples[1][ii])+
+                         (Samples[2][0]-Samples[2][ii])*(Samples[2][0]-Samples[2][ii])) )
+      {
+        float[] ginit = getStartPoint(value[0][i], value[1][i], value[2][i]);
+        gx = (int)ginit[0];
+        gy = (int)ginit[1];
+        gz = (int)ginit[2];
+      }
+      //----
       for (int itnum=0; itnum<2*(LengthX+LengthY+LengthZ); itnum++) {
         // determine tetrahedralization type
         boolean evencube = ((gx+gy+gz) % 2 == 0);
@@ -875,9 +892,9 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-E[1])
                 + ( (E[0]-F[0])*(H[1]-E[1]) - (E[1]-F[1])*(H[0]-E[0]) )
                    *(value[2][i]-E[2]);
-          test1 = (tval1 == 0) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (tval2 == 0) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (tval3 == 0) || ((tval3 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
 
           // if a test failed go to a new box
           int updown = (evencube) ? -1 : 1;
@@ -903,6 +920,58 @@ public class Gridded3DSet extends GriddedSet {
           // If all tests pass then this is the correct tetrahedron
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
+            if ((value[0][i]==E[0])&&(value[1][i]==E[1])&&(value[2][i]==E[2])) {
+              if (evencube) {
+                grid[0][i] = gx;
+                grid[1][i] = gy;
+                grid[2][i] = gz;
+              }
+              else {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz+1;
+              }
+              break;
+            }
+            if ((value[0][i]==A[0])&&(value[1][i]==A[1])&&(value[2][i]==A[2])) {
+              if (evencube) {
+                grid[0][i] = gx;
+                grid[1][i] = gy;
+                grid[2][i] = gz+1;
+              }
+              else {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz;
+              }
+              break;
+            }
+            if ((value[0][i]==F[0])&&(value[1][i]==F[1])&&(value[2][i]==F[2])) {
+              if (evencube) {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy;
+                grid[2][i] = gz;
+              }
+              else {
+                grid[0][i] = gx;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz+1;
+              }
+              break;
+            }
+            if ((value[0][i]==H[0])&&(value[1][i]==H[1])&&(value[2][i]==H[2])) {
+              if (evencube) {
+                grid[0][i] = gx;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz;
+              }
+              else {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy;
+                grid[2][i] = gz+1;
+              }
+              break;
+            }
             // solve point
             for (int j=0; j<3; j++) {
               M[j] = (F[j]-E[j])*(A[(j+1)%3]-E[(j+1)%3])
@@ -996,6 +1065,7 @@ public class Gridded3DSet extends GriddedSet {
               grid[1][i] = gy+1-t;
               grid[2][i] = gz+1-u;
             }
+
             break;
           }
         }
@@ -1018,9 +1088,10 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-B[1])
                 + ( (B[0]-F[0])*(A[1]-B[1]) - (B[1]-F[1])*(A[0]-B[0]) )
                    *(value[2][i]-B[2]);
-          test1 = (tval1 == 0) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (tval2 == 0) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (tval3 == 0) || ((tval3 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
+
 
           // if a test failed go to a new box
           if (!test1 &&  evencube) gx++; // RIGHT
@@ -1048,6 +1119,58 @@ public class Gridded3DSet extends GriddedSet {
           // If all tests pass then this is the correct tetrahedron
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
+            if ((value[0][i]==B[0])&&(value[1][i]==B[1])&&(value[2][i]==B[2])) {
+              if (evencube) {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy;
+                grid[2][i] = gz+1;
+              }
+              else {
+                grid[0][i] = gx;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz;
+              }
+              break;
+            }
+            if ((value[0][i]==A[0])&&(value[1][i]==A[1])&&(value[2][i]==A[2])) {
+              if (evencube) {
+                grid[0][i] = gx;
+                grid[1][i] = gy;
+                grid[2][i] = gz+1;
+              }
+              else {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz;
+              }
+              break;
+            }
+            if ((value[0][i]==F[0])&&(value[1][i]==F[1])&&(value[2][i]==F[2])) {
+              if (evencube) {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy;
+                grid[2][i] = gz;
+              }
+              else {
+                grid[0][i] = gx;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz+1;
+              }
+              break;
+            }
+            if ((value[0][i]==C[0])&&(value[1][i]==C[1])&&(value[2][i]==C[2])) {
+              if (evencube) {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz+1;
+              }
+              else {
+                grid[0][i] = gx;
+                grid[1][i] = gy;
+                grid[2][i] = gz;
+              }
+              break;
+            }
             // solve point
             for (int j=0; j<3; j++) {
               M[j] = (A[j]-B[j])*(F[(j+1)%3]-B[(j+1)%3])
@@ -1141,6 +1264,7 @@ public class Gridded3DSet extends GriddedSet {
               grid[1][i] = gy+1-t;
               grid[2][i] = gz+1-u;
             }
+
             break;
           }
         }
@@ -1163,9 +1287,10 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-D[1])
                 + ( (D[0]-H[0])*(C[1]-D[1]) - (D[1]-H[1])*(C[0]-D[0]) )
                    *(value[2][i]-D[2]);
-          test1 = (tval1 == 0) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (tval2 == 0) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (tval3 == 0) || ((tval3 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
+
 
           // if a test failed go to a new box
           if (!test1 &&  evencube) gx--; // LEFT
@@ -1193,6 +1318,58 @@ public class Gridded3DSet extends GriddedSet {
           // If all tests pass then this is the correct tetrahedron
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
+            if ((value[0][i]==H[0])&&(value[1][i]==H[1])&&(value[2][i]==H[2])) {
+              if (evencube) {
+                grid[0][i] = gx;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz;
+              }
+              else {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy;
+                grid[2][i] = gz+1;
+              }
+              break;
+            }
+            if ((value[0][i]==A[0])&&(value[1][i]==A[1])&&(value[2][i]==A[2])) {
+              if (evencube) {
+                grid[0][i] = gx;
+                grid[1][i] = gy;
+                grid[2][i] = gz+1;
+              }
+              else {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz;
+              }
+              break;
+            }
+            if ((value[0][i]==D[0])&&(value[1][i]==D[1])&&(value[2][i]==D[2])) {
+              if (evencube) {
+                grid[0][i] = gx;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz+1;
+              }
+              else {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy;
+                grid[2][i] = gz;
+              }
+              break;
+            }
+            if ((value[0][i]==C[0])&&(value[1][i]==C[1])&&(value[2][i]==C[2])) {
+              if (evencube) {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz+1;
+              }
+              else {
+                grid[0][i] = gx;
+                grid[1][i] = gy;
+                grid[2][i] = gz;
+              }
+              break;
+            }
             // solve point
             for (int j=0; j<3; j++) {
               M[j] = (C[j]-D[j])*(H[(j+1)%3]-D[(j+1)%3])
@@ -1286,6 +1463,7 @@ public class Gridded3DSet extends GriddedSet {
               grid[1][i] = gy+1-t;
               grid[2][i] = gz+1-u;
             }
+
             break;
           }
         }
@@ -1308,9 +1486,10 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-G[1])
                 + ( (G[0]-H[0])*(F[1]-G[1]) - (G[1]-H[1])*(F[0]-G[0]) )
                    *(value[2][i]-G[2]);
-          test1 = (tval1 == 0) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (tval2 == 0) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (tval3 == 0) || ((tval3 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
+
 
           // if a test failed go to a new box
           if (!test1 &&  evencube) gy++; // DOWN
@@ -1338,6 +1517,58 @@ public class Gridded3DSet extends GriddedSet {
           // If all tests pass then this is the correct tetrahedron
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
+            if ((value[0][i]==H[0])&&(value[1][i]==H[1])&&(value[2][i]==H[2])) {
+              if (evencube) {
+                grid[0][i] = gx;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz;
+              }
+              else {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy;
+                grid[2][i] = gz+1;
+              }
+              break;
+            }
+            if ((value[0][i]==G[0])&&(value[1][i]==G[1])&&(value[2][i]==G[2])) {
+              if (evencube) {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz;
+              }
+              else {
+                grid[0][i] = gx;
+                grid[1][i] = gy;
+                grid[2][i] = gz+1;
+              }
+              break;
+            }
+            if ((value[0][i]==F[0])&&(value[1][i]==F[1])&&(value[2][i]==F[2])) {
+              if (evencube) {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy;
+                grid[2][i] = gz;
+              }
+              else {
+                grid[0][i] = gx;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz+1;
+              }
+              break;
+            }
+            if ((value[0][i]==C[0])&&(value[1][i]==C[1])&&(value[2][i]==C[2])) {
+              if (evencube) {
+                grid[0][i] = gx+1;
+                grid[1][i] = gy+1;
+                grid[2][i] = gz+1;
+              }
+              else {
+                grid[0][i] = gx;
+                grid[1][i] = gy;
+                grid[2][i] = gz;
+              }
+              break;
+            }
             // solve point
             for (int j=0; j<3; j++) {
               M[j] = (H[j]-G[j])*(C[(j+1)%3]-G[(j+1)%3])
@@ -1431,6 +1662,7 @@ public class Gridded3DSet extends GriddedSet {
               grid[1][i] = gy+1-t;
               grid[2][i] = gz+1-u;
             }
+
             break;
           }
         }
@@ -1459,10 +1691,10 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-F[1])
                 + ( (F[0]-C[0])*(H[1]-F[1]) - (F[1]-C[1])*(H[0]-F[0]) )
                    *(value[2][i]-F[2]);
-          test1 = (tval1 == 0) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (tval2 == 0) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (tval3 == 0) || ((tval3 > 0) == (!evencube)^Pos);
-          test4 = (tval4 == 0) || ((tval4 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
+          test4 = (visad.util.Util.isApproximatelyEqual(tval4,0.0)) || ((tval4 > 0) == (!evencube)^Pos);
 
           // if a test failed go to a new tetrahedron
           if (!test1 && test2 && test3 && test4) tetnum = 1;
@@ -1632,14 +1864,11 @@ public class Gridded3DSet extends GriddedSet {
               grid[1][i] = gy+1-t;
               grid[2][i] = gz+1-u;
             }
+
             break;
           }
         }
       }
-
-
-
-
 
       // allow estimations up to 0.5 boxes outside of defined samples
       if ( (grid[0][i] <= -0.5) || (grid[0][i] >= LengthX-0.5)
@@ -1649,10 +1878,33 @@ public class Gridded3DSet extends GriddedSet {
       }
     }
 
-
-
-
     return grid;
+  }
+
+  public float[] getStartPoint(float x, float y, float z) {
+    int factor = 4;
+    int nx = LengthX/factor;
+    int ny = LengthY/factor;
+    int nz = LengthZ/factor;
+    float gx, gy, gz, dist;
+    gx = gy = gz = 0;
+
+    float min_dist = Float.MAX_VALUE;
+    for (int k=0; k <nz; k++) {
+      for (int j=0; j<ny; j++) {
+        for (int i=0; i<nx; i++) {
+          int idx = k*factor*(LengthX*LengthY) + j*factor*LengthX + i*factor;
+          dist = (Samples[0][idx]-x)*(Samples[0][idx]-x)+(Samples[1][idx]-y)*(Samples[1][idx]-y)+(Samples[2][idx]-z)*(Samples[2][idx]-z);
+          if (dist < min_dist) {
+            min_dist = dist;
+            gx = i*factor;
+            gy = j*factor;
+            gz = k*factor;
+          }
+        }
+      } 
+    }
+    return new float[] {gx, gy, gz};
   }
 
   public VisADGeometryArray[][] makeIsoLines(float[] intervals,
