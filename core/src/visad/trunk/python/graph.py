@@ -203,7 +203,7 @@ def addeimage(mapname='outlsupu'):
 
 #----------------------------------------------------------------------------
 # basic scatter plot between two fields.
-def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, xlabel=None, ylabel=None, title="VisAD Scatter", bottom=None, top=None):
+def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, xlabel=None, ylabel=None, title="VisAD Scatter", bottom=None, top=None, color=None):
   """
   Quick plot of a scatter diagram between <data_1> and <data_2>.
   <panel> is the name of a panel to put this into (default= make a new
@@ -224,7 +224,7 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
   data = FieldImpl.combine((data_1,data_2))
   maps = subs.makeMaps(getRealType(rng_1),"x", getRealType(rng_2),"y")
   disp = subs.makeDisplay(maps)
-  subs.addData("data", data, disp)
+  subs.addData("data", data, disp, constantMaps=subs.makeColorMap(color))
   subs.setBoxSize(disp, .70)
   showAxesScales(disp,1)
   #setAxesScalesFont(maps, Font("Monospaced", Font.PLAIN, 18))
@@ -237,7 +237,7 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
 
 #----------------------------------------------------------------------------
 # quick look histogram - only first range component is used.
-def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", color=None, panel=None, clip=1):
+def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", color=None, bottom=None, top=None, panel=None, clip=1):
 
   """
   Quick plot of a histogram from <data>.  <bins> is the number of bins
@@ -293,7 +293,7 @@ def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", col
   showAxesScales(disp,1)
   subs.setBoxSize(disp,.65,clip)
   subs.setAspectRatio(disp, float(width)/float(height))
-  subs.showDisplay(disp,width,height,title,None,None,panel)
+  subs.showDisplay(disp,width,height,title,bottom,top,panel)
 
   return disp
 
