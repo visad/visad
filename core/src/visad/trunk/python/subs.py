@@ -46,6 +46,7 @@ class _vdisp:
       self.addMap(self.text_map)
       self.shape_map = ScalarMap(self.shape_type, Display.Shape)
       self.addMap(self.shape_map)
+      self.my_frame = None
 
 
   def addMaps(self, maps):
@@ -1128,6 +1129,8 @@ class myFrame:
     if autoShow:
       self.frame.pack()
       self.frame.show()
+
+    self.display.my_frame = self.frame
 
 
 
