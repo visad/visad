@@ -320,8 +320,8 @@ public abstract class BaseColorControl extends Control {
           table = bcc.table;
           tableLength = table[0].length - 1;
           function = null;
-          changeControl(true);
         }
+        changeControl(true);
       }
     }
     if (functionChanged) {
