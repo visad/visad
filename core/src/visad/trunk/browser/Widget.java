@@ -50,10 +50,19 @@ public abstract class Widget extends Panel {
    */
   protected static final String FALSE = "F";
 
+  protected static final Color PALE_GRAY = new Color(0.8f, 0.8f, 0.8f);
+
   /**
    * Vector of widget listeners.
    */
   private Vector listeners = new Vector();
+
+  /**
+   * Performs GUI setup common to all widgets.
+   */
+  public Widget() {
+    setBackground(PALE_GRAY);
+  }
 
   /**
    * Adds a component to the applet with the specified constraints.

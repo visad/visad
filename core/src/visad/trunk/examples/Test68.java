@@ -20,6 +20,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+import java.awt.Container;
 import java.awt.event.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -32,7 +33,7 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.GMCWidget;
 
 public class Test68
-  extends TestSkeleton
+  extends UISkeleton
 {
   private int port = 0;
 
@@ -129,6 +130,7 @@ public class Test68
       display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
       display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
       display1.addMap(new ScalarMap(vis_radiance, Display.Green));
+      display1.addMap(new ScalarMap(vis_radiance, Display.IsoContour));
       display1.addMap(new ConstantMap(0.5, Display.Blue));
       display1.addMap(new ConstantMap(0.5, Display.Red));
 
@@ -165,26 +167,22 @@ public class Test68
         "VisAD's SocketSlaveDisplay will support communication\n" +
         "through a proxy server.");
     }
-  }
 
-  void setupUI(LocalDisplay[] dpys) throws VisADException, RemoteException {
-    JFrame frame = new JFrame("Socket slave display server");
-    frame.addWindowListener(new WindowAdapter() {
+    // set up widget frame
+    JFrame widgetFrame = new JFrame("Controls");
+    widgetFrame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         System.exit(0);
       }
     });
     JPanel pane = new JPanel();
-    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-    frame.setContentPane(pane);
-    pane.add(dpys[0].getComponent());
-
-    // add a graphics mode control widget to the GUI
-    pane.add(new GMCWidget(gmc));
-
-    frame.pack();
-    frame.show();
+    Container widgets = display1.getWidgetPanel();
+    widgetFrame.setContentPane(widgets);
+    widgetFrame.pack();
+    widgetFrame.show();
   }
+
+  String getFrameTitle() { return "SocketSlaveDisplay server"; }
 
   public String toString() { return " [-2d] port: SocketSlaveDisplay"; }
 

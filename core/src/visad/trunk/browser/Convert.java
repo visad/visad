@@ -27,7 +27,7 @@ MA 02111-1307, USA
 package visad.browser;
 
 /**
- * Utility methods for various numerical conversions.
+ * Utility methods for various conversions between primitive data types.
  */
 public class Convert {
 
@@ -43,7 +43,7 @@ public class Convert {
   public static byte[] intToBytes(int[] ints) {
     int len = ints.length;
     byte[] bytes = new byte[4 * len];
-    for (int i=0; i<len; i++) {
+    for (int i = 0; i < len; i++) {
       int q = ints[i];
       bytes[4 * i] = (byte) (q & 0x000000ff);
       bytes[4 * i + 1] = (byte) ((q & 0x0000ff00) >> 8);
@@ -66,7 +66,7 @@ public class Convert {
   public static int[] bytesToInt(byte[] bytes) {
     int len = bytes.length / 4;
     int[] ints = new int[len];
-    for (int i=0; i<len; i++) {
+    for (int i = 0; i < len; i++) {
       // This byte decoding method is not very good; is there a better way?
       int q3 = bytes[4 * i + 3] << 24;
       int q2 = bytes[4 * i + 2] << 16;
@@ -97,7 +97,7 @@ public class Convert {
     int[] temp = new int[len];
     int p = 0;
 
-    for (int i=0; i<len;) {
+    for (int i = 0; i < len;) {
       int q = array[i];
       int count = 0;
       while (i < len && q == array[i]) {
@@ -107,7 +107,7 @@ public class Convert {
 
       if (count < 4) {
         // no gain from RLE; save values directly
-        for (int z=0; z<count; z++) temp[p++] = q;
+        for (int z = 0; z < count; z++) temp[p++] = q;
       }
       else {
         // compress data using RLE
@@ -150,12 +150,12 @@ public class Convert {
     int p = 0;
 
     // decode RLE sequence
-    for (i=0; i<array.length; i++) {
+    for (i = 0; i < array.length; i++) {
       int q = array[i];
       if (q == RLE_ESCAPE) {
         int val = array[++i];
         int cnt = array[++i];
-        for (int z=0; z<cnt; z++) decoded[p++] = val;
+        for (int z = 0; z < cnt; z++) decoded[p++] = val;
       }
       else decoded[p++] = q;
     }
@@ -209,6 +209,94 @@ public class Convert {
       catch (NumberFormatException exc) { }
     }
     return i;
+  }
+
+  /**
+   * Number of significant digits after the decimal point.
+   */
+  public static final int PLACES = 3;
+
+  /**
+   * Gets a reasonably short string representation of a double
+   * for use in a graphical user interface.
+   */
+  public static String shortString(double val) {
+    // remember whether or not the number is negative
+    boolean negative = (val < 0.0);
+
+    double orig_val = val;
+
+    // now we only need to deal with a positive number
+    val = Math.abs(val);
+
+    if (val < 0.001) {
+      for (int i = 1; i < 30; i++) {
+        val *= 10.0;
+        orig_val *= 10.0;
+        if (val >= 1.0) {
+          return shortString(orig_val) + "E-" + i;
+        }
+      }
+    }
+
+    // build multiplier for saving significant digits
+    // also build value used to round up insignificant digits
+    int mult = 1;
+    float round = 0.5f;
+    for (int p = PLACES; p > 0; p--) {
+      mult *= 10;
+      round /= 10;
+    }
+
+    // break into digits before (preDot) and after (postDot) the decimal point
+    long l = (long) ((val + round) * mult);
+    long preDot = l / mult;
+    int postDot = (int )(l % mult);
+
+    // format the pre-decimal point number
+    // Integer.toString() is faster than Long.toString(); use it if possible
+    String num;
+    if (preDot <= Integer.MAX_VALUE) {
+      num = Integer.toString((int )preDot);
+    } else {
+      num = Long.toString(preDot);
+    }
+
+    // if there's nothing after the decimal point, use the whole number
+    if (postDot == 0) {
+
+      // make sure we don't return "-0"
+      if (negative && preDot != 0) {
+        return "-" + num;
+      }
+
+      return num;
+    }
+
+    // start building the string
+    StringBuffer buf = new StringBuffer(num.length() + 5);
+
+    // add sign (if necessary), pre-decimal point digits and decimal point
+    if (negative) {
+      buf.append('-');
+    }
+    buf.append(num);
+    buf.append('.');
+
+    // format the post-decimal point digits
+    num = Integer.toString(postDot);
+
+    // add leading zeros if necessary
+    int nlen = num.length();
+    for (int p = PLACES; p > nlen; p--) {
+      buf.append('0');
+    }
+
+    // add actual digits
+    buf.append(num);
+
+    // return the final string
+    return buf.toString();
   }
 
 }

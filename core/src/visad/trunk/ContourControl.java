@@ -104,11 +104,19 @@ public class ContourControl extends Control {
     }
     mainContours = bvalues[0];
     labels = bvalues[1];
+
+    /* CTR: 23 June 2000
     if (surfaceValue != surfaceValue) surfaceValue = fvalues[0];
     if (contourInterval != contourInterval) contourInterval = fvalues[1];
     if (lowLimit != lowLimit) lowLimit = fvalues[2];
     if (hiLimit != hiLimit) hiLimit = fvalues[3];
     if (base != base) base = fvalues[4];
+    */
+    surfaceValue = fvalues[0];
+    contourInterval = fvalues[1];
+    lowLimit = fvalues[2];
+    hiLimit = fvalues[3];
+    base = fvalues[4];
 
     // adapt to 'new' descriptors
     if (arithmeticProgression) {

@@ -56,9 +56,6 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
    * Constructs a new GMCWidget.
    */
   public GMCWidget() {
-    // set background to white
-    setBackground(Color.white);
-
     // lay out components with GridBagLayout
     GridBagLayout gridbag = new GridBagLayout();
     setLayout(gridbag);
@@ -67,8 +64,8 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
     scale = new Checkbox("Enable scale", gmcScaleEnable);
     point = new Checkbox("Point mode", gmcPointMode);
     texture = new Checkbox("Texture mapping", gmcTextureEnable);
-    lineWidth = new TextField("" + gmcLineWidth);
-    pointSize = new TextField("" + gmcPointSize);
+    lineWidth = new TextField(Convert.shortString(gmcLineWidth));
+    pointSize = new TextField(Convert.shortString(gmcPointSize));
 
     // add listeners
     scale.addItemListener(this);
@@ -99,7 +96,7 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
    */
   public void setLineWidth(float lw) {
     gmcLineWidth = lw;
-    lineWidth.setText("" + lw);
+    lineWidth.setText(Convert.shortString(lw));
   }
 
   /**
@@ -114,7 +111,7 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
    */
   public void setPointSize(float ps) {
     gmcPointSize = ps;
-    pointSize.setText("" + ps);
+    pointSize.setText(Convert.shortString(ps));
   }
 
   /**
@@ -236,17 +233,10 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
    * Gets a string representing this widget's current state.
    */
   public String getSaveString() {
-    return "" +
-      getLineWidth() + ' ' +
-      getPointSize() + ' ' +
-      getPointMode() + ' ' +
-      getTextureEnable() + ' ' +
-      getScaleEnable() + ' ' +
-      getTransparencyMode() + ' ' +
-      getProjectionPolicy() + ' ' +
-      getPolygonMode() + ' ' +
-      getMissingTransparent() + ' ' +
-      getCurvedSize();
+    return "" + gmcLineWidth + " " + gmcPointSize + " " + gmcPointMode + " " +
+      gmcTextureEnable + " " + gmcScaleEnable + " " +
+      gmcTransparencyMode + " " + gmcProjectionPolicy + " " +
+      gmcPolygonMode + " " + gmcMissingTransparent + " " + gmcCurvedSize;
   }
 
   /**
@@ -301,10 +291,10 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
         lw = Float.valueOf(lineWidth.getText()).floatValue();
       }
       catch (NumberFormatException exc) {
-        lineWidth.setText("" + gmcLineWidth);
+        lineWidth.setText(Convert.shortString(gmcLineWidth));
       }
       if (lw == lw) {
-        gmcLineWidth = lw;
+        setLineWidth(lw);
         scale.requestFocus();
         notifyListeners(new WidgetEvent(this));
       }
@@ -315,10 +305,10 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
         ps = Float.valueOf(pointSize.getText()).floatValue();
       }
       catch (NumberFormatException exc) {
-        pointSize.setText("" + gmcPointSize);
+        pointSize.setText(Convert.shortString(gmcPointSize));
       }
       if (ps == ps) {
-        gmcPointSize = ps;
+        setPointSize(ps);
         scale.requestFocus();
         notifyListeners(new WidgetEvent(this));
       }
@@ -331,9 +321,9 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
   public void itemStateChanged(ItemEvent e) {
     Object source = e.getItemSelectable();
     boolean on = (e.getStateChange() == ItemEvent.SELECTED);
-    if (source == scale) gmcScaleEnable = on;
-    else if (source == point) gmcPointMode = on;
-    else if (source == texture) gmcTextureEnable = on;
+    if (source == scale) setScaleEnable(on);
+    else if (source == point) setPointMode(on);
+    else if (source == texture) setTextureEnable(on);
     notifyListeners(new WidgetEvent(this));
   }
 
