@@ -160,6 +160,7 @@ public class DisplayImplJ2D extends DisplayImpl {
 
   /** legal values for api */
   public static final int JPANEL = 1;
+  public static final int OFFSCREEN = 2;
 
   private ProjectionControlJ2D projection = null;
   private GraphicsModeControlJ2D mode = null;
@@ -188,6 +189,26 @@ public class DisplayImplJ2D extends DisplayImpl {
   /** constructor with non-DefaultDisplayRenderer */
   public DisplayImplJ2D(String name, DisplayRendererJ2D renderer, int api)
          throws VisADException, RemoteException {
+    this(name, renderer, api, 300, 300);
+  }
+
+  /** offscreen constructor */
+  public DisplayImplJ2D(String name, int width, int height)
+         throws VisADException, RemoteException {
+    this(name, new DefaultDisplayRendererJ2D(), OFFSCREEN, width, height);
+  }
+
+  /** offscreen constructor with non-DefaultDisplayRenderer */
+  public DisplayImplJ2D(String name, DisplayRendererJ2D renderer,
+                        int width, int height)
+         throws VisADException, RemoteException {
+    this(name, renderer, OFFSCREEN, width, height);
+  }
+
+  /** most general constructor */
+  public DisplayImplJ2D(String name, DisplayRendererJ2D renderer, int api,
+                        int width, int height)
+         throws VisADException, RemoteException {
     super(name, renderer);
 
     // a GraphicsModeControl always exists
@@ -200,6 +221,11 @@ public class DisplayImplJ2D extends DisplayImpl {
     if (api == JPANEL) {
       Component component = new DisplayPanelJ2D(this);
       setComponent(component);
+    }
+    else if (api == OFFSCREEN) {
+      Component component = null;
+      VisADCanvasJ2D canvas = new VisADCanvasJ2D(renderer, width, height);
+      VisADGroup scene = renderer.createSceneGraph(canvas);
     }
     else {
       throw new DisplayException("DisplayImplJ2D: bad graphicsApi");

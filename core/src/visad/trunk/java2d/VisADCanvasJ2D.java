@@ -75,6 +75,7 @@ public class VisADCanvasJ2D extends Canvas
 
     width = getSize().width;
     height = getSize().height;
+    length = 1;
     images = new BufferedImage[] {(BufferedImage) createImage(width, height)};
     aux_image = createImage(width, height);
     valid_images = new boolean[] {false};
@@ -86,6 +87,28 @@ public class VisADCanvasJ2D extends Canvas
       }
     };
     addComponentListener(cl);
+
+    setBackground(Color.black);
+    setForeground(Color.white);
+
+    renderThread = new Thread(this);
+    renderThread.start();
+  }
+
+  /** constructor for offscreen rendering */
+  VisADCanvasJ2D(DisplayRendererJ2D renderer, int w, int h) {
+    displayRenderer = renderer;
+    display = (DisplayImplJ2D) renderer.getDisplay();
+    component = null;
+
+    width = w;
+    height = h;
+    length = 1;
+    images = new BufferedImage[]
+      {new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)};
+    aux_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    valid_images = new boolean[] {false};
+    tgeometry = null;
 
     setBackground(Color.black);
     setForeground(Color.white);
@@ -124,17 +147,30 @@ public class VisADCanvasJ2D extends Canvas
   public void createImages(int len) {
     synchronized (images) {
       length = (len < 0) ? images.length : len;
-      width = getSize().width;
-      height = getSize().height;
+      if (component != null) {
+        width = getSize().width;
+        height = getSize().height;
+      }
       if (width <= 0) width = 1;
       if (height <= 0) height = 1;
       images = new BufferedImage[length];
       valid_images = new boolean[length];
       for (int i=0; i<length; i++) {
-        images[i] = (BufferedImage) createImage(width, height);
+        if (component != null) {
+          images[i] = (BufferedImage) createImage(width, height);
+        }
+        else {
+          images[i] =
+            new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        }
         valid_images[i] = false;
       }
-      aux_image = createImage(width, height);
+      if (component != null) {
+        aux_image = createImage(width, height);
+      }
+      else {
+        aux_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      }
 /*
 System.out.println("VisADCanvasJ2D.createImages: len = " + len +
                    " length = " + length + " width, height = " +
@@ -183,10 +219,15 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
       synchronized (this) {
         wakeup = false;
       }
-      Graphics g = getGraphics();
-      if (g != null) {
-        paint(g);
-        g.dispose();
+      if (component != null) {
+        Graphics g = getGraphics();
+        if (g != null) {
+          paint(g);
+          g.dispose();
+        }
+      }
+      else {
+        paint(null);
       }
     }
   }
@@ -235,6 +276,7 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
         VisADGroup root = displayRenderer.getRoot();
         AffineTransform trans = displayRenderer.getTrans();
         Graphics2D g2 = image.createGraphics();
+// System.out.println("(g2 == null) = " + (g2 == null));
         g2.setBackground(getBackground());
         g2.setRenderingHint(RenderingHints.KEY_RENDERING,
                             RenderingHints.VALUE_RENDER_SPEED);
@@ -280,14 +322,22 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
         g2.dispose();
       } // end if (!valid)
       if (tsave == null || !displayRenderer.anyCursorStringVector()) {
-        g.drawImage(image, 0, 0, this);
+        if (g != null) g.drawImage(image, 0, 0, this);
         if (captureFlag) {
+// System.out.println("image capture " + width + " " + height);
           captureFlag = false;
-          captureImage = (BufferedImage) createImage(width, height);
+          if (component != null) {
+            captureImage = (BufferedImage) createImage(width, height);
+          }
+          else {
+            captureImage =
+              new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+          }
           Graphics gc = captureImage.getGraphics();
           gc.drawImage(image, 0, 0, this);
           gc.dispose();
           displayRenderer.notifyCapture();
+// System.out.println("image capture end");
         }
       }
       else {
@@ -299,14 +349,22 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
         ga.drawImage(image, 0, 0, this);
         displayRenderer.drawCursorStringVector(ga, tsave, w, h);
         ga.dispose();
-        g.drawImage(aux_copy, 0, 0, this);
+        if (g != null) g.drawImage(aux_copy, 0, 0, this);
         if (captureFlag) {
+// System.out.println("aux_copy capture " + width + " " + height);
           captureFlag = false;
-          captureImage = (BufferedImage) createImage(width, height);
+          if (component != null) {
+            captureImage = (BufferedImage) createImage(width, height);
+          }
+          else {
+            captureImage =
+              new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+          }
           Graphics gc = captureImage.getGraphics();
           gc.drawImage(aux_copy, 0, 0, this);
           gc.dispose();
           displayRenderer.notifyCapture();
+// System.out.println("aux_copy capture end");
         }
       }
     } // end if (image != null)

@@ -197,6 +197,7 @@ public class DisplayTest extends Object {
         System.out.println("  49: test 1-D line and ConstantMap colors");
         System.out.println("  50: test image capture in Java2D");
         System.out.println("  51: test image capture in Java3D");
+        System.out.println("  52: test image capture from offscreen in Java2D");
 
         return;
 
@@ -2622,6 +2623,60 @@ public class DisplayTest extends Object {
         jframe1.pack();
         jframe1.setVisible(true);
         jframe1.setSize(jframe.getSize().width, jframe.getSize().height);
+
+        while (true) {
+          Graphics gp = panel1.getGraphics();
+          BufferedImage image = display1.getImage();
+          gp.drawImage(image, 0, 0, panel1);
+          gp.dispose();
+          try {
+            Thread.sleep(1000);
+          }
+          catch (InterruptedException e) {
+          }
+        }
+
+      case 52:
+
+        System.out.println(test_case + ": test image capture from offscreen " +
+                           "in Java2D");
+
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ2D("display1", 300, 300);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+/*
+        jframe = new JFrame("capture image in Java2D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+
+        jframe.setContentPane((JPanel) display1.getComponent());
+        jframe.pack();
+        jframe.setVisible(true);
+*/
+
+        jframe1 = new JFrame("captured image from Java2D");
+        jframe1.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+
+        panel1 = new JPanel();
+        panel1.setLayout(new BoxLayout(panel1, BoxLayout.X_AXIS));
+        panel1.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        panel1.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        jframe1.setContentPane(panel1);
+        jframe1.pack();
+        jframe1.setVisible(true);
+        jframe1.setSize(300, 300);
 
         while (true) {
           Graphics gp = panel1.getGraphics();

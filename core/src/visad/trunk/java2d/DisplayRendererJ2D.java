@@ -117,6 +117,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
         synchronized (this) {
           canvas.captureFlag = true;
           canvas.renderTrigger();
+// System.out.println("getImage wait");
           wait();
         }
       }
@@ -126,6 +127,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       }
       image = canvas.captureImage;
       canvas.captureImage = null;
+// System.out.println("getImage (image == null) = " + (image == null));
     }
     return image;
   }
