@@ -189,7 +189,33 @@ public class Util
   }
 
   /**
-   * Copy files in the <i>source</i> jar file to the <i>target</i>
+   * @see Util#copyJar(ProgressMonitor, File, File, String)
+   */
+  public static final boolean copyJar(File source, File target)
+  {
+    return copyJar(null, source, target, null);
+  }
+
+  /**
+   * @see Util#copyJar(ProgressMonitor, File, File, String)
+   */
+  public static final boolean copyJar(ProgressMonitor progress,
+                                       File source, File target)
+  {
+    return copyJar(progress, source, target, null);
+  }
+
+  /**
+   * @see Util#copyJar(ProgressMonitor, File, File, String)
+   */
+  public static final boolean copyJar(File source, File target,
+                                       String saveSuffix)
+  {
+    return copyJar(null, source, target, saveSuffix);
+  }
+
+  /**
+   * Extract files from the <i>source</i> jar file to the <i>target</i>
    * directory.  If necessary, the <i>target</i> directory is created.<br>
    * <br>
    * For example, if this method is called with a <i>source</i> of
