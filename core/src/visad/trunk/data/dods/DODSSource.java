@@ -197,9 +197,7 @@ public class DODSSource
 	    enum.hasMoreElements(); )
 	{
 	    BaseType	baseType = (BaseType)enum.nextElement();
-	    send(
-		dataFactory.data(
-		    baseType, das.getAttributeTable(baseType.getName())));
+	    send(dataFactory.data(baseType, das));
 	}
     }
 }

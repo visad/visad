@@ -40,10 +40,10 @@ public class BooleanVariableAdapter
     private final RealType	realType;
     private final SimpleSet[]	repSets;
 
-    private BooleanVariableAdapter(DBoolean var, AttributeTable table)
+    private BooleanVariableAdapter(DBoolean var, DAS das)
 	throws VisADException
     {
-	realType = realType(var, table);
+	realType = realType(var, das);
 	repSets = new SimpleSet[] {new Integer1DSet(realType, 2)};
     }
 
@@ -51,17 +51,17 @@ public class BooleanVariableAdapter
      * Returns an instance of this class corresponding to a DODS variable.
      *
      * @param var		The DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			An instance of this class corresponding to the
      *				input arguments.
      * @throws VisADException	VisAD failure.
      */
-    public static BooleanVariableAdapter booleanVariableAdapter (
-	    DBoolean var, AttributeTable table)
+    public static BooleanVariableAdapter booleanVariableAdapter(
+	    DBoolean var, DAS das)
 	throws VisADException
     {
-	return new BooleanVariableAdapter(var, table);
+	return new BooleanVariableAdapter(var, das);
     }
 
     /**
@@ -82,7 +82,6 @@ public class BooleanVariableAdapter
      *				in the range of a FlatField.
      */
     public SimpleSet[] getRepresentationalSets()
-	throws VisADException
     {
 	return repSets;
     }

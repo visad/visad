@@ -116,17 +116,17 @@ public class DataFactory
      * of it might affect all identical, subsequent invocations of this method.
      *
      * @param var		A DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The VisAD data object corresponding to the DODS
      *				variable.
      * @throws BadFormException	The DODS information is corrupt.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(BaseType var, AttributeTable table)
+    public DataImpl data(BaseType var, DAS das)
 	throws BadFormException, VisADException, RemoteException
     {
-	return variableFactory.variableAdapter(var, table).data(var);
+	return variableFactory.variableAdapter(var, das).data(var);
     }
 }

@@ -38,19 +38,19 @@ public class ByteVariableAdapter
     private final Valuator	valuator;
     private final SimpleSet[]	repSets;
 
-    private ByteVariableAdapter(DByte var, AttributeTable table)
+    private ByteVariableAdapter(DByte var, DAS das)
 	throws VisADException, RemoteException
     {
+	AttributeTable	table = attributeTable(das, var);
 	realType = realType(var, table);
 	valuator = Valuator.valuator(table, Attribute.BYTE);
 	repSets = new SimpleSet[] {valuator.getRepresentationalSet(realType)};
     }
 
-    public static ByteVariableAdapter byteVariableAdapter(
-	    DByte var, AttributeTable table)
+    public static ByteVariableAdapter byteVariableAdapter(DByte var, DAS das)
 	throws VisADException, RemoteException
     {
-	return new ByteVariableAdapter(var, table);
+	return new ByteVariableAdapter(var, das);
     }
 
     public MathType getMathType()
@@ -58,8 +58,15 @@ public class ByteVariableAdapter
 	return realType;
     }
 
+    /**
+     * Returns the VisAD {@link Set}s that will be used to represent this
+     * instances data values in the range of a VisAD {@link FlatField}.
+     * NOTE: The same array is returned every time.
+     *
+     * @return			The VisAD Sets used to represent the data values
+     *				in the range of a FlatField.
+     */
     public SimpleSet[] getRepresentationalSets()
-	throws VisADException
     {
 	return repSets;
     }

@@ -43,13 +43,11 @@ public class ListVariableAdapter
     private final VectorAdapter	vectorAdapter;
 
     private ListVariableAdapter(
-	    DList list,
-	    AttributeTable table,
-	    VariableAdapterFactory factory)
+	    DList list, DAS das, VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
 	vectorAdapter =
-	    factory.vectorAdapter(list.getPrimitiveVector(), table);
+	    factory.vectorAdapter(list.getPrimitiveVector(), das);
 	funcType =
 	    new FunctionType(RealType.Generic, vectorAdapter.getMathType());
     }
@@ -59,8 +57,8 @@ public class ListVariableAdapter
      *
      * @param list		The DODS variable.  Only the DODS metadata is 
      *				used: the variable needn't have any actual data.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @param factory		A factory for creating variable adapters.
      * @return			An instance of this class corresponding to the
      *				input arguments.
@@ -68,10 +66,10 @@ public class ListVariableAdapter
      * @throws RemoteException	Java RMI failure.
      */
     public static ListVariableAdapter listVariableAdapter(
-	    DList list, AttributeTable table, VariableAdapterFactory factory)
+	    DList list, DAS das, VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new ListVariableAdapter(list, table, factory);
+	return new ListVariableAdapter(list, das, factory);
     }
 
     /**

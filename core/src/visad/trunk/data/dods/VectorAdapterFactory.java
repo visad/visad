@@ -63,8 +63,8 @@ public class VectorAdapterFactory
      * of it might affect all identical subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -74,7 +74,7 @@ public class VectorAdapterFactory
      */
     public VectorAdapter vectorAdapter(
 	    PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
@@ -82,39 +82,39 @@ public class VectorAdapterFactory
 	if (vector instanceof BooleanPrimitiveVector)
 	    adapter =
 		booleanVectorAdapter(
-		    (BooleanPrimitiveVector)vector, table, factory);
+		    (BooleanPrimitiveVector)vector, das, factory);
 	else if (vector instanceof BytePrimitiveVector)
 	    adapter =
 		byteVectorAdapter(
-		    (BytePrimitiveVector)vector, table, factory);
+		    (BytePrimitiveVector)vector, das, factory);
 	else if (vector instanceof UInt16PrimitiveVector)
 	    adapter =
 		uInt16VectorAdapter(
-		    (UInt16PrimitiveVector)vector, table, factory);
+		    (UInt16PrimitiveVector)vector, das, factory);
 	else if (vector instanceof Int16PrimitiveVector)
 	    adapter =
 		int16VectorAdapter(
-		    (Int16PrimitiveVector)vector, table, factory);
+		    (Int16PrimitiveVector)vector, das, factory);
 	else if (vector instanceof UInt32PrimitiveVector)
 	    adapter =
 		uInt32VectorAdapter(
-		    (UInt32PrimitiveVector)vector, table, factory);
+		    (UInt32PrimitiveVector)vector, das, factory);
 	else if (vector instanceof Int32PrimitiveVector)
 	    adapter =
 		int32VectorAdapter(
-		    (Int32PrimitiveVector)vector, table, factory);
+		    (Int32PrimitiveVector)vector, das, factory);
 	else if (vector instanceof Float32PrimitiveVector)
 	    adapter =
 		float32VectorAdapter(
-		    (Float32PrimitiveVector)vector, table, factory);
+		    (Float32PrimitiveVector)vector, das, factory);
 	else if (vector instanceof Float64PrimitiveVector)
 	    adapter =
 		float64VectorAdapter(
-		    (Float64PrimitiveVector)vector, table, factory);
+		    (Float64PrimitiveVector)vector, das, factory);
 	else
 	    adapter =
 		baseTypeVectorAdapter(
-		    (BaseTypePrimitiveVector)vector, table, factory);
+		    (BaseTypePrimitiveVector)vector, das, factory);
 	return adapter;
     }
 
@@ -125,8 +125,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -136,11 +136,11 @@ public class VectorAdapterFactory
      */
     public BooleanVectorAdapter booleanVectorAdapter(
 	    BooleanPrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new BooleanVectorAdapter(vector, table, factory);
+	return new BooleanVectorAdapter(vector, das, factory);
     }
 
     /**
@@ -150,8 +150,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -161,11 +161,11 @@ public class VectorAdapterFactory
      */
     public ByteVectorAdapter byteVectorAdapter(
 	    BytePrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new ByteVectorAdapter(vector, table, factory);
+	return new ByteVectorAdapter(vector, das, factory);
     }
 
     /**
@@ -175,8 +175,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -186,11 +186,11 @@ public class VectorAdapterFactory
      */
     public UInt16VectorAdapter uInt16VectorAdapter(
 	    UInt16PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new UInt16VectorAdapter(vector, table, factory);
+	return new UInt16VectorAdapter(vector, das, factory);
     }
 
     /**
@@ -200,8 +200,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -211,11 +211,11 @@ public class VectorAdapterFactory
      */
     public Int16VectorAdapter int16VectorAdapter(
 	    Int16PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new Int16VectorAdapter(vector, table, factory);
+	return new Int16VectorAdapter(vector, das, factory);
     }
 
     /**
@@ -225,8 +225,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -236,11 +236,11 @@ public class VectorAdapterFactory
      */
     public UInt32VectorAdapter uInt32VectorAdapter(
 	    UInt32PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new UInt32VectorAdapter(vector, table, factory);
+	return new UInt32VectorAdapter(vector, das, factory);
     }
 
     /**
@@ -250,8 +250,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -261,11 +261,11 @@ public class VectorAdapterFactory
      */
     public Int32VectorAdapter int32VectorAdapter(
 	    Int32PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new Int32VectorAdapter(vector, table, factory);
+	return new Int32VectorAdapter(vector, das, factory);
     }
 
     /**
@@ -275,8 +275,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -286,11 +286,11 @@ public class VectorAdapterFactory
      */
     public Float32VectorAdapter float32VectorAdapter(
 	    Float32PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new Float32VectorAdapter(vector, table, factory);
+	return new Float32VectorAdapter(vector, das, factory);
     }
 
     /**
@@ -300,8 +300,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -311,11 +311,11 @@ public class VectorAdapterFactory
      */
     public Float64VectorAdapter float64VectorAdapter(
 	    Float64PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new Float64VectorAdapter(vector, table, factory);
+	return new Float64VectorAdapter(vector, das, factory);
     }
 
     /**
@@ -325,8 +325,8 @@ public class VectorAdapterFactory
      * subsequent invocations of this method.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
-     * @param table		The DODS attribute table associated with the
-     *				DODS primitive vector.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @return			The adapter corresponding to the DODS
@@ -336,11 +336,11 @@ public class VectorAdapterFactory
      */
     public BaseTypeVectorAdapter baseTypeVectorAdapter(
 	    BaseTypePrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
 	return
-	    BaseTypeVectorAdapter.baseTypeVectorAdapter(vector, table, factory);
+	    BaseTypeVectorAdapter.baseTypeVectorAdapter(vector, das, factory);
     }
 }

@@ -42,9 +42,10 @@ public class Int16VariableAdapter
     private final Valuator	valuator;
     private final SimpleSet[]	repSets;
 
-    private Int16VariableAdapter(DInt16 var, AttributeTable table)
+    private Int16VariableAdapter(DInt16 var, DAS das)
 	throws VisADException, RemoteException
     {
+	AttributeTable	table = attributeTable(das, var);
 	realType = realType(var, table);
 	valuator = Valuator.valuator(table, Attribute.INT16);
 	repSets = new SimpleSet[] {valuator.getRepresentationalSet(realType)};
@@ -55,18 +56,17 @@ public class Int16VariableAdapter
      *
      * @param var		The DODS variable.  Only the DODS metadata is 
      *				used: the variable needn't have any actual data.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			An instance of this class corresponding to the
      *				input arguments.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public static Int16VariableAdapter int16VariableAdapter(
-	    DInt16 var, AttributeTable table)
+    public static Int16VariableAdapter int16VariableAdapter(DInt16 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return new Int16VariableAdapter(var, table);
+	return new Int16VariableAdapter(var, das);
     }
 
     /**
@@ -90,7 +90,6 @@ public class Int16VariableAdapter
      *				only under duress.
      */
     public SimpleSet[] getRepresentationalSets()
-	throws VisADException
     {
 	return repSets;
     }

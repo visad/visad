@@ -78,6 +78,21 @@ public abstract class Adapter
      *
      * @param variable		The DODS variable.  Must be one for which a 
      *				RealType is possible.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
+     * @return			The VisAD RealType corresponding to the
+     *				variable and attribute table.
+     */
+    protected static RealType realType(BaseType variable, DAS das)
+    {
+	return realType(variable.getName(), attributeTable(das, variable));
+    }
+
+    /**
+     * Returns the VisAD {@link RealType} corresponding to a DODS variable.
+     *
+     * @param variable		The DODS variable.  Must be one for which a 
+     *				RealType is possible.
      * @param table		The DODS attribute table for the variable.
      *				May be <code>null</code>.
      * @return			The VisAD RealType corresponding to the
@@ -86,6 +101,20 @@ public abstract class Adapter
     protected static RealType realType(BaseType variable, AttributeTable table)
     {
 	return realType(variable.getName(), table);
+    }
+
+    /**
+     * Returns the VisAD {@link RealType} corresponding to a name.
+     *
+     * @param name		The name.
+     * @param das		The DODS DAS in which the information on the
+     *				name is embedded.
+     * @return			The VisAD RealType corresponding to the
+     *				name and metadata.
+     */
+    protected static RealType realType(String name, DAS das)
+    {
+	return realType(name, attributeTable(das, name));
     }
 
     /**
@@ -108,11 +137,15 @@ public abstract class Adapter
 	{
 	    Attribute	attr = table.getAttribute("units");
 	    if (attr == null)
+	    {
 		attr = table.getAttribute("unit");
-	    if (attr == null)
-		attr = table.getAttribute("UNITS");
-	    if (attr == null)
-		attr = table.getAttribute("UNIT");
+		if (attr == null)
+		{
+		    attr = table.getAttribute("UNITS");
+		    if (attr == null)
+			attr = table.getAttribute("UNIT");
+		}
+	    }
 	    if (attr == null)
 	    {
 		unit = null;
@@ -150,52 +183,34 @@ public abstract class Adapter
     }
 
     /**
-     * Returns the inner-level attribute table corresponding to a name.
+     * Returns the attribute table corresponding to a DODS variable.
      *
-     * @param table		The outer-level attribute table. May be
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
+     * @param baseType		The type of the sub-component.  May not be
      *				<code>null</code>.
-     * @param name		The name of the sub-component.  May be
-     *				<code>null</code>.
-     * @return			The inner-level attribute table corresponding to
-     *				the name and outer-level attribute table.  Will
-     *				be <code>null</code> if no such table exists.
+     * @return			The attribute table corresponding to the
+     *				variable.  Will be <code>null</code> if no such
+     *				table exists.
      */
-    protected static AttributeTable attributeTable(
-	AttributeTable table, String name)
+    protected static AttributeTable attributeTable(DAS das, BaseType baseType)
     {
-	AttributeTable	newTable;
-	if (table == null)
-	{
-	    newTable = null;
-	}
-	else
-	{
-	    Attribute	attr = table.getAttribute(name);
-	    newTable =
-		(attr != null && attr.getType() == Attribute.CONTAINER)
-		    ? attr.getContainer()
-		    : null;
-	}
-	return newTable;
+	return das.getAttributeTable(baseType.getName());
     }
 
     /**
-     * Returns the inner-level attribute table corresponding to a DODS
-     * variable.
+     * Returns the attribute table corresponding to a name.
      *
-     * @param table		The outer-level attribute table. May be
-     *				<code>null</code>.
-     * @param baseType		The type of the sub-component.  May not be
-     *				<code>null</code>.
-     * @return			The inner-level attribute table corresponding to
-     *				the variable and outer-level attribute table.
-     *				Will be <code>null</code> if no such table 
-     *				exists.
+     * @param das		The DODS DAS in which information on the name
+     *				is embedded.
+     * @param baseType		The name to lookup in the DAS.
+     * @return			The attribute table corresponding to the
+     *				name.  Will be <code>null</code> if no such
+     *				table exists.
      */
-    protected static AttributeTable attributeTable(
-	AttributeTable table, BaseType baseType)
+    protected static AttributeTable attributeTable(DAS das, String name)
     {
-	return attributeTable(table, baseType.getName());
+	return das.getAttributeTable(name);
     }
 
     /**

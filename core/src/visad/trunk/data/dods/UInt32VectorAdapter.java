@@ -44,8 +44,8 @@ public final class UInt32VectorAdapter
      * adapters.
      *
      * @param vector		A DODS vector to be adapted.
-     * @param table		The DODS attribute table associated with the
-     *				DODS vector.  May be <code>null</code>.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @throws BadFormException	The DODS information is corrupt.
@@ -54,12 +54,14 @@ public final class UInt32VectorAdapter
      */
     public UInt32VectorAdapter(
 	    UInt32PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	super(vector, table, factory);
-	valuator = Valuator.valuator(table, Attribute.UINT32);
+	super(vector, das, factory);
+	valuator =
+	    Valuator.valuator(
+		attributeTable(das, vector.getTemplate()), Attribute.UINT32);
     }
 
     /**

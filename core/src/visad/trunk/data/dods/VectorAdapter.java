@@ -39,15 +39,15 @@ import visad.*;
 public abstract class VectorAdapter
     extends	Adapter
 {
-    private final SimpleSet[]	repSets;
+    private final VariableAdapter	varAdapter;
 
     /**
      * Constructs from a DODS vector and a factory for creating DODS variable
      * adapters.
      *
      * @param vector		A DODS vector to be adapted.
-     * @param table		The DODS attribute table associated with the
-     *				DODS vector.  May be <code>null</code>.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @throws BadFormException	The DODS information is corrupt.
@@ -56,21 +56,33 @@ public abstract class VectorAdapter
      */
     protected VectorAdapter(
 	    PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws BadFormException, VisADException, RemoteException
     {
-	repSets =
-	    factory.variableAdapter(vector.getTemplate(), table)
-	    .getRepresentationalSets();
+	varAdapter = factory.variableAdapter(vector.getTemplate(), das);
     }
 
     /**
-     * Returns the VisAD {@link MathType} of this instance.
+     * Returns the adapter of the DODS variable that underlies this instance.
      *
-     * @return			The MathType of this instance.
+     * @return			The adapter of the DODS variable that underlies
+     *				this instance.
      */
-    public abstract MathType getMathType();
+    protected final VariableAdapter getVariableAdapter()
+    {
+	return varAdapter;
+    }
+
+    /**
+     * Returns the VisAD math-type of this instance.
+     *
+     * @return			The math-type this instance.
+     */
+    public final MathType getMathType()
+    {
+	return varAdapter.getMathType();
+    }
 
     /**
      * Indicates whether or not the VisAD {@link MathType} of this instance is
@@ -96,9 +108,9 @@ public abstract class VectorAdapter
      *				in the range of a FlatField.  WARNING: Modify
      *				the returned array only under extreme duress.
      */
-    public SimpleSet[] getRepresentationalSets()
+    public final SimpleSet[] getRepresentationalSets()
     {
-	return repSets;
+	return varAdapter.getRepresentationalSets();
     }
 
     /**

@@ -39,7 +39,7 @@ public class StringVariableAdapter
 {
     private final TextType	textType;
 
-    private StringVariableAdapter(DString var, AttributeTable table)
+    private StringVariableAdapter(DString var)
 	throws VisADException
     {
 	textType = TextType.getTextType(scalarName(var.getName()));
@@ -51,17 +51,17 @@ public class StringVariableAdapter
      *
      * @param var		The DODS variable.  Only the DODS metadata is 
      *				used: the variable needn't have any actual data.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			An instance of this class corresponding to the
      *				input arguments.
      * @throws VisADException	VisAD failure.
      */
     public static StringVariableAdapter stringVariableAdapter(
-	    DString var, AttributeTable table)
+	    DString var, DAS das)
 	throws VisADException
     {
-	return new StringVariableAdapter(var, table);
+	return new StringVariableAdapter(var);
     }
 
     /**

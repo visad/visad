@@ -38,15 +38,13 @@ import visad.*;
 public abstract class NumericVectorAdapter
     extends VectorAdapter
 {
-    private final RealType	realType;
-
     /**
      * Constructs from a DODS vector and a factory for creating DODS variable
      * adapters.
      *
      * @param vector		A DODS vector to be adapted.
-     * @param table		The DODS attribute table associated with the
-     *				DODS vector.  May be <code>null</code>.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @throws BadFormException	The DODS information is corrupt.
@@ -55,22 +53,11 @@ public abstract class NumericVectorAdapter
      */
     protected NumericVectorAdapter(
 	    PrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws BadFormException, VisADException, RemoteException
     {
-	super(vector, table, factory);
-	realType = realType(vector.getTemplate(), table);
-    }
-
-    /**
-     * Returns the VisAD {@link MathType} of this instance.
-     *
-     * @return			The MathType of this instance.
-     */
-    public MathType getMathType()
-    {
-	return realType;
+	super(vector, das, factory);
     }
 
     /**

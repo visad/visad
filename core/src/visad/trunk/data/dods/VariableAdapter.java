@@ -430,7 +430,6 @@ public abstract class VariableAdapter
      *				returned array only under extreme duress.
      */
     public SimpleSet[] getRepresentationalSets()
-	throws VisADException
     {
 	return defaultRepSets;
     }

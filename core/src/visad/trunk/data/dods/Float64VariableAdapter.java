@@ -30,6 +30,10 @@ import visad.data.in.*;
 /**
  * Provides support for adapting DODS DFloat64 variables to the
  * VisAD data-import context.
+ *
+ * <P>Instances are immutable.</P>
+ *
+ * @author Steven R. Emmerson
  */
 public class Float64VariableAdapter
     extends	VariableAdapter
@@ -38,9 +42,10 @@ public class Float64VariableAdapter
     private final Valuator	valuator;
     private final SimpleSet[]	repSets;
 
-    private Float64VariableAdapter(DFloat64 var, AttributeTable table)
+    private Float64VariableAdapter(DFloat64 var, DAS das)
 	throws VisADException, RemoteException
     {
+	AttributeTable	table = attributeTable(das, var);
 	realType = realType(var, table);
 	valuator = Valuator.valuator(table, Attribute.FLOAT64);
 	repSets = new SimpleSet[] {new DoubleSet(realType)};
@@ -51,18 +56,18 @@ public class Float64VariableAdapter
      * DFloat64}.
      *
      * @param var		The DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			A instance of this class corresponding to the
      *				input.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     public static Float64VariableAdapter float64VariableAdapter(
-	    DFloat64 var, AttributeTable table)
+	    DFloat64 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return new Float64VariableAdapter(var, table);
+	return new Float64VariableAdapter(var, das);
     }
 
     /**
@@ -86,7 +91,6 @@ public class Float64VariableAdapter
      *				only under duress.
      */
     public SimpleSet[] getRepresentationalSets()
-	throws VisADException
     {
 	return repSets;
     }

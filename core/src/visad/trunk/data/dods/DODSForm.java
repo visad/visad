@@ -135,11 +135,10 @@ public class DODSForm
 	    Class	sourceClass = 
 		Class.forName(
 		    getClass().getPackage().getName() + ".DODSSource");
-	    // source = new DODSSource(new TimeFactorer(consolidator));
 	    Object	source =
 		sourceClass.getConstructor(
 		    new Class[] {DataSink.class})
-		    .newInstance(new Object[] {consolidator});
+		    .newInstance(new Object[] {new TimeFactorer(consolidator)});
 	    sourceClass.getMethod("open", new Class[] {String.class})
 		.invoke(source, new Object[] {id});
 	    data = consolidator.getData();

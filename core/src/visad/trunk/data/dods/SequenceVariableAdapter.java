@@ -46,9 +46,7 @@ public class SequenceVariableAdapter
     private final SimpleSet[]		repSets;
 
     private SequenceVariableAdapter(
-	    DSequence sequence,
-	    AttributeTable table,
-	    VariableAdapterFactory factory)
+	    DSequence sequence, DAS das, VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
 	int		count = sequence.elementCount();
@@ -67,9 +65,7 @@ public class SequenceVariableAdapter
 		    getClass().getName() + ".data(DSequence,...): " +
 		    "Couldn't get sequence-variable " + i);
 	    }
-	    adapters[i] =
-		factory.variableAdapter(
-		    template, attributeTable(table, template));
+	    adapters[i] = factory.variableAdapter(template, das);
 	    SimpleSet[]	setArray = adapters[i].getRepresentationalSets();
 	    for (int j = 0; j < setArray.length; ++j)
 		setList.add(setArray[j]);
@@ -84,8 +80,8 @@ public class SequenceVariableAdapter
      *
      * @param sequence		The DODS variable.  Only the DODS metadata is 
      *				used: the variable needn't have any actual data.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @param factory		A factory for creating variable adapters.
      * @return			An instance of this class corresponding to the
      *				input arguments.
@@ -93,12 +89,10 @@ public class SequenceVariableAdapter
      * @throws RemoteException	Java RMI failure.
      */
     public static SequenceVariableAdapter sequenceVariableAdapter(
-	    DSequence sequence,
-	    AttributeTable table,
-	    VariableAdapterFactory factory)
+	    DSequence sequence, DAS das, VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new SequenceVariableAdapter(sequence, table, factory);
+	return new SequenceVariableAdapter(sequence, das, factory);
     }
 
     /**

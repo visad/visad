@@ -45,12 +45,12 @@ public class ArrayVariableAdapter
 
     private ArrayVariableAdapter(
 	    DArray array,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
 	vectorAdapter =
-	    factory.vectorAdapter(array.getPrimitiveVector(), table);
+	    factory.vectorAdapter(array.getPrimitiveVector(), das);
 	int		rank = array.numDimensions();
 	RealType[]	realTypes = new RealType[rank];
 	for (int i = 0; i < rank; ++i)
@@ -59,7 +59,7 @@ public class ArrayVariableAdapter
 	    {
 		String	dimName = array.getDimension(i).getName();
 		realTypes[rank-1-i] =	// reverse dimension order
-		    realType(dimName, attributeTable(table, dimName));
+		    realType(dimName, das);
 	    }
 	    catch (InvalidParameterException e)
 	    {
@@ -77,7 +77,8 @@ public class ArrayVariableAdapter
      *
      * @param array		The DODS DArray.  Only the DODS metadata is 
      *				used: the array needn't have any actual data.
-     * @param table		The associated DODS attribute table.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @param factory		A factory for creating variable adapters.
      * @return			An instance of this class corresponding to the
      *				input arguments.
@@ -85,10 +86,10 @@ public class ArrayVariableAdapter
      * @throws RemoteException	Java RMI failure.
      */
     public static ArrayVariableAdapter arrayVariableAdapter(
-	    DArray array, AttributeTable table, VariableAdapterFactory factory)
+	    DArray array, DAS das, VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new ArrayVariableAdapter(array, table, factory);
+	return new ArrayVariableAdapter(array, das, factory);
     }
 
     /**

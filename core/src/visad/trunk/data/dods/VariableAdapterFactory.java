@@ -65,46 +65,46 @@ public class VariableAdapterFactory
      * of it might affect all identical subsequent invocations of this method.
      *
      * @param var		A DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws BadFormException	The DODS information is corrupt.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public VariableAdapter variableAdapter(BaseType var, AttributeTable table)
+    public VariableAdapter variableAdapter(BaseType var, DAS das)
 	throws BadFormException, VisADException, RemoteException
     {
 	VariableAdapter	adapter;
 	if (var instanceof DString)
-	    adapter = stringVariableAdapter((DString)var, table);
+	    adapter = stringVariableAdapter((DString)var, das);
 	else if (var instanceof DBoolean)
-	    adapter = booleanVariableAdapter((DBoolean)var, table);
+	    adapter = booleanVariableAdapter((DBoolean)var, das);
 	else if (var instanceof DByte)
-	    adapter = byteVariableAdapter((DByte)var, table);
+	    adapter = byteVariableAdapter((DByte)var, das);
 	else if (var instanceof DUInt16)
-	    adapter = uInt16VariableAdapter((DUInt16)var, table);
+	    adapter = uInt16VariableAdapter((DUInt16)var, das);
 	else if (var instanceof DInt16)
-	    adapter = int16VariableAdapter((DInt16)var, table);
+	    adapter = int16VariableAdapter((DInt16)var, das);
 	else if (var instanceof DUInt32)
-	    adapter = uInt32VariableAdapter((DUInt32)var, table);
+	    adapter = uInt32VariableAdapter((DUInt32)var, das);
 	else if (var instanceof DInt32)
-	    adapter = int32VariableAdapter((DInt32)var, table);
+	    adapter = int32VariableAdapter((DInt32)var, das);
 	else if (var instanceof DFloat32)
-	    adapter = float32VariableAdapter((DFloat32)var, table);
+	    adapter = float32VariableAdapter((DFloat32)var, das);
 	else if (var instanceof DFloat64)
-	    adapter = float64VariableAdapter((DFloat64)var, table);
+	    adapter = float64VariableAdapter((DFloat64)var, das);
 	else if (var instanceof DStructure)
-	    adapter = structureVariableAdapter((DStructure)var, table);
+	    adapter = structureVariableAdapter((DStructure)var, das);
 	else if (var instanceof DList)
-	    adapter = listVariableAdapter((DList)var, table);
+	    adapter = listVariableAdapter((DList)var, das);
 	else if (var instanceof DSequence)
-	    adapter = sequenceVariableAdapter((DSequence)var, table);
+	    adapter = sequenceVariableAdapter((DSequence)var, das);
 	else if (var instanceof DArray)
-	    adapter = arrayVariableAdapter((DArray)var, table);
+	    adapter = arrayVariableAdapter((DArray)var, das);
 	else if (var instanceof DGrid)
-	    adapter = gridVariableAdapter((DGrid)var, table);
+	    adapter = gridVariableAdapter((DGrid)var, das);
 	else
 	    throw new BadFormException(
 		getClass().getName() + ".variableAdapter(...): " +
@@ -116,253 +116,242 @@ public class VariableAdapterFactory
      * Returns the adapter corresponding to a DODS {@link DString}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public StringVariableAdapter stringVariableAdapter(
-	    DString var, AttributeTable table)
+    public StringVariableAdapter stringVariableAdapter(DString var, DAS das)
 	throws VisADException, RemoteException
     {
-	return StringVariableAdapter.stringVariableAdapter(var, table);
+	return StringVariableAdapter.stringVariableAdapter(var, das);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DBoolean}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public BooleanVariableAdapter booleanVariableAdapter(
-	    DBoolean var, AttributeTable table)
+    public BooleanVariableAdapter booleanVariableAdapter(DBoolean var, DAS das)
 	throws VisADException, RemoteException
     {
-	return BooleanVariableAdapter.booleanVariableAdapter(var, table);
+	return BooleanVariableAdapter.booleanVariableAdapter(var, das);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DByte}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public ByteVariableAdapter byteVariableAdapter(
-	    DByte var, AttributeTable table)
+    public ByteVariableAdapter byteVariableAdapter(DByte var, DAS das)
 	throws VisADException, RemoteException
     {
-	return ByteVariableAdapter.byteVariableAdapter(var, table);
+	return ByteVariableAdapter.byteVariableAdapter(var, das);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DUInt16}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public UInt16VariableAdapter uInt16VariableAdapter(
-	    DUInt16 var, AttributeTable table)
+    public UInt16VariableAdapter uInt16VariableAdapter(DUInt16 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return UInt16VariableAdapter.uInt16VariableAdapter(var, table);
+	return UInt16VariableAdapter.uInt16VariableAdapter(var, das);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DInt16}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public Int16VariableAdapter int16VariableAdapter(
-	    DInt16 var, AttributeTable table)
+    public Int16VariableAdapter int16VariableAdapter(DInt16 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return Int16VariableAdapter.int16VariableAdapter(var, table);
+	return Int16VariableAdapter.int16VariableAdapter(var, das);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DUInt32}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public UInt32VariableAdapter uInt32VariableAdapter(
-	    DUInt32 var, AttributeTable table)
+    public UInt32VariableAdapter uInt32VariableAdapter(DUInt32 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return UInt32VariableAdapter.uInt32VariableAdapter(var, table);
+	return UInt32VariableAdapter.uInt32VariableAdapter(var, das);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DInt32}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public Int32VariableAdapter int32VariableAdapter(
-	    DInt32 var, AttributeTable table)
+    public Int32VariableAdapter int32VariableAdapter(DInt32 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return Int32VariableAdapter.int32VariableAdapter(var, table);
+	return Int32VariableAdapter.int32VariableAdapter(var, das);
     }
     /**
      * Returns the adapter corresponding to a DODS {@link DFloat32}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public Float32VariableAdapter float32VariableAdapter(
-	    DFloat32 var, AttributeTable table)
+    public Float32VariableAdapter float32VariableAdapter(DFloat32 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return Float32VariableAdapter.float32VariableAdapter(var, table);
+	return Float32VariableAdapter.float32VariableAdapter(var, das);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DFloat64}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public Float64VariableAdapter float64VariableAdapter(
-	    DFloat64 var, AttributeTable table)
+    public Float64VariableAdapter float64VariableAdapter(DFloat64 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return Float64VariableAdapter.float64VariableAdapter(var, table);
+	return Float64VariableAdapter.float64VariableAdapter(var, das);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DStructure}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     public StructureVariableAdapter structureVariableAdapter(
-	    DStructure var, AttributeTable table)
+	    DStructure var, DAS das)
 	throws VisADException, RemoteException
     {
 	return
-	    StructureVariableAdapter.structureVariableAdapter(var, table, this);
+	    StructureVariableAdapter.structureVariableAdapter(var, das, this);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DList}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     public ListVariableAdapter listVariableAdapter(
-	    DList var, AttributeTable table)
+	    DList var, DAS das)
 	throws VisADException, RemoteException
     {
-	return ListVariableAdapter.listVariableAdapter(var, table, this);
+	return ListVariableAdapter.listVariableAdapter(var, das, this);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DSequence}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     public SequenceVariableAdapter sequenceVariableAdapter(
-	    DSequence var, AttributeTable table)
+	    DSequence var, DAS das)
 	throws VisADException, RemoteException
     {
 	return
-	    SequenceVariableAdapter.sequenceVariableAdapter(var, table, this);
+	    SequenceVariableAdapter.sequenceVariableAdapter(var, das, this);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DArray}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public ArrayVariableAdapter arrayVariableAdapter(
-	    DArray var, AttributeTable table)
+    public ArrayVariableAdapter arrayVariableAdapter(DArray var, DAS das)
 	throws VisADException, RemoteException
     {
-	return ArrayVariableAdapter.arrayVariableAdapter(var, table, this);
+	return ArrayVariableAdapter.arrayVariableAdapter(var, das, this);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link DGrid}.
      *
      * @param var		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				variable.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public GridVariableAdapter gridVariableAdapter(
-	    DGrid var, AttributeTable table)
+    public GridVariableAdapter gridVariableAdapter(DGrid var, DAS das)
 	throws VisADException, RemoteException
     {
-	return GridVariableAdapter.gridVariableAdapter(var, table, this);
+	return GridVariableAdapter.gridVariableAdapter(var, das, this);
     }
 
     /**
@@ -371,37 +360,35 @@ public class VariableAdapterFactory
      *
      * @param array		The coordinate mapping vectors of a DODS {@link
      *				DGrid}.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the coordinate
      *				mapping-vectors of the DODS grid.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     public GridVariableMapAdapter gridVariableMapAdapter(
-	    DArray array, AttributeTable table)
+	    DArray array, DAS das)
 	throws VisADException, RemoteException
     {
 	return 
-	    GridVariableMapAdapter.gridVariableMapAdapter(array, table, this);
+	    GridVariableMapAdapter.gridVariableMapAdapter(array, das, this);
     }
 
     /**
      * Returns the adapter corresponding to a DODS {@link PrimitiveVector}.
      *
      * @param vector		An appropriate DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				DODS variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			The adapter corresponding to the DODS
      *				primitive vector.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public VectorAdapter vectorAdapter(
-	    PrimitiveVector vector,
-	    AttributeTable table)
+    public VectorAdapter vectorAdapter(PrimitiveVector vector, DAS das)
 	throws VisADException, RemoteException
     {
-	return vectorAdapterFactory.vectorAdapter(vector, table, this);
+	return vectorAdapterFactory.vectorAdapter(vector, das, this);
     }
 }

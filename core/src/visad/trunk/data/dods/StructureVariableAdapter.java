@@ -46,9 +46,7 @@ public class StructureVariableAdapter
     private final SimpleSet[]		repSets;
 
     private StructureVariableAdapter(
-	    DStructure structure,
-	    AttributeTable table,
-	    VariableAdapterFactory factory)
+	    DStructure structure, DAS das, VariableAdapterFactory factory)
 	throws BadFormException, VisADException, RemoteException
     {
 	ArrayList	setList = new ArrayList();
@@ -66,8 +64,7 @@ public class StructureVariableAdapter
 		    getClass().getName() + ".data(...): " +
 		    "DStructure is missing variable " + i + ": " + e);
 	    }
-	    adapters[i] =
-		factory.variableAdapter(var, attributeTable(table, var));
+	    adapters[i] = factory.variableAdapter(var, das);
 	    SimpleSet[]	setArray = adapters[i].getRepresentationalSets();
 	    for (int j = 0; j < setArray.length; ++j)
 		setList.add(setArray[j]);
@@ -83,8 +80,8 @@ public class StructureVariableAdapter
      *
      * @param structure		The DODS variable.  Only the DODS metadata is 
      *				used: the variable needn't have any actual data.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @param factory		A factory for creating variable adapters.
      * @return			An instance of this class corresponding to the
      *				input arguments.
@@ -93,12 +90,10 @@ public class StructureVariableAdapter
      * @throws RemoteException	Java RMI failure.
      */
     public static StructureVariableAdapter structureVariableAdapter(
-	    DStructure structure,
-	    AttributeTable table,
-	    VariableAdapterFactory factory)
+	    DStructure structure, DAS das, VariableAdapterFactory factory)
 	throws BadFormException, VisADException, RemoteException
     {
-	return new StructureVariableAdapter(structure, table, factory);
+	return new StructureVariableAdapter(structure, das, factory);
     }
 
     /**

@@ -37,38 +37,25 @@ import visad.*;
 public class BaseTypeVectorAdapter
     extends VectorAdapter
 {
-    private final VariableAdapter	adapter;
-
     /**
      * Constructs from a DODS vector and a factory for creating DODS variable
      * adapters.
      *
      * @param vector		A DODS vector to be adapted.
-     * @param table		The DODS attribute table associated with the
-     *				DODS vector.  May be <code>null</code>.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     protected BaseTypeVectorAdapter(
-	    BaseTypePrimitiveVector vector, 
-	    AttributeTable table,
+	    BaseTypePrimitiveVector vector,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	super(vector, table, factory);
-	adapter = factory.variableAdapter(vector.getTemplate(), table);
-    }
-
-    /**
-     * Returns the VisAD {@link MathType} of this instance.
-     *
-     * @return			The MathType of this instance.
-     */
-    public MathType getMathType()
-    {
-	return adapter.getMathType();
+	super(vector, das, factory);
     }
 
     /**
@@ -76,20 +63,20 @@ public class BaseTypeVectorAdapter
      * factory for creating DODS variable adapters.
      *
      * @param vector		A DODS vector to be adapted.
-     * @param table		The DODS attribute table associated with the
-     *				DODS vector.  May be <code>null</code>.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS vector is embedded.
      * @param factory		A factory for creating adapters of DODS
      *				variables.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public static BaseTypeVectorAdapter baseTypeVectorAdapter (
+    public static BaseTypeVectorAdapter baseTypeVectorAdapter(
 	    BaseTypePrimitiveVector vector,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	return new BaseTypeVectorAdapter(vector, table, factory);
+	return new BaseTypeVectorAdapter(vector, das, factory);
     }
 
     /**
@@ -114,6 +101,8 @@ public class BaseTypeVectorAdapter
 	int		length = vector.getLength();
 	for (int i = 0; i < length; ++i)
 	    field.setSample(
-		i, adapter.data(vector.getValue(i)), /*copy=*/false);
+		i,
+		getVariableAdapter().data(vector.getValue(i)),
+		/*copy=*/false);
     }
 }

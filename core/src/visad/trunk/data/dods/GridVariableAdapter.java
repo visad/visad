@@ -61,8 +61,8 @@ public class GridVariableAdapter
      *
      * @param grid		The DODS variable.  Only the DODS metadata is 
      *				used: the variable needn't have any actual data.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @param factory		A factory for creating variable adapters.
      * @return			An instance of this class corresponding to the
      *				input arguments.
@@ -70,7 +70,7 @@ public class GridVariableAdapter
      * @throws RemoteException	Java RMI failure.
      */
     public static GridVariableAdapter gridVariableAdapter(
-	    DGrid grid, AttributeTable table, VariableAdapterFactory factory)
+	    DGrid grid, DAS das, VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
 	ArrayVariableAdapter		arrayAdapter;
@@ -80,7 +80,7 @@ public class GridVariableAdapter
 	{
 	    DArray	array = (DArray)grid.getVar(0);
 	    int		rank = array.numDimensions();
-	    arrayAdapter = factory.arrayVariableAdapter(array, table);
+	    arrayAdapter = factory.arrayVariableAdapter(array, das);
 	    domainAdapters = new GridVariableMapAdapter[rank];
 	    for (int i = 1; i <= rank; ++i)
 	    {
@@ -88,8 +88,7 @@ public class GridVariableAdapter
 		BaseType	template =
 		    array.getPrimitiveVector().getTemplate();
 		domainAdapters[rank-i] =	// reverse dimensions
-		    factory.gridVariableMapAdapter(
-			array, attributeTable(table, template));
+		    factory.gridVariableMapAdapter(array, das);
 	    }
 	}
 	catch (NoSuchVariableException e)

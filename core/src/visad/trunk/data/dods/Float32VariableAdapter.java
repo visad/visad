@@ -42,9 +42,10 @@ public class Float32VariableAdapter
     private final Valuator	valuator;
     private final SimpleSet[]	repSets;
 
-    private Float32VariableAdapter(DFloat32 var, AttributeTable table)
+    private Float32VariableAdapter(DFloat32 var, DAS das)
 	throws VisADException, RemoteException
     {
+	AttributeTable	table = attributeTable(das, var);
 	realType = realType(var, table);
 	valuator = Valuator.valuator(table, Attribute.FLOAT32);
 	repSets = new SimpleSet[] {new FloatSet(realType)};
@@ -55,18 +56,18 @@ public class Float32VariableAdapter
      * DFloat32}.
      *
      * @param var		The DODS variable.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			A instance of this class corresponding to the
      *				input.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     public static Float32VariableAdapter float32VariableAdapter(
-	    DFloat32 var, AttributeTable table)
+	    DFloat32 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return new Float32VariableAdapter(var, table);
+	return new Float32VariableAdapter(var, das);
     }
 
     /**
@@ -82,12 +83,12 @@ public class Float32VariableAdapter
     /**
      * Returns the VisAD {@link Set}s that will be used to represent this
      * instances data values in the range of a VisAD {@link FlatField}.
+     * NOTE: The same array is returned every time.
      *
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.
      */
     public SimpleSet[] getRepresentationalSets()
-	throws VisADException
     {
 	return repSets;
     }

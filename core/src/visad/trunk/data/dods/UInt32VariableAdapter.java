@@ -42,9 +42,10 @@ public class UInt32VariableAdapter
     private final Valuator	valuator;
     private final SimpleSet[]	repSets;
 
-    private UInt32VariableAdapter(DUInt32 var, AttributeTable table)
+    private UInt32VariableAdapter(DUInt32 var, DAS das)
 	throws VisADException, RemoteException
     {
+	AttributeTable	table = attributeTable(das, var);
 	realType = realType(var, table);
 	valuator = Valuator.valuator(table, Attribute.UINT32);
 	repSets = new SimpleSet[] {valuator.getRepresentationalSet(realType)};
@@ -56,18 +57,18 @@ public class UInt32VariableAdapter
      *
      * @param var		The DODS variable.  Only the DODS metadata is 
      *				used: the variable needn't have any actual data.
-     * @param table		The DODS attribute table associated with the
-     *				variable.
+     * @param das		The DODS DAS in which the attribute
+     *				table for the DODS variable is embedded.
      * @return			An instance of this class corresponding to the
      *				input arguments.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
     public static UInt32VariableAdapter uInt32VariableAdapter(
-	    DUInt32 var, AttributeTable table)
+	    DUInt32 var, DAS das)
 	throws VisADException, RemoteException
     {
-	return new UInt32VariableAdapter(var, table);
+	return new UInt32VariableAdapter(var, das);
     }
 
     /**
@@ -91,7 +92,6 @@ public class UInt32VariableAdapter
      *				only under duress.
      */
     public SimpleSet[] getRepresentationalSets()
-	throws VisADException
     {
 	return repSets;
     }

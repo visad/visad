@@ -34,6 +34,10 @@ import visad.data.in.*;
 /**
  * Provides support for adapting the map vectors of a DODS {@link DGrid}
  * variable to the {@link visad.data.in} context.
+ *
+ * <P>Instances are immutable.</P>
+ *
+ * @author Steven R. Emmerson
  */
 public class GridVariableMapAdapter
     extends	VariableAdapter
@@ -43,23 +47,23 @@ public class GridVariableMapAdapter
 
     private GridVariableMapAdapter(
 	    DArray array,
-	    AttributeTable table,
+	    DAS das,
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
 	vectorAdapter =
-	    factory.vectorAdapter(array.getPrimitiveVector(), table);
+	    factory.vectorAdapter(array.getPrimitiveVector(), das);
     }
 
     public static GridVariableMapAdapter gridVariableMapAdapter(
-	    DArray array, AttributeTable table, VariableAdapterFactory factory)
+	    DArray array, DAS das, VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
 	if (array.numDimensions() != 1)
 	    throw new VisADException(
 	"visad.data.dods.GridVariableMapAdapter.gridVariableMapAdapter(...): " +
 		"Array not one-dimensional");
-	return new GridVariableMapAdapter(array, table, factory);
+	return new GridVariableMapAdapter(array, das, factory);
     }
 
     public MathType getMathType()
