@@ -14,10 +14,7 @@ import java.io.IOException;
 import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.BufferedDataOutputStream;
 
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.SimpleTimeZone;
 
 /** This abstract class is the parent of all HDU types.
   * It provides basic functionality for an HDU.
@@ -187,57 +184,6 @@ public abstract class BasicHDU
     return s;
   }
 
-  private static Date buildDate(int mday, int month, int year)
-  {
-    SimpleTimeZone tz = new SimpleTimeZone(0, "GMT");
-    GregorianCalendar cal = new GregorianCalendar(tz);
-
-    cal.set(Calendar.DAY_OF_MONTH, mday);
-    cal.set(Calendar.MONTH, month - 1);
-    cal.set(Calendar.YEAR, year);
-
-    return cal.getTime();
-  }
-
-  /**
-    * Convert a FITS date string to a Java <CODE>Date</CODE> object.
-    * @param dStr	the FITS date
-    * @return	either <CODE>null</CODE> or a Date object
-    * @exception FitsException	if <CODE>dStr</CODE> does not
-    *					contain a valid FITS date.
-    */
-  public static Date parseDate(String dStr)
-	throws FitsException
-  {
-    if (dStr == null) {
-      return null;
-    }
-
-    int last = dStr.length() - 1;
-    if (last == -1) {
-      return null;
-    }
-
-    int first = dStr.indexOf('/');
-    if (first > 1 && first < last) {
-
-      int second = dStr.indexOf('/', first + 1);
-      if (second > first + 2 && second < last) {
-
-	try {
-	  int mday = Integer.parseInt(dStr.substring(0, first));
-	  int month = Integer.parseInt(dStr.substring(first+1,second));
-	  int year = Integer.parseInt(dStr.substring(second+1));
-
-	  return buildDate(mday, month, 1900+year);
-	} catch (NumberFormatException e) {
-	}
-      }
-    }
-
-    throw new FitsException("Bad DATE string \"" + dStr + '"');
-  }
-
   public int getBitPix()
 	throws FitsException
   {
@@ -320,7 +266,7 @@ public abstract class BasicHDU
   public Date getCreationDate()
   {
     try {
-      return parseDate(getTrimmedString("DATE"));
+      return new FitsDate(myHeader.getStringValue("DATE")).toDate();
     } catch (FitsException e) {
       return null;
     }
@@ -333,7 +279,7 @@ public abstract class BasicHDU
   public Date getObservationDate()
   {
     try {
-      return parseDate(getTrimmedString("DATE-OBS"));
+      return new FitsDate(myHeader.getStringValue("DATE-OBS")).toDate();
     } catch (FitsException e) {
       return null;
     }

@@ -98,8 +98,11 @@ tam/fits/ImageData.class: tam/fits/ImageData.java \
 tam/fits/BadHeaderException.class: tam/fits/BadHeaderException.java
 	${JC} ${JFLAGS} tam/fits/BadHeaderException.java
 
-tam/fits/BasicHDU.class: tam/fits/BasicHDU.java tam/fits/Header.class \
-			tam/fits/Data.class
+tam/fits/FitsDate.class: tam/fits/FitsDate.java
+	${JC} ${JFLAGS} tam/fits/FitsDate.java
+
+tam/fits/BasicHDU.class: tam/fits/BasicHDU.java tam/fits/FitsDate.class \
+			tam/fits/Header.class tam/fits/Data.class
 	${JC} ${JFLAGS} tam/fits/BasicHDU.java
 
 tam/fits/PrimaryHDU.class: tam/fits/PrimaryHDU.java tam/fits/BasicHDU.class \
