@@ -35,6 +35,7 @@ import java.rmi.RemoteException;
 import visad.data.mcidas.*;
 import visad.*;
 import visad.Set;
+import edu.wisc.ssec.mcidas.McIDASUtil;
 
 /** this is an adapter for McIDAS Base Map files */
 
@@ -103,22 +104,26 @@ public class BaseMapAdapter {
     if (latmin == Float.NaN) {
       latMin = -900000;
     } else {
-      latMin = (int) (latmin*10000.f);
+      latMin = McIDASUtil.mcDoubleToPackedInteger( (double) latmin);
+      //latMin = (int) (latmin*10000.f);
     }
     if (latmax == Float.NaN) {
       latMax = 900000;
     } else {
-      latMax = (int) (latmax*10000.f);
+      latMax = McIDASUtil.mcDoubleToPackedInteger( (double) latmax);
+      //latMax = (int) (latmax*10000.f);
     }
     if (lonmin == Float.NaN) {
       lonMin = -1800000;
     } else {
-      lonMin = (int) (lonmin*10000.f);
+      lonMin = McIDASUtil.mcDoubleToPackedInteger( (double) lonmin);
+      //lonMin = (int) (lonmin*10000.f);
     }
     if (lonmax == Float.NaN) {
       lonMax = 1800000;
     } else {
-      lonMax = (int) (lonmax*10000.f);
+      lonMax = McIDASUtil.mcDoubleToPackedInteger( (double) lonmax);
+      //lonMax = (int) (lonmax*10000.f);
     }
 
     //System.out.println("Lat min/max = "+latMin+" "+latMax);
