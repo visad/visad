@@ -563,6 +563,9 @@ public class DefaultFamily
     }
 
     if (data == null) {
+      if (!new java.io.File(id).exists()) {
+        throw new BadFormException("No such data object \"" + id + "\"");
+      }
       throw new BadFormException("Data object \"" + id +
                                  "\" not compatible with \"" + getName() +
                                  "\" data family");
