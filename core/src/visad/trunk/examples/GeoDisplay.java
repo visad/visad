@@ -33,6 +33,7 @@ class GeoDisplay
 	/*
 	 * Map data dimensions to display dimensions.
 	 */
+/* WLH 11 Sept 98 - doesn't work anymore
 	{
 	    QuantityDB	quantityDB = StandardQuantityDB.instance();
 
@@ -41,6 +42,7 @@ class GeoDisplay
 	    addMap(new ScalarMap(quantityDB.get("latitude", SI.radian),
 		Display.Latitude));
 	}
+*/
     }
 
 

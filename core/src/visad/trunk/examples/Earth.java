@@ -8,6 +8,7 @@ import visad.Display;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.RealType;
+import visad.RealTupleType;
 import visad.ScalarMap;
 import visad.TupleType;
 import visad.VisADException;
@@ -85,6 +86,14 @@ class Earth
 	FlatField	earth = (FlatField) new Plain().open(args[0]);
 	FunctionType	earthType = (FunctionType) earth.getType();
 	RealType	altitudeType = (RealType)earthType.getRange();
+
+        /* WLH 11 Sept 98 - this works */
+        RealTupleType domain = earthType.getDomain();
+        RealType lon = (RealType) domain.getComponent(0);
+        RealType lat = (RealType) domain.getComponent(1);
+        display.addMap(new ScalarMap(lon, Display.Longitude));
+        display.addMap(new ScalarMap(lat, Display.Latitude));
+
 	ScalarMap	radiusMap = new ScalarMap(altitudeType, Display.Radius);
         ScalarMap	colorMap = new ScalarMap(altitudeType, Display.RGB);
 	DataReference	earthRef = new DataReferenceImpl("earthRef");
