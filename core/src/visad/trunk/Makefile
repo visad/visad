@@ -243,7 +243,6 @@ TAR_FILES = \
 	visad/data/hdf5/COPYING				\
 	visad/data/hdfeos/README.hdfeos			\
 	visad/java3d/*.c				\
-	visad/java3d/*.h				\
 	visad/java3d/Makefile
 
 DOC_PACKAGES = \
