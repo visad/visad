@@ -284,6 +284,13 @@ public class DisplayImplJ3D extends DisplayImpl {
     return new DefaultDisplayRendererJ3D();
   }
 
+  public void setScreenAspect(double height, double width) {
+    DisplayRendererJ3D dr = (DisplayRendererJ3D) getDisplayRenderer();
+    Screen3D screen = dr.getCanvas().getScreen3D();
+    screen.setPhysicalScreenHeight(height);
+    screen.setPhysicalScreenWidth(width);
+  }
+
   /**
    * Get the projection control associated with this display
    * @see ProjectionControlJ3D
