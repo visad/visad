@@ -30,28 +30,21 @@ import visad.data.BadFormException;
 /** FancySSCell is an extension of BasicSSCell with extra options, such
     as a file loader dialog and a dialog to set up ScalarMaps.  It
     provides an example of GUI extensions to BasicSSCell. */
-public class FancySSCell extends BasicSSCell implements FilenameFilter {
+public class FancySSCell extends BasicSSCell {
 
-  // Custom domain/range type
+  // Custom mapping type
   static final int CUSTOM = 0;
 
-  // Default domain mapping types
+  // Default mapping types
   static final int IMAGE = 1;
-  static final int SPHERICAL_IMAGE = 2;
+  static final int LATLONIMAGE = 2;
   static final int SURFACE3D = 3;
-  static final int SPHERICAL_SURFACE3D = 4;
-
-  // Default range mapping types
-  static final int COLOR = 1;
-  static final int GRAYSCALE = 2;
-  static final int CMY = 3;
-  static final int HSV = 4;
 
   /** unselected border */
-  static final Border GRAY3 = new LineBorder(Color.gray, 3);
+  static final Border NORM = new LineBorder(Color.gray, 3);
 
   /** selected border */
-  static final Border BLUE3 = new LineBorder(new Color(0, 127, 255), 3);
+  static final Border HIGH = new LineBorder(Color.yellow, 3);
 
   /** This cell's parent frame. */
   Frame Parent;
@@ -60,8 +53,7 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
   JFrame WidgetFrame = null;
 
   /** default mapping type */
-  int MappingDomain = SURFACE3D;
-  int MappingRange = COLOR;
+  int MappingType = SURFACE3D;
 
   /** Specifies whether this cell is selected. */
   boolean Selected = false;
@@ -69,39 +61,12 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
   /** file dialog box */
   static FileDialog FileBox;
 
-  /** list of system intrinsic DisplayRealTypes for use with addMap() */
-  static final DisplayRealType[] DisplayRealArray =
-    {Display.XAxis, Display.YAxis, Display.ZAxis,
-     Display.Red, Display.Green, Display.Blue, Display.RGB,
-     Display.XAxisOffset, Display.YAxisOffset, Display.ZAxisOffset,
-     Display.Cyan, Display.Magenta, Display.Yellow, Display.CMY,
-     Display.Latitude, Display.Longitude, Display.Radius,
-     Display.Hue, Display.Saturation, Display.Value, Display.HSV,
-     Display.Flow1X, Display.Flow1Y, Display.Flow1Z,
-     Display.Animation, Display.IsoContour, Display.Alpha, Display.RGBA,
-     Display.Flow2X, Display.Flow2Y, Display.Flow2Z,
-     Display.SelectValue, Display.SelectRange, Display.List, Display.Shape};
-
-  /** number of system intrinsic DisplayRealTypes */
-  static final int NumMaps = DisplayRealArray.length;
-
-  /** list of system intrinsic DisplayRealTypes in String form */
-  static String[] MapList = createMapList();
-
-  static String[] createMapList() {
-    String[] list = new String[NumMaps];
-    for (int i=0; i<NumMaps; i++) {
-      list[i] = DisplayRealArray[i].getName();
-    }
-    return list;
-  }
-
   /** constructor */
   public FancySSCell(String name, String info, Frame parent)
                                 throws VisADException, RemoteException {
     super(name, info);
     Parent = parent;
-    setBorder(GRAY3);
+    setBorder(NORM);
   }
 
   public FancySSCell(String name, Frame parent) throws VisADException,
@@ -128,12 +93,12 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
         LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
         WidgetFrame.getContentPane().add(lw);
       }
-      if (drt == Display.RGBA) {
+      else if (drt == Display.RGBA) {
         if (WidgetFrame == null) initWidgetFrame();
         LabeledRGBAWidget lw = new LabeledRGBAWidget(maps[i]);
         WidgetFrame.getContentPane().add(lw);
       }
-      if (drt == Display.SelectValue) {
+      else if (drt == Display.SelectValue) {
         if (WidgetFrame == null) initWidgetFrame();
         final DataReference ref = new DataReferenceImpl("value");
         VisADSlider vs = new VisADSlider("value", 0, 100, 0, 0.01, ref,
@@ -148,19 +113,21 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
         cell.addReference(ref);
         WidgetFrame.getContentPane().add(vs);
       }
-      if (drt == Display.SelectRange) {
+      else if (drt == Display.SelectRange) {
         if (WidgetFrame == null) initWidgetFrame();
         SelectRangeWidget srs = new SelectRangeWidget(maps[i]);
         WidgetFrame.getContentPane().add(srs);
       }
-      if (drt == Display.IsoContour) {
-        if (WidgetFrame == null) initWidgetFrame();
+      else if (drt == Display.IsoContour) {
+        // if (WidgetFrame == null) initWidgetFrame();
         // create IsoLevel slider
       }
-      if (drt == Display.Animation) {
-        if (WidgetFrame == null) initWidgetFrame();
+      else if (drt == Display.Animation) {
+        // if (WidgetFrame == null) initWidgetFrame();
         // create Animation widget: forward/backward, play/stop, speed controls
       }
+
+      // show widget frame
       if (WidgetFrame != null) {
         WidgetFrame.pack();
         WidgetFrame.setVisible(true);
@@ -190,40 +157,24 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     super.setData(data);
     hideWidgetFrame();
     WidgetFrame = null;
-    setMappingScheme(MappingDomain, MappingRange);
+    setMappingScheme(MappingType);
   }
 
   /** Sets the dimension for this cell, and applies the default ScalarMaps. */
   public void setDimension(boolean twoD, boolean java2d)
                               throws VisADException, RemoteException {
     super.setDimension(twoD, java2d);
-    setMappingScheme(MappingDomain, MappingRange);
+    //if (MappingType != CUSTOM) setMappingScheme(MappingType);
   }
 
-  /** Gets the domain for this cell's mapping scheme. */
-  public int getMappingSchemeDomain() {
-    return MappingDomain;
-  }
-
-  /** Gets the range for this cell's mapping scheme. */
-  public int getMappingSchemeRange() {
-    return MappingRange;
-  }
-
-  /** Sets the domain for this cell's mapping scheme. */
-  public void setMappingSchemeDomain(int domainScheme) {
-    setMappingScheme(domainScheme, MappingRange);
-  }
-
-  /** Sets the range for this cell's mapping scheme. */
-  public void setMappingSchemeRange(int rangeScheme) {
-    setMappingScheme(MappingDomain, rangeScheme);
+  /** Gets this cell's mapping scheme. */
+  public int getMappingScheme() {
+    return MappingType;
   }
 
   /** Sets the mapping scheme for this cell. */
-  public void setMappingScheme(int domainScheme, int rangeScheme) {
-    MappingDomain = domainScheme;
-    MappingRange = rangeScheme;
+  public void setMappingScheme(int mappingScheme) {
+    MappingType = mappingScheme;
 
     // parse data's MathType;  find FunctionType of form:
     // ((RealType, ..., RealType) -> (RealType, ..., RealType))
@@ -265,52 +216,33 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     DisplayRealType[] r = null;
 
     // set up default ScalarMaps
-    if (domainScheme == IMAGE) {
+    if (MappingType == IMAGE) {
       d = new DisplayRealType[2];
       d[0] = Display.XAxis;
       d[1] = Display.YAxis;
-    }
-    else if (domainScheme == SPHERICAL_IMAGE) {
-      d = new DisplayRealType[2];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-    }
-    else if (domainScheme == SURFACE3D) {
-      d = new DisplayRealType[3];
-      d[0] = Display.XAxis;
-      d[1] = Display.YAxis;
-      d[2] = Display.ZAxis;
-    }
-    else if (domainScheme == SPHERICAL_SURFACE3D) {
-      d = new DisplayRealType[3];
-      d[0] = Display.Latitude;
-      d[1] = Display.Longitude;
-      d[2] = Display.Radius;
-    }
-
-    if (rangeScheme == COLOR) {
       r = new DisplayRealType[3];
       r[0] = Display.Red;
       r[1] = Display.Green;
       r[2] = Display.Blue;
     }
-    else if (rangeScheme == GRAYSCALE) {
+    else if (MappingType == LATLONIMAGE) {
+      d = new DisplayRealType[2];
+      d[0] = Display.Latitude;
+      d[1] = Display.Longitude;
       r = new DisplayRealType[3];
-      r[0] = Display.RGB;
-      r[1] = Display.RGB;
-      r[2] = Display.RGB;
+      r[0] = Display.Red;
+      r[1] = Display.Green;
+      r[2] = Display.Blue;
     }
-    else if (rangeScheme == CMY) {
+    else if (MappingType == SURFACE3D) {
+      d = new DisplayRealType[3];
+      d[0] = Display.XAxis;
+      d[1] = Display.YAxis;
+      d[2] = Display.ZAxis;
       r = new DisplayRealType[3];
-      r[0] = Display.Cyan;
-      r[1] = Display.Magenta;
-      r[2] = Display.Yellow;
-    }
-    else if (rangeScheme == HSV) {
-      r = new DisplayRealType[3];
-      r[0] = Display.Hue;
-      r[1] = Display.Saturation;
-      r[2] = Display.Value;
+      r[0] = Display.Red;
+      r[1] = Display.Green;
+      r[2] = Display.Blue;
     }
     if (d == null || r == null) return;
 
@@ -406,11 +338,11 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     if (Selected == value) return;
     Selected = value;
     if (Selected) {
-      setBorder(BLUE3);
+      setBorder(HIGH);
       showWidgetFrame();
     }
     else {
-      setBorder(GRAY3);
+      setBorder(NORM);
       hideWidgetFrame();
     }
     paint(getGraphics());
@@ -458,11 +390,20 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
 
     // get mappings from mapping dialog
     Data data = DataRef.getData();
-    String f = Filename;
-    if (f == null) f = getFormula();
-    if (f == null || f == "") f = "Data hierarchy";
-    MappingDialog mapDialog = new MappingDialog(Parent, data, f);
-    mapDialog.setSize(new Dimension(520, 470));
+    ScalarMap[] maps = null;
+    if (VDisplay != null) {
+      Vector mapVector = VDisplay.getMapVector();
+      maps = new ScalarMap[mapVector.size()];
+      for (int i=0; i<mapVector.size(); i++) {
+        maps[i] = (ScalarMap) mapVector.elementAt(i);
+      }
+    }
+    MappingDialog mapDialog = new MappingDialog(Parent, data, maps);
+    mapDialog.pack();
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    Dimension mds = mapDialog.getSize();
+    mapDialog.setLocation(screenSize.width/2 - mds.width/2,
+                          screenSize.height/2 - mds.height/2);
     mapDialog.setVisible(true);
 
     // make sure user did not cancel the operation
@@ -476,36 +417,13 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     catch (RemoteException exc) { }
 
     // set up new mappings
-    ScalarMap[] newMaps;
-    int numMaps = 0;
-    for (int i=0; i<NumMaps; i++) {
-      VisADNode node = mapDialog.DisplayMaps[i];
-      if (node != mapDialog.NoneNode) numMaps++;
-    }
-    newMaps = new ScalarMap[numMaps];
-    int j = 0;
-    for (int i=0; i<NumMaps; i++) {
-      VisADNode node = mapDialog.DisplayMaps[i];
-      if (node != mapDialog.NoneNode) {
-        try {
-          newMaps[j++] = new ScalarMap((RealType) node.mathType,
-                                       DisplayRealArray[i]);
-        }
-        catch (VisADException exc) {
-          JOptionPane.showMessageDialog(Parent, "Illegal mapping: "
-              +((String) node.getUserObject())+" -> "+MapList[i],
-              "VisAD FancySSCell error", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-    }
     try {
-      MappingDomain = CUSTOM;
-      MappingRange = CUSTOM;
-      setMaps(newMaps);
+      setMaps(mapDialog.ScalarMaps);
+      MappingType = CUSTOM;
     }
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(Parent,
-          "Illegal mappings: "+exc.toString(),
+          "This combination of mappings is not valid:\n"+exc.toString(),
           "VisAD FancySSCell error", JOptionPane.ERROR_MESSAGE);
     }
     catch (RemoteException exc) { }
@@ -516,7 +434,6 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     // get file name from file dialog
     if (FileBox == null) {
       FileBox = new FileDialog(Parent);
-      FileBox.setFilenameFilter(this);
       FileBox.setMode(FileDialog.LOAD);
     }
     FileBox.setVisible(true);
@@ -547,20 +464,6 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
   /** Sets the minimum size of the FancySSCell. */
   public void setMinSize(Dimension size) {
     if (size != null) setPreferredSize(size);
-  }
-
-  /** Handles the file dialog filter. */
-  public boolean accept(File f, String name) {
-    if (f.isDirectory()) return false;
-    if (!f.canRead()) return false;
-    if ( !(name.endsWith(".nc") || name.endsWith(".netcdf")
-        || name.endsWith(".hdf") || name.endsWith(".hdfeos")
-        || name.endsWith(".fit") || name.endsWith(".fits")
-        || name.endsWith(".jpg") || name.endsWith(".jpeg")
-        || name.endsWith(".gif") || name.endsWith(".v5d")) ) {
-      return false;
-    }
-    return true;
   }
 
 }

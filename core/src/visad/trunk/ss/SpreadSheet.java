@@ -74,36 +74,51 @@ public class SpreadSheet extends JFrame implements ActionListener,
   FileDialog SSFileDialog = null;
 
   // number of VisAD displays
-  int NumVisX = 4;
-  int NumVisY = 3;
-  int NumVisDisplays = NumVisX*NumVisY;
+  int NumVisX;
+  int NumVisY;
+  int NumVisDisplays;
 
   // display-related arrays and variables
   Panel DisplayPanel;
   JPanel ScrollPanel;
-  JScrollPane HorizLabels;
-  JScrollPane VertLabels;
+  ScrollPane HorizLabels;
+  ScrollPane VertLabels;
   FancySSCell[] DisplayCells;
   JTextField FormulaField;
   MenuItem EditPaste;
   JButton ToolPaste;
   JButton FormulaOk;
   CheckboxMenuItem CellDim3D3D, CellDim2D2D, CellDim2D3D;
-  CheckboxMenuItem DispImage, DispSphereImage,
-                   DispSurface3D, DispSphereSurface3D;
-  CheckboxMenuItem DispColor, DispGray, DispCMY, DispHSV;
+  CheckboxMenuItem DispImage, DispSphere, DispSurface3D;
   int CurDisplay = 0;
 
   String Clipboard = null;
   File CurrentFile = null;
 
   public static void main(String[] argv) { 
+    int cols = 4;
+    int rows = 3;
+    if (argv.length > 1) {
+      try {
+        cols = Integer.parseInt(argv[0]);
+        rows = Integer.parseInt(argv[1]);
+      }
+      catch (NumberFormatException exc) { }
+    }
+    if (cols > Letters.length()) cols = Letters.length();
+    if (cols < 1) cols = 1;
+    if (rows < 1) rows = 1;
     SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
-                                     "VisAD SpreadSheet");
+                                     cols, rows, "VisAD SpreadSheet");
   }
 
   /** This is the constructor for the SpreadSheet class. */
-  SpreadSheet(int sWidth, int sHeight, String sTitle) {
+  public SpreadSheet(int sWidth, int sHeight,
+                     int cols, int rows, String sTitle) {
+    NumVisX = cols;
+    NumVisY = rows;
+    NumVisDisplays = NumVisX*NumVisY;
+    MappingDialog.initDialog();
     addKeyListener(this);
     addWindowListener((WindowListener)
       new WindowAdapter() {
@@ -216,34 +231,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DispImage.addItemListener(this);
     disp.add(DispImage);
 
-    DispSphereImage = new CheckboxMenuItem("Spherical image");
-    DispSphereImage.addItemListener(this);
-    disp.add(DispSphereImage);
+    DispSphere = new CheckboxMenuItem("Spherical image");
+    DispSphere.addItemListener(this);
+    disp.add(DispSphere);
 
     DispSurface3D = new CheckboxMenuItem("3-D surface", true);
     DispSurface3D.addItemListener(this);
     disp.add(DispSurface3D);
-
-    DispSphereSurface3D = new CheckboxMenuItem("3-D spherical surface");
-    DispSphereSurface3D.addItemListener(this);
-    disp.add(DispSphereSurface3D);
-    disp.addSeparator();
-
-    DispColor = new CheckboxMenuItem("Color", true);
-    DispColor.addItemListener(this);
-    disp.add(DispColor);
-
-    DispGray = new CheckboxMenuItem("Grayscale");
-    DispGray.addItemListener(this);
-    disp.add(DispGray);
-
-    DispCMY = new CheckboxMenuItem("CMY");
-    DispCMY.addItemListener(this);
-    disp.add(DispCMY);
-
-    DispHSV = new CheckboxMenuItem("HSV");
-    DispHSV.addItemListener(this);
-    disp.add(DispHSV);
 
     // window menu
     Menu window = new Menu("Window");
@@ -384,13 +378,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
                         SwingConstants.CENTER));
       horizPanel.add(lp);
     }
-    HorizLabels = new JScrollPane(horizPanel,
-                                  JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-                                  JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    HorizLabels.setMinimumSize(new Dimension(0, LABEL_HEIGHT+4));
-    HorizLabels.setPreferredSize(new Dimension(0, LABEL_HEIGHT+4));
-    HorizLabels.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-                                             LABEL_HEIGHT+4));
+    ScrollPane hl = new ScrollPane(ScrollPane.SCROLLBARS_NEVER) {
+      public Dimension getMinimumSize() {
+        return new Dimension(0, LABEL_HEIGHT+4);
+      }
+      public Dimension getPreferredSize() {
+        return new Dimension(0, LABEL_HEIGHT+4);
+      }
+      public Dimension getMaximumSize() {
+        return new Dimension(Integer.MAX_VALUE, LABEL_HEIGHT+4);
+      }
+    };
+    HorizLabels = hl;
+    HorizLabels.add(horizPanel);
     horizShell.add(HorizLabels);
     horizShell.add(Box.createRigidArea(new Dimension(6, 0)));
 
@@ -423,12 +423,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
       lp.add(new JLabel(""+(i+1), SwingConstants.CENTER));
       vertPanel.add(lp);
     }
-    VertLabels = new JScrollPane(vertPanel,
-                                 JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-                                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-    VertLabels.setMinimumSize(new Dimension(LABEL_WIDTH+4, 0));
-    VertLabels.setPreferredSize(new Dimension(LABEL_WIDTH+4, 0));
-    VertLabels.setMaximumSize(new Dimension(LABEL_WIDTH+4, Integer.MAX_VALUE));
+    ScrollPane vl = new ScrollPane(ScrollPane.SCROLLBARS_NEVER) {
+      public Dimension getMinimumSize() {
+        return new Dimension(LABEL_WIDTH+4, 0);
+      }
+      public Dimension getPreferredSize() {
+        return new Dimension(LABEL_WIDTH+4, 0);
+      }
+      public Dimension getMaximumSize() {
+        return new Dimension(LABEL_WIDTH+4, Integer.MAX_VALUE);
+      }
+    };
+    VertLabels = vl;
+    VertLabels.add(vertPanel);
     vertShell.add(VertLabels);
 
     // set up scroll pane's panel
@@ -458,7 +465,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // set up display panel
     DisplayPanel = new Panel();
-    DisplayPanel.setBackground(Color.white);
+    DisplayPanel.setBackground(Color.darkGray);
     DisplayPanel.setLayout(new GridLayout(NumVisY, NumVisX, 5, 5));
     scpane.add(DisplayPanel);
 
@@ -795,29 +802,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (dim == BasicSSCell.JAVA3D_2D) CellDim2D3D.setState(true);
     else CellDim2D3D.setState(false);
 
-    // update domain mapping scheme check marks
-    int d = DisplayCells[CurDisplay].getMappingSchemeDomain();
-    if (d == FancySSCell.IMAGE) DispImage.setState(true);
+    // update mapping scheme check marks
+    int s = DisplayCells[CurDisplay].getMappingScheme();
+    if (s == FancySSCell.IMAGE) DispImage.setState(true);
     else DispImage.setState(false);
-    if (d == FancySSCell.SPHERICAL_IMAGE) DispSphereImage.setState(true);
-    else DispSphereImage.setState(false);
-    if (d == FancySSCell.SURFACE3D) DispSurface3D.setState(true);
+    if (s == FancySSCell.LATLONIMAGE) DispSphere.setState(true);
+    else DispSphere.setState(false);
+    if (s == FancySSCell.SURFACE3D) DispSurface3D.setState(true);
     else DispSurface3D.setState(false);
-    if (d == FancySSCell.SPHERICAL_SURFACE3D) {
-      DispSphereSurface3D.setState(true);
-    }
-    else DispSphereSurface3D.setState(false);
-
-    // update range mapping scheme check marks
-    int r = DisplayCells[CurDisplay].getMappingSchemeRange();
-    if (r == FancySSCell.COLOR) DispColor.setState(true);
-    else DispColor.setState(false);
-    if (r == FancySSCell.GRAYSCALE) DispGray.setState(true);
-    else DispGray.setState(false);
-    if (r == FancySSCell.CMY) DispCMY.setState(true);
-    else DispCMY.setState(false);
-    if (r == FancySSCell.HSV) DispHSV.setState(true);
-    else DispHSV.setState(false);
   }
 
   /** Handles checkbox menu item changes (dimension checkboxes). */
@@ -834,35 +826,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurDisplay].setDimension(true, false);
       }
       else if (i.equals("Image")) {
-        DisplayCells[CurDisplay].setMappingSchemeDomain(FancySSCell.IMAGE);
+        DisplayCells[CurDisplay].setMappingScheme(FancySSCell.IMAGE);
       }
       else if (i.equals("Spherical image")) {
-        DisplayCells[CurDisplay].setMappingSchemeDomain(
-                                 FancySSCell.SPHERICAL_IMAGE);
+        DisplayCells[CurDisplay].setMappingScheme(FancySSCell.LATLONIMAGE);
       }
       else if (i.equals("3-D surface")) {
-        DisplayCells[CurDisplay].setMappingSchemeDomain(
-                                 FancySSCell.SURFACE3D);
-      }
-      else if (i.equals("3-D spherical surface")) {
-        DisplayCells[CurDisplay].setMappingSchemeDomain(
-                                 FancySSCell.SPHERICAL_SURFACE3D);
-      }
-      else if (i.equals("Color")) {
-        DisplayCells[CurDisplay].setMappingSchemeRange(
-                                 FancySSCell.COLOR);
-      }
-      else if (i.equals("Grayscale")) {
-        DisplayCells[CurDisplay].setMappingSchemeRange(
-                                 FancySSCell.GRAYSCALE);
-      }
-      else if (i.equals("CMY")) {
-        DisplayCells[CurDisplay].setMappingSchemeRange(
-                                 FancySSCell.CMY);
-      }
-      else if (i.equals("HSV")) {
-        DisplayCells[CurDisplay].setMappingSchemeRange(
-                                 FancySSCell.HSV);
+        DisplayCells[CurDisplay].setMappingScheme(FancySSCell.SURFACE3D);
       }
       refreshDisplayMenuItems();
     }
@@ -879,10 +849,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     int value = a.getValue();
 
     if (a.getOrientation() == Adjustable.HORIZONTAL) {
-      HorizLabels.getViewport().setViewPosition(new Point(value, 0));
+      HorizLabels.setScrollPosition(value, 0);
     }
     else {  // a.getOrientation() == Adjustable.VERTICAL
-      VertLabels.getViewport().setViewPosition(new Point(0, value));
+      VertLabels.setScrollPosition(0, value);
     }
   }
 

@@ -3,275 +3,431 @@
 // MappingDialog.java
 //
 
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+Rink and Dave Glowacki.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 1, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License in file NOTICE for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
+
 package visad.ss;
+
+// JFC packages
+import com.sun.java.swing.*;
+import com.sun.java.swing.event.*;
 
 // AWT packages
 import java.awt.*;
 import java.awt.event.*;
-import com.sun.java.swing.*;
-import com.sun.java.swing.event.*;
-import com.sun.java.swing.tree.*;
 
 // RMI classes
 import java.rmi.RemoteException;
+
+// Utility classes
+import java.util.Vector;
 
 // VisAD packages
 import visad.*;
 
 /** MappingDialog is a dialog that lets the user create ScalarMaps. */
 public class MappingDialog extends JDialog implements ActionListener,
-                                               ListSelectionListener {
-  // needed in TreeSelectionListener's valueChanged method
-  JPanel CurMapsPanel = new JPanel();
-  JScrollPane CurMapsView;
-  JLabel[] MapLabels = new JLabel[FancySSCell.NumMaps];
-  boolean[] MapOnList = new boolean[FancySSCell.NumMaps];
-  VisADNode NoneNode = new VisADNode("None", null);
-  JList VisadMapList = new JList(FancySSCell.MapList);
-
-  // needed in ListSelectionListener's valueChanged method
-  JTree MathTree;
-
-  // needed in SpreadSheet's code after displaying MappingDialog
+                                                      ListSelectionListener,
+                                                      MouseListener {
+  /** Flag whether user hit Done or Cancel button. */
   public boolean Confirm = false;
-  VisADNode[] DisplayMaps = new VisADNode[FancySSCell.NumMaps];
 
-  /** This is the constructor for MappingDialog. */
-  MappingDialog(Frame parent, Data data, String treeRootTitle) {
+  /** ScalarMaps selected by the user */
+  public ScalarMap[] ScalarMaps;
+
+  // These components affect each other
+  Canvas MathCanvas;
+  ScrollPane MathCanvasView;
+  JList MathList;
+  Canvas DisplayCanvas;
+  DefaultListModel CurMaps;
+  JList CurrentMaps;
+  JScrollPane CurrentMapsView;
+  Vector Scalars;
+  Vector MathTypes;
+  boolean[][][] Maps;
+  String[][][] CurMapLabel;
+
+  /** names of system intrinsic DisplayRealTypes */
+  static final String[][] MapNames = {
+    {"X Axis", "X Offset", "Latitude", "Flow1 X", "Flow2 X"},
+    {"Y Axis", "Y Offset", "Longitude", "Flow1 Y", "Flow2 Y"},
+    {"Z Axis", "Z Offset", "Radius", "Flow1 Z", "Flow2 Z"},
+    {"Red", "Cyan", "Hue", "Animation", "Select Value"},
+    {"Green", "Magenta", "Saturation", "Iso-contour", "Select Range"},
+    {"Blue", "Yellow", "Value", "Alpha", "List"},
+    {"RGB", "CMY", "HSV", "RGBA", "Shape"}
+  };
+
+  /** list of system intrinsic DisplayRealTypes */
+  static final DisplayRealType[][] MapTypes = {
+    {Display.XAxis, Display.XAxisOffset, Display.Latitude,
+     Display.Flow1X, Display.Flow2X},
+    {Display.YAxis, Display.YAxisOffset, Display.Longitude,
+     Display.Flow1Y, Display.Flow2Y},
+    {Display.ZAxis, Display.ZAxisOffset, Display.Radius,
+     Display.Flow1Z, Display.Flow2Z},
+    {Display.Red, Display.Cyan, Display.Hue,
+     Display.Animation, Display.SelectValue},
+    {Display.Green, Display.Magenta, Display.Saturation,
+     Display.IsoContour, Display.SelectRange},
+    {Display.Blue, Display.Yellow, Display.Value,
+     Display.Alpha, Display.List},
+    {Display.RGB, Display.CMY, Display.HSV,
+     Display.RGBA, Display.Shape}
+  };
+
+  /** number of system intrinsic DisplayRealTypes */
+  static final int NumMaps = MapTypes.length;
+
+  /** display.gif image */
+  static Image DRT = null;
+
+  /** Whether DRT image has been initialized */
+  static boolean Inited = false;
+
+  /** Pre-loads the display.gif file, so it's ready when
+      mapping dialog is requested. */
+  static void initDialog() {
+    if (DRT == null) DRT = Toolkit.getDefaultToolkit().getImage("display.gif");
+    Inited = true;
+  }
+
+  /** Constructor for MappingDialog. */
+  public MappingDialog(Frame parent, Data data, ScalarMap[] startMaps) {
     super(parent, "Set up data mappings", true);
-    setBackground(Color.white);
-    Dimension zero = new Dimension(0, 0);
-    for (int i=0; i<FancySSCell.NumMaps; i++) MapOnList[i] = false;
 
     // set up content pane
-    JPanel dialogPane = new JPanel();
-    setContentPane(dialogPane);
-    dialogPane.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    dialogPane.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    dialogPane.setLayout(new BoxLayout(dialogPane, BoxLayout.Y_AXIS));
+    setBackground(Color.white);
+    JPanel contentPane = new JPanel();
+    setContentPane(contentPane);
+    contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+    contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
-    // set up main panel
-    JPanel mainPanel = new JPanel();
-    mainPanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    mainPanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
-    dialogPane.add(Box.createVerticalStrut(5));
-    dialogPane.add(mainPanel);
+    // set up "MathType" label
+    Scalars = new Vector();
+    MathTypes = new Vector();
+    parseMathType(data, Scalars, MathTypes);
+    String mt = null;
+    try {
+      mt = data.getType().prettyString();
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    final String mtype = mt;
+    final Font mono = new Font("Monospaced", Font.PLAIN, 11);
+    JLabel l0 = new JLabel("MathType:");
+    l0.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    contentPane.add(l0);
 
-    // set up VisAD mappings list
-    VisadMapList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    VisadMapList.clearSelection();
-    VisadMapList.addListSelectionListener(this);
-    for (int i=0; i<FancySSCell.NumMaps; i++) DisplayMaps[i] = NoneNode;
-    JScrollPane visadMapListView = new JScrollPane(VisadMapList) {
-      public Dimension getMaximumSize() {
-        return new Dimension(150, super.getMaximumSize().height);
+    // set up top panel
+    JPanel topPanel = new JPanel();
+    topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+    contentPane.add(topPanel);
+    contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
+
+    // set up MathType canvas
+    MathCanvas = new Canvas() {
+      // this paint method draws the "pretty-print" MathType
+      public void paint(Graphics g) {
+        g.setFont(mono);
+        g.drawString(mtype, 5, 10); /* CTR: TEMP */
+        /* CTR: Need an array of strings here, since \n does not cause
+                drawString to go down a line.  Probably should pre-
+                calculate array of where arrows are to speed up
+                drawing them.  Also, pre-calculate array of where
+                scalars are, and perhaps how long they are, so that
+                they can be quickly highlighted. */
+      }
+
+      public Dimension getMinimumSize() {
+        return new Dimension(0, 0);
+      }
+
+      public Dimension getPreferredSize() {
+        return new Dimension(0, 0);
       }
     };
-    visadMapListView.setAlignmentY(JScrollPane.TOP_ALIGNMENT);
-    visadMapListView.setAlignmentX(JScrollPane.LEFT_ALIGNMENT);
-    visadMapListView.setMinimumSize(zero);
-    visadMapListView.setPreferredSize(new Dimension(150, 0));
-    mainPanel.add(Box.createHorizontalStrut(5));
-    mainPanel.add(visadMapListView);
+    MathCanvas.setBackground(Color.white);
+    MathCanvasView = new ScrollPane() {
+      public Dimension getMinimumSize() {
+        return new Dimension(0, 0);
+      }
 
-    // set up right-hand panel
-    JPanel rightPanel = new JPanel();
-    rightPanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    rightPanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-    mainPanel.add(Box.createHorizontalStrut(5));
-    mainPanel.add(rightPanel);
-    mainPanel.add(Box.createHorizontalStrut(5));
+      public Dimension getPreferredSize() {
+        return new Dimension(0, 70);
+      }
+    };
+    MathCanvasView.setBackground(Color.white);
+    MathCanvasView.add(MathCanvas);
+    topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+    topPanel.add(MathCanvasView);
+    topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 
-    // set up MathType tree
-    VisADNode dataNode = buildDataTree(data, treeRootTitle);
-    VisADNode rootNode = new VisADNode("Map from:", null);
-    rootNode.add(NoneNode);
-    rootNode.add(dataNode);
-    MathTree = new JTree(rootNode);
-    MathTree.getSelectionModel().setSelectionMode(
-                             TreeSelectionModel.SINGLE_TREE_SELECTION);
-    MathTree.addTreeSelectionListener(new TreeSelectionListener() {
-      public void valueChanged(TreeSelectionEvent e) {
-        VisADNode node = (VisADNode) e.getPath().getLastPathComponent();
-        int index = VisadMapList.getSelectedIndex();
-        if (node.isLeaf()) {
-          if (index >= 0 && DisplayMaps[index] != node) {
-            DisplayMaps[index] = node;
-            // update current map list box
-            if (MapOnList[index]) CurMapsPanel.remove(MapLabels[index]);
-            MapLabels[index] = new JLabel(new String((String)
-                                          node.getUserObject()+" -> "
-                                         +FancySSCell.MapList[index]));
-            if (node == NoneNode) MapOnList[index] = false;
-            else {
-              CurMapsPanel.add(MapLabels[index]);
-              MapOnList[index] = true;
+    // set up lower panel
+    JPanel lowerPanel = new JPanel();
+    lowerPanel.setLayout(new BoxLayout(lowerPanel, BoxLayout.X_AXIS));
+    contentPane.add(lowerPanel);
+    contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
+
+    // set up left-side panel
+    JPanel lsPanel = new JPanel();
+    lsPanel.setLayout(new BoxLayout(lsPanel, BoxLayout.Y_AXIS));
+    lowerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+    lowerPanel.add(lsPanel);
+
+    // begin set up "current mappings" list
+    int num = Scalars.size();
+    CurMaps = new DefaultListModel();
+    CurMaps.ensureCapacity(num*35);
+    CurrentMaps = new JList(CurMaps);
+
+    // set up "map from" list
+    Maps = new boolean[num][7][5];
+    CurMapLabel = new String[num][7][5];
+    for (int i=0; i<num; i++) {
+      for (int j=0; j<7; j++) {
+        for (int k=0; k<5; k++) {
+          Maps[i][j][k] = false;
+          CurMapLabel[i][j][k] = Scalars.elementAt(i)+" -> "+MapNames[j][k];
+          if (startMaps != null) {
+            for (int m=0; m<startMaps.length; m++) {
+              if (startMaps[m].getScalar() == (RealType) MathTypes.elementAt(i)
+                        && startMaps[m].getDisplayScalar() == MapTypes[j][k]) {
+                Maps[i][j][k] = true;
+                CurMaps.addElement(CurMapLabel[i][j][k]);
+              }
             }
-            CurMapsView.validate();
           }
         }
       }
-    });
-    JScrollPane treeView = new JScrollPane(MathTree);
-    treeView.setAlignmentY(JScrollPane.TOP_ALIGNMENT);
-    treeView.setAlignmentX(JScrollPane.LEFT_ALIGNMENT);
-    treeView.setMinimumSize(zero);
-    rightPanel.add(treeView);
-
-    // expand entire tree
-    for (DefaultMutableTreeNode n=rootNode.getFirstLeaf(); n!=null;
-                                n=n.getNextLeaf()) {
-      MathTree.expandPath(new TreePath(n.getPath()));
     }
-
-    // set up current mappings panel
-    CurMapsPanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    CurMapsPanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    CurMapsPanel.setBackground(Color.white);
-    CurMapsPanel.setLayout(new BoxLayout(CurMapsPanel, BoxLayout.Y_AXIS));
-    CurMapsView = new JScrollPane(CurMapsPanel) {
+    MathList = new JList(Scalars);
+    MathList.addListSelectionListener(this);
+    MathList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    JScrollPane mathListS = new JScrollPane(MathList) {
+      public Dimension getMinimumSize() {
+        return new Dimension(0, 265);
+      }
+      public Dimension getPreferredSize() {
+        return new Dimension(200, 265);
+      }
       public Dimension getMaximumSize() {
-        return new Dimension(super.getMaximumSize().width, 100);
+        return new Dimension(Integer.MAX_VALUE, 265);
       }
     };
-    CurMapsView.setAlignmentY(JScrollPane.TOP_ALIGNMENT);
-    CurMapsView.setAlignmentX(JScrollPane.LEFT_ALIGNMENT);
-    CurMapsView.setMinimumSize(zero);
-    CurMapsView.setPreferredSize(new Dimension(0, 100));
-    rightPanel.add(Box.createVerticalStrut(10));
-    rightPanel.add(new JLabel("Current mappings"));
-    rightPanel.add(CurMapsView);
+    JLabel l1 = new JLabel("Map from:");
+    l1.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    lsPanel.add(l1);
+    lsPanel.add(mathListS);
+    lowerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 
-    // set up JButtons
-    JPanel buttons = new JPanel();
-    buttons.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    buttons.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+    // set up center panel
+    JPanel centerPanel = new JPanel();
+    centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+    lowerPanel.add(centerPanel);
+    lowerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+    JLabel l2 = new JLabel("Map to:");
+    l2.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    centerPanel.add(l2);
+
+    // set up "map to" canvas
+    DisplayCanvas = new Canvas() {
+      public void paint(Graphics g) {
+        if (DRT == null) {
+          if (!Inited) {
+            DRT = Toolkit.getDefaultToolkit().getImage("display.gif");
+          }
+          MediaTracker mtracker = new MediaTracker(this);
+          mtracker.addImage(DRT, 0);
+          try {
+            mtracker.waitForID(0);
+          }
+          catch (InterruptedException exc) {
+            return;
+          }
+          if (DRT == null) return;
+        }
+        g.drawImage(DRT, 0, 0, this);
+        int ind = MathList.getSelectedIndex();
+        if (ind >= 0) {
+          for (int col=0; col<7; col++) {
+            for (int row=0; row<5; row++) {
+              if (Maps[ind][col][row]) highlightBox(col, row, g);
+            }
+          }
+        }
+      }
+
+      public Dimension getMinimumSize() {
+        return new Dimension(280, 200);
+      }
+
+      public Dimension getPreferredSize() {
+        return new Dimension(280, 200);
+      }
+
+      public Dimension getMaximumSize() {
+        return new Dimension(280, 200);
+      }
+    };
+    DisplayCanvas.addMouseListener(this);
+    centerPanel.add(DisplayCanvas);
+    centerPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+
+    // set up button panel 1
+    JPanel b1Panel = new JPanel();
+    b1Panel.setLayout(new BoxLayout(b1Panel, BoxLayout.X_AXIS));
+    centerPanel.add(b1Panel);
+    centerPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+    b1Panel.add(Box.createHorizontalGlue());
+
+    // set up "clear all" button
+    JButton clearAll = new JButton("Clear all");
+    clearAll.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    clearAll.setToolTipText("Clear all mappings from mappings box");
+    clearAll.setActionCommand("all");
+    clearAll.addActionListener(this);
+    b1Panel.add(clearAll);
+    b1Panel.add(Box.createRigidArea(new Dimension(5, 0)));
+
+    // set up "clear selected" button
+    JButton clearSel = new JButton("Clear selected");
+    clearSel.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    clearSel.setToolTipText("Clear selected mappings from mappings box");
+    clearSel.setActionCommand("sel");
+    clearSel.addActionListener(this);
+    b1Panel.add(clearSel);
+    b1Panel.add(Box.createHorizontalGlue());
+
+    // set up button panel 2
+    JPanel b2Panel = new JPanel();
+    b2Panel.setLayout(new BoxLayout(b2Panel, BoxLayout.X_AXIS));
+    centerPanel.add(b2Panel);
+    b2Panel.add(Box.createHorizontalGlue());
+
+    // set up done button
     JButton done = new JButton("Done");
-    done.setAlignmentY(JButton.TOP_ALIGNMENT);
-    done.setAlignmentX(JButton.LEFT_ALIGNMENT);
-    done.addActionListener(this);
+    done.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    done.setToolTipText("Apply selected mappings");
     done.setActionCommand("done");
+    done.addActionListener(this);
+    b2Panel.add(done);
+    b2Panel.add(Box.createRigidArea(new Dimension(5, 0)));
+
+    // set up cancel button
     JButton cancel = new JButton("Cancel");
-    cancel.setAlignmentY(JButton.TOP_ALIGNMENT);
-    cancel.setAlignmentX(JButton.LEFT_ALIGNMENT);
-    cancel.addActionListener(this);
+    cancel.setAlignmentX(JButton.CENTER_ALIGNMENT);
+    cancel.setToolTipText("Close dialog box without applying mappings");
     cancel.setActionCommand("cancel");
-    buttons.add(Box.createHorizontalGlue());
-    buttons.add(done);
-    buttons.add(Box.createHorizontalStrut(10));
-    buttons.add(cancel);
-    buttons.add(Box.createHorizontalGlue());
-    dialogPane.add(Box.createVerticalStrut(10));
-    dialogPane.add(buttons);
-    dialogPane.add(Box.createVerticalStrut(10));
+    cancel.addActionListener(this);
+    b2Panel.add(cancel);
+    b2Panel.add(Box.createHorizontalGlue());
+
+    // set up right-side panel
+    JPanel rsPanel = new JPanel();
+    rsPanel.setLayout(new BoxLayout(rsPanel, BoxLayout.Y_AXIS));
+    lowerPanel.add(rsPanel);
+    lowerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+
+    // finish set up "current mappings" list
+    CurrentMaps.addListSelectionListener(this);
+    CurrentMapsView = new JScrollPane(CurrentMaps) {
+      public Dimension getMinimumSize() {
+        return new Dimension(0, 265);
+      }
+
+      public Dimension getPreferredSize() {
+        return new Dimension(200, 265);
+      }
+
+      public Dimension getMaximumSize() {
+        return new Dimension(Integer.MAX_VALUE, 265);
+      }
+    };
+    JLabel l3 = new JLabel("Current maps:");
+    l3.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+    rsPanel.add(l3);
+    rsPanel.add(CurrentMapsView);
   }
 
-  /** Handles button press events. */
-  public void actionPerformed(ActionEvent e) {
-    String cmd = e.getActionCommand();
-    if (cmd.equals("done")) {
-      Confirm = true;
-      setVisible(false);
-    }
-    else if (cmd.equals("cancel")) {
-      setVisible(false);
-    }
-  }
-
-  /** Handles list selection change events. */
-  public void valueChanged(ListSelectionEvent e) {
-    int index = e.getFirstIndex();
-    if (index == -1) MathTree.clearSelection();
-    else {
-      VisADNode node = DisplayMaps[index];
-      TreePath path = new TreePath(node.getPath());
-      MathTree.setSelectionPath(path);
-      MathTree.scrollPathToVisible(path);
-    }
-  }
-
-  /** Recursively builds a JTree object from a Data object. */
-  VisADNode buildDataTree(Data data, String rootName) {
-    VisADNode rootNode = new VisADNode(rootName, null);
+  /** Returns a Vector of Strings containing the ScalarType names. */
+  void parseMathType(Data data, Vector strs, Vector objs) {
     MathType dataType;
     try {
       dataType = data.getType();
     }
     catch (RemoteException exc) {
-      return null;
+      return;
     }
     catch (VisADException exc) {
-      return null;
+      return;
     }
 
     if (dataType instanceof FunctionType) {
-      addFunctionBranch((FunctionType) dataType, rootNode);
+      parseFunction((FunctionType) dataType, strs, objs);
     }
     else if (dataType instanceof SetType) {
-      addSetBranch((SetType) dataType, rootNode);
+      parseSet((SetType) dataType, strs, objs);
     }
     else if (dataType instanceof TupleType) {
-      addTupleBranch((TupleType) dataType, rootNode);
+      parseTuple((TupleType) dataType, strs, objs);
     }
-    else addScalarBranch((ScalarType) dataType, rootNode);
-
-    return rootNode;
+    else parseScalar((ScalarType) dataType, strs, objs);
   }
 
-  /** Used by buildDataTree to build a Function branch. */
-  void addFunctionBranch(FunctionType mathType, VisADNode node) {
-    VisADNode functionNode = new VisADNode("Function", null);
-    node.add(functionNode);
-
+  /** Used by parseMathType. */
+  void parseFunction(FunctionType mathType, Vector strs, Vector objs) {
     // extract domain
-    VisADNode domainNode = new VisADNode("Domain", null);
-    functionNode.add(domainNode);
     RealTupleType domain = mathType.getDomain();
-    addTupleBranch((TupleType) domain, domainNode);
+    parseTuple((TupleType) domain, strs, objs);
 
     // extract range
-    VisADNode rangeNode = new VisADNode("Range", null);
-    functionNode.add(rangeNode);
     MathType range = mathType.getRange();
     if (range instanceof FunctionType) {
-      addFunctionBranch((FunctionType) range, rangeNode);
+      parseFunction((FunctionType) range, strs, objs);
     }
     else if (range instanceof SetType) {
-      addSetBranch((SetType) range, rangeNode);
+      parseSet((SetType) range, strs, objs);
     }
     else if (range instanceof TupleType) {
-      addTupleBranch((TupleType) range, rangeNode);
+      parseTuple((TupleType) range, strs, objs);
     }
-    else addScalarBranch((ScalarType) range, rangeNode);
+    else parseScalar((ScalarType) range, strs, objs);
+
+    return;
   }
 
-  /** Used by buildDataTree to build a Set branch. */
-  void addSetBranch(SetType mathType, VisADNode node) {
-    VisADNode setNode = new VisADNode("Set", null);
-    node.add(setNode);
-
+  /** Used by parseMathType. */
+  void parseSet(SetType mathType, Vector strs, Vector objs) {
     // extract domain
-    VisADNode domainNode = new VisADNode("Domain", null);
-    setNode.add(domainNode);
     RealTupleType domain = mathType.getDomain();
-    addTupleBranch((TupleType) domain, domainNode);
+    parseTuple((TupleType) domain, strs, objs);
+
+    return;
   }
 
-  /** Used by buildDataTree to build a Tuple branch. */
-  void addTupleBranch(TupleType mathType, VisADNode node) {
-    int tupleLen = mathType.getDimension();
-    VisADNode tupleNode;
-    if (tupleLen > 1) {
-      tupleNode = new VisADNode("Tuple", null);
-      node.add(tupleNode);
-    }
-    else tupleNode = node;
-
+  /** Used by parseMathType. */
+  void parseTuple(TupleType mathType, Vector strs, Vector objs) {
     // extract components
-    for (int i=0; i<tupleLen; i++) {
+    for (int i=0; i<mathType.getDimension(); i++) {
       MathType cType = null;
       try {
         cType = mathType.getComponent(i);
@@ -280,24 +436,160 @@ public class MappingDialog extends JDialog implements ActionListener,
 
       if (cType != null) {
         if (cType instanceof FunctionType) {
-          addFunctionBranch((FunctionType) cType, tupleNode);
+          parseFunction((FunctionType) cType, strs, objs);
         }
         else if (cType instanceof SetType) {
-          addSetBranch((SetType) cType, tupleNode);
+          parseSet((SetType) cType, strs, objs);
         }
         else if (cType instanceof TupleType) {
-          addTupleBranch((TupleType) cType, tupleNode);
+          parseTuple((TupleType) cType, strs, objs);
         }
-        else addScalarBranch((ScalarType) cType, tupleNode);
+        else parseScalar((ScalarType) cType, strs, objs);
+      }
+    }
+    return;
+  }
+
+  /** Used by parseMathType. */
+  void parseScalar(ScalarType mathType, Vector strs, Vector objs) {
+    String name = mathType.getName();
+    if (mathType instanceof RealType) {
+      strs.addElement(name);
+      objs.addElement(mathType);
+    }
+  }
+
+  /** Highlights a box in the "map to" canvas. */
+  void highlightBox(int col, int row, Graphics g) {
+    int x = 40*col;
+    int y = 40*row;
+    final int n1 = 11;
+    final int n2 = 29;
+    g.setColor(Color.blue);
+    g.drawRect(x, y, 40, 40);
+    g.drawLine(x, y+n1, x+n1, y);
+    g.drawLine(x, y+n2, x+n2, y);
+    g.drawLine(x+n1, y+40, x+40, y+n1);
+    g.drawLine(x+n2, y+40, x+40, y+n2);
+    g.drawLine(x+n2, y, x+40, y+n1);
+    g.drawLine(x+n1, y, x+40, y+n2);
+    g.drawLine(x, y+n1, x+n2, y+40);
+    g.drawLine(x, y+n2, x+n1, y+40);
+  }
+
+  /** Handles button press events. */
+  public void actionPerformed(ActionEvent e) {
+    String cmd = e.getActionCommand();
+
+    if (cmd.equals("all")) { // clear all
+      if (CurMaps.getSize() > 0) {
+        // take all maps off list
+        CurMaps.removeAllElements();
+        for (int i=0; i<CurMapLabel.length; i++) {
+          for (int j=0; j<7; j++) {
+            for (int k=0; k<5; k++) Maps[i][j][k] = false;
+          }
+        }
+        // update components
+        DisplayCanvas.paint(DisplayCanvas.getGraphics());
+        CurrentMapsView.validate();
+      }
+    }
+
+    else if (cmd.equals("sel")) { // clear selected
+      int[] ind = CurrentMaps.getSelectedIndices();
+      int len = ind.length;
+      for (int x=len-1; x>=0; x--) {
+        String s = (String) CurMaps.getElementAt(ind[x]);
+        boolean looking = true;
+        for (int i=0; i<CurMapLabel.length && looking; i++) {
+          for (int j=0; j<7 && looking; j++) {
+            for (int k=0; k<5 && looking; k++) {
+              if (CurMapLabel[i][j][k] == s) {
+                Maps[i][j][k] = false;
+                looking = false;
+              }
+            }
+          }
+        }
+        // take map off list
+        CurMaps.removeElementAt(ind[x]);
+      }
+      if (len > 0) {
+        // update components
+        DisplayCanvas.paint(DisplayCanvas.getGraphics());
+        CurrentMapsView.validate();
+      }
+    }
+
+    else if (cmd.equals("done")) {
+      boolean okay = true;
+      int size = CurMaps.getSize();
+      ScalarMaps = new ScalarMap[size];
+      int s = 0;
+      for (int i=0; i<CurMapLabel.length; i++) {
+        for (int j=0; j<7; j++) {
+          for (int k=0; k<5; k++) {
+            if (Maps[i][j][k]) {
+              try {
+                ScalarMaps[s++] = new ScalarMap((RealType)
+                                  MathTypes.elementAt(i), MapTypes[j][k]);
+              }
+              catch (VisADException exc) {
+                okay = false;
+                JOptionPane.showMessageDialog(this, "The mapping ("
+                        +Scalars.elementAt(i)+" -> "+MapNames[j][k]
+                        +") is not valid.", "Illegal mapping",
+                         JOptionPane.ERROR_MESSAGE);
+              }
+            }
+          }
+        }
+      }
+      if (okay) {
+        Confirm = true;
+        setVisible(false);
+      }
+    }
+
+    else if (cmd.equals("cancel")) setVisible(false);
+  }
+
+  /** Handles list selection change events. */
+  public void valueChanged(ListSelectionEvent e) {
+    if (!e.getValueIsAdjusting()) {
+      if ((JList) e.getSource() == MathList) {
+        DisplayCanvas.paint(DisplayCanvas.getGraphics());
       }
     }
   }
 
-  /** Used by buildDataTree to build a Scalar branch. */
-  void addScalarBranch(ScalarType mathType, VisADNode node) {
-    String name = mathType.getName();
-    if (mathType instanceof TextType) name = "[TEXT] "+name;
-    node.add(new VisADNode(name, mathType));
+  /** Handles mouse clicks in the "map to" canvas. */
+  public void mousePressed(MouseEvent e) {
+    int col = e.getX() / 40;
+    int row = e.getY() / 40;
+    int ind = MathList.getSelectedIndex();
+    if (ind >= 0) {
+      Maps[ind][col][row] = !Maps[ind][col][row];
+      if (Maps[ind][col][row]) {
+        CurMaps.addElement(CurMapLabel[ind][col][row]);
+      }
+      else {
+        CurMaps.removeElement(CurMapLabel[ind][col][row]);
+      }
+      Graphics g = DisplayCanvas.getGraphics();
+      g.setClip(40*col, 40*row, 41, 41);
+      DisplayCanvas.paint(g);
+      
+      CurrentMapsView.validate();
+    }
   }
+
+  // unused MouseListener methods
+  public void mouseEntered(MouseEvent e) { }
+  public void mouseExited(MouseEvent e) { }
+  public void mouseClicked(MouseEvent e) { }
+  public void mouseReleased(MouseEvent e) { }
+
 }
 

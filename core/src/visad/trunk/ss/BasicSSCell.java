@@ -315,6 +315,14 @@ public class BasicSSCell extends JPanel {
   void setDimension(int dim) throws VisADException, RemoteException {
     if (Dimension2D == dim) return;
     Dimension2D = dim;
+    ScalarMap[] maps = null;
+    if (VDisplay != null) {
+      Vector mapVector = VDisplay.getMapVector();
+      maps = new ScalarMap[mapVector.size()];
+      for (int i=0; i<mapVector.size(); i++) {
+        maps[i] = (ScalarMap) mapVector.elementAt(i);
+      }
+    }
     clearDisplay();
 
     if (DListen != null) VDisplay.removeDisplayListener(DListen);
@@ -334,6 +342,12 @@ public class BasicSSCell extends JPanel {
     if (HasData) {
       add(VDPanel);
       validate();
+    }
+    if (maps != null) {
+      try {
+        setMaps(maps);
+      }
+      catch (VisADException exc) { }
     }
   }
 

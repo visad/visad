@@ -1,6 +1,6 @@
  
                    VisAD SpreadSheet User Interface README file
-                                   9 July 1998
+                                  11 August 1998
                                         
                                 Table of Contents
 
@@ -15,7 +15,6 @@
     1.4.4 FormulaCell
     1.4.5 MappingDialog
     1.4.6 SpreadSheet
-    1.4.7 VisADNode
 2. Features of the SpreadSheet User Interface
   2.1 Basic Commands
   2.2 Menu Commands
@@ -58,6 +57,13 @@ from the visad.ss package.
 
         java -mx64m visad.ss.SpreadSheet
 
+    You can optionally specify the number of spreadsheet cells with:
+
+        java -mx64m visad.ss.SpreadSheet (cols) (rows)
+
+    where (cols) is the number of columns, and (rows) is the number of rows.
+    The default is twelve cells (four columns, three rows).
+
     The spreadsheet user interface requires a lot of memory (at least 32 MB),
     especially if you want to work with large data sets.  If you receive an
     OutOfMemoryError, you should increase the amount of memory allocated to
@@ -71,20 +77,17 @@ from the visad.ss package.
       - FormulaCell.java
       - MappingDialog.java
       - SpreadSheet.java
-      - VisADNode.java
 
-    The following GIF files also come with the package, for the
-    spreadsheet's toolbars:
+    The following included GIF files are needed by the package:
       - cancel.gif
       - copy.gif
       - cut.gif
+      - display.gif
       - import.gif
       - mappings.gif
-      - new.gif
       - ok.gif
       - open.gif
       - paste.gif
-      - save.gif
 
 1.4.1 BasicSSCell
     This class can be instantiated and added to a JFC user interface.  It
@@ -108,14 +111,12 @@ could prove useful to any class needing to work with formulas.
     This class is used internally by BasicSSCell to evaluate formulas.
 
 1.4.5 MappingDialog
-    This class is used internally by FancySSCell to set up ScalarMaps.
+    This class is a dialog box allowing the user to specify ScalarMaps for
+    the current data set.
 
 1.4.6 SpreadSheet
     This is the main spreadsheet user interface class.  It manages
     multiple FancySSCells.
-
-1.4.7 VisADNode
-    This is an extension of DefaultMutableTreeNode used by MappingDialog.
 
 2. Features of the SpreadSheet User Interface
 
@@ -158,28 +159,33 @@ desired cell with a mouse button, or press the arrow keys.
 2.2.4 Display Menu
     Here are the commands from the Display menu:
       Edit Mappings - Brings up a dialog box which lets you change how the Data
-                      object is mapped to the Display.  Click a Display object
-                      on the left, such as DisplayXAxis for the X axis, then
-                      click a leaf on the MathType tree on the right.  The
-                      "Current Mappings" box on the lower right will change to
-                      reflect which mappings you've currently set up.  When
-                      you've set up all the mappings to your liking, click the
-                      Done button and the spreadsheet will try to display the
-                      data object.
+                      object is mapped to the Display.  Click a RealType object
+                      on the left, then click a display icon from the display
+                      panel in the center of the dialog.  The "Current Mappings"
+                      box on the lower right will change to reflect which
+                      mappings you've currently set up.  When you've set up all
+                      the mappings to your liking, click the Done button and the
+                      spreadsheet will try to display the data object.  To close
+                      the dialog box without applying any of the changes you
+                      made to the mappings, click the Cancel button.  You can
+                      also highlight items from the "Current Mappings" box, then
+                      click "Clear selected" to remove those mappings from the
+                      list, or click "Clear all" to clear all mappings from the
+                      list and start from scratch.
       3-D (Java3D) -  Sets the current cell's display dimension to 3-D.  This
                       setting requires Java3D.
       2-D (Java2D) -  Sets the current cell's display dimension to 2-D.  This
                       uses Java2D, which comes with JDK 1.2beta3.  However, in
                       this mode, nothing can be mapped to ZAxis, Latitude, or
-                      Alpha.  For computers without OpenGL 3-D acceleration,
-                      this mode will provide much better performance, but the
-                      display quality will not be as good as 2-D (Java3D).
-                      This setting is the default, so that non-Java3D-enabled
-                      computers can still use the spreadsheet.
+                      Alpha.  For computers without 3-D acceleration, this mode
+                      will provide much better performance, but the display
+                      quality will not be as good as 2-D (Java3D).  This setting
+                      is the default, so that non-Java3D-enabled computers can
+                      still use the spreadsheet.
       2-D (Java3D) -  Sets the current cell's display dimension to 2-D.  This
                       requires Java3D.  In this mode, nothing can be mapped to
                       ZAxis or Latitude (but things can be mapped to Alpha).
-                      On computers with OpenGL 3-D acceleration, this mode will
+                      On computers with 3-D acceleration, this mode will
                       probably provide better performance than 2-D (Java2D).
                       It also has better display quality than 2-D (Java2D).
 
@@ -247,49 +253,42 @@ to the File menu's Import Data menu item.
 
 3. Known Bugs
     The following bugs have been discovered and have not yet been fixed:
-      1) The spreadsheet's cell labels have scrollbars obscuring them when
-         the spreadsheet window is resized small enough, even though the
-         scrollbar policy for the labels is set to *_SCROLLBAR_NEVER.  This
-         appears to be a bug in Swing.
-      2) Error messages are displayed when the user clicks on a button that
-         doesn't make sense (such as trying to set up mappings for an empty
-         cell).  These buttons should just be grayed out.
-      3) In rare cases, the spreadsheet will lock up when strange formula
-         cases occur.  For example, setting cell A1 = A1, cell B1 = A1, then
-         trying to clear cell A1 will sometimes lock up the spreadsheet.
-      4) The spreadsheet will not import certain data sets correctly, due to
-         incomplete implementations in VisAD file adapter forms.
-      5) Sometimes the SpreadSheet crashes with an "Invalid instruction"
-         error in Windows NT (and possibly other operating systems).  This
-         problem is probably due to bugs in Java3D, JDK 1.2beta4, or
-         Windows NT rather than VisAD or SpreadSheet.
-      6) There is no way to change the number of spreadsheet rows and columns
-         without changing the NumVisX and NumVisY variables in
-         SpreadSheet.java and then recompiling.
-      7) Clicking a cell with an illegal file name or formula (one with a
+      1) Clicking a cell with an illegal file name or formula (one with a
          large X through it) will not highlight that cell.  The arrow keys
          must be used to select it.
+      2) The spreadsheet will not import certain data sets correctly, due to
+         incomplete implementations in VisAD file adapter forms.
+      3) Sometimes the spreadsheet crashes with an "Invalid instruction"
+         error in Windows NT (and possibly other operating systems).  This
+         problem is probably due to bugs in OpenGL, Windows NT, Java3D, or
+         JDK 1.2beta4 rather than VisAD or SpreadSheet.
+      4) Error messages are displayed when the user clicks on a button that
+         doesn't make sense (such as trying to set up mappings for an empty
+         cell).  These buttons should just be grayed out.
+      5) There is no way to change the number of spreadsheet rows and columns
+         while the spreadsheet is running;  you must quit the spreadsheet and
+         specify a new setting on the command line.
 
     If you find a bug in the spreadsheet user interface not listed above,
-please send e-mail to curtis@ssec.wisc.edu describing the problem,
-preferably with a detailed description of how to recreate the problem.
+please send e-mail to curtis@ssec.wisc.edu describing the problem, preferably
+with a detailed description of how to recreate the problem.
 
 4. Future Plans
     Here's what's coming in the future:
       1) Spreadsheet column and row addition and deletion
-      2) Control widgets (such as when something is mapped to IsoContour)
-      3) Remote spreadsheet cloning with collaboration
+      2) Multiple data per cell
+      3) Direct manipulation support
       4) Distributed Cells, Data, etc. (such as data import from http address)
-      5) Direct manipulation support
-      6) Multiple data per cell
-      7) Dynamic linkage of Java code into formulas
-      8) Formula enhancements, including derivatives, extraction of pieces of
+      5) Remote spreadsheet cloning with collaboration
+      6) Formula enhancements, including derivatives, extraction of pieces of
          a Data object (such as a single function from a multi-function file),
-         and composition of multiple Data objects (such as creating an
-         animation from multiple spreadsheet cells)
-      9) More "quick-maps," such as contour and animation combinations.
-     10) Misc. user interface enhancements
-     11) And of course, bug fixes.
+         composition of multiple Data objects (such as creating an animation
+         from multiple spreadsheet cells), and dynamic linkage of Java code
+         into formulas
+      7) Quick-map enhancements, including more built-in quick-maps (such as
+         contour and animation), and user-defined quick-maps.
+      8) Misc. user interface enhancements
+      9) And of course, bug fixes
 
     If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu describing the feature.
