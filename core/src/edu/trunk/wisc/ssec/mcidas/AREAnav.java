@@ -99,6 +99,9 @@ public abstract class AREAnav
         navigation */
     public static final int MSAT =  0x4D534154;
 
+    /** Code value in AREA files used to designate MSGT (MSG) navigation */
+    public static final int MSGT = 0x4D534754;
+
     /** Code value in AREA files used to designate POES navigation */
     public static final int POES =  0x5449524F;    
 
@@ -484,6 +487,9 @@ public abstract class AREAnav
                 break;
             case MSAT:
                 anav = new MSATnav(navBlock);
+                break;
+            case MSGT:
+                anav = new MSGTnav(navBlock);
                 break;
             case RADR:
                 anav = new RADRnav(navBlock);
