@@ -38,6 +38,9 @@ public class BioUtil {
   /** Loader for opening data series. */
   private static DefaultFamily loader = new DefaultFamily("bio_loader");
 
+
+  // -- Used in MeasureList and MeasurePool --
+
   /** Converts the given pixel coordinates to domain coordinates. */
   public static double[] pixelToDomain(DisplayImpl d, int x, int y) {
     return cursorToDomain(d, pixelToCursor(d, x, y));
@@ -87,6 +90,9 @@ public class BioUtil {
 
     return values;
   }
+
+
+  // -- Used in MeasurePool --
 
   /**
    * Computes the minimum distance between the point v and the line a-b.
@@ -144,6 +150,9 @@ public class BioUtil {
     return Math.sqrt(sum);
   }
 
+
+  // -- Used in AlignmentPlane, MeasureManager and MeasureToolPanel --
+
   /**
    * Gets the distance between the endpoints p and q, using
    * the given conversion values between pixels and microns.
@@ -161,6 +170,9 @@ public class BioUtil {
     }
     return Math.sqrt(sum);
   }
+
+
+  // -- Used in MeasurePool --
 
   /**
    * Determines whether the specified line segment
@@ -250,6 +262,9 @@ public class BioUtil {
     return vx >= x1 && vx <= x2 && vy >= y1 && vy <= y2;
   }
 
+
+  // -- Used in ExportDialog and SliceManager --
+
   /**
    * Loads the data from the given file, and ensures that the
    * resulting data object is of the proper form, converting
@@ -278,6 +293,9 @@ public class BioUtil {
       makeStack(new FlatField[] {(FlatField) f}) : f;
   }
 
+
+  // -- Used in ExportDialog --
+
   /** Converts an array of images to an image stack. */
   public static FieldImpl makeStack(FlatField[] f)
     throws VisADException, RemoteException
@@ -289,59 +307,8 @@ public class BioUtil {
     return stack;
   }
 
-  /** Makes a deep copy of the given RealTuple array. */
-  public static RealTuple[] copy(RealTuple[] tuples) {
-    return copy(tuples, -1);
-  }
 
-  /**
-   * Makes a deep copy of the given RealTuple array,
-   * altering the last dimension to match the specified Z-slice value.
-   */
-  public static RealTuple[] copy(RealTuple[] tuples, int slice) {
-    try {
-      RealTuple[] n_tuples = new RealTuple[tuples.length];
-      for (int j=0; j<tuples.length; j++) {
-        int dim = tuples[j].getDimension();
-        Data[] comps = tuples[j].getComponents();
-        Real[] n_comps = new Real[dim];
-        for (int i=0; i<dim; i++) {
-          Real real = (Real) comps[i];
-          double value;
-          RealType type;
-          if (slice >= 0 && i == dim - 1) {
-            value = slice;
-            type = SliceManager.Z_TYPE;
-          }
-          else {
-            value = real.getValue();
-            type = (RealType) real.getType();
-          }
-          n_comps[i] = new Real(type, value, real.getUnit(), real.getError());
-        }
-        RealTupleType tuple_type = (RealTupleType) tuples[j].getType();
-        RealType[] real_types = tuple_type.getRealComponents();
-        RealType[] n_real_types = new RealType[dim];
-        System.arraycopy(real_types, 0, n_real_types, 0, dim);
-        n_tuples[j] = new RealTuple(new RealTupleType(n_real_types),
-          n_comps, tuples[j].getCoordinateSystem());
-      }
-      return n_tuples;
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-    return null;
-  }
-
-  /** Dumps information about the given RealTuple to the screen. */
-  public static void dump(RealTuple tuple) {
-    Data[] comps = tuple.getComponents();
-    for (int i=0; i<comps.length; i++) {
-      Real real = (Real) comps[i];
-      System.out.println("#" + i +
-        ": type=" + real.getType() + "; value=" + real.getValue());
-    }
-  }
+  // -- Used in VisBio and SliceManager --
 
   /**
    * Ensures the color table is of the proper type (RGB or RGBA).
@@ -372,6 +339,9 @@ public class BioUtil {
     }
   }
 
+
+  // -- Used in SliceManager --
+
   /** Tests whether two color tables are identical in content. */
   public static boolean tablesEqual(float[][] t1, float[][] t2) {
     if (t1 == null && t2 == null) return true;
@@ -387,6 +357,53 @@ public class BioUtil {
     }
     return true;
   }
+
+
+  // -- Used in OrthonormalCoordinateSystem --
+
+  /** Projects point p onto line p1-p2. */
+  public static double[] project(double[] p1, double[] p2, double[] p) {
+    int len = p.length;
+    double[] v21 = new double[len];
+    double[] vp1 = new double[len];
+    double numer = 0, denom = 0;
+    for (int i=0; i<len; i++) {
+      v21[i] = p2[i] - p1[i];
+      vp1[i] = p[i] - p1[i];
+      numer += v21[i] * vp1[i];
+      denom += v21[i] * v21[i];
+    }
+    double u = numer / denom;
+    double[] q = new double[len];
+    for (int i=0; i<len; i++) q[i] = p1[i] + u * v21[i];
+    return q;
+  }
+
+  /** Normalizes the given vector. */
+  public static double[] normalize(double[] v) {
+    int len = v.length;
+    double factor = 0;
+    for (int i=0; i<len; i++) factor += v[i] * v[i];
+    factor = Math.sqrt(factor);
+    double[] n = new double[len];
+    for (int i=0; i<len; i++) n[i] = v[i] / factor;
+    return n;
+  }
+
+  /** Computes the cross-product of the two given vectors. */
+  public static double[] cross(double[] p1, double[] p2) {
+    int len = p1.length;
+    double[] q = new double[len];
+    for (int i=0; i<len; i++) {
+      int ndx1 = i;
+      int ndx2 = (i + 1) % len;
+      q[i] = p1[ndx1] * p2[ndx2] - p1[ndx2] * p2[ndx1];
+    }
+    return q;
+  }
+
+
+  // -- Used in ArbitrarySlice --
 
   /**
    * Projects all the points in (x, y, z) onto the line defined by (p1, p2).
@@ -456,6 +473,28 @@ public class BioUtil {
     float[] c4 = new float[c1.length];
     for (int i=0; i<c1.length; i++) c4[i] = c3[i] + c2[i] - c1[i];
     return c4;
+  }
+
+
+  // -- Used in OrthonormalCoordinateSystem --
+
+  /** Computes the fourth corner of a rectangle, given the first three. */
+  public static double[] corner(double[] c1, double[] c2, double[] c3) {
+    double[] c4 = new double[c1.length];
+    for (int i=0; i<c1.length; i++) c4[i] = c3[i] + c2[i] - c1[i];
+    return c4;
+  }
+
+  // -- Miscellaneous utility methods --
+  
+  /** Dumps information about the given RealTuple to the screen. */
+  public static void dump(RealTuple tuple) {
+    Data[] comps = tuple.getComponents();
+    for (int i=0; i<comps.length; i++) {
+      Real real = (Real) comps[i];
+      System.out.println("#" + i +
+        ": type=" + real.getType() + "; value=" + real.getValue());
+    }
   }
 
 }
