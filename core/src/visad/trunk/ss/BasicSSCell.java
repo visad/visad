@@ -995,7 +995,8 @@ public class BasicSSCell extends JPanel
   {
     SSCellData cellData;
     synchronized (CellData) {
-      cellData = addReferenceImpl(0, ref, cmaps, "", DIRECT_SOURCE, true, true);
+      cellData =
+        addReferenceImpl(0, ref, cmaps, "", DIRECT_SOURCE, true, true);
     }
     return cellData.getVariableName();
   }
@@ -1237,7 +1238,7 @@ public class BasicSSCell extends JPanel
 
     // add data reference to cell
     SSCellData cellData =
-      new SSCellData(id, this, ref, source, type, checkErrors);
+      new SSCellData(id, this, ref, cmaps, source, type, checkErrors);
     CellData.add(cellData);
 
     if (!IsRemote) {
@@ -1679,12 +1680,15 @@ public class BasicSSCell extends JPanel
     else {
       // SERVER: set up mappings
       DataReference[] dr;
+      ConstantMap[][] cmaps;
       synchronized (CellData) {
         int len = CellData.size();
         dr = new DataReference[len];
+        cmaps = new ConstantMap[len][];
         for (int i=0; i<len; i++) {
           SSCellData cellData = (SSCellData) CellData.elementAt(i);
           dr[i] = cellData.getReference();
+          cmaps[i] = cellData.getConstantMaps();
         }
       }
       VDisplay.disableAction();
@@ -1720,11 +1724,11 @@ public class BasicSSCell extends JPanel
         }
       }
       if (ok && Dim != JAVA2D_2D) {
-        VDisplay.addReferences(new ImageRendererJ3D(), dr[0]);
+        VDisplay.addReferences(new ImageRendererJ3D(), dr[0], cmaps[0]);
       }
       else {
         if (DEBUG) warn("cannot use ImageRendererJ3D");
-        for (int i=0; i<dr.length; i++) VDisplay.addReference(dr[i]);
+        for (int i=0; i<dr.length; i++) VDisplay.addReference(dr[i], cmaps[i]);
       }
       VDisplay.enableAction();
     }

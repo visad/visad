@@ -55,6 +55,11 @@ public class SSCellData {
   private DataReferenceImpl ref;
 
   /**
+   * The ConstantMaps associated with the reference.
+   */
+  private ConstantMap[] cmaps;
+
+  /**
    * Remote copy of the DataReference.
    */
   private RemoteDataReferenceImpl remoteRef;
@@ -107,7 +112,7 @@ public class SSCellData {
    * a Data object and related information.
    */
   public SSCellData(int id, BasicSSCell ssCell, DataReferenceImpl ref,
-    String source, int type, boolean checkErrors)
+    ConstantMap[] cmaps, String source, int type, boolean checkErrors)
     throws VisADException, RemoteException
   {
     this.ssCell = ssCell;
@@ -156,6 +161,13 @@ public class SSCellData {
    */
   public DataReferenceImpl getReference() {
     return ref;
+  }
+
+  /**
+   * Gets the ConstantMaps associated with the reference.
+   */
+  public ConstantMap[] getConstantMaps() {
+    return cmaps;
   }
 
   /**

@@ -37,7 +37,7 @@ public class JPythonEditor extends CodeEditor {
 
   /** text to be prepended to all JPython documents */
   private static final String PREPENDED_TEXT =
-    "from visad.python.JPythonMethods import *\n";
+    "from visad.python.JPythonMethods import *";
 
   /** name of JPython interpreter class */
   private static final String interp = "org.python.util.PythonInterpreter";
@@ -220,14 +220,15 @@ public class JPythonEditor extends CodeEditor {
 
   /** returns a string containing the text of the document */
   public String getText() {
-    return PREPENDED_TEXT + super.getText();
+    return PREPENDED_TEXT +
+      System.getProperty("line.separator") + super.getText();
   }
 
   /** sets the text of the document to the current string */
   public void setText(String text) {
     if (text.startsWith(PREPENDED_TEXT)) {
       // strip off prepended text
-      text = text.substring(PREPENDED_TEXT.length());
+      text = text.substring(PREPENDED_TEXT.length()).trim();
     }
     super.setText(text);
   }
