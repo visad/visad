@@ -82,6 +82,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** horizontal cell label's height */
   static final int LABEL_HEIGHT = 20;
 
+  /** whether connection status messages are printed about clones */
+  static final boolean SHOW_CONNECT_MESSAGES = true;
+
 
   /** whether Java3D is enabled on this JVM */
   protected static boolean CanDo3D;
@@ -292,6 +295,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
   protected Object Lock = new Object();
 
 
+  /** wait the specified number of milliseconds */
+  public static void snooze(long ms) {
+    try {
+      Thread.sleep(ms);
+    }
+    catch (InterruptedException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+  }
+
   /** gateway into VisAD Visualization SpreadSheet user interface */
   public static void main(String[] argv) {
     String usage = '\n' +
@@ -484,31 +497,40 @@ public class SpreadSheet extends JFrame implements ActionListener,
       char[] c = clone.toCharArray();
       for (int i=0; i<c.length; i++) if (c[i] == ':') c[i] = '/';
       clone = new String(c);
-      try {
-        rs = (RemoteServer) Naming.lookup("//" + clone);
+      if (SHOW_CONNECT_MESSAGES) {
+        System.out.print("Connecting to " + clone + " ");
       }
-      catch (NotBoundException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". The server could not be found", null,
-          "Failed to clone spreadsheet");
-        success = false;
-      }
-      catch (RemoteException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". A remote error occurred", exc, "Failed to clone spreadsheet");
-        success = false;
-      }
-      catch (MalformedURLException exc) {
-        if (BasicSSCell.DEBUG) exc.printStackTrace();
-        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". The server name is not valid", null,
-          "Failed to clone spreadsheet");
-        success = false;
+      while (true) {
+        try {
+          rs = (RemoteServer) Naming.lookup("//" + clone);
+        }
+        catch (NotBoundException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (MalformedURLException exc) {
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+            ". The server name is not valid", null,
+            "Failed to clone spreadsheet");
+          success = false;
+        }
+        if (SHOW_CONNECT_MESSAGES) System.out.print(".");
+        if (rs == null && success) {
+          // wait a second before trying to connect again
+          snooze(1000);
+        }
+        else break;
       }
 
       if (success) {
+        if (SHOW_CONNECT_MESSAGES) {
+          System.out.println(" connected");
+          System.out.print("Cloning sheet ");
+        }
+
         // get info for spreadsheet cloning and construct spreadsheet clone
         try {
           // determine whether server supports Java3D
@@ -521,12 +543,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
           // extract cell name information
           RemoteColRow = rs.getDataReference("ColRow");
-          cellNames = getNewCellNames();
-          if (cellNames == null) {
-            displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-              ". Could not obtain the server's cell names", null,
-              "Failed to clone spreadsheet");
-            success = false;
+          while (true) {
+            cellNames = getNewCellNames();
+            if (SHOW_CONNECT_MESSAGES) System.out.print(".");
+            if (cellNames == null) {
+              // wait a second before trying again
+              snooze(1000);
+            }
+            else break;
           }
         }
         catch (VisADException exc) {
@@ -544,15 +568,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
           success = false;
         }
       }
+      else if (SHOW_CONNECT_MESSAGES) System.out.println(" failed");
 
       if (success) {
+        if (SHOW_CONNECT_MESSAGES) System.out.println(" done");
         bTitle = bTitle + " [" + (slave ? "slaved" : "collaborative") +
           " mode: " + clone + ']';
         IsRemote = true;
         IsSlave = slave;
         CollabID = (double) (new Random().nextInt(Integer.MAX_VALUE - 1) + 1);
       }
-      else rs = null;
+      else {
+        if (SHOW_CONNECT_MESSAGES) System.out.println(" failed");
+        rs = null;
+      }
     }
 
     // set up the content pane
@@ -1088,12 +1117,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     setVisible(true);
 
     // wait for frame to lay itself out, then tile cells
-    try {
-      Thread.sleep(500);
-    }
-    catch (InterruptedException exc) {
-      if (BasicSSCell.DEBUG) exc.printStackTrace();
-    }
+    snooze(500);
     FormulaOk.requestFocus();
     tileCells();
   }
@@ -1170,14 +1194,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
                         sSize.height/2 - fSize.height/2);
           f.setVisible(true);
         }
-        while (BasicSSCell.isSaving()) {
-          try {
-            sleep(200);
-          }
-          catch (InterruptedException exc) {
-            if (BasicSSCell.DEBUG) exc.printStackTrace();
-          }
-        }
+        while (BasicSSCell.isSaving()) snooze(200);
         if (b) {
           f.setCursor(Cursor.getDefaultCursor());
           f.setVisible(false);
