@@ -1334,6 +1334,25 @@ public class Gridded3DSet extends GriddedSet {
             }
             float s, t, u;
             // these if statements handle skewed grids
+            float d0 = M[0]*P[0] - N[0]*O[0];
+            float d1 = M[1]*P[1] - N[1]*O[1];
+            float d2 = M[2]*P[2] - N[2]*O[2];
+            float ad0 = Math.abs(d0);
+            float ad1 = Math.abs(d1);
+            float ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              s = (N[0]*X[0] + P[0]*Y[0])/d0;
+              t = (M[0]*X[0] + O[0]*Y[0])/d0;
+            }
+            else if (ad1 > ad2) {
+              s = (N[1]*X[1] + P[1]*Y[1])/d1;
+              t = (M[1]*X[1] + O[1]*Y[1])/d1;
+            }
+            else {
+              s = (N[2]*X[2] + P[2]*Y[2])/d2;
+              t = (M[2]*X[2] + O[2]*Y[2])/d2;
+            }
+/* WLH 3 April 99
             if (M[0]*P[0] != N[0]*O[0]) {
               s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
               t = (M[0]*X[0] + O[0]*Y[0])/(N[0]*O[0] - M[0]*P[0]);
@@ -1346,6 +1365,26 @@ public class Gridded3DSet extends GriddedSet {
               s = (N[2]*X[2] + P[2]*Y[2])/(M[2]*P[2] - N[2]*O[2]); 
               t = (M[2]*X[2] + O[2]*Y[2])/(N[2]*O[2] - M[2]*P[2]);
             }
+*/
+            d0 = A[0]-Q[0];
+            d1 = A[1]-Q[1];
+            d2 = A[2]-Q[2];
+            ad0 = Math.abs(d0);
+            ad1 = Math.abs(d1);
+            ad2 = Math.abs(d2);
+            if (ad0 > ad1 && ad0 > ad2) {
+              u = ( value[0][i] - Q[0] - s*(F[0]-Q[0])
+                - t*(H[0]-Q[0]) ) / d0;
+            }
+            else if (ad1 > ad2) {
+              u = ( value[1][i] - Q[1] - s*(F[1]-Q[1])
+                - t*(H[1]-Q[1]) ) / d1;
+            }
+            else {
+              u = ( value[2][i] - Q[2] - s*(F[2]-Q[2])
+                - t*(H[2]-Q[2]) ) / d2;
+            }
+/* WLH 3 April 99
             if (A[0] != Q[0]) {
               u = ( value[0][i] - Q[0] - s*(F[0]-Q[0])
                 - t*(H[0]-Q[0]) ) / (A[0]-Q[0]);
@@ -1358,6 +1397,7 @@ public class Gridded3DSet extends GriddedSet {
               u = ( value[2][i] - Q[2] - s*(F[2]-Q[2])
                 - t*(H[2]-Q[2]) ) / (A[2]-Q[2]);
             }
+*/
             if (evencube) {
               grid[0][i] = gx+s;
               grid[1][i] = gy+t;
