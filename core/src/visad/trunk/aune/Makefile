@@ -168,7 +168,7 @@ all::
 		$$arch
 
 .c.o:
-	$(CC) $(SHOPT) -Xa -c $*.c $(JAVAINCS) $(PKGINCS)
+	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(PKGINCS)
 
 shared_library:: lib$(SLIB).so
 
@@ -196,6 +196,7 @@ clean:
 solaris: required_macros
 	@make \
 		JAVAARCH=solaris \
+		SHOPT="-Xa" \
 		SHLD="$(CC)" \
 		SHLDFLAGS="-G -z defs" \
 		SHFLD="$(FC)" \
