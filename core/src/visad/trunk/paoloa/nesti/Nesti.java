@@ -55,6 +55,8 @@ public class Nesti {
   RemoteServerImpl server_server;
   RemoteServer client_server;
   boolean client;
+  boolean raob = false;
+  Real nothing = new Real(-1000.0);
   // number of times in file
   int ntimes;
   // size of image array generated from file
@@ -91,6 +93,7 @@ public class Nesti {
   float wnum_hi;
   float wnum_low_0;
   float wnum_hi_0;
+  float wnum_mp_0;
   int wnum_low_idx;
   int wnum_hi_idx;
 
@@ -111,9 +114,13 @@ public class Nesti {
   FlatField field_tt;
   FlatField field_wv;
   FlatField field_oz;
+  FlatField field_tt_r;
+  FlatField field_wv_r;
+  FlatField field_oz_r;
   FlatField field_rr;
   FlatField rr_diff;
   int type = 1;
+  int p_flg;
   int[] nbuse = new int[3];
   float[] tskin = new float[1];
   float[] psfc = new float[1];
@@ -121,17 +128,29 @@ public class Nesti {
   float[] azen = new float[1];
   float[] p = new float[ 40 ];
   float[] tt = new float[ 40 ];
+  float[] tt_r = new float[ 40 ];
+  float[][] tt_raob = new float[1][ 40 ];
   float[] wv = new float[ 40 ];
+  float[] wv_r = new float[ 40 ];
+  float[][] wv_raob = new float[1][ 40 ];
   float[] oz = new float[ 40 ];
+  float[] oz_r = new float[ 40 ];
+  float[][] oz_raob = new float[1][ 40 ];
   double[] vn = new double[9127];
   double[] tb = new double[9127];
   double[] rr = new double[9127];
   double[][] rr_values = new double[1][9127];
-  double[][] rr_values_sub;
 
   float[][] tt_values = new float[1][40];
   float[][] wv_values = new float[1][40];
   float[][] oz_values = new float[1][40];
+  float[][] tt_r_values = new float[1][40];
+  float[][] wv_r_values = new float[1][40];
+  float[][] oz_r_values = new float[1][40];
+  float[][] tt_rtvl = new float[1][40];
+  float[][] wv_rtvl = new float[1][40];
+  float[][] pp_rtvl = new float[1][40];
+
 
   //-- declare DataReferences ---
   DataReference image_ref;
@@ -159,16 +178,32 @@ public class Nesti {
   DataReference setBand_ref;
   DataReference recenter_ref;
   DataReference reset_ref;
-
-  int n_refs = 25;  //- # of above ---
+  DataReference rtvl_option_ref;
+  DataReference zoom_ref;
+  DataReference rtvl_obs_sim_ref;
+  DataReference rtvl_diff_ref;
+  DataReference prof_opt_ref;
+  DataReference field_tt_rRef;
+  DataReference field_wv_rRef;
+  DataReference field_oz_rRef;
+  
+  int n_refs = 33;  //- # of above ---
 
 
   FunctionType press_tt;
   FunctionType press_wv;
   FunctionType press_oz;
+  FunctionType press_tt_r;
+  FunctionType press_wv_r;
+  FunctionType press_oz_r;
 
   //- record number index of profile in file
   int rec;
+
+
+  JButton diff_button;
+  JButton obs_sim_button;
+  JButton raob_button;
 
   // type 'java Nesti' to run this application
   public static void main(String args[])
@@ -221,7 +256,7 @@ public class Nesti {
       // this is a server
 
       // try to set up a RemoteServer
-      server_server = new RemoteServerImpl(null);
+      server_server = new RemoteServerImpl();
       try {
         Naming.rebind("//:/Nesti", server_server);
       }
@@ -269,6 +304,14 @@ public class Nesti {
     setBand_ref = new DataReferenceImpl("setBand_ref");
     recenter_ref = new DataReferenceImpl("recenter_ref");
     reset_ref = new DataReferenceImpl("reset_ref");
+    rtvl_option_ref = new DataReferenceImpl("rtvl_option_ref");
+    zoom_ref = new DataReferenceImpl("zoom_ref");
+    rtvl_obs_sim_ref = new DataReferenceImpl("rtvl_obs_sim_ref");
+    rtvl_diff_ref = new DataReferenceImpl("rtvl_diff_ref");
+    prof_opt_ref = new DataReferenceImpl("prof_opt_ref");
+    field_tt_rRef = new DataReferenceImpl("tt_profile_r_ref");
+    field_wv_rRef = new DataReferenceImpl("wv_profile_r_ref");
+    field_oz_rRef = new DataReferenceImpl("oz_profile_r_ref");
 
 
 //------ Initialize, File I/O  ------------------------
@@ -374,7 +417,46 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     // System.out.println("spectrum_set = " + spectrum_set);
 
 //*----------
-    readProf_c( type, tskin, psfc, lsfc, azen, p, tt, wv, oz );
+    p_flg = 1;
+    readProf_c(type, p_flg, tskin, psfc, lsfc, azen, p, 
+               tt_raob[0], wv_raob[0], oz_raob[0] );
+
+    pressure = new RealType("pressure_1", null, null);
+    temperature = new RealType("temperature_1", null, null);
+    watervapor = new RealType("watervapor_1", null, null);
+    ozone = new RealType("ozone_1", null, null);
+
+    float[][] samples = new float[1][40];
+    samples[0] = p;
+    int n_samples = 40;
+    p_domain = new Gridded1DSet( pressure, samples, n_samples );
+
+    tt_r = tt_raob[0];
+    wv_r = wv_raob[0];
+    oz_r = oz_raob[0];
+
+    press_tt_r = new FunctionType( pressure, temperature );
+    press_wv_r = new FunctionType( pressure, watervapor );
+    press_oz_r = new FunctionType( pressure, ozone );
+
+    field_tt_r = new FlatField( press_tt_r, p_domain );
+    field_wv_r = new FlatField( press_wv_r, p_domain );
+    field_oz_r = new FlatField( press_oz_r, p_domain );
+
+    tt_r_values[0] = tt_r;
+    wv_r_values[0] = wv_r;
+    oz_r_values[0] = oz_r;
+
+    field_tt_r.setSamples( tt_r_values );
+    field_wv_r.setSamples( wv_r_values );
+    field_oz_r.setSamples( oz_r_values );
+
+    field_tt_rRef.setData(field_tt_r);
+    field_wv_rRef.setData(field_wv_r);
+    field_oz_rRef.setData(field_oz_r);
+
+    p_flg = 0;
+    readProf_c(type, p_flg, tskin, psfc, lsfc, azen, p, tt, wv, oz);
 
     nbuse[0] = 1;
     nbuse[1] = 1;
@@ -382,20 +464,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     nastirte_c( tskin[0], psfc[0], lsfc[0], azen[0], p, tt, wv, oz,
                 nbuse, vn, tb, rr );
 
-    pressure = new RealType("pressure_1", null, null);
-    temperature = new RealType("temperature_1", null, null);
-    watervapor = new RealType("watervapor_1", null, null);
-    ozone = new RealType("ozone_1", null, null);
-
     press_tt = new FunctionType( pressure, temperature );
     press_wv = new FunctionType( pressure, watervapor );
     press_oz = new FunctionType( pressure, ozone );
     FunctionType wave_rad = new FunctionType( wnum1, atmosphericRadiance );
-
-    float[][] samples = new float[1][40];
-    samples[0] = p;
-    int n_samples = 40;
-    p_domain = new Gridded1DSet( pressure, samples, n_samples );
 
     field_tt = new FlatField( press_tt, p_domain );
     field_wv = new FlatField( press_wv, p_domain );
@@ -579,6 +651,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     wnum_low_ref.setData(new Real(wnum1, wnum_low));
     wnum_hi_ref.setData(new Real(wnum1, wnum_hi));
 
+    rtvl_obs_sim_ref.setData(new Real(1));
+    rtvl_diff_ref.setData(new Real(1));
+    prof_opt_ref.setData(new Real(1));
+
     wnum_low_0 = wnum_low;
     wnum_hi_0 = wnum_hi;
 
@@ -622,8 +698,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           try
           {
             field_rr.setSamples(rr_values_a);
-         //-field_rrRef.setData( (spectrum_ref.getData()).subtract(
-         //-field_rrRef.setData( field_rr );
             field_rrRef.setData( obs_spectrum.subtract(
                                  field_rr,
                                  Data.WEIGHTED_AVERAGE,
@@ -649,10 +723,14 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       double[][] tt_values_0;
       double[][] wv_values_0;
       double[][] oz_values_0;
-      float[][] tt_values = new float[1][40];
-      float[][] wv_values = new float[1][40];
-      float[][] pp_values = new float[1][40];
       boolean first = true;
+      int opt; 
+      int opt2; 
+      int opt3;
+      float[][] rr_f_a;
+      float[] dum = new float[50];
+      float[][] tt = new float[1][40];
+      float[][] wv = new float[1][40];
       public void doAction() throws VisADException, RemoteException
       {
         if (! first ) 
@@ -661,6 +739,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           float gamw = (float) (((Real)(gamw_ref.getData())).getValue());
           float gamts = (float) (((Real)(gamts_ref.getData())).getValue());
           float emis = (float) (((Real)(emis_ref.getData())).getValue());
+          opt2 = (int) (((Real)(rtvl_obs_sim_ref.getData())).getValue());
+          opt3 = (int) (((Real)(rtvl_diff_ref.getData())).getValue());
           gamt = (float)Math.pow(10d, (double)gamt);
           gamts = (float)Math.pow(10d, (double)gamts);
           gamw = (float)Math.pow(10d, (double)gamw);
@@ -676,18 +756,34 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             tair[ii+2*40] = (float) oz_values_0[0][ii];
           }
           tair[40+2*40] = tskin[0];
-
-          nasti_retrvl_c( rec, gamt, gamw, gamts, emis, tair, p_out);
+ 
+          opt = 1;
+          if ( opt == -1 ) {
+            double[][] rr_a = new double[1][];
+            rr_a[0] = rr;
+            rr_f_a = Set.doubleToFloat(rr_a);
+          }
+          nasti_retrvl_c( opt, opt2, rec, gamt, gamw, gamts, emis, tair, dum, p_out);
 
           for ( int i = 0; i < 40; i++ ) {
-            tt_values[0][i] = p_out[i];
-            wv_values[0][i] = p_out[40 + i];
+            tt_rtvl[0][i] = p_out[i];
+            wv_rtvl[0][i] = p_out[40 + i];
           }
 
           try
           {
-            ((FlatField)rtvl_ttRef.getData()).setSamples(tt_values);
-            ((FlatField)rtvl_wvRef.getData()).setSamples(wv_values);
+            if ( opt3 == 1 ) {
+              ((FlatField)rtvl_ttRef.getData()).setSamples(tt_rtvl);
+              ((FlatField)rtvl_wvRef.getData()).setSamples(wv_rtvl);
+            }
+            else {
+              for ( int i = 0; i < 40; i++ ) {
+                tt[0][i] = tt_rtvl[0][i] - tt_raob[0][i];
+                wv[0][i] = wv_rtvl[0][i] - wv_raob[0][i];
+              }
+              ((FlatField)rtvl_ttRef.getData()).setSamples(tt);
+              ((FlatField)rtvl_wvRef.getData()).setSamples(wv);
+            }
           }
           catch ( VisADException e2 ) {
             System.out.println( e2.getMessage() );
@@ -833,6 +929,49 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     };
     reset_cell.addReference(reset_ref);
 
+    CellImpl diff_cell = new CellImpl() {
+      boolean first = true;
+      float[][] tt = new float[1][40];
+      float[][] wv = new float[1][40];
+      int opt;
+      public void doAction()
+      {
+        if (! first) {
+        try
+        {
+          opt = (int) (((Real)(rtvl_diff_ref.getData())).getValue());
+          if ( opt == 1 ) 
+          {
+            for ( int ii = 0; ii < 40; ii++) {
+              tt[0][ii] = tt_rtvl[0][ii];
+              wv[0][ii] = wv_rtvl[0][ii];
+            }
+          }
+          else 
+          {
+            for ( int ii = 0; ii < 40; ii++ ) {
+              tt[0][ii] = tt_rtvl[0][ii] - tt_raob[0][ii];
+              wv[0][ii] = wv_rtvl[0][ii] - wv_raob[0][ii];
+            }
+          }
+
+          ((FlatField)rtvl_ttRef.getData()).setSamples(tt);
+          ((FlatField)rtvl_wvRef.getData()).setSamples(wv);
+        }
+        catch ( VisADException ex ) {
+          System.out.println( ex.getMessage() );
+        }
+        catch ( RemoteException ex ) {
+          System.out.println( ex.getMessage() );
+        }
+        }
+        else {
+          first = false;
+        }
+      }
+    };
+    diff_cell.addReference(rtvl_diff_ref);
+
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("NAST-I VisAD Application");
     frame.addWindowListener(new WindowAdapter() {
@@ -877,6 +1016,14 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       refs[22] = new RemoteDataReferenceImpl((DataReferenceImpl)reset_ref);
       refs[23] = new RemoteDataReferenceImpl((DataReferenceImpl)gamts_ref);
       refs[24] = new RemoteDataReferenceImpl((DataReferenceImpl)emis_ref);
+      refs[25] = new RemoteDataReferenceImpl((DataReferenceImpl)rtvl_option_ref);
+      refs[26] = new RemoteDataReferenceImpl((DataReferenceImpl)zoom_ref);
+      refs[27] = new RemoteDataReferenceImpl((DataReferenceImpl)rtvl_obs_sim_ref);
+      refs[28] = new RemoteDataReferenceImpl((DataReferenceImpl)rtvl_diff_ref);
+      refs[29] = new RemoteDataReferenceImpl((DataReferenceImpl)prof_opt_ref);
+      refs[30] = new RemoteDataReferenceImpl((DataReferenceImpl)field_tt_rRef);
+      refs[31] = new RemoteDataReferenceImpl((DataReferenceImpl)field_wv_rRef);
+      refs[32] = new RemoteDataReferenceImpl((DataReferenceImpl)field_oz_rRef);
 
       server_server.setDataReferences(refs);
     }
@@ -917,6 +1064,14 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     reset_ref = refs[22];
     gamts_ref = refs[23];
     emis_ref = refs[24];
+    rtvl_option_ref = refs[25];
+    zoom_ref = refs[26];
+    rtvl_obs_sim_ref = refs[27];
+    rtvl_diff_ref = refs[28];
+    prof_opt_ref = refs[29];
+    field_tt_rRef = refs[30];
+    field_wv_rRef = refs[31];
+    field_oz_rRef = refs[32];
 
     RealTupleType rt_type = ((FunctionType)image_ref.getType()).getDomain();
     image_element = (RealType)rt_type.getComponent(0);
@@ -939,7 +1094,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     wnum_hi_0 = wnum_hi;
 
     // create JFrame (i.e., a window) for display and slider
-    JFrame frame = new JFrame("Nesti VisAD Application");
+    JFrame frame = new JFrame("NAST-I VisAD Application");
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
@@ -982,7 +1137,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
     // true to zoom whum1 range in spectrum display
     boolean wzoom;
-
+   
     // flag to skip one red_cursor_cell event
     boolean skip_red = false;
 
@@ -1005,6 +1160,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     ConstantMap[] red = new ConstantMap[3];
     ConstantMap[] green = new ConstantMap[3];
     ConstantMap[] blue = new ConstantMap[3];
+    ConstantMap[] yellow = new ConstantMap[3];
+    ConstantMap[] orange = new ConstantMap[3];
+    ConstantMap[] purple = new ConstantMap[3];
 
     // construct a image-spectrum interface
     ChannelImage() throws VisADException, RemoteException {
@@ -1118,7 +1276,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
       // initial wave number in middle of spectrum
       wnum_last = (float)((Real)wnum_last_ref.getData()).getValue();
-   
+
     if(!client)
     {
       // white_cursor in image display for selecting spectrum
@@ -1144,6 +1302,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       if (java2d) {
         img_display = new DisplayImplJ2D("image display");
       }
+
+      GraphicsModeControl mode = img_display.getGraphicsModeControl();
+      mode.setLineWidth(1.0f);
+      mode.setPointSize(1.0f);
 
       ScalarMap line_map = new ScalarMap(image_line, Display.YAxis);
       img_display.addMap(line_map);
@@ -1243,6 +1405,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         spectrumDisplay = new DisplayImplJ3D("spectrum display",
                                       new TwoDDisplayRendererJ3D());
       }
+
+      mode = spectrumDisplay.getGraphicsModeControl();
+      mode.setLineWidth(1.0f);
+      mode.setPointSize(1.0f);
+
       wnum_map = new ScalarMap(wnum1, Display.XAxis);
       spectrumDisplay.addMap(wnum_map);
       radiance_map2 = new ScalarMap(atmosphericRadiance, Display.YAxis);
@@ -1327,6 +1494,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         spectrum_diff_display = new DisplayImplJ3D("spectrum_diff_display",
                                       new TwoDDisplayRendererJ3D());
       }
+
+      mode = spectrum_diff_display.getGraphicsModeControl();
+      mode.setLineWidth(1.0f);
+      mode.setPointSize(1.0f);
+
       (spectrum_diff_display.getGraphicsModeControl()).setPointMode(true);
       wnum_map_diff = new ScalarMap(wnum1, Display.XAxis);
       wnum_map_diff.setRange((double) wnum_low, (double) wnum_hi);
@@ -1368,36 +1540,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel.add(recenter);
       c_panel.add(s_panel);
 
-  /**
-//---------- range control buttons --------
-
-      s_panel = new JPanel();
-      s_panel.setLayout( new BoxLayout(s_panel, BoxLayout.X_AXIS) );
-      s_panel.setBorder( etchedBorder5 );
-      JButton all = new JButton("ALL");
-      all.addActionListener(this);
-      all.setActionCommand("ALL");
-      s_panel.add( all );
-      JButton co2_1 = new JButton("CO2_1");
-      co2_1.addActionListener(this);
-      co2_1.setActionCommand("CO2_1");
-      s_panel.add( co2_1 );
-      JButton o3 = new JButton("O3");
-      o3.addActionListener(this);
-      o3.setActionCommand("O3");
-      s_panel.add( o3 );
-      JButton h2o = new JButton("H2O");
-      h2o.addActionListener(this);
-      h2o.setActionCommand("H2O");
-      s_panel.add( h2o );
-      JButton co2_2 = new JButton("CO2_2");
-      co2_2.addActionListener(this);
-      co2_2.setActionCommand("CO2_2");
-      s_panel.add( co2_2 );
-
-      c_panel.add(s_panel);
-   **/
-
 //----  observation profile (raob) Display  ----------
 
       red[0] = new ConstantMap(1.0, Display.Red);
@@ -1409,6 +1551,15 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       blue[0] = new ConstantMap(0.0, Display.Red);
       blue[1] = new ConstantMap(0.0, Display.Green);
       blue[2] = new ConstantMap(1.0, Display.Blue);
+      yellow[0] = new ConstantMap(1.0, Display.Red);
+      yellow[1] = new ConstantMap(1.0, Display.Green);
+      yellow[2] = new ConstantMap(0.0, Display.Blue);
+      orange[0] = new ConstantMap(1.0, Display.Red);
+      orange[1] = new ConstantMap(0.5, Display.Green);
+      orange[2] = new ConstantMap(0.5, Display.Blue);
+      purple[0] = new ConstantMap(1.0, Display.Red);
+      purple[1] = new ConstantMap(0.0, Display.Green);
+      purple[2] = new ConstantMap(1.0, Display.Blue);
 
       if ( java2d ) {
         raobDisplay = new DisplayImplJ2D("sounding display");
@@ -1418,14 +1569,37 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                                        new TwoDDisplayRendererJ3D());
       }
 
+      mode = raobDisplay.getGraphicsModeControl();
+      mode.setLineWidth(1.0f);
+      mode.setPointSize(1.0f);
+
+
       ScalarMap pres_Y = new ScalarMap( pressure, Display.YAxis );
       pres_Y.setRange( 1000., 50.);
       raobDisplay.addMap( pres_Y );
-      raobDisplay.addMap( new ScalarMap( temperature, Display.XAxis ));
-      raobDisplay.addMap( new ScalarMap( watervapor, Display.XAxis ));
-      raobDisplay.addMap( new ScalarMap( ozone, Display.XAxis ));
+      ScalarMap temp_Y = new ScalarMap( temperature, Display.XAxis );
+      temp_Y.setScaleColor(new float[] {1.0f, 0.0f, 0.0f});
+      raobDisplay.addMap(temp_Y );
+      ScalarMap wvap_Y = new ScalarMap( watervapor, Display.XAxis );
+      wvap_Y.setScaleColor(new float[] {0.0f, 1.0f, 0.0f});
+      raobDisplay.addMap( wvap_Y );
+      ScalarMap ozone_Y = new ScalarMap( ozone, Display.XAxis );
+      ozone_Y.setScaleColor(new float[] {0.0f, 0.0f, 1.0f});
+      raobDisplay.addMap( ozone_Y );
       mode1 = raobDisplay.getGraphicsModeControl();
       mode1.setScaleEnable(true);
+
+      if (!raob) {
+         field_tt_rRef.setData(nothing);
+         field_wv_rRef.setData(nothing);
+         field_oz_rRef.setData(nothing);
+       }
+       else {
+         field_tt_rRef.setData(field_tt_r);
+         field_wv_rRef.setData(field_wv_r);
+         field_oz_rRef.setData(field_oz_r);
+       }
+
 
       if (client) {
         RemoteDisplayImpl remote_raobDisplay =
@@ -1437,6 +1611,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                                      field_wvRef, green );
           remote_raobDisplay.addReferences( new DirectManipulationRendererJ2D(),
                                      field_ozRef, blue );
+          //remote_raobDisplay.addReference( field_tt_rRef, yellow );
+          //remote_raobDisplay.addReference( field_wv_rRef, orange);
+          //remote_raobDisplay.addReference( field_oz_rRef, purple);
         }
         else {
           remote_raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
@@ -1445,6 +1622,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                                      field_wvRef, green );
           remote_raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
                                      field_ozRef, blue );
+          //remote_raobDisplay.addReference( field_tt_rRef, yellow );
+          //remote_raobDisplay.addReference( field_wv_rRef, orange );
+          //remote_raobDisplay.addReference( field_oz_rRef, purple );
         }
       }
       else {
@@ -1455,6 +1635,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                                      field_wvRef, green );
           raobDisplay.addReferences( new DirectManipulationRendererJ2D(),
                                      field_ozRef, blue );
+          raobDisplay.addReference( field_tt_rRef, yellow );
+          raobDisplay.addReference( field_wv_rRef, orange );
+          raobDisplay.addReference( field_oz_rRef, purple );
         }
         else {
           raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
@@ -1463,6 +1646,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                                      field_wvRef, green );
           raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
                                      field_ozRef, blue );
+          raobDisplay.addReference( field_tt_rRef, yellow );
+          raobDisplay.addReference( field_wv_rRef, orange );
+          raobDisplay.addReference( field_oz_rRef, purple );
         }
       }
 
@@ -1474,7 +1660,19 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       s_panel.setBorder(etchedBorder5);
       r_panel.add(Box.createRigidArea(new Dimension(0,21)));
       r_panel.add(s_panel);
-      r_panel.add(Box.createRigidArea(new Dimension(0,26)));
+   //-r_panel.add(Box.createRigidArea(new Dimension(0,26)));
+//------- create button for observation/simulation mode ----
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      obs_sim_button = new JButton("obs > sim");
+      obs_sim_button.addActionListener(this);
+      obs_sim_button.setActionCommand("obs/sim");
+      raob_button = new JButton("raob");
+      raob_button.addActionListener(this);
+      raob_button.setActionCommand("raob");
+      s_panel.add(obs_sim_button);
+      s_panel.add(raob_button);
+      r_panel.add(s_panel);
 
 //------- Computed (Retrieval) profile
 
@@ -1496,11 +1694,19 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
                                        new TwoDDisplayRendererJ3D());
       }
 
+      mode = rtvl_display.getGraphicsModeControl();
+      mode.setLineWidth(1.0f);
+      mode.setPointSize(1.0f);
+
       pres_Y = new ScalarMap( pressure, Display.YAxis );
       pres_Y.setRange( 1000., 50.);
       rtvl_display.addMap( pres_Y );
-      rtvl_display.addMap( new ScalarMap( temperature, Display.XAxis ));
-      rtvl_display.addMap( new ScalarMap( watervapor, Display.XAxis ));
+      ScalarMap rtvl_temp_Y = new ScalarMap( temperature, Display.XAxis );
+      rtvl_temp_Y.setScaleColor(new float[] {1.0f, 0.0f, 0.0f});
+      rtvl_display.addMap( rtvl_temp_Y );
+      ScalarMap rtvl_wvap_Y = new ScalarMap( watervapor, Display.XAxis );
+      rtvl_wvap_Y.setScaleColor(new float[] {0.0f, 1.0f, 0.0f});
+      rtvl_display.addMap( rtvl_wvap_Y );
       mode1 = rtvl_display.getGraphicsModeControl();
       mode1.setScaleEnable(true);
 
@@ -1540,6 +1746,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       reset.setActionCommand("resetProfile");
       s_panel.add(reset);
 
+      diff_button = new JButton("rtvl > diff");
+      diff_button.addActionListener(this);
+      diff_button.setActionCommand("diff");
+      s_panel.add(diff_button);
+
    if (!client) 
    {
       // CellImpl to change wave number when user moves red_cursor
@@ -1570,8 +1781,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             do_red_bar(wnum);
           }
           catch (VisADException exc) {
+            System.out.println(exc.getMessage());
           }
           catch (RemoteException exc) {
+            System.out.println(exc.getMessage());
           }
         }
       };
@@ -1597,7 +1810,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
       }
     };
-
     CellImpl recenter_cell = new CellImpl() {
       boolean first = true;
       public void doAction() throws VisADException, RemoteException {
@@ -1609,11 +1821,73 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         }
       }
     };
-
+    CellImpl zoom_cell = new CellImpl() {
+      boolean first = true;
+      public void doAction() throws VisADException, RemoteException {
+        if (! first ) {
+          String state = ((Text)zoom_ref.getData()).getValue();
+          if (state.equals("true")) {
+            wzoom = true;
+         //-wnum_zoom.setSelected(true);
+          }
+          else {
+            wzoom = false;
+         //-wnum_zoom.setSelected(true);
+          }
+          do_wzoom();
+        }
+        else {
+          first = false;
+        }
+      }
+    };
+    CellImpl diff_button_cell = new CellImpl() {
+      boolean first = true;
+      int opt;
+      public void doAction() throws VisADException, RemoteException {
+        if (! first ) {
+          opt = (int) (((Real)(rtvl_diff_ref.getData())).getValue());
+          if ( opt == 1 )
+          {
+            diff_button.setText("rtvl > diff");
+          }
+          else
+          {
+            diff_button.setText("diff > rtvl");
+          }
+        }
+        else {
+          first = false;
+        }
+      }
+    };
+    CellImpl obs_sim_button_cell = new CellImpl() {
+      boolean first = true;
+      int opt;
+      public void doAction() throws VisADException, RemoteException {
+        if (! first ) {
+          opt = (int) (((Real)(rtvl_obs_sim_ref.getData())).getValue());
+          if ( opt == 1 )
+          {
+            obs_sim_button.setText("obs > sim");
+          }
+          else
+          {
+            obs_sim_button.setText("sim > obs");
+          }
+        }
+        else {
+          first = false;
+        }
+      }
+    };
     if (!client) {
       wnum_field_cell.addReference(wnum_last_ref);
       setBand_cell.addReference(setBand_ref);
       recenter_cell.addReference(recenter_ref);
+      zoom_cell.addReference(zoom_ref);
+      diff_button_cell.addReference(rtvl_diff_ref);
+      obs_sim_button_cell.addReference(rtvl_obs_sim_ref);
     }
     else {
       RemoteCellImpl remote_wnum_field_cell =
@@ -1627,6 +1901,18 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       RemoteCellImpl remote_recenter_cell =
         new RemoteCellImpl(recenter_cell);
       remote_recenter_cell.addReference(recenter_ref);
+
+      RemoteCellImpl remote_zoom_cell =
+        new RemoteCellImpl(zoom_cell);
+      remote_zoom_cell.addReference(zoom_ref);
+
+      RemoteCellImpl remote_diff_button_cell =
+        new RemoteCellImpl(diff_button_cell);
+      remote_diff_button_cell.addReference(rtvl_diff_ref);
+
+      RemoteCellImpl remote_obs_sim_button_cell =
+        new RemoteCellImpl(obs_sim_button_cell);
+      remote_obs_sim_button_cell.addReference(rtvl_obs_sim_ref);
     }
   } //- end constructor ChannelImage
 
@@ -1700,10 +1986,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           try {
             wnum_last = wnum;
             wnum_last_ref.setData(new Real(wnum1, wnum));
-            do_red_bar(wnum);
+        //--do_red_bar(wnum);
             do_wzoom();
 
-            skip_red = true;
+        //--skip_red = true;
             Real red_cursor = new Real(wnum1, (double) wnum_last);
             red_cursor_ref.setData(red_cursor);
           }
@@ -1779,6 +2065,112 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           System.out.println( e5.getMessage() );
         }
       }
+      if (cmd.equals("obs/sim"))
+      {
+        int opt = 1;
+        try {
+          opt = (int) ((Real)rtvl_obs_sim_ref.getData()).getValue();
+        }
+        catch ( VisADException e4 )  {
+          System.out.println( e4.getMessage() );
+        }
+        catch ( RemoteException e5 ) {
+          System.out.println( e5.getMessage() );
+        }
+        if (opt == 0) {
+          opt = 1;
+        }
+        else {
+          opt = 0;
+        }
+        try {
+          rtvl_obs_sim_ref.setData(new Real(opt));
+        }
+        catch ( VisADException e6 )  {
+          System.out.println( e6.getMessage() );
+        }
+        catch ( RemoteException e7 ) {
+          System.out.println( e7.getMessage() );
+        }
+      }
+      if (cmd.equals("raob")) {
+//paolo
+        try {
+         if (!client) {
+          if (raob) {
+            raob = false;
+            field_tt_rRef.setData(nothing);
+            field_wv_rRef.setData(nothing);
+            field_oz_rRef.setData(nothing);
+
+          }
+          else {
+            raob = true;
+            field_tt_rRef.setData(field_tt_r);
+            field_wv_rRef.setData(field_wv_r);
+            field_oz_rRef.setData(field_oz_r);
+          }
+         }
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+      }
+      if (cmd.equals("diff"))
+      {
+        int opt = 1;
+        try {
+          opt = (int) ((Real)rtvl_diff_ref.getData()).getValue();
+        }
+        catch ( VisADException e4 )  {
+          System.out.println( e4.getMessage() );
+        }
+        catch ( RemoteException e5 ) {
+          System.out.println( e5.getMessage() );
+        }
+        if (opt == 0) {
+          opt = 1;
+        }
+        else {
+          opt = 0;
+        }
+        try {
+          rtvl_diff_ref.setData(new Real(opt));
+        }
+        catch ( VisADException e6 )  {
+          System.out.println( e6.getMessage() );
+        }
+        catch ( RemoteException e7 ) {
+          System.out.println( e7.getMessage() );
+        }
+      }
+      if (cmd.equals("prof"))
+      {
+        int opt = 1;
+        try {
+          opt = (int) ((Real)prof_opt_ref.getData()).getValue();
+        }
+        catch ( VisADException e4 )  {
+          System.out.println( e4.getMessage() );
+        }
+        catch ( RemoteException e5 ) {
+          System.out.println( e5.getMessage() );
+        }
+        if (opt == 0) {
+          opt = 1;
+        }
+        else {
+          opt = 0;
+        }
+        try {
+          prof_opt_ref.setData(new Real(opt));
+        }
+        catch ( VisADException e6 )  {
+          System.out.println( e6.getMessage() );
+        }
+        catch ( RemoteException e7 ) {
+          System.out.println( e7.getMessage() );
+        }
+      }
     }
 
     public void itemStateChanged(ItemEvent e) {
@@ -1786,8 +2178,12 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       boolean on = (e.getStateChange() == ItemEvent.SELECTED);
       if (o == wnum_zoom) {
         try {
-          wzoom = on;
-          do_wzoom();
+          if (on) {
+            zoom_ref.setData(new Text("true"));
+          }
+          else {
+            zoom_ref.setData(new Text("false"));
+          }
         }
         catch (VisADException e2) {
         }
@@ -1828,7 +2224,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     {
       double CO2_1_lo = 700;
       double CO2_1_hi = 800;
-      double CO2_1_mp = 600;
+      double CO2_1_mp = 750;
       double CO2_2_lo = 2395;
       double CO2_2_hi = 2400;
       double CO2_2_mp = 2397.5;
@@ -1841,50 +2237,60 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
       double wnum_low = wnum_low_0;
       double wnum_hi = wnum_hi_0;
+      double wnum_mp = wnum_hi_0;
 
       if ( band.equals("CO2_1") ) {
         wnum_map_diff.setRange( CO2_1_lo, CO2_1_hi );
         wnum_map.setRange( CO2_1_lo, CO2_1_hi );
         wnum_low = CO2_1_lo;
         wnum_hi = CO2_1_hi;
+        wnum_mp = CO2_1_mp;
       }
       if ( band.equals("CO2_2") ) {
         wnum_map_diff.setRange( CO2_2_lo, CO2_2_hi );
         wnum_map.setRange( CO2_2_lo, CO2_2_hi );
         wnum_low = CO2_2_lo;
         wnum_hi = CO2_2_hi;
+        wnum_mp = CO2_2_mp;
       }
       if ( band.equals("O3") ) {
         wnum_map_diff.setRange( O3_lo, O3_hi );
         wnum_map.setRange( O3_lo, O3_hi );
         wnum_low = O3_lo;
         wnum_hi = O3_hi;
+        wnum_mp = O3_mp;
       }
       if ( band.equals("H2O") ) {
         wnum_map_diff.setRange( H2O_lo, H2O_hi );
         wnum_map.setRange( H2O_lo, H2O_hi );
         wnum_low = H2O_lo;
         wnum_hi = H2O_hi;
+        wnum_mp = H2O_mp;
       }
       if ( band.equals("ALL") ) {
         wnum_map_diff.setRange( (double) wnum_low_0, (double) wnum_hi_0 );
         wnum_map.setRange( (double) wnum_low_0, (double) wnum_hi_0 );
         wnum_low = wnum_low_0;
         wnum_hi = wnum_hi_0;
+        wnum_low_ref.setData(new Real(wnum1, wnum_low));
+        wnum_hi_ref.setData(new Real(wnum1, wnum_hi));
       }
-
-      wnum_low_ref.setData(new Real(wnum1, wnum_low));
-      wnum_hi_ref.setData(new Real(wnum1, wnum_hi));
+      else {
+        wnum_low_ref.setData(new Real(wnum1, wnum_low));
+        wnum_hi_ref.setData(new Real(wnum1, wnum_hi));
+        red_cursor_ref.setData(new Real(wnum1, wnum_mp));
+      }
     }
   } //- end class ChannelImage
 
-  private native void readProf_c( int i, float[] a, float[] b, int[] c, float[] d, 
+  private native void readProf_c( int i, int i2, float[] a, float[] b, int[] c, float[] d, 
                                   float[] p, float[] t, float[] wv, float[] o );
 
   private native void nastirte_c( float a, float b, int c, float d,
                                     float[] p, float[] t, float[] wv, float[] o, 
                                     int[] u, double[] vn, double[] tb, double[] rr );
 
-  private native void nasti_retrvl_c( int rec, float gamt, float gamw, float gamts,
-                                      float emis, float[] tair, float[] pout );
+  private native void nasti_retrvl_c( int opt, int opt2, int rec, 
+                                      float gamt, float gamw, float gamts, float emis,
+                                      float[] tair, float[] rr, float[] pout );
 }//- end: Nesti

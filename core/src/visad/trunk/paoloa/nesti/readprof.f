@@ -1,4 +1,4 @@
-      SUBROUTINE READ_PROF(I, TSKIN, PSFC, LSFC,
+      SUBROUTINE READ_PROF(I, P_FLG, TSKIN, PSFC, LSFC,
      +                     AZEN, P_DUM, T, W, O )
  
       
@@ -9,7 +9,7 @@ C     Paolo Antonelli,  Wed Sep 23 09:25:31 DT  1998.
 
       IMPLICIT NONE
 
-      INTEGER NL,LENG, I, LSFC(1)
+      INTEGER NL,LENG, I, p_flg, LSFC(1)
       INTEGER NR,J,L,LUI,LENI
       PARAMETER (NL=40)
       PARAMETER (LENG=145)
@@ -25,8 +25,13 @@ C     Paolo Antonelli,  Wed Sep 23 09:25:31 DT  1998.
      *   700.,720.,740.,760.,780.,800.,820.,840.,860.,880.,900.,920.,
      *   940.,960.,980.,1000./
  
-      PROFF='./camx97ax.two.psfc'
 
+      if ( p_flg .EQ. 1) then
+        PROFF='./raob980913_alt.ac.2237z'
+      else 
+        PROFF='./camx97ax.two.psfc'
+      endif
+      
       LENI=LENG*4
       OPEN(LUI,RECL=LENI,FILE=PROFF,STATUS='OLD',ACCESS='DIRECT')
 

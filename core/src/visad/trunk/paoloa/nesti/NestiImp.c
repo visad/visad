@@ -10,29 +10,30 @@
  * Signature: (FI[F[F[F[F)V
  */
   JNIEXPORT void JNICALL Java_visad_paoloa_nesti_Nesti_readProf_1c
-    (JNIEnv *env, jobject obj, jint imon_j, jfloatArray tskin_j,
-     jfloatArray psfc_j, jintArray lsfc_j, jfloatArray azen_j, jfloatArray tpro_j,
-     jfloatArray wpro_j, jfloatArray opro_j, jfloatArray pref_j) {
+    (JNIEnv *env, jobject obj, jint imon_j, jint pflg_j, jfloatArray tskin_j,
+     jfloatArray psfc_j, jintArray lsfc_j, jfloatArray azen_j, jfloatArray pp_j,
+     jfloatArray tpro_j,
+     jfloatArray wpro_j, jfloatArray opro_j) {
 
     jfloat *tskin = (*env)->GetFloatArrayElements(env, tskin_j, 0);
     jfloat *psfc = (*env)->GetFloatArrayElements(env, psfc_j, 0);
     jint *lsfc = (*env)->GetIntArrayElements(env, lsfc_j, 0);
     jfloat *azen = (*env)->GetFloatArrayElements(env, azen_j, 0);
 
+    jfloat *pp = (*env)->GetFloatArrayElements(env, pp_j, 0);
     jfloat *tpro = (*env)->GetFloatArrayElements(env, tpro_j, 0);
     jfloat *wpro = (*env)->GetFloatArrayElements(env, wpro_j, 0);
     jfloat *opro = (*env)->GetFloatArrayElements(env, opro_j, 0);
-    jfloat *pref = (*env)->GetFloatArrayElements(env, pref_j, 0);
-    read_prof_(&imon_j, tskin, psfc, lsfc, azen, tpro, wpro, opro, pref);
+    read_prof_(&imon_j, &pflg_j, tskin, psfc, lsfc, azen, pp, tpro, wpro, opro);
     (*env)->ReleaseFloatArrayElements(env, tskin_j, tskin, 0);
     (*env)->ReleaseFloatArrayElements(env, psfc_j, psfc, 0);
     (*env)->ReleaseIntArrayElements(env, lsfc_j, lsfc, 0);
     (*env)->ReleaseFloatArrayElements(env, azen_j, azen, 0);
 
+    (*env)->ReleaseFloatArrayElements(env, pp_j, pp, 0);
     (*env)->ReleaseFloatArrayElements(env, tpro_j, tpro, 0);
     (*env)->ReleaseFloatArrayElements(env, wpro_j, wpro, 0);
     (*env)->ReleaseFloatArrayElements(env, opro_j, opro, 0);
-    (*env)->ReleaseFloatArrayElements(env, pref_j, pref, 0);
   }
 
   JNIEXPORT void JNICALL Java_visad_paoloa_nesti_Nesti_nastirte_1c
@@ -65,14 +66,16 @@
     (*env)->ReleaseDoubleArrayElements(env, rr_j, rr, 0);
   }
 JNIEXPORT void JNICALL Java_visad_paoloa_nesti_Nesti_nasti_1retrvl_1c
-  (JNIEnv *env, jobject obj, jint rec_j, jfloat gt_j, jfloat gw_j, 
-   jfloat gts_j, jfloat e_j, jfloatArray tair_j, jfloatArray pout_j)
+  (JNIEnv *env, jobject obj, jint opt_j, jint opt2_j, jint rec_j, jfloat gt_j, jfloat gw_j, 
+   jfloat gts_j, jfloat e_j, jfloatArray tair_j, jfloatArray rr_j, jfloatArray pout_j)
 {
   jfloat *pout = (*env)->GetFloatArrayElements(env, pout_j, 0);
   jfloat *tair = (*env)->GetFloatArrayElements(env, tair_j, 0);
+  jfloat *rr = (*env)->GetFloatArrayElements(env, rr_j, 0);
 
-  nastimlretrwlmsx_(&rec_j, &gt_j, &gw_j, &gts_j, &e_j, tair, pout);
+  nastimlretrwlmsx_(&opt_j, &opt2_j, &rec_j, &gt_j, &gw_j, &gts_j, &e_j, tair, rr, pout);
 
   (*env)->ReleaseFloatArrayElements(env, pout_j, pout, 0);
   (*env)->ReleaseFloatArrayElements(env, tair_j, tair, 0);
+  (*env)->ReleaseFloatArrayElements(env, rr_j, rr, 0);
 }

@@ -1,4 +1,5 @@
-        subroutine nastimlretrwlmsx(kr,gamt,gamw,gamts,emis,tair,pout)
+      subroutine nastimlretrwlmsx(opt,ireal,kr,gamt,gamw,gamts,emis,
+     $                            tair, rrfwd, pout)
 C***********************************************************************
 C July 22, 1998:  Include shortwave; also bais correction 
 C***********************************************************************
@@ -46,11 +47,11 @@ c       dimension datauw(nl),dbdt(nl),tair(lenp)
 	dimension preg(leng)
 	dimension tdair(nl),tdges(nl),tdrtv(nl)
 	integer*4 b1idx(nchb1),b2idx(nchb2)
-	integer*4 irx(nnew)
+	integer*4 irx(nnew),opt
 c----------------------
         DIMENSION nch(nb),kuse(nnew),kusem(nnew)
         DIMENSION pobs(nl)
-	REAL*4 pout(lenp), tair(*)
+	REAL*4 pout(lenp), tair(*), rrfwd(*)
 	DIMENSION trtv(nl),h2ortv(nl),o3rtv(nl)
         DIMENSION cortv(nl),n2ortv(nl),ch4rtv(nl)
 	DIMENSION prtvf(leng),prtvfm(leng)
@@ -82,9 +83,9 @@ C * New prep coordinate system
      * 700.,720.,740.,760.,780.,800.,820.,840.,860.,880.,900.,920.,
      * 940.,960.,980.,1000./
 C********************************************************************
-        data inbrts(1)/'../raob/980711/bt0711.patch.b1'/
-        data inbrts(2)/'../raob/980711/bt0711.patch.b2'/
-        data inbrts(3)/'../raob/980711/bt0711.patch.b3'/
+        data inbrts(1)/'./bt0913.2237z.b1'/
+        data inbrts(2)/'./bt0913.2237z.b2'/
+        data inbrts(3)/'./bt0913.2237z.b3'/
 C ****
 c        data modrmsbiasf(1)/'../980711/rmsmod980711.b1'/
 c        data modrmsbiasf(2)/'../980711/rmsmod980711.b2'/
@@ -246,7 +247,7 @@ c        gamts = 0.0001
         irtv =  1
         isw = 1
         ibias= 1
-        ireal= 1
+c       ireal= 0
         iges =  1
 c        emis = 1.0
         ref = 0.0
@@ -488,9 +489,24 @@ C *****
 	write(*,'('' Observation Number:'',i8)')kr
 
 ccc read in observation Radiances
+        opt = 1
+        if (opt.EQ.1) then
           do n=1,nb
            read(innt(n),rec=kr) (buf(n,k),k=1,mm)
 	  enddo
+        else
+          cnt = 0 
+          do n=1,nb
+           do k=1,mm
+             if (k.LE.nch(n)) then
+               cnt = cnt + 1
+               buf(n,k) = rrfwd(cnt)
+             else
+               buf(n,k) = 0.
+             endif
+           enddo
+          enddo
+        endif
 C ****************************************
 	alat=buf(1,51)
 	alon=buf(1,52)
