@@ -446,7 +446,8 @@ public class V5DStruct {
 
   /** Open a Vis5D file */
   public static V5DStruct v5d_open(byte[] name, int name_length, int[] sizes,
-    byte[] varnames, float[] times) throws IOException, BadFormException
+    byte[] varnames, byte[] varunits, int[] map_proj, float[] projargs, float[] times)
+    throws IOException, BadFormException
   {
     int i, j, k;
     int day, time, first_day, first_time;
@@ -486,6 +487,20 @@ public class V5DStruct {
         }
       }
 
+      // compute varunits
+      for (j=0; j<v.NumVars; j++) {
+        k = 20 * j;
+        for (i=0; i<20; i++) {
+          if (v.Units[j][i] != 0 && i < 19) {
+            varunits[k + i] = (byte) v.Units[j][i];
+          }
+          else {
+            varunits[k + i] = 0;
+            break;
+          }
+        }
+      }
+
       // compute times
       first_day = v5dYYDDDtoDays(v.DateStamp[0]);
       first_time = v5dHHMMSStoSeconds(v.TimeStamp[0]);
@@ -494,6 +509,8 @@ public class V5DStruct {
         time = v5dHHMMSStoSeconds(v.TimeStamp[i]);
         times[i] = (day - first_day) * 24 * 60 * 60 + (time - first_time);
       }
+
+      map_proj[0] = v.Projection;
     }
     else {
       // v == null

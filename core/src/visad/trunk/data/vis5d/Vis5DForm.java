@@ -55,6 +55,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
   private final int MAXROWS = 300;
   private final int MAXCOLUMNS = 300;
   private final int MAXLEVELS = 100;
+  private final int MAXPROJARGS = 100;
 
   private static int num = 0;
 
@@ -101,9 +102,19 @@ public class Vis5DForm extends Form implements FormFileInformer {
     }
     byte[] name = id.getBytes();
     int[] sizes = new int[5];
+    int[] map_proj = new int[1];
     byte[] varnames = new byte[10 * MAXVARS];
+    byte[] varunits = new byte[20 * MAXVARS];
     float[] times = new float[MAXTIMES];
-    V5DStruct v = V5DStruct.v5d_open(name, name.length, sizes, varnames, times);
+    float[] projargs = new float[MAXPROJARGS];
+    V5DStruct v = V5DStruct.v5d_open(name,
+                                     name.length,
+                                     sizes,
+                                     varnames,
+                                     varunits,
+                                     map_proj,
+                                     projargs,
+                                     times);
     if (sizes[0] < 1) {
       throw new BadFormException("Vis5DForm.open: bad file");
     }
