@@ -420,6 +420,9 @@ public class ColorToolPanel extends ToolPanel
     p.add(selector);
     controls.add(pad(p));
     cc++;
+
+    // placeholder for the color tables to be added later
+    controls.add(Box.createVerticalStrut(275));
   }
 
 

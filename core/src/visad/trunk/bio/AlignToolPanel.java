@@ -317,7 +317,7 @@ public class AlignToolPanel extends ToolPanel {
       sliceDistance.setEnabled(false);
       zAspect.setEnabled(false);
     }
-    drift.setEnabled(enabled);
+    //drift.setEnabled(enabled);
     legend.setEnabled(enabled);
     redBar.setEnabled(enabled);
     redLabel.setEnabled(enabled);

@@ -145,6 +145,9 @@ public class SliceManager
   /** Collapsed, squarized field at current timestep, for volume rendering. */
   private FlatField volumeField;
 
+  /** Multi-timestep field if single file loaded with files as slices. */
+  private FieldImpl timeField;
+
   /** List of range component mappings for 2-D display. */
   private ScalarMap[] rmaps2;
 
@@ -314,7 +317,7 @@ public class SliceManager
       if (volume) doVolumeMode();
       updateStuff();
     }
-    align.setIndex(index);
+    if (align != null) align.setIndex(index);
   }
 
   /** Sets the currently displayed image slice. */
@@ -387,6 +390,7 @@ public class SliceManager
     index = 0;
     boolean success = false;
     try {
+      purgeData(true);
       setFile(true);
       success = true;
     }
@@ -446,10 +450,12 @@ public class SliceManager
   /** Dumps current dataset and takes out the garbage, to conserve memory. */
   void purgeData(boolean refs) throws VisADException, RemoteException {
     if (refs) {
-      FunctionType ftype = (FunctionType) field.getType();
-      field = new FieldImpl(ftype, field.getDomainSet());
-      ref2.setData(field);
-      ref3.setData(field);
+      if (field != null) {
+        FunctionType ftype = (FunctionType) field.getType();
+        field = new FieldImpl(ftype, field.getDomainSet());
+        ref2.setData(field);
+        ref3.setData(field);
+      }
     }
     else field = null;
     System.gc();
@@ -462,7 +468,11 @@ public class SliceManager
     bio.setWaitCursor(true);
     try {
       if (initialize) init(files, 0);
-      else if (!filesAsSlices) {
+      else if (filesAsSlices) {
+        // update field to match timeField slice
+        field.setSample(0, (FlatField) timeField.getSample(index), false);
+      }
+      else {
         purgeData(true);
 
         // load new data
@@ -645,22 +655,39 @@ public class SliceManager
           mode_index = mode_slice = 0;
 
           if (filesAsSlices) {
-            // load data at all indices and compile into a single timestep
-            slices = f.length;
-            timesteps = 1;
-            for (int i=0; i<slices; i++) {
-              dialog.setText("Loading " + f[i].getName());
-              FieldImpl image = BioUtil.loadData(f[i], false);
-              if (image == null) return;
-              if (field == null) {
-                FunctionType stack_type =
-                  new FunctionType(SLICE_TYPE, image.getType());
-                field = new FieldImpl(stack_type, new Integer1DSet(slices));
-              }
-              field.setSample(i, image);
-              dialog.setPercent(100 * (i + 1) / slices);
+            if (f.length == 1) {
+              // data is a single stack of timesteps
+              slices = 1;
+              FieldImpl stack = BioUtil.loadData(f[0], false);
+              if (stack == null) return;
+              timeField = stack;
+              timesteps = timeField.getLength();
+              FlatField image = (FlatField) timeField.getSample(curfile);
+              FunctionType stack_type =
+                new FunctionType(SLICE_TYPE, image.getType());
+              field = new FieldImpl(stack_type, new Integer1DSet(slices));
+              field.setSample(0, image, false);
+              dialog.setPercent(100);
+              doThumbs = false;
             }
-            doThumbs = false;
+            else {
+              // load data at all indices and compile into a single timestep
+              slices = f.length;
+              timesteps = 1;
+              for (int i=0; i<slices; i++) {
+                dialog.setText("Loading " + f[i].getName());
+                FieldImpl image = BioUtil.loadData(f[i], false);
+                if (image == null) return;
+                if (field == null) {
+                  FunctionType stack_type =
+                    new FunctionType(SLICE_TYPE, image.getType());
+                  field = new FieldImpl(stack_type, new Integer1DSet(slices));
+                }
+                field.setSample(i, image, false);
+                dialog.setPercent(100 * (i + 1) / slices);
+              }
+              doThumbs = false;
+            }
           }
           else if (doThumbs) {
             // load data at all indices and create thumbnails
@@ -1072,11 +1099,13 @@ public class SliceManager
         min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
 
       // initialize alignment plane
+      /*
       if (align == null) align = new AlignmentPlane(bio, bio.display3);
       Color[] alignLines = {Color.red, Color.yellow, Color.blue};
       align.init(dtypes[0], dtypes[1], dtypes[2],
         RED_TYPE, GREEN_TYPE, BLUE_TYPE, alignLines, Color.red,
         min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
+      */
     }
 
     // adjust display aspect ratio
