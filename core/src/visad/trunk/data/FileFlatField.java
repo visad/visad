@@ -390,6 +390,15 @@ public class FileFlatField extends FlatField {
     }
   }
 
+  public Field domainFactor( RealType factor )
+         throws VisADException, RemoteException
+  {
+    synchronized (adaptedFlatFields)
+    {
+      return getadaptedFlatField().domainFactor( factor );
+    }
+  }
+
   public Field resample( Set set, int sampling_mode, int error_mode )
          throws VisADException, RemoteException
   {
