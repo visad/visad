@@ -1294,7 +1294,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         for (int i=0; i<NumVisX-1; i++) newDrag[i] = HorizDrag[i];
         newDrag[NumVisX-1] = new JComponent() {
           public void paint(Graphics g) {
-            Dimension d = getSize();
+            Dimension d = this.getSize();
             g.setColor(Color.black);
             g.drawRect(0, 0, d.width - 1, d.height - 1);
             g.setColor(Color.yellow);
@@ -1373,7 +1373,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int i=0; i<NumVisY-1; i++) newDrag[i] = VertDrag[i];
       newDrag[NumVisY-1] = new JComponent() {
         public void paint(Graphics g) {
-          Dimension d = getSize();
+          Dimension d = this.getSize();
           g.setColor(Color.black);
           g.drawRect(0, 0, d.width - 1, d.height - 1);
           g.setColor(Color.yellow);
@@ -1850,7 +1850,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         if (i < NumVisX-1) {
           HorizDrag[i] = new JComponent() {
             public void paint(Graphics g) {
-              Dimension d = getSize();
+              Dimension d = this.getSize();
               g.setColor(Color.black);
               g.drawRect(0, 0, d.width - 1, d.height - 1);
               g.setColor(Color.yellow);
@@ -1889,11 +1889,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
         if (i < NumVisY-1) {
           VertDrag[i] = new JComponent() {
             public void paint(Graphics g) {
-              Dimension s = getSize();
+              Dimension d = this.getSize();
               g.setColor(Color.black);
-              g.drawRect(0, 0, s.width - 1, s.height - 1);
+              g.drawRect(0, 0, d.width - 1, d.height - 1);
               g.setColor(Color.yellow);
-              g.fillRect(1, 1, s.width - 2, s.height - 2);
+              g.fillRect(1, 1, d.width - 2, d.height - 2);
             }
           };
           VertDrag[i].setBackground(Color.white);
