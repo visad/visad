@@ -42,9 +42,13 @@ public class ConstantMap extends ScalarMap {
   // flag to allow multiple use of a ConstantMap
   private static boolean allowMultipleUseKludge = false;
 
-  /** construct a ConstantMap with a double constant;
-      display_scalar may not be Animation, SelectValue, SelectRange
-      or IsoContour */
+  /**
+   * construct a ConstantMap with a double constant
+   * @param constant - double equated to DisplayRealType
+   * @param display_scalar - DisplayRealType set to constant
+   *   (may not be Animation, SelectValue, SelectRange or IsoContour)
+   * @throws VisADException - a VisAD error occurred
+   */
   public ConstantMap(double constant, DisplayRealType display_scalar)
                      throws VisADException {
     super(null, display_scalar, false); // no Scalar for ConstantMap
@@ -69,32 +73,58 @@ public class ConstantMap extends ScalarMap {
     Constant = constant;
   }
 
-  /** construct a ConstantMap with a Real constant;
-      display_scalar may not be Animation, SelectValue, SelectRange
-      or IsoContour */
+  /**
+   * construct a ConstantMap with a Real constant;
+   * @param constant - Real whose value is equated to DisplayRealType
+   * @param display_scalar - DisplayRealType set to constant
+   *   (may not be Animation, SelectValue, SelectRange or IsoContour)
+   * @throws VisADException - a VisAD error occurred
+   */
   public ConstantMap(Real constant, DisplayRealType display_scalar)
                      throws VisADException {
     this(constant.getValue(), display_scalar);
   }
 
-  // WLH 24 Aug 2001
+  /**
+   * allow ConstantMaps to be used in multiple calls to
+   * DisplayImpl.addReference() or addReferences()
+   * such multiple use was not checked in the early releases of
+   * VisAD, and this method allows applications to easily avoid
+   * more extensive changes
+   * @param k - true to allow multiple use
+   */
   public static void setAllowMultipleUseKludge(boolean k) {
     allowMultipleUseKludge = k;
   }
 
-  // WLH 24 Aug 2001
+  /**
+   * @return boolean indicating whether ConstantMaps may be
+   * used in multiple calls to DisplayImpl.addReference() or
+   * addReferences()
+   */ 
   public static boolean getAllowMultipleUseKludge() {
     return allowMultipleUseKludge;
   }
 
+  /**
+   * do nothing over-ride of ScalarMap method
+   */
   void setControl() throws VisADException, RemoteException {
     return;
   }
 
+  /**
+   * @return constant value mapped to DisplayRealType
+   */
   public double getConstant() {
     return Constant;
   }
 
+  /**
+   * Indicates whether or not this instance equals an Object.
+   * @param o - A object.
+   * @return <code>true</code> if and only if this instance is equal to o.
+   */
   public boolean equals(Object o)
   {
     boolean	equals;
@@ -169,7 +199,9 @@ public class ConstantMap extends ScalarMap {
            " -> " + getDisplayScalar().toString() + "\n";
   }
 
-  // WLH 28 Nov 2000
+  /**
+   * do nothing over-ride of ScalarMap method
+   */
   void setAspectCartesian(double[] aspect)
        throws VisADException, RemoteException {
   }

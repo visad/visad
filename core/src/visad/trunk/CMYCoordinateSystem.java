@@ -35,15 +35,36 @@ public class CMYCoordinateSystem extends CoordinateSystem {
 
   private static Unit[] coordinate_system_units = {null, null, null};
 
+  /**
+   * construct a CMYCoordinateSystem with given reference
+   * @param reference - reference RealTupleType
+   */
   public CMYCoordinateSystem(RealTupleType reference) throws VisADException {
     super(reference, coordinate_system_units);
   }
 
-  /** trusted constructor for initializers */
+  /**
+   * trusted constructor for initializers (does not throw
+   * any declared Exceptions)
+   * @param reference - reference RealTupleType
+   * @param b - dummy argument for trusted constructor signature
+   */
   CMYCoordinateSystem(RealTupleType reference, boolean b) {
     super(reference, coordinate_system_units, b);
   }
 
+  /**
+   *  Convert RealTuple values to Reference coordinates;
+   *  for efficiency, input and output values are passed as
+   *  double[][] arrays rather than RealTuple[] arrays; the array
+   *  organization is double[tuple_dimension][number_of_tuples];
+   *  can modify and return argument array.
+   *  @param  value  array of values assumed to be in coordinateSystem
+   *                 units. Input array is not guaranteed to be immutable
+   *                 and could be used for return.
+   *  @return array of double values in reference coordinates and Unit-s.
+   *  @throws VisADException  if problem with conversion.
+   */
   public double[][] toReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("CMYCoordinateSystem." +
@@ -59,6 +80,18 @@ public class CMYCoordinateSystem extends CoordinateSystem {
     return value;
   }
 
+  /**
+   *  Convert RealTuple values from Reference coordinates;
+   *  for efficiency, input and output values are passed as
+   *  double[][] arrays rather than RealTuple[] arrays; the array
+   *  organization is double[tuple_dimension][number_of_tuples];
+   *  can modify and return argument array.
+   *  @param  value  array of values assumed to be in reference
+   *                 Unit-s. Input array is not guaranteed to be immutable
+   *                 and could be used for return.
+   *  @return array of double values in CoordinateSystem Unit-s.
+   *  @throws VisADException  if problem with conversion.
+   */
   public double[][] fromReference(double[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("CMYCoordinateSystem." +
@@ -74,6 +107,18 @@ public class CMYCoordinateSystem extends CoordinateSystem {
     return value;
   }
 
+  /**
+   *  Convert RealTuple values to Reference coordinates;
+   *  for efficiency, input and output values are passed as
+   *  float[][] arrays rather than RealTuple[] arrays; the array
+   *  organization is float[tuple_dimension][number_of_tuples];
+   *  can modify and return argument array.
+   *  @param  value  array of values assumed to be in coordinateSystem
+   *                 units. Input array is not guaranteed to be immutable
+   *                 and could be used for return.
+   *  @return array of float values in reference coordinates and Unit-s.
+   *  @throws VisADException  if problem with conversion.
+   */
   public float[][] toReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("CMYCoordinateSystem." +
@@ -89,6 +134,18 @@ public class CMYCoordinateSystem extends CoordinateSystem {
     return value;
   }
 
+  /**
+   *  Convert RealTuple values from Reference coordinates;
+   *  for efficiency, input and output values are passed as
+   *  float[][] arrays rather than RealTuple[] arrays; the array
+   *  organization is float[tuple_dimension][number_of_tuples];
+   *  can modify and return argument array.
+   *  @param  value  array of values assumed to be in reference
+   *                 Unit-s. Input array is not guaranteed to be immutable
+   *                 and could be used for return.
+   *  @return array of float values in CoordinateSystem Unit-s.
+   *  @throws VisADException  if problem with conversion.
+   */
   public float[][] fromReference(float[][] tuples) throws VisADException {
     if (tuples == null || tuples.length != 3) {
       throw new CoordinateSystemException("CMYCoordinateSystem." +
@@ -104,6 +161,11 @@ public class CMYCoordinateSystem extends CoordinateSystem {
     return value;
   }
 
+  /**
+   * Indicates whether or not this instance is equal to an object.
+   * @param cs - the object in question.
+   * @return <code>true</code> if and only if this instance equals cs.
+   */
   public boolean equals(Object cs) {
     return (cs instanceof CMYCoordinateSystem);
   }

@@ -36,16 +36,27 @@ import java.rmi.*;
 */
 public interface Cell extends Action {
 
-  /** set a non-triggering link to a DataReference; this is
-      used to give the Cell access to Data without triggering
-      the Cell's doAction whenever the Data changes;
-      these 'other' DataReferences are identified by their
-      integer index */
+  /**
+   * set a non-triggering link to a DataReference; this is
+   * used to give the Cell access to Data without triggering
+   * the Cell's doAction whenever the Data changes;
+   * these 'other' DataReferences are identified by their
+   * integer index
+   * @param index - identifier of DataReference
+   * @param ref - DataReference to be linked
+   * @throws VisADException - a VisAD error occurred
+   * @throws RemoteException - an RMI error occurred
+   */
   void setOtherReference(int index, DataReference ref)
          throws VisADException, RemoteException;
 
-  /** return the non-triggering link to a DataReference
-      identified by index */
+  /**
+   * @return the non-triggering link to a DataReference
+   * identified by index
+   * @param index - identifier of DataReference to return
+   * @throws VisADException - a VisAD error occurred
+   * @throws RemoteException - an RMI error occurred
+   */
   DataReference getOtherReference(int index)
          throws VisADException, RemoteException;
 

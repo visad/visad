@@ -52,8 +52,8 @@ public abstract class CoordinateSystem extends Object
    * @param reference           The type of the reference coordinate
    *                            system.  Numeric values in the reference
    *                            coordinate system shall be in units of
-   *                            <code>reference.getDefaultUnits()</code> unless
-   *                            specified otherwise.
+   *                            <code>reference.getDefaultUnits()</code>
+   *                            unless specified otherwise.
    * @param units               The default units for this coordinate system.
    *                            Numeric values in this coordinate system shall
    *                            be in units of <code>units</code> unless
@@ -82,7 +82,21 @@ public abstract class CoordinateSystem extends Object
     }
   }
 
-  /** trusted constructor for initializers */
+  /**
+   * trusted constructor for initializers (does not throw 
+   * any declared Exceptions)
+   * @param reference           The type of the reference coordinate
+   *                            system.  Numeric values in the reference
+   *                            coordinate system shall be in units of
+   *                            <code>reference.getDefaultUnits()</code>
+   *                            unless specified otherwise.
+   * @param units               The default units for this coordinate system.
+   *                            Numeric values in this coordinate system shall
+   *                            be in units of <code>units</code> unless
+   *                            specified otherwise.  May be <code>null</code>
+   *                            or an array of <code>null</code>-s.
+   * @param b - dummy argument for trusted constructor signature
+   */
   CoordinateSystem(RealTupleType reference, Unit[] units, boolean b) {
     Reference = reference;
     DomainDimension = Reference.getDimension();
@@ -826,21 +840,12 @@ public abstract class CoordinateSystem extends Object
     return fromReference(value);
   }
 
-  /** is this needed ???? */
-  public boolean checkTable(FlatField table) throws VisADException {
-    if (table == null) {
-      throw new CoordinateSystemException(
-        "CoordinateSystem.checkTable: table is null");
-    }
-    return
-      ((RealTupleType)
-        ((FunctionType) table.getType()).getDomain()).getDimension() !=
-          DomainDimension ||
-      ((RealTupleType)
-        ((FunctionType) table.getType()).getRange()).getDimension() !=
-          DomainDimension;
-  }
-
+  /**
+   * Indicates whether or not this instance is equal to an object
+   * (note must test for cs == null).
+   * @param cs - the object in question.
+   * @return <code>true</code> if and only if this instance equals cs.
+   */
   /** check for equality of CoordinateSystem objects;
       must test for cs == null */
   public abstract boolean equals(Object cs);

@@ -41,7 +41,17 @@ public class RemoteCellImpl extends RemoteActionImpl
     super(d);
   }
 
-  /** create link to an output DataReference */
+  /**
+   * set a non-triggering link to a DataReference; this is
+   * used to give the Cell access to Data without triggering
+   * the Cell's doAction whenever the Data changes;
+   * these 'other' DataReferences are identified by their
+   * integer index
+   * @param index - identifier of DataReference
+   * @param ref - DataReference to be linked
+   * @throws VisADException - a VisAD error occurred
+   * @throws RemoteException - an RMI error occurred
+   */
   public void setOtherReference(int index, DataReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof RemoteDataReference)) {
@@ -56,7 +66,13 @@ public class RemoteCellImpl extends RemoteActionImpl
       adaptedSetOtherReference(index, (RemoteDataReference) ref);
   }
 
-  /** get link to an output DataReference */
+  /**
+   * @return the non-triggering link to a DataReference
+   * identified by index
+   * @param index - identifier of DataReference to return
+   * @throws VisADException - a VisAD error occurred
+   * @throws RemoteException - an RMI error occurred
+   */
   public DataReference getOtherReference(int index)
          throws VisADException, RemoteException {
     if (AdaptedAction == null) {

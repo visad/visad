@@ -1,5 +1,5 @@
 //
-// $Id: CartesianProductCoordinateSystem.java,v 1.7 2002-01-07 18:42:05 dglo Exp $
+// $Id: CartesianProductCoordinateSystem.java,v 1.8 2003-06-09 14:26:57 billh Exp $
 //
 
 /*
@@ -81,7 +81,7 @@ public class CartesianProductCoordinateSystem extends CoordinateSystem
 
     /**
      * Get the arrays of CoordinateSystems being used in this product
-     * return array of CoordinateSystems
+     * @return array of CoordinateSystems
      */
     public CoordinateSystem[] getCoordinateSystems() {
         return csArray;
@@ -90,11 +90,21 @@ public class CartesianProductCoordinateSystem extends CoordinateSystem
     /**
      * Get a particular CoordinateSystem
      * @param  index  index into the array
+     * @return CoordinateSystem from array
+     * @throws ArrayIndexOutOfBoundsException (no need to declare)
+     *         if index out of bounds
      */
     public CoordinateSystem getCoordinateSystem(int index) {
         return csArray[index];
     }
 
+    /**
+     * create a RealTupleType that concatenates the references of
+     * the CoordinateSystems in csArray (used by constructor)
+     * @param csArray - array of CoordinateSystems
+     * @return concatenated reference RealTupleType
+     * @throws VisADException
+     */
     static RealTupleType getProductReference(CoordinateSystem[] csArray)
         throws VisADException
     {
@@ -119,6 +129,13 @@ public class CartesianProductCoordinateSystem extends CoordinateSystem
                 typeVector.toArray(new RealType[typeVector.size()]));
     }
 
+    /**
+     * create an array of Units that concatenates the Unit arrays
+     * of the CoordinateSystems in csArray (used by constructor)
+     * @param csArray - array of CoordinateSystems
+     * @return concatenated array of Units
+     * @throws VisADException
+     */
     static Unit[] getProductUnits(CoordinateSystem[] csArray)
         throws VisADException
     {

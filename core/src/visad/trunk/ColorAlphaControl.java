@@ -35,5 +35,11 @@ import java.rmi.*;
 public class ColorAlphaControl
   extends BaseColorControl
 {
+
+  /**
+   * construct a ColorAlphaControl for given DisplayImpl
+   * @param d - DisplayImpl
+   */
   public ColorAlphaControl(DisplayImpl d) { super(d, 4); }
+
 }

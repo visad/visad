@@ -33,12 +33,21 @@ public class CommonUnit extends Object {
 
   /** CommonUnit for plane angle, not temperature */
   public static Unit degree;
+
+  /** CommonUnit for plane angle */
   public static Unit radian = SI.radian;
+
+  /** CommonUnit for time */
   public static Unit second = SI.second;
+
+  /** CommonUnit for length */
   public static Unit meter = SI.meter;
+
+  /** CommonUnit for speed */
   public static Unit meterPerSecond =
     new DerivedUnit(new BaseUnit[] {SI.meter, SI.second},
                     new int[] {1, -1});
+
   /** CommonUnit for seconds since the Epoch (i.e. 1970-01-01 00:00:00Z) */
   public static Unit secondsSinceTheEpoch =
         new OffsetUnit(
@@ -46,14 +55,18 @@ public class CommonUnit extends Object {
                 1970, 1, 1, 0, 0, 0, 0),
             SI.second);
 
-  /** all BaseUnits have exponent zero in dimensionless */
+  /** CommonUnit for all BaseUnits with exponent = zero */
   public static Unit dimensionless = new DerivedUnit();
+
   /** promiscuous is compatible with any Unit; useful for constants;
       not the same as null Unit, which is only compatible with
       other null Units; not the same as dimensionless, which is not
       compatible with other Units for addition and subtraction */
   public static Unit promiscuous = PromiscuousUnit.promiscuous;
 
+  /**
+   * static initializer to catch impossible but declared Exception
+   */
   static {
     try {
       degree = SI.radian.scale(Math.PI/180.0, true).clone("deg");

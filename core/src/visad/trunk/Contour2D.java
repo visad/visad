@@ -1167,15 +1167,16 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     }
   }
 
-  public static void fillGridBox(float[] g, short[][] n_lines,
-                                 float[] vx, float[] vy,
-                                 float xd, float xdd, float yd, float ydd,
-                                 int nr, int nrm, int nc, int ncm,
-                                 short[][] ctrLow,
-                                 float[][] tri, byte[][] tri_color,
-                                 byte[][][] o_flags, float[] values,
-                                 byte[][] color_bin,
-                                 float[][][] grd_normals, float[][] tri_normals)
+  private static void fillGridBox(float[] g, short[][] n_lines,
+                                  float[] vx, float[] vy,
+                                  float xd, float xdd, float yd, float ydd,
+                                  int nr, int nrm, int nc, int ncm,
+                                  short[][] ctrLow,
+                                  float[][] tri, byte[][] tri_color,
+                                  byte[][][] o_flags, float[] values,
+                                  byte[][] color_bin,
+                                  float[][][] grd_normals,
+                                  float[][] tri_normals)
   {
     float xx, yy;
     int[] numv = new int[1];
@@ -1240,17 +1241,17 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       }
     }
   }
-         
 
-  public static void fillGridBox(float[] corners,
-                                 int numc, float[] vx, float[] vy,
-                                 float xx, float yy, float xd, float yd,
-                                 int nc, int nr, short ctrLow,
-                                 float[][] tri, int[] t_idx, byte[][] tri_color,
-                                 int numv, byte[] o_flags,
-                                 float[] values, byte[][] color_bin,
-                                 float[][][] grd_normals, int[] n_idx, 
-                                 float[][] tri_normals_a)
+  private static void fillGridBox(float[] corners,
+                                  int numc, float[] vx, float[] vy,
+                                  float xx, float yy, float xd, float yd,
+                                  int nc, int nr, short ctrLow,
+                                  float[][] tri, int[] t_idx,
+                                  byte[][] tri_color,
+                                  int numv, byte[] o_flags,
+                                  float[] values, byte[][] color_bin,
+                                  float[][][] grd_normals, int[] n_idx, 
+                                  float[][] tri_normals_a)
         {
           float[] tri_normals = tri_normals_a[0];
           int n_tri           = 4 + (numc-1)*2;
