@@ -154,10 +154,10 @@ public class SSCellImpl extends CellImpl {
       // update cell display
       cellData.ssCell.updateDisplay(true);
 
-      // add data's RealTypes to FormulaManager variable registry
+      // add data's ScalarTypes to FormulaManager variable registry
       Vector v = new Vector();
       try {
-        DataUtility.getRealTypes(new Data[] {data}, v, false, true);
+        DataUtility.getScalarTypes(new Data[] {data}, v, false, true);
       }
       catch (VisADException exc) {
         if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -167,15 +167,18 @@ public class SSCellImpl extends CellImpl {
       }
       int len = v.size();
       for (int i=0; i<len; i++) {
-        RealType rt = (RealType) v.elementAt(i);
-        try {
-          fm.setThing(rt.getName(), VRealType.get(rt));
-        }
-        catch (VisADException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
-        }
-        catch (RemoteException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        ScalarType st = (ScalarType) v.elementAt(i);
+        if (st instanceof RealType) {
+          RealType rt = (RealType) st;
+          try {
+            fm.setThing(rt.getName(), VRealType.get(rt));
+          }
+          catch (VisADException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
+          catch (RemoteException exc) {
+            if (BasicSSCell.DEBUG) exc.printStackTrace();
+          }
         }
       }
 

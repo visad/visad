@@ -73,27 +73,27 @@ public class MappingDialog extends JDialog
   // -- State info --
 
   /**
-   * Array of RealTypes.
+   * Array of ScalarTypes.
    */
-  private RealType[] MathTypes;
+  private ScalarType[] MathTypes;
 
   /**
-   * Array of RealType names.
+   * Array of ScalarType names.
    */
   private String[] Scalars;
 
   /**
-   * Array of RealType widths.
+   * Array of ScalarType widths.
    */
   private int[] ScW;
 
   /**
-   * Vector of MDTuples indicating RealType locations.
+   * Vector of MDTuples indicating ScalarType locations.
    */
   private Vector[] ScP;
 
   /**
-   * RealType height.
+   * ScalarType height.
    */
   private int ScH;
 
@@ -372,7 +372,7 @@ public class MappingDialog extends JDialog
     Vector v = new Vector();
     int dupl = 0;
     try {
-      dupl = DataUtility.getRealTypes(data, v, true, true);
+      dupl = DataUtility.getScalarTypes(data, v, true, true);
     }
     catch (VisADException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -432,7 +432,7 @@ public class MappingDialog extends JDialog
     // extract information about ScalarType locations within MathType strings
     int len = v.size();
     int unique = len - dupl;
-    MathTypes = new RealType[unique];
+    MathTypes = new ScalarType[unique];
     Scalars = new String[unique];
     ScW = new int[unique];
     ScP = new Vector[unique];
@@ -441,10 +441,10 @@ public class MappingDialog extends JDialog
     boolean inCoord = false;
     pos = -1;
     for (int i=0; i<len; i++) {
-      RealType type = (RealType) v.elementAt(i);
+      ScalarType type = (ScalarType) v.elementAt(i);
       String name = type.getName();
       if (v.indexOf(type) == i) {
-        // first occurrence of this RealType
+        // first occurrence of this ScalarType
         MathTypes[s] = type;
         Scalars[s] = name;
         ScW[s] = charWidth * name.length();
@@ -452,7 +452,7 @@ public class MappingDialog extends JDialog
         nameToIndex.put(name, new Integer(s));
         s++;
       }
-      // determine position of RealType and add to position vector
+      // determine position of ScalarType and add to position vector
       int index = ((Integer) nameToIndex.get(name)).intValue();
       MDTuple tuple = null;
       if (!inCoord) {
@@ -938,9 +938,9 @@ public class MappingDialog extends JDialog
       while (hi > lo0 && Scalars[hi].toLowerCase().compareTo(mid) > 0) --hi;
       if (lo <= hi) {
         // MathTypes[lo] <-> MathTypes[hi]
-        RealType r = MathTypes[lo];
+        ScalarType st = MathTypes[lo];
         MathTypes[lo] = MathTypes[hi];
-        MathTypes[hi] = r;
+        MathTypes[hi] = st;
         // Scalars[lo] <-> Scalars[hi]
         String s = Scalars[lo];
         Scalars[lo] = Scalars[hi];
@@ -1012,20 +1012,28 @@ public class MappingDialog extends JDialog
    * Updates the description label to match the currently selected ScalarType.
    */
   private void updateDescriptionLabel(int i) {
-    RealType r = MathTypes[i];
-    Unit unit = r.getDefaultUnit();
-    Set set = r.getDefaultSet();
-    String u = unit == null ? "none" : unit.toString();
-    String s;
-    if (set == null) s = "none";
-    else {
-      String setType = set.getClass().getName();
-      int index = setType.lastIndexOf(".");
-      if (index >= 0) setType = setType.substring(index + 1);
-      int dim = set.getDimension();
-      s = setType + "(" + dim + ")";
+    ScalarType st = MathTypes[i];
+    String desc = "     " + Scalars[i];
+    if (st instanceof RealType) {
+      RealType r = (RealType) st;
+      Unit unit = r.getDefaultUnit();
+      Set set = r.getDefaultSet();
+      String u = unit == null ? "none" : unit.toString();
+      String s;
+      if (set == null) s = "none";
+      else {
+        String setType = set.getClass().getName();
+        int index = setType.lastIndexOf(".");
+        if (index >= 0) setType = setType.substring(index + 1);
+        int dim = set.getDimension();
+        s = setType + "(" + dim + ")";
+      }
+      desc = desc + ": Unit=" + u + "; Set=" + s;
     }
-    description.setText("     " + Scalars[i] + ": Unit=" + u + "; Set=" + s);
+    else {
+      desc = desc + " (text)";
+    }
+    description.setText(desc);
   }
 
   /**

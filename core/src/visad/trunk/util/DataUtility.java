@@ -978,6 +978,31 @@ public class DataUtility {
   }
 
   /**
+   * @deprecated Use getScalarTypes(Data, Vector) instead.
+   */
+  public static int getRealTypes(Data data, Vector v)
+    throws VisADException, RemoteException
+  {
+    return getRealTypes(new Data[] {data}, v, true, false);
+  }
+
+  /**
+   * @deprecated Use getScalarTypes(Data[], Vector, boolean, boolean) instead.
+   */
+  public static int getRealTypes(Data[] data, Vector v, boolean keepDupl,
+    boolean doCoordSys) throws VisADException, RemoteException
+  {
+    int dupl = getScalarTypes(data, v, keepDupl, doCoordSys);
+    int i = 0;
+    while (i < v.size()) {
+      ScalarType st = (ScalarType) v.elementAt(i);
+      if (!(st instanceof RealType)) v.remove(i);
+      else i++;
+    }
+    return dupl;
+  }
+
+  /**
    * Obtains a Vector consisting of all ScalarTypes present in a Data object's
    * MathType.
    * @param data                The Data from which to extract the ScalarTypes.
@@ -986,10 +1011,10 @@ public class DataUtility {
    * @throws RemoteException    Couldn't obtain the remote Data's MathType.
    * @return                    The number of duplicate ScalarTypes found.
    */
-  public static int getRealTypes(Data data, Vector v)
+  public static int getScalarTypes(Data data, Vector v)
     throws VisADException, RemoteException
   {
-    return getRealTypes(new Data[] {data}, v, true, false);
+    return getScalarTypes(new Data[] {data}, v, true, false);
   }
 
   /**
@@ -1000,13 +1025,13 @@ public class DataUtility {
    * @param v                   The Vector in which to store the ScalarTypes.
    * @param keepDupl            Whether to add a RealType to the Vector when
    *                            it is already present there.
-   * @param doCoordSys          Whether to include RealTypes from
+   * @param doCoordSys          Whether to include ScalarTypes from
    *                            CoordinateSystem references.
    * @throws VisADException     Couldn't parse a Data's MathType.
    * @throws RemoteException    Couldn't obtain a remote Data's MathType.
    * @return                    The number of duplicate ScalarTypes found.
    */
-  public static int getRealTypes(Data[] data, Vector v, boolean keepDupl,
+  public static int getScalarTypes(Data[] data, Vector v, boolean keepDupl,
     boolean doCoordSys) throws VisADException, RemoteException
   {
     Vector coord = (doCoordSys ? new Vector() : null);
@@ -1020,7 +1045,7 @@ public class DataUtility {
       }
     }
     if (coord != null) {
-      // append coordinate system reference RealTypes to vector
+      // append coordinate system reference ScalarTypes to vector
       for (int i=0; i<coord.size(); i++) {
         Object o = coord.elementAt(i);
         boolean c = v.contains(o);
@@ -1032,7 +1057,7 @@ public class DataUtility {
   }
 
   /**
-   * getRealTypes helper method.
+   * getScalarTypes helper method.
    */
   private static void parse(MathType mathType, Vector v, int[] i,
     boolean keepDupl, Vector coord) throws VisADException
@@ -1050,7 +1075,7 @@ public class DataUtility {
   }
 
   /**
-   * getRealTypes helper method.
+   * getScalarTypes helper method.
    */
   private static void parseFunction(FunctionType mathType, Vector v, int[] i,
     boolean keepDupl, Vector coord) throws VisADException
@@ -1065,7 +1090,7 @@ public class DataUtility {
   }
 
   /**
-   * getRealTypes helper method.
+   * getScalarTypes helper method.
    */
   private static void parseSet(SetType mathType, Vector v, int[] i,
     boolean keepDupl, Vector coord) throws VisADException
@@ -1076,7 +1101,7 @@ public class DataUtility {
   }
 
   /**
-   * getRealTypes helper method.
+   * getScalarTypes helper method.
    */
   private static void parseTuple(TupleType mathType, Vector v, int[] i,
     boolean keepDupl, Vector coord) throws VisADException
@@ -1105,18 +1130,16 @@ public class DataUtility {
   }
 
   /**
-   * getRealTypes helper method.
+   * getScalarTypes helper method.
    */
   private static void parseScalar(ScalarType mathType, Vector v, int[] i,
     boolean keepDupl)
   {
-    if (mathType instanceof RealType) {
-      if (v.contains(mathType)) {
-        if (keepDupl) v.add(mathType);
-        i[0]++;
-      }
-      else v.add(mathType);
+    if (v.contains(mathType)) {
+      if (keepDupl) v.add(mathType);
+      i[0]++;
     }
+    else v.add(mathType);
   }
 
   /**
@@ -1190,7 +1213,7 @@ public class DataUtility {
     Vector types = new Vector();
     for (int i=0; i<data.length; i++) {
       try {
-        getRealTypes(data[i], types);
+        getScalarTypes(data[i], types);
       }
       catch (VisADException exc) {
         if (showErrors) {
