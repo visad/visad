@@ -1056,6 +1056,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
     // look for matches between Set templates and SetTypes list
     final DisplayRealType[] spatial =
       {Display.XAxis, Display.YAxis, Display.ZAxis};
+    final boolean[] mark = {false, false, false};
     int numsets = slist.size();
     for (int dim=(threeD ? 3 : 2); dim>=1; --dim) {
       for (int si=0; si<numsets; si++) {
@@ -1077,7 +1078,25 @@ public abstract class MathType extends Object implements java.io.Serializable {
           ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? dim : dim + 1];
           for (int i=0; i<dim; i++) {
             RealType rt = (RealType) domain.getComponent(i);
-            smaps[i] = new ScalarMap(rt, spatial[i]);
+            if (RealType.Latitude.equals(rt)) {
+              smaps[i] = new ScalarMap(rt, spatial[1]);
+              mark[1] = true;
+            }
+            else if (RealType.Longitude.equals(rt)) {
+              smaps[i] = new ScalarMap(rt, spatial[0]);
+              mark[0] = true;
+            }
+          }
+          for (int i=0; i<dim; i++) {
+            RealType rt = (RealType) domain.getComponent(i);
+            if (!RealType.Latitude.equals(rt) && !RealType.Longitude.equals(rt)) {
+              for (int j=0; j<3; j++) {
+                if (!mark[j]) {
+                  smaps[i] = new ScalarMap(rt, spatial[j]);
+                  mark[j] = true;
+                }
+              }
+            }
           }
           if (timeFunc >= 0) {
             Object o = ds[timeFunc].funcs.elementAt(0);
