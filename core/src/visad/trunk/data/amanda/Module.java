@@ -23,10 +23,10 @@ MA 02111-1307, USA
 package visad.data.amanda;
 
 public class Module
+  extends Point
   implements Comparable
 {
   private int number;
-  private float x, y, z;
   private int string, stringOrder;
 
   Module(int number)
@@ -36,10 +36,9 @@ public class Module
 
   Module(int number, float x, float y, float z, int string, int stringOrder)
   {
+    super(x, y, z);
+
     this.number = number;
-    this.x = x;
-    this.y = y;
-    this.z = z;
     this.string = string;
     this.stringOrder = stringOrder;
   }
@@ -61,13 +60,10 @@ public class Module
   public boolean equals(Object o) { return (compareTo(o) == 0); }
 
   int getNumber() { return number; }
-  float getX() { return x; }
-  float getY() { return y; }
-  float getZ() { return z; }
 
   public String toString()
   {
-    return "Module#" + number + "[" + x + "," + y + "," + z +
-      "]Str#" + string + "/" + stringOrder;
+    return "Module#" + number + super.toString() +
+      "Str#" + string + "/" + stringOrder;
   }
 }
