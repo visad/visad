@@ -488,14 +488,20 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
       if (!initialize || go) {
         renderers = temp.elements();
+/* WLH 30 Dec 98
         boolean badScale = false;
+*/
         while (renderers.hasMoreElements()) {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
           shadow = renderer.prepareAction(go, initialize, shadow);
+        } // WLH 30 Dec 98
+/* WLH 30 Dec 98
           badScale |= renderer.getBadScale();
+System.out.println("badScale = " + badScale);
         }
         initialize = badScale;
         if (always_initialize) initialize = true;
+*/
     
         if (shadow != null) {
           // apply RealType ranges and animationSampling
@@ -505,10 +511,20 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
             map.setRange(shadow);
           }
         }
-    
+
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
-    
+
+        // WLH 30 Dec 98
+        renderers = temp.elements();
+        boolean badScale = false;
+        while (renderers.hasMoreElements()) {
+          DataRenderer renderer = (DataRenderer) renderers.nextElement();
+          badScale |= renderer.getBadScale();
+        }
+        initialize = badScale;
+        if (always_initialize) initialize = true;
+
         /* WLH 28 Oct 98 */
         boolean transform_done = false;
 
