@@ -185,12 +185,14 @@ public class AreaDirectory
             new Date(1000* McIDASUtil.mcDayTimeToSecs(
                     dir[AreaFile.AD_IMGDATE], 
                         dir[AreaFile.AD_IMGTIME]));
-        startTime = 
-            new Date(
-                1000* 
-                    McIDASUtil.mcDayTimeToSecs(
-                        dir[AreaFile.AD_STARTDATE],
-                        dir[AreaFile.AD_STARTTIME]));
+        if (dir[AreaFile.AD_STARTDATE] == 0 &&
+            dir[AreaFile.AD_STARTTIME] == 0)
+            startTime = nominalTime;
+        else
+            startTime = new Date( 1000* 
+                            McIDASUtil.mcDayTimeToSecs(
+                                dir[AreaFile.AD_STARTDATE],
+                                dir[AreaFile.AD_STARTTIME]));
         int numbands = dir[AreaFile.AD_NUMBANDS];
         bands = new int[numbands];
         int j = 0;
