@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.6 1999-08-26 20:43:16 steve Exp $
+ * $Id: ScaledUnit.java,v 1.7 1999-09-20 19:22:28 steve Exp $
  */
 
 package visad;
@@ -135,10 +135,10 @@ public final class ScaledUnit
      *			a foot.
      * @param unit	The given scaled unit.
      */
-    public ScaledUnit(double amount, ScaledUnit that)
+    public ScaledUnit(double amount, ScaledUnit unit)
     {
-	this(amount, that,
-	  amount == 1 && that.amount == 1 ? that.getIdentifier() : null);
+	this(amount, unit,
+	  amount == 1 && unit.amount == 1 ? unit.getIdentifier() : null);
     }
 
     /**
@@ -159,13 +159,40 @@ public final class ScaledUnit
     }
 
     /**
+     * Factory method for creating a scaled unit.  The identifier will be that
+     * of the input unit if both amounts are 1; otherwise, the identifier will
+     * be <code>null</code>.
+     *
+     * @param amount	The given amount of the scaled unit (e.g. 3.0 to
+     *			create a yard unit if <code>unit</code> represents
+     *			a foot.
+     * @param unit	The given unit.
+     * @throws UnitException	Can't create Scaled Unit from <code>unit</code>.
+     */
+    public static ScaledUnit
+    create(double amount, Unit unit)
+       throws UnitException
+    {
+	ScaledUnit	result;
+	if (unit instanceof BaseUnit)
+	  result = new ScaledUnit(amount, (BaseUnit)unit);
+	else if (unit instanceof DerivedUnit)
+	  result = new ScaledUnit(amount, (DerivedUnit)unit);
+	else if (unit instanceof ScaledUnit)
+	  result = new ScaledUnit(amount, (ScaledUnit)unit);
+	else
+	  throw new UnitException("Can't create Scaled Unit from " + unit);
+	return result;
+    }
+
+    /**
      * Clones this unit, changing the identifier.
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
      */
-    public Unit clone(String identifier)
+    protected Unit protectedClone(String identifier)
     {
-	return new ScaledUnit(1, this, identifier);
+	return new ScaledUnit(amount, derivedUnit, identifier);
     }
 
     /**
@@ -209,12 +236,23 @@ public final class ScaledUnit
      */
     public String getDefinition()
     {
-	String	derivedString = derivedUnit.toString();
-	return amount == 1
-		? derivedString
-		: derivedString.length() == 0
-		    ? Double.toString(amount)
-		    : Double.toString(amount) + " " + derivedString;
+	String	definition;
+	if (derivedUnit == null)
+	{
+	    /* Probably exception thrown during construction */
+	    definition = "<unconstructed ScaledUnit>";
+	}
+	else
+	{
+	    String	derivedString = derivedUnit.toString();
+	    definition =
+		amount == 1
+		    ? derivedString
+		    : derivedString.length() == 0
+			? Double.toString(amount)
+			: Double.toString(amount) + " " + derivedString;
+	}
+	return definition;
     }
 
     /**
