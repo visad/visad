@@ -101,9 +101,14 @@ public class ShapeControl extends Control {
          throws VisADException, RemoteException {
     if (shapeSet == null) return;
     if (shs != null && shs.length > 0) {
-      int len = Math.max(shs.length, shapes.length);
+      final int len = Math.min(shs.length, shapes.length);
       for (int i=0; i<len; i++) {
         shapes[i] = shs[i];
+      }
+      if (shapes.length > shs.length) {
+        for (int i=shs.length; i < shapes.length; i++) {
+          shapes[i] = null;
+        }
       }
     }
     changeControl(true);
