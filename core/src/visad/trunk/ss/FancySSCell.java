@@ -117,6 +117,8 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     super.setMaps(maps);
+    hideWidgetFrame();
+    WidgetFrame = null;
 
     // create any necessary widgets
     for (int i=0; i<maps.length; i++) {
@@ -148,25 +150,8 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
       }
       if (drt == Display.SelectRange) {
         if (WidgetFrame == null) initWidgetFrame();
-        final DataReference refLo = new DataReferenceImpl("low");
-        final DataReference refHi = new DataReferenceImpl("high");
-        VisADSlider vsLo = new VisADSlider("value low", 0, 256, 0, 1.0,
-                                           refLo, RealType.Generic);
-        VisADSlider vsHi = new VisADSlider("value high", 0, 256, 256, 1.0,
-                                           refHi, RealType.Generic);
-        final RangeControl control = (RangeControl) maps[i].getControl();
-        control.setRange(new float[] {0.0f, 256.0f});
-        CellImpl cell = new CellImpl() {
-          public void doAction() throws VisADException, RemoteException {
-            control.setRange(new float[]
-                               {(float) ((Real) refLo.getData()).getValue(),
-                                (float) ((Real) refHi.getData()).getValue()});
-          }
-        };
-        cell.addReference(refLo);
-        cell.addReference(refHi);
-        WidgetFrame.getContentPane().add(vsLo);
-        WidgetFrame.getContentPane().add(vsHi);
+        SelectRangeWidget srs = new SelectRangeWidget(maps[i]);
+        WidgetFrame.getContentPane().add(srs);
       }
       if (drt == Display.IsoContour) {
         if (WidgetFrame == null) initWidgetFrame();
@@ -190,10 +175,21 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
   }
 
+  /** Shows the widgets for altering controls. */
+  void showWidgetFrame() {
+    if (WidgetFrame != null) WidgetFrame.setVisible(true);
+  }
+
+  /** Hides the widgets for altering controls. */
+  void hideWidgetFrame() {
+    if (WidgetFrame != null) WidgetFrame.setVisible(false);
+  }
+
   /** Sets the Data for this cell, and applies the default ScalarMaps. */
   public void setData(Data data) throws VisADException, RemoteException {
-
     super.setData(data);
+    hideWidgetFrame();
+    WidgetFrame = null;
     setMappingScheme(MappingDomain, MappingRange);
   }
 
@@ -409,8 +405,14 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
   public void setSelected(boolean value) {
     if (Selected == value) return;
     Selected = value;
-    if (Selected) setBorder(BLUE3);
-    else setBorder(GRAY3);
+    if (Selected) {
+      setBorder(BLUE3);
+      showWidgetFrame();
+    }
+    else {
+      setBorder(GRAY3);
+      hideWidgetFrame();
+    }
     paint(getGraphics());
   }
 
@@ -436,7 +438,11 @@ public class FancySSCell extends BasicSSCell implements FilenameFilter {
   /** Clears the cell if no other cell depends it;  otherwise, asks the
       user "Are you sure?" */
   public void smartClear() throws VisADException, RemoteException {
-    if (confirmClear()) clearCell();
+    if (confirmClear()) {
+      hideWidgetFrame();
+      WidgetFrame = null;
+      clearCell();
+    }
   }
 
   /** Lets the user create ScalarMaps from the current SSPanel's Data
