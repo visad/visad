@@ -721,12 +721,13 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         if (scaleMade)
         {
             //displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
-            if (scale_on) 
+            if (scale_on) {
                 displayRenderer.setScale(
                         axisScale.getAxis(),
                         axisScale.getAxisOrdinal(),
                         axisScale.getScaleArray(), 
                         axisScale.getColor().getColorComponents(null));
+            }
             scale_flag = false;
         }
     }

@@ -132,10 +132,11 @@ public class AxisScale
   // twoD may help define orientation
   
       // compute graphics positions
+      // these are {x, y, z} vectors
       double[] base = null; // vector from one character to another
       double[] up = null; // vector from bottom of character to top
-      double[] startn = null; // -1.0 position
-      double[] startp = null; // +1.0 position
+      double[] startn = null; // -1.0 position along axis
+      double[] startp = null; // +1.0 position along axis
   
       double XMIN = -1.0;
       double YMIN = -1.0;
@@ -144,7 +145,7 @@ public class AxisScale
       double line = 2.0 * axisOrdinal * SCALE;
   
       double ONE = 1.0;
-      if (dataRange[0] > dataRange[1]) ONE = -1.0;
+      if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
       if (myAxis == X_AXIS) {
         base = new double[] {SCALE, 0.0, 0.0};
         up = new double[] {0.0, SCALE, SCALE};
@@ -164,6 +165,7 @@ public class AxisScale
         startn = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), -ONE};
       }
       if (twoD) {
+        // zero out z coordinates
         base[2] = 0.0;
         up[2] = 0.0;
         startn[2] = 0.0;
@@ -191,6 +193,7 @@ public class AxisScale
       else if (ratio < 4.0) {
         tens /= 2.0;
       }
+      // now tens = interval between tick marks
   
       long bot = (int) Math.ceil(min / tens);
       long top = (int) Math.floor(max / tens);
@@ -198,14 +201,21 @@ public class AxisScale
         if (bot < 0) top++;
         else bot--;
       }
+      // now bot * tens = value of lowest tick mark, and
+      // top * tens = values of highest tick mark
+
       arrays[0] = new VisADLineArray();
       int nticks = (int) (top - bot) + 1;
+      // coordinates has three entries for (x, y, z) of each point
+      // two points determine a line segment,
+      // hence 6 coordinates entries per segment
       float[] coordinates = new float[6 * (nticks + 1)];
       // draw base line
-      for (int i=0; i<3; i++) {
+      for (int i=0; i<3; i++) { // loop over x, y & z coordinates
         coordinates[i] = (float) startn[i];
         coordinates[3 + i] = (float) startp[i];
       }
+      // now coordinates[0], [1] and [2]
   
       // draw tick marks
       int k = 6;
@@ -227,6 +237,7 @@ public class AxisScale
       double[] startbot = new double[3];
       double[] starttop = new double[3];
       double[] startlabel = new double[3];
+      // compute positions along axis of low and high tick marks
       double botval = bot * tens;
       double topval = top * tens;
       double abot = (botval - min) / (max - min);
@@ -236,6 +247,7 @@ public class AxisScale
         starttop[i] = (1.0 - atop) * startn[i] + atop * startp[i] - 1.5 * up[i];
         startlabel[i] = 0.5 * (startn[i] + startp[i]) - 1.5 * up[i];
       }
+      // all labels rendered with 'true' for centered
   
       // draw RealType name
       arrays[1] = PlotText.render_label(myLabel, startlabel,
