@@ -30,6 +30,11 @@ public class FullSizeTest
     public static void main(String[] args)
 	throws Exception
     {
+	String	urlSpec =
+	    args.length > 0
+		? args[0]
+		: "http://www.unidata.ucar.edu/cgi-bin/dods/test2/nph-nc/" +
+		  "packages/dods/data/nc_test/COADS-climatology.nc";
 	Runtime	runtime = Runtime.getRuntime();
 	long	free1 = runtime.freeMemory();
 	long	total1 = runtime.totalMemory();
@@ -37,10 +42,7 @@ public class FullSizeTest
 	System.out.println("Before DODS total/free/used memory: " + 
 	    total1 + '/' + free1 + '/' + used1);
 	DODSForm	form = DODSForm.dodsForm();
-	DataImpl	data =
-	    form.open(
-		"http://www.unidata.ucar.edu/cgi-bin/dods/test2/nph-nc/" +
-		"packages/dods/data/nc_test/COADS-climatology.nc");
+	DataImpl	data = form.open(urlSpec);
 	long	free2 = runtime.freeMemory();
 	long	total2 = runtime.totalMemory();
 	long	used2 = total2 - free2;

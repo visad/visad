@@ -59,7 +59,7 @@ public final class UInt32VectorAdapter
 	throws VisADException, RemoteException
     {
 	super(vector, table, factory);
-	valuator = Valuator.valuator(table);
+	valuator = Valuator.valuator(table, Attribute.UINT32);
     }
 
     /**

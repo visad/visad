@@ -42,9 +42,9 @@ public class ByteVariableAdapter
 	throws VisADException, RemoteException
     {
 	realType = realType(var, table);
-	valuator = Valuator.valuator(table);
-	int	min = (int)Math.max(valuator.getMin(), -128);
-	int	max = (int)Math.min(valuator.getMax(), 255);
+	valuator = Valuator.valuator(table, Attribute.BYTE);
+	int	min = (int)Math.round(valuator.getMin());
+	int	max = (int)Math.round(valuator.getMax());
 	repSets =
 	    new SimpleSet[] {
 		min == 0

@@ -89,7 +89,7 @@ public abstract class NumericVectorAdapter
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public abstract void setField(PrimitiveVector vector, Field field)
+    public abstract void setField(PrimitiveVector vector, FieldImpl field)
 	throws VisADException, RemoteException;
 
     /**

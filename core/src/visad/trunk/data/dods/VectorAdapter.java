@@ -117,7 +117,7 @@ public abstract class VectorAdapter
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public void setField(PrimitiveVector vector, Field field)
+    public void setField(PrimitiveVector vector, FieldImpl field)
 	throws VisADException, RemoteException
     {
 	if (vector instanceof BooleanPrimitiveVector)
@@ -151,7 +151,7 @@ public abstract class VectorAdapter
      *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(BooleanPrimitiveVector vector, Field field)
+    public void setField(BooleanPrimitiveVector vector, FieldImpl field)
 	throws VisADException
     {
 	throw new VisADException(
@@ -170,7 +170,7 @@ public abstract class VectorAdapter
      *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(BytePrimitiveVector vector, Field field)
+    public void setField(BytePrimitiveVector vector, FieldImpl field)
 	throws VisADException
     {
 	throw new VisADException(
@@ -189,7 +189,7 @@ public abstract class VectorAdapter
      *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(UInt16PrimitiveVector vector, Field field)
+    public void setField(UInt16PrimitiveVector vector, FieldImpl field)
 	throws VisADException
     {
 	throw new VisADException(
@@ -208,7 +208,7 @@ public abstract class VectorAdapter
      *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(Int16PrimitiveVector vector, Field field)
+    public void setField(Int16PrimitiveVector vector, FieldImpl field)
 	throws VisADException
     {
 	throw new VisADException(
@@ -227,7 +227,7 @@ public abstract class VectorAdapter
      *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(UInt32PrimitiveVector vector, Field field)
+    public void setField(UInt32PrimitiveVector vector, FieldImpl field)
 	throws VisADException
     {
 	throw new VisADException(
@@ -246,7 +246,7 @@ public abstract class VectorAdapter
      *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(Int32PrimitiveVector vector, Field field)
+    public void setField(Int32PrimitiveVector vector, FieldImpl field)
 	throws VisADException
     {
 	throw new VisADException(
@@ -265,7 +265,7 @@ public abstract class VectorAdapter
      *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(Float32PrimitiveVector vector, Field field)
+    public void setField(Float32PrimitiveVector vector, FieldImpl field)
 	throws VisADException
     {
 	throw new VisADException(
@@ -284,7 +284,7 @@ public abstract class VectorAdapter
      *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(Float64PrimitiveVector vector, Field field)
+    public void setField(Float64PrimitiveVector vector, FieldImpl field)
 	throws VisADException
     {
 	throw new VisADException(
@@ -304,7 +304,7 @@ public abstract class VectorAdapter
      * @throws VisADException	The vector has the wrong DODS type.
      * @throws RemoteException	Java RMI failure.
      */
-    public void setField(BaseTypePrimitiveVector vector, Field field)
+    public void setField(BaseTypePrimitiveVector vector, FieldImpl field)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(

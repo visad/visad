@@ -46,7 +46,7 @@ public class Float32VariableAdapter
 	throws VisADException, RemoteException
     {
 	realType = realType(var, table);
-	valuator = Valuator.valuator(table);
+	valuator = Valuator.valuator(table, Attribute.FLOAT32);
 	repSets = new SimpleSet[] {new FloatSet(realType)};
     }
 

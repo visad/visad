@@ -58,7 +58,7 @@ public class Float64VectorAdapter
 	throws VisADException, RemoteException
     {
 	super(vector, table, factory);
-	valuator = Valuator.valuator(table);
+	valuator = Valuator.valuator(table, Attribute.FLOAT64);
     }
 
     /**
@@ -77,10 +77,14 @@ public class Float64VectorAdapter
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public final void setField(PrimitiveVector vector, Field field)
+    public final void setField(PrimitiveVector vector, FieldImpl field)
 	throws VisADException, RemoteException
     {
-	field.setSamples(new double[][] {getDoubles(vector)});
+	if (field instanceof FlatField)
+	    ((FlatField)field).setSamples(
+		new double[][] {getDoubles(vector)}, /*copy=*/false);
+	else
+	    field.setSamples(new double[][] {getDoubles(vector)});
     }
 
     /**

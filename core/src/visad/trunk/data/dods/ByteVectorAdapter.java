@@ -58,7 +58,7 @@ public final class ByteVectorAdapter
 	throws VisADException, RemoteException
     {
 	super(vector, table, factory);
-	valuator = Valuator.valuator(table);
+	valuator = Valuator.valuator(table, Attribute.BYTE);
     }
 
     /**

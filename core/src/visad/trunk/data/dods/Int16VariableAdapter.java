@@ -46,9 +46,9 @@ public class Int16VariableAdapter
 	throws VisADException, RemoteException
     {
 	realType = realType(var, table);
-	valuator = Valuator.valuator(table);
-	int	min = (int)Math.max(valuator.getMin(), Short.MIN_VALUE);
-	int	max = (int)Math.min(valuator.getMax(), Short.MAX_VALUE);
+	valuator = Valuator.valuator(table, Attribute.INT16);
+	int	min = (int)Math.round(valuator.getMin());
+	int	max = (int)Math.round(valuator.getMax());
 	repSets =
 	    new SimpleSet[] {new Linear1DSet(realType, min, max, (max-min)+1)};
     }

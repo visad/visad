@@ -60,7 +60,7 @@ public final class Int32VectorAdapter
 	throws BadFormException, VisADException, RemoteException
     {
 	super(vector, table, factory);
-	valuator = Valuator.valuator(table);
+	valuator = Valuator.valuator(table, Attribute.INT32);
     }
 
     /**

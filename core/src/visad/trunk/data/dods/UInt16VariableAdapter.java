@@ -46,9 +46,9 @@ public class UInt16VariableAdapter
 	throws VisADException, RemoteException
     {
 	realType = realType(var, table);
-	valuator = Valuator.valuator(table);
-	int	min = (int)Math.max(valuator.getMin(),     0);
-	int	max = (int)Math.min(valuator.getMax(), 2*Short.MAX_VALUE+1);
+	valuator = Valuator.valuator(table, Attribute.UINT16);
+	int	min = (int)Math.round(valuator.getMin());
+	int	max = (int)Math.round(valuator.getMax());
 	repSets =
 	    new SimpleSet[] {
 		min == 0

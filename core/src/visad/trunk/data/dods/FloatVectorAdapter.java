@@ -76,10 +76,14 @@ public abstract class FloatVectorAdapter
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public final void setField(PrimitiveVector vector, Field field)
+    public final void setField(PrimitiveVector vector, FieldImpl field)
 	throws VisADException, RemoteException
     {
-	field.setSamples(new float[][] {getFloats(vector)});
+	if (field instanceof FlatField)
+	    ((FlatField)field).setSamples(
+		new float[][] {getFloats(vector)}, /*copy=*/false);
+	else
+	    field.setSamples(new float[][] {getFloats(vector)});
     }
 
     /**

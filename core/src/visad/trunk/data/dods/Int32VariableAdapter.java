@@ -46,9 +46,9 @@ public class Int32VariableAdapter
 	throws VisADException, RemoteException
     {
 	realType = realType(var, table);
-	valuator = Valuator.valuator(table);
-	int	min = (int)Math.max(valuator.getMin(), Integer.MIN_VALUE);
-	int	max = (int)Math.min(valuator.getMax(), Integer.MAX_VALUE);
+	valuator = Valuator.valuator(table, Attribute.INT32);
+	int	min = (int)Math.round(valuator.getMin());
+	int	max = (int)Math.round(valuator.getMax());
 	long	length = ((long)max - (long)min) + 1;
 	repSets =
 	    new SimpleSet[] {

@@ -108,7 +108,7 @@ public class BaseTypeVectorAdapter
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public void setField(BaseTypePrimitiveVector vector, Field field)
+    public void setField(BaseTypePrimitiveVector vector, FieldImpl field)
 	throws VisADException, RemoteException
     {
 	int		length = vector.getLength();

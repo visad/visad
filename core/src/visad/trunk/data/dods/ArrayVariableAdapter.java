@@ -205,7 +205,7 @@ public class ArrayVariableAdapter
      * @param field		The VisAD Field to be set.  The field must be
      *				compatible with the array.
      */
-    public void setField(DArray array, Field field)
+    public void setField(DArray array, FieldImpl field)
 	throws VisADException, RemoteException
     {
 	vectorAdapter.setField(array.getPrimitiveVector(), field);
