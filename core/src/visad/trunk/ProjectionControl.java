@@ -29,6 +29,8 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.util.Util;
+
 /**
    ProjectionControl is the VisAD interface for controlling the Projection
    from 3-D to 2-D.<P>
@@ -225,7 +227,7 @@ public abstract class ProjectionControl extends Control {
       }
 
       for (int i = 0; i < matrix.length; i++) {
-        if (Math.abs(matrix[i] - newMatrix[i]) > 0.0001) {
+        if (!Util.isApproximatelyEqual(matrix[i], newMatrix[i])) {
           return false;
         }
       }

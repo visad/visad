@@ -28,6 +28,8 @@ package visad;
 
 import java.rmi.*;
 
+import visad.util.Util;
+
 /**
    mapping from constant to DisplayRealType
 */
@@ -86,7 +88,7 @@ public class ConstantMap extends ScalarMap {
     }
 
     ConstantMap cm = (ConstantMap )o;
-    return ((Math.abs(Constant - cm.Constant) < 0.0001) &&
+    return (Util.isApproximatelyEqual(Constant, cm.Constant) &&
             getDisplayScalar().equals(cm.getDisplayScalar()));
   }
 

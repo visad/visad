@@ -33,9 +33,10 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.awt.geom.AffineTransform;
 
-import java.util.*;
 import java.rmi.*;
+import java.util.*;
 
+import visad.util.Util;
 
 /**
  * <CODE>DisplayRendererJ2D</CODE> is the VisAD abstract super-class for
@@ -206,7 +207,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       case 2: a = appear.blue; break;
       }
 
-      if (Math.abs(a - colors[i]) > 0.0001) {
+      if (!Util.isApproximatelyEqual(a, colors[i])) {
         switch (i) {
         case 0: appear.red = colors[i]; break;
         case 1: appear.green = colors[i]; break;
@@ -247,9 +248,9 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     // update background colors
     float[] ca = canvas.getBackgroundColor();
     float[] ct = ctl.getBackgroundColor();
-    if (Math.abs(ca[0] - ct[0]) > 0.0001 ||
-        Math.abs(ca[1] - ct[1]) > 0.0001 ||
-        Math.abs(ca[2] - ct[2]) > 0.0001)
+    if (!Util.isApproximatelyEqual(ca[0], ct[0]) ||
+        !Util.isApproximatelyEqual(ca[1], ct[1]) ||
+        !Util.isApproximatelyEqual(ca[2], ct[2]))
     {
       canvas.setBackgroundColor(ct[0], ct[1], ct[2]);
       canvas.scratchImages();

@@ -29,6 +29,8 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.util.Util;
+
 /**
    ContourControl is the VisAD class for controlling IsoContour display scalars.<P>
 */
@@ -129,7 +131,7 @@ public class ContourControl extends Control {
   /** set level for iso-surfaces */
   public void setSurfaceValue(float value)
          throws VisADException, RemoteException {
-    boolean change = (Math.abs(surfaceValue - value) > 0.0001);
+    boolean change = !Util.isApproximatelyEqual(surfaceValue, value);
     surfaceValue = value;
     if (change) {
       changeControl(true);
@@ -143,8 +145,8 @@ public class ContourControl extends Control {
                                  float hi, float ba)
          throws VisADException, RemoteException {
     boolean change = (contourInterval != interval) || (base != ba) ||
-                     (Math.abs(lowLimit - low) > 0.0001) ||
-                     (Math.abs(hiLimit - hi) > 0.0001);
+                     !Util.isApproximatelyEqual(lowLimit, low) ||
+                     !Util.isApproximatelyEqual(hiLimit, hi);
     contourInterval = interval;
     lowLimit = low;
     hiLimit = hi;
@@ -167,8 +169,8 @@ public class ContourControl extends Control {
          throws VisADException, RemoteException {
     if (!in) {
       in = true;
-      boolean change = (Math.abs(lowLimit - low) > 0.0001) ||
-                       (Math.abs(hiLimit - hi) > 0.0001);
+      boolean change = !Util.isApproximatelyEqual(lowLimit, low) ||
+                       !Util.isApproximatelyEqual(hiLimit, hi);
       lowLimit = low;
       hiLimit = hi;
   
@@ -330,19 +332,19 @@ public class ContourControl extends Control {
       surfaceValue = cc.surfaceValue;
     }
 
-    if (Math.abs(contourInterval - cc.contourInterval) > 0.0001) {
+    if (!Util.isApproximatelyEqual(contourInterval, cc.contourInterval)) {
       changed = true;
       contourInterval = cc.contourInterval;
     }
-    if (Math.abs(lowLimit - cc.lowLimit) > 0.0001) {
+    if (!Util.isApproximatelyEqual(lowLimit, cc.lowLimit)) {
       changed = true;
       lowLimit = cc.lowLimit;
     }
-    if (Math.abs(hiLimit - cc.hiLimit) > 0.0001) {
+    if (!Util.isApproximatelyEqual(hiLimit, cc.hiLimit)) {
       changed = true;
       hiLimit = cc.hiLimit;
     }
-    if (Math.abs(base - cc.base) > 0.0001) {
+    if (!Util.isApproximatelyEqual(base, cc.base)) {
       changed = true;
       base = cc.base;
     }
@@ -372,14 +374,14 @@ public class ContourControl extends Control {
       }
       // copy remote values
       for (int i = 0; i < levels.length; i++) {
-        if (Math.abs(levels[i] - cc.levels[i]) > 0.0001) {
+        if (!Util.isApproximatelyEqual(levels[i], cc.levels[i])) {
           changed = true;
           levels[i] = cc.levels[i];
         }
       }
     }
 
-    if (Math.abs(base - cc.base) > 0.0001) {
+    if (!Util.isApproximatelyEqual(base, cc.base)) {
       changed = true;
       base = cc.base;
     }
@@ -398,27 +400,31 @@ public class ContourControl extends Control {
       verticalContourSlice = cc.verticalContourSlice;
     }
 
-    if (Math.abs(horizontalSliceLow - cc.horizontalSliceLow) > 0.0001) {
+    if (!Util.isApproximatelyEqual(horizontalSliceLow,
+                                   cc.horizontalSliceLow))
+    {
       changed = true;
       horizontalSliceLow = cc.horizontalSliceLow;
     }
-    if (Math.abs(horizontalSliceHi - cc.horizontalSliceHi) > 0.0001) {
+    if (!Util.isApproximatelyEqual(horizontalSliceHi, cc.horizontalSliceHi)) {
       changed = true;
       horizontalSliceHi = cc.horizontalSliceHi;
     }
-    if (Math.abs(horizontalSliceStep - cc.horizontalSliceStep) > 0.0001) {
+    if (!Util.isApproximatelyEqual(horizontalSliceStep,
+                                   cc.horizontalSliceStep))
+    {
       changed = true;
       horizontalSliceStep = cc.horizontalSliceStep;
     }
-    if (Math.abs(verticalSliceLow - cc.verticalSliceLow) > 0.0001) {
+    if (!Util.isApproximatelyEqual(verticalSliceLow, cc.verticalSliceLow)) {
       changed = true;
       verticalSliceLow = cc.verticalSliceLow;
     }
-    if (Math.abs(verticalSliceHi - cc.verticalSliceHi) > 0.0001) {
+    if (!Util.isApproximatelyEqual(verticalSliceHi, cc.verticalSliceHi)) {
       changed = true;
       verticalSliceHi = cc.verticalSliceHi;
     }
-    if (Math.abs(verticalSliceStep - cc.verticalSliceStep) > 0.0001) {
+    if (!Util.isApproximatelyEqual(verticalSliceStep, cc.verticalSliceStep)) {
       changed = true;
       verticalSliceStep = cc.verticalSliceStep;
     }
@@ -444,20 +450,20 @@ public class ContourControl extends Control {
     if (mainContours != cc.mainContours) {
       return false;
     }
-    if (Math.abs(surfaceValue - cc.surfaceValue) > 0.0001) {
+    if (!Util.isApproximatelyEqual(surfaceValue, cc.surfaceValue)) {
       return false;
     }
 
-    if (Math.abs(contourInterval - cc.contourInterval) > 0.0001) {
+    if (!Util.isApproximatelyEqual(contourInterval, cc.contourInterval)) {
       return false;
     }
-    if (Math.abs(lowLimit - cc.lowLimit) > 0.0001) {
+    if (!Util.isApproximatelyEqual(lowLimit, cc.lowLimit)) {
       return false;
     }
-    if (Math.abs(hiLimit - cc.hiLimit) > 0.0001) {
+    if (!Util.isApproximatelyEqual(hiLimit, cc.hiLimit)) {
       return false;
     }
-    if (Math.abs(base - cc.base) > 0.0001) {
+    if (!Util.isApproximatelyEqual(base, cc.base)) {
       return false;
     }
 
@@ -479,13 +485,13 @@ public class ContourControl extends Control {
       }
       // copy remote values
       for (int i = 0; i < levels.length; i++) {
-        if (Math.abs(levels[i] - cc.levels[i]) > 0.0001) {
+        if (!Util.isApproximatelyEqual(levels[i], cc.levels[i])) {
           return false;
         }
       }
     }
 
-    if (Math.abs(base - cc.base) > 0.0001) {
+    if (!Util.isApproximatelyEqual(base, cc.base)) {
       return false;
     }
 
@@ -500,22 +506,26 @@ public class ContourControl extends Control {
       return false;
     }
 
-    if (Math.abs(horizontalSliceLow - cc.horizontalSliceLow) > 0.0001) {
+    if (!Util.isApproximatelyEqual(horizontalSliceLow,
+                                   cc.horizontalSliceLow))
+    {
       return false;
     }
-    if (Math.abs(horizontalSliceHi - cc.horizontalSliceHi) > 0.0001) {
+    if (!Util.isApproximatelyEqual(horizontalSliceHi, cc.horizontalSliceHi)) {
       return false;
     }
-    if (Math.abs(horizontalSliceStep - cc.horizontalSliceStep) > 0.0001) {
+    if (!Util.isApproximatelyEqual(horizontalSliceStep,
+                                   cc.horizontalSliceStep))
+    {
       return false;
     }
-    if (Math.abs(verticalSliceLow - cc.verticalSliceLow) > 0.0001) {
+    if (!Util.isApproximatelyEqual(verticalSliceLow, cc.verticalSliceLow)) {
       return false;
     }
-    if (Math.abs(verticalSliceHi - cc.verticalSliceHi) > 0.0001) {
+    if (!Util.isApproximatelyEqual(verticalSliceHi, cc.verticalSliceHi)) {
       return false;
     }
-    if (Math.abs(verticalSliceStep - cc.verticalSliceStep) > 0.0001) {
+    if (!Util.isApproximatelyEqual(verticalSliceStep, cc.verticalSliceStep)) {
       return false;
     }
 

@@ -32,12 +32,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
+import java.rmi.*;
+import java.util.*;
+
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
-import java.util.*;
-import java.rmi.*;
-
+import visad.util.Util;
 
 /**
  * <CODE>DisplayRendererJ3D</CODE> is the VisAD abstract super-class for
@@ -254,9 +255,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     if (box_color != null) {
       ct = ctl.getBoxColor();
       box_color.getColor(c3f);
-      if (Math.abs(ct[0] - c3f.x) > 0.0001 ||
-          Math.abs(ct[1] - c3f.y) > 0.0001 ||
-          Math.abs(ct[2] - c3f.z) > 0.0001)
+      if (!Util.isApproximatelyEqual(ct[0], c3f.x) ||
+          !Util.isApproximatelyEqual(ct[1], c3f.y) ||
+          !Util.isApproximatelyEqual(ct[2], c3f.z))
       {
         box_color.setColor(ct[0], ct[1], ct[2]);
       }
@@ -266,9 +267,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     if (cursor_color != null) {
       ct = ctl.getCursorColor();
       cursor_color.getColor(c3f);
-      if (Math.abs(ct[0] - c3f.x) > 0.0001 ||
-          Math.abs(ct[1] - c3f.y) > 0.0001 ||
-          Math.abs(ct[2] - c3f.z) > 0.0001)
+      if (!Util.isApproximatelyEqual(ct[0], c3f.x) ||
+          !Util.isApproximatelyEqual(ct[1], c3f.y) ||
+          !Util.isApproximatelyEqual(ct[2], c3f.z))
       {
         cursor_color.setColor(ct[0], ct[1], ct[2]);
       }
@@ -277,9 +278,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     // update background colors
     ct = ctl.getBackgroundColor();
     background.getColor(c3f);
-    if (Math.abs(ct[0] - c3f.x) > 0.0001 ||
-        Math.abs(ct[1] - c3f.y) > 0.0001 ||
-        Math.abs(ct[2] - c3f.z) > 0.0001)
+    if (!Util.isApproximatelyEqual(ct[0], c3f.x) ||
+        !Util.isApproximatelyEqual(ct[1], c3f.y) ||
+        !Util.isApproximatelyEqual(ct[2], c3f.z))
     {
       background.setColor(ct[0], ct[1], ct[2]);
     }

@@ -28,6 +28,8 @@ package visad;
 
 import java.rmi.RemoteException;
 
+import visad.util.Util;
+
 /**
  * <CODE>RendererControl</CODE> is the VisAD class for controlling
  * <CODE>DisplayRenderer</CODE> data.<P>
@@ -171,7 +173,7 @@ public class RendererControl
       return false;
     } else {
       for (int i = 0; i < one.length; i++) {
-        if (Math.abs(one[i] - two[i]) > 0.0001) {
+        if (!Util.isApproximatelyEqual(one[i], two[i])) {
           return false;
         }
       }

@@ -26,9 +26,11 @@ MA 02111-1307, USA
 
 package visad.java2d;
  
+import java.rmi.*;
+
 import visad.*;
 
-import java.rmi.*;
+import visad.util.Util;
 
 /**
    GraphicsModeControlJ2D is the VisAD class for controlling various
@@ -243,12 +245,12 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     boolean changed = false;
     boolean redisplay = false;
 
-    if (Math.abs(lineWidth - rmtCtl.lineWidth) > 0.0001) {
+    if (!Util.isApproximatelyEqual(lineWidth, rmtCtl.lineWidth)) {
       changed = true;
       redisplay = true;
       lineWidth = rmtCtl.lineWidth;
     }
-    if (Math.abs(pointSize - rmtCtl.pointSize) > 0.0001) {
+    if (!Util.isApproximatelyEqual(pointSize, rmtCtl.pointSize)) {
       changed = true;
       redisplay = true;
       pointSize = rmtCtl.pointSize;
@@ -316,10 +318,10 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
 
     boolean changed = false;
 
-    if (Math.abs(lineWidth - gmc.lineWidth) > 0.0001) {
+    if (!Util.isApproximatelyEqual(lineWidth, gmc.lineWidth)) {
       return false;
     }
-    if (Math.abs(pointSize - gmc.pointSize) > 0.0001) {
+    if (!Util.isApproximatelyEqual(pointSize, gmc.pointSize)) {
       return false;
     }
 

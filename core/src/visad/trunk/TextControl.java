@@ -26,8 +26,10 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
 import java.awt.Font;
+import java.rmi.*;
+
+import visad.util.Util;
 
 /**
    TextControl is the VisAD class for controlling Text display scalars.<P>
@@ -125,7 +127,7 @@ public class TextControl extends Control {
       center = tc.center;
     }
 
-    if (Math.abs(size - tc.size) > 0.0001) {
+    if (!Util.isApproximatelyEqual(size, tc.size)) {
       changed = true;
       size = tc.size;
     }
@@ -156,7 +158,7 @@ public class TextControl extends Control {
       return false;
     }
 
-    if (Math.abs(size - tc.size) > 0.0001) {
+    if (!Util.isApproximatelyEqual(size, tc.size)) {
       return false;
     }
 

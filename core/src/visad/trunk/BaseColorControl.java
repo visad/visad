@@ -29,6 +29,8 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.util.Util;
+
 /**
    BaseColorControl is the VisAD class for controlling N-component Color
    DisplayRealType-s.<P>
@@ -635,7 +637,7 @@ public class BaseColorControl
         }
         for (i = 0; i < table.length; i++) {
           for (int j = 0; j < table[i].length; j++) {
-            if (Math.abs(table[i][j] - newTable[i][j]) > 0.0001) {
+            if (!Util.isApproximatelyEqual(table[i][j], newTable[i][j])) {
               return false;
             }
           }

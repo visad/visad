@@ -33,6 +33,8 @@ import java.util.Enumeration;
 
 import javax.media.j3d.*;
 
+import visad.util.Util;
+
 /**
    GraphicsModeControlJ3D is the VisAD class for controlling various
    mode settings for rendering.<P>
@@ -272,12 +274,12 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     boolean changed = false;
     boolean redisplay = false;
 
-    if (Math.abs(lineWidth - rmtCtl.lineWidth) > 0.0001) {
+    if (!Util.isApproximatelyEqual(lineWidth, rmtCtl.lineWidth)) {
       changed = true;
       redisplay = true;
       lineWidth = rmtCtl.lineWidth;
     }
-    if (Math.abs(pointSize - rmtCtl.pointSize) > 0.0001) {
+    if (!Util.isApproximatelyEqual(pointSize, rmtCtl.pointSize)) {
       changed = true;
       redisplay = true;
       pointSize = rmtCtl.pointSize;
@@ -353,10 +355,10 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
 
     boolean changed = false;
 
-    if (Math.abs(lineWidth - gmc.lineWidth) > 0.0001) {
+    if (!Util.isApproximatelyEqual(lineWidth, gmc.lineWidth)) {
       return false;
     }
-    if (Math.abs(pointSize - gmc.pointSize) > 0.0001) {
+    if (!Util.isApproximatelyEqual(pointSize, gmc.pointSize)) {
       return false;
     }
 

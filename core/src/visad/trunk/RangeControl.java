@@ -29,6 +29,8 @@ package visad;
 import java.rmi.*;
 import java.util.StringTokenizer;
 
+import visad.util.Util;
+
 /**
    RangeControl is the VisAD class for controlling SelectRange display scalars.<P>
 */
@@ -52,8 +54,10 @@ public class RangeControl extends Control {
   /** set the range of selected values as (range[0], range[1]) */
   public void setRange(float[] range)
          throws VisADException, RemoteException {
-    if (RangeLow != RangeLow || Math.abs(RangeLow - range[0]) > 0.0001 ||
-        RangeHi != RangeHi || Math.abs(RangeHi - range[1]) > 0.0001)
+    if (RangeLow != RangeLow ||
+        !Util.isApproximatelyEqual(RangeLow, range[0]) ||
+        RangeHi != RangeHi ||
+        !Util.isApproximatelyEqual(RangeHi, range[1]))
     {
       changeRange(range, true);
     }
@@ -113,11 +117,11 @@ public class RangeControl extends Control {
 
     boolean changed = false;
 
-    if (Math.abs(RangeLow - rc.RangeLow) > 0.0001) {
+    if (!Util.isApproximatelyEqual(RangeLow, rc.RangeLow)) {
       changed = true;
       RangeLow = rc.RangeLow;
     }
-    if (Math.abs(RangeHi - rc.RangeHi) > 0.0001) {
+    if (!Util.isApproximatelyEqual(RangeHi, rc.RangeHi)) {
       changed = true;
       RangeHi = rc.RangeHi;
     }
@@ -141,10 +145,10 @@ public class RangeControl extends Control {
 
     RangeControl rc = (RangeControl )o;
 
-    if (Math.abs(RangeLow - rc.RangeLow) > 0.0001) {
+    if (!Util.isApproximatelyEqual(RangeLow, rc.RangeLow)) {
       return false;
     }
-    if (Math.abs(RangeHi - rc.RangeHi) > 0.0001) {
+    if (!Util.isApproximatelyEqual(RangeHi, rc.RangeHi)) {
       return false;
     }
 

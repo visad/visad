@@ -28,6 +28,8 @@ package visad;
 
 import java.rmi.*;
 
+import visad.util.Util;
+
 /**
    FlowControl is the VisAD abstract super-class for controlling
    Flow display scalars.<P>
@@ -124,7 +126,7 @@ public abstract class FlowControl extends Control {
 
     boolean changed = false;
 
-    if (Math.abs(flowScale - fc.flowScale) > 0.0001) {
+    if (!Util.isApproximatelyEqual(flowScale, fc.flowScale)) {
       changed = true;
       flowScale = fc.flowScale;
     }
@@ -169,14 +171,14 @@ public abstract class FlowControl extends Control {
       }
     }
 
-    if (Math.abs(HorizontalVectorSliceHeight -
-                 fc.HorizontalVectorSliceHeight) > 0.0001)
+    if (!Util.isApproximatelyEqual(HorizontalVectorSliceHeight,
+                                   fc.HorizontalVectorSliceHeight))
     {
       changed = true;
       HorizontalVectorSliceHeight = fc.HorizontalVectorSliceHeight;
     }
-    if (Math.abs(HorizontalStreamSliceHeight -
-                 fc.HorizontalStreamSliceHeight) > 0.0001)
+    if (!Util.isApproximatelyEqual(HorizontalStreamSliceHeight,
+                                   fc.HorizontalStreamSliceHeight))
     {
       changed = true;
       HorizontalStreamSliceHeight = fc.HorizontalStreamSliceHeight;
@@ -200,7 +202,7 @@ public abstract class FlowControl extends Control {
 
     FlowControl fc = (FlowControl )o;
 
-    if (Math.abs(flowScale - fc.flowScale) > 0.0001) {
+    if (!Util.isApproximatelyEqual(flowScale, fc.flowScale)) {
       return false;
     }
 
@@ -235,13 +237,13 @@ public abstract class FlowControl extends Control {
       }
     }
 
-    if (Math.abs(HorizontalVectorSliceHeight -
-                 fc.HorizontalVectorSliceHeight) > 0.0001)
+    if (!Util.isApproximatelyEqual(HorizontalVectorSliceHeight,
+                                   fc.HorizontalVectorSliceHeight))
     {
       return false;
     }
-    if (Math.abs(HorizontalStreamSliceHeight -
-                 fc.HorizontalStreamSliceHeight) > 0.0001)
+    if (!Util.isApproximatelyEqual(HorizontalStreamSliceHeight,
+                                   fc.HorizontalStreamSliceHeight))
     {
       return false;
     }
