@@ -184,8 +184,8 @@ System.out.println(getLinks()[0].getThingReference().getName());
       catch (OutOfMemoryError e) {
         // System.out.println("OutOfMemoryError, try again ...");
         clearBranch();
-        new Delay(250);
         branch = null;
+        new Delay(250);
         Runtime.getRuntime().gc();
         Runtime.getRuntime().runFinalization();
         try {
