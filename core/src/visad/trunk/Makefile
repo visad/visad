@@ -163,6 +163,7 @@ SAVE_FILES = \
 	visad/python/*.py				\
 	visad/browser/*.java				\
 	visad/browser/*.html				\
+	visad/browser/README.browser			\
 	visad/util/*.java				\
 	visad/matrix/*.java				\
 	visad/math/*.java				\
