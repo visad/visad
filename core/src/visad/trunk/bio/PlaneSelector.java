@@ -141,60 +141,70 @@ public class PlaneSelector {
         }
 
         // solve plane equation for box edge intersections
-        /*
-          px = x0 + s*(x1 - x0) + t*(x2 - x0) = x0 + s*x10 + t*x20
-          py = y0 + s*(y1 - y0) + t*(y2 - y0) = y0 + s*y10 + t*y20
-          pz = z0 + s*(z1 - z0) + t*(z2 - z0) = y0 + s*z10 + t*z20
-
-          t = (px - x0 - s*x10) / x20
-          y = y0 + s*y10 + [(px - x0 - s*x10) / x20] * y20
-            = y0 + s*y10 + y20 * (px - x0) / x20 - y20 * s * x10 / x20
-            = y0 + y20 * (px - x0) / x20 + s * (y10 - y20 * x10 / x20)
-          s = [py - y0 - y20 * (px - x0) / x20] / (y10 - y20 * x10 / x20)
-            = [x20 * (py - y0) - y20 * (px - x0)] / (x20 * y10 - y20 * x10)
-        */
-        double[] px = {lox, lox, hix, hix, lox, lox, hix, hix, 0, 0, 0, 0};
-        double[] py = {loy, hiy, loy, hiy, 0, 0, 0, 0, loy, loy, hiy, hiy};
-        double[] pz = {0, 0, 0, 0, loz, hiz, loz, hiz, loz, hiz, loz, hiz};
+        //
+        // x = x0 + s*(x1 - x0) + t*(x2 - x0) = x0 + s*x10 + t*x20
+        // y = y0 + s*(y1 - y0) + t*(y2 - y0) = y0 + s*y10 + t*y20
+        // z = z0 + s*(z1 - z0) + t*(z2 - z0) = y0 + s*z10 + t*z20
+        //
+        // t = (x - x0 - s*x10) / x20
+        // y = y0 + s*y10 + [(x - x0 - s*x10) / x20] * y20
+        //   = y0 + s*y10 + y20 * (x - x0) / x20 - y20 * s * x10 / x20
+        //   = y0 + y20 * (x - x0) / x20 + s * (y10 - y20 * x10 / x20)
+        // s = [y - y0 - y20 * (x - x0) / x20] / (y10 - y20 * x10 / x20)
+        //   = [x20 * (y - y0) - y20 * (x - x0)] / (x20 * y10 - y20 * x10)
+        double NaN = Double.NaN;
+        double[][] p = {
+          {NaN, lox, lox, lox, lox, NaN, hix, NaN, hix, NaN, hix, hix},
+          {loy, NaN, loy, NaN, hiy, hiy, hiy, hiy, NaN, loy, loy, NaN},
+          {loz, loz, NaN, hiz, NaN, loz, NaN, hiz, hiz, hiz, NaN, loz}
+        };
         boolean[] valid = new boolean[12];
         int vcount = 0;
-        System.out.println("--");
         for (int i=0; i<12; i++) {
-          double px0 = px[i] - x[0];
-          double py0 = py[i] - y[0];
-          double pz0 = pz[i] - z[0];
+          double px0 = p[0][i] - x[0];
+          double py0 = p[1][i] - y[0];
+          double pz0 = p[2][i] - z[0];
           double x10 = x[1] - x[0];
           double y10 = y[1] - y[0];
           double z10 = z[1] - z[0];
           double x20 = x[2] - x[0];
           double y20 = y[2] - y[0];
           double z20 = z[2] - z[0];
-          if (i > 7) {
-            // solve for px
+          if (px0 != px0) {
+            // solve for x
             double s = (y20 * pz0 - z20 * py0) / (y20 * z10 - z20 * y10);
-            double t = (py0 - s * y10) / y20;
-            px[i] = x[0] + s * x10 + t * x20;
-            valid[i] = px[i] >= lox && px[i] <= hix;
+            double t = y20 == 0 ?
+              ((pz0 - s * z10) / z20) :
+              ((py0 - s * y10) / y20);
+            p[0][i] = x[0] + s * x10 + t * x20;
+            valid[i] = p[0][i] >= lox && p[0][i] <= hix;
           }
-          else if (i > 3) {
-            // solve for py
+          else if (py0 != py0) {
+            // solve for y
             double s = (z20 * px0 - x20 * pz0) / (z20 * x10 - x20 * z10);
-            double t = (pz0 - s * z10) / z20;
-            py[i] = y[0] + s * y10 + t * y20;
-            valid[i] = py[i] >= loy && py[i] <= hiy;
+            double t = z20 == 0 ?
+            ((px0 - s * x10) / x20) :
+            ((pz0 - s * z10) / z20);
+            p[1][i] = y[0] + s * y10 + t * y20;
+            valid[i] = p[1][i] >= loy && p[1][i] <= hiy;
           }
-          else {
-            // solve for pz
+          else { // pz0 != pz0
+            // solve for z
             double s = (x20 * py0 - y20 * px0) / (x20 * y10 - y20 * x10);
-            double t = (px0 - s * x10) / x20;
-            pz[i] = z[0] + s * z10 + t * z20;
-            valid[i] = pz[i] >= loz && pz[i] <= hiz;
+            double t = x20 == 0 ?
+              ((py0 - s * y10) / y20) :
+              ((px0 - s * x10) / x20);
+            p[2][i] = z[0] + s * z10 + t * z20;
+            valid[i] = p[2][i] >= loz && p[2][i] <= hiz;
           }
           // invalidate duplicate points
           if (valid[i]) {
             for (int j=0; j<i; j++) {
               if (!valid[j]) continue;
-              if (px[i] == px[j] && py[i] == py[j] && pz[i] == pz[j]) {
+              if (p[0][i] == p[0][j] &&
+                p[1][i] == p[1][j] &&
+                p[2][i] == p[2][j])
+              {
                 valid[i] = false;
                 break;
               }
@@ -203,11 +213,8 @@ public class PlaneSelector {
           if (valid[i]) vcount++;
         }
 
-        // analyze px, py, pz for valid box edge intersections
+        // analyze x, y, z for valid box edge intersections
         // there could be as few as 3 or as many as 6
-        // there are some annoying special cases too:
-        //   - degenerate plane (colinear points)
-        //   - box face identity (plane is one of the box faces)
         try {
           Gridded3DSet lines = null, plane = null;
           if (vcount > 0) {
@@ -217,9 +224,9 @@ public class PlaneSelector {
             float[] uz = new float[vcount];
             for (int i=0, c=0; i<12; i++) {
               if (valid[i]) {
-                ux[c] = (float) px[i];
-                uy[c] = (float) py[i];
-                uz[c] = (float) pz[i];
+                ux[c] = (float) p[0][i];
+                uy[c] = (float) p[1][i];
+                uz[c] = (float) p[2][i];
                 c++;
               }
             }
