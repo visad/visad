@@ -174,10 +174,21 @@ def makeMaps(*a):
 # quick display of a Display object in a separate JFrame
 # you can set the size and title, if you want...
 def showDisplay(display, xsize=300, ysize=300, title="VisAD Display"):
-  from javax.swing import JFrame
+  myf = myFrame(display, xsize, ysize, title)
 
-  frame = JFrame(title)
-  pane = frame.getContentPane()
-  pane.add(display.getComponent())
-  frame.setSize(xsize, ysize)
-  frame.setVisible(1)
+class myFrame:
+
+  def desty(self, event):
+    self.display.destroy()
+    self.frame.dispose()
+
+  def __init__(self, display, xsize, ysize, title):
+    from javax.swing import JFrame
+    self.display = display
+    self.frame = JFrame(title, windowClosing=self.desty)
+    self.pane = self.frame.getContentPane()
+    self.pane.add(self.display.getComponent())
+    self.frame.setSize(xsize, ysize)
+    self.frame.pack()
+    self.frame.show()
+

@@ -12,17 +12,17 @@ def scatter(data_1, data_2, panel=None, size=None, xlabel=None, ylabel=None, tit
 
   rng_1 = data_1.getType().getRange().toString()
   rng_2 = data_2.getType().getRange().toString()
+  data = FieldImpl.combine((data_1,data_2))
   maps = subs.makeMaps(getRealType(rng_1),"x", getRealType(rng_2),"y")
   disp = subs.makeDisplay(maps)
-  subs.addData("first", data_1, disp)
-  subs.addData("second", data_2, disp)
-
+  subs.addData("data", data, disp)
+  subs.maximizeBox(disp, .70)
+  showAxesScales(disp,1)
   subs.showDisplay(disp,400,500,title)
 
   return
 
 # quick look histogram - only first range component is used.
-
 def histogram(data, bins=20, title="VisAD Histogram", color=None, panel=None):
 
   from java.lang.Math import abs
@@ -39,20 +39,23 @@ def histogram(data, bins=20, title="VisAD Histogram", color=None, panel=None):
   hmax = hmin
 
   for i in range(0,len(h)):
-   xm = d[0][i]-step2
-   xp = d[0][i]+step2
-   x.append(xm)
-   y.append(0)
-   x.append(xm)
-   hval = h[i].getValue()
-   if hval < hmin: hmin = hval
-   if hval > hmax: hmax = hval
-   y.append(hval)
-   x.append(xp)
-   y.append(hval)
-   x.append(xp)
-   y.append(0)
+    hval = h[i].getValue()
+    if hval < hmin: hmin = hval
+    if hval > hmax: hmax = hval
 
+  for i in range(0,len(h)):
+    xm = d[0][i]-step2
+    xp = d[0][i]+step2
+    x.append(xm)
+    y.append(hmin)
+    x.append(xm)
+    hval = h[i].getValue()
+    y.append(hval)
+    x.append(xp)
+    y.append(hval)
+    x.append(xp)
+    y.append(hmin)
+  
   domt = domainType(h)
   rngt = rangeType(h)
 
@@ -69,10 +72,22 @@ def histogram(data, bins=20, title="VisAD Histogram", color=None, panel=None):
 
   return
 
+
 def piechart(data, panel=None):
   return
 
-def lineplot(sdata, panel=None, colortable=None):
+def lineplot(data, panel=None, colortable=None, title="Line Plot"):
+  domt = domainType(data)
+  rngt = rangeType(data)
+  xaxis = ScalarMap(domt[0], Display.XAxis)
+  yaxis = ScalarMap(rngt, Display.YAxis)
+
+  disp = subs.makeDisplay( (xaxis, yaxis) )
+  subs.addData("Lineplot", data, disp)
+  subs.maximizeBox(disp, .70)
+  showAxesScales(disp, 1)
+  subs.showDisplay(disp, title=title)
+  
   return
 
 def contour(data, panel=None, interval=None, size=None):
@@ -82,7 +97,6 @@ def contour(data, panel=None, interval=None, size=None):
 # if panel is not None, then it will return a JPanel with the images
 # and AnimationWidget in it
 def animation(data, panel=None, title="VisAD Animation"):
-
 
   num_frames = len(data)
 
@@ -142,23 +156,32 @@ def animation(data, panel=None, title="VisAD Animation"):
   disp = subs.makeDisplay(maps)
   animap = ScalarMap(frames, Display.Animation)
   disp.addMap(animap)
-
   refimg = subs.addData("VisAD_Animation", frame_seq, disp)
   widget = AnimationWidget(animap, 500) 
-
-  panel = JPanel(BorderLayout())
-  panel2 = JPanel(FlowLayout())
-  panel2.add(widget)
-  panel.add("North", panel2)
-  panel.add("Center",disp.getComponent())
-
-  frame = JFrame(title)
-  pane = frame.getContentPane()
-  pane.add(panel)
-
-  frame.setSize(400,550)
-  frame.setVisible(1)
+  myAnimFrame(disp, widget, 500, 550, "Animation")
 
   return
 
+class myAnimFrame:
+  def desty(self, event):
+    self.display.destroy()
+    self.frame.dispose()
+
+  def __init__(self, display, widget, xsize, ysize, title):
+    from javax.swing import JFrame, JPanel
+    from java.awt import BorderLayout, FlowLayout
+    self.display = display
+    self.panel = JPanel(BorderLayout())
+    self.panel2 = JPanel(FlowLayout())
+    self.panel2.add(widget)
+    self.panel.add("North", self.panel2)
+    self.panel.add("Center",self.display.getComponent())
+
+    self.frame = JFrame(title, windowClosing=self.desty)
+    self.pane = self.frame.getContentPane()
+    self.pane.add(self.panel)
+
+    self.frame.setSize(xsize,ysize)
+    self.frame.pack()
+    self.frame.show()
 
