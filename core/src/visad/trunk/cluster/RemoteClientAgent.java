@@ -36,7 +36,7 @@ import java.io.Serializable;
 */
 public interface RemoteClientAgent extends Remote {
 
-  public void sendToClient(Serializable message) throws RemoteException;
+  void sendToClient(Serializable message) throws RemoteException;
 
 }
 

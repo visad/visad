@@ -23,9 +23,9 @@ import visad.DataImpl;
  */
 public interface HDF5DataAdaptable
 {
-	public abstract MathType getMathType() throws VisADException;
+	MathType getMathType() throws VisADException;
 
-	public abstract DataImpl getAdaptedData() throws VisADException, RemoteException;
+	DataImpl getAdaptedData() throws VisADException, RemoteException;
 
-	public abstract DataImpl getAdaptedData(int[] indexes) throws VisADException, RemoteException;
+	DataImpl getAdaptedData(int[] indexes) throws VisADException, RemoteException;
 }

@@ -38,14 +38,14 @@ public interface ImageSequence extends Field
      * Return the list of times associated with this sequence.
      * @return  array of image start times.
      */
-    public DateTime[] getImageTimes()
+    DateTime[] getImageTimes()
         throws VisADException;
 
     /**
      * Return the number of images in the sequence.
      * @return number of images
      */
-    public int getImageCount()
+    int getImageCount()
         throws VisADException;
 
     /**
@@ -55,7 +55,7 @@ public interface ImageSequence extends Field
      * @throws VisADException  no image at that time in the set.
      * @throws RemoteException can't get remote image
      */
-    public SingleBandedImage getImage(DateTime dt)
+    SingleBandedImage getImage(DateTime dt)
         throws VisADException, RemoteException;
 
     /**
@@ -65,6 +65,6 @@ public interface ImageSequence extends Field
      * @throws VisADException  no image at that index in the set.
      * @throws RemoteException can't get remote image
      */
-    public SingleBandedImage getImage(int index)
+    SingleBandedImage getImage(int index)
         throws VisADException, RemoteException;
 }

@@ -39,13 +39,13 @@ public interface SingleBandedImage extends Field
      * Get the start time of the image.
      * @return  DateTime representing the start time of the image.
      */
-    public DateTime getStartTime();
+    DateTime getStartTime();
 
     /**
      * Return a descriptive string for this image.
      * @return description
      */
-    public String getDescription();
+    String getDescription();
 
     /**
      * Get the minimum possible value for this image
@@ -53,7 +53,7 @@ public interface SingleBandedImage extends Field
      *          Real allows us to associate units and error estimates with
      *          the value
      */
-    public Real getMinRangeValue();
+    Real getMinRangeValue();
 
     /**
      * Get the maximum possible value for this image
@@ -61,7 +61,7 @@ public interface SingleBandedImage extends Field
      *          Real allows us to associate units and error estimates with
      *          the value
      */
-    public Real getMaxRangeValue();
+    Real getMaxRangeValue();
 
     /**
      * Check to see if this image has a domain that can map to Latitude
@@ -69,5 +69,5 @@ public interface SingleBandedImage extends Field
      *
      * @return true if it has navigation, otherwise false
      */
-    public boolean isNavigated();
+    boolean isNavigated();
 }

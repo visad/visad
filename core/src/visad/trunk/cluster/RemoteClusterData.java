@@ -35,13 +35,13 @@ import java.rmi.*;
 */
 public interface RemoteClusterData extends RemoteData {
 
-  public abstract RemoteClusterData getClusterData(RealTuple domain)
+  RemoteClusterData getClusterData(RealTuple domain)
          throws RemoteException, VisADException;
 
-  public abstract void setupClusterData(Set ps, RemoteClusterData[] table)
+  void setupClusterData(Set ps, RemoteClusterData[] table)
          throws RemoteException, VisADException;
 
-  public abstract boolean clusterDataEquals(RemoteClusterData cd)
+  boolean clusterDataEquals(RemoteClusterData cd)
          throws RemoteException, VisADException;
 
 }

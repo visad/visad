@@ -11,11 +11,11 @@ public interface SatelliteData extends Data
      * Get the name of the sensor.
      * @return  sensor description
      */
-    public String getSensorName();
+    String getSensorName();
 
     /**
      * Get a description of this satellite data.
      * @return  description
      */
-    public String getDescription();
+    String getDescription();
 }
