@@ -1,0 +1,71 @@
+
+                       VisAD Python Scripts
+
+
+1. Overview
+
+The visad.python package defines a Python-based language for using
+VisAD.  The classes in this package are:
+
+  JPythonEditor - an editor for VisAD Python scripts that can be
+                  incorporated in applications programs
+  JPythonFrame - a program and GUI for editing and running
+                 VisAD Python scripts
+  JPythonMethods - a set of functions for accessing VisAD that can
+                   be called from VisAD Python scripts
+
+Python scripts are usually stored in files with the .py extension.  The
+package includes a few example script files, such as mcidas_test.py.
+
+VisAD is a Java API and its full power is only accessible by writing
+Java programs.  However, Python scripts can be much simpler so VisAD
+includes this package.  For example, the following script computes and
+displays a 2-D histogram of 2 bands of a McIDAS area file:
+
+  # load a McIDAS area file
+  area = load("../examples/AREA0008")
+
+  # compute a 2-D histogram of the first two bands of the area
+  histogram = hist(area, [0, 1])
+
+  # plot the histogram
+  clearplot()
+  plot(histogram)
+
+Python is an object-oriented language so it is also possible to write
+quite complex VisAD Python programs.  However, the main purpose of this
+package is to support simple scripts.
+
+
+2. Editing and Running VisAD Python Scripts
+
+To edit and run VisAD Python scripts, run the command:
+
+  java visad.python.JPythonFrame
+
+If you think you'll be using a lot of memory, run:
+
+  java -mx256m visad.python.JPythonFrame
+
+or something similar (the -mx256m means use 256 MB of memory).
+
+
+3. The VisAD Python Language
+
+VisAD uses the great JPython interpreter, written in Java, as the basis
+for its Python language.  See:
+
+  http://www.jpython.org/
+  
+for more information about it.  And see:
+
+  http://www.python.org/doc/current/tut/tut.html
+
+for a tutorial on the Python language.
+
+
+
+
+
+
+

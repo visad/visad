@@ -161,6 +161,7 @@ SAVE_FILES = \
 	visad/java2d/*.java				\
 	visad/python/*.java				\
 	visad/python/*.py				\
+	visad/python/README.python			\
 	visad/browser/*.java				\
 	visad/browser/*.html				\
 	visad/browser/README.browser			\

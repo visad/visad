@@ -65,15 +65,32 @@ public abstract class JPythonMethods {
   private static MappingDialog dialog = null;
   private static Vector data_references = null;
 
-  /** displays the given data onscreen */
+  /**
+   * Displays the given data onscreen.
+   *
+   * @param   data            VisAD data object to plot
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static void plot(DataImpl data)
     throws VisADException, RemoteException {
     plot(data, 1.0, 1.0, 1.0);
   }
 
-  /** displays the given data onscreen, with the given default color
-      (red, green and blue values between 0.0 and 1.0), which the user
-      may override by color mappings */
+  /**
+   * Displays the given data onscreen, using given color default.
+   *
+   * @param   data            VisAD data object to plot
+   * @param   red             red component of default color to use if there
+   *                          are no color mappings from data's RealTypes;
+   *                          color component values between 0.0 and 1.0
+   * @param   green           green component of default color
+   * @param   blue            blue component of default color
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static void plot(DataImpl data, double red, double green, double blue)
     throws VisADException, RemoteException {
     if (data == null) throw new VisADException("Data cannot be null");
@@ -142,9 +159,13 @@ public abstract class JPythonMethods {
     }
   }
 
-  // this is just a temporary and dumb hack
-  /** clear the plot */
-  public static void clearplot() throws VisADException, RemoteException {
+  /**
+   * clear the onscreen data display
+   *
+   * @throws  VisADException  part of data and display APIs, shouldn't occur
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
+  static void clearplot() throws VisADException, RemoteException {
     if (display != null) {
       displayFrame.setVisible(false);
       displayFrame.dispose();
@@ -157,153 +178,481 @@ public abstract class JPythonMethods {
     }
   }
 
-  /** binary and unary methods from Data.java */
+  /**
+   * return pointwise absolute value of data
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data abs(Data data) throws VisADException, RemoteException {
     return data.abs();
   }
 
+  /**
+   * return pointwise arccos value of data, in radians
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data acos(Data data) throws VisADException, RemoteException {
     return data.acos();
   }
 
+  /**
+   * return pointwise arccos value of data, in degrees
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data acosDegrees(Data data) throws VisADException, RemoteException {
     return data.acosDegrees();
   }
 
+  /**
+   * return pointwise arcsin value of data, in radians
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data asin(Data data) throws VisADException, RemoteException {
     return data.asin();
   }
 
+  /**
+   * return pointwise arcsin value of data, in degrees
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data asinDegrees(Data data) throws VisADException, RemoteException {
     return data.asinDegrees();
   }
 
+  /**
+   * return pointwise arctan value of data, in radians
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
+  public static Data atan(Data data) throws VisADException, RemoteException {
+    return data.atan();
+  }
+
+  /**
+   * return pointwise arctan value of data, in degrees
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
+  public static Data atanDegrees(Data data) throws VisADException, RemoteException {
+    return data.atanDegrees();
+  }
+
+  /**
+   * return pointwise ceil value of data (smallest integer not less than)
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data ceil(Data data) throws VisADException, RemoteException {
     return data.ceil();
   }
 
+  /**
+   * return pointwise cos value of data, assuming input values are in radians
+   * unless they have units convertable with radians, in which case those
+   * units are converted to radians
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data cos(Data data) throws VisADException, RemoteException {
     return data.cos();
   }
 
+  /**
+   * return pointwise cos value of data, assuming input values are in degrees
+   * unless they have units convertable with degrees, in which case those
+   * units are converted to degrees
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data cosDegrees(Data data) throws VisADException, RemoteException {
     return data.cosDegrees();
   }
 
+  /**
+   * return pointwise exp value of data
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data exp(Data data) throws VisADException, RemoteException {
     return data.exp();
   }
 
+  /**
+   * return pointwise floor value of data (largest integer not greater than)
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data floor(Data data) throws VisADException, RemoteException {
     return data.floor();
   }
 
+  /**
+   * return pointwise log value of data
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data log(Data data) throws VisADException, RemoteException {
     return data.log();
   }
 
+  /**
+   * return pointwise rint value of data (closest integer)
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data rint(Data data) throws VisADException, RemoteException {
     return data.rint();
   }
 
+  /**
+   * return pointwise round value of data (closest integer)
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data round(Data data) throws VisADException, RemoteException {
     return data.round();
   }
 
+  /**
+   * return pointwise sin value of data, assuming input values are in radians
+   * unless they have units convertable with radians, in which case those
+   * units are converted to radians
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data sin(Data data) throws VisADException, RemoteException {
     return data.sin();
   }
 
+  /**
+   * return pointwise sin value of data, assuming input values are in degrees
+   * unless they have units convertable with degrees, in which case those
+   * units are converted to degrees
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data sinDegrees(Data data) throws VisADException, RemoteException {
     return data.sinDegrees();
   }
 
+  /**
+   * return pointwise square root value of data
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data sqrt(Data data) throws VisADException, RemoteException {
     return data.sqrt();
   }
 
+  /**
+   * return pointwise tan value of data, assuming input values are in radians
+   * unless they have units convertable with radians, in which case those
+   * units are converted to radians
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data tan(Data data) throws VisADException, RemoteException {
     return data.tan();
   }
 
+  /**
+   * return pointwise tan value of data, assuming input values are in degrees
+   * unless they have units convertable with degrees, in which case those
+   * units are converted to degrees
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data tanDegrees(Data data) throws VisADException, RemoteException {
     return data.tanDegrees();
   }
 
+  /**
+   * return pointwise maximum value of data1 and data2
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data max(Data data1, Data data2)
          throws VisADException, RemoteException {
     return data1.max(data2);
   }
 
+  /**
+   * return pointwise minimum value of data1 and data2 
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data min(Data data1, Data data2)
          throws VisADException, RemoteException {
     return data1.min(data2);
   }
 
+  /**
+   * return pointwise tan value of data1 / data2 over full (-pi, pi) range, 
+   * assuming input values are in radians unless they have units convertable 
+   * with radians, in which case those units are converted to radians
+   * 
+   * @param   data1           VisAD data object
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data atan2(Data data1, Data data2)
          throws VisADException, RemoteException {
     return data1.atan2(data2);
   }
 
+  /**
+   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
+   * assuming input values are in degrees unless they have units convertable
+   * with degrees, in which case those units are converted to degrees
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data atan2Degrees(Data data1, Data data2)
          throws VisADException, RemoteException {
     return data1.atan2Degrees(data2);
   }
 
+  /**
+   * return pointwise maximum value of data1 and data2 
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           double value
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data max(Data data1, double data2) 
          throws VisADException, RemoteException {
     return data1.max(new Real(data2));
   }
 
+  /**
+   * return pointwise minimum value of data1 and data2 
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           double value
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data min(Data data1, double data2) 
          throws VisADException, RemoteException {
     return data1.min(new Real(data2));
   }
 
+  /**
+   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
+   * assuming input values are in radians unless they have units convertable
+   * with radians, in which case those units are converted to radians
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           double value
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data atan2(Data data1, double data2) 
          throws VisADException, RemoteException {
     return data1.atan2(new Real(data2));
   }
 
+  /**
+   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
+   * assuming input values are in degrees unless they have units convertable
+   * with degrees, in which case those units are converted to degrees
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           double value
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data atan2Degrees(Data data1, double data2) 
          throws VisADException, RemoteException {
     return data1.atan2Degrees(new Real(data2));
   }
 
+  /**
+   * return pointwise maximum value of data1 and data2
+   *
+   * @param   data1           double value
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data max(double data1, Data data2) 
          throws VisADException, RemoteException {
     return new Real(data1).max(data2);
   }
 
+  /**
+   * return pointwise minimum value of data1 and data2
+   *
+   * @param   data1           double value
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data min(double data1, Data data2) 
          throws VisADException, RemoteException {
     return new Real(data1).min(data2);
   }
 
+  /**
+   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
+   * assuming input values are in radians unless they have units convertable
+   * with radians, in which case those units are converted to radians
+   *
+   * @param   data1           double value
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data atan2(double data1, Data data2) 
          throws VisADException, RemoteException {
     return new Real(data1).atan2(data2);
   }
 
+  /**
+   * return pointwise tan value of data1 / data2 over full (-pi, pi) range,
+   * assuming input values are in degrees unless they have units convertable
+   * with degrees, in which case those units are converted to degrees
+   *
+   * @param   data1           double value
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
   public static Data atan2Degrees(double data1, Data data2)
          throws VisADException, RemoteException {
     return new Real(data1).atan2Degrees(data2);
   }
-  /* end of binary and unary methods from Data.java */
 
-  /** 1-D and 2-D forward Fourier transform, uses fft when possible */
+  /**
+   * return forward Fourier transform of field, which should have
+   * either a 1-D or 2-D gridded domain; uses fft when domain size
+   * is a power of two; returns real and imaginary parts
+   *
+   * @param   field           VisAD Field data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote field
+   */
   public static FlatField fft(Field field)
          throws VisADException, RemoteException {
     return FFT.fourierTransform(field, true);
   }
 
-  /** 1-D and 2-D backward Fourier transform, uses fft when possible */
+  /**
+   * return backward Fourier transform of field, which should have 
+   * either a 1-D or 2-D gridded domain; uses fft when domain size 
+   * is a power of two; returns real and imaginary parts
+   * 
+   * @param   field           VisAD Field data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote field
+   */
   public static FlatField ifft(Field field)
          throws VisADException, RemoteException {
     return FFT.fourierTransform(field, false);
   }
 
-  /** multiply matrices using Jama */
+  /**
+   * return matrix multiply of data1 * data2, which should have
+   * either 1-D or 2-D gridded domains
+   * 
+   * @param   data1           VisAD FlatField data object
+   * @param   data2           VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaMatrix matrixMultiply(FlatField data1, FlatField data2)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -312,8 +661,20 @@ public abstract class JPythonMethods {
     return matrix1.times(matrix2);
   }
 
-  /** solve data1*X = data2 using Jama; return solution if data1
-      is square, least squares solution otherwise */
+  /**
+   * return matrix soluton X of data1 * X = data2; data12 and data2 should
+   * have either 1-D or 2-D gridded domains; return solution if data1 is
+   * is square, least squares solution otherwise
+   *
+   * @param   data1           VisAD FlatField data object
+   * @param   data2           VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaMatrix solve(FlatField data1, FlatField data2)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -322,7 +683,18 @@ public abstract class JPythonMethods {
     return matrix1.solve(matrix2);
   }
 
-  /** invert a matrix using Jama */
+  /**
+   * return matrix inverse of data, which should have either a
+   * 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaMatrix inverse(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -330,7 +702,18 @@ public abstract class JPythonMethods {
     return matrix.inverse();
   }
 
-  /** transpose a matrix using Jama */
+  /**
+   * return matrix transpose of data, which should have either a
+   * 1-D or 2-D gridded domain
+   *
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaMatrix transpose(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -338,7 +721,18 @@ public abstract class JPythonMethods {
     return matrix.transpose();
   }
 
-  /** get determinant of a matrix using Jama */
+  /**
+   * return matrix determinant of data, which should have either a
+   * 1-D or 2-D gridded domain
+   *
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static double det(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -346,7 +740,18 @@ public abstract class JPythonMethods {
     return matrix.det();
   }
 
-  /** get one norm (maximum column sum) of a matrix using Jama */
+  /**
+   * return matrix one norm of data (maximum column sum), which
+   * should have either a 1-D or 2-D gridded domain
+   *
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static double norm1(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -354,7 +759,18 @@ public abstract class JPythonMethods {
     return matrix.norm1();
   }
 
-  /** get two norm (maximum singular value) of a matrix using Jama */
+  /**
+   * return matrix two norm of data (maximum singular value), which 
+   * should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static double norm2(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -362,7 +778,18 @@ public abstract class JPythonMethods {
     return matrix.norm2();
   }
 
-  /** get infinity norm (maximum row sum) of a matrix using Jama */
+  /**
+   * return matrix infinity norm of data (maximum row sum), which
+   * should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static double normInf(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -370,8 +797,18 @@ public abstract class JPythonMethods {
     return matrix.normInf();
   }
 
-  /** get Frobenius norm (sqrt of sum of squares of all elements)
-      of a matrix using Jama */
+  /**
+   * return matrix Frobenius norm of data (sqrt of sum of squares of all
+   * elements), which should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static double normF(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -379,7 +816,18 @@ public abstract class JPythonMethods {
     return matrix.normF();
   }
 
-  /** get effective numerical rank (from SVD) of a matrix using Jama */
+  /**
+   * return matrix effective numerical rank (from SVD) of data, which
+   * should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static double rank(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -387,8 +835,18 @@ public abstract class JPythonMethods {
     return matrix.rank();
   }
 
-  /** get condition (ratio of largest to smallest singular value)
-      of a matrix using Jama */
+  /**
+   * return matrix condition of data (ratio of largest to smallest singular
+   * value), which should have either a 1-D or 2-D gridded domain
+   *
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static double cond(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -396,7 +854,18 @@ public abstract class JPythonMethods {
     return matrix.cond();
   }
 
-  /** get trace (sum of the diagonal elements) of a matrix using Jama */
+  /**
+   * return matrix trace of data (sum of the diagonal elements),
+   * which should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static double trace(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -404,7 +873,19 @@ public abstract class JPythonMethods {
     return matrix.trace();
   }
 
-  /** return Cholesky Decomposition using Jama */
+  /**
+   * return matrix Cholesky Decomposition of data, as a 1-Tuple
+   * (lower_triangular_factor);
+   * data should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaCholeskyDecomposition chol(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -412,7 +893,20 @@ public abstract class JPythonMethods {
     return matrix.chol();
   }
 
-  /** return Eigenvalue Decomposition using Jama */
+  /**
+   * return matrix Eigenvalue Decomposition of data, as a 3-Tuple
+   * (eigenvector_matrix, real_eigenvalue_components,
+   *  imaginary_eigenvalue_components);
+   * data should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaEigenvalueDecomposition eig(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -420,7 +914,20 @@ public abstract class JPythonMethods {
     return matrix.eig();
   }
 
-  /** return LU Decomposition using Jama */
+  /**
+   * return matrix LU Decomposition of data, as a 3-Tuple
+   * (lower_triangular_factor, upper_triangular_factor,
+   *  pivot_permutation_vector);
+   * data should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaLUDecomposition lu(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -428,7 +935,19 @@ public abstract class JPythonMethods {
     return matrix.lu();
   }
 
-  /** return QR Decomposition using Jama */
+  /**
+   * return matrix QR Decomposition of data, as a 2-Tuple
+   * (orthogonal_factor, upper_triangular_factor);
+   * data should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaQRDecomposition qr(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -436,7 +955,19 @@ public abstract class JPythonMethods {
     return matrix.qr();
   }
 
-  /** return Singular Value Decomposition using Jama */
+  /**
+   * return matrix Singular Value Decomposition of data, as a 3-Tuple
+   * (left_singular_vectors, right_singular_vectors, singular_value_vector);
+   * data should have either a 1-D or 2-D gridded domain
+   * 
+   * @param   data            VisAD FlatField data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws  IllegalAccessException Jama not installed
+   * @throws  InstantiationException Jama not installed
+   * @throws  InvocationTargetException Jama not installed
+   */
   public static JamaSingularValueDecomposition svd(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {
@@ -444,16 +975,37 @@ public abstract class JPythonMethods {
     return matrix.svd();
   }
 
-  /** return histogram of field, with dimension and bin sampling
-      defined by set */
+  /**
+   * return histogram of range values of field selected by set, with
+   * dimension and bin sampling defined by set
+   * 
+   * @param   field           VisAD Field data object whose range values
+   *                          are analyzed in histogram
+   * @param   set             VisAD Set data object that defines dimension
+   *                          and bin sampling for histogram
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote field
+   */
   public static FlatField hist(Field field, Set set)
          throws VisADException, RemoteException {
     return Histogram.makeHistogram(field, set);
   }
 
-  /** return histogram of range values of field selected
-      by indices in ranges, and with 64 equally spaced bins
-      in each dimension */
+  /**
+   * return histogram of range values of field selected by ranges array,
+   * with dimension = ranges.length, and 64 equally spaced bins in each
+   * dimension
+   * 
+   * @param   field           VisAD Field data object whose range values
+   *                          are analyzed in histogram
+   * @param   range           int[] array whose elements are indices of into
+   *                          the range Tuple of field, selecting range
+   *                          components as dimesnions of the histogram
+   * 
+   * @throws  VisADException  invalid data 
+   * @throws  RemoteException unable to access remote field
+   */
   public static FlatField hist(Field field, int[] ranges)
          throws VisADException, RemoteException {
     if (ranges == null || ranges.length == 0) {
@@ -465,9 +1017,22 @@ public abstract class JPythonMethods {
     return hist(field, ranges, sizes);
   }
 
-  /** return histogram of range values of field selected
-      by indices in ranges, and with number of equally spaced
-      bins defined by sizes */
+  /**
+   * return histogram of range values of field selected by ranges array,
+   * with dimension = ranges.length, and with number of equally spaced bins
+   * in each dimension determined by sizes array
+   * 
+   * @param   field           VisAD Field data object whose range values
+   *                          are analyzed in histogram
+   * @param   range           int[] array whose elements are indices of into
+   *                          the range Tuple of field, selecting range
+   *                          components as dimesnions of the histogram
+   * @param   sizes           int[] array whose elements are numbers of
+   *                          equally spaced bins for each dimension
+   * 
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote field
+   */
   public static FlatField hist(Field field, int[] ranges, int[] sizes)
          throws VisADException, RemoteException {
     if (ranges == null || ranges.length == 0) {
@@ -520,14 +1085,30 @@ public abstract class JPythonMethods {
     return Histogram.makeHistogram(field, set);
   }
 
-  /** construct a FlatField with given values array */
+  /**
+   * return a VisAD FlatField with default 1-D domain and with range
+   * values given by values array
+   *
+   * @param   values          float[] array defining range values of field
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static FlatField field(float[] values)
          throws VisADException, RemoteException {
     return field("value", values);
   }
 
-  /** construct a FlatField with given range RealType name
-      and values array */
+  /**
+   * return a VisAD FlatField with default 1-D domain, with range values
+   * given by values array, and with given range RealType name
+   *
+   * @param   name            String defining range RealType name
+   * @param   values          float[] array defining range values of field
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static FlatField field(String name, float[] values)
          throws VisADException, RemoteException {
     if (values == null || values.length == 0) {
@@ -537,8 +1118,17 @@ public abstract class JPythonMethods {
     return field(new Integer1DSet(domain, values.length), name, values);
   }
 
-  /** construct a FlatField with given domain set, range RealType
-      name and values array */
+  /**
+   * return a VisAD FlatField with given 1-D domain set, with range
+   * values given by values array, and with given range RealType name
+   *
+   * @param   set             VisAD Set defining 1-D domain
+   * @param   name            String defining range RealType name 
+   * @param   values          float[] array defining range values of field
+   * 
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static FlatField field(Set set, String name, float[] values)
          throws VisADException, RemoteException {
     if (values == null) {
@@ -571,14 +1161,30 @@ public abstract class JPythonMethods {
     return field;
   }
 
-  /** construct a FlatField with given 2-D values array */
+  /**
+   * return a VisAD FlatField with default 2-D domain and with range
+   * values given by values array
+   *
+   * @param   values          float[][] array defining range values of field
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static FlatField field(float[][] values)
          throws VisADException, RemoteException {
     return field("value", values);
   }
 
-  /** construct a FlatField with given range RealType name
-      and 2-D values array */
+  /**
+   * return a VisAD FlatField with default 2-D domain, with range values
+   * given by values array, and with given range RealType name
+   *
+   * @param   name            String defining range RealType name
+   * @param   values          float[][] array defining range values of field
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static FlatField field(String name, float[][] values)
          throws VisADException, RemoteException {
     int[] temps = getValuesLengths(values);
@@ -591,8 +1197,17 @@ public abstract class JPythonMethods {
     return field(new Integer2DSet(domain, max, values_len), name, values);
   }
 
-  /** construct a FlatField with given domain set, range RealType
-      name and 2-D values array */
+  /**
+   * return a VisAD FlatField with given 2-D domain set, with range 
+   * values given by values array, and with given range RealType name
+   * 
+   * @param   set             VisAD Set defining 2-D domain 
+   * @param   name            String defining range RealType name 
+   * @param   values          float[][] array defining range values of field
+   * 
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static FlatField field(Set set, String name, float[][] values)
          throws VisADException, RemoteException {
     int[] temps = getValuesLengths(values);
@@ -660,11 +1275,12 @@ public abstract class JPythonMethods {
     return new int[] {values_len, min, max};
   }
 
-  /** NOT DONE */
+/** NOT DONE
   public static Set linear(MathType type, double first, double last, int length)
          throws VisADException, RemoteException {
     return null;
   }
+*/
 
 }
 
