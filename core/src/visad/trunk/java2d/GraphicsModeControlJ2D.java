@@ -47,6 +47,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   private int transparencyMode = 0;
   private int projectionPolicy = 0;
 
+  private boolean missingTransparent = false;
+
   public GraphicsModeControlJ2D(DisplayImpl d) {
     super(d);
     lineWidth = 1.0f;
@@ -165,6 +167,21 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     return projectionPolicy;
   }
 
+  public boolean getMissingTransparent() {
+    return missingTransparent;
+  }
+
+  public void setMissingTransparent(boolean missing)
+         throws VisADException, RemoteException {
+    if (!missing) {
+      missingTransparent = missing;
+    }
+    else {
+      throw new DisplayException("GraphicsModeControlJ2D." +
+                                 "setMissingTransparent: must be false");
+    }
+  }
+
   public Object clone() {
     GraphicsModeControlJ2D mode =
       new GraphicsModeControlJ2D(getDisplay());
@@ -175,6 +192,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     mode.scaleEnable = scaleEnable;
     mode.transparencyMode = transparencyMode;
     mode.projectionPolicy = projectionPolicy;
+    mode.missingTransparent = missingTransparent;
     return mode;
   }
 

@@ -41,6 +41,7 @@ public class Test21
     display1.addMap(new ScalarMap(vis_radiance, Display.Green));
     display1.addMap(new ConstantMap(0.5, Display.Blue));
     display1.addMap(new ConstantMap(0.5, Display.Red));
+    // display1.addMap(new ConstantMap(0.25, Display.Alpha));
 
     ScalarMap range1map = new ScalarMap(ir_radiance, Display.SelectRange);
     display1.addMap(range1map);
@@ -48,6 +49,7 @@ public class Test21
     GraphicsModeControl mode = display1.getGraphicsModeControl();
     mode.setPointSize(2.0f);
     mode.setPointMode(false);
+    // mode.setMissingTransparent(true);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);

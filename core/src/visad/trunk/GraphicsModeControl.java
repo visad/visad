@@ -96,6 +96,11 @@ public abstract class GraphicsModeControl extends Control
 
   public abstract int getProjectionPolicy();
 
+  public abstract void setMissingTransparent(boolean missing)
+         throws VisADException, RemoteException;
+
+  public abstract boolean getMissingTransparent();
+
   /** a method to copy any data object */
   public abstract Object clone();
 

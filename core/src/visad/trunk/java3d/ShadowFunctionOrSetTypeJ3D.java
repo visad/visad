@@ -166,7 +166,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       // MEM - for coordinates if mode2d
       GeometryArray geometry = display.makeGeometry(array);
       TransparencyAttributes c_alpha = null;
-      if (constant_alpha == 0.0f) {
+      if (constant_alpha == 1.0f) {
         // constant opaque alpha = NONE
         c_alpha = new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
       }

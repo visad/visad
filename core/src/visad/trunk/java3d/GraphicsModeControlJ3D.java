@@ -52,6 +52,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION */
   private int projectionPolicy;
 
+  private boolean missingTransparent = false;
+
   public GraphicsModeControlJ3D(DisplayImpl d) {
     super(d);
     lineWidth = 1.0f;
@@ -194,6 +196,14 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return projectionPolicy;
   }
 
+  public boolean getMissingTransparent() {
+    return missingTransparent;
+  }
+
+  public void setMissingTransparent(boolean missing) {
+    missingTransparent = missing;
+  }
+
   public Object clone() {
     GraphicsModeControlJ3D mode =
       new GraphicsModeControlJ3D(getDisplay());
@@ -204,6 +214,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.scaleEnable = scaleEnable;
     mode.transparencyMode = transparencyMode;
     mode.projectionPolicy = projectionPolicy;
+    mode.missingTransparent = missingTransparent;
     return mode;
   }
 

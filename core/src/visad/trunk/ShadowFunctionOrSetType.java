@@ -984,6 +984,7 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       mode.setLineWidth(lineWidth, true);
 
       boolean pointMode = mode.getPointMode();
+      byte missing_transparent = mode.getMissingTransparent() ? 0 : (byte) -1;
 
 
       // MEM_WLH - this moved
@@ -1167,7 +1168,8 @@ if (color_values != null) {
         if (color_values[3][0] > 0.999999f) {
 */
         if (color_values[3][0] == -1) {  // = 255 unsigned
-          constant_alpha = 0.0f;
+          // constant_alpha = 0.0f; WLH 30 April 99
+          constant_alpha = 1.0f;
           // remove alpha from color_values
           byte[][] c = new byte[3][];
           c[0] = color_values[0];
@@ -1603,26 +1605,52 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             if (!pointMode && spatial_set != null && spatial_all_select &&
                 (spatialManifoldDimension == 2 || spatialManifoldDimension == 1)) {
               int len = range_select[0].length;
-              for (int i=0; i<color_values.length; i++) {
-                if (color_values[i] == null) {
+              byte[][] cv = new byte[4][];
+              if (color_values != null) {
+                for (int i=0; i<color_values.length; i++) {
+                  cv[i] = color_values[i];
+                }
+              }
+              color_values = cv;
+              for (int i=0; i<4; i++) {
+                byte miss = (i < 3) ? 0 : missing_transparent;
+                if (color_values == null || color_values[i] == null) {
                   color_values[i] = new byte[len];
-                  for (int j=0; j<len; j++) {
-                    color_values[i][j] = range_select[0][j] ? (byte) -1 : 0;
+                  if (i < 3 && constant_color != null) {
+                    byte c = floatToByte(constant_color[i]);
+                    for (int j=0; j<len; j++) {
+                      color_values[i][j] = range_select[0][j] ? c : miss;
+                    }
+                  }
+                  else if (i == 3 && constant_alpha == constant_alpha) {
+                    if (constant_alpha < 0.99f) miss = 0;
+                    byte c = floatToByte(constant_alpha);
+                    for (int j=0; j<len; j++) {
+                      color_values[i][j] = range_select[0][j] ? c : miss;
+                    }
+                  }
+                  else {
+                    for (int j=0; j<len; j++) {
+                      color_values[i][j] = range_select[0][j] ? (byte) -1 : miss;
+                    }
                   }
                 }
                 else if (color_values[i].length == 1) {
                   byte c = color_values[i][0];
+                  if (i == 3 && c != -1) miss = 0;
                   color_values[i] = new byte[len];
                   for (int j=0; j<len; j++) {
-                    color_values[i][j] = range_select[0][j] ? c : 0;
+                    color_values[i][j] = range_select[0][j] ? c : miss;
                   }
                 }
                 else {
+                  if (i == 3) miss = 0;
                   for (int j=0; j<len; j++) {
-                    if (!range_select[0][j]) color_values[i][j] = 0;
+                    if (!range_select[0][j]) color_values[i][j] = miss;
                   }
                 }
               }
+              constant_alpha = Float.NaN;
               if (spatialManifoldDimension == 2) {
                 array = spatial_set.make2DGeometry(color_values, indexed);
               }
