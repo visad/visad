@@ -450,8 +450,10 @@ public class F2000Form
     FieldImpl tracksField =
       new FieldImpl(tracksFunctionType, tracksSet);
     if (ntracks > 0) {
-      FlatField[] trackFields =
-        (FlatField[] )emTracks.toArray(new FlatField[ntracks]);
+      FlatField[] trackFields = new FlatField[ntracks];
+      for (int t = 0; t < ntracks; t++) {
+        trackFields[t] = ((BaseTrack )emTracks.get(t)).makeData();
+      }
       try {
         tracksField.setSamples(trackFields, false);
       } catch (RemoteException re) {
@@ -467,8 +469,10 @@ public class F2000Form
     FlatField hitsField =
       new FlatField(hitsFunctionType, hitsSet);
     if (nhits > 0) {
-      RealTuple[] hitTuples =
-        (RealTuple[] )emHits.toArray(new RealTuple[nhits]);
+      RealTuple[] hitTuples = new RealTuple[nhits];
+      for (int h = 0; h < nhits; h++) {
+        hitTuples[h] = ((Hit )emHits.get(h)).makeData();
+      }
       try {
         hitsField.setSamples(hitTuples, true);
       } catch (RemoteException re) {
@@ -739,7 +743,7 @@ public class F2000Form
       if (keyword.equals("tr")) {
         MCTrack track = readTrack(line, tok);
         if (track != null) {
-          emTracks.add(track.makeData());
+          emTracks.add(track);
         }
 
         continue;
@@ -748,7 +752,7 @@ public class F2000Form
       if (keyword.equals("fit")) {
         FitTrack fit = readFit(line, tok);
         if (fit != null) {
-          emTracks.add(fit.makeData());
+          emTracks.add(fit);
         }
 
         continue;
@@ -757,7 +761,7 @@ public class F2000Form
       if (keyword.equals("ht")) {
         Hit hit = readHit(line, tok, om);
         if (hit != null) {
-          emHits.add(hit.makeData());
+          emHits.add(hit);
         }
 
         continue;
