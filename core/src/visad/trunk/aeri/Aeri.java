@@ -79,6 +79,7 @@ public class Aeri
 
   float height_limit = 5500; // roughly 500 MB
   boolean rh = false;
+  boolean tm = false;
 
   public static void main(String args[])
          throws VisADException, RemoteException, IOException
@@ -108,6 +109,11 @@ public class Aeri
       }
       else if (args[i].equals("-rh")) {
         rh = true;
+        tm = false;
+      }
+      else if (args[i].equals("-temp")) {
+        tm = true;
+        rh = false;
       }
     }
     if (vadfile != null) {
@@ -264,6 +270,9 @@ public class Aeri
     if (rh) {
       cmap = new ScalarMap(RH, Display.RGB);
     }
+    else if (tm) {
+      cmap = new ScalarMap(temp, Display.RGB);
+    }
     else {
       cmap = new ScalarMap(wvmr, Display.RGB);
     }
@@ -418,6 +427,7 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     DataImpl[] file_data = new DataImpl[n_stations];
     FieldImpl[] time_field = new FieldImpl[n_stations];
     double[][] time_offset = null;
+    double[] base_date = new double[n_stations];
     double[] base_time = new double[n_stations];
     Gridded1DSet d_set = null;
     FlatField new_ff = null;
@@ -468,6 +478,8 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     
     for ( int ii = 0; ii < n_stations; ii++ )
     {
+      base_date[ii] = (double)
+        ((Real)((Tuple)file_data[ii]).getComponent(0)).getValue();
       base_time[ii] = (double)
         ((Real)((Tuple)file_data[ii]).getComponent(1)).getValue();
       time_field[ii] = (FieldImpl)
@@ -480,6 +492,19 @@ System.out.println("lon = " + lonmin + " " + lonmax +
         ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(8)).getValue();
       station_id[ii] =
         ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(9)).getValue();
+
+/*
+System.out.println("wind " + ii + " date: " + base_date[ii] +
+                   " time: " + base_time[ii]);
+wind 0 date: 1.9991226E7 time: 9.461664E8
+wind 1 date: 1.9991226E7 time: 9.461664E8
+wind 2 date: 1.9991226E7 time: 9.461664E8
+wind 3 date: 1.9991226E7 time: 9.461664E8
+wind 4 date: 1.9991226E7 time: 9.461664E8
+
+looks like 19991226 and seconds since 1-1-70
+time_offset looks like seconds since 0Z
+*/
 
       int length = time_field[ii].getLength();
       time_offset = new double[1][length];
@@ -598,6 +623,7 @@ start or end altitudes - but it does nothing if all winds are missing */
     double[] station_alt = new double[n_stations];
     double[] station_id = new double[n_stations];
     double[][] time_offset = null;
+    double[] base_date = new double[n_stations];
     double[] base_time = new double[n_stations];
 
     //- create a new netcdf reader
@@ -633,6 +659,20 @@ start or end altitudes - but it does nothing if all winds are missing */
       base_time[ii] = (double)
         ((Real)((Tuple)file_data[ii]).getComponent(0)).getValue();
       time_field[ii] = (FieldImpl) ((Tuple)file_data[ii]).getComponent(1);
+      base_date[ii] = (double)
+        ((Real)((Tuple)file_data[ii]).getComponent(2)).getValue();
+/*
+System.out.println("aeri " + ii + " date: " + base_date[ii] +
+                   " time: " + base_time[ii]);
+aeri 0 date: 991226.0 time: 9.46166724E8
+aeri 1 date: 991226.0 time: 9.46167982E8
+aeri 2 date: 991226.0 time: 9.4616806E8
+aeri 3 date: 991226.0 time: 9.46168061E8
+aeri 4 date: 991226.0 time: 9.4616807E8
+
+looks like 991226 and seconds since 1-1-70
+time_offset looks like seconds since 0Z
+*/
 
       int length = time_field[ii].getLength();
       time_offset = new double[1][length];
@@ -812,12 +852,14 @@ start or end altitudes - but it does nothing if all winds are missing */
           age = rtvl_time - rtvl_time_0;
 
 // WLH - adjust for shortening of longitude with increasing latitude
+// NOTE wind dir is direction wind is from
+// AND U is positive east and v is positive north
           double lat_radians = (Math.PI/180.0)*station_lat[stn_idx];
           advect_locs[0][n_samples] = (float)
             (uv_wind[0][jj]*age*factor/Math.cos(lat_radians) +
              station_lon[stn_idx]);
           advect_locs[1][n_samples] = (float)
-            (uv_wind[1][jj]*age*factor + station_lat[stn_idx]);
+            (-uv_wind[1][jj]*age*factor + station_lat[stn_idx]);
 
           advect_locs[2][n_samples] = alt;
 
