@@ -21,7 +21,8 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+// use buffered ucar.netcdf.RandomAccessFile instead
+// import java.io.RandomAccessFile;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -34,7 +35,7 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @see Netcdf
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:43:42 $
  */
 public final class
 NetcdfFile
@@ -68,7 +69,7 @@ NetcdfFile
         }
 	// else
 	this.file = file;
-	this.raf = new RandomAccessFile(file, "rw");
+ 	this.raf = new RandomAccessFile(file, "rw");
 	this.doFill = fill;
 
 	compileBegins();
@@ -110,7 +111,7 @@ NetcdfFile
     {
 	super();
 	this.file = file;
-	raf = new RandomAccessFile(file, readonly ? "r" : "rw");
+ 	raf = new RandomAccessFile(file, readonly ? "r" : "rw");
 	readV1(raf);
     	initRecSize();
 	this.doFill = true;
@@ -1098,8 +1099,12 @@ NetcdfFile
 	void
 	readArray(long offset, Object into, int begin, int nelems)
 			throws IOException {
-		// TODO
-		throw new java.lang.NoSuchMethodError("V1CharacterIo");
+		final char [] values = (char []) into;
+		raf.seek(offset);
+		final int end = begin + nelems;
+		for(int ii = begin; ii < end; ii++) {
+			values[ii] = (char) raf.readUnsignedByte();
+		}
 	}
 
 	public char
@@ -1107,7 +1112,7 @@ NetcdfFile
 		throws IOException
 	{
 		raf.seek(computeOffset(index));
-		return (char)raf.readByte(); // TODO ??
+		return (char) raf.readUnsignedByte();
 	}
 
 	public Object
@@ -1120,8 +1125,12 @@ NetcdfFile
 	void
 	writeArray(long offset, Object from, int begin, int nelems)
 			throws IOException {
-		// TODO
-		throw new java.lang.NoSuchMethodError("V1CharacterIo");
+		final char [] values = (char []) from;
+		raf.seek(offset);
+		final int end = begin + nelems;
+		for(int ii = begin; ii < end; ii++) {
+			raf.writeByte((byte) values[ii]);
+		}
 	}
 
 	public void
@@ -1131,7 +1140,7 @@ NetcdfFile
 		if(isUnlimited)
 			checkfill(index[0] +1);
 		raf.seek(computeOffset(index));
-		raf.writeByte((byte) value); // TODO: ???
+		raf.writeByte((byte) value);
 	}
 
     	public void
@@ -1750,7 +1759,7 @@ NetcdfFile
     }
 
     private File file; // Should be final.
-    private RandomAccessFile raf;
+    private RandomAccessFile raf; // unidata.netcdf version, not java.io
     private UnlimitedDimension recDim;
     private int recsize;
     private boolean doFill; // set to false to suppress data prefill.

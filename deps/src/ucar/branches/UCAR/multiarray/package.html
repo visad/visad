@@ -1,9 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//Netscape Comm. Corp.//DTD HTML//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
     <!-- SGI_COMMENT COSMOCREATE -->
-    <!-- SGI_COMMENT VERSION NUMBER="1.0" -->
-    <!-- $Id: package.html,v 1.1.1.1 2000-08-28 21:43:05 dglo Exp $ -->
+    <!-- SGI_COMMENT VERSION NUMBER="1.0.2" -->
+    <!-- $Id: package.html,v 1.1.1.2 2000-08-28 21:43:41 dglo Exp $ -->
     <TITLE>UCAR MultiArray API Overview</TITLE>
 </HEAD>
 <BODY>
@@ -43,16 +43,17 @@ of this API is to codify that practice into a clear object framework.</P>
 The MultiArray API consists of:</P>
 <UL>
     <LI>
-    <B><A HREF="ucar.multiarray.MultiArrayInfo.html">MultiArrayInfo</A>
+    <A HREF="ucar.multiarray.MultiArrayInfo.html"><B>MultiArrayInfo</B></A><B>
      Interface </B>- A reflection or introspection interface for 
     multidimensional arrays. Methods to discover the rank, shape and 
     component type. 
     <LI>
-    <B><A HREF="ucar.multiarray.Accessor.html">Accessor</A> Interface</B>
-     - Methods to set and get single values of a multidimensional array. 
-    Also methods for aggregate copy in and out of the array. 
+    <A HREF="ucar.multiarray.Accessor.html"><B>Accessor</B></A><B>
+     Interface</B> - Methods to set and get single values of a 
+    multidimensional array. Also methods for aggregate copy in and out of 
+    the array. 
     <LI>
-    <B><A HREF="ucar.multiarray.MultiArray.html">MultiArray</A>
+    <A HREF="ucar.multiarray.MultiArray.html"><B>MultiArray</B></A><B>
      Interface</B> - The union of MultiArrayInfo and Accessor 
     interfaces. This is the interface that client code should use. The 
     artificial factorization into MultiArrayInfo and Accessor interfaces is 
@@ -65,11 +66,11 @@ The MultiArray API consists of:</P>
     as well as a space efficient implementation (<A
      HREF="ucar.multiarray.MultiArrayImpl.html">MultiArrayImpl</A>). 
     <LI>
-    <B><A HREF="ucar.multiarray.IndexIterator.html">IndexIterator</A>
+    <A HREF="ucar.multiarray.IndexIterator.html"><B>IndexIterator</B></A><B>
      utility class</B> - Used to step through the possible index 
     values. 
     <LI>
-    <B><A HREF="ucar.multiarray.MultiArrayProxy.html">MultiArrayProxy</A>
+    <A HREF="ucar.multiarray.MultiArrayProxy.html"><B>MultiArrayProxy</B></A><B>
      / <A HREF="ucar.multiarray.IndexMap.html">IndexMap</A> Interface 
     Framework</B> - MultiArrayProxy uses an IndexMap to provide a 
     different view of some MultiArray. The new view typically has a 
@@ -86,11 +87,15 @@ The MultiArray API consists of:</P>
      HREF="ucar.multiarray.TransposeMap.html">transpose</A>, or <A
      HREF="ucar.multiarray.FlattenMap.html">flatten</A> a MultiArray. 
     These may be functionally composed to form complex operations by using 
-    nested construction.
+    nested construction. 
     <LI>
-    <B><A HREF="ucar.multiarray.AbstractAccessor.html">AbstractAccessor</A>
+    <A HREF="ucar.multiarray.AbstractAccessor.html"><B>AbstractAccessor</B></A><B>
      abstract class </B>- A partial implementation of the Accessor 
     Interface which handles primitive type conversions. 
+    <LI>
+    <A HREF="ucar.multiarray.StringCharAdapter.html"><B>StringCharAdapter</B></A><B>
+     class</B> - An adapter for MultiArray of <TT>char</TT> component 
+    type which presents a MultiArray of String interface. 
 </UL>
 <P>
 The MultiArray methods to get() and set() values operate on single 
@@ -100,5 +105,9 @@ IndexMaps to create that view of the MultiArray. The concrete
 MultiArrayImpl provides a copy constructor for which the view can be 
 used as initializer. The copyin() and copyout() methods of MultiArray 
 may also be used for simple clippings.</P>
+<P>
+There is an example program, <A
+ HREF="http://www.unidata.ucar.edu/packages/netcdf/java/examples/DemoMultiArrays.java">DemoMultiArrays.java</A>, which 
+shows some ways to use the interface.</P>
 </BODY>
 </HTML>

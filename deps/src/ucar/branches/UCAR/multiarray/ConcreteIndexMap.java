@@ -30,7 +30,7 @@ import java.lang.reflect.Array; // used by ZZMap
  *  these should be called by every subclass constructor.
  * 
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:43:05 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:41 $
  */
 public class
 ConcreteIndexMap
@@ -153,6 +153,12 @@ ZZMap
 	synchronized final void
 	setPrev(ZZMap prev)
 	{
+		if(prev_ instanceof ZZMap)
+		{
+			((ZZMap)prev_).setPrev(prev);
+			return;
+		}
+		// else
 		prev_ = prev;
 	}
 
@@ -261,11 +267,13 @@ ZZMap
 	}
 
 /* Begin IndexMap impl */
-	/**
-	 * Rebind (redefine) the range of get(int)
-	 * @param range int array which defines the get(int)
-	 * member.
-	 */
+
+	public final synchronized int
+	getOutputLength()
+	{
+		return iMap_.size();
+	}
+
 	public final synchronized void
 	setInput(int [] input)
 	{
@@ -275,14 +283,12 @@ ZZMap
 	public final synchronized int []
 	getTransformed(int [] output)
 	{
-		final int sz = iMap_.size();
-		for(int ii = 0; ii < output.length; ii++)
+		final int sz = getOutputLength();
+		for(int ii = 0; ii < sz; ii++)
 			output[ii] = iMap_.get(ii);
 		return output;
 	}
 
-	/**
-	 */ 
 	public final synchronized int []
 	transform(int [] output, int [] input)
 	{

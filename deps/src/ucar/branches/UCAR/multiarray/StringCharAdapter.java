@@ -1,5 +1,5 @@
 /*
- * Copyright 1997, University Corporation for Atmospheric Research
+ * Copyright 1998, University Corporation for Atmospheric Research
  * See COPYRIGHT file for copying and redistribution conditions.
  */
 
@@ -8,30 +8,38 @@ import java.io.IOException;
 
 /**
  * This MultiArray implementation wraps another MultiArray
- * and an IndexMap to provide a different view of the
- * wrapped MultiArray. Indices passed to access methods
- * are passed through a chain of mappings.
+ * of Character componentType to produce a MultiArray of
+ * one less rank with String componentType.
  *
  * @see MultiArray
- * @see IndexMap
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:43:42 $
+ * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:43:42 $
  */
-public class MultiArrayProxy implements MultiArray {
+public class StringCharAdapter implements MultiArray {
 
 	/**
 	 * Construct a new proxy.
-	 * @param delegate MultiArray backing the proxy view provided.
-	 * @param im IndexMap defining the proxy view.
+	 * @param delegate MultiArray of Character componentType
+	 * @param fillValue char which used as terminator and fill value
 	 */
 	public
-	MultiArrayProxy(MultiArray delegate, IndexMap im)
+	StringCharAdapter(MultiArray delegate, char fillValue)
 	{
+		if(delegate.getComponentType() != Character.TYPE)
+			throw new IllegalArgumentException(
+				"Not a Character Array");
 		delegate_ = delegate;
-		im_ = im;
-		dlengths_ = delegate_.getLengths();
-		im_.setLengths(dlengths_);
+		fillValue_ = fillValue;
+		lengths_ = new int [delegate_.getRank() -1];
+		final int [] dlengths = delegate_.getLengths();
+		System.arraycopy(dlengths, 0,
+			lengths_, 0, lengths_.length);
+		maxStringLen_ = dlengths[lengths_.length];
 	}
+	
+	public char
+	getFillValue()
+		{ return fillValue_; }
 
  /* Begin MultiArrayInfo */
 
@@ -43,7 +51,15 @@ public class MultiArrayProxy implements MultiArray {
 	 */
 	public Class
 	getComponentType()
-		{ return delegate_.getComponentType(); }
+	{
+		// There has got to be a better way to do this.
+		try {
+			return Class.forName("java.lang.String");
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new RuntimeException("Implementation problem");
+		}
+	}
 
 	/**
 	 * Returns the number of dimensions of the backing MultiArray,
@@ -53,7 +69,7 @@ public class MultiArrayProxy implements MultiArray {
 	 */
 	public int
 	getRank()
-		{ return im_.getRank(); }
+		{ return lengths_.length; }
 
 	/**
 	 * Returns the shape of the backing MultiArray as transformed
@@ -71,10 +87,9 @@ public class MultiArrayProxy implements MultiArray {
 			// The delegate lengths might have changed.
 			// This could better be handle by an event.
 			System.arraycopy(delegate_.getLengths(), 0,
-				dlengths_, 0, dlengths_.length);
+				lengths_, 0, lengths_.length);
 		}
-		final int [] lengths = new int[getRank()];
-		return im_.getLengths(lengths);
+		return (int []) lengths_.clone();
 	}
 
 	/**
@@ -109,63 +124,72 @@ public class MultiArrayProxy implements MultiArray {
 	get(int [] index)
 		throws IOException
 	{
-		return delegate_.get(map(index));
+		final int [] dIndex = new int [lengths_.length +1];
+		System.arraycopy(index, 0,
+				dIndex, 0, lengths_.length);
+
+		final char [] buf = new char[maxStringLen_];
+		int ii = 0;
+		for(; ii < maxStringLen_; ii++)
+		{
+			dIndex[lengths_.length] = ii;
+			buf[ii] = delegate_.getChar(dIndex);
+			if(buf[ii] == fillValue_)
+				break;
+		}
+
+		return new String(buf, 0, ii);
 	}
 
 	public boolean
 	getBoolean(int[] index)
-		 throws IOException
 	{
-		return delegate_.getBoolean(map(index));
+		throw new IllegalArgumentException();
 	}
 
 	public char
 	getChar(int[] index)
-		 throws IOException
+		throws IOException
 	{
-		return delegate_.getChar(map(index));
+		if(index.length > lengths_.length)
+			return delegate_.getChar(index);
+		throw new IllegalArgumentException();
 	}
 
 	public byte
 	getByte(int[] index)
-		 throws IOException
 	{
-		return delegate_.getByte(map(index));
+		throw new IllegalArgumentException();
 	}
 
 	public short
 	getShort(int[] index)
-		 throws IOException
 	{
-		return delegate_.getShort(map(index));
+		throw new IllegalArgumentException();
 	}
 
 	public int
 	getInt(int[] index)
-		 throws IOException
 	{
-		return delegate_.getInt(map(index));
+		throw new IllegalArgumentException();
 	}
 
 	public long
 	getLong(int[] index)
-		 throws IOException
 	{
-		return delegate_.getLong(map(index));
+		throw new IllegalArgumentException();
 	}
 
 	public float
 	getFloat(int[] index)
-		 throws IOException
 	{
-		return delegate_.getFloat(map(index));
+		throw new IllegalArgumentException();
 	}
 
 	public double
 	getDouble(int[] index)
-		 throws IOException
 	{
-		return delegate_.getDouble(map(index));
+		throw new IllegalArgumentException();
 	}
 
 	/**
@@ -177,63 +201,79 @@ public class MultiArrayProxy implements MultiArray {
 	set(int [] index, Object value)
 		throws IOException
 	{
-		delegate_.set(map(index), value);
+		if( value instanceof String)
+		{
+			final int [] dIndex = new int [lengths_.length +1];
+			System.arraycopy(index, 0,
+				dIndex, 0, lengths_.length);
+			final String sValue = (String) value;
+			final int stringLen = ((String)value).length();
+			for(int ii = 0; ii < maxStringLen_; ii++)
+			{
+				dIndex[lengths_.length] = ii;
+				if(ii >= stringLen)
+				{
+					delegate_.setChar(dIndex,
+						fillValue_);
+					continue;
+				}
+				// else
+				delegate_.setChar(dIndex,
+						((String)value).charAt(ii));
+			}
+			return;
+		}
+		// else
+		throw new IllegalArgumentException();
+
 	}
 
 	public void
 	setBoolean(int [] index, boolean value)
-		 throws IOException
 	{
-		delegate_.setBoolean(map(index), value);
+		throw new IllegalArgumentException();
 	}
 
 	public void
 	setChar(int [] index, char value)
-		 throws IOException
 	{
-		delegate_.setChar(map(index), value);
+		throw new IllegalArgumentException();
 	}
 
 	public void
 	setByte(int [] index, byte value)
-		 throws IOException
 	{
-		delegate_.setByte(map(index), value);
+		throw new IllegalArgumentException();
 	}
 
 	public void
 	setShort(int [] index, short value)
-		 throws IOException
 	{
-		delegate_.setShort(map(index), value);
+		throw new IllegalArgumentException();
 	}
 
 	public void
 	setInt(int [] index, int value)
-		 throws IOException
 	{
-		delegate_.setInt(map(index), value);
+		throw new IllegalArgumentException();
 	}
 
 	public void
 	setLong(int [] index, long value)
-		 throws IOException
 	{
-		delegate_.setLong(map(index), value);
+		throw new IllegalArgumentException();
 	}
 
 	public void
 	setFloat(int [] index, float value)
-		 throws IOException
 	{
-		delegate_.setFloat(map(index), value);
+		throw new IllegalArgumentException();
 	}
 
 	public void
 	setDouble(int[] index, double value)
-		 throws IOException
 	{
-		delegate_.setDouble(map(index), value);
+		throw new IllegalArgumentException();
 	}
 
 	/**
@@ -317,97 +357,64 @@ public class MultiArrayProxy implements MultiArray {
 
  /* End Accessor */
 
-	private synchronized int []
-	map(int [] index)
-	{
-		// TODO speedup?
-		// safe inline im_.transform(converted_, index);
-		im_.setInput(index);
-		return im_.getTransformed(new int[im_.getOutputLength()]);
+	private final MultiArray delegate_;
+	private final char fillValue_;
+	private final int [] lengths_;
+	private final int maxStringLen_;
+
+ /* Begin Test */
+	private static String
+	MultiArrayToString(MultiArray ma) {
+		StringBuffer buf = new StringBuffer();
+		final int rank = ma.getRank();
+		if (rank > 0)
+		{
+			buf.append("{\n\t");
+			final int [] dims = ma.getLengths();
+			final int last = dims[0] -1;
+			for(int ii = 0; ii <= last; ii++)
+			{
+				final MultiArray inner =
+					new MultiArrayProxy(ma,
+						new SliceMap(0, ii));
+				buf.append(MultiArrayToString(inner));
+				if(ii != last)
+					buf.append(", ");
+			}
+			buf.append("\n}");
+		}
+		else
+		{
+			try {
+			buf.append(ma.get((int [])null));
+			} catch (IOException ee) {}
+		}
+		return buf.toString();
 	}
 
-	private final MultiArray delegate_;
-	private final IndexMap im_;
-	/**
-	 * Storage of delegate dimension lengths
-	 */
-	private final int [] dlengths_;
-
- // TODO better test
- /* Begin Test */
 	public static void
 	main(String[] args)
 	{
-			System.out.println(">>  " + System.currentTimeMillis());
-		final int [] shape = {48, 64};
-		MultiArrayImpl delegate =
-			new MultiArrayImpl(Integer.TYPE, shape);
-		{
-			final int size = MultiArrayImpl.numberOfElements(shape);
-			for(int ii = 0; ii < size; ii++)
-				java.lang.reflect.Array.setInt(delegate.storage,
-					ii, ii);
-
-		}
-		IndexMap im = new ClipMap(0, 4, 40);
-		MultiArray src = new MultiArrayProxy(delegate, im);
-
-		int [] clip = new int[] {32, 64};
-		int [] origin = new int[] {4, 0};
-		MultiArray ma = (MultiArray) null;
-
+			
+		MultiArray cha = new MultiArrayImpl(Character.TYPE, 
+			new int[]{4, 5});
+		MultiArray sta = new StringCharAdapter(cha, (char)0);
+		int [] index = {0};
 		try {
-			ma = src.copyout(origin, clip);
-			System.out.println("Rank  " + ma.getRank());
-			int [] lengths = ma.getLengths();
-			System.out.println("Shape { " + lengths[0] + ", "
-					 + lengths[1] + " }");
-			System.out.println(ma.getInt(new int[] {0, 0}));
-			System.out.println(ma.getInt(new int[] {1, 0}));
-			System.out.println(ma.getInt(new int[] {lengths[0] -1,								 lengths[1] -1}));
+			sta.set(index, "KDEN");
+			index[0]++;
+			sta.set(index, "KBOU");
+			index[0]++;
+			sta.set(index, "KABQ");
+			index[0]++;
+			sta.set(index, "KPHX");
+			System.out.println(MultiArrayToString(sta));
+			System.out.println(MultiArrayToString(cha));
 		}
-		catch (java.io.IOException ee) {}
-
-		MultiArrayImpl destD =
-			new MultiArrayImpl(Integer.TYPE, shape);
-		im = new ClipMap(0, 8, 36);
-		MultiArray dest = new MultiArrayProxy(destD, im);
-		try {
-			origin = new int[] {0, 0};
-			dest.copyin(origin, ma);
-			System.out.println("***Rank  " + dest.getRank());
-			int [] lengths = dest.getLengths();
-			System.out.println("Shape { " + lengths[0] + ", "
-					 + lengths[1] + " }");
-			System.out.println(destD.getInt(new int[] {0, 0}));
-			System.out.println(destD.getInt(new int[] {7, 63}));
-			System.out.println(destD.getInt(new int[] {8, 0}));
-			System.out.println(destD.getInt(new int[] {8, 63}));
-			System.out.println(destD.getInt(new int[] {9, 0}));
-			System.out.println(destD.getInt(new int[] {39, 0}));
-			System.out.println(destD.getInt(new int[] {40, 0}));
-			System.out.println(destD.getInt(new int[] {47, 63}));
-				
-		}
-		catch (java.io.IOException ee) {}
+		// catch (java.io.IOException ee) {}
+		catch (Exception ee) {}
 
 	}
- /* Test output java ucar.multiarray.MultiArrayProxy
-Rank  2
-Shape { 32, 64 }
-512
-576
-2559
-***Rank  2
-Shape { 36, 64 }
-0
-0
-512
-575
-576
-2496
-0
-0
-  */
+
   /* End Test */
 }

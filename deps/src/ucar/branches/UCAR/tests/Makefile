@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1.1.2 2000-08-28 21:43:08 dglo Exp $
+# $Id: Makefile,v 1.1.1.3 2000-08-28 21:43:43 dglo Exp $
 #
 #       Makefile for java ucar/tests
 #		requires ucar.multiarray
@@ -7,11 +7,12 @@
 SHELL = /bin/sh
 ##
 # target directories
-ROOT = /tmp/ucar19980626 
+ROOT = /tmp/java
 CLASSDIR = $(ROOT)/classes
+PKGDIR = $(CLASSDIR)/ucar/test
 
 JC = javac
-JCFLAGS = -g
+JCFLAGS = -g -d $(CLASSDIR)
 
 JAVA = java
 
@@ -24,12 +25,12 @@ PACKING_LIST = \
 	test.out \
 	$(JSRCS)
 
-all: TestNetcdf.class
+all: $(PKGDIR)/TestNetcdf.class
 
-test: TestNetcdf.class
-	$(JAVA) TestNetcdf | diff - test.out
+test: all
+	$(JAVA) ucar.test.TestNetcdf | diff - test.out
 
-TestNetcdf.class: TestNetcdf.java
+$(PKGDIR)/TestNetcdf.class: TestNetcdf.java
 	$(JC) $(JCFLAGS) TestNetcdf.java
 
 MANIFEST:	FORCE

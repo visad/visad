@@ -1,18 +1,18 @@
-# $Id: Makefile,v 1.1.1.2 2000-08-28 21:43:05 dglo Exp $
+# $Id: Makefile,v 1.1.1.3 2000-08-28 21:43:41 dglo Exp $
 #
 #       Makefile for java package ucar (multiarray and netcdf)
 #
 SHELL = /bin/sh
 ##
 # target directories
-ROOT = /tmp/ucar19980626 
+ROOT = /tmp/java
 CLASSDIR = $(ROOT)/classes
 DOCDIR = $(ROOT)/docs
 
 JC = javac
 JCFLAGS = -g -d $(CLASSDIR)
 
-JDOC =
+JDOC = /opt/jdk1.2/bin/javadoc
 JDOCFLAGS = -version
 
 SUBDIRS = \
@@ -32,7 +32,7 @@ all: multiarray/all netcdf/all tests/all
 test: tests/test
 
 docs:	FORCE
-	$(JDOC) $(JDOCFLAGS) -d $(DOCDIR) multiarray/*.java netcdf/*.java
+	$(JDOC) $(JDOCFLAGS) -d $(DOCDIR) ucar.multiarray ucar.netcdf
 
 MANIFEST:	FORCE
 	$(MAKE) MANIFEST.echo >$@

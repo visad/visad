@@ -41,12 +41,19 @@ package ucar.multiarray;
  * proxy getLengths() method.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:43:06 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:41 $
  */
 
 public interface
 IndexMap
 {
+	/**
+	 * Return the length needed for an output vector.
+	 * Will throw an exception if called before <code>setInput()</code>.
+	 */
+	public int
+	getOutputLength();
+
 	/**
 	 * Rebind the domain of <code>getTransformed()</code>
 	 * @param input int array domain reference member.
