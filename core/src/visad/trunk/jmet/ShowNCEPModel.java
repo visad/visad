@@ -77,7 +77,7 @@ public class ShowNCEPModel
   private AnimationControl ca;
   private double[] pcMatrix;
   private GraphicsModeControl gmc;
-  private DisplayImpl di;
+  private LocalDisplay display;
   private NetcdfGrids ng;
   private JPanel vdisplay;
   private RealType x,y,level,time_type,pres;
@@ -97,24 +97,74 @@ public class ShowNCEPModel
   private String directory;
   private String MapFile;
 
+  private boolean isServer = false;
+  private boolean isClient = false;
+
   public static void main(String args[]) {
 
-    String argument = "-1";
-    if (args != null && args.length > 0) {
-      argument = args[0].trim();
-    }
-
     int num=1;
-    try {
-      num =  - (Integer.parseInt(argument));
-      if (num < 1 || num > 9) {
-        System.out.println("invalid number of tabs (1-9) = "+num);
+    boolean srvr = false;
+    boolean clnt = false;
+    String fileName = null;
+    if (args != null && args.length > 0) {
+      boolean killMe = false;
+      boolean gotNum = false;
+      for (int i = 0; i < args.length; i++) {
+        if (args[i].charAt(0) == '-' && args[i].length() > 1) {
+          switch (args[i].charAt(1)) {
+          case 'c':
+            if (srvr) {
+              System.out.println("Cannot specify both '-c' and '-s'");
+              killMe = true;
+            }
+            clnt = true;
+            break;
+          case 's':
+            if (clnt) {
+              System.out.println("Cannot specify both '-c' and '-s'");
+              killMe = true;
+            }
+            srvr = true;
+            break;
+          default:
+            System.out.println("Unknown argument \"" + args[i] + "\"");
+            killMe = true;
+          }
+        } else {
+          boolean triedNum = false;
+          if (!gotNum) {
+            try {
+              num =  Integer.parseInt(args[i].substring(1));
+              triedNum = true;
+            } catch (NumberFormatException nex) {
+            }
+
+            if (triedNum) {
+              if (num >= 1 && num <= 9) {
+                gotNum = true;
+              } else {
+                System.out.println("invalid number of tabs (1-9) = "+num);
+                killMe = true;
+              }
+            }
+          }
+
+          if (!triedNum && fileName == null) {
+            fileName = args[i];
+          } else {
+            System.out.println("Ignoring extra argument \"" + args[i] + "\"");
+          }
+        }
+      }
+
+      if (killMe) {
+        System.out.println("Usage: ShowNCEPModel [-c|-s] #");
         System.exit(1);
       }
-    } catch (Exception nex) {System.exit(1);}
+    }
 
     try {
-      new ShowNCEPModel(num);
+      new ShowNCEPModel(num, srvr, clnt);
     } catch (Exception e) {
       e.printStackTrace(System.out);
       System.exit(1);
@@ -124,13 +174,20 @@ public class ShowNCEPModel
   public ShowNCEPModel(int numPanels)
     throws RemoteException, VisADException
   {
+    this(numPanels, false, false);
+  }
 
+  public ShowNCEPModel(int numPanels, boolean srvr, boolean clnt)
+    throws RemoteException, VisADException
+  {
     super("Show NCEP Model Data");
+
+    isServer = srvr;
+    isClient = clnt;
 
     addWindowListener( new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0); }
     } );
-        
 
     frameValue = 0;
     maxFrames = -1;
@@ -143,16 +200,32 @@ public class ShowNCEPModel
     //MapFile = "../data/mcidas/OUTLAUST";
     MapFile = "../data/mcidas/OUTLUSAM";
 
-    buildData(numPanels);
+    String serviceName = getClass().getName();
+
+    if (!isClient) {
+      DisplayImpl di = buildData(numPanels);
+      if (isServer) {
+        RemoteServerImpl server = ClientServer.startServer(serviceName);
+
+        server.addDisplay(new RemoteDisplayImpl(di));
+      }
+      display = di;
+    } else {
+      RemoteServer client;
+      client = ClientServer.connectToServer("localhost", serviceName);
+
+      LocalDisplay[] lh = ClientServer.getClientDisplays(client);
+      display = lh[0];
+    }
 
     buildUI();
   }
 
-  private void buildData(int numPanels)
+  private DisplayImpl buildData(int numPanels)
     throws RemoteException, VisADException
   {
     // define the VisAD mappings for the Data and Display
-    di = new DisplayImplJ3D("display1");
+    DisplayImpl di = new DisplayImplJ3D("display1");
     di.addDisplayListener(this);
     pc = di.getProjectionControl();
 
@@ -213,6 +286,8 @@ public class ShowNCEPModel
       colorTable[2][i] = .6f;
     }
     ccmap.setTable(colorTable);
+
+    return di;
   }
 
   private void buildMenuBar()
@@ -378,7 +453,7 @@ public class ShowNCEPModel
   {
     buildMenuBar();
 
-    vdisplay = (JPanel) di.getComponent();
+    vdisplay = (JPanel) display.getComponent();
     vdisplay.setPreferredSize(new Dimension(700,700) );
     vdisplay.setAlignmentX(Component.LEFT_ALIGNMENT);
     vdisplay.setAlignmentY(Component.TOP_ALIGNMENT);
@@ -584,19 +659,16 @@ public class ShowNCEPModel
       mapField = new FieldImpl(mapType, mapSet);
       mapField.setSample(0,mapData);
       mapControl = (ValueControl) mapMap.getControl();
-      if (mapRef != null) di.removeReference(mapRef);
+      if (mapRef != null) display.removeReference(mapRef);
       mapRef = new DataReferenceImpl("mapData");
       mapRef.setData(mapField);
       ConstantMap[] rendMap;
       rendMap = new ConstantMap[1];
       rendMap[0] = new ConstantMap(-.99, Display.ZAxis);
-      di.addReference(mapRef, rendMap);
-      //di.addReference(mapRef);
+      display.addReference(mapRef, rendMap);
+      //display.addReference(mapRef);
       mapControl.setValue(0.0);
 
     } catch (Exception mapop) {mapop.printStackTrace(); System.exit(1); }
-
   }
-
-
 }
