@@ -40,7 +40,6 @@ import visad.RemoteDisplay;
 import visad.RemoteVisADException;
 import visad.VisADException;
 
-import visad.util.ObjectCache;
 import visad.util.ThreadPool;
 
 public class MonitorBroadcaster

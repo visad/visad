@@ -26,15 +26,11 @@ import java.rmi.RemoteException;
 
 import java.util.Iterator;
 
-import visad.util.ObjectCache;
-
 class MonitorListener
   extends EventListener
 {
   private DisplayMonitorListener listener;
   private int id;
-
-  private EventCache cache;
 
   MonitorListener(String name, DisplayMonitorListener listener, int id)
   {
@@ -42,8 +38,6 @@ class MonitorListener
 
     this.listener = listener;
     this.id = id;
-
-    cache = new EventCache(name + ":Cache#" + id);
   }
 
   EventTable getNewEventTable() { return new MonitorEventTable(Name); }
@@ -92,13 +86,6 @@ class MonitorListener
    */
   boolean eventSeen(MonitorEvent evt)
   {
-    // if we've already delivered this object, ignore it
-    if (cache.isCached(evt)) {
-      return true;
-    }
-
-    // remember this event for future reference
-    cache.add(evt);
     return false;
   }
 
@@ -129,81 +116,5 @@ class MonitorListener
       description = buf.toString();
     }
     return description;
-  }
-
-  /**
-   * Cache to track recently seen events
-   */
-  class EventCache
-  {
-    String name;
-    ObjectCache cache;
-
-    public EventCache(String name)
-    {
-      this.name = name;
-      cache = new ObjectCache(name);
-    }
-
-    public void add(MonitorEvent evt)
-    {
-      // HACK ALERT!!!
-      //  If this is a MAPS_CLEARED event, delete all added map events
-      //  If this is a MAP_ADDED event, delete any clear events
-      switch (evt.getType()) {
-      case MonitorEvent.MAPS_CLEARED:
-        deleteEvents(MonitorEvent.MAP_ADDED);
-        break;
-      case MonitorEvent.MAP_ADDED:
-        deleteEvents(MonitorEvent.MAPS_CLEARED);
-        break;
-      }
-      Object obj = getClonedObject(evt);
-      cache.add(obj);
-    }
-
-    private void deleteEvents(int type)
-    {
-      Iterator iter = cache.keys();
-      while (iter.hasNext()) {
-        Object key = iter.next();
-        Object obj = cache.get(key);
-        if (obj instanceof MonitorEvent) {
-          MonitorEvent evt = (MonitorEvent )obj;
-          if (evt.getType() == type) {
-            cache.remove(key);
-          }
-        }
-      }
-    }
-
-    private Object getClonedObject(MonitorEvent evt)
-    {
-      if (evt instanceof ControlMonitorEvent) {
-        return ((ControlMonitorEvent )evt).getControl().clone();
-      }
-
-      return evt.clone();
-    }
-
-    private Object getObject(MonitorEvent evt)
-    {
-      if (evt instanceof ControlMonitorEvent) {
-        return ((ControlMonitorEvent )evt).getControl();
-      }
-
-      return evt;
-    }
-
-    public boolean isCached(MonitorEvent evt)
-    {
-      Object obj = getObject(evt);
-      if (obj == null) {
-        // assume other side hasn't seen null events
-        return false;
-      }
-
-      return cache.isCached(obj);
-    }
   }
 }
