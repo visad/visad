@@ -28,6 +28,7 @@ package visad;
 
 import java.rmi.*;
 import java.util.Vector;
+import java.util.Hashtable;
 
 /**
    MathType is the superclass for VisAD's hierarchy of mathematical types.
@@ -274,21 +275,21 @@ public abstract class MathType extends Object implements java.io.Serializable {
     MathType m = this;
 
     // set up aliases for "time" RealType to be mapped to Animation
-    DataStruct[] ds;
+    DataStruct[][] ds;
     synchronized (timeAliases) {
       int len = timeAliases.size();
-      ds = new DataStruct[len];
+      ds = new DataStruct[1][len];
       for (int i=0; i<len; i++) {
         String name = (String) timeAliases.elementAt(i);
-        ds[i] = new DataStruct(name);
+        ds[0][i] = new DataStruct(name);
       }
     }
 
     // find a FunctionType whose 1-D domain is a RealType matching above
-    findTimeFunction(m, ds);
+    findTimeFunction(m, ds, null);
     int timeFunc = -1;
-    for (int i=0; i<ds.length; i++) {
-      if (ds[i].fvalid && ds[i].funcs.size() > 0) {
+    for (int i=0; i<ds[0].length; i++) {
+      if (ds[0][i].fvalid && ds[0][i].funcs.size() > 0) {
         timeFunc = i;
         break;
       }
@@ -300,8 +301,8 @@ public abstract class MathType extends Object implements java.io.Serializable {
     if (timeFunc < 0) buildTypeList(m, flist, slist);
     else {
       // found a "time" RealType; only search ranges of "time" FunctionTypes
-      for (int i=0; i<ds[timeFunc].funcs.size(); i++) {
-        FunctionType f = (FunctionType) ds[timeFunc].funcs.elementAt(i);
+      for (int i=0; i<ds[0][timeFunc].funcs.size(); i++) {
+        FunctionType f = (FunctionType) ds[0][timeFunc].funcs.elementAt(i);
         buildTypeList(f.getRange(), flist, slist);
       }
     }
@@ -359,7 +360,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                 smaps[2] = new ScalarMap(z, Display.ZAxis);
                 smaps[3] = new ScalarMap(a, Display.IsoContour);
                 if (timeFunc >= 0) {
-                  Object o = ds[timeFunc].funcs.elementAt(0);
+                  Object o = ds[0][timeFunc].funcs.elementAt(0);
                   RealTupleType rtt = ((FunctionType) o).getDomain();
                   RealType time = (RealType) rtt.getComponent(0);
                   smaps[4] = new ScalarMap(time, Display.Animation);
@@ -393,7 +394,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                     smaps[2] = new ScalarMap(z, Display.ZAxis);
                     smaps[3] = new ScalarMap(a, Display.IsoContour);
                     if (timeFunc >= 0) {
-                      Object o = ds[timeFunc].funcs.elementAt(0);
+                      Object o = ds[0][timeFunc].funcs.elementAt(0);
                       RealTupleType rtt = ((FunctionType) o).getDomain();
                       RealType time = (RealType) rtt.getComponent(0);
                       smaps[4] = new ScalarMap(time, Display.Animation);
@@ -517,7 +518,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
               smaps[2] = new ScalarMap(z, Display.ZAxis);
               smaps[3] = new ScalarMap(a, Display.IsoContour);
               if (timeFunc >= 0) {
-                Object o = ds[timeFunc].funcs.elementAt(0);
+                Object o = ds[0][timeFunc].funcs.elementAt(0);
                 RealTupleType rtt = ((FunctionType) o).getDomain();
                 RealType time = (RealType) rtt.getComponent(0);
                 smaps[4] = new ScalarMap(time, Display.Animation);
@@ -636,7 +637,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
               smaps[2] = new ScalarMap(z, Display.ZAxis);
               smaps[3] = new ScalarMap(a, Display.IsoContour);
               if (timeFunc >= 0) {
-                Object o = ds[timeFunc].funcs.elementAt(0);
+                Object o = ds[0][timeFunc].funcs.elementAt(0);
                 RealTupleType rtt = ((FunctionType) o).getDomain();
                 RealType time = (RealType) rtt.getComponent(0);
                 smaps[4] = new ScalarMap(time, Display.Animation);
@@ -805,7 +806,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
               smaps[2] = new ScalarMap(z, Display.ZAxis);
               smaps[3] = new ScalarMap(a, Display.IsoContour);
               if (timeFunc >= 0) {
-                Object o = ds[timeFunc].funcs.elementAt(0);
+                Object o = ds[0][timeFunc].funcs.elementAt(0);
                 RealTupleType rtt = ((FunctionType) o).getDomain();
                 RealType time = (RealType) rtt.getComponent(0);
                 smaps[4] = new ScalarMap(time, Display.Animation);
@@ -878,7 +879,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                 }
                 smaps[2] = new ScalarMap(rgb[0], Display.RGB);
                 if (timeFunc >= 0) {
-                  Object o = ds[timeFunc].funcs.elementAt(0);
+                  Object o = ds[0][timeFunc].funcs.elementAt(0);
                   RealTupleType rtt = ((FunctionType) o).getDomain();
                   RealType time = (RealType) rtt.getComponent(0);
                   smaps[3] = new ScalarMap(time, Display.Animation);
@@ -902,7 +903,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                 smaps[3] = new ScalarMap(rgb[1], Display.Green);
                 smaps[4] = new ScalarMap(rgb[2], Display.Blue);
                 if (timeFunc >= 0) {
-                  Object o = ds[timeFunc].funcs.elementAt(0);
+                  Object o = ds[0][timeFunc].funcs.elementAt(0);
                   RealTupleType rtt = ((FunctionType) o).getDomain();
                   RealType time = (RealType) rtt.getComponent(0);
                   smaps[5] = new ScalarMap(time, Display.Animation);
@@ -997,7 +998,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
               smaps[2] = new ScalarMap(a, threeD ? Display.ZAxis
                                                  : Display.RGB);
               if (timeFunc >= 0) {
-                Object o = ds[timeFunc].funcs.elementAt(0);
+                Object o = ds[0][timeFunc].funcs.elementAt(0);
                 RealTupleType rtt = ((FunctionType) o).getDomain();
                 RealType time = (RealType) rtt.getComponent(0);
                 smaps[3] = new ScalarMap(time, Display.Animation);
@@ -1064,7 +1065,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                 smaps[1] = new ScalarMap(a, Display.YAxis);
               }
               if (timeFunc >= 0) {
-                Object o = ds[timeFunc].funcs.elementAt(0);
+                Object o = ds[0][timeFunc].funcs.elementAt(0);
                 RealTupleType rtt = ((FunctionType) o).getDomain();
                 RealType time = (RealType) rtt.getComponent(0);
                 smaps[2] = new ScalarMap(time, Display.Animation);
@@ -1123,7 +1124,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
             }
           }
           if (timeFunc >= 0) {
-            Object o = ds[timeFunc].funcs.elementAt(0);
+            Object o = ds[0][timeFunc].funcs.elementAt(0);
             RealTupleType rtt = ((FunctionType) o).getDomain();
             RealType time = (RealType) rtt.getComponent(0);
             smaps[dim] = new ScalarMap(time, Display.Animation);
@@ -1164,7 +1165,13 @@ public abstract class MathType extends Object implements java.io.Serializable {
 
   /** used by guessMaps to recursively find a "time" RealType inside
       a 1-D function domain */
-  private void findTimeFunction(MathType mt, DataStruct[] info) {
+  private void findTimeFunction(MathType mt, DataStruct[][] info,
+                                Hashtable invalid) {
+    boolean wasnull = false;
+    if (invalid == null) {
+      invalid = new Hashtable();
+      wasnull = true;
+    }
     if (mt instanceof TupleType) {
       TupleType tt = (TupleType) mt;
       // search each element of the tuple
@@ -1174,13 +1181,13 @@ public abstract class MathType extends Object implements java.io.Serializable {
           tc = tt.getComponent(i);
         }
         catch (VisADException exc) { }
-        findTimeFunction(tc, info);
+        findTimeFunction(tc, info, invalid);
       }
     }
     else if (mt instanceof SetType) {
       SetType st = (SetType) mt;
       // search set's domain
-      findTimeFunction(st.getDomain(), info);
+      findTimeFunction(st.getDomain(), info, invalid);
     }
     else if (mt instanceof FunctionType) {
       FunctionType ft = (FunctionType) mt;
@@ -1195,26 +1202,52 @@ public abstract class MathType extends Object implements java.io.Serializable {
       if (rtc0 != null && domain.getDimension() == 1) {
         // search function's domain for RealType with matching name
         String rtname = rtc0.getName();
-        for (int i=0; i<info.length; i++) {
-          if (rtname.equals(info[i].name)) {
-            info[i].funcs.addElement(ft);
+        for (int i=0; i<info[0].length; i++) {
+          if (rtname.equals(info[0][i].name)) {
+            info[0][i].funcs.addElement(ft);
             found = true;
           }
         }
+
+        // WLH 19 Oct 2001
+        Unit rtc0_unit = rtc0.getDefaultUnit();
+        if (SI.second.isConvertible(rtc0_unit)) {
+          int len = info[0].length;
+          DataStruct[][] temp = new DataStruct[1][len + 1];
+          for (int i=0; i<len; i++) {
+            temp[0][i] = info[0][i];
+          }
+          temp[0][len] = new DataStruct(rtname);
+          temp[0][len].funcs.addElement(ft);
+          info[0] = temp[0];
+          found = true;
+        }
+
       }
       // search function's domain
-      if (!found) findTimeFunction(domain, info);
+      if (!found) findTimeFunction(domain, info, invalid);
       // search function's range
-      findTimeFunction(range, info);
+      findTimeFunction(range, info, invalid);
     }
     else if (mt instanceof RealType) {
       RealType rt = (RealType) mt;
       String rtname = rt.getName();
-      for (int i=0; i<info.length; i++) {
+      invalid.put(rtname, rt);
+/*
+      for (int i=0; i<info[0].length; i++) {
         // invalidate RealTypes not in a 1-D function domain
-        if (rtname.equals(info[i].name)) info[i].fvalid = false;
+        if (rtname.equals(info[0][i].name)) info[0][i].fvalid = false;
+      }
+*/
+    }
+
+    if (wasnull) {
+      for (int i=0; i<info[0].length; i++) {
+        // invalidate RealTypes not in a 1-D function domain
+        if (invalid.get(info[0][i].name) != null) info[0][i].fvalid = false;
       }
     }
+
     return;
   }
 
