@@ -141,7 +141,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   // Support for printing
   private Printable printer;
 
-  private boolean cluster = false; // WLH 7 Dec 2000
+  private boolean cluster = false;
 
   /** constructor with non-default DisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
@@ -1490,28 +1490,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         // for transformation)
         // clone RendererVector to avoid need for synchronized access
         Vector temp = ((Vector) RendererVector.clone());
-
-// new
-        if (!initialize) {
-          boolean anyBadMap = false;
-          maps = tmap.elements();
-          while (maps.hasMoreElements()) {
-            ScalarMap map = ((ScalarMap) maps.nextElement());
-            if (map.badRange()) anyBadMap = true;
-          }
-
-          Enumeration renderers = temp.elements();
-          boolean badScale = false;
-          while (renderers.hasMoreElements()) {
-            DataRenderer renderer = (DataRenderer) renderers.nextElement();
-            // badScale |= renderer.getBadScale();  WLH 10 May 2001
-            badScale |= renderer.getBadScale(anyBadMap);
-          }
-          initialize = badScale;
-          if (always_initialize) initialize = true;
-        }
-// end new
-
         Enumeration renderers = temp.elements();
         boolean go = false;
         if (initialize) {
@@ -1532,27 +1510,40 @@ System.out.println("initialize = " + initialize + " go = " + go +
         }
 
         if (!initialize || go) {
+          boolean lastinitialize = initialize;
           displayRenderer.prepareAction(temp, tmap, go, initialize);
 
-/* new out
           // WLH 10 May 2001
           boolean anyBadMap = false;
           maps = tmap.elements();
           while (maps.hasMoreElements()) {
             ScalarMap map = ((ScalarMap) maps.nextElement());
-            if (map.badRange()) anyBadMap = true;
+            if (map.badRange()) {
+              anyBadMap = true;
+              // System.out.println("badRange " + map);
+            }
           }
 
           renderers = temp.elements();
           boolean badScale = false;
           while (renderers.hasMoreElements()) {
             DataRenderer renderer = (DataRenderer) renderers.nextElement();
-            // badScale |= renderer.getBadScale();  WLH 10 May 2001
-            badScale |= renderer.getBadScale(anyBadMap);
+            boolean badthis = renderer.getBadScale(anyBadMap);
+            badScale |= badthis;
+/*
+            if (badthis) {
+              DataDisplayLink[] links = renderer.getLinks();
+              System.out.println("badthis " +
+                                 links[0].getThingReference().getName());
+            }
+*/
           }
           initialize = badScale;
           if (always_initialize) initialize = true;
-end new out */
+
+          if (initialize != lastinitialize) {
+            displayRenderer.prepareAction(temp, tmap, go, initialize);
+          }
 
           boolean transform_done = false;
 
