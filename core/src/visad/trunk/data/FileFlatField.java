@@ -134,7 +134,7 @@ public class FileFlatField extends FlatField {
     }
   }
 
-  private FlatField getadaptedFlatField()
+  private FlatField getAdaptedFlatField()
   {
     // if owner array is null,
     //  assume this object got serailized & unserialized
@@ -142,72 +142,71 @@ public class FileFlatField extends FlatField {
       return null;
     }
 
-    // does not lock adaptedFlatFields since it is always
-    // invoked from methods that have locked adaptedFlatFields
+    synchronized (adaptedFlatFields) {
+      for ( int ii = 0; ii < MAX_FILE_FLAT_FIELDS; ii++ )
+      {
+        if (this == adaptedFlatFieldOwner[ii]) {
 
-    for ( int ii = 0; ii < MAX_FILE_FLAT_FIELDS; ii++ )
-    {
-      if (this == adaptedFlatFieldOwner[ii]) {
+          // mark time of most recent access
 
-        // mark time of most recent access
+          adaptedFlatFieldTimes[ii] = System.currentTimeMillis();
 
-           adaptedFlatFieldTimes[ii] = System.currentTimeMillis();
-
-           return adaptedFlatFields[ii];
+          return adaptedFlatFields[ii];
+        }
       }
-    }
 
-        // this FileFlatField does not own a cache entry, so invoke
-        // CahceStrategy.allocate to allocate one, possibly by taking
-        // one, possibly by taking one from another FileFlatField;
-        // this will be an area for lots of thought and experimentation;
+      // this FileFlatField does not own a cache entry, so invoke
+      // CahceStrategy.allocate to allocate one, possibly by taking
+      // one, possibly by taking one from another FileFlatField;
+      // this will be an area for lots of thought and experimentation;
 
-        adaptedFlatFieldIndex =
-          cacheStrategy.allocate(adaptedFlatFields, adaptedFlatFieldDirty,
+      adaptedFlatFieldIndex =
+        cacheStrategy.allocate(adaptedFlatFields, adaptedFlatFieldDirty,
                                adaptedFlatFieldSizes, adaptedFlatFieldTimes);
 
-        // flush cache entry, if dirty
+      // flush cache entry, if dirty
 
-        if (adaptedFlatFieldDirty[adaptedFlatFieldIndex])
-        {
-          try
-          {
-             adaptedFlatFieldOwner[adaptedFlatFieldIndex].flushCache();
-          }
-          catch ( VisADException e )
-          {
-            System.out.println( e.getMessage() );
-          }
-        }
-
-        // create a new entry in adaptedFlatFields at adaptedFlatFieldIndex
-        // and read data values from fileAccessor at fileLocation
+      if (adaptedFlatFieldDirty[adaptedFlatFieldIndex])
+      {
         try
         {
-           adaptedFlatFields[adaptedFlatFieldIndex] = fileAccessor.getFlatField();
+          adaptedFlatFieldOwner[adaptedFlatFieldIndex].flushCache();
         }
-        catch ( VisADException e1 )
+        catch ( VisADException e )
         {
-          System.out.println( e1.getMessage() );
+          System.out.println( e.getMessage() );
         }
-        catch ( RemoteException e2 )
-        {
-          System.out.println( e2.getMessage() );
-        }
+      }
 
-        // mark cache entry as belonging to this FileFlatField
+      // create a new entry in adaptedFlatFields at adaptedFlatFieldIndex
+      // and read data values from fileAccessor at fileLocation
+      try
+      {
+        adaptedFlatFields[adaptedFlatFieldIndex] = fileAccessor.getFlatField();
+      }
+      catch ( VisADException e1 )
+      {
+        System.out.println( e1.getMessage() );
+      }
+      catch ( RemoteException e2 )
+      {
+        System.out.println( e2.getMessage() );
+      }
 
-          adaptedFlatFieldOwner[adaptedFlatFieldIndex] = this;
+      // mark cache entry as belonging to this FileFlatField
 
-        // get size of adapted FlatField
-        // (by calling a method that currently does not exist)
+      adaptedFlatFieldOwner[adaptedFlatFieldIndex] = this;
 
-          /*adaptedFlatFields[adaptedFlatFieldIndex].getSize(); */
+      // get size of adapted FlatField
+      // (by calling a method that currently does not exist)
 
-         adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
-            System.currentTimeMillis();
+      /*adaptedFlatFields[adaptedFlatFieldIndex].getSize(); */
 
-         return adaptedFlatFields[adaptedFlatFieldIndex];
+      adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
+        System.currentTimeMillis();
+
+      return adaptedFlatFields[adaptedFlatFieldIndex];
+    }
   }
 
   private void flushCache()
@@ -229,220 +228,133 @@ public class FileFlatField extends FlatField {
 
   // must implement all the methods of Data, Function and Field
   //
-  // bodies of all must be inside
-  // 'synchronized (adaptedFlatFields) { ... }'
-  //
   // most are simple adapters, like this:
   //
 
   public Data getSample(int index)
          throws VisADException, RemoteException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        throw new VisADException("Cannot get cached FlatField");
-      }
-
-      return fld.getSample(index);
-    }
+    return fld.getSample(index);
   }
 
   public int getLength()
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return 0;
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return 0;
-      }
-
-      return fld.getLength();
-    }
+    return fld.getLength();
   }
 
   public Unit[] getDomainUnits()
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return null;
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getDomainUnits();
-    }
+    return fld.getDomainUnits();
   }
 
   public CoordinateSystem getDomainCoordinateSystem()
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return null;
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getDomainCoordinateSystem();
-    }
+    return fld.getDomainCoordinateSystem();
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws TypeException
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return null;
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getRangeCoordinateSystem();
-    }
+    return fld.getRangeCoordinateSystem();
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem( int component )
          throws TypeException
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return null;
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getRangeCoordinateSystem( component );
-    }
+    return fld.getRangeCoordinateSystem( component );
   }
 
   public Unit[][] getRangeUnits()
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return null;
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getRangeUnits();
-    }
+    return fld.getRangeUnits();
   }
 
   public Unit[] getDefaultRangeUnits()
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return null;
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getDefaultRangeUnits();
-    }
+    return fld.getDefaultRangeUnits();
   }
 
   public double[][] getValues()
          throws VisADException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getValues();
-    }
+    return fld.getValues();
   }
 
   public double[] getValues(int index)
          throws VisADException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getValues(index);
-    }
+    return fld.getValues(index);
   }
 
   public float[][] getFloats(boolean copy)
          throws VisADException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getFloats(copy);
-    }
+    return fld.getFloats(copy);
   }
 
   public Set getDomainSet()
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return null;
     }
 
-    synchronized ( adaptedFlatFields )
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.getDomainSet();
-    }
+    return fld.getDomainSet();
   }
 
   // setSample is typical of methods that involve changing the
@@ -454,7 +366,7 @@ public class FileFlatField extends FlatField {
     }
 
     synchronized (adaptedFlatFields) {
-      FlatField fld = getadaptedFlatField();
+      FlatField fld = getAdaptedFlatField();
       if (fld == null) {
         throw new VisADException("Cannot get cached FlatField");
       }
@@ -473,7 +385,7 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      FlatField fld = getadaptedFlatField();
+      FlatField fld = getAdaptedFlatField();
       if (fld == null) {
         throw new VisADException("Cannot get cached FlatField");
       }
@@ -492,7 +404,7 @@ public class FileFlatField extends FlatField {
 
     synchronized (adaptedFlatFields)
     {
-      FlatField fld = getadaptedFlatField();
+      FlatField fld = getAdaptedFlatField();
       if (fld == null) {
         throw new VisADException("Cannot get cached FlatField");
       }
@@ -504,163 +416,100 @@ public class FileFlatField extends FlatField {
 
   public boolean isMissing()
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return true;
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return true;
-      }
-
-      return fld.isMissing();
-    }
+    return fld.isMissing();
   }
 
   public Data binary( Data data, int op, int sampling_mode, int error_mode )
          throws VisADException, RemoteException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        throw new VisADException("Cannot get cached FlatField");
-      }
-
-      return fld.binary( data, op, sampling_mode, error_mode);
-    }
+    return fld.binary( data, op, sampling_mode, error_mode);
   }
 
   public Data unary( int op, int sampling_mode, int error_mode )
          throws VisADException, RemoteException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        throw new VisADException("Cannot get cached FlatField");
-      }
-
-      return fld.unary( op, sampling_mode, error_mode );
-    }
+    return fld.unary( op, sampling_mode, error_mode );
   }
 
   /** unpack an array of doubles from field sample values according to the
       RangeSet-s; returns a copy */
   public double[][] unpackValues() throws VisADException {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.unpackValues();
-    }
+    return fld.unpackValues();
   }
 
   public Field extract( int component )
          throws VisADException, RemoteException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        throw new VisADException("Cannot get cached FlatField");
-      }
-
-      return fld.extract( component );
-    }
+    return fld.extract( component );
   }
 
   public Field domainFactor( RealType factor )
          throws VisADException, RemoteException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        throw new VisADException("Cannot get cached FlatField");
-      }
-
-      return fld.domainFactor( factor );
-    }
+    return fld.domainFactor( factor );
   }
 
   public Field resample( Set set, int sampling_mode, int error_mode )
          throws VisADException, RemoteException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        throw new VisADException("Cannot get cached FlatField");
-      }
-
-      return fld.resample( set, sampling_mode, error_mode );
-    }
+    return fld.resample( set, sampling_mode, error_mode );
   }
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        throw new VisADException("Cannot get cached FlatField");
-      }
-
-      return fld.computeRanges( type, shadow );
-    }
+    return fld.computeRanges( type, shadow );
   }
 
   public Data adjustSamplingError( Data error, int error_mode )
          throws VisADException, RemoteException
   {
-    if (adaptedFlatFields == null) {
-      throw new VisADException("Cannot access serialized FileFlatField");
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      throw new VisADException("Cannot get cached FlatField");
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        throw new VisADException("Cannot get cached FlatField");
-      }
-
-      return getadaptedFlatField().adjustSamplingError( error, error_mode );
-    }
+    return fld.adjustSamplingError( error, error_mode );
   }
 
   public boolean isFlatField()
@@ -670,56 +519,35 @@ public class FileFlatField extends FlatField {
 
   public Object clone()
   {
-    if (adaptedFlatFields == null) {
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
       return null;
     }
 
-    synchronized (adaptedFlatFields )
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return null;
-      }
-
-      return fld.clone();
-    }
+    return fld.clone();
   }
 
   public String toString()
   {
-    if (adaptedFlatFields == null) {
-      return "Serialized FileFlatField";
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      return "Cannot get cached FlatField";
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return "Cannot get cached FlatField";
-      }
-
-      return fld.toString();
-    }
+    return fld.toString();
   }
 
   public String longString(String pre)
   {
-    if (adaptedFlatFields == null) {
-      return pre + "Serialized FileFlatField";
+    FlatField fld = getAdaptedFlatField();
+    if (fld == null) {
+      return pre + "Cannot get cached FlatField";
     }
 
-    synchronized (adaptedFlatFields)
-    {
-      FlatField fld = getadaptedFlatField();
-      if (fld == null) {
-        return pre + "Cannot get cached FlatField";
-      }
-
-      try {
-	return fld.longString(pre);
-      } catch (VisADException e) {
-	return pre + e.getMessage();
-      }
+    try {
+      return fld.longString(pre);
+    } catch (VisADException e) {
+      return pre + e.getMessage();
     }
   }
 }
