@@ -28,6 +28,11 @@ package visad;
 
 import visad.*;
 
+import java.util.Vector;
+import java.awt.*;
+import java.awt.font.*;
+import java.awt.geom.*;
+
 /**
    PlotText calculates an array of points to be plotted to
    the screen as vector pairs, given a String and location,
@@ -393,4 +398,175 @@ public class PlotText extends Object {
     // return the final string
     return buf.toString();
   }
+
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of triangles for drawing.
+   *
+   * @param str  String to use
+   * @param  font  non-null font
+   * @param  size  size of characters
+   * @param  center is <CODE>true</CODE> if string is to be centered
+   * @param  x  x location
+   * @param  y  y location
+   * @param  z  z location
+   *
+   * @return VisADTriangleArray of all the triangles needed to draw the
+   * characters in this string
+  */
+  public static VisADTriangleArray render_font(String str, Font font, float size,
+                         boolean center, float x, float y, float z) {
+    VisADTriangleArray array = null;
+
+// System.out.println("x, y, z = " + x + " " + y + " " + z);
+// System.out.println("size, center = " + size + " " + center);
+
+    float fsize = size / font.getSize();
+
+    // ??
+    // Graphics2D g2 = null;
+    // FontRenderContext frc = g2.getFontRenderContext();
+    AffineTransform at = null;
+    boolean isAntiAliased = false;
+    boolean usesFractionalMetrics = false;
+    FontRenderContext frc =
+      new FontRenderContext(at, isAntiAliased, usesFractionalMetrics);
+
+    Vector big_vector = new Vector();
+    double flatness = size; // ??
+    float[][] big_samples = new float[2][500];
+    float[] seg = new float[6];
+
+    int str_len = str.length();
+    float x_offset = 0.0f;
+    for (int str_index=0; str_index<str_len; str_index++) {
+      char[] chars = {str.charAt(str_index)};
+// System.out.println(str_index + " " + chars[0] + " " + x_offset);
+      GlyphVector gv = font.createGlyphVector(frc, chars);
+      int ng = gv.getNumGlyphs();
+      if (ng == 0) continue;
+      int path_count = 0;
+      Vector samples_vector = new Vector();
+      for (int ig=0; ig<ng; ig++) {
+        Shape sh = gv.getGlyphOutline(ig);
+        // pi only has SEG_MOVETO, SEG_LINETO, and SEG_CLOSE point types
+        PathIterator pi = sh.getPathIterator(at, flatness);
+        int k = 0;
+        while (!pi.isDone()) {
+          int segType = pi.currentSegment(seg);
+          switch(segType) {
+            case PathIterator.SEG_MOVETO:
+              if (k > 0) {
+// System.out.println("SEG_MOVETO  k = " + k + "  ig = " + ig);
+                float[][] samples = new float[2][k];
+                System.arraycopy(big_samples[0], 0, samples[0], 0, k);
+                System.arraycopy(big_samples[1], 0, samples[1], 0, k);
+                samples_vector.addElement(samples);
+                k = 0;
+                path_count++;
+              }
+              // NOTE falls through to SEG_LINETO to add first point
+            case PathIterator.SEG_LINETO:
+              big_samples[0][k] = fsize * seg[0] + x_offset;
+              big_samples[1][k] = -fsize * seg[1];
+              k++;
+              break;
+            case PathIterator.SEG_CLOSE:
+              if (k > 0) {
+// System.out.println("SEG_CLOSE  k = " + k + "  ig = " + ig);
+                float[][] samples = new float[2][k];
+                System.arraycopy(big_samples[0], 0, samples[0], 0, k);
+                System.arraycopy(big_samples[1], 0, samples[1], 0, k);
+                samples_vector.addElement(samples);
+                k = 0;
+                path_count++;
+              }
+              break;
+          }
+          pi.next();
+        } // end while (!pi.isDone())
+        if (k > 0) {
+// System.out.println("  end  k = " + k + "  ig = " + ig);
+          float[][] samples = new float[2][k];
+          System.arraycopy(big_samples[0], 0, samples[0], 0, k);
+          System.arraycopy(big_samples[1], 0, samples[1], 0, k);
+          samples_vector.addElement(samples);
+          k = 0;
+          path_count++;
+        }
+      } // end for (int ig=0; ig<ng; ig++)
+      if (path_count == 1) {
+// System.out.println("  char  " + chars[0]);
+        big_vector.addElement(samples_vector.elementAt(0));
+      }
+      else { // (path_count > 1)
+        // System.out.println("path_count = " + path_count +
+        //                    " for char = " + chars[0]);
+        float[][][] ss = new float[path_count][][];
+        for (int i=0; i<path_count; i++) {
+          ss[i] = (float[][]) samples_vector.elementAt(i);
+        }
+        try {
+// System.out.println("  call link for  " + chars[0]);
+          big_vector.addElement(DelaunayCustom.link(ss));
+        }
+        catch (VisADException ex) {
+          System.out.println(ex);
+        }
+      }
+      samples_vector.removeAllElements();
+      x_offset += size;
+    } // end for (int str_index=0; str_index<str_len; str_index++)
+
+    int n = big_vector.size();
+    VisADTriangleArray[] arrays = new VisADTriangleArray[n];
+    for (int i=0; i<n; i++) {
+      float[][] samples = (float[][]) big_vector.elementAt(i);
+// System.out.println("samples " + i + " " + samples[0][0] + " " + samples[1][0] +
+//                    " " + samples[0][1] + " " + samples[1][1]);
+      int[][] tris = null;
+      try {
+        tris = DelaunayCustom.fillCheck(samples, false);
+      }
+      catch (VisADException ex) {
+      }
+      if (tris == null || tris.length == 0) continue;
+      int m = tris.length;
+      float[] coordinates = new float[9 * m];
+      for (int j=0; j<m; j++) {
+        int j9 = 9 * j;
+        coordinates[j9 + 0] = x + samples[0][tris[j][0]];
+        coordinates[j9 + 1] = y + samples[1][tris[j][0]];
+        coordinates[j9 + 2] = z;
+        coordinates[j9 + 3] = x + samples[0][tris[j][1]];
+        coordinates[j9 + 4] = y + samples[1][tris[j][1]];
+        coordinates[j9 + 5] = z;
+        coordinates[j9 + 6] = x + samples[0][tris[j][2]];
+        coordinates[j9 + 7] = y + samples[1][tris[j][2]];
+        coordinates[j9 + 8] = z;
+      }
+      float[] normals = new float[9 * m];
+      for (int j=0; j<3*m; j++) {
+        int j3 = 3 * j;
+        normals[j3 + 0] = 0.0f;
+        normals[j3 + 1] = 0.0f;
+        normals[j3 + 2] = 1.0f;
+      }
+      arrays[i] = new VisADTriangleArray();
+      arrays[i].vertexCount = 3 * m;
+      arrays[i].coordinates = coordinates;
+      arrays[i].normals = normals;
+// System.out.println("array[" + i + "] has " + m + " tris");
+    } // end for (int i=0; i<n; i++)
+    array = new VisADTriangleArray();
+    try {
+      VisADGeometryArray.merge(arrays, array);
+    }
+    catch (VisADException ex) {
+      array = new VisADTriangleArray();
+    }
+    if (array.coordinates == null) return null;
+    return array;
+  }
+
 }

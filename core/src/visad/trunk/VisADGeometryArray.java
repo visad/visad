@@ -285,13 +285,25 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
 
   static void merge(VisADGeometryArray[] arrays, VisADGeometryArray array)
          throws VisADException {
-    if (arrays == null || arrays.length == 0 ||
-        arrays[0] == null || array == null) return;
+    if (arrays == null || arrays.length == 0 || array == null) return;
     int n = arrays.length;
     int count = 0;
-    boolean color_flag = (arrays[0].colors != null);
-    boolean normal_flag = (arrays[0].normals != null);
-    boolean texCoord_flag = (arrays[0].texCoords != null);
+    boolean color_flag = false;
+    boolean normal_flag = false;
+    boolean texCoord_flag = false;
+    boolean any = false;
+    int vf = 0;
+
+    for (int i=0; i<n; i++) {
+      if (arrays[i] != null) {
+        color_flag = (arrays[i].colors != null);
+        normal_flag = (arrays[i].normals != null);
+        texCoord_flag = (arrays[i].texCoords != null);
+        vf = arrays[i].vertexFormat;
+        any = true;
+      }
+    }
+    if (!any) return;
 
     for (int i=0; i<n; i++) {
       if (arrays[i] == null) continue;
@@ -349,7 +361,7 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     array.colors = colors;
     array.normals = normals;
     array.texCoords = texCoords;
-    array.vertexFormat = arrays[0].vertexFormat;
+    array.vertexFormat = vf;
     return;
   }
 

@@ -155,12 +155,112 @@ public class DelaunayCustom extends Delaunay {
         if (Math.abs(det) < 0.0000001) continue;
         float x = ((b0 - a0) * (c1 - a1) - (b1 - a1) * (c0 - a0)) / det;
         float y = ((c0 - a0) * (c1 - d1) - (c1 - a1) * (c0 - d0)) / det;
-        if (0.0f <= x && x <= 1.0f && 0.0f <= y && y <= 1.0f) {
+        // if (0.0f <= x && x <= 1.0f && 0.0f <= y && y <= 1.0f) {
+        if (0.0f < x && x < 1.0f && 0.0f < y && y < 1.0f) {
           return true;
         }
       }
     }
     return false;
+  }
+
+  private final static float SELF = 0.999f;
+  private final static float PULL = 1.0f - SELF;
+  private final static float PULL2 = 0.5f * (1.0f - SELF);
+
+  /** return true if closed path in samples self-intersects */
+  public static boolean checkAndFixSelfIntersection(float[][] samples)
+         throws VisADException {
+    if (samples == null) return false;
+    if (samples.length != 2 || samples[0].length != samples[1].length) {
+      throw new VisADException("samples argument bad dimensions");
+    }
+    int n = samples[0].length;
+    boolean intersect = false;
+
+        // build circular boundary list
+    int[] next = new int[n];
+    for (int i=0; i<n-1; i++) {
+      next[i] = i+1;
+    }
+    next[n-1] = 0;
+
+    // remove consecutive identical points
+    float[][] new_samples = new float[2][n];
+    int k = 0;
+    for (int i=0; i<n; i++) {
+      if (samples[0][i] != samples[0][next[i]] ||
+          samples[1][i] != samples[1][next[i]]) {
+        new_samples[0][k] = samples[0][i];
+        new_samples[1][k] = samples[1][i];
+        k++;
+      }
+    }
+    if (k != n) {
+      samples[0] = new float[k];
+      samples[1] = new float[k];
+      System.arraycopy(new_samples[0], 0, samples[0], 0, k);
+      System.arraycopy(new_samples[1], 0, samples[1], 0, k);
+      n = k;
+      next = new int[n];
+      for (int i=0; i<n-1; i++) {
+        next[i] = i+1;
+      }
+      next[n-1] = 0;
+    }
+
+    int[] prev = new int[n];
+    for (int i=1; i<n; i++) {
+      prev[i] = i-1;
+    }
+    prev[0] = n-1;
+
+    for (int i=0; i<n; i++) {
+      if (samples[0][i] == samples[0][next[i]] &&
+          samples[1][i] == samples[1][next[i]]) {
+        System.out.println("equal consecutive points");
+      }
+      for (int j=0; j<n; j++) {
+        if (i == j || i == next[j] || next[i] == j) continue;
+        float a0 = samples[0][i];
+        float a1 = samples[1][i];
+        float b0 = samples[0][next[i]];
+        float b1 = samples[1][next[i]];
+        float c0 = samples[0][j];
+        float c1 = samples[1][j];
+        float d0 = samples[0][next[j]];
+        float d1 = samples[1][next[j]];
+        float det = (b0 - a0) * (c1 - d1) - (b1 - a1) * (c0 - d0);
+        if (Math.abs(det) < 0.0000001) continue;
+        float x = ((b0 - a0) * (c1 - a1) - (b1 - a1) * (c0 - a0)) / det;
+        float y = ((c0 - a0) * (c1 - d1) - (c1 - a1) * (c0 - d0)) / det;
+        if (0.0f < x && x < 1.0f && 0.0f < y && y < 1.0f) {
+          intersect = true;
+        }
+        else if ((0.0f == x || x == 1.0f) && (0.0f == y || y == 1.0f)) {
+          // System.out.println("fix  x = " + x + " y = " + y);
+          if (x == 0.0f) {
+            samples[0][i] = SELF * a0 + PULL2 * (b0 + samples[0][prev[i]]);
+            samples[1][i] = SELF * a1 + PULL2 * (b1 + samples[1][prev[i]]);
+          }
+          else if (x == 1.0f) {
+            k = next[i];
+            samples[0][k] = SELF * b0 + PULL2 * (a0 + samples[0][next[k]]);
+            samples[1][k] = SELF * b1 + PULL2 * (a1 + samples[1][next[k]]);
+          }
+          if (y == 0.0f) {
+            samples[0][j] = SELF * c0 + PULL2 * (d0 + samples[0][prev[j]]);
+            samples[1][j] = SELF * c1 + PULL2 * (d1 + samples[1][prev[j]]);
+          }
+          else if (y == 1.0f) {
+            k = next[j];
+            samples[0][k] = SELF * d0 + PULL2 * (c0 + samples[0][next[k]]);
+            samples[1][k] = SELF * d1 + PULL2 * (c1 + samples[1][next[k]]);
+          }
+        }
+      }
+    }
+    return intersect;
   }
 
   /** compute area inside closed path */
@@ -223,13 +323,18 @@ public class DelaunayCustom extends Delaunay {
       the trick is that the region may not be convex, but the triangles
       must all lie inside the region */
   public static int[][] fill(float[][] samples) throws VisADException {
+    return fillCheck(samples, true);
+  }
+
+  public static int[][] fillCheck(float[][] samples, boolean check)
+         throws VisADException {
     if (samples == null) return null;
     if (samples.length != 2 || samples[0].length != samples[1].length) {
       throw new VisADException("samples argument bad dimensions");
     }
     if (samples[0].length < 3) return null;
-    if (checkSelfIntersection(samples)) {
-      throw new VisADException("path self intersects");
+    if (checkAndFixSelfIntersection(samples)) {
+      if (check) throw new VisADException("path self intersects");
     }
     int n = samples[0].length;
 
@@ -353,6 +458,135 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
       }
     }
     return tris;
+  }
+
+  /** link multiple paths into a single path */
+  public static float[][] link(float[][][] ss) throws VisADException {
+    if (ss == null || ss.length == 0) return null;
+    int nn = ss.length;
+    for (int ii=0; ii<nn; ii++) {
+      if (ss[ii].length != 2 || ss[ii][0].length != ss[ii][1].length) {
+        throw new VisADException("samples argument bad dimensions");
+      }
+      if (checkAndFixSelfIntersection(ss[ii])) {
+        throw new VisADException("path self intersects");
+      }
+    }
+    float[][] s = ss[0];
+    if (nn == 1) return s;
+    if (s[0].length < 3) return null;
+
+    boolean[] orient = new boolean[nn];
+    for (int ii=1; ii<nn; ii++) {
+      float area = 0.0f;
+      float[][] t = ss[ii];
+      int m = t[0].length;
+      for (int i=0; i<m-1; i++) {
+        area += t[0][i] * t[1][i+1] - t[0][i+1] * t[1][i];
+      }
+      area += t[0][m-1] * t[1][0] - t[0][0] * t[1][m-1];
+      orient[ii] = (area > 0.0);
+    }
+
+    for (int ii=1; ii<nn; ii++) {
+      float[][] t = ss[ii];
+      if (t[0].length < 3) continue;
+      int n = s[0].length;
+      int m = t[0].length;
+      float distance = Float.MAX_VALUE;
+      int near_i = -1;
+      int near_j = -1;
+      for (int i=0; i<n; i++) {
+        for (int j=0; j<m; j++) {
+          float d = (s[0][i] - t[0][j]) * (s[0][i] - t[0][j]) +
+                    (s[1][i] - t[1][j]) * (s[1][i] - t[1][j]);
+          if (d < distance) {
+            distance = d;
+            near_i = i;
+            near_j = j;
+          }
+        }
+      }
+      if (near_i < 0) continue;
+      int ip = (near_i < n - 1) ? near_i + 1 : 0;
+      int im = (0 < near_i) ? near_i - 1 : n - 1;
+      int jp = (near_j < m - 1) ? near_j + 1 : 0;
+      int jm = (0 < near_j) ? near_j - 1 : m - 1;
+      boolean in = inside(s, t[0][near_j], t[1][near_j]);
+      boolean flip = ((orient[0] == orient[ii]) == in);
+// System.out.println("orient[0] = " + orient[0] + " orient[" + ii + "] = " +
+//                    orient[ii] + " in = " + in + " flip = " + flip);
+
+      int new_n = n + m + 2;
+      float[][] new_s = new float[2][new_n];
+      int k = 0;
+      System.arraycopy(s[0], 0, new_s[0], k, near_i + 1);
+      System.arraycopy(s[1], 0, new_s[1], k, near_i + 1);
+      k += near_i + 1;
+      int b1 = k - 1;
+      int a1 = k;
+      if (flip) {
+        for (int j=near_j; j>=0; j--) {
+          new_s[0][k] = t[0][j];
+          new_s[1][k] = t[1][j];
+          k++;
+        }
+        for (int j=m-1; j>=near_j; j--) {
+          new_s[0][k] = t[0][j];
+          new_s[1][k] = t[1][j];
+          k++;
+        }
+      }
+      else {
+        System.arraycopy(t[0], near_j, new_s[0], k, m - near_j);
+        System.arraycopy(t[1], near_j, new_s[1], k, m - near_j);
+        k += m - near_j;
+        System.arraycopy(t[0], 0, new_s[0], k, near_j + 1);
+        System.arraycopy(t[1], 0, new_s[1], k, near_j + 1);
+        k += near_j + 1;
+      }
+      int b2 = k - 1;
+      int a2 = k;
+      System.arraycopy(s[0], near_i, new_s[0], k, n - near_i);
+      System.arraycopy(s[1], near_i, new_s[1], k, n - near_i);
+      s[0] = new_s[0];
+      s[1] = new_s[1];
+      int b1m = (b1 > 0) ? b1 - 1 : new_n - 1;
+      int a1p = (a1 < new_n - 1) ? a1 + 1 : 0;
+      int b2m = (b2 > 0) ? b2 - 1 : new_n - 1;
+      int a2p = (a2 < new_n - 1) ? a2 + 1 : 0;
+
+      new_s[0][b1] = SELF * new_s[0][b1] + PULL * new_s[0][b1m];
+      new_s[1][b1] = SELF * new_s[1][b1] + PULL * new_s[1][b1m];
+      new_s[0][a1] = SELF * new_s[0][a1] + PULL * new_s[0][a1p];
+      new_s[1][a1] = SELF * new_s[1][a1] + PULL * new_s[1][a1p];
+      new_s[0][b2] = SELF * new_s[0][b2] + PULL * new_s[0][b2m];
+      new_s[1][b2] = SELF * new_s[1][b2] + PULL * new_s[1][b2m];
+      new_s[0][a2] = SELF * new_s[0][a2] + PULL * new_s[0][a2p];
+      new_s[1][a2] = SELF * new_s[1][a2] + PULL * new_s[1][a2p];
+
+    } // end for (int ii=1; ii<nn; ii++)
+    return s;
+  }
+
+  /** determine if (x, y) is inside the closed path defined by s */
+  public static boolean inside(float[][] s, float x, float y)
+         throws VisADException {
+    if (s == null) return false;
+    if (s.length != 2 || s[0].length != s[1].length) {
+      throw new VisADException("samples argument bad dimensions");
+    }
+    int n = s[0].length;
+    double angle = 0.0;
+    for (int i=0; i<n; i++) {
+      int ip = (i < n - 1) ? i + 1 : 0;
+      double a = Math.atan2(s[0][i] - x, s[1][i] - y) -
+                 Math.atan2(s[0][ip] - x, s[1][ip] - y);
+      if (a < -Math.PI) a += Math.PI;
+      if (a > Math.PI) a -= Math.PI;
+      angle += a;
+    }
+    return (Math.abs(angle) > 0.5);
   }
 
 }

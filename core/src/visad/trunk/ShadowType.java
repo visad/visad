@@ -29,6 +29,7 @@ package visad;
 import java.util.*;
 import java.rmi.*;
 import java.awt.image.BufferedImage;
+import java.awt.*;
 
 /**
    The ShadowType hierarchy shadows the MathType hierarchy,
@@ -2261,7 +2262,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     return new VisADGeometryArray[] {array};
   }
 
-  private static final double FONT = 0.07;
+  private static final double FONT_SCALE = 0.07;
 
   public VisADGeometryArray makeText(String[] text_values,
                 TextControl text_control, float[][] spatial_values,
@@ -2282,9 +2283,10 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     }
 
     int n = text_values.length;
-    VisADLineArray[] as = new VisADLineArray[n];
+    VisADGeometryArray[] as = new VisADGeometryArray[n];
     boolean center = text_control.getCenter();
     double size = text_control.getSize();
+    Font font = text_control.getFont();
 
     // WLH 31 May 2000
     boolean sphere = text_control.getSphere();
@@ -2295,8 +2297,8 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     }
 
     double[] start = new double[3];
-    double[] base = new double[] {size * FONT, 0.0, 0.0};
-    double[] up = new double[] {0.0, size * FONT, 0.0};
+    double[] base = new double[] {size * FONT_SCALE, 0.0, 0.0};
+    double[] up = new double[] {0.0, size * FONT_SCALE, 0.0};
     int k = 0;
     for (int i=0; i<n; i++) {
       if (range_select[0] == null || range_select[0].length == 1 ||
@@ -2307,7 +2309,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
                    spatial_values[1][i] + " " + spatial_values[2][i]);
 */
         if (sphere) {
-          double size_in_radians = (size * FONT) / spatial_sphere[2][i];
+          double size_in_radians = (size * FONT_SCALE) / spatial_sphere[2][i];
           double size_in_degrees = size_in_radians * Data.RADIANS_TO_DEGREES;
           double lon_size_in_degrees =
             size_in_degrees / Math.cos(Data.DEGREES_TO_RADIANS * spatial_sphere[0][i]);
@@ -2316,7 +2318,15 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
                                 spatial_sphere[2][i]};
           base = new double[] {0.0, lon_size_in_degrees, 0.0};
           up = new double[] {size_in_degrees, 0.0, 0.0};
-          as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+          if (font == null) {
+            as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+          }
+          else {
+            as[k] = PlotText.render_font(text_values[i], font,
+                                         (float) (size * FONT_SCALE),
+                                         center, spatial_sphere[0][i],
+                                         spatial_sphere[1][i], spatial_sphere[2][i]);
+          }
           int len = (as[k] == null) ? 0 : as[k].coordinates.length;
           if (len > 0) {
             float[] coordinates = as[k].coordinates;
@@ -2337,11 +2347,19 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
             as[k].coordinates = coordinates; // not necessary
           }
         }
-        else {
+        else { // !sphere
           start = new double[] {spatial_values[0][i],
                                 spatial_values[1][i],
                                 spatial_values[2][i]};
-          as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+          if (font == null) {
+            as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+          }
+          else {
+            as[k] = PlotText.render_font(text_values[i], font,
+                                         (float) (size * FONT_SCALE),
+                                         center, spatial_values[0][i],
+                                         spatial_values[1][i], spatial_values[2][i]);
+          }
         }
         int len = (as[k] == null) ? 0 : as[k].coordinates.length;
         if (len > 0 && color_values != null) {
@@ -2362,9 +2380,13 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
       }
     }
     if (k == 0) return null;
-    VisADLineArray[] arrays = new VisADLineArray[k];
-    for (int i=0; i<k; i++) arrays[i] = as[i];
-    return VisADLineArray.merge(arrays);
+    VisADGeometryArray[] arrays = new VisADGeometryArray[k];
+    System.arraycopy(as, 0, arrays, 0, k);
+    // for (int i=0; i<k; i++) arrays[i] = as[i];
+    VisADGeometryArray array = (VisADGeometryArray) arrays[0].clone();
+    VisADGeometryArray.merge(arrays, array);
+    return array;
+    // return VisADLineArray.merge(arrays);
   }
 
   /** composite and transform color and Alpha DisplayRealType values
