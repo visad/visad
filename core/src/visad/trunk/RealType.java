@@ -71,6 +71,8 @@ public class RealType extends ScalarType {
   /** Spherical spatial coordinate for Longitude*/
   public final static RealType Longitude =
     new RealType("Longitude", CommonUnit.degree, true);
+  public final static RealType Altitude =
+    new RealType("Longitude", CommonUnit.meter, true);
   public final static RealType Radius =
     new RealType("Radius", null, true);
 
