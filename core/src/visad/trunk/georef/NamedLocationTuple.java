@@ -74,6 +74,25 @@ public class NamedLocationTuple extends Tuple
     }
 
     /**
+     * Construct an NamedLocationTuple from a Text and Reals of Latitude,
+     * Longitude, and Altitude.
+     *
+     * @param  identifier   Text representing the identifier
+     *                      (must be of type NamedLocation.IDENTIFIER_TYPE)
+     * @param  lat   Real representing the latitude
+     * @param  lon   Real representing the longitude
+     * @param  alt   Real representing the altitude
+     *
+     * @throws  VisADException   unable to create necessary VisAD object
+     * @throws  RemoteException  unable to create necessary remote object
+     */
+    public NamedLocationTuple(Text id, Real lat, Real lon, Real alt)
+        throws VisADException, RemoteException
+    {
+        this(id, new EarthLocationTuple(lat, lon, alt));
+    }
+
+    /**
      * Construct an NamedLocationTuple from a Text and an EarthLocation
      *
      * @param  identifier   Text representing the identifier
