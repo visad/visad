@@ -42,7 +42,7 @@ public class ShapeControl extends Control {
   /** set the SimpleSet that defines the mapping from RealType
       values to indices into an array of shapes;
       the domain dimension of set must be 1 */
-  public void setShapeSet(SimpleSet set)
+  public synchronized void setShapeSet(SimpleSet set)
          throws VisADException, RemoteException {
     if (set == null) {
       shapeSet = null;
@@ -61,7 +61,7 @@ public class ShapeControl extends Control {
   /** set the shape associated with index;
       the VisADGeometryArray class hierarchy defines various
       kinds of shapes */
-  public void setShape(int index, VisADGeometryArray shape)
+  public synchronized void setShape(int index, VisADGeometryArray shape)
          throws VisADException, RemoteException {
     if (shapes == null) return;
     if (0 <= index && index < shapes.length) {
@@ -73,7 +73,7 @@ public class ShapeControl extends Control {
   /** set the array of shapes associated with indices 0
       through shapes.length; the VisADGeometryArray class
       hierarchy defines various kinds of shapes */
-  public void setShapes(VisADGeometryArray[] shs)
+  public synchronized void setShapes(VisADGeometryArray[] shs)
          throws VisADException, RemoteException {
     if (shapeSet == null) return;
     if (shs != null && shs.length > 0) {
@@ -85,7 +85,7 @@ public class ShapeControl extends Control {
     changeControl(true);
   }
 
-  public VisADGeometryArray[] getShapes(float[] values)
+  public synchronized VisADGeometryArray[] getShapes(float[] values)
          throws VisADException {
     if (values == null || values.length < 1) return null;
     VisADGeometryArray[] sh = new VisADGeometryArray[values.length];
