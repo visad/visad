@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitParser.jj,v 1.1 2000-11-17 18:54:46 dglo Exp $
+ * $Id: UnitParser.jj,v 1.2 2001-04-03 19:13:54 steve Exp $
  */
 
 options
@@ -164,7 +164,10 @@ PARSER_BEGIN(UnitParser)
 
 		    try
 		    {
-			System.out.println(parser.unitSpec());
+			Unit	unit = parser.unitSpec();
+			System.out.println("unit = " + unit);
+			System.out.println(
+			    "definition = " + unit.getDefinition());
 		    }
 		    catch (ParseException e)
 		    {

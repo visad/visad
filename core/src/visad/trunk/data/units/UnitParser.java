@@ -146,7 +146,10 @@
 
                     try
                     {
-                        System.out.println(parser.unitSpec());
+                        Unit    unit = parser.unitSpec();
+                        System.out.println("unit = " + unit);
+                        System.out.println(
+                            "definition = " + unit.getDefinition());
                     }
                     catch (ParseException e)
                     {
