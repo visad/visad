@@ -685,10 +685,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       catch (RemoteException exc) {
         final SpreadSheet ss = this;
+        final RemoteException rexc = exc;
         SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             JOptionPane.showMessageDialog(ss,
-              "Unable to export cells as RMI addresses.",
+              "Unable to export cells as RMI addresses: " + rexc.getMessage(),
               "Failed to initialize RemoteServer", JOptionPane.ERROR_MESSAGE);
           }
         });
@@ -878,7 +879,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     catch (IOException exc) {
       JOptionPane.showMessageDialog(this,
-          "The file " + file + " could not be loaded",
+          "The file " + file + " could not be loaded. " +
+          "Its format is incorrect.",
           "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       return;
     }
@@ -959,8 +961,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       catch (IOException exc) {
         JOptionPane.showMessageDialog(this,
-            "Could not save file " + CurrentFile.getName(),
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+          "Could not save file " + CurrentFile.getName() + ". " +
+          "Make sure there is enough disk space.",
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
     }
   }
@@ -1048,10 +1051,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       catch (VisADException exc) {
         JOptionPane.showMessageDialog(this,
-            "Cannot paste cell.",
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+          "Cannot paste cell: " + exc.getMessage(),
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
-      catch (RemoteException exc) { }
+      catch (RemoteException exc) {
+        JOptionPane.showMessageDialog(this,
+          "Cannot paste cell: " + exc.getMessage(),
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+      }
     }
   }
 
@@ -1063,10 +1070,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(this,
-          "Cannot clear display mappings.",
-          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+        "Cannot clear display mappings: " + exc.getMessage(),
+        "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
     }
-    catch (RemoteException exc) { }
+    catch (RemoteException exc) {
+      JOptionPane.showMessageDialog(this,
+        "Cannot clear display mappings: " + exc.getMessage(),
+        "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+    }
     refreshFormulaBar();
     refreshMenuCommands();
   }
@@ -1131,12 +1142,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
           DisplayPanel.add(DisplayCells[i][j]);
         }
         catch (VisADException exc) {
-          JOptionPane.showMessageDialog(this, "Cannot create displays.",
-                   "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this, "Cannot construct spreadsheet " +
+            "cells.  An error occurred: " + exc.getMessage(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
         }
         catch (RemoteException exc) {
-          JOptionPane.showMessageDialog(this, "Cannot create displays.",
-                   "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this, "Cannot construct spreadsheet " +
+            "cells.  A remote error occurred: " + exc.getMessage(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
         }
       }
     }
@@ -1333,12 +1346,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
           }
         }
         catch (VisADException exc) {
-          JOptionPane.showMessageDialog(this, "Cannot create displays.",
-                   "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this, "Cannot add the column. " +
+            "Unable to create new displays: " + exc.getMessage(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
         }
         catch (RemoteException exc) {
-          JOptionPane.showMessageDialog(this, "Cannot create displays.",
-                   "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this, "Cannot add the column. " +
+            "A remote error occurred: " + exc.getMessage(),
+            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
         }
       }
 
@@ -1404,12 +1419,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
         }
       }
       catch (VisADException exc) {
-        JOptionPane.showMessageDialog(this, "Cannot create displays.",
-                 "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Cannot add the row. " +
+          "Unable to create new displays:" + exc.getMessage(),
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (RemoteException exc) {
-        JOptionPane.showMessageDialog(this, "Cannot create displays.",
-                 "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Cannot add the row. " +
+          "A remote error occurred: " + exc.getMessage(),
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
     }
     NumVisY++;
@@ -1563,12 +1580,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
         DisplayCells[CurX][CurY].setFormula(newFormula);
       }
       catch (VisADException exc) {
-        JOptionPane.showMessageDialog(this, exc.toString(),
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Unable to assign the new " +
+          "formula: " + exc.getMessage(),
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (RemoteException exc) {
-        JOptionPane.showMessageDialog(this, exc.toString(),
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Unable to assign the new " +
+          "formula: " + exc.getMessage(),
+          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
     }
   }
@@ -1637,10 +1656,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       refreshDisplayMenuItems();
     }
     catch (VisADException exc) {
-      JOptionPane.showMessageDialog(this, "Cannot alter display dimension.",
-          "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "Cannot alter display dimension: " +
+        exc.getMessage(), "VisAD SpreadSheet error",
+        JOptionPane.ERROR_MESSAGE);
     }
-    catch (RemoteException exc) { }
+    catch (RemoteException exc) {
+      JOptionPane.showMessageDialog(this, "Cannot alter display dimension: " +
+        exc.getMessage(), "VisAD SpreadSheet error",
+        JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   /** Handles scrollbar changes */
