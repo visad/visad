@@ -438,6 +438,22 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        checkContour(Range.getDisplayIndices());
 
 /*
+System.out.println("checkIndices.isTexture3D = " + isTexture3D + " " +
+                   (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +
+                   ((FunctionType) getType()).getReal() + " " +
+                   (Domain.getDimension() == 3) + " " +
+                   Domain.getAllSpatial() + " " +
+                   checkSpatialRange(Domain.getDisplayIndices()) + " " +
+                   !Domain.getSpatialReference() + " " +
+                   Display.DisplaySpatialCartesianTuple.equals(
+                        Domain.getDisplaySpatialTuple() ) + " " +
+                   checkColorAlphaRange(Range.getDisplayIndices()) + " " +
+                   checkAny(Range.getDisplayIndices()) + " " +
+                   display.getGraphicsModeControl().getTextureEnable() + " " +
+                   !display.getGraphicsModeControl().getPointMode() );
+*/
+
+/*
 System.out.println("checkIndices.isTextureMap = " + isTextureMap + " " +
                    !getMultipleDisplayScalar() + " " +
                    (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +

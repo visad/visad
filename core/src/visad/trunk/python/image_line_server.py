@@ -77,6 +77,6 @@ from visad.util import ClientServer
 server = ClientServer.startServer("Jython")
 server.addDisplay(d1)
 server.addDisplay(d2)
-server.addDataReference(userline)
 server.addDataReference(refimg)
+server.addDataReference(userline)
 
