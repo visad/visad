@@ -44,12 +44,12 @@ public class AnimationControlJ2D extends AVControlJ2D
   private boolean direction; // true = forward
   private long step;    // time in milleseconds for the current step
   private long[] stepValues = {500}; // times in milleseconds between animation steps
-  private AnimationSetControlJ2D animationSet;
+  private transient AnimationSetControlJ2D animationSet;
   private ToggleControl animate;
   private RealType real;
   private boolean no_tick = false;
 
-  private VisADCanvasJ2D canvas;
+  private transient VisADCanvasJ2D canvas;
 
   /** AnimationControlJ2D is Serializable, mark as transient */
   private transient Thread animationThread;
