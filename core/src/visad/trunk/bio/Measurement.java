@@ -37,7 +37,7 @@ public class Measurement {
   RealTuple[] values;
 
   /** Color of the measurement line. */
-  private Color color;
+  private Color color = Color.white;
 
   /** Group of the measurement. */
   private LineGroup group;

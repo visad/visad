@@ -28,9 +28,8 @@ package visad.bio;
 
 import java.rmi.RemoteException;
 import visad.*;
-import visad.java2d.DirectManipulationRendererJ2D;
-import visad.java3d.DirectManipulationRendererJ3D;
-import visad.java3d.DisplayImplJ3D;
+import visad.java2d.*;
+import visad.java3d.*;
 
 /**
  * MeasureLine maintains a (p1, line, p2) triple of
@@ -66,13 +65,13 @@ public class MeasureLine {
   private RealTupleType dtype;
 
   /** Domain component types. */
-  private RealType[] ptypes;
+  RealType[] ptypes;
 
   /** Current Data value for first point. */
-  private RealTuple p1;
+  RealTuple p1;
 
   /** Current Data value for second point. */
-  private RealTuple p2;
+  RealTuple p2;
 
   /** Synchronization object for DataReferences. */
   private Object dataLock = new Object();
@@ -282,6 +281,9 @@ public class MeasureLine {
     if (DEBUG) System.out.println(debug);
     return values;
   }
+
+  /** Gets the line's associated measurement. */
+  public Measurement getMeasurement() { return m; }
 
   /** Gets the values of the endpoints. */
   public RealTuple[] getValues() { return new RealTuple[] {p1, p2}; }
