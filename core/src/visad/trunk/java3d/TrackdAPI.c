@@ -25,7 +25,7 @@
 #include <jni.h>
 #include "visad_java3d_TrackdJNI.h"
 
-/* #include "trackd_api.h" */
+#include "trackdAPI.h"
 
 void *tracker;
 void *controller;
