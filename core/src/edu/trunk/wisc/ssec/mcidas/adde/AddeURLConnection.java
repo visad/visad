@@ -253,9 +253,11 @@ public class AddeURLConnection extends URLConnection
     if (debug) System.out.println("file from URL: " + url.getFile());
     
 
-    // verify the service requested is for image, not grid or md data
+    // verify the service is one we can handle 
     // get rid of leading /
-    String request = url.getFile().toLowerCase().substring(1);
+    // keep original to preserve case for user= clause
+    String requestOriginal = url.getFile().substring(1);
+    String request = requestOriginal.toLowerCase();
     debug = request.indexOf("debug=true") >= 0;
 
     if (!request.startsWith("image") && 
@@ -361,12 +363,13 @@ public class AddeURLConnection extends URLConnection
     // user initials - pass on what client supplied in user= keyword
     byte [] usr; 
     String userStr;
-    startIdx = uCmd.indexOf("user=");
+    startIdx = request.indexOf("user=");
     if (startIdx > 0) {
-      endIdx = uCmd.indexOf('&', startIdx);
+      endIdx = request.indexOf('&', startIdx);
       if (endIdx == -1)   // last on line
-         endIdx = uCmd.length();
-      userStr = uCmd.substring(startIdx + 5, endIdx);
+         endIdx = request.length();
+      // use original to preserve case
+      userStr = requestOriginal.substring(startIdx + 5, endIdx);
     } else {
       userStr = "XXXX";
     }
