@@ -128,6 +128,8 @@ public class DisplayTest extends Object {
     FlatField imaget1;
     DataReferenceImpl ref_imaget1;
 
+    GraphicsModeControl mode = null;
+
     switch(test_case) {
       default:
  
@@ -209,7 +211,7 @@ public class DisplayTest extends Object {
         display1.addMap(new ScalarMap(count, Display.YAxis));
         display1.addMap(new ScalarMap(count, Display.Green));
     
-        GraphicsModeControl mode = display1.getGraphicsModeControl();
+        mode = display1.getGraphicsModeControl();
         mode.setPointSize(5.0f);
         mode.setPointMode(false);
 
@@ -2478,13 +2480,11 @@ public class DisplayTest extends Object {
     } // end switch(test_case)
 
     while (true) {
-      // delay(5000);
       try {
         Thread.sleep(5000);
       }
       catch (InterruptedException e) {
       }
-      // System.out.println("\ndelay\n");
     }
   }
 

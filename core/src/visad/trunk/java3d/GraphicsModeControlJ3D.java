@@ -72,8 +72,10 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     if (displayRenderer != null) {
       if (displayRenderer.getMode2D()) {
         projectionPolicy = View.PARALLEL_PROJECTION;
+        // for some strange reason, if we set PERSPECTIVE_PROJECTION at this
+        // point, we can never set PARALLEL_PROJECTION
+        displayRenderer.getView().setProjectionPolicy(projectionPolicy);
       }
-      displayRenderer.getView().setProjectionPolicy(projectionPolicy);
     }
   }
  
@@ -181,8 +183,6 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
          throws VisADException, RemoteException {
     if (policy == View.PARALLEL_PROJECTION ||
         policy == View.PERSPECTIVE_PROJECTION) {
-/* WLH 21 Sept 98 PARALLEL_PROJECTION is broken (again) */
-      if (policy == View.PARALLEL_PROJECTION) return;
       projectionPolicy = policy;
       DisplayRendererJ3D displayRenderer =
         (DisplayRendererJ3D) getDisplayRenderer();
