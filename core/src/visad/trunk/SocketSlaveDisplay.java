@@ -32,7 +32,7 @@ import java.awt.image.*;
 import java.net.*;
 import java.io.*;
 import java.rmi.RemoteException;
-import java.util.Vector;
+import java.util.*;
 import visad.browser.Convert;
 
 /** A SocketSlaveDisplay server wraps around a VisAD display, providing support
@@ -130,27 +130,70 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
             try {
               if (in.available() > 0) {
                 silence = false;
-                // receive the MouseEvent data
-                int id = in.readInt();
-                long when = in.readLong();
-                int mods = in.readInt();
-                int x = in.readInt();
-                int y = in.readInt();
-                int clicks = in.readInt();
-                boolean popup = in.readBoolean();
+                // receive the client data
+                int eventType = in.readInt();
 
-                if (id >= 0) {
-                  // construct resulting MouseEvent and process it
-                  Component c = display.getComponent();
-                  MouseEvent me =
-                    new MouseEvent(c, id, when, mods, x, y, clicks, popup);
-                  MouseBehavior mb = display.getMouseBehavior();
-                  MouseHelper mh = mb.getMouseHelper();
-                  mh.processEvent(me);
+                if (eventType == 0) { // 0 = MouseEvent
+                  int id = in.readInt();
+                  long when = in.readLong();
+                  int mods = in.readInt();
+                  int x = in.readInt();
+                  int y = in.readInt();
+                  int clicks = in.readInt();
+                  boolean popup = in.readBoolean();
+
+                  if (id >= 0) {
+                    // construct resulting MouseEvent and process it
+                    Component c = display.getComponent();
+                    MouseEvent me =
+                      new MouseEvent(c, id, when, mods, x, y, clicks, popup);
+                    MouseBehavior mb = display.getMouseBehavior();
+                    MouseHelper mh = mb.getMouseHelper();
+                    mh.processEvent(me);
+                  }
+                  else {
+                    // client has requested a refresh
+                    updateClient(i);
+                  }
                 }
-                else {
-                  // client has requested a refresh
-                  updateClient(i);
+                else if (eventType == 1) { // 1 = message
+                  int len = in.readInt();
+                  char[] c = new char[len];
+                  for (int j=0; j<len; j++) c[j] = in.readChar();
+                  String message = new String(c);
+                  StringTokenizer st = new StringTokenizer(message, "\n");
+                  String controlClass = st.nextToken();
+                  int index = Convert.getInt(st.nextToken());
+                  String save = st.nextToken();
+                  Class cls = null;
+                  try {
+                    cls = Class.forName(controlClass);
+                  }
+                  catch (ClassNotFoundException exc) {
+                    if (DEBUG) exc.printStackTrace();
+                  }
+                  if (cls != null) {
+                    Control control = display.getControl(cls, index);
+                    if (control != null) {
+                      try {
+                        control.setSaveString(save);
+                      }
+                      catch (VisADException exc) {
+                        if (DEBUG) exc.printStackTrace();
+                      }
+                      catch (RemoteException exc) {
+                        if (DEBUG) exc.printStackTrace();
+                      }
+                    }
+                    else {
+                      if (DEBUG) System.err.println("Warning: " +
+                        "ignoring change to unknown control from client");
+                    }
+                  }
+                }
+                else { // Unknown
+                  if (DEBUG) System.err.println("Warning: " +
+                    "ignoring unknown event type from client");
                 }
               }
             }
@@ -166,7 +209,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
         }
         if (silence) {
           try {
-            Thread.sleep(500);
+            Thread.sleep(200);
           }
           catch (InterruptedException exc) { }
         }

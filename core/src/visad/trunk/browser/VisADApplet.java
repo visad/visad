@@ -32,7 +32,7 @@ import java.awt.event.*;
 import java.awt.image.MemoryImageSource;
 import java.io.*;
 import java.net.*;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * An applet for connecting to a VisAD display available through a
@@ -41,7 +41,7 @@ import java.util.StringTokenizer;
  * within a web page for use in a web browser.
  */
 public class VisADApplet extends Applet
-  implements ActionListener, MouseListener, MouseMotionListener
+  implements ActionListener, MouseListener, MouseMotionListener, WidgetListener
 {
 
   /**
@@ -110,9 +110,18 @@ public class VisADApplet extends Applet
   private Component canvas;
 
   /**
+   * Frame for display widgets. */
+  private Frame frame;
+
+  /**
    * Thread for communicating with server.
    */
   private Thread commThread = null;
+
+  /**
+   * Hashtable for storing widgets.
+   */
+  private Hashtable widgets = new Hashtable();
 
   /**
    * Adds a component to the applet with the specified constraints.
@@ -183,6 +192,9 @@ public class VisADApplet extends Applet
     addComponent(portField, gridbag, 3, 0, 1, 1, 0.0, 0.0);
     addComponent(connectButton, gridbag, 4, 0, 1, 1, 0.0, 0.0);
     addComponent(canvas, gridbag, 0, 1, 5, 1, 1.0, 1.0);
+
+    // construct widget frame
+    frame = new Frame("Controls");
   }
 
   /**
@@ -224,6 +236,7 @@ public class VisADApplet extends Applet
     }
     if (out != null) {
       try {
+        out.writeInt(0); // 0 = MouseEvent
         out.writeInt(id);
         out.writeLong(when);
         out.writeInt(mods);
@@ -291,7 +304,7 @@ public class VisADApplet extends Applet
     connected = true;
 
     // set a new thread to manage communication with the server
-    final Applet applet = this;
+    final VisADApplet applet = this;
     commThread = new Thread(new Runnable() {
       public void run() {
         try {
@@ -326,46 +339,68 @@ public class VisADApplet extends Applet
               StringTokenizer st = new StringTokenizer(message, "\n");
               String controlClass = st.nextToken();
               int index = Convert.getInt(st.nextToken());
-              String msg = st.nextToken();
+              String save = st.nextToken();
 
               // parse class name
               int dotIndex = controlClass.lastIndexOf(".");
               int ctrlIndex = controlClass.lastIndexOf("Control");
-              String widgetClass = "visad.browser" +
-                controlClass.substring(dotIndex, ctrlIndex) + "Widget";
+              String widgetName =
+                controlClass.substring(dotIndex + 1, ctrlIndex);
 
-              /* CTR: applet ignores messages now, but not for much longer
-              // attempt to instantiate widget of proper type
-              Widget widget = null;
-              try {
-                widget = (Widget) Class.forName(widgetClass).newInstance();
-              }
-              catch (ClassNotFoundException exc) {
-                if (DEBUG) {
-                  System.err.println("Warning: received event from control " +
-                    "of type " + controlClass + " but no widget " +
-                    "of type " + widgetClass + " exists.");
+              // handle special cases
+              if (widgetName.equals("GraphicsMode")) widgetName = "GMC";
+
+              // construct widget class name and hash table key
+              String widgetClass = "visad.browser." + widgetName + "Widget";
+              String widgetHash = widgetName + index;
+
+              // get widget from hashtable
+              Widget widget = (Widget) widgets.get(widgetHash);
+              if (widget == null) {
+                // widget not found; instantiate widget of the proper type
+                try {
+                  widget = (Widget) Class.forName(widgetClass).newInstance();
+                  widget.addWidgetListener(applet);
                 }
-              }
-              catch (InstantiationException exc) {
-                if (DEBUG) {
-                  System.err.println("Warning: received event from control " +
-                    "of type " + controlClass + " but could not instantiate " +
-                    "widget of type " + widgetClass + ".");
+                catch (ClassNotFoundException exc) {
+                  if (DEBUG) {
+                    // widget class does not exist
+                    System.err.println("Warning: received event from control " +
+                      "of type " + controlClass + " but no widget " +
+                      "of type " + widgetClass + " exists.");
+                  }
                 }
-              }
-              catch (IllegalAccessException exc) {
-                if (DEBUG) {
-                  System.err.println("Warning: received event from control " +
-                    "of type " + controlClass + " but cannot access " +
-                    "constructor for widget of type " + widgetClass + ".");
+                catch (InstantiationException exc) {
+                  if (DEBUG) {
+                    // widget class cannot be instantiated
+                    System.err.println("Warning: received event from control " +
+                      "of type " + controlClass + " but could not instantiate " +
+                      "widget of type " + widgetClass + ".");
+                  }
+                }
+                catch (IllegalAccessException exc) {
+                  if (DEBUG) {
+                    // widget class constructor cannot be accessed
+                    System.err.println("Warning: received event from control " +
+                      "of type " + controlClass + " but cannot access " +
+                      "constructor for widget of type " + widgetClass + ".");
+                  }
+                }
+                if (widget != null) {
+                  // add widget to hashtable
+                  widgets.put(widgetHash, widget);
+
+                  // add widget to applet's widget frame
+                  frame.add(widget);
+                  frame.pack();
+                  frame.setVisible(true);
                 }
               }
 
               if (widget != null) {
-                System.err.println("Successfully created a widget of type " + widgetClass + " in response to event from control of type " + controlClass);
+                // set widget's state to match save string from message
+                widget.setSaveString(save);
               }
-              */
             }
             else {
               // server is sending an image
@@ -430,6 +465,52 @@ public class VisADApplet extends Applet
   public void mouseMoved(MouseEvent e) {
     // This event currently generates a "type not recognized" error
     // sendEvent(e);
+  }
+
+  public void widgetChanged(WidgetEvent e) {
+    Widget widget = e.getWidget();
+    String widgetClass = widget.getClass().getName();
+    // parse class name
+    int dotIndex = widgetClass.lastIndexOf(".");
+    int wdgtIndex = widgetClass.lastIndexOf("Widget");
+    String controlName = widgetClass.substring(dotIndex + 1, wdgtIndex);
+
+    // handle special cases
+    if (controlName.equals("GMC")) controlName = "GraphicsMode";
+
+    // construct control class name
+    String controlClass = "visad." + controlName + "Control";
+    String save = widget.getSaveString();
+
+    // determine widget number
+    int i = 0;
+    int index = -1;
+    Widget w;
+    do {
+      w = (Widget) widgets.get(controlName + i);
+      if (w == widget) {
+        index = i;
+        break;
+      }
+      i++;
+    }
+    while (w != null);
+
+    // send message to server
+    String message = controlClass + "\n" + index + "\n" + save;
+    if (out != null) {
+      try {
+        out.writeInt(1); // 1 = message
+        out.writeInt(message.length());
+        out.writeChars(message);
+      }
+      catch (SocketException exc) {
+        // problem communicating with server; it has probably disconnected
+        connected = false;
+        repaint();
+      }
+      catch (IOException exc) { }
+    }
   }
 
 }

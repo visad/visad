@@ -590,8 +590,9 @@ The following bugs have been discovered and have not yet been fixed:
    This error no longer appears in JDK 1.3, since the JVM no longer uses the
    Symantec JIT compiler, but instead uses Sun's Hotspot compiler.
 
-4) On certain Windows configurations, the SpreadSheet may occasionally lock up
-   on startup.
+4) On certain machine configurations, the SpreadSheet may sometimes lock up
+   on startup. Try using a different number of rows and columns if you
+   experience this problem.
 
 5) On certain Solaris configurations, key event processing has some glitches.
    For example, the arrow keys may not work at times.  If keys seem to have

@@ -81,9 +81,9 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
     addComponent(scale, gridbag, 0, 0, 1, 1, 0.0, 0.0);
     addComponent(point, gridbag, 1, 0, 1, 1, 0.0, 0.0);
     addComponent(texture, gridbag, 2, 0, 2, 1, 0.0, 0.0);
-    addComponent(new Label("Point size:"), gridbag, 0, 1, 1, 1, 0.0, 0.0);
-    addComponent(lineWidth, gridbag, 1, 1, 1, 1, 1.0, 0.0);
     addComponent(new Label("Line width:"), gridbag, 2, 1, 1, 1, 0.0, 0.0);
+    addComponent(lineWidth, gridbag, 1, 1, 1, 1, 1.0, 0.0);
+    addComponent(new Label("Point size:"), gridbag, 0, 1, 1, 1, 0.0, 0.0);
     addComponent(pointSize, gridbag, 3, 1, 1, 1, 1.0, 0.0);
   }
 
