@@ -131,6 +131,7 @@ public class Tuple extends DataImpl implements TupleIface {
 
   public Real[] getRealComponents()
          throws VisADException, RemoteException {
+    if (tupleComponents == null) return null;
     Vector reals = new Vector();
     for (int i=0; i<tupleComponents.length; i++) {
       if (tupleComponents[i] instanceof Real) {
@@ -331,12 +332,16 @@ public class Tuple extends DataImpl implements TupleIface {
   public Object clone() {
     Tuple tuple;
     try {
-      int n = tupleComponents.length;
-      Data[] datums = new Data[n];
-      for (int i=0; i<n; i++) {
-        datums[i] = (Data) tupleComponents[i].dataClone();
+      if (tupleComponents == null) {
+        tuple = new Tuple((TupleType )getType());
+      } else {
+        int n = tupleComponents.length;
+        Data[] datums = new Data[n];
+        for (int i=0; i<n; i++) {
+          datums[i] = (Data) tupleComponents[i].dataClone();
+        }
+        tuple = new Tuple(datums);
       }
-      tuple = new Tuple(datums);
     }
     catch (VisADException e) {
       throw new VisADError("Tuple.clone: VisADException occurred");
