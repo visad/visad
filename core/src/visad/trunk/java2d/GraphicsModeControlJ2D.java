@@ -48,6 +48,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   private float lineWidth; // for LineAttributes; >= 1.0
   private float pointSize; // for PointAttributes; >= 1.0
   private int lineStyle; // for LineAttributes
+  private int colorMode;
   private boolean pointMode; // true => points in place of lines and surfaces
   private boolean textureEnable; // true => allow use of texture mapping
   private boolean scaleEnable; // true => display X, Y and Z scales
@@ -138,6 +139,20 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       style = SOLID_STYLE;
     }
     lineStyle = style;
+  }
+
+  public int getColorMode() {
+    return colorMode;
+  }
+
+  public void setColorMode(int mode)
+         throws VisADException, RemoteException {
+    if (mode != AVERAGE_COLOR_MODE && mode != SUM_COLOR_MODE) {
+      mode = AVERAGE_COLOR_MODE;
+    }
+    colorMode = mode;
+    changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   public boolean getPointMode() {

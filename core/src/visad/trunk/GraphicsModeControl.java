@@ -47,6 +47,10 @@ public abstract class GraphicsModeControl extends Control
   public static final int DOT_STYLE = 2;
   public static final int DASH_DOT_STYLE = 3;
 
+  /** color styles for merging color maps */
+  public static final int AVERAGE_COLOR_MODE = 0;
+  public static final int SUM_COLOR_MODE = 1;
+
   public GraphicsModeControl(DisplayImpl d) {
     super(d);
   }
@@ -75,7 +79,7 @@ public abstract class GraphicsModeControl extends Control
 
   /**
    * set the style of line rendering; this is over-ridden by
-   * ConstantMaps to Display.LineStyle.
+   * ConstantMaps to Display.LineStyle
    *
    * The line styles are:
    * <li>GraphicsModeControl.SOLID_STYLE
@@ -87,6 +91,18 @@ public abstract class GraphicsModeControl extends Control
          throws VisADException, RemoteException;
 
   public abstract void setLineStyle(int style, boolean dummy);
+
+  public abstract int getColorMode();
+
+  /**
+   * set the mode for merging color mappings
+   *
+   * The color modes are:
+   * <li>GraphicsModeControl.AVERAGE_COLOR_MODE
+   * <li>GraphicsModeControl.SUM_COLOR_MODE
+   */
+  public abstract void setColorMode(int mode)
+         throws VisADException, RemoteException;
 
   public abstract boolean getPointMode();
 

@@ -501,6 +501,19 @@ public class SliceManager
 
   /** Sets the color controls to match the current widget color tables. */
   void syncColors() {
+    int colorMode = bio.display2.getGraphicsModeControl().getColorMode();
+    int cm = bio.composite ? GraphicsModeControl.AVERAGE_COLOR_MODE :
+      GraphicsModeControl.SUM_COLOR_MODE;
+    if (colorMode != cm) {
+      try {
+        bio.display2.getGraphicsModeControl().setColorMode(cm);
+        if (bio.display3 != null) {
+          bio.display3.getGraphicsModeControl().setColorMode(cm);
+        }
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
     for (int i=0; i<widgets.length; i++) {
       float[][] table = widgets[i].getTable();
       try {

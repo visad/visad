@@ -158,16 +158,16 @@ public class VisBio extends GUIFrame implements ChangeListener {
   // -- COLOR SETTINGS --
 
   /** Brightness and contrast of images. */
-  private int brightness, contrast;
+  int brightness, contrast;
 
   /** Color model (RGB or HSV). */
-  private int model;
+  int model;
 
   /** Whether to use RGB composite coloring. */
-  private boolean composite;
+  boolean composite;
 
   /** Red, green, blue and composite components of images. */
-  private RealType red, green, blue;
+  RealType red, green, blue;
 
 
   // -- OTHER FIELDS --
@@ -221,16 +221,19 @@ public class VisBio extends GUIFrame implements ChangeListener {
       display3 = previous = next = null;
       previewPane = null;
     }
+    display2.getGraphicsModeControl().setColorMode(
+      GraphicsModeControl.SUM_COLOR_MODE);
     display2.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
-    display2.enableEvent(DisplayEvent.MOUSE_DRAGGED);
+    //display2.enableEvent(DisplayEvent.MOUSE_DRAGGED);
     displayPane.add(display2.getComponent());
     if (display3 != null) {
       GraphicsModeControl gmc = display3.getGraphicsModeControl();
+      gmc.setColorMode(GraphicsModeControl.SUM_COLOR_MODE);
       gmc.setLineWidth(2.0f);
       DisplayRendererJ3D renderer =
         (DisplayRendererJ3D) display3.getDisplayRenderer();
       renderer.setPickThreshhold(Float.MAX_VALUE);
-      display3.enableEvent(DisplayEvent.MOUSE_DRAGGED);
+      //display3.enableEvent(DisplayEvent.MOUSE_DRAGGED);
       displayPane.add(display3.getComponent());
       displayPane.add(previewPane);
     }

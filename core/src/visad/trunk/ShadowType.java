@@ -3042,7 +3042,8 @@ System.out.println("color_values: nummissing = " + nummissing);
         }
       }
       else { // (tuple_values[index] != null)
-        float inv_count =
+        int cm = display.getGraphicsModeControl().getColorMode();
+        float inv_count = cm == GraphicsModeControl.SUM_COLOR_MODE ? 1.0f :
           1.0f / (tuple_value_counts[index] + tuple_single_counts[index]);
         for (int j=0; j<tuple_values[index].length; j++) {
           tuple_values[index][j] =

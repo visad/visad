@@ -56,6 +56,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /** for LineAttributes; = solid, dash, dot or dash-dot  @serial */
   private int lineStyle;
 
+  /** color combination mode for multiple color mappings */
+  private int colorMode;
   /** true => points in place of lines and surfaces, @serial */
   private boolean pointMode;
   /** true => allow use of texture mapping @serial*/
@@ -242,6 +244,31 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       style = SOLID_STYLE;
     }
     lineStyle = style;
+  }
+
+  /**
+   * Get the color mode used for combining color values.  The default
+   * is GraphicsModeControl.AVERAGE_COLOR_MODE.
+   *
+   * @return  color mode (AVERAGE_COLOR_MODE or SUM_COLOR_MODE)
+   */
+  public int getColorMode() {
+    return colorMode;
+  }
+
+  /**
+   * Set the color mode used for combining color values.
+   *
+   * @param mode  mode to use (AVERAGE_COLOR_MODE or SUM_COLOR_MODE)
+   */
+  public void setColorMode(int mode)
+         throws VisADException, RemoteException {
+    if (mode != AVERAGE_COLOR_MODE && mode != SUM_COLOR_MODE) {
+      mode = AVERAGE_COLOR_MODE;
+    }
+    colorMode = mode;
+    changeControl(true);
+    getDisplay().reDisplayAll();
   }
 
   /**
