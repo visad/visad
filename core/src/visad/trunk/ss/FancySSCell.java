@@ -91,12 +91,12 @@ public class FancySSCell extends BasicSSCell {
       if (drt == Display.RGB) {
         if (WidgetFrame == null) initWidgetFrame();
         LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
-        WidgetFrame.getContentPane().add(lw);
+        addToFrame(lw);
       }
       else if (drt == Display.RGBA) {
         if (WidgetFrame == null) initWidgetFrame();
         LabeledRGBAWidget lw = new LabeledRGBAWidget(maps[i]);
-        WidgetFrame.getContentPane().add(lw);
+        addToFrame(lw);
       }
       else if (drt == Display.SelectValue) {
         if (WidgetFrame == null) initWidgetFrame();
@@ -111,20 +111,23 @@ public class FancySSCell extends BasicSSCell {
           }
         };
         cell.addReference(ref);
-        WidgetFrame.getContentPane().add(vs);
+        addToFrame(vs);
       }
       else if (drt == Display.SelectRange) {
         if (WidgetFrame == null) initWidgetFrame();
         SelectRangeWidget srs = new SelectRangeWidget(maps[i]);
-        WidgetFrame.getContentPane().add(srs);
+        addToFrame(srs);
       }
       else if (drt == Display.IsoContour) {
-        // if (WidgetFrame == null) initWidgetFrame();
-        // create IsoLevel slider
+        if (WidgetFrame == null) initWidgetFrame();
+        ContourWidget cw = new ContourWidget(maps[i]);
+        WidgetFrame.getContentPane().add(cw);
+        addToFrame(cw);
       }
       else if (drt == Display.Animation) {
-        // if (WidgetFrame == null) initWidgetFrame();
-        // create Animation widget: forward/backward, play/stop, speed controls
+        if (WidgetFrame == null) initWidgetFrame();
+        AnimationWidget aw = new AnimationWidget(maps[i]);
+        addToFrame(aw);
       }
 
       // show widget frame
@@ -135,11 +138,21 @@ public class FancySSCell extends BasicSSCell {
     }
   }
 
+  private boolean first = true;
+
   /** Used by setMaps() method. */
-  void initWidgetFrame() {
+  private void initWidgetFrame() {
     WidgetFrame = new JFrame("VisAD controls");
     Container pane = WidgetFrame.getContentPane();
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+    first = true;
+  }
+
+  /** Used by setMaps() method. */
+  private void addToFrame(Component c) {
+    if (!first) WidgetFrame.getContentPane().add(new Divider());
+    WidgetFrame.getContentPane().add(c);
+    first = false;
   }
 
   /** Shows the widgets for altering controls. */

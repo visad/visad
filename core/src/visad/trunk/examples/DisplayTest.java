@@ -129,7 +129,8 @@ public class DisplayTest extends Object {
         System.out.println("to test VisAD's displays, run\n");
         System.out.println("  java DisplayTest N, where N =\n");
         System.out.println("  0: direct manipulation");
-        System.out.println("  1: colored iso-surfaces from regular grids");
+        System.out.println("  1: colored iso-surfaces from regular grids "
+                               +"and ContourWidget");
         System.out.println("  2: colored iso-surfaces from irregular grids");
         System.out.println("  3: Animation different time resolutions "
                                 +"and AnimationWidget");
@@ -250,7 +251,7 @@ public class DisplayTest extends Object {
       case 1:
 
         System.out.println(test_case + ": test colored iso-surfaces from " +
-                           "regular grids");
+                           "regular grids and ContourWidget");
         int size3d = 6;
         float level = 2.5f;
         FlatField grid3d = FlatField.makeField(grid_tuple, size3d, false);
@@ -265,13 +266,27 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
+        /*
         ContourControl control1contour = (ContourControl) map1contour.getControl();
         control1contour.setSurfaceValue(level);
         control1contour.enableContours(true);
-
+        */
+        ContourWidget cw = new ContourWidget(map1contour, level);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", cw);
+     
         DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
         ref_grid3d.setData(grid3d);
         display1.addReference(ref_grid3d, null);
+
+        jframe = new JFrame("VisAD iso-level controls");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        jframe.getContentPane().add(big_panel);
+        jframe.pack();
+        jframe.setVisible(true);
 
         break;
 
@@ -293,7 +308,7 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
-        control1contour = (ContourControl) map1contour.getControl();
+        ContourControl control1contour = (ContourControl) map1contour.getControl();
         control1contour.setSurfaceValue(level);
         control1contour.enableContours(true);
  
@@ -404,8 +419,7 @@ public class DisplayTest extends Object {
         map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
 
-        ContourWidget cw = new ContourWidget(map1contour, 3.0f, -10.0f,
-                                                          50.0f, 15.0f);
+        cw = new ContourWidget(map1contour);
         big_panel = new JPanel();
         big_panel.setLayout(new BorderLayout());
         big_panel.add("Center", cw);
