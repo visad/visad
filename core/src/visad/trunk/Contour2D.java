@@ -2900,7 +2900,7 @@ class ContourStripSet {
                   Gridded3DSet spatial_set) 
     throws VisADException {
 
-    this.mxsize  = 20*size;
+    this.mxsize  = 40*size;
     this.levels  = levels;
     n_levs       = levels.length;
     vecArray     = new java.util.Vector[n_levs];
@@ -3224,9 +3224,10 @@ class ContourStrip {
     this.lbl_half += this.lbl_half*0.30;
   }
 
-  ContourStrip(int mxsize, int[] idx_array, int lev_idx, PlotDigits plot,
+  ContourStrip(int[] idx_array, int lev_idx, PlotDigits plot,
                ContourStripSet css) {
     this.lev_idx   = lev_idx;
+    int mxsize         = idx_array.length + 400;
     this.idx_array = new int[mxsize];
     this.plot      = plot;
     low_idx = mxsize/2 - (idx_array.length)/2;
@@ -3250,6 +3251,14 @@ class ContourStrip {
    float dist = (vx0-vx_s)*(vx0-vx_s)+(vy0-vy_s)*(vy0-vy_s);
 
    if (dist <= 0.00001) {
+     if (low_idx < 2) {
+       int[] tmp = new int[idx_array.length + 200];
+       System.arraycopy(idx_array, 0, tmp, 100, idx_array.length);
+       idx_array = tmp;
+       tmp = null;
+       low_idx += 100;
+       hi_idx  += 100;
+     }
      low_idx -= 1;
      idx_array[low_idx] = idx0;
      low_idx -= 1;
@@ -3258,6 +3267,14 @@ class ContourStrip {
    }
    dist = (vx1-vx_s)*(vx1-vx_s)+(vy1-vy_s)*(vy1-vy_s);
    if (dist <= 0.00001) {
+     if (low_idx < 2) {
+       int[] tmp = new int[idx_array.length + 200];
+       System.arraycopy(idx_array, 0, tmp, 100, idx_array.length);
+       idx_array = tmp;
+       tmp = null;
+       low_idx += 100;
+       hi_idx  += 100;
+     }
      low_idx -= 1;
      idx_array[low_idx] = idx1;
      low_idx -= 1;
@@ -3269,6 +3286,14 @@ class ContourStrip {
    vy_s = vy[idx_array[hi_idx]];
    dist = (vx0-vx_s)*(vx0-vx_s)+(vy0-vy_s)*(vy0-vy_s);
    if (dist <= 0.00001) {
+     if (hi_idx > idx_array.length-2) {
+       int[] tmp = new int[idx_array.length + 200];
+       System.arraycopy(idx_array, 0, tmp, 100, idx_array.length);
+       idx_array = tmp;
+       tmp = null;
+       low_idx += 100;
+       hi_idx  += 100;
+     }
      hi_idx += 1;
      idx_array[hi_idx] = idx0;
      hi_idx += 1;
@@ -3277,6 +3302,14 @@ class ContourStrip {
    }
    dist = (vx1-vx_s)*(vx1-vx_s)+(vy1-vy_s)*(vy1-vy_s);
    if (dist <= 0.00001) {
+     if (hi_idx > idx_array.length-2) {
+       int[] tmp = new int[idx_array.length + 200];
+       System.arraycopy(idx_array, 0, tmp, 100, idx_array.length);
+       idx_array = tmp;
+       tmp = null;
+       low_idx += 100;
+       hi_idx  += 100;
+     }
      hi_idx += 1;
      idx_array[hi_idx] = idx1;
      hi_idx += 1;
@@ -3594,21 +3627,13 @@ class ContourStrip {
 
       //--- label vertices
       out_vvL[0][0]     = new float[3][];
-      //-out_vvL[0][0][0]  = vx_tmp;
       out_vvL[0][0][0]  = lbl_dcoords[0];
       out_vvL[0][0][1]  = vy_tmp;
       out_colorsL[0][0] = lbl_clr;
       out_vvL[1][0]     = new float[3][];
       out_vvL[1][0][0]  = vxB_tmp;
-      //-out_vvL[1][0][1]  = vyB_tmp;
       out_vvL[1][0][1]  = lbl_dcoords[1];
       out_colorsL[1][0] = lbl_clr;
-      /*
-      out_vvL[0][0][2]  = new float[vx_tmp.length];
-      out_vvL[1][0][2]  = new float[vxB_tmp.length];
-      for (int k = 0; k < vx_tmp.length; k++) out_vvL[0][0][2][k] = vv[2][loc]; 
-      for (int k = 0; k < vxB_tmp.length; k++) out_vvL[1][0][2][k] = vv[2][loc]; 
-      */
       out_vvL[0][0][2] = lbl_dcoords[2];
       out_vvL[1][0][2] = lbl_dcoords[2];
     }
@@ -3748,7 +3773,7 @@ class ContourStrip {
       return null;
     }
 
-    return new ContourStrip(1500, new_idx_array, lev_idx, plot, css);
+    return new ContourStrip(new_idx_array, lev_idx, plot, css);
   }
   
   public String toString() {
