@@ -35,6 +35,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
 import visad.data.*;
+import visad.data.biorad.BioRadForm;
 import visad.data.qt.QTForm;
 import visad.data.tiff.TiffForm;
 import visad.java2d.DisplayImplJ2D;
@@ -54,6 +55,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Application title. */
   private static final String TITLE = "BioVisAD";
+
+  /** Flag indicating whether QuickTime support is available. */
+  private static final boolean CAN_DO_QT = Util.canDoQuickTime();
 
   /** Amount of detail for color. */
   static final int COLOR_DETAIL = 256;
@@ -112,11 +116,11 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Panel containing VisAD displays. */
   private JPanel displayPane;
 
-  /** Sub-menus for exporting data series. */
-  private JMenu fileExportSlice, fileExportTime;
+  /** Sub-menus for exporting data. */
+  private JMenu fileExportSlice, fileExportTime, fileExportSnap;
 
-  /** Menu item for exporting QuickTime movies. */
-  private JMenuItem exportQT;
+  /** Menu items for exporting data. */
+  private JMenuItem exportSliceQT, exportTimeQT, exportSnap2D, exportSnap3D;
 
 
   // -- COLOR SETTINGS --
@@ -146,13 +150,30 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     addMenuItem("File", "Open...", "fileOpen", 'o');
     fileExportSlice = addSubMenu("File", "Export current slice", 's', false);
     fileExportTime = addSubMenu("File", "Export current timestep", 't', false);
+    fileExportSnap = addSubMenu("File", "Export snapshot", 'n');
+
     addMenuItem("Export current slice",
-      "As TIFF stack...", "sliceExportTIFF", 't');
-    exportQT = addMenuItem("Export current slice",
-      "As QuickTime movie...", "sliceExportQT", 'q');
+      "As TIFF stack...", "exportSliceTIFF", 't');
+    addMenuItem("Export current slice",
+      "As Bio-Rad PIC file...", "exportSlicePIC", 'b');
+    exportSliceQT = addMenuItem("Export current slice",
+      "As QuickTime movie...", "exportSliceQT", 'q');
+
+    addMenuItem("Export current timestep",
+      "As TIFF stack...", "exportTimeTIFF", 't');
+    addMenuItem("Export current timestep",
+      "As Bio-Rad PIC file...", "exportTimePIC", 'b');
+    exportTimeQT = addMenuItem("Export current timestep",
+      "As QuickTime movie...", "exportTimeQT", 'q');
+
+    exportSnap2D = addMenuItem("Export snapshot",
+      "2-D display...", "exportSnap2D", '2');
+    exportSnap3D = addMenuItem("Export snapshot",
+      "3-D display...", "exportSnap3D", '3');
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
-    exportQT.setEnabled(false);
+    exportSliceQT.setEnabled(false);
+    exportTimeQT.setEnabled(false);
 
     // lay out components
     JPanel pane = new JPanel();
@@ -172,6 +193,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     else {
       display2 = (DisplayImpl) new DisplayImplJ2D("display2");
       display3 = null;
+      exportSnap3D.setEnabled(false);
     }
     display2.getGraphicsModeControl().setPointSize(5.0f);
     display2.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
@@ -220,12 +242,14 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Toggles the visibility of the 2-D display. */
   public void set2D(boolean twoD) {
     display2.getComponent().setVisible(twoD);
+    exportSnap2D.setEnabled(twoD);
   }
 
   /** Toggles the visibility of the 3-D display. */
   public void set3D(boolean threeD) {
     if (display3 == null) return;
     display3.getComponent().setVisible(threeD);
+    exportSnap3D.setEnabled(threeD);
   }
 
   /** Zooms a display by the given amount. */
@@ -340,19 +364,52 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
         sm.setSeries(f, seriesBox.getFilesAsSlices());
         fileExportSlice.setEnabled(true);
         fileExportTime.setEnabled(true);
-        exportQT.setEnabled(Util.canDoQuickTime());
+        exportSliceQT.setEnabled(CAN_DO_QT);
+        exportTimeQT.setEnabled(CAN_DO_QT);
       }
     });
   }
 
-  /** Exports a slice animation sequence to a TIFF stack. */
-  public void sliceExportTIFF() {
-    exportData(new TiffForm(), new String[] {"tif", "tiff"}, "TIFF stacks");
+  /** Exports the current slice animation sequence to a TIFF stack. */
+  public void exportSliceTIFF() {
+    exportData(new TiffForm(), new String[] {"tif", "tiff"},
+      "TIFF stacks", false);
   };
 
-  /** Exports a slice animation sequence to a QuickTime movie. */
-  public void sliceExportQT() {
-    exportData(new QTForm(), new String[] {"mov", "qt"}, "QuickTime movies");
+  /** Exports the current slice animation sequence to a Bio-Rad PIC file. */
+  public void exportSlicePIC() {
+    exportData(new BioRadForm(), new String[] {"pic"},
+      "Bio-Rad PIC files", false);
+  }
+
+  /** Exports the current slice animation sequence to a QuickTime movie. */
+  public void exportSliceQT() {
+    exportData(new QTForm(), new String[] {"mov", "qt"},
+      "QuickTime movies", false);
+  }
+
+  /** Exports the current image stack to a TIFF stack. */
+  public void exportTimeTIFF() {
+    exportData(new TiffForm(), new String[] {"tif", "tiff"},
+      "TIFF stacks", true);
+  };
+
+  /** Exports the current image stack to a Bio-Rad PIC file. */
+  public void exportTimePIC() {
+    exportData(new BioRadForm(), new String[] {"pic"},
+      "Bio-Rad PIC files", true);
+  }
+
+  /** Exports the current image stack to a QuickTime movie. */
+  public void exportTimeQT() {
+    exportData(new QTForm(), new String[] {"mov", "qt"},
+      "QuickTime movies", true);
+  }
+
+  public void exportSnap2D() {
+  }
+
+  public void exportSnap3D() {
   }
 
   /** Exits the application. */
@@ -466,12 +523,19 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   // -- HELPER METHODS --
 
-  /** Exports a slice animation sequence using the given file form. */
-  private void exportData(Form saver, String[] exts, String desc) {
+  /**
+   * Exports a slice animation sequence using the given file form.
+   * If stack is true, the current image stack is exported.
+   * If stack is false, the current slice animation sequence is exported.
+   */
+  private void exportData(Form saver, String[] exts,
+    String desc, boolean stack)
+  {
     final JFrame frame = this;
     final Form fsaver = saver;
     final String[] fexts = exts;
     final String fdesc = desc;
+    final boolean fstack = stack;
     Util.invoke(false, new Runnable() {
       public void run() {
         JFileChooser fileBox = new JFileChooser();
@@ -480,7 +544,10 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
         if (rval == JFileChooser.APPROVE_OPTION) {
           setWaitCursor(true);
           String file = fileBox.getSelectedFile().getPath();
-          try { sm.exportAnimationStack(fsaver, file); }
+          try {
+            if (fstack) sm.exportImageStack(fsaver, file);
+            else sm.exportSliceAnimation(fsaver, file);
+          }
           catch (VisADException exc) { exc.printStackTrace(); }
           setWaitCursor(false);
         }

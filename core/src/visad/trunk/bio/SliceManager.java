@@ -358,8 +358,37 @@ public class SliceManager
     bio.state.saveState(true);
   }
 
+  /** Exports the stack of images at the current timestep. */
+  public void exportImageStack(Form saver, String file)
+    throws VisADException
+  {
+    setMode(false);
+    final Form fsaver = saver;
+    final String f = file;
+    final ProgressDialog dialog = new ProgressDialog(bio,
+      "Exporting image stack");
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          // save image stack data to file
+          fsaver.save(f, field, true);
+        }
+        catch (VisADException exc) { dialog.setException(exc); }
+        catch (Exception exc) {
+          dialog.setException(new VisADException(
+            exc.getClass() + ": " + exc.getMessage()));
+        }
+        dialog.setPercent(100);
+        dialog.kill();
+      }
+    });
+    t.start();
+    dialog.show();
+    dialog.checkException();
+  }
+
   /** Exports an animation of the current slice across all timesteps. */
-  public void exportAnimationStack(Form saver, String file)
+  public void exportSliceAnimation(Form saver, String file)
     throws VisADException
   {
     final Form fsaver = saver;
