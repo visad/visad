@@ -289,6 +289,11 @@ public class MouseBehaviorJ3D extends Behavior
 
   static final double EPS = 0.000001;
 
+  public void instance_unmake_matrix(double[] rot, double[] scale,
+                            double[] trans, double[] matrix) {
+    unmake_matrix(rot, scale, trans, matrix);
+  }
+
   /* doesn't work for non-uniform scale */
   public static void unmake_matrix(double[] rot, double[] scale,
                                    double[] trans, double[] matrix) {

@@ -42,7 +42,10 @@ public interface MouseBehavior {
   double[] multiply_matrix(double[] a, double[] b);
 
   double[] make_matrix(double rotx, double roty,
-         double rotz, double scale, double transx, double transy, double transz);
+      double rotz, double scale, double transx, double transy, double transz);
+
+  void instance_unmake_matrix(double[] rot, double[] scale,
+                              double[] trans, double[] matrix);
 
   double[] make_translate(double transx, double transy);
 

@@ -1314,7 +1314,8 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       // FREE
       domain_values = null;
       domain_doubles = null;
-    } // end if (!isTextureMap && (!isTexture3D || range3D))
+    } // end if (!isTextureMap && (!isTexture3D || range3D) &&
+      //         !isLinearContour3D)
 
     if (this instanceof ShadowFunctionType) {
 

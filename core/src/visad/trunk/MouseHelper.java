@@ -57,6 +57,7 @@ public class MouseHelper
 
   /** screen location when mousePressed1 or mousePressed3 */
   private int start_x, start_y;
+  private double xmul, ymul;
 
   /** mouse in window */
   private boolean mouseEntered;
@@ -234,7 +235,20 @@ event_switch:
           if (mousePressed1 || mouseCombo1) {
             start_x = ((MouseEvent) event).getX();
             start_y = ((MouseEvent) event).getY();
+
+            VisADRay start_ray = behavior.findRay(start_x, start_y);
+            VisADRay start_ray_x = behavior.findRay(start_x + 100, start_y);
+            VisADRay start_ray_y = behavior.findRay(start_x, start_y + 100);
+            xmul = 0.01 * (start_ray_x.position[0] - start_ray.position[0]);
+            ymul = 0.01 * (start_ray_y.position[1] - start_ray.position[1]);
+
             tstart = proj.getMatrix();
+            double[] rot = new double[3];
+            double[] scale = new double[1];
+            double[] trans = new double[3];
+            behavior.instance_unmake_matrix(rot, scale, trans, tstart);
+            xmul = xmul * scale[0];
+            ymul = ymul * scale[0];
 
             if (mshift != 0) {
               z1Pressed = true;
@@ -261,7 +275,20 @@ event_switch:
 
             start_x = ((MouseEvent) event).getX();
             start_y = ((MouseEvent) event).getY();
+
+            VisADRay start_ray = behavior.findRay(start_x, start_y);
+            VisADRay start_ray_x = behavior.findRay(start_x + 1, start_y);
+            VisADRay start_ray_y = behavior.findRay(start_x, start_y + 1);
+            xmul = 0.01 * (start_ray_x.position[0] - start_ray.position[0]);
+            ymul = 0.01 * (start_ray_y.position[1] - start_ray.position[1]);
+
             tstart = proj.getMatrix();
+            double[] rot = new double[3];
+            double[] scale = new double[1];
+            double[] trans = new double[3];
+            behavior.instance_unmake_matrix(rot, scale, trans, tstart);
+            xmul = xmul * scale[0];
+            ymul = ymul * scale[0];
 
             if (mshift != 0) {
               z2Pressed = true;
@@ -467,11 +494,20 @@ event_switch:
             }
             else if (t1Pressed) {
               // current_x, current_y -> translate
-              double transx =
-                (start_x - current_x) * -2.0 / (double) d.width;
-              double transy =
-                (start_y - current_y) * 2.0 / (double) d.height;
-              t1 = behavior.make_translate(transx, transy);
+              if (mode2D) {
+                double transx = xmul * (start_x - current_x);
+                double transy = ymul * (start_y - current_y);
+                t1 = behavior.make_translate(-transx, -transy);
+              }
+              else {
+                double transx =
+                  (start_x - current_x) * -2.0 / (double) d.width;
+                double transy =
+                  (start_y - current_y) * 2.0 / (double) d.width;
+                  // WLH 8 Aug 2000
+                  // (start_y - current_y) * 2.0 / (double) d.height;
+                t1 = behavior.make_translate(transx, transy);
+              }
             }
             else {
               if (!mode2D) {

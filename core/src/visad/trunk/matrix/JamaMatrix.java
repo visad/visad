@@ -284,8 +284,28 @@ public class JamaMatrix extends FlatField {
 
     // get domain set (must be 2-D ordered samples)
     Set set = field.getDomainSet();
-    if (!(set instanceof Gridded2DSet)) return null;
-    Gridded2DSet grid = (Gridded2DSet) set;
+    Gridded2DSet grid = null;
+    if (set instanceof Gridded2DSet) {
+      grid = (Gridded2DSet) set;
+    }
+    else if (set instanceof GriddedSet &&
+             set.getDimension() == 2) {
+      int[] lengths = ((GriddedSet) set).getLengths();
+      float[][] samples = set.getSamples(false);
+      grid = new Gridded2DSet(set.getType(), samples, lengths[0],
+                              lengths[1], set.getCoordinateSystem(),
+                              set.getSetUnits(), set.getSetErrors());
+    }
+    else if (set instanceof Gridded1DSet) {
+      int[] lengths = ((Gridded1DSet) set).getLengths();
+      float[][] samples = set.getSamples(false);
+      grid = new Gridded2DSet(set.getType(), samples, lengths[0],
+                              lengths[1], set.getCoordinateSystem(),
+                              set.getSetUnits(), set.getSetErrors());
+    }
+    else {
+      return null;
+    }
 
     // construct matrix entry array
     int[] dims = grid.getLengths();

@@ -178,5 +178,99 @@ public class MouseBehaviorJ2D implements MouseBehavior {
     return matrix;
   }
 
+  static final double EPS = 0.000001;
+
+  public void instance_unmake_matrix(double[] rot, double[] scale,
+                                     double[] trans, double[] matrix) {
+    double  sx, sy, sz, cx, cy, cz;
+    int i, j;
+    double[][] mat = new double[4][4];
+    double[][] nat = new double[4][4];
+
+    double scalex, scaley, scalez, scaleinv, cxa, cxb, cxinv;
+
+    if (rot == null || rot.length != 3) return;
+    if (scale == null || scale.length != 1) return;
+    if (trans == null || trans.length != 3) return;
+    if (matrix == null || matrix.length != 6) return;
+
+    /* Start with identity matrix */
+    mat[0][0] = 1.0;  mat[0][1] = 0.0;  mat[0][2] = 0.0;  mat[0][3] = 0.0;
+    mat[1][0] = 0.0;  mat[1][1] = 1.0;  mat[1][2] = 0.0;  mat[1][3] = 0.0;
+    mat[2][0] = 0.0;  mat[2][1] = 0.0;  mat[2][2] = 1.0;  mat[2][3] = 0.0;
+    mat[3][0] = 0.0;  mat[3][1] = 0.0;  mat[3][2] = 0.0;  mat[3][3] = 1.0;
+
+    mat[0][0] = matrix[0];
+    mat[1][0] = matrix[1];
+    mat[0][1] = matrix[2];
+    mat[1][1] = matrix[3];
+    mat[0][3] = matrix[4];
+    mat[1][3] = matrix[5];
+
+    /* translation */
+/* WLH 24 March 2000, for consistency with change
+                      of 22 Dec 97 in static_make_matrix
+    trans[0] = mat[3][0];
+    trans[1] = mat[3][1];
+    trans[2] = mat[3][2];
+*/
+    trans[0] = mat[0][3];
+    trans[1] = mat[1][3];
+    trans[2] = mat[2][3];
+
+    /* scale */
+    scalex = scaley = scalez = 0.0;
+    for (i=0; i<3; i++) {
+      scalex += mat[0][i] * mat[0][i];
+      scaley += mat[1][i] * mat[1][i];
+      scalez += mat[2][i] * mat[2][i];
+    }
+    if (Math.abs(scalex - scaley) > EPS || Math.abs(scalex - scalez) > EPS) {
+      System.out.println("problem " + scalex + " " + scaley + " " + scalez);
+    }
+    scale[0] = Math.sqrt((scalex + scaley + scalez)/3.0);
+    scaleinv = Math.abs(scale[0]) > EPS ? 1.0 / scale[0] : 1.0 / EPS;
+
+    for (i=0; i<3; i++) {
+      for (j=0; j<3; j++) {
+        nat[j][i] = scaleinv * mat[j][i];
+      }
+    }
+
+    /* rotation */
+    sx = -nat[2][1];
+
+    cxa = Math.sqrt(nat[2][0]*nat[2][0] + nat[2][2]*nat[2][2]);
+    cxb = Math.sqrt(nat[0][1]*nat[0][1] + nat[1][1]*nat[1][1]);
+
+    if (Math.abs(cxa - cxb) > EPS) {
+      // System.out.println("problem2 " + cxa + " " + cxb);
+    }
+    /* the sign of cx does not matter;
+       it is an ambiguity in 3-D rotations:
+       (rotz, rotx, roty) = (180+rotz, 180-rotx, 180+roty) */
+    cx = (cxa + cxb) / 2.0;
+    if (Math.abs(cx) > EPS) {
+      cxinv = 1.0 / cx;
+      sy = nat[2][0] * cxinv;
+      cy = nat[2][2] * cxinv;
+      sz = nat[0][1] * cxinv;
+      cz = nat[1][1] * cxinv;
+    }
+    else {
+      /* if cx == 0 then roty and rotz are ambiguous:
+         assume rotx = 0.0 */
+      sy = 0.0;
+      cy = 1.0;
+      sz = nat[0][2];
+      cz = nat[1][2];
+    }
+
+    rot[0] = 57.2957 * Math.atan2(sx, cx);
+    rot[1] = 57.2957 * Math.atan2(sy, cy);
+    rot[2] = 57.2957 * Math.atan2(sz, cz);
+    return;
+  }
+
 }
 
