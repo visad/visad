@@ -1373,9 +1373,22 @@ public class FieldImpl extends FunctionImpl implements Field {
     return new_field;
   }
 
-  /** factor Field domain into domains of two nested Fields */
+  /**
+   * Factors this instance into a (nested) field-of-fields.  The type of the
+   * domain of the outer field will be the type specified.  The type of the
+   * domains of the inner fields will be the remainder of the original domain
+   * after the outer domain is factored out.
+   *
+   * @param factor		The type of the domain for the outer field.
+   * @return			The field-of-fields realization of this
+   *				instance.
+   * @throws DomainException	The domain of this instance cannot be factored
+   *				as requested.
+   * @throws VisADException	VisAD failure.
+   * @throws RemoteException	Java RMI failure.
+   */
   public Field domainFactor( RealType factor )
-         throws VisADException, RemoteException
+         throws DomainException, VisADException, RemoteException
   {
     int factorIndex;
     Set factor_domain = null;
@@ -1404,7 +1417,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     RealType[] r_types = new RealType[domainDim - 1];
 
     if ((factorIndex = domainType.getIndex((MathType)factor)) < 0 ) {
-      throw new VisADException(
+      throw new DomainException(
         "domainFactor: factor not element of domain");
     }
     cnt = 0;
@@ -1439,7 +1452,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     {
       //- check for R^N aligned set?  If aligned then should
       //- be created as a ProductSet for efficiency
-      throw new VisADException(
+      throw new DomainException(
         "domainFactor: DomainSet is GriddedSet, if aligned use ProductSet" );
     }
     else if ( DomainSet instanceof ProductSet )
@@ -1499,7 +1512,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       }
       else if (!(factor_set instanceof LinearNDSet ))
       {
-        throw new VisADException(
+        throw new DomainException(
           "cannot factor into "+factor_set.getClass());
       }
       else
@@ -1543,7 +1556,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     else if ( DomainSet instanceof IrregularSet )
     {
-      throw new VisADException(
+      throw new DomainException(
         "domainFactor: DomainSet is IrregularSet, can't factor" );
     }
 
