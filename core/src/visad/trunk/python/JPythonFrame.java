@@ -64,7 +64,7 @@ public class JPythonFrame extends TextFrame {
     textLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         try {
-          ((JPythonEditor) textPane).exec(textLine.getText());
+          ((JPythonEditor) getTextPane()).exec(textLine.getText());
         }
         catch (VisADException exc) {
           showError(exc.getMessage());

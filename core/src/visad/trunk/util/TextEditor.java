@@ -84,7 +84,7 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
     text.getDocument().addUndoableEditListener(this);
 
     // setup file chooser dialog box
-    fileChooser = new JFileChooser();
+    fileChooser = new JFileChooser(System.getProperty("user.dir"));
     fileChooser.addChoosableFileFilter(
       new ExtensionFileFilter("txt", "Text files"));
   }

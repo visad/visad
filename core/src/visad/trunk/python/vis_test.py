@@ -1,5 +1,7 @@
-from visad.python.JPythonMethods import read
 from visad.python.JPythonMethods import plot
+from visad.python.JPythonMethods import read
+from visad.python.JPythonMethods import equals
+from visad.python.JPythonMethods import getClass
 """\
 vis_test.py
 """
@@ -37,5 +39,5 @@ To execute within the JPython editor, launch the editor with:
 Then open this file and choose "Command", "Run"
 """
 
-data = read("C:/java/visad/ss/cut.gif")
+data = read("/home/billh/java/visad/ss/cut.gif")
 plot(data)

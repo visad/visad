@@ -546,7 +546,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     // create file chooser dialog
-    SSFileDialog = new JFileChooser();
+    SSFileDialog = new JFileChooser(System.getProperty("user.dir"));
     SSFileDialog.addChoosableFileFilter(
       new ExtensionFileFilter("ss", "SpreadSheet files"));
 

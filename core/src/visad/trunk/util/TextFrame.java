@@ -129,7 +129,7 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
   }
 
   /** display an error message in an error box */
-  protected void showError(String msg) {
+  public void showError(String msg) {
     // strip off carriage returns
     int i = 0;
     int len = msg.length();
@@ -220,6 +220,10 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
   public void undoableEditHappened(UndoableEditEvent e) {
     // refresh menu items when an undoable event occurs
     refreshMenuItems(true);
+  }
+
+  public TextEditor getTextPane() {
+    return textPane;
   }
 
   /** tests the TextFrame class */
