@@ -1,28 +1,7 @@
-/*
-VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
-Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
-Tommy Jasmin.
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public
-License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
-
-You should have received a copy of the GNU Library General Public
-License along with this library; if not, write to the Free
-Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-MA 02111-1307, USA
-*/
-
 //
 // TCDataTest.java
 //
+// Version 3 April 2001
 
 package visad.bom;
 
@@ -68,55 +47,61 @@ public class TCDataTest {
     // make a FIX and store in the FlatField ffFixes
     //
     double[] daTimes = {0.0d, 1000.0d, 2000.0d};
-    int[] iaFixIds = {0, 1, 2};
+    // int[] iaFixIds = {0, 1, 2};
     float[] faLats = {10.0f, 11.0f, 12.0f};
     float[] faLons = {160.0f, 165.0f, 170.0f};
     float[] faErrors = {0.0f, 0.0f, 0.0f};
-    int[] iaFix_styles = {2, 3, 4};
+    int[] iaConfidence = {2, 3, 4};
+    int[] iaLocationStyles = {2, 3, 4};
+    float[] faWind_means = {50.0f, 60.0f, 70.0f};
+    float[] faWind_gusts = {60.0f, 70.0f, 80.0f};
+    float[] faCentral_pressures = {990.0f, 985.0f, 980.0f};
+    int[] iaCategories = {2, 3, 4};
+    int[] iaIntensityStyles = {2, 3, 4};
+    float[] faGaleRadii = {200.0f, 210.0f, 220.0f};
+    float[] faStormRadii = {100.0f, 110.0f, 120.0f};
+    float[] faHurricaneRadii = {60.0f, 70.0f, 80.0f};
+    float[] faRadiiOfMaximumWinds = {50.0f, 60.0f, 70.0f};
+    int[] iaSizeStyles = {2, 3, 4};
+    float[] faDepth = {200.0f, 200.0f, 200.0f};
+    float[] faEyeDiameter = {50.0f, 60.0f, 70.0f};
+    float[] faPressureOfLastClosedIsobar = {200.0f, 210.0f, 220.0f};
+    int[] iaStructureStyles = {2, 3, 4};
 
     FlatField ffFixes =
-      TCData.makeLocations(daTimes, iaFixIds, faLats, faLons, 
-                           faErrors, iaFix_styles);
-    // System.out.println("ffIntensities:\n" + ffFixes);
+      TCData.makeLocations(daTimes, faLats, faLons, 
+                           faErrors, iaConfidence, iaLocationStyles, faWind_means,
+                           faWind_gusts, faCentral_pressures, iaCategories,
+                           iaIntensityStyles, faGaleRadii, faStormRadii, faHurricaneRadii,
+                           faRadiiOfMaximumWinds, iaSizeStyles, faDepth, faEyeDiameter,
+                           faPressureOfLastClosedIsobar, iaStructureStyles);
+
+ // System.out.println("ffIntensities:\n" + ffFixes);
 
 
     //
     // make an INTENSITY and store in the FlatField ffIntensities
     //
-    int[] iaIntensityIds = {0, 1, 2};
-    float[] faWind_means = {50.0f, 60.0f, 70.0f};
-    float[] faWind_gusts = {60.0f, 70.0f, 80.0f};
-    float[] faCentral_pressures = {990.0f, 985.0f, 980.0f};
-    int[] iaCategories = {2, 3, 4};
 
-    FlatField ffIntensities = TCData.makeIntensities( daTimes, iaIntensityIds, faWind_means,
-                                     faWind_gusts, faCentral_pressures, iaCategories);
+    // FlatField ffIntensities = TCData.makeIntensities( daTimes, iaIntensityIds, faWind_means,
+    //                                 faWind_gusts, faCentral_pressures, iaCategories);
     // System.out.println("ffIntensities:\n" + ffIntensities);
 
     //
     // make a SIZE and store in the FlatField ffSizes
     //
-    int[] iaSizeIds = {0, 1, 2};
-    float[] faGale_radii = {150.0f, 160.0f, 170.0f};
-    float[] faStorm_radii = {100.0f, 110.0f, 120.0f};
-    float[] faHurricane_radii = {50.0f, 60.0f, 70.0f};
-    float[] faRadii_of_maximum_winds = {50.0f, 60.0f, 70.0f};
-    int[] iaSizeStyles = {2, 3, 4};
 
-    FlatField ffSizes = TCData.makeSizes( daTimes, iaSizeIds, faGale_radii,
-                                     faStorm_radii, faHurricane_radii, faRadii_of_maximum_winds,
-                                     iaSizeStyles);
+    // FlatField ffSizes = TCData.makeSizes( daTimes, iaSizeIds, faGale_radii,
+    //                                 faStorm_radii, faHurricane_radii, faRadii_of_maximum_winds,
+    //                                 iaSizeStyles);
     // System.out.println("ffSizes:\n" + ffSizes);
 
     //
     // make a STEERING and store in the FlatField ffSteering
     //
-    int[] iaSteeringIds = {0, 1, 2};
-    float[] faSteering_directions = {150.0f, 160.0f, 170.0f};
-    int[] iaSteeringStyles = {2, 3, 4};
 
-    FlatField ffSteerings = TCData.makeSteerings( daTimes, iaSteeringIds, faSteering_directions,
-                                     iaSteeringStyles);
+    // FlatField ffSteerings = TCData.makeSteerings( daTimes, iaSteeringIds, faSteering_directions,
+    //                                 iaSteeringStyles);
     // System.out.println("ffSteerings:\n" + ffSteerings);
 
     //
@@ -128,8 +113,8 @@ public class TCDataTest {
     int iCreateDateTime = 5000;
     String sDisplayType = new String("IDunno");
 
-    Tuple tTrack = TCData.makeTrack(sTrackType, sTrackName, iBaseDateTime, iCreateDateTime, sDisplayType,
-                                    ffFixes, ffIntensities, ffSizes, ffSteerings);
+    Tuple tTrack = TCData.makeTrack(sTrackType, sTrackName, iBaseDateTime, iCreateDateTime, sDisplayType, ffFixes);
+    //                                ffFixes, ffIntensities, ffSizes, ffSteerings);
 
     // System.out.println("tTrack:\n" + tTrack);
 
@@ -179,14 +164,15 @@ public class TCDataTest {
     // Aim: create the Communication Model
     // Result: dri which is an implementation of the visad.DataReference interface
     DataReferenceImpl driTC = new DataReferenceImpl("TC");
-    driTC.setData(ffIntensities);
+    // driTC.setData(ffFixes);
+    driTC.setData(tTrack);
 
     // link the View Model (display) to the Data Model (via the DataReference)
       display.addReference(driTC, null);
 
     // Step 4
     // Do the swing magic
-    JFrame frame = new JFrame("Point Display Test");
+    JFrame frame = new JFrame("TCData Display Test");
       frame.addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {System.exit(0);}
       });
@@ -202,6 +188,45 @@ public class TCDataTest {
      frame.setVisible(true);
 
 /*
+C:\jamesk\java\tc\visad\bom>java visad.bom.TCDataTest
+MathType:
+(DISTURBANCEID -> (COUNTRY(Text),
+                   STATE(Text),
+                   YEAR,
+                   NUM,
+                   HISTORICALNAME(Text),
+                   OPENDATE,
+                   CLOSEDATE,
+                   ARCHIVEMODE,
+                   REALTIMEMODE,
+                   (TRACKID -> (TRACKTYPE(Text),
+                                TRACKNAME(Text),
+                                BASEDATETIME,
+                                CREATEDATETIME,
+                                TRACKSTYLE(Text),
+                                (Time -> (Latitude,
+                                          Longitude,
+                                          ERROR,
+                                          CONFIDENCE,
+                                          LOCATIONSTYLE,
+                                          WINDMEAN,
+                                          WINDGUST,
+                                          CENTRALPRESSURE,
+                                          CATEGORY,
+                                          INTENSITYSTYLE,
+                                          GALERADIUS,
+                                          STORMRADIUS,
+                                          HURRICANERADIUS,
+                                          RADIUSOFMAXIMUMWINDS,
+                                          SIZESTYLE,
+                                          DEPTH,
+                                          EYEDIAMETER,
+                                          PRESSUREOFLASTCLOSEDISOBAR,
+                                          STRUCTURESTYLE))))))
+
+ 
+ was:
+ 
 doll% java visad.bom.TCData
 MathType:
 (DisturbanceID -> (Country(Text),

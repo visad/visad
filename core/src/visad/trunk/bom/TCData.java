@@ -1,28 +1,7 @@
-/*
-VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
-Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
-Tommy Jasmin.
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public
-License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
-
-You should have received a copy of the GNU Library General Public
-License along with this library; if not, write to the Free
-Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-MA 02111-1307, USA
-*/
-
 //
 // TCData.java
 //
+// Version 3 April 2001
 
 package visad.bom;
 
@@ -39,7 +18,7 @@ public class TCData {
   static RealType rtTime = RealType.Time;
 
   // Location
-  static RealType rtLocationID;
+  static RealType rtConfidence;
   static RealType rtLat;
   static RealType rtLon;
   static RealType rtError;
@@ -48,31 +27,24 @@ public class TCData {
   static FunctionType locationFunction;
 
   // Intensity
-  static RealType rtIntensityID;
   static RealType rtWindMean;
   static RealType rtWindGust;
   static RealType rtCentralPressure;
   static RealType rtCategory;
   static RealType rtIntensityStyle;
-  static RealTupleType intensityTuple;
-  static FunctionType intensityFunction;
 
   // Size
-  static RealType rtSizeID;
   static RealType rtGaleRadius;
   static RealType rtStormRadius;
   static RealType rtHurricaneRadius;
   static RealType rtRadiusOfMaximumWinds;
   static RealType rtSizeStyle;
-  static RealTupleType sizeTuple;
-  static FunctionType sizeFunction;
 
-  // Steering
-  static RealType rtSteeringID;
-  static RealType rtSteeringDirection;
-  static RealType rtSteeringStyle;
-  static RealTupleType steeringTuple;
-  static FunctionType steeringFunction;
+  // Structure
+  static RealType rtDepth;
+  static RealType rtEyeDiameter;
+  static RealType rtPressureOfLastClosedIsobar;
+  static RealType rtStructureStyle;
 
   // Track
   static RealType rtTrackID;
@@ -106,45 +78,40 @@ public class TCData {
       rtTime = RealType.Time;
 
       // Location
-      rtLocationID = RealType.getRealType("LOCATIONID", null, null);
+      rtConfidence = RealType.getRealType("CONFIDENCE", null, null);
       rtLat = RealType.Latitude;
       rtLon = RealType.Longitude;
       rtError = RealType.getRealType("ERROR", null, null);
       rtLocationStyle = RealType.getRealType("LOCATIONSTYLE", null, null);
-      RealTupleType locationTuple = new RealTupleType(new RealType[]
-       {rtLocationID, rtLat, rtLon, rtError, rtLocationStyle});
-      locationFunction = new FunctionType(rtTime, locationTuple);
 
       // Intensity
-      rtIntensityID = RealType.getRealType("INTENSITYID", null, null);
       rtWindMean = RealType.getRealType("WINDMEAN", null, null);
       rtWindGust = RealType.getRealType("WINDGUST", null, null);
       rtCentralPressure = RealType.getRealType("CENTRALPRESSURE", null, null);
       rtCategory = RealType.getRealType("CATEGORY", null, null);
-      //rtIntensityStyle = RealType.getRealType("INTENSITYSTYLE", null, null);
-      RealTupleType intensityTuple = new RealTupleType(new RealType[]
-        {rtIntensityID, rtWindMean, rtWindGust, rtCentralPressure, rtCategory});
-      intensityFunction = new FunctionType(rtTime, intensityTuple);
+      rtIntensityStyle = RealType.getRealType("INTENSITYSTYLE", null, null);
 
       // Size
-      rtSizeID = RealType.getRealType("SIZEID", null, null);
       rtGaleRadius = RealType.getRealType("GALERADIUS", null, null);
       rtStormRadius = RealType.getRealType("STORMRADIUS", null, null);
       rtHurricaneRadius = RealType.getRealType("HURRICANERADIUS", null, null);
       rtRadiusOfMaximumWinds = RealType.getRealType("RADIUSOFMAXIMUMWINDS", null, null);
       rtSizeStyle = RealType.getRealType("SIZESTYLE", null, null);
-      RealTupleType sizeTuple = new RealTupleType(new RealType[]
-        {rtSizeID, rtGaleRadius, rtStormRadius, rtHurricaneRadius,
-         rtRadiusOfMaximumWinds, rtSizeStyle});
-      sizeFunction = new FunctionType(rtTime, sizeTuple);
 
-      // Steering
-      rtSteeringID = RealType.getRealType("STEERINGID", null, null);
-      rtSteeringDirection = RealType.getRealType("STEERINGDIRECTION", null, null);
-      rtSteeringStyle = RealType.getRealType("STEERINGSTYLE", null, null);
-      RealTupleType steeringTuple = new RealTupleType(new RealType[]
-        {rtSteeringID, rtSteeringDirection, rtSteeringStyle});
-      steeringFunction = new FunctionType(rtTime, steeringTuple);
+      // Structure
+      rtDepth = RealType.getRealType("DEPTH", null, null);
+      rtEyeDiameter = RealType.getRealType("EYEDIAMETER", null, null);
+      rtPressureOfLastClosedIsobar = RealType.getRealType("PRESSUREOFLASTCLOSEDISOBAR", null, null);
+      rtStructureStyle = RealType.getRealType("STRUCTURESTYLE", null, null);
+
+
+      RealTupleType locationTuple = new RealTupleType(new RealType[]
+       {rtLat, rtLon, rtError, rtConfidence, rtLocationStyle,
+        rtWindMean, rtWindGust, rtCentralPressure, rtCategory, rtIntensityStyle,
+        rtGaleRadius, rtStormRadius, rtHurricaneRadius, rtRadiusOfMaximumWinds, rtSizeStyle,
+        rtDepth, rtEyeDiameter, rtPressureOfLastClosedIsobar, rtStructureStyle });
+      locationFunction = new FunctionType(rtTime, locationTuple);
+
 
       // Track
       rtTrackID = RealType.getRealType("TRACKID", null, null);
@@ -155,8 +122,7 @@ public class TCData {
       ttTrackStyle = TextType.getTextType("TRACKSTYLE");
       ttTrack = new TupleType(new MathType[]
         {ttTrackType, ttTrackName, rtBaseDateTime, rtCreateDateTime,
-         ttTrackStyle, locationFunction, intensityFunction, sizeFunction,
-         steeringFunction});
+         ttTrackStyle, locationFunction});
       ftId2Track = new FunctionType(rtTrackID, ttTrack);
 
       // Disturbance
@@ -193,7 +159,7 @@ public class TCData {
          throws VisADException, RemoteException {
     addToTrack(disturbanceID, trackID, time, 5, locationFunction, location);
   }
-
+/*
   public synchronized void addIntensity(int disturbanceID, int trackID, double time,
                                         RealTuple intensity)
          throws VisADException, RemoteException {
@@ -211,7 +177,7 @@ public class TCData {
          throws VisADException, RemoteException {
     addToTrack(disturbanceID, trackID, time, 8, steeringFunction, steering);
   }
-
+*/
   private void addToTrack(int disturbanceID, int trackID, double time,
                           int tuple_index, FunctionType function_type,
                           RealTuple rt)
@@ -263,14 +229,14 @@ public class TCData {
        track.getComponent(2),
        track.getComponent(3),
        track.getComponent(4),
-       track.getComponent(5),
-       track.getComponent(6),
-       track.getComponent(7),
-       track.getComponent(8)};
+       track.getComponent(5)};
+//       track.getComponent(6),
+//       track.getComponent(7),
+//       track.getComponent(8)};
     comps[tuple_index] = new_field;
     Tuple new_track = new Tuple(new Data[]
-      {comps[0], comps[1], comps[2], comps[3], comps[4], comps[5],
-       comps[6], comps[7], comps[8]});
+    {comps[0], comps[1], comps[2], comps[3], comps[4], comps[5]});
+       // comps[6], comps[7], comps[8]});
     setTrack(trackID, new_track, disturbance);
     setDisturbance(disturbanceID, disturbance);
   }
@@ -496,13 +462,12 @@ public class TCData {
              // jk Feb 2001
              // int base_date_time, int create_date_time, String display_type,
              double base_date_time, double create_date_time, String display_type,
-             FlatField locations, FlatField intensities, FlatField sizes,
-             FlatField steerings)
+             FlatField locations)
          throws VisADException, RemoteException {
 
     //jk : allow for null sizes
-    if (sizes == null) sizes = TCData.makeMissingSizes();
-    if (steerings == null) steerings = TCData.makeMissingSteerings();
+    // if (sizes == null) sizes = TCData.makeMissingSizes();
+    // if (steerings == null) steerings = TCData.makeMissingSteerings();
     // should also have same test for locations & intensities & steerings
     // + methods makeMissingLocations and makeMissingIntensities ?
 
@@ -511,7 +476,7 @@ public class TCData {
        new Real(rtBaseDateTime, base_date_time),
        new Real(rtCreateDateTime, create_date_time),
        new Text(ttTrackStyle, display_type),
-       locations, intensities, sizes, steerings});
+       locations});
   }
 
   
@@ -523,7 +488,7 @@ public class TCData {
    * but means we can still create some TCData
    *
    */
-
+  /*
   public static FlatField makeMissingSizes() 
          throws VisADException, RemoteException {
 
@@ -543,36 +508,89 @@ public class TCData {
                                      iaSizeStyles);
     return ffSizes;
   }
+   */
 
-  public static FlatField makeLocations(double[] times, int[] ids, float[] lats,
-              float[] lons, float[] errors, int[] location_styles)
+  public static FlatField makeLocations(double[] times, float[] lats,
+          float[] lons, float[] errors, int[] confidence, int[] location_styles,
+          float[] wind_means, float[] wind_gusts, float[] central_pressures,
+          int[] categories, int[] intensityStyle,
+          float[] gale_radii, float[] storm_radii, float[] hurricane_radii,
+          float[] radii_of_maximum_winds, int[] size_styles,
+          float[] depth, float[] eyeDiameter, float[] pressureOfLastClosedIsobar,
+          int[] structureStyle)
          throws VisADException, RemoteException {
-    if (times == null || ids == null || lats == null || lons == null ||
-        errors == null || location_styles == null) {
+
+    if (times == null || lats == null || lons == null ||
+        errors == null || confidence == null || location_styles == null ||
+        wind_means == null ||  wind_gusts == null || central_pressures == null || 
+        categories == null || intensityStyle == null || gale_radii == null || 
+        storm_radii == null || hurricane_radii == null || radii_of_maximum_winds == null || 
+        size_styles == null || depth == null || eyeDiameter == null || 
+        pressureOfLastClosedIsobar == null || structureStyle == null) {
       throw new VisADException("arguments may not be null");
     }
     int length = times.length;
-    if (ids.length != length || lats.length != length || lons.length != length ||
-        errors.length != length || location_styles.length != length) {
+    if (lats.length != length || lons.length != length ||
+        errors.length != length || confidence.length != length || 
+        location_styles.length != length) {
       throw new VisADException("argument lengths must match");
     }
     int[] permute = QuickSort.sort(times);
     Gridded1DDoubleSet set =
       new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
     FlatField field = new FlatField(locationFunction, set);
-    float[] pids = new float[length];
+    
     float[] plats = new float[length];
     float[] plons = new float[length];
     float[] perrors = new float[length];
+    float[] pconfidence = new float[length];
     float[] pLocation_styles = new float[length];
+    float[] pwind_means = new float[length];
+    float[] pwind_gusts = new float[length];
+    float[] pcentral_pressures = new float[length];
+    float[] pcategories = new float[length];
+    float[] pIntensityStyle = new float[length];
+    float[] pgale_radii = new float[length];
+    float[] pstorm_radii = new float[length];
+    float[] phurricane_radii = new float[length];
+    float[] pradii_of_maximum_winds = new float[length];
+    float[] psize_styles = new float[length];
+    float[] pdepth = new float[length];
+    float[] pEyeDiameter = new float[length];
+    float[] pPressureOfLastClosedIsobar = new float[length];
+    float[] pStructureStyle = new float[length];
+    
+        
     for (int i=0; i<length; i++) {
-      pids[i] = ids[permute[i]];
       plats[i] = lats[permute[i]];
       plons[i] = lons[permute[i]];
       perrors[i] = errors[permute[i]];
+      pconfidence[i] = confidence[permute[i]];
       pLocation_styles[i] = location_styles[permute[i]];
+      pwind_means[i] = wind_means[permute[i]];
+      pwind_gusts[i] = wind_gusts[permute[i]];
+      pcentral_pressures[i] = central_pressures[permute[i]];
+      pcategories[i] = categories[permute[i]];
+      pIntensityStyle[i] = intensityStyle[permute[i]];
+      pgale_radii[i] = gale_radii[permute[i]];
+      pstorm_radii[i] = storm_radii[permute[i]];
+      phurricane_radii[i] = hurricane_radii[permute[i]];
+      pradii_of_maximum_winds[i] = radii_of_maximum_winds[permute[i]];
+      psize_styles[i] =
+        (size_styles[permute[i]] < 0) ? Float.NaN : size_styles[permute[i]];
+      pdepth[i] = depth[permute[i]];
+      pEyeDiameter[i] = eyeDiameter[permute[i]];
+      pPressureOfLastClosedIsobar[i] = pressureOfLastClosedIsobar[permute[i]];      
+      pStructureStyle[i] = structureStyle[permute[i]];          
     }
-    float[][] values = {pids, plats, plons, perrors, pLocation_styles};
+    
+    float[][] values = {plats, plons, perrors, pconfidence, pLocation_styles,
+                        pwind_means, pwind_gusts, pcentral_pressures, pcategories,
+                        pIntensityStyle,
+                        pgale_radii, pstorm_radii, phurricane_radii, pradii_of_maximum_winds,
+                        psize_styles,
+                        pdepth, pEyeDiameter, pPressureOfLastClosedIsobar, pStructureStyle };
+
     field.setSamples(values, false);
     return field;
   }
@@ -586,83 +604,7 @@ public class TCData {
    *         (time -> intensityTuple)
    */
 
-  public static FlatField makeIntensities(double[] times, int[] ids,
-              float[] wind_means, float[] wind_gusts, float[] central_pressures,
-              int[] categories)
-         throws VisADException, RemoteException {
-    if (times == null || ids == null || wind_means == null || wind_gusts == null ||
-        central_pressures == null || categories == null) {
-      throw new VisADException("arguments may not be null");
-    }
-    int length = times.length;
-    if (ids.length != length || wind_means.length != length ||
-        wind_gusts.length != length || central_pressures.length != length ||
-        categories.length != length) {
-      throw new VisADException("argument lengths must match");
-    }
-    int[] permute = QuickSort.sort(times);
-    Gridded1DDoubleSet set =
-      new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
-    FlatField field = new FlatField(intensityFunction, set);
-    float[] pids = new float[length];
-    float[] pwind_means = new float[length];
-    float[] pwind_gusts = new float[length];
-    float[] pcentral_pressures = new float[length];
-    float[] pcategories = new float[length];
-    for (int i=0; i<length; i++) {
-      pids[i] = ids[permute[i]];
-      pwind_means[i] = wind_means[permute[i]];
-      pwind_gusts[i] = wind_gusts[permute[i]];
-      pcentral_pressures[i] = central_pressures[permute[i]];
-      pcategories[i] = categories[permute[i]];
-    }
-    float[][] values = {pids, pwind_means, pwind_gusts, pcentral_pressures,
-                        pcategories};
-    field.setSamples(values, false);
-    return field;
-  }
-
-  /** any ids < 0 or size_styles < 0 are treated as missing */
-  public static FlatField makeSizes(double[] times, int[] ids, 
-              float[] gale_radii, float[] storm_radii, float[] hurricane_radii,
-              float[] radii_of_maximum_winds, int[] size_styles)
-         throws VisADException, RemoteException {
-    if (times == null || ids == null || gale_radii == null ||
-        storm_radii == null || hurricane_radii == null ||
-        radii_of_maximum_winds == null || size_styles == null) {
-      throw new VisADException("arguments may not be null");
-    }
-    int length = times.length;
-    if (ids.length != length || gale_radii.length != length || 
-        storm_radii.length != length || hurricane_radii.length != length || 
-        radii_of_maximum_winds.length != length || size_styles.length != length) {
-      throw new VisADException("argument lengths must match");
-    }
-    int[] permute = QuickSort.sort(times);
-    Gridded1DDoubleSet set =
-      new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
-    FlatField field = new FlatField(sizeFunction, set);
-    float[] pids = new float[length];
-    float[] pgale_radii = new float[length];
-    float[] pstorm_radii = new float[length];
-    float[] phurricane_radii = new float[length];
-    float[] pradii_of_maximum_winds = new float[length];
-    float[] psize_styles = new float[length];
-    for (int i=0; i<length; i++) {
-      pids[i] = (ids[permute[i]] < 0) ? Float.NaN : ids[permute[i]];
-      pgale_radii[i] = gale_radii[permute[i]];
-      pstorm_radii[i] = storm_radii[permute[i]];
-      phurricane_radii[i] = hurricane_radii[permute[i]];
-      pradii_of_maximum_winds[i] = radii_of_maximum_winds[permute[i]];
-      psize_styles[i] =
-        (size_styles[permute[i]] < 0) ? Float.NaN : size_styles[permute[i]];
-    }
-    float[][] values = {pids, pgale_radii, pstorm_radii, phurricane_radii,
-                        pradii_of_maximum_winds, psize_styles};
-    field.setSamples(values, false);
-    return field;
-  }
-
+  /* 
   public static FlatField makeMissingSteerings() 
          throws VisADException, RemoteException {
 
@@ -677,38 +619,8 @@ public class TCData {
     return ffSteerings;
   }
 
-
-  /** any ids < 0 or steering_styles < 0 are treated as missing */
-  public static FlatField makeSteerings(double[] times, int[] ids,
-              float[] steering_directions, int[] steering_styles)
-         throws VisADException, RemoteException {
-    if (times == null || ids == null || steering_directions == null ||
-        steering_styles == null) {
-      throw new VisADException("arguments may not be null");
-    }
-    int length = times.length;
-    if (ids.length != length || steering_directions.length != length ||
-        steering_styles.length != length) {
-      throw new VisADException("argument lengths must match");
-    }
-    int[] permute = QuickSort.sort(times);
-    Gridded1DDoubleSet set =
-      new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
-    FlatField field = new FlatField(steeringFunction, set);
-    float[] pids = new float[length];
-    float[] psteering_directions = new float[length];
-    float[] psteering_styles = new float[length];
-    for (int i=0; i<length; i++) {
-      pids[i] = (ids[permute[i]] < 0) ? Float.NaN : ids[permute[i]];
-      psteering_directions[i] = steering_directions[permute[i]];
-      psteering_styles[i] =
-        (steering_styles[permute[i]] < 0) ? Float.NaN : steering_styles[permute[i]];
-    }
-    float[][] values = {pids, psteering_directions, psteering_styles};
-    field.setSamples(values, false);
-    return field;
-  }
-
+  */
+ 
   public static void main(String[] args)
          throws VisADException, RemoteException {
     MathType mtTC;
@@ -719,6 +631,44 @@ public class TCData {
     System.out.println("MathType:\n" + mtTC);
 
 /*
+C:\jamesk\java\tc\visad\bom>java visad.bom.TCDataTest
+MathType:
+ (DISTURBANCEID -> (COUNTRY(Text),
+                   STATE(Text),
+                   YEAR,
+                   NUM,
+                   HISTORICALNAME(Text),
+                   OPENDATE,
+                   CLOSEDATE,
+                   ARCHIVEMODE,
+                   REALTIMEMODE,
+                   (TRACKID -> (TRACKTYPE(Text),
+                                TRACKNAME(Text),
+                                BASEDATETIME,
+                                CREATEDATETIME,
+                                TRACKSTYLE(Text),
+                                (Time -> (Latitude,
+                                          Longitude,
+                                          ERROR,
+                                          CONFIDENCE,
+                                          LOCATIONSTYLE,
+                                          WINDMEAN,
+                                          WINDGUST,
+                                          CENTRALPRESSURE,
+                                          CATEGORY,
+                                          INTENSITYSTYLE,
+                                          GALERADIUS,
+                                          STORMRADIUS,
+                                          HURRICANERADIUS,
+                                          RADIUSOFMAXIMUMWINDS,
+                                          SIZESTYLE,
+                                          DEPTH,
+                                          EYEDIAMETER,
+                                          PRESSUREOFLASTCLOSEDISOBAR,
+                                          STRUCTURESTYLE))))))
+
+was:
+ 
 doll% java visad.bom.TCData
 MathType:
 (DisturbanceID -> (Country(Text),
