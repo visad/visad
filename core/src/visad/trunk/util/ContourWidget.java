@@ -95,6 +95,12 @@ public class ContourWidget extends JPanel implements ActionListener,
     cBase = ba;
     cSurface = surf;
 
+    // verify scalar map
+    if (!Display.IsoContour.equals(smap.getDisplayScalar())) {
+      throw new DisplayException("ContourWidget: ScalarMap must " +
+                                 "be to Display.IsoContour");
+    }
+
     // set up control
     control = (ContourControl) smap.getControl();
     control.enableLabels(false);
@@ -117,11 +123,11 @@ public class ContourWidget extends JPanel implements ActionListener,
     Interval = new JTextField("---");
     JLabel baseLabel = new JLabel("base:");
     Base = new JTextField("---");
-    SurfaceLabel = new JLabel("surface value: ----------");
+    SurfaceLabel = new JLabel("surface value: ------------");
     Surface = new JSlider();
     ContourRangeWidget crw = new ContourRangeWidget(smap, cLo, cHi,
                                                     this, update);
-    updateWidget();
+    if (!update) updateWidget();
 
     // set label foregrounds
     intLabel.setForeground(Color.black);
@@ -147,6 +153,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     top.add(Labels);
     mid.add(intLabel);
     mid.add(Interval);
+    mid.add(Box.createRigidArea(new Dimension(10, 0)));
     mid.add(baseLabel);
     mid.add(Base);
     add(top);
@@ -157,9 +164,12 @@ public class ContourWidget extends JPanel implements ActionListener,
     add(crw);
   }
 
-  void setSliderBounds(int min, int max) {
-    Surface.setMinimum(1000*min);
-    Surface.setMaximum(1000*max);
+  private double sliderScale;
+
+  void setSliderBounds(float min, float max) {
+    sliderScale = 1000/(max-min);
+    Surface.setMinimum((int) (sliderScale*min));
+    Surface.setMaximum((int) (sliderScale*max));
   }
 
   void setMinMax(float min, float max) throws VisADException,
@@ -183,11 +193,11 @@ public class ContourWidget extends JPanel implements ActionListener,
     if (cBase == cBase) cBase = Math.round(1000*cBase)/1000;
   }
 
-  void updateWidget() throws VisADException, RemoteException {
+  synchronized void updateWidget() throws VisADException, RemoteException {
     if (cSurface == cSurface) {
       control.setSurfaceValue(cSurface);
       Surface.setEnabled(true);
-      Surface.setValue((int) (1000*cSurface));
+      Surface.setValue((int) (sliderScale*cSurface));
     }
     else Surface.setEnabled(false);
     if (cInterval == cInterval && cLo == cLo && cHi == cHi && cBase == cBase) {
@@ -256,13 +266,15 @@ public class ContourWidget extends JPanel implements ActionListener,
 
   /** ChangeListener method for JSlider. */
   public void stateChanged(ChangeEvent e) {
-    cSurface = 0.001f*Surface.getValue();
-    String surfString = ""+Surface.getValue();
-    if (cSurface > 0.0f) {
-      while (surfString.length() < 4) surfString = "0"+surfString;
-      surfString = surfString.substring(0, surfString.length()-3)+"."
-                  +surfString.substring(surfString.length()-3);
+    cSurface = (float) (Surface.getValue()/sliderScale);
+    String surfString;
+    if (cSurface < 10000000 && cSurface > -1000000) {
+      surfString = ""+cSurface;
+      int maxLen = surfString.length();
+      maxLen = maxLen < 8 ? maxLen : 8;
+      surfString = surfString.substring(0, maxLen);
     }
+    else surfString = ""+Math.round(cSurface);
     try {
       control.setSurfaceValue(cSurface);
       SurfaceLabel.setText("surface value: "+surfString);
@@ -319,11 +331,11 @@ public class ContourWidget extends JPanel implements ActionListener,
       double[] range = s.getRange();
       try {
         pappy.detectValues();
-        pappy.setMinMax((float) range[0], (float) range[1]);
-        pappy.setSliderBounds((int) range[0], (int) range[1]);
         float min = (float) range[0];
         float max = (float) range[1];
-        setBounds(Math.round(100*min)/100, Math.round(100*max)/100);
+        pappy.setMinMax(min, max);
+        pappy.setSliderBounds(min, max);
+        setBounds(min, max);
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }

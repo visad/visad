@@ -44,7 +44,7 @@ public class SelectRangeWidget extends RangeSlider
       auto-scaling range values. */
   public SelectRangeWidget(ScalarMap smap) throws VisADException,
                                                   RemoteException {
-    this(smap, smap.getRange(), true);
+    this(smap, Float.NaN, Float.NaN, true);
   }
 
   /** construct a SelectRangeWidget linked to the Control
@@ -52,8 +52,7 @@ public class SelectRangeWidget extends RangeSlider
       range of values (min, max) and auto-scaling range. */
   public SelectRangeWidget(ScalarMap smap, float min, float max)
                            throws VisADException, RemoteException {
-    this(smap, new double[] {min, max}, true);
-    smap.setRange((double) min, (double) max);
+    this(smap, min, max, true);
   }
 
   /** construct a SelectRangeWidget linked to the Control
@@ -61,23 +60,29 @@ public class SelectRangeWidget extends RangeSlider
       range of values (min, max) and specified auto-scaling behavior. */
   public SelectRangeWidget(ScalarMap smap, float min, float max,
          boolean update) throws VisADException, RemoteException {
-    this(smap, new double[] {min, max}, update);
+    super(min == min && max == max ? min : 0.0f,
+          min == min && max == max ? max : 1.0f);
+
+    // verify scalar map
+    if (!Display.SelectRange.equals(smap.getDisplayScalar())) {
+      throw new DisplayException("SelectRangeWidget: ScalarMap must " +
+                                 "be to Display.SelectRange");
+    }
+    rangeControl = (RangeControl) smap.getControl();
+
+    // enable auto-scaling
+    if (update) smap.addScalarMapListener(this);
+    else {
+      smap.setRange(min, max);
+      updateWidget(min, max);
+    }
   }
 
-  private SelectRangeWidget(ScalarMap smap, double[] range, boolean update)
-                            throws VisADException, RemoteException {
-    // if range is NaN, default to (0.0 - 1.0)
-    super(range[0] == range[0] ? (float) range[0] : 0.0f,
-          range[1] == range[1] ? (float) range[1] : 1.0f);
-    if (range[0] != range[0]) range[0] = 0.0;
-    if (range[1] != range[1]) range[1] = 1.0;
-
-    // set auto-scaling enabled (listen for new min and max)
-    if (update) smap.addScalarMapListener(this);
-
-    // set control
-    rangeControl = (RangeControl) smap.getControl();
-    rangeControl.setRange(new float[] {(float) range[0], (float) range[1]});
+  /** Update control and graphical widget components. */
+  void updateWidget(float min, float max) throws VisADException,
+                                                 RemoteException {
+    rangeControl.setRange(new float[] {min, max});
+    setBounds(min, max);
   }
 
   /** ScalarMapListener method used with delayed auto-scaling. */
@@ -85,9 +90,7 @@ public class SelectRangeWidget extends RangeSlider
     ScalarMap s = e.getScalarMap();
     double[] range = s.getRange();
     try {
-      float[] newRange = new float[] {(float) range[0], (float) range[1]};
-      rangeControl.setRange(newRange);
-      setBounds(newRange[0], newRange[1]);
+      updateWidget((float) range[0], (float) range[1]);
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }

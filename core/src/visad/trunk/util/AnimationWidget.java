@@ -60,6 +60,12 @@ public class AnimationWidget extends JPanel implements ActionListener {
       (which must be to Display.Animation) with specified ms/frame. */
   public AnimationWidget(ScalarMap smap, int st) throws VisADException,
                                                         RemoteException {
+    // verify scalar map
+    if (!Display.Animation.equals(smap.getDisplayScalar())) {
+      throw new DisplayException("AnimationWidget: ScalarMap must " +
+                                 "be to Display.Animation");
+    }
+
     // set control
     control = (AnimationControl) smap.getControl();
     aDir = true;

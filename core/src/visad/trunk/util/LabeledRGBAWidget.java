@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBAWidget.java,v 1.5 1998-08-10 13:45:42 billh Exp $
+@(#) $Id: LabeledRGBAWidget.java,v 1.6 1998-08-19 17:25:30 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,11 +40,15 @@ import com.sun.java.swing.*;
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.5 $, $Date: 1998-08-10 13:45:42 $
+ * @version $Revision: 1.6 $, $Date: 1998-08-19 17:25:30 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBAWidget extends Panel implements ActionListener,
+                                                        ColorChangeListener,
                                                         ScalarMapListener {
+
+  private final int TABLE_SIZE;
+  private final float SCALE;
 
   private ArrowSlider slider;
 
@@ -54,87 +58,53 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
 
   private float[][] orig_table;
 
-  /* CTR: 30 Jul 1998
-  public LabeledRGBAWidget() {
-    this(new ColorWidget(new RGBAMap()), new ArrowSlider());
-  }
+  ColorAlphaControl colorAlphaControl;
 
-  public LabeledRGBAWidget(String name, float min, float max) {
-    this(new ColorWidget(new RGBAMap()), new ArrowSlider(min, max, (min + max) / 2, name));
-  }
-
-  public LabeledRGBAWidget(String name, float min, float max, float[][] table) {
-    this(new ColorWidget(new RGBAMap(table)), new ArrowSlider(min, max, (min + max) / 2, name));
-  }
-
-  public LabeledRGBAWidget(ColorWidget c, Slider s) {
-    this(c, s, new SliderLabel(s));
-  }
-
-  public LabeledRGBAWidget(ColorWidget c, Slider s, SliderLabel l) {
-
-    widget = c;
-    slider = s;
-    label = l;
-
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(widget);
-    add(slider);
-    add(label);
-  }
-  */
-
-  ColorAlphaControl color_alpha_control;
-
-  /** construct a LabeledRGBAWidget linked to the ColorControl
-      in map (which must be to Display.RGBA), with range of
-      values from map.getRange() */
-  public LabeledRGBAWidget(ScalarMap smap)
-         throws VisADException, RemoteException {
-    this(smap, smap.getRange(), null);
+  /** construct a LabeledRGBAWidget linked to the ColorControl in
+      map (which must be to Display.RGBA), with auto-scaling range */
+  public LabeledRGBAWidget(ScalarMap smap) throws VisADException,
+                                                  RemoteException {
+    this(smap, Float.NaN, Float.NaN, null, true);
   }
 
   /** construct a LabeledRGBAWidget linked to the ColorControl
-      in map (which must be to Display.RGBA), with range of
-      values (min, max) */
+      in map (which must be to Display.RGBA), with auto-scaling
+      range of values (min, max) */
   public LabeledRGBAWidget(ScalarMap smap, float min, float max)
-         throws VisADException, RemoteException {
-    this(smap, make_range(min, max), null);
-    smap.setRange((double) min, (double) max);
+                           throws VisADException, RemoteException {
+    this(smap, min, max, null, true);
+  }
+
+  /** construct a LabeledRGBAWidget linked to the ColorControl
+      in map (which must be to Display.RGBA), with auto-scaling
+      range of values (min, max), and initial color table in format
+      float[TABLE_SIZE][4] with values between 0.0f and 1.0f */
+  public LabeledRGBAWidget(ScalarMap smap, float min, float max,
+         float[][] table) throws VisADException, RemoteException {
+    this(smap, min, max, table, true);
   }
 
   /** construct a LabeledRGBAWidget linked to the ColorControl
       in map (which must be to Display.RGBA), with range of
-      values (min, max), and initial color table in format
-      float[TABLE_SIZE][4] with values between 0.0f and 1.0f */
-  public LabeledRGBAWidget(ScalarMap smap, float min, float max, float[][] table)
-         throws VisADException, RemoteException {
-    this(smap, make_range(min, max), table);
-    smap.setRange((double) min, (double) max);
-  }
-
-  private LabeledRGBAWidget(ScalarMap smap, double[] range, float[][] in_table)
-                                      throws VisADException, RemoteException {
-
-    /* CTR: 30 Jul 1998: consolidated constructor code */
-
+      values (min, max), initial color table in format
+      float[TABLE_SIZE][3] with values between 0.0f and 1.0f, and
+      specified auto-scaling min and max behavior */
+  public LabeledRGBAWidget(ScalarMap smap, float min, float max,
+                           float[][] in_table, boolean update)
+                           throws VisADException, RemoteException {
+    // verify scalar map
+    if (!Display.RGBA.equals(smap.getDisplayScalar())) {
+      throw new DisplayException("LabeledRGBAWidget: ScalarMap must " +
+                                 "be to Display.RGBA");
+    }
+    colorAlphaControl = (ColorAlphaControl) smap.getControl();
     String name = smap.getScalar().getName();
-    float min = (float) range[0];
-    float max = (float) range[1];
     float[][] table = table_reorg(in_table);
 
-    if (min != min || max != max) {
-      // fake min and max
-      min = 0.0f;
-      max = 1.0f;
-      // listen for real min and max
-      smap.addScalarMapListener(this);
-    }
-
+    // set up user interface
     ColorWidget c = new ColorWidget(new RGBAMap(table));
     ArrowSlider s = new ArrowSlider(min, max, (min + max) / 2, name);
     SliderLabel l = new SliderLabel(s);
-
     widget = c;
     slider = s;
     label = l;
@@ -151,35 +121,23 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
     };
     reset.setActionCommand("reset");
     reset.addActionListener(this);
-
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     add(widget);
     add(slider);
     add(label);
     add(reset);
 
-    /* CTR: end of consolidated code */
+    // enable auto-scaling
+    if (update) smap.addScalarMapListener(this);
+    else {
+      smap.setRange(min, max);
+      updateWidget(min, max);
+    }
 
-    /* CTR: 30 Jul 1998
-    this(smap.getScalar().getName(), (float) range[0], (float) range[1],
-         table_reorg(in_table));
-    */
-    if (!Display.RGBA.equals(smap.getDisplayScalar())) {
-      throw new DisplayException("LabeledRGBAWidget: ScalarMap must " +
-                                 "be to Display.RGBA");
-    }
-    if (range[0] != range[0] || range[1] != range[1] ||
-        Double.isInfinite(range[0]) || Double.isInfinite(range[1]) ||
-        range[0] == Double.MAX_VALUE || range[1] == -Double.MAX_VALUE) {
-      throw new DisplayException("LabeledRGBAWidget: bad range");
-    }
-    color_alpha_control = (ColorAlphaControl) smap.getControl();
- 
+    // set up color table
     ColorMap map = widget.getColorMap();
-    final int TABLE_SIZE = map.getMapResolution();
-    final float SCALE = 1.0f / (TABLE_SIZE - 1.0f);
-
-    /* CTR: 30 Jul 1998 */
+    TABLE_SIZE = map.getMapResolution();
+    SCALE = 1.0f / (TABLE_SIZE - 1.0f);
     if (table == null) {
       table = new float[4][TABLE_SIZE];
 
@@ -190,66 +148,65 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
         table[2][i] = t[2];
         table[3][i] = t[3];
       }
-      color_alpha_control.setTable(table);
+      colorAlphaControl.setTable(table);
       orig_table = copy_table(table);
     }
     else {
-      color_alpha_control.setTable(in_table);
+      colorAlphaControl.setTable(in_table);
       orig_table = copy_table(in_table);
     }
-
-    widget.addColorChangeListener(new ColorChangeListener() {
-      public void colorChanged(ColorChangeEvent e) {
-        ColorMap map_e = widget.getColorMap();
-        float[][] table_e = new float[4][TABLE_SIZE];
-        for (int i=0; i<TABLE_SIZE; i++) {
-          float[] t = map_e.getTuple(SCALE * i);
-          table_e[0][i] = t[0];
-          table_e[1][i] = t[1];
-          table_e[2][i] = t[2];
-          table_e[3][i] = t[3];
-        }
-        try {
-          color_alpha_control.setTable(table_e);
-        }
-        catch (VisADException f) {
-        }
-        catch (RemoteException f) {
-        }
-      }
-    });
+    widget.addColorChangeListener(this);
   }
 
-  private Dimension d = null;
+  private Dimension maxSize = null;
 
   public Dimension getMaximumSize() {
-    if (d != null) return d;
+    if (maxSize != null) return maxSize;
     else return super.getMaximumSize();
   }
 
-  public void setMaximumSize(Dimension dd) {
-    d = dd;
+  public void setMaximumSize(Dimension size) {
+    maxSize = size;
   }
 
-  /** ScalarMapListener method used with delayed auto-scaling. */
+  private void updateWidget(float min, float max) {
+    float val = slider.getValue();
+    if (val <= min || val >= max) val = (min+max)/2;
+    slider.setBounds(min, max, val);
+  }
+
+  /** ScalarMapListener method used with delayed auto-scaling */
   public void mapChanged(ScalarMapEvent e) {
     ScalarMap s = e.getScalarMap();
     double[] range = s.getRange();
-    double val = slider.getValue();
-    if (val <= range[0] || val >= range[1]) {
-      val = (range[0]+range[1])/2;
-      
-    }
-    slider.setBounds((float) range[0], (float) range[1], (float) val);
+    updateWidget((float) range[0], (float) range[1]);
   }
 
-  /** ActionListener method used with resetting color table. */
+  /** ColorChangeListener method */
+  public void colorChanged(ColorChangeEvent e) {
+    ColorMap map_e = widget.getColorMap();
+    float[][] table_e = new float[4][TABLE_SIZE];
+    for (int i=0; i<TABLE_SIZE; i++) {
+      float[] t = map_e.getTuple(SCALE * i);
+      table_e[0][i] = t[0];
+      table_e[1][i] = t[1];
+      table_e[2][i] = t[2];
+      table_e[3][i] = t[3];
+    }
+    try {
+      colorAlphaControl.setTable(table_e);
+    }
+    catch (VisADException f) { }
+    catch (RemoteException f) { }
+  }
+
+  /** ActionListener method used with resetting color table */
   public void actionPerformed(ActionEvent e) {
     if (e.getActionCommand().equals("reset")) {
       // reset color table to original values
       try {
         float[][] table = copy_table(orig_table);
-        color_alpha_control.setTable(table);
+        colorAlphaControl.setTable(table);
         ((RGBAMap) widget.getColorMap()).setValues(table_reorg(table));
       }
       catch (VisADException exc) { }
@@ -290,34 +247,10 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
     }
   }
 
-  private static double[] make_range(float min, float max) {
-    double[] range = {(double) min, (double) max};
-    return range;
-  }
-
   /** Returns the ColorMap that the color widget is currently pointing to */
   public ColorWidget getColorWidget() {
     return widget;
   }
 
-  /* CTR: 30 Jul 1998
-  / * * for debugging purposes * /
-  public static void main(String[] argc) {
-
-    LabeledRGBAWidget l = new LabeledRGBAWidget("label", 0, 1);
-
-    Frame f = new Frame("Visad Widget Test");
-    f.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    f.add(l);
-
-    f.setSize(f.getPreferredSize());
-    f.setVisible(true);
-
-  }
-  */
-  
 }
 
