@@ -1370,9 +1370,11 @@ public class FlatField extends FieldImpl {
     else if (data instanceof Real || data instanceof RealTuple ||
              (data instanceof Tuple && ((TupleType) data.getType()).getFlat())) {
       MathType RangeType = ((FunctionType) Type).getRange();
+      /*- TDR July 1998
       if (!RangeType.equalsExceptName(data.getType())) {
         throw new TypeException("FlatField.binary: types don't match");
       }
+      */
       /*- TDR June 1998 */
       if ( !Type.equalsExceptName(new_type)) {
         throw new TypeException("binary: new_type doesn't match return type");
