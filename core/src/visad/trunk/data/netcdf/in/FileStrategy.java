@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: FileStrategy.java,v 1.2 2000-06-08 19:21:10 steve Exp $
+ * $Id: FileStrategy.java,v 1.3 2000-06-26 20:27:54 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -18,7 +18,12 @@ import visad.data.netcdf.*;
 
 /**
  * Provides support for importing netCDF datasets using the strategy of
- * employing FileFlatField-s wherever possible.
+ * employing FileFlatField-s wherever possible, but merging the data so as to
+ * keep the number of FileFlatField-s to a minimum.
+ *
+ * This class may be subclassed in order to use a different data merger tactic
+ * -- one that maximizes the number of FileFlatField-s, for example (see {@link
+ * #getMerger()}).
  *
  * @author Steven R. Emmerson
  */
@@ -61,7 +66,8 @@ public class FileStrategy
 
 
     /**
-     * Returns a VisAD data object corresponding to the netCDF dataset.
+     * Returns a VisAD data object corresponding to the netCDF dataset.  This
+     * method uses the Merger returned by <code>getMerger()</code>.
      *
      * @param adapter		The netCDF-to-VisAD adapter.
      * @return			The top-level, VisAD data object in the
@@ -74,6 +80,7 @@ public class FileStrategy
      *				View.
      * @throws OutOfMemoryError	Couldn't import netCDF dataset into 
      *				memory.
+     * @see #getMerger()
      */
     public DataImpl
     getData(NetcdfAdapter adapter)
@@ -85,7 +92,7 @@ public class FileStrategy
 	    return
 		adapter.importData(
 		    adapter.getView(),
-		    Merger.instance(),
+		    getMerger(),
 		    FileDataFactory.instance());
 	}
 	catch (OutOfMemoryError e)
@@ -94,6 +101,21 @@ public class FileStrategy
 		getClass().getName() + ".getData(): " +
 		"Couldn't import netCDF dataset: " + e.getMessage());
 	}
+    }
+
+
+    /**
+     * Returns the Merger for cosolidating virtual data objects together.  The
+     * Merger returned by this method is <code>Merger.instance()</code>.  This
+     * method may be overridden in subclasses to supply a different merger
+     * strategy (e.g. maximizing the number of FileFlatField-s).
+     * @return			The Merger for cosolidating virtual data 
+     *				objects together.
+     * @see Merger
+     */
+    protected Merger getMerger()
+    {
+	return Merger.instance();
     }
 
 
