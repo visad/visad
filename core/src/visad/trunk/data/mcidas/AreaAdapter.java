@@ -28,6 +28,7 @@ package visad.data.mcidas;
 import edu.wisc.ssec.mcidas.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import visad.CommonUnit;
 import visad.CoordinateSystem;
 import visad.DateTime;
 import visad.FlatField;
@@ -159,13 +160,28 @@ public class AreaAdapter {
     }
 
     RealType[] bands = new RealType[numBands];
+    // If we have calibration units, might as well use them.
+    Unit calUnit = null;
+    try {
+        calUnit = visad.data.units.Parser.parse(
+            visad.jmet.MetUnits.makeSymbol(
+                areaDirectory.getCalibrationUnitName())).
+                    scale(1.0/areaDirectory.getCalibrationScaleFactor());
+    } catch (Exception e) {
+        calUnit = null;
+    }
+    String calType = areaDirectory.getCalibrationType();
 
     // first cut: the bands are named "Band##" where ## is the
     // band number from the AREA file bandmap
     for (int i = 0; i < numBands; i++)
     {
-        bands[i] = RealType.getRealType("Band"+bandNums[i]);
+        bands[i] = 
+          (calUnit != null)
+             ? RealType.getRealType("Band"+bandNums[i]+"_"+calType, calUnit)
+             : RealType.getRealType("Band"+bandNums[i]);
     }
+
 
     // the range of the FunctionType is the band(s)
     RealTupleType radiance = new RealTupleType(bands);
@@ -210,20 +226,25 @@ public class AreaAdapter {
     // the values as shorts.  To do this, we crunch the values down
     // from 0-255 to 0-254 so we can have 255 left over for missing
     // values.
-
-    if (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT"))
-    {
-        Set[] rangeSets = new Set[numBands];
-        for (int i = 0; i < numBands; i++)
+    Set[] rangeSets = null;
+    if (calType.equalsIgnoreCase("BRIT")) {
+      rangeSets = new Set[numBands];
+      for (int i = 0; i < numBands; i++) {
             rangeSets[i] = new Integer1DSet(bands[i], 255);
-        field = new FlatField(image_type,
-                              domain_set,
-                              (CoordinateSystem[]) null,
-                              rangeSets,
-                              (Unit[]) null);
+      }
     }
-    else
-        field = new FlatField(image_type,domain_set);   // use default sets
+    Unit[] rangeUnits = null;
+    if (calUnit != null) {
+      rangeUnits = new Unit[numBands];
+      for (int i = 0; i < numBands; i++) rangeUnits[i] = calUnit;
+    }
+
+    // finally, create the field.
+    field = new FlatField(image_type,
+                          domain_set,
+                          (CoordinateSystem[]) null,
+                          rangeSets,
+                          rangeUnits);
 
     // get the data
     int[][][] int_samples;
