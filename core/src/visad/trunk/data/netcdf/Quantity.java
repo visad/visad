@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.5 1999-01-20 18:05:37 steve Exp $
+ * $Id: Quantity.java,v 1.6 2000-03-03 18:09:23 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -36,7 +36,6 @@ import visad.data.netcdf.units.Parser;
  */
 public class Quantity
   extends	RealType
-  implements	Comparable
 {
   /**
    * The specification of the preferred unit of the quantity.
@@ -119,20 +118,5 @@ public class Quantity
   public String getDefaultUnitString()
   {
     return unitSpec;
-  }
-
-
-  /**
-   * Compare this quantity with an object.
-   */
-  public int
-  compareTo(Object object)
-  {
-    if (!(object instanceof Quantity))
-      throw new ClassCastException("compare(): Argument not Quantity");
-
-    Quantity	that = (Quantity)object;
-
-    return getName().compareTo(that.getName());
   }
 }
