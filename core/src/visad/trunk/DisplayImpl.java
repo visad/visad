@@ -1449,140 +1449,145 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       if (RendererVector == null || displayRenderer == null) {
         return;
       }
+      // put a try/finally block around the setWaitFlag(true), so that we unset
+      // the flag before exiting even if an Exception or Error is thrown
+      try {
 // System.out.println("DisplayImpl call setWaitFlag(true)");
-      displayRenderer.setWaitFlag(true);
-      // set tickFlag-s in changed Control-s
-      // clone MapVector to avoid need for synchronized access
-      Vector tmap = (Vector) MapVector.clone();
-      Enumeration maps = tmap.elements();
-      while (maps.hasMoreElements()) {
-        ScalarMap map = (ScalarMap) maps.nextElement();
-        map.setTicks();
-      }
-
-      // set ScalarMap.valueIndex-s and valueArrayLength
-      int n = getDisplayScalarCount();
-      int[] scalarToValue = new int[n];
-      for (int i=0; i<n; i++) scalarToValue[i] = -1;
-      valueArrayLength = 0;
-      maps = tmap.elements();
-      while (maps.hasMoreElements()) {
-        ScalarMap map = ((ScalarMap) maps.nextElement());
-        DisplayRealType dreal = map.getDisplayScalar();
-          map.setValueIndex(valueArrayLength);
-          valueArrayLength++;
-      }
-
-      // set valueToScalar and valueToMap arrays
-      valueToScalar = new int[valueArrayLength];
-      valueToMap = new int[valueArrayLength];
-      for (int i=0; i<tmap.size(); i++) {
-        ScalarMap map = (ScalarMap) tmap.elementAt(i);
-        DisplayRealType dreal = map.getDisplayScalar();
-        valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
-        valueToMap[map.getValueIndex()] = i;
-      }
-
-      // invoke each DataRenderer (to prepare associated Data objects
-      // for transformation)
-      // clone RendererVector to avoid need for synchronized access
-      Vector temp = ((Vector) RendererVector.clone());
-      Enumeration renderers = temp.elements();
-      boolean go = false;
-      if (initialize) {
-        renderers = temp.elements();
-        while (!go && renderers.hasMoreElements()) {
-          DataRenderer renderer = (DataRenderer) renderers.nextElement();
-          go |= renderer.checkAction();
+        displayRenderer.setWaitFlag(true);
+        // set tickFlag-s in changed Control-s
+        // clone MapVector to avoid need for synchronized access
+        Vector tmap = (Vector) MapVector.clone();
+        Enumeration maps = tmap.elements();
+        while (maps.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          map.setTicks();
         }
-      }
-/*
-System.out.println("initialize = " + initialize + " go = " + go +
-                   " redisplay_all = " + redisplay_all);
-*/
-      if (redisplay_all) {
-        go = true;
-// System.out.println("redisplay_all = " + redisplay_all + " go = " + go);
-        redisplay_all = false;
-      }
 
-      if (!initialize || go) {
-        displayRenderer.prepareAction(temp, tmap, go, initialize);
-
-        // WLH 10 May 2001
-        boolean anyBadMap = false;
+        // set ScalarMap.valueIndex-s and valueArrayLength
+        int n = getDisplayScalarCount();
+        int[] scalarToValue = new int[n];
+        for (int i=0; i<n; i++) scalarToValue[i] = -1;
+        valueArrayLength = 0;
         maps = tmap.elements();
         while (maps.hasMoreElements()) {
           ScalarMap map = ((ScalarMap) maps.nextElement());
-          if (map.badRange()) anyBadMap = true;
+          DisplayRealType dreal = map.getDisplayScalar();
+            map.setValueIndex(valueArrayLength);
+            valueArrayLength++;
         }
 
-        renderers = temp.elements();
-        boolean badScale = false;
-        while (renderers.hasMoreElements()) {
-          DataRenderer renderer = (DataRenderer) renderers.nextElement();
-          // badScale |= renderer.getBadScale();  WLH 10 May 2001
-          badScale |= renderer.getBadScale(anyBadMap);
+        // set valueToScalar and valueToMap arrays
+        valueToScalar = new int[valueArrayLength];
+        valueToMap = new int[valueArrayLength];
+        for (int i=0; i<tmap.size(); i++) {
+          ScalarMap map = (ScalarMap) tmap.elementAt(i);
+          DisplayRealType dreal = map.getDisplayScalar();
+          valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
+          valueToMap[map.getValueIndex()] = i;
         }
-        initialize = badScale;
-        if (always_initialize) initialize = true;
+
+        // invoke each DataRenderer (to prepare associated Data objects
+        // for transformation)
+        // clone RendererVector to avoid need for synchronized access
+        Vector temp = ((Vector) RendererVector.clone());
+        Enumeration renderers = temp.elements();
+        boolean go = false;
+        if (initialize) {
+          renderers = temp.elements();
+          while (!go && renderers.hasMoreElements()) {
+            DataRenderer renderer = (DataRenderer) renderers.nextElement();
+            go |= renderer.checkAction();
+          }
+        }
+/*
+System.out.println("initialize = " + initialize + " go = " + go +
+                     " redisplay_all = " + redisplay_all);
+*/
+        if (redisplay_all) {
+          go = true;
+// System.out.println("redisplay_all = " + redisplay_all + " go = " + go);
+          redisplay_all = false;
+        }
+
+        if (!initialize || go) {
+          displayRenderer.prepareAction(temp, tmap, go, initialize);
+
+          // WLH 10 May 2001
+          boolean anyBadMap = false;
+          maps = tmap.elements();
+          while (maps.hasMoreElements()) {
+            ScalarMap map = ((ScalarMap) maps.nextElement());
+            if (map.badRange()) anyBadMap = true;
+          }
+
+          renderers = temp.elements();
+          boolean badScale = false;
+          while (renderers.hasMoreElements()) {
+            DataRenderer renderer = (DataRenderer) renderers.nextElement();
+            // badScale |= renderer.getBadScale();  WLH 10 May 2001
+            badScale |= renderer.getBadScale(anyBadMap);
+          }
+          initialize = badScale;
+          if (always_initialize) initialize = true;
 
 /*
 if (initialize) {
-  System.out.println("badScale = " + badScale +
-                     " always_initialize = " + always_initialize);
+    System.out.println("badScale = " + badScale +
+                       " always_initialize = " + always_initialize);
 }
 */
-        boolean transform_done = false;
+          boolean transform_done = false;
 
 // System.out.println("DisplayImpl.doAction transform");
 // int i = 0;
-        renderers = temp.elements();
-        while (renderers.hasMoreElements()) {
+          renderers = temp.elements();
+          while (renderers.hasMoreElements()) {
 // System.out.println("DisplayImpl invoke renderer.doAction " + i);
 // i++;
-          DataRenderer renderer = (DataRenderer) renderers.nextElement();
+            DataRenderer renderer = (DataRenderer) renderers.nextElement();
 
-          boolean this_transform = renderer.doAction();
-          transform_done |= this_transform;
+            boolean this_transform = renderer.doAction();
+            transform_done |= this_transform;
 /*
-          if (this_transform) {
-            DataDisplayLink[] links = renderer.getLinks();
-            System.out.println("transform " + getName() + " " +
-                               links[0].getThingReference().getName());
-          }
+            if (this_transform) {
+              DataDisplayLink[] links = renderer.getLinks();
+              System.out.println("transform " + getName() + " " +
+                                 links[0].getThingReference().getName());
+            }
 */
-        }
-        if (transform_done) {
-// System.out.println(getName() + " invoked " + i + " renderers");
-          AnimationControl control =
-            (AnimationControl) getControl(AnimationControl.class);
-          if (control != null) {
-            control.init();
           }
-          synchronized (ControlVector) {
-            Enumeration controls = ControlVector.elements();
-            while(controls.hasMoreElements()) {
-              Control cont = (Control) controls.nextElement();
-              if (ValueControl.class.isInstance(cont)) {
-                ((ValueControl) cont).init();
+          if (transform_done) {
+// System.out.println(getName() + " invoked " + i + " renderers");
+            AnimationControl control =
+              (AnimationControl) getControl(AnimationControl.class);
+            if (control != null) {
+              control.init();
+            }
+            synchronized (ControlVector) {
+              Enumeration controls = ControlVector.elements();
+              while(controls.hasMoreElements()) {
+                Control cont = (Control) controls.nextElement();
+                if (ValueControl.class.isInstance(cont)) {
+                  ((ValueControl) cont).init();
+                }
               }
             }
+
+            notifyListeners(DisplayEvent.TRANSFORM_DONE, 0, 0);
           }
 
-          notifyListeners(DisplayEvent.TRANSFORM_DONE, 0, 0);
         }
 
-      }
-
-      // clear tickFlag-s in Control-s
-      maps = tmap.elements();
-      while(maps.hasMoreElements()) {
-        ScalarMap map = (ScalarMap) maps.nextElement();
-        map.resetTicks();
-      }
+        // clear tickFlag-s in Control-s
+        maps = tmap.elements();
+        while(maps.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          map.resetTicks();
+        }
+      } finally {
 // System.out.println("DisplayImpl call setWaitFlag(false)");
-      displayRenderer.setWaitFlag(false);
+        displayRenderer.setWaitFlag(false);
+      }
     } // end synchronized (mapslock)
   }
 
