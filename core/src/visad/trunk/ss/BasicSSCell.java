@@ -195,9 +195,15 @@ public class BasicSSCell extends JPanel {
       VDisplay.addDisplayListener(new DisplayListener() {
         public void displayChanged(DisplayEvent e) {
           if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
+            setVDPanel(true);
             // broadcast data change event when remote data changes
             notifyListeners(SSCellChangeEvent.DATA_CHANGE);
           }
+          /* CTR: add when dglo's changes are committed
+          else if (e.getId() == DisplayEvent.MAPS_CLEARED) {
+            setVDPanel(false);
+          }
+          */
         }
       });
     }
