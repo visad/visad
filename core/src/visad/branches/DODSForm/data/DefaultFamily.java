@@ -30,6 +30,7 @@ import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;
 
+import visad.data.dods.DODSForm;
 import visad.data.fits.FitsForm;
 import visad.data.gif.GIFForm;
 import visad.data.tiff.TiffForm;
@@ -87,6 +88,11 @@ public class DefaultFamily
   {
     int i = 0;
 
+    try {
+      list[i] = DODSForm.dodsForm();
+      i++;
+    } catch (Throwable t) {
+    }
     try {
       list[i] = new FitsForm();
       i++;
