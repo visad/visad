@@ -145,6 +145,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   public void setLineWidth(float width)
          throws VisADException, RemoteException {
     if (width < 1.0f) width = 1.0f;
+    if (Util.isApproximatelyEqual(lineWidth, width)) return;
     lineWidth = width;
     changeControl(true);
     getDisplay().reDisplayAll();
@@ -172,7 +173,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   }
 
   /**
-   * Get the point size used for PointAttributes.  Calls changeControl
+   * Set the point size used for PointAttributes.  Calls changeControl
    * and updates the display.
    *
    * @param size  size to use (>= 1.0)
@@ -183,13 +184,14 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   public void setPointSize(float size)
          throws VisADException, RemoteException {
     if (size < 1.0f) size = 1.0f;
+    if (Util.isApproximatelyEqual(size, pointSize)) return;
     pointSize = size;
     changeControl(true);
     getDisplay().reDisplayAll();
   }
 
   /**
-   * Get the point size used for PointAttributes.  Doesn't update
+   * Set the point size used for PointAttributes.  Doesn't update
    * the display.
    *
    * @param size  size to use (>= 1.0)
@@ -221,6 +223,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    */
   public void setLineStyle(int style)
          throws VisADException, RemoteException {
+    if (style == lineStyle) return;
     if (style != SOLID_STYLE && style != DASH_STYLE &&
       style != DOT_STYLE && style != DASH_DOT_STYLE)
     {
@@ -266,6 +269,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     if (mode != AVERAGE_COLOR_MODE && mode != SUM_COLOR_MODE) {
       mode = AVERAGE_COLOR_MODE;
     }
+    if (mode == colorMode) return;
     colorMode = mode;
     changeControl(true);
     getDisplay().reDisplayAll();
@@ -289,6 +293,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    */
   public void setPointMode(boolean mode)
          throws VisADException, RemoteException {
+    if (mode == pointMode) return;
     pointMode = mode;
     changeControl(true);
     getDisplay().reDisplayAll();
@@ -301,6 +306,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    */
   public void setTextureEnable(boolean enable)
          throws VisADException, RemoteException {
+    if (enable == textureEnable) return;
     textureEnable = enable;
     changeControl(true);
     getDisplay().reDisplayAll();
@@ -326,6 +332,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    */
   public void setScaleEnable(boolean enable)
          throws VisADException, RemoteException {
+    if (enable == scaleEnable) return;
     scaleEnable = enable;
     getDisplayRenderer().setScaleOn(enable);
     changeControl(true);
@@ -360,6 +367,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    */
   public void setTransparencyMode(int mode)
          throws VisADException, RemoteException {
+    if (mode == transparencyMode) return;
     if (mode == TransparencyAttributes.SCREEN_DOOR ||
         mode == TransparencyAttributes.BLENDED ||
         mode == TransparencyAttributes.NONE ||
@@ -389,6 +397,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    */
   public void setProjectionPolicy(int policy)
          throws VisADException, RemoteException {
+    if (policy == projectionPolicy) return;
     if (policy == View.PARALLEL_PROJECTION ||
         policy == View.PERSPECTIVE_PROJECTION) {
       projectionPolicy = policy;
@@ -429,6 +438,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    */
   public void setPolygonMode(int mode)
          throws VisADException, RemoteException {
+    if (mode == polygonMode) return;
     if (mode == PolygonAttributes.POLYGON_FILL ||
         mode == PolygonAttributes.POLYGON_LINE ||
         mode == PolygonAttributes.POLYGON_POINT) {
