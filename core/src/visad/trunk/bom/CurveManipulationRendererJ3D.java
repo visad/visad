@@ -773,6 +773,11 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     }
     display.addMap(new ScalarMap(c, Display.RGB));
 
+    DisplayRenderer displayRenderer = display.getDisplayRenderer();
+    displayRenderer.setBoxOn(false);
+    GraphicsModeControl mode = display.getGraphicsModeControl();
+    mode.setLineWidth(2.0f);
+
     Integer2DSet fset = new Integer2DSet(xy, N, N);
     FlatField field = new FlatField(ft, fset);
     float[][] values = new float[1][N * N];
