@@ -151,6 +151,10 @@ public class UnionSet extends SampledSet {
     return mdim;
   }
 
+  public SampledSet[] getSets() {
+    return Sets;
+  }
+
   /**
    * Construct a UnionSet with an array of SampledSets
    *
