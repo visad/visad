@@ -99,6 +99,7 @@ public class ShowNCEPModel
 
   private boolean isServer = false;
   private boolean isClient = false;
+  private String clientHost = null;
 
   public static void main(String args[]) {
 
@@ -106,6 +107,7 @@ public class ShowNCEPModel
     boolean srvr = false;
     boolean clnt = false;
     String fileName = null;
+    String host = null;
     if (args != null && args.length > 0) {
       boolean killMe = false;
       boolean gotNum = false;
@@ -118,6 +120,7 @@ public class ShowNCEPModel
               killMe = true;
             }
             clnt = true;
+            if (args[i].length() > 2) host = args[i].substring(2).trim();
             break;
           case 's':
             if (clnt) {
@@ -160,12 +163,13 @@ public class ShowNCEPModel
 
       if (killMe) {
         System.out.println("Usage: ShowNCEPModel [-c|-s] # [fileName]");
+        System.out.println("Usage: ShowNCEPModel [-chostname|-s] # [fileName]");
         System.exit(1);
       }
     }
 
     try {
-      new ShowNCEPModel(num, srvr, clnt, fileName);
+      new ShowNCEPModel(num, srvr, clnt, host, fileName);
     } catch (Exception e) {
       e.printStackTrace(System.out);
       System.exit(1);
@@ -175,29 +179,31 @@ public class ShowNCEPModel
   public ShowNCEPModel(int numPanels)
     throws RemoteException, VisADException
   {
-    this(numPanels, false, false, null);
+    this(numPanels, false, false, null, null);
   }
 
   public ShowNCEPModel(int numPanels, boolean srvr, boolean clnt)
     throws RemoteException, VisADException
   {
-    this(numPanels, srvr, clnt, null);
+    this(numPanels, srvr, clnt, null, null);
   }
 
   public ShowNCEPModel (int numPanels, String fileName)
     throws RemoteException, VisADException
   {
-    this(numPanels, false, false, fileName);
+    this(numPanels, false, false, null, fileName);
   }
 
   public ShowNCEPModel(int numPanels, boolean srvr, boolean clnt,
-                       String fileName)
+                       String host, String fileName)
     throws RemoteException, VisADException
   {
     super("Show NCEP Model Data");
 
     isServer = srvr;
     isClient = clnt;
+    clientHost = host;
+    if (clientHost == null) clientHost = "localhost";
 
     addWindowListener( new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0); }
@@ -226,7 +232,7 @@ public class ShowNCEPModel
       display = di;
     } else {
       RemoteServer client;
-      client = ClientServer.connectToServer("localhost", serviceName);
+      client = ClientServer.connectToServer(clientHost, serviceName);
 
       LocalDisplay[] lh = ClientServer.getClientDisplays(client);
       display = lh[0];
