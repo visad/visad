@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.util;
 
 // General Java
+import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -327,6 +328,20 @@ public class DataUtility extends Object {
   }
 
   /**
+   * Gets the MathType of the flat-range of a Function.
+   * @param function		A function.
+   * @return			The MathType of the flat-range of the function.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static RealTupleType
+  getFlatRangeType(Function function)
+    throws VisADException, RemoteException
+  {
+    return ((FunctionType)function.getType()).getFlatRange();
+  }
+
+  /**
    * Gets the number of components in the range of a Function.  NB: This differs
    * from visad.FlatField.getRangeDimension() in that it returns the number of
    * components in the actual range rather than the number of components in the
@@ -499,5 +514,53 @@ public class DataUtility extends Object {
       }
     }
     return consolidatedField;
+  }
+
+  /**
+   * Creates a GriddedSet from a FlatField.  The GriddedSet will be created from
+   * the domain and flat-range of the FlatField.  The first components in the
+   * tuples of the GriddedSet will come from the domain of the FlatField and the
+   * remaining components will come from the range of the FlatField.
+   * @param field		The FlatField from which to create a GriddedSet.
+   * @return			The GriddedSet corresponding to the input
+   *				FlatField.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static GriddedSet
+  createGriddedSet(FlatField field, boolean copy)
+    throws VisADException, RemoteException
+  {
+    int			domainRank = field.getDomainDimension();
+    int			flatRangeRank = field.getRangeDimension();
+    RealType[]		realTypes = new RealType[domainRank + flatRangeRank];
+    RealTupleType	tupleType = getDomainType(field);
+    for (int i = 0; i < domainRank; i++)
+      realTypes[i] = (RealType)tupleType.getComponent(i);
+    tupleType = getFlatRangeType(field);
+    for (int i = 0; i < flatRangeRank; i++)
+      realTypes[domainRank+i] = (RealType)tupleType.getComponent(i);
+    float[][]	samples = new float[realTypes.length][field.getLength()];
+    // actual units:
+    System.arraycopy(
+      field.getDomainSet().getSamples(), 0, samples, 0, domainRank);
+    // default units:
+    System.arraycopy(
+      field.getFloats(copy), 0, samples, domainRank, flatRangeRank);
+    int[]		lengths = new int[samples.length];
+    for (int i = samples.length; --i >= 0; )
+      lengths[i] = samples[i].length;
+    Unit[]		units = new Unit[realTypes.length];
+    System.arraycopy(field.getDomainUnits(), 0, units, 0, domainRank);
+    System.arraycopy(
+      field.getDefaultRangeUnits(), 0, units, domainRank, flatRangeRank);
+    return
+      GriddedSet.create(
+	new RealTupleType(realTypes),
+	samples,
+	lengths,
+	(CoordinateSystem)null,
+	units,
+	(ErrorEstimate[])null);
   }
 }
