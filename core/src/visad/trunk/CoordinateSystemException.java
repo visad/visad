@@ -31,9 +31,23 @@ package visad;
 */
 public class CoordinateSystemException extends VisADException {
 
+  /**
+   * construct a CoordinateSystemException with no message
+   */
   public CoordinateSystemException() { super(); }
+
+  /**
+   * construct a CoordinateSystemException with given message
+   * @param s - message String
+   */
   public CoordinateSystemException(String s) { super(s); }
 
+  /**
+   * construct a CoordinateSystemException for unequal
+   * CoordinateSystems
+   * @param cs1 - first CoordinateSystem
+   * @param cs2 - second CoordinateSystem
+   */
   public CoordinateSystemException(CoordinateSystem cs1, CoordinateSystem cs2) {
 
     this("Coordinate system mismatch: " +

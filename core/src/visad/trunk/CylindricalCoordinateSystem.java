@@ -53,7 +53,17 @@ public class CylindricalCoordinateSystem
         super(reference, coordinate_system_units);
     }
 
-    /** trusted constructor for initializers */
+    /** construct a CoordinateSystem for (radius, azimuth, zaxis) relative
+     *  to a 3-D Cartesian reference; this constructor supplies units =
+     *  {null, CommonUnit.Degree, null} to the super
+     *  constructor, in order to ensure Unit compatibility with its
+     *  use of trigonometric functions
+     *
+     * @param    reference    Cartesian reference in the order of x, y, z
+     * @param    b            boolean argument indicating this is the
+     *                        trusted constructor for initializers (does
+     *                        not declare Exceptions)
+     */
     CylindricalCoordinateSystem(RealTupleType reference, boolean b)
     {
         super(reference, coordinate_system_units, b);

@@ -846,8 +846,6 @@ public abstract class CoordinateSystem extends Object
    * @param cs - the object in question.
    * @return <code>true</code> if and only if this instance equals cs.
    */
-  /** check for equality of CoordinateSystem objects;
-      must test for cs == null */
   public abstract boolean equals(Object cs);
 
 }
