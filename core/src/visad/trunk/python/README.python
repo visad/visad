@@ -77,6 +77,82 @@ for more information about it.  And see:
 
 for a tutorial on the Python language.
 
+4.1 Using VisAD data in Python scripts
+
+Python programs can manipulate all kinds of data.  The key for
+VisAD Python scripts is manipulating VisAD data objects.  These
+are created when you load a file, and when you call VisAD Python
+functions.
+
+You can write ordinary arithmetic expressions involving VisAD
+data object.  For example, you can load two McIDAS area files:
+
+  area1 = load("AREA0001")
+  area2 = load("AREA0002")
+
+then compute their difference by:
+
+  difference = area1 - area2
+
+This is like array operations in IDL or Matlab, except that the
+images will be georeferenced before their difference is computed.
+That is, it is a pointwise difference, but first the image in
+area2 is resampled to the pixel locations in area1.
+
+You can access the pixels in area1 like an array.  For example
+you can compute the total of pixel values in area1 by:
+
+  sum = 0
+  for i = range(area.length):
+	sum = sum + area[i]
+
+4.2 VisAD data objects
+
+Not all VisAD data objects are images.  In fact, one of the key
+ideas in VisAD is that its data objects can be virtually any
+numerical data.  They can be simple real numbers such as a
+latitude, they can be vectors of real numbers such as a location
+(latitude, longitude, altitude) in the earth's atmosphere, and
+they can be a fields of values, such as temperatures over the
+earth's atmosphere.  These notions of vectors (called tuples in
+VisAD) and fields can be combined in arbitray comninations to
+build very complex data objects.  Thus the state of a point in
+the atmosphere may be a tuple:
+
+  (temp, dewpoint, pressure, u, v, w)
+
+the state of the whole atmosphere may be a field:
+
+  ((latitude, longitude, altitude) ->
+         (temp, dewpoint, pressure, u, v, w))
+
+and a time history of the atmosphere may be a field:
+
+  (time -> ((latitude, longitude, altitude) ->
+                  (temp, dewpoint, pressure, u, v, w)))
+
+Any time you have a VisAD data object in a script, you can
+find out what type of data it is with:
+
+  print data.getType()
+
+This will print an expression called the data's MathType.
+It defines names for the numerical values in the data, as
+well as how those data are organized including any
+functional dependencies between them.
+
+In addition to their MathTypes, VisAD data objects include
+Units (e.g., latitudes may have Units of radians or degrees),
+sampling geometries and topologies (e.g., images are usually
+sampled on 2-D gridded topologies), CoordinateSystems (e.g., 
+images often have navigation transforms that relate their
+image coordinates (line, element) with their earth
+coordinates (latitude, longitude)), missing data indicators,
+and ErrorEstimates.
+
+You can learn more about VisAD data objects in the Tutorials
+and Developer's Guide available on the VisAD web page.
+
 
 5. The VisAD Python Library Functions
 
@@ -155,12 +231,12 @@ so you are not restricted to just these.
   tanDegrees(data) - return pointwise tan value of data, assuming degrees
   
 
-5.4 Fourier transform fucntions
+5.4 Fourier transform functions
 
   fft(field) - return forward Fourier transform of field
   
   ifft(field) - return backward Fourier transform of field
-  
+
 
 5.5 Field creation functions
 
