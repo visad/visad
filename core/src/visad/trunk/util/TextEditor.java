@@ -244,6 +244,8 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
 
   /** handle undoable edits */
   public void undoableEditHappened(UndoableEditEvent e) {
+    if (!e.getEdit().isSignificant()) return;
+
     undo.addEdit(e.getEdit());
     changed = true;
   }

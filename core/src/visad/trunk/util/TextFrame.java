@@ -74,10 +74,12 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
     getMenuItem("Edit", "Redo").setEnabled(false);
 
     // finish UI setup
-    JPanel pane = new JPanel();
-    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-    pane.add(textPane);
-    setContentPane(pane);
+    layoutGUI();
+  }
+
+  /** sets up the GUI */
+  protected void layoutGUI() {
+    setContentPane(textPane);
     setTitle(title);
   }
 
@@ -218,6 +220,8 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
 
   /** updates menu items when undoable action occurs */
   public void undoableEditHappened(UndoableEditEvent e) {
+    if (!e.getEdit().isSignificant()) return;
+
     // refresh menu items when an undoable event occurs
     refreshMenuItems(true);
   }

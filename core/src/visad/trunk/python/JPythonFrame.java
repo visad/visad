@@ -26,15 +26,24 @@ MA 02111-1307, USA
 
 package visad.python;
 
+import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
+import javax.swing.event.*;
 import visad.VisADException;
 import visad.ss.SpreadSheet;
 import visad.util.TextFrame;
 
 /** A GUI frame for editing JPython code in Java runtime. */
-public class JPythonFrame extends TextFrame {
+public class JPythonFrame extends TextFrame implements UndoableEditListener {
+
+  /** text pane containing line numbers */
+  protected JTextArea lineNumbers;
+
+  /** number of lines of code in the document */
+  protected int numLines;
 
   /** constructs a JPythonFrame */
   public JPythonFrame() throws VisADException {
@@ -49,12 +58,49 @@ public class JPythonFrame extends TextFrame {
   /** constructs a JPythonFrame from the given JPythonEditor object */
   public JPythonFrame(JPythonEditor jpEdit) throws VisADException {
     super(jpEdit);
+    textPane.addUndoableEditListener(this);
 
     // setup menu bar
     addMenuItem("Command", "Run", "commandRun", 'r');
     addMenuItem("Command", "Compile", "commandCompile", 'c');
+  }
 
-    // add immediate text field
+  /** sets up the GUI */
+  protected void layoutGUI() {
+    // set up content pane
+    JPanel pane = new JPanel();
+    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+    setContentPane(pane);
+
+    // set up main text editor pane
+    JPanel main = new JPanel();
+    main.setLayout(new BoxLayout(main, BoxLayout.X_AXIS));
+    pane.add(main);
+
+    // set up line numbers
+    lineNumbers = new JTextArea("1\n");
+    lineNumbers.setEditable(false);
+    Dimension size = lineNumbers.getPreferredSize();
+    size.width = 30;
+    lineNumbers.setPreferredSize(size);
+    numLines = 1;
+    JPanel p = new JPanel() {
+      public void paint(Graphics g) {
+        // paint thin gray line down right-hand side of line numbering
+        super.paint(g);
+        Dimension d = getSize();
+        int w = d.width - 5;
+        int h = d.height - 1;
+        g.setColor(Color.gray);
+        g.drawLine(w, 0, w, h);
+      }
+    };
+    p.setBackground(Color.white);
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    p.add(lineNumbers);
+    textPane.setRowHeaderView(p);
+
+    // set up immediate text field
     JPanel immediate = new JPanel();
     immediate.setLayout(new BoxLayout(immediate, BoxLayout.X_AXIS));
     final JTextField textLine = new JTextField();
@@ -74,9 +120,10 @@ public class JPythonFrame extends TextFrame {
     });
     immediate.add(new JLabel("Immediate: "));
     immediate.add(textLine);
-    getContentPane().add(immediate);
+    pane.add(immediate);
 
-    // change the title bar text
+    // finish GUI setup
+    main.add(textPane);
     setTitle("VisAD JPython Editor");
   }
 
@@ -104,6 +151,57 @@ public class JPythonFrame extends TextFrame {
     catch (VisADException exc) {
       showError(exc.getMessage());
     }
+  }
+
+  /** updates line numbers when undoable action occurs */
+  public void undoableEditHappened(UndoableEditEvent e) {
+    if (!e.getEdit().isSignificant()) return;
+
+    // update line numbers
+    String s = textPane.getText();
+    if (!s.endsWith("\n")) s = s + "\n";
+    int len = s.length();
+    int count = 0;
+    int index = -1;
+
+    // count number of lines in document
+    while (index < len - 1) {
+      index = s.indexOf("\n", index + 1);
+      count++;
+    }
+    if (count == numLines) return;
+    
+    // compute index into line numbers text string
+    String l = lineNumbers.getText();
+    int numDigits = ("" + count).length();
+    int spot = 0;
+    int nine = 9;
+    for (int i=2; i<=numDigits; i++) {
+      spot += i * nine;
+      nine *= 10;
+    }
+    int ten = nine / 9;
+    spot += (numDigits + 1) * (count - ten + 1);
+
+    // update line numbers text string
+    int maxSpot = l.length();
+    String newL;
+    if (spot < maxSpot) {
+      // eliminate extra line numbers
+      newL = l.substring(0, spot);
+    }
+    else {
+      // append additional line numbers
+      StringBuffer sb = new StringBuffer(spot);
+      sb.append(l);
+      for (int i=numLines+1; i<=count; i++) {
+        sb.append(i);
+        sb.append("\n");
+      }
+      newL = sb.toString();
+    }
+    numLines = count;
+    lineNumbers.setText(newL);
   }
 
   /** tests the JPythonFrame class */
