@@ -50,6 +50,8 @@ public class ContourWidget extends JPanel implements ActionListener,
   private float cLo;
   private float cHi;
 
+  private String name;
+
   private JTextField Interval;
   private JTextField Base;
   private JLabel SurfaceLabel;
@@ -100,6 +102,7 @@ public class ContourWidget extends JPanel implements ActionListener,
       throw new DisplayException("ContourWidget: ScalarMap must " +
                                  "be to Display.IsoContour");
     }
+    name = smap.getScalar().getName();
 
     // set up control
     control = (ContourControl) smap.getControl();
@@ -123,7 +126,10 @@ public class ContourWidget extends JPanel implements ActionListener,
     Interval = new JTextField("---");
     JLabel baseLabel = new JLabel("base:");
     Base = new JTextField("---");
+/* WLH 20 Aug 98
     SurfaceLabel = new JLabel("surface value: ------------");
+*/
+    SurfaceLabel = new JLabel(name + " = 0.0                           ");
     Surface = new JSlider();
     ContourRangeWidget crw = new ContourRangeWidget(smap, cLo, cHi,
                                                     this, update);
@@ -179,7 +185,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     updateWidget();
   }
 
-  void detectValues() throws VisADException, RemoteException {
+  void detectValues(double[] range) throws VisADException, RemoteException {
     boolean[] bval = new boolean[2];
     float[] fval = new float[5];
     control.getMainContours(bval, fval);
@@ -188,6 +194,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     cLo = fval[2];
     cHi = fval[3];
     cBase = fval[4];
+    if (cSurface != cSurface) cSurface = (float) range[0];
     if (cSurface == cSurface) cSurface = Math.round(1000*cSurface)/1000;
     if (cInterval == cInterval) cInterval = Math.round(1000*cInterval)/1000;
     if (cBase == cBase) cBase = Math.round(1000*cBase)/1000;
@@ -198,6 +205,19 @@ public class ContourWidget extends JPanel implements ActionListener,
       control.setSurfaceValue(cSurface);
       Surface.setEnabled(true);
       Surface.setValue((int) (sliderScale*cSurface));
+
+/*
+      String surfString;
+      if (cSurface < 10000000 && cSurface > -1000000) {
+        surfString = ""+cSurface;
+        int maxLen = surfString.length();
+        maxLen = maxLen < 8 ? maxLen : 8;
+        surfString = surfString.substring(0, maxLen);
+      }
+      else surfString = ""+Math.round(cSurface);
+*/
+      String surfString = PlotText.shortString((double) cSurface);
+      SurfaceLabel.setText(name + " = " + surfString);
     }
     else Surface.setEnabled(false);
     if (cInterval == cInterval && cLo == cLo && cHi == cHi && cBase == cBase) {
@@ -267,6 +287,7 @@ public class ContourWidget extends JPanel implements ActionListener,
   /** ChangeListener method for JSlider. */
   public void stateChanged(ChangeEvent e) {
     cSurface = (float) (Surface.getValue()/sliderScale);
+/*
     String surfString;
     if (cSurface < 10000000 && cSurface > -1000000) {
       surfString = ""+cSurface;
@@ -275,9 +296,13 @@ public class ContourWidget extends JPanel implements ActionListener,
       surfString = surfString.substring(0, maxLen);
     }
     else surfString = ""+Math.round(cSurface);
+    SurfaceLabel.setText(name + " = " + surfString);
+*/
+    String surfString = PlotText.shortString((double) cSurface);
+    SurfaceLabel.setText(name + " = " + surfString);
+
     try {
       control.setSurfaceValue(cSurface);
-      SurfaceLabel.setText("surface value: "+surfString);
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
@@ -330,7 +355,7 @@ public class ContourWidget extends JPanel implements ActionListener,
       ScalarMap s = e.getScalarMap();
       double[] range = s.getRange();
       try {
-        pappy.detectValues();
+        pappy.detectValues(range);
         float min = (float) range[0];
         float max = (float) range[1];
         pappy.setMinMax(min, max);
