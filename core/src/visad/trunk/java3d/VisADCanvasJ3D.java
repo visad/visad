@@ -77,11 +77,11 @@ public class VisADCanvasJ3D extends Canvas3D {
     return defaultConfig;
   }
 
-  VisADCanvasJ3D(DisplayRendererJ3D renderer) {
+  public VisADCanvasJ3D(DisplayRendererJ3D renderer) {
       this(renderer, null);
   }
 
-  VisADCanvasJ3D(DisplayRendererJ3D renderer,
+  public VisADCanvasJ3D(DisplayRendererJ3D renderer,
                  GraphicsConfiguration config) {
     super(config == null ? defaultConfig : config);
     // super(config == null ? null : config);
@@ -102,7 +102,7 @@ public class VisADCanvasJ3D extends Canvas3D {
    * @param w
    * @param h
    */
-  VisADCanvasJ3D(DisplayRendererJ3D renderer, int w, int h)
+  public VisADCanvasJ3D(DisplayRendererJ3D renderer, int w, int h)
       throws VisADException {
 
 // to enable off screen rendering (if you have Java3D version 1.2.1
