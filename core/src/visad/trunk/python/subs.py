@@ -15,7 +15,7 @@ try:  #try/except done to remove these lines from documentation only
           VisADGeometryArray, ConstantMap, Integer1DSet, FunctionType, \
           ScalarMap, Display, Integer1DSet, FieldImpl, CellImpl, \
           DisplayListener, DisplayEvent, GraphicsModeControl, \
-          MouseHelper
+          MouseHelper, UnionSet
           
 
   from types import StringType
@@ -328,13 +328,21 @@ class _vdisp:
     """
     self.getGraphicsModeControl().setScaleEnable(on)
 
-  def enableRubberBandBoxZoomer(self,useKey):
+  def enableRubberBandBoxZoomer(self,useKey,callback=None):
     """
     Method to attach a Rubber Band Box zoomer to this
     display.  Once attached, it is there foreever!  The useKey
     parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
     """
-    RubberBandZoomer(self,useKey)
+    RubberBandZoomer(self,useKey,1,callback)
+
+  def enableRubberBandBox(self,useKey,callback=None):
+    """
+    Method to attach a Rubber Band Box to this display.  Once
+    attached, it is there forever!  The useKey parameter can 
+    be 0 (no key), 1(CTRL), 2(SHIFT)
+    """
+    RubberBandZoomer(self,useKey,0,callback)
 
   def getDisplayScalarMaps(self, includeShapes=0):
     """
@@ -403,7 +411,66 @@ class _vdisp:
         lineseg = Gridded3DSet(dom, points, len(points[0]))
 
       linref = self.addData("linesegment", lineseg, constmap)
-      return linref 
+      return linref
+
+
+  def drawBox(self, points, color=None, mathtype=None, style=None, width=None):
+    """
+    Draw a box on this display.  <points> is a 2 dimensional, list/tuple
+    of points to connect a box diagonal, ordered as given in the
+    <mathtype>.  Default <mathtype> is whatever is mapped to the x,y
+    (and maybe z) axis.  <color> is the line color ("red" or
+    java.awt.Color; default=white), <style> is the line style (e.g.,
+    "dash"), and <width> is the line width in pixels.
+
+    Return a reference to this box.
+    """
+
+    constmap = makeColorMap(color)
+    constyle = makeLineStyleMap(style, width)
+    if constyle is not None:
+      constmap.append(constyle)
+
+    maps = None
+    lineseg_s = []
+    if mathtype is not None:
+      dom = RealTupleType(mathtype)
+      if len(points) == 2:
+        aa = [[points[0][0], points[0][1]], [points[1][0], points[1][0]]]
+        lineseg_s.append(Gridded2DSet(dom, aa, len(aa[0])))
+        bb = [[aa[0][1], points[0][1]], [aa[1][1], points[1][1]]]
+        lineseg_s.append(Gridded2DSet(dom, bb, len(bb[0])))
+        cc = [[bb[0][1], aa[0][0]], [bb[1][1], bb[1][1]]]
+        lineseg_s.append(Gridded2DSet(dom, cc, len(cc[0])))
+        dd = [[cc[0][1], aa[0][0]], [cc[1][1], aa[1][0]]]
+        lineseg_s.append(Gridded2DSet(dom, dd, len(dd[0])))
+      else:
+        lineseg = Gridded3DSet(RealTupleType(mathtype), points, len(points[0]))
+
+      uset = UnionSet(lineseg_s)
+      linref = self.addData("box", uset, constmap)
+      return linref
+
+    else:
+      x , y , z , disp = self.getDisplayMaps()
+
+      if len(points) == 2:
+        dom = RealTupleType(x,y)
+        aa = [[points[0][0], points[0][1]], [points[1][0], points[1][0]]]
+        lineseg_s.append(Gridded2DSet(dom, aa, len(aa[0])))
+        bb = [[aa[0][1], points[0][1]], [aa[1][1], points[1][1]]]
+        lineseg_s.append(Gridded2DSet(dom, bb, len(bb[0])))
+        cc = [[bb[0][1], aa[0][0]], [bb[1][1], bb[1][1]]]
+        lineseg_s.append(Gridded2DSet(dom, cc, len(cc[0])))
+        dd = [[cc[0][1], aa[0][0]], [cc[1][1], aa[1][0]]]
+        lineseg_s.append(Gridded2DSet(dom, dd, len(dd[0])))
+      else:
+        dom = RealTupleType(x,y,z)
+        lineseg = Gridded3DSet(dom, points, len(points[0]))
+
+      uset = UnionSet(lineseg_s)
+      linref = self.addData("box", uset, constmap)
+      return linref
 
 
   def showDisplay(self, width=300, height=300, 
@@ -500,6 +567,8 @@ def makeDisplay(maps):
     disp = makeDisplay3D(maps)
   else:
     if __ok3d:
+      #tdr = TwoDDisplayRendererJ3D()
+      #disp = _vdisp3D(maps, tdr)
       disp = makeDisplay3D(maps)
       mode = disp.getGraphicsModeControl()
       mode.setProjectionPolicy(DisplayImplJ3D.PARALLEL_PROJECTION)
@@ -634,13 +703,21 @@ def zoomBox(display, factor):
   """
   display.zoomBox(factor)
 
-def enableRubberBandBoxZoomer(display,useKey):
+def enableRubberBandBoxZoomer(display,useKey,callback=None):
   """
   Method to attach a Rubber Band Box zoomer to this
   display.  Once attached, it is there foreever!  The useKey
   parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
   """
-  display.enableRubberBandBoxZoomer(useKey)
+  display.enableRubberBandBoxZoomer(useKey,callback)
+
+def enableRubberBandBox(display,useKey,callback=None):
+  """
+  Method to attach a Rubber Band Box to this display.
+  Once attached, it is there foreever!  The useKey
+  parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
+  """
+  display.enableRubberBandBox(useKey,callback)
 
 def getDisplayScalarMaps(display, includeShapes=0):
   """
@@ -1238,7 +1315,7 @@ class RubberBandZoomer:
   image is moved and zoomed to fill the window.
   """
 
-  def __init__(self, display, requireKey, callback=None):
+  def __init__(self, display, requireKey, zoom, callback):
     """
     display is the display object.  requireKey = 0 (no key),
     = 1 (CTRL), = 2 (SHIFT)
@@ -1256,9 +1333,10 @@ class RubberBandZoomer:
     self.rbb = RubberBandBoxRendererJ3D(self.x, self.y, mask, mask)
     self.ref = addData('rbb',self.dummy_set,self.display, renderer=self.rbb)
     self.callback = callback
+    self.zoom = zoom
     
     class MyCell(CellImpl):
-      def __init__(self, ref, disp, callback=None):
+      def __init__(self, ref, disp, zoom, callback):
         self.ref = ref
         self.display = disp
         self.xm, self.ym, self.zm, self.d = getDisplayScalarMaps(disp)
@@ -1267,6 +1345,7 @@ class RubberBandZoomer:
         self.mb = MouseBehaviorJ3D(self.dr)
         self.pc = self.display.getProjectionControl()
         self.callback = callback
+        self.zoom     = zoom
 
       def doAction(self):
 
@@ -1275,7 +1354,7 @@ class RubberBandZoomer:
         samples = set.getSamples()
         if samples is None: return  # no sense in going further
         if self.callback is not None:  self.callback(samples)
-        self.zoomIt(samples)
+        if self.zoom == 1: self.zoomIt(samples)
 
       def zoomIt(self, samples):
         xsv = self.xm.scaleValues((samples[0][0],samples[0][1]))
@@ -1322,7 +1401,7 @@ class RubberBandZoomer:
           pass
 
 
-    self.cell = MyCell(self.ref,self.display,self.callback)
+    self.cell = MyCell(self.ref,self.display,self.zoom, self.callback)
     self.cell.addReference(self.ref)
 
   def zoomit(self, samples):
@@ -1395,4 +1474,3 @@ class LinkBoxControl(ControlListener):
     if not self.control.equals(self.otherpc):
       self.mat = self.control.getMatrix()
       self.otherpc.setMatrix(self.mat)
-
