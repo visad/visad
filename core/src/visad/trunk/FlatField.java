@@ -580,6 +580,7 @@ public class FlatField extends FieldImpl {
               // for (int j=0; j<Length; j++) FloatRangeI[j] = (float) rangeI[j];
             }
             else {
+              FloatRange[i] = rangeI;
             }
             break;
           case BYTE:

@@ -58,7 +58,7 @@ public class PolarCoordinateSystem extends CoordinateSystem {
     int len = tuples[0].length;
     double[][] value = new double[2][len];
     for (int i=0; i<len ;i++) {
-      if (tuples[2][i] < 0.0) {
+      if (tuples[1][i] < 0.0) {
         value[0][i] = Double.NaN;
         value[1][i] = Double.NaN;
       }
@@ -97,7 +97,7 @@ public class PolarCoordinateSystem extends CoordinateSystem {
     int len = tuples[0].length;
     float[][] value = new float[2][len];
     for (int i=0; i<len ;i++) {
-      if (tuples[2][i] < 0.0) {
+      if (tuples[1][i] < 0.0) {
         value[0][i] = Float.NaN;
         value[1][i] = Float.NaN;
       }

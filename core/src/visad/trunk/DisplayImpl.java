@@ -616,7 +616,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       System.out.println("MalformedURLException");
       return null;
     }
+
     // System.out.println("url = " + url);
+
     Object object = null;
     try {
       object = url.getContent();
@@ -625,7 +627,9 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       System.out.println("IOException = " + e);
       return null;
     }
+
     // System.out.println("object.getClass = " + object.getClass());
+
     if (object == null) {
       System.out.println("object is null");
       return null;
@@ -637,11 +641,22 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     Image image = component.createImage(producer);
     int height = image.getHeight(component);
     int width = image.getWidth(component);
+    while (height < 0 || width < 0) {
+      try { Thread.sleep(1); }
+      catch (InterruptedException e) {
+        System.out.println("Bad status");
+        return null;
+      }
+      height = image.getHeight(component);
+      width = image.getWidth(component);
+    }
+
+    // System.out.println("width = " + width + "  height = " + height);
 
     int[] pix = new int[width * height];
     float[] data0 = new float[width * height];
  
-    java.awt.image.ColorModel cm = java.awt.image.ColorModel.getRGBdefault();
+    // java.awt.image.ColorModel cm = java.awt.image.ColorModel.getRGBdefault();
  
     java.awt.image.PixelGrabber pg =
       new java.awt.image.PixelGrabber(producer, 0, 0, width, height,
@@ -649,7 +664,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
  
     // System.out.println("pg created");
  
-    pg.setColorModel(cm); // unnecessary
+    // pg.setColorModel(cm); // unnecessary
  
     try { pg.grabPixels(); }
     catch (InterruptedException e) {
@@ -665,10 +680,14 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       return null;
     }
  
+    // System.out.println("grabPixels DONE");
+ 
     for (int i=0; i<width * height; i++) {
       data0[i] = pix[i] & 255;
     }
 
+    // System.out.println("Pixels copied");
+ 
     Linear2DSet domain_set =
       new Linear2DSet(image_domain, 0.0, (float) (width - 1.0), width,
                                     0.0, (float) (height - 1.0), height);

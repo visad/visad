@@ -65,7 +65,8 @@ public class ShadowRealTupleType extends ShadowTupleType {
   private int[] permutation;
  
   public ShadowRealTupleType(MathType t, DataDisplayLink link, ShadowType parent,
-                             ShadowType[] tcs) throws VisADException, RemoteException {
+                             ShadowType[] tcs, ShadowType adapter)
+         throws VisADException, RemoteException {
     super(t, link, parent, tcs);
 
     // check if tupleComponents are mapped to components of
@@ -120,7 +121,7 @@ public class ShadowRealTupleType extends ShadowTupleType {
       RealTupleType ref =
         ((RealTupleType) Type).getCoordinateSystem().getReference();
       Reference = (ShadowRealTupleType)
-        ref.buildShadowType(Link, this).getAdaptedShadowType();
+        ref.buildShadowType(Link, adapter).getAdaptedShadowType();
       DisplayTupleType tuple = Reference.getDisplaySpatialTuple();
       // note mappings of CoordinateSystem.Reference count
       DisplayIndices = addIndices(DisplayIndices, Reference.getDisplayIndices());

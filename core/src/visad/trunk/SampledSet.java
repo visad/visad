@@ -282,9 +282,6 @@ public abstract class SampledSet extends SimpleSet {
           colors[j++] = color_values[2][i];
           colors[j++] = (1.0f - color_values[3][i]);
         }
-System.out.println("COLOR_4 " + color_values[3][0] + " " + color_values[3][1] +
-                          " " + color_values[3][2] + " " + color_values[3][3]);
-        // array.vertexFormat |= COLOR_4;
       }
       else if (color_length == 3) {
         for (int i=0; i<len; i++) {
@@ -292,7 +289,6 @@ System.out.println("COLOR_4 " + color_values[3][0] + " " + color_values[3][1] +
           colors[j++] = color_values[1][i];
           colors[j++] = color_values[2][i];
         }
-        // array.vertexFormat |= COLOR_3;
       }
       else {
         throw new SetException("SampledSet.setGeometryArray: " +

@@ -168,7 +168,7 @@ public abstract class DataImpl extends Object
       synchronized (references) {
         Enumeration refs = references.elements();
         while (refs.hasMoreElements()) {
-          Object r = (DataReference) refs.nextElement();
+          Object r = refs.nextElement();
           if (r instanceof DataReferenceImpl) {
             // notify local DataReferenceImpl
             ((DataReferenceImpl) r).incTick();
