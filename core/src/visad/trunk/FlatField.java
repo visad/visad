@@ -3900,7 +3900,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       }
     }
 
-    return true;
+    return super.equals(obj);
   }
 
   /** construct a FlatField of given type; used for testing */
