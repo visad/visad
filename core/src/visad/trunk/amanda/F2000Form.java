@@ -171,6 +171,7 @@ public class F2000Form extends Form implements FormFileInformer {
     int[] om_ordinal_on_string = null;
 
     Vector em_events = new Vector();
+    int event_number = 0;
 
     try {
 
@@ -218,7 +219,6 @@ System.out.println("array " + detector + " " + longitude + " " + latitude + " " 
 
       // read OM records
       while (true) {
-        tokens = getNext(br);
         br.mark(1024); // mark br position in order to be able to
                        // backspace
         tokens = getNext(br);
@@ -246,7 +246,18 @@ System.out.println("om " + number + " " + om_ordinal_on_string[number] + " " +
                    om_y[number] + " " + om_z[number] + "\n" + line);
         }
       }
-
+/*
+int nxmiss = 0;
+int nymiss = 0;
+int nzmiss = 0;
+for (int i=0; i<nmodule; i++) {
+  if (om_x[i] != om_x[i]) nxmiss++;
+  if (om_y[i] != om_y[i]) nymiss++;
+  if (om_z[i] != om_z[i]) nzmiss++;
+}
+System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
+                   nymiss + " " + nzmiss);
+*/
       for (int i=0; i<nmodule; i++) {
         if (om_x[i] == om_x[i]) {
           if (om_x[i] < xmin) xmin = om_x[i];
@@ -270,7 +281,7 @@ System.out.println("om " + number + " " + om_ordinal_on_string[number] + " " +
 System.out.println("es IGNORE \n" + line);
         }
         else if (tokens[0].equals("em")) {
-System.out.println("em \n" + line);
+System.out.println(line);
           // assemble EM event
           try {
             int enr = getInt(tokens[1], 21);
@@ -283,8 +294,11 @@ System.out.println("em \n" + line);
           catch(NumberFormatException e) {
             throw new BadFormException("bad number format with em\n" + line);
           }
+
+          // initialize tracks and hits to empty
           Vector tracks = new Vector();
           Vector hits = new Vector();
+
           // read TR and HT records
           while (true) {
             tokens = getNext(br);
@@ -315,11 +329,11 @@ System.out.println("em \n" + line);
                 float[][] locs = {{xstart, xstart + xinc},
                                   {ystart, ystart + yinc},
                                   {zstart, zstart + zinc}};
-
+/*
 System.out.println("tr (" + xstart + ", " + ystart + ", " +
                    zstart + "), (" + xinc + ", " +
                    yinc + ", " + zinc + ")\n" + line);
-
+*/
                 Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
                 FlatField track_field =
                   new FlatField(track_function_type, track_set);
@@ -358,11 +372,12 @@ System.out.println("tr (" + xstart + ", " + ystart + ", " +
                 float[][] locs = {{xstart, xstart + xinc},
                                   {ystart, ystart + yinc},
                                   {zstart, zstart + zinc}};
-
+/*
 System.out.println("fit (" + xstart + ", " + ystart + ", " +
                    zstart + "), (" + xinc + ", " +
-                   yinc + ", " + zinc + ")\n" + line);
-
+                   yinc + ", " + zinc + ") " + length + " " +
+                   event_number + "\n" + line);
+*/
                 Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
                 FlatField track_field =
                   new FlatField(track_function_type, track_set);
@@ -391,7 +406,7 @@ System.out.println("fit (" + xstart + ", " + ystart + ", " +
               }
             }
             else if (tokens[0].equals("ee")) {
-System.out.println("ee \n" + line);
+System.out.println("ee");
               // finish EM event
               int ntracks = tracks.size();
               int nhits = hits.size();
@@ -408,7 +423,10 @@ System.out.println("ee \n" + line);
                 }
                 tracks_field.setSamples(track_fields, false);
               }
-
+/*
+System.out.println("tracks_field " + event_number + "\n" +
+                   tracks_field);
+*/
               Integer1DSet hits_set = (nhits == 0) ?
                 new Integer1DSet(hit_index, 1) :
                 new Integer1DSet(hit_index, nhits);
@@ -425,6 +443,7 @@ System.out.println("ee \n" + line);
               Tuple em_tuple =
                 new Tuple(new Data[] {tracks_field, hits_field});
               em_events.addElement(em_tuple);
+              event_number++;
               break;
             }
           } // end while (true) { // read TR and HT records
@@ -566,7 +585,8 @@ System.out.println("IOException " + e.getMessage());
     ScalarMap shape_scalemap = new ScalarMap(amplitude, Display.ShapeScale);
     display.addMap(shape_scalemap);
     shape_scalemap.setRange(-20.0, 50.0);
-    ScalarMap letmap = new ScalarMap(let, Display.RGB);
+    // ScalarMap letmap = new ScalarMap(let, Display.RGB);
+    ScalarMap letmap = new ScalarMap(tot, Display.RGB);
     display.addMap(letmap);
 
     GraphicsModeControl mode = display.getGraphicsModeControl();
@@ -637,9 +657,16 @@ System.out.println("IOException " + e.getMessage());
     }
     scontrol.setShapes(new VisADGeometryArray[] {cube});
 
+    // fixes track display?
+    // SelectValue bug?
+    // amanda = ((FieldImpl) amanda).getSample(99);
+
     DataReferenceImpl amanda_ref = new DataReferenceImpl("amanda");
     amanda_ref.setData(amanda);
     display.addReference(amanda_ref);
+
+System.out.println("amanda MathType\n" + amanda.getType());
+visad.jmet.DumpType.dumpDataType(amanda, System.out);
 
     JFrame frame = new JFrame("VisAD AERI Viewer");
     frame.addWindowListener(new WindowAdapter() {
