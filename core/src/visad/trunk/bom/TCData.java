@@ -9,70 +9,72 @@ import java.rmi.RemoteException;
 
 public class TCData {
 
-  RealType rtTime = RealType.Time;
   FieldImpl data = null;
   Object data_lock = new Object();
 
+  // Time
+  static RealType rtTime = RealType.Time;
+
   // Fix
-  RealType rtFixID;
-  RealType rtLat;
-  RealType rtLon;
-  RealType rtError;
-  RealType rtFixStyle;
-  RealTupleType fixTuple;
-  FunctionType fixFunction;
+  static RealType rtFixID;
+  static RealType rtLat;
+  static RealType rtLon;
+  static RealType rtError;
+  static RealType rtFixStyle;
+  static RealTupleType fixTuple;
+  static FunctionType fixFunction;
 
   // Intensity
-  RealType rtIntensityID;
-  RealType rtWindMean;
-  RealType rtWindGust;
-  RealType rtCentralPressure;
-  RealType rtCategory;
-  RealTupleType intensityTuple;
-  FunctionType intensityFunction;
+  static RealType rtIntensityID;
+  static RealType rtWindMean;
+  static RealType rtWindGust;
+  static RealType rtCentralPressure;
+  static RealType rtCategory;
+  static RealTupleType intensityTuple;
+  static FunctionType intensityFunction;
 
   // Size
-  RealType rtSizeID;
-  RealType rtGaleRadius;
-  RealType rtStormRadius;
-  RealType rtHurricaneRadius;
-  RealType rtRadiusOfMaximumWinds;
-  RealType rtSizeStyle;
-  RealTupleType sizeTuple;
-  FunctionType sizeFunction;
+  static RealType rtSizeID;
+  static RealType rtGaleRadius;
+  static RealType rtStormRadius;
+  static RealType rtHurricaneRadius;
+  static RealType rtRadiusOfMaximumWinds;
+  static RealType rtSizeStyle;
+  static RealTupleType sizeTuple;
+  static FunctionType sizeFunction;
 
   // Steering
-  RealType rtSteeringID;
-  RealType rtSteeringDirection;
-  RealType rtSteeringStyle;
-  RealTupleType steeringTuple;
-  FunctionType steeringFunction;
+  static RealType rtSteeringID;
+  static RealType rtSteeringDirection;
+  static RealType rtSteeringStyle;
+  static RealTupleType steeringTuple;
+  static FunctionType steeringFunction;
 
   // Track
-  RealType rtTrackID;
-  TextType ttTrackType;
-  TextType ttTrackName;
-  RealType rtBaseDateTime;
-  RealType rtCreateDateTime;
-  TextType ttDisplayType;
-  TupleType ttTrack;
-  FunctionType ftId2Track;
+  static RealType rtTrackID;
+  static TextType ttTrackType;
+  static TextType ttTrackName;
+  static RealType rtBaseDateTime;
+  static RealType rtCreateDateTime;
+  static TextType ttDisplayType;
+  static TupleType ttTrack;
+  static FunctionType ftId2Track;
 
   // Disturbance
-  RealType rtDisturbanceID;
-  TextType ttCountry;
-  TextType ttState;
-  RealType rtYear;
-  RealType rtNumber;
-  TextType ttHistoricalName;
-  RealType rtOpenDate;
-  RealType rtCloseDate;
-  RealType rtArchiveMode;
-  RealType rtRealtimeMode;
-  TupleType ttDisturbance;
-  FunctionType ftId2Disturbance;
+  static RealType rtDisturbanceID;
+  static TextType ttCountry;
+  static TextType ttState;
+  static RealType rtYear;
+  static RealType rtNumber;
+  static TextType ttHistoricalName;
+  static RealType rtOpenDate;
+  static RealType rtCloseDate;
+  static RealType rtArchiveMode;
+  static RealType rtRealtimeMode;
+  static TupleType ttDisturbance;
+  static FunctionType ftId2Disturbance;
 
-  FunctionType mtTC;
+  static FunctionType mtTC;
 
 
   public TCData() throws VisADException {
@@ -228,7 +230,7 @@ public class TCData {
     }
   }
 
-  public Tuple makeDisturbance(String country, String state, int year,
+  public static Tuple makeDisturbance(String country, String state, int year,
              int number, String historical_name, int open_date, int close_date,
              int archive_mode, int realtime_mode, FieldImpl tracks)
          throws VisADException, RemoteException {
@@ -241,7 +243,7 @@ public class TCData {
        new Real(rtRealtimeMode, realtime_mode), tracks});
   }
 
-  public Tuple makeTrack(String track_type, String track_name,
+  public static Tuple makeTrack(String track_type, String track_name,
              int base_date_time, int create_date_time, String display_type,
              FlatField fixes, FlatField intensities, FlatField sizes,
              FlatField steerings)
@@ -254,7 +256,7 @@ public class TCData {
        fixes, intensities, sizes, steerings});
   }
 
-  public FlatField makeFixes(double[] times, RealTuple[] fixes)
+  public static FlatField makeFixes(double[] times, RealTuple[] fixes)
          throws VisADException, RemoteException {
     if (times == null || fixes == null || times.length != fixes.length) {
       throw new VisADException("times and fixes must match and be non-null");
@@ -270,7 +272,7 @@ public class TCData {
     return field;
   }
 
-  public static void main(String[] args)
+  public void main(String[] args)
          throws VisADException {
     MathType mtTC;
     TCData data = new TCData();
