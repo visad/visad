@@ -23,7 +23,19 @@ public class Simple {
 
     // open a netCDF file containing an image sequence and adapt
     // it to a Field Data object
-    final Field image_sequence = (Field) plain.open("images.nc");
+    Field imagesNC = null;
+    try {
+      imagesNC = (Field) plain.open("images.nc");
+    }
+    catch (IOException exc) {
+      String s = "To run this example, the images.nc file must be "
+        +"present in\nyour visad/examples directory."
+        +"You can obtain this file from:\n"
+        +"  ftp://iris.ssec.wisc.edu/pub/visad-2.0/images.nc.Z";
+      System.out.println(s);
+      System.exit(0);
+    }
+    final Field image_sequence = imagesNC;
 
     // create a Display using Java3D
     DisplayImpl display = new DisplayImplJ3D("image display");
