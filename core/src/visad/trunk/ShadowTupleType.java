@@ -323,12 +323,14 @@ public class ShadowTupleType extends ShadowType {
               (RealTupleType) componentWithRef[i].getType(),
               range_coord_sys, range_units, null, values);
  
-          if (getAnyFlow()) {
+          // WLH 13 March 2000
+          // if (getAnyFlow()) {
             renderer.setEarthSpatialData(componentWithRef[i],
                       component_reference, ref, ref.getDefaultUnits(),
                       (RealTupleType) componentWithRef[i].getType(),
                       new CoordinateSystem[] {range_coord_sys}, range_units);
-          }
+          // WLH 13 March 2000
+          // }
 
           // map reference_values to appropriate DisplayRealType-s
           // MEM
@@ -342,7 +344,9 @@ public class ShadowTupleType extends ShadowType {
       } // end if (refToComponent != null)
 
       // setEarthSpatialData calls when no CoordinateSystem
-      if (this instanceof ShadowTupleType && getAnyFlow()) {
+      // WLH 13 March 2000
+      // if (this instanceof ShadowTupleType && getAnyFlow()) {
+      if (this instanceof ShadowTupleType) {
         if (this instanceof ShadowRealTupleType) {
           Unit[] range_units = value_units;
           CoordinateSystem range_coord_sys =
@@ -362,7 +366,7 @@ public class ShadowTupleType extends ShadowType {
                     (RealTupleType) this.getType(),
                     new CoordinateSystem[] {range_coord_sys}, range_units);
         }
-        else {
+        else { // if (!(this instanceof ShadowRealTupleType))
           int start = 0;
           int n = ((ShadowTupleType) this).getDimension();
           for (int i=0; i<n ;i++) {
@@ -395,8 +399,8 @@ public class ShadowTupleType extends ShadowType {
               start++;
             }
           }
-        }
-      }
+        } // end if (!(this instanceof ShadowRealTupleType))
+      } // end if (this instanceof ShadowTupleType)
 
     } // end if (length > 0)
 

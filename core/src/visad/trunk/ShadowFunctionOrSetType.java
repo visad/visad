@@ -1206,12 +1206,14 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
           }
         } // end if !(domain_dimension == 1)
 
-        if (anyFlow) {
+        // WLH 13 Macrh 2000
+        // if (anyFlow) {
           renderer.setEarthSpatialData(Domain, domain_reference, ref,
                       ref.getDefaultUnits(), (RealTupleType) Domain.getType(),
                       new CoordinateSystem[] {dataCoordinateSystem},
                       domain_units);
-        }
+        // WLH 13 Macrh 2000
+        // }
  
         //
         // TO_DO
@@ -1248,7 +1250,8 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       }
       else { // if !(domain_reference != null &&
              //      domain_reference.getMappedDisplayScalar())
-        if (anyFlow) {
+        // WLH 13 March 2000
+        // if (anyFlow) {
 /* WLH 23 May 99
           renderer.setEarthSpatialData(Domain, null, null,
                       null, (RealTupleType) Domain.getType(),
@@ -1262,7 +1265,8 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       ref_units, (RealTupleType) Domain.getType(),
                       new CoordinateSystem[] {dataCoordinateSystem},
                       domain_units);
-        }
+        // WLH 13 March 2000
+        // }
       }
       // FREE
       domain_values = null;
@@ -1329,12 +1333,14 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                   (RealTupleType) componentWithRef[i].getType(),
                   range_coord_sys[0], range_units, null, values);
 
-              if (anyFlow) {
+              // WLH 13 March 2000
+              // if (anyFlow) {
                 renderer.setEarthSpatialData(componentWithRef[i],
                       component_reference, ref, ref.getDefaultUnits(),
                       (RealTupleType) componentWithRef[i].getType(),
                       range_coord_sys, range_units);
-              }
+              // WLH 13 March 2000
+              // }
 
             }
             else {
@@ -1351,12 +1357,14 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                 for (int k=0; k<n; k++) reference_values[k][j] = temp[k][0];
               }
 
-              if (anyFlow) {
+              // WLH 13 March 2000
+              // if (anyFlow) {
                 renderer.setEarthSpatialData(componentWithRef[i],
                       component_reference, ref, ref.getDefaultUnits(),
                       (RealTupleType) componentWithRef[i].getType(),
                       range_coord_sys, range_units);
-              }
+              // WLH 13 March 2000
+              // }
 
             }
    
@@ -1378,7 +1386,9 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
 // System.out.println("end range " + (System.currentTimeMillis() - link.start_time));
 
         // setEarthSpatialData calls when no CoordinateSystem
-        if (Range instanceof ShadowTupleType && anyFlow) {
+        // WLH 13 March 2000
+        // if (Range instanceof ShadowTupleType && anyFlow) {
+        if (Range instanceof ShadowTupleType) {
           if (Range instanceof ShadowRealTupleType) {
             Unit[] range_units = ((Field) data).getDefaultRangeUnits();
             CoordinateSystem[] range_coord_sys =
@@ -1398,7 +1408,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       (RealTupleType) Range.getType(),
                       range_coord_sys, range_units);
           }
-          else {
+          else { // if (!(Range instanceof ShadowRealTupleType))
             Unit[] dummy_units = ((Field) data).getDefaultRangeUnits();
             int start = 0;
             int n = ((ShadowTupleType) Range).getDimension();
@@ -1432,8 +1442,8 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                 start++;
               }
             }
-          }
-        }
+          } // end if (!(Range instanceof ShadowRealTupleType))
+        } // end if (Range instanceof ShadowTupleType)
 
         // FREE
         range_values = null;
