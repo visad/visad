@@ -120,8 +120,13 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     if (NumberNotMissing > 0) {
       double mean = 0.0;
       double error = 0.0;
+/* WLH 27 May 98
       if (!Double.isNaN(ef)) error += nf * ef;
       if (!Double.isNaN(mf)) mean += nf * mf;
+*/
+      if (!Double.isNaN(ef)) error += (NumberNotMissing - ns) * ef;
+      if (!Double.isNaN(mf)) mean += (NumberNotMissing - ns) * mf;
+
       if (!Double.isNaN(es)) error += ns * es;
       if (!Double.isNaN(ms)) mean += ns * ms;
       Error = error / NumberNotMissing;
