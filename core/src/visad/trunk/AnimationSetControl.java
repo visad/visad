@@ -51,7 +51,7 @@ public class AnimationSetControl extends Control {
       current = 0;
     }
     else if (current < 0) {
-      current = set.getLength();
+      current = set.getLength() - 1;
     }
     return current;
   }
