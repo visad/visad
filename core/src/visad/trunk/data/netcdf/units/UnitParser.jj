@@ -456,6 +456,8 @@ double timestampExpression() :
     float	second = 0;
     double	when = 0;
     Token	t;
+    int		zoneHour;
+    int		zoneMinute;
 }
 {
     t=<DATE>
@@ -487,8 +489,9 @@ double timestampExpression() :
 	    (
 		t=<INTEGER>
 		{
-		    int	zoneMinute = 0;
-		    int	zoneHour = Integer.parseInt(t.image);
+		    zoneMinute = 0;
+
+		    zoneHour = Integer.parseInt(t.image);
 
 		    if (zoneHour <= -100 || zoneHour >= 100)
 		    {
@@ -504,10 +507,9 @@ double timestampExpression() :
 		    StringTokenizer	zoneSpec = 
 			new StringTokenizer(t.image, ":");
 		    int	sign = t.image.startsWith("-") ? -1 : 1;
-		    int	zoneHour =
-			Integer.parseInt(zoneSpec.nextToken());
-		    int	zoneMinute =
-			Integer.parseInt(zoneSpec.nextToken());
+
+		    zoneHour = Integer.parseInt(zoneSpec.nextToken());
+		    zoneMinute = Integer.parseInt(zoneSpec.nextToken());
 
 		    zone = zoneHour*60 + zoneMinute*sign;
 		}
