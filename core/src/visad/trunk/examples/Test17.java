@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test17
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test17() { }
 
-  public Test17(String args[])
-	throws VisADException, RemoteException
+  public Test17(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -72,8 +72,8 @@ public class Test17
 
   public String toString() { return ": constant transparency"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test17 t = new Test17(args);
   }

@@ -34,21 +34,22 @@ import visad.java2d.DisplayImplJ2D;
 import visad.java2d.MouseBehaviorJ2D;
 
 public class Test58
-	extends UISkeleton implements DisplayListener
+  extends UISkeleton
+  implements DisplayListener
 {
 
   ProjectionControl control;
 
   public Test58() { }
 
-  public Test58(String args[])
-	throws VisADException, RemoteException
+  public Test58(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -80,19 +81,19 @@ public class Test58
   }
 
   String getFrameTitle() { return "fly-through in Java2D"; }
- 
+
   void setupUI(DisplayImpl[] dpys)
-        throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
- 
+
     jframe.setContentPane((JPanel) dpys[0].getComponent());
     jframe.pack();
     jframe.setVisible(true);
- 
+
     control = dpys[0].getProjectionControl();
 
     /* change aspect ratio */
@@ -103,14 +104,14 @@ public class Test58
   }
 
   public void displayChanged(DisplayEvent e)
-         throws VisADException, RemoteException {
+    throws RemoteException, VisADException {
     if (e.getId() == DisplayEvent.FRAME_DONE) {
       rotate((DisplayImpl) e.getDisplay());
     }
   }
 
   public void rotate(DisplayImpl display)
-         throws VisADException, RemoteException {
+    throws RemoteException, VisADException {
     double[] matrix = control.getMatrix();
     double[] mult = display.make_matrix(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0);
     control.setMatrix(display.multiply_matrix(mult, matrix));
@@ -118,8 +119,8 @@ public class Test58
 
   public String toString() {return ": scripted fly-through & aspect ratio in Java2D";}
 
-  public static void main(String args[])
-         throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test58 t = new Test58(args);
   }

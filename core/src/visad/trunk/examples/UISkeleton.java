@@ -37,18 +37,18 @@ import visad.DisplayImpl;
 import visad.VisADException;
 
 public abstract class UISkeleton
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public UISkeleton() { }
 
-  public UISkeleton(String args[])
-	throws VisADException, RemoteException
+  public UISkeleton(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     return null;
   }
@@ -56,7 +56,7 @@ public abstract class UISkeleton
   String getFrameTitle() { return "VisAD generic user interface"; }
 
   void setupUI(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     JPanel big_panel = new JPanel();
 
@@ -70,8 +70,8 @@ public abstract class UISkeleton
       big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
       for (int i = 0; i < dpys.length; i++) {
-	Component comp = dpys[i].getComponent();
-	big_panel.add(comp);
+        Component comp = dpys[i].getComponent();
+        big_panel.add(comp);
       }
     }
 

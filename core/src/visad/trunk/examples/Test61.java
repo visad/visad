@@ -30,18 +30,18 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.LabeledColorWidget;
 
 public class Test61
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test61() { }
 
-  public Test61(String args[])
-	throws VisADException, RemoteException
+  public Test61(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType xr = new RealType("xr");
     RealType yr = new RealType("yr");
@@ -96,7 +96,7 @@ public class Test61
   String getFrameTitle0() { return "VisAD Color Alpha Widget"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
     LabeledColorWidget widget = new LabeledColorWidget(map1color);
@@ -118,8 +118,8 @@ public class Test61
     return ": volume rendering and ColorAlphaWidget";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test61 t = new Test61(args);
   }

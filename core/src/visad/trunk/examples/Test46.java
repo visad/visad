@@ -31,18 +31,18 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test46
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test46() { }
 
-  public Test46(String args[])
-	throws VisADException, RemoteException
+  public Test46(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
@@ -79,7 +79,7 @@ public class Test46
   }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     Vector v = dpys[0].getMapVector();
     ScalarMap shape_map = (ScalarMap )v.elementAt(3);
@@ -137,8 +137,8 @@ public class Test46
 
   public String toString() { return ": shape in Java2D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test46 t = new Test46(args);
   }

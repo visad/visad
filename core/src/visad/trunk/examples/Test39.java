@@ -40,18 +40,18 @@ import visad.util.LabeledColorWidget;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test39
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test39() { }
 
-  public Test39(String args[])
-	throws VisADException, RemoteException
+  public Test39(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -71,8 +71,8 @@ public class Test39
     ScalarMap color1map = new ScalarMap(vis_radiance, Display.RGB);
     display1.addMap(color1map);
 
-    ((DisplayRendererJ2D) display1.getDisplayRenderer()).getCanvas().
-      setPreferredSize(new Dimension(256, 256));
+    DisplayRendererJ2D dr = (DisplayRendererJ2D )display1.getDisplayRenderer();
+    dr.getCanvas().setPreferredSize(new Dimension(256, 256));
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
@@ -87,7 +87,7 @@ public class Test39
   String getFrameTitle() { return "VisAD Color Widget in Java2D"; }
 
   void setupUI(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
@@ -117,8 +117,8 @@ public class Test39
     return ": color array and ColorWidget in Java2D";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test39 t = new Test39(args);
   }

@@ -29,18 +29,18 @@ import visad.java2d.DisplayRendererJ2D;
 import visad.java2d.DirectManipulationRendererJ2D;
 
 public class Test34
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test34() { }
 
-  public Test34(String args[])
-	throws VisADException, RemoteException
+  public Test34(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
@@ -108,8 +108,8 @@ public class Test34
 
   public String toString() { return ": direct manipulation and clipping in Java2D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test34 t = new Test34(args);
   }

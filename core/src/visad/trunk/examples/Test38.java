@@ -27,18 +27,18 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test38
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test38() { }
 
-  public Test38(String args[])
-	throws VisADException, RemoteException
+  public Test38(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -81,8 +81,8 @@ public class Test38
     return ": colored contours from irregular grids in Java2D";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test38 t = new Test38(args);
   }

@@ -32,19 +32,19 @@ import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test32
-	extends TestSkeleton
+  extends TestSkeleton
 {
   private String fileName = null;
 
   public Test32() { }
 
-  public Test32(String args[])
-	throws VisADException, RemoteException
+  public Test32(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String args[])
+  int checkExtraKeyword(int argc, String[] args)
   {
     if (fileName == null) {
       fileName = args[argc];
@@ -56,7 +56,7 @@ public class Test32
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     if (fileName == null) {
       System.err.println("Must specify FITS file name");
@@ -115,8 +115,8 @@ public class Test32
 
   public String toString() { return " file_name: FITS adapter"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test32 t = new Test32(args);
   }

@@ -27,18 +27,18 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test43
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test43() { }
 
-  public Test43(String args[])
-	throws VisADException, RemoteException
+  public Test43(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     int domain_flag = 0;
 
@@ -165,8 +165,8 @@ public class Test43
     return ": Function.derivative with Linear2DSet in Java2D";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test43 t = new Test43(args);
   }

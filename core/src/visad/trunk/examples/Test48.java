@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test48
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test48() { }
 
-  public Test48(String args[])
-	throws VisADException, RemoteException
+  public Test48(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -76,8 +76,8 @@ public class Test48
 
   public String toString() { return ": 2-D surface and ConstantMap colors"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test48 t = new Test48(args);
   }

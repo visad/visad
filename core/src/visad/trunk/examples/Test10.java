@@ -32,19 +32,19 @@ import visad.data.netcdf.Plain;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test10
-	extends TestSkeleton
+  extends TestSkeleton
 {
   private String fileName = null;
 
   public Test10() { }
 
-  public Test10(String args[])
-	throws VisADException, RemoteException
+  public Test10(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String args[])
+  int checkExtraKeyword(int argc, String[] args)
   {
     if (fileName == null) {
       fileName = args[argc];
@@ -56,7 +56,7 @@ public class Test10
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);
     RealType lon = new RealType("lon", super_degree, null);
@@ -74,7 +74,7 @@ public class Test10
       netcdf_data = (FlatField) plain.open(fileName);
     } catch (IOException e) {
       System.err.println("Couldn't open \"" + fileName + "\": " +
-			 e.getMessage());
+                         e.getMessage());
       System.exit(1);
       return null;
     }
@@ -139,8 +139,8 @@ public class Test10
 
   public String toString() { return " file_name: netCDF adapter"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test10 t = new Test10(args);
   }

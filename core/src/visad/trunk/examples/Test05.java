@@ -37,25 +37,25 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.ContourWidget;
 
 public class Test05
-	extends UISkeleton
+  extends UISkeleton
 {
   private boolean uneven = false;
 
   public Test05() { }
 
-  public Test05(String args[])
-	throws VisADException, RemoteException
+  public Test05(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String args[]) {
+  int checkExtraKeyword(int argc, String[] args) {
     uneven = true;
     return 1;
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -101,7 +101,7 @@ public class Test05
   private String getFrameTitle1() { return "VisAD contour controls"; }
 
   void setupUI(DisplayImpl[] dpys)
-        throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle0() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
@@ -115,16 +115,16 @@ public class Test05
     if (!uneven) {
       ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
       ContourWidget cw = new ContourWidget(map1contour);
-  
+
       JPanel big_panel = new JPanel();
       big_panel.setLayout(new BorderLayout());
       big_panel.add("Center", cw);
-  
+
       JFrame jframe2  = new JFrame(getFrameTitle1());
       jframe2.addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {System.exit(0);}
       });
-  
+
       jframe2.setContentPane(big_panel);
       jframe2.pack();
       jframe2.setVisible(true);
@@ -136,8 +136,8 @@ public class Test05
     return " uneven: colored 2-D contours from regular grids and ContourWidget";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test05 t = new Test05(args);
   }

@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test18
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test18() { }
 
-  public Test18(String args[])
-	throws VisADException, RemoteException
+  public Test18(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] time = {RealType.Time};
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -113,7 +113,7 @@ public class Test18
   }
 
   void setupUI(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap map1animation = (ScalarMap )dpys[0].getMapVector().lastElement();
 
@@ -125,8 +125,8 @@ public class Test18
 
   public String toString() { return ": Animation different time extents"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test18 t = new Test18(args);
   }

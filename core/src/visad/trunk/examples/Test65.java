@@ -25,14 +25,20 @@ import java.rmi.RemoteException;
 import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
-public class Test65 extends UISkeleton {
+public class Test65
+  extends UISkeleton
+{
   public Test65() { }
 
-  public Test65(String[] args) throws VisADException, RemoteException {
+  public Test65(String[] args)
+    throws RemoteException, VisADException
+  {
     super(args);
   }
 
-  DisplayImpl[] setupData() throws VisADException, RemoteException {
+  DisplayImpl[] setupData()
+    throws RemoteException, VisADException
+  {
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
     RealTupleType earth_location3d = new RealTupleType(types3d);
     RealType vis_radiance = new RealType("vis_radiance", null, null);
@@ -74,22 +80,19 @@ public class Test65 extends UISkeleton {
     return dpys;
   }
 
-  String getFrameTitle() {
-    return "VisAD widget test";
-  }
+  String getFrameTitle() { return "VisAD widget test"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys) throws VisADException,
-                                                           RemoteException {
+  Component getSpecialComponent(DisplayImpl[] dpys)
+    throws RemoteException, VisADException
+  {
     return dpys[0].getWidgetPanel();
   }
 
-  public String toString() {
-    return ": test VisAD widgets";
-  }
+  public String toString() { return ": test VisAD widgets"; }
 
-  public static void main(String[] args) throws VisADException,
-                                                RemoteException {
+  public static void main(String[] args)
+    throws RemoteException, VisADException
+  {
     Test65 t = new Test65(args);
   }
 }
-

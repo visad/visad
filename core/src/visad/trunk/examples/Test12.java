@@ -30,27 +30,27 @@ import visad.util.LabeledColorWidget;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test12
-	extends UISkeleton
+  extends UISkeleton
 {
   ScalarMap color1map = null;
   boolean dynamic = false;
 
   public Test12() { }
 
-  public Test12(String args[])
-	throws VisADException, RemoteException
+  public Test12(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String args[])
+  int checkExtraKeyword(int argc, String[] args)
   {
     dynamic = true;
     return 1;
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -86,7 +86,7 @@ public class Test12
   }
 
   void setupUI(DisplayImpl[] dpys)
-        throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     super.setupUI(dpys);
 
@@ -117,7 +117,7 @@ public class Test12
   String getFrameTitle() { return "VisAD Color Widget"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
     return new LabeledColorWidget(color1map);
@@ -125,8 +125,8 @@ public class Test12
 
   public String toString() { return ": 2-D surface and ColorWidget"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test12 t = new Test12(args);
   }

@@ -31,7 +31,7 @@ import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test15
-	extends TestSkeleton
+  extends TestSkeleton
 {
   private String domain = null;
 
@@ -39,13 +39,13 @@ public class Test15
 
   public Test15() { }
 
-  public Test15(String args[])
-	throws VisADException, RemoteException
+  public Test15(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String args[])
+  int checkExtraKeyword(int argc, String[] args)
   {
     if (domain == null) {
       domain = args[argc];
@@ -57,7 +57,7 @@ public class Test15
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     DisplayImpl[] dpys;
     try {
@@ -123,11 +123,11 @@ public class Test15
   public String toString()
   {
     return " ip.name: collaborative direct manipulation client" +
-		"\n\tsecond parameter is server IP name";
+                "\n\tsecond parameter is server IP name";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test15 t = new Test15(args);
   }

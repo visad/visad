@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test04
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test04() { }
 
-  public Test04(String args[])
-	throws VisADException, RemoteException
+  public Test04(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -73,8 +73,8 @@ public class Test04
 
   public String toString() { return ": spherical coordinates"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test04 t = new Test04(args);
   }

@@ -37,25 +37,25 @@ import visad.java2d.DisplayImplJ2D;
 import visad.util.ContourWidget;
 
 public class Test37
-	extends TestSkeleton
+  extends TestSkeleton
 {
   private boolean reverse = false;
 
   public Test37() { }
 
-  public Test37(String args[])
-	throws VisADException, RemoteException
+  public Test37(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String args[]) {
+  int checkExtraKeyword(int argc, String[] args) {
     reverse = true;
     return 1;
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -104,7 +104,7 @@ public class Test37
   private String getFrameTitle1() { return "VisAD contour controls"; }
 
   void setupUI(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle0() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
@@ -138,8 +138,8 @@ public class Test37
     return " swap: colored contours from regular grids and ContourWidget in Java2D";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test37 t = new Test37(args);
   }

@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test45
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test45() { }
 
-  public Test45(String args[])
-	throws VisADException, RemoteException
+  public Test45(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     TextType text = new TextType("text");
     RealType[] time = {RealType.Time};
@@ -49,7 +49,7 @@ public class Test45
 
     String[] names = new String[] {"aaa", "bbbb", "ccccc", "defghi"};
     int ntimes1 = names.length;
-    Set time_set = 
+    Set time_set =
       new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
 
     FieldImpl text_field = new FieldImpl(text_function, time_set);
@@ -72,7 +72,7 @@ public class Test45
     display1.addMap(new ConstantMap(0.5, Display.Red));
     display1.addMap(new ScalarMap(text, Display.Text));
 
-    DataReferenceImpl ref_text_field = 
+    DataReferenceImpl ref_text_field =
       new DataReferenceImpl("ref_text_field");
     ref_text_field.setData(text_field);
     display1.addReference(ref_text_field, null);
@@ -87,8 +87,8 @@ public class Test45
 
   public String toString() { return ": text in Java3D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test45 t = new Test45(args);
   }

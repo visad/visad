@@ -30,18 +30,18 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.AnimationWidget;
 
 public class Test03
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test03() { }
 
-  public Test03(String args[])
-	throws VisADException, RemoteException
+  public Test03(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] time = {RealType.Time};
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -120,7 +120,7 @@ public class Test03
   String getFrameTitle() { return "VisAD animation controls"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap map1animation = (ScalarMap )dpys[0].getMapVector().lastElement();
     return new AnimationWidget(map1animation, 3000);
@@ -131,8 +131,8 @@ public class Test03
     return ": Animation different time resolutions and AnimationWidget";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test03 t = new Test03(args);
   }

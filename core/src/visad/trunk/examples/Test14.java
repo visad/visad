@@ -29,20 +29,20 @@ import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test14
-	extends TestSkeleton
+  extends TestSkeleton
 {
   boolean hasClientServerMode() { return false; }
 
   public Test14() { }
 
-  public Test14(String args[])
-	throws VisADException, RemoteException
+  public Test14(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
@@ -121,12 +121,12 @@ public class Test14
   public String toString()
   {
     return ": collaborative direct manipulation server" +
-		"\n\trun rmiregistry first" +
-		"\n\tany number of clients may connect";
+                "\n\trun rmiregistry first" +
+                "\n\tany number of clients may connect";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test14 t = new Test14(args);
   }

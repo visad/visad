@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test23
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test23() { }
 
-  public Test23(String args[])
-	throws VisADException, RemoteException
+  public Test23(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -72,8 +72,8 @@ public class Test23
 
   public String toString() { return ": Cyan & Magenta"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test23 t = new Test23(args);
   }

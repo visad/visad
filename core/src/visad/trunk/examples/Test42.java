@@ -28,18 +28,18 @@ import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test42
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test42() { }
 
-  public Test42(String args[])
-	throws VisADException, RemoteException
+  public Test42(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
 
@@ -120,8 +120,8 @@ public class Test42
 
   public String toString() { return ": image / contour alignment in Java3D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test42 t = new Test42(args);
   }

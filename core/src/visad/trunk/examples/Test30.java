@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test30
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test30() { }
 
-  public Test30(String args[])
-	throws VisADException, RemoteException
+  public Test30(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] time = {RealType.Time};
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -99,8 +99,8 @@ public class Test30
 
   public String toString() { return ": time stack and time axis label"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test30 t = new Test30(args);
   }

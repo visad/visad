@@ -29,18 +29,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test26
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test26() { }
 
-  public Test26(String args[])
-	throws VisADException, RemoteException
+  public Test26(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -79,7 +79,7 @@ public class Test26
   }
 
   void setupUI(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     Vector v = dpys[0].getMapVector();
 
@@ -111,8 +111,8 @@ public class Test26
 
   public String toString() { return ": scale"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test26 t = new Test26(args);
   }

@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test16
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test16() { }
 
-  public Test16(String args[])
-	throws VisADException, RemoteException
+  public Test16(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -74,8 +74,8 @@ public class Test16
 
   public String toString() { return ": opaque texture mapping"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test16 t = new Test16(args);
   }

@@ -32,18 +32,18 @@ import visad.java2d.DirectManipulationRendererJ2D;
 import visad.util.Delay;
 
 public class Test35
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test35() { }
 
-  public Test35(String args[])
-	throws VisADException, RemoteException
+  public Test35(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
@@ -114,8 +114,8 @@ public class Test35
     return ": direct manipulation linking Java2D and Java3D";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test35 t = new Test35(args);
   }

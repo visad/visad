@@ -39,20 +39,20 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test54
-       extends TestSkeleton
+  extends TestSkeleton
 {
   boolean hasClientServerMode() { return false; }
 
   public Test54() { }
 
-  public Test54(String args[])
-	throws VisADException, RemoteException
+  public Test54(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
@@ -118,8 +118,8 @@ public class Test54
 
   public String toString() { return ": background color in Java3D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test54 t = new Test54(args);
   }

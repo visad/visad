@@ -28,18 +28,18 @@ import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test13
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test13() { }
 
-  public Test13(String args[])
-	throws VisADException, RemoteException
+  public Test13(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
@@ -85,8 +85,8 @@ public class Test13
 
   public String toString() { return ": Exception display"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test13 t = new Test13(args);
   }

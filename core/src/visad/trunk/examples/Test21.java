@@ -31,18 +31,18 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.SelectRangeWidget;
 
 public class Test21
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test21() { }
 
-  public Test21(String args[])
-	throws VisADException, RemoteException
+  public Test21(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -86,7 +86,7 @@ public class Test21
   String getFrameTitle() { return "VisAD select range slider"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap range1map = (ScalarMap )dpys[0].getMapVector().lastElement();
     return new SelectRangeWidget(range1map);
@@ -94,8 +94,8 @@ public class Test21
 
   public String toString() { return ": SelectRange and SelectRangeWidget"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test21 t = new Test21(args);
   }

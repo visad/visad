@@ -25,14 +25,20 @@ import java.rmi.RemoteException;
 import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
-public class Test63 extends UISkeleton {
+public class Test63
+  extends UISkeleton
+{
   public Test63() { }
 
-  public Test63(String[] args) throws VisADException, RemoteException {
+  public Test63(String[] args)
+    throws RemoteException, VisADException
+  {
     super(args);
   }
 
-  DisplayImpl[] setupData() throws VisADException, RemoteException {
+  DisplayImpl[] setupData()
+    throws RemoteException, VisADException
+  {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
     RealType vis_radiance = new RealType("vis_radiance", null, null);
@@ -68,24 +74,21 @@ public class Test63 extends UISkeleton {
     return dpys;
   }
 
-  String getFrameTitle() {
-    return "VisAD slave display (Java3D)";
-  }
+  String getFrameTitle() { return "VisAD slave display (Java3D)"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys) throws VisADException,
-                                                           RemoteException {
+  Component getSpecialComponent(DisplayImpl[] dpys)
+    throws RemoteException, VisADException
+  {
     RemoteDisplayImpl rdi = new RemoteDisplayImpl(dpys[0]);
     RemoteSlaveDisplayImpl rsdi = new RemoteSlaveDisplayImpl(rdi);
     return rsdi.getComponent();
   }
 
-  public String toString() {
-    return ": slave display with Java3D";
-  }
+  public String toString() { return ": slave display with Java3D"; }
 
-  public static void main(String[] args) throws VisADException,
-                                                RemoteException {
+  public static void main(String[] args)
+    throws RemoteException, VisADException
+  {
     Test63 t = new Test63(args);
   }
 }
-

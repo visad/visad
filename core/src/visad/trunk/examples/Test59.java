@@ -31,18 +31,18 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.ContourWidget;
 
 public class Test59
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test59() { }
 
-  public Test59(String args[])
-	throws VisADException, RemoteException
+  public Test59(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType index = new RealType("index", null, null);
     RealType vis_radiance = new RealType("vis_radiance", null, null);
@@ -51,7 +51,7 @@ public class Test59
                         vis_radiance, ir_radiance};
     RealTupleType radiance = new RealTupleType(types);
     FunctionType image_tuple = new FunctionType(index, radiance);
- 
+
     int size = 216;
     Set domain_set = new Integer1DSet(size);
     FlatField imaget1 = new FlatField(image_tuple, domain_set);
@@ -62,8 +62,8 @@ public class Test59
       values[1][i] = 2.0f * random.nextFloat() - 1.0f;
       values[2][i] = 2.0f * random.nextFloat() - 1.0f;
       values[3][i] = (float) Math.sqrt(values[0][i] * values[0][i] +
-                                       values[1][i] * values[1][i] + 
-                                       values[2][i] * values[2][i]); 
+                                       values[1][i] * values[1][i] +
+                                       values[2][i] * values[2][i]);
     }
     imaget1.setSamples(values);
 
@@ -94,7 +94,7 @@ public class Test59
   String getFrameTitle() { return "VisAD irregular iso-level controls"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
     return new ContourWidget(map1contour);
@@ -105,8 +105,8 @@ public class Test59
     return ": colored iso-surfaces from scatter data and ContourWidget";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test59 t = new Test59(args);
   }

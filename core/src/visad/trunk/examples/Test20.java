@@ -30,18 +30,18 @@ import visad.util.LabeledColorWidget;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test20
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test20() { }
 
-  public Test20(String args[])
-	throws VisADException, RemoteException
+  public Test20(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -78,7 +78,7 @@ public class Test20
   String getFrameTitle0() { return "VisAD Color Alpha Widget"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
     return new LabeledColorWidget(color1map);
@@ -86,8 +86,8 @@ public class Test20
 
   public String toString() { return ": 2-D surface and ColorAlphaWidget"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test20 t = new Test20(args);
   }

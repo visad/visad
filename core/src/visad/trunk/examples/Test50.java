@@ -39,18 +39,18 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test50
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test50() { }
 
-  public Test50(String args[])
-	throws VisADException, RemoteException
+  public Test50(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -81,7 +81,7 @@ public class Test50
   String getFrameTitle() { return "capture image in Java2D"; }
 
   void setupUI(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
@@ -121,8 +121,8 @@ public class Test50
 
   public String toString() { return ": image capture in Java2D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test50 t = new Test50(args);
   }

@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test08
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test08() { }
 
-  public Test08(String args[])
-	throws VisADException, RemoteException
+  public Test08(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -73,8 +73,8 @@ public class Test08
 
   public String toString() { return ": offset"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test08 t = new Test08(args);
   }

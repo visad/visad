@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test31
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test31() { }
 
-  public Test31(String args[])
-	throws VisADException, RemoteException
+  public Test31(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType vis_radiance = new RealType("vis_radiance", null, null);
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -83,8 +83,8 @@ public class Test31
 
   public String toString() { return ": scatter diagram"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test31 t = new Test31(args);
   }

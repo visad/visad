@@ -31,19 +31,19 @@ import visad.data.gif.GIFForm;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test09
-	extends UISkeleton
+  extends UISkeleton
 {
   private String fileName = null;
 
   public Test09() { }
 
-  public Test09(String args[])
-	throws VisADException, RemoteException
+  public Test09(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String args[])
+  int checkExtraKeyword(int argc, String[] args)
   {
     if (fileName == null) {
       fileName = args[argc];
@@ -55,7 +55,7 @@ public class Test09
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     if (fileName == null) {
       System.err.println("must specify GIF or JPEG file name");
@@ -100,8 +100,8 @@ public class Test09
     return " file_name: GIF / JPEG reader using Java2D";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test09 t = new Test09(args);
   }

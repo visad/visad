@@ -27,18 +27,18 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test36
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test36() { }
 
-  public Test36(String args[])
-	throws VisADException, RemoteException
+  public Test36(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);
     RealType lon = new RealType("lon", super_degree, null);
@@ -81,8 +81,8 @@ public class Test36
 
   public String toString() { return ": polar coordinates in Java2D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test36 t = new Test36(args);
   }

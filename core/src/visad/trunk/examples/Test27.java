@@ -30,7 +30,7 @@ import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test27
-	extends TestSkeleton
+  extends TestSkeleton
 {
   static int no_self = 0;
   RealType vis_radiance;
@@ -39,14 +39,14 @@ public class Test27
 
   public Test27() { }
 
-  public Test27(String args[])
-	throws VisADException, RemoteException
+  public Test27(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Altitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -121,7 +121,7 @@ public class Test27
 
     CellImpl cell = new CellImpl() {
       public synchronized void doAction()
-             throws VisADException, RemoteException {
+        throws RemoteException, VisADException {
         if (no_self > 0) {
           no_self--;
           if (no_self > 0) return;
@@ -174,8 +174,8 @@ public class Test27
 
   public String toString() { return ": interactive scale"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test27 t = new Test27(args);
   }

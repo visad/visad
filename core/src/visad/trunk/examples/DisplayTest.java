@@ -44,7 +44,7 @@ public class DisplayTest {
     try {
       Class caseClass = Class.forName(caseName);
       try {
-	skel = (TestSkeleton )caseClass.newInstance();
+        skel = (TestSkeleton )caseClass.newInstance();
       } catch (ClassCastException e1) {
       } catch (InstantiationException e2) {
       } catch (IllegalAccessException e3) {
@@ -56,18 +56,18 @@ public class DisplayTest {
   }
 
   /** run 'java visad.java3d.DisplayImplJ3D to test list options */
-  public static void main(String args[])
-	throws RemoteException, VisADException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
 
     int caseNum = -1;
     TestSkeleton skel = null;
     if (args.length > 0) {
       try {
-	caseNum = Integer.parseInt(args[0]);
+        caseNum = Integer.parseInt(args[0]);
       } catch(NumberFormatException e) {
-	System.err.println("Bad DisplayTest \"" + caseNum + "\"");
-	caseNum = -1;
+        System.err.println("Bad DisplayTest \"" + caseNum + "\"");
+        caseNum = -1;
       }
     }
 
@@ -75,7 +75,7 @@ public class DisplayTest {
     if (skel != null) {
       String[] nargs = new String[args.length - 1];
       for (int i = 1; i < args.length; i++) {
-	nargs[i-1] = args[i];
+        nargs[i-1] = args[i];
       }
 
       skel.processArgs(nargs);
@@ -86,12 +86,12 @@ public class DisplayTest {
       System.out.println("  java DisplayTest N, where N =");
 
       for (int n = 0; true; n++) {
-	skel = getTestClass(n);
-	if (skel == null) {
-	  break;
-	}
+        skel = getTestClass(n);
+        if (skel == null) {
+          break;
+        }
 
-	System.out.println(" " + n + skel);
+        System.out.println(" " + n + skel);
       }
     }
   }

@@ -30,18 +30,18 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.ContourWidget;
 
 public class Test62
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test62() { }
 
-  public Test62(String args[])
-	throws VisADException, RemoteException
+  public Test62(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
     RealTupleType earth_location3d = new RealTupleType(types3d);
@@ -84,7 +84,7 @@ public class Test62
   String getFrameTitle() { return "VisAD irregular iso-level controls"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
     return new ContourWidget(map1contour);
@@ -95,8 +95,8 @@ public class Test62
     return ": edges of iso-surfaces from irregular grids and ContourWidget";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test62 t = new Test62(args);
   }

@@ -36,25 +36,25 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test06
-	extends UISkeleton
+  extends UISkeleton
 {
   private boolean uneven = false;
 
   public Test06() { }
 
-  public Test06(String args[])
-	throws VisADException, RemoteException
+  public Test06(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
-  int checkExtraKeyword(int argc, String args[]) {
+  int checkExtraKeyword(int argc, String[] args) {
     uneven = true;
     return 1;
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -101,7 +101,7 @@ public class Test06
   private String getFrameTitle1() { return "VisAD contour controls"; }
 
   void setupUI(DisplayImpl[] dpys)
-        throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle0() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
@@ -118,8 +118,8 @@ public class Test06
     return " uneven: colored 2-D contours from irregular grids";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test06 t = new Test06(args);
   }

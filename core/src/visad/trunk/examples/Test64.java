@@ -27,14 +27,20 @@ import javax.swing.*;
 import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
-public class Test64 extends UISkeleton {
+public class Test64
+  extends UISkeleton
+{
   public Test64() { }
 
-  public Test64(String[] args) throws VisADException, RemoteException {
+  public Test64(String[] args)
+    throws RemoteException, VisADException
+  {
     super(args);
   }
 
-  DisplayImpl[] setupData() throws VisADException, RemoteException {
+  DisplayImpl[] setupData()
+    throws RemoteException, VisADException
+  {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
@@ -62,18 +68,19 @@ public class Test64 extends UISkeleton {
     return dpys;
   }
 
-  String getFrameTitle() {
-    return "VisAD slave display (Java2D)";
-  }
+  String getFrameTitle() { return "VisAD slave display (Java2D)"; }
 
-  Component getSpecialComponent(DisplayImpl[] dpys) throws VisADException,
-                                                           RemoteException {
+  Component getSpecialComponent(DisplayImpl[] dpys)
+    throws RemoteException, VisADException
+  {
     RemoteDisplayImpl rdi = new RemoteDisplayImpl(dpys[0]);
     RemoteSlaveDisplayImpl rsdi = new RemoteSlaveDisplayImpl(rdi);
     return rsdi.getComponent();
   }
 
-  void setupUI(DisplayImpl[] dpys) throws VisADException, RemoteException {
+  void setupUI(DisplayImpl[] dpys)
+    throws RemoteException, VisADException
+  {
     super.setupUI(dpys);
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
@@ -93,13 +100,11 @@ public class Test64 extends UISkeleton {
     jframe.setVisible(true);
   }
 
-  public String toString() {
-    return ": slave display with Java2D";
-  }
+  public String toString() { return ": slave display with Java2D"; }
 
-  public static void main(String[] args) throws VisADException,
-                                                RemoteException {
+  public static void main(String[] args)
+    throws RemoteException, VisADException
+  {
     Test64 t = new Test64(args);
   }
 }
-

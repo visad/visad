@@ -28,18 +28,18 @@ import visad.java2d.DisplayImplJ2D;
 import visad.java2d.DirectManipulationRendererJ2D;
 
 public class Test40
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test40() { }
 
-  public Test40(String args[])
-	throws VisADException, RemoteException
+  public Test40(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);
     RealType lon = new RealType("lon", super_degree, null);
@@ -105,8 +105,8 @@ public class Test40
 
   public String toString() { return ": polar direct manipulation in Java2D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test40 t = new Test40(args);
   }

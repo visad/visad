@@ -39,20 +39,20 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test53
-	extends UISkeleton
+  extends UISkeleton
 {
   boolean hasClientServerMode() { return false; }
 
   public Test53() { }
 
-  public Test53(String args[])
-	throws VisADException, RemoteException
+  public Test53(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
@@ -85,7 +85,7 @@ public class Test53
 
 
   void setupUI(DisplayImpl[] dpys)
-        throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     super.setupUI(dpys);
 
@@ -125,8 +125,8 @@ public class Test53
 
   public String toString() { return ": background color in Java2D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test53 t = new Test53(args);
   }

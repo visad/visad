@@ -34,21 +34,22 @@ import visad.java3d.DisplayImplJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 
 public class Test57
-	extends UISkeleton implements DisplayListener
+  extends UISkeleton
+  implements DisplayListener
 {
 
   ProjectionControl control;
 
   public Test57() { }
 
-  public Test57(String args[])
-	throws VisADException, RemoteException
+  public Test57(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -81,15 +82,15 @@ public class Test57
   }
 
   String getFrameTitle() { return "fly-through in Java3D"; }
- 
+
   void setupUI(DisplayImpl[] dpys)
-        throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     JFrame jframe  = new JFrame(getFrameTitle() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
- 
+
     jframe.setContentPane((JPanel) dpys[0].getComponent());
     jframe.pack();
     jframe.setVisible(true);
@@ -104,14 +105,14 @@ public class Test57
   }
 
   public void displayChanged(DisplayEvent e)
-         throws VisADException, RemoteException {
+    throws RemoteException, VisADException {
     if (e.getId() == DisplayEvent.FRAME_DONE) {
       rotate((DisplayImpl) e.getDisplay());
     }
   }
- 
+
   public void rotate(DisplayImpl display)
-         throws VisADException, RemoteException {
+    throws RemoteException, VisADException {
     double[] matrix = control.getMatrix();
     double[] mult = display.make_matrix(0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0);
     control.setMatrix(display.multiply_matrix(mult, matrix));
@@ -119,8 +120,8 @@ public class Test57
 
   public String toString() {return ": scripted fly-through & aspect ratio in Java3D";}
 
-  public static void main(String args[])
-         throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test57 t = new Test57(args);
   }

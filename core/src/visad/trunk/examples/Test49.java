@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test49
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test49() { }
 
-  public Test49(String args[])
-	throws VisADException, RemoteException
+  public Test49(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
@@ -73,8 +73,8 @@ public class Test49
 
   public String toString() { return ": 1-D line w/missing and ConstantMap colors"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test49 t = new Test49(args);
   }

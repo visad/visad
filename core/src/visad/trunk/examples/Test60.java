@@ -28,18 +28,18 @@ import java.util.Random;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test60
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test60() { }
 
-  public Test60(String args[])
-	throws VisADException, RemoteException
+  public Test60(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType index = new RealType("index", null, null);
     RealType vis_radiance = new RealType("vis_radiance", null, null);
@@ -93,8 +93,8 @@ public class Test60
     return ": colored contours from scatter data in Java2D";
   }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test60 t = new Test60(args);
   }

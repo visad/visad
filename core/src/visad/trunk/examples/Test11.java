@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test11
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test11() { }
 
-  public Test11(String args[])
-	throws VisADException, RemoteException
+  public Test11(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType x = new RealType("x", null, null);
     RealType y = new RealType("y", null, null);
@@ -84,8 +84,8 @@ public class Test11
 
   public String toString() { return ": CoordinateSystem and Unit"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test11 t = new Test11(args);
   }

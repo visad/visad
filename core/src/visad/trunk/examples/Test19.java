@@ -30,18 +30,18 @@ import visad.util.VisADSlider;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test19
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test19() { }
 
-  public Test19(String args[])
-	throws VisADException, RemoteException
+  public Test19(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -65,9 +65,9 @@ public class Test19
     int ntimes1 = 4;
     int ntimes2 = 6;
     // different time resolutions for test
-    Set time_set = 
+    Set time_set =
       new Linear1DSet(time_type, 0.0, 1.0, ntimes1);
-    Set time_hornet = 
+    Set time_hornet =
       new Linear1DSet(time_type, 0.0, 1.0, ntimes2);
 
     FieldImpl image_sequence = new FieldImpl(time_images, time_set);
@@ -113,7 +113,7 @@ public class Test19
   String getFrameTitle() { return "VisAD select slider"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     ScalarMap map1value = (ScalarMap )dpys[0].getMapVector().lastElement();
 
@@ -127,7 +127,7 @@ public class Test19
       new VisADSlider("value", 0, 100, 0, 0.01, value_ref, RealType.Generic);
 
     CellImpl cell = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
+      public void doAction() throws RemoteException, VisADException {
         value1control.setValue(((Real) value_ref.getData()).getValue());
       }
     };
@@ -139,8 +139,8 @@ public class Test19
 
   public String toString() { return ": SelectValue"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test19 t = new Test19(args);
   }

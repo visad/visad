@@ -27,18 +27,18 @@ import visad.*;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test29
-	extends TestSkeleton
+  extends TestSkeleton
 {
   public Test29() { }
 
-  public Test29(String args[])
-	throws VisADException, RemoteException
+  public Test29(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
@@ -72,8 +72,8 @@ public class Test29
 
   public String toString() { return ": 2-D irregular surface"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test29 t = new Test29(args);
   }

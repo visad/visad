@@ -31,18 +31,18 @@ import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test44
-	extends UISkeleton
+  extends UISkeleton
 {
   public Test44() { }
 
-  public Test44(String args[])
-	throws VisADException, RemoteException
+  public Test44(String[] args)
+    throws RemoteException, VisADException
   {
     super(args);
   }
 
   DisplayImpl[] setupData()
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     TextType text = new TextType("text");
     RealType[] time = {RealType.Time};
@@ -53,7 +53,7 @@ public class Test44
 
     String[] names = {"aaa", "bbbb", "ccccc", "defghi"};
     int ntimes1 = names.length;
-    Set time_set = 
+    Set time_set =
       new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
 
     FieldImpl text_field = new FieldImpl(text_function, time_set);
@@ -91,7 +91,7 @@ public class Test44
   String getFrameTitle() { return "text in Java2D"; }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
-	throws VisADException, RemoteException
+    throws RemoteException, VisADException
   {
     boolean foundCtrl = false;
     Enumeration enum = dpys[0].getMapVector().elements();
@@ -117,8 +117,8 @@ public class Test44
 
   public String toString() { return ": text in Java2D"; }
 
-  public static void main(String args[])
-	throws VisADException, RemoteException
+  public static void main(String[] args)
+    throws RemoteException, VisADException
   {
     Test44 t = new Test44(args);
   }
