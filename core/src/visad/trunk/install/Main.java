@@ -19,13 +19,19 @@ public class Main
   extends CmdlineGenericConsumer
 {
   private static final String CLASSPATH_PROPERTY = "java.class.path";
+
+  private static final String HOME_PROPERTY = "visad.install.home";
   private static final String PATH_PROPERTY = "visad.install.path";
+
+  private static final String SPLASH_NAME = "visad-splash.jpg";
 
   private static final String JAR_NAME = "visad.jar";
   private static final String VISAD_JAR_URL =
     "ftp://ftp.ssec.wisc.edu/pub/visad-2.0/" + JAR_NAME;
 
   private boolean debug;
+
+  private File distDir;
 
   private URL jarURL;
   private ChooserList chooser;
@@ -48,12 +54,24 @@ public class Main
       return;
     }
 
-    SplashScreen ss = new SplashScreen("visad-splash.jpg");
-    ss.setVisible(true);
+    distDir = new File(System.getProperty(HOME_PROPERTY));
+    if (!distDir.exists()) {
+      distDir = new File(".");
+    }
+
+    SplashScreen ss = null;
+
+    File splashFile = new File(distDir, SPLASH_NAME);
+    if (splashFile.exists()) {
+      ss = new SplashScreen(getPath(splashFile));
+      ss.setVisible(true);
+    }
 
     boolean initResult = initialize();
 
-    ss.setVisible(false);
+    if (ss != null) {
+      ss.setVisible(false);
+    }
 
     if (!initResult) {
       System.exit(1);
@@ -382,14 +400,15 @@ public class Main
    * @return <tt>null</tt> if installer-supplied java executable
    *         was not found
    */
-  private static final File extractInstallerFile(ArrayList javaList)
+  private static final File extractInstallerFile(File distDir,
+                                                 ArrayList javaList)
   {
-    String curDir = getPath(new File("."));
+    String distPath = getPath(distDir);
 
     java.util.Iterator iter = javaList.iterator();
     while (iter.hasNext()) {
       File thisFile = (File )iter.next();
-      if (getPath(thisFile).startsWith(curDir)) {
+      if (getPath(thisFile).startsWith(distPath)) {
         iter.remove();
         return thisFile;
       }
@@ -464,7 +483,7 @@ public class Main
     }
     if (jarList != null) {
       loseDuplicates(jarList);
-      installerJar = extractInstallerFile(jarList);
+      installerJar = extractInstallerFile(distDir, jarList);
     }
 
     // no installer-supplied java found yet
@@ -476,7 +495,7 @@ public class Main
     if (javaList != null) {
       loseDuplicates(javaList);
       checkJavaVersions(javaList, 1, 2);
-      installerJava = (JavaFile )extractInstallerFile(javaList);
+      installerJava = (JavaFile )extractInstallerFile(distDir, javaList);
 
       if (installerJava != null && installerJava.getName().equals("java")) {
         File canonJava = new File(getPath(installerJava));
