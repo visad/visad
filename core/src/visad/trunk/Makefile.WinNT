@@ -514,8 +514,6 @@ visad.RemoteCellImpl \
 visad.RemoteDataImpl \
 visad.RemoteDataReferenceImpl \
 visad.RemoteDisplayImpl \
-visad.collab.RemoteDisplayMonitorImpl \
-visad.collab.RemoteDisplaySyncImpl \
 visad.RemoteFieldImpl \
 visad.RemoteFunctionImpl \
 visad.RemoteReferenceLinkImpl \
@@ -523,6 +521,10 @@ visad.RemoteServerImpl \
 visad.RemoteSlaveDisplayImpl \
 visad.RemoteThingImpl \
 visad.RemoteThingReferenceImpl
+
+RMIC_COLLAB_FILES = \
+visad.collab.RemoteDisplayMonitorImpl \
+visad.collab.RemoteDisplaySyncImpl
 
 recompile: \
 *.class \
@@ -570,6 +572,8 @@ georef\*.class
 	cd ..
 	cd $(RMIC_DIR)
 	$(RMIC) $(RMIC_FILES)
+	cd collab
+	$(RMIC) $(RMIC_COLLAB_FILES)
 
 compile: clean
 	$(JC) $(JFLAGS) *.java
