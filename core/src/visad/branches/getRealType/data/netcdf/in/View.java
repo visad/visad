@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.2.4.1 2001-09-17 19:24:47 steve Exp $
+ * $Id: View.java,v 1.2.4.2 2001-10-15 18:49:19 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -53,7 +53,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.2.4.1 $ $Date: 2001-09-17 19:24:47 $
+ * @version $Revision: 1.2.4.2 $ $Date: 2001-10-15 18:49:19 $
  */
 public abstract class View
 {
@@ -131,6 +131,8 @@ public abstract class View
 		if (conventions.equals("CF-1.0"))
 		    view = new CfView(netcdf, db);
 		else if (conventions.equals("COARDS"))
+		    view = new CfView(netcdf, db);
+		else if (conventions.equals("COARDS/CF-1.0"))
 		    view = new CfView(netcdf, db);
 		else
 		{
