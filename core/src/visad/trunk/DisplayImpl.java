@@ -1911,7 +1911,7 @@ if (initialize) {
 
 
 // WLH 24 Nov 2000
-  void setAspect2(double[] aspect)
+  void setAspectCartesian(double[] aspect)
        throws VisADException, RemoteException {
     if (mapslock == null) return;
     synchronized (mapslock) {
@@ -1920,14 +1920,14 @@ if (initialize) {
       Enumeration maps = tmap.elements();
       while (maps.hasMoreElements()) {
         ScalarMap map = (ScalarMap) maps.nextElement();
-        map.setAspect2(aspect);
+        map.setAspectCartesian(aspect);
       }
 
       tmap = (Vector) ConstantMapVector.clone();
       maps = tmap.elements();
       while (maps.hasMoreElements()) {
         ConstantMap map = (ConstantMap) maps.nextElement();
-        map.setAspect2(aspect);
+        map.setAspectCartesian(aspect);
       }
 
       // resize box

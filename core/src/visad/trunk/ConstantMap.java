@@ -156,7 +156,7 @@ public class ConstantMap extends ScalarMap {
   }
 
   // WLH 28 Nov 2000
-  void setAspect2(double[] aspect)
+  void setAspectCartesian(double[] aspect)
        throws VisADException, RemoteException {
   }
 

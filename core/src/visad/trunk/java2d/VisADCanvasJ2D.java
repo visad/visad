@@ -1258,7 +1258,7 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
           a = (double) (width / height);
           b = 1.0;
         }
-        pc.setAspect2(new double[] {a, b});
+        pc.setAspectCartesian(new double[] {a, b});
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }

@@ -102,7 +102,7 @@ public class Test58
       /* change aspect ratio */
       control = dpys[0].getProjectionControl();
       // control.setAspect(new double[] {1.0, 0.5});
-      control.setAspect2(new double[] {1.0, 0.5});
+      control.setAspectCartesian(new double[] {1.0, 0.5});
 
       dpys[0].addDisplayListener(this);
       rotate(dpys[0]);

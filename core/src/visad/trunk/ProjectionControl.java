@@ -204,7 +204,7 @@ public abstract class ProjectionControl extends Control {
    * @throws VisADException   VisAD failure.
    * @throws RemoteException  Java RMI failure.
    */
-  public void setAspect2(double[] aspect)
+  public void setAspectCartesian(double[] aspect)
          throws VisADException, RemoteException {
     if (aspect != null) {
       for (int i=0; i<aspect.length; i++) {
@@ -214,7 +214,7 @@ public abstract class ProjectionControl extends Control {
         asp[i] = aspect[i];
       }
     }
-    getDisplay().setAspect2(asp);
+    getDisplay().setAspectCartesian(asp);
   }
 
   public double[] getAspect2() {
@@ -410,9 +410,9 @@ public abstract class ProjectionControl extends Control {
     // WLH 24 Nov 2000
     if (!aspEquals(pc.asp)) {
       try {
-        setAspect2(pc.asp);
+        setAspectCartesian(pc.asp);
       } catch (RemoteException re) {
-        throw new VisADException("Could not setAspect2: " + re.getMessage());
+        throw new VisADException("Could not setAspectCartesian: " + re.getMessage());
       }
     }
 

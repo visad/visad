@@ -364,7 +364,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     if (!(this instanceof ConstantMap)) {
       ProjectionControl pcontrol = display.getProjectionControl();
       try {
-        setAspect2(pcontrol.getAspect2());
+        setAspectCartesian(pcontrol.getAspect2());
       }
       catch (RemoteException e) {
       }
@@ -1252,7 +1252,7 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
 
 // WLH 24 Nov 2000
 // won't work for spherical, polar, cylindrical coordinates ****
-  void setAspect2(double[] aspect)
+  void setAspectCartesian(double[] aspect)
        throws VisADException, RemoteException {
     double asp = Double.NaN;
     if (DisplayScalar.equals(Display.XAxis)) asp = aspect[0];
