@@ -255,6 +255,18 @@ public class LinearNDSet extends GriddedSet
     return false;
   }
 
+  public double[] getFirsts() throws VisADException {
+    double[] firsts = new double[L.length];
+    for (int j=0; j<firsts.length; j++) firsts[j] = L[j].getFirst();
+    return firsts;
+  }
+
+  public double[] getLasts() throws VisADException {
+    double[] lasts = new double[L.length];
+    for (int j=0; j<lasts.length; j++) lasts[j] = L[j].getLast();
+    return lasts;
+  }
+
   public float[][] getSamples(boolean copy) throws VisADException {
     int n = getLength();
     int[] indices = new int[n];
