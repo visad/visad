@@ -315,6 +315,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     optAuto.addItemListener(this);
     options.add(optAuto);
 
+    CheckboxMenuItem optASC = new CheckboxMenuItem(
+                     "Auto-display controls", true);
+    optASC.addItemListener(this);
+    options.add(optASC);
+
     CheckboxMenuItem optFormula = new CheckboxMenuItem(
                      "Show formula and RMI error messages", true);
     optFormula.addItemListener(this);
@@ -1121,6 +1126,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
       else if (item.equals("Auto-detect mappings")) {
         boolean b = e.getStateChange() == ItemEvent.SELECTED;
         for (int i=0; i<NumVisDisplays; i++) DisplayCells[i].setAutoDetect(b);
+      }
+      else if (item.equals("Auto-display controls")) {
+        boolean b = e.getStateChange() == ItemEvent.SELECTED;
+        for (int i=0; i<NumVisDisplays; i++) {
+          DisplayCells[i].setAutoShowControls(b);
+        }
       }
       refreshDisplayMenuItems();
     }

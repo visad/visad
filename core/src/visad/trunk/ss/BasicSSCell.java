@@ -1258,9 +1258,9 @@ public class BasicSSCell extends JPanel {
     });
   }
 
-  // WLH 24 March 99
   /** add a variable */
-  public static void createVar(String name, ThingReference tr) throws VisADException {
+  public static void createVar(String name, ThingReference tr)
+                                            throws VisADException {
     fm.createVar(name, tr);
   }
 

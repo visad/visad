@@ -273,6 +273,12 @@ Auto-detect mappings - If this option is checked, the Spread Sheet will attempt
 to detect a good set of mappings for a newly loaded data set and automatically
 apply them.  This option is checked by default.
 
+Auto-display controls - If this option is checked, the Spread Sheet will
+automatically display the controls relevant to a cell's data whenever that
+cell's mappings change, or the cell becomes highlighted.  If this option is
+unchecked, use the "Show VisAD controls" menu item or toolbar button to display
+the controls.  This option is checked by default.
+
 Show formula and RMI evaluation errors - If this option is checked, dialog boxes
 will pop up explaining why any formulas entered are illegal or could not be
 evaluated, as well as reporting any errors from RMI address imports.  If this

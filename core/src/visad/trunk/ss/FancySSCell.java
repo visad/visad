@@ -65,6 +65,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** Specify whether this cell should auto-detect mappings for data */
   boolean AutoDetect = true;
 
+  /** Specify whether this cell should auto-display its widget frame */
+  boolean AutoShowControls = true;
+
   /** constructor */
   public FancySSCell(String name, String info, Frame parent)
                                   throws VisADException, RemoteException {
@@ -176,7 +179,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
         // show widget frame
         WidgetFrame.pack();
-        showWidgetFrame();
+        if (AutoShowControls) showWidgetFrame();
       }
     }
   }
@@ -235,7 +238,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     Selected = value;
     if (Selected) {
       setBorder(HIGH);
-      showWidgetFrame();
+      if (AutoShowControls) showWidgetFrame();
     }
     else {
       setBorder(NORM);
@@ -263,6 +266,16 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** Return whether this FancySSCell auto-detects its mappings */
   public boolean getAutoDetect() {
     return AutoDetect;
+  }
+
+  /** Specify whether this FancySSCell should auto-display its widget frame */
+  public void setAutoShowControls(boolean value) {
+    AutoShowControls = value;
+  }
+
+  /** Return whether this FancySSCell auto-displays its widget frame */
+  public boolean getAutoShowControls() {
+    return AutoShowControls;
   }
 
   /** Ask user to confirm clearing the cell if any other cell depends on it */
