@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplayRenderer.java,v 1.1 1998-08-12 17:17:22 visad Exp $
+ * $Id: SkewTDisplayRenderer.java,v 1.2 1998-08-19 17:19:58 steve Exp $
  */
 
 package visad.meteorology;
@@ -27,6 +27,7 @@ import visad.RealTupleType;
 import visad.RealType;
 import visad.ScalarMap;
 import visad.Set;
+import visad.SI;
 import visad.TupleType;
 import visad.VisADAppearance;
 import visad.VisADException;
@@ -49,26 +50,55 @@ SkewTDisplayRenderer
     extends	DefaultDisplayRendererJ2D
 {
     /**
+     * Abbreviations:
+     *
+     * Token	Stands For
+     * -----	----------
+     * theta	potential temperature
+     */
+
+    /**
      * The pressure coordinate.
      */
-    public /*final*/ static DisplayRealType	Pressure;
+    public /*final*/ DisplayRealType		pressure;
+
+    /**
+     * The potential-temperature pressure-coordinate.
+     */
+    public /*final*/ DisplayRealType		thetaPressure;
 
     /**
      * The temperature coordinate.
      */
-    public /*final*/ static DisplayRealType	Temperature;
+    public /*final*/ DisplayRealType		temperature;
+
+    /**
+     * The potential temperature coordinate.
+     */
+    public /*final*/ DisplayRealType		potentialTemperature;
 
     /**
      * The superfluous Z coordinate.
      */
-    public /*final*/ static DisplayRealType	SkewTZAxis;
+    public /*final*/ DisplayRealType		skewTZAxis;
 
     /**
-     * The (pressure,temperature) space.
+     * The superfluous potential-temperature Z-coordinate.
      */
-    public /*final*/ static SkewTCoordinateSystem	SkewTCoordSys;
-    public /*final*/ static DisplayRealType[] 		componentsSkewT;
-    public /*final*/ static DisplayTupleType		DisplaySkewTTuple;
+    public /*final*/ DisplayRealType		thetaZAxis;
+
+    /**
+     * The (pressure, temperature) space.
+     */
+    public /*final*/ SkewTCoordinateSystem	skewTCoordSys;
+    public /*final*/ DisplayTupleType		displaySkewTTuple;
+
+    /**
+     * The (pressure, potential temperature) space.
+     */
+    public /*final*/ PotentialTemperatureCoordSys
+						potentialTemperatureCoordSys;
+    public /*final*/ DisplayTupleType		displayThetaTuple;
 
     /**
      * Taken from AWS/TR-79/006: "The Use of the Skew T, Log P Diagram
@@ -78,38 +108,49 @@ SkewTDisplayRenderer
     private final static double	DELTA_T  =  5.0;
 
 
-    static
+    /**
+     * Constructs from nothing.
+     */
+    public
+    SkewTDisplayRenderer()
+	throws VisADException
     {
-	try
-	{
-	    SkewTCoordSys = new SkewTCoordinateSystem();
+	/*
+	 * Establish (pressure, temperature) space.
+	 */
+	skewTCoordSys = new SkewTCoordinateSystem();
+	pressure = new DisplayRealType("Pressure", false, 
+	    skewTCoordSys.minP, skewTCoordSys.maxP, 0.0, 
+	    skewTCoordSys.getPressureUnit());;
+	temperature = new DisplayRealType("Temperature", false,
+	    skewTCoordSys.minTAtMinP, 
+	    skewTCoordSys.maxTAtMaxP, 0.0,
+	    skewTCoordSys.getTemperatureUnit());;
+	skewTZAxis = new DisplayRealType("SkewTZAxis", false,
+	    -1.0, 1.0, 0.0, null);
+	displaySkewTTuple = new DisplayTupleType(
+	    new DisplayRealType[] {pressure, temperature, skewTZAxis},
+	    skewTCoordSys);
 
-	    Pressure = new DisplayRealType("Pressure", false, 
-		SkewTCoordSys.minP, SkewTCoordSys.maxP, 0.0, 
-		SkewTCoordSys.getPressureUnit());;
-	    Temperature = new DisplayRealType("Temperature", false,
-		SkewTCoordSys.minTAtMinP, 
-		SkewTCoordSys.maxTAtMaxP, 0.0,
-		SkewTCoordSys.getTemperatureUnit());;
-
-	    SkewTZAxis = new DisplayRealType("SkewTZAxis", false,
-		-1.0, 1.0, 0.0, null);
-
-	    componentsSkewT =
-		new DisplayRealType[] {Pressure, Temperature, SkewTZAxis};
-
-	    DisplaySkewTTuple = 
-		new DisplayTupleType(componentsSkewT, SkewTCoordSys);
-	}
-	catch (Exception e)
-	{
-	    String	reason = e.getMessage();
-
-	    System.err.println(
-		"Couldn't initialize class SkewTDisplayRenderer" +
-		(reason == null ? "" : (": " + reason)));
-	    e.printStackTrace();
-	}
+	/*
+	 * Establish (pressure, potential temperature) space.
+	 */
+	potentialTemperatureCoordSys = new PotentialTemperatureCoordSys(skewTCoordSys);
+	thetaPressure = new DisplayRealType("Theta_Pressure",
+	    false, 
+	    0.0, Double.POSITIVE_INFINITY, 0.0, 
+	    potentialTemperatureCoordSys.getPressureUnit());;
+	potentialTemperature = new DisplayRealType("Potential_Temperature",
+	    false,
+	    potentialTemperatureCoordSys.getTemperatureUnit().toThis(0., SI.kelvin),
+	    Double.POSITIVE_INFINITY, 0.0, 
+	    potentialTemperatureCoordSys.getTemperatureUnit());
+	thetaZAxis = new DisplayRealType("Theta_ZAxis", false,
+	    -1.0, 1.0, 0.0, null);
+	displayThetaTuple = new DisplayTupleType(
+	    new DisplayRealType[] {
+		thetaPressure, potentialTemperature, thetaZAxis},
+	    potentialTemperatureCoordSys);
     }
 
 
@@ -175,21 +216,21 @@ SkewTDisplayRenderer
 	 * Isobars:
 	 */
 	root.addChild(createIsobars(brown, 
-	    new ArithmeticSeriesIterator(SkewTCoordSys.minP, DELTA_P, 
-		1 + (int)Math.round((SkewTCoordSys.maxP -
-		    SkewTCoordSys.minP)/DELTA_P)),
-	    SkewTCoordSys));
+	    new ArithmeticSeriesIterator(skewTCoordSys.minP, DELTA_P, 
+		1 + (int)Math.round((skewTCoordSys.maxP -
+		    skewTCoordSys.minP)/DELTA_P)),
+	    skewTCoordSys));
 
 	/*
 	 * Isotherms:
 	try
 	{
 	    root.addChild(createIsotherms(brown,
-		new ArithmeticSeriesIterator(SkewTCoordSys.minTAtMinP,
+		new ArithmeticSeriesIterator(skewTCoordSys.minTAtMinP,
 		    DELTA_T, 
-		    1 + (int)Math.round((SkewTCoordSys.maxTAtMaxP -
-		    SkewTCoordSys.minTAtMinP)/DELTA_T)),
-		SkewTCoordSys));
+		    1 + (int)Math.round((skewTCoordSys.maxTAtMaxP -
+		    skewTCoordSys.minTAtMinP)/DELTA_T)),
+		skewTCoordSys));
 	}
 	catch (VisADException e)
 	{
@@ -204,12 +245,12 @@ SkewTDisplayRenderer
     /**
      * Creates a set of isobars.
      */
-    protected static VisADAppearance
+    protected VisADAppearance
     createIsobars(Color color, ValueIterator pressures,
-	SkewTCoordinateSystem SkewTCoordSys)
+	SkewTCoordinateSystem skewTCoordSys)
     {
 	VisADAppearance		isobars = new VisADAppearance();
-	Rectangle2D.Double	viewport = SkewTCoordSys.viewport;
+	Rectangle2D		viewport = skewTCoordSys.viewport;
 
 	isobars.red = red(color);
 	isobars.green = green(color);
@@ -244,11 +285,11 @@ SkewTDisplayRenderer
      */
     protected static VisADAppearance
     createIsotherms(Color color, ValueIterator temperatures,
-		    SkewTCoordinateSystem SkewTCoordSys)
+		    SkewTCoordinateSystem skewTCoordSys)
 	throws VisADException
     {
 	VisADAppearance		isotherms = new VisADAppearance();
-	Rectangle2D.Double	viewport = SkewTCoordSys.viewport;
+	Rectangle2D		viewport = skewTCoordSys.viewport;
 
 	isotherms.red = red(color);
 	isotherms.green = green(color);
@@ -263,7 +304,7 @@ SkewTDisplayRenderer
 	isothermArray.coordinates = new float[3*isothermArray.vertexCount];
 	for (int i = 0; i < numTemperatures; ++i)
 	{
-	    if (clipIsotherm(temperatures.next(), SkewTCoordSys,
+	    if (clipIsotherm(temperatures.next(), skewTCoordSys,
 		    isothermArray.coordinates, 6*i))
 		numInside++;
 	}
@@ -278,16 +319,16 @@ SkewTDisplayRenderer
      * Creates an isotherm that is clipped against a viewport.
      */
     protected static boolean
-    clipIsotherm(double temperature, SkewTCoordinateSystem SkewTCoordSys,
+    clipIsotherm(double temperature, SkewTCoordinateSystem skewTCoordSys,
 	    float[] coordinates, int pos)
 	throws VisADException
     {
-	Rectangle2D.Double	viewport = SkewTCoordSys.viewport;
+	Rectangle2D	viewport = skewTCoordSys.viewport;
 
 	double[][]	endPoints =
-	    SkewTCoordSys.toReference(
-		    new double[][] {new double[] {SkewTCoordSys.maxP,
-						  SkewTCoordSys.minP},
+	    skewTCoordSys.toReference(
+		    new double[][] {new double[] {skewTCoordSys.maxP,
+						  skewTCoordSys.minP},
 				    new double[] {temperature, temperature},
 				    new double[] {0.0, 0.0}});
 	Line2D		segment =
@@ -303,11 +344,11 @@ SkewTDisplayRenderer
 	float	slope = (float)((endPoints[1][1] - endPoints[1][0]) /
 				(endPoints[0][1] - endPoints[0][0]));
 
-	if (endPoints[0][0] < viewport.x)
+	if (endPoints[0][0] < viewport.getX())
 	{
-	    coordinates[pos+0] = (float)viewport.x;
+	    coordinates[pos+0] = (float)viewport.getX();
 	    coordinates[pos+1] = (float)(endPoints[1][0] + slope *
-		(viewport.x - endPoints[0][0]));
+		(viewport.getX() - endPoints[0][0]));
 	}
 	else
 	{
@@ -316,16 +357,16 @@ SkewTDisplayRenderer
 	}
 	coordinates[pos+2] = 0.0f;
 
-	if (endPoints[0][1] < viewport.x + viewport.width)
+	if (endPoints[0][1] < viewport.getX() + viewport.getWidth())
 	{
 	    coordinates[pos+3] = (float)endPoints[0][1];
 	    coordinates[pos+4] = (float)endPoints[1][1];
 	}
 	else
 	{
-	    coordinates[pos+3] = (float)(viewport.x + viewport.width);
+	    coordinates[pos+3] = (float)(viewport.getX() + viewport.getWidth());
 	    coordinates[pos+4] = (float)(endPoints[1][0] + slope *
-		(viewport.x + viewport.width - endPoints[0][0]));
+		(viewport.getX() + viewport.getWidth() - endPoints[0][0]));
 	}
 	coordinates[pos+5] = 0.0f;
 
@@ -366,17 +407,17 @@ SkewTDisplayRenderer
     /**
      * Returns the display Y value of a given pressure.
      */
-    protected static double
+    protected double
     yValue(double pressure)
     {
 	double	y = 0;
 
 	try
 	{
-	    y = SkewTCoordSys.toReference(
+	    y = skewTCoordSys.toReference(
 		    new double[][] {
 			new double[] {pressure},
-			new double[] {SkewTCoordSys.minTAtMaxP},
+			new double[] {skewTCoordSys.minTAtMaxP},
 			new double[] {0.0}})[1][0];
 	}
 	finally
@@ -398,9 +439,10 @@ SkewTDisplayRenderer
     public boolean
     legalDisplayScalar(DisplayRealType type)
     {
-	return type.equals(Pressure) ||
-	    type.equals(Temperature) ||
-	    type.equals(SkewTZAxis) ||
+	return type.equals(pressure) ||
+	    type.equals(temperature) ||
+	    type.equals(skewTZAxis) ||
+	    type.equals(potentialTemperature) ||
 	    super.legalDisplayScalar(type);
     }
 }

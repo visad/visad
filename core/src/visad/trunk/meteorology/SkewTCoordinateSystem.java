@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTCoordinateSystem.java,v 1.2 1998-08-17 18:40:48 steve Exp $
+ * $Id: SkewTCoordinateSystem.java,v 1.3 1998-08-19 17:19:57 steve Exp $
  */
 
 package visad.meteorology;
@@ -42,17 +42,17 @@ SkewTCoordinateSystem
     /**
      * Transformation parameters.
      */
-    private final double		YPerNegLogP;
-    private final double		negLogMaxP;
-    private final double		XPerT;
-    public final Rectangle2D.Double	viewport;
-    public final double			minP;
-    public final double			maxP;
-    public final double			minTAtMaxP;
-    public final double			maxTAtMaxP;
-    public final double			minTAtMinP;
-    public final double			maxTAtMinP;
-    public final double			isothermTangent;
+    private final double	YPerNegLogP;
+    private final double	negLogMaxP;
+    private final double	XPerT;
+    public final Rectangle2D	viewport;
+    public final double		minP;
+    public final double		maxP;
+    public final double		minTAtMaxP;
+    public final double		maxTAtMaxP;
+    public final double		minTAtMinP;
+    public final double		maxTAtMinP;
+    public final double		isothermTangent;
 
     /**
      * Canonical diagram parameters.  Estimated from page 2-3 of
@@ -125,11 +125,26 @@ SkewTCoordinateSystem
 
 
     /**
+     * Constructs from another SkewTCoordinateSystem.
+     *
+     * @param that	The other SkewTCoordinateSystem.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public
+    SkewTCoordinateSystem(SkewTCoordinateSystem that)
+	throws VisADException
+    {
+	this(that.minP, that.maxP, that.minTAtMaxP, that.maxTAtMaxP,
+	    that.isothermTangent, that.viewport);
+    }
+
+
+    /**
      * Gets the default display rectangle.  
      *
      * @return		Display viewport.
      */
-    protected static Rectangle2D.Double
+    protected static Rectangle2D
     getDefaultDisplayRectangle()
 	throws	VisADException
     {
@@ -141,8 +156,9 @@ SkewTCoordinateSystem
 	((DisplayRealType)reference.getComponent(0)).getRange(xRange);
 	((DisplayRealType)reference.getComponent(1)).getRange(yRange);
 
-	return new Rectangle2D.Double(
-	    xRange[0], yRange[0], xRange[1] - xRange[0], yRange[1] - yRange[0]);
+	return new Rectangle2D.Float(
+	    (float)xRange[0], (float)yRange[0], 
+	    (float)(xRange[1] - xRange[0]), (float)(yRange[1] - yRange[0]));
     }
 
 
@@ -156,33 +172,35 @@ SkewTCoordinateSystem
      * @param maxP		Maximum pressure on the plot in millibar.
      * @param minTAtMaxP	Lower left temperature on the plot in celsius.
      * @param maxTAtMaxP	Lower right temperature on the plot in celsius.
+     * @param isothermTangent	Tangent of the isotherm angle with the 
+     *				horizontal.
      * @param viewport		Display viewport.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public
     SkewTCoordinateSystem(double minP, double maxP,
 	    double minTAtMaxP, double maxTAtMaxP,
-	    double isothermTangent, Rectangle2D.Double viewport)
+	    double isothermTangent, Rectangle2D viewport)
 	throws VisADException
     {
 	super(Display.DisplaySpatialCartesianTuple, units);
 
-	this.viewport = viewport;
 	this.minP = minP;
 	this.maxP = maxP;
 	this.minTAtMaxP = minTAtMaxP;
 	this.maxTAtMaxP = maxTAtMaxP;
 	this.isothermTangent = isothermTangent;
+	this.viewport = viewport;
 
 	negLogMaxP = -Math.log(maxP);
-	YPerNegLogP = viewport.height / ((-Math.log(minP)) - negLogMaxP);
-	XPerT = viewport.width / (maxTAtMaxP - minTAtMaxP);
+	YPerNegLogP = viewport.getHeight() / ((-Math.log(minP)) - negLogMaxP);
+	XPerT = viewport.getWidth() / (maxTAtMaxP - minTAtMaxP);
 
 	double[]	coords[] = fromReference(
-	    new double[][] {new double[] {viewport.x, 
-					  viewport.y+viewport.height},
-			    new double[] {viewport.x+viewport.width,
-					  viewport.y+viewport.height},
+	    new double[][] {new double[] {viewport.getX(), 
+					  viewport.getY()+viewport.getHeight()},
+			    new double[] {viewport.getX()+viewport.getWidth(),
+					  viewport.getY()+viewport.getHeight()},
 			    new double[] {0, 0}});
 	minTAtMinP = coords[1][0];
 	maxTAtMinP = coords[1][1];
@@ -204,6 +222,7 @@ SkewTCoordinateSystem
      */
     public double[][]
     toReference(double[][] coords)
+	throws VisADException
     {
 	if (coords == null || coords.length != 3)
 	    throw new IllegalArgumentException("Invalid real coordinates");
@@ -217,10 +236,10 @@ SkewTCoordinateSystem
 	    double	deltaY = YPerNegLogP*
 		((-Math.log(pressure)) - negLogMaxP);
 
-	    coords[0][i] = XPerT * (temperature - minTAtMaxP) + viewport.x +
-		deltaY/isothermTangent;		// X
-	    coords[1][i] = viewport.y + deltaY;	// Y
-	    coords[2][i] = 0;			// Z
+	    coords[0][i] = XPerT * (temperature - minTAtMaxP) +
+		viewport.getX() + deltaY/isothermTangent;	// X
+	    coords[1][i] = viewport.getY() + deltaY;		// Y
+	    coords[2][i] = 0;					// Z
 	}
 
 	return coords;
@@ -232,6 +251,7 @@ SkewTCoordinateSystem
      */
     public double[]
     toReference(double pressure, double temperature)
+	throws VisADException
     {
 	double[][]	xyCoords = toReference(
 	    new double[][] {new double[] {pressure}, new double[] {temperature},
@@ -257,6 +277,7 @@ SkewTCoordinateSystem
      */
     public double[][]
     fromReference(double[][] coords)
+	throws VisADException
     {
 	if (coords == null || coords.length != 3)
 	    throw new IllegalArgumentException("Invalid real coordinates");
@@ -269,12 +290,12 @@ SkewTCoordinateSystem
 		// coords[0][i] + "," + coords[1][i] + ") -> ");
 
 	    double	x = coords[0][i];
-	    double	deltaY = coords[1][i] - viewport.y;
+	    double	deltaY = coords[1][i] - viewport.getY();
 
 	    coords[0][i] = Math.exp(-deltaY/YPerNegLogP - negLogMaxP);
-					// pressure
-	    coords[1][i] = (x - deltaY/isothermTangent - viewport.x) / XPerT + 
-		minTAtMaxP;		// temperature
+						// pressure
+	    coords[1][i] = (x - deltaY/isothermTangent - viewport.getX()) /
+		XPerT + minTAtMaxP;		// temperature
 
 	    // System.out.println("(" + coords[0][i] + "," +
 		// coords[1][i] + ")");
@@ -288,7 +309,8 @@ SkewTCoordinateSystem
      * Transforms a display coordinate to a real coordinate.
      */
     public double[]
-    fromeference(double x, double y)
+    fromReference(double x, double y)
+	throws VisADException
     {
 	double[][]	ptCoords = fromReference(
 	    new double[][] {new double[] {x}, new double[] {y},

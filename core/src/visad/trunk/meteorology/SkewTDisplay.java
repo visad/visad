@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.3 1998-08-17 18:40:48 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.4 1998-08-19 17:19:58 steve Exp $
  */
 
 package visad.meteorology;
@@ -35,7 +35,6 @@ import visad.data.netcdf.QuantityMap;
 import visad.data.netcdf.units.Parser;
 import visad.java2d.DisplayImplJ2D;
 
-
 /**
  * VisAD display bean for a Skew T, Log P Diagram (alias "Skew-T Chart").
  *
@@ -48,47 +47,57 @@ SkewTDisplay
     /**
      * The VisAD display.
      */
-    private final DisplayImplJ2D		display;
+    private final DisplayImplJ2D	display;
 
     /**
      * The sounding property.
      */
-    private Sounding				sounding;
+    private Sounding			sounding;
 
     /**
      * The sounding data-reference.
      */
-    private final DataReference			soundingRef;
+    private final DataReference		soundingRef;
 
     /**
      * Whether or not the display has been configured.
      */
-    private boolean				displayInitialized;
+    private boolean			displayInitialized;
 
     /**
      * Supports property changes.
      */
-    private final PropertyChangeSupport		changes;
+    private final PropertyChangeSupport	changes;
 
     /**
      * The Skew T, log p coordinate system.
      */
-    private final SkewTCoordinateSystem		skewTCoordSys;
+    private final SkewTCoordinateSystem	skewTCoordSys;
+
+    /**
+     * The potential temperature coordinate system.
+     */
+    private final PotentialTemperatureCoordSys	potentialTemperatureCoordSys;
 
     /**
      * The interval between isotherms.
      */
-    private final float				deltaTemperature = 10f;
+    private final float			deltaTemperature = 10f;
 
     /**
      * The interval between potential isotherms.
      */
-    private final float				deltaPotentialTemperature = 10f;
+    private final float			deltaPotentialTemperature = 10f;
 
     /**
      * The base isotherm.
      */
-    private final float				baseIsotherm = 0f;
+    private final float			baseIsotherm = 0f;
+
+    /**
+     * The DisplayRenderer.
+     */
+    private final SkewTDisplayRenderer	displayRenderer;
 
 
     /**
@@ -98,13 +107,17 @@ SkewTDisplay
     SkewTDisplay()
 	throws	VisADException, RemoteException
     {
+	displayRenderer = new SkewTDisplayRenderer();
+
 	sounding = null;
 	soundingRef = new DataReferenceImpl("soundingRef");
 	displayInitialized = false;
 	changes = new PropertyChangeSupport(this);
 	display = new DisplayImplJ2D("Skew T, Log P Diagram",
-				     new SkewTDisplayRenderer());
-	skewTCoordSys = SkewTDisplayRenderer.SkewTCoordSys;
+				     displayRenderer);
+	skewTCoordSys = displayRenderer.skewTCoordSys;
+	potentialTemperatureCoordSys =
+	    displayRenderer.potentialTemperatureCoordSys;
 
 	JFrame jframe = new JFrame("Skew-T Chart");
 	jframe.addWindowListener(new WindowAdapter() {
@@ -131,7 +144,10 @@ SkewTDisplay
 
 	    /*
 	     * Map the X and Y coordinates of the various background fields
-	     * to the display X and Y coordinates.
+	     * to the display X and Y coordinates.  This is necessary for
+	     * contouring of the various fields -- though it does have the
+	     * unfortunate effect of making XAxis and YAxis middle-mouse-
+	     * button readouts appear.
 	     */
 	    ScalarMap	xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
 	    ScalarMap	yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
@@ -145,7 +161,7 @@ SkewTDisplay
 
 	    display.addReference(soundingRef);
 	    display.addReference(temperatureRef);
-	    // display.addReference(potentialTemperatureRef);
+	    display.addReference(potentialTemperatureRef);
 
 	    displayInitialized = true;
 	}
@@ -171,15 +187,16 @@ SkewTDisplay
 	FunctionType	funcType = new FunctionType(domainType, rangeType);
 	Set		set = new Linear2DSet(
 	    domainType,
-	    skewTCoordSys.viewport.x, 
-	    skewTCoordSys.viewport.x + skewTCoordSys.viewport.width, 2,
-	    skewTCoordSys.viewport.y,
-	    skewTCoordSys.viewport.y + skewTCoordSys.viewport.height, 2);
+	    skewTCoordSys.viewport.getX(), 
+	    skewTCoordSys.viewport.getX() + skewTCoordSys.viewport.getWidth(),
+	    2,
+	    skewTCoordSys.viewport.getY(),
+	    skewTCoordSys.viewport.getY() + skewTCoordSys.viewport.getHeight(),
+	    2);
 	FlatField	temperature = new FlatField(funcType, set);
-
 	float[][]	xyCoords = set.getSamples(/*copy=*/false);
 	float[][]	ptCoords = skewTCoordSys.fromReference(
-	    new float[][] {xyCoords[0], xyCoords[1], new float[] {}});
+	    new float[][] {xyCoords[0], xyCoords[1], null});
 
 	temperature.setSamples(new float[][] {ptCoords[1]}, /*copy=*/false);
 
@@ -192,8 +209,9 @@ SkewTDisplay
 
 	ContourControl	control = (ContourControl)contourMap.getControl();
 	control.setContourInterval(deltaTemperature,
-	    (float)skewTCoordSys.minTAtMinP,
-	    (float)skewTCoordSys.maxTAtMaxP, baseIsotherm);
+	    (float)skewTCoordSys.getTemperatureUnit().toThis(0.f, SI.kelvin),
+	    500f,
+	    baseIsotherm);
 
 	/*
 	 * Create a data-reference for the contours.
@@ -207,7 +225,7 @@ SkewTDisplay
 
 
     /**
-     * Configure display for dry potential temperature.
+     * Configure display for potential temperature.
      *
      * @return	Display data-reference to isotherms.
      */
@@ -226,58 +244,45 @@ SkewTDisplay
 	int		ny = 10;
 	MathType	domainType = 
 	    new RealTupleType(new RealType[] {RealType.XAxis, RealType.YAxis});
-	RealType	rangeType = 
-	    new RealType("potential_temperature", skewTTempUnit, /*(Set)*/null);
+	RealType	rangeType =
+	    RealType.getRealTypeByName("temperature_contour");	// prev. defined
+	    // new RealType("potential_temperature", 
+	    // potentialTemperatureCoordSys.getTemperatureUnit(),
+	    // /*(Set)*/null);
 	FunctionType	funcType = new FunctionType(domainType, rangeType);
 	Linear2DSet	set = new Linear2DSet(
 	    domainType,
-	    skewTCoordSys.viewport.x, 
-	    skewTCoordSys.viewport.x + skewTCoordSys.viewport.width, nx,
-	    skewTCoordSys.viewport.y,
-	    skewTCoordSys.viewport.y + skewTCoordSys.viewport.height, ny);
+	    potentialTemperatureCoordSys.viewport.getX(), 
+	    potentialTemperatureCoordSys.viewport.getX() +
+		potentialTemperatureCoordSys.viewport.getWidth(),
+	    nx,
+	    potentialTemperatureCoordSys.viewport.getY(),
+	    potentialTemperatureCoordSys.viewport.getY() +
+		potentialTemperatureCoordSys.viewport.getHeight(),
+	    ny);
 	FlatField	potentialTemperature = new FlatField(funcType, set);
-	float		referencePressure = 1000.0f;	// millibars
-	/*
-	 * The following value is take from "An Introduction to Boundary
-	 * Layer Meteorology" by Roland B. Stull; chapter 13 (Boundary Layer
-	 * Clouds).
-	 */
-	float		kappa = 0.286f;
 	float[][]	xyCoords = set.getSamples();
-	float[][]	ptCoords = skewTCoordSys.fromReference(
-	    new float[][] {xyCoords[0], xyCoords[1], {}});
-	float[]		pressures = ptCoords[0];
-	float[]		temperatures = ptCoords[1];
+	float[][]	ptCoords = potentialTemperatureCoordSys.fromReference(
+	    new float[][] {xyCoords[0], xyCoords[1], null});
 
-	temperatures = skewTTempUnit.toThat(temperatures, kelvin);
-
-	for (int iy = 0; iy < ny; iy++)
-	{
-	    float	pressure = pressures[iy*nx];
-	    double	factor = Math.pow(referencePressure/pressure, kappa);
-
-	    for (int ix = 0; ix < nx; ++ix)
-		temperatures[iy*nx+ix] *= factor;
-	}
-
-	temperatures = skewTTempUnit.toThis(temperatures, kelvin);
-
-	potentialTemperature.setSamples(new float[][] {temperatures},
+	potentialTemperature.setSamples(new float[][] {ptCoords[1]},
 	    /*copy=*/false);
 
 	/*
-	 * Establish the isotherm contours.
+	 * Establish middle-mouse-button readout.
 	 */
-	ScalarMap	contourMap = new ScalarMap(rangeType,
-	    Display.IsoContour);
-	display.addMap(contourMap);
-
-	ContourControl	control = (ContourControl)contourMap.getControl();
-	control.setContourInterval(deltaPotentialTemperature,
-	    -40f, 170f, baseIsotherm);
+	ScalarMap	thetaMap = 
+	    new ScalarMap(new RealType("potential_temperature"),
+		displayRenderer.potentialTemperature);
+	/*
+         * The following statement causes middle-mouse-button readout
+         * of potential temperature to appear.  Unfortunately, it also
+         * causes the potential temperature contours to not be drawn.
+	 */
+	display.addMap(thetaMap);
 
 	/*
-	 * Create a data-reference for the contours.
+	 * Create a data-reference for the potential temperature.
 	 */
 	DataReferenceImpl	potentialTemperatureRef =
 	    new DataReferenceImpl("potentialTemperatureRef");
@@ -297,10 +302,10 @@ SkewTDisplay
 	throws	VisADException, RemoteException
     {
 	ScalarMap	pressureMap = new ScalarMap(sounding.getPressureType(),
-	    SkewTDisplayRenderer.Pressure);
+	    displayRenderer.pressure);
 	ScalarMap	temperatureMap =
 	    new ScalarMap(sounding.getTemperatureType(),
-			  SkewTDisplayRenderer.Temperature);
+			  displayRenderer.temperature);
 
 	pressureMap.setRangeByUnits();
 	temperatureMap.setRangeByUnits();
