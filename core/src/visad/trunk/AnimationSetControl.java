@@ -56,15 +56,6 @@ public class AnimationSetControl extends Control {
     return current;
   }
 
-  public int getLength() throws VisADException {
-    if (set != null) {
-      return set.getLength();
-    }
-    else {
-      return 0;
-    }
-  }
-
   public float getValue(int current) throws VisADException {
     int[] indices = new int[1];
     indices[0] = clipCurrent(current);
