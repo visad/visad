@@ -198,6 +198,8 @@ public class FileSeriesWidget extends StepWidget {
         catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
         catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
       }
+
+      // add mapping to RGB
       isw.setGrayscale(true); // default to grayscale color mode
       try {
         ScalarMap colorMap = new ScalarMap(COLOR_TYPE, Display.RGB);

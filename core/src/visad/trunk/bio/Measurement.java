@@ -71,20 +71,15 @@ public class Measurement {
       System.err.println("Warning: measurement lengths don't match!");
       return;
     }
-    // verify that new values are distinct from old ones
-    boolean equal = true;
     double[][] vals1 = doubleValues(values);
     double[][] vals2 = doubleValues(this.values);
-    int dim, len;
-    if (vals1.length < vals2.length) {
-      dim = vals1.length;
-      len = vals1[0].length;
-    }
-    else {
-      dim = vals2.length;
-      len = vals2[0].length;
-    }
-    for (int i=0; i<dim && equal; i++) {
+    int dim = vals2.length;
+    int len = values.length;
+    int mdim = vals1.length;
+
+    // verify new values are distinct from old ones
+    boolean equal = true;
+    for (int i=0; i<mdim && equal; i++) {
       for (int j=0; j<len; j++) {
         if (vals1[i][j] != vals2[i][j]) {
           equal = false;
@@ -94,8 +89,25 @@ public class Measurement {
     }
     if (equal) return;
 
+    // preserve slice values on 2-D shift
+    if (mdim < dim) {
+      // fill in missing slice values
+      for (int i=0; i<len; i++) {
+        try {
+          Real[] nw = values[i].getRealComponents();
+          Real[] old = this.values[i].getRealComponents();
+          Real[] merged = new Real[dim];
+          System.arraycopy(nw, 0, merged, 0, nw.length);
+          System.arraycopy(old, nw.length, merged, nw.length, dim - nw.length);
+          values[i] = new RealTuple(merged);
+        }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        catch (RemoteException exc) { exc.printStackTrace(); }
+      }
+    }
+
     // manage direct manipulation in 3-D window
-    if (dim == 3) {
+    if (mdim == 3) {
       // remove measurement from all slices
       int numSlices = mm.getNumberOfSlices();
       for (int i=0; i<numSlices; i++) {

@@ -34,7 +34,7 @@ import visad.*;
  */
 public class SelectionBox {
 
-  private static final int DISTANCE = 15;
+  static final int DISTANCE = 15;
 
   /** Data reference for first endpoint. */
   private DataReferenceImpl[] refs = new DataReferenceImpl[6];
