@@ -45,6 +45,8 @@ TAR_FILES = \
 	visad/data/netcdf/*.java			\
 	visad/data/netcdf/units/*.java			\
 	visad/data/netcdf/units/*.jj			\
+	visad/data/netcdf/in/*.java			\
+	visad/data/netcdf/out/*.java			\
 	visad/data/fits/*.java				\
 	nom/tam/fits/*.java				\
 	nom/tam/util/*.java				\
@@ -109,6 +111,8 @@ CLASS_FILES = \
 	visad/data/*.class				\
 	visad/data/netcdf/*.class			\
 	visad/data/netcdf/units/*.class			\
+	visad/data/netcdf/in/*.class			\
+	visad/data/netcdf/out/*.class			\
 	ucar/multiarray/*.class				\
 	ucar/netcdf/*.class				\
 	visad/data/fits/*.class				\
@@ -120,49 +124,51 @@ CLASS_FILES = \
 	visad/data/vis5d/*.class			\
 	visad/data/gif/*.class
 
-CORE_CLASS_FILES = \
-	visad/DATE					\
-	visad/*.class
-
-JAVA3D_CLASS_FILES = \
-	visad/java3d/DATE				\
-	visad/java3d/*.class
-
-UTIL_CLASS_FILES = \
-	visad/util/DATE					\
-	visad/util/*.class
-
-NETCDF_CLASS_FILES = \
-	visad/data/netcdf/DATE				\
-	visad/data/*.class				\
-	visad/data/netcdf/*.class			\
-	visad/data/netcdf/units/*.class			\
-	ucar/multiarray/*.class				\
-	ucar/netcdf/*.class
-
-FITS_CLASS_FILES = \
-	visad/data/fits/DATE				\
-	visad/data/*.class				\
-	visad/data/fits/*.class				\
-	nom/tam/fits/*.class				\
-	nom/tam/util/*.class				\
-	nom/tam/test/*.class
-
-HDFEOS_CLASS_FILES = \
-	visad/data/hdfeos/DATE				\
-	visad/data/*.class				\
-	visad/data/hdfeos/*.class			\
-	visad/data/hdfeos/hdfeosc/*.class
-
-VIS5D_CLASS_FILES = \
-	visad/data/vis5d/DATE				\
-	visad/data/*.class				\
-	visad/data/vis5d/*.class			\
- 
-GIF_CLASS_FILES = \
-	visad/data/gif/DATE				\
-	visad/data/*.class				\
-	visad/data/gif/*.class
+#CORE_CLASS_FILES = \
+#	visad/DATE					\
+#	visad/*.class
+#
+#JAVA3D_CLASS_FILES = \
+#	visad/java3d/DATE				\
+#	visad/java3d/*.class
+#
+#UTIL_CLASS_FILES = \
+#	visad/util/DATE					\
+#	visad/util/*.class
+#
+#NETCDF_CLASS_FILES = \
+#	visad/data/netcdf/DATE				\
+#	visad/data/*.class				\
+#	visad/data/netcdf/*.class			\
+#	visad/data/netcdf/units/*.class			\
+#	visad/data/netcdf/in/*.class			\
+#	visad/data/netcdf/out/*.class			\
+#	ucar/multiarray/*.class				\
+#	ucar/netcdf/*.class
+#
+#FITS_CLASS_FILES = \
+#	visad/data/fits/DATE				\
+#	visad/data/*.class				\
+#	visad/data/fits/*.class				\
+#	nom/tam/fits/*.class				\
+#	nom/tam/util/*.class				\
+#	nom/tam/test/*.class
+#
+#HDFEOS_CLASS_FILES = \
+#	visad/data/hdfeos/DATE				\
+#	visad/data/*.class				\
+#	visad/data/hdfeos/*.class			\
+#	visad/data/hdfeos/hdfeosc/*.class
+#
+#VIS5D_CLASS_FILES = \
+#	visad/data/vis5d/DATE				\
+#	visad/data/*.class				\
+#	visad/data/vis5d/*.class			\
+# 
+#GIF_CLASS_FILES = \
+#	visad/data/gif/DATE				\
+#	visad/data/*.class				\
+#	visad/data/gif/*.class
 
 
 classes:
@@ -170,31 +176,32 @@ classes:
 	date > DATE ; \
 	jar xvf ucar.jar ; \
 	jar cvf visad.jar $(CLASS_FILES) ; \
-	tar -cvf visad.tar visad.jar ; \
-	date > visad/DATE ; \
-	jar cvf visad_core.jar $(CORE_CLASS_FILES) ; \
-	tar -cvf visad_core.tar visad_core.jar ; \
-	date > visad/java3d/DATE ; \
-	jar cvf visad_java3d.jar $(JAVA3D_CLASS_FILES) ; \
-	tar -cvf visad_java3d.tar visad_java3d.jar ; \
-	date > visad/util/DATE ; \
-	jar cvf visad_util.jar $(UTIL_CLASS_FILES) ; \
-	tar -cvf visad_util.tar visad_util.jar ; \
-	date > visad/data/netcdf/DATE ; \
-	jar cvf visad_netcdf.jar $(NETCDF_CLASS_FILES) ; \
-	tar -cvf visad_netcdf.tar visad_netcdf.jar ; \
-	date > visad/data/fits/DATE ; \
-	jar cvf visad_fits.jar $(FITS_CLASS_FILES) ; \
-	tar -cvf visad_fits.tar visad_fits.jar ; \
-	date > visad/data/hdfeos/DATE ; \
-	jar cvf visad_hdfeos.jar $(HDFEOS_CLASS_FILES) ; \
-	tar -cvf visad_hdfeos.tar visad_hdfeos.jar ; \
-	date > visad/data/vis5d/DATE ; \
-	jar cvf visad_vis5d.jar $(VIS5D_CLASS_FILES) ; \
-	tar -cvf visad_vis5d.tar visad_vis5d.jar ; \
-	date > visad/data/gif/DATE ; \
-	jar cvf visad_gif.jar $(GIF_CLASS_FILES) ; \
-	tar -cvf visad_gif.tar visad_gif.jar
+	tar -cvf visad.tar visad.jar
+
+#	date > visad/DATE ; \
+#	jar cvf visad_core.jar $(CORE_CLASS_FILES) ; \
+#	tar -cvf visad_core.tar visad_core.jar ; \
+#	date > visad/java3d/DATE ; \
+#	jar cvf visad_java3d.jar $(JAVA3D_CLASS_FILES) ; \
+#	tar -cvf visad_java3d.tar visad_java3d.jar ; \
+#	date > visad/util/DATE ; \
+#	jar cvf visad_util.jar $(UTIL_CLASS_FILES) ; \
+#	tar -cvf visad_util.tar visad_util.jar ; \
+#	date > visad/data/netcdf/DATE ; \
+#	jar cvf visad_netcdf.jar $(NETCDF_CLASS_FILES) ; \
+#	tar -cvf visad_netcdf.tar visad_netcdf.jar ; \
+#	date > visad/data/fits/DATE ; \
+#	jar cvf visad_fits.jar $(FITS_CLASS_FILES) ; \
+#	tar -cvf visad_fits.tar visad_fits.jar ; \
+#	date > visad/data/hdfeos/DATE ; \
+#	jar cvf visad_hdfeos.jar $(HDFEOS_CLASS_FILES) ; \
+#	tar -cvf visad_hdfeos.tar visad_hdfeos.jar ; \
+#	date > visad/data/vis5d/DATE ; \
+#	jar cvf visad_vis5d.jar $(VIS5D_CLASS_FILES) ; \
+#	tar -cvf visad_vis5d.tar visad_vis5d.jar ; \
+#	date > visad/data/gif/DATE ; \
+#	jar cvf visad_gif.jar $(GIF_CLASS_FILES) ; \
+#	tar -cvf visad_gif.tar visad_gif.jar
 
 
 SAVE_FILES = \
@@ -213,6 +220,8 @@ SAVE_FILES = \
 	visad/data/netcdf/*.java			\
 	visad/data/netcdf/units/*.java			\
 	visad/data/netcdf/units/*.jj			\
+	visad/data/netcdf/in/*.java			\
+	visad/data/netcdf/out/*.java			\
 	visad/data/fits/*.java				\
 	nom/tam/fits/*.java				\
 	nom/tam/util/*.java				\
@@ -249,18 +258,18 @@ SAVE_FILES = \
 	visad/plotdigits.html
 
 save:
-	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/util/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/fits/*.java backup/visad/nom/tam/fits/*.java backup/visad/nom/tam/util/*.java backup/visad/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java ; \
+	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/util/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/visad/nom/tam/fits/*.java backup/visad/nom/tam/util/*.java backup/visad/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java ; \
 	cd .. ; \
 	tar -cvf save.tar $(SAVE_FILES) ; \
 	cd visad/backup ; \
 	tar -xvf ../../save.tar ; \
 	rm ../../save.tar ; \
 	cd .. ; \
-	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/util/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java
+	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/util/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java
 
 
 clear:
-	/bin/rm -f *.java java3d/*.java util/*.java data/*.java data/netcdf/*.java data/netcdf/units/*.java data/fits/*.java ../nom/tam/fits/*.java ../nom/tam/util/*.java ../nom/tam/test/*.java data/hdfeos/*.java data/hdfeos/hdfeosc/*.java data/vis5d/*.java data/gif/*.java paoloa/*.java aune/*.java examples/*.java ; \
+	/bin/rm -f *.java java3d/*.java util/*.java data/*.java data/netcdf/*.java data/netcdf/units/*.java data/netcdf/in/*.java data/netcdf/out/*.java data/fits/*.java ../nom/tam/fits/*.java ../nom/tam/util/*.java ../nom/tam/test/*.java data/hdfeos/*.java data/hdfeos/hdfeosc/*.java data/vis5d/*.java data/gif/*.java paoloa/*.java aune/*.java examples/*.java ; \
 
 
 .SUFFIXES : .java .class
@@ -269,7 +278,7 @@ clear:
 	javac $<
 
 compile:
-	/bin/rm -f *.class java3d/*.class util/*.class data/*.class data/netcdf/*.class data/netcdf/units/*.class data/fits/*.class ../nom/tam/fits/*.class ../nom/tam/util/*.class ../nom/tam/test/*.class data/hdfeos/*.class data/hdfeos/hdfeosc/*.class data/vis5d/*.class data/gif/*.class paoloa/*.class aune/*.class examples/*.class ; \
+	/bin/rm -f *.class java3d/*.class util/*.class data/*.class data/netcdf/*.class data/netcdf/units/*.class data/netcdf/in/*.class data/netcdf/out/*.class data/fits/*.class ../nom/tam/fits/*.class ../nom/tam/util/*.class ../nom/tam/test/*.class data/hdfeos/*.class data/hdfeos/hdfeosc/*.class data/vis5d/*.class data/gif/*.class paoloa/*.class aune/*.class examples/*.class ; \
 	javac -J-mx32m *.java ; \
 	rmic visad.RemoteCellImpl visad.RemoteActionImpl visad.RemoteDisplayImpl visad.RemoteThingReferenceImpl visad.RemoteDataReferenceImpl visad.RemoteThingImpl visad.RemoteDataImpl visad.RemoteFunctionImpl visad.RemoteFieldImpl visad.RemoteServerImpl ; \
 	javac java3d/*.java ; \
@@ -278,16 +287,14 @@ compile:
 	cd .. ; \
 	jar xvf ucar.jar ; \
 	cd visad ; \
-	javac data/netcdf/units/*.java ; \
-	javac data/netcdf/*.java ; \
+	javac data/netcdf/units/*.java data/netcdf/in/*.java data/netcdf/out/*.java data/netcdf/*.java ; \
 	javac ../nom/tam/util/*.java ; \
 	javac ../nom/tam/fits/*.java ; \
 	javac ../nom/tam/test/*.java ; \
 	javac data/fits/*.java ; \
 	javac data/vis5d/*.java ; \
 	javac data/gif/*.java ; \
-	javac data/hdfeos/hdfeosc/*.java ; \
-	javac data/hdfeos/*.java ; \
+	javac data/hdfeos/hdfeosc/*.java data/hdfeos/*.java ; \
 	javac paoloa/*.java ; \
 	javac aune/*.java ; \
 	cd examples ; \
