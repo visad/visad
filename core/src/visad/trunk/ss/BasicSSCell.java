@@ -284,7 +284,6 @@ public class BasicSSCell extends JPanel {
 
   /** Clears this cell's display and data */
   public void clearData() throws VisADException, RemoteException {
-    clearDisplay();
     setData(null);
     Filename = null;
   }
@@ -462,7 +461,14 @@ public class BasicSSCell extends JPanel {
   public void loadData(URL u) throws BadFormException, IOException,
                                      VisADException, RemoteException {
     if (u == null) return;
-    clearCell();
+    clearDisplay();
+    if (HasData) {
+      remove(VDPanel);
+      validate();
+      HasData = false;
+    }
+    Filename = null;
+
     final URL url = u;
     IsBusy = true;
     JPanel pleaseWait = new JPanel();
@@ -502,6 +508,7 @@ public class BasicSSCell extends JPanel {
       setData(data);
       Filename = url;
     }
+    else setData(null);
     IsBusy = false;
   }
 

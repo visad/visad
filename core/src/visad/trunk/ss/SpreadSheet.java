@@ -89,10 +89,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
   // whether this JVM supports Java3D (detected on SpreadSheet launch)
   boolean CanDo3D = true;
 
-  // whether cells should automatically switch dimensions and detect mappings
-  boolean AutoSwitch3D = true;
-  boolean AutoMap = true;
-
   // display-related arrays and variables
   Panel DisplayPanel;
   JPanel ScrollPanel;
@@ -147,6 +143,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // test for Java3D availability
     try {
       DisplayImplJ3D test = new DisplayImplJ3D("test");
+    }
+    catch (NoClassDefFoundError err) {
+      CanDo3D = false;
     }
     catch (UnsatisfiedLinkError err) {
       CanDo3D = false;
