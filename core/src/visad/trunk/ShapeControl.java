@@ -200,7 +200,7 @@ public class ShapeControl extends Control {
 
     if (!shapesEquals(sc.shapes)) {
       changed = true;
-      shapes = null;
+      shapes = sc.shapes;
     }
 
     if (changed) {
@@ -227,6 +227,5 @@ public class ShapeControl extends Control {
 
     return true;
   }
-
 }
 
