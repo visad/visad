@@ -2393,6 +2393,23 @@ if (initialize) {
   }
 
   /**
+   * Remove a busy/idle activity handler.
+   *
+   * @param ah Activity handler.
+   *
+   * @throws VisADException If the handler couldn't be removed.
+   */
+  public void removeActivityHandler(ActivityHandler ah)
+    throws VisADException
+  {
+    if (displayActivity == null) {
+      displayActivity = new DisplayActivity(this);
+    }
+
+    displayActivity.removeHandler(ah);
+  }
+
+  /**
    * Indicate to activity monitor that the Display is busy.
    */
   public void updateBusyStatus()

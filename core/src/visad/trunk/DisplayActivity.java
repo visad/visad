@@ -82,6 +82,19 @@ public class DisplayActivity
   }
 
   /**
+   * Remove an activity handler.
+   */
+  public void removeHandler(ActivityHandler ah)
+    throws VisADException
+  {
+    if (handlerList == null) {
+      throw new VisADException("No handler list found; was this object serialized?");
+    }
+
+    handlerList.remove(ah);
+  }
+
+  /**
    * Notify all handlers of a transition from idle to busy or vice versa.
    *
    * @param isBusy <tt>true</tt> if the Display is now busy.

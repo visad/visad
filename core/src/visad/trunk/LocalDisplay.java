@@ -44,8 +44,12 @@ import javax.swing.JPanel;
 public interface LocalDisplay
   extends Display
 {
-  /* add a display  activity handler */
+  /** add a display activity handler */
   void addActivityHandler(ActivityHandler ah)
+    throws VisADException;
+
+  /** remove a display activity handler */
+  void removeActivityHandler(ActivityHandler ah)
     throws VisADException;
 
   /** add a DisplayListener */
