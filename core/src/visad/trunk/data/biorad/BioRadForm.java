@@ -28,13 +28,7 @@ package visad.data.biorad;
 
 import visad.*;
 import visad.data.*;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.IOException;
+import java.io.*;
 import java.rmi.RemoteException;
 import java.net.URL;
 import java.util.Vector;
@@ -188,7 +182,7 @@ public class BioRadForm extends Form
   private String current_id;
 
   /** Input stream for current Bio-Rad .PIC. */
-  private DataInputStream in;
+  private RandomAccessFile in;
 
   /** Dimensions of each image in current Bio-Rad .PIC. */
   private int nx, ny;
@@ -900,7 +894,7 @@ public class BioRadForm extends Form
     throws BadFormException, IOException, VisADException
   {
     if (!id.equals(current_id)) {
-      initStream(new DataInputStream(new FileInputStream(id)));
+      initStream(new RandomAccessFile(id, "r"));
       current_id = id;
     }
 
@@ -913,25 +907,21 @@ public class BioRadForm extends Form
     float[][] samples = new float[1][image_len];
     if (byte_format) {
       // jump to proper image number
-      in.reset();
-      in.skip(block_number * image_len);
+      in.seek(block_number * image_len + 70);
 
       // read in image_len bytes
       byte[] buf = new byte[image_len];
-      for (int i=0; i<npic; i++) {
-        in.readFully(buf);
+      in.readFully(buf);
 
-        // each pixel is 8 bits
-        for (int l=0; l<image_len; l++) {
-          int q = 0x000000ff & buf[l];
-          samples[0][l] = (float) q;
-        }
+      // each pixel is 8 bits
+      for (int l=0; l<image_len; l++) {
+        int q = 0x000000ff & buf[l];
+        samples[0][l] = (float) q;
       }
     }
     else {
       // jump to proper image number
-      in.reset();
-      in.skip(block_number * 2 * image_len);
+      in.seek(block_number * 2 * image_len + 70);
 
       // read in 2 * image_len bytes
       final int data_len = 2 * image_len;
@@ -963,7 +953,7 @@ public class BioRadForm extends Form
     throws BadFormException, IOException, VisADException
   {
     if (!id.equals(current_id)) {
-      initStream(new DataInputStream(new FileInputStream(id)));
+      initStream(new RandomAccessFile(id, "r"));
       current_id = id;
     }
     return npic;
@@ -1102,10 +1092,7 @@ public class BioRadForm extends Form
     if (file_id != PIC_FILE_ID) {
       throw new BadFormException("Invalid file header: " + file_id);
     }
-    if (fin instanceof DataInputStream) {
-      in = (DataInputStream) fin;
-      in.mark(4 * npic * nx * ny);
-    }
+    if (fin instanceof RandomAccessFile) in = (RandomAccessFile) fin;
   }
 
 
