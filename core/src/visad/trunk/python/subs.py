@@ -15,7 +15,6 @@ except:
 # the VisAD box is resized to about 95% of the window
 def makeDisplay3D(maps):
   disp = DisplayImplJ3D("Jython3D")
-  maximizeBox(disp)
   if maps != None:  addMaps(disp, maps)
   return disp
 
@@ -24,7 +23,6 @@ def makeDisplay3D(maps):
 def makeDisplay2D(maps):
   disp = DisplayImplJ2D("Jython2D")
   print "Using 2D"
-  maximizeBox(disp)
   if maps != None:  addMaps(disp, maps)
   return disp
 
@@ -44,7 +42,6 @@ def makeDisplay(maps):
     if ok3d:
       tdr = TwoDDisplayRendererJ3D() 
       disp = DisplayImplJ3D("Jython3D",tdr)
-      maximizeBox(disp)
       addMaps(disp, maps)
     else:
       disp =  makeDisplay2D(maps)
@@ -53,11 +50,15 @@ def makeDisplay(maps):
 
 
 # add a Data object to a Display, and return a reference to the Data
-def addData(name, data, disp, constantMaps=None):
+def addData(name, data, disp, constantMaps=None, renderer=None, ref=None):
 
-  ref = DataReferenceImpl(name)
-  disp.addReference(ref, constantMaps)
-  
+  if ref is None: 
+    ref = DataReferenceImpl(name)
+  if renderer is None:
+    disp.addReference(ref, constantMaps)
+  else:
+    disp.addReferences(renderer, ref, constantMaps)
+
   if data is not None: 
     ref.setData(data)
   else:
