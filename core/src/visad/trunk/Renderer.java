@@ -54,6 +54,8 @@ public abstract class Renderer extends Object {
   int currentIndex;
   BranchGroup[] branches;
   boolean[] switchFlags = {false, false, false};
+  boolean[] branchNonEmpty = {false, false, false};
+  int actualIndex;
 
   /** links to Data to be renderer by this */
   transient DataDisplayLink[] Links;
@@ -90,21 +92,26 @@ public abstract class Renderer extends Object {
     sw.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     sw.setCapability(Switch.ALLOW_SWITCH_READ);
     sw.setCapability(Switch.ALLOW_SWITCH_WRITE);
+
+    swParent = new BranchGroup();
+    swParent.setCapability(BranchGroup.ALLOW_DETACH);
+    swParent.addChild(sw);
+    // make it 'live'
+    addSwitch(displayRenderer, swParent);
+
     branches = new BranchGroup[3];
     for (int i=0; i<3; i++) {
       branches[i] = new BranchGroup();
       branches[i].setCapability(Group.ALLOW_CHILDREN_READ);
       branches[i].setCapability(Group.ALLOW_CHILDREN_WRITE);
       branches[i].setCapability(Group.ALLOW_CHILDREN_EXTEND);
-      sw.setChild(branches[i], i);
+      sw.addChild(branches[i]);
+      // sw.setChild(branches[i], i);
     }
-    currentIndex = 0;
     sw.setWhichChild(currentIndex);
-    swParent = new BranchGroup();
-    swParent.setCapability(BranchGroup.ALLOW_DETACH);
-    swParent.addChild(sw);
-    // make it 'live'
-    addSwitch(displayRenderer, swParent);
+    currentIndex = 0;
+    actualIndex = 0;
+
   }
 
   abstract void addSwitch(DisplayRenderer displayRenderer,
@@ -191,14 +198,18 @@ public abstract class Renderer extends Object {
       }
 
       if (branch != null) {
+        int nextIndex = 0;
+        boolean doRemove = false;
         synchronized (this) {
-          if (branches[currentIndex].numChildren() == 0) {
+          if (!branchNonEmpty[currentIndex]) {
             branches[currentIndex].addChild(branch);
             sw.setWhichChild(currentIndex);
+            actualIndex = currentIndex;
+            branchNonEmpty[currentIndex] = true;
           }
-          else { // if (branches[currentIndex].numChildren() != 0)
-            int nextIndex = (currentIndex + 1) % 3;
-            if (branches[nextIndex].numChildren() != 0) {
+          else { // if (branchNonEmpty[currentIndex])
+            nextIndex = (currentIndex + 1) % 3;
+            while (branchNonEmpty[nextIndex]) {
               try {
                 wait(5000);
               }
@@ -207,15 +218,15 @@ public abstract class Renderer extends Object {
                 // than an Exception - control doesn't normally come here
               }
             }
-            if (branches[nextIndex].numChildren() != 0) {
-              throw new DisplayException("Renderer.doAction: wait too long");
-            }
             branches[nextIndex].addChild(branch);
-            displayRenderer.switchScene(this, nextIndex);
+            // displayRenderer.switchScene(this, nextIndex);
+            doRemove = true;
             switchFlags[nextIndex] = true;
+            branchNonEmpty[nextIndex] = true;
             currentIndex = nextIndex;
           } // end if (branches[currentIndex].numChildren() != 0)
         } // end synchronized (this)
+        if (doRemove) displayRenderer.switchScene(this, nextIndex);
       }
       else { // if (branch == null)
         all_feasible = false;
@@ -225,14 +236,22 @@ public abstract class Renderer extends Object {
   }
 
   synchronized boolean switchTransition(int index) {
+    // this is the same as (index - 1) % 3 but always positive
+    int i = (index + 2) % 3;
     if (switchFlags[index]) {
+      if (actualIndex != i) {
+        return true;
+      }
       sw.setWhichChild(index);
+      actualIndex = index;
       switchFlags[index] = false;
       return true;
     }
     else {
-      // this is the same as (index - 1) % 3 but always positive
-      branches[(index + 2) % 3].removeChild(0);
+      for (int m=0; m<branches[i].numChildren(); m++) {
+        branches[i].removeChild(m);
+      }
+      branchNonEmpty[i] = false;
       notify();
       return false;
     }

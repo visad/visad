@@ -759,7 +759,8 @@ public abstract class ShadowType extends Object
           geometry instanceof LineStripArray)) {
       Material material = new Material();
       material.setSpecularColor(0.0f, 0.0f, 0.0f);
-      material.setLightingEnable(true);
+      // no lighting in 2-D mode
+      if (!mode.getMode2D()) material.setLightingEnable(true);
       appearance.setMaterial(material);
     }
 
@@ -1314,7 +1315,7 @@ public abstract class ShadowType extends Object
       }
     }
     array.coordinates = coordinates;
-    array.vertexFormat |= GeometryArray.COORDINATES;
+    array.vertexFormat = GeometryArray.COORDINATES;
 
     if (color_values != null) {
       float[] colors = new float[12 * rlen];

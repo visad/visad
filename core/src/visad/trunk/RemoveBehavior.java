@@ -53,7 +53,6 @@ public class RemoveBehavior extends Behavior {
 
   public synchronized void addRemove(Renderer renderer, int index) {
     removeVector.addElement(new RendererIndexCount(renderer, index, 1));
-    // removeVector.addElement(new BranchCount(br, 1));
     if (!waiting) {
       setWakeup();
       waiting = true;

@@ -1,6 +1,6 @@
 
 //
-// DefaultDisplayRenderer.java
+// TwoDDisplayRenderer.java
 //
 
 /*
@@ -33,17 +33,21 @@ import java.util.*;
 
 
 /**
-   DefaultDisplayRenderer is the VisAD class for the default background
-   and metadata rendering algorithm.<P>
+   TwoDDisplayRenderer is the VisAD class for 2-D background
+   and metadata rendering.<P>
 */
-public class DefaultDisplayRenderer extends DisplayRenderer {
+public class TwoDDisplayRenderer extends DisplayRenderer {
 
   Shape3D box = null; // box outline for data
   ColoringAttributes box_color = null; // color of box
   MouseBehavior mouse = null; // Behavior for mouse interactions
 
-  public DefaultDisplayRenderer () {
+  public TwoDDisplayRenderer () {
     super();
+  }
+
+  public boolean getMode2D() {
+    return true;
   }
 
   /** create scene graph root, if none exists, with Transform
@@ -56,7 +60,7 @@ public class DefaultDisplayRenderer extends DisplayRenderer {
     TransformGroup trans = getTrans();
 
     // create the box containing data depictions
-    LineArray box_geometry = new LineArray(24, LineArray.COORDINATES);
+    LineArray box_geometry = new LineArray(8, LineArray.COORDINATES);
     box_geometry.setCoordinates(0, box_verts);
     Appearance box_appearance = new Appearance();
     box_color = new ColoringAttributes();
@@ -78,6 +82,7 @@ public class DefaultDisplayRenderer extends DisplayRenderer {
     mouse.setSchedulingBounds(bounds);
     trans.addChild(mouse);
 
+/* WLH 4 Jan 98 - lights not needed in 2-D
     // create ambient light, directly under root (not transformed)
     Color3f color = new Color3f(0.4f, 0.4f, 0.4f);
     AmbientLight light = new AmbientLight(color);
@@ -96,26 +101,17 @@ public class DefaultDisplayRenderer extends DisplayRenderer {
     light2.setInfluencingBounds(bounds);
     root.addChild(light1);
     root.addChild(light2);
+*/
  
     return root;
   }
 
   private static final float[] box_verts = {
      // front face
-         -1.0f, -1.0f,  1.0f,                       -1.0f,  1.0f,  1.0f,
-         -1.0f,  1.0f,  1.0f,                        1.0f,  1.0f,  1.0f,
-          1.0f,  1.0f,  1.0f,                        1.0f, -1.0f,  1.0f,
-          1.0f, -1.0f,  1.0f,                       -1.0f, -1.0f,  1.0f,
-     // back face
-         -1.0f, -1.0f, -1.0f,                       -1.0f,  1.0f, -1.0f,
-         -1.0f,  1.0f, -1.0f,                        1.0f,  1.0f, -1.0f,
-          1.0f,  1.0f, -1.0f,                        1.0f, -1.0f, -1.0f,
-          1.0f, -1.0f, -1.0f,                       -1.0f, -1.0f, -1.0f,
-     // connectors
-         -1.0f, -1.0f,  1.0f,                       -1.0f, -1.0f, -1.0f,
-         -1.0f,  1.0f,  1.0f,                       -1.0f,  1.0f, -1.0f,
-          1.0f,  1.0f,  1.0f,                        1.0f,  1.0f, -1.0f,
-          1.0f, -1.0f,  1.0f,                        1.0f, -1.0f, -1.0f
+         -1.0f, -1.0f,  0.0f,                       -1.0f,  1.0f,  0.0f,
+         -1.0f,  1.0f,  0.0f,                        1.0f,  1.0f,  0.0f,
+          1.0f,  1.0f,  0.0f,                        1.0f, -1.0f,  0.0f,
+          1.0f, -1.0f,  0.0f,                       -1.0f, -1.0f,  0.0f
   };
 
 }

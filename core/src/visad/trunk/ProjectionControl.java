@@ -37,8 +37,6 @@ public class ProjectionControl extends Control {
 
   private transient Transform3D Matrix;
   private double[] matrix;
-  /** if false, this disables changing the projection matrix */
-  private boolean enabled;
 
   static final ProjectionControl prototype = new ProjectionControl();
 
@@ -47,7 +45,6 @@ public class ProjectionControl extends Control {
     Matrix = new Transform3D(); 
     matrix = new double[16];
     Matrix.get(matrix);
-    enabled = true;
   }
  
   ProjectionControl() {
@@ -59,20 +56,10 @@ public class ProjectionControl extends Control {
   }
 
   public void setMatrix(double[] m) {
-    if (enabled) {
-      System.arraycopy(m, 0, matrix, 0, 16);
-      Matrix = new Transform3D(matrix);
-      displayRenderer.setTransform3D(Matrix);
-      changeControl();
-    }
-  }
-
-  public boolean getEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(boolean e) {
-    enabled = e;
+    System.arraycopy(m, 0, matrix, 0, 16);
+    Matrix = new Transform3D(matrix);
+    displayRenderer.setTransform3D(Matrix);
+    changeControl();
   }
 
   public Control cloneButContents(DisplayImpl d) {

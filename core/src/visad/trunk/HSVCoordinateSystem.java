@@ -31,7 +31,8 @@ package visad;
 */
 class HSVCoordinateSystem extends CoordinateSystem {
 
-  private static Unit[] coordinate_system_units = {null, null, null};
+  private static Unit[] coordinate_system_units =
+    {CommonUnit.degree, null, null};
 
   public HSVCoordinateSystem(RealTupleType reference)
          throws VisADException {

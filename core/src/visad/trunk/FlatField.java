@@ -158,6 +158,7 @@ public class FlatField extends FieldImpl {
     MathType RangeType = type.getRange();
     RealTupleType FlatRange = type.getFlatRange();
     TupleDimension = FlatRange.getDimension();
+    DoubleRange = new double[TupleDimension][];
 
     // set RangeSet
     RangeSet = new Set[TupleDimension];
@@ -941,7 +942,7 @@ public class FlatField extends FieldImpl {
   /** set various arrays of range values to missing */
   private void nullRanges() throws VisADException {
     synchronized (DoubleRange) {
-      DoubleRange = new double[TupleDimension][];
+      // DoubleRange = new double[TupleDimension][];
       FloatRange = new float[TupleDimension][];
       LongRange = new long[TupleDimension][];
       IntRange = new int[TupleDimension][];

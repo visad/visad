@@ -60,6 +60,10 @@ public class GraphicsModeControl extends Control {
     this(null);
   }
 
+  public boolean getMode2D() {
+    return displayRenderer.getMode2D();
+  }
+
   public float getLineWidth() {
     return lineWidth;
   }

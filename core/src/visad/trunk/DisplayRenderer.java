@@ -68,8 +68,15 @@ public abstract class DisplayRenderer extends Object {
 
   /** distance threshhold for successful pick */
   private static final float PICK_THRESHHOLD = 0.05f;
-
+  /** Vector of DirectManipulationRenderers */
   private Vector directs = new Vector();
+
+  /** cursor location */
+  private float cursorX, cursorY, cursorZ;
+  /** normalized direction perpendicular to current cursor plane */
+  private float line_x, line_y, line_z;
+  /** start value for cursor */
+  private float point_x, point_y, point_z;
 
   public DisplayRenderer () {
   }
@@ -80,6 +87,10 @@ public abstract class DisplayRenderer extends Object {
                                  "display already set");
     }
     display = d;
+  }
+
+  public boolean getMode2D() {
+    return false;
   }
 
   public View getView() {
@@ -158,6 +169,7 @@ public abstract class DisplayRenderer extends Object {
                          DirectManipulationRenderer renderer) {
     direct.addChild(group);
     directs.addElement(renderer);
+
 /* WLH 12 Dec 97 - this didn't help
     if (last == null) {
       direct.addChild(branch);
@@ -179,6 +191,59 @@ public abstract class DisplayRenderer extends Object {
 
   public void clearScene(Renderer renderer) {
     directs.removeElement(renderer);
+  }
+
+  public double[] getCursor() {
+    double[] cursor = new double[3];
+    cursor[0] = cursorX;
+    cursor[1] = cursorY;
+    cursor[2] = cursorZ;
+    return cursor;
+  }
+
+  public void depth_cursor(PickRay ray) {
+    Point3d origin = new Point3d();
+    Vector3d direction = new Vector3d();
+    ray.get(origin, direction);
+    line_x = (float) direction.x;
+    line_y = (float) direction.y;
+    line_z = (float) direction.z;
+    point_x = cursorX;
+    point_y = cursorY;
+    point_z = cursorZ;
+  }
+
+  public void drag_depth(float diff) {
+    cursorX = point_x + diff * line_x;
+    cursorY = point_y + diff * line_y;
+    cursorZ = point_z + diff * line_z;
+  }
+
+  public void drag_cursor(PickRay ray, boolean first) {
+    Point3d origin = new Point3d();
+    Vector3d direction = new Vector3d();
+    ray.get(origin, direction);
+    float o_x = (float) origin.x;
+    float o_y = (float) origin.y;
+    float o_z = (float) origin.z;
+    float d_x = (float) direction.x;
+    float d_y = (float) direction.y;
+    float d_z = (float) direction.z;
+    if (first) {
+      line_x = d_x;
+      line_y = d_y;
+      line_z = d_z;
+    }
+    float dot = (cursorX - o_x) * line_x +
+                (cursorY - o_y) * line_y +
+                (cursorZ - o_z) * line_z;
+    float dot2 = d_x * line_x + d_y * line_y + d_z * line_z;
+    if (dot2 == 0.0) return;
+    dot = dot / dot2;
+    // new cursor location is intersection
+    cursorX = o_x + dot * d_x;
+    cursorY = o_y + dot * d_y;
+    cursorZ = o_z + dot * d_z;
   }
 
   public DirectManipulationRenderer findDirect(PickRay ray) {

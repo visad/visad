@@ -49,6 +49,7 @@ public class MouseBehavior extends Behavior {
   private WakeupOr wakeup;
   /** DisplayRenderer for Display */
   DisplayRenderer display_renderer;
+  DisplayImpl display;
   /** ProjectionControl for Display */
   private ProjectionControl proj;
   /** root BranchGroup for direct manipulation Data depictions */
@@ -63,6 +64,12 @@ public class MouseBehavior extends Behavior {
   private boolean mouseEntered;
   /** left, middle or right mouse button pressed in window */
   private boolean mousePressed1, mousePressed2, mousePressed3;
+  /** combinations of Mouse Buttons and keys pressed;
+      z -- SHIFT, t -- CONTROL */
+  private boolean z1Pressed, t1Pressed, z2Pressed;
+
+  /** flag for 2-D mode */
+  private boolean mode2D;
 
   /** close direct_renderer when mousePressed3 */
   DirectManipulationRenderer direct_renderer = null;
@@ -72,35 +79,34 @@ public class MouseBehavior extends Behavior {
     System.out.println("MouseBehavior constructed ");
 */
     display_renderer = r;
-    proj = display_renderer.getDisplay().getProjectionControl();
+    display = display_renderer.getDisplay();
+    proj = display.getProjectionControl();
     direct = display_renderer.getDirect();
+    mode2D = display_renderer.getMode2D();
+
+    // initialize flags
     mouseEntered = false;
     mousePressed1 = false;
     mousePressed2 = false;
     mousePressed3 = false;
+    z1Pressed = false;
+    t1Pressed = false;
+    z2Pressed = false;
+
     WakeupCriterion[] conditions = new WakeupCriterion[5];
     conditions[0] = new WakeupOnAWTEvent(MouseEvent.MOUSE_DRAGGED);
     conditions[1] = new WakeupOnAWTEvent(MouseEvent.MOUSE_ENTERED);
     conditions[2] = new WakeupOnAWTEvent(MouseEvent.MOUSE_EXITED);
     conditions[3] = new WakeupOnAWTEvent(MouseEvent.MOUSE_PRESSED);
     conditions[4] = new WakeupOnAWTEvent(MouseEvent.MOUSE_RELEASED);
-/* not needed ??
-    conditions[5] = new WakeupOnAWTEvent(MouseEvent.MOUSE_MOVED);
-*/
     wakeup = new WakeupOr(conditions);
   }
 
   public void initialize() {
-/*
-    System.out.println("MouseBehavior.initialize");
-*/
     setWakeup();
   }
 
   public void processStimulus(Enumeration criteria) {
-/*
-    System.out.println("MouseBehavior.processStimulus");
-*/
     while (criteria.hasMoreElements()) {
       WakeupCriterion wakeup = (WakeupCriterion) criteria.nextElement();
       if (!(wakeup instanceof WakeupOnAWTEvent)) {
@@ -108,10 +114,6 @@ public class MouseBehavior extends Behavior {
                             "WakeupOnAWTEvent");
       }
       AWTEvent[] events = ((WakeupOnAWTEvent) wakeup).getAWTEvent();
-/*
-      System.out.println("MouseBehavior.processStimulus event.length = " +
-                         events.length);
-*/
       for (int i=0; i<events.length; i++) {
         if (!(events[i] instanceof MouseEvent)) {
           System.out.println("MouseBehavior.processStimulus: non-" +
@@ -119,49 +121,59 @@ public class MouseBehavior extends Behavior {
         }
         switch (events[i].getID()) {
           case MouseEvent.MOUSE_ENTERED:
-/*
-            System.out.println("MouseBehavior.processStimulus(MOUSE_ENTERED)");
-*/
             mouseEntered = true;
             break;
           case MouseEvent.MOUSE_EXITED:
-/*
-            System.out.println("MouseBehavior.processStimulus(MOUSE_EXITED)");
-*/
             mouseEntered = false;
             break;
           case MouseEvent.MOUSE_PRESSED:
-/*
-            System.out.println("MouseBehavior.processStimulus(MOUSE_PRESSED)" +
-              " " + ((InputEvent) events[i]).getModifiers() + " " +
-              InputEvent.BUTTON3_MASK + " " + mouseEntered);
-*/
             if (mouseEntered) {
+              int m = ((InputEvent) events[i]).getModifiers();
+              int m1 = m & InputEvent.BUTTON1_MASK;
+              int m2 = m & InputEvent.BUTTON2_MASK;
+              int m3 = m & InputEvent.BUTTON3_MASK;
               // special hack for BUTTON1 error in getModifiers
-              if ( ((InputEvent) events[i]).getModifiers() == 0 ||
-                    (((InputEvent) events[i]).getModifiers() &
-                     InputEvent.BUTTON1_MASK) != 0) {
+              if (m2 == 0 && m3 == 0 &&
+                  !mousePressed2 && !mousePressed3) {
                 mousePressed1 = true;
+                if ((m & InputEvent.SHIFT_MASK) != 0) {
+                  z1Pressed = true;
+                }
+                else if ((m & InputEvent.CTRL_MASK) != 0) {
+                  t1Pressed = true;
+                }
+
                 start_x = ((MouseEvent) events[i]).getX();
                 start_y = ((MouseEvent) events[i]).getY();
                 tstart = new Transform3D(proj.getMatrix());
               }
-              else if ( (((InputEvent) events[i]).getModifiers() &
-                         InputEvent.BUTTON2_MASK) != 0) {
+              else if (m2 != 0 && !mousePressed1 && !mousePressed3) {
                 mousePressed2 = true;
+                start_x = ((MouseEvent) events[i]).getX();
+                start_y = ((MouseEvent) events[i]).getY();
+
+                if ((m & InputEvent.SHIFT_MASK) != 0) {
+                  if (!mode2D) {
+                    // don't do cursor Z in 2-D mode
+                    z2Pressed = true;
+                    // current_y -> 3-D cursor Z
+                    PickRay cursor_ray =
+                      cursorRay(display_renderer.getCursor());
+                    display_renderer.depth_cursor(cursor_ray);
+                  }
+                }
+                else {
+                  PickRay cursor_ray = findRay(start_x, start_y);
+                  display_renderer.drag_cursor(cursor_ray, true);
+                }
               }
-              else if ( (((InputEvent) events[i]).getModifiers() &
-                         InputEvent.BUTTON3_MASK) != 0) {
+              else if (m3 != 0 && !mousePressed1 && !mousePressed2) {
                 mousePressed3 = true;
-/*
-System.out.println("MouseBehavior.processStimulus: mousePressed3 " +
-                   display_renderer.anyDirects());
-*/
                 if (display_renderer.anyDirects()) {
                   int current_x = ((MouseEvent) events[i]).getX();
                   int current_y = ((MouseEvent) events[i]).getY();
                   PickRay direct_ray =
-                    findRay(current_x, current_y, direct);
+                    findRay(current_x, current_y);
                   direct_renderer =
                     display_renderer.findDirect(direct_ray);
                   if (direct_renderer != null) {
@@ -172,55 +184,86 @@ System.out.println("MouseBehavior.processStimulus: mousePressed3 " +
             }
             break;
           case MouseEvent.MOUSE_RELEASED:
-/*
-            System.out.println("MouseBehavior.processStimulus(MOUSE_RELEASED)" +
-              " " + ((InputEvent) events[i]).getModifiers() + " " +
-              InputEvent.BUTTON1_MASK + " " + mousePressed1);
-*/
-            if ( (((InputEvent) events[i]).getModifiers() &
-                  InputEvent.BUTTON1_MASK) != 0 && mousePressed1) {
+              int m = ((InputEvent) events[i]).getModifiers();
+              int m1 = m & InputEvent.BUTTON1_MASK;
+              int m2 = m & InputEvent.BUTTON2_MASK;
+              int m3 = m & InputEvent.BUTTON3_MASK;
+              // special hack for BUTTON1 error in getModifiers
+              if (m2 == 0 && m3 == 0 && mousePressed1) {
               mousePressed1 = false;
+              z1Pressed = false;
+              t1Pressed = false;
             }
-            else if ( (((InputEvent) events[i]).getModifiers() &
-                       InputEvent.BUTTON2_MASK) != 0 && mousePressed2) {
+            else if (m2 != 0 && mousePressed2) {
               mousePressed2 = false;
+              z2Pressed = false;
             }
-            else if ( (((InputEvent) events[i]).getModifiers() &
-                       InputEvent.BUTTON3_MASK) != 0 && mousePressed3) {
+            else if (m3 != 0 && mousePressed3) {
               mousePressed3 = false;
               direct_renderer = null;
             }
             break;
           case MouseEvent.MOUSE_DRAGGED:
-/*
-            System.out.println("MouseBehavior.processStimulus(MOUSE_DRAGGED)" +
-              mousePressed1 + " " + start_x + " " + start_y);
-*/
             if (mousePressed1 || mousePressed2 || mousePressed3) {
               Dimension d = ((MouseEvent) events[i]).getComponent().getSize();
               int current_x = ((MouseEvent) events[i]).getX();
               int current_y = ((MouseEvent) events[i]).getY();
               if (mousePressed1) {
-                double angley = - (current_x - start_x) * 100.0 / (double) d.width;
-                double anglex = - (current_y - start_y) * 100.0 / (double) d.height;
-/*
-                System.out.println("(MOUSE_DRAGGED) " + d.width + " " + d.height +
-                                   " " + current_x + " " + current_y + " " +
-                                   anglex + " " + angley);
-*/
-
-/* WLH - modify to use rotX, rotY, rotZ, setTranslation & setScale */
-                Transform3D t1 = make_matrix(anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
-                t1.mul(tstart);
-                double[] matrix = new double[16];
-                t1.get(matrix);
-                proj.setMatrix(matrix);
+                //
+                // TO_DO
+                // modify to use rotX, rotY, rotZ, setTranslation & setScale
+                //
+                Transform3D t1 = null;
+                if (z1Pressed) {
+                  // current_y -> scale
+                  double scale =
+                    Math.exp((start_y-current_y) / (double) d.height);
+                  t1 = make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
+                }
+                else if (t1Pressed) {
+                  // current_x, current_y -> translate
+                  double transx =
+                    (start_x - current_x) * -2.0 / (double) d.width;
+                  double transy =
+                    (start_y - current_y) * 2.0 / (double) d.height;
+                  t1 = make_matrix(0.0, 0.0, 0.0, 1.0, transx, transy, 0.0);
+                }
+                else {
+                  if (!mode2D) {
+                    // don't do 3-D rotation in 2-D mode
+                    double angley =
+                      - (current_x - start_x) * 100.0 / (double) d.width;
+                    double anglex =
+                      - (current_y - start_y) * 100.0 / (double) d.height;
+                    t1 = make_matrix(anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
+                  }
+                }
+                if (t1 != null) {
+                  t1.mul(tstart);
+                  double[] matrix = new double[16];
+                  t1.get(matrix);
+                  proj.setMatrix(matrix);
+                }
               }
               else if (mousePressed2) {
+                if (z2Pressed) {
+                  if (!mode2D) {
+                    // don't do cursor Z in 2-D mode
+                    // current_y -> 3-D cursor Z
+                    float diff =
+                      (start_y - current_y) * 2.0f / (float) d.height;
+                    display_renderer.drag_depth(diff);
+                  }
+                }
+                else {
+                  // current_x, current_y -> 3-D cursor X and Y
+                  PickRay cursor_ray = findRay(current_x, current_y);
+                  display_renderer.drag_cursor(cursor_ray, false);
+                }
               }
               else if (mousePressed3) {
                 if (direct_renderer != null) {
-                  PickRay direct_ray = findRay(current_x, current_y, direct);
+                  PickRay direct_ray = findRay(current_x, current_y);
                   direct_renderer.drag_direct(direct_ray, false);
                 }
               }
@@ -236,7 +279,7 @@ System.out.println("MouseBehavior.processStimulus: mousePressed3 " +
     setWakeup();
   }
 
-  PickRay findRay(int screen_x, int screen_y, BranchGroup direct) {
+  PickRay findRay(int screen_x, int screen_y) {
     // System.out.println("findRay " + screen_x + " " + screen_y);
     View view = display_renderer.getView();
     Canvas3D canvas = display_renderer.getCanvas();
@@ -260,24 +303,33 @@ System.out.println("MouseBehavior.processStimulus: mousePressed3 " +
     Vector3d vector = new Vector3d(position.x - eye_position.x,
                                    position.y - eye_position.y,
                                    position.z - eye_position.z);
+    vector.normalize();
+    PickRay ray = new PickRay(eye_position, vector);
+    return ray;
+  }
 
-/*
-  eureka - it works
-    LineArray array = new LineArray(2, LineArray.COORDINATES);
-    array.setCoordinate(0, eye_position);
-    array.setCoordinate(1, new Point3d(eye_position.x + 2.0f * vector.x,
-                                       eye_position.y + 2.0f * vector.y,
-                                       eye_position.z + 2.0f * vector.z));
-    Appearance appearance = new Appearance();
-    LineAttributes line = new LineAttributes();
-    line.setLineWidth(4.0f);
-    appearance.setLineAttributes(line);
-    Shape3D shape = new Shape3D(array, appearance);
-    BranchGroup branch = new BranchGroup();
-    branch.setCapability(BranchGroup.ALLOW_DETACH);
-    branch.addChild(shape);
-    direct.addChild(branch);
-*/
+  PickRay cursorRay(double[] cursor) {
+    View view = display_renderer.getView();
+    Canvas3D canvas = display_renderer.getCanvas();
+    Point3d position = new Point3d(cursor[0], cursor[1], cursor[2]);
+    Point3d eye_position = new Point3d();
+    canvas.getCenterEyeInImagePlate(eye_position);
+    Transform3D t = new Transform3D();
+    canvas.getImagePlateToVworld(t);
+    t.transform(position);
+    t.transform(eye_position);
+ 
+    TransformGroup trans = display_renderer.getTrans();
+    Transform3D tt = new Transform3D();
+    trans.getTransform(tt);
+    tt.invert();
+    tt.transform(position);
+    tt.transform(eye_position);
+ 
+    // new eye_position = 2 * position - old eye_position
+    Vector3d vector = new Vector3d(position.x - eye_position.x,
+                                   position.y - eye_position.y,
+                                   position.z - eye_position.z);
     vector.normalize();
     PickRay ray = new PickRay(eye_position, vector);
     return ray;
@@ -339,15 +391,16 @@ System.out.println("MouseBehavior.processStimulus: mousePressed3 " +
     }
    
     /* Translation */
-/* should be mat[0][3], mat[1][3], mat[2][3] */
-/* WLH 22 Dec 97
+/* should be mat[0][3], mat[1][3], mat[2][3]
+   WLH 22 Dec 97 */
     mat[0][3] = transx;
     mat[1][3] = transy;
     mat[2][3] = transz;
-*/
+/*
     mat[3][0] = transx;
     mat[3][1] = transy;
     mat[3][2] = transz;
+*/
     k = 0;
     for (i=0; i<4; i++) {
       for (j=0; j<4; j++) {
