@@ -790,7 +790,7 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
    * @return                        A clone of this instance.
    */
   public Object clone() {
-    ProductSet clone = (ProductSet)super.clone();
+    UnionSet clone = (UnionSet)super.clone();
     
     /*
      * The array of sampled sets is cloned because getSamples(false) allows
