@@ -61,6 +61,252 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
     return array;
   }
 
+  private final static int TEST = 1;
+  private final static float LIMIT = 4.0f; // constant for TEST = 0
+  private final static float ALPHA = 0.1f; // constant for TEST = 1
+
+/* WLH
+  public VisADGeometryArray adjustSeam(DataRenderer renderer)
+         throws VisADException {
+    CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
+    if (coord_sys == null) return this;
+
+    int len = coordinates.length / 3;
+    float[][] cs = new float[3][len];
+    int j = 0;
+    for (int i=0; i<len; i++) {
+      cs[0][i] = coordinates[j++];
+      cs[1][i] = coordinates[j++];
+      cs[2][i] = coordinates[j++];
+    }
+    float[][] rs = coord_sys.fromReference(cs);
+    boolean[] test = new boolean[len];
+    int last_i;
+
+    if (TEST == 0) {
+      return this;
+    }
+    else if (TEST == 1) {
+      if (len < 2) return this;
+      float[][] bs = new float[3][len-1];
+      float ALPHA1 = 1.0f + ALPHA;
+      for (int i=0; i<len-1; i++) {
+        bs[0][i] = ALPHA1 * rs[0][i] - ALPHA * rs[0][i+1];
+        bs[1][i] = ALPHA1 * rs[1][i] - ALPHA * rs[1][i+1];
+        bs[2][i] = ALPHA1 * rs[2][i] - ALPHA * rs[2][i+1];
+      }
+      float[][] ds = coord_sys.toReference(bs);
+      float IALPHA = 1.0f / ALPHA;
+      last_i = 0; // start i for each vertex strip
+
+      for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
+        for (int i=last_i; i<last_i+stripVertexCounts[i_svc]-1; i++) {
+
+          float a0 = cs[0][i+1] - cs[0][i];
+          float a1 = cs[1][i+1] - cs[1][i];
+          float a2 = cs[2][i+1] - cs[2][i];
+          float b0 = IALPHA * (cs[0][i] - ds[0][i]);
+          float b1 = IALPHA * (cs[1][i] - ds[1][i]);
+          float b2 = IALPHA * (cs[2][i] - ds[2][i]);
+          float aa = (a0 * a0 + a1 * a1 + a2 * a2);
+          float bb = (b0 * b0 + b1 * b1 + b2 * b2);
+          float ab = (b0 * a0 + b1 * a1 + b2 * a2);
+          // b = A projected onto B, as a signed fraction of B
+          float b = ab / bb;
+          // c = (norm(A projected onto B) / norm(A)) ^ 2
+          float c = (ab * ab) / (aa * bb);
+          test[i] = !(0.5f < b && b < 2.0f && 0.5f < c);
+        } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3; i+=3)
+        last_i += stripVertexCounts[i_svc];
+      } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
+    } // end TEST == 1
+    cs = null;
+    rs = null;
+
+
+    // most recent point
+    float[] lastcoord = null;
+    float[] lastno = null;
+    byte[] lastcol = null;
+    float[] lasttex = null;
+
+    // point before most recent
+    float[] earlycoord = null;
+    float[] earlyno = null;
+    byte[] earlycol = null;
+    float[] earlytex = null;
+
+    // this point
+    float[] coord = null;
+    float[] no = null;
+    byte[] col = null;
+    float[] tex = null;
+
+    VisADTriangleStripArray array = new VisADTriangleStripArray();
+    // worst case makes 3 times as many triangles
+    int worst = 6; // WLH 30 Dec 99 - try new worst
+    float[] coords = new float[worst * coordinates.length];
+    float[] nos = null;
+    if (normals != null) {
+      nos = new float[worst * normals.length];
+    }
+    int color_length = 0;
+    byte[] cols = null;
+    if (colors != null) {
+      color_length = 3;
+      cols = new byte[worst * colors.length];
+      if (colors.length != coordinates.length) color_length = 4;
+    }
+    float[] texs = null;
+    if (texCoords != null) {
+      texs = new float[worst * texCoords.length];
+    }
+    // worst case makes as many strips as there were points
+    int[] svcs = new int[coordinates.length];
+    int svc_index = 0;
+    last_i = 0; // start i for each vertex strip
+
+    int[] kmr = {0, 0, 0};
+    int t = 0;
+    j = 0;
+    boolean any_split = false;
+    for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
+      boolean this_split = false;
+      int accum = 0; // strip counter
+      j = (color_length * last_i / 3) - color_length;
+      t = (2 * last_i / 3) - 2;
+      for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3-3; i+=3) {
+        j += color_length;
+        t += 2;
+        boolean last_split = this_split; // true if last edge was split
+        if (test[i/3]) {
+          this_split = true;
+          any_split = true;
+
+          // treat split as a break
+          if (accum >= 3) {
+            svcs[svc_index] = accum;
+            svc_index++;
+          }
+          lastcoord = new float[]
+            {coordinates[i+3], coordinates[i+4], coordinates[i+5]};
+          if (normals != null) {
+            lastno = new float[]
+              {normals[i+3], normals[i+4], normals[i+5]};
+          }
+          if (color_length == 3) {
+            lastcol = new byte[]
+              {colors[j+3], colors[j+4], colors[j+5]};
+          }
+          else if (color_length == 4) {
+            lastcol = new byte[]
+              {colors[j+4], colors[j+5], colors[j+6], colors[j+7]};
+          }
+          if (texCoords != null) {
+            lasttex = new float[]
+              {texCoords[t+2], texCoords[t+3]};
+          }
+          accum = 1; // reset strip counter;
+          continue;
+
+        }
+        else { // no split
+          this_split = false;
+        }
+
+        if (!this_split) {
+          if (accum == 0) {
+            earlycoord = new float[]
+              {coordinates[i], coordinates[i+1], coordinates[i+2]};
+            lastcoord = new float[]
+              {coordinates[i+3], coordinates[i+4], coordinates[i+5]};
+            if (normals != null) {
+              earlyno = new float[]
+                {normals[i], normals[i+1], normals[i+2]};
+              lastno = new float[]
+                {normals[i+3], normals[i+4], normals[i+5]};
+            }
+            if (color_length == 3) {
+              earlycol = new byte[]
+                {colors[j], colors[j+1], colors[j+2]};
+              lastcol = new byte[]
+                {colors[j+3], colors[j+4], colors[j+5]};
+            }
+            else if (color_length == 4) {
+              earlycol = new byte[]
+                {colors[j], colors[j+1], colors[j+2], colors[j+3]};
+              lastcol = new byte[]
+                {colors[j+4], colors[j+5], colors[j+6], colors[j+7]};
+            }
+            if (texCoords != null) {
+              earlytex = new float[]
+                {texCoords[t], texCoords[t+1]};
+              lasttex = new float[]
+                {texCoords[t+2], texCoords[t+3]};
+            }
+            accum = 2;
+            continue; // don't make any triangles yet, for accum = 0
+          } // end if (accum == 0)
+          else { // (!last_split || lon_axis < 0) && accum > 0 && !this_split
+            // just add the next point (i+3)
+            coord = new float[]
+              {coordinates[i+3], coordinates[i+4], coordinates[i+5]};
+            if (normals != null) {
+              no = new float[]
+                {normals[i+3], normals[i+4], normals[i+5]};
+            }
+            if (color_length == 3) {
+              col = new byte[]
+                {colors[j+3], colors[j+4], colors[j+5]};
+            }
+            else if (color_length == 4) {
+              col = new byte[]
+                {colors[j+4], colors[j+5], colors[j+6], colors[j+7]};
+            }
+            if (texCoords != null) {
+              tex = new float[]
+                {texCoords[t+2], texCoords[t+3]};
+            }
+            accum++;
+            nextPoint(accum, color_length, coords, nos, cols, texs,
+                 coord, no, col, tex, lastcoord, lastno, lastcol,
+                 lasttex, earlycoord, earlyno, earlycol, earlytex, kmr);
+          }
+        } // end if no split
+      } // end for (int i=last_i; i<last_i+stripVertexCounts[i_svc]*3-3; i+=3)
+      if (accum >= 3) {
+        svcs[svc_index] = accum;
+        svc_index++;
+      }
+      last_i += stripVertexCounts[i_svc] * 3;
+    } // end for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++)
+
+    if (!any_split) {
+      return this;
+    }
+    else {
+      array.coordinates = new float[kmr[0]];
+      System.arraycopy(coords, 0, array.coordinates, 0, kmr[0]);
+      if (normals != null) {
+        array.normals = new float[kmr[0]];
+        System.arraycopy(nos, 0, array.normals, 0, kmr[0]);
+      }
+      if (colors != null) {
+        array.colors = new byte[kmr[1]];
+        System.arraycopy(cols, 0, array.colors, 0, kmr[1]);
+      }
+      if (texCoords != null) {
+        array.texCoords = new float[kmr[2]];
+        System.arraycopy(texs, 0, array.texCoords, 0, kmr[2]);
+      }
+      array.vertexCount = kmr[0] / 3;
+      array.stripVertexCounts = new int[svc_index];
+      System.arraycopy(svcs, 0, array.stripVertexCounts, 0, svc_index);
+      return array;
+    }
+  }
+*/
+
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
     float[] lons = getLongitudes(renderer);
