@@ -345,13 +345,24 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
       addPoint(xx);
 
-      UnionSet newData = null;
-      UnionSet data = (UnionSet) link.getData();
+      UnionSet data;
+      try {
+        data = (UnionSet) link.getData();
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          return;
+        }
+        throw re;
+      }
+
       if (data == null) return;
       SampledSet[] sets = data.getSets();
       int n = sets.length;
 
-      
+      UnionSet newData = null;
+
       Vector vect = new Vector();
       for (int i=0; i<3; i++) {
         int j = getAxisToComponent(i);

@@ -335,7 +335,18 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       valueArray[i] = Float.NaN;
     }
 
-    Data data = link.getData();
+    Data data;
+    try {
+      data = link.getData();
+    } catch (RemoteException re) {
+      if (visad.collab.CollabUtil.isDisconnectException(re)) {
+        getDisplay().connectionFailed(this, link);
+        removeLink(link);
+        return null;
+      }
+      throw re;
+    }
+
     if (data == null) {
       branch = null;
       addException(
@@ -353,8 +364,17 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       link.time_flag = false;
       vbranch = null;
       // transform data into a depiction under branch
-      type.doTransform(branch, data, valueArray,
-                       link.getDefaultValues(), this);
+      try {
+        type.doTransform(branch, data, valueArray,
+                         link.getDefaultValues(), this);
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          return null;
+        }
+        throw re;
+      }
     }
     link.clearData();
     reUseFrames = false;

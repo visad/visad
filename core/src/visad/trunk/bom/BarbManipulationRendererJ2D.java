@@ -351,7 +351,18 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 */
     try {
 
-      Tuple data = (Tuple) link.getData();
+      Tuple data;
+      try {
+        data = (Tuple) link.getData();
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          return;
+        }
+        throw re;
+      }
+
       int n = ((TupleType) data.getType()).getNumberOfRealComponents();
       Real[] reals = new Real[n];
 
