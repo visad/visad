@@ -4,6 +4,7 @@ data object in a variety of ways.
 
 """
 try:
+  from org.python.core import PyTuple, PyList
   from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display
   from visad.util import AnimationWidget
   from visad.python.JPythonMethods import *
@@ -23,6 +24,8 @@ def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD
   scale), <width> and <height> are the dimensions.  <title> is the
   phrase for the title bar.  Returns a reference to the display.
   """
+  if isinstance(data,PyList) or isinstance(data,PyTuple):
+    data = field(data)
 
   dom_1 = RealType.getRealType(domainType(data,0) )
   dom_2 = RealType.getRealType(domainType(data,1)) 
@@ -184,6 +187,12 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
   the phrase for the title bar.  Returns a reference to the display.
   """
 
+  if isinstance(data_1,PyList) or isinstance(data_1,PyTuple):
+    data_1 = field('data_1',data_1)
+
+  if isinstance(data_2,PyList) or isinstance(data_2,PyTuple):
+    data_2 = field('data_2',data_2)
+
   rng_1 = data_1.getType().getRange().toString()
   rng_2 = data_2.getType().getRange().toString()
   data = FieldImpl.combine((data_1,data_2))
@@ -210,6 +219,9 @@ def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", col
   <height> are the dimensions, <title> is the phrase for the title
   bar.  Returns a reference to the display.
   """
+  if isinstance(data,PyList) or isinstance(data,PyTuple):
+    data = field(data)
+
   from java.lang.Math import abs
 
   x=[]
@@ -269,6 +281,9 @@ def lineplot(data, panel=None, color=None, width=400, height=400, title="Line Pl
   the phrase for the title bar.  Returns a reference to the display.
   """
 
+  if isinstance(data,PyTuple) or isinstance(data,PyList):
+    data = field(data)
+
   domt = domainType(data)
   rngt = rangeType(data)
   xaxis = ScalarMap(domt[0], Display.XAxis)
@@ -302,6 +317,8 @@ def contour(data, panel=None, enableLabels=1, interval=None, width=400, height=4
   and <height> are the dimensions, <title> is the phrase for the title
   bar.  Returns a reference to the display.
   """
+  if isinstance(data,PyList) or isinstance(data,PyTuple):
+    data = field(data)
 
   ndom = domainDimension(data)
   if ndom != 2:
