@@ -40,12 +40,20 @@ import java.rmi.RemoteException;
 import visad.*;
 
 /** VisADSlider combines a JSlider and a JLabel and links them to either a
-    Real (via a DataReference) or a ScalarMap that maps to
-    Display.SelectValue.  Changes in the slider will reflect the Real or
-    ScalarMap linked to it.  If no bounds are specified, they will be
-    detected from the ScalarMap and the slider will auto-scale.  Note that
-    a slider linked to a Real cannot auto-scale, because it has no way to
-    detect the bounds.<P> */
+ *  Real (via a DataReference) or a ScalarMap that maps to
+ *  Display.SelectValue.  Changes in the slider will reflect the Real or
+ *  ScalarMap linked to it.  If no bounds are specified, they will be
+ *  detected from the ScalarMap and the slider will auto-scale.  Note that
+ *  a slider linked to a Real cannot auto-scale, because it has no way to
+ *  detect the bounds.<br>
+ * <br>
+ * {@link javax.swing.BoxLayout BoxLayout} doesn't handle a mixture
+ * of the standard center-aligned widgets and VisADSliders, which
+ * are left-aligned by default.  If you have problems with widgets
+ * being too wide, you may want to change the other widgets in
+ * the {@link javax.swing.JPanel JPanel} to align on the left
+ * (e.g. <tt>widget.setAlignmentX(BoxLayout.LEFT_ALIGNMENT)</tt>)
+ */
 public class VisADSlider extends JPanel implements ChangeListener,
   ControlListener, ScalarMapListener
 {
@@ -58,9 +66,6 @@ public class VisADSlider extends JPanel implements ChangeListener,
 
   /** Default width of the label in pixels */
   private static final int LABEL_WIDTH = 200;
-
-  /** Work-around for JFC JLabel craziness */
-  private String head = "         ";
 
   /** The JSlider that forms part of the VisADSlider's UI */
   private JSlider slider;
@@ -104,47 +109,84 @@ public class VisADSlider extends JPanel implements ChangeListener,
   /** <CODE>true</CODE> if the slider ticks should be integers */
   private boolean integralValues;
 
-  /** JSlider values range between low and hi (with initial value
-      st) and are multiplied by scale to create Real values
-      of RealType rt referenced by ref */
+  /** <CODE>true</CODE> if the label width should be dynamically scaled */
+  private boolean dynamicLabelWidth;
+
+  /** JSlider values range between <tt>low</tt> and <tt>hi</tt>
+   *  (with initial value <tt>st</tt>) and are multiplied by
+   *  <tt>scale</tt> to create Real values of RealType <tt>rt</tt>
+   *  referenced by <tt>ref</tt>.
+   */
   public VisADSlider(String n, int lo, int hi, int st, double scale,
                      DataReference ref, RealType rt) throws VisADException,
                                                             RemoteException {
     this(ref, null, (float) (lo * scale), (float) (hi * scale),
                     (float) (st * scale), hi - lo,
                     (ref == null || ref.getData() instanceof Real) ? null : rt,
-                    n, false);
+                    n, false, false);
+  }
+
+  /** JSlider values range between <tt>low</tt> and <tt>hi</tt>
+   *  (with initial value <tt>st</tt>) and are multiplied by
+   *  <tt>scale</tt> to create Real values of RealType <tt>rt</tt>
+   *  referenced by <tt>ref</tt>.  The slider label has a
+   *  dynamically sized width if <tt>dynamicLabelWidth</tt> is <tt>true</tt>.
+   */
+  public VisADSlider(String n, int lo, int hi, int st, double scale,
+                    DataReference ref, RealType rt,
+                    boolean dynamicLabelWidth)
+    throws VisADException, RemoteException
+  {
+    this(ref, null, (float) (lo * scale), (float) (hi * scale),
+                    (float) (st * scale), hi - lo,
+                    (ref == null || ref.getData() instanceof Real) ? null : rt,
+                    n, false, dynamicLabelWidth);
   }
 
   /** construct a VisADSlider from a ScalarMap that maps to
-   *  Display.SelectValue, with auto-scaling minimum and maximum bounds
-   *  and non-integral values.
+   *  Display.SelectValue, with auto-scaling minimum and maximum bounds,
+   *  non-integral values, and a statically sized label.
    */
   public VisADSlider(ScalarMap smap) throws VisADException, RemoteException {
     // CASE ONE
     this(null, smap, Float.NaN, Float.NaN, Float.NaN, D_TICKS, null, null,
-         false);
+         false, false);
   }
 
   /** construct a VisADSlider from a ScalarMap that maps to
-   *  Display.SelectValue, with auto-scaling minimum and maximum bounds
-   *  and integer values.
+   *  Display.SelectValue, with auto-scaling minimum and maximum bounds,
+   *  either integer or floating-point values, depending on the setting
+   *  of <tt>integralTicks</tt>, and a statically sized label.
    */
   public VisADSlider(ScalarMap smap, boolean integralTicks)
                      throws VisADException, RemoteException {
     // CASE ONE
     this(null, smap, Float.NaN, Float.NaN, Float.NaN, D_TICKS, null, null,
-         integralTicks);
+         integralTicks, false);
+  }
+
+  /** construct a VisADSlider from a ScalarMap that maps to
+   *  Display.SelectValue, with auto-scaling minimum and maximum bounds,
+   *  either integer or floating-point values (depending on the setting
+   *  of <tt>integralTicks</tt>, and either a static or dynamically
+   *  sized label (depending on the setting of <tt>dynamicLabelWidth</tt>.
+   */
+  public VisADSlider(ScalarMap smap, boolean integralTicks,
+                    boolean dynamicLabelWidth)
+                     throws VisADException, RemoteException {
+    // CASE ONE
+    this(null, smap, Float.NaN, Float.NaN, Float.NaN, D_TICKS, null, null,
+         integralTicks, dynamicLabelWidth);
   }
 
   /** construct a VisADSlider from a ScalarMap that maps to
    *  Display.SelectValue, with minimum and maximum bounds min and max,
-   *  no auto-scaling, and non-integer values.
+   *  no auto-scaling, non-integer values, and a static label width.
    */
   public VisADSlider(ScalarMap smap, float min, float max)
                      throws VisADException, RemoteException {
     // CASE TWO
-    this(null, smap, min, max, Float.NaN, D_TICKS, null, null, false);
+    this(null, smap, min, max, Float.NaN, D_TICKS, null, null, false, false);
   }
 
   /** construct a VisADSlider by creating a Real and linking it to r,
@@ -154,7 +196,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
                      RealType rt, String n) throws VisADException,
                                                    RemoteException {
     // CASE THREE
-    this(ref, null, min, max, start, D_TICKS, rt, n, false);
+    this(ref, null, min, max, start, D_TICKS, rt, n, false, false);
   }
 
   /** construct a VisADSlider from an existing Real pointed to by r,
@@ -162,15 +204,16 @@ public class VisADSlider extends JPanel implements ChangeListener,
   public VisADSlider(DataReference ref, float min, float max)
                      throws VisADException, RemoteException {
     // CASE FOUR
-    this(ref, null, min, max, Float.NaN, D_TICKS, null, null, false);
+    this(ref, null, min, max, Float.NaN, D_TICKS, null, null, false, false);
   }
 
   /** complete constructor */
   private VisADSlider(DataReference ref, ScalarMap smap, float min, float max,
                       float start, int sliderTicks, RealType rt, String n,
-                      boolean integralValues)
+                      boolean integralValues, boolean dynamicLabelWidth)
                       throws VisADException, RemoteException {
     this.integralValues = integralValues;
+    this.dynamicLabelWidth = dynamicLabelWidth;
 
     // set up some UI components
     setAlignmentX(LEFT_ALIGNMENT);   // VisADSliders default to LEFT_ALIGNMENT
@@ -332,20 +375,26 @@ public class VisADSlider extends JPanel implements ChangeListener,
 
   /** sets up the JLabel */
   private void initLabel() {
+    String str = sName + " = " + PlotText.shortString(sCurrent);
+
     Dimension d;
-    label = new JLabel(sName + " = " + PlotText.shortString(sCurrent) + head);
-    d = label.getMinimumSize();
-    label.setMinimumSize(new Dimension(LABEL_WIDTH, d.height));
-    d = label.getPreferredSize();
-    label.setPreferredSize(new Dimension(LABEL_WIDTH, d.height));
-    d = label.getMaximumSize();
-    label.setMaximumSize(new Dimension(LABEL_WIDTH, d.height));
+    if (dynamicLabelWidth) {
+      label = new JLabel(str);
+    } else {
+      // add a bit of whitespace to the string to avoid value truncation
+      label = new JLabel(str + "         ");
+      d = label.getMinimumSize();
+      label.setMinimumSize(new Dimension(LABEL_WIDTH, d.height));
+      d = label.getPreferredSize();
+      label.setPreferredSize(new Dimension(LABEL_WIDTH, d.height));
+      d = label.getMaximumSize();
+      label.setMaximumSize(new Dimension(LABEL_WIDTH, d.height));
+    }
     label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
   }
 
   /** called when slider is adjusted */
   public synchronized void stateChanged(ChangeEvent e) {
-    head = "";
     try {
       double val = slider.getValue();
       double cur = (sMaximum - sMinimum) * (val / sTicks) + sMinimum;
@@ -439,7 +488,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
       slider.addChangeListener(this);
     }
     sCurrent = value;
-    label.setText(sName + " = " + PlotText.shortString(sCurrent) + head);
+
+    label.setText(sName + " = " + PlotText.shortString(sCurrent));
+    invalidate();
   }
 
 }
