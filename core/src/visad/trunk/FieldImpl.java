@@ -2384,10 +2384,21 @@ public class FieldImpl extends FunctionImpl implements Field {
     return (Function) this.derivative( null, d_partial_s, derivType_s, error_mode );
   }
 
-  /** resample range values of this to domain samples in set,
-      either by nearest neighbor or mulit-linear interpolation
-      NOTE may return this (i.e., not a copy);
-      NOTE this code is very similar to resample in FlatField.java */
+  /** 
+   * Resample range values of this Field to domain samples in set either
+   * byt nearest neighbor or multi-linear interpolation.
+   * NOTE: this code is very similar to resample in FlatField.java 
+   * @param set            finite sampling values for the function.
+   * @param sampling_mode  type of interpolation to perform (e.g., 
+   *                       Data.WEIGHTED_AVERAGE, Data.NEAREST_NEIGHBOR)
+   * @param error_mode     type of error estimation to perform (e.g., 
+   *                       Data.INDEPENDENT, Data.DEPENDENT, Data.NO_ERRORS)
+   * @return Data object corresponding to the function value at that domain,
+   *         using the sampling_mode and error_modes specified.  NOTE: may
+   *         return this (i.e., not a copy).
+   * @throws  VisADException   unable to resample function
+   * @throws  RemoteException  Java RMI exception
+   */
   public Field resample(Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (DomainSet.equals(set)) {

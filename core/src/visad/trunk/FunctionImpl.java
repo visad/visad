@@ -36,24 +36,49 @@ import java.rmi.*;
 */
 public abstract class FunctionImpl extends DataImpl implements Function {
 
+  /**
+   * Construct a new FunctionImpl with the supplied FunctionType.
+   * @param type  FunctionType used to define the structure
+   */
   public FunctionImpl(FunctionType type) {
     super(type);
   }
 
+  /**
+   * Get the dimension (number of RealType components) of this Function's domain
+   * @return  number of RealType components (n in R^n space)
+   */
   public int getDomainDimension() {
      return ((FunctionType) Type).getDomain().getDimension();
   }
 
+  /**
+   * Get the default Units of the Real components of the domain.
+   * @return  array of Unit-s in the same order as the RealTypes in the
+   *          domain.
+   */
   public Unit[] getDomainUnits() {
      return ((FunctionType) Type).getDomain().getDefaultUnits();
   }
 
+  /**
+   * Get the CoordinateSystem associated with the domain RealTuple
+   * @return CoordinateSystem of the domain
+   */
   public CoordinateSystem getDomainCoordinateSystem() {
     return ((FunctionType) Type).getDomain().getCoordinateSystem();
   }
 
-  /** evaluate this Function at domain;
-      use default modes for resampling (NEAREST_NEIGHBOR) and errors */
+  /** 
+   * Evaluate this Function at domain; use default modes for resampling 
+   * (Data.WEIGHTED_AVERAGE) and errors (Data.NO_ERRORS)
+   * @param domain         value to evaluate at.
+   * @return Data object corresponding to the function value at that domain.
+   *         may return a missing data object of the same type as the
+   *         Function's range.
+   * @throws  VisADException   unable to evaluate function
+   * @throws  RemoteException  Java RMI exception
+   */
   public Data evaluate(Real domain)
          throws VisADException, RemoteException {
     if (domain == null) {
@@ -72,7 +97,20 @@ public abstract class FunctionImpl extends DataImpl implements Function {
     // return evaluate(domainPoint, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
   }
 
-  /** evaluate this Function with non-default modes for resampling and errors */
+  /** 
+   * Evaluate this Function with non-default modes for resampling and errors 
+   * @param domain         value to evaluate at.
+   * @param sampling_mode  type of interpolation to perform (e.g., 
+   *                       Data.WEIGHTED_AVERAGE, Data.NEAREST_NEIGHBOR)
+   * @param error_mode     type of error estimation to perform (e.g., 
+   *                       Data.INDEPENDENT, Data.DEPENDENT, Data.NO_ERRORS)
+   * @return Data object corresponding to the function value at that domain,
+   *         using the sampling_mode and error_modes specified.
+   *         May return a missing data object of the same type as the
+   *         Function's range.
+   * @throws  VisADException   unable to evaluate function
+   * @throws  RemoteException  Java RMI exception
+   */
   public Data evaluate(Real domain, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
     if (domain == null) {
@@ -90,9 +128,16 @@ public abstract class FunctionImpl extends DataImpl implements Function {
     return evaluate(domainPoint, sampling_mode, error_mode);
   }
 
-  /** evaluate this Function at domain;
-      use default modes for resampling (WEIGHTED_AVERAGE) and
-      errors (NO_ERRORS) */
+  /** 
+   * Evaluate this Function at domain; use default modes for resampling 
+   * (Data.WEIGHTED_AVERAGE) and errors (Data.NO_ERRORS)
+   * @param domain         value to evaluate at.
+   * @return Data object corresponding to the function value at that domain.
+   *         may return a missing data object of the same type as the
+   *         Function's range.
+   * @throws  VisADException   unable to evaluate function
+   * @throws  RemoteException  Java RMI exception
+   */
   public Data evaluate(RealTuple domain)
          throws VisADException, RemoteException {
     if (domain == null) {
@@ -102,7 +147,20 @@ public abstract class FunctionImpl extends DataImpl implements Function {
     // return evaluate(domain, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
   }
 
-  /** evaluate this Function with non-default modes for resampling and errors */
+  /** 
+   * Evaluate this Function with non-default modes for resampling and errors 
+   * @param domain         value to evaluate at.
+   * @param sampling_mode  type of interpolation to perform (e.g., 
+   *                       Data.WEIGHTED_AVERAGE, Data.NEAREST_NEIGHBOR)
+   * @param error_mode     type of error estimation to perform (e.g., 
+   *                       Data.INDEPENDENT, Data.DEPENDENT, Data.NO_ERRORS)
+   * @return Data object corresponding to the function value at that domain,
+   *         using the sampling_mode and error_modes specified.
+   *         May return a missing data object of the same type as the
+   *         Function's range.
+   * @throws  VisADException   unable to evaluate function
+   * @throws  RemoteException  Java RMI exception
+   */
   public Data evaluate(RealTuple domain, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
     if (domain == null) {
@@ -114,17 +172,42 @@ public abstract class FunctionImpl extends DataImpl implements Function {
     return field.getSample(0);
   }
 
-  /** return a Field of Function values at the samples in set
-      using default sampling_mode (WEIGHTED_AVERAGE) and
-      error_mode (NO_ERRORS);
-      this combines unit conversions, coordinate transforms,
-      resampling and interpolation */
+  /** 
+   * Return a Field of Function values at the samples in set
+   * using default sampling_mode (WEIGHTED_AVERAGE) and
+   * error_mode (NO_ERRORS);
+   * This combines unit conversions, coordinate transforms,
+   * resampling and interpolation 
+   *
+   * @param  set    finite sampling values for the function.
+   * @return Data object corresponding to the function value at that domain.
+   *         may return a missing data object of the same type as the
+   *         Function's range.
+   * @throws  VisADException   unable to resample function
+   * @throws  RemoteException  Java RMI exception
+   */
   public Field resample(Set set) throws VisADException, RemoteException {
     return resample(set, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
   }
 
-  /** resample range values of this Function to domain samples in set;
-      return a Field (i.e., a finite sampling of a Function) */
+  /** 
+   * Resample range values of this Function to domain samples in set;
+   * return a Field (i.e., a finite sampling of a Function).  Use
+   * the specified sampling_mode and error_mode.
+   * This combines unit conversions, coordinate transforms,
+   * resampling and interpolation 
+   * @param set            finite sampling values for the function.
+   * @param sampling_mode  type of interpolation to perform (e.g., 
+   *                       Data.WEIGHTED_AVERAGE, Data.NEAREST_NEIGHBOR)
+   * @param error_mode     type of error estimation to perform (e.g., 
+   *                       Data.INDEPENDENT, Data.DEPENDENT, Data.NO_ERRORS)
+   * @return Data object corresponding to the function value at that domain,
+   *         using the sampling_mode and error_modes specified.
+   *         May return a missing data object of the same type as the
+   *         Function's range.
+   * @throws  VisADException   unable to resample function
+   * @throws  RemoteException  Java RMI exception
+   */
   public abstract Field resample(Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException;
 

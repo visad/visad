@@ -67,6 +67,10 @@ public class ContourControl extends Control {
   private float verticalSliceHi;
   private float verticalSliceStep;
 
+  /**
+   * Construct a new ContourControl for the display
+   * @param d    Display to associate with this
+   */
   public ContourControl(DisplayImpl d) {
     super(d);
     mainContours = true;
@@ -148,7 +152,12 @@ public class ContourControl extends Control {
     changeControl(!noChange);
   }
 
-  /** set level for iso-surfaces */
+  /** 
+   * Set level for iso-surfaces 
+   * @param value   value of the iso-surface to display
+   * @throws VisADException	VisAD error
+   * @throws RemoteException	Java RMI failure.
+   */
   public void setSurfaceValue(float value)
          throws VisADException, RemoteException {
     boolean change = !Util.isApproximatelyEqual(surfaceValue, value);
@@ -168,7 +177,7 @@ public class ContourControl extends Control {
    *				be dashed.  Must not be NaN.
    * @param low			The minimum contour value.  No contour line less
    *				than this value will be drawn.  Must not be NaN.
-   * @param hi			The maximum contour value.  No contour like
+   * @param hi			The maximum contour value.  No contour line
    *				greater than this value will be drawn.  Must not
    *				be NaN.
    * @param ba			The base contour value.  The contour lines will
@@ -201,7 +210,16 @@ public class ContourControl extends Control {
 
   private boolean in = false;
 
-  /** set low and high iso-line levels */
+  /** 
+   * Set low and high iso-line levels 
+   * @param low			The minimum contour value.  No contour line less
+   *				than this value will be drawn.  Must not be NaN.
+   * @param hi			The maximum contour value.  No contour line
+   *				greater than this value will be drawn.  Must not
+   *				be NaN.
+   * @throws VisADException	VisAD error
+   * @throws RemoteException	Java RMI failure.
+   */
   public void setContourLimits(float low, float hi)
          throws VisADException, RemoteException {
     if (!in) {
@@ -241,11 +259,20 @@ public class ContourControl extends Control {
     }
   }
 
-  /** set unevenly spaced levels for 2-D contour lines;
-      levels below base are dashed if dash == true */
-  public void setLevels(float[] levs, float ba, boolean da)
+  /** 
+   * Set unevenly spaced levels for 2-D contour lines;
+   * levels below base are dashed if dash == true 
+   * @param levels      	An array of contour values to display.
+   * @param base      		The base contour value for dashing.  Levels
+   *        			below base are dashed if dash is true
+   * @param dash                flag for making dashed contours below the
+   *                            base contour value.
+   * @throws VisADException     VisAD error
+   * @throws RemoteException    Java RMI failure.
+   */
+  public void setLevels(float[] levels, float base, boolean dash)
          throws VisADException, RemoteException {
-    setLevels(levs, ba, da, true);
+    setLevels(levels, base, dash, true);
   }
 
   private void setLevels(float[] levs, float ba, boolean da,
