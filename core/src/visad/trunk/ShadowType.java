@@ -30,6 +30,7 @@ import java.util.*;
 import java.rmi.*;
 import java.awt.image.BufferedImage;
 import java.awt.*;
+import visad.util.HersheyFont;
 
 /**
    The ShadowType hierarchy shadows the MathType hierarchy,
@@ -2464,6 +2465,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     TextControl.Justification justification = text_control.getJustification();
     double size = text_control.getSize();
     Font font = text_control.getFont();
+    HersheyFont hfont = text_control.getHersheyFont();
 
     // WLH 31 May 2000
     boolean sphere = text_control.getSphere();
@@ -2505,18 +2507,17 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           // This cannot be moved outside the for loop
           rotateVectors(base, up, text_control.getRotation());
 
-          if (font == null) {
-            // abcd 5 Feb 2001
-            as[k] = PlotText.render_label(text_values[i], start, base, up,
-                                          justification);
-            // as[k] = PlotText.render_label(text_values[i], start, base, up, center);
-          }
-          else {
-            // abcd 5 Feb 2001
+          if (font != null) {
             as[k] = PlotText.render_font(text_values[i], font,
                                          start, base, up, justification);
-            // as[k] = PlotText.render_font(text_values[i], font,
-            //                              start, base, up, center);
+          }
+          else if (hfont != null) {
+            as[k] = PlotText.render_font(text_values[i], hfont,
+                                         start, base, up, justification);
+
+          } else {
+            as[k] = PlotText.render_label(text_values[i], start, base, up,
+                                          justification);
           }
           int len = (as[k] == null) ? 0 : as[k].coordinates.length;
           if (len > 0) {
@@ -2556,20 +2557,21 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           start = new double[] {spatial_values[0][i],
                                 spatial_values[1][i],
                                 spatial_values[2][i]};
-          if (font == null) {
-            // abcd 5 Feb 2001
-            as[k] = PlotText.render_label(text_values[i], start, base, up,
-                                          justification);
-            // as[k] = PlotText.render_label(text_values[i], start, base, up, center);
-          }
-          else {
-            // abcd 5 Feb 2001
+          if (font != null) {
             as[k] = PlotText.render_font(text_values[i], font,
                                          start, base, up, justification);
-            // as[k] = PlotText.render_font(text_values[i], font,
-            //                              start, base, up, center);
+
+          }
+          else if (hfont != null) {
+            as[k] = PlotText.render_font(text_values[i], hfont,
+                                         start, base, up, justification);
+
+          } else {
+            as[k] = PlotText.render_label(text_values[i], start, base, up,
+                                          justification);
           }
         }
+
         int len = (as[k] == null) ? 0 : as[k].coordinates.length;
         if (len > 0 && color_values != null) {
           if (color_values[0].length > 1) {

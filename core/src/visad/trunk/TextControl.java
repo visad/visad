@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.awt.Font;
+import visad.util.HersheyFont;
 import java.text.*;
 import java.rmi.*;
 
@@ -37,7 +38,7 @@ import visad.util.Util;
 */
 public class TextControl extends Control {
 
-  private Font font = null;
+  private Object font = null;
 
   // abcd 5 February 2001
   //private boolean center = false;
@@ -121,16 +122,45 @@ public class TextControl extends Control {
     super.nullControl();
   }
 
-  /** set the Font; in the initial release this has no effect */
-  public void setFont(Font f)
+  /** set the font; in the initial release this has no effect 
+  *
+  * @param f is the java.awt.Font or the visad.util.HersheyFont
+  */
+
+  public void setFont(Object f)
          throws VisADException, RemoteException {
-    font = f;
-    changeControl(true);
+    if (f instanceof java.awt.Font || f instanceof visad.util.HersheyFont) {
+      font = f;
+      changeControl(true);
+    } else {
+      throw new VisADException("Font must be java.awt.Font or HersheyFont");
+    }
+
   }
 
-  /** return the Font */
+  /** return the java.awt.Font
+  *
+  * @return the java.awt.Font if the font is of that type; otherwise, null
+  */
   public Font getFont() {
-    return font;
+    if (font instanceof java.awt.Font) {
+      return (Font) font;
+    } else {
+      return null;
+    }
+  }
+
+  /** return the HersheyFont 
+  *
+  * @return the visad.util.HersheyFont if the font is of 
+  * that type; otherwise, null
+  */
+  public HersheyFont getHersheyFont() {
+    if (font instanceof visad.util.HersheyFont) {
+      return (HersheyFont) font;
+    } else {
+      return null;
+    }
   }
 
   /** set the centering flag; if true, text will be centered at
@@ -219,7 +249,7 @@ public class TextControl extends Control {
     return format;
   }
 
-  private boolean fontEquals(Font newFont)
+  private boolean fontEquals(Object newFont)
   {
     if (font == null) {
       if (newFont != null) {

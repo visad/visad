@@ -27,11 +27,13 @@ import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
 import visad.java2d.DisplayImplJ2D;
+import visad.util.HersheyFont;
 
 public class Test69
   extends UISkeleton
 {
   private boolean sphere;
+  private String hfont;
 
   public Test69() { }
 
@@ -41,11 +43,19 @@ public class Test69
     super(args);
   }
 
-  public void initializeArgs() { sphere = false; }
+  public void initializeArgs() { 
+    sphere = false;
+    hfont = null;
+  }
 
-  public int checkKeyword(String testName, int argc, String[] args)
+ public int checkKeyword(String testName, int argc, String[] args)
   {
-    sphere = true;
+    if (args[argc].length() >= 3 && "sphere".startsWith(args[argc])) {
+      sphere = true;
+      return 1;
+    }
+
+    hfont = args[argc];
     return 1;
   }
 
@@ -99,8 +109,13 @@ public class Test69
     ScalarMap tmap = new ScalarMap(text, Display.Text);
     dpys[0].addMap(tmap);
     TextControl tcontrol = (TextControl) tmap.getControl();
-    Font font = new Font("Serif", Font.PLAIN, 60);
-    tcontrol.setFont(font);
+    if (hfont == null) {
+      Font font = new Font("Serif", Font.PLAIN, 60);
+      tcontrol.setFont(font);
+    } else {
+      HersheyFont font = new HersheyFont(hfont);
+      tcontrol.setFont(font);
+    }
     tcontrol.setSphere(sphere);
     tcontrol.setCenter(true);
     tcontrol.setSize(2.0);
@@ -125,7 +140,7 @@ public class Test69
 
   String getFrameTitle() { return "text with font in Java3D"; }
 
-  public String toString() { return " sphere: text with font in Java3D"; }
+  public String toString() { return " [sphere  <HersheyFontName>]: text with font in Java3D"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
