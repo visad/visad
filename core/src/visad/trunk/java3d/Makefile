@@ -16,7 +16,7 @@ all::
 
 # this should point to the GCC standard library directory
 #
-# GCC_LIBDIR=`gcc -print-libgcc-file-name | sed 's/\/[^\/]*$$//'`
+GCC_LIBDIR=`gcc -print-libgcc-file-name | sed 's/\/[^\/]*$$//'`
 
 # this is the list of libraries needed for the TrackD JNI shim
 #
