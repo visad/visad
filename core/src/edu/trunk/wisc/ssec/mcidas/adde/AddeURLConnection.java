@@ -295,7 +295,7 @@ public class AddeURLConnection extends URLConnection
         svc = (new String("aget")).getBytes();
         reqType = AGET;
     }
-    else if (request.startsWith("griddirectory"))
+    else if (request.startsWith("griddir"))
     {
         svc = (new String("gdir")).getBytes();
         reqType = GDIR;
