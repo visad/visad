@@ -52,7 +52,22 @@ import visad.data.visad.VisADForm;
 import visad.data.mcidas.AreaForm;
 
 /**
-  * A container for all the officially supported VisAD datatypes.
+  * A container for all the officially supported VisAD datatypes.<br>
+  * <br>
+  * To read a <tt>Data</tt> object from a file or URL:<br>
+  * <pre>
+  *    Data data = new DefaultFamily("dflt").open(string);
+  * </pre>
+  * <br>
+  * To save a Data object to a file:<br>
+  * <pre>
+  *    new DefaultFamily("dflt").save("file.nc", data, true);
+  * </pre>
+  * <br>
+  * To add a Data object to an existing file:<br>
+  * <pre>
+  *    new DefaultFamily("dflt").add("file.nc", data, true);
+  * </pre>
   */
 public class DefaultFamily
 	extends FormFamily
