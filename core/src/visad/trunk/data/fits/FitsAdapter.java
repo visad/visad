@@ -29,13 +29,13 @@ import visad.SetType;
 import visad.TypeException;
 import visad.VisADException;
 
-public class FitsAdaptor
+public class FitsAdapter
 {
   Fits fits;
   Data data[];
   ExceptionStack stack;
 
-  public FitsAdaptor(String filename)
+  public FitsAdapter(String filename)
 	throws VisADException
   {
     try {

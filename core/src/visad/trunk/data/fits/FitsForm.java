@@ -39,7 +39,7 @@ public class FitsForm
   public DataImpl open(String path)
 	throws BadFormException, RemoteException, VisADException
   {
-    FitsAdaptor fits = new FitsAdaptor(path);
+    FitsAdapter fits = new FitsAdapter(path);
 
     // save any exceptions
     ExceptionStack eStack = null;
@@ -54,7 +54,7 @@ public class FitsForm
       data = fits.getData();
     }
 
-    // throw away FitsAdaptor object so we can reuse that memory
+    // throw away FitsAdapter object so we can reuse that memory
     fits = null;
 
     // if there's no data, we're done
