@@ -160,6 +160,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 	ScalarMap sm = (ScalarMap )me.nextElement();
 	addMap(sm);
       }
+    } catch (UnmarshalException ue) {
+      System.err.println("Couldn't copy one or more remote ScalarMaps");
     } catch (Exception e) {
     }
   }
@@ -174,6 +176,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 	ConstantMap cm = (ConstantMap )ce.nextElement();
 	addMap(cm);
       }
+    } catch (UnmarshalException ue) {
+      System.err.println("Couldn't copy one or more remote ConstantMaps");
     } catch (Exception e) {
     }
   }
@@ -192,6 +196,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       gmc.setScaleEnable(rc.getScaleEnable());
       gmc.setTransparencyMode(rc.getTransparencyMode());
       gmc.setProjectionPolicy(rc.getProjectionPolicy());
+    } catch (UnmarshalException ue) {
+      System.err.println("Couldn't copy remote GraphicsModeControl");
     } catch (Exception e) {
     }
   }
@@ -240,6 +246,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 	  }
 	}
       }
+    } catch (UnmarshalException ue) {
+      System.err.println("Couldn't copy one or more remote DataReferences");
     } catch (Exception e) {
     }
   }
