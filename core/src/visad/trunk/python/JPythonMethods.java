@@ -2013,13 +2013,43 @@ public abstract class JPythonMethods {
 
 
   /**
+  * Replaces values in a FlatField with the constant given
+  *
+  * @param f is the input FlatField
+  * @param list is the int[] list of indecies into f to replace
+  * @param v is the value to insert into f.
+  */
+  public static FlatField replace(FlatField f, int[] list, Real v) 
+             throws VisADException, RemoteException {
+    return replace(f, list, v.getValue());
+  }
+
+  /**
+  * Replaces values in a FlatField with the constant given
+  *
+  * @param f is the input FlatField
+  * @param list is the int[] list of indecies into f to replace
+  * @param v is the value to insert into f.
+  */
+  public static FlatField replace(FlatField f, int[] list, double v) 
+             throws VisADException, RemoteException {
+    double [][] dv = f.getValues(false);
+    for (int i=0; i<list.length; i++) {
+      dv[0][list[i]] = v;
+    }
+    f.setSamples(dv);
+    return f;
+
+  }
+ 
+  /**
   * Mask out values outside testing limits
   *
-  * @param f  VisAD data object (usually FlatField) as source
+  * @param f  VisAD data object (FlatField) as source
   * @param op  Comparison operator as string ('gt','le',...)
   * @param v  Numeric operand for comparison
   *
-  * @return a FieldImpl with values of either 0 (did not meet
+  * @return a FlatField with values of either 0 (did not meet
   * criterion) or 1 (met criteron).
   *
   * Example:  b = mask(a, 'gt', 100)
@@ -2027,7 +2057,7 @@ public abstract class JPythonMethods {
   * 1 where 'a' was > 100, and zero elsewhere.
   *
   */
-  public static FieldImpl mask(Data f, String op, double v) 
+  public static FlatField mask(FlatField f, String op, double v) 
              throws VisADException, RemoteException {
     return mask(f, op, new Real(v));
   }
@@ -2042,7 +2072,7 @@ public abstract class JPythonMethods {
   * If the value of 'v' is a Field, then it will be resampled
   * to the domain of 'f' is possible before the comparison.
   *
-  * @return a FieldImpl with values of either 0 (did not meet
+  * @return a FlatField with values of either 0 (did not meet
   * criterion) or 1 (met criteron).
   *
   * Example:  b = mask(a, 'gt', c)
@@ -2051,9 +2081,9 @@ public abstract class JPythonMethods {
   * elsewhere.
   *
   */
-  public static FieldImpl mask(Data f, String op, Data v)
+  public static FlatField mask(Data f, String op, Data v)
              throws VisADException, RemoteException {
-    FieldImpl fv = (FieldImpl) f.subtract(v);
+    FlatField fv = (FlatField) f.subtract(v);
     double [][] dv = fv.getValues(false);
     int oper = -1;
     for (int i=0; i<ops.length; i++) {
@@ -2117,7 +2147,7 @@ public abstract class JPythonMethods {
   /**
   * Get a list of points where a comparison is true.
   *
-  * @param f  VisAD data object (usually FlatField) as source
+  * @param f  VisAD data object (FlatField) as source
   * @param op  Comparison operator as string ('gt','le',...)
   * @param v  Numeric operand for comparison
   *
@@ -2129,7 +2159,7 @@ public abstract class JPythonMethods {
   * 'a' where the values are > 100.
   *
   */
-  public static int[] find(Data f, String op, double v) 
+  public static int[] find(FlatField f, String op, double v) 
              throws VisADException, RemoteException {
     return find(f, op, new Real(v));
   }
@@ -2155,7 +2185,7 @@ public abstract class JPythonMethods {
   */
   public static int[] find(Data f, String op, Data v)
              throws VisADException, RemoteException {
-    FieldImpl fv = (FieldImpl) f.subtract(v);
+    FlatField fv = (FlatField) f.subtract(v);
     double [][] dv = fv.getValues(false);
     Vector z = new Vector();
     int oper = -1;
@@ -2423,6 +2453,41 @@ public abstract class JPythonMethods {
       }
      
    } 
+
+   public static UnionSet makePairedLines(MathType mt, double[][] points) 
+             throws VisADException, RemoteException {
+     int dim = points.length;
+     int len = points[0].length;
+     UnionSet us = null;
+     if (dim == 2) {
+       float[][] samples = new float[2][2];
+       Gridded2DSet[] gs2 = new Gridded2DSet[len/2];
+       for (int k=0; k < len; k=k+2) {
+         samples[0][0] = (float) points[0][k];
+         samples[0][1] = (float) points[0][k+1];
+         samples[1][0] = (float) points[1][k];
+         samples[1][1] = (float) points[1][k+1];
+         gs2[k/2] = new Gridded2DSet(mt, samples, 2);
+       }
+       us = new UnionSet(gs2);
+
+     } else if (dim == 3) {
+       float[][] samples = new float[3][2];
+       Gridded3DSet[] gs3 = new Gridded3DSet[len/2];
+       for (int k=0; k < len; k=k+2) {
+         samples[0][0] = (float) points[0][k];
+         samples[0][1] = (float) points[0][k+1];
+         samples[1][0] = (float) points[1][k];
+         samples[1][1] = (float) points[1][k+1];
+         samples[2][0] = (float) points[2][k];
+         samples[2][1] = (float) points[2][k+1];
+         gs3[k/2] = new Gridded3DSet(mt, samples, 3);
+       }
+       us = new UnionSet(gs3);
+     }
+
+     return us;
+   }
   
   /** helper method for the dump(Data|Math)Type() methods
   *   this will list both the MathType and DataType information
