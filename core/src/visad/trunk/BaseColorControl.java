@@ -102,6 +102,15 @@ public abstract class BaseColorControl extends Control {
     changeControl(true);
   }
 
+  public float[][] getTable() {
+    if (table == null) return null;
+    float[][] t = new float[4][tableLength];
+    for (int j=0; j<4; j++) {
+      System.arraycopy(table[j], 0, t[j], 0, tableLength);
+    }
+    return t;
+  }
+
   public synchronized float[][] lookupValues(float[] values)
          throws VisADException, RemoteException {
     int len = values.length;
