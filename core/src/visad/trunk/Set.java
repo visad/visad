@@ -607,10 +607,15 @@ public abstract class Set extends DataImpl implements SetIface {
     RealType[] types = ((SetType) getType()).getDomain().getRealComponents();
     Real[] reals = new Real[DomainDimension];
     for (int i=0; i<DomainDimension; i++) {
-      reals[i] = new Real(types[i], values[i][0]);
+      reals[i] = new Real(types[i], values[i][0], SetUnits[i]);
     }
-    if (DomainDimension == 1) return reals[0];
-    else return new RealTuple(reals);
+    if (DomainDimension == 1) {
+      return reals[0];
+    }
+    else {
+      RealTupleType rtt = ((SetType) getType()).getDomain();
+      return new RealTuple(rtt, reals, getCoordinateSystem());
+    }
   }
   /** end of for JPython */
 
