@@ -239,7 +239,8 @@ public class Spline {
 
 
       ScalarMap map_x = new ScalarMap( RealType.XAxis, Display.XAxis);
-      map_x.setRange( 0., 50.);
+      // map_x.setRange( 0., 50.);
+      map_x.setRange( 0., (double) (n_samples - 1));
       ScalarMap map_y = new ScalarMap( RealType.YAxis, Display.YAxis);
       display1.addMap( map_x );
       display1.addMap( map_y );

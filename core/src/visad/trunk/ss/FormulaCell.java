@@ -28,6 +28,7 @@ package visad.ss;
 // JFC classes
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.JDialog;
 
 // AWT packages
 import java.awt.*;
@@ -53,6 +54,9 @@ class FormulaCell extends CellImpl {
   boolean ShowErrors;
 
   private static final RealType CONSTANT = createConstant();
+
+  // WLH 3 Dec 98
+  private boolean delay = false;
 
   private static RealType createConstant() {
     RealType r;
@@ -150,6 +154,15 @@ class FormulaCell extends CellImpl {
   }
 
   public void doAction() {
+    // WLH 3 Dec 98
+    if (delay) {
+      try {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException e) {
+      }
+      delay = false;
+    }
     Data value = null;
     Data[] stack = new Data[PFormula.length];
     int sp = 0;
@@ -301,6 +314,8 @@ class FormulaCell extends CellImpl {
             "One or more data objects are not of the correct type for " +
             "an operation specified in the formula.",
             "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+          // WLH 3 Dec 98
+          delay = true;
         }
       }
       catch (VisADException exc) {
@@ -308,6 +323,8 @@ class FormulaCell extends CellImpl {
         if (ShowErrors) {
           JOptionPane.showMessageDialog(SSCell, exc.toString(),
             "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+          // WLH 3 Dec 98
+          delay = true;
         }
       }
       catch (RemoteException exc) {
@@ -315,6 +332,8 @@ class FormulaCell extends CellImpl {
         if (ShowErrors) {
           JOptionPane.showMessageDialog(SSCell, exc.toString(),
             "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+          // WLH 3 Dec 98
+          delay = true;
         }
       }
     }
@@ -327,12 +346,16 @@ class FormulaCell extends CellImpl {
         if (ShowErrors) {
           JOptionPane.showMessageDialog(SSCell, "Unable to clear old data.",
             "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+          // WLH 3 Dec 98
+          delay = true;
         }
       }
       catch (RemoteException exc) {
         if (ShowErrors) {
           JOptionPane.showMessageDialog(SSCell, "Unable to clear old data.",
             "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+          // WLH 3 Dec 98
+          delay = true;
         }
       }
       setX(true);
@@ -352,12 +375,16 @@ class FormulaCell extends CellImpl {
         if (ShowErrors) {
           JOptionPane.showMessageDialog(SSCell, "Unable to display new data.",
             "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+          // WLH 3 Dec 98
+          delay = true;
         }
       }
       catch (RemoteException exc) {
         if (ShowErrors) {
           JOptionPane.showMessageDialog(SSCell, "Unable to display new data.",
             "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+          // WLH 3 Dec 98
+          delay = true;
         }
       }
     }
