@@ -12,7 +12,8 @@ import edu.wisc.ssec.mcidas.adde.*;
 import edu.wisc.ssec.mcidas.AreaFile;
 import edu.wisc.ssec.mcidas.AreaFileException;
 
-/** Application to fetch an AREA file and write it as a local file
+/** 
+* Application to fetch an AREA file and write it as a local file.
 *
 * It is command-line driven, but can be forced into "gui mode" by
 * either using the '-gui' option or specifying the URL 'adde://image?'
@@ -20,7 +21,7 @@ import edu.wisc.ssec.mcidas.AreaFileException;
 * the desitnation filename on the command line; whereas with the -gui
 * option, a FileChooser is presented to the user).
 *
-* @author: Tom Whittaker, SSEC/CIMSS
+* @author Tom Whittaker, SSEC/CIMSS
 *
 */
 

@@ -36,8 +36,8 @@ import edu.wisc.ssec.mcidas.McIDASUtil;
 
 /** 
  * Read text from an ADDE server interface for McIDAS ADDE data sets.  
- * This class handles file, weather text and obs text requests.<P>
- *
+ * This class handles file, weather text and obs text requests.
+ * <P>
  * <pre>
  * For File Reading:
  *   URLs must all have the following format   
@@ -56,22 +56,22 @@ import edu.wisc.ssec.mcidas.McIDASUtil;
  *
  * For Weather Text Reading:
  *   URLs must all have the following format   
- *     adde://host/wxtext?group=group&key1=value1&key2=val2....&keyn=valn
+ *     adde://host/wxtext?group=group&amp;key1=value1&amp;key2=val2....&amp;keyn=valn
  *
  *   there can be any valid combination of the following supported keywords:
  *
- *     group=<group>         weather text group (default= RTWXTEXT)
- *     prod=<product>        predefind product name
- *     apro=<val1 .. valn>   AFOS/AWIPS product headers to match (don't 
+ *     group=&lt;group&gt;         weather text group (default= RTWXTEXT)
+ *     prod=&lt;product&gt;        predefind product name
+ *     apro=&lt;val1 .. valn&gt;   AFOS/AWIPS product headers to match (don't 
  *                           use with wmo keyword
- *     astn=<val1 .. valn>   AFOS/AWIPS stations to match
- *     wmo= <val1 .. valn>   WMO product headers to match (don't 
+ *     astn=&lt;val1 .. valn&gt;   AFOS/AWIPS stations to match
+ *     wmo= &lt;val1 .. valn&gt;   WMO product headers to match (don't 
  *                           use with apro keyword
- *     wstn=<val1 .. valn>   WMO stations to match
- *     day=<start end>       range of days to search
- *     dtime=<numhours>      maximum number of hours to search back (def=96)
- *     match=<match strings> list of character match strings to find from text
- *     num=<num>             number of matches to find (def=1)
+ *     wstn=&lt;val1 .. valn&gt;   WMO stations to match
+ *     day=&lt;start end&gt;       range of days to search
+ *     dtime=&lt;numhours&gt;      maximum number of hours to search back (def=96)
+ *     match=&lt;match strings&gt; list of character match strings to find from text
+ *     num=&lt;num&gt;             number of matches to find (def=1)
  *
  *   the following keywords are required:
  *
@@ -79,25 +79,25 @@ import edu.wisc.ssec.mcidas.McIDASUtil;
  *     one of the selection criteria
  *
  *   an example URL might look like:
- *     adde://adde.ucar.edu/wxtext?group=rtwxtext&prod=zone_fcst&astn=bou
+ *     adde://adde.ucar.edu/wxtext?group=rtwxtext&amp;prod=zone_fcst&amp;astn=bou
  *
  * For Observational Text Reading:
  *   URLs must all have the following format   
- *     adde://host/obtext?group=group&descr=descr&key1=value1....&keyn=valn
+ *     adde://host/obtext?group=group&amp;descr=descr&amp;key1=value1....&amp;keyn=valn
  *
  *   there can be any valid combination of the following supported keywords:
  *
- *     group=<group>         weather text group (default= RTWXTEXT)
- *     descr=<descriptor>    weather text subgroup (default=SFCHOURLY)
- *     id=<id1 id2 ... idn>  list of station ids
- *     co=<co1 co2 ... con>  list of countries
- *     reg=<reg1 reg2..regn> list of regions
- *     newest=<day hour>     most recent time to allow in request 
+ *     group=&lt;group&gt;         weather text group (default= RTWXTEXT)
+ *     descr=&lt;descriptor&gt;    weather text subgroup (default=SFCHOURLY)
+ *     id=&lt;id1 id2 ... idn&gt;  list of station ids
+ *     co=&lt;co1 co2 ... con&gt;  list of countries
+ *     reg=&lt;reg1 reg2..regn&gt; list of regions
+ *     newest=&lt;day hour&gt;     most recent time to allow in request 
  *                           (def=current time)
- *     oldest=<day hour>     oldest observation time to allow in request
- *     type=<type>           numeric value for the type of ob
- *     nhours=<numhours>     maximum number of hours to search
- *     num=<num>             number of matches to find (def=1)
+ *     oldest=&lt;day hour&gt;     oldest observation time to allow in request
+ *     type=&lt;type&gt;           numeric value for the type of ob
+ *     nhours=&lt;numhours&gt;     maximum number of hours to search
+ *     num=&lt;num&gt;             number of matches to find (def=1)
  *
  *   the following keywords are required:
  *
@@ -106,7 +106,7 @@ import edu.wisc.ssec.mcidas.McIDASUtil;
  *     id, co, or reg
  *
  *   an example URL might look like:
- *     adde://adde.ucar.edu/obtext?group=rtwxtext&descr=sfchourly&id=kden&num=2
+ *     adde://adde.ucar.edu/obtext?group=rtwxtext&amp;descr=sfchourly&amp;id=kden&amp;num=2
  *
  * </pre>
  *

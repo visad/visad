@@ -44,20 +44,20 @@ import edu.wisc.ssec.mcidas.McIDASUtil;
  *
  * <pre>
  * URLs must all have the following format   
- *   adde://host/point?keyword_1=value_1&keyword_2=value_2
+ *   adde://host/point?keyword_1=value_1&amp;keyword_2=value_2
  *
  * there can be any valid combination of the following supported keywords:
  *
- *   group=<groupname>         ADDE group name
- *   descr=<descriptor>        ADDE descriptor name
- *   pos=<position>            request an absolute or relative ADDE 
+ *   group=&lt;groupname&gt;         ADDE group name
+ *   descr=&lt;descriptor&gt;        ADDE descriptor name
+ *   pos=&lt;position&gt;            request an absolute or relative ADDE 
  *                               position number
- *   select=<select clause>    to specify which data is required
- *   param=<param list>        what parameters to return
- *   num=<max>                 maximum number of obs to return
- *   user=<user_id>            ADDE user identification
- *   proj=<proj #>             a valid ADDE project number
- *   trace=<0/1>               setting to 1 tells server to write debug 
+ *   select=&lt;select clause&gt;    to specify which data is required
+ *   param=&lt;param list&gt;        what parameters to return
+ *   num=&lt;max&gt;                 maximum number of obs to return
+ *   user=&lt;user_id&gt;            ADDE user identification
+ *   proj=&lt;proj #&gt;             a valid ADDE project number
+ *   trace=&lt;0/1&gt;               setting to 1 tells server to write debug 
  *                               trace file (imagedata, imagedirectory)
  *   version=1                 ADDE version number, currently 1 
  *   
@@ -67,7 +67,7 @@ import edu.wisc.ssec.mcidas.McIDASUtil;
  *   descr
  *
  * an example URL might look like:
- *   adde://rtds/point?group=neons&type=metar
+ *   adde://rtds/point?group=neons&amp;type=metar
  * </pre>
  *
  * @author Don Murray - Unidata and James Kelly - BoM
@@ -126,7 +126,7 @@ public class AddePointDataReader {
      *
      * <pre>
      * an example URL might look like:
-     *   adde://rtds.ho.bom.gov.au/point?group=neons&descr=metar
+     *   adde://rtds.ho.bom.gov.au/point?group=neons&amp;descr=metar
      * </pre>
      *
      * @exception AddeException if there are no datasets of the particular
@@ -258,7 +258,8 @@ public class AddePointDataReader {
      * Return the data sent by the server
      *
      * @return  array of the data.  Data is in the format of an integer array
-     *          of unscaled integers as returned from the server.
+     *          of unscaled integers as returned from the server in parameter
+     *          order ([numParams][numObs]).
      *
      * @exception AddeException if there was an error reading data
      */
@@ -269,11 +270,14 @@ public class AddePointDataReader {
     }
 
     /**
-     * Return the data sent by the server. 
-     * @param   order   order of the data.  
+     * Return the data sent by the server in a particular order
+     * (PARAM_ORDER, OB_ORDER). 
+     * @param   order   order of the data.  (PARAM_ORDER, OB_ORDER)
      *
      * @return  array of the data.  Data is in the format of an integer array
-     *          of unscaled integers as returned from the server.
+     *          of unscaled integers in the specified order
+     *          (PARAM_ORDER = [numParams][numObs],
+     *           OB_ORDER = [numObs][numParams])
      *
      * @exception AddeException if there was an error reading data
      */
@@ -353,8 +357,6 @@ public class AddePointDataReader {
     }
 
     /**
-     * DOESN'T WORK YET.  HAVE TO RESOLVE Object[] vs. int[].
-     *
      * Return an array of data for the particular parameter. 
      *
      * @return array of values for the particular parameter or

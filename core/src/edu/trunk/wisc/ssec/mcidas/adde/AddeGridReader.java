@@ -40,26 +40,42 @@ import edu.wisc.ssec.mcidas.*;
 import edu.wisc.ssec.mcidas.adde.*;
 
 /** 
- * GridDirList interface for McIDAS ADDE grid data sets.   Simulates a
+ * AddeGridReader interface for McIDAS ADDE grid data sets.   Simulates a
  * McIDAS GRDLIST request using an ADDE URL.
  *
  * <pre>
- * URLs must all have the following format   
- *   adde://host/griddirectory?keyword_1=value_1&keyword_2=value_2
+ * URLs must all have the following format:
+ *
+ *   for directory listing:
+ *
+ *   adde://host/griddirectory?keyword_1=value_1&amp;keyword_2=value_2
+ *
+ *   or  (for data)
+ *
+ *   adde://host/griddata?keyword_1=value_1&amp;keyword_2=value_2
  *
  * there can be any valid combination of the following supported keywords:
  *
- *   group - ADDE group name   
- *   type  - ADDE data type.  Must be one of the following:
- *               image, point, grid, text, nav
- *           the default is the image type.
+ *   group=&lt;groupname&gt;         ADDE group name
+ *   descr=&lt;descriptor&gt;        ADDE descriptor name
+ *   param=&lt;param list&gt;        parameter code list
+ *   time=&lt;model run time&gt;     time in hhmmss format
+ *   day=&lt;model run day&gt;       day in ccyyddd format
+ *   lev=&lt;level list&gt;          list of requested levels (value or SFC, MSL 
+ *                               or TRO)
+ *   ftime=&lt;forecast time&gt;     valid time (hhmmss format) (use with fday)
+ *   fday=&lt;forecast day&gt;       forecast day (ccyyddd)
+ *   fhour=&lt;forecast hours&gt;    forecast hours (offset from model run time)
+ *                                (hhmmss format)
+ *   num=&lt;max&gt;                 maximum number of grids to return (nn)
  *
  * the following keywords are required:
  *
  *   group
+ *   descr
  *
  * an example URL might look like:
- *   adde://viper/griddirectory?group=gvar&type=image
+ *   adde://viper/griddirectory?group=rtmodel&amp;descr=eta
  * </pre>
  *
  * @author Tom Whittaker
@@ -110,7 +126,7 @@ public class AddeGridReader {
      *
      * <pre>
      * an example URL might look like:
-     *   adde://viper/griddirectory?group=gvar&type=image
+     *   adde://viper/griddirectory?group=gvar&amp;type=image
      * </pre>
      *
      * @exception AddeURLException if there are no datasets of the particular
@@ -196,7 +212,7 @@ public class AddeGridReader {
      *
      * <pre>
      * an example URL might look like:
-     *   adde://viper/grid?group=abom&type=grid&parm=T&lev=500&
+     *   adde://viper/griddata?group=abom&amp;descr=grid&amp;parm=T&amp;lev=500
      * </pre>
      *
      * @exception AddeURLException if there are no datasets of the particular
