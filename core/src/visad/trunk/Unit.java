@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.14 1999-12-14 19:24:27 steve Exp $
+ * $Id: Unit.java,v 1.15 2000-04-21 21:08:14 steve Exp $
  */
 
 package visad;
@@ -350,16 +350,24 @@ public abstract class Unit
     public Unit shift(double offset)
 	throws UnitException
     {
+	Unit	unit;
 	if (this instanceof BaseUnit)
-	    return new OffsetUnit(offset, (BaseUnit)this);
-	if (this instanceof DerivedUnit)
-	    return new OffsetUnit(offset, (DerivedUnit)this);
-	if (this instanceof ScaledUnit)
-	    return new OffsetUnit(offset, (ScaledUnit)this);
-	if (this instanceof OffsetUnit)
-	    return new OffsetUnit(offset, (OffsetUnit)this);
+	    unit = new OffsetUnit(offset, (BaseUnit)this);
+	else if (this instanceof DerivedUnit)
+	    unit = new OffsetUnit(offset, (DerivedUnit)this);
+	else if (this instanceof ScaledUnit)
+	    unit = new OffsetUnit(offset, (ScaledUnit)this);
+	else if (this instanceof OffsetUnit)
+	    unit = new OffsetUnit(offset, (OffsetUnit)this);
+	else
+	{
+	    throw new UnitException(
+		"Unit.shift(): Unknown unit subclass: " + this);
+	}
+	if (this.isConvertible(SI.second))
+	    unit = TimeScaleUnit.instance((OffsetUnit)unit);
 
-	throw new UnitException("Unknown unit subclass");
+	return unit;
     }
 
     /**
