@@ -7,29 +7,69 @@
 The Measure tab provides functions for measuring aspects of the data by
 placing lines and markers on and across data slices.
 <p>
-<font size="+1"><b>Adding measurements</b></font>
+<font size="+1"><b>Basic measurement controls</b></font>
 <p>
-(new line; new marker; basics of measurements--concepts and mouse controls)
+To add a measurement line, click the "New line" button. To add a measurement
+marker, click the "New marker" button.
 <p>
-<font size="+1"><b>Merging measurement endpoints</b></font>
+To select a measurement, click on it. Selecting multiple measurements is
+accomplished by holding SHIFT while clicking, or by holding SHIFT and dragging
+a rectangle over the measurements to select. Selected measurements have yellow
+endpoints, and selected lines appear dashed instead of solid. To unselect all
+measurements, click the left button on an empty area of the display. Note that
+in the current version of VisBio, measurements can be selected only in the 2-D
+display.
 <p>
-(how to merge measurement endpoints)
+Once a measurement is selected, many of its properties can be altered. It can
+be removed by clicking the "Remove" button, its color can be changed using the
+"Color" drop-down box, its measurement group can be changed using the "Group"
+drop-down box (see the "Measurement groups" section), and it can be set as
+standard (see the "Standard measurements" section).
 <p>
-<font size="+1"><b>Removing measurements</b></font>
+Lastly, to remove all measurements and start from scratch, click the "Clear
+all" button. A dialog will appear asking you to confirm your choice.
 <p>
-(clear all button, remove button)
+<font size="+1"><b>Measurement groups</b></font>
+<p>
+A measurement group is a simple way to classify and group measurements. Each
+measurement can belong to a group with associated title and description. For
+example, if you use markers to label cell nuclei, you could make a group called
+"nuclei" by clicking the "New" button next to the "Group" drop-down box,
+provide a group description by typing it into the "Group description" text
+area, and assign each measurement to that group accordingly.
 <p>
 <font size="+1"><b>Standard measurements</b></font>
 <p>
-(set standard checkbox, consequences of standard measurements)
+A measurement can be set to exist on multiple slices or timesteps. Such a
+measurement is said to be "standard." A "2-D standard" measurement exists on
+every slice of every timestep, whereas a "3-D standard" measurement exists only
+once at every timestep (and not necessarily on the same slices at each step).
 <p>
-<font size="+1"><b>Changing measurement properties</b></font>
+For example, suppose you wish to measure the diameter of a cell membrane at
+every slice of every timestep of your data. Place a line measuring the diameter
+at the first slice of the first timestep, then select it. Choose "2-D standard"
+to convert the measurement to a 2-D standard line. Then, proceed through each
+slice of each timestep, adjusting the line to match the cell membrane
+appropriately.
 <p>
-(selecting measurements, color, group)
+Standard measurements are particularly useful because they are represented in a
+special format when exported (see the "Exporting measurements" section).
 <p>
 <font size="+1"><b>Exporting measurements</b></font>
 <p>
-(export measurements button; Excel-friendly format)
+To export the list of measurements to a tab-delineated text format appropriate
+for import into a spreadsheet program such as Excel, click the "Export
+measurements" button. In this file, standard measurement values will appear in
+a table format, and single measurements will appear as a list at the bottom.
+<p>
+<font size="+1"><b>Merging measurement endpoints</b></font>
+<p>
+The endpoints from multiple measurement lines can be merged, so that dragging
+the merged endpoint adjusts all linked lines accordingly. To merge endpoints,
+click the "Merge" button. After being clicked, the button will appear
+highlighted. Then, hold SHIFT and drag a rectangle across all endpoints to be
+merged. All endpoints within this rectangle will be combined into a single
+endpoint.
 <p>
 </body>
 </html>

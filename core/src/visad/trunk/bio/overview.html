@@ -44,9 +44,9 @@ To sidestep this problem, VisBio reads in all timesteps one at a time when
 it first imports the dataset. It creates a low-resolution thumbnail of each
 slice of every timestep, keeping all these thumbnails in memory at once.
 <p>
-VisBio has a "lo-res" mode and a "hi-res" mode. In lo-res mode the thumbnail
-is displayed, whereas in hi-res mode the timestep is loaded from disk. When
-you switch timesteps, VisBio uses lo-res mode by default to avoid the
+VisBio has a "Lo-res" mode and a "Hi-res" mode. In Lo-res mode the thumbnail
+is displayed, whereas in Hi-res mode the timestep is loaded from disk. When
+you switch timesteps, VisBio uses Lo-res mode by default to avoid the
 slowdown of going to disk for the next timestep. Thus, animation is still
 quick.
 <p>
@@ -60,7 +60,7 @@ loading time.
 You can specify the thumbnail resolution by altering the values next to the
 "Create low-resolution thumbnails" checkbox when first importing a dataset
 (the default is 64 x 64 pixels). Making these numbers smaller will result in
-lo-res mode looking blockier but taking less memory, whereas larger numbers
+Lo-res mode looking blockier but taking less memory, whereas larger numbers
 will require more memory to store the thumbnails but look crisper while
 animating.
 <p>

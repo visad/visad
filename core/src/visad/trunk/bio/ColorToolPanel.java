@@ -172,7 +172,6 @@ public class ColorToolPanel extends ToolPanel
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     contrastLabel = new JLabel("Contrast: ");
     contrastLabel.setForeground(Color.black);
-    contrastLabel.setPreferredSize(brightnessLabel.getPreferredSize());
     contrastLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
     contrastLabel.setDisplayedMnemonic('c');
     String contrastToolTip = "Adjusts the contrast of the displays";
@@ -297,10 +296,11 @@ public class ColorToolPanel extends ToolPanel
     // alpha label
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    alphaLabel = new JLabel("Alpha: ");
+    alphaLabel = new JLabel("Transparency: ");
     alphaLabel.setForeground(Color.black);
     alphaLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
-    alphaLabel.setPreferredSize(brightnessLabel.getPreferredSize());
+    brightnessLabel.setPreferredSize(alphaLabel.getPreferredSize());
+    contrastLabel.setPreferredSize(alphaLabel.getPreferredSize());
     alphaLabel.setDisplayedMnemonic('a');
     String alphaToolTip = "Adjusts transparency when rendering as a volume";
     alphaLabel.setToolTipText(alphaToolTip);

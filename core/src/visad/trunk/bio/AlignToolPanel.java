@@ -236,8 +236,8 @@ public class AlignToolPanel extends ToolPanel {
       }
     });
     snap.setMnemonic('p');
-    snap.setToolTipText("Keeps all endpoints of the " +
-      "alignment triangle on a single slice");
+    snap.setToolTipText("Keeps all alignment triangle " +
+      "endpoints on a single slice");
     snap.setEnabled(false);
     controls.add(pad(snap));
 
