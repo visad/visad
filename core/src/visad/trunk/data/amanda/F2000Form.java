@@ -152,7 +152,7 @@ public class F2000Form
   }
 
   public static final RealType getLet() { return AmandaFile.getLeadEdgeTimeType(); }
-  public static final RealType getTrackIndex() { return Event.getTrackIndexType(); }
+  public static final RealType getTrackIndex() { return AmandaFile.getTrackIndexType(); }
 
   public static final RealType getX() { return AmandaFile.getXType(); }
   public final double getXMax() { return file.getXMax(); }

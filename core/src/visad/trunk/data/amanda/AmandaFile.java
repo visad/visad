@@ -832,6 +832,7 @@ public class AmandaFile
   public static final RealType getAmplitudeType() { return amplitudeType; }
   public static final RealType getEventIndexType() { return eventIndexType; }
   public static final RealType getLeadEdgeTimeType() { return letType; }
+  public static final RealType getTrackIndexType() { return Event.getTrackIndexType(); }
 
   public final double getXMax() { return xmax; }
   public final double getXMin() { return xmin; }
