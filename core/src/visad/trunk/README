@@ -27,6 +27,10 @@ or:
  
   ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
  
+If you have previously downloaded the VisAD source you
+should run 'make clear' in your visad directory to clear
+out the old source files before you unpack the new source.
+
 Unpack the jar file by running:
  
   jar xvf visad_src.2.0.jar

@@ -301,8 +301,8 @@ compile: clean
 		visad.RemoteFieldImpl visad.RemoteServerImpl
 	javac java3d/*.java
 	javac util/*.java
-	javac data/*.java
 	-(cd .. && jar xvf ucar.jar)
+	javac data/*.java
 	javac data/netcdf/units/*.java
 	javac data/netcdf/in/*.java
 	javac data/netcdf/out/*.java

@@ -62,8 +62,12 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
         double sinlat = Math.sin(Data.DEGREES_TO_RADIANS * tuples[0][i]);
         double coslon = Math.cos(Data.DEGREES_TO_RADIANS * tuples[1][i]);
         double sinlon = Math.sin(Data.DEGREES_TO_RADIANS * tuples[1][i]);
+/* WLH 23 June 98
         value[0][i] = tuples[2][i] * sinlon * coslat;
         value[1][i] = tuples[2][i] * coslon * coslat;
+*/
+        value[0][i] = tuples[2][i] * coslon * coslat;
+        value[1][i] = tuples[2][i] * sinlon * coslat;
         value[2][i] = tuples[2][i] * sinlat;
       }
     }
@@ -81,10 +85,16 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
       value[2][i] = Math.sqrt(tuples[0][i] * tuples[0][i] +
                               tuples[1][i] * tuples[1][i] +
                               tuples[2][i] * tuples[2][i]);
+/* WLH 23 June 98
       value[0][i] =
         Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]);
       value[1][i] =
         Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]);
+*/
+      value[0][i] =
+        Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]);
+      value[1][i] =
+        Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]);
       if (value[1][i] < 0.0) value[1][i] += 180.0;
     }
     return value;
@@ -108,8 +118,12 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
         float sinlat = (float) Math.sin(Data.DEGREES_TO_RADIANS * tuples[0][i]);
         float coslon = (float) Math.cos(Data.DEGREES_TO_RADIANS * tuples[1][i]);
         float sinlon = (float) Math.sin(Data.DEGREES_TO_RADIANS * tuples[1][i]);
+/* WLH 23 June 98
         value[0][i] = tuples[2][i] * sinlon * coslat;
         value[1][i] = tuples[2][i] * coslon * coslat;
+*/
+        value[0][i] = tuples[2][i] * coslon * coslat;
+        value[1][i] = tuples[2][i] * sinlon * coslat;
         value[2][i] = tuples[2][i] * sinlat;
       }
     }
@@ -127,10 +141,16 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
       value[2][i] = (float) Math.sqrt(tuples[0][i] * tuples[0][i] +
                                       tuples[1][i] * tuples[1][i] +
                                       tuples[2][i] * tuples[2][i]);
+/* WLH 23 June 98
       value[0][i] = (float)
         (Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]));
       value[1][i] = (float)
         (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]));
+*/
+      value[0][i] = (float)
+        (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]));
+      value[1][i] = (float)
+        (Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]));
       if (value[1][i] < 0.0f) value[1][i] += 180.0f;
     }
     return value;
