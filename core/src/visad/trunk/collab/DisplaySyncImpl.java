@@ -355,6 +355,7 @@ public class DisplaySyncImpl
         // drop this event since we're about to override it
         return;
       }
+      break;
     }
 
     addEvent(evt);
