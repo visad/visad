@@ -28,7 +28,7 @@ package visad.data.tiff;
 
 import ij.*;
 import ij.io.*;
-import ij.process.ImageProcessor;
+import ij.process.*;
 import java.awt.Image;
 import java.awt.image.*;
 import java.lang.reflect.*;
@@ -161,6 +161,37 @@ public class TiffForm extends Form implements FormFileInformer {
   }
 
   /**
+   * Converts a flat field of the form <tt>((x, y) -&gt; (r, g, b))</tt>
+   * to an ImageJ ImageProcessor.
+   */
+  private static ImageProcessor extractImage(FlatField field)
+    throws VisADException
+  {
+    Gridded2DSet set = (Gridded2DSet) field.getDomainSet();
+    int[] wh = set.getLengths();
+    int w = wh[0];
+    int h = wh[1];
+    double[][] samples = field.getValues();
+    int[] pixels = new int[samples[0].length];
+    if (samples.length == 3) {
+      for (int i=0; i<samples[0].length; i++) {
+        int r = (int) samples[0][i] & 0x000000ff;
+        int g = (int) samples[1][i] & 0x000000ff;
+        int b = (int) samples[2][i] & 0x000000ff;
+        pixels[i] = r << 16 | g << 8 | b;
+      }
+    }
+    else if (samples.length == 1) {
+      for (int i=0; i<samples[0].length; i++) {
+        int v = (int) samples[0][i] & 0x000000ff;
+        pixels[i] = v << 16 | v << 8 | v;
+      }
+    }
+    ColorProcessor cp = new ColorProcessor(w, h, pixels);
+    return cp;
+  }
+
+  /**
    * Saves a VisAD Data object to an uncompressed TIFF file.
    *
    * @param id        Filename of TIFF file to save.
@@ -171,35 +202,43 @@ public class TiffForm extends Form implements FormFileInformer {
     throws BadFormException, IOException, RemoteException, VisADException
   {
     // determine data type
-    String imageType = "((e, l) -> (r, g, b))";
-    String timeType = "(t -> " + imageType + ")";
+    String pcImageType = "((e, l) -> v)";
+    String rgbImageType = "((e, l) -> (r, g, b))";
+    String pcTimeType = "(t -> " + pcImageType + ")";
+    String rgbTimeType = "(t -> " + rgbImageType + ")";
     MathType type = data.getType();
-    RealType time = null;
-    FlatField[] field;
-    boolean multiPage;
-    if (type.equalsExceptName(MathType.stringToType(timeType))) {
-      multiPage = true;
+    if (type.equalsExceptName(MathType.stringToType(pcTimeType)) ||
+      type.equalsExceptName(MathType.stringToType(rgbTimeType)))
+    {
+      // save as multi-page TIFF
       FieldImpl fi = (FieldImpl) data;
       int len = fi.getLength();
-      field = new FlatField[len];
-      for (int i=0; i<len; i++) field[i] = (FlatField) fi.getSample(i);
-      FunctionType ft = (FunctionType) data.getType();
-      time = (RealType) ft.getDomain().getComponent(0);
+      ImageProcessor[] ips = new ImageProcessor[len];
+      for (int i=0; i<len; i++) {
+        FlatField field = (FlatField) fi.getSample(i);
+        ips[i] = extractImage(field);
+      }
+      ImageStack is = new ImageStack(ips[0].getWidth(),
+        ips[0].getHeight(), ips[0].getColorModel());
+      for (int i=0; i<len; i++) is.addSlice("" + i, ips[i]);
+      ImagePlus image = new ImagePlus(id, is);
+      FileSaver sav = new FileSaver(image);
+      sav.saveAsTiffStack(id);
     }
-    else if (type.equalsExceptName(MathType.stringToType(imageType))) {
-      multiPage = false;
-      field = new FlatField[] {(FlatField) data};
+    else if (type.equalsExceptName(MathType.stringToType(pcImageType)) ||
+      type.equalsExceptName(MathType.stringToType(rgbImageType)))
+    {
+      // save as single image TIFF
+      FlatField field = (FlatField) data;
+      ImageProcessor ip = extractImage(field);
+      ImagePlus image = new ImagePlus(id, ip);
+      FileSaver sav = new FileSaver(image);
+      sav.saveAsTiff(id);
     }
     else {
       throw new BadFormException(
         "Data type must be image or time sequence of images");
     }
-    Gridded2DSet set = (Gridded2DSet) field[0].getDomainSet();
-    int[] wh = set.getLengths();
-    int w = wh[0];
-    int h = wh[1];
-
-    throw new UnimplementedException("Saving data to TIFF coming soon");
   }
 
   /**
