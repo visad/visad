@@ -26,9 +26,7 @@ MA 02111-1307, USA
 
 package visad.data.amanda;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import java.net.URL;
 
@@ -52,8 +50,6 @@ public class F2000Form
   extends Form
   implements FormFileInformer
 {
-  private static final float CUBE = 0.05f;
-
   private static int num = 0;
 
   private AmandaFile file = null;
@@ -112,21 +108,14 @@ public class F2000Form
   public synchronized DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
-    FileInputStream fileStream = new FileInputStream(id);
-    return open(fileStream);
+    file = new AmandaFile(id);
+    return file.makeData();
   }
 
   public synchronized DataImpl open(URL url)
     throws BadFormException, VisADException, IOException
   {
-    InputStream inputStream = url.openStream();
-    return open(inputStream);
-  }
-
-  private synchronized DataImpl open(InputStream is)
-    throws BadFormException, VisADException, IOException
-  {
-    file = new AmandaFile(is);
+    file = new AmandaFile(url);
     return file.makeData();
   }
 

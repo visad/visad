@@ -23,16 +23,12 @@ MA 02111-1307, USA
 package visad.data.amanda;
 
 import java.io.BufferedReader;
-/*
-import java.io.FileInputStream;
-*/
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-/*
 import java.net.URL;
-*/
 
 import java.rmi.RemoteException;
 
@@ -597,13 +593,29 @@ public class AmandaFile
 
   private HashMap lastCache = new HashMap();
 
-  AmandaFile(InputStream is)
-    throws BadFormException, VisADException
+  public AmandaFile(String id)
+    throws BadFormException, IOException, VisADException
   {
-    this(new BufferedReader(new InputStreamReader(is)));
+    FileReader rdr = new FileReader(id);
+    try {
+      loadFile(new BufferedReader(rdr));
+    } finally {
+      try { rdr.close(); } catch (IOException ioe) { }
+    }
   }
 
-  AmandaFile(BufferedReader br)
+  public AmandaFile(URL url)
+    throws BadFormException, IOException, VisADException
+  {
+    InputStream is = url.openStream();
+    try {
+      loadFile(new BufferedReader(new InputStreamReader(is)));
+    } finally {
+      try { is.close(); } catch (IOException ioe) { }
+    }
+  }
+
+  private void loadFile(BufferedReader br)
     throws BadFormException, VisADException
   {
     // read V record
