@@ -35,12 +35,23 @@ import java.rmi.*;
 public class RemoteDataReferenceImpl extends RemoteThingReferenceImpl
        implements RemoteDataReference {
 
-  public RemoteDataReferenceImpl(DataReferenceImpl ref) throws RemoteException {
+  /**
+   * construct a RemoteDataReferenceImpl adapting the given
+   * DataReferenceImpl
+   * @param ref adpted DataReferenceImpl
+   * @throws RemoteException an RMI error occurred
+   */
+  public RemoteDataReferenceImpl(DataReferenceImpl ref)
+         throws RemoteException {
     super(ref);
   }
 
-  /** set this RemoteDataReferenceImpl to refer to d;
-      must be RemoteDataImpl */
+  /**
+   * set this RemoteDataReferenceImpl to refer to given Data
+   * @param d Data to be set (must be RemoteDataImpl)
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public synchronized void setData(Data d)
          throws VisADException, RemoteException {
     if (d == null) {
@@ -61,6 +72,14 @@ public class RemoteDataReferenceImpl extends RemoteThingReferenceImpl
     }
   }
 
+  /**
+   * return referenced Data object, but if Data is a FieldImpl
+   * return a RemoteFieldImpl referencing Data to avoid copying
+   * entire FieldImpl between JVMs
+   * @return referenced Data object, or null if none
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public Data getData() throws VisADException, RemoteException {
     if (AdaptedThingReference == null) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.getData: " +
@@ -82,6 +101,13 @@ public class RemoteDataReferenceImpl extends RemoteThingReferenceImpl
     }
   }
 
+  /**
+   * this is more efficient than getData().getType() for
+   * RemoteDataReferences
+   * @return the MathType of referenced Data object, or null if none;
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public MathType getType() throws VisADException, RemoteException {
     if (AdaptedThingReference == null) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.getType: " +

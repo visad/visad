@@ -46,23 +46,37 @@ import java.rmi.*;
 */
 public interface DataReference extends ThingReference {
 
-  /** set reference to data, replacing any currently referenced
-      Data object; if this is local (i.e., an instance of
-      DataReferenceImpl) then the data argument must also be
-      local (i.e., an instance of DataImpl);
-      if this is Remote (i.e., an instance of RemoteDataReference)
-      then a local data argument (i.e., an instance of DataImpl)
-      will be passed by copy and a remote data argument (i.e., an
-      instance of RemoteData) will be passed by remote reference;
-      invokes d.addReference(DataReference r) */
+  /**
+   * set reference to data, replacing any currently referenced
+   * Data object; if this is local (i.e., an instance of
+   * DataReferenceImpl) then the Data argument must also be
+   * local (i.e., an instance of DataImpl);
+   * if this is Remote (i.e., an instance of RemoteDataReference)
+   * then a local Data argument (i.e., an instance of DataImpl)
+   * will be passed by copy and a remote Data argument (i.e., an
+   * instance of RemoteData) will be passed by remote reference;
+   * invokes d.addReference(DataReference r)
+   * @param d Data object to be set
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void setData(Data d) throws VisADException, RemoteException;
 
-  /** get referenced Data object, or null if none */
+  /**
+   * @return referenced Data object, or null if none
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   Data getData() throws VisADException, RemoteException;
 
-  /** get MathType of referenced Data object, or null if none;
-      this is more efficient than getData().getType() for
-      RemoteDataReferences */
+  /**
+   * this is more efficient than getData().getType() for
+   * RemoteDataReferences
+   * @return the MathType of referenced Data object, or null if none;
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   MathType getType() throws VisADException, RemoteException;
+
 }
 

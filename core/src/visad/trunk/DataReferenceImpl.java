@@ -47,10 +47,22 @@ public class DataReferenceImpl extends ThingReferenceImpl
     super(name);
   }
 
+  /** 
+   * @return referenced Data object, or null if none 
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public Data getData() {
     return (Data) getThing();
   }
 
+  /** 
+   * this is more efficient than getData().getType() for 
+   * RemoteDataReferences
+   * @return the MathType of referenced Data object, or null if none;
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public MathType getType()
          throws VisADException, RemoteException {
     Data data = getData();
@@ -58,7 +70,7 @@ public class DataReferenceImpl extends ThingReferenceImpl
   }
 
   /**
-   * Sets the data object to which this instance refers.
+   * Sets the Data object to which this instance refers.
    *
    * @param d                     The data object.
    * @throws ReferenceException   if the data object is <code>null</code>.
@@ -67,21 +79,34 @@ public class DataReferenceImpl extends ThingReferenceImpl
   public void setData(Data d)
          throws VisADException, RemoteException {
     setThing(d);
-// DisplayImpl.printStack(getName());
   }
 
-  /** method for use by RemoteDataReferenceImpl that adapts this
-      DataReferenceImpl */
+  /**
+   * method for use by setData() method of the RemoteDataReferenceImpl
+   * that adapts this DataReferenceImpl
+   * @param d RemoteData being set
+   * @param r RemoteDataReference adapting this DataReferenceImpl
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   void adaptedSetData(RemoteData d, RemoteDataReference r)
                throws VisADException, RemoteException {
     adaptedSetThing(d, r);
   }
 
+  /**
+   * Indicates whether or not this instance is equal to an object
+   * @param o the object in question.
+   * @return <code>true</code> if and only if this instance equals o.
+   */
   public boolean equals(Object obj) {
     if (!(obj instanceof DataReference)) return false;
     return obj == this;
   }
 
+  /**
+   * @return String representation of this
+   */
   public String toString() {
     return "DataReference " + Name;
   }
