@@ -1051,13 +1051,16 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     SCPane.add(DisplayPanel);
 
     // BIG HAMMER HACK
-    addKeyListener(this);
-    SCPane.addKeyListener(this);
-    ScrollPanel.addKeyListener(this);
-    DisplayPanel.addKeyListener(this);
-    FormulaBox.addFocusListener(new FocusAdapter() {
-      public void focusGained(FocusEvent e) { SCPane.requestFocus(); }
-    });
+    String os = System.getProperty("os.name");
+    if (!os.startsWith("Windows")) { // Windows does not need the hack
+      addKeyListener(this);
+      SCPane.addKeyListener(this);
+      ScrollPanel.addKeyListener(this);
+      DisplayPanel.addKeyListener(this);
+      FormulaBox.addFocusListener(new FocusAdapter() {
+        public void focusGained(FocusEvent e) { SCPane.requestFocus(); }
+      });
+    }
 
     DataReferenceImpl lColRow = null;
     if (server != null) {
