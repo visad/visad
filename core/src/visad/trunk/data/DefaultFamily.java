@@ -259,7 +259,7 @@ public class DefaultFamily
 
     for (int i = 0; i < args.length; i++) {
       Data data;
-      System.out.println("Trying file " + args[i]);
+      System.out.println("Trying dataset " + args[i]);
       data = fr.open(args[i]);
       System.out.println(args[i] + ": " + data.getType().prettyString());
     }
