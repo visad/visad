@@ -95,9 +95,11 @@ public abstract class Unit
                                        Unit[] units_out) throws UnitException, VisADException {
 
       //If the input array equals the output array then simply return the value array
+      /*
       if (java.util.Arrays.equals (units_in, units_out)) {
           return value;
       }
+      */
       double[][] new_value = new double[value.length][];
       for (int i=0; i<value.length; i++) {
           if (units_out[i] == null) {
@@ -152,9 +154,11 @@ public abstract class Unit
                                        Unit[] units_out) throws UnitException, VisADException {
 
       //If the input array equals the output array then simply return the value array
+      /*
       if (java.util.Arrays.equals (units_in, units_out)) {
           return value;
       }
+      */
       float[][] new_value = new float[value.length][];
       for (int i=0; i<value.length; i++) {
           if (units_out[i] == null) {
