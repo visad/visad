@@ -68,7 +68,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       image_sequence_type = new FunctionType(RealType.Time, image_type);
       image_type2 =
         MathType.stringToType("((ImageElement, ImageLine) -> (ImageValue))");
-      image_sequence_type2 = new FunctionType(RealType.Time, image_type);
+      image_sequence_type2 = new FunctionType(RealType.Time, image_type2);
     }
     catch (VisADException e) {
       throw new VisADError(e.getMessage());
