@@ -152,12 +152,11 @@ public class F2000Form
   private static RealType trackIndexType;
   private static RealType hitIndexType;
   private static RealType amplitudeType;
-  private static RealType totType;
   private static RealType letType;
   private static RealType eventIndexType;
   private static RealType moduleIndexType;
 
-  private static RealTupleType xyz, hitType;
+  private static RealTupleType xyzType, hitType;
 
   private static FunctionType trackFunctionType;
   private static FunctionType tracksFunctionType;
@@ -185,28 +184,28 @@ public class F2000Form
     throw new BadFormException("F2000Form.add");
   }
 
-  private final Tuple buildData(ArrayList emEvents, Module[] om)
+  private final Tuple buildData(ArrayList events, Module[] om)
     throws VisADException
   {
     // Field of Tuples of track and hit Fields
-    final int nevents = emEvents.size();
+    final int nevents = events.size();
     Integer1DSet eventsSet =
       new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
-    FieldImpl events_field =
+    FieldImpl eventsField =
       new FieldImpl(eventsFunctionType, eventsSet);
     if (nevents > 0) {
-      Tuple[] event_tuples = (Tuple[] )emEvents.toArray(new Tuple[nevents]);
+      Tuple[] eventTuples = (Tuple[] )events.toArray(new Tuple[nevents]);
       try {
-        events_field.setSamples(event_tuples, false);
+        eventsField.setSamples(eventTuples, false);
       } catch (RemoteException re) {
         re.printStackTrace();
       }
     }
-    // return events_field;
+    // return eventsField;
 
     final int nmodules = om.length;
     Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
-    FlatField module_field =
+    FlatField moduleField =
       new FlatField(moduleFunctionType, moduleSet);
     float[][] msamples = new float[3][nmodules];
     for (int i = 0; i < nmodules; i++) {
@@ -219,7 +218,7 @@ public class F2000Form
       }
     }
     try {
-      module_field.setSamples(msamples);
+      moduleField.setSamples(msamples);
     } catch (RemoteException re) {
       re.printStackTrace();
       return null;
@@ -227,7 +226,7 @@ public class F2000Form
 
     Tuple t;
     try {
-      t = new Tuple(new Data[] {events_field, module_field});
+      t = new Tuple(new Data[] {eventsField, moduleField});
     } catch (RemoteException re) {
       re.printStackTrace();
       t = null;
@@ -254,14 +253,14 @@ public class F2000Form
     RealType energyType = RealType.getRealType("energy"); // track energy
     hitIndexType = RealType.getRealType("hit_index");
     amplitudeType = RealType.getRealType("amplitude"); // hit amplitude
-    totType = RealType.getRealType("tot"); // hit time-over-threshold
+    RealType totType = RealType.getRealType("tot"); // hit time-over-threshold
     letType = RealType.getRealType("let"); // hit leading-edge-time
     eventIndexType = RealType.getRealType("event_index");
     moduleIndexType = RealType.getRealType("module_index");
 
-    xyz = new RealTupleType(xType, yType, zType);
+    xyzType = new RealTupleType(xType, yType, zType);
     RealTupleType trackRange = new RealTupleType(timeType, energyType);
-    trackFunctionType = new FunctionType(xyz, trackRange);
+    trackFunctionType = new FunctionType(xyzType, trackRange);
     RealType[] hitReals =
       {xType, yType, zType, amplitudeType, letType, totType};
     hitType = new RealTupleType(hitReals);
@@ -276,7 +275,7 @@ public class F2000Form
       new FunctionType(eventIndexType, eventsFunctionRange);
 
     moduleFunctionType =
-      new FunctionType(moduleIndexType, xyz);
+      new FunctionType(moduleIndexType, xyzType);
 
     typesCreated = true;
   }
@@ -296,13 +295,13 @@ public class F2000Form
     // construct parent Field for all tracks
     Integer1DSet tracksSet =
       new Integer1DSet(trackIndexType, (ntracks == 0 ? 1 : ntracks));
-    FieldImpl tracks_field =
+    FieldImpl tracksField =
       new FieldImpl(tracksFunctionType, tracksSet);
     if (ntracks > 0) {
-      FlatField[] track_fields =
+      FlatField[] trackFields =
         (FlatField[] )emTracks.toArray(new FlatField[ntracks]);
       try {
-        tracks_field.setSamples(track_fields, false);
+        tracksField.setSamples(trackFields, false);
       } catch (RemoteException re) {
         re.printStackTrace();
       }
@@ -313,13 +312,13 @@ public class F2000Form
     // construct parent Field for all hits
     Integer1DSet hitsSet =
       new Integer1DSet(hitIndexType, (nhits == 0 ? 1 : nhits));
-    FlatField hits_field =
+    FlatField hitsField =
       new FlatField(hitsFunctionType, hitsSet);
     if (nhits > 0) {
-      RealTuple[] hit_tuples =
+      RealTuple[] hitTuples =
         (RealTuple[] )emHits.toArray(new RealTuple[nhits]);
       try {
-        hits_field.setSamples(hit_tuples, true);
+        hitsField.setSamples(hitTuples, true);
       } catch (RemoteException re) {
         re.printStackTrace();
       }
@@ -330,7 +329,7 @@ public class F2000Form
     // construct Tuple of all tracks and hits
     Tuple t;
     try {
-      t = new Tuple(new Data[] {tracks_field, hits_field});
+      t = new Tuple(new Data[] {tracksField, hitsField});
     } catch (RemoteException re) {
       re.printStackTrace();
       t = null;
@@ -339,7 +338,7 @@ public class F2000Form
     return t;
   }
 
-  public final RealType getAmplitude() { return amplitudeType; }
+  public static final RealType getAmplitude() { return amplitudeType; }
 
   public static final VisADQuadArray[] getCubeArray()
   {
@@ -413,25 +412,25 @@ public class F2000Form
     return suff;
   }
 
-  public final RealType getEventIndex() { return eventIndexType; }
+  public static final RealType getEventIndex() { return eventIndexType; }
 
   public synchronized FormNode getForms(Data data)
   {
     return null;
   }
 
-  public final RealType getLet() { return letType; }
-  public final RealType getTrackIndex() { return trackIndexType; }
+  public static final RealType getLet() { return letType; }
+  public static final RealType getTrackIndex() { return trackIndexType; }
 
-  public final RealType getX() { return xType; }
+  public static final RealType getX() { return xType; }
   public final double getXMax() { return xmax; }
   public final double getXMin() { return xmin; }
 
-  public final RealType getY() { return yType; }
+  public static final RealType getY() { return yType; }
   public final double getYMax() { return ymax; }
   public final double getYMin() { return ymin; }
 
-  public final RealType getZ() { return zType; }
+  public static final RealType getZ() { return zType; }
   public final double getZMax() { return zmax; }
   public final double getZMin() { return zmin; }
 
@@ -450,22 +449,25 @@ public class F2000Form
                                     float energy, float time, float maxLength)
     throws VisADException
   {
-    if (length > maxLength) {
-      length = maxLength;
-    } else if (length != length) {
-      length = -1.0f;
+    float fldLength = length;
+    if (fldLength > maxLength) {
+      fldLength = maxLength;
+    } else if (fldLength != fldLength) {
+      fldLength = -1.0f;
     }
-    if (energy != energy) {
-      energy = 1.0f;
+
+    float fldEnergy = energy;
+    if (fldEnergy != fldEnergy) {
+      fldEnergy = 1.0f;
     }
 
     float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
     float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
     float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
     float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-    float zinc = length * zc;
-    float xinc = length * zs * ac;
-    float yinc = length * zs * as;
+    float zinc = fldLength * zc;
+    float xinc = fldLength * zs * ac;
+    float yinc = fldLength * zs * as;
 
     float[][] locs = {{xstart - LENGTH_SCALE * xinc,
                        xstart + LENGTH_SCALE * xinc},
@@ -474,10 +476,9 @@ public class F2000Form
                       {zstart - LENGTH_SCALE * zinc,
                        zstart + LENGTH_SCALE * zinc}};
     // construct Field for fit
-    Gridded3DSet set = new Gridded3DSet(xyz, locs, 2);
-    FlatField field =
-      new FlatField(trackFunctionType, set);
-    float[][] values = {{time, time}, {energy, energy}};
+    Gridded3DSet set = new Gridded3DSet(xyzType, locs, 2);
+    FlatField field = new FlatField(trackFunctionType, set);
+    float[][] values = {{time, time}, {fldEnergy, fldEnergy}};
 
     try {
       field.setSamples(values, false);
@@ -540,7 +541,7 @@ public class F2000Form
 
     Module[] om = null;
 
-    ArrayList emEvents = new ArrayList();
+    ArrayList events = new ArrayList();
 
     // initialize tracks and hits to empty
     ArrayList emTracks = new ArrayList();
@@ -659,7 +660,7 @@ public class F2000Form
       if (keyword.equals("ee")) {
         Tuple event = finishEvent(emTracks, emHits);
         if (event != null) {
-          emEvents.add(event);
+          events.add(event);
         }
 
         continue;
@@ -668,7 +669,7 @@ public class F2000Form
 
     try { br.close(); } catch (IOException ioe) { }
 
-    return buildData(emEvents, om);
+    return buildData(events, om);
   }
 
   private int parseChannel(String tokenName, String token)
@@ -843,7 +844,7 @@ public class F2000Form
     // convert module index (1-based) to array index (0-based)
     number--;
 
-    float amplitude, let, tot;
+    float amplitude, leadEdgeTime, timeOverThreshold;
     try {
       amplitude = parseFloat("htAmp", tok.nextToken());
 
@@ -851,8 +852,8 @@ public class F2000Form
       tok.nextToken();
       tok.nextToken();
 
-      let = parseFloat("htLet", tok.nextToken());
-      tot = parseFloat("htTot", tok.nextToken());
+      leadEdgeTime = parseFloat("htLet", tok.nextToken());
+      timeOverThreshold = parseFloat("htTot", tok.nextToken());
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad HIT line \"" + line + "\": " +
                                  e.getMessage());
@@ -866,7 +867,7 @@ public class F2000Form
     } else {
       double[] values = {om[number].getX(), om[number].getY(),
                          om[number].getZ(),
-                         amplitude, let, tot};
+                         amplitude, leadEdgeTime, timeOverThreshold};
 
       // construct Tuple for hit
       try {
@@ -963,9 +964,9 @@ public class F2000Form
       int number = parseInt("emNum", tok.nextToken());
       int year = parseInt("emYear", tok.nextToken());
       int day = parseInt("emDay", tok.nextToken());
-      double em_time = parseDouble("emTime", tok.nextToken());
+      double time = parseDouble("emTime", tok.nextToken());
       // time shift in nsec of all times in event
-      double em_time_shift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
+      double timeShift = parseDouble("emTimeShift", tok.nextToken()) * 0.000000001;
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad EM line \"" + line + "\": " +
                                  e.getMessage());
