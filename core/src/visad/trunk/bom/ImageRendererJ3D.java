@@ -344,9 +344,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   // logic to allow ShadowImageFunctionTypeJ3D to 'mark' missing frames
   private VisADBranchGroup vbranch = null;
 
-  public void clearBranch() {
+  public void clearScene() {
     vbranch = null;
-    super.clearBranch();
+    super.clearScene();
   }
 
   void setVisADBranch(VisADBranchGroup branch) {
