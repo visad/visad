@@ -6,6 +6,12 @@
 JAVADIR = /opt/java
 JAVAINCS = -I${JAVADIR}/include -I${JAVADIR}/include/solaris
  
+# JC is the Java compiler
+# JFLAGS specifies special flags for the Java compiler
+#
+JC = javac
+JFLAGS =
+
 # these hold the flags needed to tell the C and Fortran compilers
 # to build shared object files
 #
@@ -53,7 +59,7 @@ visad_paoloa_spline_Spline.h: Spline.class
 	touch visad_paoloa_spline_Spline.h
 
 Spline.class: Spline.java
-	javac Spline.java
+	$(JC) $(JFLAGS) Spline.java
 
 libSpline2D.so: Spline2DImp.o tpspline.o
 	${SHLD} ${SHLDFLAGS} -o libSpline2D.so \
@@ -67,7 +73,7 @@ visad_paoloa_spline_Spline2D.h: Spline2D.class
 	touch visad_paoloa_spline_Spline2D.h
 
 Spline2D.class: Spline2D.java
-	javac Spline2D.java
+	$(JC) $(JFLAGS) Spline2D.java
 
 $(FORTRANS) : $(SOURCE)
 	f77 -c -static $(FFLAGS) $*.f

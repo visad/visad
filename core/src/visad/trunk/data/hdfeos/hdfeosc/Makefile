@@ -33,7 +33,7 @@ OBJECTS = SWopenImp.o \
 .SUFFIXES : .java .class
 
 .java.class:
-	javac $<
+	$(JC) $(JFLAGS) $<
 
 default: all
 

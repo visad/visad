@@ -6,6 +6,12 @@
 JAVADIR = /opt/java
 JAVAINCS = -I${JAVADIR}/include -I${JAVADIR}/include/solaris
 
+# JC is the Java compiler
+# JFLAGS specifies special flags for the Java compiler
+#
+JC = javac
+JFLAGS =
+
 # these hold the flags needed to tell the C and Fortran compilers
 # to build shared object files
 #
@@ -54,10 +60,10 @@ visad_paoloa_GoesCollaboration.h: GoesCollaboration.class
 	javah -jni visad.paoloa.GoesCollaboration
 
 GoesCollaboration.class: GoesCollaboration.java
-	javac GoesCollaboration.java
+	$(JC) $(JFLAGS) GoesCollaboration.java
 
 Nasti.class: Nasti.java
-	javac Nasti.java
+	$(JC) $(JFLAGS) Nasti.java
 
 clean:
 	$(RM) visad_paoloa_GoesCollaboration.h

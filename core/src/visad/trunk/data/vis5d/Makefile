@@ -28,7 +28,7 @@ FFLAGS = $(SHFFLAGS)
 .SUFFIXES : .java .class
 
 .java.class:
-	javac $<
+	$(JC) $(JFLAGS) $<
 
 default: Vis5DForm.class libvis5d.so
 
