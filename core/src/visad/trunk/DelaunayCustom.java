@@ -728,5 +728,192 @@ public class DelaunayCustom extends Delaunay {
     return (Math.abs(angle) > 0.5);
   }
 
+  /** clip (samples, tris) against xc * x + yc * c <= v */
+  public static void clip(float[][] samples, int[][] tris,
+                          float xc, float yc, float v,
+                          float[][][] outs, int[][][] outt)
+         throws VisADException {
+    float[][] s = null;
+    int[][] t = null;
+    if (samples == null || tris == null) {
+      outs[0] = s;
+      outt[0] = t;
+      return;
+    }
+    int nsamples = samples[0].length;
+    int ns = 0; // count of new samples
+    s = new float[2][2 * nsamples]; // temp holder for new samples
+    int ntris = tris.length;
+    int nt = 0; // count of new tris
+    t = new int[2 * ntris][]; // temp holder for new tris
+    int[] smap = new int[nsamples]; // map from old to new samples
+    int[][] sother = new int[nsamples][6]; // other ends of clipped edges
+    int[][] snew = new int[nsamples][6]; // mid points of clipped edges
+    int[] minus1s = {-1, -1, -1, -1, -1, -1};
+    for (int i=0; i<nsamples; i++) {
+      System.arraycopy(minus1s, 0, sother, 0, 6);
+      if (xc * samples[0][i] + yc * samples[1][i] <= v) {
+        s[0][ns] = samples[0][i];
+        s[1][ns] = samples[1][i];
+        smap[i] = ns;
+        ns++;
+      }
+      else {
+        smap[i] = -1;
+      }
+    }
+    int nskept = ns;
+
+    int[] incounts = { 0, 1, 1, 2, 1, 2, 2, 3};
+    int[] firsts =   {-1, 0, 1, 0, 2, 0, 1, 0};
+    int[] seconds =  {-1, 1, 0, 1, 0, 2, 2, 1};
+    int[] thirds =   {-1, 2, 2, 2, 1, 1, 0, 2};
+    for (int i=0; i<ntris; i++) {
+      int a = tris[i][0];
+      int b = tris[i][1];
+      int c = tris[i][2];
+      int flags = (smap[a] < 0) ? 0 : 1;
+      flags += (smap[b] < 0) ? 0 : 2;
+      flags += (smap[c] < 0) ? 0 : 4;
+      switch (incounts[flags]) {
+        case 0:
+          break;
+        case 3:
+          t[nt][0] = smap[tris[i][0]];
+          t[nt][1] = smap[tris[i][1]];
+          t[nt][2] = smap[tris[i][2]];
+          nt++;
+          break;
+        case 1:
+          int ao = tris[i][firsts[flags]];
+          int bo = tris[i][seconds[flags]];
+          int co = tris[i][thirds[flags]];
+          a = smap[ao];
+          b = smap[bo];
+          c = smap[co];
+          float av = v - (xc * s[0][a] + yc * s[1][a]);
+          float bv = v - (xc * s[0][b] + yc * s[1][b]);
+          float cv = v - (xc * s[0][c] + yc * s[1][c]);
+          float bw = av / (av - bv);
+          float bwm = 1.0f - bw;
+          float cw = av / (av - cv);
+          float cwm = 1.0f - cw;
+          float[] sb = {bwm * s[0][a] + bw * s[0][b],
+                        bwm * s[1][a] + bw * s[1][b]};
+          float[] sc = {cwm * s[0][a] + cw * s[0][c],
+                        cwm * s[1][a] + cw * s[1][c]};
+          int sbi = -1;
+          int sci = -1;
+          int jmax = -1;
+          for (int j=0; i<6; j++) {
+            if (sother[ao][j] < 0) break;
+            jmax = j;
+            if (sother[ao][j] == bo) {
+              sbi = snew[ao][j];
+            }
+            if (sother[ao][j] == co) {
+              sci = snew[ao][j];
+            }
+          }
+          if (sbi < 0) {
+            s[0][ns] = sb[0];
+            s[1][ns] = sb[1];
+            if (jmax < 5) {
+              jmax++;
+              sother[ao][jmax] = bo;
+              snew[ao][jmax] = ns;
+            }
+            sbi = ns;
+            ns++;
+          }
+          if (sci < 0) {
+            s[0][ns] = sc[0];
+            s[1][ns] = sc[1];
+            if (jmax < 5) {
+              jmax++;
+              sother[ao][jmax] = co;
+              snew[ao][jmax] = ns;
+            }
+            sci = ns;
+            ns++;
+          }
+          t[nt] = new int[] {a, sbi, sci};
+          nt++;
+          break;
+        case 2:
+          ao = tris[i][firsts[flags]];
+          bo = tris[i][seconds[flags]];
+          co = tris[i][thirds[flags]];
+          a = smap[ao];
+          b = smap[bo];
+          c = smap[co];
+          av = v - (xc * s[0][a] + yc * s[1][a]);
+          bv = v - (xc * s[0][b] + yc * s[1][b]);
+          cv = v - (xc * s[0][c] + yc * s[1][c]);
+          float aw = av / (av - cv);
+          float awm = 1.0f - aw;
+          bw = bv / (bv - cv);
+          bwm = 1.0f - bw;
+          float[] sa = {awm * s[0][a] + aw * s[0][c],
+                        awm * s[1][a] + aw * s[1][c]};
+          sb = new float[] {bwm * s[0][b] + bw * s[0][c],
+                            bwm * s[1][b] + bw * s[1][c]};
+          int sai = -1;
+          sbi = -1;
+          int jamax = -1;
+          for (int j=0; i<6; j++) {
+            if (sother[ao][j] < 0) break;
+            jamax = j;
+            if (sother[ao][j] == co) {
+              sai = snew[ao][j];
+            }
+          }
+          int jbmax = -1;
+          for (int j=0; i<6; j++) {
+            if (sother[bo][j] < 0) break;
+            jbmax = j;
+            if (sother[bo][j] == co) {
+              sbi = snew[bo][j];
+            }
+          }
+          if (sai < 0) {
+            s[0][ns] = sa[0];
+            s[1][ns] = sa[1];
+            if (jamax < 5) {
+              jamax++;
+              sother[ao][jamax] = co;
+              snew[ao][jamax] = ns;
+            }
+            sai = ns;
+            ns++;
+          }
+          if (sbi < 0) {
+            s[0][ns] = sb[0];
+            s[1][ns] = sb[1];
+            if (jbmax < 5) {
+              jbmax++;
+              sother[bo][jbmax] = co;
+              snew[bo][jbmax] = ns;
+            }
+            sbi = ns;
+            ns++;
+          }
+          t[nt] = new int[] {a, b, sai};
+          nt++;
+          t[nt] = new int[] {b, sai, sbi};
+          nt++;
+          break;
+      }
+    }
+
+    float[][] ss = new float[2][ns];
+    System.arraycopy(s[0], 0, ss[0], 0, ns);
+    System.arraycopy(s[1], 0, ss[1], 0, ns);
+    int[][] tt = new int[nt][];
+    System.arraycopy(t, 0, tt, 0, nt);
+    outs[0] = ss;
+    outt[0] = tt;
+  }
+
 }
 
