@@ -63,6 +63,8 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
   private ColoringAttributes ray_color = null;
   private Switch ray_switch = null;
   private BranchGroup ray_on = null, ray_off = null;
+  /** on / off state of ray */
+  private boolean rayOn = false;
 
   private WandBehaviorJ3D wand = null; // for wand interactions
 
@@ -150,7 +152,7 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     ray_switch.addChild(ray_on);
     ray_switch.setWhichChild(2); // initially on
     ray_geometry = new LineArray(2, LineArray.COORDINATES);
-    ray_geometry.setCoordinates(0, ray_verts);
+    ray_geometry.setCoordinates(0, init_ray_verts);
     ray_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
     ray_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
     Appearance ray_appearance = new Appearance();
@@ -188,6 +190,17 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     return root;
   }
 
+  public void setRayOn(boolean on, float[] ray_verts) {
+    rayOn = on;
+    if (on) {
+      ray_geometry.setCoordinates(0, ray_verts);
+      ray_switch.setWhichChild(1); // set ray on
+    }
+    else {
+      ray_switch.setWhichChild(0); // set ray off
+    }
+  }
+
   private static final float[] box_verts = {
      // front face
          -1.0f, -1.0f,  1.0f,                       -1.0f,  1.0f,  1.0f,
@@ -212,7 +225,7 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
           0.1f,  0.0f,  0.0f,                       -0.1f,  0.0f,  0.0f
   };
 
-  private static final float[] ray_verts = {
+  private static final float[] init_ray_verts = {
           0.0f,  0.0f,  0.0f,                        0.0f,  0.0f, -10.0f
   };
 

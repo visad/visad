@@ -568,6 +568,15 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
   }
 
+  public void setCursorLoc(float x, float y, float z) {
+    Transform3D t = new Transform3D();
+    t.setTranslation(new Vector3f(x, y, z));
+    cursor_trans.setTransform(t);
+    if (cursorOn) {
+      setCursorStringVector();
+    }
+  }
+
   /**
    * Whenever <CODE>cursorOn</CODE> or <CODE>directOn</CODE> is true,
    * display Strings in cursorStringVector.

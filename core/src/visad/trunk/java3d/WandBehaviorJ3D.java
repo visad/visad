@@ -64,6 +64,8 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   private float[] travel_position = new float[3];
   // wand button states
   private boolean left, center, right;
+  // previous right wand button state
+  private boolean last_right;
 
   private TrackdJNI hack;
 
@@ -76,6 +78,8 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     display = display_renderer.getDisplay();
 
     hack = new TrackdJNI(tracker_shmkey, controller_shmkey);
+
+    last_right = false;
   }
 
   public MouseHelper getMouseHelper() {
@@ -120,8 +124,21 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   // graphics distance (feet?) per second
   private float TRAVEL_SPEED = 0.3f;
 
-  // scale factor for head translation (negative?)
-  private float TRANS_SCALE = 1.0f;
+  // scale factors for head / wand translation (negative?)
+  private float HEAD_SCALE = 1.0f;
+  private float WAND_SCALE = 1.0f;
+
+  // offsets for head / wand translation
+  private float HEADX_OFFSET = 0.0f;
+  private float HEADY_OFFSET = 0.0f;
+  private float HEADZ_OFFSET = 0.0f;
+  private float WANDX_OFFSET = 0.0f;
+  private float WANDY_OFFSET = 0.0f;
+  private float WANDZ_OFFSET = 0.0f;
+
+  // length of direct manipulation ray
+  private float RAY_LENGTH = 100.0f;
+
 
   public void run() {
     Thread me = Thread.currentThread();
@@ -162,9 +179,12 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
         System.out.println(number_of_buttons[0] + " buttons: " + button_states[0] +
                            " " + button_states[1] + " " + button_states[2]);
       }
+
+      last_right = right;
       left = (button_states[LEFT] != 0);
       center = (button_states[CENTER] != 0);
       right = (button_states[RIGHT] != 0);
+
       head_position[0] = sensor_positions[3 * HEAD];
       head_position[1] = sensor_positions[3 * HEAD + 1];
       head_position[2] = sensor_positions[3 * HEAD + 2];
@@ -177,6 +197,7 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
       float roll = sensor_angles[3 * WAND + ROLL];
 
       // QUESTION? angles all 0.0 == wand pointed forward QUESTION?
+      // start with unit vector in (0, 0, 0) wand orientation
       float x = 0.0f;
       float y = 0.0f;
       float z = -1.0f;
@@ -204,16 +225,55 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
       }
 
       // change vpTrans based on head_position and travel_position
-      double transx = TRANS_SCALE * (head_position[0] + travel_position[0]);
-      double transy = TRANS_SCALE * (head_position[1] + travel_position[1]);
-      double transz = TRANS_SCALE * (head_position[2] + travel_position[2]);
+      double headx =
+        HEAD_SCALE * (head_position[0] + travel_position[0] + HEADX_OFFSET);
+      double heady =
+        HEAD_SCALE * (head_position[1] + travel_position[1] + HEADY_OFFSET);
+      double headz =
+        HEAD_SCALE * (head_position[2] + travel_position[2] + HEADZ_OFFSET);
       double[] matrix =
-        MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, 1.0,
-                                            transx, transy, transz);
+        MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, 1.0, headx, heady, headz);
       vpTrans.setTransform(new Transform3D(matrix));
 
+      // QUESTION? + or - travel_position QUESTION?
+      float wandx =
+        WAND_SCALE * (wand_position[0] + travel_position[0] + WANDX_OFFSET);
+      float wandy =
+        WAND_SCALE * (wand_position[1] + travel_position[1] + WANDY_OFFSET);
+      float wandz =
+        WAND_SCALE * (wand_position[2] + travel_position[2] + WANDZ_OFFSET);
+
+      display_renderer.setCursorOn(center);
+      if (center) {
+        display_renderer.setCursorLoc(wandx, wandy, wandz);
+      }
+
+      if (right) {
+        float wand_endx = wandx +
+          WAND_SCALE * (RAY_LENGTH * wand_vector[0] + WANDX_OFFSET);
+        float wand_endy = wandy +
+          WAND_SCALE * (RAY_LENGTH * wand_vector[1] + WANDY_OFFSET);
+        float wand_endz = wandz +
+          WAND_SCALE * (RAY_LENGTH * wand_vector[2] + WANDZ_OFFSET);
+
+        float[] ray_verts = {wandx, wandy, wandz, wand_endx, wand_endy, wand_endz};
+        display_renderer.setRayOn(true, ray_verts);
+        VisADRay ray = new VisADRay();
+        ray.position[0] = wandx;
+        ray.position[1] = wandy;
+        ray.position[2] = wandz;
+        // QUESTION?
+        ray.vector[0] = wand_vector[0];
+        ray.vector[1] = wand_vector[1];
+        ray.vector[2] = wand_vector[2];
 
 
+
+
+      }
+      else { // !right
+        display_renderer.setRayOn(false, null);
+      }
     } // end while (wandThread == me)
   }
 
