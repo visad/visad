@@ -66,7 +66,7 @@ public class AddeSatBands {
       if (c[i].startsWith("B") ) continue;
       String b = c[i].substring(0,2);
       int bi = Integer.parseInt(b.trim());
-      String d = c[i].substring(4);
+      String d = c[i].substring(3).trim();
       if (bi >= v.size()) v.setSize(bi+1);
       v.setElementAt(d, bi);
     }

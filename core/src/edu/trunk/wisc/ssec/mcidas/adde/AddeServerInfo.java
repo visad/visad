@@ -170,7 +170,7 @@ public class AddeServerInfo extends Object {
       // when the TYPE='dataType'
       for (int i=0; i<table.size(); i++) {
         String a = (String) table.elementAt(i);
-        if (debug) System.out.println("table = "+a);
+        if (debug) System.out.println("Table: "+a);
         StringTokenizer st = new StringTokenizer(a,",");
         int num = st.countTokens();
         String[] tok = new String[num];
@@ -196,9 +196,17 @@ public class AddeServerInfo extends Object {
         }
 
         // skip if: a) no =, b> not TYPE type, c) element missing
+        if (debug) {
+          System.out.println("indexType = "+indexType+
+            " dataType="+dataType+" indexN1,N2,C="+indexN1+" "+
+            indexN2+" "+indexC);
+        }
+        
         if (indexType < 0) continue;
         if (!val[indexType].equalsIgnoreCase(dataType)) continue;
-        if (indexN1 < 0 || indexN2 < 0 || indexC < 0) continue;
+        if (indexN1 < 0 || indexN2 < 0) continue;
+        // If no Comment field, just use N2 (kludge)
+        if (indexC < 0) indexC = indexN2;
 
         boolean hit = false;
 
