@@ -145,6 +145,11 @@ public class Vis5DForm extends Form implements FormFileInformer {
     int ntimes = sizes[3];
     nvars = sizes[4];
 
+    //-System.out.println("nr: "+nr);
+    //-System.out.println("nc: "+nc);
+    //-System.out.println("nl: "+nl);
+    //-System.out.println("ntimes: "+ntimes);
+    //-System.out.println("nvars: "+nvars);
 
     RealType time = RealType.Time;
 
@@ -166,6 +171,9 @@ public class Vis5DForm extends Form implements FormFileInformer {
         }
       }
       vars[i] = RealType.getRealType(varnames[i], unit);
+      if ( vars[i] == null ) {
+        vars[i] = RealType.getRealType("var"+i);
+      }
     }
 
     double[][] proj_args =
@@ -234,8 +242,10 @@ public class Vis5DForm extends Form implements FormFileInformer {
     /*---------------------------------------------------------*/
 
 
-  FunctionType[] grid_type = new FunctionType[n_var_groups];
-  Vis5DFile[] v5dfile_s = new Vis5DFile[n_var_groups];
+  FunctionType[][] grid_type = new FunctionType[n_var_groups][];
+  Vis5DFile[][] v5dfile_s = new Vis5DFile[n_var_groups][];
+
+  int n_comps = 0;
 
   for ( int grp = 0; grp < n_var_groups; grp++ )
   {
@@ -265,11 +275,6 @@ public class Vis5DForm extends Form implements FormFileInformer {
       domain = new RealTupleType(new RealType[] {row, col}, coord_sys, null);
     }
 
-
-    RealTupleType range = new RealTupleType(sub_vars);
-    grid_type[grp] = new FunctionType(domain, range);
-
-
     if (nl > 1)
     {
       SampledSet vert_set = vert_coord_sys.vertSet;
@@ -296,41 +301,71 @@ public class Vis5DForm extends Form implements FormFileInformer {
       }
       space_set =
         new Gridded3DSet(domain, domain_samples, nr, nc, nl);
+
+      
+      grid_type[grp] = new FunctionType[sub_vars.length];
+      v5dfile_s[grp] = new Vis5DFile[sub_vars.length];
+      
+      grid_size = nr * nc * nl;
+
+      for (int k = 0; k < sub_vars.length; k++) {
+        grid_type[grp][k] = new FunctionType(domain, sub_vars[k]);
+        v5dfile_s[grp][k] =
+          new Vis5DFile(id, vv, space_set,
+                        grid_type[grp][k],
+                        new RealType[] {sub_vars[k]},
+                        new int[] {sub_vars_indexes[k]}, grid_size);
+      }
+      n_comps += grid_type[grp].length;
     }
     else
     {
       space_set = new Integer2DSet(domain, nr, nc);
+
+      grid_type[grp] = new FunctionType[1];
+      v5dfile_s[grp] = new Vis5DFile[1];
+
+      RealTupleType range = new RealTupleType(sub_vars);
+      grid_type[grp][0] = new FunctionType(domain, range);
+
+      grid_size = nr * nc * nl;
+
+      v5dfile_s[grp][0] =
+        new Vis5DFile(id, vv, space_set,
+           grid_type[grp][0], sub_vars, sub_vars_indexes, grid_size);
+
+      n_comps += grid_type[grp].length;
     }
-
-    grid_size = nr * nc * nl;
-
-    v5dfile_s[grp] =
-      new Vis5DFile(id, vv, space_set,
-        grid_type[grp], sub_vars, sub_vars_indexes, grid_size);
   }
 
 
     RealTupleType time_domain = new RealTupleType(time);
 
     MathType v5d_range;
-    if ( grid_type.length == 1 ) {
-      v5d_range = grid_type[0];
+    MathType[] range_comps = new MathType[n_comps];
+    int cnt = 0;
+    for ( int grp = 0; grp < grid_type.length; grp++) {
+      for (int i = 0; i < grid_type[grp].length; i++) {
+        range_comps[cnt++] = grid_type[grp][i];
+      }
+    }
+    if (range_comps.length == 1) {
+      v5d_range = range_comps[0];
     }
     else {
-      v5d_range = new TupleType(grid_type);
+      v5d_range = new TupleType(range_comps);
     }
     v5d_type = new FunctionType(time_domain, v5d_range);
 
- //-float[][] timeses = new float[1][ntimes];
+
+
     double[][] timeses = new double[1][ntimes];
     for (int i=0; i<ntimes; i++)  {
       timeses[0][i] = times[i];
     }
-
     Unit v5d_time_unit = new OffsetUnit(
                              visad.data.units.UnitParser.encodeTimestamp(
                                 1900, 1, 1, 0, 0, 0, 0), SI.second);
-
     Gridded1DDoubleSet time_set =
       new Gridded1DDoubleSet(time, timeses, ntimes,
                              null, new Unit[] {v5d_time_unit}, null);
@@ -341,16 +376,19 @@ public class Vis5DForm extends Form implements FormFileInformer {
     DataImpl range_data;
     for (int i=0; i<ntimes; i++)
     {
-      if (v5d_range instanceof TupleType) {
-        range_data =
-          new Tuple( new DataImpl[] 
-                     {getFlatField(v5dfile_s[0], i), 
-                      getFlatField(v5dfile_s[1], i)}, false );
+      if (range_comps.length == 1) {
+        range_data = getFlatField(v5dfile_s[0][0], i);
       }
       else {
-        range_data = getFlatField(v5dfile_s[0], i);
+        DataImpl[] datas = new DataImpl[range_comps.length];
+        cnt = 0;
+        for (int j = 0; j < v5dfile_s.length; j++) {
+          for (int k = 0; k < v5dfile_s[j].length; k++) {
+            datas[cnt++] = getFlatField(v5dfile_s[j][k], i); 
+          }
+        }
+        range_data = new Tuple(datas, false);
       }
-
       v5d.setSample(i, range_data, false);
     }
 
@@ -472,7 +510,8 @@ public class Vis5DForm extends Form implements FormFileInformer {
     FunctionType type = (FunctionType) vis5d.getType();
     FieldImpl new_vis5d;
     if ( type.getRange() instanceof TupleType ) {
-      new_vis5d = (FieldImpl)vis5d.extract(0);
+   //-new_vis5d = (FieldImpl)vis5d.extract(20);
+      new_vis5d = vis5d;
     }
     else {
       new_vis5d = vis5d;
@@ -481,7 +520,6 @@ public class Vis5DForm extends Form implements FormFileInformer {
     System.out.println(vis5d_type);
     DataReference vis5d_ref = new DataReferenceImpl("vis5d_ref");
     vis5d_ref.setData(new_vis5d);
-    // vis5d_ref.setData(vis5d.getSample(8));
 
     //
     // construct JFC user interface with JSliders linked to
@@ -572,29 +610,63 @@ public class Vis5DForm extends Form implements FormFileInformer {
       (AnimationControl) animation_map.getControl();
 
     // get grid type
-    FunctionType grid_type = (FunctionType) vis5d_type.getRange();
-    RealTupleType domain = grid_type.getDomain();
-    RealTupleType reference = (domain.getCoordinateSystem()).getReference();
-    domain = reference;
+
+ //-RealTupleType reference = (domain.getCoordinateSystem()).getReference();
+ // domain = reference;
     // map grid coordinates to display coordinates
-    display.addMap(new ScalarMap((RealType) domain.getComponent(0),
+ //-display.addMap(new ScalarMap((RealType) domain.getComponent(1),
+    display.addMap(new ScalarMap(RealType.getRealType("col"),
                                  Display.XAxis));
-    display.addMap(new ScalarMap((RealType) domain.getComponent(1),
+ //-display.addMap(new ScalarMap((RealType) domain.getComponent(0),
+    display.addMap(new ScalarMap(RealType.getRealType("row"),
                                  Display.YAxis));
-    if (domain.getDimension() > 2) {
-      display.addMap(new ScalarMap((RealType) domain.getComponent(2),
+//-display.addMap(new ScalarMap((RealType) domain.getComponent(2),
+   display.addMap(new ScalarMap(RealType.getRealType("lev"),
                                    Display.ZAxis));
-    }
 
     // map grid values to IsoContour
-    RealTupleType range = (RealTupleType) grid_type.getRange();
-    int dim = range.getDimension();
+
+    int n_range_real_types = 0;
+    MathType v5d_range = vis5d_type.getRange();
+    RealType[] tmp = new RealType[200];
+    if ( v5d_range instanceof TupleType ) {
+      for ( int ii = 0; ii < ((TupleType)v5d_range).getDimension(); ii++) {
+        FunctionType f_type = 
+          (FunctionType)
+            ((TupleType)v5d_range).getComponent(ii);
+        MathType mtype = f_type.getRange();
+        if (mtype instanceof TupleType) {
+          int nn = ((TupleType)mtype).getDimension();
+          for ( int kk = 0; kk < nn; kk++) {
+            tmp[n_range_real_types++] = (RealType)((TupleType)mtype).getComponent(kk);
+          }
+        }
+        else {
+          tmp[n_range_real_types++] = (RealType)mtype;
+        }
+      }
+    }
+    else {
+      MathType mtype = ((FunctionType)v5d_range).getRange();
+      if (mtype instanceof TupleType) {
+        int nn = ((TupleType)mtype).getDimension();
+        for ( int kk = 0; kk < nn; kk++) {
+          tmp[n_range_real_types++] = (RealType)((TupleType)mtype).getComponent(kk);
+        }
+      }
+      else {
+        tmp[n_range_real_types++] = (RealType)mtype;
+      }
+    }
+
+    int dim = n_range_real_types;
     RealType[] range_types = new RealType[dim];
     ScalarMap[] contour_maps = new ScalarMap[dim];
     ContourControl[] contour_controls = new ContourControl[dim];
     DataReference[] range_refs = new DataReferenceImpl[dim];
     for (int i=0; i<dim; i++) {
-      range_types[i] = (RealType) range.getComponent(i);
+   //-range_types[i] = (RealType) range.getComponent(i);
+      range_types[i] = (RealType) tmp[i];
       contour_maps[i] = new ScalarMap(range_types[i], Display.IsoContour);
       display.addMap(contour_maps[i]);
       contour_controls[i] = (ContourControl) contour_maps[i].getControl();

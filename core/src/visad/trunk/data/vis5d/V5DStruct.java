@@ -105,10 +105,10 @@ public class V5DStruct {
   private static final int MAXTIMES = 400;
 
   /** Limit on 5-D grid rows */
-  private static final int MAXROWS = 200;
+  private static final int MAXROWS = 400;
 
   /** Limit on 5-D grid columns */
-  private static final int MAXCOLUMNS = 200;
+  private static final int MAXCOLUMNS = 400;
 
   /** Limit on 5-D grid levels */
   private static final int MAXLEVELS = 100;
@@ -586,16 +586,24 @@ public class V5DStruct {
   private static boolean ORIGINAL = false;
 
   /** Convert a signed byte to an unsigned one, and return it in an int */
-  private static int getUnsignedByte(byte b) {
+  public static int getUnsignedByte(byte b) {
     int i = (b >= 0 ? (int) b : (int) b + 256);
     return i;
   }
 
   /** Convert two signed bytes to an unsigned short, and return it in an int */
-  private static int getUnsignedShort(byte b1, byte b2) {
+  public static int getUnsignedShort(byte b1, byte b2) {
     int i1 = getUnsignedByte(b1);
     int i2 = getUnsignedByte(b2);
     return 256 * i1 + i2;
+  }
+  /** Convert four signed bytes to an unsigned short, and return it in an int */
+  public static int getUnsignedInt(byte b1, byte b2, byte b3, byte b4) {
+    int i1 = getUnsignedByte(b1);
+    int i2 = getUnsignedByte(b2);
+    int i3 = getUnsignedByte(b3);
+    int i4 = getUnsignedByte(b4);
+    return 16777216*i1 + 65536*i2 + 256*i3 + i4;
   }
 
   private static float pressure_to_height(float pressure) {
@@ -959,7 +967,14 @@ public class V5DStruct {
       // compressmode==4
       // other machines: just copy 4-byte IEEE floats
       // CTR: I have no idea if this works properly in Java...
+      /*-TDR: Nope this don't work, throws ArrayStoreException
       System.arraycopy(data, 0, compdata1, 0, nrncnl*4);
+       */
+      for (int i=0; i<nrncnl; i++) {
+        int a = getUnsignedInt(compdata1[i*4], compdata1[i*4 + 1],
+                               compdata1[i*4 + 2], compdata1[i*4 + 3]);
+        data[i] = Float.intBitsToFloat(a);
+      }
     }
   }
 
@@ -2173,7 +2188,10 @@ public class V5DStruct {
 
     // allocate compdata buffer
     if (CompressMode == 1) {
+      /*-TDR, bug? factor should be 1 
       bytes = Nr * Nc * Nl[vr] * 2; // sizeof(unsigned char);
+       */
+      bytes = Nr * Nc * Nl[vr] * 1; // sizeof(unsigned char);
     }
     else if (CompressMode == 2) {
       bytes = Nr * Nc * Nl[vr] * 2; // sizeof(unsigned short);
