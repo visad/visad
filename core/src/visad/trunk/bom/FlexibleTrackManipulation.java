@@ -617,7 +617,7 @@ public class FlexibleTrackManipulation extends Object {
       new FlexibleTrackManipulation(ff, display, shape_map1, shape_map2);
 
     JButton end = new JButton("end manip");
-    end.addActionListener(new EndManip(ftm));
+    end.addActionListener(new EndManipFTM(ftm));
     end.setActionCommand("end");
     panel.add(end);
 
@@ -627,10 +627,10 @@ public class FlexibleTrackManipulation extends Object {
   }
 }
 
-class EndManip implements ActionListener {
+class EndManipFTM implements ActionListener {
   FlexibleTrackManipulation ftm;
 
-  EndManip(FlexibleTrackManipulation f) {
+  EndManipFTM(FlexibleTrackManipulation f) {
     ftm = f;
   }
 

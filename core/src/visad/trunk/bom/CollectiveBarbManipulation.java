@@ -96,6 +96,14 @@ public class CollectiveBarbManipulation extends Object
   private float[][] old_azimuths;
   private float[][] old_radials;
 
+
+/*
+add a second DisplayImplJ3D argument for meteorogram
+with selector method to select which station
+two displays share Tupe[][] tuples, etc.
+*/
+
+
   /**
      wf should have MathType:
        (station_index -> (Time -> tuple))
