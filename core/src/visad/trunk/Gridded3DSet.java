@@ -1625,7 +1625,8 @@ for (int j=0; j<3; j++) {
     float[] g = fieldValues;
 
     // these are just estimates
-    int est = 2 * Length;
+    // int est = 2 * Length; WLH 14 April 2000
+    int est = Length / 8;
     if (est < 1000) est = 1000;
     int maxv2 = est;
     int maxv1 = 2 * 2 * maxv2;
@@ -1633,6 +1634,13 @@ for (int j=0; j<3; j++) {
     int maxv3 = est;
     int maxv4 = maxv3;
 
+/* memory use for temporaries, in bytes (for est = 2 * Length):
+12 * color_length * Length +
+64 * Length +
+48 * Length +
+ = (112 + 12 * color_length) * Length
+for color_length = 3 this is 148 * Length
+*/
     int color_length = (color_values != null) ? color_values.length : 0;
     byte[][] color_levels1 = null;
     byte[][] color_levels2 = null;
