@@ -341,17 +341,19 @@ System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
     float d_y = (float) ray.vector[1];
     float d_z = (float) ray.vector[2];
 
-    if (first) {
-      offset_count = OFFSET_COUNT_INIT;
-    }
-    else {
-      if (offset_count > 0) offset_count--;
-    }
-    if (offset_count > 0) {
-      float mult = ((float) offset_count) / ((float) OFFSET_COUNT_INIT);
-      o_x += mult * offsetx;
-      o_y += mult * offsety;
-      o_z += mult * offsetz;
+    if (pickCrawlToCursor) {
+      if (first) {
+        offset_count = OFFSET_COUNT_INIT;
+      }
+      else {
+        if (offset_count > 0) offset_count--;
+      }
+      if (offset_count > 0) {
+        float mult = ((float) offset_count) / ((float) OFFSET_COUNT_INIT);
+        o_x += mult * offsetx;
+        o_y += mult * offsety;
+        o_z += mult * offsetz;
+      }
     }
 
     if (first || refirst) {

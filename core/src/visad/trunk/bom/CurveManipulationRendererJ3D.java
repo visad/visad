@@ -347,17 +347,19 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     double[] origin = {ray.position[0], ray.position[1], ray.position[2]};
     double[] direction = ray.vector;
 
-    if (first) {
-      offset_count = OFFSET_COUNT_INIT;
-    }
-    else {
-      if (offset_count > 0) offset_count--;
-    }
-    if (offset_count > 0) {
-      float mult = ((float) offset_count) / ((float) OFFSET_COUNT_INIT);
-      origin[0] += mult * offsetx;
-      origin[1] += mult * offsety;
-      origin[2] += mult * offsetz;
+    if (pickCrawlToCursor) {
+      if (first) {
+        offset_count = OFFSET_COUNT_INIT;
+      }
+      else {
+        if (offset_count > 0) offset_count--;
+      }
+      if (offset_count > 0) {
+        float mult = ((float) offset_count) / ((float) OFFSET_COUNT_INIT);
+        origin[0] += mult * offsetx;
+        origin[1] += mult * offsety;
+        origin[2] += mult * offsetz;
+      }
     }
 
     try {

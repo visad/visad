@@ -2035,7 +2035,7 @@ System.out.println("checkClose: distance = " + distance);
 
   /** flag indicating whether points affected by direct manipulation should
       "crawl" toward the cursor instead of jumping to it immediately. */
-  private boolean pickCrawlToCursor = true;
+  protected boolean pickCrawlToCursor = true;
 
   /** sets whether points affected by direct manipulation should
       "crawl" toward the cursor instead of jumping to it immediately. */
