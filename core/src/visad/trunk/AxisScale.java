@@ -998,8 +998,10 @@ public class AxisScale implements java.io.Serializable
   {
     labelTable.clear();
     double[] values = computeTicks(max, min, base, increment);
-    for (int i = 0; i < values.length; i++) {
-      labelTable.put(new Double(values[i]), createLabelString(values[i]));
+    if (values != null) {
+      for (int i = 0; i < values.length; i++) {
+        labelTable.put(new Double(values[i]), createLabelString(values[i]));
+      }
     }
     if (byuser) {
       try {
