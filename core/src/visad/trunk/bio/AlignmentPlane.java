@@ -122,6 +122,7 @@ public class AlignmentPlane extends PlaneSelector {
   public double[] transform(double[] pt, int ndx1, int ndx2) {
     double[] v = new double[3];
     // CTR START HERE
+    return null;
   }
 
 
