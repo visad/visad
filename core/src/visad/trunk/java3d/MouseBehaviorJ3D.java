@@ -313,9 +313,15 @@ public class MouseBehaviorJ3D extends Behavior
     }
 
     /* translation */
+/* WLH 24 March 2000, for consistency with change
+                      of 22 Dec 97 in static_make_matrix
     trans[0] = mat[3][0];
     trans[1] = mat[3][1];
     trans[2] = mat[3][2];
+*/
+    trans[0] = mat[0][3];
+    trans[1] = mat[1][3];
+    trans[2] = mat[2][3];
   
     /* scale */
     scalex = scaley = scalez = 0.0;
