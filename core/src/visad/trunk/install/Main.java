@@ -2,94 +2,146 @@ package visad.install;
 
 import java.io.File;
 
-import java.util.ArrayList;
-import java.util.StringTokenizer;
-
 public class Main
 {
+  private static final String CLASSPATH_PROPERTY = "java.class.path";
   private static final String PATH_PROPERTY = "visad.install.path";
+
+  Path classpath, path;
+  File[] jarList, javaList;
 
   public Main(String[] args)
   {
+    classpath = path = null;
+    jarList = javaList = null;
+
     SplashScreen ss = new SplashScreen("visad-splash.jpg");
     ss.setVisible(true);
 
-    String[] path = getPath();
-    if (path == null) {
-      System.err.println(getClass().getName() +
-                         ": Please pass in the executable path via the '" +
-                         PATH_PROPERTY + "' property");
+    boolean initResult = initialize();
+
+    ss.setVisible(false);
+
+    if (!initResult) {
       System.exit(1);
       return;
     }
 
-    File[] javaList = findFile("java", path);
+    if (jarList == null) {
+      System.err.println("No visad.jar found in " + classpath);
+    } else {
+      jarList = loseDuplicates(jarList);
+      for (int i = 0; i < jarList.length; i++) {
+        System.out.println("#"+i+": "+jarList[i]);
+      }
+    }
+
     if (javaList == null) {
-      System.err.println("No java executable found?");
+      System.err.println("No java executable found in " + path);
     } else {
       for (int i = 0; i < javaList.length; i++) {
         System.out.println("#"+i+": "+javaList[i]);
       }
     }
-
-    ss.setVisible(false);
   }
 
-  private static File[] findFile(String file, String[] path)
+  private boolean initialize()
   {
-    if (file == null || file.length() == 0 ||
-        path == null || path.length == 0)
-    {
-      return null;
+    try {
+      classpath = new Path(System.getProperty(CLASSPATH_PROPERTY));
+    } catch (IllegalArgumentException iae) {
+      System.err.println(getClass().getName() +
+                         ": Couldn't get Java class path");
+      return false;
     }
 
-    ArrayList list = null;
-    for (int i = 0; i < path.length; i++) {
-      File f = new File(path[i], file);
-      if (f.isFile()) {
-        if (list == null) {
-          list = new ArrayList();
-        }
+    try {
+      path = new Path(System.getProperty(PATH_PROPERTY));
+    } catch (IllegalArgumentException iae) {
+      System.err.println(getClass().getName() +
+                         ": Please pass in the executable path via the '" +
+                         PATH_PROPERTY + "' property");
+      return false;
+    }
 
-        list.add(f);
+    jarList = classpath.findMatch("visad.jar");
+    if (jarList == null) {
+      jarList = classpath.find("visad.jar");
+    }
+
+    File[] tmpList = path.find("java");
+    if (tmpList != null) {
+      javaList = checkJavaVersions(loseDuplicates(tmpList), 1, 2);
+    }
+
+    return true;
+  }
+
+  private static final File[] checkJavaVersions(File[] list,
+                                                int major, int minor)
+  {
+    // check all java executables for minimum version
+    int deleted = 0;
+    for (int i = 0; i < list.length; i++) {
+      if (!JavaVersion.matchMinimum(list[i], major, minor)) {
+        list[i] = null;
+        deleted++;
       }
     }
 
-    if (list == null) {
-      return null;
-    }
-
-    return (File[] )list.toArray(new File[list.size()]);
+    return rebuildList(list, deleted);
   }
 
-  private static String[] getPath()
+  private static final File[] loseDuplicates(File[] list)
   {
-    String path = System.getProperty(PATH_PROPERTY);
-    if (path == null || path.length() == 0) {
+    final int listLen = list.length;
+
+    int deleted = 0;
+    for (int i = 0; i < listLen; i++) {
+      if (list[i] == null) {
+        continue;
+      }
+
+      for (int j = i+1; j < listLen; j++) {
+        if (list[j] == null || !list[i].equals(list[j])) {
+          continue;
+        }
+
+        // mark this entry for deletion
+        list[j] = null;
+        deleted++;
+      }
+    }
+
+    return rebuildList(list, deleted);
+  }
+
+  private static final File[] rebuildList(File[] list, int deleted)
+  {
+    // if everything matched, we're done
+    if (deleted == 0) {
+      return list;
+    }
+
+    // if everything was deleted, set list to null
+    if (deleted == list.length) {
       return null;
     }
 
-    String delim = System.getProperty("path.separator");
-
-    StringTokenizer tok = new StringTokenizer(path, delim);
-
-    final int numTokens = tok.countTokens();
-    if (numTokens == 0) {
-      return null;
+    // build a new list containing the valid entries
+    File[] newList = new File[list.length - deleted];
+    for (int i = 0, j = 0; i < list.length; i++) {
+      if (list[i] != null) {
+        newList[j++] = list[i];
+      }
     }
 
-    String[] list = new String[numTokens];
-
-    int i = 0;
-    while (tok.hasMoreTokens()) {
-      list[i++] = tok.nextToken();
-    }
-
-    return list;
+    return newList;
   }
 
   public static final void main(String[] args)
   {
     new Main(args);
+    System.exit(0);
   }
 }
