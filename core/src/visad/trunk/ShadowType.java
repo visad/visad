@@ -1231,7 +1231,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                   b = color_values[2][i];
                   if (color_length > 3) a = color_values[3][i];
                 }
-                for (int k=0; k<array.coordinates.length; k+=color_length) {
+                for (int k=0; k<array.colors.length; k+=color_length) {
                   array.colors[k] = r;
                   array.colors[k+1] = g;
                   array.colors[k+2] = b;

@@ -40,7 +40,6 @@ import java.rmi.*;
    SwellManipulationRendererJ3D is the VisAD class for direct
    manipulation rendering of swells under Java3D
 */
-// public class SwellManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 public class SwellManipulationRendererJ3D extends BarbManipulationRendererJ3D {
 
   /** this DataRenderer supports direct manipulation for Tuple
