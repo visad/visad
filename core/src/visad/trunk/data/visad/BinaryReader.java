@@ -137,7 +137,7 @@ if(DEBUG_ERRE)System.err.println("cchErrEst: index (" + index + ")");
 
     // read the ErrorEstimate data
     final double errValue = file.readDouble();
-if(DEBUG_ERRE)System.err.println("cchErrEst: errValue (" + errValue + ")");
+if(DEBUG_ERRE)System.err.println("cchErrEst: value (" + errValue + ")");
     final double mean = file.readDouble();
 if(DEBUG_ERRE)System.err.println("cchErrEst: mean (" + mean + ")");
     final long number = file.readLong();
@@ -214,7 +214,7 @@ if(DEBUG_UNIT)System.err.println("cchU: index (" + index + ")");
 
     // read the Unit identifier
     String idStr = readString();
-if(DEBUG_UNIT&&!DEBUG_STR)System.err.println("cchU: id (" + idStr + ")");
+if(DEBUG_UNIT&&!DEBUG_STR)System.err.println("cchU: identifier (" + idStr + ")");
 
     // read the Unit description
     String defStr = readString();
@@ -330,100 +330,100 @@ if(DEBUG_CSYS)System.err.println("rdCSysS: === #"+i+": "+cSys[i]+")");
   {
     switch (dataType) {
     case DATA_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_DOUBLE_SET (" + DATA_DOUBLE_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_DOUBLE_SET (" + dataType + ")");
       return readSimpleSet(dataType);
     case DATA_FIELD:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FIELD (" + DATA_FIELD + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_FIELD (" + dataType + ")");
       return readFieldImpl();
     case DATA_FLAT_FIELD:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FLAT_FIELD (" + DATA_FLAT_FIELD + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_FLAT_FIELD (" + dataType + ")");
       return readFlatField();
     case DATA_FLOAT_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FLOAT_SET (" + DATA_FLOAT_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_FLOAT_SET (" + dataType + ")");
       return readSimpleSet(dataType);
     case DATA_GRIDDED_1D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_DOUBLE_SET (" + DATA_GRIDDED_1D_DOUBLE_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_DOUBLE_SET (" + dataType + ")");
       return readGriddedDoubleSet(dataType);
     case DATA_GRIDDED_2D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + DATA_GRIDDED_2D_DOUBLE_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + dataType + ")");
       return readGriddedDoubleSet(dataType);
     case DATA_GRIDDED_3D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + DATA_GRIDDED_3D_DOUBLE_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + dataType + ")");
       return readGriddedDoubleSet(dataType);
     case DATA_GRIDDED_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_SET (" + DATA_GRIDDED_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_SET (" + dataType + ")");
       return readGriddedSet(dataType);
     case DATA_GRIDDED_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_SET (" + DATA_GRIDDED_1D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_SET (" + dataType + ")");
       return readGriddedSet(dataType);
     case DATA_GRIDDED_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_SET (" + DATA_GRIDDED_2D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_SET (" + dataType + ")");
       return readGriddedSet(dataType);
     case DATA_GRIDDED_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_SET (" + DATA_GRIDDED_3D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_SET (" + dataType + ")");
       return readGriddedSet(dataType);
     case DATA_INTEGER_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_1D_SET (" + DATA_INTEGER_1D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_1D_SET (" + dataType + ")");
       return readIntegerSet(dataType);
     case DATA_INTEGER_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_2D_SET (" + DATA_INTEGER_2D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_2D_SET (" + dataType + ")");
       return readIntegerSet(dataType);
     case DATA_INTEGER_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_3D_SET (" + DATA_INTEGER_3D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_3D_SET (" + dataType + ")");
       return readIntegerSet(dataType);
     case DATA_INTEGER_ND_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_ND_SET (" + DATA_INTEGER_ND_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_ND_SET (" + dataType + ")");
       return readIntegerSet(dataType);
     case DATA_IRREGULAR_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_1D_SET (" + DATA_IRREGULAR_1D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_1D_SET (" + dataType + ")");
       return readIrregularSet(dataType);
     case DATA_IRREGULAR_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_2D_SET (" + DATA_IRREGULAR_2D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_2D_SET (" + dataType + ")");
       return readIrregularSet(dataType);
     case DATA_IRREGULAR_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_3D_SET (" + DATA_IRREGULAR_3D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_3D_SET (" + dataType + ")");
       return readIrregularSet(dataType);
     case DATA_IRREGULAR_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_SET (" + DATA_IRREGULAR_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_SET (" + dataType + ")");
       return readIrregularSet(dataType);
     case DATA_LINEAR_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_1D_SET (" + DATA_LINEAR_1D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_1D_SET (" + dataType + ")");
       return readLinearSet(dataType);
     case DATA_LINEAR_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_2D_SET (" + DATA_LINEAR_2D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_2D_SET (" + dataType + ")");
       return readLinearSet(dataType);
     case DATA_LINEAR_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_3D_SET (" + DATA_LINEAR_3D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_3D_SET (" + dataType + ")");
       return readLinearSet(dataType);
     case DATA_LINEAR_ND_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_ND_SET (" + DATA_LINEAR_ND_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_ND_SET (" + dataType + ")");
       return readLinearSet(dataType);
     case DATA_LINEAR_LATLON_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_LATLON_SET (" + DATA_LINEAR_LATLON_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_LATLON_SET (" + dataType + ")");
       return readLinearSet(dataType);
     case DATA_LIST1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LIST1D_SET (" + DATA_LIST1D_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_LIST1D_SET (" + dataType + ")");
       return readList1DSet();
     case DATA_PRODUCT_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_PRODUCT_SET (" + DATA_PRODUCT_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_PRODUCT_SET (" + dataType + ")");
       return readProductSet();
     case DATA_REAL:
-if(DEBUG_DATA)System.err.println("rdData: DATA_REAL (" + DATA_REAL + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_REAL (" + dataType + ")");
       return readReal();
     case DATA_REAL_TUPLE:
-if(DEBUG_DATA)System.err.println("rdData: DATA_REAL_TUPLE (" + DATA_REAL_TUPLE + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_REAL_TUPLE (" + dataType + ")");
       return readRealTuple();
     case DATA_SINGLETON_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_SINGLETON_SET (" + DATA_SINGLETON_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_SINGLETON_SET (" + dataType + ")");
       return readSingletonSet();
     case DATA_TEXT:
-if(DEBUG_DATA)System.err.println("rdData: DATA_TEXT (" + DATA_TEXT + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_TEXT (" + dataType + ")");
       return readText();
     case DATA_TUPLE:
-if(DEBUG_DATA)System.err.println("rdData: DATA_TUPLE (" + DATA_TUPLE + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_TUPLE (" + dataType + ")");
       return readTuple();
     case DATA_UNION_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_UNION_SET (" + DATA_UNION_SET + ")");
+if(DEBUG_DATA)System.err.println("rdData: DATA_UNION_SET (" + dataType + ")");
       return readUnionSet();
     default:
       throw new IOException("Unknown Data type " + dataType);
@@ -752,7 +752,7 @@ if(DEBUG_MATH)System.err.println("rdFuTy: === read domain " + domain);
     final int rangeIndex = file.readInt();
 if(DEBUG_MATH)System.err.println("rdFuTy: range index (" + rangeIndex + ")");
     MathType range = (MathType )typeCache.get(rangeIndex);
-if(DEBUG_MATH)System.err.println("rdFuTy: === read range " + domain);
+if(DEBUG_MATH)System.err.println("rdFuTy: === read range " + range);
 
     final byte endByte = file.readByte();
 if(DEBUG_MATH)System.err.println("rdFuTy: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
