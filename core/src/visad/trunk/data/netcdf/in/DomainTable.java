@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DomainTable.java,v 1.4 1998-03-31 20:46:28 visad Exp $
+ * $Id: DomainTable.java,v 1.5 1998-04-08 15:58:54 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -33,11 +33,6 @@ DomainTable
      */
     protected final Map		map;
 
-    /**
-     * The current sequence number.
-     */
-    protected int		seqNo = 0;
-
 
     /**
      * Construct.
@@ -63,7 +58,7 @@ DomainTable
 	    // ": map.size()=" + map.size());
 
 	NcDim[]	dims = var.getDimensions();
-	Key	key = new Key(dims, seqNo++);
+	Key	key = new Key(dims, map.size());
 	Entry	entry = (Entry)map.get(key);
 
 	if (entry == null)
@@ -174,10 +169,10 @@ DomainTable
 	    /*
              * Scalar domains (i.e. domains with rank zero) are forced
              * to compare unequal so that each scalar has its own
-             * domain.  This prevents scalars from being composited
-             * into their own VisAD Tuple.  Thus, for example, we get
-             * the VisAD MathType (scalar1, scalar2, field) rather than
-             * ((scalar1, scalar2), field).
+             * domain.  This prevents scalars from being aggregated
+             * into a VisAD Tuple.  Thus, for example, we get the VisAD
+             * MathType (scalar1, scalar2, field) rather than ((scalar1,
+             * scalar2), field).
 	     */
 	    return (domain.getRank() == 0 && that.domain.getRank() == 0)
 			? seqNo - that.seqNo
