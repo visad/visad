@@ -59,8 +59,7 @@ public class Test61
     display1.addMap(new ScalarMap(xr, Display.XAxis));
     display1.addMap(new ScalarMap(yr, Display.YAxis));
     display1.addMap(new ScalarMap(zr, Display.ZAxis));
-    ScalarMap map1color = new ScalarMap(wr, Display.RGBA);
-    display1.addMap(map1color);
+    display1.addMap(new ScalarMap(wr, Display.RGBA));
 
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);
@@ -80,17 +79,13 @@ public class Test61
     ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
     LabeledRGBAWidget widget = new LabeledRGBAWidget(map1color);
 
-    // reverse the red & blue ends of the table for purely
-    // esthetic reasons, and taper the alpha
     ColorAlphaControl control = (ColorAlphaControl) map1color.getControl();
     float[][] table = control.getTable();
     int length = table[0].length;
-    // float[][] newtable = new float[table.length][length];
     for (int i=0; i<length; i++) {
       float a = ((float) i) / ((float) (table[3].length - 1));
       table[3][i] = a;
     }
-    // control.setTable(newtable);
     control.setTable(table);
 
     return widget;
