@@ -373,7 +373,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
 	}
         // Newton's method
 	float solv = ig + (vals[i] - samps[ig]) / (samps[ig+1] - samps[ig]);
-        if (solv >= -0.5 && solv <= LengthX - 0.5) grid[0][i] = solv;
+        if (solv >= -0.5 && solv < LengthX - 0.5) grid[0][i] = solv;
         else {
           grid[0][i] = Float.NaN;
           // next guess should be in the middle if previous value was missing
