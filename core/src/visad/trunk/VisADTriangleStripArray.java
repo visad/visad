@@ -62,7 +62,7 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
   }
 
   private final static float LIMIT = 1.0f; // constant for TEST = 0
-  private final static float ALPHA = 0.01f; // constant for TEST = 1
+  private final static double ALPHA = 0.01; // constant for TEST = 1
 
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
@@ -100,10 +100,10 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
 
     // TEST 1
     if (len < 2) return this;
-    float[][] bs = new float[3][len-1];
-    float[][] ss = new float[3][len-1];
-    float ALPHA1 = 1.0f + ALPHA;
-    float ALPHA1m = 1.0f - ALPHA;
+    double[][] bs = new double[3][len-1];
+    double[][] ss = new double[3][len-1];
+    double ALPHA1 = 1.0 + ALPHA;
+    double ALPHA1m = 1.0 - ALPHA;
     for (int i=0; i<len-1; i++) {
       // BS = point ALPHA * opposite direction
       bs[0][i] = ALPHA1 * rs[0][i] - ALPHA * rs[0][i+1];
@@ -114,37 +114,37 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
       ss[1][i] = ALPHA1 * rs[1][i+1] - ALPHA * rs[1][i];
       ss[2][i] = ALPHA1 * rs[2][i+1] - ALPHA * rs[2][i];
     }
-    float[][] ds = coord_sys.toReference(bs);
-    float[][] es = coord_sys.toReference(ss);
-    float IALPHA = 1.0f / ALPHA;
+    double[][] ds = coord_sys.toReference(bs);
+    double[][] es = coord_sys.toReference(ss);
+    double IALPHA = 1.0 / ALPHA;
 
     last_i = 0; // start i for each vertex strip
     for (int i_svc=0; i_svc<stripVertexCounts.length; i_svc++) {
       for (int i=last_i; i<last_i+stripVertexCounts[i_svc]-1; i++) {
         // A = original line segment
-        float a0 = cs[0][i+1] - cs[0][i];
-        float a1 = cs[1][i+1] - cs[1][i];
-        float a2 = cs[2][i+1] - cs[2][i];
+        double a0 = cs[0][i+1] - cs[0][i];
+        double a1 = cs[1][i+1] - cs[1][i];
+        double a2 = cs[2][i+1] - cs[2][i];
         // B = estimate of vector using ALPHA * opposite direction
-        float b0 = IALPHA * (cs[0][i] - ds[0][i]);
-        float b1 = IALPHA * (cs[1][i] - ds[1][i]);
-        float b2 = IALPHA * (cs[2][i] - ds[2][i]);
-        float aa = (a0 * a0 + a1 * a1 + a2 * a2);
-        float aminusb =
+        double b0 = IALPHA * (cs[0][i] - ds[0][i]);
+        double b1 = IALPHA * (cs[1][i] - ds[1][i]);
+        double b2 = IALPHA * (cs[2][i] - ds[2][i]);
+        double aa = (a0 * a0 + a1 * a1 + a2 * a2);
+        double aminusb =
           (b0 - a0) * (b0 - a0) +
           (b1 - a1) * (b1 - a1) +
           (b2 - a2) * (b2 - a2);
-        float abratio = aminusb / aa;
+        double abratio = aminusb / aa;
 
         // C = estimate of vector using ALPHA * opposite direction
-        float c0 = IALPHA * (cs[0][i+1] - es[0][i]);
-        float c1 = IALPHA * (cs[1][i+1] - es[1][i]);
-        float c2 = IALPHA * (cs[2][i+1] - es[2][i]);
-        float aminusc =
+        double c0 = IALPHA * (cs[0][i+1] - es[0][i]);
+        double c1 = IALPHA * (cs[1][i+1] - es[1][i]);
+        double c2 = IALPHA * (cs[2][i+1] - es[2][i]);
+        double aminusc =
           (c0 + a0) * (c0 + a0) +
           (c1 + a1) * (c1 + a1) +
           (c2 + a2) * (c2 + a2);
-        float acratio = aminusc / aa;
+        double acratio = aminusc / aa;
 
         // true for bad segment
         test[i] = (0.01f < abratio) || (0.01f < acratio);
@@ -175,6 +175,10 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
 
     cs = null;
     rs = null;
+    bs = null;
+    ss = null;
+    ds = null;
+    es = null;
 
     // TEST 0
     if (num_length < 2) return this;
