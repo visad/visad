@@ -98,6 +98,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** whether this JVM supports saving JPEG images with JPEGImageEncoder */
   protected static boolean CanDoJPEG;
 
+  /** whether this JVM supports JPython scripting */
+  protected static boolean CanDoPython;
+
 
   /** file dialog */
   protected JFileChooser SSFileDialog;
@@ -519,15 +522,26 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // test whether JPEG codec is present
     CanDoJPEG = false;
     try {
-      // attempt to call a method from the JPEG codec
-      BufferedImage image =
-        new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
-      JPEGEncodeParam param = JPEGCodec.getDefaultJPEGEncodeParam(image);
+      // search for JPEG codec class
+      Class c = Class.forName("com.sun.image.codec.jpeg.JPEGCodec");
       CanDoJPEG = true;
     }
-    catch (NoClassDefFoundError err) {
+    catch (ClassNotFoundException exc) {
       if (BasicSSCell.DEBUG) {
         System.err.println("Warning: JPEG codec not found");
+      }
+    }
+
+    // test whether JPython is present
+    CanDoPython = false;
+    try {
+      // search for JPython interpreter class
+      Class c = Class.forName("org.python.util.PythonInterpreter");
+      CanDoPython = true;
+    }
+    catch (ClassNotFoundException exc) {
+      if (BasicSSCell.DEBUG) {
+        System.err.println("Warning: JPython not found");
       }
     }
 
@@ -3321,6 +3335,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     if (CanDoJPEG) {
       extras = extras + (first ? "" : ", ") + "JPEG snapshot";
+      first = false;
+    }
+    if (CanDoPython) {
+      extras = extras + (first ? "" : ", ") + "JPython scripting";
       first = false;
     }
     if (first) extras = extras + "None";
