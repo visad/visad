@@ -201,11 +201,8 @@ SAVE_FILES = \
 	dods/dap/Server/*.java				\
 	dods/dap/functions/*.java			\
 	dods/dap/parser/*.java				\
-	dods/dap/test/*.java				\
 	dods/util/*.java				\
-	dods/util/gui/*.java				\
 	gnu/regexp/*.java				\
-	gnu/regexp/util/*.java				\
 	visad/data/hdfeos/*.java			\
 	visad/data/hdfeos/hdfeosc/*.java		\
 	visad/data/hdfeos/hdfeosc/*.c			\
@@ -303,11 +300,8 @@ DOC_PACKAGES = \
 		dods.dap.Server \
 		dods.dap.functions \
 		dods.dap.parser \
-		dods.dap.test \
 		dods.util \
-		dods.util.gui \
 		gnu.regexp \
-		gnu.regexp.util \
 		visad.data \
 		visad.data.in \
 		visad.data.dods \
