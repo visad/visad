@@ -264,7 +264,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** specify whether this FancySSCell should auto-switch to 3-D */
-  public void setAutoSwitch(boolean value) {
+  public synchronized void setAutoSwitch(boolean value) {
     AutoSwitch = value;
   }
 
@@ -274,7 +274,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** specify whether this FancySSCell should auto-detect its mappings */
-  public void setAutoDetect(boolean value) {
+  public synchronized void setAutoDetect(boolean value) {
     AutoDetect = value;
   }
 
@@ -284,7 +284,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** specify whether this FancySSCell should auto-display its widget frame */
-  public void setAutoShowControls(boolean value) {
+  public synchronized void setAutoShowControls(boolean value) {
     AutoShowControls = value;
   }
 

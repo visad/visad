@@ -865,7 +865,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         success = false;
       }
 
-      if (success) bTitle = bTitle + " (" + server + ")";
+      if (success) bTitle = bTitle + " (" + server + ')';
       else rsi = null;
     }
 
@@ -938,7 +938,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         }
       }
 
-      if (success) bTitle = bTitle + " [collaborative mode: " + clone + "]";
+      if (success) bTitle = bTitle + " [collaborative mode: " + clone + ']';
       else {
         // construct a normal spreadsheet (i.e., not a clone)
         constructSpreadsheetCells(null);
@@ -1366,14 +1366,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
 
-    // hack to avoid race condition that sets mappings incorrectly
-    try {
-      Thread.sleep(200);
-    }
-    catch (InterruptedException exc) {
-      if (BasicSSCell.DEBUG) exc.printStackTrace();
-    }
-
     // set auto-switch, auto-detect and auto-show
     setAutoSwitch(autoSwitch);
     setAutoDetect(autoDetect);
@@ -1397,7 +1389,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (CurrentFile == null) saveasFile();
     else {
       // construct file header
-      String header = "# VisAD Visualization Spread Sheet spreadsheet file\n";
+      StringBuffer sb = new StringBuffer(1024 * NumVisX * NumVisY + 1024);
+      sb.append("# VisAD Visualization Spread Sheet spreadsheet file\n");
       Calendar cal = Calendar.getInstance();
       int year = cal.get(Calendar.YEAR);
       int month = cal.get(Calendar.MONTH);
@@ -1406,54 +1399,78 @@ public class SpreadSheet extends JFrame implements ActionListener,
       int min = cal.get(Calendar.MINUTE);
       int sec = cal.get(Calendar.SECOND);
       int milli = cal.get(Calendar.MILLISECOND);
-      String sYear = "" + year;
-      String sMonth = "" + (month + 1);
-      if (month < 10) sMonth = "0" + sMonth;
-      String sDay = "" + day;
-      if (day < 10) sDay = "0" + sDay;
-      String date = sYear + "/" + sMonth + "/" + sDay;
-      String sHour = "" + hour;
-      if (hour < 10) sHour = "0" + sHour;
-      String sMin = "" + min;
-      if (min < 10) sMin = "0" + sMin;
-      String sSec = "" + sec;
-      if (sec < 10) sSec = "0" + sSec;
-      String sMilli = "" + milli;
-      if (milli < 100) sMilli = "0" + sMilli;
-      if (milli < 10) sMilli = "0" + sMilli;
-      String time = sHour + ":" + sMin + ":" + sSec + "." + sMilli;
-      header = header + "# File " + CurrentFile.getName() +
-        " written at " + date + ", " + time + '\n';
+      sb.append("# File ");
+      sb.append(CurrentFile.getName());
+      sb.append(" written at ");
+      sb.append(year);
+      sb.append('/');
+      if (month < 10) sb.append('0');
+      sb.append(month + 1);
+      sb.append('/');
+      if (day < 10) sb.append('0');
+      sb.append(day);
+      sb.append(", ");
+      if (hour < 10) sb.append('0');
+      sb.append(hour);
+      sb.append(':');
+      if (min < 10) sb.append('0');
+      sb.append(min);
+      sb.append(':');
+      if (sec < 10) sb.append('0');
+      sb.append(sec);
+      sb.append('.');
+      if (milli < 100) sb.append('0');
+      if (milli < 10) sb.append('0');
+      sb.append(milli);
+      sb.append("\n\n");
 
       // compile global information
-      String global = "[Global]\n" + 
-        "sheet size = " + getWidth() + " x " + getHeight() + '\n' +
-        "dimension = " + NumVisX + " x " + NumVisY + '\n' +
-        "columns =";
+      sb.append("[Global]\n");
+      sb.append("sheet size = ");
+      sb.append(getWidth());
+      sb.append(" x ");
+      sb.append(getHeight());
+      sb.append('\n');
+      sb.append("dimension = ");
+      sb.append(NumVisX);
+      sb.append(" x ");
+      sb.append(NumVisY);
+      sb.append('\n');
+      sb.append("columns =");
       for (int j=0; j<NumVisY; j++) {
-        global = global + ' ' + HorizLabel[j].getSize().width;
+        sb.append(' ');
+        sb.append(HorizLabel[j].getSize().width);
       }
-      global = global + '\n' +
-        "rows =";
+      sb.append('\n');
+      sb.append("rows =");
       for (int i=0; i<NumVisX; i++) {
-        global = global + ' ' + VertLabel[i].getSize().height;
+        sb.append(' ');
+        sb.append(VertLabel[i].getSize().height);
       }
-      global = global + '\n' +
-        "auto switch = " + AutoSwitch + '\n' +
-        "auto detect = " + AutoDetect + '\n' +
-        "auto show = " + AutoShowControls + '\n';
+      sb.append('\n');
+      sb.append("auto switch = ");
+      sb.append(AutoSwitch);
+      sb.append('\n');
+      sb.append("auto detect = ");
+      sb.append(AutoDetect);
+      sb.append('\n');
+      sb.append("auto show = ");
+      sb.append(AutoShowControls);
+      sb.append("\n\n");
 
       // compile cell information
-      String cellInfo = "";
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) {
-          cellInfo = cellInfo + "[" + DisplayCells[i][j].getName() + "]\n" +
-            DisplayCells[i][j].getSaveString() + '\n';
+          sb.append('[');
+          sb.append(DisplayCells[i][j].getName());
+          sb.append("]\n");
+          sb.append(DisplayCells[i][j].getSaveString());
+          sb.append('\n');
         }
       }
 
       // convert information to a character array
-      char[] sc = (header + '\n' + global + '\n' + cellInfo).toCharArray();
+      char[] sc = sb.toString().toCharArray();
 
       try {
         // write file to disk

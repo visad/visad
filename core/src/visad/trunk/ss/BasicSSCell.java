@@ -650,7 +650,7 @@ public class BasicSSCell extends JPanel {
   }
 
   /** add or remove VDPanel from this BasicSSCell */
-  void setVDPanel(boolean value) {
+  protected void setVDPanel(boolean value) {
     HasDisplay = false;
 
     // redraw cell
@@ -664,13 +664,13 @@ public class BasicSSCell extends JPanel {
   }
 
   /** display an error in this BasicSSCell, or setError(null) for no error */
-  void setError(String msg) {
+  protected void setError(String msg) {
     String[] s = (msg == null ? null : new String[] {msg});
     setErrors(s);
   }
 
   /** display errors in this BasicSSCell, or setErrors(null) for no errors */
-  void setErrors(String[] msg) {
+  protected void setErrors(String[] msg) {
     boolean noChange = true;
     int oLen = (Errors == null ? 0 : Errors.length);
     int nLen = (msg == null ? 0 : msg.length);
@@ -1351,32 +1351,40 @@ public class BasicSSCell extends JPanel {
   public String getSaveString() {
     if (IsRemote) return null;
     else {
-      String s = "";
+      StringBuffer sb = new StringBuffer(1024);
 
       if (Filename != null) {
         // add filename to save string
-        s = s + "filename = " + Filename.toString() + '\n';
+        sb.append("filename = ");
+        sb.append(Filename.toString());
+        sb.append('\n');
       }
 
       if (RMIAddress != null) {
         // add rmi address to save string
-        s = s + "rmi = " + RMIAddress + '\n';
+        sb.append("rmi = ");
+        sb.append(RMIAddress);
+        sb.append('\n');
       }
 
       if (!Formula.equals("")) {
         // add formula to save string
-        s = s + "formula = " + Formula + '\n';
+        sb.append("formula = ");
+        sb.append(Formula);
+        sb.append('\n');
       }
 
       // add dimension to save string
-      s = s + "dim = " + Dim + '\n';
+      sb.append("dim = ");
+      sb.append(Dim);
+      sb.append('\n');
 
       if (hasMappings()) {
         Vector mapVector = VDisplay.getMapVector();
         int mvs = mapVector.size();
         if (mvs > 0) {
           // add mappings to save string
-          s = s + "maps =";
+          sb.append("maps =");
           for (int i=0; i<mvs; i++) {
             ScalarMap m = (ScalarMap) mapVector.elementAt(i);
             ScalarType domain = m.getScalar();
@@ -1385,31 +1393,44 @@ public class BasicSSCell extends JPanel {
             for (int j=0; j<Display.DisplayRealArray.length; j++) {
               if (range.equals(Display.DisplayRealArray[j])) q = j;
             }
-            s = s + ' ' + domain.getName() + ' ' + q;
+            sb.append(' ');
+            sb.append(domain.getName());
+            sb.append(' ');
+            sb.append(q);
           }
-          s = s + '\n';
+          sb.append('\n');
 
           // add map ranges to save string
-          s = s + "map ranges =";
+          sb.append("map ranges =");
           for (int i=0; i<mvs; i++) {
             ScalarMap m = (ScalarMap) mapVector.elementAt(i);
             double[] range = new double[2];
             boolean scale = m.getScale(new double[2], range, new double[2]);
-            if (scale) s = s + ' ' + range[0] + ' ' + range[1];
+            if (scale) {
+              sb.append(' ');
+              sb.append(range[0]);
+              sb.append(' ');
+              sb.append(range[1]);
+            }
           }
-          s = s + '\n';
+          sb.append('\n');
         }
       }
 
       if (hasDisplay()) {
         // add projection control state to save string
         ProjectionControl pc = VDisplay.getProjectionControl();
-        if (pc != null) s = s + "projection = " + pc.getSaveString();
+        if (pc != null) {
+          sb.append("projection = ");
+          sb.append(pc.getSaveString());
+        }
 
         // add graphics mode control settings to save string
         GraphicsModeControl gmc = VDisplay.getGraphicsModeControl();
         if (gmc != null) {
-          s = s + "graphics mode = " + gmc.getSaveString() + '\n';
+          sb.append("graphics mode = ");
+          sb.append(gmc.getSaveString());
+          sb.append('\n');
         }
 
         // add color control state(s) to save string
@@ -1417,7 +1438,10 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             ColorControl cc = (ColorControl) cv.elementAt(i);
-            if (cc != null) s = s + "color = " + cc.getSaveString();
+            if (cc != null) {
+              sb.append("color = ");
+              sb.append(cc.getSaveString());
+            }
           }
         }
 
@@ -1426,7 +1450,11 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             ContourControl cc = (ContourControl) cv.elementAt(i);
-            if (cc != null) s = s + "contour = " + cc.getSaveString() + '\n';
+            if (cc != null) {
+              sb.append("contour = ");
+              sb.append(cc.getSaveString());
+              sb.append('\n');
+            }
           }
         }
 
@@ -1435,7 +1463,11 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             RangeControl rc = (RangeControl) cv.elementAt(i);
-            if (rc != null) s = s + "range = " + rc.getSaveString() + '\n';
+            if (rc != null) {
+              sb.append("range = ");
+              sb.append(rc.getSaveString());
+              sb.append('\n');
+            }
           }
         }
 
@@ -1444,7 +1476,11 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             AnimationControl ac = (AnimationControl) cv.elementAt(i);
-            if (ac != null) s = s + "anim = " + ac.getSaveString() + '\n';
+            if (ac != null) {
+              sb.append("anim = ");
+              sb.append(ac.getSaveString());
+              sb.append('\n');
+            }
           }
         }
 
@@ -1453,11 +1489,15 @@ public class BasicSSCell extends JPanel {
         if (cv != null) {
           for (int i=0; i<cv.size(); i++) {
             ValueControl vc = (ValueControl) cv.elementAt(i);
-            if (vc != null) s = s + "value = " + vc.getSaveString() + '\n';
+            if (vc != null) {
+              sb.append("value = ");
+              sb.append(vc.getSaveString());
+              sb.append('\n');
+            }
           }
         }
       }
-      return s;
+      return sb.toString();
     }
   }
 
@@ -1482,8 +1522,9 @@ public class BasicSSCell extends JPanel {
   }
 
   /** map RealTypes to the display according to the specified ScalarMaps */
-  public void setMaps(ScalarMap[] maps) throws VisADException,
-                                               RemoteException {
+  public synchronized void setMaps(ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
     if (maps == null) return;
 
     VisADException vexc = null;
@@ -1643,7 +1684,8 @@ public class BasicSSCell extends JPanel {
 
   /** set the BasicSSCell to 2-D or 3-D display with Java2D or Java3D */
   public void setDimension(boolean twoD, boolean java2d)
-                           throws VisADException, RemoteException {
+    throws VisADException, RemoteException
+  {
     int dim;
     if (!twoD && java2d) return;
     if (!twoD && !java2d) dim = JAVA3D_3D;
@@ -1812,7 +1854,9 @@ public class BasicSSCell extends JPanel {
   }
 
   /** set the BasicSSCell's formula */
-  public void setFormula(String f) throws VisADException, RemoteException {
+  public synchronized void setFormula(String f)
+    throws VisADException, RemoteException
+  {
     String nf = (f == null ? "" : f);
     if (Formula.equals(nf)) return;
     Formula = "";
@@ -1895,13 +1939,16 @@ public class BasicSSCell extends JPanel {
   }
 
   /** import a data object from a given URL */
-  public void loadData(URL u) throws VisADException, RemoteException {
+  public synchronized void loadData(URL u)
+    throws VisADException, RemoteException
+  {
     if (IsRemote) {
       throw new UnimplementedException("Cannot loadData " +
         "on a cloned cell (yet).");
     }
 
     if (u == null) return;
+
     clearDisplay();
     setFormula(null);
     Filename = null;
@@ -1957,7 +2004,9 @@ public class BasicSSCell extends JPanel {
 
   /** import a data object from a given RMI address, and automatically
       update this cell whenever the remote data object changes */
-  public void loadRMI(String s) throws VisADException, RemoteException {
+  public synchronized void loadRMI(String s)
+    throws VisADException, RemoteException
+  {
     // example of RMI address: rmi://www.myaddress.com/MyServer/A1
     if (s == null) return;
     if (!s.startsWith("rmi://")) {
