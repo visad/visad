@@ -54,10 +54,18 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c,
                  GraphicsConfiguration config) {
-    super(config);
+    super(makeConfig(config));
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = c;
+  }
+
+  private static GraphicsConfiguration makeConfig(GraphicsConfiguration config) {
+    if (config == null) {
+      return config; // Curtis - please change this
+    else {
+      return config;
+    }
   }
 
   public void renderField(int i) {
