@@ -69,8 +69,10 @@ public class CollectiveBarbManipulation extends Object
 
   private DataReferenceImpl stations_ref;
   private DataReferenceImpl[] station_refs;
-  private BarbRendererJ3D barb_renderer;
-  private BarbManipulationRendererJ3D[] barb_manipulation_renderers;
+  // private BarbRendererJ3D barb_renderer;
+  // private BarbManipulationRendererJ3D[] barb_manipulation_renderers;
+  private DataRenderer barb_renderer;
+  private DataRenderer[] barb_manipulation_renderers;
   private BarbMonitor[] barb_monitors;
 
   private WindMonitor wind_monitor = null;
@@ -86,6 +88,8 @@ public class CollectiveBarbManipulation extends Object
   private double inner_time;
   private double outer_time;
   private DataReference curve_ref = null;
+
+  private boolean barbs;
 
   private ConstantMap[] cmaps;
 
@@ -129,6 +133,8 @@ public class CollectiveBarbManipulation extends Object
      influence is 1.0 inside inner, 0.0 outside outer and
      linear between distance and time influences multiply;
 
+     cms are ConstantMap's used for rendering barbs
+
      each time the user clicks the right mouse button to
      manipulate a wind barb, the "reference" values for all
      wind barbs are set - thus repeatedly adjusting the same
@@ -138,11 +144,14 @@ public class CollectiveBarbManipulation extends Object
 
      need_monitor is true if wf might be changed externally
      during manipulation
+
+     brbs is true to indicate Barb*RendererJ3D, false to
+     indicate Swell*RendererJ3D
   */
   public CollectiveBarbManipulation(FieldImpl wf,
                  DisplayImplJ3D d1, DisplayImplJ3D d2, ConstantMap[] cms,
                  boolean abs, float id, float od, float it, float ot,
-                 int sta, boolean need_monitor)
+                 int sta, boolean need_monitor, boolean brbs)
          throws VisADException, RemoteException {
     wind_field = wf;
     display1 = d1;
@@ -154,6 +163,7 @@ public class CollectiveBarbManipulation extends Object
     inner_time = it;
     outer_time = ot;
     curve_ref = null;
+    barbs = brbs;
 
     station = sta;
 
@@ -406,17 +416,27 @@ public class CollectiveBarbManipulation extends Object
 
       stations_ref = new DataReferenceImpl("stations_ref");
       stations_ref.setData(wind_field);
-      barb_renderer = new BarbRendererJ3D();
+      if (barbs) {
+        barb_renderer = new BarbRendererJ3D();
+      }
+      else {
+        barb_renderer = new SwellRendererJ3D();
+      }
       display1.addReferences(barb_renderer, stations_ref, constantMaps());
       which_time = -1;
       station_refs = new DataReferenceImpl[nindex];
-      barb_manipulation_renderers = new BarbManipulationRendererJ3D[nindex];
+      barb_manipulation_renderers = new DataRenderer[nindex];
       barb_monitors = new BarbMonitor[nindex];
       for (int i=0; i<nindex; i++) {
         station_refs[i] = new DataReferenceImpl("station_ref" + i);
         station_refs[i].setData(tuples[i][0]);
         which_times[i] = -1;
-        barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
+        if (barbs) {
+          barb_manipulation_renderers[i] = new BarbManipulationRendererJ3D();
+        }
+        else {
+          barb_manipulation_renderers[i] = new SwellManipulationRendererJ3D();
+        }
         display1.addReferences(barb_manipulation_renderers[i], station_refs[i],
                                constantMaps());
         barb_monitors[i] = new BarbMonitor(station_refs[i], i);
@@ -505,10 +525,20 @@ public class CollectiveBarbManipulation extends Object
         time_refs[i] = new DataReferenceImpl("time_ref" + i);
         time_refs[i].setData(tuples2[station][i]);
         if (ended) {
-          barb_manipulation_renderers2[i] = new BarbRendererJ3D();
+          if (barbs) {
+            barb_manipulation_renderers2[i] = new BarbRendererJ3D();
+          }
+          else {
+            barb_manipulation_renderers2[i] = new SwellRendererJ3D();
+          }
         }
         else {
-          barb_manipulation_renderers2[i] = new BarbManipulationRendererJ3D();
+          if (barbs) {
+            barb_manipulation_renderers2[i] = new BarbManipulationRendererJ3D();
+          }
+          else {
+            barb_manipulation_renderers2[i] = new SwellManipulationRendererJ3D();
+          }
         }
         display2.addReferences(barb_manipulation_renderers2[i], time_refs[i],
                                constantMaps());
@@ -545,7 +575,12 @@ public class CollectiveBarbManipulation extends Object
         barb_monitors[i].removeReference(station_refs[i]);
         barb_monitors[i].stop();
       }
-      barb_renderer = new BarbRendererJ3D();
+      if (barbs) {
+        barb_renderer = new BarbRendererJ3D();
+      }
+      else {
+        barb_renderer = new SwellRendererJ3D();
+      }
       display1.addReferences(barb_renderer, stations_ref, constantMaps());
     }
     if (display2 != null && time_refs != null) {
@@ -909,10 +944,6 @@ public class CollectiveBarbManipulation extends Object
     FlowControl flow_control = (FlowControl) windd_map.getControl();
     flow_control.setFlowScale(0.15f); // this controls size of barbs
 
-    display1.addMap(new ScalarMap(red, Display.Red));
-    display1.addMap(new ScalarMap(green, Display.Green));
-    display1.addMap(new ConstantMap(1.0, Display.Blue));
-
     ScalarMap amap = new ScalarMap(time, Display.Animation);
     display1.addMap(amap);
     AnimationControl acontrol = (AnimationControl) amap.getControl();
@@ -975,7 +1006,7 @@ public class CollectiveBarbManipulation extends Object
     final CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
                                      0.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     0, false);
+                                     0, false, (args.length == 0));
 
     // construct invisible starter set
     Gridded2DSet set1 =
