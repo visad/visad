@@ -107,8 +107,7 @@ public class Vis5DVerticalSystem
         break;
       case (3):
         try {
-          vert_unit = Parser.parse("Pa"); // WLH 20 Nov 2001
-          // vert_unit = Parser.parse("mbar");
+          vert_unit = Parser.parse("mbar");
         }
         catch (ParseException e) {
         }
@@ -195,8 +194,7 @@ public class Vis5DVerticalSystem
   
     static {
       try {
-         csUnits = new Unit[] {Parser.parse("Pa")}; // WLH 20 Nov 2001
-         // csUnits = new Unit[] {Parser.parse("mbar")};
+         csUnits = new Unit[] {Parser.parse("mbar")};
       }
       catch (ParseException pe) {;} // can't happen?
     }
