@@ -103,7 +103,7 @@ public class Galaxy extends Object implements ActionListener {
   
   
 
-  /** decalre MathTypes */
+  /** declare MathTypes */
   RealType gridx;
   RealType gridy;
   RealType gridz;
@@ -837,6 +837,11 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
       new VisADSlider("density", 0, 400, 60, 0.001, density_ref,
                       RealType.Generic);
 
+    // CTR: 14 Sep 1999: allow density slider to become narrower
+    Dimension slide_dim = density_slider.getMinimumSize();
+    slide_dim.width = 70;
+    density_slider.setMinimumSize(slide_dim);
+
     // construct Display for sky map image
     display2 = new DisplayImplJ2D("display2");
     display2.setAlwaysAutoScale(true);
@@ -981,7 +986,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
     big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    frame.getContentPane().add(big_panel);
+    frame.setContentPane(big_panel);
 
     // create left hand side JPanel for sliders and text
     JPanel left = new JPanel(); // FlowLayout and double buffer
@@ -1001,7 +1006,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     left.add(new JLabel("University of Wisconsin - Madison"));
     left.add(new JLabel("  "));
     left.add(new JLabel("  "));
-    left.add(new JLabel("Adjust Milky Way galaxy paramters using"));
+    left.add(new JLabel("Adjust Milky Way galaxy parameters using"));
     left.add(new JLabel("sliders."));
     left.add(new JLabel("  "));
     left.add(new JLabel("Then press 'Compute' button to compute"));
@@ -1098,8 +1103,12 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
     center.setAlignmentY(JPanel.TOP_ALIGNMENT);
     center.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    d = new Dimension(400,950);
+    d = new Dimension(400, 950);
     center.setMaximumSize(d);
+
+    // CTR: 14 Sep 1999: center and right need equal preferred sizes
+    center.setPreferredSize(new Dimension(400, 950));
+
     big_panel.add(center);
 
      // create panel for contour slider and button
@@ -1205,6 +1214,10 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
     right.setAlignmentY(JPanel.TOP_ALIGNMENT);
     right.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+    // CTR: 14 Sep 1999: center and right need equal preferred sizes
+    right.setPreferredSize(new Dimension(400, 950));
+
 /*
     frame2.getContentPane().add(right);
 */
