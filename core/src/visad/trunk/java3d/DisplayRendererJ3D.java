@@ -259,7 +259,7 @@ public abstract class DisplayRendererJ3D
         // than an Exception - control doesn't normally come here
       }
       image = canvas.captureImage;
-if (image == null) System.out.println("image is null");
+// if (image == null) System.out.println("image is null");
       canvas.captureImage = null;
     }
     return image;
