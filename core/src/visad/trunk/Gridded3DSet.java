@@ -1746,7 +1746,16 @@ for color_length = 3 this is 148 * Length
         }
       }
       //-- compute color at field contour intervals
-      float[] display_intervals = smap[0].scaleValues(intervals);
+      float[] default_intervals = null;
+      Unit ounit = smap[0].getOverrideUnit();
+      if (ounit != null) {
+        default_intervals =
+          (((RealType)smap[0].getScalar()).getDefaultUnit()).toThis(intervals, ounit);
+      }
+      else {
+        default_intervals = intervals;
+      }
+      float[] display_intervals = smap[0].scaleValues(default_intervals);
       BaseColorControl color_control = (BaseColorControl)smap[0].getControl();
       float[][] temp = null;
       try {
