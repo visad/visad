@@ -39,79 +39,94 @@ public class FormulaUtil {
   public static FormulaManager createStandardManager() {
     String[] binOps = {".", "^", "*", "/", "%", "+", "-"};
     int[] binPrec =   {200, 400, 600, 600, 600, 800, 800};
-    String[] binMethods = {"visad.formula.FormulaUtil.dot(visad.TupleIface," +
-                                                         "visad.Real)",
-                           "visad.Data.pow(visad.Data)",
-                           "visad.Data.multiply(visad.Data)",
-                           "visad.Data.divide(visad.Data)",
-                           "visad.Data.remainder(visad.Data)",
-                           "visad.Data.add(visad.Data)",
-                           "visad.Data.subtract(visad.Data)"};
+    String[] binMethods = {
+      "visad.formula.FormulaUtil.dot(visad.TupleIface, visad.Real)",
+      "visad.Data.pow(visad.Data)",
+      "visad.Data.multiply(visad.Data)",
+      "visad.Data.divide(visad.Data)",
+      "visad.Data.remainder(visad.Data)",
+      "visad.Data.add(visad.Data)",
+      "visad.Data.subtract(visad.Data)"
+    };
     String[] unaryOps = {"-"};
     int[] unaryPrec =   {500};
     String[] unaryMethods = {"visad.Data.negate()"};
-    String[] functions = {"abs", "acos", "acosDegrees", "asin", "asinDegrees",
-                          "atan", "atan2", "atanDegrees", "atan2Degrees",
-                          "ceil", "combine", "cos", "cosDegrees", "derive",
-                          "domainMultiply", "domainFactor", "exp", "extract",
-                          "floor", "getSample", "linkx", "log", "max", "min",
-                          "negate", "rint", "round", "sin", "sinDegrees",
-                          "sqrt", "tan", "tanDegrees"};
-    String[] funcMethods = {"visad.Data.abs()", "visad.Data.acos()",
-                            "visad.Data.acosDegrees()", "visad.Data.asin()",
-                            "visad.Data.asinDegrees()", "visad.Data.atan()",
-                            "visad.Data.atan2(visad.Data)",
-                            "visad.Data.atanDegrees()",
-                            "visad.Data.atan2Degrees(visad.Data)",
-                            "visad.Data.ceil()",
-                            "visad.FieldImpl.combine(visad.Field[])",
-                            "visad.Data.cos()", "visad.Data.cosDegrees()",
-                            "visad.formula.FormulaUtil.derive(" +
-                            "visad.Function, visad.formula.VRealType)",
-                            "visad.FieldImpl.domainMultiply()",
-                            "visad.formula.FormulaUtil.factor(" +
-                            "visad.FieldImpl, visad.formula.VRealType)",
-                            "visad.Data.exp()",
-                            "visad.formula.FormulaUtil.extract(visad.Field," +
-                                                              "visad.Real)",
-                            "visad.Data.floor()",
-                            "visad.formula.FormulaUtil.brackets(visad.Field," +
-                                                               "visad.Real)",
-                            "visad.formula.FormulaUtil.link(" +
-                            "visad.formula.VMethod, java.lang.Object[])",
-                            "visad.Data.log()",
-                            "visad.Data.max(visad.Data)",
-                            "visad.Data.min(visad.Data)",
-                            "visad.Data.negate()", "visad.Data.rint()",
-                            "visad.Data.round()", "visad.Data.sin()",
-                            "visad.Data.sinDegrees()", "visad.Data.sqrt()",
-                            "visad.Data.tan()", "visad.Data.tanDegrees()"};
+    String[] functions = {
+      "abs", "acos", "acosDegrees", "asin", "asinDegrees", "atan", "atan2",
+      "atanDegrees", "atan2Degrees", "ceil", "combine", "cos", "cosDegrees",
+      "derive", "domainMultiply", "domainFactor", "exp", "extract", "floor",
+      "getSample", "linkx", "log", "max", "min", "negate", "rint", "round",
+      "sin", "sinDegrees", "sqrt", "tan", "tanDegrees"
+    };
+    String[] funcMethods = {
+      "visad.Data.abs()",
+      "visad.Data.acos()",
+      "visad.Data.acosDegrees()",
+      "visad.Data.asin()",
+      "visad.Data.asinDegrees()",
+      "visad.Data.atan()",
+      "visad.Data.atan2(visad.Data)",
+      "visad.Data.atanDegrees()",
+      "visad.Data.atan2Degrees(visad.Data)",
+      "visad.Data.ceil()",
+      "visad.FieldImpl.combine(visad.Field[])",
+      "visad.Data.cos()",
+      "visad.Data.cosDegrees()",
+      "visad.formula.FormulaUtil.derive(visad.Function, " +
+        "visad.formula.VRealType)",
+      "visad.FieldImpl.domainMultiply()",
+      "visad.formula.FormulaUtil.factor(" +
+      "visad.FieldImpl, visad.formula.VRealType)",
+      "visad.Data.exp()",
+      "visad.formula.FormulaUtil.extract(visad.Field, visad.Real)",
+      "visad.Data.floor()",
+      "visad.formula.FormulaUtil.brackets(visad.Field, visad.Real)",
+      "visad.formula.FormulaUtil.link(visad.formula.VMethod, " +
+        "java.lang.Object[])",
+      "visad.Data.log()",
+      "visad.Data.max(visad.Data)",
+      "visad.Data.min(visad.Data)",
+      "visad.Data.negate()",
+      "visad.Data.rint()",
+      "visad.Data.round()",
+      "visad.Data.sin()",
+      "visad.Data.sinDegrees()",
+      "visad.Data.sqrt()",
+      "visad.Data.tan()",
+      "visad.Data.tanDegrees()"
+    };
     int implicitPrec = 200;
-    String[] implicitMethods = {"visad.formula.FormulaUtil.implicit(" +
-                                "visad.Function, visad.Real)",
-                                "visad.Function.evaluate(visad.RealTuple)"};
+    String[] implicitMethods = {
+      "visad.formula.FormulaUtil.implicit(visad.Function, visad.Real)",
+      "visad.Function.evaluate(visad.RealTuple)"
+    };
     String preParseMethod = "visad.formula.FormulaUtil.preParse(" +
-                            "java.lang.String, visad.formula.FormulaManager)";
+      "java.lang.String, visad.formula.FormulaManager)";
     FormulaManager f;
     try {
-      f = new FormulaManager(binOps, binPrec, binMethods, unaryOps, unaryPrec,
-                             unaryMethods, functions, funcMethods,
-                             implicitPrec, implicitMethods, preParseMethod);
+      f = new FormulaManager(binOps, binPrec, binMethods,
+        unaryOps, unaryPrec, unaryMethods, functions, funcMethods,
+        implicitPrec, implicitMethods, preParseMethod);
     }
     catch (FormulaException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
       return null;
     }
     return f;
   }
 
-  /** evaluates the dot operator */
+  /** evaluate the dot operator */
   public static Data dot(TupleIface t, Real r) {
     Data d = null;
     try {
       d = t.getComponent((int) r.getValue());
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
     return d;
   }
 
@@ -121,8 +136,12 @@ public class FormulaUtil {
     try {
       val = f.derivative(rt.getRealType(), Data.NO_ERRORS);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
     return val;
   }
 
@@ -132,8 +151,12 @@ public class FormulaUtil {
     try {
       val = f.domainFactor(rt.getRealType());
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
     return val;
   }
 
@@ -143,8 +166,12 @@ public class FormulaUtil {
     try {
       d = f.extract((int) r.getValue());
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
     return d;
   }
 
@@ -163,15 +190,19 @@ public class FormulaUtil {
       ans = (Data) FormulaUtil.invokeMethod(m.getMethod(), o);
     }
     catch (ClassCastException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
       throw new VisADException("Link error: invalid linked method");
     }
     catch (IllegalAccessException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
       throw new VisADException("Link error: cannot access linked method");
     }
     catch (IllegalArgumentException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
       throw new VisADException("Link error: bad method argument");
     }
     catch (InvocationTargetException exc) {
+      if (FormulaVar.DEBUG) exc.getTargetException().printStackTrace();
       throw new VisADException("Link error: linked method threw an exception");
     }
     if (ans == null) {
@@ -186,8 +217,12 @@ public class FormulaUtil {
     try {
       value = f.evaluate(r);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
     return value;
   }
 
@@ -198,8 +233,12 @@ public class FormulaUtil {
       RealType rt = (RealType) r.getType();
       value = f.getSample((int) r.getValue());
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (FormulaVar.DEBUG) exc.printStackTrace();
+    }
     return value;
   }
 
@@ -493,9 +532,9 @@ public class FormulaUtil {
   /** attempt to invoke a Method with the given Object arguments, performing
       static method auto-detection and automatic array compression */
   public static Object invokeMethod(Method m, Object[] o)
-                                    throws IllegalAccessException,
-                                           IllegalArgumentException,
-                                           InvocationTargetException {
+    throws IllegalAccessException, IllegalArgumentException,
+    InvocationTargetException
+  {
     Object obj;
     Object[] args;
     Class[] c = m.getParameterTypes();

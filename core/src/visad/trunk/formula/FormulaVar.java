@@ -173,8 +173,9 @@ public class FormulaVar extends ActionImpl {
               evalError("Preparsing argument exception", exc);
             }
             catch (InvocationTargetException exc) {
-              if (DEBUG) exc.printStackTrace();
-              evalError("Preparsing exception", exc);
+              Throwable t = exc.getTargetException();
+              if (DEBUG) t.printStackTrace();
+              evalError("Preparsing exception", t);
             }
             postfix = new Postfix(pf, fm);
             int len = (postfix.tokens == null ? 0 : postfix.tokens.length);
@@ -398,8 +399,8 @@ public class FormulaVar extends ActionImpl {
 
   /** add an error to the list of errors that have occurred during formula
       evaluation, appending the given exception's message if any */
-  private void evalError(String s, Exception e) {
-    String msg = (e == null ? null : e.getMessage());
+  private void evalError(String s, Throwable t) {
+    String msg = (t == null ? null : t.getMessage());
     evalError(s + (msg == null ? "" : ": " + msg));
   }
 
@@ -451,19 +452,20 @@ public class FormulaVar extends ActionImpl {
                 ans = (Thing) FormulaUtil.invokeMethod(fm.bMethods[j], o);
               }
               catch (IllegalAccessException exc) {
-                if (DEBUG) System.out.println(exc.toString());
+                if (DEBUG) exc.printStackTrace();
                 evalError(
                   "Cannot access binary method for operator " + op, exc);
               } // no access
               catch (IllegalArgumentException exc) {
-                if (DEBUG) System.out.println(exc.toString());
+                if (DEBUG) exc.printStackTrace();
                 evalError(
                   "Invalid argument to binary method for operator " + op, exc);
               } // wrong type of method
               catch (InvocationTargetException exc) {
-                if (DEBUG) System.out.println(exc.toString());
+                Throwable t = exc.getTargetException();
+                if (DEBUG) t.printStackTrace();
                 evalError("Binary method for operator " + op +
-                  " threw an exception", exc);
+                  " threw an exception", t);
               } // method threw exception
             }
           }
@@ -486,19 +488,20 @@ public class FormulaVar extends ActionImpl {
                 ans = (Thing) FormulaUtil.invokeMethod(fm.uMethods[j], o);
               }
               catch (IllegalAccessException exc) {
-                if (DEBUG) System.out.println(exc.toString());
+                if (DEBUG) exc.printStackTrace();
                 evalError(
                   "Cannot access unary method for operator " + op, exc);
               } // no access
               catch (IllegalArgumentException exc) {
-                if (DEBUG) System.out.println(exc.toString());
+                if (DEBUG) exc.printStackTrace();
                 evalError(
                   "Invalid argument to unary method for operator " + op, exc);
               } // wrong type of method
               catch (InvocationTargetException exc) {
-                if (DEBUG) System.out.println(exc.toString());
+                Throwable t = exc.getTargetException();
+                if (DEBUG) t.printStackTrace();
                 evalError("Unary method for operator " + op +
-                  " threw an exception", exc);
+                  " threw an exception", t);
               } // method threw exception
             }
           }
@@ -541,18 +544,19 @@ public class FormulaVar extends ActionImpl {
                   ans = (Thing) FormulaUtil.invokeMethod(fm.fMethods[j], o);
                 }
                 catch (IllegalAccessException exc) {
-                  if (DEBUG) System.out.println(exc.toString());
+                  if (DEBUG) exc.printStackTrace();
                   evalError("Cannot access method for function " + op, exc);
                 } // no access
                 catch (IllegalArgumentException exc) {
-                  if (DEBUG) System.out.println(exc.toString());
+                  if (DEBUG) exc.printStackTrace();
                   evalError(
                     "Invalid argument to method for function " + op, exc);
                 } // wrong type of method
                 catch (InvocationTargetException exc) {
-                  if (DEBUG) System.out.println(exc.toString());
+                  Throwable t = exc.getTargetException();
+                  if (DEBUG) t.printStackTrace();
                   evalError(
-                    "Method for function " + op + " threw an exception", exc);
+                    "Method for function " + op + " threw an exception", t);
                 } // method threw exception
               }
             }
@@ -590,18 +594,19 @@ public class FormulaVar extends ActionImpl {
                   ans = (Thing) FormulaUtil.invokeMethod(fm.iMethods[j], o);
                 }
                 catch (IllegalAccessException exc) {
-                  if (DEBUG) System.out.println(exc.toString());
+                  if (DEBUG) exc.printStackTrace();
                   evalError("Cannot access method for implicit function", exc);
                 } // no access
                 catch (IllegalArgumentException exc) {
-                  if (DEBUG) System.out.println(exc.toString());
+                  if (DEBUG) exc.printStackTrace();
                   evalError(
                     "Invalid argument to method for implicit function", exc);
                 } // wrong type of method
                 catch (InvocationTargetException exc) {
-                  if (DEBUG) System.out.println(exc.toString());
+                  Throwable t = exc.getTargetException();
+                  if (DEBUG) t.printStackTrace();
                   evalError(
-                    "Method for implicit function threw an exception", exc);
+                    "Method for implicit function threw an exception", t);
                 } // method threw exception
               }
             }
