@@ -184,7 +184,14 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     longitude_axis = -1;
     longitude_cs = null;
     longitude_coords = null;
-    Vector mapVector = renderer.getDisplay().getMapVector();
+
+    // Vector mapVector = renderer.getDisplay().getMapVector();
+    // this is only approximately correct
+    DataDisplayLink[] links = renderer.getLinks();
+    Vector mapVector =
+      (links == null || links.length == 0) ? new Vector()
+                                           : links[0].getSelectedMapVector();
+
     Enumeration maps = mapVector.elements();
     while(maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
