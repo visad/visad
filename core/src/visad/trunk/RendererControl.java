@@ -1,5 +1,5 @@
 //
-// BaseColorControl.java
+// RendererControl.java
 //
 
 /*
@@ -37,9 +37,9 @@ public class RendererControl
 {
   private transient DisplayRenderer renderer = null;
 
-  private float[] backgroundColor = null;
-  private float[] boxColor = null;
-  private float[] cursorColor = null;
+  private float[] backgroundColor = new float[] { 1.0f, 1.0f, 1.0f};
+  private float[] boxColor = new float[] { 1.0f, 1.0f, 1.0f};
+  private float[] cursorColor = new float[] { 1.0f, 1.0f, 1.0f};
 
   private boolean boxOn = false;
 
@@ -60,9 +60,6 @@ public class RendererControl
    */
   public float[] getBackgroundColor()
   {
-    if (backgroundColor == null) {
-      backgroundColor = new float[] {1.0f, 1.0f, 1.0f};
-    }
     return backgroundColor;
   }
 
@@ -76,9 +73,6 @@ public class RendererControl
   public void setBackgroundColor(float r, float g, float b)
     throws RemoteException, VisADException
   {
-    if (backgroundColor == null) {
-      backgroundColor = new float[3];
-    }
     backgroundColor[0] = r;
     backgroundColor[1] = g;
     backgroundColor[2] = b;
@@ -93,9 +87,6 @@ public class RendererControl
    */
   public float[] getBoxColor()
   {
-    if (boxColor == null) {
-      boxColor = new float[] {1.0f, 1.0f, 1.0f};
-    }
     return boxColor;
   }
 
@@ -118,9 +109,6 @@ public class RendererControl
   public void setBoxColor(float r, float g, float b)
     throws RemoteException, VisADException
   {
-    if (boxColor == null) {
-      boxColor = new float[3];
-    }
     boxColor[0] = r;
     boxColor[1] = g;
     boxColor[2] = b;
@@ -146,9 +134,6 @@ public class RendererControl
    */
   public float[] getCursorColor()
   {
-    if (cursorColor == null) {
-      cursorColor = new float[] {1.0f, 1.0f, 1.0f};
-    }
     return cursorColor;
   }
 
@@ -162,9 +147,6 @@ public class RendererControl
   public void setCursorColor(float r, float g, float b)
     throws RemoteException, VisADException
   {
-    if (cursorColor == null) {
-      cursorColor = new float[3];
-    }
     cursorColor[0] = r;
     cursorColor[1] = g;
     cursorColor[2] = b;
