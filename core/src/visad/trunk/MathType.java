@@ -240,12 +240,12 @@ public abstract class MathType extends Object implements java.io.Serializable {
   /** Guesses at a set of &quot;default&quot; mappings for this MathType.
       Intuitively, first we look for a FunctionType with domain dimension 3,
       then a nested group of FunctionTypes with 'cumulative' domain
-      dimension 3.  Next we look for a FunctionType or nested group of
-      FunctionTypes with domain dimension 2.  Last, we look for a
-      FunctionType with domain dimension 1.  Nested groups of FunctionTypes
+      dimension 3. Next we look for a FunctionType or nested group of
+      FunctionTypes with domain dimension 2. Then, we look for a
+      FunctionType with domain dimension 1. Nested groups of FunctionTypes
       may be nested with TupleTypes, which is indicated by some of the
-      MathType templates.
-  */
+      MathType templates. Lastly, if no matching FunctionTypes are found,
+      then we look for 3-D, 2-D, or 1-D SetTypes. */
   public ScalarMap[] guessMaps(boolean threeD) {
     MathType m = this;
 
@@ -270,23 +270,24 @@ public abstract class MathType extends Object implements java.io.Serializable {
       }
     }
 
-    // compile a list of FunctionTypes to search through for template matching
+    // compile a FunctionType and SetType list to search for template matches
     Vector flist = new Vector();
-    if (timeFunc < 0) buildFunctionList(m, flist);
+    Vector slist = new Vector();
+    if (timeFunc < 0) buildTypeList(m, flist, slist);
     else {
       // found a "time" RealType; only search ranges of "time" FunctionTypes
       for (int i=0; i<ds[timeFunc].funcs.size(); i++) {
         FunctionType f = (FunctionType) ds[timeFunc].funcs.elementAt(i);
-        buildFunctionList(f.getRange(), flist);
+        buildTypeList(f.getRange(), flist, slist);
       }
     }
 
-    // look for matches between templates and FunctionTypes list
+    // look for matches between Function templates and FunctionTypes list
     int numfuncs = flist.size();
-    for (int template=(threeD ? 0 : 4); template<7; template++) {
+    for (int t=(threeD ? 0 : 4); t<7; t++) {
       for (int fi=0; fi<numfuncs; fi++) {
         FunctionType ft = (FunctionType) flist.elementAt(fi);
-        switch (template) {
+        switch (t) {
           case 0: // 3-D ONLY
             //   ((x, y, z) -> (..., a, ...))
             //   ((x, y, z) -> a)
@@ -1052,26 +1053,69 @@ public abstract class MathType extends Object implements java.io.Serializable {
       }
     }
 
+    // look for matches between Set templates and SetTypes list
+    int numsets = slist.size();
+    for (int dim=(threeD ? 3 : 2); dim>=1; --dim) {
+      for (int si=0; si<numsets; si++) {
+        //   Set(x, y, z)
+        // x -> X, y -> Y, z -> Z
+        //   Set(x, y)
+        // x -> X, y -> Y
+        //   Set(x)
+        // x -> X
+        SetType st = (SetType) slist.elementAt(si);
+        RealTupleType domain = st.getDomain();
+        CoordinateSystem cs = domain.getCoordinateSystem();
+        if (cs != null) {
+          // use CoordinateSystem reference instead of original RealTupleType
+          domain = cs.getReference();
+        }
+        if (domain.getDimension() != dim) continue;
+        try {
+          ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? dim : dim + 1];
+          for (int i=0; i<dim; i++) {
+            RealType rt = (RealType) domain.getComponent(i);
+            DisplayRealType drt = (DisplayRealType)
+              RealTupleType.SpatialCartesian3DTuple.getComponent(i);
+            smaps[i] = new ScalarMap(rt, drt);
+          }
+          if (timeFunc >= 0) {
+            Object o = ds[timeFunc].funcs.elementAt(0);
+            RealTupleType rtt = ((FunctionType) o).getDomain();
+            RealType time = (RealType) rtt.getComponent(0);
+            smaps[dim] = new ScalarMap(time, Display.Animation);
+          }
+          return smaps;
+        }
+        catch (VisADException exc) { }
+      }
+    }
+
     return null;
   }
 
   /** used by guessMaps to recursively build a list of FunctionTypes to
       attempt template matching with */
-  private void buildFunctionList(MathType mt, Vector list) {
+  private void buildTypeList(MathType mt, Vector flist, Vector slist) {
     if (mt instanceof TupleType) {
       TupleType tt = (TupleType) mt;
       for (int i=0; i<tt.getDimension(); i++) {
         try {
-          buildFunctionList(tt.getComponent(i), list);
+          buildTypeList(tt.getComponent(i), flist, slist);
         }
         catch (VisADException exc) { }
       }
     }
     else if (mt instanceof SetType) {
-      SetType st = (SetType) mt;
-      buildFunctionList(st.getDomain(), list);
+      // found a set; add it to set list
+      slist.addElement(mt);
     }
-    else if (mt instanceof FunctionType) list.addElement(mt);
+    else if (mt instanceof FunctionType) {
+      // found a function; add it to function list and recurse function range
+      flist.addElement(mt);
+      FunctionType ft = (FunctionType) mt;
+      buildTypeList(ft.getRange(), flist, slist);
+    }
     return;
   }
 
@@ -1222,4 +1266,3 @@ public abstract class MathType extends Object implements java.io.Serializable {
   }
 
 }
-
