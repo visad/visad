@@ -23,6 +23,7 @@ def makeDisplay3D(maps):
 # the VisAD box is resized to about 95% of the window
 def makeDisplay2D(maps):
   disp = DisplayImplJ2D("Jython2D")
+  print "Using 2D"
   maximizeBox(disp)
   if maps != None:  addMaps(disp, maps)
   return disp
@@ -205,8 +206,8 @@ def makeMaps(*a):
 
 # quick display of a Display object in a separate JFrame
 # you can set the size and title, if you want...
-def showDisplay(display, xsize=300, ysize=300, title="VisAD Display"):
-  myf = myFrame(display, xsize, ysize, title)
+def showDisplay(display, width=300, height=300, title="VisAD Display"):
+  myf = myFrame(display, width, height, title)
 
 class myFrame:
 
@@ -214,13 +215,13 @@ class myFrame:
     self.display.destroy()
     self.frame.dispose()
 
-  def __init__(self, display, xsize, ysize, title):
+  def __init__(self, display, width, height, title):
     from javax.swing import JFrame
     self.display = display
     self.frame = JFrame(title, windowClosing=self.desty)
     self.pane = self.frame.getContentPane()
     self.pane.add(self.display.getComponent())
-    self.frame.setSize(xsize, ysize)
+    self.frame.setSize(width, height)
     self.frame.pack()
     self.frame.show()
 

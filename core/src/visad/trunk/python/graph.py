@@ -8,7 +8,9 @@ import subs
 def image(img, panel=None, colortable=None):
   return
 
-def scatter(data_1, data_2, panel=None, size=None, aspect=None, xlabel=None, ylabel=None, title="VisAD Scatter"):
+#----------------------------------------------------------------------------
+# basic scatter plot between two fields.
+def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, xlabel=None, ylabel=None, title="VisAD Scatter"):
 
   rng_1 = data_1.getType().getRange().toString()
   rng_2 = data_2.getType().getRange().toString()
@@ -18,14 +20,16 @@ def scatter(data_1, data_2, panel=None, size=None, aspect=None, xlabel=None, yla
   subs.addData("data", data, disp)
   subs.setBoxSize(disp, .70)
   showAxesScales(disp,1)
-  setAxesScalesFont(maps, Font("Monospaced", Font.PLAIN, 18))
-  if size is not None: subs.setPointSize(disp, size)
-  if aspect is not None: subs.setAspectRatio(disp, aspect)
-  subs.showDisplay(disp,400,500,title)
+  #setAxesScalesFont(maps, Font("Monospaced", Font.PLAIN, 18))
+  if pointsize is not None: subs.setPointSize(disp, size)
+
+  subs.setAspectRatio(disp, float(width)/float(height))
+  subs.showDisplay(disp,width,height,title)
   return
 
+#----------------------------------------------------------------------------
 # quick look histogram - only first range component is used.
-def histogram(data, bins=20, title="VisAD Histogram", color=None, panel=None):
+def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", color=None, panel=None):
 
   from java.lang.Math import abs
 
@@ -70,15 +74,19 @@ def histogram(data, bins=20, title="VisAD Histogram", color=None, panel=None):
   subs.drawLine(disp, (x,y), mathtype=(domt[0],rngt), color=color)
   showAxesScales(disp,1)
   subs.setBoxSize(disp,.65)
-  subs.showDisplay(disp, title=title )
+  subs.setAspectRatio(disp, float(width)/float(height))
+  subs.showDisplay(disp,width,height,title)
 
   return
 
 
+#----------------------------------------------------------------------------
 def piechart(data, panel=None):
   return
 
-def lineplot(data, panel=None, colortable=None, title="Line Plot"):
+#----------------------------------------------------------------------------
+# a simple line plot for one parameter
+def lineplot(data, panel=None, colortable=None, width=400, height=400, title="Line Plot"):
   domt = domainType(data)
   rngt = rangeType(data)
   xaxis = ScalarMap(domt[0], Display.XAxis)
@@ -92,17 +100,49 @@ def lineplot(data, panel=None, colortable=None, title="Line Plot"):
   showAxesScales(disp, 1)
   setAxesScalesFont(axes, Font("Monospaced", Font.PLAIN, 18))
 
-  subs.showDisplay(disp, title=title)
+  subs.setAspectRatio(disp, float(width)/float(height))
+  subs.showDisplay(disp,width,height,title)
   
   return
 
-def contour(data, panel=None, interval=None, size=None):
+#----------------------------------------------------------------------------
+# a contour plot of a 2D field
+# interval = [ interval, lowvalue, highvalue, basevalue ]
+
+def contour(data, panel=None, enableLabels=1, interval=None, width=400, height=400, title="VisAD Contour Plot"):
+
+  ndom = domainDimension(data)
+  if ndom != 2:
+    print "domain dimension must be 2!"
+    return None
+
+  dom_1 = RealType.getRealType(domainType(data,0) )
+  dom_2 = RealType.getRealType(domainType(data,1)) 
+  rng = RealType.getRealType(rangeType(data,0))
+  rngMap = ScalarMap(rng, Display.IsoContour)
+  xMap = ScalarMap(dom_1, Display.XAxis)
+  yMap = ScalarMap(dom_2, Display.YAxis)
+  maps = (xMap, yMap, rngMap)
+
+  disp = subs.makeDisplay(maps)
+  ci = rngMap.getControl()
+  ci.enableLabels(enableLabels)
+  if interval is not None:
+    ci.setContourInterval(interval[0], interval[1], interval[2], interval[3])
+
+  dr=subs.addData("contours", data, disp)
+  subs.setBoxSize(disp, .80)
+  subs.setAspectRatio(disp, float(width)/float(height))
+  subs.showDisplay(disp,width,height,title)
+
   return
 
+
+#----------------------------------------------------------------------------
 # animation(data) creates a VisAD animation of the items in the data list/tuple
 # if panel is not None, then it will return a JPanel with the images
 # and AnimationWidget in it
-def animation(data, panel=None, title="VisAD Animation"):
+def animation(data, panel=None, width=400, height=500, title="VisAD Animation"):
 
   num_frames = len(data)
 
@@ -164,7 +204,8 @@ def animation(data, panel=None, title="VisAD Animation"):
   disp.addMap(animap)
   refimg = subs.addData("VisAD_Animation", frame_seq, disp)
   widget = AnimationWidget(animap, 500) 
-  myAnimFrame(disp, widget, 500, 550, "Animation")
+  subs.setAspectRatio(disp, float(width)/float(height))
+  myAnimFrame(disp, widget, width, height, "Animation")
 
   return
 
@@ -173,7 +214,7 @@ class myAnimFrame:
     self.display.destroy()
     self.frame.dispose()
 
-  def __init__(self, display, widget, xsize, ysize, title):
+  def __init__(self, display, widget, width, height, title):
     from javax.swing import JFrame, JPanel
     from java.awt import BorderLayout, FlowLayout
     self.display = display
@@ -187,7 +228,7 @@ class myAnimFrame:
     self.pane = self.frame.getContentPane()
     self.pane.add(self.panel)
 
-    self.frame.setSize(xsize,ysize)
+    self.frame.setSize(width,height)
     self.frame.pack()
     self.frame.show()
 
