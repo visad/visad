@@ -8,54 +8,94 @@ import java.io.InputStream;
 import java.io.IOException;
 
 import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Download a file from a URL to a local directory.
  */
-public class Download
+public abstract class Download
 {
-  public Download() { }
-
-  public Download(URL url, String dirName)
+  /**
+   * Save the file found at the URL to the specified directory.<br>
+   * <br>
+   * If <tt>saveFile</tt> exists and is a file, it is overwritten.
+   *
+   * @param url the file to download
+   * @param saveFile the directory or file to which the downloaded
+   *                 file is written
+   * @param verbose <tt>true</tt> if a running commentary of the
+   *                download's progress is desired.
+   */
+  public static void getFile(URL url, File saveFile, boolean verbose)
   {
-    this(url, new File(dirName));
-  }
-
-  public Download(URL url, File saveDir)
-  {
-    getFile(url, saveDir);
+    getFile(url, saveFile, false, verbose);
   }
 
   /**
    * Save the file found at the URL to the specified directory.
    *
    * @param url the file to download
-   * @param saveDir the directory to which the file is written
+   * @param saveFile the directory or file to which the downloaded
+   *                 file is written
+   * @param backUpExisting <tt>true</tt> if any existing <tt>saveFile</tt>
+   *                       should be backed up
+   * @param verbose <tt>true</tt> if a running commentary of the
+   *                download's progress is desired.
    */
-  public static void getFile(URL url, File saveDir)
+  public static void getFile(URL url, File saveFile, boolean backUpExisting,
+                             boolean verbose)
   {
-    if (!saveDir.isDirectory()) {
-      System.err.println("Bad directory \"" + saveDir + "\"");
+    if (verbose) {
+      System.err.println("Downloading " + url + " to " + saveFile);
+    }
+
+    File target;
+    String baseName;
+
+    // get the target file and base name
+    if (!saveFile.isDirectory()) {
+      target = saveFile;
+      baseName = saveFile.getName();
+    } else {
+      File baseFile = new File(url.getFile());
+      baseName = baseFile.getName();
+
+      // check for specified file
+      if (baseName.length() == 0) {
+        baseName = "file";
+      }
+      target = new File(saveFile, baseName);
+    }
+
+    // open the URL connection
+    URLConnection conn;
+    try {
+      conn = url.openConnection();
+    } catch (IOException ioe) {
+      System.err.println("Couldn't open \"" + url + "\"");
       return;
     }
 
-    File baseFile = new File(url.getFile());
-    String baseName = baseFile.getName();
-
-    // check for specified file
-    File target;
-    if (baseName.length() == 0) {
-      baseName = "file";
+    // if file exists, only get it if there's a newer version
+    if (target.exists()) {
+      conn.setIfModifiedSince(target.lastModified());
     }
-    target = new File(saveDir, baseName);
+
+    // if content length is less than 0, we didn't fetch the file
+    if (conn.getContentLength() < 0) {
+      if (verbose) {
+        System.err.println(url + " is not newer than " + target);
+      }
+      return;
+    }
 
     // if a file by that name already exists,
     //  build a usable name
-    if (target.exists()) {
+    if (backUpExisting && target.exists()) {
 
       int idx = 0;
       while (true) {
-        File tmpFile = new File(saveDir, baseName + "." + idx);
+        File tmpFile = new File(saveFile, baseName + "." + idx);
         if (!tmpFile.exists()) {
           if (!target.renameTo(tmpFile)) {
             System.err.println("Couldn't rename \"" + target + "\" to \"" +
@@ -71,7 +111,7 @@ public class Download
     // open URL for reading
     BufferedInputStream in;
     try {
-      InputStream uIn = url.openStream();
+      InputStream uIn = conn.getInputStream();
       in = new BufferedInputStream(uIn);
     } catch (IOException ioe) {
       System.err.println("Couldn't read \"" + url + "\"");
@@ -114,5 +154,15 @@ public class Download
     // close up shop
     try { out.close(); } catch (IOException ioe) { }
     try { in.close(); } catch (IOException ioe) { }
+
+    // try to set the last-modified time appropriately
+    long connMod = conn.getLastModified();
+    if (connMod != 0) {
+      target.setLastModified(connMod);
+    }
+
+    if (verbose) {
+      System.out.println("Successfully updated " + target);
+    }
   }
 }
