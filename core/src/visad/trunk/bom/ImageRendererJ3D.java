@@ -298,8 +298,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     return new ShadowImageFunctionTypeJ3D(type, link, parent);
   }
 
-  public void setReUseFrames() {
-    reUseFrames = true;
+  public void setReUseFrames(boolean reuse) {
+    reUseFrames = reuse;
   }
 
   public boolean getReUseFrames() {
@@ -538,7 +538,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     System.out.println("second animation sequence");
 
     // tell renderer to resue frames in its scene graph
-    renderer.setReUseFrames();
+    renderer.setReUseFrames(true);
     image_ref.setData(new_image_sequence);
   }
 
