@@ -35,8 +35,8 @@ MA 02111-1307, USA
 
     public class UnitParser implements UnitParserConstants {
         /**
-	 * The units database.
-	 */
+         * The units database.
+         */
         protected static UnitsDB        unitsDB = null;
 
         static
@@ -51,25 +51,25 @@ MA 02111-1307, USA
         }
 
         /**
-	 * The canonical time unit.
-	 */
+         * The canonical time unit.
+         */
         protected static final Unit     second = SI.second;
 
         /**
-	 * Whether or not we're decoding a time unit.
-	 */
+         * Whether or not we're decoding a time unit.
+         */
         protected boolean               isTime;
 
         /**
-	 * The Julian day number of the (artificial) time origin.
-	 */
+         * The Julian day number of the (artificial) time origin.
+         */
         protected static final long     julianDayOrigin =
                                             UnitParser.julianDay(2001, 1, 1);
 
 
         /**
-	 * Compute the Julian day number of a date.
-	 */
+         * Compute the Julian day number of a date.
+         */
         public static long
         julianDay(int year, int month, int day)
         {
@@ -81,9 +81,9 @@ MA 02111-1307, USA
             long        julday; // returned Julian day number
 
             /*
-	     * Because there is no 0 BC or 0 AD, assume the user wants
-	     * the start of the common era if they specify year 0.
-	     */
+             * Because there is no 0 BC or 0 AD, assume the user wants
+             * the start of the common era if they specify year 0.
+             */
             if (year == 0)
                 year = 1;
 
@@ -131,8 +131,8 @@ MA 02111-1307, USA
 
 
         /**
-	 * Encode a timestamp as a double value in units of seconds.
-	 */
+         * Encode a timestamp as a double value in units of seconds.
+         */
         public static double
         encodeTimestamp(int year, int month, int day,
             int hour, int minute, float second, int zone)
@@ -143,8 +143,8 @@ MA 02111-1307, USA
 
 
         /**
-	 * Test this class.
-	 */
+         * Test this class.
+         */
         public static void main(String[] args)
             throws Exception
         {
@@ -636,7 +636,7 @@ MA 02111-1307, USA
                         int     sign = t.image.startsWith("-") ? -1 : 1;
 
                         String zoneHrString = zoneSpec.nextToken();
-                        zoneHrString = 
+                        zoneHrString =
                           zoneHrString.startsWith("+")
                              ? zoneHrString.substring(1)
                              : zoneHrString;
@@ -748,6 +748,12 @@ MA 02111-1307, USA
     return false;
   }
 
+  final private boolean jj_3R_15() {
+    if (jj_scan_token(NAME)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
   final private boolean jj_3R_5() {
     if (jj_scan_token(25)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -766,12 +772,6 @@ MA 02111-1307, USA
 
   final private boolean jj_3R_10() {
     if (jj_scan_token(TIME)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_15() {
-    if (jj_scan_token(NAME)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }
@@ -810,7 +810,7 @@ MA 02111-1307, USA
   }
 
   public UnitParserTokenManager token_source;
-  ASCII_CharStream jj_input_stream;
+  SimpleCharStream jj_input_stream;
   public Token token, jj_nt;
   private int jj_ntk;
   private Token jj_scanpos, jj_lastpos;
@@ -825,7 +825,7 @@ MA 02111-1307, USA
   private int jj_gc = 0;
 
   public UnitParser(java.io.InputStream stream) {
-    jj_input_stream = new ASCII_CharStream(stream, 1, 1);
+    jj_input_stream = new SimpleCharStream(stream, 1, 1);
     token_source = new UnitParserTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
@@ -845,7 +845,7 @@ MA 02111-1307, USA
   }
 
   public UnitParser(java.io.Reader stream) {
-    jj_input_stream = new ASCII_CharStream(stream, 1, 1);
+    jj_input_stream = new SimpleCharStream(stream, 1, 1);
     token_source = new UnitParserTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
