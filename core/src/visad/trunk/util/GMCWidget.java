@@ -88,7 +88,21 @@ public class GMCWidget extends JPanel implements ActionListener, ItemListener {
     point = new JCheckBox("Point mode", p);
     texture = new JCheckBox("Texture mapping", t);
     lineWidth = new JTextField(PlotText.shortString(gmcLineWidth));
+
+    // WLH 2 Dec 98
+    Dimension msize = lineWidth.getMaximumSize();
+    Dimension psize = lineWidth.getPreferredSize();
+    msize.height = psize.height;
+    lineWidth.setMaximumSize(msize);
+
     pointSize = new JTextField(PlotText.shortString(gmcPointSize));
+
+    // WLH 2 Dec 98
+    msize = pointSize.getMaximumSize();
+    psize = pointSize.getPreferredSize();
+    msize.height = psize.height;
+    pointSize.setMaximumSize(msize);
+
     JLabel lwLabel = new JLabel("Line width:");
     JLabel psLabel = new JLabel("Point size:");
 

@@ -103,6 +103,13 @@ public class AnimationWidget extends JPanel implements ActionListener,
     onOff = new JButton("Stop");
     step = new JButton("Step");
     ms = new JTextField(""+aMs);
+
+    // WLH 2 Dec 98
+    Dimension msize = ms.getMaximumSize();
+    Dimension psize = ms.getPreferredSize();
+    msize.height = psize.height;
+    ms.setMaximumSize(msize);
+
     JLabel msLabel = new JLabel("ms/frame");
     TimeSlider = new JSlider(0, 1, 0);
 

@@ -443,6 +443,13 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       wpanel.setLayout(new BoxLayout(wpanel, BoxLayout.X_AXIS));
       wnum_label = new JLabel("wave number:");
       wnum_field = new JTextField("---");
+
+      // WLH 2 Dec 98
+      Dimension msize = wnum_field.getMaximumSize();
+      Dimension psize = wnum_field.getPreferredSize();
+      msize.height = psize.height;
+      wnum_field.setMaximumSize(msize);
+
       wnum_field.addActionListener(this);
       wnum_field.setActionCommand("wavenum");
       wnum_field.setEnabled(true);

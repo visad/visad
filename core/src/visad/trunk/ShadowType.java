@@ -911,7 +911,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       }
     }
     if (scales == null) {
-      int default_index = display.getDisplayScalarIndex(Display.Shape);
+      int default_index = display.getDisplayScalarIndex(Display.ShapeScale);
       float default_scale = default_values[default_index];
       scales = new float[] {default_scale};
     }

@@ -209,11 +209,8 @@ public class FancySSCell extends BasicSSCell {
       setBorder(NORM);
       hideWidgetFrame();
     }
-    Graphics g = getGraphics();
-    if (g != null) {
-      paint(g);
-      g.dispose();
-    }
+    validate();
+    repaint();
   }
 
   /** Specifies whether this FancySSCell should auto-switch to 3-D */

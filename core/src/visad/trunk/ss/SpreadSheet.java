@@ -409,6 +409,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     formulaPanel.add(FormulaOk);
 
     FormulaField = new JTextField();
+
+    // WLH (from CTR) 2 Dec 98
+    Dimension msize = FormulaField.getMaximumSize();
+    Dimension psize = FormulaField.getPreferredSize();
+    msize.height = psize.height;
+    FormulaField.setMaximumSize(msize);
+
     FormulaField.setToolTipText("Enter a file name, URL, or formula");
     FormulaField.addActionListener(this);
     FormulaField.setActionCommand("formulaChange");

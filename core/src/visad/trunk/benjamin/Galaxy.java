@@ -1075,6 +1075,14 @@ public class Galaxy extends Object implements ActionListener {
     coord_fields[2].setBackground(Color.black);
     coord_fields[2].setForeground(Color.white);
 
+    // WLH 2 Dec 98
+    for (int i=0; i<3; i++) {
+      Dimension msize = coord_fields[i].getMaximumSize();
+      Dimension psize = coord_fields[i].getPreferredSize();
+      msize.height = psize.height;
+      coord_fields[i].setMaximumSize(msize);
+    }
+
     JLabel coord_label = new JLabel("L:");
     coord_panel.add(coord_label);
     coord_panel.add(coord_fields[0]);

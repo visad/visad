@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ArrowSlider.java,v 1.8 1998-08-29 17:37:40 billh Exp $
+@(#) $Id: ArrowSlider.java,v 1.9 1998-12-02 15:46:24 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.awt.event.*;
  * A pointer slider for visad .
  * 
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.8 $, $Date: 1998-08-29 17:37:40 $
+ * @version $Revision: 1.9 $, $Date: 1998-12-02 15:46:24 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -121,12 +121,8 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
       notifyListeners(new SliderChangeEvent(SliderChangeEvent.UPPER_CHANGE, max));
       notifyListeners(new SliderChangeEvent(SliderChangeEvent.VALUE_CHANGE, init));
 
-      // won't update on repaint, so hit it with a big hammer
-      Graphics g = getGraphics();
-      if (g != null) {
-        update(g);
-        g.dispose();
-      }
+      // redraw
+      validate();
       repaint();
     }
 
@@ -145,13 +141,9 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 		lower = value;
 		
 		notifyListeners(new SliderChangeEvent(SliderChangeEvent.LOWER_CHANGE, value));
-		
-// won't update on repaint, so hit it with a big hammer
-Graphics g = getGraphics();
-if (g != null) {
-  update(g);
-  g.dispose();
-}
+
+                // redraw
+                validate();
 		repaint();
 	}
 		
@@ -171,12 +163,8 @@ if (g != null) {
 		
 		notifyListeners(new SliderChangeEvent(SliderChangeEvent.UPPER_CHANGE, value));
 
-// won't update on repaint, so hit it with a big hammer
-Graphics g = getGraphics();
-if (g != null) {
-  update(g);
-  g.dispose();
-}
+                // redraw
+                validate();
 		repaint();		
 	}
 	
@@ -199,12 +187,8 @@ if (g != null) {
 		
 		notifyListeners(new SliderChangeEvent(SliderChangeEvent.VALUE_CHANGE, value));
 
-// won't update on repaint, so hit it with a big hammer
-Graphics g = getGraphics();
-if (g != null) {
-  update(g);
-  g.dispose();
-}
+                // redraw
+                validate();
 		repaint();		
 	}
 	

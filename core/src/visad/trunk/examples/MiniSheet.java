@@ -181,6 +181,13 @@ public class MiniSheet extends JFrame implements ActionListener {
       show.setActionCommand("show" + i);
       bPanel.add(show);
       JTextField tf = new JTextField();
+
+      // WLH 2 Dec 98
+      Dimension msize = tf.getMaximumSize();
+      Dimension psize = tf.getPreferredSize();
+      msize.height = psize.height;
+      tf.setMaximumSize(msize);
+
       JPanel lPanel = new JPanel();
       lPanel.setLayout(new BoxLayout(lPanel, BoxLayout.X_AXIS));
       lPanel.add(Box.createHorizontalGlue());
@@ -192,6 +199,13 @@ public class MiniSheet extends JFrame implements ActionListener {
       fPanel.setLayout(new BoxLayout(fPanel, BoxLayout.X_AXIS));
       createLabel(fPanel, "Formula:  ");
       JTextField textf = new JTextField();
+
+      // WLH 2 Dec 98
+      msize = textf.getMaximumSize();
+      psize = textf.getPreferredSize();
+      msize.height = psize.height;
+      textf.setMaximumSize(msize);
+
       textf.addActionListener(this);
       textf.setActionCommand("formula" + i);
       fPanel.add(textf);

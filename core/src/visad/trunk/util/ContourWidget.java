@@ -129,8 +129,22 @@ public class ContourWidget extends JPanel implements ActionListener,
     Dashed = new JCheckBox("dashed lines below base", false);
     JLabel intLabel = new JLabel("interval:");
     Interval = new JTextField("---");
+
+    // WLH 2 Dec 98
+    Dimension msize = Interval.getMaximumSize();
+    Dimension psize = Interval.getPreferredSize();
+    msize.height = psize.height;
+    Interval.setMaximumSize(msize);
+
     JLabel baseLabel = new JLabel("base:");
     Base = new JTextField("---");
+
+    // WLH 2 Dec 98
+    msize = Base.getMaximumSize();
+    psize = Base.getPreferredSize();
+    msize.height = psize.height;
+    Base.setMaximumSize(msize);
+
     SurfaceLabel = new JLabel(name + " = ---");
     Surface = new JSlider();
     ContourRangeWidget crw = new ContourRangeWidget(smap, cLo, cHi,

@@ -473,13 +473,8 @@ public class BasicSSCell extends JPanel {
     pleaseWait.add(Box.createHorizontalGlue());
     add(pleaseWait);
 
-    // big hammer for redrawing cell
+    // redraw cell
     validate();
-    Graphics g = getGraphics();
-    if (g != null) {
-      paint(g);
-      g.dispose();
-    }
     repaint();
 
     boolean error = false;

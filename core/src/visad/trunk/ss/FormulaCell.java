@@ -378,9 +378,7 @@ class FormulaCell extends CellImpl {
     if (BigX) SSCell.add(BigXCanvas);
     else SSCell.remove(BigXCanvas);
     SSCell.validate();
-    Graphics g = SSCell.getGraphics();
-    SSCell.paint(g);
-    g.dispose();
+    SSCell.repaint();
   }
 
 }
