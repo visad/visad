@@ -155,9 +155,10 @@ public class RealType extends ScalarType {
   public MathType cloneDerivative( RealType d_partial )
          throws VisADException
   {
-    String new_name = "d_"+this.getName()+"_/_"+
+    String newName = "d_"+this.getName()+"_/_"+
                       "d_"+d_partial.getName();
 
+    RealType newType = null;
     Unit R_unit = this.DefaultUnit;
     Unit D_unit = d_partial.getDefaultUnit();
     Unit u = null;
@@ -166,7 +167,14 @@ public class RealType extends ScalarType {
       u = R_unit.divide( D_unit );
     }
 
-    return new RealType( new_name, u, null );
+    try {
+      newType = new RealType( newName, u, null );
+    }
+    catch ( TypeException e ) {
+      newType = RealType.getRealTypeByName( newName );
+    }
+
+    return newType;
   }
   /*- TDR July 1998  */
   public MathType binary( MathType type, int op, Vector names )
@@ -237,7 +245,15 @@ public class RealType extends ScalarType {
           break;
 
         case Data.POW:
+          if ( thisUnit == null || unit == null ) {
+            newType = this;
+            break;
+          }
         case Data.INV_POW:
+          if ( thisUnit == null || unit == null ) {
+            newType = type;
+            break;
+          }
           newUnit = null;
           newName = getUniqueGenericName( names, "nullUnit");
 
@@ -258,15 +274,18 @@ public class RealType extends ScalarType {
           newUnit = CommonUnit.degree;
         case Data.REMAINDER:
           newUnit = thisUnit;
+          if ( newUnit == null ) {
+            newType = this;
+            break;
+          }
         case Data.INV_REMAINDER:
           newUnit = unit;
+          if ( newUnit == null ) {
+            newType = type;
+            break;
+          }
 
-          if ( newUnit != null ) {
-            newName = getUniqueGenericName( names, newUnit.toString());
-          }
-          else {
-            newName = getUniqueGenericName( names, "nullUnit" );
-          }
+          newName = getUniqueGenericName( names, newUnit.toString());
 
           try {
             newType = new RealType( newName, newUnit, null );
