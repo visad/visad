@@ -654,9 +654,15 @@ public class V5DStruct {
 
     iy = yyddd / 1000;
     id = yyddd - 1000 * iy;
-    // WLH 31 July 96 << 31 Dec 99
-    if (iy < 50) iy += 100;
-    idays = 365 * iy + (iy - 1) / 4 + id;
+    // DRM - 17-Nov-2001 handle YYYYDDD form dates 
+    if (iy >= 1900)
+      iy -= 1900;
+    else if (iy < 50)
+      // WLH 31 July 96 << 31 Dec 99
+      iy += 100; 
+    // Updated from Vis5D+ (sub 1 since they do days from 12/31/1899)
+    //idays = 365 * iy + (iy - 1) / 4 + id;
+    idays = (365*iy + (iy-1)/4 - (iy-1)/100 + (iy+299)/400 + id) - 1;
 
     return idays;
   }
