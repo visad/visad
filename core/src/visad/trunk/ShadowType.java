@@ -2245,6 +2245,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
   private static final float BACK_SCALE = -0.15f;
   private static final float PERP_SCALE = 0.15f;
 
+  /** which = 0 for Flow1 and which = 1 for Flow2 */
   public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
