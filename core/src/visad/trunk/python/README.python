@@ -275,6 +275,16 @@ so you are not restricted to just these.
   load(String location) - reads in data from the given location
                           (filename or URL)
 
+Note that VisAD currently knows how to read the following kinds of
+files: McIDAS AREA and map OUTLine files (including from ADDE),
+netCDF, HDF-5, HDF-EOS (HDF-5 and HDF-EOS require native code to be
+installed, as described on the VisAD web page), Vis5D, FITS, GIF
+and JPEG.  Some users have written VisAD adapters for other formats
+such as Shape and ARCGRID ASCII files.
+
+The load function will determine the type of the named file and
+read it approproiately.
+
 
 5.2 Plotting functions
 
@@ -284,6 +294,12 @@ so you are not restricted to just these.
   
   plot(data, red, green, blue) - plot data
   
+Controls for how data are plotted are brought up in a GUI.  The
+plot function includes implicit georeferencing, for example to
+overlay a McIDAS area with a map outline.  We are currently
+adding imporovements to the ViaAD Python plot function, which
+should be available soon.
+
 
 5.3 Pointwise math library functions
 
@@ -333,7 +349,18 @@ so you are not restricted to just these.
   tan(data) - return pointwise tan value of data, assuming radians
   
   tanDegrees(data) - return pointwise tan value of data, assuming degrees
-  
+
+The arguments to these functions may be any VisAD data object.
+They are augmented by support for python infix expressions for
++ (addition), - (subtraction), * (multiplication), / (division)
+and % (remainder).  Binary operators (e.g., + and max) require
+consistency between the MathTypes of the operands, although Reals
+can be combined with any other data.
+
+Literal constants can be used with binary operators, as long as
+they do not occur first for infix operators.  That is, "data + 1"
+is legal but "1 + data" is not.
+
 
 5.4 Fourier transform functions
 
