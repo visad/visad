@@ -280,6 +280,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @param units		The units of the (flat) range components.  May
    *				be <code>null</code>, in which case the default
    *				units of the flat range RealType-s are used.
+   * @throws SetException       if <code>range_sets</code> is non-<code>null
+   *                            </code> and either one of its elements is
+   *                            <code>null</code> or an element's dimension is
+   *                            not one.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type, Set domain_set,
