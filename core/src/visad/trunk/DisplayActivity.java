@@ -1,7 +1,11 @@
 package visad;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import java.util.ArrayList;
-import java.util.Timer;
+
+import javax.swing.Timer;
 
 import visad.DisplayImpl;
 
@@ -17,7 +21,7 @@ public class DisplayActivity
   private long lastBusyEvt;
   private boolean isBusy;
   private transient Timer busyTimer;
-  private transient BusyTask busyTask;
+  private transient BusyAction busyAction;
 
   private transient ArrayList handlerList;
 
@@ -47,8 +51,12 @@ public class DisplayActivity
 
     lastBusyEvt = System.currentTimeMillis() - this.interval;
     isBusy = false;
-    busyTimer = new Timer(true);
-    busyTask = null;
+
+    busyAction = new BusyAction();
+    busyTimer = new Timer(this.interval, busyAction);
+
+    busyTimer.removeActionListener(busyAction);
+    busyAction = null;
 
     handlerList = new ArrayList();
   }
@@ -59,12 +67,12 @@ public class DisplayActivity
   public void destroy()
   {
     synchronized (busyTimer) {
-      if (busyTask != null) {
-        busyTask.cancel();
-        busyTask = null;
+      if (busyAction != null) {
+        busyTimer.removeActionListener(busyAction);
+        busyAction = null;
       }
 
-      busyTimer.cancel();
+      busyTimer.stop();
     }
   }
 
@@ -76,6 +84,10 @@ public class DisplayActivity
   {
     if (handlerList == null) {
       throw new VisADException("No handler list found; was this object serialized?");
+    }
+
+    if (!busyTimer.isRunning()) {
+      busyTimer.restart();
     }
 
     handlerList.add(ah);
@@ -92,6 +104,10 @@ public class DisplayActivity
     }
 
     handlerList.remove(ah);
+
+    if (handlerList.size() == 0 && busyTimer.isRunning()) {
+      busyTimer.stop();
+    }
   }
 
   /**
@@ -127,14 +143,14 @@ public class DisplayActivity
       // Display is doing something...
       isBusy = true;
 
-      if (busyTask == null && busyTimer != null) {
+      if (busyAction == null && busyTimer != null) {
         synchronized (busyTimer) {
-          if (busyTask == null) {
+          if (busyAction == null) {
             // create a busy task
-            busyTask = new BusyTask();
+            busyAction = new BusyAction();
 
-            // have busy task called at the specified interval
-            busyTimer.scheduleAtFixedRate(busyTask, interval, interval);
+            // have busy action called at the specified interval
+            busyTimer.addActionListener(busyAction);
             if (DEBUG) System.err.println("STARTED");
           }
         }
@@ -150,19 +166,17 @@ public class DisplayActivity
     lastBusyEvt = now;
   }
 
-  private class BusyTask
-    extends java.util.TimerTask
+  private class BusyAction
+    implements ActionListener
   {
     private static final int MAX_IDLE = 10;
 
     private int idleCount = 0;
 
-    BusyTask() { }
+    BusyAction() { }
 
-    public void run()
+    public void actionPerformed(ActionEvent evt)
     {
-      final long now = System.currentTimeMillis();
-
       if (!isBusy) {
         // another interval has passed where display wasn't busy
         idleCount++;
@@ -175,21 +189,25 @@ public class DisplayActivity
 
             // ...stop the timer
             synchronized (busyTimer) {
-              cancel();
-              busyTask = null;
+              busyTimer.removeActionListener(busyAction);
+              busyAction = null;
               if (DEBUG) System.err.println("CANCELLED");
             }
           }
         }
-      } else if (lastBusyEvt + interval <= now) {
-        // if we're past the waiting period, we must be idle
-        isBusy = false;
-        idleCount = 0;
+      } else {
+        final long now = System.currentTimeMillis();
 
-        if (DEBUG) System.err.println("IDLE");
+        if (lastBusyEvt + interval <= now) {
+          // if we're past the waiting period, we must be idle
+          isBusy = false;
+          idleCount = 0;
 
-        // let handlers know that Display is idle
-        notifyList(false);
+          if (DEBUG) System.err.println("IDLE");
+
+          // let handlers know that Display is idle
+          notifyList(false);
+        }
       }
     }
   }
