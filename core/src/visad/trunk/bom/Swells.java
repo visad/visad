@@ -48,11 +48,20 @@ public class Swells extends Exception {
   private static float[][] arrow_zero =
     {{0.0f, 0.0f, 7.0f, -7.0f}, {0.9f*SIZE, 1.9f*SIZE, 1.6f*SIZE, 1.6f*SIZE}};
   
+  /** set up ScalarMaps from swellDir and swellHeight to Display.Shape
+      in display; swellDir default Unit must be degree and swellHeight
+      default Unit must be meter */
   public static void setupSwellDisplay(RealType swellDir, RealType swellHeight, 
                 DisplayImpl display) throws VisADException, RemoteException {
 
     if (wcs == null) wcs = new WindPolarCoordinateSystem();
 
+    if (!CommonUnit.degree.equals(swellDir.getDefaultUnit())) {
+      throw new UnitException("swellDir Unit must be degree");
+    }
+    if (!CommonUnit.meter.equals(swellHeight.getDefaultUnit())) {
+      throw new UnitException("swellHeight Unit must be meter");
+    }
     // construct dir_set and dir_shapes
     Linear1DSet dir_set = new Linear1DSet(swellDir, -360.0, 360.0, NDIRS);
     float[][] dirs = dir_set.getSamples();
@@ -119,7 +128,7 @@ public class Swells extends Exception {
     RealType swell_dir = new RealType("swell_dir",
                             CommonUnit.degree, null);
     RealType swell_height = new RealType("swell_speed",
-                            CommonUnit.meterPerSecond, null);
+                            CommonUnit.meter, null);
     RealTupleType range =
       new RealTupleType(new RealType[] {lon, lat, swell_dir,
                                         swell_height, red, green});
