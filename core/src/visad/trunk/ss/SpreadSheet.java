@@ -1011,6 +1011,32 @@ public class SpreadSheet extends JFrame implements ActionListener,
           f.setCursor(Cursor.getDefaultCursor());
           f.setVisible(false);
         }
+
+        // destroy all spreadsheet cells intelligently and cleanly
+        boolean[][] alive = new boolean[NumVisX][NumVisY];
+        for (int j=0; j<NumVisY; j++) {
+          for (int i=0; i<NumVisX; i++) alive[i][j] = true;
+        }
+        int aliveCount = NumVisX * NumVisY;
+        while (aliveCount > 0) {
+          for (int j=0; j<NumVisY; j++) {
+            for (int i=0; i<NumVisX; i++) {
+              if (alive[i][j] && !DisplayCells[i][j].othersDepend()) {
+                try {
+                  DisplayCells[i][j].destroyCell();
+                  alive[i][j] = false;
+                  aliveCount--;
+                }
+                catch (VisADException exc) {
+                  if (BasicSSCell.DEBUG) exc.printStackTrace();
+                }
+                catch (RemoteException exc) {
+                  if (BasicSSCell.DEBUG) exc.printStackTrace();
+                }
+              }
+            }
+          }
+        }
         System.exit(0);
       }
     };
@@ -1089,18 +1115,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayCells[CurX][CurY].hideWidgetFrame();
 
     // clear all cells (in smart order to prevent errors)
-    boolean[][] b = new boolean[NumVisX][NumVisY];
+    boolean[][] dirty = new boolean[NumVisX][NumVisY];
     for (int j=0; j<NumVisY; j++) {
-      for (int i=0; i<NumVisX; i++) b[i][j] = false;
+      for (int i=0; i<NumVisX; i++) dirty[i][j] = true;
     }
-    boolean w = true;
-    while (w) {
+    int dirtyCount = NumVisX * NumVisY;
+    while (dirtyCount > 0) {
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) {
-          if (!DisplayCells[i][j].othersDepend()) {
+          if (dirty[i][j] && !DisplayCells[i][j].othersDepend()) {
             try {
               DisplayCells[i][j].clearCell();
-              b[i][j] = true;
+              dirty[i][j] = false;
+              dirtyCount--;
             }
             catch (VisADException exc) {
               if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -1110,10 +1137,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
             }
           }
         }
-      }
-      w = false;
-      for (int j=0; j<NumVisY; j++) {
-        for (int i=0; i<NumVisX; i++) if (!b[i][j]) w = true;
       }
     }
     CurrentFile = null;
