@@ -84,8 +84,16 @@ public class FlexibleTrackManipulation extends Object {
 
   private int last_time = -1;
 
+  /** constructor with all arguments except size */
+  public FlexibleTrackManipulation(DataReferenceImpl tr, DisplayImplJ3D d,
+                                   ScalarMap shape_map1, ScalarMap shape_map2,
+                                   boolean need_monitor)
+         throws VisADException, RemoteException {
+    this(tr, d, shape_map1, shape_map2, need_monitor, 0.1f);
+  }
+
   /**
-     wf should have MathType:
+     tr.getData() should have MathType:
        (Time -> tuple))
      where tuple is flat
        [e.g., (Latitude, Longitude, shape_index)]
@@ -93,10 +101,18 @@ public class FlexibleTrackManipulation extends Object {
      a RealType mapped to Shape in the DisplayImpl d;
 
      Time may or may not be mapped to Animation
+
+     shape_map1 and shape_map2 must be two ScalarMaps of RealTypes
+       in tr.getData()
+
+     need_monitor true to indicate the need to monitor externally
+       caused changes in tr.getData()
+
+     size = storm symbol size, default = 0.1f
   */
   public FlexibleTrackManipulation(DataReferenceImpl tr, DisplayImplJ3D d,
                                    ScalarMap shape_map1, ScalarMap shape_map2,
-                                   boolean need_monitor)
+                                   boolean need_monitor, float size)
          throws VisADException, RemoteException {
     track_ref = tr;
     storm_track = (FlatField) track_ref.getData();
@@ -173,7 +189,6 @@ public class FlexibleTrackManipulation extends Object {
 
     // construct symbols
     int nv = 16;
-    float size = 0.1f;
     VisADGeometryArray[][] ga = makeStormShapes(nv, size);
 
     shape_control1 = (ShapeControl) shape_map1.getControl();
@@ -690,7 +705,8 @@ public class FlexibleTrackManipulation extends Object {
     if (amap != null) panel.add(new AnimationWidget(amap));
 
     FlexibleTrackManipulation ftm =
-      new FlexibleTrackManipulation(track_ref, display, shape_map1, shape_map2, true);
+      new FlexibleTrackManipulation(track_ref, display, shape_map1, shape_map2,
+                                    true, 0.05f);
 
     JPanel button_panel = new JPanel();
     button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
