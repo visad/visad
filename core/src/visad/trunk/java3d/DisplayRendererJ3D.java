@@ -63,6 +63,8 @@ public abstract class DisplayRendererJ3D
   implements RendererSourceListener
 {
 
+  private Object not_destroyed = new Object();
+
   /** View associated with this VirtualUniverse */
   private View view;
   /** VisADCanvasJ3D associated with this VirtualUniverse */
@@ -147,17 +149,38 @@ public abstract class DisplayRendererJ3D
 
   // WLH 17 Dec 2001
   public void destroy() {
+    not_destroyed = null;
+//
+// now set all variables = null
+//
     if (canvas != null) canvas.stop();
     if (mouse != null) mouse.destroy();
     if (root != null) {
       root.detach();
       root = null;
     }
+    axis_vector.removeAllElements();
+    directs.removeAllElements();
+
     trans = null;
     vpTrans = null;
     non_direct = null;
     view = null;
     canvas = null;
+    mouse = null;
+    box_color = null;
+    cursor_color = null;
+    background = null;
+    cursor_trans = null;
+    cursor_switch = null;
+    cursor_on = null; 
+    cursor_off = null;
+    box_switch = null;
+    box_on = null; 
+    box_off = null;
+    scale_switch = null;
+    scale_on = null; 
+    scale_off = null;
   }
 
   /**
@@ -169,6 +192,7 @@ public abstract class DisplayRendererJ3D
   public void setDisplay(DisplayImpl dpy)
     throws VisADException
   {
+    if (not_destroyed == null) return;
     super.setDisplay(dpy);
     dpy.addRendererSourceListener(this);
     boxOn = getRendererControl().getBoxOn();
@@ -195,6 +219,7 @@ public abstract class DisplayRendererJ3D
    * @param  image of the display.
    */
   public BufferedImage getImage() {
+    if (not_destroyed == null) return null;
     BufferedImage image = null;
     while (image == null) {
       try {
@@ -253,6 +278,7 @@ if (image == null) System.out.println("image is null");
    */
   public void initControl(RendererControl ctl)
   {
+    if (not_destroyed == null) return;
     Color3f c3f = new Color3f();
 
     // initialize box colors
@@ -300,6 +326,7 @@ if (image == null) System.out.println("image is null");
    */
   public void controlChanged(ControlEvent evt)
   {
+    if (not_destroyed == null) return;
     RendererControl ctl = (RendererControl )evt.getControl();
 
     float[] ct;
@@ -364,6 +391,7 @@ if (image == null) System.out.println("image is null");
    * @param  on   true to display the cursor, false to hide it.
    */
   public void setCursorOn(boolean on) {
+    if (not_destroyed == null) return;
     cursorOn = on;
     if (on) {
       cursor_switch.setWhichChild(1); // set cursor on
@@ -380,6 +408,7 @@ if (image == null) System.out.println("image is null");
    * @param  on  true for enabling direct manipulation, false to disable
    */
   public void setDirectOn(boolean on) {
+    if (not_destroyed == null) return;
     directOn = on;
     if (!on) {
       setCursorStringVector(null);
@@ -411,6 +440,7 @@ if (image == null) System.out.println("image is null");
       instead */
   public BranchGroup createBasicSceneGraph(View v, TransformGroup vpt,
          VisADCanvasJ3D c, MouseBehaviorJ3D m) {
+    if (not_destroyed == null) return null;
     box_color = new ColoringAttributes();
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
@@ -433,6 +463,7 @@ if (image == null) System.out.println("image is null");
          VisADCanvasJ3D c, MouseBehaviorJ3D m, ColoringAttributes bc,
          ColoringAttributes cc) {
     if (root != null) return root;
+    if (not_destroyed == null) return null;
 
     mouse = m;
     view = v;
@@ -630,6 +661,7 @@ if (image == null) System.out.println("image is null");
    */
   public void setClip(int plane, boolean enable, float a, float b, float c, float d)
          throws VisADException {
+    if (not_destroyed == null) return;
     if (plane < 0 || 5 < plane) {
       throw new DisplayException("plane must be in 0,...,5 range " + plane);
     }
@@ -656,6 +688,7 @@ if (image == null) System.out.println("image is null");
   }
 
   private void clipOff() {
+    if (not_destroyed == null) return;
     try {
       for (int i=0; i<6; i++) {
         if (modelClipEnables[i]) {
@@ -673,6 +706,7 @@ if (image == null) System.out.println("image is null");
   }
 
   private void clipOn() {
+    if (not_destroyed == null) return;
     try {
       for (int i=0; i<6; i++) {
         if (modelClipEnables[i]) {
@@ -699,6 +733,7 @@ if (image == null) System.out.println("image is null");
   }
 
   public void addSceneGraphComponent(Group group) {
+    if (not_destroyed == null) return;
     // WLH 10 March 2000
     // trans.addChild(group);
     non_direct.addChild(group);
@@ -706,6 +741,7 @@ if (image == null) System.out.println("image is null");
 
   public void addDirectManipulationSceneGraphComponent(Group group,
                          DirectManipulationRendererJ3D renderer) {
+    if (not_destroyed == null) return;
     // WLH 13 March 2000
     // direct.addChild(group);
     non_direct.addChild(group);
@@ -714,6 +750,7 @@ if (image == null) System.out.println("image is null");
 
 
   public void clearScene(DataRenderer renderer) {
+    if (not_destroyed == null) return;
     directs.removeElement(renderer);
   }
 
@@ -739,6 +776,7 @@ if (image == null) System.out.println("image is null");
   }
 
   public void drag_depth(float diff) {
+    if (not_destroyed == null) return;
     cursorX = point_x + diff * line_x;
     cursorY = point_y + diff * line_y;
     cursorZ = point_z + diff * line_z;
@@ -746,6 +784,7 @@ if (image == null) System.out.println("image is null");
   }
 
   public void drag_cursor(VisADRay ray, boolean first) {
+    if (not_destroyed == null) return;
     float o_x = (float) ray.position[0];
     float o_y = (float) ray.position[1];
     float o_z = (float) ray.position[2];
@@ -782,6 +821,7 @@ if (image == null) System.out.println("image is null");
   }
 
   private void setCursorLoc() {
+    if (not_destroyed == null) return;
     Transform3D t = new Transform3D();
     t.setTranslation(new Vector3f(cursorX, cursorY, cursorZ));
     cursor_trans.setTransform(t);
@@ -797,6 +837,7 @@ if (image == null) System.out.println("image is null");
    * @param  z  z location
    */
   public void setCursorLoc(float x, float y, float z) {
+    if (not_destroyed == null) return;
     Transform3D t = new Transform3D();
     t.setTranslation(new Vector3f(x, y, z));
     cursor_trans.setTransform(t);
@@ -811,6 +852,7 @@ if (image == null) System.out.println("image is null");
    * @param canvas
    */
   public void drawCursorStringVector(VisADCanvasJ3D canvas) {
+    if (not_destroyed == null) return;
     // clipOff(); doesn't work
     GraphicsContext3D graphics = canvas.getGraphicsContext3D();
     // graphics.setModelClip(null);
@@ -1022,6 +1064,7 @@ if (image == null) System.out.println("image is null");
    *          modifiers for direct manipulation or null if there is none.
    */
   public DataRenderer findDirect(VisADRay ray, int mouseModifiers) {
+    if (not_destroyed == null) return null;
     DirectManipulationRendererJ3D renderer = null;
     float distance = Float.MAX_VALUE;
     Enumeration renderers = ((Vector) directs.clone()).elements();
@@ -1051,6 +1094,7 @@ if (image == null) System.out.println("image is null");
    * @return  true if there are any
    */
   public boolean anyDirects() {
+    if (not_destroyed == null) return false;
     return !directs.isEmpty();
   }
 
@@ -1059,6 +1103,7 @@ if (image == null) System.out.println("image is null");
    * @param  on   turn on if true, otherwise turn them off
    */
   public void setScaleOn(boolean on) {
+    if (not_destroyed == null) return;
     if (on) {
       scale_switch.setWhichChild(1); // on
     }
@@ -1074,6 +1119,7 @@ if (image == null) System.out.println("image is null");
    */
   public void setScale(AxisScale axisScale)
          throws VisADException {
+    if (not_destroyed == null) return;
     if (axisScale.getScreenBased() && getMode2D()) {
       if (!axis_vector.contains(axisScale)) {
         axis_vector.addElement(axisScale);
@@ -1124,6 +1170,7 @@ if (image == null) System.out.println("image is null");
   public void setScale(int axis, int axis_ordinal,
               VisADLineArray array, float[] scale_color)
          throws VisADException {
+    if (not_destroyed == null) return;
     setScale(axis, axis_ordinal, array, null, scale_color);
   }
 
@@ -1142,6 +1189,7 @@ if (image == null) System.out.println("image is null");
               VisADLineArray array, VisADTriangleArray labels,
               float[] scale_color)
          throws VisADException {
+    if (not_destroyed == null) return;
 // DisplayImpl.printStack("setScale");
     // add array to scale_on
     // replace any existing at axis, axis_ordinal
@@ -1204,6 +1252,7 @@ if (image == null) System.out.println("image is null");
    * Remove all the scales being rendered.
    */
   public void clearScales() {
+    if (not_destroyed == null) return;
     if (scale_on != null) {
       synchronized (scale_on) {
         int n = scale_on.numChildren();
@@ -1220,6 +1269,7 @@ if (image == null) System.out.println("image is null");
    * @param scale  AxisScale to remove
    */
   public void clearScale(AxisScale axisScale) {
+    if (not_destroyed == null) return;
     // eliminate any non-screen-based scale for this AxisScale
     int axis = axisScale.getAxis();
     int axis_ordinal = axisScale.getAxisOrdinal();
@@ -1243,6 +1293,7 @@ if (image == null) System.out.println("image is null");
   }
 
   public void setTransform3D(Transform3D t) {
+    if (not_destroyed == null) return;
     if (trans == null) {
       trans = new TransformGroup();
       trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
@@ -1266,6 +1317,7 @@ if (image == null) System.out.println("image is null");
    * @return The appropriate <CODE>Control</CODE>.
    */
   public Control makeControl(ScalarMap map) {
+    if (not_destroyed == null) return null;
     DisplayRealType type = map.getDisplayScalar();
     DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
     if (type == null) return null;
@@ -1353,6 +1405,7 @@ if (image == null) System.out.println("image is null");
 
   public void rendererDeleted(DataRenderer renderer)
   {
+    if (not_destroyed == null) return;
     clearScene(renderer);
   }
 
@@ -1363,12 +1416,14 @@ if (image == null) System.out.println("image is null");
    */
   public void addKeyboardBehavior(KeyboardBehaviorJ3D behavior)
   {
+    if (not_destroyed == null) return;
     BranchGroup bg = new BranchGroup();
     bg.addChild(behavior);
     trans.addChild(bg);
   }
 
   public void setWaitFlag(boolean b) {
+    if (not_destroyed == null) return;
     boolean old = getWaitFlag();
     super.setWaitFlag(b);
     if (b != old) {

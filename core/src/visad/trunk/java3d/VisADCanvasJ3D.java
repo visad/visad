@@ -271,6 +271,7 @@ public class VisADCanvasJ3D extends Canvas3D {
       ((DisplayAppletJ3D) component).destroy();
     }
     component = null; // WLH 17 Dec 2001
+    captureImage = null;
   }
 
 }
