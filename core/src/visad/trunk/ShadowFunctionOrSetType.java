@@ -2570,11 +2570,11 @@ WLH 15 March 2000 */
 */
             }
             array = spatial_set.make1DGeometry(color_values);
-            if (!spatial_all_select) array = array.removeMissing();
-
-            array = array.adjustLongitude(renderer);
-            array = array.adjustSeam(renderer);
-
+            if (array != null) {
+              if (!spatial_all_select) array = array.removeMissing();
+              array = array.adjustLongitude(renderer);
+              array = array.adjustSeam(renderer);
+            }
             // System.out.println("make1DGeometry");
           }
           else if (spatialManifoldDimension == 2) {
@@ -2610,11 +2610,11 @@ WLH 15 March 2000 */
 */
             }
             array = spatial_set.make2DGeometry(color_values, indexed);
-            if (!spatial_all_select) array = array.removeMissing();
-
-            array = array.adjustLongitude(renderer);
-            array = array.adjustSeam(renderer);
-
+            if (array != null) {
+              if (!spatial_all_select) array = array.removeMissing();
+              array = array.adjustLongitude(renderer);
+              array = array.adjustSeam(renderer);
+            }
             // System.out.println("make2DGeometry  vertexCount = " +
             //                    array.vertexCount);
           }

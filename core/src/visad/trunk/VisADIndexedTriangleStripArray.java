@@ -62,6 +62,7 @@ public class VisADIndexedTriangleStripArray extends VisADGeometryArray {
 
       }
     }
+    if (nstrips <= 0) return null;
     int[] indices = new int[nind];
     int[] stripVertexCounts = new int[nstrips];
     nind = 0;

@@ -45,6 +45,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
         nstrips += arrays[i].stripVertexCounts.length;
       }
     }
+    if (nstrips <= 0) return null;
     int[] stripVertexCounts = new int[nstrips];
     nstrips = 0;
     for (int i=0; i<n; i++) {
