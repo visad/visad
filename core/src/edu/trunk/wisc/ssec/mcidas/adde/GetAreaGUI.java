@@ -1466,7 +1466,7 @@ public class GetAreaGUI extends javax.swing.JDialog {
     // Add your handling code here:
   }//GEN-LAST:event_ServerSelectorActionPerformed
   
-  private void replaceList(JComboBox b, String[] s, String first) {
+  private synchronized void replaceList(JComboBox b, String[] s, String first) {
     if (b.getItemCount() > 0) b.removeAllItems();
     if (first != null) b.addItem(first);
     if (s != null) {
