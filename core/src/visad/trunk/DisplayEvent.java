@@ -169,6 +169,15 @@ public class DisplayEvent extends Event {
     mouse_y = y;
   }
 
+  /**
+   * Return a new DisplayEvent which is a copy of this event,
+   * but which uses the specified source display
+   */
+  public DisplayEvent cloneButDisplay(Display dpy)
+  {
+    return new DisplayEvent(dpy, id, mouse_x, mouse_y);
+  }
+
   /** get the DisplayImpl that sent this DisplayEvent (or
       a RemoteDisplay reference to it if the Display was on
       a different JVM) */
