@@ -74,7 +74,7 @@ public class Test72
     dpys[0].addReference(ref_imaget1, null);
   }
 
-  public String toString() { return ": flow"; }
+  public String toString() { return ": streamlines"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
