@@ -737,7 +737,6 @@ public class TextAdapter {
 
     int numSamples = rangeValues.size(); // # lines of data
 
-
 // ***********************************************************
     if (debug) {
       try {
@@ -815,7 +814,9 @@ public class TextAdapter {
           samples[1] = (lset[1].getSamples())[0];
         }
 
+        System.out.println("####  starting..."+(new Date().toGMTString()));
         domain = (Set) new Irregular2DSet(domType, samples);
+        System.out.println("####  ending..."+(new Date().toGMTString()));
       }
         
     } else if (numDom == 3) {  // for 3-D domains
@@ -954,8 +955,14 @@ public class TextAdapter {
     }
 
     if (t.charAt(k-1) != ')' ) {
-      String t2 = "("+t.substring(0,k) + ")->("+t.substring(k+2)+")";
-      t = t2;
+      if (t.charAt(k+2) != '(' ) {
+        String t2 = "("+t.substring(0,k) + ")->("+t.substring(k+2)+")";
+        t = t2;
+      } else {
+        String t2 = "("+t.substring(0,k) + ")"+t.substring(k);
+        t = t2;
+      }
+
     } else if (t.charAt(k+2) != '(' ) {
       String t2 = t.substring(0,k+2)+"("+t.substring(k+2)+")";
       t = t2;
