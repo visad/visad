@@ -492,6 +492,10 @@ public final class ScaledUnit
 	System.out.println("milePerHour.toThat({1,2},meterPerSec)=" +
 	    values[0] + "," + values[1]);
 
+	System.out.println(
+	    "new ScaledUnit(0.5).isConvertible(new ScaledUnit(2.0)) = " +
+	     new ScaledUnit(0.5).isConvertible(new ScaledUnit(2.0)));
+
 	System.out.println("Checking exceptions:");
 	try
 	{
