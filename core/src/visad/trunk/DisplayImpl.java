@@ -1540,6 +1540,7 @@ if (initialize) {
 
 // System.out.println("DisplayImpl.doAction transform");
 // int i = 0;
+          boolean any_exceptions = false;
           renderers = temp.elements();
           while (renderers.hasMoreElements()) {
 // System.out.println("DisplayImpl invoke renderer.doAction " + i);
@@ -1548,6 +1549,7 @@ if (initialize) {
 
             boolean this_transform = renderer.doAction();
             transform_done |= this_transform;
+            any_exceptions |= !renderer.getExceptionVector().isEmpty();
 /*
             if (this_transform) {
               DataDisplayLink[] links = renderer.getLinks();
@@ -1572,7 +1574,9 @@ if (initialize) {
                 }
               }
             }
+          }
 
+          if (transform_done || any_exceptions) {
             notifyListeners(DisplayEvent.TRANSFORM_DONE, 0, 0);
           }
 
