@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Hodograph3D.java,v 1.2 1999-01-07 18:13:33 steve Exp $
+ * $Id: Hodograph3D.java,v 1.3 1999-01-07 23:03:07 steve Exp $
  */
 
 package visad.meteorology;
@@ -153,14 +153,14 @@ Hodograph3D
 	((FlowControl)uFlowMap.getControl()).setFlowScale(5f);
 	((FlowControl)vFlowMap.getControl()).setFlowScale(5f);
 
-	display.addReference(
+	display.addReferences(
+	    new DirectManipulationRendererJ3D(),
 	    windProfileRef,
 	    new ConstantMap[] {
 		new ConstantMap(2.0, Display.LineWidth),
 		new ConstantMap(1., Display.Red),
 		new ConstantMap(0., Display.Blue),
 		new ConstantMap(1., Display.Green)});
-	    // new DirectManipulationRendererJ3D(),	doesn't work with Set-s
 
 	display.addReference(
 	    flowProfileRef,
