@@ -340,6 +340,10 @@ public abstract class ShadowTypeJ2D extends ShadowType {
     }
   }
 
+  public boolean allowCurvedTexture() {
+    return false;
+  }
+
   public String toString() {
     return (adaptedShadowType == null ? null : adaptedShadowType.toString());
   }

@@ -24,7 +24,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad.bom;
+package visad.cluster;
 
 import visad.*;
 import visad.java3d.*;
@@ -42,6 +42,14 @@ public class ShadowNodeSetTypeJ3D extends ShadowSetTypeJ3D {
                                 ShadowType parent)
          throws VisADException, RemoteException {
     super(t, link, parent);
+  }
+
+  public boolean addToGroup(Object group, VisADGeometryArray array,
+                            GraphicsModeControl mode,
+                            float constant_alpha, float[] constant_color)
+         throws VisADException {
+    return ShadowNodeFunctionTypeJ3D.staticAddToGroup(group, array, mode, 
+                                                      constant_alpha, constant_color);
   }
 
 }

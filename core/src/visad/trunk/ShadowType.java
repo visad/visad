@@ -3278,6 +3278,14 @@ System.out.println("range = " + range[0] + " " + range[1] +
   public void setText(String text, TextControl control) {
   }
 
+  public boolean allowCurvedTexture() {
+    return true;
+  }
+
+  public boolean allowConstantColorSurfaces() {
+    return true;
+  }
+
   public String toString() {
     return getClass() + " for \n  " + Type.toString();
     // return " LevelOfDifficulty = " + LevelOfDifficulty;

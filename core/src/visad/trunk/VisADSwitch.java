@@ -34,6 +34,8 @@ public class VisADSwitch extends VisADGroup {
 
   private int which = -1;
 
+  private Set set = null;
+
   public VisADSwitch() {
   }
 
@@ -54,6 +56,10 @@ public class VisADSwitch extends VisADGroup {
     else {
       return null;
     }
+  }
+
+  public void setSet(Set s) {
+    set = s;
   }
 
 }

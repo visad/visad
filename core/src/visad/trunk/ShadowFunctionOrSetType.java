@@ -648,7 +648,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                             !isTextureMap &&
                             curved_size > 0 &&
                             getIsTerminal() && // implied by getCurvedTexture()?
-                            !(shadow_api instanceof visad.java2d.ShadowTypeJ2D) &&
+                            shadow_api.allowCurvedTexture() &&
                             default_values[alpha_index] > 0.99 &&
                             renderer.isLegalTextureMap() &&
                             (domain_set instanceof Gridded2DSet ||
@@ -681,7 +681,7 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
                         !isTextureMap + " " +
                         (curved_size > 0) + " " +
                         getIsTerminal() + " " +
-                        !(shadow_api instanceof visad.java2d.ShadowTypeJ2D) + " " +
+                        shadow_api.allowCurvedTexture() + " " +
                         (default_values[alpha_index] > 0.99) + " " +
                         renderer.isLegalTextureMap() + " " +
                         (domain_set instanceof Gridded2DSet) + " " +
@@ -1815,7 +1815,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
       } // end if (alpha_length == 1)
       if (color_length == 1) {
         if (spatialManifoldDimension == 1 ||
-            shadow_api instanceof visad.java2d.ShadowTypeJ2D) {
+            shadow_api.allowConstantColorSurfaces()) {
 /* MEM_WLH
           if (color_values[0][0] != color_values[0][0] ||
               color_values[1][0] != color_values[1][0] ||

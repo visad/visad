@@ -420,6 +420,10 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     }
   }
 
+  public boolean allowConstantColorSurfaces() {
+    return false;
+  }
+
   public String toString() {
     return adaptedShadowType.toString();
   }
