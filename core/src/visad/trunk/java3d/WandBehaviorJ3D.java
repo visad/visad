@@ -55,6 +55,9 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   // and for left-button wand motion
   private TransformGroup vpTrans;
 
+  // initial Transform3D from vpTrans
+  private Transform3D init_trans;
+
   private float[] head_position = new float[3];
   private float[] wand_position = new float[3];
   private float[] wand_vector = new float[3];
@@ -87,6 +90,9 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     wandThread.start();
     vpTrans = display_renderer.getViewTrans();
 
+    init_trans = new Transform3D();
+    vpTrans.getTransform(init_trans);
+/*
 Transform3D trans = new Transform3D();
 vpTrans.getTransform(trans);
 float[] array = new float[16];
@@ -94,9 +100,8 @@ trans.get(array);
 for (int i=0; i<16; i+=4) {
   System.out.println(array[i] + " " + array[i+1] + " " +
                      array[i+2] + " " + array[i+3]);
-/*
-# !java
-java TestIDesk 4148 4147
+
+# java TestIDesk 4148 4147
 1.0 0.0 0.0 0.0
 0.0 1.0 0.0 0.0
 0.0 0.0 1.0 2.0
@@ -117,7 +122,6 @@ sensor 2 0.0 0.0 0.0 0.0 0.0 0.0
 sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
 3 buttons: 0 0 0
 */
-}
   }
 
   /* override MouseBehaviorJ3D.processStimulus() to do nothing */
@@ -261,7 +265,10 @@ sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
       double[] matrix =
         MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, 1.0, headx, heady, headz);
 
-
+      Transform3D temp = new Transform3D(init_trans);
+      Transform3D tm = new Transform3D(matrix);
+      temp.mul(tm);
+      vpTrans.setTransform(temp);
 // ****
       // vpTrans.setTransform(new Transform3D(matrix));
 // ****
