@@ -531,8 +531,13 @@ public class Rain implements ActionListener, ControlListener {
           float[][] old_table = color_controlC1.getTable();
           boolean identical = true;
           for (int i=0; i<3; i++) {
-            for (int j=0; j<table[0].length; j++) {
-              if (table[i][j] != old_table[i][j]) identical = false;
+            if (identical) {
+              for (int j=0; j<table[i].length; j++) {
+                if (Math.abs(table[i][j] - old_table[i][j]) > 0.00001) {
+                  identical = false;
+                  break;
+                }
+              }
             }
           }
           if (!identical) {
@@ -790,8 +795,13 @@ public class Rain implements ActionListener, ControlListener {
           float[][] old_table = color_controlC4.getTable();
           boolean identical = true;
           for (int i=0; i<3; i++) {
-            for (int j=0; j<table[0].length; j++) {
-              if (table[i][j] != old_table[i][j]) identical = false;
+            if (identical) {
+              for (int j=0; j<table[i].length; j++) {
+                if (Math.abs(table[i][j] - old_table[i][j]) > 0.00001) {
+                  identical = false;
+                  break;
+                }
+              }
             }
           }
           if (!identical) {
@@ -986,19 +996,6 @@ public class Rain implements ActionListener, ControlListener {
           throws VisADException, RemoteException {
     if (field == null) return;
     field.setSamples(table);
-/*
-    if (field instanceof FlatField) {
-      ((FlatField) field).setSamples(table);
-    }
-    else {
-      for (int i=0; i<table[0].length; i++) {
-        field.setSample(i, new RealTuple(new Real[]
-          {new Real((double) table[0][i]),
-           new Real((double) table[1][i]),
-           new Real((double) table[2][i])}));
-      }
-    }
-*/
   }
 
 }
