@@ -77,6 +77,9 @@ public class AlignmentPlane extends PlaneSelector {
   /** Alignment plane mode. */
   protected int mode;
 
+  /** Whether to snap endpoints to nearest slice. */
+  protected boolean snap;
+
   /** Fixed distances between endpoints. */
   protected double dist12, dist13, dist23, dist34, d_dist;
 
@@ -91,6 +94,7 @@ public class AlignmentPlane extends PlaneSelector {
     pos = new double[numIndices][3][3];
     coord = new CoordinateSystem[numIndices];
     mode = OFF_MODE;
+    snap = false;
   }
 
 
@@ -122,6 +126,9 @@ public class AlignmentPlane extends PlaneSelector {
     this.mode = mode;
     toggle(mode == SET_MODE || mode == ADJUST_MODE);
   }
+
+  /** Sets whether endpoints should snap to the nearest slice. */
+  public void setSnap(boolean snap) { this.snap = snap; }
 
   /**
    * Transforms a point from its location at the initial index
@@ -180,6 +187,29 @@ public class AlignmentPlane extends PlaneSelector {
 
 
   // -- HELPER METHODS --
+
+  /** Computes the appropriate plane from the current endpoints. */
+  protected boolean computePlane(RealTuple[] tuple)
+    throws VisADException, RemoteException
+  {
+    // snap values to nearest slice if necessary
+    if (snap) {
+      int numSlices = bio.sm.getNumberOfSlices();
+      int len = tuple.length;
+      for (int i=0; i<len; i++) {
+        double[] values = tuple[i].getValues();
+        double vz = values[2];
+        double nz = Math.round(vz);
+        if (nz < 0) nz = 0;
+        if (nz >= numSlices) nz = numSlices - 1;
+        if (vz != nz) {
+          setData(i, new double[] {values[0], values[1], nz});
+          return false;
+        }
+      }
+    }
+    return super.computePlane(tuple);
+  }
 
   /** Refreshes the plane data from its endpoint locations. */
   protected boolean refresh() {
@@ -265,9 +295,7 @@ public class AlignmentPlane extends PlaneSelector {
       dist34 = BioUtil.getDistance(p3, p4, m);
     }
 
-    if (!super.refresh()) return false;
-
-    return true;
+    return super.refresh();
   }
 
   /** Moves the given reference point. */

@@ -71,6 +71,9 @@ public class AlignToolPanel extends ToolPanel {
   /** Mode for applying alignment plane settings. */
   private JRadioButton apply;
 
+  /** Checkbox for snapping alignment plane endpoints to nearest slice. */
+  private JCheckBox snap;
+
   /** Legend labels. */
   private JLabel legend, redLabel, yellowLabel, blueLabel;
 
@@ -158,6 +161,7 @@ public class AlignToolPanel extends ToolPanel {
         shape.setEnabled(doDrift);
         orient.setEnabled(doDrift);
         apply.setEnabled(doDrift);
+        //snap.setEnabled(doDrift);
         int mode = AlignmentPlane.OFF_MODE;
         if (doDrift) {
           if (shape.isSelected()) mode = AlignmentPlane.SET_MODE;
@@ -222,6 +226,20 @@ public class AlignToolPanel extends ToolPanel {
     p2.add(apply);
     p.add(p2);
     controls.add(pad(p));
+
+    // snap to slices checkbox
+    snap = new JCheckBox("Snap endpoints to nearest slice");
+    snap.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = snap.isSelected();
+        bio.sm.align.setSnap(b);
+      }
+    });
+    snap.setMnemonic('p');
+    snap.setToolTipText("Prevents triangle endpoints " +
+      "from lying between slices.");
+    snap.setEnabled(false);
+    controls.add(pad(snap));
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
