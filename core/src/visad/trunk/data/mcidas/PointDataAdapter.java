@@ -73,6 +73,7 @@ public class PointDataAdapter
         int[][] data;
         String[] units;
         String[] params;
+	Unit[] defaultUnits;
         int[] scalingFactors;
         try
         {
@@ -87,9 +88,9 @@ public class PointDataAdapter
         }
                
         int numObs = data[0].length;
-        System.out.println("number of obs = " + numObs);
         if (numObs == 0)
             throw new VisADException("No data available");
+	System.out.println("Number of observations = " + numObs);
 
         RealType domainType = RealType.getRealType("index");
         Integer1DSet domain = new Integer1DSet(domainType, numObs);
@@ -98,6 +99,7 @@ public class PointDataAdapter
         MetUnits unitTranslator = new MetUnits();
         int numParams = params.length;
         ScalarType[] types = new ScalarType[numParams];
+	defaultUnits = new Unit[numParams];
         boolean noText = true;
         for (int i = 0; i < numParams; i++)
         {
@@ -108,12 +110,16 @@ public class PointDataAdapter
             Unit unit = null;
             try
             {
-               unit = Parser.parse(unitTranslator.makeSymbol(units[i]));
+               unit = (!name.equalsIgnoreCase("LON") )
+	                 ? Parser.parse(unitTranslator.makeSymbol(units[i]))
+	                 : Parser.parse("degrees_west");  // fix McIDAS conv.
             }
             catch (NoSuchUnitException ne) {
                System.out.println("Unknown unit: " + units[i] + " for " + name);
+	       unit = null;
             }
-            catch (ParseException pe) {;}
+            catch (ParseException pe) { unit = null;}
+	    defaultUnits[i] = unit;
 
             if (units[i].equalsIgnoreCase("CHAR"))
             {
@@ -122,7 +128,9 @@ public class PointDataAdapter
             }
             else
             {
-                types[i] = RealType.getRealType(params[i], unit, (Set) null);
+                types[i] = 
+		getQuantity(params[i], unit);
+		//RealType.getRealType(params[i], unit, (Set) null);
             }
         }
         TupleType rangeType;
@@ -164,10 +172,11 @@ public class PointDataAdapter
                               : data[j][i]/Math.pow(10.0, 
                                   (double) scalingFactors[j] );
                         scalars[j] =
-                            new Real((RealType) types[j], value);
+                            new Real(
+			        (RealType) types[j], value, defaultUnits[j]);
                     }
                 }
-                catch (Exception e) {;}
+                catch (VisADException e) {;}
             }
             try
             {
@@ -185,7 +194,7 @@ public class PointDataAdapter
      *
      * @return  requested data
      */
-    public Data getData()
+    public DataImpl getData()
     {
         return field;
     }
@@ -217,5 +226,27 @@ public class PointDataAdapter
         {
             System.out.println("Error reading data");
         }
+    }
+
+    /**
+     * First cut at a standard quantities database.
+     */
+    private RealType getQuantity(String name, Unit unit) 
+      throws VisADException
+    {
+        RealType type = null;
+        if (name.equalsIgnoreCase("lat")) {
+	   type = RealType.Latitude;
+	   type.alias(name);
+	} else if (name.equalsIgnoreCase("lon")) {
+	   type = RealType.Longitude;
+	   type.alias(name);
+	} else if (name.equalsIgnoreCase("z")) {
+	   type = RealType.Altitude;
+	   type.alias(name);
+	} else {
+	   type = RealType.getRealType(name, unit);
+	}
+	return type;
     }
 }
