@@ -34,8 +34,6 @@ OBJECTS = SWopenImp.o \
 
 .java.class:
 	javac $<
-
-visad_data_hdfeos_hdfeosc_HdfeosLib.h: HdfeosLib.class
 	javah -jni visad.data.hdfeos.hdfeosc.HdfeosLib
 
 default: all
