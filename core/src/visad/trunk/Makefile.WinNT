@@ -91,6 +91,7 @@ visad\ss\*.java \
 visad\ss\*.gif \
 visad\ss\README.ss \
 visad\ss\*.java \
+visad\cluster\*.java \
 visad\collab\*.java \
 visad\data\*.java \
 visad\data\netcdf\*.java \
@@ -203,6 +204,7 @@ visad\formula\*.java \
 visad\ss\*.java \
 visad\ss\*.gif \
 visad\ss\README.ss \
+visad\cluster\*.java \
 visad\collab\*.java \
 visad\data\*.java \
 visad\data\netcdf\*.java \
@@ -283,6 +285,8 @@ save:
 	if not exist $(BACKUP) mkdir $(BACKUP)
 	if exist $(BACKUP)\visad\*.java \
 		$(DEL) $(BACKUP)\visad\*.java
+	if exist $(BACKUP)\visad\cluster\*.java \
+		$(DEL) $(BACKUP)\visad\cluster\*.java
 	if exist $(BACKUP)\visad\collab\*.java \
 		$(DEL) $(BACKUP)\visad\collab\*.java
 	if exist $(BACKUP)\visad\examples\*.java \
@@ -386,6 +390,7 @@ visad\matrix\*.class \
 visad\formula\*.class \
 visad\ss\*.class \
 visad\ss\*.gif \
+visad\cluster\*.class \
 visad\collab\*.class \
 visad\data\*.class \
 visad\data\netcdf\*.class \
@@ -442,6 +447,7 @@ examplesjar:
 
 clear:
 	if exist *.java $(DEL) *.java
+	if exist cluster\*.java $(DEL) cluster\*.java
 	if exist collab\*.java $(DEL) collab\*.java
 	if exist java3d\*.java $(DEL) java3d\*.java
 	if exist java2d\*.java $(DEL) java2d\*.java
@@ -489,6 +495,7 @@ clear:
 
 clean:
 	if exist *.class $(DEL) *.class
+	if exist cluster\*.class $(DEL) cluster\*.class
 	if exist collab\*.class $(DEL) collab\*.class
 	if exist java3d\*.class $(DEL) java3d\*.class
 	if exist java2d\*.class $(DEL) java2d\*.class
@@ -556,6 +563,7 @@ recompile: \
 *.class \
 java3d\*.class \
 java2d\*.class \
+cluster\*.class \
 collab\*.class \
 data\*.class \
 $(UCAR)\multiarray\*.class \
@@ -607,6 +615,7 @@ compile: clean
 	$(JC) $(JFLAGS) *.java
 	$(JC) $(JFLAGS) java3d\*.java
 	$(JC) $(JFLAGS) java2d\*.java
+	$(JC) $(JFLAGS) cluster\*.java
 	$(JC) $(JFLAGS) collab\*.java
 	$(JC) $(JFLAGS) data\*.java
 	$(JC) $(JFLAGS) $(UCAR)\multiarray\*.java
@@ -660,6 +669,7 @@ debug:
 
 VISAD_PACKAGES = \
 visad \
+visad.cluster \
 visad.collab \
 visad.java3d \
 visad.java2d \

@@ -1,5 +1,5 @@
 //
-// RemoteDataImpl.java
+// RemoteClientDataImpl.java
 //
 
 /*
@@ -24,26 +24,28 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad;
+package visad.cluster;
+
+import visad.*;
 
 import java.util.*;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 
 /**
-   RemoteDataImpl is the VisAD remote adapter for DataImpl.<P>
+   RemoteClientDataImpl is the VisAD remote adapter for DataImpl.<P>
 */
-public abstract class RemoteDataImpl extends RemoteThingImpl
-       implements RemoteData {
+public abstract class RemoteClientDataImpl extends RemoteDataImpl
+       implements RemoteClientData {
 
   /** 'this' is the Remote adaptor for AdaptedData (which is local);
       AdaptedData is transient because UnicastRemoteObject is
       Serializable, but a copy of 'this' on another JVM will not
       be local to AdaptedData and cannot adapt it;
-      the methods of RemoteDataImpl test for null AdaptedData */
+      the methods of RemoteClientDataImpl test for null AdaptedData */
   final transient DataImpl AdaptedData;
 
-  public RemoteDataImpl(DataImpl data) throws RemoteException {
+  public RemoteClientDataImpl(DataImpl data) throws RemoteException {
     super(data);
     AdaptedData = data;
   }
@@ -52,10 +54,10 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
       do not adapt equals, toString, hashCode or clone */
 
   /** DataImpl.local() returns 'this'
-      RemoteDataImpl.local() returns 'AdaptedData' */
+      RemoteClientDataImpl.local() returns 'AdaptedData' */
   public DataImpl local() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.local " +
+      throw new RemoteVisADException("RemoteClientDataImpl.local " +
                                      "AdaptedData is null");
     }
     return AdaptedData;
@@ -63,7 +65,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public MathType getType() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.getType " +
+      throw new RemoteVisADException("RemoteClientDataImpl.getType " +
                                      "AdaptedData is null");
     }
     return AdaptedData.getType();
@@ -71,7 +73,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public boolean isMissing() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.isMissing " +
+      throw new RemoteVisADException("RemoteClientDataImpl.isMissing " +
                                      "AdaptedData is null");
     }
     return AdaptedData.isMissing();
@@ -81,7 +83,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.binary " +
+      throw new RemoteVisADException("RemoteClientDataImpl.binary " +
                                      "AdaptedData is null");
     }
     return AdaptedData.binary(data, op, sampling_mode, error_mode);
@@ -92,7 +94,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
                      int sampling_mode, int error_mode )
               throws VisADException, RemoteException {
     if (AdaptedData == null ) {
-      throw new RemoteVisADException("RemoteDataImpl.binary " +
+      throw new RemoteVisADException("RemoteClientDataImpl.binary " +
                                      "AdaptedData is null");
     }
     return AdaptedData.binary(data, op, new_type, sampling_mode, error_mode);
@@ -102,7 +104,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
       sampling and error estimation */
   public Data add(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.add " +
+      throw new RemoteVisADException("RemoteClientDataImpl.add " +
                                      "AdaptedData is null");
     }
     return AdaptedData.add(data);
@@ -110,7 +112,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data subtract(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.subtract " +
+      throw new RemoteVisADException("RemoteClientDataImpl.subtract " +
                                      "AdaptedData is null");
     }
     return AdaptedData.subtract(data);
@@ -118,7 +120,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data multiply(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.multiply " +
+      throw new RemoteVisADException("RemoteClientDataImpl.multiply " +
                                      "AdaptedData is null");
     }
     return AdaptedData.multiply(data);
@@ -126,7 +128,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data divide(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.divide " +
+      throw new RemoteVisADException("RemoteClientDataImpl.divide " +
                                      "AdaptedData is null");
     }
     return AdaptedData.divide(data);
@@ -134,7 +136,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data pow(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.pow " +
+      throw new RemoteVisADException("RemoteClientDataImpl.pow " +
                                      "AdaptedData is null");
     }
     return AdaptedData.pow(data);
@@ -142,7 +144,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data max(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.max " +
+      throw new RemoteVisADException("RemoteClientDataImpl.max " +
                                      "AdaptedData is null");
     }
     return AdaptedData.max(data);
@@ -150,7 +152,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data min(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.min " +
+      throw new RemoteVisADException("RemoteClientDataImpl.min " +
                                      "AdaptedData is null");
     }
     return AdaptedData.min(data);
@@ -158,7 +160,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data atan2(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.atan2 " +
+      throw new RemoteVisADException("RemoteClientDataImpl.atan2 " +
                                      "AdaptedData is null");
     }
     return AdaptedData.atan2(data);
@@ -166,7 +168,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data atan2Degrees(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.atan2Degrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.atan2Degrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.atan2Degrees(data);
@@ -174,7 +176,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data remainder(Data data) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.remainder " +
+      throw new RemoteVisADException("RemoteClientDataImpl.remainder " +
                                      "AdaptedData is null");
     }
     return AdaptedData.remainder(data);
@@ -185,7 +187,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data add(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.add " +
+      throw new RemoteVisADException("RemoteClientDataImpl.add " +
                                      "AdaptedData is null");
     }
     return AdaptedData.add(data, sampling_mode, error_mode);
@@ -194,7 +196,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data subtract(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.subtract " +
+      throw new RemoteVisADException("RemoteClientDataImpl.subtract " +
                                      "AdaptedData is null");
     }
     return AdaptedData.subtract(data, sampling_mode, error_mode);
@@ -203,7 +205,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data multiply(Data data, int sampling_mode,
          int error_mode) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.multiply " +
+      throw new RemoteVisADException("RemoteClientDataImpl.multiply " +
                                      "AdaptedData is null");
     }
     return AdaptedData.multiply(data, sampling_mode, error_mode);
@@ -212,7 +214,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data divide(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.divide " +
+      throw new RemoteVisADException("RemoteClientDataImpl.divide " +
                                      "AdaptedData is null");
     }
     return AdaptedData.divide(data, sampling_mode, error_mode);
@@ -221,7 +223,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data pow(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.pow " +
+      throw new RemoteVisADException("RemoteClientDataImpl.pow " +
                                      "AdaptedData is null");
     }
     return AdaptedData.pow(data, sampling_mode, error_mode);
@@ -230,7 +232,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data max(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.max " +
+      throw new RemoteVisADException("RemoteClientDataImpl.max " +
                                      "AdaptedData is null");
     }
     return AdaptedData.max(data, sampling_mode, error_mode);
@@ -239,7 +241,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data min(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.min " +
+      throw new RemoteVisADException("RemoteClientDataImpl.min " +
                                      "AdaptedData is null");
     }
     return AdaptedData.min(data, sampling_mode, error_mode);
@@ -248,7 +250,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data atan2(Data data, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.atan2 " +
+      throw new RemoteVisADException("RemoteClientDataImpl.atan2 " +
                                      "AdaptedData is null");
     }
     return AdaptedData.atan2(data, sampling_mode, error_mode);
@@ -257,7 +259,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data atan2Degrees(Data data, int sampling_mode,
          int error_mode) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.atan2Degrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.atan2Degrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.atan2Degrees(data, sampling_mode, error_mode);
@@ -266,7 +268,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data remainder(Data data, int sampling_mode,
          int error_mode) throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.remainder " +
+      throw new RemoteVisADException("RemoteClientDataImpl.remainder " +
                                      "AdaptedData is null");
     }
     return AdaptedData.remainder(data, sampling_mode, error_mode);
@@ -276,7 +278,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data unary(int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.unary " +
+      throw new RemoteVisADException("RemoteClientDataImpl.unary " +
                                      "AdaptedData is null");
     }
     return AdaptedData.unary(op, sampling_mode, error_mode);
@@ -287,7 +289,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
                     int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.unary " +
+      throw new RemoteVisADException("RemoteClientDataImpl.unary " +
                                      "AdaptedData is null");
     }
     return AdaptedData.unary(op, new_type, sampling_mode, error_mode);
@@ -297,7 +299,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data changeMathType(MathType new_type)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.changeMathType " +
+      throw new RemoteVisADException("RemoteClientDataImpl.changeMathType " +
                                      "AdaptedData is null");
     }
     return AdaptedData.changeMathType(new_type);
@@ -307,7 +309,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
       sampling and error estimation */
   public Data abs() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.abs " +
+      throw new RemoteVisADException("RemoteClientDataImpl.abs " +
                                      "AdaptedData is null");
     }
     return AdaptedData.abs();
@@ -315,7 +317,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data acos() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.acos " +
+      throw new RemoteVisADException("RemoteClientDataImpl.acos " +
                                      "AdaptedData is null");
     }
     return AdaptedData.acos();
@@ -323,7 +325,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data acosDegrees() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.acosDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.acosDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.acosDegrees();
@@ -331,7 +333,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data asin() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.asin " +
+      throw new RemoteVisADException("RemoteClientDataImpl.asin " +
                                      "AdaptedData is null");
     }
     return AdaptedData.asin();
@@ -339,7 +341,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data asinDegrees() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.asinDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.asinDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.asinDegrees();
@@ -347,7 +349,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data atan() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.atan " +
+      throw new RemoteVisADException("RemoteClientDataImpl.atan " +
                                      "AdaptedData is null");
     }
     return AdaptedData.atan();
@@ -355,7 +357,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data atanDegrees() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.atanDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.atanDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.atanDegrees();
@@ -363,7 +365,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data ceil() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.ceil " +
+      throw new RemoteVisADException("RemoteClientDataImpl.ceil " +
                                      "AdaptedData is null");
     }
     return AdaptedData.ceil();
@@ -371,7 +373,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data cos() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.cos " +
+      throw new RemoteVisADException("RemoteClientDataImpl.cos " +
                                      "AdaptedData is null");
     }
     return AdaptedData.cos();
@@ -379,7 +381,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data cosDegrees() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.cosDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.cosDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.cosDegrees();
@@ -387,7 +389,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data exp() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.exp " +
+      throw new RemoteVisADException("RemoteClientDataImpl.exp " +
                                      "AdaptedData is null");
     }
     return AdaptedData.exp();
@@ -395,7 +397,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data floor() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.floor " +
+      throw new RemoteVisADException("RemoteClientDataImpl.floor " +
                                      "AdaptedData is null");
     }
     return AdaptedData.floor();
@@ -403,7 +405,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data log() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.log " +
+      throw new RemoteVisADException("RemoteClientDataImpl.log " +
                                      "AdaptedData is null");
     }
     return AdaptedData.log();
@@ -411,7 +413,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data rint() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.rint " +
+      throw new RemoteVisADException("RemoteClientDataImpl.rint " +
                                      "AdaptedData is null");
     }
     return AdaptedData.rint();
@@ -419,7 +421,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data round() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.round " +
+      throw new RemoteVisADException("RemoteClientDataImpl.round " +
                                      "AdaptedData is null");
     }
     return AdaptedData.round();
@@ -427,7 +429,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data sin() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.sin " +
+      throw new RemoteVisADException("RemoteClientDataImpl.sin " +
                                      "AdaptedData is null");
     }
     return AdaptedData.sin();
@@ -435,7 +437,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data sinDegrees() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.sinDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.sinDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.sinDegrees();
@@ -443,7 +445,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data sqrt() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.sqrt " +
+      throw new RemoteVisADException("RemoteClientDataImpl.sqrt " +
                                      "AdaptedData is null");
     }
     return AdaptedData.sqrt();
@@ -451,7 +453,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data tan() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.tan " +
+      throw new RemoteVisADException("RemoteClientDataImpl.tan " +
                                      "AdaptedData is null");
     }
     return AdaptedData.tan();
@@ -459,7 +461,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data tanDegrees() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.tanDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.tanDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.tanDegrees();
@@ -467,7 +469,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public Data negate() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.negate " +
+      throw new RemoteVisADException("RemoteClientDataImpl.negate " +
                                      "AdaptedData is null");
     }
     return AdaptedData.negate();
@@ -478,7 +480,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data abs(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.abs " +
+      throw new RemoteVisADException("RemoteClientDataImpl.abs " +
                                      "AdaptedData is null");
     }
     return AdaptedData.abs(sampling_mode, error_mode);
@@ -487,7 +489,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data acos(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.acos " +
+      throw new RemoteVisADException("RemoteClientDataImpl.acos " +
                                      "AdaptedData is null");
     }
     return AdaptedData.acos(sampling_mode, error_mode);
@@ -496,7 +498,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data acosDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.acosDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.acosDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.acosDegrees(sampling_mode, error_mode);
@@ -505,7 +507,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data asin(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.asin " +
+      throw new RemoteVisADException("RemoteClientDataImpl.asin " +
                                      "AdaptedData is null");
     }
     return AdaptedData.asin(sampling_mode, error_mode);
@@ -514,7 +516,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data asinDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.asinDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.asinDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.asinDegrees(sampling_mode, error_mode);
@@ -523,7 +525,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data atan(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.atan " +
+      throw new RemoteVisADException("RemoteClientDataImpl.atan " +
                                      "AdaptedData is null");
     }
     return AdaptedData.atan(sampling_mode, error_mode);
@@ -532,7 +534,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data atanDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.atanDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.atanDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.atanDegrees(sampling_mode, error_mode);
@@ -541,7 +543,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data ceil(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.ceil " +
+      throw new RemoteVisADException("RemoteClientDataImpl.ceil " +
                                      "AdaptedData is null");
     }
     return AdaptedData.ceil(sampling_mode, error_mode);
@@ -550,7 +552,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data cos(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.cos " +
+      throw new RemoteVisADException("RemoteClientDataImpl.cos " +
                                      "AdaptedData is null");
     }
     return AdaptedData.cos(sampling_mode, error_mode);
@@ -559,7 +561,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data cosDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.cosDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.cosDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.cosDegrees(sampling_mode, error_mode);
@@ -568,7 +570,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data exp(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.exp " +
+      throw new RemoteVisADException("RemoteClientDataImpl.exp " +
                                      "AdaptedData is null");
     }
     return AdaptedData.exp(sampling_mode, error_mode);
@@ -577,7 +579,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data floor(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.floor " +
+      throw new RemoteVisADException("RemoteClientDataImpl.floor " +
                                      "AdaptedData is null");
     }
     return AdaptedData.floor(sampling_mode, error_mode);
@@ -586,7 +588,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data log(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.log " +
+      throw new RemoteVisADException("RemoteClientDataImpl.log " +
                                      "AdaptedData is null");
     }
     return AdaptedData.log(sampling_mode, error_mode);
@@ -595,7 +597,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data rint(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.rint " +
+      throw new RemoteVisADException("RemoteClientDataImpl.rint " +
                                      "AdaptedData is null");
     }
     return AdaptedData.rint(sampling_mode, error_mode);
@@ -604,7 +606,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data round(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.round " +
+      throw new RemoteVisADException("RemoteClientDataImpl.round " +
                                      "AdaptedData is null");
     }
     return AdaptedData.round(sampling_mode, error_mode);
@@ -613,7 +615,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data sin(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.sin " +
+      throw new RemoteVisADException("RemoteClientDataImpl.sin " +
                                      "AdaptedData is null");
     }
     return AdaptedData.sin(sampling_mode, error_mode);
@@ -622,7 +624,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data sinDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.sinDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.sinDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.sinDegrees(sampling_mode, error_mode);
@@ -631,7 +633,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data sqrt(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.sqrt " +
+      throw new RemoteVisADException("RemoteClientDataImpl.sqrt " +
                                      "AdaptedData is null");
     }
     return AdaptedData.sqrt(sampling_mode, error_mode);
@@ -640,7 +642,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data tan(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.tan " +
+      throw new RemoteVisADException("RemoteClientDataImpl.tan " +
                                      "AdaptedData is null");
     }
     return AdaptedData.tan(sampling_mode, error_mode);
@@ -649,7 +651,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data tanDegrees(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.tanDegrees " +
+      throw new RemoteVisADException("RemoteClientDataImpl.tanDegrees " +
                                      "AdaptedData is null");
     }
     return AdaptedData.tanDegrees(sampling_mode, error_mode);
@@ -658,7 +660,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data negate(int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.negate " +
+      throw new RemoteVisADException("RemoteClientDataImpl.negate " +
                                      "AdaptedData is null");
     }
     return AdaptedData.negate(sampling_mode, error_mode);
@@ -667,7 +669,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public double[][] computeRanges(RealType[] reals)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.computeRanges " +
+      throw new RemoteVisADException("RemoteClientDataImpl.computeRanges " +
                                      "AdaptedData is null");
     }
     return AdaptedData.computeRanges(reals);
@@ -676,7 +678,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public DataShadow computeRanges(ShadowType type, int n)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.computeRanges " +
+      throw new RemoteVisADException("RemoteClientDataImpl.computeRanges " +
                                      "AdaptedData is null");
     }
     return AdaptedData.computeRanges(type, n);
@@ -685,7 +687,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.computeRanges " +
+      throw new RemoteVisADException("RemoteClientDataImpl.computeRanges " +
                                      "AdaptedData is null");
     }
     return AdaptedData.computeRanges(type, shadow);
@@ -694,7 +696,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public Data adjustSamplingError(Data error, int error_mode)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.adjustSamplingError " +
+      throw new RemoteVisADException("RemoteClientDataImpl.adjustSamplingError " +
                                      "AdaptedData is null");
     }
     return AdaptedData.adjustSamplingError(error, error_mode);
@@ -702,7 +704,7 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
 
   public String longString() throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.longString " +
+      throw new RemoteVisADException("RemoteClientDataImpl.longString " +
                                      "AdaptedData is null");
     }
     return AdaptedData.longString();
@@ -711,21 +713,21 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
   public String longString(String pre)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
-      throw new RemoteVisADException("RemoteDataImpl.longString " +
+      throw new RemoteVisADException("RemoteClientDataImpl.longString " +
                                      "AdaptedData is null");
     }
     return AdaptedData.longString(pre);
   }
 
   /** a VisAD adaptation of clone that works for local or remote Data;
-      DataImpl.dataClone returns clone; RemoteDataImpl.dataClone
+      DataImpl.dataClone returns clone; RemoteClientDataImpl.dataClone
       returns clone inherited from UnicastRemoteObject */
   public Object dataClone() throws RemoteException {
     try {
       return clone();
     }
     catch (CloneNotSupportedException e) {
-      throw new VisADError("RemoteDataImpl.dataClone: " +
+      throw new VisADError("RemoteClientDataImpl.dataClone: " +
                            "CloneNotSupportedException occurred");
     }
   }

@@ -167,6 +167,7 @@ SAVE_FILES = \
 	visad/ss/*.java					\
 	visad/ss/*.gif					\
 	visad/ss/README.ss				\
+	visad/cluster/*.java				\
 	visad/collab/*.java				\
 	visad/data/*.java				\
 	visad/data/netcdf/*.java			\
@@ -251,6 +252,7 @@ TAR_FILES = \
 
 DOC_PACKAGES = \
 		visad \
+		visad.cluster \
 		visad.collab \
 		visad.java3d \
 		visad.java2d \

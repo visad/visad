@@ -182,7 +182,6 @@ public abstract class CoordinateSystem extends Object
       }
     }
     return value;
-
   }
 
   /** this is just like Unit.transformCoordinates, except that
@@ -295,6 +294,10 @@ public abstract class CoordinateSystem extends Object
           }
           value = coord_out.fromReference(value, units);
         }
+      }
+      else { // !(ref_out.equals(ref_in)
+// WLH 4 July 2000 - should throw an Exception here -
+//                   but must test consequences
       }
     } // end if (!out.equals(in))
 
