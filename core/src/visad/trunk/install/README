@@ -7,8 +7,7 @@ To install VisAD-in-a-Box:
    then wait for everything to finish
    installing.
 
-(Note: Cluster installation is done using
- the 'cpush' utility.)
+(Note: Cluster installation uses the 'cpush' utility.)
 
 To create a new VisAD-in-a-Box distribution:
 
