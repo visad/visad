@@ -25,6 +25,7 @@ import visad.Data;
 import visad.DataReferenceImpl;
 import visad.Display;
 import visad.DisplayImpl;
+import visad.FunctionImpl;
 import visad.FunctionType;
 import visad.MathType;
 import visad.RealTupleType;
@@ -47,6 +48,39 @@ public class Spasm
 	throws VisADException, RemoteException
   {
     fitsTuple = new FitsForm().open(filename);
+    if (fitsTuple == null) {
+      throw new VisADException("No usable HDUs in \"" + filename + "\"");
+    }
+
+    // throw away all but the first FITS HDU that forms a VisAD Function
+    if (fitsTuple instanceof Tuple) {
+      boolean discard = false;
+
+      Tuple t = (Tuple )fitsTuple;
+      try {
+	int i = 0;
+	Data d;
+
+	do {
+	  d = t.getComponent(i);
+	  if (discard) {
+	    System.err.println("Discarding FITS HDU #" + i + ": " +
+				d.getType());
+	  } else if (d instanceof FunctionImpl) {
+	    fitsTuple = d;
+	    discard = true;
+	  }
+	  i++;
+	} while (d != null);
+      } catch (VisADException e) {
+      } catch (ArrayIndexOutOfBoundsException e) {
+      }
+
+      // leave some whitespace after any error message(s)
+      if (discard) {
+	System.err.println("");
+      }
+    }
   }
 
   public String toString()
@@ -205,15 +239,21 @@ public class Spasm
   public static void main(String args[])
 	throws VisADException, RemoteException
   {
-    String testdir = "/home/dglo/prj/visad/data/fits/testdata/";
-    String filename = testdir + "ngc1316o.fits";
+    if (args.length == 0) {
+      args = new String[1];
+      args[0] = "testdata/sseclogo.fits";
+    } else if (args.length > 1) {
+      System.err.println("Only specify a single filename, please");
+      System.exit(1);
+      return;
+    }
 
-    Spasm spaz = new Spasm(filename);
+    Spasm spaz = new Spasm(args[0]);
 
     try {
       System.out.println("Spasm: " + spaz);
     } catch (Exception e) {
-      System.err.println(filename + " print threw " + e.getMessage());
+      System.err.println(args[0] + " print threw " + e.getMessage());
       e.printStackTrace(System.err);
       System.exit(1);
       return;
