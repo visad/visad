@@ -483,44 +483,48 @@ public class BaseColorControl
       if (table != null) {
         colors = new float[components][valLen];
         float scale = (float) tableLength;
-        for (int i=0; i<valLen; i++) {
-          if (values[i] != values[i]) {
-            colors[RED][i] = Float.NaN;
-            colors[GREEN][i] = Float.NaN;
-            colors[BLUE][i] = Float.NaN;
-            if (components > ALPHA) {
-              colors[ALPHA][i] = Float.NaN;
-            }
-          }
-          else {
-            int j = (int) (scale * values[i]);
-            // note actual table length is tableLength + 1
-            // extend first and last table entries to 'infinity'
-            if (j < 0) {
-              colors[RED][i] = table[RED][0];
-              colors[GREEN][i] = table[GREEN][0];
-              colors[BLUE][i] = table[BLUE][0];
+        try {
+          for (int i=0; i<valLen; i++) {
+            if (values[i] != values[i]) {
+              colors[RED][i] = Float.NaN;
+              colors[GREEN][i] = Float.NaN;
+              colors[BLUE][i] = Float.NaN;
               if (components > ALPHA) {
-                colors[ALPHA][i] = table[ALPHA][0];
-              }
-            }
-            else if (tableLength <= j) {
-              colors[RED][i] = table[RED][tblEnd];
-              colors[GREEN][i] = table[GREEN][tblEnd];
-              colors[BLUE][i] = table[BLUE][tblEnd];
-              if (components > ALPHA) {
-                colors[ALPHA][i] = table[ALPHA][tblEnd];
+                colors[ALPHA][i] = Float.NaN;
               }
             }
             else {
-              colors[RED][i] = table[RED][j];
-              colors[GREEN][i] = table[GREEN][j];
-              colors[BLUE][i] = table[BLUE][j];
-              if (components > ALPHA) {
-                colors[ALPHA][i] = table[ALPHA][j];
+              int j = (int) (scale * values[i]);
+              // note actual table length is tableLength + 1
+              // extend first and last table entries to 'infinity'
+              if (j < 0) {
+                colors[RED][i] = table[RED][0];
+                colors[GREEN][i] = table[GREEN][0];
+                colors[BLUE][i] = table[BLUE][0];
+                if (components > ALPHA) {
+                  colors[ALPHA][i] = table[ALPHA][0];
+                }
+              }
+              else if (tableLength <= j) {
+                colors[RED][i] = table[RED][tblEnd];
+                colors[GREEN][i] = table[GREEN][tblEnd];
+                colors[BLUE][i] = table[BLUE][tblEnd];
+                if (components > ALPHA) {
+                  colors[ALPHA][i] = table[ALPHA][tblEnd];
+                }
+              }
+              else {
+                colors[RED][i] = table[RED][j];
+                colors[GREEN][i] = table[GREEN][j];
+                colors[BLUE][i] = table[BLUE][j];
+                if (components > ALPHA) {
+                  colors[ALPHA][i] = table[ALPHA][j];
+                }
               }
             }
-          }
+          } // end for (int i=0; i<valLen; i++)
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
         }
       }
       else if (function != null) {

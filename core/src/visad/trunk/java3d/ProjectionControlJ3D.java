@@ -104,7 +104,7 @@ public class ProjectionControlJ3D extends ProjectionControl {
 
     VisADCanvasJ3D canvas =
       ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas();
-    if (canvas.getOffscreen()) {
+    if (canvas != null && canvas.getOffscreen()) {
       try {
         Method waitMethod =
           Canvas3D.class.getMethod("renderOffScreenBuffer",
