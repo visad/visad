@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.Color;
 import java.awt.event.*;
 import java.rmi.RemoteException;
 import javax.swing.*;
@@ -54,6 +55,7 @@ public class BioAnimWidget extends JPanel implements ControlListener {
     go = new JButton("Animate");
     go.setPreferredSize(go.getPreferredSize());
     fps = new JLabel("FPS:");
+    fps.setForeground(Color.black);
     spin = new BioSpinWidget(1, 999, 10);
     final BioVisAD bio = biovis;
     go.addActionListener(new ActionListener() {

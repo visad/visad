@@ -224,6 +224,27 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     display3.getComponent().setVisible(threeD);
   }
 
+  /** Zooms a display by the given amount. */
+  public void setZoom(boolean threeD, double scale) {
+    DisplayImpl d = threeD ? display3 : display2;
+    try {
+      ProjectionControl control = d.getProjectionControl();
+      double[] matrix = control.getMatrix();
+      double[] zoom = d.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
+      control.setMatrix(d.multiply_matrix(zoom, matrix));
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Restores a display's zoom to the original value. */
+  public void resetZoom(boolean threeD) {
+    DisplayImpl d = threeD ? display3 : display2;
+    try { d.getProjectionControl().resetProjection(); }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
   /** Updates image color table to match the given values. */
   public void setImageColors(int brightness, int contrast,
     RealType red, RealType green, RealType blue)

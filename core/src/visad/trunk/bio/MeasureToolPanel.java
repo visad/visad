@@ -170,6 +170,7 @@ public class MeasureToolPanel extends ToolPanel {
 
     // measurements label
     measureLabel = new JLabel("Measurements:");
+    measureLabel.setForeground(Color.black);
     measureLabel.setEnabled(false);
     controls.add(pad(measureLabel));
     controls.add(Box.createVerticalStrut(5));
@@ -211,6 +212,7 @@ public class MeasureToolPanel extends ToolPanel {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     mPixLabel = new JLabel("Microns per pixel: ");
+    mPixLabel.setForeground(Color.black);
     mPixLabel.setEnabled(false);
     p.add(mPixLabel);
 
@@ -229,6 +231,7 @@ public class MeasureToolPanel extends ToolPanel {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     sliceDistLabel = new JLabel("Microns between slices: ");
+    sliceDistLabel.setForeground(Color.black);
     sliceDistLabel.setEnabled(false);
     p.add(sliceDistLabel);
 
@@ -389,6 +392,7 @@ public class MeasureToolPanel extends ToolPanel {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     colorLabel = new JLabel("Color: ");
+    colorLabel.setForeground(Color.black);
     colorLabel.setEnabled(false);
     p.add(colorLabel);
 
@@ -411,6 +415,7 @@ public class MeasureToolPanel extends ToolPanel {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     groupLabel = new JLabel("Group: ");
+    groupLabel.setForeground(Color.black);
     groupLabel.setEnabled(false);
     p.add(groupLabel);
 
@@ -450,6 +455,7 @@ public class MeasureToolPanel extends ToolPanel {
     // description label
     descriptionLabel = new JLabel("Group description:");
     descriptionLabel.setAlignmentX(SwingConstants.LEFT);
+    descriptionLabel.setForeground(Color.black);
     descriptionLabel.setEnabled(false);
     controls.add(pad(descriptionLabel));
 

@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.*;
 import java.awt.event.*;
 import java.rmi.RemoteException;
 import javax.swing.*;
@@ -51,9 +52,27 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
   /** Toggle for 2-D display mode. */
   private JCheckBox twoD;
 
+  /** Button for zooming in. */
+  private JButton zoomIn2;
+
+  /** Button for resetting zoom. */
+  private JButton zoomReset2;
+
+  /** Button for zooming out. */
+  private JButton zoomOut2;
+  
   /** Toggle for 3-D display mode. */
   private JCheckBox threeD;
 
+  /** Button for zooming in. */
+  private JButton zoomIn3;
+
+  /** Button for resetting zoom. */
+  private JButton zoomReset3;
+
+  /** Button for zooming out. */
+  private JButton zoomOut3;
+  
   /** Toggle for lo-res image display. */
   private JToggleButton loRes;
 
@@ -62,9 +81,27 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
 
   /** Toggle for auto-switching between low and high resolutions. */
   private JCheckBox autoSwitch;
-  
+
   /** Animation widget. */
   private BioAnimWidget anim;
+
+  /** Label for brightness. */
+  private JLabel brightnessLabel;
+
+  /** Slider for level of brightness. */
+  private JSlider brightness;
+
+  /** Label for current brightness value. */
+  private JLabel brightnessValue;
+
+  /** Label for contrast. */
+  private JLabel contrastLabel;
+
+  /** Slider for level of contrast. */
+  private JSlider contrast;
+
+  /** Label for current contrast value. */
+  private JLabel contrastValue;
 
   /** Red color map widget. */
   private BioColorWidget red;
@@ -74,18 +111,6 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
 
   /** Blue color map widget. */
   private BioColorWidget blue;
-
-  /** Label for brightness. */
-  private JLabel brightnessLabel;
-
-  /** Slider for level of brightness. */
-  private JSlider brightness;
-
-  /** Label for contrast. */
-  private JLabel contrastLabel;
-
-  /** Slider for level of contrast. */
-  private JSlider contrast;
 
   /** Toggle for whether 2-D plane is user-selected arbitrarily. */
   private JCheckBox planeSelect;
@@ -118,31 +143,90 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     twoD = new JCheckBox("2-D", true);
     twoD.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        bio.set2D(twoD.isSelected());
+        boolean b = twoD.isSelected();
+        bio.set2D(b);
+        zoomIn2.setEnabled(b);
+        zoomReset2.setEnabled(b);
+        zoomOut2.setEnabled(b);
       }
     });
     p.add(twoD);
 
+    // 2-D zoom in button
+    zoomIn2 = new JButton("Zoom in");
+    zoomIn2.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) { bio.setZoom(false, 2); }
+    });
+    p.add(zoomIn2);
+
+    // 2-D zoom reset button
+    zoomReset2 = new JButton("Reset");
+    zoomReset2.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) { bio.resetZoom(false); }
+    });
+    p.add(zoomReset2);
+
+    // 2-D zoom out button
+    zoomOut2 = new JButton("Zoom out");
+    zoomOut2.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) { bio.setZoom(false, 0.5); }
+    });
+    p.add(zoomOut2);
+    controls.add(pad(p));
+
     // 3-D checkbox
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     boolean okay3d = bio.display3 != null;
     threeD = new JCheckBox("3-D", okay3d);
     threeD.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        bio.set3D(threeD.isSelected());
+        boolean b = threeD.isSelected();
+        bio.set3D(b);
+        zoomIn3.setEnabled(b);
+        zoomReset3.setEnabled(b);
+        zoomOut3.setEnabled(b);
       }
     });
-    p.add(threeD);
     threeD.setEnabled(okay3d);
+    p.add(threeD);
+
+    // 3-D zoom in button
+    zoomIn3 = new JButton("Zoom in");
+    zoomIn3.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) { bio.setZoom(true, 2); }
+    });
+    zoomIn3.setEnabled(okay3d);
+    p.add(zoomIn3);
+
+    // 3-D zoom reset button
+    zoomReset3 = new JButton("Reset");
+    zoomReset3.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) { bio.resetZoom(true); }
+    });
+    zoomReset3.setEnabled(okay3d);
+    p.add(zoomReset3);
+
+    // 3-D zoom out button
+    zoomOut3 = new JButton("Zoom out");
+    zoomOut3.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) { bio.setZoom(true, 0.5); }
+    });
+    zoomOut3.setEnabled(okay3d);
+    p.add(zoomOut3);
     controls.add(pad(p));
+
+    // divider between display functions and resolution functions
+    controls.add(Box.createVerticalStrut(10));
+    controls.add(new Divider());
+    controls.add(Box.createVerticalStrut(10));
 
     // lo-res toggle button
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     loRes = new JToggleButton("Lo-res", false);
     loRes.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        bio.sm.setMode(true);
-      }
+      public void actionPerformed(ActionEvent e) { bio.sm.setMode(true); }
     });
     loRes.setEnabled(false);
     p.add(loRes);
@@ -156,12 +240,11 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
         try { if (control != null) control.setOn(false); }
         catch (VisADException exc) { exc.printStackTrace(); }
         catch (RemoteException exc) { exc.printStackTrace(); }
-
         bio.sm.setMode(false);
       }
     });
-    p.add(hiRes);
     hiRes.setEnabled(false);
+    p.add(hiRes);
     controls.add(pad(p));
 
     // auto-switch checkbox
@@ -193,25 +276,37 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     // brightness label
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    JPanel colorLabels = new JPanel();
-    colorLabels.setLayout(new BoxLayout(colorLabels, BoxLayout.Y_AXIS));
     brightnessLabel = new JLabel("Brightness: ");
-    colorLabels.add(brightnessLabel);
-
-    // contrast label
-    contrastLabel = new JLabel("Contrast: ");
-    colorLabels.add(contrastLabel);
-    p.add(colorLabels);
+    brightnessLabel.setForeground(Color.black);
+    brightnessLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    p.add(brightnessLabel);
 
     // brightness slider
-    JPanel colorSliders = new JPanel();
-    colorSliders.setLayout(new BoxLayout(colorSliders, BoxLayout.Y_AXIS));
     brightness = new JSlider(0, BioVisAD.COLOR_DETAIL,
       BioVisAD.NORMAL_BRIGHTNESS);
     brightness.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) { doColorTable(); }
     });
-    colorSliders.add(brightness);
+    brightness.setAlignmentY(JSlider.TOP_ALIGNMENT);
+    p.add(brightness);
+
+    // current brightness value
+    brightnessValue = new JLabel("" + BioVisAD.NORMAL_BRIGHTNESS);
+    Dimension colorValueSize =
+      new JLabel("" + BioVisAD.COLOR_DETAIL).getPreferredSize();
+    brightnessValue.setPreferredSize(colorValueSize);
+    brightnessValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    p.add(brightnessValue);
+    controls.add(pad(p));
+
+    // contrast label
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    contrastLabel = new JLabel("Contrast: ");
+    contrastLabel.setForeground(Color.black);
+    contrastLabel.setPreferredSize(brightnessLabel.getPreferredSize());
+    contrastLabel.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    p.add(contrastLabel);
 
     // contrast slider
     contrast = new JSlider(0, BioVisAD.COLOR_DETAIL,
@@ -219,27 +314,39 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     contrast.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) { doColorTable(); }
     });
-    colorSliders.add(contrast);
-    p.add(colorSliders);
-    controls.add(p);
+    contrast.setAlignmentY(JSlider.TOP_ALIGNMENT);
+    contrast.setMajorTickSpacing(BioVisAD.COLOR_DETAIL / 4);
+    contrast.setMinorTickSpacing(BioVisAD.COLOR_DETAIL / 16);
+    contrast.setPaintTicks(true);
+    p.add(contrast);
+
+    // current contrast value
+    contrastValue = new JLabel("" + BioVisAD.NORMAL_CONTRAST);
+    contrastValue.setPreferredSize(colorValueSize);
+    contrastValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
+    p.add(contrastValue);
+    controls.add(pad(p));
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
 
     // red color map widget
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     red = new BioColorWidget(bio, BioColorWidget.RED);
     red.addItemListener(this);
-    controls.add(pad(red));
+    p.add(red);
 
     // green color map widget
     green = new BioColorWidget(bio, BioColorWidget.GREEN);
     green.addItemListener(this);
-    controls.add(pad(green));
+    p.add(green);
 
     // blue color map widget
     blue = new BioColorWidget(bio, BioColorWidget.BLUE);
     blue.addItemListener(this);
-    controls.add(pad(blue));
+    p.add(blue);
+    controls.add(pad(p));
 
     // divider between color functions and misc functions
     controls.add(Box.createVerticalStrut(10));
@@ -301,6 +408,8 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
     };
     sliceResX.getDocument().addDocumentListener(doc);
     sliceResY.getDocument().addDocumentListener(doc);
+    sliceResLabel1.setForeground(Color.black);
+    sliceResLabel2.setForeground(Color.black);
     sliceResLabel1.setEnabled(false);
     sliceResLabel2.setEnabled(false);
     sliceResX.setEnabled(false);
@@ -349,8 +458,12 @@ public class ViewToolPanel extends ToolPanel implements ItemListener {
   /** Updates image color table, for brightness and color adjustments. */
   void doColorTable() {
     if (ignore) return;
-    bio.setImageColors(brightness.getValue(), contrast.getValue(),
+    int bright = brightness.getValue();
+    int cont = contrast.getValue();
+    bio.setImageColors(bright, cont,
       red.getSelectedItem(), green.getSelectedItem(), blue.getSelectedItem());
+    brightnessValue.setText("" + bright);
+    contrastValue.setText("" + cont);
   }
 
   /** Sets the animation widget's animation control. */

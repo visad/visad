@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import visad.*;
@@ -68,16 +68,21 @@ public class BioColorWidget extends JPanel {
   public BioColorWidget(BioVisAD biovis, int colorType) {
     bio = biovis;
     type = COLOR_TYPES[colorType];
-    color = new JLabel(COLOR_NAMES[colorType] + ":") {
-      public Dimension getPreferredSize() {
-        Dimension d = super.getPreferredSize();
-        return new Dimension(50, d.height);
-      }
-    };
+
+    // create components
+    color = new JLabel(COLOR_NAMES[colorType] + ":");
+    color.setForeground(Color.black);
     scalars = new JComboBox();
     scalars.addItem("None");
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    add(color);
+
+    // lay out components
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    p.add(Box.createHorizontalGlue());
+    p.add(color);
+    p.add(Box.createHorizontalGlue());
+    add(p);
     add(scalars);
   }
 
