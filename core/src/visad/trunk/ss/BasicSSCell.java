@@ -446,40 +446,30 @@ public class BasicSSCell extends JPanel {
     if (!f.exists()) return;
     clearCell();
     final String filename = f.getPath();
-    Runnable loadFile = new Runnable() {
-      public void run() {
-        IsBusy = true;
-        JPanel pleaseWait = new JPanel();
-        pleaseWait.setBackground(Color.black);
-        pleaseWait.setLayout(new BoxLayout(pleaseWait, BoxLayout.X_AXIS));
-        pleaseWait.add(Box.createHorizontalGlue());
-        pleaseWait.add(new JLabel("Please wait..."));
-        pleaseWait.add(Box.createHorizontalGlue());
-        add(pleaseWait);
+    IsBusy = true;
+    JPanel pleaseWait = new JPanel();
+    pleaseWait.setBackground(Color.black);
+    pleaseWait.setLayout(new BoxLayout(pleaseWait, BoxLayout.X_AXIS));
+    pleaseWait.add(Box.createHorizontalGlue());
+    pleaseWait.add(new JLabel("Please wait..."));
+    pleaseWait.add(Box.createHorizontalGlue());
+    add(pleaseWait);
 
-        validate();
-        Data data = null;
-        try {
-          data = (Data) BasicSSCell.Loader.open(filename);
-        }
-        catch (RemoteException exc) { }
-        catch (IOException exc) { }
-        catch (VisADException exc) { }
-        remove(pleaseWait);
-        validate();
-        if (data != null) {
-          try {
-            setData(data);
-            Filename = filename;
-          }
-          catch (RemoteException exc) { }
-          catch (VisADException exc) { }
-        }
-        IsBusy = false;
-      }
-    };
-    Thread t = new Thread(loadFile);
-    t.start();
+    validate();
+    boolean error = false;
+    Data data = null;
+    try {
+      data = (Data) BasicSSCell.Loader.open(filename);
+    }
+    finally {
+      remove(pleaseWait);
+      repaint();
+    }
+    if (data != null) {
+      setData(data);
+      Filename = filename;
+    }
+    IsBusy = false;
   }
 
   public boolean hasData() {

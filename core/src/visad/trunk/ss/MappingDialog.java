@@ -62,8 +62,16 @@ public class MappingDialog extends JDialog implements ActionListener,
   JScrollPane CurrentMapsView;
   Vector Scalars;
   Vector MathTypes;
+  int[] ScX;
+  int[] ScY;
+  int[] ScW;
+  int ScH;
+  int StrWidth = 0;
+  int StrHeight = 0;
   boolean[][][] Maps;
   String[][][] CurMapLabel;
+
+  static final Font Mono = new Font("Monospaced", Font.PLAIN, 11);
 
   /** names of system intrinsic DisplayRealTypes */
   static final String[][] MapNames = {
@@ -131,8 +139,8 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
-    final String mtype = mt;
-    final Font mono = new Font("Monospaced", Font.PLAIN, 11);
+    final String[] mtype = extraPretty(mt);
+
     JLabel l0 = new JLabel("MathType:");
     l0.setAlignmentX(JLabel.CENTER_ALIGNMENT);
     contentPane.add(l0);
@@ -143,29 +151,45 @@ public class MappingDialog extends JDialog implements ActionListener,
     contentPane.add(topPanel);
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
+    // draw the "pretty-print" MathType to an Image (slow!)
+    final Image img = parent.createImage(StrWidth, StrHeight);
+    Graphics g = img.getGraphics();
+    g.setFont(Mono);
+    g.setColor(Color.black);
+    for (int i=0; i<mtype.length; i++) {
+      g.drawString(mtype[i], 5, (ScH+2)*(i+1));
+    }
+
     // set up MathType canvas
     MathCanvas = new Canvas() {
-      // this paint method draws the "pretty-print" MathType
       public void paint(Graphics g) {
-        g.setFont(mono);
-        g.drawString(mtype, 5, 10); /* CTR: TEMP */
-        /* CTR: Need an array of strings here, since \n does not cause
-                drawString to go down a line.  Probably should pre-
-                calculate array of where arrows are to speed up
-                drawing them.  Also, pre-calculate array of where
-                scalars are, and perhaps how long they are, so that
-                they can be quickly highlighted. */
+        // draw "pretty-print" MathType using image
+        g.setFont(Mono);
+        g.drawImage(img, 0, 0, this);
+        int ind = MathList.getSelectedIndex();
+        if (ind >= 0) {
+          g.setColor(Color.blue);
+          int x = ScX[ind]+5;
+          int y = (ScH+2)*ScY[ind];
+          String s = (String) Scalars.elementAt(ind);
+          g.fillRect(x, y+6, ScW[ind], ScH);
+          g.setColor(Color.white);
+          g.drawString(s, x, y+ScH+2);
+        }
       }
 
       public Dimension getMinimumSize() {
-        return new Dimension(0, 0);
+        return new Dimension(StrWidth, StrHeight);
       }
 
       public Dimension getPreferredSize() {
-        return new Dimension(0, 0);
+        return new Dimension(StrWidth, StrHeight);
       }
     };
+    MathCanvas.addMouseListener(this);
     MathCanvas.setBackground(Color.white);
+
+    // set up MathCanvas's ScrollPane
     MathCanvasView = new ScrollPane() {
       public Dimension getMinimumSize() {
         return new Dimension(0, 0);
@@ -175,6 +199,12 @@ public class MappingDialog extends JDialog implements ActionListener,
         return new Dimension(0, 70);
       }
     };
+    Adjustable hadj = MathCanvasView.getHAdjustable();
+    Adjustable vadj = MathCanvasView.getVAdjustable();
+    hadj.setBlockIncrement(5*ScH+10);
+    hadj.setUnitIncrement(ScH+2);
+    vadj.setBlockIncrement(5*ScH+10);
+    vadj.setUnitIncrement(ScH+2);
     MathCanvasView.setBackground(Color.white);
     MathCanvasView.add(MathCanvas);
     topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
@@ -368,6 +398,58 @@ public class MappingDialog extends JDialog implements ActionListener,
     rsPanel.add(CurrentMapsView);
   }
 
+  /** Parses a prettyString() to find out some information. */
+  String[] extraPretty(String pStr) {
+    // extract number of lines from prettyString
+    int numLines=1;
+    int len = pStr.length();
+    for (int i=0; i<len; i++) {
+      if (pStr.charAt(i) == '\n') numLines++;
+    }
+
+    // define new array of strings and other stuff
+    String[] retStr = new String[numLines];
+    int lineNum = 0;
+    int lastLine = 0;
+    String scalar = (String) Scalars.elementAt(0);
+    int scalarNum = 0;
+    int scalarLen = scalar.length();
+    int numScalars = Scalars.size();
+    ScX = new int[numScalars];
+    ScY = new int[numScalars];
+    ScW = new int[numScalars];
+    FontMetrics fm = getFontMetrics(Mono);
+    ScH = fm.getHeight();
+    StrWidth = 0;
+    StrHeight = (ScH+2)*numLines+10;
+
+    // extract info from prettyString
+    for (int i=0; i<len+1; i++) {
+      // fill in array of strings
+      if (i == len || pStr.charAt(i) == '\n') {
+        String lnStr = pStr.substring(lastLine, i);
+        int lnStrLen = fm.stringWidth(lnStr);
+        if (lnStrLen > StrWidth) StrWidth = lnStrLen;
+        retStr[lineNum++] = lnStr;
+        lastLine = i+1;
+      }
+
+      // fill in scalar info
+      if (i+scalarLen <= len && pStr.substring(i, i+scalarLen).equals(scalar)) {
+        ScX[scalarNum] = fm.stringWidth(pStr.substring(lastLine, i));
+        ScY[scalarNum] = lineNum;
+        ScW[scalarNum] = fm.stringWidth(scalar);
+        scalarNum++;
+        if (scalarNum < numScalars) {
+          scalar = (String) Scalars.elementAt(scalarNum);
+          scalarLen = scalar.length();
+        }
+      }
+    }
+
+    return retStr;
+  }
+
   /** Returns a Vector of Strings containing the ScalarType names. */
   void parseMathType(Data data, Vector strs, Vector objs) {
     MathType dataType;
@@ -492,6 +574,7 @@ public class MappingDialog extends JDialog implements ActionListener,
         }
         // update components
         DisplayCanvas.paint(DisplayCanvas.getGraphics());
+        CurrentMaps.repaint();
         CurrentMapsView.validate();
       }
     }
@@ -518,6 +601,7 @@ public class MappingDialog extends JDialog implements ActionListener,
       if (len > 0) {
         // update components
         DisplayCanvas.paint(DisplayCanvas.getGraphics());
+        CurrentMaps.repaint();
         CurrentMapsView.validate();
       }
     }
@@ -560,28 +644,47 @@ public class MappingDialog extends JDialog implements ActionListener,
     if (!e.getValueIsAdjusting()) {
       if ((JList) e.getSource() == MathList) {
         DisplayCanvas.paint(DisplayCanvas.getGraphics());
+        int i = MathList.getSelectedIndex();
+        MathCanvas.repaint();
       }
     }
   }
 
   /** Handles mouse clicks in the "map to" canvas. */
   public void mousePressed(MouseEvent e) {
-    int col = e.getX() / 40;
-    int row = e.getY() / 40;
-    int ind = MathList.getSelectedIndex();
-    if (ind >= 0) {
-      Maps[ind][col][row] = !Maps[ind][col][row];
-      if (Maps[ind][col][row]) {
-        CurMaps.addElement(CurMapLabel[ind][col][row]);
+    Component c = e.getComponent();
+    if (c == MathCanvas) {
+      Point p = e.getPoint();
+      for (int i=0; i<ScX.length; i++) {
+        Rectangle r = new Rectangle(ScX[i]+5, (ScH+2)*ScY[i]+6, ScW[i], ScH);
+        if (r.contains(p)) {
+          MathList.setSelectedIndex(i);
+          break;
+        }
       }
-      else {
-        CurMaps.removeElement(CurMapLabel[ind][col][row]);
+    }
+    else if (c == DisplayCanvas) {
+      int col = e.getX() / 40;
+      int row = e.getY() / 40;
+      int ind = MathList.getSelectedIndex();
+      if (ind >= 0) {
+        Maps[ind][col][row] = !Maps[ind][col][row];
+        if (Maps[ind][col][row]) {
+          CurMaps.addElement(CurMapLabel[ind][col][row]);
+        }
+        else {
+          CurrentMaps.clearSelection();
+          CurMaps.removeElement(CurMapLabel[ind][col][row]);
+        }
+        // redraw DisplayCanvas
+        Graphics g = DisplayCanvas.getGraphics();
+        g.setClip(40*col, 40*row, 41, 41);
+        DisplayCanvas.paint(g);
+
+        // redraw CurrentMaps
+        CurrentMaps.repaint();
+        CurrentMapsView.validate();
       }
-      Graphics g = DisplayCanvas.getGraphics();
-      g.setClip(40*col, 40*row, 41, 41);
-      DisplayCanvas.paint(g);
-      
-      CurrentMapsView.validate();
     }
   }
 

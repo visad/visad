@@ -429,6 +429,42 @@ public class FancySSCell extends BasicSSCell {
     catch (RemoteException exc) { }
   }
 
+  /** Imports a data object from a given file name, in a separate thread. */
+  public void loadDataFile(File f) {
+    final File fn = f;
+    final BasicSSCell cell = this;
+    Runnable loadFile = new Runnable() {
+      public void run() {
+        String msg = "VisAD could not load the dataset \""+fn.getName()+"\"\n";
+        try {
+          cell.loadData(fn);
+        }
+        catch (BadFormException exc) {
+          msg = msg+"VisAD does not support this file type.";
+          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+        catch (RemoteException exc) {
+          msg = msg+"A RemoteException occurred:\n"+exc.toString();
+          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+        catch (IOException exc) {
+          msg = msg+"The file's data is corrupt.";
+          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+        catch (VisADException exc) {
+          msg = msg+"An error occurred:\n"+exc.toString();
+          JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
+                                        JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    };
+    Thread t = new Thread(loadFile);
+    t.start();
+  }
+
   /** Loads a file selected by the user. */
   public void loadDataDialog() {
     // get file name from file dialog
@@ -445,20 +481,13 @@ public class FancySSCell extends BasicSSCell {
     if (directory == null) return;
     File f = new File(directory, file);
     if (!f.exists()) {
-      JOptionPane.showMessageDialog(Parent,
-          "The file does not exist",
-          "VisAD FancySSCell error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(Parent, "The file does not exist",
+                  "Cannot load file", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
     // load file
-    try {
-      loadData(f);
-    }
-    catch (RemoteException exc) { }
-    catch (BadFormException exc) { }
-    catch (IOException exc) { }
-    catch (VisADException exc) { }
+    loadDataFile(f);
   }
 
   /** Sets the minimum size of the FancySSCell. */

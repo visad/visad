@@ -447,10 +447,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // set up scroll pane for VisAD Displays
     ScrollPane scpane = new ScrollPane() {
-      Dimension prefSize = new Dimension(0, 0);
-
       public Dimension getPreferredSize() {
-        return prefSize;
+        return new Dimension(0, 0);
       }
     };
     Adjustable hadj = scpane.getHAdjustable();
@@ -748,25 +746,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       if (oldFormula.equals(newFormula)) return;
 
       // try to load the file
-      try {
-        DisplayCells[CurDisplay].loadData(f);
-      }
-      catch (RemoteException exc) {
-        JOptionPane.showMessageDialog(this, exc.toString(),
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
-      }
-      catch (BadFormException exc) {
-        JOptionPane.showMessageDialog(this, exc.toString(),
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
-      }
-      catch (IOException exc) {
-        JOptionPane.showMessageDialog(this, exc.toString(),
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
-      }
-      catch (VisADException exc) {
-        JOptionPane.showMessageDialog(this, exc.toString(),
-            "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
-      }
+      DisplayCells[CurDisplay].loadDataFile(f);
     }
     else {
       // check if formula has changed from last entry
