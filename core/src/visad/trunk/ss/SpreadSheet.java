@@ -112,6 +112,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** whether spreadsheet is a slaved clone of another spreadsheet */
   protected boolean IsSlave = false;
 
+  /** ID number for this collaborative spreadsheet */
+  protected double CollabID = 0.0;
+
   /** row and column information needed for spreadsheet cloning */
   protected RemoteDataReference RemoteColRow;
 
@@ -516,6 +519,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           " mode: " + clone + ']';
         IsRemote = true;
         IsSlave = slave;
+        CollabID = (double) (new Random().nextInt(Integer.MAX_VALUE - 1) + 1);
       }
       else rs = null;
     }
@@ -998,8 +1002,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       CellImpl lColRowCell = new CellImpl() {
         public void doAction() {
           // extract new cell information
-          boolean b = getColRowServer();
-          if (b == IsRemote) { // keep sheet from receiving its own updates
+          if (getColRowID() != CollabID) {
+            // update is coming from a different sheet
             String[][] cellNamesx = getNewCellNames();
             if (cellNamesx == null) return;
             int oldNVX = NumVisX;
@@ -2323,13 +2327,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
   // *** Spreadsheet collaboration-related methods ***
 
   /** determine whether or not the last remote event was from the server */
-  private boolean getColRowServer() {
+  private double getColRowID() {
     Tuple t = null;
-    Real bit = null;
+    Real id = null;
     try {
       t = (Tuple) RemoteColRow.getData();
-      bit = (Real) t.getComponent(0);
-      return (bit.getValue() == 0);
+      id = (Real) t.getComponent(0);
+      return id.getValue();
     }
     catch (NullPointerException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -2340,7 +2344,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     catch (RemoteException exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
     }
-    return true;
+    return Float.NaN;
   }
 
   /** get the latest remote row and column information */
@@ -2416,8 +2420,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
         try {
           MathType[] m = new MathType[3];
 
-          Real bit = new Real(IsRemote ? 1 : 0);
-          m[0] = bit.getType();
+          Real id = new Real(CollabID);
+          m[0] = id.getType();
           Text[] txt = new Text[xlen];
           TextType[] tt = new TextType[xlen];
           for (int i=0; i<xlen; i++) {
@@ -2436,7 +2440,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           RealTuple tr = new RealTuple(r);
           m[2] = tr.getType();
 
-          Tuple t = new Tuple(new TupleType(m), new Data[] {bit, tc, tr});
+          Tuple t = new Tuple(new TupleType(m), new Data[] {id, tc, tr});
           RemoteColRow.setData(t);
         }
         catch (VisADException exc) {

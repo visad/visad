@@ -61,6 +61,10 @@ public class BasicSSCell extends JPanel {
   public static final int JAVA3D_2D = 3;
 
 
+  /** string code for text object that marks null data for use with RMI */
+  private static final String NULL_DATA = "NULL_DATA";
+
+
   /** default FormulaManager object used by BasicSSCells */
   protected static final FormulaManager defaultFM =
     FormulaUtil.createStandardManager();
@@ -137,8 +141,8 @@ public class BasicSSCell extends JPanel {
   /** whether this display is slaved */
   protected boolean IsSlave;
 
-  /** ID number for this collaborative SpreadSheet */
-  protected int CollabID = 0;
+  /** ID number for this collaborative cell */
+  protected double CollabID = 0.0;
 
 
   /** remote clone's copy of Filename */
@@ -256,7 +260,7 @@ public class BasicSSCell extends JPanel {
       // Each client has a random ID number between 1 and Integer.MAX_VALUE.
       // There really should be a way for clients to ensure that they don't
       // choose an ID number already taken by another client.
-      CollabID = new Random().nextInt(Integer.MAX_VALUE - 1) + 1;
+      CollabID = (double) (new Random().nextInt(Integer.MAX_VALUE - 1) + 1);
       RemoteFilename = rs.getDataReference(name + "_Filename");
       RemoteRMIAddress = rs.getDataReference(name + "_RMIAddress");
       RemoteFormula = rs.getDataReference(name + "_Formula");
@@ -576,7 +580,13 @@ public class BasicSSCell extends JPanel {
           try {
             Data d = RemoteLoadedData.getData();
             if (d != null) d = d.local();
-            setData(d);
+            if (d instanceof Text &&
+              ((Text) d).getValue().equals(NULL_DATA))
+            {
+              // client has sent a tag that marks null data
+              setData(null);
+            }
+            else setData(d);
           }
           catch (VisADException exc) {
             if (DEBUG) exc.printStackTrace();
@@ -1765,6 +1775,8 @@ public class BasicSSCell extends JPanel {
   /** clear this cell completely and permanently remove it from the
       list of created cells */
   public void destroyCell() throws VisADException, RemoteException {
+    RemoteException problem = null;
+
     if (!IsRemote) {
       clearCell();
 
@@ -1773,19 +1785,30 @@ public class BasicSSCell extends JPanel {
       if (slen > 0) {
         for (int i=0; i<slen; i++) {
           RemoteServerImpl rs = (RemoteServerImpl) Servers.elementAt(i);
-          removeFromRemoteServer(rs);
+          try {
+            removeFromRemoteServer(rs);
+          }
+          catch (RemoteException exc) {
+            problem = exc;
+          }
         }
       }
 
+      // remove cell from formula manager database
       fm.remove(Name);
     }
+
+    // remove cell from static list
     SSCellVector.remove(this);
+
+    if (problem != null) throw problem;
   }
 
   /** set this cell's Data to data */
   public void setData(Data data) throws VisADException, RemoteException {
     if (IsRemote) {
       // send local data to server
+      if (data == null) data = new Text(NULL_DATA);
       RemoteLoadedData.setData(data);
     }
     else {
