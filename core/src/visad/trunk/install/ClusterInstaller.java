@@ -14,17 +14,23 @@ public class ClusterInstaller
     this.cPush = cPush;
   }
 
-  public boolean push(String fileStr)
+  public boolean push(String target)
+  {
+    return push(target, target);
+  }
+
+  public boolean push(String source, String target)
   {
     if (runtime == null) {
       runtime = Runtime.getRuntime();
     }
 
     if (argList == null) {
-      argList = new String[] { cPush, null };
+      argList = new String[] { cPush, null, null };
     }
 
-    argList[1] = fileStr;
+    argList[1] = source;
+    argList[2] = target;
 
     try {
       return (runtime.exec(argList).waitFor() == 0 ? true : false);
