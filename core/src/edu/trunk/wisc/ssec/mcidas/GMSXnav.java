@@ -308,6 +308,10 @@ public class GMSXnav extends AREAnav
         (float) lat
       );
 
+      if (rtnPoint[1] < 0) {
+        rtnPoint[1] += 360.0;
+      }
+
       latlon[indexLat][point] = rtnPoint[0];
       latlon[indexLon][point] = rtnPoint[1];
 
@@ -330,7 +334,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public double sv0100 (
+  private double sv0100 (
     int iWord,
     int iPos,
     byte[] b,
@@ -400,7 +404,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public void decOABlock (
+  private void decOABlock (
     byte[] b,
     int form
   )
@@ -519,7 +523,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public void subLatLon (float[] ll) 
+  private void subLatLon (float[] ll) 
 
   {
 
@@ -542,7 +546,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public float [] mgivsr (
+  private float [] mgivsr (
     int iMode,
     float rPix,
     float rLin,
@@ -765,7 +769,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public double mg1100 (
+  private double mg1100 (
     double rtim
   ) 
 
@@ -853,7 +857,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public double [][] mg1110 (
+  private double [][] mg1110 (
     int i,
     double rtim,
     double [][] orbta
@@ -910,7 +914,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public double[] mg1200 (
+  private double[] mg1200 (
     double [] vec
   ) 
 
@@ -947,7 +951,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public double [] mg1210 (
+  private double [] mg1210 (
     double [] va,
     double [] vb
   ) 
@@ -976,7 +980,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public double [] mg1220 (
+  private double [] mg1220 (
     double [] va,
     double [] vb
   ) 
@@ -1008,7 +1012,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public double mg1230 (
+  private double mg1230 (
     double [] va,
     double [] vb
   ) 
@@ -1046,7 +1050,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public double mg1240 (
+  private double mg1240 (
     double [] va,
     double [] vh,
     double [] vn,
