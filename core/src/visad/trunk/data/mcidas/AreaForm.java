@@ -66,7 +66,9 @@ public class AreaForm extends Form implements FormFileInformer {
   public boolean isThisType(String name) {
     return name.startsWith("AREA") || 
            name.endsWith("area")   || 
-           ( name.startsWith("adde://") && name.indexOf("/image") > 0 );
+           ( name.startsWith("adde://") && 
+           ( name.indexOf("/image?") > 0 ||
+             name.indexOf("/imageda") > 0) );
   }
 
   /** there is no unique way to identify an AREA file by
