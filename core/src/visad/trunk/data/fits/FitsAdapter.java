@@ -279,6 +279,56 @@ public class FitsAdapter
     return fld;
   }
 
+  private int copyColumn(Object data, double[] list, int offset)
+	throws VisADException
+  {
+    // punt if this isn't a 1D column
+    Object[] top = (Object[] )data;
+    if (top.length != 1) {
+      System.err.println("FitsAdapter.copyColumn: Punting on wide column");
+      return offset;
+    }
+
+    if (top[0] instanceof byte[]) {
+      byte[] bl = (byte[] )top[0];
+      for (int i = 0; i < bl.length; ) {
+	list[offset++] = (double )bl[i++];
+      }
+    } else if (top[0] instanceof short[]) {
+      short[] sl = (short[] )top[0];
+      for (int i = 0; i < sl.length; ) {
+	list[offset++] = (double )sl[i++];
+      }
+    } else if (top[0] instanceof int[]) {
+      int[] il = (int[] )top[0];
+      for (int i = 0; i < il.length; ) {
+	list[offset++] = (double )il[i++];
+      }
+    } else if (top[0] instanceof long[]) {
+      long[] ll = (long[] )top[0];
+      for (int i = 0; i < ll.length; ) {
+	list[offset++] = (double )ll[i++];
+      }
+    } else if (top[0] instanceof float[]) {
+      float[] fl = (float[] )top[0];
+System.err.println("FitsAdapter.copyColumn: float array is [" + fl.length + "]");
+      for (int i = 0; i < fl.length; ) {
+	list[offset++] = (double )fl[i++];
+      }
+    } else if (top[0] instanceof double[]) {
+      double[] dl = (double[] )top[0];
+System.err.println("FitsAdapter.copyColumn: double array is [" + dl.length + "]");
+      for (int i = 0; i < dl.length; ) {
+	list[offset++] = dl[i++];
+      }
+    } else {
+      throw new VisADException("type '" + top[0].getClass().getName() +
+			       "' not handled");
+    }
+
+    return offset;
+  }
+
   private double[][] buildBTRange(BinaryTableHDU hdu)
 	throws VisADException
   {
@@ -290,27 +340,35 @@ public class FitsAdapter
 
       Object list;
       try {
-	list = hdu.getVarData(i);
+	list = hdu.getColumn(i).getData();
       } catch (FitsException e) {
 	throw new VisADException("Failed to get column " + i + " type: " +
 				 e.getMessage());
       }
 
       int len;
-      if (list instanceof byte[]) {
-	len = copyArray((byte[] )list, d[i], 0);
-      } else if (list instanceof short[]) {
-	len = copyArray((short[] )list, d[i], 0);
-      } else if (list instanceof int[]) {
-	len = copyArray((int[] )list, d[i], 0);
-      } else if (list instanceof long[]) {
-	len = copyArray((long[] )list, d[i], 0);
-      } else if (list instanceof float[]) {
-	len = copyArray((float[] )list, d[i], 0);
-      } else if (list instanceof double[]) {
-	len = copyArray((double[] )list, d[i], 0);
+      if (list instanceof byte[][]) {
+	len = copyColumn((byte[][] )list, d[i], 0);
+      } else if (list instanceof short[][]) {
+	len = copyColumn((short[][] )list, d[i], 0);
+      } else if (list instanceof int[][]) {
+	len = copyColumn((int[][] )list, d[i], 0);
+      } else if (list instanceof long[][]) {
+	len = copyColumn((long[][] )list, d[i], 0);
+      } else if (list instanceof float[][]) {
+	len = copyColumn((float[][] )list, d[i], 0);
+      } else if (list instanceof double[][]) {
+	len = copyColumn((double[][] )list, d[i], 0);
       } else {
-System.err.println("Faking values for column #" + i + " (" + list.getClass().getName() + ")");
+	String type;
+	try {
+	  type = hdu.getColumnFITSType(i);
+	} catch (FitsException e) {
+	  type = "?Unknown FITS type?";
+	}
+	System.err.println("FitsAdapter.buildBTRange: Faking values for" +
+			   " column #" + i + " (" + type + "=>" +
+			   list.getClass().getName() + ")");
 	// fill with NaN
 	int c = i;
 	for (len = 0 ; len < rows; len++) {
@@ -320,8 +378,9 @@ System.err.println("Faking values for column #" + i + " (" + list.getClass().get
 
       if (len < rows) {
 	int c = i;
-	System.err.println("Column " + i + " was short " + (rows - len) +
-			   " of " + rows + " rows");
+	System.err.println("FitsAdapter.buildBTRange: Column " + i +
+			   " was short " + (rows - len) + " of " + rows +
+			   " rows");
 	while (len < rows) {
 	  d[c][len++] = Double.NaN;
 	}
@@ -373,9 +432,6 @@ System.err.println("Faking values for column #" + i + " (" + list.getClass().get
     Integer1DSet iSet = new Integer1DSet(hdu.getNumRows());
 
     FlatField fld = new FlatField(func, iSet);
-
-System.out.println("BinaryTable.getType().toString()\n" + fld.getType());
-System.out.println("BinaryTable field\n" + fld.longString());
 
     fld.setSamples(buildBTRange(hdu));
 

@@ -185,11 +185,15 @@ public class DumpHeader
     }
 
     for (int i = 0; i < num; i++) {
+      String name, type;
       try {
-	ps.println(indentStr + i + ": " + hdu.getColumnName(i));
+	name = hdu.getColumnName(i);
+	type = hdu.getColumnFITSType(i);
       } catch (FitsException e) {
 	break;
       }
+
+      ps.println(indentStr + i + ": " + name + " = " + type);
     }
   }
 
