@@ -215,20 +215,9 @@ public abstract class DisplayRenderer extends Object {
               fval[0] = new_cursor[index][0];
             }
             float[] dval = map.inverseScaleValues(fval);
-            float f = dval[0];
             RealType real = (RealType) map.getScalar();
-            String s = real.getName() + " = " + f;
-            Unit unit = real.getDefaultUnit();
-            if (unit != null) {
-              String unit_string;
-              if (unit.equals(CommonUnit.degree)) {
-                unit_string = "(degrees)";
-              }
-              else {
-                unit_string = unit.toString();
-              }
-              s = s + " (" + unit_string + ")";
-            }
+	    String valueString = new Real(real, dval[0]).toValueString();
+            String s = real.getName() + " = " + valueString;
             cursorStringVector.addElement(s);
           } // end if (tuple != null && ...)
         }

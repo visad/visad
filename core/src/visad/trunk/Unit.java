@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.9 1999-04-19 17:30:07 dglo Exp $
+ * $Id: Unit.java,v 1.10 1999-05-24 21:07:44 steve Exp $
  */
 
 package visad;
@@ -24,6 +24,11 @@ import java.io.Serializable;
 public abstract class Unit
        implements Serializable
 {
+  /*
+   * The identifier (name or abbreviation) for this unit.
+   * @serial
+   */
+  private final String	identifier;
 
 /*
    added by Bill Hibbard for VisAD
@@ -107,11 +112,7 @@ public abstract class Unit
   /** copy a Unit[] array;
       this is a helper for Set, RealTupleType, CoordinateSystem, etc */
   public static Unit[] copyUnitsArray(Unit[] units) {
-    if (units == null) return null;
-    int n = units.length;
-    Unit[] ret_units = new Unit[n];
-    for (int i=0; i<n; i++) ret_units[i] = units[i];
-    return ret_units;
+    return units == null ? null : (Unit[])units.clone();
   }
  
   public abstract boolean equals(Unit unit);
@@ -192,10 +193,35 @@ public abstract class Unit
    end of added by Bill Hibbard for VisAD
 */
 
-    /*
-     * Hide the default constructor.
+    /**
+     * Constructs from nothing.
      */
-    Unit() {}
+    protected Unit()
+    {
+      this(null);
+    }
+
+    /**
+     * Constructs from an identifier.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    protected Unit(String identifier)
+    {
+      this.identifier =
+	identifier == null
+	  ? null
+	  : identifier.replace(' ', '_');	// ensure no whitespace
+    }
+
+    /**
+     * Clones this unit, changing the identifier.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     * @throws UnitException	The unit may not be cloned.  This will only
+     *				occur if <code>getIdentifier()!=null</code>.
+     */
+    public abstract Unit clone(String identifier) throws UnitException;
 
     /**
      * Raise this unit to a power.
@@ -209,6 +235,22 @@ public abstract class Unit
      */
     public abstract Unit pow(int power)
 	throws UnitException;
+
+    /**
+     * Raise a unit to a power.
+     *
+     * @param power	The power to raise this unit by.  If this unit is
+     *			not dimensionless, then the value must be integral.
+     * @return		The unit resulting from raising this unit to 
+     *			<code>power</code>.
+     * @throws UnitException	It's meaningless to raise this unit by a power.
+     * @throws IllegalArgumentException
+     *			This unit is not dimensionless and <code>power</code>
+     *			has a non-integral value.
+     * @promise		The unit has not been modified.
+     */
+    public abstract Unit pow(double power)
+	throws UnitException, IllegalArgumentException;
 
     /**
      * Scale this unit by an amount.
@@ -483,13 +525,53 @@ public abstract class Unit
     }
 
     /**
-     * Return a string representation of this unit.
+     * Returns a string representation of this unit.
      *
-     * @return		String representation of this unit.
-     * @promise		The unit has not been modified.
+     * @return		The string representation of this unit.  Won't be 
+     *			<code>null</code> but may be empty.
      */
-    public abstract String toString();
+    public final String toString()
+    {
+      String	s = getIdentifier();
+      if (s == null)
+	s = getDefinition();
+      return s;
+    }
 
+    /**
+     * Returns the identifier (name or abbreviation) of this unit.
+     *
+     * @return		The identifier of this unit.  May be <code>null</code>
+     *			but won't be empty.
+     */
+    public final String getIdentifier()
+    {
+      return identifier;
+    }
+
+    /**
+     * Returns the definition of this unit.
+     *
+     * @return		The definition of this unit.  Won't be <code>null
+     *			</code> but may be empty.
+     */
+    public abstract String getDefinition();
+
+    /**
+     * Gets the absolute unit of this unit.  An interval in the underlying
+     * physical quantity has the same numeric value in an absolute unit of a
+     * unit as in the unit itself -- but an absolute unit is always referenced
+     * to the physical origin of the underlying physical quantity.  For
+     * example, the absolute unit corresponding to degrees celsius is degrees
+     * kelvin -- and calling this method on a degrees celsius unit obtains a
+     * degrees kelvin unit.
+     * @return		The absolute unit corresponding to this unit.
+     */
+    public Unit
+    getAbsoluteUnit()
+    {
+      return this;
+    }
 
     abstract Unit multiply(BaseUnit that)
 	throws UnitException;

@@ -25,9 +25,9 @@ default:	util/default \
 		java3d/default \
 		java2d/default \
 		data/default \
-		meteorology/default \
-		ss/default \
 		examples/default
+#		meteorology/default \
+#		ss/default \
 all:		util/all \
 		java3d/all \
 		java2d/all \

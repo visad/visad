@@ -71,14 +71,33 @@ public abstract class Set extends DataImpl {
     this(type, null, null, null);
   }
 
-  /** construct a Set object with a non-default CoordinateSystem 
-      and non-default Unit-s */
+  /**
+   * Constructs a Set object with a non-default CoordinateSystem and
+   * non-default Unit-s.
+   * @param type		The type of the Set.
+   */
   public Set(MathType type, CoordinateSystem coord_sys) throws VisADException {
     this(type, coord_sys, null, null);
   }
 
-  /** construct a Set object with a non-default CoordinateSystem
-      and non-default Unit-s */
+  /**
+   * Constructs a Set object with a non-default CoordinateSystem and
+   * non-default Unit-s.  This is the most general constructor.
+   * @param type		The MathType of the set.  May be a RealType,
+   *				a RealTupleType, or a SetType.
+   * @param coord_sys		Optional coordinate system for the domain of the
+   *				set.  May be <code>null</null>, in which case
+   *				the default coordinate system of the domain is
+   *				used.
+   * @param units               Optional units for the values.  May
+   *                            be <code> null</code>, in which case
+   *                            the default units of the domain are
+   *                            used.  If the <code>i</code>th element is
+   *                            non-<code>null</code> and the RealType of the
+   *                            corresponding domain component is an interval,
+   *                            then the unit that is actually used is <code>
+   *                            units[i].getAbsoluteUnit()</code>.
+   */
   public Set(MathType type, CoordinateSystem coord_sys, Unit[] units,
              ErrorEstimate[] errors) throws VisADException {
     super(adjustType(type));
@@ -119,7 +138,10 @@ public abstract class Set extends DataImpl {
           SetUnits[i] = dunits[i];
         }
         else {
-          SetUnits[i] = units[i];
+          SetUnits[i] =
+	    ((RealType)DomainType.getComponent(i)).isInterval()
+	      ? units[i].getAbsoluteUnit()
+	      : units[i];
         }
       }
     }
@@ -170,6 +192,11 @@ public abstract class Set extends DataImpl {
     }
   }
 
+  /**
+   * Returns the units of the values in the set.  The units may differ from the
+   * default units of the underlying MathType but will be convertible with them.
+   * @return			The units of the values in the set.
+   */
   public Unit[] getSetUnits() {
     return Unit.copyUnitsArray(SetUnits);
   }
@@ -178,7 +205,16 @@ public abstract class Set extends DataImpl {
     return ErrorEstimate.copyErrorsArray(SetErrors);
   }
 
-  /** get DomainCoordinateSystem */
+  /**
+   * Gets the coordinate system of this domain set (DomainCoordinateSystem).
+   * @return                    The coordinate system of this domain
+   *                            set.  This will be the coordinate
+   *                            system passed to the constructor if
+   *                            non-<code>null</code>; otherwise, the
+   *                            (default) coordinate system of the
+   *                            underlying RealTupleType (which may be
+   *                            <code>null</code>).
+   */
   public CoordinateSystem getCoordinateSystem() {
     return DomainCoordinateSystem;
   }

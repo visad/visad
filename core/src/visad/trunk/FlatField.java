@@ -37,7 +37,7 @@ import java.rmi.*;
 
    A FlatField range type may be either a RealType (for a function with
    range = R), a RealTupleType (for a function with range = R^n for n > 0),
-   or a Flat Tuple.<P>
+   or a TupleType of RealType-s and RealTupleType-s..<P>
 
    VisAD avoids invoking methods once per datum through the use of
    FlatField's.  These are logically Field's of Tuple's of RealType's
@@ -120,52 +120,168 @@ public class FlatField extends FieldImpl {
   private static final int SHORT = 5;
   private static final int BYTE = 6;
 
-  /** construct a FlatField from type;
-      use default Set of FunctionType domain */
+  /**
+   * Constructs a FlatField from a function type.  The domain Set is the
+   * default Set of the function domain.
+   * @param type		The type of the function.
+   * throws VisADException	Couldn't create necessary VisAD object.
+   */
   public FlatField(FunctionType type) throws VisADException {
     this(type, null, null, null, null, null);
   }
 
-  /** construct a FlatField with non-default domain set */
+  /**
+   * Constructs a FlatField from a function type and a (non-default) domain
+   * Set.
+   * @param type		The type of the function.
+   * @param domain_set          The sampling set of the domain.  May be <code>
+   *				null<code>, in
+   *                            which case the sampling set is the default Set
+   *                            of the function domain.
+   * throws VisADException	Couldn't create necessary VisAD object.
+   */
   public FlatField(FunctionType type, Set domain_set) throws VisADException {
     this(type, domain_set, null, null, null, null);
   }
 
-  /** FlatField is a sampled function whose range is a Real,
-      a RealTuple, or a Tuple of Reals and RealTuples; if range
-      is a RealTuple, range_coordinate_system may be non-null
-      but must have the same Reference as RangeType default
-      CoordinateSystem; domain_set defines the domain sampling;
-      range_sets define samplings for range values - if range_set[i]
-      is null, the i-th range component values are stored as doubles;
-      if range_set[i] is non-null, the i-th range component values are
-      stored in bytes if range_sets[i].getLength() < 256, stored in
-      shorts if range_sets[i].getLength() < 65536, etc;
-      any argument but type may be null */
+  /**
+   * Constructs a FlatField from a function type, a sampling set of the domain,
+   * a coordinate system for the range, sampling sets for the range components,
+   * and units for the range components.
+   * @param type		The type of the function.
+   * @param domain_set          The sampling set of the domain.  May be null, in
+   *                            which case the sampling set is set to the
+   *				default sampling set of the function domain
+   *				(i.e. <code>
+   *				type.getDomain().getDefaultSet()</code>).
+   * @param range_coord_sys     Optional coordinate system for the range.
+   *                            May be <code>null</code>.  If non-<code>null
+   *                            </code>, then the range of the function shall
+   *                            be a RealTuple (i.e. <code>type.getRange()
+   *                            instanceof RealTuple</code> shall be
+   *                            true) and the reference coordinate system
+   *                            of the range coordinate system shall be
+   *                            the same as the reference coordiinate
+   *                            system of the function range (i.e.
+   *                            range_coord_sys().getReference().equals(
+   *                            ((RealTuple)type.getRange()).getReference())
+   *                            </code> shall be true).
+   * @param range_sets          The sampling sets of the (flat) range
+   *                            components.  May be <code>null</code>, in which
+   *                            case the default sampling sets of the range
+   *                            component RealType-s are used (i.e. <code>
+   *                            ((RealType)type.getFlatRange().getComponent(i))
+   *                            .getDefaultSet()</code> for all <code>i</code>
+   *                            in the flat range).  If non-<code>null</code>,
+   *                            then the <code> i</code>th flat range
+   *                            component values are stored in bytes if
+   *                            <code>range_sets[i].getLength() < 256, stored
+   *                            in shorts if <code> range_sets[i].getLength() <
+   *                            65536</code>, etc.
+   * @param units		The units of the (flat) range components.  May
+   *				be <code>null</code>, in which case the default
+   *				units of the flat range RealType-s are used.
+   * throws VisADException	Couldn't create necessary VisAD object.
+   */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem range_coord_sys, Set[] range_sets,
                    Unit[] units) throws VisADException {
     this(type, domain_set, range_coord_sys, null, range_sets, units);
   }
 
-  /** FlatField is a sampled function whose range is a Real,
-      a RealTuple, or a Tuple of Reals and RealTuples; if the i-th
-      component of range is a RealTuple, range_coordinate_syses[i] may
-      be non-null but must have the same Reference as the corresponding
-      RangeType component's default CoordinateSystem; domain_set defines
-      the domain sampling; range_sets define samplings for range values -
-      if range_set[i] is null, the i-th range component values are stored
-      as doubles; if range_set[i] is non-null, the i-th range component
-      values are stored in bytes if range_sets[i].getLength() < 256,
-      stored in shorts if range_sets[i].getLength() < 65536, etc;
-      any argument but type may be null */
+  /**
+   * Constructs a FlatField from a function type, a sampling set of the domain,
+   * coordinate systems for the range components, sampling sets for the range
+   * components, and units for the range components.
+   * @param type		The type of the function.
+   * @param domain_set          The sampling set of the domain.  May be null, in
+   *                            which case the sampling set is set to the
+   *				default sampling set of the function domain
+   *				(i.e. <code>
+   *				type.getDomain().getDefaultSet()</code>).
+   * @param range_coord_syses   Optional coordinate systems for the range
+   *                            components.  May be <code>null</code>.
+   *                            If the <code>i</code>th component
+   *                            of the range is a RealTuple, then
+   *                            <code>range_coord_syses[i]</code> may be
+   *                            non-<code>null</code> and, if so, is the
+   *                            coordinate system for that component and shall
+   *                            have the same reference coordinate system as
+   *                            the corresponding component in the range of the
+   *                            function type.
+   * @param range_sets          The sampling sets of the (flat) range
+   *                            components.  May be <code>null</code>, in which
+   *                            case the default sampling sets of the range
+   *                            component RealType-s are used (i.e. <code>
+   *                            ((RealType)type.getFlatRange().getComponent(i))
+   *                            .getDefaultSet()</code> for all <code>i</code>
+   *                            in the flat range).  If non-<code>null</code>,
+   *                            then the <code> i</code>th flat range
+   *                            component values are stored in bytes if
+   *                            <code>range_sets[i].getLength() < 256, stored
+   *                            in shorts if <code> range_sets[i].getLength() <
+   *                            65536</code>, etc.
+   * @param units		The units of the (flat) range components.  May
+   *				be <code>null</code>, in which case the default
+   *				units of the flat range RealType-s are used.
+   * throws VisADException	Couldn't create necessary VisAD object.
+   */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem[] range_coord_syses, Set[] range_sets,
                    Unit[] units) throws VisADException {
     this(type, domain_set, null, range_coord_syses, range_sets, units);
   }
 
-  /* this is the most general FlatField constructor */
+  /**
+   * Constructs a FlatField from a function type, a sampling set of the domain,
+   * a coordinate system for the range, coordinate systems for the range
+   * components, sampling sets for the range components, and units for the range
+   * components.  This is the most general constructor.
+   * @param type		The type of the function.
+   * @param domain_set          The sampling set of the domain.  May be null, in
+   *                            which case the sampling set is set to the
+   *				default sampling set of the function domain
+   *				(i.e. <code>
+   *				type.getDomain().getDefaultSet()</code>).
+   * @param range_coord_sys     Optional coordinate system for the range.
+   *                            May be <code>null</code>.  If non-<code>null
+   *                            </code>, then the range of the function shall
+   *                            be a RealTuple (i.e. <code>type.getRange()
+   *                            instanceof RealTuple</code> shall be
+   *                            true) and the reference coordinate system
+   *                            of the range coordinate system shall be
+   *                            the same as the reference coordiinate
+   *                            system of the function range (i.e.
+   *                            range_coord_sys().getReference().equals(
+   *                            ((RealTuple)type.getRange()).getReference())
+   *                            </code> shall be true).
+   * @param range_coord_syses   Optional coordinate systems for the range
+   *                            components.  May be <code>null</code>.
+   *                            If the <code>i</code>th component
+   *                            of the range is a RealTuple, then
+   *                            <code>range_coord_syses[i]</code> may be
+   *                            non-<code>null</code> and, if so, is the
+   *                            coordinate system for that component and shall
+   *                            have the same reference coordinate system as
+   *                            the corresponding component in the range of the
+   *                            function type.
+   * @param range_sets          The sampling sets of the (flat) range
+   *                            components.  May be <code>null</code>, in which
+   *                            case the default sampling sets of the range
+   *                            component RealType-s are used (i.e. <code>
+   *                            ((RealType)type.getFlatRange().getComponent(i))
+   *                            .getDefaultSet()</code> for all <code>i</code>
+   *                            in the flat range).  If non-<code>null</code>,
+   *                            then the <code> i</code>th flat range
+   *                            component values are stored in bytes if
+   *                            <code>range_sets[i].getLength() < 256, stored
+   *                            in shorts if <code> range_sets[i].getLength() <
+   *                            65536</code>, etc.
+   * @param units		The units of the (flat) range components.  May
+   *				be <code>null</code>, in which case the default
+   *				units of the flat range RealType-s are used.
+   * throws VisADException	Couldn't create necessary VisAD object.
+   */
   public FlatField(FunctionType type, Set domain_set,
                    CoordinateSystem range_coord_sys,
                    CoordinateSystem[] range_coord_syses,
@@ -252,7 +368,14 @@ public class FlatField extends FieldImpl {
           throw new UnitException("FlatField: units dimension does not match");
         }
         RangeUnits = new Unit[TupleDimension];
-        for (int i=0; i<TupleDimension; i++) RangeUnits[i] = units[i];
+        for (int i=0; i<TupleDimension; i++) {
+	  RealType componentType = (RealType)FlatRange.getComponent(i);
+	  Unit componentUnit = units[i];
+	  RangeUnits[i] = 
+	    componentUnit == null || !componentType.isInterval()
+	      ? componentUnit
+	      : componentUnit.getAbsoluteUnit();
+	}
       }
       if (RangeType instanceof RealTupleType) {
         type_units = ((RealTupleType) RangeType).getDefaultUnits();
@@ -336,7 +459,14 @@ public class FlatField extends FieldImpl {
           throw new UnitException("FlatField: units dimension does not match");
         }
         RangeUnits = new Unit[TupleDimension];
-        for (int i=0; i<TupleDimension; i++) RangeUnits[i] = units[i];
+        for (int i=0; i<TupleDimension; i++) {
+	  RealType componentType = (RealType)FlatRange.getComponent(i);
+	  Unit componentUnit = units[i];
+	  RangeUnits[i] = 
+	    componentUnit == null || !componentType.isInterval()
+	      ? componentUnit
+	      : componentUnit.getAbsoluteUnit();
+	}
       }
 
       int j = 0;
@@ -404,6 +534,10 @@ public class FlatField extends FieldImpl {
     return cs;
   }
 
+  /**
+   * Returns the sampling set of each flat component.
+   * @return		The sampling set of each component in the flat range.
+   */
   public Set[] getRangeSets() {
     Set[] sets = new Set[RangeSet.length];
     System.arraycopy(RangeSet, 0, sets, 0, sets.length);
@@ -3876,7 +4010,7 @@ for (i=0; i<length; i++) {
     System.out.println("w / image2 = " + w.divide(image2));
 
     // test DateTime printing
-    RealType[] range2t = {A, RealType.Time};
+    RealType[] range2t = {A, RealType.DateTime};
     RealTupleType Range2t = new RealTupleType(range2t);
     FunctionType Field2t2 = new FunctionType(Domain2d, Range2t);
     FlatField imaget = makeField2(Field2t2, first11, last11, length11,
@@ -3910,14 +4044,14 @@ image2 = FlatField
 . . .
 
 imaget = FlatField
-    FunctionType (Real): (X, Y) -> (A, Time(seconds))
-(0, 00:00:00 GMT  1 Jan 0001 (Sat)), (1, 00:00:00 GMT  1 Jan 0001 (Sat)), (2, 00:00:00 GMT  1 Jan 0001 (Sat)), (3, 00:00:00 GMT  1 Jan 0001 (Sat))
+    FunctionType (Real): (X, Y) -> (A, DateTime)
+(0.0, 1970-01-01 00:00:00.000Z), (1.0, 1970-01-01 00:00:00.000Z), (2.0, 1970-01-01 00:00:00.000Z), (3.0, 1970-01-01 00:00:00.000Z)
 
-(0, 00:00:01 GMT  1 Jan 0001 (Sat)), (1, 00:00:01 GMT  1 Jan 0001 (Sat)), (2, 00:00:01 GMT  1 Jan 0001 (Sat)), (3, 00:00:01 GMT  1 Jan 0001 (Sat))
+(0.0, 1970-01-01 00:00:01.000Z), (1.0, 1970-01-01 00:00:01.000Z), (2.0, 1970-01-01 00:00:01.000Z), (3.0, 1970-01-01 00:00:01.000Z)
 
-(0, 00:00:02 GMT  1 Jan 0001 (Sat)), (1, 00:00:02 GMT  1 Jan 0001 (Sat)), (2, 00:00:02 GMT  1 Jan 0001 (Sat)), (3, 00:00:02 GMT  1 Jan 0001 (Sat))
+(0.0, 1970-01-01 00:00:02.000Z), (1.0, 1970-01-01 00:00:02.000Z), (2.0, 1970-01-01 00:00:02.000Z), (3.0, 1970-01-01 00:00:02.000Z)
 
-(0, 00:00:03 GMT  1 Jan 0001 (Sat)), (1, 00:00:03 GMT  1 Jan 0001 (Sat)), (2, 00:00:03 GMT  1 Jan 0001 (Sat)), (3, 00:00:03 GMT  1 Jan 0001 (Sat))
+(0.0, 1970-01-01 00:00:03.000Z), (1.0, 1970-01-01 00:00:03.000Z), (2.0, 1970-01-01 00:00:03.000Z), (3.0, 1970-01-01 00:00:03.000Z)
 
 */
 

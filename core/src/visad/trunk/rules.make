@@ -3,10 +3,7 @@ default:	classes
 all:		classes
 
 classes:	FORCE
-	@case "$(JAVASRCS)" in \
-	    '') $(MAKE) `ls *.java | sed 's/\.java/.class/g'`;; \
-	    *) $(MAKE) `echo $(JAVASRCS) | sed 's/\.java/.class/g'`;; \
-	esac
+	$(JAVAC) $(JAVAC_FLAGS) *.java
 
 test:		classes
 
@@ -45,7 +42,7 @@ subdir_target:
 	@echo ""
 
 .SUFFIXES:
-.SUFFIXES:	.debug .test .class .html .java .jj
+.SUFFIXES:	.debug .test .save .run .class .html .java .jj
 
 .jj.java:
 	$(JAVACC) $<
@@ -55,8 +52,14 @@ subdir_target:
 #	$(JAVADOC) -J-mx64m -notree -noindex -d $(DOCDIR) $(PACKAGE_PREFIX)$*
 .java.class:
 	$(JAVAC) $<
+.class.run:
+#	@$(JAVAC) $*.java
+	$(JAVA) $(PACKAGE_PREFIX)$*
+#	@cmd="$(JAVA) $(PACKAGE_PREFIX)$*"; echo $$cmd; $$cmd
+.class.save:
+	$(MAKE) -s $*.run >$@ 2>&1
 .class.test:
-	@cmd="$(JAVA) $(PACKAGE_PREFIX)$*"; echo $$cmd; $$cmd
+	$(MAKE) -s $*.run 2>&1 | diff -cw $*.save -
 .class.debug:
 	@cmd="$(JDB) -classpath $$CLASSPATH $(PACKAGE_PREFIX)$*"; echo $$cmd; \
 	$$cmd
@@ -65,11 +68,19 @@ deps:		FORCE
 	javaFiles=`ls *.java`; \
 	for javaFile in $$javaFiles; do \
 	    className=`basename $$javaFile .java`; \
-	    egrep -l -e \
-		'new[ 	]+'$$className'\(|[^A-Za-z0-9_]'$$className'\.' \
-		*.java | grep -v $$javaFile | \
-		sed "s/\.java/.class:	$$className.class/"; \
-	done | sort -u >depend
+	    grep -E -l \
+		-e '(^|[^[:alnum:]])'$$className'([^[:alnum:]]|$$)' \
+		*.java | \
+	    grep -v "^$$javaFile$$" | \
+	    sed "s/\.java/.class:	$$className.class/"; \
+	done | \
+	sort -u >depend
+#		-e 'extends[ 	]+'$$className'([^[:alnum:]]|$$)' \
+#		-e 'implements[ 	]+'$$className'([^[:alnum:]]|$$)' \
+#		-e 'throws[ 	]+'$$className'([^[:alnum:]]|$$)' \
+#		-e 'new[ 	]+'$$className'([^[:alnum:]]|$$)' \
+#		-e '[^[:alnum:]]'$$className'\.[[:alnum:]]+' \
+#
 
 # The following entry may be used to force execution of a rule by placing
 # it in the rule's dependency list:

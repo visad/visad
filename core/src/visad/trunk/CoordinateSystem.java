@@ -44,7 +44,21 @@ public abstract class CoordinateSystem extends Object
   /** not required to be convertable with Reference.DefaultUnits */
   private final Unit[] CoordinateSystemUnits;
 
-  /** subclasses must supply reference and units */
+  /**
+   * Constructs from the type of the reference coordinate system and units for
+   * values in this coordinate system.  Subclasses must supply reference type
+   * and units.
+   * @param reference           The type of the reference coordinate
+   *                            system.  Numeric values in the reference
+   *                            coordinate system shall be in units of
+   *                            <code>reference.getDefaultUnits()</code> unless
+   *                            specified otherwise.
+   * @param units               The default units for this coordinate system.
+   *                            Numeric values in this coordinate system shall
+   *                            be in units of <code>units</code> unless
+   *                            specified otherwise.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
   public CoordinateSystem(RealTupleType reference, Unit[] units)
          throws VisADException {
     if (reference == null) {

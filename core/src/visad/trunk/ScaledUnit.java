@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.4 1998-08-07 15:26:56 steve Exp $
+ * $Id: ScaledUnit.java,v 1.5 1999-05-24 21:07:43 steve Exp $
  */
 
 package visad;
@@ -38,18 +38,33 @@ public final class ScaledUnit
 
 
     /**
-     * Construct a dimensionless scaled unit.
+     * Construct a dimensionless scaled unit.  The identifier will be empty.
      *
      * @param amount	The given amount of this unit.
      */
     public ScaledUnit(double amount)
     {
+	this(amount, "");
+    }
+
+    /**
+     * Construct a dimensionless scaled unit with an identifier.
+     *
+     * @param amount		The given amount of this unit.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    public ScaledUnit(double amount, String identifier)
+    {
+	super(identifier);
 	this.amount = amount;
 	derivedUnit = new DerivedUnit();
     }
 
     /**
-     * Construct a scaled unit from a base unit.
+     * Construct a scaled unit from a base unit.  The identifier will be
+     * that of the base unit if the amount is 1; otherwise, the identifier
+     * will be <code>null</code>.
      *
      * @param amount	The given amount of the base unit (e.g. 0.9144 to
      *			create a yard unit if <code>unit</code> represents a
@@ -58,12 +73,30 @@ public final class ScaledUnit
      */
     public ScaledUnit(double amount, BaseUnit that)
     {
+	this(amount, that, amount == 1 ? that.getIdentifier() : null);
+    }
+
+    /**
+     * Construct a scaled unit from a base unit and an identifier.
+     *
+     * @param amount            The given amount of the base unit (e.g. 0.9144
+     *                          to create a yard unit if <code>unit</code>
+     *                          represents a meter).
+     * @param unit		The given base unit.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    public ScaledUnit(double amount, BaseUnit that, String identifier)
+    {
+	super(identifier);
 	this.amount = amount;
 	derivedUnit = new DerivedUnit(that);
     }
 
     /**
-     * Construct a scaled unit from a derived unit.
+     * Construct a scaled unit from a derived unit.  The identifier will be
+     * that of the derived unit if the amount is 1; otherwise, the identifier
+     * will be <code>null</code>.
      *
      * @param amount	The given amount of the derived unit (e.g. 0.44704 to
      *			create a mile/hour unit if <code>unit</code> represents
@@ -72,12 +105,30 @@ public final class ScaledUnit
      */
     public ScaledUnit(double amount, DerivedUnit that)
     {
+	this(amount, that, amount == 1 ? that.getIdentifier() : null);
+    }
+
+    /**
+     * Construct a scaled unit from a derived unit and an identifier.
+     *
+     * @param amount            The given amount of the derived unit
+     *                          (e.g. 0.44704 to create a mile/hour unit if
+     *                          <code>unit</code> represents a meter/second.
+     * @param unit		The given derived unit.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    public ScaledUnit(double amount, DerivedUnit that, String identifier)
+    {
+	super(identifier);
 	this.amount = amount;
 	derivedUnit = that;
     }
 
     /**
-     * Construct a scaled unit from a scaled unit.
+     * Construct a scaled unit from a scaled unit.  The identifier will be that
+     * of the scaled unit if both amounts are 1; otherwise, the identifier will
+     * be <code>null</code>.
      *
      * @param amount	The given amount of the scaled unit (e.g. 3.0 to
      *			create a yard unit if <code>unit</code> represents
@@ -86,8 +137,35 @@ public final class ScaledUnit
      */
     public ScaledUnit(double amount, ScaledUnit that)
     {
+	this(amount, that,
+	  amount == 1 && that.amount == 1 ? that.getIdentifier() : null);
+    }
+
+    /**
+     * Construct a scaled unit from a scaled unit and an identifier.
+     *
+     * @param amount            The given amount of the scaled unit (e.g. 3.0
+     *                          to create a yard unit if <code>unit</code>
+     *                          represents a foot.
+     * @param unit		The given scaled unit.
+     * @param identifier	Name or abbreviation for the unit.  May be
+     *				<code>null</code> or empty.
+     */
+    public ScaledUnit(double amount, ScaledUnit that, String identifier)
+    {
+	super(identifier);
 	this.amount = amount*that.amount;
 	derivedUnit = that.derivedUnit;
+    }
+
+    /**
+     * Clones this unit, changing the identifier.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     */
+    public Unit clone(String identifier)
+    {
+	return new ScaledUnit(1, this, identifier);
     }
 
     /**
@@ -105,16 +183,33 @@ public final class ScaledUnit
     }
 
     /**
-     * Return a string representation of this unit.
+     * Raise a scaled unit to a power.
      *
-     * @return          A string representation of this unit (e.g. 
-     *			"0.9144 meter" to represent a yard).
-     * @promise		This unit has not been modified.
+     * @param power	The power to raise this unit by.  If this unit is
+     *			not dimensionless, then the value must be integral.
+     * @return		The unit resulting from raising this unit to 
+     *			<code>power</code>.
+     * @throws IllegalArgumentException
+     *			This unit is not dimensionless and <code>power</code>
+     *			has a non-integral value.
+     * @promise		The unit has not been modified.
      */
-    public String toString()
+    public Unit pow(double power)
+	throws IllegalArgumentException
+    {
+	return new ScaledUnit(Math.pow(amount, power),
+			      (DerivedUnit)derivedUnit.pow(power));
+    }
+
+    /**
+     * Return the definition of this unit.
+     *
+     * @return          The definition of this unit (e.g. "0.9144 m" for a
+     *			yard).
+     */
+    public String getDefinition()
     {
 	String	derivedString = derivedUnit.toString();
-
 	return amount == 1
 		? derivedString
 		: derivedString.length() == 0
@@ -519,8 +614,16 @@ public final class ScaledUnit
     }
 
   public boolean equals(Unit unit) {
-    return (unit instanceof ScaledUnit) &&
-           derivedUnit.equals(((ScaledUnit) unit).derivedUnit) &&
+    if (unit instanceof BaseUnit)
+      return equals(new ScaledUnit(1, (BaseUnit)unit));
+
+    if (unit instanceof DerivedUnit)
+      return equals(new ScaledUnit(1, (DerivedUnit)unit));
+
+    if (!(unit instanceof ScaledUnit))
+      return unit.equals(this);
+
+    return derivedUnit.equals(((ScaledUnit) unit).derivedUnit) &&
            amount == ((ScaledUnit) unit).amount;
   }
 

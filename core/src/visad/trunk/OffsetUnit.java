@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.3 1998-02-20 16:53:36 billh Exp $
+ * $Id: OffsetUnit.java,v 1.4 1999-05-24 21:07:39 steve Exp $
  */
 
 package visad;
@@ -39,63 +39,151 @@ public final class OffsetUnit
 
 
     /**
-     * Construct an offset, dimensionless unit.
+     * Construct an offset, dimensionless unit.  The identifier will be empty.
      *
      * @param offset	The amount of offset.
      *
      */
     public OffsetUnit(double offset)
     {
+	this(offset, "");
+    }
+
+    /**
+     * Construct an offset, dimensionless unit with an identifier.
+     *
+     * @param offset		The amount of offset.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     *
+     */
+    public OffsetUnit(double offset, String identifier)
+    {
+	super(identifier);
 	this.offset = offset;
 	scaledUnit = new ScaledUnit(1.0);
     }
 
     /**
-     * Construct an offset unit from a base unit.
+     * Construct an offset unit from a base unit.  The identifier will be that
+     * of the base unit if the offset is zero; otherwise, the identifier will
+     * be <code>null</code>.
      *
      * @param offset	The amount of offset.
      * @param unit	The base unit.
      */
     public OffsetUnit(double offset, BaseUnit that)
     {
+	this(offset, that, offset == 0 ? that.getIdentifier() : null);
+    }
+
+    /**
+     * Construct an offset unit from a base unit and an identifier.
+     *
+     * @param offset		The amount of offset.
+     * @param unit		The base unit.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     */
+    public OffsetUnit(double offset, BaseUnit that, String identifier)
+    {
+	super(identifier);
 	this.offset = offset;
 	scaledUnit = new ScaledUnit(1.0, that);
     }
 
     /**
-     * Construct an offset unit from a derived unit.
+     * Construct an offset unit from a derived unit.  The identifier will be
+     * that of the derived unit if the offset is 0; otherwise; the identifier
+     * will be <code>null</code>.
      *
      * @param offset	The amount of offset.
      * @param unit	The derived unit.
      */
     public OffsetUnit(double offset, DerivedUnit that)
     {
+	this(offset, that, offset == 0 ? that.getIdentifier() : null);
+    }
+
+    /**
+     * Construct an offset unit from a derived unit and an identifier.
+     *
+     * @param offset		The amount of offset.
+     * @param unit		The derived unit.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     */
+    public OffsetUnit(double offset, DerivedUnit that, String identifier)
+    {
+	super(identifier);
 	this.offset = offset;
 	scaledUnit = new ScaledUnit(1.0, that);
     }
 
     /**
-     * Construct an offset unit from a scaled unit.
+     * Construct an offset unit from a scaled unit.  The identifier will be
+     * that of the scaled unit if the offset is 0; otherwise; the identifier
+     * will be <code>null</code>.
      *
      * @param offset	The amount of offset.
      * @param unit	The scaled unit.
      */
     public OffsetUnit(double offset, ScaledUnit that)
     {
+	this(offset, that, offset == 0 ? that.getIdentifier() : null);
+    }
+
+    /**
+     * Construct an offset unit from a scaled unit and an identifier.
+     *
+     * @param offset		The amount of offset.
+     * @param unit		The scaled unit.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     */
+    public OffsetUnit(double offset, ScaledUnit that, String identifier)
+    {
+	super(identifier);
 	this.offset = offset;
 	scaledUnit = that;
     }
 
     /**
-     * Construct an offset unit from an offset unit.
+     * Construct an offset unit from an offset unit.  The identifier will be
+     * that of the offset unit if the offset is 0; otherwise; the identifier
+     * will be <code>null</code>.
      *
      * @param offset	The amount of offset.
      * @param unit	The given unit.
      */
     public OffsetUnit(double offset, OffsetUnit that)
     {
+	this(offset, that, offset == 0 ? that.getIdentifier() : null);
+    }
+
+    /**
+     * Construct an offset unit from an offset unit and an identifier..
+     *
+     * @param offset		The amount of offset.
+     * @param unit		The given unit.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     */
+    public OffsetUnit(double offset, OffsetUnit that, String identifier)
+    {
+	super(identifier);
 	this.offset = offset + that.offset;
 	scaledUnit = that.scaledUnit;
+    }
+
+    /**
+     * Clones this unit, changing the identifier.
+     * @param identifier	The name or abbreviation for the cloned unit.
+     *				May be <code>null</code> or empty.
+     */
+    public Unit clone(String identifier)
+    {
+	return new OffsetUnit(0, this, identifier);
     }
 
     /**
@@ -112,16 +200,31 @@ public final class OffsetUnit
     }
 
     /**
-     * Return a string representation of this unit.
+     * Raise an offset unit to a power.
      *
-     * @return          A string representation of this unit (e.g. 
-     *			"(kelvin) @ 273.15").
+     * @param power	The power to raise this unit by.
+     * @exception	UnitException	Always thrown because it's meaningless
+     *					to raise an offset unit to a power.
      */
-    public String toString()
+    public Unit pow(double power)
+	throws UnitException
+    {
+	throw new UnitException("Attempt to raise offset unit to a power");
+    }
+
+    /**
+     * Return the definition of this unit.
+     *
+     * @return          The definition of this unit (e.g. "K @ 273.15" for
+     *			degree celsius).
+     */
+    public String getDefinition()
     {
 	String	scaledString = scaledUnit.toString();
 
-	return "(" + scaledString + ") @ " + offset;
+	if (scaledString.indexOf(' ') != -1)
+	    scaledString = "(" + scaledString + ")";
+	return scaledString + " @ " + offset;
     }
 
     /**
@@ -475,6 +578,22 @@ public final class OffsetUnit
     }
 
     /**
+     * Gets the absolute unit of this unit.  An interval in the underlying
+     * physical quantity has the same numeric value in an absolute unit of a
+     * unit as in the unit itself -- but an absolute unit is always referenced
+     * to the physical origin of the underlying physical quantity.  For
+     * example, the absolute unit corresponding to degrees celsius is degrees
+     * kelvin -- and calling this method on a degrees celsius unit obtains a
+     * degrees kelvin unit.
+     * @return		The absolute unit corresponding to this unit.
+     */
+    public Unit
+    getAbsoluteUnit()
+    {
+      return scaledUnit;
+    }
+
+    /**
      * Test this class.
      *
      * @param args		Arguments (ignored).
@@ -568,6 +687,5 @@ public final class OffsetUnit
            scaledUnit.equals(((OffsetUnit) unit).scaledUnit) &&
            (offset == ((OffsetUnit) unit).offset);
   }
-
 }
 

@@ -163,23 +163,9 @@ System.out.println(getClass().getName() + "  check  tickFlag = " + tickFlag +
       java2d.AnimationControlJ2D */
   public void animation_string(RealType real, Set set, double value,
               int current) throws VisADException {
-    String s = null;
     Unit[] units = set.getSetUnits();
-    Unit unit = (units != null) ? units[0] : null;
-    if (real.equals(RealType.Time) ||
-        Unit.canConvert(unit, CommonUnit.second)) {
-      if (Unit.canConvert(unit, CommonUnit.second)) {
-        value = CommonUnit.second.toThis(value, unit);
-      }
-      Real seconds_real = new Real(real, value, CommonUnit.second);
-      s = real.getName() + " = " + seconds_real;
-    }
-    else {
-      s = real.getName() + " = " + value;
-      if (unit != null) {
-        s = s + " (" + unit.toString() + ")";
-      }
-    }
+    String s = real.getName() + " = " + 
+      new Real(real, value, units == null ? null : units[0]).toValueString();
     String t = Integer.toString(current+1) + " of " +
                Integer.toString(set.getLength());
     getDisplayRenderer().setAnimationString(new String[] {s, t});

@@ -6,7 +6,7 @@ FTPDIR		= /home/steve/java/visad/ftp
 MAKEFILE	= upcMakefile
 MAKE		= make -f $(MAKEFILE)
 
-DOCDIR		= $(ROOTDIR)/doc
+DOCDIR		= $(ROOTDIR)/docs
 CLASSDIR	= $(ROOTDIR)/classes
 JARDIR		= $(ROOTDIR)/classes
 SRCDIR		= $(ROOTDIR)/visad
