@@ -129,14 +129,14 @@ public class TextControl extends Control {
     super.nullControl();
   }
 
-  /** set the font; in the initial release this has no effect 
+  /** set the font; in the initial release this has no effect
   *
   * @param f is the java.awt.Font or the visad.util.HersheyFont
   */
 
   public void setFont(Object f)
          throws VisADException, RemoteException {
-    if (f instanceof java.awt.Font || 
+    if (f instanceof java.awt.Font ||
         f instanceof visad.util.HersheyFont ||
         f == null) {
       font = f;
@@ -159,9 +159,9 @@ public class TextControl extends Control {
     }
   }
 
-  /** return the HersheyFont 
+  /** return the HersheyFont
   *
-  * @return the visad.util.HersheyFont if the font is of 
+  * @return the visad.util.HersheyFont if the font is of
   * that type; otherwise, null
   */
   public HersheyFont getHersheyFont() {

@@ -1313,7 +1313,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     // WLH 30 May 2002
     DataRenderer renderer = getLink().getRenderer();
     for (int i=0; i<total_length; i++) {
-      if (total_arrays[i] != null) { 
+      if (total_arrays[i] != null) {
         total_arrays[i] = total_arrays[i].adjustLongitudeBulk(renderer);
       }
     }
@@ -1595,7 +1595,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
 
       float[][][] vector_ends = new float[2][][];
-  
+ 
 
         // WLH 4 March 2000
       renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
@@ -1605,7 +1605,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           // WLH 4 March 2000
           // renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
           //          spatial_value_indices, default_values, ranges);
-  
+ 
           // compute and transform 'end points' of flow vectors
           for (int k=0; k<2; k++) {
             if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
@@ -2341,7 +2341,7 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
 
     VisADLineArray[] arrays = new VisADLineArray[numl[0]];
     Integer2DSet grid_set   = new Integer2DSet(nc, nr);
-    
+
     for (int kk = 0; kk < arrays.length; kk++ ) {
       arrays[kk] = new VisADLineArray();
       float[][] grid = new float[2][n_verts[0][kk]];
