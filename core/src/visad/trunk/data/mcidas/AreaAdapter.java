@@ -57,20 +57,63 @@ public class AreaAdapter {
     * @exception VisADException if an unexpected problem occurs.
     */
   public AreaAdapter(String imageSource) throws IOException, VisADException {
-    try {
-      AreaFile af = new AreaFile(imageSource);
-      buildFlatField(af);
-    } catch (McIDASException afe) {throw new
-        VisADException("Problem with McIDAS AREA file: " + afe);
-    }
+    this(imageSource, 0, 0, 0, 0, 0);
   }
 
+  /** Create a VisAD FlatField from a local McIDAS AREA file using
+    * the subsecting information
+    * @param imageSource name of local file or a URL to locate file.
+    * @param startLine starting line from the file
+    * @param startEle starting element from the file
+    * @param numLines number of lines to read
+    * @param numEles number of elements to read
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+  public AreaAdapter(String imageSource, 
+                     int startLine, 
+                     int startEle, 
+                     int numLines, 
+                     int numEles ) throws IOException, VisADException {
+    this(imageSource, startLine, startEle, numLines, numEles, 0);
+  }
+
+  /** Create a VisAD FlatField from a local McIDAS AREA subsected
+    * according to the parameters
+    * @param imageSource name of local file or a URL to locate file.
+    * @param startLine starting line from the file
+    * @param startEle starting element from the file
+    * @param numLines number of lines to read
+    * @param numEles number of elements to read
+    * @param band band number to get
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+  public AreaAdapter(String imageSource, 
+                     int startLine, 
+                     int startEle, 
+                     int numLines, 
+                     int numEles, 
+                     int band ) throws IOException, VisADException {
+    try {
+      AreaFile af = new AreaFile(imageSource);
+      buildFlatField(af, startLine, startEle, numLines, numEles, band);
+    } catch (McIDASException afe) {
+         throw new VisADException("Problem with McIDAS AREA file: " + afe);
+    }
+  }
 
   /** Build a FlatField from the image pixels
     * @param af is the AreaFile
     * @exception VisADException if an unexpected problem occurs.
     */
-  private void buildFlatField(AreaFile af) throws VisADException {
+  //private void buildFlatField(AreaFile af) throws VisADException {
+  private void buildFlatField(AreaFile af, 
+                              int startLine, 
+                              int startEle, 
+                              int numLines,
+                              int numEles, 
+                              int band) throws VisADException {
 
     int[] nav=null;
 
@@ -83,16 +126,38 @@ public class AreaAdapter {
     }
 
     // extract the size of each dimension from the directory
-    int numLines = areaDirectory.getLines();
-    int numEles = areaDirectory.getElements();
+    int nLines = (numLines == 0) ? areaDirectory.getLines() : numLines;
+    int nEles = (numEles == 0) ? areaDirectory.getElements(): numEles;
 
     // make the VisAD RealTypes for the dimension variables
     RealType line = RealType.getRealType("ImageLine", null, null);
     RealType element = RealType.getRealType("ImageElement", null, null);
 
     // extract the number of bands (sensors) and make the VisAD type
+    // NB: always zero now
     int bandNums[] = areaDirectory.getBands();
     int numBands = bandNums.length;
+
+    // create indicies into the data structure for the bands
+    int[] bandIndices = new int[numBands];
+    if (band != 0) { // specific bands requested
+        bandIndices[0] = -1;
+        for (int i = 0; i < numBands; i++) {
+           System.out.println("band number = " + bandNums[i]);
+           if (band == bandNums[i]) {
+              bandIndices[0] = i;
+              System.out.println("found band " + band + " at index " + i);
+              break;
+           }
+        }
+        if (bandIndices[0] == -1)  // not found
+            throw new VisADException("requested band number not in image");
+        bandNums = new int[] { band };
+        numBands = 1;
+    } else {  // all bands
+        for (int i = 0; i < numBands; i++) bandIndices[i] = i;
+    }
+
     RealType[] bands = new RealType[numBands];
 
     // first cut: the bands are named "Band##" where ## is the
@@ -113,9 +178,35 @@ public class AreaAdapter {
     // from (ele,lin) -> (lat,lon)
     try
     {
+        // adjust the directory if a subsection was requested
+        int[] dirBlock = (int[]) areaDirectory.getDirectoryBlock().clone();
+        /*
+        System.out.println("startLine = " + startLine +
+                           " startEle  = " + startEle +
+                           " numLines  = " + numLines +
+                           " nLines  = " + nLines +
+                           " numEles  = " + numEles +
+                           " nEles  = " + nEles +
+                           " linMag  = " + dirBlock[11] +
+                           " eleMag  = " + dirBlock[12]);
+        System.out.println("before change, startLine = " + dirBlock[5] +
+                            " startEle = " + dirBlock[6] +
+                            " numLines = " + dirBlock[8] +
+                            " numEles = " + dirBlock[9]);
+        */
+        dirBlock[5] = dirBlock[5] + (startLine * dirBlock[11]);
+        dirBlock[6] = dirBlock[6] + (startEle  * dirBlock[12]);
+        dirBlock[8] = nLines;
+        dirBlock[9] = nEles;
+        /*
+        System.out.println("after change, startLine = " + dirBlock[5] +
+                            " startEle = " + dirBlock[6] +
+                            " numLines = " + dirBlock[8] +
+                            " numEles = " + dirBlock[9]);
+        */
         cs = new AREACoordinateSystem(
                 RealTupleType.LatitudeLongitudeTuple,
-                areaDirectory.getDirectoryBlock(),
+                dirBlock,
                 nav);
     }
     catch (VisADException e)
@@ -132,9 +223,14 @@ public class AreaAdapter {
     //  whereas in VisAD, it is at the bottom.  So define the
     //  domain set of the FlatField to map the Y axis accordingly
 
+    /*
     Linear2DSet domain_set = new Linear2DSet(image_domain,
-                                0.0, (float) (numEles - 1), numEles,
-                                (float) (numLines - 1),0.0, numLines );
+                                startEle, startEle + (nEles - 1), nEles,
+                                startLine + (nLines - 1), startLine, nLines );
+    */
+    Linear2DSet domain_set = new Linear2DSet(image_domain,
+                                0, (nEles - 1), nEles,
+                                (nLines - 1), 0, nLines );
     FunctionType image_type =
                         new FunctionType(image_domain, radiance);
 
@@ -169,17 +265,18 @@ public class AreaAdapter {
     // for each band, create a sample array for the FlatField
 
     try {
-      float[][] samples = new float[numBands][numEles*numLines];
+      float[][] samples = new float[numBands][nEles*nLines];
 
       for (int b=0; b<numBands; b++) {
-        for (int i=0; i<numLines; i++) {
-          for (int j=0; j<numEles; j++) {
+        for (int i=0; i<nLines; i++) {
+          for (int j=0; j<nEles; j++) {
 
-            samples[b][j + (numEles * i) ] =
+            samples[b][j + (nEles * i) ] =
                (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT") &&
                 int_samples[b][i][j] == 255)
                    ? 254.0f                   // push 255 into 254 for BRIT
-                   : (float)int_samples[b][i][j];
+                   : (float)
+                       int_samples[bandIndices[b]][startLine+i][startEle+j];
           }
         }
       }
