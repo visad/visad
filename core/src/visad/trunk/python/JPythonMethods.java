@@ -67,8 +67,13 @@ public abstract class JPythonMethods {
 
   /** displays the given data onscreen */
   public static void plot(DataImpl data)
-    throws VisADException, RemoteException
-  {
+    throws VisADException, RemoteException {
+    plot(data, 1.0, 1.0, 1.0);
+  }
+
+  /** displays the given data onscreen */
+  public static void plot(DataImpl data, double red, double green, double blue)
+    throws VisADException, RemoteException {
     if (data == null) throw new VisADException("Data cannot be null");
     if (display == null) {
       displayFrame = new JFrame("VisAD Display Plot");
@@ -97,6 +102,8 @@ public abstract class JPythonMethods {
       display = d3d ? new DisplayImplJ3D(ID) :
                       new DisplayImplJ3D(ID, new TwoDDisplayRendererJ3D());
       for (int i=0; i<maps.length; i++) display.addMap(maps[i]);
+      GraphicsModeControl gmc = display.getGraphicsModeControl();
+      gmc.setScaleEnable(true);
   
       // set up widget panel
       widgetFrame.addWindowListener(l);
@@ -113,16 +120,20 @@ public abstract class JPythonMethods {
       data_references = new Vector();
     }
 
+    ConstantMap[] cmaps = {new ConstantMap(red, Display.Red),
+                           new ConstantMap(green, Display.Green),
+                           new ConstantMap(blue, Display.Blue)};
+
     DataReferenceImpl ref = new DataReferenceImpl(ID);
     data_references.addElement(ref);
     ref.setData(data);
     MathType type = data.getType();
     try {
       ImageRendererJ3D.verifyImageRendererUsable(type, maps);
-      display.addReferences(new ImageRendererJ3D(), ref);
+      display.addReferences(new ImageRendererJ3D(), ref, cmaps);
     }
     catch (VisADException exc) {
-      display.addReference(ref);
+      display.addReference(ref, cmaps);
     }
   }
 
