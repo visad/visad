@@ -1657,7 +1657,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       for (int i=0; i<3; i++) {
         if (i != imax) {
           // float sdiff = spatial_values[i][len-1] - spatial_values[i][0];
-          float sdiff = spatial_values[i][ll] - spatial_values[i][0];
+          float sdiff = spatial_values[i][ll-1] - spatial_values[i][0];
           float diff = Math.abs(sdiff);
           if (diff > max) {
             sjmax = sdiff;
