@@ -246,8 +246,6 @@ public class VisADApplet extends Applet
       }
       catch (IOException exc) { }
     }
-/* CTR: TEMP */    else System.out.println("MY GOD WE'RE FRIED!");
-/* CTR: TEMP */ System.out.println("Supposedly, just sent MouseEvent");
   }
 
   /** fired when a button is pressed or enter is pressed in a text box */
