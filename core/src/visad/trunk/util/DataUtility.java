@@ -460,7 +460,7 @@ public class DataUtility extends Object {
    * Ensures that the range of a FieldImpl is a given type.  Extracts from
    * the input field only if necessary.
    * @param field		The input field.
-   * @param rangeType		The desired type of range for the resulting
+   * @param newRangeType	The desired type of range for the resulting
    *				field.
    * @return			A field with the desired range type.  The range
    *				data will be missing, however, if <em>all</em>
@@ -468,57 +468,97 @@ public class DataUtility extends Object {
    *				Field (i.e. 
    *				RETURN_VALUE<code>.isMissing()</code> will be
    *				true.
+   * @throws UnimplementedException
+   *				The desired range type is a TupleType and not
+   *				a RealTupleType.
+   * @throws TypeException	The new range type cannot be the range of a
+   *				field.
    * @throws VisADException	Couldn't create necessary VisAD object.
    * @throws RemoteException	Java RMI failure.
    */
-  public static FieldImpl
-  ensureRange(FieldImpl field, MathType rangeType)
-    throws VisADException, RemoteException
+  public static Field
+  ensureRange(Field field, MathType newRangeType)
+    throws UnimplementedException, TypeException, VisADException, 
+      RemoteException
   {
-    MathType	oldRangeType = getRangeType(field);
-    FieldImpl	result;
-    if (rangeType.equals(oldRangeType))
+    Field	result;
+    if (newRangeType.equals(getRangeType(field)))
     {
       result = field;
     }
-    else
+    else if (newRangeType instanceof RealType)
     {
-      TupleType	newRangeTupleType = ensureTupleType(rangeType);
-      TupleType	oldRangeTupleType = ensureTupleType(oldRangeType);
-      int	componentCount = newRangeTupleType.getDimension();
-      boolean	hasAll = true;
-      for (int i = 0; i < componentCount; i++)
+      int	componentIndex = getComponentIndex(field, newRangeType);
+      if (componentIndex >= 0)
       {
-	if (getComponentIndex(
-	  oldRangeTupleType, newRangeTupleType.getComponent(i)) < 0)
-	{
-	  hasAll = false;
-	  break;
-	}
-      }
-      if (!hasAll)
-      {
-	FunctionType	newFuncType = 
-	  new FunctionType(getDomainType(field), rangeType);
-	result = 
-	  newRangeTupleType.getFlat()
-	    ? (FieldImpl)new FlatField(newFuncType, field.getDomainSet())
-	    : new FieldImpl(newFuncType, field.getDomainSet());
+	result = field.extract(componentIndex);
       }
       else
       {
-	result = null;
-	for (int i = 0; i < componentCount; i++)
-	{
-	  int	componentIndex = getComponentIndex(
-	    oldRangeTupleType, newRangeTupleType.getComponent(i));
-	  result =
-	    result == null
-	      ? (FieldImpl)field.extract(componentIndex)
-	      : (FieldImpl)FieldImpl.combine(
-		new Field[] {result, field.extract(componentIndex)});
-	}
+	result =
+	  new FlatField(
+	    new FunctionType(getDomainType(field), newRangeType),
+	    field.getDomainSet());
       }
+    }
+    else if (newRangeType instanceof RealTupleType)
+    {
+      FlatField	temporaryField;
+      int	realTupleIndex = getComponentIndex(field, newRangeType);
+      if (realTupleIndex >= 0)
+      {
+	/*
+	 * The desired RealTuple range is a component of the input Field.
+	 */
+	temporaryField = (FlatField)field.extract(realTupleIndex);
+      }
+      else
+      {
+	/*
+	 * The desired RealTuple range is not a component of the input Field.
+	 */
+	RealTupleType	newRangeRealTupleType = (RealTupleType)newRangeType;
+	int		componentCount = newRangeRealTupleType.getDimension();
+	FlatField[]	flatFields = new FlatField[componentCount];
+	for (int i = flatFields.length; --i >= 0; )
+	{
+	  RealType	componentType =
+	    (RealType)newRangeRealTupleType.getComponent(i);
+	  int	componentIndex = getComponentIndex(field, componentType);
+	  flatFields[i] = 
+	    componentIndex >= 0
+	      ? (FlatField)field.extract(componentIndex)
+	      : new FlatField(
+		  new FunctionType(getDomainType(field), componentType),
+		  field.getDomainSet());
+	}
+	temporaryField = (FlatField)FieldImpl.combine(flatFields);
+      }
+      Unit[][]	temporaryRangeUnits = temporaryField.getRangeUnits();
+      Unit[]	rangeUnits = new Unit[temporaryRangeUnits.length];
+      for (int i = rangeUnits.length; --i >= 0; )
+	rangeUnits[i] = temporaryRangeUnits[i][0];
+      FlatField	newFlatField =
+	new FlatField(
+	  new FunctionType(getDomainType(field), newRangeType),
+	  field.getDomainSet(),
+	  (CoordinateSystem)null,
+	  (CoordinateSystem[])null,
+	  temporaryField.getRangeSets(),
+	  rangeUnits);
+      newFlatField.setRangeErrors(temporaryField.getRangeErrors());
+      newFlatField.setSamples(temporaryField.getValues(false), true);
+      result = newFlatField;
+    }
+    else if (newRangeType instanceof TupleType)
+    {
+      throw new UnimplementedException(
+	"Can't yet create Field with range " + newRangeType + 
+	" from existing Field");
+    }
+    else
+    {
+      throw new TypeException("Can't create Field with range " + newRangeType);
     }
     return result;
   }
@@ -627,15 +667,14 @@ public class DataUtility extends Object {
     {
 	Field	field = fields[i];
 	if (!field.getType().equals(funcType))
-	  throw new TypeException(DataUtility.class.getName() +
-	    "(Field[]): Field type mismatch");
+	  throw new TypeException("Field type mismatch");
 	if (!field.isMissing())
 	{
-	  RealTupleType	domainType = getDomainType(field);
 	  for (Enumeration enum = field.domainEnumeration();
 	      enum.hasMoreElements(); )
 	  {
-	      consolidatedDomainTuples.add((RealTuple)enum.nextElement());
+	      RealTuple	domainSample = (RealTuple)enum.nextElement();
+	      consolidatedDomainTuples.add(domainSample);
 	  }
 	}
     }
@@ -647,29 +686,53 @@ public class DataUtility extends Object {
       new float[field.getDomainDimension()][consolidatedDomainTuples.size()];
     Unit[]	domainUnits = field.getDomainUnits();
     int		sampleIndex = 0;
-    for (Iterator iter = consolidatedDomainTuples.iterator(); iter.hasNext(); )
+    for (Iterator iter = consolidatedDomainTuples.iterator();
+	iter.hasNext();
+	++sampleIndex)
     {
       RealTuple	domainTuple = (RealTuple)iter.next();
       for (int i = domainFloats.length; --i >= 0; )
 	domainFloats[i][sampleIndex] =
 	  (float)((Real)domainTuple.getComponent(i)).getValue(domainUnits[i]);
-      ++sampleIndex;
     }
     SampledSet	consolidatedDomain =
       domainFloats.length == 1
 	? (SampledSet)new Gridded1DSet(
-	    getDomainType(field), domainFloats, domainFloats[0].length)
+	    getDomainType(field), domainFloats, domainFloats[0].length,
+	    (CoordinateSystem)null, field.getDomainUnits(), 
+	    (ErrorEstimate[])null)
 	: domainFloats.length == 2
-	  ? (SampledSet)new Irregular2DSet(getDomainType(field), domainFloats)
+	  ? (SampledSet)new Irregular2DSet(
+	      getDomainType(field), domainFloats, (CoordinateSystem)null, 
+	      field.getDomainUnits(), (ErrorEstimate[])null, (Delaunay)null)
 	  : domainFloats.length == 3
-	    ? (SampledSet)new Irregular3DSet(getDomainType(field), domainFloats)
-	    : (SampledSet)new IrregularSet(getDomainType(field), domainFloats);
+	    ? (SampledSet)new Irregular3DSet(
+		getDomainType(field), domainFloats, (CoordinateSystem)null,
+		field.getDomainUnits(), (ErrorEstimate[])null, (Delaunay)null)
+	    : (SampledSet)new IrregularSet(
+		getDomainType(field), domainFloats, (CoordinateSystem)null,
+		field.getDomainUnits(), (ErrorEstimate[])null);
     Field	consolidatedField = 
       field instanceof FlatField
 	? new FlatField(funcType, consolidatedDomain)
 	: new FieldImpl(funcType, consolidatedDomain);
     /*
      * Set the range of the consolidated field.
+    for (int i = fields.length; --i >= 0; )
+    {
+      Field	field = fields[i];
+      if (!field.isMissing())
+      {
+	for (Enumeration enum = field.domainEnumeration();
+	    enum.hasMoreElements(); )
+	{
+	    RealTuple	domainSample = (RealTuple)enum.nextElement();
+	    Data	rangeSample = field.evaluate(domainSample);
+	    if (!rangeSample.isMissing())
+	      consolidatedField.setSample(domainSample, rangeSample);
+	}
+      }
+    }
      */
     for (Iterator iter = consolidatedDomainTuples.iterator(); iter.hasNext(); )
     {
