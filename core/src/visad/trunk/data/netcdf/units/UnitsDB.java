@@ -2,55 +2,60 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitsDB.java,v 1.4 1998-02-23 15:59:05 steve Exp $
+ * $Id: UnitsDB.java,v 1.5 1999-05-24 22:28:57 steve Exp $
  */
 
 package visad.data.netcdf.units;
 
 
+import java.util.Enumeration;
+import visad.BaseUnit;
 import visad.Unit;
 import visad.UnitException;
 
 
 /**
- * The units database abstract class.
+ * The units database interface.
  *
  * This class exists to allow the user to construct their own units database.
  */
-public abstract class
+public interface
 UnitsDB
-    implements	java.io.Serializable
 {
     /**
-     * Singleton instance of this class:
-     * Effectively "final".
+     * Adds a base unit.
+     *
+     * @param baseUnit	The base unit to be added.
+     * @throws java.lang.IllegalArgumentException
+     *			The base unit argument is invalid.
      */
-    protected static UnitsDB	db;
+    public abstract void
+    put(BaseUnit unit)
+	throws IllegalArgumentException;
 
 
     /**
-     * Put a named unit.
-     *
-     * @param unit	The named unit to be added to the database.
-     * @return		The previous entry with the same name or null.
-     * @require		<code>unit</code> shall be non-null.
+     * Adds a name and a unit to the name table.
+     * @param name		The name to be added.
+     * @param unit		The unit to be added.
+     * @throws IllegalArgumentException	Different unit with the same name is
+     *					already in the table.
      */
-    public abstract NamedUnit
-    put(NamedUnit unit);
+    public void
+    putName(String name, Unit unit)
+	throws IllegalArgumentException;
 
 
     /**
-     * Put a unit.
-     *
-     * @param name	The name of the unit to be added to the database.
-     * @param unit	The unit to be added to the database.
-     * @param hasPlural	Whether or not the name of the unit has a plural form
-     *			that ends with an `s'.
-     * @require		The arguments shall be non-null.  The name shall be 
-     *			non-empty.
+     * Adds a symbol and a unit to the symbol table.
+     * @param symbol		The symbol to be added.
+     * @param unit		The unit to be added.
+     * @throws IllegalArgumentException	Different unit with the same symbol is
+     *					already in the table.
      */
-    public abstract Unit
-    put(String name, Unit unit, boolean hasPlural);
+    public void
+    putSymbol(String symbol, Unit unit)
+	throws IllegalArgumentException;
 
 
     /**
@@ -65,35 +70,29 @@ UnitsDB
 
 
     /**
-     * Inner class for enumerating the units in the database.
+     * Get an enumeration of the unit names in the database.
      */
-    public interface
-    Enumeration
-    {
-	public abstract boolean
-	hasMoreElements();
+    public abstract Enumeration
+    getNameEnumeration();
 
-	public abstract NamedUnit
-	nextElement();
-    }
+
+    /**
+     * Get an enumeration of the unit symbols in the database.
+     */
+    public abstract Enumeration
+    getSymbolEnumeration();
 
 
     /**
      * Get an enumeration of the units in the database.
      */
     public abstract Enumeration
-    getEnumeration();
+    getUnitEnumeration();
 
 
     /**
      * List the units in the database.
      */
     public void
-    list()
-    {
-	Enumeration	enum = getEnumeration();
-	
-	while (enum.hasMoreElements())
-	    System.out.println(enum.nextElement().toString());
-    }
+    list();
 }
