@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: dods.servers.agg.CatalogServlet
+Class-Path: xalan.jar xerces.jar HTTPClient.jar
