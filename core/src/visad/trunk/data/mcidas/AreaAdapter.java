@@ -116,10 +116,12 @@ public class AreaAdapter {
                               int band) throws VisADException {
 
     int[] nav=null;
+    int[] aux = null;
 
     try {
       areaDirectory = af.getAreaDirectory();
       nav = af.getNav();
+      aux = af.getAux();
     } catch (Exception rmd) {
         throw new VisADException(
             "Problem getting Area file directory or navigation");
@@ -182,7 +184,7 @@ public class AreaAdapter {
         dirBlock[6] = dirBlock[6] + (startEle  * dirBlock[12]);
         dirBlock[8] = nLines;
         dirBlock[9] = nEles;
-        cs = new AREACoordinateSystem( dirBlock, nav);
+        cs = new AREACoordinateSystem( dirBlock, nav, aux);
     }
     catch (VisADException e)
     {

@@ -25,7 +25,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.data.mcidas;
 
 import edu.wisc.ssec.mcidas.AREAnav;
+import edu.wisc.ssec.mcidas.AreaFile;
 import edu.wisc.ssec.mcidas.McIDASException;
+import edu.wisc.ssec.mcidas.AreaFileException;
 
 import java.awt.geom.Rectangle2D;
 
@@ -60,12 +62,60 @@ public class AREACoordinateSystem
     * This routine uses a flipped Y axis (first line of
     * the image file is number 0)
     *
+    * @param df is the associated AreaFile 
+    *
+    */
+  public AREACoordinateSystem(AreaFile af) 
+                  throws VisADException, AreaFileException {
+    this(RealTupleType.LatitudeLongitudeTuple, 
+                 af.getDir(), af.getNav(), af.getAux());
+  }
+
+  /** create a AREA coordinate system from the Area file's
+    * directory and navigation blocks.
+    *
+    * This routine uses a flipped Y axis (first line of
+    * the image file is number 0)
+    *
+    * @param reference the CoordinateSystem reference (must be equivalent
+    *                  to RealTupleType.LatitudeLongitudeTuple)
+    * @param df is the associated AreaFile 
+    *
+    */
+  public AREACoordinateSystem(RealTupleType ref, AreaFile af) 
+                  throws VisADException, AreaFileException {
+    this(ref, af.getDir(), af.getNav(), af.getAux());
+  }
+
+
+  /** create a AREA coordinate system from the Area file's
+    * directory and navigation blocks.
+    *
+    * This routine uses a flipped Y axis (first line of
+    * the image file is number 0)
+    *
     * @param dir[] is the AREA file directory block
     * @param nav[] is the AREA file navigation block
     *
     */
   public AREACoordinateSystem(int[] dir, int[] nav) throws VisADException {
-      this(RealTupleType.LatitudeLongitudeTuple, dir, nav);
+      this(RealTupleType.LatitudeLongitudeTuple, dir, nav, null);
+  }
+
+  /** create a AREA coordinate system from the Area file's
+    * directory and navigation blocks.
+    *
+    * This routine uses a flipped Y axis (first line of
+    * the image file is number 0)
+    *
+    * @param dir[] is the AREA file directory block
+    * @param nav[] is the AREA file navigation block
+    * @param aux[] is the AREA file auxillary block
+    *
+    */
+  public AREACoordinateSystem(int[] dir, int[] nav, int[] aux) 
+                                             throws VisADException {
+      this(RealTupleType.LatitudeLongitudeTuple, dir, nav, aux);
   }
 
   /** create a AREA coordinate system from the Area file's
@@ -83,9 +133,30 @@ public class AREACoordinateSystem
   public AREACoordinateSystem(RealTupleType reference, int[] dir,
                                  int[] nav) throws VisADException {
 
+      this(reference, dir, nav, null);
+  }
+
+
+  /** create a AREA coordinate system from the Area file's
+    * directory and navigation blocks.
+    *
+    * This routine uses a flipped Y axis (first line of
+    * the image file is number 0)
+    *
+    * @param reference the CoordinateSystem reference (must be equivalent
+    *                  to RealTupleType.LatitudeLongitudeTuple)
+    * @param dir[] is the AREA file directory block
+    * @param nav[] is the AREA file navigation block
+    * @param aux[] is the AREA file auxillary block
+    *
+    */
+
+  public AREACoordinateSystem(RealTupleType reference, int[] dir,
+                                 int[] nav, int[] aux) throws VisADException {
+
     super(reference, coordinate_system_units);
     try {
-      anav = AREAnav.makeAreaNav(nav);
+      anav = AREAnav.makeAreaNav(nav, aux);
     } catch (McIDASException excp) {
       throw new CoordinateSystemException(
           "AREACoordinateSystem: problem creating navigation" + excp);
