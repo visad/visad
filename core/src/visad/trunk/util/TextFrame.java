@@ -58,19 +58,14 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
     // setup menu bar
     addMenuItem("File", "New", "fileNew", 'n');
     addMenuItem("File", "Open...", "fileOpen", 'o');
-    addMenuItem("File", "Save", "fileSave", 's');
+    addMenuItem("File", "Save", "fileSave", 's', false);
     addMenuItem("File", "Save as...", "fileSaveAs", 'a');
     addMenuItem("File", "Exit", "fileExit", 'x');
-    addMenuItem("Edit", "Undo", "editUndo", 'u');
-    addMenuItem("Edit", "Redo", "editRedo", 'r');
+    addMenuItem("Edit", "Undo", "editUndo", 'u', false);
+    addMenuItem("Edit", "Redo", "editRedo", 'r', false);
     addMenuItem("Edit", "Cut", "editCut", 't');
     addMenuItem("Edit", "Copy", "editCopy", 'c');
     addMenuItem("Edit", "Paste", "editPaste", 'p');
-
-    // disable some menu items
-    getMenuItem("File", "Save").setEnabled(false);
-    getMenuItem("Edit", "Undo").setEnabled(false);
-    getMenuItem("Edit", "Redo").setEnabled(false);
 
     // finish UI setup
     layoutGUI();

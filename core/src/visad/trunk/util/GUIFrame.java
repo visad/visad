@@ -35,16 +35,25 @@ import javax.swing.*;
 public class GUIFrame extends JFrame implements ActionListener {
 
   /** menu bar */
-  JMenuBar menubar;
+  protected JMenuBar menubar;
 
   /** hashtable */
-  Hashtable hash;
+  protected Hashtable hash;
+
+  /** heavyweight flag */
+  protected boolean heavy;
 
   /** constructs a GUIFrame */
   public GUIFrame() {
+    this(false);
+  }
+
+  /** constructs a GUIFrame with light- or heavy-weight menus as specified */
+  public GUIFrame(boolean heavyweight) {
     menubar = new JMenuBar();
     setJMenuBar(menubar);
     hash = new Hashtable();
+    heavy = heavyweight;
   }
 
   /** gets the JMenu corresponding to the given menu name */
@@ -54,6 +63,7 @@ public class GUIFrame extends JFrame implements ActionListener {
     if (m == null) {
       m = new JMenu(menu);
       m.setMnemonic(menu.charAt(0));
+      m.getPopupMenu().setLightWeightPopupEnabled(!heavy);
       menubar.add(m);
       hash.put(menu, m);
     }
@@ -68,17 +78,35 @@ public class GUIFrame extends JFrame implements ActionListener {
   }
 
   /** adds the given menu item to the specified menu */
-  public void addMenuItem(String menu, String item, String command,
+  public JMenuItem addMenuItem(String menu, String item, String command,
     char mnemonic)
+  {
+    JMenuItem x = new JMenuItem(item);
+    addMenuItem(menu, x, command, mnemonic, true);
+    return x;
+  }
+
+  /** adds the given menu item to the specified menu */
+  public JMenuItem addMenuItem(String menu, String item, String command,
+    char mnemonic, boolean enabled)
+  {
+    JMenuItem x = new JMenuItem(item);
+    addMenuItem(menu, x, command, mnemonic, enabled);
+    return x;
+  }
+
+  /** adds the given menu item to the specified menu */
+  public void addMenuItem(String menu, JMenuItem item, String command,
+    char mnemonic, boolean enabled)
   {
     // add menu item to menu
     JMenu m = getMenu(menu);
-    JMenuItem x = new JMenuItem(item);
-    x.setMnemonic(mnemonic);
-    x.setActionCommand(command);
-    x.addActionListener(this);
-    m.add(x);
-    hash.put(menu + "\n" + item, x);
+    item.setMnemonic(mnemonic);
+    item.setActionCommand(command);
+    item.addActionListener(this);
+    item.setEnabled(enabled);
+    m.add(item);
+    hash.put(menu + "\n" + item.getText(), item);
   }
 
   /** adds a separator to the specified menu */
