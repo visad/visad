@@ -143,7 +143,7 @@ public class F2000Form extends Form implements FormFileInformer {
     RealTupleType xyz = new RealTupleType(x, y, z);
     RealTupleType track_range = new RealTupleType(time, energy);
     FunctionType track_function_type = new FunctionType(xyz, track_range);
-    RealType[] hit_reals = {x, y, z, amplitude, tot, let};
+    RealType[] hit_reals = {x, y, z, amplitude, let, tot};
     RealTupleType hit_type = new RealTupleType(hit_reals);
     FunctionType tracks_function_type =
       new FunctionType(track_index, track_function_type);
@@ -661,7 +661,6 @@ System.out.println("IOException " + e.getMessage());
     display.addMap(shape_scalemap);
     shape_scalemap.setRange(-20.0, 50.0);
     ScalarMap letmap = new ScalarMap(let, Display.RGB);
-    // ScalarMap letmap = new ScalarMap(tot, Display.RGB);
     display.addMap(letmap);
 
     GraphicsModeControl mode = display.getGraphicsModeControl();
