@@ -60,7 +60,7 @@ public interface ImageSequence extends Field
 
     /**
      * Return the image at the index'th position in the sequence.
-     * @param  index in the sequence
+     * @param  index  index in the sequence
      * @return single banded image at that index
      * @throws VisADException  no image at that index in the set.
      * @throws RemoteException can't get remote image
