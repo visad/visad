@@ -656,10 +656,9 @@ public class MeasurePool implements DisplayListener {
           list.refreshPools(true);
         }
       }
-    }
-    else if (right && id == DisplayEvent.MOUSE_RELEASED) { // right release
+
+      // snap pool points to measurement values in 3-D display
       if (dim == 3) {
-        // snap pool points to measurement values
         int size = used.size();
         for (int i=0; i<size; i++) {
           PoolPoint pt = (PoolPoint) used.elementAt(i);

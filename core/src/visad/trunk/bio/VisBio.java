@@ -333,18 +333,14 @@ public class VisBio extends GUIFrame implements ChangeListener {
       display3 = previous = next = null;
       previewPane = null;
     }
-    display2.getGraphicsModeControl().setColorMode(
-      GraphicsModeControl.SUM_COLOR_MODE);
-    display2.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
+    doDisplay(display2);
     displayPane.add(display2.getComponent());
     if (display3 != null) {
-      GraphicsModeControl gmc = display3.getGraphicsModeControl();
-      gmc.setColorMode(GraphicsModeControl.SUM_COLOR_MODE);
-      gmc.setLineWidth(2.0f);
-      DisplayRendererJ3D renderer =
-        (DisplayRendererJ3D) display3.getDisplayRenderer();
-      renderer.setPickThreshhold(Float.MAX_VALUE);
+      doDisplay(display3);
+      display3.getGraphicsModeControl().setLineWidth(2.0f);
       displayPane.add(display3.getComponent());
+      doDisplay(previous);
+      doDisplay(next);
       displayPane.add(previewPane);
     }
 
@@ -877,6 +873,23 @@ public class VisBio extends GUIFrame implements ChangeListener {
 
 
   // -- HELPER METHODS --
+
+  /** Configures the given display to VisBio standards. */
+  private void doDisplay(DisplayImpl display)
+    throws VisADException, RemoteException
+  {
+    display.getMouseBehavior().getMouseHelper().setFunctionMap(new int[][][] {
+      {{MouseHelper.DIRECT, MouseHelper.DIRECT},
+       {MouseHelper.DIRECT, MouseHelper.DIRECT}},
+      {{MouseHelper.CURSOR_TRANSLATE, MouseHelper.CURSOR_ZOOM},
+       {MouseHelper.CURSOR_ROTATE, MouseHelper.NONE}},
+      {{MouseHelper.ROTATE, MouseHelper.ZOOM},
+       {MouseHelper.TRANSLATE, MouseHelper.NONE}}
+    });
+    display.getGraphicsModeControl().setColorMode(
+      GraphicsModeControl.SUM_COLOR_MODE);
+    //display.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE);
+  }
 
   /** Displays or switches to the given tool panel. */
   private void doWindow(int tab) {
