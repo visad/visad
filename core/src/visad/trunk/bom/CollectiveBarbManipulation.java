@@ -137,6 +137,9 @@ public class CollectiveBarbManipulation extends Object
   private Releaser releaser = null;
   private DataReferenceImpl releaser_ref = null;
 
+  private Stepper stepper = null;
+  private DataReferenceImpl stepper_ref = null;
+
   /**
      wf should have MathType:
        (station_index -> (Time -> tuple))
@@ -204,7 +207,7 @@ public class CollectiveBarbManipulation extends Object
     force_station = fs;
     knots = kts;
 
-    station = sta;
+    // station = sta;
 
     if (display1 == null && display2 == null) {
       throw new CollectiveBarbException("display1 and display2 cannot " +
@@ -486,6 +489,11 @@ public class CollectiveBarbManipulation extends Object
         throw new CollectiveBarbException("display must include " +
                        "ScalarMap to Animation");
       }
+
+      // better have CellImpl in place before addControlListener
+      stepper_ref = new DataReferenceImpl("stepper");
+      stepper = new Stepper();
+      stepper.addReference(stepper_ref);
       // use a ControlListener on Display.Animation to fake
       // animation of manipulable barbs
       control.addControlListener(this);
@@ -574,6 +582,9 @@ public class CollectiveBarbManipulation extends Object
     releaser = new Releaser();
     releaser.addReference(releaser_ref);
 
+    stepper_ref = new DataReferenceImpl("stepper");
+    stepper = new Stepper();
+    stepper.addReference(stepper_ref);
   }
 
   /** construct new wind station at (lat, lon) with initial winds = 0 */
@@ -701,8 +712,12 @@ public class CollectiveBarbManipulation extends Object
       if (sta < 0 || sta >= nindex) {
         throw new CollectiveBarbException("bad station index " + sta);
       }
+
+      if (sta == station) return;
       station = sta;
   
+      display2.disableAction();
+
       if (time_refs != null && time_refs.length != ntimes[station]) {
         int n = time_refs.length;
         for (int i=0; i<n; i++) {
@@ -750,7 +765,8 @@ public class CollectiveBarbManipulation extends Object
           time_refs[i].setData(tuples2[station][i]);
         }
       }
-    }
+      display2.enableAction();
+    } // end synchronized (data_lock)
   }
 
   public DataRenderer[] getManipulationRenderers() {
@@ -806,36 +822,45 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
-  private boolean first = true;
-
   // for AnimationControl steps
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
-    synchronized (data_lock) {
-      which_time = -1;
-      if (barb_manipulation_renderers == null) return;
-      for (int i=0; i<nindex; i++) {
-        which_times[i] = -1;
-        if (barb_manipulation_renderers[i] == null) return;
-        barb_manipulation_renderers[i].stop_direct();
-      }
-  
-      int current = control.getCurrent();
-      if (current < 0) return;
-      which_time = current;
-  
-      for (int i=0; i<nindex; i++) {
-        int index = global_to_station[i][current];
-        if (index < tuples[i].length) {
-          station_refs[i].setData(tuples[i][index]);
-          which_times[i] = index;
+    if (stepper_ref != null) stepper_ref.setData(null);
+  }
+
+  private boolean first = true;
+
+  class Stepper extends CellImpl {
+    public void doAction() throws VisADException, RemoteException {
+      synchronized (data_lock) {
+        int current = control.getCurrent();
+        if (current < 0) return;
+        if (current == which_time) return;
+        which_time = -1;
+        if (barb_manipulation_renderers == null) return;
+        for (int i=0; i<nindex; i++) {
+          which_times[i] = -1;
+          if (barb_manipulation_renderers[i] == null) return;
+          barb_manipulation_renderers[i].stop_direct();
         }
-        // System.out.println("station " + i + " ref " + index);
-      } // end for (int i=0; i<nindex; i++)
-  
-      if (first) {
-        first = false;
-        display1.removeReference(stations_ref);
+   
+        // int current = control.getCurrent();
+        // if (current < 0) return;
+        which_time = current;
+   
+        for (int i=0; i<nindex; i++) {
+          int index = global_to_station[i][current];
+          if (index < tuples[i].length) {
+            station_refs[i].setData(tuples[i][index]);
+            which_times[i] = index;
+          }
+          // System.out.println("station " + i + " ref " + index);
+        } // end for (int i=0; i<nindex; i++)
+   
+        if (first) {
+          first = false;
+          display1.removeReference(stations_ref);
+        }
       }
     }
   }
@@ -957,7 +982,6 @@ public class CollectiveBarbManipulation extends Object
                azimuths[sta_index][time_index], DEGREE_EPS) &&
         visad.util.Util.isApproximatelyEqual(new_radial,
                radials[sta_index][time_index], MPS_EPS)) return;
-
     if (display_index == 1 && curve_ref == null) makeCircles(sta_index);
 
     boolean curve = (curve_ref != null);
@@ -978,6 +1002,8 @@ public class CollectiveBarbManipulation extends Object
     }
 
     if (wind_monitor != null) wind_monitor.disableAction();
+    if (display1 != null) display1.disableAction();
+    if (display2 != null) display2.disableAction();
 
     float diff_azimuth = new_azimuth - old_azimuths[sta_index][time_index];
     float diff_radial = new_radial - old_radials[sta_index][time_index];
@@ -1073,6 +1099,8 @@ public class CollectiveBarbManipulation extends Object
       } // end for (int j=0; j<ntimes[i]; j++)
     } // end for (int i=0; i<nindex; i++)
     if (wind_monitor != null) wind_monitor.enableAction();
+    if (display1 != null) display1.enableAction();
+    if (display2 != null) display2.enableAction();
   }
 
   private RealTupleType circle_type = null;
