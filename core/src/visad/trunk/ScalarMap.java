@@ -360,7 +360,7 @@ System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
 System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                    " to " + dataRange[1] + " scale: " + scale + " " + offset);
 */
-    if (DisplayScalar == Display.Animation && shadow != null) {
+    if (DisplayScalar.equals(Display.Animation) && shadow != null) {
       Set set = shadow.animationSampling;
       if (set == null) {
         return;
@@ -373,7 +373,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       }
       ((AnimationControl) control).setSet(set, true);
     }
-    else if (DisplayScalar == Display.IsoContour) {
+    else if (DisplayScalar.equals(Display.IsoContour)) {
       boolean[] bvalues = new boolean[2];
       float[] values = new float[5];
       ((ContourControl) control).getMainContours(bvalues, values);
@@ -387,9 +387,9 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       values[4] = (float) dataRange[0]; // base
       ((ContourControl) control).setMainContours(bvalues, values, true);
     }
-    else if (DisplayScalar == Display.XAxis ||
-             DisplayScalar == Display.YAxis ||
-             DisplayScalar == Display.ZAxis) {
+    else if (DisplayScalar.equals(Display.XAxis) ||
+             DisplayScalar.equals(Display.YAxis) ||
+             DisplayScalar.equals(Display.ZAxis)) {
       if (dataRange[0] != Double.MAX_VALUE &&
           dataRange[1] != -Double.MAX_VALUE &&
           dataRange[0] == dataRange[0] &&
@@ -444,8 +444,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   private void makeScale()
           throws VisADException, RemoteException {
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
-    axis = (DisplayScalar == Display.XAxis) ? 0 :
-           (DisplayScalar == Display.YAxis) ? 1 : 2;
+    axis = (DisplayScalar.equals(Display.XAxis)) ? 0 :
+           (DisplayScalar.equals(Display.YAxis)) ? 1 : 2;
     if (axis_ordinal < 0) {
       axis_ordinal = displayRenderer.getAxisOrdinal(axis);
     }
