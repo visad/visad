@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFunction.java,v 1.3 1998-06-17 20:30:27 visad Exp $
+ * $Id: NcFunction.java,v 1.4 1998-06-24 14:40:48 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -403,38 +403,19 @@ NcFunction
 	}
 
 	// TODO: add CoordinateSystem argument
-	if (!(rank == 2 &&
+	if (rank == 2 &&
 	      ((dims[0].isLatitude() && dims[1].isLongitude()) ||
-	       (dims[1].isLatitude() && dims[0].isLongitude()))))
+	       (dims[1].isLatitude() && dims[0].isLongitude())))
+	{
+	    set = new LinearLatLonSet(domainType,
+					firsts[0], lasts[0], lengths[0],
+					firsts[1], lasts[1], lengths[1]);
+	}
+	else
 	{
 	    set = LinearNDSet.create(domainType,
 				      firsts, lasts, lengths,
 				      null, null, null);
-	}
-	else
-	{
-	    double	first0;
-	    double	last0;
-	    double	first1;
-	    double	last1;
-
-	    if (dims[0].isLongitude())
-	    {
-		first0 = -firsts[0];	// KLUDGE, HACK, WORKAROUND
-		last0 = -lasts[0];	// KLUDGE, HACK, WORKAROUND
-		first1 = firsts[1];
-		last1 = lasts[1];
-	    }
-	    else
-	    {
-		first0 = firsts[0];
-		last0 = lasts[0];
-		first1 = -firsts[1];	// KLUDGE, HACK, WORKAROUND
-		last1 = -lasts[1];	// KLUDGE, HACK, WORKAROUND
-	    }
-	    set = new LinearLatLonSet(domainType,
-					first0, last0, lengths[0],
-					first1, last1, lengths[1]);
 	}
 
 	return set;
