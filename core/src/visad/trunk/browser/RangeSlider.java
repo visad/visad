@@ -466,8 +466,8 @@ public class RangeSlider extends Component
   public void setMaximumSize(Dimension dim) { maxSize = dim; }
 
   protected float gripToValue(int pos, int width) {
-    return (((maxLimit - minLimit) * ((float) (pos - GRIP_WIDTH))) /
-      (float) (width - (GRIP_WIDTH * 2))) + minLimit;
+    float q = (float) (pos - GRIP_WIDTH) / (width - 2 * GRIP_WIDTH);
+    return (maxLimit - minLimit) * q + minLimit;
   }
 
   protected int valueToGrip(float value, int width) {
