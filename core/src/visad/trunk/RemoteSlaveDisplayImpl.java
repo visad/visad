@@ -56,7 +56,7 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
       }
 
       public Dimension getPreferredSize() {
-        if (image == null) return new Dimension(250, 250);
+        if (image == null) return new Dimension(256, 256);
         return new Dimension(image.getWidth(), image.getHeight());
       }
     };
@@ -69,15 +69,19 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     return component;
   }
 
-  /** Update this slave display with the given image */
-  public void sendImage(BufferedImage img) throws RemoteException {
-    image = img;
+  /** Update this slave display with the given image pixels */
+  public void sendImage(int[] pixels, int width, int height, int type)
+              throws RemoteException {
+    BufferedImage img = new BufferedImage(width, height, type);
+    img.setRGB(0, 0, width, height, pixels, 0, width);
+
     MediaTracker mt = new MediaTracker(component);
     mt.addImage(image, 0);
     try {
       mt.waitForID(0);
     }
     catch (InterruptedException exc) { }
+    image = img;
     component.repaint();
   }
 
@@ -114,8 +118,7 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   /** feed MouseEvents to this display's MouseHelper */
   private void sendMouseEvent(MouseEvent e) {
     try {
-      MouseBehavior mb = display.getMouseBehavior();
-      if (mb != null) mb.getMouseHelper().processEvent(e);
+      display.sendMouseEvent(e);
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }

@@ -20,93 +20,100 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.*;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import javax.swing.*;
 import visad.*;
 import visad.java2d.DisplayImplJ2D;
 
 public class Test64
-  extends UISkeleton
+  extends TestSkeleton
 {
+  private String domain = null;
+
+  boolean hasClientServerMode() { return false; }
+
   public Test64() { }
 
-  public Test64(String[] args)
+  public Test64(String args[])
     throws RemoteException, VisADException
   {
     super(args);
   }
 
+  int checkExtraKeyword(int argc, String[] args)
+  {
+    if (domain == null) {
+      domain = args[argc];
+    } else {
+      System.err.println("Ignoring extra domain \"" + args[argc] + "\"");
+    }
+
+    return 1;
+  }
+
   DisplayImpl[] setupServerDisplays()
     throws RemoteException, VisADException
   {
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ2D("display1");
-    return dpys;
+    return null;
   }
 
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType ir_radiance = new RealType("ir_radiance", null, null);
-    RealType count = new RealType("count", null, null);
-    FunctionType ir_histogram = new FunctionType(ir_radiance, count);
-
-    int size = 64;
-    FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
-
-    dpys[0].addMap(new ScalarMap(count, Display.YAxis));
-    dpys[0].addMap(new ScalarMap(ir_radiance, Display.XAxis));
-
-    dpys[0].addMap(new ConstantMap(0.0, Display.Red));
-    dpys[0].addMap(new ConstantMap(1.0, Display.Green));
-    dpys[0].addMap(new ConstantMap(0.0, Display.Blue));
-
-    DataReferenceImpl ref_histogram1;
-    ref_histogram1 = new DataReferenceImpl("ref_histogram1");
-    ref_histogram1.setData(histogram1);
-    dpys[0].addReference(ref_histogram1, null);
   }
 
-  String getFrameTitle() { return "VisAD slave display (Java2D)"; }
-
-  Component getSpecialComponent(LocalDisplay[] dpys)
-    throws RemoteException, VisADException
-  {
-    if (!(dpys[0] instanceof DisplayImpl)) {
-      throw new VisADException("Can't build remote slave display from " +
-                               dpys[0].getClass().getName());
-    }
-
-    RemoteDisplayImpl rdi = new RemoteDisplayImpl((DisplayImpl )dpys[0]);
-    RemoteSlaveDisplayImpl rsdi = new RemoteSlaveDisplayImpl(rdi);
-    return rsdi.getComponent();
-  }
-
-  void setupUI(LocalDisplay[] dpys)
-    throws RemoteException, VisADException
-  {
-    super.setupUI(dpys);
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    for (int i=0; i<dpys.length; i++) {
-      Component comp = dpys[i].getComponent();
-      panel.add(comp);
-    }
-
-    JFrame jframe = new JFrame(getFrameTitle() + getClientServerTitle());
+  void setupUI(LocalDisplay[] dpys) throws VisADException, RemoteException {
+    JFrame jframe  = new JFrame("Remote slave display client");
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         System.exit(0);
       }
     });
-    jframe.setContentPane(panel);
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    jframe.setContentPane(p);
+
+    try {
+      System.out.print("Connecting to ");
+      if (domain == null) {
+        System.out.print("localhost...");
+        domain = "//:/RemoteSlaveDisplayTest";
+      }
+      else {
+        System.out.print(domain + "...");
+        domain = "//" + domain + "/RemoteSlaveDisplayTest";
+      }
+      RemoteServer server = (RemoteServer) Naming.lookup(domain);
+      RemoteDisplay[] rmt_dpys = server.getDisplays();
+      RemoteDisplay display = rmt_dpys[0];
+      RemoteSlaveDisplayImpl rsdi = new RemoteSlaveDisplayImpl(display);
+      p.add(rsdi.getComponent());
+      System.out.println("connected");
+    }
+    catch (java.rmi.ConnectException e) {
+      System.out.println("couldn't connect!");
+      System.out.println("Make sure there is a server running at the " +
+                         "specified IP address.");
+      System.exit(1);
+    }
+    catch (Exception e) {
+      System.out.println("slave display client exception: " + e.getMessage());
+      e.printStackTrace();
+      System.exit(2);
+    }
+
     jframe.pack();
     jframe.setVisible(true);
   }
 
-  public String toString() { return ": slave display with Java2D"; }
+  public String toString()
+  {
+    return " [ip.name]: remote slave display client" +
+                "\n\tsecond parameter is server IP name (default = localhost)";
+  }
 
   public static void main(String[] args)
     throws RemoteException, VisADException

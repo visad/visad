@@ -26,6 +26,8 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.awt.Component;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.rmi.*;
 
@@ -46,7 +48,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
 
   /** links a slave display to this display */
   public void addSlave(RemoteSlaveDisplay display)
-              throws VisADException, RemoteException {
+         throws VisADException, RemoteException {
     if (AdaptedAction == null) {
       throw new VisADException("RemoteDisplayImpl.addSlave(): " +
                                "AdaptedAction is null");
@@ -61,7 +63,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
 
   /** removes a link between a slave display and this display */
   public void removeSlave(RemoteSlaveDisplay display)
-              throws VisADException, RemoteException {
+         throws VisADException, RemoteException {
     if (AdaptedAction == null) {
       throw new VisADException("RemoteDisplayImpl.removeSlave(): " +
                                "AdaptedAction is null");
@@ -102,19 +104,41 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     return d.hasSlaves();
   }
 
-  /** get this display's MouseBehavior */
-  public MouseBehavior getMouseBehavior()
-                       throws VisADException, RemoteException {
+  /** sends a mouse event to this remote display's associated display */
+  public void sendMouseEvent(MouseEvent e)
+         throws VisADException, RemoteException {
     if (AdaptedAction == null) {
-      throw new VisADException("RemoteDisplayImpl.getMouseBehavior(): " +
+      throw new VisADException("RemoteDisplayImpl.sendMouseEvent(): " +
                                "AdaptedAction is null");
     }
     if (!(AdaptedAction instanceof DisplayImpl)) {
-      throw new VisADException("RemoteDisplayImpl.removeAllSlaves(): " +
+      throw new VisADException("RemoteDisplayImpl.sendMouseEvent(): " +
                                "AdaptedAction must be DisplayImpl");
     }
     DisplayImpl d = (DisplayImpl) AdaptedAction;
-    return d.getMouseBehavior();
+    MouseBehavior mb = d.getMouseBehavior();
+    if (mb == null) {
+      throw new VisADException("RemoteDisplayImpl.sendMouseEvent(): " +
+                               "MouseBehavior is null");
+    }
+    MouseHelper mh = mb.getMouseHelper();
+    if (mh == null) {
+      throw new VisADException("RemoteDisplayImpl.sendMouseEvent(): " +
+                               "MouseHelper is null");
+    }
+
+    // tweak MouseEvent to have proper associated Component
+    Component c = d.getComponent();
+    int id = e.getID();
+    long when = e.getWhen();
+    int mods = e.getModifiers();
+    int x = e.getX();
+    int y = e.getY();
+    int clicks = e.getClickCount();
+    boolean popup = e.isPopupTrigger();
+    MouseEvent ne = new MouseEvent(c, id, when, mods, x, y, clicks, popup);
+
+    mh.processEvent(ne);
   }
 
   /* CTR 21 Sep 1999 - end code for slaved displays */

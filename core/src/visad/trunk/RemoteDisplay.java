@@ -26,6 +26,8 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.awt.event.MouseEvent;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -54,8 +56,7 @@ public interface RemoteDisplay extends Remote, Display {
         throws VisADException, RemoteException;
   void removeAllSlaves() throws VisADException, RemoteException;
   boolean hasSlaves() throws VisADException, RemoteException;
-  MouseBehavior getMouseBehavior()
-        throws VisADException, RemoteException;
+  void sendMouseEvent(MouseEvent e) throws VisADException, RemoteException;
   /* CTR 5 Oct 1999 - end code for slaved displays */
 
 }

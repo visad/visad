@@ -455,10 +455,15 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** updates all linked slave displays with the given image */
   public void updateSlaves(BufferedImage img) {
     RemoteSlaveDisplay d;
+    int width = img.getWidth();
+    int height = img.getHeight();
+    int type = img.getType();
+    int[] pixels = new int[width*height];
+    img.getRGB(0, 0, width, height, pixels, 0, width);
     for (int i=0; i<Slaves.size(); i++) {
       d = (RemoteSlaveDisplay) Slaves.elementAt(i);
       try {
-        d.sendImage(img);
+        d.sendImage(pixels, width, height, type);
       }
       catch (RemoteException e) {
       }
@@ -1324,7 +1329,7 @@ if (initialize) {
     mouse = m;
   }
 
-  // CTR 22 Sep 1999
+  // CTR 18 Oct 1999
   public MouseBehavior getMouseBehavior() {
     return mouse;
   }
