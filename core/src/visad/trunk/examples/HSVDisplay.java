@@ -229,13 +229,6 @@ public class HSVDisplay extends Object implements ActionListener {
       else if (cmd.equals("remove")) {
         removeMap();
       }
-      else if (cmd.equals("maps")) {
-        makeMaps();
-        setControls();
-      }
-      else if (cmd.equals("color")) {
-        makeColorMaps();
-      }
     }
     catch (VisADException ex) {
       System.out.println("call clearMaps ex = " + ex);
@@ -319,45 +312,6 @@ public class HSVDisplay extends Object implements ActionListener {
     state--;
     display1.removeMap(maps[state]);
     maps[state] = null;
-  }
-
-  private void makeMaps()
-          throws VisADException, RemoteException {
-    if (state != 0) return;
-    // map rgb to the Display spatial coordinates;
-    // iso-surfaces of hue, saturation and value will be
-    // transformed from hsv to rgb space
-    display1.addMap(new ScalarMap(red, Display.XAxis));
-    display1.addMap(new ScalarMap(green, Display.YAxis));
-    display1.addMap(new ScalarMap(blue, Display.ZAxis));
-
-    // construct mappings for interactive iso-surfaces of
-    // hue, saturation and value
-    ScalarMap maphcontour = new ScalarMap(hue, Display.IsoContour);
-    display1.addMap(maphcontour);
-    controlhcontour = (ContourControl) maphcontour.getControl();
-
-    ScalarMap mapscontour = new ScalarMap(saturation, Display.IsoContour);
-    display1.addMap(mapscontour);
-    controlscontour = (ContourControl) mapscontour.getControl();
-
-    ScalarMap mapvcontour = new ScalarMap(value, Display.IsoContour);
-    display1.addMap(mapvcontour);
-    controlvcontour = (ContourControl) mapvcontour.getControl();
-
-    state = 1;
-  }
-
-  private void makeColorMaps()
-          throws VisADException, RemoteException {
-    if (state != 1) return;
-
-    // color iso-surfaces
-    display1.addMap(new ScalarMap(hue, Display.Hue));
-    display1.addMap(new ScalarMap(saturation, Display.Saturation));
-    display1.addMap(new ScalarMap(value, Display.Value));
-
-    state = 2;
   }
 
   private void setControls()

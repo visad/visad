@@ -1652,14 +1652,15 @@ if (initialize) {
     return RealTypeVector.indexOf(real);
   }
 
-  /** add a ScalarMap to this Display;
-      can only be invoked when no DataReference-s are
-      linked to this Display */
+  /** add a ScalarMap to this Display */
   public void addMap(ScalarMap map)
          throws VisADException, RemoteException {
     addMap(map, VisADEvent.LOCAL_SOURCE);
   }
 
+  /** add a ScalarMap to this Display
+      remoteId is remote source for collab, or VisADEvent.LOCAL_SOURCE
+  */
   public void addMap(ScalarMap map, int remoteId)
          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
@@ -1761,15 +1762,15 @@ if (initialize) {
     }
   }
 
-// must add to collab/DisplaySyncImpl.java
-//   also remove restriction on addMap()
-// must add to Display.java and RemoteDisplayImpl.java
-
+  /** remove a ScalarMap from this Display */
   public void removeMap(ScalarMap map)
          throws VisADException, RemoteException {
     removeMap(map, VisADEvent.LOCAL_SOURCE);
   }
 
+  /** remove a ScalarMap from this Display
+      remoteId is remote source for collab, or VisADEvent.LOCAL_SOURCE
+  */
   public void removeMap(ScalarMap map, int remoteId)
          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
@@ -1785,29 +1786,30 @@ if (initialize) {
       }
       MapVector.removeElementAt(index);
       ScalarType real = map.getScalar();
-      DisplayRealType dreal = map.getDisplayScalar();
-      Enumeration maps = MapVector.elements();
-      boolean any = false;
-      while(maps.hasMoreElements()) {
-        ScalarMap map2 = (ScalarMap) maps.nextElement();
-        if (real.equals(map2.getScalar())) any = true;
-      }
-      if (!any) {
-        // if real is not used by any other ScalarMap, remove it
-        // and adjust ScalarIndex of all other ScalarMaps
-        RealTypeVector.removeElement(real);
-
-        maps = MapVector.elements();
+      if (real != null) {
+        Enumeration maps = MapVector.elements();
+        boolean any = false;
         while(maps.hasMoreElements()) {
           ScalarMap map2 = (ScalarMap) maps.nextElement();
-          ScalarType real2 = map2.getScalar();
-          index = RealTypeVector.indexOf(real2);
-          if (index < 0) {
-            throw new BadMappingException("Display.removeMap: impossible 1");
-          }
-          map.setScalarIndex(index);
+          if (real.equals(map2.getScalar())) any = true;
         }
-      } // end if (!any)
+        if (!any) {
+          // if real is not used by any other ScalarMap, remove it
+          // and adjust ScalarIndex of all other ScalarMaps
+          RealTypeVector.removeElement(real);
+  
+          maps = MapVector.elements();
+          while(maps.hasMoreElements()) {
+            ScalarMap map2 = (ScalarMap) maps.nextElement();
+            ScalarType real2 = map2.getScalar();
+            index = RealTypeVector.indexOf(real2);
+            if (index < 0) {
+              throw new BadMappingException("Display.removeMap: impossible 1");
+            }
+            map.setScalarIndex(index);
+          }
+        } // end if (!any)
+      } // end if (real != null)
 
       // trigger events
       if (map instanceof ConstantMap) {
