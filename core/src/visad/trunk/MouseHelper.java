@@ -723,6 +723,7 @@ public class MouseHelper
         }
       }
     }
+    enableFunctions(null);
   }
 
 
