@@ -161,6 +161,11 @@ public class ScalarMap extends Object
     }
   }
 
+  /** re-enable auto-scaling for this ScalarMap */
+  public void resetAutoScale() {
+    isManual = false;
+  }
+
   // WLH 22 August 2001
   public boolean doInitialize() {
     return isScaled && !isManual;
