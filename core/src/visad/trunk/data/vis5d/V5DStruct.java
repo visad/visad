@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.data.vis5d;
 
+import visad.data.BadFormException;
 import java.io.*;
 
 /** An object representing the structure of a .v5d file.<P> */
@@ -445,7 +446,7 @@ public class V5DStruct {
 
   /** Open a Vis5D file */
   public static V5DStruct v5d_open(byte[] name, int name_length, int[] sizes,
-    byte[] varnames, float[] times) throws IOException
+    byte[] varnames, float[] times) throws IOException, BadFormException
   {
     int i, j, k;
     int day, time, first_day, first_time;
@@ -504,7 +505,7 @@ public class V5DStruct {
 
   /** Read from a Vis5D file */
   public void v5d_read(int time, int vr, float[] ranges, float[] data)
-    throws IOException
+    throws IOException, BadFormException
   {
 
     boolean status;
@@ -634,7 +635,8 @@ public class V5DStruct {
   /** Open a v5d file for reading.
       @return null if error, else a pointer to a new V5DStruct
   */
-  private static V5DStruct v5dOpenFile(String filename) throws IOException {
+  private static V5DStruct v5dOpenFile(String filename)
+          throws IOException, BadFormException {
     RandomAccessFile fd = new RandomAccessFile(filename, "r");
 
     if (fd == null) {
@@ -662,7 +664,7 @@ public class V5DStruct {
   */
   private static void compute_ga_gb(int nr, int nc, int nl, float[] data,
     int compressmode, float[] ga, float[] gb, float[] minval, float[] maxval)
-  {
+          throws BadFormException{
     if (SIMPLE_COMPRESSION) {
       // compute ga, gb values for whole grid
       int i, lev, num;
@@ -905,8 +907,11 @@ public class V5DStruct {
   }
 
   /** Verifies that a certain condition holds */
-  private static void assert(boolean b) {
-    if (!b) new Exception("Warning: assert failed").printStackTrace();
+  private static void assert(boolean b)
+          throws BadFormException {
+    if (!b) {
+      throw new BadFormException("Warning: assert failed");
+    }
   }
 
   /** Read a block of memory.
@@ -964,7 +969,7 @@ public class V5DStruct {
   private static void v5dCompressGrid(int nr, int nc, int nl,
     int compressmode, float[] data, byte[] compdata1, float ga[], float gb[],
     float[] minval, float[] maxval)
-  {
+          throws BadFormException {
     int nrnc = nr * nc;
     int nrncnl = nr * nc * nl;
 
@@ -1087,7 +1092,8 @@ public class V5DStruct {
              vr    variable
       @return file offset in bytes
   */
-  int grid_position(int time, int vr) {
+  int grid_position(int time, int vr)
+      throws BadFormException {
     int pos, i;
 
     assert(time >= 0);
@@ -1600,7 +1606,7 @@ public class V5DStruct {
       @return true = ok, false = error.
   */
   boolean read_comp_grid(int time, int vr, float[] ga, float[] gb,
-    byte[] compdata1) throws IOException
+    byte[] compdata1) throws IOException, BadFormException
   {
     long pos;
     short bias;
@@ -1672,7 +1678,7 @@ public class V5DStruct {
   /** Read a v5d file header.
       @return true = ok, false = error.
   */
-  boolean read_v5d_header() throws IOException {
+  boolean read_v5d_header() throws IOException, BadFormException {
     boolean end_of_header = false;
     int id;
     int idlen, vr, numargs;
@@ -2032,7 +2038,7 @@ public class V5DStruct {
       @return true = ok, false = error
   */
   boolean v5dReadCompressedGrid(int time, int vr, float[] ga, float[] gb,
-    byte[] compdata) throws IOException
+    byte[] compdata) throws IOException, BadFormException
   {
     int pos, n;
     boolean k = false;
@@ -2090,7 +2096,8 @@ public class V5DStruct {
       @param data  array to put grid data
       @return true = ok, false = error.
   */
-  boolean v5dReadGrid(int time, int vr, float[] data) throws IOException {
+  boolean v5dReadGrid(int time, int vr, float[] data)
+          throws IOException, BadFormException {
     float[] ga = new float[MAXLEVELS];
     float[] gb = new float[MAXLEVELS];
     byte[] compdata;
@@ -2328,7 +2335,7 @@ public class V5DStruct {
       @return true = ok, false = error
   */
   boolean v5dWriteCompressedGrid(int time, int vr, float[] ga, float[] gb,
-    byte[] compdata) throws IOException
+    byte[] compdata) throws IOException, BadFormException
   {
     int pos, n;
     boolean k;
@@ -2393,7 +2400,8 @@ public class V5DStruct {
       @param data  array of uncompressed grid data
       @return true = ok, false = error
   */
-  boolean v5dWriteGrid(int time, int vr, float[] data) throws IOException {
+  boolean v5dWriteGrid(int time, int vr, float[] data)
+          throws IOException, BadFormException {
     float[] ga = new float[MAXLEVELS];
     float[] gb = new float[MAXLEVELS];
     byte[] compdata;
