@@ -3182,7 +3182,6 @@ public class FlatField extends FieldImpl {
 
     if (isMissing()) return new_field;
 
-    float[][] values = Set.doubleToFloat(unpackValues());
     ErrorEstimate[] range_errors_in =
       (error_mode == NO_ERRORS) ? new ErrorEstimate[TupleDimension] :
                                   RangeErrors;
@@ -3193,10 +3192,6 @@ public class FlatField extends FieldImpl {
     // create an array containing all indices of 'this'
     int length = set.getLength();
     int[] wedge = set.getWedge();
-
-    double[][] new_values = new double[TupleDimension][length];
-    double[] new_valuesJ;
-    float[] valuesJ;
 
     // get values from wedge and possibly transform coordinates
     float[][] vals = set.indexToValue(wedge);
@@ -3230,6 +3225,20 @@ public class FlatField extends FieldImpl {
                      ErrorEstimate.init_error_values(errors_out) );
     }
 
+    // WLH 20 July 2000
+    float[][] values = null;
+    if (sampling_errors || (10 * length > getLength())) {
+System.out.println("start unpackValues");
+      // WLH 20 July 2000
+      values = unpackFloats(false);
+      // values = Set.doubleToFloat(unpackValues());
+System.out.println("end unpackValues");
+    }
+
+    double[][] new_values = new double[TupleDimension][length];
+    double[] new_valuesJ;
+    float[] valuesJ;
+
     if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof SimpleSet) {
       // resample by interpolation
       int[][] indices = new int[length][];
@@ -3251,21 +3260,45 @@ for (i=0; i<length; i++) {
   System.out.println(s);
 }
 */
-      for (j=0; j<TupleDimension; j++) {
-        valuesJ = values[j];
-        new_valuesJ = new_values[j];
-        for (i=0; i<length; i++) {
-          float v = Float.NaN;
-          int len = indices[i] == null ? 0 : indices[i].length;
-	  if (len > 0) {
-            v = valuesJ[indices[i][0]] * coefs[i][0];
-            for (k=1; k<len; k++) {
-              v += valuesJ[indices[i][k]] * coefs[i][k];
+      // WLH 20 July 2000
+      if (values != null) {
+        for (j=0; j<TupleDimension; j++) {
+          valuesJ = values[j];
+          new_valuesJ = new_values[j];
+          for (i=0; i<length; i++) {
+            float v = Float.NaN;
+            int len = indices[i] == null ? 0 : indices[i].length;
+  	    if (len > 0) {
+              v = valuesJ[indices[i][0]] * coefs[i][0];
+              for (k=1; k<len; k++) {
+                v += valuesJ[indices[i][k]] * coefs[i][k];
+              }
+              new_valuesJ[wedge[i]] = v;
             }
-            new_valuesJ[wedge[i]] = v;
+            else { // values outside grid
+              new_valuesJ[wedge[i]] = Double.NaN;
+            }
           }
+        }
+      }
+      else {
+        for (i=0; i<length; i++) {
+          int len = indices[i] == null ? 0 : indices[i].length;
+          if (len > 0) {
+            double[][] xvals = new double[len][];
+            for (k = 0; k<len; k++) {
+              xvals[k] = unpackValues(indices[i][k]);
+            }
+            for (j=0; j<TupleDimension; j++) {
+              float v = (float) xvals[0][j];
+              for (k=1; k<len; k++) v += (float) xvals[k][j];
+              new_values[j][wedge[i]] = v;
+            }
+          }         
           else { // values outside grid
-            new_valuesJ[wedge[i]] = Double.NaN;
+            for (j=0; j<TupleDimension; j++) {
+              new_values[j][wedge[i]] = Double.NaN;
+            }
           }
         }
       }
@@ -3303,12 +3336,30 @@ for (i=0; i<length; i++) {
     else { // NEAREST_NEIGHBOR or set is not SimpleSet
       // simple resampling
       int[] indices = DomainSet.valueToIndex(vals);
-      for (j=0; j<TupleDimension; j++) {
-        valuesJ = values[j];
-        new_valuesJ = new_values[j];
+      // WLH 20 July 2000
+      if (values != null) {
+        for (j=0; j<TupleDimension; j++) {
+          valuesJ = values[j];
+          new_valuesJ = new_values[j];
+          for (i=0; i<length; i++) {
+            new_valuesJ[wedge[i]] =
+              ((indices[i] >= 0) ? valuesJ[indices[i]]: Double.NaN);
+          }
+        }
+      }
+      else {
         for (i=0; i<length; i++) {
-          new_valuesJ[wedge[i]] =
-            ((indices[i] >= 0) ? valuesJ[indices[i]]: Double.NaN);
+          if (indices[i] >= 0) {
+            double[] xvals = unpackValues(indices[i]);
+            for (j=0; j<TupleDimension; j++) {
+              new_values[j][wedge[i]] = (float) xvals[j];
+            }
+          }
+          else { // values outside grid
+            for (j=0; j<TupleDimension; j++) {
+              new_values[j][wedge[i]] = Double.NaN;
+            }
+          }
         }
       }
 

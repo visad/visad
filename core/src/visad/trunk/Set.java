@@ -601,6 +601,7 @@ public abstract class Set extends DataImpl implements SetIface {
   }
 
   /** for JPython */
+  // public Data __getitem__(int index) {
   public Data __getitem__(int index) {
     try {
       int[] indices = {index};
