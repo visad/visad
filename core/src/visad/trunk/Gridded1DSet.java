@@ -384,12 +384,21 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     return grid;
   }
 
+  public int getLengthX() {
+    return LengthX;
+  }
+
   public float getLowX() {
     return LowX;
   }
 
   public float getHiX() {
     return HiX;
+  }
+
+  public boolean isAscending()
+  {
+    return Ascending;
   }
 
   public Object clone() {
