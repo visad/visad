@@ -75,6 +75,8 @@ public class Rain implements ControlListener {
 
   static RealTupleType cursor_type = null;
 
+  static final int DELAY = 200;
+
   static Rain rain = null;
 
   // type 'java Rain' to run this application
@@ -219,10 +221,10 @@ public class Rain implements ControlListener {
 
         display_done[i][j] = false;
         JPanel d_panel = (JPanel) displays[i][j].getComponent();
-        Border etchedBorder10 =
+        Border etchedBorder5 =
           new CompoundBorder(new EtchedBorder(),
-                             new EmptyBorder(10, 10, 10, 10));
-        d_panel.setBorder(etchedBorder10);
+                             new EmptyBorder(5, 5, 5, 5));
+        d_panel.setBorder(etchedBorder5);
         cell_panels[i][j].add(d_panel);
         JPanel wpanel = new JPanel();
         wpanel.setLayout(new BoxLayout(wpanel, BoxLayout.X_AXIS));
@@ -240,6 +242,7 @@ public class Rain implements ControlListener {
       } // end for (int j=0; j<N_ROWS; j++)
     } // end for (int i=0; i<N_COLUMNS; i++)
 
+    DisplayImpl.delay(DELAY);
 
     VisADSlider slider300 = new VisADSlider("num300", 0, 600, 300, 1.0,
                                             ref300, RealType.Generic);
@@ -264,6 +267,8 @@ public class Rain implements ControlListener {
     displays[0][0].addReference(cell_refs[0][0]);
     display_done[0][0] = true;
 
+    DisplayImpl.delay(DELAY);
+
     // cell B1
     cells[0][1] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -280,8 +285,6 @@ public class Rain implements ControlListener {
     displays[0][1].addMap(new ScalarMap(range_types[2], Display.Blue));
     displays[0][1].addReference(cell_refs[0][1]);
     display_done[0][1] = true;
-
-
 
     color_map = new ScalarMap(rangeC1, Display.RGB);
     displays[0][2].addMap(color_map);
@@ -302,6 +305,8 @@ public class Rain implements ControlListener {
     displays[0][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
     display_done[0][2] = true;
 
+    DisplayImpl.delay(DELAY);
+
     // cell C1
     cells[0][2] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -314,6 +319,8 @@ public class Rain implements ControlListener {
     cells[0][2].addReference(cell_refs[0][1]);
     cells[0][2].addReference(ref300);
     cells[0][2].addReference(ref1_4);
+
+    DisplayImpl.delay(DELAY);
 
     // cell A2
     cells[1][0] = new CellImpl() {
@@ -329,6 +336,8 @@ public class Rain implements ControlListener {
     cells[1][0].addReference(ref300);
     cells[1][0].addReference(ref1_4);
 
+    DisplayImpl.delay(DELAY);
+
     // cell B2
     cells[1][1] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -342,6 +351,8 @@ public class Rain implements ControlListener {
     cells[1][1].addReference(cell_refs[0][1]);
     cells[1][1].addReference(ref300);
     cells[1][1].addReference(ref1_4);
+
+    DisplayImpl.delay(DELAY);
 
     // cell C2
     cells[1][2] = new CellImpl() {
@@ -357,6 +368,8 @@ public class Rain implements ControlListener {
     cells[1][2].addReference(ref300);
     cells[1][2].addReference(ref1_4);
 
+    DisplayImpl.delay(DELAY);
+
     // cell A3
     cells[2][0] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -371,6 +384,8 @@ public class Rain implements ControlListener {
     cells[2][0].addReference(ref300);
     cells[2][0].addReference(ref1_4);
 
+    DisplayImpl.delay(DELAY);
+
     // cell B3
     cells[2][1] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -384,6 +399,8 @@ public class Rain implements ControlListener {
     cells[2][1].addReference(cell_refs[0][1]);
     cells[2][1].addReference(ref300);
     cells[2][1].addReference(ref1_4);
+
+    DisplayImpl.delay(DELAY);
 
     // cell C3
     cells[2][2] = new CellImpl() {
@@ -417,6 +434,8 @@ public class Rain implements ControlListener {
     cells[2][2].addReference(cell_refs[2][0]);
     cells[2][2].addReference(cell_refs[2][1]);
 
+    DisplayImpl.delay(DELAY);
+
     // cell A4
     cells[3][0] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -429,6 +448,8 @@ public class Rain implements ControlListener {
       }
     };
     cells[3][0].addReference(cell_refs[0][1]);
+
+    DisplayImpl.delay(DELAY);
 
     // cell B4
     cells[3][1] = new CellImpl() {
@@ -443,6 +464,8 @@ public class Rain implements ControlListener {
     };
     cells[3][1].addReference(cell_refs[0][1]);
 
+    DisplayImpl.delay(DELAY);
+
     // cell C4
     cells[3][2] = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -455,6 +478,8 @@ public class Rain implements ControlListener {
       }
     };
     cells[3][2].addReference(cell_refs[0][1]);
+
+    DisplayImpl.delay(DELAY);
 
     Cell cellMAX = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -470,6 +495,8 @@ public class Rain implements ControlListener {
       }
     };
     cellMAX.addReference(refMAX);
+
+    DisplayImpl.delay(DELAY);
 
     Cell cell_cursor = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -489,6 +516,8 @@ public class Rain implements ControlListener {
       }
     }; 
     cell_cursor.addReference(ref_cursor);
+
+    DisplayImpl.delay(DELAY);
 
     // make the JFrame visible
     frame.setVisible(true);
