@@ -49,7 +49,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     "   (000.000, 000.000)-(000.000, 000.000): distance=000.000";
 
   /** First free id number for standard measurements. */
-  private static int maxId = 0;
+  static int maxId = 0;
 
 
   /** New group dialog box. */
@@ -66,6 +66,9 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
   /** Computation cell for linking selection with measurement object. */
   private CellImpl cell;
+
+  /** Flag marking whether to ignore next set standard checkbox toggle. */
+  boolean ignoreNextStandard = false;
 
 
   // -- GLOBAL FUNCTIONS --
@@ -250,9 +253,11 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     setStandard = new JCheckBox("Set standard");
     final MeasureToolbar toolbar = this;
     setStandard.addItemListener(new ItemListener() {
-      private boolean ignore = false;
       public void itemStateChanged(ItemEvent e) {
-        if (ignore) return;
+        if (ignoreNextStandard) {
+          ignoreNextStandard = false;
+          return;
+        }
         boolean std = setStandard.isSelected();
         Measurement m = thing.getMeasurement();
         int index = horiz.getValue() - 1;
@@ -274,9 +279,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
             "Unset standard", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE);
           if (ans != JOptionPane.YES_OPTION) {
-            ignore = true;
+            ignoreNextStandard = true;
             setStandard.setSelected(true);
-            ignore = false;
             return;
           }
           int stdId = m.getStdId();
@@ -427,6 +431,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     descriptionBox.setEnabled(enabled);
     if (enabled) {
       Measurement m = thing.getMeasurement();
+      ignoreNextStandard = true;
+      setStandard.setSelected(m.getStdId() >= 0);
       colorList.setSelectedItem(m.getColor());
       groupList.setSelectedItem(m.getGroup());
     }

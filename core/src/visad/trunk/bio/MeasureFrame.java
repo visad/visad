@@ -79,9 +79,6 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
   /** Prefix of current data series. */
   private String prefix;
 
-  /** Synchronization object. */
-  private Object lock = new Object();
-
   /** Constructs a measurement object to match the given field. */
   public MeasureFrame() throws VisADException, RemoteException { this(false); }
   
@@ -133,33 +130,30 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
   /** Loads a series of datasets specified by the user. */
   public void fileOpen() {
     final JFrame frame = this;
-    Thread t = new Thread(new Runnable() {
+    SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        synchronized (lock) {
-          setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          // get file series from file dialog
-          if (seriesBox.showDialog(frame) != SeriesChooser.APPROVE_OPTION) {
-            setCursor(Cursor.getDefaultCursor());
-            return;
-          }
-
-          // load first file in series
-          File[] f = seriesBox.getSeries();
-          prefix = seriesBox.getPrefix();
-          if (f == null || f.length < 1) {
-            JOptionPane.showMessageDialog(frame,
-              "Invalid series", "Cannot load series",
-              JOptionPane.ERROR_MESSAGE);
-            setCursor(Cursor.getDefaultCursor());
-            return;
-          }
-          horizWidget.setSeries(f);
-          matrix = horizWidget.getMatrix();
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        // get file series from file dialog
+        if (seriesBox.showDialog(frame) != SeriesChooser.APPROVE_OPTION) {
           setCursor(Cursor.getDefaultCursor());
+          return;
         }
+
+        // load first file in series
+        File[] f = seriesBox.getSeries();
+        prefix = seriesBox.getPrefix();
+        if (f == null || f.length < 1) {
+          JOptionPane.showMessageDialog(frame,
+            "Invalid series", "Cannot load series",
+            JOptionPane.ERROR_MESSAGE);
+          setCursor(Cursor.getDefaultCursor());
+          return;
+        }
+        horizWidget.setSeries(f);
+        matrix = horizWidget.getMatrix();
+        setCursor(Cursor.getDefaultCursor());
       }
     });
-    t.start();
   }
 
   /** Restores a saved set of measurements. */
@@ -173,64 +167,35 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     });
     /* CTR: TODO: restore lines
     final JFrame frame = this;
-    Thread t = new Thread(new Runnable() {
+    SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        synchronized (lock) {
-          setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          // get file name from file dialog
-          fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
-          if (fileBox.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) {
-            setCursor(Cursor.getDefaultCursor());
-            return;
-          }
-      
-          // make sure file exists
-          File f = fileBox.getSelectedFile();
-          if (!f.exists()) {
-            JOptionPane.showMessageDialog(frame,
-              f.getName() + " does not exist", "Cannot load file",
-              JOptionPane.ERROR_MESSAGE);
-            setCursor(Cursor.getDefaultCursor());
-            return;
-          }
-      
-          try {
-            // load measurement data
-            BufferedReader fin = new BufferedReader(new FileReader(f));
-            int numSlices = ism.getSliceCount();
-            for (int i=0; i<numSlices; i++) {
-              String line = fin.readLine();
-              if (line == null) {
-                JOptionPane.showMessageDialog(frame,
-                  f.getName() + ": premature end of file", "Cannot load file",
-                  JOptionPane.ERROR_MESSAGE);
-                fin.close();
-                setCursor(Cursor.getDefaultCursor());
-                return;
-              }
-              StringTokenizer st = new StringTokenizer(line);
-              if (st.countTokens() < 4) {
-                JOptionPane.showMessageDialog(frame,
-                  f.getName() + ": invalid data format", "Cannot load file",
-                  JOptionPane.ERROR_MESSAGE);
-                fin.close();
-                setCursor(Cursor.getDefaultCursor());
-                return;
-              }
-              double[][] values = new double[2][2];
-              for (int j=0; j<4; j++) {
-                values[j % 2][j / 2] = Double.parseDouble(st.nextToken());
-              }
-              ism.setValues(i, values);
-            }
-            fin.close();
-          }
-          catch (IOException exc) { exc.printStackTrace(); }
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        // get file name from file dialog
+        fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
+        if (fileBox.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) {
           setCursor(Cursor.getDefaultCursor());
+          return;
         }
+      
+        // make sure file exists
+        File f = fileBox.getSelectedFile();
+        if (!f.exists()) {
+          JOptionPane.showMessageDialog(frame,
+            f.getName() + " does not exist", "Cannot load file",
+            JOptionPane.ERROR_MESSAGE);
+          setCursor(Cursor.getDefaultCursor());
+          return;
+        }
+      
+        try {
+          MeasureDataFile mdf = new MeasureDataFile(f);
+          MeasureMatrix mm = mdf.readMatrix();
+          //
+        }
+        catch (IOException exc) { exc.printStackTrace(); }
+        setCursor(Cursor.getDefaultCursor());
       }
     });
-    t.start();
     */
   }
 
@@ -239,38 +204,24 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     final JFrame frame = this;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        JOptionPane.showMessageDialog(frame, "Temporarily disabled.",
-          "BioVisAD", JOptionPane.WARNING_MESSAGE);
-      }
-    });
-    /* CTR: TODO: save lines
-    final JFrame frame = this;
-    Thread t = new Thread(new Runnable() {
-      public void run() {
-        synchronized (lock) {
-          setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          // get file name from file dialog
-          fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
-          if (fileBox.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) {
-            setCursor(Cursor.getDefaultCursor());
-            return;
-          }
-      
-          // save measurements
-          File f = fileBox.getSelectedFile();
-          String save = ism.getDistanceString();
-          try {
-            FileWriter fout = new FileWriter(f);
-            fout.write(save, 0, save.length());
-            fout.close();
-          }
-          catch (IOException exc) { exc.printStackTrace(); }
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        // get file name from file dialog
+        fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
+        if (fileBox.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) {
           setCursor(Cursor.getDefaultCursor());
+          return;
         }
+    
+        // save measurements
+        File f = fileBox.getSelectedFile();
+        try {
+          MeasureDataFile mdf = new MeasureDataFile(f);
+          mdf.writeMatrix(matrix);
+        }
+        catch (IOException exc) { exc.printStackTrace(); }
+        setCursor(Cursor.getDefaultCursor());
       }
     });
-    t.start();
-    */
   }
 
   /** Exits the application. */

@@ -26,19 +26,32 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.util.Vector;
+
 /** LineGroup represents a possible grouping for measurement lines. */
 public class LineGroup {
 
+  /** First free id number for groups. */
+  static int maxId = 0;
+
+  /** List of all groups. */
+  static Vector groups = new Vector();
+
   /** Name of the group. */
-  private String name;
+  String name;
 
   /** Description of the group. */
-  private String description;
+  String description;
+
+  /** Id number for the group. */
+  int id;
 
   /** Constructs a pool of lines. */
   public LineGroup(String name) {
     this.name = name;
     description = "";
+    id = maxId++;
+    groups.add(this);
   }
 
   /** Sets the group's description. */
@@ -52,5 +65,8 @@ public class LineGroup {
 
   /** Gets the group's description. */
   public String getDescription() { return description; }
+
+  /** Gets the id number of the group. */
+  public int getId() { return id; }
 
 }
