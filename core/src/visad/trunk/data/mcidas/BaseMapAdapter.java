@@ -98,7 +98,7 @@ public class BaseMapAdapter {
    *
    */
   public void setLatLonLimits(float latmin, float latmax, float lonmin, 
-	float lonmax) {
+        float lonmax) {
     if (latmin == Float.NaN) {
       latMin = -900000;
     } else {
@@ -174,8 +174,8 @@ public class BaseMapAdapter {
    * @param domain is the desired domain (ordered element, line)
    */
   public void setCoordinateSystem(CoordinateSystem cs, int numEles, 
-			   int numLines, RealTupleType domain) 
-			   throws VisADException {
+                          int numLines, RealTupleType domain) 
+                          throws VisADException {
 
     this.numEles = numEles;
     this.numLines = numLines;
@@ -212,23 +212,23 @@ public class BaseMapAdapter {
       if (Float.isNaN(latlon[1][3])) latlon[1][3] = -180.f;
 
 
-    /*
+    /* 
       for (int i=0; i<4; i++) {
-	System.out.println("Point "+i+" Lat/long="+
-			latlon[0][i]+" "+latlon[1][i]);
+        System.out.println("Point "+i+" Lat/long="+
+                       latlon[0][i]+" "+latlon[1][i]);
       }
-    */
+     */
 
       setLatLonLimits(
 
-	Math.min(latlon[0][0],Math.min(latlon[0][1],
-			  Math.min(latlon[0][2],latlon[0][3]))),
-	Math.max(latlon[0][0],Math.max(latlon[0][1],
-			  Math.max(latlon[0][2],latlon[0][3]))),
-	Math.min(latlon[1][0],Math.min(latlon[1][1],
-			  Math.min(latlon[1][2],latlon[1][3]))),
-	Math.max(latlon[1][0],Math.max(latlon[1][1],
-			Math.max(latlon[1][2],latlon[1][3])))
+        Math.min(latlon[0][0],Math.min(latlon[0][1],
+                         Math.min(latlon[0][2],latlon[0][3]))),
+        Math.max(latlon[0][0],Math.max(latlon[0][1],
+                         Math.max(latlon[0][2],latlon[0][3]))),
+        Math.min(latlon[1][0],Math.min(latlon[1][1],
+                         Math.min(latlon[1][2],latlon[1][3]))),
+        Math.max(latlon[1][0],Math.max(latlon[1][1],
+                       Math.max(latlon[1][2],latlon[1][3])))
       );
     } catch (Exception ell) {System.out.println(ell);}
 
@@ -254,12 +254,12 @@ public class BaseMapAdapter {
 
     for (int i=0; i<numSegments; i++) {
       try {
-	for (int j=0; j<6; j++) {
-	  segList[i][j] = din.readInt();
-	  position = position + 4;
-	}
+        for (int j=0; j<6; j++) {
+          segList[i][j] = din.readInt();
+          position = position + 4;
+        }
       } catch (IOException e) {
-	isFileOK = false;
+        isFileOK = false;
         throw new VisADException("Base Map: Error reading map file: "+e);
       }
     }
@@ -273,13 +273,13 @@ public class BaseMapAdapter {
     while (true) {
       segmentPointer++; 
       if (segmentPointer >= numSegments) {
-	return 0;
+        return 0;
       }
       // check for lat/lon bounds...
       if (segList[segmentPointer][0] > latMax ||
           segList[segmentPointer][1] < latMin ||
-	  segList[segmentPointer][2] > lonMax ||
-	  segList[segmentPointer][3] < lonMin) {
+          segList[segmentPointer][2] > lonMax ||
+          segList[segmentPointer][3] < lonMin) {
         continue;
       }
 
@@ -306,13 +306,13 @@ public class BaseMapAdapter {
     
       lalo = new float[2][numPairs];
       for (int i=0; i<numPairs; i++) {
-	lat = din.readInt();
-	lon = din.readInt();
-	lalo[0][i] = (float) lat/10000.f;
-	lalo[1][i] = (float) lon/10000.f;
+        lat = din.readInt();
+        lon = din.readInt();
+        lalo[0][i] = (float) lat/10000.f;
+        lalo[1][i] = (float) lon/10000.f;
       }
     } catch (IOException e) {
-	  throw new VisADException("Base Map: read past EOF");
+          throw new VisADException("Base Map: read past EOF");
     }
     position = position + skipByte + (8 * numPairs);
     return lalo;
@@ -340,31 +340,32 @@ public class BaseMapAdapter {
     Vector sets = new Vector();
     try {
       while (true) {
-	st = findNextSegment();
-	if (st == 0) break;
-	lalo = getLatLons();
-	ll = lalo[0].length;
+        st = findNextSegment();
+        if (st == 0) break;
+        lalo = getLatLons();
+        ll = lalo[0].length;
 
-	if (isCoordinateSystem) {
-	  linele = cs.fromReference(lalo);
-	  boolean missing = false;
+        if (isCoordinateSystem) {
+          linele = cs.fromReference(lalo);
+          boolean missing = false;
 
-	  for (int i=0; i<ll; i++) {
-	    if (Float.isNaN(linele[0][i])) {
-	      missing=true;
-	      break;
-	    }
-	  }
+          for (int i=0; i<ll; i++) {
+            if (Float.isNaN(linele[0][i])) {
+              missing=true;
+              break;
+            }
+          }
 
-	  if (missing) continue;
-	  gs = new Gridded2DSet(coordMathType,linele,ll);
+          if (missing) continue;
+          gs = new Gridded2DSet(coordMathType,linele,ll);
 
-	} else {
+        } else {
 
-	  gs = new Gridded2DSet(coordMathType,lalo,ll);
-	}
 
-	sets.addElement(gs);
+          gs = new Gridded2DSet(coordMathType,lalo,ll);
+        }
+
+        sets.addElement(gs);
 
       }
 
@@ -373,7 +374,7 @@ public class BaseMapAdapter {
 
     maplines = new UnionSet(coordMathType,basemaplines);
 
-    } catch (Exception em) {System.out.println(em); return null;}
+    } catch (Exception em) {em.printStackTrace(); return null;}
 
     return maplines;
 
