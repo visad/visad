@@ -45,7 +45,7 @@ public class ProjectionControlJ3D extends ProjectionControl {
   private transient Transform3D Matrix;
   private double[] matrix;
 
-  public ProjectionControlJ3D(DisplayImpl d) {
+  public ProjectionControlJ3D(DisplayImpl d) throws VisADException {
     super(d);
     Matrix = new Transform3D();  // J3D
     matrix = new double[16];
