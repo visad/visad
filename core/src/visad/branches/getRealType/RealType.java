@@ -695,39 +695,254 @@ public class RealType extends ScalarType {
     return new Real(this);
   }
 
-  /** create a new RealType, or return it if it already exists */
-  public static RealType getRealType(String name) {
-    return getRealType(name, null, null, 0);
-  }
-
-  /** create a new RealType, or return it if it already exists */
-  public static RealType getRealType(String name, Unit u) {
-    return getRealType(name, u, null, 0);
-  }
-
-  /** create a new RealType, or return it if it already exists */
-  public static RealType getRealType(String name, int attrMask) {
-    return getRealType(name, null, null, attrMask);
-  }
-
-  /** create a new RealType, or return it if it already exists */
-  public static RealType getRealType(String name, Unit u, Set set) {
-    return getRealType(name, u, set, 0);
-  }
-
-  /** create a new RealType, or return it if it already exists */
-  public static RealType getRealType(String name, Unit u, Set set,
-    int attrMask)
+  /**
+   * Returns a RealType corresponding to a name.  If a RealType with the given
+   * name doesn't exist, then it's created (with default unit, representational
+   * set, and attribute mask) and returned; otherwise, the previously existing
+   * RealType is returned if it corresponds to the input arguments (the unit,
+   * representational set, and attribute mask are ignored in the comparison);
+   * otherwise <code>null</code> is returned.
+   *
+   * @param name                    The name for the RealType.
+   * @return                        A RealType corresponding to the input
+   *                                arguments or <code>null</code>.
+   * @throws NullPointerException   if the name is <code>null</code>.
+   */
+  public static final RealType getRealType(String name)
   {
-    try {
-      return new RealType(name, u, set, attrMask);
+    if (name == null)
+      throw new NullPointerException();
+    /*
+     * The following should catch most of the times that an instance with the
+     * given name was previously-created -- without the performance-hit of a
+     * try-block.
+     */
+    RealType rt = getRealTypeByName(name);
+    if (rt == null)
+    {
+      /*
+       * An instance with the given name didn't exist but might have just been
+       * created by another thread -- so we have to invoke the constructor
+       * inside a try-block.
+       */
+      try
+      {
+        rt = new RealType(name);
+      }
+      catch (VisADException e)
+      {}
     }
-    catch (TypeException e) {
-      return getRealTypeByName(name);
+    return rt;
+  }
+
+  /**
+   * Returns a RealType corresponding to a name and unit.  If a RealType
+   * with the given name doesn't exist, then it's created (with default
+   * representational set and attribute mask) and returned; otherwise, the
+   * previously existing RealType is returned if it corresponds to the input
+   * arguments (the representational set and attribute mask are ignored in the
+   * comparison); otherwise <code>null</code> is returned.
+   *
+   * @param name                    The name for the RealType.
+   * @param unit                    The unit for the RealType.
+   * @return                        A RealType corresponding to the input
+   *                                arguments or <code>null</code>.
+   * @throws NullPointerException   if the name is <code>null</code>.
+   */
+  public static final RealType getRealType(String name, Unit u)
+  {
+    if (name == null)
+      throw new NullPointerException();
+    /*
+     * The following should catch most of the times that an instance with the
+     * given name was previously-created -- without the performance-hit of a
+     * try-block.
+     */
+    RealType rt = getRealTypeByName(name);
+    if (rt != null)
+    {
+      /*
+       * Ensure that the previously-created instance conforms to the input
+       * arguments.
+       */
+      if (u == null ? rt.DefaultUnit != null : !u.equals(rt.DefaultUnit))
+        rt = null;
     }
-    catch (VisADException e) {
-      return null;
+    else
+    {
+      /*
+       * An instance with the given name didn't exist but might have just been
+       * created by another thread -- so we have to invoke the constructor
+       * inside a try-block.
+       */
+      try
+      {
+        rt = new RealType(name, u);
+      }
+      catch (VisADException e)
+      {}
     }
+    return rt;
+  }
+
+  /**
+   * Returns a RealType corresponding to a name and attribute mask.  If a
+   * RealType with the given name doesn't exist, then it's created (with default
+   * unit and representational set) and returned; otherwise, the previously
+   * existing RealType is returned if it corresponds to the input arguments (the
+   * unit and representational set are ignored in the comparison); otherwise
+   * <code>null</code> is returned.
+   *
+   * @param name                    The name for the RealType.
+   * @param attrMask                The attribute mask for the RealType.
+   * @return                        A RealType corresponding to the input
+   *                                arguments or <code>null</code>.
+   * @throws NullPointerException   if the name is <code>null</code>.
+   */
+  public static RealType getRealType(String name, int attrMask)
+  {
+    if (name == null)
+      throw new NullPointerException();
+    /*
+     * The following should catch most of the times that an instance with the
+     * given name was previously-created -- without the performance-hit of a
+     * try-block.
+     */
+    RealType rt = getRealTypeByName(name);
+    if (rt != null)
+    {
+      /*
+       * Ensure that the previously-created instance conforms to the input
+       * arguments.
+       */
+      if (attrMask != rt.attrMask)
+        rt = null;
+    }
+    else
+    {
+      /*
+       * An instance with the given name didn't exist but might have just been
+       * created by another thread -- so we have to invoke the constructor
+       * inside a try-block.
+       */
+      try
+      {
+        rt = new RealType(name, attrMask);
+      }
+      catch (VisADException e)
+      {}
+    }
+    return rt;
+  }
+
+  /**
+   * Returns a RealType corresponding to a name, unit, and representational
+   * set.  If a RealType with the given name doesn't exist, then it's created
+   * (with a default attribute mask) and returned; otherwise, the previously
+   * existing RealType is returned if it corresponds to the input arguments (the
+   * attribute mask is ignored in the comparison); otherwise <code>null</code>
+   * is returned.
+   *
+   * @param name                    The name for the RealType.
+   * @param unit                    The unit for the RealType.
+   * @param set                     The representational set for the RealType.
+   * @return                        A RealType corresponding to the input
+   *                                arguments or <code>null</code>.
+   * @throws NullPointerException   if the name is <code>null</code>.
+   */
+  public static RealType getRealType(String name, Unit u, Set set)
+  {
+    if (name == null)
+      throw new NullPointerException();
+    /*
+     * The following should catch most of the times that an instance with the
+     * given name was previously-created -- without the performance-hit of a
+     * try-block.
+     */
+    RealType rt = getRealTypeByName(name);
+    if (rt != null)
+    {
+      /*
+       * Ensure that the previously-created instance conforms to the input
+       * arguments.
+       */
+      if ((u == null ? rt.DefaultUnit != null : !u.equals(rt.DefaultUnit)) ||
+          (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)))
+      {
+        rt = null;
+      }
+    }
+    else
+    {
+      /*
+       * An instance with the given name didn't exist but might have just been
+       * created by another thread -- so we have to invoke the constructor
+       * inside a try-block.
+       */
+      try
+      {
+        rt = new RealType(name, u, set);
+      }
+      catch (VisADException e)
+      {}
+    }
+    return rt;
+  }
+
+  /**
+   * Returns a RealType corresponding to a name, unit, representational set,
+   * and attribute mask.  If a RealType with the given name doesn't exist,
+   * then it's created and returned; otherwise, the previously existing
+   * RealType is returned if it corresponds to the input arguments; otherwise
+   * <code>null</code> is returned.
+   *
+   * @param name                    The name for the RealType.
+   * @param unit                    The unit for the RealType.
+   * @param set                     The representational set for the RealType.
+   * @param attrMask                The attribute mask for the RealType.
+   * @return                        A RealType corresponding to the input
+   *                                arguments or <code>null</code>.
+   * @throws NullPointerException   if the name is <code>null</code>.
+   */
+  public static final RealType getRealType(
+    String name, Unit u, Set set, int attrMask)
+  {
+    if (name == null)
+      throw new NullPointerException();
+    /*
+     * The following should catch most of the times that an instance with the
+     * given name was previously-created -- without the performance-hit of a
+     * try-block.
+     */
+    RealType rt = getRealTypeByName(name);
+    if (rt != null)
+    {
+      /*
+       * Ensure that the previously-created instance conforms to the input
+       * arguments.
+       */
+      if ((u == null ? rt.DefaultUnit != null : !u.equals(rt.DefaultUnit)) ||
+          (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)) ||
+          rt.attrMask != attrMask)
+      {
+        rt = null;
+      }
+    }
+    else
+    {
+      /*
+       * An instance with the given name didn't exist but might have just been
+       * created by another thread -- so we have to invoke the constructor
+       * inside a try-block.
+       */
+      try
+      {
+        rt = new RealType(name, u, set, attrMask);
+      }
+      catch (VisADException e)
+      {}
+    }
+    return rt;
   }
 
   /** return any RealType constructed in this JVM with name,
