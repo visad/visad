@@ -208,7 +208,8 @@ public class DefaultNodeRendererAgent extends NodeAgent {
                 System.out.println("ERROR2 " + map1 + " != " + map2);
               }
               double[] range = map1.getRange();
-              if (!Display.Animation.equals(map2.getDisplayScalar())) {
+              if (!Display.Animation.equals(map2.getDisplayScalar()) &&
+                  !Display.IsoContour.equals(map2.getDisplayScalar())) {
                 try {
                   map2.setRange(range[0], range[1]);
                 }

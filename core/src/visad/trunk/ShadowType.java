@@ -3528,7 +3528,7 @@ try {
                 }
 
 // System.out.println("end makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
-                // System.out.println("makeIsoSurface " + array.vertexCount);
+                // System.out.println("makeIsoSurface " + (array != null ? array.vertexCount : 0) );
                 shadow_api.addToGroup(group, array, mode,
                                       constant_alpha, constant_color);
 // System.out.println("end addToGroup " + (System.currentTimeMillis() - Link.start_time));

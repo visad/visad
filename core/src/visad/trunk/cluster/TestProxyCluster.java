@@ -69,11 +69,10 @@ import java.io.IOException;
    rmiregistry &
    java -cp visad.jar visad.cluster.TestProxyCluster 5 host
 
- When 3-D window pops up, click on "Maps".
- When maps window pops up, click on "Detect" and "Done".
  After "please wait ..." message in 3-D window goes off, click on "Widgets".
  When widgets window pops up, slide "RRP" slider over to about 0.003.
  When iso-surfaces appear, click "Go" to animate.
+ 
 </PRE>
 */
 public class TestProxyCluster extends FancySSCell implements ActionListener {
