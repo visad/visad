@@ -140,6 +140,7 @@ public class CollectiveBarbManipulation extends Object {
   private Stepper stepper = null;
   private DataReferenceImpl stepper_ref = null;
 
+  private boolean dzoom = false;
   private DiscoverableZoom pcl = null;
 
   /**
@@ -180,6 +181,8 @@ public class CollectiveBarbManipulation extends Object {
      kts is false to indicate no m/s to knots conversion in
      wind barb renderers
 
+     dz is true to indicate to use DiscoverableZoom
+
      inner_circle_color is array of RGB colors for an inner circle
      of influence, or null for no inner circles
      inner_circle_width is the line width for the inner circle
@@ -192,6 +195,7 @@ public class CollectiveBarbManipulation extends Object {
                  DisplayImplJ3D d1, DisplayImplJ3D d2, ConstantMap[] cms,
                  boolean abs, float id, float od, float it, float ot, int sta,
                  boolean need_monitor, boolean brbs, boolean fs, boolean kts,
+                 boolean dz,
                  double[] inner_circle_color, int inner_circle_width,
                  double[] outer_circle_color, int outer_circle_width)
          throws VisADException, RemoteException {
@@ -208,6 +212,7 @@ public class CollectiveBarbManipulation extends Object {
     barbs = brbs;
     force_station = fs;
     knots = kts;
+    dzoom = dz;
 
     // station = sta; // NEW
 
@@ -374,8 +379,10 @@ public class CollectiveBarbManipulation extends Object {
     setupData(); // new data
     if (display1 != null) {
       pcontrol = display1.getProjectionControl();
-      pcl = new DiscoverableZoom();
-      pcontrol.addControlListener(pcl);
+      if (dzoom) {
+        pcl = new DiscoverableZoom();
+        pcontrol.addControlListener(pcl);
+      }
       setupStations(); // new data  WLH 6 May 2001
     }
 
@@ -1583,7 +1590,7 @@ old_current = current;
     final CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
                                      500000.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     0, false, true, true, false,
+                                     0, false, true, true, false, true,
                                      new double[] {0.0, 0.5, 0.5}, 1,
                                      new double[] {0.5, 0.5, 0.0}, 2);
 
@@ -1595,7 +1602,7 @@ old_current = current;
     final CollectiveBarbManipulation cbm2 = (args.length > 0) ?
       new CollectiveBarbManipulation(field2, display1, display2, cmaps2, false,
                                      500000.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     0, false, false, true, false,
+                                     0, false, false, true, false, true,
                                      new double[] {0.0, 0.5, 0.5}, 1,
                                      new double[] {0.5, 0.5, 0.0}, 2) :
       null;
