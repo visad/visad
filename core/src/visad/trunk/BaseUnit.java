@@ -407,25 +407,55 @@ public final class BaseUnit
     }
 
     /**
-     * Convert values to this unit from a base unit.
+     * Convert values to this unit from another unit.
      *
      * @param values    The values to be converted.
      * @param that      The unit of <code>values</code>.
      * @return          The converted values in units of this unit.
-     * @require         The units are identical.
+     * @require         The units are convertible.
      * @promise         Neither unit has been modified.
      * @throws UnitException    The units are not convertible.
      */
     double[] toThis(double[] values, BaseUnit that)
         throws UnitException
     {
+        return toThis(values, that, true);
+    }
+
+    /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values    The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @return          The converted values in units of this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    float[] toThis(float[] values, BaseUnit that)
+        throws UnitException
+    {
+        return toThis(values, that, true);
+    }
+
+    /**
+     * Convert values to this unit from a base unit.
+     *
+     * @param values    The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values in units of this unit.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    double[] toThis(double[] values, BaseUnit that, boolean copy)
+        throws UnitException
+    {
         if (equals(that))
         {
-            double[]    newValues = new double[values.length];
-
-            for (int i = 0; i < values.length; ++i)
-                newValues[i] = values[i];
-
+            double[] newValues = (copy) ? (double[])values.clone() : values;
             return newValues;
         }
 
@@ -438,20 +468,19 @@ public final class BaseUnit
      *
      * @param values    The values to be converted.
      * @param that      The unit of <code>values</code>.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
      * @return          The converted values in units of this unit.
      * @require         The units are identical.
      * @promise         Neither unit has been modified.
      * @throws UnitException    The units are not convertible.
      */
-    float[] toThis(float[] values, BaseUnit that)
+    float[] toThis(float[] values, BaseUnit that, boolean copy)
         throws UnitException
     {
         if (equals(that))
         {
-            float[]    newValues = new float[values.length];
-
-            for (int i = 0; i < values.length; ++i)
-                newValues[i] = values[i];
+            float[] newValues = (copy) ? (float[])values.clone() : values;
 
             return newValues;
         }
@@ -466,14 +495,14 @@ public final class BaseUnit
      * @param values    The values to be converted.
      * @param that      The unit of <code>values</code>.
      * @return          The converted values in units of this unit.
-     * @require         The units are identical.
+     * @require         The units are convertible.
      * @promise         Neither unit has been modified.
      * @throws UnitException    The units are not convertible.
      */
     public double[] toThis(double[] values, Unit that)
         throws UnitException
     {
-        return that.toThat(values, derivedUnit);
+        return toThis(values, that, true);
     }
 
     /**
@@ -482,14 +511,50 @@ public final class BaseUnit
      * @param values    The values to be converted.
      * @param that      The unit of <code>values</code>.
      * @return          The converted values in units of this unit.
-     * @require         The units are identical.
+     * @require         The units are convertible.
      * @promise         Neither unit has been modified.
      * @throws UnitException    The units are not convertible.
      */
     public float[] toThis(float[] values, Unit that)
         throws UnitException
     {
-        return that.toThat(values, derivedUnit);
+        return toThis(values, that, true);
+    }
+
+    /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values    The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values in units of this unit.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public double[] toThis(double[] values, Unit that, boolean copy)
+        throws UnitException
+    {
+        return that.toThat(values, derivedUnit, copy);
+    }
+
+    /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values    The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values in units of this unit.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public float[] toThis(float[] values, Unit that, boolean copy)
+        throws UnitException
+    {
+        return that.toThat(values, derivedUnit, copy);
     }
 
     /**
@@ -505,18 +570,7 @@ public final class BaseUnit
     double[] toThat(double[] values, BaseUnit that)
         throws UnitException
     {
-        if (equals(that))
-        {
-            double[]    newValues = new double[values.length];
-
-            for (int i = 0; i < values.length; ++i)
-                newValues[i] = values[i];
-
-            return newValues;
-        }
-
-        throw new UnitException("Attempt to convert from unit \"" +
-            this + "\" to unit \"" + that + "\"");
+        return toThat(values, that, true);
     }
 
     /**
@@ -532,13 +586,52 @@ public final class BaseUnit
     float[] toThat(float[] values, BaseUnit that)
         throws UnitException
     {
+        return toThat(values, that, true);
+    }
+
+    /**
+     * Convert values from this unit to a base unit.
+     *
+     * @param values    The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    double[] toThat(double[] values, BaseUnit that, boolean copy)
+        throws UnitException
+    {
         if (equals(that))
         {
-            float[]    newValues = new float[values.length];
+            double[] newValues = (copy) ? (double[])values.clone() : values;
+            return newValues;
+        }
 
-            for (int i = 0; i < values.length; ++i)
-                newValues[i] = values[i];
+        throw new UnitException("Attempt to convert from unit \"" +
+            this + "\" to unit \"" + that + "\"");
+    }
 
+    /**
+     * Convert values from this unit to a base unit.
+     *
+     * @param values    The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    float[] toThat(float[] values, BaseUnit that, boolean copy)
+        throws UnitException
+    {
+        if (equals(that))
+        {
+            float[] newValues = (copy) ? (float[])values.clone() : values;
             return newValues;
         }
 
@@ -559,7 +652,7 @@ public final class BaseUnit
     public double[] toThat(double[] values, Unit that)
         throws UnitException
     {
-        return that.toThis(values, derivedUnit);
+        return toThat(values, that, true);
     }
 
     /**
@@ -575,7 +668,43 @@ public final class BaseUnit
     public float[] toThat(float[] values, Unit that)
         throws UnitException
     {
-        return that.toThis(values, derivedUnit);
+        return toThat(values, that, true);
+    }
+
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values    The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public double[] toThat(double[] values, Unit that, boolean copy)
+        throws UnitException
+    {
+        return that.toThis(values, derivedUnit, copy);
+    }
+
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values    The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public float[] toThat(float[] values, Unit that, boolean copy)
+        throws UnitException
+    {
+        return that.toThis(values, derivedUnit, copy);
     }
 
     /**

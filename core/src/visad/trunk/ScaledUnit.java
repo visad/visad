@@ -359,16 +359,7 @@ public final class ScaledUnit
     public double[] toThis(double[] values, Unit that)
         throws UnitException
     {
-        double[] newValues;
-        if (equals(that) || that instanceof PromiscuousUnit) {
-            newValues = (double[])values.clone();
-        }
-        else {
-            newValues = that.toThat(values, derivedUnit);
-            for (int i = 0; i < newValues.length; ++i)
-                newValues[i] /= amount;
-        }
-        return newValues;
+        return toThis(values, that, true);
     }
 
     /**
@@ -384,9 +375,54 @@ public final class ScaledUnit
     public float[] toThis(float[] values, Unit that)
         throws UnitException
     {
+        return toThis(values, that, true);
+    }
+
+    /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values    The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values in units of this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public double[] toThis(double[] values, Unit that, boolean copy)
+        throws UnitException
+    {
+        double[] newValues;
+        if (equals(that) || that instanceof PromiscuousUnit) {
+            newValues = (copy) ? (double[])values.clone() : values;
+        }
+        else {
+            newValues = that.toThat(values, derivedUnit);
+            for (int i = 0; i < newValues.length; ++i)
+                newValues[i] /= amount;
+        }
+        return newValues;
+    }
+
+    /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values    The values to be converted.
+     * @param that      The unit of <code>values</code>.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values in units of this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public float[] toThis(float[] values, Unit that, boolean copy)
+        throws UnitException
+    {
         float[] newValues;
         if (equals(that) || that instanceof PromiscuousUnit) {
-            newValues = (float[])values.clone();
+            newValues = (copy) ? (float[])values.clone() : values;
         }
         else {
             newValues = that.toThat(values, derivedUnit);
@@ -402,14 +438,48 @@ public final class ScaledUnit
      * @param values    The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
      * @return          The converted values.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public double[] toThat(double[] values, Unit that)
+        throws UnitException
+    {
+        return toThat(values, that, true);
+    }
+
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values    The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @return          The converted values.
+     * @require         The units are identical.
+     * @promise         Neither unit has been modified.
+     * @throws UnitException    The units are not convertible.
+     */
+    public float[] toThat(float[] values, Unit that)
+        throws UnitException
+    {
+        return toThat(values, that, true);
+    }
+
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values    The values to be converted in units of this unit.
+     * @param that      The unit to which to convert the values.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
+     * @return          The converted values.
      * @require         The units are convertible.
      * @promise         Neither unit has been modified.
      * @throws UnitException    The units are not convertible.
      */
-    public double[] toThat(double values[], Unit that)
+    public double[] toThat(double values[], Unit that, boolean copy)
         throws UnitException
     {
-        double[] newValues = (double[])values.clone();
+        double[] newValues = (copy) ? (double[])values.clone() : values;
         if (!(equals(that) || that instanceof PromiscuousUnit)) {
             for (int i = 0; i < newValues.length; ++i)
                 newValues[i] *= amount;
@@ -423,15 +493,17 @@ public final class ScaledUnit
      *
      * @param values    The values to be converted in units of this unit.
      * @param that      The unit to which to convert the values.
+     * @param copy      if false and <code>that</code> equals this, 
+     *                  return <code>values</code>, else return a new array
      * @return          The converted values.
      * @require         The units are convertible.
      * @promise         Neither unit has been modified.
      * @throws UnitException    The units are not convertible.
      */
-    public float[] toThat(float values[], Unit that)
+    public float[] toThat(float values[], Unit that, boolean copy)
         throws UnitException
     {
-        float[] newValues = (float[])values.clone();
+        float[] newValues = (copy) ? (float[])values.clone() : values;
         if (!(equals(that) || that instanceof PromiscuousUnit)) {
             for (int i = 0; i < newValues.length; ++i)
                 newValues[i] *= amount;

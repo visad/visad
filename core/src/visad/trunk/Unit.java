@@ -389,13 +389,72 @@ public abstract class Unit
                         Unit unit_in, ErrorEstimate error_in,
                         double[] value) throws UnitException, VisADException {
 
+    return transformUnits(unit_out, errors_out, unit_in, error_in, value, true);
+  }
+
+  /**
+   * Transform float values and (optionally) error estimates.
+   *
+   * @param unit_out          The unit of the output numeric values or
+   *                          <code>null</code>.
+   * @param errors_out        The output error estimate.  <code>errors_out[0]
+   *                          </code> will contain the output error estimate,
+   *                          which may be <code>null</code>.
+   * @param unit_in           The unit of the input numeric values.
+   * @param error_in          The input error estimate or <code>null</code>.
+   * @param value             The input numeric value.
+   * @return                  The corresponding, transformed numeric values in
+   *                          the same array only if the input and output units
+   *                          were <code>null</code>; otherwise, a new array
+   *                          is returned.
+   * @throws NullPointerException if <code>errors_out</code> is <code>null
+   *                              </code>.
+   * @throws UnitException    if the input and output unit aren't convertible.
+   * @throws VisADException   if a VisAD failure occurs.
+   */
+  public static float[] transformUnits(
+                        Unit unit_out, ErrorEstimate[] errors_out,
+                        Unit unit_in, ErrorEstimate error_in,
+                        float[] value) throws UnitException, VisADException {
+
+    return transformUnits(unit_out, errors_out, unit_in, error_in, value, true);
+  }
+
+  /**
+   * Transform double values and (optionally) error estimates.
+   *
+   * @param unit_out          The unit of the output numeric values or
+   *                          <code>null</code>.
+   * @param errors_out        The output error estimate.  <code>errors_out[0]
+   *                          </code> will contain the output error estimate,
+   *                          which may be <code>null</code>.
+   * @param unit_in           The unit of the input numeric values.
+   * @param error_in          The input error estimate or <code>null</code>.
+   * @param value             The input numeric value.
+   * @param copy              if false and <code>unit_out</code> equals 
+   *                          <code>unit_in</code>, transform values in place.
+   * @return                  The corresponding, transformed numeric values in
+   *                          the same array only if the input and output units
+   *                          were <code>null</code>; otherwise, a new array
+   *                          is returned.
+   * @throws NullPointerException if <code>errors_out</code> is <code>null
+   *                              </code>.
+   * @throws UnitException    if the input and output unit aren't convertible.
+   * @throws VisADException   if a VisAD failure occurs.
+   */
+  public static double[] transformUnits(
+                        Unit unit_out, ErrorEstimate[] errors_out,
+                        Unit unit_in, ErrorEstimate error_in,
+                        double[] value, boolean copy) 
+                        throws UnitException, VisADException {
+
     if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
       return value;
     }
     else {
       // convert value array
-      double[] val = unit_out.toThis(value, unit_in);
+      double[] val = unit_out.toThis(value, unit_in, copy);
 
       // construct new ErrorEstimate, if needed
       if (error_in == null) {
@@ -427,6 +486,8 @@ public abstract class Unit
    * @param unit_in           The unit of the input numeric values.
    * @param error_in          The input error estimate or <code>null</code>.
    * @param value             The input numeric value.
+   * @param copy              if false and <code>unit_out</code> equals 
+   *                          <code>unit_in</code>, transform values in place.
    * @return                  The corresponding, transformed numeric values in
    *                          the same array only if the input and output units
    *                          were <code>null</code>; otherwise, a new array
@@ -439,7 +500,8 @@ public abstract class Unit
   public static float[] transformUnits(
                         Unit unit_out, ErrorEstimate[] errors_out,
                         Unit unit_in, ErrorEstimate error_in,
-                        float[] value) throws UnitException, VisADException {
+                        float[] value, boolean copy) 
+                        throws UnitException, VisADException {
 
     if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
@@ -447,7 +509,7 @@ public abstract class Unit
     }
     else {
       // convert value array
-      float[] val = unit_out.toThis(value, unit_in);
+      float[] val = unit_out.toThis(value, unit_in, copy);
 
       // construct new ErrorEstimate, if needed
       if (error_in == null) {
@@ -742,7 +804,7 @@ public abstract class Unit
     public double toThis(double value, Unit that)
         throws UnitException
     {
-        return toThis(new double[] {value}, that)[0];
+        return toThis(new double[] {value}, that, false)[0];
     }
 
     /**
@@ -772,6 +834,40 @@ public abstract class Unit
            throws UnitException;
 
     /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values    Values in units of the other unit.
+     * @param that      The other unit.
+     * @param copy      true to make a copy if units are not equal.  
+     *                  Ignored in this class.
+     * @return          Values in this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
+     */
+    public double[] toThis(double[] values, Unit that, boolean copy)
+           throws UnitException {
+      return toThis(values, that);
+    }
+
+    /**
+     * Convert values to this unit from another unit.
+     *
+     * @param values    Values in units of the other unit.
+     * @param that      The other unit.
+     * @param copy      true to make a copy if units are not equal.  
+     *                  Ignored in this class.
+     * @return          Values in this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
+     */
+    public float[] toThis(float[] values, Unit that, boolean copy)
+           throws UnitException {
+      return toThis(values, that);
+    }
+
+    /**
      * Convert a value from this unit to another unit.
      *
      * @param value     The value in this unit.
@@ -784,7 +880,7 @@ public abstract class Unit
     public double toThat(double value, Unit that)
         throws UnitException
     {
-        return toThat(new double[] {value}, that)[0];
+        return toThat(new double[] {value}, that, false)[0];
     }
 
     /**
@@ -812,6 +908,40 @@ public abstract class Unit
      */
     public abstract float[] toThat(float[] values, Unit that)
            throws UnitException;
+
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values    The values in this unit.
+     * @param that      The other unit.
+     * @param copy      true to make a copy if units are not equal.  
+     *                  Ignored in this class.
+     * @return          Values converted to the other unit from this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
+     */
+    public double[] toThat(double[] values, Unit that, boolean copy)
+           throws UnitException {
+      return toThat(values, that);
+    }
+
+    /**
+     * Convert values from this unit to another unit.
+     *
+     * @param values    The values in this unit.
+     * @param that      The other unit.
+     * @param copy      true to make a copy if units are not equal.  
+     *                  Ignored in this class.
+     * @return          Values converted to the other unit from this unit.
+     * @require         The units are convertible.
+     * @promise         Neither unit has been modified.
+     * @exception       UnitException   The units are not convertible.
+     */
+    public float[] toThat(float[] values, Unit that, boolean copy)
+           throws UnitException {
+      return toThat(values, that);
+    }
 
     /**
      * Returns a string representation of this unit.
