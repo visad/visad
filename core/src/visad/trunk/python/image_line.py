@@ -23,7 +23,7 @@ d1 = subs.makeDisplay(m)
 subs.setBoxSize(d1,.80)
 
 # add the image to the display
-refimg = subs.addData("image", image, d1)
+subs.addData("image", image, d1)
 
 # now the second panel
 m2 = subs.makeMaps(d[0],"x",r[0],"y")
@@ -56,7 +56,6 @@ cell = MyCell();
 cell.addReference(userline)
 
 # change the scale label on x axis
-xscale=AxisScale(m2[0],label="Element position in image")
 showAxesScales(d2,1)
 
 # display everything...
