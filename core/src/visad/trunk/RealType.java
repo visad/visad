@@ -269,7 +269,13 @@ public class RealType extends ScalarType {
       it doesn't matter whether DefaultUnit and DefaultSet are equal */
   public boolean equals(Object type) {
     if (!(type instanceof RealType)) return false;
-    return Name.equals(((RealType) type).Name);
+
+    // WLH 26 Aug 2001
+    // return Name.equals(((RealType) type).Name);
+    return Name.equals(((RealType) type).Name) &&
+           DefaultUnit.equals(((RealType) type).DefaultUnit) &&
+           DefaultSet.equals(((RealType) type).DefaultSet) &&
+           attrMask == ((RealType) type).attrMask;
   }
 
   /** any two RealType-s are equal except Name */
