@@ -89,7 +89,7 @@ public abstract class Repository
     /**
      * Save a data object in the first compatible data form.
      */
-    public void save(String id, DataImpl data, boolean replace)
+    public void save(String id, Data data, boolean replace)
 	throws VisADException, IOException, RemoteException
     {
 	forms.save(fullName(id), data, replace);
@@ -98,7 +98,7 @@ public abstract class Repository
     /**
      * Save a data object in a particular form.
      */
-    public void save(String id, DataImpl data, FormNode form, boolean replace)
+    public void save(String id, Data data, FormNode form, boolean replace)
 	throws VisADException, RemoteException, IOException
     {
 	form.save(fullName(id), data, replace);
@@ -107,7 +107,7 @@ public abstract class Repository
     /**
      * Add a data object to an existing data object in the repository.
      */
-    public void add(String id, DataImpl data, boolean replace)
+    public void add(String id, Data data, boolean replace)
 	throws VisADException
     {
 	forms.add(fullName(id), data, replace);

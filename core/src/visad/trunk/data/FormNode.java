@@ -39,14 +39,14 @@ FormNode
      * Save a VisAD data object in this form.
      */
     public abstract void
-    save(String id, DataImpl data, boolean replace)
+    save(String id, Data data, boolean replace)
 	throws BadFormException, IOException, RemoteException, VisADException;
 
 
     /**
      * Add data to an existing data object.
      */
-    public abstract void add(String id, DataImpl data, boolean replace)
+    public abstract void add(String id, Data data, boolean replace)
 	throws BadFormException;
 
 
