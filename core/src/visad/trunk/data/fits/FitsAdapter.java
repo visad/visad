@@ -494,6 +494,13 @@ System.err.println("Punting on " + axes.length + "-D image");
   {
     Vector vec = new Vector();
 
+    int startDepth;
+    if (stack == null) {
+      startDepth = 0;
+    } else {
+      startDepth = stack.depth();
+    }
+
     for (int n = 0; true; n++) {
       try {
 	BasicHDU hdu = fits.getHDU(n);
@@ -510,6 +517,9 @@ System.err.println("Punting on " + axes.length + "-D image");
 	  stack = new ExceptionStack(e);
 	} else {
 	  stack.addException(e);
+	  if (stack.depth() > startDepth + 10) {
+	    break;
+	  }
 	}
       }
     }
