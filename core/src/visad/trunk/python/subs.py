@@ -11,7 +11,7 @@ try:  #try/except done to remove these lines from documentation only
 
   from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
           Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple, \
-          VisADLineArray, VisADQuadArray, VisADTriangleArray, \
+          VisADLineArray, VisADQuadArray, VisADTriangleArray, SetType, \
           VisADGeometryArray, ConstantMap, Integer1DSet, FunctionType, \
           ScalarMap, Display, Integer1DSet, FieldImpl, CellImpl, \
           DisplayListener, DisplayEvent, GraphicsModeControl
@@ -343,6 +343,14 @@ class _vdisp:
     may be a Display, or the name of a 'plot()' window.
     """
     return (getDisplayMaps(self,includeShapes))
+
+
+  def moveLine(self, lref, points):
+    """ 
+    move the referenced line to the new points
+    """
+    type = lref.getType()
+    lref.setData(makeLine(type,points))
 
 
   def drawLine(self, points, color=None, mathtype=None, style=None, width=None):
@@ -756,7 +764,14 @@ def makeLine(domainType, points):
   example, if <domaintType> defines a (Latitude,Longitude), then
   the <points> are in Latitude,Longitude.
   """
-  return Gridded2DSet(RealTupleType(domainType), points, len(points[0]))
+  if isinstance(domainType, SetType):
+    dt = domainType
+  elif isinstance(domainType, RealTupleType):
+    dt = domainType
+  else:
+    dt = RealTupleType(domainType)
+
+  return Gridded2DSet(dt, points, len(points[0]))
 
 
 def makeLineStyleMap(style, width):
