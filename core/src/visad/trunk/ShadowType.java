@@ -1361,6 +1361,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     float[][] offset_values = new float[3][];
     boolean[] offset_copy = {false, false, false};
 
+    // spatial map RealType Units
+    Unit[] spatial_units = new Unit[] {null, null, null};
     // spatial map getRange() results for flow adjustment
     double[] ranges = new double[] {Double.NaN, Double.NaN, Double.NaN};
     // some helpers for computing ranges for flow adjustment
@@ -1397,9 +1399,11 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             tuple_indices[spatialDimension] = tuple_index;
             spatialDimension++; // # non-inherited spatial dimensions
           }
-          double[] map_range =
-            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getRange();
+          ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+          double[] map_range = map.getRange();
           ranges[tuple_index] = map_range[1] - map_range[0];
+          spatial_units[tuple_index] =
+            ((RealType) map.getScalar()).getDefaultUnit();
         }
       } // end if (display_values[i] != null)
     } // end for (int i=0; i<valueArrayLength; i++)
@@ -1518,48 +1522,75 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     if (flen[0] > 0) fillOut(flow1_values, len);
     if (flen[1] > 0) fillOut(flow2_values, len);
 
-    // adjust flow for spatial setRange scaling
-    double max_range = -1.0;
+    boolean spatial_flow = anyFlow;
     for (int i=0; i<3; i++) {
       if (ranges[i] == ranges[i]) {
-        double ar = Math.abs(ranges[i]);
-        if (ar > max_range) max_range = ar;
-      }
-    }
-    for (int i=0; i<3; i++) {
-      if (ranges[i] == ranges[i]) {
-        ranges[i] = ranges[i] / max_range;
-      }
-      else {
-        ranges[i] = 1.0;
-      }
-    }
-    for (int k=0; k<2; k++) {
-      if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
-        if (ff_values[k][0] != null ||
-            ff_values[k][1] != null ||
-            ff_values[k][2] != null) {
-          for (int j=0; j<len; j++) {
-            float old_speed = 0.0f;
-            float new_speed = 0.0f;
-            for (int i=0; i<3; i++) {
-              if (ff_values[k][i] != null) {
-                old_speed += ff_values[k][i][j] * ff_values[k][i][j];
-                ff_values[k][i][j] *= ranges[i];
-                new_speed += ff_values[k][i][j] * ff_values[k][i][j];
-              }
+        if (spatial_units[i] == null) {
+          spatial_flow = false;
+          break;
+        }
+        for (int j=0; j<3; j++) {
+          if (ranges[j] == ranges[j]) {
+            if (spatial_units[j] == null) {
+              spatial_flow = false;
+              break;
             }
-            // but don't change vector magnitude ??
-            float ratio = (float) Math.sqrt(old_speed / new_speed);
-            for (int i=0; i<3; i++) {
-              if (ff_values[k][i] != null) {
-                ff_values[k][i][j] *= ratio;
-              }
+            if (!Unit.canConvert(spatial_units[i], spatial_units[j])) {
+              spatial_flow = false;
+              break;
             }
           }
-        } // end if (ff_values[k][0] != null || ...)
-      } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
-    } // end for (int k=0; k<2; k++)
+        }
+      }
+    }
+System.out.println("spatial_flow = " + spatial_flow);
+
+    if (spatial_flow) {
+
+      // adjust flow for spatial setRange scaling
+      double max_range = -1.0;
+      for (int i=0; i<3; i++) {
+        if (ranges[i] == ranges[i]) {
+          double ar = Math.abs(ranges[i]);
+          if (ar > max_range) max_range = ar;
+        }
+      }
+      for (int i=0; i<3; i++) {
+        if (ranges[i] == ranges[i]) {
+          ranges[i] = ranges[i] / max_range;
+        }
+        else {
+          ranges[i] = 1.0;
+        }
+      }
+      for (int k=0; k<2; k++) {
+        if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+          if (ff_values[k][0] != null ||
+              ff_values[k][1] != null ||
+              ff_values[k][2] != null) {
+            for (int j=0; j<len; j++) {
+              float old_speed = 0.0f;
+              float new_speed = 0.0f;
+              for (int i=0; i<3; i++) {
+                if (ff_values[k][i] != null) {
+                  old_speed += ff_values[k][i][j] * ff_values[k][i][j];
+                  ff_values[k][i][j] *= ranges[i];
+                  new_speed += ff_values[k][i][j] * ff_values[k][i][j];
+                }
+              }
+              // but don't change vector magnitude ??
+              float ratio = (float) Math.sqrt(old_speed / new_speed);
+              for (int i=0; i<3; i++) {
+                if (ff_values[k][i] != null) {
+                  ff_values[k][i][j] *= ratio;
+                }
+              }
+            }
+          } // end if (ff_values[k][0] != null || ...)
+        } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
+      } // end for (int k=0; k<2; k++)
+
+    } // end if (spatial_flow)
 
     // adjust Flow values for coordinate transform
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
@@ -1572,61 +1603,72 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       // transform tuple_values to DisplaySpatialCartesianTuple
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
 
+
       float[][][] vector_ends = new float[2][][];
+  
+      if (spatial_flow) {
 
-      // WLH 4 March 2000
-      renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-               spatial_value_indices, default_values, ranges);
-      if (anyFlow) {
         // WLH 4 March 2000
-        // renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-        //          spatial_value_indices, default_values, ranges);
+        renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
+                 spatial_value_indices, default_values, ranges);
+        if (anyFlow) {
+          // WLH 4 March 2000
+          // renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
+          //          spatial_value_indices, default_values, ranges);
+  
+          // compute and transform 'end points' of flow vectors
+          for (int k=0; k<2; k++) {
+            if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+              if (flen[k] > 0) {
+                vector_ends[k] = new float[3][len];
+                for (int i=0; i<3; i++) {
+                  if (ff_values[k][i] != null) {
+                    for (int j=0; j<len; j++) {
+                      vector_ends[k][i][j] =
+                        spatial_values[i][j] + flowScale[k] * ff_values[k][i][j];
+                    }
+                  }
+                  else { // (ff_values[k][i] == null)
+                    for (int j=0; j<len; j++) {
+                      vector_ends[k][i][j] = spatial_values[i][j];
+                    }
+                  }
+                } // end for (int i=0; i<3; i++)
+                vector_ends[k] = coord.toReference(vector_ends[k]);
+              } // end if (flen[k] > 0)
+            } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
+          } // end for (int k=0; k<2; k++)
+        }
 
-        // compute and transform 'end points' of flow vectors
-        for (int k=0; k<2; k++) {
-          if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
-            if (flen[k] > 0) {
-              vector_ends[k] = new float[3][len];
-              for (int i=0; i<3; i++) {
-                if (ff_values[k][i] != null) {
-                  for (int j=0; j<len; j++) {
-                    vector_ends[k][i][j] =
-                      spatial_values[i][j] + flowScale[k] * ff_values[k][i][j];
-                  }
-                }
-                else { // (ff_values[k][i] == null)
-                  for (int j=0; j<len; j++) {
-                    vector_ends[k][i][j] = spatial_values[i][j];
-                  }
-                }
-              } // end for (int i=0; i<3; i++)
-              vector_ends[k] = coord.toReference(vector_ends[k]);
-            } // end if (flen[k] > 0)
-          } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
-        } // end for (int k=0; k<2; k++)
-      }
+      } // end if (spatial_flow)
 
       // transform spatial_values
       float[][] new_spatial_values = coord.toReference(spatial_values);
       for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
 
-      if (anyFlow) {
-        // subtract transformed spatial_values from transformed flow vectors
-        for (int k=0; k<2; k++) {
-          if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
-            if (flen[k] > 0) {
-              for (int i=0; i<3; i++) {
-                for (int j=0; j<len; j++) {
-                  vector_ends[k][i][j] =
-                    (vector_ends[k][i][j] - spatial_values[i][j]) / flowScale[k];
+      if (spatial_flow) {
+
+        if (anyFlow) {
+          // subtract transformed spatial_values from transformed flow vectors
+          for (int k=0; k<2; k++) {
+            if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+              if (flen[k] > 0) {
+                for (int i=0; i<3; i++) {
+                  for (int j=0; j<len; j++) {
+                    vector_ends[k][i][j] =
+                      (vector_ends[k][i][j] - spatial_values[i][j]) / flowScale[k];
+                  }
+                  ff_values[k][i] = vector_ends[k][i];
                 }
-                ff_values[k][i] = vector_ends[k][i];
               }
-            }
-          } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
-        } // end for (int k=0; k<2; k++)
-      }
+            } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
+          } // end for (int k=0; k<2; k++)
+        }
+
+      } // end if (spatial_flow)
+
       missing_checked = new boolean[] {false, false, false};
+
     } // end if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple))
 
     // calculate if need to swap rows and cols in contour line labels
@@ -1712,7 +1754,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         }
       }
       /*-TDR, debug
-      System.out.println("swap[0]: "+swap[0]+" swap[1]: "+swap[1]+" swap[2]: "+swap[2]);
+      System.out.println("swap[0]: "+swap[0]+" swap[1]: "+swap[1]+
+                         " swap[2]: "+swap[2]);
       */
     }
 
