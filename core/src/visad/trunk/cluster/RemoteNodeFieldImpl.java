@@ -64,7 +64,8 @@ public class RemoteNodeFieldImpl extends RemoteNodeDataImpl
     setSamples(range, false);
   }
 
-  public void setSamples(RemoteNodeDataImpl[] range, boolean copy)
+  // public void setSamples(RemoteNodeDataImpl[] range, boolean copy)
+  public void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException {
     if (range == null) {
       throw new ClusterException("range cannot be null");
@@ -72,17 +73,17 @@ public class RemoteNodeFieldImpl extends RemoteNodeDataImpl
     if (range.length != length) {
       throw new ClusterException("range length must match set length");
     }
+    for (int i=0; i<range.length; i++) {
+      if (!(range[i] instanceof RemoteNodeDataImpl)) {
+        throw new ClusterException("range values must be RemoteNodeDataImpl");
+      }
+    }
 
     adaptedField.setSamples(range, false); // don't copy
     // set this as parent
     for (int i=0; i<length; i++) {
-      range[i].setParent(this);
+      ((RemoteNodeDataImpl) range[i]).setParent(this);
     }
-  }
-
-  public void setSamples(Data[] range, boolean copy)
-         throws VisADException, RemoteException {
-    throw new ClusterException("no setSamples(Data[], boolean) method");
   }
 
   public void setSamples(double[][] range)
@@ -174,47 +175,47 @@ public class RemoteNodeFieldImpl extends RemoteNodeDataImpl
 
   public double[][] getValues()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getValues() method");
+    return adaptedField.getValues();
   }
 
   public double[][] getValues(boolean copy)
          throws VisADException, RemoteException {
-    throw new ClusterException("no getValues() method");
+    return adaptedField.getValues(copy);
   }
 
   public float[][] getFloats()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getFloats() method");
+    return adaptedField.getFloats();
   }
 
   public float[][] getFloats(boolean copy)
          throws VisADException, RemoteException {
-    throw new ClusterException("no getFloats() method");
+    return adaptedField.getFloats(copy);
   }
 
   public String[][] getStringValues()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getStringValues() method");
+    return adaptedField.getStringValues();
   }
 
   public Unit[] getDefaultRangeUnits()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getRangeCoordinateSystem() method");
+    return adaptedField.getDefaultRangeUnits();
   }
 
   public Unit[][] getRangeUnits()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getRangeCoordinateSystem() method");
+    return adaptedField.getRangeUnits();
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws VisADException, RemoteException {
-    throw new ClusterException("no getRangeCoordinateSystem() method");
+    return adaptedField.getRangeCoordinateSystem();
   }
 
   public CoordinateSystem[] getRangeCoordinateSystem(int i)
          throws VisADException, RemoteException {
-    throw new ClusterException("no getRangeCoordinateSystem() method");
+    return adaptedField.getRangeCoordinateSystem(i);
   }
 
   public boolean isFlatField() throws VisADException, RemoteException {

@@ -142,19 +142,18 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
             if (index[j] > his[j][k]) his[j][k] = index[j];
           }
         }
-        for (int k=0; k<number_of_nodes; k++) {
-          if (his[0][k] < 0 || his[1][k] < 0) {
-            throw new ClusterException("Set partition error");
-          }
-          subsets[k] =
-            new Linear2DSet(domain_type,
-                        firsts[0][k], lasts[0][k], (his[0][k] - lows[0][k] + 1),
-                        firsts[1][k], lasts[1][k], (his[1][k] - lows[1][k] + 1),
-                        domain_set.getCoordinateSystem(),
-                        domain_set.getSetUnits(), null);
-          FieldImpl subimage = (FieldImpl) image.resample(subsets[k]);
-          node_images[k] = new RemoteNodePartitionedFieldImpl(subimage);
+        int k = id - 1;
+        if (his[0][k] < 0 || his[1][k] < 0) {
+          throw new ClusterException("Set partition error");
         }
+        subsets[k] =
+          new Linear2DSet(domain_type,
+                      firsts[0][k], lasts[0][k], (his[0][k] - lows[0][k] + 1),
+                      firsts[1][k], lasts[1][k], (his[1][k] - lows[1][k] + 1),
+                      domain_set.getCoordinateSystem(),
+                      domain_set.getSetUnits(), null);
+        FieldImpl subimage = (FieldImpl) image.resample(subsets[k]);
+        node_images[k] = new RemoteNodePartitionedFieldImpl(subimage);
       }
       int kk = id - 1;
       String url = "///TestCluster" + kk;
