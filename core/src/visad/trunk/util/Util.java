@@ -22,6 +22,9 @@ MA 02111-1307, USA
 
 package visad.util;
 
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
+
 /**
  * A hodge-podge of general utility methods.
  */
@@ -247,6 +250,48 @@ public class Util
       else decoded[p++] = q;
     }
     return decoded;
+  }
+
+  /** return a JFileChooser that recognizes accepted VisAD file types */
+  public static JFileChooser getVisADFileChooser() {
+    // construct file filters
+    FileFilter fits = new ExtensionFileFilter(
+      "fits", "FITS datasets");
+    FileFilter gif = new ExtensionFileFilter(
+      "gif", "GIF images");
+    FileFilter hdf5 = new ExtensionFileFilter(
+      new String[] {"hdf", "hdf5"}, "HDF-5 datasets");
+    FileFilter hdfeos = new ExtensionFileFilter(
+      new String[] {"hdf", "hdfeos"}, "HDF-EOS datasets");
+    FileFilter jpeg = new ExtensionFileFilter(
+      new String[] {"jpg", "jpeg"}, "JPEG images");
+    FileFilter mcidas = new McIDASFileFilter();
+    FileFilter netcdf = new ExtensionFileFilter(
+      new String[] {"nc", "ncf", "netcdf"}, "netCDF datasets");
+    FileFilter png = new ExtensionFileFilter(
+      "png", "PNG images");
+    FileFilter serial = new ExtensionFileFilter(
+      new String[] {"svd", "vad", "visad"}, "Serialized VisAD data");
+    FileFilter vis5d = new ExtensionFileFilter(
+      "v5d", "Vis5D datasets");
+    FileFilter combo = new ComboFileFilter(
+      new FileFilter[] {fits, gif, hdf5, hdfeos, jpeg, mcidas, netcdf,
+      png, serial, vis5d}, "All VisAD file types");
+
+    // construct and configure file chooser
+    JFileChooser dialog = new JFileChooser();
+    dialog.addChoosableFileFilter(combo);
+    dialog.addChoosableFileFilter(fits);
+    dialog.addChoosableFileFilter(gif);
+    dialog.addChoosableFileFilter(hdf5);
+    dialog.addChoosableFileFilter(hdfeos);
+    dialog.addChoosableFileFilter(jpeg);
+    dialog.addChoosableFileFilter(mcidas);
+    dialog.addChoosableFileFilter(netcdf);
+    dialog.addChoosableFileFilter(png);
+    dialog.addChoosableFileFilter(serial);
+    dialog.addChoosableFileFilter(vis5d);
+    return dialog;
   }
 
 }
