@@ -917,91 +917,169 @@ public class BasicSSCell extends JPanel {
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
-    // extract filename from save string
-    if (!save.substring(0, 11).equals("filename = ")) {
-      throw new VisADException("Invalid save string!");
-    }
-    int i = save.indexOf('\n', 10);
-    String filename = save.substring(11, i++);
-    if (filename.equals("null")) filename = null;
-
-    // extract RMI address from save string
-    if (!save.substring(i, i+6).equals("rmi = ")) {
-      throw new VisADException("Invalid save string!");
-    }
-    i += 6;
-    int oi = i;
-    i = save.indexOf('\n', i);
-    String rmi = save.substring(oi, i++);
-    if (rmi.equals("null")) rmi = null;
-
-    // extract formula from save string
-    if (!save.substring(i, i+10).equals("formula = ")) {
-      throw new VisADException("Invalid save string!");
-    }
-    i += 10;
-    oi = i;
-    i = save.indexOf('\n', i);
-    String formula = save.substring(oi, i++);
-
-    // extract dimension from save string
-    if (!save.substring(i, i+6).equals("dim = ")) {
-      throw new VisADException("Invalid save string!");
-    }
-    i += 6;
-    oi = i;
-    i = save.indexOf('\n', i);
-    String b = save.substring(oi, i++);
+    String filename = null;
+    String rmi = null;
+    String formula = null;
     int dim = -1;
-    try {
-      dim = Integer.parseInt(b);
-    }
-    catch (NumberFormatException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    if (dim != JAVA3D_3D && dim != JAVA2D_2D && dim != JAVA3D_2D) {
-      throw new VisADException("Invalid save string!");
-    }
+    Vector rnames = null;
+    Vector dnames = null;
+    String proj = null;
+    String color = null;
 
-    // extract mappings from save string
-    if (!save.substring(i, i+7).equals("maps = ")) {
-      throw new VisADException("Invalid save string!");
-    }
-    Vector dnames = new Vector();
-    Vector rnames = new Vector();
-    i += 6;
-    char c;
-    do {
-      c = '*';
-      oi = i + 1;
-      while (c != ' ' && c != '\n') c = save.charAt(++i);
-      if (c != '\n') {
-        String dname = save.substring(oi, i++);
-        dnames.add(dname);
-        oi = i;
-        c = '*';
-        while (c != ' ' && c != '\n') c = save.charAt(++i);
-        try {
-          String s = (String) save.substring(oi, i);
-          int q = Integer.parseInt(s);
-          rnames.add(new Integer(q));
+    // parse the save string into lines
+    StringTokenizer st = new StringTokenizer(save, "\n\r");
+    int numTokens = st.countTokens();
+    String[] tokens = new String[numTokens + 1];
+    for (int i=0; i<numTokens; i++) tokens[i] = st.nextToken().trim();
+    tokens[numTokens] = null;
+    st = null;
+
+    // analyze each line of the save string
+    int tokenNum = 0;
+    while (true) {
+      // get next meaningful line
+      String line;
+      int len;
+      int eq;
+      do {
+        line = tokens[tokenNum++];
+        len = (line == null ? -1 : line.length());
+        if (len < 0) {
+          // end-of-string reached
+          eq = 0;
         }
-        catch (NumberFormatException exc) {
-          throw new VisADException("Invalid save string!");
+        else if (len == 0) {
+          // ignore blank lines
+          eq = -1;
+        }
+        else if (line.charAt(0) == '#') {
+          // ignore comments
+          eq = -1;
+        }
+        else eq = line.indexOf('=');
+      }
+      while (eq < 0);
+
+      if (line == null) {
+        // end-of-string reached
+        break;
+      }
+      String keyword = line.substring(0, eq).trim();
+
+      // get remainder of information after the equals sign
+      String surplus = line.substring(eq + 1, len).trim();
+      String nextLine = tokens[tokenNum];
+      boolean first = true;
+      while (nextLine != null && nextLine.indexOf('=') < 0) {
+        if (first) {
+          surplus = surplus + "\n";
+          first = false;
+        }
+        if (nextLine.length() > 0) surplus = surplus + nextLine + "\n";
+        nextLine = tokens[++tokenNum];
+      }
+
+      // examine all cases
+
+      // filename
+      if (keyword.equalsIgnoreCase("filename") ||
+        keyword.equalsIgnoreCase("file name") ||
+        keyword.equalsIgnoreCase("file_name") ||
+        keyword.equalsIgnoreCase("file"))
+      {
+        filename = surplus;
+        if (filename.equals("null")) filename = null;
+      }
+
+      // rmi address
+      else if (keyword.equalsIgnoreCase("rmi") ||
+        keyword.equalsIgnoreCase("rmi address") ||
+        keyword.equalsIgnoreCase("rmi_address") ||
+        keyword.equalsIgnoreCase("rmiaddress"))
+      {
+        rmi = surplus;
+        if (rmi.equals("null")) rmi = null;
+      }
+
+      // formula
+      else if (keyword.equalsIgnoreCase("formula") ||
+        keyword.equalsIgnoreCase("equation"))
+      {
+        formula = surplus;
+      }
+
+      // dimension
+      else if (keyword.equalsIgnoreCase("dim") ||
+        keyword.equalsIgnoreCase("dimension"))
+      {
+        int d = -1;
+        try {
+          d = Integer.parseInt(surplus);
+        }
+        catch (NumberFormatException exc) { }
+        if (d > 0 && d < 4) dim = d;
+        else {
+          // invalid dimension value
+          System.err.println("Warning: dimension value " + surplus +
+            " is not valid and will be ignored");
         }
       }
-    }
-    while (c != '\n');
-    i++;
 
-    // extract projection control from save string
-    if (!save.substring(i, i+13).equals("projection = ")) {
-      throw new VisADException("Invalid save string!");
+      // mappings
+      else if (keyword.equalsIgnoreCase("maps") ||
+        keyword.equalsIgnoreCase("mappings"))
+      {
+        st = new StringTokenizer(surplus);
+        dnames = new Vector();
+        rnames = new Vector();
+        while (true) {
+          if (!st.hasMoreTokens()) break;
+          String s = st.nextToken();
+          if (!st.hasMoreTokens()) {
+            System.err.println("Warning: trailing maps value " + s +
+              " has no corresponding number and will be ignored");
+            break;
+          }
+          String si = st.nextToken();
+          Integer i = null;
+          try {
+            i = new Integer(Integer.parseInt(si));
+          }
+          catch (NumberFormatException exc) { }
+          if (i == null) {
+            System.err.println("Warning: maps value " + si + " is not a " +
+              "valid integer and the maps pair (" + s + ", " + si + ") " +
+              "will be ignored");
+          }
+          else {
+            dnames.add(s);
+            rnames.add(i);
+          }
+        }
+      }
+
+      // projection matrix
+      else if (keyword.equalsIgnoreCase("projection") ||
+        keyword.equalsIgnoreCase("proj"))
+      {
+        proj = surplus;
+      }
+
+      // color table
+      else if (keyword.equalsIgnoreCase("color") ||
+        keyword.equalsIgnoreCase("color table") ||
+        keyword.equalsIgnoreCase("color_table") ||
+        keyword.equalsIgnoreCase("colortable"))
+      {
+        color = surplus;
+      }
+
+      // unknown keyword
+      else {
+        System.err.println("Warning: keyword " +
+          line.substring(0, eq).trim() + " is unknown and will be ignored");
+      }
     }
-    i += 13;
-    oi = i;
-    i = save.indexOf('\n', i);
-    String proj = save.substring(oi, i);
 
     // clear old stuff from cell
     clearCell();
@@ -1025,45 +1103,67 @@ public class BasicSSCell extends JPanel {
     if (rmi != null) loadRMI(rmi);
 
     // set up formula
-    if (!formula.equals("")) setFormula(formula);
+    if (formula != null && !formula.equals("")) setFormula(formula);
 
     // set up mappings
-    int len = dnames.size();
-    if (len > 0) {
-      // get Vector of all ScalarTypes in this data object
-      Vector types = new Vector();
-      Data data = getData();
-      if (data != null) getRealTypes(getData(), types);
-      int vLen = types.size();
+    if (dnames != null) {
+      int len = dnames.size();
+      if (len > 0) {
+        // get Vector of all ScalarTypes in this data object
+        Vector types = new Vector();
+        Data data = getData();
+        if (data != null) getRealTypes(getData(), types);
+        int vLen = types.size();
+        int dLen = Display.DisplayRealArray.length;
 
-      // construct ScalarMaps
-      ScalarMap[] maps = new ScalarMap[len];
-      for (int j=0; j<len; j++) {
-        // find appropriate ScalarType
-        ScalarType domain = null;
-        String name = (String) dnames.elementAt(j);
-        for (int k=0; k<vLen && domain==null; k++) {
-          ScalarType type = (ScalarType) types.elementAt(k);
-          if (name.equals(type.getName())) domain = type;
+        // construct ScalarMaps
+        ScalarMap[] maps = new ScalarMap[len];
+        for (int j=0; j<len; j++) {
+          // find appropriate ScalarType
+          ScalarType domain = null;
+          String name = (String) dnames.elementAt(j);
+          for (int k=0; k<vLen && domain==null; k++) {
+            ScalarType type = (ScalarType) types.elementAt(k);
+            if (name.equals(type.getName())) domain = type;
+          }
+          if (domain == null) {
+            // still haven't found type; look in static Vector for it
+            domain = ScalarType.getScalarTypeByName(name);
+          }
+
+          // find appropriate DisplayRealType
+          int q = ((Integer) rnames.elementAt(j)).intValue();
+          DisplayRealType range = null;
+          if (q >= 0 && q < dLen) range = Display.DisplayRealArray[q];
+
+          // construct mapping
+          if (domain == null || range == null) {
+            System.err.println("Warning: maps pair (" + name + ", " +
+              q + ") is not a valid ScalarMap and will be ignored");
+            maps[j] = null;
+          }
+          else maps[j] = new ScalarMap(domain, range);
         }
-        if (domain == null) {
-          // still haven't found type; look in static Vector for it
-          domain = ScalarType.getScalarTypeByName(name);
-        }
-
-        // find appropriate DisplayRealType
-        int q = ((Integer) rnames.elementAt(j)).intValue();
-        DisplayRealType range = Display.DisplayRealArray[q];
-
-        // construct mapping
-        maps[j] = new ScalarMap(domain, range);
+        setMaps(maps);
       }
-      setMaps(maps);
     }
 
     // set up projection control
-    ProjectionControl pc = VDisplay.getProjectionControl();
-    if (pc != null) pc.setSaveString(proj);
+    if (proj != null) {
+      ProjectionControl pc = VDisplay.getProjectionControl();
+      if (pc != null) pc.setSaveString(proj);
+      else System.err.println("Warning: display has no ProjectionControl; " +
+        "the provided projection matrix will be ignored");
+    }
+
+    // set up color control
+    if (color != null) {
+      ColorControl cc = (ColorControl)
+        VDisplay.getControl(ColorControl.class);
+      if (cc != null) cc.setSaveString(color);
+      else System.err.println("Warning: display has no ColorControl; " +
+        "the provided color table will be ignored");
+    }
   }
 
   /** @deprecated use getSaveString() instead */
@@ -1075,17 +1175,16 @@ public class BasicSSCell extends JPanel {
   public String getSaveString() {
     if (IsRemote) return null;
     else {
-      String s = "filename = " + (Filename == null ?
-                                 "null" : Filename.toString()) + "\n";
-      s = s + "rmi = " + RMIAddress + "\n";
-      s = s + "formula = " + Formula + "\n";
+      String s = "";
+      if (Filename != null) s = s + "filename = " + Filename.toString() + "\n";
+      if (RMIAddress != null) s = s + "rmi = " + RMIAddress + "\n";
+      if (!Formula.equals("")) s = s + "formula = " + Formula + "\n";
       s = s + "dim = " + Dim + "\n";
-      s = s + "maps = ";
-      ScalarMap[] maps = null;
       if (VDisplay != null) {
         Vector mapVector = VDisplay.getMapVector();
         int mvs = mapVector.size();
         if (mvs > 0) {
+          s = s + "maps = ";
           for (int i=0; i<mvs; i++) {
             ScalarMap m = (ScalarMap) mapVector.elementAt(i);
             ScalarType domain = m.getScalar();
@@ -1099,14 +1198,13 @@ public class BasicSSCell extends JPanel {
           }
           s = s + "\n";
         }
-        else s = s + "null\n";
       }
-      else s = s + "null\n";
-      s = s + "projection = ";
-      if (VDisplay == null) s = s + "null\n";
-      else {
+      if (VDisplay != null) {
         ProjectionControl pc = VDisplay.getProjectionControl();
-        s = s + (pc == null ? "null\n" : pc.getSaveString() + "\n");
+        if (pc != null) s = s + "projection = " + pc.getSaveString() + "\n";
+        ColorControl cc = (ColorControl)
+          VDisplay.getControl(ColorControl.class);
+        if (cc != null) s = s + "color = " + cc.getSaveString();
       }
       return s;
     }
@@ -1148,14 +1246,16 @@ public class BasicSSCell extends JPanel {
       setVDPanel(false);
       clearMaps();
       for (int i=0; i<maps.length; i++) {
-        try {
-          RemoteVDisplay.addMap(maps[i]);
-        }
-        catch (VisADException exc) {
-          vexc = exc;
-        }
-        catch (RemoteException exc) {
-          rexc = exc;
+        if (maps[i] != null) {
+          try {
+            RemoteVDisplay.addMap(maps[i]);
+          }
+          catch (VisADException exc) {
+            vexc = exc;
+          }
+          catch (RemoteException exc) {
+            rexc = exc;
+          }
         }
       }
       RemoteVDisplay.addReference(dr);

@@ -32,7 +32,7 @@ import java.io.*;
 import java.net.*;
 import java.rmi.*;
 import java.rmi.registry.*;
-import java.util.Vector;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
@@ -1027,78 +1027,103 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // clear all cells
     newFile(false);
 
-    // load file
-    String[][] cellNames = null;
-    String[][] fileStrings = null;
+    // load entire file into buffer
+    int fLen = (int) f.length();
+    char[] buff = new char[fLen];
     try {
       FileReader fr = new FileReader(f);
-      char[] buff = new char[8192];
-      boolean done = false;
-
-      // get spreadsheet dimensions
-      int count = 0;
-      int ch;
-      do {
-        ch = fr.read();
-        if (ch == 'x') {
-          String s = new String(buff, 0, count);
-          NumVisX = Integer.parseInt(s.substring(0, s.length()-1));
-          count = 0;
-        }
-        else if (ch == '\n') {
-          String s = new String(buff, 0, count);
-          NumVisY = Integer.parseInt(s.substring(1));
-        }
-        else buff[count++] = (char) ch;
-      }
-      while (ch != '\n');
-
-      // get cell information
-      cellNames = new String[NumVisX][NumVisY];
-      fileStrings = new String[NumVisX][NumVisY];
-      for (int j=0; j<NumVisY; j++) {
-        for (int i=0; i<NumVisX; i++) {
-          count = 0;
-          int lncnt = 0;
-          // get cell name
-          while (ch != '[') ch = fr.read();
-          do {
-            ch = fr.read();
-            buff[count++] = (char) ch;
-          } while (ch != '\n');
-          String s = new String(buff, 0, count);
-          cellNames[i][j] = s.substring(0, s.length()-2);
-          count = 0;
-
-          // get cell reconstruction string
-          while (lncnt < 6) {
-            ch = fr.read();
-            buff[count++] = (char) ch;
-            if (ch == '\n') lncnt++;
-          }
-          fileStrings[i][j] = new String(buff, 0, count);
-        }
-      }
+      fr.read(buff, 0, fLen);
       fr.close();
     }
-    catch (NumberFormatException exc) {
-      displayErrorMessage("The file " + file + " could not be loaded. " +
-        "Its format is incorrect.", "VisAD SpreadSheet error");
+    catch (IOException exc) {
+      displayErrorMessage("Unable to read the file " + file + " from disk",
+        "VisAD SpreadSheet error");
       return;
     }
-    catch (IOException exc) {
-      displayErrorMessage("The file " + file + " could not be loaded. " +
-        "Its format is incorrect.", "VisAD SpreadSheet error");
-      return;
+
+    // cut buffer up into lines
+    StringTokenizer st = new StringTokenizer(new String(buff), "\n\r");
+    int numTokens = st.countTokens();
+    String[] tokens = new String[numTokens + 1];
+    for (int i=0; i<numTokens; i++) tokens[i] = st.nextToken();
+    tokens[numTokens] = null;
+    st = null;
+
+    // get spreadsheet dimensions
+    int i1 = -1, i2 = -1;
+    int tokenNum = 0;
+    String line;
+    int len;
+    int eq;
+    do {
+      line = tokens[tokenNum++];
+      if (line == null) {
+        displayErrorMessage("The file " + file + " does not contain " +
+          "spreadsheet dimension information of the form \"rows x columns\"",
+          "VisAD SpreadSheet error");
+        return;
+      }
+      len = line.length();
+      eq = line.indexOf('x');
+      if (eq >= 0) {
+        String n1 = line.substring(0, eq).trim();
+        String n2 = line.substring(eq + 1, len).trim();
+        i1 = -1;
+        i2 = -1;
+        try {
+          i1 = Integer.parseInt(n1);
+          i2 = Integer.parseInt(n2);
+        }
+        catch (NumberFormatException exc) { }
+      }
+    }
+    while (i2 < 0);
+
+    // examine each cell entry
+    String[][] cellNames = new String[i1][i2];
+    String[][] fileStrings = new String[i1][i2];
+    for (int j=0; j<i2; j++) {
+      for (int i=0; i<i1; i++) {
+        // find next cell name
+        cellNames[i][j] = null;
+        do {
+          line = tokens[tokenNum++];
+          if (line == null) {
+            displayErrorMessage("The file " + file + " is incomplete",
+              "VisAD SpreadSheet error");
+            return;
+          }
+          int lbrack = line.indexOf('[');
+          if (lbrack >= 0) {
+            int rbrack = line.indexOf(']', lbrack);
+            if (rbrack >= 0) {
+              // this line identifies a cell name
+              cellNames[i][j] = line.substring(lbrack + 1, rbrack).trim();
+            }
+          }
+        }
+        while (cellNames[i][j] == null);
+
+        // find last line of this cell's save string
+        int last = tokenNum + 1;
+        while (tokens[last] != null && tokens[last].indexOf('[') < 0) last++;
+
+        // build this cell's save string
+        String s = "";
+        for (int l=tokenNum; l<last; l++) s = s + tokens[l] + "\n";
+        fileStrings[i][j] = s;
+      }
     }
 
     // reconstruct spreadsheet cells and labels
+    NumVisX = i1;
+    NumVisY = i2;
     reconstructSpreadsheet(cellNames, null);
     synchColRow();
 
     // set each cell's string
-    for (int i=0; i<NumVisX; i++) {
-      for (int j=0; j<NumVisY; j++) {
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) {
         try {
           DisplayCells[i][j].setSaveString(fileStrings[i][j]);
         }
@@ -1128,18 +1153,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
       try {
         FileWriter fw = new FileWriter(CurrentFile);
         String s = NumVisX + " x " + NumVisY + "\n\n";
-        char[] sc = s.toCharArray();
-        fw.write(sc, 0, sc.length);
         for (int j=0; j<NumVisY; j++) {
           for (int i=0; i<NumVisX; i++) {
-            s = "[" + DisplayCells[i][j].getName() + "]\n";
-            sc = s.toCharArray();
-            fw.write(sc, 0, sc.length);
-            s = DisplayCells[i][j].getSaveString() + "\n";
-            sc = s.toCharArray();
-            fw.write(sc, 0, sc.length);
+            s = s + "[" + DisplayCells[i][j].getName() + "]\n"
+              + DisplayCells[i][j].getSaveString() + "\n";
           }
         }
+        char[] sc = s.toCharArray();
+        fw.write(sc, 0, sc.length);
         fw.close();
       }
       catch (IOException exc) {

@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.rmi.*;
+import java.util.StringTokenizer;
 
 /**
    ProjectionControl is the VisAD interface for controlling the Projection
@@ -69,8 +70,25 @@ public abstract class ProjectionControl extends Control {
       ProjectionControl later */
   public String getSaveString() {
     int len = matrix.length;
-    String s = len + ":";
-    for (int i=0; i<len; i++) s = s + " " + matrix[i];
+    String s;
+    if (len == 6) {
+      s = "3 x 2\n";
+      for (int j=0; j<2; j++) {
+        for (int i=0; i<2; i++) s = s + matrix[3 * j + i] + " ";
+        s = s + matrix[3 * j + 2] + "\n";
+      }
+    }
+    else if (len == 16) {
+      s = "4 x 4\n";
+      for (int j=0; j<4; j++) {
+        for (int i=0; i<3; i++) s = s + matrix[4 * j + i] + " ";
+        s = s + matrix[4 * j + 3] + "\n";
+      }
+    }
+    else {
+      s = len + "\n";
+      for (int i=0; i<len; i++) s = s + " " + matrix[i];
+    }
     return s;
   }
 
@@ -78,15 +96,21 @@ public abstract class ProjectionControl extends Control {
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
-    int i = save.indexOf(':');
-    int len = Integer.parseInt(save.substring(0, i++));
-    double[] m = new double[len];
-    for (int j=0; j<len; j++) {
-      int oi = ++i;
-      i = save.indexOf(' ', i);
-      if (i < 0) i = save.length();
-      m[j] = Double.parseDouble(save.substring(oi, i));
+    int eol = save.indexOf('\n');
+    String size = save.substring(0, eol);
+    int len = -1;
+    if (size.equals("3 x 2")) len = 6;
+    else if (size.equals("4 x 4")) len = 16;
+    else {
+      try {
+        len = Integer.parseInt(size);
+      }
+      catch (NumberFormatException exc) { }
     }
+    StringTokenizer st = new StringTokenizer(save.substring(eol));
+    if (len < 0) len = st.countTokens();
+    double[] m = new double[len];
+    for (int i=0; i<len; i++) m[i] = Double.parseDouble(st.nextToken());
     setMatrix(m);
   }
 

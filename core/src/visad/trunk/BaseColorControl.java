@@ -165,6 +165,47 @@ public abstract class BaseColorControl extends Control {
     return t;
   }
 
+  /** if this BaseColorControl is defined using a color table, get
+      a String that can be used to reconstruct this BaseColorControl
+      later. If this BaseColorControl is defined using a Function,
+      return null */
+  public String getSaveString() {
+    if (table == null) return null;
+    int len = table.length;
+    int len0 = table[0].length;
+    String s = len + " x " + len0 + "\n";
+    for (int i=0; i<len; i++) {
+      s = s + table[i][0];
+      for (int j=1; j<len0; j++) s = s + " " + table[i][j];
+      s = s + "\n";
+    }
+    return s;
+  }
+
+  /** reconstruct this BaseColorControl using the specified save string */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    int e1 = save.indexOf(' ');
+    int s2 = save.indexOf('x') + 2;
+    int e2 = save.indexOf('\n');
+    int len = Integer.parseInt(save.substring(0, e1));
+    int len0 = Integer.parseInt(save.substring(s2, e2));
+    float[][] t = new float[len][len0];
+    int x = e2 + 1;
+    for (int i=0; i<len; i++) {
+      for (int j=0; j<len0-1; j++) {
+        int ox = x;
+        x = save.indexOf(' ', x + 1);
+        t[i][j] = Float.parseFloat(save.substring(ox, x));
+      }
+      int ox = x;
+      x = save.indexOf('\n', x + 1);
+      t[i][len0 - 1] = Float.parseFloat(save.substring(ox, x));
+    }
+    setTable(t);
+  }
+
   public float[][] lookupValues(float[] values)
          throws VisADException, RemoteException {
     if (values == null) {
