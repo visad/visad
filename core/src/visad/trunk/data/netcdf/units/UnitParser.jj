@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitParser.jj,v 1.6 1998-02-23 15:59:02 steve Exp $
+ * $Id: UnitParser.jj,v 1.7 1998-05-29 21:01:11 visad Exp $
  */
 
 options
@@ -237,14 +237,12 @@ void unitSpecList() :
 Unit unitSpec() :
 {
     Unit	unit = null;
-    double	amount = 1;
     double	origin = 0;
     boolean	originSpecified = false;
 
     isTime = false;
 }
 {
-    [	amount=numericalTerm() ]
     [	unit=unitExpression() ]
 	{
 	    isTime = Unit.canConvert(unit, second);
@@ -258,9 +256,8 @@ Unit unitSpec() :
     {
 	try
 	{
-	    unit = unit == null
-			? new ScaledUnit(amount)
-			: unit.scale(amount);
+	    if (unit == null)
+		unit = new DerivedUnit();	// dimensionless derived unit
 	    if (origin != 0 || (originSpecified && isTime))
 		unit = unit.shift(origin);
 	    return unit;
@@ -276,10 +273,11 @@ Unit unitSpec() :
 
 Unit unitExpression() :
 {
+    double	value;
     Unit	unit1, unit2;
 }
 {
-    unit1=powerExpression()
+    unit1=termExpression()
     (
 	unit2=powerExpression()
 	{
@@ -292,7 +290,7 @@ Unit unitExpression() :
 		throw new ParseException("Couldn't multiply units");
 	    }
 	}
-	| <DIVIDE> unit2=powerExpression()
+	| <DIVIDE> unit2=termExpression()
 	{
 	    try
 	    {
@@ -311,8 +309,29 @@ Unit unitExpression() :
 }
 
 
+Unit termExpression() :
+{
+    Unit	unit;
+    double	value;
+}
+{
+    (
+	unit=powerExpression()
+	|
+	value=numberExpression()
+	{
+	    unit=new ScaledUnit(value);
+	}
+    )
+    {
+	return unit;
+    }
+}
+
+
 Unit powerExpression() :
 {
+    double	value;
     Unit	unit;
     Token	t;
 }
@@ -342,7 +361,7 @@ Unit factorExpression() :
     Unit	unit;
 }
 {
-    ( unit=quantityExpression() | "(" unit=unitSpec() ")" )
+    ( unit=nameExpression() | "(" unit=unitSpec() ")" )
 
     {
 	return unit;
@@ -350,24 +369,24 @@ Unit factorExpression() :
 }
 
 
-double numericalTerm() :
+Unit nameExpression() :
 {
-    double	value1, value2;
+    Token	t;
+    Unit	unit;
 }
 {
-    value1=numberExpression()
-    (
-	value2=numberExpression()
-	{
-	    value1 *= value2;
-	}
-	| <DIVIDE> value2=numberExpression()
-	{
-	    value1 /= value2;
-	}
-    )*
+    t=<NAME>
     {
-	return value1;
+	unit = unitsDB.get(t.image);
+	if (unit == null)
+	{
+	    throw new NoSuchUnitException(
+		"Unit \"" + t.image + "\" not in database");
+	}
+    }
+
+    {
+	return unit;
     }
 }
 
@@ -392,24 +411,6 @@ double numberExpression() :
 
     {
 	return value;
-    }
-}
-
-Unit quantityExpression() :
-{
-    Token	t;
-    Unit	unit;
-}
-{
-    t=<NAME>
-    {
-	unit = unitsDB.get(t.image);
-	if (unit == null)
-	{
-	    throw new NoSuchUnitException(
-		"Unit \"" + t.image + "\" not in database");
-	}
-	return unit;
     }
 }
 
@@ -451,6 +452,29 @@ double valueExpression() :
 	return value;
     }
 }
+
+
+double numericalTerm() :
+{
+    double	value1, value2;
+}
+{
+    value1=numberExpression()
+    (
+	value2=numberExpression()
+	{
+	    value1 *= value2;
+	}
+	| <DIVIDE> value2=numberExpression()
+	{
+	    value1 /= value2;
+	}
+    )*
+    {
+	return value1;
+    }
+}
+
 
 double timestampExpression() :
 {
