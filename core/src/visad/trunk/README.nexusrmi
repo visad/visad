@@ -1,0 +1,57 @@
+
+               Compiling and Running VisAD Using NexusRMI
+
+1. Introduction
+
+You can compile and run VisAD using NexusRMI, an alternate implementation
+of RMI (Java's distributed object technology) based on the Nexus
+high-performance communication system.
+
+NexusRMI was written by Fabian Breg and Dennis Gannon of Indiana University
+and is available from:
+
+  http://www.extreme.indiana.edu/hpjava/nexusrmi/index.html
+
+
+2. Compiling VisAD Using NexusRMI
+
+You'll need to unpack all of Java's class library Jar files into a
+directory in your CLASSPATH.  These Jar files include:
+
+  jre/lib/ext/iiimp.jar
+  jre/lib/i18n.jar
+  jre/lib/rt.jar
+  lib/tools.jar
+  lib/dt.jar
+
+and if you're using Java3D:
+
+  jre/lib/ext/vecmath.jar
+  jre/lib/ext/j3dcore.jar
+  jre/lib/ext/j3daudio.jar
+  jre/lib/ext/j3dutils.jar
+
+This is necessary for the nexusrmic compiler to be able to find the
+Java classes.
+
+Then run the following commands in your visad directory:
+
+  make tonexus
+
+  make nexusrmi_compile
+
+The first make command replaces all imports of 'java.rmi' with 'nexusrmi'
+in the VisAD source code.  The second make command compiles VisAD,
+substituting the nexusrmic compiler for the rmic compiler.  Note you
+can change the 'nexusrmi' imports back to 'java.rmi' by running:
+
+  make tojava
+
+This lets you compile using the standard Java implementation of RMI.
+
+
+3. Running VisAD Using NexusRMI
+
+Start nexusrmiregistry (the NexusRMI alternative to rmiregistry).
+Then just run your VisAD applications.
+
