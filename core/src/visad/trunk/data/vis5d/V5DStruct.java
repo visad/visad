@@ -462,14 +462,16 @@ public class V5DStruct {
   {
     int i, j, k, k2, m, m2;
     int day, time, first_day, first_time;
-    char[] filename = new char[200];
+    // char[] filename = new char[200];
     byte[] varnames = new byte[10*MAXVARS];
     byte[] varunits = new byte[20*MAXVARS];
 
     // open file
-    for (i=0; i<name_length; i++) filename[i] = (char) name[i];
-    filename[name_length] = 0;
-    V5DStruct v = v5dOpenFile(new String(filename));
+    // Modified 01-Feb-2005 DRM:  caused problems on Mac-OSX
+    //for (i=0; i<name_length; i++) filename[i] = (char) name[i];
+    //filename[name_length] = 0;
+    //V5DStruct v = v5dOpenFile(new String(filename));
+    V5DStruct v = v5dOpenFile(new String( name, 0, name_length)); 
 
     if (v != null) {
       // get basic sizes
