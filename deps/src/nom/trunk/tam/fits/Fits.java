@@ -601,4 +601,50 @@ public class Fits {
         dataStr = stream;
         atEOF = false;
     }
+
+    public static void main(String args[])
+	throws FitsException
+    {
+      if (args.length != 1) {
+	System.err.println("Usage: Fits file");
+	System.exit(1);
+	return;
+      }
+
+      Fits fits = new Fits(args[0]);
+
+      try {
+	System.out.println("Fits: " + fits);
+      } catch (Exception e) {
+	System.err.println(args[0] + " print threw " + e.getMessage());
+	e.printStackTrace(System.err);
+	System.exit(1);
+	return;
+      }
+
+      for (int n = 0; true; n++) {
+	BasicHDU hdu;
+	try {
+	  hdu = fits.getHDU(n);
+	  if (hdu == null) {
+	    break;
+	  }
+	} catch (Exception e) {
+	  System.err.println(args[0] + "#" + n + " fetch threw " +
+			     e.getMessage());
+	  e.printStackTrace(System.err);
+	  System.exit(1);
+	  return;
+	}
+	try {
+	  System.out.println("Fits: " + args[0] + "#" + n + "= " + hdu);
+	} catch (Exception e) {
+	  System.err.println(args[0] + "#" + n + " print threw " +
+			     e.getMessage());
+	  e.printStackTrace(System.err);
+	  System.exit(1);
+	  return;
+	}
+      }
+    }
 }
