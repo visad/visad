@@ -35,6 +35,7 @@ import java.net.URL;
 
 import visad.*;
 import visad.VisADException;
+import visad.data.in.ArithProg;
 
 
 /** this is an VisAD file adapter for comma-, tab- and blank-separated
@@ -791,8 +792,7 @@ public class TextAdapter {
     if (numDom == 1) {  // for 1-D domains
 
       if (lset[0] == null) {
-        float[][] a = getDomSamples(0, numSamples, domainValues);
-        domain = (Set) new Irregular1DSet(domType, a);
+        domain = createAppropriate1DDomain(domType, numSamples, domainValues);
 
       } else {
         domain = lset[0];
@@ -1086,4 +1086,74 @@ public class TextAdapter {
   public Field getData() {
     return field;
   }
+
+  /**
+   * Returns an appropriate 1D domain.
+   *
+   * @param type the math-type of the domain
+   * @param numSamples the number of samples in the domain
+   * @param domValues domain values are extracted from this array list.
+   *
+   * @return a Linear1DSet if the domain samples form an arithmetic
+   *   progression, a Gridded1DDoubleSet if the domain samples are ordered
+   *   but do not form an arithmetic progression, otherwise an Irregular1DSet.
+   *
+   * @throws VisADException there was a problem creating the domain set.
+   */
+  private Set createAppropriate1DDomain(MathType type, int numSamples,
+                                       ArrayList domValues)
+				         throws VisADException {
+
+    if (0 == numSamples) {
+      // Can't create a domain set with zero samples.
+      return null;
+    }
+
+    // Extract the first element from each element of the array list.
+    double[][] values = new double[1][numSamples];
+    for (int i=0; i<numSamples; ++i) {
+      double[] d = (double []) domValues.get(i);
+      values[0][i] = d[0];
+    }
+
+    // This implementation for testing that the values are ordered
+    // is based on visad.Gridded1DDoubleSet.java
+    boolean ordered = true;
+    boolean ascending = values[0][numSamples -1] > values[0][0];
+    if (ascending) {
+      for (int i=1; i<numSamples; ++i) {
+        if (values[0][i] < values[0][i - 1]) {
+          ordered = false;
+          break;
+        }
+      }
+    } else {
+      for (int i=1; i<numSamples; ++i) {
+        if (values[0][i] > values[0][i - 1]) {
+          ordered = false;
+          break; 
+        }
+      }
+    }
+
+    Set set = null;
+
+    if (ordered) {
+      ArithProg arithProg = new ArithProg();
+      if (arithProg.accumulate(values[0])) {
+        // The domain values form an arithmetic progression (ordered and
+        // equally spaced) so use a linear set.
+        set = new Linear1DSet(type, values[0][0], values[0][numSamples - 1],
+          numSamples);
+      } else {
+        // The samples are ordered, so use a gridded set.
+        set = new Gridded1DDoubleSet(type, values, numSamples);
+      }
+    } else {
+      set = new Irregular1DSet(type, Set.doubleToFloat(values));
+    }
+
+    return set;
+  }
+
 }
