@@ -836,7 +836,7 @@ public class DataUtility {
   }
 
   /**
-   * Obtains a Vector consisting of all ScalarTypes present in the Data's
+   * Obtains a Vector consisting of all ScalarTypes present in a Data object's
    * MathType.
    * @param data                The Data from which to extract the ScalarTypes.
    * @param v                   The Vector in which to store the ScalarTypes.
@@ -847,23 +847,43 @@ public class DataUtility {
   public static int getRealTypes(Data data, Vector v)
     throws VisADException, RemoteException
   {
-    MathType dataType = data.getType();
+    return getRealTypes(new Data[] {data}, v);
+  }
 
-    int[] i = new int[1];
-    i[0] = 0;
+  /**
+   * Obtains a Vector consisting of all ScalarTypes present in an array of
+   * Data objects' MathTypes.
+   * @param data                The array of Data from which to extract the
+   *                            ScalarTypes.
+   * @param v                   The Vector in which to store the ScalarTypes.
+   * @throws VisADException     Couldn't parse a Data's MathType.
+   * @throws RemoteException    Couldn't obtain a remote Data's MathType.
+   * @return                    The number of duplicate ScalarTypes found.
+   */
+  public static int getRealTypes(Data[] data, Vector v)
+    throws VisADException, RemoteException
+  {
+    int[] dupl = new int[1];
+    dupl[0] = 0;
+    for (int i=0; i<data.length; i++) {
+      Data d = data[i];
+      if (d != null) {
+        MathType dataType = d.getType();
 
-    if (dataType instanceof FunctionType) {
-      parseFunction((FunctionType) dataType, v, i);
+        if (dataType instanceof FunctionType) {
+          parseFunction((FunctionType) dataType, v, dupl);
+        }
+        else if (dataType instanceof SetType) {
+          parseSet((SetType) dataType, v, dupl);
+        }
+        else if (dataType instanceof TupleType) {
+          parseTuple((TupleType) dataType, v, dupl);
+        }
+        else parseScalar((ScalarType) dataType, v, dupl);
+      }
     }
-    else if (dataType instanceof SetType) {
-      parseSet((SetType) dataType, v, i);
-    }
-    else if (dataType instanceof TupleType) {
-      parseTuple((TupleType) dataType, v, i);
-    }
-    else parseScalar((ScalarType) dataType, v, i);
 
-    return i[0];
+    return dupl[0];
   }
 
   /**
