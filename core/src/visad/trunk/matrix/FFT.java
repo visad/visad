@@ -51,17 +51,41 @@ public class FFT {
   /** invoke in SpreadSheet by:
       link(visad.matrix.FFT.forwardFT(A1))
   */
-  public static FlatField forwardFT(Data[] datums)
-         throws VisADException, RemoteException {
-    return fourierTransform((Field) datums[0], true);
+  public static FlatField forwardFT(Data[] datums) {
+    FlatField result = null;
+    try {
+      result = fourierTransform((Field) datums[0], true);
+    }
+    catch (VisADException e) {
+      e.printStackTrace();
+    }
+    catch (RemoteException e) {
+      e.printStackTrace();
+    }
+    if (result == null) {
+      System.out.println("result == null");
+    }
+    return result;
   }
 
   /** invoke in SpreadSheet by:
       link(visad.matrix.FFT.forwardFT(A1))
   */
-  public static FlatField backwardFT(Data[] datums)
-         throws VisADException, RemoteException {
-    return fourierTransform((Field) datums[0], false);
+  public static FlatField backwardFT(Data[] datums) {
+    FlatField result = null;
+    try {
+      result = fourierTransform((Field) datums[0], false);
+    }
+    catch (VisADException e) {
+      e.printStackTrace();
+    }
+    catch (RemoteException e) {
+      e.printStackTrace();
+    }
+    if (result == null) {
+      System.out.println("result == null");
+    }
+    return result;
   }
 
   /** compute Fourier Transform of field */
@@ -218,6 +242,13 @@ public class FFT {
                                         null, range_sets, units);
     if (use_double) {
       double[][] values = field.getValues(false);
+      if (values.length == 1) {
+        int n = values[0].length;
+        double[][] new_values = new double[2][n];
+        System.arraycopy(values[0], 0, new_values[0], 0, n);
+        for (int i=0; i<n; i++) new_values[1][i] = 0.0;
+        values = new_values;
+      }
       if (ddim == 1) {
         values = FT1D(values, forward);
       }
@@ -228,6 +259,13 @@ public class FFT {
     }
     else { // !use_double
       float[][] values = field.getFloats(false);
+      if (values.length == 1) {
+        int n = values[0].length;
+        float[][] new_values = new float[2][n];
+        System.arraycopy(values[0], 0, new_values[0], 0, n);
+        for (int i=0; i<n; i++) new_values[1][i] = 0.0f;
+        values = new_values;
+      }
       if (ddim == 1) {
         values = FT1D(values, forward);
       }
