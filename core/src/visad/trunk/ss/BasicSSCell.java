@@ -692,12 +692,23 @@ public class BasicSSCell extends JPanel {
     String filename = info.substring(11, i++);
     if (filename.equals("null")) filename = null;
 
+    // extract RMI address from info string
+    if (!info.substring(i, i+6).equals("rmi = ")) {
+      throw new VisADException("Invalid info string!");
+    }
+    i += 5;
+    int oi = i + 1;
+    c = '*';
+    while (c != '\n') c = info.charAt(++i);
+    String rmi = info.substring(oi, i++);
+    if (rmi.equals("null")) rmi = null;
+
     // extract formula from info string
     if (!info.substring(i, i+10).equals("formula = ")) {
       throw new VisADException("Invalid info string!");
     }
     i += 9;
-    int oi = i + 1;
+    oi = i + 1;
     c = '*';
     while (c != '\n') c = info.charAt(++i);
     String formula = info.substring(oi, i++);
@@ -711,42 +722,130 @@ public class BasicSSCell extends JPanel {
     c = '*';
     while (c != '\n') c = info.charAt(++i);
     String b = info.substring(oi, i++);
-    int bnum = -1;
+    int dim = -1;
     try {
-      bnum = Integer.parseInt(b);
+      dim = Integer.parseInt(b);
     }
     catch (NumberFormatException exc) { }
-    if (bnum == JAVA3D_3D) Dimension2D = JAVA3D_3D;
-    else if (bnum == JAVA2D_2D) Dimension2D = JAVA2D_2D;
-    else if (bnum == JAVA3D_2D) Dimension2D = JAVA3D_2D;
-    else {
+    if (dim != JAVA3D_3D && dim != JAVA2D_2D && dim != JAVA3D_2D) {
       throw new VisADException("Invalid info string!");
     }
 
-    // set up data
-    try {
-      if (filename != null) {
-        URL u = null;
+    // extract mappings from info string
+    if (!info.substring(i, i+7).equals("maps = ")) {
+      throw new VisADException("Invalid info string!");
+    }
+    Vector dnames = new Vector();
+    Vector rnames = new Vector();
+    i += 6;
+    c = '*';
+    while (c != '\n') {
+      c = '*';
+      oi = i + 1;
+      while (c != ' ' && c != '\n') c = info.charAt(++i);
+      if (c != '\n') {
+        String dname = info.substring(oi, i++);
+        dnames.add(dname);
+        c = '*';
+        oi = i;
+        while (c != ' ' && c != '\n') c = info.charAt(++i);
         try {
-          u = new URL(filename);
+          String s = (String) info.substring(oi, i);
+          int q = Integer.parseInt(s);
+          rnames.add(new Integer(q));
         }
-        catch (MalformedURLException exc) { }
-        loadData(u);
+        catch (NumberFormatException exc) {
+          throw new VisADException("Invalid info string!");
+        }
       }
     }
-    catch (IOException exc) {
-      throw new VisADException(exc.toString());
+
+    // clear old stuff from cell
+    clearCell();
+
+    // set up dimension
+    setDimension(dim);
+
+    // set up filename
+    if (filename != null) {
+      URL u = null;
+      try {
+        u = new URL(filename);
+      }
+      catch (MalformedURLException exc) {
+        throw new VisADException(exc.toString());
+      }
+      try {
+        loadData(u);
+      }
+      catch (IOException exc) {
+        throw new VisADException(exc.toString());
+      }
+    }
+
+    // set up RMI address
+    if (rmi != null) {
+      try {
+        loadRMI(rmi);
+      }
+      catch (MalformedURLException exc) {
+        throw new VisADException(exc.toString());
+      }
+      catch (NotBoundException exc) {
+        throw new VisADException(exc.toString());
+      }
+      catch (AccessException exc) {
+        throw new VisADException(exc.toString());
+      }
     }
 
     // set up formula
-    setFormula(formula);
+    if (!formula.equals("")) setFormula(formula);
+
+    // set up mappings
+    int len = dnames.size();
+    if (len > 0) {
+      ScalarMap[] maps = new ScalarMap[len];
+      for (int j=0; j<len; j++) {
+        ScalarType domain = ScalarType.getScalarTypeByName(
+                            (String) dnames.elementAt(j));
+        int q = ((Integer) rnames.elementAt(j)).intValue();
+        DisplayRealType range = Display.DisplayRealArray[q];
+        maps[j] = new ScalarMap(domain, range);
+      }
+      setMaps(maps);
+    }
   }
 
   /** return the data string necessary to reconstruct this cell */
   public String getSSCellString() {
-    String s = "filename = " + Filename.toString() + "\n";
-    s = s + "formula = " + getFormula() + "\n";
+    String s = "filename = " + (Filename == null ?
+                               "null" : Filename.toString()) + "\n";
+    s = s + "rmi = " + RMIAddress + "\n";
+    s = s + "formula = " + Formula + "\n";
     s = s + "dim = " + Dimension2D + "\n";
+    s = s + "maps = ";
+    ScalarMap[] maps = null;
+    if (VDisplay != null) {
+      Vector mapVector = VDisplay.getMapVector();
+      int mvs = mapVector.size();
+      if (mvs > 0) {
+        for (int i=0; i<mvs; i++) {
+          ScalarMap m = (ScalarMap) mapVector.elementAt(i);
+          ScalarType domain = m.getScalar();
+          DisplayRealType range = m.getDisplayScalar();
+          int q = -1;
+          for (int j=0; j<Display.DisplayRealArray.length; j++) {
+            if (range.equals(Display.DisplayRealArray[j])) q = j;
+          }
+          if (i > 0) s = s + " ";
+          s = s + domain.getName() + " " + q;
+        }
+        s = s + "\n";
+      }
+      else s = s + "null\n";
+    }
+    else s = s + "null\n";
     return s;
   }
 
@@ -846,8 +945,8 @@ public class BasicSSCell extends JPanel {
       Vector mapVector = VDisplay.getMapVector();
       int mvs = mapVector.size();
       if (mvs > 0) {
-        maps = new ScalarMap[mapVector.size()];
-        for (int i=0; i<mapVector.size(); i++) {
+        maps = new ScalarMap[mvs];
+        for (int i=0; i<mvs; i++) {
           maps[i] = (ScalarMap) mapVector.elementAt(i);
         }
       }
@@ -968,6 +1067,7 @@ public class BasicSSCell extends JPanel {
                                      VisADException, RemoteException {
     if (u == null) return;
     clearDisplay();
+    setFormula(null);
     Filename = null;
     RMIAddress = null;
     toggleWait();
@@ -1010,6 +1110,7 @@ public class BasicSSCell extends JPanel {
       throw new VisADException("RMI address must begin with \"rmi://\"");
     }
     clearDisplay();
+    setFormula(null);
     Filename = null;
     RMIAddress = null;
     toggleWait();
@@ -1098,6 +1199,11 @@ public class BasicSSCell extends JPanel {
   /** specify whether formula errors should be reported in a dialog box */
   public void setShowFormulaErrors(boolean sfe) {
     ShowFormulaErrors = sfe;
+  }
+
+  /** return whether formula errors are reported in a dialog box */
+  public boolean getShowFormulaErrors() {
+    return ShowFormulaErrors;
   }
 
   /** component that contains the large X */

@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                  10 March 1999
+                                  11 March 1999
  
                                 Table of Contents
 
@@ -218,7 +218,8 @@ New - Clears all spreadsheet cells;  starts from scratch.
 
 Open - Opens a "spreadsheet file."  Spreadsheet files are small, containing
 only the instructions needed to recreate a spreadsheet.  They do not contain
-any actual data, but rather the file names and formulas of the cells.
+any actual data, but rather the file names, URLs, RMI address, formulas,
+dimensionality information, and mappings of the cells.
 
 Save - Saves a "spreadsheet file" under the current name.  
 
@@ -477,15 +478,11 @@ The following bugs have been discovered and have not yet been fixed:
 1) The Spread Sheet will not import certain data sets correctly, due to
    incomplete implementations in VisAD file adapter forms.
 
-2) Error messages are displayed when the user clicks on a button that
-   doesn't make sense (such as trying to set up mappings for an empty
-   cell).  These buttons should just be grayed out.
-
-3) There is no way to change the number of rows and columns while the
+2) There is no way to change the number of rows and columns while the
    Spread Sheet is running;  you must quit the Spread Sheet and specify
    a new setting on the command line.
 
-4) When resizing cells, if a cell is made to be as small as it can be
+3) When resizing cells, if a cell is made to be as small as it can be
    in one or more dimensions, some extra space or a scroll bar will
    appear in the bottom or right-hand corners of the Spread Sheet window.
 

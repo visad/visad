@@ -54,7 +54,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   Frame Parent;
 
   /** This cell's associated JFrame, for use with VisAD Controls */
-  JFrame WidgetFrame = null;
+  JFrame WidgetFrame;
 
   /** Specify whether this cell is selected */
   boolean Selected = false;
@@ -71,6 +71,10 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     super(name, info);
     Parent = parent;
     setBorder(NORM);
+    WidgetFrame = new JFrame("Controls (" + name + ")");
+    JPanel pane = new JPanel();
+    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+    WidgetFrame.setContentPane(pane);
     addSSCellChangeListener(this);
   }
 
@@ -83,6 +87,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** shortcut constructor */
   public FancySSCell(String name) throws VisADException, RemoteException {
     this(name, null, null);
+  }
+
+  /** change the FancySSCell's name */
+  public void setCellName(String name) throws VisADException {
+    super.setCellName(name);
+    WidgetFrame.setTitle("Controls (" + name + ")");
   }
 
   /** Re-auto-detect mappings when this cell's data changes */
@@ -126,76 +136,74 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     super.setMaps(maps);
-    hideWidgetFrame();
-    WidgetFrame = null;
-    if (maps == null) return;
+    synchronized (WidgetFrame) {
+      clearWidgetFrame();
+      if (maps == null) return;
 
-    // create GraphicsModeControl widget
-    initWidgetFrame();
-    GMCWidget gmcw = new GMCWidget(VDisplay.getGraphicsModeControl());
-    addToFrame(gmcw);
+      // create GraphicsModeControl widget
+      GMCWidget gmcw = new GMCWidget(VDisplay.getGraphicsModeControl());
+      addToFrame(gmcw, false);
 
-    // create any other necessary widgets
-    for (int i=0; i<maps.length; i++) {
-      DisplayRealType drt = maps[i].getDisplayScalar();
-      if (drt.equals(Display.RGB)) {
-        LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
-        addToFrame(lw);
-      }
-      else if (drt.equals(Display.RGBA)) {
-        LabeledRGBAWidget lw = new LabeledRGBAWidget(maps[i]);
-        addToFrame(lw);
-      }
-      else if (drt.equals(Display.SelectValue)) {
-        VisADSlider vs = new VisADSlider(maps[i]);
-        vs.setAlignmentX(JPanel.CENTER_ALIGNMENT);
-        addToFrame(vs);
-      }
-      else if (drt.equals(Display.SelectRange)) {
-        SelectRangeWidget srs = new SelectRangeWidget(maps[i]);
-        addToFrame(srs);
-      }
-      else if (drt.equals(Display.IsoContour)) {
-        ContourWidget cw = new ContourWidget(maps[i]);
-        WidgetFrame.getContentPane().add(cw);
-        addToFrame(cw);
-      }
-      else if (drt.equals(Display.Animation)) {
-        AnimationWidget aw = new AnimationWidget(maps[i]);
-        addToFrame(aw);
-      }
+      // create any other necessary widgets
+      for (int i=0; i<maps.length; i++) {
+        DisplayRealType drt = maps[i].getDisplayScalar();
+        if (drt.equals(Display.RGB)) {
+          LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
+          addToFrame(lw, true);
+        }
+        else if (drt.equals(Display.RGBA)) {
+          LabeledRGBAWidget lw = new LabeledRGBAWidget(maps[i]);
+          addToFrame(lw, true);
+        }
+        else if (drt.equals(Display.SelectValue)) {
+          VisADSlider vs = new VisADSlider(maps[i]);
+          vs.setAlignmentX(JPanel.CENTER_ALIGNMENT);
+          addToFrame(vs, true);
+        }
+        else if (drt.equals(Display.SelectRange)) {
+          SelectRangeWidget srs = new SelectRangeWidget(maps[i]);
+          addToFrame(srs, true);
+        }
+        else if (drt.equals(Display.IsoContour)) {
+          ContourWidget cw = new ContourWidget(maps[i]);
+          WidgetFrame.getContentPane().add(cw);
+          addToFrame(cw, true);
+        }
+        else if (drt.equals(Display.Animation)) {
+          AnimationWidget aw = new AnimationWidget(maps[i]);
+          addToFrame(aw, true);
+        }
 
-      // show widget frame
-      WidgetFrame.pack();
-      WidgetFrame.setVisible(true);
+        // show widget frame
+        WidgetFrame.pack();
+        showWidgetFrame();
+      }
     }
   }
 
-  private boolean first = true;
-
   /** Used by setMaps() method */
-  private void initWidgetFrame() {
-    WidgetFrame = new JFrame("Controls (" + Name + ")");
-    Container pane = WidgetFrame.getContentPane();
-    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-    first = true;
+  private void addToFrame(Component c, boolean divide) {
+    JPanel pane = (JPanel) WidgetFrame.getContentPane();
+    if (divide) pane.add(new Divider());
+    pane.add(c);
   }
 
-  /** Used by setMaps() method */
-  private void addToFrame(Component c) {
-    if (!first) WidgetFrame.getContentPane().add(new Divider());
-    WidgetFrame.getContentPane().add(c);
-    first = false;
-  }
-
-  /** Show the widgets for altering controls */
+  /** Show the widgets for altering controls (if there are any) */
   public void showWidgetFrame() {
-    if (WidgetFrame != null) WidgetFrame.setVisible(true);
+    JPanel pane = (JPanel) WidgetFrame.getContentPane();
+    if (pane.getComponentCount() > 0) WidgetFrame.setVisible(true);
   }
 
   /** Hide the widgets for altering controls */
   public void hideWidgetFrame() {
-    if (WidgetFrame != null) WidgetFrame.setVisible(false);
+    WidgetFrame.setVisible(false);
+  }
+
+  /** Remove all widgets for altering controls and hide widget frame */
+  private void clearWidgetFrame() {
+    hideWidgetFrame();
+    JPanel pane = (JPanel) WidgetFrame.getContentPane();
+    pane.removeAll();
   }
 
   /** Guess a good set of mappings for this cell's Data and apply them */
@@ -214,13 +222,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         setMapsAuto(mt.guessMaps(allow3D));
       }
     }
-  }
-
-  /** Set the Data for this cell, and apply the default ScalarMaps */
-  public void setData(Data data) throws VisADException, RemoteException {
-    super.setData(data);
-    hideWidgetFrame();
-    WidgetFrame = null;
   }
 
   /** Set this cell's formula */
@@ -276,16 +277,11 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     return true;
   }
 
-  public void clearCell() throws VisADException, RemoteException {
-    super.clearCell();
-  }
-
   /** Clear the cell if no other cell depends it;  otherwise, ask the
       user "Are you sure?" */
   public void smartClear() throws VisADException, RemoteException {
     if (confirmClear()) {
-      hideWidgetFrame();
-      WidgetFrame = null;
+      clearWidgetFrame();
       clearCell();
     }
   }

@@ -88,10 +88,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
   FancySSCell[] DisplayCells;
   JTextField FormulaField;
   MenuItem EditPaste;
+  MenuItem FileSave1, FileSave2, DispEdit;
   JButton ToolPaste;
+  JButton ToolSave, ToolMap;
   JButton FormulaOk;
   CheckboxMenuItem CellDim3D3D, CellDim2D2D, CellDim2D3D;
-  CheckboxMenuItem OptSwitch, OptAuto, OptFormula;
   int CurDisplay = 0;
 
   String Clipboard = null;
@@ -206,15 +207,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
     fileOpen.setActionCommand("fileOpen");
     file.add(fileOpen);
 
-    MenuItem fileSave1 = new MenuItem("Export data to netCDF...");
-    fileSave1.addActionListener(this);
-    fileSave1.setActionCommand("fileSaveNetcdf");
-    file.add(fileSave1);
+    FileSave1 = new MenuItem("Export data to netCDF...");
+    FileSave1.addActionListener(this);
+    FileSave1.setActionCommand("fileSaveNetcdf");
+    FileSave1.setEnabled(false);
+    file.add(FileSave1);
 
-    MenuItem fileSave2 = new MenuItem("Export serialized data...");
-    fileSave2.addActionListener(this);
-    fileSave2.setActionCommand("fileSaveSerial");
-    file.add(fileSave2);
+    FileSave2 = new MenuItem("Export serialized data...");
+    FileSave2.addActionListener(this);
+    FileSave2.setActionCommand("fileSaveSerial");
+    FileSave2.setEnabled(false);
+    file.add(FileSave2);
 
     file.addSeparator();
 
@@ -276,10 +279,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Menu disp = new Menu("Display");
     menubar.add(disp);
 
-    MenuItem dispEdit = new MenuItem("Edit mappings...");
-    dispEdit.addActionListener(this);
-    dispEdit.setActionCommand("dispEdit");
-    disp.add(dispEdit);
+    DispEdit = new MenuItem("Edit mappings...");
+    DispEdit.addActionListener(this);
+    DispEdit.setActionCommand("dispEdit");
+    DispEdit.setEnabled(false);
+    disp.add(DispEdit);
     disp.addSeparator();
 
     CellDim3D3D = new CheckboxMenuItem("3-D (Java3D)", CanDo3D);
@@ -300,19 +304,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Menu options = new Menu("Options");
     menubar.add(options);
 
-    OptSwitch = new CheckboxMenuItem("Auto-switch to 3-D", CanDo3D);
-    OptSwitch.addItemListener(this);
-    OptSwitch.setEnabled(CanDo3D);
-    options.add(OptSwitch);
+    CheckboxMenuItem optSwitch = new CheckboxMenuItem(
+                     "Auto-switch to 3-D", CanDo3D);
+    optSwitch.addItemListener(this);
+    optSwitch.setEnabled(CanDo3D);
+    options.add(optSwitch);
 
-    OptAuto = new CheckboxMenuItem("Auto-detect mappings", true);
-    OptAuto.addItemListener(this);
-    options.add(OptAuto);
+    CheckboxMenuItem optAuto = new CheckboxMenuItem(
+                     "Auto-detect mappings", true);
+    optAuto.addItemListener(this);
+    options.add(optAuto);
 
-    OptFormula = new CheckboxMenuItem("Show formula and RMI error messages",
-                                      true);
-    OptFormula.addItemListener(this);
-    options.add(OptFormula);
+    CheckboxMenuItem optFormula = new CheckboxMenuItem(
+                     "Show formula and RMI error messages", true);
+    optFormula.addItemListener(this);
+    options.add(optFormula);
     options.addSeparator();
 
     MenuItem optWidget = new MenuItem("Show VisAD controls");
@@ -342,12 +348,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     url = SpreadSheet.class.getResource("save.gif");
     ImageIcon toolFileSave = new ImageIcon(url);
     if (toolFileSave != null) {
-      JButton b = new JButton(toolFileSave);
-      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
-      b.setToolTipText("Export data to netCDF");
-      b.addActionListener(this);
-      b.setActionCommand("fileSaveNetcdf");
-      toolbar.add(b);
+      ToolSave = new JButton(toolFileSave);
+      ToolSave.setAlignmentY(JButton.CENTER_ALIGNMENT);
+      ToolSave.setToolTipText("Export data to netCDF");
+      ToolSave.addActionListener(this);
+      ToolSave.setActionCommand("fileSaveNetcdf");
+      ToolSave.setEnabled(false);
+      toolbar.add(ToolSave);
     }
     toolbar.addSeparator();
 
@@ -389,12 +396,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     url = SpreadSheet.class.getResource("mappings.gif");
     ImageIcon toolMappingsEdit = new ImageIcon(url);
     if (toolMappingsEdit != null) {
-      JButton b = new JButton(toolMappingsEdit);
-      b.setAlignmentY(JButton.CENTER_ALIGNMENT);
-      b.setToolTipText("Edit mappings");
-      b.addActionListener(this);
-      b.setActionCommand("dispEdit");
-      toolbar.add(b);
+      ToolMap = new JButton(toolMappingsEdit);
+      ToolMap.setAlignmentY(JButton.CENTER_ALIGNMENT);
+      ToolMap.setToolTipText("Edit mappings");
+      ToolMap.addActionListener(this);
+      ToolMap.setActionCommand("dispEdit");
+      ToolMap.setEnabled(false);
+      toolbar.add(ToolMap);
     }
 
     // window menu toolbar icons
@@ -723,7 +731,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else if (cmd.equals("editClear")) clearCell(true);
 
     // setup menu commands
-    else if (cmd.equals("setupNew")) newFile();
+    else if (cmd.equals("setupNew")) newFile(true);
     else if (cmd.equals("setupOpen")) openFile();
     else if (cmd.equals("setupSave")) saveFile();
     else if (cmd.equals("setupSaveas")) saveasFile();
@@ -746,14 +754,32 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Creates a new spreadsheet file */
-  void newFile() {
-    // clear all cells
-    for (int i=0; i<DisplayCells.length; i++) {
-      try {
-        DisplayCells[i].clearCell();
+  void newFile(boolean safe) {
+    if (safe) {
+      int ans = JOptionPane.showConfirmDialog(this,
+                "Clear all spreadsheet cells?", "Are you sure?",
+                JOptionPane.YES_NO_OPTION);
+      if (ans != JOptionPane.YES_OPTION) return;
+    }
+
+    // clear all cells (in smart order to prevent error dialogs)
+    int len = DisplayCells.length;
+    boolean[] b = new boolean[len];
+    for (int i=0; i<len; i++) b[i] = false;
+    boolean w = true;
+    while (w) {
+      for (int i=0; i<len; i++) {
+        if (!DisplayCells[i].othersDepend()) {
+          try {
+            DisplayCells[i].clearCell();
+            b[i] = true;
+          }
+          catch (VisADException exc) { }
+          catch (RemoteException exc) { }
+        }
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      w = false;
+      for (int i=0; i<len; i++) if (!b[i]) w = true;
     }
     CurrentFile = null;
     setTitle(bTitle);
@@ -773,13 +799,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     File f = new File(dir, file);
     if (!f.exists()) {
       JOptionPane.showMessageDialog(this,
-          "The file "+file+" does not exist",
+          "The file " + file + " does not exist",
           "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
     // clear all cells
-    newFile();
+    newFile(false);
 
     // load file
     String[] fileStrings = new String[DisplayCells.length];
@@ -800,22 +826,30 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     // reconstruct cells
-    for (int i=0; i<DisplayCells.length; i++) {
+    boolean sfe = DisplayCells[0].getShowFormulaErrors();
+    int len = DisplayCells.length;
+    for (int j=0; j<len; j++) DisplayCells[j].setShowFormulaErrors(false);
+    for (int i=0; i<len; i++) {
       try {
+        boolean b = DisplayCells[i].getAutoDetect();
+        DisplayCells[i].setAutoDetect(false);
         DisplayCells[i].setSSCellString(fileStrings[i]);
+        DisplayCells[i].setAutoDetect(b);
       }
       catch (VisADException exc) {
         JOptionPane.showMessageDialog(this,
             "Could not reconstruct spreadsheet",
             "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
-        newFile();
+        newFile(false);
+        for (int j=0; j<len; j++) DisplayCells[j].setShowFormulaErrors(sfe);
         return;
       }
       catch (RemoteException exc) { }
     }
+    for (int j=0; j<len; j++) DisplayCells[j].setShowFormulaErrors(sfe);
 
     CurrentFile = f;
-    setTitle(bTitle + " - "+f.getPath());
+    setTitle(bTitle + " - " + f.getPath());
   }
 
   /** Saves a spreadsheet file under its current name */
@@ -871,8 +905,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
           f.setContentPane(p);
           p.setBorder(new EmptyBorder(10, 20, 10, 20));
           p.setLayout(new BorderLayout());
-          p.add("Center", new JLabel("Please wait while the VisAD "
-                          +"SpreadSheet finishes saving files..."));
+          p.add("Center", new JLabel("Please wait while the VisAD " +
+                          "Spread Sheet finishes saving files..."));
           f.setResizable(false);
           f.pack();
           Dimension sSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -883,7 +917,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         }
         while (BasicSSCell.isSaving()) {
           try {
-            sleep(500);
+            sleep(200);
           }
           catch (InterruptedException exc) { }
         }
@@ -916,11 +950,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
   void pasteCell() {
     if (Clipboard != null) {
       try {
+        boolean b = DisplayCells[CurDisplay].getAutoDetect();
+        DisplayCells[CurDisplay].setAutoDetect(false);
         DisplayCells[CurDisplay].setSSCellString(Clipboard);
+        DisplayCells[CurDisplay].setAutoDetect(b);
       }
       catch (VisADException exc) {
         JOptionPane.showMessageDialog(this,
-            "Could not paste cell: "+exc.toString(),
+            "Cannot paste cell.",
             "VisAD SpreadSheet error", JOptionPane.ERROR_MESSAGE);
       }
       catch (RemoteException exc) { }
@@ -940,6 +977,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     catch (RemoteException exc) { }
     refreshFormulaBar();
+    refreshMenuCommands();
   }
 
   /** Allows the user to specify mappings from Data to Display */
@@ -957,12 +995,31 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayCells[CurDisplay].saveDataDialog(true);
   }
 
-  /** Allows the user to export a data set to serialized data format */
+  /** Allow the user to export a data set to serialized data format */
   void exportDataSetSerial() {
     DisplayCells[CurDisplay].saveDataDialog(false);
   }
 
-  /** Makes sure the formula bar is displaying up-to-date info */
+  /** Make sure the Edit Mappings menu item and toolbar button are
+      grayed-out or enabled depending whether this cell has data */
+  void refreshMenuCommands() {
+    if (DisplayCells[CurDisplay].hasData()) {
+      DispEdit.setEnabled(true);
+      ToolMap.setEnabled(true);
+      FileSave1.setEnabled(true);
+      FileSave2.setEnabled(true);
+      ToolSave.setEnabled(true);
+    }
+    else {
+      DispEdit.setEnabled(false);
+      ToolMap.setEnabled(false);
+      FileSave1.setEnabled(false);
+      FileSave2.setEnabled(false);
+      ToolSave.setEnabled(false);
+    }
+  }
+
+  /** Make sure the formula bar is displaying up-to-date info */
   void refreshFormulaBar() {
     if (DisplayCells[CurDisplay].hasFormula()) {
       FormulaField.setText(DisplayCells[CurDisplay].getFormula());
@@ -1041,7 +1098,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Handles checkbox menu item changes (dimension checkboxes) */
   public void itemStateChanged(ItemEvent e) {
     String item = (String) e.getItem();
-    if (item.equals("Show formula error messages")) {
+    if (item.equals("Show formula and RMI error messages")) {
       for (int i=0; i<DisplayCells.length; i++) {
         DisplayCells[i].setShowFormulaErrors(e.getStateChange()
                                           == ItemEvent.SELECTED);
@@ -1111,6 +1168,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // update spreadsheet info
     refreshFormulaBar();
+    refreshMenuCommands();
     refreshDisplayMenuItems();
   }
 
@@ -1265,6 +1323,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (DisplayCells[CurDisplay] == f) {
       if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
         refreshFormulaBar();
+        refreshMenuCommands();
       }
       else refreshDisplayMenuItems();
     }
