@@ -462,7 +462,7 @@ public class DisplayImplJ3D extends DisplayImpl {
      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-     array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+     // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, mode2d);
       if (vga.coordinates != null) {
@@ -591,7 +591,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       array.setCapability(GeometryArray.ALLOW_COUNT_READ);
       array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
       array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
       array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, mode2d);
       return array;
@@ -604,7 +604,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       array.setCapability(GeometryArray.ALLOW_COUNT_READ);
       array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
       array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
       array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, false);
       return array;
@@ -620,7 +620,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       array.setCapability(GeometryArray.ALLOW_COUNT_READ);
       array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
       array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
       array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, false);
       return array;
@@ -633,7 +633,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       array.setCapability(GeometryArray.ALLOW_COUNT_READ);
       array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
       array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
       array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, false);
       return array;
@@ -646,7 +646,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       array.setCapability(GeometryArray.ALLOW_COUNT_READ);
       array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
       array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
       array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, mode2d);
       return array;
@@ -659,7 +659,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       array.setCapability(GeometryArray.ALLOW_COUNT_READ);
       array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
       array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
       array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, mode2d);
       return array;

@@ -147,7 +147,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     box_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-    box_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    // box_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
 
     box_geometry.setCoordinates(0, box_verts);
@@ -161,7 +161,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     box_appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
     box_appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
     box_appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
-    box_appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
+    // box_appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
     box_appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
 
     // WLH 2 Dec 2002 in response to qomo2.txt
@@ -194,7 +194,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     cursor_appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
     cursor_appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
     cursor_appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
-    cursor_appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
+    // cursor_appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
     cursor_appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
     cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
     cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
@@ -214,7 +214,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     cursor_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-    cursor_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    // cursor_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
     Shape3D cursor = new Shape3D(cursor_geometry, cursor_appearance);
     cursor.setCapability(Shape3D.ALLOW_GEOMETRY_READ);

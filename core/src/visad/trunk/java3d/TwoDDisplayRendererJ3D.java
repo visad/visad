@@ -139,7 +139,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     box_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-    box_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    // box_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
     
 
@@ -185,7 +185,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     cursor_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-    cursor_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    // cursor_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
     
     cursor_geometry.setCoordinates(0, cursor_verts);

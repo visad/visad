@@ -217,7 +217,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
-    appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
+    // appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
     appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
 
     LineAttributes line = new LineAttributes();
@@ -257,9 +257,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     rendering.setCapability(RenderingAttributes.ALLOW_ALPHA_TEST_VALUE_READ);
     rendering.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_READ);
  
-    rendering.setCapability(RenderingAttributes.ALLOW_IGNORE_VERTEX_COLORS_READ);
-    rendering.setCapability(RenderingAttributes.ALLOW_RASTER_OP_READ);
-    rendering.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
+    // rendering.setCapability(RenderingAttributes.ALLOW_IGNORE_VERTEX_COLORS_READ);
+    // rendering.setCapability(RenderingAttributes.ALLOW_RASTER_OP_READ);
+    // rendering.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
     rendering.setDepthBufferEnable(true);
     appearance.setRenderingAttributes(rendering);
 
@@ -285,7 +285,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         appearance.setMaterial(material);
       }
       if (constant_alpha != null) {
-        constant_alpha.setCapability(TransparencyAttributes.ALLOW_BLEND_FUNCTION_READ);
+        // constant_alpha.setCapability(TransparencyAttributes.ALLOW_BLEND_FUNCTION_READ);
         constant_alpha.setCapability(TransparencyAttributes.ALLOW_MODE_READ);
         constant_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_READ);
         appearance.setTransparencyAttributes(constant_alpha);
@@ -601,7 +601,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
     geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-    geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    // geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     float[] coordinates = new float[3];
     coordinates[0] = 1000000.0f;
     coordinates[1] = 1000000.0f;
