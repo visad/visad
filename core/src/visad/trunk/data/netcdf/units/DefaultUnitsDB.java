@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.14 1999-09-02 16:05:41 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.15 1999-09-22 19:11:39 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -335,6 +335,7 @@ DefaultUnitsDB
 	px("feet",		"foot");		// alias
 	ps("ft",		"feet");		// alias
 	ps("yd",		"yard");		// alias
+	ps("mi",		"mile");		// alias
 
 	pn("chain",		get("m").scale(2.011684e1));
 
