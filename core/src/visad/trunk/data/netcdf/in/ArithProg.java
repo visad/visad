@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ArithProg.java,v 1.6 1998-09-23 18:18:49 steve Exp $
+ * $Id: ArithProg.java,v 1.7 1998-11-20 22:51:56 steve Exp $
  */
 
 
@@ -60,48 +60,6 @@ class ArithProg {
 	}
 
 	this.epsilon = epsilon;
-    }
-
-    /**
-     * Accumulate another double value.  Indicate whether or not the value is
-     * consistent with the arithmetic progression so far.
-     *
-     * @param value	The current value to accumulate.
-     * @return		False if the difference between the
-     *			current and previous values normalized by the current
-     *			increment differs from unity by more than the
-     *			nearness threshold; otherwise, true.
-     * @precondition	<code>isConsistent() == true</code>
-     * @promise		A subsequent getNumber() will return one more than 
-     *			previously if the function returns true.
-     * @promise		A subsequent getLast() will return the value argument
-     *			if the function returns true.
-     */
-    boolean accumulate(double value) throws VisADException {
-	if (!consistent)
-	    throw new VisADException("Sequence not arithmetic series");
-
-	if (n == 0) {
-	    first = value;
-	} else if (n == 1) {
-	    increment = value - first;
-	} else {
-	    double	delta = increment == 0
-				    ? value - last
-				    : 1.0 - (value - last) / increment;
-
-	    if (Math.abs(delta) <= epsilon) {
-		increment = (value - first) / n;
-	    } else {
-		consistent = false;
-		increment = Double.NaN;
-	    }
-	}
-
-	last = value;
-	n++;
-
-	return consistent;
     }
 
     /**

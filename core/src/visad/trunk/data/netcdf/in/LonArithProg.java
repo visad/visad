@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: LonArithProg.java,v 1.5 1998-09-23 18:18:49 steve Exp $
+ * $Id: LonArithProg.java,v 1.6 1998-11-20 22:51:56 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -56,60 +56,134 @@ LonArithProg
 
 
     /**
-     * Accumulate another value.  Indicate whether or not the value is
+     * Accumulate a set of values.  Indicate whether or not the values are
      * consistent with the arithmetic progression so far.
      *
-     * @param value	The current value to accumulate.
-     * @return		False if the difference between the
-     *			current and previous values normalized by the current
+     * @param values	The values to accumulate.
+     * @return		False if the difference between any
+     *			current and previous value normalized by the current
      *			increment differs from unity by more than the
      *			nearness threshold; otherwise, true.
      * @precondition	isConsistent() is true.
-     * @postcondition	A subsequent getNumber() will return one more than 
+     * @postcondition	A subsequent getNumber() will return 
+     *			<code>values.length</code> more than 
      *			previously if the function returns true.
      * @postcondition	A subsequent getLast() will return the transformed
      *			value argument if the function returns true.
      */
     boolean
-    accumulate(double value)
+    accumulate(float[] values)
 	throws VisADException
     {
 	if (!isConsistent())
 	    throw new VisADException("Sequence not arithmetic series");
 
-	long	n = getNumber();
-
-	if (n == 0)
-	    setFirst(value);
-	else
-	if (n == 1)
+	for (int i = 0; i < values.length; ++i)
 	{
-	    double	increment = getDelta(value, getLast());
+	    double	value = values[i];
+	    long	n = getNumber();
 
-	    setIncrement(increment);
-	    sumDelta = increment;
-	}
-	else
-	{
-	    double	delta = getDelta(value, getLast());
-	    double	eps = getIncrement() == 0
-				    ? delta
-				    : 1.0 - delta / getIncrement();
-
-	    if (Math.abs(eps) <= getEpsilon())
+	    if (n == 0)
 	    {
-		sumDelta += delta;
-		setIncrement(sumDelta / n);
+		setFirst(value);
+	    }
+	    else
+	    if (n == 1)
+	    {
+		double	increment = getDelta(value, getLast());
+
+		setIncrement(increment);
+		sumDelta = increment;
 	    }
 	    else
 	    {
-		setConsistent(false);
-		setIncrement(Double.NaN);
+		double	delta = getDelta(value, getLast());
+		double	eps = getIncrement() == 0
+					? delta
+					: 1.0 - delta / getIncrement();
+
+		if (Math.abs(eps) <= getEpsilon())
+		{
+		    sumDelta += delta;
+		    setIncrement(sumDelta / n);
+		}
+		else
+		{
+		    setConsistent(false);
+		    setIncrement(Double.NaN);
+		}
 	    }
+
+	    setLast(value);
+	    incrementNumber();
 	}
 
-	setLast(value);
-	incrementNumber();
+	return isConsistent();
+    }
+
+
+    /**
+     * Accumulate a set of values.  Indicate whether or not the values are
+     * consistent with the arithmetic progression so far.
+     *
+     * @param values	The values to accumulate.
+     * @return		False if the difference between any
+     *			current and previous value normalized by the current
+     *			increment differs from unity by more than the
+     *			nearness threshold; otherwise, true.
+     * @precondition	isConsistent() is true.
+     * @postcondition	A subsequent getNumber() will return 
+     *			<code>values.length</code> more than 
+     *			previously if the function returns true.
+     * @postcondition	A subsequent getLast() will return the transformed
+     *			value argument if the function returns true.
+     */
+    boolean
+    accumulate(double[] values)
+	throws VisADException
+    {
+	if (!isConsistent())
+	    throw new VisADException("Sequence not arithmetic series");
+
+	for (int i = 0; i < values.length; ++i)
+	{
+	    double	value = values[i];
+	    long	n = getNumber();
+
+	    if (n == 0)
+	    {
+		setFirst(value);
+	    }
+	    else
+	    if (n == 1)
+	    {
+		double	increment = getDelta(value, getLast());
+
+		setIncrement(increment);
+		sumDelta = increment;
+	    }
+	    else
+	    {
+		double	delta = getDelta(value, getLast());
+		double	eps = getIncrement() == 0
+					? delta
+					: 1.0 - delta / getIncrement();
+
+		if (Math.abs(eps) <= getEpsilon())
+		{
+		    sumDelta += delta;
+		    setIncrement(sumDelta / n);
+		}
+		else
+		{
+		    setConsistent(false);
+		    setIncrement(Double.NaN);
+		}
+	    }
+
+	    setLast(value);
+	    incrementNumber();
+	}
 
 	return isConsistent();
     }
@@ -163,9 +237,7 @@ LonArithProg
     {
 	LonArithProg	ap = new LonArithProg();
 
-	ap.accumulate(175.0);
-	ap.accumulate(180.0);
-	ap.accumulate(-175.0);
+	ap.accumulate(new double[] {175.0, 180.0, -175.0});
 
 	System.out.println("ap.isConsistent()=" + ap.isConsistent());
 	System.out.println("ap.getFirst()=" + ap.getFirst());
