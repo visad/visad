@@ -115,11 +115,11 @@ DOCFLAGS = -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
 ############################################################################
 
 # set this if your JDK/JRE is installed somewhere other than /opt/java
-#JAVADIR = /usr/local/java
+JAVADIR = /usr/java
 
 # to always use IBM's 'jikes' compiler, uncomment the following two lines
-#JC = jikes
-#JFLAGS = +P -deprecation
+JC = jikes
+JFLAGS = +P -deprecation
 
 # to always use the Nexus RMI compiler, uncomment the next line
 #RMIC=nexusrmic
@@ -380,12 +380,12 @@ ALL_PACKAGES = \
 CLASS_FILES=	\
 	DATE \
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
-	visad/ss/*.gif
+	visad/ss/*.gif \
 	visad/util/*.jhf
 
 JAVA_FILES=	\
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
-	visad/ss/*.gif
+	visad/ss/*.gif \
 	visad/util/*.jhf
 
 tar:
