@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.12 2001-11-27 22:29:32 dglo Exp $
+ * $Id: Quantity.java,v 1.13 2002-02-18 17:21:01 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -54,7 +54,7 @@ public class Quantity
   public Quantity(String name, String unitSpec, SimpleSet set)
     throws VisADException, ParseException
   {
-    super(name, Parser.parse(unitSpec), set);
+    super(name, Parser.parse(unitSpec), set, 0, false);
 
     this.unitSpec = unitSpec;
   }

@@ -113,7 +113,7 @@ public class DisplayRealType extends RealType {
   public DisplayRealType(String name, boolean single, double low, double hi,
                          double def, Unit unit)
          throws VisADException {
-    super("Display" + name, unit, null);
+    super("Display" + name, unit, false);
     System = false;
     Single = single;
     LowValue = low;
