@@ -1643,6 +1643,8 @@ for (int j=0; j<3; j++) {
                                  "ManifoldDimension must be 2");
     }
 
+    if (intervals == null) return null;
+
     int nr = LengthX;
     int nc = LengthY;
     float[] g = fieldValues;
