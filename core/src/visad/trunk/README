@@ -257,7 +257,7 @@ includes the VisAD classes.  This file is:
 
 Once you've got visad.jar simply add:
 
-   /parent_dir/visad.jar
+   /parent_dir/visad.jar;.
 
 to your CLASSPATH.  Then you can compile and run applications
 that import the VisAD classes.  However, if your application
@@ -305,6 +305,18 @@ these packages:
   edu/wisc/ssec/mcidas/adde     // Java McIDAS file binding
   ncsa/hdf/hdf5lib              // Java HDF-5 file binding
   ncsa/hdf/hdf5lib/exceptions   // Java HDF-5 file binding
+
+In order to run the examples with visad.jar, download:
+
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/visad_examples.jar
+
+Unpack this jar file by running:
+
+  jar xvf visad_examples.jar
+
+This will put *.java and *.class files into your visad/examples
+directory.  Change to that directory and run the appropriate
+example application.  Make sure that '.' is in your CLASS_PATH.
 
 
 7. Problems

@@ -397,6 +397,15 @@ classes:
 	jar cvf visad.jar $(CLASS_FILES)
 	dir /-w visad.jar
 
+EXAMPLES_TAR_FILES = \
+visad\examples\*.java \
+visad\examples\*.class
+
+examplesjar:
+	cd ..
+	jar cvf visad_examples.jar $(EXAMPLES_TAR_FILES)
+	dir /-w visad_examples.jar
+
 clear:
 	if exist *.java $(DEL) *.java
 	if exist java3d\*.java $(DEL) java3d\*.java

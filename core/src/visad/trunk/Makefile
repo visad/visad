@@ -323,6 +323,18 @@ classes:
 	jar cvf visad.jar $(CLASS_FILES) ; \
 	tar -cvf visad.tar visad.jar
 
+EXAMPLES_TAR_FILES = \
+	visad/examples/*.java				\
+	visad/examples/*.class
+
+examplesjar:
+	cd .. ; \
+	jar cvf visad_examples.jar $(EXAMPLES_TAR_FILES) ; \
+	mv visad_examples.jar visad ; \
+	cd visad ; \
+	ls -l visad_examples.jar
+
+
 SAVE_FILES = \
 	visad/README					\
 	visad/DEDICATION				\
