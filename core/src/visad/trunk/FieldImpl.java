@@ -535,8 +535,13 @@ public class FieldImpl extends FunctionImpl implements Field {
     return new_field;
   }
 
-//public static Field combine( Field[] fields, int sampling_mode, int error_mode )
   public static Field combine( Field[] fields )
+                throws VisADException, RemoteException
+  {
+    return combine( fields, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS );
+  }
+
+  public static Field combine( Field[] fields, int sampling_mode, int error_mode )
                 throws VisADException, RemoteException
   {
     int ii, jj, kk, n_fields;
@@ -561,8 +566,6 @@ public class FieldImpl extends FunctionImpl implements Field {
     int n_dims;
     int length;
     int cnt = 0;
-    int sampling_mode = 0;
-    int error_mode = 0;                //- eventually move these to arg list
     
     n_fields = fields.length;
     n_comps = 0;
