@@ -173,7 +173,7 @@ public class Util
     int milli = cal.get(Calendar.MILLISECOND);
     sb.append(year);
     sb.append("/");
-    if (month < 10) sb.append("0");
+    if (month < 9) sb.append("0");
     sb.append(month + 1);
     sb.append("/");
     if (day < 10) sb.append("0");
