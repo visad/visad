@@ -227,7 +227,7 @@ public class AddeURLConnection extends URLConnection
     throws IOException
   {
     super(url);
-    this.url = url;
+    this.url = normalizeURL(url);
   } 
 
   /**
@@ -2085,4 +2085,37 @@ public class AddeURLConnection extends URLConnection
       else
         return "-" + eastLong;
     }
+
+    private static String[] replaceWith = {"&", "<", ">", "\'", "\"", "\r", "\n", " "};
+    private static String[] replaceString = {"&amp;", "&lt;", "&gt;", "&apos;", "&quot;", "&#13;", "&#10;", "%20" };
+
+    private URL normalizeURL(URL url) {
+
+      String x = url.toString();
+      // common case no replacement
+      boolean ok = true;
+      for (int i=0; i<replaceString.length; i++) {
+        int pos = x.indexOf(replaceString[i]);
+        ok &= (pos < 0);
+      }
+
+      if (!ok) { // gotta do it
+
+        for (int i=0; i<replaceString.length; i++) {
+          int pos = -1;
+          while ((pos = x.indexOf(replaceString[i])) >=0) {
+            if (debug) System.out.println("found " + replaceString[i] + " at " + pos);
+            StringBuffer buf = new StringBuffer(x);
+            buf.replace(pos, pos+(replaceString[i].length()), replaceWith[i]);
+            x = buf.toString();
+          }
+        }
+      }
+      if (debug) System.out.println("normalized url = " + x);
+      try {
+          return new URL(x);
+      } catch (Exception e) {}
+      return url;
+    } 
+
 }
