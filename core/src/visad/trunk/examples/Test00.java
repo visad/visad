@@ -53,8 +53,8 @@ public class Test00
     GraphicsModeControl mode;
 
     final RealType ir_radiance =
-      new RealType("ir_radiance", CommonUnit.degree, null);
-    final RealType count = new RealType("count", CommonUnit.second, null);
+      new RealType("ir_radiance", CommonUnit.degree);
+    final RealType count = new RealType("count", CommonUnit.second);
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
     final RealType vis_radiance = new RealType("vis_radiance", null, null);
 

@@ -138,6 +138,19 @@ public class RealType extends ScalarType {
 
   /**
    * Constructs from a name (two RealTypes are equal if their names are equal)
+   * and a default Unit.  Assumes the default Set, and that the
+   * RealType does <em>not</em> refer to an interval.
+   * @param name		The name for the RealType.
+   * @param u                   The default unit for the RealType.  May be
+   *                            <code>null</code>.  
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  public RealType(String name, Unit u) throws VisADException {
+    this(name, u, null, 0);
+  }
+
+  /**
+   * Constructs from a name (two RealTypes are equal if their names are equal)
    * a default Unit, a default Set, and whether or not the RealType refers to
    * an interval (e.g. length difference, delta temperature).  This is the most
    * general, public constructor.
