@@ -111,6 +111,15 @@ public class Test00
     dpys[1].addReferences(new DirectManipulationRendererJ3D(), refs2, null);
     dpys[1].addReferences(new DirectManipulationRendererJ3D(), refs3, null);
 
+    MouseHelper helper = dr1.getMouseBehavior().getMouseHelper();
+    helper.setFunctionMap(new int[][][]
+      {{{MouseHelper.DIRECT, MouseHelper.DIRECT},
+        {MouseHelper.DIRECT, MouseHelper.DIRECT}},
+       {{MouseHelper.ROTATE, MouseHelper.NONE},
+        {MouseHelper.NONE, MouseHelper.NONE}},
+       {{MouseHelper.NONE, MouseHelper.NONE},
+        {MouseHelper.NONE, MouseHelper.NONE}}});
+
     CellImpl cell = new CellImpl() {
       public void doAction() throws RemoteException, VisADException {
         double vir = dr1.getDirectAxisValue(ir_radiance);
