@@ -124,8 +124,8 @@ public class CollectiveBarbManipulation extends Object
                             // == 0 for both directions
 
   private static final int NCIRCLE = 24;
-  private DataRenderer circle_renderer = null;
-  private DataReferenceImpl circle_ref = null;
+  private DataRenderer[] circle_renderer = null;
+  private DataReferenceImpl[] circle_ref = null;
   private boolean circle_enable = false;
 
   /**
@@ -166,14 +166,20 @@ public class CollectiveBarbManipulation extends Object
      kts is false to indicate no m/s to knots conversion in
      wind barb renderers
 
-     circle_color is array of RGB colors for circle of influence,
-     or null for no circle
+     inner_circle_color is array of RGB colors for an inner circle
+     of influence, or null for no inner circles
+     inner_circle_width is the line width for the inner circle
+
+     outer_circle_color is array of RGB colors for an outer circle
+     of influence, or null for no outer circles
+     outer_circle_width is the line width for the outer circle
   */
   public CollectiveBarbManipulation(FieldImpl wf,
                  DisplayImplJ3D d1, DisplayImplJ3D d2, ConstantMap[] cms,
-                 boolean abs, float id, float od, float it, float ot,
-                 int sta, boolean need_monitor, boolean brbs, boolean fs,
-                 boolean kts, double[] circle_color)
+                 boolean abs, float id, float od, float it, float ot, int sta,
+                 boolean need_monitor, boolean brbs, boolean fs, boolean kts,
+                 double[] inner_circle_color, int inner_circle_width,
+                 double[] outer_circle_color, int outer_circle_width)
          throws VisADException, RemoteException {
     wind_field = wf;
     display1 = d1;
@@ -503,18 +509,37 @@ public class CollectiveBarbManipulation extends Object
 
     time_dir = 0;
 
-    if (display1 != null && circle_color != null) {
+    circle_ref = new DataReferenceImpl[] {null, null};
+    circle_renderer = new DefaultRendererJ3D[] {null, null};
+    if (display1 != null && inner_circle_color != null) {
+      double cw = (inner_circle_width > 0) ? inner_circle_width : 1;
       ConstantMap[] color_maps =
-        {new ConstantMap(circle_color[0], Display.Red),
-         new ConstantMap(circle_color[1], Display.Green),
-         new ConstantMap(circle_color[2], Display.Blue)};
-      circle_ref = new DataReferenceImpl("circle");
-      circle_ref.setData(null);
-      circle_renderer = new DefaultRendererJ3D();
-      display1.addReferences(circle_renderer, circle_ref, color_maps);
-      circle_renderer.toggle(false);
-      circle_renderer.suppressExceptions(true);
+        {new ConstantMap(inner_circle_color[0], Display.Red),
+         new ConstantMap(inner_circle_color[1], Display.Green),
+         new ConstantMap(inner_circle_color[2], Display.Blue),
+         new ConstantMap(cw, Display.LineWidth)};
+      circle_ref[0] = new DataReferenceImpl("inner_circle");
+      circle_ref[0].setData(null);
+      circle_renderer[0] = new DefaultRendererJ3D();
+      display1.addReferences(circle_renderer[0], circle_ref[0], color_maps);
+      circle_renderer[0].toggle(false);
+      circle_renderer[0].suppressExceptions(true);
     }
+    if (display1 != null && outer_circle_color != null) {
+      double cw = (outer_circle_width > 0) ? outer_circle_width : 1;
+      ConstantMap[] color_maps =
+        {new ConstantMap(outer_circle_color[0], Display.Red),
+         new ConstantMap(outer_circle_color[1], Display.Green),
+         new ConstantMap(outer_circle_color[2], Display.Blue),
+         new ConstantMap(cw, Display.LineWidth)};
+      circle_ref[1] = new DataReferenceImpl("outer_circle");
+      circle_ref[1].setData(null);
+      circle_renderer[1] = new DefaultRendererJ3D();
+      display1.addReferences(circle_renderer[1], circle_ref[1], color_maps);
+      circle_renderer[1].toggle(false);
+      circle_renderer[1].suppressExceptions(true);
+    }
+
   }
 
   // public void addStation(FlatField station)
@@ -880,7 +905,7 @@ public class CollectiveBarbManipulation extends Object
         visad.util.Util.isApproximatelyEqual(new_radial,
                radials[sta_index][time_index], MPS_EPS)) return;
 
-    if (display_index == 1 && curve_ref == null) makeCircle(sta_index);
+    if (display_index == 1 && curve_ref == null) makeCircles(sta_index);
 
     boolean curve = (curve_ref != null);
     if (last_sta != sta_index || last_time != time_index ||
@@ -999,33 +1024,40 @@ public class CollectiveBarbManipulation extends Object
 
   private RealTupleType circle_type = null;
 
-  private void makeCircle(int sta_index) {
-    if (circle_ref == null || !circle_enable) return;
+  private void makeCircles(int sta_index) {
+    if ((circle_ref[0] == null && circle_ref[1] == null) ||
+        !circle_enable) return;
     try {
       if (circle_type == null) {
         circle_type = new RealTupleType(RealType.Latitude, RealType.Longitude);
       }
       float lat = lats[sta_index];
       float lon = lons[sta_index];
+      float[] dists =
+        {inner_distance / ShadowType.METERS_PER_DEGREE,
+         outer_distance / ShadowType.METERS_PER_DEGREE};
       float[][] circle = new float[2][NCIRCLE+1];
       float coslat = (float) Math.cos(Data.DEGREES_TO_RADIANS * lat);
-      float dist = outer_distance / ShadowType.METERS_PER_DEGREE;
-      for (int i=0; i<=NCIRCLE; i++) {
-        double angle = Data.DEGREES_TO_RADIANS * 360.0 * i / NCIRCLE;
-        float cos = (float) Math.cos(angle);
-        float sin = (float) Math.sin(angle);
-        circle[0][i] = lat + dist * cos;
-        circle[1][i] = lon + dist * sin / coslat;
+      for (int io=0; io<2; io++) {
+        if (circle_ref[io] != null) {
+          for (int i=0; i<=NCIRCLE; i++) {
+            double angle = Data.DEGREES_TO_RADIANS * 360.0 * i / NCIRCLE;
+            float cos = (float) Math.cos(angle);
+            float sin = (float) Math.sin(angle);
+            circle[0][i] = lat + dists[io] * cos;
+            circle[1][i] = lon + dists[io] * sin / coslat;
+          }
+          Gridded2DSet set = new Gridded2DSet(circle_type, circle, NCIRCLE + 1);
+          circle_renderer[io].toggle(true);
+          circle_ref[io].setData(set);
+        }
       }
-      Gridded2DSet set = new Gridded2DSet(circle_type, circle, NCIRCLE + 1);
-      circle_renderer.toggle(true);
-      circle_ref.setData(set);
     }
     catch (VisADException e) {
-      System.out.println("makeCircle " + e);
+      System.out.println("makeCircles " + e);
     }
     catch (RemoteException e) {
-      System.out.println("makeCircle " + e);
+      System.out.println("makeCircles " + e);
     }
   }
 
@@ -1036,8 +1068,12 @@ public class CollectiveBarbManipulation extends Object
   public void release() {
     try {
       circle_enable = false;
-      circle_renderer.toggle(false);
-      circle_ref.setData(null);
+      for (int io=0; io<2; io++) {
+        if (circle_ref[io] != null) {
+          circle_renderer[io].toggle(false);
+          circle_ref[io].setData(null);
+        }
+      }
     }
     catch (VisADException e) {
       System.out.println("release " + e);
@@ -1209,9 +1245,10 @@ public class CollectiveBarbManipulation extends Object
 
     final CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
-                                     0.0f, 1000000.0f, 0.0f, 1000.0f,
+                                     500000.0f, 1000000.0f, 0.0f, 1000.0f,
                                      0, false, (args.length == 0), true, false,
-                                     new double[] {0.5, 0.5, 0.0});
+                                     new double[] {0.0, 0.5, 0.5}, 1,
+                                     new double[] {0.5, 0.5, 0.0}, 3);
 
     // construct invisible starter set
     Gridded2DSet set1 =
