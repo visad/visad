@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NoSuchUnitException.java,v 1.2 1998-02-23 15:58:41 steve Exp $
+ * $Id: NoSuchUnitException.java,v 1.3 1998-02-23 15:58:58 steve Exp $
  */
 
 package visad.data.netcdf.units;

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.3 1998-02-23 15:58:39 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.4 1998-02-23 15:58:56 steve Exp $
  */
 
 package visad.data.netcdf.units;

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: PluralUnit.java,v 1.2 1998-02-23 15:58:43 steve Exp $
+ * $Id: PluralUnit.java,v 1.3 1998-02-23 15:59:00 steve Exp $
  */
 
 package visad.data.netcdf.units;
