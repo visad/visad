@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArithProg.java,v 1.3 2001-03-29 21:08:59 steve Exp $
+$Id: ArithProg.java,v 1.4 2001-04-09 14:42:47 steve Exp $
 */
 
 package visad.data.in;
@@ -53,7 +53,7 @@ public class ArithProg
      *				and previous value normalized by the current
      *				increment differs from unity by more than the
      *				nearness threshold; otherwise, true.
-     * @throws VisADException	{@link isConsistent()} was false before this
+     * @throws VisADException	{@link #isConsistent()} was false before this
      *				method was invoked.
      * @precondition		isConsistent() is true.
      * @postcondition		A subsequent getNumber() will return
@@ -83,7 +83,7 @@ public class ArithProg
      *				and previous value normalized by the current
      *				increment differs from unity by more than the
      *				nearness threshold; otherwise, true.
-     * @throws VisADException	{@link isConsistent()} was false before this
+     * @throws VisADException	{@link #isConsistent()} was false before this
      *				method was invoked.
      * @precondition		isConsistent() is true.
      * @postcondition		A subsequent getNumber() will return
