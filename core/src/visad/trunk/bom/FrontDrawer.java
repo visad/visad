@@ -67,6 +67,9 @@ public class FrontDrawer extends Object {
   private FrontManipulationRendererJ3D front_manipulation_renderer;
   private CurveMonitor curve_monitor;
 
+  private ReleaseCell release_cell;
+  private DataReferenceImpl release_ref;
+
   private ProjectionControl pcontrol = null;
 
   private DisplayImplJ3D display;
@@ -552,6 +555,10 @@ public class FrontDrawer extends Object {
     front_renderer = new DefaultRendererJ3D();
     front_renderer.suppressExceptions(true);
     display.addReferences(front_renderer, front_ref);
+
+    release_ref = new DataReferenceImpl("release");
+    release_cell = new ReleaseCell();
+    release_cell.addReference(release_ref);
   }
 
   public static void initColormaps(DisplayImplJ3D display)
@@ -588,80 +595,92 @@ public class FrontDrawer extends Object {
     }
   }
 
+  class ReleaseCell extends CellImpl {
+
+    public ReleaseCell() {
+    }
+
+    public void doAction() throws VisADException, RemoteException {
+      synchronized (data_lock) {
+        Data data = curve_ref.getData();
+        if (data == null || !(data instanceof UnionSet)) {
+          if (debug) System.out.println("data null or not UnionSet");
+          return;
+        }
+        SampledSet[] sets = ((UnionSet) data).getSets();
+        if (!(sets[0] instanceof Gridded2DSet)) {
+          if (debug) System.out.println("data not Gridded2DSet");
+          return;
+        }
+        Gridded2DSet curve_set = (Gridded2DSet) sets[0];
+        if (curve_set.getManifoldDimension() != 1) {
+          if (debug) System.out.println("ManifoldDimension != 1");
+          return;
+        }
+        float[][] curve_samples = null;
+        try {
+          curve_samples = curve_set.getSamples(false);
+        }
+        catch (VisADException e) {
+          if (debug) System.out.println("release " + e);
+          return;
+        }
+    
+        boolean flip = false;
+        double[] lat_range = lat_map.getRange();
+        double[] lon_range = lon_map.getRange();
+        if (lat_range[1] < lat_range[0]) flip = !flip;
+        if (lon_range[1] < lon_range[0]) flip = !flip;
+        if (curve_samples[lat_index][0] < 0.0) flip = !flip;
+        if (lon_index < lat_index) flip = !flip;
+        // if (debug) System.out.println("flip = " + flip);
+    
+        // transform curve to graphics coordinates
+        // in order to "draw" front in graphics coordinates, then
+        // transform back to (lat, lon)
+        float[][] curve = new float[2][];
+        curve[0] = lat_map.scaleValues(curve_samples[lat_index]);
+        curve[1] = lon_map.scaleValues(curve_samples[lon_index]);
+        // inverseScaleValues
+        // if (debug) System.out.println("curve length = " + curve[0].length);
+    
+        // resample curve uniformly along length
+        float increment = segment_length / profile_length;
+        float[][] old_curve = resample_curve(curve, increment);
+  
+        int fw = filter_window;
+  
+        for (int tries=0; tries<10; tries++) {
+          // lowpass filter curve
+          curve = smooth_curve(old_curve, fw);
+    
+          // resample smoothed curve
+          curve = resample_curve(curve, increment);
+    
+          try {
+            curveToFront(curve, flip);
+            break;
+          }
+          catch (VisADException e) {
+            fw = 2 * fw;
+            // if (debug) System.out.println("retry filter window = " + fw + " " + e);
+            if (tries == 9) {
+              System.out.println("cannot smooth curve");
+              front = null;
+            }
+          }
+        }
+  
+        front_ref.setData(front);
+        curve_ref.setData(init_curve);
+      } // end synchronized (data_lock)
+    }
+  }
+
   // FrontManipulationRendererJ3D button release
   public void release() {
     try {
-      Data data = curve_ref.getData();
-      if (data == null || !(data instanceof UnionSet)) {
-        if (debug) System.out.println("data null or not UnionSet");
-        return;
-      }
-      SampledSet[] sets = ((UnionSet) data).getSets();
-      if (!(sets[0] instanceof Gridded2DSet)) {
-        if (debug) System.out.println("data not Gridded2DSet");
-        return;
-      }
-      Gridded2DSet curve_set = (Gridded2DSet) sets[0];
-      if (curve_set.getManifoldDimension() != 1) {
-        if (debug) System.out.println("ManifoldDimension != 1");
-        return;
-      }
-      float[][] curve_samples = null;
-      try {
-        curve_samples = curve_set.getSamples(false);
-      }
-      catch (VisADException e) {
-        if (debug) System.out.println("release " + e);
-        return;
-      }
-  
-      boolean flip = false;
-      double[] lat_range = lat_map.getRange();
-      double[] lon_range = lon_map.getRange();
-      if (lat_range[1] < lat_range[0]) flip = !flip;
-      if (lon_range[1] < lon_range[0]) flip = !flip;
-      if (curve_samples[lat_index][0] < 0.0) flip = !flip;
-      if (lon_index < lat_index) flip = !flip;
-      // if (debug) System.out.println("flip = " + flip);
-  
-      // transform curve to graphics coordinates
-      // in order to "draw" front in graphics coordinates, then
-      // transform back to (lat, lon)
-      float[][] curve = new float[2][];
-      curve[0] = lat_map.scaleValues(curve_samples[lat_index]);
-      curve[1] = lon_map.scaleValues(curve_samples[lon_index]);
-      // inverseScaleValues
-      // if (debug) System.out.println("curve length = " + curve[0].length);
-  
-      // resample curve uniformly along length
-      float increment = segment_length / profile_length;
-      float[][] old_curve = resample_curve(curve, increment);
-
-      int fw = filter_window;
-
-      for (int tries=0; tries<10; tries++) {
-        // lowpass filter curve
-        curve = smooth_curve(old_curve, fw);
-  
-        // resample smoothed curve
-        curve = resample_curve(curve, increment);
-  
-        try {
-          curveToFront(curve, flip);
-          break;
-        }
-        catch (VisADException e) {
-          fw = 2 * fw;
-          // if (debug) System.out.println("retry filter window = " + fw + " " + e);
-          if (tries == 9) {
-            System.out.println("cannot smooth curve");
-            front = null;
-          }
-        }
-      }
-
-      front_ref.setData(front);
-      curve_ref.setData(init_curve);
+      release_ref.setData(null);
     }
     catch (VisADException e) {
       if (debug) System.out.println("release fail: " + e.toString());
@@ -675,18 +694,20 @@ public class FrontDrawer extends Object {
       returns the final front */
   public FieldImpl endManipulation()
          throws VisADException, RemoteException {
+    synchronized (data_lock) {
 
-    display.removeReference(curve_ref);
-    // display.removeReference(front_ref);
+      display.removeReference(curve_ref);
+      // display.removeReference(front_ref);
 
-    // (front_index ->
-    //     ((Latitude, Longitude) -> (front_red, front_green, front_blue)))
+      // (front_index ->
+      //     ((Latitude, Longitude) -> (front_red, front_green, front_blue)))
+    }
     return front;
   }
 
   private static final float CLIP_DELTA = 0.001f;
 
-  public void curveToFront(float[][] curve, boolean flip)
+  private void curveToFront(float[][] curve, boolean flip)
          throws VisADException, RemoteException {
 
     // compute various scaling factors
@@ -883,7 +904,7 @@ public class FrontDrawer extends Object {
     return ss;
   }
 
-  public float[][] smooth_curve(float[][] curve, int window) {
+  public static float[][] smooth_curve(float[][] curve, int window) {
     int len = curve[0].length;
     float[][] newcurve = new float[2][len];
     for (int i=0; i<len; i++) {
@@ -904,7 +925,7 @@ public class FrontDrawer extends Object {
   }
 
   /** resmaple curve into segments approximately increment in length */
-  public float[][] resample_curve(float[][] curve, float increment) {
+  public static float[][] resample_curve(float[][] curve, float increment) {
     int len = curve[0].length;
     float[] seg_length = new float[len-1];
     float curve_length = curveLength(curve, seg_length);
@@ -942,7 +963,7 @@ public class FrontDrawer extends Object {
   }
 
   /** assumes curve is float[2][len] and seg_length is float[len-1] */
-  public float curveLength(float[][] curve, float[] seg_length) {
+  public static float curveLength(float[][] curve, float[] seg_length) {
     int len = curve[0].length;
     float curve_length = 0.0f;
     for (int i=0; i<len-1; i++) {
