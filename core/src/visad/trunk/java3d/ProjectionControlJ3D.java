@@ -106,16 +106,24 @@ public class ProjectionControlJ3D extends ProjectionControl {
       ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas();
     if (canvas != null && canvas.getOffscreen()) {
       try {
-        Method waitMethod =
+        Method renderMethod =
           Canvas3D.class.getMethod("renderOffScreenBuffer",
+                                   new Class[] {});
+        renderMethod.invoke(canvas, new Object[] {});
+        Method waitMethod =
+          Canvas3D.class.getMethod("waitForOffScreenRendering",
                                    new Class[] {});
         waitMethod.invoke(canvas, new Object[] {});
       }
       catch (NoSuchMethodException e) {
+        // System.out.println(e);
       }
       catch (IllegalAccessException e) {
+        // System.out.println(e);
       }
       catch (InvocationTargetException e) {
+        // System.out.println(e + "\n" +
+        //    ((InvocationTargetException) e).getTargetException());
       }
       // canvas.renderOffScreenBuffer();
     }

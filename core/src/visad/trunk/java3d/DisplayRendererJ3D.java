@@ -227,10 +227,16 @@ public abstract class DisplayRendererJ3D
           canvas.captureFlag = true;
           if (canvas.getOffscreen()) {
             try {
-              Method waitMethod =
+              Method renderMethod =
                 Canvas3D.class.getMethod("renderOffScreenBuffer",
                                          new Class[] {});
+              renderMethod.invoke(canvas, new Object[] {});
+/*
+              Method waitMethod =
+                Canvas3D.class.getMethod("waitForOffScreenRendering",
+                                         new Class[] {});
               waitMethod.invoke(canvas, new Object[] {});
+*/
             }
             catch (NoSuchMethodException e) {
             }

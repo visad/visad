@@ -2242,7 +2242,9 @@ makeGeometry 350, 171
               nwidth = data_width;
               nheight = data_height;
             }
-// System.out.println("curved_size = " + curved_size);
+
+// System.out.println("curved_size = " + curved_size + " nwidth = " + nwidth +
+//                    " nheight = " + nheight);
 
             int nn = nwidth * nheight;
             coordinates = new float[3 * nn];
@@ -2278,12 +2280,30 @@ if (size < 0.2) {
 
             float ratiow = ((float) data_width) / ((float) texture_width);
             float ratioh = ((float) data_height) / ((float) texture_height);
+
+            // WLH 27 Jan 2003
+            float half_width = 0.5f / ((float) data_width);
+            float half_height = 0.5f / ((float) data_height);
+            float width = 1.0f / ((float) data_width);
+            float height = 1.0f / ((float) data_height);
+
             int mt = 0;
             texCoords = new float[2 * nn];
+// System.out.println("nwidth = " + nwidth + " nheight = " + nheight +
+//                    " ratiow = " + ratiow + " ratioh = " + ratioh);
             for (int j=0; j<nheight; j++) {
               for (int i=0; i<nwidth; i++) {
+/* WLH 27 Jan 2003
                 texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
                 texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
+*/
+                // WLH 27 Jan 2003
+                float isfactor = is[i] / (data_width - 1.0f);
+                float jsfactor = js[j] / (data_height - 1.0f);
+                texCoords[mt++] = (ratiow - width) * isfactor + half_width;
+                texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
+// System.out.println("texCoords = " + texCoords[mt-2] + " " + texCoords[mt-1] +
+//                    " isfactor = " + isfactor + " jsfactor = " + jsfactor);
               }
             }
 
