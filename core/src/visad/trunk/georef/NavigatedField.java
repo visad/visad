@@ -35,5 +35,10 @@ import visad.*;
  */
 public interface NavigatedField extends Field
 {
+    /**
+     * Get the coordinate system representing the navigation for the domain.
+     *
+     * @return NavigatedCoordinateSystem for the domain of this field.
+     */
     public NavigatedCoordinateSystem getNavigation();
 }
