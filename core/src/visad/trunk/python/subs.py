@@ -59,16 +59,16 @@ def addData(name, data, disp, constantMaps=None):
   return ref
 
 # a simple method for making the VisAD "box" 95% of the window size
-def maximizeBox(display):
+def maximizeBox(display, percent=.95):
   pc=display.getProjectionControl()
   pcMatrix=pc.getMatrix()
   if len(pcMatrix) > 10:
-    pcMatrix[0]=.95
-    pcMatrix[5]=.95
-    pcMatrix[10]=.95
+    pcMatrix[0]=percent
+    pcMatrix[5]=percent
+    pcMatrix[10]=percent
   else:
-    pcMatrix[0]=1.4
-    pcMatrix[3]=-1.4
+    pcMatrix[0]=percent/.64
+    pcMatrix[3]=-percent/.64
     
   pc.setMatrix(pcMatrix)
 

@@ -1463,9 +1463,9 @@ public abstract class JPythonMethods {
   *
   * @return the range
   */
-  public static RealTupleType rangeType(Data data) 
+  public static TupleType rangeType(Data data) 
                   throws VisADException, RemoteException {
-    return (RealTupleType) ((FunctionType)data.getType()).getRange();
+    return (TupleType) ((FunctionType)data.getType()).getRange();
   
   }
 
@@ -1500,7 +1500,7 @@ public abstract class JPythonMethods {
    */
   public static String rangeType (Data data,int comp) 
                    throws VisADException, RemoteException {
-    return (String) ((RealTupleType)
+    return (String) ((TupleType)
         ((FunctionType)data.getType()).getRange()).
                             getComponent(comp).toString();
   }
