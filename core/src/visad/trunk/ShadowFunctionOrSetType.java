@@ -1519,8 +1519,8 @@ System.out.println("Range is ShadowTupleType, text_values[0] = " +
     // range_select is null if all selected
     // MEM
     boolean[][] range_select =
-      assembleSelect(display_values, domain_length, valueArrayLength,
-                     valueToScalar, display);
+      shadow_api.assembleSelect(display_values, domain_length, valueArrayLength,
+                     valueToScalar, display, shadow_api);
 /*
 if (range_select[0] != null) {
   int numforced = 0;
@@ -1567,9 +1567,9 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       // assemble an array of RGBA values
       // MEM
       byte[][] color_values =
-        assembleColor(display_values, valueArrayLength, valueToScalar,
+        shadow_api.assembleColor(display_values, valueArrayLength, valueToScalar,
                       display, default_values, range_select,
-                      single_missing);
+                      single_missing, shadow_api);
 /*
 if (range_select[0] != null) {
   int numforced = 0;
@@ -1600,9 +1600,10 @@ if (color_values != null) {
       float[][] flow2_values = new float[3][];
       float[] flowScale = new float[2];
       // MEM
-      assembleFlow(flow1_values, flow2_values, flowScale,
+      shadow_api.assembleFlow(flow1_values, flow2_values, flowScale,
                    display_values, valueArrayLength, valueToScalar,
-                   display, default_values, range_select, renderer);
+                   display, default_values, range_select, renderer,
+                   shadow_api);
 /*
 if (range_select[0] != null) {
   int numforced = 0;
@@ -1637,11 +1638,12 @@ if (range_select[0] != null) {
 
       // MEM - but not if isTextureMap
       Set spatial_set = 
-        assembleSpatial(spatial_values, display_values, valueArrayLength,
+        shadow_api.assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
                         inherited_values, domain_set, Domain.getAllSpatial(),
                         anyContour, spatialDimensions, spatial_range_select,
-                        flow1_values, flow2_values, flowScale, swap, renderer);
+                        flow1_values, flow2_values, flowScale, swap, renderer,
+                        shadow_api);
 
       // WLH 29 April 99
       boolean spatial_all_select = true;
@@ -1849,9 +1851,10 @@ END MISSING TEST */
 
         boolean anyShapeCreated = false;
         VisADGeometryArray[] arrays =
-          assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
-                        valueToScalar, display, default_values, inherited_values,
-                        spatial_values, color_values, range_select, -1);
+          shadow_api.assembleShape(display_values, valueArrayLength, valueToMap,
+                         MapVector, valueToScalar, display, default_values,
+                         inherited_values, spatial_values, color_values,
+                         range_select, -1, shadow_api);
 /*
 if (range_select[0] != null) {
   int numforced = 0;
@@ -2599,9 +2602,10 @@ WLH 15 March 2000 */
 
             boolean anyShapeCreated = false;
             VisADGeometryArray[] arrays =
-              assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
-                            valueToScalar, display, default_values, inherited_values,
-                            sp, co, ra, i);
+              shadow_api.assembleShape(display_values, valueArrayLength,
+                            valueToMap, MapVector, valueToScalar, display,
+                            default_values, inherited_values,
+                            sp, co, ra, i, shadow_api);
             if (arrays != null) {
               for (int j=0; j<arrays.length; j++) {
                 array = arrays[j];

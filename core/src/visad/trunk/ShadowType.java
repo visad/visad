@@ -1057,12 +1057,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
   /** collect and transform Shape DisplayRealType values from display_values;
       offset by spatial_values, colored by color_values and selected by
       range_select */
-  public static VisADGeometryArray[] assembleShape(float[][] display_values,
+  public VisADGeometryArray[] assembleShape(float[][] display_values,
                 int valueArrayLength, int[] valueToMap, Vector MapVector,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
                 float[][] spatial_values, byte[][] color_values,
-                boolean[][] range_select, int index)
+                boolean[][] range_select, int index, ShadowType shadow_api)
          throws VisADException, RemoteException {
 
     if (spatial_values[0] == null) return null;
@@ -1220,14 +1220,15 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       as domain_set (or an appropriate Irregular topology);
       domain_set = null and allSpatial = false if not called from
       ShadowFunctionType */
-  public static Set assembleSpatial(float[][] spatial_values,
+  public Set assembleSpatial(float[][] spatial_values,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
                 Set domain_set, boolean allSpatial, boolean set_for_shape,
                 int[] spatialDimensions, boolean[][] range_select,
                 float[][] flow1_values, float[][] flow2_values,
-                float[] flowScale, boolean[] swap, DataRenderer renderer)
+                float[] flowScale, boolean[] swap, DataRenderer renderer,
+                ShadowType shadow_api)
          throws VisADException, RemoteException {
     DisplayTupleType spatial_tuple = null;
     // number of spatial samples, default is 1
@@ -1709,7 +1710,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         else {
           SetType type = new SetType(Display.DisplaySpatialCartesianTuple);
           // MEM
-          return domain_set.makeSpatial(type, spatial_values);
+          // WLH 5 April 2000
+          // return domain_set.makeSpatial(type, spatial_values);
+          return shadow_api.makeSpatial(domain_set, type, spatial_values);
         }
       }
       catch (VisADException e) {
@@ -1719,6 +1722,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     else {
       return null;
     }
+  }
+
+  // WLH 5 April 2000
+  public Set makeSpatial(Set domain_set, SetType type, float[][] spatial_values)
+         throws VisADException {
+    return domain_set.makeSpatial(type, spatial_values);
   }
 
   private static void fillOut(float[][] values, int flen) {
@@ -1738,12 +1747,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
   /** assemble Flow components;
       Flow components are 'single', so no compositing is required */
-  public static void assembleFlow(float[][] flow1_values,
+  public void assembleFlow(float[][] flow1_values,
                 float[][] flow2_values, float[] flowScale,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, boolean[][] range_select,
-                DataRenderer renderer)
+                DataRenderer renderer, ShadowType shadow_api)
          throws VisADException, RemoteException {
 
     int[] valueToMap = display.getValueToMap();
@@ -2231,10 +2240,11 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
 
   /** composite and transform color and Alpha DisplayRealType values
       from display_values, and return as (Red, Green, Blue, Alpha) */
-  public static byte[][] assembleColor(float[][] display_values,
+  public byte[][] assembleColor(float[][] display_values,
                 int valueArrayLength, int[] valueToScalar,
                 DisplayImpl display, float[] default_values,
-                boolean[][] range_select, boolean[] single_missing)
+                boolean[][] range_select, boolean[] single_missing,
+                ShadowType shadow_api)
          throws VisADException, RemoteException {
     float[][] rgba_values = new float[4][];
     float[] rgba_value_counts = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -2638,9 +2648,10 @@ System.out.println("color_values: nummissing = " + nummissing);
   /** return a composite of SelectRange DisplayRealType values from
       display_values, as 0.0 for select and Double.Nan for no select
       (these values can be added to other DisplayRealType values) */
-  public static boolean[][] assembleSelect(float[][] display_values,
+  public boolean[][] assembleSelect(float[][] display_values,
                              int domain_length, int valueArrayLength,
-                             int[] valueToScalar, DisplayImpl display)
+                             int[] valueToScalar, DisplayImpl display,
+                             ShadowType shadow_api)
          throws VisADException {
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
@@ -2719,9 +2730,10 @@ System.out.println("range = " + range[0] + " " + range[1] +
     float[][] flow2_values = new float[3][];
     float[] flowScale = new float[2];
     boolean[][] range_select = new boolean[1][];
-    assembleFlow(flow1_values, flow2_values, flowScale,
+    shadow_api.assembleFlow(flow1_values, flow2_values, flowScale,
                  display_values, valueArrayLength, valueToScalar,
-                 display, default_values, range_select, renderer);
+                 display, default_values, range_select, renderer,
+                 shadow_api);
  
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
@@ -2731,11 +2743,11 @@ System.out.println("range = " + range[0] + " " + range[1] +
     boolean[] swap = {false, false, false};
     int[] spatialDimensions = new int[2];
     float[][] spatial_values = new float[3][];
-    assembleSpatial(spatial_values, display_values, valueArrayLength,
+    shadow_api.assembleSpatial(spatial_values, display_values, valueArrayLength,
                     valueToScalar, display, default_values,
                     inherited_values, null, false, false,
                     spatialDimensions, range_select, flow1_values,
-                    flow2_values, flowScale, swap, renderer);
+                    flow2_values, flowScale, swap, renderer, shadow_api);
 
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
@@ -2744,8 +2756,8 @@ System.out.println("range = " + range[0] + " " + range[1] +
  
     boolean[] single_missing = {false, false, false, false};
     byte[][] color_values =
-      assembleColor(display_values, valueArrayLength, valueToScalar,
-                    display, default_values, range_select, single_missing);
+      shadow_api.assembleColor(display_values, valueArrayLength, valueToScalar,
+            display, default_values, range_select, single_missing, shadow_api);
  
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
@@ -2782,9 +2794,10 @@ System.out.println("range = " + range[0] + " " + range[1] +
       int[] valueToMap = display.getValueToMap();
       Vector MapVector = display.getMapVector();
       VisADGeometryArray[] arrays =
-        assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
-                      valueToScalar, display, default_values, inherited_values,
-                      spatial_values, color_values, range_select, -1);
+        shadow_api.assembleShape(display_values, valueArrayLength, valueToMap,
+                      MapVector, valueToScalar, display, default_values,
+                      inherited_values, spatial_values, color_values,
+                      range_select, -1, shadow_api);
       if (arrays != null) {
         for (int i=0; i<arrays.length; i++) {
           array = arrays[i];

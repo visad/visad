@@ -204,16 +204,17 @@ public abstract class ShadowTypeJ2D extends ShadowType {
 
   /** collect and transform Shape DisplayRealType values from display_values;
       offset by spatial_values, selected by range_select */
-  public static VisADGeometryArray[] assembleShape(float[][] display_values,
+  public VisADGeometryArray[] assembleShape(float[][] display_values,
                 int valueArrayLength, int[] valueToMap, Vector MapVector,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
                 float[][] spatial_values, byte[][] color_values,
-                boolean[][] range_select, int index)
+                boolean[][] range_select, int index, ShadowType shadow_api)
          throws VisADException, RemoteException {
-    return ShadowType.assembleShape(display_values, valueArrayLength,
+    return adaptedShadowType.assembleShape(display_values, valueArrayLength,
            valueToMap, MapVector, valueToScalar, display, default_values,
-           inherited_values, spatial_values, color_values, range_select, index);
+           inherited_values, spatial_values, color_values, range_select, index,
+           shadow_api);
   }
 
   /** collect and transform spatial DisplayRealType values from display_values;
@@ -223,34 +224,36 @@ public abstract class ShadowTypeJ2D extends ShadowType {
       as domain_set (or an appropriate Irregular topology);
       domain_set = null and allSpatial = false if not called from
       ShadowFunctionType */
-  public static Set assembleSpatial(float[][] spatial_values,
+  public Set assembleSpatial(float[][] spatial_values,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, int[] inherited_values,
                 Set domain_set, boolean allSpatial, boolean set_for_shape,
                 int[] spatialDimensions, boolean[][] range_select,
                 float[][] flow1_values, float[][] flow2_values,
-                float[] flowScale, boolean[] swap, DataRenderer renderer)
+                float[] flowScale, boolean[] swap, DataRenderer renderer,
+                ShadowType shadow_api)
          throws VisADException, RemoteException {
-    return ShadowType.assembleSpatial(spatial_values, display_values,
+    return adaptedShadowType.assembleSpatial(spatial_values, display_values,
            valueArrayLength, valueToScalar, display, default_values,
            inherited_values, domain_set, allSpatial, set_for_shape,
            spatialDimensions, range_select, flow1_values, flow2_values,
-           flowScale, swap, renderer);
+           flowScale, swap, renderer, shadow_api);
   }
 
   /** assemble Flow components;
       Flow components are 'single', so no compositing is required */
-  public static void assembleFlow(float[][] flow1_values,
+  public void assembleFlow(float[][] flow1_values,
                 float[][] flow2_values, float[] flowScale,
                 float[][] display_values, int valueArrayLength,
                 int[] valueToScalar, DisplayImpl display,
                 float[] default_values, boolean[][] range_select,
-                DataRenderer renderer)
+                DataRenderer renderer, ShadowType shadow_api)
          throws VisADException, RemoteException {
-    ShadowType.assembleFlow(flow1_values, flow2_values, flowScale,
+    adaptedShadowType.assembleFlow(flow1_values, flow2_values, flowScale,
                       display_values, valueArrayLength, valueToScalar,
-                      display, default_values, range_select, renderer);
+                      display, default_values, range_select, renderer,
+                      shadow_api);
   }
 
   public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
@@ -287,25 +290,27 @@ public abstract class ShadowTypeJ2D extends ShadowType {
 
   /** composite and transform color and Alpha DisplayRealType values
       from display_values, and return as (Red, Green, Blue, Alpha) */
-  public static byte[][] assembleColor(float[][] display_values,
+  public byte[][] assembleColor(float[][] display_values,
                 int valueArrayLength, int[] valueToScalar,
                 DisplayImpl display, float[] default_values,
-                boolean[][] range_select, boolean[] single_missing)
+                boolean[][] range_select, boolean[] single_missing,
+                ShadowType shadow_api)
          throws VisADException, RemoteException {
-    return ShadowType.assembleColor(display_values, valueArrayLength,
+    return adaptedShadowType.assembleColor(display_values, valueArrayLength,
            valueToScalar, display, default_values, range_select,
-           single_missing);
+           single_missing, shadow_api);
   }
 
   /** return a composite of SelectRange DisplayRealType values from
       display_values, as 0.0 for select and Double.Nan for no select
       (these values can be added to other DisplayRealType values) */
-  public static boolean[][] assembleSelect(float[][] display_values,
+  public boolean[][] assembleSelect(float[][] display_values,
                              int domain_length, int valueArrayLength,
-                             int[] valueToScalar, DisplayImpl display)
+                             int[] valueToScalar, DisplayImpl display,
+                             ShadowType shadow_api)
          throws VisADException {
-    return ShadowType.assembleSelect(display_values, domain_length,
-           valueArrayLength, valueToScalar, display);
+    return adaptedShadowType.assembleSelect(display_values, domain_length,
+           valueArrayLength, valueToScalar, display, shadow_api);
   }
 
   public boolean terminalTupleOrScalar(VisADGroup group, float[][] display_values,
