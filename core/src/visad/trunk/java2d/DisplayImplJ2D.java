@@ -330,5 +330,10 @@ System.out.println("DisplayImplJ2D.doAction: scratch = " + scratch);
     canvas.setAutoAspect(auto);
   }
 
+  public void destroy() throws VisADException, RemoteException {
+    ((DisplayRendererJ2D) getDisplayRenderer()).getCanvas().stop();
+    super.destroy();
+  }
+
 }
 

@@ -902,6 +902,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       thrownVE = ve;
     }
 
+    AnimationControl control =
+      (AnimationControl) getControl(AnimationControl.class);
+    if (control != null) {
+      control.stop();
+    }
+
     if (thrownVE != null) {
       throw thrownVE;
     }

@@ -50,9 +50,9 @@ public class DelaunayCustom extends Delaunay {
     this(samples, tri, vertices, walk, edges, num_edges, true);
   }
 
-  DelaunayCustom(float[][] samples, int[][] tri, int[][] vertices,
-                 int[][] walk, int[][] edges, int num_edges,
-                 boolean copy) throws VisADException {
+  public DelaunayCustom(float[][] samples, int[][] tri, int[][] vertices,
+                        int[][] walk, int[][] edges, int num_edges,
+                        boolean copy) throws VisADException {
     if (tri == null) {
       throw new VisADException("DelaunayCustom: "
                               +"Tri array must be specified!");

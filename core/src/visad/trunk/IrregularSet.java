@@ -86,10 +86,10 @@ public class IrregularSet extends SampledSet {
          units, errors, delan, true);
   }
 
-  IrregularSet(MathType type, float[][] samples,
-               int manifold_dimension, CoordinateSystem coord_sys,
-               Unit[] units, ErrorEstimate[] errors, Delaunay delan,
-               boolean copy) throws VisADException {
+  public IrregularSet(MathType type, float[][] samples,
+                      int manifold_dimension, CoordinateSystem coord_sys,
+                      Unit[] units, ErrorEstimate[] errors, Delaunay delan,
+                      boolean copy) throws VisADException {
     super(type, manifold_dimension, coord_sys, units, errors);
     if (samples == null ) {
       throw new SetException("IrregularSet: samples cannot be null");

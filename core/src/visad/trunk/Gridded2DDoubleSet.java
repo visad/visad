@@ -57,14 +57,16 @@ public class Gridded2DDoubleSet extends Gridded2DSet
   public Gridded2DDoubleSet(MathType type, float[][] samples, int lengthX, int lengthY,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    this(type, Set.floatToDouble(samples), lengthX, lengthY, coord_sys, units, errors, true);
+    this(type, Set.floatToDouble(samples), lengthX, lengthY, coord_sys,
+         units, errors, true);
   }
 
   Gridded2DDoubleSet(MathType type, float[][] samples, int lengthX, int lengthY,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {
-    this(type, Set.floatToDouble(samples), lengthX, lengthY, coord_sys, units, errors, copy);
+    this(type, Set.floatToDouble(samples), lengthX, lengthY, coord_sys,
+         units, errors, copy);
   }
 
   /** a 2-D set with manifold dimension = 1, with null errors,
@@ -85,10 +87,10 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     this(type, Set.floatToDouble(samples), lengthX, coord_sys, units, errors, true);
   }
 
-  Gridded2DDoubleSet(MathType type, float[][] samples, int lengthX,
-               CoordinateSystem coord_sys, Unit[] units,
-               ErrorEstimate[] errors, boolean copy)
-               throws VisADException {
+  public Gridded2DDoubleSet(MathType type, float[][] samples, int lengthX,
+                            CoordinateSystem coord_sys, Unit[] units,
+                            ErrorEstimate[] errors, boolean copy)
+                            throws VisADException {
     this(type, Set.floatToDouble(samples), lengthX, coord_sys, units, errors, copy);
   }
 
@@ -115,10 +117,10 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     this(type, samples, lengthX, lengthY, coord_sys, units, errors, true);
   }
 
-  Gridded2DDoubleSet(MathType type, double[][] samples, int lengthX, int lengthY,
-               CoordinateSystem coord_sys, Unit[] units,
-               ErrorEstimate[] errors, boolean copy)
-               throws VisADException {
+  public Gridded2DDoubleSet(MathType type, double[][] samples, int lengthX,
+                            int lengthY, CoordinateSystem coord_sys, Unit[] units,
+                            ErrorEstimate[] errors, boolean copy)
+                            throws VisADException {
     super(type, null, lengthX, lengthY, coord_sys, units, errors, copy);
     if (samples == null) {
       throw new SetException("Gridded2DDoubleSet: samples are null");
@@ -189,7 +191,7 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     this(type, samples, lengthX, coord_sys, units, errors, true);
   }
 
-  Gridded2DDoubleSet(MathType type, double[][] samples, int lengthX,
+  public Gridded2DDoubleSet(MathType type, double[][] samples, int lengthX,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {

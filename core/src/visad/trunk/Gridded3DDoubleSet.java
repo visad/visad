@@ -65,7 +65,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       coord_sys, units, errors, true);
   }
 
-  Gridded3DDoubleSet(MathType type, float[][] samples,
+  public Gridded3DDoubleSet(MathType type, float[][] samples,
                int lengthX, int lengthY, int lengthZ,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
@@ -96,7 +96,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       coord_sys, units, errors, true);
   }
 
-  Gridded3DDoubleSet(MathType type, float[][] samples,
+  public Gridded3DDoubleSet(MathType type, float[][] samples,
                int lengthX, int lengthY,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
@@ -124,7 +124,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       coord_sys, units, errors, true);
   }
 
-  Gridded3DDoubleSet(MathType type, float[][] samples, int lengthX,
+  public Gridded3DDoubleSet(MathType type, float[][] samples, int lengthX,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {
@@ -159,7 +159,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
       coord_sys, units, errors, true);
   }
 
-  Gridded3DDoubleSet(MathType type, double[][] samples,
+  public Gridded3DDoubleSet(MathType type, double[][] samples,
                int lengthX, int lengthY, int lengthZ,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
@@ -340,7 +340,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
     this(type, samples, lengthX, lengthY, coord_sys, units, errors, true);
   }
 
-  Gridded3DDoubleSet(MathType type, double[][] samples,
+  public Gridded3DDoubleSet(MathType type, double[][] samples,
                int lengthX, int lengthY,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
@@ -380,7 +380,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
     this(type, samples, lengthX, coord_sys, units, errors, true);
   }
 
-  Gridded3DDoubleSet(MathType type, double[][] samples, int lengthX,
+  public Gridded3DDoubleSet(MathType type, double[][] samples, int lengthX,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {

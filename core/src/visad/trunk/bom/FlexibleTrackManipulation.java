@@ -624,6 +624,16 @@ public class FlexibleTrackManipulation extends Object {
     }
   }
 
+  /**
+   * Get access to the renderers.  Intended for the app to be
+   * able to toggle() this data display.
+   *
+   * abcd 27 April 2001
+   */
+  public DataRenderer[] getManipulationRenderers() {
+    return direct_manipulation_renderers;
+  }
+
   private static final int NTIMES = 8;
 
   public static void main(String args[])

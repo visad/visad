@@ -60,7 +60,7 @@ public class Gridded3DSet extends GriddedSet {
          units, errors, true, true);
   }
 
-  Gridded3DSet(MathType type, float[][] samples,
+  public Gridded3DSet(MathType type, float[][] samples,
                int lengthX, int lengthY, int lengthZ,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
@@ -69,7 +69,7 @@ public class Gridded3DSet extends GriddedSet {
          units, errors, copy, true);
   }
 
-  Gridded3DSet(MathType type, float[][] samples,
+  public Gridded3DSet(MathType type, float[][] samples,
                int lengthX, int lengthY, int lengthZ,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy,
@@ -249,7 +249,7 @@ public class Gridded3DSet extends GriddedSet {
          errors, true);
   }
 
-  Gridded3DSet(MathType type, float[][] samples,
+  public Gridded3DSet(MathType type, float[][] samples,
                int lengthX, int lengthY,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
@@ -286,7 +286,7 @@ public class Gridded3DSet extends GriddedSet {
     this(type, samples, lengthX, coord_sys, units, errors, true);
   }
 
-  Gridded3DSet(MathType type, float[][] samples, int lengthX,
+  public Gridded3DSet(MathType type, float[][] samples, int lengthX,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {

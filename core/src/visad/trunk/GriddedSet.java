@@ -65,7 +65,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     this(type, samples, lengths, coord_sys, units, errors, true);
   }
 
-  GriddedSet(MathType type, float[][] samples, int[] lengths,
+  public GriddedSet(MathType type, float[][] samples, int[] lengths,
              CoordinateSystem coord_sys, Unit[] units,
              ErrorEstimate[] errors, boolean copy)
              throws VisADException {

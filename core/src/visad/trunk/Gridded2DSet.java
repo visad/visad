@@ -57,7 +57,7 @@ public class Gridded2DSet extends GriddedSet {
          true, true);
   }
 
-  Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
+  public Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {
@@ -65,7 +65,7 @@ public class Gridded2DSet extends GriddedSet {
          true, true);
   }
 
-  Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
+  public Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy, boolean test)
                throws VisADException {
@@ -161,7 +161,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     this(type, samples, lengthX, coord_sys, units, errors, true);
   }
 
-  Gridded2DSet(MathType type, float[][] samples, int lengthX,
+  public Gridded2DSet(MathType type, float[][] samples, int lengthX,
                CoordinateSystem coord_sys, Unit[] units,
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {

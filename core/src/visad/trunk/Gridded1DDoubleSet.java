@@ -71,10 +71,10 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       number_of_samples. samples must be sorted (either increasing
       or decreasing). coordinate_system and units must be compatible
       with defaults for type, or may be null. errors may be null */
-  Gridded1DDoubleSet(MathType type, float[][] samples, int lengthX,
-                     CoordinateSystem coord_sys, Unit[] units,
-                     ErrorEstimate[] errors, boolean copy)
-                     throws VisADException {
+  public Gridded1DDoubleSet(MathType type, float[][] samples, int lengthX,
+                            CoordinateSystem coord_sys, Unit[] units,
+                            ErrorEstimate[] errors, boolean copy)
+                            throws VisADException {
     this(type, Set.floatToDouble(samples), lengthX,
       coord_sys, units, errors, copy);
   }
@@ -100,10 +100,10 @@ public class Gridded1DDoubleSet extends Gridded1DSet
       number_of_samples. samples must be sorted (either increasing
       or decreasing). coordinate_system and units must be compatible
       with defaults for type, or may be null. errors may be null */
-  Gridded1DDoubleSet(MathType type, double[][] samples, int lengthX,
-                     CoordinateSystem coord_sys, Unit[] units,
-                     ErrorEstimate[] errors, boolean copy)
-                     throws VisADException {
+  public Gridded1DDoubleSet(MathType type, double[][] samples, int lengthX,
+                            CoordinateSystem coord_sys, Unit[] units,
+                            ErrorEstimate[] errors, boolean copy)
+                            throws VisADException {
     super(type, null, lengthX, coord_sys, units, errors, copy);
     if (samples == null) {
       throw new SetException("Gridded1DDoubleSet: samples are null");

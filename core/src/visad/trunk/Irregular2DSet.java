@@ -60,10 +60,10 @@ public class Irregular2DSet extends IrregularSet {
     this(type, samples, coord_sys, units, errors, delan, true);
   }
 
-  Irregular2DSet(MathType type, float[][] samples,
-                 CoordinateSystem coord_sys, Unit[] units,
-                 ErrorEstimate[] errors, Delaunay delan,
-                 boolean copy) throws VisADException {
+  public Irregular2DSet(MathType type, float[][] samples,
+                        CoordinateSystem coord_sys, Unit[] units,
+                        ErrorEstimate[] errors, Delaunay delan,
+                        boolean copy) throws VisADException {
     super(type, samples, samples.length, coord_sys,
           units, errors, delan, copy);
     if (samples.length != 2) {
@@ -97,11 +97,11 @@ public class Irregular2DSet extends IrregularSet {
     this(type, samples, delaunay_set, coord_sys, units, errors, true);
   }
 
-  Irregular2DSet(MathType type, float[][] samples,
-                 Irregular2DSet delaunay_set,
-                 CoordinateSystem coord_sys, Unit[] units,
-                 ErrorEstimate[] errors, boolean copy)
-                 throws VisADException {
+  public Irregular2DSet(MathType type, float[][] samples,
+                        Irregular2DSet delaunay_set,
+                        CoordinateSystem coord_sys, Unit[] units,
+                        ErrorEstimate[] errors, boolean copy)
+                        throws VisADException {
     super(type, samples, delaunay_set.getManifoldDimension(),
           coord_sys, units, errors, copy);
     int dim = delaunay_set.getManifoldDimension();
@@ -138,11 +138,11 @@ public class Irregular2DSet extends IrregularSet {
     this(type, samples, new2old, old2new, coord_sys, units, errors, true);
   }
 
-  Irregular2DSet(MathType type, float[][] samples,
-                 int[] new2old, int[] old2new,
-                 CoordinateSystem coord_sys, Unit[] units,
-                 ErrorEstimate[] errors, boolean copy)
-                 throws VisADException {
+  public Irregular2DSet(MathType type, float[][] samples,
+                        int[] new2old, int[] old2new,
+                        CoordinateSystem coord_sys, Unit[] units,
+                        ErrorEstimate[] errors, boolean copy)
+                        throws VisADException {
     super(type, samples, 1, coord_sys, units, errors, null, copy);
     if (Length != new2old.length || Length != old2new.length) {
       throw new SetException("Irregular2DSet: sort lengths do not match");

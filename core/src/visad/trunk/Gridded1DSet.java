@@ -123,10 +123,10 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
    *				be <code>null</code>.
    * @param copy		Whether or not to copy the values array.
    */
-  Gridded1DSet(MathType type, float[][] samples, int lengthX,
-               CoordinateSystem coord_sys, Unit[] units,
-               ErrorEstimate[] errors, boolean copy)
-               throws VisADException {
+  public Gridded1DSet(MathType type, float[][] samples, int lengthX,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors, boolean copy)
+                      throws VisADException {
     super(type, samples, make_lengths(lengthX), coord_sys, units,
           errors, copy);
     LowX = Low[0];
