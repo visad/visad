@@ -25,19 +25,28 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import visad.*;
+import java.awt.Dimension;
 
-import java.util.*;
-import java.rmi.*;
+import java.awt.swing.BoxLayout;
+import java.awt.swing.JLabel;
+import java.awt.swing.JPanel;
+import java.awt.swing.JSlider;
 
-// import com.sun.java.swing.*;
-// import com.sun.java.swing.event.*;
+import java.awt.swing.event.ChangeEvent;
+import java.awt.swing.event.ChangeListener;
 
-import java.awt.swing.*;
-import java.awt.swing.event.*;
+import java.rmi.RemoteException;
 
-import java.awt.*;
-import java.awt.event.*;
+import visad.CellImpl;
+import visad.Data;
+import visad.DataReference;
+import visad.PlotText;
+import visad.Real;
+import visad.RealType;
+import visad.RemoteCell;
+import visad.RemoteCellImpl;
+import visad.RemoteDataReference;
+import visad.VisADException;
 
 /**
    VisADSlider extends JPanel; it combines a JSlider and a JLabel
@@ -46,7 +55,8 @@ import java.awt.event.*;
 public class VisADSlider extends JPanel {
 
   private JSlider slider;
-  private JLabel slider_label;
+  private JLabel name_label;
+  private JLabel value_label;		// alos used as synchronization var
   private ChangeListener listener;
   private DataReference ref;
   private RealType type;
@@ -91,20 +101,26 @@ public class VisADSlider extends JPanel {
       }
     }
 
-    slider = new JSlider(JSlider.HORIZONTAL, low, hi, start);
-    double val = scale * slider.getValue();
-    head = "         ";
-    slider_label = new JLabel(name + " = " + PlotText.shortString(val) + head);
- 
-    listener = new SliderListener();
-    slider.addChangeListener(listener);
- 
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     setAlignmentY(JPanel.TOP_ALIGNMENT);
     setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+    slider = new JSlider(JSlider.HORIZONTAL, low, hi, start);
     slider.setMaximumSize(new Dimension(150, 20));
+
+    listener = new SliderListener();
+    slider.addChangeListener(listener);
+ 
     add(slider);
-    add(slider_label);
+
+    name_label = new JLabel(name + " = ");
+    add(name_label);
+
+    double val = scale * slider.getValue();
+    head = "         ";
+    value_label = new JLabel(PlotText.shortString(val) + head);
+    add(value_label);
+ 
     if (!real_value) {
       ref.setData(new Real(type, val));
     }
@@ -126,7 +142,7 @@ public class VisADSlider extends JPanel {
     public void stateChanged(ChangeEvent e) {
       JSlider s1 = (JSlider)e.getSource();
       int ival = s1.getValue();
-      synchronized (slider_label) {
+      synchronized (value_label) {
         if (ival == lastCellValue) {
           // don't respond to slider state changes triggered
           // by SliderCell
@@ -144,7 +160,7 @@ public class VisADSlider extends JPanel {
               double val = scale * ival;
               ref.setData(new Real(type, val));
               head = "";
-              slider_label.setText(name + " = " + PlotText.shortString(val));
+              value_label.setText(PlotText.shortString(val));
             }
             catch (VisADException ex) {
             }
@@ -166,7 +182,7 @@ update(getGraphics());
   private class SliderCell extends CellImpl {
 
     public void doAction() throws VisADException, RemoteException {
-      synchronized (slider_label) {
+      synchronized (value_label) {
         double val = ((Real) ref.getData()).getValue();
         int ival = (int) (val / scale);
         ival = Math.min(Math.max(ival, low), hi);
@@ -186,11 +202,9 @@ if (first > 0) {
 else {
   first++;
 }
-          slider_label.setText(name + " = " + PlotText.shortString(val) + head);
+          value_label.setText(PlotText.shortString(val) + head);
         }
       }
     }
   }
-
 }
-
