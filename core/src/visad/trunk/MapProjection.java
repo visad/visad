@@ -37,17 +37,13 @@ public abstract class MapProjection extends CoordinateSystem
         throws VisADException
     {
         super(reference, units);
-        if (reference.getDimension() > 2)
+        if ( !(reference.equals(RealTupleType.LatitudeLongitudeTuple) ||
+               reference.equals(RealTupleType.SpatialEarth2DTuple)))
             throw new CoordinateSystemException(
-                "MapProjection: reference dimension is > 2");
+                "MapProjection: Reference must be LatitudeLongitudeTuple or " +
+                "SpatialEarth2DTuple");
         latIndex = reference.getIndex(RealType.Latitude);
-        if (latIndex == -1 )
-            throw new CoordinateSystemException(
-                "MapProjection: reference does not contain RealType.Latitude");
         lonIndex = reference.getIndex(RealType.Longitude);
-        if (lonIndex == -1 )
-            throw new CoordinateSystemException(
-                "MapProjection: reference does not contain RealType.Longitude");
     }
 
     /**
