@@ -318,7 +318,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       Display is triggered */
   public void reAutoScale() {
     initialize = true;
-// System.out.println("reAutoScale");
+// printStack("reAutoScale");
   }
 
   /** if auto is true, re-apply auto-scaling of ScalarMap ranges
@@ -589,6 +589,24 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     }
   }
 
+  public void enableReference(DataReference ref)
+         throws VisADException, RemoteException {
+    DataDisplayLink link = (DataDisplayLink) findReference(ref);
+    // don't throw an Exception if link is null
+    if (link == null) return;
+    DataRenderer renderer = link.getRenderer();
+    renderer.setEnabled(true);
+  }
+
+  public void disableReference(DataReference ref)
+         throws VisADException, RemoteException {
+    DataDisplayLink link = (DataDisplayLink) findReference(ref);
+    // don't throw an Exception if link is null
+    if (link == null) return;
+    DataRenderer renderer = link.getRenderer();
+    renderer.setEnabled(false);
+  }
+
   /** return a Vector containing all DataReferences */
   /** used by Control-s to notify this DisplayImpl that
       they have changed */
@@ -669,6 +687,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       }
       if (redisplay_all) {
         go = true;
+// System.out.println("redisplay_all = " + redisplay_all + " go = " + go);
         redisplay_all = false;
       }
 

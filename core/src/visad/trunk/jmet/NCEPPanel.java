@@ -367,12 +367,18 @@ public class NCEPPanel extends JPanel implements
         String v = intervalText.getText();
         intervalValue = Double.valueOf(v).doubleValue();
         if (ci != null & ref != null)
+/* WLH 26 Aoril 99
           di.removeReference(ref);
           ref.setData(null);
+*/
+/* WLH 26 Aoril 99
           di.addReference(ref); 
+*/
           ci.setContourInterval((float)intervalValue, 
                   (float)range[levelValue][0], (float)range[levelValue][1], (float) cbeg);
+/* WLH 26 Aoril 99
           ref.setData(field);
+*/
           statLabel.setText("Rendering display...please wait!");
 
       } catch (NumberFormatException nivt) {
@@ -421,12 +427,25 @@ public class NCEPPanel extends JPanel implements
       if (val != levelValue & !levelSlider.getValueIsAdjusting() ) {
         levelValue = val;
         if (ref != null) try {
+          di.disableReference(ref);
+/* WLH 26 April 99
           ref.setData(null);
+*/
+
           valueMap.setRange(range[levelValue][0], range[levelValue][1]);
 
           setContInterval(range[levelValue]);
           field.setSample(0, tup[levelValue]);
+/* WLH 26 April 99
           ref.setData(field);
+*/
+
+// WLH 26 April 99
+          System.out.println("take a nap");
+          Thread.sleep(3000);
+
+          di.enableReference(ref);
+
           statLabel.setText("Rendering display...please wait!");
         } catch (Exception sl) {sl.printStackTrace();}
 
