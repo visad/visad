@@ -92,6 +92,7 @@ public class ImageStackMeasure {
 
   /** Determines the current step and updates measuring data accordingly. */
   private void updateStep() throws VisADException, RemoteException {
+    /* CTR: TEMP */ System.out.println("updateStep");
     int step;
     if (avc instanceof ValueControl) {
       ValueControl vc = (ValueControl) avc;
@@ -103,8 +104,9 @@ public class ImageStackMeasure {
     else { // avc instanceof AnimationControl
       AnimationControl ac = (AnimationControl) avc;
       step = ac.getCurrent();
+      /* CTR: TEMP */ System.out.println("Current = " + step);
     }
-    if (display != null) {
+    if (display != null && current != step) {
       stack[current].removeFromDisplay(display);
       current = step;
       stack[current].addToDisplay(display);
