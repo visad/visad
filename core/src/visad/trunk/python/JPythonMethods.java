@@ -1453,7 +1453,27 @@ public abstract class JPythonMethods {
       }
     }
     RealTupleType rtt = new RealTupleType(srealComponents);
+/* WLH 21 Feb 2003
     double[][] data_ranges = field.computeRanges(srealComponents);
+*/
+    float[][] values = field.getFloats(false);
+    int nn = values.length;
+    double[][] data_ranges = new double[dim][2];
+    for (int i=0; i<dim; i++) {
+      if (0 <= ranges[i] && ranges[i] < nn) {
+        data_ranges[i][0] = Double.MAX_VALUE;
+        data_ranges[i][1] = -Double.MAX_VALUE;
+        float[] v = values[ranges[i]];
+        for (int j=0; j<v.length; j++) {
+          if (v[j] < data_ranges[i][0]) data_ranges[i][0] = v[j];
+          if (v[j] > data_ranges[i][1]) data_ranges[i][1] = v[j];
+        }
+      }
+      else {
+        throw new VisADException("range index out of range " + ranges[i]);
+      }
+    }
+
     Set set = null;
     if (dim == 1) {
       set = new Linear1DSet(rtt, data_ranges[0][0], data_ranges[0][1], sizes[0]);
