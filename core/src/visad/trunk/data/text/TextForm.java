@@ -97,7 +97,8 @@ public class TextForm
 	throws BadFormException, RemoteException, VisADException
   {
     try {
-      return new TextAdapter(path).getData();
+      // jk
+      return (DataImpl) new TextAdapter(path).getData();
     } catch (IOException e) {
       throw new VisADException("IOException: " + e.getMessage());
     }
@@ -107,7 +108,8 @@ public class TextForm
 	throws BadFormException, VisADException, IOException
   {
     TextAdapter csva = new TextAdapter(url);
-    return csva.getData();
+    // jk
+    return (DataImpl) csva.getData();
   }
 
   public synchronized FormNode getForms(Data data)

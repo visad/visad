@@ -1,5 +1,6 @@
                           The VisAD TextAdapter
                              January, 2001
+                           update: May, 2001
 
 
 The VisAD TextAdapter is designed to allow you to quickly read in data
@@ -124,6 +125,8 @@ IIb.  1,2,or 3-D points
    At least one of the domain variables (x,y,z) _must_ be defined
    by data in the file.  See Examples #1, #3, #4 and #5, below.
 
+   You may also use Text types for these data.  For example:
+   (Latitude,Longitude)->(City(Text))
 
 
 III. Line 2  (ignoring any comment lines that might come before)
@@ -208,6 +211,14 @@ IIIb. 1,2,or 3-D points
 
   In this case, the name "skip" is a filler to indicate what column(s)
   should be skipped.
+
+  If you are dealing with Text type data, you must include the (Text)
+  phrase here as well:
+
+  Longitude, Latitude, skip, City(Text)
+
+  Note that with this form, each data item MUST be enclosed in double-
+  quote marks (see example, below)
   
   
 In both cases, you may also use this line of text to define the values
@@ -291,4 +302,12 @@ Longitude(-130:-40) Latitude(20:60) p value[unit=degC]
 0   0   17   34   50   64   76   86   93   98   99 
 1   17   34   50   64   76   86   93   98   99   98 
 
+Example #7 - TXT file of point (in situ) data with non-numeric range values <==
 
+(Longitude, Latitude) -> (City(Text))
+Latitude, Longitude, City(Text)
+-12.3, 130.8, "Darwin"
+-16.9, 146.5, "Cairns"
+-23.6, 133.9, "Alice Springs"
+-33.9, 151.2, "Sydney"
+-37.6, 144.9, "Melbourne"

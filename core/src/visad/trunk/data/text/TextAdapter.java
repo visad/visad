@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -72,6 +72,7 @@ import visad.VisADException;
 public class TextAdapter {
 
   private FlatField ff = null;
+  private Field field = null;
   private boolean debug = false;
   private String DELIM;
   private final String COMMA = ",";
@@ -174,6 +175,7 @@ public class TextAdapter {
     // first line is a header line
 
     ff = null;
+    field = null;
 
     BufferedReader bis = new BufferedReader(new InputStreamReader(is));
 
@@ -359,7 +361,7 @@ public class TextAdapter {
       Unit u = null;
       if (hdrUnitString != null) {
         try {
-          u = visad.data.netcdf.units.Parser.parse(hdrUnitString);
+          u = visad.data.units.Parser.parse(hdrUnitString);
         } catch (Exception ue) {
           System.out.println("Unit name problem:"+ue+" with: "+hdrUnitString);
           u = null;
@@ -390,7 +392,8 @@ public class TextAdapter {
     String[] rangeNames = null;
     int numDom = 0;
     int numRng = 0;
-    RealTupleType domType, rngType;
+    RealTupleType domType;
+    TupleType rngType;
 
     if (mt instanceof FunctionType) {
       domType = ((FunctionType)mt).getDomain();
@@ -402,12 +405,12 @@ public class TextAdapter {
         domainNames[i] = ((RealType)comp).toString().trim();
         if (debug) System.out.println("dom "+i+" = "+domainNames[i]);
       }
-      rngType = (RealTupleType) ((FunctionType)mt).getRange();
+      rngType = (TupleType) ((FunctionType)mt).getRange();
       numRng = rngType.getDimension();
       rangeNames = new String[numRng];
       for (int i=0; i<numRng; i++) {
         MathType comp = rngType.getComponent(i);
-        rangeNames[i] = ((RealType)comp).toString().trim();
+        rangeNames[i] = (comp).toString().trim();
         if (debug) System.out.println("range "+i+" = "+rangeNames[i]);
       }
 
@@ -467,9 +470,12 @@ public class TextAdapter {
       String test_name = name;
       int n = test_name.indexOf("(");
       if (n != -1) {
-        test_name = name.substring(0,n).trim();
-        countValues --;  // this value wont appear in data!
-        countDomain --; // and is a pre-defined, linear set
+        // but allow for "(Text)" - jk
+        if ((test_name.indexOf("(Text)")) == -1) {
+          test_name = name.substring(0,n).trim();
+          countValues --;  // this value wont appear in data!
+          countDomain --; // and is a pre-defined, linear set
+        }
       }
 
       // try to find the column header name in the domain name list
@@ -570,8 +576,9 @@ public class TextAdapter {
     // for each line of text, put the values into the ArrayList
     ArrayList domainValues = new ArrayList();
     ArrayList rangeValues = new ArrayList();
+    ArrayList tupleValues = new ArrayList(); // jk
+    Tuple tuple = null;
     
-
     String dataDelim = DELIM;
     boolean isRaster = false;
     int numElements = 1;
@@ -586,6 +593,7 @@ public class TextAdapter {
 
     while (true) {
       String s = bis.readLine();
+      if (debug) System.out.println("read:"+s);
       if (s == null) break;
       if (s.startsWith("#") || 
          s.startsWith("!") || 
@@ -608,8 +616,14 @@ public class TextAdapter {
 
       double [] dValues = new double[numDom];
       double [] rValues = null;
+      
+      //jk
+
+      Data [] tValues = null;
 
       if (isRaster) {
+
+        if (debug) System.out.println("probably a raster...");
         boolean gotFirst = false;
         int rvaluePointer = 0;
         int irange = 0;
@@ -625,19 +639,16 @@ public class TextAdapter {
             }
 
             rvaluePointer ++;
-            //rValues[rvaluePointer] = Double.parseDouble(sa);
             rValues[rvaluePointer] = getVal(sa, irange);
 
           } else {  // or are we still looking for domain?
           
             if (values_to_index[0][i] != -1) {
               dValues[values_to_index[0][i]] = getVal(sa, i);
-              //dValues[values_to_index[0][i]] = Double.parseDouble(sa);
             }
 
             if (gotFirst) {  // already gathering data
               rvaluePointer ++;
-              //rValues[rvaluePointer] = Double.parseDouble(sa);
               rValues[rvaluePointer] = getVal(sa, irange);
 
             } else {
@@ -646,7 +657,6 @@ public class TextAdapter {
                  // the first set of range values!!
                  rValues = new double[n - i];
                  irange = i;
-                 //rValues[rvaluePointer] = Double.parseDouble(sa);
                  rValues[rvaluePointer] = getVal(sa, irange);
                  gotFirst = true;
                }
@@ -656,26 +666,73 @@ public class TextAdapter {
         }
          
       } else {  // is probably NOT a raster
+
+        tValues = new Data[numRng];
       
+        if (debug) System.out.println("probably not a raster...");
         rValues = new double[numRng];
+        double thisDouble; // jk
+        MathType thisMT;
         if (n > nhdr) n = nhdr; // in case the # tokens > # parameters
+
         for (int i=0; i<n; i++) {
 
           String sa = st.nextToken().trim();
+          String sThisText;
+
           if (values_to_index[0][i] != -1) {
-            //dValues[values_to_index[0][i]] = Double.parseDouble(sa);
             dValues[values_to_index[0][i]] = getVal(sa, i);
 
           } else if (values_to_index[1][i] != -1) {
-            //rValues[values_to_index[1][i]] = Double.parseDouble(sa);
-            rValues[values_to_index[1][i]] = getVal(sa, i);
+            thisMT = rngType.getComponent(values_to_index[1][i]);
+            if (sa.startsWith("\"")) {
+              StringTokenizer stText = new StringTokenizer(sa, "\"");
+              if (stText.countTokens() == 0) {;
+                // allow for empty string
+                sThisText = "";
+              } else {
+                sThisText = stText.nextToken().trim();
+              }
+              try {
+                tValues[values_to_index[1][i]] = 
+                        new Text((TextType) thisMT, sThisText);
+                if (debug) System.out.println("tValues[" + 
+                          values_to_index[1][i] + "] = " + 
+                          tValues[values_to_index[1][i]]);
+              } catch (Exception e) {
+                System.out.println(" Exception converting " + 
+                                       thisMT + " to TextType " + e);
+              }
+              
+            } else {
+              rValues[values_to_index[1][i]] = getVal(sa,i);
+              try {
+                tValues[values_to_index[1][i]] = 
+                          new Real((RealType) thisMT, getVal(sa,i));
+                if (debug) System.out.println("tValues[" + 
+                         values_to_index[1][i] + "] = " + 
+                                  tValues[values_to_index[1][i]]);
 
+              } catch (Exception e) {
+                System.out.println(" Exception converting " + thisMT + " " + e);
+              }
+            }
           }
         }
       }
 
+      try {
+
+        if (tValues != null) tuple = new Tuple(tValues);
+      } catch (visad.TypeException te) {
+        // do nothing: it means they are all reals
+        // tuple = new RealTuple(tValues);
+        tuple = null;
+      }
+
       domainValues.add(dValues);
       rangeValues.add(rValues);
+      if (tuple != null) tupleValues.add(tuple); // jk
       if (isRaster) numElements = rValues.length;
     }
 
@@ -688,7 +745,8 @@ public class TextAdapter {
         System.out.println("domain size = "+domainValues.size());
         double[] dt = (double[]) domainValues.get(1);
         System.out.println("domain.array[0] = "+dt[0]);
-        System.out.println("domain.array[1] = "+dt[1]);
+        // jk
+        // System.out.println("domain.array[1] = "+dt[1]);
       
         System.out.println("range size = "+rangeValues.size());
         System.out.println("# samples = "+numSamples);
@@ -759,7 +817,6 @@ public class TextAdapter {
         }
 
         domain = (Set) new Irregular2DSet(domType, samples);
-        //domain = (Set) new Gridded2DSet(domType, samples, numSamples);
       }
         
     } else if (numDom == 3) {  // for 3-D domains
@@ -796,21 +853,33 @@ public class TextAdapter {
       domain = new LinearNDSet(domType, lset);
     }
 
-    ff = new FlatField((FunctionType) mt, domain);
 
+    try {
+      ff = new FlatField((FunctionType) mt, domain);
+    } catch (FieldException fe) {
+      field = new FieldImpl((FunctionType) mt, domain);
+    }
 //*************************************************
     if (debug) {
-      System.out.println("ff.Length "+ff.getLength());
-      System.out.println("ff.getType "+ff.getType());
+    // jk
+      if (ff != null) {
+        System.out.println("ff.Length "+ff.getLength());
+        System.out.println("ff.getType "+ff.getType());
+      }
+      if (field != null) {
+        System.out.println("field.Length "+field.getLength());
+        System.out.println("field.getType "+field.getType());
+      }
       System.out.println("domain = "+domain);
       System.out.println("size of a = "+numRng+" x "+(numSamples*numElements));
     }
 //*************************************************
 
     float[][]a = new float[numRng][numSamples * numElements];
-
+    Tuple[] at = new Tuple[numSamples];
+    
     // if this is a raster then the samples are in a slightly
-    // different form ...
+    // difielderent form ...
 
     if (isRaster) {
       int samPointer = 0;
@@ -827,22 +896,42 @@ public class TextAdapter {
         for (int j=0; j<numRng; j++) {
           a[j][i] = (float)rs[j];
         }
+        if (!tupleValues.isEmpty()) {
+          at[i] = (Tuple) tupleValues.get(i); 
+        }
       }
     }
 
-// ff.setSamples(a);
-    ff.setSamples(a);
+// set samples
+    if (debug) System.out.println("about to field.setSamples");
+    if (ff != null) {
+      ff.setSamples(a);
+      field = (Field) ff;
+    } else {
+      field.setSamples(at, false);
+    }
+      
 
     // make up error estimates and set them
     ErrorEstimate[] es = new ErrorEstimate[numRng];
     for (int i=0; i<numRng; i++) {
       es[i] = new ErrorEstimate(a[i], rangeErrorEstimates[i], rangeUnits[i]);
     }
-    ff.setRangeErrors(es);
+    try {
+        ((FlatField) field).setRangeErrors(es); // jk
+    } catch (FieldException fe) {
+        if (debug) System.out.println("caught "+fe);
+        // not a flatfield
+        // don't setRangeErrors
+    } catch (ClassCastException cce) {
+        if (debug) System.out.println("caught "+cce);
+        // not a flatfield
+        // don't setRangeErrors
+    }
 
     if (debug) {
-      new visad.jmet.DumpType().dumpDataType(ff,System.out);
-      System.out.println("ff = "+ff);
+      new visad.jmet.DumpType().dumpDataType(field,System.out);
+      System.out.println("field = "+field);
     }
 
     bis.close();
@@ -851,7 +940,6 @@ public class TextAdapter {
 
   double getVal(String s, int k) {
     int i = values_to_index[2][k];
-    if (debug) System.out.println("s/k/i = "+s+"  "+k+"  "+i);
     if (i < 0 || s == null || s.length()<1 || s.equals(hdrMissingStrings[i])) {
       return Double.NaN;
     }
@@ -881,10 +969,12 @@ public class TextAdapter {
   }
 
   /** get the data
-  * @return a FlatField of the data read from the file
+  * @return a Field of the data read from the file
+  *
+  * Changed by jk
   *
   */
-  public FlatField getData() {
-    return ff;
+  public Field getData() {
+    return field;
   }
 }
