@@ -245,17 +245,13 @@ public class RealType extends ScalarType {
           break;
 
         case Data.POW:
-          if ( thisUnit == null || unit == null ) {
+        case Data.INV_POW:
+          if ( thisUnit == null ) {
             newType = this;
             break;
           }
-        case Data.INV_POW:
-          if ( thisUnit == null || unit == null ) {
-            newType = type;
-            break;
-          }
           newUnit = null;
-          newName = getUniqueGenericName( names, "nullUnit");
+          newName = getUniqueGenericName( names, "nullUnit" );
 
           try {
             newType = new RealType( newName, newUnit, null );
@@ -274,18 +270,19 @@ public class RealType extends ScalarType {
           newUnit = CommonUnit.degree;
         case Data.REMAINDER:
           newUnit = thisUnit;
-          if ( newUnit == null ) {
+        case Data.INV_REMAINDER:
+          newUnit = unit;
+          if ( thisUnit == null ) {
             newType = this;
             break;
           }
-        case Data.INV_REMAINDER:
-          newUnit = unit;
-          if ( newUnit == null ) {
-            newType = type;
-            break;
-          }
 
-          newName = getUniqueGenericName( names, newUnit.toString());
+          if ( newUnit == null ) {
+            newName = getUniqueGenericName( names, "nullUnit" );
+          }
+          else {
+            newName = getUniqueGenericName( names, newUnit.toString() );
+          }
 
           try {
             newType = new RealType( newName, newUnit, null );
