@@ -7,6 +7,8 @@ might use (T - TD) instead of RH
 
 height changes (errors) are causing RH "changes"
 
+limit to 300 MB (or 500 MB)
+MR better near boundary layer (but tighter color range)
 */
 
 package visad.aeri;
