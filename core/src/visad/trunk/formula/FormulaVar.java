@@ -98,7 +98,7 @@ public class FormulaVar extends ActionImpl {
 
   /** return whether any other variables depend on this one */
   boolean othersDepend() {
-    return required.isEmpty();
+    return !required.isEmpty();
   }
 
   /** return whether this variable depends on v */
