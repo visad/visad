@@ -24,7 +24,7 @@ import edu.wisc.ssec.mcidas.AreaFileException;
 *
 */
 
-class GetAreaFile implements ActionListener {
+public class GetAreaFile implements ActionListener {
   final String[] paramNames = {"host", "group", "descr", "user", "proj", 
   "trace", "band","mag","linele","place","pos",
    "size","unit","spac","doc","latlon",
