@@ -41,7 +41,20 @@ public class TrivialMapProjection extends MapProjection
 
     /**
      * Create a MapProjection that just returns the input tuple.
-     * Default Map area is set to be from (-90,-180) to (90, 180)
+     * Default Map area is set to be from (-180,-90) to (180, 90)
+     *
+     * @throws VisADException  reference does not contain Latitude/Longitude
+     *                         or couldn't create the necessary VisAD object
+     */
+    public TrivialMapProjection()
+        throws VisADException
+    {
+        this(RealTupleType.SpatialEarth2DTuple, 
+             new Rectangle2D.Float(-180, -90, 360, 180));
+    }
+
+    /**
+     * Create a MapProjection that just returns the input tuple.
      *
      * @param  reference  reference RealTupleType
      *
@@ -51,7 +64,7 @@ public class TrivialMapProjection extends MapProjection
     public TrivialMapProjection(RealTupleType reference)
         throws VisADException
     {
-        this(reference, new Rectangle2D.Float(-90, -180, 360, 180));
+        this(reference, new Rectangle2D.Float(-180, -90, 360, 180));
     }
 
     /**
