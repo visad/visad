@@ -25,109 +25,144 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import visad.*;
+
 /**
    PlotText calculates an array of points to be plotted to
    the screen as vector pairs, given a String and location,
    orientation and size in space.<P>
+
+   The font is a simple one, and includes characters from
+   the ASCII collating sequence from 0x20 thru 0x7E.
+
+   Most of this was taken from the original visad.PlotText.
 */
 public class PlotText extends Object {
-
-
 
   static final double XMIN = -1.0;
   static final double YMIN = -1.0;
   static final double ZMIN = -1.0;
+  static final double WIDTH = .8;
 
   /* base line and up vectors */
   static double[] bx = { 0.07, 0.0, 0.0 }, ux = { 0.0, 0.07, 0.07 };
   static double[] by = { 0.0, 0.07, 0.0 }, uy = { -0.07, 0.0, -0.07 };
   static double[] bz = { 0.0, 0.0, -0.07 }, uz = { 0.07, 0.07, 0.0 };
 
-  /* vector characters */
-  static double zero[] = { 0,0, 0,.8, .4,.8, .4,0, 0,0 },
-    one[] = { 0,0, 0,.8 },
-    two[] = { .4,0, 0,0, 0,.4, .4,.4, .4,.8, 0,.8 },
-    three[] = { 0,0, .4,0, .4,.4, 0,.4, .4,.4, .4,.8, 0,.8 },
-    four[] = { 0,.8, 0,.4, .4,.4, .4,.8, .4,0 },
-    five[] = { 0,0, .4,0, .4,.4, 0,.4, 0,.8, .4,.8 },
-    six[] = { .4,.8, 0,.8, 0,0, .4,0, .4,.4, 0,.4 },
-    seven[] = { 0,.7, 0,.8, .4,.8, .4,0 },
-    eight[] = { 0,0, 0,.8, .4,.8, .4,0, 0,0, 0,.4, .4,.4 },
-    nine[] = { .4,.4, 0,.4, 0,.8, .4,.8, .4,0 },
-    dash[] = { 0,.4, .4,.4 },
-    dot[] = { 0,0, 0,.1, .1,.1, .1,0, 0,0 },
- 
-    equal[] = { 0,.3, .4,.3, 0,.5, .4,.5 },
-    curl[] = { .3,0, .2,0, .1,.1, .2,.4, .1,.4, .2,.4, .1,.7,
-               .2,.8, .3,.8 },
-    uncurl[] = { .1,0, .2,0, .3,.1, .2,.4, .3,.4, .2,.4, .3,.7,
-                 .2,.8, .1,.8 },
-    space[] = { 0,0 },
-    score[] = { 0,0, .4,0 },
-    paren[] = { .1,0, 0,.4, .1,.8 },
-    unparen[] = { .3,0, .4,.4, .3,.8 },
-    colon[] = { .1,.2, .2,.2, .1,.6, .2,.6 },
-    aa[] = { 0,0, 0,.7, .1,.8, .3,.8, .4,.7, .4,.4, 0,.4,
-             .4,.4, .4,0 },
-    bb[] = { 0,0, 0,.8, .3,.8, .4,.7, .4,.5, .3,.4, 0,.4,
-             .3,.4, .4,.3, .4,.1, .3,0, 0,0 },
-    cc[] = { .4,.1, .3,0, .1,0, 0,.1, 0,.7, .1,.8, .3,.8,
-             .4,.7 },
-    dd[] = { 0,0, 0,.8, .3,.8, .4,.7, .4,.1, .3,0, 0,0 },
-    ee[] = { .4,0, 0,0, 0,.4, .4,.4, 0,.4, 0,.8, .4,.8 },
-    ff[] = { 0,0, 0,.4, .4,.4, 0,.4, 0,.8, .4,.8 },
-    gg[] = { .3,.4, .4,.4, .4,.1, .3,0, .1,0, 0,.1, 0,.7,
-             .1,.8, .3,.8, .4,.7 },
-    hh[] = { 0,0, 0,.8, 0,.4, .4,.4, .4,.8, .4,0 },
-    ii[] = { 0,0, .4,0, .2,0, .2,.8, 0,.8, .4,.8 },
-    jj[] = { .3,.8, .4,.8, .4,.1, .3,0, .1,0, 0,.1, 0,.2 },
-    kk[] = { 0,0, 0,.8, 0,.4, .4,.8, 0,.4, .4,0 },
-    ll[] = { 0,.8, 0,0, .4,0 },
-    mm[] = { 0,0, 0,.8, .2,.4, .4,.8, .4,0 },
-    nn[] = { 0,0, 0,.8, .4,0, .4,.8 },
-    oo[] = { .1,0, 0,.1, 0,.7, .1,.8, .3,.8, .4,.7, .4,.1,
-             .3,0, .1,0 },
-    pp[] = { 0,0, 0,.8, .3,.8, .4,.7, .4,.5, .3,.4, 0,.4 },
-    qq[] = { .1,0, 0,.1, 0,.7, .1,.8, .3,.8, .4,.7, .4,.1,
-             .35,.05, .3,.1, .4,0, .35,.05, .3,0, .1,0 },
-    rr[] = { 0,0, 0,.8, .3,.8, .4,.7, .4,.5, .3,.4, 0,.4,
-             .2,.4, .4,0 },
-    ss[] = { 0,.1, .1,0, .3,0, .4,.1, .4,.3, .3,.4, .1,.4,
-             0,.5, 0,.7, .1,.8, .3,.8, .4,.7 },
-    tt[] = { 0,.8, .4,.8, .2,.8, .2,0 },
-    uu[] = { 0,.8, 0,.1, .1,0, .3,0, .4,.1, .4,.8 },
-    vv[] = { 0,.8, .2,0, .4,.8 },
-    ww[] = { 0,.8, 0,0, .2,.4, .4,0, .4,.8 },
-    xx[] = { 0,0, .2,.4, 0,.8, .4,0, .2,.4, .4,.8 },
-    yy[] = { 0,.8, .2,.4, .2,0, .2,.4, .4,.8 },
-    zz[] = { .4,0, 0,0, .4,.8, 0,.8 };
+  /* vector characters  -- (100 + x) value indicates beginning of segment */
+  /* characters are ordered by ASCII collating sequence, starting at 0x20 */
+  static float[][] chars = {
+      
+	{100f,0f}, // sp
+	{101f,8f,1f,3f,3f,3f,3f,8f,1f,8f,101f,1f,1f,0f,3f,0f,3f,1f,1f,1f}, // !
+	{101f,8f,0f,5f,104f,8f,3f,5f}, // "
+	{101.5f,8f,1.5f,0f,103.5f,8f,3.5f,0f,100f,5f,5f,5f,100f,3f,5f,3f}, // #
+	{101.5f,8f,1.5f,0f,102.5f,8f,2.5f,0f,104f,5.5f,3f,7f,1f,7f,0f,5.5f,0f,4.5f,4f,3.5f,4f,2.5f,3f,1f,1f,1f,0f,2.5f}, // $
+	{100f,8f,0f,7f,1f,7f,1f,8f,0f,8f,105f,8f,0f,0f,104f,1f,4f,0f,5f,0f,5f,1f,4f,1f}, // %
+	{105f,0f,0f,5f,0f,7f,1f,8f,3f,8f,4f,7f,4f,5f,0f,3f,0f,1f,1f,0f,3f,0f,5f,3f,5f,4f}, // &
+	{101f,8f,0f,5f}, // '
+	{104f,8f,2f,6f,2f,2f,4f,0f}, // (
+	{101f,8f,3f,6f,3f,2f,1f,0f}, // )
+	{100f,7f,5f,1f,102.5f,7f,2.5f,1f,100f,1f,5f,7f,105f,4f,0f,4f}, // *
+	{102.5f,7f,2.5f,1f,100f,4f,5f,4f}, // +
+	{103f,0f,2f,0f,2f,1f,3f,1f,3f,0f,2.1f,-2f}, // ,
+	{100f,4f,5f,4f}, // -
+	{102f,0f,3f,0f,3f,1f,2f,1f,2f,0f}, // .
+	{100f,0f,5f,8f}, // /
+	{101f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f}, // 0
+	{101f,7f,2.5f,8f,2.5f,0f,1f,0f,4f,0f}, // 1
+	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,0f,0f,5f,0f}, // 2
+	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,3f,4f,4f,4f,5f,3f,5f,1f,4f,0f,1f,0f,0f,1f}, // 3
+	{103f,8f,0f,4f,5f,4f,5f,8f,5f,0f}, // 4
+	{100f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,0f,5f,0f,8f,5f,8f}, // 5
+	{105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,3f,4f,4f,0f,4f}, // 6
+	{100f,8f,5f,8f,3f,0f}, // 7
+	{101f,8f,0f,7f,0f,5f,1f,4f,4f,4f,5f,5f,5f,7f,4f,8f,1f,8f,101f,4f,0f,3f,0f,1f,1f,0f,4f,0f,5f,1f,5f,3f,4f,4f}, // 8
+	{101f,0f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f,0f,7f,0f,5f,1f,4f,5f,4f}, // 9
+	{100f,7f,0f,5f,1f,5f,1f,7f,0f,7f,100f,3f,0f,1f,1f,1f,1f,3f,0f,3f}, // :
+	{100f,7f,0f,5f,1f,5f,1f,7f,0f,7f,100f,0f,1f,1f,1f,3f,0f,3f,0f,1f,1f,1f}, // ;
+	{105f,7f,0f,4f,5f,1f}, // <
+	{100f,5f,5f,5f,100f,3f,5f,3f}, // =
+	{100f,7f,5f,4f,0f,1f}, // >
+	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,2.5f,4f,2.5f,3f,102.5f,1f,2.5f,0f}, // ?
+	{104f,0f,1f,0f,0f,1f,0f,7f,1f,8f,4f,8f,5f,7f,5f,3f,4f,1.5f,3f,2f,1.5f,4f,1.5f,5f,2.5f,6f,4f,5f,3f,2f},   // @
+	{100f,0f,0f,7f,1f,8f,4f,8f,5f,7f,5f,0f,5f,4f,0f,4f}, // A
+	{100f,8f,0f,0f,4f,0f,5f,1f,5f,3f,4f,4f,5f,5f,5f,7f,4f,8f,0f,8f,0f,4f,4f,4f}, // B
+	{105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f}, // C
+	{100f,8f,0f,0f,4f,0f,5f,1f,5f,7f,4f,8f,0f,8f}, // D
+	{105f,8f,0f,8f,0f,4f,3f,4f,0f,4f,0f,0f,5f,0f}, // E
+	{105f,8f,0f,8f,0f,4f,3f,4f,0f,4f,0f,0f}, // F
+	{105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,3f,4f}, // G
+	{100f,8f,0f,0f,0f,4f,5f,4f,5f,8f,5f,0f}, // H
+	{100f,8f,5f,8f,2.5f,8f,2.5f,0f,0f,0f,5f,0f}, // I
+	{105f,8f,5f,1f,4f,0f,1f,0f,0f,1f,0f,3f}, // J
+	{100f,8f,0f,0f,0f,4f,5f,8f,0f,4f,5f,0f}, // K
+	{100f,8f,0f,0f,5f,0f}, // L
+	{100f,0f,0f,8f,2.5f,4f,5f,8f,5f,0f}, // M
+	{100f,0f,0f,8f,5f,0f,5f,8f}, // N
+	{101f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f}, // O
+	{100f,0f,0f,8f,4f,8f,5f,7f,5f,5f,4f,4f,0f,4f}, // P
+	{101f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f,103f,3f,5f,0f}, // Q
+	{100f,0f,0f,8f,4f,8f,5f,7f,5f,5f,4f,4f,0f,4f,3f,4f,5f,0f}, // R
+	{105f,7f,4f,8f,1f,8f,0f,7f,0f,5f,1f,4f,4f,4f,5f,3f,5f,1f,4f,0f,1f,0f,0f,1f}, // S
+	{100f,8f,5f,8f,2.5f,8f,2.5f,0f}, // T
+	{100f,8f,0f,1f,1f,0f,4f,0f,5f,1f,5f,8f}, // U
+	{100f,8f,2.5f,0f,5f,8f}, // V
+	{100f,8f,0f,0f,2.5f,4f,5f,0f,5f,8f}, // W
+	{100f,8f,5f,0f,100f,0f,5f,8f}, // X
+	{100f,8f,2.5f,4f,5f,8f,2.5f,4f,2.5f,0f}, // Y
+	{100f,8f,5f,8f,0f,0f,5f,0f}, // Z
+	{104f,8f,2f,8f,2f,0f,4f,0f}, // [
+	{100f,8f,5f,0f}, // \
+	{101f,8f,3f,8f,3f,0f,1f,0f}, // ]
+	{102f,6f,3f,8f,4f,6f}, // ^
+	{100f,-2f,5f,-2f}, // _
+	{102f,8f,4f,6f}, // `
+	{104f,5f,4f,1f,3f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,4f,4f,4f,1f,5f,0f}, // a
+	{100f,8f,0f,0f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,3f,5f,0f,3f}, // b
+	{105f,0f,1f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f}, // c
+	{105f,3f,3f,5f,1f,5f,0f,4f,0f,1f,1f,0f,4f,0f,5f,1f,5f,0f,5f,8f}, // d
+	{105f,0f,1f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f,4f,3f,0f,3f}, // e
+	{103f,0f,3f,7f,4f,8f,5f,8f,5f,7f,101f,4f,4f,4f}, // f
+	{105f,5f,5f,-3f,4f,-4f,1f,-4f,105f,1f,4f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,5f,3f}, // g
+	{100f,8f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f,5f,0f}, // h
+	{103f,4f,3f,0f,4f,0f,1f,0f,103f,6.5f,3f,5.5f}, // i
+	{104f,4f,4f,-3f,3f,-4f,1f,-4f,0f,-3f,0f,-1f,1f,0f,104f,6.5f,4f,5.5f}, // j
+	{101f,8f,1f,0f,1f,3f,4f,5f,1f,3f,4f,0f}, // k
+	{103f,8f,3f,0f}, // l
+	{100f,0f,0f,5f,0f,4f,1f,5f,4f,5f,5f,4f,5f,0f,102.5f,5f,2.5f,2.0f}, // m
+	{100f,0f,0f,5f,0f,4f,1f,5f,4f,5f,5f,3f,5f,0f}, // n
+	{101f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f,5f,1f,4f,0f,1f,0f}, // o
+	{100f,-4f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,3f,5f,0f,3f,0f,1f,0f,5f}, // p
+	{105f,-4f,5f,1f,4f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,5f,3f,5f,1f,5f,5f}, // q
+	{100f,5f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f}, // r
+	{105f,4f,4f,5f,3f,5f,1f,3.5f,3f,3f,4f,3f,5f,1f,4f,0f,3f,0f,1f,1f}, // s 
+	{102.5f,8f,2.5f,0f,101f,5f,4f,5f}, // t
+	{100f,5f,0f,1f,1f,0f,3f,0f,5f,3f,5f,5f,5f,0f}, // u
+	{100f,5f,0f,3f,2.5f,0f,5f,3f,5f,5f}, // v
+	{100f,5f,0f,0f,2.5f,3f,5f,0f,5f,5f}, // w
+	{100f,5f,5f,0f,105f,5f,0f,0f}, // x
+	{100f,5f,0f,3f,3f,0f,5f,3f,5f,5f,5f,-3f,3f,-4f}, // y
+	{100f,5f,5f,5f,0f,0f,5f,0f}, // z
+	{104f,8f,3f,8f,2f,4.5f,1f,4.5f,2f,4.5f,3f,0f,4f,0f}, // {
+	{103.5f,8f,3.5f,0f}, // | 
+	{102f,8f,3f,8f,4f,4.5f,5f,4.5f,4f,4.5f,3f,0f,2f,0f}, // }
+	{100f,4f,1f,5f,3f,4f,4f,5f}, // ~
+	{100f,0f} // RO
+	};
 
-  static double[][] index =
-    { zero, one, two, three, four, five, six, seven, eight, nine,
-    dash, dot, equal, curl, uncurl, space, score, paren, unparen, colon,
-    aa, bb, cc, dd, ee, ff, gg, hh, ii, jj,
-    kk, ll, mm, nn, oo, pp, qq, rr, ss, tt,
-    uu, vv, ww, xx, yy, zz };
-
-  /* width of vector chars */
-  static double[] width = { 0.6, 0.2, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6,
-    0.6, 0.6, 0.6, 0.3, 0.6,
-    0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6,
-    0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6,
-    0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6 };
-  /* vertices in each char */
-  static int[] verts = { 5, 2, 6, 7, 5, 6, 6, 4, 7, 5, 2, 5,
-    4, 9, 9, 0, 2, 3, 3, 4, 9, 12, 8, 7, 7, 6, 10, 6, 6, 7, 6, 3, 5, 4,
-    9, 7, 13, 9, 12, 4, 6, 3, 5, 6, 5, 4 };
-  
   /**
-     render_label
-     Draw a 3-D text label.
-     Input:  axis - 0 (x), 1 (y), or 2 (z)
-             pos - position along label to put label in [-1,1]
-             str - the text string to print.
-             line - line number (0 = first line)
-             c - color
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of vectors for drawing.
+   *
+   * @param  axis  [=0 (x), =1 (y), or =2 (z)
+   * @param  pos  position along axis to put label in [-1,1]
+   * @param  str  the text string to "print"
+   * @param  line  line number for multi-line text (0 = first line)
+   * @param  c  color (not used yet)
+   *
+   * @return VisADLineArray of all the vectors needed to draw the 
+   * characters in this string
   */
   public static VisADLineArray render_label(int axis, double pos, String str,
                                             int line, long c) {
@@ -168,8 +203,19 @@ public class PlotText extends Object {
     return render_label(str, start, base, up, true);
   }
 
-  /** plot str in 3-D, at start, x along base and y along up,
-      center str at start if center is true */
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of vectors for drawing.
+   *
+   * @param str  String to use
+   * @param  start point (x,y,z)
+   * @param  base  (x,y,z) of baseline vector
+   * @param  up  (x,y,z) of "up" direction vector
+   * @param  center is true of string is to be centered
+   *
+   * @return VisADLineArray of all the vectors needed to draw the 
+   * characters in this string
+  */
   public static VisADLineArray render_label(String str, double[] start,
          double[] base, double[] up, boolean center) {
     double[] temp;
@@ -184,157 +230,81 @@ public class PlotText extends Object {
     cy = start[1];
     cz = start[2];
     len = str.length();
-    // allow 15 2-point 3-component strokes per character
-    float[] plot = new float[90 * len];
+    // allow 20 2-point 3-component strokes per character
+    float[] plot = new float[120 * len];
   
     if (center) {
-      /* calculate string width for center justify */
-      sw = 0.0;
-      for (i=0; i<len; i++) {
-        if (str.charAt(i) == '-')
-          k = 10;
-        else if (str.charAt(i) == '.')
-          k = 11;
-        else if (str.charAt(i) == '=')
-          k = 12;
-        else if (str.charAt(i) == '{')
-          k = 13;
-        else if (str.charAt(i) == '}')
-          k = 14;
-        else if (str.charAt(i) == ' ')
-          k = 15;
-        else if (str.charAt(i) == '_')
-          k = 16;
-        else if (str.charAt(i) == '(')
-          k = 17;
-        else if (str.charAt(i) == ')')
-          k = 18;
-        else if (str.charAt(i) == ':')
-          k = 19;
-        else if (str.charAt(i) >= '0' && str.charAt(i) <= '9')
-          k = str.charAt(i) - '0';
-        else if (str.charAt(i) >= 'a' && str.charAt(i) <= 'z')
-          k = str.charAt(i) - 'a' + 20;
-        else if (str.charAt(i) >= 'A' && str.charAt(i) <= 'Z')
-          k = str.charAt(i) - 'A' + 20;
-        else continue;
-        sw += width[k];
-      }
+      /* calculate string width for center justify - fixed width font*/
+      sw = WIDTH * (float) len;
       cx -= sw * base[0] / 2.0;
       cy -= sw * base[1] / 2.0;
       cz -= sw * base[2] / 2.0;
     }
   
     int plot_index = 0;
+
     /* draw left justified text */
+
     for (i=0; i<len; i++) {
-      if (str.charAt(i) == '-')
-        k = 10;
-      else if (str.charAt(i) == '.')
-        k = 11;
-      else if (str.charAt(i) == '=')
-        k = 12;
-      else if (str.charAt(i) == '{')
-        k = 13;
-      else if (str.charAt(i) == '}')
-        k = 14;
-      else if (str.charAt(i) == ' ')
-        k = 15;
-      else if (str.charAt(i) == '_')
-        k = 16;
-      else if (str.charAt(i) == '(')
-        k = 17;
-      else if (str.charAt(i) == ')')
-        k = 18;
-      else if (str.charAt(i) == ':')
-        k = 19;
-      else if (str.charAt(i) >= '0' && str.charAt(i) <= '9')
-        k = str.charAt(i) - '0';
-      else if (str.charAt(i) >= 'a' && str.charAt(i) <= 'z')
-        k = str.charAt(i) - 'a' + 20;
-      else if (str.charAt(i) >= 'A' && str.charAt(i) <= 'Z')
-        k = str.charAt(i) - 'A' + 20;
-      else continue;
+      k = str.charAt(i) - 32;
+      if (k < 0 || k > 127) continue; // invalid - just skip
+      
+      int verts = chars[k].length/2;
 
       /* make the vertex array for this character */
-      temp = index[k];
+      /* points with x>9 are 'start new segment' flag */
+
       int temp_index = 0;
-      if (k==12 || k==19) {
-        // render '=' as two seperate lines
-        // v2 = verts[k]/2;
-        // for (j=0; j<v2; j++) {
-        for (j=0; j<verts[k]; j++) {
-          double x, y;
-          x = temp[temp_index];
-          temp_index++;
-          y = temp[temp_index];
-          temp_index++;
-          plot[plot_index] = (float) (cx + x * base[0] + y * up[0]);
-          plot[plot_index + 1] = (float) (cy + x * base[1] + y * up[1]);
-          plot[plot_index + 2] = (float) (cz + x * base[2] + y * up[2]);
-/*
-          if (plot_index > 0) {
-            plot[plot_index + 3] = plot[plot_index];
-            plot[plot_index + 4] = plot[plot_index + 1];
-            plot[plot_index + 5] = plot[plot_index + 2];
-            plot_index += 3;
-          }
-*/
+      for (j=0; j<verts; j++) {
+
+        if (verts == 1) break; // handle space character
+
+        boolean dup_point = true;
+        if (j == (verts - 1) ) dup_point = false; // don't dupe last point
+
+        double x, y;
+        x = (double) chars[k][temp_index]*.1;
+        if (x > 9.0) {
+          if (j != 0) plot_index -= 3; // reset pointer to remove last point
+          x = x - 10.0;
+          dup_point = false;
+        }
+
+        temp_index++;
+        y = (double) chars[k][temp_index]*.1;
+        temp_index++;
+
+        plot[plot_index] = (float) (cx + x * base[0] + y * up[0]);
+        plot[plot_index + 1] = (float) (cy + x * base[1] + y * up[1]);
+        plot[plot_index + 2] = (float) (cz + x * base[2] + y * up[2]);
+
+        if (dup_point) { // plot points are in pairs -- set up for next pair
+          plot[plot_index + 3] = plot[plot_index];
+          plot[plot_index + 4] = plot[plot_index + 1];
+          plot[plot_index + 5] = plot[plot_index + 2];
           plot_index += 3;
         }
-/*
-        for (j=v2; j<verts[k]; j++) {
-          double x, y;
-          x = temp[temp_index];
-          temp_index++;
-          y = temp[temp_index];
-          temp_index++;
-          plot[plot_index] = (float) (cx + x * base[0] + y * up[0]);
-          plot[plot_index + 1] = (float) (cy + x * base[1] + y * up[1]);
-          plot[plot_index + 2] = (float) (cz + x * base[2] + y * up[2]);
-          if (plot_index > 0) {
-            plot[plot_index + 3] = plot[plot_index];
-            plot[plot_index + 4] = plot[plot_index + 1];
-            plot[plot_index + 5] = plot[plot_index + 2];
-            plot_index += 3;
-          }
-          plot_index += 3;
-        }
-*/
-      }
-      else {
-        for (j=0; j<verts[k]; j++) {
-          double x, y;
-          x = temp[temp_index];
-          temp_index++;
-          y = temp[temp_index];
-          temp_index++;
-          plot[plot_index] = (float) (cx + x * base[0] + y * up[0]);
-          plot[plot_index + 1] = (float) (cy + x * base[1] + y * up[1]);
-          plot[plot_index + 2] = (float) (cz + x * base[2] + y * up[2]);
-          if (0 < j && j < verts[k] - 1) {
-            plot[plot_index + 3] = plot[plot_index];
-            plot[plot_index + 4] = plot[plot_index + 1];
-            plot[plot_index + 5] = plot[plot_index + 2];
-            plot_index += 3;
-          }
-          plot_index += 3;
-        }
+        plot_index += 3;
       }
       /* calculate position for next char */
-      cx += width[k] * base[0];
-      cy += width[k] * base[1];
-      cz += width[k] * base[2];
+      cx += WIDTH * base[0];
+      cy += WIDTH * base[1];
+      cz += WIDTH * base[2];
+
     } // end for (i=0; i<len; i++)
+
     if (plot_index <= 0) return null;
+
     VisADLineArray array = new VisADLineArray();
     float[] coordinates = new float[plot_index];
     System.arraycopy(plot, 0, coordinates, 0, plot_index);
     array.coordinates = coordinates;
     array.vertexCount = plot_index / 3;
+
 /* WLH 20 Feb 98
     array.vertexFormat = COORDINATES;
 */
+
     return array;
   }
 
