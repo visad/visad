@@ -135,7 +135,22 @@ import HTTPClient.UncompressInputStream;
  *   fday=&lt;forecast day&gt;       forecast day (ccyyddd)
  *   fhour=&lt;forecast hours&gt;    forecast hours (offset from model run time)
  *                                (hhmmss format)
- *   num=&lt;max&gt;                 maximum number of grids to return (nn)
+ *   lat=&lt;min lat&gt; &lt;max lat&gt;   latitude bounding box (needs lon specified)
+ *   lon=&lt;min lon&gt; &lt;max lon&gt;   longitude bounding box (needs lat specified)
+ *   row=&lt;min row&gt; &lt;max row&gt;   row bounding box (needs col specified)
+ *   col=&lt;min col&gt; &lt;max col&gt;   column bounding box (needs row specified)
+ *   skip=&lt;row&gt; &lt;col&gt;          skip factors for rows and columns (def = 1 1)
+ *   gpro=&lt;pro&gt;                grid projection (e.g. TANC)
+ *   src=&lt;s1&gt; ... &lt;s2&gt;         list of grid sources (ETA, AVN, etc)
+ *   drange=&lt;btime&gt; &lt;etime&gt; &lt;inc&gt;  range of primary days 
+ *                                 that the grid represents (cannot use with 
+ *                                 day=)
+ *   frange=&lt;btime&gt; &lt;etime&gt; &lt;inc&gt;  range of forecast times 
+ *                                 that the grid represents (cannot use with
+ *                                 fhour=, fday= or ftime=)
+ *   trange=&lt;btime&gt; &lt;etime&gt; &lt;inc&gt;  range of primary times 
+ *                                 that the grid represents (cannot use with time=)
+ *   num=&lt;max&gt;                 maximum number of grids (nn) to return (def=1)
  *
  * ------ for point data:
  *
