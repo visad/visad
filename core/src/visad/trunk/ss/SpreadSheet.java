@@ -1610,10 +1610,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
           FormulaField.setText(DisplayCells[CurX][CurY].getFormula());
         }
         else {
-          URL u = DisplayCells[CurX][CurY].getFilename();
+          String f = DisplayCells[CurX][CurY].getFilename();
           String s = DisplayCells[CurX][CurY].getRMIAddress();
-          String f = (u == null ? (s == null ? "" : s) : u.toString());
-          FormulaField.setText(f);
+          String t = (f.equals("") ? (s == null ? "" : s) : f);
+          FormulaField.setText(t);
         }
       }
     });

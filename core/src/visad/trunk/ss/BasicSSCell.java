@@ -96,6 +96,9 @@ public class BasicSSCell extends JPanel {
   /** URL from where data was imported, if any */
   URL Filename = null;
 
+  /** whether the cell's file is considered &quot;remote data&quot; */
+  boolean FileIsRemote = false;
+
   /** RMI address from where data was imported, if any */
   String RMIAddress = null;
 
@@ -194,15 +197,17 @@ public class BasicSSCell extends JPanel {
 
       VDisplay.addDisplayListener(new DisplayListener() {
         public void displayChanged(DisplayEvent e) {
-          if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
+          int id = e.getId();
+          if (id == DisplayEvent.TRANSFORM_DONE) {
             setVDPanel(true);
-            // broadcast data change event when remote data changes
+            /* CTR: TEMP: this is really wrong, but it sorta works...
+               what I really need is a DisplayEvent that means the
+               Data has changed... that wouldn't be called if just
+               the point size changes or something */
             notifyListeners(SSCellChangeEvent.DATA_CHANGE);
           }
-          /* CTR: add when dglo's changes are committed
-          else if (e.getId() == DisplayEvent.MAPS_CLEARED) {
-            setVDPanel(false);
-          }
+          /* CTR: add the following line after dglo's changes are committed
+          else if (id == DisplayEvent.MAPS_CLEARED) setVDPanel(false);
           */
         }
       });
@@ -287,17 +292,13 @@ public class BasicSSCell extends JPanel {
           Tuple t = (Tuple) RemoteFilename.getData();
           Real bit = (Real) t.getComponent(0);
           boolean b = bit.getValue() == 0;
-          if (b != IsRemote) {
-            // cells should ignore their own updates
-            return;
-          }
-          Text nFile = (Text) t.getComponent(1);
-          String s = nFile.getValue();
-          URL newFilename = (s.equals("") ? null : new URL(s));
-          if (IsRemote) Filename = newFilename;
-          else {
-            String s2 = (Filename == null ? "" : Filename.toString());
-            if (!s.equals(s2)) loadData(newFilename);
+          FileIsRemote = (b == IsRemote);
+          if (FileIsRemote) {
+            // act on filename update from remote cell
+            Text nFile = (Text) t.getComponent(1);
+            String s = nFile.getValue();
+            URL newFilename = (s.equals("") ? null : new URL(s));
+            Filename = newFilename;
           }
         }
         catch (VisADException exc) {
@@ -337,9 +338,7 @@ public class BasicSSCell extends JPanel {
           Text nRMI = (Text) t.getComponent(1);
           String newRMIAddress = nRMI.getValue();
           if (newRMIAddress.equals("")) newRMIAddress = null;
-          if (IsRemote) {
-            RMIAddress = newRMIAddress;
-          }
+          if (IsRemote) RMIAddress = newRMIAddress;
           else {
             String s = (RMIAddress == null ? "" : RMIAddress);
             String s2 = (newRMIAddress == null ? "" : newRMIAddress);
@@ -1021,29 +1020,46 @@ public class BasicSSCell extends JPanel {
   /** map RealTypes to the display according to the specified ScalarMaps */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
-    if (IsRemote) {
-      throw new UnimplementedException("Cannot setMaps " +
-        "on a cloned cell (yet).");
-    }
-
     if (maps == null) return;
-    clearMaps();
+
     VisADException vexc = null;
     RemoteException rexc = null;
-    VDisplay.disableAction();
-    for (int i=0; i<maps.length; i++) {
-      try {
-        VDisplay.addMap(maps[i]);
+    if (IsRemote) {
+      DataReference dr = getReference();
+      setVDPanel(false);
+      clearMaps();
+      for (int i=0; i<maps.length; i++) {
+        try {
+          RemoteVDisplay.addMap(maps[i]);
+        }
+        catch (VisADException exc) {
+          vexc = exc;
+        }
+        catch (RemoteException exc) {
+          rexc = exc;
+        }
       }
-      catch (VisADException exc) {
-        vexc = exc;
-      }
-      catch (RemoteException exc) {
-        rexc = exc;
-      }
+      RemoteVDisplay.addReference(dr);
+      constructDisplay();
+      setVDPanel(true);
     }
-    VDisplay.addReference(DataRef);
-    VDisplay.enableAction();
+    else {
+      clearMaps();
+      VDisplay.disableAction();
+      for (int i=0; i<maps.length; i++) {
+        try {
+          VDisplay.addMap(maps[i]);
+        }
+        catch (VisADException exc) {
+          vexc = exc;
+        }
+        catch (RemoteException exc) {
+          rexc = exc;
+        }
+      }
+      VDisplay.addReference(DataRef);
+      VDisplay.enableAction();
+    }
     HasMappings = true;
     if (vexc != null) throw vexc;
     if (rexc != null) throw rexc;
@@ -1079,14 +1095,19 @@ public class BasicSSCell extends JPanel {
 
   /** clear this cell's mappings */
   public void clearMaps() throws VisADException, RemoteException {
-    if (IsRemote) {
-      throw new UnimplementedException("Cannot clearMaps " +
-        "on a cloned cell (yet).");
-    }
-
     if (hasMappings()) {
-      VDisplay.removeReference(DataRef);
-      VDisplay.clearMaps();
+      if (IsRemote) {
+        RemoteVDisplay.removeAllReferences();
+        RemoteVDisplay.clearMaps();
+        setVDPanel(false);
+        constructDisplay();
+        VDPanel = (JPanel) VDisplay.getComponent();
+        setVDPanel(true);
+      }
+      else {
+        VDisplay.removeReference(DataRef);
+        VDisplay.clearMaps();
+      }
       HasMappings = false;
     }
   }
@@ -1202,7 +1223,6 @@ public class BasicSSCell extends JPanel {
 
           // switch display dimension
           constructDisplay();
-          RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
 
           // add new display to all RemoteServers
           for (int i=0; i<slen; i++) {
@@ -1336,17 +1356,28 @@ public class BasicSSCell extends JPanel {
     return RemoteDataRef;
   }
 
-  /** return the file name from which the associated Data came, if any */
-  public URL getFilename() {
+  /** return the URL of the file from which this cell's Data came */
+  public URL getFileURL() {
     return Filename;
   }
 
-  /** return the RMI address from which the associated Data came, if any */
+  /** return the file name from which the associated Data came */
+  public String getFilename() {
+    String f;
+    if (Filename == null) f = "";
+    else {
+      f = Filename.toString();
+      if (FileIsRemote) f = f + " (remote)";
+    }
+    return f;
+  }
+
+  /** return the RMI address from which the associated Data came */
   public String getRMIAddress() {
     return RMIAddress;
   }
 
-  /** return the formula for this BasicSSCell, if any */
+  /** return the formula for this BasicSSCell */
   public String getFormula() {
     return Formula;
   }
@@ -1559,8 +1590,8 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** return the data of this cell */
-  public Data getData() {
+  /** return the data reference of this cell */
+  public DataReference getReference() {
     if (IsRemote) {
       Vector v = null;
       try {
@@ -1576,9 +1607,7 @@ public class BasicSSCell extends JPanel {
       RemoteReferenceLink rrli = (RemoteReferenceLink) v.elementAt(0);
       if (rrli == null) return null;
       try {
-        DataReference dr = rrli.getReference();
-        if (dr == null) return null;
-        return dr.getData();
+        return rrli.getReference();
       }
       catch (VisADException exc) {
         if (DEBUG) exc.printStackTrace();
@@ -1588,7 +1617,23 @@ public class BasicSSCell extends JPanel {
       }
       return null;
     }
-    else return DataRef.getData();
+    else return DataRef;
+  }
+
+  /** return the data of this cell */
+  public Data getData() {
+    DataReference dr = getReference();
+    if (dr == null) return null;
+    try {
+      return dr.getData();
+    }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    return null;
   }
 
   /** whether the cell has data */
@@ -1674,6 +1719,7 @@ public class BasicSSCell extends JPanel {
           TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
           VDisplay = new DisplayImplJ3D(Name, tdr);
         }
+        RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
       }
       catch (VisADException exc) {
         if (DEBUG) exc.printStackTrace();

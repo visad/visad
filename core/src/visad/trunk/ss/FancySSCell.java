@@ -78,6 +78,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** whether this cell should auto-display its widget frame */
   boolean AutoShowControls = true;
 
+
   /** constructor for non-null RemoteServer */
   public FancySSCell(String name, RemoteServer rs, Frame parent)
                                   throws VisADException, RemoteException {
@@ -106,7 +107,8 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** used by constructors */
-  private void finishConstruction(String name, Frame parent) {
+  private void finishConstruction(String name, Frame parent)
+                                  throws VisADException, RemoteException {
     Parent = parent;
     setHighlighted(false);
     WidgetFrame = new JFrame("Controls (" + name + ")");
@@ -136,13 +138,19 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
       // refresh border color
       setHighlighted(Selected);
-    }
-    if (IsRemote) {
-      try {
-        constructWidgetFrame(getMaps());
+
+      // reconstruct controls for cloned display
+      if (IsRemote) {
+        try {
+          constructWidgetFrame(getMaps());
+        }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
     }
   }
 
@@ -195,7 +203,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           RangeWidget rw = new RangeWidget(maps[i]);
           addToFrame(rw, true);
         }
-        catch (VisADException exc) { }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
         if (drt.equals(Display.RGB)) {
           LabeledRGBWidget lw = new LabeledRGBWidget(maps[i]);
           addToFrame(lw, true);
@@ -265,8 +275,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       try {
         if (data != null) mt = data.getType();
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
       if (mt != null) {
         boolean allow3D = (Dim != JAVA2D_2D || AutoSwitch);
         setMapsAuto(mt.guessMaps(allow3D));
@@ -378,29 +392,18 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     // make sure user did not cancel the operation
     if (!mapDialog.Confirm) return;
 
-    if (IsRemote) {
-      JOptionPane.showMessageDialog(Parent, "Cannot change mappings on a " +
-        "cloned cell (yet)", "FancySSCell error", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-
-    // clear old mappings
-    try {
-      clearMaps();
-    }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
-
     // set up new mappings
     try {
       setMapsAuto(mapDialog.ScalarMaps);
     }
     catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
       JOptionPane.showMessageDialog(Parent,
         "This combination of mappings is not valid: " + exc.getMessage(),
         "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
     }
     catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
       JOptionPane.showMessageDialog(Parent,
         "This combination of mappings is not valid: " + exc.getMessage(),
         "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
@@ -421,10 +424,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           }
         }
         catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
           JOptionPane.showMessageDialog(Parent, exc.getMessage(),
             "Error importing data", JOptionPane.ERROR_MESSAGE);
         }
         catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
           JOptionPane.showMessageDialog(Parent, exc.getMessage(),
             "Error importing data", JOptionPane.ERROR_MESSAGE);
         }
@@ -443,10 +448,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           loadRMI(sname);
         }
         catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
           JOptionPane.showMessageDialog(Parent, exc.getMessage(),
             "Error importing data", JOptionPane.ERROR_MESSAGE);
         }
         catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
           JOptionPane.showMessageDialog(Parent, exc.getMessage(),
             "Error importing data", JOptionPane.ERROR_MESSAGE);
         }
@@ -518,21 +525,25 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           cell.saveData(fn, nc);
         }
         catch (BadFormException exc) {
+          if (DEBUG) exc.printStackTrace();
           msg = msg + "An error occurred: " + exc.getMessage();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
             JOptionPane.ERROR_MESSAGE);
         }
         catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
           msg = msg + "A remote error occurred: " + exc.getMessage();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
             JOptionPane.ERROR_MESSAGE);
         }
         catch (IOException exc) {
+          if (DEBUG) exc.printStackTrace();
           msg = msg + "An I/O error occurred: " + exc.getMessage();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
             JOptionPane.ERROR_MESSAGE);
         }
         catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
           msg = msg + "An error occurred: " + exc.getMessage();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
             JOptionPane.ERROR_MESSAGE);
