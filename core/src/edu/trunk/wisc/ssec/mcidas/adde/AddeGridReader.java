@@ -152,7 +152,7 @@ public class AddeGridReader {
             }
             numBytes = dis.readInt();
           }
-          System.out.println("numBytes = "+numBytes);
+          //System.out.println("numBytes = "+numBytes);
 
           while ( (check = dis.readInt()) == 0) {
             dis.readFully(header,0,256);
@@ -238,14 +238,14 @@ public class AddeGridReader {
             }
             numBytes = dis.readInt();
           }
-          System.out.println("numBytes = "+numBytes);
+          //System.out.println("numBytes = "+numBytes);
 
           int checkBytes = dis.readInt();
           if (checkBytes != numBytes) {throw new
             AddeURLException("Invalid number of bytes returned for grid.");}
 
           int numGrids = dis.readInt();
-          System.out.println("numGrids = "+numGrids);
+          //System.out.println("numGrids = "+numGrids);
 
           for (int i=0; i<numGrids; i++) {
 
@@ -257,23 +257,27 @@ public class AddeGridReader {
             gridHeaders.add(mg);
             int rows = mg.getRows();
             int cols = mg.getColumns();
-            System.out.println("# rows & cols = "+rows+" "+cols);
+            //System.out.println("# rows & cols = "+rows+" "+cols);
 
             double scale = mg.getParamScale();
-            System.out.println("param scale = "+scale+" gridType="+mg.getGridType());
+            //System.out.println("param scale = "+scale+" gridType="+mg.getGridType());
 
             double[] data = new double[rows*cols];
             int n = 0;
             // store such that 0,0 is in lower left corner...
             for (int nc=0; nc<cols; nc++) {
               for (int nr=0; nr<rows; nr++) {
-                data[(rows-nr-1)*cols + nc] = ( (double)dis.readInt()) / scale ;
+                int temp = dis.readInt();
+                data[(rows-nr-1)*cols + nc] =        // check for missing value
+                  (temp == McIDASUtil.MCMISSING)
+                    ? Double.NaN
+                    : ( (double) temp) / scale ;
               }
             }
             gridData.add(data);
 
             check = dis.readInt();
-            System.out.println("check after grid = "+check+"  point value = "+data[100]);
+            //System.out.println("check after grid = "+check+"  point value = "+data[100]);
             if (check != 0) break;
 
           }
