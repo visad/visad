@@ -122,6 +122,8 @@ public class DisplayImplJ3D extends DisplayImpl {
   public static final int JPANEL = 1;
   /** Field for specifying that the DisplayImpl be created in an Applet */
   public static final int APPLETFRAME = 2;
+  /** Field for specifying that the DisplayImpl transforms but does not render */
+  public static final int TRANSFORM_ONLY = 3;
 
   /** this is used for APPLETFRAME */
   private DisplayAppletJ3D applet = null;
@@ -230,7 +232,9 @@ public class DisplayImplJ3D extends DisplayImpl {
   public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer,
                         int api, GraphicsConfiguration config)
          throws VisADException, RemoteException {
-    super(rmtDpy, renderer);
+    super(rmtDpy,
+          ((renderer == null && api == TRANSFORM_ONLY) ?
+             new TransformOnlyDisplayRendererJ3D() : renderer));
 
     initialize(api, config);
 
@@ -254,6 +258,14 @@ public class DisplayImplJ3D extends DisplayImpl {
     else if (api == JPANEL) {
       Component component = new DisplayPanelJ3D(this, config);
       setComponent(component);
+      apiValue = api;
+    }
+    else if (api == TRANSFORM_ONLY) {
+      if (!(getDisplayRenderer() instanceof TransformOnlyDisplayRendererJ3D)) {
+        throw new DisplayException("must be TransformOnlyDisplayRendererJ3D " +
+                                   "for api = TRANSFORM_ONLY");
+      }
+      setComponent(null);
       apiValue = api;
     }
     else {
@@ -304,7 +316,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   /**
    * Return the API used for this display
    *
-   * @return  the mode being used (UNKNOWN, JPANEL, APPLETFRAME)
+   * @return  the mode being used (UNKNOWN, JPANEL, APPLETFRAME, TRANSFORM_ONLY)
    * @throws  VisADException
    */
   public int getAPI()
