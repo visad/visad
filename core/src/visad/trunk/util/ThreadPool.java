@@ -25,6 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
+import java.util.ListIterator;
 import java.util.Vector;
 
 /** A pool of threads (with minimum and maximum limits on the number
@@ -159,7 +160,7 @@ public class ThreadPool
       if (numTasks > maxQueuedTasks) {
 
         // ...and we haven't created too many threads...
-        if (threads.size() < maxThreads) {
+        if (threads != null && threads.size() < maxThreads) {
 
           // ...spawn a new thread and tell it to deal with this
           Thread t = new ThreadMinnow(this);
@@ -196,6 +197,7 @@ public class ThreadPool
     return thisTask;
   }
 
+  /** increase the maximum number of pooled threads */
   public void setThreadMaximum(int num)
         throws Exception
   {
@@ -208,20 +210,36 @@ public class ThreadPool
   /** Stop all threads as soon as all queued tasks are completed */
   public void stopThreads()
   {
+    if (terminateThread) {
+      return;
+    }
+
     terminateThread = true;
     synchronized (threadLock) {
       threadLock.notifyAll();
     }
 
-    for (int i = threads.size() - 1; i >= 0; i--) {
-      Thread t = (Thread )threads.elementAt(i);
+    Vector oldthreads;
+    ListIterator i;
+    synchronized (threads) {
+      oldthreads = threads;
+      threads = null;
+      i = oldthreads.listIterator();
+    }
+
+    while (i.hasNext()) {
+      Thread t = (Thread )i.next();
       while (true) {
+        synchronized (oldthreads) {
+          oldthreads.notifyAll();
+        }
         try {
           t.join();
           break;
         } catch (InterruptedException e) {
         }
       }
+      i.remove();
     }
   }
 }
