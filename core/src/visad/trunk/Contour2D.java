@@ -3431,16 +3431,19 @@ class ContourStrip {
         norm_x_ctr[1] = norm_x_ctr[1]/mag;
         norm_x_ctr[2] = norm_x_ctr[2]/mag;
 
-        if (ctr_u[0] < 0) {
-          ctr_u[0] = -ctr_u[0];
-          ctr_u[1] = -ctr_u[1];
-          ctr_u[2] = -ctr_u[2];
+        if (Math.abs((double)norm[2][0]) <= 0.00001) {
+          if (norm_x_ctr[2] < 0 ) {
+            norm_x_ctr[0] = -norm_x_ctr[0];
+            norm_x_ctr[1] = -norm_x_ctr[1];
+            norm_x_ctr[2] = -norm_x_ctr[2];
+          }
         }
-
-        if (norm_x_ctr[2] < 0 ) {
-          norm_x_ctr[0] = -norm_x_ctr[0];
-          norm_x_ctr[1] = -norm_x_ctr[1];
-          norm_x_ctr[2] = -norm_x_ctr[2];
+        else {
+          if (norm_x_ctr[1] < 0 ) {
+            norm_x_ctr[0] = -norm_x_ctr[0];
+            norm_x_ctr[1] = -norm_x_ctr[1];
+            norm_x_ctr[2] = -norm_x_ctr[2];
+          }
         }
 
         lbl_dcoords = new float[3][plot.NumVerts];
