@@ -62,8 +62,12 @@ class Earth
     setColorMap(ScalarMap colorMap, double min, double max)
 	throws VisADException, RemoteException
     {
+/* WLH 11 Dec 98
         LabeledRGBWidget lw =
 	    new LabeledRGBWidget(colorMap, (float)min, (float)max);
+*/
+        LabeledRGBWidget lw =
+	    new LabeledRGBWidget(colorMap);
 
         Frame frame = new Frame("VisAD Color Widget");
         frame.addWindowListener(new WindowAdapter() {
@@ -118,7 +122,7 @@ class Earth
 	display.addReference(earthRef);
 
 	double[]	altitudeRange = setAltitudeScaling(radiusMap);
-
 	setColorMap(colorMap, altitudeRange[0], altitudeRange[1]);
+
     }
 }

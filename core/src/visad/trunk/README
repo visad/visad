@@ -226,21 +226,12 @@ available from:
 6. Downloading VisAD Classes in Jar Files
 
 If you want to write applications for VisAD but don't want
-to compile VisAD from source, you can dowload jar files that
-include the VisAD classes.  These files are:
+to compile VisAD from source, you can dowload a jar file that
+includes the VisAD classes.  This file is:
 
   ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.jar
 
-or 
-
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.tar
-
-If you get the tar file you will need to unpack it by running:
-
-  tar -xvf visad.tar
-
-It contains the single file 'visad.jar'.  Once you've got
-visad.jar simply add:
+Once you've got visad.jar simply add:
 
    /parent_dir/visad.jar
 
