@@ -107,9 +107,11 @@ public class RemoteReferenceLinkImpl extends UnicastRemoteObject
   /** return a String representation of the referenced data */
   public String toString()
   {
-    String s;
+    StringBuffer buf = new StringBuffer();
     try {
-      s = link.getDataReference().getName() + " -> " + getRendererClassName();
+      buf.append(link.getDataReference().getName());
+      buf.append(" -> ");
+      buf.append(getRendererClassName());
     } catch (RemoteException e) {
       return null;
     } catch (VisADException e) {
@@ -121,16 +123,20 @@ public class RemoteReferenceLinkImpl extends UnicastRemoteObject
       v = getConstantMapVector();
       Enumeration e = v.elements();
       if (e.hasMoreElements()) {
-	s = s + ":";
+	buf.append(':');
 	while (e.hasMoreElements()) {
 	  ConstantMap cm = (ConstantMap )e.nextElement();
-	  s = s + " [" + cm.getConstant() + " -> " + cm.getDisplayScalar() + "]";
+	  buf.append(" [");
+          buf.append(cm.getConstant());
+          buf.append(" -> ");
+          buf.append(cm.getDisplayScalar());
+          buf.append(']');
 	}
       }
     } catch (RemoteException e) {
     } catch (VisADException e) {
     }
 
-    return s;
+    return buf.toString();
   }
 }
