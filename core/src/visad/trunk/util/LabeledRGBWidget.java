@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBWidget.java,v 1.3 1998-06-24 14:14:27 billh Exp $
+@(#) $Id: LabeledRGBWidget.java,v 1.4 1998-07-29 18:00:34 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -23,6 +23,58 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+
+
+/* PROPOSED CHANGE TO
+
+LabeledRGBWidget implements ScalarMapListener
+
+  private LabeledRGBWidget(ScalarMap smap, double[] range, float[][] in_table)
+         throws VisADException, RemoteException {
+
+// in place of this(...):
+
+        String name = smap.getScalar().getName();
+        float min = (float) range[0];
+        float max = (float) range[1];
+        float[][] table = table_reorg(in_table);
+
+        if (min != min || max != max) {
+          // fake min and max
+          min = 0.0;
+          max = 1.0;
+          smap.addScalarMapListener(this);
+          // listen for min and max
+          // update 
+          s.setMinimum(float);
+          s.setMaximum(float);
+        }
+
+
+        ColorWidget c = new ColorWidget(new RGBMap(table));
+        Slider s = new ArrowSlider(min, max, (min + max) / 2, name);
+
+
+        SliderLabel l = new SliderLabel(s);
+
+        widget = c;
+        slider = s;
+        label = l;
+
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        add(widget);
+        add(slider);
+        add(label);
+
+
+  public void mapChanged(ScalarMapEvent e) {
+    s.setMinimum(float);
+    s.setMaximum(float);
+  }
+
+*/
+
+
 package visad.util;
 
 import visad.*;
@@ -40,7 +92,7 @@ import java.awt.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1998-06-24 14:14:27 $
+ * @version $Revision: 1.4 $, $Date: 1998-07-29 18:00:34 $
  * @since Visad Utility Library v0.7.1
  */
 
