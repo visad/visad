@@ -39,6 +39,9 @@ public class VisADApplet extends Applet
   implements ActionListener, MouseListener, MouseMotionListener
 {
 
+  /** the default host name for the SocketSlaveDisplay server */
+  private static final String DEFAULT_HOST = "localhost";
+
   /** the default port at which to connect */
   private static final int DEFAULT_PORT = 4567;
 
@@ -155,7 +158,7 @@ public class VisADApplet extends Applet
     setLayout(gridbag);
 
     // construct GUI components
-    addressField = new TextField();
+    addressField = new TextField(DEFAULT_HOST);
     portField = new TextField("" + DEFAULT_PORT, 4);
     connectButton = new Button("Connect");
     canvas = new Component() {
