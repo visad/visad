@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.util;
 
+import visad.ActionImpl;
 import java.util.ListIterator;
 import java.util.Vector;
 
@@ -61,6 +62,11 @@ public class ThreadPool
   // list of queued tasks
   private Vector tasks = new Vector();
 
+  // WLH 20 Feb 2001
+  // list of busy tasks - to prevent more than one Thread
+  // from running the same ActionImpl
+  private Vector busy_tasks = new Vector();
+
   // variables used to name threads
   private String prefix;
   private int nextID = 0;
@@ -87,6 +93,9 @@ public class ThreadPool
           } catch (Throwable t) {
             t.printStackTrace();
           }
+
+          parent.releaseTask(r); // WLH 20 Feb 2001
+
           synchronized (doneLock) {
             doneLock.notifyAll();
           }
@@ -190,8 +199,21 @@ public class ThreadPool
     // add this task to the queue
     int numTasks = 0;
     synchronized (tasks) {
-      tasks.addElement(r);
-      numTasks = tasks.size();
+      if (!tasks.contains(r)) { // WLH 20 Feb 2001
+/*
+System.out.println("queue new r " + ((ActionImpl) r).getName());
+int n = tasks.size();
+for (int i=0; i<n; i++) {
+  ActionImpl a = (ActionImpl) tasks.elementAt(i);
+  System.out.println("  " + i + " = " + a.getName());
+}
+*/
+        tasks.addElement(r);
+        numTasks = tasks.size();
+      }
+      else {
+// System.out.println("queue already contains r");
+      }
     }
 
     // make sure one or more threads are told to deal with the new task
@@ -234,13 +256,43 @@ public class ThreadPool
     Runnable thisTask = null;
 
     synchronized (tasks) {
+/*
+int n = tasks.size();
+for (int i=0; i<n; i++) {
+  ActionImpl a = (ActionImpl) tasks.elementAt(i);
+  System.out.println("  getTask " + i + " = " + a.getName());
+}
+*/
+
+/* WLH 20 Feb 2001
       if (tasks.size() > 0) {
         thisTask = (Runnable )tasks.elementAt(0);
         tasks.removeElementAt(0);
       }
-    }
+*/
+      int n = tasks.size();
+      for (int i=0; i<n; i++) {
+        thisTask = (Runnable )tasks.elementAt(i);
+        if (busy_tasks.contains(thisTask)) {
+          thisTask = null;
+        }
+        else {
+          tasks.removeElementAt(i);
+          busy_tasks.addElement(thisTask);
+          break;
+        }
+      }
+
+    } // end synchronized (tasks)
 
     return thisTask;
+  }
+
+  // WLH 20 Feb 2001
+  void releaseTask(Runnable r) {
+    synchronized (tasks) {
+      busy_tasks.removeElement(r);
+    }
   }
 
   /** wait for currently-running tasks to finish */

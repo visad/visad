@@ -103,7 +103,7 @@ values[0][0]);
 // System.out.println("numChildren = " + ss.swit.numChildren());
       if (0 <= indices[0] && indices[0] < ss.swit.numChildren()) {
         ss.swit.setWhichChild(indices[0]);
-        // DisplayImpl.printStack("child " + indices[0]);
+// DisplayImpl.printStack("child " + indices[0]);
 /*
 if (animation_set == null) {
 // System.out.println("selectSwitches: ss.swit.setWhichChild(" +
@@ -125,6 +125,7 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)
 */
       }
     } // end while (pairs.hasMoreElements())
+// DisplayImpl.printStack("selectSwitches " + value);
   }
 
   /** clear all 'pairs' in switches that involve re */

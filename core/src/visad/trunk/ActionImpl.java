@@ -224,6 +224,7 @@ public abstract class ActionImpl
         try {
           setTicks();
           if (checkTicks()) {
+// if (getName() != null) System.out.println("RUN " + getName());
             doAction();
           }
           Enumeration links;
@@ -249,7 +250,7 @@ public abstract class ActionImpl
 
             if (e != null) {
               thingChanged(e);
-              requeue = true;
+              // requeue = true;  **** WLH 20 Feb 2001 ****
             }
           }
           resetTicks();
@@ -267,6 +268,7 @@ public abstract class ActionImpl
       // if there's more to do, add this to the end of the task list
       if (requeue) {
         if (pool != null) {
+// if (getName() != null) System.out.println("requeue " + getName());
           pool.queue(this);
         }
         requeue = false;
@@ -312,7 +314,7 @@ public abstract class ActionImpl
   }
 
   void notifyAction() {
-// DisplayImpl.printStack("notifyAction");
+// if (getName() != null) DisplayImpl.printStack("notifyAction " + getName());
     requeue = true;
     if (pool == null) {
       startThreadPool();

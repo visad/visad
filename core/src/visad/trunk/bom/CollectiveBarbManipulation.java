@@ -574,6 +574,7 @@ public class CollectiveBarbManipulation extends Object
     station_refs = new DataReferenceImpl[nindex];
     barb_manipulation_renderers = new DataRenderer[nindex];
     barb_monitors = new BarbMonitor[nindex];
+// System.out.println("setupStations: time 0");
     for (int i=0; i<nindex; i++) {
       station_refs[i] = new DataReferenceImpl("station_ref" + i);
       station_refs[i].setData(tuples[i][0]);
@@ -741,7 +742,7 @@ public class CollectiveBarbManipulation extends Object
       if (sta == station) return;
       station = sta;
   
-      boolean display2_was = display2.setEnabled(false);
+      // boolean display2_was = display2.setEnabled(false);
 
       if (time_refs != null && time_refs.length != ntimes[station]) {
         int n = time_refs.length;
@@ -790,7 +791,7 @@ public class CollectiveBarbManipulation extends Object
           time_refs[i].setData(tuples2[station][i]);
         }
       }
-      display2.setEnabled(display2_was);
+      // display2.setEnabled(display2_was);
     } // end synchronized (data_lock)
   }
 
@@ -847,13 +848,18 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
+  private boolean first = true;
+  private boolean first_real = false;
+
   // for AnimationControl steps
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
+    if (first) {
+      first_real = true;
+      first = false;
+    }
     if (stepper_ref != null) stepper_ref.setData(null);
   }
-
-  private boolean first = true;
 
   class Stepper extends CellImpl {
     public void doAction() throws VisADException, RemoteException {
@@ -891,11 +897,11 @@ public class CollectiveBarbManipulation extends Object
               station_refs[i] != null) {
             station_refs[i].setData(tuples[i][which_times[i]]);
           }
-          // System.out.println("station " + i + " ref " + index);
+// if (i == 0) System.out.println("Stepper: station " + i + " time " + which_times[i]);
         }
    
-        if (first) {
-          first = false;
+        if (first_real) {
+          first_real = false;
           display1.removeReference(stations_ref);
         }
       }
@@ -903,6 +909,7 @@ public class CollectiveBarbManipulation extends Object
 /*
     public void doAction() throws VisADException, RemoteException {
       synchronized (data_lock) {
+        if (control == null) return;
         int current = control.getCurrent();
         if (current < 0) return;
         if (current == which_time) return;
@@ -927,8 +934,8 @@ public class CollectiveBarbManipulation extends Object
           // System.out.println("station " + i + " ref " + index);
         } // end for (int i=0; i<nindex; i++)
 
-        if (first) {
-          first = false;
+        if (first_real) {
+          first_real = false;
           display1.removeReference(stations_ref);
         }
       }
@@ -965,6 +972,7 @@ public class CollectiveBarbManipulation extends Object
               tuples[i][j] = tuple;
               if (station_refs != null && j == which_times[i]) {
                 station_refs[i].setData(tuples[i][j]);
+// if (i == 0) System.out.println("WindMonitor: station " + i + " time " + j);
               }
   
               int n = tuple.getDimension();
@@ -1080,8 +1088,8 @@ public class CollectiveBarbManipulation extends Object
     if (wind_monitor != null) wind_monitor.disableAction();
     boolean display1_was = true;
     boolean display2_was = true;
-    if (display1 != null) display1_was = display1.setEnabled(false);
-    if (display2 != null) display2_was = display2.setEnabled(false);
+    // if (display1 != null) display1_was = display1.setEnabled(false);
+    // if (display2 != null) display2_was = display2.setEnabled(false);
 
     float diff_azimuth = new_azimuth - old_azimuths[sta_index][time_index];
     float diff_radial = new_radial - old_radials[sta_index][time_index];
@@ -1169,6 +1177,7 @@ public class CollectiveBarbManipulation extends Object
         tuples[i][j] = wind;
         if (station_refs != null && j == which_times[i]) {
           station_refs[i].setData(tuples[i][j]);
+// if (i == 0) System.out.println("collectiveAdjust: station " + i + " time " + j);
         }
         tuples2[i][j] = wind2;
         if (time_refs != null && i == station) {
@@ -1177,8 +1186,8 @@ public class CollectiveBarbManipulation extends Object
       } // end for (int j=0; j<ntimes[i]; j++)
     } // end for (int i=0; i<nindex; i++)
     if (wind_monitor != null) wind_monitor.enableAction();
-    if (display1 != null) display1.setEnabled(display1_was);
-    if (display2 != null) display2.setEnabled(display2_was);
+    // if (display1 != null) display1.setEnabled(display1_was);
+    // if (display2 != null) display2.setEnabled(display2_was);
   }
 
   private RealTupleType circle_type = null;
@@ -1291,7 +1300,8 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
-  int current_index = 0;
+  private int current_index = 0;
+  private static final double five_knots = 5.0 * (1853.248 / 3600.0); // in m/s
 
   void plusAngle() throws VisADException, RemoteException {
     synchronized (data_lock) {
@@ -1304,6 +1314,12 @@ public class CollectiveBarbManipulation extends Object
       Tuple new_wind = modifyWind(wind, azimuth, radial);
       wind_stations[current_index].setSample(time_index, new_wind);
       tuples[current_index][time_index] = new_wind;
+      if (station_refs != null) {
+        station_refs[current_index].setData(tuples[current_index][time_index]);
+// System.out.println("plusAngle: station " + current_index +
+//                    " time " + time_index);
+      }
+
     }
   }
 
@@ -1318,6 +1334,11 @@ public class CollectiveBarbManipulation extends Object
       Tuple new_wind = modifyWind(wind, azimuth, radial);
       wind_stations[current_index].setSample(time_index, new_wind);
       tuples[current_index][time_index] = new_wind;
+      if (station_refs != null) {
+        station_refs[current_index].setData(tuples[current_index][time_index]);
+// System.out.println("minusAngle: station " + current_index +
+//                    " time " + time_index);
+      }
     }
   }
 
@@ -1327,10 +1348,15 @@ public class CollectiveBarbManipulation extends Object
       Tuple wind = tuples[current_index][time_index];
       double azimuth = azimuths[current_index][time_index];
       double radial = radials[current_index][time_index];
-      radial += 5;
+      radial += five_knots;
       Tuple new_wind = modifyWind(wind, azimuth, radial);
       wind_stations[current_index].setSample(time_index, new_wind);
       tuples[current_index][time_index] = new_wind;
+      if (station_refs != null) {
+        station_refs[current_index].setData(tuples[current_index][time_index]);
+// System.out.println("plusSpeed: station " + current_index +
+//                    " time " + time_index);
+      }
     }
   }
 
@@ -1340,11 +1366,16 @@ public class CollectiveBarbManipulation extends Object
       Tuple wind = tuples[current_index][time_index];
       double azimuth = azimuths[current_index][time_index];
       double radial = radials[current_index][time_index];
-      radial -= 5;
+      radial -= five_knots;
       if (radial < 0.0) radial = 0.0;
       Tuple new_wind = modifyWind(wind, azimuth, radial);
       wind_stations[current_index].setSample(time_index, new_wind);
       tuples[current_index][time_index] = new_wind;
+      if (station_refs != null) {
+        station_refs[current_index].setData(tuples[current_index][time_index]);
+// System.out.println("minusSpeed: station " + current_index +
+//                    " time " + time_index);
+      }
     }
   }
 
@@ -1357,6 +1388,60 @@ public class CollectiveBarbManipulation extends Object
     int n = nindex;
     current_index = (current_index < 0) ? n-1 : (current_index + (n-1)) % n;
   }
+
+  class CBarbManipulationRendererJ3D extends BarbManipulationRendererJ3D {
+  
+    CollectiveBarbManipulation cbm;
+    int index;
+  
+    CBarbManipulationRendererJ3D(CollectiveBarbManipulation c, int i) {
+      super();
+      cbm = c;
+      index = i;
+    }
+  
+    /** mouse button released, ending direct manipulation */
+    public void release_direct() {
+      cbm.release();
+    }
+  
+    public void drag_direct(VisADRay ray, boolean first,
+                                         int mouseModifiers) {
+      if (first) {
+        cbm.circleEnable();
+        current_index = index;
+      }
+  
+      super.drag_direct(ray, first, mouseModifiers);
+    }
+  }
+  
+  class CSwellManipulationRendererJ3D extends SwellManipulationRendererJ3D {
+  
+    CollectiveBarbManipulation cbm;
+    int index;
+  
+    CSwellManipulationRendererJ3D(CollectiveBarbManipulation c, int i) {
+      super();
+      cbm = c;
+      index = i;
+    }
+  
+    /** mouse button released, ending direct manipulation */
+    public void release_direct() {
+      cbm.release();
+    }
+  
+    public void drag_direct(VisADRay ray, boolean first,
+                                         int mouseModifiers) {
+      if (first) {
+        cbm.circleEnable();
+        current_index = index;
+      }
+      super.drag_direct(ray, first, mouseModifiers);
+    }
+  }
+
 
   private static final int NSTAS = 5; // actually NSTAS * NSTAS
   private static final int NTIMES = 10;
@@ -1712,13 +1797,6 @@ class EndManipCBM implements ActionListener {
           add.setText("ready");
           del_curve();
         }
-/*
-        else {
-          cmr.toggle(true);
-          pmr.toggle(false);
-          add.setText("add");
-        }
-*/
       }
       catch (VisADException ex) {
         ex.printStackTrace();
@@ -1755,51 +1833,5 @@ class EndManipCBM implements ActionListener {
     }
   }
 
-}
-
-class CBarbManipulationRendererJ3D extends BarbManipulationRendererJ3D {
-
-  CollectiveBarbManipulation cbm;
-  int index;
-
-  CBarbManipulationRendererJ3D(CollectiveBarbManipulation c, int i) {
-    super();
-    cbm = c;
-    index = i;
-  }
-
-  /** mouse button released, ending direct manipulation */
-  public void release_direct() {
-    cbm.release();
-  }
-
-  public void drag_direct(VisADRay ray, boolean first,
-                                       int mouseModifiers) {
-    if (first) cbm.circleEnable();
-    super.drag_direct(ray, first, mouseModifiers);
-  }
-}
-
-class CSwellManipulationRendererJ3D extends SwellManipulationRendererJ3D {
-
-  CollectiveBarbManipulation cbm;
-  int index;
-
-  CSwellManipulationRendererJ3D(CollectiveBarbManipulation c, int i) {
-    super();
-    cbm = c;
-    index = i;
-  }
-
-  /** mouse button released, ending direct manipulation */
-  public void release_direct() {
-    cbm.release();
-  }
-
-  public void drag_direct(VisADRay ray, boolean first,
-                                       int mouseModifiers) {
-    if (first) cbm.circleEnable();
-    super.drag_direct(ray, first, mouseModifiers);
-  }
 }
 

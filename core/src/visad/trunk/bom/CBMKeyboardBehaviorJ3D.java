@@ -78,7 +78,7 @@ public class CBMKeyboardBehaviorJ3D extends KeyboardBehaviorJ3D {
 
     if (cbm == null) return;
 
-System.out.println("execFunction " + function);
+// System.out.println("execFunction " + function);
 
     try {
       switch (function) {

@@ -1023,12 +1023,17 @@ if (initialize) {
 */
         boolean transform_done = false;
 
+// System.out.println("DisplayImpl.doAction transform");
+int i = 0;
         renderers = temp.elements();
         while (renderers.hasMoreElements()) {
+// System.out.println("DisplayImpl invoke renderer.doAction " + i);
+i++;
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
           transform_done |= renderer.doAction();
         }
         if (transform_done) {
+// System.out.println(getName() + " invoked " + i + " renderers");
           AnimationControl control =
             (AnimationControl) getControl(AnimationControl.class);
           if (control != null) {
