@@ -3470,7 +3470,6 @@ try {
         double init_scale  = ContourControl.getInitScale();
         double scale_ratio = scale/init_scale;
         double label_size  = control.getLabelSize();
-        if (!control.getAutoSizeLabels()) scale_ratio = 1;
         if (bvalues[0]) {
           if (range_select[0] != null) {
             int len = range_select[0].length;

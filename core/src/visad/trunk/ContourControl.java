@@ -71,7 +71,7 @@ public class ContourControl extends Control {
 
   boolean contourFill;
 
-  private static double init_scale = Double.NaN;
+  private static double init_scale = 0.51;
   private boolean autoSizeLabels = false;
   private double labelSizeFactor = 1;
   private ZoomDoneListener zoom;
