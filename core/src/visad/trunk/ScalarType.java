@@ -122,8 +122,10 @@ public abstract class ScalarType extends MathType implements Comparable {
   public void alias(String alias)
     throws TypeException
   {
-    validateName(alias, "alias");
-    Translations.put(alias, Name);
+    if (!Name.equals(Translations.get(alias))) {
+      validateName(alias, "alias");
+      Translations.put(alias, Name);
+    }
     ReverseTranslations.put(Name, alias);
   }
 
