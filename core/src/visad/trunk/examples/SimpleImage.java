@@ -1,9 +1,16 @@
 import visad.*;
+import visad.Set;
 import visad.java2d.DisplayImplJ2D;
+import visad.java3d.*;
+import visad.util.*;
 import java.io.IOException;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.*;
+import java.awt.print.*;
 import javax.swing.*;
+import java.util.*;
+import java.io.*;
 
 /* Simple image display example.  Define a function that maps from 
  * (line,element) to a brightness value.  Create a FlatField that
@@ -52,7 +59,7 @@ public class SimpleImage {
     image_ref.setData(image_data);
 
     // define the mappings of the display
-    DisplayImpl di = new DisplayImplJ2D("display");
+    DisplayImpl di = new DisplayImplJ3D("display");
 
     // override the default range on display's Y axis
     ScalarMap line_map = new ScalarMap(line, Display.YAxis);
@@ -84,8 +91,14 @@ public class SimpleImage {
 
       panel.add(di.getComponent());
 
+      // add a button for printing the screen
+      JButton butt = new JButton("Print me");
+      butt.addActionListener(new visad.util.PrintActionListener(di));
+      panel.add(butt);
+
       // set size of JFrame and make it visible
       frame.setSize(500, 400);
       frame.setVisible(true);
   }
+
 }
