@@ -151,8 +151,10 @@ public class MouseHelper
 
     if (behavior == null) return;
 
-    // WLH 17 Aug 2000
-    if (first) {
+    // WLH 13 May 2003
+    // if (first) {
+    if (event instanceof MouseEvent &&
+        ((MouseEvent) event).getID() == MouseEvent.MOUSE_PRESSED) {
       start_x = 0;
       start_y = 0;
       VisADRay start_ray = behavior.findRay(start_x, start_y);
@@ -185,7 +187,7 @@ public class MouseHelper
         // System.out.println("xymul = " + xymul);
         first = false;
       }
-    } // end if (first)
+    }
 
     if (!(event instanceof MouseEvent)) {
       System.out.println("MouseHelper.processStimulus: non-" +
