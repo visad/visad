@@ -19,7 +19,7 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @see Netcdf
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:21 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:50 $
  */
 public class
 RemoteNetcdf
@@ -51,7 +51,7 @@ RemoteNetcdf
 	 */
 	public
 	RemoteNetcdf(NetcdfRemoteProxy remote)
-			throws IOException
+			throws RemoteException
 	{
 		super(remote.getSchema(), false);
 		this.remote = remote;
@@ -87,11 +87,27 @@ RemoteNetcdf
 	public
 	RemoteNetcdf(String remoteHostName,
 		String dataSetName)
-			throws IOException,
+			throws RemoteException,
 				java.rmi.NotBoundException,
 				java.net.MalformedURLException
 	{
 		this(getNetcdfService(remoteHostName).lookup(dataSetName));
+	}
+
+	/**
+	 * Indicate that you are done with this remote Netcdf.
+	 * Allows the service to free resources.
+	 * We name this method close for symmetry with NetcdfFile.
+	 * You do not have to call this. RMI runtime will
+	 * eventually (~10 minutes?) call NetcdfRemoteProxyImpl.unreferenced()
+	 * and accomplish the same thing.
+	 * @see NetcdfRemoteProxy#release
+	 */
+	public void
+	close()
+		throws RemoteException
+	{
+		remote.release();
 	}
 
 	protected Accessor
@@ -107,6 +123,18 @@ RemoteNetcdf
 		}
 	}
 	
+	/**
+	 * Ensures that the remote resources associated with this are
+	 * released when there are no more references to it. 
+	 * @see close
+	 */
+	protected void
+	finalize() throws Throwable
+	{
+		super.finalize();
+		close();
+	}
+
 	private /* final */ NetcdfRemoteProxy remote;
 
 	public static void
@@ -114,7 +142,7 @@ RemoteNetcdf
 	{
 		if(args.length < 1)
 		{
-			System.out.println("Usage: TestNetcdfService nc_name");
+			System.out.println("test Usage: RemoteNetcdf nc_name");
 			System.exit(1);
 		}
 		final String name = args[0];
@@ -132,6 +160,7 @@ RemoteNetcdf
 				System.out.println(ma.get(
 					new int[ma.getRank()]));
 			}
+			rnc.close();
 		}
 		catch (Exception ee)
 		{

@@ -18,7 +18,7 @@ import java.rmi.Remote;
  * It could be considered package or implementation private.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:20 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:50 $
  */
 
 public interface
@@ -45,4 +45,13 @@ NetcdfRemoteProxy
 	public RemoteAccessor
 	getAccessor(String varName)
 		throws  RemoteException;
+
+	/**
+	 * Indicate that you are done with this
+	 * Netcdf data set. Allows the service to free
+	 * resources (close the data set).
+	 */
+	public void
+	release()
+		throws RemoteException;
 }

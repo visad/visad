@@ -53,6 +53,10 @@ netcdf/Schema.java
 netcdf/UnlimitedDimension.java
 netcdf/Variable.java
 netcdf/VariableIterator.java
+util/Makefile
+util/Logger.java
+util/AbstractLogger.java
+util/RMILogger.java
 tests/Makefile
 tests/test.nc
 tests/test.out
