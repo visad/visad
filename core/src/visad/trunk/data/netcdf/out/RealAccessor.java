@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: RealAccessor.java,v 1.1 1998-03-20 20:57:23 visad Exp $
+ * $Id: RealAccessor.java,v 1.2 1998-03-25 15:23:19 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -49,8 +49,8 @@ RealAccessor
     {
 	try
 	{
-	    return new Double(((Real)outerAccessor.get(outerIndexes)).
-		getValue());
+	    return new
+		Double(((Real)outerAccessor.get(outerIndexes)).getValue());
 	}
 	catch (Exception e)
 	{
