@@ -53,6 +53,9 @@ public class AreaForm extends Form implements FormFileInformer {
 
   public AreaForm() {
     super("AreaForm");
+
+    // force AreaFile class to be loaded so 'adde:' handler is initialized
+    AreaFile.isURLHandlerLoaded();
   }
 
   /** determine the file type by name. McIDAS area files begin
