@@ -5,7 +5,7 @@ all:		classes
 classes:	FORCE
 	$(JAVAC) $(JAVAC_FLAGS) *.java
 
-test:		classes
+# test:		classes
 
 #jar:		$(JARDIR)/$(JARFILE)
 
