@@ -181,7 +181,7 @@ public abstract class Valuator
 	{
 	    DataImpl	data =
 		AttributeAdapterFactory.attributeAdapterFactory()
-		    .attributeAdapter(name, attr).data();
+		    .attributeAdapter(name, attr).data(false);
 	    if (data instanceof Real && index == 0)
 		value = ((Real)data).getValue();
 	    else if (data instanceof Gridded1DDoubleSet)

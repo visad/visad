@@ -36,12 +36,12 @@ public abstract class AttributeAdapter
     extends	Adapter
 {
     /**
-     * Returns the VisAD data object corresponding to this instance.  The same
-     * data object is returned every time, so subsequent modification of it 
-     * might affect all subsequent invocations of this method.
+     * Returns the VisAD data object corresponding to this instance.
      *
+     * @param copy		If true, then a copy of the data object is
+     *				returned.
      * @return			The VisAD data object corresponding to this
      *				instance.
      */
-    public abstract DataImpl data();
+    public abstract DataImpl data(boolean copy);
 }

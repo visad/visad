@@ -65,7 +65,7 @@ public class StructureVariableAdapter
 		    "DStructure is missing variable " + i + ": " + e);
 	    }
 	    adapters[i] = factory.variableAdapter(var, das);
-	    SimpleSet[]	setArray = adapters[i].getRepresentationalSets();
+	    SimpleSet[]	setArray = adapters[i].getRepresentationalSets(false);
 	    for (int j = 0; j < setArray.length; ++j)
 		setList.add(setArray[j]);
 	}
@@ -108,17 +108,16 @@ public class StructureVariableAdapter
 
     /**
      * Returns the VisAD {@link Set}s that will be used to represent this
-     * instances data values in the range of a VisAD {@link FlatField}.  The
-     * same array is returned each time, so modifications to the array will
-     * affect all subsequent invocations of this method.
+     * instances data values in the range of a VisAD {@link FlatField}.
      *
+     * @param copy		If true, then the array is cloned.
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.  WARNING: Modify
      *				only under duress.
      */
-    public SimpleSet[] getRepresentationalSets()
+    public SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return repSets;
+	return copy ? (SimpleSet[])repSets.clone() : repSets;
     }
 
     /**
@@ -130,6 +129,7 @@ public class StructureVariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			The VisAD data object of this instance.  The
      *				class of the object will be determined by the
      *				components of the structure used during
@@ -142,7 +142,7 @@ public class StructureVariableAdapter
      *				this instance.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(DStructure structure)
+    public DataImpl data(DStructure structure, boolean copy)
 	throws BadFormException, VisADException, RemoteException
     {
 	DataImpl	data;
@@ -154,7 +154,7 @@ public class StructureVariableAdapter
 	    }
 	    else if (adapters.length == 1)
 	    {
-		data = adapters[0].data(structure.getVar(0));
+		data = adapters[0].data(structure.getVar(0), copy);
 	    }
 	    else
 	    {
@@ -163,14 +163,15 @@ public class StructureVariableAdapter
 		    Real[]	components = new Real[adapters.length];
 		    for (int i = 0; i < adapters.length; ++i)
 			components[i] = 
-			    (Real)adapters[i].data(structure.getVar(i));
+			    (Real)adapters[i].data(structure.getVar(i), copy);
 		    data = new RealTuple(components);
 		}
 		else
 		{
 		    DataImpl[]	components = new DataImpl[adapters.length];
 		    for (int i = 0; i < adapters.length; ++i)
-			components[i] = adapters[i].data(structure.getVar(i));
+			components[i] =
+			    adapters[i].data(structure.getVar(i), copy);
 		    data = new Tuple(components);
 		}
 	    }

@@ -67,26 +67,25 @@ public class Float64VectorAdapter
      * Sets the range of a compatible VisAD {@link Field}.  The range values are
      * taken from a DODS primitive vector whose metadata must be compatible with
      * the metadata of the primitive vector used during construction of this
-     * instance.  The range values are not copied from the primitive vector,
-     * so subsequently modifying them in the field might cause subsequent
-     * identical invocations of this method to return different values.
+     * instance.
      *
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public final void setField(PrimitiveVector vector, FieldImpl field)
+    public final void setField(
+	    PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException, RemoteException
     {
 	if (field.isFlatField())
 	    ((FlatField)field).setSamples(
-		new double[][] {getDoubles(vector)}, /*copy=*/false);
+		new double[][] {getDoubles(vector, copy)}, /*copy=*/false);
 	else
-	    field.setSamples(new double[][] {getDoubles(vector)});
+	    field.setSamples(new double[][] {getDoubles(vector, copy)});
     }
 
     /**
@@ -108,7 +107,7 @@ public class Float64VectorAdapter
     {
 	return
 	    Gridded1DDoubleSet.create(
-		getMathType(), getDoubles(vector), null, null, null);
+		getMathType(), getDoubles(vector, true), null, null, null);
     }
 
     /**
@@ -117,9 +116,10 @@ public class Float64VectorAdapter
      * @param vec		A DODS primitive vector that is compatible with
      *				the primitive vector used to construct this
      *				instance.
+     * @param copy		If true, then a copy is returned.
      * @return			The numeric values of the primitive vector.
      */
-    public double[] getDoubles(PrimitiveVector vec)
+    public double[] getDoubles(PrimitiveVector vec, boolean copy)
     {
 	Float64PrimitiveVector	vector = (Float64PrimitiveVector)vec;
 	double[]		values = new double[vector.getLength()];

@@ -56,6 +56,7 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.  The
@@ -67,38 +68,38 @@ public abstract class VariableAdapter
      *				this instance.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(BaseType baseType)
+    public DataImpl data(BaseType baseType, boolean copy)
 	throws BadFormException, VisADException, RemoteException
     {
 	DataImpl	data;
 	if (baseType instanceof DString)
-	    data = data((DString)baseType);
+	    data = data((DString)baseType, copy);
 	else if (baseType instanceof DBoolean)
-	    data = data((DBoolean)baseType);
+	    data = data((DBoolean)baseType, copy);
 	else if (baseType instanceof DByte)
-	    data = data((DByte)baseType);
+	    data = data((DByte)baseType, copy);
 	else if (baseType instanceof DUInt16)
-	    data = data((DUInt16)baseType);
+	    data = data((DUInt16)baseType, copy);
 	else if (baseType instanceof DInt16)
-	    data = data((DInt16)baseType);
+	    data = data((DInt16)baseType, copy);
 	else if (baseType instanceof DUInt32)
-	    data = data((DUInt32)baseType);
+	    data = data((DUInt32)baseType, copy);
 	else if (baseType instanceof DInt32)
-	    data = data((DInt32)baseType);
+	    data = data((DInt32)baseType, copy);
 	else if (baseType instanceof DFloat32)
-	    data = data((DFloat32)baseType);
+	    data = data((DFloat32)baseType, copy);
 	else if (baseType instanceof DFloat64)
-	    data = data((DFloat64)baseType);
+	    data = data((DFloat64)baseType, copy);
 	else if (baseType instanceof DStructure)
-	    data = data((DStructure)baseType);
+	    data = data((DStructure)baseType, copy);
 	else if (baseType instanceof DList)
-	    data = data((DList)baseType);
+	    data = data((DList)baseType, copy);
 	else if (baseType instanceof DSequence)
-	    data = data((DSequence)baseType);
+	    data = data((DSequence)baseType, copy);
 	else if (baseType instanceof DArray)
-	    data = data((DArray)baseType);
+	    data = data((DArray)baseType, copy);
 	else if (baseType instanceof DGrid)
-	    data = data((DGrid)baseType);
+	    data = data((DGrid)baseType, copy);
 	else
 	    throw new BadFormException(
 		getClass().getName() + ".data(BaseType): " +
@@ -114,13 +115,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DString var)
+    public DataImpl data(DString var, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -136,13 +138,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DBoolean var)
+    public DataImpl data(DBoolean var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -158,13 +161,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DByte var)
+    public DataImpl data(DByte var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -180,13 +184,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DUInt16 var)
+    public DataImpl data(DUInt16 var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -202,13 +207,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DInt16 var)
+    public DataImpl data(DInt16 var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -224,13 +230,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DUInt32 var)
+    public DataImpl data(DUInt32 var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -246,13 +253,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DInt32 var)
+    public DataImpl data(DInt32 var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -268,13 +276,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DFloat32 var)
+    public DataImpl data(DFloat32 var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -290,13 +299,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DFloat64 var)
+    public DataImpl data(DFloat64 var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -312,13 +322,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DStructure var)
+    public DataImpl data(DStructure var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -334,13 +345,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DList var)
+    public DataImpl data(DList var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -356,13 +368,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DArray var)
+    public DataImpl data(DArray var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -378,13 +391,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DGrid var)
+    public DataImpl data(DGrid var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -400,13 +414,14 @@ public abstract class VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A VisAD data object corresponding to the data of
      *				the DODS variable and the metadata of the DODS
      *				variable used during construction.
      * @throws VisADException	Don't know how to create a VisAD data object
      *				from the given DODS variable.
      */
-    public DataImpl data(DSequence var)
+    public DataImpl data(DSequence var, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -417,21 +432,19 @@ public abstract class VariableAdapter
     /**
      * Returns the default VisAD {@link Set}s that will be used to represent
      * this instances data values in the range of a VisAD {@link FlatField}.
-     * The same array is returned each time, so modifications to the array will
-     * affect all subsequent invocations of this method.
      *
      * Override this method in subclasses where appropriate.
      *
+     * @param copy		If true, then the array is cloned.
      * @return			The default VisAD Sets used to represent the
      *				data values in the range of a FlatField.
      *				Will never be <code>null</code> -- though an
      *				individual elements might be (e.g. for {@link
-     *				TextType} objects).  WARNING: Modify the 
-     *				returned array only under extreme duress.
+     *				TextType} objects).
      */
-    public SimpleSet[] getRepresentationalSets()
+    public SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return defaultRepSets;
+	return copy ? (SimpleSet[])defaultRepSets.clone() : defaultRepSets;
     }
 
     /**

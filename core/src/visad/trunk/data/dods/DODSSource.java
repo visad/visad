@@ -86,23 +86,29 @@ public class DODSSource
 	try
 	{
 	    URL		url = new URL(spec);
-	    String	path = url.getPath();
-	    String	suffix = ".dods";
+	    String	path = url.getFile();
+	    String	query = "";
+	    int		i = path.lastIndexOf('?');
+	    if (i != -1)
+	    {
+		query = path.substring(i);
+		path = path.substring(0, i);
+	    }
 	    /*
 	     * Because the DConnect class won't construct an instance
 	     * from a DODS dataset specification whose path component has a
 	     * ".dods" suffix, such a suffix is removed.
 	     */
+	    String	suffix = ".dods";
 	    if (path.toLowerCase().endsWith(suffix))
 	    {
-		String	query = url.getQuery();
 		path	= path.substring(0, path.length()-suffix.length());
 		spec =
 		    new URL(
 			url.getProtocol(),
 			url.getHost(),
 			url.getPort(),
-			query == null ? path : path + "?" + query)
+			path + "?" + query)
 		    .toString();
 	    }
 	    dConnect = new DConnect(spec);
@@ -165,7 +171,9 @@ public class DODSSource
 	    if (attrEnum.hasMoreElements())
 	    {
 		String	name = (String)attrEnum.nextElement();
-		data = dataFactory.data(name, globalTable.getAttribute(name));
+		data =
+		    dataFactory.data(
+			name, globalTable.getAttribute(name), true);
 	    }
 	    else
 	    {
@@ -199,7 +207,9 @@ public class DODSSource
 	{
 	    if (varEnum.hasMoreElements())
 	    {
-		data = dataFactory.data((BaseType)varEnum.nextElement(), das);
+		data =
+		    dataFactory.data(
+			(BaseType)varEnum.nextElement(), das, true);
 	    }
 	    else
 	    {
@@ -233,7 +243,7 @@ public class DODSSource
     protected synchronized DataImpl readAttribute(String name)
 	throws BadFormException, VisADException, RemoteException
     {
-	return dataFactory.data(name, globalTable.getAttribute(name));
+	return dataFactory.data(name, globalTable.getAttribute(name), true);
     }
 
     /**
@@ -263,7 +273,7 @@ public class DODSSource
 	}
 	else
 	{
-	    data = dataFactory.data((BaseType)varEnum.nextElement(), das);
+	    data = dataFactory.data((BaseType)varEnum.nextElement(), das, true);
 	}
 	return data;
     }

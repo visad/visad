@@ -83,17 +83,15 @@ public class UInt16VariableAdapter
 
     /**
      * Returns the VisAD {@link Set}s that will be used to represent this
-     * instances data values in the range of a VisAD {@link FlatField}.  The
-     * same array is returned each time, so modifications to the array will
-     * affect all subsequent invocations of this method.
+     * instances data values in the range of a VisAD {@link FlatField}.
      *
+     * @param copy		If true, then the array is cloned.
      * @return			The VisAD Sets used to represent the data values
-     *				in the range of a FlatField.  WARNING: Modify
-     *				only under duress.
+     *				in the range of a FlatField.
      */
-    public SimpleSet[] getRepresentationalSets()
+    public SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return repSets;
+	return copy ? (SimpleSet[])repSets.clone() : repSets;
     }
 
     /**

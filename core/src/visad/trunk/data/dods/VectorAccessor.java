@@ -91,9 +91,9 @@ public class VectorAccessor
 		funcType,
 		domain,
 		(CoordinateSystem[])null,
-		vectorAdapter.getRepresentationalSets(),
+		vectorAdapter.getRepresentationalSets(false),
 		(Unit[])null);
-	vectorAdapter.setField(vector, field);
+	vectorAdapter.setField(vector, field, false);
 	return field;
     }
 

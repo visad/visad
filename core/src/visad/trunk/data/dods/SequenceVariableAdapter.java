@@ -41,9 +41,9 @@ import visad.data.in.*;
 public class SequenceVariableAdapter
     extends	VariableAdapter
 {
-    private final FunctionType		funcType;
-    private final VariableAdapter[]	adapters;
-    private final SimpleSet[]		repSets;
+    private FunctionType	funcType;
+    private VariableAdapter[]	adapters;
+    private SimpleSet[]		repSets;
 
     private SequenceVariableAdapter(
 	    DSequence sequence, DAS das, VariableAdapterFactory factory)
@@ -66,7 +66,7 @@ public class SequenceVariableAdapter
 		    "Couldn't get sequence-variable " + i);
 	    }
 	    adapters[i] = factory.variableAdapter(template, das);
-	    SimpleSet[]	setArray = adapters[i].getRepresentationalSets();
+	    SimpleSet[]	setArray = adapters[i].getRepresentationalSets(false);
 	    for (int j = 0; j < setArray.length; ++j)
 		setList.add(setArray[j]);
 	}
@@ -107,17 +107,16 @@ public class SequenceVariableAdapter
 
     /**
      * Returns the VisAD {@link Set}s that will be used to represent this
-     * instances data values in the range of a VisAD {@link FlatField}.  The
-     * same array is returned each time, so modifications to the array will
-     * affect all subsequent invocations of this method.
+     * instances data values in the range of a VisAD {@link FlatField}.
      *
+     * @param copy		If true, then the array is cloned.
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.  WARNING: Modify
      *				only under duress.
      */
-    public SimpleSet[] getRepresentationalSets()
+    public SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return repSets;
+	return copy ? (SimpleSet[])repSets.clone() : repSets;
     }
 
     /**
@@ -128,6 +127,7 @@ public class SequenceVariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			The VisAD data object of this instance.
      *				The class of the object will be {@link
      *				visad.data.FileFlatField}, {@link FlatField}, or
@@ -137,7 +137,7 @@ public class SequenceVariableAdapter
      *				this instance.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(DSequence sequence)
+    public DataImpl data(DSequence sequence, boolean copy)
 	throws VisADException, RemoteException
     {
 	SampledSet	domain = new Integer1DSet(sequence.getRowCount());
@@ -155,7 +155,7 @@ public class SequenceVariableAdapter
 	else
 	{
 	    field = new FieldImpl(funcType, domain);
-	    setField(sequence, field);
+	    setField(sequence, field, copy);
 	}
 	return field;
     }
@@ -169,11 +169,12 @@ public class SequenceVariableAdapter
      * @param field		A VisAD field whose range values will be set.
      *				The field must be compatible with the DODS
      *				sequence.
+     * @param copy		If true, then data values are copied.
      * @throws VisADException	VisAD failure.  Possibly the DODS variable and
      *				the VisAD field are incompatible.
      * @throws RemoteException	Java RMI failure.
      */
-    protected void setField(DSequence sequence, FieldImpl field)
+    protected void setField(DSequence sequence, FieldImpl field, boolean copy)
 	throws VisADException, RemoteException
     {
 	int		sampleCount = field.getLength();
@@ -184,14 +185,14 @@ public class SequenceVariableAdapter
 	    Vector	row = sequence.getRow(i);
 	    if (adapters.length == 1)
 	    {
-		data = adapters[0].data((BaseType)row.get(0));
+		data = adapters[0].data((BaseType)row.get(0), copy);
 	    }
 	    else if (rangeType instanceof RealTupleType)
 	    {
 		Real[]	components = new Real[adapters.length];
 		for (int j = 0; j < components.length; ++j)
 		    components[j] =
-			(Real)adapters[j].data((BaseType)row.get(j));
+			(Real)adapters[j].data((BaseType)row.get(j), copy);
 		data =
 		    new RealTuple(
 			(RealTupleType)rangeType, components, null);
@@ -200,7 +201,8 @@ public class SequenceVariableAdapter
 	    {
 		Data[]	components = new Data[adapters.length];
 		for (int j = 0; j < components.length; ++j)
-		    components[j] = adapters[j].data((BaseType)row.get(j));
+		    components[j] =
+			adapters[j].data((BaseType)row.get(j), copy);
 		data = new Tuple((TupleType)rangeType, components);
 	    }
 	    field.setSample(i, data, /*copy=*/false);
@@ -261,7 +263,7 @@ public class SequenceVariableAdapter
 		    (CoordinateSystem[])null,
 		    repSets,
 		    (Unit[])null);
-	    setField(sequence, field);
+	    setField(sequence, field, false);
 	    return field;
 	}
 

@@ -60,9 +60,7 @@ public class VariableAdapterFactory
     }
 
     /**
-     * Returns the adapter corresponding to a DODS variable.  The
-     * same data object might be returned every time, so subsequent modification
-     * of it might affect all identical subsequent invocations of this method.
+     * Returns the adapter corresponding to a DODS variable.
      *
      * @param var		A DODS variable.
      * @param das		The DODS DAS in which the attribute

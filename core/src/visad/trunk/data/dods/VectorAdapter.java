@@ -100,56 +100,53 @@ public abstract class VectorAdapter
 
     /**
      * Returns the VisAD {@link Set}s that will be used to represent this
-     * instance's data values in the range of a VisAD {@link FlatField}.  The
-     * same array is returned each time, so modifications to the array will
-     * affect all subsequent invocations of this method.
+     * instance's data values in the range of a VisAD {@link FlatField}.
      *
+     * @param copy		If true, then the array is cloned.
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.  WARNING: Modify
      *				the returned array only under extreme duress.
      */
-    public final SimpleSet[] getRepresentationalSets()
+    public final SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return varAdapter.getRepresentationalSets();
+	return varAdapter.getRepresentationalSets(copy);
     }
 
     /**
      * Sets the range of a compatible VisAD {@link Field}.  The range values are
      * taken from a DODS primitive vector whose metadata must be compatible with
      * the metadata of the primitive vector used during construction of this
-     * instance.  The range values are not copied from the primitive vector,
-     * so subsequently modifying them in the field might cause subsequent
-     * identical invocations of this method to return different values.
+     * instance.
      *
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public void setField(PrimitiveVector vector, FieldImpl field)
+    public void setField(PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException, RemoteException
     {
 	if (vector instanceof BooleanPrimitiveVector)
-	    setField((BooleanPrimitiveVector)vector, field);
+	    setField((BooleanPrimitiveVector)vector, field, copy);
 	else if (vector instanceof BytePrimitiveVector)
-	    setField((BytePrimitiveVector)vector, field);
+	    setField((BytePrimitiveVector)vector, field, copy);
 	else if (vector instanceof UInt16PrimitiveVector)
-	    setField((UInt16PrimitiveVector)vector, field);
+	    setField((UInt16PrimitiveVector)vector, field, copy);
 	else if (vector instanceof Int16PrimitiveVector)
-	    setField((Int16PrimitiveVector)vector, field);
+	    setField((Int16PrimitiveVector)vector, field, copy);
 	else if (vector instanceof UInt32PrimitiveVector)
-	    setField((UInt32PrimitiveVector)vector, field);
+	    setField((UInt32PrimitiveVector)vector, field, copy);
 	else if (vector instanceof Int32PrimitiveVector)
-	    setField((Int32PrimitiveVector)vector, field);
+	    setField((Int32PrimitiveVector)vector, field, copy);
 	else if (vector instanceof Float32PrimitiveVector)
-	    setField((Float32PrimitiveVector)vector, field);
+	    setField((Float32PrimitiveVector)vector, field, copy);
 	else if (vector instanceof Float64PrimitiveVector)
-	    setField((Float64PrimitiveVector)vector, field);
+	    setField((Float64PrimitiveVector)vector, field, copy);
 	else
-	    setField((BaseTypePrimitiveVector)vector, field);
+	    setField((BaseTypePrimitiveVector)vector, field, copy);
     }
 
     /**
@@ -159,11 +156,12 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(BooleanPrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    BooleanPrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -177,12 +175,13 @@ public abstract class VectorAdapter
      *
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(BytePrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    BytePrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -197,11 +196,12 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(UInt16PrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    UInt16PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -216,11 +216,12 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(Int16PrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    Int16PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -235,11 +236,12 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(UInt32PrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    UInt32PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -254,11 +256,12 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(Int32PrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    Int32PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -273,11 +276,12 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(Float32PrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    Float32PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -292,11 +296,12 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	The vector has the wrong DODS type.
      */
-    public void setField(Float64PrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    Float64PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException
     {
 	throw new VisADException(
@@ -311,12 +316,13 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	The vector has the wrong DODS type.
      * @throws RemoteException	Java RMI failure.
      */
-    public void setField(BaseTypePrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    BaseTypePrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
@@ -331,8 +337,6 @@ public abstract class VectorAdapter
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
      * @throws VisADException	The vector has the wrong DODS type.
      * @throws RemoteException	Java RMI failure.
      */

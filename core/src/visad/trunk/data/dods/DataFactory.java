@@ -92,41 +92,41 @@ public class DataFactory
     }
 
     /**
-     * Returns the VisAD data object corresponding to a DODS attribute.  The
-     * same data object might be returned every time, so subsequent modification
-     * of it might affect all identical, subsequent invocations of this method.
+     * Returns the VisAD data object corresponding to a DODS attribute.
      *
      * @param name		The name of the DODS attribute.
      * @param attribute		A DODS attribute.
+     * @param copy		If true, then a copy of the data object is
+     *				returned.
      * @return			The VisAD data object corresponding to the DODS
      *				attribute.
      * @throws BadFormException	The DODS information is corrupt.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(String name, Attribute attribute)
+    public DataImpl data(String name, Attribute attribute, boolean copy)
 	throws BadFormException, VisADException, RemoteException
     {
-	return attributeFactory.attributeAdapter(name, attribute).data();
+	return attributeFactory.attributeAdapter(name, attribute).data(copy);
     }
 
     /**
-     * Returns the VisAD data object corresponding to a DODS variable.  The
-     * same data object might be returned every time, so subsequent modification
-     * of it might affect all identical, subsequent invocations of this method.
+     * Returns the VisAD data object corresponding to a DODS variable.
      *
      * @param var		A DODS variable.
      * @param das		The DODS DAS in which the attribute
      *				table for the DODS variable is embedded.
+     * @param copy		If true, then a copy of the data object is
+     *				returned.
      * @return			The VisAD data object corresponding to the DODS
      *				variable.
      * @throws BadFormException	The DODS information is corrupt.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(BaseType var, DAS das)
+    public DataImpl data(BaseType var, DAS das, boolean copy)
 	throws BadFormException, VisADException, RemoteException
     {
-	return variableFactory.variableAdapter(var, das).data(var);
+	return variableFactory.variableAdapter(var, das).data(var, copy);
     }
 }

@@ -61,14 +61,14 @@ public class ByteVariableAdapter
     /**
      * Returns the VisAD {@link Set}s that will be used to represent this
      * instances data values in the range of a VisAD {@link FlatField}.
-     * NOTE: The same array is returned every time.
      *
+     * @param copy		If true, then the data values are copied.
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.
      */
-    public SimpleSet[] getRepresentationalSets()
+    public SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return repSets;
+	return copy ? (SimpleSet[])repSets.clone() : repSets;
     }
 
     public DataImpl data(DByte var)

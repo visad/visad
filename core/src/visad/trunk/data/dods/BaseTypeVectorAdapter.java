@@ -83,26 +83,25 @@ public class BaseTypeVectorAdapter
      * Sets the range of a compatible VisAD {@link Field}.  The range values are
      * taken from a DODS primitive vector whose metadata must be compatible with
      * the metadata of the primitive vector used during construction of this
-     * instance.  The range values are not copied from the primitive vector,
-     * so subsequently modifying them in the field might cause subsequent
-     * invocations of the method to return altered values.
+     * instance.
      *
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then range values are copied from the
+     *				primitive vector.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public void setField(BaseTypePrimitiveVector vector, FieldImpl field)
+    public void setField(
+	    BaseTypePrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException, RemoteException
     {
 	int		length = vector.getLength();
 	for (int i = 0; i < length; ++i)
 	    field.setSample(
 		i,
-		getVariableAdapter().data(vector.getValue(i)),
-		/*copy=*/false);
+		getVariableAdapter().data(vector.getValue(i), copy),
+		false);
     }
 }

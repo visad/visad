@@ -70,9 +70,10 @@ public final class UInt32VectorAdapter
      * @param vec		A DODS primitive vector that is compatible with
      *				the primitive vector used to construct this
      *				instance.
+     * @param copy		If true, then a copy is returned.
      * @return			The numeric values of the primitive vector.
      */
-    public float[] getFloats(PrimitiveVector vec)
+    public float[] getFloats(PrimitiveVector vec, boolean copy)
     {
 	UInt32PrimitiveVector	vector = (UInt32PrimitiveVector)vec;
 	float[]			values = new float[vector.getLength()];

@@ -58,9 +58,7 @@ public class VectorAdapterFactory
     }
 
     /**
-     * Returns the adapter corresponding to a DODS primitive vector.  The
-     * same data object might be returned every time, so subsequent modification
-     * of it might affect all identical subsequent invocations of this method.
+     * Returns the adapter corresponding to a DODS primitive vector.
      *
      * @param vector		A DODS primitive vector.
      * @param das		The DODS DAS in which the attribute
@@ -120,9 +118,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * BooleanPrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * BooleanPrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute
@@ -145,9 +141,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * BytePrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * BytePrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute
@@ -170,9 +164,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * UInt16PrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * UInt16PrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute
@@ -195,9 +187,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * Int16PrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * Int16PrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute
@@ -220,9 +210,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * UInt32PrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * UInt32PrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute
@@ -245,9 +233,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * Int32PrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * Int32PrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute
@@ -270,9 +256,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * Float32PrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * Float32PrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute
@@ -295,9 +279,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * Float64PrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * Float64PrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute
@@ -320,9 +302,7 @@ public class VectorAdapterFactory
 
     /**
      * Returns the adapter corresponding to a DODS {@link
-     * BaseTypePrimitiveVector}.  The same data object might be returned every
-     * time, so subsequent modification of it might affect all identical
-     * subsequent invocations of this method.
+     * BaseTypePrimitiveVector}.
      *
      * @param vector		A DODS primitive vector of the appropriate type.
      * @param das		The DODS DAS in which the attribute

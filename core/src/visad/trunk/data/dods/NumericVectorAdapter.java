@@ -64,19 +64,18 @@ public abstract class NumericVectorAdapter
      * Sets the range of a compatible VisAD {@link Field}.  The range values are
      * taken from a DODS primitive vector whose metadata must be compatible with
      * the metadata of the primitive vector used during construction of this
-     * instance.  The range values are not copied from the primitive vector,
-     * so subsequently modifying them in the field might cause subsequent
-     * identical invocations of this method to return different values.
+     * instance.
      *
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
      * @param field		A VisAD field to have its range values set.
-     *				WARNING: Subsequently modify the range values
-     *				of the field only under extreme duress.
+     * @param copy		If true, then the range values are copied from
+     *				the primitive vector.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public abstract void setField(PrimitiveVector vector, FieldImpl field)
+    public abstract void setField(
+	    PrimitiveVector vector, FieldImpl field, boolean copy)
 	throws VisADException, RemoteException;
 
     /**

@@ -84,17 +84,16 @@ public class ListVariableAdapter
 
     /**
      * Returns the VisAD {@link Set}s that will be used to represent this
-     * instances data values in the range of a VisAD {@link FlatField}.  The
-     * same array is returned each time, so modifications to the array will
-     * affect all subsequent invocations of this method.
+     * instances data values in the range of a VisAD {@link FlatField}.
      *
+     * @param copy		If true, then the array is cloned.
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.  WARNING: Modify
      *				only under duress.
      */
-    public SimpleSet[] getRepresentationalSets()
+    public SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return vectorAdapter.getRepresentationalSets();
+	return vectorAdapter.getRepresentationalSets(copy);
     }
 
     /**
@@ -105,6 +104,7 @@ public class ListVariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then the data values are copied.
      * @return			The VisAD data object of this instance.
      *				The class of the object will be {@link
      *				visad.data.FileFlatField} {@link FlatField}, or
@@ -114,7 +114,7 @@ public class ListVariableAdapter
      *				this instance.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(DList list)
+    public DataImpl data(DList list, boolean copy)
 	throws VisADException, RemoteException
     {
 	SampledSet	domain = new Integer1DSet(list.getLength());
@@ -134,7 +134,7 @@ public class ListVariableAdapter
 	else
 	{
 	    field = new FieldImpl(funcType, domain);
-	    vectorAdapter.setField(vector, field);
+	    vectorAdapter.setField(vector, field, copy);
 	}
 	return field;
     }

@@ -116,12 +116,13 @@ public class ArrayVariableAdapter
      * Returns the VisAD {@link Set}s that will be used to represent the data
      * values in the range of a VisAD {@link FlatField}.
      *
+     * @param copy		If true, then the array is copied.
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.
      */
-    public SimpleSet[] getRepresentationalSets()
+    public SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return vectorAdapter.getRepresentationalSets();
+	return vectorAdapter.getRepresentationalSets(copy);
     }
 
     /**
@@ -195,7 +196,7 @@ public class ArrayVariableAdapter
 	else
 	{
 	    field = new FieldImpl(funcType, domain);
-	    vectorAdapter.setField(vector, field);
+	    vectorAdapter.setField(vector, field, false);
 	}
 	return field;
     }
@@ -208,13 +209,14 @@ public class ArrayVariableAdapter
      *				compatible VisAD Field.  The array must be
      *				compatible with the array used to construct this
      *				instance.
+     * @param copy		If true, then the data values are copied.
      * @param field		The VisAD Field to be set.  The field must be
      *				compatible with the array.
      */
-    public void setField(DArray array, FieldImpl field)
+    public void setField(DArray array, FieldImpl field, boolean copy)
 	throws VisADException, RemoteException
     {
-	vectorAdapter.setField(array.getPrimitiveVector(), field);
+	vectorAdapter.setField(array.getPrimitiveVector(), field, copy);
     }
 
     /**

@@ -218,8 +218,11 @@ public class DODSForm
 	boolean	isThisType;
 	try
 	{
-	    isThisType =
-		new URL(spec).getPath().toLowerCase().endsWith(periodSuffix);
+	    String	fileSpec = new URL(spec).getFile();
+	    int		i = fileSpec.lastIndexOf('?');
+	    if (i != -1)
+		fileSpec = fileSpec.substring(0, i);
+	    isThisType = fileSpec.toLowerCase().endsWith(periodSuffix);
 	}
 	catch (MalformedURLException e)
 	{

@@ -58,9 +58,10 @@ public class UnknownAttributeAdapter
     /**
      * Returns <code>null</code>.
      *
+     * @param copy		If true, then the data values are copied.
      * @return			<code>null</code>.
      */
-    public DataImpl data()
+    public DataImpl data(boolean copy)
     {
 	return null;
     }

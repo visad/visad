@@ -39,12 +39,12 @@ import visad.data.in.*;
 public class GridVariableAdapter
     extends	VariableAdapter
 {
-    private final ArrayVariableAdapter		arrayAdapter;
-    private final FunctionType			funcType;
-    private final boolean			isFlat;
-    private final GridVariableMapAdapter[]	domainAdapters;	// VisAD order
-    private static RealTupleType		latLonType;
-    private static RealTupleType		lonLatType;
+    private ArrayVariableAdapter	arrayAdapter;
+    private FunctionType		funcType;
+    private boolean			isFlat;
+    private GridVariableMapAdapter[]	domainAdapters;	// VisAD order
+    private static RealTupleType	latLonType;
+    private static RealTupleType	lonLatType;
 
     static
     {
@@ -132,17 +132,16 @@ public class GridVariableAdapter
     /**
      * Returns the VisAD {@link Set}s that will be used to represent
      * this instances data values in the range of a VisAD {@link
-     * visad.data.FlatField}.  The same array is returned each time, so
-     * modifications to the array will affect all subsequent invocations of this
-     * method.
+     * visad.data.FlatField}.
      *
+     * @param copy		If true, then the array is cloned.
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.  WARNING: Modify
      *				only under duress.
      */
-    public SimpleSet[] getRepresentationalSets()
+    public SimpleSet[] getRepresentationalSets(boolean copy)
     {
-	return arrayAdapter.getRepresentationalSets();
+	return arrayAdapter.getRepresentationalSets(copy);
     }
 
     /**
@@ -153,6 +152,7 @@ public class GridVariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			The VisAD data object of this instance.  The
      *				class of the object will be {@link 
      *				visad.data.FileFlatField}, {@link FlatField}, 
@@ -162,7 +162,7 @@ public class GridVariableAdapter
      *				this instance.
      * @throws RemoteException	Java RMI failure.
      */
-    public DataImpl data(DGrid grid)
+    public DataImpl data(DGrid grid, boolean copy)
 	throws VisADException, RemoteException
     {
 	FieldImpl	field;
@@ -253,7 +253,7 @@ public class GridVariableAdapter
 	    else
 	    {
 		field = new FieldImpl(funcType, domain);
-		arrayAdapter.setField(array, field);
+		arrayAdapter.setField(array, field, copy);
 	    }
 	}
 	catch (NoSuchVariableException e)
@@ -317,9 +317,9 @@ public class GridVariableAdapter
 		    funcType,
 		    domain,
 		    (CoordinateSystem[])null,
-		    arrayAdapter.getRepresentationalSets(),
+		    arrayAdapter.getRepresentationalSets(false),
 		    (Unit[])null);
-	    arrayAdapter.setField(array, field);
+	    arrayAdapter.setField(array, field, false);
 	    return field;
 	}
 

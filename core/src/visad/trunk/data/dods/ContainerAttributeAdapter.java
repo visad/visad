@@ -64,7 +64,8 @@ public class ContainerAttributeAdapter
 	{
 	    name = (String)enum.nextElement();
 	    DataImpl	data =
-		factory.attributeAdapter(name, table.getAttribute(name)).data();
+		factory.attributeAdapter(name, table.getAttribute(name))
+		.data(false);
 	    list.add(data);
 	    allReals &= data instanceof Real;
 	}
@@ -82,15 +83,15 @@ public class ContainerAttributeAdapter
     }
 
     /**
-     * Returns the VisAD data object corresponding to this instance.  The same
-     * data object is returned every time, so subsequent modification of it 
-     * might affect all subsequent invocations of this method.
+     * Returns the VisAD data object corresponding to this instance.
      *
+     * @param copy		If true, then a copy of the data object is
+     *				returned.
      * @return			The VisAD data object corresponding to this
      *				instance.
      */
-    public DataImpl data()
+    public DataImpl data(boolean copy)
     {
-	return data;
+	return copy ? (DataImpl)data.dataClone() : data;
     }
 }
