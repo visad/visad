@@ -29,8 +29,8 @@ package visad;
    VisADGeometryArray stands in for j3d.GeometryArray
    and is Serializable.<P>
 */
-public class VisADGeometryArray extends Object
-       implements java.io.Serializable {
+public class VisADGeometryArray extends VisADSceneGraphObject {
+
   public int vertexCount;
   public int vertexFormat;
   public float[] coordinates;

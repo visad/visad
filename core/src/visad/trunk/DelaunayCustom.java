@@ -108,7 +108,10 @@ public class DelaunayCustom extends Delaunay {
     NumEdges = num_edges;
 
     // call more generic method for constructing any remaining null arrays
+/* WLH 7 June 98
     finish_triang(samples);
+*/
+    if (samples != null) super.finish_triang(samples);
   }
 
 }

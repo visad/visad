@@ -48,6 +48,7 @@ TAR_FILES = \
 	visad/*.java					\
 	visad/examples/*.java				\
 	visad/java3d/*.java				\
+	visad/java2d/*.java				\
 	visad/util/*.java				\
 	visad/data/*.java				\
 	visad/data/netcdf/*.java			\
@@ -115,6 +116,7 @@ CLASS_FILES = \
 	DATE						\
 	visad/*.class					\
 	visad/java3d/*.class				\
+	visad/java2d/*.class				\
 	visad/util/*.class				\
 	visad/data/*.class				\
 	visad/data/netcdf/*.class			\
@@ -224,6 +226,7 @@ SAVE_FILES = \
 	visad/*.java					\
 	visad/examples/*.java				\
 	visad/java3d/*.java				\
+	visad/java2d/*.java				\
 	visad/util/*.java				\
 	visad/data/*.java				\
 	visad/data/netcdf/*.java			\
@@ -267,19 +270,19 @@ SAVE_FILES = \
 	visad/plotdigits.html
 
 save:
-	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/util/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/visad/nom/tam/fits/*.java backup/visad/nom/tam/util/*.java backup/visad/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java ; \
+	/bin/rm -f backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/visad/nom/tam/fits/*.java backup/visad/nom/tam/util/*.java backup/visad/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java ; \
 	cd .. ; \
 	tar -cvf save.tar $(SAVE_FILES) ; \
 	cd visad/backup ; \
 	tar -xvf ../../save.tar ; \
 	rm ../../save.tar ; \
 	cd .. ; \
-	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/util/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java
+	wc backup/visad/*.java backup/visad/examples/*.java backup/visad/java3d/*.java backup/visad/java2d/*.java backup/visad/util/*.java backup/visad/data/*.java backup/visad/data/netcdf/*.java backup/visad/data/netcdf/units/*.java backup/visad/data/netcdf/in/*.java backup/visad/data/netcdf/out/*.java backup/visad/data/fits/*.java backup/nom/tam/fits/*.java backup/nom/tam/util/*.java backup/nom/tam/test/*.java backup/visad/data/hdfeos/*.java backup/visad/data/hdfeos/hdfeosc/*.java backup/visad/data/vis5d/*.java backup/visad/data/gif/*.java backup/visad/paoloa/*.java backup/visad/aune/*.java
 
 
 clear:
 	${RM} *.java
-	${RM} java3d/*.java util/*.java data/*.java
+	${RM} java3d/*.java java2d/*.java util/*.java data/*.java
 	${RM} data/netcdf/*.java data/netcdf/units/*.java
 	${RM} data/netcdf/in/*.java data/netcdf/out/*.java
 	${RM} data/fits/*.java
@@ -297,6 +300,7 @@ compile: clean
 		visad.RemoteDataImpl visad.RemoteFunctionImpl \
 		visad.RemoteFieldImpl visad.RemoteServerImpl
 	javac java3d/*.java
+	javac java2d/*.java
 	javac util/*.java
 	javac data/*.java
 	-(cd .. && jar xvf ucar.jar)
@@ -318,7 +322,7 @@ compile: clean
 
 clean:
 	${RM} *.class
-	${RM} java3d/*.class util/*.class data/*.class
+	${RM} java3d/*.class java2d/*.class util/*.class data/*.class
 	${RM} data/netcdf/*.class data/netcdf/units/*.class
 	${RM} data/netcdf/in/*.class data/netcdf/out/*.class
 	${RM} data/fits/*.class
