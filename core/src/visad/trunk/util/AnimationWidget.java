@@ -229,6 +229,7 @@ public class AnimationWidget
   private void fixSliderUI()
   {
     int max = 1;
+    int cur = 1;
     if(control != null) {
       try {
         Set set = control.getSet();
@@ -237,10 +238,14 @@ public class AnimationWidget
         }
       } catch (VisADException ve) {
       }
+      cur = control.getCurrent() + 1;
+      if (cur < 1) cur = 1;
+      else if (cur > max) cur = max;
     }
 
     TimeSlider.setMaximum(max);
     TimeSlider.setMinimum(1);
+    TimeSlider.setValue(cur);
 
     int maj;
     if (max < 20) {

@@ -1,5 +1,5 @@
-                   VisAD Spread Sheet User Interface README file
-                                 21 January 2000
+                    VisAD SpreadSheet User Interface README file
+                                11 February 2000
  
                                 Table of Contents
 
@@ -20,8 +20,9 @@
     2.2.1 File Menu
     2.2.2 Edit Menu
     2.2.3 Setup Menu
-    2.2.4 Display Menu
-    2.2.5 Options Menu
+    2.2.4 Cell Menu
+    2.2.5 Layout Menu
+    2.2.6 Options Menu
   2.3 Toolbars
     2.3.1 Main Toolbar
     2.3.2 Formula Toolbar
@@ -31,6 +32,9 @@
       2.3.2.4 Linking to External Java Code
       2.3.2.5 Examples of Valid Formulas
   2.4 Remote Collaboration
+    2.4.1 Creating a SpreadSheet RMI server
+    2.4.2 Sharing individual SpreadSheet cells
+    2.4.3 Cloning entire SpreadSheets
   2.5 Undocumented Features
 3. Known Bugs
 4. Future Plans
@@ -48,10 +52,10 @@ It is intended to be powerful and flexible, and it can be used to visualize
 many types of data, without any programming.  It supports many features of a
 traditional spreadsheet, such as formulas.  The package also provides a class
 structure such that developers can easily create their own user interfaces
-using Spread Sheet cells from the visad.ss package.
+using SpreadSheet cells from the visad.ss package.
 
-For up-to-date information about the VisAD Spread Sheet, see the VisAD
-Spread Sheet web page at http://www.ssec.wisc.edu/~curtis/ss.html
+For up-to-date information about the VisAD SpreadSheet, see the VisAD
+SpreadSheet web page at http://www.ssec.wisc.edu/~curtis/ss.html
 
 For up-to-date information about VisAD in general, see the VisAD web page
 at http://www.ssec.wisc.edu/~billh/visad.html
@@ -62,7 +66,7 @@ To compile the package, type the following from the visad/ss directory:
 
     javac -J-mx32m *.java
 
-To run the Spread Sheet user interface, type:
+To run the SpreadSheet user interface, type:
 
     java -mx64m visad.ss.SpreadSheet
 
@@ -75,7 +79,7 @@ The default is four cells (two columns, two rows).  Note that rows and
 columns can be added or deleted at run time using the commands from the
 Display menu.
 
-The Spread Sheet user interface requires a lot of memory (at least 32 MB),
+The SpreadSheet user interface requires a lot of memory (at least 32 MB),
 especially if you want to work with large data sets.  If you receive an
 OutOfMemoryError, you should increase the amount of memory allocated to
 the program (increase the ### in "-mx###m").
@@ -92,17 +96,22 @@ The following source files are part of the visad.ss package:
     - SSLayout.java
 
 The following included GIF files are needed by the package:
+    - 2d.gif
+    - 3d.gif
     - cancel.gif
     - copy.gif
     - cut.gif
     - display.gif
     - import.gif
+    - j2d.gif
     - mappings.gif
     - ok.gif
     - open.gif
     - paste.gif
+    - reset.gif
     - save.gif
     - show.gif
+    - tile.gif
 
 1.3.1 BasicSSCell
 
@@ -126,7 +135,7 @@ the current data set.
 
 1.3.4 SpreadSheet
 
-This is the main Spread Sheet user interface class.  It manages
+This is the main SpreadSheet user interface class.  It manages
 multiple FancySSCells.
 
 1.3.5 SSCellChangeEvent
@@ -162,12 +171,12 @@ to be larger than others, by dragging the yellow blocks between cell labels.
 Here are the commands from the File menu:
 
 Import data - Brings up a dialog box that allows the user to select a file for
-the Spread Sheet to import to the current cell.  Currently, VisAD supports the
+the SpreadSheet to import to the current cell.  Currently, VisAD supports the
 following file types:
     GIF, JPEG, netCDF, HDF-EOS, FITS, Vis5D, McIDAS area, and serialized data.
 -------------------------------------------------------------------------------
 Note: You must have the HDF-EOS and Vis5D file adapter native C code compiled
-      in order to import data sets of those types.  See the Spread Sheet web
+      in order to import data sets of those types.  See the SpreadSheet web
       page for information on how to compile this native code.
 -------------------------------------------------------------------------------
 
@@ -216,39 +225,7 @@ Save - Saves a spreadsheet file under the current name.
 
 Save as - Saves a spreadsheet file under a new name.
 
-2.2.4 Display Menu
-
-Here are the commands from the Display menu:
-
-Edit Mappings - Brings up a dialog box which lets you change how the Data
-object is mapped to the Display.  Click a RealType object on the left (or from
-the MathType display at the top), then click a display icon from the display
-panel in the center of the dialog.  The "Current Mappings" box on the lower
-right will change to reflect which mappings you've currently set up.  When
-you've set up all the mappings to your liking, click the Done button and the
-Spread Sheet will try to display the data object.  To close the dialog box
-without applying any of the changes you made to the mappings, click the Cancel
-button.  You can also highlight items from the "Current Mappings" box, then
-click "Clear selected" to remove those mappings from the list, or click "Clear
-all" to clear all mappings from the list and start from scratch.
-
-Add column - Creates a new column and places it at the right edge of the
-spreadsheet.
-
-Add row - Creates a new row and places it at the bottom edge of the
-spreadsheet.
-
-Delete column - Deletes the column to which the currently selected cell
-belongs.  If a cell depends on any of the cells in the column, the delete
-column operation will fail.
-
-Delete row - Deletes the row to which the currently selected cell belongs.
-If a cell depends on any of the cells in the row, the delete row operation will
-fail.
-
-Tile cells - Resizes the cells to equal sizes, so that they fit exactly within
-the visible frame, if possible (if there are a lot of cells, they may not all
-fit within the visible frame).
+2.2.4 Cell Menu
 
 3-D (Java3D) - Sets the current cell's display dimension to 3-D.  This setting
 requires Java3D.  If you do not have Java3D installed, this option will be
@@ -268,7 +245,49 @@ probably provide better performance than 2-D (Java2D).  It also has better
 display quality than 2-D (Java2D).  If you do not have Java3D installed, this
 option will be grayed out.
 
-2.2.5 Options Menu
+Edit Mappings - Brings up a dialog box which lets you change how the current
+cell's Data object is mapped to the Display.  Click a RealType object on the
+left (or from the MathType display at the top), then click a display icon from
+the display panel in the center of the dialog.  The "Current Mappings" box on
+the lower right will change to reflect which mappings you've currently set up.
+When you've set up all the mappings to your liking, click the Done button and
+the SpreadSheet will try to display the data object.  To close the dialog box
+without applying any of the changes you made to the mappings, click the Cancel
+button.  You can also highlight items from the "Current Mappings" box, then
+click "Clear selected" to remove those mappings from the list, or click "Clear
+all" to clear all mappings from the list and start from scratch.
+
+Reset orientation - Resets the current cell's display projection to the
+original orientation, size and location.
+
+Show controls - Displays the set of controls relevant to the current cell
+(these controls are displayed by default, but could become hidden at a later
+time).  This option is not a checkbox, but rather just redisplays the controls
+for the current cell if they have been closed by the user.
+
+2.2.5 Layout Menu
+
+Here are the commands from the Layout menu:
+
+Add column - Creates a new column and places it at the right edge of the
+spreadsheet.
+
+Add row - Creates a new row and places it at the bottom edge of the
+spreadsheet.
+
+Delete column - Deletes the column to which the currently selected cell
+belongs.  If a cell depends on any of the cells in the column, the delete
+column operation will fail.
+
+Delete row - Deletes the row to which the currently selected cell belongs.
+If a cell depends on any of the cells in the row, the delete row operation will
+fail.
+
+Tile cells - Resizes the cells to equal sizes, so that they fit exactly within
+the visible frame, if possible (if there are a lot of cells, they may not all
+fit within the visible frame).
+
+2.2.6 Options Menu
 
 Here are the commands from the Options menu:
 
@@ -278,29 +297,26 @@ addition, it will switch to mode 2-D (Java3D) from mode 2-D (Java2D) if
 anything is mapped to Alpha or RGBA.  If you do not have Java3D installed, this
 option is grayed out.  Otherwise, this option is checked by default.
 
-Auto-detect mappings - If this option is checked, the Spread Sheet will attempt
+Auto-detect mappings - If this option is checked, the SpreadSheet will attempt
 to detect a good set of mappings for a newly loaded data set and automatically
 apply them.  This option is checked by default.
 
-Auto-display controls - If this option is checked, the Spread Sheet will
+Auto-display controls - If this option is checked, the SpreadSheet will
 automatically display the controls relevant to a cell's data whenever that
 cell's mappings change, or the cell becomes highlighted.  If this option is
 unchecked, use the "Show VisAD controls" menu item or toolbar button to display
 the controls.  This option is checked by default.
-
-Show VisAD controls - Displays the set of controls relevant to the current cell
-(these controls are displayed by default, but could become hidden at a later
-time).  This option is not a checkbox, but rather just redisplays the controls
-for the current cell if they have been closed by the user.
 
 2.3 Toolbars
 
 2.3.1 Main Toolbar
 
 The main toolbar provides shortcuts to the following menu items:
-    File Import, File Export (netCDF), Edit Cut, Edit Copy, Edit Paste,
-    Display 3-D (Java3D), 2-D (Java3D), 2-D (Java2D), Display Edit mappings,
-    Options Show VisAD controls, and Display Tile cells.
+    File Import and File Export (netCDF),
+    Edit Cut, Edit Copy and Edit Paste,
+    Cell 3-D (Java3D), Cell 2-D (Java3D) and Cell 2-D (Java2D),
+    Cell Edit mappings, Cell Reset orientation and Cell Show controls,
+    Layout Tile cells.
 
 The main toolbar has tool tips so each button can be easily identified.
 
@@ -310,11 +326,11 @@ The main toolbar has tool tips so each button can be easily identified.
 
 The formula toolbar is used for entering file names, URLs, RMI addresses,
 and formulas for the current cell.  If you enter the name of a file in the
-formula text box, the Spread Sheet will attempt to import the data from that
-file.  If you enter a URL, the Spread Sheet will try to download and import the
-data from that URL (however, VisAD only supports loading GIF and JPEG files
-from URLs right now).  If you enter an RMI address, the Spread Sheet will try
-to import the data from that RMI address (see section 2.4).  If you enter a
+formula text box, the SpreadSheet will attempt to import the data from that
+file.  If you enter a URL, the SpreadSheet will try to download and import the
+data from that URL (however, VisAD only supports loading GIF, JPEG and FITS
+files from URLs right now).  If you enter an RMI address, the SpreadSheet will
+try to import the data from that RMI address (see section 2.4).  If you enter a
 formula, it will attempt to parse and evaluate that formula.  If a formula
 entered is invalid for some reason, the answer cannot be computed, or the file,
 URL, or RMI address entered does not exist, the cell will have an explanation
@@ -408,7 +424,7 @@ where package.Class.Method is the fully qualified method name and DATA1
 through DATAN are each Data objects or RealType objects.
 
 Keep the following points in mind when writing an external Java method
-that you wish to link to the Spread Sheet:
+that you wish to link to the SpreadSheet:
 
 1) The signature of the linked method must be public and static and must return
    a Data object.  In addition, the class to which the method belongs must be
@@ -417,7 +433,7 @@ that you wish to link to the Spread Sheet:
 2) The method can contain one array argument (Data[] or RealType[]).  In this
    way, a linked method can support a variable number of arguments.  For
    example, a method with the signature "public static Data max(Data[] d)"
-   that is part of a class called Util could be linked into a Spread Sheet cell
+   that is part of a class called Util could be linked into a SpreadSheet cell
    with any number of arguments; e.g.,
        link(Util.max(A1, A2))
        link(Util.max(A2, C3, B1, A1))
@@ -435,41 +451,54 @@ Here are some examples of valid formulas for cell A1:
 
 2.4 Remote Collaboration
 
-Any VisAD Spread Sheet has the capability to import RMI addresses of the
-form:
+2.4.1 Creating a SpreadSheet RMI server
 
-    rmi://rmi.address/ServerName/Cell
+The first step in collaboration is to create a SpreadSheet RMI server.
+To launch the SpreadSheet in collaborative mode, type:
 
-where "rmi.address" is the address of the RMI server, ServerName is the RMI
-server's name, and Cell is the cell from which data is desired.
+    java -mx64m visad.ss.SpreadSheet -server name
 
-For example, suppose that the machine at address www.ssec.wisc.edu is
-running an RMI server called "VisADServ" using a Spread Sheet with two cells,
-A1 and B1.  A Spread Sheet on another machine could import data from cell B1
-of VisADServ using the following RMI address in the formula bar:
+where "name" is the desired name for the RMI server.  If the server is created
+successfully, the title bar will contain the server name in parentheses.
+
+Once your SpreadSheet is operating as an RMI server, other SpreadSheets can
+work with it collaboratively.
+
+2.4.2 Sharing individual SpreadSheet cells
+
+Any VisAD SpreadSheet has the capability to import data objects from an RMI
+server.  Simply type the RMI address into the SpreadSheet's formula bar.
+The format of the RMI address is:
+
+    rmi://rmi.address/name/data
+
+where "rmi.address" is the IP address of the RMI server, "name" is the name of
+the RMI server, and "data" is the name of the data object desired.
+
+For example, suppose that the machine at address www.ssec.wisc.edu is running
+an RMI server called "VisADServ" using a SpreadSheet with two cells, A1 and B1.
+A SpreadSheet on another machine could import data from cell B1 of VisADServ
+by typing the following RMI address in the formula bar:
 
     rmi://www.ssec.wisc.edu/VisADServ/B1
 
-Just like file names, URLs, and formulas, the Spread Sheet will load the data,
-showing the data box if the import was successful, or displaying error messages
-within the cell if there was a problem.
+Just like file names, URLs, and formulas, the SpreadSheet will load the data,
+showing the data box if the import is successful, or displaying error messages
+within the cell if there is a problem.
 
-In addition to having RMI address importing capability, the Spread Sheet
-can be set to export its cells as RMI objects like in the example above.  To
-enable remote collaboration, simply launch the Spread Sheet with the "-server"
-parameter:
+2.4.3 Cloning entire SpreadSheets
 
-    java -mx64m visad.ss.SpreadSheet -server server_name
+The VisAD SpreadSheet also allows for a more powerful form of collaboration:
+the cloning of entire SpreadSheets from a SpreadSheet RMI server.  To clone a
+SpreadSheet RMI server, type:
 
-where "server_name" is the desired name for the Spread Sheet's RMI server.
-In the example above, the command would be:
+    java -mx64m visad.ss.SpreadSheet -client rmi.address/name
 
-    java -mx64m visad.ss.SpreadSheet 2 1 -server VisADServ
-
-The "-mx64m" allows Java to use up to 64 MB of memory, the "2 1" specifies
-that the Spread Sheet should have a 2 x 1 grid of cells, and the
-"-server VisADServ" enables remote collaboration between this Spread Sheet
-and other Spread Sheets.
+Where "rmi.address" is the IP address of the RMI server and "name" is the RMI
+server's name.  The resulting SpreadSheet will have the same cell layout as
+the SpreadSheet RMI server and the same data with the same mappings.  In
+addition, it will be linked so that any changes to the SpreadSheet will be
+propagated to the server and all its clones.
 
 2.5 Undocumented Features
 
@@ -477,18 +506,21 @@ Obviously, if they're undocumented, you won't find them in this README!
 However, creating the javadoc for the visad.ss package should help in
 deciphering it, since the source is liberally commented.  You may also wish to
 create the javadoc for the visad.formula package, since it is heavily used by
-the Spread Sheet.
+the SpreadSheet.
+
+Also, you can obtain help with the SpreadSheet's command line options by using
+the "-help" command line option.
 
 3. Known Bugs
 
 The following bugs have been discovered and have not yet been fixed:
 
-1) The Spread Sheet may not import certain data sets correctly, due to
+1) The SpreadSheet may not import certain data sets correctly, due to
    incomplete implementations in VisAD file adapter forms.
 
 2) When importing certain netCDF data sets, a series of errors beginning with
    "Couldn't decode attribute" may be displayed.  These are warnings the netCDF
-   loader prints about unit types.  The Spread Sheet will still import the
+   loader prints about unit types.  The SpreadSheet will still import the
    netCDF data set correctly (i.e., these warnings can be safely ignored).
 
 3) In Windows, the first time a data set is imported, an error beginning with
@@ -500,7 +532,7 @@ The following bugs have been discovered and have not yet been fixed:
    Also, this error no longer appears in JDK 1.3 beta, since the JVM no longer
    uses the Symantic JIT compiler, but instead uses Sun's new Hotspot compiler.
 
-If you find a bug in the Spread Sheet user interface not listed above,
+If you find a bug in the SpreadSheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
 describing the problem, preferably with a detailed description of how to
 recreate the problem.

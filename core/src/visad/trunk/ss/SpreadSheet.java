@@ -234,19 +234,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** object for preventing simultaneous GUI manipulation */
   private Object Lock = new Object();
 
-  /** gateway into VisAD Visualization Spread Sheet user interface */
+  /** gateway into VisAD Visualization SpreadSheet user interface */
   public static void main(String[] argv) {
     String usage = '\n' +
       "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows] [-no3d]\n" +
       "       [-server server_name] [-client rmi_address] [-debug]\n\n" +
       "### = Maximum megabytes of memory to use\n" +
-      "cols = Number of columns in this Spread Sheet\n" +
-      "rows = Number of rows in this Spread Sheet\n" +
+      "cols = Number of columns in this SpreadSheet\n" +
+      "rows = Number of rows in this SpreadSheet\n" +
       "-no3d = Disable Java3D\n" +
-      "-server server_name = Initialize this Spread Sheet as an RMI\n" +
+      "-server server_name = Initialize this SpreadSheet as an RMI\n" +
       "                      server named server_name\n" +
-      "-client rmi_address = Initialize this Spread Sheet as a clone\n" +
-      "                      of the Spread Sheet at rmi_address\n" +
+      "-client rmi_address = Initialize this SpreadSheet as a clone\n" +
+      "                      of the SpreadSheet at rmi_address\n" +
       "-debug = Print stack traces for all errors\n";
     int cols = 2;
     int rows = 2;
@@ -336,7 +336,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
                                      cols, rows, servname, clonename,
-                                     "VisAD Spread Sheet");
+                                     "VisAD SpreadSheet");
   }
 
   /** constructor with default formula manager */
@@ -503,35 +503,35 @@ public class SpreadSheet extends JFrame implements ActionListener,
     CellShow.setEnabled(false);
     cell.add(CellShow);
 
-    // display menu
-    Menu disp = new Menu("Display");
-    menubar.add(disp);
+    // layout menu
+    Menu lay = new Menu("Layout");
+    menubar.add(lay);
 
-    MenuItem dispAddCol = new MenuItem("Add column");
-    dispAddCol.addActionListener(this);
-    dispAddCol.setActionCommand("dispAddCol");
-    disp.add(dispAddCol);
+    MenuItem layAddCol = new MenuItem("Add column");
+    layAddCol.addActionListener(this);
+    layAddCol.setActionCommand("layAddCol");
+    lay.add(layAddCol);
 
-    MenuItem dispAddRow = new MenuItem("Add row");
-    dispAddRow.addActionListener(this);
-    dispAddRow.setActionCommand("dispAddRow");
-    disp.add(dispAddRow);
+    MenuItem layAddRow = new MenuItem("Add row");
+    layAddRow.addActionListener(this);
+    layAddRow.setActionCommand("layAddRow");
+    lay.add(layAddRow);
 
-    MenuItem dispDelCol = new MenuItem("Delete column");
-    dispDelCol.addActionListener(this);
-    dispDelCol.setActionCommand("dispDelCol");
-    disp.add(dispDelCol);
+    MenuItem layDelCol = new MenuItem("Delete column");
+    layDelCol.addActionListener(this);
+    layDelCol.setActionCommand("layDelCol");
+    lay.add(layDelCol);
 
-    MenuItem dispDelRow = new MenuItem("Delete row");
-    dispDelRow.addActionListener(this);
-    dispDelRow.setActionCommand("dispDelRow");
-    disp.add(dispDelRow);
-    disp.addSeparator();
+    MenuItem layDelRow = new MenuItem("Delete row");
+    layDelRow.addActionListener(this);
+    layDelRow.setActionCommand("layDelRow");
+    lay.add(layDelRow);
+    lay.addSeparator();
 
-    MenuItem dispTile = new MenuItem("Tile cells");
-    dispTile.addActionListener(this);
-    dispTile.setActionCommand("dispTile");
-    disp.add(dispTile);
+    MenuItem layTile = new MenuItem("Tile cells");
+    layTile.addActionListener(this);
+    layTile.setActionCommand("layTile");
+    lay.add(layTile);
 
     // options menu
     Menu options = new Menu("Options");
@@ -588,8 +588,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       "cellShow", false, toolbar);
     toolbar.addSeparator();
 
-    // display menu toolbar icon
-    addToolbarButton("tile.gif", "Tile cells", "dispTile", true, toolbar);
+    // layout menu toolbar icon
+    addToolbarButton("tile.gif", "Tile cells", "layTile", true, toolbar);
     toolbar.add(Box.createHorizontalGlue());
 
     // set up formula bar
@@ -760,7 +760,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             catch (RemoteException rexc) {
               displayErrorMessage("Unable to autostart rmiregistry. " +
                 "Please start rmiregistry before launching the " +
-                "Spread Sheet in server mode.",
+                "SpreadSheet in server mode.",
                 "Failed to initialize RemoteServer");
               success = false;
             }
@@ -768,7 +768,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           else {
             displayErrorMessage("Unable to export cells as RMI addresses. " +
               "Make sure you are running rmiregistry before launching the " +
-              "Spread Sheet in server mode.",
+              "SpreadSheet in server mode.",
               "Failed to initialize RemoteServer");
             success = false;
           }
@@ -990,7 +990,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
           p.setBorder(new EmptyBorder(10, 20, 10, 20));
           p.setLayout(new BorderLayout());
           p.add("Center", new JLabel("Please wait while the VisAD " +
-                          "Spread Sheet finishes saving files..."));
+                          "SpreadSheet finishes saving files..."));
           f.setResizable(false);
           f.pack();
           Dimension sSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1483,7 +1483,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else {
       // construct file header
       StringBuffer sb = new StringBuffer(1024 * NumVisX * NumVisY + 1024);
-      sb.append("# VisAD Visualization Spread Sheet spreadsheet file\n");
+      sb.append("# VisAD Visualization SpreadSheet spreadsheet file\n");
       Calendar cal = Calendar.getInstance();
       int year = cal.get(Calendar.YEAR);
       int month = cal.get(Calendar.MONTH);
@@ -2599,12 +2599,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     else if (cmd.equals("cellReset")) resetOrientation();
 
-    // display menu commands
-    else if (cmd.equals("dispAddCol")) addColumn();
-    else if (cmd.equals("dispAddRow")) addRow();
-    else if (cmd.equals("dispDelCol")) deleteColumn();
-    else if (cmd.equals("dispDelRow")) deleteRow();
-    else if (cmd.equals("dispTile")) tileCells();
+    // layout menu commands
+    else if (cmd.equals("layAddCol")) addColumn();
+    else if (cmd.equals("layAddRow")) addRow();
+    else if (cmd.equals("layDelCol")) deleteColumn();
+    else if (cmd.equals("layDelRow")) deleteRow();
+    else if (cmd.equals("layTile")) tileCells();
 
     // formula bar commands
     else if (cmd.equals("formulaCancel")) refreshFormulaBar();

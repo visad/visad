@@ -1467,16 +1467,25 @@ public class BasicSSCell extends JPanel {
     }
 
     // set up animation control(s)
-    // Note: there is a race condition that prevents the AnimationControl
-    // from correctly setting the current step and step delays
     len = anim.size();
     if (len > 0) {
       for (int i=0; i<len; i++) {
         String s = (String) anim.elementAt(i);
         AnimationControl ac = (AnimationControl)
           VDisplay.getControl(AnimationControl.class, i);
-        if (ac != null) ac.setSaveString(s);
-        else System.err.println("Warning: display has on AnimationControl #" +
+        if (ac != null) {
+          // Note: There is a race condition that prevents the AnimationControl
+          // from correctly setting the current step and step delays.
+          // The AnimationControl gets its parameters reset back to default
+          // values when its ScalarMap's range is set above.
+          // The one-second delay here should solve the problem in most cases.
+          try {
+            Thread.sleep(1000);
+          }
+          catch (InterruptedException exc) { }
+          ac.setSaveString(s);
+        }
+        else System.err.println("Warning: display has no AnimationControl #" +
           (i + 1) + "; the provided animation settings will be ignored");
       }
     }
