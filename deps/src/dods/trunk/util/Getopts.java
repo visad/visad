@@ -62,7 +62,7 @@ import java.util.Enumeration;
  *   @see java.util.Enumeration
  * 
  */
- /*  $Id: Getopts.java,v 1.1.1.1 2002-06-05 21:43:46 steve Exp $ */
+ /*  $Id: Getopts.java,v 1.2 2003-12-03 08:30:32 donm Exp $ */
 
 public class Getopts extends Object {
 

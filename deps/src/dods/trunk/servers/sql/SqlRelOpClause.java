@@ -58,7 +58,7 @@ public class SqlRelOpClause extends RelOpClause implements TopLevelClause {
     * <code>SqlRelOpClause</code> as an SQL syntax for inclusion
     * in the WHERE clause in an SQL SELECT query.
     *
-    * @returns String representation of this Clause as a snipet of SQL.
+    * @return String representation of this Clause as a snipet of SQL.
     */
     public String getSqlRepresentation(boolean useDatasetName, sqlDDS dds) 
                                       throws InvalidOperatorException{
@@ -376,6 +376,10 @@ public class SqlRelOpClause extends RelOpClause implements TopLevelClause {
 		        resb.replace(i,i+2,"%");
 		    else
 		        resb.replace(i,i+1,"_");
+		}
+		else {
+		    if(_Debug) System.out.println("Found a dot ('.') at the end of the regexp.");
+		    resb.replace(i,i+1,"_");
 		}
 	    }
 	

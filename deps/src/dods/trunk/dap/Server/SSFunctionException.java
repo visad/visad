@@ -39,7 +39,7 @@ import dods.dap.DODSException;
 /**
  * Thrown when a Server Side Function (SSF) is used incorrectly.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author ndp
  */
 public class SSFunctionException extends SDODSException {

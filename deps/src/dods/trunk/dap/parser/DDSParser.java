@@ -4,7 +4,7 @@ import java.util.Stack;
 import dods.dap.*;
 
 public class DDSParser implements DDSParserConstants {
-  /* $Id: DDSParser.java,v 1.1.1.1 2002-06-05 21:43:42 steve Exp $ */
+  /* $Id: DDSParser.java,v 1.2 2003-12-03 08:30:30 donm Exp $ */
   private DDS dds;
   private BaseTypeFactory factory;  // used to construct new types
   private Stack ctor;        // stack for ctor types

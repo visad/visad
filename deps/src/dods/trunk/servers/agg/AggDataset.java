@@ -1,4 +1,4 @@
-// $Id: AggDataset.java,v 1.1.1.1 2002-06-05 21:43:43 steve Exp $
+// $Id: AggDataset.java,v 1.2 2003-12-03 08:30:30 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -45,7 +45,7 @@ import java.util.*;
 *   Type 3: combine datasets based on an existing coordinate variable,
 *
 * @author John Caron
-* @version $Id: AggDataset.java,v 1.1.1.1 2002-06-05 21:43:43 steve Exp $
+* @version $Id: AggDataset.java,v 1.2 2003-12-03 08:30:30 donm Exp $
 */
 
 public class AggDataset extends Dataset {

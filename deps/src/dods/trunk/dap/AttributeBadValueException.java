@@ -15,7 +15,7 @@ package dods.dap;
  * Thrown by <code>Attribute</code> when a bad value
  * (not one of the supported types) is stored in an Attribute.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jehamby
  * @see Attribute
  */

@@ -53,7 +53,7 @@ import dods.dap.Server.WrongTypeException;
    More details are found in the documentation for the respective classes.
 
 
-   @version $Revision: 1.1.1.1 $
+   @version $Revision: 1.2 $
    @author jhrg
    @see ServerDDS
    @see ServerMethods

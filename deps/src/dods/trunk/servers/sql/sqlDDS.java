@@ -29,7 +29,7 @@ import dods.dap.Server.*;
     The DODS DDS.    
     Columns in the table correspond to variables in the Sequence.
     </p>
-    @version $Revision: 1.1.1.1 $
+    @version $Revision: 1.2 $
     @author jhrg
     @see ServerDDS
     @see sqlCEEval */

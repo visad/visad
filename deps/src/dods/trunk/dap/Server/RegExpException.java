@@ -43,7 +43,7 @@ import dods.dap.DODSException;
  * Thrown by <code>Operator.op</code> when an attempt is made to parse a
  * improperly formed regular expression. Reular expressions should use
  * the same syntax as <i>grep</i>.
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author ndp
  * @see Operator#op(int,BaseType, BaseType)
  */

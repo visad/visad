@@ -30,7 +30,7 @@ package dods.dap;
  * interface should be implemented for those classes such that the methods
  * return instances of the appropriate types.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jehamby
  * @see BaseType
  * @see DefaultFactory

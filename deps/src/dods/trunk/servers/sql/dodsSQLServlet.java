@@ -14,7 +14,7 @@
 //         
 /////////////////////////////////////////////////////////////////////////////
 
-/* $Id: dodsSQLServlet.java,v 1.1.1.1 2002-06-05 21:43:44 steve Exp $ */
+/* $Id: dodsSQLServlet.java,v 1.2 2003-12-03 08:30:31 donm Exp $ */
 
 package dods.servers.sql;
 
@@ -296,8 +296,10 @@ public abstract class dodsSQLServlet extends DODSServlet  {
 		}
 
                 // Send the Data delimiter back to the client
-                pw.println("Data:");
+                //pw.println("Data:"); // JCARON CHANGED
                 pw.flush();
+                bOut.write("\nData:\n".getBytes()); // JCARON CHANGED
+                bOut.flush();
 
                 // Send the binary data back to the client
                 DataOutputStream sink = new DataOutputStream(bOut);

@@ -19,7 +19,7 @@ import javax.servlet.http.*;
  * DODS Dispatch servlet.  This abstract class preprocesses the query string,
  * simplifying development of DODS servlets.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jehamby
  */
 public abstract class DispatchServlet extends HttpServlet {

@@ -14,13 +14,13 @@
 //         
 /////////////////////////////////////////////////////////////////////////////
 
-//package dods.servers.sql;
+package dods.servers.sql;
 
 
 /**
  * Test routine for the JDBC connection
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author ndp
  */
 

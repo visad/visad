@@ -41,7 +41,7 @@ import dods.dap.DODSException;
  * on two types for which it makes no sense to compre, such as
  * attempting to ascertain is a String is less than a Float.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author ndp
  */
 public class InvalidOperatorException extends SDODSException {

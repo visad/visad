@@ -20,7 +20,7 @@ import dods.dap.*;
     @author jhrg
     @see CEEValuator
     @see FunctionClause 
-    @version $Revision: 1.1.1.1 $
+    @version $Revision: 1.2 $
 */
 public class Length {
     public final static BaseType main(BaseType args[])  {

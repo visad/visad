@@ -1,4 +1,4 @@
-// $Id: NcSDArray.java,v 1.1.1.1 2002-06-05 21:43:44 steve Exp $
+// $Id: NcSDArray.java,v 1.2 2003-12-03 08:30:31 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -36,7 +36,7 @@ import java.util.Iterator;
  * Wraps a netcdf variable with rank > 0 as an SDArray.
  * For char arrays, use NcSDString (rank 0 or 1) or NcSDCharArray (rank > 1).
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jcaron
  * @see NcSDCharArray
  */

@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-/* $Id: dts.java,v 1.1.1.1 2002-06-05 21:43:45 steve Exp $
+/* $Id: dts.java,v 1.2 2003-12-03 08:30:31 donm Exp $
 *
 */
 
@@ -126,7 +126,7 @@ import dods.servlet.requestState;
 *        &lt;/servlet&gt;
 * </pre>
 *
-* @version $Revision: 1.1.1.1 $
+* @version $Revision: 1.2 $
 * @author Nathan David Potter
 */
 
@@ -251,8 +251,10 @@ public class dts extends DODSServlet  {
             //myDDS.printConstrained(System.out);
 
             // Send the Data delimiter back to the client
-            pw.println("Data:");
+            //pw.println("Data:"); // JCARON CHANGED
             pw.flush();
+            bOut.write("\nData:\n".getBytes()); // JCARON CHANGED
+            bOut.flush();
 
             // Send the binary data back to the client
             DataOutputStream sink = new DataOutputStream(bOut);

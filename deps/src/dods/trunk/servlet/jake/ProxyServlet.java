@@ -34,7 +34,7 @@ import javax.servlet.http.*;
  * <BR>
  * <code>http://manta.jpl.nasa.gov/cgi-bin/nph-hdf/foo.hdf</code>
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jehamby
  * @see DispatchServlet
  */

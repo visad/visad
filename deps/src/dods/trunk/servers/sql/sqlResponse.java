@@ -24,7 +24,7 @@ import dods.dap.Server.*;
 
 /**
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author ndp
  * @see BaseType
  */

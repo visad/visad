@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-/* $Id: drds.java,v 1.1.1.1 2002-06-05 21:43:44 steve Exp $
+/* $Id: drds.java,v 1.2 2003-12-03 08:30:31 donm Exp $
 *
 */
 
@@ -214,7 +214,7 @@ import dods.dap.parser.ParseException;
 *
 *</pre>
 *
-* @version $Revision: 1.1.1.1 $
+* @version $Revision: 1.2 $
 * @author Nathan David Potter
 */
 

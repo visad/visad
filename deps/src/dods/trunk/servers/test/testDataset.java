@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-/* $Id: testDataset.java,v 1.1.1.1 2002-06-05 21:43:45 steve Exp $
+/* $Id: testDataset.java,v 1.2 2003-12-03 08:30:31 donm Exp $
 *
 */
 
@@ -40,7 +40,7 @@ import dods.servlet.requestState;
 * ability to handle the various complexities of the DODS data
 * types.
 *
-* @version $Revision: 1.1.1.1 $
+* @version $Revision: 1.2 $
 * @author Nathan David Potter
 */
 

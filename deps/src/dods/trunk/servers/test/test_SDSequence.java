@@ -25,7 +25,7 @@ import dods.dap.Server.ServerMethods;
 /**
  * Holds a DODS Server <code>Sequence</code> value.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author ndp
  * @see BaseType
  */

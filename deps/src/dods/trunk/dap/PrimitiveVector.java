@@ -23,7 +23,7 @@ import dods.dap.Server.*;
  * <code>BaseTypePrimitiveVector</code> class handles <code>DArray</code>s
  * and <code>DList</code>s of compound types.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jehamby
  * @see BaseType
  * @see DVector

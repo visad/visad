@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-/* $Id: sqlCEEval.java,v 1.1.1.1 2002-06-05 21:43:44 steve Exp $
+/* $Id: sqlCEEval.java,v 1.2 2003-12-03 08:30:31 donm Exp $
 *
 */
 
@@ -50,7 +50,7 @@ import dods.dap.parser.ExprParserConstants;
     by converting the "Selection" (the Clauses) into the constraint used in
     the Select statement's WHERE section.
 
-    @version $Revision: 1.1.1.1 $
+    @version $Revision: 1.2 $
     @author ndp
     @see ServerDDS
     @see ServerMethods

@@ -19,7 +19,7 @@ import javax.servlet.http.*;
  * DAP servlet.  This servlet reads binary DAP files, along with ASCII
  * descriptions of the DAS and DDS, and serves them out.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jehamby
  */
 public class DAPServlet extends DispatchServlet {

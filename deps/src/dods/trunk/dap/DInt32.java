@@ -15,7 +15,7 @@ import java.io.*;
 /**
  * Holds a DODS <code>Int32</code> value.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jehamby
  * @see BaseType
  */

@@ -15,7 +15,7 @@ import java.io.*;
 /**
  * A vector of ints.
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jehamby
  * @see PrimitiveVector
  */

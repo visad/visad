@@ -1,6 +1,6 @@
 
 
-/* $Id: BoolFunction.java,v 1.1.1.1 2002-06-05 21:43:40 steve Exp $
+/* $Id: BoolFunction.java,v 1.2 2003-12-03 08:30:29 donm Exp $
 *
 */
 

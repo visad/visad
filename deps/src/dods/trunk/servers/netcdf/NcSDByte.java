@@ -1,4 +1,4 @@
-// $Id: NcSDByte.java,v 1.1.1.1 2002-06-05 21:43:44 steve Exp $
+// $Id: NcSDByte.java,v 1.2 2003-12-03 08:30:31 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -33,7 +33,7 @@ import ucar.nc2.*;
 
 /**
  * Wraps a netcdf scalar byte variable.
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author jcaron
  */
 public class NcSDByte extends SDByte implements HasProxyObject {

@@ -21,7 +21,7 @@ import dods.util.gui.*;
 /**
  * Test routine for the SD classes
  *
- * @version $Revision: 1.1.1.1 $
+ * @version $Revision: 1.2 $
  * @author ndp
  */
 

@@ -36,7 +36,7 @@ package dods.servers.sql;
 import dods.dap.*;
 
 /** The default server-side Factory for BaseType objects.
-    @version $Revision: 1.1.1.1 $
+    @version $Revision: 1.2 $
     @author jhrg
     @see BaseTypeFactory */
 public class sqlServerFactory implements BaseTypeFactory {
