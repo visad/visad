@@ -3,19 +3,17 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DomainTable.java,v 1.1 1998-03-20 20:56:39 visad Exp $
+ * $Id: DomainTable.java,v 1.2 1998-03-30 18:20:16 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 
-import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
 import visad.data.BadFormException;
 import visad.RealTupleType;
 import visad.RealType;
-import visad.UnimplementedException;
 import visad.VisADException;
 
 
@@ -80,14 +78,11 @@ DomainTable
      * Return the domains of the table.
      *
      * @return				The Domains in the table.
-     * @exception UnimplementedException
-     *					Not yet!
      * @exception VisADException	Couldn't create necessary VisAD object.
-     * @exception IOException		I/O error.
      */
     Domain[]
     getDomains()
-	throws UnimplementedException, VisADException, IOException
+	throws VisADException
     {
 	Domain[]		domains = new Domain[table.size()];
 	java.util.Enumeration	enum = table.elements();
@@ -127,7 +122,7 @@ DomainTable
 
 	public Domain
 	nextElement()
-	    throws IOException, UnimplementedException, VisADException
+	    throws VisADException
 	{
 	    return new Domain(((Entry)enum.nextElement()).getVariables());
 	}
@@ -153,17 +148,18 @@ DomainTable
     Key
     {
 	/**
-	 * The dimensions:
+	 * The domain.
 	 */
-	protected final	NcDim[]	dims;
+	protected final Domain	domain;
 
 
 	/**
-	 * Construct.
+	 * Construct from an array of adapted, netCDF dimensions.
 	 */
 	Key(NcDim[] dims)
+	    throws VisADException
 	{
-	    this.dims = dims;
+	    domain = new Domain(dims);
 	}
 
 
@@ -178,14 +174,7 @@ DomainTable
 	    // System.out.println(this.getClass().getName() + 
 		// ": comparing keys: " + this + ": " + that);
 
-	    if (dims.length != that.dims.length)
-		return false;
-
-	    for (int i = 0; i < dims.length; ++i)
-		if (!dims[i].equals(that.dims[i]))
-		    return false;
-
-	    return true;
+	    return domain.equals(that.domain);
 	}
 
 
@@ -195,10 +184,7 @@ DomainTable
 	public int
 	hashCode()
 	{
-	    int	code = 0;
-
-	    for (int i = 0; i < dims.length; ++i)
-		code ^= dims[i].hashCode();
+	    int	code = domain.hashCode();
 
 	    // System.out.println(this.getClass().getName() + 
 		// ": hashed key: " + this + ": " + code);
@@ -213,14 +199,7 @@ DomainTable
 	public String
 	toString()
 	{
-	    String	id = "(" + dims[0];
-
-	    for (int i = 1; i < dims.length; ++i)
-		id += "," + dims[i];
-
-	    id += ")";
-
-	    return id;
+	    return domain.toString();
 	}
     }
 
