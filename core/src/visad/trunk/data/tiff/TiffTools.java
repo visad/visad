@@ -232,7 +232,6 @@ public class TiffTools {
   public static byte[] lzwUncompress(byte[] input) throws IOException {
     // Adapted from the TIFF 6.0 Specification
     // http://partners.adobe.com/asn/developer/pdfs/tn/TIFF6.pdf page 61
-try {
     if (input.length == 0) {
       return new byte[0];
     }
@@ -348,11 +347,6 @@ try {
     }
     */
     return out.toByteArray();
-} catch (Exception e) {
-  e.printStackTrace();
-  throw new IOException("This is a dummy");
-}
-    // return null; // TEMP
   }
 
   public static int getPhotometricInterpretation(RandomAccessFile in)
@@ -395,7 +389,8 @@ try {
       frames++;
       try {
         readin.seek(nextoffset);
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
       bytearray = new byte[2];
