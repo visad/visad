@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.3 1998-03-25 15:55:42 visad Exp $
+ * $Id: NcDim.java,v 1.4 1998-03-31 20:35:38 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -22,6 +22,7 @@ import visad.VisADException;
 class
 NcDim
     extends	Dimension
+    implements	Comparable
 {
     /**
      * Factory method for constructing the right type of dimension decorator.
@@ -90,6 +91,23 @@ NcDim
     equals(NcDim that)
     {
 	return getName().equals(that.getName());
+    }
+
+
+    /**
+     * Compare this dimension to another.
+     *
+     * @param other	The other, decorated, netCDF dimension.
+     * @return		Less than 0, zero, or greater than zero depending on
+     *			whether this domain is less than, equal to, or greater
+     *			than the other dimension, respectively.
+     */
+    public int
+    compareTo(Object other)
+    {
+	NcDim	that = (NcDim)other;
+
+	return getName().compareTo(that.getName());
     }
 
 

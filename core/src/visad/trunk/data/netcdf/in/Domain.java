@@ -3,20 +3,14 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Domain.java,v 1.3 1998-03-30 18:20:15 visad Exp $
+ * $Id: Domain.java,v 1.4 1998-03-31 20:35:37 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
-import visad.data.BadFormException;
-import visad.GriddedSet;
-import visad.IntegerSet;
-import visad.LinearSet;
 import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
-import visad.SampledSet;
-import visad.Set;
 import visad.VisADException;
 
 
@@ -25,6 +19,7 @@ import visad.VisADException;
  */
 class
 Domain
+    implements	Comparable
 {
     /**
      * The rank of the domain:
@@ -41,37 +36,6 @@ Domain
      */
     protected final NcDim[]	dims;
 
-    /**
-     * The netCDF variables of the domain:
-     */
-    protected final NcVar[]	vars;
-
-    /**
-     * The VisAD sampled set of the domain:
-     * Effectively "final".
-     */
-    protected SampledSet	set;
-
-
-    /**
-     * Construct from an array of adapted, netCDF variables.
-     *
-     * @param vars			netCDF variables defined over a
-     *					common domain.
-     * @exception VisADException	Couldn't create necessary VisAD object.
-     */
-    Domain(NcVar[] vars)
-	throws VisADException
-    {
-	this.vars = vars;
-
-	dims = vars[0].getDimensions();
-
-	rank = dims.length;
-
-	mathType = getMathType(dims);
-    }
-
 
     /**
      * Construct from an array of adapted, netCDF dimensions.
@@ -82,8 +46,6 @@ Domain
     Domain(NcDim[] dims)
 	throws VisADException
     {
-	vars = null;
-
 	this.dims = dims;
 
 	rank = dims.length;
@@ -137,19 +99,6 @@ Domain
     visadIdim(int rank, int netcdfIdim)
     {
 	return rank - netcdfIdim - 1;
-    }
-
-
-    /**
-     * Return the variables associated with this domain.
-     *
-     * @return	The array of adapted, netCDF variables defined over this
-     *		domain or <code>null</code> if none so defined.
-     */
-    NcVar[]
-    getVariables()
-    {
-	return vars;
     }
 
 
@@ -210,6 +159,29 @@ Domain
 		return false;
 
 	return true;
+    }
+
+
+    /**
+     * Compare this domain to another.
+     *
+     * @param other	The other Domain.
+     * @return		Less than 0, zero, or greater than zero depending on
+     *			whether this domain is less than, equal to, or greater
+     *			than the other domain, respectively.
+     */
+    public int
+    compareTo(Object other)
+    {
+	Domain	that = (Domain)other;
+	int	n = dims.length - that.dims.length;
+
+	for (int i = 0; n == 0 && i < rank; ++i)
+	{
+	    n = dims[i].compareTo(that.dims[i]);
+	}
+
+	return n;
     }
 
 

@@ -3,18 +3,22 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DomainTable.java,v 1.2 1998-03-30 18:20:16 visad Exp $
+ * $Id: DomainTable.java,v 1.3 1998-03-31 20:35:37 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 
-import java.util.Hashtable;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Vector;
-import visad.data.BadFormException;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.VisADException;
+import visad.data.BadFormException;
 
 
 /**
@@ -25,9 +29,14 @@ class
 DomainTable
 {
     /**
-     * The hashtable.
+     * The domain/variables Map.
      */
-    protected final Hashtable		table;
+    protected final Map		map;
+
+    /**
+     * The current sequence number.
+     */
+    protected int		seqNo = 0;
 
 
     /**
@@ -35,7 +44,7 @@ DomainTable
      */
     DomainTable(int initialNumEntries)
     {
-	table = new Hashtable(initialNumEntries);
+	map = new TreeMap();
     }
 
 
@@ -51,23 +60,23 @@ DomainTable
 	throws BadFormException, VisADException
     {
 	// System.out.println(this.getClass().getName() + 
-	    // ": table.size()=" + table.size());
+	    // ": map.size()=" + map.size());
 
 	NcDim[]	dims = var.getDimensions();
-	Key		key = new Key(dims);
-	Entry		entry = (Entry)table.get(key);
+	Key	key = new Key(dims, seqNo++);
+	Entry	entry = (Entry)map.get(key);
 
 	if (entry == null)
 	{
 	    // System.out.println(this.getClass().getName() + 
-		// ": key NOT found in table: " + key);
+		// ": key NOT found in map: " + key);
 
-	    table.put(key, new Entry(var));
+	    map.put(key, new Entry(var));
 	}
 	else
 	{
 	    // System.out.println(this.getClass().getName() + 
-		// ": key FOUND in table: " + key);
+		// ": key FOUND in map: " + key);
 
 	    entry.add(var);
 	}
@@ -75,29 +84,9 @@ DomainTable
 
 
     /**
-     * Return the domains of the table.
+     * Return an enumeration of the domains in the map.
      *
-     * @return				The Domains in the table.
-     * @exception VisADException	Couldn't create necessary VisAD object.
-     */
-    Domain[]
-    getDomains()
-	throws VisADException
-    {
-	Domain[]		domains = new Domain[table.size()];
-	java.util.Enumeration	enum = table.elements();
-
-	for (int i = 0; i < domains.length; ++i)
-	    domains[i] = new Domain(((Entry)enum.nextElement()).getVariables());
-
-	return domains;
-    }
-
-
-    /**
-     * Return an enumeration of the domains in the table.
-     *
-     * @return	An enumeration of the domains in the table.
+     * @return	An enumeration of the domains in the map.
      */
     Enumeration
     getEnumeration()
@@ -107,24 +96,24 @@ DomainTable
 
 
     /**
-     * Inner class for enumerating the domains in the table.
+     * Inner class for enumerating the domains in the map.
      */
     class
     Enumeration
     {
-	java.util.Enumeration	enum = table.elements();
+	Iterator	iter = map.values().iterator();
 
 	public boolean
 	hasMoreElements()
 	{
-	    return enum.hasMoreElements();
+	    return iter.hasNext();
 	}
 
-	public Domain
+	public NcVar[]
 	nextElement()
 	    throws VisADException
 	{
-	    return new Domain(((Entry)enum.nextElement()).getVariables());
+	    return ((Entry)iter.next()).getVariables();
 	}
     }
 
@@ -132,49 +121,67 @@ DomainTable
     /**
      * Convert to a string.
      *
-     * @return	The table represented as a string.
+     * @return	The map represented as a string.
      */
     public String
     toString()
     {
-	return table.toString();
+	return map.toString();
     }
 
 
     /**
-     * Inner class for a key to the table.
+     * Inner class for a key to the map.
      */
     static class
     Key
+	implements	Comparable
     {
 	/**
 	 * The domain.
 	 */
 	protected final Domain	domain;
 
+	/**
+	 * The sequence number.
+	 */
+	protected final int	seqNo;
+
 
 	/**
-	 * Construct from an array of adapted, netCDF dimensions.
+	 * Construct from an array of adapted, netCDF dimensions and a sequence
+	 * number.
 	 */
-	Key(NcDim[] dims)
+	Key(NcDim[] dims, int seqNo)
 	    throws VisADException
 	{
 	    domain = new Domain(dims);
+	    this.seqNo = seqNo;
 	}
 
 
 	/**
-	 * Indicate whether or not this key is the same as another.
+	 * Compare this key to another.
 	 */
-	public boolean
-	equals(Object key)
+	public int
+	compareTo(Object key)
 	{
 	    Key	that = (Key)key;
 
 	    // System.out.println(this.getClass().getName() + 
 		// ": comparing keys: " + this + ": " + that);
 
-	    return domain.equals(that.domain);
+	    /*
+             * Scalar domains (i.e. domains with rank zero) are forced
+             * to compare unequal so that each scalar has its own
+             * domain.  This prevents scalars from being composited
+             * into their own VisAD Tuple.  Thus, for example, we get
+             * the VisAD MathType (scalar1, scalar2, field) rather than
+             * ((scalar1, scalar2), field).
+	     */
+	    return (domain.getRank() == 0 && that.domain.getRank() == 0)
+			? seqNo - that.seqNo
+			: domain.compareTo(that.domain);
 	}
 
 
@@ -205,7 +212,7 @@ DomainTable
 
 
     /**
-     * Inner class for an entry in the table.
+     * Inner class for an entry in the map.
      */
     class
     Entry
@@ -224,7 +231,6 @@ DomainTable
 	{
 	    NcDim[]	dims = var.getDimensions();
 	    int		rank = dims.length;
-	    RealType[]	types = new RealType[rank];
 
 	    for (int i = 0; i < rank; ++i)
 	    {
@@ -234,9 +240,7 @@ DomainTable
 		if (type == null)
 		    throw new BadFormException(
 			"DomainTable.Entry.Entry(): Dimension \"" +
-			dim + "\" not in table");
-
-		types[rank-1-i] = type;		// NB: reversed order
+			dim + "\" not in map");
 	    }
 
 	    vars.addElement(var);

@@ -3,16 +3,17 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.4 1998-03-25 15:55:43 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.5 1998-03-31 20:35:39 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.NetcdfFile;
 import ucar.netcdf.VariableIterator;
@@ -38,7 +39,7 @@ NetcdfAdapter
     /**
      * The netCDF data objects in the netCDF datset.
      */
-    protected final Dictionary	dataSet;
+    protected final Map		dataSet;
 
     /**
      * The outermost, netCDF data object.
@@ -74,7 +75,7 @@ NetcdfAdapter
      * Return the VisAD data objects in the given netCDF dataset.
      *
      * @param netcdf	The netCDF dataset to be adapted.
-     * @return		A hashtable of data objects in the netCDF dataset.
+     * @return		A Map of data objects in the netCDF dataset.
      * @exception BadFormException
      *			The netCDF variable cannot be adapted to a VisAD API.
      * @exception VisADException
@@ -83,7 +84,7 @@ NetcdfAdapter
      * @exception IOException
      *			Data access I/O failure.
      */
-    protected static Hashtable
+    protected static Map
     getDataSet(Netcdf netcdf)
 	throws VisADException, BadFormException, IOException
     {
@@ -101,25 +102,78 @@ NetcdfAdapter
 	    }
 	}
 
-	Hashtable	table = new Hashtable(netcdf.size());
+	Map	map = new TreeMap();
 
 	DomainTable.Enumeration	domEnum = domTable.getEnumeration();
 	while (domEnum.hasMoreElements())
 	{
-	    Domain	domain = domEnum.nextElement();
-	    NcData	ncData = NcData.newNcData(domain.getVariables());
+	    NcData	ncData = NcData.newNcData(domEnum.nextElement());
 
-	    table.put(ncData.getMathType(), ncData);
+	    map.put(new Key(ncData.getMathType(), map.size()), ncData);
 	}
 
-	return table;
+	return map;
     }
 
 
     /**
-     * Return the outermost, netCDF data object in the given domain Dictionary.
+     * Inner class for a key to the map.
+     */
+    static class
+    Key
+	implements	Comparable
+    {
+	/**
+	 * The MathType.
+	 */
+	protected final MathType	type;
+
+	/**
+	 * The sequence number.
+	 */
+	protected final int		seqNo;
+
+
+	/**
+	 * Construct from a VisAD MathType and a sequence number.
+	 */
+	Key(MathType type, int seqNo)
+	    throws VisADException
+	{
+	    this.type = type;
+	    this.seqNo = seqNo;
+	}
+
+
+	/**
+	 * Compare this key to another.
+	 */
+	public int
+	compareTo(Object key)
+	{
+	    Key	that = (Key)key;
+
+	    return type.equals(that.type)
+			? 0
+			: seqNo - that.seqNo;
+	}
+
+
+	/**
+	 * Convert this key to a string.
+	 */
+	public String
+	toString()
+	{
+	    return type.toString();
+	}
+    }
+
+
+    /**
+     * Return the outermost, netCDF data object in the given map.
      *
-     * @param DataSet		The domain dictionary of a netCDF dataset.
+     * @param DataSet		The map of object in a netCDF dataset.
      * @return			The outermost data object of the netCDF dataset.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
@@ -128,7 +182,7 @@ NetcdfAdapter
      *			Remote data access failure.
      */
     protected static NcData
-    getOutermost(Dictionary dataSet)
+    getOutermost(Map dataSet)
 	throws VisADException, RemoteException
     {
 	NcData	data;
@@ -139,17 +193,17 @@ NetcdfAdapter
 	else
 	if (numData == 1)
 	{
-	    Enumeration	enum = dataSet.elements();
+	    Iterator	iter = dataSet.values().iterator();
 
-	    data = (NcData)enum.nextElement();
+	    data = (NcData)iter.next();
 	}
 	else
 	{
-	    Enumeration		enum = dataSet.elements();
+	    Iterator		iter = dataSet.values().iterator();
 	    NcData[]		datums = new NcData[numData];
 
 	    for (int i = 0; i < numData; ++i)
-		datums[i] = (NcData)enum.nextElement();
+		datums[i] = (NcData)iter.next();
 
 	    data = new NcTuple(datums);
 	}
