@@ -63,6 +63,7 @@ public class AxisScale implements java.io.Serializable
   protected boolean baseLineVisible = true;
   protected boolean snapToBox = false;
   private Font labelFont = null;
+  private int labelSize = 12;
 
   /**
    * Construct a new AxisScale for the given ScalarMap
@@ -175,7 +176,6 @@ public class AxisScale implements java.io.Serializable
       axisOrdinal = displayRenderer.getAxisOrdinal(myAxis);
     }
     dataRange = scalarMap.getRange();
-    //VisADLineArray[] arrays = new VisADLineArray[4];
     Vector lineArrayVector = new Vector(4);
     Vector labelArrayVector = new Vector();
     boolean twoD = displayRenderer.getMode2D();
@@ -203,15 +203,16 @@ public class AxisScale implements java.io.Serializable
     double YMIN = -aspect[1];
     double ZMIN = -aspect[2];
 
-    // set scale according to font size (default to old value);
-    double SCALE = (labelFont != null) ? labelFont.getSize()/200. : 0.06;
+    // set scale according to labelSize
+    double SCALE =  labelSize/200.;
     double OFFSET = 1.05;
 
+    int position = axisOrdinal;
     if (snapToBox) {
       OFFSET = 1.0;
-      setAxisOrdinal(0);
+      position = 0;
     }
-    double line = 2.0 * axisOrdinal * SCALE;
+    double line = 2.0 * position * SCALE;
   
     double ONE = 1.0;
     if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
@@ -270,7 +271,7 @@ public class AxisScale implements java.io.Serializable
     double range = Math.abs(dataRange[1] - dataRange[0]);
     double min = Math.min(dataRange[0], dataRange[1]);
     double max = Math.max(dataRange[0], dataRange[1]);
-    /*  Change DRM */
+    /*  Change DRM 24-Jan-2001 */
     if (autoComputeTicks || majorTickSpacing <= 0)
     {
       double tens = 1.0;
@@ -292,9 +293,9 @@ public class AxisScale implements java.io.Serializable
       majorTickSpacing = tens;
     }
 
-    // now tens = interval between major tick marks
+    // now tens = interval between major tick marks (majorTickSpacing)
   
-    /* Change DRM
+    /* Change DRM 24-Jan-2001
     long bot = (int) Math.ceil(min / tens);
     long top = (int) Math.floor(max / tens);
     */
@@ -308,7 +309,6 @@ public class AxisScale implements java.io.Serializable
     // now bot * majorTickSpacing = value of lowest tick mark, and
     // top * majorTickSpacing = values of highest tick mark
 
-    //arrays[0] = new VisADLineArray();
     // base line for axis
     // coordinates has three entries for (x, y, z) of each point
     // two points determine a line segment,
@@ -332,7 +332,7 @@ public class AxisScale implements java.io.Serializable
     float[] majorCoordinates = new float[6 * nticks];
     int k = 0;
     for (long j=bot; j<=top; j++) { // loop over x, y & z coordinates
-      double val = j * majorTickSpacing;  // DRM
+      double val = j * majorTickSpacing;  // DRM 24-Jan-2001
       double a = (val - min) / (max - min);
       for (int i=0; i<3; i++) {
         if ((k + 3 + i) < majorCoordinates.length) {
@@ -345,7 +345,7 @@ public class AxisScale implements java.io.Serializable
       }
       k += 6;
     }
-    /* change DRM
+    /* Change DRM 24-Jan-2001
     arrays[0].vertexCount = 2 * (nticks + 1);
     arrays[0].coordinates = coordinates;
     */
@@ -383,7 +383,7 @@ public class AxisScale implements java.io.Serializable
       // draw tick marks
       k = 0;
       for (long j=lower; j<=upper; j++) {
-        double val = j * minorTickSpacing;  // DRM
+        double val = j * minorTickSpacing;  // DRM 24-Jan-2001
         double a = (val - min) / (max - min);
         for (int i=0; i<3; i++) {
           if ((k + 3 + i) < minorCoordinates.length) {
@@ -406,8 +406,8 @@ public class AxisScale implements java.io.Serializable
     double[] starttop = new double[3];
     double[] startlabel = new double[3];
     // compute positions along axis of low and high tick marks
-    double botval = bot * majorTickSpacing;  // DRM
-    double topval = top * majorTickSpacing;  // DRM
+    double botval = bot * majorTickSpacing;  // DRM 24-Jan-2001
+    double topval = top * majorTickSpacing;  // DRM 24-Jan-2001
     double abot = (botval - min) / (max - min);
     double atop = (topval - min) / (max - min);
     for (int i=0; i<3; i++) {
@@ -418,7 +418,7 @@ public class AxisScale implements java.io.Serializable
     // all labels rendered with 'true' for centered
   
     // draw RealType name
-    /* Change DRM
+    /* Change DRM 24-Jan-2001
     arrays[1] = PlotText.render_label(myLabel, startlabel,
                     base, up, true);
     */
@@ -443,7 +443,7 @@ public class AxisScale implements java.io.Serializable
       botstr = new Real(rtype, botval).toValueString();
       topstr = new Real(rtype, topval).toValueString();
     }
-    /* change DRM
+    /* change DRM 24-Jan-2001
     // draw number at bottom tick mark
     arrays[2] = PlotText.render_label(botstr, startbot, base, up, true);
     // draw number at top tick mark
@@ -517,7 +517,14 @@ public class AxisScale implements java.io.Serializable
    */
   public void setColor(Color color) 
   {
+    Color oldColor = myColor;
     myColor = color;
+    if (myColor != null && !myColor.equals(oldColor)) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
   }
   
   /** 
@@ -686,6 +693,7 @@ public class AxisScale implements java.io.Serializable
     labelFont = font;
     if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont)) 
     {
+      labelSize = labelFont.getSize();
       try {
         scalarMap.makeScale();  // update the display
       }
@@ -736,7 +744,6 @@ public class AxisScale implements java.io.Serializable
     boolean oldValue = snapToBox;
     snapToBox = b;
     if (snapToBox != oldValue) {
-      setAxisOrdinal(-1);
       try {
         scalarMap.makeScale();  // update the display
       }
@@ -751,5 +758,39 @@ public class AxisScale implements java.io.Serializable
   public boolean getSnapToBox()
   {
     return snapToBox;
+  }
+
+  /**
+   * Sets the size of the labels.  You can use this to change the label
+   * size when a <CODE>Font</CODE> is not being used.  If a <CODE>Font</CODE>
+   * is being used and you call setLabelSize(), a new <CODE>Font</CODE> is
+   * created using the old <CODE>Font</CODE> name and style, but with the 
+   * new size.
+   * @param  size  font size to use
+   * @see #setFont
+   */
+  public void setLabelSize(int size)
+  {
+    int oldSize = labelSize;
+    labelSize = size;
+    if (labelSize != oldSize) {
+      if (labelFont != null) {
+        labelFont = 
+          new Font(labelFont.getName(), labelFont.getStyle(), labelSize);
+      }
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Gets the size of the labels.
+   * @return  relative size of labels
+   */ 
+  public int getLabelSize()
+  {
+    return labelSize;
   }
 }
