@@ -138,6 +138,15 @@ public class FieldMeasure {
     d.addReference(ref_line);
   }
 
+  /** Removes this distance measuring data from the given display. */
+  public void removeFromDisplay(DisplayImpl d)
+    throws VisADException, RemoteException
+  {
+    d.removeReference(ref_p1);
+    d.removeReference(ref_p2);
+    d.removeReference(ref_line);
+  }
+
   /** Gets the current distance between the endpoints. */
   public double getDistance() {
     double[][] values = getValues();
