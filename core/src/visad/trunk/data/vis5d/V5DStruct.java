@@ -2157,7 +2157,7 @@ public class V5DStruct {
 
     if (FileFormat != 0) {
       // old COMP* file
-      read_comp_grid(time, vr, ga, gb, compdata);
+      return read_comp_grid(time, vr, ga, gb, compdata);
     }
 
     // move to position in file
