@@ -36,6 +36,12 @@ import visad.java3d.DirectManipulationRendererJ3D;
  */
 public class PlaneSelector {
 
+  // -- CONSTANTS --
+
+  /** Error range when detecting colocated points. */
+  protected static final double EPS = 1.0e-10;
+
+
   // -- FIELDS --
 
   /** Associated display. */
@@ -208,9 +214,9 @@ public class PlaneSelector {
           if (valid[i]) {
             for (int j=0; j<i; j++) {
               if (!valid[j]) continue;
-              if (p[0][i] == p[0][j] &&
-                p[1][i] == p[1][j] &&
-                p[2][i] == p[2][j])
+              if (Math.abs(p[0][i] - p[0][j]) < EPS &&
+                Math.abs(p[1][i] - p[1][j]) < EPS &&
+                Math.abs(p[2][i] - p[2][j]) < EPS)
               {
                 valid[i] = false;
                 break;
@@ -414,17 +420,17 @@ public class PlaneSelector {
   }
 
   /** Extracts a field using the current plane, at the given resolution. */
-  public Field extractSlice(FieldImpl field, int resx, int resy)
-    throws VisADException, RemoteException
+  public Field extractSlice(FieldImpl field, int resx, int resy,
+    int hix, int hiy) throws VisADException, RemoteException
   {
     if (lines == null) return null;
 
     // extract hull points from lines data object
     float[][] samples = lines.getSamples();
-    int numpts = samples[0].length - 1;
     float[] x = samples[0];
     float[] y = samples[1];
     float[] z = samples[2];
+    int numpts = x.length - 1;
 
     // find longest line segment
     double longest = 0;
@@ -493,8 +499,8 @@ public class PlaneSelector {
     for (int j=0; j<resy; j++) {
       for (int i=0; i<resx; i++) {
         index = resx * j + i;
-        samp2[0][index] = i;
-        samp2[1][index] = j;
+        samp2[0][index] = (float) hix * i / resx;
+        samp2[1][index] = (float) hiy * j / resy;
       }
     }
     Gridded2DSet set2 =

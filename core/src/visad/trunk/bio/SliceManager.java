@@ -94,6 +94,9 @@ public class SliceManager
   /** X and Y resolution of image data. */
   int res_x, res_y;
 
+  /** X and Y resolution for arbitrary slices. */
+  int sliceRes_x, sliceRes_y;
+
 
   // -- SLICE-RELATED FIELDS --
 
@@ -111,6 +114,9 @@ public class SliceManager
 
   /** Is arbitrary plane selection on? */
   private boolean planeSelect;
+
+  /** Should arbitrary plane be updated every time it changes? */
+  private boolean continuous;
 
   /** Has arbitrary plane moved since last right mouse button press? */
   private boolean planeChanged;
@@ -219,6 +225,7 @@ public class SliceManager
     doThumbs = true;
     autoSwitch = true;
     planeSelect = false;
+    continuous = false;
     colorRange = new RealTupleType(
       new RealType[] {RED_TYPE, GREEN_TYPE, BLUE_TYPE});
 
@@ -295,18 +302,14 @@ public class SliceManager
   /** Sets whether to do arbitrary plane selection. */
   public void setPlaneSelect(boolean value) {
     planeSelect = value;
-    if (!value) {
-      try {
-        // CTR - FIXME - set range if plane select==true, for slice ranges
-        x_map2.setRange(min_x, max_x);
-        y_map2.setRange(min_y, max_y);
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
-    }
     ps.toggle(value);
     planeRenderer2.toggle(value);
     renderer2.toggle(!value);
+  }
+
+  /** Sets whether arbitrary plane is continuously updated. */
+  public void setPlaneUpdate(boolean continuous) {
+    this.continuous = continuous;
   }
 
   /** Links the data series to the given list of files. */
@@ -335,30 +338,16 @@ public class SliceManager
   public void displayChanged(DisplayEvent e) {
     int id = e.getId();
     if (id == DisplayEvent.MOUSE_RELEASED_RIGHT) {
-      if (planeChanged) {
-        // update 2-D display of arbitrary plane slice
-        try {
-          if (collapsedField == null) {
-            collapsedField = (FieldImpl) field.domainMultiply();
-          }
-          Field d = ps.extractSlice(collapsedField, res_x, res_y);
-          SampledSet set = (SampledSet) d.getDomainSet();
-          float[] lo = set.getLow();
-          float[] hi = set.getHi();
-          // CTR - FIXME - probly save these values for plane select toggle
-          x_map2.setRange(lo[0], hi[0]);
-          y_map2.setRange(lo[1], hi[1]);
-          planeRef.setData(d);
-        }
-        catch (VisADException exc) { exc.printStackTrace(); }
-        catch (RemoteException exc) { exc.printStackTrace(); }
-      }
+      if (planeChanged && !continuous) updateSlice();
       planeChanged = false;
     }
   }
 
   /** PlaneListener method used for detecting PlaneSelector changes. */
-  public void planeChanged() { planeChanged = true; }
+  public void planeChanged() {
+    planeChanged = true;
+    if (continuous) updateSlice();
+  }
 
   /** Ensures slices are set up properly for animation. */
   void startAnimation() {
@@ -368,6 +357,12 @@ public class SliceManager
       bio.toolView.setMode(true);
       setMode(true);
     }
+  }
+
+  /** Sets the arbitrary slice resolution. */
+  void setSliceRange(int x, int y) {
+    sliceRes_x = x;
+    sliceRes_y = y;
   }
 
   /** Gets the color controls for 2-D range type color mappings. */
@@ -788,6 +783,10 @@ public class SliceManager
 
     // set up color table characteristics
     bio.toolView.doColorTable();
+
+    // update arbitrary slice range with a reasonable default setting
+    bio.toolView.setSliceRange(
+      (int) (max_x - min_x + 1), (int) (max_y - min_y + 1));
   }
 
   /** Refreshes the current image slice shown onscreen. */
@@ -837,6 +836,20 @@ public class SliceManager
     try {
       if (anim_control2 != null) anim_control2.setCurrent(index);
       if (anim_control3 != null) anim_control3.setCurrent(index);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Updates 2-D display of arbitrary plane slice. */
+  private void updateSlice() {
+    try {
+      if (collapsedField == null) {
+        collapsedField = (FieldImpl) field.domainMultiply();
+      }
+      Field d = ps.extractSlice(collapsedField,
+        sliceRes_x, sliceRes_y, res_x, res_y);
+      planeRef.setData(d);
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }

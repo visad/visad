@@ -90,6 +90,15 @@ public class ViewToolPanel extends ToolPanel {
   /** Toggle for whether 2-D plane is user-selected arbitrarily. */
   private JCheckBox planeSelect;
 
+  /** Labels for arbitrary slice resolution. */
+  private JLabel sliceResLabel1, sliceResLabel2;
+
+  /** Text fields for arbitrary slice resolution. */
+  private JTextField sliceResX, sliceResY;
+
+  /** Toggle for whether arbitrary slice is continuously recomputed. */
+  private JCheckBox sliceUpdate;
+
 
   // -- CONSTRUCTOR --
 
@@ -244,12 +253,61 @@ public class ViewToolPanel extends ToolPanel {
     planeSelect.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         boolean ps = planeSelect.isSelected();
+        sliceResLabel1.setEnabled(ps);
+        sliceResX.setEnabled(ps);
+        sliceResLabel2.setEnabled(ps);
+        sliceResY.setEnabled(ps);
+        sliceUpdate.setEnabled(ps);
         bio.sm.setPlaneSelect(ps);
         bio.vert.setEnabled(!ps);
       }
     });
     planeSelect.setEnabled(false);
     controls.add(pad(planeSelect));
+
+    // arbitrary slice resolution
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    sliceResLabel1 = new JLabel("Slice resolution: ");
+    sliceResX = new JTextField();
+    sliceResLabel2 = new JLabel(" by ");
+    sliceResY = new JTextField();
+    DocumentListener doc = new DocumentListener() {
+      public void changedUpdate(DocumentEvent e) { update(e); }
+      public void insertUpdate(DocumentEvent e) { update(e); }
+      public void removeUpdate(DocumentEvent e) { update(e); }
+      public void update(DocumentEvent e) {
+        String sx = sliceResX.getText();
+        String sy = sliceResY.getText();
+        try {
+          int resx = Integer.parseInt(sx);
+          int resy = Integer.parseInt(sy);
+          bio.sm.setSliceRange(resx, resy);
+        }
+        catch (NumberFormatException exc) { }
+      }
+    };
+    sliceResX.getDocument().addDocumentListener(doc);
+    sliceResY.getDocument().addDocumentListener(doc);
+    sliceResLabel1.setEnabled(false);
+    sliceResLabel2.setEnabled(false);
+    sliceResX.setEnabled(false);
+    sliceResY.setEnabled(false);
+    p.add(sliceResLabel1);
+    p.add(sliceResX);
+    p.add(sliceResLabel2);
+    p.add(sliceResY);
+    controls.add(p);
+
+    // continuous update checkbox
+    sliceUpdate = new JCheckBox("Update slice continuously", false);
+    sliceUpdate.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        bio.sm.setPlaneUpdate(sliceUpdate.isSelected());
+      }
+    });
+    sliceUpdate.setEnabled(false);
+    controls.add(pad(sliceUpdate));
   }
 
 
@@ -257,15 +315,21 @@ public class ViewToolPanel extends ToolPanel {
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
-    loRes.setEnabled(enabled && bio.sm.hasThumbnails());
-    hiRes.setEnabled(enabled && bio.sm.hasThumbnails());
-    autoSwitch.setEnabled(enabled && bio.sm.hasThumbnails());
-    anim.setEnabled(enabled && bio.sm.hasThumbnails());
+    boolean b = enabled && bio.sm.hasThumbnails();
+    loRes.setEnabled(b);
+    hiRes.setEnabled(b);
+    autoSwitch.setEnabled(b);
+    anim.setEnabled(b);
     brightnessLabel.setEnabled(enabled);
     brightness.setEnabled(enabled);
     contrastLabel.setEnabled(enabled);
     contrast.setEnabled(enabled);
     planeSelect.setEnabled(enabled);
+    b = enabled && planeSelect.isSelected();
+    sliceResLabel1.setEnabled(b);
+    sliceResX.setEnabled(b);
+    sliceResLabel2.setEnabled(b);
+    sliceResY.setEnabled(b);
   }
 
   /** Switches between lo-res and hi-res mode. */
@@ -291,6 +355,12 @@ public class ViewToolPanel extends ToolPanel {
     red.guessType();
     green.guessType();
     blue.guessType();
+  }
+
+  /** Updates x and y slice resolution text fields. */
+  void setSliceRange(int x, int y) {
+    sliceResX.setText("" + x);
+    sliceResY.setText("" + y);
   }
 
 }
