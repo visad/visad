@@ -59,9 +59,24 @@ public class ResSwitcher extends DualRes implements ActivityHandler {
   public ResSwitcher(LocalDisplay d, DataReferenceImpl ref)
     throws VisADException, RemoteException
   {
+    this(d, ref, null, null);
+  }
+
+  /**
+   * Constructs a resolution switcher for swapping between high- and low-
+   * resolution representations for the referenced data on the given display.
+   *
+   * @param renderer The data renderer to be used for the low-res rendering.
+   * @param cmaps    The ConstantMaps to be used for the low-res rendering.
+   */
+  public ResSwitcher(LocalDisplay d, DataReferenceImpl ref,
+    DataRenderer renderer, ConstantMap[] cmaps)
+    throws VisADException, RemoteException
+  {
     super(ref);
     display = d;
-    display.addReference(lo_ref);
+    if (renderer == null) display.addReference(lo_ref, cmaps);
+    else display.addReferences(renderer, lo_ref, cmaps);
 
     // get data renderers
     Vector dataRenderers = display.getRendererVector();
