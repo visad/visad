@@ -244,6 +244,9 @@ public class ResSwitcher implements ActivityHandler {
 
     JFrame frame = new JFrame("ResSwitcher test");
     JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+    p.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    p.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.setContentPane(p);
     p.add(display.getComponent());
 
