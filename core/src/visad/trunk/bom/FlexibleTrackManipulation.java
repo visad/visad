@@ -217,6 +217,9 @@ public class FlexibleTrackManipulation extends Object {
       synchronized (data_lock) {
         FieldImpl st = (FieldImpl) track_ref.getData();
         boolean change = false;
+        if (!storm_track_type.equals(st.getType())) {
+          throw new VisADException("storm_track MathType may not change");
+        }
         if (ntimes != st.getLength()) change = true;
         if (!change) {
           for (int j=0; j<ntimes; j++) {
@@ -232,9 +235,12 @@ public class FlexibleTrackManipulation extends Object {
             }
           }
         }
+        storm_track = st;
         if (change) {
-          storm_track = st;
           setupData(storm_track);
+        }
+        else {
+          setupTuples(storm_track);
         }
       } // end synchronized (data_lock)
     }
@@ -309,6 +315,15 @@ public class FlexibleTrackManipulation extends Object {
         track_monitors[0].addReference(track_refs[0]);
       }
     } // end synchronized (data_lock)
+  }
+
+  private void setupTuples(FieldImpl storm_track)
+          throws VisADException, RemoteException {
+    synchronized (data_lock) {
+      for (int j=0; j<ntimes; j++) {
+        tuples[j] = (Tuple) storm_track.getSample(j);
+      }
+    }
   }
 
   public static VisADGeometryArray[][] makeStormShapes(int nv, float size)
@@ -481,7 +496,7 @@ public class FlexibleTrackManipulation extends Object {
         int current = acontrol.getCurrent();
         if (current < 0) return;
         which_time = current;
-    
+
         track_refs[0].setData(tuples[current]);
     
         if (afirst) {
