@@ -84,6 +84,10 @@ public interface Field extends Function {
   void setSample(RealTuple domain, Data range)
          throws VisADException, RemoteException;
 
+  /** set the range value at the sample nearest to domain */
+  void setSample(RealTuple domain, Data range, boolean copy)
+         throws VisADException, RemoteException;
+
   /** set the range value at the index-th sample */
   void setSample(int index, Data range)
          throws VisADException, RemoteException;
