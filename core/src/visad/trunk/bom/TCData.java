@@ -181,6 +181,16 @@ public class TCData {
 
   public synchronized void addTrack(int disturbanceID, int trackID, Tuple track)
          throws VisADException, RemoteException {
+    Tuple disturbance = getDisturbance(disturbanceID);
+    if (disturbance == null) {
+      throw new VisADException("invalid disturbanceID");
+    }
+    FieldImpl field = (FieldImpl) disturbance.getComponent(9);
+
+
+    // not necessary since field is mutable
+    // so merge find* methods into get* methods and eliminate set* methods ****
+    // setDisturbance(disturbanceID, disturbance);
   }
 
   public synchronized void addDisturbance(int disturbanceID, Tuple disturbance)
@@ -230,6 +240,72 @@ public class TCData {
     }
   }
 
+  private Tuple getDisturbance(int disturbanceID)
+          throws VisADException, RemoteException {
+    int index = findDistrubance(disturbanceID);
+    if (index < 0) return null;
+    else return (Tuple) data.getSample(index);
+  }
+
+  private void setDisturbance(int disturbanceID, Tuple disturbance)
+          throws VisADException, RemoteException {
+    int index = findDistrubance(disturbanceID);
+    if (index >= 0) data.setSample(index, disturbance);
+  }
+
+  private int findDistrubance(int disturbanceID) 
+          throws VisADException, RemoteException {
+    if (data == null) {
+      return -1;
+    }
+    Gridded1DSet set = (Gridded1DSet) data.getDomainSet();
+    float[][] ids = set.getSamples(false);
+    int length = set.getLength();
+    float fid = disturbanceID;
+    for (int i=0; i<length; i++) {
+      if (ids[0][i] == fid) return i;
+    }
+    return -1;
+  }
+
+  private Tuple getTrack(int trackID, Tuple disturbance)
+          throws VisADException, RemoteException {
+    int index = findTrack(trackID, disturbance);
+    if (index < 0) return null;
+    else {
+      FieldImpl field = (FieldImpl) disturbance.getComponent(9);
+      return (Tuple) field.getSample(index);
+    }
+  }
+
+  private void setTrack(int trackID, Tuple track, Tuple disturbance)
+          throws VisADException, RemoteException {
+    int index = findTrack(trackID, disturbance);
+    if (index >= 0) {
+      FieldImpl field = (FieldImpl) disturbance.getComponent(9);
+      field.setSample(index, track);
+    }
+  }
+
+  private int findTrack(int trackID, Tuple disturbance)
+          throws VisADException, RemoteException {
+    if (disturbance == null) {
+      return -1;
+    }
+    FieldImpl field = (FieldImpl) disturbance.getComponent(9);
+    if (field == null) {
+      return -1;
+    }
+    Gridded1DSet set = (Gridded1DSet) field.getDomainSet();
+    float[][] ids = set.getSamples(false);
+    int length = set.getLength();
+    float fid = trackID;
+    for (int i=0; i<length; i++) {
+      if (ids[0][i] == fid) return i;
+    }
+    return -1;
+  }
+
   public static Tuple makeDisturbance(String country, String state, int year,
              int number, String historical_name, int open_date, int close_date,
              int archive_mode, int realtime_mode, FieldImpl tracks)
@@ -256,19 +332,140 @@ public class TCData {
        fixes, intensities, sizes, steerings});
   }
 
-  public static FlatField makeFixes(double[] times, RealTuple[] fixes)
+  public static FlatField makeFixes(double[] times, int[] ids, float[] lats,
+              float[] lons, float[] errors, int[] fix_styles)
          throws VisADException, RemoteException {
-    if (times == null || fixes == null || times.length != fixes.length) {
-      throw new VisADException("times and fixes must match and be non-null");
+    if (times == null || ids == null || lats == null || lons == null ||
+        errors == null || fix_styles == null) {
+      throw new VisADException("arguments may not be null");
     }
     int length = times.length;
+    if (ids.length != length || lats.length != length || lons.length != length ||
+        errors.length != length || fix_styles.length != length) {
+      throw new VisADException("argument lengths must match");
+    }
     int[] permute = QuickSort.sort(times);
     Gridded1DDoubleSet set =
       new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
     FlatField field = new FlatField(fixFunction, set);
+    float[] pids = new float[length];
+    float[] plats = new float[length];
+    float[] plons = new float[length];
+    float[] perrors = new float[length];
+    float[] pfix_styles = new float[length];
     for (int i=0; i<length; i++) {
-      field.setSample(i, fixes[permute[i]]);
+      pids[i] = ids[permute[i]];
+      plats[i] = lats[permute[i]];
+      plons[i] = lons[permute[i]];
+      perrors[i] = errors[permute[i]];
+      pfix_styles[i] = fix_styles[permute[i]];
     }
+    float[][] values = {pids, plats, plons, perrors, pfix_styles};
+    field.setSamples(values, false);
+    return field;
+  }
+
+  public static FlatField makeIntensities(double[] times, int[] ids,
+              float[] wind_means, float[] wind_gusts, float[] central_pressures,
+              int[] categories)
+         throws VisADException, RemoteException {
+    if (times == null || ids == null || wind_means == null || wind_gusts == null ||
+        central_pressures == null || categories == null) {
+      throw new VisADException("arguments may not be null");
+    }
+    int length = times.length;
+    if (ids.length != length || wind_means.length != length ||
+        wind_gusts.length != length || central_pressures.length != length ||
+        categories.length != length) {
+      throw new VisADException("argument lengths must match");
+    }
+    int[] permute = QuickSort.sort(times);
+    Gridded1DDoubleSet set =
+      new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
+    FlatField field = new FlatField(intensityFunction, set);
+    float[] pids = new float[length];
+    float[] pwind_means = new float[length];
+    float[] pwind_gusts = new float[length];
+    float[] pcentral_pressures = new float[length];
+    float[] pcategories = new float[length];
+    for (int i=0; i<length; i++) {
+      pids[i] = ids[permute[i]];
+      pwind_means[i] = wind_means[permute[i]];
+      pwind_gusts[i] = wind_gusts[permute[i]];
+      pcentral_pressures[i] = central_pressures[permute[i]];
+      pcategories[i] = categories[permute[i]];
+    }
+    float[][] values = {pids, pwind_means, pwind_gusts, pcentral_pressures,
+                        pcategories};
+    field.setSamples(values, false);
+    return field;
+  }
+
+  public static FlatField makeSizes(double[] times, int[] ids, 
+              float[] gale_radii, float[] storm_radii, float[] hurricane_radii,
+              float[] radii_of_maximum_winds, int[] size_styles)
+         throws VisADException, RemoteException {
+    if (times == null || ids == null || gale_radii == null ||
+        storm_radii == null || hurricane_radii == null ||
+        radii_of_maximum_winds == null || size_styles == null) {
+      throw new VisADException("arguments may not be null");
+    }
+    int length = times.length;
+    if (ids.length != length || gale_radii.length != length || 
+        storm_radii.length != length || hurricane_radii.length != length || 
+        radii_of_maximum_winds.length != length || size_styles.length != length) {
+      throw new VisADException("argument lengths must match");
+    }
+    int[] permute = QuickSort.sort(times);
+    Gridded1DDoubleSet set =
+      new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
+    FlatField field = new FlatField(sizeFunction, set);
+    float[] pids = new float[length];
+    float[] pgale_radii = new float[length];
+    float[] pstorm_radii = new float[length];
+    float[] phurricane_radii = new float[length];
+    float[] pradii_of_maximum_winds = new float[length];
+    float[] psize_styles = new float[length];
+    for (int i=0; i<length; i++) {
+      pids[i] = ids[permute[i]];
+      pgale_radii[i] = gale_radii[permute[i]];
+      pstorm_radii[i] = storm_radii[permute[i]];
+      phurricane_radii[i] = hurricane_radii[permute[i]];
+      pradii_of_maximum_winds[i] = radii_of_maximum_winds[permute[i]];
+      psize_styles[i] = size_styles[permute[i]];
+    }
+    float[][] values = {pids, pgale_radii, pstorm_radii, phurricane_radii,
+                        pradii_of_maximum_winds, psize_styles};
+    field.setSamples(values, false);
+    return field;
+  }
+
+  public static FlatField makeSteerings(double[] times, int[] ids,
+              float[] steering_directions, int[] steering_styles)
+         throws VisADException, RemoteException {
+    if (times == null || ids == null || steering_directions == null ||
+        steering_styles == null) {
+      throw new VisADException("arguments may not be null");
+    }
+    int length = times.length;
+    if (ids.length != length || steering_directions.length != length ||
+        steering_styles.length != length) {
+      throw new VisADException("argument lengths must match");
+    }
+    int[] permute = QuickSort.sort(times);
+    Gridded1DDoubleSet set =
+      new Gridded1DDoubleSet(rtTime, new double[][] {times}, length);
+    FlatField field = new FlatField(steeringFunction, set);
+    float[] pids = new float[length];
+    float[] psteering_directions = new float[length];
+    float[] psteering_styles = new float[length];
+    for (int i=0; i<length; i++) {
+      pids[i] = ids[permute[i]];
+      psteering_directions[i] = steering_directions[permute[i]];
+      psteering_styles[i] = steering_styles[permute[i]];
+    }
+    float[][] values = {pids, psteering_directions, psteering_styles};
+    field.setSamples(values, false);
     return field;
   }
 
