@@ -38,7 +38,7 @@ import java.util.*;
    must be handled by Display CoordinateSystem-s.<P>
 */
 public class ScalarMap extends Object
-        implements Cloneable, java.io.Serializable {
+        implements Cloneable, java.io.Serializable, Comparable {
 
   private ScalarType Scalar;
   private DisplayRealType DisplayScalar;
@@ -890,14 +890,44 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     return ValueIndex;
   }
 
+  /**
+   * Compares this ScalarMap with another ScalarMap.  The ScalarType-s are
+   * first compared; if they compare equal, then the DisplayRealType-s are
+   * compared.
+   * @param o		The other ScalarMap.
+   * @return            A value that is negative, zero, or positive depending on
+   *                    whether this ScalarMap is considered less than, equal
+   *                    to, or greater than the other ScalarMap, respectively.
+   */
+  public int compareTo(Object o)
+  {
+    ScalarMap	that = (ScalarMap)o;
+    int		comp = getScalar().compareTo(that.getScalar());
+    if (comp == 0)
+      comp = getDisplayScalar().compareTo(that.getDisplayScalar());
+    return comp;
+  }
+
+  /**
+   * Indicates if this ScalarMap is the same as another object.
+   * @param o		The other object.
+   * @return		<code>true</code> if and only if the other object is a
+   *			ScalarMap and compares equal to this ScalarMap.
+   */
   public boolean equals(Object o)
   {
-    if (!(o instanceof ScalarMap)) {
-      return false;
-    }
+    return o instanceof ScalarMap && compareTo(o) == 0;
+  }
 
-    ScalarMap sm = (ScalarMap )o;
-    return Scalar.equals(sm.Scalar) && DisplayScalar.equals(sm.DisplayScalar);
+  /**
+   * Returns the hash code for this ScalarMap.  If <code>scalarMap1.equals(
+   * scalarMap2)</code> is true, then <code>scalarMap1.hashCode() ==
+   * scalarMap2.hashCode()</code>.
+   * @return		The hash code for this ScalarMap.
+   */
+  public int hashCode()
+  {
+    return getScalar().hashCode() ^ getDisplayScalar().hashCode();
   }
 
   public Object clone()

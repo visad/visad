@@ -31,7 +31,7 @@ import java.util.Hashtable;
 /**
  * ScalarType is the superclass of the VisAD hierarchy of scalar data types.
  */
-public abstract class ScalarType extends MathType {
+public abstract class ScalarType extends MathType implements Comparable {
 
   // name of scalar type - enforce uniqueness locally
   // but do not rely on it - names may be duplicated on remote systems
@@ -70,6 +70,42 @@ public abstract class ScalarType extends MathType {
     super(b);
     Name = name;
     ScalarHash.put(name, this);
+  }
+
+  /**
+   * Compares this object with another of the same type.  The comparison is
+   * on the names.
+   *
+   * @param obj		The other object of the same type.
+   * @return		A value less than zero, zero, or greater than zero
+   *			depending on whether this object is considered less
+   *			than, equal to, or greater than the other object, 
+   *			respectively.
+   */
+  public int compareTo(Object obj) {
+    return getName().compareTo(((ScalarType)obj).getName());
+  }
+
+  /**
+   * Indicates if this ScalarType is the same as another object.
+   *
+   * @param obj		The other object.
+   * @return		<code>true</code> if and only if the other object is a
+   *			ScalarType and compares equal to this ScalarType.
+   */
+  public boolean equals(Object obj) {
+    return obj instanceof ScalarType && compareTo(obj) == 0;
+  }
+
+  /**
+   * Obtains the hash code for this object.  If
+   * <code>scalarType1.equals(scalarType2)</code>, then 
+   * <code>scalarType1.hashCode() == scalarType2.hashCode()</code>.
+   *
+   * @return		The hash code for this object.
+   */
+  public int hashCode() {
+    return getName().hashCode();
   }
 
   /**
