@@ -166,6 +166,12 @@ public class BasicSSCell extends JPanel {
     }
     IsRemote = (RemoteVDisplay != null);
 
+    DataReferenceImpl drFile = null;
+    DataReferenceImpl drRMI = null;
+    DataReferenceImpl drForm = null;
+    DataReferenceImpl drDim = null;
+    DataReferenceImpl drErr = null;
+
     if (IsRemote) {
       RemoteFilename = rs.getDataReference(name + "_Filename");
       RemoteRMIAddress = rs.getDataReference(name + "_RMIAddress");
@@ -225,19 +231,19 @@ public class BasicSSCell extends JPanel {
       ucell.addReference(DataRef);
 
       // set up remote copies of data for remote cloning
-      DataReferenceImpl drFile = new DataReferenceImpl(Name + "_Filename");
+      drFile = new DataReferenceImpl(Name + "_Filename");
       RemoteFilename = new RemoteDataReferenceImpl(drFile);
       synchFilename();
-      DataReferenceImpl drRMI = new DataReferenceImpl(Name + "_RMIAddress");
+      drRMI = new DataReferenceImpl(Name + "_RMIAddress");
       RemoteRMIAddress = new RemoteDataReferenceImpl(drRMI);
       synchRMIAddress();
-      DataReferenceImpl drForm = new DataReferenceImpl(Name + "_Formula");
+      drForm = new DataReferenceImpl(Name + "_Formula");
       RemoteFormula = new RemoteDataReferenceImpl(drForm);
       synchFormula();
-      DataReferenceImpl drDim = new DataReferenceImpl(Name + "_Dim");
+      drDim = new DataReferenceImpl(Name + "_Dim");
       RemoteDim = new RemoteDataReferenceImpl(drDim);
       synchDim();
-      DataReferenceImpl drErr = new DataReferenceImpl(Name + "_Errors");
+      drErr = new DataReferenceImpl(Name + "_Errors");
       RemoteErrors = new RemoteDataReferenceImpl(drErr);
       synchErrors();
 
@@ -251,9 +257,7 @@ public class BasicSSCell extends JPanel {
           Text nFile = (Text) RemoteFilename.getData();
           String s = nFile.getValue();
           URL newFilename = (s.equals("") ? null : new URL(s));
-          if (IsRemote) {
-            Filename = newFilename;
-          }
+          if (IsRemote) Filename = newFilename;
           else {
             String s2 = (Filename == null ? "" : Filename.toString());
             if (!s.equals(s2)) loadData(newFilename);
@@ -265,8 +269,14 @@ public class BasicSSCell extends JPanel {
         catch (IOException exc) { }
       }
     };
-    RemoteCellImpl rFilenameCell = new RemoteCellImpl(lFilenameCell);
-    rFilenameCell.addReference(RemoteFilename);
+    try {
+      RemoteCellImpl rFilenameCell = new RemoteCellImpl(lFilenameCell);
+      rFilenameCell.addReference(RemoteFilename);
+    }
+    catch (RemoteException exc) {
+      if (!IsRemote) lFilenameCell.addReference(drFile);
+      else throw exc;
+    }
 
     // update cell when remote RMI address changes
     CellImpl lRMIAddressCell = new CellImpl() {
@@ -288,8 +298,14 @@ public class BasicSSCell extends JPanel {
         catch (RemoteException exc) { }
       }
     };
-    RemoteCellImpl rRMIAddressCell = new RemoteCellImpl(lRMIAddressCell);
-    rRMIAddressCell.addReference(RemoteRMIAddress);
+    try {
+      RemoteCellImpl rRMIAddressCell = new RemoteCellImpl(lRMIAddressCell);
+      rRMIAddressCell.addReference(RemoteRMIAddress);
+    }
+    catch (RemoteException exc) {
+      if (!IsRemote) lRMIAddressCell.addReference(drRMI);
+      else throw exc;
+    }
 
     // update cell when remote formula changes
     CellImpl lFormulaCell = new CellImpl() {
@@ -303,8 +319,14 @@ public class BasicSSCell extends JPanel {
         catch (RemoteException exc) { }
       }
     };
-    RemoteCellImpl rFormulaCell = new RemoteCellImpl(lFormulaCell);
-    rFormulaCell.addReference(RemoteFormula);
+    try {
+      RemoteCellImpl rFormulaCell = new RemoteCellImpl(lFormulaCell);
+      rFormulaCell.addReference(RemoteFormula);
+    }
+    catch (RemoteException exc) {
+      if (!IsRemote) lFormulaCell.addReference(drForm);
+      else throw exc;
+    }
 
     // update cell when remote dimension changes
     CellImpl lDimCell = new CellImpl() {
@@ -319,8 +341,14 @@ public class BasicSSCell extends JPanel {
         catch (RemoteException exc) { }
       }
     };
-    RemoteCellImpl rDimCell = new RemoteCellImpl(lDimCell);
-    rDimCell.addReference(RemoteDim);
+    try {
+      RemoteCellImpl rDimCell = new RemoteCellImpl(lDimCell);
+      rDimCell.addReference(RemoteDim);
+    }
+    catch (RemoteException exc) {
+      if (!IsRemote) lDimCell.addReference(drDim);
+      else throw exc;
+    }
 
     // update cell when remote errors change
     CellImpl lErrorsCell = new CellImpl() {
@@ -343,8 +371,14 @@ public class BasicSSCell extends JPanel {
         catch (RemoteException exc) { }
       }
     };
-    RemoteCellImpl rErrorsCell = new RemoteCellImpl(lErrorsCell);
-    rErrorsCell.addReference(RemoteErrors);
+    try {
+      RemoteCellImpl rErrorsCell = new RemoteCellImpl(lErrorsCell);
+      rErrorsCell.addReference(RemoteErrors);
+    }
+    catch (RemoteException exc) {
+      if (!IsRemote) lErrorsCell.addReference(drErr);
+      else throw exc;
+    }
 
     // finish GUI setup
     VDPanel = (JPanel) VDisplay.getComponent();
