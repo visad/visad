@@ -33,6 +33,9 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
 
+import java.awt.*;
+import java.awt.image.*;
+
 /**
    The ShadowFunctionOrSetTypeJ3D is an abstract parent for
    ShadowFunctionTypeJ3D and ShadowSetTypeJ3D.<P>
@@ -132,6 +135,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     // array to hold values for various mappings
     float[][] display_values = new float[valueArrayLength][];
 
+    // ShadowRealTypes of Domain
+    ShadowRealType[] DomainComponents =
+      ((ShadowFunctionOrSetType) adaptedShadowType).getDomainComponents();
+
     // get values inherited from parent;
     // assume these do not include SelectRange, SelectValue
     // or Animation values - see temporary hack in
@@ -145,51 +152,174 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       }
     }
 
-    // get values from Function Domain
-    // NOTE - may defer this until needed, if needed
+    boolean isTextureMap = adaptedShadowType.getIsTextureMap() &&
+                           (domain_set instanceof Linear2DSet);
+    float[] coordinates = null;
+    float[] texCoords = null;
+    float[] normals = null;
+    int texture_width = 0;
+    int texture_height = 0;
+    if (isTextureMap) {
+      if (renderer instanceof DirectManipulationRendererJ3D) {
+        throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+                                   " DirectManipulationRendererJ3D");
+      }
+      Linear1DSet X = ((Linear2DSet) domain_set).getX();
+      Linear1DSet Y = ((Linear2DSet) domain_set).getY();
+      float[][] limits = new float[2][2];
+      limits[0][0] = (float) X.getFirst();
+      limits[0][1] = (float) X.getLast();
+      limits[1][0] = (float) Y.getFirst();
+      limits[1][1] = (float) Y.getLast();
+      float value2 = 0.0f;
+      // convert values to default units (used in display)
+      limits = Unit.convertTuple(limits, dataUnits, domain_units);
+      // get domain_set sizes
+      texture_width = X.getLength();
+      texture_height = Y.getLength();
+      int[] tuple_index = new int[3];
+      if (DomainComponents.length != 2) {
+        throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+                                   " domain dimension != 2");
+      }
+      for (int i=0; i<DomainComponents.length; i++) {
+        Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        // scale values
+        limits[i] = map.scaleValues(limits[i]);
+        DisplayRealType real = map.getDisplayScalar();
+        DisplayTupleType tuple = real.getTuple();
+        if (tuple == null ||
+            !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+          throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+                                     " isTextureMap with bad tuple");
+        }
+        // get spatial index
+        tuple_index[i] = real.getTupleIndex();
+        if (maps.hasMoreElements()) {
+          throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
+                                     " isTextureMap with multiple");
+        }
+      } // end for (int i=0; i<DomainComponents.length; i++)
+      // get spatial index not mapped from domain_set
+      tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
+      DisplayRealType real = (DisplayRealType)
+        Display.DisplaySpatialCartesianTuple.getComponent(tuple_index[2]);
+      for (int i=0; i<valueArrayLength; i++) {
+        if (inherited_values[i] > 0 &&
+            real.equals(display.getDisplayScalar(valueToScalar[i])) ) {
+          value2 = value_array[i];
+          break;
+        }
+      }
+      coordinates = new float[12];
+      // corner 0
+      coordinates[tuple_index[0]] = limits[0][0];
+      coordinates[tuple_index[1]] = limits[1][0];
+      coordinates[tuple_index[2]] = value2;
+      // corner 1
+      coordinates[3 + tuple_index[0]] = limits[0][1];
+      coordinates[3 + tuple_index[1]] = limits[1][0];
+      coordinates[3 + tuple_index[2]] = value2;
+      // corner 2
+      coordinates[6 + tuple_index[0]] = limits[0][0];
+      coordinates[6 + tuple_index[1]] = limits[1][1];
+      coordinates[6 + tuple_index[2]] = value2;
+      // corner 3
+      coordinates[9 + tuple_index[0]] = limits[0][1];
+      coordinates[9 + tuple_index[1]] = limits[1][1];
+      coordinates[9 + tuple_index[2]] = value2;
+
+      texCoords = new float[8];
+      // corner 0
+      texCoords[0] = 0;
+      texCoords[1] = 0;
+      // corner 1
+      texCoords[2] = texture_width - 1;
+      texCoords[3] = 0;
+      // corner 2
+      texCoords[2] = 0;
+      texCoords[3] = texture_height - 1;
+      // corner 3
+      texCoords[2] = texture_width - 1;
+      texCoords[3] = texture_height - 1;
+
+      normals = new float[12];
+      float n0 = ((coordinates[3+2]-coordinates[0+2]) *
+                  (coordinates[6+1]-coordinates[0+1])) -
+                 ((coordinates[3+1]-coordinates[0+1]) *
+                  (coordinates[6+2]-coordinates[0+2]));
+      float n1 = ((coordinates[3+0]-coordinates[0+0]) *
+                  (coordinates[6+2]-coordinates[0+2])) -
+                 ((coordinates[3+2]-coordinates[0+2]) *
+                  (coordinates[6+0]-coordinates[0+0]));
+      float n2 = ((coordinates[3+1]-coordinates[0+1]) *
+                  (coordinates[6+0]-coordinates[0+0])) -
+                 ((coordinates[3+0]-coordinates[0+0]) *
+                  (coordinates[6+1]-coordinates[0+1]));
+      // corner 0
+      normals[0] = n0;
+      normals[1] = n1;
+      normals[2] = n2;
+      // corner 1
+      normals[3] = n0;
+      normals[4] = n1;
+      normals[5] = n2;
+      // corner 2
+      normals[6] = n0;
+      normals[7] = n1;
+      normals[8] = n2;
+      // corner 3
+      normals[9] = n0;
+      normals[10] = n1;
+      normals[11] = n2;
+    }
+    else { // !isTextureMap
+/* WLH 7 Feb 98
     if (domain_values == null) {
+*/
+      // get values from Function Domain
+      // NOTE - may defer this until needed, if needed
       domain_values = domain_set.getSamples(false);
       // convert values to default units (used in display)
       domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
-    }
- 
-    // System.out.println("got domain_values");
+      // System.out.println("got domain_values");
 
-    // map domain_values to appropriate DisplayRealType-s
-    // MEM
-    ShadowRealType[] DomainComponents =
-      ((ShadowFunctionOrSetType) adaptedShadowType).getDomainComponents();
-    mapValues(display_values, domain_values, DomainComponents);
- 
-    // System.out.println("mapped domain_values");
-
-    ShadowRealTupleType domain_reference = Domain.getReference();
-    if (domain_reference != null && domain_reference.getMappedDisplayScalar()) {
-      // apply coordinate transform to domain values
-      RealTupleType ref = (RealTupleType) domain_reference.getType();
+      // map domain_values to appropriate DisplayRealType-s
       // MEM
-      float[][] reference_values =
-        CoordinateSystem.transformCoordinates(
-          ref, null, ref.getDefaultUnits(), null,
-          (RealTupleType) Domain.getType(), dataCoordinateSystem,
-          domain_units, null, domain_values);
-
-      //
-      // TO_DO
-      // adjust any RealVectorTypes in range
-      // see FlatField.resample and FieldImpl.resample
-      //
-
-      // map reference_values to appropriate DisplayRealType-s
-      // MEM
-      ShadowRealType[] DomainReferenceComponents =
-        ((ShadowFunctionOrSetType) adaptedShadowType).getDomainReferenceComponents();
-      mapValues(display_values, reference_values, DomainReferenceComponents);
+      mapValues(display_values, domain_values, DomainComponents);
+   
+      // System.out.println("mapped domain_values");
+  
+      ShadowRealTupleType domain_reference = Domain.getReference();
+      if (domain_reference != null && domain_reference.getMappedDisplayScalar()) {
+        // apply coordinate transform to domain values
+        RealTupleType ref = (RealTupleType) domain_reference.getType();
+        // MEM
+        float[][] reference_values =
+          CoordinateSystem.transformCoordinates(
+            ref, null, ref.getDefaultUnits(), null,
+            (RealTupleType) Domain.getType(), dataCoordinateSystem,
+            domain_units, null, domain_values);
+  
+        //
+        // TO_DO
+        // adjust any RealVectorTypes in range
+        // see FlatField.resample and FieldImpl.resample
+        //
+  
+        // map reference_values to appropriate DisplayRealType-s
+        // MEM
+        ShadowRealType[] DomainReferenceComponents =
+          ((ShadowFunctionOrSetType) adaptedShadowType).
+                                     getDomainReferenceComponents();
+        mapValues(display_values, reference_values, DomainReferenceComponents);
+        // FREE
+        reference_values = null;
+      }
       // FREE
-      reference_values = null;
-    }
-    // FREE
-    domain_values = null;
+      domain_values = null;
+    } // end if (!isTextureMap)
 
     if (this instanceof ShadowFunctionTypeJ3D) {
 
@@ -416,10 +546,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
           // a single missing color value, so render nothing
           return false;
         }
-/*
-        System.out.println("single color " + color_values[0][0] + " " +
-                           color_values[1][0] + " " + color_values[2][0]);
-*/
         // constant color, so put it in appearance
         constant_color = new ColoringAttributes(); // J3D
         constant_color.setColor(color_values[0][0], color_values[1][0],
@@ -577,7 +703,127 @@ END MISSING TEST */
         } // end if (anyContour)
         if (!anyContourCreated && !anyFlowCreated) {
           // MEM
-          if (range_select[0] != null) {
+          if (isTextureMap) {
+            if (color_values == null) {
+              throw new DisplayException("ShadowFunctionOrSetTypeJ3D." +
+                               ".doTransform: no color or alpha values");
+            }
+            if (range_select[0] != null && range_select[0].length > 1) {
+              int len = range_select[0].length;
+              float alpha =
+                default_values[display.getDisplayScalarIndex(Display.Alpha)];
+              if (constant_alpha != null) {
+                alpha = constant_alpha.getTransparency();
+              }
+/*
+              if (color_values == null) {
+                float[] colf = null;
+                if (constant_color != null) {
+                  Color3f color = null;
+                  constant_color.getColor(color);
+                  colf = new float[3];
+                  colf[0] = color.x;
+                  colf[1] = color.y;
+                  colf[2] = color.z;
+                }
+                color_values = new float[4][len];
+                for (int j=0; j<3; j++) {
+                  float def_val = (colf != null) ? colf[j] :
+                    default_values[getDefaultColorIndex(display, j)];
+                  for (int i=0; i<len; i++) color_values[j][i] = def_val;
+                }
+                for (int i=0; i<len; i++) color_values[3][i] = alpha;
+                constant_color = null;
+                constant_alpha = null;
+              }
+              else if (color_values.length < 4) {
+*/
+              if (color_values.length < 4) {
+                float[][] c = new float[4][];
+                c[0] = color_values[0];
+                c[1] = color_values[1];
+                c[2] = color_values[2];
+                for (int i=0; i<len; i++) c[3][i] = alpha;
+                constant_alpha = null;
+                color_values = c;
+              }
+              for (int i=0; i<len; i++) {
+                if (range_select[0][i] != range_select[0][i]) {
+                  // make missing pixel invisible (transparent)
+                  color_values[3][i] = 0.0f;
+                }
+              }
+            } // end if (range_select[0] != null)
+
+            int vertexFormat = GeometryArray.COORDINATES |
+                               GeometryArray.NORMALS |
+                               GeometryArray.TEXTURE_COORDINATE_2;
+
+            // MEM
+            QuadArray geometry = new QuadArray(4, vertexFormat);
+            geometry.setCoordinates(0, coordinates);
+            geometry.setNormals(0, normals);
+            geometry.setTextureCoordinates(0, texCoords);
+
+            // System.out.println("geometry");
+   
+            // crreate basic Appearance
+            appearance = makeAppearance(mode, constant_alpha,
+                                        constant_color, geometry);
+            // create TextureAttributes
+            TextureAttributes texture_attributes = new TextureAttributes();
+            texture_attributes.setTextureMode(TextureAttributes.REPLACE);
+            texture_attributes.setPerspectiveCorrectionMode(
+                                  TextureAttributes.NICEST);
+            appearance.setTextureAttributes(texture_attributes);
+            // create Texture2D
+            Texture2D texture = new Texture2D();
+            // Component component = display.getComponent();
+
+
+
+            BufferedImage image = null;
+            ImageComponent2D image2d = null;
+            int[] rgbArray = new int[texture_width * texture_height];
+/* JDK 1.2 stuff ??
+            if (color_values.length > 3) {
+              for (int i=0; i<domain_length; i++) {
+                int r, g, b, a;
+                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
+                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
+                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
+                a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
+                rgbArray[i] = (a << 24) | (r << 16) | (g << 8) | b;
+              }
+              image = new BufferedImage(texture_width, texture_height,
+                                        BufferedImage.TYPE_INT_ARGB);
+              image.setRGB(0, 0, texture_width, texture_height,
+                           rgbArray, 0, texture_width);
+              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
+            }
+            else {
+              for (int i=0; i<domain_length; i++) {
+                int r, g, b;
+                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
+                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
+                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
+                rgbArray[i] = (r << 16) | (g << 8) | b; 
+              }
+              image = new BufferedImage(texture_width, texture_height,
+                                        BufferedImage.TYPE_INT_RGB);
+              image.setRGB(0, 0, texture_width, texture_height,
+                           rgbArray, 0, texture_width);
+              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGB, image);
+            }
+*/
+            texture.setImage(0, image2d);
+            appearance.setTexture(texture);
+
+            Shape3D shape = new Shape3D(geometry, appearance);
+            group.addChild(shape);
+            return false;
+          }
+          else if (range_select[0] != null) {
             int len = range_select[0].length;
             if (len == 1 || spatial_values[0].length == 1) return false;
             for (int j=0; j<len; j++) {
@@ -640,13 +886,9 @@ END MISSING TEST */
             ((DirectManipulationRendererJ3D) renderer).
                                  setSpatialValues(spatial_values);
           }
-        } // end if (!anyContour)
+        } // end if (!anyContourCreated && !anyFlowCreated)
 
         return false;
-/*
-        throw new UnimplementedException("ShadowFunctionOrSetType.doTransform: " +
-                                         "terminal SIMPLE_FIELD");
-*/
       }
       else { // must be LevelOfDifficulty == LEGAL
         // add values to value_array according to SelectedMapVector-s

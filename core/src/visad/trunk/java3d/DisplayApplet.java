@@ -28,16 +28,11 @@ package visad.java3d;
 import visad.*;
 
 import java.applet.Applet;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.*;
+import java.awt.BorderLayout;
 
 import javax.media.j3d.*;
-
-import java.util.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.net.*;
-import java.applet.Applet;
 
 public class DisplayApplet extends Applet {
 
@@ -57,6 +52,7 @@ public class DisplayApplet extends Applet {
   }
 
   /** get values from an image at URL spec'ed by string */
+/*
   double[] getValues(String string, int size) {
  
     URL url = null;
@@ -114,6 +110,7 @@ public class DisplayApplet extends Applet {
     }
     return data;
   }
+*/
 
 }
 

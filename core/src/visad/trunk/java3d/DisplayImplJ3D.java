@@ -26,6 +26,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.java3d;
 
 import visad.*;
+import visad.util.*;
 
 import java.util.Vector;
 import java.util.Enumeration;
@@ -33,6 +34,7 @@ import java.rmi.*;
 import java.io.*;
 
 import java.awt.*;
+import java.awt.event.*;
 
 import javax.media.j3d.*;
 import com.sun.j3d.utils.applet.AppletFrame;
@@ -41,7 +43,7 @@ import com.sun.j3d.utils.applet.AppletFrame;
 import com.sun.java.swing.*;
 import com.sun.java.swing.border.*;
 
-// import visad.data.netcdf.plain.Plain;
+// import visad.data.netcdf.Plain;
 
 /**
    DisplayImplJ3D is the VisAD class for displays that use
@@ -56,7 +58,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   public static final int JPANEL = 1;
   public static final int APPLETFRAME = 2;
   /** this is used for APPLETFRAME */
-  private DisplayApplet applet;
+  private DisplayApplet applet = null;
 
   private ProjectionControlJ3D projection = null;
   private GraphicsModeControlJ3D mode = null;
@@ -117,6 +119,10 @@ public class DisplayImplJ3D extends DisplayImpl {
 
   public GraphicsModeControl getGraphicsModeControl() {
     return mode;
+  }
+
+  public DisplayApplet getApplet() {
+    return applet;
   }
 
   public GeometryArray makeGeometry(VisADGeometryArray vga)
@@ -308,7 +314,8 @@ public class DisplayImplJ3D extends DisplayImpl {
     return format;
   }
 
-  /** run 'java visad.DisplayImplJ3D' to test the DisplayImplJ3D class */
+  /** used to test the DisplayImplJ3D class
+      run 'java visad.java3d.DisplayImplJ3D to test list options */
   public static void main(String args[])
          throws IOException, VisADException, RemoteException {
 
@@ -340,286 +347,475 @@ public class DisplayImplJ3D extends DisplayImpl {
     RealType[] time = {RealType.Time};
     RealTupleType time_type = new RealTupleType(time);
     FunctionType time_images = new FunctionType(time_type, image_tuple);
-    FunctionType[] tb = {image_tuple, image_bumble};
-    FunctionType time_bee = new FunctionType(time_type, new TupleType(tb));
+    FunctionType time_bee = new FunctionType(time_type, image_bumble);
 
-    System.out.println(time_images);
-    System.out.println(time_bee);
-    System.out.println(grid_tuple);
-    System.out.println(image_tuple);
-    System.out.println(ir_histogram);
-
-    FlatField imagev1 = FlatField.makeField(image_vis, 4, false);
-    FlatField imager1 = FlatField.makeField(image_ir, 4, false);
-
-    // use 'java visad.DisplayImplJ3D' for size = 256 (implicit -mx16m)
-    // use 'java -mx40m visad.DisplayImplJ3D' for size = 512
-    int size = 64;
-    int size3d = 3;
-    float level = 1.0f;
-    FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
-    FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
-    FlatField wasp = FlatField.makeField(image_bumble, size, false);
-    FlatField grid3d = FlatField.makeField(grid_tuple, size3d, true);
-
-    int ntimes = 4;
-    Set time_set =
-      new Linear1DSet(time_type, 0.0, (double) (ntimes - 1.0), ntimes);
-    Set time_hornet =
-      new Linear1DSet(time_type, 0.0, (double) ntimes, ntimes + 1);
-    FieldImpl image_sequence = new FieldImpl(time_images, time_set);
-    FieldImpl image_stinger = new FieldImpl(time_bee, time_hornet);
-    FlatField temp = imaget1;
-    FlatField tempw = wasp;
-    Real[] reals = {new Real(vis_radiance, (float) size / 4.0f),
-                    new Real(ir_radiance, (float) size / 8.0f)};
-    RealTuple val = new RealTuple(reals);
-    for (int i=0; i<ntimes+1; i++) {
-      if (i < ntimes) image_sequence.setSample(i, temp);
-      FlatField[] ffs = {temp, tempw};
-      image_stinger.setSample(i, new Tuple(ffs));
-      temp = (FlatField) temp.add(val);
-      tempw = (FlatField) tempw.add(val);
-    }
-    Real[] reals2 = {new Real(count, 1.0), new Real(ir_radiance, 2.0),
-                     new Real(vis_radiance, 1.0)};
-    // RealTuple direct = new RealTuple(reals2);
-    Real direct = new Real(ir_radiance, 2.0);
-
-
-    DisplayImpl display1 = new DisplayImplJ3D("display1", APPLETFRAME);
-/*
-    display1.addMap(new ScalarMap(vis_radiance, Display.XAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.YAxis));
-    display1.addMap(new ScalarMap(count, Display.ZAxis));
-*/
-
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.Green));
-    display1.addMap(new ConstantMap(0.5, Display.Blue));
-    display1.addMap(new ConstantMap(0.5, Display.Red));
-    ScalarMap map1animation = new ScalarMap(RealType.Time, Display.Animation);
-    display1.addMap(map1animation);
-    AnimationControl animation1control =
-      (AnimationControl) map1animation.getControl();
-    animation1control.setOn(true);
-    animation1control.setStep(3000);
-/*
-    display1.addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
-    ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
-    display1.addMap(map1contour);
-    ContourControl control1contour = (ContourControl) map1contour.getControl();
-    control1contour.setSurfaceValue(level);
-*/
-/*
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
-    display1.addMap(new ScalarMap(vis_radiance, Display.Radius));
-*/
-/*
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display1.addMap(new ScalarMap(vis_radiance, Display.Green));
-    display1.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
-    // display1.addMap(new ScalarMap(vis_radiance, Display.IsoContour));
-    display1.addMap(new ScalarMap(ir_radiance, Display.Alpha));
-    // display1.addMap(new ConstantMap(0.5, Display.Alpha));
-*/
-
-
-/* code to load a GIF image into imaget1 */
-/*
-    double[][] data = imaget1.getValues();
-    DisplayApplet applet = new DisplayApplet();
-    data[1] = applet.getValues("file:/home/billh/java/visad/billh.gif", size);
-    imaget1.setSamples(data);
-*/
-/*
-    Plain plain = new Plain();
-    FlatField netcdf_data = (FlatField) plain.open("pmsl.nc");
-    // System.out.println("netcdf_data = " + netcdf_data);
-    // prints: FunctionType (Real): (lon, lat) -> P_msl
-    //
-    // compute ScalarMaps from type components
-    FunctionType ftype = (FunctionType) netcdf_data.getType();
-    RealTupleType dtype = ftype.getDomain();
-    MathType rtype = ftype.getRange();
-    int n = dtype.getDimension();
-    display1.addMap(new ScalarMap((RealType) dtype.getComponent(0),
-                                  Display.XAxis));
-    if (n > 1) {
-      display1.addMap(new ScalarMap((RealType) dtype.getComponent(1),
-                                    Display.YAxis));
-    }
-    if (n > 2) {
-      display1.addMap(new ScalarMap((RealType) dtype.getComponent(2),
-                                    Display.ZAxis));
-    }
-    if (rtype instanceof RealType) {
-      display1.addMap(new ScalarMap((RealType) rtype, Display.Green));
-      if (n <= 2) {
-        display1.addMap(new ScalarMap((RealType) rtype, Display.ZAxis));
+    int test_case = -1;
+    if (args.length > 0) {
+      try {
+        test_case = Integer.parseInt(args[0]);
+      }
+      catch(NumberFormatException e) {
+        test_case = -1;
       }
     }
-    else if (rtype instanceof RealTupleType) {
-      int m = ((RealTupleType) rtype).getDimension();
-      RealType rr = (RealType) ((RealTupleType) rtype).getComponent(0);
-      display1.addMap(new ScalarMap(rr, Display.Green));
-      if (n >= 2) {
-        if (m > 1) {
-          rr = (RealType) ((RealTupleType) rtype).getComponent(1);
+
+    DisplayImpl display1;
+    int size;
+    FlatField imaget1;
+    DataReferenceImpl ref_imaget1;
+
+    switch(test_case) {
+      default:
+ 
+        System.out.println("to test the DisplayImplJ3D class run\n");
+        System.out.println("  java visad.java3d.DisplayImplJ3D N, where N =\n");
+        System.out.println("  0: direct manipulation");
+        System.out.println("  1: iso-surfaces from regular grids");
+        System.out.println("  2: iso-surfaces from irregular grids");
+        System.out.println("  3: animation");
+        System.out.println("  4: spherical coordinates");
+        System.out.println("  5: 2-D contours from regular grids");
+        System.out.println("  6: 2-D contours from irregular grids");
+        System.out.println("  7: transparency");
+        System.out.println("  8: offset");
+        System.out.println("  9: GIF reader and ColorWidget");
+        System.out.println("  10: netCDF adapter");
+        System.out.println("  11: CoordinateSystem and Unit");
+ 
+        return;
+
+      case 0:
+
+        System.out.println(test_case + ": test direct manipulation");
+        size = 64;
+        FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
+        Real direct = new Real(ir_radiance, 2.0);
+        Real[] reals3 = {new Real(count, 1.0), new Real(ir_radiance, 2.0),
+                         new Real(vis_radiance, 1.0)};
+        RealTuple direct_tuple = new RealTuple(reals3);
+    
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(vis_radiance, Display.XAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.YAxis));
+        display1.addMap(new ScalarMap(count, Display.ZAxis));
+    
+        GraphicsModeControl mode = display1.getGraphicsModeControl();
+        mode.setPointSize(5.0f);
+        mode.setPointMode(false);
+
+        // mode.setProjectionPolicy(View.PARALLEL_PROJECTION);
+        // gives:
+        // java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
+        // at javax.media.j3d.View.setProjectionPolicy(View.java:423)
+
+        DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
+        ref_direct.setData(direct);
+        DataReference[] refs1 = {ref_direct};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refs1, null);
+     
+        DataReferenceImpl ref_direct_tuple =
+          new DataReferenceImpl("ref_direct_tuple");
+        ref_direct_tuple.setData(direct_tuple);
+        DataReference[] refs2 = {ref_direct_tuple};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refs2, null);
+     
+        DataReferenceImpl ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+        ref_histogram1.setData(histogram1);
+        DataReference[] refs3 = {ref_histogram1};
+        display1.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+
+        DisplayImpl display2 = new DisplayImplJ3D("display2", APPLETFRAME);
+        display2.addMap(new ScalarMap(vis_radiance, Display.XAxis));
+        display2.addMap(new ScalarMap(ir_radiance, Display.YAxis));
+        display2.addMap(new ScalarMap(count, Display.ZAxis));
+     
+        GraphicsModeControl mode2 = display2.getGraphicsModeControl();
+        mode2.setPointSize(5.0f);
+        mode2.setPointMode(false);
+     
+        display2.addReferences(new DirectManipulationRendererJ3D(), refs1, null);
+        display2.addReferences(new DirectManipulationRendererJ3D(), refs2, null);
+        display2.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
+        break;
+
+      case 1:
+
+        System.out.println(test_case + ": test iso-surfaces from regular grids");
+        int size3d = 6;
+        float level = 2.5f;
+        FlatField grid3d = FlatField.makeField(grid_tuple, size3d, false);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
+        ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
+        display1.addMap(map1contour);
+        ContourControl control1contour = (ContourControl) map1contour.getControl();
+        control1contour.setSurfaceValue(level);
+
+        DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
+        ref_grid3d.setData(grid3d);
+        display1.addReference(ref_grid3d, null);
+
+        break;
+
+      case 2:
+ 
+        System.out.println(test_case + ": test iso-surfaces from irregular grids");
+        size3d = 6;
+        level = 2.5f;
+        grid3d = FlatField.makeField(grid_tuple, size3d, true);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+ 
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
+        map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
+        display1.addMap(map1contour);
+        control1contour = (ContourControl) map1contour.getControl();
+        control1contour.setSurfaceValue(level);
+ 
+        ref_grid3d = new DataReferenceImpl("ref_grid3d");
+        ref_grid3d.setData(grid3d);
+        display1.addReference(ref_grid3d, null);
+ 
+        break;
+
+      case 3:
+
+        System.out.println(test_case + ": test animation");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+        FlatField wasp = FlatField.makeField(image_bumble, size, false);
+
+        int ntimes1 = 4;
+        int ntimes2 = 6;
+/*
+        // different time extents test
+        Set time_set =
+          new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
+        Set time_hornet =
+          new Linear1DSet(time_type, 0.0, (double) (ntimes2 - 1.0), ntimes2);
+*/
+        // different time resolution test
+        Set time_set =
+          new Linear1DSet(time_type, 0.0, 1.0, ntimes1);
+        Set time_hornet =
+          new Linear1DSet(time_type, 0.0, 1.0, ntimes2);
+
+        FieldImpl image_sequence = new FieldImpl(time_images, time_set);
+        FieldImpl image_stinger = new FieldImpl(time_bee, time_hornet);
+        FlatField temp = imaget1;
+        FlatField tempw = wasp;
+        Real[] reals = {new Real(vis_radiance, (float) size / 4.0f),
+                        new Real(ir_radiance, (float) size / 8.0f)};
+        RealTuple val = new RealTuple(reals);
+        for (int i=0; i<ntimes1; i++) {
+          image_sequence.setSample(i, temp);
+          temp = (FlatField) temp.add(val);
         }
-        display1.addMap(new ScalarMap(rr, Display.ZAxis));
-      }
+        for (int i=0; i<ntimes2; i++) {
+          image_stinger.setSample(i, tempw);
+          tempw = (FlatField) tempw.add(val);
+        }
+        FieldImpl[] images = {image_sequence, image_stinger};
+        Tuple big_tuple = new Tuple(images);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+     
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+        ScalarMap map1animation = new ScalarMap(RealType.Time, Display.Animation);
+        display1.addMap(map1animation);
+        AnimationControl animation1control =
+          (AnimationControl) map1animation.getControl();
+        animation1control.setOn(true);
+        animation1control.setStep(3000);
+
+        DataReferenceImpl ref_big_tuple =
+          new DataReferenceImpl("ref_big_tuple");
+        ref_big_tuple.setData(big_tuple);
+        display1.addReference(ref_big_tuple, null);
+
+        break;
+
+      case 4:
+
+        System.out.println(test_case + ": test spherical coordinates");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
+        display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
+        // display1.addMap(new ScalarMap(vis_radiance, Display.Radius));
+     
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 5:
+
+        System.out.println(test_case + ": test 2-D contours from regular grids");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+        display1.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.IsoContour));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+     
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 6:
+ 
+        System.out.println(test_case + ": test 2-D contours from irregular grids");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, true);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+        display1.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.IsoContour));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        break;
+
+      case 7:
+
+        System.out.println(test_case + ": test transparency");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.Green));
+        display1.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
+        display1.addMap(new ScalarMap(ir_radiance, Display.Alpha));
+        // display1.addMap(new ConstantMap(0.5, Display.Alpha));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+     
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+
+        break;
+
+      case 8:
+ 
+        System.out.println(test_case + ": test Offset");
+        size = 64;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.Green));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxisOffset));
+        display1.addMap(new ScalarMap(ir_radiance, Display.ZAxisOffset));
+        display1.addMap(new ConstantMap(0.5, Display.Blue));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+     
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        break;
+ 
+      case 9:
+ 
+        System.out.println(test_case + ": test GIF reader and ColorWidget");
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+
+/* WLH 7 Feb 98
+        size = 256;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+
+        // code to load a GIF image into imaget1
+        double[][] data = imaget1.getValues();
+        DisplayApplet applet = ((DisplayImplJ3D) display1).getApplet();
+        data[1] = applet.getValues("file:/home/billh/java/visad/billh.gif", size);
+        imaget1.setSamples(data);
+*/
+        imaget1 = display1.getImage("file:/home/billh/java/visad/billh.gif");
+
+        // compute ScalarMaps from type components
+        FunctionType ftype = (FunctionType) imaget1.getType();
+        RealTupleType dtype = ftype.getDomain();
+        RealType rtype = (RealType) ftype.getRange();
+        display1.addMap(new ScalarMap((RealType) dtype.getComponent(0),
+                                      Display.XAxis));
+        display1.addMap(new ScalarMap((RealType) dtype.getComponent(1),
+                                      Display.YAxis));
+        ScalarMap color1map = new ScalarMap(rtype, Display.RGB);
+        display1.addMap(color1map);
+        final ColorControl color1control = (ColorControl) color1map.getControl();
+
+        final int table_size = 64;
+        final float[][] table = new float[3][table_size];
+        final float scale = 1.0f / (table_size - 1.0f);
+
+        Frame frame = new Frame("VisAD Color Widget");
+        frame.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        final ColorWidget w = new ColorWidget();
+        ColorMap map = w.getColorMap();
+        for (int i=0; i<table_size; i++) {
+          float[] t = map.getRGBTuple(scale * i);
+          table[0][i] = t[0];
+          table[1][i] = t[1];
+          table[2][i] = t[2];
+        }
+        color1control.setTable(table);
+
+ 
+        frame.add(w);
+        frame.setSize(w.getPreferredSize());
+        frame.setVisible(true);
+
+        w.addColorChangeListener(new ColorChangeListener() {
+          public void colorChanged(ColorChangeEvent e) {
+            ColorMap map_e = w.getColorMap();
+            float[][] table_e = new float[3][table_size];
+            for (int i=0; i<table_size; i++) {
+              float[] t = map_e.getRGBTuple(scale * i);
+              table_e[0][i] = t[0];
+              table_e[1][i] = t[1];
+              table_e[2][i] = t[2];
+            }
+            try {
+              color1control.setTable(table_e);
+            }
+            catch (VisADException f) {
+            }
+            catch (RemoteException f) {
+            }
+          }
+        });
+ 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        break;
+ 
+      case 10:
+ 
+        System.out.println(test_case + ": test netCDF adapter");
+/*
+        Plain plain = new Plain();
+        FlatField netcdf_data = (FlatField) plain.open("pmsl.nc");
+        // System.out.println("netcdf_data = " + netcdf_data);
+        // prints: FunctionType (Real): (lon, lat) -> P_msl
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        // compute ScalarMaps from type components
+        FunctionType ftype = (FunctionType) netcdf_data.getType();
+        RealTupleType dtype = ftype.getDomain();
+        MathType rtype = ftype.getRange();
+        int n = dtype.getDimension();
+        display1.addMap(new ScalarMap((RealType) dtype.getComponent(0),
+                                      Display.XAxis));
+        if (n > 1) {
+          display1.addMap(new ScalarMap((RealType) dtype.getComponent(1),
+                                        Display.YAxis));
+        }
+        if (n > 2) {
+          display1.addMap(new ScalarMap((RealType) dtype.getComponent(2),
+                                        Display.ZAxis));
+        }
+        if (rtype instanceof RealType) {
+          display1.addMap(new ScalarMap((RealType) rtype, Display.Green));
+          if (n <= 2) {
+            display1.addMap(new ScalarMap((RealType) rtype, Display.ZAxis));
+          }
+        }
+        else if (rtype instanceof RealTupleType) {
+          int m = ((RealTupleType) rtype).getDimension();
+          RealType rr = (RealType) ((RealTupleType) rtype).getComponent(0);
+          display1.addMap(new ScalarMap(rr, Display.Green));
+          if (n >= 2) {
+            if (m > 1) {
+              rr = (RealType) ((RealTupleType) rtype).getComponent(1);
+            }
+            display1.addMap(new ScalarMap(rr, Display.ZAxis));
+          }
+        }
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+        display1.addMap(new ConstantMap(0.0, Display.Blue));
+
+        DataReferenceImpl ref_netcdf = new DataReferenceImpl("ref_netcdf");
+        ref_netcdf.setData(netcdf_data);
+        display1.addReference(ref_netcdf, null);
+*/
+
+        break;
+
+      case 11:
+ 
+        System.out.println(test_case + ": test CoordinateSystem and Unit");
+        RealType x = new RealType("x", null, null);
+        RealType y = new RealType("y", null, null);
+        Unit super_degree = CommonUnit.degree.scale(2.5);
+        RealType lon = new RealType("lon", super_degree, null);
+        RealType radius = new RealType("radius", null, null);
+        RealTupleType cartesian = new RealTupleType(x, y);
+        PolarCoordinateSystem polar_coord_sys =
+          new PolarCoordinateSystem(cartesian);
+        RealTupleType polar =
+          new RealTupleType(lon, radius, polar_coord_sys, null);
+
+        FunctionType image_polar = new FunctionType(polar, radiance);
+        Unit[] units = {super_degree, null};
+        Linear2DSet domain_set =
+          new Linear2DSet(image_polar, 0.0, 60.0, 61, 0.0, 60.0, 61,
+                          polar_coord_sys, units, null);
+        imaget1 = new FlatField(image_polar, domain_set);
+        FlatField.fillField(imaget1, 1.0, 30.0);
+
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(x, Display.XAxis));
+        display1.addMap(new ScalarMap(y, Display.YAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.Green));
+        display1.addMap(new ConstantMap(0.5, Display.Red));
+        display1.addMap(new ConstantMap(0.0, Display.Blue));
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        break;
+
     }
-    display1.addMap(new ConstantMap(0.5, Display.Red));
-    display1.addMap(new ConstantMap(0.0, Display.Blue));
-*/
-
-
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
-    mode.setPointSize(5.0f);
-    mode.setPointMode(false);
-/*
-    mode.setProjectionPolicy(View.PARALLEL_PROJECTION);
-java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
-        at javax.media.j3d.View.setProjectionPolicy(View.java:423)
-*/
-
-    System.out.println(display1);
-
-/*
-    DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
-    ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
-*/
-
-/*
-    DataReferenceImpl ref_val = new DataReferenceImpl("ref_val");
-    ref_val.setData(val);
-    DataReference[] refs = {ref_val};
-    display1.addReferences(new DirectManipulationRendererJ3D(), refs, null);
-*/
-
-/*
-    DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
-    ref_direct.setData(direct);
-    DataReference[] refs2 = {ref_direct};
-    display1.addReferences(new DirectManipulationRendererJ3D(), refs2, null);
-
-    DataReferenceImpl ref_histogram1 = new DataReferenceImpl("ref_histogram1");
-    ref_histogram1.setData(histogram1);
-    DataReference[] refs3 = {ref_histogram1};
-    display1.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
-*/
-
-/*
-    DataReferenceImpl ref_netcdf = new DataReferenceImpl("ref_netcdf");
-    ref_netcdf.setData(netcdf_data);
-    display1.addReference(ref_netcdf, null);
-*/
-
-/*
-    DataReferenceImpl ref_temp = new DataReferenceImpl("ref_temp");
-    ref_temp.setData(temp);
-    display1.addReference(ref_temp, null);
-*/
-
-/*
-    DataReferenceImpl ref_image_sequence =
-      new DataReferenceImpl("ref_image_sequence");
-    ref_image_sequence.setData(image_sequence);
-    display1.addReference(ref_image_sequence, null);
-*/
-
-    DataReferenceImpl ref_image_stinger =
-      new DataReferenceImpl("ref_image_stinger");
-    ref_image_stinger.setData(image_stinger);
-    display1.addReference(ref_image_stinger, null);
-
-/*
-    DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
-    ref_grid3d.setData(grid3d);
-    display1.addReference(ref_grid3d, null);
-*/
-/*
-    DisplayImpl display2 = new DisplayImplJ3D("display2", APPLETFRAME);
-    display2.addMap(new ScalarMap(vis_radiance, Display.XAxis));
-    display2.addMap(new ScalarMap(ir_radiance, Display.YAxis));
-    display2.addMap(new ScalarMap(count, Display.ZAxis));
-
-    GraphicsModeControl mode2 = display2.getGraphicsModeControl();
-    mode2.setPointSize(5.0f);
-    mode2.setPointMode(false);
-
-    display2.addReferences(new DirectManipulationRendererJ3D(), refs2, null);
-    display2.addReferences(new DirectManipulationRendererJ3D(), refs3, null);
-*/
-
-/*
-    DisplayImpl display5 = new DisplayImplJ3D("display5", APPLETFRAME);
-    display5.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
-    display5.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
-    display5.addMap(new ScalarMap(ir_radiance, Display.Radius));
-    display5.addMap(new ScalarMap(vis_radiance, Display.RGB));
-    System.out.println(display5);
-    display5.addReference(ref_imaget1, null);
-
-    DisplayImpl display3 = new DisplayImplJ3D("display3", APPLETFRAME);
-    display3.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
-    display3.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
-    display3.addMap(new ScalarMap(ir_radiance, Display.Radius));
-    display3.addMap(new ScalarMap(vis_radiance, Display.RGB));
-    System.out.println(display3);
-    display3.addReference(ref_imaget1, null);
-
-    DisplayImpl display4 = new DisplayImplJ3D("display4", APPLETFRAME);
-    display4.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
-    display4.addMap(new ScalarMap(RealType.Longitude, Display.Radius));
-    display4.addMap(new ScalarMap(ir_radiance, Display.YAxis));
-    display4.addMap(new ScalarMap(vis_radiance, Display.RGB));
-    System.out.println(display4);
-    display4.addReference(ref_imaget1, null);
-
-    delay(1000);
-    System.out.println("\ndelay\n");
-
-    ref_imaget1.incTick();
-
-    delay(1000);
-    System.out.println("\ndelay\n");
-
-    ref_imaget1.incTick();
-
-    delay(1000);
-    System.out.println("\ndelay\n");
-
-    ref_imaget1.incTick();
- 
-    System.out.println("\nno delay\n");
- 
-    ref_imaget1.incTick();
- 
-    System.out.println("\nno delay\n");
- 
-    ref_imaget1.incTick();
- 
-    delay(2000);
-    System.out.println("\ndelay\n");
-
-
-    display1.removeReference(ref_imaget1);
-    display5.removeReference(ref_imaget1);
-    display3.removeReference(ref_imaget1);
-    display4.removeReference(ref_imaget1);
-
-    display1.stop();
-    display5.stop();
-    display3.stop();
-    display4.stop();
-*/
 
     while (true) {
       delay(5000);
@@ -632,90 +828,6 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
     // System.exit(0);
 
   }
-
-/* Here's the output:
-
-110% java visad.Display
-FunctionType (Real): (Latitude(degrees), Longitude(degrees)) -> (vis_radiance, ir_radiance)
-FunctionType (Real): (ir_radiance) -> count
-FlatField  missing
-
-FlatField  missing
-
-Display
-    ScalarMap: Latitude(degrees) -> DisplayXAxis
-    ScalarMap: Longitude(degrees) -> DisplayYAxis
-    ScalarMap: ir_radiance -> DisplayZAxis
-    ScalarMap: vis_radiance -> DisplayRGB
-    ConstantMap: 0.5 -> DisplayAlpha
-
-Display
-    ScalarMap: Latitude(degrees) -> DisplayLatitude
-    ScalarMap: Longitude(degrees) -> DisplayLongitude
-    ScalarMap: ir_radiance -> DisplayRadius
-    ScalarMap: vis_radiance -> DisplayRGB
-
-Display
-    ScalarMap: Latitude(degrees) -> DisplayXAxis
-    ScalarMap: Longitude(degrees) -> DisplayYAxis
-    ScalarMap: ir_radiance -> DisplayRadius
-    ScalarMap: vis_radiance -> DisplayRGB
-
-Display
-    ScalarMap: Latitude(degrees) -> DisplayXAxis
-    ScalarMap: Longitude(degrees) -> DisplayRadius
-    ScalarMap: ir_radiance -> DisplayYAxis
-    ScalarMap: vis_radiance -> DisplayRGB
-
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = true
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = false
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = false
-ShadowRealTupleType: mapped to multiple spatial DisplayTupleType-s
-
-delay
-
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = true
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = false
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = false
-ShadowRealTupleType: mapped to multiple spatial DisplayTupleType-s
-
-delay
-
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = true
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = false
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = false
-ShadowRealTupleType: mapped to multiple spatial DisplayTupleType-s
-
-delay
-
- 
-no delay
- 
- 
-no delay
- 
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = true
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = false
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = false
-ShadowRealTupleType: mapped to multiple spatial DisplayTupleType-s
- 
-delay
-
-111%
-
-*/
 
 }
 
