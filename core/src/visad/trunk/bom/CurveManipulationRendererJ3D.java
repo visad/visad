@@ -55,7 +55,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   public ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowBarbSetTypeJ3D(type, link, parent);
+    return new ShadowCurveSetTypeJ3D(type, link, parent);
   }
 
   private float[][] spatialValues = null;
@@ -69,6 +69,10 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   private transient MathType type = null;
   private transient ShadowSetType shadow = null;
 
+  private transient RealType[] domain_reals;
+
+  float[] default_values;
+
   /** point on direct manifold line or plane */
   private float point_x, point_y, point_z;
   /** normalized direction of line or perpendicular to plane */
@@ -76,7 +80,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   /** arrays of length one for inverseScaleValues */
   private float[] f = new float[1];
   private float[] d = new float[1];
-  private float[][] value = new float[1][1];
+  private float[] value = new float[2];
 
   /** information calculated by checkDirect */
   /** explanation for invalid use of DirectManipulationRenderer */
@@ -119,6 +123,9 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       whyNotDirect = notSetType;
       return;
     }
+    RealTupleType real_tuple = ((SetType) type).getDomain();
+    domain_reals = real_tuple.getRealComponents();
+
     shadow = (ShadowSetType) link.getShadow().getAdaptedShadowType();
     ShadowRealTupleType domain = ((ShadowSetType) shadow).getDomain();
 
@@ -233,6 +240,7 @@ spatialValues[1][i] + " " + spatialValues[2][i] + " d = " + d);
 */
     }
     if (distance > getDisplayRenderer().getPickThreshhold()) {
+      closeIndex = -1;
       return 0.0f;
     }
 /*
@@ -273,9 +281,6 @@ System.out.println("checkClose: distance = " + distance);
     // CurveManipulationRendererJ3D is ever extended to include
     // ManifoldDimension != 2
     if (first) {
-      point_x = spatialValues[0][closeIndex];
-      point_y = spatialValues[1][closeIndex];
-      point_z = spatialValues[2][closeIndex];
       int lineAxis = -1;
       if (getDirectManifoldDimension() == 3) {
         // coord sys ok
@@ -307,6 +312,45 @@ System.out.println("checkClose: distance = " + distance);
         line_x = (lineAxis == 0) ? 1.0f : 0.0f;
         line_y = (lineAxis == 1) ? 1.0f : 0.0f;
         line_z = (lineAxis == 2) ? 1.0f : 0.0f;
+      }
+      if (closeIndex < 0) {
+        if (lineAxis < 0) return; // don't know how to do this
+        DisplayRealType dreal = null;
+        try {
+          dreal = (DisplayRealType)
+            Display.DisplaySpatialCartesianTuple.getComponent(lineAxis);
+        }
+        catch (VisADException e) {
+          // do nothing
+          System.out.println("drag_direct " + e);
+          e.printStackTrace();
+        }
+        int line_index = getDisplay().getDisplayScalarIndex(dreal);
+        float lineAxisValue = (line_index > 0) ? default_values[line_index] :
+                                                 (float) dreal.getDefaultValue();
+        if (lineAxis == 0) {
+          float intersect = (lineAxisValue - o_x) / d_x;
+          point_x = lineAxisValue;
+          point_y = o_y + intersect * d_y;
+          point_z = o_z + intersect * d_z;
+        }
+        else if (lineAxis == 1) {
+          float intersect = (lineAxisValue - o_y) / d_y;
+          point_x = o_x + intersect * d_x;
+          point_y = lineAxisValue;
+          point_z = o_z + intersect * d_z;
+        }
+        else { // lineAxis == 2
+          float intersect = (lineAxisValue - o_z) / d_z;
+          point_x = o_x + intersect * d_x;
+          point_y = o_y + intersect * d_y;
+          point_z = lineAxisValue;
+        }
+      }
+      else { // closeIndex >= 0
+        point_x = spatialValues[0][closeIndex];
+        point_y = spatialValues[1][closeIndex];
+        point_z = spatialValues[2][closeIndex];
       }
     } // end if (first)
 
@@ -351,40 +395,68 @@ System.out.println("checkClose: distance = " + distance);
         x[1] = new_cursor[1][0];
         x[2] = new_cursor[2][0];
       }
-      Data newData = null;
-      Data data = link.getData();
-
-
-/*
-      // RealTupleType case
       addPoint(xx);
-      int n = ((RealTuple) data).getDimension();
-      Real[] reals = new Real[n];
+
+      UnionSet newData = null;
+      UnionSet data = (UnionSet) link.getData();
+      SampledSet[] sets = data.getSets();
+      int n = sets.length;
+
+      
       Vector vect = new Vector();
       for (int i=0; i<3; i++) {
         int j = getAxisToComponent(i);
         if (j >= 0) {
           f[0] = x[i];
           d = getDirectMap(i).inverseScaleValues(f);
-          Real c = (Real) ((RealTuple) data).getComponent(j);
-          RealType rtype = (RealType) c.getType();
-          reals[j] = new Real(rtype, (double) d[0], rtype.getDefaultUnit(), null);
+          value[j] = d[0];
+          RealType rtype = domain_reals[j];
           // create location string
           String valueString = new Real(rtype, d[0]).toValueString();
           vect.addElement(rtype.getName() + " = " + valueString);
         }
       }
       getDisplayRenderer().setCursorStringVector(vect);
-      for (int j=0; j<n; j++) {
-        if (reals[j] == null) {
-          reals[j] = (Real) ((RealTuple) data).getComponent(j);
+
+System.out.println("value = " + value[0] + " " + value[1]);
+
+      if (first) {
+        if (closeIndex < 0) {
+          SampledSet[] new_sets = new SampledSet[n+1];
+          System.arraycopy(sets, 0, new_sets, 0, n);
+          float[][] new_samples = {{value[0]}, {value[1]}};
+          new_sets[n] = new Gridded2DSet(type, new_samples, 1,
+                                         data.getCoordinateSystem(),
+                                         data.getSetUnits(), null);
+          newData = new UnionSet(type, new_sets);
+        }
+        else {
+          newData = data;
         }
       }
-      newData = new RealTuple((RealTupleType) type, reals,
-                              ((RealTuple) data).getCoordinateSystem());
+      else { // !first
+        if (closeIndex < 0) {
+          float[][] samples = sets[n-1].getSamples(false);
+          int m = samples[0].length;
+          float[][] new_samples = new float[2][m+1];
+          System.arraycopy(samples[0], 0, new_samples[0], 0, m);
+          System.arraycopy(samples[1], 0, new_samples[1], 0, m);
+          new_samples[0][m] = value[0];
+          new_samples[1][m] = value[1];
+          sets[n-1] = new Gridded2DSet(type, new_samples, m+1,
+                                       data.getCoordinateSystem(),
+                                       data.getSetUnits(), null);
+          newData = new UnionSet(type, sets);
+        }
+        else {
+          newData = data;
+        }
+      }
+
+System.out.println("closeIndex = " + closeIndex + "  newData = " + newData);
+
       ref.setData(newData);
       link.clearData();
-*/
 
     } // end try
     catch (VisADException e) {
@@ -417,17 +489,18 @@ System.out.println("checkClose: distance = " + distance);
     Gridded2DSet[] sets = {set1};
     UnionSet set = new UnionSet(earth, sets);
 
-    DataReferenceImpl ref = new DataReferenceImpl("set");
-    ref.setData(set);
-
     // construct Java3D display and mappings
     DisplayImpl display =
       new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);
     display.addMap(lonmap);
+    lonmap.setRange(-1.0, 1.0);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
+    latmap.setRange(0.0, 3.0);
 
+    DataReferenceImpl ref = new DataReferenceImpl("set");
+    ref.setData(set);
     display.addReferences(new CurveManipulationRendererJ3D(), ref);
 
     // create JFrame (i.e., a window) for display and slider

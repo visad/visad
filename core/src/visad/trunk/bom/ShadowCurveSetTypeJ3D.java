@@ -71,6 +71,8 @@ public class ShadowCurveSetTypeJ3D extends ShadowSetTypeJ3D {
                                  "with manifold dimension = 1");
     }
 
+    ((CurveManipulationRendererJ3D) renderer).default_values = default_values;
+
     boolean post = ((ShadowFunctionOrSetType) getAdaptedShadowType()).
                         doTransform(group, data, value_array,
                                     default_values, renderer, this);
