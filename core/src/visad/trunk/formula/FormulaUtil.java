@@ -66,10 +66,10 @@ public class FormulaUtil {
                             "visad.FieldImpl.combine(visad.Field[])",
                             "visad.Data.cos()", "visad.Data.cosDegrees()",
                             "visad.formula.FormulaUtil.derive(" +
-                                "visad.Function, visad.formula.VRealType)",
+                            "visad.Function, visad.formula.VRealType)",
                             "visad.FieldImpl.domainMultiply()",
                             "visad.formula.FormulaUtil.factor(" +
-                                "visad.FieldImpl, visad.formula.VRealType)",
+                            "visad.FieldImpl, visad.formula.VRealType)",
                             "visad.Data.exp()",
                             "visad.formula.FormulaUtil.extract(visad.Field," +
                                                               "visad.Real)",
@@ -77,7 +77,7 @@ public class FormulaUtil {
                             "visad.formula.FormulaUtil.brackets(visad.Field," +
                                                                "visad.Real)",
                             "visad.formula.FormulaUtil.link(" +
-                                "visad.formula.VMethod, java.lang.Object[])",
+                            "visad.formula.VMethod, java.lang.Object[])",
                             "visad.Data.log()",
                             "visad.Data.max(visad.Data)",
                             "visad.Data.min(visad.Data)",
@@ -87,13 +87,15 @@ public class FormulaUtil {
                             "visad.Data.tan()", "visad.Data.tanDegrees()"};
     int implicitPrec = 200;
     String[] implicitMethods = {"visad.formula.FormulaUtil.implicit(" +
-                                    "visad.Function, visad.Real)",
+                                "visad.Function, visad.Real)",
                                 "visad.Function.evaluate(visad.RealTuple)"};
+    String preParseMethod = "visad.formula.FormulaUtil.preParse(" +
+                            "java.lang.String, visad.formula.FormulaManager)";
     FormulaManager f;
     try {
       f = new FormulaManager(binOps, binPrec, binMethods, unaryOps, unaryPrec,
                              unaryMethods, functions, funcMethods,
-                             implicitPrec, implicitMethods);
+                             implicitPrec, implicitMethods, preParseMethod);
     }
     catch (FormulaException exc) {
       return null;
@@ -432,10 +434,10 @@ public class FormulaUtil {
 
   /** attempt to invoke a Method with the given Object arguments, performing
       static method auto-detection and automatic array compression */
-  public static Thing invokeMethod(Method m, Object[] o)
-                                   throws IllegalAccessException,
-                                          IllegalArgumentException,
-                                          InvocationTargetException {
+  public static Object invokeMethod(Method m, Object[] o)
+                                    throws IllegalAccessException,
+                                           IllegalArgumentException,
+                                           InvocationTargetException {
     Object obj;
     Object[] args;
     Class[] c = m.getParameterTypes();
@@ -489,8 +491,7 @@ public class FormulaUtil {
       }
       else args = null;
     }
-    Object ans = m.invoke(obj, args);
-    return (ans instanceof Thing ? (Thing) ans : null);
+    return m.invoke(obj, args);
   }
 
 }

@@ -700,9 +700,8 @@ public class BasicSSCell extends JPanel {
     HasData = false;
     HasFormula = false;
     Formula = "";
-    String formula = FormulaUtil.preParse(nf, fm);
-    fm.assignFormula(Name, formula);
-    HasFormula = !formula.equals("");
+    fm.assignFormula(Name, nf);
+    HasFormula = !nf.equals("");
     Formula = nf;
   }
 

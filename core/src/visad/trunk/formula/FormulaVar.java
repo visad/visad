@@ -140,7 +140,17 @@ public class FormulaVar extends ActionImpl {
       if (postfix == null) {
         try {
           // compute postfix expression
-          postfix = new Postfix(formula, fm);
+          Object[] o = new Object[2];
+          o[0] = formula;
+          o[1] = fm;
+          String pf = formula;
+          try {
+            pf = (String) FormulaUtil.invokeMethod(fm.ppMethod, o);
+          }
+          catch (IllegalAccessException exc) { }
+          catch (IllegalArgumentException exc) { }
+          catch (InvocationTargetException exc) { }
+          postfix = new Postfix(pf, fm);
           int len = (postfix.tokens == null ? 0 : postfix.tokens.length);
           for (int i=0; i<len; i++) {
             String token = postfix.tokens[i];
@@ -359,7 +369,7 @@ public class FormulaVar extends ActionImpl {
             // support for overloaded operators
             if (ans == null && fm.bOps[j].equals(token)) {
               try {
-                ans = FormulaUtil.invokeMethod(fm.bMethods[j], o);
+                ans = (Thing) FormulaUtil.invokeMethod(fm.bMethods[j], o);
               }
               catch (IllegalAccessException exc) {
                 if (DEBUG) System.out.println(exc.toString());
@@ -388,7 +398,7 @@ public class FormulaVar extends ActionImpl {
             // support for overloaded operators
             if (ans == null && fm.uOps[j].equals(token)) {
               try {
-                ans = FormulaUtil.invokeMethod(fm.uMethods[j], o);
+                ans = (Thing) FormulaUtil.invokeMethod(fm.uMethods[j], o);
               }
               catch (IllegalAccessException exc) {
                 if (DEBUG) System.out.println(exc.toString());
@@ -435,7 +445,7 @@ public class FormulaVar extends ActionImpl {
               // support for overloaded defined functions
               if (ans == null && fm.funcs[j].equalsIgnoreCase(token)) {
                 try {
-                  ans = FormulaUtil.invokeMethod(fm.fMethods[j], o);
+                  ans = (Thing) FormulaUtil.invokeMethod(fm.fMethods[j], o);
                 }
                 catch (IllegalAccessException exc) {
                   if (DEBUG) System.out.println(exc.toString());
@@ -477,7 +487,7 @@ public class FormulaVar extends ActionImpl {
               // support for overloaded implicit functions
               if (ans == null) {
                 try {
-                  ans = FormulaUtil.invokeMethod(fm.iMethods[j], o);
+                  ans = (Thing) FormulaUtil.invokeMethod(fm.iMethods[j], o);
                 }
                 catch (IllegalAccessException exc) {
                   if (DEBUG) System.out.println(exc.toString());

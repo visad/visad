@@ -30,17 +30,6 @@ import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.*;
 
-/*
-   Note: The FormulaManager class does not support strange and unique syntaxes,
-   such as a derivative notation like: d(x)/d(y).  If you wish your application
-   to support unique syntaxes, simply have the application implement a formula
-   "pre-processor" that converts the "strange" syntaxes to "standard" syntax.
-   For example, the FormulaUtil.preParse() method supports derivative notation
-   of the form d(x)/d(y) by converting it to the form derive(x, y).  The
-   application can call the preParse() method before passing the formula to the
-   manager.
-*/
-
 /** The FormulaManager class is the gateway into the visad.formula package,
     a general-purpose formula parser and evaluator.  Variables update
     automatically when the variables upon which they depend change.
@@ -77,13 +66,24 @@ public class FormulaManager {
 
   /** implicit function methods */
   Method[] iMethods;
-  
+
+  /** formula text pre-parsing method.  For an application to support unusual
+      non-standard syntaxes, such as brackets (e.g., VAR[0]), that application
+      should supply a &quot;pre-parsing&quot; method in the preParseMethod
+      argument, which converts non-standard syntax to standard syntax (e.g.,
+      VAR[0] could become getElement(VAR, 0)).  The supplied method should be
+      a static method taking a String argument (the formula) and a
+      FormulaManager argument (this FormulaManager).  If the application does
+      not need such functionality, the preParseMethod argument can be null. */
+  Method ppMethod;
+
   /** construct a new FormulaManager object */
   public FormulaManager(String[] binOps, int[] binPrec, String[] binMethods,
                         String[] unaryOps, int[] unaryPrec,
                         String[] unaryMethods, String[] functions,
                         String[] funcMethods, int implicitPrec,
-                        String[] implicitMethods) throws FormulaException {
+                        String[] implicitMethods, String preParseMethod) 
+                        throws FormulaException {
     bOps = binOps;
     bPrec = binPrec;
     bMethods = FormulaUtil.stringsToMethods(binMethods);
@@ -95,6 +95,12 @@ public class FormulaManager {
     iPrec = implicitPrec;
     iMethods = FormulaUtil.stringsToMethods(implicitMethods);
     String[] s = new String[1];
+    if (preParseMethod == null) ppMethod = null;
+    else {
+      String[] pps = new String[] {preParseMethod};
+      Method[] ppm = FormulaUtil.stringsToMethods(pps);
+      ppMethod = ppm[0];
+    }
 
     // check that parallel arrays are really parallel
     int l1 = bOps.length;

@@ -64,7 +64,7 @@ public class Rain implements ActionListener, ControlListener {
      {"A3", "B3", "C3"}, {"A4", "B4", "C4"}};
 
   static final String[][] cell_formulas =
-    {{"", "getSample(A1, 0)", // CTR: B1 will be "A1[0]"
+    {{"", "A1[0]",
       "(10^(extract(B1, 0)/10)/num300) ^ (1/num1_4)"},
      {"(10^(extract(B1, 1)/10)/num300) ^ (1/num1_4)",
       "(10^(extract(B1, 2)/10)/num300) ^ (1/num1_4)",
