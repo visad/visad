@@ -103,7 +103,7 @@ public class RealTupleType extends TupleType {
    * System intrinsic
    * for (RealType.Latitude, RealType.Longitude, RealType.Altitude) 
    */
-  public final static RealTupleType LatitudeLongitudeAltitudeTuple =
+  public final static RealTupleType LatitudeLongitudeAltitude =
     new RealTupleType(componentslla, true);
 
 
