@@ -1692,7 +1692,7 @@ public class FlatField extends FieldImpl {
         // do cos in degrees, unless unit is radians
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(CommonUnit.degree)) {
+          if (CommonUnit.degree.equals(RangeUnits[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.cos(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -1709,7 +1709,7 @@ public class FlatField extends FieldImpl {
       case COS_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(CommonUnit.radian)) {
+          if (CommonUnit.radian.equals(RangeUnits[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.cos(valuesJ[i]);
             }
@@ -1773,7 +1773,7 @@ public class FlatField extends FieldImpl {
       case SIN:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(CommonUnit.degree)) {
+          if (CommonUnit.degree.equals(RangeUnits[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.sin(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -1790,7 +1790,7 @@ public class FlatField extends FieldImpl {
       case SIN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(CommonUnit.radian)) {
+          if (CommonUnit.radian.equals(RangeUnits[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.sin(valuesJ[i]);
             }
@@ -1817,7 +1817,7 @@ public class FlatField extends FieldImpl {
       case TAN:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(CommonUnit.degree)) {
+          if (CommonUnit.degree.equals(RangeUnits[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.tan(Data.DEGREES_TO_RADIANS * valuesJ[i]);
             }
@@ -1834,7 +1834,7 @@ public class FlatField extends FieldImpl {
       case TAN_DEGREES:
         for (j=0; j<TupleDimension; j++) {
           valuesJ = values[j];
-          if (RangeUnits[j].equals(CommonUnit.radian)) {
+          if (CommonUnit.radian.equals(RangeUnits[j])) {
             for (i=0; i<Length; i++) {
               valuesJ[i] = Math.tan(valuesJ[i]);
             }
