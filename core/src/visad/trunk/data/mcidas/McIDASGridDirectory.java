@@ -130,6 +130,30 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
   }
 
   /**
+   * Get the raw navigation block from the directory.
+   * @return  raw int values  vary with grid type
+   */
+  public int[] getNavBlock() {
+     return (directory != null) ? directory.getNavBlock() : null;
+  }
+
+  /**
+   * Get the raw navigation block from the directory.
+   * @return  raw int values  vary with grid type (-1 == unknown)
+   */
+  public int getGridType() {
+    return (directory != null) ? directory.getNavType() : -1;
+  }
+
+  /**
+   * Get the grid directory used to create this beast.
+   * @return corresponding edu.wisc.ssec.mcidas.GridDirectory. (may be null)
+   */
+  public GridDirectory getGridDirectory() {
+    return directory;
+  }
+
+  /**
    * Return a String representation of the McIDASGridDirectory
    */
   public String toString() {
@@ -141,4 +165,3 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
   }
 
 }
-
