@@ -296,7 +296,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   //    sampling.<P>
   private boolean reUseFrames = false;
 
-  private boolean setSetOnReUseFrames = false;
+  private boolean setSetOnReUseFrames = true;
 
   // factory for ShadowFunctionType that defines unique behavior
   // for ImageRendererJ3D
