@@ -41,21 +41,21 @@ import visad.formula.FormulaUtil;
  */
 public class JamaCholeskyDecomposition extends Tuple {
 
-  private static final RealType wavelength =
-    RealType.getRealType("wavelength");
+  private static final RealType cholesky_row =
+    RealType.getRealType("choleskyL_row");
 
-  private static final RealType principal_component =
-    RealType.getRealType("principal_component");
+  private static final RealType cholesky_column =
+    RealType.getRealType("choleskyL_column");
 
-  private static final RealType coefficient =
-    RealType.getRealType("coefficient");
+  private static final RealType cholesky_value =
+    RealType.getRealType("choleskyL_value");
 
-  private static final FunctionType matrixType = constructFunction();
+  private static final FunctionType choleskyLType = constructFunction();
 
   private static FunctionType constructFunction() {
     try {
-      RealTupleType tuple = new RealTupleType(wavelength, principal_component);
-      FunctionType function = new FunctionType(tuple, coefficient);
+      RealTupleType tuple = new RealTupleType(cholesky_row, cholesky_column);
+      FunctionType function = new FunctionType(tuple, cholesky_value);
       return function;
     }
     catch (VisADException exc) {
@@ -93,7 +93,7 @@ public class JamaCholeskyDecomposition extends Tuple {
   /** associated JAMA CholeskyDecomposition object */
   private Object cd;
 
-  /** useful methods from Jama.Matrix class */
+  /** useful methods from Jama.CholeskyDecomposition class */
   private static final Method[] methods =
     constructMethods();
 
@@ -148,41 +148,10 @@ public class JamaCholeskyDecomposition extends Tuple {
     Object c =
       matrixCholeskyDecomposition.newInstance(new Object[] {matrix.getMatrix()});
     Object m = getL.invoke(c, new Object[] {});
-    FunctionType ftype = (FunctionType) matrix.getType();
-    Gridded2DSet set = (Gridded2DSet) matrix.getDomainSet();
-    CoordinateSystem rc = null;
-    try {
-      CoordinateSystem[] r = matrix.getRangeCoordinateSystem();
-      rc = r[0];
-    }
-    catch (Exception e) {
-    }
-    CoordinateSystem[] rcs = null;
-    try {
-      int n = ((TupleType) ftype.getRange()).getDimension();
-      rcs = new CoordinateSystem[n];
-      for (int i=0; i<n; i++) {
-        CoordinateSystem[] r = matrix.getRangeCoordinateSystem(i);
-        rcs[i] = r[0];
-      }
-    }
-    catch (Exception e) {
-    }
-    Set[] rangeSets = matrix.getRangeSets();
-    Unit[] units = null;
-    try {
-      Unit[][] us = matrix.getRangeUnits();
-      if (us != null) {
-        int n = us.length;
-        for (int i=0; i<n; i++) {
-          units[i] = us[i][0];
-        }
-      }
-    }
-    catch (Exception e) {
-    }
 
-    JamaMatrix jm = new JamaMatrix(m, ftype, set, rc, rcs, rangeSets, units);
+    JamaMatrix jm =
+      new JamaMatrix(m, choleskyLType, null, null, null, null, null);
+
     jm.setStash(c);
     return new Data[] {jm};
   }

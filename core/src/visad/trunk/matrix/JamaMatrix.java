@@ -40,21 +40,21 @@ import visad.formula.FormulaUtil;
  */
 public class JamaMatrix extends FlatField {
 
-  private static final RealType wavelength =
-    RealType.getRealType("wavelength");
+  private static final RealType matrix_row =
+    RealType.getRealType("matrix_row");
 
-  private static final RealType principal_component =
-    RealType.getRealType("principal_component");
+  private static final RealType matrix_column =
+    RealType.getRealType("matrix_column");
 
-  private static final RealType coefficient =
-    RealType.getRealType("coefficient");
+  private static final RealType matrix_value =
+    RealType.getRealType("matrix_value");
 
   private static final FunctionType matrixType = constructFunction();
 
   private static FunctionType constructFunction() {
     try {
-      RealTupleType tuple = new RealTupleType(wavelength, principal_component);
-      FunctionType function = new FunctionType(tuple, coefficient);
+      RealTupleType tuple = new RealTupleType(matrix_row, matrix_column);
+      FunctionType function = new FunctionType(tuple, matrix_value);
       return function;
     }
     catch (VisADException exc) {
@@ -302,8 +302,41 @@ public class JamaMatrix extends FlatField {
       }
     }
 
-    // construct the new JamaMatrix object and return it
-    return new JamaMatrix(entries);
+    FunctionType ftype = (FunctionType) field.getType();
+    CoordinateSystem rc = null;
+    try {
+      CoordinateSystem[] r = field.getRangeCoordinateSystem();
+      rc = r[0];
+    }
+    catch (Exception e) {
+    }
+    CoordinateSystem[] rcs = null;
+    try {
+      int n = ((TupleType) ftype.getRange()).getDimension();
+      rcs = new CoordinateSystem[n];
+      for (int i=0; i<n; i++) {
+        CoordinateSystem[] r = field.getRangeCoordinateSystem(i);
+        rcs[i] = r[0];
+      }
+    }
+    catch (Exception e) {
+    }
+    Set[] rangeSets = field.getRangeSets();
+    Unit[] units = null;
+    try {
+      Unit[][] us = field.getRangeUnits();
+      if (us != null) {
+        int n = us.length;
+        for (int i=0; i<n; i++) {
+          units[i] = us[i][0];
+        }
+      }
+    }
+    catch (Exception e) {
+    }
+
+    Object m = doubleMatrix.newInstance(new Object[] {entries});
+    return new JamaMatrix(m, ftype, grid, rc, rcs, rangeSets, units);
   }
 
   /**
@@ -337,6 +370,7 @@ System.out.println("m1.get(1, 1) = " + m1.get(1, 1));
       m3.print(1, 0);
       System.out.println("m4 = m1 + m2 (JAMA):");
       m4.print(1, 0);
+      System.out.println("m4 = " + m4);
     }
     catch (Exception e) {
       e.printStackTrace();
