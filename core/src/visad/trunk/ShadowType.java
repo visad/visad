@@ -3228,6 +3228,10 @@ System.out.println("range = " + range[0] + " " + range[1] +
     return null;
   }
 
+  public void addToGroup(Object group, Object branch)
+         throws VisADException {
+  }
+
   public void addToSwitch(Object swit, Object branch)
          throws VisADException {
   }

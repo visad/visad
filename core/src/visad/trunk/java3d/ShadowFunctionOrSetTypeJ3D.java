@@ -903,6 +903,16 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     return branch;
   }
 
+  public void addToGroup(Object group, Object branch)
+         throws VisADException {
+/* WLH 18 Aug 98
+   empty BranchGroup or Shape3D may cause NullPointerException
+   from Shape3DRetained.setLive
+*/
+    ensureNotEmpty((BranchGroup) branch);
+    ((BranchGroup) group).addChild((BranchGroup) branch);
+  }
+
   public void addToSwitch(Object swit, Object branch)
          throws VisADException {
 /* WLH 18 Aug 98

@@ -148,6 +148,11 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
     return branch;
   }
 
+  public void addToGroup(Object group, Object branch)
+         throws VisADException {
+    ((VisADGroup) group).addChild((VisADGroup) branch);
+  }
+
   public void addToSwitch(Object swit, Object branch)
          throws VisADException {
     ((VisADSwitch) swit).addChild((VisADGroup) branch);

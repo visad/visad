@@ -2881,9 +2881,11 @@ WLH 15 March 2000 */
             // System.out.println("addChild " + i + " of " + domain_length);
           }
           else {
-            post |= shadow_api.recurseRange(group, ((Field) data).getSample(i),
+            Object branch = shadow_api.makeBranch();
+            post |= shadow_api.recurseRange(branch, ((Field) data).getSample(i),
                                              range_value_array, default_values,
                                              renderer);
+            shadow_api.addToGroup(group, branch);
           }
           // pop lat_index and lon_index for flow navigation
           renderer.setLatLonIndices(lat_lon_indices);
