@@ -438,16 +438,10 @@ public abstract class GraphicsModeControl extends Control
     boolean mt = Convert.getBoolean(st.nextToken());
     int cs = Convert.getInt(st.nextToken());
 
-    int ls = SOLID_STYLE;
-    int cm = 0;
-    float po = Float.NaN;
-    float pof = 0;
-    while (st.hasMoreTokens())  {
-      ls = Convert.getInt(st.nextToken());
-      cm = Convert.getInt(st.nextToken());
-      po = Convert.getFloat(st.nextToken());
-      pof = Convert.getFloat(st.nextToken());
-    }
+    int ls = st.hasMoreTokens() ? Convert.getInt(st.nextToken()) : SOLID_STYLE;
+    int cm = st.hasMoreTokens() ? Convert.getInt(st.nextToken()) : 0;
+    float po = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : Float.NaN;
+    float pof = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : 0;
 
     // reset graphics mode settings
     setLineWidth(lw);
