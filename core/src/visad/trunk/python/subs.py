@@ -56,9 +56,11 @@ makeMaps(RealType, name, RealType, name, ....)
   define ScalarMap(s) given pairs of (Type, name)
   where "name" is taken from the list, below.
 
-showDisplay(display, width=300, height=300, title=)
+showDisplay(display, width=300, height=300, title=, bottom=, top=)
   quick display of a Display object in a separate JFrame
-  you can set the size and title, if you want...
+  you can set the size and title, if you want...  Use the bottom=
+  and top= keywords to add these componenets (or panels) to the bottom
+  and top of the VisAD display (which always is put in the Center).
 
 """
 
@@ -361,8 +363,9 @@ def makeMaps(*a):
 
 # quick display of a Display object in a separate JFrame
 # you can set the size and title, if you want...
-def showDisplay(display, width=300, height=300, title="VisAD Display"):
-  myf = myFrame(display, width, height, title)
+def showDisplay(display, width=300, height=300, 
+                title="VisAD Display", bottom=None, top=None):
+  myf = myFrame(display, width, height, title, bottom, top)
 
 class myFrame:
 
@@ -370,12 +373,16 @@ class myFrame:
     self.display.destroy()
     self.frame.dispose()
 
-  def __init__(self, display, width, height, title):
+  def __init__(self, display, width, height, title, bottom, top):
     from javax.swing import JFrame
     self.display = display
     self.frame = JFrame(title, windowClosing=self.desty)
     self.pane = self.frame.getContentPane()
-    self.pane.add(self.display.getComponent())
+    self.pane.add("Center",self.display.getComponent())
+    if bottom != None: 
+      self.pane.add("South", bottom)
+    if top != None: 
+      self.pane.add("North", top)
     self.frame.pack()
     self.frame.show()
     self.frame.setSize(width, height)
