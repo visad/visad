@@ -124,24 +124,24 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
   private static int ROLL = 2;
 
   // graphics distance (feet?) per second
-  private float TRAVEL_SPEED = 0.3f;
+  private float TRAVEL_SPEED = 4.0f;
 
   // scale factors for head / wand translation (negative?)
   // NOTE - you may need to adjust these for your ImmersaDesk
-  private float HEAD_SCALE = 0.3f;
-  private float WAND_SCALE = 1.0f;
+  private float HEAD_SCALE = 0.10f;
+  private float WAND_SCALE = 1.5f;
 
   // offsets for head / wand translation
   // NOTE - you may need to adjust these for your ImmersaDesk
   private float HEADX_OFFSET = 0.0f;
   private float HEADY_OFFSET = -3.0f;
-  private float HEADZ_OFFSET = 0.0f;
+  private float HEADZ_OFFSET = 5.0f;
   private float WANDX_OFFSET = -0.5f;
   private float WANDY_OFFSET = -2.0f;
   private float WANDZ_OFFSET = 0.0f;
 
   // length of direct manipulation ray
-  private float RAY_LENGTH = 100.0f;
+  private float RAY_LENGTH = 2.0f;
 
 
   public void run() {
@@ -169,6 +169,7 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
       number_of_buttons[0] = NBUTTONS;
       hack.getTrackd(number_of_sensors, sensor_positions, sensor_angles,
                      sensor_matrices, number_of_buttons, button_states);
+/*
       nprint--;
       if (nprint <= 0) {
         nprint = 1000 / DELAY;
@@ -183,6 +184,7 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
         System.out.println(number_of_buttons[0] + " buttons: " + button_states[0] +
                            " " + button_states[1] + " " + button_states[2]);
       }
+*/
 
       last_right = right;
       left = (button_states[LEFT] != 0);
@@ -246,6 +248,9 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
       temp.mul(tm);
       vpTrans.setTransform(temp);
 
+      Transform3D t3d = new Transform3D();
+      display_renderer.getTrans().getTransform(t3d);
+
       // QUESTION? + or - travel_position QUESTION?
       float wandx =
         WAND_SCALE * (wand_position[0] + travel_position[0] + WANDX_OFFSET);
@@ -254,6 +259,12 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
       float wandz =
         WAND_SCALE * (wand_position[2] + travel_position[2] + WANDZ_OFFSET);
 
+      Point3f p3f = new Point3f(wandx, wandy, wandz);
+      t3d.transform(p3f);
+      wandx = p3f.x;
+      wandy = p3f.y;
+      wandz = p3f.z;
+
       display_renderer.setCursorOn(center);
       if (center) {
         display_renderer.setCursorLoc(wandx, wandy, wandz);
@@ -261,11 +272,17 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
 
       if (right && display_renderer.anyDirects()) {
         float wand_endx = wandx +
-          WAND_SCALE * (RAY_LENGTH * wand_vector[0] + WANDX_OFFSET);
+          WAND_SCALE * (RAY_LENGTH * wand_vector[0]);
         float wand_endy = wandy +
-          WAND_SCALE * (RAY_LENGTH * wand_vector[1] + WANDY_OFFSET);
+          WAND_SCALE * (RAY_LENGTH * wand_vector[1]);
         float wand_endz = wandz +
-          WAND_SCALE * (RAY_LENGTH * wand_vector[2] + WANDZ_OFFSET);
+          WAND_SCALE * (RAY_LENGTH * wand_vector[2]);
+
+        p3f = new Point3f(wand_endx, wand_endy, wand_endz);
+        t3d.transform(p3f);
+        wand_endx = p3f.x;
+        wand_endy = p3f.y;
+        wand_endz = p3f.z;
 
         float[] ray_verts = {wandx, wandy, wandz, wand_endx, wand_endy, wand_endz};
         display_renderer.setRayOn(true, ray_verts);
