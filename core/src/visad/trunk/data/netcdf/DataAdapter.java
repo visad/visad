@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAdapter.java,v 1.6 1998-03-17 15:52:01 steve Exp $
+ * $Id: DataAdapter.java,v 1.7 1998-03-17 20:48:42 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -417,8 +417,8 @@ DataAdapter
 	     * objects by visiting the first sample.  The dimension array
 	     * is converted to netCDF order (outermost dimension first).
 	     */
-	    System.out.println("visit(Field,...): RangeType: " +
-		field.getSample(0).getType());
+	    // System.out.println("visit(Field,...): RangeType: " +
+		// field.getSample(0).getType());
 	    visit(field.getSample(0),
 		new FieldAccessor(reverse(dims), outerAccessor));
 	}				// domain set is a GriddedSet
