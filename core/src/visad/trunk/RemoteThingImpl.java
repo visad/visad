@@ -80,10 +80,8 @@ public abstract class RemoteThingImpl extends UnicastRemoteObject
       throw new RemoteVisADException("RemoteThingImpl.addReference " +
                                      "AdaptedThing is null");
     }
-    // RemoteThingReference recorded by a ReferenceThingPair
-    // (RemoteThingReference, RemoteThingImpl)
-    AdaptedThing.adaptedAddReference(
-      new ReferenceThingPair((RemoteThingReference) r, (RemoteThing) this));
+    AdaptedThing.adaptedAddReference((RemoteThingReference )r,
+                                     (RemoteThing )this);
   }
 
   /** remove a ThingReference to this RemoteThingImpl;
@@ -98,10 +96,8 @@ public abstract class RemoteThingImpl extends UnicastRemoteObject
       throw new RemoteVisADException("RemoteThingImpl.removeReference " +
                                      "AdaptedThing is null");
     }
-    // RemoteThingReference recorded by a ReferenceThingPair
-    // (RemoteThingReference, RemoteThingImpl)
-    AdaptedThing.adaptedRemoveReference(
-      new ReferenceThingPair((RemoteThingReference) r, (RemoteThing) this));
+    AdaptedThing.adaptedRemoveReference((RemoteThingReference )r,
+                                        (RemoteThing )this);
   }
 
 }

@@ -32,8 +32,24 @@ import java.rmi.*;
    ThingImpl is the abstract superclass of the VisAD objects that send
    ThingChangedEvents to Actions.<p>
 */
-public abstract class ThingImpl extends Object
+public abstract class ThingImpl
        implements Thing, java.io.Serializable {
+
+  class RemotePair {
+    RemoteThingReference ref;
+    RemoteThing data;
+   
+    RemotePair(RemoteThingReference r, RemoteThing d) {
+      ref = r;
+      data = d;
+    }
+   
+    public boolean equals(Object pair) {
+      if (!(pair instanceof RemotePair)) return false;
+      return (ref.equals(((RemotePair) pair).ref) &&
+              data.equals(((RemotePair) pair).data));
+    }
+  }
 
   /** vector of ThingReference that reference this Thing object */
   private transient Vector references = new Vector();
@@ -62,11 +78,12 @@ public abstract class ThingImpl extends Object
   }
 
   /** method for use by RemoteThingImpl that adapts this ThingImpl */
-  void adaptedAddReference(ReferenceThingPair p) throws VisADException {
+  void adaptedAddReference(RemoteThingReference r, RemoteThing t)
+        throws VisADException {
     synchronized (this) {
       if (references == null) references = new Vector();
     }
-    references.addElement(p);
+    references.addElement(new RemotePair(r, t));
 /* DEBUG
     System.out.println("ThingImpl.adaptedAddReference " +
                        "(" + System.getProperty("os.name") + ")");
@@ -90,9 +107,9 @@ public abstract class ThingImpl extends Object
   }
 
   /** method for use by RemoteThingImpl that adapts this ThingImpl */
-  void adaptedRemoveReference(ReferenceThingPair p)
+  void adaptedRemoveReference(RemoteThingReference r, RemoteThing t)
        throws VisADException {
-    if (references == null || !references.removeElement(p)) {
+    if (references == null || !references.removeElement(new RemotePair(r, t))) {
       throw new ReferenceException("ThingImpl.removeReference: already clear");
     }
   }
@@ -113,10 +130,10 @@ public abstract class ThingImpl extends Object
             // notify local ThingReferenceImpl
             ((ThingReferenceImpl) r).incTick();
           }
-          else { // r instanceof ReferenceThingPair
+          else { // r instanceof RemotePair
             // RemoteThingReference, so only incTick in
             // local RemoteThingImpl
-            RemoteThing d = ((ReferenceThingPair) r).data;
+            RemoteThing d = ((RemotePair) r).data;
             d.incTick();
           }
         }
