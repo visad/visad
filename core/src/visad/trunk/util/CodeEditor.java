@@ -63,6 +63,7 @@ public abstract class CodeEditor extends TextEditor {
       }
     };
     lineNumbers.setEditable(false);
+    lineNumbers.setFont(MONO);
     numLines = 1;
     numDigits = 1;
     JPanel p = new JPanel() {
