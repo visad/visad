@@ -307,28 +307,9 @@ public class MeasureManager {
 
   /** Writes the current measurements to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {
-    fout.println(MEASURE_LABEL);
-    write(fout);
-  }
-
-  /** Restores the current measurements from the given input stream. */
-  void restoreState(BufferedReader fin) throws IOException, VisADException {
-    if (!fin.readLine().equals(MEASURE_LABEL)) {
-      throw new VisADException("MeasureManager: incorrect state format");
-    }
-    read(fin);
-  }
-
-
-  // -- HELPER METHODS --
-
-  /**
-   * Writes out measurements to the given output stream,
-   * using the given conversion values between pixels and microns,
-   * and distance between measurement slices.
-   */
-  private void write(PrintWriter fout) throws IOException {
     if (bio.mm.lists == null) return;
+
+    fout.println(MEASURE_LABEL);
     int numIndices = bio.mm.lists.length;
     fout.println(numIndices);
 
@@ -352,6 +333,10 @@ public class MeasureManager {
     fout.println(POINT_LABEL);
     for (int index=0; index<numIndices; index++) {
       MeasureList list = bio.mm.lists[index];
+      if (list == null) {
+        fout.println(0);
+        continue;
+      }
       Vector lines = list.getLines();
       Vector points = list.getPoints();
       int psize = points.size();
@@ -379,6 +364,10 @@ public class MeasureManager {
     fout.println(LINE_LABEL);
     for (int index=0; index<numIndices; index++) {
       MeasureList list = bio.mm.lists[index];
+      if (list == null) {
+        fout.println(0);
+        continue;
+      }
       Vector lines = list.getLines();
       Vector points = list.getPoints();
       int lsize = lines.size();
@@ -396,9 +385,16 @@ public class MeasureManager {
     }
   }
 
-  /** Reads in measurements from the given input stream. */
-  private void read(BufferedReader fin) throws IOException, VisADException {
+  /** Restores the current measurements from the given input stream. */
+  void restoreState(BufferedReader fin) throws IOException, VisADException {
     if (bio.mm.lists == null) return;
+
+    if (!fin.readLine().equals(MEASURE_LABEL)) {
+      throw new VisADException("MeasureManager: incorrect state format");
+    }
+
+    // clear any existing measurements
+    for (int i=0; i<bio.mm.lists.length; i++) bio.mm.lists[i].removeAll();
     int numIndices = Integer.parseInt(fin.readLine());
 
     // read in micron information
@@ -509,6 +505,9 @@ public class MeasureManager {
     if (bio.mm.pool3 != null) bio.mm.pool3.refresh(true);
     bio.toolMeasure.updateInfo(microns, mw, mh, sd);
   }
+
+
+  // -- HELPER METHODS --
 
   /** Gets the width, height and slice distance in microns. */
   private double[] getMicronDistances() {
