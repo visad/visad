@@ -57,6 +57,8 @@ public class MouseHelper {
   private boolean mouseEntered;
   /** left, middle or right mouse button pressed in window */
   private boolean mousePressed1, mousePressed2, mousePressed3;
+  /** pairs of mouse buttons pressed in window */
+  private boolean mouseCombo1, mouseCombo2, mouseCombo3;
   /** combinations of Mouse Buttons and keys pressed;
       z -- SHIFT, t -- CONTROL */
   private boolean z1Pressed, t1Pressed, z2Pressed, t2Pressed;
@@ -79,6 +81,9 @@ public class MouseHelper {
     mousePressed1 = false;
     mousePressed2 = false;
     mousePressed3 = false;
+    mouseCombo1 = false;
+    mouseCombo2 = false;
+    mouseCombo3 = false;
     z1Pressed = false;
     t1Pressed = false;
     z2Pressed = false;
@@ -91,6 +96,7 @@ public class MouseHelper {
       System.out.println("MouseHelper.processStimulus: non-" +
                          "MouseEvent");
     }
+event_switch:
     switch (event.getID()) {
       case MouseEvent.MOUSE_ENTERED:
         mouseEntered = true;
@@ -99,7 +105,8 @@ public class MouseHelper {
         mouseEntered = false;
         break;
       case MouseEvent.MOUSE_PRESSED:
-        if (mouseEntered) {
+        if (mouseEntered &&
+            !mouseCombo1 && !mouseCombo2 && !mouseCombo3) {
           try {
             display.notifyListeners(DisplayEvent.MOUSE_PRESSED);
           }
@@ -111,27 +118,110 @@ public class MouseHelper {
           int m1 = m & InputEvent.BUTTON1_MASK;
           int m2 = m & InputEvent.BUTTON2_MASK;
           int m3 = m & InputEvent.BUTTON3_MASK;
+          int mctrl = m & InputEvent.CTRL_MASK;
+          int mshift = m & InputEvent.SHIFT_MASK;
+
+          if (m1 != 0) {
+            if (mousePressed2 || m2 != 0) {
+              mouseCombo3 = true;
+              mousePressed1 = false;
+              z1Pressed = false;
+              t1Pressed = false;
+              mousePressed2 = false;
+              display_renderer.setCursorOn(false);
+              z2Pressed = false;
+              t2Pressed = false;
+            }
+            else if (mousePressed3 || m3 != 0) {
+              mouseCombo2 = true;
+              mousePressed1 = false;
+              z1Pressed = false;
+              t1Pressed = false;
+              mousePressed3 = false;
+              display_renderer.setDirectOn(false);
+              direct_renderer = null;
+            }
+            else if (mousePressed1) {
+              break event_switch;
+            }
+            else {
+              mousePressed1 = true;
+            }
+          }
+          else if (m2 != 0) {
+            if (mousePressed1 || m1 != 0) {
+              mouseCombo3 = true;
+              mousePressed1 = false;
+              z1Pressed = false;
+              t1Pressed = false;
+              mousePressed2 = false;
+              display_renderer.setCursorOn(false);
+              z2Pressed = false;
+              t2Pressed = false;
+            }
+            else if (mousePressed3 || m3 != 0) {
+              mouseCombo1 = true;
+              mousePressed2 = false;
+              display_renderer.setCursorOn(false);
+              z2Pressed = false;
+              t2Pressed = false;
+              mousePressed3 = false;
+              display_renderer.setDirectOn(false);
+              direct_renderer = null;
+            }
+            else if (mousePressed2) {
+              break event_switch;
+            }
+            else {
+              mousePressed2 = true;
+            }
+          }
+          else if (m3 != 0) {
+            if (mousePressed1 || m1 != 0) {
+              mouseCombo2 = true;
+              mousePressed1 = false;
+              z1Pressed = false;
+              t1Pressed = false;
+              mousePressed3 = false;
+              display_renderer.setDirectOn(false);
+              direct_renderer = null;
+            }
+            else if (mousePressed2 || m2 != 0) {
+              mouseCombo1 = true;
+              mousePressed2 = false;
+              display_renderer.setCursorOn(false);
+              z2Pressed = false;
+              t2Pressed = false;
+              mousePressed3 = false;
+              display_renderer.setDirectOn(false);
+              direct_renderer = null;
+            }
+            else if (mousePressed3) {
+              break event_switch;
+            }
+            else {
+              mousePressed3 = true;
+            }
+          }
+
+/* WLH 22 Aug 98
           // special hack for BUTTON1 error in getModifiers
           if (m2 == 0 && m3 == 0 &&
               !mousePressed2 && !mousePressed3) {
-            mousePressed1 = true;
-
+*/
+          if (mousePressed1 || mouseCombo1) {
             start_x = ((MouseEvent) event).getX();
             start_y = ((MouseEvent) event).getY();
             tstart = proj.getMatrix();
 
-            if ((m & InputEvent.SHIFT_MASK) != 0) {
+            if (mshift != 0) {
               z1Pressed = true;
             }
-/* WLH 6 July 98
-            else if ((m & InputEvent.CTRL_MASK) != 0) {
-*/
-            else if ((m & InputEvent.CTRL_MASK) != 0 || mode2D) {
+            else if (mctrl != 0 || mode2D) {
               t1Pressed = true;
             }
           }
-          else if (m2 != 0 && !mousePressed1 && !mousePressed3) {
-            mousePressed2 = true;
+          else if (mousePressed2 || mouseCombo2) {
             // turn cursor on whenever mouse button2 pressed
             display_renderer.setCursorOn(true);
 
@@ -139,7 +229,7 @@ public class MouseHelper {
             start_y = ((MouseEvent) event).getY();
             tstart = proj.getMatrix();
 
-            if ((m & InputEvent.SHIFT_MASK) != 0) {
+            if (mshift != 0) {
               z2Pressed = true;
               if (!mode2D) {
                 // don't do cursor Z in 2-D mode
@@ -149,7 +239,7 @@ public class MouseHelper {
                 display_renderer.depth_cursor(cursor_ray);
               }
             }
-            else if ((m & InputEvent.CTRL_MASK) != 0) {
+            else if (mctrl != 0) {
               t2Pressed = true;
             }
             else {
@@ -159,8 +249,7 @@ public class MouseHelper {
               }
             }
           }
-          else if (m3 != 0 && !mousePressed1 && !mousePressed2) {
-            mousePressed3 = true;
+          else if (mousePressed3 || mouseCombo3) {
             if (display_renderer.anyDirects()) {
               int current_x = ((MouseEvent) event).getX();
               int current_y = ((MouseEvent) event).getY();
@@ -184,8 +273,16 @@ public class MouseHelper {
         int m2 = m & InputEvent.BUTTON2_MASK;
         int m3 = m & InputEvent.BUTTON3_MASK;
         // special hack for BUTTON1 error in getModifiers
+/* WLH 22 Aug 98
         if (m2 == 0 && m3 == 0 && mousePressed1) {
+*/
+        if (m1 != 0 && mousePressed1) {
           mousePressed1 = false;
+          z1Pressed = false;
+          t1Pressed = false;
+        }
+        else if ((m2 != 0 || m3 != 0) && mouseCombo1) {
+          mouseCombo1 = false;
           z1Pressed = false;
           t1Pressed = false;
         }
@@ -195,18 +292,30 @@ public class MouseHelper {
           z2Pressed = false;
           t2Pressed = false;
         }
+        else if ((m1 != 0 || m3 != 0) && mouseCombo2) {
+          mouseCombo2 = false;
+          display_renderer.setCursorOn(false);
+          z2Pressed = false;
+          t2Pressed = false;
+        }
         else if (m3 != 0 && mousePressed3) {
           mousePressed3 = false;
           display_renderer.setDirectOn(false);
           direct_renderer = null;
         }
+        else if ((m1 != 0 || m2 != 0) && mouseCombo3) {
+          mouseCombo3 = false;
+          display_renderer.setDirectOn(false);
+          direct_renderer = null;
+        }
         break;
       case MouseEvent.MOUSE_DRAGGED:
-        if (mousePressed1 || mousePressed2 || mousePressed3) {
+        if (mousePressed1 || mousePressed2 || mousePressed3 ||
+            mouseCombo1 || mouseCombo2 || mouseCombo3) {
           Dimension d = ((MouseEvent) event).getComponent().getSize();
           int current_x = ((MouseEvent) event).getX();
           int current_y = ((MouseEvent) event).getY();
-          if (mousePressed1) {
+          if (mousePressed1 || mouseCombo1) {
             //
             // TO_DO
             // modify to use rotX, rotY, rotZ, setTranslation & setScale
@@ -247,7 +356,7 @@ public class MouseHelper {
               }
             }
           }
-          else if (mousePressed2) {
+          else if (mousePressed2 || mouseCombo2) {
             if (z2Pressed) {
               if (!mode2D) {
                 // don't do cursor Z in 2-D mode
@@ -284,7 +393,7 @@ public class MouseHelper {
               }
             }
           }
-          else if (mousePressed3) {
+          else if (mousePressed3 || mouseCombo3) {
             if (direct_renderer != null) {
               VisADRay direct_ray = behavior.findRay(current_x, current_y);
               if (direct_ray != null) {
