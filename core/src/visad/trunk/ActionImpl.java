@@ -272,8 +272,22 @@ public abstract class ActionImpl
     }
   }
 
-  /** create link to a ThingReference;
-      must be local ThingReferenceImpl */
+  /**
+   * Creates a link to a ThingReference.  Note that this method causes this
+   * object to register itself with the ThingReference.
+   * @param ref                 The ThingReference to create
+   *                            the link to.  Must be a local
+   *                            ThingReferenceImpl.  Subsequent invocation
+   *                            of <code>thingChanged(ThingChangedEvent)
+   *                            causes invocation of
+   *                            <code>ref.acknowledgeThingChanged(this)</code>.
+   *                            This method invokes <code>
+   *                            ref.addThingChangedListener(this, ...)</code>.
+   * @throws VisADException	VisAD failure.
+   * @throws RemoteException	Java RMI failure.
+   * @see #thingChanged(ThingChangedEvent)
+   * @see #ThingReference.addThingChangedListener(ThingChangedListener, int)
+   */
   public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof ThingReferenceImpl)) {
