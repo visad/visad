@@ -199,11 +199,13 @@ public class AreaAdapter {
     RealType[] bands = new RealType[numBands];
     // If we have calibration units, might as well use them.
     Unit calUnit = null;
+    float calScale = 1.0f;
     try {
         calUnit = visad.data.units.Parser.parse(
             visad.jmet.MetUnits.makeSymbol(
-                areaDirectory.getCalibrationUnitName())).
-                    scale(1.0/areaDirectory.getCalibrationScaleFactor());
+                areaDirectory.getCalibrationUnitName()));
+
+        calScale = (1.0f/areaDirectory.getCalibrationScaleFactor());
     } catch (Exception e) {
         calUnit = null;
     }
@@ -321,7 +323,7 @@ public class AreaAdapter {
               samples[b][j + (nEles * i) ] =
                 (val == 255)
                    ? 254.0f                   // push 255 into 254 for BRIT
-                   : (float) val;
+                   : (float) val * calScale;
             }
           }
         }
@@ -332,7 +334,7 @@ public class AreaAdapter {
           for (int i=0; i<nLines; i++) {
             for (int j=0; j<nEles; j++) {
 
-              samples[b][j + (nEles * i) ] = 
+              samples[b][j + (nEles * i) ] = calScale * 
                 (float) int_samples[bandIndices[b]][startLine+i][startEle+j];
 
             }
