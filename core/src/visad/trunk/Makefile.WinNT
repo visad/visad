@@ -67,6 +67,41 @@ DOC_DIR = ..\docs
 DOCFLAGS = -J-Xmx96m -d $(DOC_DIR)
 
 JAR_FILES1 = \
+dods\dap\*.java \
+dods\dap\Server\*.java \
+dods\dap\functions\*.java \
+dods\dap\parser\*.java \
+dods\util\*.java \
+edu\wisc\ssec\mcidas\*.java \
+edu\wisc\ssec\mcidas\adde\*.java \
+gnu\regexp\*.java \
+HTTPClient\0* \
+HTTPClient\*.html \
+HTTPClient\*.java \
+ij\*.java \
+ij\gui\*.java \
+ij\io\*.java \
+ij\measure\*.java \
+ij\plugin\*.java \
+ij\plugin\filter\*.java \
+ij\plugin\frame\*.java \
+ij\process\*.java \
+ij\text\*.java \
+ij\util\*.java
+
+JAR_FILES2 = \
+ncsa\hdf\hdf5lib\*.java \
+ncsa\hdf\hdf5lib\exceptions\*.java \
+nom\tam\fits\*.java \
+nom\tam\util\*.java \
+nom\tam\test\*.java \
+ucar\COPYRIGHT \
+ucar\VERSION \
+ucar\multiarray\*.java \
+ucar\netcdf\*.java \
+ucar\tests\*.java \
+ucar\tests\test.nc \
+ucar\tests\test.out \
 visad\README \
 visad\DEDICATION \
 visad\NOTICE \
@@ -77,115 +112,15 @@ visad\Makefile.WinNT \
 visad\README.nexusrmi \
 visad\rmic_script \
 visad\VisAD.Manifest \
-visad\*.java \
-visad\examples\*.java \
-visad\examples\display_test.c \
-visad\java3d\Makefile \
-visad\java3d\*.java \
-visad\java3d\*.c \
-visad\java2d\*.java \
-visad\python\*.java \
-visad\python\*.py \
-visad\python\README.python \
-visad\browser\*.java \
-visad\browser\*.html \
-visad\browser\README.browser \
-visad\util\*.java \
-visad\util\*.jhf \
-visad\matrix\*.java \
-visad\math\*.java \
-visad\formula\*.java \
-visad\ss\*.java \
-visad\ss\*.gif \
-visad\ss\README.ss \
-visad\ss\*.java \
-visad\cluster\*.java \
-visad\collab\*.java \
-visad\data\*.java \
-visad\data\units\*.java \
-visad\data\units\*.jj \
-visad\data\in\*.java \
-visad\data\in\package.html \
-visad\data\dods\*.java \
-visad\data\dods\package.html \
-visad\data\netcdf\*.java \
-visad\data\netcdf\units\*.java \
-visad\data\netcdf\in\*.java \
-visad\data\netcdf\out\*.java \
-visad\data\fits\*.java \
-nom\tam\fits\*.java \
-nom\tam\util\*.java \
-nom\tam\test\*.java \
-HTTPClient\0* \
-HTTPClient\*.html \
-HTTPClient\*.java \
-ucar\COPYRIGHT \
-ucar\VERSION \
-ucar\multiarray\*.java \
-ucar\netcdf\*.java \
-ucar\tests\*.java \
-ucar\tests\test.nc \
-ucar\tests\test.out \
-dods\dap\*.java \
-dods\dap\Server\*.java \
-dods\dap\functions\*.java \
-dods\dap\parser\*.java \
-dods\util\*.java \
-gnu\regexp\*.java \
-visad\data\hdfeos\*.java \
-visad\data\hdfeos\README.hdfeos \
-visad\data\hdfeos\hdfeosc\*.java \
-visad\data\hdfeos\hdfeosc\*.c \
-visad\data\hdfeos\hdfeosc\*.h \
-visad\data\hdfeos\hdfeosc\Makefile \
-visad\data\vis5d\*.java \
-edu\wisc\ssec\mcidas\*.java \
-edu\wisc\ssec\mcidas\adde\*.java \
-visad\data\mcidas\*.java \
-visad\data\mcidas\README.mcidas \
-visad\data\biorad\*.java \
-visad\data\jai\*.java \
-visad\data\qt\*.java \
-visad\data\gif\*.java \
-visad\data\gif\sseclogo.gif \
-visad\data\tiff\*.java \
-visad\data\visad\*.java \
-visad\data\visad\object\*.java \
-visad\data\text\*.java \
-visad\data\text\README.text \
-visad\data\text\example1.txt \
-visad\data\text\example3.txt \
-visad\data\text\example2.csv \
-visad\data\hdf5\*.java \
-visad\data\hdf5\COPYING \
-visad\data\hdf5\hdf5objects\*.java \
-ncsa\hdf\hdf5lib\*.java \
-ncsa\hdf\hdf5lib\exceptions\*.java
+visad\Gridded1D.txt \
+visad\Gridded2D.txt \
+visad\Gridded3D.txt \
+visad\contour.html \
+visad\plotdigits.html \
+visad\*.java
 
-JAR_FILES2 = \
-ij\*.java \
-ij\gui\*.java \
-ij\io\*.java \
-ij\measure\*.java \
-ij\plugin\*.java \
-ij\plugin\filter\*.java \
-ij\plugin\frame\*.java \
-ij\process\*.java \
-ij\text\*.java \
-ij\util\*.java \
-visad\jmet\*.java \
-visad\bio\*.java \
-visad\paoloa\README.paoloa \
-visad\paoloa\Makefile \
-visad\paoloa\*.java \
-visad\paoloa\*.f \
-visad\paoloa\*.c \
-visad\paoloa\*.h \
-visad\paoloa\spline\Makefile \
-visad\paoloa\spline\*.java \
-visad\paoloa\spline\*.f \
-visad\paoloa\spline\*.c \
-visad\paoloa\spline\*.h \
+JAR_FILES3 = \
+visad\aeri\*.java \
 visad\aune\README.aune \
 visad\aune\Makefile \
 visad\aune\shsize.fcm \
@@ -200,21 +135,96 @@ visad\benjamin\*.c \
 visad\benjamin\*.h \
 visad\benjamin\switch.inp \
 visad\benjamin\*.table \
-visad\rabin\*.java \
+visad\bio\*.java \
 visad\bom\*.java \
-visad\aeri\*.java \
+visad\browser\*.java \
+visad\browser\*.html \
+visad\browser\README.browser \
+visad\cluster\*.java \
+visad\collab\*.java
+
+JAR_FILES4 = \
+visad\data\*.java \
+visad\data\in\*.java \
+visad\data\in\package.html \
+visad\data\units\*.java \
+visad\data\units\*.jj \
 visad\data\amanda\*.java \
-visad\georef\*.java \
-visad\meteorology\*.java \
+visad\data\biorad\*.java \
+visad\data\dods\*.java \
+visad\data\dods\package.html \
+visad\data\fits\*.java \
+visad\data\gif\*.java \
+visad\data\gif\sseclogo.gif \
+visad\data\hdf5\*.java \
+visad\data\hdf5\COPYING \
+visad\data\hdf5\hdf5objects\*.java \
+visad\data\hdfeos\*.java \
+visad\data\hdfeos\README.hdfeos \
+visad\data\hdfeos\hdfeosc\*.java \
+visad\data\hdfeos\hdfeosc\*.c \
+visad\data\hdfeos\hdfeosc\*.h \
+visad\data\hdfeos\hdfeosc\Makefile
+
+JAR_FILES5 = \
+visad\data\jai\*.java \
+visad\data\mcidas\*.java \
+visad\data\mcidas\README.mcidas \
+visad\data\netcdf\*.java \
+visad\data\netcdf\units\*.java \
+visad\data\netcdf\in\*.java \
+visad\data\netcdf\out\*.java \
+visad\data\qt\*.java \
+visad\data\text\*.java \
+visad\data\text\README.text \
+visad\data\text\example1.txt \
+visad\data\text\example3.txt \
+visad\data\text\example2.csv \
+visad\data\tiff\*.java \
+visad\data\vis5d\*.java \
+visad\data\visad\*.java \
+visad\data\visad\object\*.java \
+visad\examples\*.java \
+visad\examples\display_test.c \
+visad\formula\*.java \
+visad\georef\*.java
+
+JAR_FILES6 = \
 visad\install\*.java \
 visad\install\install_visad \
 visad\install\README \
 visad\install\README.html \
-visad\Gridded1D.txt \
-visad\Gridded2D.txt \
-visad\Gridded3D.txt \
-visad\contour.html \
-visad\plotdigits.html
+visad\java2d\*.java \
+visad\java3d\Makefile \
+visad\java3d\*.java \
+visad\java3d\*.c \
+visad\jmet\*.java \
+visad\matrix\*.java \
+visad\math\*.java \
+visad\meteorology\*.java \
+visad\paoloa\README.paoloa \
+visad\paoloa\Makefile \
+visad\paoloa\*.java \
+visad\paoloa\*.f \
+visad\paoloa\*.c \
+visad\paoloa\*.h \
+visad\paoloa\spline\Makefile \
+visad\paoloa\spline\*.java \
+visad\paoloa\spline\*.f \
+visad\paoloa\spline\*.c \
+visad\paoloa\spline\*.h
+
+JAR_FILES7 = \
+visad\python\*.java \
+visad\python\*.py \
+visad\python\README.python \
+visad\rabin\*.java \
+visad\ss\*.java \
+visad\ss\*.gif \
+visad\ss\README.ss \
+visad\ss\*.java \
+visad\util\*.java \
+visad\util\*.jhf
 
 jar:
 	date /t > DATE
@@ -222,6 +232,11 @@ jar:
 	cd ..
 	$(JAR) $(JARVERBOSE)cf visad_src-2.0.jar $(JAR_FILES1)
 	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES2)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES3)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES4)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES5)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES6)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES7)
 	move visad_src-2.0.jar visad
 	cd visad
 	copy visad_src-2.0.jar visadsrc.jar
