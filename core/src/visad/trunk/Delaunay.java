@@ -169,16 +169,7 @@ public abstract class Delaunay implements java.io.Serializable {
     }
 
     // make a copy if needed
-    float[][] samp;
-    if (copy) {
-      samp = new float[dim][nrs];
-      for (int i=0; i<dim; i++) {
-        System.arraycopy(samples[i], 0, samp[i], 0, nrs);
-      }
-    }
-    else {
-      samp = samples;
-    }
+    float[][] samp = copy ? Set.copyFloats(samples) : samples;
 
     // scale points
     for (int i=0; i<dim; i++) {
@@ -203,16 +194,7 @@ public abstract class Delaunay implements java.io.Serializable {
     }
 
     // make a copy if needed
-    float[][] samp;
-    if (copy) {
-      samp = new float[dim][nrs];
-      for (int i=0; i<dim; i++) {
-        System.arraycopy(samples[i], 0, samp[i], 0, nrs);
-      }
-    }
-    else {
-      samp = samples;
-    }
+    float[][] samp = copy ? Set.copyFloats(samples) : samples;
 
     // perturb points
     for (int i=0; i<dim; i++) {

@@ -185,17 +185,7 @@ public abstract class SampledSet extends SimpleSet {
   }
 
   public float[][] getSamples(boolean copy) throws VisADException {
-    if (copy) {
-      // MEM
-      float[][] samples = new float[DomainDimension][Length];
-      for (int j=0; j<DomainDimension; j++) {
-        System.arraycopy(Samples[j], 0, samples[j], 0, Length);
-      }
-      return samples;
-    }
-    else {
-      return Samples;
-    }
+    return copy ? Set.copyFloats(Samples) : Samples;
   }
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
