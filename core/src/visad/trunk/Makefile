@@ -40,7 +40,7 @@ JC = javac
 JFLAGS = -J-mx32m
 RM = rm -f
 DOCS_DIR = ../docs
-DOC = javadoc -d
+DOC = javadoc
 DOCFLAGS = -d $(DOCS_DIR)
 FITS = ../nom/tam
 UCAR = ../ucar
@@ -172,7 +172,6 @@ classes:
 	jar cvf visad.jar $(CLASS_FILES) ; \
 	tar -cvf visad.tar visad.jar
 
-
 SAVE_FILES = \
 	visad/README					\
 	visad/DEDICATION				\
@@ -286,73 +285,81 @@ debug:
 	make compile \
 	"JFLAGS = -J-mx32m -g"
 
-compile: clean
-	$(JC) $(JFLAGS) *.java
-	rmic $(RMIC)
-	$(JC) $(JFLAGS) java3d/*.java
-	$(JC) $(JFLAGS) java2d/*.java
-	$(JC) $(JFLAGS) util/*.java
-	-$(JC) $(JFLAGS) $(UCAR)/multiarray/*.java
-	-$(JC) $(JFLAGS) $(UCAR)/netcdf/*.java
-	-$(JC) $(JFLAGS) $(UCAR)/tests/*.java
-	$(JC) $(JFLAGS) data/*.java
-	$(JC) $(JFLAGS) data/netcdf/units/*.java
-	$(JC) $(JFLAGS) data/netcdf/in/*.java
-	$(JC) $(JFLAGS) data/netcdf/out/*.java
-	$(JC) $(JFLAGS) data/netcdf/*.java
-	-$(JC) $(JFLAGS) $(FITS)/util/*.java
-	-$(JC) $(JFLAGS) $(FITS)/fits/*.java
-	-$(JC) $(JFLAGS) $(FITS)/test/*.java
-	$(JC) $(JFLAGS) data/fits/*.java
-	$(JC) $(JFLAGS) data/vis5d/*.java
-	$(JC) $(JFLAGS) data/gif/*.java
-	$(JC) $(JFLAGS) data/visad/*.java
-	$(JC) $(JFLAGS) data/hdfeos/hdfeosc/*.java
-	$(JC) $(JFLAGS) data/hdfeos/*.java
-	$(JC) $(JFLAGS) ss/*.java
-	-$(JC) $(JFLAGS) paoloa/*.java
-	-$(JC) $(JFLAGS) aune/*.java
-	-$(JC) $(JFLAGS) benjamin/*.java
-	-(cd examples && $(JC) $(JFLAGS) *.java)
+VISAD_PACKAGES = \
+		visad \
+		visad.java3d \
+		visad.java2d \
+		visad.util \
+		ucar.multiarray \
+		ucar.netcdf \
+		ucar.tests \
+		visad.data \
+		visad.data.netcdf.units \
+		visad.data.netcdf.in \
+		visad.data.netcdf.out \
+		visad.data.netcdf \
+		nom.tam.fits \
+		nom.tam.util \
+		nom.tam.test \
+		visad.data.fits \
+		visad.data.vis5d \
+		visad.data.gif \
+		visad.data.visad \
+		visad.data.hdfeos.hdfeosc \
+		visad.data.hdfeos \
+		visad.ss \
+		visad.paoloa \
+		visad.aune \
+		visad.benjamin
 
 clean:
 	$(RM) *.class
-	$(RM) java3d/*.class java2d/*.class util/*.class ss/*.class
-	$(RM) data/*.class data/netcdf/*.class data/netcdf/units/*.class
-	$(RM) data/netcdf/in/*.class data/netcdf/out/*.class
-	$(RM) data/fits/*.class
-	$(RM) $(FITS)/fits/*.class $(FITS)/util/*.class $(FITS)/test/*.class
-	$(RM) $(UCAR)/multiarray/*.class $(UCAR)/netcdf/*.class $(UCAR)/tests/*.class
-	$(RM) data/hdfeos/*.class data/hdfeos/hdfeosc/*.class
-	$(RM) data/vis5d/*.class data/gif/*.class data/visad/*.class
-	$(RM) paoloa/*.class aune/*.class benjamin/*.class examples/*.class
+	for i in $(VISAD_PACKAGES); do					\
+	  case $$i in							\
+	  visad)							\
+	    dir=							\
+	    ;;								\
+	  visad.*)							\
+	    dir=`echo $$i | sed -e 's;\.;/;g' -e 's;^visad/;;'`;	\
+	    ;;								\
+	  *)								\
+	    dir=`echo $$i | sed -e 's;\.;/;g' -e 's;^;\.\./;'`;		\
+	    ;;								\
+	  esac;								\
+	  if [ ! -z "$$dir" ]; then					\
+	    if [ ! -d $$dir ]; then					\
+	      echo "$$dir does not exist";				\
+	    else							\
+	      echo "*** Cleaning in $$dir";				\
+	      (cd $$dir && $(RM) *.class);				\
+	    fi;								\
+	  fi;								\
+	done
 
-VISAD_PACKAGES = \
-visad \
-visad.java3d \
-visad.java2d \
-visad.util \
-visad.ss \
-visad.data \
-visad.data.netcdf \
-visad.data.netcdf.units \
-visad.data.netcdf.in \
-visad.data.netcdf.out \
-visad.data.fits \
-nom.tam.fits \
-nom.tam.util \
-nom.tam.test \
-ucar.multiarray \
-ucar.netcdf \
-ucar.tests \
-visad.data.hdfeos \
-visad.data.hdfeos.hdfeosc \
-visad.data.vis5d \
-visad.data.gif \
-visad.data.visad \
-visad.paoloa \
-visad.aune \
-visad.benjamin
+compile: clean
+	$(JC) $(JFLAGS) *.java
+	rmic $(RMIC)
+	for i in $(VISAD_PACKAGES); do					\
+	  case $$i in							\
+	  visad)							\
+	    dir=							\
+	    ;;								\
+	  visad.*)							\
+	    dir=`echo $$i | sed -e 's;\.;/;g' -e 's;^visad/;;'`;	\
+	    ;;								\
+	  *)								\
+	    dir=`echo $$i | sed -e 's;\.;/;g' -e 's;^;\.\./;'`;		\
+	    ;;								\
+	  esac;								\
+	  if [ ! -z "$$dir" ]; then					\
+	    if [ ! -d $$dir ]; then					\
+	      echo "$$dir does not exist";				\
+	    else							\
+	      echo "*** Building in $$dir";				\
+	      (cd $$dir && $(JC) $(JFLAGS) *.java);			\
+	    fi;								\
+	  fi;								\
+	done
 
 docs:
 	@if [ ! -d $(DOCS_DIR) ]; then mkdir $(DOCS_DIR); fi   
