@@ -484,7 +484,7 @@ public class FormulaUtil {
       }
       catch (ClassNotFoundException exc) {
         if (FormulaVar.DEBUG) {
-          System.out.println("ERROR: Class c does not exist!");
+          System.out.println("ERROR: Class " + c + " does not exist!");
         }
         methods[j] = null;
         continue;
@@ -507,7 +507,8 @@ public class FormulaUtil {
         }
         catch (ClassNotFoundException exc) {
           if (FormulaVar.DEBUG) {
-            System.out.println("ERROR: Class a[i] does not exist!");
+            System.out.println("ERROR: Class " + a[i] +
+              " (" + i + ") does not exist!");
           }
           methods[j] = null;
           continue;
@@ -519,7 +520,7 @@ public class FormulaUtil {
       }
       catch (NoSuchMethodException exc) {
         if (FormulaVar.DEBUG) {
-          System.out.println("ERROR: Method m does not exist!");
+          System.out.println("ERROR: Method " + m + " does not exist!");
         }
         methods[j] = null;
         continue;
