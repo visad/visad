@@ -41,7 +41,8 @@ public class RadarAdapter {
 
   FlatField radar;
 
-  public RadarAdapter(float centlat, float centlon, String radarSource) throws IOException, VisADException {
+  public RadarAdapter(float centlat, float centlon, String radarSource)
+         throws IOException, VisADException {
     try {
       rf = new RadarFile(radarSource);
       // buildFlatField(rf);
@@ -110,8 +111,9 @@ public class RadarAdapter {
 
     RealTupleType ref = new RealTupleType
                   (RealType.Latitude, RealType.Longitude);
-    RadarCoordinateSystem rcs =
-      new RadarCoordinateSystem(ref, centlat, centlon, radlow, radres, azlow, azres);
+    Radar2DCoordinateSystem rcs =
+      new Radar2DCoordinateSystem(ref, centlat, centlon, radlow, radres,
+                                  azlow, azres);
 
     RealType azimuth = new RealType("azimuth", CommonUnit.degree, null);
     RealType range = new RealType("range", CommonUnit.meter, null);
