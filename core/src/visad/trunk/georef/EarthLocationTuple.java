@@ -165,4 +165,12 @@ public class EarthLocationTuple extends RealTuple
 
     }
     */
+
+    public String toString() {
+       StringBuffer buf = new StringBuffer();
+       buf.append(latlon.toString());
+       buf.append(" Alt: ");
+       buf.append(visad.browser.Convert.shortString(alt.getValue()));
+       return buf.toString();
+    }
 }

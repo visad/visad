@@ -59,7 +59,7 @@ public class NamedLocationTuple extends Tuple
     {
         try
         {
-            IDENTIFIER_TYPE = new TextType("Identifier");
+            IDENTIFIER_TYPE = TextType.getTextType("Identifier");
         }
         catch (Exception e)
         {
@@ -67,6 +67,12 @@ public class NamedLocationTuple extends Tuple
         }
     }
         
+    public NamedLocationTuple() 
+        throws VisADException, RemoteException
+    {
+        this("", Double.NaN, Double.NaN, Double.NaN);
+    }
+
     /**
      * Construct an NamedLocationTuple from a Text and an EarthLocation
      *
@@ -193,7 +199,30 @@ public class NamedLocationTuple extends Tuple
         return id;
     }
 
-    /*   Uncomment to test
+    public Object clone() {
+      NamedLocationTuple nlt;
+      try {
+          nlt = new NamedLocationTuple(id, new EarthLocationTuple(location.getLatitude(), location.getLongitude(), location.getAltitude()));
+      }
+      catch (VisADException e) {
+        throw new VisADError("NamedLocationTuple.clone: VisADException occurred");
+      }
+      catch (RemoteException e) {
+        throw new VisADError("NamedLocationTuple.clone: RemoteException occurred");
+      }
+      return nlt;
+    }
+
+    public String toString() {
+       StringBuffer buf = new StringBuffer();
+       buf.append("Name: ");
+       buf.append(id);
+       buf.append(" ");
+       buf.append(location.toString());
+       return buf.toString();
+    }
+
+    /*   Uncomment to test 
     public static void main (String[] args)
         throws VisADException, RemoteException
     {
