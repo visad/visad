@@ -1309,6 +1309,15 @@ public abstract class MathType extends Object implements java.io.Serializable {
         MathType tc = tt.getComponent(i);
         if (findScalarType(tc, st)) return true;
       }
+
+      // WLH 8 Jan 2003
+      if (mt instanceof RealTupleType) {
+        CoordinateSystem cs = ((RealTupleType) mt).getCoordinateSystem();
+        if (cs != null) {
+          if (findScalarType(cs.getReference(), st)) return true;
+        }
+      }
+
       return false;
     }
     else if (mt instanceof SetType) {
