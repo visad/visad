@@ -47,7 +47,7 @@ import visad.data.*;
  * Class of static methods for printing out information about VisAD
  * {@link Data} objects.
  *
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  */
 public class DumpType {
 
@@ -189,6 +189,11 @@ public class DumpType {
                  prefix + "   " + i + ".");
         }
 
+      } else if (d instanceof Gridded3DDoubleSet) {
+        System.out.println(prefix + " Gridded3DDoubleSet "
+                           + name(((Gridded3DDoubleSet) d).getType().toString())
+                           + " Length = " + ((Gridded3DDoubleSet) d).getLength());
+
       } else if (d instanceof Gridded3DSet) {
         System.out.println(prefix + " Gridded3DSet "
                            + name(((Gridded3DSet) d).getType().toString())
@@ -212,6 +217,11 @@ public class DumpType {
                  prefix + "   " + i + ".");
         }
 
+      } else if (d instanceof Gridded2DDoubleSet) {
+        System.out.println(prefix + " Gridded2DDoubleSet "
+                           + name(((Gridded2DDoubleSet) d).getType().toString())
+                           + " Length = " + ((Gridded2DDoubleSet) d).getLength());
+
       } else if (d instanceof Gridded2DSet) {
         System.out.println(prefix + " Gridded2DSet "
                            + name(((Gridded2DSet) d).getType().toString())
@@ -229,6 +239,11 @@ public class DumpType {
                            + " Range = " + ((Linear1DSet) d).getFirst()
                            + " to " + ((Linear1DSet) d).getLast() + " step "
                            + ((Linear1DSet) d).getStep());
+
+      } else if (d instanceof Gridded1DDoubleSet) {
+        System.out.println(prefix + " Gridded1DDoubleSet "
+                           + name(((Gridded1DDoubleSet) d).getType().toString())
+                           + "  Length = " + ((Gridded1DDoubleSet) d).getLength());
 
       } else if (d instanceof Gridded1DSet) {
         System.out.println(prefix + " Gridded1DSet "
