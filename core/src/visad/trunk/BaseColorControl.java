@@ -28,8 +28,8 @@ package visad;
 import java.rmi.*;
 
 /**
-   BaseColorControl is the VisAD class for controlling 4-component Color
-   DisplayRealType-s (e.g., RGBA).<P>
+   BaseColorControl is the VisAD class for controlling N-component Color
+   DisplayRealType-s.<P>
 */
 public abstract class BaseColorControl extends Control {
 
@@ -45,33 +45,46 @@ public abstract class BaseColorControl extends Control {
 
   private Object lock = new Object();
 
-  public BaseColorControl(DisplayImpl d) {
+  private final int components;
+
+  public BaseColorControl(DisplayImpl d, int components) {
     super(d);
+    this.components = components;
     tableLength = DEFAULT_TABLE_LENGTH;
-    table = new float[4][tableLength + 1];
+    table = new float[components][tableLength + 1];
     float scale = (float) (1.0f / (float) (DEFAULT_TABLE_LENGTH - 1));
     // default table is a grey wedge
     for (int i=0; i<DEFAULT_TABLE_LENGTH; i++) {
       table[0][i] = scale * i;
       table[1][i] = scale * i;
       table[2][i] = scale * i;
-      table[3][i] = scale * i;
+      if (components > 3) {
+        table[3][i] = scale * i;
+      }
     }
     table[0][DEFAULT_TABLE_LENGTH] = table[0][DEFAULT_TABLE_LENGTH - 1];
     table[1][DEFAULT_TABLE_LENGTH] = table[1][DEFAULT_TABLE_LENGTH - 1];
     table[2][DEFAULT_TABLE_LENGTH] = table[2][DEFAULT_TABLE_LENGTH - 1];
-    table[3][DEFAULT_TABLE_LENGTH] = table[3][DEFAULT_TABLE_LENGTH - 1];
+    if (components > 3) {
+      table[3][DEFAULT_TABLE_LENGTH] = table[3][DEFAULT_TABLE_LENGTH - 1];
+    }
   }
  
   /** define the color lookup by a Function, whose MathType must
-      have a 1-D domain and a 4-D RealTupleType range; the domain
+      have a 1-D domain and an N-D RealTupleType range; the domain
       and range Reals must vary over the range (0.0, 1.0) */
   public void setFunction(Function func)
          throws VisADException, RemoteException {
+    FunctionType baseType;
+    if (components == 4) {
+      baseType = FunctionType.REAL_1TO4_FUNCTION;
+    } else {
+      baseType = FunctionType.REAL_1TO3_FUNCTION;
+    }
     if (func == null ||
-        !func.getType().equalsExceptName(FunctionType.REAL_1TO4_FUNCTION)) {
+        !func.getType().equalsExceptName(baseType)) {
       throw new DisplayException("BaseColorControl.setFunction: " +
-                                 "function must be 1D-to-4D");
+                                 "function must be 1D-to-" + components + "D");
     }
     synchronized (lock) {
       function = func;
@@ -84,20 +97,22 @@ public abstract class BaseColorControl extends Control {
   }
 
   /** define the color lookup by an array of floats which must
-      have the form float[4][table_length]; values should be in
+      have the form float[components][table_length]; values should be in
       the range (0.0, 1.0) */
   public void setTable(float[][] t) throws VisADException, RemoteException {
-    if (t == null || t.length != 4 ||
-        t[0] == null || t[1] == null || t[2] == null || t[3] == null ||
+    if (t == null || t.length != components ||
+        t[0] == null || t[1] == null || t[2] == null ||
+        (components > 3 && t[3] == null) ||
         t[0].length != t[1].length || t[0].length != t[2].length ||
-        t[0].length != t[3].length) {
+        (components > 3 && t[0].length != t[3].length)) {
       throw new DisplayException("BaseColorControl.setTable: " +
-                                 "table must be float[4][Length]");
+                                 "table must be float[" + components +
+                                 "][Length]");
     }
     synchronized (lock) {
       tableLength = t[0].length;
-      table = new float[4][tableLength + 1];
-      for (int j=0; j<4; j++) {
+      table = new float[components][tableLength + 1];
+      for (int j=0; j<components; j++) {
         System.arraycopy(t[j], 0, table[j], 0, tableLength);
         // guard for table overflow on scaling in lookupValues
         table[j][tableLength] = t[j][tableLength - 1];
@@ -109,8 +124,8 @@ public abstract class BaseColorControl extends Control {
 
   public float[][] getTable() {
     if (table == null) return null;
-    float[][] t = new float[4][tableLength];
-    for (int j=0; j<4; j++) {
+    float[][] t = new float[components][tableLength];
+    for (int j=0; j<components; j++) {
       System.arraycopy(table[j], 0, t[j], 0, tableLength);
     }
     return t;
@@ -122,14 +137,16 @@ public abstract class BaseColorControl extends Control {
     float[][] colors = null;
     synchronized (lock) {
       if (table != null) {
-        colors = new float[4][len];
+        colors = new float[components][len];
         float scale = (float) tableLength;
         for (int i=0; i<len; i++) {
           if (values[i] != values[i]) {
             colors[0][i] = Float.NaN;
             colors[1][i] = Float.NaN;
             colors[2][i] = Float.NaN;
-            colors[3][i] = Float.NaN;
+            if (components > 3) {
+              colors[3][i] = Float.NaN;
+            }
           }
           else {
             int j = (int) (scale * values[i]);
@@ -139,7 +156,9 @@ public abstract class BaseColorControl extends Control {
               colors[0][i] = Float.NaN;
               colors[1][i] = Float.NaN;
               colors[2][i] = Float.NaN;
-              colors[3][i] = Float.NaN;
+              if (components > 3) {
+                colors[3][i] = Float.NaN;
+              }
             }
   */
             // WLH 27 April 99
@@ -148,19 +167,25 @@ public abstract class BaseColorControl extends Control {
               colors[0][i] = table[0][0];
               colors[1][i] = table[1][0];
               colors[2][i] = table[2][0];
-              colors[3][i] = table[3][0];
+              if (components > 3) {
+                colors[3][i] = table[3][0];
+              }
             }
             else if (tableLength < j) {
               colors[0][i] = table[0][tableLength];
               colors[1][i] = table[1][tableLength];
               colors[2][i] = table[2][tableLength];
-              colors[3][i] = table[3][tableLength];
+              if (components > 3) {
+                colors[3][i] = table[3][tableLength];
+              }
             }
             else {
               colors[0][i] = table[0][j];
               colors[1][i] = table[1][j];
               colors[2][i] = table[2][j];
-              colors[3][i] = table[3][j];
+              if (components > 3) {
+                colors[3][i] = table[3][j];
+              }
             }
           }
         }
