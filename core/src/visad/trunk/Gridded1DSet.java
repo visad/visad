@@ -35,8 +35,8 @@ public class Gridded1DSet extends GriddedSet {
   int LengthX;
   float LowX, HiX;
 
-  /** whether this Gridded1DSet is ascending or descending */
-  boolean Neg = true;
+  /** Whether this set is ascending or descending */
+  boolean Ascending;
 
   public Gridded1DSet(MathType type, float[][] samples, int lengthX)
          throws VisADException {
@@ -61,18 +61,18 @@ public class Gridded1DSet extends GriddedSet {
 
     if (Samples != null && Lengths[0] > 1) {
       // samples consistency test
-      Neg = (Samples[0][LengthX-1] <= Samples[0][0]);
-      if (Neg) {
+      Ascending = (Samples[0][LengthX-1] > Samples[0][0]);
+      if (Ascending) {
         for (int i=1; i<LengthX; i++) {
-          if (Samples[0][i] > Samples[0][i-1]) {
+          if (Samples[0][i] < Samples[0][i-1]) {
             throw new SetException(
              "Gridded1DSet: samples do not form a valid grid ("+i+")");
           }
         }
       }
-      else { // !Neg
+      else { // !Pos
         for (int i=1; i<LengthX; i++) {
-          if (Samples[0][i] < Samples[0][i-1]) {
+          if (Samples[0][i] > Samples[0][i-1]) {
             throw new SetException(
              "Gridded1DSet: samples do not form a valid grid ("+i+")");
           }
@@ -117,7 +117,18 @@ public class Gridded1DSet extends GriddedSet {
     }
   }
 
-  /** convert an array of values in R^DomainDimension to an array of 1-D indices */
+  /**
+   * Convert an array of values in R^DomainDimension to an array of
+   * 1-D indices.  This Gridded1DSet must have at least two points in the
+   * set.
+   * @param value	An array of coordinates.  <code>value[i][j]
+   *			<code> contains the <code>i</code>th component of the
+   *			<code>j</code>th point.
+   * @return		Indices of nearest points.  RETURN_VALUE<code>[i]</code>
+   *			will contain the index of the point in the set closest
+   *			to <code>value[][i]</code> or <code>-1</code> if 
+   *			<code>value[][i]</code> lies outside the set.
+   */
   public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("Gridded1DSet.valueToIndex: bad dimension");
@@ -176,64 +187,34 @@ public class Gridded1DSet extends GriddedSet {
       throw new SetException("Gridded1DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }
-    int length = value[0].length;
+    float[] vals = value[0];
+    int length = vals.length;
+    float[] samps = Samples[0];
     float[][] grid = new float[1][length];
-    float gridguess = LengthX/2;
+    int ig = (LengthX - 1)/2;
     for (int i=0; i<length; i++) {
-      float upper = LengthX-1;
-      float lower = 0;
-      // gridguess starts at previous value unless there was no solution
-      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) ) {
-        gridguess = LengthX/2;
-      }
-      // grid value should default to NaN in case the algorithm fails
-      grid[0][i] = Float.NaN;
-      // don't try to solve missing values
-      if (Float.isNaN(value[0][i])) continue;
-      for (int itnum=0; itnum<LengthX; itnum++) {
-        // calculate closest integer variable
-        int ig;
-        if (gridguess < 0) ig = 0;
-        else if (gridguess > LengthX-2) ig = LengthX - 2;
-        else ig = (int) gridguess;
-        // calculate distance variables
-        float A = gridguess - ig;
-        float B = 1-A;
-        // Linear interpolation algorithm for the value of gridguess
-        float fg = B*Samples[0][ig] + A*Samples[0][ig+1];
-        if (fg == value[0][i]) {
-          // The guess hit it right on the mark
-          grid[0][i] = gridguess;
-          break;
-        }
-        // bounds for test if value[0][i] is between two grid points
-        float bound1 = Samples[0][ig];
-        float bound2 = Samples[0][ig+1];
-        /* CTR: 8 Oct 1998
-        if (  ( (Samples[0][ig] <= value[0][i])
-                  && (value[0][i] <= Samples[0][ig+1]) )
-                || ( (ig == 0) && (value[0][i] <= Samples[0][1]) )
-                || ( (ig == LengthX-2)
-                  && (value[0][i] >= Samples[0][ig]) )  ) {
-        */
-        // test if value[0][i] is between grid points ig and ig+1
-        if ( ((value[0][i] - bound1) * (value[0][i] - bound2) < 0) ||
-             (ig == 0 && (Neg ? value[0][i] >= bound2
-                              : value[0][i] <= bound2)) ||
-             (ig == LengthX - 2 && (Neg ? value[0][i] <= bound1
-                                        : value[0][i] >= bound2)) ) {
-          // Solve with Newton's Method
-          float solv = gridguess - ((fg-value[0][i])
-                       /(Samples[0][ig+1]-Samples[0][ig]));
-          if ( (solv > LengthX-0.5) || (solv < -0.5) ) {
-            solv = Float.NaN;
+      if (Float.isNaN(vals[i])) grid[0][i] = Float.NaN;
+      else {
+	int lower = 0;
+	int upper = LengthX-1;
+	while (lower < upper) {
+	  if ((vals[i] - samps[ig]) * (vals[i] - samps[ig+1]) <= 0) break;
+	  if (Ascending ? samps[ig+1] < vals[i] : samps[ig+1] > vals[i]) {
+	    lower = ig+1;
           }
-          grid[0][i] = solv;
-          break;
+	  else if (Ascending ? samps[ig] > vals[i] : samps[ig] < vals[i]) {
+	    upper = ig;
+          }
+	  if (lower < upper) ig = (lower + upper) / 2;
+	}
+        // Newton's method
+	float solv = ig + (vals[i] - samps[ig]) / (samps[ig+1] - samps[ig]);
+        if (solv >= -0.5 && solv <= LengthX - 0.5) grid[0][i] = solv;
+        else {
+          grid[0][i] = Float.NaN;
+          // next guess should be in the middle if previous value was missing
+          ig = (LengthX - 1)/2;
         }
-        else if (Neg ? fg > value[0][i] : fg < value[0][i]) lower = gridguess;
-        else if (Neg ? fg < value[0][i] : fg > value[0][i]) upper = gridguess;
-        gridguess = (upper + lower)/2;
       }
     }
     return grid;
@@ -390,10 +371,9 @@ num_dimensions = 1, num_coords = 20
 Lengths = 20 wedge = 
  0
  1
- 2
- 3
 . . .
-
+ 18
+ 19
 Samples (20):
 #0:     -40.54849
 #1:     -39.462048
@@ -409,12 +389,12 @@ gridToValue test:
 (19.4)  -->  43.211212
 
 valueToGrid test:
--40.983063      -->  (-0.4)
--40.00527       -->  (0.499998)
+-40.983063      -->  (-0.399998)
+-40.00527       -->  (0.5)
 . . .
 32.163677       -->  (18.5)
 43.211212       -->  (19.4)
-
+ 
 iris 26% 
 
 */
