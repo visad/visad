@@ -173,6 +173,14 @@ public class VisADCanvasJ2D extends JPanel
     }
   }
 
+  /**
+   * Add a <CODE>MouseBehavior</CODE> for mouse control of translation 
+   * and zoom.  This adds <CODE>MouseListener</CODE>s to the VisADCanvasJ2D to 
+   * handle the behaviors for the mouse events.  Do not use this in conjunction 
+   * with other <CODE>MouseListener</CODE>s that handle events for the default
+   * VisAD mouse controls.
+   * @param  mouse  mouse behavior to add
+   */
   public void addMouseBehavior(MouseBehaviorJ2D mouse) {
     helper = mouse.getMouseHelper();
 
@@ -189,6 +197,9 @@ public class VisADCanvasJ2D extends JPanel
       public void mouseReleased(MouseEvent e) {
         helper.processEvent(e);
       }
+      public void mouseClicked(MouseEvent e) {
+        requestFocus();
+      }
     };
     addMouseListener(ml);
 
@@ -198,6 +209,22 @@ public class VisADCanvasJ2D extends JPanel
       }
     };
     addMouseMotionListener(mml);
+  }
+
+  /**
+   * Add a <CODE>KeyboardBehavior</CODE> for keyboard control of translation 
+   * and zoom.  This adds a <CODE>KeyListener</CODE> to the VisADCanvasJ2D to 
+   * handle the behaviors for the arrow keys.  Do not use this in conjunction 
+   * with other <CODE>KeyListener</CODE>s that handle events for the arrow keys.
+   * @param  behavior  keyboard behavior to add
+   */
+  public void addKeyboardBehavior(final KeyboardBehaviorJ2D behavior) {
+    KeyListener kl = new KeyAdapter() {
+        public void keyPressed(KeyEvent e) {
+          behavior.processKeyEvent(e);
+        }
+      };
+    addKeyListener(kl);
   }
 
   public void createImages(int len) {

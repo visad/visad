@@ -798,5 +798,16 @@ public abstract class DisplayRendererJ2D
   {
     clearScene(renderer);
   }
-}
 
+  /**
+   * Add a <CODE>KeyboardBehavior</CODE> for keyboard control of translation 
+   * and zoom.  This adds a <CODE>KeyListener</CODE> to the VisADCanvasJ2D to 
+   * handle the behaviors for the arrow keys.  Do not use this in conjunction 
+   * with other <CODE>KeyListener</CODE>s that handle events for the arrow keys.
+   * @param  behavior  keyboard behavior to add
+   */
+  public void addKeyboardBehavior(KeyboardBehaviorJ2D behavior)
+  {
+    getCanvas().addKeyboardBehavior(behavior);
+  }
+}
