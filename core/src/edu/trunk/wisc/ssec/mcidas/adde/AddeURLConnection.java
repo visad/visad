@@ -1002,6 +1002,7 @@ public class AddeURLConnection extends URLConnection
       buf.append(numString);
       buf.append(" ");
       buf.append(traceString);
+      buf.append(" ");
       //buf.append(" version=A ");
 
       // Create a subset string
