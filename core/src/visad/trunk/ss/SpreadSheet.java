@@ -1569,6 +1569,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** specify mappings from Data to Display */
   void createMappings() {
     DisplayCells[CurX][CurY].addMapDialog();
+    refreshMenuCommands();
   }
 
   /** import a data set */

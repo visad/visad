@@ -1,5 +1,5 @@
                    VisAD Spread Sheet User Interface README file
-                                 11 January 2000
+                                 21 January 2000
  
                                 Table of Contents
 
@@ -246,6 +246,10 @@ Delete row - Deletes the row to which the currently selected cell belongs.
 If a cell depends on any of the cells in the row, the delete row operation will
 fail.
 
+Tile cells - Resizes the cells to equal sizes, so that they fit exactly within
+the visible frame, if possible (if there are a lot of cells, they may not all
+fit within the visible frame).
+
 3-D (Java3D) - Sets the current cell's display dimension to 3-D.  This setting
 requires Java3D.  If you do not have Java3D installed, this option will be
 grayed out.
@@ -295,7 +299,8 @@ for the current cell if they have been closed by the user.
 
 The main toolbar provides shortcuts to the following menu items:
     File Import, File Export (netCDF), Edit Cut, Edit Copy, Edit Paste,
-    Display Edit Mappings, and Options Show VisAD controls.
+    Display 3-D (Java3D), 2-D (Java3D), 2-D (Java2D), Display Edit mappings,
+    Options Show VisAD controls, and Display Tile cells.
 
 The main toolbar has tool tips so each button can be easily identified.
 

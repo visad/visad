@@ -1092,9 +1092,7 @@ public class BasicSSCell extends JPanel {
           catch (NumberFormatException exc) {
             if (DEBUG) exc.printStackTrace();
           }
-          if (d1 == null || d2 == null ||
-            d1.doubleValue() > d2.doubleValue())
-          {
+          if (d1 == null || d2 == null) {
             System.err.println("Warning: map range min/max pair (" +
               s1 + ", " + s2 + ") is not valid and will be ignored");
           }
