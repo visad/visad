@@ -121,6 +121,7 @@ public class FrontDrawer extends Object {
      rshapes is dimensioned [nrshapes][2][points_per_shape]
      rred, rgreen and rblue are dimensioned [nrshapes]
      segment is length in graphics coordinates of entire profile
+     fshapes[*][0][*] and rshapes[*][0][*] generally in range 0.0f to segment
      fw is the filter window size for smoothing the curve
   */
   public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d,
@@ -510,45 +511,141 @@ public class FrontDrawer extends Object {
     front.setSamples(fields, false);
   }
 */
+
   public void curveToFront(float[][] curve, boolean flip)
          throws VisADException, RemoteException {
+
+    // compute various scaling factors
     int len = curve[0].length;
+    float[] seg_length = new float[len-1];
+    float curve_length = curveLength(curve, seg_length);
+    float delta = curve_length / (len - 1);
+    // curve[findex] where
+    // float findex = ibase + mul * repeat_shapes[shape][0][j]
+    float mul = profile_length / segment_length;
+    // curve_perp[][findex] * ratio * repeat_shapes[shape][1][j]
+    float ratio = delta * mul;
+
+    // compute unit perpendiculars to curve
+    float[][] curve_perp = new float[2][len];
     for (int i=0; i<len; i++) {
-      int j = i % profile_length;
+      int im = i - 1;
+      int ip = i + 1;
+      if (im < 0) im = 0;
+      if (ip > len - 1) ip = len - 1;
+      float yp = curve[0][ip] - curve[0][im];
+      float xp = curve[1][ip] - curve[1][im];
+      xp = -xp;
+      float d = (float) Math.sqrt(xp * xp + yp * yp);
+      if (flip) d = -d;
+      xp = xp / d;
+      yp = yp / d;
+      curve_perp[0][i] = xp;
+      curve_perp[1][i] = yp;
     }
 
-/*
-    float[][] front_bot = new float[2][];
-    float[][] front_top = new float[2][];
-    front_bot[lat_index] = lat_map.inverseScaleValues(fb[0]);
-    front_bot[lon_index] = lon_map.inverseScaleValues(fb[1]);
-    front_top[lat_index] = lat_map.inverseScaleValues(ft[0]);
-    front_top[lon_index] = lon_map.inverseScaleValues(ft[1]);
-*/
+    // build Vector of FlatFields for each shape of each segment
+    Vector inner_field_vector = new Vector();
+    for (int segment=0; true; segment++) {
+      // figure out if clipping is needed for this segment
+      // only happens for last segment
+      boolean clip = false;
+      float xclip = 0.0f;
+      int ibase = segment * profile_length;
+      int iend = ibase + profile_length;
+      if (ibase > len - 1) break;
+      if (iend > len - 1) {
+        clip = true;
+        iend = len - 1;
+        xclip = (iend - ibase) / mul;       
+        // DelaunayCustom.clip(samples, tris, 1.0f, 0.0f, xclip,
+        //                     new_samples, new_tris)
+      }
 
-    Vector innter_field_vector = new Vector();
-    for (int iprofile=0; true; iprofile++) {
-        float[][] samples = null;
-        int [][] tris = null;
-        float[][][] new_samples = new float[1][][];
-        int[][][] new_tris = new int[1][][];
-        DelaunayCustom.clip(samples, tris, 1.0f, 0.0f, 0.0f,
-                            new_samples, new_tris);
-        DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
-        if (delaunay == null) break;
+      // set up shapes for first or repeating segment
+      int nshapes = nrshapes;
+      float[][][] shapes = repeat_shapes;
+      int[][][] tris = repeat_tris;
+      float[] red = repeat_red;
+      float[] green = repeat_green;
+      float[] blue = repeat_blue;
+      if (segment == 0) {
+        nshapes = nfshapes;
+        shapes = first_shapes;
+        tris = first_tris;
+        red = first_red;
+        green = first_green;
+        blue = first_blue;
+      }
+
+      // iterate over shapes for segment
+      for (int shape=0; shape<nshapes; shape++) {
+        float[][] samples = shapes[shape];
+        int [][] ts = tris[shape];
+        // if needed, clip shape
+        if (clip) {
+          float[][][] outs = new float[1][][];
+          int[][][] outt = new int[1][][];
+          DelaunayCustom.clip(samples, ts, 1.0f, 0.0f, xclip, outs, outt);
+          samples = outs[0];
+          ts = outt[0];
+        }
+        if (samples == null || samples[0].length < 1) break;
+
+        // map shape into "coordinate system" defined by curve segment
+        int n = samples[0].length;
+        float[][] ss = new float[2][n];
+        for (int i=0; i<n; i++) {
+          float findex = ibase + mul * samples[0][i];
+          int il = (int) findex;
+          int ih = il + 1;
+          if (il < 0) il = 0;
+          if (il > len - 1) il = len - 1;
+          if (ih < 0) ih = 0;
+          if (ih > len - 1) ih = len - 1;
+          float a = findex - il;
+          if (a < 0.0f) a = 0.0f;
+          if (a > 1.0f) a = 1.0f;
+          float b = 1.0f - a;
+          float xl = curve[0][il] + ratio * samples[1][i] * curve_perp[0][il];
+          float yl = curve[1][il] + ratio * samples[1][i] * curve_perp[1][il];
+          float xh = curve[0][ih] + ratio * samples[1][i] * curve_perp[0][ih];
+          float yh = curve[1][ih] + ratio * samples[1][i] * curve_perp[1][ih];
+          ss[0][i] = b * xl + a * xh;
+          ss[1][i] = b * yl + a * yh;
+        }
+        // map shape back into (lat, lon) coordinates
+        ss[lat_index] = lat_map.inverseScaleValues(ss[0]);
+        ss[lon_index] = lon_map.inverseScaleValues(ss[1]);
+
+        // create color values for field
+        float[][] values = new float[3][n];
+        float r = red[shape];
+        float g = green[shape];
+        float b = blue[shape];
+        for (int i=0; i<n; i++) {
+          values[0][i] = r;
+          values[1][i] = g;
+          values[2][i] = b;
+        }
+
+        // construct set and field
+        DelaunayCustom delaunay = new DelaunayCustom(ss, ts);
         Irregular2DSet set =
-          new Irregular2DSet(curve_type, samples, null, null, null, delaunay);
+          new Irregular2DSet(curve_type, ss, null, null, null, delaunay);
         FlatField field = new FlatField(front_inner, set);
-        // field.setSamples(values, false);
-        innter_field_vector.addElement(field);
+        field.setSamples(values, false);
+        inner_field_vector.addElement(field);
 // some crazy bug - see Gridded3DSet.makeNormals()
-    }
-    int nfields = innter_field_vector.size();
+      }
+    } // end for (int segment=0; true; segment++)
+
+    int nfields = inner_field_vector.size();
     Integer1DSet iset = new Integer1DSet(front_index, nfields);
     front = new FieldImpl(front_type, iset);
     FlatField[] fields = new FlatField[nfields];
     for (int i=0; i<nfields; i++) {
-      fields[i] = (FlatField) innter_field_vector.elementAt(i);
+      fields[i] = (FlatField) inner_field_vector.elementAt(i);
     }
     front.setSamples(fields, false);
   }
@@ -577,14 +674,8 @@ public class FrontDrawer extends Object {
   /** resmaple curve into segments approximately increment in length */
   public float[][] resample_curve(float[][] curve, float increment) {
     int len = curve[0].length;
-    float curve_length = 0.0f;
     float[] seg_length = new float[len-1];
-    for (int i=0; i<len-1; i++) {
-      seg_length[i] = (float) Math.sqrt( 
-        ((curve[0][i+1] - curve[0][i]) * (curve[0][i+1] - curve[0][i])) +
-        ((curve[1][i+1] - curve[1][i]) * (curve[1][i+1] - curve[1][i])));
-      curve_length += seg_length[i];
-    }
+    float curve_length = curveLength(curve, seg_length);
     int npoints = 1 + (int) (curve_length / increment);
     float delta = curve_length / (npoints - 1);
     float[][] newcurve = new float[2][npoints];
@@ -616,6 +707,19 @@ public class FrontDrawer extends Object {
     newcurve[0][npoints-1] = curve[0][len-1];
     newcurve[1][npoints-1] = curve[1][len-1];
     return newcurve;
+  }
+
+  /** assumes curve is float[2][len] and seg_length is float[len-1] */
+  public float curveLength(float[][] curve, float[] seg_length) {
+    int len = curve[0].length;
+    float curve_length = 0.0f;
+    for (int i=0; i<len-1; i++) {
+      seg_length[i] = (float) Math.sqrt(
+        ((curve[0][i+1] - curve[0][i]) * (curve[0][i+1] - curve[0][i])) +
+        ((curve[1][i+1] - curve[1][i]) * (curve[1][i+1] - curve[1][i])));
+      curve_length += seg_length[i];
+    }
+    return curve_length;
   }
 
   private boolean pfirst = true;

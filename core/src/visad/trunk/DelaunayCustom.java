@@ -751,7 +751,7 @@ public class DelaunayCustom extends Delaunay {
     int[][] snew = new int[nsamples][6]; // mid points of clipped edges
     int[] minus1s = {-1, -1, -1, -1, -1, -1};
     for (int i=0; i<nsamples; i++) {
-      System.arraycopy(minus1s, 0, sother, 0, 6);
+      System.arraycopy(minus1s, 0, sother[i], 0, 6);
       if (xc * samples[0][i] + yc * samples[1][i] <= v) {
         s[0][ns] = samples[0][i];
         s[1][ns] = samples[1][i];
@@ -788,20 +788,20 @@ public class DelaunayCustom extends Delaunay {
           int ao = tris[i][firsts[flags]];
           int bo = tris[i][seconds[flags]];
           int co = tris[i][thirds[flags]];
-          a = smap[ao];
-          b = smap[bo];
-          c = smap[co];
-          float av = v - (xc * s[0][a] + yc * s[1][a]);
-          float bv = v - (xc * s[0][b] + yc * s[1][b]);
-          float cv = v - (xc * s[0][c] + yc * s[1][c]);
+          // a = smap[ao];
+          // b = smap[bo];
+          // c = smap[co];
+          float av = v - (xc * samples[0][ao] + yc * samples[1][ao]);
+          float bv = v - (xc * samples[0][bo] + yc * samples[1][bo]);
+          float cv = v - (xc * samples[0][co] + yc * samples[1][co]);
           float bw = av / (av - bv);
           float bwm = 1.0f - bw;
           float cw = av / (av - cv);
           float cwm = 1.0f - cw;
-          float[] sb = {bwm * s[0][a] + bw * s[0][b],
-                        bwm * s[1][a] + bw * s[1][b]};
-          float[] sc = {cwm * s[0][a] + cw * s[0][c],
-                        cwm * s[1][a] + cw * s[1][c]};
+          float[] sb = {bwm * samples[0][ao] + bw * samples[0][bo],
+                        bwm * samples[1][ao] + bw * samples[1][bo]};
+          float[] sc = {cwm * samples[0][ao] + cw * samples[0][co],
+                        cwm * samples[1][ao] + cw * samples[1][co]};
           int sbi = -1;
           int sci = -1;
           int jmax = -1;
@@ -844,20 +844,20 @@ public class DelaunayCustom extends Delaunay {
           ao = tris[i][firsts[flags]];
           bo = tris[i][seconds[flags]];
           co = tris[i][thirds[flags]];
-          a = smap[ao];
-          b = smap[bo];
-          c = smap[co];
-          av = v - (xc * s[0][a] + yc * s[1][a]);
-          bv = v - (xc * s[0][b] + yc * s[1][b]);
-          cv = v - (xc * s[0][c] + yc * s[1][c]);
+          // a = smap[ao];
+          // b = smap[bo];
+          // c = smap[co];
+          av = v - (xc * samples[0][ao] + yc * samples[1][ao]);
+          bv = v - (xc * samples[0][bo] + yc * samples[1][bo]);
+          cv = v - (xc * samples[0][co] + yc * samples[1][co]);
           float aw = av / (av - cv);
           float awm = 1.0f - aw;
           bw = bv / (bv - cv);
           bwm = 1.0f - bw;
-          float[] sa = {awm * s[0][a] + aw * s[0][c],
-                        awm * s[1][a] + aw * s[1][c]};
-          sb = new float[] {bwm * s[0][b] + bw * s[0][c],
-                            bwm * s[1][b] + bw * s[1][c]};
+          float[] sa = {awm * samples[0][ao] + aw * samples[0][co],
+                        awm * samples[1][ao] + aw * samples[1][co]};
+          sb = new float[] {bwm * samples[0][bo] + bw * samples[0][co],
+                            bwm * samples[1][bo] + bw * samples[1][co]};
           int sai = -1;
           sbi = -1;
           int jamax = -1;
