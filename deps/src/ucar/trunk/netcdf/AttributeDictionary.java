@@ -1,4 +1,4 @@
-// $Id: AttributeDictionary.java,v 1.2 2001-05-16 20:31:15 steve Exp $
+// $Id: AttributeDictionary.java,v 1.3 2001-08-28 19:12:39 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -35,7 +35,7 @@ import java.io.Serializable;
  * @see AttributeSet
  *
  * @author $Author: steve $
- * @version $Revision: 1.2 $ $Date: 2001-05-16 20:31:15 $
+ * @version $Revision: 1.3 $ $Date: 2001-08-28 19:12:39 $
  */
 
 class AttributeDictionary implements AttributeSet, Serializable {

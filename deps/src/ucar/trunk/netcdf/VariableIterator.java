@@ -1,4 +1,4 @@
-// $Id: VariableIterator.java,v 1.2 2001-05-16 20:31:21 steve Exp $
+// $Id: VariableIterator.java,v 1.3 2001-08-28 19:12:51 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -25,7 +25,7 @@ package ucar.netcdf;
  * Use the Iterator methods to fetch elements sequentially.
  * @see java.util.Iterator
  * @author $Author: steve $
- * @version $Revision: 1.2 $ $Date: 2001-05-16 20:31:21 $
+ * @version $Revision: 1.3 $ $Date: 2001-08-28 19:12:51 $
  */
 public interface VariableIterator {
     /**

@@ -1,4 +1,4 @@
-// $Id: NetcdfFile.java,v 1.3 2001-05-17 15:14:58 steve Exp $
+// $Id: NetcdfFile.java,v 1.4 2001-08-28 19:12:45 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -52,7 +52,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @see Netcdf
  * @author $Author: steve $
- * @version $Revision: 1.3 $ $Date: 2001-05-17 15:14:58 $
+ * @version $Revision: 1.4 $ $Date: 2001-08-28 19:12:45 $
  */
 public class NetcdfFile	extends AbstractNetcdf {
 
@@ -157,13 +157,21 @@ public class NetcdfFile	extends AbstractNetcdf {
      */
   public NetcdfFile(URL url) throws IOException {
     super();
-    this.url = url;
-    raf = new HTTPRandomAccessFile(url);
+    if (url.getProtocol().equals("file"))
+    {
+        file = new File(url.getPath());
+        raf = new RandomAccessFile(file, "r");
+        url = null;
+    }
+    else
+    {
+	this.url = url;
+	raf = new HTTPRandomAccessFile(url);
+	file = null;
+    }
     readV1(raf);
     initRecSize();
     this.doFill = true;
-
-    file = null;
   }
 
  /* End constructors */
@@ -1813,6 +1821,12 @@ public class NetcdfFile	extends AbstractNetcdf {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.8  2001/08/28 16:59:59  steve
+   Added support for "file" protocol to constructor NetcdfFile(URL).
+
+   Revision 1.7  2001/05/17 15:15:09  steve
+   Modified to accomodate JDK 1.2.
+
    Revision 1.6  2001/05/01 15:06:02  caron
    add netcdf HTTP access
 

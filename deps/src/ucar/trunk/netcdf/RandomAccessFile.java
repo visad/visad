@@ -1,4 +1,4 @@
-// $Id: RandomAccessFile.java,v 1.2 2001-05-16 20:31:19 steve Exp $
+// $Id: RandomAccessFile.java,v 1.3 2001-08-28 19:12:49 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -53,7 +53,7 @@ import java.util.Date;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.2 2001-05-16 20:31:19 steve Exp $
+ * @version $Id: RandomAccessFile.java,v 1.3 2001-08-28 19:12:49 steve Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
