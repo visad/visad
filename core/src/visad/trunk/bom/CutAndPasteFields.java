@@ -40,27 +40,44 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
 
-/*
-sequence of operation
-1. method (may be called by JButton) to start process
-2. enable RubberBandBoxRendererJ3D
-3. user selects rectangle
-4. disable RubberBandBoxRendererJ3D
-   draw draggable rectangle (drag at corner?)
-5. user may drag or change time step
-   drag release, updates grid at location/time
-   may repeat drag or change time step
-6. method (may be called by JButton) to stop process
-
-constructor input:
-1. FieldImpl: (Time -> ((x, y) -> range)) or
-   FlatField: ((x, y) -> range)
-2. DisplayImpl (check ScalarMaps)
-*/
-
 /**
+</pre>
    CutAndPasteFields is the VisAD class for cutting and pasting
    regions of fields.<p>
+   Construct a CutAndPasteFields object linked to a 2-D grid [a FlatField
+   with MathType ((x, y) -> range)]) or a sequence of 2-D grids {a FieldImpl
+   with MathType (t -> ((x, y) -> range))], a DisplayImpl, and an optional
+   integer blend region width. The grid or grids must all have the same
+   Linear domain Set (Linear2DSet or LinearNDSet with domain dimension = 2),
+   and the domain must be mapped to two of XAxis, YAxis and ZAxis. If a
+   sequence of grids, the sequence domain must be mapped to Animation. The
+   grid may have any number of range RealTypes.
+
+   The CutAndPasteFields object operates in a sequence:
+   1. Invokes its start() method to start.
+   2. User drags a grid sector rectangle with the right mouse button.
+      This rectangle must lie inside the grid.
+   3. When the user releases, the rectangle appears fixed over the grid.
+   4. The user can change to a different time step, and drag the rectangle
+      by one of its corners. On release, it must lie inside the grid.
+   5. The source grid sector is pasted into the destination, within blending
+      over a certain width near the destination border.
+   6. The user can change time step or drag the rectangle any number of
+      times: each time the previous paste is undone and the source grid
+      sector is pasted into the new time and location.
+   7. At any point after start(), the application can invoke stop() to
+      stop the process.
+   8. After a source rectangle has been pasted, the application can invoke
+      undo() to undo the paste and stop the process.
+   9. The process can be restarted by invoking start(), any number of times.
+   10. At any point, the application can invoke setBlend() to change the
+       width of the blend region.
+
+   The main() method illustrates a simple GUI and test case with a sequnece
+   of grids. Run 'java visad.bom.CutAndPasteFields' to test with contour
+   values, and run 'java visad.bom.CutAndPasteFields 1' to test with color
+   values.
+</pre>
 */
 public class CutAndPasteFields extends Object implements ActionListener {
 
@@ -128,12 +145,14 @@ public class CutAndPasteFields extends Object implements ActionListener {
   }
 
   /**
+<pre>
      gs has MathType (t -> ((x, y) -> v)) or ((x, y) -> v)
      conditions on gs and display:
      1. x and y mapped to XAxis, YAxis, ZAxis
      2. (x, y) domain LinearSet
      3. if (t -> ...), then t is mapped to Animation
      b is width of blend region
+</pre>
   */
   public CutAndPasteFields(Field gs, DisplayImplJ3D d, int b)
          throws VisADException, RemoteException {
@@ -399,6 +418,62 @@ public class CutAndPasteFields extends Object implements ActionListener {
     };
   }
 
+  public void start() throws VisADException, RemoteException {
+    synchronized (lock) {
+      cell_rbb.addReference(ref_rbb);
+      Gridded2DSet dummy_set = new Gridded2DSet(xy, null, 1);
+      ref_rbb.setData(dummy_set);
+      rbbr.toggle(true);
+    }
+  }
+
+  public void stop() throws VisADException, RemoteException {
+    synchronized (lock) {
+      display.disableAction();
+      rbbr.toggle(false);
+      xlylr.toggle(false);
+      xlyhr.toggle(false);
+      xhylr.toggle(false);
+      xhyhr.toggle(false);
+      rectr.toggle(false);
+      ref_xlyl.setData(null);
+      ref_xlyh.setData(null);
+      ref_xhyl.setData(null);
+      ref_xhyh.setData(null);
+      ref_rect.setData(null);
+      display.enableAction();
+  
+      try { cell_rbb.removeReference(ref_rbb); }
+      catch (ReferenceException e) { }
+      try { cell_xlyl.removeReference(ref_xlyl); }
+      catch (ReferenceException e) { }
+      try { cell_xlyh.removeReference(ref_xlyh); }
+      catch (ReferenceException e) { }
+      try { cell_xhyl.removeReference(ref_xhyl); }
+      catch (ReferenceException e) { }
+      try { cell_xhyh.removeReference(ref_xhyh); }
+      catch (ReferenceException e) { }
+    }
+  }
+
+  public void undo() throws VisADException, RemoteException {
+    synchronized (lock) {
+      if (replacedff != null) {
+        float[][] samples = replacedff.getFloats(false);
+        for (int ix=replacedixlow; ix<=replacedixhi; ix++) {
+          for (int iy=replacediylow; iy<=replacediyhi; iy++) {
+            int i = ix + nx * iy;
+            int j = (ix - replacedixlow) + rx * (iy - replacediylow);
+            for (int k=0; k<rangedim; k++) samples[k][i] = replaced[k][j];
+          }
+        }
+        replacedff.setSamples(samples, false);
+      }
+      replacedff = null;
+    }
+    stop();
+  }
+
   public void setBlend(int b) {
     if (b >= 0) blend = b;
   }
@@ -557,15 +632,6 @@ public class CutAndPasteFields extends Object implements ActionListener {
     return tindices[0];
   }
 
-  public void start() throws VisADException, RemoteException {
-    synchronized (lock) {
-      cell_rbb.addReference(ref_rbb);
-      Gridded2DSet dummy_set = new Gridded2DSet(xy, null, 1);
-      ref_rbb.setData(dummy_set);
-      rbbr.toggle(true);
-    }
-  }
-
   private void drag() throws VisADException, RemoteException {
     display.disableAction();
     ref_xlyl.setData(new RealTuple(xy, new double[] {xlow, ylow}));
@@ -580,7 +646,7 @@ public class CutAndPasteFields extends Object implements ActionListener {
   }
 
   // BoxDragRendererJ3D button release
-  public void drag_release() {
+  void drag_release() {
     synchronized (lock) {
       try {
         replaceRect();
@@ -594,51 +660,11 @@ public class CutAndPasteFields extends Object implements ActionListener {
     }
   }
 
-  public void stop() throws VisADException, RemoteException {
-    synchronized (lock) {
-      display.disableAction();
-      rbbr.toggle(false);
-      xlylr.toggle(false);
-      xlyhr.toggle(false);
-      xhylr.toggle(false);
-      xhyhr.toggle(false);
-      rectr.toggle(false);
-      ref_xlyl.setData(null);
-      ref_xlyh.setData(null);
-      ref_xhyl.setData(null);
-      ref_xhyh.setData(null);
-      ref_rect.setData(null);
-      display.enableAction();
-  
-      try { cell_rbb.removeReference(ref_rbb); }
-      catch (ReferenceException e) { }
-      try { cell_xlyl.removeReference(ref_xlyl); }
-      catch (ReferenceException e) { }
-      try { cell_xlyh.removeReference(ref_xlyh); }
-      catch (ReferenceException e) { }
-      try { cell_xhyl.removeReference(ref_xhyl); }
-      catch (ReferenceException e) { }
-      try { cell_xhyh.removeReference(ref_xhyh); }
-      catch (ReferenceException e) { }
-    }
-  }
-
-
   private static final int NSTAS = 64; // actually NSTAS * NSTAS
   private static final int NTIMES = 10;
 
   public static void main(String args[])
          throws VisADException, RemoteException {
-
-    int blend = 0;
-    if (args.length > 0) {
-      try {
-        blend = Integer.parseInt(args[0]);
-      }
-      catch(NumberFormatException e) {
-      }
-    }
-    if (blend < 0) blend = 0;
 
     // construct RealTypes for wind record components
     RealType x = new RealType("x");
@@ -679,7 +705,13 @@ public class CutAndPasteFields extends Object implements ActionListener {
     ScalarMap xmap = new ScalarMap(x, Display.XAxis);
     display1.addMap(xmap);
 
-    ScalarMap cmap = new ScalarMap(windy, Display.RGB);
+    ScalarMap cmap = null;
+    if (args.length > 0) {
+      cmap = new ScalarMap(windy, Display.RGB);
+    }
+    else {
+      cmap = new ScalarMap(windy, Display.IsoContour);
+    }
     display1.addMap(cmap);
 
     ScalarMap amap = new ScalarMap(time, Display.Animation);
@@ -723,7 +755,7 @@ public class CutAndPasteFields extends Object implements ActionListener {
     seq_ref.setData(field);
     display1.addReference(seq_ref);
 
-    final CutAndPasteFields cp = new CutAndPasteFields(field, display1, blend);
+    final CutAndPasteFields cp = new CutAndPasteFields(field, display1);
 
     final DataReferenceImpl blend_ref = new DataReferenceImpl("blend_ref");
     VisADSlider blend_slider =
@@ -763,13 +795,24 @@ public class CutAndPasteFields extends Object implements ActionListener {
     final JButton stop = new JButton("stop");
     stop.addActionListener(cp);
     stop.setActionCommand("stop");
+    final JButton undo = new JButton("undo");
+    undo.addActionListener(cp);
+    undo.setActionCommand("undo");
     panel3.add(start);
     panel3.add(stop);
+    panel3.add(undo);
 
     panel2.add(new AnimationWidget(amap));
-    LabeledColorWidget lcw = new LabeledColorWidget(cmap);
-    lcw.setMaximumSize(new Dimension(400, 200));
-    panel2.add(lcw);
+    if (args.length > 0) {
+      LabeledColorWidget lcw = new LabeledColorWidget(cmap);
+      lcw.setMaximumSize(new Dimension(400, 200));
+      panel2.add(lcw);
+    }
+    else {
+      ContourWidget cw = new ContourWidget(cmap);
+      cw.setMaximumSize(new Dimension(400, 200));
+      panel2.add(cw);
+    }
     panel2.add(new JLabel(" "));
     panel2.add(blend_slider);
     panel2.add(new JLabel(" "));
@@ -801,6 +844,17 @@ public class CutAndPasteFields extends Object implements ActionListener {
     else if (cmd.equals("stop")) {
       try {
         stop();
+      }
+      catch (VisADException ex) {
+        ex.printStackTrace();
+      }
+      catch (RemoteException ex) {
+        ex.printStackTrace();
+      }
+    }
+    else if (cmd.equals("undo")) {
+      try {
+        undo();
       }
       catch (VisADException ex) {
         ex.printStackTrace();
