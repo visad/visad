@@ -31,6 +31,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Vector;
 import javax.swing.JComponent;
 import visad.util.Util;
 
@@ -42,6 +43,7 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   private RemoteDisplay display;
   private BufferedImage image;
   private JComponent component;
+  private Vector listeners = new Vector();
 
   /** Construct a new slaved display linked to the given RemoteDisplay */
   public RemoteSlaveDisplayImpl(RemoteDisplay d) throws VisADException,
@@ -65,7 +67,7 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     component.addMouseMotionListener(this);
   }
 
-  /** Removes the link from this slaved display to its remote display */
+  /** Remove the link from this slaved display to its remote display */
   public void unlink() throws VisADException, RemoteException {
     display.removeSlave(this);
   }
@@ -73,6 +75,16 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   /** Get this slave display's component, for adding to a user interface */
   public JComponent getComponent() {
     return component;
+  }
+
+  /** Add a mouse listener to this slave display */
+  public void addMouseListener(MouseListener l) {
+    listeners.add(l);
+  }
+
+  /** Remove a mouse listener from this slave display */
+  public void removeMouseListener(MouseListener l) {
+    listeners.remove(l);
   }
 
   /** Update this slave display with the given RLE-encoded image pixels */
@@ -102,22 +114,62 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   public void mouseClicked(MouseEvent e) {
     // This event currently generates a "type not recognized" error
     // sendMouseEvent(e);
+    
+    // notify listeners
+    synchronized (listeners) {
+      for (int i=0; i<listeners.size(); i++) {
+        MouseListener l = (MouseListener) listeners.elementAt(i);
+        l.mouseClicked(e);
+      }
+    }
   }
 
   public void mouseEntered(MouseEvent e) {
     sendMouseEvent(e);
+
+    // notify listeners
+    synchronized (listeners) {
+      for (int i=0; i<listeners.size(); i++) {
+        MouseListener l = (MouseListener) listeners.elementAt(i);
+        l.mouseEntered(e);
+      }
+    }
   }
 
   public void mouseExited(MouseEvent e) {
     sendMouseEvent(e);
+
+    // notify listeners
+    synchronized (listeners) {
+      for (int i=0; i<listeners.size(); i++) {
+        MouseListener l = (MouseListener) listeners.elementAt(i);
+        l.mouseExited(e);
+      }
+    }
   }
 
   public void mousePressed(MouseEvent e) {
     sendMouseEvent(e);
+
+    // notify listeners
+    synchronized (listeners) {
+      for (int i=0; i<listeners.size(); i++) {
+        MouseListener l = (MouseListener) listeners.elementAt(i);
+        l.mousePressed(e);
+      }
+    }
   }
 
   public void mouseReleased(MouseEvent e) {
     sendMouseEvent(e);
+
+    // notify listeners
+    synchronized (listeners) {
+      for (int i=0; i<listeners.size(); i++) {
+        MouseListener l = (MouseListener) listeners.elementAt(i);
+        l.mouseReleased(e);
+      }
+    }
   }
 
   public void mouseDragged(MouseEvent e) {
