@@ -977,6 +977,7 @@ public class TextAdapter {
     }
 
     String t = sb.toString();
+    k = t.indexOf("->");
 
     if (t.charAt(k-1) != ')' ) {
       if (t.charAt(k+2) != '(' ) {
