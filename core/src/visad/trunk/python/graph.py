@@ -5,7 +5,30 @@ from javax.swing import JFrame, JPanel
 from java.awt import BorderLayout, FlowLayout, Font
 import subs
 
-def image(img, panel=None, colortable=None):
+def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD Image"):
+
+  dom_1 = RealType.getRealType(domainType(data,0) )
+  dom_2 = RealType.getRealType(domainType(data,1)) 
+  rng = RealType.getRealType(rangeType(data,0))
+  rngMap = ScalarMap(rng, Display.RGB)
+  xMap = ScalarMap(dom_1, Display.XAxis)
+  yMap = ScalarMap(dom_2, Display.YAxis)
+  maps = (xMap, yMap, rngMap)
+  disp = subs.makeDisplay(maps)
+
+  if colortable is None:
+    # make a gray-scale table
+    gray = []
+    for i in range(0,255):
+      gray.append( float(i)/255.)
+    colortable = (gray, gray, gray)
+
+  rngMap.getControl().setTable(colortable)
+
+  dr=subs.addData("brightness", data, disp)
+  subs.setBoxSize(disp, .80)
+  subs.setAspectRatio(disp, float(width)/float(height))
+  subs.showDisplay(disp,width,height,title)
   return
 
 #----------------------------------------------------------------------------
@@ -79,10 +102,6 @@ def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", col
 
   return
 
-
-#----------------------------------------------------------------------------
-def piechart(data, panel=None):
-  return
 
 #----------------------------------------------------------------------------
 # a simple line plot for one parameter

@@ -56,13 +56,13 @@ def makeDisplay(maps):
 def addData(name, data, disp, constantMaps=None):
 
   ref = DataReferenceImpl(name)
+  disp.addReference(ref, constantMaps)
   
   if data is not None: 
     ref.setData(data)
   else:
     print "added Data is None"
 
-  disp.addReference(ref, constantMaps)
   return ref
   
 
