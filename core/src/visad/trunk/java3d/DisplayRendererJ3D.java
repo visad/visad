@@ -158,7 +158,6 @@ public abstract class DisplayRendererJ3D
     non_direct = null;
     view = null;
     canvas = null;
-    directs = null;
   }
 
   /**
