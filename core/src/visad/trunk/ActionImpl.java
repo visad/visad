@@ -156,11 +156,10 @@ public abstract class ActionImpl extends Object
 */
         setTicks();
         if (checkTicks() || this instanceof DisplayImpl) {
-          boolean check = checkTicks();
-          boolean display = (this instanceof DisplayImpl);
 /*
-System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
-                   " display = " + display);
+System.out.println("doAction: Name = " + Name +
+                   " checkTicks = " + checkTicks() +
+                   " display = " + (this instanceof DisplayImpl));
 */
           doAction();
         }
