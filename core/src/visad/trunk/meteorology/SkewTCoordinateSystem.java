@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTCoordinateSystem.java,v 1.3 1998-08-19 17:19:57 steve Exp $
+ * $Id: SkewTCoordinateSystem.java,v 1.4 1998-08-28 16:50:23 steve Exp $
  */
 
 package visad.meteorology;
@@ -35,11 +35,6 @@ SkewTCoordinateSystem
     extends	CoordinateSystem
 {
     /**
-     * The coordinate system units.
-     */
-    private final static Unit[]	units = new Unit[3];
-
-    /**
      * Transformation parameters.
      */
     private final double	YPerNegLogP;
@@ -64,48 +59,6 @@ SkewTCoordinateSystem
     private static final double	CANONICAL_MIN_T_AT_MAX_P   =  -46.5;
     private static final double	CANONICAL_MAX_T_AT_MAX_P   =   52.0;
     private static final double	CANONICAL_ISOTHERM_TANGENT =    1.2;
-
-
-    static
-    {
-	try
-	{
-	    Parser	parser = Parser.instance();
-
-	    units[0] = parser.parse("millibar");
-	    units[1] = parser.parse("celsius");
-	    units[2] = null;
-	}
-	catch (Exception e)
-	{
-	    String	reason = e.getMessage();
-
-	    System.err.println
-		("Couldn't initialize class SkewTCoordinateSystem" +
-		(reason == null ? "" : (": " + reason)));
-	    e.printStackTrace();
-	}
-    }
-
-
-    /**
-     * Return the canonical pressure unit.
-     */
-    public static Unit
-    getPressureUnit()
-    {
-	return units[0];
-    }
-
-
-    /**
-     * Return the canonical temperature unit.
-     */
-    public static Unit
-    getTemperatureUnit()
-    {
-	return units[1];
-    }
 
 
     /**
@@ -183,7 +136,7 @@ SkewTCoordinateSystem
 	    double isothermTangent, Rectangle2D viewport)
 	throws VisADException
     {
-	super(Display.DisplaySpatialCartesianTuple, units);
+	super(Display.DisplaySpatialCartesianTuple, getUnits());
 
 	this.minP = minP;
 	this.maxP = maxP;
@@ -204,6 +157,56 @@ SkewTCoordinateSystem
 			    new double[] {0, 0}});
 	minTAtMinP = coords[1][0];
 	maxTAtMinP = coords[1][1];
+    }
+
+
+    /**
+     * Gets the coordinate system units.
+     */
+    protected static Unit[]
+    getUnits()
+    {
+	Unit[]	units = new Unit[3];
+
+	try
+	{
+	    Parser	parser = Parser.instance();
+
+	    units[0] = parser.parse("millibar");
+	    units[1] = parser.parse("celsius");
+	    units[2] = null;
+	}
+	catch (Exception e)
+	{
+	    String	reason = e.getMessage();
+
+	    System.err.println
+		("Couldn't initialize class SkewTCoordinateSystem" +
+		(reason == null ? "" : (": " + reason)));
+	    e.printStackTrace();
+	}
+
+	return units;
+    }
+
+
+    /**
+     * Return the pressure unit.
+     */
+    public Unit
+    getPressureUnit()
+    {
+	return getCoordinateSystemUnits()[0];
+    }
+
+
+    /**
+     * Return the canonical temperature unit.
+     */
+    public Unit
+    getTemperatureUnit()
+    {
+	return getCoordinateSystemUnits()[1];
     }
 
 

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.9 1998-08-24 15:24:47 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.10 1998-08-28 16:50:24 steve Exp $
  */
 
 package visad.meteorology;
@@ -252,18 +252,18 @@ SkewTDisplay
 		    skewTCoordSys.viewport, 2, 2, skewTCoordSys);
 	    DataReferenceImpl	thetaRef =
 		createTemperatureField("potential_temperature", isothermType,
-		    thetaCoordSys.viewport, 10, 10, thetaCoordSys);
+		    skewTCoordSys.viewport, 10, 10, thetaCoordSys);
 	    DataReferenceImpl	thetaESRef = createTemperatureField(
 		"saturation_equivalent_potential_temperature", isothermType,
-		thetaESCoordSys.viewport, 20, 20, thetaESCoordSys);
+		skewTCoordSys.viewport, 20, 20, thetaESCoordSys);
 
 	    /*
 	     * Add the temperature fields to the display.
 	     */
-	    display.addReference(thetaESRef, thetaESConstantMaps);
-	    display.addReference(thetaRef, thetaConstantMaps);
-	    display.addReference(temperatureRef, temperatureConstantMaps);
 	    display.addReference(soundingRef, soundingConstantMaps);
+	    display.addReference(temperatureRef, temperatureConstantMaps);
+	    display.addReference(thetaRef, thetaConstantMaps);
+	    display.addReference(thetaESRef, thetaESConstantMaps);
 
 	    displayInitialized = true;
 	}

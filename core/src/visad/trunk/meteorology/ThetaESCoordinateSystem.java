@@ -3,11 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ThetaESCoordinateSystem.java,v 1.1 1998-08-24 18:24:22 steve Exp $
+ * $Id: ThetaESCoordinateSystem.java,v 1.2 1998-08-28 16:50:25 steve Exp $
  */
 
 package visad.meteorology;
 
+import visad.CoordinateSystem;
+import visad.Display;
 import visad.SI;
 import visad.Unit;
 import visad.UnitException;
@@ -23,21 +25,24 @@ import visad.data.netcdf.units.ParseException;
  * An instance of this class is immutable.
  *
  * Definitions:
- *	Real Coordinates	(pressure,
- *				saturation equivalent potential temperature)
  *	Display Coordinates	(Display.XAxis, Display.YAxis)
  *
  * @author Steven R. Emmerson
  */
 public class
 ThetaESCoordinateSystem
-    extends	ThetaCoordinateSystem
+    extends	CoordinateSystem
 {
     /**
      * Reference pressure for empirical computation of saturation water vapor
      * pressure in units of getPressureUnit().
      */
-    private final double	eSat0;
+    private final double		eSat0;
+
+    /**
+     * The associated potential temperature coordinate system.
+     */
+    private final ThetaCoordinateSystem	thetaCoordSys;
 
 
     /**
@@ -50,7 +55,10 @@ ThetaESCoordinateSystem
     ThetaESCoordinateSystem(ThetaCoordinateSystem thetaCoordSys)
 	throws VisADException, ParseException
     {
-	super(thetaCoordSys);
+	super(Display.DisplaySpatialCartesianTuple, 
+	    thetaCoordSys.getCoordinateSystemUnits());
+
+	this.thetaCoordSys = thetaCoordSys;
 
 	eSat0 =
 	    getPressureUnit().toThis(0.61078, Parser.instance().parse("kPa"));
@@ -58,30 +66,55 @@ ThetaESCoordinateSystem
 
 
     /**
-     * Convert saturation equivalent potential temperature coordinates
-     * to pressure and temperature coordinates.
+     * Gets the pressure unit.
+     *
+     * @return	The unit of pressure.
      */
-    protected double[][]
-    convert(double[][] coords)
+    public Unit
+    getPressureUnit()
     {
-	throw new UnsupportedOperationException(
-	"Can't convert equivalent potential temperature to temperature -- yet");
+	return thetaCoordSys.getPressureUnit();
     }
 
 
     /**
-     * Convert pressure and temperature coordinates to saturation equivalent 
-     * potential temperature coordinates.
+     * Gets the temperature unit.
      *
-     * @exception UnitException	Incompatible Units.
+     * @return	The unit of temperature.
      */
-    protected double[][]
-    invert(double[][] coords)
-	throws UnitException
+    public Unit
+    getTemperatureUnit()
     {
+	return thetaCoordSys.getTemperatureUnit();
+    }
+
+
+    /**
+     * Transforms display coordinates to saturation equivalent potential
+     * temperature coordinates.
+     *
+     * @param coords    Coordinates.  On input, <code>coords[0][i]</code>
+     *                  and <code>coords[1][i]</code> are the X
+     *                  and Y display coordinates, respectively,
+     *                  of the <code>i</code>th point.  On
+     *                  output, <code>coords[0][i]</code> and
+     *                  <code>coords[1][i]</code> are the corresponding
+     *                  pressure and saturation equivalent temperature
+     *			coordinates, respectively.
+     * @return		<code>coords</code>).
+     * @exception VisADException	Unsupported operation.
+     */
+    public double[][]
+    fromReference(double[][] coords)
+	throws VisADException
+    {
+	coords = thetaCoordSys.getSkewTCoordSys().fromReference(coords);
+
 	double[]	pressures = coords[0];
-	double[]	temperatures = 
-	    getTemperatureUnit().toThat(coords[1], SI.kelvin);
+	double[]	temperatures =
+	    SI.kelvin.toThis(coords[1], getTemperatureUnit());
+	double[]	thetas = new Theta(getPressureUnit(),
+	    SI.kelvin).toTheta(pressures, temperatures);
 
 	for (int i = 0; i < pressures.length; ++i)
 	{
@@ -91,14 +124,38 @@ ThetaESCoordinateSystem
 		(temperature - 35.86);
 	    double	eSat = eSat0 * Math.exp(exponent);
 	    double	rSat = 0.622 * (eSat/(pressure - eSat));
-	    double	theta = theta(pressure, temperature);
 
-	    temperatures[i] = theta * (1.0 + 2500.0 * rSat / temperature);
+	    temperatures[i] = thetas[i] * (1.0 + 2500.0 * rSat / temperature);
 	}
 
 	coords[1] = getTemperatureUnit().toThis(temperatures, SI.kelvin);
 
 	return coords;
+    }
+
+
+    /**
+     * Transforms saturation equivalent potential temperature coordinates
+     * to display coordinates.
+     *
+     * @param coords    Coordinates.  On input,
+     *			<code>coords[0][i]</code>
+     *                  and <code>coords[1][i]</code> are the
+     *                  pressure and saturation equivalent potential
+     *			temperature coordinates,
+     *                  respectively, of the <code>i</code>th point.
+     *                  On output, <code>coords[0][i]</code> and
+     *                  <code>coords[1][i]</code> are the corresponding
+     *                  X and Y display coordinates, respectively.
+     * @return		<code>coords</code>).
+     * @exception VisADException	Unsupported operation.
+     */
+    public double[][]
+    toReference(double[][] coords)
+	throws VisADException
+    {
+	throw new VisADException(
+	"Can't convert equivalent potential temperature to temperature -- yet");
     }
 
 
@@ -116,6 +173,6 @@ ThetaESCoordinateSystem
 	    return false;
 
 	return eSat0 == ((ThetaESCoordinateSystem)obj).eSat0 &&
-	    super.equals(obj);
+	    thetaCoordSys.equals(obj);
     }
 }

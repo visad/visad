@@ -3,11 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ThetaCoordinateSystem.java,v 1.1 1998-08-24 18:24:21 steve Exp $
+ * $Id: ThetaCoordinateSystem.java,v 1.2 1998-08-28 16:50:25 steve Exp $
  */
 
 package visad.meteorology;
 
+import visad.CoordinateSystem;
+import visad.Display;
 import visad.SI;
 import visad.Unit;
 import visad.UnitException;
@@ -30,19 +32,17 @@ import visad.data.netcdf.units.ParseException;
  */
 public class
 ThetaCoordinateSystem
-    extends	SkewTCoordinateSystem
+    extends	CoordinateSystem
 {
     /**
-     * The reference pressure in units of getPressureUnit().
+     * The potential temperature utility.
      */
-    private final double		referencePressure;
+    private final Theta			theta;
 
-    /*
-     * The following value is take from "An Introduction to Boundary
-     * Layer Meteorology" by Roland B. Stull; chapter 13 (Boundary Layer
-     * Clouds).
+    /**
+     * The associated Skew-T, Log P coordinate system.
      */
-    private static final float		kappa = 0.286f;
+    private final SkewTCoordinateSystem	skewTCoordSys;
 
 
     /**
@@ -54,7 +54,7 @@ ThetaCoordinateSystem
     ThetaCoordinateSystem(ThetaCoordinateSystem thetaCoordSys)
 	throws VisADException
     {
-	this((SkewTCoordinateSystem)thetaCoordSys);
+	this(thetaCoordSys.skewTCoordSys);
     }
 
 
@@ -62,31 +62,28 @@ ThetaCoordinateSystem
      * Constructs from a SkewTCoordinateSystem.
      *
      * @param skewTCoordSys	Skew-T, log p coordinate system.
+     * @postcondition		<code>getSkewTCoordSys()</code> will return
+     *				<code>skewTCoordSys</code>.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public
     ThetaCoordinateSystem(SkewTCoordinateSystem skewTCoordSys)
 	throws VisADException
     {
-	super(skewTCoordSys);
+	super(Display.DisplaySpatialCartesianTuple, 
+	    skewTCoordSys.getCoordinateSystemUnits());
 
-	try
-	{
-	    Unit	millibar = Parser.instance().parse("millibar");
+	this.skewTCoordSys = skewTCoordSys;
 
-	    referencePressure = getPressureUnit().toThis(1000.0, millibar);
-	}
-	catch (ParseException e)
-	{
-	    throw new VisADException(e.getMessage());
-	}
+	theta = new Theta(skewTCoordSys.getPressureUnit(),
+			  skewTCoordSys.getTemperatureUnit());
     }
 
 
     /**
      * Transforms real coordinates to display coordinates.
      *
-     * @param coords    Real coordinates: <code>coords[0][i]</code>
+     * @param coords    Coordinates.  On input,  <code>coords[0][i]</code>
      *                  and <code>coords[1][i]</code> are the
      *                  pressure and temperature coordinates,
      *                  respectively, of the <code>i</code>th point.
@@ -102,7 +99,7 @@ ThetaCoordinateSystem
     {
 	try
 	{
-	    return super.toReference(convert(coords));
+	    return skewTCoordSys.toReference(convert(coords));
 	}
 	catch (UnitException e)
 	{
@@ -114,7 +111,7 @@ ThetaCoordinateSystem
     /**
      * Transforms display coordinates to real coordinates.
      *
-     * @param coords    Display coordinates: <code>coords[0][i]</code>
+     * @param coords    Coordinates: On input, <code>coords[0][i]</code>
      *                  and <code>coords[1][i]</code> are the X
      *                  and Y display coordinates, respectively,
      *                  of the <code>i</code>th point.  On
@@ -130,7 +127,7 @@ ThetaCoordinateSystem
     {
 	try
 	{
-	    return invert(super.fromReference(coords));
+	    return invert(skewTCoordSys.fromReference(coords));
 	}
 	catch (UnitException e)
 	{
@@ -142,28 +139,14 @@ ThetaCoordinateSystem
     /**
      * Convert potential temperature coordinates to temperature coordinates.
      *
-     * @exception UnitException	Incompatible Units.
+     * @exception UnitException		Incompatible Units.
+     * @exception VisADException	Couldn't create necessary VisAD object.
      */
     protected double[][]
     convert(double[][] coords)
-	throws UnitException
+	throws UnitException, VisADException
     {
-	double[]	pressures = coords[0];
-	double[]	temperatures = coords[1];
-
-	temperatures = getTemperatureUnit().toThat(temperatures, SI.kelvin);
-
-	for (int i = 0; i < pressures.length; ++i)
-	{
-	    double	factor = Math.pow(referencePressure/pressures[i],
-					  kappa);
-
-	    temperatures[i] /= factor;
-	}
-
-	temperatures = getTemperatureUnit().toThis(temperatures, SI.kelvin);
-
-	coords[1] = temperatures;
+	coords[1] = theta.temperature(coords[0], coords[1]);
 
 	return coords;
     }
@@ -181,23 +164,16 @@ ThetaCoordinateSystem
      *                  <code>coords[1][i]</code> are the corresponding
      *                  pressure and potential temperature coordinates,
      *                  respectively.
-     * @exception UnitException	Incompatible Units.
+     * @precondition	<code>coords[0].length == coords[1].length</code>
+     * @return		<code>coords</code>.
+     * @exception UnitException		Incompatible Units.  Shouldn't happen.
+     * @exception VisADException	Couldn't create necessary VisAD object.
      */
     protected double[][]
     invert(double[][] coords)
-	throws UnitException
+	throws UnitException, VisADException
     {
-	double[]	pressures = coords[0];
-	double[]	temperatures = coords[1];
-
-	temperatures = getTemperatureUnit().toThat(temperatures, SI.kelvin);
-
-	for (int i = 0; i < pressures.length; ++i)
-	    temperatures[i] = theta(pressures[i], temperatures[i]);
-
-	temperatures = getTemperatureUnit().toThis(temperatures, SI.kelvin);
-
-	coords[1] = temperatures;
+	coords[1] = theta.toTheta(coords[0], coords[1]);
 
 	return coords;
     }
@@ -214,7 +190,43 @@ ThetaCoordinateSystem
     protected final double
     theta(double pressure, double temperature)
     {
-	return temperature * Math.pow(referencePressure/pressure, kappa);
+	return theta(pressure, temperature);
+    }
+
+
+    /**
+     * Gets the pressure unit.
+     *
+     * @return	The unit of pressure.
+     */
+    public Unit
+    getPressureUnit()
+    {
+	return skewTCoordSys.getPressureUnit();
+    }
+
+
+    /**
+     * Gets the temperature unit.
+     *
+     * @return	The unit of temperature.
+     */
+    public Unit
+    getTemperatureUnit()
+    {
+	return skewTCoordSys.getTemperatureUnit();
+    }
+
+
+    /**
+     * Returns the associated Skew T, Log P coordinate system.
+     *
+     * @return	The associated Skew T, Log P coordinate system.
+     */
+    public SkewTCoordinateSystem
+    getSkewTCoordSys()
+    {
+	return skewTCoordSys;
     }
 
 
@@ -231,8 +243,9 @@ ThetaCoordinateSystem
 	if (!(obj instanceof ThetaCoordinateSystem))
 	    return false;
 
-	return referencePressure == 
-		    ((ThetaCoordinateSystem)obj).referencePressure &&
-	       super.equals(obj);
+	ThetaCoordinateSystem	that = (ThetaCoordinateSystem)obj;
+
+	return theta.equals(that.theta) &&
+	       skewTCoordSys.equals(that.skewTCoordSys);
     }
 }
