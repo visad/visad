@@ -44,23 +44,60 @@ import visad.util.*;
  * QuickTime Movie Opener and QuickTime Movie Writer plugins for
  * ImageJ (available at http://rsb.info.nih.gov/ij/).
  */
-public class QTForm extends Form implements FormFileInformer {
+public class QTForm extends Form
+  implements FormFileInformer, FormBlockReader, FormProgressInformer
+{
+
+  // -- Constants --
 
   public static final int FRAME_RATE = 60; // 60/600 = 1/10 of a second
-
-  private static int num = 0;
 
   private static final String[] suffixes = { "mov" };
 
   private static final String noQTmsg = "You need to install " +
     "QuickTime for Java from http://www.apple.com/quicktime/";
 
-  private static boolean noQT = false;
 
-  private static ReflectedUniverse r = createReflectedUniverse();
+  // -- Static fields --
 
-  private static ReflectedUniverse createReflectedUniverse() {
-    ReflectedUniverse r = null;
+  private static int num = 0;
+
+
+  // -- Fields --
+
+  /** Reflection tool for QuickTime for Java calls. */
+  private ReflectedUniverse r;
+
+  /** Flag indicating QuickTime for Java is not installed. */
+  private boolean noQT = false;
+
+  /** Filename of current QuickTime movie. */
+  private String current_id;
+
+  /** Number of images in current TIFF stack. */
+  private int numImages;
+
+  /** Time increment between frames. */
+  private int timeStep;
+
+  /** Image containing current frame. */
+  private Image img;
+
+  /** Flag indicating QuickTime frame needs to be redrawn. */
+  private boolean needsRedrawing;
+
+  /** Flag indicating whether ImageJ supports the current TIFF stack. */
+  private boolean canUseImageJ;
+
+  /** Percent complete with current operation. */
+  private double percent;
+
+
+  // -- Constructor --
+
+  /** Constructs a new QuickTime movie file form. */
+  public QTForm() {
+    super("QTForm" + num++);
     boolean needClose = false;
     try {
       r = new ReflectedUniverse();
@@ -99,13 +136,10 @@ public class QTForm extends Form implements FormFileInformer {
       try { r.exec("QTSession.close()"); }
       catch (VisADException exc) { }
     }
-    return r;
   }
 
-  /** Constructs a new QuickTime movie file form. */
-  public QTForm() {
-    super("QTForm" + num++);
-  }
+
+  // -- FormFileInformer methods --
 
   /** Checks if the given string is a valid filename for a QuickTime movie. */
   public boolean isThisType(String name) {
@@ -128,17 +162,8 @@ public class QTForm extends Form implements FormFileInformer {
     return s;
   }
 
-  /** Paints the given movie frame into the image buffer. */
-  private void setCurrentFrame(int frame,
-    BufferedImage buffer, FlatField[] fields)
-  {
-    Image img = DataUtility.extractImage(fields[frame], false);
-    if (img != null) {
-      Graphics g = buffer.getGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
-    }
-  }
+
+  // -- API methods --
 
   /** Saves a VisAD Data object to a QuickTime movie at the given location. */
   public void save(String id, Data data, boolean replace)
@@ -292,8 +317,115 @@ public class QTForm extends Form implements FormFileInformer {
     throws BadFormException, IOException, VisADException
   {
     if (noQT) throw new BadFormException(noQTmsg);
-    int totalFrames;
-    FlatField[] fields;
+
+    percent = 0;
+    int nImages = getBlockCount(id);
+    FieldImpl[] fields = new FieldImpl[nImages];
+    for (int i=0; i<nImages; i++) {
+      fields[i] = (FieldImpl) open(id, i);
+      percent = (double) (i + 1) / nImages;
+    }
+
+    DataImpl data;
+    if (nImages == 1) data = fields[0];
+    else {
+      // combine data stack into time function
+      RealType time = RealType.getRealType("time");
+      FunctionType time_function = new FunctionType(time, fields[0].getType());
+      Integer1DSet time_set = new Integer1DSet(nImages);
+      FieldImpl time_field = new FieldImpl(time_function, time_set);
+      time_field.setSamples(fields, false);
+      data = time_field;
+    }
+    close();
+    percent = -1;
+    return data;
+  }
+
+  /**
+   * Opens an existing QuickTime movie from the given URL.
+   *
+   * @exception BadFormException Always thrown (method is not implemented).
+   */
+  public DataImpl open(URL url)
+    throws BadFormException, IOException, VisADException
+  {
+    throw new BadFormException("QTForm.open(URL)");
+  }
+
+  public FormNode getForms(Data data) {
+    return null;
+  }
+
+
+  // -- FormBlockReader methods --
+
+  public DataImpl open(String id, int block_number)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(current_id)) initFile(id);
+
+    if (block_number < 0 || block_number > numImages) {
+      throw new BadFormException("Invalid image number: " + block_number);
+    }
+
+    if (noQT) throw new BadFormException(noQTmsg);
+
+    // paint frame into image
+    r.setVar("time", new Integer(timeStep * block_number));
+    r.exec("moviePlayer.setTime(time)");
+    if (needsRedrawing) r.exec("qtip.redraw(null)");
+    r.exec("qtip.updateConsumers(null)");
+
+    return DataUtility.makeField(img);
+  }
+
+  public int getBlockCount(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(current_id)) initFile(id);
+    return numImages;
+  }
+
+  public void close() throws BadFormException, IOException, VisADException {
+    if (current_id == null) return;
+
+    try {
+      r.exec("openMovieFile.close()");
+      r.exec("QTSession.close()");
+    }
+    catch (Exception e) {
+      r.exec("QTSession.close()");
+      throw new BadFormException("Close movie failed: " + e.getMessage());
+    }
+    current_id = null;
+  }
+
+
+  // -- FormProgressInformer methods --
+
+  public double getPercentComplete() { return percent; }
+
+
+  // -- Helper methods --
+
+  /** Paints the given movie frame into the image buffer. */
+  private void setCurrentFrame(int frame,
+    BufferedImage buffer, FlatField[] fields)
+  {
+    Image img = DataUtility.extractImage(fields[frame], false);
+    if (img != null) {
+      Graphics g = buffer.getGraphics();
+      g.drawImage(img, 0, 0, null);
+      g.dispose();
+    }
+  }
+
+  private void initFile(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    if (noQT) throw new BadFormException(noQTmsg);
+
     try {
       r.exec("QTSession.open()");
 
@@ -321,64 +453,66 @@ public class QTForm extends Form implements FormFileInformer {
       Integer w = (Integer) r.exec("d.getWidth()");
       Integer h = (Integer) r.exec("d.getHeight()");
       r.exec("seq = ImageUtil.createSequence(imageTrack)");
-      totalFrames = ((Integer) r.exec("seq.size()")).intValue();
+      numImages = ((Integer) r.exec("seq.size()")).intValue();
 
       // now use controller to step movie
       r.exec("moviePlayer = new MoviePlayer(m)");
       r.setVar("dim", new Dimension(w.intValue(), h.intValue()));
       ImageProducer qtip = (ImageProducer)
         r.exec("qtip = new QTImageProducer(moviePlayer, dim)");
-      Image img = Toolkit.getDefaultToolkit().createImage(qtip);
-      boolean needsRedrawing = ((Boolean)
-        r.exec("qtip.isRedrawing()")).booleanValue();
+      img = Toolkit.getDefaultToolkit().createImage(qtip);
+      needsRedrawing = ((Boolean) r.exec("qtip.isRedrawing()")).booleanValue();
       int maxTime = ((Integer) r.exec("m.getDuration()")).intValue();
-      int timeStep = maxTime / totalFrames;
-      fields = new FlatField[totalFrames];
-      for (int i=0; i<totalFrames; i++) {
-        // paint next frame into image
-        r.setVar("time", new Integer(timeStep * i));
-        r.exec("moviePlayer.setTime(time)");
-        if (needsRedrawing) r.exec("qtip.redraw(null)");
-        r.exec("qtip.updateConsumers(null)");
-
-        // convert image to VisAD Data object
-        fields[i] = DataUtility.makeField(img);
-      }
-
-      r.exec("openMovieFile.close()");
-      r.exec("QTSession.close()");
+      timeStep = maxTime / numImages;
     }
     catch (Exception e) {
       r.exec("QTSession.close()");
       throw new BadFormException("Open movie failed: " + e.getMessage());
     }
 
-    if (totalFrames == 1) return fields[0];
-    else {
-      // combine data stack into time function
-      RealType time = RealType.getRealType("time");
-      FunctionType time_function = new FunctionType(time, fields[0].getType());
-      Integer1DSet time_set = new Integer1DSet(totalFrames);
-      FieldImpl time_field = new FieldImpl(time_function, time_set);
-      time_field.setSamples(fields, false);
-      return time_field;
+/*
+    // determine whether ImageJ can handle the file
+    TiffDecoder tdec = new TiffDecoder("", id);
+    canUseImageJ = true;
+    try {
+      FileInfo[] info = tdec.getTiffInfo();
     }
+    catch (IOException exc) {
+      String msg = exc.getMessage();
+      if (msg.startsWith("Unsupported BitsPerSample")
+        || msg.startsWith("Unsupported SamplesPerPixel")
+        || msg.startsWith("ImageJ cannot open compressed TIFF files"))
+      {
+        canUseImageJ = false;
+      }
+      else throw exc;
+    }
+
+    // determine number of images in TIFF file
+    if (canUseImageJ) {
+      ImagePlus image = new Opener().openImage(id);
+      numImages = image.getStackSize();
+    }
+    else {
+      if (noJai) throw new BadFormException(NO_JAI);
+      try {
+        r.setVar("tiff", "tiff");
+        r.setVar("file", new File(id));
+        r.exec("id = ImageCodec.createImageDecoder(tiff, file, null)");
+        Object ni = r.exec("id.getNumPages()");
+        numImages = ((Integer) ni).intValue();
+      }
+      catch (VisADException exc) {
+        throw new BadFormException(exc.getMessage());
+      }
+    }
+*/
+
+    current_id = id;
   }
 
-  /**
-   * Opens an existing QuickTime movie from the given URL.
-   *
-   * @exception BadFormException Always thrown (method is not implemented).
-   */
-  public DataImpl open(URL url)
-    throws BadFormException, IOException, VisADException
-  {
-    throw new BadFormException("QTForm.open(URL)");
-  }
 
-  public FormNode getForms(Data data) {
-    return null;
-  }
+  // -- Main method --
 
   /**
    * Run 'java visad.data.qt.QTForm in_file out_file' to convert

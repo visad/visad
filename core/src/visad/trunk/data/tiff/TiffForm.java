@@ -29,6 +29,7 @@ package visad.data.tiff;
 import ij.*;
 import ij.io.*;
 import ij.process.*;
+import java.awt.Image;
 import java.awt.image.*;
 import java.io.*;
 import java.net.URL;
@@ -64,21 +65,50 @@ import visad.util.*;
  * However, the visad.data.jai package provides limited support for
  * importing single-image TIFF data from a URL.
  */
-public class TiffForm extends Form implements FormFileInformer {
+public class TiffForm extends Form
+  implements FormFileInformer, FormBlockReader, FormProgressInformer
+{
 
+  // -- Static fields --
+
+  /** Counter for TIFF form instantiation. */
   private static int num = 0;
 
+  /** Legal TIFF suffixes. */
   private static final String[] suffixes = { "tif", "tiff" };
 
+  /** Message produced when attempting to use JAI without it installed. */
   private static final String NO_JAI = "This feature requires JAI, " +
     "available from Sun at http://java.sun.com/products/java-media/jai/";
 
-  private static boolean noJai = false;
 
-  private static ReflectedUniverse r = createReflectedUniverse();
+  // -- Fields --
 
-  private static ReflectedUniverse createReflectedUniverse() {
-    ReflectedUniverse r = null;
+  /** Reflection tool for JAI calls. */
+  private ReflectedUniverse r;
+
+  /** Flag indicating JAI is not installed. */
+  private boolean noJai = false;
+
+  /** Filename of current TIFF stack. */
+  private String current_id;
+
+  /** Number of images in current TIFF stack. */
+  private int numImages;
+
+  /** Flag indicating whether ImageJ supports the current TIFF stack. */
+  private boolean canUseImageJ;
+
+  /** Percent complete with current operation. */
+  private double percent;
+
+
+  // -- Constructor --
+
+  /** Constructs a new TIFF file form. */
+  public TiffForm() {
+    super("TiffForm" + num++);
+
     try {
       r = new ReflectedUniverse();
       r.exec("import com.sun.media.jai.codec.ImageDecodeParam");
@@ -86,40 +116,10 @@ public class TiffForm extends Form implements FormFileInformer {
       r.exec("import com.sun.media.jai.codec.ImageCodec");
     }
     catch (VisADException exc) { noJai = true; }
-    return r;
   }
 
-  private static BufferedImage[] jaiGetImages(String filename)
-    throws BadFormException, IOException
-  {
-    if (noJai) throw new BadFormException(NO_JAI);
-    BufferedImage[] bi = null;
-    try {
-      r.setVar("tiff", "tiff");
-      r.setVar("file", new File(filename));
-      r.exec("id = ImageCodec.createImageDecoder(tiff, file, null)");
-      Object ni = r.exec("id.getNumPages()");
-      int numImages = ((Integer) ni).intValue();
-      bi = new BufferedImage[numImages];
-      for (int i=0; i<numImages; i++) {
-        r.setVar("i", new Integer(i));
-        RenderedImage ri =
-          (RenderedImage) r.exec("id.decodeAsRenderedImage(i)");
-        WritableRaster wr = ri.copyData(null);
-        ColorModel cm = ri.getColorModel();
-        bi[i] = new BufferedImage(cm, wr, false, null);
-      }
-    }
-    catch (VisADException exc) {
-      throw new BadFormException(exc.getMessage());
-    }
-    return bi;
-  }
 
-  /** Constructs a new TIFF file form. */
-  public TiffForm() {
-    super("TiffForm" + num++);
-  }
+  // -- FormFileInformer methods --
 
   /** Checks if the given string is a valid filename for a TIFF file. */
   public boolean isThisType(String name) {
@@ -141,11 +141,172 @@ public class TiffForm extends Form implements FormFileInformer {
     return s;
   }
 
+  // -- API methods --
+
   /**
-   * Converts a flat field of the form <tt>((x, y) -&gt; (r, g, b))</tt>
+   * Saves a VisAD Data object to an uncompressed TIFF file.
+   *
+   * @param id        Filename of TIFF file to save.
+   * @param data      VisAD Data to convert to TIFF format.
+   * @param replace   Whether to overwrite an existing file.
+   */
+  public void save(String id, Data data, boolean replace)
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
+    percent = 0;
+    FlatField[] fields = DataUtility.getImageFields(data);
+    if (fields == null) {
+      throw new BadFormException(
+        "Data type must be image or time sequence of images");
+    }
+    if (fields.length > 1) {
+      // save as multi-page TIFF
+      int len = fields.length;
+      ImageProcessor[] ips = new ImageProcessor[len];
+      ImageStack is = null;
+      for (int i=0; i<len; i++) {
+        ips[i] = extractImage(fields[i]);
+        if (is == null) {
+          is = new ImageStack(ips[0].getWidth(),
+            ips[0].getHeight(), ips[0].getColorModel());
+        }
+        is.addSlice("" + i, ips[i]);
+        percent = (double) (i + 1) / len;
+      }
+      ImagePlus image = new ImagePlus(id, is);
+      FileSaver sav = new FileSaver(image);
+      sav.saveAsTiffStack(id);
+    }
+    else {
+      // save as single image TIFF
+      ImageProcessor ip = extractImage(fields[0]);
+      ImagePlus image = new ImagePlus(id, ip);
+      FileSaver sav = new FileSaver(image);
+      sav.saveAsTiff(id);
+    }
+
+    percent = -1;
+  }
+
+  /**
+   * Adds data to an existing TIFF file.
+   *
+   * @exception BadFormException Always thrown (method is not implemented).
+   */
+  public void add(String id, Data data, boolean replace)
+    throws BadFormException
+  {
+    throw new BadFormException("TiffForm.add");
+  }
+
+  /**
+   * Opens an existing TIFF file from the given filename.
+   *
+   * @return VisAD Data object containing TIFF data.
+   */
+  public DataImpl open(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    percent = 0;
+    int nImages = getBlockCount(id);
+    FieldImpl[] fields = new FieldImpl[nImages];
+    for (int i=0; i<nImages; i++) {
+      fields[i] = (FieldImpl) open(id, i);
+      percent = (double) (i + 1) / nImages;
+    }
+
+    DataImpl data;
+    if (nImages == 1) data = fields[0];
+    else {
+      // combine data stack into time function
+      RealType time = RealType.getRealType("time");
+      FunctionType time_function = new FunctionType(time, fields[0].getType());
+      Integer1DSet time_set = new Integer1DSet(nImages);
+      FieldImpl time_field = new FieldImpl(time_function, time_set);
+      time_field.setSamples(fields, false);
+      data = time_field;
+    }
+    close();
+    percent = -1;
+    return data;
+  }
+
+  /**
+   * Opens an existing TIFF file from the given URL.
+   *
+   * @return VisAD Data object containing TIFF data.
+   *
+   * @exception BadFormException Always thrown (method is not implemented).
+   */
+  public DataImpl open(URL url)
+    throws BadFormException, IOException, VisADException
+  {
+    throw new BadFormException("TiffForm.open(URL)");
+  }
+
+  public FormNode getForms(Data data) {
+    return null;
+  }
+
+
+  // -- FormBlockReader methods --
+
+  public DataImpl open(String id, int block_number)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(current_id)) initFile(id);
+
+    if (block_number < 0 || block_number > numImages) {
+      throw new BadFormException("Invalid image number: " + block_number);
+    }
+
+    Image img = null;
+
+    if (canUseImageJ) {
+      ImagePlus image = new Opener().openImage(id);
+      ImageStack stack = image.getStack();
+      ImageProcessor ip = stack.getProcessor(block_number + 1);
+      img = ip.createImage();
+    }
+    else {
+      if (noJai) throw new BadFormException(NO_JAI);
+      try {
+        r.setVar("i", new Integer(block_number));
+        RenderedImage ri =
+          (RenderedImage) r.exec("id.decodeAsRenderedImage(i)");
+        WritableRaster wr = ri.copyData(null);
+        ColorModel cm = ri.getColorModel();
+        img = new BufferedImage(cm, wr, false, null);
+      }
+      catch (VisADException exc) {
+        throw new BadFormException(exc.getMessage());
+      }
+    }
+    return DataUtility.makeField(img);
+  }
+
+  public int getBlockCount(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(current_id)) initFile(id);
+    return numImages;
+  }
+
+  public void close() throws BadFormException, IOException, VisADException { }
+
+
+  // -- FormProgressInformer methods --
+
+  public double getPercentComplete() { return percent; }
+
+
+  // -- Helper methods --
+
+  /**
+   * Converts a FlatField of the form <tt>((x, y) -&gt; (r, g, b))</tt>
    * to an ImageJ ImageProcessor.
    */
-  private static ImageProcessor extractImage(FlatField field)
+  public static ImageProcessor extractImage(FlatField field)
     throws VisADException
   {
     Gridded2DSet set = (Gridded2DSet) field.getDomainSet();
@@ -172,68 +333,12 @@ public class TiffForm extends Form implements FormFileInformer {
     return cp;
   }
 
-  /**
-   * Saves a VisAD Data object to an uncompressed TIFF file.
-   *
-   * @param id        Filename of TIFF file to save.
-   * @param data      VisAD Data to convert to TIFF format.
-   * @param replace   Whether to overwrite an existing file.
-   */
-  public void save(String id, Data data, boolean replace)
-    throws BadFormException, IOException, RemoteException, VisADException
-  {
-    // determine data type
-    FlatField[] fields = DataUtility.getImageFields(data);
-    if (fields == null) {
-      throw new BadFormException(
-        "Data type must be image or time sequence of images");
-    }
-    if (fields.length > 1) {
-      // save as multi-page TIFF
-      int len = fields.length;
-      ImageProcessor[] ips = new ImageProcessor[len];
-      for (int i=0; i<len; i++) ips[i] = extractImage(fields[i]);
-      ImageStack is = new ImageStack(ips[0].getWidth(),
-        ips[0].getHeight(), ips[0].getColorModel());
-      for (int i=0; i<len; i++) is.addSlice("" + i, ips[i]);
-      ImagePlus image = new ImagePlus(id, is);
-      FileSaver sav = new FileSaver(image);
-      sav.saveAsTiffStack(id);
-    }
-    else {
-      // save as single image TIFF
-      ImageProcessor ip = extractImage(fields[0]);
-      ImagePlus image = new ImagePlus(id, ip);
-      FileSaver sav = new FileSaver(image);
-      sav.saveAsTiff(id);
-    }
-  }
-
-  /**
-   * Adds data to an existing TIFF file.
-   *
-   * @exception BadFormException Always thrown (method is not implemented).
-   */
-  public void add(String id, Data data, boolean replace)
-    throws BadFormException
-  {
-    throw new BadFormException("TiffForm.add");
-  }
-
-  /**
-   * Opens an existing TIFF file from the given filename.
-   *
-   * @return VisAD Data object containing TIFF data.
-   */
-  public DataImpl open(String id)
-    throws BadFormException, IOException, VisADException
-  {
+  private void initFile(String id) throws BadFormException, IOException {
     // determine whether ImageJ can handle the file
     TiffDecoder tdec = new TiffDecoder("", id);
-    FileInfo[] info = null;
-    boolean canUseImageJ = true;
+    canUseImageJ = true;
     try {
-      info = tdec.getTiffInfo();
+      FileInfo[] info = tdec.getTiffInfo();
     }
     catch (IOException exc) {
       String msg = exc.getMessage();
@@ -246,57 +351,30 @@ public class TiffForm extends Form implements FormFileInformer {
       else throw exc;
     }
 
-    int nImages;
-    FieldImpl[] fields;
-
+    // determine number of images in TIFF file
     if (canUseImageJ) {
-      // use ImageJ
       ImagePlus image = new Opener().openImage(id);
-      nImages = image.getStackSize();
-      fields = new FieldImpl[nImages];
-      ImageStack stack = image.getStack();
-      for (int i=0; i<nImages; i++) {
-        ImageProcessor ip = stack.getProcessor(i + 1);
-        fields[i] = DataUtility.makeField(ip.createImage());
+      numImages = image.getStackSize();
+    }
+    else {
+      if (noJai) throw new BadFormException(NO_JAI);
+      try {
+        r.setVar("tiff", "tiff");
+        r.setVar("file", new File(id));
+        r.exec("id = ImageCodec.createImageDecoder(tiff, file, null)");
+        Object ni = r.exec("id.getNumPages()");
+        numImages = ((Integer) ni).intValue();
+      }
+      catch (VisADException exc) {
+        throw new BadFormException(exc.getMessage());
       }
     }
-    else {
-      // ImageJ could not read the TIFF; try JAI
-      BufferedImage[] bi = jaiGetImages(id);
-      nImages = bi.length;
-      fields = new FieldImpl[nImages];
-      for (int i=0; i<nImages; i++) fields[i] = DataUtility.makeField(bi[i]);
-    }
-    if (nImages < 1) throw new BadFormException("No images in file");
 
-    if (nImages == 1) return fields[0];
-    else {
-      // combine data stack into time function
-      RealType time = RealType.getRealType("time");
-      FunctionType time_function = new FunctionType(time, fields[0].getType());
-      Integer1DSet time_set = new Integer1DSet(nImages);
-      FieldImpl time_field = new FieldImpl(time_function, time_set);
-      time_field.setSamples(fields, false);
-      return time_field;
-    }
+    current_id = id;
   }
 
-  /**
-   * Opens an existing TIFF file from the given URL.
-   *
-   * @return VisAD Data object containing TIFF data.
-   *
-   * @exception BadFormException Always thrown (method is not implemented).
-   */
-  public DataImpl open(URL url)
-    throws BadFormException, IOException, VisADException
-  {
-    throw new BadFormException("TiffForm.open(URL)");
-  }
 
-  public FormNode getForms(Data data) {
-    return null;
-  }
+  // -- Main method --
 
   /**
    * Run 'java visad.data.visad.TiffForm in_file out_file' to convert
