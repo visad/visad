@@ -31,6 +31,9 @@ import java.lang.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.awt.event.*;
+import java.awt.Frame;
+import edu.wisc.ssec.mcidas.adde.GetAreaGUI;
 
 /** 
  * AreaFile interface with McIDAS 'area' file format image data.
@@ -110,6 +113,8 @@ public class AreaFile {
   public static final int AD_CALTYPE    = 52;
   /** AD_AVGSMPFLAG - data is averaged (1), or sampled (0) */
   public static final int AD_AVGSMPFLAG = 53;
+  /** AD_SRCTYPEORIG - original source type (ascii, satellite specific) */
+  public static final int AD_SRCTYPEORIG    = 56;
   /** AD_AUXOFFSET - byte offset to start of auxilliary data section */
   public static final int AD_AUXOFFSET  = 59;
   /** AD_CALOFFSET - byte offset to start of calibration section */
@@ -170,6 +175,7 @@ public class AreaFile {
   int[] aux;
   int[][][] data;
   private AreaDirectory areaDirectory;
+  private String imageSource;
   
   /**
    * creates an AreaFile object that allows reading
@@ -182,8 +188,20 @@ public class AreaFile {
    *
    */
  
-  public AreaFile(String imageSource) throws AreaFileException {
- 
+  public AreaFile(String source) throws AreaFileException {
+    
+    imageSource = source;
+    if (imageSource.startsWith("adde://") && imageSource.endsWith("image?")) {
+
+      GetAreaGUI gag = new GetAreaGUI((Frame)null, true, "Get data", false, true);
+      gag.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+          imageSource = e.getActionCommand();
+          }
+      });
+      gag.show();
+    }
+    
     // try as a disk file first
     try {
       af = new DataInputStream (
@@ -263,7 +281,7 @@ public class AreaFile {
     position = 0;
     readMetaData();
   }
-    
+
   /** 
    *  Read the metadata for an area file (directory, nav,  and cal). 
    *

@@ -49,7 +49,7 @@ public class AreaDirectory
   private double centerLatitudeResolution;
   private double centerLongitudeResolution;
   private Vector[] calInfo = null;
-  private String calType, srcType;
+  private String calType, srcType, srcTypeOrig;
   private String memo;
   private String[] sensors = {"derived data",
                 "test patterns",
@@ -245,6 +245,8 @@ public class AreaDirectory
     memo = McIDASUtil.intBitsToString(memoArray);
     calType = McIDASUtil.intBitsToString(dir[AreaFile.AD_CALTYPE]);
     srcType = McIDASUtil.intBitsToString(dir[AreaFile.AD_SRCTYPE]);
+    srcTypeOrig = McIDASUtil.intBitsToString(dir[AreaFile.AD_SRCTYPEORIG]);
+    if (dir[AreaFile.AD_SRCTYPEORIG] == 0) srcTypeOrig = srcType;
     
 
   }
@@ -400,7 +402,9 @@ public class AreaDirectory
    */
   public String getSourceType()
   {
-    return srcType;
+    String r = srcType;
+    if (r.equalsIgnoreCase("VISR")) r=srcTypeOrig;
+    return r;
   }
 
   /**
