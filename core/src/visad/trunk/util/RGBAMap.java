@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: RGBAMap.java,v 1.8 1999-08-24 22:28:31 dglo Exp $
+@(#) $Id: RGBAMap.java,v 1.9 1999-08-24 22:53:17 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * between the red, green, blue, and alpha curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.8 $, $Date: 1999-08-24 22:28:31 $
+ * @version $Revision: 1.9 $, $Date: 1999-08-24 22:53:17 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -108,8 +108,7 @@ public class RGBAMap extends ColorMap
         this.resolution = 256;
         val = new float[this.resolution][4];
         this.initColormap();
-      }
-      else {
+      } else {
         this.resolution = vals.length;
         val = new float[this.resolution][4];
         for (int i = 0; i < this.resolution; i++) {
@@ -155,36 +154,40 @@ public class RGBAMap extends ColorMap
 
   /** Returns the tuple at a floating point value val */
   public float[] getTuple(float value) {
+    synchronized (mutex_val) {
+      float arrayIndex = value * (resolution - 1);
+      int index = (int) Math.floor(arrayIndex);
+      float partial = arrayIndex - index;
 
-    float arrayIndex = value * (resolution - 1);
-    int index = (int) Math.floor(arrayIndex);
-    float partial = arrayIndex - index;
+      if (index >= resolution || index < 0 ||
+          (index == (resolution - 1) && partial != 0))
+      {
+        float[] f = {0,0,0,0};
+        return f;
+      }
 
-    if (index >= resolution || index < 0 || (index == (resolution - 1) && partial != 0)) {
-      float[] f = {0,0,0,0};
+      float red, green, blue, alpha;
+      if (partial != 0) {
+        red = val[index][RED] * (1 - partial) +
+          val[index+1][RED] * partial;
+        green = val[index][GREEN] * (1 - partial) +
+          val[index+1][GREEN] * partial;
+        blue = val[index][BLUE] * (1 - partial) +
+          val[index+1][BLUE] * partial;
+        alpha = val[index][ALPHA] * (1 - partial) +
+          val[index+1][ALPHA] * partial;
+      } else {
+        red = val[index][RED];
+        green = val[index][GREEN];
+        blue = val[index][BLUE];
+        alpha = val[index][ALPHA];
+      }
+      float[] f = {red, green, blue, alpha};
       return f;
     }
-
-    float red, green, blue, alpha;
-    if (partial != 0) {
-      red = val[index][RED] * (1 - partial) + val[index+1][RED] * partial;
-      green = val[index][GREEN] * (1 - partial) + val[index+1][GREEN] * partial;
-      blue = val[index][BLUE] * (1 - partial) + val[index+1][BLUE] * partial;
-      alpha = val[index][ALPHA] * (1 - partial) + val[index+1][ALPHA] * partial;
-    }
-    else {
-      red = val[index][RED];
-      green = val[index][GREEN];
-      blue = val[index][BLUE];
-      alpha = val[index][ALPHA];
-    }
-    float[] f = {red, green, blue, alpha};
-    return f;
-
   }
 
   protected void sendUpdate(int left, int right) {
-
 
     synchronized (mutex) {
       if (left < valLeft)
@@ -197,7 +200,6 @@ public class RGBAMap extends ColorMap
     validate();
     repaint();
   }
-
 
   /** Used internally to post areas to update to the objects listening
    * to the map
@@ -225,33 +227,12 @@ public class RGBAMap extends ColorMap
    * range 0 to 1
    */
   public float[] getRGBTuple(float value) {
-    synchronized (mutex_val) {
-      float arrayIndex = value * (resolution - 1);
-      int index = (int) Math.floor(arrayIndex);
-      float partial = arrayIndex - index;
-      if (index >= resolution || index < 0 ||
-          (index == (resolution - 1) && partial != 0)) {
-        float[] f = {0,0,0};
-        return f;
-      }
-
-      float red, green, blue;
-      if (partial != 0) {
-        red = val[index][RED] * (1 - partial) +
-          val[index+1][RED] * partial;
-        green = val[index][GREEN] * (1 - partial) +
-          val[index+1][GREEN] * partial;
-        blue = val[index][BLUE] * (1 - partial) +
-          val[index+1][BLUE] * partial;
-      }
-      else {
-        red = val[index][RED];
-        green = val[index][GREEN];
-        blue = val[index][BLUE];
-      }
-      float[] f = {red, green, blue};
-      return f;
-    }
+    float[] t = getTuple(value);
+    float[] f = new float[3];
+    f[0] = t[0];
+    f[1] = t[1];
+    f[2] = t[2];
+    return f;
   }
 
   /** Present to implement MouseListener, currently ignored */
@@ -283,7 +264,8 @@ public class RGBAMap extends ColorMap
   public void mousePressed(MouseEvent e) {
     //System.out.println(e.paramString());
     if ((e.getModifiers() & e.BUTTON1_MASK) == 0 &&
-        e.getModifiers() != 0) {
+        e.getModifiers() != 0)
+    {
       return;
     }
 
@@ -322,7 +304,7 @@ public class RGBAMap extends ColorMap
   /** Listens for releases of the right mouse button, and changes the active color */
   public void mouseReleased(MouseEvent e) {
     //System.out.println(e.paramString());
-    if ((e.getModifiers() & e.BUTTON3_MASK) == 0) {
+    if ((e.getModifiers() & (e.BUTTON2_MASK|e.BUTTON3_MASK)) == 0) {
       return;
     }
     state = (state + 1) % 4;
@@ -441,6 +423,7 @@ public class RGBAMap extends ColorMap
   /** Repaints the modified areas of the Panel */
   public void update(Graphics g) {
 
+    // System.out.println("update");
     synchronized (mutex_val) {
 
       int left = 0;
