@@ -38,7 +38,7 @@ default:
 
 JC = javac
 JFLAGS = -J-mx32m
-JAVADIR = /usr/local/jdk1.2beta4
+JAVADIR = /opt/java
 RM = rm -f
 DOCS_DIR = ../docs
 DOC = javadoc
