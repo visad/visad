@@ -246,6 +246,12 @@ public abstract class RemoteClusterDataImpl extends RemoteDataImpl
       // return client (last entry) for non-partitoned data
       return jvmTable[jvmTable.length - 1];
     }
+
+    // if only one, then just return it
+    if (partitionSet.getLength() == 1) {
+      return jvmTable[0];
+    }
+
     // transform coordinates and convert units
     vals = CoordinateSystem.transformCoordinates(
                      ((SetType) partitionSet.getType()).getDomain(),
@@ -254,10 +260,15 @@ public abstract class RemoteClusterDataImpl extends RemoteDataImpl
                      (RealTupleType) domain.getType(),
                      domain.getCoordinateSystem(),
                      domain.getTupleUnits(), null, vals);
-    // convert transformed values to a partitionSet index
-    int[] indices = partitionSet.doubleToIndex(vals);
-    // return jvmTable entry
-    return (indices[0] < 0) ? null : jvmTable[indices[0]];
+    try {
+      // convert transformed values to a partitionSet index
+      int[] indices = partitionSet.doubleToIndex(vals);
+      // return jvmTable entry
+      return (indices[0] < 0) ? null : jvmTable[indices[0]];
+    }
+    catch (SetException e) {
+      return null;
+    }
   }
 
   public void setupClusterData(Set ps, RemoteClusterData[] table)

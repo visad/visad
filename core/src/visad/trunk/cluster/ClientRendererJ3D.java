@@ -474,7 +474,6 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
     DisplayImpl display =
       new DisplayImplJ3D("display", new ClientDisplayRendererJ3D());
-                         // DisplayImplJ3D.TRANSFORM_ONLY);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test ClientRendererJ3D");
