@@ -133,7 +133,8 @@ public class ArrayVariableAdapter
      *				used to construct this instance.
      * @return			The VisAD data object of this instance.  The
      *				object will be a {@link FieldImpl} and may be
-     *				a {@link FlatField} or {@link FileFlatField}.
+     *				a {@link FlatField} or {@link 
+     *				visad.data.FileFlatField}.
      * @throws VisADException	VisAD failure.  Possible the array wasn't
      *				compatible with the array used to construct this
      *				instance.

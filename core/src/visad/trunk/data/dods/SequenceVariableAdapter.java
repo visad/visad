@@ -134,10 +134,10 @@ public class SequenceVariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
-     * @return			The VisAD data object of this instance.  The
-     *				class of the object will be {@link 
-     *				FileFlatField}, {@link FlatField}, or {@link
-     *				FieldImpl}.
+     * @return			The VisAD data object of this instance.
+     *				The class of the object will be {@link
+     *				visad.data.FileFlatField}, {@link FlatField}, or
+     *				{@link FieldImpl}.
      * @throws VisADException	VisAD failure.  Possibly the variable wasn't
      *				compatible with the variable used to construct
      *				this instance.
@@ -215,7 +215,7 @@ public class SequenceVariableAdapter
 
     /**
      * Provides support for accessing a DODS DSequence as a VisAD {@link 
-     * FileFlatField}.
+     * visad.data.FileFlatField}.
      *
      * <P>Instances are immutable.</P>
      *

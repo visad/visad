@@ -83,10 +83,11 @@ public class Float64AttributeAdapter
      * values.
      * 
      * @param list		A list of numeric values.  Each element must 
-     *				be of class {@link Double}.
+     *				be of class {@link java.lang.Double}.
      * @return			A VisAD set corresponding to the input.  The
      *				class of the set is either {@link
-     *				Gridded1DDoubleSet} or {@link List1DDoubleSet}
+     *				visad.Gridded1DDoubleSet} or {@link
+     *				visad.List1DDoubleSet}
      *				-- depending on whether or not the list is
      *				sorted.
      * @throws VisADException	VisAD failure.

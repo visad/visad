@@ -29,7 +29,7 @@ import visad.data.*;
 
 /**
  * Provides support for accessing a DODS primitive vector as a VisAD {@link
- * FileFlatField}.
+ * visad.data.FileFlatField}.
  *
  * <P>Instances are immutable.</P>
  *

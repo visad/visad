@@ -64,8 +64,6 @@ public class DODSForm
 
     /**
      * Constructs from nothing.
-     *
-     * @throws VisADException	VisAD failure.
      */
     protected DODSForm()
     {

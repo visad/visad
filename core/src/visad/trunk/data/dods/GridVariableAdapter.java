@@ -112,10 +112,11 @@ public class GridVariableAdapter
     }
 
     /**
-     * Returns the VisAD {@link Set}s that will be used to represent this
-     * instances data values in the range of a VisAD {@link FlatField}.  The
-     * same array is returned each time, so modifications to the array will
-     * affect all subsequent invocations of this method.
+     * Returns the VisAD {@link Set}s that will be used to represent
+     * this instances data values in the range of a VisAD {@link
+     * visad.data.FlatField}.  The same array is returned each time, so
+     * modifications to the array will affect all subsequent invocations of this
+     * method.
      *
      * @return			The VisAD Sets used to represent the data values
      *				in the range of a FlatField.  WARNING: Modify
@@ -136,8 +137,8 @@ public class GridVariableAdapter
      *				construct this instance.
      * @return			The VisAD data object of this instance.  The
      *				class of the object will be {@link 
-     *				FileFlatField}, {@link FlatField}, or {@link
-     *				FieldImpl}.
+     *				visad.data.FileFlatField}, {@link FlatField}, 
+     *				or {@link FieldImpl}.
      * @throws VisADException	VisAD failure.  Possibly the variable wasn't
      *				compatible with the variable used to construct
      *				this instance.
@@ -196,7 +197,7 @@ public class GridVariableAdapter
 
     /**
      * Provides support for accessing a DODS DGrid as a VisAD {@link 
-     * FileFlatField}.
+     * visad.data.FileFlatField}.
      *
      * <P>Instances are immutable.</P>
      *

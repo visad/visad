@@ -244,8 +244,9 @@ public abstract class Adapter
     }
 
     /**
-     * Returns the {@link FileFlatField} cacheing strategy for DODS adapters.
-     * This may be used by DODS adapters during the creation of FileFlatFields.
+     * Returns the {@link visad.data.FileFlatField} cacheing strategy for DODS
+     * adapters.  This may be used by DODS adapters during the creation of
+     * FileFlatField-s.
      *
      * @return			The FileFlatField cacheing strategy.
      */

@@ -107,10 +107,10 @@ public class ListVariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
-     * @return			The VisAD data object of this instance.  The
-     *				class of the object will be {@link 
-     *				FileFlatField} {@link FlatField}, or {@link
-     *				FieldImpl}.
+     * @return			The VisAD data object of this instance.
+     *				The class of the object will be {@link
+     *				visad.data.FileFlatField} {@link FlatField}, or
+     *				{@link FieldImpl}.
      * @throws VisADException	VisAD failure.  Possibly the variable wasn't
      *				compatible with the variable used to construct
      *				this instance.

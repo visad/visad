@@ -105,7 +105,7 @@ public abstract class NumericAttributeAdapter
      * values.
      * 
      * @param list		A list of numeric values.  Each element must 
-     *				be of class {@link Double}.
+     *				be of class {@link java.lang.Double}.
      * @return			A VisAD set corresponding to the input.
      * @throws VisADException	VisAD failure.
      */

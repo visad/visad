@@ -80,11 +80,12 @@ public abstract class FloatAttributeAdapter
      * values.
      * 
      * @param list		A list of numeric values.  Each element must 
-     *				be of class {@link Float}.
-     * @return			A VisAD set corresponding to the input.  The
-     *				class of the set is either {@link Gridded1DSet}
-     *				or {@link List1DSet} -- depending on whether or
-     *				not the list is sorted.
+     *				be of class {@link java.lang.Float}.
+     * @return			A VisAD set corresponding to the input.
+     *				The class of the set is either {@link
+     *				visad.Gridded1DSet} or {@link visad.List1DSet}
+     *				-- depending on whether or not the list is
+     *				sorted.
      * @throws VisADException	VisAD failure.
      */
     protected visad.Set visadSet(List list)

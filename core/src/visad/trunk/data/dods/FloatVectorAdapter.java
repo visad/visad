@@ -94,8 +94,9 @@ public abstract class FloatVectorAdapter
      * @param vector		A DODS primitive vector whose metadata is
      *				compatible with the metadata of the primitive
      *				vector used in construting this instance.
-     * @return			A VisAD GriddedSet corresponding to the input.
-     *				The class of the object is {@link Gridded1DSet}.
+     * @return			A VisAD GriddedSet corresponding to the
+     *				input.	The class of the object is {@link
+     *				visad.Gridded1DSet}.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
