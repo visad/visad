@@ -561,7 +561,13 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 
     float[][] domain_values = null;
     Unit[] domain_units = ((RealTupleType) Domain.getType()).getDefaultUnits();
-    int domain_length = domain_set.getLength();
+    int domain_length;
+    try {
+      domain_length = domain_set.getLength();
+    }
+    catch (SetException e) {
+      return false;
+    }
 
     // ShadowRealTypes of Domain
     ShadowRealType[] DomainComponents = getDomainComponents();
@@ -1534,7 +1540,8 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
           }
           else if (spatialManifoldDimension == 2) {
             array = spatial_set.make2DGeometry(color_values);
-            // System.out.println("make2DGeometry");
+            // System.out.println("make2DGeometry  vertexCount = " +
+            //                    array.vertexCount);
           }
           else if (spatialManifoldDimension == 3) {
             array = makePointGeometry(spatial_values, color_values);

@@ -439,6 +439,10 @@ public class ProductSet extends SampledSet {
     return false;
   }
 
+  public String longString(String pre) throws VisADException {
+    return pre + "ProductSet: Dimension = " + DomainDimension + "\n";
+  }
+
   /* run 'java visad.ProductSet' to test the ProductSet class */
   public static void main(String[] argv) throws VisADException {
     RealType vis_xcoord = new RealType("x", null, null);

@@ -94,19 +94,26 @@ public abstract class AVControlJ3D extends Control implements AVControl {
         ss.swit.setWhichChild(indices[0]);
         // DisplayImpl.printStack("child " + indices[0]);
 /*
-System.out.println("selectSwitches: ss.swit.setWhichChild(" +
-                   indices[0] + ")");
+if (animation_set == null) {
+// System.out.println("selectSwitches: ss.swit.setWhichChild(" +
+//                    indices[0] + ")");
+DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(" +
+                       indices[0] + ")");
 System.out.println("ss.swit.numChildren() = " + ss.swit.numChildren());
+}
 */
       }
       else {
         ss.swit.setWhichChild(Switch.CHILD_NONE);
         // DisplayImpl.printStack("CHILD_NONE");
 /*
-System.out.println("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)");
+if (animation_set == null) {
+// System.out.println("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)");
+DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)");
+}
 */
       }
-    }
+    } // end while (pairs.hasMoreElements())
   }
 
   /** clear all 'pairs' in switches that involve re */

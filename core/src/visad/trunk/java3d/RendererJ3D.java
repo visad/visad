@@ -182,6 +182,7 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
           if (!branchNonEmpty[currentIndex]) {
             /* WLH 18 Nov 98 */
             branches[currentIndex].addChild(branch);
+// System.out.println("branch " + currentIndex + " empty, addChild");
 /* WLH 18 Nov 98
             synchronized (branches[currentIndex]) {
               branches[currentIndex].addChild(branch);
@@ -192,8 +193,13 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
             branchNonEmpty[currentIndex] = true;
           }
           else { // if (branchNonEmpty[currentIndex])
+/* WLH 1 April 99 - doesn't help memory
+            clearBranch();
+            branches[currentIndex].addChild(branch);
+*/
             /* WLH 18 Nov 98 */
             branches[currentIndex].setChild(branch, 0);
+// System.out.println("branch " + currentIndex + " not empty, setChild");
 /* WLH 18 Nov 98
             nextIndex = (currentIndex + 1) % 3;
             while (branchNonEmpty[nextIndex]) {
@@ -247,6 +253,15 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
   public void clearBranch() {
     synchronized (branches[currentIndex]) {
       if (branchNonEmpty[currentIndex]) {
+// System.out.println("branch " + currentIndex + " not empty, clearBranch");
+
+/* WLH 1 April 99 - doesn't help memory
+        Enumeration ch = branches[currentIndex].getAllChildren();
+        while(ch.hasMoreElements()) {
+          BranchGroup b = (BranchGroup) ch.nextElement();
+          b.detach();
+        }
+*/
         for (int m=0; m<branches[currentIndex].numChildren(); m++) {
           branches[currentIndex].removeChild(m);
         }

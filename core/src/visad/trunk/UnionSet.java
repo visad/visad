@@ -612,5 +612,9 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
     System.out.println();
   }
 
+  public String longString(String pre) throws VisADException {
+    return pre + "UnionSet: Dimension = " + DomainDimension + "\n";
+  }
+
 }
 
