@@ -216,7 +216,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
           throw new VisADException("VisADSlider: name cannot be null!");
         }
         realType = rt;
+/* WLH 17 Sept 98
         sName = n;
+*/
         if (min != min || max != max || start != start) {
           throw new VisADException("VisADSlider: min, max, and start " +
                                    "cannot be NaN!");
@@ -234,7 +236,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
         }
         Real real = (Real) data;
         realType = (RealType) real.getType();
+/* WLH 17 Sept 98
         sName = realType.getName();
+*/
         sCurrent = (float) real.getValue();
         if (min != min || max != max) {
           throw new VisADException("VisADSlider: minimum and maximum " +
@@ -244,6 +248,8 @@ public class VisADSlider extends JPanel implements ChangeListener,
         sMaximum = max;
         if (sCurrent < min || sCurrent > max) sCurrent = (min + max) / 2;
       }
+      /* WLH 17 Sept 98 */
+      sName = (n != null) ? n : realType.getName();
       initLabel();
 
       // watch for changes in Real, and update slider when necessary

@@ -1021,7 +1021,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     // NOTE - 3-D volume rendering may eventually need a spatial Set
     //
     boolean set_needed =
-      domain_set != null && (set_for_shape || spatialDimensions[1] < 2);
+      domain_set != null && (set_for_shape || spatialDimensions[1] < 3);
 
     boolean[] missing_checked = {false, false, false};
     for (int i=0; i<3; i++) {
