@@ -42,6 +42,7 @@ public class AreaDirectory
     private boolean flipwords = false;
     private int[] dir = new int[AreaFile.AD_DIRSIZE];   // single directory
     private Date nominalTime;          // time of the image
+    private Date startTime;            // start time of the image
     private int[] bands;               // array of the band numbers
     private String calType;
     private String memo;
@@ -184,6 +185,12 @@ public class AreaDirectory
             new Date(1000* McIDASUtil.mcDayTimeToSecs(
                     dir[AreaFile.AD_IMGDATE], 
                         dir[AreaFile.AD_IMGTIME]));
+        startTime = 
+            new Date(
+                1000* 
+                    McIDASUtil.mcDayTimeToSecs(
+                        dir[AreaFile.AD_STARTDATE],
+                        dir[AreaFile.AD_STARTTIME]));
         int numbands = dir[AreaFile.AD_NUMBANDS];
         bands = new int[numbands];
         int j = 0;
@@ -252,6 +259,16 @@ public class AreaDirectory
     public Date getNominalTime()
     {
         return nominalTime;
+    }
+
+    /**
+     * returns the nominal time of the image
+     *
+     * @return the nominal time as a Date
+     */
+    public Date getStartTime()
+    {
+        return startTime;
     }
 
     /**

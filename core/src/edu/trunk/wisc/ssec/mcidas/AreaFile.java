@@ -55,7 +55,7 @@ public class AreaFile {
   public static final int AD_VERSION    = 1;
   /** AD_SENSORID - McIDAS sensor identifier */
   public static final int AD_SENSORID   = 2;
-  /** AD_IMGDATE - nominal year and day of the image, CCYYDDD format */
+  /** AD_IMGDATE - nominal year and day of the image, YYYDDD format */
   public static final int AD_IMGDATE    = 3;
   /** AD_IMGTIME - nominal time of the image, HHMMSS format */
   public static final int AD_IMGTIME    = 4;
@@ -91,6 +91,11 @@ public class AreaFile {
   public static final int AD_NAVOFFSET  = 34;
   /** AD_VALCODE - validity code */
   public static final int AD_VALCODE    = 35;
+  /** AD_STARTDATE - actual image start year and Julian day, yyyddd format */
+  public static final int AD_STARTDATE  = 45;
+  /** AD_STARTTIME - actual image start time, hhmmss; 
+   *  in milliseconds for POES data */
+  public static final int AD_STARTTIME  = 46;
   /** AD_STARTSCAN - starting scan number (sensor based) of image */
   public static final int AD_STARTSCAN  = 47;
   /** AD_DOCLENGTH - length in bytes of line prefix documentation */
