@@ -335,7 +335,8 @@ System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
                 float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
                 float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
                 float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-                float zinc = -length * zc;
+                // float zinc = -length * zc; ??
+                float zinc = length * zc;
                 float xinc = length * zs * ac;
                 float yinc = length * zs * as;
 
@@ -386,7 +387,8 @@ System.out.println("nmodule = " + nmodule + " " + nxmiss + " " +
                 float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
                 float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
                 float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-                float zinc = -length * zc;
+                // float zinc = -length * zc; ??
+                float zinc = length * zc;
                 float xinc = length * zs * ac;
                 float yinc = length * zs * as;
 
