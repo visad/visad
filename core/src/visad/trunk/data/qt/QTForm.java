@@ -258,7 +258,6 @@ public class QTForm extends Form implements FormFileInformer {
     }
     catch (Exception exc) {
       r.exec("QTSession.close()");
-      /* CTR: TEMP */ exc.printStackTrace();
       throw new BadFormException("Save movie failed: " + exc.getMessage());
     }
   }
