@@ -670,6 +670,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                             shadow_api.allowCurvedTexture() &&
                             default_values[alpha_index] > 0.99 &&
                             renderer.isLegalTextureMap() &&
+                            domain_set.getManifoldDimension() == 2 &&
                             (domain_set instanceof Gridded2DSet ||
                              (domain_set instanceof GriddedSet &&
                               domain_set.getDimension() == 2));
