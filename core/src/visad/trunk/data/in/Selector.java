@@ -4,12 +4,12 @@ package visad.data.in;
 
 import visad.*;
 
-public class Selector extends VirtualDataFilter 
+public class Selector extends DataFilter
     
 {
     private MathType	targetType;
 
-    public Selector(VirtualDataSink downstream)
+    public Selector(DataSink downstream)
     {
 	super(downstream);
     }
@@ -24,7 +24,7 @@ public class Selector extends VirtualDataFilter
 	this.targetType = targetType;
     }
 
-    public void receive(VirtualData data)
+    public void receive(DataImpl data)
 	throws VisADException
     {
         if (data.getMathType().equals(targetType))
