@@ -1,7 +1,24 @@
+// $Id: RandomAccessFile.java,v 1.1.1.4 2000-08-28 21:54:46 dglo Exp $
 /*
- * Copyright 1997, University Corporation for Atmospheric Research
- * See COPYRIGHT file for copying and redistribution conditions.
- *
+ * Copyright 1997-2000 Unidata Program Center/University Corporation for
+ * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
+ * support@unidata.ucar.edu.
+ * 
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+/*
  * RandomAccessFile.java.  By Russ Rew, based on
  * BufferedRandomAccessFile by Alex McManus, based on Sun's source code
  * for java.io.RandomAccessFile.  For Alex McManus version from which
@@ -36,7 +53,7 @@ import java.util.Date;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.1.1.3 2000-08-28 21:45:47 dglo Exp $
+ * @version $Id: RandomAccessFile.java,v 1.1.1.4 2000-08-28 21:54:46 dglo Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
