@@ -1688,15 +1688,15 @@ for color_length = 3 this is 148 * Length
     int[] numv3 = new int[1];
     int[] numv4 = new int[1];
 
-    float[][] tri           = new float[2][];
-    float[][] tri_normals   = new float[1][];
-    byte[][]  tri_color     = new byte[3][];
-    float[][][] grd_normals = null;
-    byte[][] interval_colors = new byte[3][intervals.length];
+    float[][] tri            = new float[2][];
+    float[][] tri_normals    = new float[1][];
+    byte[][]  tri_color      = new byte[color_length][];
+    float[][][] grd_normals  = null;
+    byte[][] interval_colors = new byte[color_length][intervals.length];
 
     if (fill) { //- compute normals at grid points
       float[][] samples = getSamples(false);
-      grd_normals = new float[nr][nc][3];
+      grd_normals = new float[nc][nr][3];
       // calculate normals
       int k = 0;
       int k3 = 0;
@@ -1754,10 +1754,10 @@ for color_length = 3 this is 148 * Length
       }
       catch (Exception e) {
       }
-      for (int kk=0; kk<interval_colors[0].length; kk++) {
-        interval_colors[0][kk] = ShadowType.floatToByte(temp[0][kk]);
-        interval_colors[1][kk] = ShadowType.floatToByte(temp[1][kk]);
-        interval_colors[2][kk] = ShadowType.floatToByte(temp[2][kk]);
+      for (int tt=0; tt<temp.length; tt++) {
+        for (int kk=0; kk<interval_colors[0].length; kk++) {
+          interval_colors[tt][kk] = ShadowType.floatToByte(temp[tt][kk]);
+        }
       }
     }
 
