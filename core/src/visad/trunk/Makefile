@@ -100,7 +100,7 @@ RM = rm -f
 #
 DOC = javadoc
 DOC_DIR = ../docs
-DOC_MEM = 100m
+DOC_MEM = 150m
 DOCFLAGS = -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
 	-doctitle 'VisAD Documentation'
 
