@@ -319,14 +319,14 @@ public abstract class SampledSet extends SimpleSet {
 
   /** copy and transpose Samples (from this Set( and color_values
       into array; if color_length == 3 don't use color_values[3] */
-  void setGeometryArray(VisADGeometryArray array, int color_length,
+  public void setGeometryArray(VisADGeometryArray array, int color_length,
                         byte[][] color_values) throws VisADException {
     setGeometryArray(array, getSamples(false), color_length, color_values);
   }
 
   /** copy and transpose samples and color_values into array;
       if color_length == 3 don't use color_values[3] */
-  static void setGeometryArray(VisADGeometryArray array, float[][] samples,
+  public static void setGeometryArray(VisADGeometryArray array, float[][] samples,
                                int color_length, byte[][] color_values)
        throws VisADException {
     if (samples == null || samples.length != 3) {
