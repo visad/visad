@@ -130,6 +130,10 @@ public class MouseHelper
 
   }
 
+  /**
+   * Process the given event treating it as a local event.
+   * @param event event to process.
+   */
   public void processEvent(AWTEvent event) {
     processEvent(event, VisADEvent.LOCAL_SOURCE);
   }
@@ -137,8 +141,12 @@ public class MouseHelper
   // WLH 17 Aug 2000
   private boolean first = true;
 
-  /** process the given event, treating it as coming from a remote source
-      if remote flag is set */
+  /** 
+   * Process the given event, treating it as coming from a remote source
+   *  if remote flag is set.
+   * @param event event to process.
+   * @param remoteId  id of remote source.
+   */
   public void processEvent(AWTEvent event, int remoteId) {
 
     if (behavior == null) return;
@@ -643,43 +651,52 @@ public class MouseHelper
 
   }
 
-  /** call with e == true (default) to enable interpreting
-      any pair of mouse buttons as the third button */
+  /** 
+   * Enable/disable the interpretation of any pair of mouse buttons
+   * as the third button.
+   * @param  e  enable/disable. If true (default), interpret any pair 
+   *            of mouse buttons as the third button.
+   */
   public void setEnableCombos(boolean e) {
     enable_combos = e;
     enableFunctions(null);
   }
 
-  /** set mapping from (button, ctrl, shift) to function
-      map must be int[3][2][2]
-      map[button][ctrl][shift] =
-        MouseHelper.NONE               for no function
-        MouseHelper.ROTATE             for box rotate
-        MouseHelper.ZOOM               for box zoom
-        MouseHelper.TRANSLATE          for box translate
-        MouseHelper.CURSOR_TRANSLATE   for cursor translate
-        MouseHelper.CURSOR_ZOOM        for cursor on Z axis (3-D only)
-        MouseHelper.CURSOR_ROTATE      for box rotate with cursor
-        MouseHelper.DIRECT             for direct manipulate
-      where button = 0 (left), 1 (center), 2 (right)
-      ctrl = 0 (CTRL key not pressed), 1 (CTRL key pressed)
-      shift = 0 (SHIFT key not pressed), 1 (SHIFT key pressed)
-
-      Note some direct manipulation DataRenderers test the status of
-      CTRL and SHIFT keys, so it is advisable that the DIRECT function
-      be invariant to the state of ctrl and shift in the map array.
-
-      For example, to set the left mouse button for direct
-      manipulation, and the center button for box rotation
-      (only without shift or control):
-      mouse_helper.setFunctionMap(new int[][][]
-        {{{MouseHelper.DIRECT, MouseHelper.DIRECT},
-          {MouseHelper.DIRECT, MouseHelper.DIRECT}},
-         {{MouseHelper.ROTATE, MouseHelper.NONE},
-          {MouseHelper.NONE, MouseHelper.NONE}},
-         {{MouseHelper.NONE, MouseHelper.NONE},
-          {MouseHelper.NONE, MouseHelper.NONE}}});
-  */
+  /** 
+   * Set mapping from (button, ctrl, shift) to function.
+   *
+   *  <pre>
+   *  map[button][ctrl][shift] =
+   *    MouseHelper.NONE               for no function
+   *    MouseHelper.ROTATE             for box rotate
+   *    MouseHelper.ZOOM               for box zoom
+   *    MouseHelper.TRANSLATE          for box translate
+   *    MouseHelper.CURSOR_TRANSLATE   for cursor translate
+   *    MouseHelper.CURSOR_ZOOM        for cursor on Z axis (3-D only)
+   *    MouseHelper.CURSOR_ROTATE      for box rotate with cursor
+   *    MouseHelper.DIRECT             for direct manipulate
+   *  where button = 0 (left), 1 (center), 2 (right)
+   *  ctrl = 0 (CTRL key not pressed), 1 (CTRL key pressed)
+   *  shift = 0 (SHIFT key not pressed), 1 (SHIFT key pressed)
+   *
+   *  Note some direct manipulation DataRenderers test the status of
+   *  CTRL and SHIFT keys, so it is advisable that the DIRECT function
+   *  be invariant to the state of ctrl and shift in the map array.
+   *
+   *  For example, to set the left mouse button for direct
+   *  manipulation, and the center button for box rotation
+   *  (only without shift or control):
+   *  mouse_helper.setFunctionMap(new int[][][]
+   *    {{{MouseHelper.DIRECT, MouseHelper.DIRECT},
+   *      {MouseHelper.DIRECT, MouseHelper.DIRECT}},
+   *     {{MouseHelper.ROTATE, MouseHelper.NONE},
+   *      {MouseHelper.NONE, MouseHelper.NONE}},
+   *     {{MouseHelper.NONE, MouseHelper.NONE},
+   *      {MouseHelper.NONE, MouseHelper.NONE}}});
+   *  </pre>
+   * @param  map map of functions.  map must be int[3][2][2]
+   * @throws VisADException  bad map
+   */
   public void setFunctionMap(int[][][] map) throws VisADException {
     if (map == null || map.length != 3) {
       throw new DisplayException("bad map array");
@@ -709,6 +726,12 @@ public class MouseHelper
   }
 
 
+  /**
+   * Print out a readable form of a matrix.  Useful for
+   * debugging.
+   * @param title  title to prepend to output.
+   * @param m  matrix to print.
+   */
   public void print_matrix(String title, double[] m) {
     if (behavior == null) return;
     double[] rot = new double[3];
@@ -724,6 +747,11 @@ public class MouseHelper
                        Convert.shortString(trans[2]) + ")");
   }
 
+  /**
+   * Implementation for RendererSourceListener.  Notifies that the
+   * renderer has been deleted.
+   * @param renderer DataRenderer that was deleted.
+   */
   public void rendererDeleted(DataRenderer renderer)
   {
     if (direct_renderer != null) {
