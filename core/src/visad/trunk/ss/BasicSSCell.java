@@ -51,6 +51,7 @@ import visad.java3d.*;
 import visad.data.BadFormException;
 import visad.data.DefaultFamily;
 import visad.data.netcdf.Plain;
+import visad.data.visad.VisADForm;
 
 /** BasicSSCell represents a single spreadsheet display cell.  BasicSSCells
     can be added to a VisAD user interface to provide some of the capabilities
@@ -490,13 +491,22 @@ public class BasicSSCell extends JPanel {
   }
 
   /** Exports a data object to a given file name, in netCDF format */
-  public void saveData(File f) throws BadFormException, IOException,
-                                      VisADException, RemoteException {
+  public void saveData(File f, boolean netcdf) throws BadFormException,
+                                                      IOException,
+                                                      VisADException,
+                                                      RemoteException {
     if (f == null || !HasData) return;
     Saving++;
-    Plain saver = new Plain();
-    saver.save(f.getPath(), DataRef.getData(), true);
-    saver = null;
+    if (netcdf) {
+      Plain saver = new Plain();
+      saver.save(f.getPath(), DataRef.getData(), true);
+      saver = null;
+    }
+    else {
+      VisADForm saver = new VisADForm();
+      saver.save(f.getPath(), DataRef.getData(), true);
+      saver = null;
+    }
     Saving--;
   }
 

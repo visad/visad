@@ -174,10 +174,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
     fileOpen.setActionCommand("fileOpen");
     file.add(fileOpen);
 
-    MenuItem fileSave = new MenuItem("Export data to netCDF...");
-    fileSave.addActionListener(this);
-    fileSave.setActionCommand("fileSave");
-    file.add(fileSave);
+    MenuItem fileSave1 = new MenuItem("Export data to netCDF...");
+    fileSave1.addActionListener(this);
+    fileSave1.setActionCommand("fileSaveNetcdf");
+    file.add(fileSave1);
+
+    MenuItem fileSave2 = new MenuItem("Export serialized data...");
+    fileSave2.addActionListener(this);
+    fileSave2.setActionCommand("fileSaveSerial");
+    file.add(fileSave2);
 
     file.addSeparator();
 
@@ -622,7 +627,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // file menu commands
     if (cmd.equals("fileOpen")) loadDataSet();
-    else if (cmd.equals("fileSave")) exportDataSet();
+    else if (cmd.equals("fileSaveNetcdf")) exportDataSetNetcdf();
+    else if (cmd.equals("fileSaveSerial")) exportDataSetSerial();
     else if (cmd.equals("fileExit")) {
       DisplayCells[CurDisplay].hideWidgetFrame();
       setVisible(false);
@@ -867,8 +873,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
   }
 
   /** Allows the user to export a data set to netCDF format */
-  void exportDataSet() {
-    DisplayCells[CurDisplay].saveDataDialog();
+  void exportDataSetNetcdf() {
+    DisplayCells[CurDisplay].saveDataDialog(false);
+  }
+
+  /** Allows the user to export a data set to serialized data format */
+  void exportDataSetSerial() {
+    DisplayCells[CurDisplay].saveDataDialog(true);
   }
 
   /** Makes sure the formula bar is displaying up-to-date info */

@@ -373,7 +373,7 @@ public class FancySSCell extends BasicSSCell {
   }
 
   /** Saves to a file selected by the user, in netCDF format */
-  public void saveDataDialog() {
+  public void saveDataDialog(boolean netcdf) {
     if (!HasData) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",
                   "Nothing to save", JOptionPane.ERROR_MESSAGE);
@@ -395,29 +395,32 @@ public class FancySSCell extends BasicSSCell {
     // start new thread to save the file
     final File fn = f;
     final BasicSSCell cell = this;
+    final boolean nc = netcdf;
     Runnable saveFile = new Runnable() {
       public void run() {
-        String msg = "VisAD could not save the dataset \""+fn.getName()+"\"\n";
+        String msg = "VisAD could not save the dataset \"" + fn.getName() +
+                     "\" as a " + (nc ? "netCDF file"
+                                      : "serialized data file") + ".\n";
         try {
-          cell.saveData(fn);
+          cell.saveData(fn, nc);
         }
         catch (BadFormException exc) {
-          msg = msg+"A BadFormException occurred:\n"+exc.toString();
+          msg = msg + "A BadFormException occurred:\n" + exc.toString();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
                                         JOptionPane.ERROR_MESSAGE);
         }
         catch (RemoteException exc) {
-          msg = msg+"A RemoteException occurred:\n"+exc.toString();
+          msg = msg + "A RemoteException occurred:\n" + exc.toString();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
                                         JOptionPane.ERROR_MESSAGE);
         }
         catch (IOException exc) {
-          msg = msg+"An IOException occurred:\n"+exc.toString();
+          msg = msg + "An IOException occurred:\n" + exc.toString();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
                                         JOptionPane.ERROR_MESSAGE);
         }
         catch (VisADException exc) {
-          msg = msg+"An error occurred:\n"+exc.toString();
+          msg = msg + "An error occurred:\n" + exc.toString();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
                                         JOptionPane.ERROR_MESSAGE);
         }
