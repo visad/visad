@@ -385,7 +385,7 @@ public abstract class BaseTrack
       samples = new float[timeSteps.length + 1][3];
     }
 
-    final double baseLength = (timeFinal - timeOrigin) * SPEED_OF_LIGHT;
+    final double baseLength = (timeFinal - time) * SPEED_OF_LIGHT;
 
     final float xBaseDelta = (float )(baseLength * sinZenith * cosAzimuth);
     final float yBaseDelta = (float )(baseLength * sinZenith * sinAzimuth);
