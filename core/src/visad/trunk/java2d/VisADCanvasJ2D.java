@@ -346,7 +346,8 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
       if (component != null) {
         Graphics g = getGraphics();
         if (g != null) {
-          paintComponent(g);
+          // paintComponent(g);
+          repaint();
           g.dispose();
         }
       }
@@ -478,8 +479,11 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
         g2.dispose();
         ggg.dispose();
       } // end if (!valid)
+
       if (tsave == null || !displayRenderer.anyCursorStringVector()) {
-        if (g != null) g.drawImage(image, 0, 0, this);
+        if (g != null) {
+          g.drawImage(image, 0, 0, this);
+        }
         if (captureFlag || display.hasSlaves()) {
 // System.out.println("image capture " + width + " " + height);
           captureFlag = false;
@@ -520,7 +524,9 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
 
         displayRenderer.drawCursorStringVector(ga, tsave, w, h);
         ga.dispose();
-        if (g != null) g.drawImage(aux_copy, 0, 0, this);
+        if (g != null) {
+          g.drawImage(aux_copy, 0, 0, this);
+        }
         if (captureFlag || display.hasSlaves()) {
 // System.out.println("aux_copy capture " + width + " " + height);
           captureFlag = false;
