@@ -59,6 +59,9 @@ public class MeasureMatrix {
   /** Current matrix slice. */
   private int slice = -1;
 
+  /** Number of slices. */
+  private int numSlices = -1;
+
   /** Whether matrix has been initialized. */
   private boolean inited = false;
 
@@ -96,7 +99,7 @@ public class MeasureMatrix {
     }
     GriddedSet gset = (GriddedSet) set;
     int[] lengths = gset.getLengths();
-    int numSlices = lengths[0];
+    numSlices = lengths[0];
     for (int i=0; i<numSlices; i++) {
       Data data = field.getSample(i);
       if (!(data instanceof FieldImpl)) {
@@ -164,7 +167,7 @@ public class MeasureMatrix {
       matrix[j] = new MeasureList[numSlices];
       for (int i=0; i<numSlices; i++) {
         p1r[len] = p2r[len] = pxr[len] = new Real(ZAXIS_TYPE, i);
-        matrix[j][i] = new MeasureList(p1r, p2r, pxr, pool, pool3d[i]);
+        matrix[j][i] = new MeasureList(this, p1r, p2r, pxr, pool, pool3d[i]);
       }
     }
 
@@ -202,11 +205,28 @@ public class MeasureMatrix {
     pool.set(ml.getMeasurements());
   }
 
+  /** Gets the current matrix index. */
+  public int getIndex() { return index; }
+
+  /** Gets the current matrix slice. */
+  public int getSlice() { return slice; }
+
+  /** Gets the number of slices in the matrix. */
+  public int getNumberOfSlices() { return numSlices; }
+
   /** Gets the display linked to the matrix. */
   public DisplayImpl getDisplay() { return display2; }
 
   /** Gets the 3-D display linked to the matrix. */
   public DisplayImpl getDisplay3d() { return display3; }
+
+  /** Gets the measurement list for the current index and slice. */
+  public MeasureList getMeasureList() { return getMeasureList(index, slice); }
+
+  /** Gets the measurement list for the given slice of the current index. */
+  public MeasureList getMeasureList(int slice) {
+    return getMeasureList(index, slice);
+  }
 
   /** Gets the measurement list for the given slice of the specified index. */
   public MeasureList getMeasureList(int index, int slice) {

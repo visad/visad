@@ -283,7 +283,7 @@ public class MeasureDataFile {
       values[1] = new RealTuple(reals[1]);
       Color color = new Color(data.r, data.g, data.b);
       LineGroup group = (LineGroup) LineGroup.groups.elementAt(data.groupId);
-      Measurement m = new Measurement(values, color, group);
+      Measurement m = new Measurement(mm, values, color, group);
       m.setStdId(data.stdId);
       list.addMeasurement(m, false);
     }
@@ -300,7 +300,7 @@ public class MeasureDataFile {
       reals[1] = new Real(types[1], data.y1);
       values[0] = new RealTuple(reals);
       LineGroup group = (LineGroup) LineGroup.groups.elementAt(data.groupId);
-      Measurement m = new Measurement(values, Color.white, group);
+      Measurement m = new Measurement(mm, values, Color.white, group);
       m.setStdId(data.stdId);
       list.addMeasurement(m, false);
     }

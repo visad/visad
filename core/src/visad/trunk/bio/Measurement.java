@@ -35,6 +35,9 @@ import visad.*;
 /** Measurement represents the values of a measurement line or point. */
 public class Measurement {
 
+  /** Associated matrix of measurements. */
+  private MeasureMatrix mm;
+
   /** Endpoint values of the measurement. */
   private RealTuple[] values;
 
@@ -51,7 +54,10 @@ public class Measurement {
   protected int stdId;
 
   /** Constructs a measurement. */
-  public Measurement(RealTuple[] values, Color color, LineGroup group) {
+  public Measurement(MeasureMatrix mm, RealTuple[] values, Color color,
+    LineGroup group)
+  {
+    this.mm = mm;
     this.values = values;
     this.things = new Vector();
     this.color = color;
@@ -87,6 +93,34 @@ public class Measurement {
       }
     }
     if (equal) return;
+
+    // manage direct manipulation in 3-D window
+    if (dim == 3) {
+      // remove measurement from all slices
+      int numSlices = mm.getNumberOfSlices();
+      for (int i=0; i<numSlices; i++) {
+        mm.getMeasureList(i).removeMeasurement(this, false);
+      }
+
+      // re-add measurement to appropriate slices
+      for (int i=0; i<len; i++) {
+        try {
+          Real[] rc = values[i].getRealComponents();
+          Real r = rc[2];
+          double v = r.getValue();
+          int iv = (int) Math.round(v);
+          if (v != iv) {
+            // snap measurement to nearest slice
+            r = new Real((RealType) r.getType(), iv, r.getUnit(), r.getError());
+            values[i] = new RealTuple(new Real[] {rc[0], rc[1], r});
+          }
+          // add measurement to appropriate slice
+          mm.getMeasureList(iv).addMeasurement(this, false);
+        }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        catch (RemoteException exc) { exc.printStackTrace(); }
+      }
+    }
 
     this.values = values;
     refreshThings();
@@ -193,7 +227,7 @@ public class Measurement {
   public Object clone() {
     RealTuple[] vals = new RealTuple[values.length];
     System.arraycopy(values, 0, vals, 0, values.length);
-    Measurement m = new Measurement(vals, color, group);
+    Measurement m = new Measurement(mm, vals, color, group);
     m.setStdId(stdId);
     return m;
   }

@@ -88,10 +88,10 @@ public abstract class MeasureThing {
     values = new RealTuple[len];
     cell = new CellImpl() {
       public void doAction() {
-        synchronized (dataLock) {
-          for (int i=0; i<len; i++) values[i] = (RealTuple) refs[i].getData();
-        }
         if (m != null) {
+          synchronized (dataLock) {
+            for (int i=0; i<len; i++) values[i] = (RealTuple) refs[i].getData();
+          }
           RealTuple[] vals = new RealTuple[values.length];
           System.arraycopy(values, 0, vals, 0, values.length);
           m.setValues(vals);
@@ -188,9 +188,6 @@ public abstract class MeasureThing {
       int size = values.length < dim ? values.length : dim;
       for (int i=0; i<size; i++) {
         System.arraycopy(values[i], 0, vals[i], 0, len);
-      }
-      if (slice >= 0) {
-        for (int j=0; j<len; j++) vals[dim - 1][j] = slice;
       }
       setValues(vals);
       setColor(m.getColor());

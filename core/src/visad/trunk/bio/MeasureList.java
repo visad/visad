@@ -34,6 +34,9 @@ import visad.*;
 /** MeasureList maintains a list of measurements between points in a field. */
 public class MeasureList {
 
+  /** Associated matrix of measurements. */
+  private MeasureMatrix mm;
+
   /** List of measurements. */
   private Vector measureList;
 
@@ -53,9 +56,10 @@ public class MeasureList {
   private LinePool pool3d;
 
   /** Constructs a list of measurements. */
-  public MeasureList(Real[] p1r, Real[] p2r, Real[] pxr,
+  public MeasureList(MeasureMatrix mm, Real[] p1r, Real[] p2r, Real[] pxr,
     LinePool pool, LinePool pool3d) throws VisADException, RemoteException
   {
+    this.mm = mm;
     measureList = new Vector();
     types = new RealType[p1r.length];
     for (int i=0; i<p1r.length; i++) types[i] = (RealType) p1r[i].getType();
@@ -79,11 +83,12 @@ public class MeasureList {
 
   /** Adds a measurement line or point to the measurement list. */
   public void addMeasurement(boolean point, Color color, LineGroup group) {
-    Measurement m = new Measurement(point ? ptVals : lnVals, color, group);
+    Measurement m = new Measurement(mm, point ? ptVals : lnVals, color, group);
     addMeasurement(m, true);
   }
 
   void addMeasurement(Measurement m, boolean updatePool) {
+    if (measureList.contains(m)) return;
     measureList.add(m);
     if (updatePool) {
       pool.add(m);
@@ -95,6 +100,7 @@ public class MeasureList {
   public void removeMeasurement(Measurement m) { removeMeasurement(m, true); }
 
   void removeMeasurement(Measurement m, boolean updatePool) {
+    if (!measureList.contains(m)) return;
     measureList.remove(m);
     if (updatePool) {
       Measurement[] mm = getMeasurements();
