@@ -141,6 +141,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     // responses are VisADGroups
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
+System.out.println("ClientRendererJ3D.doTransform messages received");
 
     // responses are VisADGroups
     // need to:

@@ -104,6 +104,8 @@ System.out.println("RemoteClientAgentImpl.broadcastWithResponses " +
         throw new ClusterException("error from node " + i);
       }
     }
+System.out.println("RemoteClientAgentImpl.broadcastWithResponses " +
+                   "return responses");
     return responses;
   }
 

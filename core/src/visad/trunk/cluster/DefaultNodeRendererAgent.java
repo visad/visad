@@ -80,20 +80,19 @@ public class DefaultNodeRendererAgent extends NodeAgent {
       // nodes do not listen to client REFERENCE_ADD events;
       // nodes do listen to AUTO_SCALE events
       ndr = new NodeDisplayRendererJ3D();
-System.out.println("DefaultNodeRendererAgent.run after new NodeDisplayRendererJ3D");
-// hangs in next statement
+// System.out.println("DefaultNodeRendererAgent.run after new NodeDisplayRendererJ3D");
       display = new DisplayImplJ3D(rmtDpy, ndr, null);
-System.out.println("DefaultNodeRendererAgent.run after new DisplayImplJ3D");
+// System.out.println("DefaultNodeRendererAgent.run after new DisplayImplJ3D");
 
       ref = new DataReferenceImpl("dummy");
       RemoteDataReferenceImpl remote_ref = new RemoteDataReferenceImpl(ref);
       remote_ref.setData(data);
-System.out.println("DefaultNodeRendererAgent.run after setData");
+// System.out.println("DefaultNodeRendererAgent.run after setData");
       nr = new NodeRendererJ3D(this);
       RemoteDisplayImpl remote_display = new RemoteDisplayImpl(display);
-System.out.println("DefaultNodeRendererAgent.run after new RemoteDisplayImpl");
+// System.out.println("DefaultNodeRendererAgent.run after new RemoteDisplayImpl");
       remote_display.addReferences(nr, ref, cmaps);
-System.out.println("DefaultNodeRendererAgent.run after addReferences");
+// System.out.println("DefaultNodeRendererAgent.run after addReferences");
     }
     catch (VisADException e) {
       System.out.println("DefaultNodeRendererAgent cannot run: " + e.toString());
@@ -105,9 +104,9 @@ System.out.println("DefaultNodeRendererAgent.run after addReferences");
     }
 
     Thread me = Thread.currentThread();
-System.out.println("DefaultNodeRendererAgent.run " + me + " " + getAgentThread());
+// System.out.println("DefaultNodeRendererAgent.run " + me + " " + getAgentThread());
     while (getAgentThread() == me) {
-System.out.println("DefaultNodeRendererAgent.run in while");
+// System.out.println("DefaultNodeRendererAgent.run in while");
       Serializable message = getMessage();
 
       Serializable response = null;
@@ -117,6 +116,8 @@ System.out.println("DefaultNodeRendererAgent.run in while");
           return;
         }
         else if (smessage.equals("transform")) {
+System.out.println("DefaultNodeRendererAgent.run trigger " +
+                   display.getName());
           nr.enableTransform();
           display.reDisplayAll();
           // NodeRendererJ3D.doTransform() calls

@@ -95,6 +95,7 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
   }
 
   public void enableTransform() {
+System.out.println("NodeRendererJ3D.enableTransform");
     enable_transform = true;
   }
 
@@ -107,6 +108,7 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
 
   /** create a VisADGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
+System.out.println("NodeRendererJ3D.doTransform enter");
     // RendererJ3D.doAction is expecting a BranchGroup
     // so fake it
     BranchGroup fake_branch = new BranchGroup();

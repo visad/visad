@@ -157,6 +157,15 @@ also need to support FileFlatFields
 
 */
 
+/*
+  DisplayImpl.syncRemoteData()
+    . . .
+    if (!cluster) waitForTasks(); // WLH 11 April 2001
+
+only needed for testing client and nodes in same JVM
+BUT, dglo should make this waitForTasks() more precise
+*/
+
 /* VisAD Data Model on various file formats
 
 Data instance method for write

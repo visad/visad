@@ -294,8 +294,8 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
     client_image.setupClusterData(ps, table);
 
     DisplayImpl display =
-      // new DisplayImplJ3D("display");
-      new DisplayImplJ3D("display", new ClientDisplayRendererJ3D());
+      // new DisplayImplJ3D("main_display");
+      new DisplayImplJ3D("main_display", new ClientDisplayRendererJ3D());
 
     // get a list of decent mappings for this data
     MathType type = image.getType();
