@@ -1002,8 +1002,8 @@ public class BasicSSCell extends JPanel
    *
    * @return Variable name of the newly added data.
    */
-  protected String addDataSource(int id, String source, int type,
-    boolean notify) throws VisADException, RemoteException
+  String addDataSource(int id, String source, int type, boolean notify)
+    throws VisADException, RemoteException
   {
     String varName = null;
 

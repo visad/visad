@@ -194,10 +194,14 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    */
   protected double CollabID = 0;
 
-  /** row and column information needed for spreadsheet cloning */
+  /**
+   * Row and column information needed for spreadsheet cloning.
+   */
   protected RemoteDataReference RemoteColRow;
 
-  /** remote clone's copy of CanDo3D */
+  /**
+   * Remote clone's copy of CanDo3D.
+   */
   protected RemoteDataReference RemoteCanDo3D;
 
 
@@ -374,8 +378,8 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       "-gui = Pop up an options window so that the user can\n" +
       "       select SpreadSheet settings graphically\n" +
       "-no3d = Disable Java3D\n" +
-      "-bugfix = Disable toolbar. For some systems, will prevent\n" +
-      "          lockups on spreadsheet start." +
+      "-bugfix = Disable toolbar; for some systems, will prevent\n" +
+      "          lockups on spreadsheet start\n" +
       "-debug = Print stack traces for all errors\n";
     int cols = 2;
     int rows = 2;
@@ -798,7 +802,49 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       public void actionPerformed(ActionEvent e) {
         String newItem = (String) FormulaEditor.getItem();
         try {
-          String varName = DisplayCells[CurX][CurY].addDataSource(newItem);
+          int id = 0;
+          int type = BasicSSCell.UNKNOWN_SOURCE;
+          boolean notify = true;
+
+          int index1 = newItem.indexOf("d");
+          int index2 = newItem.indexOf(":");
+          if (index1 > 0 && index2 > 0 && index1 < index2) {
+            String cellName = newItem.substring(0, index1);
+            BasicSSCell ssCell = BasicSSCell.getSSCellByName(cellName);
+            int dataId = 0;
+            try {
+              dataId = Integer.parseInt(newItem.substring(index1 + 1, index2));
+            }
+            catch (NumberFormatException exc) {
+              if (BasicSSCell.DEBUG && BasicSSCell.DEBUG_LEVEL >= 3) {
+                exc.printStackTrace();
+              }
+            }
+            if (ssCell == DisplayCells[CurX][CurY] && dataId > 0) {
+              // user is 'editing' the data object
+              String varName = newItem.substring(0, index2);
+              String source = ssCell.getDataSource(varName);
+              if (source != null) {
+                ssCell.removeData(varName);
+                String oldItem = null;
+                for (int i=0; i<FormulaBox.getItemCount(); i++) {
+                  String item = (String) FormulaBox.getItemAt(i);
+                  if (item.startsWith(varName + ":")) {
+                    oldItem = item;
+                    break;
+                  }
+                }
+                if (oldItem != null) {
+                  // remove old item from FormulaBox
+                  FormulaBox.removeItem(oldItem);
+                }
+              }
+              id = dataId;
+              newItem = newItem.substring(index2 + 1).trim();
+            }
+          }
+          String varName = DisplayCells[CurX][CurY].addDataSource(
+            id, newItem, type, notify);
           String itemString = varName + ": " + newItem;
           FormulaBox.addItem(itemString);
           FormulaBox.setSelectedItem(itemString);
@@ -3531,8 +3577,8 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   }
 
   /**
-   * Returns the spreadsheet cell class (which must extend FancySSCell)
-   * used for creating spreadsheet cells at runtime.
+   * Returns a new instance of a spreadsheet cell (which must extend
+   * FancySSCell), used when a spreadsheet row or column is added.
    */
   protected FancySSCell createCell(String name, RemoteServer rs)
     throws VisADException, RemoteException
