@@ -1676,14 +1676,24 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           }
         }
       } // end for (int i=0; i<3; i++)
+      /*-TDR, debug
+      System.out.println("imax: "+imax+" jmax: "+jmax);
+      System.out.println("simax: "+simax+" sjmax: "+sjmax);
+      */
       if (imax == 0) {
         swap[0] = true;
         swap[1] = (simax < 0.0f);
         swap[2] = (sjmax < 0.0f);
       }
       else if (imax == 1) {
+       /*-TDR, (4-18-01):
+          wrong grid dimension swapped
+
         swap[1] = (sjmax < 0.0f);
         swap[2] = (simax < 0.0f);
+        */
+        swap[2] = (sjmax < 0.0f);
+        swap[1] = (simax < 0.0f);
       }
       else { // imax == 2
         if (jmax == 1) {
@@ -1692,10 +1702,18 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           swap[2] = (sjmax < 0.0f);
         }
         else {
+         /*-TDR, (4-18-01) Untested:
+            should probably be same as change above
           swap[1] = (sjmax < 0.0f);
           swap[2] = (simax < 0.0f);
+          */
+          swap[2] = (sjmax < 0.0f);
+          swap[1] = (simax < 0.0f);
         }
       }
+      /*-TDR, debug
+      System.out.println("swap[0]: "+swap[0]+" swap[1]: "+swap[1]+" swap[2]: "+swap[2]);
+      */
     }
 
     // assemble SpatialOffsets
