@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Consolidator.java,v 1.1 1998-09-23 17:31:31 steve Exp $
+ * $Id: Consolidator.java,v 1.1.4.1 2000-06-07 20:38:00 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -44,6 +44,13 @@ Consolidator
     public abstract DataImpl
     getData()
 	throws VisADException, RemoteException, IOException;
+
+
+    /**
+     * Clears the consolidated, VisAD data object.
+     */
+    public abstract void
+    clear();
 
 
     /**
