@@ -215,10 +215,19 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
   }
 
   /** clear link to DisplayImpl */
-  synchronized void nullDisplay() {
-    // CTR: 6 October 1998 -- stop animation before killing control
-    if (control instanceof AnimationControl) {
-      ((AnimationControl) control).stop();
+  synchronized void nullDisplay()
+    throws RemoteException, VisADException
+  {
+    if (control != null) {
+      // stop animation before killing control
+      if (control instanceof AnimationControl) {
+        ((AnimationControl) control).stop();
+      }
+
+      ScalarMapControlEvent evt;
+      evt = new ScalarMapControlEvent(this, ScalarMapEvent.CONTROL_REMOVED,
+                                      control);
+      notifyCtlListeners(evt);
     }
 
     display = null;
@@ -258,8 +267,25 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       throw new DisplayException("ScalarMap.setControl: not part of " +
                                  "any Display");
     }
+
+    int evtID;
+    Control evtCtl;
+    if (control != null) {
+      evtID = ScalarMapEvent.CONTROL_REPLACED;
+      evtCtl = control;
+    } else {
+      evtID = ScalarMapEvent.CONTROL_ADDED;
+      evtCtl = null;
+    }
+
     control = display.getDisplayRenderer().makeControl(this);
     display.addControl(control);
+
+    if (evtCtl == null) {
+      evtCtl = control;
+    }
+
+    notifyCtlListeners(new ScalarMapControlEvent(this, evtID, evtCtl));
   }
 
   /** return value is true if data (RealType) values are linearly
@@ -468,13 +494,16 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
 
     if (dataRange[0] == dataRange[0] &&
         dataRange[1] == dataRange[1] && ListenerVector != null) {
+      ScalarMapEvent evt;
+      evt = new ScalarMapEvent(this, (shadow == null ?
+                                      ScalarMapEvent.MANUAL :
+                                      ScalarMapEvent.AUTO_SCALE));
       synchronized (ListenerVector) {
-        boolean auto = (shadow != null);
         Enumeration listeners = ListenerVector.elements();
         while (listeners.hasMoreElements()) {
           ScalarMapListener listener =
             (ScalarMapListener) listeners.nextElement();
-          listener.mapChanged(new ScalarMapEvent(this, auto));
+          listener.mapChanged(evt);
         }
       }
     }
@@ -490,7 +519,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     if (dataRange[0] == dataRange[0] &&
         dataRange[1] == dataRange[1]) {
       try {
-        listener.mapChanged(new ScalarMapEvent(this, false));
+        listener.mapChanged(new ScalarMapEvent(this, ScalarMapEvent.MANUAL));
       }
       catch (VisADException e) {
       }
@@ -506,9 +535,22 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
 
-/* WLH 26 July 99
-  private static final double SCALE = 0.07;
-*/
+  /** Send a <CODE>ScalarMapEvent</CODE> to all control listeners */
+  private void notifyCtlListeners(ScalarMapControlEvent evt)
+    throws RemoteException, VisADException
+  {
+    if (ListenerVector != null) {
+      synchronized (ListenerVector) {
+        Enumeration listeners = ListenerVector.elements();
+        while (listeners.hasMoreElements()) {
+          ScalarMapListener listener =
+            (ScalarMapListener) listeners.nextElement();
+          listener.controlChanged(evt);
+        }
+      }
+    }
+  }
+
   private static final double SCALE = 0.06;
   private static final double OFFSET = 1.05;
 
