@@ -103,8 +103,8 @@ public abstract class RendererJ3D extends DataRenderer {
 System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 */
     swt.setWhichChild(currentIndex);
-    toggle(getEnabled());
     sw = swt; // avoid IndexOutOfBoundsException in toggle()
+    toggle(getEnabled());
   }
 
   public void toggle(boolean on) {
