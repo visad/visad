@@ -36,6 +36,7 @@ import java.text.*;
 import java.io.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Properties;
 import java.util.Vector;
@@ -87,6 +88,7 @@ public class GetAreaGUI extends JPanel {
   boolean gotUserDefaults = false;
   String propFile;
   String cmdout=null;
+  ArrayList imageList = null;
   JDialog dialog;
 
   /** 
@@ -1302,6 +1304,7 @@ public class GetAreaGUI extends JPanel {
     
     String un = getUnit();
     if (un == null || un.length()<3) un="BRIT";
+    imageList = new ArrayList();
     
     if (multipleImages) {
       int numimages = DateTimeList.getSelectedIndices().length;
@@ -1309,11 +1312,14 @@ public class GetAreaGUI extends JPanel {
 
       for (int i=0; i<numimages; i++) {
 
-        cmdbuf.append("adde://"+getServer()+"/imagedata?group="+getGroup()+
+        String addecmd = new String
+        ("adde://"+getServer()+"/imagedata?group="+getGroup()+
           "&descr="+getDescr()+loc+getLocationString()+
           "&size="+getNumLinesEles()+"&day="+getDay(i)+"&time="+getTime(i)+" "+
           getTime(i)+" I "+
           "&band="+getBand()+"&unit="+un+"&mag="+getMag()+ up + "&version=1");
+        cmdbuf.append(addecmd);
+        imageList.add(addecmd);
         if (i+1 < numimages) cmdbuf.append("|");
       }
       cmdout = cmdbuf.toString();
@@ -1325,6 +1331,7 @@ public class GetAreaGUI extends JPanel {
          getTime()+" I "+
          "&band="+getBand()+"&unit="+un+"&mag="+getMag()+ up +
          "&version=1";
+      imageList.add(cmdout);
     }
     System.out.println("cmdout = "+cmdout);
 
@@ -1337,6 +1344,10 @@ public class GetAreaGUI extends JPanel {
     
   }//GEN-LAST:event_userActionButtonActionPerformed
   
+  public List getImageList() {
+    return (List) imageList;
+  }
+
   public String toString() {
     return cmdout;
   }
