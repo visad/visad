@@ -524,22 +524,28 @@ recompile:
 				RM="${RM}"				\
 							) || true;	\
 	      else							\
-		(cd $$dir &&						\
+		(cd $$dir;						\
+		 if [ ! -z "$(COMPILE_ALL)" ]; then			\
+		   echo $(JC) $(FLAGS) '*.java';			\
+		   $(JC) $(FLAGS) *.java;				\
+		 fi;							\
 		 for j in *.java; do					\
 		   b=`basename $$j .java`;				\
-		   c=$$b.class;						\
-		   compile=false;					\
-		   if [ ! -f $$c ]; then				\
-		     compile=true;					\
-		   else							\
-		     set `ls -td $$j $$c` X;				\
-		     if [ $$c != $$1 ]; then				\
+		   if [ -z "$(COMPILE_ALL)" ]; then			\
+		     c=$$b.class;					\
+		     compile=false;					\
+		     if [ ! -f $$c ]; then				\
 		       compile=true;					\
+		     else						\
+		       set `ls -td $$j $$c` X;				\
+		       if [ $$c != $$1 ]; then				\
+			 compile=true;					\
+		       fi;						\
 		     fi;						\
-		   fi;							\
-		   if $$compile; then					\
-		     (echo "$(JC) $(JFLAGS) $$j" &&			\
-		      $(JC) $(JFLAGS) $$j || true);			\
+		     if $$compile; then					\
+		       (echo "$(JC) $(JFLAGS) $$j" &&			\
+			$(JC) $(JFLAGS) $$j || true);			\
+		     fi;						\
 		   fi;							\
 		   rmicomp=;						\
 		   case "$$b" in					\
@@ -559,7 +565,23 @@ recompile:
 	  fi;								\
 	done
 
-compile: clean recompile
+compile: clean
+	@make								\
+			JAVADIR="${JAVADIR}"				\
+			JAVAARCH="${JAVAARCH}"				\
+			JC="${JC}"					\
+			JFLAGS="${JFLAGS}"				\
+			JH="${JH}"					\
+			SHCFLAGS="${SHCFLAGS}"				\
+			SHFFLAGS="${SHFFLAGS}"				\
+			SHLD="${SHLD}"					\
+			SHLDFLAGS="${SHLDFLAGS}"			\
+			SHFLD="${SHFLD}"				\
+			SHFLDFLAGS="${SHFLDFLAGS}"			\
+			SHFLIBS="${SHFLIBS}"				\
+			RM="${RM}"					\
+			COMPILE_ALL=true				\
+		recompile
 
 docs:
 	@if [ ! -d $(DOC_DIR) ]; then mkdir $(DOC_DIR); fi   
