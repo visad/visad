@@ -1019,6 +1019,7 @@ public class BasicSSCell extends JPanel {
   {
     // extract mapping information from string
     if (DEBUG) showErrors = true;
+    if (mapString == null) return null;
     StringTokenizer st = new StringTokenizer(mapString);
     Vector dnames = new Vector();
     Vector rnames = new Vector();
@@ -1070,9 +1071,12 @@ public class BasicSSCell extends JPanel {
           // find appropriate ScalarType
           ScalarType mapDomain = null;
           String name = (String) dnames.elementAt(j);
-          for (int k=0; k<vLen && mapDomain==null; k++) {
+          for (int k=0; k<vLen; k++) {
             ScalarType type = (ScalarType) types.elementAt(k);
-            if (name.equals(type.getName())) mapDomain = type;
+            if (name.equals(type.getName())) {
+              mapDomain = type;
+              break;
+            }
           }
           if (mapDomain == null) {
             // still haven't found type; look in static Vector for it
@@ -1138,6 +1142,7 @@ public class BasicSSCell extends JPanel {
     String rmi = null;
     String formula = null;
     int dim = -1;
+    String mapString = null;
     ScalarMap[] maps = null;
     Vector mapMins = null;
     Vector mapMaxs = null;
@@ -1252,7 +1257,7 @@ public class BasicSSCell extends JPanel {
       else if (keyword.equalsIgnoreCase("maps") ||
         keyword.equalsIgnoreCase("mappings"))
       {
-        maps = convertStringToMaps(surplus, true);
+        mapString = surplus;
       }
 
       // mapping ranges
@@ -1392,6 +1397,7 @@ public class BasicSSCell extends JPanel {
     }
 
     // set up map ranges; then set maps
+    maps = convertStringToMaps(mapString, true);
     if (maps != null) {
       int lmin = mapMins == null ? -1 : mapMins.size();
       int lmax = mapMaxs == null ? -1 : mapMaxs.size();
