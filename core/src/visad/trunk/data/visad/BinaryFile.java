@@ -144,6 +144,8 @@ public interface BinaryFile
   byte DATA_INTEGER_3D_SET = 57;
   byte DATA_INTEGER_ND_SET = 58;
 
+  byte DATA_NONE = 60;
+
   boolean DEBUG_RD_CSYS = false;
   boolean DEBUG_RD_DATA = false;
   boolean DEBUG_RD_DATA_DETAIL = false;

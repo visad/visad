@@ -453,6 +453,9 @@ if(DEBUG_RD_DATA)System.err.println("rdData: objLen (" + objLen + ")\nrdData: DA
       data = BinaryList1DSet.read(this);
 if(DEBUG_RD_TIME)liTime += System.currentTimeMillis() - tmpStart;
       break;
+    case DATA_NONE:
+      data = null;
+      break;
     case DATA_PRODUCT_SET:
 if(DEBUG_RD_DATA)System.err.println("rdData: objLen (" + objLen + ")\nrdData: DATA_PRODUCT_SET (" + dataType + ")");
       data = BinaryProductSet.read(this);
