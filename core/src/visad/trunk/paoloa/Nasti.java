@@ -82,10 +82,17 @@ public class Nasti {
   // MathType for red_bar overlaid on spectrum display
   FunctionType red_bar_type;
 
-  // type 'java Nasti' to run this application
+  // type 'java visad.paoloa.Nasti file.nc' to run this application
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
     if (args.length < 1) {
+
+      /* CTR: 29 September 1998 */
+      System.out.println("To run this program, type " +
+                         "\"java visad.paoloa.Nasti file.nc\"");
+      System.out.println("where file.nc is a netCDF file containing a " +
+                         "NAST-I file.");
+
       return;
     }
     Nasti nasti = new Nasti(args[0]);
