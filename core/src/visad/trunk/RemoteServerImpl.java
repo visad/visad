@@ -41,14 +41,14 @@ public class RemoteServerImpl extends UnicastRemoteObject
  
   public synchronized RemoteDataReference getDataReference(int index)
          throws RemoteException {
-    if (0 <= index && index < refs.length) return refs[index];
+    if (refs != null && 0 <= index && index < refs.length) return refs[index];
     else return null;
   }
  
   /** get a RemoteDataReference by name */
   public synchronized RemoteDataReference getDataReference(String name)
          throws VisADException, RemoteException {
-    if (name == null) return null;
+    if (name == null || refs == null) return null;
     for (int i=0; i<refs.length; i++) {
       if (name.equals(refs[i].getName())) return refs[i];
     }
@@ -73,10 +73,10 @@ public class RemoteServerImpl extends UnicastRemoteObject
       throw new RemoteVisADException("RemoteServerImpl.setDataReference: " +
                                      "negative index");
     }
-    if (index >= refs.length) {
+    if (refs == null || index >= refs.length) {
       RemoteDataReferenceImpl[] rs = new RemoteDataReferenceImpl[index + 1];
       for (int i=0; i<index; i++) {
-        if (i < refs.length) rs[i] = refs[i];
+        if (refs != null && i < refs.length) rs[i] = refs[i];
         else rs[i] = null;
       }
       refs = rs;
