@@ -265,11 +265,13 @@ Any of the following can be used in formula construction:
 7) You can obtain an individual sample from a Field with the syntax:
        DATA(N)
    where DATA is the Field, and N is a literal integer.
+   Use DATA(0) for the first sample of DATA.
    This syntax calls Field's getSample() method.
 
 8) You can obtain one component of a Tuple with the syntax:
        DATA.N
    where DATA is a Tuple and N is a literal integer.
+   Use DATA.0 for the first Tuple component of DATA.
    This syntax calls Tuple's getComponent() method.
 
 9) You can extract part of a field with the syntax:
