@@ -976,7 +976,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       // for transformation)
       // clone RendererVector to avoid need for synchronized access
       Vector temp = ((Vector) RendererVector.clone());
-      Enumeration renderers;
+      Enumeration renderers = temp.elements();
       boolean go = false;
       if (initialize) {
         renderers = temp.elements();
@@ -1017,14 +1017,24 @@ System.out.println("initialize = " + initialize + " go = " + go +
         ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
 */
 
+        // WLH 10 May 2001
+        boolean anyBadMap = false;
+        maps = tmap.elements();
+        while (maps.hasMoreElements()) {
+          ScalarMap map = ((ScalarMap) maps.nextElement());
+          if (map.badRange()) anyBadMap = true;
+        }
+
         renderers = temp.elements();
         boolean badScale = false;
         while (renderers.hasMoreElements()) {
           DataRenderer renderer = (DataRenderer) renderers.nextElement();
-          badScale |= renderer.getBadScale();
+          // badScale |= renderer.getBadScale();  WLH 10 May 2001
+          badScale |= renderer.getBadScale(anyBadMap);
         }
         initialize = badScale;
         if (always_initialize) initialize = true;
+
 /*
 if (initialize) {
   System.out.println("badScale = " + badScale +

@@ -75,6 +75,7 @@ public class Rivers {
 
     // link the Display to rivers_ref
     display.addReference(rivers_ref);
+    rivers_ref.setData(rivers);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("Rivers VisAD Application");

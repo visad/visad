@@ -297,10 +297,10 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
       successfully */
   public abstract boolean doAction() throws VisADException, RemoteException;
 
-  public boolean getBadScale() {
+  public boolean getBadScale(boolean anyBadMap) {
     boolean badScale = false;
     for (int i=0; i<Links.length; i++) {
-      if (!feasible[i] && !is_null[i]) {
+      if (!feasible[i] && (anyBadMap || !is_null[i])) {
 /*
 try {
   System.out.println("getBadScale not feasible " +
@@ -323,6 +323,7 @@ if (map.badRange()) {
 */
       }
     }
+// System.out.println("getBadScale return " + badScale);
     return badScale;
   }
 
