@@ -40,7 +40,7 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
   public static final Font MONO = new Font("monospaced", Font.PLAIN, 12);
 
   /** debugging flag */
-  protected static final boolean DEBUG = false;
+  public static final boolean DEBUG = false;
 
   /** main text area */
   protected JTextArea text;
