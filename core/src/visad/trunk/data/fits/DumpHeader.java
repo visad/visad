@@ -11,6 +11,7 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.ImageHDU;
 import nom.tam.fits.PrimaryHDU;
+import nom.tam.fits.RandomGroupsHDU;
 import nom.tam.fits.TableHDU;
 import nom.tam.fits.TruncatedFileException;
 
@@ -248,6 +249,17 @@ public class DumpHeader
     Data foo = hdu.getData();
   }
 
+  private static void dumpRandomGroups(PrintStream ps, String indentStr,
+				       RandomGroupsHDU hdu)
+	throws IOException
+  {
+    dumpBasic(ps, indentStr, (BasicHDU )hdu);
+
+    ps.println(indentStr + "...");
+
+    Data foo = hdu.getData();
+  }
+
   public static void dump(PrintStream ps, String name)
 	throws FitsException, IOException
   {
@@ -305,8 +317,12 @@ public class DumpHeader
 	ps.println(indentStr + "Image " + hduNum + ':');
 	ps.flush();
 	dumpImage(ps, indentStr + indentStr, (ImageHDU )hdu);
+      } else if (hdu instanceof RandomGroupsHDU) {
+	ps.println(indentStr + "RandomGroups " + hduNum + ':');
+	ps.flush();
+	dumpRandomGroups(ps, indentStr + indentStr, (RandomGroupsHDU )hdu);
       } else {
-	throw new FitsException("Unknown header found");
+	throw new FitsException("Unknown header found: " + hdu);
       }
     }
   }
