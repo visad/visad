@@ -850,22 +850,52 @@ public class FieldImpl extends FunctionImpl implements Field {
     return new_field;
   }
 
-  /** resample all elements of the fields array to the domain
-      set of fields[0], then return a Field whose range samples
-      are Tuples merging the corresponding range samples from
-      each element of fields; if the range of fields[i] is a
-      Tuple without a RangeCoordinateSystem, then each Tuple
-      component of a range sample of fields[i] becomes a
-      Tuple component of a range sample of the result -
-      otherwise a range sample of fields[i] becomes a Tuple
-      component of a range sample of the result; this assumes
-      all elements of the fields array have the same domain
-      dimension; use default sampling_mode (Data.NEAREST_NEIGHBOR)
-      and default error_mode (Data.NO_ERRORS) */
+  /** 
+   * Resample all elements of the fields array to the domain
+   * set of fields[0], then return a Field whose range samples
+   * are Tuples merging the corresponding range samples from
+   * each element of fields; if the range of fields[i] is a
+   * Tuple without a RangeCoordinateSystem, then each Tuple
+   * component of a range sample of fields[i] becomes a
+   * Tuple component of a range sample of the result -
+   * otherwise a range sample of fields[i] becomes a Tuple
+   * component of a range sample of the result; this assumes
+   * all elements of the fields array have the same domain
+   * dimension; use default sampling_mode (Data.NEAREST_NEIGHBOR)
+   * and default error_mode (Data.NO_ERRORS) 
+   *
+   * @param fields  fields to combine
+   * @return  combined fields
+   */
   public static Field combine( Field[] fields )
                 throws VisADException, RemoteException
   {
-    return combine( fields, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS );
+    return combine( fields, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS, true);
+  }
+
+  /** 
+   * Resample all elements of the fields array to the domain
+   * set of fields[0], then return a Field whose range samples
+   * are Tuples merging the corresponding range samples from
+   * each element of fields.  If <code>flatten</code> is true and 
+   * if the range of fields[i] is a
+   * Tuple without a RangeCoordinateSystem, then each Tuple
+   * component of a range sample of fields[i] becomes a
+   * Tuple component of a range sample of the result -
+   * otherwise a range sample of fields[i] becomes a Tuple
+   * component of a range sample of the result; this assumes
+   * all elements of the fields array have the same domain
+   * dimension; use default sampling_mode (Data.NEAREST_NEIGHBOR)
+   * and default error_mode (Data.NO_ERRORS) 
+   *
+   * @param fields  fields to combine
+   * @param flatten   true to flatten range tuples with no CoordinateSystem
+   * @return  combined fields
+   */
+  public static Field combine( Field[] fields, boolean flatten )
+                throws VisADException, RemoteException
+  {
+    return combine( fields, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS, flatten );
   }
 
   /** resample all elements of the fields array to the domain
@@ -880,6 +910,33 @@ public class FieldImpl extends FunctionImpl implements Field {
       all elements of the fields array have the same domain
       dimension */
   public static Field combine( Field[] fields, int sampling_mode, int error_mode )
+                throws VisADException, RemoteException
+  {
+    return combine( fields, sampling_mode, error_mode, true);
+  }
+
+  /** 
+   * Resample all elements of the fields array to the domain
+   * set of fields[0], then return a Field whose range samples
+   * are Tuples merging the corresponding range samples from
+   * each element of fields.  If <code>flatten</code> is true and 
+   * if the range of fields[i] is a
+   * Tuple without a RangeCoordinateSystem, then each Tuple
+   * component of a range sample of fields[i] becomes a
+   * Tuple component of a range sample of the result -
+   * otherwise a range sample of fields[i] becomes a Tuple
+   * component of a range sample of the result; this assumes
+   * all elements of the fields array have the same domain
+   * dimension.
+   *
+   * @param fields  fields to combine
+   * @param sampling_mode   sampling mode to use (e.g., Data.NEAREST_NEIGHBOR)
+   * @param error_mode   error mode to use (e.g., Data.NO_ERRORS)
+   * @param flatten   true to flatten range tuples with no CoordinateSystem
+   *
+   * @return  combined fields
+   */
+  public static Field combine( Field[] fields, int sampling_mode, int error_mode , boolean flatten)
                 throws VisADException, RemoteException
   {
     int ii, jj, kk, n_fields;
@@ -995,7 +1052,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           n_dims = ((RealTupleType)fieldRange).getDimension();
           tupleDim += n_dims;
           rangeCoordSys_s = field.getRangeCoordinateSystem();
-          if ( rangeCoordSys_s[0] == null )
+          if ( rangeCoordSys_s[0] == null && flatten)
           {
             for ( jj = 0; jj < n_dims; jj++ )
             {
@@ -1030,7 +1087,7 @@ public class FieldImpl extends FunctionImpl implements Field {
             {
               n_dims = ((RealTupleType)m_type).getDimension();
               tupleDim += n_dims;
-              if ( rangeCoordSys_s[0] == null )
+              if ( rangeCoordSys_s[0] == null && flatten)
               {
                 for ( kk = 0; kk < n_dims; kk++ )
                 {
