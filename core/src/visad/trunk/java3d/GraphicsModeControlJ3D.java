@@ -74,6 +74,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       or PolygonAttributes.POLYGON_POINT @serial */
   private int polygonMode;
 
+  private float polygonOffset;
+
   /** for rendering missing data as transparent  @serial */
   private boolean missingTransparent = true;
   /** for undersampling of curved texture maps @serial */
@@ -99,6 +101,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     // transparencyMode = TransparencyAttributes.BLENDED;
     // transparencyMode = TransparencyAttributes.SCREEN_DOOR;
     polygonMode = PolygonAttributes.POLYGON_FILL;
+    polygonOffset = Float.NaN;
 
     projectionPolicy = View.PERSPECTIVE_PROJECTION;
     DisplayRendererJ3D displayRenderer =
@@ -467,6 +470,15 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return polygonMode;
   }
 
+  public void setPolygonOffset(float polygonOffset) {
+    this.polygonOffset = polygonOffset;
+  }
+
+  public float getPolygonOffset() {
+     return polygonOffset;
+  }
+
+
   /**
    * See whether missing values are rendered as transparent or not.
    *
@@ -516,6 +528,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.projectionPolicy = projectionPolicy;
     mode.missingTransparent = missingTransparent;
     mode.polygonMode = polygonMode;
+    mode.polygonOffset = polygonOffset;
     mode.curvedSize = curvedSize;
     return mode;
   }

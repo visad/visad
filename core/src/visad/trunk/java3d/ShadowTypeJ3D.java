@@ -214,6 +214,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     PolygonAttributes polygon = new PolygonAttributes();
     polygon.setCullFace(PolygonAttributes.CULL_NONE);
     polygon.setPolygonMode(mode.getPolygonMode());
+    float polygonOffset = mode.getPolygonOffset();
+    if (polygonOffset == polygonOffset) polygon.setPolygonOffset(polygonOffset);
     appearance.setPolygonAttributes(polygon);
 
     RenderingAttributes rendering = new RenderingAttributes();

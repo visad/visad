@@ -144,6 +144,10 @@ public abstract class GraphicsModeControl extends Control
 
   public abstract int getPolygonMode();
 
+  public abstract void setPolygonOffset(float polygonOffset);
+
+  public abstract float getPolygonOffset();
+
   public abstract void setMissingTransparent(boolean missing)
          throws VisADException, RemoteException;
 
