@@ -1,6 +1,6 @@
 /*
 
-@(#) WidgetLayout.java,v 1.1 1998/01/28 23:59:21 nick Exp
+@(#) $Id: WidgetLayout.java,v 1.3 1998-02-20 16:55:31 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.awt.*;
  * components vertically, and stretches them to fit the panel.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version 1.1, 1998/01/28 23:59:21
+ * @version $Revision: 1.3 $, $Date: 1998-02-20 16:55:31 $
  * @since Visad Utility Library, 0.5
  */
 

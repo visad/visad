@@ -1,6 +1,6 @@
 /*
 
-@(#) SliderChangeListener.java,v 1.1 1998/02/06 21:05:23 nick Exp
+@(#) $Id: SliderChangeListener.java,v 1.2 1998-02-20 16:55:30 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.util.EventListener;
  * must implement
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version 1.1, 1998/02/06 21:05:23
+ * @version $Revision: 1.2 $, $Date: 1998-02-20 16:55:30 $
  * @since Visad Utility Library v0.7.1
  */
 

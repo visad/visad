@@ -1,6 +1,6 @@
 /*
 
-@(#) ColorMap.java,v 1.7 1998/02/11 22:13:25 nick Exp
+@(#) $Id: ColorMap.java,v 1.3 1998-02-20 16:55:28 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -33,7 +33,7 @@ import java.util.Vector;
  * class manages all of the listener notification for the ColorMaps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version 1.7, 1998/02/11 22:13:25
+ * @version $Revision 1.7 $, $Date: 1998-02-20 16:55:28 $
  * @since Visad Utility Library, 0.5
  */
 

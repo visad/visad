@@ -1,6 +1,6 @@
 /*
 
-@(#) ColorWidget.java,v 1.18 1998/02/13 17:46:04 nick Exp
+@(#) $Id: ColorWidget.java,v 1.3 1998-02-20 16:55:28 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -30,15 +30,14 @@ import java.awt.event.*;
 import java.applet.*;
 import java.util.Vector;
 
-// import com.sun.java.swing.*;
 import java.awt.swing.*;
 
 /** 
  * A color widget that allows users to interactively map numeric data to
- * RGB tuples based on the Vis5D color widget
+ * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version 1.18, 1998/02/13 17:46:04
+ * @version $Revision: 1.3 $, $Date: 1998-02-20 16:55:28 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -98,7 +97,7 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 			public void windowClosing(WindowEvent e) {System.exit(0);}
 		});
 
-		ColorWidget w = new ColorWidget();
+		ColorWidget w = new ColorWidget(new RGBAMap());
 
 		frame.add(w);
 		frame.setSize(w.getPreferredSize());

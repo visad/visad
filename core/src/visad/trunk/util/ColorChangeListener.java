@@ -1,6 +1,6 @@
 /*
 
-@(#) ColorChangeListener.java,v 1.3 1998/01/12 22:08:58 nick Exp
+@(#) $Id: ColorChangeListener.java,v 1.3 1998-02-20 16:55:27 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.util.EventListener;
  * events from the color widget 
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version 1.3, 1998/01/12 22:08:58
+ * @version $Revision: 1.3 $, $Date: 1998-02-20 16:55:27 $
  * @since Visad Utility Library, 0.5
  */
 

@@ -1,6 +1,6 @@
 /*
 
-@(#) SliderChangeEvent.java,v 1.2 1998/02/11 22:53:32 nick Exp
+@(#) $Id: SliderChangeEvent.java,v 1.2 1998-02-20 16:55:30 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -29,7 +29,7 @@ package visad.util;
  * The event that occurs when a slider is changed
  *
  * @author Nick Rasmussen
- * @version 1.2, 1998/02/11 22:53:32
+ * @version $Revision: 1.2 $, $Date: 1998-02-20 16:55:30 $
  * @since Visad Utility Library v0.7.1
  */
  
