@@ -46,7 +46,7 @@ public class FlowTest extends Object {
           to test with (lat, lon)
       run 'java FlowTest middle_latitude x'
           to test with (lon, lat)
-      adjust middle_latitude for south or north barbs */
+      adjust middle_latitude for south or north */
   public static void main(String args[])
          throws VisADException, RemoteException {
     double mid_lat = -10.0;
