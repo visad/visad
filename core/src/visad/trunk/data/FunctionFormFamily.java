@@ -290,7 +290,9 @@ public class FunctionFormFamily
 
     boolean check(FormFileInformer node)
     {
-      return node.isThisType(url.getFile());
+      // try both file part of URL and full URL
+      return (node.isThisType(url.getFile()) ||
+              node.isThisType(url.toString()));
     }
 
     InputStream getStream()
