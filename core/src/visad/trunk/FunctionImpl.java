@@ -43,6 +43,14 @@ public abstract class FunctionImpl extends DataImpl implements Function {
      return ((FunctionType) Type).getDomain().getDimension();
   }
 
+  public Unit[] getDomainUnits() {
+     return ((FunctionType) Type).getDomain().getDefaultUnits();
+  }
+
+  public CoordinateSystem getDomainCoordinateSystem() {
+    return ((FunctionType) Type).getDomain().getCoordinateSystem();
+  }
+
   /** evaluate this Function at domain; first check that types match;
       use default modes for resampling (NEAREST_NEIGHBOR) and errors */
   public Data evaluate(RealTuple domain)

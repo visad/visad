@@ -211,9 +211,9 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
 
     int dimension = DomainSet.getDimension();
-    double[][] vals = new double[dimension][1];
+    float[][] vals = new float[dimension][1];
     for (int j=0; j<dimension; j++) {
-      vals[j][0] = ((Real) ((RealTuple) domain).getComponent(j)).getValue();
+      vals[j][0] = ((float) ((Real) ((RealTuple) domain).getComponent(j)).getValue());
     }
     // always use simple resampling for set
     int[] indices = DomainSet.valueToIndex(vals);
@@ -358,11 +358,11 @@ public class FieldImpl extends FunctionImpl implements Field {
     Data[] range = new Data[length];
 
     // get values from wedge and possibly transform coordinates
-    double[][] vals = set.indexToValue(wedge);
+    float[][] vals = set.indexToValue(wedge);
     // holder for sampling errors of transformed set - these are
     // only useful to help estmate range errors due to resampling
     ErrorEstimate[] errors_out = new ErrorEstimate[dim];
-    double[][] oldvals = vals;
+    float[][] oldvals = vals;
     vals = CoordinateSystem.transformCoordinates(
                       ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
                       DomainUnits, errors_out,
@@ -379,13 +379,13 @@ public class FieldImpl extends FunctionImpl implements Field {
       }
     }
     Data[] sampling_partials = new Data[dim];
-    double[][] error_values;
+    float[][] error_values;
     double[] means = new double[dim];
 
     if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof SimpleSet) {
       // resample by interpolation
       int[][] indices = new int[length][];
-      double[][] coefs = new double[length][];
+      float[][] coefs = new float[length][];
       ((GriddedSet) DomainSet).valueToInterp(vals, indices, coefs);
       for (int i=0; i<length; i++) {
         int len;
@@ -413,10 +413,11 @@ public class FieldImpl extends FunctionImpl implements Field {
 
         if (sampling_errors && !range[wedge[i]].isMissing()) {
           for (int j=0; j<dim; j++) means[j] = vals[j][i];
-          error_values = ErrorEstimate.init_error_values(errors_out, means);
+          error_values = Set.doubleToFloat(
+                           ErrorEstimate.init_error_values(errors_out, means) );
           int[][] error_indices = new int[2 * dim][];
-          double[][] error_coefs = new double[2 * dim][];
-          coefs = new double[2 * dim][];
+          float[][] error_coefs = new float[2 * dim][];
+          coefs = new float[2 * dim][];
           ((SimpleSet) DomainSet).valueToInterp(error_values, error_indices,
                                                 error_coefs);
    
@@ -490,7 +491,8 @@ public class FieldImpl extends FunctionImpl implements Field {
 
         if (sampling_errors && !range[wedge[i]].isMissing()) {
           for (int j=0; j<dim; j++) means[j] = vals[j][i];
-          error_values = ErrorEstimate.init_error_values(errors_out, means);
+          error_values = Set.doubleToFloat(
+                           ErrorEstimate.init_error_values(errors_out, means) );
           int[] error_indices = DomainSet.valueToIndex(error_values);
           for (int j=0; j<dim; j++) {
             if (error_indices[2*j] < 0 || Range[error_indices[2*j]] == null ||
@@ -529,7 +531,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       MathType RangeType = ((FunctionType) Type).getRange();
       if (RangeType instanceof RealVectorType) {
         int n = vals.length;
-        double[][] loc = new double[n][1];
+        float[][] loc = new float[n][1];
         for (int i=0; i<length; i++) {
           for (int k=0; k<n; k++) loc[k][0] = vals[k][i];
           range[i] = ((RealVectorType) RangeType).transformVectors(
@@ -552,7 +554,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         if (any_vector) {
           int n = vals.length;
-          double[][] loc = new double[n][1];
+          float[][] loc = new float[n][1];
           Data[] datums = new Data[m];
           for (int i=0; i<length; i++) {
             for (int k=0; k<n; k++) loc[k][0] = vals[k][i];
@@ -717,11 +719,11 @@ class FieldEnumerator implements Enumeration {
   public Object nextElement() {
     try {
       if (index[0] < field.getLength()) {
-        double[][] vals = field.getDomainSet().indexToValue(index);
+        float[][] vals = field.getDomainSet().indexToValue(index);
         index[0]++;
         Real[] reals = new Real[dimension];
         for (int j=0; j<dimension; j++) {
-          reals[j] = new Real(types[j], vals[j][0]);
+          reals[j] = new Real(types[j], (double) vals[j][0]);
         }
         return new RealTuple(reals);
       }

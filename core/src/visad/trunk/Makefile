@@ -32,6 +32,7 @@ TAR_FILES = \
 	LICENSE			\
 	Makefile		\
 	rmic_script		\
+	docs/DESIGN5		\
 	*.java			\
 	*.txt			\
 	*.html

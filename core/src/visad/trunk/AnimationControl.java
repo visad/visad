@@ -32,7 +32,7 @@ package visad;
 */
 public class AnimationControl extends Control {
 
-  private double current;
+  private float current;
   private boolean direction; // true = forward
   private double ms; // time in milleseconds between animation steps
   private AnimationSetControl animationSet;
@@ -45,7 +45,7 @@ public class AnimationControl extends Control {
   }
 
   AnimationControl() {
-    super();
+    this(null);
   }
 
   // Java3D - need methods to step animtion, etc
@@ -54,7 +54,7 @@ public class AnimationControl extends Control {
   public void changeControl() {
     int step;
     try {
-      double[][] value = new double[1][1];
+      float[][] value = new float[1][1];
       value[0][0] = current;
       int[] steps = animationSet.getSet().valueToIndex(value);
       step = steps[0];
@@ -68,7 +68,7 @@ public class AnimationControl extends Control {
 
   public Control cloneButContents(DisplayImpl d) {
     AnimationControl control = new AnimationControl(d);
-    control.current = Double.NaN;
+    control.current = Float.NaN;
     control.direction = true;
     control.ms = 100;
     control.animationSet = new AnimationSetControl(d, this);

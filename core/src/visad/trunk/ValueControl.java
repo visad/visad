@@ -39,7 +39,7 @@ public class ValueControl extends Control {
   }
  
   ValueControl() {
-    super();
+    this(null);
   }
 
   public Control cloneButContents(DisplayImpl d) {

@@ -58,13 +58,15 @@ public class DefaultRenderer extends Renderer {
     Data data = link.getData();
     ShadowType type = link.getShadow();
 
-    double[] valueArray = new double[display.valueArrayLength];
+    // initialize valueArray to missing
+    float[] valueArray = new float[display.valueArrayLength];
     for (int i=0; i<display.valueArrayLength; i++) {
-      valueArray[i] = link.DefaultValues[display.valueToScalar[i]];
+      valueArray[i] = Float.NaN;
     }
 
     type.preProcess();
-    boolean post_process = type.doTransform(branch, data, valueArray);
+    boolean post_process =
+      type.doTransform(branch, data, valueArray, link.getDefaultValues());
     if (post_process) type.postProcess(branch);
 
     return branch;

@@ -216,7 +216,8 @@ public class ShadowTupleType extends ShadowType {
 
   /** transform data into a Java3D scene graph;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, double[] value_array)
+  public boolean doTransform(Group group, Data data, float[] value_array,
+                             float[] default_values)
          throws VisADException {
     if (isTerminal) {
       if (LevelOfDifficulty == LEGAL) {
@@ -250,7 +251,8 @@ public class ShadowTupleType extends ShadowType {
       // recursively call doTransform on other components
 /*
       for (int i=0; i<num_components; i++) {
-        post |= component_type.doTransform(group, component_data, value_array);
+        post |= component_type.doTransform(group, component_data, value_array,
+                                           default_values);
       }
       return post;
 */

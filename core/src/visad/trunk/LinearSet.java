@@ -119,7 +119,7 @@ public class LinearSet extends GriddedSet {
 
   /** transform an array of non-integer grid coordinates to an array
       of values in R^DomainDimension */
-  public double[][] gridToValue(double[][] grid) throws VisADException {
+  public float[][] gridToValue(float[][] grid) throws VisADException {
     int j;
     if (grid.length != DomainDimension) {
       throw new SetException("LinearSet.gridToValue: bad dimension");
@@ -131,20 +131,20 @@ public class LinearSet extends GriddedSet {
       }
     }
     int length = grid[0].length;
-    double[][][] gridJ = new double[DomainDimension][1][];
-    double[][][] valueJ = new double[DomainDimension][][];
+    float[][][] gridJ = new float[DomainDimension][1][];
+    float[][][] valueJ = new float[DomainDimension][][];
     for (j=0; j<DomainDimension; j++) {
       gridJ[j][0] = grid[j];
       valueJ[j] = L[j].gridToValue(gridJ[j]);
     }
-    double[][] value = new double[DomainDimension][];
+    float[][] value = new float[DomainDimension][];
     for (j=0; j<DomainDimension; j++) value[j] = valueJ[j][0];
     return value;
   }
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
-  public double[][] valueToGrid(double[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value) throws VisADException {
     int j;
     if (value.length != DomainDimension) {
       throw new SetException("LinearSet.valueToGrid: bad dimension");
@@ -156,13 +156,13 @@ public class LinearSet extends GriddedSet {
       }
     }
     int length = value[0].length;
-    double[][][] valueJ = new double[DomainDimension][1][];
-    double[][][] gridJ = new double[DomainDimension][][];
+    float[][][] valueJ = new float[DomainDimension][1][];
+    float[][][] gridJ = new float[DomainDimension][][];
     for (j=0; j<DomainDimension; j++) {
       valueJ[j][0] = value[j];
       gridJ[j] = L[j].valueToGrid(valueJ[j]);
     }
-    double[][] grid = new double[DomainDimension][];
+    float[][] grid = new float[DomainDimension][];
     for (j=0; j<DomainDimension; j++) grid[j] = gridJ[j][0];
     return grid;
   }
@@ -173,6 +173,14 @@ public class LinearSet extends GriddedSet {
 
   public boolean isLinearSet() {
     return true;
+  }
+
+  float[][] getSamples(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    // do NOT call getWedge
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToValue(indices);
   }
 
   public boolean equals(Object set) {

@@ -64,7 +64,7 @@ public class Linear2DSet extends Gridded2DSet {
   public Linear2DSet(MathType type, Linear1DSet[] sets,
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors) throws VisADException {
-    super(type, (double[][]) null, sets[0].getLength(), sets[1].getLength(),
+    super(type, (float[][]) null, sets[0].getLength(), sets[1].getLength(),
           coord_sys, units, errors);
     if (DomainDimension != 2) {
       throw new SetException("Linear2DSet: DomainDimension must be 2");
@@ -102,11 +102,11 @@ public class Linear2DSet extends Gridded2DSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
     int[] indexX = new int[length];
     int[] indexY = new int[length];
-    double[][] values = new double[2][length];
+    float[][] values = new float[2][length];
  
     for (int i=0; i<length; i++) {
       if (0 <= index[i] && index[i] < Length) {
@@ -118,8 +118,8 @@ public class Linear2DSet extends Gridded2DSet {
         indexY[i] = -1;
       }
     }
-    double[][] valuesX = X.indexToValue(indexX);
-    double[][] valuesY = Y.indexToValue(indexY);
+    float[][] valuesX = X.indexToValue(indexX);
+    float[][] valuesY = Y.indexToValue(indexY);
     values[0] = valuesX[0];
     values[1] = valuesY[0];
     return values;
@@ -127,7 +127,7 @@ public class Linear2DSet extends Gridded2DSet {
 
   /** transform an array of non-integer grid coordinates to an array
       of values in R^2 */
-  public double[][] gridToValue(double[][] grid) throws VisADException {
+  public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != 2) {
       throw new SetException("Linear2DSet.gridToValue: bad dimension");
     }
@@ -136,13 +136,13 @@ public class Linear2DSet extends Gridded2DSet {
                              "dimensions to be > 1");
     }
     int length = grid[0].length;
-    double[][] gridX = new double[1][];
+    float[][] gridX = new float[1][];
     gridX[0] = grid[0];
-    double[][] gridY = new double[1][];
+    float[][] gridY = new float[1][];
     gridY[0] = grid[1];
-    double[][] valueX = X.gridToValue(gridX);
-    double[][] valueY = Y.gridToValue(gridY);
-    double[][] value = new double[2][];
+    float[][] valueX = X.gridToValue(gridX);
+    float[][] valueY = Y.gridToValue(gridY);
+    float[][] value = new float[2][];
     value[0] = valueX[0];
     value[1] = valueY[0];
     return value;
@@ -150,7 +150,7 @@ public class Linear2DSet extends Gridded2DSet {
 
   /** transform an array of values in R^2 to an array
       of non-integer grid coordinates */
-  public double[][] valueToGrid(double[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length != 2) {
       throw new SetException("Linear2DSet.valueToGrid: bad dimension");
     }
@@ -159,13 +159,13 @@ public class Linear2DSet extends Gridded2DSet {
                              "dimensions to be > 1");
     }
     int length = value[0].length;
-    double[][] valueX = new double[1][];
+    float[][] valueX = new float[1][];
     valueX[0] = value[0];
-    double[][] valueY = new double[1][];
+    float[][] valueY = new float[1][];
     valueY[0] = value[1];
-    double[][] gridX = X.valueToGrid(valueX);
-    double[][] gridY = Y.valueToGrid(valueY);
-    double[][] grid = new double[2][];
+    float[][] gridX = X.valueToGrid(valueX);
+    float[][] gridY = Y.valueToGrid(valueY);
+    float[][] grid = new float[2][];
     grid[0] = gridX[0];
     grid[1] = gridY[0];
     return grid;
@@ -185,6 +185,14 @@ public class Linear2DSet extends Gridded2DSet {
 
   public boolean isLinearSet() {
     return true;
+  }
+
+  float[][] getSamples(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    // do NOT call getWedge
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToValue(indices);
   }
 
   public boolean equals(Object set) {

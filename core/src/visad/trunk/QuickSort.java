@@ -31,6 +31,8 @@ import java.util.*;
    QuickSort sorts a set of samples in R using a quicksort
    algorithm combined with an insertion sort algorithm to
    avoid an excess number of recursive calls.<P>
+
+   All of QuickSort's variables and methods are static.<P>
 */
 public class QuickSort {
 
@@ -41,32 +43,35 @@ public class QuickSort {
   private static final int ELEMENTS = 100000;
 
   // Insertion Sort
-  private static void insertion(double a[], int lo, int hi)
+  private static void insertion(float a[], int[] p, int lo, int hi)
                                       throws VisADException {
     for (int i=lo+1; i<=hi; i++) {
       int j = i;
-      double B = a[i];
+      float B = a[i];
+      int P = p[i];
       while ((j > 0) && (a[j-1] > B)) {
         a[j] = a[j-1];
+        p[j] = p[j-1];
         j--;
       }
       a[j] = B;
+      p[j] = P;
     }
   }
 
   // Quick Sort
-  private static void sort(double a[], int lo0, int hi0)
+  private static void sort(float a[], int[] p, int lo0, int hi0)
                                       throws VisADException {
     // call the insertion sort if few enough elements
     if (hi0-lo0 < CHEAT_NUM) {
-      insertion(a, lo0, hi0);
+      insertion(a, p, lo0, hi0);
     }
     else {
       int lo = lo0;
       int hi = hi0;
 
       // start in the middle
-      double mid = a[(lo0+hi0)/2];
+      float mid = a[(lo0+hi0)/2];
 
       // loop through the array until indices cross
       while (lo <= hi) {
@@ -78,21 +83,27 @@ public class QuickSort {
 
         // swap indices if they have not crossed
         if (lo <= hi) {
-          double T = a[lo];
+          int P = p[lo];
+          p[lo] = p[hi];
+          p[hi] = P;
+          float T = a[lo];
           a[lo++] = a[hi];
           a[hi--] = T;
         }
       }
       // sort the left partition if necessary
-      if (lo0 < hi) sort(a, lo0, hi);
+      if (lo0 < hi) sort(a, p, lo0, hi);
 
       // sort the right partition if necessary
-      if (lo < hi0) sort(a, lo, hi0);
+      if (lo < hi0) sort(a, p, lo, hi0);
     }
   }
 
-  public static void sort(double a[]) throws VisADException {
-    sort(a, 0, a.length-1);
+  public static int[] sort(float a[]) throws VisADException {
+    int[] p = new int[a.length];
+    for (int i=0; i<a.length; i++) p[i] = i;
+    sort(a, p, 0, a.length-1);
+    return p;
   }
 
   /* run 'java visad.QuickSort [elements]' to test the QuickSort class.
@@ -111,18 +122,18 @@ public class QuickSort {
     }
     System.out.print("Creating array of "+elements+" random elements...");
     long start1 = System.currentTimeMillis();
-    double[] test = new double[elements];
+    float[] test = new float[elements];
     // make up an array with random elements
     for (int i=0; i<elements; i++) {
-      test[i] = 1000*Math.random();
+      test[i] = (float) (1000*Math.random());
     }
     long end1 = System.currentTimeMillis();
-    double time1 = (double) (end1-start1) /1000;
+    float time1 = (float) (end1-start1) /1000;
     System.out.println("\nCreation of random elements took "
                                           +time1+" seconds.");
     System.out.print("Sorting...");
     long start2 = System.currentTimeMillis();
-    sort(test);
+    int[] p = sort(test);
     long end2 = System.currentTimeMillis();
     System.out.println("done.");
     for (int i=1; i<elements; i++) {
@@ -131,7 +142,7 @@ public class QuickSort {
         System.exit(1);
       }
     }
-    double time2 = (double) (end2-start2) /1000;
+    float time2 = (float) (end2-start2) /1000;
     System.out.println("Sort of elements took "+time2+" seconds.");
     System.exit(0);
   }

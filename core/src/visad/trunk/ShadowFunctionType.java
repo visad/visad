@@ -47,12 +47,19 @@ public class ShadowFunctionType extends ShadowType {
       components of a ShadowTupleType Range that are neither
       ShadowRealType nor ShadowRealTupleType are ignored */
   private ShadowRealType[] RangeComponents;
+  private ShadowRealType[] DomainComponents;
+  private ShadowRealType[] DomainReferenceComponents;
 
   private Vector AccumulationVector = new Vector();
 
   /** value_indices from parent */
   private int[] inherited_values;
 
+  /** used by getComponents to record RealTupleTypes in range
+      with coordinate transforms */
+  int[] refToComponent;
+  ShadowRealTupleType[] componentWithRef;
+  int[] componentIndex;
 
   /** true if range is ShadowRealType or Flat ShadowTupleType
       not the same as FunctionType.Flat */
@@ -70,11 +77,19 @@ public class ShadowFunctionType extends ShadowType {
                             Range.getMultipleDisplayScalar();
     MappedDisplayScalar = Domain.getMappedDisplayScalar() ||
                             Range.getMappedDisplayScalar();
-    RangeComponents = getComponents(Range, (FunctionType) Type);
+    RangeComponents = getComponents(Range, true);
+    DomainComponents = getComponents(Domain, false);
+    DomainReferenceComponents = getComponents(Domain.getReference(), false);
   }
 
-  private static ShadowRealType[] getComponents(ShadowType type, FunctionType ftype)
-                 throws VisADException {
+  private ShadowRealType[] getComponents(ShadowType type, boolean doRef)
+          throws VisADException {
+    if (type == null) return null;
+    if (doRef) {
+      refToComponent = null;
+      componentWithRef = null;
+      componentIndex = null;
+    }
     ShadowRealType[] reals;
     if (type instanceof ShadowRealType) {
       ShadowRealType[] r = {(ShadowRealType) type};
@@ -86,20 +101,67 @@ public class ShadowFunctionType extends ShadowType {
       for (int i=0; i<n; i++) {
         reals[i] = (ShadowRealType) ((ShadowRealTupleType) type).getComponent(i);
       }
+      if (doRef) {
+        ShadowRealTupleType ref =
+          ((ShadowRealTupleType) type).getReference();
+        if (ref != null && ref.getMappedDisplayScalar()) {
+          refToComponent = new int[1];
+          componentWithRef = new ShadowRealTupleType[1];
+          componentIndex = new int[1];
+          refToComponent[0] = 0;
+          componentWithRef[0] = (ShadowRealTupleType) type;
+          componentIndex[0] = 0;
+        }
+      }
     }
     else if (type instanceof ShadowTupleType) {
-      int n = ftype.getRealComponents().length;
+      int m = ((ShadowTupleType) type).getDimension();
+      int n = 0;
+      int nref = 0;
+      for (int i=0; i<m; i++) {
+        ShadowType component = ((ShadowTupleType) type).getComponent(i);
+        if (component instanceof ShadowRealType) {
+          n++;
+        }
+        else if (component instanceof ShadowRealTupleType) {
+          n += getComponents(component, false).length;
+          if (doRef) {
+            ShadowRealTupleType ref =
+              ((ShadowRealTupleType) component).getReference();
+            if (ref != null && ref.getMappedDisplayScalar()) nref++;
+          }
+        }
+        else {
+          n++;
+        }
+      }
       reals = new ShadowRealType[n];
       int j = 0;
-      int m = ((ShadowTupleType) type).getDimension();
+      if (nref == 0) doRef = false;
+      if (doRef) {
+        refToComponent = new int[nref];
+        componentWithRef = new ShadowRealTupleType[nref];
+        componentIndex = new int[nref];
+      }
+      int rj = 0;
       for (int i=0; i<m; i++) {
         ShadowType component = ((ShadowTupleType) type).getComponent(i);
         if (component instanceof ShadowRealType ||
             component instanceof ShadowRealTupleType) {
-          ShadowRealType[] r = getComponents(component, null);
+          ShadowRealType[] r = getComponents(component, false);
           for (int k=0; k<r.length; k++) {
             reals[j] = r[k];
             j++;
+          }
+          if (doRef && component instanceof ShadowRealTupleType) {
+            ShadowRealTupleType ref = 
+              ((ShadowRealTupleType) component).getReference();
+            if (ref != null && ref.getMappedDisplayScalar()) {
+              refToComponent[rj] = j;
+              componentWithRef[rj] = (ShadowRealTupleType) component;
+              componentIndex[rj] = i;
+              rj++;
+            }
           }
         }
         else {
@@ -131,7 +193,7 @@ public class ShadowFunctionType extends ShadowType {
       int m = ((ShadowTupleType) type).getDimension();
       for (int i=0; i<m; i++) {
         ShadowRealType[] r =
-          getComponents(((ShadowTupleType) type).getComponent(i), null);
+          getComponents(((ShadowTupleType) type).getComponent(i), false);
         for (int k=0; k<r.length; k++) {
           reals[j] = r[k];
           j++;
@@ -152,7 +214,7 @@ public class ShadowFunctionType extends ShadowType {
     return indices;
   }
 
-  /*
+  /** checkIndices:
     if (Flat) {
       terminal, so check condition 4
     }
@@ -189,6 +251,9 @@ public class ShadowFunctionType extends ShadowType {
                                     "Animation and SelectValue may only occur " +
                                     "in 1-D Function domain");
     }
+
+    anyContour = checkContour(local_display_indices);
+    anyFlow = checkFlow(local_display_indices);
 
     if (Flat) {
       // test legality of Animation and SelectValue in Range
@@ -263,9 +328,8 @@ public class ShadowFunctionType extends ShadowType {
   void checkDirect() {
     if (!((FunctionType) Type).getFlat()) return; // OR should this be !Real ??
     if (LevelOfDifficulty == SIMPLE_FIELD && !MultipleDisplayScalar) {
-
-      if (((ShadowRealTupleType) Range).getDisplaySpatialTuple().equals(
-          Display.DisplaySpatialCartesianTuple)) {
+      if (Display.DisplaySpatialCartesianTuple.equals(
+          ((ShadowRealTupleType) Range).getDisplaySpatialTuple() )) {
         // at least one RealType in Range is mapped to a spatial
         // DisplayRealType (i.e., DisplaySpatialTuple != null)
         // and is not mapped through any (Display) CoordinateSystem
@@ -296,240 +360,286 @@ public class ShadowFunctionType extends ShadowType {
 
   /** transform data into a Java3D scene graph;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, double[] value_array)
+  public boolean doTransform(Group group, Data data, float[] value_array,
+                             float[] default_values)
          throws VisADException, RemoteException {
 
     int valueArrayLength = display.getValueArrayLength();
     // mapping from ValueArray to DisplayScalar
     int[] valueToScalar = display.getValueToScalar();
+
+    if (!(data instanceof Field)) {
+      throw new UnimplementedException("ShadowFunctionType.doTransform: " +
+                                       "data must be Field");
+    }
+    Set domain_set = ((Field) data).getDomainSet();
+
+/** kludge to avoid UnmarshalException
     Set domain_set = new Integer2DSet(((FunctionType) data.getType()).getDomain(),
                                       4, 4);
-    // Set domain_set = ((Field) data).getDomainSet();
-
-/* 
-demedici% java visad.RemoteClientTestImpl
-FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
-FlatField  missing
- 
-Display
-    ScalarMap: Latitude -> DisplayXAxis
-    ScalarMap: Longitude -> DisplayYAxis
-    ScalarMap: ir_radiance -> DisplayZAxis
-    ScalarMap: vis_radiance -> DisplayRGB
-    ConstantMap: 0.5 -> DisplayAlpha
- 
-RemoteClientTestImpl.main: begin remote activity
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = true
-java.rmi.UnmarshalException: Error unmarshaling return; nested exception is: 
-        java.io.EOFException: Expecting code
-        at visad.RemoteFieldImpl_Stub.getDomainSet(RemoteFieldImpl_Stub.java:1691)
-        at visad.ShadowFunctionType.doTransform(ShadowFunctionType.java:305)
-        at visad.DefaultRenderer.doTransform(DefaultRenderer.java:67)
-        at visad.Renderer.doAction(Renderer.java:141)
-        at visad.DisplayImpl.doAction(DisplayImpl.java:327)
-        at visad.ActionImpl.run(ActionImpl.java:80)
-        at java.lang.Thread.run(Thread.java)
-visad.VisADError: Action.run: java.rmi.UnmarshalException: Error unmarshaling return; nested exception is: 
-        java.io.EOFException: Expecting code
-        at visad.ActionImpl.run(ActionImpl.java:102)
-        at java.lang.Thread.run(Thread.java)
- 
-delay
- 
- 
-delay
- 
-demedici% 
 */
 
-    double[][] domain_values = null;
+    float[][] domain_values = null;
     Unit[] domain_units = ((RealTupleType) Domain.getType()).getDefaultUnits();
     int domain_length = domain_set.getLength();
 
-    // NOTE - may defer this until needed
-    if (domain_values == null) {
-      domain_values = domain_set.indexToValue(domain_set.getWedge());
-      // convert values to default units (used in display)
-      domain_values =
-        Unit.convertTuple(domain_values, ((Field) data).getDomainUnits(),
-                          domain_units);
-/*
-  hopefully fixed by adding equals method to BaseUnit
-/*
-demedici% java visad.RemoteClientTestImpl
-FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
-FlatField  missing
- 
-Display
-    ScalarMap: Latitude -> DisplayXAxis
-    ScalarMap: Longitude -> DisplayYAxis
-    ScalarMap: ir_radiance -> DisplayZAxis
-    ScalarMap: vis_radiance -> DisplayRGB
-    ConstantMap: 0.5 -> DisplayAlpha
- 
-RemoteClientTestImpl.main: begin remote activity
-LevelOfDifficulty = 2 Type = FunctionType (Real): (Latitude, Longitude) -> (vis_radiance, ir_radiance)
- LevelOfDifficulty = 3 isDirectManipulation = true
-visad.UnitException: Attempt to convert from unit "radian" to unit "radian"
-        at visad.DerivedUnit.toThis(DerivedUnit.java:490)
-        at visad.ScaledUnit.toThis(ScaledUnit.java:262)
-        at visad.Unit.toThis(Unit.java:310)
-        at visad.Unit.convertTuple(Unit.java:50)
-        at visad.ShadowFunctionType.doTransform(ShadowFunctionType.java:355)
-        at visad.DefaultRenderer.doTransform(DefaultRenderer.java:67)
-        at visad.Renderer.doAction(Renderer.java:141)
-        at visad.DisplayImpl.doAction(DisplayImpl.java:327)
-        at visad.ActionImpl.run(ActionImpl.java:80)
-        at java.lang.Thread.run(Thread.java)
-visad.VisADError: Action.run: visad.UnitException: Attempt to convert from unit "radian" to unit "radian"
-        at visad.ActionImpl.run(ActionImpl.java:98)
-        at java.lang.Thread.run(Thread.java)
- 
-delay
- 
- 
-delay
- 
-demedici% 
-*/
+    // array to hold values for various mappings
+    float[][] display_values = new float[valueArrayLength][];
+
+    // get values inherited from parent
+    // assume these do not include SelectRange, SelectValue
+    // or Animation values
+    for (int i=0; i<valueArrayLength; i++) {
+      if (inherited_values[i] > 0) {
+        display_values[i] = new float[1];
+        display_values[i][0] = value_array[i];
+      }
     }
-    //
-    // TO_DO
+
+    // get values from Function Domain
+    // NOTE - may defer this until needed, if needed
+    if (domain_values == null) {
+      domain_values = domain_set.getSamples(false);
+      // convert values to default units (used in display)
+      Unit[] new_units = ((Function) data).getDomainUnits();
+      domain_values = Unit.convertTuple(domain_values,
+                        ((Function) data).getDomainUnits(), domain_units);
+    }
+ 
+    // didn't even get here with 'java visad.DisplayImpl'
+    System.out.println("got domain_values");
+
     // map domain_values to appropriate DisplayRealType-s
+    // MEM
+    mapValues(display_values, domain_values, DomainComponents);
+ 
+    System.out.println("mapped domain_values");
 
     ShadowRealTupleType domain_reference = Domain.getReference();
     if (domain_reference != null && domain_reference.getMappedDisplayScalar()) {
       // apply coordinate transform to domain values
       RealTupleType ref = (RealTupleType) domain_reference.getType();
-      double[][] reference_values =
+      // MEM
+      float[][] reference_values =
         CoordinateSystem.transformCoordinates(
           ref, null, ref.getDefaultUnits(), null,
           (RealTupleType) Domain.getType(),
-          ((Field) data).getDomainCoordinateSystem(),
+          ((Function) data).getDomainCoordinateSystem(),
           domain_units, null, domain_values);
 
-      //
-      // TO_DO
       // map reference_values to appropriate DisplayRealType-s
-
+      // MEM
+      mapValues(display_values, reference_values, DomainReferenceComponents);
+      // FREE
+      reference_values = null;
     }
+    // FREE
+    domain_values = null;
 
-    // ****
-    // NOTE - double[][] Field.getValues() in defaultUnits for Type
-    // ****
+    if (!(data instanceof Field)) {
+      throw new UnimplementedException("ShadowFunctionType.doTransform: " +
+                                       "data must be Field");
+    }
+    // get range_values for RealType and RealTupleType
+    // components, in defaultUnits for RealType-s
+    // MEM
+    double[][] range_values = ((Field) data).getValues();
 
-    //
-    // TO_DO
-    // get range_values  for RealType and RealTupleType
-    // components: may just call getValues, then convert
-    // Unit-s and transform CoordinateSsystem-s
-    //
-    // TO_DO
-    // map range_values to appropriate DisplayRealType-s
+    System.out.println("got range_values");
+
+    if (range_values != null) {
+      // map range_values to appropriate DisplayRealType-s
+      // MEM
+      mapValues(display_values, range_values, RangeComponents);
+ 
+      System.out.println("mapped range_values");
+
+      //
+      // transform any range CoordinateSystem-s
+      // into display_values, then mapValues
+      //
+      // NOTE - currently only works for FlatField;
+      //        should probably hack FieldImpl.getValues
+      //
+      if (refToComponent != null) {
+        if (!(data instanceof FlatField)) {
+          throw new UnimplementedException("ShadowFunctionType.doTransform: " +
+                                        "range coord transform for FieldImpl");
+        }
+        for (int i=0; i<refToComponent.length; i++) {
+          int n = componentWithRef[i].getDimension();
+          int start =   refToComponent[i];
+          double[][] values = new double[n][];
+          for (int j=0; j<n; j++) values[j] = range_values[j + start];
+          ShadowRealTupleType component_reference =
+            componentWithRef[i].getReference();
+          RealTupleType ref = (RealTupleType) component_reference.getType();
+          Unit[] range_units;
+          CoordinateSystem range_coord_sys;
+          if (i == 0 && componentWithRef[i].equals(Range)) {
+            range_units = ((FlatField) data).getRangeUnits();
+            range_coord_sys = ((FlatField) data).getRangeCoordinateSystem();
+          }
+          else {
+            Unit[] dummy_units = ((FlatField) data).getRangeUnits();
+            range_units = new Unit[n];
+            for (int j=0; j<n; j++) range_units[j] = dummy_units[j + start];
+            range_coord_sys =
+              ((FlatField) data).getRangeCoordinateSystem(componentIndex[i]);
+          }
+
+          // MEM
+          double[][] reference_values =
+            CoordinateSystem.transformCoordinates(
+              ref, null, ref.getDefaultUnits(), null,
+              (RealTupleType) componentWithRef[i].getType(),
+              range_coord_sys, range_units, null, values);
+ 
+          // map reference_values to appropriate DisplayRealType-s
+          // MEM
+          mapValues(display_values, reference_values,
+                    getComponents(componentWithRef[i], false));
+          // FREE
+          reference_values = null;
+          // FREE (redundant reference to range_values)
+          values = null;
+        } // end for (int i=0; i<refToComponent.length; i++)
+      } // end (refToComponent != null)
+      // FREE
+      range_values = null;
+    } // end if (range_values != null)
 
     if (Flat) {
       if (!isTerminal) return false;
 
-
       //
-      // TO_DO
-      // assemble arrays of spatialTuple values, then possibly
-      // transform to Display.DisplaySpatialCartesianTuple values
-      double[][] spatial_values; // double[spatialDimension][domain_length]
-   
-      if (Domain.getAllSpatial()) {
+      // NOTE -
+      // currently assuming SelectRange changes require Transform
+      // see Renderer.isTransformControl
+      //
+      // get array that composites SelectRange components
+      // MEM
+      float[] range_select =
+        assembleSelect(display_values, domain_length, valueArrayLength,
+                       valueToScalar, display);
+
+      System.out.println("assembleSelect");
+ 
+      // assemble an array of Display.DisplaySpatialCartesianTuple values
+      // and possibly spatial_set
+      float[][] spatial_values = new float[3][];
+      // boolean needed = false;
+      boolean set_needed = true;
+      // MEM
+      Set spatial_set = 
+        assembleSpatial(spatial_values, display_values, valueArrayLength,
+                        valueToScalar, display, default_values,
+                        inherited_values, domain_set, Domain.getAllSpatial(),
+                        set_needed);
+
+      // got here with 'java -mx24m visad.DisplayImpl'
+      System.out.println("assembleSpatial");
+ 
+      int spatial_length = Math.min(domain_length, spatial_values[0].length);
+
+      // assemble an array of RGBA values
+      // MEM
+      float[][] color_values =
+        assembleColor(display_values, valueArrayLength, valueToScalar,
+                      display, default_values);
+      int color_length = Math.min(domain_length, color_values[0].length);
+
+      System.out.println("assembleColor, color_length = " + color_length);
+
+      if (LevelOfDifficulty == SIMPLE_FIELD) {
+        // only manage Spatial, Contour, Flow, Color, Alpha and
+        // SelectRange here
         //
-        // TO_DO
-        // create a spatial Set by copying topology from domain_set;
-        // will have same ManifoldDimension as domain_set, but perhaps 
-        // greater DomainDimension (e.g., Irregular3DSet with
-        // ManifoldDimension = 2 - valueToIndex and valueToInterp
-        // return UnimplementedException);
-        // requires permutation;
-        //
-        // ****
-        // NOTE - requires new Set methods;
-        // ****
-        //
-        if (domain_reference != null && domain_reference.getAllSpatial()) {
+        // Flow will be tricky - FlowControl must contain trajectory
+        // start points
+
+        GraphicsModeControl mode = display.getGraphicsModeControl();
+        Appearance appearance = makeDefaultAppearance(mode);
+        boolean pointMode = mode.getPointMode();
+
+        if (color_length == 1 && spatial_length > 1) {
+          // constant color, so put it in appearance
+          ColoringAttributes constant_color = new ColoringAttributes();
+          constant_color.setColor(color_values[0][0], color_values[1][0],
+                                  color_values[2][0]);
+          appearance.setColoringAttributes(constant_color);
+          color_values = null;
+        }
+
+        // NaN color component values are rendered as 1.0
+        // NaN spatial component values of points are NOT rendered
+        // NaN spatial component values of lines and triangles?
+
+/* MISSING TEST
+        for (int i=0; i<color_length; i+=3) {
+          spatial_values[0][i] = Float.NaN;
+        }
+END MISSING TEST*/
+
+
+/* this 'makePointGeometry' doesn't need spatial_set
+        VisADGeometryArray array =
+          makePointGeometry(spatial_values, color_values);
+*/
+        // MEM
+        VisADGeometryArray array =
+          spatial_set.makePointGeometry(color_values);
+
+        // got here with 'java -mx32m visad.DisplayImpl'
+        System.out.println("spatial_set.makePointGeometry");
+
+        // MEM
+        GeometryArray geometry = array.makeGeometry();
+
+        System.out.println("array.makeGeometry");
+
+        //  FREE
+        array = null;
+        if (geometry != null) {
+          Shape3D shape = new Shape3D(geometry, appearance);
+          group.addChild(shape);
+        }
+
+        // got to here with 'java -mx40m visad.DisplayImpl'
+        return false;
+/*
+        if (anyContour) {
+          // apply colors to contours
         }
         else {
+          // render 1-D, 2-D or 3-D depending on
+          // spatial_set.ManifoldDimension
         }
-      }
-      else {
-        //
-        // TO_DO
-        // create a spatial Set with irregular topology and spatialDimension
-        //
-        // if spatialTuple != Display.DisplaySpatialCartesianTuple then
-        // create a Set in Display.DisplaySpatialCartesianTuple by copying
-        // topology from Set in spatialTuple
-        //
-      }
 
-
-      if (LevelOfDifficulty == LEGAL) {
+        if (anyFlow) {
+          throw new UnimplementedException("ShadowFunctionType.doTransform: " +
+                                           "Flow rendering");
+        }
+*/
+/*
+        throw new UnimplementedException("ShadowFunctionType.doTransform: " +
+                                         "terminal SIMPLE_FIELD");
+*/
+      }
+      else { // must be LevelOfDifficulty == LEGAL
         // add values to value_array according to SelectedMapVector-s
         // of RealType-s in Domain (including Reference) and Range
         //
         // accumulate Vector of value_array-s at this ShadowType,
         // to be rendered in a post-process to scanning data
+        //
+        // ** OR JUST EACH FIELD INDEPENDENTLY **
+        //
 /*
         return true;
 */
         throw new UnimplementedException("ShadowFunctionType.doTransform: " +
                                          "terminal LEGAL");
-      }
-      else {
-        // must be LevelOfDifficulty == SIMPLE_FIELD
-        // only manage Spatial, Contour, Flow, Color and Alpha here
-        // (account for Domain Reference)
-        //
-        // Flow will be tricky - FlowControl must contain trajectory
-        // start points
-/*
-        Group data_group = null;
-        group.addChild(data_group);
-
-        DO_ME
-
-        May inherit Spatial, Color & Alpha values from parent nodes in:
-
-        inherited_values
-
-        Dtype, Domain.getDisplayIndices()
-        Rtype, Range.getDisplayIndices()
-
-        Domain.getValueIndices(), Range.getValueIndices()
-        Domain.getReference()
-
-        if (!(data instanceof Field)) {
-          throw new TypeException("ShadowFunctionType.doTransform: " +
-                                  "terminal SIMPLE_FIELD must be Field");
-        }
-
-        Set domain_set = ((Field) data).getDomainSet();
-        int[] domain_wedge = domain_set.getWedge();
-        double[][] domain_values = domain_setindexToValue(domain_wedge);
-
-        double[][] range_values = ((Field) data).getValues();
-        int n = Range.getDimension();
-        for (int i=0; i<n; i++) {
-          ShadowType component = Range.getComponent(1);
-          if (component instanceof ShadowRealTupleType) {
-            ShadowRealTupleType reference =
-              ((ShadowRealTupleType) component).getReference();
-          }
-          else if (component instanceof ShadowRealType) {
-          }
-          else {
-          }
-        }
-*/
-
-        throw new UnimplementedException("ShadowFunctionType.doTransform: " +
-                                         "terminal SIMPLE_FIELD");
       }
     }
     else { // !Flat
@@ -537,9 +647,22 @@ demedici%
       // add values to value_array according to SelectedMapVector-s
       // of RealType-s in Domain (including Reference), and
       // recursively call doTransform on Range values
+
+      //
+      // TO_DO
+      // SelectRange, SelectValue, Animation
+      // isTransform?
+      //
+
+      // get array that composites SelectRange components
+      // only if SelectRange components are 'isTransform'
+      float[] range_select =
+        assembleSelect(display_values, domain_length, valueArrayLength,
+                       valueToScalar, display);
+
 /*
       for (int i=0; i<num_samples; i++) {
-        post |= Range.doTransform(group, range_data, value_array);
+        post |= Range.doTransform(group, range_data, value_array, default_values);
       }
       return post;
 */

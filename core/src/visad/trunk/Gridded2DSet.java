@@ -33,18 +33,25 @@ import java.io.*;
 public class Gridded2DSet extends GriddedSet {
 
   int LengthX, LengthY;
-  double LowX, HiX, LowY, HiY;
+  float LowX, HiX, LowY, HiY;
 
-  public Gridded2DSet(MathType type, double[][] samples, int lengthX, int lengthY)
+  public Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY)
          throws VisADException {
     this(type, samples, lengthX, lengthY, null, null, null);
   }
 
-  public Gridded2DSet(MathType type, double[][] samples, int lengthX, int lengthY,
+  public Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, lengthX, lengthY, coord_sys, units, errors, true);
+  }
+
+  Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy)
+               throws VisADException {
     super(type, samples, make_lengths(lengthX, lengthY), coord_sys,
-          units, errors);
+          units, errors, copy);
     LowX = Low[0];
     HiX = Hi[0];
     LengthX = Lengths[0];
@@ -60,10 +67,10 @@ public class Gridded2DSet extends GriddedSet {
              *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
       for (int j=0; j<LengthY-1; j++) {
         for (int i=0; i<LengthX-1; i++) {
-          double[] v00 = new double[2];
-          double[] v10 = new double[2];
-          double[] v01 = new double[2];
-          double[] v11 = new double[2];
+          float[] v00 = new float[2];
+          float[] v10 = new float[2];
+          float[] v01 = new float[2];
+          float[] v11 = new float[2];
           for (int v=0; v<2; v++) {
             v00[v] = Samples[v][j*LengthX+i];
             v10[v] = Samples[v][j*LengthX+i+1];
@@ -86,6 +93,34 @@ public class Gridded2DSet extends GriddedSet {
     }
   }
 
+  /** construct Gridded2DSet with ManifoldDimension = 1 */
+  public Gridded2DSet(MathType type, float[][] samples, int lengthX)
+         throws VisADException {
+    this(type, samples, lengthX, null, null, null);
+  }
+ 
+  /** construct Gridded2DSet with ManifoldDimension = 1 */
+  public Gridded2DSet(MathType type, float[][] samples, int lengthX,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, lengthX, coord_sys, units, errors, true);
+  }
+
+  Gridded2DSet(MathType type, float[][] samples, int lengthX,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy)
+               throws VisADException {
+    super(type, samples, Gridded1DSet.make_lengths(lengthX),
+          coord_sys, units, errors, copy);
+    LowX = Low[0];
+    HiX = Hi[0];
+    LengthX = Lengths[0];
+    LowY = Low[1];
+    HiY = Hi[1];
+ 
+    // no Samples consistency test
+  }
+
   static int[] make_lengths(int lengthX, int lengthY) {
     int[] lens = new int[2];
     lens[0] = lengthX;
@@ -94,12 +129,12 @@ public class Gridded2DSet extends GriddedSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
     if (Samples == null) {
       // not used - over-ridden by Linear2DSet.indexToValue
       int indexX, indexY;
-      double[][] grid = new double[2][length];
+      float[][] grid = new float[ManifoldDimension][length];
   
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
@@ -110,21 +145,21 @@ public class Gridded2DSet extends GriddedSet {
           indexX = -1;
           indexY = -1;
         }
-        grid[0][i] = (double) indexX;
-        grid[1][i] = (double) indexY;
+        grid[0][i] = (float) indexX;
+        grid[1][i] = (float) indexY;
       }
       return gridToValue(grid);
     }
     else {
-      double[][] values = new double[2][length];
+      float[][] values = new float[2][length];
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
           values[0][i] = Samples[0][index[i]];
           values[1][i] = Samples[1][index[i]];
         }
         else {
-          values[0][i] = Double.NaN;
-          values[1][i] = Double.NaN;
+          values[0][i] = Float.NaN;
+          values[1][i] = Float.NaN;
         }
       }
       return values;
@@ -132,21 +167,25 @@ public class Gridded2DSet extends GriddedSet {
   }
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("Gridded2DSet.valueToIndex: bad dimension");
     }
     int length = value[0].length;
     int[] index = new int[length];
 
-    double[][] grid = valueToGrid(value);
-    double[] grid0 = grid[0];
-    double[] grid1 = grid[1];
-    double g0, g1;
+    float[][] grid = valueToGrid(value);
+    float[] grid0 = grid[0];
+    float[] grid1 = grid[1];
+    float g0, g1;
     for (int i=0; i<length; i++) {
       g0 = grid0[i];
       g1 = grid1[i];
-      index[i] = (Double.isNaN(g0) || Double.isNaN(g1)) ? -1 :
+/* WLH 24 Oct 97
+      index[i] = (Float.isNaN(g0) || Float.isNaN(g1)) ? -1 :
+*/
+      // test for missing
+      index[i] = (g0 != g0 || g1 != g1) ? -1 :
                  ((int) (g0 + 0.5)) + LengthX * ((int) (g1 + 0.5));
     }
     return index;
@@ -154,9 +193,13 @@ public class Gridded2DSet extends GriddedSet {
 
   /** transform an array of non-integer grid coordinates to an array
       of values in R^DomainDimension */
-  public double[][] gridToValue(double[][] grid) throws VisADException {
-    if (grid.length < DomainDimension) {
+  public float[][] gridToValue(float[][] grid) throws VisADException {
+    if (grid.length != ManifoldDimension) {
       throw new SetException("Gridded2DSet.gridToValue: bad dimension");
+    }
+    if (ManifoldDimension < 2) {
+      throw new SetException("Gridded2DSet.gridToValue: ManifoldDimension " +
+                             "must be 2");
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("Gridded2DSet.gridToValue: requires all grid " +
@@ -164,14 +207,14 @@ public class Gridded2DSet extends GriddedSet {
     }
     // avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int length = Math.min(grid[0].length, grid[1].length);
-    double[][] value = new double[2][length];
+    float[][] value = new float[2][length];
     for (int i=0; i<length; i++) {
       // let gx and gy by the current grid values
-      double gx = grid[0][i];
-      double gy = grid[1][i];
+      float gx = grid[0][i];
+      float gy = grid[1][i];
       if ( (gx < -0.5)        || (gy < -0.5) ||
            (gx > LengthX-0.5) || (gy > LengthY-0.5) ) {
-        value[0][i] = value[1][i] = Double.NaN;
+        value[0][i] = value[1][i] = Float.NaN;
         continue;
       }
       // calculate closest integer variables
@@ -209,52 +252,60 @@ public class Gridded2DSet extends GriddedSet {
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
-  public double[][] valueToGrid(double[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
       throw new SetException("Gridded2DSet.valueToGrid: bad dimension");
+    }
+    if (ManifoldDimension < 2) {
+      throw new SetException("Gridded2DSet.valueToGrid: ManifoldDimension " +
+                             "must be 2");
     }
     if (Lengths[0] < 2 || Lengths[1] < 2) {
       throw new SetException("Gridded2DSet.valueToGrid: requires all grid " +
                              "dimensions to be > 1");
     }
     int length = Math.min(value[0].length, value[1].length);
-    double[][] grid = new double[2][length];
+    float[][] grid = new float[ManifoldDimension][length];
     // (gx, gy) is the current grid box guess
     int gx = (LengthX-1)/2;
     int gy = (LengthY-1)/2;
     boolean lowertri = true;
     for (int i=0; i<length; i++) {
       // grid box guess starts at previous box unless there was no solution
-      if ( (i != 0) && (Double.isNaN(grid[0][i-1])) ) {
+/* WLH 24 Oct 97
+      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) ) {
+*/
+      // test for missing
+      if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
         gx = (LengthX-1)/2;
         gy = (LengthY-1)/2;
       }
       // if the loop doesn't find the answer, the result should be NaN
-      grid[0][i] = grid[1][i] = Double.NaN;
+      grid[0][i] = grid[1][i] = Float.NaN;
       for (int itnum=0; itnum<2*(LengthX+LengthY); itnum++) {
         // define the four vertices of the current grid box
-        double[] v0 = {Samples[0][gy*LengthX+gx],
+        float[] v0 = {Samples[0][gy*LengthX+gx],
                        Samples[1][gy*LengthX+gx]};
-        double[] v1 = {Samples[0][gy*LengthX+gx+1],
+        float[] v1 = {Samples[0][gy*LengthX+gx+1],
                        Samples[1][gy*LengthX+gx+1]};
-        double[] v2 = {Samples[0][(gy+1)*LengthX+gx],
+        float[] v2 = {Samples[0][(gy+1)*LengthX+gx],
                        Samples[1][(gy+1)*LengthX+gx]};
-        double[] v3 = {Samples[0][(gy+1)*LengthX+gx+1],
+        float[] v3 = {Samples[0][(gy+1)*LengthX+gx+1],
                        Samples[1][(gy+1)*LengthX+gx+1]};
 
         // Both cases use diagonal D-B and point distances P-B and P-D
-        double[] bd = {v2[0]-v1[0], v2[1]-v1[1]};
-        double[] bp = {value[0][i]-v1[0], value[1][i]-v1[1]};
-        double[] dp = {value[0][i]-v2[0], value[1][i]-v2[1]};
+        float[] bd = {v2[0]-v1[0], v2[1]-v1[1]};
+        float[] bp = {value[0][i]-v1[0], value[1][i]-v1[1]};
+        float[] dp = {value[0][i]-v2[0], value[1][i]-v2[1]};
 
         // check the LOWER triangle of the grid box
         if (lowertri) {
-          double[] ab = {v1[0]-v0[0], v1[1]-v0[1]};
-          double[] da = {v0[0]-v2[0], v0[1]-v2[1]};
-          double[] ap = {value[0][i]-v0[0], value[1][i]-v0[1]};
-          double tval1 = ab[0]*ap[1]-ab[1]*ap[0];
-          double tval2 = bd[0]*bp[1]-bd[1]*bp[0];
-          double tval3 = da[0]*dp[1]-da[1]*dp[0];
+          float[] ab = {v1[0]-v0[0], v1[1]-v0[1]};
+          float[] da = {v0[0]-v2[0], v0[1]-v2[1]};
+          float[] ap = {value[0][i]-v0[0], value[1][i]-v0[1]};
+          float tval1 = ab[0]*ap[1]-ab[1]*ap[0];
+          float tval2 = bd[0]*bp[1]-bd[1]*bp[0];
+          float tval3 = da[0]*dp[1]-da[1]*dp[0];
           boolean test1 = (tval1 == 0) || ((tval1 > 0) == Pos);
           boolean test2 = (tval2 == 0) || ((tval2 > 0) == Pos);
           boolean test3 = (tval3 == 0) || ((tval3 > 0) == Pos);
@@ -303,12 +354,12 @@ public class Gridded2DSet extends GriddedSet {
 
         // check the UPPER triangle of the grid box
         else {
-          double[] bc = {v3[0]-v1[0], v3[1]-v1[1]};
-          double[] cd = {v2[0]-v3[0], v2[1]-v3[1]};
-          double[] cp = {value[0][i]-v3[0], value[1][i]-v3[1]};
-          double tval1 = bc[0]*bp[1]-bc[1]*bp[0];
-          double tval2 = cd[0]*cp[1]-cd[1]*cp[0];
-          double tval3 = bd[0]*dp[1]-bd[1]*dp[0];
+          float[] bc = {v3[0]-v1[0], v3[1]-v1[1]};
+          float[] cd = {v2[0]-v3[0], v2[1]-v3[1]};
+          float[] cp = {value[0][i]-v3[0], value[1][i]-v3[1]};
+          float tval1 = bc[0]*bp[1]-bc[1]*bp[0];
+          float tval2 = cd[0]*cp[1]-cd[1]*cp[0];
+          float tval3 = bd[0]*dp[1]-bd[1]*dp[0];
           boolean test1 = (tval1 == 0) || ((tval1 > 0) == Pos);
           boolean test2 = (tval2 == 0) || ((tval2 > 0) == Pos);
           boolean test3 = (tval3 == 0) || ((tval3 < 0) == Pos);
@@ -356,7 +407,7 @@ public class Gridded2DSet extends GriddedSet {
         }
         if ( (grid[0][i] > LengthX-0.5) || (grid[1][i] > LengthY-0.5)
           || (grid[0][i] < -0.5) || (grid[1][i] < -0.5) ) {
-          grid[0][i] = grid[1][i] = Double.NaN;
+          grid[0][i] = grid[1][i] = Float.NaN;
         }
       }
     }
@@ -365,8 +416,14 @@ public class Gridded2DSet extends GriddedSet {
 
   public Object clone() {
     try {
-      return new Gridded2DSet(Type, Samples, LengthX, LengthY,
-                              DomainCoordinateSystem, SetUnits, SetErrors);
+      if (ManifoldDimension == 2) {
+        return new Gridded2DSet(Type, Samples, LengthX, LengthY,
+                                DomainCoordinateSystem, SetUnits, SetErrors);
+      }
+      else {
+        return new Gridded2DSet(Type, Samples, LengthX,
+                                DomainCoordinateSystem, SetUnits, SetErrors);
+      }
     }
     catch (VisADException e) {
       throw new VisADError("Gridded2DSet.clone: " + e.toString());
@@ -374,8 +431,14 @@ public class Gridded2DSet extends GriddedSet {
   }
 
   public Object cloneButType(MathType type) throws VisADException {
-    return new Gridded2DSet(type, Samples, LengthX, LengthY,
-                            DomainCoordinateSystem, SetUnits, SetErrors);
+    if (ManifoldDimension == 2) {
+      return new Gridded2DSet(type, Samples, LengthX, LengthY,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+    else {
+      return new Gridded2DSet(type, Samples, LengthX,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
   }
 
   /* run 'java visad.Gridded2DSet < formatted_input_stream'
@@ -416,7 +479,7 @@ public class Gridded2DSet extends GriddedSet {
     }
 
     // Define size of Samples array
-    double[][] samp = new double[2][num_coords];
+    float[][] samp = new float[2][num_coords];
     System.out.println("num_dimensions = 2, num_coords = "+num_coords+"\n");
 
     // Skip blank line
@@ -448,7 +511,7 @@ public class Gridded2DSet extends GriddedSet {
         for (int i=0; i<l; i++) {
           chars[i] = (char) ints[i];
         }
-        samp[d][c] = (Double.valueOf(new String(chars))).doubleValue();
+        samp[d][c] = (Float.valueOf(new String(chars))).floatValue();
       }
     }
 
@@ -482,11 +545,11 @@ public class Gridded2DSet extends GriddedSet {
     System.out.println("\ngridToValue test:");
     int myLengthX = gSet2D.LengthX+1;
     int myLengthY = gSet2D.LengthY+1;
-    double[][] myGrid = new double[2][myLengthX*myLengthY];
+    float[][] myGrid = new float[2][myLengthX*myLengthY];
     for (int j=0; j<myLengthY; j++) {
       for (int i=0; i<myLengthX; i++) {
-        myGrid[0][j*myLengthX+i] = i-0.5;
-        myGrid[1][j*myLengthX+i] = j-0.5;
+        myGrid[0][j*myLengthX+i] = i-0.5f;
+        myGrid[1][j*myLengthX+i] = j-0.5f;
         if (myGrid[0][j*myLengthX+i] < 0) {
           myGrid[0][j*myLengthX+i] += 0.1;
         }
@@ -501,29 +564,29 @@ public class Gridded2DSet extends GriddedSet {
         }
       }
     }
-    double[][] myValue = gSet2D.gridToValue(myGrid);
+    float[][] myValue = gSet2D.gridToValue(myGrid);
     for (int i=0; i<myLengthX*myLengthY; i++) {
-      System.out.println("("+((double) Math.round(1000000
+      System.out.println("("+((float) Math.round(1000000
                                       *myGrid[0][i]) /1000000)+", "
-                            +((double) Math.round(1000000
+                            +((float) Math.round(1000000
                                       *myGrid[1][i]) /1000000)+")\t-->  "
-                            +((double) Math.round(1000000
+                            +((float) Math.round(1000000
                                       *myValue[0][i]) /1000000)+", "
-                            +((double) Math.round(1000000
+                            +((float) Math.round(1000000
                                       *myValue[1][i]) /1000000));
     }
 
     // Test valueToGrid function
     System.out.println("\nvalueToGrid test:");
-    double[][] gridTwo = gSet2D.valueToGrid(myValue);
+    float[][] gridTwo = gSet2D.valueToGrid(myValue);
     for (int i=0; i<gridTwo[0].length; i++) {
-      System.out.println(((double) Math.round(1000000
+      System.out.println(((float) Math.round(1000000
                                   *myValue[0][i]) /1000000)+", "
-                        +((double) Math.round(1000000
+                        +((float) Math.round(1000000
                                   *myValue[1][i]) /1000000)+"\t-->  ("
-                        +((double) Math.round(1000000
+                        +((float) Math.round(1000000
                                   *gridTwo[0][i]) /1000000)+", "
-                        +((double) Math.round(1000000
+                        +((float) Math.round(1000000
                                   *gridTwo[1][i]) /1000000)+")");
     }
     System.out.println();

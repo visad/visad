@@ -52,6 +52,16 @@ class CMYCoordinateSystem extends CoordinateSystem {
       "CMYCoordinateSystem.fromReference");
   }
 
+  public float[][] toReference(float[][] tuples) throws VisADException {
+    throw new UnimplementedException(
+      "CMYCoordinateSystem.toReference");
+  }
+ 
+  public float[][] fromReference(float[][] tuples) throws VisADException {
+    throw new UnimplementedException(
+      "CMYCoordinateSystem.fromReference");
+  }
+
   public boolean equals(Object cs) {
     return (cs instanceof CMYCoordinateSystem);
   }

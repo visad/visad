@@ -101,7 +101,7 @@ public abstract class DisplayRenderer extends Object {
     box_color.setColor(1.0f, 1.0f, 1.0f);
     box_appearance.setColoringAttributes(box_color);
     box = new Shape3D(box_geometry, box_appearance);
-    // first child of trnas
+    // first child of trans
     trans.addChild(box);
  
     // create the Bahevior for mouse interactions

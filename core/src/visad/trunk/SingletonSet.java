@@ -33,15 +33,15 @@ public class SingletonSet extends SimpleSet {
   private RealTuple data;
 
   /** construct a SingletonSet with the single sample given by a RealTuple */
-  public SingletonSet(RealTuple data) throws VisADException {
-    this(data, data.getType(), null, null, null);
+  public SingletonSet(RealTuple d) throws VisADException {
+    this(d, d.getType(), null, null, null);
   }
 
   /** construct a SingletonSet with the single sample given by a RealTuple,
       and a non-default CoordinateSystem */
-  public SingletonSet(RealTuple data, CoordinateSystem coord_sys, Unit[] units,
+  public SingletonSet(RealTuple d, CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    this(data, data.getType(), coord_sys, units, errors);
+    this(d, d.getType(), coord_sys, units, errors);
   }
 
   /** construct a SingletonSet with a different MathType than its
@@ -67,17 +67,17 @@ public class SingletonSet extends SimpleSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
-    double[][] value = new double[DomainDimension][length];
-    double[] v = new double[DomainDimension];
+    float[][] value = new float[DomainDimension][length];
+    float[] v = new float[DomainDimension];
     for (int k=0; k<DomainDimension; k++) {
-      v[k] = ((Real) data.getComponent(k)).getValue();
+      v[k] = (float) (((Real) data.getComponent(k)).getValue());
     }
     for (int i=0; i<length; i++) {
       if (index[i] < 0 || index[i] >= Length) {
         for (int k=0; k<DomainDimension; k++) {
-          value[k][i] = Double.NaN;
+          value[k][i] = Float.NaN;
         }
       }
       else {
@@ -90,7 +90,7 @@ public class SingletonSet extends SimpleSet {
   }
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("SingletonSet.valueToIndex: bad dimension");
     }
@@ -106,8 +106,8 @@ public class SingletonSet extends SimpleSet {
       of 1-D indices and an array of weights, to be used for interpolation;
       indices[i] and weights[i] are null if i-th value is outside grid
       (i.e., if no interpolation is possible) */
-  public void valueToInterp(double[][] value, int[][] indices,
-                            double weights[][]) throws VisADException {
+  public void valueToInterp(float[][] value, int[][] indices,
+                            float weights[][]) throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("SingletonSet.valueToInterp: bad dimension");
     }
@@ -117,9 +117,9 @@ public class SingletonSet extends SimpleSet {
     }
     for (int i=0; i<length; i++) {
       indices[i] = new int[1];
-      weights[i] = new double[1];
+      weights[i] = new float[1];
       indices[i][0] = 0;
-      weights[i][0] = 1.0;
+      weights[i][0] = 1.0f;
     }
   }
 

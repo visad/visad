@@ -45,15 +45,15 @@ public class FloatSet extends SimpleSet {
     super(type, coord_sys, units, null); // no ErrorEstimate for FloatSet
   }
 
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     throw new SetException("FloatSet.indexToValue");
   }
 
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     throw new SetException("FloatSet.valueToIndex");
   }
 
-  public void valueToInterp(double[][] value, int[][] indices, double weights[][])
+  public void valueToInterp(float[][] value, int[][] indices, float weights[][])
               throws VisADException {
     throw new SetException("FloatSet.valueToInterp");
   }

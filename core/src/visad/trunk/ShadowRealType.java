@@ -211,7 +211,8 @@ public class ShadowRealType extends ShadowType {
 
   /** transform data into a Java3D scene graph;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, double[] value_array)
+  public boolean doTransform(Group group, Data data, float[] value_array,
+                             float[] default_values)
          throws VisADException {
     // add values to value_array according to SelectedMapVector
     if (isTerminal) {

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.1 1997-10-23 20:14:06 dglo Exp $
+ * $Id: Unit.java,v 1.2 1997-11-06 18:19:44 billh Exp $
  */
 
 package visad;
@@ -35,10 +35,28 @@ public abstract class Unit
   static Unit dimensionless = new DerivedUnit();
   static Unit promiscuous = PromiscuousUnit.promiscuous;
 
-  /** convert a tuple of value arrays (i.e., a double[][]) */
+  /** convert a tuple of value arrays (a double[][]) */
   public static double[][] convertTuple(double[][] value, Unit[] units_in,
          Unit[] units_out) throws VisADException {
     double[][] new_value = new double[value.length][];
+    for (int i=0; i<value.length; i++) {
+      if (units_out[i] == null) {
+        if (units_in[i] != null) {
+          throw new UnitException("Unit.convertTuple: illegal Unit conversion");
+        }
+        new_value[i] = value[i];
+      }
+      else {
+        new_value[i] = units_out[i].toThis(value[i], units_in[i]);
+      }
+    }
+    return new_value;
+  }
+
+  /** convert a tuple of value arrays (a float[][]) */
+  public static float[][] convertTuple(float[][] value, Unit[] units_in,
+         Unit[] units_out) throws VisADException {
+    float[][] new_value = new float[value.length][];
     for (int i=0; i<value.length; i++) {
       if (units_out[i] == null) {
         if (units_in[i] != null) {
@@ -120,6 +138,38 @@ public abstract class Unit
     else {
       // convert value array
       double[] val = unit_out.toThis(value, unit_in);
+ 
+      // construct new ErrorEstimate, if needed
+      if (error_in == null) {
+        errors_out[0] = null;
+      }
+      else {
+        // scale data.ErrorEstimate for Unit.toThis
+        double error = 0.5 * error_in.getErrorValue();
+        double mean = error_in.getMean();
+        double new_error =
+          Math.abs( unit_out.toThis(mean + error, unit_in) -
+                    unit_out.toThis(mean - error, unit_in) );
+        errors_out[0] = new ErrorEstimate(val, new_error, unit_out);
+      }
+ 
+      // return value array
+      return val;
+    }
+  }
+
+  public static float[] transformUnits(
+                        Unit unit_out, ErrorEstimate[] errors_out,
+                        Unit unit_in, ErrorEstimate error_in,
+                        float[] value) throws VisADException {
+ 
+    if (unit_out == null) {
+      errors_out[0] = error_in;
+      return value;
+    }
+    else {
+      // convert value array
+      float[] val = unit_out.toThis(value, unit_in);
  
       // construct new ErrorEstimate, if needed
       if (error_in == null) {
@@ -285,8 +335,7 @@ public abstract class Unit
      * @exception	UnitException	The units are not convertible.
      */
     public double[] toThis(double[] values, Unit that)
-	throws UnitException
-    {
+           throws UnitException {
 /*
    added by Bill Hibbard for VisAD
 */
@@ -312,6 +361,35 @@ public abstract class Unit
 	if (that instanceof OffsetUnit)
 	    return toThis(values, (OffsetUnit)that);
 	throw new UnitException("Unknown unit subclass");
+    }
+
+    public float[] toThis(float[] values, Unit that)
+           throws UnitException {
+/*
+   added by Bill Hibbard for VisAD
+*/
+        if ((this instanceof PromiscuousUnit) ||
+            (that instanceof PromiscuousUnit)) {
+          float[] newValues = new float[values.length];
+          for (int i = 0; i < values.length; ++i) {
+            newValues[i] = values[i];
+          }
+        }
+/*
+   end of added by Bill Hibbard for VisAD
+*/
+        if (that instanceof BaseUnit)
+            return toThis(values, (BaseUnit)that);
+        else
+        if (that instanceof DerivedUnit)
+            return toThis(values, (DerivedUnit)that);
+        else
+        if (that instanceof ScaledUnit)
+            return toThis(values, (ScaledUnit)that);
+        else
+        if (that instanceof OffsetUnit)
+            return toThis(values, (OffsetUnit)that);
+        throw new UnitException("Unknown unit subclass");
     }
 
     /**
@@ -341,8 +419,7 @@ public abstract class Unit
      * @exception	UnitException	The units are not convertible.
      */
     public double[] toThat(double[] values, Unit that)
-	throws UnitException
-    {
+           throws UnitException {
 	if (that instanceof BaseUnit)
 	    return toThat(values, (BaseUnit)that);
 	else
@@ -355,6 +432,22 @@ public abstract class Unit
 	if (that instanceof OffsetUnit)
 	    return toThat(values, (OffsetUnit)that);
 	throw new UnitException("Unknown unit subclass");
+    }
+
+    public float[] toThat(float[] values, Unit that)
+           throws UnitException {
+        if (that instanceof BaseUnit)
+            return toThat(values, (BaseUnit)that);
+        else
+        if (that instanceof DerivedUnit)
+            return toThat(values, (DerivedUnit)that);
+        else
+        if (that instanceof ScaledUnit)
+            return toThat(values, (ScaledUnit)that);
+        else
+        if (that instanceof OffsetUnit)
+            return toThat(values, (OffsetUnit)that);
+        throw new UnitException("Unknown unit subclass");
     }
 
     /**
@@ -399,6 +492,15 @@ public abstract class Unit
     abstract double[] toThis(double[] values, OffsetUnit that)
 	throws UnitException;
 
+    abstract float[] toThis(float[] values, BaseUnit that)
+        throws UnitException;
+    abstract float[] toThis(float[] values, DerivedUnit that)
+        throws UnitException;
+    abstract float[] toThis(float[] values, ScaledUnit that)
+        throws UnitException;
+    abstract float[] toThis(float[] values, OffsetUnit that)
+        throws UnitException;
+
     abstract double[] toThat(double[] values, BaseUnit that)
 	throws UnitException;
     abstract double[] toThat(double[] values, DerivedUnit that)
@@ -407,4 +509,14 @@ public abstract class Unit
 	throws UnitException;
     abstract double[] toThat(double[] values, OffsetUnit that)
 	throws UnitException;
+
+    abstract float[] toThat(float[] values, BaseUnit that)
+        throws UnitException;
+    abstract float[] toThat(float[] values, DerivedUnit that)
+        throws UnitException;
+    abstract float[] toThat(float[] values, ScaledUnit that)
+        throws UnitException;
+    abstract float[] toThat(float[] values, OffsetUnit that)
+        throws UnitException;
+
 }

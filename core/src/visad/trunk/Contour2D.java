@@ -1,6 +1,6 @@
 
 //
-// Contour.java
+// Contour2D.java
 //
 
 /*
@@ -30,12 +30,12 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
-   Contour is a class equipped with a 2-D contouring function.<P>
+   Contour2D is a class equipped with a 2-D contouring function.<P>
 */
-public class Contour extends Applet implements MouseListener {
+public class Contour2D extends Applet implements MouseListener {
 
   // Applet variables
-  protected Contour con;
+  protected Contour2D con;
   protected int whichlabels = 0;
   protected boolean showgrid;
   protected int rows, cols, scale;
@@ -175,13 +175,29 @@ public class Contour extends Applet implements MouseListener {
 
         // get 4 corner values, skip box if any are missing
         ga = ( g[ (ic) * nr + (ir) ] );
+/* WLH 24 Oct 97
         if (Double.isNaN(ga)) continue;
+*/
+        // test for missing
+        if (ga != ga) continue;
         gb = ( g[ (ic) * nr + (ir+1) ] );
+/* WLH 24 Oct 97
         if (Double.isNaN(gb)) continue;
+*/
+        // test for missing
+        if (gb != gb) continue;
         gc = ( g[ (ic+1) * nr + (ir) ] );
+/* WLH 24 Oct 97
         if (Double.isNaN(gc)) continue;
+*/
+        // test for missing
+        if (gc != gc) continue;
         gd = ( g[ (ic+1) * nr + (ir+1) ] );
+/* WLH 24 Oct 97
         if (Double.isNaN(gd)) continue;
+*/
+        // test for missing
+        if (gd != gd) continue;
 
         // find average, min, and max of 4 corner values
         gv = (ga+gb+gc+gd)/4.0;
@@ -514,10 +530,10 @@ public class Contour extends Applet implements MouseListener {
 
   // APPLET SECTION
 
-  /* run 'appletviewer contour.html' to test the Contour class. */
+  /* run 'appletviewer contour.html' to test the Contour2D class. */
   public void init() {
     this.addMouseListener(this);
-    con = new Contour();
+    con = new Contour2D();
     con.rows = 0;
     con.cols = 0;
     con.scale = 0;
@@ -539,7 +555,7 @@ public class Contour extends Applet implements MouseListener {
       mxv4 = Integer.parseInt(getParameter("capacity4"));
     }
     catch (Exception e) {
-      System.out.println("Contour.paint: applet parameter error: "+e);
+      System.out.println("Contour2D.paint: applet parameter error: "+e);
       System.exit(1);
     }
     double[] g = new double[con.rows*con.cols];
@@ -573,7 +589,7 @@ public class Contour extends Applet implements MouseListener {
                   con.vx4, con.vy4, mxv4, con.num4);
     }
     catch (VisADException VE) {
-      System.out.println("Contour.init: "+VE);
+      System.out.println("Contour2D.init: "+VE);
       System.exit(1);
     }
   }

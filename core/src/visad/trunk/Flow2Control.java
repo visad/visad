@@ -37,7 +37,7 @@ public class Flow2Control extends FlowControl {
   }
  
   Flow2Control() {
-    super();
+    this(null);
   }
 
   public Control cloneButContents(DisplayImpl d) {

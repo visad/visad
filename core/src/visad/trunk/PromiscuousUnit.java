@@ -121,5 +121,47 @@ public class PromiscuousUnit extends Unit {
     return values;
   }
 
+
+  float[] toThis(float[] values, BaseUnit that)
+           throws UnitException {
+    return values;
+  }
+
+  float[] toThis(float[] values, DerivedUnit that)
+           throws UnitException {
+    return values;
+  }
+
+  float[] toThis(float[] values, ScaledUnit that)
+           throws UnitException {
+    return values;
+  }
+
+  float[] toThis(float[] values, OffsetUnit that)
+           throws UnitException {
+    return values;
+  }
+
+
+  float[] toThat(float[] values, BaseUnit that)
+           throws UnitException {
+    return values;
+  }
+
+  float[] toThat(float[] values, DerivedUnit that)
+           throws UnitException {
+    return values;
+  }
+
+  float[] toThat(float[] values, ScaledUnit that)
+           throws UnitException {
+    return values;
+  }
+
+  float[] toThat(float[] values, OffsetUnit that)
+           throws UnitException {
+    return values;
+  }
+
 }
 

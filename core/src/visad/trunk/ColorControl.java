@@ -29,36 +29,111 @@ import java.rmi.*;
 
 /**
    ColorControl is the VisAD class for controlling 3-component Color
-   display scalars (e.g., ColorRGB, ColorHSV, ColorCMY).<P>
+   DisplayRealType-s (e.g., RGB, HSV, CMY).<P>
 */
 public class ColorControl extends Control {
 
-  private Function table;
+  // color map represented by either table or function
+  private float[][] table;
+  private int tableLength; // = table[0].length - 1
+  private Function function;
+  private RealTupleType functionDomainType;
+  private CoordinateSystem functionCoordinateSystem;
+  private Unit[] functionUnits;
+
+  private final static int DEFAULT_TABLE_LENGTH = 256;
 
   static final ColorControl prototype = new ColorControl();
 
   public ColorControl(DisplayImpl d) {
     super(d);
+    tableLength = DEFAULT_TABLE_LENGTH;
+    table = new float[3][tableLength + 1];
+    float scale = (float) (1.0f / (float) (DEFAULT_TABLE_LENGTH - 1));
+    // default table is a grey wedge
+    for (int i=0; i<DEFAULT_TABLE_LENGTH; i++) {
+      table[0][i] = scale * i;
+      table[1][i] = scale * i;
+      table[2][i] = scale * i;
+    }
+    table[0][DEFAULT_TABLE_LENGTH] = table[0][DEFAULT_TABLE_LENGTH - 1];
+    table[1][DEFAULT_TABLE_LENGTH] = table[1][DEFAULT_TABLE_LENGTH - 1];
+    table[2][DEFAULT_TABLE_LENGTH] = table[2][DEFAULT_TABLE_LENGTH - 1];
   }
  
   ColorControl() {
-    super();
+    this(null);
   }
 
-  public void setTable(Function func)
+  public synchronized void setFunction(Function func)
          throws VisADException, RemoteException {
-    if (!func.getType().equalsExceptName(FunctionType.REAL_1TO3_FUNCTION)) {
-      throw new DisplayException("ScalarMap: function must be 1D-to-3D");
+    if (func == null ||
+        !func.getType().equalsExceptName(FunctionType.REAL_1TO3_FUNCTION)) {
+      throw new DisplayException("ColorControl.setFunction: " +
+                                 "function must be 1D-to-3D");
     }
-    table = func;
+    function = func;
+    functionDomainType = ((FunctionType) function.getType()).getDomain();
+    functionCoordinateSystem = function.getDomainCoordinateSystem();
+    functionUnits = function.getDomainUnits();
+    table = null;
+    changeControl();
+  }
+
+  public synchronized void setTable(float[][] t)
+         throws VisADException, RemoteException {
+    if (t == null || t.length != 3 ||
+        t[0] == null || t[1] == null || t[2] == null ||
+        t[0].length != t[1].length || t[0].length != t[2].length) {
+      throw new DisplayException("ColorControl.setTable: " +
+                                 "table must be float[3][Length]");
+    }
+    tableLength = t[0].length;
+    table = new float[3][tableLength + 1];
+    for (int j=0; j<3; j++) {
+      System.arraycopy(t[j], 0, table[j], 0, tableLength);
+      // guard for table overflow on scaling in lookupValues
+      table[j][tableLength] = t[j][tableLength - 1];
+    }
+    function = null;
+    changeControl();
+  }
+
+  public synchronized float[][] lookupValues(float[] values)
+         throws VisADException, RemoteException {
+    int len = values.length;
+    float[][] colors = null;
+    if (table != null) {
+      colors = new float[3][len];
+      float scale = (float) tableLength;
+      for (int i=0; i<len; i++) {
+        int j = (int) (scale * values[i]);
+        // note actual table length is tableLength + 1
+        if (j < 0 || tableLength < j) {
+          colors[0][i] = Float.NaN;
+          colors[1][i] = Float.NaN;
+          colors[2][i] = Float.NaN;
+        }
+        else {
+          colors[0][i] = table[0][j];
+          colors[1][i] = table[1][j];
+          colors[2][i] = table[2][j];
+        }
+      }
+    }
+    else if (function != null) {
+      List1DSet set = new List1DSet(values, functionDomainType,
+                                    functionCoordinateSystem,
+                                    functionUnits);
+      Field field =
+        function.resample(set, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+      colors = Set.doubleToFloat(field.getValues());
+    }
+    return colors;
   }
 
   public Control cloneButContents(DisplayImpl d) throws RemoteException {
-    ColorControl control = new ColorControl(d);
-    if (table != null) {
-      control.table = (FlatField) table.dataClone();
-    }
-    return control;
+    return new ColorControl(d);
   }
 
 }

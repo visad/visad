@@ -1,8 +1,8 @@
-
+ 
 //
-// RangeControl.java
+// VisADLineStripArray.java
 //
-
+ 
 /*
 VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden and Tom
@@ -22,46 +22,25 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-
+ 
 package visad;
+ 
+import javax.media.j3d.*;
+import java.vecmath.*;
 
 /**
-   RangeControl is the VisAD class for controlling SelectRange display scalars.<P>
+   VisADLineStripArray stands in for j3d.LineStripArray
+   and is Serializable.<P>
 */
-public class RangeControl extends Control {
+public class VisADLineStripArray extends VisADGeometryArray {
+  int[] stripVertexCounts;
 
-  private float RangeLow;
-  private float RangeHi;
-
-  static final RangeControl prototype = new RangeControl();
-
-  public RangeControl(DisplayImpl d) {
-    super(d);
-  }
- 
-  RangeControl() {
-    this(null);
-  }
-
-  public void setRange(float[] range) {
-    RangeLow = range[0];
-    RangeHi = range[1];
-    changeControl();
-  }
-
-  public float[] getRange() {
-    float[] range = new float[2];
-    range[0] = RangeLow;
-    range[1] = RangeHi;
-    return range;
-  }
-
-  public Control cloneButContents(DisplayImpl d) {
-    RangeControl control = new RangeControl(d);
-    control.RangeLow = 0.0f;
-    control.RangeHi = 0.0f;
-
-    return control;
+  public GeometryArray makeGeometry() throws VisADException {
+    if (vertexCount == 0) return null;
+    LineStripArray array =
+      new LineStripArray(vertexCount, VertexFormat, stripVertexCounts);
+    basicGeometry(array);
+    return array;
   }
 
 }

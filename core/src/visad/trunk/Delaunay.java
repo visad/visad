@@ -52,38 +52,42 @@ import java.util.*;
 */
 public class Delaunay implements java.io.Serializable {
 
-  static final double BIGNUM = 1E37;
-  static final double EPSILON = 0.00001;
+  static final float BIGNUM = (float) 1E37;
+  static final float EPSILON = 0.00001f;
   // temporary storage size factor
   static final int TSIZE = 75;
   // factor (>=1) for radius of control points
-  static final double RANGE = 10.0;
+  static final float RANGE = 10.0f;
 
   // Delaunay core components
-  public int[][] Tri;        // triangles/tetrahedra --> vertices
-  public int[][] Vertices;   // vertices --> triangles/tetrahedra
-  public int[][] Walk;       // triangles/tetrahedra --> triangles/tetrahedra
-  public int[][] Edges;      // tri/tetra edges --> global edge number
-  public int NumEdges;       // number of unique global edge numbers
+  int[][] Tri;        // triangles/tetrahedra --> vertices
+                      //   Tri = new int[ntris][dim + 1]
+  int[][] Vertices;   // vertices --> triangles/tetrahedra
+                      //   Vertices = new int[nrs][nverts[i]]
+  int[][] Walk;       // triangles/tetrahedra --> triangles/tetrahedra
+                      //   Walk = new int[ntris][dim + 1]
+  int[][] Edges;      // tri/tetra edges --> global edge number
+                      //   Edges = new int[ntris][3 * (dim - 1)];
+  int NumEdges;       // number of unique global edge numbers
 
-  public Delaunay(double[][] samples) throws VisADException {
+  public Delaunay(float[][] samples) throws VisADException {
     int dim = samples.length;
     int nrs = samples[0].length;
     int chl = 0; // find Delaunay triangulation
 
-    double xx, yy, bgs;
+    float xx, yy, bgs;
     int i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i11;
     int[] ii = new int[3];
     int dm, dim1, nts, tsz;
 
-    double[][] mxy = new double[2][dim];
+    float[][] mxy = new float[2][dim];
     for (i0=0; i0<dim; i0++) mxy[0][i0] = - (mxy[1][i0] = BIGNUM);
     dim1 = dim + 1;
-    double[][] wrk = new double[dim][dim1];
+    float[][] wrk = new float[dim][dim1];
     for (i0=0; i0<dim; i0++) for (i1=0; i1<dim1; i1++) wrk[i0][i1] = -RANGE;
     for (i0=0; i0<dim; i0++) wrk[i0][i0] = RANGE * (3 * dim - 1);
 
-    double[][] pts = new double[nrs + dim1][dim];
+    float[][] pts = new float[nrs + dim1][dim];
     for (i0=0; i0<nrs; i0++) {
       if (dim < 3) {
         pts[i0][0] = samples[0][i0];
@@ -122,10 +126,13 @@ public class Delaunay implements java.io.Serializable {
     int[][] tmp = new int[tsz + 1][dim];
     // storage allocation - increase value of `i1' for 3D if necessary
     i1 *= (nrs + 50 * i1);
+/* WLH 4 Nov 97 */
+    if (dim == 3) i1 *= 10;
+/* end WLH 4 Nov 97 */
     int[] id = new int[i1];
     for (i0=0; i0<i1; i0++) id[i0] = i0;
     int[][] a3s = new int[i1][dim1];
-    double[][] ccr = new double[i1][dim1];
+    float[][] ccr = new float[i1][dim1];
     for (a3s[0][0]=nrs, i0=1; i0<dim1; i0++) a3s[0][i0] = a3s[0][i0-1] + 1;
     for (ccr[0][dim]=BIGNUM, i0=0; i0<dim; i0++) ccr[0][i0] = 0;
     nts = i4 = 1;
@@ -491,7 +498,7 @@ WalkDim:
     }
 
     // Define size of Samples array
-    double[][] samp = new double[num_dim][num_coords];
+    float[][] samp = new float[num_dim][num_coords];
     System.out.println("num_dimensions = "+num_dim
                       +", num_coords = "+num_coords+"\n");
 
@@ -524,7 +531,7 @@ WalkDim:
         for (int i=0; i<l; i++) {
           chars[i] = (char) ints[i];
         }
-        samp[d][c] = (Double.valueOf(new String(chars))).doubleValue();
+        samp[d][c] = (Double.valueOf(new String(chars))).floatValue();
       }
     }
 

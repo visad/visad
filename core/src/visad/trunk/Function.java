@@ -37,6 +37,12 @@ public interface Function extends Data {
   public abstract int getDomainDimension()
          throws VisADException, RemoteException;
 
+  public abstract Unit[] getDomainUnits()
+         throws VisADException, RemoteException;
+
+  public abstract CoordinateSystem getDomainCoordinateSystem()
+         throws VisADException, RemoteException;
+
   /** evaluate this Function at domain; first check that types match;
       use default modes for resampling (NEAREST_NEIGHBOR) and errors */
   public abstract Data evaluate(RealTuple domain)

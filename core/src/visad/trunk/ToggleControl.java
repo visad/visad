@@ -45,7 +45,7 @@ public class ToggleControl extends Control {
   }
  
   ToggleControl() {
-    super();
+    this(null, null);
   }
 
   /** should never be called */

@@ -49,7 +49,7 @@ public class ContourControl extends Control {
   }
  
   ContourControl() {
-    super();
+    this(null);
   }
 
   public Control cloneButContents(DisplayImpl d) {

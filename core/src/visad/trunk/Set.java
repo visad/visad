@@ -188,15 +188,23 @@ public abstract class Set extends DataImpl {
     return wedge;
   }
 
+  float[][] getSamples(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    // do NOT call getWedge
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToValue(indices);
+  }
+
   //
   // must eventually move indexToValue and valueToIndex to SimpleSet
   // and add logic for UnionSet to Field and FlatField
   //
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public abstract double[][] indexToValue(int[] index) throws VisADException;
+  public abstract float[][] indexToValue(int[] index) throws VisADException;
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public abstract int[] valueToIndex(double[][] value) throws VisADException;
+  public abstract int[] valueToIndex(float[][] value) throws VisADException;
 
   public boolean isIntegerSet() {
     return false;
@@ -233,7 +241,7 @@ public abstract class Set extends DataImpl {
     // all indices in this
     int[] indices = getWedge();
     // all values in this
-    double[][] values = indexToValue(indices);
+    float[][] values = indexToValue(indices);
     // transform values from this to set
     ErrorEstimate[] errors_out = new ErrorEstimate[1];
     values = CoordinateSystem.transformCoordinates(
@@ -265,7 +273,7 @@ public abstract class Set extends DataImpl {
       }
     }
     // get uncovered values
-    double[][] new_values = set.indexToValue(new_indices);
+    float[][] new_values = set.indexToValue(new_indices);
     // transform values for Units and CoordinateSystem
     new_values = CoordinateSystem.transformCoordinates(
                      ((SetType) Type).getDomain(),
@@ -274,15 +282,79 @@ public abstract class Set extends DataImpl {
                      set.getCoordinateSystem(), set.getSetUnits(),
                      null /* set.getSetErrors() */, new_values);
     // merge uncovered values with values of this
-    double[][] all_values = new double[1][length + num_new];
+    float[][] all_values = new float[1][length + num_new];
     for (int i=0; i<length; i++) all_values[0][i] = values[0][i];
     for (int i=0; i<num_new; i++) {
       all_values[0][length + i] = new_values[0][i];
     }
-    // create 1D set with merged values
+    // create Irregular1D set with merged values (constructor sorts them)
     // just use ErrorEstimates from this
     return new Irregular1DSet(Type, all_values, DomainCoordinateSystem,
                               SetUnits, SetErrors);
+  }
+
+  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+    throw new SetException("Set.makeSpatial: not valid for this Set");
+  }
+
+  public VisADGeometryArray make1DGeometry(float[][] color_values)
+         throws VisADException {
+    throw new SetException("Set.make1DGeometry: not valid for this Set");
+  }
+
+  public VisADGeometryArray make2DGeometry(float[][] color_values)
+         throws VisADException {
+    throw new SetException("Set.make2DGeometry: not valid for this Set");
+  }
+
+  public VisADGeometryArray make3DGeometry(float[][] color_values)
+         throws VisADException {
+    throw new SetException("Set.make3DGeometry: not valid for this Set");
+  }
+
+  public VisADGeometryArray makePointGeometry(float[][] color_values)
+         throws VisADException {
+    throw new SetException("Set.makePointGeometry: not valid for this Set");
+  }
+
+  public VisADGeometryArray makeIsoSurface(float isolevel,
+                            float[] fieldValues, float[][] color_values)
+         throws VisADException {
+    throw new SetException("Set.makeIsoSurface: not valid for this Set");
+  }
+
+  public static double[][] floatToDouble(float[][] value) {
+    if (value == null) return null;
+    double[][] val = new double[value.length][];
+    for (int i=0; i<value.length; i++) {
+      if (value[i] == null) {
+        val[i] = null;
+      }
+      else {
+        val[i] = new double[value[i].length];
+        for (int j=0; j<value[i].length; j++) {
+          val[i][j] = value[i][j];
+        }
+      }
+    }
+    return val;
+  }
+
+  public static float[][] doubleToFloat(double[][] value) {
+    if (value == null) return null;
+    float[][] val = new float[value.length][];
+    for (int i=0; i<value.length; i++) {
+      if (value[i] == null) {
+        val[i] = null;
+      }
+      else {
+        val[i] = new float[value[i].length];
+        for (int j=0; j<value[i].length; j++) {
+          val[i][j] = (float) value[i][j];
+        }
+      }
+    }
+    return val;
   }
 
   /** test set against a cache of Set-s not equal to this */

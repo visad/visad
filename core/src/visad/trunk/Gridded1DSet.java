@@ -1,4 +1,4 @@
-
+ 
 //
 // Gridded1DSet.java
 //
@@ -33,17 +33,25 @@ import java.io.*;
 public class Gridded1DSet extends GriddedSet {
 
   int LengthX;
-  double LowX, HiX;
+  float LowX, HiX;
 
-  public Gridded1DSet(MathType type, double[][] samples, int lengthX)
+  public Gridded1DSet(MathType type, float[][] samples, int lengthX)
          throws VisADException {
     this(type, samples, lengthX, null, null, null);
   }
 
-  public Gridded1DSet(MathType type, double[][] samples, int lengthX,
+  public Gridded1DSet(MathType type, float[][] samples, int lengthX,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    super(type, samples, make_lengths(lengthX), coord_sys, units, errors);
+    this(type, samples, lengthX, coord_sys, units, errors, true);
+  }
+
+  Gridded1DSet(MathType type, float[][] samples, int lengthX,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy)
+               throws VisADException {
+    super(type, samples, make_lengths(lengthX), coord_sys, units,
+          errors, copy);
     LowX = Low[0];
     HiX = Hi[0];
     LengthX = Lengths[0];
@@ -67,14 +75,14 @@ public class Gridded1DSet extends GriddedSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
     if (Samples == null) {
       // not used - over-ridden by Linear1DSet.indexToValue
-      double[][] grid = new double[1][length];
+      float[][] grid = new float[ManifoldDimension][length];
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
-          grid[0][i] = (double) index[i];
+          grid[0][i] = (float) index[i];
         }
         else {
           grid[0][i] = -1;
@@ -83,13 +91,13 @@ public class Gridded1DSet extends GriddedSet {
       return gridToValue(grid);
     }
     else {
-      double[][] values = new double[1][length];
+      float[][] values = new float[1][length];
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
           values[0][i] = Samples[0][index[i]];
         }
         else {
-          values[0][i] = Double.NaN;
+          values[0][i] = Float.NaN;
         }
       }
       return values;
@@ -97,26 +105,26 @@ public class Gridded1DSet extends GriddedSet {
   }
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("Gridded1DSet.valueToIndex: bad dimension");
     }
     int length = value[0].length;
     int[] index = new int[length];
 
-    double[][] grid = valueToGrid(value);
-    double[] grid0 = grid[0];
-    double g;
+    float[][] grid = valueToGrid(value);
+    float[] grid0 = grid[0];
+    float g;
     for (int i=0; i<length; i++) {
       g = grid0[i];
-      index[i] = Double.isNaN(g) ? -1 : ((int) (g + 0.5));
+      index[i] = Float.isNaN(g) ? -1 : ((int) (g + 0.5));
     }
     return index;
   }
 
   /** transform an array of non-integer grid coordinates to an array
       of values in R^DomainDimension */
-  public double[][] gridToValue(double[][] grid) throws VisADException {
+  public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length < DomainDimension) {
       throw new SetException("Gridded1DSet.gridToValue: bad dimension");
     }
@@ -125,12 +133,12 @@ public class Gridded1DSet extends GriddedSet {
                              "dimensions to be > 1");
     }
     int length = grid[0].length;
-    double[][] value = new double[1][length];
+    float[][] value = new float[1][length];
     for (int i=0; i<length; i++) {
       // let g be the current grid coordinate
-      double g = grid[0][i];
+      float g = grid[0][i];
       if ( (g < -0.5) || (g > LengthX-0.5) ) {
-        value[0][i] = Double.NaN;
+        value[0][i] = Float.NaN;
         continue;
       }
       // calculate closest integer variable
@@ -138,7 +146,7 @@ public class Gridded1DSet extends GriddedSet {
       if (g < 0) ig = 0;
       else if (g >= LengthX-1) ig = LengthX - 2;
       else ig = (int) g;
-      double A = g - ig;  // distance variable
+      float A = g - ig;  // distance variable
       // do the linear interpolation
       value[0][i] = (1-A)*Samples[0][ig] + A*Samples[0][ig+1];
     }
@@ -147,7 +155,7 @@ public class Gridded1DSet extends GriddedSet {
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
-  public double[][] valueToGrid(double[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
       throw new SetException("Gridded1DSet.valueToGrid: bad dimension");
     }
@@ -156,19 +164,19 @@ public class Gridded1DSet extends GriddedSet {
                              "dimensions to be > 1");
     }
     int length = value[0].length;
-    double[][] grid = new double[1][length];
-    double gridguess = LengthX/2;
+    float[][] grid = new float[1][length];
+    float gridguess = LengthX/2;
     for (int i=0; i<length; i++) {
-      double upper = LengthX-1;
-      double lower = 0;
+      float upper = LengthX-1;
+      float lower = 0;
       // gridguess starts at previous value unless there was no solution
-      if ( (i != 0) && (Double.isNaN(grid[0][i-1])) ) {
+      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) ) {
         gridguess = LengthX/2;
       }
       // grid value should default to NaN in case the algorithm fails
-      grid[0][i] = Double.NaN;
+      grid[0][i] = Float.NaN;
       // don't try to solve missing values
-      if (Double.isNaN(value[0][i])) continue;
+      if (Float.isNaN(value[0][i])) continue;
       for (int itnum=0; itnum<LengthX; itnum++) {
         // calculate closest integer variable
         int ig;
@@ -176,10 +184,10 @@ public class Gridded1DSet extends GriddedSet {
         else if (gridguess > LengthX-2) ig = LengthX - 2;
         else ig = (int) gridguess;
         // calculate distance variables
-        double A = gridguess - ig;
-        double B = 1-A;
+        float A = gridguess - ig;
+        float B = 1-A;
         // Linear interpolation algorithm for the value of gridguess
-        double fg = B*Samples[0][ig] + A*Samples[0][ig+1];
+        float fg = B*Samples[0][ig] + A*Samples[0][ig+1];
         if (fg == value[0][i]) {
           // The guess hit it right on the mark
           grid[0][i] = gridguess;
@@ -191,10 +199,10 @@ public class Gridded1DSet extends GriddedSet {
                 || ( (ig == LengthX-2)
                   && (value[0][i] >= Samples[0][ig]) )  ) {
           // Solve with Newton's Method
-          double solv = gridguess - ((fg-value[0][i])
+          float solv = gridguess - ((fg-value[0][i])
                        /(Samples[0][ig+1]-Samples[0][ig]));
           if ( (solv > LengthX-0.5) || (solv < -0.5) ) {
-            solv = Double.NaN;
+            solv = Float.NaN;
           }
           grid[0][i] = solv;
           break;
@@ -207,11 +215,11 @@ public class Gridded1DSet extends GriddedSet {
     return grid;
   }
 
-  public double getLowX() {
+  public float getLowX() {
     return LowX;
   }
 
-  public double getHiX() {
+  public float getHiX() {
     return HiX;
   }
 
@@ -262,7 +270,7 @@ public class Gridded1DSet extends GriddedSet {
     int num_coords = Integer.parseInt(new String(chars));
 
     // Define size of Samples array
-    double[][] samp = new double[1][num_coords];
+    float[][] samp = new float[1][num_coords];
     System.out.println("num_dimensions = 1, num_coords = "+num_coords+"\n");
 
     // Skip blank line
@@ -293,7 +301,7 @@ public class Gridded1DSet extends GriddedSet {
       for (int i=0; i<l; i++) {
         chars[i] = (char) ints[i];
       }
-      samp[0][c] = (Double.valueOf(new String(chars))).doubleValue();
+      samp[0][c] = (Float.valueOf(new String(chars))).floatValue();
     }
 
     // do EOF stuff
@@ -323,27 +331,27 @@ public class Gridded1DSet extends GriddedSet {
     // Test gridToValue function
     System.out.println("\ngridToValue test:");
     int myLength = gSet1D.LengthX+1;
-    double[][] myGrid = new double[1][myLength];
+    float[][] myGrid = new float[1][myLength];
     for (int i=0; i<myLength; i++) {
-      myGrid[0][i] = i-0.5;
+      myGrid[0][i] = i-0.5f;
     }
     myGrid[0][0] += 0.1;          // don't let grid values get too
     myGrid[0][myLength-1] -= 0.1; // close to interpolation limits
-    double[][] myValue = gSet1D.gridToValue(myGrid);
+    float[][] myValue = gSet1D.gridToValue(myGrid);
     for (int i=0; i<myLength; i++) {
-        System.out.println("("+((double) Math.round(1000000
+        System.out.println("("+((float) Math.round(1000000
                                         *myGrid[0][i]) /1000000)+")\t-->  "
-                              +((double) Math.round(1000000
+                              +((float) Math.round(1000000
                                         *myValue[0][i]) /1000000));
     }
 
     // Test valueToGrid function
     System.out.println("\nvalueToGrid test:");
-    double[][] gridTwo = gSet1D.valueToGrid(myValue);
+    float[][] gridTwo = gSet1D.valueToGrid(myValue);
     for (int i=0; i<gridTwo[0].length; i++) {
-      System.out.println(((double) Math.round(1000000
+      System.out.println(((float) Math.round(1000000
                                   *myValue[0][i]) /1000000)+"  \t-->  ("
-                        +((double) Math.round(1000000
+                        +((float) Math.round(1000000
                                   *gridTwo[0][i]) /1000000)+")");
     }
     System.out.println();

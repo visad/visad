@@ -25,6 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.util.*;
 import java.rmi.*;
 
 /**
@@ -452,7 +453,7 @@ public class FlatField extends FieldImpl {
           for (int j=0; j<Length; j++) FloatRangeI[j] = (float) rangeI[j];
           break;
         case BYTE:
-          index = RangeSet[i].valueToIndex(range1);
+          index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
           ByteRange[i] = new byte[Length];
           byte[] ByteRangeI = ByteRange[i];
           for (int j=0; j<Length; j++) {
@@ -460,7 +461,7 @@ public class FlatField extends FieldImpl {
           }
           break;
         case SHORT:
-          index = RangeSet[i].valueToIndex(range1);
+          index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
           ShortRange[i] = new short[Length];
           short[] ShortRangeI = ShortRange[i];
           for (int j=0; j<Length; j++) {
@@ -468,7 +469,7 @@ public class FlatField extends FieldImpl {
           }
           break;
         case INT:
-          index = RangeSet[i].valueToIndex(range1);
+          index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
           IntRange[i] = new int[Length];
           int[] IntRangeI = IntRange[i];
           for (int j=0; j<Length; j++) {
@@ -517,7 +518,7 @@ public class FlatField extends FieldImpl {
           for (int j=0; j<Length; j++) {
             index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
           }
-          range0 = RangeSet[i].indexToValue(index);
+          range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
           range[i] = range0[0];
           break;
         case SHORT:
@@ -526,7 +527,7 @@ public class FlatField extends FieldImpl {
           for (int j=0; j<Length; j++) {
             index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
           }
-          range0 = RangeSet[i].indexToValue(index);
+          range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
           range[i] = range0[0];
           break;
         case INT:
@@ -535,7 +536,7 @@ public class FlatField extends FieldImpl {
           for (int j=0; j<Length; j++) {
             index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
           }
-          range0 = RangeSet[i].indexToValue(index);
+          range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
           range[i] = range0[0];
           break;
         default:
@@ -580,19 +581,19 @@ public class FlatField extends FieldImpl {
         case BYTE:
           inds = new int[1];
           inds[0] = ((int) ByteRange[i][index]) - MISSING1 - 1;
-          range1 = RangeSet[i].indexToValue(inds);
+          range1 = Set.floatToDouble(RangeSet[i].indexToValue(inds));
           range[i] = range1[0];
           break;
         case SHORT:
           inds = new int[1];
           inds[0] = ((int) ShortRange[i][index]) - MISSING2 - 1;
-          range1 = RangeSet[i].indexToValue(inds);
+          range1 = Set.floatToDouble(RangeSet[i].indexToValue(inds));
           range[i] = range1[0];
           break;
         case INT:
           inds = new int[1];
           inds[0] = ((int) IntRange[i][index]) - MISSING4 - 1;
-          range1 = RangeSet[i].indexToValue(inds);
+          range1 = Set.floatToDouble(RangeSet[i].indexToValue(inds));
           range[i] = range1[0];
           break;
         default:
@@ -730,14 +731,22 @@ public class FlatField extends FieldImpl {
     int[] incs = new int[TupleDimension];
 
     for (int i=0; i<TupleDimension; i++) {
+/* WLH 24 Oct 97
       incs[i] = (Double.isNaN(vals[i])) ? 0 : 1;
+*/
+      // test for missing
+      incs[i] = (vals[i] != vals[i]) ? 0 : 1;
       switch (RangeMode[i]) {
         case DOUBLE:
           if (DoubleRange[i] == null) {
             DoubleRange[i] = new double[Length];
             for (int j=0; j<Length; j++) DoubleRange[i][j] = Double.NaN;
           }
+/* WLH 24 Oct 97
           incs[i] -= (Double.isNaN(DoubleRange[i][index])) ? 0 : 1;
+*/
+          // test for missing
+          incs[i] -= (DoubleRange[i][index] != DoubleRange[i][index]) ? 0 : 1;
           DoubleRange[i][index] = vals[i];
           break;
         case FLOAT:
@@ -745,13 +754,17 @@ public class FlatField extends FieldImpl {
             FloatRange[i] = new float[Length];
             for (int j=0; j<Length; j++) FloatRange[i][j] = Float.NaN;
           }
+/* WLH 24 Oct 97
           incs[i] -= (Float.isNaN(FloatRange[i][index])) ? 0 : 1;
+*/
+          // test for missing
+          incs[i] -= (FloatRange[i][index] != FloatRange[i][index]) ? 0 : 1;
           FloatRange[i][index] = (float) vals[i];
           break;
         case BYTE:
           values = new double[1][1];
           values[0][0] = vals[i];
-          indices = RangeSet[i].valueToIndex(values);
+          indices = RangeSet[i].valueToIndex(Set.doubleToFloat(values));
           if (ByteRange[i] == null) {
             ByteRange[i] = new byte[Length];
             for (int j=0; j<Length; j++) ByteRange[i][j] = (byte) MISSING1;
@@ -762,7 +775,7 @@ public class FlatField extends FieldImpl {
         case SHORT:
           values = new double[1][1];
           values[0][0] = vals[i];
-          indices = RangeSet[i].valueToIndex(values);
+          indices = RangeSet[i].valueToIndex(Set.doubleToFloat(values));
           if (ShortRange[i] == null) {
             ShortRange[i] = new short[Length];
             for (int j=0; j<Length; j++) ShortRange[i][j] = (short) MISSING2;
@@ -773,7 +786,7 @@ public class FlatField extends FieldImpl {
         case INT:
           values = new double[1][1];
           values[0][0] = vals[i];
-          indices = RangeSet[i].valueToIndex(values);
+          indices = RangeSet[i].valueToIndex(Set.doubleToFloat(values));
           if (IntRange[i] == null) {
             IntRange[i] = new int[Length];
             for (int j=0; j<Length; j++) IntRange[i][j] = MISSING4;
@@ -1771,7 +1784,7 @@ public class FlatField extends FieldImpl {
                     RangeCoordinateSystems, sets, RangeUnits);
     if (isMissing()) return new_field;
 
-    double[][] values = unpackValues();
+    float[][] values = Set.doubleToFloat(unpackValues());
     ErrorEstimate[] range_errors_in =
       (error_mode == NO_ERRORS) ? new ErrorEstimate[TupleDimension] :
                                   RangeErrors;
@@ -1784,14 +1797,15 @@ public class FlatField extends FieldImpl {
     int[] wedge = set.getWedge();
 
     double[][] new_values = new double[TupleDimension][length];
-    double[] valuesJ, new_valuesJ;
+    double[] new_valuesJ;
+    float[] valuesJ;
 
     // get values from wedge and possibly transform coordinates
-    double[][] vals = set.indexToValue(wedge);
+    float[][] vals = set.indexToValue(wedge);
     // holder for sampling errors of transformed set; these are
     // only useful to help estmate range errors due to resampling
     ErrorEstimate[] errors_out = new ErrorEstimate[dim];
-    double[][] oldvals = vals;
+    float[][] oldvals = vals;
     vals = CoordinateSystem.transformCoordinates(
                       ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
                       DomainUnits, errors_out,
@@ -1812,16 +1826,17 @@ public class FlatField extends FieldImpl {
       }
       if (!any_range_error) sampling_errors = false;
     }
-    double[][] sampling_partials = new double[TupleDimension][dim];
-    double[][] error_values = new double[1][1];
+    float[][] sampling_partials = new float[TupleDimension][dim];
+    float[][] error_values = new float[1][1];
     if (sampling_errors) {
-      error_values = ErrorEstimate.init_error_values(errors_out);
+      error_values = Set.doubleToFloat(
+                     ErrorEstimate.init_error_values(errors_out) );
     }
 
     if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof SimpleSet) {
       // resample by interpolation
       int[][] indices = new int[length][];
-      double[][] coefs = new double[length][];
+      float[][] coefs = new float[length][];
       ((SimpleSet) DomainSet).valueToInterp(vals, indices, coefs);
 
 /* DEBUG
@@ -1843,7 +1858,7 @@ for (i=0; i<length; i++) {
         valuesJ = values[j];
         new_valuesJ = new_values[j];
         for (i=0; i<length; i++) {
-          double v = Double.NaN;
+          float v = Float.NaN;
           int len = indices[i].length;
           if (len > 0) {
             v = valuesJ[indices[i][0]] * coefs[i][0];
@@ -1860,14 +1875,14 @@ for (i=0; i<length; i++) {
 
       if (sampling_errors) {
         int[][] error_indices = new int[2 * dim][];
-        double[][] error_coefs = new double[2 * dim][];
+        float[][] error_coefs = new float[2 * dim][];
         ((SimpleSet) DomainSet).valueToInterp(error_values, error_indices,
                                               error_coefs);
 
         for (j=0; j<TupleDimension; j++) {
           for (i=0; i<dim; i++) {
-            double a = Double.NaN;
-            double b = Double.NaN;;
+            float a = Float.NaN;
+            float b = Float.NaN;;
             int len = error_indices[2*i].length;
             if (len > 0) {
               a = values[j][error_indices[2*i][0]] * error_coefs[2*i][0];
@@ -1896,7 +1911,7 @@ for (i=0; i<length; i++) {
         new_valuesJ = new_values[j];
         for (i=0; i<length; i++) {
           new_valuesJ[wedge[i]] =
-            (indices[i] >= 0) ? valuesJ[indices[i]]: Double.NaN;
+            ((indices[i] >= 0) ? valuesJ[indices[i]]: Double.NaN);
         }
       }
 
@@ -1904,10 +1919,10 @@ for (i=0; i<length; i++) {
         int[] error_indices = DomainSet.valueToIndex(error_values);
         for (j=0; j<TupleDimension; j++) {
           for (i=0; i<dim; i++) {
-            double a = (error_indices[2*i] >= 0) ?
-                       values[j][error_indices[2*i]]: Double.NaN;
-            double b = (error_indices[2*i+1] >= 0) ?
-                       values[j][error_indices[2*i+1]]: Double.NaN;
+            float a = (float) ((error_indices[2*i] >= 0) ?
+                       values[j][error_indices[2*i]]: Double.NaN);
+            float b = (float) ((error_indices[2*i+1] >= 0) ?
+                       values[j][error_indices[2*i+1]]: Double.NaN);
             sampling_partials[j][i] = Math.abs(b - a);
           }
         }
@@ -1918,13 +1933,13 @@ for (i=0; i<length; i++) {
     if (sampling_errors) {
       for (j=0; j<TupleDimension; j++) {
         if (range_errors_in[j] != null) {
-          double error = range_errors_in[j].getErrorValue();
+          float error = (float) range_errors_in[j].getErrorValue();
           if (error_mode == Data.INDEPENDENT) {
             error = error * error;
             for (i=0; i<dim; i++) {
               error += sampling_partials[j][i] * sampling_partials[j][i];
             }
-            error = Math.sqrt(error);
+            error = (float) Math.sqrt(error);
           }
           else { // error_mode == Data.DEPENDENT
             for (i=0; i<dim; i++) {
@@ -1956,7 +1971,7 @@ for (i=0; i<length; i++) {
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units, RangeCoordinateSystem,
                       range_errors_in, range_errors_out,
-                      vals, new_values);
+                      Set.floatToDouble(vals), new_values);
       }
       else if (Range instanceof TupleType && !(Range instanceof RealTupleType)) {
         int offset = 0;
@@ -1980,7 +1995,7 @@ for (i=0; i<length; i++) {
                         ((SetType) set.getType()).getDomain(), coord_sys, units,
                         RangeCoordinateSystems[j],
                         comp_errors_in, comp_errors_out,
-                        vals, comp_vals);
+                        Set.floatToDouble(vals), comp_vals);
             for (int jj=0; jj<mm; jj++) {
               new_values[offset + jj] = comp_vals[jj];
             }
@@ -2259,8 +2274,9 @@ for (i=0; i<length; i++) {
      return TupleDimension;
   }
 
-  /** used only by main for testing */
-  private static FlatField makeField1(FunctionType type,
+  /** construct a FlatField with a 2-D domain and a 1-D range;
+      used for testing */
+  static FlatField makeField1(FunctionType type,
                               double first1, double last1, int length1,
                               double first2, double last2, int length2)
           throws VisADException, RemoteException {
@@ -2285,8 +2301,9 @@ for (i=0; i<length; i++) {
     return image;
   }
 
-  /** used only by main for testing */
-  private static FlatField makeField2(FunctionType type,
+  /** construct a FlatField with a 2-D domain and a 2-D range;
+      used for testing */
+  static FlatField makeField2(FunctionType type,
                               double first1, double last1, int length1,
                               double first2, double last2, int length2)
           throws VisADException, RemoteException {
@@ -2305,6 +2322,34 @@ for (i=0; i<length; i++) {
       for (int j=0; j<length2; j++) {
         data[0][i + length1 * j] = first1 + step1 * i;
         data[1][i + length1 * j] = first2 + step2 * j;
+      }
+    }
+    image.setSamples(data);
+    return image;
+  }
+
+  /** construct a FlatField with a 2-D domain and a 2-D range
+      and random values; used for testing */
+  static FlatField makeRandomField2(FunctionType type,
+                                    double first1, double last1, int length1,
+                                    double first2, double last2, int length2)
+          throws VisADException, RemoteException {
+ 
+    double step1 = (last1 - first1) / (length1 - 1);
+    double step2 = (last2 - first2) / (length2 - 1);
+ 
+    Linear2DSet imageset =
+      new Linear2DSet(type.getDomain(), first1, last1, length1,
+                                        first2, last2, length2);
+ 
+    FlatField image = new FlatField(type, imageset);
+ 
+    Random random = new Random();
+    double[][] data = new double[2][length1 * length2];
+    for (int i=0; i<length1; i++) {
+      for (int j=0; j<length2; j++) {
+        data[0][i + length1 * j] = random.nextDouble();
+        data[1][i + length1 * j] = random.nextDouble();
       }
     }
     image.setSamples(data);

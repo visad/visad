@@ -52,7 +52,7 @@ public class Linear3DSet extends Gridded3DSet {
   public Linear3DSet(MathType type, Linear1DSet[] sets,
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors) throws VisADException {
-    super(type, (double[][]) null, sets[0].getLength(), sets[1].getLength(),
+    super(type, (float[][]) null, sets[0].getLength(), sets[1].getLength(),
           sets[2].getLength(), coord_sys, units, errors);
     if (DomainDimension != 3) {
       throw new SetException("Linear3DSet: DomainDimension must be 3");
@@ -100,12 +100,12 @@ public class Linear3DSet extends Gridded3DSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
     int[] indexX = new int[length];
     int[] indexY = new int[length];
     int[] indexZ = new int[length];
-    double[][] values = new double[3][length];
+    float[][] values = new float[3][length];
  
     for (int i=0; i<length; i++) {
       if (0 <= index[i] && index[i] < Length) {
@@ -120,9 +120,9 @@ public class Linear3DSet extends Gridded3DSet {
         indexZ[i] = -1;
       }
     }
-    double[][] valuesX = X.indexToValue(indexX);
-    double[][] valuesY = Y.indexToValue(indexY);
-    double[][] valuesZ = Z.indexToValue(indexZ);
+    float[][] valuesX = X.indexToValue(indexX);
+    float[][] valuesY = Y.indexToValue(indexY);
+    float[][] valuesZ = Z.indexToValue(indexZ);
     values[0] = valuesX[0];
     values[1] = valuesY[0];
     values[2] = valuesZ[0];
@@ -131,7 +131,7 @@ public class Linear3DSet extends Gridded3DSet {
 
   /** transform an array of non-integer grid coordinates to an array
       of values in R^3 */
-  public double[][] gridToValue(double[][] grid) throws VisADException {
+  public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != 3) {
       throw new SetException("Linear3DSet.gridToValue: bad dimension");
     }
@@ -140,16 +140,16 @@ public class Linear3DSet extends Gridded3DSet {
                              "dimensions to be > 1");
     }
     int length = grid[0].length;
-    double[][] gridX = new double[1][];
+    float[][] gridX = new float[1][];
     gridX[0] = grid[0];
-    double[][] gridY = new double[1][];
+    float[][] gridY = new float[1][];
     gridY[0] = grid[1];
-    double[][] gridZ = new double[1][];
+    float[][] gridZ = new float[1][];
     gridZ[0] = grid[2];
-    double[][] valueX = X.gridToValue(gridX);
-    double[][] valueY = Y.gridToValue(gridY);
-    double[][] valueZ = Z.gridToValue(gridZ);
-    double[][] value = new double[3][];
+    float[][] valueX = X.gridToValue(gridX);
+    float[][] valueY = Y.gridToValue(gridY);
+    float[][] valueZ = Z.gridToValue(gridZ);
+    float[][] value = new float[3][];
     value[0] = valueX[0];
     value[1] = valueY[0];
     value[2] = valueZ[0];
@@ -158,7 +158,7 @@ public class Linear3DSet extends Gridded3DSet {
 
   /** transform an array of values in R^3 to an array
       of non-integer grid coordinates */
-  public double[][] valueToGrid(double[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length != 3) {
       throw new SetException("Linear3DSet.valueToGrid: bad dimension");
     }
@@ -167,16 +167,16 @@ public class Linear3DSet extends Gridded3DSet {
                              "dimensions to be > 1");
     }
     int length = value[0].length;
-    double[][] valueX = new double[1][];
+    float[][] valueX = new float[1][];
     valueX[0] = value[0];
-    double[][] valueY = new double[1][];
+    float[][] valueY = new float[1][];
     valueY[0] = value[1];
-    double[][] valueZ = new double[1][];
+    float[][] valueZ = new float[1][];
     valueZ[0] = value[2];
-    double[][] gridX = X.valueToGrid(valueX);
-    double[][] gridY = Y.valueToGrid(valueY);
-    double[][] gridZ = Z.valueToGrid(valueZ);
-    double[][] grid = new double[3][];
+    float[][] gridX = X.valueToGrid(valueX);
+    float[][] gridY = Y.valueToGrid(valueY);
+    float[][] gridZ = Z.valueToGrid(valueZ);
+    float[][] grid = new float[3][];
     grid[0] = gridX[0];
     grid[1] = gridY[0];
     grid[2] = gridZ[0];
@@ -201,6 +201,14 @@ public class Linear3DSet extends Gridded3DSet {
 
   public boolean isLinearSet() {
     return true;
+  }
+
+  float[][] getSamples(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    // do NOT call getWedge
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToValue(indices);
   }
 
   public boolean equals(Object set) {

@@ -25,6 +25,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import javax.media.j3d.*;
+import java.vecmath.*;
+
 import java.io.*;
 
 /**
@@ -33,19 +36,28 @@ import java.io.*;
 public class Gridded3DSet extends GriddedSet {
 
   int LengthX, LengthY, LengthZ;
-  double LowX, HiX, LowY, HiY, LowZ, HiZ;
+  float LowX, HiX, LowY, HiY, LowZ, HiZ;
 
-  public Gridded3DSet(MathType type, double[][] samples, int lengthX,
+  public Gridded3DSet(MathType type, float[][] samples, int lengthX,
                       int lengthY, int lengthZ) throws VisADException {
     this(type, samples, lengthX, lengthY, lengthZ, null, null, null);
   }
 
-  public Gridded3DSet(MathType type, double[][] samples,
+  public Gridded3DSet(MathType type, float[][] samples,
                       int lengthX, int lengthY, int lengthZ,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, lengthX, lengthY, lengthZ, coord_sys,
+         units, errors, true);
+  }
+
+  Gridded3DSet(MathType type, float[][] samples,
+               int lengthX, int lengthY, int lengthZ,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy)
+               throws VisADException {
     super(type, samples, make_lengths(lengthX, lengthY, lengthZ),
-          coord_sys, units, errors);
+          coord_sys, units, errors, copy);
     LowX = Low[0];
     HiX = Hi[0];
     LengthX = Lengths[0];
@@ -59,14 +71,14 @@ public class Gridded3DSet extends GriddedSet {
     if (Samples != null &&
         Lengths[0] > 1 && Lengths[1] > 1 && Lengths[2] > 1) {
       // Samples consistency test
-      double[] t000 = new double[3];
-      double[] t100 = new double[3];
-      double[] t010 = new double[3];
-      double[] t001 = new double[3];
-      double[] t110 = new double[3];
-      double[] t101 = new double[3];
-      double[] t011 = new double[3];
-      double[] t111 = new double[3];
+      float[] t000 = new float[3];
+      float[] t100 = new float[3];
+      float[] t010 = new float[3];
+      float[] t001 = new float[3];
+      float[] t110 = new float[3];
+      float[] t101 = new float[3];
+      float[] t011 = new float[3];
+      float[] t111 = new float[3];
       for (int v=0; v<3; v++) {
         t000[v] = Samples[v][0];
         t100[v] = Samples[v][1];
@@ -89,14 +101,14 @@ public class Gridded3DSet extends GriddedSet {
       for (int k=0; k<LengthZ-1; k++) {
         for (int j=0; j<LengthY-1; j++) {
           for (int i=0; i<LengthX-1; i++) {
-            double[] v000 = new double[3];
-            double[] v100 = new double[3];
-            double[] v010 = new double[3];
-            double[] v001 = new double[3];
-            double[] v110 = new double[3];
-            double[] v101 = new double[3];
-            double[] v011 = new double[3];
-            double[] v111 = new double[3];
+            float[] v000 = new float[3];
+            float[] v100 = new float[3];
+            float[] v010 = new float[3];
+            float[] v001 = new float[3];
+            float[] v110 = new float[3];
+            float[] v101 = new float[3];
+            float[] v011 = new float[3];
+            float[] v111 = new float[3];
             for (int v=0; v<3; v++) {
               int zadd = LengthY*LengthX;
               int base = k*zadd + j*LengthX + i;
@@ -190,6 +202,70 @@ public class Gridded3DSet extends GriddedSet {
     }
   }
 
+  /** construct Gridded3DSet with ManifoldDimension = 2 */
+  public Gridded3DSet(MathType type, float[][] samples, int lengthX,
+                      int lengthY) throws VisADException {
+    this(type, samples, lengthX, lengthY, null, null, null);
+  }
+ 
+  /** construct Gridded3DSet with ManifoldDimension = 2 */
+  public Gridded3DSet(MathType type, float[][] samples,
+                      int lengthX, int lengthY,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, lengthX, lengthY, coord_sys, units,
+         errors, true);
+  }
+
+  Gridded3DSet(MathType type, float[][] samples,
+               int lengthX, int lengthY,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy)
+               throws VisADException {
+    super(type, samples, Gridded2DSet.make_lengths(lengthX, lengthY),
+          coord_sys, units, errors, copy);
+    LowX = Low[0];
+    HiX = Hi[0];
+    LengthX = Lengths[0];
+    LowY = Low[1];
+    HiY = Hi[1];
+    LengthY = Lengths[1];
+    LowZ = Low[2];
+    HiZ = Hi[2];
+ 
+    // no Samples consistency test
+  }
+
+  /** construct Gridded3DSet with ManifoldDimension = 1 */
+  public Gridded3DSet(MathType type, float[][] samples, int lengthX)
+         throws VisADException {
+    this(type, samples, lengthX, null, null, null);
+  }
+ 
+  /** construct Gridded3DSet with ManifoldDimension = 1 */
+  public Gridded3DSet(MathType type, float[][] samples, int lengthX,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, lengthX, coord_sys, units, errors, true);
+  }
+
+  Gridded3DSet(MathType type, float[][] samples, int lengthX,
+               CoordinateSystem coord_sys, Unit[] units,
+               ErrorEstimate[] errors, boolean copy)
+               throws VisADException {
+    super(type, samples, Gridded1DSet.make_lengths(lengthX),
+          coord_sys, units, errors, copy);
+    LowX = Low[0];
+    HiX = Hi[0];
+    LengthX = Lengths[0];
+    LowY = Low[1];
+    HiY = Hi[1];
+    LowZ = Low[2];
+    HiZ = Hi[2];
+ 
+    // no Samples consistency test
+  }
+
   static int[] make_lengths(int lengthX, int lengthY, int lengthZ) {
     int[] lens = new int[3];
     lens[0] = lengthX;
@@ -199,13 +275,13 @@ public class Gridded3DSet extends GriddedSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
     if (Samples == null) {
       // not used - over-ridden by Linear3DSet.indexToValue
       int indexX, indexY, indexZ;
       int k;
-      double[][] grid = new double[3][length];
+      float[][] grid = new float[ManifoldDimension][length];
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
           indexX = index[i] % LengthX;
@@ -218,14 +294,14 @@ public class Gridded3DSet extends GriddedSet {
           indexY = -1;
           indexZ = -1;
         }
-        grid[0][i] = (double) indexX;
-        grid[1][i] = (double) indexY;
-        grid[2][i] = (double) indexZ;
+        grid[0][i] = (float) indexX;
+        grid[1][i] = (float) indexY;
+        grid[2][i] = (float) indexZ;
       }
       return gridToValue(grid);
     }
     else {
-      double[][] values = new double[3][length];
+      float[][] values = new float[3][length];
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
           values[0][i] = Samples[0][index[i]];
@@ -233,9 +309,9 @@ public class Gridded3DSet extends GriddedSet {
           values[2][i] = Samples[2][index[i]];
         }
         else {
-          values[0][i] = Double.NaN;
-          values[1][i] = Double.NaN;
-          values[2][i] = Double.NaN;
+          values[0][i] = Float.NaN;
+          values[1][i] = Float.NaN;
+          values[2][i] = Float.NaN;
         }
       }
       return values;
@@ -243,25 +319,29 @@ public class Gridded3DSet extends GriddedSet {
   }
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("Gridded3DSet.valueToIndex: bad dimension");
     }
     int length = value[0].length;
     int[] index = new int[length];
 
-    double[][] grid = valueToGrid(value);
-    double[] grid0 = grid[0];
-    double[] grid1 = grid[1];
-    double[] grid2 = grid[2];
-    double g0, g1, g2;
+    float[][] grid = valueToGrid(value);
+    float[] grid0 = grid[0];
+    float[] grid1 = grid[1];
+    float[] grid2 = grid[2];
+    float g0, g1, g2;
     for (int i=0; i<length; i++) {
       g0 = grid0[i];
       g1 = grid1[i];
       g2 = grid2[i];
-      index[i] = (Double.isNaN(g0)
-               || Double.isNaN(g1)
-               || Double.isNaN(g2)) ? -1 :
+/* WLH 24 Oct 97
+      index[i] = (Float.isNaN(g0)
+               || Float.isNaN(g1)
+               || Float.isNaN(g2)) ? -1 :
+*/
+      // test for missing
+      index[i] = (g0 != g0 || g1 != g1 || g2 != g2) ? 1 :
                  ((int) (g0 + 0.5)) + LengthX*( ((int) (g1 + 0.5)) +
                   LengthY*((int) (g2 + 0.5)));
     }
@@ -270,9 +350,13 @@ public class Gridded3DSet extends GriddedSet {
 
   /** transform an array of non-integer grid coordinates to an array
       of values in R^DomainDimension */
-  public double[][] gridToValue(double[][] grid) throws VisADException {
-    if (grid.length < DomainDimension) {
+  public float[][] gridToValue(float[][] grid) throws VisADException {
+    if (grid.length != ManifoldDimension) {
       throw new SetException("Gridded3DSet.gridToValue: bad dimension");
+    }
+    if (ManifoldDimension < 3) {
+      throw new SetException("Gridded3DSet.gridToValue: ManifoldDimension " +
+                             "must be 3");
     }
     if (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2) {
       throw new SetException("Gridded3DSet.gridToValue: requires all grid " +
@@ -281,15 +365,15 @@ public class Gridded3DSet extends GriddedSet {
     // avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int length = Math.min(grid[0].length, grid[1].length);
     length = Math.min(length, grid[2].length);
-    double[][] value = new double[3][length];
+    float[][] value = new float[3][length];
     for (int i=0; i<length; i++) {
       // let gx, gy, and gz be the current grid values
-      double gx = grid[0][i];
-      double gy = grid[1][i];
-      double gz = grid[2][i];
+      float gx = grid[0][i];
+      float gy = grid[1][i];
+      float gz = grid[2][i];
       if ( (gx < -0.5)        || (gy < -0.5)        || (gz < -0.5) ||
            (gx > LengthX-0.5) || (gy > LengthY-0.5) || (gz > LengthZ-0.5) ) {
-        value[0][i] = value[1][i] = value[2][i] = Double.NaN;
+        value[0][i] = value[1][i] = value[2][i] = Float.NaN;
         continue;
       }
       // calculate closest integer variables
@@ -308,7 +392,7 @@ public class Gridded3DSet extends GriddedSet {
       boolean evencube = ((igx+igy+igz) % 2 == 0);
 
       // calculate distances from integer grid point 
-      double s, t, u;
+      float s, t, u;
       if (evencube) {
         s = gx - igx;
         t = gy - igy;
@@ -331,14 +415,14 @@ public class Gridded3DSet extends GriddedSet {
       int fi = base+1;               // 1, 0, 0
       int gi = base+LengthX+1;       // 1, 1, 0
       int hi = base+LengthX;         // 0, 1, 0
-      double[] A = new double[3];
-      double[] B = new double[3];
-      double[] C = new double[3];
-      double[] D = new double[3];
-      double[] E = new double[3];
-      double[] F = new double[3];
-      double[] G = new double[3];
-      double[] H = new double[3];
+      float[] A = new float[3];
+      float[] B = new float[3];
+      float[] C = new float[3];
+      float[] D = new float[3];
+      float[] E = new float[3];
+      float[] F = new float[3];
+      float[] G = new float[3];
+      float[] H = new float[3];
       if (evencube) {
         A[0] = Samples[0][ai];
         A[1] = Samples[1][ai];
@@ -480,9 +564,13 @@ public class Gridded3DSet extends GriddedSet {
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
-  public double[][] valueToGrid(double[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
       throw new SetException("Gridded3DSet.valueToGrid: bad dimension");
+    }
+    if (ManifoldDimension < 3) {
+      throw new SetException("Gridded3DSet.valueToGrid: ManifoldDimension " +
+                             "must be 3");
     }
     if (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2) {
       throw new SetException("Gridded3DSet.valueToGrid: requires all grid " +
@@ -491,7 +579,7 @@ public class Gridded3DSet extends GriddedSet {
     // Avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int length = Math.min(value[0].length, value[1].length);
     length = Math.min(length, value[2].length);
-    double[][] grid = new double[3][length];
+    float[][] grid = new float[ManifoldDimension][length];
     // (gx, gy, gz) is the current grid box guess
     int gx = (LengthX-1)/2;
     int gy = (LengthY-1)/2;
@@ -500,14 +588,18 @@ public class Gridded3DSet extends GriddedSet {
       // a flag indicating whether point is off the grid
       boolean offgrid = false;
       // the first guess should be the last box unless there was no solution
-      if ( (i != 0) && (Double.isNaN(grid[0][i-1])) ) {
+/* WLH 24 Oct 97
+      if ( (i != 0) && (Float.isNaN(grid[0][i-1])) ) {
+*/
+      // test for missing
+      if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
         gx = (LengthX-1)/2;
         gy = (LengthY-1)/2;
         gz = (LengthZ-1)/2;
       } 
       int tetnum = 5;  // Tetrahedron number in which to start search
       // if the iteration loop fails, the result should be NaN
-      grid[0][i] = grid[1][i] = grid[2][i] = Double.NaN;
+      grid[0][i] = grid[1][i] = grid[2][i] = Float.NaN;
       for (int itnum=0; itnum<2*(LengthX+LengthY+LengthZ); itnum++) { 
         // determine tetrahedralization type
         boolean evencube = ((gx+gy+gz) % 2 == 0);
@@ -523,14 +615,14 @@ public class Gridded3DSet extends GriddedSet {
         int fi = base+1;               // 1, 0, 0
         int gi = base+LengthX+1;       // 1, 1, 0
         int hi = base+LengthX;         // 0, 1, 0
-        double[] A = new double[3];
-        double[] B = new double[3];
-        double[] C = new double[3];
-        double[] D = new double[3];
-        double[] E = new double[3];
-        double[] F = new double[3];
-        double[] G = new double[3];
-        double[] H = new double[3];
+        float[] A = new float[3];
+        float[] B = new float[3];
+        float[] C = new float[3];
+        float[] D = new float[3];
+        float[] E = new float[3];
+        float[] F = new float[3];
+        float[] G = new float[3];
+        float[] H = new float[3];
         if (evencube) {
           A[0] = Samples[0][ai];
           A[1] = Samples[1][ai];
@@ -586,7 +678,7 @@ public class Gridded3DSet extends GriddedSet {
 
         // Compute tests and go to a new box depending on results
         boolean test1, test2, test3, test4;
-        double tval1, tval2, tval3, tval4;
+        float tval1, tval2, tval3, tval4;
         int ogx = gx;
         int ogy = gy;
         int ogz = gz;
@@ -638,12 +730,12 @@ public class Gridded3DSet extends GriddedSet {
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
+            float[] M = new float[3];
+            float[] N = new float[3];
+            float[] O = new float[3];
+            float[] P = new float[3];
+            float[] X = new float[3];
+            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (F[j]-E[j])*(A[(j+1)%3]-E[(j+1)%3])
                    - (F[(j+1)%3]-E[(j+1)%3])*(A[j]-E[j]);
@@ -660,7 +752,7 @@ public class Gridded3DSet extends GriddedSet {
                    - value[(j+1)%3][i]*(A[j]-E[j])
                    + E[(j+1)%3]*A[j] - E[j]*A[(j+1)%3];
             }
-            double s, t, u;
+            float s, t, u;
             // these if statements handle skewed grids
             if (M[0]*P[0] != N[0]*O[0]) {
               s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
@@ -749,12 +841,12 @@ public class Gridded3DSet extends GriddedSet {
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
+            float[] M = new float[3];
+            float[] N = new float[3];
+            float[] O = new float[3];
+            float[] P = new float[3];
+            float[] X = new float[3];
+            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (A[j]-B[j])*(F[(j+1)%3]-B[(j+1)%3])
                    - (A[(j+1)%3]-B[(j+1)%3])*(F[j]-B[j]);
@@ -771,7 +863,7 @@ public class Gridded3DSet extends GriddedSet {
                    - value[1][i]*(F[j]-B[j])
                    + B[(j+1)%3]*F[j] - B[j]*F[(j+1)%3];
             }
-            double s, t, u;
+            float s, t, u;
             // these if statements handle skewed grids
             if (M[0]*P[0] != N[0]*O[0]) {
               s = 1 - (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
@@ -860,12 +952,12 @@ public class Gridded3DSet extends GriddedSet {
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
+            float[] M = new float[3];
+            float[] N = new float[3];
+            float[] O = new float[3];
+            float[] P = new float[3];
+            float[] X = new float[3];
+            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (C[j]-D[j])*(H[(j+1)%3]-D[(j+1)%3])
                    - (C[(j+1)%3]-D[(j+1)%3])*(H[j]-D[j]);
@@ -882,7 +974,7 @@ public class Gridded3DSet extends GriddedSet {
                    - value[(j+1)%3][i]*(H[j]-D[j])
                    + D[(j+1)%3]*H[j] - D[j]*H[(j+1)%3];
             }
-            double s, t, u;
+            float s, t, u;
             // these if statements handle skewed grids
             if (M[0]*P[0] != N[0]*O[0]) {
               s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
@@ -971,12 +1063,12 @@ public class Gridded3DSet extends GriddedSet {
           if (  ( (gx == ogx) && (gy == ogy) && (gz == ogz) )
                 || offgrid) {
             // solve point
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
+            float[] M = new float[3];
+            float[] N = new float[3];
+            float[] O = new float[3];
+            float[] P = new float[3];
+            float[] X = new float[3];
+            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (H[j]-G[j])*(C[(j+1)%3]-G[(j+1)%3])
                    - (H[(j+1)%3]-G[(j+1)%3])*(C[j]-G[j]);
@@ -993,7 +1085,7 @@ public class Gridded3DSet extends GriddedSet {
                    - value[(j+1)%3][i]*(C[j]-G[j])
                    + G[(j+1)%3]*C[j] - G[j]*C[(j+1)%3];
             }
-            double s, t, u;
+            float s, t, u;
             // these if statements handle skewed grids
             if (M[0]*P[0] != N[0]*O[0]) {
               s = 1 - (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
@@ -1133,16 +1225,16 @@ public class Gridded3DSet extends GriddedSet {
           // If all tests pass then this is the correct tetrahedron
           if ( (gx == ogx) && (gy == ogy) && (gz == ogz) && (tetnum == 5) ) {
             // solve point
-            double[] Q = new double[3];
+            float[] Q = new float[3];
             for (int j=0; j<3; j++) {
               Q[j] = (H[j] + F[j] + A[j] - C[j])/2;
             }
-            double[] M = new double[3];
-            double[] N = new double[3];
-            double[] O = new double[3];
-            double[] P = new double[3];
-            double[] X = new double[3];
-            double[] Y = new double[3];
+            float[] M = new float[3];
+            float[] N = new float[3];
+            float[] O = new float[3];
+            float[] P = new float[3];
+            float[] X = new float[3];
+            float[] Y = new float[3];
             for (int j=0; j<3; j++) {
               M[j] = (F[j]-Q[j])*(A[(j+1)%3]-Q[(j+1)%3])
                    - (F[(j+1)%3]-Q[(j+1)%3])*(A[j]-Q[j]);
@@ -1159,7 +1251,7 @@ public class Gridded3DSet extends GriddedSet {
                    - value[(j+1)%3][i]*(A[j]-Q[j])
                    + Q[(j+1)%3]*A[j] - Q[j]*A[(j+1)%3];
             }
-            double s, t, u;
+            float s, t, u;
             // these if statements handle skewed grids
             if (M[0]*P[0] != N[0]*O[0]) {
               s = (N[0]*X[0] + P[0]*Y[0])/(M[0]*P[0] - N[0]*O[0]); 
@@ -1203,16 +1295,1952 @@ public class Gridded3DSet extends GriddedSet {
       if ( (grid[0][i] < -0.5) || (grid[0][i] > LengthX-0.5)
         || (grid[1][i] < -0.5) || (grid[1][i] > LengthY-0.5) 
         || (grid[2][i] < -0.5) || (grid[2][i] > LengthZ-0.5) ) {
-        grid[0][i] = grid[1][i] = grid[2][i] = Double.NaN;
+        grid[0][i] = grid[1][i] = grid[2][i] = Float.NaN;
       }
     }
     return grid;
   }
 
+  /** constants for isosurface, etc */
+  static final int BIG_NEG = (int) -2e+9;
+  static final float EPS_0 = (float) 1.0e-5;
+
+  static final boolean  TRUE = true;
+  static final boolean  FALSE = false;
+  static final int  MASK = 0x0F;
+  static final int MAX_FLAG_NUM = 317;
+  static final int SF_6B = 0;
+  static final int SF_6D = 6;
+  static final int SF_79 = 12;
+  static final int SF_97 = 18;
+  static final int SF_9E = 24;
+  static final int SF_B6 = 30;
+  static final int SF_D6 = 36;
+  static final int SF_E9 = 42;
+  static final int Zp = 0;
+  static final int Zn = 1;
+  static final int Yp = 2;
+  static final int Yn = 3;
+  static final int Xp = 4;
+  static final int Xn = 5;
+  static final int incZn = 0;
+  static final int incYn = 8;
+  static final int incXn = 16;
+
+  static final int pol_edges[][] =
+  {
+    {  0x0,    0,   0x0,   0x0,     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1,    1,   0x3,   0xe,     1, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1,    1,   0x3,   0x32,    4, 5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0x3c,    2, 4, 5, 3, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1,    1,   0x3,   0xc4,    2, 7, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0xca,    6, 1, 3, 7, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0xf6,    1, 4, 5, 2, 7, 6, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0xf8,    4, 5, 3, 7, 6, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1,    1,   0x3,   0x150,   6, 8, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x15e,   4, 6, 8, 1, 3, 2, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0x162,   1, 6, 8, 5, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x16c,   6, 8, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0x194,   4, 2, 7, 8, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x19a,   1, 3, 7, 8, 4, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x1a6,   2, 7, 8, 5, 1, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf,    1,   0x4,   0x1a8,   5, 3, 7, 8, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1,    1,   0x3,   0x608,   3, 9,10, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0x606,  10, 2, 1, 9, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x63a,   3, 9,10, 1, 4, 5, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x634,   9,10, 2, 4, 5, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x6cc,   2, 7, 6, 3, 9,10, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x6c2,   7, 6, 1, 9,10, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x16,   3,   0x333, 0x6fe,   1, 4, 5, 2, 7, 6, 3, 9,10, 0, 0, 0  },
+    {  0x17,   1,   0x6,   0x6f0,   5, 9,10, 7, 6, 4, 0, 0, 0, 0, 0, 0  },
+    {  0x18,   2,   0x33,  0x758,   3, 9,10, 4, 6, 8, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x756,   1, 9,10, 2, 4, 6, 8, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x76a,   1, 6, 8, 5, 3, 9,10, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0x764,   2, 6, 8, 5, 9,10, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x79c,   7, 8, 4, 2,10, 3, 9, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0x792,   1, 9,10, 7, 8, 4, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x7ae,   3, 9,10, 2, 7, 8, 5, 1, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x7a0,  10, 7, 8, 5, 9, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1,    1,   0x3,   0xa20,   9, 5,11, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0xa2e,   1, 3, 2, 5,11, 9, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0xa12,   4,11, 9, 1, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0xa1c,   3, 2, 4,11, 9, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x18,   2,   0x33,  0xae4,   5,11, 9, 6, 2, 7, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0xaea,   3, 7, 6, 1, 9, 5,11, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0xad6,   4,11, 9, 1, 6, 2, 7, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0xad8,   3, 7, 6, 4,11, 9, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0xb70,   5,11, 9, 4, 6, 8, 0, 0, 0, 0, 0, 0  },
+    {  0x16,   3,   0x333, 0xb7e,   4, 6, 8, 1, 3, 2, 5,11, 9, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0xb42,  11, 9, 1, 6, 8, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x17,   1,   0x6,   0xb4c,   8,11, 9, 3, 2, 6, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0xbb4,   4, 2, 7, 8, 5,11, 9, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0xbba,   5,11, 9, 1, 3, 7, 8, 4, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0xb86,   1, 2, 7, 8,11, 9, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0xb88,   9, 3, 7, 8,11, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0xc28,  11,10, 3, 5, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0xc26,   5,11,10, 2, 1, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0xc1a,   1, 4,11,10, 3, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf,    1,   0x4,   0xc14,   2, 4,11,10, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0xcec,   3, 5,11,10, 2, 7, 6, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0xce2,  10, 7, 6, 1, 5,11, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0xcde,   2, 7, 6, 1, 4,11,10, 3, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0xcd0,   6, 4,11,10, 7, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0xd78,  11,10, 3, 5, 8, 4, 6, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0xd76,   4, 6, 8, 5,11,10, 2, 1, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0xd4a,   1, 6, 8,11,10, 3, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0xd44,   8,11,10, 2, 6, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x3c,   2,   0x44,  0xdbc,   4, 2, 7, 8, 5,11,10, 3, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0xdb2,   8,11,10, 7, 4, 1, 5, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0xd8e,  10, 7, 8,11, 3, 1, 2, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0xd80,  10, 7, 8,11, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1,    1,   0x3,   0x1480, 10,12, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x148e,  3, 2, 1,10,12, 7, 0, 0, 0, 0, 0, 0  },
+    {  0x18,   2,   0x33,  0x14b2,  7,10,12, 1, 4, 5, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x14bc,  2, 4, 5, 3, 7,10,12, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0x1444,  2,10,12, 6, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x144a, 10,12, 6, 1, 3, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x1476,  2,10,12, 6, 1, 4, 5, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0x1478,  6, 4, 5, 3,10,12, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x15d0,  6, 8, 4, 7,10,12, 0, 0, 0, 0, 0, 0  },
+    {  0x16,   3,   0x333, 0x15de,  2, 1, 3, 6, 8, 4, 7,10,12, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x15e2,  8, 5, 1, 6,12, 7,10, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x15ec,  7,10,12, 6, 8, 5, 3, 2, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x1514,  8, 4, 2,10,12, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x17,   1,   0x6,   0x151a,  3,10,12, 8, 4, 1, 0, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0x1526,  2,10,12, 8, 5, 1, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x1528, 12, 8, 5, 3,10, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0x1288,  7, 3, 9,12, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x1286,  2, 1, 9,12, 7, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x12ba,  9,12, 7, 3, 5, 1, 4, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0x12b4,  9,12, 7, 2, 4, 5, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x124c,  3, 9,12, 6, 2, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf,    1,   0x4,   0x1242,  1, 9,12, 6, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x127e,  1, 4, 5, 3, 9,12, 6, 2, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x1270,  5, 9,12, 6, 4, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x13d8,  7, 3, 9,12, 6, 8, 4, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x13d6,  6, 8, 4, 2, 1, 9,12, 7, 0, 0, 0, 0  },
+    {  0x3c,   2,   0x44,  0x13ea,  1, 6, 8, 5, 3, 9,12, 7, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x13e4, 12, 8, 5, 9, 7, 2, 6, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0x131c,  2, 3, 9,12, 8, 4, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x1312,  4, 1, 9,12, 8, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x132e,  5, 9,12, 8, 1, 2, 3, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0x1320,  5, 9,12, 8, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x1ea0, 10,12, 7, 9, 5,11, 0, 0, 0, 0, 0, 0  },
+    {  0x16,   3,   0x333, 0x1eae,  3, 2, 1,10,12, 7, 9, 5,11, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x1e92,  9, 1, 4,11,10,12, 7, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x1e9c, 10,12, 7, 3, 2, 4,11, 9, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x1e64, 12, 6, 2,10,11, 9, 5, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x1e6a,  9, 5,11,10,12, 6, 1, 3, 0, 0, 0, 0  },
+    {  0x3c,   2,   0x44,  0x1e56,  2,10,12, 6, 1, 4,11, 9, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x1e58, 11,12, 6, 4, 9, 3,10, 0, 0, 0, 0, 0  },
+    {  0x16,   3,   0x333, 0x1ff0, 11, 9, 5,12, 7,10, 8, 4, 6, 0, 0, 0  },
+    {  0x69,   4,   0x3333,0x1ffe,  1, 3, 2, 6, 8, 4, 9, 5,11,10,12, 7  },
+    {  0x1e,   2,   0x53,  0x1fc2, 12, 7,10,11, 9, 1, 6, 8, 0, 0, 0, 0  },
+    {  0xe9,   3,   0x333, 0x1fcc, 12, 8,11,10, 9, 3, 7, 2, 6, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x1f34, 11, 9, 5, 8, 4, 2,10,12, 0, 0, 0, 0  },
+    {  0xe9,   3,   0x333, 0x1f3a,  5, 4, 1, 9, 3,10,11,12, 8, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x1f06, 10, 9, 1, 2,12, 8,11, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x1f08,  9, 3,10,11,12, 8, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x18a8, 12, 7, 3, 5,11, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x17,   1,   0x6,   0x18a6,  1, 5,11,12, 7, 2, 0, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0x189a, 11,12, 7, 3, 1, 4, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x1894,  7, 2, 4,11,12, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0x186c, 12, 6, 2, 3, 5,11, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x1862, 11,12, 6, 1, 5, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x185e,  6, 4,11,12, 2, 3, 1, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0x1850, 11,12, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x19f8,  8, 4, 6,12, 7, 3, 5,11, 0, 0, 0, 0  },
+    {  0xe9,   3,   0x333, 0x19f6,  6, 7, 2, 4, 1, 5, 8,11,12, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x19ca,  6, 7, 3, 1, 8,11,12, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x19c4,  8,11,12, 6, 7, 2, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x193c,  5, 4, 2, 3,11,12, 8, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x1932, 11,12, 8, 5, 4, 1, 0, 0, 0, 0, 0, 0  },
+    {  0xe7,   2,   0x33,  0x190e,  3, 1, 2,12, 8,11, 0, 0, 0, 0, 0, 0  },
+    {  0xfe,   1,   0x3,   0x1900, 11,12, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1,    1,   0x3,   0x1900, 11, 8,12, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x18,   2,   0x33,  0x190e,  8,12,11, 2, 1, 3, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x1932, 11, 8,12, 5, 1, 4, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x193c,  5, 3, 2, 4,11, 8,12, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x19c4,  8,12,11, 6, 2, 7, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x19ca,  6, 1, 3, 7, 8,12,11, 0, 0, 0, 0, 0  },
+    {  0x16,   3,   0x333, 0x19f6,  6, 2, 7, 4, 5, 1, 8,12,11, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x19f8,  8,12,11, 4, 5, 3, 7, 6, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0x1850, 11, 4, 6,12, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x185e,  6,12,11, 4, 2, 1, 3, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x1862,  5, 1, 6,12,11, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0x186c,  6,12,11, 5, 3, 2, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x1894, 12,11, 4, 2, 7, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0x189a,  4, 1, 3, 7,12,11, 0, 0, 0, 0, 0, 0  },
+    {  0x17,   1,   0x6,   0x18a6,  7,12,11, 5, 1, 2, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x18a8, 11, 5, 3, 7,12, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x6,    2,   0x33,  0x1f08,  9,10, 3,11, 8,12, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x1f06, 10, 2, 1, 9,12,11, 8, 0, 0, 0, 0, 0  },
+    {  0x16,   3,   0x333, 0x1f3a,  9,10, 3,11, 8,12, 5, 1, 4, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x1f34, 11, 8,12, 9,10, 2, 4, 5, 0, 0, 0, 0  },
+    {  0x16,   3,   0x333, 0x1fcc, 10, 3, 9, 7, 6, 2,12,11, 8, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x1fc2, 12,11, 8, 7, 6, 1, 9,10, 0, 0, 0, 0  },
+    {  0x69,   4,   0x3333,0x1ffe,  4, 5, 1, 2, 7, 6,11, 8,12, 9,10, 3  },
+    {  0xe9,   3,   0x333, 0x1ff0, 11, 5, 9,12,10, 7, 8, 6, 4, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x1e58, 11, 4, 6,12, 9,10, 3, 0, 0, 0, 0, 0  },
+    {  0x3c,   2,   0x44,  0x1e56, 10, 2, 1, 9,12,11, 4, 6, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x1e6a,  9,10, 3, 5, 1, 6,12,11, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x1e64, 12,10, 2, 6,11, 5, 9, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x1e9c, 10, 3, 9,12,11, 4, 2, 7, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x1e92,  9,11, 4, 1,10, 7,12, 0, 0, 0, 0, 0  },
+    {  0xe9,   3,   0x333, 0x1eae, 10, 7,12, 9,11, 5, 3, 1, 2, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x1ea0, 11, 5, 9,12,10, 7, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0x1320, 12, 9, 5, 8, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x132e,  5, 8,12, 9, 1, 3, 2, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x1312,  8,12, 9, 1, 4, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0x131c,  4, 8,12, 9, 3, 2, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0x13e4, 12, 9, 5, 8, 7, 6, 2, 0, 0, 0, 0, 0  },
+    {  0x3c,   2,   0x44,  0x13ea,  6, 1, 3, 7, 8,12, 9, 5, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x13d6,  6, 2, 7, 8,12, 9, 1, 4, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x13d8,  7,12, 9, 3, 6, 4, 8, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x1270,  4, 6,12, 9, 5, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x127e,  1, 3, 2, 4, 6,12, 9, 5, 0, 0, 0, 0  },
+    {  0xf,    1,   0x4,   0x1242,  9, 1, 6,12, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x124c,  2, 6,12, 9, 3, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0x12b4, 12, 9, 5, 4, 2, 7, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x12ba,  9, 3, 7,12, 5, 4, 1, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x1286,  7,12, 9, 1, 2, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0x1288,  7,12, 9, 3, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x1528, 10, 3, 5, 8,12, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0x1526,  5, 8,12,10, 2, 1, 0, 0, 0, 0, 0, 0  },
+    {  0x17,   1,   0x6,   0x151a,  3, 1, 4, 8,12,10, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x1514, 12,10, 2, 4, 8, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x15ec,  7, 6, 2,10, 3, 5, 8,12, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x15e2,  8, 6, 1, 5,12,10, 7, 0, 0, 0, 0, 0  },
+    {  0xe9,   3,   0x333, 0x15de,  2, 3, 1, 6, 4, 8, 7,12,10, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x15d0,  6, 4, 8, 7,12,10, 0, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0x1478, 12,10, 3, 5, 4, 6, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x1476,  2, 6,12,10, 1, 5, 4, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x144a,  3, 1, 6,12,10, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0x1444,  2, 6,12,10, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x14bc,  2, 3, 5, 4, 7,12,10, 0, 0, 0, 0, 0  },
+    {  0xe7,   2,   0x33,  0x14b2,  7,12,10, 1, 5, 4, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x148e,  3, 1, 2,10, 7,12, 0, 0, 0, 0, 0, 0  },
+    {  0xfe,   1,   0x3,   0x1480, 10, 7,12, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x3,    1,   0x4,   0xd80,  10,11, 8, 7, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0xd8e,  10,11, 8, 7, 3, 2, 1, 0, 0, 0, 0, 0  },
+    {  0x19,   2,   0x34,  0xdb2,   8, 7,10,11, 4, 5, 1, 0, 0, 0, 0, 0  },
+    {  0x3c,   2,   0x44,  0xdbc,   2, 4, 5, 3, 7,10,11, 8, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0xd44,   6, 2,10,11, 8, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0xd4a,  10,11, 8, 6, 1, 3, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0xd76,   4, 5, 1, 6, 2,10,11, 8, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0xd78,  11, 5, 3,10, 8, 6, 4, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0xcd0,   7,10,11, 4, 6, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0xcde,   2, 1, 3, 7,10,11, 4, 6, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0xce2,  11, 5, 1, 6, 7,10, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0xcec,   3,10,11, 5, 2, 6, 7, 0, 0, 0, 0, 0  },
+    {  0xf,    1,   0x4,   0xc14,   4, 2,10,11, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0xc1a,   3,10,11, 4, 1, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0xc26,   1, 2,10,11, 5, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0xc28,   3,10,11, 5, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0xb88,  11, 8, 7, 3, 9, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0xb86,   7, 2, 1, 9,11, 8, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0xbba,   5, 1, 4,11, 8, 7, 3, 9, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0xbb4,   4, 8, 7, 2, 5, 9,11, 0, 0, 0, 0, 0  },
+    {  0x17,   1,   0x6,   0xb4c,   9,11, 8, 6, 2, 3, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0xb42,   8, 6, 1, 9,11, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xe9,   3,   0x333, 0xb7e,   4, 8, 6, 1, 2, 3, 5, 9,11, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0xb70,   5, 9,11, 4, 8, 6, 0, 0, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0xad8,   7, 3, 9,11, 4, 6, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0xad6,   4, 1, 9,11, 6, 7, 2, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0xaea,   3, 1, 6, 7, 9,11, 5, 0, 0, 0, 0, 0  },
+    {  0xe7,   2,   0x33,  0xae4,   5, 9,11, 6, 7, 2, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0xa1c,   9,11, 4, 2, 3, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0xa12,   4, 1, 9,11, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0xa2e,   9,11, 5, 3, 1, 2, 0, 0, 0, 0, 0, 0  },
+    {  0xfe,   1,   0x3,   0xa20,   9,11, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x7,    1,   0x5,   0x7a0,   9, 5, 8, 7,10, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x1e,   2,   0x53,  0x7ae,   3, 2, 1, 9, 5, 8, 7,10, 0, 0, 0, 0  },
+    {  0x1d,   1,   0x6,   0x792,   9, 1, 4, 8, 7,10, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x79c,   7, 2, 4, 8,10, 9, 3, 0, 0, 0, 0, 0  },
+    {  0x1b,   1,   0x6,   0x764,   8, 6, 2,10, 9, 5, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x76a,   1, 5, 8, 6, 3,10, 9, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x34,  0x756,   1, 2,10, 9, 4, 8, 6, 0, 0, 0, 0, 0  },
+    {  0xe7,   2,   0x33,  0x758,   3,10, 9, 4, 8, 6, 0, 0, 0, 0, 0, 0  },
+    {  0x17,   1,   0x6,   0x6f0,  10, 9, 5, 4, 6, 7, 0, 0, 0, 0, 0, 0  },
+    {  0xe9,   3,   0x333, 0x6fe,   1, 5, 4, 2, 6, 7, 3,10, 9, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x6c2,  10, 9, 1, 6, 7, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x6cc,   2, 6, 7, 3,10, 9, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x634,   5, 4, 2,10, 9, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x63a,   5, 4, 1, 9, 3,10, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0x606,   1, 2,10, 9, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfe,   1,   0x3,   0x608,   9, 3,10, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf,    1,   0x4,   0x1a8,   8, 7, 3, 5, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x1a6,   1, 5, 8, 7, 2, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x19a,   4, 8, 7, 3, 1, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0x194,   4, 8, 7, 2, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0x16c,   2, 3, 5, 8, 6, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0x162,   1, 5, 8, 6, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0x15e,   4, 8, 6, 1, 2, 3, 0, 0, 0, 0, 0, 0  },
+    {  0xfe,   1,   0x3,   0x150,   6, 4, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf8,   1,   0x5,   0xf8,    6, 7, 3, 5, 4, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   2,   0x33,  0xf6,    1, 5, 4, 2, 6, 7, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0xca,    6, 7, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfe,   1,   0x3,   0xc4,    2, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfc,   1,   0x4,   0x3c,    2, 3, 5, 4, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfe,   1,   0x3,   0x32,    4, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xfe,   1,   0x3,   0xe,     1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0x0,    0,   0x0,   0x0,     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0xdb2,   8,11,10, 7, 4, 1, 5,11, 8, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0xd8e,  10, 7, 8,11, 3, 1, 2, 7,10, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x13e4, 12, 8, 5, 9, 7, 2, 6, 8,12, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x132e,  5, 9,12, 8, 1, 2, 3, 9, 5, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x1e58, 11,12, 6, 4, 9, 3,10,12,11, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x1f06, 10, 9, 1, 2,12, 8,11, 9,10, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x185e,  6, 4,11,12, 2, 3, 1, 4, 6, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x19ca,  6, 7, 3, 1, 8,11,12, 7, 6, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x193c,  5, 4, 2, 3,11,12, 8, 4, 5, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x1e64, 12,10, 2, 6,11, 5, 9,10,12, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x1e92,  9,11, 4, 1,10, 7,12,11, 9, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x13d8,  7,12, 9, 3, 6, 4, 8,12, 7, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x12ba,  9, 3, 7,12, 5, 4, 1, 3, 9, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x15e2,  8, 6, 1, 5,12,10, 7, 6, 8, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x1476,  2, 6,12,10, 1, 5, 4, 6, 2, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x14bc,  2, 3, 5, 4, 7,12,10, 3, 2, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0xd78,  11, 5, 3,10, 8, 6, 4, 5,11, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0xcec,   3,10,11, 5, 2, 6, 7,10, 3, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0xbb4,   4, 8, 7, 2, 5, 9,11, 8, 4, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0xad6,   4, 1, 9,11, 6, 7, 2, 1, 4, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0xaea,   3, 1, 6, 7, 9,11, 5, 1, 3, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x79c,   7, 2, 4, 8,10, 9, 3, 2, 7, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x76a,   1, 5, 8, 6, 3,10, 9, 5, 1, 0, 0, 0  },
+    {  0xe6,   2,   0x54,  0x756,   1, 2,10, 9, 4, 8, 6, 2, 1, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x1f08,  9, 3,10,12, 8,11, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x19c4,  8,11,12, 7, 2, 6, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x1932, 11,12, 8, 4, 1, 5, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x1ea0, 11, 5, 9,10, 7,12, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x15d0,  6, 4, 8,12,10, 7, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x148e,  3, 1, 2, 7,12,10, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0xb70,   5, 9,11, 8, 6, 4, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0xa2e,   9,11, 5, 1, 2, 3, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x6cc,   2, 6, 7,10, 9, 3, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x63a,   5, 4, 1, 3,10, 9, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0x15e,   4, 8, 6, 2, 3, 1, 0, 0, 0, 0, 0, 0  },
+    {  0xf9,   1,   0x6,   0xf6,    1, 5, 4, 6, 7, 2, 0, 0, 0, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1fcc, 12, 8,11, 9, 3,10, 7, 2, 6, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1f3a,  5, 4, 1, 3,10, 9,11,12, 8, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x19f6,  6, 7, 2, 1, 5, 4, 8,11,12, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1ff0, 11, 5, 9,10, 7,12, 8, 6, 4, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1eae, 10, 7,12,11, 5, 9, 3, 1, 2, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x15de,  2, 3, 1, 4, 8, 6, 7,12,10, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0xb7e,   4, 8, 6, 2, 3, 1, 5, 9,11, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x6fe,   1, 5, 4, 6, 7, 2, 3,10, 9, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1fcc,  8,11,12, 7, 2, 6, 9, 3,10, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1f3a,  4, 1, 5,11,12, 8, 3,10, 9, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x19f6,  7, 2, 6, 8,11,12, 1, 5, 4, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1ff0,  5, 9,11, 8, 6, 4,10, 7,12, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1eae,  7,12,10, 3, 1, 2,11, 5, 9, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x15de,  3, 1, 2, 7,12,10, 4, 8, 6, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0xb7e,   8, 6, 4, 5, 9,11, 2, 3, 1, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x6fe,   5, 4, 1, 3,10, 9, 6, 7, 2, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1fcc,  2, 6, 7,10, 9, 3,12, 8,11, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1f3a, 12, 8,11, 9, 3,10, 5, 4, 1, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x19f6, 11,12, 8, 4, 1, 5, 6, 7, 2, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1ff0,  6, 4, 8,12,10, 7,11, 5, 9, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x1eae,  1, 2, 3, 9,11, 5,10, 7,12, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x15de, 12,10, 7, 6, 4, 8, 2, 3, 1, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0xb7e,   9,11, 5, 1, 2, 3, 4, 8, 6, 0, 0, 0  },
+    {  0xe9,   2,   0x36,  0x6fe,  10, 9, 3, 2, 6, 7, 1, 5, 4, 0, 0, 0  }
+  };
+
+  static final int sp_cases[] =
+  {
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 256, 257, 000, 000, 000, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 258, 000, 000, 259, 000, 000, 000, 000, 000, 
+    000, 000, 000, 260, 000, 000, 000, 292, 000, 293, 
+    261, 280, 000, 000, 000, 000, 000, 000, 262, 000, 
+    000, 294, 263, 281, 264, 282, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 
+    000, 295, 000, 000, 000, 265, 000, 266, 296, 283, 
+    000, 000, 000, 000, 000, 000, 000, 267, 000, 000, 
+    000, 000, 000, 268, 000, 000, 000, 000, 000, 000, 
+    000, 269, 297, 284, 000, 270, 000, 000, 271, 000, 
+    285, 000, 000, 000, 000, 000, 000, 000, 000, 272, 
+    000, 000, 000, 273, 000, 000, 000, 000, 000, 000, 
+    000, 274, 000, 000, 298, 286, 000, 275, 276, 000, 
+    000, 000, 287, 000, 000, 000, 000, 277, 000, 278, 
+    279, 000, 000, 299, 000, 288, 000, 289, 000, 000, 
+    000, 000, 000, 000, 000, 000, 290, 000, 000, 291, 
+    000, 000, 000, 000, 000, 000
+  };
+
+  static final int case_E9[] =
+  {
+    Xn, Yp, Zp, incXn, incYn, incZn,
+    Xp, Yn, Zp, incYn, incZn, incXn,
+    Xp, Yp, Zn, incXn, incYn, incZn,
+    Xp, Yp, Zp, incYn, incXn, incZn,
+    Xn, Yn, Zp, incYn, incXn, incZn,
+    Xn, Yp, Zp, incYn, incXn, incZn,
+    Xp, Yn, Zn, incYn, incXn, incZn,
+    Xn, Yn, Zn, incXn, incYn, incZn
+  };
+
+  static final int NTAB[] = 
+  {   0,1,2,       1,2,0,       2,0,1,
+      0,1,3,2,     1,2,0,3,     2,3,1,0,     3,0,2,1,
+      0,1,4,2,3,   1,2,0,3,4,   2,3,1,4,0,   3,4,2,0,1,   4,0,3,1,2,
+      0,1,5,2,4,3, 1,2,0,3,5,4, 2,3,1,4,0,5, 3,4,2,5,1,0, 4,5,3,0,2,1,
+      5,0,4,1,3,2
+  };
+
+  static final int ITAB[] =
+  {   0,2,1,       1,0,2,       2,1,0,
+      0,3,1,2,     1,0,2,3,     2,1,3,0,     3,2,0,1,
+      0,4,1,3,2,   1,0,2,4,3,   2,1,3,0,4,   3,2,4,1,0,   4,3,0,2,1,
+      0,5,1,4,2,3, 1,0,2,5,3,4, 2,1,3,0,4,5, 3,2,4,1,5,0, 4,3,5,2,0,1,
+      5,4,0,3,1,2
+  };
+
+  static final int STAB[] =  { 0, 9, 25, 50 };
+
+
+  public VisADGeometryArray makeIsoSurface(float isolevel,
+                            float[] fieldValues, float[][] color_values)
+         throws VisADException {
+/* WLH 1 Nov 97
+  public void main_isosurf(float isolevel, float[] fieldValues,
+                           float[][] auxValues, float[][] fieldVertices,
+                           float[][] auxLevels, int[][] Tri_Stripe)
+         throws VisADException {
+*/
+
+    boolean debug = false;
+
+    int      i, NVT, cnt;
+    int      size_stripe;
+    int      xdim_x_ydim, xdim_x_ydim_x_zdim;
+    int      num_cubes, nvertex, npolygons;
+    int      ix, iy, ii;
+    int nvertex_estimate;
+
+    if (ManifoldDimension != 3) {
+      throw new SetException("Gridded3DSet.main_isosurf: " +
+                             "ManifoldDimension must be 3");
+    }
+
+    /* adapt isosurf algorithm to Gridded3DSet variables */
+    // NOTE X & Y swap
+    int xdim = LengthY;
+    int ydim = LengthX;
+    int zdim = LengthZ;
+
+    float[] ptGRID = fieldValues;
+ 
+    xdim_x_ydim = xdim * ydim;
+    xdim_x_ydim_x_zdim = xdim_x_ydim * zdim;
+    num_cubes = (xdim-1) * (ydim-1) * (zdim-1);
+
+    int[]  ptFLAG = new int[ num_cubes ];
+    int[]  ptAUX  = new int[ xdim_x_ydim_x_zdim ];
+    int[]  pcube  = new int[ num_cubes+1 ];
+
+    npolygons = flags( isolevel, ptFLAG, ptAUX, pcube,
+                       ptGRID, xdim, ydim, zdim );
+
+    // take the garbage out
+    pcube = null;
+
+    if (debug) System.out.println("npolygons= "+npolygons);
+
+    nvertex_estimate = 2 * npolygons;
+    ix = 9 * (nvertex_estimate + 50);
+    iy = 7 * npolygons;
+
+    float[] VX = new float[nvertex_estimate];
+    float[] VY = new float[nvertex_estimate];
+    float[] VZ = new float[nvertex_estimate];
+
+    float[][] color_temps = new float[color_values.length][nvertex_estimate];
+
+    int[] Pol_f_Vert = new int[ix];
+    int[] Vert_f_Pol = new int[iy];
+
+    nvertex = isosurf( isolevel, ptFLAG, nvertex_estimate, npolygons,
+                       ptGRID, xdim, ydim, zdim, VX, VY, VZ,
+                       color_values, color_temps, Pol_f_Vert, Vert_f_Pol );
+
+    // take the garbage out
+    ptFLAG = null;
+    ptAUX = null;
+
+    float[][] fieldVertices = new float[3][nvertex];
+    // NOTE - NO X & Y swap
+    System.arraycopy(VX, 0, fieldVertices[0], 0, nvertex);
+    System.arraycopy(VY, 0, fieldVertices[1], 0, nvertex);
+    System.arraycopy(VZ, 0, fieldVertices[2], 0, nvertex);
+    // take the garbage out
+    VX = null;
+    VY = null;
+    VZ = null;
+
+    float[][] color_levels = new float[color_values.length][nvertex];
+    System.arraycopy(color_temps[0], 0, color_levels[0], 0, nvertex);
+    System.arraycopy(color_temps[1], 0, color_levels[1], 0, nvertex);
+    System.arraycopy(color_temps[2], 0, color_levels[2], 0, nvertex);
+    // take the garbage out
+    color_temps = null;
+
+    if (debug) System.out.println("nvertex= "+nvertex);
+
+    float[] NxA = new float[npolygons];
+    float[] NxB = new float[npolygons];
+    float[] NyA = new float[npolygons];
+    float[] NyB = new float[npolygons];
+    float[] NzA = new float[npolygons];
+    float[] NzB = new float[npolygons];
+
+    float[] Pnx = new float[npolygons];
+    float[] Pny = new float[npolygons];
+    float[] Pnz = new float[npolygons];
+
+    float[] NX = new float[nvertex];
+    float[] NY = new float[nvertex];
+    float[] NZ = new float[nvertex];
+
+    make_normals( fieldVertices[0], fieldVertices[1],  fieldVertices[2],
+                  NX, NY, NZ, nvertex, npolygons, Pnx, Pny, Pnz,
+                  NxA, NxB, NyA, NyB, NzA, NzB, Pol_f_Vert, Vert_f_Pol);
+
+    // take the garbage out
+    NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
+
+    float[] normals = new float[3 * nvertex];
+    int j = 0;
+    for (i=0; i<nvertex; i++) {
+      normals[j++] = (float) NX[i];
+      normals[j++] = (float) NY[i];
+      normals[j++] = (float) NZ[i];
+    }
+    // take the garbage out
+    NX = NY = NZ = null;
+
+    /* ----- Find PolyTriangle Stripe */
+    // temporary array to hold maximum possible polytriangle strip
+    int[] stripe = new int[6 * npolygons];
+    int[] vet_pol = new int[npolygons];
+    size_stripe = poly_triangle_stripe( vet_pol, stripe, nvertex,
+                                        npolygons, Pol_f_Vert, Vert_f_Pol );
+
+    // take the garbage out
+    Pol_f_Vert = null;
+    Vert_f_Pol = null;
+
+    VisADIndexedTriangleStripArray array =
+      new VisADIndexedTriangleStripArray();
+
+    // set up indices
+    array.indexCount = size_stripe;
+    array.indices = new int[size_stripe];
+    System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
+    array.stripVertexCounts = new int[1];
+    array.stripVertexCounts[0] = size_stripe;
+    // take the garbage out
+    stripe = null;
+ 
+    // set coordinates and colors
+    setGeometryArray(array, fieldVertices, 4, color_levels);
+    // take the garbage out
+    fieldVertices = null;
+    color_levels = null;
+
+    array.VertexFormat |= GeometryArray.NORMALS;
+    array.normals = normals;
+
+    if (debug) {
+      System.out.println("size_stripe= "+size_stripe);
+      for(ii=0;ii<size_stripe;ii++) System.out.println(+array.indices[ii]);
+    }
+
+    return array;
+  }
+
+  private static int flags( float isovalue, int[] ptFLAG, int[] ptAUX, int[] pcube,
+                            float[] ptGRID, int xdim, int ydim, int zdim ) {
+      int ii, jj, ix, iy, iz, cb, SF, bcase;
+      int num_cubes, num_cubes_xy, num_cubes_y;
+      int xdim_x_ydim = xdim*ydim;
+      int xdim_x_ydim_x_zdim = xdim_x_ydim*zdim;
+      int npolygons;
+
+      num_cubes_y  = ydim-1;
+      num_cubes_xy = (xdim-1) * num_cubes_y;
+      num_cubes = (zdim-1) * num_cubes_xy;
+
+
+    /*
+    *************
+    Big Attention
+    *************
+    pcube must have the dimension "num_cubes+1" because in terms of
+    eficiency the best loop to calculate "pcube" will use more one
+    component to pcube.
+    */
+
+    /* Calculate the Flag Value of each Cube */
+    /* In order to simplify the Flags calculations, "pcube" will
+       be used to store the number of the first vertex of each cube */
+    ii = 0;     pcube[0] = 0;  cb = 0;
+    for (iz=0; iz<(zdim-1); iz++)
+    {   for (ix=0; ix<(xdim-1); ix++)
+        {   cb = pcube[ii];
+            for (iy=1; iy<(ydim-1); iy++) /* Vectorized */
+                pcube[ii+iy] = cb+iy;
+            ii += ydim-1;
+            pcube[ii] = pcube[ii-1]+2;
+        }
+        pcube[ii] += ydim;
+    }
+
+   /* Vectorized */
+    for (ii = 0; ii < xdim_x_ydim_x_zdim; ii++) {
+/* WLH 24 Oct 97
+        if      (ptGRID[ii] >= INVALID_VALUE) ptAUX[ii] = 0x1001;
+        if      (Float.isNaN(ptGRID[ii]) ptAUX[ii] = 0x1001;
+*/
+        // test for missing
+        if      (ptGRID[ii] != ptGRID[ii]) ptAUX[ii] = 0x1001;
+        else if (ptGRID[ii] >= isovalue)      ptAUX[ii] = 1;
+        else                                  ptAUX[ii] = 0;
+    }
+
+   /* Vectorized */
+    for (ii = 0; ii < num_cubes; ii++) {
+        ptFLAG[ii] = ((ptAUX[ pcube[ii] ]      ) |
+                      (ptAUX[ pcube[ii] + ydim ]  << 1) |
+                      (ptAUX[ pcube[ii] + 1 ]  << 2) |
+                      (ptAUX[ pcube[ii] + ydim + 1 ]  << 3) |
+                      (ptAUX[ pcube[ii] + xdim_x_ydim ]  << 4) |
+                      (ptAUX[ pcube[ii] + ydim + xdim_x_ydim ]  << 5) |
+                      (ptAUX[ pcube[ii] + 1 + xdim_x_ydim ]  << 6) |
+                      (ptAUX[ pcube[ii] + 1 + ydim + xdim_x_ydim ]  << 7));
+     }
+    /* After this Point it is not more used pcube */
+
+    /* Analyse Special Cases in FLAG */
+    ii = npolygons = 0;
+    while ( TRUE )
+    {  
+        for (; ii < num_cubes; ii++) {
+            if ( ((ptFLAG[ii] != 0) && (ptFLAG[ii] != 0xFF)) &&
+                 ptFLAG[ii] < MAX_FLAG_NUM) break;
+        }
+
+        if ( ii == num_cubes ) break;
+
+        bcase = pol_edges[ptFLAG[ii]][0];
+        if (bcase == 0xE6 || bcase == 0xF9) {
+            iz = ii/num_cubes_xy;
+            ix = (int)((ii - (iz*num_cubes_xy))/num_cubes_y);
+            iy = ii - (iz*num_cubes_xy) - (ix*num_cubes_y);
+
+        /* == Z+ == */
+            if      ((ptFLAG[ii] & 0xF0) == 0x90 ||
+                     (ptFLAG[ii] & 0xF0) == 0x60) {
+                   cb = (iz < (zdim - 1)) ? ii + num_cubes_xy : -1 ;
+              }
+        /* == Z- == */
+            else if ((ptFLAG[ii] & 0x0F) == 0x09 ||
+                     (ptFLAG[ii] & 0x0F) == 0x06) {
+                   cb = (iz > 0) ? ii - num_cubes_xy : -1 ;
+              }
+        /* == Y+ == */
+            else if ((ptFLAG[ii] & 0xCC) == 0x84 ||
+                     (ptFLAG[ii] & 0xCC) == 0x48) {
+                   cb = (iy < (ydim - 1)) ? ii + 1 : -1 ;
+              }
+        /* == Y- == */
+            else if ((ptFLAG[ii] & 0x33) == 0x21 ||
+                     (ptFLAG[ii] & 0x33) == 0x12) {
+                   cb = (iy > 0) ? ii - 1 : -1 ;
+              }
+        /* == X+ == */
+            else if ((ptFLAG[ii] & 0xAA) == 0x82 ||
+                     (ptFLAG[ii] & 0xAA) == 0x28) {
+                   cb = (ix < (xdim - 1)) ? ii + num_cubes_y : -1 ;
+              }
+        /* == X- == */
+            else if ((ptFLAG[ii] & 0x55) == 0x41 ||
+                     (ptFLAG[ii] & 0x55) == 0x14) {
+                   cb = (ix > 0) ? ii - num_cubes_y : -1 ;
+              }
+        /* == Map Special Case == */
+            if  ((cb > -1 && cb < num_cubes) && ptFLAG[cb]<316)  /*changed by BEP on 7-20-92*/
+            {   bcase = pol_edges[ptFLAG[cb]][0];
+                if (bcase == 0x06 || bcase == 0x16 ||
+                    bcase == 0x19 || bcase == 0x1E ||
+                    bcase == 0x3C || bcase == 0x69)
+                    ptFLAG[ii] = sp_cases[ptFLAG[ii]];
+            }
+        }
+        else if (bcase == 0xE9) {
+            iz = ii/num_cubes_xy;
+            ix = (int)((ii - (iz*num_cubes_xy))/num_cubes_y);
+            iy = ii - (iz*num_cubes_xy) - (ix*num_cubes_y);
+
+               SF = 0;
+            if      (ptFLAG[ii] == 0x6B) SF = SF_6B;
+            else if (ptFLAG[ii] == 0x6D) SF = SF_6D;
+            else if (ptFLAG[ii] == 0x79) SF = SF_79;
+            else if (ptFLAG[ii] == 0x97) SF = SF_97;
+            else if (ptFLAG[ii] == 0x9E) SF = SF_9E;
+            else if (ptFLAG[ii] == 0xB6) SF = SF_B6;
+            else if (ptFLAG[ii] == 0xD6) SF = SF_D6;
+            else if (ptFLAG[ii] == 0xE9) SF = SF_E9;
+            for (jj=0; jj<3; jj++) {
+                if      (case_E9[jj+SF] == Zp) {
+                     cb = (iz < (zdim - 1)) ? ii + num_cubes_xy : -1 ;
+                  }
+                else if (case_E9[jj+SF] == Zn) {
+                     cb = (iz > 0) ? ii - num_cubes_xy : -1 ;
+                  }
+                else if (case_E9[jj+SF] == Yp) {
+                     cb = (iy < (ydim - 1)) ? ii + 1 : -1 ;
+                  }
+                else if (case_E9[jj+SF] == Yn) {
+                     cb = (iy > 0) ? ii - 1 : -1 ;
+                  }
+                else if (case_E9[jj+SF] == Xp) {
+                     cb = (ix < (xdim - 1)) ? ii + num_cubes_y : -1 ;
+                  }
+                else if (case_E9[jj+SF] == Xn) {
+                     cb = (ix > 0) ? ii - num_cubes_y : -1 ;
+                  }
+       /* changed:
+                if  ((cb > -1 && cb < num_cubes))
+          to: */
+                if  ((cb > -1 && cb < num_cubes) && ptFLAG[cb]<316)
+       /* changed by BEP on 7-20-92*/
+                {   bcase = pol_edges[ptFLAG[cb]][0];
+                    if (bcase == 0x06 || bcase == 0x16 ||
+                        bcase == 0x19 || bcase == 0x1E ||
+                        bcase == 0x3C || bcase == 0x69)
+                    {   ptFLAG[ii] = sp_cases[ptFLAG[ii]] +
+                                     case_E9[jj+SF+3];
+                        break;
+                    }
+                }
+            }
+        }
+
+        /* Calculate the Number of Generated Triangles and Polygons */
+        npolygons  += pol_edges[ptFLAG[ii]][1];
+        ii++;
+    }
+
+     /*  npolygons2 = 2*npolygons; */
+
+    return npolygons;
+  }
+
+  private int isosurf( float isovalue, int[] ptFLAG, int nvertex_estimate,
+                       int npolygons, float[] ptGRID, int xdim, int ydim,
+                       int zdim, float[] VX, float[] VY, float[] VZ,
+                       float[][] auxValues, float[][] auxLevels,
+                       int[] Pol_f_Vert, int[] Vert_f_Pol )
+          throws VisADException {
+
+    int  ix, iy, iz, caseA, above, bellow, front, rear, mm, nn;
+    int  ii, jj, kk, ncube, cpl, pvp, pa, ve;
+    int[] calc_edge = new int[13];
+    int  xx, yy, zz;
+    float    cp;
+    float  vnode0 = 0;
+    float  vnode1 = 0;
+    float  vnode2 = 0;
+    float  vnode3 = 0;
+    float  vnode4 = 0;
+    float  vnode5 = 0;
+    float  vnode6 = 0;
+    float  vnode7 = 0;
+    int  pt = 0;
+    int  n_pol;
+    int  aa;
+    int  bb;
+    int  temp;
+    float  nodeDiff;
+    int xdim_x_ydim = xdim*ydim;
+    int nvet;
+ 
+    float[][] samples = getSamples(false);
+
+    int naux = (auxValues != null) ? auxValues.length : 0;
+    if (naux > 0) {
+      if (auxLevels == null || auxLevels.length != naux) {
+        throw new SetException("Gridded3DSet.isosurf: "
+                              +"auxLevels length doesn't match");
+      }
+      for (int i=0; i<naux; i++) {
+        if (auxValues[i].length != Length) {
+          throw new SetException("Gridded3DSet.isosurf: "
+                                +"auxValues lengths don't match");
+        }
+      }
+    }
+    else {
+      if (auxLevels != null) {
+        throw new SetException("Gridded3DSet.isosurf: "
+                              +"auxValues null but auxLevels not null");
+      }
+    }
+
+    // temporary storage of auxLevels structure
+    float[][] tempaux = (naux > 0) ? new float[naux][nvertex_estimate] : null;
+
+    bellow = rear = 0;  above = front = 1;
+
+    /* Initialize the Auxiliar Arrays of Pointers */
+/* WLH 25 Oct 97
+    ix = 9 * (npolygons*2 + 50);
+    iy = 7 * npolygons;
+    ii = ix + iy;
+*/
+    for (jj=0; jj<Pol_f_Vert.length; jj++) {
+      Pol_f_Vert[jj] = BIG_NEG;
+    }
+    for (jj=8; jj<Pol_f_Vert.length; jj+=9) {
+      Pol_f_Vert[jj] = 0;
+    }
+    for (jj=0; jj<Vert_f_Pol.length; jj++) {
+      Vert_f_Pol[jj] = BIG_NEG;
+    }
+    for (jj=6; jj<Vert_f_Pol.length; jj+=7) {
+      Vert_f_Pol[jj] = 0;
+    }
+
+    /* Allocate the auxiliar edge vectors
+    size ixPlane = (xdim - 1) * ydim = xdim_x_ydim - ydim
+    size iyPlane = (ydim - 1) * xdim = xdim_x_ydim - xdim
+    size izPlane = xdim
+    */
+
+    xx = xdim_x_ydim - ydim;
+    yy = xdim_x_ydim - xdim;
+    zz = ydim;
+    ii = 2 * (xx + yy + zz);
+
+    int[] P_array = new int[ii];
+
+    /* Calculate the Vertex of the Polygons which edges were
+       calculated above */
+    nvet = ncube = cpl = pvp = 0;
+
+
+        for ( iz = 0; iz < zdim - 1; iz++ ) {
+
+            for ( ix = 0; ix < xdim - 1; ix++ ) {
+
+                for ( iy = 0; iy < ydim - 1; iy++ ) {
+                    if ( (ptFLAG[ncube] != 0 & ptFLAG[ncube] != 0xFF) ) {
+                        if (nvet + 12 > nvertex_estimate) {
+                            throw new DisplayException(
+                                           "isosurf: nvet + 12 > nvertex_estimate");
+                        }
+                        if ( (ptFLAG[ncube] < MAX_FLAG_NUM) ) {
+                        /*  fill_Vert_f_Pol(ncube); */
+
+                                  kk  = pol_edges[ptFLAG[ncube]][2];
+                                  aa = ptFLAG[ncube];
+                                  bb = 4;
+                                  pa  = pvp;
+                                  n_pol = pol_edges[ptFLAG[ncube]][1];
+                                  for (ii=0; ii < n_pol; ii++) {
+                                      Vert_f_Pol[pa+6] = ve = kk&MASK;
+                                      ve+=pa;
+                                      for (jj=pa; jj<ve && jj<pa+6; jj++) {
+
+                                            Vert_f_Pol[jj] = pol_edges[aa][bb];
+                                            bb++;
+                                            if (bb >= 16) {
+                                                aa++;
+                                                bb -= 16;
+                                            }
+                                      }
+                                           kk >>= 4;    pa += 7;
+                                  }
+                        /* end  fill_Vert_f_Pol(ncube); */
+                        /* */
+
+         /* find_vertex(); */
+
+           vnode0 = ptGRID[pt];
+           vnode1 = ptGRID[pt + ydim];
+           vnode2 = ptGRID[pt + 1];
+           vnode3 = ptGRID[pt + ydim + 1];
+           vnode4 = ptGRID[pt + xdim_x_ydim];
+           vnode5 = ptGRID[pt + ydim + xdim_x_ydim];
+           vnode6 = ptGRID[pt + 1 + xdim_x_ydim];
+           vnode7 = ptGRID[pt + 1 + ydim + xdim_x_ydim];
+
+
+
+   if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0002) != 0) ) {  /* cube vertex 0-1 */
+         if ( (iz != 0) || (iy != 0) ) {
+           calc_edge[1] = P_array[ bellow*xx + ix*ydim + iy ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode1 - vnode0;
+             cp = ( ( isovalue - vnode0 ) / nodeDiff ) + ix;
+             VX[nvet] = cp;
+             VY[nvet] = iy;
+             VZ[nvet] = iz;
+*/
+             cp = ( ( isovalue - vnode0 ) / ( vnode1 - vnode0 ) );
+             VX[nvet] = (float) cp * samples[0][pt + ydim] + (1.0f-cp) * samples[0][pt];
+             VY[nvet] = (float) cp * samples[1][pt + ydim] + (1.0f-cp) * samples[1][pt];
+             VZ[nvet] = (float) cp * samples[2][pt + ydim] + (1.0f-cp) * samples[2][pt];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim] +
+                                  (1.0f-cp) * auxValues[j][pt];
+             }
+
+             calc_edge[1] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0004) != 0) ) {  /* cube vertex 0-2 */
+         if ( (iz != 0) || (ix != 0) ) {
+           calc_edge[2] = P_array[ 2*xx + bellow*yy + iy*xdim + ix ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode2 - vnode0;
+             cp = ( ( isovalue - vnode0 ) / nodeDiff ) + iy;
+             VX[nvet] = ix;
+             VY[nvet] = cp;
+             VZ[nvet] = iz;
+*/
+             cp = ( ( isovalue - vnode0 ) / ( vnode2 - vnode0 ) );
+             VX[nvet] = (float) cp * samples[0][pt + 1] + (1.0f-cp) * samples[0][pt];
+             VY[nvet] = (float) cp * samples[1][pt + 1] + (1.0f-cp) * samples[1][pt];
+             VZ[nvet] = (float) cp * samples[2][pt + 1] + (1.0f-cp) * samples[2][pt];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1] +
+                                  (1.0f-cp) * auxValues[j][pt];
+             }
+
+             calc_edge[2] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0008) != 0) ) {  /* cube vertex 0-4 */
+         if ( (ix != 0) || (iy != 0) ) {
+           calc_edge[3] = P_array[ 2*xx + 2*yy + rear*zz + iy ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode4 - vnode0;
+             cp = ( ( isovalue - vnode0 ) / nodeDiff ) + iz;
+             VX[nvet] = ix;
+             VY[nvet] = iy;
+             VZ[nvet] = cp;
+*/
+             cp = ( ( isovalue - vnode0 ) / ( vnode4 - vnode0 ) );
+             VX[nvet] = (float) cp * samples[0][pt + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt];
+             VY[nvet] = (float) cp * samples[1][pt + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt];
+             VZ[nvet] = (float) cp * samples[2][pt + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt];
+             }
+
+             calc_edge[3] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0010) != 0) ) {  /* cube vertex 1-3 */
+         if ( (iz != 0) ) {
+           calc_edge[4] =  P_array[ 2*xx + bellow*yy + iy*xdim + (ix+1) ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode3 - vnode1;
+             cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iy;
+             VX[nvet] = ix+1;
+             VY[nvet] = cp;
+             VZ[nvet] = iz;
+*/
+             cp = ( ( isovalue - vnode1 ) / ( vnode3 - vnode1 ) );
+             VX[nvet] = (float) cp * samples[0][pt + ydim + 1] +
+                        (1.0f-cp) * samples[0][pt + ydim];
+             VY[nvet] = (float) cp * samples[1][pt + ydim + 1] +
+                        (1.0f-cp) * samples[1][pt + ydim];
+             VZ[nvet] = (float) cp * samples[2][pt + ydim + 1] +
+                        (1.0f-cp) * samples[2][pt + ydim];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
+                                  (1.0f-cp) * auxValues[j][pt + ydim];
+             }
+
+             calc_edge[4] = nvet;
+             P_array[ 2*xx + bellow*yy + iy*xdim + (ix+1) ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0020) != 0) ) {  /* cube vertex 1-5 */
+         if ( (iy != 0) ) {
+           calc_edge[5] = P_array[ 2*xx + 2*yy + front*zz + iy ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode5 - vnode1;
+             cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iz;
+             VX[nvet] = ix+1;
+             VY[nvet] = iy;
+             VZ[nvet] = cp;
+*/
+             cp = ( ( isovalue - vnode1 ) / ( vnode5 - vnode1 ) );
+             VX[nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt + ydim];
+             VY[nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt + ydim];
+             VZ[nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt + ydim];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt + ydim];
+             }
+
+             calc_edge[5] = nvet;
+             P_array[ 2*xx + 2*yy + front*zz + iy ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0040) != 0) ) {  /* cube vertex 2-3 */
+         if ( (iz != 0) ) {
+           calc_edge[6] = P_array[ bellow*xx + ix*ydim + (iy+1) ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode3 - vnode2;
+             cp = ( ( isovalue - vnode2 ) / nodeDiff ) + ix;
+             VX[nvet] = cp;
+             VY[nvet] = iy+1;
+             VZ[nvet] = iz;
+*/
+             cp = ( ( isovalue - vnode2 ) / ( vnode3 - vnode2 ) );
+             VX[nvet] = (float) cp * samples[0][pt + ydim + 1] +
+                        (1.0f-cp) * samples[0][pt + 1];
+             VY[nvet] = (float) cp * samples[1][pt + ydim + 1] +
+                        (1.0f-cp) * samples[1][pt + 1];
+             VZ[nvet] = (float) cp * samples[2][pt + ydim + 1] +
+                        (1.0f-cp) * samples[2][pt + 1];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
+                                  (1.0f-cp) * auxValues[j][pt + 1];
+             }
+
+             calc_edge[6] = nvet;
+             P_array[ bellow*xx + ix*ydim + (iy+1) ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0080) != 0) ) {  /* cube vertex 2-6 */
+         if ( (ix != 0) ) {
+           calc_edge[7] = P_array[ 2*xx + 2*yy + rear*zz + (iy+1) ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode6 - vnode2;
+             cp = ( ( isovalue - vnode2 ) / nodeDiff ) + iz;
+             VX[nvet] = ix;
+             VY[nvet] = iy+1;
+             VZ[nvet] = cp;
+*/
+             cp = ( ( isovalue - vnode2 ) / ( vnode6 - vnode2 ) );
+             VX[nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt + 1];
+             VY[nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt + 1];
+             VZ[nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt + 1];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt + 1];
+             }
+
+             calc_edge[7] = nvet;
+             P_array[ 2*xx + 2*yy + rear*zz + (iy+1) ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0100) != 0) ) {  /* cube vertex 3-7 */
+/* WLH 26 Oct 97
+         nodeDiff = vnode7 - vnode3;
+         cp = ( ( isovalue - vnode3 ) / nodeDiff ) + iz;
+         VX[nvet] = ix+1;
+         VY[nvet] = iy+1;
+         VZ[nvet] = cp;
+*/
+         cp = ( ( isovalue - vnode3 ) / ( vnode7 - vnode3 ) );
+         VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[0][pt + ydim + 1];
+         VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[1][pt + ydim + 1];
+         VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[2][pt + ydim + 1];
+
+         for (int j=0; j<naux; j++) {
+           tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                              (1.0f-cp) * auxValues[j][pt + ydim + 1];
+         }
+
+         calc_edge[8] = nvet;
+         P_array[ 2*xx + 2*yy + front*zz + (iy+1) ] = nvet;
+         nvet++;
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0200) != 0) ) {  /* cube vertex 4-5 */
+         if ( (iy != 0) ) {
+           calc_edge[9] = P_array[ above*xx + ix*ydim + iy ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode5 - vnode4;
+             cp = ( ( isovalue - vnode4 ) / nodeDiff ) + ix;
+             VX[nvet] = cp;
+             VY[nvet] = iy;
+             VZ[nvet] = iz+1;
+*/
+             cp = ( ( isovalue - vnode4 ) / ( vnode5 - vnode4 ) );
+             VX[nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt + xdim_x_ydim];
+             VY[nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt + xdim_x_ydim];
+             VZ[nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt + xdim_x_ydim];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+             }
+
+             calc_edge[9] = nvet;
+             P_array[ above*xx + ix*ydim + iy ] = nvet;
+             nvet++;
+         }
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0400) != 0) ) {  /* cube vertex 4-6 */
+         if ( (ix != 0) ) {
+           calc_edge[10] = P_array[ 2*xx + above*yy + iy*xdim + ix ];
+         }
+         else {
+/* WLH 26 Oct 97
+             nodeDiff = vnode6 - vnode4;
+             cp = ( ( isovalue - vnode4 ) / nodeDiff ) + iy;
+             VX[nvet] = ix;
+             VY[nvet] = cp;
+             VZ[nvet] = iz+1;
+*/
+             cp = ( ( isovalue - vnode4 ) / ( vnode6 - vnode4 ) );
+             VX[nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[0][pt + xdim_x_ydim];
+             VY[nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[1][pt + xdim_x_ydim];
+             VZ[nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+                        (1.0f-cp) * samples[2][pt + xdim_x_ydim];
+
+             for (int j=0; j<naux; j++) {
+               tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
+                                  (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+             }
+
+             calc_edge[10] = nvet;
+             P_array[ 2*xx + above*yy + iy*xdim + ix ] = nvet;
+             nvet++;
+         }
+     }
+    if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0800) != 0) ) {  /* cube vertex 5-7 */
+/* WLH 26 Oct 97
+         nodeDiff = vnode7 - vnode5;
+         cp = ( ( isovalue - vnode5 ) / nodeDiff ) + iy;
+         VX[nvet] = ix+1;
+         VY[nvet] = cp;
+         VZ[nvet] = iz+1;
+*/
+         cp = ( ( isovalue - vnode5 ) / ( vnode7 - vnode5 ) );
+         VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[0][pt + ydim + xdim_x_ydim];
+         VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[1][pt + ydim + xdim_x_ydim];
+         VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[2][pt + ydim + xdim_x_ydim];
+
+         for (int j=0; j<naux; j++) {
+           tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                              (1.0f-cp) * auxValues[j][pt + ydim + xdim_x_ydim];
+         }
+
+         calc_edge[11] = nvet;
+         P_array[ 2*xx + above*yy + iy*xdim + (ix+1) ] = nvet;
+         nvet++;
+     }
+     if ( ((pol_edges[ptFLAG[ncube]][3] & 0x1000) != 0) ) {  /* cube vertex 6-7 */
+/* WLH 26 Oct 97
+         nodeDiff = vnode7 - vnode6;
+         cp = ( ( isovalue - vnode6 ) / nodeDiff ) + ix;
+         VX[nvet] = cp;
+         VY[nvet] = iy+1;
+         VZ[nvet] = iz+1;
+*/
+         cp = ( ( isovalue - vnode6 ) / ( vnode7 - vnode6 ) );
+         VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[0][pt + 1 + xdim_x_ydim];
+         VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[1][pt + 1 + xdim_x_ydim];
+         VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                    (1.0f-cp) * samples[2][pt + 1 + xdim_x_ydim];
+
+         for (int j=0; j<naux; j++) {
+           tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                              (1.0f-cp) * auxValues[j][pt + 1 + xdim_x_ydim];
+         }
+
+         calc_edge[12] = nvet;
+         P_array[ above*xx + ix*ydim + (iy+1) ] = nvet;
+         nvet++;
+     }
+
+         /* end  find_vertex(); */
+                         /* update_data_structure(ncube); */
+                             kk = pol_edges[ptFLAG[ncube]][2];
+                             nn = pol_edges[ptFLAG[ncube]][1];
+                             for (ii=0; ii<nn; ii++) {
+                                  mm = pvp+(kk&MASK);
+                                  for (jj=pvp; jj<mm; jj++) {
+                                      Vert_f_Pol [jj] = ve = calc_edge[Vert_f_Pol [jj]];
+                            //        Pol_f_Vert[ve*9 + (Pol_f_Vert[ve*9 + 8])++]  = cpl;
+                                      temp = Pol_f_Vert[ve*9 + 8];
+                                      Pol_f_Vert[ve*9 + temp] = cpl;
+                                      Pol_f_Vert[ve*9 + 8] = temp + 1;
+                                  }
+                                  kk >>= 4;    pvp += 7;    cpl++;
+                             }
+                         /* end  update_data_structure(ncube); */
+                        }
+                        else { // !(ptFLAG[ncube] < MAX_FLAG_NUM)
+       /* find_vertex_invalid_cube(ncube); */
+
+    ptFLAG[ncube] &= 0x1FF;
+    if ( (ptFLAG[ncube] != 0 & ptFLAG[ncube] != 0xFF) )
+    { if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0010) != 0) )     /* cube vertex 1-3 */
+/* WLH 24 Oct 97
+      {   if (!(iz != 0 ) && vnode3 < INV_VAL && vnode1 < INV_VAL)
+      {   if (!(iz != 0 ) && !Float.isNaN(vnode3) && !Float.isNaN(vnode1))
+*/
+      // test for not missing
+      {   if (!(iz != 0 ) && vnode3 == vnode3 && vnode1 == vnode1)
+        {
+/* WLH 26 Oct 97
+              nodeDiff = vnode3 - vnode1;
+              cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iy;
+              VX[nvet] = ix+1;
+              VY[nvet] = cp;
+              VZ[nvet] = iz;
+*/
+              cp = ( ( isovalue - vnode1 ) / ( vnode3 - vnode1 ) );
+              VX[nvet] = (float) cp * Samples[0][pt + ydim + 1] +
+                         (1.0f-cp) * Samples[0][pt + ydim];
+              VY[nvet] = (float) cp * Samples[1][pt + ydim + 1] +
+                         (1.0f-cp) * Samples[1][pt + ydim];
+              VZ[nvet] = (float) cp * Samples[2][pt + ydim + 1] +
+                         (1.0f-cp) * Samples[2][pt + ydim];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
+                                   (1.0f-cp) * auxValues[j][pt + ydim];
+              }
+
+              P_array[ 2*xx + bellow*yy + iy*xdim + (ix+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0020) != 0) )    /* cube vertex 1-5 */
+/* WLH 24 Oct 97
+      {   if (!(iy != 0) && vnode5 < INV_VAL && vnode1 < INV_VAL)
+      {   if (!(iy != 0) && !Float.isNaN(vnode5) && !Float.isNaN(vnode1))
+*/
+      // test for not missing
+      {   if (!(iy != 0) && vnode5 == vnode5 && vnode1 == vnode1)
+        {
+/* WLH 26 Oct 97
+              nodeDiff = vnode5 - vnode1;
+              cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iz;
+              VX[nvet] = ix+1;
+              VY[nvet] = iy;
+              VZ[nvet] = cp;
+*/
+              cp = ( ( isovalue - vnode1 ) / ( vnode5 - vnode1 ) );
+              VX[nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + ydim];
+              VY[nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + ydim];
+              VZ[nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + ydim];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + ydim];
+              }
+
+              P_array[ 2*xx + 2*yy + front*zz + iy ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0040) != 0) )     /* cube vertex 2-3 */
+/* WLH 24 Oct 97
+      {   if (!(iz != 0) && vnode3 < INV_VAL && vnode2 < INV_VAL)
+      {   if (!(iz != 0) && !Float.isNaN(vnode3) && !Float.isNaN(vnode2))
+*/
+      // test for not missing
+      {   if (!(iz != 0) && vnode3 == vnode3 && vnode2 == vnode2)
+        {
+/* WLH 26 Oct 97
+              nodeDiff = vnode3 - vnode2;
+              cp = ( ( isovalue - vnode2 ) / nodeDiff ) + ix;
+              VX[nvet] = cp;
+              VY[nvet] = iy+1;
+              VZ[nvet] = iz;
+*/
+              cp = ( ( isovalue - vnode2 ) / ( vnode3 - vnode2 ) );
+              VX[nvet] = (float) cp * samples[0][pt + ydim + 1] +
+                         (1.0f-cp) * samples[0][pt + 1];
+              VY[nvet] = (float) cp * samples[1][pt + ydim + 1] +
+                         (1.0f-cp) * samples[1][pt + 1];
+              VZ[nvet] = (float) cp * samples[2][pt + ydim + 1] +
+                         (1.0f-cp) * samples[2][pt + 1];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + 1] +
+                                   (1.0f-cp) * auxValues[j][pt + 1];
+              }
+
+              P_array[ bellow*xx + ix*ydim + (iy+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0080) != 0) )  /* cube vertex 2-6 */
+/* WLH 24 Oct 97
+      {   if (!(ix != 0) && vnode6 < INV_VAL && vnode2 < INV_VAL)
+      {   if (!(ix != 0) && !Float.isNaN(vnode6) && !Float.isNaN(vnode2))
+*/
+      // test for not missing
+      {   if (!(ix != 0) && vnode6 == vnode6 && vnode2 == vnode2)
+        {
+/* WLH 26 Oct 97
+              nodeDiff = vnode6 - vnode2;
+              cp = ( ( isovalue - vnode2 ) / nodeDiff ) + iz;
+              VX[nvet] = ix;
+              VY[nvet] = iy+1;
+              VZ[nvet] = cp;
+*/
+              cp = ( ( isovalue - vnode2 ) / ( vnode6 - vnode2 ) );
+              VX[nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + 1];
+              VY[nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + 1];
+              VZ[nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + 1];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + 1];
+              }
+
+              P_array[ 2*xx + 2*yy + rear*zz + (iy+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0100) != 0) )     /* cube vertex 3-7 */
+/* WLH 24 Oct 97
+      {   if (vnode7 < INV_VAL && vnode3 < INV_VAL)
+      {   if (!Float.isNaN(vnode7) && !Float.isNaN(vnode3))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode3 == vnode3)
+          {
+/* WLH 26 Oct 97
+              nodeDiff = vnode7 - vnode3;
+              cp = ( ( isovalue - vnode3 ) / nodeDiff ) + iz;
+              VX[nvet] = ix+1;
+              VY[nvet] = iy+1;
+              VZ[nvet] = cp;
+*/
+              cp = ( ( isovalue - vnode3 ) / ( vnode7 - vnode3 ) );
+              VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + ydim + 1];
+              VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + ydim + 1];
+              VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + ydim + 1];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + ydim + 1];
+              }
+
+              P_array[ 2*xx + 2*yy + front*zz + (iy+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0200) != 0) )    /* cube vertex 4-5 */
+/* WLH 24 Oct 97
+      {   if (!(iy != 0) && vnode5 < INV_VAL && vnode4 < INV_VAL)
+      {   if (!(iy != 0) && !Float.isNaN(vnode5) && !Float.isNaN(vnode4))
+*/
+      // test for not missing
+      {   if (!(iy != 0) && vnode5 == vnode5 && vnode4 == vnode4)
+        {
+/* WLH 26 Oct 97
+              nodeDiff = vnode5 - vnode4;
+              cp = ( ( isovalue - vnode4 ) / nodeDiff ) + ix;
+              VX[nvet] = cp;
+              VY[nvet] = iy;
+              VZ[nvet] = iz+1;
+*/
+              cp = ( ( isovalue - vnode4 ) / ( vnode5 - vnode4 ) );
+              VX[nvet] = (float) cp * samples[0][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + xdim_x_ydim];
+              VY[nvet] = (float) cp * samples[1][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + xdim_x_ydim];
+              VZ[nvet] = (float) cp * samples[2][pt + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + xdim_x_ydim];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+              }
+
+              P_array[ above*xx + ix*ydim + iy ] = nvet;
+              nvet++;
+          }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0400) != 0) )     /* cube vertex 4-6 */
+/* WLH 24 Oct 97
+      {   if (!(ix != 0) && vnode6 < INV_VAL && vnode4 < INV_VAL)
+      {   if (!(ix != 0) && !Float.isNaN(vnode6) && !Float.isNaN(vnode4))
+*/
+      // test for not missing
+      {   if (!(ix != 0) && vnode6 == vnode6 && vnode4 == vnode4)
+          {
+/* WLH 26 Oct 97
+              nodeDiff = vnode6 - vnode4;
+              cp = ( ( isovalue - vnode4 ) / nodeDiff ) + iy;
+              VX[nvet] = ix;
+              VY[nvet] = cp;
+              VZ[nvet] = iz+1;
+*/
+              cp = ( ( isovalue - vnode4 ) / ( vnode6 - vnode4 ) );
+              VX[nvet] = (float) cp * samples[0][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + xdim_x_ydim];
+              VY[nvet] = (float) cp * samples[1][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + xdim_x_ydim];
+              VZ[nvet] = (float) cp * samples[2][pt + 1 + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + xdim_x_ydim];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + xdim_x_ydim];
+              }
+
+              P_array[ 2*xx + above*yy + iy*xdim + ix ] = nvet;
+              nvet++;
+          }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0800) != 0) )     /* cube vertex 5-7 */
+/* WLH 24 Oct 97
+      {   if (vnode7 < INV_VAL && vnode5 < INV_VAL)
+      {   if (!Float.isNaN(vnode7) && !Float.isNaN(vnode5))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode5 == vnode5)
+        {
+/* WLH 26 Oct 97
+              nodeDiff = vnode7 - vnode5;
+              cp = ( ( isovalue - vnode5 ) / nodeDiff ) + iy;
+              VX[nvet] = ix+1;
+              VY[nvet] = cp;
+              VZ[nvet] = iz+1;
+*/
+              cp = ( ( isovalue - vnode5 ) / ( vnode7 - vnode5 ) );
+              VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + ydim + xdim_x_ydim];
+              VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + ydim + xdim_x_ydim];
+              VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + ydim + xdim_x_ydim];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + ydim + xdim_x_ydim];
+              }
+
+              P_array[ 2*xx + above*yy + iy*xdim + (ix+1) ] = nvet;
+              nvet++;
+        }
+      }
+      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x1000) != 0) )     /* cube vertex 6-7 */
+/* WLH 24 Oct 97
+      {   if (vnode7 < INV_VAL && vnode6 < INV_VAL)
+      {   if (!Float.isNaN(vnode7) && !Float.isNaN(vnode6))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode6 == vnode6)
+        {
+/* WLH 26 Oct 97
+              nodeDiff = vnode7 - vnode6;
+              cp = ( ( isovalue - vnode6 ) / nodeDiff ) + ix;
+              VX[nvet] = cp;
+              VY[nvet] = iy+1;
+              VZ[nvet] = iz+1;
+*/
+              cp = ( ( isovalue - vnode6 ) / ( vnode7 - vnode6 ) );
+              VX[nvet] = (float) cp * samples[0][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[0][pt + 1 + xdim_x_ydim];
+              VY[nvet] = (float) cp * samples[1][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[1][pt + 1 + xdim_x_ydim];
+              VZ[nvet] = (float) cp * samples[2][pt + 1 + ydim + xdim_x_ydim] +
+                         (1.0f-cp) * samples[2][pt + 1 + xdim_x_ydim];
+
+              for (int j=0; j<naux; j++) {
+                tempaux[j][nvet] = (float) cp * auxValues[j][pt + 1 + ydim + xdim_x_ydim] +
+                                   (1.0f-cp) * auxValues[j][pt + 1 + xdim_x_ydim];
+              }
+
+              P_array[ above*xx + ix*ydim + (iy+1) ] = nvet;
+              nvet++;
+        }
+      }
+     }
+        /* end  find_vertex_invalid_cube(ncube); */
+ 
+                        }
+                    } /* end  if (exist_polygon_in_cube(ncube)) */
+                    ncube++; pt++;
+                } /* end  for ( iy = 0; iy < ydim - 1; iy++ ) */
+             /* swap_planes(Z,rear,front); */
+                caseA = rear;
+                rear = front;
+                front = caseA;
+                pt++;
+             /* end  swap_planes(Z,rear,front); */
+            } /* end  for ( ix = 0; ix < xdim - 1; ix++ ) */
+           /*  swap_planes(XY,bellow,above); */
+               caseA = bellow;
+               bellow = above;
+               above = caseA;
+            pt += ydim;
+           /* end  swap_planes(XY,bellow,above); */
+        } /* end  for ( iz = 0; iz < zdim - 1; iz++ ) */
+
+    // copy tempaux array into auxLevels array
+    for (int i=0; i<naux; i++) {
+      auxLevels[i] = new float[nvet];
+      System.arraycopy(tempaux[i], 0, auxLevels[i], 0, nvet);
+    }
+
+    return nvet;
+  }
+
+  public static void make_normals( float[] VX, float[] VY, float[] VZ,
+                     float[] NX, float[] NY, float[] NZ, int nvertex,
+                     int npolygons, float[] Pnx, float[] Pny, float[] Pnz,
+                     float[] NxA, float[] NxB, float[] NyA, float[] NyB,
+                     float[] NzA, float[] NzB,
+                     int[] Pol_f_Vert, int[] Vert_f_Pol)
+         throws VisADException {
+
+   int   i, k,  n;
+   int   i1, i2, ix, iy, iz, ixb, iyb, izb;
+   int   max_vert_per_pol, swap_flag;
+   float x, y, z, a, minimum_area, len;
+
+   int iv[] = new int[3];
+
+
+   for ( i = 0; i < nvertex; i++ ) {
+      NX[i] = 0;
+      NY[i] = 0;
+      NZ[i] = 0;
+   }
+
+   minimum_area = (float) ((1.e-4 > EPS_0) ? 1.e-4 : EPS_0);
+
+   /* Calculate maximum number of vertices per polygon */
+   k = 6;    n = 7*npolygons;
+   while ( TRUE )
+   {   for (i=k+7; i<n; i+=7)
+           if (Vert_f_Pol[i] > Vert_f_Pol[k]) break;
+       if (i >= n) break;    k = i;
+   }
+   max_vert_per_pol = Vert_f_Pol[k];
+
+   /* Calculate the Normals vector components for each Polygon */
+   /*$dir vector */
+   for ( i=0; i<npolygons; i++) {  /* Vectorized */
+      if (Vert_f_Pol[6+i*7]>0) {  /* check for valid polygon added by BEP 2-13-92 */
+         NxA[i] = VX[Vert_f_Pol[1+i*7]] - VX[Vert_f_Pol[0+i*7]];
+         NyA[i] = VY[Vert_f_Pol[1+i*7]] - VY[Vert_f_Pol[0+i*7]];
+         NzA[i] = VZ[Vert_f_Pol[1+i*7]] - VZ[Vert_f_Pol[0+i*7]];
+      }
+   }
+
+   swap_flag = 0;
+   for ( k = 2; k < max_vert_per_pol; k++ )
+   {
+
+      if (swap_flag==0) {
+         /*$dir no_recurrence */        /* Vectorized */
+         for ( i=0; i<npolygons; i++ ) {
+            if ( Vert_f_Pol[k+i*7] >= 0 ) {
+               NxB[i]  = VX[Vert_f_Pol[k+i*7]] - VX[Vert_f_Pol[0+i*7]];
+               NyB[i]  = VY[Vert_f_Pol[k+i*7]] - VY[Vert_f_Pol[0+i*7]];
+               NzB[i]  = VZ[Vert_f_Pol[k+i*7]] - VZ[Vert_f_Pol[0+i*7]];
+               Pnx[i] = NyA[i]*NzB[i] - NzA[i]*NyB[i];
+               Pny[i] = NzA[i]*NxB[i] - NxA[i]*NzB[i];
+               Pnz[i] = NxA[i]*NyB[i] - NyA[i]*NxB[i];
+               NxA[i] = Pnx[i]*Pnx[i] + Pny[i]*Pny[i] + Pnz[i]*Pnz[i];
+               if (NxA[i] > minimum_area) {
+                  Pnx[i] /= NxA[i];
+                  Pny[i] /= NxA[i];
+                  Pnz[i] /= NxA[i];
+               }
+            }
+         }
+      }
+      else {  /* swap_flag!=0 */
+         /*$dir no_recurrence */        /* Vectorized */
+         for ( i=0; i<npolygons; i++ ) {
+            if ( Vert_f_Pol[k+i*7] >= 0 ) {
+               NxA[i]  = VX[Vert_f_Pol[k+i*7]] - VX[Vert_f_Pol[0+i*7]];
+               NyA[i]  = VY[Vert_f_Pol[k+i*7]] - VY[Vert_f_Pol[0+i*7]];
+               NzA[i]  = VZ[Vert_f_Pol[k+i*7]] - VZ[Vert_f_Pol[0+i*7]];
+               Pnx[i] = NyB[i]*NzA[i] - NzB[i]*NyA[i];
+               Pny[i] = NzB[i]*NxA[i] - NxB[i]*NzA[i];
+               Pnz[i] = NxB[i]*NyA[i] - NyB[i]*NxA[i];
+               NxB[i] = Pnx[i]*Pnx[i] + Pny[i]*Pny[i] + Pnz[i]*Pnz[i];
+               if (NxB[i] > minimum_area) {
+                  Pnx[i] /= NxB[i];
+                  Pny[i] /= NxB[i];
+                  Pnz[i] /= NxB[i];
+               }
+            }
+         }
+      }
+
+       /* This Loop <CAN'T> be Vectorized */
+       for ( i=0; i<npolygons; i++ )
+       {   if (Vert_f_Pol[k+i*7] >= 0)
+           {   iv[0] = Vert_f_Pol[0+i*7];
+               iv[1] = Vert_f_Pol[(k-1)+i*7];
+               iv[2] = Vert_f_Pol[k+i*7];
+                 x = Pnx[i];   y = Pny[i];   z = Pnz[i];
+
+               // Update the origin vertex
+                  NX[iv[0]] += x;   NY[iv[0]] += y;   NZ[iv[0]] += z;
+
+               // Update the vertex that defines the first vector
+                  NX[iv[1]] += x;   NY[iv[1]] += y;   NZ[iv[1]] += z;
+
+               // Update the vertex that defines the second vector
+                  NX[iv[2]] += x;   NY[iv[2]] += y;   NZ[iv[2]] += z;
+           }
+       }
+
+       swap_flag = ( (swap_flag != 0) ? 0 : 1 );
+    }
+ 
+    /* Normalize the Normals */
+    for ( i=0; i<nvertex; i++ )  /* Vectorized */
+    {   len = (float) Math.sqrt(NX[i]*NX[i] + NY[i]*NY[i] + NZ[i]*NZ[i]);
+        if (len > EPS_0) {
+            NX[i] /= len;
+            NY[i] /= len;
+            NZ[i] /= len;
+        }
+    }
+
+  }
+
+  public static int poly_triangle_stripe( int[] vet_pol, int[] Tri_Stripe,
+                            int nvertex, int npolygons, int[] Pol_f_Vert,
+                            int[] Vert_f_Pol ) throws VisADException {
+   int  i, j, k, m, ii, npol, cpol, idx, off, Nvt,
+        vA, vB, ivA, ivB, iST, last_pol;
+   boolean f_line_conection = false;
+
+    last_pol = 0;
+    npol = 0;
+    iST = 0;
+    ivB = 0;
+
+    for (i=0; i<npolygons; i++) vet_pol[i] = 1;  /* Vectorized */
+
+    while (TRUE)
+    {
+        /* find_unselected_pol(cpol); */
+        for (cpol=last_pol; cpol<npolygons; cpol++) {
+           if ( (vet_pol[cpol] != 0) ) break;
+        }
+        if (cpol == npolygons) {
+            cpol = -1;
+        }
+        else {
+            last_pol = cpol;
+        }
+        /* end  find_unselected_pol(cpol); */
+
+        if (cpol < 0) break;
+/*      update_polygon            */
+        vet_pol[cpol] = 0;
+/* end     update_polygon            */
+
+/*      get_vertices_of_pol(cpol,Vt,Nvt); {    */
+            Nvt = Vert_f_Pol[(j=cpol*7)+6];
+            off = j;
+/*      }                                      */
+/* end      get_vertices_of_pol(cpol,Vt,Nvt); {    */
+
+
+        for (ivA=0; ivA<Nvt; ivA++) {
+            ivB = (((ivA+1)==Nvt) ? 0:(ivA+1));
+/*          get_pol_vert(Vt[ivA],Vt[ivB],npol) { */
+               npol = -1;
+               if (Vert_f_Pol[ivA+off]>=0 && Vert_f_Pol[ivB+off]>=0) {
+                  i=Vert_f_Pol[ivA+off]*9;
+                  k=i+Pol_f_Vert [i+8];
+                  j=Vert_f_Pol[ivB+off]*9;
+                  m=j+Pol_f_Vert [j+8];
+                  while (i>0 && j>0 && i<k && j <m ) {
+                     if (Pol_f_Vert [i] == Pol_f_Vert [j] &&
+                         (vet_pol[Pol_f_Vert[i]] != 0) ) {
+                        npol=Pol_f_Vert [i];
+                        break;
+                     }
+                     else if (Pol_f_Vert [i] < Pol_f_Vert [j])
+                          i++;
+                     else
+                          j++;
+                  }
+               }
+/*          }                                   */
+/* end          get_pol_vert(Vt[ivA],Vt[ivB],npol) { */
+            if (npol >= 0) break;
+        }
+        /* insert polygon alone */
+        if (npol < 0)
+        { /*ptT = NTAB + STAB[Nvt-3];*/
+            idx = STAB[Nvt-3];
+            if (iST > 0)
+            {   Tri_Stripe[iST]   = Tri_Stripe[iST-1];    iST++;
+                Tri_Stripe[iST++] = Vert_f_Pol[NTAB[idx]+off];
+            }
+            else f_line_conection = true; /* WLH 3-9-95 added */
+            for (ii=0; ii< ((Nvt < 6) ? Nvt:6); ii++) {
+                Tri_Stripe[iST++] = Vert_f_Pol[NTAB[idx++]+off];
+              }
+            continue;
+        }
+
+        if (( (ivB != 0) && ivA==(ivB-1)) || ( !(ivB != 0) && ivA==Nvt-1)) {
+         /* ptT = ITAB + STAB[Nvt-3] + (ivB+1)*Nvt; */
+            idx = STAB[Nvt-3] + (ivB+1)*Nvt;
+
+            if (f_line_conection)
+            {   Tri_Stripe[iST]   = Tri_Stripe[iST-1];    iST++;
+                Tri_Stripe[iST++] = Vert_f_Pol[ITAB[idx-1]+off];
+                f_line_conection = false;
+            }
+            for (ii=0; ii<((Nvt < 6) ? Nvt:6); ii++) {
+                Tri_Stripe[iST++] = Vert_f_Pol[ITAB[--idx]+off];
+            }
+
+        }
+        else {
+         /* ptT = NTAB + STAB[Nvt-3] + (ivB+1)*Nvt; */
+            idx = STAB[Nvt-3] + (ivB+1)*Nvt;
+
+            if (f_line_conection)
+            {   Tri_Stripe[iST]   = Tri_Stripe[iST-1];    iST++;
+                Tri_Stripe[iST++] = Vert_f_Pol[NTAB[idx-1]+off];
+                f_line_conection = false;
+            }
+            for (ii=0; ii<((Nvt < 6) ? Nvt:6); ii++) {
+                Tri_Stripe[iST++] = Vert_f_Pol[NTAB[--idx]+off];
+            }
+
+        }
+
+        vB = Tri_Stripe[iST-1];
+        vA = Tri_Stripe[iST-2];
+        cpol = npol;
+
+        while (TRUE)
+        {
+/*          get_vertices_of_pol(cpol,Vt,Nvt)  {   */
+                Nvt = Vert_f_Pol [(j=cpol*7)+6];
+                off = j;
+/*          }                                     */
+
+
+/*          update_polygon(cpol)                  */
+            vet_pol[cpol] = 0;
+            for (ivA=0; ivA<Nvt && Vert_f_Pol[ivA+off]!=vA; ivA++);
+            for (ivB=0; ivB<Nvt && Vert_f_Pol[ivB+off]!=vB; ivB++);
+                 if (( (ivB != 0) && ivA==(ivB-1)) || (!(ivB != 0) && ivA==Nvt-1)) {
+                /* ptT = NTAB + STAB[Nvt-3] + ivA*Nvt + 2; */
+                    idx = STAB[Nvt-3] + ivA*Nvt + 2;
+
+                    for (ii=2; ii<((Nvt < 6) ? Nvt:6); ii++)
+                        Tri_Stripe[iST++] = Vert_f_Pol[NTAB[idx++]+off];
+                 }
+                 else {
+                /*  ptT = ITAB + STAB[Nvt-3] + ivA*Nvt + 2; */
+                    idx = STAB[Nvt-3] + ivA*Nvt + 2;
+
+                    for (ii=2; ii<((Nvt < 6) ? Nvt:6); ii++)
+                        Tri_Stripe[iST++] = Vert_f_Pol[ITAB[idx++]+off];
+                 }
+
+            vB = Tri_Stripe[iST-1];
+            vA = Tri_Stripe[iST-2];
+
+/*          get_pol_vert(vA,vB,cpol) {     */
+               cpol = -1;
+               if (vA>=0 && vB>=0) {
+                 i=vA*9;
+                 k=i+Pol_f_Vert [i+8];
+                 j=vB*9;
+                 m=j+Pol_f_Vert [j+8];
+                 while (i>0 && j>0 && i<k && j<m) {
+                    if (Pol_f_Vert [i] == Pol_f_Vert [j] && (vet_pol[Pol_f_Vert[i]] != 0) ) {
+                      cpol=Pol_f_Vert[i];
+                      break;
+                    }
+                    else if (Pol_f_Vert [i] < Pol_f_Vert [j])
+                      i++;
+                    else
+                      j++;
+                 }
+               }
+/*         }                               */
+
+            if (cpol < 0) {
+
+                vA = Tri_Stripe[iST-3];
+/*          get_pol_vert(vA,vB,cpol) {   */
+               cpol = -1;
+               if (vA>=0 && vB>=0) {
+                 i=vA*9;
+                 k=i+Pol_f_Vert [i+8];
+                 j=vB*9;
+                 m=j+Pol_f_Vert [j+8];
+                 while (i>0 && j>0 && i<k && j<m) {
+                    if (Pol_f_Vert [i] == Pol_f_Vert [j] &&
+                        (vet_pol[Pol_f_Vert[i]] != 0) ) {
+                      cpol=Pol_f_Vert[i];
+                      break;
+                    }
+                    else if (Pol_f_Vert [i] < Pol_f_Vert [j])
+                      i++;
+                    else
+                      j++;
+                 }
+               }
+
+/*          }                            */
+                if (cpol < 0) {
+                    f_line_conection  = true;
+                    break;
+                }
+                else {
+                    Tri_Stripe[iST++] = vA;
+                    i = vA;
+                    vA = vB;
+                    vB = i;
+                }
+            }
+        }
+    }
+
+    return iST;
+  }
+
+  /** create a 2-D GeometryArray from this Set and color_values */
+  public VisADGeometryArray make2DGeometry(float[][] color_values)
+         throws VisADException {
+    if (DomainDimension != 3) {
+      throw new SetException("Gridded3DSet.make2DGeometry: " +
+                              "DomainDimension must be 3");
+    }
+    if (ManifoldDimension != 2) {
+      throw new SetException("Gridded3DSet.make2DGeometry: " +
+                              "ManifoldDimension must be 2");
+    }
+    if (LengthX < 2 || LengthY < 2) {
+      throw new SetException("Gridded3DSet.make2DGeometry: " +
+                              "LengthX and LengthY must be at least 2");
+    }
+    VisADIndexedTriangleStripArray array =
+      new VisADIndexedTriangleStripArray();
+
+    // set up indices into 2-D grid
+    array.indexCount = (LengthY - 1) * (2 * LengthX);
+    int[] indices = new int[array.indexCount];
+    array.stripVertexCounts = new int[LengthY - 1];
+    int j = 0;
+    for (int i=0; i<LengthY-1; i++) {
+      int m = i * LengthX;
+      array.stripVertexCounts[i] = 2 * LengthX;
+      for (int k=0; k<LengthX; k++) {
+        indices[j++] = m;
+        indices[j++] = m + LengthX;
+        m++;
+      }
+    }
+    array.indices = indices;
+    // set coordinates and colors
+    setGeometryArray(array, 4, color_values);
+    return array;
+  }
+
   public Object clone() {
     try {
-      return new Gridded3DSet(Type, Samples, LengthX, LengthY, LengthZ,
-                              DomainCoordinateSystem, SetUnits, SetErrors);
+      if (ManifoldDimension == 3) {
+        return new Gridded3DSet(Type, Samples, LengthX, LengthY, LengthZ,
+                                DomainCoordinateSystem, SetUnits, SetErrors);
+      }
+      else if (ManifoldDimension == 2) {
+        return new Gridded3DSet(Type, Samples, LengthX, LengthY,
+                                DomainCoordinateSystem, SetUnits, SetErrors);
+      }
+      else {
+        return new Gridded3DSet(Type, Samples, LengthX,
+                                DomainCoordinateSystem, SetUnits, SetErrors);
+      }
     }
     catch (VisADException e) {
       throw new VisADError("Gridded3DSet.clone: " + e.toString());
@@ -1220,8 +3248,18 @@ public class Gridded3DSet extends GriddedSet {
   }
 
   public Object cloneButType(MathType type) throws VisADException {
-    return new Gridded3DSet(type, Samples, LengthX, LengthY, LengthZ,
-                            DomainCoordinateSystem, SetUnits, SetErrors);
+    if (ManifoldDimension == 3) {
+      return new Gridded3DSet(type, Samples, LengthX, LengthY, LengthZ,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+    else if (ManifoldDimension == 2) {
+      return new Gridded3DSet(type, Samples, LengthX, LengthY,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+    else {
+      return new Gridded3DSet(type, Samples, LengthX, 
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+    }
   }
 
   /* run 'java visad.Gridded3DSet < formatted_input_stream'
@@ -1262,7 +3300,7 @@ public class Gridded3DSet extends GriddedSet {
     }
 
     // Define size of Samples array
-    double[][] samp = new double[3][num_coords];
+    float[][] samp = new float[3][num_coords];
     System.out.println("num_dimensions = 3, num_coords = "+num_coords+"\n");
 
     // Skip blank line
@@ -1294,7 +3332,7 @@ public class Gridded3DSet extends GriddedSet {
         for (int i=0; i<l; i++) {
           chars[i] = (char) ints[i];
         }
-        samp[d][c] = (Double.valueOf(new String(chars))).doubleValue();
+        samp[d][c] = (Float.valueOf(new String(chars))).floatValue();
       }
     }
 
@@ -1333,14 +3371,14 @@ public class Gridded3DSet extends GriddedSet {
     int myLengthX = gSet3D.LengthX+1;
     int myLengthY = gSet3D.LengthY+1;
     int myLengthZ = gSet3D.LengthZ+1;
-    double[][] myGrid = new double[3][myLengthX*myLengthY*myLengthZ];
+    float[][] myGrid = new float[3][myLengthX*myLengthY*myLengthZ];
     for (int k=0; k<myLengthZ; k++) {
       for (int j=0; j<myLengthY; j++) {
         for (int i=0; i<myLengthX; i++) {
           int index = k*myLengthY*myLengthX+j*myLengthX+i;
-          myGrid[0][index] = i-0.5;
-          myGrid[1][index] = j-0.5;
-          myGrid[2][index] = k-0.5;
+          myGrid[0][index] = i-0.5f;
+          myGrid[1][index] = j-0.5f;
+          myGrid[2][index] = k-0.5f;
           if (myGrid[0][index] < 0) myGrid[0][index] += 0.1;
           if (myGrid[1][index] < 0) myGrid[1][index] += 0.1;
           if (myGrid[2][index] < 0) myGrid[2][index] += 0.1;
@@ -1350,51 +3388,51 @@ public class Gridded3DSet extends GriddedSet {
         }
       }
     }
-    double[][] myValue = gSet3D.gridToValue(myGrid);
+    float[][] myValue = gSet3D.gridToValue(myGrid);
     for (int i=0; i<myLengthX*myLengthY*myLengthZ; i++) {
-      System.out.println("("+((double) Math.round(1000000
+      System.out.println("("+((float) Math.round(1000000
                                       *myGrid[0][i]) /1000000)+", "
-                            +((double) Math.round(1000000
+                            +((float) Math.round(1000000
                                       *myGrid[1][i]) /1000000)+", "
-                            +((double) Math.round(1000000
+                            +((float) Math.round(1000000
                                       *myGrid[2][i]) /1000000)+")  \t-->  "
-                            +((double) Math.round(1000000
+                            +((float) Math.round(1000000
                                       *myValue[0][i]) /1000000)+", "
-                            +((double) Math.round(1000000
+                            +((float) Math.round(1000000
                                       *myValue[1][i]) /1000000)+", "
-                            +((double) Math.round(1000000
+                            +((float) Math.round(1000000
                                       *myValue[2][i]) /1000000));
     }
 
     // Test valueToGrid function
     System.out.println("\nvalueToGrid test:");
-    double[][] gridTwo = gSet3D.valueToGrid(myValue);
+    float[][] gridTwo = gSet3D.valueToGrid(myValue);
     for (int i=0; i<gridTwo[0].length; i++) {
-      System.out.print(((double) Math.round(1000000
+      System.out.print(((float) Math.round(1000000
                                 *myValue[0][i]) /1000000)+", "
-                      +((double) Math.round(1000000
+                      +((float) Math.round(1000000
                                 *myValue[1][i]) /1000000)+", "
-                      +((double) Math.round(1000000
+                      +((float) Math.round(1000000
                                 *myValue[2][i]) /1000000)+"\t-->  (");
-      if (Double.isNaN(gridTwo[0][i])) {
+      if (Float.isNaN(gridTwo[0][i])) {
         System.out.print("NaN, ");
       }
       else {
-        System.out.print(((double) Math.round(1000000
+        System.out.print(((float) Math.round(1000000
                                   *gridTwo[0][i]) /1000000)+", ");
       }
-      if (Double.isNaN(gridTwo[1][i])) {
+      if (Float.isNaN(gridTwo[1][i])) {
         System.out.print("NaN, ");
       }
       else {
-        System.out.print(((double) Math.round(1000000
+        System.out.print(((float) Math.round(1000000
                                   *gridTwo[1][i]) /1000000)+", ");
       }
-      if (Double.isNaN(gridTwo[2][i])) {
+      if (Float.isNaN(gridTwo[2][i])) {
         System.out.println("NaN)");
       }
       else {
-        System.out.println(((double) Math.round(1000000
+        System.out.println(((float) Math.round(1000000
                                     *gridTwo[2][i]) /1000000)+")");
       }
     }

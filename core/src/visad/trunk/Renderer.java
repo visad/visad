@@ -122,7 +122,7 @@ public abstract class Renderer extends Object {
         Enumeration maps = Links[i].getSelectedMapVector().elements();
         while(maps.hasMoreElements()) {
           Control control = ((ScalarMap) maps.nextElement()).getControl();
-          if (control.checkTicks(this, Links[i])) {
+          if (control != null && control.checkTicks(this, Links[i])) {
             any_transform_control = true;
           }
         }
@@ -168,10 +168,18 @@ public abstract class Renderer extends Object {
   public boolean isTransformControl(Control control, DataDisplayLink link) {
     if (control instanceof ProjectionControl ||
         control instanceof ToggleControl) return false;
+/* WLH 1 Nov 97 - temporary hack -
+   RangeControl changes always require Transform
+   ValueControl and AnimationControl never do
+
     if (control instanceof AnimationControl ||
         control instanceof ValueControl ||
         control instanceof RangeControl) {
       return link.isTransform[control.getIndex()];
+*/
+    if (control instanceof AnimationControl ||
+        control instanceof ValueControl) {
+      return false;
     }
     return true;
   }

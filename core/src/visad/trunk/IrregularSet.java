@@ -36,50 +36,78 @@ package visad;
 */
 public class IrregularSet extends SampledSet {
 
-  /** construct an IrregularSet with samples */
-  public IrregularSet(MathType type, double[][] samples)
+  Delaunay Delan;
+
+  /** oldToNew and newToOld used when ManifoldDimension = 1
+      but DomainDimension > 1 */
+  /** maps old samples indices to sorted samples indices */
+  int[] oldToNew;
+  /** maps sorted samples indices to old samples indices */
+  int[] newToOld;
+
+  /** construct an IrregularSet */
+  public IrregularSet(MathType type, float[][] samples)
          throws VisADException {
-    this(type, samples, null, null, null);
+    this(type, samples, samples.length, null, null, null);
   }
 
-  /** construct an IrregularSet with samples and non-default CoordinateSystem */
-  public IrregularSet(MathType type, double[][] samples,
-                    CoordinateSystem coord_sys, Unit[] units,
-                    ErrorEstimate[] errors) throws VisADException {
-    super(type, samples.length, coord_sys, units, errors);
-    Low = new double[DomainDimension];
-    Hi = new double[DomainDimension];
+  /** construct an IrregularSet with non-default CoordinateSystem */
+  public IrregularSet(MathType type, float[][] samples,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, samples.length, coord_sys, units, errors);
+  }
+
+  /** construct an IrregularSet with ManifoldDimension != DomainDimension
+      and with non-default CoordinateSystem */
+  public IrregularSet(MathType type, float[][] samples,
+                      int manifold_dimension, CoordinateSystem coord_sys,
+                      Unit[] units, ErrorEstimate[] errors)
+         throws VisADException {
+    this(type, samples, manifold_dimension, coord_sys, units, errors, true);
+  }
+
+  IrregularSet(MathType type, float[][] samples,
+               int manifold_dimension, CoordinateSystem coord_sys,
+               Unit[] units, ErrorEstimate[] errors, boolean copy)
+         throws VisADException {
+    super(type, manifold_dimension, coord_sys, units, errors);
+    Low = new float[DomainDimension];
+    Hi = new float[DomainDimension];
     if (samples == null ) {
-      Samples = null;
+      throw new SetException("IrregularSet: samples cannot be null");
     }
-    else {
-      init_samples(samples);
-    }
+    init_samples(samples, copy);
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
-    double[][] value = new double[DomainDimension][index.length];
-    for (int i=0; i<index.length; i++)
-      if ( (index[i] >= 0) && (index[i] < Samples[0].length) )
-        for (int j=0; j<DomainDimension; j++)
+  public float[][] indexToValue(int[] index) throws VisADException {
+    float[][] value = new float[DomainDimension][index.length];
+    for (int i=0; i<index.length; i++) {
+      if ( (index[i] >= 0) && (index[i] < Length) ) {
+        for (int j=0; j<DomainDimension; j++) {
           value[j][i] = Samples[j][index[i]];
-      else
-        for (int j=0; j<DomainDimension; j++)
-          value[j][i] = Double.NaN;
+        }
+      }
+      else {
+        for (int j=0; j<DomainDimension; j++) {
+          value[j][i] = Float.NaN;
+        }
+      }
+    }
     return value;
   }
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     throw new UnimplementedException("IrregularSet.valueToIndex");
   }
 
   /** for each of an array of values in R^DomainDimension, compute an array
       of 1-D indices and an array of weights, to be used for interpolation;
       indices[i] and weights[i] are null if no interpolation is possible */
-  public void valueToInterp(double[][] value, int[][] indices,
-                            double weights[][]) throws VisADException {
+  public void valueToInterp(float[][] value, int[][] indices,
+                            float weights[][]) throws VisADException {
     throw new UnimplementedException("IrregularSet.valueToInterp");
   }
 
@@ -96,7 +124,7 @@ public class IrregularSet extends SampledSet {
           ManifoldDimension != ((IrregularSet) set).getManifoldDimension() ||
           Length != ((IrregularSet) set).getLength()) return false;
       // Sets are immutable, so no need for 'synchronized'
-      double[][] samples = ((IrregularSet) set).getSamples();
+      float[][] samples = ((IrregularSet) set).getSamples(false);
       for (j=0; j<DomainDimension; j++) {
         for (i=0; i<Length; i++) {
           if (Samples[j][i] != samples[j][i]) {

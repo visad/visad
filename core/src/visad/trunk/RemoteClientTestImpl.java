@@ -31,7 +31,7 @@ import java.rmi.server.UnicastRemoteObject;
 /**
    How to run this test:
 
-REMEMBER TO FIRST RUN:  rmic_script
+BE SURE TO FIRST RUN:  rmic_script
 
 on demedici, in ~/java/visad:
  

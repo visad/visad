@@ -69,6 +69,23 @@ public abstract class RealVectorType extends RealTupleType {
                         double[][] loc, double[][] value)
          throws VisADException, RemoteException;
 
+  public float[][] transformVectors(
+                        RealTupleType out, CoordinateSystem coord_out,
+                        Unit[] units_out, ErrorEstimate[] loc_errors_out,
+                        RealTupleType in, CoordinateSystem coord_in,
+                        Unit[] units_in, CoordinateSystem coord_vector,
+                        ErrorEstimate[] errors_in,
+                        ErrorEstimate[] errors_out,
+                        float[][] loc, float[][] value)
+         throws VisADException, RemoteException {
+    double[][] dloc = Set.floatToDouble(loc);
+    double[][] dvalue = Set.floatToDouble(value);
+    dvalue = transformVectors(out, coord_out, units_out, loc_errors_out,
+                              in, coord_in, units_in, coord_vector,
+                              errors_in, errors_out, dloc, dvalue);
+    return Set.doubleToFloat(dvalue);
+  }
+
   /** transform a single vector in a RealTuple, based on a coordinate
       transform of the field domain.  Similar to the previous
       definition of transformVectors. */
@@ -104,6 +121,19 @@ public abstract class RealVectorType extends RealTupleType {
     }
     return new RealTuple((RealTupleType) tuple.getType(), reals,
                          tuple.getCoordinateSystem());
+  }
+
+  public RealTuple transformVectors(
+                        RealTupleType out, CoordinateSystem coord_out,
+                        Unit[] units_out, ErrorEstimate[] loc_errors_out,
+                        RealTupleType in, CoordinateSystem coord_in,
+                        Unit[] units_in, CoordinateSystem coord_vector,
+                        float[][] loc, RealTuple tuple)
+         throws VisADException, RemoteException {
+    double[][] dloc = Set.floatToDouble(loc);
+    return transformVectors(out, coord_out, units_out, loc_errors_out,
+                            in, coord_in, units_in, coord_vector,
+                            dloc, tuple);
   }
 
 }

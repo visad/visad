@@ -53,7 +53,7 @@ class DataDisplayLink extends ReferenceActionLink {
   // 1. this.ConstantMapVector
   // 2. Display.ConstantMapVector
   // 3. DisplayRealType.DefaultValue
-  double[] DefaultValues;
+  private float[] defaultValues;
 
   // flag per Control
   boolean[] isTransform;
@@ -121,23 +121,23 @@ class DataDisplayLink extends ReferenceActionLink {
     // calculate default values for DisplayRealType-s
     // lowest priority: DisplayRealType.DefaultValue
     int n = ((DisplayImpl) local_action).getDisplayScalarCount();
-    DefaultValues = new double[n];
+    defaultValues = new float[n];
     for (int i=0; i<n; i++) {
-      DefaultValues[i] = ((DisplayRealType)
-        ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue();
+      defaultValues[i] = (float) (((DisplayRealType)
+        ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue());
     }
     // middle priority: DisplayImpl.ConstantMapVector
     Enumeration maps =
       ((DisplayImpl) local_action).getConstantMapVector().elements();
     while(maps.hasMoreElements()) {
       ConstantMap map = (ConstantMap) maps.nextElement();
-      DefaultValues[map.getDisplayScalarIndex()] = map.getConstant();
+      defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();
     }
     // highest priority: this.ConstantMapVector
     maps = ConstantMapVector.elements();
     while(maps.hasMoreElements()) {
       ConstantMap map = (ConstantMap) maps.nextElement();
-      DefaultValues[map.getDisplayScalarIndex()] = map.getConstant();
+      defaultValues[map.getDisplayScalarIndex()] = (float) map.getConstant();
     }
 
     try {
@@ -179,6 +179,10 @@ class DataDisplayLink extends ReferenceActionLink {
 
   Data getData() {
     return data;
+  }
+
+  public float[] getDefaultValues() {
+    return defaultValues;
   }
 
 }

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.1 1997-10-23 20:13:31 dglo Exp $
+ * $Id: DerivedUnit.java,v 1.2 1997-11-06 18:19:27 billh Exp $
  */
 
 package visad;
@@ -457,6 +457,12 @@ public final class DerivedUnit
 	return toThis(values, new DerivedUnit(that));
     }
 
+    float[] toThis(float[] values, BaseUnit that)
+        throws UnitException
+    {
+        return toThis(values, new DerivedUnit(that));
+    }
+
     /**
      * Convert values to this unit from a derived unit.
      *
@@ -493,6 +499,32 @@ public final class DerivedUnit
 	return newValues;
     }
 
+    float[] toThis(float[] values, DerivedUnit that)
+        throws UnitException
+    {
+        float[] newValues;
+ 
+        if (sameDimensionality(that))
+        {
+            newValues = new float[values.length];
+ 
+            for (int i = 0; i < values.length; ++i)
+                newValues[i] = values[i];
+        }
+        else if (reciprocalDimensionality(that))
+        {
+            newValues = new float[values.length];
+ 
+            for (int i = 0; i < values.length; ++i)
+                newValues[i] = 1.0f / values[i];
+        }
+        else
+            throw new UnitException("Attempt to convert from unit \"" +
+                that + "\" to unit \"" + this + "\"");
+ 
+        return newValues;
+    }
+
     /**
      * Convert values to this unit from a scaled unit.
      *
@@ -507,6 +539,12 @@ public final class DerivedUnit
 	throws UnitException
     {
 	return that.toThat(values, this);
+    }
+
+    float[] toThis(float[] values, ScaledUnit that)
+        throws UnitException
+    {
+        return that.toThat(values, this);
     }
 
     /**
@@ -525,6 +563,12 @@ public final class DerivedUnit
 	return that.toThat(values, this);
     }
 
+    float[] toThis(float[] values, OffsetUnit that)
+        throws UnitException
+    {
+        return that.toThat(values, this);
+    }
+
     /**
      * Convert values from this unit to a base unit.
      *
@@ -539,6 +583,12 @@ public final class DerivedUnit
 	throws UnitException
     {
 	return new DerivedUnit(that).toThis(values, this);
+    }
+
+    float[] toThat(float values[], BaseUnit that)
+        throws UnitException
+    {
+        return new DerivedUnit(that).toThis(values, this);
     }
 
     /**
@@ -557,6 +607,12 @@ public final class DerivedUnit
 	return that.toThis(values, this);
     }
 
+    float[] toThat(float values[], DerivedUnit that)
+        throws UnitException
+    {
+        return that.toThis(values, this);
+    }
+
     /**
      * Convert values from this unit to a scaled unit.
      *
@@ -571,6 +627,12 @@ public final class DerivedUnit
 	throws UnitException
     {
 	return that.toThis(values, this);
+    }
+
+    float[] toThat(float values[], ScaledUnit that)
+        throws UnitException
+    {
+        return that.toThis(values, this);
     }
 
     /**
@@ -588,4 +650,11 @@ public final class DerivedUnit
     {
 	return that.toThis(values, this);
     }
+
+    float[] toThat(float values[], OffsetUnit that)
+        throws UnitException
+    {
+        return that.toThis(values, this);
+    }
+
 }

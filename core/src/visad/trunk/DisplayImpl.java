@@ -15,7 +15,7 @@ any later version.
  
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+RandomMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License in file NOTICE for more details.
  
 You should have received a copy of the GNU General Public License
@@ -55,6 +55,8 @@ public class DisplayImpl extends ActionImpl implements Display {
   /** list of Control objects linked to ScalarMap objects in MapVector;
       the Control objects may be linked to UI widgets, or just computed */
   private Vector ControlVector = new Vector();
+  private ProjectionControl projection;
+  private GraphicsModeControl mode;
 
   /** ordered list of Renderer objects that render Data objects */
   private Vector RendererVector = new Vector();
@@ -76,6 +78,8 @@ public class DisplayImpl extends ActionImpl implements Display {
   /** mapping from ValueArray to DisplayScalar */
   int[] valueToScalar;
 
+  /** mapping from ValueArray to MapVector */
+  int[] valueToMap;
 
   /** these are needed for Early Access Java3D */
   DisplayApplet applet;
@@ -98,10 +102,13 @@ public class DisplayImpl extends ActionImpl implements Display {
     displayRenderer.setDisplay(this);
     // initialize ScalarMap's, ShadowDisplayReal's and Control's
     clearMaps();
+    // a GraphicsModeControl always exists
+    mode = new GraphicsModeControl(this);
+    ControlVector.addElement(mode);
     // a ProjectionControl always exists
-    ProjectionControl proj =
+    projection =
       (ProjectionControl) Display.XAxis.getControl().cloneButContents(this);
-    ControlVector.addElement(proj);
+    ControlVector.addElement(projection);
     applet = new DisplayApplet(this);
     frame = new AppletFrame(applet, 256, 256);
   }
@@ -265,7 +272,8 @@ public class DisplayImpl extends ActionImpl implements Display {
     // set tickFlag-s in changed Control-s
     Enumeration maps = MapVector.elements();
     while (maps.hasMoreElements()) {
-      ((ScalarMap) maps.nextElement()).getControl().setTicks();
+      Control control = ((ScalarMap) maps.nextElement()).getControl();
+      if (control != null) control.setTicks();
     }
 
     // set ScalarMap.valueIndex-s and valueArrayLength
@@ -291,13 +299,15 @@ public class DisplayImpl extends ActionImpl implements Display {
       }
     }
  
-    // set valueToScalar array
+    // set valueToScalar and valueToMap arrays
     valueToScalar = new int[valueArrayLength];
+    valueToMap = new int[valueArrayLength];
     maps = MapVector.elements();
     while (maps.hasMoreElements()) {
       ScalarMap map = ((ScalarMap) maps.nextElement());
       DisplayRealType dreal = map.getDisplayScalar();
       valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
+      valueToMap[map.getValueIndex()] = MapVector.indexOf(map);
     }
 
     DataShadow shadow = null;
@@ -329,7 +339,8 @@ public class DisplayImpl extends ActionImpl implements Display {
     // clear tickFlag-s in Control-s
     maps = MapVector.elements();
     while(maps.hasMoreElements()) {
-      ((ScalarMap) maps.nextElement()).getControl().resetTicks();
+      Control control = ((ScalarMap) maps.nextElement()).getControl();
+      if (control != null) control.resetTicks();
     }
   }
 
@@ -448,28 +459,37 @@ public class DisplayImpl extends ActionImpl implements Display {
       throw new DisplayException("DisplayImpl.clearMaps: RendererVector " +
                                  "must be empty");
     }
+    Enumeration maps;
     synchronized (MapVector) {
-      Enumeration maps = MapVector.elements();
+      maps = MapVector.elements();
       while(maps.hasMoreElements()) {
         ScalarMap map = (ScalarMap) maps.nextElement();
         map.nullDisplay();
       }
       MapVector.removeAllElements();
+    }
+    synchronized (ConstantMapVector) {
       maps = ConstantMapVector.elements();
       while(maps.hasMoreElements()) {
-        ScalarMap map = (ScalarMap) maps.nextElement();
+        ConstantMap map = (ConstantMap) maps.nextElement();
         map.nullDisplay();
       }
+      ConstantMapVector.removeAllElements();
     }
-    ConstantMapVector.removeAllElements();
-    // clear Control-s associated with this Display
-    ControlVector.removeAllElements();
-    ProjectionControl proj =
-      (ProjectionControl) Display.XAxis.getControl().cloneButContents(this);
-    ControlVector.addElement(proj);
+    synchronized (ControlVector) {
+      // clear Control-s associated with this Display
+      ControlVector.removeAllElements();
+      // one each GraphicsModeControl and ProjectionControl always exists
+      mode = new GraphicsModeControl(this);
+      ControlVector.addElement(mode);
+      projection =
+        (ProjectionControl) Display.XAxis.getControl().cloneButContents(this);
+      ControlVector.addElement(projection);
+    }
     // clear RealType-s from RealTypeVector
+    // removeAllElements is synchronized
     RealTypeVector.removeAllElements();
-    synchronized (MapVector) {
+    synchronized (DisplayRealTypeVector) {
       // clear DisplayRealType-s from DisplayRealTypeVector
       DisplayRealTypeVector.removeAllElements();
       // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
@@ -515,6 +535,14 @@ public class DisplayImpl extends ActionImpl implements Display {
 
   public int[] getValueToScalar() {
     return valueToScalar;
+  }
+
+  public int[] getValueToMap() {
+    return valueToMap;
+  }
+
+  public GraphicsModeControl getGraphicsModeControl() {
+    return mode;
   }
 
   /** given their complexity, its reasonable that DisplayImpl
@@ -568,27 +596,51 @@ public class DisplayImpl extends ActionImpl implements Display {
     Integer2DSet Domain2dSet = new Integer2DSet(earth_location, 4, 4);
     Integer1DSet Domain1dSet = new Integer1DSet(ir_radiance, 4);
 
+/*
     FlatField imaget1 = new FlatField(image_tuple, Domain2dSet);
     FlatField imagev1 = new FlatField(image_vis, Domain2dSet);
     FlatField imager1 = new FlatField(image_ir, Domain2dSet);
+*/
+    FlatField imagev1 =
+      FlatField.makeField1(image_vis, 0.0, 3.0, 4, 0.0, 3.0, 4);
+    FlatField imager1 =
+      FlatField.makeField1(image_ir, 0.0, 3.0, 4, 0.0, 3.0, 4);
 
     FlatField histogram1 = new FlatField(ir_histogram, Domain1dSet);
 
-    System.out.println(imaget1);
     System.out.println(histogram1);
+
+    // use 'java visad.DisplayImpl' for size = 256 (implicit -mx16m)
+    // use 'java -mx40m visad.DisplayImpl' for size = 512
+    int size = 32;
+/*
+    FlatField imaget1 =
+      FlatField.makeRandomField2(image_tuple, 0.0, (double) size-1, size,
+                                        0.0, (double) size-1, size);
+*/
+    FlatField imaget1 =
+      FlatField.makeField2(image_tuple, 0.0, (double) size-1, size,
+                                        0.0, (double) size-1, size);
 
     DisplayImpl display1 = new DisplayImpl("display1");
     display1.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.YAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
-    display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
-    display1.addMap(new ConstantMap(0.5, Display.Alpha));
+    display1.addMap(new ScalarMap(ir_radiance, Display.Green));
+    display1.addMap(new ScalarMap(vis_radiance, Display.Blue));
+
+    // display1.addMap(new ScalarMap(vis_radiance, Display.Green));
+    // display1.addMap(new ConstantMap(0.5, Display.Red));
+    // display1.addMap(new ConstantMap(0.5, Display.Blue));
+    // display1.addMap(new ConstantMap(0.5, Display.Alpha));
+
+    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    mode.setPointSize(3.0f);
     System.out.println(display1);
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ImageT1");
     ref_imaget1.setData(imaget1);
     display1.addReference(ref_imaget1, null);
-    // display1.displayData(ref_imaget1);
 
+/*
     DisplayImpl display2 = new DisplayImpl("display2");
     display2.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
     display2.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
@@ -596,7 +648,6 @@ public class DisplayImpl extends ActionImpl implements Display {
     display2.addMap(new ScalarMap(vis_radiance, Display.RGB));
     System.out.println(display2);
     display2.addReference(ref_imaget1, null);
-    // display2.displayData(ref_imaget1);
 
     DisplayImpl display3 = new DisplayImpl("display3");
     display3.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
@@ -605,7 +656,6 @@ public class DisplayImpl extends ActionImpl implements Display {
     display3.addMap(new ScalarMap(vis_radiance, Display.RGB));
     System.out.println(display3);
     display3.addReference(ref_imaget1, null);
-    // display3.displayData(ref_imaget1);
 
     DisplayImpl display4 = new DisplayImpl("display4");
     display4.addMap(new ScalarMap(RealType.Latitude, Display.XAxis));
@@ -614,7 +664,6 @@ public class DisplayImpl extends ActionImpl implements Display {
     display4.addMap(new ScalarMap(vis_radiance, Display.RGB));
     System.out.println(display4);
     display4.addReference(ref_imaget1, null);
-    // display4.displayData(ref_imaget1);
 
     delay(1000);
     System.out.println("\ndelay\n");
@@ -651,6 +700,7 @@ public class DisplayImpl extends ActionImpl implements Display {
     display2.stop();
     display3.stop();
     display4.stop();
+*/
 
     while (true) {
       delay(5000);

@@ -25,14 +25,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import javax.media.j3d.*;
+import java.vecmath.*;
+
 /**
    SampledSet is the abstract superclass of GriddedSets, PolyCells and MultiCells.
    SampledSet objects are immutable.<P>
 */
 public abstract class SampledSet extends SimpleSet {
 
-  double[][] Samples;
-  double Low[], Hi[];
+  float[][] Samples;
+  float Low[], Hi[];
 
   public SampledSet(MathType type, int manifold_dimension) throws VisADException {
     super(type, manifold_dimension);
@@ -54,26 +57,50 @@ public abstract class SampledSet extends SimpleSet {
     super(type, coord_sys, units, errors);
   }
 
-  void init_samples(double[][] samples) throws VisADException {
+  void init_samples(float[][] samples) throws VisADException {
+    init_samples(samples, true);
+  }
+
+  void init_samples(float[][] samples, boolean copy)
+       throws VisADException {
     if (samples.length != DomainDimension) {
-      throw new SetException("GriddedSet: dimensions don't match");
+      throw new SetException("GriddedSet.init_samples: " +
+                             "dimensions don't match");
     }
     if (this instanceof IrregularSet) {
-      Length = samples[0].length;    // fixes an odd problem
+      // Length set in init_lengths, but not called for IrregularSet
+      Length = samples[0].length;
     }
-    Samples = new double[DomainDimension][Length];
-    for (int j=0; j<ManifoldDimension; j++) {
+    else {
+      if (Length != samples[0].length) {
+        throw new SetException("GriddedSet.init_samples: " +
+                               "lengths don't match");
+      }
+    }
+    // MEM
+    if (copy) {
+      Samples = new float[DomainDimension][Length];
+    }
+    else {
+      Samples = samples;
+    }
+    for (int j=0; j<DomainDimension; j++) {
       if (samples[j].length != Length) {
         throw new SetException("GriddedSet: lengths don't match");
       }
-      double[] samplesJ = samples[j];
-      double[] SamplesJ = Samples[j];
-      System.arraycopy(samplesJ, 0, SamplesJ, 0, Length);
-      Low[j] = Double.POSITIVE_INFINITY;
-      Hi[j] = Double.NEGATIVE_INFINITY;
-      double sum = 0.0;
+      float[] samplesJ = samples[j];
+      float[] SamplesJ = Samples[j];
+      if (copy) {
+        System.arraycopy(samplesJ, 0, SamplesJ, 0, Length);
+      }
+      Low[j] = Float.POSITIVE_INFINITY;
+      Hi[j] = Float.NEGATIVE_INFINITY;
+      float sum = 0.0f;
       for (int i=0; i<Length; i++) {
+/* WLH 24 Oct 97
         if (Double.isNaN(SamplesJ[i])) {
+*/
+        if (SamplesJ[i] != SamplesJ[i]) {
           throw new SetException(
                      "GriddedSet: sample values cannot be missing");
         }
@@ -97,8 +124,22 @@ public abstract class SampledSet extends SimpleSet {
     return (Samples == null);
   }
 
-  double[][] getSamples() {
-    return Samples;
+  float[][] getSamples() throws VisADException {
+    return getSamples(true);
+  }
+
+  float[][] getSamples(boolean copy) throws VisADException {
+    if (copy) {
+      // MEM
+      float[][] samples = new float[DomainDimension][Length];
+      for (int j=0; j<DomainDimension; j++) {
+        System.arraycopy(Samples[j], 0, samples[j], 0, Length);
+      }
+      return samples;
+    }
+    else {
+      return Samples;
+    }
   }
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
@@ -114,8 +155,16 @@ public abstract class SampledSet extends SimpleSet {
 
     int[] indices = new int[DomainDimension];
     for (int i=0; i<DomainDimension; i++) {
-      ShadowRealType real =
-        (ShadowRealType) ((ShadowSetType) type).getDomain().getComponent(i);
+      ShadowRealType real = null;
+      if (type instanceof ShadowSetType) {
+        real = (ShadowRealType) ((ShadowSetType) type).getDomain().getComponent(i);
+      }
+      else if(type instanceof ShadowRealTupleType) {
+        real = (ShadowRealType) ((ShadowRealTupleType) type).getComponent(i);
+      }
+      else {
+        throw new TypeException("SampledSet.computeRanges: bad ShadowType");
+      }
       indices[i] = real.getIndex();
     }
  
@@ -140,6 +189,110 @@ public abstract class SampledSet extends SimpleSet {
       }
     }
     return shadow;
+  }
+
+  /** create a 1-D GeometryArray from this Set and color_values;
+      only used by Irregular3DSet and Gridded3DSet */
+  public VisADGeometryArray make1DGeometry(float[][] color_values)
+         throws VisADException {
+    if (DomainDimension != 3) {
+      throw new SetException("SampledSet.make1DGeometry: " +
+                             "DomainDimension must be 3");
+    }
+    if (ManifoldDimension != 1) {
+      throw new SetException("SampledSet.make1DGeometry: " +
+                             "ManifoldDimension must be 1");
+    }
+    VisADLineStripArray array = new VisADLineStripArray();
+    array.stripVertexCounts = new int[1];
+    array.stripVertexCounts[0] = Length;
+    // set coordinates and colors
+    setGeometryArray(array, 3, color_values);
+    return array;
+  }
+
+  /** create a 3-D GeometryArray from this Set and color_values;
+      NOTE - this version only makes points;
+      NOTE - when textures are supported by Java3D the Gridded3DSet
+      implementation of make3DGeometry should use Texture3D, and
+      the Irregular3DSet implementation should resample to a
+      Gridded3DSet and use Texture3D;
+      only used by Irregular3DSet and Gridded3DSet */
+  public VisADGeometryArray make3DGeometry(float[][] color_values)
+         throws VisADException {
+    if (ManifoldDimension != 1) {
+      throw new SetException("SampledSet.make1DGeometry: " +
+                             "ManifoldDimension must be 1");
+    }
+    return makePointGeometry(color_values);
+  }
+
+  /** create a PointArray from this Set and color_values;
+      can be applied to  ManifoldDimension = 1, 2 or 3 */
+  public VisADGeometryArray makePointGeometry(float[][] color_values)
+         throws VisADException {
+    if (DomainDimension != 3) {
+      throw new SetException("SampledSet.makePointGeometry: " +
+                             "DomainDimension must be 3");
+    }
+    VisADPointArray array = new VisADPointArray();
+    // set coordinates and colors
+    setGeometryArray(array, 3, color_values);
+    return array;
+  }
+
+  void setGeometryArray(VisADGeometryArray array, int color_length,
+                        float[][] color_values) throws VisADException {
+    float[][] samples = (Samples == null) ? getSamples() : Samples;
+    setGeometryArray(array, samples, color_length, color_values);
+  }
+
+  static void setGeometryArray(VisADGeometryArray array, float[][] samples,
+                               int color_length, float[][] color_values)
+       throws VisADException {
+    if (samples == null || samples.length != 3) {
+      throw new SetException("SampledSet.setGeometryArray: " +
+                             "bad samples array");
+    }
+    int len = samples[0].length;
+    array.vertexCount = len;
+    // MEM
+    float[] coordinates = new float[3 * len];
+    int j = 0;
+    for (int i=0; i<len; i++) {
+      coordinates[j++] = (float) samples[0][i];
+      coordinates[j++] = (float) samples[1][i];
+      coordinates[j++] = (float) samples[2][i];
+    }
+    array.coordinates = coordinates;
+    array.VertexFormat = GeometryArray.COORDINATES;
+    if (color_values != null) {
+      // MEM
+      float[] colors = new float[color_length * len];
+      j = 0;
+      if (color_length == 4) {
+        for (int i=0; i<len; i++) {
+          colors[j++] = (float) color_values[0][i];
+          colors[j++] = (float) color_values[1][i];
+          colors[j++] = (float) color_values[2][i];
+          colors[j++] = (float) color_values[4][i];
+        }
+        array.VertexFormat |= GeometryArray.COLOR_4;
+      }
+      else if (color_length == 3) {
+        for (int i=0; i<len; i++) {
+          colors[j++] = (float) color_values[0][i];
+          colors[j++] = (float) color_values[1][i];
+          colors[j++] = (float) color_values[2][i];
+        }
+        array.VertexFormat |= GeometryArray.COLOR_3;
+      }
+      else {
+        throw new SetException("SampledSet.setGeometryArray: " +
+                                "color_length must be 3 or 4");
+      }
+      array.colors = colors;
+    }
   }
 
 }

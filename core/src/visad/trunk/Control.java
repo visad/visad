@@ -110,6 +110,7 @@ public abstract class Control extends Object
   }
 
   /** create a 'new' control for map in display;
+      called by ScalarMap.setControl;
       never gets called for ToggleControl, AnimationSetControl */
   public Control copy(ScalarMap m)
          throws VisADException, RemoteException {

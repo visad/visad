@@ -47,7 +47,7 @@ public abstract class FlowControl extends Control {
   }
  
   FlowControl() {
-    super();
+    this(null);
   }
 
 }

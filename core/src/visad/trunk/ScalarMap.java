@@ -28,8 +28,12 @@ package visad;
 import java.rmi.*;
 
 /**
-   mapping from RealType to DisplayRealType;
-   A set of these define how data are dislayed
+   A ScalarMap object defines a mapping from a RealType
+   to a DisplayRealType.  A set of ScalarMap objects
+   define how data are dislayed.<P>
+
+   The mapping of values is linear.  Any non-linear mapping
+   must be handled by Display CoordinateSystem-s.<P>
 */
 public class ScalarMap extends Object implements java.io.Serializable {
 
@@ -58,9 +62,6 @@ public class ScalarMap extends Object implements java.io.Serializable {
   // scale and offset
   private double scale, offset;
 
-  // any non-linear value mapping must be handled by
-  // Display CoordinateSystem-s
-
   public ScalarMap(RealType scalar, DisplayRealType display_scalar)
          throws VisADException {
     if (scalar == null && !(this instanceof ConstantMap)) {
@@ -81,18 +82,22 @@ public class ScalarMap extends Object implements java.io.Serializable {
     isScaled = DisplayScalar.getRange(displayRange);
   }
 
+  /** get the RealType that is the map domain */
   public RealType getScalar() {
     return Scalar;
   }
 
+  /** get the DisplayRealType that is the map range */
   public DisplayRealType getDisplayScalar() {
     return DisplayScalar;
   }
 
+  /** get the DisplayImpl this ScalarMap is linked to */
   public DisplayImpl getDisplay() {
     return display;
   }
 
+  /** clear link to DisplayImpl */
   synchronized void nullDisplay() {
     display = null;
     control = null;
@@ -100,6 +105,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
     DisplayScalarIndex = -1;
   }
 
+  /** set the DisplayImpl this ScalarMap is linked to */
   synchronized void setDisplay(DisplayImpl d)
                throws VisADException, RemoteException {
     if (d.equals(display)) return;
@@ -110,11 +116,12 @@ public class ScalarMap extends Object implements java.io.Serializable {
     display = d;
   }
 
+  /** get Control for DisplayScalar */
   public Control getControl() {
     return control;
   }
 
-  /** create controls for DisplayScalar-s */
+  /** create Control for DisplayScalar */
   synchronized void setControl() throws VisADException, RemoteException {
     if (display == null) {
       throw new DisplayException("ScalarMap.setControl: not part of " +
@@ -126,6 +133,8 @@ public class ScalarMap extends Object implements java.io.Serializable {
     control = proto.copy(this);
   }
 
+  /** set range used for linear map from Scalar to
+      DisplayScalar values */
   void setRange(DataShadow shadow) throws VisADException {
     int i = ScalarIndex;
     dataRange[0] = shadow.ranges[0][i];
@@ -155,26 +164,66 @@ public class ScalarMap extends Object implements java.io.Serializable {
     }
   }
 
+  /** apply linear map to Scalar values */
+  public float[] scaleValues(double[] values) {
+    float[] new_values = new float[values.length];
+    if (isScaled && values != null) {
+      for (int i=0; i<values.length; i++) {
+        new_values[i] = (float) (offset + scale * values[i]);
+      }
+    }
+    else {
+      for (int i=0; i<values.length; i++) {
+        new_values[i] = (float) values[i];
+      }
+    }
+      return new_values;
+  }
+
+  /** apply linear map to Scalar values */
+  public float[] scaleValues(float[] values) {
+    float[] new_values = new float[values.length];
+    if (isScaled && values != null) {
+      for (int i=0; i<values.length; i++) {
+        new_values[i] = (float) (offset + scale * values[i]);
+      }
+    }
+    else {
+      for (int i=0; i<values.length; i++) {
+        new_values[i] = values[i];
+      }
+    }
+      return new_values;
+  }
+
+  /** get index of DisplayScalar in display.DisplayRealTypeVector */
   int getDisplayScalarIndex() {
     return DisplayScalarIndex;
   }
 
+  /** get index of Scalar in display.RealTypeVector */
   int getScalarIndex() {
     return ScalarIndex;
   }
 
+  /** set index of Scalar in display.RealTypeVector */
   void setScalarIndex(int index) {
     ScalarIndex = index;
   }
 
+  /** set index of DisplayScalar in display.DisplayRealTypeVector */
   void setDisplayScalarIndex(int index) {
     DisplayScalarIndex = index;
   }
 
+  /** set index of DisplayScalar in value array used by
+      ShadowType.doTransform */
   public void setValueIndex(int index) {
     ValueIndex = index;
   }
 
+  /** get index of DisplayScalar in value array used by
+      ShadowType.doTransform */
   public int getValueIndex() {
     return ValueIndex;
   }

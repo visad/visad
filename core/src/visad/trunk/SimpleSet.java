@@ -116,8 +116,8 @@ public abstract class SimpleSet extends Set {
       of 1-D indices and an array of weights, to be used for interpolation;
       indices[i] and weights[i] are null if i-th value is outside grid
       (i.e., if no interpolation is possible) */
-  public abstract void valueToInterp(double[][] value, int[][] indices,
-                          double weights[][]) throws VisADException;
+  public abstract void valueToInterp(float[][] value, int[][] indices,
+                          float weights[][]) throws VisADException;
 
 }
 

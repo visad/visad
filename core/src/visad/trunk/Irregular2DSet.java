@@ -27,55 +27,173 @@ package visad;
 
 /**
    Irregular2DSet represents a finite set of samples of R^2.<P>
+
+   No Irregular2DSet with ManifoldDimension = 1.  Use
+   Gridded2DSet with ManifoldDimension = 1 instead.<P>
 */
 public class Irregular2DSet extends IrregularSet {
 
-  double LowX, HiX, LowY, HiY;
-  Delaunay Delan;
+  private float LowX, HiX, LowY, HiY;
 
-  /*
-   * Size of temporary vertex arrays:  It would be more efficient memory-
-   * wise to dynamically allocate the vx,vy,ipnt arrays to size maxv1+maxv2
-   * but it would also be slower.
-   */
-  private static PlotDigits plot = new PlotDigits();
-
-  public Irregular2DSet(MathType type, double[][] samples)
+  public Irregular2DSet(MathType type, float[][] samples)
          throws VisADException {
     this(type, samples, null, null, null);
   }
 
-  public Irregular2DSet(MathType type, double[][] samples,
+  public Irregular2DSet(MathType type, float[][] samples,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    super(type, samples, coord_sys,
-          units, errors);
+    this(type, samples, coord_sys, units, errors, true);
+  }
+
+  Irregular2DSet(MathType type, float[][] samples,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors, boolean copy)
+         throws VisADException {
+    super(type, samples, samples.length, coord_sys, units, errors, copy);
+    if (samples.length != 2) {
+      throw new SetException("Irregular2DSet: ManifoldDimension " +
+                             "must be 2 for this constructor");
+    }
     Delan = new Delaunay(Samples);
     LowX = Low[0];
     HiX = Hi[0];
     LowY = Low[1];
     HiY = Hi[1];
+    oldToNew = null;
+    newToOld = null;
+  }
+
+  /** construct Irregular2DSet using Delaunay from existing  
+      Irregular2DSet */ 
+  public Irregular2DSet(MathType type, float[][] samples,
+                 Irregular2DSet delaunay_set) throws VisADException {
+    this(type, samples, delaunay_set, null, null, null, true);
+  }
+ 
+  /** construct Irregular2DSet using Delaunay from existing 
+      Irregular2DSet */
+  public Irregular2DSet(MathType type, float[][] samples,
+                        Irregular2DSet delaunay_set,
+                        CoordinateSystem coord_sys, Unit[] units,
+                        ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, delaunay_set, coord_sys, units, errors, true);
+  }
+
+  Irregular2DSet(MathType type, float[][] samples,
+                 Irregular2DSet delaunay_set,
+                 CoordinateSystem coord_sys, Unit[] units,
+                 ErrorEstimate[] errors, boolean copy)
+                 throws VisADException {
+    super(type, samples, delaunay_set.getManifoldDimension(), 
+          coord_sys, units, errors, copy);
+    int dim = delaunay_set.getManifoldDimension();
+    if (dim != 2) {
+      throw new SetException("Irregular2DSet: delaunay_set ManifoldDimension " +
+                             "must be 2");
+    }
+    if (Length != delaunay_set.Length) {
+      throw new SetException("Irregular2DSet: delaunay_set length not match");
+    }
+    Delan = delaunay_set.Delan;
+    LowX = Low[0];
+    HiX = Hi[0];
+    LowY = Low[1];
+    HiY = Hi[1];
+    oldToNew = null;
+    newToOld = null;
+  }
+
+  /** construct Irregular2DSet using sort from existing
+      Irregular1DSet */
+  public Irregular2DSet(MathType type, float[][] samples,
+               int[] new2old, int[] old2new) throws VisADException {
+    this(type, samples, new2old, old2new, null, null, null, true);
+  }
+ 
+  /** construct Irregular2DSet using sort from existing
+      Irregular1DSet */
+  public Irregular2DSet(MathType type, float[][] samples,
+                        int[] new2old, int[] old2new,
+                        CoordinateSystem coord_sys, Unit[] units,
+                        ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, new2old, old2new, coord_sys, units, errors, true);
+  }
+
+  Irregular2DSet(MathType type, float[][] samples,
+                 int[] new2old, int[] old2new,
+                 CoordinateSystem coord_sys, Unit[] units,
+                 ErrorEstimate[] errors, boolean copy)
+                 throws VisADException {
+    super(type, samples, 1, coord_sys, units, errors, copy);
+    if (Length != new2old.length || Length != old2new.length) {
+      throw new SetException("Irregular2DSet: sort length not match");
+    }
+    newToOld = new int[Length];
+    oldToNew = new int[Length];
+    System.arraycopy(new2old, 0, newToOld, 0, Length);
+    System.arraycopy(old2new, 0, oldToNew, 0, Length);
+    LowX = Low[0];
+    HiX = Hi[0];
+    LowY = Low[1];
+    HiY = Hi[1];
+    Delan = null;
+  }
+
+  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+    if (samples.length == 3) {
+      if (ManifoldDimension == 1) {
+        return new Irregular3DSet(type, samples, newToOld, oldToNew,
+                                  null, null, null, false);
+      }
+      else {
+        return new Irregular3DSet(type, samples, this,
+                                  null, null, null, false);
+      }
+    }
+    else if (samples.length == 2) {
+      if (ManifoldDimension == 1) {
+        return new Irregular2DSet(type, samples, newToOld, oldToNew,
+                                  null, null, null, false);
+      }
+      else {
+        return new Irregular2DSet(type, samples, this,
+                                  null, null, null, false);
+      }
+    }
+    else {
+      throw new SetException("Irregular2DSet.makeSpatial: bad samples length");
+    }
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
-    double[][] value = new double[2][index.length];
-    for (int i=0; i<index.length; i++)
-      if ( (index[i] >= 0) && (index[i] < Samples[0].length) ) {
+  public float[][] indexToValue(int[] index) throws VisADException {
+    float[][] value = new float[2][index.length];
+    for (int i=0; i<index.length; i++) {
+      if ( (index[i] >= 0) && (index[i] < Length) ) {
         value[0][i] = Samples[0][index[i]];
         value[1][i] = Samples[1][index[i]];
       }
-      else
-        value[0][i] = value[1][i] = Double.NaN;
+      else {
+        value[0][i] = value[1][i] = Float.NaN;
+      }
+    }
     return value;
   }
 
   /* a private method used by valueToIndex and valueToInterp,
      valueToTri returns an array of containing triangles given
      an array of points in R^DomainDimension */
-  private int[] valueToTri(double[][] value) throws VisADException {
-    // avoid ArrayOutOfBounds exceptions by taking the shortest length
-    int length = Math.min(value[0].length, value[1].length);
+  private int[] valueToTri(float[][] value) throws VisADException {
+    if (ManifoldDimension != 2) {
+      throw new SetException("Irregular2DSet.valueToTri: " +
+                             "ManifoldDimension must be 2");
+    }
+    int length = value[0].length;
+    if (length != value[1].length) {
+      throw new SetException("Irregular2DSet.valueToTri: lengths " +
+                             "don't match");
+    }
     int[] tri = new int[length];
     int curtri = 0;
     for (int i=0; i<length; i++) {
@@ -88,19 +206,19 @@ public class Irregular2DSet extends IrregularSet {
         int t0 = Delan.Tri[curtri][0];
         int t1 = Delan.Tri[curtri][1];
         int t2 = Delan.Tri[curtri][2];
-        double Ax = Samples[0][t0];
-        double Ay = Samples[1][t0];
-        double Bx = Samples[0][t1];
-        double By = Samples[1][t1];
-        double Cx = Samples[0][t2];
-        double Cy = Samples[1][t2];
-        double Px = value[0][i];
-        double Py = value[1][i];
+        float Ax = Samples[0][t0];
+        float Ay = Samples[1][t0];
+        float Bx = Samples[0][t1];
+        float By = Samples[1][t1];
+        float Cx = Samples[0][t2];
+        float Cy = Samples[1][t2];
+        float Px = value[0][i];
+        float Py = value[1][i];
 
         // tests whether point is contained in current triangle
-        double tval1 = (Bx-Ax)*(Py-Ay) - (By-Ay)*(Px-Ax);
-        double tval2 = (Cx-Bx)*(Py-By) - (Cy-By)*(Px-Bx);
-        double tval3 = (Ax-Cx)*(Py-Cy) - (Ay-Cy)*(Px-Cx);
+        float tval1 = (Bx-Ax)*(Py-Ay) - (By-Ay)*(Px-Ax);
+        float tval2 = (Cx-Bx)*(Py-By) - (Cy-By)*(Px-Bx);
+        float tval3 = (Ax-Cx)*(Py-Cy) - (Ay-Cy)*(Px-Cx);
         boolean test1 = (tval1 == 0) || ( (tval1 > 0) == (
                         (Bx-Ax)*(Cy-Ay) - (By-Ay)*(Cx-Ax) > 0) );
         boolean test2 = (tval2 == 0) || ( (tval2 > 0) == ( 
@@ -123,7 +241,7 @@ public class Irregular2DSet extends IrregularSet {
   }
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     if (value.length < DomainDimension) {
       throw new SetException("Irregular2DSet.valueToIndex: bad dimension");
     }
@@ -135,8 +253,8 @@ public class Irregular2DSet extends IrregularSet {
       }
       else {
         // current values
-        double x = value[0][i];
-        double y = value[1][i];
+        float x = value[0][i];
+        float y = value[1][i];
 
         // triangle indices
         int t = tri[i];
@@ -145,20 +263,20 @@ public class Irregular2DSet extends IrregularSet {
         int t2 = Delan.Tri[t][2];
 
         // partial distances
-        double D00 = Samples[0][t0] - x;
-        double D01 = Samples[1][t0] - y;
-        double D10 = Samples[0][t1] - x;
-        double D11 = Samples[1][t1] - y;
-        double D20 = Samples[0][t2] - x;
-        double D21 = Samples[1][t2] - y;
+        float D00 = Samples[0][t0] - x;
+        float D01 = Samples[1][t0] - y;
+        float D10 = Samples[0][t1] - x;
+        float D11 = Samples[1][t1] - y;
+        float D20 = Samples[0][t2] - x;
+        float D21 = Samples[1][t2] - y;
 
         // distances squared
-        double Dsq0 = D00*D00 + D01*D01;
-        double Dsq1 = D10*D10 + D11*D11;
-        double Dsq2 = D20*D20 + D21*D21;
+        float Dsq0 = D00*D00 + D01*D01;
+        float Dsq1 = D10*D10 + D11*D11;
+        float Dsq2 = D20*D20 + D21*D21;
 
         // find the minimum distance
-        double min = Math.min(Dsq0, Dsq1);
+        float min = Math.min(Dsq0, Dsq1);
         min = Math.min(min, Dsq2);
         if (min == Dsq0) index[i] = t0;
         else if (min == Dsq1) index[i] = t1;
@@ -171,9 +289,8 @@ public class Irregular2DSet extends IrregularSet {
   /** for each of an array of values in R^DomainDimension, compute an array
       of 1-D indices and an array of weights, to be used for interpolation;
       indices[i] and weights[i] are null if no interpolation is possible */
-  public void valueToInterp(double[][] value,
-                            int[][] indices, double[][] weights)
-                   throws VisADException {
+  public void valueToInterp(float[][] value, int[][] indices,
+                            float[][] weights) throws VisADException {
     if (value.length < DomainDimension) {
       throw new SetException("Irregular2DSet.valueToInterp: bad dimension");
     }
@@ -191,10 +308,10 @@ public class Irregular2DSet extends IrregularSet {
       else {
         // indices and weights sub-arrays
         int[] ival = new int[3];
-        double[] wval = new double[3];
+        float[] wval = new float[3];
         // current values
-        double x = value[0][i];
-        double y = value[1][i];
+        float x = value[0][i];
+        float y = value[1][i];
 
         // triangle indices
         int t = tri[i];
@@ -206,20 +323,20 @@ public class Irregular2DSet extends IrregularSet {
         ival[2] = t2;
 
         // triangle vertices
-        double x0 = Samples[0][t0];
-        double y0 = Samples[1][t0];
-        double x1 = Samples[0][t1];
-        double y1 = Samples[1][t1];
-        double x2 = Samples[0][t2];
-        double y2 = Samples[1][t2];
+        float x0 = Samples[0][t0];
+        float y0 = Samples[1][t0];
+        float x1 = Samples[0][t1];
+        float y1 = Samples[1][t1];
+        float x2 = Samples[0][t2];
+        float y2 = Samples[1][t2];
 
         // perpendicular lines
-        double C0x = y2-y1;
-        double C0y = x1-x2;
-        double C1x = y2-y0;
-        double C1y = x0-x2;
-        double C2x = y1-y0;
-        double C2y = x0-x1;
+        float C0x = y2-y1;
+        float C0y = x1-x2;
+        float C1x = y2-y0;
+        float C1y = x0-x2;
+        float C2x = y1-y0;
+        float C2y = x0-x1;
 
         // weights
         wval[0] = ( ( (x - x1)*C0x) + ( (y - y1)*C0y) )
@@ -238,8 +355,14 @@ public class Irregular2DSet extends IrregularSet {
 
   public Object clone() {
     try {
-      return new Irregular2DSet(Type, Samples,
+      if (ManifoldDimension == 1) {
+        return new Irregular2DSet(Type, Samples, newToOld, oldToNew,
                               DomainCoordinateSystem, SetUnits, SetErrors);
+      }
+      else {
+        return new Irregular2DSet(Type, Samples,
+                              DomainCoordinateSystem, SetUnits, SetErrors);
+      }
     }
     catch (VisADException e) {
       throw new VisADError("Irregular2DSet.clone: " + e.toString());
@@ -247,13 +370,19 @@ public class Irregular2DSet extends IrregularSet {
   }
 
   public Object cloneButType(MathType type) throws VisADException {
-    return new Irregular2DSet(type, Samples,
+    if (ManifoldDimension == 1) {
+      return new Irregular2DSet(type, Samples, newToOld, oldToNew,
                             DomainCoordinateSystem, SetUnits, SetErrors);
+    }
+    else {
+      return new Irregular2DSet(type, Samples,
+                            DomainCoordinateSystem, SetUnits, SetErrors);
+    }
   }
 
   /* run 'java visad.Irregular2DSet' to test the Irregular2DSet class */
   public static void main(String[] argv) throws VisADException {
-    double[][] samp = { {139, 357, 416, 276, 495, 395, 578, 199},
+    float[][] samp = { {139, 357, 416, 276, 495, 395, 578, 199},
                         {102,  44, 306, 174, 108, 460, 333, 351} };
     RealType test1 = new RealType("x", null, null);
     RealType test2 = new RealType("y", null, null);
@@ -271,7 +400,7 @@ public class Irregular2DSet extends IrregularSet {
 
     // test valueToIndex function
     System.out.println("valueToIndex test:");
-    double[][] value = { {164, 287, 311, 417, 522, 366, 445},
+    float[][] value = { {164, 287, 311, 417, 522, 366, 445},
                          {131, 323,  90, 264, 294, 421,  91} };
     int[] index = iSet2D.valueToIndex(value);
     for (int i=0; i<index.length; i++) {
@@ -283,7 +412,7 @@ public class Irregular2DSet extends IrregularSet {
     // test valueToInterp function
     System.out.println("valueToInterp test:");
     int[][] indices = new int[value[0].length][];
-    double[][] weights = new double[value[0].length][];
+    float[][] weights = new float[value[0].length][];
     iSet2D.valueToInterp(value, indices, weights);
     for (int i=0; i<value[0].length; i++) {
       System.out.println(value[0][i]+", "+value[1][i]+"\t--> ["

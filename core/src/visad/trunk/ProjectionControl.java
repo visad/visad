@@ -29,10 +29,9 @@ import javax.media.j3d.*;
 import java.vecmath.*;
 
 /**
-   ProjectionControl is the VisAD class for controlling the Projectioni
-   from 3-D to 2-D.<P>
-
-   WLH - manipulate a list of TransformGroup nodes in scene graph.<P>
+   ProjectionControl is the VisAD class for controlling the Projection
+   from 3-D to 2-D.  It manipulates a TransformGroup node in the
+   scene graph.<P>
 */
 public class ProjectionControl extends Control {
 

@@ -1,6 +1,6 @@
 
 //
-// HSBCoordinateSystem.java
+// HSVCoordinateSystem.java
 //
 
 /*
@@ -26,35 +26,45 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   HSBCoordinateSystem is the VisAD class for cordinate
+   HSVCoordinateSystem is the VisAD class for cordinate
    systems for (Hue, Saturation, Value).<P>
 */
-class HSBCoordinateSystem extends CoordinateSystem {
+class HSVCoordinateSystem extends CoordinateSystem {
 
   private static Unit[] coordinate_system_units = {null, null, null};
 
-  public HSBCoordinateSystem(RealTupleType reference)
+  public HSVCoordinateSystem(RealTupleType reference)
          throws VisADException {
     super(reference, coordinate_system_units);
   }
 
   /** trusted constructor for initializers */
-  HSBCoordinateSystem(RealTupleType reference, boolean b) {
+  HSVCoordinateSystem(RealTupleType reference, boolean b) {
     super(reference, coordinate_system_units, b);
   }
 
   public double[][] toReference(double[][] tuples) throws VisADException {
     throw new UnimplementedException(
-      "HSBCoordinateSystem.toReference");
+      "HSVCoordinateSystem.toReference");
   }
 
   public double[][] fromReference(double[][] tuples) throws VisADException {
     throw new UnimplementedException(
-      "HSBCoordinateSystem.fromReference");
+      "HSVCoordinateSystem.fromReference");
+  }
+
+  public float[][] toReference(float[][] tuples) throws VisADException {
+    throw new UnimplementedException(
+      "HSVCoordinateSystem.toReference");
+  }
+ 
+  public float[][] fromReference(float[][] tuples) throws VisADException {
+    throw new UnimplementedException(
+      "HSVCoordinateSystem.fromReference");
   }
 
   public boolean equals(Object cs) {
-    return (cs instanceof HSBCoordinateSystem);
+    return (cs instanceof HSVCoordinateSystem);
   }
 
 }

@@ -53,6 +53,16 @@ class SphericalCoordinateSystem extends CoordinateSystem {
       "SphericalCoordinateSystem.fromReference");
   }
 
+  public float[][] toReference(float[][] tuples) throws VisADException {
+    throw new UnimplementedException(
+      "SphericalCoordinateSystem.toReference");
+  }
+ 
+  public float[][] fromReference(float[][] tuples) throws VisADException {
+    throw new UnimplementedException(
+      "SphericalCoordinateSystem.fromReference");
+  }
+
   public boolean equals(Object cs) {
     return (cs instanceof SphericalCoordinateSystem);
   }

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.1 1997-10-23 20:13:47 dglo Exp $
+ * $Id: OffsetUnit.java,v 1.2 1997-11-06 18:19:37 billh Exp $
  */
 
 package visad;
@@ -249,6 +249,17 @@ public final class OffsetUnit
 	return newValues;
     }
 
+    float[] toThis(float[] values, BaseUnit that)
+        throws UnitException
+    {
+        float[]        newValues = scaledUnit.toThis(values, that);
+ 
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] -= (float) offset;
+ 
+        return newValues;
+    }
+
     /**
      * Convert values to this unit from a derived unit.
      *
@@ -268,6 +279,17 @@ public final class OffsetUnit
 	    newValues[i] -= offset;
 
 	return newValues;
+    }
+
+    float[] toThis(float[] values, DerivedUnit that)
+        throws UnitException
+    {
+        float[]        newValues = scaledUnit.toThis(values, that);
+ 
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] -= (float) offset;
+ 
+        return newValues;
     }
 
     /**
@@ -291,6 +313,17 @@ public final class OffsetUnit
 	return newValues;
     }
 
+    float[] toThis(float[] values, ScaledUnit that)
+        throws UnitException
+    {
+        float[]        newValues = scaledUnit.toThis(values, that);
+ 
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] -= (float) offset;
+ 
+        return newValues;
+    }
+
     /**
      * Convert values to this unit from a offset unit.
      *
@@ -310,6 +343,17 @@ public final class OffsetUnit
 	    newValues[i] = values[i] + that.offset;
 
 	return toThis(newValues, that.scaledUnit);
+    }
+
+    float[] toThis(float[] values, OffsetUnit that)
+        throws UnitException
+    {
+        float[]        newValues = new float[values.length];
+ 
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] = values[i] + (float) that.offset;
+ 
+        return toThis(newValues, that.scaledUnit);
     }
 
     /**
@@ -333,6 +377,17 @@ public final class OffsetUnit
 	return scaledUnit.toThat(newValues, that);
     }
 
+    float[] toThat(float values[], BaseUnit that)
+        throws UnitException
+    {
+        float[]        newValues = new float[values.length];
+ 
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] = values[i] + (float) offset;
+ 
+        return scaledUnit.toThat(newValues, that);
+    }
+
     /**
      * Convert values from this unit to a derived unit.
      *
@@ -352,6 +407,17 @@ public final class OffsetUnit
 	    newValues[i] = values[i] + offset;
 
 	return scaledUnit.toThat(newValues, that);
+    }
+
+    float[] toThat(float values[], DerivedUnit that)
+        throws UnitException
+    {
+        float[]        newValues = new float[values.length];
+ 
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] = values[i] + (float) offset;
+ 
+        return scaledUnit.toThat(newValues, that);
     }
 
     /**
@@ -375,6 +441,17 @@ public final class OffsetUnit
 	return scaledUnit.toThat(newValues, that);
     }
 
+    float[] toThat(float values[], ScaledUnit that)
+        throws UnitException
+    {
+        float[]        newValues = new float[values.length];
+ 
+        for (int i = 0; i < newValues.length; ++i)
+            newValues[i] = values[i] + (float) offset;
+ 
+        return scaledUnit.toThat(newValues, that);
+    }
+
     /**
      * Convert values from this unit to a offset unit.
      *
@@ -389,6 +466,12 @@ public final class OffsetUnit
 	throws UnitException
     {
 	return that.toThis(values, this);
+    }
+
+    float[] toThat(float values[], OffsetUnit that)
+        throws UnitException
+    {
+        return that.toThis(values, this);
     }
 
     /**

@@ -43,7 +43,7 @@ public class Linear1DSet extends Gridded1DSet {
   public Linear1DSet(MathType type, double first, double last, int length,
                      CoordinateSystem coord_sys, Unit[] units,
                      ErrorEstimate[] errors) throws VisADException {
-    super(type, (double[][]) null, length, coord_sys, units, errors);
+    super(type, (float[][]) null, length, coord_sys, units, errors);
     if (DomainDimension != 1) {
       throw new SetException("Linear1DSet: DomainDimension must be 1");
     }
@@ -53,8 +53,8 @@ public class Linear1DSet extends Gridded1DSet {
     if (Length < 1) throw new SetException("Linear1DSet: bad # samples");
     Step = (Length < 2) ? 1.0 : (Last - First) / (Length - 1);
     Invstep = 1.0 / Step; 
-    LowX = Math.min(First, First + Step * (Length - 1));
-    HiX = Math.max(First, First + Step * (Length - 1));
+    LowX = (float) Math.min(First, First + Step * (Length - 1));
+    HiX = (float) Math.max(First, First + Step * (Length - 1));
     Low[0] = LowX;
     Hi[0] = HiX;
     if (SetErrors[0] != null ) {
@@ -65,15 +65,15 @@ public class Linear1DSet extends Gridded1DSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
-    double[][] values = new double[1][length];
+    float[][] values = new float[1][length];
     for (int i=0; i<length; i++) {
       if (0 <= index[i] && index[i] < Length) {
-        values[0][i] = First + ((double) index[i]) * Step;
+        values[0][i] = (float) (First + ((double) index[i]) * Step);
       }
       else {
-        values[0][i] = Double.NaN;
+        values[0][i] = Float.NaN;
       }
     }
     return values;
@@ -81,7 +81,7 @@ public class Linear1DSet extends Gridded1DSet {
 
   /** transform an array of non-integer grid coordinates to an array
       of values in R */
-  public double[][] gridToValue(double[][] grid) throws VisADException {
+  public float[][] gridToValue(float[][] grid) throws VisADException {
     if (grid.length != 1) {
       throw new SetException("Linear1DSet.gridToValue: bad dimension");
     }
@@ -90,23 +90,23 @@ public class Linear1DSet extends Gridded1DSet {
                              "dimensions to be > 1");
     }
     int length = grid[0].length;
-    double[][] value = new double[1][length];
-    double[] value0 = value[0];
-    double[] grid0 = grid[0];
-    double l = -0.5;
-    double h = ((double) Length) - 0.5;
-    double g;
+    float[][] value = new float[1][length];
+    float[] value0 = value[0];
+    float[] grid0 = grid[0];
+    float l = -0.5f;
+    float h = ((float) Length) - 0.5f;
+    float g;
 
     for (int i=0; i<length; i++) {
       g = grid0[i];
-      value0[i] = (l < g && g < h) ? First + g * Step : Double.NaN;
+      value0[i] = (float) ((l < g && g < h) ? First + g * Step : Float.NaN);
     }
     return value;
   }
 
   /** transform an array of values in R to an array
       of non-integer grid coordinates */
-  public double[][] valueToGrid(double[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value) throws VisADException {
     if (value.length != 1) {
       throw new SetException("Linear1DSet.valueToGrid: bad dimension");
     }
@@ -115,21 +115,21 @@ public class Linear1DSet extends Gridded1DSet {
                              "dimensions to be > 1");
     }
     int length = value[0].length;
-    double[][] grid = new double[1][length];
-    double[] grid0 = grid[0];
-    double[] value0 = value[0];
-    double l = First - 0.5 * Step;
-    double h = First + (((double) Length) - 0.5) * Step;
-    double v;
+    float[][] grid = new float[1][length];
+    float[] grid0 = grid[0];
+    float[] value0 = value[0];
+    float l = (float) (First - 0.5 * Step);
+    float h = (float) (First + (((float) Length) - 0.5) * Step);
+    float v;
 
     if (h < l) {
-      double temp = l;
+      float temp = l;
       l = h;
       h = temp;
     }
     for (int i=0; i<length; i++) {
       v = value0[i];
-      grid0[i] = (l < v && v < h) ? (v - First) * Invstep : Double.NaN;
+      grid0[i] = (float) ((l < v && v < h) ? (v - First) * Invstep : Float.NaN);
     }
     return grid;
   }
@@ -156,6 +156,14 @@ public class Linear1DSet extends Gridded1DSet {
 
   public boolean isLinearSet() {
     return true;
+  }
+
+  float[][] getSamples(boolean copy) throws VisADException {
+    int n = getLength();
+    int[] indices = new int[n];
+    // do NOT call getWedge
+    for (int i=0; i<n; i++) indices[i] = i;
+    return indexToValue(indices);
   }
 
   public boolean equals(Object set) {

@@ -46,36 +46,57 @@ public class GriddedSet extends SampledSet {
   int[] Lengths;
   // error tolerance for Newton's method solvers
   // not static because may become data dependent
-  double EPS = 1.0E-15;
+  float EPS = (float) 1.0E-15;
   // Pos records the grid's orientation
   // (i.e., the sign of the cross-products of the grid edges)
   boolean Pos;
 
   /** construct a GriddedSet with samples */
-  public GriddedSet(MathType type, double[][] samples, int[] lengths)
+  public GriddedSet(MathType type, float[][] samples, int[] lengths)
          throws VisADException {
-    this(type, samples, lengths, null, null, null);
+    this(type, samples, lengths, null, null, null, true);
   }
 
   /** construct a GriddedSet with samples and non-default CoordinateSystem */
-  public GriddedSet(MathType type, double[][] samples, int[] lengths,
+  public GriddedSet(MathType type, float[][] samples, int[] lengths,
                     CoordinateSystem coord_sys, Unit[] units,
                     ErrorEstimate[] errors) throws VisADException {
+    this(type, samples, lengths, coord_sys, units, errors, true);
+  }
+
+  GriddedSet(MathType type, float[][] samples, int[] lengths,
+             CoordinateSystem coord_sys, Unit[] units,
+             ErrorEstimate[] errors, boolean copy)
+             throws VisADException {
     super(type, lengths.length, coord_sys, units, errors);
     init_lengths(lengths);
     if (samples == null ) {
       Samples = null;
     }
     else {
-      init_samples(samples);
+      init_samples(samples, copy);
     }
+  }
+
+  private void init_lengths(int[] lengths) throws VisADException {
+    Lengths = new int[ManifoldDimension];
+    Length = 1;
+    for (int j=0; j<ManifoldDimension; j++) {
+      if (lengths[j] < 1) {
+        throw new SetException("GriddedSet: each grid length must be at least 1");
+      }
+      Lengths[j] = lengths[j];
+      Length = Length * lengths[j];
+    }
+    Low = new float[DomainDimension];
+    Hi = new float[DomainDimension];
   }
 
   /**
    * Abreviated Factory method for creating the proper gridded set
    * (Gridded1DSet, Gridded2DSet, etc.).
    */
-  public static GriddedSet create(MathType type, double[][] samples,
+  public static GriddedSet create(MathType type, float[][] samples,
                                   int[] lengths) throws VisADException {
     return create(type, samples, lengths, null, null, null);
   }
@@ -84,29 +105,60 @@ public class GriddedSet extends SampledSet {
    * General Factory method for creating the proper gridded set
    * (Gridded1DSet, Gridded2DSet, etc.).
    */
-  public static GriddedSet create(MathType type, double[][] samples,
+  public static GriddedSet create(MathType type, float[][] samples,
                                   int[] lengths, CoordinateSystem coord_sys,
                                   Unit[] units, ErrorEstimate[] errors)
          throws VisADException {
-    int rank = samples.length;
+    return create(type, samples, lengths, coord_sys, units, errors, true);
+  }
+
+  static GriddedSet create(MathType type, float[][] samples,
+                           int[] lengths, CoordinateSystem coord_sys,
+                           Unit[] units, ErrorEstimate[] errors,
+                           boolean copy) throws VisADException {
+    int domain_dimension = samples.length;
+    int manifold_dimension = lengths.length;
+    if (manifold_dimension > domain_dimension) {
+      throw new SetException("GriddedSet.create: manifold_dimension greater " +
+                             "than domain_dimension");
+    }
  
-    switch (rank) {
+    switch (domain_dimension) {
       case 1:
         return new Gridded1DSet(type, samples,
                                 lengths[0],
-                                coord_sys, units, errors);
+                                coord_sys, units, errors, copy);
       case 2:
-        return new Gridded2DSet(type, samples,
-                                lengths[0], lengths[1],
-                                coord_sys, units, errors);
+        if (manifold_dimension == 1) {
+          return new Gridded2DSet(type, samples,
+                                  lengths[0],
+                                  coord_sys, units, errors, copy);
+        }
+        else {
+          return new Gridded2DSet(type, samples,
+                                  lengths[0], lengths[1],
+                                  coord_sys, units, errors, copy);
+        }
       case 3:
-        return new Gridded3DSet(type, samples,
-                                lengths[0], lengths[1], lengths[2],
-                                coord_sys, units, errors);
+        if (manifold_dimension == 1) {
+          return new Gridded3DSet(type, samples,
+                                  lengths[0],
+                                  coord_sys, units, errors, copy);
+        }
+        else if (manifold_dimension == 2) {
+          return new Gridded3DSet(type, samples,
+                                  lengths[0], lengths[1],
+                                  coord_sys, units, errors, copy);
+        }
+        else {
+          return new Gridded3DSet(type, samples,
+                                  lengths[0], lengths[1], lengths[2],
+                                  coord_sys, units, errors, copy);
+        }
       default:
         return new GriddedSet(type, samples,
                               lengths,
-                              coord_sys, units, errors);
+                              coord_sys, units, errors, copy);
     }
   }
 
@@ -143,18 +195,8 @@ public class GriddedSet extends SampledSet {
     }
   }
 
-  private void init_lengths(int[] lengths) throws VisADException {
-    Lengths = new int[ManifoldDimension];
-    Length = 1;
-    for (int j=0; j<ManifoldDimension; j++) {
-      if (lengths[j] < 1) {
-        throw new SetException("GriddedSet: each grid length must be at least 1");
-      }
-      Lengths[j] = lengths[j];
-      Length = Length * lengths[j];
-    }
-    Low = new double[DomainDimension];
-    Hi = new double[DomainDimension];
+  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+    return create(type, samples, Lengths, null, null, null, false);
   }
 
   public int getLength(int i) {
@@ -169,7 +211,7 @@ public class GriddedSet extends SampledSet {
     int i, j, k, base, dim;
     boolean flip;
     for (i=0; i<len; i++) wedge[i] = i;
-    for (dim=1; dim<DomainDimension; dim++) {
+    for (dim=1; dim<ManifoldDimension; dim++) {
       flip = true;
       base = len;
       k = len;
@@ -195,11 +237,11 @@ public class GriddedSet extends SampledSet {
   }
 
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
+  public float[][] indexToValue(int[] index) throws VisADException {
     int i, j, k;
     int[] indexI = new int[ManifoldDimension];
     int length = index.length;
-    double[][] grid = new double[ManifoldDimension][length];
+    float[][] grid = new float[ManifoldDimension][length];
     for (i=0; i<length; i++) {
       if (0 <= index[i] && index[i] < Length) {
         for (j=0; j<ManifoldDimension; j++) indexI[j] = -1;
@@ -212,13 +254,13 @@ public class GriddedSet extends SampledSet {
         }
         indexI[ManifoldDimension-1] = k;
       }
-      for (j=0; j<ManifoldDimension; j++) grid[j][i] = (double) indexI[j];
+      for (j=0; j<ManifoldDimension; j++) grid[j][i] = (float) indexI[j];
     }
     return gridToValue(grid);
   }
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     int i, j, k;
     if (value.length != DomainDimension) {
       throw new SetException("GriddedSet.valueToIndex: bad dimension");
@@ -226,7 +268,7 @@ public class GriddedSet extends SampledSet {
     int length = value[0].length;
     int[] index = new int[length];
 
-    double[][] grid = valueToGrid(value);
+    float[][] grid = valueToGrid(value);
     for (i=0; i<length; i++) {
       if (Double.isNaN(grid[ManifoldDimension-1][i])) {
         index[i] = -1;
@@ -247,7 +289,7 @@ public class GriddedSet extends SampledSet {
 
   /** transform an array of non-integer grid coordinates to an array
       of values in R^DomainDimension */
-  public double[][] gridToValue(double[][] grid) throws VisADException {
+  public float[][] gridToValue(float[][] grid) throws VisADException {
     for (int j=0; j<DomainDimension; j++) {
       if (Lengths[j] < 2) {
         throw new SetException("GriddedSet.gridToValue: requires all grid " +
@@ -259,7 +301,7 @@ public class GriddedSet extends SampledSet {
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
-  public double[][] valueToGrid(double[][] value) throws VisADException {
+  public float[][] valueToGrid(float[][] value) throws VisADException {
     for (int j=0; j<DomainDimension; j++) {
       if (Lengths[j] < 2) {
         throw new SetException("GriddedSet.valueToGrid: requires all grid " +
@@ -273,7 +315,7 @@ public class GriddedSet extends SampledSet {
       of 1-D indices and an array of weights, to be used for interpolation;
       indices[i] and weights[i] are null if i-th value is outside grid
       (i.e., if no interpolation is possible) */
-  public void valueToInterp(double[][] value, int[][] indices, double[][] weights)
+  public void valueToInterp(float[][] value, int[][] indices, float[][] weights)
               throws VisADException {
     if (value.length != DomainDimension) {
       throw new SetException("GriddedSet.valueToInterp: bad dimension");
@@ -282,19 +324,19 @@ public class GriddedSet extends SampledSet {
     if (indices.length != length || weights.length != length) {
       throw new SetException("GriddedSet.valueToInterp: lengths don't match");
     }
-    double[][] grid = valueToGrid(value); // convert value array to grid coord array
+    float[][] grid = valueToGrid(value); // convert value array to grid coord array
 
     int i, j, k; // loop indices
     int lis; // temporary length of is & cs
     int length_is; // final length of is & cs, varies by i
     int isoff; // offset along one grid dimension
-    double a, b; // weights along one grid dimension; a + b = 1.0
+    float a, b; // weights along one grid dimension; a + b = 1.0
     int[] is; // array of indices, becomes part of indices
-    double[] cs; // array of coefficients, become part of weights
+    float[] cs; // array of coefficients, become part of weights
 
     int base; // base index, as would be returned by valueToIndex
     int[] l = new int[ManifoldDimension]; // integer 'factors' of base
-    double[] c = new double[ManifoldDimension]; // fractions with l; -0.5 <= c <= 0.5
+    float[] c = new float[ManifoldDimension]; // fractions with l; -0.5 <= c <= 0.5
 
     // array of index offsets by grid dimension
     int[] off = new int[ManifoldDimension];
@@ -310,7 +352,7 @@ public class GriddedSet extends SampledSet {
       else {
         l[ManifoldDimension-1] = (int) (grid[ManifoldDimension-1][i] + 0.5);
         c[ManifoldDimension-1] = grid[ManifoldDimension-1][i] -
-                                 ((double) l[ManifoldDimension-1]);
+                                 ((float) l[ManifoldDimension-1]);
         if (!((l[ManifoldDimension-1] == 0 && c[ManifoldDimension-1] <= 0.0) ||
               (l[ManifoldDimension-1] == Lengths[ManifoldDimension-1] - 1 &&
                c[ManifoldDimension-1] >= 0.0))) {
@@ -325,7 +367,7 @@ public class GriddedSet extends SampledSet {
         }
         else {
           l[j] = (int) (grid[j][i] + 0.5);
-          c[j] = grid[j][i] - ((double) l[j]);
+          c[j] = grid[j][i] - ((float) l[j]);
           if (!((l[j] == 0 && c[j] <= 0.0) ||
                 (l[j] == Lengths[j] - 1 && c[j] >= 0.0))) {
             // only interp along dimension j if between two valid grid coords
@@ -343,9 +385,9 @@ public class GriddedSet extends SampledSet {
       else {
         // create is & cs of proper length, and init first element
         is = new int[length_is];
-        cs = new double[length_is];
+        cs = new float[length_is];
         is[0] = base;
-        cs[0] = 1.0;
+        cs[0] = 1.0f;
         lis = 1;
 
         for (j=0; j<ManifoldDimension; j++) {
@@ -355,16 +397,16 @@ public class GriddedSet extends SampledSet {
             if (c[j] >= 0.0) {
               // grid coord above base
               isoff = off[j];
-              a = 1.0 - c[j];
+              a = 1.0f - c[j];
               b = c[j];
             }
             else {
               // grid coord below base
               isoff = -off[j];
-              a = 1.0 + c[j];
+              a = 1.0f + c[j];
               b = -c[j];
             }
-            // double is & cs; adjust new offsets; split weights
+            // float is & cs; adjust new offsets; split weights
             for (k=0; k<lis; k++) {
               is[k+lis] = is[k] + isoff;
               cs[k+lis] = cs[k] * b;
@@ -395,7 +437,7 @@ public class GriddedSet extends SampledSet {
         if (Lengths[j] != ((GriddedSet) set).getLength(j)) return false;
       }
       // Sets are immutable, so no need for 'synchronized'
-      double[][] samples = ((GriddedSet) set).getSamples();
+      float[][] samples = ((GriddedSet) set).getSamples(false);
       for (j=0; j<DomainDimension; j++) {
         for (i=0; i<Length; i++) {
           if (Samples[j][i] != samples[j][i]) {

@@ -75,6 +75,9 @@ public class ShadowSetType extends ShadowType {
                                     "in 1-D Set domain");
     }
 
+    anyContour = checkContour(local_display_indices);
+    anyFlow = checkFlow(local_display_indices);
+
     // ShadowSetType is implicitly Flat
     LevelOfDifficulty =
       testIndices(local_indices, local_display_indices, levelOfDifficulty);
@@ -119,7 +122,8 @@ public class ShadowSetType extends ShadowType {
 
   /** transform data into a Java3D scene graph;
       return true if need post-process */
-  public boolean doTransform(Group group, Data data, double[] value_array)
+  public boolean doTransform(Group group, Data data, float[] value_array,
+                             float[] default_values)
          throws VisADException {
     if (isTerminal) {
       if (LevelOfDifficulty == LEGAL) {

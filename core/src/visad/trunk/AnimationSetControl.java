@@ -46,7 +46,7 @@ public class AnimationSetControl extends Control {
   }
  
   AnimationSetControl() {
-    super();
+    this(null, null);
   }
 
   /** should never be called */

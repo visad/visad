@@ -95,6 +95,18 @@ public abstract class CoordinateSystem extends Object
       can modify and return argument array */
   public abstract double[][] fromReference(double[][] value) throws VisADException;
 
+  public float[][] toReference(float[][] value) throws VisADException {
+    double[][] val = Set.floatToDouble(value);
+    val = toReference(val);
+    return Set.doubleToFloat(val);
+  }
+
+  public float[][] fromReference(float[][] value) throws VisADException {
+    double[][] val = Set.floatToDouble(value);
+    val = fromReference(val);
+    return Set.doubleToFloat(val);
+  }
+
   /** transform coordinates between two RealTupleType-s;
       in, coord_in, units_in and errors_in are the Type, CoordinateSystem, Units
       and ErrorEstimates associated with value;
@@ -247,6 +259,42 @@ public abstract class CoordinateSystem extends Object
       }
     }
     return value;
+  }
+
+  /** float version of transformCoordinates */
+  public static float[][] transformCoordinates(
+                        RealTupleType out, CoordinateSystem coord_out,
+                        Unit[] units_out, ErrorEstimate[] errors_out,
+                        RealTupleType in, CoordinateSystem coord_in,
+                        Unit[] units_in, ErrorEstimate[] errors_in,
+                        float[][] value) throws VisADException {
+    int n = out.getDimension();
+    Unit[] units_free = new Unit[n];
+    value =
+      transformCoordinatesFreeUnits(out, coord_out, units_free, errors_out,
+                                    in, coord_in, units_in, errors_in, value);
+    ErrorEstimate[] sub_errors_out = new ErrorEstimate[1];
+    double[][] val = Set.floatToDouble(value);
+    for (int i=0; i<n; i++) {
+      val[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
+                                    errors_out[i], val[i]);
+      errors_out[i] = sub_errors_out[0];
+    }
+    value = Set.doubleToFloat(val);
+    return value;
+  }
+
+  /** float version of transformCoordinatesFreeUnits */
+  public static float[][] transformCoordinatesFreeUnits(
+                        RealTupleType out, CoordinateSystem coord_out,
+                        Unit[] units_out, ErrorEstimate[] errors_out,
+                        RealTupleType in, CoordinateSystem coord_in,
+                        Unit[] units_in, ErrorEstimate[] errors_in,
+                        float[][] value) throws VisADException {
+    return Set.doubleToFloat(
+      transformCoordinatesFreeUnits(out, coord_out, units_out, errors_out,
+                                    in, coord_in, units_in, errors_in,
+                                    Set.floatToDouble(value) ) );
   }
 
   /** if units are non-null, they are both the Unit[] of input value,

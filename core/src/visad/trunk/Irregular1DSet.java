@@ -33,56 +33,93 @@ package visad;
 */
 public class Irregular1DSet extends IrregularSet {
 
-  double LowX, HiX;
+  float LowX, HiX;
+
   Gridded1DSet SortedSet;
 
-  public Irregular1DSet(MathType type, double[][] samples)
+  public Irregular1DSet(MathType type, float[][] samples)
          throws VisADException {
-    this(type, samples, null, null, null);
+    this(type, samples, null, null, null, true);
   }
 
-  public Irregular1DSet(MathType type, double[][] samples,
+  public Irregular1DSet(MathType type, float[][] samples,
                       CoordinateSystem coord_sys, Unit[] units,
                       ErrorEstimate[] errors) throws VisADException {
-    super(type, samples, coord_sys, units, errors);
+    this(type, samples, coord_sys, units, errors, true);
+  }
+
+  Irregular1DSet(MathType type, float[][] samples,
+                 CoordinateSystem coord_sys, Unit[] units,
+                 ErrorEstimate[] errors, boolean copy)
+         throws VisADException {
+    super(type, samples, samples.length, coord_sys, units, errors, copy);
     LowX = Low[0];
     HiX = Hi[0];
 
     // sort samples so that creation of a Gridded1DSet is possible
-    double[][] sortedSamples = new double[1][Length];
+    float[][] sortedSamples = new float[1][Length];
     for (int i=0; i<Length; i++) {
       sortedSamples[0][i] = Samples[0][i];
     }
-    QuickSort.sort(sortedSamples[0]);
+    newToOld = QuickSort.sort(sortedSamples[0]);
+    oldToNew = new int[Length];
+    for (int i=0; i<Length; i++) oldToNew[newToOld[i]] = i;
     SortedSet = new Gridded1DSet(type, sortedSamples, Length,
                                  coord_sys, units, errors);
   }
 
+  Set makeSpatial(SetType type, float[][] samples) throws VisADException {
+    if (samples.length == 3) {
+      return new Irregular3DSet(type, samples, newToOld, oldToNew,
+                                null, null, null, false);
+    }
+    else if (samples.length == 2) {
+      return new Irregular2DSet(type, samples, newToOld, oldToNew,
+                                null, null, null, false);
+    }
+    else if (samples.length == 1) {
+      // may need new sort (CoordinateSystem may change order)
+      return new Irregular1DSet(type, samples, null, null, null, false);
+    }
+    else {
+      throw new SetException("Irregular1DSet.makeSpatial: bad samples length");
+    }
+  }
+
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
-  public double[][] indexToValue(int[] index) throws VisADException {
-    double[][] value = SortedSet.indexToValue(index);
+  public float[][] indexToValue(int[] index) throws VisADException {
+    int[] newIndex = new int[index.length];
+    for (int i=0; i<index.length; i++) newIndex[i] = oldToNew[index[i]];
+    float[][] value = SortedSet.indexToValue(newIndex);
     return value;
   }
 
   /** convert an array of values in R^DomainDimension to an array of 1-D indices */
-  public int[] valueToIndex(double[][] value) throws VisADException {
+  public int[] valueToIndex(float[][] value) throws VisADException {
     int[] index = SortedSet.valueToIndex(value);
-    return index;
+    int[] newIndex = new int[index.length];
+    for (int i=0; i<index.length; i++) newIndex[i] = newToOld[index[i]];
+    return newIndex;
   }
 
   /** for each of an array of values in R^DomainDimension, compute an array
       of 1-D indices and an array of weights, to be used for interpolation;
       indices[i] and weights[i] are null if no interpolation is possible */
-  public void valueToInterp(double[][] value, int[][] indices,
-                            double[][] weights) throws VisADException {
+  public void valueToInterp(float[][] value, int[][] indices,
+                            float[][] weights) throws VisADException {
     SortedSet.valueToInterp(value, indices, weights);
+    for (int j=0; j<indices.length; j++) {
+      int[] newIndex = new int[indices[j].length];
+      for (int i=0; i<indices[j].length; i++) newIndex[i] = newToOld[indices[j][i]];
+      indices[j] = newIndex;
+    }
   }
 
-  public double getLowX() {
+  public float getLowX() {
     return LowX;
   }
 
-  public double getHiX() {
+  public float getHiX() {
     return HiX;
   }
 
@@ -104,7 +141,7 @@ public class Irregular1DSet extends IrregularSet {
   /* run 'java visad.Irregular1DSet' to test the Irregular1DSet class */
   public static void main(String[] argv) throws VisADException {
     // set up samples
-    double[][] samp = { {130, 55, 37, 28, 61, 40, 104, 52, 65, 12} };
+    float[][] samp = { {130, 55, 37, 28, 61, 40, 104, 52, 65, 12} };
     int length = samp[0].length;
     int[] index = new int[length];
     for (int i=0; i<length; i++) {
@@ -118,14 +155,18 @@ public class Irregular1DSet extends IrregularSet {
 
     // print out samples and test indexToValue
     System.out.println("Samples (indexToValue test):");
-    double[][] value = iSet1D.indexToValue(index);
+    float[][] value = iSet1D.indexToValue(index);
     for (int i=0; i<iSet1D.Length; i++) {
       System.out.println("#"+i+":\t"+value[0][i]);
     }
 
+    for (int i=0; i<iSet1D.Length; i++) {
+      System.out.println("#"+i+":\t"+iSet1D.oldToNew[i]+" "+iSet1D.newToOld[i]);
+    }
+
     // test valueToIndex
     System.out.println("\nvalueToIndex test:");
-    double[][] value2 = { {10, 20,  30,  40,  50,  60, 70,
+    float[][] value2 = { {10, 20,  30,  40,  50,  60, 70,
                            80, 90, 100, 110, 120, 130} };
     int[] index2 = iSet1D.valueToIndex(value2);
     for (int i=0; i<index2.length; i++) {
@@ -135,15 +176,15 @@ public class Irregular1DSet extends IrregularSet {
     // test valueToInterp
     System.out.println("\nvalueToInterp test:");
     int[][] indices = new int[value2[0].length][];
-    double[][] weights = new double[value2[0].length][];
+    float[][] weights = new float[value2[0].length][];
     iSet1D.valueToInterp(value2, indices, weights);
     for (int i=0; i<value2[0].length; i++) {
       System.out.print(value2[0][i]+"\t--> ["+indices[i][0]);
-      for (int j=0; j<indices[i].length; j++) {
+      for (int j=1; j<indices[i].length; j++) {
         System.out.print(", "+indices[i][j]);
       }
       System.out.print("]\tweight total: ");
-      double total = 0;
+      float total = 0;
       for (int j=0; j<weights[i].length; j++) {
         total += weights[i][j];
       }
@@ -153,7 +194,7 @@ public class Irregular1DSet extends IrregularSet {
 
 /* Here's the output:
 
-iris 56% java Irregular1DSet
+iris 56% java visad.Irregular1DSet
 Samples (indexToValue test):
 #0:     12.0
 #1:     28.0

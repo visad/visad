@@ -103,11 +103,11 @@ public interface Display extends Action {
     new DisplayRealType("Hue", false, 0.0, 1.0, 0.0, null, true);
   public final static DisplayRealType Saturation =
     new DisplayRealType("Saturation", false, 0.0, 1.0, 0.0, null, true);
-  public final static DisplayRealType Brightness =
-    new DisplayRealType("Brightness", false, 0.0, 1.0, 1.0, null, true);
+  public final static DisplayRealType Value =
+    new DisplayRealType("Value", false, 0.0, 1.0, 1.0, null, true);
 
-  public final static DisplayRealType HSB =
-    new DisplayRealType("HSB", false, 0.0, 1.0, 0.0,
+  public final static DisplayRealType HSV =
+    new DisplayRealType("HSV", false, 0.0, 1.0, 0.0,
                         ColorControl.prototype, true);
 
   public final static DisplayRealType Cyan =
@@ -180,7 +180,7 @@ public interface Display extends Action {
   /** array of system intrinsic display scalars */
   final static DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
-     RGB, Hue, Saturation, Brightness, HSB, Cyan, Magenta, Yellow, CMY, Alpha,
+     RGB, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
      Animation, SelectValue, SelectRange, IsoContour, Flow1X, Flow1Y, Flow1Z,
      Flow2X, Flow2Y, Flow2Z, Shape, XAxisOffset, YAxisOffset, ZAxisOffset};
 
@@ -198,47 +198,47 @@ public interface Display extends Action {
   public final static CoordinateSystem DisplaySphericalCoordSys =
     new SphericalCoordinateSystem(DisplaySpatialCartesianTuple, true);
   public static DisplayRealType[] components3s =
-          {Display.Latitude, Display.Longitude, Display.Radius};
+          {Latitude, Longitude, Radius};
   public final static DisplayTupleType DisplaySpatialSphericalTuple =
     new DisplayTupleType(components3s, DisplaySphericalCoordSys, true);
 
   /** system intrinsic DisplayTupleType for RGB Color Coordinates */
   public final static DisplayRealType[] componentsrgb =
-          {Display.Red, Display.Green, Display.Blue};
+          {Red, Green, Blue};
   public final static DisplayTupleType DisplayRGBTuple =
     new DisplayTupleType(componentsrgb, true);
 
-  /** system intrinsic DisplayTupleType for HSB Color Coordinates */
-  public final static CoordinateSystem DisplayHSBCoordSys =
-    new HSBCoordinateSystem(DisplayRGBTuple, true);
+  /** system intrinsic DisplayTupleType for HSV Color Coordinates */
+  public final static CoordinateSystem DisplayHSVCoordSys =
+    new HSVCoordinateSystem(DisplayRGBTuple, true);
   public final static DisplayRealType[] componentshsv =
-          {Display.Hue, Display.Saturation, Display.Brightness};
-  public final static DisplayTupleType DisplayHSBTuple =
-    new DisplayTupleType(componentshsv, DisplayHSBCoordSys, true);
+          {Hue, Saturation, Value};
+  public final static DisplayTupleType DisplayHSVTuple =
+    new DisplayTupleType(componentshsv, DisplayHSVCoordSys, true);
 
   /** system intrinsic DisplayTupleType for CMY Color Coordinates */
   public final static CoordinateSystem DisplayCMYCoordSys =
     new CMYCoordinateSystem(DisplayRGBTuple, true);
   public final static DisplayRealType[] componentscmy =
-          {Display.Cyan, Display.Magenta, Display.Yellow};
+          {Cyan, Magenta, Yellow};
   public final static DisplayTupleType DisplayCMYTuple =
     new DisplayTupleType(componentscmy, DisplayCMYCoordSys, true);
 
   /** system intrinsic DisplayTupleType for first set of Flow components */
   public final static DisplayRealType[] componentsflow1 =
-          {Display.Flow1X, Display.Flow1Y, Display.Flow1Z};
+          {Flow1X, Flow1Y, Flow1Z};
   public final static DisplayTupleType DisplayFlow1Tuple =
     new DisplayTupleType(componentsflow1, true);
 
   /** system intrinsic DisplayTupleType for second set of Flow components */
   public final static DisplayRealType[] componentsflow2 =
-          {Display.Flow2X, Display.Flow2Y, Display.Flow2Z};
+          {Flow2X, Flow2Y, Flow2Z};
   public final static DisplayTupleType DisplayFlow2Tuple =
     new DisplayTupleType(componentsflow2, true);
 
   /** system intrinsic DisplayTupleType for Spatial Offset Coordinates */
   public final static DisplayRealType[] componentsso =
-          {Display.XAxisOffset, Display.YAxisOffset, Display.ZAxisOffset};
+          {XAxisOffset, YAxisOffset, ZAxisOffset};
   public final static DisplayTupleType DisplaySpatialOffsetTuple =
     new DisplayTupleType(componentsso, true);
 

@@ -190,6 +190,27 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     }
   }
 
+  /** construct an ErrorEstimate for an array of values with an error */
+  public ErrorEstimate(float[] value, double error, Unit u) {
+    unit = u;
+    NumberNotMissing = 0;
+    double sum = 0.0;
+    for (int i=0; i<NumberNotMissing; i++) {
+      if (!Float.isNaN(value[i])) {
+        NumberNotMissing++;
+        sum += value[i];
+      }
+    }
+    if (NumberNotMissing > 0) {
+      Mean = sum / NumberNotMissing;
+      Error = error;
+    }
+    else {
+      Mean = Double.NaN;
+      Error = Double.NaN;
+    }
+  }
+
   /** construct Error for an array of values that is the result of a binary
       operator; a and b are the ErrorEstimate-s for the operands */
   public ErrorEstimate(double[] value, Unit u, int op, ErrorEstimate a,
@@ -214,6 +235,30 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
     }
   }
 
+  /** construct Error for an array of values that is the result of a binary
+      operator; a and b are the ErrorEstimate-s for the operands */
+  public ErrorEstimate(float[] value, Unit u, int op, ErrorEstimate a,
+                       ErrorEstimate b, int error_mode)
+         throws VisADException {
+    unit = u;
+    NumberNotMissing = 0;
+    double sum = 0.0;
+    for (int i=0; i<NumberNotMissing; i++) {
+      if (!Float.isNaN(value[i])) {
+        NumberNotMissing++;
+        sum += value[i];
+      }
+    }
+    if (NumberNotMissing > 0) {
+      Mean = sum / NumberNotMissing;
+      Error = binary(op, a, b, error_mode);
+    }
+    else {
+      Mean = Double.NaN;
+      Error = Double.NaN;
+    }
+  }
+
   /** construct Error for an array of values that is the result of a unary 
       operator; a is the ErrorEstimate for the operand */
   public ErrorEstimate(double[] value, Unit u, int op, ErrorEstimate a,
@@ -227,6 +272,29 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
         sum += value[i];
       } 
     } 
+    if (NumberNotMissing > 0) {
+      Mean = sum / NumberNotMissing;
+      Error = unary(op, a, error_mode);
+    }
+    else {
+      Mean = Double.NaN;
+      Error = Double.NaN;
+    }
+  }
+
+  /** construct Error for an array of values that is the result of a unary
+      operator; a is the ErrorEstimate for the operand */
+  public ErrorEstimate(float[] value, Unit u, int op, ErrorEstimate a,
+                       int error_mode) {
+    unit = u;
+    NumberNotMissing = 0;
+    double sum = 0.0;
+    for (int i=0; i<NumberNotMissing; i++) {
+      if (!Float.isNaN(value[i])) {
+        NumberNotMissing++;
+        sum += value[i];
+      }
+    }
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = unary(op, a, error_mode);

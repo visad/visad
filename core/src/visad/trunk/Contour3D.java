@@ -1,6 +1,6 @@
 
 //
-// IsoSurface.java
+// Contour3D.java
 //
 
 /*
@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-The IsoSurface class is derived from functions written in the C
+The Contour3D class is derived from functions written in the C
 language by Andre Battaiola.
 */
 
@@ -30,42 +30,46 @@ package visad;
 
 
 /**
-   IsoSurface is the VisAD class for extracting iso-surfaces from
+   Contour3D is the VisAD class for extracting iso-surfaces from
    3-D grids.  It is temporary and will be incorporated into the
    Gridded3DSet class.<P>
 */
-public class IsoSurface {
+public class Contour3D {
 
 //<           instance variables            >
 
-    int  BIG_NEG = (int) -2e+9;
-    float  EPS_0 = (float) 1.0e-5;
-    float  EPS_1 = (float) (1.0 - EPS_0);
+    static int  BIG_NEG = (int) -2e+9;
+    static double  EPS_0 = (double) 1.0e-5;
+    static double  EPS_1 = (double) (1.0 - EPS_0);
 
-    float[] ptGRID;      //  Range values at domain samples
-    float[] VX;
-    float[] VY;
-    float[] VZ;
+    double[] ptGRID;      //  Range values at domain samples
+    double[] VX;
+    double[] VY;
+    double[] VZ;
     int  xdim;
     int  ydim;           //  Rectangular grid topology
     int  zdim;
-    float  ARX;          //  x_dim  Aspect Ratio
-    float  ARY;          //  y_dim  Aspect Ratio
-    float  ARZ;          //  z_dim  Aspect Ratio
-    float  isovalue;     //  constant range value surface
+    double  ARX;          //  x_dim  Aspect Ratio
+    double  ARY;          //  y_dim  Aspect Ratio
+    double  ARZ;          //  z_dim  Aspect Ratio
+    double  isovalue;     //  constant range value surface
     int  LowLev;
     int  num_verts;
-    float[] NX;
-    float[] NY;
-    float[] NZ;
+    double[] NX;
+    double[] NY;
+    double[] NZ;
     int NPTS;
     int[] VPTS;
+/* WLH 25 Oct 97: Java3D, not PEX
     boolean PEX;
+*/
 
 //<          class variables          >
 
-        static float INVALID_VALUE = (float) 1.0e30;
-        static float INV_VAL = INVALID_VALUE;
+/* WLH 24 Oct 97
+        static double INVALID_VALUE = (double) 1.0e30;
+        static double INV_VAL = INVALID_VALUE;
+*/
         static boolean  TRUE = true;
         static boolean  FALSE = false;
         static int  MASK = 0x0F;
@@ -473,10 +477,10 @@ static int STAB[] =  { 0, 9, 25, 50 };
 
 //<           constructors           >
 
-  public  IsoSurface( float[] ptGRID, int xdim, int ydim, int zdim, int LowLev,
-                     float isovalue, float ARX, float ARY, float ARZ, int num_verts,
-                     float[] VX, float[] VY, float[] VZ, 
-                     float[] NX, float[] NY, float[] NZ, int NPTS, int[] VPTS ) 
+  public  Contour3D( double[] ptGRID, int xdim, int ydim, int zdim, int LowLev,
+                     double isovalue, double ARX, double ARY, double ARZ, int num_verts,
+                     double[] VX, double[] VY, double[] VZ, 
+                     double[] NX, double[] NY, double[] NZ, int NPTS, int[] VPTS ) 
           throws VisADException {
 
        this.ptGRID    = ptGRID;
@@ -497,12 +501,14 @@ static int STAB[] =  { 0, 9, 25, 50 };
        this.NZ        = NZ;
        this.NPTS      = NPTS;
        this.VPTS      = VPTS;
+/* WLH 25 Oct 97
        this.PEX       = false;
+*/
 
        //  check (array size) vs. ( dimensions )
 
            if ( ptGRID.length != xdim*ydim*zdim ) { 
-               throw new DisplayException("IsoSurface: dimensions don't match ");
+               throw new DisplayException("Contour3D: dimensions don't match ");
            }
 
        //  check domain dimensin, aspect ratios
@@ -510,7 +516,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
            if ( xdim < 2 || ydim < 2 || zdim < 2 ||
                 Math.abs(ARX) < EPS_0 || Math.abs(ARY) < EPS_0 ||
                 Math.abs(ARZ) < EPS_0 ) {
-                throw new DisplayException("IsoSurface: domain size or " +
+                throw new DisplayException("Contour3D: domain size or " +
                                            "aspect ratio problem ");
            }
 
@@ -542,7 +548,8 @@ static int STAB[] =  { 0, 9, 25, 50 };
         int[]  pcube  = new int[ num_cubes+1 ];
  
       
-        npolygons = flags( ptFLAG, ptAUX, pcube );
+        npolygons = flags( isovalue, ptFLAG, ptAUX, pcube,
+                           ptGRID, xdim, ydim, zdim );
 
         System.out.println("npolygons= "+npolygons);
 
@@ -552,32 +559,50 @@ static int STAB[] =  { 0, 9, 25, 50 };
         iy = 7 * npolygons;
         ii = ix + iy;
 
+/* WLH 25 Oct 97 - BUG
         int[] Pol_f_Vert = new int[ii];
+*/
+        int[] Pol_f_Vert = new int[ix];
         int[] Vert_f_Pol = new int[iy];
 
-        nvertex = isosurf( ptFLAG, NVERTICE, npolygons, Pol_f_Vert, Vert_f_Pol );
+        nvertex = isosurf( isovalue, ptFLAG, NVERTICE, npolygons, ptGRID,
+                           xdim, ydim, zdim, VX, VY, VZ, Pol_f_Vert, Vert_f_Pol );
 
         System.out.println("nvertex= "+nvertex);
 
-        float[] NxA = new float[6*npolygons];
-        float[] NxB = new float[5*npolygons];
-        float[] NyA = new float[4*npolygons];
-        float[] NyB = new float[3*npolygons];
-        float[] NzA = new float[2*npolygons];
-        float[] NzB = new float[1*npolygons];
+/* WLH 25 Oct 97 - BUG
+        double[] NxA = new double[6*npolygons];
+        double[] NxB = new double[5*npolygons];
+        double[] NyA = new double[4*npolygons];
+        double[] NyB = new double[3*npolygons];
+        double[] NzA = new double[2*npolygons];
+        double[] NzB = new double[1*npolygons];
 
-        float[] Pnx = new float[3*npolygons];
-        float[] Pny = new float[2*npolygons];
-        float[] Pnz = new float[1*npolygons];
+        double[] Pnx = new double[3*npolygons];
+        double[] Pny = new double[2*npolygons];
+        double[] Pnz = new double[1*npolygons];
+*/
+        double[] NxA = new double[npolygons];
+        double[] NxB = new double[npolygons];
+        double[] NyA = new double[npolygons];
+        double[] NyB = new double[npolygons];
+        double[] NzA = new double[npolygons];
+        double[] NzB = new double[npolygons];
+
+        double[] Pnx = new double[npolygons];
+        double[] Pny = new double[npolygons];
+        double[] Pnz = new double[npolygons];
 
 
+/* WLH 25 Oct 97 - move to normals
         for ( cnt = 0; cnt < nvertex; cnt++ ) {
             NX[cnt] = 0;
             NY[cnt] = 0;
             NZ[cnt] = 0;
         }
-        
-        normals( NX, NY, NZ, nvertex, npolygons, Pnx, Pny, Pnz,
+*/
+
+        normals( VX, VY, VZ, NX, NY, NZ, nvertex, npolygons, Pnx, Pny, Pnz,
                  NxA, NxB, NyA, NyB, NzA, NzB, ARX, ARY, ARZ,
                  Pol_f_Vert, Vert_f_Pol);
 
@@ -632,7 +657,8 @@ static int STAB[] =  { 0, 9, 25, 50 };
   }
 
 
-  public int flags( int[] ptFLAG, int[] ptAUX, int[] pcube ) {
+  public static int flags( double isovalue, int[] ptFLAG, int[] ptAUX, int[] pcube,
+                           double[] ptGRID, int xdim, int ydim, int zdim ) {
       int ii, jj, ix, iy, iz, cb, SF, bcase;
       int num_cubes, num_cubes_xy, num_cubes_y;
       int xdim_x_ydim = xdim*ydim;
@@ -670,7 +696,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
 
    /* Vectorized */
     for (ii = 0; ii < xdim_x_ydim_x_zdim; ii++) {
+/* WLH 24 Oct 97
         if      (ptGRID[ii] >= INVALID_VALUE) ptAUX[ii] = 0x1001;
+        if      (Double.isNaN(ptGRID[ii]) ptAUX[ii] = 0x1001;
+*/
+        // test for missing
+        if      (ptGRID[ii] != ptGRID[ii]) ptAUX[ii] = 0x1001;
         else if (ptGRID[ii] >= isovalue)      ptAUX[ii] = 1;
         else                                  ptAUX[ii] = 0;
     }
@@ -693,8 +724,8 @@ static int STAB[] =  { 0, 9, 25, 50 };
     while ( TRUE )
     {  
         for (; ii < num_cubes; ii++) {
-            if ( ((ptFLAG[ii] != 0) && (ptFLAG[ii] != 0xFF)) && ptFLAG[ii] < MAX_FLAG_NUM)
-                break;
+            if ( ((ptFLAG[ii] != 0) && (ptFLAG[ii] != 0xFF)) &&
+                 ptFLAG[ii] < MAX_FLAG_NUM) break;
         }
 
         if ( ii == num_cubes ) break;
@@ -805,44 +836,54 @@ static int STAB[] =  { 0, 9, 25, 50 };
   }
 
 
-  public int isosurf( int[] ptFLAG, int NVERTICE, int npolygons,
-                       int[] Pol_f_Vert, int[] Vert_f_Pol ) 
+  public static int isosurf( double isovalue, int[] ptFLAG, int NVERTICE,
+                             int npolygons, double[] ptGRID, int xdim, int ydim,
+                             int zdim, double[] VX, double[] VY, double[] VZ,
+                             int[] Pol_f_Vert, int[] Vert_f_Pol ) 
          throws VisADException {
 
    int  ix, iy, iz, caseA, above, bellow, front, rear, mm, nn;
    int  ii, jj, kk, ncube, cpl, pvp, pa, ve;
    int[] calc_edge = new int[13];
    int  xx, yy, zz;
-   float    cp;
-   float  vnode0 = 0;
-   float  vnode1 = 0;
-   float  vnode2 = 0;
-   float  vnode3 = 0;
-   float  vnode4 = 0;
-   float  vnode5 = 0;
-   float  vnode6 = 0;
-   float  vnode7 = 0;
+   double    cp;
+   double  vnode0 = 0;
+   double  vnode1 = 0;
+   double  vnode2 = 0;
+   double  vnode3 = 0;
+   double  vnode4 = 0;
+   double  vnode5 = 0;
+   double  vnode6 = 0;
+   double  vnode7 = 0;
    int  pt = 0;
    int  n_pol;
    int  aa;
    int  bb;
    int  temp;
-   float  nodeDiff;
+   double  nodeDiff;
    int xdim_x_ydim = xdim*ydim;
    int nvet;
 
     bellow = rear = 0;  above = front = 1;
 
     /* Initialize the Auxiliar Arrays of Pointers */
+/* WLH 25 Oct 97
     ix = 9 * (npolygons*2 + 50);
     iy = 7 * npolygons;
     ii = ix + iy;
-    /*$dir vector */
-    for (jj=0; jj<ii; jj++)  Pol_f_Vert[jj] = BIG_NEG;  /* Vectorized */
-    /*$dir vector */
-    for (jj=8; jj<ix; jj+=9) Pol_f_Vert[jj] = 0;        /* Vectorized */
-    /*$dir vector */
-    for (jj=6; jj<iy; jj+=7) Vert_f_Pol[jj] = 0;        /* Vectorized */
+*/
+    for (jj=0; jj<Pol_f_Vert.length; jj++) {
+      Pol_f_Vert[jj] = BIG_NEG;
+    }
+    for (jj=8; jj<Pol_f_Vert.length; jj+=9) {
+      Pol_f_Vert[jj] = 0;
+    }
+    for (jj=0; jj<Vert_f_Pol.length; jj++) {
+      Vert_f_Pol[jj] = BIG_NEG;
+    }
+    for (jj=6; jj<Vert_f_Pol.length; jj+=7) {
+      Vert_f_Pol[jj] = 0;
+    }
 
     /* Allocate the auxiliar edge vectors
     size ixPlane = (xdim - 1) * ydim = xdim_x_ydim - ydim
@@ -868,7 +909,8 @@ static int STAB[] =  { 0, 9, 25, 50 };
                 for ( iy = 0; iy < ydim - 1; iy++ ) {
                     if ( (ptFLAG[ncube] != 0 & ptFLAG[ncube] != 0xFF) ) {
                         if (nvet + 12 > NVERTICE) {
-                            throw new DisplayException("isosurf: nvet+12>NVERTICE");
+                            throw new DisplayException(
+                                           "isosurf: nvet + 12 > NVERTICE");
                         }
                         if ( (ptFLAG[ncube] < MAX_FLAG_NUM) ) {
                         /*  fill_Vert_f_Pol(ncube); */
@@ -892,6 +934,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
                                       }
                                            kk >>= 4;    pa += 7;
                                   }
+                        /* end  fill_Vert_f_Pol(ncube); */
                         /* */
 
          /* find_vertex(); */
@@ -909,8 +952,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
 
    if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0002) != 0) )    /* cube vertex 0-1 */
    {   if ( (iz != 0) || (iy != 0) )  calc_edge[1] = P_array[ bellow*xx + ix*ydim + iy ];
-         else
-         {
+         else {
              nodeDiff = vnode1 - vnode0;
              cp = ( ( isovalue - vnode0 ) / nodeDiff ) + ix;
 
@@ -923,8 +965,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
      }
      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0004) != 0) )         /* cube vertex 0-2 */
      {   if ( (iz != 0) || (ix != 0) )  calc_edge[2] = P_array[ 2*xx + bellow*yy + iy*xdim + ix ];
-         else
-         {
+         else {
 
              nodeDiff = vnode2 - vnode0;
              cp = ( ( isovalue - vnode0 ) / nodeDiff ) + iy;
@@ -938,8 +979,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
      }
      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0008) != 0) )                /* cube vertex 0-4 */
      {   if ( (ix != 0) || (iy != 0) )  calc_edge[3] = P_array[ 2*xx + 2*yy + rear*zz + iy ];
-         else
-         {
+         else {
              nodeDiff = vnode4 - vnode0;
              cp = ( ( isovalue - vnode0 ) / nodeDiff ) + iz;
 
@@ -952,8 +992,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
      }
      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0010) != 0) )                /* cube vertex 1-3 */
      {   if ( (iz != 0) )     calc_edge[4] =  P_array[ 2*xx + bellow*yy + iy*xdim + (ix+1) ];
-         else
-         {
+         else {
              nodeDiff = vnode3 - vnode1;
              cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iy;
 
@@ -967,8 +1006,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
      }
      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0020) != 0) )                /* cube vertex 1-5 */
      {   if ( (iy != 0) )        calc_edge[5] = P_array[ 2*xx + 2*yy + front*zz + iy ];
-         else
-         {
+         else {
              nodeDiff = vnode5 - vnode1;
              cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iz;
 
@@ -982,8 +1020,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
      }
      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0040) != 0) )         /* cube vertex 2-3 */
      {   if ( (iz != 0) )   calc_edge[6] = P_array[ bellow*xx + ix*ydim + (iy+1) ];
-         else
-         {
+         else {
              nodeDiff = vnode3 - vnode2;
              cp = ( ( isovalue - vnode2 ) / nodeDiff ) + ix;
 
@@ -997,8 +1034,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
      }
      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0080) != 0) )                /* cube vertex 2-6 */
      {   if ( (ix != 0) )        calc_edge[7] = P_array[ 2*xx + 2*yy + rear*zz + (iy+1) ];
-         else
-         {
+         else {
              nodeDiff = vnode6 - vnode2;
              cp = ( ( isovalue - vnode2 ) / nodeDiff ) + iz;
 
@@ -1024,8 +1060,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
      }
      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0200) != 0) )         /* cube vertex 4-5 */
      {   if ( (iy != 0) )        calc_edge[9] = P_array[ above*xx + ix*ydim + iy ];
-         else
-         {
+         else {
              nodeDiff = vnode5 - vnode4;
              cp = ( ( isovalue - vnode4 ) / nodeDiff ) + ix;
 
@@ -1039,8 +1074,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
      }
      if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0400) != 0) )         /* cube vertex 4-6 */
      {   if ( (ix != 0) )       calc_edge[10] = P_array[ 2*xx + above*yy + iy*xdim + ix ];
-         else
-         {
+         else {
              nodeDiff = vnode6 - vnode4;
              cp = ( ( isovalue - vnode4 ) / nodeDiff ) + iy;
 
@@ -1077,7 +1111,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
          nvet++;
      }
 
-   /*  */
+         /* end  find_vertex(); */
                          /* update_data_structure(ncube); */
                              kk = pol_edges[ptFLAG[ncube]][2];
                              nn = pol_edges[ptFLAG[ncube]][1];
@@ -1092,16 +1126,20 @@ static int STAB[] =  { 0, 9, 25, 50 };
                                   }
                                   kk >>= 4;    pvp += 7;    cpl++;
                              }
-                          /* */
+                         /* end  update_data_structure(ncube); */
                         }
-                        else
-                        {
+                        else { // !(ptFLAG[ncube] < MAX_FLAG_NUM)
        /* find_vertex_invalid_cube(ncube); */
 
     ptFLAG[ncube] &= 0x1FF;
     if ( (ptFLAG[ncube] != 0 & ptFLAG[ncube] != 0xFF) )
     { if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0010) != 0) )         /* cube vertex 1-3 */
+/* WLH 24 Oct 97
       {   if (!(iz != 0 ) && vnode3 < INV_VAL && vnode1 < INV_VAL)
+      {   if (!(iz != 0 ) && !Double.isNaN(vnode3) && !Double.isNaN(vnode1))
+*/
+      // test for not missing
+      {   if (!(iz != 0 ) && vnode3 == vnode3 && vnode1 == vnode1)
         {
               nodeDiff = vnode3 - vnode1;
               cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iy;
@@ -1114,7 +1152,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
         }
       }
       if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0020) != 0) )                /* cube vertex 1-5 */
+/* WLH 24 Oct 97
       {   if (!(iy != 0) && vnode5 < INV_VAL && vnode1 < INV_VAL)
+      {   if (!(iy != 0) && !Double.isNaN(vnode5) && !Double.isNaN(vnode1))
+*/
+      // test for not missing
+      {   if (!(iy != 0) && vnode5 == vnode5 && vnode1 == vnode1)
         {
               nodeDiff = vnode5 - vnode1;
               cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iz;
@@ -1127,7 +1170,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
         }
       }
       if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0040) != 0) )                /* cube vertex 2-3 */
+/* WLH 24 Oct 97
       {   if (!(iz != 0) && vnode3 < INV_VAL && vnode2 < INV_VAL)
+      {   if (!(iz != 0) && !Double.isNaN(vnode3) && !Double.isNaN(vnode2))
+*/
+      // test for not missing
+      {   if (!(iz != 0) && vnode3 == vnode3 && vnode2 == vnode2)
         {
               nodeDiff = vnode3 - vnode2;
               cp = ( ( isovalue - vnode2 ) / nodeDiff ) + ix;
@@ -1140,7 +1188,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
         }
       }
       if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0080) != 0) )                /* cube vertex 2-6 */
+/* WLH 24 Oct 97
       {   if (!(ix != 0) && vnode6 < INV_VAL && vnode2 < INV_VAL)
+      {   if (!(ix != 0) && !Double.isNaN(vnode6) && !Double.isNaN(vnode2))
+*/
+      // test for not missing
+      {   if (!(ix != 0) && vnode6 == vnode6 && vnode2 == vnode2)
         {
               nodeDiff = vnode6 - vnode2;
               cp = ( ( isovalue - vnode2 ) / nodeDiff ) + iz;
@@ -1153,7 +1206,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
         }
       }
       if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0100) != 0) )                /* cube vertex 3-7 */
+/* WLH 24 Oct 97
       {   if (vnode7 < INV_VAL && vnode3 < INV_VAL)
+      {   if (!Double.isNaN(vnode7) && !Double.isNaN(vnode3))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode3 == vnode3)
           {
               nodeDiff = vnode7 - vnode3;
               cp = ( ( isovalue - vnode3 ) / nodeDiff ) + iz;
@@ -1166,7 +1224,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
         }
       }
       if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0200) != 0) )         /* cube vertex 4-5 */
+/* WLH 24 Oct 97
       {   if (!(iy != 0) && vnode5 < INV_VAL && vnode4 < INV_VAL)
+      {   if (!(iy != 0) && !Double.isNaN(vnode5) && !Double.isNaN(vnode4))
+*/
+      // test for not missing
+      {   if (!(iy != 0) && vnode5 == vnode5 && vnode4 == vnode4)
         {
               nodeDiff = vnode5 - vnode4;
               cp = ( ( isovalue - vnode4 ) / nodeDiff ) + ix;
@@ -1179,7 +1242,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
           }
       }
       if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0400) != 0) )                /* cube vertex 4-6 */
+/* WLH 24 Oct 97
       {   if (!(ix != 0) && vnode6 < INV_VAL && vnode4 < INV_VAL)
+      {   if (!(ix != 0) && !Double.isNaN(vnode6) && !Double.isNaN(vnode4))
+*/
+      // test for not missing
+      {   if (!(ix != 0) && vnode6 == vnode6 && vnode4 == vnode4)
           {
               nodeDiff = vnode6 - vnode4;
               cp = ( ( isovalue - vnode4 ) / nodeDiff ) + iy;
@@ -1192,7 +1260,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
           }
       }
       if ( ((pol_edges[ptFLAG[ncube]][3] & 0x0800) != 0) )                /* cube vertex 5-7 */
+/* WLH 24 Oct 97
       {   if (vnode7 < INV_VAL && vnode5 < INV_VAL)
+      {   if (!Double.isNaN(vnode7) && !Double.isNaN(vnode5))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode5 == vnode5)
         {
               nodeDiff = vnode7 - vnode5;
               cp = ( ( isovalue - vnode5 ) / nodeDiff ) + iy;
@@ -1205,7 +1278,12 @@ static int STAB[] =  { 0, 9, 25, 50 };
         }
       }
       if ( ((pol_edges[ptFLAG[ncube]][3] & 0x1000) != 0) )                /* cube vertex 6-7 */
+/* WLH 24 Oct 97
       {   if (vnode7 < INV_VAL && vnode6 < INV_VAL)
+      {   if (!Double.isNaN(vnode7) && !Double.isNaN(vnode6))
+*/
+      // test for not missing
+      {   if (vnode7 == vnode7 && vnode6 == vnode6)
         {
               nodeDiff = vnode7 - vnode6;
               cp = ( ( isovalue - vnode6 ) / nodeDiff ) + ix;
@@ -1218,6 +1296,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
         }
       }
      }
+        /* end  find_vertex_invalid_cube(ncube); */
  
                         }
                     }
@@ -1228,35 +1307,51 @@ static int STAB[] =  { 0, 9, 25, 50 };
                 rear = front;
                 front = caseA;
                 pt++;
+             /* end  swap_planes(Z,rear,front); */
             }
            /*  swap_planes(XY,bellow,above); */
                caseA = bellow;
                bellow = above;
                above = caseA;
             pt += ydim;
+           /* end  swap_planes(XY,bellow,above); */
         }
 
     return nvet;
   }
 
-  public void normals( float[] NX, float[] NY, float[] NZ, int nvertex,
-                     int npolygons, float[] Pnx, float[] Pny, float[] Pnz,
-                     float[] NxA, float[] NxB, float[] NyA, float[] NyB,
-                     float[] NzA, float[] NzB, double arX, double arY, double arZ, 
-                     int[] Pol_f_Vert, int[] Vert_f_Pol )
+  public static void normals( double[] VX, double[] VY, double[] VZ,
+                     double[] NX, double[] NY, double[] NZ, int nvertex,
+                     int npolygons, double[] Pnx, double[] Pny, double[] Pnz,
+                     double[] NxA, double[] NxB, double[] NyA, double[] NyB,
+                     double[] NzA, double[] NzB, double arX, double arY, double arZ, 
+                     int[] Pol_f_Vert, int[] Vert_f_Pol)
          throws VisADException {
 
    int   i, k,  n;
    int   i1, i2, ix, iy, iz, ixb, iyb, izb;
    int   max_vert_per_pol, swap_flag;
-   float x, y, z, a, minimum_area, len;
-   int   xdim_x_ydim = xdim*ydim;
+   double x, y, z, a, minimum_area, len;
+/* WLH 25 Oct 97
+   int   xdim_x_ydim = xdim * ydim;
+*/
 
    int iv[] = new int[3];
 
-   ixb = xdim-1;  iyb = ydim-1;  izb = zdim-1;
+/* WLH 25 Oct 97
+   ixb = xdim - 1;
+   iyb = ydim - 1;
+   izb = zdim - 1;
+*/
 
-   minimum_area = (((float) 1.e-4 > EPS_0) ? (float) 1.e-4:EPS_0);
+/* WLH 25 Oct 97 */
+   for ( i = 0; i < nvertex; i++ ) {
+      NX[i] = 0;
+      NY[i] = 0;
+      NZ[i] = 0;
+   }
+
+   minimum_area = (((double) 1.e-4 > EPS_0) ? (double) 1.e-4:EPS_0);
 
    /* Calculate maximum number of vertices per polygon */
    k = 6;    n = 7*npolygons;
@@ -1270,7 +1365,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
    /* Calculate the Normals vector components for each Polygon */
    /*$dir vector */
    for ( i=0; i<npolygons; i++) {  /* Vectorized */
-      if (Vert_f_Pol[6]>0) {  /* check for valid polygon added by BEP 2-13-92 */
+      if (Vert_f_Pol[6+i*7]>0) {  /* check for valid polygon added by BEP 2-13-92 */
          NxA[i] = VX[Vert_f_Pol[1+i*7]] - VX[Vert_f_Pol[0+i*7]];
          NyA[i] = VY[Vert_f_Pol[1+i*7]] - VY[Vert_f_Pol[0+i*7]];
          NzA[i] = VZ[Vert_f_Pol[1+i*7]] - VZ[Vert_f_Pol[0+i*7]];
@@ -1326,10 +1421,14 @@ static int STAB[] =  { 0, 9, 25, 50 };
            {   iv[0] = Vert_f_Pol[0+i*7];
                iv[1] = Vert_f_Pol[(k-1)+i*7];
                iv[2] = Vert_f_Pol[k+i*7];
-               if (NxA[i] > minimum_area)
-               {   x = Pnx[i];   y = Pny[i];   z = Pnz[i];   }
+/* WLH 25 Oct 97
+               if (NxA[i] > minimum_area) {
+*/
+                 x = Pnx[i];   y = Pny[i];   z = Pnz[i];
+/* WLH 25 Oct 97
+               }
                else {
-               /*  adjust_normal_by_gradiente(iv,x,y,z); */
+               //  adjust_normal_by_gradiente(iv,x,y,z);
                     if (VX[iv[0]]==VX[iv[1]] || VX[iv[0]]==VX[iv[2]])
                        ix = (int)VX[iv[0]];
                     else
@@ -1354,13 +1453,23 @@ static int STAB[] =  { 0, 9, 25, 50 };
                        i1--;
                     }
 
-                    if (ptGRID[(int)iy + (int)i2*ydim + (int)iz*xdim_x_ydim]  >= 1.0e30 ) {
+// WLH 24 Oct 97
+//                    if (ptGRID[(int)iy + (int)i2*ydim + (int)iz*xdim_x_ydim]
+//                        >= 1.0e30 ) {
+//
+                    int ii2 = (int)iy + (int)i2*ydim + (int)iz*xdim_x_ydim;
+                    int ii1 = (int)iy + (int)i1*ydim + (int)iz*xdim_x_ydim;
+                    // test for missing
+                    if (ptGRID[ii2] != ptGRID[ii2] || ptGRID[ii1] != ptGRID[ii1]) {
                        i2--;
                        i1--;
                     }
 
-                    x = ptGRID[(int)iy + (int)i2*ydim + (int)iz*xdim_x_ydim]
-                      - ptGRID[(int)iy + (int)i1*ydim + (int)iz*xdim_x_ydim];
+// WLH 24 Oct 97
+//                    x = ptGRID[(int)iy + (int)i2*ydim + (int)iz*xdim_x_ydim]
+//                      - ptGRID[(int)iy + (int)i1*ydim + (int)iz*xdim_x_ydim];
+//
+                    x = ptGRID[ii2] - ptGRID[ii1];
                     i1 = iy;
 
                     if (i1 != iyb)
@@ -1370,12 +1479,22 @@ static int STAB[] =  { 0, 9, 25, 50 };
                        i1--;
                     }
 
-                    if (ptGRID[(int)i2 + (int)ix*ydim + (int)iz*xdim_x_ydim]  >= 1.0e30 ) {
+// WLH 24 Oct 97
+//                    if (ptGRID[(int)i2 + (int)ix*ydim + (int)iz*xdim_x_ydim]
+//                        >= 1.0e30 ) {
+//
+                    ii2 = (int)i2 + (int)ix*ydim + (int)iz*xdim_x_ydim;
+                    ii1 = (int)i1 + (int)ix*ydim + (int)iz*xdim_x_ydim;
+                    // test for missing
+                    if (ptGRID[ii2] != ptGRID[ii2] || ptGRID[ii1] != ptGRID[ii1]) {
                        i2--;
                        i1--;
                     }
-                    y = ptGRID[(int)i2 + (int)ix*ydim + (int)iz*xdim_x_ydim]
-                      - ptGRID[(int)i1 + (int)ix*ydim + (int)iz*xdim_x_ydim];
+// WLH 24 Oct 97
+//                    y = ptGRID[(int)i2 + (int)ix*ydim + (int)iz*xdim_x_ydim]
+//                      - ptGRID[(int)i1 + (int)ix*ydim + (int)iz*xdim_x_ydim];
+//
+                    y = ptGRID[ii2] - ptGRID[ii1];
                     i1 = iz;
 
                     if (i1 != izb)
@@ -1384,13 +1503,23 @@ static int STAB[] =  { 0, 9, 25, 50 };
                        i2 = i1;
                        i1--;
                     }
-                    if (ptGRID[(int)iy + (int)ix*ydim + (int)i2*xdim_x_ydim]  >= 1.0e30 ) {
+// WLH 24 Oct 97
+//                    if (ptGRID[(int)iy + (int)ix*ydim + (int)i2*xdim_x_ydim]
+//                        >= 1.0e30 ) {
+//
+                    ii2 = (int)iy + (int)ix*ydim + (int)i2*xdim_x_ydim;
+                    ii1 = (int)iy + (int)ix*ydim + (int)i1*xdim_x_ydim;
+                    // test for missing
+                    if (ptGRID[ii2] != ptGRID[ii2] || ptGRID[ii1] != ptGRID[ii1]) {
                        i2--;
                        i1--;
                     }
 
-                    z = ptGRID[(int)iy + (int)ix*ydim + (int)i2*xdim_x_ydim]
-                      - ptGRID[(int)iy + (int)ix*ydim + (int)i1*xdim_x_ydim];
+// WLH 24 Oct 97
+//                    z = ptGRID[(int)iy + (int)ix*ydim + (int)i2*xdim_x_ydim]
+//                      - ptGRID[(int)iy + (int)ix*ydim + (int)i1*xdim_x_ydim];
+//
+                    z = ptGRID[ii2] - ptGRID[ii1];
                     a = (x*x + y*y + z*z);
 
                     if (a > 0.) {
@@ -1399,44 +1528,43 @@ static int STAB[] =  { 0, 9, 25, 50 };
                        z /= a;
                     }
                }
+end of WLH 25 Oct 97 */
 
-        /*  */
 
-               /* Update the origin vertex */
+               // Update the origin vertex
                   NX[iv[0]] += x;   NY[iv[0]] += y;   NZ[iv[0]] += z;
 
-               /* Update the vertex that defines the first vector */
+               // Update the vertex that defines the first vector
                   NX[iv[1]] += x;   NY[iv[1]] += y;   NZ[iv[1]] += z;
 
-               /* Update the vertex that defines the second vector */
+               // Update the vertex that defines the second vector
                   NX[iv[2]] += x;   NY[iv[2]] += y;   NZ[iv[2]] += z;
            }
        }
 
        swap_flag = ( (swap_flag != 0) ? 0 : 1 );
-   }
-
-   /* Apply Aspect Ratio in the Normals */
-   if (arX != 1.0) for (i=0; i<nvertex; i++) NX[i] /= arX;  /* Vectorized */
-   if (arY != 1.0) for (i=0; i<nvertex; i++) NY[i] /= arY;  /* Vectorized */
-   if (arZ != 1.0) for (i=0; i<nvertex; i++) NZ[i] /= arZ;  /* Vectorized */
-
-   /* Normalize the Normals */
-   for ( i=0; i<nvertex; i++ )  /* Vectorized */
-   {   len = (float) Math.sqrt(NX[i]*NX[i] + NY[i]*NY[i] + NZ[i]*NZ[i]);
-       if (len > EPS_0)
-       {   NX[i] /= len;
-           NY[i] /= len;
-           NZ[i] /= len;
-       }
-   }
+    }
+ 
+    /* Apply Aspect Ratio in the Normals */
+    if (arX != 1.0) for (i=0; i<nvertex; i++) NX[i] /= arX;  /* Vectorized */
+    if (arY != 1.0) for (i=0; i<nvertex; i++) NY[i] /= arY;  /* Vectorized */
+    if (arZ != 1.0) for (i=0; i<nvertex; i++) NZ[i] /= arZ;  /* Vectorized */
+ 
+    /* Normalize the Normals */
+    for ( i=0; i<nvertex; i++ )  /* Vectorized */
+    {   len = (double) Math.sqrt(NX[i]*NX[i] + NY[i]*NY[i] + NZ[i]*NZ[i]);
+        if (len > EPS_0) {
+            NX[i] /= len;
+            NY[i] /= len;
+            NZ[i] /= len;
+        }
+    }
 
   }
 
-  public int poly_triangle_stripe( int[] vet_pol, int[] Tri_Stripe, int nvertex,
-                                 int npolygons, int[] Pol_f_Vert, int[] Vert_f_Pol )
-         throws VisADException {
-
+  public static int poly_triangle_stripe( int[] vet_pol, int[] Tri_Stripe,
+                            int nvertex, int npolygons, int[] Pol_f_Vert,
+                            int[] Vert_f_Pol ) throws VisADException {
    int  i, j, k, m, ii, npol, cpol, idx, off, Nvt,
         vA, vB, ivA, ivB, iST, last_pol;
    boolean f_line_conection = false;
@@ -1460,15 +1588,18 @@ static int STAB[] =  { 0, 9, 25, 50 };
         else {
             last_pol = cpol;
         }
+        /* end  find_unselected_pol(cpol); */
 
         if (cpol < 0) break;
 /*      update_polygon            */
         vet_pol[cpol] = 0;
+/* end     update_polygon            */
 
 /*      get_vertices_of_pol(cpol,Vt,Nvt); {    */
             Nvt = Vert_f_Pol[(j=cpol*7)+6];
             off = j;
 /*      }                                      */
+/* end      get_vertices_of_pol(cpol,Vt,Nvt); {    */
 
 
         for (ivA=0; ivA<Nvt; ivA++) {
@@ -1481,7 +1612,8 @@ static int STAB[] =  { 0, 9, 25, 50 };
                   j=Vert_f_Pol[ivB+off]*9;
                   m=j+Pol_f_Vert [j+8];
                   while (i>0 && j>0 && i<k && j <m ) {
-                     if (Pol_f_Vert [i] == Pol_f_Vert [j] && (vet_pol[Pol_f_Vert[i]] != 0) ) {
+                     if (Pol_f_Vert [i] == Pol_f_Vert [j] &&
+                         (vet_pol[Pol_f_Vert[i]] != 0) ) {
                         npol=Pol_f_Vert [i];
                         break;
                      }
@@ -1492,6 +1624,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
                   }
                }
 /*          }                                   */
+/* end          get_pol_vert(Vt[ivA],Vt[ivB],npol) { */
             if (npol >= 0) break;
         }
         /* insert polygon alone */
@@ -1593,12 +1726,14 @@ static int STAB[] =  { 0, 9, 25, 50 };
 /*         }                               */
 
             if (cpol < 0)
+/* WLH 25 Oct 97
           if (PEX) {
             {   f_line_conection  = true;
                 break;
             }
           }
           else {
+*/
 
             {   vA = Tri_Stripe[iST-3];
 /*          get_pol_vert(vA,vB,cpol) {   */
@@ -1609,7 +1744,8 @@ static int STAB[] =  { 0, 9, 25, 50 };
                  j=vB*9;
                  m=j+Pol_f_Vert [j+8];
                  while (i>0 && j>0 && i<k && j<m) {
-                    if (Pol_f_Vert [i] == Pol_f_Vert [j] && (vet_pol[Pol_f_Vert[i]] != 0) ) {
+                    if (Pol_f_Vert [i] == Pol_f_Vert [j] &&
+                        (vet_pol[Pol_f_Vert[i]] != 0) ) {
                       cpol=Pol_f_Vert[i];
                       break;
                     }
@@ -1632,13 +1768,14 @@ static int STAB[] =  { 0, 9, 25, 50 };
                     vB = i;
                 }
             }
+/* WLH 25 Oct 97: no PEX
           }
+*/
         }
     }
 
     return iST;
-}
-
+  }
 
     public static void main(String args[]) {
 
@@ -1646,33 +1783,33 @@ static int STAB[] =  { 0, 9, 25, 50 };
     int xdim = 21;
     int ydim = 21;
     int zdim = 21;
-    float[] ptGRID = new float[xdim*ydim*zdim];
+    double[] ptGRID = new double[xdim*ydim*zdim];
     int i;
     int j;
     int k;
     int LowLev = 0;
-    float isovalue = (float)63.0;
-    float ARX = (float)1.0;
-    float ARY = (float)1.0;
-    float ARZ = (float)1.0;
+    double isovalue = (double)63.0;
+    double ARX = (double)1.0;
+    double ARY = (double)1.0;
+    double ARZ = (double)1.0;
     int MAX_ISO_VERTS = 65000;
-    float[] vc = new float[MAX_ISO_VERTS];
-    float[] vr = new float[MAX_ISO_VERTS];
-    float[] vl = new float[MAX_ISO_VERTS];
-    float[] nx = new float[MAX_ISO_VERTS];
-    float[] ny = new float[MAX_ISO_VERTS];
-    float[] nz = new float[MAX_ISO_VERTS];
+    double[] vc = new double[MAX_ISO_VERTS];
+    double[] vr = new double[MAX_ISO_VERTS];
+    double[] vl = new double[MAX_ISO_VERTS];
+    double[] nx = new double[MAX_ISO_VERTS];
+    double[] ny = new double[MAX_ISO_VERTS];
+    double[] nz = new double[MAX_ISO_VERTS];
     int NPTS = 2*MAX_ISO_VERTS;
     int[] vpts = new int[NPTS];
-    IsoSurface  cube1;
-    IsoSurface  Test;
+    Contour3D  cube1;
+    Contour3D  Test;
 
 
        for(k=0; k<zdim; k++) {
          for(i=0; i<xdim; i++) {
             for(j=0;j<ydim; j++) {
 
-               ptGRID[cnt] = (float)(50 + Math.sqrt((j-10)*(j-10) + (i-10)*(i-10) + (k-10)*(k-10)));
+               ptGRID[cnt] = (double)(50 + Math.sqrt((j-10)*(j-10) + (i-10)*(i-10) + (k-10)*(k-10)));
                cnt++;
             }
          }
@@ -1681,7 +1818,7 @@ static int STAB[] =  { 0, 9, 25, 50 };
 
        try {
 
-          Test = new IsoSurface(ptGRID, xdim, ydim, zdim, LowLev, isovalue,
+          Test = new Contour3D(ptGRID, xdim, ydim, zdim, LowLev, isovalue,
                                ARX, ARY, ARZ, MAX_ISO_VERTS, vc, vr, vl, 
                                nx, ny, nz, NPTS, vpts );
        }
