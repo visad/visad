@@ -2,6 +2,11 @@
 #
 # this script should be in the root directory of the distribution
 
+# name of various properties passed to install app
+#
+PATHPROP="visad.install.path"
+HOMEPROP="visad.install.home"
+
 # figure out where this script lives
 #
 DISTTMP=`echo $0 | sed 's/\/[^\/]*$/\//'`
@@ -12,21 +17,21 @@ DISTDIR=`cd $DISTTMP && pwd`
 OS=`uname -s`
 MACH=`uname -p`
 
-# try to guess name of appropriate JDK directory
+# try to guess name of OS/machine distribution file/directory
 #
-dir=
+ARCH=
 case "$OS-$MACH" in
-FreeBSD*-i*86) dir="freebsd-x86";;
-Linux*-i*86) dir="linux-x86";;
-SunOS-sparc) dir="solaris-sparc";;
+FreeBSD*-i*86) ARCH="freebsd-x86";;
+Linux*-i*86) ARCH="linux-x86";;
+SunOS-sparc) ARCH="solaris-sparc";;
 esac
 
-# if we guessed a JDK dir name...
+# if we guessed an OS/machine architecture...
 #
-if [ ! -z "$dir" ]; then
-  JBIN=$DISTDIR/jdk-$dir/bin
+if [ ! -z "$ARCH" ]; then
+  JBIN="$DISTDIR/jdk-$ARCH/bin"
 
-  # ...and JDK dir exists...
+  # if JDK dir exists...
   #
   if [ -d "$JBIN" ]; then
 
@@ -51,6 +56,6 @@ fi
 # and away we go!
 #
 exec java $CPARG \
-	-Dvisad.install.path="$PATH" \
-	-Dvisad.install.home="$DISTDIR" \
+	"-D$PATHPROP=$PATH" \
+	"-D$HOMEPROP=$DISTDIR" \
 		visad.install.Main
