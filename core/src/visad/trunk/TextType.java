@@ -94,21 +94,22 @@ public class TextType extends ScalarType {
   }
 
   /** create a new TextType, or return it if it already exists */
-  public static TextType getTextType(String name) {
-    try {
-      return new TextType(name);
+  public static synchronized TextType getTextType(String name) {
+    TextType result = getTextTypeByName(name);
+    if (result == null) {
+      try {
+        result = new TextType(name);
+      }
+      catch (VisADException e) {
+        result = null;
+      }
     }
-    catch (TypeException e) {
-      return getTextTypeByName(name);
-    }
-    catch (VisADException e) {
-      return null;
-    }
+    return result;
   }
 
   /** return any TextType constructed in this JVM with name,
       or null */
-  public static TextType getTextTypeByName(String name) {
+  public static synchronized TextType getTextTypeByName(String name) {
     ScalarType text = ScalarType.getScalarTypeByName(name);
     if (!(text instanceof TextType)) {
       return null;
