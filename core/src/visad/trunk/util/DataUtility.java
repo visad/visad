@@ -246,8 +246,7 @@ public class DataUtility extends Object {
 
   /**
    * Ensures that a MathType is a TupleType.  Converts if necessary.
-   * @param type		The math type to be "converted" to a 
-   *				TupleType.
+   * @param type		The math type to be "converted" to a TupleType.
    * @return                    The TupleType version of <code>type</code>.
    *                            If <code>type</code> is a TupleType,
    *                            then it is returned; otherwise, if
@@ -255,9 +254,8 @@ public class DataUtility extends Object {
    *                            <code>((SetType)type).getDomain()</code> is
    *                            returned; otherwise, a TupleType containing
    *                            <code>type</code> as the only component is
-   *                            returned (if <code>MathType</code> is a
-   *				RealType, then the returned TupleType is a 
-   *				RealTupleType);
+   *                            returned (if <code>type</code> is a RealType,
+   *                            then the returned TupleType is a RealTupleType);
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public static TupleType
@@ -300,6 +298,17 @@ public class DataUtility extends Object {
   }
 
   /**
+   * Gets the MathType of the domain of a Set.
+   * @param function		A function.
+   * @return			The MathType of the domain of the Set.
+   */
+  public static RealTupleType
+  getDomainType(Set set)
+  {
+    return ((SetType)set.getType()).getDomain();
+  }
+
+  /**
    * Gets the MathType of the domain of a Function.
    * @param function		A function.
    * @return			The MathType of the domain of the function.
@@ -325,6 +334,20 @@ public class DataUtility extends Object {
     throws VisADException, RemoteException
   {
     return ((FunctionType)function.getType()).getRange();
+  }
+
+  /**
+   * Gets the TupleType of the range of a Function.
+   * @param function		A function.
+   * @return			The TupleType of the range of the function.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static TupleType
+  getRangeTupleType(Function function)
+    throws VisADException, RemoteException
+  {
+    return ensureTupleType(getRangeType(function));
   }
 
   /**
@@ -356,13 +379,66 @@ public class DataUtility extends Object {
   getRangeDimension(Function function)
     throws VisADException, RemoteException
   {
-    return ensureTupleType(getRangeType(function)).getDimension();
+    return getRangeTupleType(function).getDimension();
   }
 
   /**
-   * Gets the index of a component in the range of a Field.  If the range
+   * Gets the index of a component in a TupleType.  If the TupleType
+   * contains multiple instances of the component, then it is unspecified
+   * which component index is returned.  This method first looks for an
+   * exact match via the <code>equals(Object)</code> method.  If none is
+   * found, then this method looks for an approximate match based on the
+   * <code>equalsExceptNameButUnits(MathType)</code> method.
+   * @param tupleType		The type of the tuple.
+   * @param componentType	The MathType of the component.
+   * @return                    The index of the component in the tuple
+   *                            or -1 if the component is not in the tuple.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static int
+  getComponentIndex(TupleType tupleType, MathType componentType)
+    throws VisADException, RemoteException
+  {
+    /*
+     * Return first exact match if found.
+     */
+    for (int i = tupleType.getDimension(); --i >= 0; )
+      if (componentType.equals(tupleType.getComponent(i)))
+	return i;
+    /*
+     * Return the first convertible-units match if found.
+     */
+    for (int i = tupleType.getDimension(); --i >= 0; )
+      if (componentType.equalsExceptNameButUnits(tupleType.getComponent(i)))
+	return i;
+    return -1;
+  }
+
+  /**
+   * Gets the index of a component in a Set.  If the set contains multiple
+   * instances of the component, then it is unspecified which component index is
+   * returned.
+   * @param set			The Set.
+   * @param componentType	The MathType of the component.
+   * @return			The index of the component in the set or -1 if
+   *				the component is not in the set.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static int
+  getComponentIndex(Set set, MathType componentType)
+    throws VisADException, RemoteException
+  {
+    return 
+      getComponentIndex(((SetType)set.getType()).getDomain(), componentType);
+  }
+
+  /**
+   * Gets the index of a component in the range of a Function.  If the range
    * contains multiple instances of the component, then it is unspecified
    * which component index is returned.
+   * @param function		The Function.
    * @param componentType	The MathType of the component.
    * @return                    The index of the component in the range of the
    *                            field or -1 if the component is not in the range
@@ -372,14 +448,10 @@ public class DataUtility extends Object {
    * @throws RemoteException	Java RMI failure.
    */
   public static int
-  getComponentIndex(Field field, MathType componentType)
+  getComponentIndex(Function function, MathType componentType)
     throws VisADException, RemoteException
   {
-    TupleType	rangeTupleType = ensureTupleType(getRangeType(field));
-    for (int i = rangeTupleType.getDimension(); --i >= 0; )
-      if (rangeTupleType.getComponent(i).equals(componentType))
-	return i;
-    return -1;
+    return getComponentIndex(getRangeTupleType(function), componentType);
   }
 
   /**
@@ -520,7 +592,10 @@ public class DataUtility extends Object {
    * Creates a GriddedSet from a FlatField.  The GriddedSet will be created from
    * the domain and flat-range of the FlatField.  The first components in the
    * tuples of the GriddedSet will come from the domain of the FlatField and the
-   * remaining components will come from the range of the FlatField.
+   * remaining components will come from the range of the FlatField.  Note that,
+   * because a GriddedSet doesn't have the ability to contain values in small
+   * primitives (e.g. byte, short), the returned set may be significantly larger
+   * than the input field.
    * @param field		The FlatField from which to create a GriddedSet.
    * @param copy		Whether or not to copy the range values from
    *				the field (i.e. <code>field.getFloats(copy)
@@ -544,10 +619,14 @@ public class DataUtility extends Object {
     for (int i = 0; i < flatRangeRank; i++)
       realTypes[domainRank+i] = (RealType)tupleType.getComponent(i);
     float[][]	samples = new float[realTypes.length][field.getLength()];
-    // actual units:
+    /*
+     * The following gets the domain values in their actual units.
+     */
     System.arraycopy(
       field.getDomainSet().getSamples(), 0, samples, 0, domainRank);
-    // default units:
+    /*
+     * The following gets the range values in their default units.
+     */
     System.arraycopy(
       field.getFloats(copy), 0, samples, domainRank, flatRangeRank);
     int[]		lengths = new int[samples.length];
@@ -565,5 +644,22 @@ public class DataUtility extends Object {
 	(CoordinateSystem)null,
 	units,
 	(ErrorEstimate[])null);
+  }
+
+  /**
+   * Simplifies a MathType.  Removes all enclosing, single-component TupleType-s
+   * until the "core" is revealed (e.g. ScalarType, multi-component TupleType).
+   * @param type		The MathType to be simplified.
+   * @return			The simplest form corresponding to 
+   *				<code>type</code>.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  public static MathType
+  simplify(MathType type)
+    throws VisADException
+  {
+    while (type instanceof TupleType && ((TupleType)type).getDimension() == 1)
+	type = ((TupleType)type).getComponent(0);
+    return type;
   }
 }
