@@ -48,7 +48,7 @@ import javax.swing.*;
 public class PrintActionListener 
      implements ActionListener {
 
-  DisplayImpl display;
+  DisplayImpl display = null;
   private boolean showDialog=true;
 
   /** ActionListener for printing the contents of the VisAD display
@@ -82,7 +82,28 @@ public class PrintActionListener
     return showDialog;
   }
 
-  /** cause the printout of the DisplayImpl; if the dialog is
+  /**
+   * Set the display to which this action will listen
+   *
+   * @param display  DisplayImpl to be printed
+   */
+  public void setDisplay(DisplayImpl dim)
+  {
+      display = dim;
+  }
+
+ /**
+  * Return the display
+  *
+  * @return the display associated with this ActionListener
+  */
+ public DisplayImpl getDisplay()
+ {
+     return display;
+ }
+
+ /** 
+  *cause the printout of the DisplayImpl; if the dialog is
   * enabled, it will pop up to solicit information from the
   * user.  If the dialog is disabled, just print...
   *
