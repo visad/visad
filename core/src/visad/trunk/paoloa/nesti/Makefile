@@ -20,7 +20,8 @@ LIBS = -L${LIB1} -R${LIB1} -L${LIB2} -R${LIB2} -L${LIB3} -R${LIB3}
 # to build shared object files
 #
 SHCFLAGS = 
-SHFFLAGS =
+#SHFFLAGS =
+SHFFLAGS = -fast -xtarget=ultra
 
 # SHLD is the shared library loader
 # SHLDFLAGS are the flags needed to tell SHLD to build a shared library
