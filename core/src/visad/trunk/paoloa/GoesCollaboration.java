@@ -228,7 +228,7 @@ public class GoesCollaboration extends Object {
       }
 
       // try to set up a RemoteServer
-      server_server = new RemoteServerImpl(null);
+      server_server = new RemoteServerImpl();
       try {
         Naming.rebind("//:/GoesCollaboration", server_server);
       }

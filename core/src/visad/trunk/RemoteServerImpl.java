@@ -33,6 +33,13 @@ public class RemoteServerImpl extends UnicastRemoteObject
 {
   private RemoteDataReferenceImpl[] refs;
  
+  /** construct a RemoteServerImpl without any initial
+      array of RemoteDataReferenceImpls */
+   public RemoteServerImpl()
+         throws RemoteException {
+    this(null);
+  }
+
   /** construct a RemoteServerImpl and initialize it with
       an array of RemoteDataReferenceImpls */
   public RemoteServerImpl(RemoteDataReferenceImpl[] rs)

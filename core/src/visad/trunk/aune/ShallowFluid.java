@@ -146,7 +146,7 @@ public class ShallowFluid extends Object {
       // this is a server
 
       // try to set up a RemoteServer
-      server_server = new RemoteServerImpl(null);
+      server_server = new RemoteServerImpl();
       try {
         Naming.rebind("//:/ShallowFluid", server_server);
       }

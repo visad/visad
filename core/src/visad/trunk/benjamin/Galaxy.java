@@ -242,7 +242,7 @@ public class Galaxy extends Object implements ActionListener {
       // this is a server
  
       // try to set up a RemoteServer
-      server_server = new RemoteServerImpl(null);
+      server_server = new RemoteServerImpl();
       try {
         Naming.rebind("//:/Galaxy", server_server);
       }
