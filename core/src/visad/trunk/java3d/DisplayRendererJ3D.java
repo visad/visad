@@ -454,22 +454,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   // public DirectManipulationRendererJ3D findDirect(PickRay ray) {
   public DataRenderer findDirect(VisADRay ray) {
-    Point3d origin = new Point3d();
-    Vector3d direction = new Vector3d();
-    origin.x = ray.position[0];
-    origin.y = ray.position[1];
-    origin.z = ray.position[2];
-    direction.x = ray.vector[0];
-    direction.y = ray.vector[1];
-    direction.z = ray.vector[2];
-    // ray.get(origin, direction);
     DirectManipulationRendererJ3D renderer = null;
     float distance = Float.MAX_VALUE;
     Enumeration renderers = directs.elements();
     while (renderers.hasMoreElements()) {
       DirectManipulationRendererJ3D r =
         (DirectManipulationRendererJ3D) renderers.nextElement();
-      float d = r.checkClose(origin, direction);
+      float d = r.checkClose(ray.position, ray.vector);
       if (d < distance) {
         distance = d;
         renderer = r;
