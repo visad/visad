@@ -26,7 +26,14 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.Hashtable;
+import java.io.InvalidObjectException;
+
+import java.lang.ref.ReferenceQueue;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import visad.util.WeakMapValue;
 
 /**
  * ScalarType is the superclass of the VisAD hierarchy of scalar data types.
@@ -37,13 +44,21 @@ public abstract class ScalarType extends MathType implements Comparable {
   // but do not rely on it - names may be duplicated on remote systems
   String Name;
 
-  // Hashtable of scalar names used to make sure scalar names are unique
-  // (within local VM)
-  private static Hashtable ScalarHash = new Hashtable();
+  /**
+   * Hashtable of scalar names used to make sure scalar names are unique
+   * (within local VM).  Because the values in the hashtable are actually {@link
+   * WeakMapValue}s, the existance of a {@link ScalarType} in the hashtable will
+   * not prevent it from being garbage-collected when it is no longer strongly
+   * referenced.
+   */
+  private static Map ScalarHash = new HashMap();
 
   // Aliases for scalar names
-  private static Hashtable Translations = new Hashtable();
-  private static Hashtable ReverseTranslations = new Hashtable();
+  private static Map Translations = new HashMap();
+  private static Map ReverseTranslations = new HashMap();
+
+  // Queue that receives garbage-collected ScalarType instances.
+  private static final ReferenceQueue queue = new ReferenceQueue();
 
   /**
    * Create a <CODE>ScalarType</CODE> with the specified name.
@@ -54,9 +69,12 @@ public abstract class ScalarType extends MathType implements Comparable {
    */
   public ScalarType(String name) throws VisADException {
     super();
-    validateName(name, "name");
     Name = name;
-    ScalarHash.put(name, this);
+    synchronized(getClass()) {
+	checkQueue();
+	validateName(name, "name");
+	ScalarHash.put(name, new WeakMapValue(Name, this, queue));
+    }
   }
 
   /**
@@ -69,7 +87,10 @@ public abstract class ScalarType extends MathType implements Comparable {
   ScalarType(String name, boolean b) {
     super(b);
     Name = name;
-    ScalarHash.put(name, this);
+    synchronized(getClass()) {
+	checkQueue();
+	ScalarHash.put(name, new WeakMapValue(Name, this, queue));
+    }
   }
 
   /**
@@ -122,11 +143,13 @@ public abstract class ScalarType extends MathType implements Comparable {
   public void alias(String alias)
     throws TypeException
   {
-    if (!Name.equals(Translations.get(alias))) {
-      validateName(alias, "alias");
-      Translations.put(alias, Name);
+    synchronized(getClass()) {
+      if (!Name.equals(Translations.get(alias))) {
+	validateName(alias, "alias");
+	Translations.put(alias, Name);
+      }
+      ReverseTranslations.put(Name, alias);
     }
-    ReverseTranslations.put(Name, alias);
   }
 
   /**
@@ -135,9 +158,11 @@ public abstract class ScalarType extends MathType implements Comparable {
    * @return The name of this <CODE>ScalarType</CODE>.
    */
   public String getName() {
-    String alias = (String )ReverseTranslations.get(Name);
-    if (alias != null) {
-      return alias;
+    synchronized(getClass()) {
+      String alias = (String )ReverseTranslations.get(Name);
+      if (alias != null) {
+	return alias;
+      }
     }
     return Name;
   }
@@ -153,14 +178,21 @@ public abstract class ScalarType extends MathType implements Comparable {
    * @return Either the <CODE>ScalarType</CODE> if found,
    *          or <CODE>null</CODE>.
    */
-  public static ScalarType getScalarTypeByName(String name) {
+  public static synchronized ScalarType getScalarTypeByName(String name) {
     if (name == null) {
       return null;
     }
+    checkQueue();
     if (Translations.containsKey(name)) {
       name = (String )Translations.get(name);
     }
-    return (ScalarType )ScalarHash.get(name);
+    ScalarType st;
+    Object obj = ScalarHash.get(name);
+    st =
+      obj == null
+	? null
+	: (ScalarType)((WeakMapValue)obj).getValue();
+    return st;
   }
 
   /**
@@ -171,7 +203,7 @@ public abstract class ScalarType extends MathType implements Comparable {
    *
    * @exception TypeException If there is a problem with the name.
    */
-  public static void validateName(String name, String type)
+  public static synchronized void validateName(String name, String type)
     throws TypeException
   {
     if (name == null) {
@@ -184,12 +216,12 @@ public abstract class ScalarType extends MathType implements Comparable {
       throw new TypeException("ScalarType: " + type + " cannot contain " +
                               "space . ( or ) " + name);
     }
-    if (ScalarHash.containsKey(name)) {
+    if (getScalarTypeByName(name) != null) {
       throw new TypeException("ScalarType: " + type + " already used");
     }
     if (Translations.containsKey(name)) {
       throw new TypeException("ScalarType: " + type + " already used" +
-                              " as an alias");
+			      " as an alias");
     }
   }
 
@@ -233,29 +265,48 @@ public abstract class ScalarType extends MathType implements Comparable {
 */
 
   /**
-   * <b>Used by the Java Serialization methods.</b>
+   * <p>Returns the instance corresponding to this newly deserialized instance.
+   * If a ScalarType with the same name as this instance already exists and
+   * is compatible with this instance, then it is returned.  Otherwise, this
+   * instance is returned. </p>
    *
-   * If a ScalarType with this name already exists,
-   * use it instead of this newly unserialized object.
-   * Otherwise, add this object to the internal Hashtable
-   * so it can be found and remains unique.
+   * <p>This method is protected so that it is always invoked during
+   * deserialization and final to prevent subclasses from evading it.</p>
    *
-   * @return the unique ScalarType object corresponding
-   *         to this object's name.
+   * @return                        the unique ScalarType object corresponding
+   *                                to this object's name.
+   * @throws InvalidObjectException if an incompatible ScalarType with the same
+   *                                name as this instance already exists.
    */
-  Object readResolve()
+  protected final Object readResolve()
+    throws InvalidObjectException
   {
-    ScalarType st = getScalarTypeByName(getName());
-    if (st == null) {
-      ScalarHash.put(Name, this);
-      st = this;
-    } else if (!equals(st)) {
-      // if this isn't the same as the cached object,
-      //  use the de-serialized version and hope for the best
-      st = this;
+    ScalarType st;
+    synchronized(getClass()) {
+	st = getScalarTypeByName(Name);
+	if (st == null) {
+	  ScalarHash.put(Name, new WeakMapValue(Name, this, queue));
+	  st = this;
+	}
+	else if (!equals(st)) {
+	  throw new InvalidObjectException(toString());
+	}
     }
-
     return st;
+  }
+
+  /**
+   * Checks the queue for garbage-collected instances and removes them from the
+   * hash table and translation tables.
+   */
+  private static synchronized void checkQueue() {
+    for (WeakMapValue ref; (ref = (WeakMapValue)queue.poll()) != null; ) {
+      Object name = ref.getKey();
+      ScalarHash.remove(name);
+      Object alias = ReverseTranslations.remove(name);
+      if (alias != null)
+	Translations.remove(alias);
+    }
   }
 }
 
