@@ -120,6 +120,8 @@ public class AreaFile {
   /** VERSION_NUMBER - version number for a valid AREA file (since 1985) */
   public static final int VERSION_NUMBER = 4;
 
+  private static boolean handlerLoaded = false;
+
   // load protocol handler for ADDE URLs
   // See java.net.URL for explanation of URL handling
   static 
@@ -134,12 +136,20 @@ public class AreaFile {
               newProperty = "edu.wisc.ssec.mcidas | " + handlers;
           if (newProperty != null)  // was set above
               System.setProperty("java.protocol.handler.pkgs", newProperty);
+          handlerLoaded = true;
       }
       catch (Exception e)
       {
           System.out.println(
               "Unable to set System Property: java.protocol.handler.pkgs"); 
       }
+
+      handlerLoaded = true;
+  }
+
+  public static boolean isURLHandlerLoaded()
+  {
+    return handlerLoaded;
   }
 
   private boolean flipwords;
