@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcScalar.java,v 1.2 1998-03-23 18:11:54 visad Exp $
+ * $Id: NcScalar.java,v 1.3 1998-03-25 15:22:44 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -139,22 +139,42 @@ NcScalarVars
     getTupleType(NcVar[] vars)
 	throws VisADException
     {
+	TupleType	tupleType;
 	boolean		allRealTypes = true;
-	ScalarType[]	types = new ScalarType[vars.length];
 
 	for (int i = 0; i < vars.length; ++i)
 	{
-	    types[i] = vars[i].getMathType();
-
-	    if (allRealTypes && types[i] instanceof TextType)
+	    if (vars[i].getMathType() instanceof TextType)
 	    {
 		allRealTypes = false;
+		break;
 	    }
 	}
 
-	return allRealTypes
-		    ? new RealTupleType((RealType[])types)
-		    : new TupleType(types);
+	if (allRealTypes)
+	{
+	    RealType[]	types = new RealType[vars.length];
+
+	    for (int i = 0; i < vars.length; ++i)
+	    {
+		types[i] = (RealType)vars[i].getMathType();
+	    }
+
+	    tupleType = new RealTupleType(types);
+	}
+	else
+	{
+	    ScalarType[]	types = new ScalarType[vars.length];
+
+	    for (int i = 0; i < vars.length; ++i)
+	    {
+		types[i] = vars[i].getMathType();
+	    }
+
+	    tupleType = new TupleType(types);
+	}
+
+	return tupleType;
     }
 
 
@@ -167,13 +187,27 @@ NcScalarVars
     getData()
 	throws VisADException, RemoteException, IOException
     {
-	Scalar[]	values = new Scalar[vars.length];
+	Tuple	tuple;
 
-	for (int i = 0; i < vars.length; ++i)
-	    values[i] = (Scalar)vars[i].getData()[0];
+	if (mathType instanceof RealTupleType)
+	{
+	    Real[]	values = new Real[vars.length];
 
-	return mathType instanceof RealTupleType
-		    ? new RealTuple((Real[])values)
-		    : new Tuple(values);
+	    for (int i = 0; i < vars.length; ++i)
+		values[i] = (Real)vars[i].getData()[0];
+
+	    tuple = new RealTuple(values);
+	}
+	else
+	{
+	    Scalar[]	values = new Scalar[vars.length];
+
+	    for (int i = 0; i < vars.length; ++i)
+		values[i] = (Scalar)vars[i].getData()[0];
+
+	    tuple = new Tuple(values);
+	}
+
+	return tuple;
     }
 }

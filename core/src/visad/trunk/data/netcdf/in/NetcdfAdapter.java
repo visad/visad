@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.2 1998-03-23 18:11:58 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.3 1998-03-25 15:22:45 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -36,9 +36,9 @@ NetcdfAdapter
     protected final Netcdf	netcdf;
 
     /**
-     * The netCDF functions in the netCDF datset.
+     * The netCDF data objects in the netCDF datset.
      */
-    protected final Dictionary	functionSet;
+    protected final Dictionary	dataSet;
 
     /**
      * The outermost, netCDF data object.
@@ -64,9 +64,9 @@ NetcdfAdapter
     {
 	this.netcdf = netcdf;
 
-	functionSet = getFunctionSet(netcdf);
+	dataSet = getDataSet(netcdf);
 
-	ncData = getOutermost(functionSet);
+	ncData = getOutermost(dataSet);
     }
 
 
@@ -74,7 +74,7 @@ NetcdfAdapter
      * Return the VisAD data objects in the given netCDF dataset.
      *
      * @param netcdf	The netCDF dataset to be adapted.
-     * @return		A hashtable of functions in the netCDF dataset.
+     * @return		A hashtable of data objects in the netCDF dataset.
      * @exception BadFormException
      *			The netCDF variable cannot be adapted to a VisAD API.
      * @exception VisADException
@@ -84,7 +84,7 @@ NetcdfAdapter
      *			Data access I/O failure.
      */
     protected static Hashtable
-    getFunctionSet(Netcdf netcdf)
+    getDataSet(Netcdf netcdf)
 	throws VisADException, BadFormException, IOException
     {
 	DomainTable		domTable = new DomainTable(netcdf.size());
@@ -95,8 +95,7 @@ NetcdfAdapter
 	    NcVar	var = NcVar.newNcVar(varIter.next(), netcdf);
 
 	    // TODO: support scalars and text
-	    if (!var.isText() && !var.isCoordinateVariable() &&
-		var.getRank() > 0)
+	    if (!var.isText() && !var.isCoordinateVariable())
 	    {
 		domTable.put(var);
 	    }
@@ -120,7 +119,7 @@ NetcdfAdapter
     /**
      * Return the outermost, netCDF data object in the given domain Dictionary.
      *
-     * @param functionSet	The domain dictionary of a netCDF dataset.
+     * @param DataSet		The domain dictionary of a netCDF dataset.
      * @return			The outermost data object of the netCDF dataset.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
@@ -129,30 +128,30 @@ NetcdfAdapter
      *			Remote data access failure.
      */
     protected static NcData
-    getOutermost(Dictionary functionSet)
+    getOutermost(Dictionary dataSet)
 	throws VisADException, RemoteException
     {
 	NcData	data;
-	int	numFunctions = functionSet.size();
+	int	numData = dataSet.size();
 
-	if (numFunctions == 0)
+	if (numData == 0)
 	    data = null;
 	else
-	if (numFunctions == 1)
+	if (numData == 1)
 	{
-	    Enumeration	enum = functionSet.elements();
+	    Enumeration	enum = dataSet.elements();
 
-	    data = (NcFunction)enum.nextElement();
+	    data = (NcData)enum.nextElement();
 	}
 	else
 	{
-	    Enumeration		enum = functionSet.elements();
-	    NcFunction[]	functions = new NcFunction[numFunctions];
+	    Enumeration		enum = dataSet.elements();
+	    NcData[]		datums = new NcData[numData];
 
-	    for (int i = 0; i < numFunctions; ++i)
-		functions[i] = (NcFunction)enum.nextElement();
+	    for (int i = 0; i < numData; ++i)
+		datums[i] = (NcData)enum.nextElement();
 
-	    data = new NcTuple(functions);
+	    data = new NcTuple(datums);
 	}
 
 	return data;
@@ -197,12 +196,12 @@ NetcdfAdapter
 	if (type.equals(ncData.getMathType()))
 	    return getData();
 
-	NcFunction	function = (NcFunction)functionSet.get(type);
+	NcData	data = (NcData)dataSet.get(type);
 
-	if (function == null)
+	if (data == null)
 	    return null;
 
-	return function.getData();
+	return data.getData();
     }
 
 

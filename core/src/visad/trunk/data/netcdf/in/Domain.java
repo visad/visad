@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Domain.java,v 1.1 1998-03-20 20:56:38 visad Exp $
+ * $Id: Domain.java,v 1.2 1998-03-25 15:22:43 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -93,8 +93,15 @@ Domain
     setMathType(NcDim[] dims)
 	throws VisADException
     {
+	if (dims.length == 0)
+	{
+	    mathType = null;		// scalar
+	}
+	else
 	if (dims.length == 1)
+	{
 	    mathType = dims[0].getMathType();
+	}
 	else
 	{
 	    RealType[]	types = new RealType[dims.length];
