@@ -206,7 +206,7 @@ public final class TANCnav extends AREAnav
             else
             {
                 double colat = 
-                   (lat < 0) 
+                   (lat0 < 0) 
                        ? Math.PI/2. + DEGREES_TO_RADIANS*lat
                        : Math.PI/2. - DEGREES_TO_RADIANS*lat;
                 double in_lon = DEGREES_TO_RADIANS*lon;
