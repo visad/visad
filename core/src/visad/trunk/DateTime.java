@@ -44,37 +44,40 @@ import java.text.FieldPosition;
  */
 public final class 
 DateTime 
-    extends	Real
+    extends     Real
 {
 
     // Time related variables
     private static final double secondsPerDay = (double) (24 * 60 * 60);
-    private final GregorianCalendar utcCalendar =
-                          new GregorianCalendar(TimeZone.getTimeZone("GMT"));
     private static final String isoTimeFmtPattern = "yyyy-MM-dd HH:mm:ss'Z'";
+    private static String formatPattern = isoTimeFmtPattern;
+    private static final TimeZone defaultTimeZone = TimeZone.getTimeZone("GMT");
+    private static TimeZone timeZone = defaultTimeZone;
+    private final GregorianCalendar utcCalendar =
+                          new GregorianCalendar(defaultTimeZone);
 
     /**
      * Construct a DateTime object and initialize it using a VisAD Real.
      * Unless the units of the Real specify otherwise, the Real's value
      * is assumed to be seconds since the Epoch (i.e. 1970-01-01 00:00:00Z).
      *
-     * @param	real		Real value in a temporal unit.  If the unit is
-     *				not an Offset unit, then it is assumed that the
-     *				temporal origin is the beginning of the Epoch
-     *				(i.e. 1970-01-01 00:00:00Z).
+     * @param   real            Real value in a temporal unit.  If the unit is
+     *                          not an Offset unit, then it is assumed that the
+     *                          temporal origin is the beginning of the Epoch
+     *                          (i.e. 1970-01-01 00:00:00Z).
      *
-     * @throws	VisADException	unit conversion problem
+     * @throws  VisADException  unit conversion problem
      */
     public DateTime(Real real) 
             throws VisADException
     {
-	super( RealType.Time,
-	       real.isMissing()
-		   ? Double.NaN
-		   : real.getUnit() instanceof OffsetUnit
-		       ? real.getValue(CommonUnit.secondsSinceTheEpoch)
-		       : real.getValue(SI.second),
-	       CommonUnit.secondsSinceTheEpoch);
+        super( RealType.Time,
+               real.isMissing()
+                   ? Double.NaN
+                   : real.getUnit() instanceof OffsetUnit
+                       ? real.getValue(CommonUnit.secondsSinceTheEpoch)
+                       : real.getValue(SI.second),
+               CommonUnit.secondsSinceTheEpoch);
 
         // set up in terms of java date
         utcCalendar.setTime(new Date(Math.round(getValue()*1000.)));
@@ -86,7 +89,7 @@ DateTime
      *
      * @param  seconds  number of seconds since 1970-01-01 00:00:00Z.
      *
-     * @throws	VisADException	unit conversion problem
+     * @throws  VisADException  unit conversion problem
      */
     public DateTime(double seconds) 
             throws VisADException
@@ -101,7 +104,7 @@ DateTime
      *
      * @param  date  date object
      *
-     * @throws	VisADException	unit conversion problem
+     * @throws  VisADException  unit conversion problem
      */
     public DateTime(Date date) 
             throws VisADException
@@ -114,7 +117,7 @@ DateTime
     /**
      * Construct a DateTime object and initialize it to the current date/time.
      *
-     * @throws	VisADException	unit conversion problem
+     * @throws  VisADException  unit conversion problem
      */
     public DateTime() 
             throws VisADException
@@ -128,12 +131,12 @@ DateTime
      * Construct a DateTime object initialized with a year, day of
      * the year, and seconds in the day.
      *
-     * @param	year		year - use negative year to indicated BC
-     * @param	day		day of the year
-     * @param	seconds		seconds in the day
+     * @param   year            year - use negative year to indicated BC
+     * @param   day             day of the year
+     * @param   seconds         seconds in the day
      *
-     * @throws  VisADException	invalid day or seconds.  Days must be
-     *				greater than zero and seconds must be greater
+     * @throws  VisADException  invalid day or seconds.  Days must be
+     *                          greater than zero and seconds must be greater
      *                          than zero and less than or equal to the 
      *                          seconds in a day.
      */
@@ -147,12 +150,12 @@ DateTime
      * Return a Real object whose value is the seconds since the Epoch
      * initialized with a year, day of the year, and seconds in the day.
      *
-     * @param	year		year - use negative year to indicated BC
-     * @param	day		day of the year
-     * @param	seconds		seconds in the day
+     * @param   year            year - use negative year to indicated BC
+     * @param   day             day of the year
+     * @param   seconds         seconds in the day
      *
-     * @throws  VisADException	invalid day or seconds.  Days must be
-     *				greater than zero and seconds must be greater
+     * @throws  VisADException  invalid day or seconds.  Days must be
+     *                          greater than zero and seconds must be greater
      *                          than zero and less than or equal to the 
      *                          seconds in a day.
      */
@@ -193,7 +196,7 @@ DateTime
     {
         GregorianCalendar cal = new GregorianCalendar();
         cal.clear();
-        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+        cal.setTimeZone(defaultTimeZone);        // use GMT as default
         if (year == 0) year = -1;                // set to 1 BC
         cal.set(Calendar.ERA, year < 0 
                                 ? GregorianCalendar.BC
@@ -222,7 +225,7 @@ DateTime
     /**
      * Get a Real representing the number of seconds since * the epoch.
      *
-     * @return Real this object
+     * @return this object
      */
     public Real getReal() 
     {
@@ -230,32 +233,38 @@ DateTime
     }
 
     /**
-     * Return a string representation of this DateTime using
-     * ISO 8601 complete date plus hours, minutes and seconds.
+     * Return a string representation of this DateTime.  Unless the
+     * setFormatPattern() and/or setTimeZone() methods were used, the
+     * default it the ISO 8601 complete date plus hours, minutes and seconds
+     * and a time zone of UTC.
      * See <a href="http://www.w3.org/TR/NOTE-datetime">
      *      http://www.w3.org/TR/NOTE-datetime</a>
+     * @see #setFormatPattern
+     * @see #setFormatTimeZone
      *
-     * @return	String representing the date/time in the form 
+     * @return  String representing the date/time.  Default is
      *          <nobr>yyyy-MM-dd HH:mm:ssZ</nobr> (ex: 1999-05-04 15:27:08Z)
      */
     public String toString() 
     {
-        String pattern = 
-                  (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC)
-                            ? isoTimeFmtPattern + " 'BCE'"
-                            : isoTimeFmtPattern;
-        return formattedString(pattern, TimeZone.getTimeZone("GMT"));
+        return formattedString(
+            (!formatPattern.equals(isoTimeFmtPattern)) 
+                ? formatPattern 
+                : (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC)
+                    ? isoTimeFmtPattern + " 'BCE'"
+                    : isoTimeFmtPattern
+            , timeZone);
     }
 
     /**
      * Gets a string that represents just the value portion of this
      * DateTime -- but with full semantics.
      *
-     * @return	String representing the date/time in the form 
+     * @return  String representing the date/time in the form 
      *          <nobr>yyyy-MM-dd HH:mm:ssZ</nobr> (ex: 1999-05-04 15:27:08Z)
      */
     public String toValueString() {
-	return toString();
+        return toString();
     }
 
     /**
@@ -266,9 +275,9 @@ DateTime
      * @see java.text.SimpleDateFormat
      * @see java.util.TimeZone
      *
-     * @param	pattern		time format string
-     * @param	timezone	time zone to use
-     * @return	String representing the date/time in the form specified
+     * @param   pattern         time format string
+     * @param   timezone        time zone to use
+     * @return  String representing the date/time in the form specified
      *          by the pattern.
      */
     public String formattedString(String pattern, TimeZone timezone)
@@ -284,8 +293,8 @@ DateTime
     /**
      * Return a string representing the "date" portion of this DateTime
      *
-     * @return	String representing the date in the form 
-     *          yyyy-MM-dd (ex: 1999-05-04)
+     * @return  String representing the date (UTC) in the form 
+     *          yyyy-MM-dd (ex: 1999-05-04).
      */
     public String dateString() 
     {
@@ -293,24 +302,89 @@ DateTime
                   (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC)
                             ? "yyyy-MM-dd 'BCE'"
                             : "yyyy-MM-dd";
-        return formattedString(pattern, TimeZone.getTimeZone("GMT"));
+        return formattedString(pattern, defaultTimeZone);
     }
 
     /**
      * Return a string representing the "time" portion of this DateTime
      *
-     * @return	String representing the time in the form 
+     * @return  String representing the time (UTC) in the form 
      *          HH:mm:ssZ (ex: 15:27:08Z)
      */
     public String timeString() 
     {
-        return formattedString("HH:mm:ss'Z'", TimeZone.getTimeZone("GMT"));
+        return formattedString("HH:mm:ss'Z'", defaultTimeZone);
+    }
+
+    /**
+     * Set the format of the output of the toString() method.  All DateTime
+     * objects created in the JVM once this is set will use the new format
+     * so be very careful in your use of this method.  
+     *
+     * The pattern uses the time format syntax of java.text.SimpleDateFormat.
+     * @see java.text.SimpleDateFormat
+     * If you want to use a time zone other than the default, 
+     * @see #setFormatTimeZone
+     *
+     * @param   pattern         time format string
+     */
+    public static void setFormatPattern(String pattern)
+    {
+        formatPattern = pattern;
+    }
+
+    /**
+     * Return the format pattern used in the output of the toString() method.  
+     * The pattern uses the time format syntax of java.text.SimpleDateFormat.
+     * @see java.text.SimpleDateFormat
+     *
+     * @return  time format pattern
+     */
+    public static String getFormatPattern()
+    {
+        return formatPattern;
+    }
+
+    /**
+     * Set the TimeZone of the output of the toString() method.  All DateTime
+     * objects created in the JVM once this is set will use the new TimeZone
+     * so be very careful in your use of this method.
+     *
+     * The time zone is any of the valid java.util.TimeZone values.
+     * @see java.util.TimeZone
+     *
+     * @param   tz              time zone
+     */
+    public static void setFormatTimeZone(TimeZone tz)
+    {
+        timeZone = tz;
+    }
+
+    /**
+     * Return the TimeZone used in the output of the toString() method.  
+     *
+     * @return  time zone
+     */
+    public static TimeZone getFormatTimeZone()
+    {
+        return timeZone;
+    }
+
+    /**
+     * Reset the format of the output of the toString() method to the default -
+     * <nobr>yyyy-MM-dd HH:mm:ssZ</nobr> (ex: 1999-05-04 15:27:08Z) and
+     * the TimeZone to UTC.
+     */
+    public static void resetFormat()
+    {
+        formatPattern = isoTimeFmtPattern;
+        timeZone = defaultTimeZone;
     }
 
     /**
      *  Implement Comparable interface
      *
-     * @param	oo	Object for comparison - should be DateTime
+     * @param   oo      Object for comparison - should be DateTime
      */
     public int compareTo(Object oo)
     {
@@ -353,9 +427,9 @@ DateTime
         // test for backward compatibility
         System.out.println("\nInitialized using Real of RealType.Time" +
                            " but no Unit (backward compatibility):");
-	r = new Real(RealType.Time, a.getValue() + secondsPerDay);
-	a = new DateTime(r);
-	System.out.println("\n\t" + a);
+        r = new Real(RealType.Time, a.getValue() + secondsPerDay);
+        a = new DateTime(r);
+        System.out.println("\n\t" + a);
 
         //  try BC date
         System.out.println(
