@@ -77,6 +77,16 @@ default package (i.e., they do not include a package statement).
 
 3. Building VisAD
 
+Your CLASS_PATH sould include:
+
+  1. The parent directory of your visad directory.
+  2. The current directory.
+
+Thus if VisAD is installed at /home/me/java/visad and you use csh,
+your .cshrc file should include:
+
+  setenv CLASSPATH /home/me/java:.
+
 VisAD requires JDK 1.2 and Java3D.  More information about
 these is available at:
 
