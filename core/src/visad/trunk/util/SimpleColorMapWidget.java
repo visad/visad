@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.31 1999-11-16 22:57:13 dglo Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.32 1999-11-17 15:27:48 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -51,7 +51,7 @@ import visad.VisADException;
  * RGB/RGBA color maps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.31 $, $Date: 1999-11-16 22:57:13 $
+ * @version $Revision: 1.32 $, $Date: 1999-11-17 15:27:48 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -74,7 +74,7 @@ public class LabeledColorWidget
    * Construct a <CODE>LabeledColorWidget</CODE> linked to the
    * color control in the <CODE>ScalarMap</CODE> (which must be to either
    * <CODE>Display.RGB</CODE> or </CODE>Display.RGBA</CODE> and already
-   * have been added to a <CODE>DIsplay</CODE>).
+   * have been added to a <CODE>Display</CODE>).
    * It will be labeled with the name of the <CODE>ScalarMap</CODE>'s
    * RealType and linked to the <CODE>ScalarMap</CODE>'s color control.
    * The range of <CODE>RealType</CODE> values mapped to color is taken
@@ -118,7 +118,7 @@ public class LabeledColorWidget
    * Construct a <CODE>LabeledColorWidget</CODE> linked to the
    * color control in the <CODE>ScalarMap</CODE> (which must be to either
    * <CODE>Display.RGB</CODE> or </CODE>Display.RGBA</CODE> and already
-   * have been added to a <CODE>DIsplay</CODE>).
+   * have been added to a <CODE>Display</CODE>).
    * It will be labeled with the name of the <CODE>ScalarMap</CODE>'s
    * RealType and linked to the <CODE>ScalarMap</CODE>'s color control.
    * The range of <CODE>RealType</CODE> values mapped to color is taken
@@ -172,7 +172,7 @@ public class LabeledColorWidget
    * Construct a <CODE>LabeledColorWidget</CODE> linked to the
    * color control in the <CODE>ScalarMap</CODE> (which must be to either
    * <CODE>Display.RGB</CODE> or </CODE>Display.RGBA</CODE> and already
-   * have been added to a <CODE>DIsplay</CODE>).
+   * have been added to a <CODE>Display</CODE>).
    * It will be labeled with the name of the <CODE>ScalarMap</CODE>'s
    * RealType and linked to the <CODE>ScalarMap</CODE>'s color control.
    * The range of <CODE>RealType</CODE> values mapped to color is taken
