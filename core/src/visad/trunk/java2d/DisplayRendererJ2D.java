@@ -866,4 +866,12 @@ public abstract class DisplayRendererJ2D
   {
     getCanvas().addKeyboardBehavior(behavior);
   }
+
+  public void setWaitFlag(boolean b) {
+    if (b != getWaitFlag()) {
+      if (canvas != null) canvas.renderTrigger();
+    }
+    super.setWaitFlag(b);
+  }
+
 }

@@ -1026,5 +1026,18 @@ public abstract class DisplayRendererJ3D
     bg.addChild(behavior);
     trans.addChild(bg);
   }
+
+  public void setWaitFlag(boolean b) {
+    if (b != getWaitFlag()) {
+      ProjectionControl proj = getDisplay().getProjectionControl();
+      try {
+        if (proj != null) proj.setMatrix(proj.getMatrix());
+      }
+      catch (VisADException e) { }
+      catch (RemoteException e) { }
+    }
+    super.setWaitFlag(b);
+  }
+
 }
 
