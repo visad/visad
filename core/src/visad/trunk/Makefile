@@ -189,9 +189,6 @@ TAR_FILES = \
 	visad/data/hdfeos/hdfeosc/*.h			\
 	visad/data/hdfeos/hdfeosc/Makefile		\
 	visad/data/vis5d/*.java				\
-	visad/data/vis5d/*.c				\
-	visad/data/vis5d/*.h				\
-	visad/data/vis5d/Makefile			\
 	edu/wisc/ssec/mcidas/*.java			\
 	edu/wisc/ssec/mcidas/adde/*.java		\
 	visad/data/mcidas/*.java                        \
@@ -363,9 +360,6 @@ SAVE_FILES = \
 	visad/data/mcidas/*.java                        \
 	visad/data/mcidas/README.mcidas                 \
 	visad/data/vis5d/*.java				\
-	visad/data/vis5d/*.c				\
-	visad/data/vis5d/*.h				\
-	visad/data/vis5d/Makefile			\
 	visad/data/gif/*.java				\
 	visad/data/visad/*.java				\
 	visad/jmet/*.java				\
