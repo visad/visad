@@ -44,8 +44,17 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import java.rmi.NotBoundException;
+import java.rmi.AccessException;
+import java.rmi.Naming;
+import java.net.MalformedURLException;
+
+
 public class Nesti {
 
+  RemoteServerImpl server_server;
+  RemoteServer client_server;
+  boolean client;
   // number of times in file
   int ntimes;
   // size of image array generated from file
@@ -56,10 +65,12 @@ public class Nesti {
   // pointers from image line, element to time index
   int[][] sample_to_time;
   // VisAD Field data object created from file
-  Field nasti;
   Field spectrum_field;
+  // observation spectrum
+  Field obs_spectrum;
   // index of spectrum in nasti range tuple
   int spectrum_index;
+  int n_wnum;
 
   // flag to use Java2D
   boolean java2d = true;
@@ -70,6 +81,10 @@ public class Nesti {
   RealType atmosphericRadiance;
   RealType image_line;
   RealType image_element;
+  RealType pressure;
+  RealType watervapor;
+  RealType temperature;
+  RealType ozone;
 
   // range of wave numbers form file
   float wnum_low;
@@ -83,19 +98,19 @@ public class Nesti {
   RealTupleType image_domain;
   FunctionType image_type;
 
+  Gridded1DSet p_domain;
+
   // MathType for red_bar overlaid on spectrum display
   FunctionType red_bar_type;
 
-  RealType pressure;
-  RealType watervapor;
-  RealType temperature;
-  RealType ozone;
-  RealType waveNumber;
-  RealType radiance;
+  RealTupleType scatter_tuple;
+  ScalarMap wnum_map;
+  ScalarMap wnum_map_diff;
   FlatField field_tt;
   FlatField field_wv;
   FlatField field_oz;
   FlatField field_rr;
+  FlatField rr_diff;
   int type = 1;
   int[] nbuse = new int[3];
   float[] tskin = new float[1];
@@ -109,86 +124,158 @@ public class Nesti {
   double[] vn = new double[9127];
   double[] tb = new double[9127];
   double[] rr = new double[9127];
-  double[][] rr_values;
+  double[][] rr_values = new double[1][9127];
   double[][] rr_values_sub;
 
+  //-- declare DataReferences ---
+  DataReference image_ref;
+  DataReference white_cursor_ref;
+  DataReference red_cursor_ref;
+  DataReference red_bar_ref;
+  DataReference field_ttRef;
+  DataReference field_wvRef;
+  DataReference field_ozRef;
+  DataReference spectrum_ref;
+  DataReference spectrum_ref_s;
+  DataReference field_rrRef;
+  DataReference rtvl_ttRef;
+  DataReference rtvl_wvRef;
+  DataReference gamt_ref;
+  DataReference gamw_ref;
+  DataReference foward_radiance_ref;
+  DataReference retrieval_ref;
+  DataReference spectrum_field_ref;
+  DataReference wnum_last_ref;
+  DataReference wnum_low_ref;
+  DataReference wnum_hi_ref;
 
-  // type 'java Nasti' to run this application
+  int n_refs = 20;  //- # of above ---
+
+
+  FunctionType press_tt;
+  FunctionType press_wv;
+  FunctionType press_oz;
+
+  //- record number index of profile in file
+  int rec;
+
+  // type 'java Nesti' to run this application
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
-    if (args.length < 1) {
-      return;
+    
+    Nesti nesti = new Nesti(args);
+
+    if (nesti.client_server != null) {
+      nesti.setupClient();
     }
-    System.loadLibrary("Nesti");
-    Nesti nasti = new Nesti(args[0]);
+    else if (nesti.server_server != null) {
+      System.loadLibrary("Nesti");
+      nesti.setupServer();
+    }
+    else {
+      System.loadLibrary("Nesti");
+      nesti.setupServer();
+    }
   }
 
-  public Nesti(String filename)
+  public Nesti(String[] args)
          throws VisADException, RemoteException, IOException {
- //*----------
-    readProf_c( type, tskin, psfc, lsfc, azen, p, tt, wv, oz );
 
-    nbuse[0] = 1;
-    nbuse[1] = 1;
-    nbuse[2] = 1;
-    nastirte_c( tskin[0], psfc[0], lsfc[0], azen[0], p, tt, wv, oz,
-                nbuse, vn, tb, rr ); 
+    if (args.length > 0) {
+      // this is a client
 
-    pressure = new RealType("pressure", null, null);
-    temperature = new RealType("temperature", null, null);
-    watervapor = new RealType("watervapor", null, null);
-    ozone = new RealType("ozone", null, null);
+      // try to connect to RemoteServer
+      String domain = "//" + args[0] + "/Nesti";
+      try {
+        client_server = (RemoteServer) Naming.lookup(domain);
+      }
+      catch (MalformedURLException e) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+      catch (NotBoundException e) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+      catch (AccessException e) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+      catch (RemoteException e) {
+        System.out.println("Cannot connect to server");
+        System.exit(0);
+      }
+    }
+    else { // args.length == 0
+      // this is a server
 
-    waveNumber = new RealType("wavenumber", null, null);
-    radiance = new RealType("Radiance", null, null);
+      // try to set up a RemoteServer
+      server_server = new RemoteServerImpl(null);
+      try {
+        Naming.rebind("//:/Nesti", server_server);
+      }
+      catch (MalformedURLException e) {
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
+      }
+      catch (AccessException e) {
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
+      }
+      catch (RemoteException e) {
+        System.out.println("Cannot set up server - running as stand-alone");
+        server_server = null;
+      }
+    }
+  }//- end: contructor Nesti
 
-    FunctionType press_tt = new FunctionType( pressure, temperature );
-    FunctionType press_wv = new FunctionType( pressure, watervapor );
-    FunctionType press_oz = new FunctionType( pressure, ozone );
-    FunctionType wave_rad = new FunctionType( waveNumber, radiance );
+  void setupServer() throws VisADException, RemoteException, IOException
+  {
 
-    float[][] samples = new float[1][40];
-    samples[0] = p;
-    int n_samples = 40;
-    Gridded1DSet domain = new Gridded1DSet( pressure, samples, n_samples );
+    //- create DataReferenceImpls ---
+    white_cursor_ref = new DataReferenceImpl("white_cursor_ref");
+    red_cursor_ref = new DataReferenceImpl("red_cursor_ref");
+    spectrum_ref = new DataReferenceImpl("spectrum_ref");
+    spectrum_ref_s = new DataReferenceImpl("spectrum_ref_s");
+    red_bar_ref = new DataReferenceImpl("red_bar_ref");
+    image_ref = new DataReferenceImpl("image_ref");
+    field_ttRef = new DataReferenceImpl("tt_profile_ref");
+    field_wvRef = new DataReferenceImpl("wv_profile_ref");
+    field_ozRef = new DataReferenceImpl("oz_profile_ref");
+    field_rrRef = new DataReferenceImpl("field_rrRef");
+    rtvl_ttRef = new DataReferenceImpl("rtvl_ttRef");
+    rtvl_wvRef = new DataReferenceImpl("rtvl_wvRef");
+    gamt_ref = new DataReferenceImpl("gamt_ref");
+    gamw_ref = new DataReferenceImpl("gamw_ref");
+    foward_radiance_ref = new DataReferenceImpl("foward_radiance_ref");
+    retrieval_ref = new DataReferenceImpl("retrieval_ref");
+    spectrum_field_ref = new DataReferenceImpl("spectrum_field_ref");
+    wnum_last_ref = new DataReferenceImpl("wnum_last_ref");
+    wnum_low_ref = new DataReferenceImpl("wnum_low_ref");
+    wnum_hi_ref = new DataReferenceImpl("wnum_hi_ref");
 
-    field_tt = new FlatField( press_tt, domain );
-    field_wv = new FlatField( press_wv, domain );
-    field_oz = new FlatField( press_oz, domain );
 
-    samples = new float[1][9127];
-    double[][] vn_a = new double[1][];
-    vn_a[0] = vn;
-    samples = Set.doubleToFloat(vn_a);
-    int n_wnum = 9127;
-    domain = new Gridded1DSet( waveNumber, samples, n_wnum );
-    field_rr = new FlatField( wave_rad, domain ); 
-    rr_values = new double[1][9127]; 
-    
-    float[][] tt_values = new float[1][40];
-    float[][] wv_values = new float[1][40];
-    float[][] oz_values = new float[1][40];
+//------ Initialize, File I/O  ------------------------
 
-    tt_values[0] = tt;
-    wv_values[0] = wv;
-    oz_values[0] = oz;
-    rr_values[0] = rr;
+    String[] filename_s = new String[3];
+    filename_s[0] = "outputC1.nc";
+    filename_s[1] = "outputC2.nc";
+    filename_s[2] = "outputC3.nc";
 
-    field_tt.setSamples( tt_values );
-    field_wv.setSamples( wv_values );
-    field_oz.setSamples( oz_values );
-    field_rr.setSamples( rr_values );
-
- //*------
     // create a netCDF reader
     Plain plain = new Plain();
 
     // open a netCDF file containing a NAST-I file
-    Tuple nasti_tuple = (Tuple) plain.open(filename);
-    plain = null;
+    Tuple nasti_tuple = (Tuple) plain.open(filename_s[0]);
 
     // extract the time sequence of spectra
-    nasti = (Field) nasti_tuple.getComponent(2);
+    Field nasti = (Field) nasti_tuple.getComponent(2);
+    Field[] nasti_a = new Field[3];
+    nasti_a[0] = nasti;
+    nasti_a[1] = (Field) ((Tuple)plain.open(filename_s[1])).getComponent(2);
+    nasti_a[2] = (Field) ((Tuple)plain.open(filename_s[2])).getComponent(2);
+
+    plain = null;
 
     // extract the type of image and use
     // it to determine how images are displayed
@@ -252,59 +339,199 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     }
 
     // get spectrum and types
-    spectrum_index = 86;
+ //-spectrum_index = 86;
+    spectrum_index = 8;
     FunctionType spectrum_type =
       (FunctionType) nasti_range_type.getComponent(spectrum_index);
     wnum1 = (RealType) ((RealTupleType) spectrum_type.getDomain()).getComponent(0);
     atmosphericRadiance = (RealType) spectrum_type.getRange();
+    scatter_tuple = new RealTupleType( wnum1, atmosphericRadiance );
 
     // build red_bar_type
     red_bar_type = new FunctionType(atmosphericRadiance, wnum1);
 
     // get first spectrum and its sampling
- // Field spectrum0 =
- //    (Field) ((Tuple) nasti.getSample(0)).getComponent(spectrum_index);
- // Gridded1DSet spectrum_set = (Gridded1DSet) spectrum0.getDomainSet();
+ //-Field spectrum0 =
+ //-   (Field) ((Tuple) nasti.getSample(0)).getComponent(spectrum_index);
+ //-Gridded1DSet spectrum_set = (Gridded1DSet) spectrum0.getDomainSet();
     Gridded1DSet spectrum_set = null;
     // System.out.println("spectrum_set = " + spectrum_set);
 
-//------------------
+//*----------
+    readProf_c( type, tskin, psfc, lsfc, azen, p, tt, wv, oz );
+
+    nbuse[0] = 1;
+    nbuse[1] = 1;
+    nbuse[2] = 1;
+    nastirte_c( tskin[0], psfc[0], lsfc[0], azen[0], p, tt, wv, oz,
+                nbuse, vn, tb, rr );
+
+    pressure = new RealType("pressure_1", null, null);
+    temperature = new RealType("temperature_1", null, null);
+    watervapor = new RealType("watervapor_1", null, null);
+    ozone = new RealType("ozone_1", null, null);
+
+    press_tt = new FunctionType( pressure, temperature );
+    press_wv = new FunctionType( pressure, watervapor );
+    press_oz = new FunctionType( pressure, ozone );
+    FunctionType wave_rad = new FunctionType( wnum1, atmosphericRadiance );
+
+    float[][] samples = new float[1][40];
+    samples[0] = p;
+    int n_samples = 40;
+    p_domain = new Gridded1DSet( pressure, samples, n_samples );
+
+    field_tt = new FlatField( press_tt, p_domain );
+    field_wv = new FlatField( press_wv, p_domain );
+    field_oz = new FlatField( press_oz, p_domain );
+
+    int n_wnum = 9127;
+    samples = new float[1][n_wnum];
+    double[][] vn_a = new double[1][n_wnum];
+    System.arraycopy(vn, 0, vn_a[0], 0, n_wnum);
+    samples = Set.doubleToFloat(vn_a);
+    Gridded1DSet domain = new Gridded1DSet( wnum1, samples, n_wnum );
+    field_rr = new FlatField( wave_rad, domain );
+
+    float[][] tt_values = new float[1][40];
+    float[][] wv_values = new float[1][40];
+    float[][] oz_values = new float[1][40];
+
+    tt_values[0] = tt;
+    wv_values[0] = wv;
+    oz_values[0] = oz;
+    System.arraycopy(rr, 0, rr_values[0], 0, n_wnum);
+
+    field_tt.setSamples( tt_values );
+    field_wv.setSamples( wv_values );
+    field_oz.setSamples( oz_values );
+    field_rr.setSamples( rr_values );
+
+    field_ttRef.setData(field_tt);
+    field_wvRef.setData(field_wv);
+    field_ozRef.setData(field_oz);
+
+
     FunctionType f_type = new FunctionType( time, spectrum_type );
     spectrum_field = new FieldImpl( f_type, time_set );
     double[][] range_values;
+
+    int n_wnum1 = 2199;
+    int n_wnum2 = 3858;
+    int n_wnum3 = 3070;
+    int n_wnum_obs = 8504; 
+    float[][] samples_1 = new float[1][n_wnum];
+    float[][] ranges_1 = new float[1][n_wnum];
+    float[][] samples_2 = new float[1][n_wnum];
+    float[][] ranges_2 = new float[1][n_wnum];
+    float[][] samples_3 = new float[1][n_wnum];
+    float[][] ranges_3 = new float[1][n_wnum];
+    float[][] new_spectrum = new float[1][n_wnum_obs];
+    float[][] new_range = new float[1][n_wnum_obs];
+
+    float band1_lo = 650.0496f;
+    float band1_hi = 1299.9677f;
+    float band2_lo = 1300.2206f;
+    float band2_hi = 1999.7985f;
+    float band3_lo = 2000.1323f; 
+    float band3_hi = 2699.9512f; 
+    boolean band1 = false;
+    boolean band2 = false;
+    boolean band3 = false;
+
+    int cnt, cnt_1, cnt_2, cnt_3;
     for ( int i = 0; i < ntimes; i++ )
     {
+    cnt_1 = 0;
+    cnt_2 = 0;
+    cnt_3 = 0;
+    for ( int k = 0; k < 3; k++ ) 
+    {
+      nasti = nasti_a[k];
       Field spectrum0 =
          (Field) ((Tuple) nasti.getSample(i)).getComponent(spectrum_index);
       spectrum_set = (Gridded1DSet) spectrum0.getDomainSet();
       int len = spectrum_set.getLength();
+      float[] lo = spectrum_set.getLow();
+      float[] hi = spectrum_set.getHi();
       float[][] spectrum_samples = spectrum_set.getSamples(false);
-      float[][] new_samples = new float[1][len];
-      float[][] temp_ranges = new float[1][len];
       range_values = spectrum0.getValues();
-      int cnt = 0;
-      for ( int ii = 0; ii < spectrum_samples[0].length; ii++ ) 
+
+   //-System.out.println( lo[0]+"   "+hi[0] );
+      if ((band1_lo >= lo[0])&&(band1_hi <= hi[0])) band1 = true;
+      if ((band2_lo >= lo[0])&&(band2_hi <= hi[0])) band2 = true;
+      if ((band3_lo >= lo[0])&&(band3_hi <= hi[0])) band3 = true;
+
+      if ( band1 ) 
       {
-        if (( spectrum_samples[0][ii] >= 620.04 ) &&
-            ( spectrum_samples[0][ii] <= 2820.08 ))
+        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ ) 
         {
-          new_samples[0][cnt] = spectrum_samples[0][ii];
-          temp_ranges[0][cnt] = (float) range_values[0][ii];
-          cnt++;
+          if (( spectrum_samples[0][ii] >= band1_lo ) &&
+              ( spectrum_samples[0][ii] <= band1_hi))
+          {
+            samples_1[0][cnt_1] = spectrum_samples[0][ii];
+            ranges_1[0][cnt_1] = (float) range_values[0][ii];
+            cnt_1++;
+          }
         }
+        band1 = false;
       }
-      float[][] new_spectrum = new float[1][cnt];
-      float[][] new_ranges = new float[1][cnt];
-      for ( int ii = 0; ii < cnt; ii++ ) {
-        new_spectrum[0][ii] = new_samples[0][ii];
-        new_ranges[0][ii] = temp_ranges[0][ii];
+      else if ( band2 ) 
+      {
+        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ ) 
+        {
+          if (( spectrum_samples[0][ii] >= band2_lo ) &&
+              ( spectrum_samples[0][ii] <= band2_hi ))
+          {
+            samples_2[0][cnt_2] = spectrum_samples[0][ii];
+            ranges_2[0][cnt_2] = (float) range_values[0][ii];
+            cnt_2++;
+          }
+        }
+        band2 = false;
       }
-      spectrum_set = new Gridded1DSet(spectrum_set.getType(), new_spectrum, cnt );
+      else if ( band3 )
+      {
+        for ( int ii = 0; ii < spectrum_samples[0].length; ii++ ) 
+        {
+          if (( spectrum_samples[0][ii] >= band3_lo ) &&
+              ( spectrum_samples[0][ii] <= band3_hi ))
+          {
+            samples_3[0][cnt_3] = spectrum_samples[0][ii];
+            ranges_3[0][cnt_3] = (float) range_values[0][ii];
+            cnt_3++;
+          }
+        }
+        band3 = false;
+      } 
+
+   //-System.out.println("k: "+k+" cnt_1: "+cnt_1+" cnt_2: "+cnt_2+" cnt_3: "+cnt_3);
+
+      
+      System.arraycopy( samples_1[0], 0, new_spectrum[0], 0, cnt_1);
+      System.arraycopy( samples_2[0], 0, new_spectrum[0], cnt_1, cnt_2);
+      System.arraycopy( samples_3[0], 0, new_spectrum[0], (cnt_1+cnt_2), cnt_3);
+      System.arraycopy( ranges_1[0], 0, new_range[0], 0, cnt_1);
+      System.arraycopy( ranges_2[0], 0, new_range[0], cnt_1, cnt_2);
+      System.arraycopy( ranges_3[0], 0, new_range[0], (cnt_1+cnt_2), cnt_3);
+    }
+      spectrum_set = new Gridded1DSet(spectrum_set.getType(), 
+                         new_spectrum, n_wnum_obs );
       FlatField f_field = new FlatField( spectrum_type, spectrum_set );
-      f_field.setSamples( new_ranges );
+      f_field.setSamples( new_range );
       spectrum_field.setSample(i, f_field);
     }
-//-----------------------
+
+    spectrum_field_ref.setData(spectrum_field);
+
+    samples_1 = null;
+    samples_2 = null;
+    samples_3 = null;
+    ranges_1 = null;
+    ranges_2 = null;
+    ranges_3 = null;
+//*----------------------
+
     float[] lows = spectrum_set.getLow();
     float[] his = spectrum_set.getHi();
     int spectrum_set_length = spectrum_set.getLength();
@@ -325,326 +552,175 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     image_domain = new RealTupleType(image_element, image_line);
     image_type = new FunctionType(image_domain, atmosphericRadiance);
 
-    // create JFrame (i.e., a window) for display and slider
-    JFrame frame = new JFrame("Nasti VisAD Application");
-    frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
+    // create image data object for display and initialize radiance
+    // array to missing
+    FlatField image = new FlatField(image_type, image_set);
+    double[][] radiances = new double[1][nelements * nlines];
+    for (int i=0; i<nelements * nlines; i++) {
+      radiances[0][i] = Double.NaN;
+    }
+    image_ref.setData(image);
 
-    // create JPanel in JFrame
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    rtvl_ttRef.setData(new FlatField( press_tt, p_domain));
+    rtvl_wvRef.setData(new FlatField( press_wv, p_domain));
 
-    frame.getContentPane().add(panel);
+    // initial wave number in middle of spectrum
+    float wnum_last = (wnum_low + wnum_hi) / 2.0f;
+    wnum_last_ref.setData(new Real(wnum1, wnum_last));
 
-    // create two image-spectrum interfaces (each have
-    // interacting image and spectrum displays)
-    ChannelImage channel_image1 = new ChannelImage();
-//  ChannelImage channel_image2 = new ChannelImage();
-    FowardRadiance foward_radiance = new FowardRadiance();
+    wnum_low_ref.setData(new Real(wnum1, wnum_low));
+    wnum_hi_ref.setData(new Real(wnum1, wnum_hi));
 
-    // add image-spectrum interfaces to the JFrame
-    panel.add(channel_image1);
- // panel.add(channel_image2);
- // panel.add(foward_radiance);
+//-------- Done: Initialize -------------
 
-    // set size of JFrame and make it visible
-       frame.setSize(400, 900);
-//  frame.setSize(800, 900);
-    frame.setVisible(true);
+    CellImpl foward_radiance_cell = new CellImpl() {
+      double[][] tt_last;
+      double[][] wv_last;
+      double[][] oz_last;
+      float[][] tt_last_f;
+      float[][] wv_last_f;
+      float[][] oz_last_f;
+      double[][] rr_values_a = new double[1][9127];
+      boolean first = true;
 
-    JFrame frame2 = new JFrame("Foward Radiance");
-    frame2.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e2) {System.exit(0);}
-    });
+      public void doAction() throws VisADException, RemoteException
+      {
+        if (! first ) 
+        {
+          field_tt = (FlatField) field_ttRef.getData();
+          field_wv = (FlatField) field_wvRef.getData();
+          field_oz = (FlatField) field_ozRef.getData();
+          try {
+            tt_last = field_tt.getValues();
+            tt_last_f = Set.doubleToFloat(tt_last);
+            wv_last = field_wv.getValues();
+            wv_last_f = Set.doubleToFloat(wv_last);
+            oz_last = field_oz.getValues();
+            oz_last_f = Set.doubleToFloat(oz_last);
+          }
+          catch ( VisADException e1 ) {
+            System.out.println(e1.getMessage());
+          }
 
-    JPanel panel2 = new JPanel();
-    panel2.setLayout(new BoxLayout(panel2, BoxLayout.X_AXIS));
-    panel2.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    panel2.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-
-    frame2.getContentPane().add(panel2);
-    frame2.setSize(400, 900);
-    panel2.add(foward_radiance);
-    frame2.setVisible(true);
-  }
-
-  /** this make an image of one NAST-I channel, with a JTextField
-      for channel selection, a LabeledRGBWidget for pixel colors
-      and a spectrum display */
-  class ChannelImage extends JPanel
-        implements ActionListener, ItemListener, ScalarMapListener {
-    // array for image radiances
-    double[][] radiances;
-    // image data object for display
-    FlatField image;
-
-    // declare DataReferences for displaying white_cursor, red_cursor,
-    // spectrum and red_bar
-    DataReferenceImpl image_ref;
-    DataReferenceImpl white_cursor_ref;
-    DataReferenceImpl red_cursor_ref;
-    DataReferenceImpl spectrum_ref;
-    DataReferenceImpl red_bar_ref;
-
-    // ScalarMap for atmosphericRadiance in the spectrum display
-    ScalarMap radiance_map2;
-
-    // ScalarMap for wnum1 in the spectrum display
-    ScalarMap wnum_map;
-
-    // some GUI components
-    JPanel wpanel;
-    JLabel wnum_label;
-    JTextField wnum_field;
-    JPanel zpanel;
-    JCheckBox wnum_zoom;
-    JButton recenter;
-    JPanel dpanel1, dpanel2;
-
-    // last valid wave number from text field
-    float wnum_last;
-
-    // true to zoom whum1 range in spectrum display
-    boolean wzoom;
-
-    // flag to skip one red_cursor_cell event
-    boolean skip_red = false;
-
-    // cursor display coordinates
-    double[] cur = null;
-    double[] scale_offset = new double[2];
-    double[][] scale_s = new double[2][2];
-    double[] dum_1 = new double[2];
-    double[] dum_2 = new double[2];
-
-    DisplayImpl display1;
-    RealTuple init_white_cursor;
-
-    // construct a image-spectrum interface
-    ChannelImage() throws VisADException, RemoteException {
-
-      // GUI layout
-      setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-      setAlignmentY(JPanel.TOP_ALIGNMENT);
-      setAlignmentX(JPanel.LEFT_ALIGNMENT);
-
-      // construct DataReferences for displaying white_cursor, red_cursor,
-      // spectrum and red_bar
-      white_cursor_ref = new DataReferenceImpl("white_cursor_ref");
-      red_cursor_ref = new DataReferenceImpl("red_cursor_ref");
-      spectrum_ref = new DataReferenceImpl("spectrum_ref");
-      red_bar_ref = new DataReferenceImpl("red_bar_ref");
-
-      // create text field for entering wave number
-      wpanel = new JPanel();
-      wpanel.setLayout(new BoxLayout(wpanel, BoxLayout.X_AXIS));
-      wnum_label = new JLabel("wave number:");
-      wnum_field = new JTextField("---");
-
-      // WLH 2 Dec 98
-      Dimension msize = wnum_field.getMaximumSize();
-      Dimension psize = wnum_field.getPreferredSize();
-      msize.height = psize.height;
-      wnum_field.setMaximumSize(msize);
-
-      wnum_field.addActionListener(this);
-      wnum_field.setActionCommand("wavenum");
-      wnum_field.setEnabled(true);
-      wpanel.add(wnum_label);
-      wpanel.add(wnum_field);
-      wpanel.add(Box.createRigidArea(new Dimension(10, 0)));
-      add(wpanel);
-
-      // initial wave number in middle of spectrum
-      wnum_last = (wnum_low + wnum_hi) / 2.0f;
-      wnum_field.setText(PlotText.shortString(wnum_last));
-
-      // white_cursor in image display for selecting spectrum
-      init_white_cursor =
-        new RealTuple(new Real[] {new Real(image_element, 0.0),
-                                  new Real(image_line, 0.0)});
-      white_cursor_ref.setData(init_white_cursor);
-
-      // create image data object for display and initialize radiance
-      // array to missing
-      image = new FlatField(image_type, image_set);
-      radiances = new double[1][nelements * nlines];
-      for (int i=0; i<nelements * nlines; i++) {
-        radiances[0][i] = Double.NaN;
-      }
-      image_ref = new DataReferenceImpl("image_ref");
-      image_ref.setData(image);
- 
-      // create red_cursor in spectrum display for setting wave number
-      Real init_red_cursor = new Real(wnum1, (double) wnum_last);
-      red_cursor_ref.setData(init_red_cursor);
-
-      // initialize image to initial wave number
-      do_image(wnum_last);
-
-      // create image Display using Java3D in 2-D mode
-      if (!java2d) {
-        try {
-          display1 = new DisplayImplJ3D("image display",
-                                        new TwoDDisplayRendererJ3D());
+          nastirte_c( tskin[0], psfc[0], lsfc[0], azen[0], p, tt_last_f[0],
+                      wv_last_f[0], oz_last_f[0], nbuse, vn, tb, rr );
+          System.arraycopy(rr, 0, rr_values_a[0], 0, 9127);
+          try
+          {
+            field_rr.setSamples(rr_values_a);
+         //-field_rrRef.setData( (spectrum_ref.getData()).subtract(
+         //-field_rrRef.setData( field_rr );
+            field_rrRef.setData( obs_spectrum.subtract(
+                                 field_rr,
+                                 Data.WEIGHTED_AVERAGE,
+                                 Data.NO_ERRORS ));
+          }
+          catch ( VisADException e2 ) {
+            System.out.println( e2.getMessage() );
+          }
+          catch ( RemoteException e3 ) {
+            System.out.println( e3.getMessage() );
+          }
         }
-        catch (UnsatisfiedLinkError e) {
-          java2d = true;
+        else {
+          first = false;
         }
       }
-      if (java2d) {
-        display1 = new DisplayImplJ2D("image display");
+    };
+    foward_radiance_cell.addReference(foward_radiance_ref);
+
+    CellImpl retrieval_cell = new CellImpl() {
+      float[] p_out = new float[40*3+25];
+      float[][] tt_values = new float[1][40];
+      float[][] wv_values = new float[1][40];
+      float[][] pp_values = new float[1][40];
+      boolean first = true;
+      public void doAction() throws VisADException, RemoteException
+      {
+        if (! first ) 
+        {
+          float gamt = (float) (((Real)(gamt_ref.getData())).getValue());
+          float gamw = (float) (((Real)(gamw_ref.getData())).getValue());
+          float gamts = 0.0001f;
+          float emis = 1.0f;
+          nasti_retrvl_c( rec, gamt, gamw, gamts, emis, p_out);
+
+          for ( int i = 0; i < 40; i++ ) {
+            tt_values[0][i] = p_out[i];
+            wv_values[0][i] = p_out[40 + i];
+          }
+
+          try
+          {
+            ((FlatField)rtvl_ttRef.getData()).setSamples(tt_values);
+            ((FlatField)rtvl_wvRef.getData()).setSamples(wv_values);
+          }
+          catch ( VisADException e2 ) {
+            System.out.println( e2.getMessage() );
+          }
+          catch ( RemoteException e3 ) {
+            System.out.println( e3.getMessage() );
+          }
+        }
+        else {
+          first = false;
+        }
       }
-      ScalarMap line_map = new ScalarMap(image_line, Display.YAxis);
-      display1.addMap(line_map);
-      line_map.setRange(12.5, -0.5);
-      ScalarMap element_map = new ScalarMap(image_element, Display.XAxis);
-      display1.addMap(element_map);
-      element_map.setRange(-48.75, 48.75);
-      ScalarMap radiance_map1 = new ScalarMap(atmosphericRadiance, Display.RGB);
-      display1.addMap(radiance_map1);
+    };
+    retrieval_cell.addReference(retrieval_ref);
 
-      line_map.getScale( scale_offset, dum_1, dum_2 );
-      scale_s[1][0] = scale_offset[0];
-      scale_s[1][1] = scale_offset[1];
-      element_map.getScale( scale_offset, dum_1, dum_2 );
-      scale_s[0][0] = scale_offset[0];
-      scale_s[0][1] = scale_offset[1];
-
-      // always autoscale color map to range of radiances
-      display1.setAlwaysAutoScale(true);
-
-      // turn on scales for image line and element
-      GraphicsModeControl mode1 = display1.getGraphicsModeControl();
-      // mode1.setScaleEnable(true);
-
-      // link image to display
-      display1.addReference(image_ref);
-
-      // make white_cursor and link to display with direct manipulation
-      // (so white_cursor can select spectrum)
-      ConstantMap[] wmaps = {new ConstantMap(1.0, Display.Blue),
-                             new ConstantMap(1.0, Display.Red),
-                             new ConstantMap(1.0, Display.Green),
-                             new ConstantMap(4.0, Display.PointSize)};
-      if (java2d) {
-      //display1.addReferences(new DirectManipulationRendererJ2D(),
-      //                       white_cursor_ref, wmaps);
-        cur = new double[2];
+    CellImpl do_image_cell = new CellImpl() {
+      double[][] radiances;
+      boolean first = true;
+      public void doAction() throws VisADException, RemoteException 
+      {
+        if (! first ) {
+        double radiance;
+        radiances = new double[1][nelements * nlines];
+        for (int i=0; i<ntimes; i++) {
+          Field spectrum =
+            (Field) spectrum_field.getSample(i);
+          try {
+            radiance =
+           //-((Real) spectrum.evaluate(new Real(wnum1, wnum))).getValue();
+              ((Real) spectrum.evaluate((Real)wnum_last_ref.getData())).getValue();
+          }
+          catch (VisADException e1) {
+            radiance = Double.NaN;
+          }
+          radiances[0][time_to_sample[i]] = radiance;
+        }
+        ((FlatField)image_ref.getData()).setSamples(radiances);
+        }
+        else {
+          first = false;
+        }
       }
-      else {
-      //display1.addReferences(new DirectManipulationRendererJ3D(),
-      //                       white_cursor_ref, wmaps);
-        cur = new double[3];
-      }
-
-      display1.addReference( white_cursor_ref, wmaps);
-
-      display1.addDisplayListener( new CursorClick() );
- 
-      // create panel for display with border
-      dpanel1 = new JPanel();
-      dpanel1.setLayout(new BoxLayout(dpanel1, BoxLayout.X_AXIS));
-      dpanel1.add(display1.getComponent());
-      dpanel1.add(Box.createHorizontalStrut(0));
-      Border etchedBorder5 =
-        new CompoundBorder(new EtchedBorder(),
-                           new EmptyBorder(5, 5, 5, 5));
-      dpanel1.setBorder(etchedBorder5);
-      add(dpanel1);
-
-      // create color widget for atmosphericRadiance
-      LabeledRGBWidget lw = new LabeledRGBWidget(radiance_map1);
-      Dimension d = new Dimension(400, 200);
-      lw.setMaximumSize(d);
-      JPanel lpanel = new JPanel();
-      lpanel.setLayout(new BoxLayout(lpanel, BoxLayout.X_AXIS));
-      lpanel.add(lw);
-      lpanel.setBorder(etchedBorder5);
-      add(lpanel);
-
-      // create buttons for zooming and center spectrum
-      zpanel = new JPanel();
-      zpanel.setLayout(new BoxLayout(zpanel, BoxLayout.X_AXIS));
-      wnum_zoom = new JCheckBox("wave number zoom", false);
-      wnum_zoom.addItemListener(this);
-      recenter = new JButton("Recenter");
-      recenter.addActionListener(this);
-      recenter.setActionCommand("recenter");
-      zpanel.add(wnum_zoom);
-      zpanel.add(recenter);
-      add(zpanel);
-
-      // create spectrum Display using Java3D in 2-D mode
-      DisplayImpl display2 = null;
-      if (java2d) {
-        display2 = new DisplayImplJ2D("spectrum display");
-      }
-      else {
-        display2 = new DisplayImplJ3D("spectrum display",
-                                      new TwoDDisplayRendererJ3D());
-      }
-      wnum_map = new ScalarMap(wnum1, Display.XAxis);
-      display2.addMap(wnum_map);
-      radiance_map2 = new ScalarMap(atmosphericRadiance, Display.YAxis);
-      display2.addMap(radiance_map2);
-      // get autoscale events for atmosphericRadiance, to set length
-      // of red_bar
-      radiance_map2.addScalarMapListener(this);
-
-      // always autoscale YAxis to range of radiances
-      display1.setAlwaysAutoScale(true);
-
-      // turn on scales for image line and element
-      GraphicsModeControl mode2 = display2.getGraphicsModeControl();
-      mode2.setScaleEnable(true);
-
-      // link spectrum to display
-      display2.addReference(spectrum_ref);
-
-      // link red_bar for display
-      ConstantMap[] bmaps = {new ConstantMap(0.0, Display.Blue),
-                             new ConstantMap(1.0, Display.Red),
-                             new ConstantMap(0.0, Display.Green)};
-      display2.addReference(red_bar_ref, bmaps);
-
-      // link red_cursor to display with direct manipulation
-      // (so red_cursor can select wave number)
-      ConstantMap[] rmaps = {new ConstantMap(-1.0, Display.YAxis),
-                             new ConstantMap(0.0, Display.Blue),
-                             new ConstantMap(1.0, Display.Red),
-                             new ConstantMap(0.0, Display.Green),
-                             new ConstantMap(4.0, Display.PointSize)};
-      if (java2d) {
-        display2.addReferences(new DirectManipulationRendererJ2D(),
-                               red_cursor_ref, rmaps);
-      }
-      else {
-        display2.addReferences(new DirectManipulationRendererJ3D(),
-                               red_cursor_ref, rmaps);
-      }
-      // create panel for display with border
-      dpanel2 = new JPanel();
-      dpanel2.setLayout(new BoxLayout(dpanel2, BoxLayout.X_AXIS));
-      dpanel2.add(display2.getComponent());
-      dpanel2.add(Box.createHorizontalStrut(0));
-      dpanel2.setBorder(etchedBorder5);
-      add(dpanel2);
+    };
+    do_image_cell.addReference(wnum_last_ref);
 
       // CellImpl to change spectrum when user moves white_cursor
       CellImpl white_cursor_cell = new CellImpl() {
+        int line;
+        Set domain;
+        float[][] samples;
+        double[][] new_range;
+        FunctionType f_type;
+        Field obs_spectrum = null;
+        boolean first = true;
         public void doAction() throws VisADException, RemoteException {
+        if ( ! first )
+        {
+          System.out.println("white_cursor_cell: doAction");
           int i;
           red_bar_ref.setData(null);
           RealTuple white_cursor = (RealTuple) white_cursor_ref.getData();
           float elem = (float) ((Real) white_cursor.getComponent(0)).getValue();
           int element =
             (int) Math.round((elem + 45.0) / 7.5);
-          int line =
+          line =
             (int) Math.round( ((Real) white_cursor.getComponent(1)).getValue() );
+          System.out.println(element+"  "+line);
           if (0 <= line && line < nlines && 0 <= element && element < nelements) {
             i = sample_to_time[line][element];
           }
@@ -652,19 +728,47 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             i = -1;
           }
           if (i >= 0) {
-            Field spectrum =
-           // (Field) ((Tuple) nasti.getSample(i)).getComponent(spectrum_index);
-              (Field) spectrum_field.getSample(i);
-            spectrum_ref.setData(spectrum);
+            obs_spectrum =
+            (Field)spectrum_field.getSample(i);
+
+            domain = obs_spectrum.getDomainSet();
+            int length = domain.getLength();
+            samples = domain.getSamples(false);
+            double[][] samples_d = Set.floatToDouble(samples);
+            double[][] range = obs_spectrum.getValues();
+            new_range = new double[2][length];
+            Set scatter_domain = new Linear1DSet(0d, (double)length, length);
+            System.arraycopy(samples_d[0], 0, new_range[0], 0, length);
+            System.arraycopy(range[0], 0, new_range[1], 0, length);
+            f_type = new FunctionType(
+                         ((SetType)scatter_domain.getType()).getDomain(),
+                         scatter_tuple);
+            FlatField scatter_field = new FlatField(f_type, scatter_domain);
+            scatter_field.setSamples(new_range);
+           
+            spectrum_ref_s.setData(scatter_field);
+
+            field_rrRef.setData( obs_spectrum.subtract(
+                                 field_rr,
+                                 Data.WEIGHTED_AVERAGE,
+                                 Data.NO_ERRORS) );
           }
           else {
+            System.out.println("------------index: "+i);
             spectrum_ref.setData(null);
+            spectrum_ref_s.setData(null);
           }
+          rec = i;
+         }
+         else {
+           first = false;
+         }
         }
       };
       // link white_cursor to white_cursor_cell
       white_cursor_cell.addReference(white_cursor_ref);
 
+  /***
       // CellImpl to change wave number when user moves red_cursor
       CellImpl red_cursor_cell = new CellImpl() {
         public void doAction() throws VisADException, RemoteException {
@@ -684,10 +788,11 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             wnum = wnum_hi;
           }
           try {
-            do_image(wnum);
+        //- do_image(wnum);
             wnum_last = wnum;
+            wnum_last_ref.setData(red_cursor);
             do_red_bar(wnum);
-            wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
+        //- wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
           }
           catch (VisADException exc) {
           }
@@ -697,27 +802,724 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       };
       // link red_cursor to red_cursor_cell
       red_cursor_cell.addReference(red_cursor_ref);
+   ***/
 
+
+    // create JFrame (i.e., a window) for display and slider
+    JFrame frame = new JFrame("Nesti VisAD Application");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    ChannelImage channel_image1 = new ChannelImage();
+
+    frame.getContentPane().add(channel_image1);
+
+    // set size of JFrame and make it visible
+    // frame.setSize(400, 900);
+    frame.setSize(1200, 900);
+    frame.setVisible(true);
+
+    if (server_server != null)
+    {
+      RemoteDataReferenceImpl[] refs = new RemoteDataReferenceImpl[n_refs];
+
+      refs[0] = new RemoteDataReferenceImpl((DataReferenceImpl)image_ref);
+      refs[1] = new RemoteDataReferenceImpl((DataReferenceImpl)white_cursor_ref);
+      refs[2] = new RemoteDataReferenceImpl((DataReferenceImpl)red_cursor_ref);
+      refs[3] = new RemoteDataReferenceImpl((DataReferenceImpl)red_bar_ref);
+      refs[4] = new RemoteDataReferenceImpl((DataReferenceImpl)field_ttRef);
+      refs[5] = new RemoteDataReferenceImpl((DataReferenceImpl)field_wvRef);
+      refs[6] = new RemoteDataReferenceImpl((DataReferenceImpl)field_ozRef);
+      refs[7] = new RemoteDataReferenceImpl((DataReferenceImpl)spectrum_ref);
+      refs[8] = new RemoteDataReferenceImpl((DataReferenceImpl)spectrum_ref_s);
+      refs[9] = new RemoteDataReferenceImpl((DataReferenceImpl)field_rrRef);
+      refs[10] = new RemoteDataReferenceImpl((DataReferenceImpl)rtvl_ttRef);
+      refs[11] = new RemoteDataReferenceImpl((DataReferenceImpl)rtvl_wvRef);
+      refs[12] = new RemoteDataReferenceImpl((DataReferenceImpl)gamt_ref);
+      refs[13] = new RemoteDataReferenceImpl((DataReferenceImpl)gamw_ref);
+      refs[14] = new RemoteDataReferenceImpl((DataReferenceImpl)foward_radiance_ref);
+      refs[15] = new RemoteDataReferenceImpl((DataReferenceImpl)retrieval_ref);
+      refs[16] = new RemoteDataReferenceImpl((DataReferenceImpl)spectrum_field_ref);
+      refs[17] = new RemoteDataReferenceImpl((DataReferenceImpl)wnum_last_ref);
+      refs[18] = new RemoteDataReferenceImpl((DataReferenceImpl)wnum_low_ref);
+      refs[19] = new RemoteDataReferenceImpl((DataReferenceImpl)wnum_hi_ref);
+
+      server_server.setDataReferences(refs);
     }
 
-    /** update image based on wave number */
-    void do_image(float wnum) throws VisADException, RemoteException {
-      double radiance;
-      for (int i=0; i<ntimes; i++) {
-        Field spectrum =
-        //(Field) ((Tuple) nasti.getSample(i)).getComponent(spectrum_index);
-          (Field) spectrum_field.getSample(i);
-        try {
-          radiance =
-            ((Real) spectrum.evaluate(new Real(wnum1, wnum))).getValue();
-        }
-        catch (VisADException e1) {
-          radiance = Double.NaN;
-        }
-        radiances[0][time_to_sample[i]] = radiance;
+  }//- end: setupServer
+
+  void setupClient() throws VisADException, RemoteException
+  {
+    client = true;
+    RemoteDataReference[] refs = client_server.getDataReferences();
+    if (refs == null) {
+      System.out.println("Cannot connect to server");
+      System.exit(0);
+    }
+
+    image_ref = refs[0];
+    white_cursor_ref = refs[1];
+    red_cursor_ref = refs[2];
+    red_bar_ref = refs[3];
+    field_ttRef = refs[4];
+    field_wvRef = refs[5];
+    field_ozRef = refs[6];
+    spectrum_ref = refs[7];
+    spectrum_ref_s = refs[8];
+    field_rrRef = refs[9];
+    rtvl_ttRef = refs[10];
+    rtvl_wvRef = refs[11];
+    gamt_ref = refs[12];
+    gamw_ref = refs[13];
+    foward_radiance_ref = refs[14];
+    retrieval_ref = refs[15];
+    spectrum_field_ref = refs[16];
+    wnum_last_ref = refs[17];
+    wnum_low_ref = refs[18];
+    wnum_hi_ref = refs[19];
+
+    RealTupleType rt_type = ((FunctionType)image_ref.getType()).getDomain();
+    image_element = (RealType)rt_type.getComponent(0);
+    image_line = (RealType)rt_type.getComponent(1);
+
+    rt_type = ((FunctionType)field_rrRef.getType()).getDomain();
+    wnum1 = (RealType)rt_type.getComponent(0);
+    atmosphericRadiance = (RealType)((FunctionType)field_rrRef.getType()).getRange();
+    red_bar_type = (FunctionType)red_bar_ref.getType();
+
+    rt_type = ((FunctionType)field_ttRef.getType()).getDomain();
+    pressure = (RealType)rt_type.getComponent(0);
+    temperature = (RealType)((FunctionType)field_ttRef.getType()).getRange();
+    watervapor = (RealType)((FunctionType)field_wvRef.getType()).getRange();
+    ozone = (RealType)((FunctionType)field_ozRef.getType()).getRange();
+
+    wnum_low = (float)((Real)wnum_low_ref.getData()).getValue();
+    wnum_hi = (float)((Real)wnum_hi_ref.getData()).getValue();
+
+    // create JFrame (i.e., a window) for display and slider
+    JFrame frame = new JFrame("Nesti VisAD Application");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+
+    ChannelImage channel_image1 = new ChannelImage();
+
+    frame.getContentPane().add(channel_image1);
+
+    // set size of JFrame and make it visible
+    // frame.setSize(400, 900);
+    frame.setSize(1200, 900);
+    frame.setVisible(true);
+
+  }//- end: setupClient
+
+
+  /** this make an image of one NAST-I channel, with a JTextField
+      for channel selection, a LabeledRGBWidget for pixel colors
+      and a spectrum display */
+  class ChannelImage extends JPanel
+        implements ActionListener, ItemListener, ScalarMapListener {
+    // array for image radiances
+    double[][] radiances;
+    // image data object for display
+    FlatField image;
+
+    // ScalarMap for atmosphericRadiance in the spectrum display
+    ScalarMap radiance_map2;
+
+    // some GUI components
+    JPanel wpanel, s_panel;
+    JLabel wnum_label;
+    JTextField wnum_field;
+    JPanel zpanel;
+    JCheckBox wnum_zoom;
+    JButton recenter;
+
+    // last valid wave number from text field
+    float wnum_last;
+
+    // true to zoom whum1 range in spectrum display
+    boolean wzoom;
+
+    // flag to skip one red_cursor_cell event
+    boolean skip_red = false;
+
+    // cursor display coordinates
+    double[] cur = null;
+    double[] scale_offset = new double[2];
+    double[][] scale_s = new double[2][2];
+    double[] dum_1 = new double[2];
+    double[] dum_2 = new double[2];
+
+    DisplayImpl img_display;
+    DisplayImpl spectrumDisplay;
+    DisplayImpl spectrum_diff_display;
+    DisplayImpl raobDisplay;
+    DisplayImpl rtvl_display;
+    RealTuple init_white_cursor;
+
+    float[][] tt_values;
+    float[][] wv_values;
+    float[][] oz_values;
+//- double[] rr_a = new double[9127];
+    double[][] rr_values_a;
+
+    ConstantMap[] red = new ConstantMap[3];
+    ConstantMap[] green = new ConstantMap[3];
+    ConstantMap[] blue = new ConstantMap[3];
+
+    // construct a image-spectrum interface
+    ChannelImage() throws VisADException, RemoteException {
+
+      rr_values_a = new double[1][9127];
+      if (java2d) {
+        cur = new double[2];
       }
-      image.setSamples(radiances);
+      else {
+        cur = new double[3];
+      }
+
+      setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+      setAlignmentY(JPanel.TOP_ALIGNMENT);
+      setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+      JPanel l_panel = new JPanel();
+      l_panel.setLayout(new BoxLayout(l_panel, BoxLayout.Y_AXIS)); 
+      l_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+      l_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+      add(l_panel);
+
+      JPanel c_panel = new JPanel();
+      c_panel.setLayout(new BoxLayout(c_panel, BoxLayout.Y_AXIS)); 
+      c_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+      c_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+      add(c_panel);
+
+      JPanel r_panel = new JPanel();
+      r_panel.setLayout(new BoxLayout(r_panel, BoxLayout.Y_AXIS)); 
+      r_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+      r_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+      add(r_panel);
+
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.Y_AXIS)); 
+      s_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+      s_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+      l_panel.add(s_panel);
+
+      l_panel.add(new JLabel("Nesti Foward Radiance and Retrieval Application"));
+      l_panel.add(new JLabel("using VisAD  -  see:"));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  http://www.ssec.wisc.edu/~billh/visad.html"));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("for more information about VisAD."));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("William Hibbard, Paolo Antonelli and Tom Rink"));
+      l_panel.add(new JLabel("Space Science and Engineering Center"));
+      l_panel.add(new JLabel("University of Wisconsin - Madison"));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  "));
+      l_panel.add(new JLabel("  "));
+
+
+      // initial wave number in middle of spectrum
+   //-wnum_last = (wnum_low + wnum_hi) / 2.0f;
+      wnum_last = (float)((Real)wnum_last_ref.getData()).getValue();
+   
+    if(!client)
+    {
+
+      // white_cursor in image display for selecting spectrum
+      init_white_cursor =
+        new RealTuple(new Real[] {new Real(image_element, 0.0),
+                                  new Real(image_line, 0.0)});
+      white_cursor_ref.setData(init_white_cursor);
+
+      // create red_cursor in spectrum display for setting wave number
+   //-Real init_red_cursor = new Real(wnum1, (double) wnum_last);
+   //-red_cursor_ref.setData(init_red_cursor);
+      red_cursor_ref.setData(wnum_last_ref.getData());
     }
+      // initialize image to initial wave number
+   //-do_image(wnum_last);
+
+
+      // create image Display using Java3D in 2-D mode
+      if (!java2d) {
+        try {
+          img_display = new DisplayImplJ3D("image display",
+                                            new TwoDDisplayRendererJ3D());
+        }
+        catch (UnsatisfiedLinkError e) {
+          java2d = true;
+        }
+      }
+      if (java2d) {
+        img_display = new DisplayImplJ2D("image display");
+      }
+
+      ScalarMap line_map = new ScalarMap(image_line, Display.YAxis);
+      img_display.addMap(line_map);
+      line_map.setRange(12.5, -0.5);
+      ScalarMap element_map = new ScalarMap(image_element, Display.XAxis);
+      img_display.addMap(element_map);
+      element_map.setRange(-48.75, 48.75);
+      ScalarMap radiance_map1 = new ScalarMap(atmosphericRadiance, Display.RGB);
+      img_display.addMap(radiance_map1);
+
+      line_map.getScale( scale_offset, dum_1, dum_2 );
+      scale_s[1][0] = scale_offset[0];
+      scale_s[1][1] = scale_offset[1];
+      element_map.getScale( scale_offset, dum_1, dum_2 );
+      scale_s[0][0] = scale_offset[0];
+      scale_s[0][1] = scale_offset[1];
+
+      // always autoscale color map to range of radiances
+      img_display.setAlwaysAutoScale(true);
+
+      // turn on scales for image line and element
+      GraphicsModeControl mode1 = img_display.getGraphicsModeControl();
+      // mode1.setScaleEnable(true);
+
+      // make white_cursor and link to display with direct manipulation
+      // (so white_cursor can select spectrum)
+      ConstantMap[] wmaps = {new ConstantMap(1.0, Display.Blue),
+                             new ConstantMap(1.0, Display.Red),
+                             new ConstantMap(1.0, Display.Green),
+                             new ConstantMap(4.0, Display.PointSize)};
+
+      img_display.addDisplayListener( new CursorClick() );
+
+      if (client) {
+        RemoteDisplayImpl remote_img_display = new RemoteDisplayImpl(img_display);
+        remote_img_display.addReference(image_ref);
+        remote_img_display.addReference(white_cursor_ref, wmaps);
+      }
+      else {
+        img_display.addReference(image_ref);
+        img_display.addReference(white_cursor_ref, wmaps);
+      }
+ 
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      s_panel.add(img_display.getComponent());
+      s_panel.add(Box.createHorizontalStrut(0));
+      Border etchedBorder5 =
+        new CompoundBorder(new EtchedBorder(),
+                           new EmptyBorder(5, 5, 5, 5));
+      s_panel.setBorder(etchedBorder5);
+      l_panel.add(s_panel);
+
+//---------- RGBWidget
+
+      // create color widget for atmosphericRadiance
+      LabeledRGBWidget lw = new LabeledRGBWidget(radiance_map1);
+      Dimension d = new Dimension(400, 200);
+      lw.setMaximumSize(d);
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      s_panel.add(lw);
+      s_panel.setBorder(etchedBorder5);
+      l_panel.add(s_panel);
+
+      // create text field for entering wave number
+      wpanel = new JPanel();
+      wpanel.setLayout(new BoxLayout(wpanel, BoxLayout.X_AXIS));
+      wnum_label = new JLabel("wave number:");
+      wnum_field = new JTextField("---");
+
+      //- Bill's suggested hack
+      Dimension msize = wnum_field.getMaximumSize();
+      Dimension psize = wnum_field.getPreferredSize();
+      msize.height = psize.height;
+      wnum_field.setMaximumSize(msize);
+
+      wnum_field.addActionListener(this);
+      wnum_field.setActionCommand("wavenum");
+      wnum_field.setEnabled(true);
+      wpanel.add(wnum_label);
+      wpanel.add(wnum_field);
+      wpanel.add(Box.createRigidArea(new Dimension(10, 0)));
+      c_panel.add(wpanel);
+
+      wnum_field.setText(PlotText.shortString(wnum_last));
+
+//-------- observation spectrum display
+
+      // create spectrum Display using Java3D in 2-D mode
+      if (java2d) {
+        spectrumDisplay = new DisplayImplJ2D("spectrum display");
+      }
+      else {
+        spectrumDisplay = new DisplayImplJ3D("spectrum display",
+                                      new TwoDDisplayRendererJ3D());
+      }
+      wnum_map = new ScalarMap(wnum1, Display.XAxis);
+      spectrumDisplay.addMap(wnum_map);
+      radiance_map2 = new ScalarMap(atmosphericRadiance, Display.YAxis);
+      spectrumDisplay.addMap(radiance_map2);
+      // get autoscale events for atmosphericRadiance, to set length
+      // of red_bar
+      radiance_map2.addScalarMapListener(this);
+
+      // always autoscale YAxis to range of radiances
+   //-spectrumDisplay.setAlwaysAutoScale(true);  (TDR: Dec. 21, 1998)
+
+      // turn on scales for image line and element
+      GraphicsModeControl mode2 = spectrumDisplay.getGraphicsModeControl();
+      mode2.setScaleEnable(true);
+
+      // link red_bar for display
+      ConstantMap[] bmaps = {new ConstantMap(0.0, Display.Blue),
+                             new ConstantMap(1.0, Display.Red),
+                             new ConstantMap(0.0, Display.Green)};
+
+      // link red_cursor to display with direct manipulation
+      // (so red_cursor can select wave number)
+      ConstantMap[] rmaps = {new ConstantMap(-1.0, Display.YAxis),
+                             new ConstantMap(0.0, Display.Blue),
+                             new ConstantMap(1.0, Display.Red),
+                             new ConstantMap(0.0, Display.Green),
+                             new ConstantMap(4.0, Display.PointSize)};
+
+      if (client) {
+        RemoteDisplayImpl remote_spectrumDisplay = 
+          new RemoteDisplayImpl(spectrumDisplay); 
+     //-remote_spectrumDisplay.addReference(spectrum_ref);
+        remote_spectrumDisplay.addReference(spectrum_ref_s);
+        remote_spectrumDisplay.addReference(red_bar_ref, bmaps);
+        if (java2d) {
+          remote_spectrumDisplay.addReferences(new DirectManipulationRendererJ2D(),
+                                     red_cursor_ref, rmaps);
+        }
+        else {
+          remote_spectrumDisplay.addReferences(new DirectManipulationRendererJ3D(),
+                                     red_cursor_ref, rmaps);
+        }
+      }
+      else {
+     //-spectrumDisplay.addReference(spectrum_ref);
+        spectrumDisplay.addReference(spectrum_ref_s);
+        spectrumDisplay.addReference(red_bar_ref, bmaps);
+        if (java2d) {
+          spectrumDisplay.addReferences(new DirectManipulationRendererJ2D(),
+                               red_cursor_ref, rmaps);
+        }
+        else {
+          spectrumDisplay.addReferences(new DirectManipulationRendererJ3D(),
+                               red_cursor_ref, rmaps);
+        }
+      }
+
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      s_panel.add(spectrumDisplay.getComponent());
+      s_panel.add(Box.createHorizontalStrut(0));
+      s_panel.setBorder(etchedBorder5);
+      c_panel.add(s_panel);
+
+ //------- create button for forward Radiance compute
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      JButton compute = new JButton("foward Radiance");
+      compute.addActionListener(this);
+      compute.setActionCommand("fowardRadiance");
+      s_panel.add(compute);
+      c_panel.add(s_panel);
+
+//--------- Spectrum ( obs - foward Radiance)
+
+    ScalarMap radiance_map;
+
+      // create spectrum Display using Java3D in 2-D mode
+      if (java2d) {
+        spectrum_diff_display = new DisplayImplJ2D("spectrum_diff_display");
+      }
+      else {
+        spectrum_diff_display = new DisplayImplJ3D("spectrum_diff_display",
+                                      new TwoDDisplayRendererJ3D());
+      }
+      (spectrum_diff_display.getGraphicsModeControl()).setPointMode(true);
+      wnum_map_diff = new ScalarMap(wnum1, Display.XAxis);
+      wnum_map_diff.setRange((double) wnum_low, (double) wnum_hi);
+      spectrum_diff_display.addMap(wnum_map_diff);
+      radiance_map = new ScalarMap(atmosphericRadiance, Display.YAxis);
+      spectrum_diff_display.addMap(radiance_map);
+
+      // always autoscale YAxis to range of radiances
+      spectrum_diff_display.setAlwaysAutoScale(true);
+
+      // turn on scales
+      mode2 = spectrum_diff_display.getGraphicsModeControl();
+      mode2.setScaleEnable(true);
+
+      if (client) {
+        RemoteDisplayImpl remote_spectrum_diff_display = 
+              new RemoteDisplayImpl(spectrum_diff_display);
+        remote_spectrum_diff_display.addReference(field_rrRef);
+      }
+      else {
+        spectrum_diff_display.addReference(field_rrRef);
+      }
+
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      s_panel.add(spectrum_diff_display.getComponent());
+      s_panel.add(Box.createHorizontalStrut(0));
+      s_panel.setBorder(etchedBorder5);
+      c_panel.add(s_panel);
+
+ //--------- create buttons for zooming and center spectrum
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      wnum_zoom = new JCheckBox("wave number zoom", false);
+      wnum_zoom.addItemListener(this);
+      recenter = new JButton("Recenter");
+      recenter.addActionListener(this);
+      recenter.setActionCommand("recenter");
+      s_panel.add(wnum_zoom);
+      s_panel.add(recenter);
+      c_panel.add(s_panel);
+
+//---------- range control buttons --------
+
+      s_panel = new JPanel();
+      s_panel.setLayout( new BoxLayout(s_panel, BoxLayout.X_AXIS) );
+      s_panel.setBorder( etchedBorder5 );
+      JButton all = new JButton("ALL");
+      all.addActionListener(this);
+      all.setActionCommand("ALL");
+      s_panel.add( all );
+      JButton co2_1 = new JButton("CO2_1");
+      co2_1.addActionListener(this);
+      co2_1.setActionCommand("CO2_1");
+      s_panel.add( co2_1 );
+      JButton o3 = new JButton("O3");
+      o3.addActionListener(this);
+      o3.setActionCommand("O3");
+      s_panel.add( o3 );
+      JButton h2o = new JButton("H2O");
+      h2o.addActionListener(this);
+      h2o.setActionCommand("H2O");
+      s_panel.add( h2o );
+      JButton co2_2 = new JButton("CO2_2");
+      co2_2.addActionListener(this);
+      co2_2.setActionCommand("CO2_2");
+      s_panel.add( co2_2 );
+
+      c_panel.add(s_panel);
+
+//----  observation profile (raob) Display  ----------
+
+      red[0] = new ConstantMap(1.0, Display.Red);
+      red[1] = new ConstantMap(0.0, Display.Green);
+      red[2] = new ConstantMap(0.0, Display.Blue);
+      green[0] = new ConstantMap(0.0, Display.Red);
+      green[1] = new ConstantMap(1.0, Display.Green);
+      green[2] = new ConstantMap(0.0, Display.Blue);
+      blue[0] = new ConstantMap(0.0, Display.Red);
+      blue[1] = new ConstantMap(0.0, Display.Green);
+      blue[2] = new ConstantMap(1.0, Display.Blue);
+
+      if ( java2d ) {
+        raobDisplay = new DisplayImplJ2D("sounding display");
+      }
+      else {
+        raobDisplay = new DisplayImplJ3D("sounding display",
+                                       new TwoDDisplayRendererJ3D());
+      }
+
+      ScalarMap pres_Y = new ScalarMap( pressure, Display.YAxis );
+      pres_Y.setRange( 1000., 50.);
+      raobDisplay.addMap( pres_Y );
+      raobDisplay.addMap( new ScalarMap( temperature, Display.XAxis ));
+      raobDisplay.addMap( new ScalarMap( watervapor, Display.XAxis ));
+      raobDisplay.addMap( new ScalarMap( ozone, Display.XAxis ));
+      mode1 = raobDisplay.getGraphicsModeControl();
+      mode1.setScaleEnable(true);
+
+      if (client) {
+        RemoteDisplayImpl remote_raobDisplay =
+              new RemoteDisplayImpl( raobDisplay );
+        if (java2d) {
+          remote_raobDisplay.addReferences( new DirectManipulationRendererJ2D(),
+                                     field_ttRef, red );
+          remote_raobDisplay.addReferences( new DirectManipulationRendererJ2D(),
+                                     field_wvRef, green );
+          remote_raobDisplay.addReferences( new DirectManipulationRendererJ2D(),
+                                     field_ozRef, blue );
+        }
+        else {
+          remote_raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
+                                     field_ttRef, red );
+          remote_raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
+                                     field_wvRef, green );
+          remote_raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
+                                     field_ozRef, blue );
+        }
+      }
+      else {
+        if (java2d) {
+          raobDisplay.addReferences( new DirectManipulationRendererJ2D(),
+                                     field_ttRef, red );
+          raobDisplay.addReferences( new DirectManipulationRendererJ2D(),
+                                     field_wvRef, green );
+          raobDisplay.addReferences( new DirectManipulationRendererJ2D(),
+                                     field_ozRef, blue );
+        }
+        else {
+          raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
+                                     field_ttRef, red );
+          raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
+                                     field_wvRef, green );
+          raobDisplay.addReferences( new DirectManipulationRendererJ3D(),
+                                     field_ozRef, blue );
+        }
+      }
+
+      // create panel for display with border
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      s_panel.add(raobDisplay.getComponent());
+      s_panel.add(Box.createHorizontalStrut(0));
+      s_panel.setBorder(etchedBorder5);
+      r_panel.add(s_panel);
+
+//------- Computed (Retrieval) profile
+
+      red[0] = new ConstantMap(1.0, Display.Red);
+      red[1] = new ConstantMap(0.0, Display.Green);
+      red[2] = new ConstantMap(0.0, Display.Blue);
+      green[0] = new ConstantMap(0.0, Display.Red);
+      green[1] = new ConstantMap(1.0, Display.Green);
+      green[2] = new ConstantMap(0.0, Display.Blue);
+      blue[0] = new ConstantMap(0.0, Display.Red);
+      blue[1] = new ConstantMap(0.0, Display.Green);
+      blue[2] = new ConstantMap(1.0, Display.Blue);
+
+      tt_values = new float[1][40];
+      wv_values = new float[1][40];
+
+      if ( java2d ) {
+        rtvl_display = new DisplayImplJ2D("retrieval display");
+      }
+      else {
+        rtvl_display = new DisplayImplJ3D("retrieval display",
+                                       new TwoDDisplayRendererJ3D());
+      }
+
+      pres_Y = new ScalarMap( pressure, Display.YAxis );
+      pres_Y.setRange( 1000., 50.);
+      rtvl_display.addMap( pres_Y );
+      rtvl_display.addMap( new ScalarMap( temperature, Display.XAxis ));
+      rtvl_display.addMap( new ScalarMap( watervapor, Display.XAxis ));
+      mode1 = rtvl_display.getGraphicsModeControl();
+      mode1.setScaleEnable(true);
+
+      rtvl_display.setAlwaysAutoScale(true);
+
+      if (client) {
+        RemoteDisplayImpl remote_rtvl_display = 
+          new RemoteDisplayImpl(rtvl_display);
+        remote_rtvl_display.addReference( rtvl_ttRef, red );
+        remote_rtvl_display.addReference( rtvl_wvRef, green );
+      }
+      else {
+        rtvl_display.addReference( rtvl_ttRef, red );
+        rtvl_display.addReference( rtvl_wvRef, green );
+      }
+
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.X_AXIS));
+      s_panel.add(rtvl_display.getComponent());
+      s_panel.add(Box.createHorizontalStrut(0));
+      s_panel.setBorder(etchedBorder5);
+      r_panel.add(s_panel);
+
+      //- create retrieval controls panel
+      s_panel = new JPanel();
+      s_panel.setLayout(new BoxLayout(s_panel, BoxLayout.Y_AXIS));
+      s_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+      s_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+      s_panel.add(Box.createHorizontalStrut(0));
+      s_panel.setBorder(etchedBorder5);
+      r_panel.add(s_panel);
+
+      // create button for retrieval compute
+      JButton retrieval = new JButton("retrieval");
+      retrieval.addActionListener(this);
+      retrieval.setActionCommand("retrieval");
+      s_panel.add(retrieval);
+
+      VisADSlider gamt_slider =
+        new VisADSlider(gamt_ref, 10f, 30f, 20f, RealType.Generic, "gamt");
+      s_panel.add(gamt_slider);
+
+      VisADSlider gamw_slider =
+        new VisADSlider(gamw_ref, 20f, 60f, 40f, RealType.Generic, "gamw");
+      s_panel.add(gamw_slider);
+
+   if (!client) 
+   {
+      // CellImpl to change wave number when user moves red_cursor
+      CellImpl red_cursor_cell = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+          int i;
+          if (skip_red) {
+            skip_red = false;
+            return;
+          }
+          Real red_cursor = (Real) red_cursor_ref.getData();
+          if (red_cursor == null) return;
+          float wnum = (float) red_cursor.getValue();
+
+          if (wnum < wnum_low) {
+            wnum = wnum_low;
+          }
+          if (wnum > wnum_hi) {
+            wnum = wnum_hi;
+          }
+          try {
+        //- do_image(wnum);
+            wnum_last = wnum;
+            wnum_last_ref.setData(red_cursor);
+            do_red_bar(wnum);
+        //- wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
+          }
+          catch (VisADException exc) {
+          }
+          catch (RemoteException exc) {
+          }
+        }
+      };
+      // link red_cursor to red_cursor_cell
+      red_cursor_cell.addReference(red_cursor_ref);
+    }
+
+    CellImpl wnum_field_cell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        float wnum = (float)((Real)wnum_last_ref.getData()).getValue();
+        wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
+      }
+    };
+    if (!client) {
+      wnum_field_cell.addReference(wnum_last_ref);
+    }
+    else {
+      RemoteCellImpl remote_wnum_field_cell =
+        new RemoteCellImpl(wnum_field_cell);
+      remote_wnum_field_cell.addReference(wnum_last_ref);
+    }
+
+  } //- end constructor ChannelImage
 
     /** update red_bar based on wave number */
     synchronized void do_red_bar(float wnum)
@@ -738,9 +1540,12 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       if (wzoom) {
         wnum_map.setRange((double) (wnum_last - 10.0),
                           (double) (wnum_last + 10.0));
+        wnum_map_diff.setRange((double) (wnum_last - 10.0),
+                               (double) (wnum_last + 10.0));
       }
       else {
         wnum_map.setRange((double) wnum_low, (double) wnum_hi);
+        wnum_map_diff.setRange((double) wnum_low, (double) wnum_hi);
       }
     }
 
@@ -779,8 +1584,9 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
             wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
           }
           try {
-            do_image(wnum);
+         //-do_image(wnum);
             wnum_last = wnum;
+            wnum_last_ref.setData(new Real(wnum1, wnum));
             do_red_bar(wnum);
             do_wzoom();
 
@@ -803,8 +1609,48 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           do_wzoom();
         }
         catch (VisADException exc) {
+          System.out.println(exc.getMessage());
         }
         catch (RemoteException exc) {
+          System.out.println(exc.getMessage());
+        }
+      }
+      if (cmd.equals("retrieval"))
+      {
+        try {
+          retrieval_ref.setData(new Real(0.0));
+        }
+        catch (VisADException exc) {
+          System.out.println(exc.getMessage());
+        }
+        catch (RemoteException exc) {
+          System.out.println(exc.getMessage());
+        }
+      }
+      if (cmd.equals("fowardRadiance"))
+      {
+        try {
+          foward_radiance_ref.setData(new Real(0.0));
+        }
+        catch (VisADException exc) {
+          System.out.println(exc.getMessage());
+        }
+        catch (RemoteException exc) {
+          System.out.println(exc.getMessage());
+        }
+      }
+      if (cmd.equals("CO2_1") || cmd.equals("O3") ||
+          cmd.equals("H2O") || cmd.equals("CO2_2") ||
+          cmd.equals("ALL") )
+      {
+        try {
+          setBand( cmd );
+        }
+        catch ( VisADException e4 )  {
+          System.out.println( e4.getMessage() );
+        }
+        catch ( RemoteException e5 ) {
+          System.out.println( e5.getMessage() );
         }
       }
     }
@@ -833,7 +1679,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       {
         if ( e.getId() == DisplayEvent.MOUSE_PRESSED_CENTER )
         {
-          cur = display1.getDisplayRenderer().getCursor();
+          cur = img_display.getDisplayRenderer().getCursor();
           real_x = (cur[0] - scale_s[0][1])/scale_s[0][0];
           real_y = (cur[1] - scale_s[1][1])/scale_s[1][0];
           try {
@@ -850,253 +1696,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
     }
 
-  } // end class ChannelImage
-
-  class FowardRadiance extends JPanel
-        implements ActionListener
-  {
-
-    DataReferenceImpl field_ttRef; 
-    DataReferenceImpl field_wvRef; 
-    DataReferenceImpl field_ozRef; 
-    DataReferenceImpl field_rrRef;
-
-    double[][] tt_last;
-    double[][] wv_last;
-    double[][] oz_last;
-    float[][] tt_last_f;
-    float[][] wv_last_f;
-    float[][] oz_last_f;
- 
-    JPanel dpanel1, dpanel2, bpanel, w_panel, s_panel;
-    JButton compute;
-    ScalarMap wnum_map;
-    ScalarMap radiance_map;
-
-
-    FowardRadiance() throws VisADException, RemoteException
-    {
-      ConstantMap[] red = {  new ConstantMap(0.0, Display.Blue),
-                             new ConstantMap(1.0, Display.Red),
-                             new ConstantMap(0.0, Display.Green) };
-      ConstantMap[] blue = {  new ConstantMap(0.0, Display.Blue),
-                              new ConstantMap(0.0, Display.Red),
-                              new ConstantMap(1.0, Display.Green) };
-      ConstantMap[] green = {  new ConstantMap(1.0, Display.Blue),
-                               new ConstantMap(0.0, Display.Red),
-                               new ConstantMap(0.0, Display.Green) };
-
-      //*- GUI layout
-
-      setLayout( new BoxLayout(this, BoxLayout.Y_AXIS));
-      setAlignmentY(JPanel.TOP_ALIGNMENT);
-      setAlignmentX(JPanel.LEFT_ALIGNMENT);
-
-      field_ttRef = new DataReferenceImpl( "tt_profile_ref" );
-      field_wvRef = new DataReferenceImpl( "wv_profile_ref" );
-      field_ozRef = new DataReferenceImpl( "oz_profile_ref" );
-      field_rrRef = new DataReferenceImpl( "radiance_ref" );
-
-      field_ttRef.setData( field_tt );
-      field_wvRef.setData( field_wv );
-      field_ozRef.setData( field_oz );
-      field_rrRef.setData( field_rr );
-
-      DisplayImpl display1 = null;
-      if ( java2d ) {
-         display1 = new DisplayImplJ2D("sounding display");
-      }
-
-      ScalarMap pres_Y = new ScalarMap( pressure, Display.YAxis );
-      pres_Y.setRange( 1000., 50.);
-      display1.addMap( pres_Y );
-      display1.addMap( new ScalarMap( temperature, Display.XAxis ));
-      display1.addMap( new ScalarMap( watervapor, Display.XAxis ));
-      display1.addMap( new ScalarMap( ozone, Display.XAxis ));
-      GraphicsModeControl mode1 = display1.getGraphicsModeControl();
-      mode1.setScaleEnable(true);
-
-      display1.addReferences( new DirectManipulationRendererJ2D(),
-                              field_ttRef, red );
-      display1.addReferences( new DirectManipulationRendererJ2D(),
-                              field_wvRef, blue );
-      display1.addReferences( new DirectManipulationRendererJ2D(),
-                              field_ozRef, green );
-
-      double[] scale_offset = new double[2];
-      double[] data = new double[2];
-      double[] display = new double[2];
-      pres_Y.getScale( scale_offset, data, display );
-      System.out.println( scale_offset[0]+" "+data[0]+" "+display[0] );
-      System.out.println( scale_offset[1]+" "+data[1]+" "+display[1] );
-      dpanel1 = new JPanel();
-      dpanel1.setLayout(new BoxLayout(dpanel1, BoxLayout.X_AXIS));
-      dpanel1.add(display1.getComponent());
-      dpanel1.add(Box.createHorizontalStrut(0));
-      Border etchedBorder5 = new CompoundBorder(new EtchedBorder(),
-                                                new EmptyBorder(5,5,5,5));
-      dpanel1.setBorder(etchedBorder5);
-      add(dpanel1);
-
-      // create button for spectrum compute
-      bpanel = new JPanel();
-      bpanel.setLayout(new BoxLayout(bpanel, BoxLayout.X_AXIS));
-      JButton compute = new JButton("compute");
-      compute.addActionListener(this);
-      compute.setActionCommand("compute");
-      bpanel.add(compute);
-      add(bpanel);
-
-      // create spectrum Display using Java3D in 2-D mode
-      DisplayImpl display2 = null;
-      if (java2d) {
-        display2 = new DisplayImplJ2D("spectrum display");
-      }
-      else {
-        display2 = new DisplayImplJ3D("spectrum display",
-                                      new TwoDDisplayRendererJ3D());
-      }
-      wnum_map = new ScalarMap(waveNumber, Display.XAxis);
-      wnum_map.setRange((double) wnum_low, (double) wnum_hi);
-      display2.addMap(wnum_map);
-      radiance_map = new ScalarMap(radiance, Display.YAxis);
-    //radiance_map.setRange( 0., 200. );
-      display2.addMap(radiance_map);
-
-    //ScalarMap sr_map = new ScalarMap(waveNumber, Display.SelectRange ); 
-    //ScalarMap sr_map = new ScalarMap(radiance, Display.SelectRange ); 
-    //display2.addMap( sr_map );
-
-    //radiance_map.addScalarMapListener(this);
-
-      // always autoscale YAxis to range of radiances
-    //display1.setAlwaysAutoScale(true);
-
-      // turn on scales
-      GraphicsModeControl mode2 = display2.getGraphicsModeControl();
-      mode2.setScaleEnable(true);
-
-      // link spectrum to display
-      display2.addReference(field_rrRef);
-
-      radiance_map.getScale( scale_offset, data, display );
-      System.out.println( scale_offset[0]+" "+data[0]+" "+display[0] );
-      System.out.println( scale_offset[1]+" "+data[1]+" "+display[1] );
-      // create panel for display with border
-      dpanel2 = new JPanel();
-      dpanel2.setLayout(new BoxLayout(dpanel2, BoxLayout.X_AXIS));
-      dpanel2.add(display2.getComponent());
-      dpanel2.add(Box.createHorizontalStrut(0));
-      dpanel2.setBorder(etchedBorder5);
-      add(dpanel2);
-
-   /**
-      SelectRangeWidget sr_widget = new SelectRangeWidget(sr_map);
-      w_panel = new JPanel();
-      w_panel.setLayout(new BoxLayout(w_panel, BoxLayout.X_AXIS));
-      w_panel.add( sr_widget );
-      add(w_panel);
-    **/
-
-      s_panel = new JPanel();
-      s_panel.setLayout( new BoxLayout(s_panel, BoxLayout.X_AXIS) );
-      s_panel.setBorder( etchedBorder5 );
-      JButton all = new JButton("ALL");
-      all.addActionListener(this);
-      all.setActionCommand("ALL");
-      s_panel.add( all );
-      JButton co2_1 = new JButton("CO2_1");
-      co2_1.addActionListener(this);
-      co2_1.setActionCommand("CO2_1");
-      s_panel.add( co2_1 );
-      JButton o3 = new JButton("O3");
-      o3.addActionListener(this);
-      o3.setActionCommand("O3");
-      s_panel.add( o3 );
-      JButton h2o = new JButton("H2O");
-      h2o.addActionListener(this);
-      h2o.setActionCommand("H2O");
-      s_panel.add( h2o );
-      JButton co2_2 = new JButton("CO2_2");
-      co2_2.addActionListener(this);
-      co2_2.setActionCommand("CO2_2");
-      s_panel.add( co2_2 );
-
-      add(s_panel);
-
-/**
-      CellImpl profileChanged_cell = new CellImpl() {
-          public void doAction() throws VisADException, RemoteException {
-
-            field_tt = (FlatField) field_ttRef.getData();
-            field_wv = (FlatField) field_ttRef.getData();
-            field_oz = (FlatField) field_ttRef.getData();
-
-            tt_last = field_tt.getValues();
-            wv_last = field_wv.getValues();
-            oz_last = field_oz.getValues();
-         }
-      };
-      profileChanged_cell.addReference( field_ttRef );
-      profileChanged_cell.addReference( field_wvRef );
-      profileChanged_cell.addReference( field_ozRef );
- **/
-
-/**
-      CellImpl computeRadiance_cell = new CellImpl() {
-        public void doAction() throws VisADException, RemoteException {
-    
-        }
-      };
- **/
-    }
-
-    public void actionPerformed(ActionEvent e) {
-      String cmd = e.getActionCommand();
-      if (cmd.equals("compute")) {
-
-        field_tt = (FlatField) field_ttRef.getData();
-        field_wv = (FlatField) field_wvRef.getData();
-        field_oz = (FlatField) field_ozRef.getData();
-        try {
-          tt_last = field_tt.getValues();
-          tt_last_f = Set.doubleToFloat(tt_last);
-          wv_last = field_wv.getValues();
-          wv_last_f = Set.doubleToFloat(wv_last);
-          oz_last = field_oz.getValues();
-          oz_last_f = Set.doubleToFloat(oz_last);
-        }
-        catch ( VisADException e1 ) {
-        }
-
-        nastirte_c( tskin[0], psfc[0], lsfc[0], azen[0], p, tt_last_f[0],
-                    wv_last_f[0], oz_last_f[0], nbuse, vn, tb, rr );
-        rr_values[0] = rr;
-        try {
-          field_rr.setSamples(rr_values);
-        }
-        catch ( VisADException e2 ) {
-        }
-        catch ( RemoteException e3 ) {
-        }
-      }
-      else
-        
-      if (cmd.equals("CO2_1") || cmd.equals("O3") || 
-          cmd.equals("H2O") || cmd.equals("CO2_2") || cmd.equals("ALL") ) {
-        try {
-          setBand( cmd );
-        }
-        catch ( VisADException e4 )  {
-        }
-        catch ( RemoteException e5 ) {
-        }
-  
-      }
-    }
-
-    synchronized void setBand( String band ) 
-  //void setBand( String band ) 
+    synchronized void setBand( String band )
+  //void setBand( String band )
       throws VisADException, RemoteException
     {
       double CO2_1_lo = 700;
@@ -1109,22 +1710,27 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       double H2O_hi = 1600;
 
       if ( band.equals("CO2_1") ) {
+        wnum_map_diff.setRange( CO2_1_lo, CO2_1_hi );
         wnum_map.setRange( CO2_1_lo, CO2_1_hi );
       }
       if ( band.equals("CO2_2") ) {
+        wnum_map_diff.setRange( CO2_2_lo, CO2_2_hi );
         wnum_map.setRange( CO2_2_lo, CO2_2_hi );
       }
       if ( band.equals("O3") ) {
+        wnum_map_diff.setRange( O3_lo, O3_hi );
         wnum_map.setRange( O3_lo, O3_hi );
       }
       if ( band.equals("H2O") ) {
+        wnum_map_diff.setRange( H2O_lo, H2O_hi );
         wnum_map.setRange( H2O_lo, H2O_hi );
       }
       if ( band.equals("ALL") ) {
+        wnum_map_diff.setRange( (double) wnum_low, (double) wnum_hi );
         wnum_map.setRange( (double) wnum_low, (double) wnum_hi );
       }
     }
-  } // end class FowardRadiance
+  } // end class ChannelImage
 
   private native void readProf_c( int i, float[] a, float[] b, int[] c, float[] d, 
                                   float[] p, float[] t, float[] wv, float[] o );
@@ -1132,4 +1738,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
   private native void nastirte_c( float a, float b, int c, float d,
                                     float[] p, float[] t, float[] wv, float[] o, 
                                     int[] u, double[] vn, double[] tb, double[] rr );
-}
+
+  private native void nasti_retrvl_c( int rec, float gamt, float gamw, float gamts,
+                                      float emis, float[] pout );
+}//- end: Nesti

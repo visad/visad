@@ -11,7 +11,8 @@ JAVAINCS = -I${JAVADIR}/include -I${JAVADIR}/include/solaris
 # that you need to add one or more directories to this list.
 #
 LIB1 = /opt/SUNWspro/lib
-LIB2 = /opt/SUNWspro/SC3.0.1/lib
+LIB2 = /opt/SUNWspro/SC4.0/lib
+#LIB2 = /opt/SUNWspro/SC3.0.1/lib
 LIB3 = /usr/ucblib
 LIBS = -L${LIB1} -R${LIB1} -L${LIB2} -R${LIB2} -L${LIB3} -R${LIB3}
 
@@ -39,7 +40,7 @@ FFLAGS = $(SHFFLAGS)
 # and 'recl=76' in re_read_1.f, which are in bytes on Solaris (but
 # were in words on Irix 5 for VisAD 1.1)
 #
-FORTRANS = readprof.o nastirte.o
+FORTRANS = readprof.o nastirte.o nastimlretrwlmsx.o
 
 # program used to clean up the results of previous builds
 #

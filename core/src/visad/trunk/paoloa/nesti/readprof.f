@@ -25,7 +25,7 @@ C     Paolo Antonelli,  Wed Sep 23 09:25:31 DT  1998.
      *   700.,720.,740.,760.,780.,800.,820.,840.,860.,880.,900.,920.,
      *   940.,960.,980.,1000./
  
-      PROFF='/home2/rink/java/visad/paoloa/nasti/camx97ax.two.psfc'
+      PROFF='./camx97ax.two.psfc'
 
       LENI=LENG*4
       OPEN(LUI,RECL=LENI,FILE=PROFF,STATUS='OLD',ACCESS='DIRECT')
