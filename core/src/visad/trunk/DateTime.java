@@ -488,14 +488,9 @@ DateTime
     public static DateTime[] timeSetToArray(Gridded1DSet timeSet)
         throws VisADException
     {
-        RealTupleType domainType = ((SetType)timeSet.getType()).getDomain();
-        Unit unit = CommonUnit.secondsSinceTheEpoch;
-        if (!domainType.equals(RealTupleType.Time1DTuple))
-        {
-            unit = domainType.getDefaultUnits()[0];
-            if (!Unit.canConvert(unit, CommonUnit.secondsSinceTheEpoch))
-                throw new VisADException(
-                    "Invalid MathType or Units for timeSet");
+        Unit unit = timeSet.getSetUnits()[0];
+        if (!Unit.canConvert(unit, CommonUnit.secondsSinceTheEpoch)) {
+            throw new VisADException( "Invalid Units for timeSet");
         }
         double[][] values;
         if (!unit.equals(CommonUnit.secondsSinceTheEpoch)) 
@@ -504,6 +499,7 @@ DateTime
         else
             values = timeSet.getDoubles();
         DateTime[] times = new DateTime[timeSet.getLength()];
+
         for (int i = 0; i < timeSet.getLength(); i++)
             times[i] = new DateTime(values[0][i]);
         return times;
