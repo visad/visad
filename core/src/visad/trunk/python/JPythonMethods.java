@@ -1686,6 +1686,17 @@ public abstract class JPythonMethods {
     return data.resample(s,0,0);
   }
 
+  /** returns the double value of a Real value.
+  *
+  * @param r is the Real
+  *
+  * @return value of the Real
+  *
+  */
+  public static double getValue(Real r) {
+    return r.getValue();
+  }
+
   /** returns the double values of the range
   *
   * @param data is the Field from which to get the numeric values
