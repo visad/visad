@@ -30,7 +30,7 @@ package visad;
    (Cyan, Magenta, Yellow) with Reference (Red, Green, Blue).
    Algorithm from Foley and van Dam.<P>
 */
-class CMYCoordinateSystem extends CoordinateSystem {
+public class CMYCoordinateSystem extends CoordinateSystem {
 
   private static Unit[] coordinate_system_units = {null, null, null};
 

@@ -30,11 +30,11 @@ package visad;
 */
 public class CommonUnit extends Object {
 
-  static Unit degree = SI.radian.scale(Math.PI/180.0, true);
-  static Unit radian = SI.radian;
-  static Unit second = SI.second;
-  static Unit dimensionless = new DerivedUnit();
-  static Unit promiscuous = PromiscuousUnit.promiscuous;
+  public static Unit degree = SI.radian.scale(Math.PI/180.0, true);
+  public static Unit radian = SI.radian;
+  public static Unit second = SI.second;
+  public static Unit dimensionless = new DerivedUnit();
+  public static Unit promiscuous = PromiscuousUnit.promiscuous;
 
 }
 

@@ -2564,6 +2564,21 @@ for (i=0; i<length; i++) {
       }
     }
     FlatField image = new FlatField(type, domain_set);
+    fillField(image, step, half);
+    return image;
+  }
+
+  public static void fillField(FlatField image, double step, double half)
+         throws VisADException, RemoteException {
+    Random random = new Random();
+    FunctionType type = (FunctionType) image.getType();
+    RealTupleType dtype = type.getDomain();
+    RealTupleType rtype = type.getFlatRange();
+    int domain_dim = dtype.getDimension();
+    int range_dim = rtype.getDimension();
+    SampledSet domain_set = (SampledSet) image.getDomainSet();
+    int dsize = domain_set.getLength();
+
     double[][] data = new double[range_dim][dsize];
     float[][] samples = domain_set.getSamples();
     for (int k=0; k<range_dim; k++) {
@@ -2628,7 +2643,6 @@ for (i=0; i<length; i++) {
       }
     }
     image.setSamples(data);
-    return image;
   }
 
 

@@ -127,13 +127,23 @@ public abstract class CoordinateSystem extends Object
     value =
       transformCoordinatesFreeUnits(out, coord_out, units_free, errors_out,
                                     in, coord_in, units_in, errors_in, value);
+
     ErrorEstimate[] sub_errors_out = new ErrorEstimate[1];
-    for (int i=0; i<n; i++) {
-      value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                     errors_out[i], value[i]);
-      errors_out[i] = sub_errors_out[0];
+    if (errors_out == null) {
+      for (int i=0; i<n; i++) {
+        value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
+                                       null, value[i]);
+      }
+    }
+    else {
+      for (int i=0; i<n; i++) {
+        value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
+                                       errors_out[i], value[i]);
+        errors_out[i] = sub_errors_out[0];
+      }
     }
     return value;
+
   }
 
   /** this is just like Unit.transformCoordinates, except that

@@ -181,6 +181,17 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
 
     if (Flat || this instanceof ShadowSetType) {
       if (this instanceof ShadowFunctionType) {
+        // test for texture mapping
+        isTextureMap = !getMultipleDisplayScalar() &&
+                       getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
+                       ((FunctionType) getType()).getReal() &&
+                       Domain.getDimension() == 2 &&
+                       Domain.getAllSpatial() &&
+                       !Domain.getSpatialReference() &&
+                       Display.DisplaySpatialCartesianTuple.equals(
+                               Domain.getDisplaySpatialTuple() ) &&
+                       checkColorOrAlpha(Range.getDisplayIndices()) &&
+                       checkAny(Range.getDisplayIndices());
         if (Range instanceof ShadowTupleType) {
           local_indices =
             ((ShadowTupleType) Range).sumIndices(local_indices);
@@ -203,7 +214,7 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
                                         "Animation and SelectValue may not " +
                                         "occur in Function range");
         }
-      }
+      } // end if (this instanceof ShadowFunctionType)
       anyContour = checkContour(local_display_indices);
       anyFlow = checkFlow(local_display_indices);
       anyShape = checkShape(local_display_indices);

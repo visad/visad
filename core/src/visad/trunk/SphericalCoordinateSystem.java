@@ -30,7 +30,7 @@ package visad;
    for (Latitude, Longitude, Radius) with a Cartesian Reference,
    and with Latitude and Longitude in degrees.<P>
 */
-class SphericalCoordinateSystem extends CoordinateSystem {
+public class SphericalCoordinateSystem extends CoordinateSystem {
 
   private static Unit[] coordinate_system_units =
     {CommonUnit.degree, CommonUnit.degree, null};

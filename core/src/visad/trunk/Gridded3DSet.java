@@ -1357,6 +1357,8 @@ public class Gridded3DSet extends GriddedSet {
     return grid;
   }
 
+  /** return basic lines in array[0], fill-ins in array[1]
+      and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, float[][] color_values)

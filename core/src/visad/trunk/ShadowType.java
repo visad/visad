@@ -70,6 +70,7 @@ public abstract class ShadowType extends Object
   /** information calculated by checkIndices & testIndices */
   boolean isTerminal;
   int LevelOfDifficulty;
+  boolean isTextureMap;
 
   /** Dtype and Rtype used only with ShadowSetType and
       Flat ShadowFunctionType */
@@ -120,6 +121,7 @@ public abstract class ShadowType extends Object
     DisplayIndices = zeroIndices(display.getDisplayScalarCount());
     ValueIndices = zeroIndices(display.getValueArrayLength());
     isTerminal = false;
+    isTextureMap = false;
     LevelOfDifficulty = NOTHING_MAPPED;
     MultipleDisplayScalar = false;
     MappedDisplayScalar = false;
@@ -131,6 +133,10 @@ public abstract class ShadowType extends Object
 
   public boolean getIsTerminal() {
     return isTerminal;
+  }
+
+  public boolean getIsTextureMap() {
+    return isTextureMap;
   }
 
   public int[] getRefToComponent() {
@@ -469,6 +475,26 @@ public abstract class ShadowType extends Object
       if (real.equals(Display.Shape)) return true;
     }
     return false;
+  }
+
+  /** test for display_indices in (Color, Alpha, Unmapped) */
+  boolean checkColorOrAlpha(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayRGBTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayRGBTuple)))) continue;  // Color
+      if (real.equals(Display.RGB) ||
+          real.equals(Display.HSV) ||
+          real.equals(Display.CMY)) continue;  // more Color
+      if (real.equals(Display.Alpha)) continue;
+      return false;
+    }
+    return true;
   }
 
   /** test for any non-zero display_indices */
@@ -1403,11 +1429,14 @@ public abstract class ShadowType extends Object
         }
         else {
           // nothing mapped to this color component, so use default
-          int default_index =
+          int default_index = getDefaultColorIndex(display, index);
+/* WLH 7 Feb 98
+          int default_index = 
             index == 0 ? display.getDisplayScalarIndex(Display.Red) :
             (index == 1 ? display.getDisplayScalarIndex(Display.Green) :
              (index == 2 ? display.getDisplayScalarIndex(Display.Blue) :
               display.getDisplayScalarIndex(Display.Alpha) ) );
+*/
           rgba_values[index][0] = default_values[default_index];
         }
       }
@@ -1475,6 +1504,13 @@ public abstract class ShadowType extends Object
         }
       }
     } // end for (int index=0; index<nindex; index++)
+  }
+
+  public static int getDefaultColorIndex(DisplayImpl display, int index) {
+    return index == 0 ? display.getDisplayScalarIndex(Display.Red) :
+           (index == 1 ? display.getDisplayScalarIndex(Display.Green) :
+            (index == 2 ? display.getDisplayScalarIndex(Display.Blue) :
+             display.getDisplayScalarIndex(Display.Alpha) ) );
   }
 
   /** equalize lengths and fill with default values */

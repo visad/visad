@@ -75,7 +75,7 @@ public class FunctionType extends MathType {
   }
 
   /** trusted constructor for initializers */
-  private FunctionType(MathType domain, MathType range, boolean b) {
+  FunctionType(MathType domain, MathType range, boolean b) {
     super(b);
     Domain = makeFlatTrusted(domain);
     Real = range instanceof RealType ||

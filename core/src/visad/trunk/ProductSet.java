@@ -53,7 +53,9 @@ public class ProductSet extends SampledSet {
     for (int i=0; i<sets.length; i++) {
       dim += sets[i].DomainDimension;
     }
-    DomainDimension = dim;
+    if (dim != DomainDimension) {
+      throw new SetException("ProductSet: DomainDimension does not match");
+    }
     if (copy) {
       Sets = new SampledSet[sets.length];
       for (int i=0; i<sets.length; i++) {

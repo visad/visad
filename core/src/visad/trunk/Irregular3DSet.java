@@ -418,6 +418,8 @@ public class Irregular3DSet extends IrregularSet {
     }
   }
 
+  /** return basic lines in array[0], fill-ins in array[1]
+      and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, float[][] color_values)
@@ -426,7 +428,207 @@ public class Irregular3DSet extends IrregularSet {
       throw new SetException("Irregular3DSet.makeIsoLines: " +
                              "ManifoldDimension must be 2");
     }
-    throw new UnimplementedException("Irregular3DSet.makeIsoLines not done");
+
+
+    int[][] Tri = Delan.Tri;
+    float[][] samples = getSamples(false);
+    int npolygons = Tri.length;
+    int nvertex = Delan.Vertices.length;
+    if (npolygons < 1 || nvertex < 3) return null;
+
+    // estimate number of vertices
+    int maxv = 2 * 2 * Length;
+
+    int color_length = (color_values != null) ? color_values.length : 0;
+    float[][] color_levels = null;
+    if (color_length > 0) {
+      if (color_length > 3) color_length = 3; // no alpha for lines
+      color_levels = new float[color_length][maxv];
+    }
+    float[] vx = new float[maxv];
+    float[] vy = new float[maxv];
+    float[] vz = new float[maxv];
+
+    int numv = 0;
+
+    for (int jj=0; jj<npolygons; jj++) {
+      int va = Tri[jj][0];
+      int vb = Tri[jj][1];
+      int vc = Tri[jj][2];
+
+      float ga = fieldValues[va];
+      // test for missing
+      if (ga != ga) continue;
+
+      float gb = fieldValues[vb];
+      // test for missing
+      if (gb != gb) continue;
+
+      float gc = fieldValues[vc];
+      // test for missing
+      if (gc != gc) continue;
+
+      float[] auxa = null;
+      float[] auxb = null;
+      float[] auxc = null;
+      if (color_length > 0) {
+        auxa = new float[color_length];
+        auxb = new float[color_length];
+        auxc = new float[color_length];
+        for (int i=0; i<color_length; i++) {
+          auxa[i] = color_values[i][va];
+          auxb[i] = color_values[i][vb];
+          auxc[i] = color_values[i][vc];
+        }
+      }
+
+      float gn = ga < gb ? ga : gb;
+      gn = gc < gn ? gc : gn;
+
+      float gx = ga > gb ? ga : gb;
+      gx = gc > gx ? gc : gx;
+
+      // compute clow and chi, low and high contour values in the box
+      float tmp1 = (gn-base) / interval;
+      float clow = base + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
+                                              : (int) ((tmp1)-0.5) )-1);
+      while (clow<gn) {
+        clow += interval;
+      }
+
+      tmp1 = (gx-base) / interval;
+      float chi = base + interval * (( (tmp1) >= 0 ? (int) ((tmp1) + 0.5)
+                                             : (int) ((tmp1)-0.5) )+1);
+      while (chi>gx) {
+        chi -= interval;
+      }
+ 
+      // how many contour lines in the box:
+      tmp1 = (chi-clow) / interval;
+      int numc = 1+( (tmp1) >= 0 ? (int) ((tmp1) + 0.5) : (int) ((tmp1)-0.5) );
+
+      // gg is current contour line value
+      float gg = clow;
+
+      for (int il=0; il<numc && numv+8<maxv; il++, gg += interval) {
+        float gba, gca, gcb;
+        float ratioba, ratioca, ratiocb;
+        int ii;
+ 
+        // make sure gg is within contouring limits
+        if (gg < gn) continue;
+        if (gg > gx) break;
+        if (gg < lowlimit) continue;
+        if (gg > highlimit) break;
+
+        // compute orientation of lines inside box
+        ii = 0;
+        if (gg > ga) ii = 1;
+        if (gg > gb) ii += 2;
+        if (gg > gc) ii += 4;
+        if (ii > 3) ii = 7 - ii;
+        if (ii <= 0) continue;
+
+ 
+        switch (ii) {
+          case 1:
+            gba = gb-ga;
+            gca = gc-ga;
+
+            ratioba = (gg-ga)/gba;
+            ratioca = (gg-ga)/gca;
+
+            if (color_length > 0) {
+              for (int i=0; i<color_length; i++) {
+                color_levels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
+                color_levels[i][numv+1] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+              }
+            }
+
+            vx[numv] = samples[0][va] + (samples[0][vb]-samples[0][va]) * ratioba;
+            vy[numv] = samples[1][va] + (samples[1][vb]-samples[1][va]) * ratioba;
+            vz[numv] = samples[2][va] + (samples[2][vb]-samples[2][va]) * ratioba;
+            numv++;
+            vx[numv] = samples[0][va] + (samples[0][vc]-samples[0][va]) * ratioca;
+            vy[numv] = samples[1][va] + (samples[1][vc]-samples[1][va]) * ratioca;
+            vz[numv] = samples[2][va] + (samples[2][vc]-samples[2][va]) * ratioca;
+            numv++;
+          break;
+
+          case 2:
+            gba = gb-ga;
+            gcb = gc-gb;
+ 
+            ratioba = (gg-ga)/gba;
+            ratiocb = (gg-gb)/gcb;
+ 
+            if (color_length > 0) {
+              for (int i=0; i<color_length; i++) {
+                color_levels[i][numv] = auxa[i] + (auxb[i]-auxa[i]) * ratioba;
+                color_levels[i][numv+1] = auxb[i] + (auxc[i]-auxb[i]) * ratiocb;
+              }
+            }
+ 
+            vx[numv] = samples[0][va] + (samples[0][vb]-samples[0][va]) * ratioba;
+            vy[numv] = samples[1][va] + (samples[1][vb]-samples[1][va]) * ratioba;
+            vz[numv] = samples[2][va] + (samples[2][vb]-samples[2][va]) * ratioba;
+            numv++;
+            vx[numv] = samples[0][vb] + (samples[0][vc]-samples[0][vb]) * ratiocb;
+            vy[numv] = samples[1][vb] + (samples[1][vc]-samples[1][vb]) * ratiocb;
+            vz[numv] = samples[2][vb] + (samples[2][vc]-samples[2][vb]) * ratiocb;
+            numv++;
+          break;
+
+          case 3:
+            gca = gc-ga;
+            gcb = gc-gb;
+ 
+            ratioca = (gg-ga)/gca;
+            ratiocb = (gg-gb)/gcb;
+ 
+            if (color_length > 0) {
+              for (int i=0; i<color_length; i++) {
+                color_levels[i][numv] = auxa[i] + (auxc[i]-auxa[i]) * ratioca;
+                color_levels[i][numv+1] = auxb[i] + (auxc[i]-auxb[i]) * ratiocb;
+              }
+            }
+ 
+            vx[numv] = samples[0][va] + (samples[0][vc]-samples[0][va]) * ratioca;
+            vy[numv] = samples[1][va] + (samples[1][vc]-samples[1][va]) * ratioca;
+            vz[numv] = samples[2][va] + (samples[2][vc]-samples[2][va]) * ratioca;
+            numv++;
+            vx[numv] = samples[0][vb] + (samples[0][vc]-samples[0][vb]) * ratiocb;
+            vy[numv] = samples[1][vb] + (samples[1][vc]-samples[1][vb]) * ratiocb;
+            vz[numv] = samples[2][vb] + (samples[2][vc]-samples[2][vb]) * ratiocb;
+            numv++;
+          break;
+
+        } // end switch (ii)
+      } // end for (int il=0; il<numc && numv+8<mav; il++, gg += interval)
+
+    } // end for (int jj=0; jj<npolygons; jj++)
+
+    VisADGeometryArray[] arrays = new VisADGeometryArray[3];
+    arrays[0] = new VisADLineArray();
+    float[][] coordinates = new float[3][numv];
+    System.arraycopy(vx, 0, coordinates[0], 0, numv);
+    System.arraycopy(vy, 0, coordinates[1], 0, numv);
+    System.arraycopy(vz, 0, coordinates[2], 0, numv);
+    vx = null;
+    vy = null;
+    vz = null;
+    float[][] colors = null;
+    if (color_length > 0) {
+      colors = new float[color_length][numv];
+      System.arraycopy(color_levels[0], 0, colors[0], 0, numv);
+      System.arraycopy(color_levels[1], 0, colors[1], 0, numv);
+      System.arraycopy(color_levels[2], 0, colors[2], 0, numv);
+      color_levels = null;
+    }
+    setGeometryArray(arrays[0], coordinates, 3, colors);
+    arrays[1] = null;
+    arrays[2] = null;
+    return arrays;
   }
 
   public VisADGeometryArray makeIsoSurface(float isolevel,

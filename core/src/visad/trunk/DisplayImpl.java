@@ -30,6 +30,8 @@ import java.rmi.*;
 import java.io.*;
 
 import java.awt.*;
+import java.awt.image.*;
+import java.net.*;
 
 /**
    DisplayImpl is the abstract VisAD superclass for display
@@ -572,6 +574,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
  
   public abstract GraphicsModeControl getGraphicsModeControl(); 
 
+  /** wait for millis milliseconds */
   public static void delay(int millis) throws VisADException {
     try {
       Real r = new Real(0.0);
@@ -582,6 +585,105 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     catch(InterruptedException e) {
     }
   }
+
+  /** RealTypes used for getImage adapter */
+  private final static RealType line =
+    new RealType("ImageLine", null, true);
+  private final static RealType element =
+    new RealType("ImageElement", null, true);
+  private static RealType[] domain_components = {line, element};
+  private final static RealTupleType image_domain =
+    new RealTupleType(domain_components, true);
+  private final static RealType radiance =
+    new RealType("ImageRadiance", null, true);
+  private final static FunctionType image_type =
+    new FunctionType(image_domain, radiance, true);
+
+  //
+  // TO_DO
+  // make this independent of Component using BufferedImage in JDK 1.2
+  //
+
+  /** this is an adapter for GIF and other images at the
+      URL specified by string */
+  public FlatField getImage(String string) throws VisADException {
+ 
+    URL url = null;
+    try {
+      url = new URL(string);
+    }
+    catch (MalformedURLException e) {
+      System.out.println("MalformedURLException");
+      return null;
+    }
+    // System.out.println("url = " + url);
+    Object object = null;
+    try {
+      object = url.getContent();
+    }
+    catch (java.io.IOException e) {
+      System.out.println("IOException = " + e);
+      return null;
+    }
+    // System.out.println("object.getClass = " + object.getClass());
+    if (object == null) {
+      System.out.println("object is null");
+      return null;
+    }
+ 
+    ImageProducer producer = (ImageProducer) object;
+ 
+    if (component == null) return null;
+    Image image = component.createImage(producer);
+    int height = image.getHeight(component);
+    int width = image.getWidth(component);
+
+    int[] pix = new int[width * height];
+    float[] data0 = new float[width * height];
+ 
+    java.awt.image.ColorModel cm = java.awt.image.ColorModel.getRGBdefault();
+ 
+    java.awt.image.PixelGrabber pg =
+      new java.awt.image.PixelGrabber(producer, 0, 0, width, height,
+                                      pix, 0, width);
+ 
+    // System.out.println("pg created");
+ 
+    pg.setColorModel(cm); // unnecessary
+ 
+    try { pg.grabPixels(); }
+    catch (InterruptedException e) {
+      System.out.println("Bad grabPixels");
+      return null;
+    }
+ 
+    // System.out.println("grabPixels");
+ 
+    try { while ((pg.status() & component.ALLBITS) == 0) Thread.sleep(1); }
+    catch (InterruptedException e) {
+      System.out.println("Bad status");
+      return null;
+    }
+ 
+    for (int i=0; i<width * height; i++) {
+      data0[i] = pix[i] & 255;
+    }
+
+    Linear2DSet domain_set =
+      new Linear2DSet(image_domain, 0.0, (float) (width - 1.0), width,
+                                    0.0, (float) (height - 1.0), height);
+    FlatField field = new FlatField(image_type, domain_set);
+    float[][] data = new float[1][];
+    data[0] = data0;
+    try {
+      field.setSamples(data, false);
+    }
+    catch (RemoteException e) {
+      field = null;
+    }
+    return field;
+  }
+
 
   /** given their complexity, its reasonable that DisplayImpl
       objects are only equal to themselves */

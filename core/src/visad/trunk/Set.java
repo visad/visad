@@ -320,6 +320,8 @@ public abstract class Set extends DataImpl {
     throw new SetException("Set.makePointGeometry: not valid for this Set");
   }
 
+  /** return basic lines in array[0], fill-ins in array[1]
+      and labels in array[2] */
   public VisADGeometryArray[] makeIsoLines(float interval, float low,
                       float hi, float base, float[] fieldValues,
                       float[][] color_values) throws VisADException {

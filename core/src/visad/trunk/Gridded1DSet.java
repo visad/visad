@@ -58,11 +58,21 @@ public class Gridded1DSet extends GriddedSet {
 
     if (Samples != null && Lengths[0] > 1) {
       // samples consistency test
-      boolean Pos = (Samples[0][1] <= Samples[0][0]);
-      for (int i=1; i<LengthX; i++) {
-        if ((Samples[0][i] <= Samples[0][i-1]) != Pos) {
-          throw new SetException(
-           "Gridded1DSet: samples do not form a valid grid ("+i+")");
+      boolean Pos = (Samples[0][LengthX-1] <= Samples[0][0]);
+      if (Pos) {
+        for (int i=1; i<LengthX; i++) {
+          if (Samples[0][i] > Samples[0][i-1]) {
+            throw new SetException(
+             "Gridded1DSet: samples do not form a valid grid ("+i+")");
+          }
+        }
+      }
+      else { // !Pos
+        for (int i=1; i<LengthX; i++) {
+          if (Samples[0][i] < Samples[0][i-1]) {
+            throw new SetException(
+             "Gridded1DSet: samples do not form a valid grid ("+i+")");
+          }
         }
       }
     }

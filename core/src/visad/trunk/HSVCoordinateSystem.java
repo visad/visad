@@ -30,7 +30,7 @@ package visad;
    (Hue, Saturation, Value) with Reference (Red, Green, Blue).
    Algorithm from Foley and van Dam.<P>
 */
-class HSVCoordinateSystem extends CoordinateSystem {
+public class HSVCoordinateSystem extends CoordinateSystem {
 
   private static Unit[] coordinate_system_units =
     {CommonUnit.degree, null, null};
