@@ -27,15 +27,15 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   ErrorEstimate is the VisAD class for statistics about a value
+   ErrorEstimate is the immutable VisAD class for statistics about a value
    or array of values.<P>
 */
 public class ErrorEstimate extends Object implements java.io.Serializable, Comparable {
 
-  double Error;
-  double Mean;
-  long NumberNotMissing;
-  Unit unit;
+  final double Error;
+  final double Mean;
+  final long NumberNotMissing;
+  final Unit unit;
 
   /** these are bounds used in estimates of derivatives;
       they should be reciprocals;
@@ -122,15 +122,17 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     }
 
     unit = (field_error != null) ? uf : us;
-    NumberNotMissing = nf + inc;
-    if (NumberNotMissing > 0) {
+    long number = nf + inc;
+    if (number > 0) {
       double mean = 0.0;
       double error = 0.0;
-      if (!Double.isNaN(ef)) error += (NumberNotMissing - ns) * ef;
-      if (!Double.isNaN(mf)) mean += (NumberNotMissing - ns) * mf;
+      if (!Double.isNaN(ef)) error += (number - ns) * ef;
+      if (!Double.isNaN(mf)) mean += (number - ns) * mf;
 
       if (!Double.isNaN(es)) error += ns * es;
       if (!Double.isNaN(ms)) mean += ns * ms;
+      NumberNotMissing = number;
+//if(NumberNotMissing==1800)Thread.dumpStack();
       Error = error / NumberNotMissing;
       Mean = mean / NumberNotMissing;
     }
@@ -179,14 +181,15 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
   /** construct an ErrorEstimate for an array of values with an error */
   public ErrorEstimate(double[] value, double error, Unit u) {
     unit = u;
-    NumberNotMissing = 0;
+    int number = 0;
     double sum = 0.0;
     for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
-        NumberNotMissing++;
+        number++;
         sum += value[i];
       }
     }
+    NumberNotMissing = number;
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = error;
@@ -200,14 +203,15 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
   /** construct an ErrorEstimate for an array of values with an error */
   public ErrorEstimate(float[] value, double error, Unit u) {
     unit = u;
-    NumberNotMissing = 0;
+    int number = 0;
     double sum = 0.0;
     for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
-        NumberNotMissing++;
+        number++;
         sum += value[i];
       }
     }
+    NumberNotMissing = number;
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = error;
@@ -224,14 +228,15 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
                        ErrorEstimate b, int error_mode)
          throws VisADException {
     unit = u;
-    NumberNotMissing = 0;
+    int number = 0;
     double sum = 0.0;
     for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
-        NumberNotMissing++;
+        number++;
         sum += value[i];
       }
     }
+    NumberNotMissing = number;
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = binary(op, a, b, error_mode);
@@ -248,14 +253,15 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
                        ErrorEstimate b, int error_mode)
          throws VisADException {
     unit = u;
-    NumberNotMissing = 0;
+    int number = 0;
     double sum = 0.0;
     for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
-        NumberNotMissing++;
+        number++;
         sum += value[i];
       }
     }
+    NumberNotMissing = number;
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = binary(op, a, b, error_mode);
@@ -271,14 +277,15 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
   public ErrorEstimate(double[] value, Unit u, int op, ErrorEstimate a,
                        int error_mode) throws VisADException {
     unit = u;
-    NumberNotMissing = 0;
+    int number = 0;
     double sum = 0.0;
     for (int i=0; i<value.length; i++) {
       if (!Double.isNaN(value[i])) {
-        NumberNotMissing++;
+        number++;
         sum += value[i];
       }
     }
+    NumberNotMissing = number;
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = unary(op, a, error_mode);
@@ -294,14 +301,15 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
   public ErrorEstimate(float[] value, Unit u, int op, ErrorEstimate a,
                        int error_mode) throws VisADException {
     unit = u;
-    NumberNotMissing = 0;
+    int number = 0;
     double sum = 0.0;
     for (int i=0; i<value.length; i++) {
       if (!Float.isNaN(value[i])) {
-        NumberNotMissing++;
+        number++;
         sum += value[i];
       }
     }
+    NumberNotMissing = number;
     if (NumberNotMissing > 0) {
       Mean = sum / NumberNotMissing;
       Error = unary(op, a, error_mode);
