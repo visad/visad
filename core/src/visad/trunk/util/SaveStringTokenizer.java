@@ -77,11 +77,16 @@ public class SaveStringTokenizer {
       // get remainder of information after the equals sign
       String value = line.substring(eq + 1).trim();
       String nextLine = (t < numLines ? (String) v.elementAt(t) : null);
-      if (nextLine != null && nextLine.indexOf('=') < 0) value = value + '\n';
+      boolean moreLines = false;
       while (nextLine != null && nextLine.indexOf('=') < 0) {
-        if (nextLine.length() > 0) value = value + nextLine + '\n';
+        if (nextLine.length() > 0 && !nextLine.startsWith("#")) {
+          value = value + '\n';
+          value = value + '\n' + nextLine;
+          moreLines = true;
+        }
         nextLine = (t < numLines - 1 ? (String) v.elementAt(++t) : null);
       }
+      if (moreLines) value = value + '\n';
       vals.add(value);
     }
 
