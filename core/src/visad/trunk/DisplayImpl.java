@@ -952,8 +952,12 @@ if (initialize) {
     return displayRenderer;
   }
 
-  /** get a clone of RendererVector to avoid
-      concurrent access by Display thread */
+  /**
+   * Returns a clone of the list of DataRenderer-s.  A clone is returned
+   * to avoid concurrent access problems by the Display thread.
+   * @return			A clone of the list of DataRenderer-s.
+   * @see #getRenderers()
+   */
   public Vector getRendererVector() {
     return (Vector) RendererVector.clone();
   }
@@ -1435,6 +1439,13 @@ if (initialize) {
     return (obj == this);
   }
 
+  /**
+   * Returns the list of DataRenderer-s.  NOTE: The actual list is returned
+   * rather than a copy.  If a copy is desired, then use 
+   * <code>getRendererVector()</code>.
+   * @return			The list of DataRenderer-s.
+   * @see #getRendererVector()
+   */
   public Vector getRenderers()
   {
     return (Vector )RendererVector.clone();
