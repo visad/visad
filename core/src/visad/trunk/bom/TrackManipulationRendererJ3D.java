@@ -69,7 +69,7 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     }
   }
 
-  private float step(float x, float y) {
+  private float getStep(float x, float y) {
     double dist = 2.0 * (x_size + y_size);
     float step = -1.0f;
     for (int i=0; i<NE+1; i++) {
@@ -190,6 +190,46 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
     vy[nv] = y4;
     vz[nv] = z;
     nv++;
+
+    float xdir = x5 - x;
+    float ydir = y5 - y; 
+    float[] xe = new float[2 * NE];
+    float[] ye = new float[2 * NE];
+    int ne = 0;
+    for (int i=0; i<NE; i++) {
+      if ((x_ellipse[i] * xdir + y_ellipse[i] * ydir) >= 0.0f &&
+          (x_ellipse[i+1] * xdir + y_ellipse[i+1] * ydir) >= 0.0f) {
+        xe[ne] = x_ellipse[i];
+        ye[ne] = y_ellipse[i];
+        ne++;
+        xe[ne] = x_ellipse[i+1];
+        ye[ne] = y_ellipse[i+1];
+        ne++;
+      }
+    }
+
+    float dist = (float) Math.sqrt(xdir * xdir + ydir * ydir);
+    float step = getStep(xdir, ydir); 
+    int nsteps = (int) (dist / step);
+    if (nsteps < 1) nsteps = 1;
+    int lim = (vx.length - nv) / ne;
+    if (nsteps < 1) nsteps = 1;
+    if (nsteps > lim) nsteps = lim;
+    float xstep = xdir / nsteps;
+    float ystep = ydir / nsteps;
+
+    float xcenter = x;
+    float ycenter = y;
+    for (int i=0; i<nsteps; i++) {
+      xcenter += xstep;
+      ycenter += ystep;
+      for (int j=0; j<ne; j++) {
+        vx[nv] = xcenter + xe[j];
+        vy[nv] = ycenter + ye[j];
+        vz[nv] = z;
+        nv++;
+      }
+    }
 
     numv[0] = nv;
     return mbarb;
