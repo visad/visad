@@ -1,4 +1,3 @@
-
 //
 // Galaxy.java
 //
@@ -94,6 +93,10 @@ public class Galaxy extends Object implements ActionListener {
   float b;
   float d;
   float[] lbd = new float[3];
+  float[][] lonlat_b;
+  float[][] image_b;
+  int length_0;
+  int length_1;
   
   
 
@@ -126,6 +129,8 @@ public class Galaxy extends Object implements ActionListener {
   DataReference grid_ref;
   DataReference image_ref;
   DataReference lonlat_ref;
+  DataReference sphrSkyMap_ref;
+  DataReference ireg_set_ref;
 
   DataReference line_to_sol_ref;
   DataReference sol_ref;
@@ -164,6 +169,7 @@ public class Galaxy extends Object implements ActionListener {
   DisplayImpl display2;
   DisplayImpl display3;
   DisplayImpl display4;
+  DisplayImpl display5;  // Spherical Sky Map display
 
   JTextField[] coord_fields = new JTextField[3];
   ConstantMap[] cmaps;
@@ -286,8 +292,8 @@ public class Galaxy extends Object implements ActionListener {
     image_domain = new RealTupleType(element, line);
     radiance = new RealType("H-alpha", null, null);
     image_type = new FunctionType(image_domain, radiance);
-    lon = new RealType("lon", null, null);
-    lat = new RealType("lat", null, null);
+    lon = new RealType("lon", CommonUnit.degree, null);
+    lat = new RealType("lat", CommonUnit.degree, null);
     lonlat_range = new RealTupleType(lon, lat);
     lonlat_type = new FunctionType(image_domain, lonlat_range);
 
@@ -307,6 +313,10 @@ public class Galaxy extends Object implements ActionListener {
     lonlat_ref = new DataReferenceImpl("lonlat_ref");
     final float[][] lonlat_a = new float[2][NxpxMAX * NypxMAX];
 
+    // construct spherical sky map Data object and DataReference
+    sphrSkyMap_ref = new DataReferenceImpl("sphrSkyMap_ref");
+
+    ireg_set_ref = new DataReferenceImpl("ireg_set_ref");
 
     //
     // construct DataReference objects linked to VisADSliders (the
@@ -375,7 +385,7 @@ public class Galaxy extends Object implements ActionListener {
 
 
     // set up Displays for server
-    DisplayImpl[] displays = new DisplayImpl[4];
+    DisplayImpl[] displays = new DisplayImpl[5];
     VisADSlider[] sliders = new VisADSlider[1];
     setupDisplays(false, displays, sliders);
  
@@ -412,6 +422,8 @@ public class Galaxy extends Object implements ActionListener {
         // get sky map image size
         elast = sizes[0] - 1.0;
         llast = sizes[1] - 1.0;
+        length_0 = sizes[0];
+        length_1 = sizes[1];
         // create image Sets
         lonlat_set = new Linear2DSet(0.0, elast, sizes[0],
                                      0.0, llast, sizes[1]);
@@ -421,16 +433,21 @@ public class Galaxy extends Object implements ActionListener {
 
         // create image
         FlatField image = new FlatField(image_type, image_set);
-        float[][] image_b = new float[1][sizes[0] * sizes[1]];
+        image_b = new float[1][sizes[0] * sizes[1]];
         System.arraycopy(image_a[0], 0, image_b[0], 0, image_b[0].length);
         image.setSamples(image_b);
         image_ref.setData(image);
 
         // create lat/lon Field to be contoured
         FlatField lonlat = new FlatField(lonlat_type, lonlat_set);
-        float[][] lonlat_b = new float[2][sizes[0] * sizes[1]];
+        lonlat_b = new float[2][sizes[0] * sizes[1]];
         System.arraycopy(lonlat_a[0], 0, lonlat_b[0], 0, lonlat_b[0].length);
         System.arraycopy(lonlat_a[1], 0, lonlat_b[1], 0, lonlat_b[1].length);
+
+        // create spherical sky map 
+        FlatField f_field = makeSphericalSkyMap();
+        sphrSkyMap_ref.setData( f_field );
+
         // set missing lat/lons
         for (int i=0; i<sizes[0] * sizes[1]; i++) {
           if (lonlat_b[0][i] < -400.0f) lonlat_b[0][i] = Float.NaN;
@@ -447,7 +464,6 @@ public class Galaxy extends Object implements ActionListener {
         grid_set = new Linear3DSet(-halfx, halfx, sizes[2],
                                    -halfy, halfy, sizes[3],
                                    -halfz, halfz, sizes[4]);
-
 
         FlatField grid = new FlatField(grid_type, grid_set);
         float[][] grid_b = new float[1][sizes[2] * sizes[3] * sizes[4]];
@@ -541,7 +557,7 @@ public class Galaxy extends Object implements ActionListener {
     if (server_server != null) {
       // set RemoteDataReferenceImpls in RemoteServer
       RemoteDataReferenceImpl[] refs =
-        new RemoteDataReferenceImpl[26];
+        new RemoteDataReferenceImpl[27];
       refs[0] =
         new RemoteDataReferenceImpl((DataReferenceImpl) grid_ref);
       refs[1] =
@@ -592,6 +608,8 @@ public class Galaxy extends Object implements ActionListener {
         new RemoteDataReferenceImpl((DataReferenceImpl) sol_sightRef);
       refs[25] =
         new RemoteDataReferenceImpl((DataReferenceImpl) density_button_ref);
+      refs[26] =
+        new RemoteDataReferenceImpl((DataReferenceImpl) sphrSkyMap_ref);
 
       server_server.setDataReferences(refs);
     }
@@ -635,6 +653,7 @@ public class Galaxy extends Object implements ActionListener {
     dist_emissionRef = refs[23];
     sol_sightRef = refs[24];
     density_button_ref = refs[25];
+    sphrSkyMap_ref = refs[26];
 
 
     // get grid RealTypes needed for Display ScalarMaps
@@ -675,7 +694,7 @@ public class Galaxy extends Object implements ActionListener {
     llast = lens[1];
 
     // set up Displays for client
-    DisplayImpl[] displays = new DisplayImpl[4];
+    DisplayImpl[] displays = new DisplayImpl[5];
     VisADSlider[] sliders = new VisADSlider[1];
     setupDisplays(true, displays, sliders);
  
@@ -741,10 +760,7 @@ public class Galaxy extends Object implements ActionListener {
         new RemoteDisplayImpl(display1);
       remote_display1.addReference(grid_ref);
       remote_display1.addReference(sol_ref, cmaps_sol);
-  /*- TDR: Event loop problem, or Display logic bug so can't include
-      this reference for now
       remote_display1.addReference(line_to_sol_ref, cmaps_line);
-    */
       remote_display1.addReference(sol_sightRef, yellow );
       remote_display1.addReferences(new DirectManipulationRendererJ3D(), 
                                              red_cursor_ref, cmaps);
@@ -766,6 +782,8 @@ public class Galaxy extends Object implements ActionListener {
     // construct Display for sky map image
     display2 = new DisplayImplJ2D("display2");
     display2.setAlwaysAutoScale(true);
+    GraphicsModeControl mode2 = display2.getGraphicsModeControl();
+    mode2.setScaleEnable(true);
  
     // map grid_domain to the Display spatial coordinates;
     display2.addMap(new ScalarMap(element, Display.XAxis));
@@ -847,12 +865,28 @@ public class Galaxy extends Object implements ActionListener {
       display4.addReference( dist_emissionRef );
     }
 
+    //- Spherical sky map  --*
+    display5 = new DisplayImplJ3D("display5");
+
+    display5.addMap( new ScalarMap(lon, Display.Longitude));
+    display5.addMap( new ScalarMap(lat, Display.Latitude));
+    display5.addMap( new ScalarMap(radiance, Display.RGB));
+    if (client) {
+      RemoteDisplayImpl remote_display5 =
+        new RemoteDisplayImpl(display5);
+        remote_display5.addReference( sphrSkyMap_ref );
+    }
+    else {
+      display5.addReference( sphrSkyMap_ref );
+    }
+
     // return density_slider and Displays for inclusion in GUI
     sliders[0] = density_slider;
     displays[0] = display1;
     displays[1] = display2;
     displays[2] = display3;
     displays[3] = display4;
+    displays[4] = display5;
   }
 
 
@@ -1013,6 +1047,7 @@ public class Galaxy extends Object implements ActionListener {
     JPanel panel2 = (JPanel) displays[1].getComponent();
     JPanel panel3 = (JPanel) displays[2].getComponent();
     JPanel panel4 = (JPanel) displays[3].getComponent();
+    JPanel panel5 = (JPanel) displays[4].getComponent();
 
     // make borders for Displays and embed in display_panel JPanel
     Border etchedBorder5 =
@@ -1022,6 +1057,7 @@ public class Galaxy extends Object implements ActionListener {
     panel2.setBorder(etchedBorder5);
     panel3.setBorder(etchedBorder5);
     panel4.setBorder(etchedBorder5);
+    panel5.setBorder(etchedBorder5);
 
 /*- panel for coords  -*/
     JPanel coord_panel = new JPanel();
@@ -1100,10 +1136,19 @@ public class Galaxy extends Object implements ActionListener {
     big_panel2.add(panel3);
     big_panel2.add(panel4);
 
+    JFrame frame3 = new JFrame("Spherical Sky Map");
+    WIDTH = 500;
+    HEIGHT = 500;
+    frame3.setSize( WIDTH, HEIGHT );
+    frame3.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+    frame3.getContentPane().add(panel5);
  
     // make the JFrame visible
     frame.setVisible(true);
     frame2.setVisible(true);
+    frame3.setVisible(true);
   }
 
   /** Handles button press events. */
@@ -1124,6 +1169,7 @@ public class Galaxy extends Object implements ActionListener {
         density_button_ref.setData(new Real(0.0));
       }
       catch (VisADException ex) {
+        System.out.println( ex.getMessage() );
       }
       catch (RemoteException ex) {
       }
@@ -1172,6 +1218,130 @@ public class Galaxy extends Object implements ActionListener {
  
   }
 
+  private float[][] getLonLat( float[][] lonlat, int length_0, int length_1 )
+  {
+     float[][] n_lonlat = new float[2][ lonlat[0].length ];
+     float gb;
+     float gl, ll;
+     float cosbet, beta;
+     for ( int jj = 0; jj < length_1; jj++ ) {
+       for ( int ii = 0; ii < length_0; ii++ ) {
+          int ii_a = (int) (ii*(10*2.5f))/10;
+          int jj_a = (int) (jj*(10*2.5f))/10;
+          int kk = jj*length_0 + ii;
+
+          if ( lonlat[1][kk] < -400 ) {
+            float x = ((2*ii_a - 1f) -181f)/180f; 
+            float y = ((2*jj_a - 1f) -91f)/180f; 
+            float rad = (float)Math.sqrt( x*x + 4*y*y );
+            float sinalp = (float)Math.sqrt((4*y*y -1f)*(4*y*y -1f)+
+                                            (x*y*2)*(x*y*2) );
+            if (Math.abs(sinalp) > 1 ) {
+              gb = 0f;
+            }
+            else {
+              float alpha = (float) (Math.asin(sinalp)*(57.2957795));
+              gb = 90f - alpha;
+            }
+            if ( y < 0 ) gb = -gb;
+
+            if ( sinalp <= 1.e-4 ) {
+              gl = 180f;
+              gl = (float) Math.IEEEremainder( (double)gl, 360d );
+            }
+            else { 
+              cosbet = (1f - x*x - 4f*y*y)/sinalp;
+              if (cosbet > 1f ) {
+                gl = 0f;
+                gb = 0f;
+              }
+              else {
+                beta = (float) (Math.acos(cosbet)*(57.2957795));
+                ll = 2*beta;
+                gl = ll;
+                if ( x > 0f ) {
+                  gl = 360 - gl;
+                }
+                if ( ii > 36f ) {
+                  gl = gl - 360;
+                }
+              }
+            }
+            n_lonlat[0][kk] = gl;
+            n_lonlat[1][kk] = gb;
+          }
+          else {
+            n_lonlat[0][kk] = lonlat[0][kk];
+            n_lonlat[1][kk] = lonlat[1][kk];
+          }
+       }
+     }
+     return n_lonlat;
+  }
+
+  private FlatField makeSphericalSkyMap()
+  {
+    float[][] lonlat_c = new float[2][ length_0 * length_1 ];
+    float[] samples_c = new float[ length_0 * length_1 ];
+    lonlat_c = getLonLat( lonlat_b, length_0, length_1 ); 
+
+    float[][] lonlat_e = new float[2][length_0 * (length_1 - 1)];
+    float[][] samples_e = new float[1][length_0 * (length_1 - 1)];
+    for (  int ii = 1; ii < length_1; ii++ ) {
+      for ( int jj = 0; jj < length_0; jj++ ) {
+        int i = ii*length_0 + jj;
+        int i2 = (ii-1)*length_0 + jj;
+        lonlat_e[0][i2] = lonlat_c[0][i];
+        lonlat_e[1][i2] = lonlat_c[1][i];
+        if ((lonlat_b[0][i] < -400f)||(lonlat_b[1][i] < -400f)) {
+          samples_e[0][i2] = Float.NaN;
+        }
+        else {
+          samples_e[0][i2] = image_b[0][i];
+        }
+      }
+    }
+    boolean foundFirst;
+    float[] firsts = new float[length_1-1];
+    for (  int ii = 0; ii < (length_1-1); ii++ ) {
+      foundFirst = false;
+      firsts[ii] = Float.NaN;
+      for ( int jj = 0; jj < length_0; jj++ ) {
+        int i = ii*length_0 + jj;
+        if (Float.isNaN(samples_e[0][i])) {
+        }
+        else if (!foundFirst ) {
+          firsts[ii] = samples_e[0][i];
+          foundFirst = true;
+        }
+      }
+    }
+    for (  int ii = 0; ii < (length_1-1); ii++ ) {
+      for ( int jj = 0; jj < length_0; jj++ ) {
+        int i = ii*length_0 + jj;
+         if (Float.isNaN(samples_e[0][i])) {
+           samples_e[0][i] = firsts[ii];
+         }
+       }
+    }
+    FlatField f_fieldRS = null;
+    try {
+      Gridded2DSet g_set = new Gridded2DSet(lonlat_range, lonlat_e, length_0, (length_1-1));
+      FlatField f_field = new FlatField(new FunctionType(lonlat_range, radiance), g_set);
+      f_field.setSamples( samples_e );
+      f_fieldRS = (FlatField)f_field.resample( new LinearLatLonSet(lonlat_range,
+                                               -180d, 180d, 60, -77d, 67d, 50),
+                                                Data.WEIGHTED_AVERAGE,
+                                                Data.NO_ERRORS  );
+    }
+    catch ( VisADException e1 ) {
+       System.out.println(e1.getMessage());
+    }
+    catch ( RemoteException e2 ) {
+       System.out.println(e2.getMessage());
+    }
+    return f_fieldRS;
+  }
 
   /** native method declarations, to Fortran via C */
 
