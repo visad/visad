@@ -48,7 +48,6 @@ public class AnimationControlJ3D extends AVControlJ3D
   private transient AnimationSetControl animationSet;
   private ToggleControl animate;
   private RealType real;
-  private boolean showAnimationString = true;
 
   /** AnimationControlJ3D is Serializable, mark as transient */
   private transient Thread animationThread;
@@ -290,10 +289,8 @@ public class AnimationControlJ3D extends AVControlJ3D
       //if (animationSet.getSet() != null) {
         double value = animationSet.getValue(current);
         Set set = animationSet.getSet();
-
-	if (showAnimationString) {
-          animation_string(real, set, value, current);
-	}
+  
+        animation_string(real, set, value, current);
         selectSwitches(value, set);
     }
   }
@@ -555,10 +552,6 @@ public class AnimationControlJ3D extends AVControlJ3D
       changed = true;
       real = ac.real;
     }
-    if (showAnimationString != ac.showAnimationString) {
-      changed = true;
-      showAnimationString = ac.showAnimationString;
-    }
 
     if (changed) {
       try {
@@ -595,21 +588,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     if (real != ac.real) {
       return false;
     }
-    if (showAnimationString != ac.showAnimationString) {
-      return false;
-    }
 
     return true;
   }
-
-  /**
-   * Enable/Disable the showing of the animation string.
-   *
-   * @param  enabled  if true, the animation string is displayed.
-   */ 
-   public void enableAnimationString(boolean enabled)
-   {
-     showAnimationString = enabled;
-   }
-
 }

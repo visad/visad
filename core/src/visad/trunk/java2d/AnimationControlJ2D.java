@@ -50,7 +50,6 @@ public class AnimationControlJ2D extends AVControlJ2D
   private ToggleControl animate;
   private RealType real;
   private boolean no_tick = false;
-  private boolean showAnimationString = true;
 
   private transient VisADCanvasJ2D canvas;
 
@@ -307,9 +306,7 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
       double value = animationSet.getValue(current);
       Set set = animationSet.getSet();
 
-      if (showAnimationString) {
-        animation_string(real, set, value, current);
-      }
+      animation_string(real, set, value, current);
       selectSwitches(value, set);
     }
   }
@@ -567,10 +564,6 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
       changed = true;
       no_tick = ac.no_tick;
     }
-    if (showAnimationString != ac.showAnimationString) {
-      changed = true;
-      showAnimationString = ac.showAnimationString;
-    }
 
     if (changed) {
       try {
@@ -607,9 +600,6 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     if (no_tick != ac.no_tick) {
       return false;
     }
-    if (showAnimationString != ac.showAnimationString) {
-      return false;
-    }
 
     return true;
   }
@@ -618,18 +608,6 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     return "AnimationControlJ2D: current = " + current +
            " set = " + animationSet.getSet();
   }
-
-
-  /**
-   * Enable/Disable the showing of the animation string.
-   *
-   * @param  enabled  if true, the animation string is displayed.
-   */
-  public void enableAnimationString(boolean enabled)
-  {
-    showAnimationString = enabled;
-  }
-
 
 }
 

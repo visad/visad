@@ -75,6 +75,9 @@ public abstract class DisplayRenderer
   /** threshhold for direct manipulation picking */
   private float pickThreshhold = 0.05f;
 
+  /** Set to true to make animation Strings visible on the display */
+  private boolean aniStringVisible = true;
+
   /**
    * Construct a new <CODE>DisplayRenderer</CODE>.
    */
@@ -497,8 +500,36 @@ public abstract class DisplayRenderer
 
   public abstract boolean legalDataRenderer(DataRenderer renderer);
 
+  /**
+   * Set whether the animation info should be visible in the display
+   * or not.
+   * @param  visible  true to show the animation info
+   */
+  public void setAnimationStringVisible(boolean visible) {
+    aniStringVisible = visible;
+  }
+
+  /**
+   * Return whether the animation info should be visible in the display
+   * or not.
+   * @return   true if the animation info should be shown
+   */
+  public boolean getAnimationStringVisible() {
+    return aniStringVisible;
+  }
+
+  /**
+   * Return Array of <CODE>String</CODE>s describing the
+   * animation sequence
+   * @return The animation description
+   */
   public String[] getAnimationString() {
-    return animationString;
+    if (aniStringVisible) {
+      return animationString;
+    }
+    else {
+      return new String[] {null, null};
+    }
   }
 
   public void setAnimationString(String[] animation) {
