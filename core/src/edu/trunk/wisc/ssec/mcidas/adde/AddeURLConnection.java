@@ -130,6 +130,7 @@ import java.util.StringTokenizer;
  *
  *   descr=<descriptor>        ADDE descriptor name 
  *                             (may also be "descr=FILE=filename")
+ *   file=<filename>           name of text file to read
  *
  *
  * The following keywords are required:
@@ -1167,13 +1168,15 @@ public class AddeURLConnection extends URLConnection
      * there can be any valid combination of the following supported keywords:
      *
      *   file=<filename>    the text file name on the server
+     *   descr=<dataset>    the dataset name on the server
+     *   group=<group>      the ADDE group name for this TEXT
      *
      * the following keywords are required:
      *
-     *   file
+     *   file or descr
      *
      * an example URL might look like:
-     *   adde://viper/text?file=myfile.txt
+     *   adde://viper/text?group=textdata&file=myfile.txt
      *   
      * </pre>
      */
@@ -1183,6 +1186,7 @@ public class AddeURLConnection extends URLConnection
         String testString;
         String groupString = null;
         String filenameString = null;
+        String descrString = null;
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
@@ -1190,9 +1194,16 @@ public class AddeURLConnection extends URLConnection
             testString = cmdTokens.nextToken();
             if (testString.startsWith("desc"))
             {
-                filenameString =
+                descrString =
                     testString.substring(testString.indexOf("=") + 1);
             }
+
+            if (testString.startsWith("file"))
+            {
+                filenameString = "FILE="+
+                    testString.substring(testString.indexOf("=") + 1);
+            }
+
             if (testString.startsWith("grou"))
             {
                 groupString = 
@@ -1200,7 +1211,10 @@ public class AddeURLConnection extends URLConnection
             }
 
         }
+
         buf.append(groupString);
+        buf.append(" ");
+        buf.append(descrString);
         buf.append(" ");
         buf.append(filenameString);
         return buf;
