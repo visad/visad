@@ -42,6 +42,9 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
   private static Unit[] coordinate_system_units =
     {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree};
 
+  // WLH 7 April 2000
+  private float centalt = 0.0f;
+
   private float centlat, centlon;
   private float radlow, radres, azlow, azres, elevlow, elevres;
   private double coscentlat, lonscale, latscale;
@@ -79,13 +82,13 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
     int len = tuples[0].length;
 // System.out.println("toReference double len = " + len);
     double[][] value = new double[3][len];
+/* WLH 7 April 2000
     for (int i=0; i<len ;i++) {
       double rad = radlow + radres * tuples[0][i];
       if (rad < 0.0) {
         value[0][i] = Double.NaN;
         value[1][i] = Double.NaN;
         value[2][i] = Double.NaN;
-// System.out.println(i + " missing  rad = " + rad);
       }
       else {
         double az = azlow + azres * tuples[1][i];
@@ -97,17 +100,41 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
         double sinelev = Math.sin(Data.DEGREES_TO_RADIANS * elev);
         double rp = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rad * rad +
                               2.0 * sinelev * EARTH_RADIUS * rad);
+
         value[2][i] = rp - EARTH_RADIUS; // altitude
+
         double angle = Math.asin(coselev * rad / rp); // really sin(elev+90)
         double radp = EARTH_RADIUS * angle;
         value[0][i] = centlat + cosaz * radp / latscale;
         value[1][i] = centlon + sinaz * radp / lonscale;
-/*
-System.out.println(tuples[0][i] + " " + tuples[1][i] + " " + tuples[2][i] +
-                   " -> " +
-                   value[0][i] + " " + value[1][i] + " " + value[2][i] +
-                   " az, rad = " + az + " " + rad);
+      }
+    }
 */
+    double er = EARTH_RADIUS + centalt;
+    for (int i=0; i<len ;i++) {
+      double rad = radlow + radres * tuples[0][i];
+      if (rad < 0.0) {
+        value[0][i] = Double.NaN;
+        value[1][i] = Double.NaN;
+        value[2][i] = Double.NaN;
+      }
+      else {
+        double az = azlow + azres * tuples[1][i];
+        double cosaz = Math.cos(Data.DEGREES_TO_RADIANS * az);
+        double sinaz = Math.sin(Data.DEGREES_TO_RADIANS * az);
+        // assume azimuth = 0 at north, then clockwise
+        double elev = elevlow + elevres * tuples[2][i];
+        double coselev = Math.cos(Data.DEGREES_TO_RADIANS * elev);
+        double sinelev = Math.sin(Data.DEGREES_TO_RADIANS * elev);
+        double rp = Math.sqrt(er * er + rad * rad +
+                              2.0 * sinelev * er * rad);
+
+        value[2][i] = rp - er + centalt; // altitude
+
+        double angle = Math.asin(coselev * rad / rp); // really sin(elev+90)
+        double radp = er * angle;
+        value[0][i] = centlat + cosaz * radp / latscale;
+        value[1][i] = centlon + sinaz * radp / lonscale;
       }
     }
     return value;
@@ -121,16 +148,41 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " " + tuples[2][i] +
     int len = tuples[0].length;
 // System.out.println("fromReference double len = " + len);
     double[][] value = new double[3][len];
+/* WLH 7 April 2000
     for (int i=0; i<len ;i++) {
       double slat = (tuples[0][i] - centlat) * latscale;
       double slon = (tuples[1][i] - centlon) * lonscale;
       double radp = Math.sqrt(slat * slat + slon * slon);
       double angle = radp / EARTH_RADIUS;
+
       double rp = EARTH_RADIUS + tuples[2][i];
+
       double rad = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rp * rp -
                              2.0 * rp * EARTH_RADIUS * Math.cos(angle));
       double elev =
         Data.RADIANS_TO_DEGREES * Math.acos(Math.sin(angle) * rp / rad);
+      value[0][i] = (rad - radlow) / radres;
+      value[1][i] =
+        (Data.RADIANS_TO_DEGREES * Math.atan2(slon, slat) - azlow) / azres;
+      value[2][i] = (elev - elevlow) / elevres;
+      if (value[1][i] < 0.0) value[1][i] += 360.0;
+    }
+*/
+    double er = EARTH_RADIUS + centalt;
+    for (int i=0; i<len ;i++) {
+      double slat = (tuples[0][i] - centlat) * latscale;
+      double slon = (tuples[1][i] - centlon) * lonscale;
+      double radp = Math.sqrt(slat * slat + slon * slon);
+      double angle = radp / er;
+
+      double alt_over = tuples[2][i] - centalt;
+      double rp = er + alt_over;
+
+      double rad = Math.sqrt(er * er + rp * rp -
+                             2.0 * rp * er * Math.cos(angle));
+      double elev =
+        Data.RADIANS_TO_DEGREES * Math.acos(Math.sin(angle) * rp / rad);
+      if (alt_over < 0.0f) elev = -elev;
       value[0][i] = (rad - radlow) / radres;
       value[1][i] =
         (Data.RADIANS_TO_DEGREES * Math.atan2(slon, slat) - azlow) / azres;
@@ -148,6 +200,7 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " " + tuples[2][i] +
     int len = tuples[0].length;
 // System.out.println("toReference float len = " + len);
     float[][] value = new float[3][len];
+/* WLH 7 April 2000
     for (int i=0; i<len ;i++) {
       double rad = radlow + radres * tuples[0][i];
       if (rad < 0.0) {
@@ -165,9 +218,39 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " " + tuples[2][i] +
         double sinelev = Math.sin(Data.DEGREES_TO_RADIANS * elev);
         double rp = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rad * rad +
                               2.0 * sinelev * EARTH_RADIUS * rad);
+
         value[2][i] = (float) (rp - EARTH_RADIUS); // altitude
+
         double angle = Math.asin(coselev * rad / rp); // really sin(elev+90)
         double radp = EARTH_RADIUS * angle;
+        value[0][i] = (float) (centlat + cosaz * radp / latscale);
+        value[1][i] = (float) (centlon + sinaz * radp / lonscale);
+      }
+    }
+*/
+    double er = EARTH_RADIUS + centalt;
+    for (int i=0; i<len ;i++) {
+      double rad = radlow + radres * tuples[0][i];
+      if (rad < 0.0) {
+        value[0][i] = Float.NaN;
+        value[1][i] = Float.NaN;
+        value[2][i] = Float.NaN;
+      }
+      else {
+        double az = azlow + azres * tuples[1][i];
+        double cosaz = Math.cos(Data.DEGREES_TO_RADIANS * az);
+        double sinaz = Math.sin(Data.DEGREES_TO_RADIANS * az);
+        // assume azimuth = 0 at north, then clockwise
+        double elev = elevlow + elevres * tuples[2][i];
+        double coselev = Math.cos(Data.DEGREES_TO_RADIANS * elev);
+        double sinelev = Math.sin(Data.DEGREES_TO_RADIANS * elev);
+        double rp = Math.sqrt(er * er + rad * rad +
+                              2.0 * sinelev * er * rad);
+
+        value[2][i] = (float) (rp - er) + centalt; // altitude
+
+        double angle = Math.asin(coselev * rad / rp); // really sin(elev+90)
+        double radp = er * angle;
         value[0][i] = (float) (centlat + cosaz * radp / latscale);
         value[1][i] = (float) (centlon + sinaz * radp / lonscale);
       }
@@ -183,16 +266,41 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " " + tuples[2][i] +
     int len = tuples[0].length;
 // System.out.println("fromReference float len = " + len);
     float[][] value = new float[3][len];
+/* WLH 7 April 2000
     for (int i=0; i<len ;i++) {
       double slat = (tuples[0][i] - centlat) * latscale;
       double slon = (tuples[1][i] - centlon) * lonscale;
       double radp = Math.sqrt(slat * slat + slon * slon);
       double angle = radp / EARTH_RADIUS;
+
       double rp = EARTH_RADIUS + tuples[2][i];
+
       double rad = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rp * rp -
                              2.0 * rp * EARTH_RADIUS * Math.cos(angle));
       double elev =
         Data.RADIANS_TO_DEGREES * Math.acos(Math.sin(angle) * rp / rad);
+      value[0][i] = (float) ((rad - radlow) / radres);
+      value[1][i] = (float)
+        ((Data.RADIANS_TO_DEGREES * Math.atan2(slon, slat) - azlow) / azres);
+      value[2][i] = (float) ((elev - elevlow) / elevres);
+      if (value[1][i] < 0.0f) value[1][i] += 360.0f;
+    }
+*/
+    double er = EARTH_RADIUS + centalt;
+    for (int i=0; i<len ;i++) {
+      double slat = (tuples[0][i] - centlat) * latscale;
+      double slon = (tuples[1][i] - centlon) * lonscale;
+      double radp = Math.sqrt(slat * slat + slon * slon);
+      double angle = radp / er;
+
+      double alt_over = tuples[2][i] - centalt;
+      double rp = er + alt_over;
+
+      double rad = Math.sqrt(er * er + rp * rp -
+                             2.0 * rp * er * Math.cos(angle));
+      double elev =
+        Data.RADIANS_TO_DEGREES * Math.acos(Math.sin(angle) * rp / rad);
+      if (alt_over < 0.0f) elev = -elev;
       value[0][i] = (float) ((rad - radlow) / radres);
       value[1][i] = (float)
         ((Data.RADIANS_TO_DEGREES * Math.atan2(slon, slat) - azlow) / azres);
