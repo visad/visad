@@ -15,6 +15,7 @@ import visad.data.netcdf.*;
 import visad.bom.WindPolarCoordinateSystem;
 import java.rmi.RemoteException;
 import java.io.IOException;
+import visad.data.visad.VisADForm;
 
 
 public class Aeri 
@@ -61,6 +62,22 @@ public class Aeri
   public Aeri(String[] args) 
          throws VisADException, RemoteException, IOException
   {
+    if ( args.length > 0 ) 
+    {
+      init_from_vad( args[0] );
+    } 
+    else 
+    { 
+      init_from_cdf();
+    }
+     
+
+    makeDisplay();
+  }
+
+  void init_from_cdf()
+       throws VisADException, RemoteException, IOException
+  {
     station_lat = new double[n_stations];
     station_lon = new double[n_stations];
     station_alt = new double[n_stations];
@@ -74,23 +91,22 @@ public class Aeri
     String[] wind_files = new String[n_stations];
     String[] rtvl_files = new String[n_stations];
 
-    wind_files[0] = "./data/19991216_lamont_windprof.cdf";
-    wind_files[1] = "./data/19991216_hillsboro_windprof.cdf";
-    wind_files[2] = "./data/19991216_morris_windprof.cdf";
-    wind_files[3] = "./data/19991216_purcell_windprof.cdf";
-    wind_files[4] = "./data/19991216_vici_windprof.cdf";
+    wind_files[0] = "./data/19991226_lamont_windprof.cdf";
+    wind_files[1] = "./data/19991226_hillsboro_windprof.cdf";
+    wind_files[2] = "./data/19991226_morris_windprof.cdf";
+    wind_files[3] = "./data/19991226_purcell_windprof.cdf";
+    wind_files[4] = "./data/19991226_vici_windprof.cdf";
 
-    rtvl_files[0] = "./data/lamont_991216AG.cdf";
-    rtvl_files[1] = "./data/hillsboro_991216AG.cdf";
-    rtvl_files[2] = "./data/morris_991216AG.cdf";
-    rtvl_files[3] = "./data/purcell_991216AG.cdf";
-    rtvl_files[4] = "./data/vici_991216AG.cdf";
+    rtvl_files[0] = "./data/lamont_991226AG.cdf";
+    rtvl_files[1] = "./data/hillsboro_991226AG.cdf";
+    rtvl_files[2] = "./data/morris_991226AG.cdf";
+    rtvl_files[3] = "./data/purcell_991226AG.cdf";
+    rtvl_files[4] = "./data/vici_991226AG.cdf";
 
     FieldImpl[] winds = makeWinds(wind_files);
+    System.out.println(winds[0].getType().prettyString());
 
     FieldImpl[] rtvls = makeAeri(rtvl_files);
-
-    System.out.println(winds[0].getType().prettyString());
     System.out.println(rtvls[0].getType().prettyString());
 
     spatial_domain = new RealTupleType(longitude, latitude, altitude);
@@ -98,9 +114,9 @@ public class Aeri
     advect_type = new FunctionType(spatial_domain, advect_range);
     advect_field_type = new FunctionType(time, advect_type);
 
-    stations_field = 
+    stations_field =
         new FieldImpl(new FunctionType( stn_idx, advect_field_type),
-                                        new Integer1DSet( stn_idx, n_stations, 
+                                        new Integer1DSet( stn_idx, n_stations,
                                                           null, null, null));
 
     for ( int kk = 0; kk < n_stations; kk++ )
@@ -108,10 +124,35 @@ public class Aeri
       advect_field = makeAdvect(winds[kk], rtvls[kk], kk);
       stations_field.setSample(kk, advect_field);
     }
-    // System.out.println(advect_field.getType().prettyString());
-    System.out.println(stations_field.getType().prettyString());
 
-    makeDisplay();
+
+    VisADForm vad_form = new VisADForm();
+    vad_form.save("aeri-winds_122699.vad", stations_field, true);
+
+    System.out.println(stations_field.getType().prettyString());
+  }
+
+  void init_from_vad( String vad_file )
+       throws VisADException, RemoteException, IOException
+  {
+    VisADForm vad_form = new VisADForm();
+    stations_field = (FieldImpl) vad_form.open( vad_file );
+
+    MathType file_type = stations_field.getType();
+
+    stn_idx = (RealType) ((RealTupleType)((FunctionType)file_type).getDomain()).getComponent(0);
+    FunctionType f_type0 = (FunctionType) ((FunctionType)file_type).getRange();
+    time = (RealType) ((RealTupleType)f_type0.getDomain()).getComponent(0);
+    FunctionType f_type1 = (FunctionType) f_type0.getRange();
+    RealTupleType rtt = (RealTupleType) f_type1.getDomain();
+    longitude = (RealType) rtt.getComponent(0);
+    latitude = (RealType) rtt.getComponent(1);
+    altitude = (RealType) rtt.getComponent(2);
+
+    rtt = (RealTupleType) f_type1.getRange();
+    temp = (RealType) rtt.getComponent(0);
+    dwpt = (RealType) rtt.getComponent(1);
+    wvmr = (RealType) rtt.getComponent(2);
   }
 
   void makeDisplay()
@@ -539,7 +580,10 @@ start or end altitudes - but it does nothing if all winds are missing */
           rtvl_vals[0][n_samples] = (float) vals[1][jj];
           rtvl_vals[1][n_samples] = (float) vals[2][jj];
           rtvl_vals[2][n_samples] = (float) vals[3][jj];
+      /**- TDR, take out for no-transparancy
           rtvl_vals[3][n_samples] = (float) (-age*age); // WLH - quadratic age fade
+       **/
+          rtvl_vals[3][n_samples] = (float) age;
 
           n_samples++;
         }
