@@ -115,6 +115,44 @@ public class DelaunayCustom extends Delaunay {
     if (samples != null) super.finish_triang(samples);
   }
 
+  /** return true if closed path in samples self-intersects */
+  public static boolean checkSelfIntersection(float[][] samples)
+         throws VisADException {
+    if (samples == null) return false;
+    if (samples.length != 2 || samples[0].length != samples[1].length) {
+      throw new VisADException("samples argument bad dimensions");
+    }
+    int n = samples[0].length;
+
+        // build circular boundary list
+    int[] next = new int[n];
+    for (int i=0; i<n-1; i++) {
+      next[i] = i+1;
+    }
+    next[n-1] = 0;
+    for (int i=0; i<n; i++) {
+      for (int j=0; j<n; j++) {
+        if (i == j) continue;
+        float a0 = samples[0][i];
+        float a1 = samples[1][i];
+        float b0 = samples[0][next[i]];
+        float b1 = samples[1][next[i]];
+        float c0 = samples[0][j];
+        float c1 = samples[1][j];
+        float d0 = samples[0][next[j]];
+        float d1 = samples[1][next[j]];
+        float det = (b0 - a0) * (c1 - d1) - (b1 - a1) * (c0 - d0);
+        if (Math.abs(det) < 0.0000001) continue;
+        float x = ((b0 - a0) * (c1 - a1) - (b1 - a1) * (c0 - a0)) / det;
+        float y = ((c0 - a0) * (c1 - d1) - (c1 - a1) * (c0 - d0)) / det;
+        if (0.0f < x && x < 1.0f && 0.0f < y && y < 1.0f) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /** assume that float[2][number_of_points] samples describes the
       boundary of a simply connected plane region; return a decomposition
       of that region into triangles whose vertices are all boundary
