@@ -1,7 +1,8 @@
 To install VisAD-in-a-Box:
-
-1) From the distribution directory, run
-   'install_visad'
+1) If you've received an install_visad.tar file,
+   run 'tar xvf install_visad.tar'
+1) Move into the extracted distribution directory
+   and run 'install_visad'
 2) Answer the few installation questions,
    then wait for everything to finish
    installing.
@@ -21,12 +22,18 @@ To create a new VisAD-in-a-Box distribution:
     to compile all the VisAD sources, then run
     'make classes' to create visad.jar in the
     directory about the Makefile.
-4) Optionally, copy a JDK directory tree into
-   the distribution directory and name it
-   jdk-<OS>-<MACH> where <OS> is whatever is
-   printed by 'uname -s' and <MACH> is whatever
-   is printed by 'uname -p'.
-5) Move to the directory about the distribution
-   directory and package everything up with
-   'tar cvf visad' (or whatever you've named
-   your distribution directory.
+4) If you want to include Java executables, you can
+   do either of the following:
+ a) Copy a JDK directory tree into the distribution
+    directory and name it jdk-<OS>-<MACH> where <OS>
+    is whatever is printed by 'uname -s' and <MACH>
+    is whatever is printed by 'uname -p'.
+
+    If you do this, the included 'java' executable
+    will be used to run the installer.
+ b) Package up a JDK directory tree in a jar file
+    named jdk-<OS>-<MACH>.jar (where <OS> and <MACH>
+    are as in (a) above.
+5) In the directory above the distribution, package
+   everything up with 'tar cvf visad.tar visad' (or whatever
+   you've named your distribution directory.
