@@ -1,6 +1,6 @@
 SUBPACKAGE	= .units
 
-include ../macros.make
+include ../../../macros.make
 
 JAVASRCS	= \
 		  ASCII_CharStream.java	\
@@ -20,15 +20,13 @@ JAVASRCS	= \
 		  UnitTable.java	\
 		  UnitsDB.java
 
-GARBAGE	= \
-	  ASCII_CharStream.java \
-	  ParseException.java Token.java \
-	  TokenMgrError.java UnitParser.java
-
-include ../rules.make
+include ../../../rules.make
 
 test:	classes	\
 	UnitParser.test
 
 UnitParser.java:	UnitParser.jj
-ASCII_CharStream.java:	UnitParser.class
+ASCII_CharStream.java:	UnitParser.java
+ParseException.java:	UnitParser.java
+Token.java:		UnitParser.java
+TokenMgrError.java:	UnitParser.java
