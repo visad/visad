@@ -84,17 +84,21 @@ public class ScalarMap extends Object
 
   private String scalarName = null;
 
-  /** location of axis scale if DisplayScalar is XAxis, YAxis or ZAxis */
+  /** location of axis scale if DisplayScalar is XAxis, YAxis or ZAxis 
   private int axis = -1;
   private int axis_ordinal = -1;
+   < removed for AxisScale 10-Oct-2000 > */
   private boolean scale_flag = false;
   private boolean back_scale_flag = false;
-  private float[] scale_color = {1.0f, 1.0f, 1.0f};
+  //private float[] scale_color = {1.0f, 1.0f, 1.0f}; <DRM 10-Oct-2000>
   private boolean scale_on = true;
   private boolean underscore_to_blank = false;
 
   /** Vector of ScalarMapListeners */
   private transient Vector ListenerVector = new Vector();
+
+  /** AxisScale */
+  private AxisScale axisScale = null;  // added DRM 10-Oct-2000
 
   public ScalarMap(ScalarType scalar, DisplayRealType display_scalar)
          throws VisADException {
@@ -140,6 +144,11 @@ public class ScalarMap extends Object
     NewTick = Long.MIN_VALUE + 1;
     tickFlag = false;
     if (Scalar != null) scalarName = Scalar.getName();
+    if (DisplayScalar.equals(Display.XAxis) ||
+        DisplayScalar.equals(Display.YAxis) ||
+        DisplayScalar.equals(Display.ZAxis)) {
+        axisScale = new AxisScale(this);
+    }
   }
 
   // WLH 31 Aug 2000
@@ -171,6 +180,7 @@ public class ScalarMap extends Object
 
   public void setScalarName(String name) {
     scalarName = name;
+    if (axisScale != null) axisScale.setLabel(scalarName);
   }
 
   /** invoke incTick on every application call to setRange */
@@ -292,7 +302,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     scale_flag = back_scale_flag;
 
     // WLH 15 Aug 2000
-    axis_ordinal = -1;
+    if (axisScale != null) axisScale.setAxisOrdinal(-1);
   }
 
   /** set the DisplayImpl this ScalarMap is linked to */
@@ -701,6 +711,26 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   private static final double OFFSET = 1.05;
 
   public void makeScale() throws VisADException {
+    if (axisScale != null) 
+    {
+        DisplayRenderer displayRenderer = null;
+        if (display == null) return;
+        displayRenderer = display.getDisplayRenderer();
+        if (displayRenderer == null) return;
+        boolean scaleMade = axisScale.makeScale();
+        if (scaleMade)
+        {
+            //displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
+            if (scale_on) 
+                displayRenderer.setScale(
+                        axisScale.getAxis(),
+                        axisScale.getAxisOrdinal(),
+                        axisScale.getScaleArray(), 
+                        axisScale.getColor().getColorComponents(null));
+            scale_flag = false;
+        }
+    }
+    /* DRM 10-Oct-2000  moved to AxisScale
     DisplayRenderer displayRenderer = null;
     if (display == null) return;
     displayRenderer = display.getDisplayRenderer();
@@ -777,14 +807,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       tens /= 2.0;
     }
 
-    long bot = (int) Math.ceil(min / tens);
-    long top = (int) Math.floor(max / tens);
-    if (bot == top) {
-      if (bot < 0) top++;
-      else bot--;
-    }
+    int bot = (int) Math.ceil(min / tens);
+    int top = (int) Math.floor(max / tens);
     arrays[0] = new VisADLineArray();
-    int nticks = (int) ((top - bot) + 1);
+    int nticks = (top - bot) + 1;
     float[] coordinates = new float[6 * (nticks + 1)];
     // draw base line
     for (int i=0; i<3; i++) {
@@ -794,7 +820,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
 
     // draw tick marks
     int k = 6;
-    for (long j=bot; j<=top; j++) {
+    for (int j=bot; j<=top; j++) {
       double val = j * tens;
       double a = (val - min) / (max - min);
       for (int i=0; i<3; i++) {
@@ -825,14 +851,6 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     // draw RealType name
     arrays[1] = PlotText.render_label(scalarName, startlabel,
                                       base, up, true);
-/* WLH 26 July 99
-    // draw number at bottom tick mark
-    arrays[2] = PlotText.render_label(PlotText.shortString(botval), startbot,
-                                      base, up, true);
-    // draw number at top tick mark
-    arrays[3] = PlotText.render_label(PlotText.shortString(topval), starttop,
-                                      base, up, true);
-*/
     String botstr = PlotText.shortString(botval);
     String topstr = PlotText.shortString(topval);
     if (RealType.Time.equals(Scalar)) {
@@ -846,8 +864,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     arrays[3] = PlotText.render_label(topstr, starttop, base, up, true);
 
     VisADLineArray array = VisADLineArray.merge(arrays);
-    if (scale_on) displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
-    scale_flag = false;
+    */
   }
 
   public void setScaleEnable(boolean on) {
@@ -868,9 +885,13 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
      throw new DisplayException("ScalarMap.setScaleColor: color is " +
                                 "null or wrong length");
     }
+    // DRM 10-Oct 2000
+    axisScale.setColor(color);
+    /* 
     scale_color[0] = color[0];
     scale_color[1] = color[1];
     scale_color[2] = color[2];
+    */
   }
 
   public boolean badRange() {
@@ -1162,13 +1183,14 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
     map.displayRange[1] = displayRange[1];
     map.scale = scale;
     map.offset = offset;
-    map.axis = axis;
-    map.axis_ordinal = axis_ordinal;
+    //map.axis = axis;
+    map.axisScale = axisScale;
+    //map.axis_ordinal = axis_ordinal;
     map.scale_flag = scale_flag;
     map.back_scale_flag = back_scale_flag;
-    map.scale_color[0] = scale_color[0];
-    map.scale_color[1] = scale_color[1];
-    map.scale_color[2] = scale_color[2];
+    //map.scale_color[0] = scale_color[0];
+    //map.scale_color[1] = scale_color[1];
+    //map.scale_color[2] = scale_color[2];
   }
 
   public String toString() {
