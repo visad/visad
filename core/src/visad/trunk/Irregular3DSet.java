@@ -216,6 +216,9 @@ public class Irregular3DSet extends IrregularSet {
                              "don't match");
     }
 
+    // DelaunayCustom may be non-convex
+    boolean custom = (Delan instanceof DelaunayCustom);
+
     float[] PA = new float[3];
     float[] PB = new float[3];
     float[] PC = new float[3];
@@ -389,6 +392,20 @@ public class Irregular3DSet extends IrregularSet {
             curtri = t;
           }
 
+          if (custom) {
+            if (curtri == -1 || fail) {
+              curtri = -1;
+              for (int jj=0; jj<fail_tri.length; jj++) {
+                if (!fail_tri[jj]) {
+                  curtri = jj;
+                  break;
+                }
+              }
+            }
+          }
+          else {
+            if (fail) curtri = -1;
+          }
         }
         else {
           foundit = true;
