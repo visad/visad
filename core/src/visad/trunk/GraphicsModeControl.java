@@ -142,6 +142,9 @@ public abstract class GraphicsModeControl extends Control
   public abstract void setPolygonMode(int mode)
          throws VisADException, RemoteException;
 
+  public abstract void setPolygonMode(int mode, boolean dummy)
+         throws VisADException, RemoteException;
+
   public abstract int getPolygonMode();
 
   public abstract void setPolygonOffset(float polygonOffset)

@@ -401,7 +401,14 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                domain_set.getDimension() == 2)) &&
                              (domain_set.getManifoldDimension() == 2);
 
-      int curved_size = display.getGraphicsModeControl().getCurvedSize();
+      // DRM 2003-08-21
+      //int curved_size = display.getGraphicsModeControl().getCurvedSize();
+      int cMapCurveSize = (int)
+        default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
+      int curved_size =  
+        (cMapCurveSize > 0)
+           ? cMapCurveSize
+           : display.getGraphicsModeControl().getCurvedSize();
       boolean curvedTexture = adaptedShadowType.getCurvedTexture() &&
                               !isTextureMap &&
                               curved_size > 0 &&

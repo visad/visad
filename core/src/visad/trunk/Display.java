@@ -291,6 +291,18 @@ public interface Display extends Action {
   DisplayRealType TextureEnable =
     new DisplayRealType("TextureEnable", true, -1.0, true);
 
+  /** missing transparent - ConstantMap only */
+  DisplayRealType MissingTransparent =
+    new DisplayRealType("MissingTransparent", true, -1.0, true);
+
+  /** polygon mode - ConstantMap only */
+  DisplayRealType PolygonMode =
+    new DisplayRealType("PolygonMode", true, -1.0, true);
+
+  /** curved size - ConstantMap only, values must be > 0 */
+  DisplayRealType CurvedSize =
+    new DisplayRealType("CurvedSize", true, 0.0, true);
+
   /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
@@ -299,7 +311,9 @@ public interface Display extends Action {
      Flow2X, Flow2Y, Flow2Z, XAxisOffset, YAxisOffset, ZAxisOffset, Shape,
      Text, ShapeScale, LineWidth, PointSize, CylRadius, CylAzimuth, CylZAxis,
      Flow1Elevation, Flow1Azimuth, Flow1Radial,
-     Flow2Elevation, Flow2Azimuth, Flow2Radial, LineStyle, TextureEnable};
+     Flow2Elevation, Flow2Azimuth, Flow2Radial, 
+     LineStyle, TextureEnable, MissingTransparent, 
+     PolygonMode, CurvedSize};
 
   // system intrinsic DisplayTupleType objects
 

@@ -389,6 +389,22 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   }
 
   /**
+   * Sets the polygon mode.  Does not update the display
+   *
+   * @param  mode   the polygon mode to be used
+   *
+   * @throws  VisADException   bad mode or can't create the necessary VisAD
+   *                           object
+   * @throws  RemoteException  can't change mode on remote display
+   */
+  public void setPolygonMode(int mode, boolean dummy)
+         throws VisADException, RemoteException {
+    if (mode == 0) {
+      polygonMode = mode;
+    }
+  }
+
+  /**
    * Get the current polygon mode.
    *
    * @return  mode
@@ -400,13 +416,13 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   public void setPolygonOffset(float polygonOffset)
          throws VisADException, RemoteException {
     throw new DisplayException("GraphicsModeControlJ2D." +
-                               "setPolygonMode not supported");
+                               "setPolygonOffset not supported");
   }
 
   public float getPolygonOffset()
          throws VisADException, RemoteException {
     throw new DisplayException("GraphicsModeControlJ2D." +
-                               "getPolygonMode not supported");
+                               "getPolygonOffset not supported");
   }
 
   /**

@@ -461,6 +461,27 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   }
 
   /**
+   * Sets the polygon rasterization mode. Does not update display
+   *
+   * @param  mode   the polygon rasterization mode to be used; one of
+   *                DisplayImplJ3D.POLYGON_FILL, DisplayImplJ3D.POLYGON_LINE,
+   *                or DisplayImplJ3D.POLYGON_POINT
+   *
+   * @throws  VisADException   bad mode or can't create the necessary VisAD
+   *                           object
+   * @throws  RemoteException  can't change mode on remote display
+   */
+  public void setPolygonMode(int mode, boolean dummy)
+         throws VisADException, RemoteException {
+    if (mode == polygonMode) return;
+    if (mode == PolygonAttributes.POLYGON_FILL ||
+        mode == PolygonAttributes.POLYGON_LINE ||
+        mode == PolygonAttributes.POLYGON_POINT) {
+      polygonMode = mode;
+    }
+  }
+
+  /**
    * Get the current polygon rasterization mode.
    *
    * @return  DisplayImplJ3D.POLYGON_FILL, DisplayImplJ3D.POLYGON_LINE,

@@ -667,7 +667,14 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                             (domain_set instanceof LinearNDSet &&
                              domain_set.getDimension() == 2));
 
-    int curved_size = display.getGraphicsModeControl().getCurvedSize();
+    // DRM 2003-08-21
+    //int curved_size = display.getGraphicsModeControl().getCurvedSize();
+    int cMapCurveSize = (int)
+      default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
+    int curved_size =  
+         (cMapCurveSize > 0)
+             ? cMapCurveSize
+             : display.getGraphicsModeControl().getCurvedSize();
 
     float textureEnable =
       default_values[display.getDisplayScalarIndex(Display.TextureEnable)];
@@ -1670,8 +1677,18 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       int lineStyle = (int)
         default_values[display.getDisplayScalarIndex(Display.LineStyle)];
       mode.setLineStyle(lineStyle, true);
+      int polygonMode = (int)
+        default_values[display.getDisplayScalarIndex(Display.PolygonMode)];
+      mode.setPolygonMode(polygonMode, true);
 
       boolean pointMode = mode.getPointMode();
+
+      float missingTransparent =
+          default_values[display.getDisplayScalarIndex(Display.MissingTransparent)];
+      boolean isMissingTransparent = mode.getMissingTransparent();
+      if (missingTransparent > -0.5f) {
+        isMissingTransparent = (missingTransparent > 0.5f);
+      }
 
 // if (link != null) System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
 
@@ -2152,7 +2169,8 @@ makeGeometry 350, 171
                 constant_alpha = Float.NaN;
                 color_values = c;
               }
-              if (mode.getMissingTransparent()) {
+              //if (mode.getMissingTransparent()) {
+              if (isMissingTransparent) {
                 for (int i=0; i<len; i++) {
                   if (!range_select[0][i]) {
                     // make missing pixel invisible (transparent)
@@ -2203,7 +2221,8 @@ makeGeometry 350, 171
             }
 
             if (range_select[0] != null) {
-              if (mode.getMissingTransparent() && color_values.length > 3) {
+              //if (mode.getMissingTransparent() && color_values.length > 3) {
+              if (isMissingTransparent && color_values.length > 3) {
                 for (int i=0; i<domain_length; i++) {
                   if (!range_select[0][i]) {
                     // make missing pixel invisible (transparent)
@@ -2537,7 +2556,8 @@ WLH 15 March 2000 */
           else if (spatialManifoldDimension == 1) {
             if (range_select[0] != null) {
               // WLH 27 March 2000
-              if (mode.getMissingTransparent()) {
+              //if (mode.getMissingTransparent()) {
+              if (isMissingTransparent) {
                 spatial_set.cram_missing(range_select[0]);
                 spatial_all_select = false;
               }
@@ -2571,7 +2591,8 @@ WLH 15 March 2000 */
           else if (spatialManifoldDimension == 2) {
             if (range_select[0] != null) {
               // WLH 27 March 2000
-              if (mode.getMissingTransparent()) {
+              //if (mode.getMissingTransparent()) {
+              if (isMissingTransparent) {
                 spatial_set.cram_missing(range_select[0]);
                 spatial_all_select = false;
               }
