@@ -760,6 +760,7 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
 // if (link != null) System.out.println("test isTextureMap " + (System.currentTimeMillis() - link.start_time));
 
     if (isTextureMap) {
+      /***
       Linear1DSet X = null;
       Linear1DSet Y = null;
       if (domain_set instanceof Linear2DSet) {
@@ -814,17 +815,15 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
             break;
           }
         }
-/*
-        if (tuple == null ||
-            !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-          throw new DisplayException("texture with bad tuple: " +
-                                     "ShadowFunctionOrSetType.doTransform");
-        }
-        if (maps.hasMoreElements()) {
-          throw new DisplayException("texture with multiple spatial: " +
-                                     "ShadowFunctionOrSetType.doTransform");
-        }
-*/
+//      if (tuple == null ||
+//          !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+//        throw new DisplayException("texture with bad tuple: " +
+//                                   "ShadowFunctionOrSetType.doTransform");
+//      }
+//      if (maps.hasMoreElements()) {
+//        throw new DisplayException("texture with multiple spatial: " +
+//                                   "ShadowFunctionOrSetType.doTransform");
+//      }
       } // end for (int i=0; i<DomainComponents.length; i++)
       // get spatial index not mapped from domain_set
       tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
@@ -905,16 +904,15 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
 
       colors = new byte[12];
       for (int i=0; i<12; i++) colors[i] = (byte) 127;
-/*
-for (int i=0; i < 4; i++) {
-  System.out.println("i = " + i + " texCoords = " + texCoords[2 * i] + " " +
-                     texCoords[2 * i + 1]);
-  System.out.println(" coordinates = " + coordinates[3 * i] + " " +
-                     coordinates[3 * i + 1] + " " + coordinates[3 * i + 2]);
-  System.out.println(" normals = " + normals[3 * i]  + " " + normals[3 * i + 1] +
-                     " " + normals[3 * i + 2]);
-}
-*/
+//for (int i=0; i < 4; i++) {
+//  System.out.println("i = " + i + " texCoords = " + texCoords[2 * i] + " " +
+//                     texCoords[2 * i + 1]);
+//  System.out.println(" coordinates = " + coordinates[3 * i] + " " +
+//                     coordinates[3 * i + 1] + " " + coordinates[3 * i + 2]);
+//  System.out.println(" normals = " + normals[3 * i]  + " " + normals[3 * i + 1] +
+//                     " " + normals[3 * i + 2]);
+//}
+    ***/
     }
     else if (isTexture3D) {
       Linear1DSet X = null;
@@ -2133,7 +2131,7 @@ makeGeometry 350, 171
             }
             if (range_select[0] != null && range_select[0].length > 1) {
               int len = range_select[0].length;
-
+                                                                                                                                    
 /* can be misleading because of the way transparency composites
               float alpha =
                 default_values[display.getDisplayScalarIndex(Display.Alpha)];
@@ -2198,22 +2196,87 @@ makeGeometry 350, 171
               }
             } // end if (range_select[0] != null)
 
-            // MEM
-            VisADQuadArray qarray = new VisADQuadArray();
-            qarray.vertexCount = 4;
-            qarray.coordinates = coordinates;
-            qarray.texCoords = texCoords;
-            qarray.colors = colors;
-            qarray.normals = normals;
+//- begin texture split logic ------------------------------------------------------
+            int[] lens = ((GriddedSet)domain_set).getLengths();
+                                                                                                                             
+            int limit = link.getDisplay().getDisplayRenderer().getTextureWidthMax();
+                                                                                                                             
+            int y_sub_len = lens[1];
+            int n_y_sub   = 1;
+            while( y_sub_len >= limit ) {
+              y_sub_len /= 2;
+              n_y_sub *= 2;
+            }
+            int[][] y_start_stop = new int[n_y_sub][2];
+            for (int k = 0; k < n_y_sub-1; k++) {
+              y_start_stop[k][0] = k*y_sub_len;
+              y_start_stop[k][1] = (k+1)*y_sub_len - 1;
+            }
+            int k = n_y_sub-1;
+            y_start_stop[k][0] = k*y_sub_len;
+            y_start_stop[k][1] = lens[1] - 1;
+                                                                                                                             
+            int x_sub_len = lens[0];
+            int n_x_sub   = 1;
+            while( x_sub_len >= limit ) {
+              x_sub_len /= 2;
+              n_x_sub *= 2;
+            }
+            int[][] x_start_stop = new int[n_x_sub][2];
+            for (k = 0; k < n_x_sub-1; k++) {
+              x_start_stop[k][0] = k*x_sub_len;
+              x_start_stop[k][1] = (k+1)*x_sub_len - 1;
+            }
+            k = n_x_sub-1;
+            x_start_stop[k][0] = k*x_sub_len;
+            x_start_stop[k][1] = lens[0] - 1;
 
-            BufferedImage image =
-              createImage(data_width, data_height, texture_width,
-                          texture_height, color_values);
-            shadow_api.textureToGroup(group, qarray, image, mode,
-                                      constant_alpha, constant_color,
-                                      texture_width, texture_height);
-
-            // System.out.println("isTextureMap done");
+            if (n_y_sub == 1 && n_x_sub == 1) { //- don't split texture
+              buildLinearTexture(group, domain_set, dataUnits, domain_units, default_values, shadow_api,
+                                 valueArrayLength, valueToScalar, value_array, color_values, 
+                                 mode, constant_color, constant_alpha);
+            }
+            else {
+              Object branch = shadow_api.makeBranch();
+                                                                                                                             
+              int start   = 0;
+              int i_total = 0;
+              for (int i=0; i<n_y_sub; i++) {
+                int leny = y_start_stop[i][1] - y_start_stop[i][0] + 1;
+                for (int j=0; j<n_x_sub; j++) {
+                  int lenx = x_start_stop[j][1] - x_start_stop[j][0] + 1;
+                  float[][] g00 = ((GriddedSet)domain_set).gridToValue(new float[][] {{x_start_stop[j][0]}, {y_start_stop[i][0]}});
+                  float[][] g11 = ((GriddedSet)domain_set).gridToValue(new float[][] {{x_start_stop[j][1]}, {y_start_stop[i][1]}});
+                  double x0 = g00[0][0];
+                  double x1 = g11[0][0];
+                  double y0 = g00[1][0];
+                  double y1 = g11[1][0];
+                  Set dset = new Linear2DSet(x0, x1, lenx, y0, y1, leny);
+                  //- tile piece
+                  byte[][] color_valuesW = null;
+                  if (color_values.length == 3) color_valuesW = new byte[3][lenx*leny];
+                  if (color_values.length == 4) color_valuesW = new byte[4][lenx*leny];
+                  int cnt = 0;
+                  for (k=0; k<leny; k++) {
+                    start = x_start_stop[j][0] +  i_total*lens[0] +  k*lens[0];
+                    System.arraycopy(color_values[0], start, color_valuesW[0], cnt, lenx);
+                    System.arraycopy(color_values[1], start, color_valuesW[1], cnt, lenx);
+                    System.arraycopy(color_values[2], start, color_valuesW[2], cnt, lenx);
+                    if (color_values.length == 4) System.arraycopy(color_values[3], start, color_valuesW[3], cnt, lenx);
+                    cnt += lenx;
+                  }
+                  Object branch1 = shadow_api.makeBranch();
+                  buildLinearTexture(branch1, dset, dataUnits, domain_units, default_values, shadow_api,
+                                     valueArrayLength, valueToScalar, value_array, color_valuesW,
+                                     mode, constant_color, constant_alpha);
+                  shadow_api.addToGroup(branch, branch1);
+                }
+                i_total += leny;
+              }
+              shadow_api.addToGroup(group, branch);
+            }
+//-- end texture split logic -------------------------------------------------------------
+            //System.out.println("isTextureMap done");
             return false;
           } // end if (isTextureMap)
           else if (curvedTexture) {
@@ -2248,161 +2311,193 @@ makeGeometry 350, 171
                 }
               }
             }
-
+//-- begin texture split logic  ----------------------------------------------------------
             // get domain_set sizes
-            int[] lengths = ((GriddedSet) domain_set).getLengths();
-            data_width = lengths[0];
-            data_height = lengths[1];
-            texture_width = shadow_api.textureWidth(data_width);
-            texture_height = shadow_api.textureHeight(data_height);
-
-            int size = (data_width + data_height) / 2;
-            curved_size = Math.max(2, Math.min(curved_size, size / 32));
-
-            int nwidth = 2 + (data_width - 1) / curved_size;
-            int nheight = 2 + (data_height - 1) / curved_size;
-
-            // WLH 14 Aug 2001
-            if (range_select[0] != null && !domainOnlySpatial) {
-              // System.out.println("force curved_size = 1");
-              curved_size = 1;
-              nwidth = data_width;
-              nheight = data_height;
+            int[] lens = ((GriddedSet)domain_set).getLengths();
+                                                                                                                                   
+            int limit = link.getDisplay().getDisplayRenderer().getTextureWidthMax();
+                                                                                                                                   
+            int y_sub_len = lens[1];
+            int n_y_sub   = 1;
+            while( y_sub_len >= limit ) {
+              y_sub_len /= 2;
+              n_y_sub *= 2;
             }
-
-// System.out.println("curved_size = " + curved_size + " nwidth = " + nwidth +
-//                    " nheight = " + nheight);
-
-            int nn = nwidth * nheight;
-            coordinates = new float[3 * nn];
-            int k = 0;
-            int[] is = new int[nwidth];
-            int[] js = new int[nheight];
-            for (int i=0; i<nwidth; i++) {
-              is[i] = Math.min(i * curved_size, data_width - 1);
+            int[][] y_start_stop = new int[n_y_sub][2];
+            for (int k = 0; k < n_y_sub-1; k++) {
+              y_start_stop[k][0] = k*y_sub_len;
+              y_start_stop[k][1] = (k+1)*y_sub_len - 1;
             }
-            for (int j=0; j<nheight; j++) {
-              js[j] = Math.min(j * curved_size, data_height - 1);
+            int k = n_y_sub-1;
+            y_start_stop[k][0] = k*y_sub_len;
+            y_start_stop[k][1] = lens[1] - 1;
+                                                                                                                                   
+                                                                                                                                   
+            int x_sub_len = lens[0];
+            int n_x_sub   = 1;
+            while( x_sub_len >= limit ) {
+              x_sub_len /= 2;
+              n_x_sub *= 2;
             }
-            for (int j=0; j<nheight; j++) {
-              for (int i=0; i<nwidth; i++) {
-                int ij = is[i] + data_width * js[j];
-                coordinates[k++] = spatial_values[0][ij];
-                coordinates[k++] = spatial_values[1][ij];
-                coordinates[k++] = spatial_values[2][ij];
-/*
-double size = Math.sqrt(spatial_values[0][ij] * spatial_values[0][ij] +
-                        spatial_values[1][ij] * spatial_values[1][ij] +
-                        spatial_values[2][ij] * spatial_values[2][ij]);
-if (size < 0.2) {
-  System.out.println("spatial_values " + is[i] + " " + js[j] + " " +
-  spatial_values[0][ij] + " " + spatial_values[1][ij] + " " + spatial_values[2][ij]);
-}
-*/
+            int[][] x_start_stop = new int[n_x_sub][2];
+            for (k = 0; k < n_x_sub-1; k++) {
+              x_start_stop[k][0] = k*x_sub_len;
+              x_start_stop[k][1] = (k+1)*x_sub_len - 1;
+            }
+            k = n_x_sub-1;
+            x_start_stop[k][0] = k*x_sub_len;
+            x_start_stop[k][1] = lens[0] - 1;
+
+                                                                                                                                   
+            if (n_y_sub == 1 && n_x_sub == 1) { //- don't split texture map
+              buildCurvedTexture(group, domain_set, dataUnits, domain_units, default_values, shadow_api,
+                                 valueArrayLength, valueToScalar, value_array, color_values, mode,
+                                 constant_color, constant_alpha, curved_size, spatial_values,
+                                 spatial_all_select, renderer, range_select, domainOnlySpatial,
+                                 null, lens[0], lens[1], lens[0], lens[1]);
+            }
+            else {
+              Object branch = shadow_api.makeBranch();
+              float[][] samples = spatial_values;
+
+              int start   = 0;
+              int i_total = 0;
+              for (int i=0; i<n_y_sub; i++) {
+                int leny = y_start_stop[i][1] - y_start_stop[i][0] + 1;
+                for (int j=0; j<n_x_sub; j++) {
+                  int lenx = x_start_stop[j][1] - x_start_stop[j][0] + 1;
+
+                  if (j > 0) {  // vertical stitch
+                    float[][] samplesC = new float[3][4*leny];
+                    byte[][] color_valuesC  = new byte[color_values.length][4*leny];
+                    int cntv = 0;
+                    int startv = x_start_stop[j][0] + i_total*lens[0];
+                    for (int iv=0; iv < leny; iv++) {
+                      samplesC[0][cntv] = samples[0][startv-2];
+                      samplesC[0][cntv+1] = samples[0][startv-1];
+                      samplesC[0][cntv+2] = samples[0][startv];
+                      samplesC[0][cntv+3] = samples[0][startv+1];
+                      samplesC[1][cntv] = samples[1][startv-2];
+                      samplesC[1][cntv+1] = samples[1][startv-1];
+                      samplesC[1][cntv+2] = samples[1][startv];
+                      samplesC[1][cntv+3] = samples[1][startv+1];
+                      samplesC[2][cntv] = samples[2][startv-2];
+                      samplesC[2][cntv+1] = samples[2][startv-1];
+                      samplesC[2][cntv+2] = samples[2][startv];
+                      samplesC[2][cntv+3] = samples[2][startv+1];
+                      color_valuesC[0][cntv] = color_values[0][startv-2];
+                      color_valuesC[0][cntv+1] = color_values[0][startv-1];
+                      color_valuesC[0][cntv+2] = color_values[0][startv];
+                      color_valuesC[0][cntv+3] = color_values[0][startv+1];
+                      color_valuesC[1][cntv] = color_values[1][startv-2];
+                      color_valuesC[1][cntv+1] = color_values[1][startv-1];
+                      color_valuesC[1][cntv+2] = color_values[1][startv];
+                      color_valuesC[1][cntv+3] = color_values[1][startv+1];
+                      color_valuesC[2][cntv] = color_values[2][startv-2];
+                      color_valuesC[2][cntv+1] = color_values[2][startv-1];
+                      color_valuesC[2][cntv+2] = color_values[2][startv];
+                      color_valuesC[2][cntv+3] = color_values[2][startv+1];
+                      if (color_valuesC.length == 4) {
+                        color_valuesC[3][cntv] = color_values[3][startv-2];
+                        color_valuesC[3][cntv+1] = color_values[3][startv-1];
+                        color_valuesC[3][cntv+2] = color_values[3][startv];
+                        color_valuesC[3][cntv+3] = color_values[3][startv+1];
+                      }
+                      cntv += 4;
+                      startv += lens[0];
+                    }
+                    Object branchv = shadow_api.makeBranch();
+                    buildCurvedTexture(branchv, null, dataUnits, domain_units, default_values, shadow_api,
+                                       valueArrayLength, valueToScalar, value_array, color_valuesC, mode,
+                                       constant_color, constant_alpha, curved_size, samplesC,
+                                       spatial_all_select, renderer, range_select, domainOnlySpatial,
+                                       null,
+                                       4, leny, lens[0], lens[1]);
+                    shadow_api.addToGroup(branch, branchv);
+                  }
+                  if (i > 0) {  // horz stitch
+                    float[][] samplesC = new float[3][4*lenx];
+                    byte[][] color_valuesC = new byte[color_values.length][4*lenx];
+                    int starth = x_start_stop[j][0] + i_total*lens[0];
+                    int cnth = 0;
+                    System.arraycopy(samples[0], starth-2*lens[0], samplesC[0], cnth, lenx);
+                    System.arraycopy(samples[1], starth-2*lens[0], samplesC[1], cnth, lenx);
+                    System.arraycopy(samples[2], starth-2*lens[0], samplesC[2], cnth, lenx);
+                    cnth += lenx;
+                    System.arraycopy(samples[0], starth-1*lens[0], samplesC[0], cnth, lenx);
+                    System.arraycopy(samples[1], starth-1*lens[0], samplesC[1], cnth, lenx);
+                    System.arraycopy(samples[2], starth-1*lens[0], samplesC[2], cnth, lenx);
+                    cnth += lenx;
+                    System.arraycopy(samples[0], starth, samplesC[0], cnth, lenx);
+                    System.arraycopy(samples[1], starth, samplesC[1], cnth, lenx);
+                    System.arraycopy(samples[2], starth, samplesC[2], cnth, lenx);
+                    cnth += lenx;
+                    System.arraycopy(samples[0], starth+1*lens[0], samplesC[0], cnth, lenx);
+                    System.arraycopy(samples[1], starth+1*lens[0], samplesC[1], cnth, lenx);
+                    System.arraycopy(samples[2], starth+1*lens[0], samplesC[2], cnth, lenx);
+                                                                                                                                   
+                    cnth = 0;
+                    System.arraycopy(color_values[0], starth-2*lens[0], color_valuesC[0], cnth, lenx);
+                    System.arraycopy(color_values[1], starth-2*lens[0], color_valuesC[1], cnth, lenx);
+                    System.arraycopy(color_values[2], starth-2*lens[0], color_valuesC[2], cnth, lenx);
+                    if (color_values.length == 4) System.arraycopy(color_values[3], starth-2*lens[0], color_valuesC[3], cnth, lenx);
+                    cnth += lenx;
+                    System.arraycopy(color_values[0], starth-1*lens[0], color_valuesC[0], cnth, lenx);
+                    System.arraycopy(color_values[1], starth-1*lens[0], color_valuesC[1], cnth, lenx);
+                    System.arraycopy(color_values[2], starth-1*lens[0], color_valuesC[2], cnth, lenx);
+                    if (color_values.length == 4) System.arraycopy(color_values[3], starth-1*lens[0], color_valuesC[3], cnth, lenx);
+                    cnth += lenx;
+                    System.arraycopy(color_values[0], starth, color_valuesC[0], cnth, lenx);
+                    System.arraycopy(color_values[1], starth, color_valuesC[1], cnth, lenx);
+                    System.arraycopy(color_values[2], starth, color_valuesC[2], cnth, lenx);
+                    if (color_values.length == 4) System.arraycopy(color_values[3], starth, color_valuesC[3], cnth, lenx);
+                    cnth += lenx;
+                    System.arraycopy(color_values[0], starth+1*lens[0], color_valuesC[0], cnth, lenx);
+                    System.arraycopy(color_values[1], starth+1*lens[0], color_valuesC[1], cnth, lenx);
+                    System.arraycopy(color_values[2], starth+1*lens[0], color_valuesC[2], cnth, lenx);
+                    if (color_values.length == 4) System.arraycopy(color_values[3], starth+1*lens[0], color_valuesC[3], cnth, lenx);
+                                                                                                                                   
+                                                                                                                                   
+                    Object branchh = shadow_api.makeBranch();
+                    buildCurvedTexture(branchh, null, dataUnits, domain_units, default_values, shadow_api,
+                                       valueArrayLength, valueToScalar, value_array, color_valuesC, mode,
+                                       constant_color, constant_alpha, curved_size, samplesC,
+                                       spatial_all_select, renderer, range_select, domainOnlySpatial,
+                                       null,
+                                       lenx, 4, lens[0], lens[1]);
+
+                    shadow_api.addToGroup(branch, branchh);
+                  }
+                  //- tile piece
+                  byte[][] color_valuesW = null;
+                  if (color_values.length == 3) color_valuesW = new byte[3][lenx*leny];
+                  if (color_values.length == 4) color_valuesW = new byte[4][lenx*leny];
+
+                  int cnt = 0;
+                  for (k=0; k<leny; k++) {
+                    start = x_start_stop[j][0] + i_total*lens[0] +  k*lens[0];
+                    System.arraycopy(color_values[0], start, color_valuesW[0], cnt, lenx);
+                    System.arraycopy(color_values[1], start, color_valuesW[1], cnt, lenx);
+                    System.arraycopy(color_values[2], start, color_valuesW[2], cnt, lenx);
+                    if (color_values.length == 4) System.arraycopy(color_values[3], start, color_valuesW[3], cnt, lenx); 
+                    cnt += lenx;
+                  }
+                  Object branch1 = shadow_api.makeBranch();
+                  buildCurvedTexture(branch1, null, dataUnits, domain_units, default_values, shadow_api,
+                                     valueArrayLength, valueToScalar, value_array, color_valuesW, mode,
+                                     constant_color, constant_alpha, curved_size, samples,
+                                     spatial_all_select, renderer, range_select, domainOnlySpatial,
+                                     new int[] {x_start_stop[j][0], y_start_stop[i][0]},
+                                     lenx, leny, lens[0], lens[1]);
+
+                  shadow_api.addToGroup(branch, branch1);
+                }
+                i_total += leny;
               }
+              shadow_api.addToGroup(group, branch);
             }
-            normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
-            colors = new byte[3 * nn];
-            for (int i=0; i<3*nn; i++) colors[i] = (byte) 127;
-
-            float ratiow = ((float) data_width) / ((float) texture_width);
-            float ratioh = ((float) data_height) / ((float) texture_height);
-
-            // WLH 27 Jan 2003
-            float half_width = 0.5f / ((float) texture_width);
-            float half_height = 0.5f / ((float) texture_height);
-            float width = 1.0f / ((float) texture_width);
-            float height = 1.0f / ((float) texture_height);
-
-            int mt = 0;
-            texCoords = new float[2 * nn];
-// System.out.println("nwidth = " + nwidth + " nheight = " + nheight +
-//                    " ratiow = " + ratiow + " ratioh = " + ratioh);
-            for (int j=0; j<nheight; j++) {
-              for (int i=0; i<nwidth; i++) {
-/* WLH 27 Jan 2003
-                texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
-                texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
-*/
-                // WLH 27 Jan 2003
-                float isfactor = is[i] / (data_width - 1.0f);
-                float jsfactor = js[j] / (data_height - 1.0f);
-                texCoords[mt++] = (ratiow - width) * isfactor + half_width;
-                texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
-// System.out.println("texCoords = " + texCoords[mt-2] + " " + texCoords[mt-1] +
-//                    " isfactor = " + isfactor + " jsfactor = " + jsfactor);
-              }
-            }
-
-            VisADTriangleStripArray tarray = new VisADTriangleStripArray();
-            tarray.stripVertexCounts = new int[nheight - 1];
-            for (int i=0; i<nheight - 1; i++) {
-              tarray.stripVertexCounts[i] = 2 * nwidth;
-            }
-            int len = (nheight - 1) * (2 * nwidth);
-            tarray.vertexCount = len;
-            tarray.normals = new float[3 * len];
-            tarray.coordinates = new float[3 * len];
-            tarray.colors = new byte[3 * len];
-            tarray.texCoords = new float[2 * len];
-
-            // shuffle normals into tarray.normals, etc
-            k = 0;
-            int kt = 0;
-            int nwidth3 = 3 * nwidth;
-            int nwidth2 = 2 * nwidth;
-            for (int i=0; i<nheight-1; i++) {
-              int m = i * nwidth3;
-              mt = i * nwidth2;
-              for (int j=0; j<nwidth; j++) {
-                tarray.coordinates[k] = coordinates[m];
-                tarray.coordinates[k+1] = coordinates[m+1];
-                tarray.coordinates[k+2] = coordinates[m+2];
-                tarray.coordinates[k+3] = coordinates[m+nwidth3];
-                tarray.coordinates[k+4] = coordinates[m+nwidth3+1];
-                tarray.coordinates[k+5] = coordinates[m+nwidth3+2];
-
-                tarray.normals[k] = normals[m];
-                tarray.normals[k+1] = normals[m+1];
-                tarray.normals[k+2] = normals[m+2];
-                tarray.normals[k+3] = normals[m+nwidth3];
-                tarray.normals[k+4] = normals[m+nwidth3+1];
-                tarray.normals[k+5] = normals[m+nwidth3+2];
-
-                tarray.colors[k] = colors[m];
-                tarray.colors[k+1] = colors[m+1];
-                tarray.colors[k+2] = colors[m+2];
-                tarray.colors[k+3] = colors[m+nwidth3];
-                tarray.colors[k+4] = colors[m+nwidth3+1];
-                tarray.colors[k+5] = colors[m+nwidth3+2];
-
-                tarray.texCoords[kt] = texCoords[mt];
-                tarray.texCoords[kt+1] = texCoords[mt+1];
-                tarray.texCoords[kt+2] = texCoords[mt+nwidth2];
-                tarray.texCoords[kt+3] = texCoords[mt+nwidth2+1];
-
-                k += 6;
-                m += 3;
-                kt += 4;
-                mt += 2;
-              }
-            }
-
-            if (!spatial_all_select) {
-              tarray = (VisADTriangleStripArray) tarray.removeMissing();
-            }
-
-            tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
-            tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
-
-            BufferedImage image =
-              createImage(data_width, data_height, texture_width,
-                          texture_height, color_values);
-
-            shadow_api.textureToGroup(group, tarray, image, mode,
-                                      constant_alpha, constant_color,
-                                      texture_width, texture_height);
-            // System.out.println("curvedTexture done");
+//-- end texture split logic
+            //System.out.println("curvedTexture done");
 // if (link != null) System.out.println("end texture " + (System.currentTimeMillis() - link.start_time));
             return false;
           } // end if (curvedTexture)
@@ -3332,6 +3427,383 @@ WLH 15 March 2000 */
       kt -= tex_length;
     }
     return qarray;
+  }
+
+  private void buildLinearTexture(Object group, Set domain_set, Unit[] dataUnits, Unit[] domain_units,
+                                  float[] default_values, ShadowType shadow_api, int valueArrayLength,
+                                  int[] valueToScalar, float[] value_array, byte[][] color_values,
+                                  GraphicsModeControl mode, float[] constant_color, float constant_alpha) 
+          throws VisADException {
+    float[] coordinates = null;
+    float[] texCoords = null;
+    float[] normals = null;
+    byte[] colors = null;
+    int data_width = 0;
+    int data_height = 0;
+    int data_depth = 0;
+    int texture_width = 1;
+    int texture_height = 1;
+    int texture_depth = 1;
+                                                                                                                                
+// if (link != null) System.out.println("test isTextureMap " + (System.currentTimeMillis() - link.start_time));
+      Linear1DSet X = null;
+      Linear1DSet Y = null;
+      if (domain_set instanceof Linear2DSet) {
+        X = ((Linear2DSet) domain_set).getX();
+        Y = ((Linear2DSet) domain_set).getY();
+      }
+      else {
+        X = ((LinearNDSet) domain_set).getLinear1DComponent(0);
+        Y = ((LinearNDSet) domain_set).getLinear1DComponent(1);
+      }
+      float[][] limits = new float[2][2];
+      limits[0][0] = (float) X.getFirst();
+      limits[0][1] = (float) X.getLast();
+      limits[1][0] = (float) Y.getFirst();
+      limits[1][1] = (float) Y.getLast();
+                                                                                                                                
+      // get domain_set sizes
+      data_width  = X.getLength();
+      data_height = Y.getLength();
+      texture_width = shadow_api.textureWidth(data_width);
+      texture_height = shadow_api.textureHeight(data_height);
+                                                                                                                                
+      // WLH 27 Jan 2003
+      float half_width = 0.5f / ((float) (data_width - 1));
+      float half_height = 0.5f / ((float) (data_height - 1));
+      half_width  = (limits[0][1] - limits[0][0]) * half_width;
+      half_height = (limits[1][1] - limits[1][0]) * half_height;
+      limits[0][0] -= half_width;
+      limits[0][1] += half_width;
+      limits[1][0] -= half_height;
+      limits[1][1] += half_height;
+                                                                                                                                
+      // convert values to default units (used in display)
+      limits = Unit.convertTuple(limits, dataUnits, domain_units);
+      int[] tuple_index = new int[3];
+      if (DomainComponents.length != 2) {
+        throw new DisplayException("texture domain dimension != 2:" +
+                                   "ShadowFunctionOrSetType.doTransform");
+      }
+      for (int i=0; i<DomainComponents.length; i++) {
+        Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
+        while (maps.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          DisplayRealType real = map.getDisplayScalar();
+          DisplayTupleType tuple = real.getTuple();
+          if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+            // scale values
+            limits[i] = map.scaleValues(limits[i]);
+            // get spatial index
+            tuple_index[i] = real.getTupleIndex();
+            break;
+          }
+        }
+/*
+        if (tuple == null ||
+            !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+          throw new DisplayException("texture with bad tuple: " +
+                                     "ShadowFunctionOrSetType.doTransform");
+        }
+        if (maps.hasMoreElements()) {
+          throw new DisplayException("texture with multiple spatial: " +
+                                     "ShadowFunctionOrSetType.doTransform");
+        }
+*/
+      } // end for (int i=0; i<DomainComponents.length; i++)
+      // get spatial index not mapped from domain_set
+      tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
+      DisplayRealType real = (DisplayRealType)
+        Display.DisplaySpatialCartesianTuple.getComponent(tuple_index[2]);
+      int value2_index = display.getDisplayScalarIndex(real);
+      float value2 = default_values[value2_index];
+      // float value2 = 0.0f;  WLH 30 Aug 99
+      for (int i=0; i<valueArrayLength; i++) {
+        if (inherited_values[i] > 0 &&
+            real.equals(display.getDisplayScalar(valueToScalar[i])) ) {
+          value2 = value_array[i];
+          break;
+        }
+      }
+      coordinates = new float[12];
+      // corner 0
+      coordinates[tuple_index[0]] = limits[0][0];
+      coordinates[tuple_index[1]] = limits[1][0];
+      coordinates[tuple_index[2]] = value2;
+      // corner 1
+      coordinates[3 + tuple_index[0]] = limits[0][1];
+      coordinates[3 + tuple_index[1]] = limits[1][0];
+      coordinates[3 + tuple_index[2]] = value2;
+      // corner 2
+      coordinates[6 + tuple_index[0]] = limits[0][1];
+      coordinates[6 + tuple_index[1]] = limits[1][1];
+      coordinates[6 + tuple_index[2]] = value2;
+      // corner 3
+      coordinates[9 + tuple_index[0]] = limits[0][0];
+      coordinates[9 + tuple_index[1]] = limits[1][1];
+      coordinates[9 + tuple_index[2]] = value2;
+                                                                                                                                
+      // move image back in Java3D 2-D mode
+      shadow_api.adjustZ(coordinates);
+                                                                                                                                
+      texCoords = new float[8];
+      float ratiow = ((float) data_width) / ((float) texture_width);
+      float ratioh = ((float) data_height) / ((float) texture_height);
+      shadow_api.setTexCoords(texCoords, ratiow, ratioh);
+                                                                                                                                
+      normals = new float[12];
+      float n0 = ((coordinates[3+2]-coordinates[0+2]) *
+                  (coordinates[6+1]-coordinates[0+1])) -
+                 ((coordinates[3+1]-coordinates[0+1]) *
+                  (coordinates[6+2]-coordinates[0+2]));
+      float n1 = ((coordinates[3+0]-coordinates[0+0]) *
+                  (coordinates[6+2]-coordinates[0+2])) -
+                 ((coordinates[3+2]-coordinates[0+2]) *
+                  (coordinates[6+0]-coordinates[0+0]));
+      float n2 = ((coordinates[3+1]-coordinates[0+1]) *
+                  (coordinates[6+0]-coordinates[0+0])) -
+                 ((coordinates[3+0]-coordinates[0+0]) *
+                  (coordinates[6+1]-coordinates[0+1]));
+                                                                                                                                
+      float nlen = (float) Math.sqrt(n0 *  n0 + n1 * n1 + n2 * n2);
+      n0 = n0 / nlen;
+      n1 = n1 / nlen;
+      n2 = n2 / nlen;
+      // corner 0
+      normals[0] = n0;
+      normals[1] = n1;
+      normals[2] = n2;
+      // corner 1
+      normals[3] = n0;
+      normals[4] = n1;
+      normals[5] = n2;
+      // corner 2
+      normals[6] = n0;
+      normals[7] = n1;
+      normals[8] = n2;
+      // corner 3
+      normals[9] = n0;
+      normals[10] = n1;
+      normals[11] = n2;
+                                                                                                                                
+      colors = new byte[12];
+      for (int i=0; i<12; i++) colors[i] = (byte) 127;
+
+      VisADQuadArray qarray = new VisADQuadArray();
+      qarray.vertexCount = 4;
+      qarray.coordinates = coordinates;
+      qarray.texCoords = texCoords;
+      qarray.colors = colors;
+      qarray.normals = normals;
+                                                                                                                                    
+      BufferedImage image =
+         createImage(data_width, data_height, texture_width,
+                     texture_height, color_values);
+      shadow_api.textureToGroup(group, qarray, image, mode,
+                                constant_alpha, constant_color,
+                                texture_width, texture_height);
+
+  }
+
+  private void buildCurvedTexture(Object group, Set domain_set, Unit[] dataUnits, Unit[] domain_units,
+                                  float[] default_values, ShadowType shadow_api, int valueArrayLength,
+                                  int[] valueToScalar, float[] value_array, byte[][] color_values,
+                                  GraphicsModeControl mode, float[] constant_color, float constant_alpha,
+                                  int curved_size, float[][] spatial_values, boolean spatial_all_select,
+                                  DataRenderer renderer, boolean[][] range_select, boolean domainOnlySpatial, 
+                                  int[] start, int lenX, int lenY, int bigX, int bigY)
+          throws VisADException 
+  {
+//System.out.println("ShadowFunctionOrSetType, start Curved texture:  " + System.currentTimeMillis());
+      float[] coordinates = null;
+      float[] texCoords = null;
+      float[] normals = null;
+      byte[] colors = null;
+      int data_width = 0;
+      int data_height = 0;
+      int texture_width = 1;
+      int texture_height = 1;
+                                                                                                                                  
+      int[] lengths = null;
+                                                                                                                                  
+      // get domain_set sizes
+      if (domain_set != null) {
+        lengths = ((GriddedSet) domain_set).getLengths();
+      }
+      else {
+        lengths = new int[] {lenX, lenY};
+      }
+                                                                                                                                  
+      data_width  = lengths[0];
+      data_height = lengths[1];
+      // texture sizes must be powers of two
+      texture_width  = shadow_api.textureWidth(data_width);
+      texture_height = shadow_api.textureHeight(data_height);
+                                                                                                                                  
+      // compute size of triangle array to mapped texture onto
+      int size = (data_width + data_height) / 2;
+      curved_size = Math.max(2, Math.min(curved_size, size / 32));
+                                                                                                                                  
+      int nwidth = 2 + (data_width - 1) / curved_size;
+      int nheight = 2 + (data_height - 1) / curved_size;
+
+      // WLH 14 Aug 2001
+      if (range_select[0] != null && !domainOnlySpatial) {
+      // System.out.println("force curved_size = 1");
+        curved_size = 1;
+        nwidth = data_width;
+        nheight = data_height;
+      }
+
+// System.out.println("curved_size = " + curved_size + " nwidth = " + nwidth +
+//                    " nheight = " + nheight);
+                                                                                                                                               
+      int nn = nwidth * nheight;
+      coordinates = new float[3 * nn];
+      int k = 0;
+      int[] is = new int[nwidth];
+      int[] js = new int[nheight];
+      for (int i=0; i<nwidth; i++) {
+         is[i] = Math.min(i * curved_size, data_width - 1);
+      }
+      for (int j=0; j<nheight; j++) {
+         js[j] = Math.min(j * curved_size, data_height - 1);
+      }
+      //if (domain_set != null) {
+      if (start == null) {
+        for (int j=0; j<nheight; j++) {
+          for (int i=0; i<nwidth; i++) {
+              int ij = is[i] + data_width * js[j];
+              coordinates[k++] = spatial_values[0][ij];
+              coordinates[k++] = spatial_values[1][ij];
+              coordinates[k++] = spatial_values[2][ij];
+/*
+double size = Math.sqrt(spatial_values[0][ij] * spatial_values[0][ij] +
+                        spatial_values[1][ij] * spatial_values[1][ij] +
+                        spatial_values[2][ij] * spatial_values[2][ij]);
+if (size < 0.2) {
+  System.out.println("spatial_values " + is[i] + " " + js[j] + " " +
+  spatial_values[0][ij] + " " + spatial_values[1][ij] + " " + spatial_values[2][ij]);
+}
+*/
+          }
+        }
+      }
+      else {
+        for (int j=0; j<nheight; j++) {
+          for (int i=0; i<nwidth; i++) {
+             int ij = is[i] + data_width * js[j];
+             int x = ij % lenX;
+             int y = ij / lenX;
+             ij    = (start[0] + x) + (start[1] + y)*bigX;
+             coordinates[k++] = spatial_values[0][ij];
+             coordinates[k++] = spatial_values[1][ij];
+             coordinates[k++] = spatial_values[2][ij];
+          }
+        }
+      }
+
+      normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
+      colors = new byte[3 * nn];
+      for (int i=0; i<3*nn; i++) colors[i] = (byte) 127;
+                                                                                                                                             
+      float ratiow = ((float) data_width) / ((float) texture_width);
+      float ratioh = ((float) data_height) / ((float) texture_height);
+                                                                                                                                             
+      // WLH 27 Jan 2003
+      float half_width = 0.5f / ((float) texture_width);
+      float half_height = 0.5f / ((float) texture_height);
+      float width = 1.0f / ((float) texture_width);
+      float height = 1.0f / ((float) texture_height);
+                                                                                                                                             
+      int mt = 0;
+      texCoords = new float[2 * nn];
+// System.out.println("nwidth = " + nwidth + " nheight = " + nheight +
+//                    " ratiow = " + ratiow + " ratioh = " + ratioh);
+      for (int j=0; j<nheight; j++) {
+         for (int i=0; i<nwidth; i++) {
+/* WLH 27 Jan 2003
+                texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
+                texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
+*/
+            // WLH 27 Jan 2003
+            float isfactor = is[i] / (data_width - 1.0f);
+            float jsfactor = js[j] / (data_height - 1.0f);
+            texCoords[mt++] = (ratiow - width) * isfactor + half_width;
+            texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
+// System.out.println("texCoords = " + texCoords[mt-2] + " " + texCoords[mt-1] +
+//                    " isfactor = " + isfactor + " jsfactor = " + jsfactor);
+         }
+      }
+
+      VisADTriangleStripArray tarray = new VisADTriangleStripArray();
+      tarray.stripVertexCounts = new int[nheight - 1];
+      for (int i=0; i<nheight - 1; i++) {
+         tarray.stripVertexCounts[i] = 2 * nwidth;
+      }
+      int len = (nheight - 1) * (2 * nwidth);
+      tarray.vertexCount = len;
+      tarray.normals = new float[3 * len];
+      tarray.coordinates = new float[3 * len];
+      tarray.colors = new byte[3 * len];
+      tarray.texCoords = new float[2 * len];
+
+      // shuffle normals into tarray.normals, etc
+      k = 0;
+      int kt = 0;
+      int nwidth3 = 3 * nwidth;
+      int nwidth2 = 2 * nwidth;
+      for (int i=0; i<nheight-1; i++) {
+         int m = i * nwidth3;
+         mt = i * nwidth2;
+         for (int j=0; j<nwidth; j++) {
+            tarray.coordinates[k] = coordinates[m];
+            tarray.coordinates[k+1] = coordinates[m+1];
+            tarray.coordinates[k+2] = coordinates[m+2];
+            tarray.coordinates[k+3] = coordinates[m+nwidth3];
+            tarray.coordinates[k+4] = coordinates[m+nwidth3+1];
+            tarray.coordinates[k+5] = coordinates[m+nwidth3+2];
+
+            tarray.normals[k] = normals[m];
+            tarray.normals[k+1] = normals[m+1];
+            tarray.normals[k+2] = normals[m+2];
+            tarray.normals[k+3] = normals[m+nwidth3];
+            tarray.normals[k+4] = normals[m+nwidth3+1];
+            tarray.normals[k+5] = normals[m+nwidth3+2];
+
+            tarray.colors[k] = colors[m];
+            tarray.colors[k+1] = colors[m+1];
+            tarray.colors[k+2] = colors[m+2];
+            tarray.colors[k+3] = colors[m+nwidth3];
+            tarray.colors[k+4] = colors[m+nwidth3+1];
+            tarray.colors[k+5] = colors[m+nwidth3+2];
+
+            tarray.texCoords[kt] = texCoords[mt];
+            tarray.texCoords[kt+1] = texCoords[mt+1];
+            tarray.texCoords[kt+2] = texCoords[mt+nwidth2];
+            tarray.texCoords[kt+3] = texCoords[mt+nwidth2+1];
+
+            k += 6;
+            m += 3;
+            kt += 4;
+            mt += 2;
+         }
+      }
+
+      if (!spatial_all_select) {
+        tarray = (VisADTriangleStripArray) tarray.removeMissing();
+      }
+
+      tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
+      tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
+
+      BufferedImage image =
+         createImage(data_width, data_height, texture_width,
+                     texture_height, color_values);
+
+      shadow_api.textureToGroup(group, tarray, image, mode,
+                                constant_alpha, constant_color,
+                                texture_width, texture_height);
   }
 
 }
