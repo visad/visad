@@ -56,6 +56,7 @@ public class Rain implements ControlListener {
 
   static final double MIN = 0.0;
   static final double MAX = 300.0;
+  static final double MAXC4 = 10.0;
 
   static DataReference ref300 = null;
   static DataReference ref1_4 = null;
@@ -63,7 +64,8 @@ public class Rain implements ControlListener {
   static DataReference ref_cursor = null;
 
 
-  static LabeledRGBWidget color_widget = null;
+  static LabeledRGBWidget color_widgetC1 = null;
+  static LabeledRGBWidget color_widgetC4 = null;
   static ColorControl color_control = null;
   static ColorControl[][] color_controls = new ColorControl[N_ROWS][N_COLUMNS];
   static ProjectionControl[][] projection_controls =
@@ -75,7 +77,7 @@ public class Rain implements ControlListener {
 
   static RealTupleType cursor_type = null;
 
-  static final int DELAY = 200;
+  static final int DELAY = 300;
 
   static Rain rain = null;
 
@@ -122,6 +124,7 @@ public class Rain implements ControlListener {
     RealType y_domain = (RealType) domain.getComponent(1);
     RealTupleType range = (RealTupleType) grid_type.getRange();
     RealType rangeC1 = (RealType) range.getComponent(0);
+    RealType rangeC4 = (RealType) range.getComponent(8);
     int dim = range.getDimension();
     RealType[] range_types = new RealType[dim];
     for (int i=0; i<dim; i++) {
@@ -207,8 +210,8 @@ public class Rain implements ControlListener {
         cell_refs[i][j] = new DataReferenceImpl("cell_" + i + "_" + j);
         displays[i][j] = new DisplayImplJ3D("display_" + i + "_" + j,
                                             new TwoDDisplayRendererJ3D());
-        displays[i][j].addMap(new ScalarMap(x_domain, Display.XAxis));
-        displays[i][j].addMap(new ScalarMap(y_domain, Display.YAxis));
+        displays[i][j].addMap(new ScalarMap(y_domain, Display.XAxis));
+        displays[i][j].addMap(new ScalarMap(x_domain, Display.YAxis));
 
         ScalarMap shape_map = new ScalarMap(shape, Display.Shape);
         displays[i][j].addMap(shape_map);
@@ -286,25 +289,6 @@ public class Rain implements ControlListener {
     displays[0][1].addReference(cell_refs[0][1]);
     display_done[0][1] = true;
 
-    color_map = new ScalarMap(rangeC1, Display.RGB);
-    displays[0][2].addMap(color_map);
-    color_widget = new LabeledRGBWidget(color_map, (float) MIN, (float) MAX);
-    Dimension d = new Dimension(500, 170);
-    color_widget.setMaximumSize(d);
-    color_map.setRange(MIN, MAX);
-
-    left_panel.add(color_widget);
-
-    color_control = (ColorControl) color_map.getControl();
-    // listener sets all non-null color_controls[i][j]
-    // for ControlEvents from color_control
-    color_control.addControlListener(this);
-    // controlChanged(null);
-  
-    displays[0][2].addReference(cell_refs[0][2]);
-    displays[0][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
-    display_done[0][2] = true;
-
     DisplayImpl.delay(DELAY);
 
     // cell C1
@@ -319,6 +303,26 @@ public class Rain implements ControlListener {
     cells[0][2].addReference(cell_refs[0][1]);
     cells[0][2].addReference(ref300);
     cells[0][2].addReference(ref1_4);
+
+    color_map = new ScalarMap(rangeC1, Display.RGB);
+    displays[0][2].addMap(color_map);
+    color_widgetC1 = new LabeledRGBWidget(color_map, (float) MIN, (float) MAX);
+    Dimension d = new Dimension(500, 170);
+    color_widgetC1.setMaximumSize(d);
+    color_map.setRange(MIN, MAX);
+
+    left_panel.add(color_widgetC1);
+    left_panel.add(new JLabel("  "));
+
+    color_control = (ColorControl) color_map.getControl();
+    // listener sets all non-null color_controls[i][j]
+    // for ControlEvents from color_control
+    color_control.addControlListener(this);
+    // controlChanged(null);
+
+    displays[0][2].addReference(cell_refs[0][2]);
+    displays[0][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    display_done[0][2] = true;
 
     DisplayImpl.delay(DELAY);
 
@@ -473,11 +477,24 @@ public class Rain implements ControlListener {
         if (field != null) {
           field = (FlatField) field.extract(8);
           cell_refs[3][2].setData(field);
-          finishDisplay(field, 3, 2);
         }
       }
     };
     cells[3][2].addReference(cell_refs[0][1]);
+
+    ScalarMap color_mapC4 = new ScalarMap(rangeC4, Display.RGB);
+    displays[3][2].addMap(color_mapC4);
+    color_widgetC4 = new LabeledRGBWidget(color_mapC4, (float) MIN, (float) MAXC4);
+    Dimension dC4 = new Dimension(500, 170);
+    color_widgetC4.setMaximumSize(dC4);
+    color_mapC4.setRange(MIN, MAXC4);
+
+    left_panel.add(color_widgetC4);
+    left_panel.add(new JLabel("  "));
+
+    displays[3][2].addReference(cell_refs[3][2]);
+    displays[3][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    display_done[3][2] = true;
 
     DisplayImpl.delay(DELAY);
 
