@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.20 2000-04-25 17:51:26 billh Exp $
+@(#) $Id: BaseRGBMap.java,v 1.21 2000-08-17 12:47:56 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -50,7 +50,7 @@ import visad.VisADException;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.20 $, $Date: 2000-04-25 17:51:26 $
+ * @version $Revision: 1.21 $, $Date: 2000-08-17 12:47:56 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -863,7 +863,8 @@ public class BaseRGBMap
     try {
       colors = ctl.lookupRange(left, right < maxRight ? right + 1 : maxRight);
     } catch (Exception e) {
-      e.printStackTrace();
+      System.err.println("Error in " + getClass().getName() + ": " +
+                         e.getClass().getName() + ": " + e.getMessage());
       colors = null;
     }
 
