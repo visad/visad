@@ -101,32 +101,19 @@ class DisplayMaps
   DisplayMaps(AmandaFile file, Display display)
     throws RemoteException, VisADException
   {
-    // compute x, y and z ranges with unity aspect ratios
-    final double xrange = file.getXMax() - file.getXMin();
-    final double yrange = file.getYMax() - file.getYMin();
-    final double zrange = file.getZMax() - file.getZMin();
-    final double halfrange = -0.5 * Math.max(xrange, Math.max(yrange, zrange));
-    final double xmid = 0.5 * (file.getXMax() + file.getXMin());
-    final double ymid = 0.5 * (file.getYMax() + file.getYMin());
-    final double zmid = 0.5 * (file.getZMax() + file.getZMin());
-    final double xmin = xmid - halfrange;
-    final double xmax = xmid + halfrange;
-    final double ymin = ymid - halfrange;
-    final double ymax = ymid + halfrange;
-    final double zmin = zmid - halfrange;
-    final double zmax = zmid + halfrange;
+    final double halfRange = getMaxRange(file) / 2.0;
 
     ScalarMap xmap = new ScalarMap(RealType.XAxis, Display.XAxis);
+    setRange(xmap, file.getXMin(), file.getXMax(), halfRange);
     display.addMap(xmap);
-    xmap.setRange(xmin, xmax);
 
     ScalarMap ymap = new ScalarMap(RealType.YAxis, Display.YAxis);
+    setRange(ymap, file.getYMin(), file.getYMax(), halfRange);
     display.addMap(ymap);
-    ymap.setRange(ymin, ymax);
 
     ScalarMap zmap = new ScalarMap(RealType.ZAxis, Display.ZAxis);
+    setRange(zmap, file.getZMin(), file.getZMax(), halfRange);
     display.addMap(zmap);
-    zmap.setRange(zmin, zmax);
 
     // ScalarMap eventmap = new ScalarMap(file.getEventIndex(),
     //                                    Display.SelectValue);
@@ -148,6 +135,23 @@ class DisplayMaps
 
     this.letmap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
     display.addMap(this.letmap);
+  }
+
+  private static final double getMaxRange(AmandaFile file)
+  {
+    final double xRange = file.getXMax() - file.getXMin();
+    final double yRange = file.getYMax() - file.getYMin();
+    final double zRange = file.getZMax() - file.getZMin();
+
+    return Math.max(xRange, Math.max(yRange, zRange));
+  }
+
+  private static final void setRange(ScalarMap map, double min, double max,
+                                     double halfRange)
+    throws RemoteException, VisADException
+  {
+    final double mid = (min + max) / 2.0;
+    map.setRange(mid - halfRange, mid + halfRange);
   }
 }
 
