@@ -1,0 +1,32 @@
+To install VisAD-in-a-Box:
+
+1) From the distribution directory, run
+   'install_visad'
+2) Answer the few installation questions,
+   then wait for everything to finish
+   installing.
+
+(Note: Cluster installation is done using
+ the 'cpush' utility.)
+
+To create a new VisAD-in-a-Box distribution:
+
+1) Create a distribution directory.
+2) Copy visad/install/install_visad to the
+   distribution directory
+3) Copy a visad.jar file to the distribution
+   directory.
+ a) If you have a VisAD source distribution,
+    you can run 'make compile' (or 'make recompile')
+    to compile all the VisAD sources, then run
+    'make classes' to create visad.jar in the
+    directory about the Makefile.
+4) Optionally, copy a JDK directory tree into
+   the distribution directory and name it
+   jdk-<OS>-<MACH> where <OS> is whatever is
+   printed by 'uname -s' and <MACH> is whatever
+   is printed by 'uname -p'.
+5) Move to the directory about the distribution
+   directory and package everything up with
+   'tar cvf visad' (or whatever you've named
+   your distribution directory.
