@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorChangeListener.java,v 1.4 1998-07-30 20:30:03 curtis Exp $
+@(#) $Id: ColorChangeListener.java,v 1.5 1999-07-14 21:57:37 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,13 +32,13 @@ import java.util.EventListener;
  * events from the color widget 
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.4 $, $Date: 1998-07-30 20:30:03 $
+ * @version $Revision: 1.5 $, $Date: 1999-07-14 21:57:37 $
  * @since Visad Utility Library, 0.5
  */
 
 public interface ColorChangeListener extends EventListener {
 
 	/** The function called when the color widget has changed */
-	public abstract void colorChanged(ColorChangeEvent e);
+	void colorChanged(ColorChangeEvent e);
 
 }

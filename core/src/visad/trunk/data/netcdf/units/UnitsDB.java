@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitsDB.java,v 1.5 1999-05-24 22:28:57 steve Exp $
+ * $Id: UnitsDB.java,v 1.6 1999-07-14 22:00:29 dglo Exp $
  */
 
 package visad.data.netcdf.units;
@@ -29,7 +29,7 @@ UnitsDB
      * @throws java.lang.IllegalArgumentException
      *			The base unit argument is invalid.
      */
-    public abstract void
+    void
     put(BaseUnit unit)
 	throws IllegalArgumentException;
 
@@ -41,7 +41,7 @@ UnitsDB
      * @throws IllegalArgumentException	Different unit with the same name is
      *					already in the table.
      */
-    public void
+    void
     putName(String name, Unit unit)
 	throws IllegalArgumentException;
 
@@ -53,7 +53,7 @@ UnitsDB
      * @throws IllegalArgumentException	Different unit with the same symbol is
      *					already in the table.
      */
-    public void
+    void
     putSymbol(String symbol, Unit unit)
 	throws IllegalArgumentException;
 
@@ -65,34 +65,34 @@ UnitsDB
      * @return		The matching unit entry in the database.
      * @require		<code>name</code> shall be non-null.
      */
-    public abstract Unit
+    Unit
     get(String name);
 
 
     /**
      * Get an enumeration of the unit names in the database.
      */
-    public abstract Enumeration
+    Enumeration
     getNameEnumeration();
 
 
     /**
      * Get an enumeration of the unit symbols in the database.
      */
-    public abstract Enumeration
+    Enumeration
     getSymbolEnumeration();
 
 
     /**
      * Get an enumeration of the units in the database.
      */
-    public abstract Enumeration
+    Enumeration
     getUnitEnumeration();
 
 
     /**
      * List the units in the database.
      */
-    public void
+    void
     list();
 }

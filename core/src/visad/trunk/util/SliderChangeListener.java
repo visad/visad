@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SliderChangeListener.java,v 1.3 1998-07-30 20:30:06 curtis Exp $
+@(#) $Id: SliderChangeListener.java,v 1.4 1999-07-14 21:57:38 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,13 +32,13 @@ import java.util.EventListener;
  * must implement
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1998-07-30 20:30:06 $
+ * @version $Revision: 1.4 $, $Date: 1999-07-14 21:57:38 $
  * @since Visad Utility Library v0.7.1
  */
 
 public interface SliderChangeListener extends EventListener {
 
 	/** The nessecary function to implement */ 
-	public abstract void sliderChanged(SliderChangeEvent e);
+	void sliderChanged(SliderChangeEvent e);
 	
 }
