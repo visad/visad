@@ -218,9 +218,7 @@ public class Vis5DVerticalSystem
       double[][] alts = new double[1][length];
   
       for (int kk = 0; kk < length; kk++) {
-        alts[0][kk] = 
-          (DEFAULT_LOG_EXP *
-            Math.log( pressures[0][kk] / DEFAULT_LOG_SCALE)) * 1000.;
+        alts[0][kk] = pressureToAltitude(pressures[0][kk]);
       }
       return alts;
     }
@@ -238,9 +236,7 @@ public class Vis5DVerticalSystem
       double[][] pressures = new double[1][length];
   
       for (int kk = 0; kk < length; kk++) {
-        pressures[0][kk] = 
-          (DEFAULT_LOG_SCALE * 
-            Math.exp((alts[0][kk]/1000.) / DEFAULT_LOG_EXP));
+        pressures[0][kk] = altitudeToPressure(alts[0][kk]);
       }
       return pressures;
     }
@@ -252,6 +248,37 @@ public class Vis5DVerticalSystem
      */
     public boolean equals(Object o) {
       return (o instanceof Vis5DVerticalCoordinateSystem);
+    }
+
+    /**
+     * Converts an altitude value in meters to a pressure value in
+     * millibars. It uses the standard Vis5D climate formula:
+     * <pre>
+     *         P = 1012.5 * e^( H / -7.2 )     (^ denotes exponentiation)
+     *
+     * (H is in km in this formula, but input value is meters)
+     * </pre>
+     * @param  altitude value to convert
+     * @return  corresponding pressure value
+     */
+    public static double altitudeToPressure(double alt) {
+      return (DEFAULT_LOG_SCALE * Math.exp((alt/1000.) / DEFAULT_LOG_EXP));
+    }
+  
+    /**
+     * Converts a pressure value in millibars to an altitude in
+     * meters. It uses the standard Vis5D climate formula:
+     * <pre>
+     *         H = -7.2 * Ln( P / 1012.5 )        (Ln denotes natural log)
+     *
+     * (H is in km in this formula, but returned value is meters)
+     * </pre>
+     * @param  pressure value to convert
+     * @return  corresponding altitude value
+     */
+    public static double pressureToAltitude(double pressure) {
+      return (DEFAULT_LOG_EXP * 
+                   Math.log( pressure / DEFAULT_LOG_SCALE)) * 1000.;
     }
   }
 }
