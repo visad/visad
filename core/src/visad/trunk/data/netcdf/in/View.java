@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.5 2001-11-27 22:29:35 dglo Exp $
+ * $Id: View.java,v 1.6 2002-10-21 20:07:46 donm Exp $
  */
 
 package visad.data.netcdf.in;
@@ -42,7 +42,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.5 $ $Date: 2001-11-27 22:29:35 $
+ * @version $Revision: 1.6 $ $Date: 2002-10-21 20:07:46 $
  */
 public abstract class View
 {
@@ -57,10 +57,16 @@ public abstract class View
      */
     private final QuantityDB quantityDB;
 
+    /**
+     * Flag for whether this View handles char variables as Text
+     */
+    private final boolean charToText;
+
     /*
      * Performance caches:
      */
     private final Map        varToRealType;
+    private final Map        varToTextType;
     private final Map        varToUnit;
     private final Map        dimToSet;
     private final Map        dimToRealType;
@@ -86,11 +92,28 @@ public abstract class View
      */
     protected View(Netcdf netcdf, QuantityDB quantityDB)
     {
+        this(netcdf, quantityDB, false);
+    }
+
+    /**
+     * Constructs from a netCDF dataset.
+     *
+     * @param netcdf                The netCDF dataset.
+     * @param quantityDB            The quantity database to use to map netCDF
+     *                              variables to VisAD Quantity-s.
+     * @param charToText            Specifies whether the View should map char
+     *                              variables to VisAD Text objects
+     * @throws NullPointerException if either argument is <code>null</code>.
+     */
+    protected View(Netcdf netcdf, QuantityDB quantityDB, boolean charToText)
+    {
         this.netcdf = netcdf;
         this.quantityDB = quantityDB;
+        this.charToText = charToText;
         varToUnit = new WeakHashMap();
         dimToSet = new WeakHashMap();
         varToRealType = new WeakHashMap();
+        varToTextType = new WeakHashMap();
         dimToRealType = new WeakHashMap();
         longitude = quantityDB.get("longitude");
         latitude = quantityDB.get("latitude");
@@ -101,46 +124,72 @@ public abstract class View
      * on the netCDF dataset.
      *
      * @param netcdf            The netCDF dataset.
-     * @param quantityDB	A quantity database to be used to map netCDF
-     *				variables to VisAD {@link Quantity}s.
+     * @param quantityDB        A quantity database to be used to map netCDF
+     *                          variables to VisAD {@link Quantity}s.
      * @return                  A view of the dataset.
      */
     public static View getInstance(Netcdf netcdf, QuantityDB db)
     {
-	View   view;
-	String conventions = getConventionsString(netcdf);
-	if (conventions == null)
-	{
-	    view = new DefaultView(netcdf, db);
-	}
-	else
-	{
-	    try
-	    {
-		if (conventions.equals("CF-1.0"))
-		    view = new CfView(netcdf, db);
-		else if (conventions.equals("COARDS"))
-		    view = new CfView(netcdf, db);
-		else if (conventions.equals("COARDS/CF-1.0"))
-		    view = new CfView(netcdf, db);
-		else
-		{
-		    System.err.println(
-			"Unknown netCDF conventions attribute (" +
-			conventions + ").  Using default view...");
-		    view = new DefaultView(netcdf, db);
-		}
-	    }
-	    catch (IllegalArgumentException e)
-	    {
-		System.err.println(
-		    "netCDF dataset doesn't follow stated conventions (" +
-		    conventions + "): " + e.getMessage() + 
-		    "\nUsing default view...");
-		view = new DefaultView(netcdf, db);
-	    }
-	}
-	return view;
+        return getInstance(netcdf, db, false);
+    }
+
+    /**
+     * Returns a view of a netCDF dataset.  The exact view returned depends
+     * on the netCDF dataset.
+     *
+     * @param netcdf            The netCDF dataset.
+     * @param quantityDB        A quantity database to be used to map netCDF
+     *                          variables to VisAD {@link Quantity}s.
+     * @param charToText        Specifies whether the View should map char
+     *                          variables to VisAD Text objects
+     * @return                  A view of the dataset.
+     */
+    public static View getInstance(
+        Netcdf netcdf, QuantityDB db, boolean charToText)
+    {
+        View   view;
+        String conventions = getConventionsString(netcdf);
+        if (conventions == null)
+        {
+            view = new DefaultView(netcdf, db, charToText);
+        }
+        else
+        {
+            try
+            {
+                if (conventions.equals("CF-1.0"))
+                    view = new CfView(netcdf, db, charToText);
+                else if (conventions.equals("COARDS"))
+                    view = new CfView(netcdf, db);
+                else if (conventions.equals("COARDS/CF-1.0"))
+                    view = new CfView(netcdf, db, charToText);
+                else
+                {
+                    System.err.println(
+                        "Unknown netCDF conventions attribute (" +
+                        conventions + ").  Using default view...");
+                    view = new DefaultView(netcdf, db, charToText);
+                }
+            }
+            catch (IllegalArgumentException e)
+            {
+                System.err.println(
+                    "netCDF dataset doesn't follow stated conventions (" +
+                    conventions + "): " + e.getMessage() + 
+                    "\nUsing default view...");
+                view = new DefaultView(netcdf, db, charToText);
+            }
+        }
+        return view;
+    }
+
+    /**
+     * Does this View handle text.
+     *
+     * @return true if text is handled
+     */
+    public boolean isCharToText() {
+       return charToText;
     }
 
     /**
@@ -173,7 +222,7 @@ public abstract class View
         catch (ClassCastException e)
         {
             System.err.println("The \"Conventions\" attribute (" + attr + 
-		") isn't a string");
+                ") isn't a string");
             return null;
         }
     }
@@ -524,9 +573,24 @@ public abstract class View
     protected TextType getTextType(Variable var)
         throws VisADException
     {
+        if (var == null)
+            throw new NullPointerException();
         if (isNumeric(var))
             throw new IllegalArgumentException(var.toString());
-        return new TextType(var.getName());
+        TextType type;
+        /*
+         * To improve performance, this method caches results.
+         */
+        synchronized(varToTextType)
+        {
+            type = (TextType)varToTextType.get(var);
+            if (type == null)
+            {
+                type = TextType.getTextType(var.getName());
+                varToTextType.put(var, type);  // cache result
+            }
+        }
+        return type;
     }
 
     /**
@@ -622,7 +686,7 @@ public abstract class View
      */
     protected String getAttributeString(String name)
     {
-	return getAttributeString((Variable)null, name);
+        return getAttributeString((Variable)null, name);
     }
 
     /**
@@ -1042,13 +1106,20 @@ public abstract class View
         throws TypeException, VisADException, IOException
     {
         VirtualScalar   scalar =
-            new VirtualScalar(getRealType(var),
-                              var,
-                              getRangeSet(var),
-                              getUnitFromAttribute(var),
-                              getVetter(var));
+            (isNumeric(var) == true)
+
+                ? (VirtualScalar) 
+                    new VirtualReal(getRealType(var),
+                                    var,
+                                    getRangeSet(var),
+                                    getUnitFromAttribute(var),
+                                    getVetter(var))
+
+                : (VirtualScalar)
+                    new VirtualText(getTextType(var), var);
+
         return
-            var.getRank() == 0
+            (var.getRank() == 0 || (!isNumeric(var) && var.getRank() == 1))
                 ? (VirtualData)scalar
                 : getDomain(var).getVirtualField(
                     new VirtualTuple(scalar));
@@ -1077,13 +1148,14 @@ public abstract class View
         /**
          * <p>Returns a copy of the next virtual VisAD data object.</p>
          *
-         * <p>This implementation uses {@link isNumeric(Variable)}, {@link
-         * #isIgnorable(Variable)}, and {@link #getData(Variable)}.</p>
+         * <p>This implementation uses {@link #isCharToText()},
+         * {@link #isNumeric(Variable)}, {@link #isIgnorable(Variable)}, 
+         * and {@link #getData(Variable)}.</p>
          *
          * @return                      A copy of the next virtual VisAD data
          *                              object or <code> null</code> if there is
          *                              no more data.
-         * @throws TypeException        if a {@link RealType} needed
+         * @throws TypeException        if a {@link ScalarType} needed
          *                              to be created but couldn't.
          * @throws VisADException       Couldn't create necessary VisAD object.
          * @throws IOException          if a netCDF read-error occurs.
@@ -1094,10 +1166,11 @@ public abstract class View
             while (varIter.hasNext())
             {
                 Variable        var = varIter.next();
-                if (!isNumeric(var))
-                    continue;  // TODO: support text
+                // handle text only if charToText == true and rank <= 2
+                if (!isNumeric(var) && (!isCharToText() || var.getRank() > 2))
+                    continue;  // TODO: support arrays of text (Tuple?)
                 if (isIgnorable(var))
-                    continue;
+                    continue;  // ignore what's ignorable
                 return View.this.getData(var);
             }
             return null;        // no more data

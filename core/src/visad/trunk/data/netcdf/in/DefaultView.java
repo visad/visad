@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultView.java,v 1.7 2001-11-27 22:29:34 dglo Exp $
+ * $Id: DefaultView.java,v 1.8 2002-10-21 20:07:45 donm Exp $
  */
 
 package visad.data.netcdf.in;
@@ -32,6 +32,7 @@ import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.SampledSet;
+import visad.TextType;
 import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
@@ -41,7 +42,7 @@ import visad.VisADException;
  * in the netCDF User's Guide.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.7 $ $Date: 2001-11-27 22:29:34 $
+ * @version $Revision: 1.8 $ $Date: 2002-10-21 20:07:45 $
  */
 public class DefaultView
     extends     View
@@ -57,7 +58,21 @@ public class DefaultView
      */
     public DefaultView(Netcdf netcdf, QuantityDB quantityDB)
     {
-        super(netcdf, quantityDB);
+        this(netcdf, quantityDB, false);
+    }
+
+    /**
+     * Constructs from a netCDF dataset and a quantity database.
+     *
+     * @param netcdf            The netCDF dataset.
+     * @param quantityDB        The quantity database to use to map netCDF
+     *                          variables to VisAD Quantity-s.
+     * @param charToText        Specifies whether the View should map char
+     *                          variables to VisAD Text objects
+     */
+    public DefaultView(Netcdf netcdf, QuantityDB quantityDB, boolean charToText)
+    {
+        super(netcdf, quantityDB, charToText);
         dimsToSet = new DimsToSet();
     }
 
@@ -72,7 +87,7 @@ public class DefaultView
      */
     protected boolean isIgnorable(Variable var)
     {
-        return isCoordinateVariable(var);
+        return  isCoordinateVariable(var);
     }
 
     /**
@@ -354,10 +369,14 @@ public class DefaultView
         /**
          * Returns a clone of the next virtual VisAD data object.
          *
+         * <p>This implementation uses {@link #isCharToText()},
+         * {@link #isNumeric(Variable)}, {@link #isIgnorable(Variable)}, 
+         * and {@link #getData(Variable)}.</p>
+         * 
          * @return                      A clone of the next virtual VisAD data
          *                              object or <code> null</code> if there is
          *                              no more data.
-         * @throws TypeException        if a {@link RealType} needed
+         * @throws TypeException        if a {@link ScalarType} needed
          *                              to be created but couldn't.
          * @throws VisADException       Couldn't create necessary VisAD object.
          */
@@ -367,18 +386,26 @@ public class DefaultView
             while (varIter.hasNext())
             {
                 Variable        var = varIter.next();
-                if (!isNumeric(var))
-                    continue;  // TODO: support text
-                if (isCoordinateVariable(var))
-                    continue;  // ignore coordinate variables
+                // handle text only if charToText == true and rank <= 2
+                if (!isNumeric(var) && (!isCharToText() || var.getRank() > 2))
+                    continue;  // TODO: support arrays of text (Tuple?)
+                if (isIgnorable(var)) 
+                    continue;  // ignore ignorable variables
                 VirtualScalar   scalar =
-                    new VirtualScalar(getRealType(var),
-                                      var,
-                                      getRangeSet(var),
-                                      getUnitFromAttribute(var),
-                                      getVetter(var));
+                    (isNumeric(var) == true)
+
+                        ? (VirtualScalar) 
+                            new VirtualReal(getRealType(var),
+                                            var,
+                                            getRangeSet(var),
+                                            getUnitFromAttribute(var),
+                                            getVetter(var))
+
+                        : (VirtualScalar)
+                            new VirtualText(getTextType(var), var);
                 return
-                    var.getRank() == 0
+                    (var.getRank() == 0 || 
+                     (!isNumeric(var) && var.getRank() == 1))
                         ? (VirtualData)scalar
                         : getDomain(var).getVirtualField(
                             new VirtualTuple(scalar));
@@ -425,7 +452,12 @@ public class DefaultView
         {
             VirtualField field;
             int          rank = dims.length;
-            if (rank == 1 || !DefaultView.this.isTime(dims[0]))
+            if (rank == 2 && range.getType() instanceof TextType) { // char
+               field = 
+                   VirtualField.newVirtualField(
+                       DefaultView.this.getDomainSet(dims[0]), range);
+            }
+            else if (rank == 1 || !DefaultView.this.isTime(dims[0]))
             {
                 field =
                     VirtualField.newVirtualField(

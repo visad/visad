@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualScalar.java,v 1.6 2001-11-07 15:51:56 steve Exp $
+ * $Id: VirtualScalar.java,v 1.7 2002-10-21 20:07:47 donm Exp $
  */
 
 package visad.data.netcdf.in;
@@ -19,138 +19,139 @@ import visad.*;
 /**
  * Provides support for a virtual VisAD Scalar.
  */
-public class
+public abstract class
 VirtualScalar
-    extends	VirtualData
+    extends     VirtualData
 {
     /**
      * The factory for creating VisAD data objects.
      */
-    private DataFactory		dataFactory = DataFactory.instance();
+    private DataFactory         dataFactory = DataFactory.instance();
 
     /**
      * The VisAD MathType of the scalar.
      */
-    private ScalarType		type;
+    private ScalarType          type;
 
     /**
      * The netCDF variable that constitutes the scalar.
      */
-    private final Variable	var;
-
-    /**
-     * The range set of the scalar.
-     */
-    private SimpleSet		rangeSet;
-
-    /**
-     * The unit of the scalar.
-     */
-    private final Unit		unit;
-
-    /**
-     * The value vetter.
-     */
-    private final Vetter	vetter;
-
-    /**
-     * The shape of the netCDF variable.
-     */
-    private final int[]		lengths;
-
+    private final Variable      var;
 
     /**
      * Constructs from a scalar type, a 1-D netCDF variable, a range set,
      * a unit, and a value vetter.
      *
-     * @param type		The type of the nested scalar.
-     * @param var		The 1-D netCDF variable.
-     * @param rangeSet		The range set of the values.
-     * @param unit		The unit of the values.
-     * @param vetter		The value vetter.
+     * @param type              The type of the nested scalar.
+     * @param var               The 1-D netCDF variable.
+     * @param rangeSet          The range set of the values.
+     * @param unit              The unit of the values.
+     * @param vetter            The value vetter.
      */
     public
     VirtualScalar(ScalarType type, Variable var, SimpleSet rangeSet,
-	Unit unit, Vetter vetter)
+        Unit unit, Vetter vetter)
     {
-	this.type = type;
-	this.var = var;
-	this.rangeSet = rangeSet;
-	this.unit = unit;
-	this.vetter = vetter;
-	lengths = var.getLengths();
+        this(type, var);
     }
 
 
     /**
+     * Constructs from a scalar type and a 1-D netCDF variable
+     *
+     * @param type              The type of the nested scalar.
+     * @param var               The 1-D netCDF variable.
+     */
+    public
+    VirtualScalar(ScalarType type, Variable var)
+    {
+        this.type = type;
+        this.var = var;
+    }
+
+    /**
      * Gets the ScalarType of this scalar.
      *
-     * @return			The ScalarType of this scalar.
+     * @return                  The ScalarType of this scalar.
      */
     public ScalarType
     getScalarType()
     {
-	return type;
+        return type;
     }
 
 
     /**
      * Gets the MathType of this scalar.
      *
-     * @return			The ScalarType of this scalar.
+     * @return                  The ScalarType of this scalar.
      */
     public MathType
     getType()
     {
-	return getScalarType();
+        return getScalarType();
     }
 
 
     /**
+     * Determines if this is a VirtualReal or not.
+     *
+     * @return true if this is a VirtualReal
+     */
+    public boolean
+    isReal()
+    {
+        return false;
+    }
+
+    /**
      * Gets the range set of this scalar.
      *
-     * @return			The range set of this scalar.
+     * @return                  The range set of this scalar.
+     * @throws RuntimeException  if class doesn't support this.
      */
     public SimpleSet
     getRangeSet()
     {
-	return rangeSet;
+        throw new RuntimeException();
     }
 
 
     /**
      * Gets the unit of the value.
      *
-     * @return			The unit of the value.
+     * @return                  The unit of the value.
+     * @throws RuntimeException  if class doesn't support this.
      */
     public Unit
     getUnit()
     {
-	return unit;
+        throw new RuntimeException();
     }
 
 
     /**
      * Gets the netCDF variable.
      *
-     * @return			The netCDF variable.
+     * @return                  The netCDF variable.
      */
     public Variable
     getVariable()
     {
-	return var;
+        return var;
     }
 
 
     /**
      * Gets the value vetter.
      *
-     * @return			The value vetter.
+     * @return                  The value vetter.
+     * @throws RuntimeException  if class doesn't support this.
      */
     public Vetter
     getVetter()
     {
-	return vetter;
+        throw new RuntimeException();
     }
 
 
@@ -158,61 +159,52 @@ VirtualScalar
      * Gets the VisAD data object corresponding to this virtual, data
      * object.
      *
-     * @return			The VisAD Scalar corresponding to this
-     *				virtual, data object.
+     * @return                  The VisAD Scalar corresponding to this
+     *                          virtual, data object.
      * throws InvalidContextException
-     *				Invalid context.
+     *                          Invalid context.
      * @throws InvalidContextException
      *                          if the indicial context is invalid.
-     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws VisADException   Couldn't create necessary VisAD object.
      * @throws RemoteException  if a Java RMI failure occurs.
-     * @throws IOException	I/O failure.
+     * @throws IOException      I/O failure.
      */
     public DataImpl getData(Context context) 
         throws InvalidContextException, VisADException, RemoteException, IOException
     {
-	return getDataFactory().newData(context, this);
+        return getDataFactory().newData(context, this);
     }
 
+
+    /**
+     * Gets the Scalar object corresponding to this virtual, data
+     * object.
+     *
+     * @return                  The VisAD Scalar corresponding to this
+     *                          virtual, data object.
+     * @throws InvalidContextException
+     *                          if the indicial context is invalid.
+     * @throws VisADException   Couldn't create necessary VisAD object.
+     * @throws RemoteException  if a Java RMI failure occurs.
+     * @throws IOException      I/O failure.
+     */
+    protected abstract Scalar getScalar(Context context)
+        throws VisADException, InvalidContextException, IOException;
 
     /**
      * Gets the double values corresponding to this virtual, data
      * object at a given context.
      *
-     * @return			The double values of this virtual, data object.
-     * throws VisADException	Couldn't create necessary VisAD object.
-     * throws IOException	I/O failure.
+     * @return                  The double values of this virtual, data object.
+     * @throws VisADException   Couldn't create necessary VisAD object.
+     * @throws IOException      I/O failure.
+     * @throws RuntimeException  if class doesn't support this.
      */
     public double[]
     getDoubles(Context context)
-	throws IOException, VisADException
+        throws IOException, VisADException
     {
-	int	rank = lengths.length;
-	int[]	ioOrigin = new int[rank];
-	int[]	ioShape = new int[rank];
-	int[]	ioContext = context.getContext();
-
-	System.arraycopy(ioContext, 0, ioOrigin, 0, ioContext.length);
-
-	for (int i = 0; i < ioContext.length; ++i)
-	    ioShape[i] = 1;
-
-	int	total = 1;
-
-	for (int i = ioContext.length; i < rank; ++i)
-	{
-	    ioOrigin[i] = 0;
-	    ioShape[i] = lengths[i];
-	    total *= lengths[i];
-	}
-
-	double[]	values = new double[total];
-
-	toArray(var, values, ioOrigin, ioShape);
-
-	vetter.vet(values);
-
-	return values;
+        throw new RuntimeException();
     }
 
     /**
@@ -292,36 +284,24 @@ VirtualScalar
         return values;
     }
 
-
-    /**
-     * Clones this instance.
-     *
-     * @return			A (deep) clone of this instance.
-     */
-    public Object clone()
-    {
-	return new VirtualScalar(type, var, rangeSet, unit, vetter);
-    }
-
-
     /**
      * Sets the factory used to create VisAD data objects.
      *
-     * @param factory		The factory for creating VisAD data objects.
+     * @param factory           The factory for creating VisAD data objects.
      */
     public void setDataFactory(DataFactory factory)
     {
-	dataFactory = factory;
+        dataFactory = factory;
     }
 
 
     /**
      * Returns the factory used to create VisAD data objects.
      *
-     * @param factory		The factory for creating VisAD data objects.
+     * @param factory           The factory for creating VisAD data objects.
      */
     public DataFactory getDataFactory()
     {
-	return dataFactory;
+        return dataFactory;
     }
 }

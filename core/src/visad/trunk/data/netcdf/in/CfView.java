@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CfView.java,v 1.3 2001-11-27 22:29:34 dglo Exp $
+ * $Id: CfView.java,v 1.4 2002-10-21 20:07:45 donm Exp $
  */
 
 package visad.data.netcdf.in;
@@ -35,6 +35,7 @@ import visad.RealTupleType;
 import visad.RealType;
 import visad.SampledSet;
 import visad.SI;
+import visad.TextType;
 import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
@@ -49,7 +50,7 @@ import visad.VisADException;
  * {@link System#err} and the JVM is terminated.</p>
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.3 $ $Date: 2001-11-27 22:29:34 $
+ * @version $Revision: 1.4 $ $Date: 2002-10-21 20:07:45 $
  * @see http://www.cgd.ucar.edu/cms/eaton/netcdf/CF-current.htm
  */
 final class CfView
@@ -419,7 +420,26 @@ final class CfView
      */
     CfView(Netcdf netcdf, QuantityDB quantDb)
     {
-        super(netcdf, quantDb);
+        this(netcdf, quantDb, false);
+    }
+
+    /**
+     * Constructs from a netCDF dataset and a quantity database.  The quantity
+     * database will be supplemented with another database specific to this
+     * view.
+     *
+     * @param netcdf                The netCDF dataset.
+     * @param quantDb               The default quantity database.
+     * @param charToText            Convert char variables to Text if true
+     * @throws NullPointerException if the netCDF dataset argument is
+     *                              <code>null</code>.
+     * @throws IllegalArgumentException
+     *                              if the netCDF dataset doesn't follow the
+     *                              conventions of this view.
+     */
+    CfView(Netcdf netcdf, QuantityDB quantDb, boolean charToText)
+    {
+        super(netcdf, quantDb, charToText);
         /*
          * Check the "Conventions" global attribute.
          */
@@ -924,6 +944,10 @@ final class CfView
         /**
          * Returns a clone of the next virtual VisAD data object.
          *
+         * <p>This implementation uses {@link #isCharToText()},
+         * {@link #isNumeric(Variable)}, {@link #isIgnorable(Variable)}, 
+         * and {@link #getData(Variable)}.</p>
+         *
          * @return                      A clone of the next virtual VisAD data
          *                              object or <code> null</code> if there is
          *                              no more data.
@@ -937,11 +961,10 @@ final class CfView
             while (varIter.hasNext())
             {
                 Variable        var = varIter.next();
-                if (!isNumeric(var))
-                    continue;  // TODO: support text
-                if (isCoordinateVariable(var) ||
-                    isAuxCoordVar(var) ||
-                    isBoundaryVar(var))
+                // handle text only if charToText == true and rank <= 2
+                if (!isNumeric(var) && (!isCharToText() || var.getRank() > 2))
+                    continue;  // TODO: support arrays of text (Tuple?)
+                if (isIgnorable(var))
                 {
                     /*
                      * Ignore coordinate variables, auxilliary coordinate
@@ -950,13 +973,21 @@ final class CfView
                     continue;
                 }
                 VirtualScalar   scalar =
-                    new VirtualScalar(getRealType(var),
-                                      var,
-                                      getRangeSet(var),
-                                      getUnitFromAttribute(var),
-                                      getVetter(var));
+                    (isNumeric(var) == true)
+
+                        ? (VirtualScalar) 
+                            new VirtualReal(getRealType(var),
+                                            var,
+                                            getRangeSet(var),
+                                            getUnitFromAttribute(var),
+                                            getVetter(var))
+
+                        : (VirtualScalar)
+                            new VirtualText(getTextType(var), var);
+
                 return
-                    var.getRank() == 0
+                    (var.getRank() == 0 || 
+                     (!isNumeric(var) && var.getRank() == 1))
                         ? (VirtualData)scalar
                         : getDomain(var).getVirtualField(
                             new VirtualTuple(scalar));
@@ -1023,7 +1054,12 @@ final class CfView
             {
                 CfDimension outerDim = (CfDimension)list.get(0);
                 Unit[]      units = outerDim.getUnits();
-                if (units.length > 1 || !CfView.this.isTime(units[0]))
+                if (nCfDim == 2 && range.getType() instanceof TextType) { //char
+                   field = 
+                       VirtualField.newVirtualField(
+                           getDomainSet(list.subList(0,1)), range);
+                }
+                else if (units.length > 1 || !CfView.this.isTime(units[0]))
                 {
                     field =
                         VirtualField.newVirtualField(getDomainSet(list), range);

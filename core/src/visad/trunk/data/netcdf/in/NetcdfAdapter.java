@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.29 2001-12-20 15:43:08 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.30 2002-10-21 20:07:46 donm Exp $
  */
 
 package visad.data.netcdf.in;
@@ -94,7 +94,6 @@ NetcdfAdapter
         }
     }
 
-
     /**
      * Constructs from a netCDF dataset.
      *
@@ -111,9 +110,29 @@ NetcdfAdapter
     NetcdfAdapter(Netcdf netcdf, QuantityDB quantityDB)
         throws VisADException, RemoteException, IOException, BadFormException
     {
-        this(View.getInstance(netcdf, quantityDB));
-    }
+        this(netcdf, quantityDB, false);
+    } 
 
+    /**
+     * Constructs from a netCDF dataset.
+     *
+     * @param netcdf            The netCDF dataset to be adapted.
+     * @param quantityDB        A quantity database to be used to map netCDF
+     *                          variables to VisAD {@link Quantity}s.
+     * @param charToText        Specifies whether the NetcdfAdapter should 
+     *                          map char variables to VisAD Text objects
+     * @throws VisADException   Problem in core VisAD.  Probably some VisAD
+     *                          object couldn't be created.
+     * @throws RemoteException  Remote data access failure.
+     * @throws IOException      Data access I/O failure.
+     * @throws BadFormException Non-conforming netCDF dataset.
+     */
+    public
+    NetcdfAdapter(Netcdf netcdf, QuantityDB quantityDB, boolean charToText)
+        throws VisADException, RemoteException, IOException, BadFormException
+    {
+        this(View.getInstance(netcdf, quantityDB, charToText));
+    }
 
     /**
      * Constructs from a view of a netCDF dataset.
