@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DomainTable.java,v 1.3 1998-03-31 20:35:37 visad Exp $
+ * $Id: DomainTable.java,v 1.4 1998-03-31 20:46:28 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -191,7 +191,7 @@ DomainTable
 	public int
 	hashCode()
 	{
-	    int	code = domain.hashCode();
+	    int	code = domain.hashCode() ^ seqNo;
 
 	    // System.out.println(this.getClass().getName() + 
 		// ": hashed key: " + this + ": " + code);
