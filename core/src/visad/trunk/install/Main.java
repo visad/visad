@@ -85,7 +85,8 @@ public class Main
   private String cPushStr;
 
   private boolean useSuppliedJava, downloadLatestJar;
-  private File jvmToUse, javaInstallDir, jarInstallDir;
+//  private File jvmToUse;
+  private File javaInstallDir, jarInstallDir;
   private ClusterInstaller clusterInstaller;
 
   public Main(String[] args)
@@ -125,7 +126,8 @@ public class Main
     }
 
     useSuppliedJava = downloadLatestJar = false;
-    jvmToUse = javaInstallDir = jarInstallDir = null;
+//    jvmToUse = null;
+    javaInstallDir = jarInstallDir = null;
     clusterInstaller = null;
 
     queryUser();
@@ -423,14 +425,14 @@ public class Main
   {
     if (useSuppliedJava) {
       System.err.println("Install java in " + javaInstallDir);
-      if (jvmToUse != null) {
-        System.err.println("!! 'jvmToUse' is set !!");
-      }
-    } else {
-      System.err.println("Use jvm in " + jvmToUse);
-      if (javaInstallDir != null) {
-        System.err.println("!! 'javaInstallDir' is set !!");
-      }
+//      if (jvmToUse != null) {
+//        System.err.println("!! 'jvmToUse' is set !!");
+//      }
+//    } else if (jvmToUse != null) {
+//      System.err.println("Use jvm in " + jvmToUse);
+//      if (javaInstallDir != null) {
+//        System.err.println("!! 'javaInstallDir' is set !!");
+//      }
     }
 
     if (downloadLatestJar) {
@@ -880,7 +882,8 @@ public class Main
    */
   private final int queryUserInstallJava()
   {
-    javaInstallDir = jvmToUse = null;
+    javaInstallDir = null;
+//    jvmToUse = null;
     if (useSuppliedJava) {
       javaInstallDir = chooseDirectory(chooser, null,
                                        "Select the directory in which the JDK should be installed");
@@ -895,12 +898,12 @@ public class Main
                                       JOptionPane.ERROR_MESSAGE);
         return 0;
       }
-    } else {
-      jvmToUse = chooseFile(chooser, javaList,
-                            "Select the java program to use");
-      if (jvmToUse == null) {
-        return -1;
-      }
+//    } else {
+//      jvmToUse = chooseFile(chooser, javaList,
+//                            "Select the java program to use");
+//      if (jvmToUse == null) {
+//        return -1;
+//      }
     }
 
     return 1;
