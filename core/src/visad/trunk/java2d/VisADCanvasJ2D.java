@@ -40,6 +40,7 @@ import java.awt.geom.NoninvertibleTransformException;
 import javax.swing.*;
 import java.rmi.RemoteException;
 
+
 import java.util.*;
 
 /**
@@ -152,8 +153,8 @@ public class VisADCanvasJ2D extends JPanel
     height = h;
     length = 1;
     images = new BufferedImage[]
-      {new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)};
-    aux_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      {new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)};
+    aux_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     valid_images = new boolean[] {false};
 
     AffineTransform trans = displayRenderer.getTrans();
@@ -291,7 +292,7 @@ public class VisADCanvasJ2D extends JPanel
         }
         else {
           new_images[i] =
-            new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         }
         new_valid_images[i] = false;
       }
@@ -300,7 +301,7 @@ public class VisADCanvasJ2D extends JPanel
         aux_image = createImage(width, height);
       }
       else {
-        aux_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        aux_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
       }
 
       valid_images = new_valid_images;
@@ -463,7 +464,6 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
             try {
               int nchars = animation_string[0].length();
               if (nchars < 12) nchars = 12;
-              // float x = w - 9 * nchars; WLH 30 April 99
               float x = w - 7 * nchars;
               float y = h - 12;
               g2.drawString(animation_string[0], x, y);
@@ -479,21 +479,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
         ggg.dispose();
       } // end if (!valid)
       if (tsave == null || !displayRenderer.anyCursorStringVector()) {
-        if (g != null) {
-          // g.drawImage(image, 0, 0, this);
-          boolean done = false;
-          while (!done) {
-            done = g.drawImage(image, 0, 0, this);
-            if (!done) {
-              try {
-                Thread.sleep(100);
-              }
-              catch (InterruptedException e) {
-              }
-            }
-          }
-
-        }
+        if (g != null) g.drawImage(image, 0, 0, this);
         if (captureFlag || display.hasSlaves()) {
 // System.out.println("image capture " + width + " " + height);
           captureFlag = false;
@@ -502,24 +488,13 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
           }
           else {
             captureImage =
-              new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+              new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+              // new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
           }
           // CTR 2 June 2000 - captureImage can be null
           if (captureImage != null) {
             Graphics gc = captureImage.getGraphics();
-
-            boolean done = false;
-            while (!done) {
-              done = gc.drawImage(image, 0, 0, this);
-              if (!done) {
-                try {
-                  Thread.sleep(100);
-                }
-                catch (InterruptedException e) {
-                }
-              }
-            }
-
+            gc.drawImage(image, 0, 0, this);
             gc.dispose();
             captureImage.flush();
             displayRenderer.notifyCapture();
@@ -541,23 +516,11 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
           aux_copy = aux_image;
         }
         Graphics ga = aux_copy.getGraphics();
-        // ga.drawImage(image, 0, 0, this);
-        boolean done = false;
-        while (!done) {
-          done = ga.drawImage(image, 0, 0, this);
-          if (!done) {
-            try {
-              Thread.sleep(100);
-            }
-            catch (InterruptedException e) {
-            }
-          }
-        }
+        ga.drawImage(image, 0, 0, this);
 
         displayRenderer.drawCursorStringVector(ga, tsave, w, h);
         ga.dispose();
         if (g != null) g.drawImage(aux_copy, 0, 0, this);
-        // if (captureFlag) { WLH 14 Oct 99
         if (captureFlag || display.hasSlaves()) {
 // System.out.println("aux_copy capture " + width + " " + height);
           captureFlag = false;
@@ -566,22 +529,11 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
           }
           else {
             captureImage =
-              new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+              new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+              // new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
           }
           Graphics gc = captureImage.getGraphics();
-          // gc.drawImage(aux_copy, 0, 0, this);
-          done = false;
-          while (!done) {
-            done = gc.drawImage(aux_copy, 0, 0, this);
-            if (!done) {
-              try {
-                Thread.sleep(100);
-              }
-              catch (InterruptedException e) {
-              }
-            }
-          }
-
+          gc.drawImage(aux_copy, 0, 0, this);
           gc.dispose();
           captureImage.flush();
           displayRenderer.notifyCapture();
@@ -590,7 +542,6 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
           if (display.hasSlaves()) display.updateSlaves(captureImage);
         }
       }
-      // WLH 15 March 99
       try {
         display.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
       }
@@ -678,19 +629,7 @@ so:
         AffineTransform timage = new AffineTransform(m00, m10, m01, m11, m02, m12);
         g2.transform(timage); // concatenate timage onto tg
         try {
-          // g2.drawImage(image, 0, 0, this);
-          boolean done = false;
-          while (!done) {
-            done = g2.drawImage(image, 0, 0, this);
-            if (!done) {
-              try {
-                Thread.sleep(100);
-              }
-              catch (InterruptedException e) {
-              }
-            }
-          }
-
+          g2.drawImage(image, 0, 0, this);
         } catch (java.awt.image.ImagingOpException e) { }
         g2.setTransform(tg); // restore tg
       }
@@ -719,30 +658,14 @@ so:
           }
         }
         else {
-/* MEM_WLH
-          for (int i=0; i<colors.length; i++) {
-            colors[i] = (float) Math.max(Math.min(colors[i], 1.0f), 0.0f);
-          }
-*/
         }
         if (array instanceof VisADPointArray ||
             array instanceof VisADLineArray ||
             array instanceof VisADLineStripArray) {
-/* WLH 21 Aug 98
-          GraphicsModeControl mode = display.getGraphicsModeControl();
-          double dsize = (array instanceof VisADPointArray) ?
-                           mode.getPointSize() :
-                           mode.getLineWidth();
-*/
           float fsize = (array instanceof VisADPointArray) ?
                            appearance.pointSize :
                            appearance.lineWidth;
           double dsize = fsize;
-/* WLH 19 March 99
-          double dsize = (array instanceof VisADPointArray) ?
-                           appearance.pointSize :
-                           appearance.lineWidth;
-*/
           if (dsize < 1.05) dsize = 1.05; // hack for Java2D problem
           double[] pts = {0.0, 0.0, 0.0, dsize, dsize, 0.0};
           double[] newpts = new double[6];
@@ -775,7 +698,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                    (array instanceof VisADPointArray ? " point" : " line"));
 */
           if (array instanceof VisADPointArray) {
-/* WLH 19 March 99 */
             if (Math.abs(fsize - 1.0f) < 0.1f) {
               drawAppearance(ggg, appearance, tg, clip);
             }
@@ -804,11 +726,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                          ((int) colors[j+1]) ),
                       ((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
                                          ((int) colors[j+2]) ) ));
-/* MEM_WLH
-                    g2.setColor(new Color(ShadowType.byteToFloat(colors[j]),
-                                          ShadowType.byteToFloat(colors[j+1]),
-                                          ShadowType.byteToFloat(colors[j+2])));
-*/
                     g2.fill(new Rectangle2D.Float(coordinates[i], coordinates[i+1],
                                                   size, size));
                   }
@@ -818,7 +735,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             }
           }
           else if (array instanceof VisADLineArray) {
-/* WLH 19 March 99 */
             if (Math.abs(fsize - 1.0f) < 0.1f) {
               drawAppearance(ggg, appearance, tg, clip);
             }
@@ -848,15 +764,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                         ((int) colors[j+2]) ) +
                      ((colors[j+jinc+2] < 0) ? (((int) colors[j+jinc+2]) + 256) :
                                         ((int) colors[j+jinc+2]) ) ) / 2 ));
-/* MEM_WLH
-                  g2.setColor(new Color(
-                    0.5f * (ShadowType.byteToFloat(colors[j]) +
-                            ShadowType.byteToFloat(colors[j+jinc])),
-                    0.5f * (ShadowType.byteToFloat(colors[j+1]) +
-                            ShadowType.byteToFloat(colors[j+jinc+1])),
-                    0.5f * (ShadowType.byteToFloat(colors[j+2]) +
-                            ShadowType.byteToFloat(colors[j+jinc+2]))));
-*/
                   j += 2 * jinc;
                   g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
                                            coordinates[i+3], coordinates[i+4]));
@@ -890,11 +797,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                                ((int) colors[basec+1]);
                 lastb = (colors[basec+2] < 0) ? (((int) colors[basec+2]) + 256) :
                                                ((int) colors[basec+2]);
-/* MEM_WLH
-                lastr = ShadowType.byteToFloat(colors[basec]);
-                lastg = ShadowType.byteToFloat(colors[basec+1]);
-                lastb = ShadowType.byteToFloat(colors[basec+2]);
-*/
               }
               if (colors == null) {
                 for (int i=3; i<3*count; i += 3) {
@@ -914,11 +816,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                                  ((int) colors[basec+j+1]);
                   thisb = (colors[basec+j+2] < 0) ? (((int) colors[basec+j+2]) + 256) :
                                                  ((int) colors[basec+j+2]);
-/* MEM_WLH
-                  thisr = ShadowType.byteToFloat(colors[basec+j]);
-                  thisg = ShadowType.byteToFloat(colors[basec+j+1]);
-                  thisb = ShadowType.byteToFloat(colors[basec+j+2]);
-*/
                   g2.setColor(new Color((lastr + thisr) / 2,
                                         (lastg + thisg) / 2,
                                         (lastb + thisb) / 2));
@@ -975,18 +872,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                     ((int) colors[j+jinc+2]) ) +
                  ((colors[j+2*jinc+2] < 0) ? (((int) colors[j+2*jinc+2]) + 256) :
                                     ((int) colors[j+2*jinc+2]) ) ) / 3 ));
-/* MEM_WLH
-              g2.setColor(new Color(
-                0.33f * (ShadowType.byteToFloat(colors[j]) +
-                         ShadowType.byteToFloat(colors[j+jinc]) +
-                         ShadowType.byteToFloat(colors[j+2*jinc])),
-                0.33f * (ShadowType.byteToFloat(colors[j+1]) +
-                         ShadowType.byteToFloat(colors[j+jinc+1]) +
-                         ShadowType.byteToFloat(colors[j+2*jinc+1])),
-                0.33f * (ShadowType.byteToFloat(colors[j+2]) +
-                         ShadowType.byteToFloat(colors[j+jinc+2]) +
-                         ShadowType.byteToFloat(colors[j+2*jinc+2]))));
-*/
               j += 3 * jinc;
               GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
@@ -1040,21 +925,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                     ((int) colors[j+2*jinc+2]) ) +
                  ((colors[j+3*jinc+2] < 0) ? (((int) colors[j+3*jinc+2]) + 256) :
                                     ((int) colors[j+3*jinc+2]) ) ) / 4 ));
-/* MEM_WLH
-              g2.setColor(new Color(
-                0.25f * (ShadowType.byteToFloat(colors[j]) +
-                         ShadowType.byteToFloat(colors[j+jinc]) +
-                         ShadowType.byteToFloat(colors[j+2*jinc]) +
-                         ShadowType.byteToFloat(colors[j+3*jinc])),
-                0.25f * (ShadowType.byteToFloat(colors[j+1]) +
-                         ShadowType.byteToFloat(colors[j+jinc+1]) +
-                         ShadowType.byteToFloat(colors[j+2*jinc+1]) +
-                         ShadowType.byteToFloat(colors[j+3*jinc+1])),
-                0.25f * (ShadowType.byteToFloat(colors[j+2]) +
-                         ShadowType.byteToFloat(colors[j+jinc+2]) +
-                         ShadowType.byteToFloat(colors[j+2*jinc+2]) +
-                         ShadowType.byteToFloat(colors[j+3*jinc+2]))));
-*/
               j += 4 * jinc;
               GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
@@ -1114,18 +984,6 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                                       ((int) colors[jinc*index1+2]) ) +
                    ((colors[jinc*index2+2] < 0) ? (((int) colors[jinc*index2+2]) + 256) :
                                       ((int) colors[jinc*index2+2]) ) ) / 3 ));
-/* MEM_WLH
-                g2.setColor(new Color(
-                  0.33f * (ShadowType.byteToFloat(colors[jinc*index0]) +
-                           ShadowType.byteToFloat(colors[jinc*index1]) +
-                           ShadowType.byteToFloat(colors[jinc*index2])),
-                  0.33f * (ShadowType.byteToFloat(colors[jinc*index0+1]) +
-                           ShadowType.byteToFloat(colors[jinc*index1+1]) +
-                           ShadowType.byteToFloat(colors[jinc*index2+1])),
-                  0.33f * (ShadowType.byteToFloat(colors[jinc*index0+2]) +
-                           ShadowType.byteToFloat(colors[jinc*index1+2]) +
-                           ShadowType.byteToFloat(colors[jinc*index2+2]))));
-*/
                 GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
                 path.moveTo(coordinates[3*index0], coordinates[3*index0+1]);
                 path.lineTo(coordinates[3*index1], coordinates[3*index1+1]);
@@ -1322,11 +1180,6 @@ System.out.println("drawAppearance: VisADPointArray, count = " + count);
                                  ((int) colors[j+1]) ),
             ((colors[j+2] < 0) ? (((int) colors[j+2]) + 256) :
                                  ((int) colors[j+2]) ) ));
-/* MEM_WLH
-          graphics.setColor(new Color(ShadowType.byteToFloat(colors[j]),
-                                      ShadowType.byteToFloat(colors[j+1]),
-                                      ShadowType.byteToFloat(colors[j+2])));
-*/
           j += jinc;
           graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
                             (int) newcoords[i], (int) newcoords[i+1]);
@@ -1340,7 +1193,6 @@ System.out.println("drawAppearance: VisADLineArray, count = " + count +
 */
       if (colors == null) {
         for (int i=0; i<2*count; i += 4) {
-/* WLH 4 Dec 2002 */
           int width = (int) appearance.lineWidth;
           int x1 = (int) newcoords[i];
           int y1 = (int) newcoords[i+1];
@@ -1391,18 +1243,8 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
                                   ((int) colors[j+2]) ) +
              ((colors[j+jinc+2] < 0) ? (((int) colors[j+jinc+2]) + 256) :
                                        ((int) colors[j+jinc+2]) ) ) / 2 ));
-/* MEM_WLH
-          graphics.setColor(new Color(
-                    0.5f * (ShadowType.byteToFloat(colors[j]) +
-                            ShadowType.byteToFloat(colors[j+jinc])),
-                    0.5f * (ShadowType.byteToFloat(colors[j+1]) +
-                            ShadowType.byteToFloat(colors[j+jinc+1])),
-                    0.5f * (ShadowType.byteToFloat(colors[j+2]) +
-                            ShadowType.byteToFloat(colors[j+jinc+2]))));
-*/
           j += 2 * jinc;
 
-/* WLH 4 Dec 2002 */
           int width = (int) appearance.lineWidth;
           int x1 = (int) newcoords[i];
           int y1 = (int) newcoords[i+1];
@@ -1471,8 +1313,6 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
     if (autoAspect) {
       ProjectionControl pc = display.getProjectionControl();
       try {
-        // WLH 28 Nov 2000
-        // pc.setAspect(new double[] {1.0, (double) height / width});
         double a, b;
         if (height > width) {
           a = 1.0;

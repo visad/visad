@@ -35,6 +35,9 @@ import java.awt.geom.AffineTransform;
 
 import java.rmi.*;
 import java.util.*;
+import java.io.*;
+import com.sun.image.codec.jpeg.*;
+
 
 import visad.util.Util;
 
@@ -301,6 +304,28 @@ public abstract class DisplayRendererJ2D
       canvas.captureImage = null;
 // System.out.println("getImage (image == null) = " + (image == null));
     }
+
+    if (getDisplay().getComponent() == null) {
+      // offscreen
+      // this is a total hack; works for reasons not understood
+      for (int i=0; i<2; i++) {
+        try {
+          ByteArrayOutputStream bout = new ByteArrayOutputStream();
+          // FileOutputStream bout = new FileOutputStream("junk");
+          JPEGEncodeParam jepar =
+            JPEGCodec.getDefaultJPEGEncodeParam(image);
+          jepar.setQuality( 1.0f, true);
+          JPEGImageEncoder jpege = JPEGCodec.createJPEGEncoder(bout);
+          jpege.encode(image, jepar);
+          bout.flush();
+          bout.close();
+        }
+        catch (IOException e) {
+        }
+      }
+// System.out.println("ByteArrayOutputStream done");
+    }
+
     return image;
   }
 
