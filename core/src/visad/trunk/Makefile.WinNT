@@ -52,9 +52,9 @@ RMIC = rmic
 
 DEL = del
 
-DOCS_DIR = ..\docs
 DOC = javadoc
-DOCFLAGS = -d $(DOCS_DIR)
+DOC_DIR = ..\docs
+DOCFLAGS = -d $(DOC_DIR)
 
 FITS = ..\nom\tam
 UCAR = ..\ucar
@@ -570,7 +570,7 @@ visad.rabin \
 visad.bom
 
 docs:
-	if not exist $(DOCS_DIR) mkdir $(DOCS_DIR)
+	if not exist $(DOC_DIR) mkdir $(DOC_DIR)
 	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
 
 jikes_compile:
