@@ -301,11 +301,14 @@ public class SelectRangeWidget extends Canvas implements MouseListener,
       g.fillRect(lastW - 4 - sw, 27, sw, 15);
       lastMax = maxVal;
     }
-    String minS = ""+Math.round(minPercent*(maxVal-minVal)+minVal);
-    String maxS = ""+Math.round(maxPercent*(maxVal-minVal)+minVal);
+    String minS = ""+Math.round(minPercent*(maxVal-minVal)+100*minVal);
+    String maxS = ""+Math.round(maxPercent*(maxVal-minVal)+100*minVal);
+    System.out.println("Minval: "+minVal+" Maxval: "+maxVal); /* CTR: TEMP */
+    System.out.println("Min: "+minS+" Max: "+maxS); /* CTR: TEMP */
     if (minS.charAt(0) != '0') {
       if (minS.endsWith("00")) minS = minS.substring(0, minS.length()-2);
       else {
+        if (minS.length() == 1) minS = "0"+minS;
         minS = minS.substring(0, minS.length()-2)+"."
               +minS.substring(minS.length()-2);
         if (minS.endsWith("0")) minS = minS.substring(0, minS.length()-1);
@@ -314,12 +317,14 @@ public class SelectRangeWidget extends Canvas implements MouseListener,
     if (maxS.charAt(0) != '0') {
       if (maxS.endsWith("00")) maxS = maxS.substring(0, maxS.length()-2);
       else {
+        if (maxS.length() == 1) maxS = "0"+maxS;
         maxS = maxS.substring(0, maxS.length()-2)+"."
               +maxS.substring(maxS.length()-2);
         if (maxS.endsWith("0")) maxS = maxS.substring(0, maxS.length()-1);
       }
     }
     String curStr = "("+minS+", "+maxS+")";
+    System.out.println(curStr); /* CTR: TEMP */
     if (!curStr.equals(lastCurStr) || lastW != w) {
       g.setColor(Color.black);
       int sw = fm.stringWidth(lastCurStr);
