@@ -10,10 +10,8 @@ loc = [0, 2, 0]
 up = [0, 1, 0]
 face = [0, 0, 1]
 right = [1, 0, 0]
-arml = 0
-armr = 0
-legl = 0
-legr = 0
+arm = 0
+leg = 0
 
 def normalize(a):
   norm = math.sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2])
@@ -28,6 +26,14 @@ def cross(a, b):
 
 def scaled_add(a, b, s):
   return [a[0]+s*b[0], a[1]+s*b[1], a[2]+s*b[2]]
+
+def rotate(a, b, s):
+  r = cross(a, b)
+  normalize(r)
+  a[0] = a[0] + s * r[0]
+  a[1] = a[1] + s * r[1]
+  a[2] = a[2] + s * r[2]
+  normalize(a)
 
 def makeBody():
   c = cross(up, face)
@@ -48,8 +54,9 @@ def makeBody():
   samples = []
   for i in range(3):
     samples.append(
-      [loc[i]+up[i]-2*right[i], loc[i]-right[i], loc[i], loc[i]+right[i],
-       loc[i]+up[i]+2*right[i]])
+      [loc[i]+up[i]-2*right[i]+2*arm*face[i], loc[i]-right[i]+arm*face[i],
+       loc[i],
+       loc[i]+right[i]+arm*face[i], loc[i]+up[i]+2*right[i]+2*arm*face[i]])
   sets.append(Gridded3DSet(type, samples, len(samples[0])))
 
   # make legs
@@ -80,30 +87,27 @@ normalize(rot)
 rot2 = [-0.5, 0.3, 0.4]
 normalize(rot2)
 funny = [1, 0, 0]
+arminc = 0
 
 while 1:
-  r = cross(rot2, rot)
-  normalize(r)
-  rot2 = scaled_add(rot2, r, 0.043)
-  normalize(rot2)
-  r2 = cross(up, rot2)
-  normalize(r2)
-  up = scaled_add(up, r2, 0.1)
-  normalize(up)
-  f = cross(funny, rot)
-  normalize(f)
-  funny = scaled_add(funny, f, 0.08)
-  normalize(funny)
+  rotate(rot2, rot, 0.043)
+
+  rotate(up, rot2, 0.1)
+
+  rotate(funny, rot, 0.08)
+
   face = cross(up, funny)
   normalize(face)
-  l = cross(loc, face)
-  normalize(l)
-  loc = scaled_add(loc, l, 0.9)
-  normalize(loc)
+
+  rotate(loc, face, 0.9)
   loc[0] = 4*loc[0]
   loc[1] = 4*loc[1]
   loc[2] = 4*loc[2]
+
+  arm = 1.0 * math.sin(arminc)
+  arminc = arminc + 0.4
+
   set = makeBody()
   ref.setData(set)
-  Delay(100)
+  Delay(50)
 
