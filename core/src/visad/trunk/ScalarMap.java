@@ -214,7 +214,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     return display;
   }
 
-  /** clear link to DisplayImpl */
+  /**
+   * Clear link to DisplayImpl.  This will subsequently cause
+   * <code>getDisplay() and <code>getControl()</code> to return
+   * <code>null</code>; consequently, information stored in the Control might
+   * have to be reestablished.
+   */
   synchronized void nullDisplay()
     throws RemoteException, VisADException
   {
@@ -239,7 +244,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
 
   /** set the DisplayImpl this ScalarMap is linked to */
   synchronized void setDisplay(DisplayImpl d)
-               throws VisADException, RemoteException {
+               throws VisADException {
     if (d.equals(display)) return;
     if (display != null) {
       throw new DisplayException("ScalarMap.setDisplay: ScalarMap cannot belong" +
@@ -253,7 +258,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    * Gets the Control for the DisplayScalar.  The Control is constructed 
    * when this ScalarMap is linked to a Display via an invocation of the 
    * Display's <code>addMap()</code> method.  Not all ScalarMaps have Controls,
-   * generally depending on the ScalarMap's DisplayRealType.
+   * generally depending on the ScalarMap's DisplayRealType.  If a ScalarMap
+   * is removed from a Display (via the <code>Display.clearMaps()</code> method,
+   * then, in general, any information in the ScalarMap's control will be lost
+   * and must be reestablished.
+   *
    * @return			The Control for the DisplayScalar or <code>
    *				null</code> if one has not yet been set.
    */
@@ -559,7 +568,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   private static final double OFFSET = 1.05;
 
   private void makeScale()
-          throws VisADException, RemoteException {
+          throws VisADException {
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     axis = (DisplayScalar.equals(Display.XAxis)) ? 0 :
            (DisplayScalar.equals(Display.YAxis)) ? 1 : 2;
@@ -751,6 +760,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         new_values[i] = (float) values[i];
       }
     }
+/* SRE 27 Oct 99
+    System.out.println(
+      "ScalarMap.scaleValues(double[]): values[0] = " + values[0] +
+      "; new_values[0] = " + new_values[0]);
+*/
     return new_values;
   }
 
@@ -776,6 +790,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     else {
       new_values = values;
     }
+/* SRE 27 Oct 99
+    System.out.println(
+      "ScalarMap.scaleValues(double[]): values[0] = " + values[0] +
+      "; new_values[0] = " + new_values[0]);
+*/
     return new_values;
   }
 
