@@ -142,20 +142,15 @@ public class AreaFile {
   private int navLoc, calLoc, auxLoc, datLoc;
   private int navbytes, calbytes, auxbytes;
   private int linePrefixLength, lineDataLength, lineLength, numberLines;
-  private final int McMISSING = 0x80808080;
   private long position;
   private int skipByteCount;
   private long newPosition;
-  private URL url;
   private int numBands;
   int[] dir;
   int[] nav;
   int[] cal;
   int[] aux;
   int[][][] data;
-  final int DMSP = 0x444d5250;
-  final int GVAR = 0x47564152;
-  final int POES = 0x5449524f;
   
   /**
    * creates an AreaFile object that allows reading
@@ -182,7 +177,7 @@ public class AreaFile {
         url = new URL(imageSource);
         URLConnection urlc = url.openConnection();
         InputStream is = urlc.getInputStream();
-        af = new DataInputStream(is);
+        af = new DataInputStream( new BufferedInputStream(is));
       }
       catch (Exception e) {
         fileok = false;
@@ -207,14 +202,16 @@ public class AreaFile {
 
   public AreaFile(String filename, Applet parent) throws AreaFileException {
 
+    URL url;
     try {
       url = new URL(parent.getDocumentBase(), filename);
     } catch (MalformedURLException e) {
-      System.out.println(e);
+      fileok = false;
+      throw new AreaFileException("Error opening URL for AreaFile:"+e);
     }
 
     try { 
-      af = new DataInputStream(url.openStream());
+      af = new DataInputStream(new BufferedInputStream(url.openStream()));
     } catch (IOException e) {
         fileok = false;
         throw new AreaFileException("Error opening AreaFile:"+e);
@@ -238,7 +235,7 @@ public class AreaFile {
   public AreaFile(URL url) throws AreaFileException {
 
     try { 
-      af = new DataInputStream(url.openStream());
+      af = new DataInputStream(new BufferedInputStream(url.openStream()));
     } catch (IOException e) {
         fileok = false;
         throw new AreaFileException("Error opening URL for AreaFile:"+e);
@@ -248,8 +245,8 @@ public class AreaFile {
     readMetaData();
   }
     
-  /** Read the metadata for an area file (directory, nav,
-   *  and cal). 
+  /** 
+   *  Read the metadata for an area file (directory, nav,  and cal). 
    *
    * @exception AreaFileException if there is a problem
    * reading any portion of the metadata.
@@ -278,16 +275,16 @@ public class AreaFile {
     // see if the directory needs to be byte-flipped
 
     if (dir[AD_VERSION] > 255) {
-      flip(dir,0,19);
+      McIDASUtil.flip(dir,0,19);
       // word 20 may contain characters -- if small integer, flip it...
-      if ( (dir[20] & 0xffff) == 0) flip(dir,20,20);
-      flip(dir,21,23);
+      if ( (dir[20] & 0xffff) == 0) McIDASUtil.flip(dir,20,20);
+      McIDASUtil.flip(dir,21,23);
       // words 24-31 contain memo field
-      flip(dir,32,50);
+      McIDASUtil.flip(dir,32,50);
       // words 51-2 contain cal info
-      flip(dir,53,55);
+      McIDASUtil.flip(dir,53,55);
       // word 56 contains original source type (ascii)
-      flip(dir,57,63);
+      McIDASUtil.flip(dir,57,63);
       flipwords = true;
     }
 
@@ -306,17 +303,17 @@ public class AreaFile {
     lineLength = linePrefixLength + lineDataLength;
     numberLines = dir[AD_NUMLINES];
 
-    if (datLoc > 0 && datLoc != McMISSING) {
+    if (datLoc > 0 && datLoc != McIDASUtil.MCMISSING) {
       navbytes = datLoc - navLoc;
       calbytes = datLoc - calLoc;
       auxbytes = datLoc - auxLoc;
     }
-    if (auxLoc > 0 && auxLoc != McMISSING) {
+    if (auxLoc > 0 && auxLoc != McIDASUtil.MCMISSING) {
       navbytes = auxLoc - navLoc;
       calbytes = auxLoc - calLoc;
     }
 
-    if (calLoc > 0 && calLoc != McMISSING ) {
+    if (calLoc > 0 && calLoc != McIDASUtil.MCMISSING ) {
       navbytes = calLoc - navLoc;
     }
 
@@ -412,12 +409,13 @@ public class AreaFile {
     return;
   }
 
-  /** returns the directory block
+  /** 
+   * Returns the directory block
    *
    * @return an integer array containing the area directory
    *
    * @exception AreaFileException if there was a problem
-   * reading the directory
+   *                              reading the directory
    *
    */
 
@@ -432,12 +430,13 @@ public class AreaFile {
 
   }
 
-  /** returns the navigation block
+  /** 
+   * Returns the navigation block
    *
    * @return an integer array containing the nav block data
    *
    * @exception AreaFileException if there is a problem
-   * reading the navigation
+   *                              reading the navigation
    *
    */
 
@@ -448,7 +447,7 @@ public class AreaFile {
       throw new AreaFileException("Error reading AreaFile navigation");
     }
 
-    if (navLoc <= 0 || navLoc == McMISSING) {
+    if (navLoc <= 0 || navLoc == McIDASUtil.MCMISSING) {
       throw new AreaFileException("Error reading AreaFile navigation");
     } 
 
@@ -456,12 +455,13 @@ public class AreaFile {
 
   }
 
-  /** Returns calibration block
+  /** 
+   * Returns calibration block
    *
    * @return an integer array containing the nav block data
    *
    * @exception AreaFileException if there is a problem
-   * reading the calibration
+   *                              reading the calibration
    *
    */
 
@@ -472,7 +472,7 @@ public class AreaFile {
       throw new AreaFileException("Error reading AreaFile calibration");
     }
 
-    if (calLoc <= 0 || calLoc == McMISSING) {
+    if (calLoc <= 0 || calLoc == McIDASUtil.MCMISSING) {
       throw new AreaFileException("Error reading AreaFile calibration");
     } 
 
@@ -481,12 +481,13 @@ public class AreaFile {
   }
 
 
-  /** Returns AUX block
+  /** 
+   * Returns AUX block
    *
    * @return an integer array containing the aux block data
    *
    * @exception AreaFileException if there is a problem
-   * reading the aux block
+   *                              reading the aux block
    *
    */
 
@@ -497,7 +498,7 @@ public class AreaFile {
       throw new AreaFileException("Error reading AreaFile aux block");
     }
 
-    if (auxLoc <= 0 || auxLoc == McMISSING) {
+    if (auxLoc <= 0 || auxLoc == McIDASUtil.MCMISSING) {
       throw new AreaFileException("Error reading AreaFile AUX block");
     } 
 
@@ -508,9 +509,9 @@ public class AreaFile {
   /**
    * Read the AREA file and return the entire contents
    *
-   * @exception AreaFileException if there is a problem
-   *
    * @return int array[band][lines][elements]
+   *
+   * @exception AreaFileException if there is a problem
    *
    */
 
@@ -525,29 +526,39 @@ public class AreaFile {
    * as int regardless of whether they are 1, 2, or 4 byte values.
    *
    * @param lineNumber the file-relative image line number that will
-   * be put in array[0][j]
-
-   * @param eleNumber the file-relative image element number that will
-   * be put into array[i][0] 
-   *
-   * @param numLines the number of lines to return
-   *
-   * @param numEles the number of elements to return for each line
-   *
-   * @param bandNumber the spectral band to return (def=1)
-   *
-   * @exception AreaFileException if the is a problem reading the file
+   *                   be put in array[0][j]
+   * @param eleNumber  the file-relative image element number that will
+   *                   be put into array[i][0] 
+   * @param numLines   the number of lines to return
+   * @param numEles    the number of elements to return for each line
    *
    * @return int array[lines][elements] with data values.
    *
+   * @exception AreaFileException if the is a problem reading the file
    */
-
   public int[][] getData(int lineNumber, int eleNumber, int
          numLines, int numEles) throws AreaFileException {
    return getData(lineNumber, eleNumber, numLines, numEles, 1);
   }
 
 
+  /**
+   * Read the specified 2-dimensional array of
+   * data values from the AREA file.  Values will always be returned
+   * as int regardless of whether they are 1, 2, or 4 byte values.
+   *
+   * @param lineNumber the file-relative image line number that will
+   *                   be put in array[0][j]
+   * @param eleNumber  the file-relative image element number that will
+   *                   be put into array[i][0] 
+   * @param numLines   the number of lines to return
+   * @param numEles    the number of elements to return for each line
+   * @param bandNumber the spectral band to return
+   *
+   * @return int array[lines][elements] with data values.
+   *
+   * @exception AreaFileException if the is a problem reading the file
+   */
   public int[][] getData(int lineNumber, int eleNumber, int
          numLines, int numEles, int bandNumber) throws AreaFileException {
 
@@ -631,55 +642,36 @@ public class AreaFile {
   } // end of areaReadData method
 
   /**
-   *  flip the bytes of an integer array
-   *
-   * @param array[] array of integers to be flipped
-   * @param first starting element of the array
-   * @param last last element of array to flip
-   *
-   */
-
-  private void flip(int array[], int first, int last) {
-    int i,k;
-    for (i=first; i<=last; i++) {
-      k = array[i];
-      array[i] = ( (k >>> 24) & 0xff) | ( (k >>> 8) & 0xff00) |
-                 ( (k & 0xff) << 24 )  | ( (k & 0xff00) << 8);
-    }
-  }
-
-  /**
    * selectively flip the bytes of words in nav block
    *
    * @param array[] of nav parameters
    *
    */
-
   private void flipnav(int[] nav) {
 
     // first word is always the satellite id in ASCII
     // check on which type:
 
-    if (nav[0] == GVAR) {
+    if (nav[0] == AREAnav.GVAR) {
 
-      flip(nav,2,126);
-      flip(nav,129,254);
-      flip(nav,257,382);
-      flip(nav,385,510);
-      flip(nav,513,638);
+      McIDASUtil.flip(nav,2,126);
+      McIDASUtil.flip(nav,129,254);
+      McIDASUtil.flip(nav,257,382);
+      McIDASUtil.flip(nav,385,510);
+      McIDASUtil.flip(nav,513,638);
     }
 
-    else if (nav[0] == DMSP) {
-      flip(nav,1,43);
-      flip(nav,45,51);
+    else if (nav[0] == AREAnav.DMSP) {
+      McIDASUtil.flip(nav,1,43);
+      McIDASUtil.flip(nav,45,51);
     }
 
-    else if (nav[0] == POES) {
-      flip(nav,1,119);
+    else if (nav[0] == AREAnav.POES) {
+      McIDASUtil.flip(nav,1,119);
     }
 
     else {
-      flip(nav,1,nav.length-1);
+      McIDASUtil.flip(nav,1,nav.length-1);
     }
 
     return;

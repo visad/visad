@@ -119,7 +119,9 @@ public class AreaDirectoryList
                 url = new URL(imageSource);
                 urlc = url.openConnection();
                 InputStream is = urlc.getInputStream();
-                inputStream = new DataInputStream(is);
+                inputStream = 
+                    new DataInputStream(
+                        new BufferedInputStream(is));
             }
             catch (Exception e) 
             {
@@ -149,12 +151,14 @@ public class AreaDirectoryList
         } 
         catch (MalformedURLException e) 
         {
-            throw new AreaFileException(e.toString());
+            throw new AreaFileException("Error opening URL for AreaFile:"+e);
         }
 
         try 
         { 
-            inputStream = new DataInputStream(url.openStream());
+            inputStream = 
+                new DataInputStream(
+                    new BufferedInputStream(url.openStream()));
         }
         catch (IOException e) 
         {
@@ -178,7 +182,9 @@ public class AreaDirectoryList
     {
         try 
         { 
-            inputStream = new DataInputStream(url.openStream());
+            inputStream = 
+                new DataInputStream(
+                    new BufferedInputStream(url.openStream()));
         } 
         catch (IOException e) 
         {
@@ -257,6 +263,7 @@ public class AreaDirectoryList
                     // last word in trailer is the number of bytes for the
                     // next record so we need to read that
                     int skipBytesCount = numBytes - AreaFile.AD_DIRSIZE*4 - 4;
+                    inputStream.skipBytes(skipBytesCount);
                     /*
                     int numCards = dir[AreaFile.AD_DIRSIZE -1];
                     System.out.println("Number of comment cards = " + numCards);
@@ -270,9 +277,8 @@ public class AreaDirectoryList
                         System.out.println("card["+i+"] = " + new String(card));
                     }
                     */
-                    inputStream.skipBytes(skipBytesCount);
                     numBytes = inputStream.readInt();
-                 // System.out.println("Bytes in next record = " + numBytes);
+                    //System.out.println("Bytes in next record = " + numBytes);
                 }
                 dirs.add(ad);
             }
