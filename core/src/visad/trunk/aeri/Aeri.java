@@ -77,9 +77,12 @@ public class Aeri
   float del_lat, del_lon;
   double[] x_range, y_range;
 
-  float height_limit = 5500; // roughly 500 MB
+  int height_limit = 3000; // meters
   boolean rh = false;
   boolean tm = false;
+
+  int start_date = 0;
+  double start_time = 0.0;
 
   public static void main(String args[])
          throws VisADException, RemoteException, IOException
@@ -92,6 +95,7 @@ public class Aeri
   {
 
     String vadfile = null;
+    String baseDate = "19991226";
     for (int i=0; i<args.length; i++) {
       if (args[i] == null) {
       }
@@ -107,6 +111,10 @@ public class Aeri
         }
         i++;
       }
+      else if (args[i].equals("-date") && (i+1) < args.length) {
+        baseDate = args[i+1];
+        i++;
+      }
       else if (args[i].equals("-rh")) {
         rh = true;
         tm = false;
@@ -120,9 +128,10 @@ public class Aeri
       init_from_vad(vadfile);
     } 
     else { 
-      init_from_cdf();
+      init_from_cdf(baseDate);
     }
     wvmr.alias("MR");
+    temp.alias("T");
 
     JFrame frame = new JFrame("VisAD AERI Viewer");
     frame.addWindowListener(new WindowAdapter() {
@@ -148,7 +157,7 @@ public class Aeri
     frame.setVisible(true);
   }
 
-  void init_from_cdf()
+  void init_from_cdf(String baseDate)
        throws VisADException, RemoteException, IOException
   {
     station_lat = new double[n_stations];
@@ -164,17 +173,18 @@ public class Aeri
     String[] wind_files = new String[n_stations];
     String[] rtvl_files = new String[n_stations];
 
-    wind_files[0] = "./data/19991226_lamont_windprof.cdf";
-    wind_files[1] = "./data/19991226_hillsboro_windprof.cdf";
-    wind_files[2] = "./data/19991226_morris_windprof.cdf";
-    wind_files[3] = "./data/19991226_purcell_windprof.cdf";
-    wind_files[4] = "./data/19991226_vici_windprof.cdf";
+    String truncatedDate = baseDate.substring(2);
+    wind_files[0] = "./data/" + baseDate + "_lamont_windprof.cdf";
+    wind_files[1] = "./data/" + baseDate + "_hillsboro_windprof.cdf";
+    wind_files[2] = "./data/" + baseDate + "_morris_windprof.cdf";
+    wind_files[3] = "./data/" + baseDate + "_purcell_windprof.cdf";
+    wind_files[4] = "./data/" + baseDate + "_vici_windprof.cdf";
 
-    rtvl_files[0] = "./data/lamont_991226AG.cdf";
-    rtvl_files[1] = "./data/hillsboro_991226AG.cdf";
-    rtvl_files[2] = "./data/morris_991226AG.cdf";
-    rtvl_files[3] = "./data/purcell_991226AG.cdf";
-    rtvl_files[4] = "./data/vici_991226AG.cdf";
+    rtvl_files[0] = "./data/lamont_" + truncatedDate + "AG.cdf";
+    rtvl_files[1] = "./data/hillsboro_" + truncatedDate + "AG.cdf";
+    rtvl_files[2] = "./data/morris_" + truncatedDate + "AG.cdf";
+    rtvl_files[3] = "./data/purcell_" + truncatedDate + "AG.cdf";
+    rtvl_files[4] = "./data/vici_" + truncatedDate + "AG.cdf";
 
     FieldImpl[] winds = makeWinds(wind_files);
     System.out.println(winds[0].getType().prettyString());
@@ -185,7 +195,7 @@ public class Aeri
     spatial_domain = new RealTupleType(longitude, latitude, altitude);
     advect_range = new RealTupleType(temp, dwpt, wvmr, RH);
     advect_type = new FunctionType(spatial_domain, advect_range);
-    advect_field_type = new FunctionType(time, advect_type);
+    advect_field_type = new FunctionType(RealType.Time, advect_type);
 
     stations_field =
         new FieldImpl(new FunctionType( stn_idx, advect_field_type),
@@ -198,9 +208,9 @@ public class Aeri
       stations_field.setSample(kk, advect_field);
     }
 
-
     VisADForm vad_form = new VisADForm();
-    vad_form.save("aeri-winds_122699.vad", stations_field, true);
+    vad_form.save("aeri_winds_" + baseDate + "." +
+                  height_limit + ".vad", stations_field, true);
 
     System.out.println(stations_field.getType().prettyString());
   }
@@ -279,14 +289,12 @@ public class Aeri
     display.addMap(cmap);
     ColorMapWidget cmw = new ColorMapWidget(cmap, null, true, false);
     LabeledColorWidget cwidget = new LabeledColorWidget(cmw);
-    ScalarMap tmap = new ScalarMap(time, Display.Animation);
+    ScalarMap tmap = new ScalarMap(RealType.Time, Display.Animation);
     display.addMap(tmap);
     AnimationControl control = (AnimationControl) tmap.getControl();
     control.setStep(50);
     AnimationWidget awidget = new AnimationWidget(tmap);
 
-    // xmap.setRange(lon_min, lon_max);
-    // ymap.setRange(lat_min, lat_max);
     zmap.setRange(0.0, hgt_max);
 
     DataReference advect_ref = new DataReferenceImpl("advect_ref");
@@ -311,13 +319,9 @@ public class Aeri
     display.enableAction();
     JPanel dpanel = new JPanel();
     dpanel.setLayout(new BoxLayout(dpanel, BoxLayout.Y_AXIS));
-    // dpanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    // dpanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     dpanel.add(display.getComponent());
     JPanel wpanel = new JPanel();
     wpanel.setLayout(new BoxLayout(wpanel, BoxLayout.Y_AXIS));
-    // wpanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    // wpanel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     cwidget.setMaximumSize(new Dimension(400, 200));
     awidget.setMaximumSize(new Dimension(400, 400));
     wpanel.add(cwidget);
@@ -364,10 +368,7 @@ public class Aeri
           locs[1][0] = samples[1][0];
           locs[0][1] = samples[0][0];
           locs[1][1] = samples[1][0];
-/*
-System.out.println("kk = " + kk + " i = " + i + " " + hi[2] + " " +
-                   samples[0][0] + " " + samples[1][0]);
-*/
+
           if (samples[0][0] > lat_max) lat_max = samples[0][0];
           if (samples[0][0] < lat_min) lat_min = samples[0][0];
           if (samples[1][0] > lon_max) lon_max = samples[1][0];
@@ -472,7 +473,7 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     RealType domain_type = (RealType)
       ((TupleType)f_type0.getRange()).getComponent(0);
     time = domain_type;
-    FunctionType new_type = new FunctionType(domain_type, alt_to_uv);
+    FunctionType new_type = new FunctionType(RealType.Time, alt_to_uv);
 
     FieldImpl[] winds = new FieldImpl[n_stations];
     
@@ -492,6 +493,10 @@ System.out.println("lon = " + lonmin + " " + lonmax +
         ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(8)).getValue();
       station_id[ii] =
         ((Real)((Tuple)time_field[ii].getSample(0)).getComponent(9)).getValue();
+      if (ii == 0) {
+        start_time = base_time[0];
+        start_date = (int) base_date[0];
+      }
 
 /*
 System.out.println("wind " + ii + " date: " + base_date[ii] +
@@ -606,6 +611,16 @@ start or end altitudes - but it does nothing if all winds are missing */
 
       Gridded1DSet domain_set = new Gridded1DSet(domain_type, 
                                     Set.doubleToFloat(time_offset), length);
+
+/* resample() doesn't work for doubles
+      double[][] times = new double[1][length];
+      for (int i=0; i<length; i++) {
+        times[0][i] = base_time[0] + time_offset[0][i];
+      }
+      Gridded1DDoubleSet domain_set =
+        new Gridded1DDoubleSet(domain_type, times, length);
+*/
+
       winds[ii] = new FieldImpl(new_type, domain_set);
       winds[ii].setSamples(range_data, false);
     }
@@ -649,7 +664,7 @@ start or end altitudes - but it does nothing if all winds are missing */
 
     RealType domain_type = (RealType)
       ((TupleType)f_type0.getRange()).getComponent(0);
-    FunctionType new_type = new FunctionType(domain_type, f_type1);
+    FunctionType new_type = new FunctionType(RealType.Time, f_type1);
 
     FieldImpl[] rtvls = new FieldImpl[n_stations];
 
@@ -726,6 +741,15 @@ time_offset looks like seconds since 0Z
 
       Gridded1DSet domain_set = new Gridded1DSet(domain_type,
                                     Set.doubleToFloat(time_offset), length);
+/* resample() doesn't work for doubles
+      double[][] times = new double[1][length];
+      for (int i=0; i<length; i++) {
+        times[0][i] = base_time[0] + time_offset[0][i];
+      }
+      Gridded1DDoubleSet domain_set = 
+        new Gridded1DDoubleSet(domain_type, times, length);
+*/
+
       rtvls[ii] = new FieldImpl(new_type, domain_set);
       rtvls[ii].setSamples(range_data, false);
     }
@@ -851,9 +875,11 @@ time_offset looks like seconds since 0Z
           rtvl_time = rtvl_times[rtvl_idx - ii];
           age = rtvl_time - rtvl_time_0;
 
-// WLH - adjust for shortening of longitude with increasing latitude
 // NOTE wind dir is direction wind is from
-// AND U is positive east and v is positive north
+// AND U is positive east (call to baseMap.setEastPositive(false)
+// makes this positive west) and V is positive north
+//
+// adjust for shortening of longitude with increasing latitude
           double lat_radians = (Math.PI/180.0)*station_lat[stn_idx];
           advect_locs[0][n_samples] = (float)
             (uv_wind[0][jj]*age*factor/Math.cos(lat_radians) +
@@ -868,10 +894,6 @@ time_offset looks like seconds since 0Z
           rtvl_vals[0][n_samples] = (float) vals[1][jj];
           rtvl_vals[1][n_samples] = (float) vals[2][jj];
           rtvl_vals[2][n_samples] = (float) vals[3][jj];
-/*
-          rtvl_vals[3][n_samples] = (float) (-age*age);
-          // rtvl_vals[3][n_samples] = (float) age;
-*/
           rtvl_vals[3][n_samples] = (float)
             relativeHumidity(vals[1][jj], vals[2][jj]);
 
