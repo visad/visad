@@ -1160,11 +1160,14 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
   }
 
   /**
-   * Compares this ScalarMap with another ScalarMap.
-   * @param o           The other ScalarMap.
-   * @return            A value that is negative, zero, or positive depending on
-   *                    whether this ScalarMap is considered less than, equal
-   *                    to, or greater than the other ScalarMap, respectively.
+   * Compares this ScalarMap with another object.
+   * @param o                     The other object.
+   * @return                      A value that is negative, zero, or positive
+   *                              depending on whether this instance is less
+   *                              than, equal to, or greater than the other
+   *                              object, respectively.
+   * @throws ClassCastException   if the other object isn't a {@link ScalarMap}.
+   * @throws NullPointerException if the other object is <code>null</code>.
    */
   public int compareTo(Object o)
   {
