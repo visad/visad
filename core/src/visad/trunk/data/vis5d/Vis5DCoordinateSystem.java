@@ -234,7 +234,7 @@ public class Vis5DCoordinateSystem extends MapProjection
    */
   public Rectangle2D getDefaultMapArea() 
   { 
-      return new Rectangle2D.Double(0, 0, Nc-1, Nr-1);
+      return new Rectangle2D.Double(0, 0, Nc, Nr);
   }
 
   /**

@@ -40,7 +40,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
   private double La1, Lo1, LoMax, Di, Dj;
   private double aspectRatio = 1.0;
   //private double earth = 6367470.0;
-  private double[] range;
+  private double[] range = new double[4];
 
   /**
    * Constructor for a Polar Stereographic (GRIB type code = 5) with
@@ -296,12 +296,10 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
      this.Dj = Dj;
      LoMax = Lo1 + Di*(Ni - 1);
      aspectRatio = (Di/Dj);
-     //range = new Rectangle2D.Double(0.0, 0.0, (double) (Ni), (double) (Nj));
-     range = new double[4];
      range[0] = 0.0;
      range[1] = 0.0;
-     range[2] = (double)(Ni-1);
-     range[3] = (double)(Nj-1);
+     range[2] = (double) Ni;
+     range[3] = (double) Nj;
   }
 
   private void doPolarStereo( RealTupleType ref, int Nx, int Ny, 
@@ -310,11 +308,10 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     isPolarStereo = true;
     spacing = DxDy * 1000.0;
     aspectRatio = 1.0;
-    range = new double[4];
     range[0] = 0.0;
     range[1] = 0.0;
-    range[2] = (double)(Nx-1);
-    range[3] = (double)(Ny-1);
+    range[2] = (double) Nx;
+    range[3] = (double) Ny;
 
     c = PolarStereographic.makePolarStereographic( ref,
          La1*Data.DEGREES_TO_RADIANS, Lo1*Data.DEGREES_TO_RADIANS,
@@ -329,11 +326,10 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     spacing = DxDy*1000.0;
     double earth = 6371230.0;
     aspectRatio = 1.0;
-    range = new double[4];
     range[0] = 0.0;
     range[1] = 0.0;
-    range[2] = (double)(Nx-1);
-    range[3] = (double)(Ny-1);
+    range[2] = (double) Nx;
+    range[3] = (double) Ny;
 
     c = new LambertConformalConic(ref,
       earth, earth,
