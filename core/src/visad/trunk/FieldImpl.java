@@ -2764,6 +2764,40 @@ public class FieldImpl extends FunctionImpl implements Field {
     return s.toString();
   }
 
+  public boolean equals(Object obj) {
+    if (obj == null || !(obj instanceof FieldImpl)) {
+      return false;
+    }
+
+    if (super.equals(obj)) return true;
+
+    FieldImpl fi = (FieldImpl )obj;
+
+    if (!getType().equals(fi.getType())) {
+      return false;
+    }
+
+    if (Length != fi.Length) {
+      return false;
+    }
+
+    if (MissingFlag != fi.MissingFlag) {
+      return false;
+    }
+
+    if (DomainSet == null || fi.DomainSet == null) {
+      if (DomainSet != null || fi.DomainSet != null) {
+        return false;
+      }
+    } else {
+      if (!DomainSet.equals(fi.DomainSet)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
 
 
 /**
