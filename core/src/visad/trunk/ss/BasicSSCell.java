@@ -688,7 +688,7 @@ public class BasicSSCell extends JPanel
       if (mid == ADD_DATA) {
         // add data from remote URL_SOURCE or DIRECT_SOURCE
         synchronized (CellData) {
-          SSCellData cellData = addReferenceImpl(0, null, m,
+          SSCellData cellData = addReferenceImpl(0, null, null, m,
             m.equals("") ? DIRECT_SOURCE : URL_SOURCE, false, false);
           cellData.setData(data, false);
         }
@@ -790,7 +790,7 @@ public class BasicSSCell extends JPanel
                     ref.setData(d);
                     Text source = (Text) makeLocal(t.getComponent(2));
                     Real type = (Real) makeLocal(t.getComponent(3));
-                    addReferenceImpl((int) rid.getValue(), ref,
+                    addReferenceImpl((int) rid.getValue(), ref, null,
                       source.getValue(), (int) type.getValue(), false, false);
                   }
                 }
@@ -935,7 +935,19 @@ public class BasicSSCell extends JPanel
    * @return Variable name of the newly added data.
    */
   public String addData(Data data) throws VisADException, RemoteException {
-    return addData(0, data, "", DIRECT_SOURCE, true);
+    return addData(0, data, null, "", DIRECT_SOURCE, true);
+  }
+
+  /**
+   * Adds a Data object to this cell, creating an associated
+   * DataReference with the specified ConstantMaps for it.
+   *
+   * @return Variable name of the newly added data.
+   */
+  public String addData(Data data, ConstantMap[] cmaps)
+    throws VisADException, RemoteException
+  {
+    return addData(0, data, cmaps, "", DIRECT_SOURCE, true);
   }
 
   /**
@@ -944,15 +956,16 @@ public class BasicSSCell extends JPanel
    *
    * @return Variable name of the newly added data.
    */
-  protected String addData(int id, Data data, String source, int type,
-    boolean notify) throws VisADException, RemoteException
+  protected String addData(int id, Data data, ConstantMap[] cmaps,
+    String source, int type, boolean notify)
+    throws VisADException, RemoteException
   {
     // add Data object to cell
     DataReferenceImpl ref = new DataReferenceImpl(Name);
     ref.setData(data);
     SSCellData cellData;
     synchronized (CellData) {
-      cellData = addReferenceImpl(id, ref, source, type, notify, true);
+      cellData = addReferenceImpl(id, ref, cmaps, source, type, notify, true);
     }
     return cellData.getVariableName();
   }
@@ -967,7 +980,22 @@ public class BasicSSCell extends JPanel
   {
     SSCellData cellData;
     synchronized (CellData) {
-      cellData = addReferenceImpl(0, ref, "", DIRECT_SOURCE, true, true);
+      cellData = addReferenceImpl(0, ref, null, "", DIRECT_SOURCE, true, true);
+    }
+    return cellData.getVariableName();
+  }
+
+  /**
+   * Adds the given DataReference to this cell with the specified ConstantMaps.
+   *
+   * @return Variable name of the newly added reference.
+   */
+  public String addReference(DataReferenceImpl ref, ConstantMap[] cmaps)
+    throws VisADException, RemoteException
+  {
+    SSCellData cellData;
+    synchronized (CellData) {
+      cellData = addReferenceImpl(0, ref, cmaps, "", DIRECT_SOURCE, true, true);
     }
     return cellData.getVariableName();
   }
@@ -1071,13 +1099,13 @@ public class BasicSSCell extends JPanel
       if (data == null) {
         throw new VisADException("Could not load data from source " + source);
       }
-      varName = addData(id, data, source, URL_SOURCE, notify);
+      varName = addData(id, data, null, source, URL_SOURCE, notify);
     }
 
     else if (type == FORMULA_SOURCE) {
       synchronized (CellData) {
-        SSCellData cellData = addReferenceImpl(id, null, source,
-          FORMULA_SOURCE, false, false);
+        SSCellData cellData = addReferenceImpl(id, null, null,
+          source, FORMULA_SOURCE, false, false);
         varName = cellData.getVariableName();
         if (!IsRemote) {
           // SERVER: link data to formula computation
@@ -1102,7 +1130,7 @@ public class BasicSSCell extends JPanel
       SSCellData cellData;
       synchronized (CellData) {
         cellData =
-          addReferenceImpl(id, lref, source, RMI_SOURCE, false, false);
+          addReferenceImpl(id, lref, null, source, RMI_SOURCE, false, false);
         varName = cellData.getVariableName();
       }
 
@@ -1195,8 +1223,8 @@ public class BasicSSCell extends JPanel
    * @return The newly created SSCellData object.
    */
   protected SSCellData addReferenceImpl(int id, DataReferenceImpl ref,
-    String source, int type, boolean notify, boolean checkErrors)
-    throws VisADException, RemoteException
+    ConstantMap[] cmaps, String source, int type, boolean notify,
+    boolean checkErrors) throws VisADException, RemoteException
   {
     // ensure that id is valid
     if (id == 0) id = getFirstFreeId();
@@ -1214,7 +1242,7 @@ public class BasicSSCell extends JPanel
 
     if (!IsRemote) {
       // SERVER: add data reference to display
-      if (HasMappings) VDisplay.addReference(ref);
+      if (HasMappings) VDisplay.addReference(ref, cmaps);
 
       // add remote data reference to servers
       synchronized (Servers) {
