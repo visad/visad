@@ -165,6 +165,13 @@ public abstract class RendererJ2D extends DataRenderer {
 
   }
 
+  public void clearBranch() {
+    if (swParent.numChildren() > 0) {
+      swParent.removeChild(0);
+      ((DisplayImplJ2D) getDisplay()).setScratch();
+    }
+  }
+
   public void clearScene() {
     swParent.detach();
     ((DisplayRendererJ2D) getDisplayRenderer()).clearScene(this);

@@ -179,7 +179,11 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         any_changed = true;
         // create ShadowType for data, classify data for display
         feasible[i] = Links[i].prepareData();
-        if (!feasible[i]) all_feasible = false;
+        if (!feasible[i]) {
+          all_feasible = false;
+          // WLH 31 March 99
+          clearBranch();
+        }
         if (initialize && feasible[i]) {
           // compute ranges of RealTypes and Animation sampling
           ShadowType type = Links[i].getShadow().getAdaptedShadowType();
@@ -207,6 +211,9 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
 
     return shadow;
   }
+
+  /** clear scene graph component */
+  public abstract void clearBranch();
 
   /** re-transform if needed;
       return false if not done */
