@@ -161,7 +161,7 @@ public abstract class RendererJ2D extends DataRenderer {
     return all_feasible;
 */
     /* WLH 28 Oct 98 */
-    return all_feasible && (any_changed || any_transform_control);
+    return (all_feasible && (any_changed || any_transform_control));
 
   }
 

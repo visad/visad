@@ -243,7 +243,7 @@ System.out.println("doAction2: branches[" + nextIndex + "].addChild( )");
     return all_feasible;
 */
     /* WLH 28 Oct 98 */
-    return all_feasible && (any_changed || any_transform_control);
+    return (all_feasible && (any_changed || any_transform_control));
 
   }
 

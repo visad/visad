@@ -30,8 +30,8 @@ import java.awt.*;
 import java.awt.event.*;
 
 /* JFC packages */
-import com.sun.java.swing.*;
-import com.sun.java.swing.event.*;
+import javax.swing.*;
+import javax.swing.event.*;
 
 /* RMI classes */
 import java.rmi.RemoteException;
