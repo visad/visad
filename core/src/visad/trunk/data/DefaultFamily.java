@@ -24,6 +24,8 @@ import visad.data.netcdf.Plain;
 
 import visad.data.vis5d.Vis5DForm;
 
+import visad.data.visad.VisADForm;
+
 /**
   * A container for all the officially supported VisAD datatypes.
   */
@@ -329,6 +331,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new Vis5DForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new VisADForm();
       i++;
     } catch (Throwable t) {
     }

@@ -44,8 +44,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
-   Vis5DForm is the VisAD interface for AnimationControl
-   and ValueControl.<P>
+   Vis5DForm is the VisAD data format adapter for Vis5D files.<P>
 */
 public class Vis5DForm extends Form {
  
