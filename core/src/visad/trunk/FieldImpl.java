@@ -2342,8 +2342,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                       DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals);
-    boolean coord_transform = (vals == oldvals);
-    oldvals = null; // enable oldvals to be garbage collected
+    boolean coord_transform = !(vals == oldvals);
 
     // check whether we need to do sampling error calculations
     boolean sampling_errors = (error_mode != NO_ERRORS);
@@ -2518,16 +2517,18 @@ public class FieldImpl extends FunctionImpl implements Field {
       MathType RangeType = ((FunctionType) Type).getRange();
       if (RangeType instanceof RealVectorType) {
         int n = vals.length;
-        float[][] loc = new float[n][1];
+        float[][] inloc = new float[n][1];
+        float[][] outloc = new float[n][1];
         for (int i=0; i<length; i++) {
-          for (int k=0; k<n; k++) loc[k][0] = vals[k][i];
+          for (int k=0; k<n; k++) inloc[k][0] = oldvals[k][i];
+          for (int k=0; k<n; k++) outloc[k][0] = vals[k][i];
           range[i] = ((RealVectorType) RangeType).transformVectors(
                       ((FunctionType) Type).getDomain(),
                       DomainCoordinateSystem, DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units,
                       ((RealTuple) range[i]).getCoordinateSystem(),
-                      loc, (RealTuple) range[i]);
+                      inloc, outloc, (RealTuple) range[i]);
         }
       }
       else if (RangeType instanceof TupleType &&
@@ -2541,10 +2542,12 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         if (any_vector) {
           int n = vals.length;
-          float[][] loc = new float[n][1];
+          float[][] inloc = new float[n][1];
+          float[][] outloc = new float[n][1];
           Data[] datums = new Data[m];
           for (int i=0; i<length; i++) {
-            for (int k=0; k<n; k++) loc[k][0] = vals[k][i];
+            for (int k=0; k<n; k++) inloc[k][0] = oldvals[k][i];
+            for (int k=0; k<n; k++) outloc[k][0] = vals[k][i];
             for (int j=0; j<m; j++) {
               MathType comp_type = ((TupleType) RangeType).getComponent(j);
               if (comp_type instanceof RealVectorType) {
@@ -2554,7 +2557,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                             DomainCoordinateSystem, DomainUnits, errors_out,
                             ((SetType) set.getType()).getDomain(),
                             coord_sys, units, component.getCoordinateSystem(),
-                            loc, component);
+                            inloc, outloc, component);
               }
               else {
                 datums[j] = ((Tuple) range[i]).getComponent(j);
@@ -2565,7 +2568,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           }
         }
       }
-    }
+    } // end if (coord_transform)
     field.setSamples(range, false);
     return field;
   }

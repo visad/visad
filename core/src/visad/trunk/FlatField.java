@@ -2966,8 +2966,7 @@ public class FlatField extends FieldImpl {
                       DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals);
-    boolean coord_transform = (vals == oldvals);
-    oldvals = null; // enable oldvals to be garbage collected
+    boolean coord_transform = !(vals == oldvals);
 
     // check whether we need to do sampling error calculations
     boolean sampling_errors = (error_mode != NO_ERRORS);
@@ -3126,7 +3125,8 @@ for (i=0; i<length; i++) {
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units, RangeCoordinateSystem,
                       range_errors_in, range_errors_out,
-                      Set.floatToDouble(vals), new_values);
+                      Set.floatToDouble(oldvals), Set.floatToDouble(vals),
+                      new_values);
       }
       else if (Range instanceof TupleType && !(Range instanceof RealTupleType)) {
         int offset = 0;
@@ -3150,7 +3150,8 @@ for (i=0; i<length; i++) {
                         ((SetType) set.getType()).getDomain(), coord_sys, units,
                         RangeCoordinateSystems[j],
                         comp_errors_in, comp_errors_out,
-                        Set.floatToDouble(vals), comp_vals);
+                        Set.floatToDouble(oldvals), Set.floatToDouble(vals),
+                        comp_vals);
             for (int jj=0; jj<mm; jj++) {
               new_values[offset + jj] = comp_vals[jj];
             }
@@ -3166,7 +3167,7 @@ for (i=0; i<length; i++) {
           }
         }
       }
-    }
+    } // end if (coord_transform)
     new_field.packValues(new_values, false);
     // new_field.DoubleRange = new_values; 
     new_field.setRangeErrors(range_errors_out);

@@ -52,8 +52,8 @@ public abstract class RealVectorType extends RealTupleType {
       out, coord_out, units_out, in, coord_in, units_in are the
       arguments to the corresponding call to transformCoordinates;
       loc_errors_out are the ErrorEstimates for loc from that call;
-      loc contains the output values from the corresponding call to
-      transformCoordinates;
+      inloc and outloc contain the input and output values from the
+      corresponding call to transformCoordinates;
       coord_vector and errors_in are the CoordinateSystem and ErrorEstimates
       associated with values;
       value are the vector values (already resampled at loc);
@@ -66,7 +66,8 @@ public abstract class RealVectorType extends RealTupleType {
                         Unit[] units_in, CoordinateSystem coord_vector,
                         ErrorEstimate[] errors_in,
                         ErrorEstimate[] errors_out,
-                        double[][] loc, double[][] value)
+                        double[][] inloc, double[][] outloc,
+                        double[][] value)
          throws VisADException, RemoteException;
 
   public float[][] transformVectors(
@@ -76,13 +77,16 @@ public abstract class RealVectorType extends RealTupleType {
                         Unit[] units_in, CoordinateSystem coord_vector,
                         ErrorEstimate[] errors_in,
                         ErrorEstimate[] errors_out,
-                        float[][] loc, float[][] value)
+                        float[][] inloc, float[][] outloc,
+                        float[][] value)
          throws VisADException, RemoteException {
-    double[][] dloc = Set.floatToDouble(loc);
+    double[][] dinloc = Set.floatToDouble(inloc);
+    double[][] doutloc = Set.floatToDouble(outloc);
     double[][] dvalue = Set.floatToDouble(value);
     dvalue = transformVectors(out, coord_out, units_out, loc_errors_out,
                               in, coord_in, units_in, coord_vector,
-                              errors_in, errors_out, dloc, dvalue);
+                              errors_in, errors_out, dinloc, doutloc,
+                              dvalue);
     return Set.doubleToFloat(dvalue);
   }
 
@@ -94,7 +98,8 @@ public abstract class RealVectorType extends RealTupleType {
                         Unit[] units_out, ErrorEstimate[] loc_errors_out,
                         RealTupleType in, CoordinateSystem coord_in,
                         Unit[] units_in, CoordinateSystem coord_vector,
-                        double[][] loc, RealTuple tuple)
+                        double[][] inloc, double[][] outloc,
+                        RealTuple tuple)
          throws VisADException, RemoteException {
     if (!tuple.getType().equals(this)) {
       throw new TypeException("RealVectorType.transformVectors");
@@ -109,7 +114,7 @@ public abstract class RealVectorType extends RealTupleType {
     ErrorEstimate[] errors_out = new ErrorEstimate[n];
     value = transformVectors(out, coord_out, units_out, loc_errors_out,
                              in, coord_in, units_in, coord_vector,
-                             errors_in, errors_out, loc, value);
+                             errors_in, errors_out, inloc, outloc, value);
     double[] vals = new double[n];
     Real[] reals = new Real[n];
     for (int j=0; j<n; j++) {
@@ -128,12 +133,13 @@ public abstract class RealVectorType extends RealTupleType {
                         Unit[] units_out, ErrorEstimate[] loc_errors_out,
                         RealTupleType in, CoordinateSystem coord_in,
                         Unit[] units_in, CoordinateSystem coord_vector,
-                        float[][] loc, RealTuple tuple)
+                        float[][] inloc, float[][] outloc, RealTuple tuple)
          throws VisADException, RemoteException {
-    double[][] dloc = Set.floatToDouble(loc);
+    double[][] dinloc = Set.floatToDouble(inloc);
+    double[][] doutloc = Set.floatToDouble(outloc);
     return transformVectors(out, coord_out, units_out, loc_errors_out,
                             in, coord_in, units_in, coord_vector,
-                            dloc, tuple);
+                            dinloc, doutloc, tuple);
   }
 
 }
