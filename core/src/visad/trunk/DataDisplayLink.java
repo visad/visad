@@ -188,15 +188,16 @@ public class DataDisplayLink extends ReferenceActionLink {
  
     try {
       renderer.clearExceptions();
+
+      DisplayImpl local_dpy = (DisplayImpl )local_action;
+
       shadow = type.buildShadowType(this, null);
       ShadowType adaptedShadow = shadow.getAdaptedShadowType();
-      indices = ShadowType.zeroIndices(
-                  ((DisplayImpl) local_action).getScalarCount());
+      indices = ShadowType.zeroIndices(local_dpy.getScalarCount());
       display_indices = ShadowType.zeroIndices(
-                  ((DisplayImpl) local_action).getDisplayScalarCount());
-      value_indices = ShadowType.zeroIndices(
-                  ((DisplayImpl) local_action).getValueArrayLength());
-      Vector controls = ((DisplayImpl) local_action).getControlVector();
+                  local_dpy.getDisplayScalarCount());
+      value_indices = ShadowType.zeroIndices(local_dpy.getValueArrayLength());
+      Vector controls = local_dpy.getControlVector();
       isTransform = new boolean[controls.size()];
       for (int i=0; i<controls.size(); i++) isTransform[i] = false;
       levelOfDifficulty =
