@@ -90,7 +90,7 @@ public class Aeri
     advect_type = new FunctionType(spatial_domain, advect_range);
     advect_field_type = new FunctionType(time, advect_type);
     
-    FieldImpl stations_field = 
+    stations_field = 
         new FieldImpl(new FunctionType( stn_idx, advect_field_type),
                                         new Integer1DSet( stn_idx, n_stations, 
                                                           null, null, null));
