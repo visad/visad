@@ -933,7 +933,7 @@ public class FlatField extends FieldImpl {
 
   /** unpack an array of doubles from field sample values according to the
       RangeSet-s; returns a copy */
-  private double[][] unpackValues() throws VisADException {
+  public double[][] unpackValues() throws VisADException {
     return unpackValues(true);
   }
 
