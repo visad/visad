@@ -264,7 +264,17 @@ public class AreaDirectory
                 dir[AreaFile.AD_STARTDATE],
                 dir[AreaFile.AD_STARTTIME]));
     
-    int numbands = dir[AreaFile.AD_NUMBANDS];
+
+    //TDR int numbands = dir[AreaFile.AD_NUMBANDS]; AVHRR band 3a/b time sharing issue
+    int n_set = 0;
+    int bit   = dir[AreaFile.AD_BANDMAP];
+    for (int kk = 0; kk < 31; kk++) {
+      if ((bit & 1) == 1) n_set++;
+      bit >>= 1;
+    }
+    int numbands = n_set;
+    //---------------------------------------------------------------
+
     bands = new int[numbands];
     int j = 0;
     for (int i = 0; i < 32; i++)
