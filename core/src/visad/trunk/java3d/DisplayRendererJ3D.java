@@ -250,6 +250,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     background.setApplicationBounds(bound2);
     root.addChild(background);
 
+/* WLH 13 April 99 - does nothing
+    BoundingBox boundingbox =
+      new BoundingBox(new Point3d(-1.0, -1.0, -1.0),
+                      new Point3d(1.0, 1.0, 1.0));
+    trans.addChild(new BoundingLeaf(boundingbox));
+*/
+
     // create the BranchGroup that is the parent of direct
     // manipulation Data object BranchGroup objects
     direct = new BranchGroup();

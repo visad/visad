@@ -62,6 +62,9 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
   /** VisADGroup between root and all direct manipulation
       Data depictions */
   private VisADGroup direct = null;
+  /** VisADGroup between root and all non-direct-manipulation
+      Data depictions */
+  private VisADGroup non_direct = null;
 
   /** AffineTransform between trans and cursor */
   private AffineTransform cursor_trans = null;
@@ -107,6 +110,10 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
   public VisADGroup getRoot() {
     return root;
+  }
+
+  public void setClip(float xlow, float xhi, float ylow, float yhi) {
+    canvas.setClip(xlow, xhi, ylow, yhi);
   }
 
   public void setBackgroundColor(float r, float g, float b) {
@@ -194,8 +201,12 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return direct;
   }
 
-  /** create scene graph root, if none exists, with Transform
-      and direct manipulation root;
+  public VisADGroup getNonDirect() {
+    return non_direct;
+  }
+
+  /** create scene graph root, if none exists, with Transform,
+      direct manipulation root, and non-direct-manipulation root;
       create special graphics (e.g., 3-D box, SkewT background),
       any lights, any user interface embedded in scene */
   public abstract VisADGroup createSceneGraph(VisADCanvasJ2D c)
@@ -237,6 +248,13 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     root.addChild(direct);
     directOn = false;
 
+    // create the VisADGroup that is the parent of non-direct-
+    // manipulation Data object VisADGroup objects
+    non_direct = new VisADGroup();
+    root.addChild(non_direct);
+
+    canvas.setDirect(direct, non_direct);
+
     cursor_trans = new AffineTransform();
     cursor_switch = new VisADSwitch();
     cursor_on = new VisADGroup();
@@ -269,7 +287,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
   public void addSceneGraphComponent(VisADGroup group)
          throws DisplayException {
-    root.addChild(group);
+    non_direct.addChild(group);
   }
 
   public void addDirectManipulationSceneGraphComponent(VisADGroup group,
@@ -383,7 +401,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       t.concatenate(cursor_trans);
       VisADAppearance appearance = (VisADAppearance) cursor_on.getChild(0);
       if (appearance != null) {
-        VisADCanvasJ2D.drawAppearance(graphics, appearance, t);
+        VisADCanvasJ2D.drawAppearance(graphics, appearance, t, null);
       }
       t = new AffineTransform(tgeometry);
     }
@@ -400,7 +418,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
         while (childs.hasMoreElements()) {
           VisADAppearance child =
             (VisADAppearance) childs.nextElement();
-          VisADCanvasJ2D.drawAppearance(graphics, child, t);
+          VisADCanvasJ2D.drawAppearance(graphics, child, t, null);
         }
       }
     }

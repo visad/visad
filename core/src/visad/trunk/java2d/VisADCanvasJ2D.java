@@ -52,6 +52,12 @@ public class VisADCanvasJ2D extends Canvas
   private Component component;
   Dimension prefSize = new Dimension(0, 0);
 
+  // parent nodes of all data depictions
+  private VisADGroup direct = null;
+  private VisADGroup non_direct = null;
+  // Shape to clip against, if any
+  private Rectangle2D.Float clip_rectangle = null;
+
   private transient Thread renderThread;
 
   private BufferedImage[] images; // animation sequence
@@ -120,6 +126,18 @@ public class VisADCanvasJ2D extends Canvas
 
   public void setBackgroundColor(float r, float g, float b) {
     setBackground(new Color(r, g, b));
+  }
+
+  void setDirect(VisADGroup d, VisADGroup nd) {
+    direct = d;
+    non_direct = nd;
+  }
+
+  void setClip(float xlow, float xhi, float ylow, float yhi) {
+    if (xhi > xlow && yhi > ylow) {
+      clip_rectangle =
+        new Rectangle2D.Float(xlow, ylow, xhi-xlow, yhi-ylow);
+    }
   }
 
   public void addMouseBehavior(MouseBehaviorJ2D mouse) {
@@ -302,8 +320,8 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
         }
         try {
           if (animate_control != null) animate_control.init();
-          render(g2, ggg, root, 0);
-          render(g2, ggg, root, 1);
+          render(g2, ggg, root, 0, null);
+          render(g2, ggg, root, 1, null);
           // draw Animation string in upper right corner of screen
           String[] animation_string = displayRenderer.getAnimationString();
           if (animation_string[0] != null) {
@@ -385,22 +403,28 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
   }
 
   private void render(Graphics2D g2, Graphics ggg,
-                      VisADSceneGraphObject scene, int pass)
+                      VisADSceneGraphObject scene, int pass,
+                      Rectangle2D.Float clip)
           throws VisADException {
     if (scene instanceof VisADSwitch) {
       VisADSceneGraphObject child =
         ((VisADSwitch) scene).getSelectedChild();
-      if (child != null) render(g2, ggg, child, pass);
+      if (child != null) render(g2, ggg, child, pass, clip);
     }
     else if (scene instanceof VisADGroup) {
+      if (clip_rectangle != null &&
+          (scene.equals(direct) || scene.equals(non_direct))) {
+        clip = clip_rectangle;
+      }
       Vector children = ((VisADGroup) scene).getChildren();
       for (int i=children.size()-1; i>=0; i--) {
         VisADSceneGraphObject child =
           (VisADSceneGraphObject) children.elementAt(i);
-        if (child != null) render(g2, ggg, child, pass);
+        if (child != null) render(g2, ggg, child, pass, clip);
       }
     }
     else { // scene instanceof VisADAppearance
+      g2.setClip(clip);
       VisADAppearance appearance = (VisADAppearance) scene;
       VisADGeometryArray array = appearance.array;
       if (array == null) return;
@@ -527,7 +551,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           if (array instanceof VisADPointArray) {
 /* WLH 19 March 99 */
             if (Math.abs(fsize - 1.0f) < 0.1f) {
-              drawAppearance(ggg, appearance, tg);
+              drawAppearance(ggg, appearance, tg, clip);
             }
             else {
               g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
@@ -570,7 +594,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           else if (array instanceof VisADLineArray) {
 /* WLH 19 March 99 */
             if (Math.abs(fsize - 1.0f) < 0.1f) {
-              drawAppearance(ggg, appearance, tg);
+              drawAppearance(ggg, appearance, tg, clip);
             }
             else {
               g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
@@ -994,7 +1018,7 @@ System.out.println(i + " " + oldx + " " + oldy + " " + lastx + " " + lasty +
 
   /** this assumes only VisADPointArray or VisADLineArray */
   public static void drawAppearance(Graphics graphics, VisADAppearance appearance,
-                                    AffineTransform t) {
+                                    AffineTransform t, Rectangle2D.Float clip) {
     VisADGeometryArray array = appearance.array;
     if (array == null) return;
     byte[] colors = array.colors;
@@ -1021,6 +1045,29 @@ System.out.println("drawAppearance: color = " + appearance.red + " " +
     }
     float[] newcoords = new float[2 * count];
     t.transform(oldcoords, 0, newcoords, 0, count);
+
+    if (clip == null) {
+      graphics.setClip(null);
+    }
+    else {
+      // transform clip
+      float x = (float) clip.getX();
+      float y = (float) clip.getY();
+      float width = (float) clip.getWidth();
+      float height = (float) clip.getHeight();
+      float[] oldclip =
+        {x, y, x, y+height, x+width, y+height, x+width, y};
+      float[] newclip = new float[2 * 4];
+      t.transform(oldclip, 0, newclip, 0, 4);
+      GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
+      path.moveTo(newclip[0], newclip[1]);
+      path.lineTo(newclip[2], newclip[3]);
+      path.lineTo(newclip[4], newclip[5]);
+      path.lineTo(newclip[6], newclip[7]);
+      path.closePath();
+      graphics.setClip(path);
+    }
+
     if (array instanceof VisADPointArray) {
 /*
 System.out.println("drawAppearance: VisADPointArray, count = " + count);

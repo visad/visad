@@ -3,6 +3,7 @@ import java.rmi.RemoteException;
 import visad.*;
 
 import visad.java2d.DisplayImplJ2D;
+import visad.java2d.DisplayRendererJ2D;
 import visad.java2d.DirectManipulationRendererJ2D;
 
 public class Test34
@@ -41,6 +42,9 @@ public class Test34
     mode.setPointSize(5.0f);
     mode.setPointMode(false);
 
+    DisplayRendererJ2D dr = (DisplayRendererJ2D) display1.getDisplayRenderer();
+    dr.setClip(-1.0f, 1.0f, -1.0f, 1.0f);
+
     DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
     ref_direct.setData(direct);
     DataReference[] refs1 = new DataReferenceImpl[] {ref_direct};
@@ -78,9 +82,9 @@ public class Test34
     return dpys;
   }
 
-  String getFrameTitle() { return "Java2D direct manipulation"; }
+  String getFrameTitle() { return "Java2D direct manipulation and clipping"; }
 
-  public String toString() { return ": direct manipulation in Java2D"; }
+  public String toString() { return ": direct manipulation and clipping in Java2D"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException
