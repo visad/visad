@@ -85,8 +85,11 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
    * <CODE>BadMappingExceptions</CODE> and
    * <CODE>UnimplementedExceptions</CODE> are displayed<P>
    */
-  public ImmersaDeskDisplayRendererJ3D () {
+  public ImmersaDeskDisplayRendererJ3D (int tracker_shmkey, int controller_shmkey)
+         throws VisADException {
     super();
+    // create WandBehaviorJ3D for wand interactions
+    wand = new WandBehaviorJ3D(this, tracker_shmkey, controller_shmkey);
   }
 
   /**
@@ -104,13 +107,12 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     BranchGroup root = getRoot();
     if (root != null) return root;
 
-    // create WandBehaviorJ3D for wand interactions
-    wand = new WandBehaviorJ3D(this);
     getDisplay().setMouseBehavior(wand); // OK - just for transforms
     box_color = new ColoringAttributes();
     cursor_color = new ColoringAttributes();
     root = createBasicSceneGraph(v, vpt, c, wand, box_color, cursor_color); // OK
     TransformGroup trans = getTrans();
+    wand.initialize();
 
     // create the box containing data depictions
     LineArray box_geometry = new LineArray(24, LineArray.COORDINATES);

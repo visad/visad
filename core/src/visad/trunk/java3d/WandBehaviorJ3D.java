@@ -46,29 +46,36 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
        implements Runnable, MouseBehavior {
 
   /** DisplayRenderer for Display */
-  DisplayRendererJ3D display_renderer;
+  ImmersaDeskDisplayRendererJ3D display_renderer;
   DisplayImpl display;
 
   MouseHelper helper = null;
 
   private Thread wandThread;
+  private TransformGroup vpTrans;
 
-  public WandBehaviorJ3D(DisplayRendererJ3D r) {
+  private TrackdJNI hack;
+
+  public WandBehaviorJ3D(ImmersaDeskDisplayRendererJ3D r,
+                         int tracker_shmkey, int controller_shmkey)
+         throws VisADException {
     super();
     helper = new MouseHelper(r, this);
     display_renderer = r;
     display = display_renderer.getDisplay();
 
-    wandThread = new Thread(this);
-    wandThread.start();
+    hack = new TrackdJNI(tracker_shmkey, controller_shmkey);
   }
 
   public MouseHelper getMouseHelper() {
     return helper;
   }
 
-  /* override MouseBehaviorJ3D.initialize() to do nothing */
+  /* override MouseBehaviorJ3D.initialize() to do start Thread */
   public void initialize() {
+    wandThread = new Thread(this);
+    wandThread.start();
+    vpTrans = display_renderer.getViewTrans();
   }
 
   /* override MouseBehaviorJ3D.processStimulus() to do nothing */
@@ -79,9 +86,22 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     wandThread = null;
   }
 
+  private static int NSENSORS = 4;
+  private static int NBUTTONS = 4;
+
   public void run() {
     Thread me = Thread.currentThread();
+    int[] number_of_sensors = new int[1];
+    float[] sensor_positions = new float[NSENSORS * 3];
+    float[] sensor_angles = new float[NSENSORS * 3];
+    float[] sensor_matrices = new float[NSENSORS * 4 * 4];
+    int[] number_of_buttons = new int[1];
+    int[] button_states = new int[NBUTTONS];
     while (wandThread == me) {
+      number_of_sensors[0] = NSENSORS;
+      number_of_buttons[0] = NBUTTONS;
+      hack.getTrackd(number_of_sensors, sensor_positions, sensor_angles,
+                     sensor_matrices, number_of_buttons, button_states);
 
 
     }

@@ -147,6 +147,10 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return view;
   }
 
+  public TransformGroup getViewTrans() {
+    return vpTrans;
+  }
+
   public VisADCanvasJ3D getCanvas() {
     return canvas;
   }
