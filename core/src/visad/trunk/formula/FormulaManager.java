@@ -28,27 +28,26 @@ package visad.formula;
 import java.lang.reflect.*;
 import java.util.*;
 
-/* CTR: DO THIS: Things to think about:
-1) About the only thing not supported by this FormulaManager class is strange
-   and unique syntaxes, and those turn out to be easy: just have the hosting
-   application implement a formula "pre-processor" that converts the "strange"
-   syntaxes to "standard" syntax, and then FormulaManager can handle them.
-   It would work in much the same way as the Unix GNU C pre-processor.  Thus,
-   the Spread Sheet can support derivatives in the form d(x)/d(y) by converting
-   it to the form derive(x, y) before passing the formula to the manager.
-2) Build support for the "link" operator into the parser
-3) Ask Bill if "visad.formula" is the right package for this stuff.
+/*
+   Note: The FormulaManager class does not support strange and unique syntaxes,
+   such as a derivative notation like: d(x)/d(y).  If you wish your application
+   to support unique syntaxes, simply have the application implement a formula
+   "pre-processor" that converts the "strange" syntaxes to "standard" syntax.
+   For example, the VisAD Spread Sheet supports derivative notation of the form
+   d(x)/d(y) by converting it to the form derive(x, y) before passing the
+   formula to the manager.
 */
 
 /** The FormulaManager class is the gateway into the visad.formula package,
     a general-purpose formula parser and evaluator.  After creating a
     FormulaManager object, programs can call the assignFormula, setValue,
-    getValue, and remove methods to create, modify, and delete variables.
-    Variables update automatically when the variables upon which they depend
-    change.  See the FormulaTest class for an example of usage.  Note that
-    the visad.formula package is not dependent on other VisAD-related classes
-    in any way, so that the package can be used in any Java-based program,
-    not just those that utilize VisAD.<P> */
+    getValue, and remove methods to create, modify, and delete variables,
+    respectively.  Variables update automatically when the variables upon which
+    they depend change.  For examples of usage, see the FormulaTest class and
+    the visad.ss.FormulaCell class.  Note that the visad.formula package is not
+    dependent on other VisAD-related classes in any way, so that the package
+    can be used in any Java-based program, not just those that utilize
+    VisAD.<P> */
 public class FormulaManager {
 
   /** binary operators */
@@ -311,15 +310,15 @@ public class FormulaManager {
   /** assign a formula to a variable */
   public void assignFormula(String name, String formula)
                                          throws FormulaException {
-    FormulaVar v = getVarByNameOrCreate(name.toLowerCase());
-    v.setFormula(formula.toLowerCase());
+    FormulaVar v = getVarByNameOrCreate(name);
+    v.setFormula(formula);
   }
 
   /** gets the current list of errors that occurred when evaluating
       &quot;name&quot; and clears the list */
   public String[] getErrors(String name) {
     try {
-      FormulaVar v = getVarByNameOrCreate(name.toLowerCase());
+      FormulaVar v = getVarByNameOrCreate(name);
       String[] s = v.getErrors();
       v.clearErrors();
       return s;
@@ -333,7 +332,7 @@ public class FormulaManager {
   public boolean canBeRemoved(String name) {
     FormulaVar v = null;
     try {
-      getVarByName(name.toLowerCase());
+      getVarByName(name);
     }
     catch (FormulaException exc) { }
     if (v == null) return false;
@@ -342,7 +341,7 @@ public class FormulaManager {
 
   /** remove a variable from the database */
   public void remove(String name) throws FormulaException {
-    FormulaVar v = getVarByName(name.toLowerCase());
+    FormulaVar v = getVarByName(name);
     if (v.isSafeToDelete()) {
       v.setValue(null);
       Vars.remove(v);
@@ -355,32 +354,32 @@ public class FormulaManager {
 
   /** set a variable's value directly */
   public void setValue(String name, Object value) throws FormulaException {
-    FormulaVar v = getVarByNameOrCreate(name.toLowerCase());
+    FormulaVar v = getVarByNameOrCreate(name);
     v.setValue(value);
   }
 
   /** get a variable's current value */
   public Object getValue(String name) throws FormulaException {
-    FormulaVar v = getVarByName(name.toLowerCase());
+    FormulaVar v = getVarByName(name);
     return v.getValue();
   }
 
   /** get a variable's current formula */
   public String getFormula(String name) throws FormulaException {
-    FormulaVar v = getVarByName(name.toLowerCase());
+    FormulaVar v = getVarByName(name);
     return v.getFormula();
   }
 
   /** add a listener for when a variable changes */
   public void addVarChangeListener(String name, FormulaListener f)
                                    throws FormulaException {
-    FormulaVar v = getVarByName(name.toLowerCase());
+    FormulaVar v = getVarByName(name);
     v.addListener(f);
   }
 
   public void removeVarChangeListener(String name, FormulaListener f)
                                       throws FormulaException {
-    FormulaVar v = getVarByName(name.toLowerCase());
+    FormulaVar v = getVarByName(name);
     v.removeListener(f);
   }
 

@@ -121,32 +121,6 @@ class Postfix {
     while (token != null) {
       ntoken = tokenizer.hasMoreTokens() ? tokenizer.nextToken() : null;
 
-      if (token.equalsIgnoreCase("link")) {
-        // special case - built-in link function
-        token = ntoken;
-        ntoken = tokenizer.hasMoreTokens() ? tokenizer.nextToken() : null;
-        if (token == null || !token.equals("(")) {
-          throw new FormulaException("Incorrect link keyword syntax");
-        }
-        int p = 0;
-        String s = "";
-        do {
-          if (token == null) {
-            throw new FormulaException("Incorrect link keyword syntax");
-          }
-          s = s + token;
-          if (token.equals("(")) p++;
-          else if (token.equals(")")) p--;
-          token = ntoken;
-          ntoken = tokenizer.hasMoreTokens() ? tokenizer.nextToken() : null;
-        } while (p > 0);
-        pcode[pfixlen] = OTHER;
-        pfix[pfixlen++] = "link";
-        pcode[pfixlen] = OTHER;
-        pfix[pfixlen++] = s.substring(1, s.length()-1);
-        token = ntoken;
-        continue;
-      }
       if (token.equals(")")) {
         // right paren - pop ops until left paren reached (inclusive)
         if (opPt < 1) {

@@ -30,6 +30,10 @@ import java.util.*;
 
 /** represents a variable */
 class FormulaVar {
+
+  /** for testing purposes */
+  private static boolean DEBUG = false;
+
   /** associated FormulaManager object */
   private FormulaManager fm;
 
@@ -58,9 +62,6 @@ class FormulaVar {
   FormulaVar(String n, FormulaManager f) throws FormulaException {
     fm = f;
     name = n;
-    if (name.equalsIgnoreCase("link")) {
-      throw new FormulaException("\"link\" keyword is reserved");
-    }
     for (int i=0; i<fm.bOps.length; i++) {
       if (name.indexOf(fm.bOps[i]) >= 0) {
         throw new FormulaException("variable names cannot contain operators");
@@ -288,32 +289,26 @@ class FormulaVar {
     for (int i=0; i<len; i++) {
       String token = formula.tokens[i];
       int code = formula.codes[i];
-      if (token.equals("link")) {
-        // special case - built-in link function
-        token = formula.tokens[++i];
-        // CTR: DO THIS: link function
-        /* CTR: TEMP */ return null;
-      }
-      else if (code == Postfix.BINARY) {
-        // CTR: DO THIS: overloaded operator support is VERY flaky, check it
+      if (code == Postfix.BINARY) {
         Object[] o = new Object[2];
         o[1] = popStack(stack);
         o[0] = popStack(stack);
         Object ans = null;
         if (!(o[0] instanceof NullObject || o[1] instanceof NullObject)) {
           for (int j=0; j<fm.bMethods.length; j++) {
+            // support for overloaded operators
             if (ans == null && fm.bOps[j].equals(token)) {
               try {
                 ans = invokeMethod(fm.bMethods[j], o);
               }
               catch (IllegalAccessException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
+                if (DEBUG) System.out.println(exc);
               } // no access
               catch (IllegalArgumentException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
+                if (DEBUG) System.out.println(exc);
               } // wrong type of method
               catch (InvocationTargetException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
+                if (DEBUG) System.out.println(exc);
               } // method threw exception
             }
           }
@@ -325,24 +320,24 @@ class FormulaVar {
         else stack.push(ans);
       }
       else if (code == Postfix.UNARY) {
-        // CTR: DO THIS: overloaded operator support is VERY flaky, check it
         Object[] o = new Object[1];
         o[0] = popStack(stack);
         Object ans = null;
         if (!(o[0] instanceof NullObject)) {
           for (int j=0; j<fm.uMethods.length; j++) {
+            // support for overloaded operators
             if (ans == null && fm.uOps[j].equals(token)) {
               try {
                 ans = invokeMethod(fm.uMethods[j], o);
               }
               catch (IllegalAccessException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
+                if (DEBUG) System.out.println(exc);
               } // no access
               catch (IllegalArgumentException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
+                if (DEBUG) System.out.println(exc);
               } // wrong type of method
               catch (InvocationTargetException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
+                if (DEBUG) System.out.println(exc);
               } // method threw exception
             }
           }
@@ -354,7 +349,6 @@ class FormulaVar {
         else stack.push(ans);
       }
       else if (code == Postfix.FUNC) {
-        // CTR: DO THIS: overloaded function support is VERY flaky, check it
         Object ans = null;
         if (fm.isFunction(token)) {
           // defined function - token is the function name
@@ -378,18 +372,19 @@ class FormulaVar {
           }
           if (!eflag) {
             for (int j=0; j<fm.funcs.length; j++) {
+              // support for overloaded defined functions
               if (ans == null && fm.funcs[j].equals(token)) {
                 try {
                   ans = invokeMethod(fm.fMethods[j], o);
                 }
                 catch (IllegalAccessException exc) {
-                  /* CTR: TEMP */ System.out.println(exc);
+                  if (DEBUG) System.out.println(exc);
                 } // no access
                 catch (IllegalArgumentException exc) {
-                  /* CTR: TEMP */ System.out.println(exc);
+                  if (DEBUG) System.out.println(exc);
                 } // wrong type of method
                 catch (InvocationTargetException exc) {
-                  /* CTR: TEMP */ System.out.println(exc);
+                  if (DEBUG) System.out.println(exc);
                 } // method threw exception
               }
             }
@@ -419,18 +414,19 @@ class FormulaVar {
           }
           if (!eflag) {
             for (int j=0; j<fm.iMethods.length; j++) {
+              // support for overloaded implicit functions
               if (ans == null) {
                 try {
                   ans = invokeMethod(fm.iMethods[j], o);
                 }
                 catch (IllegalAccessException exc) {
-                  /* CTR: TEMP */ System.out.println(exc);
+                  if (DEBUG) System.out.println(exc);
                 } // no access
                 catch (IllegalArgumentException exc) {
-                  /* CTR: TEMP */ System.out.println(exc);
+                  if (DEBUG) System.out.println(exc);
                 } // wrong type of method
                 catch (InvocationTargetException exc) {
-                  /* CTR: TEMP */ System.out.println(exc);
+                  if (DEBUG) System.out.println(exc);
                 } // method threw exception
               }
             }
@@ -449,6 +445,7 @@ class FormulaVar {
         }
         catch (NumberFormatException exc) { }
         if (d == null) {
+          // token is a variable name
           FormulaVar v = null;
           try {
             v = fm.getVarByNameOrCreate(token);
@@ -466,11 +463,15 @@ class FormulaVar {
             else stack.push(o);
             if (v.isDependentOn(this)) {
               evalError("This formula creates an infinite loop");
+              clearDependencies();
+              setValue(null);
+              return null;
             }
             setDependentOn(v);
           }
         }
         else {
+          // token is a constant
           Object ans = null;
           if (code == Postfix.OTHER) {
             // convert constant to appropriate data type
@@ -480,13 +481,13 @@ class FormulaVar {
               ans = invokeMethod(fm.cMethod, o);
             }
             catch (IllegalAccessException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
+              if (DEBUG) System.out.println(exc);
             } // no access
             catch (IllegalArgumentException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
+              if (DEBUG) System.out.println(exc);
             } // wrong type of method
             catch (InvocationTargetException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
+              if (DEBUG) System.out.println(exc);
             } // method threw exception
             if (ans == null) {
               evalError("The constant \"" + token + "\" could not be " +
