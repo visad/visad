@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.7 1999-12-01 17:35:10 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.8 2000-02-04 16:22:25 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.7 $, $Date: 1999-12-01 17:35:10 $
+ * @version $Revision: 1.8 $, $Date: 2000-02-04 16:22:25 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -43,6 +43,9 @@ public class BaseRGBMap
   extends ColorMap
   implements MouseListener, MouseMotionListener
 {
+  /** default resolution */
+  public static final int DEFAULT_RESOLUTION = 256;
+
   /** The array of color tuples */
   private float[][] val;
 
@@ -77,16 +80,19 @@ public class BaseRGBMap
   /** a slightly brighter blue */
   private static final Color bluish = new Color(80, 80, 255);
 
-  /** Construct a BaseRGBMap with the default resolution of 256
+  /**
+   * Construct a BaseRGBMap with the default resolution
+   *
    * @param hasAlpha set to <TT>true</TT> is this map has
    *                 an alpha component
    */
   public BaseRGBMap(boolean hasAlpha) {
-    this(256, hasAlpha);
+    this(DEFAULT_RESOLUTION, hasAlpha);
   }
 
-  /** The BaseRGBMap map is represented internally by an array of
-   * floats
+  /**
+   * Construct a colormap with the specified resolution
+   *
    * @param resolution the length of the array
    * @param hasAlpha set to <TT>true</TT> is this map has
    *                 an alpha component
@@ -104,6 +110,13 @@ public class BaseRGBMap
     addMouseMotionListener(this);
   }
 
+  /**
+   * Construct a colormap initialized with the supplied tuples
+   *
+   * @param vals the tuples used to initialize the colormap
+   * @param hasAlpha <TT>true</TT> if the colormap should
+   *                 have an ALPHA component.
+   */
   public BaseRGBMap(float[][] vals, boolean hasAlpha) {
     this.hasAlpha = hasAlpha;
 
@@ -115,6 +128,13 @@ public class BaseRGBMap
     addMouseMotionListener(this);
   }
 
+  /**
+   * Build one of the red, green, blue and alpha cursors
+   *
+   * @param rgba cursor to build (RED, GREEN, BLUE or ALPHA)
+   *
+   * @return the new <TT>Cursor</TT>
+   */
   static Cursor buildRGBACursor(int rgba)
   {
     if (rgba < 0 || rgba > 3) rgba = 0;
@@ -165,6 +185,9 @@ public class BaseRGBMap
     return Toolkit.getDefaultToolkit().createCustomCursor(img, pt, name);
   }
 
+  /**
+   * Used internally to initialize the red, green, blue and alpha cursors
+   */
   private void buildCursors()
   {
     if (cursor != null) return;
@@ -178,17 +201,30 @@ public class BaseRGBMap
     setCursor(cursor[state]);
   }
 
-  /** Sets the values of the internal array after the map
-      has been created. */
+  /**
+   * Sets the values of the internal array after the map
+   * has been created.
+   *
+   * @param newVal the color tuples used to initialize the map.
+   */
   public void setValues(float[][] newVal) {
     setValues(newVal, true);
   }
 
+  /**
+   * Sets the values of the internal array after the map
+   * has been created.
+   *
+   * @param newVal the color tuples used to initialize the map.
+   * @param notify <TT>true</TT> if listeners are notified of
+   *               the change.  This should only be <TT>false<TT>
+   *               when called from the constructor.
+   */
   private void setValues(float[][] newVal, boolean notify) {
     int newResolution;
     synchronized (mutex_val) {
       if (newVal == null) {
-        resolution = 256;
+        resolution = DEFAULT_RESOLUTION;
         val = new float[resolution][hasAlpha ? 4 : 3];
         initColormap();
         newResolution = 0;
@@ -225,17 +261,29 @@ public class BaseRGBMap
     if (notify) notifyListeners(0, newResolution);
   }
 
-  /** Returns the resolution of the map */
+  /**
+   * Get the resolution of the map
+   *
+   * @return the number of colors in the map.
+   */
   public int getMapResolution() {
     return resolution;
   }
 
-  /** Returns the dimension of the map */
+  /**
+   * Get the dimension of the map
+   *
+   * @return either 3 or 4
+   */
   public int getMapDimension() {
     return hasAlpha ? 4: 3;
   }
 
-  /** Returns a copy of the color map */
+  /**
+   * Get the color map (as an array of <TT>float</TT> tuples.
+   *
+   * @return a copy of the color map
+   */
   public float[][] getColorMap() {
 
     synchronized (mutex_val) {
@@ -254,7 +302,13 @@ public class BaseRGBMap
     }
   }
 
-  /** Returns the tuple at a floating point value val */
+  /**
+   * Returns the tuple at a floating point value val
+   *
+   * @param value the location to return.
+   *
+   * @return The 3 or 4 element array.
+   */
   public float[] getTuple(float value) {
     synchronized (mutex_val) {
       float arrayIndex = value * (resolution - 1);
@@ -307,6 +361,13 @@ public class BaseRGBMap
     }
   }
 
+  /**
+   * Redraw the between the <TT>left</TT> and
+   * <TT>right</TT> colors
+   *
+   * @param left the left edge of the changed area (in the range 0.0-1.0)
+   * @param right the right edge of the changed area
+   */
   protected void sendUpdate(int left, int right) {
 
     synchronized (mutex) {
@@ -321,8 +382,12 @@ public class BaseRGBMap
     repaint();
   }
 
-  /** Used internally to post areas to update to the objects listening
+  /**
+   * Used internally to post areas to update to the objects listening
    * to the map
+   *
+   * @param left the left edge of the changed area
+   * @param right the right edge of the changed area
    */
   protected void notifyListeners(int left, int right) {
 
@@ -358,19 +423,28 @@ public class BaseRGBMap
     return t;
   }
 
-  /** Present to implement MouseListener, currently ignored */
-  public void mouseClicked(MouseEvent e) {
-    //System.out.println(e.paramString());
+  /**
+   * Present to implement MouseListener, currently ignored
+   *
+   * @param evt ignored
+   */
+  public void mouseClicked(MouseEvent evt) {
   }
 
-  /** Present to implement MouseListener, currently ignored */
-  public void mouseEntered(MouseEvent e) {
-    //System.out.println(e.paramString());
+  /**
+   * MouseListener, currently ignored
+   *
+   * @param evt ignored
+   */
+  public void mouseEntered(MouseEvent evt) {
   }
 
-  /** Present to implement MouseListener, currently ignored */
-  public void mouseExited(MouseEvent e) {
-    //System.out.println(e.paramString());
+  /**
+   * MouseListener method, currently ignored
+   *
+   * @param evt ignored
+   */
+  public void mouseExited(MouseEvent evt) {
   }
 
   /** The last mouse event's x value */
@@ -381,13 +455,15 @@ public class BaseRGBMap
   /** A synchronization primitive for the mouse movements */
   private Object mouseMutex = new Object();
 
-  /** Updates the internal array and sends notification to the
+  /**
+   * Updates the internal array and sends notification to the
    * ColorChangeListeners that are listening to this map
+   *
+   * @param evt the mouse press event
    */
-  public void mousePressed(MouseEvent e) {
-    //System.out.println(e.paramString());
-    if ((e.getModifiers() & e.BUTTON1_MASK) == 0 &&
-        e.getModifiers() != 0)
+  public void mousePressed(MouseEvent evt) {
+    if ((evt.getModifiers() & evt.BUTTON1_MASK) == 0 &&
+        evt.getModifiers() != 0)
     {
       return;
     }
@@ -395,8 +471,8 @@ public class BaseRGBMap
     int index = 0;
     int width = getBounds().width;
     int height = getBounds().height;
-    int x = e.getX();
-    int y = e.getY();
+    int x = evt.getX();
+    int y = evt.getY();
 
     if (x < 0)
       x = 0;
@@ -424,10 +500,14 @@ public class BaseRGBMap
 
   }
 
-  /** Listens for releases of the right mouse button, and changes the active color */
-  public void mouseReleased(MouseEvent e) {
-    //System.out.println(e.paramString());
-    if ((e.getModifiers() & (e.BUTTON2_MASK|e.BUTTON3_MASK)) == 0) {
+  /**
+   * Listens for releases of the right mouse button,
+   * and changes the active color
+   *
+   * @param evt the release event
+   */
+  public void mouseReleased(MouseEvent evt) {
+    if ((evt.getModifiers() & (evt.BUTTON2_MASK|evt.BUTTON3_MASK)) == 0) {
       return;
     }
     state = (state + 1) % (hasAlpha ? 4 : 3);
@@ -436,22 +516,33 @@ public class BaseRGBMap
     }
   }
 
-  /** Updates the internal array and sends notification to the
+  /**
+   * Updates the internal array and sends notification to the
    * ColorChangeListeners that are listening to this map
+   *
+   * @param evt the drag event
    */
-  public void mouseDragged(MouseEvent e) {
-    //System.out.println(e.paramString());
-    if ((e.getModifiers() & e.BUTTON1_MASK) == 0 && e.getModifiers() != 0) {
+  public void mouseDragged(MouseEvent evt) {
+    if ((evt.getModifiers() & evt.BUTTON1_MASK) == 0 &&
+        evt.getModifiers() != 0)
+    {
       return;
     }
 
-    drag(e.getX(), e.getY(), oldX, oldY);
+    drag(evt.getX(), evt.getY(), oldX, oldY);
 
-    oldX = e.getX();
-    oldY = e.getY();
+    oldX = evt.getX();
+    oldY = evt.getY();
   }
 
-  /** Internal mouse dragging function */
+  /**
+   * Internal mouse dragging function
+   *
+   * @param x the current x coordinate
+   * @param y the current y coordinate
+   * @param oldx the starting x coordinate
+   * @param oldy the starting y coordinate
+   */
   private void drag(int x, int y, int oldx, int oldy) {
 
     if (x < 0)
@@ -523,12 +614,19 @@ public class BaseRGBMap
     return;
   }
 
-  /** Present to implement MouseMovementListener, currently ignored */
-  public void mouseMoved(MouseEvent e) {
-    //System.out.println(e.paramString());
+  /**
+   * MouseMovementListener method, currently ignored
+   *
+   * @param evt ignored
+   */
+  public void mouseMoved(MouseEvent evt) {
   }
 
-  /** Repaints the entire Panel */
+  /**
+   * Repaints the entire Panel
+   *
+   * @param g The <TT>Graphics</TT> to update.
+   */
   public void paint(Graphics g) {
 
     synchronized (mutex) {
@@ -546,7 +644,11 @@ public class BaseRGBMap
   /** The right bound for updating the Panel */
   private float updateRight = 1;
 
-  /** Repaints the modified areas of the Panel */
+  /**
+   * Repaints the modified areas of the Panel
+   *
+   * @param g The <TT>Graphics</TT> to update.
+   */
   public void update(Graphics g) {
 
     // System.out.println("update");
@@ -648,17 +750,26 @@ public class BaseRGBMap
     }
   }
 
-  /** Return the preferred size of this map, taking into account
-   * the resolution */
+  /**
+   * Return the preferred size of this map, taking into account
+   * the resolution.
+   *
+   * @return preferred size.
+   */
   public Dimension getPreferredSize() {
     return new Dimension(resolution, resolution / 2);
   }
 
-  /** Initializes the colormap to default values */
+  /**
+   * Initializes the colormap to default values
+   */
   private void initColormap() {
     initColormapVis5D();
   }
 
+  /**
+   * Initializes the colormap to the Vis5D sine waves.
+   */
   private void initColormapVis5D() {
     synchronized (mutex_val) {
 
@@ -683,7 +794,9 @@ public class BaseRGBMap
   }
 
 
-  /** Initializes the colormap to be linear in hue */
+  /**
+   * Initializes the colormap to be linear in hue
+   */
   private synchronized void initColormapHSV() {
     float s = 1;
     float v = 1;
