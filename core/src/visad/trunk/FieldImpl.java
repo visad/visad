@@ -2619,6 +2619,20 @@ public class FieldImpl extends FunctionImpl implements Field {
     return false;
   }
 
+  /** for JPython */
+  public Data __getitem__(int index) {
+    try {
+      return getSample(index);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+  /** end of for JPython */
+
   /** deep copy values but shallow copy Type, Set and CoordinateSystem */
   public Object clone() {
     Field field;

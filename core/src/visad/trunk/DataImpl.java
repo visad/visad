@@ -728,6 +728,30 @@ public abstract class DataImpl extends ThingImpl
       return null;
     }
   }
+
+  public Data __add__(double data) {
+    return __add__(new Real(data));
+  }
+
+  public Data __sub__(double data) {
+    return __sub__(new Real(data));
+  }
+
+  public Data __mul__(double data) {
+    return __mul__(new Real(data));
+  }
+
+  public Data __div__(double data) {
+    return __div__(new Real(data));
+  }
+
+  public Data __pow__(double data) {
+    return __pow__(new Real(data));
+  }
+
+  public Data __mod__(double data) {
+    return __mod__(new Real(data));
+  }
   /** end of for JPython */
 
 

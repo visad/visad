@@ -302,6 +302,20 @@ public class Tuple extends DataImpl implements TupleIface {
     return new Tuple(newComponents);
   }
 
+  /** for JPython */
+  public Data __getitem__(int index) {
+    try {
+      return getComponent(index);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+  /** end of for JPython */
+
   public Object clone() {
     Tuple tuple;
     try {

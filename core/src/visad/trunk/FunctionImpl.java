@@ -141,5 +141,31 @@ public abstract class FunctionImpl extends DataImpl implements Function {
   public abstract Function derivative( RealType d_partial, MathType derivType, int error_mode )
          throws VisADException, RemoteException;
 
+  /** for JPython */
+  public Data __getitem__(Real domain) {
+    try {
+      return evaluate(domain);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+
+  public Data __getitem__(RealTuple domain) {
+    try {
+      return evaluate(domain);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+    catch (RemoteException e) {
+      return null;
+    }
+  }
+  /** end of for JPython */
+
 }
 
