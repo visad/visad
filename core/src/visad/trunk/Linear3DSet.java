@@ -373,10 +373,17 @@ public class Linear3DSet extends Gridded3DSet
       sos[2 * i + 1] = (float) (so[0] * step);          // overall X scale
     }
 
+    // NOTE X & Y swap
+    float t = sos[0];
+    sos[0] = sos[2];
+    sos[2] = t;
+    t = sos[1];
+    sos[1] = sos[3];
+    sos[3] = t;
     nvertex = linear_isosurf( isolevel, ptFLAG, nvertex_estimate, npolygons,
-                              ptGRID, xdim, ydim, zdim, VX, VY, VZ,
-                              color_values, color_temps, arg_Pol_f_Vert, Vert_f_Pol,
-                              sos );
+                              ptGRID, xdim, ydim, zdim, VY, VX, VZ,
+                              color_values, color_temps, arg_Pol_f_Vert,
+                              Vert_f_Pol, sos );
     Pol_f_Vert = arg_Pol_f_Vert[0];
 
     if (nvertex == 0) return null;
@@ -1200,20 +1207,18 @@ for (int j=0; j<nvertex; j++) {
       // test for not missing
       {   if (!(iz != 0 ) && vnode3 == vnode3 && vnode1 == vnode1)
         {
-/* WLH 26 Oct 97
-              nodeDiff = vnode3 - vnode1;
-              cp = ( ( isovalue - vnode1 ) / nodeDiff ) + iy;
-              VX[0][nvet] = ix+1;
-              VY[0][nvet] = cp;
-              VZ[0][nvet] = iz;
-*/
               cp = ( ( isovalue - vnode1 ) / ( vnode3 - vnode1 ) );
+              VX[0][nvet] = xo + xs * (ix+1);
+              VY[0][nvet] = yo + ys * (cp + iy);
+              VZ[0][nvet] = zo + zs * iz;
+/*
               VX[0][nvet] = (float) cp * Samples[0][pt + ydim + 1] +
                          (1.0f-cp) * Samples[0][pt + ydim];
               VY[0][nvet] = (float) cp * Samples[1][pt + ydim + 1] +
                          (1.0f-cp) * Samples[1][pt + ydim];
               VZ[0][nvet] = (float) cp * Samples[2][pt + ydim + 1] +
                          (1.0f-cp) * Samples[2][pt + ydim];
+*/
 
               for (int j=0; j<naux; j++) {
                 t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?

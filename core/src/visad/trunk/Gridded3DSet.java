@@ -3250,12 +3250,14 @@ for (int j=0; j<nvertex; j++) {
               VZ[0][nvet] = iz;
 */
               cp = ( ( isovalue - vnode1 ) / ( vnode3 - vnode1 ) );
-              VX[0][nvet] = (float) cp * Samples[0][pt + ydim + 1] +
-                         (1.0f-cp) * Samples[0][pt + ydim];
-              VY[0][nvet] = (float) cp * Samples[1][pt + ydim + 1] +
-                         (1.0f-cp) * Samples[1][pt + ydim];
-              VZ[0][nvet] = (float) cp * Samples[2][pt + ydim + 1] +
-                         (1.0f-cp) * Samples[2][pt + ydim];
+              // WLH 4 Aug 2000 - replace Samples by samples
+              VX[0][nvet] = (float) cp * samples[0][pt + ydim + 1] +
+                         (1.0f-cp) * samples[0][pt + ydim];
+              VY[0][nvet] = (float) cp * samples[1][pt + ydim + 1] +
+                         (1.0f-cp) * samples[1][pt + ydim];
+              VZ[0][nvet] = (float) cp * samples[2][pt + ydim + 1] +
+                         (1.0f-cp) * samples[2][pt + ydim];
+              // end WLH 4 Aug 2000 - replace Samples by samples
 
               for (int j=0; j<naux; j++) {
                 t = (int) ( cp * ((auxValues[j][pt + ydim + 1] < 0) ?
