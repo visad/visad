@@ -180,7 +180,8 @@ public class ProductSet extends SampledSet {
       else if (prod instanceof UnionSet) {
         prod = ((UnionSet) prod).product(sets[i]);
       }
-      if (sets[i] instanceof ProductSet) {
+      /* WLH 10 January 2001 - add missing "else" to following */
+      else if (sets[i] instanceof ProductSet) {
         prod = ((ProductSet) sets[i]).inverseProduct(prod);
       }
       else if (sets[i] instanceof UnionSet) {
