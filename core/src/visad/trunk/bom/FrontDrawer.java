@@ -193,12 +193,6 @@ public class FrontDrawer extends Object {
        0.09f, 0.07f, 0.045f, 0.02f, 0.0f},
       {0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
        0.01f, 0.01f, 0.04f, 0.01f, 0.0f}}},
-/*
-    {{{0.0f, 0.025f, 0.05f, 0.07f, 0.0875f, 0.105f, 0.1225f, 0.14f, 0.17f, 0.2f,
-       0.2f, 0.17f, 0.14f, 0.105f, 0.07f, 0.05f, 0.025f, 0.0f},
-      {0.0f, 0.0f, 0.0f, 0.0f, -0.02f, -0.027f, -0.02f, 0.0f, 0.0f, 0.0f,
-       0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.04f, 0.01f}}},
-*/
 
     // CONVERGENCE = 4
     {{{0.0f, 0.03f, 0.035f, 0.01f, 0.05f, 0.1f, 0.15f, 0.2f,
@@ -575,6 +569,7 @@ public class FrontDrawer extends Object {
       SampledSet[] sets = ((UnionSet) data).getSets();
       if (sets[0] instanceof Gridded2DSet) {
         curve_set = (Gridded2DSet) sets[0];
+System.out.println("curve_set = " + curve_set);
       }
     }
     if (curve_set == null) {
@@ -582,6 +577,7 @@ public class FrontDrawer extends Object {
     }
     else {
       SetType st = (SetType) curve_set.getType();
+System.out.println("st = " + st);
       if (!st.equals(curve_type)) {
         SetType rft =
           new SetType(new RealTupleType(RealType.Longitude, RealType.Latitude));
@@ -590,6 +586,7 @@ public class FrontDrawer extends Object {
         }
         lat_index = 1;
         lon_index = 0;
+System.out.println("invert lat and lon");
       }
     }
 
@@ -773,6 +770,7 @@ public class FrontDrawer extends Object {
 
     public void doAction() throws VisADException, RemoteException {
       synchronized (data_lock) {
+System.out.println("doAction");
         Data data = null;
         if (curve_ref != null) data = curve_ref.getData();
         Gridded2DSet curve_set = null;
@@ -820,7 +818,7 @@ public class FrontDrawer extends Object {
             if (curve_set != null) curve_samples = curve_set.getSamples(false);
             if (curve_samples == null || curve_samples[0].length < 2) {
               if (curve_ref != null) curve_ref.setData(init_curve);
-              throw new VisADException("bad curve_samples");
+              throw new VisADException("bad last curve_samples");
             }
           }
           catch (VisADException ee) {
@@ -829,6 +827,8 @@ public class FrontDrawer extends Object {
           }
         }
         last_curve_set = curve_set;
+
+System.out.println("curve_samples length = " + curve_samples[0].length);
 
         boolean flip = false;
         double[] lat_range = lat_map.getRange();
@@ -1212,35 +1212,10 @@ public class FrontDrawer extends Object {
   private boolean pfirst = true;
 
   class ProjectionControlListener implements ControlListener {
-/*
-    private double base_scale = 1.0;
-    private float last_cscale = 1.0f;
-*/
 
     public void controlChanged(ControlEvent e)
            throws VisADException, RemoteException {
       setScale();
-/*
-      double[] matrix = pcontrol.getMatrix();
-      double[] rot = new double[3];
-      double[] scale = new double[1];
-      double[] trans = new double[3];
-      MouseBehaviorJ3D.unmake_matrix(rot, scale, trans, matrix);
-
-      if (pfirst) {
-        pfirst = false;
-        base_scale = scale[0];
-        last_cscale = 1.0f;
-      }
-      else {
-        float cscale = (float) (base_scale / scale[0]);
-        float ratio = cscale / last_cscale;
-        if (ratio < 0.95f || 1.05f < ratio) {
-          last_cscale = cscale;
-          // shape_control1.setScale(cscale);
-        }
-      }
-*/
     }
   }
 
@@ -1287,8 +1262,13 @@ public class FrontDrawer extends Object {
 
     initColormaps(display);
 
+    float[][] curve = {{-35.0f, -30.0f, -25.0f}, {10.0f, 5.0f, 10.0f}};
+    Gridded2DSet set =
+      new Gridded2DSet(curve_type, curve, 3);
+    UnionSet init_curve = new UnionSet(curve_type, new Gridded2DSet[] {set});
+
     DataReferenceImpl curve_ref = new DataReferenceImpl("curve_ref");
-    curve_ref.setData(null); // change
+    curve_ref.setData(init_curve);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test FrontDrawer");
@@ -1306,17 +1286,6 @@ public class FrontDrawer extends Object {
     // add display to JPanel
     panel.add(display.getComponent());
 
-/*
-    float[][][] rshapes =
-      {{{0.0f, 0.025f, 0.05f, 0.075f, 0.1f, 0.1f, 0.075f, 0.05f, 0.025f, 0.0f},
-        {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.015f, 0.015f, 0.090f, 0.015f, 0.015f}}};
-    float[] red = {1.0f};
-    float[] green = {1.0f};
-    float[] blue = {1.0f};
-    FrontDrawer fd =
-      new FrontDrawer(curve_ref, display, 8, 0.1f, null, null, null, null,
-                      rshapes, red, green, blue);
-*/
     int front_type = FrontDrawer.COLD_FRONT;
     try {
       if (args.length > 0) front_type = Integer.parseInt(args[0]);
