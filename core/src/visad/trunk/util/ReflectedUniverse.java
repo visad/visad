@@ -37,11 +37,19 @@ import java.util.*;
  */
 public class ReflectedUniverse {
 
+  // -- Fields --
+
   /** Hashtable containing all variables present in the universe. */
   protected Hashtable variables;
 
   /** Class loader for imported classes. */
   protected ClassLoader loader;
+
+  /** Debugging flag. */
+  protected boolean debug;
+
+
+  // -- Constructors --
 
   /** Constructs a new reflected universe. */
   public ReflectedUniverse() {
@@ -57,13 +65,17 @@ public class ReflectedUniverse {
     variables = new Hashtable();
     loader = urls == null ?
       getClass().getClassLoader() : new URLClassLoader(urls);
+    debug = false;
   }
+
+
+  // -- Utility methods --
 
   /**
    * Returns whether the given object is compatible with the
    * specified class for the purposes of reflection.
    */
-  protected boolean isInstance(Class c, Object o) {
+  public static boolean isInstance(Class c, Object o) {
     return (o == null || c.isInstance(o) ||
       (c == byte.class && o instanceof Byte) ||
       (c == short.class && o instanceof Short) ||
@@ -74,6 +86,9 @@ public class ReflectedUniverse {
       (c == boolean.class && o instanceof Boolean) ||
       (c == char.class && o instanceof Character));
   }
+
+
+  // -- API methods --
 
   /**
    * Executes a command in the universe. The following syntaxes are valid:
@@ -102,6 +117,7 @@ public class ReflectedUniverse {
         c = Class.forName(command, true, loader);
       }
       catch (ClassNotFoundException exc) {
+        if (debug) exc.printStackTrace();
         throw new VisADException("No such class: " + command);
       }
       setVar(varName, c);
@@ -177,6 +193,7 @@ public class ReflectedUniverse {
         result = constructor.newInstance(args);
       }
       catch (Exception exc) {
+        if (debug) exc.printStackTrace();
         throw new VisADException("Cannot instantiate object");
       }
     }
@@ -226,6 +243,7 @@ public class ReflectedUniverse {
         result = method.invoke(var, args);
       }
       catch (Exception exc) {
+        if (debug) exc.printStackTrace();
         throw new VisADException("Cannot execute method: " + methodName);
       }
     }
@@ -297,6 +315,7 @@ public class ReflectedUniverse {
         field = varClass.getField(fieldName);
       }
       catch (NoSuchFieldException exc) {
+        if (debug) exc.printStackTrace();
         throw new VisADException("No such field: " + varName);
       }
       Object fieldVal;
@@ -304,6 +323,7 @@ public class ReflectedUniverse {
         fieldVal = field.get(var);
       }
       catch (Exception exc) {
+        if (debug) exc.printStackTrace();
         throw new VisADException("Cannot get field value: " + varName);
       }
       return fieldVal;
@@ -313,6 +333,16 @@ public class ReflectedUniverse {
       Object var = variables.get(varName);
       return var;
     }
+  }
+
+  /** Enables or disables extended debugging output. */
+  public void setDebug(boolean debug) {
+    this.debug = debug;
+  }
+
+  /** Gets whether extended debugging output is enabled. */
+  public boolean isDebug() {
+    return debug;
   }
 
 }
