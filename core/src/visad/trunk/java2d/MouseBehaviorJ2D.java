@@ -226,7 +226,7 @@ public class MouseBehaviorJ2D implements MouseBehavior {
       scalez += mat[2][i] * mat[2][i];
     }
     if (Math.abs(scalex - scaley) > EPS || Math.abs(scalex - scalez) > EPS) {
-      System.out.println("problem " + scalex + " " + scaley + " " + scalez);
+      // System.out.println("problem " + scalex + " " + scaley + " " + scalez);
     }
     scale[0] = Math.sqrt((scalex + scaley + scalez)/3.0);
     scaleinv = Math.abs(scale[0]) > EPS ? 1.0 / scale[0] : 1.0 / EPS;
