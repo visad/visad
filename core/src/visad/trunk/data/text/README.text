@@ -129,8 +129,12 @@ IIb.  1,2,or 3-D points
    (Latitude,Longitude)->(City(Text))
 
    Strictly speaking, you may have a domain with more than
-   3 components.  If you do this, a VisAD IrregularSet will
-   be used.
+   3 components.  If you do this, however, the TextAdapter
+   will not be able to optimize the construction of the
+   sampling set, and will use either a LinearNDSet (if
+   you supply simple ranges for all domain components) or
+   an IrregularSet (if one or more of the domain components
+   has values specified in the file).
 
 
 
@@ -231,8 +235,8 @@ IIIb. 1,2,or 3-D points
 
   Longitude, Latitude, skip, City(Text)
 
-  Note that with this form, each data item MUST be enclosed in double-
-  quote marks (see example, below)
+    (Note that with this "Text" form, each data item MUST be enclosed in 
+    double-quote marks -- see example, below)
   
   
 In both cases, you may also use this line of text to define the values
