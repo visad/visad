@@ -116,14 +116,6 @@ public class DataDisplayLink extends ReferenceActionLink {
   {
     Enumeration maps;
 
-    synchronized (SelectedMapVector) {
-      maps = SelectedMapVector.elements();
-      while(maps.hasMoreElements()) {
-        ScalarMap map = (ScalarMap) maps.nextElement();
-        map.nullDisplay();
-      }
-      SelectedMapVector.removeAllElements();
-    }
     synchronized (ConstantMapVector) {
       maps = ConstantMapVector.elements();
       while(maps.hasMoreElements()) {
