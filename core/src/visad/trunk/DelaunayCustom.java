@@ -475,7 +475,7 @@ public class DelaunayCustom extends Delaunay {
         if (bad++ > (n - t)) {
           if (bug) {
             // throw new VisADException("bad samples");
-            System.out.println("bad samples t = " + t + " n = " + n);
+            // System.out.println("bad samples t = " + t + " n = " + n);
             if (t > 0) {
               int[][] new_tris = new int[t][];
               System.arraycopy(tris, 0, new_tris, 0, t);
@@ -899,13 +899,19 @@ public class DelaunayCustom extends Delaunay {
       }
     }
 
-    float[][] ss = new float[2][ns];
-    System.arraycopy(s[0], 0, ss[0], 0, ns);
-    System.arraycopy(s[1], 0, ss[1], 0, ns);
-    int[][] tt = new int[nt][];
-    System.arraycopy(t, 0, tt, 0, nt);
-    outs[0] = ss;
-    outt[0] = tt;
+    if (ns == 0 || nt == 0) {
+      outs[0] = null;
+      outt[0] = null;
+    }
+    else {
+      float[][] ss = new float[2][ns];
+      System.arraycopy(s[0], 0, ss[0], 0, ns);
+      System.arraycopy(s[1], 0, ss[1], 0, ns);
+      int[][] tt = new int[nt][];
+      System.arraycopy(t, 0, tt, 0, nt);
+      outs[0] = ss;
+      outt[0] = tt;
+    }
 /*
 if (ss != null) {
   int nn = samples[0].length;

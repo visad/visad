@@ -176,6 +176,17 @@ public class FrontDrawer extends Object {
        0.2f, 0.17f, 0.14f, 0.1225f, 0.105f, 0.0875f, 0.07f, 0.05f, 0.025f, 0.0f},
       {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
        0.01f, 0.01f, 0.01f, 0.03f, 0.04f, 0.03f, 0.01f, 0.01f, 0.04f, 0.01f}}},
+    // STATIONARY_FRONT
+    {{{0.0f, 0.025f, 0.05f, 0.07f, 0.0875f, 0.105f, 0.1225f, 0.14f, 0.17f, 0.2f,
+       0.2f, 0.17f, 0.14f, 0.105f, 0.07f, 0.05f, 0.025f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, -0.02f, -0.03f, -0.02f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.04f, 0.01f}}},
+    // CONVERGENCE
+    {{{0.0f, 0.03f, 0.035f, 0.01f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.11f, 0.135f, 0.13f, 0.1f, 0.05f, 0.0f},
+      {0.01f, 0.04f, 0.035f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f,
+       0.0f, 0.0f, 0.0f, -0.025f, -0.03f, 0.0f, 0.0f, 0.0f}}},
+
   };
 
   private static final float[][] rredarray = {
@@ -639,9 +650,9 @@ public class FrontDrawer extends Object {
           curveToFront(curve, flip);
           break;
         }
-        catch (SetException e) {
+        catch (VisADException e) {
           fw = 2 * fw;
-          if (debug) System.out.println("retry filter window = " + fw + " " + e);
+          // if (debug) System.out.println("retry filter window = " + fw + " " + e);
           if (tries == 9) {
             System.out.println("cannot smooth curve");
             front = null;
@@ -673,11 +684,17 @@ public class FrontDrawer extends Object {
     return front;
   }
 
+  private static final float CLIP_DELTA = 0.001f;
+
   public void curveToFront(float[][] curve, boolean flip)
          throws VisADException, RemoteException {
 
     // compute various scaling factors
     int len = curve[0].length;
+    if (len < 2) {
+      front = null;
+      return;
+    }
     float[] seg_length = new float[len-1];
     float curve_length = curveLength(curve, seg_length);
     float delta = curve_length / (len - 1);
@@ -719,8 +736,6 @@ public class FrontDrawer extends Object {
         clip = true;
         iend = len - 1;
         xclip = (iend - ibase) / mul;       
-        // DelaunayCustom.clip(samples, tris, 1.0f, 0.0f, xclip,
-        //                     new_samples, new_tris)
       }
 
       // set up shapes for first or repeating segment
@@ -743,6 +758,7 @@ public class FrontDrawer extends Object {
       for (int shape=0; shape<nshapes; shape++) {
         float[][] samples = shapes[shape];
         int [][] ts = tris[shape];
+/*
         // if needed, clip shape
         if (clip) {
           float[][][] outs = new float[1][][];
@@ -751,33 +767,45 @@ public class FrontDrawer extends Object {
           samples = outs[0];
           ts = outt[0];
         }
+*/
         if (samples == null || samples[0].length < 1) break;
 
-        // map shape into "coordinate system" defined by curve segment
-        int n = samples[0].length;
-        float[][] ss = new float[2][n];
-        for (int i=0; i<n; i++) {
-          float findex = ibase + mul * samples[0][i];
-          int il = (int) findex;
-          int ih = il + 1;
-          if (il < 0) il = 0;
-          if (il > len - 1) il = len - 1;
-          if (ih < 0) ih = 0;
-          if (ih > len - 1) ih = len - 1;
-          float a = findex - il;
-          if (a < 0.0f) a = 0.0f;
-          if (a > 1.0f) a = 1.0f;
-          float b = 1.0f - a;
-          float xl = curve[0][il] + ratio * samples[1][i] * curve_perp[0][il];
-          float yl = curve[1][il] + ratio * samples[1][i] * curve_perp[1][il];
-          float xh = curve[0][ih] + ratio * samples[1][i] * curve_perp[0][ih];
-          float yh = curve[1][ih] + ratio * samples[1][i] * curve_perp[1][ih];
-          ss[0][i] = b * xl + a * xh;
-          ss[1][i] = b * yl + a * yh;
+        float[][] ss =
+          mapShape(samples, len, ibase, mul, ratio, curve, curve_perp);
+
+// **** get rid of previous calls to fill() ****
+        ts = DelaunayCustom.fill(ss);
+
+        // if needed, clip shape
+        if (clip) {
+          float[][] clip_samples = {{xclip, xclip, xclip - CLIP_DELTA},
+                                    {CLIP_DELTA, -CLIP_DELTA, 0.0f}};
+          float[][] clip_ss =
+            mapShape(clip_samples, len, ibase, mul, ratio, curve, curve_perp);
+          // now solve for:
+          //   xc * clip_samples[0][0] + yc * clip_samples[1][0] = 1
+          //   xc * clip_samples[0][1] + yc * clip_samples[1][1] = 1
+          //   xc * clip_samples[0][2] + yc * clip_samples[1][2] < 1
+          float det = (clip_samples[0][1] * clip_samples[1][0] -
+                       clip_samples[0][0] * clip_samples[1][1]);
+          float xc = (clip_samples[1][0] - clip_samples[1][1]) / det;
+          float yc = (clip_samples[0][1] - clip_samples[0][0]) / det;
+          float v = 1.0f;
+          if (xc * clip_samples[0][2] + yc * clip_samples[1][2] > v) {
+            xc = - xc;
+            yc = - yc;
+            v = -v;
+          }
+
+          float[][][] outs = new float[1][][];
+          int[][][] outt = new int[1][][];
+          DelaunayCustom.clip(ss, ts, xc, yc, v, outs, outt);
+          ss = outs[0];
+          ts = outt[0];
         }
-        // map shape back into (lat, lon) coordinates
-        ss[lat_index] = lat_map.inverseScaleValues(ss[0]);
-        ss[lon_index] = lon_map.inverseScaleValues(ss[1]);
+
+        if (ss == null) break;
+        int n = ss[0].length;
 
         // create color values for field
         float[][] values = new float[3][n];
@@ -811,6 +839,49 @@ public class FrontDrawer extends Object {
     front.setSamples(fields, false);
   }
 
+  private float[][] mapShape(float[][] samples, int len, int ibase, float mul,
+                             float ratio, float[][] curve, float[][] curve_perp) {
+    // map shape into "coordinate system" defined by curve segment
+    int n = samples[0].length;
+    float[][] ss = new float[2][n];
+    for (int i=0; i<n; i++) {
+      float findex = ibase + mul * samples[0][i];
+      int il = (int) findex;
+      int ih = il + 1;
+
+      if (il < 0) {
+        il = 0;
+        ih = il + 1;
+      }
+      if (ih > len - 1) {
+        ih = len - 1;
+        il = ih - 1;
+      }
+      // if (il < 0) il = 0;
+      // if (il > len - 1) il = len - 1;
+      // if (ih < 0) ih = 0;
+      // if (ih > len - 1) ih = len - 1;
+
+      float a = findex - il;
+
+      if (a < -1.0f) a = -1.0f;
+      if (a > 2.0f) a = 2.0f;
+      // if (a < 0.0f) a = 0.0f;
+      // if (a > 1.0f) a = 1.0f;
+
+      float b = 1.0f - a;
+      float xl = curve[0][il] + ratio * samples[1][i] * curve_perp[0][il];
+      float yl = curve[1][il] + ratio * samples[1][i] * curve_perp[1][il];
+      float xh = curve[0][ih] + ratio * samples[1][i] * curve_perp[0][ih];
+      float yh = curve[1][ih] + ratio * samples[1][i] * curve_perp[1][ih];
+      ss[0][i] = b * xl + a * xh;
+      ss[1][i] = b * yl + a * yh;
+    }
+    // map shape back into (lat, lon) coordinates
+    ss[lat_index] = lat_map.inverseScaleValues(ss[0]);
+    ss[lon_index] = lon_map.inverseScaleValues(ss[1]);
+    return ss;
+  }
 
   public float[][] smooth_curve(float[][] curve, int window) {
     int len = curve[0].length;
