@@ -412,20 +412,16 @@ public final class LALOnav extends AREAnav
   public float[][] toLinEle(float[][] latlon) {
     try {
       float[][] ll = new float[2][latlon[0].length];
-      for (int i=0; i<2; i++) {
-        for (int k=0; k<ll[0].length; k++) {
-          ll[0][k] = latlon[indexLon][k];
-          ll[1][k] = latlon[indexLat][k];
-        }
+      for (int k=0; k<ll[0].length; k++) {
+        ll[0][k] = latlon[indexLon][k];
+        ll[1][k] = latlon[indexLat][k];
       }
 
       float[][] linele = gs.valueToGrid(ll);
 
-      for (int i=0; i<2; i++) {
-        for (int k=0; k<linele[0].length; k++) {
-          linele[indexLine][k] = ulline + latres*linele[1][k];
-          linele[indexEle][k] = ulelem + lonres*linele[0][k];
-        }
+      for (int k=0; k<linele[0].length; k++) {
+        linele[indexLine][k] = ulline + latres*linele[1][k];
+        linele[indexEle][k] = ulelem + lonres*linele[0][k];
       }
 
       return imageCoordToAreaCoord(linele);
@@ -437,21 +433,17 @@ public final class LALOnav extends AREAnav
   public double[][] toLinEle(double[][] latlon) {
     try {
       float[][] ll = new float[2][latlon[0].length];
-      for (int i=0; i<2; i++) {
-        for (int k=0; k<ll[0].length; k++) {
-          ll[0][k] = (float)latlon[indexLon][k];
-          ll[1][k] = (float)latlon[indexLat][k];
-        }
+      for (int k=0; k<ll[0].length; k++) {
+        ll[0][k] = (float)latlon[indexLon][k];
+        ll[1][k] = (float)latlon[indexLat][k];
       }
 
       float[][] xy = gs.valueToGrid(ll);
 
       double[][] linele = new double[2][xy[0].length];
-      for (int i=0; i<2; i++) {
-        for (int k=0; k<xy[0].length; k++) {
-          linele[indexLine][k] = ulline + latres*xy[1][k];
-          linele[indexEle][k] = ulelem + lonres*xy[0][k];
-        }
+      for (int k=0; k<xy[0].length; k++) {
+        linele[indexLine][k] = ulline + latres*xy[1][k];
+        linele[indexEle][k] = ulelem + lonres*xy[0][k];
       }
 
       return imageCoordToAreaCoord(linele);
