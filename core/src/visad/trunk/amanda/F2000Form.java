@@ -68,6 +68,13 @@ public class F2000Form extends Form implements FormFileInformer {
   private static RealType let = null;
   private static RealType event_index = null;
 
+  private double xmin = Double.MAX_VALUE;
+  private double xmax = Double.MIN_VALUE;
+  private double ymin = Double.MAX_VALUE;
+  private double ymax = Double.MIN_VALUE;
+  private double zmin = Double.MAX_VALUE;
+  private double zmax = Double.MIN_VALUE;
+
   public F2000Form() {
     super("F2000Form" + num++);
   }
@@ -240,6 +247,21 @@ System.out.println("om " + number + " " + om_ordinal_on_string[number] + " " +
         }
       }
 
+      for (int i=0; i<nmodule; i++) {
+        if (om_x[i] == om_x[i]) {
+          if (om_x[i] < xmin) xmin = om_x[i];
+          if (om_x[i] > xmax) xmax = om_x[i];
+        }
+        if (om_y[i] == om_y[i]) {
+          if (om_y[i] < ymin) ymin = om_y[i];
+          if (om_y[i] > ymax) ymax = om_y[i];
+        }
+        if (om_z[i] == om_z[i]) {
+          if (om_z[i] < zmin) zmin = om_z[i];
+          if (om_z[i] > zmax) zmax = om_z[i];
+        }
+      }
+
       // read ES and EM events
       while (true) {
         tokens = getNext(br);
@@ -266,7 +288,9 @@ System.out.println("em \n" + line);
           // read TR and HT records
           while (true) {
             tokens = getNext(br);
+
             if (tokens[0].equals("tr")) {
+// TR nr parent type xstart ystart zstart zenith azimuth length energy time
               try {
                 float xstart = getFloat(tokens[4], 34);
                 float ystart = getFloat(tokens[5], 35);
@@ -276,6 +300,9 @@ System.out.println("em \n" + line);
                 float length = getFloat(tokens[9], 39);
                 float tr_energy = getFloat(tokens[10], 40);
                 float tr_time = getFloat(tokens[11], 41);
+
+                if (length > 1000.0f) length = 1000.0f;
+                if (tr_energy != tr_energy) tr_energy = 1.0f;
 
                 float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
                 float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
@@ -288,6 +315,11 @@ System.out.println("em \n" + line);
                 float[][] locs = {{xstart, xstart + xinc},
                                   {ystart, ystart + yinc},
                                   {zstart, zstart + zinc}};
+
+System.out.println("tr (" + xstart + ", " + ystart + ", " +
+                   zstart + "), (" + xinc + ", " +
+                   yinc + ", " + zinc + ")\n" + line);
+
                 Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
                 FlatField track_field =
                   new FlatField(track_function_type, track_set);
@@ -299,13 +331,56 @@ System.out.println("em \n" + line);
                 throw new BadFormException("bad number format with tr\n" + line);
               }
             }
+            else if (tokens[0].equals("fit")) {
+// FIT id type xstart ystart zstart zenith azimuth time length energy
+              try {
+                float xstart = getFloat(tokens[3], 54);
+                float ystart = getFloat(tokens[4], 55);
+                float zstart = getFloat(tokens[5], 56);
+                float zenith = getFloat(tokens[6], 57); // 0.0f toward -z
+                float azimuth = getFloat(tokens[7], 58); // 0.0f toward +x
+                float length = getFloat(tokens[9], 59);
+                float tr_energy = getFloat(tokens[10], 60);
+                float tr_time = getFloat(tokens[8], 61);
+
+                // if (length > 1000.0f) length = 1000.0f;
+                if (length > 10000.0f) length = 10000.0f;
+                if (tr_energy != tr_energy) tr_energy = 1.0f;
+
+                float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
+                float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
+                float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
+                float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
+                float zinc = length * zc;
+                float xinc = length * zs * ac;
+                float yinc = length * zs * as;
+
+                float[][] locs = {{xstart, xstart + xinc},
+                                  {ystart, ystart + yinc},
+                                  {zstart, zstart + zinc}};
+
+System.out.println("fit (" + xstart + ", " + ystart + ", " +
+                   zstart + "), (" + xinc + ", " +
+                   yinc + ", " + zinc + ")\n" + line);
+
+                Gridded3DSet track_set = new Gridded3DSet(xyz, locs, 2);
+                FlatField track_field =
+                  new FlatField(track_function_type, track_set);
+                float[][] values = {{tr_time, tr_time}, {tr_energy, tr_energy}};
+                track_field.setSamples(values, false);
+                tracks.addElement(track_field);
+              }
+              catch(NumberFormatException e) {
+                throw new BadFormException("bad number format with fit\n" + line);
+              }
+            }
             else if (tokens[0].equals("ht")) {
               try {
                 // convert 1-based to 0-based
-                int number = getInt(tokens[1], 51) - 1;
-                float ht_amplitude = getFloat(tokens[2], 52);
-                float ht_let = getFloat(tokens[5], 55);
-                float ht_tot = getFloat(tokens[6], 56);
+                int number = getInt(tokens[1], 71) - 1;
+                float ht_amplitude = getFloat(tokens[2], 72);
+                float ht_let = getFloat(tokens[5], 75);
+                float ht_tot = getFloat(tokens[6], 76);
                 double[] values = {om_x[number], om_y[number], om_z[number],
                                    ht_amplitude, ht_let, ht_tot};
                 RealTuple hit_tuple = new RealTuple(hit_type, values);
@@ -385,6 +460,8 @@ System.out.println("IOException " + e.getMessage());
     if (token != null) {
       if (token.equals("inf")) value = Float.POSITIVE_INFINITY;
       else if (token.equals("-inf")) value = Float.NEGATIVE_INFINITY;
+      else if (token.equals("?")) value = Float.NaN;
+      else if (token.equals("nan")) value = Float.NaN;
       else if (token.equals("*")) value = (float) last_values[index];
       else value = Float.parseFloat(token);
     }
@@ -398,6 +475,8 @@ System.out.println("IOException " + e.getMessage());
     if (token != null) {
       if (token.equals("inf")) value = Double.POSITIVE_INFINITY;
       else if (token.equals("-inf")) value = Double.NEGATIVE_INFINITY;
+      else if (token.equals("?")) value = Double.NaN;
+      else if (token.equals("nan")) value = Double.NaN;
       else if (token.equals("*")) value = last_values[index];
       else value = Double.parseDouble(token);
     }
@@ -411,6 +490,8 @@ System.out.println("IOException " + e.getMessage());
     if (token != null) {
       if (token.equals("inf")) value = Integer.MAX_VALUE;
       else if (token.equals("-inf")) value = Integer.MIN_VALUE;
+      else if (token.equals("?")) value = -1;
+      else if (token.equals("nan")) value = -1;
       else if (token.equals("*")) value = (int) last_values[index];
       else value = Integer.parseInt(token);
     }
@@ -467,23 +548,29 @@ System.out.println("IOException " + e.getMessage());
     DisplayImpl display = new DisplayImplJ3D("amanda");
     ScalarMap xmap = new ScalarMap(x, Display.XAxis);
     display.addMap(xmap);
-    ScalarMap ymap = new ScalarMap(x, Display.YAxis);
+    xmap.setRange(form.xmin, form.xmax);
+    ScalarMap ymap = new ScalarMap(y, Display.YAxis);
     display.addMap(ymap);
-    ScalarMap zmap = new ScalarMap(x, Display.ZAxis);
+    ymap.setRange(form.ymin, form.ymax);
+    ScalarMap zmap = new ScalarMap(z, Display.ZAxis);
     display.addMap(zmap);
+    zmap.setRange(form.zmin, form.zmax);
     ScalarMap eventmap = new ScalarMap(event_index, Display.SelectValue);
     display.addMap(eventmap);
     ScalarMap trackmap = new ScalarMap(track_index, Display.SelectValue);
     display.addMap(trackmap);
-    ScalarMap energymap = new ScalarMap(energy, Display.RGB);
-    display.addMap(energymap);
+    // ScalarMap energymap = new ScalarMap(energy, Display.RGB);
+    // display.addMap(energymap);
     ScalarMap shapemap = new ScalarMap(amplitude, Display.Shape);
     display.addMap(shapemap);
     ScalarMap shape_scalemap = new ScalarMap(amplitude, Display.ShapeScale);
     display.addMap(shape_scalemap);
-    shape_scalemap.setRange(-50.0, 50.0);
+    shape_scalemap.setRange(-20.0, 50.0);
     ScalarMap letmap = new ScalarMap(let, Display.RGB);
     display.addMap(letmap);
+
+    GraphicsModeControl mode = display.getGraphicsModeControl();
+    mode.setScaleEnable(true);
 
     ShapeControl scontrol = (ShapeControl) shapemap.getControl();
     scontrol.setShapeSet(new Integer1DSet(amplitude, 1));
@@ -562,15 +649,33 @@ System.out.println("IOException " + e.getMessage());
     // create JPanel in frame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    // panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
-    // panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(panel);
 
-    JPanel widget_panel = (JPanel) display.getWidgetPanel();
-    Dimension d = new Dimension(400, 600);
+    JPanel widget_panel = new JPanel();
+    widget_panel.setLayout(new BoxLayout(widget_panel, BoxLayout.Y_AXIS));
+    Dimension d = null;
+/*
+    LabeledColorWidget energy_widget =
+      new LabeledColorWidget(energymap);
+    widget_panel.add(energy_widget);
+    d = new Dimension(400, 250);
+    energy_widget.setMaximumSize(d);
+*/
+    LabeledColorWidget let_widget =
+      new LabeledColorWidget(letmap);
+    widget_panel.add(let_widget);
+    d = new Dimension(400, 250);
+    let_widget.setMaximumSize(d);
+    widget_panel.add(new VisADSlider(eventmap));
+    widget_panel.add(new VisADSlider(trackmap));
+    d = new Dimension(400, 600);
     widget_panel.setMaximumSize(d);
     panel.add(widget_panel);
-    panel.add(display.getComponent());
+    JPanel display_panel = (JPanel) display.getComponent();
+    d = new Dimension(600, 600);
+    display_panel.setPreferredSize(d);
+    display_panel.setMinimumSize(d);
+    panel.add(display_panel);
 
     int WIDTH = 1000;
     int HEIGHT = 600;
