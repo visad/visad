@@ -845,8 +845,17 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
    * @exception  VisADException  couldn't create the new UnionSet
    */
   public Object cloneButType(MathType type) throws VisADException {
+    int n = Sets.length;
+    SampledSet[] sets = new SampledSet[n];
+    for (int i=0; i<n; i++) {
+      sets[i] = (SampledSet) Sets[i].cloneButType(type);
+    }
+    return new UnionSet(type, sets, DomainCoordinateSystem,
+                        SetUnits, SetErrors);
+/* WLH 3 April 2003
     return new UnionSet(type, Sets, DomainCoordinateSystem,
                         SetUnits, SetErrors);
+*/
   }
 
   /**
