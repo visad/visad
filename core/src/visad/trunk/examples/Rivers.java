@@ -29,7 +29,7 @@ public class Rivers {
                          {2.0f, 1.0f, 0.0f}};
     Gridded2DSet river2 = new Gridded2DSet(earth, points2, 3);
 
-    // construct west feeder river2
+    // construct west feeder river3
     float[][] points3 = {{4.0f, 3.0f, 2.0f},
                          {-2.0f, -1.0f, 0.0f}};
     Gridded2DSet river3 = new Gridded2DSet(earth, points3, 3);
