@@ -96,6 +96,13 @@ public class ThreadPool
 
           parent.releaseTask(r); // WLH 20 Feb 2001
 
+          // wake-up another ThreadMinnow after releaseTask() in case
+          // the only task in the queue equaled the one this ThreadMinnow
+          // was running
+          synchronized (threadLock) { // WLH 21 Feb 2001
+            threadLock.notify();
+          }
+
           synchronized (doneLock) {
             doneLock.notifyAll();
           }
