@@ -650,6 +650,8 @@ public class AreaFile {
     }
 
     data = new int[numBands][numLines][numEles];
+    short shdata;
+    int intdata;
 
     for (i = 0; i<numLines; i++) {
 
@@ -676,19 +678,37 @@ public class AreaFile {
           } else {
 
             try {
+
               if (dir[AD_DATAWIDTH] == 1) {
                 data[k][i][j] = (int) af.readByte();
                 if (data[k][i][j] < 0) data[k][i][j] += 256;
                 position = position + 1;
               }
+
               if (dir[AD_DATAWIDTH] == 2) {
-                data[k][i][j] = (int) af.readShort();
+                shdata = af.readShort();
+                if (flipwords) {
+                  data[k][i][j] = (int) ( ((shdata >> 8) & 0xff) | 
+                                          ((shdata << 8) & 0xff00) );
+                } else {
+                  data[k][i][j] = (int) shdata;
+                }
                 position = position + 2;
               }
+
               if (dir[AD_DATAWIDTH] == 4) {
-                data[k][i][j] = af.readInt();
+                intdata = af.readInt();
+                if (flipwords) {
+                  data[k][i][j] = ( (intdata >>> 24) & 0xff) | 
+                                  ( (intdata >>> 8) & 0xff00) | 
+                                  ( (intdata & 0xff) << 24 )  | 
+                                  ( (intdata & 0xff00) << 8);
+                } else {
+                  data[k][i][j] = intdata;
+                }
                 position = position + 4;
               }
+
             } 
             catch (IOException e) {data[k][i][j] = 0;}
           }
