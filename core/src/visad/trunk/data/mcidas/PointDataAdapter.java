@@ -259,7 +259,8 @@ public class PointDataAdapter {
       type = RealType.Latitude;
     } else if (name.equalsIgnoreCase("lon")) {
       type = RealType.Longitude;
-    } else if (name.equalsIgnoreCase("z")) {
+    } else if (name.equalsIgnoreCase("z") ||
+               name.equalsIgnoreCase("zs") ) {
       type = RealType.Altitude;
     } else {
       type = RealType.getRealType(name, unit);
