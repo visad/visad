@@ -37,6 +37,9 @@ import visad.data.DefaultFamily;
 /** BioRadForm is the VisAD data format adapter for Bio-Rad .PIC files. */
 public class BioRadForm extends Form implements FormFileInformer {
 
+  /** Debugging flag. */
+  static final boolean DEBUG = false;
+
   /** Numerical ID of a valid BioRad .PIC file. */
   private static final int PIC_FILE_ID = 12345;
 
@@ -219,8 +222,6 @@ public class BioRadForm extends Form implements FormFileInformer {
       // read in note
       byte[] note = new byte[96];
       fin.read(note, 0, 96);
-
-      // extract note information
       int level = getUnsignedShort(note[0], note[1]);
       notes = (note[2] | note[3] | note[4] | note[5]) != 0;
       int num = getUnsignedShort(note[6], note[7]);
@@ -238,11 +239,57 @@ public class BioRadForm extends Form implements FormFileInformer {
     // close file
     fin.close();
 
+    // get basic note information
+    int len = noteList.size();
+    DataImpl[] noteData = new DataImpl[len];
+    for (int i=0; i<len; i++) {
+      BioRadNote note = (BioRadNote) noteList.elementAt(i);
+      noteData[i] = note.getNoteData();
+    }
+    RealType index = RealType.getRealType("index");
+    FunctionType noteFunction = new FunctionType(index, BioRadNote.noteTuple);
+    Integer1DSet noteSet = new Integer1DSet(len);
+    FieldImpl noteField = new FieldImpl(noteFunction, noteSet);
+    noteField.setSamples(noteData, false);
+
+    // extract horizontal and vertical unit information from notes
+    Unit horizUnit = null, vertUnit = null;
+    int i = 0;
+    while (i < noteList.size()) {
+      BioRadNote note = (BioRadNote) noteList.elementAt(i);
+      if (note.hasUnitInfo()) {
+        int rval = note.analyze();
+        if (rval == BioRadNote.HORIZ_UNIT) {
+          if (horizUnit == null) horizUnit = note.unit;
+          else System.err.println("Warning: ignoring extra AXIS_2 note");
+          noteList.remove(i);
+        }
+        else if (rval == BioRadNote.VERT_UNIT) {
+          if (vertUnit == null) vertUnit = note.unit;
+          else System.err.println("Warning: ignoring extra AXIS_3 note");
+          noteList.remove(i);
+        }
+        else if (rval == BioRadNote.INVALID_NOTE) noteList.remove(i);
+        else i++;
+      }
+      else i++;
+    }
+
+    // parse remaining notes
+    len = noteList.size();
+    for (i=0; i<len; i++) {
+      BioRadNote note = (BioRadNote) noteList.elementAt(i);
+      int rval = note.analyze();
+      if (rval == BioRadNote.METADATA) {
+        // CTR: TODO
+      }
+    }
+
     // convert image bytes to floats
     float[][][] samples = new float[npic][1][image_len];
     if (byte_format) {
       // each pixel is 8 bits
-      for (int i=0; i<npic; i++) {
+      for (i=0; i<npic; i++) {
         for (int l=0; l<image_len; l++) {
           int q = 0x000000ff & image_data[i][l];
           samples[i][0][l] = (float) q;
@@ -251,7 +298,7 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
     else {
       // each pixel is 16 bits
-      for (int i=0; i<npic; i++) {
+      for (i=0; i<npic; i++) {
         for (int l=0; l<image_len; l++) {
           int q = getUnsignedShort(
             image_data[i][2 * l], image_data[i][2 * l + 1]);
@@ -266,23 +313,25 @@ public class BioRadForm extends Form implements FormFileInformer {
     RealType y = RealType.getRealType("ImageLine");
     RealType rgb = RealType.getRealType("value");
     RealTupleType xy = new RealTupleType(x, y);
-    FunctionType image_function = new FunctionType(xy, rgb);
-    FunctionType time_function = new FunctionType(time, image_function);
+    FunctionType imageFunction = new FunctionType(xy, rgb);
+    FunctionType time_function = new FunctionType(time, imageFunction);
 
     // set up domain sets
-    Integer2DSet image_set = new Integer2DSet(nx, ny);
-    Integer1DSet time_set = new Integer1DSet(npic);
+    Integer2DSet imageSet = new Integer2DSet(RealTupleType.Generic2D,
+      nx, ny, null, new Unit[] {horizUnit, vertUnit}, null);
+    Integer1DSet timeSet = new Integer1DSet(npic);
 
     // set up fields
-    FlatField[] image_fields = new FlatField[npic];
-    for (int i=0; i<npic; i++) {
-      image_fields[i] = new FlatField(image_function, image_set);
-      image_fields[i].setSamples(samples[i], false);
+    FlatField[] imageFields = new FlatField[npic];
+    for (i=0; i<npic; i++) {
+      imageFields[i] = new FlatField(imageFunction, imageSet);
+      imageFields[i].setSamples(samples[i], false);
     }
-    FieldImpl time_field = new FieldImpl(time_function, time_set);
-    time_field.setSamples(image_fields, false);
+    FieldImpl timeField = new FieldImpl(time_function, timeSet);
+    timeField.setSamples(imageFields, false);
 
-    return time_field;
+    // compile data objects into tuple
+    return new Tuple(new Data[] {timeField, noteField}, false);
   }
 
   public FormNode getForms(Data data) {

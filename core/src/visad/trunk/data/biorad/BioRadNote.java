@@ -26,11 +26,31 @@ MA 02111-1307, USA
 
 package visad.data.biorad;
 
+import java.rmi.RemoteException;
 import java.util.StringTokenizer;
 import visad.*;
 
 /** A Bio-Rad note object. */
 public class BioRadNote {
+
+  /** Micron unit. */
+  public static final Unit micron = SI.meter.pow(-6);
+
+
+  // Return types for analyze()
+
+  /** Indicates that a VisAD Data object was computed. */
+  public static final int METADATA = 0;
+
+  /** Indicates that a Unit for the horizontal axis was computed. */
+  public static final int HORIZ_UNIT = 1;
+
+  /** Indicates that a Unit for the vertical axis was computed. */
+  public static final int VERT_UNIT = 2;
+
+  /** Indicates that this note is invalid. */
+  public static final int INVALID_NOTE = -1;
+
 
   // Note types
 
@@ -50,7 +70,7 @@ public class BioRadNote {
   private static final int NOTE_TYPE_LINE = 5;
 
   /** Collect mode info. */
-  private static final int NOTE_TYPE_COLLECT  = 6;
+  private static final int NOTE_TYPE_COLLECT = 6;
 
   /** Note from image #2. */
   private static final int NOTE_TYPE_FILE2 = 7;
@@ -75,8 +95,9 @@ public class BioRadNote {
 
   /** List of note types. */
   private static final String[] noteNames = {
-    "", "LIVE", "FILE1", "NUMBER", "USER", "LINE", "COLLECT", "FILE2",
-    "SCALEBAR", "MERGE", "THRUVIEW", "ARROW", "VARIABLE", "STRUCTURE"
+    "0", "LIVE", "FILE1", "NUMBER", "USER", "LINE", "COLLECT", "FILE2",
+    "SCALEBAR", "MERGE", "THRUVIEW", "ARROW", "12", "13", "14", "15",
+    "16", "17", "18", "19", "VARIABLE", "STRUCTURE"
   };
 
 
@@ -87,10 +108,72 @@ public class BioRadNote {
 
   /** Note is currently displayed. */
   private static final int NOTE_STATUS_DISPLAY = 0x0200;
-  
+
   /** Note has been positioned by the user. */
   private static final int NOTE_STATUS_POSITION = 0x0400;
 
+
+  // Note axis types
+
+  /** Distance im microns. */
+  private static final int axt_D = 1;
+
+  /** Time in sec. */
+  private static final int axt_T = 2;
+
+  /** Angle in degrees. */
+  private static final int axt_A = 3;
+
+  /** Intensity in grey levels. */
+  private static final int axt_I = 4;
+
+  /** 4-bit merged image. */
+  private static final int axt_M4 = 5;
+
+  /** Ratio. */
+  private static final int axt_R = 6;
+
+  /** Log Ratio. */
+  private static final int axt_LR = 7;
+
+  /** Product. */
+  private static final int axt_P = 8;
+
+  /** Calibrated concentration/pH. */
+  private static final int axt_C = 9;
+
+  /** Intensity in photons/sec. */
+  private static final int axt_PHOTON = 10;
+
+  /** RGB type (mixer/channel/colour). */
+  private static final int axt_RGB = 11;
+
+  /** SEQ type (eg "experiments" of a "method". */
+  private static final int axt_SEQ = 12;
+
+  /** 6th level of axis "nesting", on top of RGB &amp; SEQ. */
+  private static final int axt_6D = 13;
+
+  /** Time Course axis */
+  private static final int axt_TC = 14;
+
+  /** Intensity sigmoid calibrated concentration/pH. */
+  private static final int axt_S = 15;
+
+  /** Intensity log sigmoid calibrated concentration/pH. */
+  private static final int axt_LS = 16;
+
+  /** Mask for axis TYPE. */
+  private static final int axt_MASK = 0xFF;
+
+  /** Axis is XY, needs updating by LENS etc. */
+  private static final int axt_XY = 0x100;
+
+  /** Axis is word, only corresponds to axis[0]. */
+  private static final int axt_WORD = 0x200;
+
+
+  // Fields
 
   /** Level of this note. */
   int level;
@@ -113,6 +196,17 @@ public class BioRadNote {
   /** 80 characters of information. */
   String text;
 
+  /** Metadata object constructed from this note, if any. */
+  Data metadata;
+
+  /**
+   * If note has unit information, Unit measurement constructed from this note.
+   * If note contains other Metadata requiring a Unit, this field will be used
+   * in the construction of that metadata.
+   */
+  Unit unit;
+
+
   /** Constructs a new Bio-Rad note object. */
   public BioRadNote(int level, int num,
     int status, int type, int x, int y, String text)
@@ -124,16 +218,67 @@ public class BioRadNote {
     this.x = x;
     this.y = y;
     this.text = text;
+    if (BioRadForm.DEBUG) {
+      System.out.println("Note: level=" + level + ", num=" + num +
+        ", status=" + status + ", type=" + noteNames[type] +
+        ", x=" + x + ", y=" + y + ", text=" + text);
+    }
   }
 
-  /** Converts this Bio-Rad note into a VisAD Data object. */
-  public DataImpl getNoteAsData() {
+  static final TupleType noteTuple = makeNoteTuple();
+  
+  private static TupleType makeNoteTuple() {
+    try {
+      return new TupleType(new MathType[] {
+        RealType.getRealType("level"),
+        RealType.getRealType("num"),
+        RealType.getRealType("status"),
+        RealType.getRealType("type"),
+        RealType.getRealType("x"),
+        RealType.getRealType("y"),
+        TextType.getTextType("text")
+      });
+    }
+    catch (VisADException exc) { }
+    return null;
+  }
+
+  /** Gets a simple VisAD Data object representing this note. */
+  public DataImpl getNoteData() {
+    DataImpl[] d = new DataImpl[] {
+      new Real(level), new Real(num), new Real(status), new Real(type),
+      new Real(x), new Real(y), new Text(text)
+    };
+    try {
+      return new Tuple(noteTuple, d);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+    return null;
+  }
+
+  /** Whether this note has information about pixel spacing in microns. */
+  public boolean hasUnitInfo() {
+    if (type == NOTE_TYPE_VARIABLE) {
+      // VARIABLE = value
+      int sp = text.indexOf(" ");
+      if (sp >= 0) {
+        String v = text.substring(0, sp).trim();
+        String value = text.substring(sp + 1).trim();
+        if (v.equals("AXIS_2") || v.equals("AXIS_3")) return true;
+      }
+    }
+    return false;
+  }
+
+  /** Extracts information from this Bio-Rad note. */
+  public int analyze() {
     if (type == NOTE_TYPE_SCALEBAR) {
       // SCALEBAR = length angle
       StringTokenizer st = new StringTokenizer(text);
       if (st.countTokens() != 4) {
         warn();
-        return null;
+        return INVALID_NOTE;
       }
       String v = st.nextToken();
       String eq = st.nextToken();
@@ -148,20 +293,20 @@ public class BioRadNote {
         length < 0 || angle < 0)
       {
         warn();
-        return null;
+        return INVALID_NOTE;
       }
       // CTR: TODO: deal with extracted SCALEBAR information
     }
     else if (type == NOTE_TYPE_THRUVIEW) {
       // ignore (Reserved for Bio-Rad Image Processing Software ThruView)
-      return null;
+      return INVALID_NOTE;
     }
     else if (type == NOTE_TYPE_ARROW) {
       // ARROW = lx ly angle fill_type
       StringTokenizer st = new StringTokenizer(text);
       if (st.countTokens() != 6) {
         warn();
-        return null;
+        return INVALID_NOTE;
       }
       String v = st.nextToken();
       String eq = st.nextToken();
@@ -180,20 +325,26 @@ public class BioRadNote {
         !(fill_type.equals("Fill") || fill_type.equals("Outline")))
       {
         warn();
-        return null;
+        return INVALID_NOTE;
       }
       // CTR: TODO: deal with extracted ARROW information
     }
     else if (type == NOTE_TYPE_VARIABLE) {
       // VARIABLE = value
-      int eq = text.indexOf("=");
-      if (eq < 0) {
+      int sp = text.indexOf(" ");
+      if (sp < 0) {
         warn();
-        return null;
+        return INVALID_NOTE;
       }
-      String v = text.substring(0, eq).trim();
-      String value = text.substring(eq + 1).trim();
-      if (v.equals("RAMP_GAMMA1")) {
+      String v = text.substring(0, sp).trim();
+      String value = text.substring(sp + 1).trim();
+      if (v.equals("SCALE_FACTOR")) {
+        // calibration scale factor for microscope system that acquired image
+      }
+      else if (v.equals("LENS_MAGNIFICATION")) {
+        // floating point number of objective lens used to acquire image
+      }
+      else if (v.equals("RAMP_GAMMA1")) {
         // gamma factor applied to the LUT used to display image1
       }
       else if (v.equals("RAMP_GAMMA2")) {
@@ -234,11 +385,80 @@ public class BioRadNote {
       }
       else if (v.equals("AXIS_2")) {
         // horizontal axis information
-        // CTR: TODO: extract units
+        StringTokenizer st = new StringTokenizer(value);
+        if (st.countTokens() != 4) {
+          warn("AXIS_2");
+          return INVALID_NOTE;
+        }
+        int type = -1; // axt_D for distance in *m
+        int origin = -1; // position of left hand edge of image in *m
+        int inc = -1; // pixel step size (increment) in *m
+        try {
+          type = Integer.parseInt(st.nextToken());
+          origin = Integer.parseInt(st.nextToken());
+          inc = Integer.parseInt(st.nextToken());
+        }
+        catch (NumberFormatException exc) { }
+        if (type < 0 || origin < 0 || inc < 0) {
+          warn("AXIS_2");
+          return INVALID_NOTE;
+        }
+        // get text string describing the image X axis calibration
+        String label = st.nextToken();
+
+        // compute axis unit
+        if (type != axt_D) {
+          warn("AXIS_2");
+          return INVALID_NOTE;
+        }
+        try {
+          unit = micron.scale(inc).shift(origin);
+          return HORIZ_UNIT;
+        }
+        catch (UnitException exc) { }
+        return INVALID_NOTE;
       }
       else if (v.equals("AXIS_3")) {
         // vertical axis information
         // CTR: TODO: extract units
+        StringTokenizer st = new StringTokenizer(value);
+        if (st.countTokens() != 4) {
+          warn("AXIS_3");
+          return INVALID_NOTE;
+        }
+        int type = -1; // axt_D for distance in *m (or axt_T for time in s)
+        int origin = -1; // position of bottom edge of image in *m (or s)
+        int inc = -1; // pixel step size (increment) in *m (or s)
+        try {
+          type = Integer.parseInt(st.nextToken());
+          origin = Integer.parseInt(st.nextToken());
+          inc = Integer.parseInt(st.nextToken());
+        }
+        catch (NumberFormatException exc) { }
+        if (type < 0 || origin < 0 || inc < 0) {
+          warn("AXIS_3");
+          return INVALID_NOTE;
+        }
+        // get text string describing the image X axis calibration
+        String label = st.nextToken();
+
+        // compute axis unit
+        if (type == axt_D) {
+          try {
+            unit = micron.scale(inc).shift(origin);
+            return VERT_UNIT;
+          }
+          catch (UnitException exc) { }
+        }
+        else if (type == axt_T) {
+          try {
+            unit = SI.second.scale(inc).shift(origin);
+            return VERT_UNIT;
+          }
+          catch (UnitException exc) { }
+        }
+        warn();
+        return INVALID_NOTE;
       }
       else if (v.equals("AXIS_4")) {
         // image1 information
@@ -262,8 +482,8 @@ public class BioRadNote {
         // calibrated intensity information
       }
       else {
-        warn();
-        return null;
+        warn(v);
+        return INVALID_NOTE;
       }
     }
     else if (type == NOTE_TYPE_STRUCTURE) {
@@ -273,12 +493,19 @@ public class BioRadNote {
       // One of LIVE, FILE1, FILE2, NUMBER, USER, LINE, COLLECT, or MERGE
       // CTR: TODO: see Test45, but need Units first
     }
-    return null; // CTR: TEMP
+    return METADATA; // CTR: TEMP
   }
 
+  /** Prints a warning about this note to the standard error stream. */
   private void warn() {
-    System.err.println(
-      "Warning: invalid " + noteNames[type] + " note: \"" + text + "\"");
+    warn(null);
+  }
+
+  /** Prints a warning about this note to the standard error stream. */
+  private void warn(String subType) {
+    System.err.print("Warning: invalid " + noteNames[type] + " ");
+    if (subType != null) System.err.print("(" + subType + ") ");
+    System.err.println("note: \"" + text + "\"");
   }
 
 }
