@@ -2645,11 +2645,19 @@ public class FlatField extends FieldImpl {
     return (Function) derivative( null, d_partial_s, derivType_s, error_mode );
   }
 
-  /** resample range values of this to domain samples in set,
-      either by nearest neighbor or mulit-linear interpolation;
-      RangeSet objects in result are set to DoubleSet
-      NOTE may return this (i.e., not a copy);
-      NOTE this code is very similar to resample in Field.java */
+  /** Resample range values of this to domain samples in set,
+      either by nearest neighbor or mulit-linear interpolation.
+      NOTE this code is very similar to resample in Field.java
+      @param set		The set of points at which to resample this
+      				field.
+      @param sampling_mode	Resampling mode: Data.NEAREST_NEIGHBOR or
+				Data.WEIGHTED_AVERAGE
+      @param error_mode		Error estimation mode: Data.DEPENDENT,
+				Data.INDEPENDENT, or Data.NO_ERRORS.
+      @return			Field of resampled data.  RangeSet objects
+				in result are set to DoubleSet.  NOTE may
+				return this (i.e., not a copy).
+   */
   public Field resample(Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
     if (DomainSet.equals(set)) {
@@ -2755,8 +2763,8 @@ for (i=0; i<length; i++) {
         new_valuesJ = new_values[j];
         for (i=0; i<length; i++) {
           float v = Float.NaN;
-          int len = indices[i].length;
-          if (len > 0) {
+          int len = indices[i] == null ? 0 : indices[i].length;
+	  if (len > 0) {
             v = valuesJ[indices[i][0]] * coefs[i][0];
             for (k=1; k<len; k++) {
               v += valuesJ[indices[i][k]] * coefs[i][k];
