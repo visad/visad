@@ -55,6 +55,10 @@ public class Real
    *				<code>u.getAbsoluteUnit()</code>.
    * @param error		Error estimate of the Real.  May be
    *				<code>null</code>.
+   * @throws UnitException      if the default unit of the type is inconvertible
+   *                            with the unit argument (i.e. if <code>
+   *                            Unit.canConvert(u, type.getDefaultUnit())</code>
+   *                            returns false).
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public Real(RealType type, double value, Unit u, ErrorEstimate error)
