@@ -178,12 +178,11 @@ public class Vis5DForm extends Form implements FormFileInformer {
       new Vis5DCoordinateSystem(map_proj[0], proj_args[0], nr, nc);
 
     RealTupleType domain;
-    Vis5DVertCoordinateSystem vert_coord_sys = null;
+    Vis5DVerticalSystem vert_coord_sys = null;
 
     if (nl > 1) {
-      vert_coord_sys =
-        Vis5DVertCoordinateSystem.makeVis5DVertCoordinateSystem(
-          vert_sys[0], nl, vert_args[0]);
+      vert_coord_sys = 
+        new Vis5DVerticalSystem(vert_sys[0], nl, vert_args[0]);
 
       RealType height =
         (RealType)
@@ -193,9 +192,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
         new CartesianProductCoordinateSystem(
           new CoordinateSystem[]
             {coord_sys,
-             new IdentityCoordinateSystem(vert_coord_sys.getReference())} );
-
-      System.out.println(coord_sys.getReference());
+             new IdentityCoordinateSystem(vert_coord_sys.reference)});
 
       domain =
         new RealTupleType(
@@ -233,7 +230,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
     {
       RealTupleType row_col = new RealTupleType(new RealType[] {row, col});
       SampledSet row_col_set = new Integer2DSet(row_col, nr, nc);
-      SampledSet vert_set = vert_coord_sys.getVerticalSet();
+      SampledSet vert_set = vert_coord_sys.vertSet;
 
       space_set = new ProductSet(domain,
         new SampledSet[] {row_col_set, vert_set});
