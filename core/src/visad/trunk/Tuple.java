@@ -309,6 +309,13 @@ public class Tuple extends DataImpl {
     return s;
   }
 
+  /**
+   * Indicates if this Tuple is identical to another object.
+   * @param obj		The other object.
+   * @return		<code>true</code> if and only if the other object is
+   *			a Tuple and both Tuple-s have identical component
+   *			sequences.
+   */
   public boolean equals(Object obj) {
     boolean	equals;
     if (!(obj instanceof Tuple)) {
@@ -337,6 +344,10 @@ public class Tuple extends DataImpl {
     return equals;
   }
 
+  /**
+   * Returns the hash code of this object.
+   * @return		The hash code of this object.
+   */
   public int hashCode() {
     int	hashCode = 0;
     if (tupleComponents != null)
