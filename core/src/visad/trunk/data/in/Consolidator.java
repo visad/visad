@@ -75,6 +75,7 @@ public class Consolidator
 
     /**
      * Returns the same object until a {@link #receive(DataImpl)} is invoked.
+     * Does not copy the VisAD data objects.
      * May return <code>null</code>.
      */
     public synchronized final DataImpl getData()
@@ -99,7 +100,8 @@ public class Consolidator
 			    new RealTuple(
 				(Real[])components.toArray(new Real[0]))
 			: new Tuple(
-			    (DataImpl[])components.toArray(new DataImpl[0]));
+			    (DataImpl[])components.toArray(new DataImpl[0]),
+			    /*copy=*/false);
 	    }
 	}
 	return data;
