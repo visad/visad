@@ -233,18 +233,6 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         // no lighting in 2-D mode
         if (!mode.getMode2D()) material.setLightingEnable(true);
         appearance.setMaterial(material);
-/*
-        int format = geometry.getVertexFormat();
-        if (constant_color != null && (format & GeometryArray.COLOR_3  ) {
-          float[] fc = new float[];
-          Color3f c = new Color3f();
-          constant_color.getColor(c);
-          c.x;
-          c.y;
-          c.z;
-          geometry.setColors(0, fc);
-        }
-*/
       }
       if (constant_alpha != null) {
         appearance.setTransparencyAttributes(constant_alpha);
