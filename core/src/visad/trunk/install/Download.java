@@ -10,6 +10,9 @@ import java.io.IOException;
 
 import java.net.URL;
 
+/**
+ * Download a file from a URL to a local directory.
+ */
 public class Download
 {
   public Download() { }
@@ -21,16 +24,22 @@ public class Download
 
   public Download(URL url, File saveDir)
   {
-    if (!saveDir.isDirectory()) {
-      System.err.println("Bad directory \"" + saveDir + "\"");
-      System.exit(1);
-    }
-
     getFile(url, saveDir);
   }
 
+  /**
+   * Save the file found at the URL to the specified directory.
+   *
+   * @param url the file to download
+   * @param saveDir the directory to which the file is written
+   */
   public static void getFile(URL url, File saveDir)
   {
+    if (!saveDir.isDirectory()) {
+      System.err.println("Bad directory \"" + saveDir + "\"");
+      return;
+    }
+
     File baseFile = new File(url.getFile());
     String baseName = baseFile.getName();
 
