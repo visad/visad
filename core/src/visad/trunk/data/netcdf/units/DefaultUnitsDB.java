@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.16 1999-10-18 21:43:30 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.17 1999-10-18 22:48:11 steve Exp $
  */
 
 package visad.data.netcdf.units;
@@ -525,7 +525,9 @@ DefaultUnitsDB
 	/*
 	 * ACCELERATION
 	 */
-	pn("gal",		get("m").divide(get("s").pow(2)).scale(1e-2));
+	ps("Gal",		get("m").divide(get("s").pow(2)).scale(1e-2));
+						// avoid "gal" (gallon)
+	px("gals",		"Gal");		// avoid "gal" (gallon)
 
 	/*
 	 * AREA
@@ -823,6 +825,8 @@ DefaultUnitsDB
 	px("board foot",	"board feet");
 	pn("barrel",		"bbl");
 
+	ps("gal",		get("gallon"));	// "gal" is also
+						// (unused) acceleration unit
 	ps("oz",		"fluid ounce");
 	px("floz",		"fluid ounce");
 	pn("Tbl",		"tablespoon");
