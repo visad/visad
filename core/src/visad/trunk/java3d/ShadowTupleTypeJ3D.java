@@ -100,7 +100,13 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
   public boolean recurseComponent(int i, Object group, Data data,
              float[] value_array, float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
-    return tupleComponents[i].doTransform(group, data, value_array,
+    BranchGroup new_group = new BranchGroup();
+    new_group.setCapability(BranchGroup.ALLOW_DETACH);
+    new_group.setCapability(Group.ALLOW_CHILDREN_READ);
+    new_group.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    new_group.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    ((Group) group).addChild(new_group);
+    return tupleComponents[i].doTransform(new_group, data, value_array,
                                           default_values, renderer);
   }
 
