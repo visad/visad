@@ -891,6 +891,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         throws VisADException, RemoteException
   {
     if (displayRenderer == null) return;
+// System.out.println("addLink " + getName() + " " +
+//                    link.getData().getType()); // IDV
     super.addLink((ReferenceActionLink )link);
     if (syncRemote) {
       notifyListeners(new DisplayReferenceEvent(this,
@@ -1895,6 +1897,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
         throw new BadMappingException("DisplayImpl.addMap: " +
               map.getDisplayScalar() + " for ConstantMap only");
       }
+// System.out.println("addMap " + getName() + " " + map.getScalar() +
+//                    " -> " + map.getDisplayScalar()); // IDV
       map.setDisplay(this);
 
       if (map instanceof ConstantMap) {
@@ -1980,6 +1984,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
   public void removeMap(ScalarMap map, int remoteId)
          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
+// System.out.println("removeMap " + getName() + " " + map.getScalar() +
+//                    " -> " + map.getDisplayScalar()); // IDV
     synchronized (mapslock) {
       // can have multiple equals() maps to Shape, so test for ==
       int index = MapVector.indexOf(map);
@@ -2116,6 +2122,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    */
   public void clearMaps() throws VisADException, RemoteException {
     if (displayRenderer == null) return;
+// System.out.println("clearMaps " + getName() + "\n"); // IDV
     synchronized (mapslock) {
       if (!RendererVector.isEmpty()) {
 /* WLH relax addMap() & clearMap() 17 Dec 2002

@@ -2111,12 +2111,15 @@ if (spatial_values[0].length == 5329) {
                                     float[][] spatial_values, float flowScale,
                                     DataRenderer renderer)
          throws VisADException {
+// System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
+//                    + " " + renderer.getRealVectorTypes(which)); // IDV
     if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType)) {
       // only do this for EarthVectorType
       return flow_values;
     }
 
     int flen = flow_values[0].length;
+// System.out.println("flen = " + flen); // IDV
 
     // get flow_values maximum
     float scale = 0.0f;
