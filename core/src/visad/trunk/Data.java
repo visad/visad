@@ -1028,8 +1028,7 @@ public interface Data extends Thing {
   /** 
    * Recursive version of computeRanges(), called down through
    * Data object tree.
-   * @param type ShadowType generated for MathType of Data
-   *             object at top of Data object tree
+   * @param type ShadowType generated for MathType of this
    * @param shadow DataShadow instance whose contained double[][]
    *               array and animation sampling Set are modified
    *               according to RealType values in this, and used
