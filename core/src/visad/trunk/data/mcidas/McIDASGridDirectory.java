@@ -82,21 +82,20 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
     referenceTime = directory.getReferenceTime();
     validTime = directory.getValidTime();
     levelValue = directory.getLevelValue();
+
+    MetUnits mu = new MetUnits();
+    String su = directory.getParamUnitName();
+    String sl = directory.getLevelUnitName();
     try {
-      MetUnits mu = new MetUnits();
-      String su = directory.getParamUnitName();
-      String sl = directory.getLevelUnitName();
-      try {
-        paramUnit = Parser.parse(mu.makeSymbol(su));
-      } catch (ParseException pe) {
-        paramUnit = null;
-      }
-      try {
-        levelUnit = Parser.parse(mu.makeSymbol(sl));
-      } catch (ParseException pe) {
-        levelUnit = null;
-      }
-    } catch (VisADException e) {System.out.println(e);}
+      paramUnit = Parser.parse(mu.makeSymbol(su));
+    } catch (ParseException pe) {
+      paramUnit = null;
+    }
+    try {
+      levelUnit = Parser.parse(mu.makeSymbol(sl));
+    } catch (ParseException pe) {
+      levelUnit = null;
+    }
 
     secondLevelValue = directory.getSecondLevelValue();
     secondTime = directory.getSecondTime();
