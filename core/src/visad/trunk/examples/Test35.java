@@ -28,6 +28,7 @@ import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java2d.DisplayImplJ2D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java2d.DirectManipulationRendererJ2D;
+import visad.java3d.DisplayRendererJ3D;
 
 import visad.util.Delay;
 
@@ -75,6 +76,14 @@ public class Test35
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setPointSize(5.0f);
     mode.setPointMode(false);
+    mode.setScaleEnable(true);
+    DisplayRendererJ3D dr = (DisplayRendererJ3D) dpys[0].getDisplayRenderer();
+    dr.setClip(0, true,  1.0f,  0.0f,  0.0f, -1.0f);
+    dr.setClip(1, true, -1.0f,  0.0f,  0.0f, -1.0f);
+    dr.setClip(2, true,  0.0f,  1.0f,  0.0f, -1.0f);
+    dr.setClip(3, true,  0.0f, -1.0f,  0.0f, -1.0f);
+    dr.setClip(4, true,  0.0f,  0.0f,  1.0f, -1.0f);
+    dr.setClip(5, true,  0.0f,  0.0f, -1.0f, -1.0f);
 
     DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
     ref_direct.setData(direct);
@@ -108,11 +117,11 @@ public class Test35
     dpys[1].addReferences(new DirectManipulationRendererJ2D(), refs3, null);
   }
 
-  String getFrameTitle() { return "Java3D -- Java2D direct manipulation"; }
+  String getFrameTitle() { return "clipped Java3D -- Java2D direct manipulation"; }
 
   public String toString()
   {
-    return ": direct manipulation linking Java2D and Java3D";
+    return ": direct manipulation linking Java2D and clipped Java3D";
   }
 
   public static void main(String[] args)

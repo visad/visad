@@ -136,6 +136,7 @@ public abstract class DisplayRendererJ3D
   /** ModelClip stuff, done by reflection */
   private Method modelClipSetEnable = null;
   private Method modelClipSetPlane = null;
+  private Method modelClipAddScope = null;
   private Object modelClip = null;
 
   public DisplayRendererJ3D () {
@@ -439,33 +440,6 @@ public abstract class DisplayRendererJ3D
     setTransform3D(null);
     root.addChild(trans);
 
-    // WLH 23 Oct 2001
-    try {
-      Class modelClipClass = Class.forName("javax.media.j3d.ModelClip");
-      Class[] param = new Class[] {};
-      Constructor modelClipConstructor = modelClipClass.getConstructor(param);
-      param = new Class[] {int.class, boolean.class};
-      modelClipSetEnable = modelClipClass.getMethod("setEnable", param);
-      param = new Class[] {int.class, javax.vecmath.Vector4d.class};
-      modelClipSetPlane = modelClipClass.getMethod("setPlane", param);
-      modelClip = modelClipConstructor.newInstance(new Object[] {});
-      Boolean f = new Boolean(false);
-      for (int i=0; i<6; i++) {
-        modelClipSetEnable.invoke(modelClip, new Object[] {new Integer(i), f});
-      }
-      trans.addChild((Node) modelClip);
-    }
-    catch (ClassNotFoundException e) {
-    }
-    catch (NoSuchMethodException e) {
-    }
-    catch (InstantiationException e) {
-    }
-    catch (IllegalAccessException e) {
-    }
-    catch (InvocationTargetException e) {
-    }
-
     // create background
     background = new Background();
     background.setCapability(Background.ALLOW_COLOR_WRITE);
@@ -551,7 +525,88 @@ public abstract class DisplayRendererJ3D
     scale_switch.addChild(scale_on);
     scale_switch.setWhichChild(0); // initially off
 
+    // WLH 23 Oct 2001
+    try {
+      Class modelClipClass = Class.forName("javax.media.j3d.ModelClip");
+      Class[] param = new Class[] {};
+      Constructor modelClipConstructor = modelClipClass.getConstructor(param);
+      param = new Class[] {int.class, boolean.class};
+      modelClipSetEnable = modelClipClass.getMethod("setEnable", param);
+      param = new Class[] {int.class, javax.vecmath.Vector4d.class};
+      modelClipSetPlane = modelClipClass.getMethod("setPlane", param);
+      param = new Class[] {javax.media.j3d.Group.class};
+      modelClipAddScope = modelClipClass.getMethod("addScope", param);
+      param = new Class[] {int.class};
+      Method modelClipSetCapability =
+        modelClipClass.getMethod("setCapability", param);
+      param = new Class[] {javax.media.j3d.Bounds.class};
+      Method modelClipSetInfluencingBounds =
+        modelClipClass.getMethod("setInfluencingBounds", param);
+      modelClip = modelClipConstructor.newInstance(new Object[] {});
+      int ALLOW_PLANE_WRITE =
+        modelClipClass.getField("ALLOW_PLANE_WRITE").getInt(modelClip);
+      modelClipSetCapability.invoke(modelClip,
+                         new Object[] {new Integer(ALLOW_PLANE_WRITE)});
+      int ALLOW_ENABLE_WRITE =
+        modelClipClass.getField("ALLOW_ENABLE_WRITE").getInt(modelClip);
+      modelClipSetCapability.invoke(modelClip,
+                         new Object[] {new Integer(ALLOW_ENABLE_WRITE)});
+      Boolean f = new Boolean(false);
+      for (int i=0; i<6; i++) {
+        modelClipSetEnable.invoke(modelClip, new Object[] {new Integer(i), f});
+      }
+      BoundingSphere bound3 =
+        new BoundingSphere(new Point3d(0.0,0.0,0.0),2000000.0);
+      modelClipSetInfluencingBounds.invoke(modelClip, new Object[] {bound3});
+      background.setApplicationBounds(bound2);
+      modelClipAddScope.invoke(modelClip, new Object[] {non_direct});
+      trans.addChild((Node) modelClip);
+    }
+    catch (ClassNotFoundException e) {
+    }
+    catch (NoSuchMethodException e) {
+    }
+    catch (InstantiationException e) {
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (InvocationTargetException e) {
+    }
+    catch (NoSuchFieldException e) {
+    }
+
     return root;
+  }
+
+  // WLH 23 Oct 2001
+  /** define a clipping plane in (XAxis, YAxis, ZAxis) space
+      plane number must be in (0, ..., 5)
+      clip plane defined by ax + by + cz + d <= 0
+  */
+  public void setClip(int plane, boolean enable, float a, float b, float c, float d)
+         throws VisADException {
+    if (plane < 0 || 5 < plane) {
+      throw new DisplayException("plane must be in 0,...,5 range " + plane);
+    }
+    if (modelClip == null ||
+        modelClipSetEnable == null ||
+        modelClipSetPlane == null) {
+      throw new DisplayException("model clipping not supported in this " +
+                                 "version of Java3D");
+    }
+    Vector4d vect = new Vector4d((double) a, (double) b, (double) c, (double) d);
+    try {
+      Object[] params = {new Integer(plane), new Boolean(enable)};
+      modelClipSetEnable.invoke(modelClip, params);
+      params = new Object[] {new Integer(plane), vect};
+      modelClipSetPlane.invoke(modelClip, params);
+    }
+    catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
+    catch (InvocationTargetException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
