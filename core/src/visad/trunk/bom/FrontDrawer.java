@@ -374,6 +374,19 @@ public class FrontDrawer extends Object {
     }
   }
 
+  /** called by the application to end manipulation;
+      returns the final front */
+  public FieldImpl endManipulation()
+         throws VisADException, RemoteException {
+
+    display.removeReference(curve_ref);
+    // display.removeReference(front_ref);
+
+    // (front_index ->
+    //     ((Latitude, Longitude) -> (front_red, front_green, front_blue)))
+    return front;
+  }
+
   public void curveToFront(float[][] curve, boolean flip)
          throws VisADException, RemoteException {
     int len = curve[0].length;
@@ -621,10 +634,6 @@ public class FrontDrawer extends Object {
     end.addActionListener(fal);
     end.setActionCommand("end");
     button_panel.add(end);
-    JButton add = new JButton("add to track");
-    add.addActionListener(fal);
-    add.setActionCommand("add");
-    button_panel.add(add);
     panel.add(button_panel);
 
     // set size of JFrame and make it visible
@@ -636,6 +645,7 @@ public class FrontDrawer extends Object {
 class FrontActionListener implements ActionListener {
   FrontDrawer fd;
   DataReferenceImpl track_ref;
+  private static boolean debug = true;
 
   FrontActionListener(FrontDrawer f, DataReferenceImpl tr) {
     fd = f;
@@ -645,28 +655,14 @@ class FrontActionListener implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     if (cmd.equals("end")) {
-/*
       try {
-        // change
+        FieldImpl front = fd.endManipulation();
+        if (debug) System.out.println("end " + front.getType());
       }
       catch (VisADException ex) {
       }
       catch (RemoteException ex) {
       }
-*/
-    }
-    else if (cmd.equals("add")) {
-/*
-      try {
-        // change
-      }
-      catch (VisADException ex) {
-        ex.printStackTrace();
-      }
-      catch (RemoteException ex) {
-        ex.printStackTrace();
-      }
-*/
     }
   }
 }
