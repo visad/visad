@@ -48,9 +48,11 @@ drawLine(display, points[], color=None, mathtype=None)
   drawLine(name|display, points[], color=Color)
   "Color" is java.awt.Color
 
-drawString(display, string, point, color=None, center=0, font='futural',
+drawString(display, string, point[], color=None, center=0, font='futural',
 start=, base= up=, size=.1)
-  draw a string on the display; use 'size=' to set size.
+  draw a string on the display; use 'size=' to set size.  'point' is a
+  list/tuple of the starting coordinates (e.g., [1.3, 6.6]) in the
+  units of the scalars mapped to the x and y axes (or x,y,z if 3D).
 
 textShape(string, center=0 font='futural', start=, base=, up=, size=.1)
   Creates a VisADGeometryArray (shape) for this string. Used by
