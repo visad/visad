@@ -146,13 +146,13 @@ public class StepWidget extends JPanel
   }
 
   /** Gets the current value of the widget. */
-  public int getValue() { return cur; }
+  public int getValue() { return step.getValue(); }
 
   /** Gets the minimum value of the widget. */
-  public int getMinimum() { return min; }
+  public int getMinimum() { return step.getMinimum(); }
 
   /** Gets the maximum value of the widget. */
-  public int getMaximum() { return max; }
+  public int getMaximum() { return step.getMaximum(); }
 
   /** Sets the current value of the widget. */
   public void setValue(int cur) {
