@@ -216,10 +216,23 @@ public class MeasurePool implements DisplayListener {
       double mindist = Double.MAX_VALUE;
       int size = things.size();
       for (int i=0; i<size; i++) {
+        // skip multi-vertex measurements
         MeasureThing thing = (MeasureThing) things.elementAt(i);
         int len = thing.getLength();
         if (len > 2) continue;
+
+        // skip measurements not on this slice
         double[][] values = thing.getMeasurement().doubleValues();
+        boolean okay = false;
+        for (int j=0; j<len; j++) {
+          if (values[2][j] == slice) {
+            okay = true;
+            break;
+          }
+        }
+        if (!okay) continue;
+
+        // compute distance
         double dist;
         if (len == 1) {
           // compute point distance
@@ -280,6 +293,8 @@ public class MeasurePool implements DisplayListener {
 
   /** Refreshes the connecting lines of the measurements in the pool. */
   private void refreshLines() {
+    box.select(null);
+
     // redraw line segments when endpoints change
     Vector strips = new Vector();
     Vector colors = new Vector();
