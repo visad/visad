@@ -40,7 +40,7 @@ public class DisplayMapEvent extends DisplayEvent {
    * source display, type of event, and ScalarMap.
    *
    * @param  d  display that sends the event
-   * @param  id  type of DisplayReferenceEvent that is sent
+   * @param  id  type of DisplayMapEvent that is sent
    * @param m ScalarMap referenced by this event
    */
   public DisplayMapEvent(Display d, int id, ScalarMap m) {
@@ -52,7 +52,7 @@ public class DisplayMapEvent extends DisplayEvent {
    * source display, type of event, and ScalarMap.
    *
    * @param  d  display that sends the event
-   * @param  id  type of DisplayReferenceEvent that is sent
+   * @param  id  type of DisplayMapEvent that is sent
    * @param  m  ScalarMap referenced by this event
    * @param  remoteId  ID of remote source
    */
