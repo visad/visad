@@ -859,7 +859,7 @@ public class FieldImpl extends FunctionImpl implements Field {
             for ( kk = 0; kk < n_samples_0; kk++ ) {
               rangeData = field.getSample(kk);
               for ( jj = 0; jj < n_dims; jj++ ) {
-                 v_array[kk].add( ((RealTupleType)rangeData).getComponent(jj) );
+                 v_array[kk].add( ((RealTuple)rangeData).getComponent(jj) );
               }
             }
           }
@@ -921,6 +921,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           for ( kk = 0; kk < n_samples_0; kk++ ) {
             v_array[kk].add( field.getSample(kk) );
           }
+          allReal = false;
         }
       } //- all fields loop -*
 
