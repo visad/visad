@@ -175,18 +175,26 @@ public class SeriesChooser extends JPanel implements ActionListener {
     String p = prefix.getText();
     String c = count.getText();
     String t = (String) type.getSelectedItem();
-    int num = 1;
-    try {
-      num = Integer.parseInt(c);
-      if (num < 1) num = 1;
-    }
+    int num = 0;
+    try { num = Integer.parseInt(c); }
     catch (NumberFormatException exc) { }
     boolean dot = (t != null && !t.equals(""));
     if (dot) t = "." + t;
-    File[] series = new File[num];
-    for (int i=0; i<num; i++) {
-      String name = p + (i + 1) + (dot ? t : "");
-      series[i] = new File(name);
+
+    File[] series;
+    if (num < 1) {
+      // single file
+      series = new File[1];
+      String name = p + (dot ? t : "");
+      series[0] = new File(name);
+    }
+    else {
+      // series of files
+      series = new File[num];
+      for (int i=0; i<num; i++) {
+        String name = p + (i + 1) + (dot ? t : "");
+        series[i] = new File(name);
+      }
     }
     return series;
   }
@@ -211,52 +219,58 @@ public class SeriesChooser extends JPanel implements ActionListener {
       if (returnVal != JFileChooser.APPROVE_OPTION) return;
       File file = chooser.getSelectedFile();
 
-      // determine file prefix and extension
+      // determine file extension
       String name = file.getPath();
       int dot = name.lastIndexOf(".");
-      String prefix, ext;
+      String ext;
       if (dot >= 0) {
-        int i = dot;
-        while (true) {
-          if (i == 0) break;
-          char last = name.charAt(--i);
-          if (last < '0' || last > '9') break;
-        }
-        prefix = name.substring(0, i + 1);
         ext = name.substring(dot + 1);
+        name = name.substring(0, dot);
       }
-      else {
-        prefix = name;
-        ext = "";
+      else ext = "";
+
+      // determine file prefix
+      boolean series = false;
+      int i = name.length();
+      while (i > 0) {
+        char last = name.charAt(--i);
+        if (last < '0' || last > '9') break;
+        series = true;
       }
+      String prefix = name.substring(0, i + 1);
 
       // determine series count
-      File dir = file.getParentFile();
-      int maxFiles = dir.list(filter).length;
-      int min = 1;
-      int count = maxFiles / 2;
-      int max = maxFiles;
-      String end = (ext.equals("") ? "" : ".") + ext;
-      while (min != max) {
-        File top = new File(prefix + count + end);
-        File top1 = new File(prefix + (count + 1) + end);
-        boolean exists = top.exists();
-        boolean exists1 = top1.exists();
-        if (!exists) {
-          // guess is too high
-          max = count;
+      String count;
+      if (series) {
+        File dir = file.getParentFile();
+        int maxFiles = dir.list(filter).length;
+        int min = 1;
+        int guess = maxFiles / 2;
+        int max = maxFiles;
+        String end = (ext.equals("") ? "" : ".") + ext;
+        while (min != max) {
+          File top = new File(prefix + guess + end);
+          File top1 = new File(prefix + (guess + 1) + end);
+          boolean exists = top.exists();
+          boolean exists1 = top1.exists();
+          if (!exists) {
+            // guess is too high
+            max = guess;
+          }
+          else if (exists1) {
+            // guess is too low
+            min = guess;
+          }
+          else break;
+          guess = (min + max) / 2;
         }
-        else if (exists1) {
-          // guess is too low
-          min = count;
-        }
-        else break;
-        count = (min + max) / 2;
+        count = "" + guess;
       }
+      else count = "";
 
       // fill in text fields appropriately
       this.prefix.setText(prefix);
-      this.count.setText("" + count);
+      this.count.setText(count);
       this.type.setSelectedItem(ext);
       if (this.type.getSelectedItem() == null) this.type.addItem(ext);
     }
