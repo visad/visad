@@ -1,4 +1,4 @@
-// $Id: MultiArrayImpl.java,v 1.2 2002-05-29 20:32:39 steve Exp $
+// $Id: MultiArrayImpl.java,v 1.3 2003-02-03 20:09:04 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -28,8 +28,8 @@ import java.io.Serializable;
  *
  * @see MultiArray
  *
- * @author $Author: steve $
- * @version $Revision: 1.2 $ $Date: 2002-05-29 20:32:39 $
+ * @author $Author: donm $
+ * @version $Revision: 1.3 $ $Date: 2003-02-03 20:09:04 $
  */
 public class
 MultiArrayImpl
@@ -45,7 +45,7 @@ MultiArrayImpl
 	 * @param dimensions the shape.
 	 */
 	static public int
-	numberOfElements(int [] dimensions)
+	    numberOfElements(int [] dimensions)
 	{
 		int product = 1;
 		for(int ii = dimensions.length -1; ii >= 0; ii--)
@@ -498,6 +498,20 @@ MultiArrayImpl
 		return dst;
 	}
 
+	
+	/**
+	 * @see Accessor#getStorage
+	 */
+	public Object
+	    getStorage() {
+	    return storage;
+	}
+
+
+
+
+
+
 	/**
 	 * @see Accessor#toArray
 	 */
@@ -607,6 +621,7 @@ MultiArrayImpl
 	 * @serial
 	 */
 	public final Object storage;
+
 
 	/**
 	 * Right to left products used in indexMap() to compute

@@ -1,4 +1,4 @@
-// $Id: ArrayMultiArray.java,v 1.2 2002-05-29 20:32:38 steve Exp $
+// $Id: ArrayMultiArray.java,v 1.3 2003-02-03 20:09:03 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -38,8 +38,8 @@ import java.io.IOException;
  * @see MultiArray
  * @see ScalarMultiArray
  *
- * @author $Author: steve $
- * @version $Revision: 1.2 $ $Date: 2002-05-29 20:32:38 $
+ * @author $Author: donm $
+ * @version $Revision: 1.3 $ $Date: 2003-02-03 20:09:03 $
  */
 /*
  * Implementation note:
@@ -546,6 +546,10 @@ ArrayMultiArray
 	toArray()
 	{
 		return this.toArray(null, null, null);
+	}
+
+	public Object getStorage () {
+	    return jla;
 	}
 
 	/**

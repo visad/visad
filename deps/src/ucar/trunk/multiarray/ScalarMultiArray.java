@@ -1,4 +1,4 @@
-// $Id: ScalarMultiArray.java,v 1.2 2002-05-29 20:32:40 steve Exp $
+// $Id: ScalarMultiArray.java,v 1.3 2003-02-03 20:09:07 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -43,8 +43,8 @@ import java.lang.reflect.InvocationTargetException;
  * @see MultiArray
  * @see ArrayMultiArray
  *
- * @author $Author: steve $
- * @version $Revision: 1.2 $ $Date: 2002-05-29 20:32:40 $
+ * @author $Author: donm $
+ * @version $Revision: 1.3 $ $Date: 2003-02-03 20:09:07 $
  */
 public class
 ScalarMultiArray
@@ -480,6 +480,16 @@ ScalarMultiArray
 	{
 		return obj;
 	}
+	/**
+	 * TODO: fishy semantics.
+	 * @see Accessor#toArray
+	 */
+	 public Object
+	     getStorage()
+	{
+		return obj;
+	}
+
 
 	/**
 	 * TODO: fishy semantics.

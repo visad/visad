@@ -1,4 +1,4 @@
-// $Id: StringCharAdapter.java,v 1.2 2002-05-29 20:32:41 steve Exp $
+// $Id: StringCharAdapter.java,v 1.3 2003-02-03 20:09:07 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -27,8 +27,8 @@ import java.io.IOException;
  * one less rank with String componentType.
  *
  * @see MultiArray
- * @author $Author: steve $
- * @version $Revision: 1.2 $ $Date: 2002-05-29 20:32:41 $
+ * @author $Author: donm $
+ * @version $Revision: 1.3 $ $Date: 2003-02-03 20:09:07 $
  */
 public class StringCharAdapter implements MultiArray {
 
@@ -336,6 +336,17 @@ public class StringCharAdapter implements MultiArray {
 		throws IOException
 	{
 		return this.toArray(null, null, null);
+	}
+
+
+	/**
+	 * @see Accessor#toArray
+	 * TODO: optimize?
+	 */
+	public Object
+	    getStorage ()
+	{
+	    return delegate_.getStorage ();
 	}
 
 	/**
