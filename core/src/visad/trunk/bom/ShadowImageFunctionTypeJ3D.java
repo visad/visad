@@ -854,7 +854,11 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
         addToSwitch(swit, nodes[i]);
       }
-
+      for (int j=0; j<old_len; j++) {
+        if (!old_mark[j]) {
+          ((RendererJ3D) renderer).flush(old_nodes[j]);
+        }
+      }
       // make sure group is live
       ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
       // change animation sampling, but don't trigger re-transform
