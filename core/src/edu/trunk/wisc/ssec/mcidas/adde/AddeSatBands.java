@@ -15,9 +15,15 @@ public class AddeSatBands {
     c = cards;
   }
 
-  /** given a sensor and a cal type, return a list of bands possible
+  /** given a sensor and a source type, return a list of bands possible
+  * @param sensor is the satellite sensor ID number
+  * @param src is the sensor source code
+  * 
+  * @return String[] of channel words.  The array is 
+  * 1-based to match the customary way of numbering channels (bands),
+  * so element 0 is usually null
   */
-  public String[][] getBandDescr(int sensor, String cal) {
+  public String[] getBandDescr(int sensor, String src) {
     if (c == null) return null;
     int gotit = -1;
     Vector v = new Vector();
@@ -39,35 +45,36 @@ public class AddeSatBands {
 
     if (gotit == -1) return null;
 
-    // now look for Cal
-    int gotCal = -1;
+    // now look for Source
+    int gotSrc = -1;
     for (int i=gotit; i<c.length; i++) {
       if ( ! c[i].startsWith("Cal ")) continue;
-      String calVal = c[i].substring(4).trim();
-      if (calVal.equals(cal)) {
-        gotCal = i;
+      String srcVal = c[i].substring(4).trim();
+      if (srcVal.equals(src)) {
+        gotSrc = i;
         break;
       }
 
     }
 
-    if (gotCal == -1) return null;
-    gotCal++;
+    if (gotSrc == -1) return null;
 
-    for (int i=gotCal; i<c.length; i++) {
+    gotSrc++;
+
+    for (int i=gotSrc; i<c.length; i++) {
       if (c[i].startsWith("C") || c[i].startsWith("S") || c[i].startsWith("E")) break;
       if (c[i].startsWith("B") ) continue;
       String b = c[i].substring(0,2);
+      int bi = Integer.parseInt(b.trim());
       String d = c[i].substring(4);
-      v.addElement(b);
-      v.addElement(d);
+      if (bi >= v.size()) v.setSize(bi+1);
+      v.setElementAt(d, bi);
     }
 
-    int num = v.size()/2;
-    String[][] s = new String[2][num];
+    int num = v.size();
+    String[] s = new String[num];
     for (int i=0; i<num; i++) {
-      s[0][i] = (String) v.elementAt(2*i);
-      s[1][i] = (String) v.elementAt(2*i+1);
+      s[i] = (String) v.elementAt(i);
     }
 
     return s;
@@ -89,22 +96,22 @@ public class AddeSatBands {
       System.out.println("size of input file = "+num);
 
       String sat = "12";
-      String cal = "MSAT";
+      String src = "MSAT";
       if (a != null && a.length > 1) {
         sat = a[0];
-        cal = a[1];
+        src = a[1];
       }
       
       String[] sv = new String[num];
       for (int i=0; i<num; i++) { sv[i] = (String) v.elementAt(i); }
       AddeSatBands asb = new AddeSatBands(sv);
-      String[][] f = asb.getBandDescr(Integer.parseInt(sat), cal);
+      String[] f = asb.getBandDescr(Integer.parseInt(sat), src);
       System.out.println("return from addesatbands");
 
-      int numb = f[0].length;
+      int numb = f.length;
       System.out.println("length of return = "+numb);
       for (int i=0; i<numb; i++) {
-        System.out.println("band = value -> "+f[0][i]+" = "+f[1][i]);
+        System.out.println("band = value -> "+i+" = "+f[i]);
       }
 
     } catch (Exception e) {System.out.println(e);}
