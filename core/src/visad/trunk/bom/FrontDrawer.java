@@ -603,7 +603,7 @@ public class FrontDrawer extends Object {
     panel.add(display.getComponent());
 
     float[] bot_profile = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    float[] top_profile = {0.025f, 0.025f, 0.050f, 0.025f, 0.025f};
+    float[] top_profile = {0.015f, 0.015f, 0.090f, 0.015f, 0.015f};
     int[] red = {255, 255, 255, 255};
     int[] green = {255, 255, 255, 255};
     int[] blue = {255, 255, 255, 255};
