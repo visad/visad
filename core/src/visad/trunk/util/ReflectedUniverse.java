@@ -28,6 +28,7 @@ package visad.util;
 
 import visad.VisADException;
 import java.lang.reflect.*;
+import java.net.*;
 import java.util.*;
 
 /**
@@ -37,7 +38,26 @@ import java.util.*;
 public class ReflectedUniverse {
 
   /** Hashtable containing all variables present in the universe. */
-  private Hashtable variables = new Hashtable();
+  protected Hashtable variables;
+
+  /** Class loader for imported classes. */
+  protected ClassLoader loader;
+
+  /** Constructs a new reflected universe. */
+  public ReflectedUniverse() {
+    this(null);
+  }
+
+  /**
+   * Constructs a new reflected universe, with the given URLs
+   * representing additional search paths for imported classes
+   * (in addition to the CLASSPATH).
+   */
+  public ReflectedUniverse(URL[] urls) {
+    variables = new Hashtable();
+    loader = urls == null ?
+      getClass().getClassLoader() : new URLClassLoader(urls);
+  }
 
   /**
    * Returns whether the given object is compatible with the
@@ -79,7 +99,7 @@ public class ReflectedUniverse {
       String varName = dot < 0 ? command : command.substring(dot + 1);
       Class c;
       try {
-        c = Class.forName(command);
+        c = Class.forName(command, true, loader);
       }
       catch (ClassNotFoundException exc) {
         throw new VisADException("No such class: " + command);

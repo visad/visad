@@ -29,7 +29,7 @@ package visad.data.qt;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.rmi.RemoteException;
 import javax.swing.*;
 import visad.*;
@@ -70,7 +70,22 @@ public class QTForm extends Form
 
   private static ReflectedUniverse constructUniverse() {
     boolean needClose = false;
-    ReflectedUniverse r = new ReflectedUniverse();
+
+    // set up additional QuickTime for Java paths
+    URL[] paths = null;
+    try {
+      paths = new URL[] {
+        // Windows
+        new URL("file:/WinNT/System32/QTJava.zip"),
+        new URL("file:/Windows/System/QTJava.zip"),
+        // Mac OS X
+        new URL("file:/System/Library/Java/Extensions/QTJava.zip")
+      };
+    }
+    catch (MalformedURLException exc) { }
+
+    // create reflected universe
+    ReflectedUniverse r = new ReflectedUniverse(paths);
     try {
       r.exec("import quicktime.QTSession");
       r.exec("QTSession.open()");
@@ -101,6 +116,7 @@ public class QTForm extends Form
       r.exec("import quicktime.util.RawEncodedImage");
     }
     catch (VisADException exc) {
+      /* CTR TEMP */ exc.printStackTrace();
       noQT = true;
     }
     finally {
