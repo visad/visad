@@ -412,7 +412,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
               isoff = -off[j];
               a = 1.0f + c[j];
               b = -c[j];
-            }
+           }
             // float is & cs; adjust new offsets; split weights
             for (k=0; k<lis; k++) {
               is[k+lis] = is[k] + isoff;
@@ -428,8 +428,29 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     }
   }
 
+  /**
+   * Returns the indexes of the neighboring points for every point in the set.
+   * <code>neighbors.length</code> should be at least <code>getLength()</code>.
+   * On return, <code>neighbors[i][j]</code> will be the index of the <code>j
+   * </code>-th neighboring point of point <code>i</code>.  This method
+   * will allocate and set the array <code>neighbors[i]</code> for all
+   * <code>i</code>.  For points in the interior of the set, the number of
+   * neighboring points is equal to <code>2*getManifoldDimension()</code>.  The
+   * number of neighboring points decreases, however, if the point in question
+   * is an exterior point on a hyperface, hyperedge, or hypercorner.
+   *
+   * @param neighbors                The array to contain the indexes of the
+   *                                 neighboring points.
+   * @throws NullPointerException    if the array is <code>null</code>.
+   * @throws ArrayIndexOutOfBoundsException
+   *                                 if <code>neighbors.length < getLength()
+   *                                 </code>.
+   * @throws UnimplementedException  if this method doesn't yet handle instances
+   *                                 with the manifold dimension of this 
+   *                                 instance.
+   */
   public void getNeighbors( int[][] neighbors )
-              throws VisADException
+              throws UnimplementedException
   {
     int ii, ix, iy, iz, ii_R, ii_L, ii_U, ii_D, ii_F, ii_B;
     int LengthX;
@@ -776,6 +797,23 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     }
   }
 
+  /**
+   * Returns the indexes of the neighboring points along a manifold
+   * dimesion for every point in the set. Elements <code>[i][0]</code>
+   * and <code>[i][1]</code> of the returned array are the indexes of the
+   * neighboring sample points in the direction of decreasing and increasing
+   * manifold index, respectively, for sample point <code>i</code>.  If a sample
+   * point doesn't have a neighboring point (because it is an exterior point,
+   * for example) then the value of the corresponding index will be -1.
+   *
+   * @param manifoldIndex          The index of the manifold dimension along
+   *                               which to return the neighboring points.
+   * @throws ArrayIndexOutOfBoundsException
+   *                               if <code>manifoldIndex < 0 || 
+   *                               manifoldIndex >= getManifoldDimension()
+   *                               </code>.
+   * @see #getManifoldDimension()
+   */
   public int[][] getNeighbors( int manifoldIndex )
   {
     int[][] neighbors = new int[ Length ][2];
