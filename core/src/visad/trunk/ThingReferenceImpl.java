@@ -55,6 +55,12 @@ public class ThingReferenceImpl extends Object implements ThingReference {
       ThingReferenceImpl is not Serializable, but mark as transient anyway */
   transient Vector ListenerVector = new Vector();
 
+  /**
+   * Constructs from a name for the instance.
+   *
+   * @param name                   The name for this instance.
+   * @throws VisADException        if the name is <code>null</code>.
+   */
   public ThingReferenceImpl(String name) throws VisADException {
     if (name == null) {
       throw new VisADException("ThingReference: name cannot be null");
@@ -67,8 +73,14 @@ public class ThingReferenceImpl extends Object implements ThingReference {
     return thing;
   }
 
-  /** set this ThingReferenceImpl to refer to t;
-      must be local ThingImpl */
+  /**
+   * Sets the underlying thing to reference.
+   *
+   * @param t                      The thing to reference.
+   * @throws RemoteVisADException if the thing is a {@link RemoteThing}.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
+   */
   public synchronized void setThing(Thing t)
          throws VisADException, RemoteException {
 /* WLH 9 July 98
@@ -189,12 +201,19 @@ public class ThingReferenceImpl extends Object implements ThingReference {
     return Name;
   }
 
-  /** addThingChangedListener and removeThingChangedListener provide
-      ThingChangedEvent source semantics;
-      Action must be local ActionImpl */
-  public void addThingChangedListener(ThingChangedListener a, long id)
-         throws VisADException {
-    if (!(a instanceof ActionImpl)) {
+  /**
+   * Adds a listener for changes in the underlying {@link Thing}.  If the
+   * thing changes, then the listener is notified.
+   *
+   * @param listener              The listener.
+   * @param id                    I don't know (SRE 20020409).
+   * @throws RemoteVisADException if the listener isn't an {@link ActionImpl}.
+   * @throws ReferenceException   if the listener is already registered.
+   * @throws VisADException       if a VisAD failure occurs in a subsystem.
+   */
+  public void addThingChangedListener(ThingChangedListener listener, long id)
+         throws RemoteVisADException, ReferenceException, VisADException {
+    if (!(listener instanceof ActionImpl)) {
       throw new RemoteVisADException("ThingReferenceImpl.addThingChanged" +
                                      "Listener: Action must be local");
     }
@@ -202,11 +221,11 @@ public class ThingReferenceImpl extends Object implements ThingReference {
       if (ListenerVector == null) ListenerVector = new Vector();
     }
     synchronized(ListenerVector) {
-      if (findThingChangedLink((ActionImpl) a) != null) {
+      if (findThingChangedLink((ActionImpl) listener) != null) {
         throw new ReferenceException("ThingReferenceImpl.addThingChangedListener:" +
                                      " link to Action already exists");
       }
-      ListenerVector.addElement(new ThingChangedLink((ActionImpl) a, id));
+      ListenerVector.addElement(new ThingChangedLink((ActionImpl) listener, id));
     }
   }
 

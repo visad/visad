@@ -75,12 +75,16 @@ public class ThingImpl
   public ThingImpl() {
   }
 
-  /** add a ThingReference to this ThingImpl;
-      must be local ThingReferenceImpl;
-      called by ThingReference.setThing;
-      would like 'default' visibility here, but must be declared
-      'public' because it is defined in the Thing interface */
-  public void addReference(ThingReference r) throws VisADException {
+  /**
+   * Adds a listener for changes to this thing.  The listener will be notified
+   * when this thing changes.
+   *
+   * @param r                     The listener for changes.
+   * @throws RemoteVisADException if the listener isn't a {@link
+   *                              ThingReferenceImpl}.
+   * @throws VisADException       if a VisAD failure occurs.
+   */
+  public void addReference(ThingReference r) throws RemoteVisADException {
     if (!(r instanceof ThingReferenceImpl)) {
       throw new RemoteVisADException("ThingImpl.addReference: must use " +
                                      "ThingReferenceImpl");
