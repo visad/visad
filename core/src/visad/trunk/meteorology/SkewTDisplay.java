@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.1 1998-08-12 17:17:21 visad Exp $
+ * $Id: SkewTDisplay.java,v 1.2 1998-08-12 17:44:33 visad Exp $
  */
 
 package visad.meteorology;
@@ -140,6 +140,10 @@ SkewTDisplay
     configureDisplayForIsotherms()
 	throws	VisADException, RemoteException
     {
+	/*
+	 * Define a field of temperature which will result in correct
+	 * isotherm contours.
+	 */
 	MathType	domainType = 
 	    new RealTupleType(new RealType[] {RealType.XAxis, RealType.YAxis});
 	RealType	rangeType = new RealType("temperature contour");
@@ -158,13 +162,21 @@ SkewTDisplay
 
 	temperature.setSamples(new float[][] {ptCoords[1]}, /*copy=*/false);
 
+	/*
+	 * Map the X and Y coordinates of the field to the display X and Y
+	 * coordinates.
+	 */
 	ScalarMap	xMap = new ScalarMap(RealType.XAxis, Display.XAxis);
 	ScalarMap	yMap = new ScalarMap(RealType.YAxis, Display.YAxis);
-	ScalarMap	contourMap = new ScalarMap(rangeType,
-	    Display.IsoContour);
 
 	display.addMap(xMap);
 	display.addMap(yMap);
+
+	/*
+	 * Establish the isotherm contours.
+	 */
+	ScalarMap	contourMap = new ScalarMap(rangeType,
+	    Display.IsoContour);
 	display.addMap(contourMap);
 
 	ContourControl	control = (ContourControl)contourMap.getControl();
@@ -172,6 +184,9 @@ SkewTDisplay
 	    (float)skewTCoordSys.minTAtMinP,
 	    (float)skewTCoordSys.maxTAtMaxP, baseIsotherm);
 
+	/*
+	 * Create a data-reference for the contours.
+	 */
 	DataReferenceImpl	isothermRef =
 	    new DataReferenceImpl("isothermRef");
 	isothermRef.setData(temperature);
