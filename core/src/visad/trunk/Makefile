@@ -36,11 +36,19 @@ default:
 .SUFFIXES : .java .class
 
 .java.class:
-	javac $<
+	$(JC) $(JFLAGS) $<
 
 JC = javac
 JFLAGS = -J-mx32m
+
+# to always use IBM's 'jikes' compiler, uncomment the following two lines
+#JC = jikes
+#JFLAGS =
+
 RMIC=rmic
+
+# to always use the Nexus RMI compiler, uncomment the next line
+#RMIC=nexusrmic
 
 JAVADIR = /opt/java
 
@@ -477,6 +485,9 @@ tojava:
 	nexus2java `find ../ucar -name "*.java"`
 	nexus2java `find ../nom -name "*.java"`
 	nexus2java `find ../edu -name "*.java"`
+
+jikes_compile:
+	make JC=jikes JFLAGS= compile
 
 java_version:
 	java -fullversion
