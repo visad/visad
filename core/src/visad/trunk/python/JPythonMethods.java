@@ -159,12 +159,13 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static void plot(String name, DataImpl data,
+  public static void plot(String namxe, DataImpl data,
     boolean editMaps, double red, double green, double blue)
     throws VisADException, RemoteException
   {
     if (data == null) throw new VisADException("Data cannot be null");
-    if (name == null) name = DEFAULT_NAME;
+    if (namxe == null) namxe = DEFAULT_NAME;
+    final String name = namxe;
     BasicSSCell display;
     synchronized (frames) {
       display = BasicSSCell.getSSCellByName(name);
@@ -172,6 +173,7 @@ public abstract class JPythonMethods {
       if (display == null) {
         display = new FancySSCell(name);
         display.setDimension(BasicSSCell.JAVA3D_3D);
+        //display.setDimension(BasicSSCell.JAVA2D_2D);
         display.setPreferredSize(new Dimension(256, 256));
         frame = new JFrame("VisAD Display Plot (" + name + ")");
         frames.put(name, frame);
@@ -181,34 +183,51 @@ public abstract class JPythonMethods {
         pane.add(display);
 
         // add buttons to cell layout
-        JButton maps = new JButton("Maps");
+        JButton maps = new JButton("Mappings");
+        JButton controls = new JButton("Controls");
         JButton clear = new JButton("Clear");
+        JButton close = new JButton("Close");
         JPanel buttons = new JPanel();
         buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
         buttons.add(maps);
+        buttons.add(controls);
         buttons.add(clear);
+        buttons.add(close);
         pane.add(buttons);
         final FancySSCell fdisp = (FancySSCell) display;
+        fdisp.setAutoShowControls(false);
+
         maps.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             fdisp.addMapDialog();
           }
         });
+        controls.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            fdisp.showWidgetFrame();
+          }
+        });
+        close.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            try { fdisp.smartClear(); clearplot(name);}
+            catch (Exception ec) {;}
+          }
+        });
         clear.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
-            try {
-              fdisp.smartClear();
-            }
+            try { fdisp.smartClear(); }
             catch (VisADException exc) { }
             catch (RemoteException exc) { }
           }
         });
+
         frame.pack();
       }
       else {
         frame = (JFrame) frames.get(name);
       }
       frame.setVisible(true);
+      frame.toFront();
     }
 
     ConstantMap[] cmaps = {
@@ -1380,6 +1399,30 @@ public abstract class JPythonMethods {
         ((FunctionType)data.getType()).getRange()).getDimension();
   }
 
+  /** get the domain Type for the field
+  *
+  * @param data is the field to get the domain Type for
+  *
+  * @return the domain
+  */
+  public static RealTupleType domainType(Data data) 
+                  throws VisADException, RemoteException {
+    return (RealTupleType) ((FunctionType)data.getType()).getDomain();
+  
+  }
+
+  /** get the range Type for the field
+  *
+  * @param data is the field to get the range Type for
+  *
+  * @return the range
+  */
+  public static RealTupleType rangeType(Data data) 
+                  throws VisADException, RemoteException {
+    return (RealTupleType) ((FunctionType)data.getType()).getRange();
+  
+  }
+
   /**
    * get the name of the given component of the domain RealType.
    * 
@@ -1431,13 +1474,203 @@ public abstract class JPythonMethods {
     return (visad.data.netcdf.units.Parser.parse(name));
   }
 
-
-/* NOT DONE
-  public static Set linear(MathType type, double first, double last, int length)
-         throws VisADException, RemoteException {
-    return null;
+  /** create a Linear1DSet for domain samples
+  *
+  * @param first is the first value in the linear set
+  * @param last is the last value in the linear set
+  * @param length is the number of values in the set
+  *
+  * @return the created visad.Linear1DSet
+  */
+  public static Linear1DSet makeDomain 
+                       (double first, double last, int length) 
+                       throws VisADException {
+    return new Linear1DSet(first, last, length );
   }
-*/
+
+  /** create a Linear1DSet for domain samples
+  *
+  * @param type is the VisAD MathType of this set
+  * @param first is the first value in the linear set
+  * @param last is the last value in the linear set
+  * @param length is the number of values in the set
+  *
+  * @return the created visad.Linear1DSet
+  */
+  public static Linear1DSet makeDomain
+           (MathType type, double first, double last, int length) 
+           throws VisADException {
+    return new Linear1DSet(type, first, last, length);
+  }
+
+  public static Linear1DSet makeDomain(double[] vals) {
+    //if vals is sorted, make a Gridded1DSet; otherwise, Irregular1DSet
+    return (Linear1DSet) null;
+  }
+  public static Linear1DSet makeDomain(MathType type, double[] vals) {
+    //if vals is sorted, make a Gridded1DSet; otherwise, Irregular1DSet
+    return (Linear1DSet) null;
+  }
+
+
+  /** create a Linear2DSet for domain samples
+  *
+  * @param first1 is the first value in the linear set's 1st dimension
+  * @param last1 is the last value in the linear set's 1st dimension
+  * @param length1 is the number of values in the set's 1st dimension
+  * @param first2 is the first value in the linear set's 2nd dimension
+  * @param last2 is the last value in the linear set's 2nd dimension
+  * @param length2 is the number of values in the set's 2nd dimension
+  *
+  * @return the created visad.Linear2DSet
+  */
+  public static Linear2DSet makeDomain
+                    (double first1, double last1, int length1,
+                     double first2, double last2, int length2) 
+                     throws VisADException {
+    return new Linear2DSet(first1, last1, length1, 
+                            first2, last2, length2);
+  }
+
+  /** create a Linear2DSet for domain samples
+  *
+  * @param type is the VisAD MathType of this set
+  * @param first1 is the first value in the linear set's 1st dimension
+  * @param last1 is the last value in the linear set's 1st dimension
+  * @param length1 is the number of values in the set's 1st dimension
+  * @param first2 is the first value in the linear set's 2nd dimension
+  * @param last2 is the last value in the linear set's 2nd dimension
+  * @param length2 is the number of values in the set's 2nd dimension
+  *
+  * @return the created visad.Linear2DSet
+  */
+  public static Linear2DSet makeDomain (MathType type, 
+                         double first1, double last1, int length1, 
+                         double first2, double last2, int length2) 
+                         throws VisADException {
+    return new Linear2DSet(type, first1, last1, length1, 
+                                  first2, last2, length2);
+  }
+
+  /** create a Linear3DSet for domain samples
+  *
+  * @param first1 is the first value in the linear set's 1st dimension
+  * @param last1 is the last value in the linear set's 1st dimension
+  * @param length1 is the number of values in the set's 1st dimension
+  * @param first2 is the first value in the linear set's 2nd dimension
+  * @param last2 is the last value in the linear set's 2nd dimension
+  * @param length2 is the number of values in the set's 2nd dimension
+  * @param first3 is the first value in the linear set's 3rd dimension
+  * @param last3 is the last value in the linear set's 3rd dimension
+  * @param length3 is the number of values in the set's 3rd dimension
+  * @return the created visad.Linear3DSet
+  */
+  public static Linear3DSet makeDomain 
+                    (double first1, double last1, int length1,
+                     double first2, double last2, int length2,
+                     double first3, double last3, int length3) 
+                     throws VisADException {
+    return new Linear3DSet(first1, last1, length1, 
+                            first2, last2, length2,
+                            first3, last3, length3);
+  }
+
+  /** create a Linear3DSet for domain samples
+  *
+  * @param type is the VisAD MathType of this set
+  * @param first1 is the first value in the linear set's 1st dimension
+  * @param last1 is the last value in the linear set's 1st dimension
+  * @param length1 is the number of values in the set's 1st dimension
+  * @param first2 is the first value in the linear set's 2nd dimension
+  * @param last2 is the last value in the linear set's 2nd dimension
+  * @param length2 is the number of values in the set's 2nd dimension
+  * @param first3 is the first value in the linear set's 3rd dimension
+  * @param last3 is the last value in the linear set's 3rd dimension
+  * @param length3 is the number of values in the set's 3rd dimension
+  * @return the created visad.Linear3DSet
+  */
+  public static Linear3DSet makeDomain (MathType type, 
+                         double first1, double last1, int length1, 
+                         double first2, double last2, int length2,
+                         double first3, double last3, int length3) 
+                         throws VisADException {
+    return new Linear3DSet(type, first1, last1, length1, 
+                                  first2, last2, length2,
+                                  first3, last3, length3);
+  }
+
+  public static Set getDomain(Data data) 
+             throws VisADException, RemoteException {
+    return (Set) ((Field)data).getDomainSet();
+  }
+
+
+  /** resample the data field into the defined domain set
+  *
+  * @param data is the input Field
+  * @param s is the Set which must have a domain MathType identical
+  *   to data's original
+  *
+  * @return the new Field
+  */
+  public static Field resample(Field data, Set s) 
+             throws VisADException, RemoteException {
+    return data.resample(s,0,0);
+  }
+
+  /** extracts a component of the Field
+  *
+  * @param data the field with multiple range componenents
+  * @param t the MathType of the field to extract
+  *
+  * @return the new Field
+  */
+  public static Field extract(Field data, MathType t) 
+             throws VisADException, RemoteException {
+    return ((FieldImpl)data).extract(t);
+
+  }
+
+  /** extracts a component of the Field
+  *
+  * @param data the field with multiple range componenents
+  * @param s the name of the components to extract
+  *
+  * @return the new Field
+  */
+  public static Field extract(Field data, String s) 
+             throws VisADException, RemoteException {
+    return ((FieldImpl)data).extract(s);
+
+  }
+
+  /** extracts a component of the Field
+  *
+  * @param data the field with multiple range componenents
+  * @param comp the index of the component to extract
+  *
+  * @return the new Field
+  */
+  public static Field extract(Field data, int comp) 
+             throws VisADException, RemoteException {
+    return ((FieldImpl)data).extract(comp);
+
+  }
+
+  /** factors out the given MathType from the domain of
+  * the data object.  For example, if the data has a
+  * MathType:  (Line, Element)->(value)
+  * then factoring out Element, creates a new data
+  * object with a MathType:  Element->(Line->(value))
+  *
+  * @param factor is the domain component Type to factor out
+  *
+  * @return the new Field
+  */
+  public static Field domainFactor(Field data, RealType factor) 
+             throws VisADException, RemoteException {
+    return ((FieldImpl)data).domainFactor(factor);
+  }
 
 }
 
