@@ -61,14 +61,14 @@ public class Test37
     throws RemoteException, VisADException
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ3D("display");
+    dpys[0] = new DisplayImplJ2D("display");
     return dpys;
   }
 
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType[] types = {RealType.Latitude, RealType.Longitude, RealType.Altitude};
+    RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
     RealType vis_radiance = RealType.getRealType("vis_radiance", null, null);
     RealType ir_radiance = RealType.getRealType("ir_radiance", null, null);
@@ -90,36 +90,31 @@ public class Test37
     int nr = size;
     int nc = size;
     double ang = 2*Math.PI/nr;
-    float[][] locs = new float[3][nr*nc];
+    float[][] locs = new float[2][nr*nc];
     for ( int jj = 0; jj < nc; jj++ ) {
       for ( int ii = 0; ii < nr; ii++ ) {
         int idx = jj*nr + ii;
         locs[0][idx] = ii;
         locs[1][idx] = jj;
-        locs[2][idx] =
-          2f*((float)Math.sin(2*ang*ii)) + 2f*((float)Math.sin(2*ang*jj));
       }
     }
 
     if (!reverse) {
-      Gridded3DSet d_set =
-        new Gridded3DSet(earth_location, locs, nr, nc);
+      Gridded2DSet d_set =
+        new Gridded2DSet(earth_location, locs, nr, nc);
        imaget1 = new FlatField(image_tuple, d_set);
        FlatField.fillField(imaget1, step, half);
     }
     else {
-      Gridded3DSet d_set =
-        new Gridded3DSet(earth_locationxx, locs, nr, nc);
+      Gridded2DSet d_set =
+        new Gridded2DSet(earth_locationxx, locs, nr, nc);
       imaget1 = new FlatField(image_tuplexx, d_set);
       FlatField.fillField(imaget1, step, half);
     }
 
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    ScalarMap zmap = new ScalarMap(RealType.Altitude, Display.ZAxis);
-    dpys[0].addMap(zmap);
     dpys[0].addMap(new ScalarMap(vis_radiance, Display.RGB));
-    zmap.setRange(-20, 20);
     ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     dpys[0].addMap(map1contour);
     ContourControl ctr_cntrl = (ContourControl) map1contour.getControl();
