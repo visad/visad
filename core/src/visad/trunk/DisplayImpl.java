@@ -677,6 +677,16 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     adaptedDisplayRemoveReference((DataReference) ref);
   }
 
+  void removeLinks(DataDisplayLink[] links)
+    throws RemoteException, VisADException
+  {
+    for (int i = links.length - 1; i >= 0; i--) {
+      links[i].clearMaps();
+    }
+
+    super.removeLinks(links);
+  }
+
   /** remove link to a DataReference;
       method for use by RemoteActionImpl.removeReference that adapts this
       ActionImpl;
