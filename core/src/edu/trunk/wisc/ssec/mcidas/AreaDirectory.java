@@ -121,7 +121,7 @@ public class AreaDirectory
                 "NOAA-17",
                 "NOAA-18",
                 "NOAA-19",
-                "GOES 8 imager",
+                "GOES 8 imager", // 70
                 "GOES 8 sounder",
                 "GOES 9 imager",
                 "GOES 9 sounder",
