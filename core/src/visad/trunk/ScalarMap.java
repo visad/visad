@@ -235,11 +235,14 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     if (scale_flag) makeScale();
   }
 
-  /** get the Control this ScalarMap is linked to;
-      the Control is constructed when this ScalarMap is linked to
-      a Display via an invocation of the Display's addMap method;
-      not all ScalarMaps have Controls, generally depending on the
-      ScalarMap's DisplayRealType */
+  /**
+   * Gets the Control for the DisplayScalar.  The Control is constructed 
+   * when this ScalarMap is linked to a Display via an invocation of the 
+   * Display's <code>addMap()</code> method.  Not all ScalarMaps have Controls,
+   * generally depending on the ScalarMap's DisplayRealType.
+   * @return			The Control for the DisplayScalar or <code>
+   *				null</code> if one has not yet been set.
+   */
   public Control getControl() {
     return control;
   }
@@ -282,7 +285,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       DisplayRealType (both must have Units and they must be
       convertable; if neither this nor setRange is invoked, then
       the range will be computed from the initial values of Data
-      objects linked to the Display by autoscaling logic */
+      objects linked to the Display by autoscaling logic. */
   public void setRangeByUnits()
          throws VisADException, RemoteException {
     isManual = true;

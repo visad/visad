@@ -62,7 +62,7 @@ doc:		javadocs
 
 javadocs:	$(DOCDIR) FORCE
 	$(JAVADOC) -J-mx64m -d $(DOCDIR) -overview overview.html \
-	    -title 'VisAD API Specification' \
+	    -windowtitle 'VisAD API Specification' \
 	    visad \
 	    visad.data \
 	    visad.data.fits \
@@ -113,3 +113,5 @@ metapps.jar:
 	} || { rm -f $$jarfile; exit 1; }
 
 include rules.make
+
+include depend

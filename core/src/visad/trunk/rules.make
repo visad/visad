@@ -4,8 +4,8 @@ all:		classes
 
 classes:	FORCE
 	@case "$(JAVASRCS)" in \
-	    '') set -x; $(JAVAC) *.java ;; \
-	    *)  set -x; $(JAVAC) $(JAVASRCS) ;; \
+	    '') $(MAKE) `ls *.java | sed 's/\.java/.class/g'`;; \
+	    *) $(MAKE) `echo $(JAVASRCS) | sed 's/\.java/.class/g'`;; \
 	esac
 
 test:		classes

@@ -225,7 +225,7 @@ public class FlatField extends FieldImpl {
       Unit[] type_units;
       if (range_coord_syses != null) {
         throw new CoordinateSystemException("FlatField: Real Function" +
-               " Type requires single range coordinate syste");
+               " Type requires single range coordinate system");
       }
       RangeCoordinateSystems = null;
       RangeCoordinateSystem = FlatRange.getCoordinateSystem();

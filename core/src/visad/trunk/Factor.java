@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Factor.java,v 1.2 1998-02-20 16:53:33 billh Exp $
+ * $Id: Factor.java,v 1.3 1999-01-20 18:31:25 steve Exp $
  */
 
 package visad;
@@ -51,11 +51,13 @@ final class Factor
     /**
      * Return a string representation of this factor.
      *
-     * @return	A string representation of this factor (e.g. "meter^-2").
+     * @return	A string representation of this factor (e.g. "m-2").
      */
     public String toString()
     {
-	return "(" + baseUnit.toString() + ")^" + power;
+	return power == 1
+		? baseUnit.toString()
+		: baseUnit.toString() + power;
     }
 
   public boolean equals(Factor factor) {
