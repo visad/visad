@@ -207,7 +207,7 @@ public class CollectiveBarbManipulation extends Object
     force_station = fs;
     knots = kts;
 
-    // station = sta;
+    // station = sta; // NEW
 
     if (display1 == null && display2 == null) {
       throw new CollectiveBarbException("display1 and display2 cannot " +
@@ -267,7 +267,6 @@ public class CollectiveBarbManipulation extends Object
     int azimuth12 = -1;
     int radial12 = -2;
     if (display1 != null) {
-      display1.disableAction();
       Vector scalar_map_vector = display1.getMapVector();
       for (int i=0; i<tuple_dim; i++) {
         RealType real = real_types[i];
@@ -308,7 +307,6 @@ public class CollectiveBarbManipulation extends Object
     azimuth12 = -1;
     radial12 = -2;
     if (display2 != null) {
-      display2.disableAction();
       Vector scalar_map_vector = display2.getMapVector();
       for (int i=0; i<tuple_dim; i++) {
         RealType real = real_types[i];
@@ -373,7 +371,7 @@ public class CollectiveBarbManipulation extends Object
 
     setupData(); // new data
 
-    // better have CellImpl in place before addControlListener
+    // better have CellImpl in place before addControlListener // NEW
     stepper_ref = new DataReferenceImpl("stepper");
     stepper = new Stepper();
     stepper.addReference(stepper_ref);
@@ -447,13 +445,9 @@ public class CollectiveBarbManipulation extends Object
       circle_renderer[1].suppressExceptions(true);
     }
 
-    releaser_ref = new DataReferenceImpl("releaser");
+    releaser_ref = new DataReferenceImpl("releaser"); // NEW
     releaser = new Releaser();
     releaser.addReference(releaser_ref);
-
-    if (display1 != null) display1.enableAction();
-    if (display2 != null) display2.enableAction();
-
   }
 
 
@@ -591,7 +585,7 @@ public class CollectiveBarbManipulation extends Object
       barb_monitors[i] = new BarbMonitor(station_refs[i], i);
       barb_monitors[i].addReference(station_refs[i]);
     }
-    stepper_ref.setData(null);
+    // stepper_ref.setData(null); // NEW
   }
 
 
@@ -617,14 +611,10 @@ public class CollectiveBarbManipulation extends Object
 
   public void addStation(FlatField station)
          throws VisADException, RemoteException {
-    if (display1 != null) display1.disableAction();
-    if (display2 != null) display2.disableAction();
     synchronized (data_lock) {
       // check MathType of station
       FunctionType ftype = (FunctionType) station.getType();
       if (!wind_station_type.equals(ftype)) {
-        if (display1 != null) display1.enableAction();
-        if (display2 != null) display2.enableAction();
         throw new CollectiveBarbException("station type doesn't match");
       }
 
@@ -647,18 +637,13 @@ public class CollectiveBarbManipulation extends Object
         setupStations();
       }
       catch (VisADException e) {
-        if (display1 != null) display1.enableAction();
-        if (display2 != null) display2.enableAction();
         throw e;
       }
       catch (RemoteException e) {
-        if (display1 != null) display1.enableAction();
-        if (display2 != null) display2.enableAction();
         throw e;
       }
-    }
-    if (display1 != null) display1.enableAction();
-    if (display2 != null) display2.enableAction();
+    } // end synchronized (data_lock)
+    stepper.doAction(); // NEW NEW
   }
 
   /** set values that govern collective barb adjustment
@@ -739,11 +724,9 @@ public class CollectiveBarbManipulation extends Object
         throw new CollectiveBarbException("bad station index " + sta);
       }
 
-      if (sta == station) return;
+      if (sta == station) return; // NEW
       station = sta;
   
-      // boolean display2_was = display2.setEnabled(false);
-
       if (time_refs != null && time_refs.length != ntimes[station]) {
         int n = time_refs.length;
         for (int i=0; i<n; i++) {
@@ -791,7 +774,6 @@ public class CollectiveBarbManipulation extends Object
           time_refs[i].setData(tuples2[station][i]);
         }
       }
-      // display2.setEnabled(display2_was);
     } // end synchronized (data_lock)
   }
 
@@ -849,70 +831,21 @@ public class CollectiveBarbManipulation extends Object
   }
 
   private boolean first = true;
-  private boolean first_real = false;
+  private boolean first_real = true;
 
   // for AnimationControl steps
   public void controlChanged(ControlEvent e)
-         throws VisADException, RemoteException {
+         throws VisADException, RemoteException { // NEW
     if (first) {
-      first_real = true;
       first = false;
     }
     if (stepper_ref != null) stepper_ref.setData(null);
   }
 
-  class Stepper extends CellImpl {
+  class Stepper extends CellImpl { // NEW
     public void doAction() throws VisADException, RemoteException {
+      if (first || control == null) return;
       synchronized (data_lock) {
-        if (control == null) return;
-        int current = control.getCurrent();
-        if (current < 0) return;
-
-        for (int i=0; i<nindex; i++) {
-          int index = global_to_station[i][current];
-          if (index < tuples[i].length) {
-            which_times[i] = index;
-          }
-          else {
-            which_times[i] = -1;
-          }
-        }
-
-        if (current == which_time) return;
-        which_time = current;
-
-        if (barb_manipulation_renderers == null) {
-          which_time = -1;
-          for (int i=0; i<nindex; i++) which_times[i] = -1;
-          return;
-        }
-        for (int i=0; i<nindex; i++) {
-          if (barb_manipulation_renderers[i] != null) {
-            barb_manipulation_renderers[i].stop_direct();
-          }
-        }
-
-        for (int i=0; i<nindex; i++) {
-          if (0 <= which_times[i] && which_times[i] < tuples[i].length &&
-              station_refs[i] != null) {
-            station_refs[i].setData(tuples[i][which_times[i]]);
-          }
-// if (i == 0) System.out.println("Stepper: station " + i + " time " + which_times[i]);
-        }
-   
-        if (first_real) {
-          first_real = false;
-          display1.removeReference(stations_ref);
-        }
-      }
-    }
-/*
-    public void doAction() throws VisADException, RemoteException {
-      synchronized (data_lock) {
-        if (control == null) return;
-        int current = control.getCurrent();
-        if (current < 0) return;
-        if (current == which_time) return;
         which_time = -1;
         if (barb_manipulation_renderers == null) return;
         for (int i=0; i<nindex; i++) {
@@ -920,11 +853,11 @@ public class CollectiveBarbManipulation extends Object
           if (barb_manipulation_renderers[i] == null) return;
           barb_manipulation_renderers[i].stop_direct();
         }
-  
-        // int current = control.getCurrent();
-        // if (current < 0) return;
+ 
+        int current = control.getCurrent();
+        if (current < 0) return;
         which_time = current;
-  
+ 
         for (int i=0; i<nindex; i++) {
           int index = global_to_station[i][current];
           if (index < tuples[i].length) {
@@ -933,14 +866,13 @@ public class CollectiveBarbManipulation extends Object
           }
           // System.out.println("station " + i + " ref " + index);
         } // end for (int i=0; i<nindex; i++)
-
+ 
         if (first_real) {
           first_real = false;
           display1.removeReference(stations_ref);
         }
       }
     }
-*/
   }
 
   private final static float DEGREE_EPS = 0.1f;
@@ -1088,8 +1020,6 @@ public class CollectiveBarbManipulation extends Object
     if (wind_monitor != null) wind_monitor.disableAction();
     boolean display1_was = true;
     boolean display2_was = true;
-    // if (display1 != null) display1_was = display1.setEnabled(false);
-    // if (display2 != null) display2_was = display2.setEnabled(false);
 
     float diff_azimuth = new_azimuth - old_azimuths[sta_index][time_index];
     float diff_radial = new_radial - old_radials[sta_index][time_index];
@@ -1186,8 +1116,6 @@ public class CollectiveBarbManipulation extends Object
       } // end for (int j=0; j<ntimes[i]; j++)
     } // end for (int i=0; i<nindex; i++)
     if (wind_monitor != null) wind_monitor.enableAction();
-    // if (display1 != null) display1.setEnabled(display1_was);
-    // if (display2 != null) display2.setEnabled(display2_was);
   }
 
   private RealTupleType circle_type = null;
@@ -1242,15 +1170,6 @@ public class CollectiveBarbManipulation extends Object
     }
     catch (RemoteException e) {
     }
-/* WLH 14 Feb 2001
-    // move the following to a CellImpl?
-    for (int io=0; io<2; io++) {
-      if (circle_ref[io] != null) {
-        circle_renderer[io].toggle(false);
-        circle_ref[io].setData(null);
-      }
-    }
-*/
   }
 
   class Releaser extends CellImpl {
@@ -1301,7 +1220,8 @@ public class CollectiveBarbManipulation extends Object
   }
 
   private int current_index = 0;
-  private static final double five_knots = 5.0 * (1853.248 / 3600.0); // in m/s
+  private static final double five_knots = 5.0;
+  // private static final double five_knots = 5.0 * (1853.248 / 3600.0);
 
   void plusAngle() throws VisADException, RemoteException {
     synchronized (data_lock) {
