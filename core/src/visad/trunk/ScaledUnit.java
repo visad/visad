@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.11 2000-08-22 18:17:01 dglo Exp $
+ * $Id: ScaledUnit.java,v 1.12 2001-02-12 17:51:49 curtis Exp $
  */
 
 package visad;
@@ -454,14 +454,19 @@ public final class ScaledUnit
     }
 
   public boolean equals(Unit unit) {
-    if (unit instanceof BaseUnit)
+    if (unit == null) return false;
+
+    if (unit instanceof BaseUnit) {
       return equals(new ScaledUnit(1, (BaseUnit)unit));
+    }
 
-    if (unit instanceof DerivedUnit)
+    if (unit instanceof DerivedUnit) {
       return equals(new ScaledUnit(1, (DerivedUnit)unit));
+    }
 
-    if (!(unit instanceof ScaledUnit))
+    if (!(unit instanceof ScaledUnit)) {
       return unit.equals(this);
+    }
 
     return derivedUnit.equals(((ScaledUnit) unit).derivedUnit) &&
            amount == ((ScaledUnit) unit).amount;

@@ -316,7 +316,7 @@ public class Real
           break;
         case POW:
           opValue = Math.pow(thisValue, thatValue);
-          u = thisUnit.equals(CommonUnit.dimensionless)
+          u = CommonUnit.dimensionless.equals(thisUnit)
 	    ? CommonUnit.dimensionless : null;
           break;
         case INV_POW:
@@ -450,13 +450,13 @@ public class Real
         break;
       case COS:
         // do cos in radians, unless unit is degrees
-        value = thisUnit.equals(CommonUnit.degree) ?
+        value = CommonUnit.degree.equals(thisUnit) ?
                 Math.cos(Data.DEGREES_TO_RADIANS * thisValue) : Math.cos(thisValue);
         u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case COS_DEGREES:
         // do cos in degrees, unless unit is radians
-        value = thisUnit.equals(CommonUnit.radian) ?
+        value = CommonUnit.radian.equals(thisUnit) ?
                 Math.cos(thisValue) : Math.cos(Data.DEGREES_TO_RADIANS * thisValue);
         u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
@@ -482,13 +482,13 @@ public class Real
         break;
       case SIN:
         // do sin in radians, unless unit is degrees
-        value = thisUnit.equals(CommonUnit.degree) ?
+        value = CommonUnit.degree.equals(thisUnit) ?
                 Math.sin(Data.DEGREES_TO_RADIANS * thisValue) : Math.sin(thisValue);
         u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case SIN_DEGREES:
         // do sin in degrees, unless unit is radians
-        value = thisUnit.equals(CommonUnit.radian) ?
+        value = CommonUnit.radian.equals(thisUnit) ?
                 Math.sin(thisValue) : Math.sin(Data.DEGREES_TO_RADIANS * thisValue);
         u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
@@ -498,13 +498,13 @@ public class Real
         break;
       case TAN:
         // do tan in radians, unless unit is degrees
-        value = thisUnit.equals(CommonUnit.degree) ?
+        value = CommonUnit.degree.equals(thisUnit) ?
                 Math.tan(Data.DEGREES_TO_RADIANS * thisValue) : Math.tan(thisValue);
         u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case TAN_DEGREES:
         // do tan in degrees, unless unit is radians
-        value = thisUnit.equals(CommonUnit.radian) ?
+        value = CommonUnit.radian.equals(thisUnit) ?
                 Math.tan(thisValue) : Math.tan(Data.DEGREES_TO_RADIANS * thisValue);
         u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
