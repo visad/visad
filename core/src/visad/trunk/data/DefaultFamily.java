@@ -359,7 +359,7 @@ public class DefaultFamily
   /**
     * Save a VisAD Data object using the first appropriate Form.
     */
-  public void save(String id, Data data, boolean replace)
+  public synchronized void save(String id, Data data, boolean replace)
 	throws BadFormException, RemoteException, IOException, VisADException
   {
     SaveForm s = new SaveForm(id, data, replace);
@@ -372,7 +372,7 @@ public class DefaultFamily
   /**
     * Add data to an existing data object using the first appropriate Form.
     */
-  public void add(String id, Data data, boolean replace)
+  public synchronized void add(String id, Data data, boolean replace)
 	throws BadFormException
   {
     AddForm a = new AddForm(id, data, replace);
@@ -390,7 +390,7 @@ public class DefaultFamily
   /**
     * Open a local data object using the first appropriate Form.
     */
-  public DataImpl open(String id)
+  public synchronized DataImpl open(String id)
 	throws BadFormException, IOException, VisADException
   {
     OpenStringForm o = new OpenStringForm(id);
@@ -406,7 +406,7 @@ public class DefaultFamily
   /**
     * Open a remote data object using the first appropriate Form.
     */
-  public DataImpl open(URL url)
+  public synchronized DataImpl open(URL url)
 	throws BadFormException, IOException, VisADException
   {
     OpenURLForm o = new OpenURLForm(url);

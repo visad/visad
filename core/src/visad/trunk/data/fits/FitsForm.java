@@ -77,13 +77,13 @@ public class FitsForm
     return suff;
   }
 
-  public void save(String id, Data data, boolean replace)
+  public synchronized void save(String id, Data data, boolean replace)
 	throws  BadFormException, IOException, RemoteException, VisADException
   {
     new FitsAdapter().save(id, data, replace);
   }
 
-  public void add(String id, Data data, boolean replace)
+  public synchronized void add(String id, Data data, boolean replace)
 	throws BadFormException
   {
     throw new RuntimeException("Can't yet add FITS objects");
@@ -130,19 +130,19 @@ public class FitsForm
     return di;
   }
 
-  public DataImpl open(String path)
+  public synchronized DataImpl open(String path)
 	throws BadFormException, RemoteException, VisADException
   {
     return extractData(new FitsAdapter(path));
   }
 
-  public DataImpl open(URL url)
+  public synchronized DataImpl open(URL url)
 	throws BadFormException, VisADException, IOException
   {
     return extractData(new FitsAdapter(url));
   }
 
-  public FormNode getForms(Data data)
+  public synchronized FormNode getForms(Data data)
   {
     throw new RuntimeException("Can't yet get FITS forms");
   }

@@ -52,7 +52,7 @@ public class SingletonSet extends SampledSet {
   private SingletonSet(RealTuple d, MathType type, CoordinateSystem coord_sys,
                        Unit[] units, ErrorEstimate[] errors)
           throws VisADException, RemoteException {
-    super(type, 0, coord_sys, units, errors);
+    super(type, 0, coord_sys, units, errors); // ManifoldDimension = 0
     int dim = d.getDimension();
     float[][] samples = new float[dim][1];
     for (int k=0; k<dim; k++) {

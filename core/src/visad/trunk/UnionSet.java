@@ -239,7 +239,7 @@ public class UnionSet extends SampledSet {
     int n = Sets.length;
     int dim = DomainDimension;
     if (color_values != null && dim != color_values.length) {
-      throw new SetException("UnionSet.make1DGeometry: color_values bad dimension");
+      throw new SetException("UnionSet.make2DGeometry: color_values bad dimension");
     }
     VisADIndexedTriangleStripArray[] arrays =
       new VisADIndexedTriangleStripArray[n];

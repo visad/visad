@@ -66,19 +66,19 @@ public class GIFForm
     return suff;
   }
 
-  public void save(String id, Data data, boolean replace)
+  public synchronized void save(String id, Data data, boolean replace)
 	throws  BadFormException, IOException, RemoteException, VisADException
   {
     throw new UnimplementedException("Can't yet save GIF objects");
   }
 
-  public void add(String id, Data data, boolean replace)
+  public synchronized void add(String id, Data data, boolean replace)
 	throws BadFormException
   {
     throw new RuntimeException("Can't yet add GIF objects");
   }
 
-  public DataImpl open(String path)
+  public synchronized DataImpl open(String path)
 	throws BadFormException, RemoteException, VisADException
   {
     try {
@@ -88,14 +88,14 @@ public class GIFForm
     }
   }
 
-  public DataImpl open(URL url)
+  public synchronized DataImpl open(URL url)
 	throws BadFormException, VisADException, IOException
   {
     GIFAdapter ga = new GIFAdapter(url);
     return ga.getData();
   }
 
-  public FormNode getForms(Data data)
+  public synchronized FormNode getForms(Data data)
   {
     throw new RuntimeException("Can't yet get GIF forms");
   }

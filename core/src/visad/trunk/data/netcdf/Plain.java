@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.12 1998-06-17 20:34:22 visad Exp $
+ * $Id: Plain.java,v 1.13 1998-08-31 11:20:33 billh Exp $
  */
 
 package visad.data.netcdf;
@@ -57,7 +57,7 @@ Plain
      * @exception UnimplementedException
      *					Not yet!
      */
-    public void
+    public synchronized void
     save(String path, Data data, boolean replace)
 	throws BadFormException, IOException, RemoteException, VisADException,
 	    UnimplementedException
@@ -100,7 +100,7 @@ Plain
      * @exception BadFormException
      *			netCDF can't handle data object.
      */
-    public void
+    public synchronized void
     add(String id, Data data, boolean replace)
 	throws BadFormException
     {
@@ -120,7 +120,7 @@ Plain
      * @exception IOException
      *			Data access I/O failure.
      */
-    public DataImpl
+    public synchronized DataImpl
     open(String path)
 	throws BadFormException, IOException, VisADException
     {
@@ -153,7 +153,7 @@ Plain
      * @exception IOException
      *			Data access I/O failure.
      */
-    public DataImpl
+    public synchronized DataImpl
     openProxy(String path)
 	throws BadFormException, IOException, VisADException
     {
@@ -171,7 +171,7 @@ Plain
      * @exception UnimplementedException
      *			Not implemented yet.  Always thrown.
      */
-    public DataImpl
+    public synchronized DataImpl
     open (URL url)
 	throws UnimplementedException
     {
@@ -189,7 +189,7 @@ Plain
      * @exception IOException		Problem with local data access.
      * @exception RemoteException	Problem with remote data access.
      */
-    public FormNode
+    public synchronized FormNode
     getForms(Data data)
 	throws VisADException, RemoteException, IOException
     {

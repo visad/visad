@@ -68,17 +68,17 @@ public class Vis5DForm extends Form {
     }
   }
 
-  public void save(String id, Data data, boolean replace)
+  public synchronized void save(String id, Data data, boolean replace)
          throws BadFormException, IOException, RemoteException, VisADException {
     throw new UnimplementedException("Vis5DForm.save");
   }
 
-  public void add(String id, Data data, boolean replace)
+  public synchronized void add(String id, Data data, boolean replace)
          throws BadFormException {
     throw new BadFormException("Vis5DForm.add");
   }
 
-  public DataImpl open(String id)
+  public synchronized DataImpl open(String id)
          throws BadFormException, IOException, VisADException {
     if (id == null) return null;
     byte[] name = id.getBytes();
@@ -146,12 +146,12 @@ public class Vis5DForm extends Form {
     return type;
   }
 
-  public DataImpl open(URL url)
+  public synchronized DataImpl open(URL url)
          throws BadFormException, VisADException, IOException {
     throw new UnimplementedException("Vis5DForm.open(URL url)");
   }
 
-  public FormNode getForms(Data data) {
+  public synchronized FormNode getForms(Data data) {
     return null;
   }
  

@@ -39,7 +39,7 @@ public class HdfeosDefault extends Hdfeos {
      super("Default");
   }
      
-  public DataImpl open( String file_path ) 
+  public synchronized DataImpl open( String file_path ) 
          throws VisADException, RemoteException 
   {
 
@@ -53,25 +53,25 @@ public class HdfeosDefault extends Hdfeos {
 
   }
 
-  public DataImpl open( URL url ) 
+  public synchronized DataImpl open( URL url ) 
          throws VisADException 
   {
     throw new UnimplementedException( "HdfeosDefault.open( URL url )" );
   }
 
-  public void add( String id, Data data, boolean replace ) 
+  public synchronized void add( String id, Data data, boolean replace ) 
               throws BadFormException
   {
     throw new BadFormException( "HdfeosDefault.add" );
   }
 
-  public void save( String id, Data data, boolean replace )
+  public synchronized void save( String id, Data data, boolean replace )
          throws BadFormException, RemoteException, VisADException 
   {
     throw new UnimplementedException( "HdfeosDefault.save" );
   }
 
-  public FormNode getForms( Data data ) 
+  public synchronized FormNode getForms( Data data ) 
   {
     return this;
   }
