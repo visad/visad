@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SingleSoundingImpl.java,v 1.2 1999-01-07 16:13:18 steve Exp $
+ * $Id: SingleSoundingImpl.java,v 1.3 1999-01-07 18:13:33 steve Exp $
  */
 
 package visad.meteorology;
@@ -34,7 +34,9 @@ import visad.VisADException;
 
 /**
  * Provides support for atmospheric soundings of a single parameter.
- * Instances have their own local data.
+ * The single parameter may have more than one component, however (i.e.
+ * the type of the range may be a RealTupleType).  Instances have their
+ * own local data.
  *
  * Instances are modifiable.
  *
@@ -135,7 +137,6 @@ SingleSoundingImpl
      *				<code>pressure</code>.
      * @throws TypeException	Range MathType is incompatible with SampledSet.
      * @throws VisADException	Couldn't create necessary VisAD object.
-     */
     public GriddedSet
     getValue(Gridded1DSet pressure)
 	throws VisADException, RemoteException
@@ -150,7 +151,6 @@ SingleSoundingImpl
          * practice and as of 1998-01-05, this means that TypeException
          * will be thrown if the MathType of the field's range is other
          * than RealType or RealTupleType.
-	 */
 	return (GriddedSet)GriddedSet.create(
 	    ((FunctionType)field.getType()).getRange(),
 	    field.getValues(),
@@ -159,4 +159,5 @@ SingleSoundingImpl
 	    field.getDefaultRangeUnits(),
 	    field.getRangeErrors());
     }
+     */
 }

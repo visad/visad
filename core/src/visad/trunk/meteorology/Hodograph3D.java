@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Hodograph3D.java,v 1.1 1999-01-07 16:13:17 steve Exp $
+ * $Id: Hodograph3D.java,v 1.2 1999-01-07 18:13:33 steve Exp $
  */
 
 package visad.meteorology;
@@ -95,9 +95,6 @@ Hodograph3D
     private final ScalarMap			vMap;
 
 
-	ScalarMap	pressureMap;
-
-
     /**
      * Constructs from nothing.
      * @throws VisADException	Couldn't create necessary VisAD object.
@@ -135,8 +132,9 @@ Hodograph3D
 	display.addMap(vMap);
 	uMap.setRangeByUnits();
 	vMap.setRangeByUnits();
-	pressureMap =
+	ScalarMap	pressureMap =
 	    new ScalarMap(windProfile.DOMAIN_TYPE, displayRenderer.PRESSURE);
+	pressureMap.setRangeByUnits();
 	display.addMap(pressureMap);
 
 	final ScalarMap	uFlowMap = new ScalarMap(
