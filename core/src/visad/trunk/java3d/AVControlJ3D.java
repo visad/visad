@@ -49,6 +49,11 @@ public abstract class AVControlJ3D extends Control implements AVControl {
     switches.addElement(new SwitchSet(sw, se, re));
   }
 
+  public void nullControl() {
+    switches.removeAllElements();
+    super.nullControl();
+  }
+
   public abstract void init() throws VisADException;
 
   public void selectSwitches(double value, Set animation_set)

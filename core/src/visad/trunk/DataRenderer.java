@@ -347,12 +347,34 @@ if (map.badRange()) {
   /** clear any display list created by the most recent doAction
       invocation */
   public void clearScene() {
+// test for display == null in methods
     display = null;
     displayRenderer = null;
     Links = null;
     exceptionVector.removeAllElements();
-// need to clear flow rendering and direct manipulation variables
-// and test for display == null in methods
+
+// clear flow rendering and direct manipulation variables
+    shadow_data_out = null;
+    data_out = null;
+    data_units_out = null;
+    shadow_data_in = null;
+    data_in = null;
+    data_units_in = null;
+    data_coord_in = null;
+    sdo_maps = null;
+    sdi_maps = null;
+    rvts = new RealVectorType[] {null, null};
+    display_coordinate_system = null;
+    spatial_tuple = null;
+    lat_map = null;
+    lon_map = null;
+
+    link = null;
+    ref = null;
+    type = null;
+    shadow = null;
+    directMap = new ScalarMap[] {null, null, null};
+    tuple = null;
   }
 
   public void clearAVControls() {
@@ -518,6 +540,7 @@ if (map.badRange()) {
   }
 
   public Unit[] getEarthUnits() {
+    if (display == null) return null;
     Unit[] units = null;
     if (lat_lon_in) {
       units = data_units_in;
@@ -553,6 +576,7 @@ if (map.badRange()) {
   }
 
   public float getLatLonRange() {
+    if (display == null) return 1.0f;
     double[] rlat = null;
     double[] rlon = null;
     int lat = lat_index;
@@ -585,12 +609,14 @@ if (map.badRange()) {
       display (x, y, z) */
   public float[][] earthToSpatial(float[][] locs, float[] vert)
          throws VisADException {
+    if (display == null) return null;
     return earthToSpatial(locs, vert, null);
   }
 
   public float[][] earthToSpatial(float[][] locs, float[] vert,
                                   float[][] base_spatial_locs)
          throws VisADException {
+    if (display == null) return null;
     int lat = lat_index;
     int lon = lon_index;
     int other = other_index;
@@ -761,6 +787,7 @@ if (map.badRange()) {
       values */
   public float[][] spatialToEarth(float[][] spatial_locs)
          throws VisADException {
+    if (display == null) return null;
     float[][] base_spatial_locs = new float[3][];
     return spatialToEarth(spatial_locs, base_spatial_locs);
   }
@@ -768,6 +795,7 @@ if (map.badRange()) {
   public float[][] spatialToEarth(float[][] spatial_locs,
                                   float[][] base_spatial_locs)
          throws VisADException {
+    if (display == null) return null;
     int lat = lat_index;
     int lon = lon_index;
     int other = other_index;
@@ -896,6 +924,7 @@ if (map.badRange()) {
                     Unit[] d_u_o, RealTupleType d_i,
                     CoordinateSystem[] d_c_i, Unit[] d_u_i)
          throws VisADException {
+    if (display == null) return;
 
     // first check for VectorRealType components mapped to flow
     // TO_DO:  check here for flow mapped via CoordinateSystem
@@ -1025,6 +1054,7 @@ if (map.badRange()) {
   /** return array of spatial ScalarMap for srt, or null */
   private ScalarMap[] getSpatialMaps(ShadowRealTupleType srt,
                                      int[] spatial_index) {
+    if (display == null) return null;
     int n = srt.getDimension();
     ScalarMap[] maps = new ScalarMap[n];
     for (int i=0; i<n; i++) {
@@ -1053,6 +1083,7 @@ if (map.badRange()) {
 
   /** return array of flow ScalarMap for srt, or null */
   private int getFlowMaps(ShadowRealTupleType srt, ScalarMap[] maps) {
+    if (display == null) return -1;
     int n = srt.getDimension();
     maps[0] = null;
     maps[1] = null;
@@ -1125,6 +1156,7 @@ if (map.badRange()) {
            DisplayTupleType t, DisplayImpl display, int[] indices,
            float[] default_values, double[] r)
          throws VisADException {
+    if (display == null) return;
     display_coordinate_system = coord;
     spatial_tuple = t;
     System.arraycopy(indices, 0, spatial_value_indices, 0, 3);
@@ -1241,7 +1273,7 @@ if (map.badRange()) {
   private int directManifoldDimension = 0;
   /** spatial DisplayTupleType other than
       DisplaySpatialCartesianTuple */
-  DisplayTupleType tuple;
+  DisplayTupleType tuple = null;
 
   /** possible values for whyNotDirect */
   private final static String notRealFunction =
@@ -1283,6 +1315,7 @@ if (map.badRange()) {
 
   public synchronized void realCheckDirect()
          throws VisADException, RemoteException {
+    if (display == null) return;
     setIsDirectManipulation(false);
 
     DataDisplayLink[] Links = getLinks();
@@ -1531,6 +1564,7 @@ if (map.badRange()) {
   /** set directMap and axisToComponent (domain = false) or
       domainAxis (domain = true) from real; called by realCheckDirect */
   synchronized int setDirectMap(ShadowRealType real, int component, boolean domain) {
+    if (display == null) return 0;
     Enumeration maps = real.getSelectedMapVector().elements();
     while (maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
@@ -1587,6 +1621,7 @@ if (map.badRange()) {
   /** find minimum distance from ray to spatialValues */
   public synchronized float checkClose(double[] origin, double[] direction) {
     float distance = Float.MAX_VALUE;
+    if (display == null) return distance;
     lastIndex = -1;
     if (spatialValues == null) return distance;
     float o_x = (float) origin[0];
@@ -1646,6 +1681,7 @@ System.out.println("checkClose: distance = " + distance);
 
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
+    if (display == null) return;
     // System.out.println("drag_direct " + first + " " + type);
     if (spatialValues == null || ref == null || shadow == null ||
         link == null) return;
@@ -2066,6 +2102,7 @@ System.out.println("checkClose: distance = " + distance);
                              int otherindex, float othervalue)
           throws VisADException {
     ray_pos = Float.NaN;
+    if (display == null) return ray_pos;
     if (otherindex < 0) return ray_pos;
     CoordinateSystem tuplecs = null;
     if (tuple != null) tuplecs = tuple.getCoordinateSystem();
@@ -2182,6 +2219,7 @@ System.out.println("checkClose: distance = " + distance);
    */
   public void removeLink(DataDisplayLink link)
   {
+    if (display == null) return;
     final int newLen = Links.length - 1;
     if (newLen < 0) {
       // give up if the Links array is already empty

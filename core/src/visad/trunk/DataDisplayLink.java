@@ -112,6 +112,7 @@ public class DataDisplayLink extends ReferenceActionLink {
   }
 
   public void addSelectedMapVector(ScalarMap map) {
+    if (renderer == null) return;
     // 'synchronized' unnecessary
     // (since prepareData is a single Thread, but ...)
     synchronized (SelectedMapVector) {
@@ -133,6 +134,11 @@ public class DataDisplayLink extends ReferenceActionLink {
         map.nullDisplay();
       }
       ConstantMapVector.removeAllElements();
+
+      SelectedMapVector.removeAllElements();
+      shadow = null;
+      data = null;
+      renderer = null;
     }
   }
 
@@ -140,6 +146,7 @@ public class DataDisplayLink extends ReferenceActionLink {
       return false if infeasible */
   public boolean prepareData()
          throws VisADException, RemoteException {
+    if (renderer == null) return false;
     int[] indices;
     int[] display_indices;
     int[] value_indices;
@@ -253,6 +260,7 @@ public class DataDisplayLink extends ReferenceActionLink {
 
   public Data getData()
          throws VisADException, RemoteException {
+    if (renderer == null) return null;
 /* WLH 14 Feb 98 */
     Data data_copy = data;
     if (data_copy == null) {
