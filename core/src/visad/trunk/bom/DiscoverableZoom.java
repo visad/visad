@@ -53,15 +53,15 @@ public class DiscoverableZoom extends Object
   private double base_scale = 1.0;
   private float last_cscale = 1.0f;
 
-  private float distance;
+  private float latmul, lonmul;
   private DataRenderer[] renderers = null;
+  private boolean[] enabled = null;
   private int nrenderers = -1;
   private float[] lons = null;
   private float[] lats = null;
 
   public void setRenderers(DataRenderer[] rs, float d)
          throws VisADException, RemoteException {
-    distance = d;
     renderers = rs;
     if (renderers != null) {
       nrenderers = renderers.length;
@@ -71,24 +71,76 @@ public class DiscoverableZoom extends Object
       }
       lons = new float[nrenderers];
       lats = new float[nrenderers];
+      enabled = new boolean[nrenderers];
       for (int i=0; i<nrenderers; i++) {
+        lons[i] = Float.NaN;
+        lats[i] = Float.NaN;
+        enabled[i] = true;
         DataDisplayLink[] links = renderers[i].getLinks();
-        if (links == null || links.length == 0) {
-          lons[i] = Float.NaN;
-          lats[i] = Float.NaN;
-          continue;
-        }
+        if (links == null || links.length == 0) continue;
         Data data = links[0].getData();
-        if (data == null || !(data instanceof RealTuple)) {
-          lons[i] = Float.NaN;
-          lats[i] = Float.NaN;
-          continue;
+        if (data == null || !(data instanceof Tuple)) continue;
+        Real[] reals = ((Tuple) data).getRealComponents();
+        if (reals == null || reals.length == 0) continue;
+        for (int j=0; j<reals.length; j++) {
+          if (RealType.Latitude.equals(reals[j].getType())) {
+            lats[j] = (float) reals[j].getValue();
+          }
+          else if (RealType.Longitude.equals(reals[j].getType())) {
+            lons[j] = (float) reals[j].getValue();
+          }
         }
+        if (lats[i] != lats[i] || lons[i] != lons[i]) {
+          lons[i] = Float.NaN; 
+          lats[i] = Float.NaN;
+        }
+      }
+      DisplayImpl display = renderers[0].getDisplay();
+      if (display == null) {
+        nrenderers = -1;
+        return;
+      }
 
+      ScalarMap latmap = null;
+      ScalarMap lonmap = null;
+      Vector mapVector = display.getMapVector();
+      Enumeration maps = mapVector.elements();
+      while (maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        ScalarType real = map.getScalar();
+        DisplayRealType dreal = map.getDisplayScalar();
+        DisplayTupleType rtuple = dreal.getTuple();
+        if (rtuple != null) {
+          if (rtuple.equals(Display.DisplaySpatialCartesianTuple) ||
+              (rtuple.getCoordinateSystem() != null &&
+               rtuple.getCoordinateSystem().getReference().equals(
+               Display.DisplaySpatialCartesianTuple))) {
+            // dreal is spatial
+            if (RealType.Latitude.equals(real)) {
+              latmap = map;
+            }
+            else if (RealType.Latitude.equals(real)) {
+              lonmap = map;
+            }
+          }
+        }
+      } // end while (enum.hasMoreElements())
+      if (latmap == null || lonmap == null) {
+        nrenderers = -1;
+        return;
+      }
+      double[] latrange = latmap.getRange();
+      double[] lonrange = lonmap.getRange();
+      latmul = (float) (1.0 / (Math.abs(latrange[1] - latrange[0]) * d));
+      lonmul = (float) (1.0 / (Math.abs(lonrange[1] - lonrange[0]) * d));
+      if (latmul != latmul || lonmul != lonmul) {
+        nrenderers = -1;
+        return;
       }
     }
-    else {
+    else { // renderers == null
       nrenderers = -1;
+      return;
     }
   }
 
@@ -107,12 +159,27 @@ public class DiscoverableZoom extends Object
       last_cscale = 1.0f;
     }
     else {
+      if (nrenderers < 0) return;
       float cscale = (float) (base_scale / scale[0]);
       float ratio = cscale / last_cscale;
       if (ratio < 0.95f || 1.05f < ratio) {
         last_cscale = cscale;
-        // shape_control1.setScale(cscale);
-        // shape_control2.setScale(cscale);
+        for (int i=0; i<nrenderers; i++) {
+          boolean enable = true;
+          for (int j=0; j<i; j++) {
+            if (enabled[j]) {
+              float latd = latmul * (lats[j] - lats[i]);
+              float lond = lonmul * (lons[j] - lons[i]);
+              float distsq = (latd * latd + lond * lond) / cscale;
+              if (distsq < 1.0f) {
+                enable = false;
+                break;
+              }
+            }
+          }
+          enabled[i] = enable;
+          renderers[i].toggle(enable);
+        }
       }
     }
   }

@@ -140,6 +140,8 @@ public class CollectiveBarbManipulation extends Object {
   private Stepper stepper = null;
   private DataReferenceImpl stepper_ref = null;
 
+  private DiscoverableZoom pcl = null;
+
   /**
      wf should have MathType:
        (station_index -> (Time -> tuple))
@@ -402,7 +404,7 @@ public class CollectiveBarbManipulation extends Object {
       acontrol.addControlListener(acl);
 
       pcontrol = display1.getProjectionControl();
-      DiscoverableZoom pcl = new DiscoverableZoom();
+      pcl = new DiscoverableZoom();
       pcontrol.addControlListener(pcl);
 
       stations_ref = new DataReferenceImpl("stations_ref");
@@ -577,7 +579,7 @@ public class CollectiveBarbManipulation extends Object {
     if (station_refs != null) {
       for (int i=0; i<station_refs.length; i++) {
         display1.removeReference(station_refs[i]);
-System.out.println("setupStations: removeReference");
+// System.out.println("setupStations: removeReference");
         barb_monitors[i].removeReference(station_refs[i]);
         barb_monitors[i].stop();
       }
@@ -605,6 +607,9 @@ System.out.println("setupStations: removeReference");
       barb_monitors[i] = new BarbMonitor(station_refs[i], i);
       barb_monitors[i].addReference(station_refs[i]);
     }
+
+    pcl.setRenderers(barb_manipulation_renderers, 1.0f);
+
     // stepper_ref.setData(null); // NEW
   }
 
