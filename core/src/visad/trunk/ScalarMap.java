@@ -523,20 +523,22 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       evt = new ScalarMapEvent(this, (shadow == null ?
                                       ScalarMapEvent.MANUAL :
                                       ScalarMapEvent.AUTO_SCALE));
+      Vector listeners_clone = null;
       synchronized (ListenerVector) {
-        Enumeration listeners = ListenerVector.elements();
-        while (listeners.hasMoreElements()) {
-          ScalarMapListener listener =
-            (ScalarMapListener) listeners.nextElement();
-          listener.mapChanged(evt);
-        }
+        listeners_clone = (Vector) ListenerVector.clone();
+      }
+      Enumeration listeners = listeners_clone.elements();
+      while (listeners.hasMoreElements()) {
+        ScalarMapListener listener =
+          (ScalarMapListener) listeners.nextElement();
+        listener.mapChanged(evt);
       }
     }
   }
 
   /** add a ScalarMapListener, to be notified whenever setRange is
       invoked */
-  public synchronized void addScalarMapListener(ScalarMapListener listener) {
+  public void addScalarMapListener(ScalarMapListener listener) {
     if (ListenerVector == null) {
       ListenerVector = new Vector();
     }
@@ -565,13 +567,15 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     throws RemoteException, VisADException
   {
     if (ListenerVector != null) {
+      Vector listeners_clone = null;
       synchronized (ListenerVector) {
-        Enumeration listeners = ListenerVector.elements();
-        while (listeners.hasMoreElements()) {
-          ScalarMapListener listener =
-            (ScalarMapListener) listeners.nextElement();
-          listener.controlChanged(evt);
-        }
+        listeners_clone = (Vector) ListenerVector.clone();
+      }
+      Enumeration listeners = listeners_clone.elements();
+      while (listeners.hasMoreElements()) {
+        ScalarMapListener listener =
+          (ScalarMapListener) listeners.nextElement();
+        listener.controlChanged(evt);
       }
     }
   }
