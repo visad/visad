@@ -502,13 +502,13 @@ System.out.println("this " + sta_index + " " + time_index + " that " +
                              false);
           } // end if (old_wind instanceof Tuple)
 
+          azimuths[i][j] = (float) azimuth;
+          radials[i][j] = (float) radial;
           wind_stations[i].setSample(j, wind);
           tuples[i][j] = wind;
           if (i != sta_index && j == which_times[i]) {
             station_refs[i].setData(tuples[i][j]);
           }
-          azimuths[i][j] = (float) azimuth;
-          radials[i][j] = (float) radial;
         } // end for (int j=0; j<ntimes[i]; j++)
       } // end for (int i=0; i<nindex; i++)
     }
