@@ -127,7 +127,10 @@ public class RangeSlider extends Canvas implements MouseListener,
     minSlide = false;
     maxSlide = false;
     Graphics g = getGraphics();
-    if (g != null) drawLabels(g);
+    if (g != null) {
+      drawLabels(g);
+      g.dispose();
+    }
   }
   
   // unneeded MouseListener methods
@@ -195,7 +198,10 @@ public class RangeSlider extends Canvas implements MouseListener,
     minPercent = 100*((float) (minGrip-9))/((float) (w-18));
     maxPercent = 100*((float) (maxGrip-9))/((float) (w-18));
     Graphics g = getGraphics();
-    if (g != null) paint(g);
+    if (g != null) {
+      paint(g);
+      g.dispose();
+    }
   }
 
   private int lastW = 0;

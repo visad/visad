@@ -599,10 +599,10 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
         display.getGraphicsModeControl().clone();
       float pointSize = 
         default_values[display.getDisplayScalarIndex(Display.PointSize)];
-      mode.setPointSize(pointSize);
+      mode.setPointSize(pointSize, true);
       float lineWidth =
         default_values[display.getDisplayScalarIndex(Display.LineWidth)];
-      mode.setLineWidth(lineWidth);
+      mode.setLineWidth(lineWidth, true);
 
       boolean pointMode = mode.getPointMode();
 

@@ -591,10 +591,10 @@ for (int j=0; j<mm; j++) System.out.println("range_values[0]["+j+"] = " +
         display.getGraphicsModeControl().clone();
       float pointSize =
         default_values[display.getDisplayScalarIndex(Display.PointSize)];
-      mode.setPointSize(pointSize);
+      mode.setPointSize(pointSize, true);
       float lineWidth =
         default_values[display.getDisplayScalarIndex(Display.LineWidth)];
-      mode.setLineWidth(lineWidth);
+      mode.setLineWidth(lineWidth, true);
       boolean pointMode = mode.getPointMode();
 
       float[][] flow1_values = new float[3][];

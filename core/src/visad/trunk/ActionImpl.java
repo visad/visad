@@ -52,6 +52,8 @@ public abstract class ActionImpl extends Object
       in LinkVector */
   private long link_id;
 
+  private boolean dontSleep;
+
   public ActionImpl(String name) {
     Name = name;
     link_id = 0;
@@ -118,7 +120,10 @@ public abstract class ActionImpl extends Object
 
 
   public void run() {
+/* WLH 29 Aug 98
     boolean dontSleep = false;
+*/
+    dontSleep = true;
 /* WLH 28 Feb 98
    put this back once Swing-Java3D bugs are fixed
     try {
@@ -129,19 +134,26 @@ public abstract class ActionImpl extends Object
 */
     Thread me = Thread.currentThread();
     while (actionThread == me) {
-      if (!dontSleep) {
-        try {
-          synchronized (this) {
-            wait(2000);
-          }
-        }
-        catch(InterruptedException e) {
-          // note notify generates a normal return from wait rather
-          // than an Exception - control doesn't normally come here
-        }
-      } // end if (!dontSleep)
       try {
+        synchronized (this) {
+          if (!dontSleep) {
+/* WLH 28 Aug 98
+            wait(2000);
+*/
+            wait();
+          }
+          dontSleep = false;
+        }
+      }
+      catch(InterruptedException e) {
         dontSleep = false;
+        // note notify generates a normal return from wait rather
+        // than an Exception - control doesn't normally come here
+      }
+      try {
+/* WLH 29 Aug 98
+        dontSleep = false;
+*/
         setTicks();
         if (checkTicks() || this instanceof DisplayImpl) {
           boolean check = checkTicks();
@@ -154,7 +166,9 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
         }
         synchronized (LinkVector) {
           Enumeration links = LinkVector.elements();
+/* WLH 29 Aug 98
           dontSleep = false;
+*/
           while (links.hasMoreElements()) {
             ReferenceActionLink link =
               (ReferenceActionLink) links.nextElement();
@@ -207,6 +221,7 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
       link.incTick(e.getTick());
       link.setBall(true);
       synchronized (this) {
+        dontSleep = true;
         notify();
       }
     }
@@ -230,6 +245,7 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
 
   void notifyAction() {
     synchronized (this) {
+      dontSleep = true;
       notify();
     }
   }
@@ -281,6 +297,7 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
     }
     if (link != null) ref.removeThingChangedListener(link.getAction());
     synchronized (this) {
+      dontSleep = true;
       notify();
     }
   }
@@ -301,6 +318,7 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
     }
     if (link != null) ref.removeThingChangedListener(link.getAction());
     synchronized (this) {
+      dontSleep = true;
       notify();
     }
   }
@@ -324,6 +342,7 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
       }
     }
     synchronized (this) {
+      dontSleep = true;
       notify();
     }
   }
@@ -346,6 +365,7 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
       }
     }
     synchronized (this) {
+      dontSleep = true;
       notify();
     }
   }

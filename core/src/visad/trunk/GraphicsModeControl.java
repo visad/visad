@@ -48,10 +48,14 @@ public abstract class GraphicsModeControl extends Control
   public abstract void setLineWidth(float width)
          throws VisADException, RemoteException;
 
+  public abstract void setLineWidth(float width, boolean dummy);
+
   public abstract float getPointSize();
 
   public abstract void setPointSize(float size)
          throws VisADException, RemoteException;
+
+  public abstract void setPointSize(float size, boolean dummy);
 
   public abstract boolean getPointMode();
 

@@ -101,7 +101,9 @@ public class ContourControl extends Control {
          throws VisADException, RemoteException {
     boolean change = (surfaceValue != value);
     surfaceValue = value;
-    if (change) changeControl(true);
+    if (change) {
+      changeControl(true);
+    }
   }
 
   public void setContourInterval(float interval, float low,

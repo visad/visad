@@ -273,10 +273,10 @@ public abstract class ShadowTypeJ2D extends ShadowType {
       display.getGraphicsModeControl().clone();
     float pointSize = 
       default_values[display.getDisplayScalarIndex(Display.PointSize)];
-    mode.setPointSize(pointSize);
+    mode.setPointSize(pointSize, true);
     float lineWidth =
       default_values[display.getDisplayScalarIndex(Display.LineWidth)];
-    mode.setLineWidth(lineWidth);
+    mode.setLineWidth(lineWidth, true);
  
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];

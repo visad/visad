@@ -128,7 +128,7 @@ public class Tuple extends DataImpl {
     if (isMissing()) {
       return ((TupleType) Type).getComponent(i).missingData();
     }
-    else if (0 <= i || i < tupleComponents.length) {
+    else if (0 <= i && i < tupleComponents.length) {
       return (Data) tupleComponents[i];
     }
     else {

@@ -170,7 +170,10 @@ public class VisADSlider extends JPanel {
 // hack for JDK 1.2 with Java3D
 repaint();
 Graphics g = getGraphics();
-if (g != null) update(g);
+if (g != null) {
+  update(g);
+  g.dispose();
+}
           }
           else {
             first++;
@@ -200,7 +203,10 @@ if (first > 0) {
   // hack for JDK 1.2 with Java3D
   repaint();
   Graphics g = getGraphics();
-  if (g != null) update(g);
+  if (g != null) {
+    update(g);
+    g.dispose();
+  }
 }
 else {
   first++;

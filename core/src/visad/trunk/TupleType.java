@@ -133,7 +133,7 @@ public class TupleType extends MathType {
   }
 
   public MathType getComponent(int i) throws VisADException {
-    if (0 <= i || i < tupleComponents.length) {
+    if (0 <= i && i < tupleComponents.length) {
       return tupleComponents[i];
     }
     else {

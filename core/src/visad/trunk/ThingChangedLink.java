@@ -49,7 +49,10 @@ class ThingChangedLink extends Object {
       throw new ReferenceException("ThingChangedLink: Action cannot be null");
     }
     action = a;
+/* WLH 29 Aug 98
     Ball = false;
+*/
+    Ball = true;
     id = jd;
   }
 

@@ -95,6 +95,12 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     getDisplay().reDisplayAll();
   }
 
+  public void setLineWidth(float width, boolean dummy) {
+    if (width >= 1.0f) {
+      lineWidth = width;
+    }
+  }
+
   public float getPointSize() {
     return pointSize;
   }
@@ -108,6 +114,12 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     pointSize = size;
     changeControl(true);
     getDisplay().reDisplayAll();
+  }
+
+  public void setPointSize(float size, boolean dummy) {
+    if (size >= 1.0f) {
+      pointSize = size;
+    }
   }
 
   public boolean getPointMode() {

@@ -115,7 +115,13 @@ public abstract class DataImpl extends ThingImpl
    /* BINARY - TDR May 1998
     throw new TypeException("DataImpl.binary");
     */
-    MathType new_type = Type.binary( data.getType(), op, new Vector() );
+    /* WLH 28 Aug 98 */
+    MathType dtype = data.getType();
+    if (!Type.equalsExceptName(dtype)) {
+      throw new TypeException("DataImpl.binary: operand types don't match");
+    }
+
+    MathType new_type = Type.binary( dtype, op, new Vector() );
     return binary( data, op, new_type, sampling_mode, error_mode );
   }
   

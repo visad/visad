@@ -167,6 +167,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   public void reDisplayAll() {
     redisplay_all = true;
+    notifyAction();
   }
 
   public void addReference(ThingReference ref)
@@ -393,16 +394,19 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** used by Control-s to notify this DisplayImpl that
       they have changed */
   public void controlChanged() {
+    notifyAction();
+/* WLH 29 Aug 98
     synchronized (this) {
       notify();
     }
+*/
   }
 
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {
     synchronized (mapslock) {
-      if (RendererVector == null) {
+      if (RendererVector == null || displayRenderer == null) {
         return;
       }
       displayRenderer.setWaitFlag(true);
