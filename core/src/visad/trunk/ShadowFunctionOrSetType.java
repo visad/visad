@@ -398,12 +398,10 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        !display.getGraphicsModeControl().getPointMode();
 
         curvedTexture = getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
-                        // Domain.getDimension() == 2 &&   WLH 22 Aug 2002 Lak's bug
                         Domain.getAllSpatial() &&
                         checkSpatialOffsetColorAlphaRange(Domain.getDisplayIndices()) &&
                         checkSpatialOffsetColorAlphaRange(Range.getDisplayIndices()) &&
                         checkAny(Range.getDisplayIndices()) &&
-                        // display.getGraphicsModeControl().getTextureEnable() && WLH 22 Aug 2002
                         !display.getGraphicsModeControl().getPointMode();
 
         // WLH 15 March 2000
@@ -671,28 +669,23 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 
     int curved_size = display.getGraphicsModeControl().getCurvedSize();
 
-float textureEnable =
-  default_values[display.getDisplayScalarIndex(Display.TextureEnable)];
-boolean texture = display.getGraphicsModeControl().getTextureEnable();
-if (textureEnable > -0.5f) {
-  texture = (textureEnable > 0.5f);
-}
+    float textureEnable =
+      default_values[display.getDisplayScalarIndex(Display.TextureEnable)];
+    boolean texture = display.getGraphicsModeControl().getTextureEnable();
+    if (textureEnable > -0.5f) {
+      texture = (textureEnable > 0.5f);
+    }
 
     boolean curvedTexture = getCurvedTexture() &&
                             !isTextureMap &&
-texture && // WLH 22 Aug 2002
+                            texture &&
                             curved_size > 0 &&
                             getIsTerminal() && // implied by getCurvedTexture()?
                             shadow_api.allowCurvedTexture() &&
                             default_values[alpha_index] > 0.99 &&
                             renderer.isLegalTextureMap() &&
                             domain_set.getManifoldDimension() == 2 &&
-                            domain_set instanceof GriddedSet; // WLH 22 Aug 2002 Lak's bug
-/* // WLH 22 Aug 2002 Lak's bug
-                            (domain_set instanceof Gridded2DSet ||
-                             (domain_set instanceof GriddedSet &&
-                              domain_set.getDimension() == 2));
-*/
+                            domain_set instanceof GriddedSet;
     boolean domainOnlySpatial =
       Domain.getAllSpatial() && !Domain.getMultipleDisplayScalar();
 
@@ -1235,20 +1228,15 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
             for (int j=0; j<nheight; j++) {
               js[j] = Math.min(j * curved_size, data_height - 1);
             }
-// int domain_dimension = domain_values.length;
-if (domain_dimension != domain_values.length) {
-  throw new VisADException("domain_dimension = " + domain_dimension +
-                           " domain_values.length = " + domain_values.length);
-}
-            // float[][] spline_domain = new float[2][nwidth * nheight]; WLH 22 Aug 2002
-float[][] spline_domain = new float[domain_dimension][nwidth * nheight];
+            float[][] spline_domain =
+              new float[domain_dimension][nwidth * nheight];
             int k = 0;
             for (int j=0; j<nheight; j++) {
               for (int i=0; i<nwidth; i++) {
                 int ij = is[i] + data_width * js[j];
                 spline_domain[0][k] = domain_values[0][ij];
                 spline_domain[1][k] = domain_values[1][ij];
-if (domain_dimension == 3) spline_domain[2][k] = domain_values[2][ij];
+                if (domain_dimension == 3) spline_domain[2][k] = domain_values[2][ij];
                 k++;
               }
             }
@@ -1257,12 +1245,11 @@ if (domain_dimension == 3) spline_domain[2][k] = domain_values[2][ij];
                 ref, null, ref.getDefaultUnits(), null,
                 (RealTupleType) Domain.getType(), dataCoordinateSystem,
                 domain_units, null, spline_domain);
-            // reference_values = new float[2][domain_length]; WLH 22 Aug 2002
-reference_values = new float[domain_dimension][domain_length];
+            reference_values = new float[domain_dimension][domain_length];
             for (int i=0; i<domain_length; i++) {
               reference_values[0][i] = Float.NaN;
               reference_values[1][i] = Float.NaN;
-if (domain_dimension == 3) reference_values[2][i] = Float.NaN;
+              if (domain_dimension == 3) reference_values[2][i] = Float.NaN;
             }
             k = 0;
             for (int j=0; j<nheight; j++) {
@@ -1270,7 +1257,7 @@ if (domain_dimension == 3) reference_values[2][i] = Float.NaN;
                 int ij = is[i] + data_width * js[j];
                 reference_values[0][ij] = spline_reference[0][k];
                 reference_values[1][ij] = spline_reference[1][k];
-if (domain_dimension == 3) reference_values[2][ij] = spline_reference[2][k];
+                if (domain_dimension == 3) reference_values[2][ij] = spline_reference[2][k];
                 k++;
               }
             }
