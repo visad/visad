@@ -137,10 +137,23 @@ public class AnimationControlJ2D extends AVControlJ2D
     changeControl(true);
   }
 
+  /** Set the animation direction.
+   *
+   *  @param	dir	true for forward, false for backward
+   */
   public void setDirection(boolean dir)
          throws VisADException, RemoteException {
     direction = dir;
     changeControl(true);
+  }
+
+  /** Get the animation direction.
+   *
+   *  @return	true for forward, false for backward
+   */
+  public boolean getDirection()
+  {
+    return direction;
   }
 
   public long getStep() {
