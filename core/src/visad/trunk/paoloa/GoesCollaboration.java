@@ -379,8 +379,10 @@ public class GoesCollaboration extends Object {
     // set up Displays for server
     DisplayImpl[] displays = new DisplayImpl[4];
     setupDisplays(displays);
-    for (int i = 0; i < displays.length; i++) {
-      server_server.addDisplay(new RemoteDisplayImpl(displays[i]));
+    if (server_server != null) {
+      for (int i = 0; i < displays.length; i++) {
+        server_server.addDisplay(new RemoteDisplayImpl(displays[i]));
+      }
     }
 
     // set up user interface

@@ -38,6 +38,12 @@ public class Rain implements ControlListener {
   static final boolean[][] display_done =
     new boolean[N_ROWS][N_COLUMNS];
 
+  static String[][] cell_names =
+    {{"A1", "B1", "C1"}, {"A2", "B2", "C2"},
+     {"A3", "B3", "C3"}, {"A4", "B4", "C4"}};
+
+  static JTextField[][] cell_fields =
+    new JTextField[N_ROWS][N_COLUMNS];
 
   static final Real ten = new Real(10.0);
   static final Real one = new Real(1.0);
@@ -60,8 +66,12 @@ public class Rain implements ControlListener {
   static LabeledRGBWidget color_widget = null;
   static ColorControl color_control = null;
   static ColorControl[][] color_controls = new ColorControl[N_ROWS][N_COLUMNS];
+  static ProjectionControl[][] projection_controls =
+    new ProjectionControl[N_ROWS][N_COLUMNS];
   static ScalarMap color_map = null;
   static ScalarMap[][] color_maps = new ScalarMap[N_ROWS][N_COLUMNS];
+
+  static boolean in_proj = false;
 
   static RealTupleType cursor_type = null;
 
@@ -129,13 +139,16 @@ public class Rain implements ControlListener {
       new RealTuple(cursor_type, new double[] {cursorx, cursory, 0.0});
     ref_cursor.setData(cursor);
     Gridded1DSet shape_count_set =
-      new Gridded1DSet(shape, new float[][] {{0.0f, 1.0f}}, 2);
+      new Gridded1DSet(shape, new float[][] {{0.0f}}, 1);
     VisADLineArray cross = new VisADLineArray();
     cross.coordinates = new float[]
       {0.1f,  0.0f, 0.0f,    -0.1f,  0.0f, 0.0f,
        0.0f, -0.1f, 0.0f,     0.0f,  0.1f, 0.0f};
+    cross.colors = new float[]
+      {1.0f,  1.0f, 1.0f,     1.0f,  1.0f, 1.0f,
+       1.0f,  1.0f, 1.0f,     1.0f,  1.0f, 1.0f};
     cross.vertexCount = cross.coordinates.length / 3;
-    VisADGeometryArray[] shapes = {cross, cross};
+    VisADGeometryArray[] shapes = {cross};
 
     //
     // construct JFC user interface
@@ -201,6 +214,9 @@ public class Rain implements ControlListener {
         shape_control.setShapeSet(shape_count_set);
         shape_control.setShapes(shapes);
 
+        projection_controls[i][j] = displays[i][j].getProjectionControl();
+        projection_controls[i][j].addControlListener(this);
+
         display_done[i][j] = false;
         JPanel d_panel = (JPanel) displays[i][j].getComponent();
         Border etchedBorder10 =
@@ -208,6 +224,19 @@ public class Rain implements ControlListener {
                              new EmptyBorder(10, 10, 10, 10));
         d_panel.setBorder(etchedBorder10);
         cell_panels[i][j].add(d_panel);
+        JPanel wpanel = new JPanel();
+        wpanel.setLayout(new BoxLayout(wpanel, BoxLayout.X_AXIS));
+        JLabel cell_label = new JLabel(cell_names[i][j]);
+        cell_fields[i][j] = new JTextField("---");
+        Dimension msize = cell_fields[i][j].getMaximumSize();
+        Dimension psize = cell_fields[i][j].getPreferredSize();
+        msize.height = psize.height;
+        cell_fields[i][j].setMaximumSize(msize);
+        wpanel.add(cell_label);
+        wpanel.add(cell_fields[i][j]);
+        // wpanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        cell_panels[i][j].add(wpanel);
+
       } // end for (int j=0; j<N_ROWS; j++)
     } // end for (int i=0; i<N_COLUMNS; i++)
 
@@ -266,8 +295,8 @@ public class Rain implements ControlListener {
     color_control = (ColorControl) color_map.getControl();
     // listener sets all non-null color_controls[i][j]
     // for ControlEvents from color_control
-    color_control.addControlListener(rain);
-    controlChanged(null);
+    color_control.addControlListener(this);
+    // controlChanged(null);
   
     displays[0][2].addReference(cell_refs[0][2]);
     displays[0][2].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
@@ -427,7 +456,7 @@ public class Rain implements ControlListener {
     };
     cells[3][2].addReference(cell_refs[0][1]);
 
-    Cell cellMAX =  new CellImpl() {
+    Cell cellMAX = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         double max = ((Real) refMAX.getData()).getValue();
         color_map.setRange(MIN, max);
@@ -441,6 +470,25 @@ public class Rain implements ControlListener {
       }
     };
     cellMAX.addReference(refMAX);
+
+    Cell cell_cursor = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        RealTuple c = (RealTuple) ref_cursor.getData();
+        RealTuple dom = new RealTuple(new Real[]
+                        {(Real) c.getComponent(0), (Real) c.getComponent(1)});
+        for (int i=0; i<N_ROWS; i++) {
+          for (int j=0; j<N_COLUMNS; j++) {
+            try {
+              FlatField field = (FlatField) cell_refs[i][j].getData();
+              double val = ((Real) field.evaluate(dom)).getValue();
+              cell_fields[i][j].setText("" + val);
+            }
+            catch (Exception e) {}
+          }
+        }
+      }
+    }; 
+    cell_cursor.addReference(ref_cursor);
 
     // make the JFrame visible
     frame.setVisible(true);
@@ -480,8 +528,9 @@ public class Rain implements ControlListener {
 
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
-    if (color_control != null) {
-      float[][] table = color_control.getTable();
+    Control control = e.getControl();
+    if (control != null && control instanceof ColorControl) {
+      float[][] table = ((ColorControl) control).getTable();
       if (table != null) {
         for (int i=0; i<N_ROWS; i++) {
           for (int j=0; j<N_COLUMNS; j++) {
@@ -491,6 +540,19 @@ public class Rain implements ControlListener {
           }
         }
       }
+    }
+    else if (!in_proj && control != null &&
+             control instanceof ProjectionControl) {
+      in_proj = true;
+      double[] matrix = ((ProjectionControl) control).getMatrix();
+      for (int i=0; i<N_ROWS; i++) {
+        for (int j=0; j<N_COLUMNS; j++) {
+          if (control != projection_controls[i][j]) {
+            projection_controls[i][j].setMatrix(matrix);
+          }
+        }
+      }
+      in_proj = false;
     }
   }
 

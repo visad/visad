@@ -42,8 +42,10 @@ public class DisplayPanelJ3D extends JPanel {
     display = d;
     renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+/* WLH 26 March 99
     setAlignmentY(TOP_ALIGNMENT);
     setAlignmentX(LEFT_ALIGNMENT);
+*/
     VisADCanvasJ3D canvas = new VisADCanvasJ3D(renderer, this);
     add(canvas);
  
