@@ -74,6 +74,20 @@ public class MeasurePoint extends MeasureThing {
     pt = new PoolPoint[MeasurePool.MAX_POOLS];
   }
 
+  /** Constructs an endpoint cloned from the given endpoint. */
+  public MeasurePoint(MeasurePoint point) {
+    x = point.x;
+    y = point.y;
+    z = point.z;
+    preferredColor = point.preferredColor;
+    color = point.color;
+    group = point.group;
+    lines = new Vector();
+    pt = new PoolPoint[MeasurePool.MAX_POOLS];
+    stdType = point.stdType;
+    stdId = point.stdId;
+  }
+
   /**
    * Constructs an endpoint cloned from the given endpoint,
    * but with a (possibly) different Z value.

@@ -539,21 +539,12 @@ public class MeasureToolPanel extends ToolPanel {
     clearAll.setEnabled(enabled);
   }
 
-  /** Enables or disables the "set standard" checkbox. */
-  public void setStandardEnabled(boolean enabled) {
-    stdEnabled = enabled;
-    boolean b = bio.mm.pool2.hasSelection() && enabled;
-    single.setEnabled(b);
-    standard2D.setEnabled(b);
-    standard3D.setEnabled(b);
-  }
-
   /** Updates the selection data to match the current measurement list. */
   public void updateSelection() {
     boolean enabled = bio.mm.pool2.hasSelection();
     boolean b = enabled && stdEnabled;
     single.setEnabled(b);
-    standard2D.setEnabled(b);
+    if (!enabled) standard2D.setEnabled(false);
     standard3D.setEnabled(b);
     updateRemove();
     colorLabel.setEnabled(enabled);
@@ -678,6 +669,24 @@ public class MeasureToolPanel extends ToolPanel {
       }
     }
 
+    // update 2-D and 3-D standard choices
+    if (bio.mm.pool2.hasSelection()) {
+      boolean std2d = true;
+      MeasureThing[] selection = bio.mm.pool2.getSelection();
+      for (int i=0; i<selection.length; i++) {
+        MeasureThing m = selection[i];
+        if (m instanceof MeasureLine) {
+          MeasureLine line = (MeasureLine) m;
+          if (line.ep1.z != line.ep2.z || line.ep1.z != (int) line.ep1.z) {
+            // cannot set multi-slice lines to 2-D standard
+            std2d = false;
+          }
+          MeasurePoint pt1 = line.ep1;
+        }
+      }
+      standard2D.setEnabled(std2d);
+    }
+
     StringBuffer sb = new StringBuffer();
     int space = (COORD_LABEL.length() - coord.length()) / 2;
     for (int i=0; i<space; i++) sb.append(" ");
@@ -761,11 +770,11 @@ public class MeasureToolPanel extends ToolPanel {
         if (j == index) continue;
         MeasureList list = bio.mm.lists[j];
         if (isLine) {
-          MeasureLine line = new MeasureLine((MeasureLine) thing, slice);
+          MeasureLine line = new MeasureLine((MeasureLine) thing);
           list.addLine(line, false);
         }
         else {
-          MeasurePoint point = new MeasurePoint((MeasurePoint) thing, slice);
+          MeasurePoint point = new MeasurePoint((MeasurePoint) thing);
           list.addMarker(point, false);
         }
       }

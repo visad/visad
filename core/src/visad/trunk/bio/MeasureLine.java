@@ -59,6 +59,18 @@ public class MeasureLine extends MeasureThing {
     ep2.lines.add(this);
   }
 
+  /** Constructs a line cloned from the given line. */
+  public MeasureLine(MeasureLine line) {
+    ep1 = new MeasurePoint(line.ep1);
+    ep2 = new MeasurePoint(line.ep2);
+    color = line.color;
+    group = line.group;
+    stdType = line.stdType;
+    stdId = line.stdId;
+    ep1.lines.add(this);
+    ep2.lines.add(this);
+  }
+
   /**
    * Constructs a line cloned from the given line,
    * but with a (possibly) different Z value.
