@@ -622,7 +622,10 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                ((VisADLineStripArray) array).stripVertexCounts;
             int base = 0;
             int basec = 0;
-            int jinc = (colors.length == coordinates.length) ? 3 : 4;
+            int jinc = 0;
+            if (colors != null) {
+              jinc = (colors.length == coordinates.length) ? 3 : 4;
+            }
             for (int strip=0; strip<stripVertexCounts.length; strip++) {
               count = stripVertexCounts[strip];
 
@@ -892,7 +895,10 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
              ((VisADTriangleStripArray) array).stripVertexCounts;
           int base = 0;
           int basec = 0;
-          int jinc = (colors.length == coordinates.length) ? 3 : 4;
+          int jinc = 0;
+          if (colors != null) {
+            jinc = (colors.length == coordinates.length) ? 3 : 4;
+          }
           for (int strip=0; strip<stripVertexCounts.length; strip++) {
             count = stripVertexCounts[strip];
 
