@@ -381,6 +381,11 @@ public class Util
     Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension w = window.getSize();
     window.setLocation((s.width - w.width) / 2, (s.height - w.height) / 2);
+    int x = (s.width - w.width) / 2;
+    int y = (s.height - w.height) / 2;
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    window.setLocation(x, y);
   }
 
   /**
@@ -390,8 +395,11 @@ public class Util
     Point loc = parent.getLocation();
     Dimension p = parent.getSize();
     Dimension w = window.getSize();
-    window.setLocation(loc.x + (p.width - w.width) / 2,
-      loc.y + (p.height - w.height) / 2);
+    int x = loc.x + (p.width - w.width) / 2;
+    int y = loc.y + (p.height - w.height) / 2;
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    window.setLocation(x, y);
   }
 
   /**
