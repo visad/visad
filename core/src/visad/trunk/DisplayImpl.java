@@ -124,7 +124,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   private int[] valueToMap;
 
   /** Vector of DisplayListeners */
-  private transient Vector ListenerVector = new Vector();
+  private final transient Vector ListenerVector = new Vector();
 
   private Object mapslock = new Object();
 
@@ -466,24 +466,33 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     notifyListeners(new DisplayEvent(this, id, x, y));
   }
 
+  /**
+   * Notify this instance's {@link DisplayListener}s.
+   *
+   * @param evt                 The {@link DisplayEvent} to be passed to the
+   *                            {@link DisplayListener}s.
+   * @throws VisADException     if a VisAD failure occurs.
+   * @throws RemoteException    if a Java RMI failure occurs.
+   */
   public void notifyListeners(DisplayEvent evt)
          throws VisADException, RemoteException {
-    if (!eventStatus[evt.getId()]) return;  // ignore disabled events
-    if (ListenerVector != null) {
-      synchronized (ListenerVector) {
-        Enumeration listeners = ListenerVector.elements();
-        while (listeners.hasMoreElements()) {
-          DisplayListener listener =
-            (DisplayListener) listeners.nextElement();
-          if (listener instanceof Remote) {
-            if (rd == null) {
-              rd = new RemoteDisplayImpl(this);
-            }
-            listener.displayChanged(evt.cloneButDisplay(rd));
-          } else {
-            listener.displayChanged(evt.cloneButDisplay(this));
-          }
-        }
+
+    synchronized (eventStatus) {
+      if (!eventStatus[evt.getId()]) return;  // ignore disabled events
+    }
+
+    for (Enumeration listeners = ((Vector)ListenerVector.clone()).elements();
+      listeners.hasMoreElements(); ) {
+
+      DisplayListener listener = (DisplayListener) listeners.nextElement();
+
+      if (listener instanceof Remote) {
+	if (rd == null) {
+	  rd = new RemoteDisplayImpl(this);
+	}
+	listener.displayChanged(evt.cloneButDisplay(rd));
+      } else {
+	listener.displayChanged(evt.cloneButDisplay(this));
       }
     }
   }
@@ -495,9 +504,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** remove a DisplayListener */
   public void removeDisplayListener(DisplayListener listener) {
-    if (listener != null) {
-      ListenerVector.removeElement(listener);
-    }
+    ListenerVector.removeElement(listener);
   }
 
   /** return the java.awt.Component (e.g., JPanel or AppletPanel)
@@ -605,7 +612,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
 
   /** Enabled status flag for each DisplayEvent type. */
-  private boolean[] eventStatus = {
+  private final boolean[] eventStatus = {
     true,  // (not used)
     true,  // MOUSE_PRESSED
     true,  // FRAME_DONE
@@ -663,8 +670,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *          </UL>
    */
   public void enableEvent(int id) {
+
     if (id < 1 || id >= eventStatus.length) return;
-    eventStatus[id] = true;
+
+    synchronized(eventStatus) {
+      eventStatus[id] = true;
+    }
   }
 
   /**
@@ -698,8 +709,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *          </UL>
    */
   public void disableEvent(int id) {
+
     if (id < 1 || id >= eventStatus.length) return;
-    eventStatus[id] = false;
+
+    synchronized(eventStatus) {
+      eventStatus[id] = false;
+    }
   }
 
   /**
@@ -707,7 +722,15 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * reported when it occurs in this display.
    */
   public boolean isEventEnabled(int id) {
-    return id < 1 || id >= eventStatus.length ? false : eventStatus[id];
+
+    if (id < 1 || id >= eventStatus.length) {
+      return false;
+    }
+    else {
+      synchronized(eventStatus) {
+	return eventStatus[id];
+      }
+    }
   }
 
   /**
@@ -1342,10 +1365,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     notifyListeners(new DisplayEvent(this, DisplayEvent.DESTROYED));
 
     // remove all listeners
-    if (ListenerVector != null) {
-      synchronized (ListenerVector) {
-        ListenerVector.removeAllElements();
-      }
+    synchronized (ListenerVector) {
+      ListenerVector.removeAllElements();
     }
 
     try {
