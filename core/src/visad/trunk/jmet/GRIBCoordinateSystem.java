@@ -267,6 +267,21 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     } else if (gridNumber == 211) {
       doLambert(ref, 93, 65, 12.190, -133.459, 81.2705, 25.0, 25.0, -95.0);
 
+    } else if (gridNumber == 221) {
+      doLambert(ref, 349, 277, 1.0000, -145.000, 32.46341, 50.0, 50.0, -107.0);
+
+    } else if (gridNumber == 226) {
+      doLambert(ref, 737, 517, 12.190, -133.459, 10.1588125, 25.0, 25.0, -95.0);
+
+    } else if (gridNumber == 227) {
+      doLambert(ref, 1473, 1025, 12.190, -133.459, 5.07940625, 25.0, 25.0, -95.0);
+
+    } else if (gridNumber == 241) {
+      doLambert(ref, 549, 445, -4.850, -151.100, 22.000, 45.0, 45.0, -111.0);
+
+    } else if (gridNumber == 252) {
+      doLambert(ref, 301, 225, 16.281, -126.138, 20.317625, 25.0, 25.0, -95.0);
+
     } else if (gridNumber == 212) {
       doLambert(ref, 185, 129, 12.190, -133.459, 40.63525, 25.0, 25.0, -95.0);
 
