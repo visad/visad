@@ -800,6 +800,45 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     return true;
   }
 
+  /** destroy this display */
+  public void destroy() throws VisADException, RemoteException {
+    VisADException thrownVE = null;
+    RemoteException thrownRE = null;
+
+    // tell everybody we're going away
+    notifyListeners(new DisplayEvent(this, DisplayEvent.DESTROYED));
+
+    // remove all listeners
+    if (ListenerVector != null) {
+      synchronized (ListenerVector) {
+        ListenerVector.removeAllElements();
+      }
+    }
+
+    try {
+      removeAllReferences();
+    } catch (RemoteException re) {
+      thrownRE = re;
+    } catch (VisADException ve) {
+      thrownVE = ve;
+    }
+
+    try {
+      clearMaps();
+    } catch (RemoteException re) {
+      thrownRE = re;
+    } catch (VisADException ve) {
+      thrownVE = ve;
+    }
+
+    if (thrownVE != null) {
+      throw thrownVE;
+    }
+    if (thrownRE != null) {
+      throw thrownRE;
+    }
+  }
+
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {

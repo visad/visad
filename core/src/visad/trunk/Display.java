@@ -332,6 +332,9 @@ public interface Display extends Action {
   /** clear set of ScalarMap-s associated with this display */
   void clearMaps() throws VisADException, RemoteException;
 
+  /** destroy this display */
+  void destroy() throws VisADException, RemoteException;
+
   Vector getConstantMapVector()
          throws VisADException, RemoteException;
 }

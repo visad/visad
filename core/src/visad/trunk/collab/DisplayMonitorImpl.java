@@ -245,6 +245,13 @@ e.printStackTrace();
     }
   }
 
+  /** destroy this monitor */
+  public void destroy()
+  {
+    sync = null;
+    myDisplay.removeDisplayListener(this);
+  }
+
   /**
    * Handles notification of objects being added to or removed from
    * the <TT>Display</TT>.<BR><BR>
@@ -344,6 +351,10 @@ e.printStackTrace();
           }
         }
       }
+      break;
+
+    case DisplayEvent.DESTROYED:
+      // Hmmm ... not sure what we want to do here
       break;
 
     default:

@@ -127,6 +127,12 @@ public class DisplayEvent extends Event {
    */
   public final static int REFERENCE_REMOVED = 14;
 
+  /**
+   * The "display destroyed" event.  This event occurs when
+   * a display's destroy() method is called.
+   */
+  public final static int DESTROYED = 15;
+
   private int id = 0;
 
   /** MouseEvent x position */
@@ -229,6 +235,7 @@ public class DisplayEvent extends Event {
    *          <LI>DisplayEvent.MAPS_CLEARED
    *          <LI>DisplayEvent.REFERENCE_ADDED
    *          <LI>DisplayEvent.REFERENCE_REMOVED
+   *          <LI>DisplayEvent.DESTROYED
    *          </UL>
    */
   public int getId() {

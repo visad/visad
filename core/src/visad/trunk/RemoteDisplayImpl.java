@@ -286,6 +286,15 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     ((DisplayImpl) AdaptedAction).clearMaps();
   }
 
+  /** destroy this display */
+  public void destroy() throws VisADException, RemoteException {
+    if (AdaptedAction == null) {
+      throw new RemoteVisADException("RemoteDisplayImpl.destroy: " +
+                                     "AdaptedAction is null");
+    }
+    ((DisplayImpl) AdaptedAction).destroy();
+  }
+
   public String getDisplayClassName() throws RemoteException {
     return AdaptedAction.getClass().getName();
   }

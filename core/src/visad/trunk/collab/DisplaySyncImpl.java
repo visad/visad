@@ -152,6 +152,12 @@ public class DisplaySyncImpl
             ((MonitorEvent )o2).getSequenceNumber());
   }
 
+  public void destroy()
+  {
+    monitor = null;
+    myDisplay = null;
+  }
+ 
   /**
    * Finds the first map associated with this <TT>Display</TT>
    * which matches the specified <TT>ScalarMap</TT>.

@@ -80,6 +80,10 @@ public interface DisplayMonitor
   int checkID(int id)
     throws RemoteException;
 
+  /** destroy this monitor */
+  void destroy()
+    throws RemoteException, RemoteVisADException;
+
   /**
    * Returns <CODE>true</CODE> if there is a <CODE>MonitorEvent</CODE>
    * for the specified <CODE>Control</CODE> waiting to be delivered to

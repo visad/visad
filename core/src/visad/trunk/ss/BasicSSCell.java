@@ -2503,6 +2503,12 @@ public class BasicSSCell extends JPanel {
       }
     }
     if (success) {
+      try {
+        VDisplay.destroy();
+      }
+      catch (Exception exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
       VDisplay = newDisplay;
       RemoteVDisplay = rmtDisplay;
     }

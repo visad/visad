@@ -136,6 +136,13 @@ public class RemoteDisplayMonitorImpl
     return AdaptedMonitor.checkID(id);
   }
 
+  /** destroy this monitor */
+  public void destroy()
+    throws RemoteVisADException
+  {
+    throw new RemoteVisADException("Cannot destroy RemoteDisplayMonitor");
+  }
+
   /**
    * Adds this listener to the remote <CODE>DisplayMonitor</CODE>.
    *

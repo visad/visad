@@ -33,6 +33,8 @@ import visad.RemoteVisADException;
 public interface DisplaySync
   extends MonitorCallback
 {
+  void destroy()
+    throws RemoteException;
   boolean isLocalClear()
     throws RemoteException;
 }
