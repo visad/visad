@@ -988,6 +988,15 @@ public class BasicSSCell extends JPanel
       try {
         // load file or URL
         DefaultFamily loader = new DefaultFamily("loader", true);
+        if (source.startsWith("file:")) {
+          source = source.substring(5);
+          // if source looks like it starts with a Windows drive spec...
+          if (source.length() > 2 && source.charAt(2) == ':' &&
+            source.charAt(0) == '/')
+          {
+            source = source.substring(1);
+          }
+        }
         data = loader.open(source);
 
         // check if source is a local file
