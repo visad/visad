@@ -19,8 +19,14 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.text.*;
+import javax.swing.border.*;
 
-import java.awt.Component;
+// AWT packages
+import java.awt.*;
+import java.awt.event.*;
 
 import java.rmi.RemoteException;
 
@@ -29,6 +35,9 @@ import java.util.Enumeration;
 import visad.*;
 
 import visad.java2d.DisplayImplJ2D;
+import visad.java3d.DisplayImplJ3D;
+import visad.java3d.TwoDDisplayRendererJ3D;
+import visad.util.TextControlWidget;
 
 public class Test44
   extends UISkeleton
@@ -89,23 +98,26 @@ public class Test44
     dpys[0].addReference(ref_text_field, null);
   }
 
-  String getFrameTitle() { return "text in Java2D"; }
+  String getFrameTitle() {
+    return "text in Java2D with interactive settings";
+  }
 
   Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
     boolean foundCtrl = false;
+   TextControl text_control = null;
     Enumeration enum = dpys[0].getMapVector().elements();
     while (enum.hasMoreElements()) {
       ScalarMap sm = (ScalarMap )enum.nextElement();
 
       Control ctrl = sm.getControl();
       if (ctrl != null && ctrl instanceof TextControl) {
-        TextControl text_control = (TextControl )ctrl;
-        text_control.setSize(0.75);
-        text_control.setJustification(TextControl.Justification.RIGHT);
-        text_control.setRotation(10.0);
-        text_control.setAutoSize(true);
+        text_control = (TextControl) ctrl;
+        // text_control.setSize(0.75);
+        // text_control.setJustification(TextControl.Justification.RIGHT);
+        // text_control.setRotation(10.0);
+        // text_control.setAutoSize(true);
         foundCtrl = true;
       }
     }
@@ -115,10 +127,22 @@ public class Test44
       System.err.println("Don't be surprised if things don't work...");
     }
 
+    // SL 16 July 2003
+    //    return null;
+    JFrame jframe = new JFrame("VisAD font Selection Widget");
+    jframe.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+    jframe.setContentPane(new TextControlWidget(text_control));
+    jframe.pack();
+    jframe.setVisible(true);
+
     return null;
   }
 
-  public String toString() { return ": text in Java2D"; }
+  public String toString() {
+    return ": text in Java2D with interactive settings";
+  }
 
   public static void main(String[] args)
     throws RemoteException, VisADException

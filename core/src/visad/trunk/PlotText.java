@@ -24,6 +24,13 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+/*
+  History:
+  04 July 2003: Extended the render_font and render_label
+    methods to allow rotation of individual characters, scaling, and
+    offsets. (Sylvain Letourneau)
+*/
+
 package visad;
 
 import java.awt.*;
@@ -60,104 +67,104 @@ public class PlotText extends Object {
   /* characters are ordered by ASCII collating sequence, starting at 0x20 */
   static float[][] charCodes = {
 
-	{100f,0f}, // sp
-	{101f,8f,1f,3f,3f,3f,3f,8f,1f,8f,101f,1f,1f,0f,3f,0f,3f,1f,1f,1f}, // !
-	{101f,8f,0f,5f,104f,8f,3f,5f}, // "
-	{101.5f,8f,1.5f,0f,103.5f,8f,3.5f,0f,100f,5f,5f,5f,100f,3f,5f,3f}, // #
-	{101.5f,8f,1.5f,0f,102.5f,8f,2.5f,0f,104f,5.5f,3f,7f,1f,7f,0f,5.5f,0f,4.5f,4f,3.5f,4f,2.5f,3f,1f,1f,1f,0f,2.5f}, // $
-	{100f,8f,0f,7f,1f,7f,1f,8f,0f,8f,105f,8f,0f,0f,104f,1f,4f,0f,5f,0f,5f,1f,4f,1f}, // %
-	{105f,0f,0f,5f,0f,7f,1f,8f,3f,8f,4f,7f,4f,5f,0f,3f,0f,1f,1f,0f,3f,0f,5f,3f,5f,4f}, // &
-	{101f,8f,0f,5f}, // '
-	{104f,8f,2f,6f,2f,2f,4f,0f}, // (
-	{101f,8f,3f,6f,3f,2f,1f,0f}, // )
-	{100f,7f,5f,1f,102.5f,7f,2.5f,1f,100f,1f,5f,7f,105f,4f,0f,4f}, // *
-	{102.5f,7f,2.5f,1f,100f,4f,5f,4f}, // +
-	{103f,0f,2f,0f,2f,1f,3f,1f,3f,0f,2.1f,-2f}, // ,
-	{100f,4f,5f,4f}, // -
-	{102f,0f,3f,0f,3f,1f,2f,1f,2f,0f}, // .
-	{100f,0f,5f,8f}, // /
-	{102f,8f,0f,6f,0f,2f,2f,0f,3f,0f,5f,2f,5f,6f,3f,8f,2f,8f}, // 0
-	{101f,7f,2.5f,8f,2.5f,0f,1f,0f,4f,0f}, // 1
-	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,0f,0f,5f,0f}, // 2
-	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,3f,4f,4f,4f,5f,3f,5f,1f,4f,0f,1f,0f,0f,1f}, // 3
-	{103f,8f,0f,4f,5f,4f,5f,8f,5f,0f}, // 4
-	{100f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,0f,5f,0f,8f,5f,8f}, // 5
-	{105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,3f,4f,4f,0f,4f}, // 6
-	{100f,8f,5f,8f,3f,0f}, // 7
-	{101f,8f,0f,7f,0f,5f,1f,4f,4f,4f,5f,5f,5f,7f,4f,8f,1f,8f,101f,4f,0f,3f,0f,1f,1f,0f,4f,0f,5f,1f,5f,3f,4f,4f}, // 8
-	{101f,0f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f,0f,7f,0f,5f,1f,4f,5f,4f}, // 9
-	{102f,7f,2f,5f,3f,5f,3f,7f,2f,7f,102f,3f,2f,1f,3f,1f,3f,3f,2f,3f}, // :
-	{100f,7f,0f,5f,1f,5f,1f,7f,0f,7f,100f,0f,1f,1f,1f,3f,0f,3f,0f,1f,1f,1f}, // ;
-	{105f,7f,0f,4f,5f,1f}, // <
-	{100f,5f,5f,5f,100f,3f,5f,3f}, // =
-	{100f,7f,5f,4f,0f,1f}, // >
-	{100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,2.5f,4f,2.5f,2f,102.5f,1f,2.5f,0f}, // ?
-	{104f,0f,1f,0f,0f,1f,0f,7f,1f,8f,4f,8f,5f,7f,5f,3f,4f,1.5f,3f,2f,1.5f,4f,1.5f,5f,2.5f,6f,4f,5f,3f,2f},   // @
-	{100f,0f,0f,7f,1f,8f,4f,8f,5f,7f,5f,0f,5f,4f,0f,4f}, // A
-	{100f,8f,0f,0f,4f,0f,5f,1f,5f,3f,4f,4f,5f,5f,5f,7f,4f,8f,0f,8f,0f,4f,4f,4f}, // B
-	{105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f}, // C
-	{100f,8f,0f,0f,4f,0f,5f,1f,5f,7f,4f,8f,0f,8f}, // D
-	{105f,8f,0f,8f,0f,4f,3f,4f,0f,4f,0f,0f,5f,0f}, // E
-	{105f,8f,0f,8f,0f,4f,3f,4f,0f,4f,0f,0f}, // F
-	{105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,3f,4f}, // G
-	{100f,8f,0f,0f,0f,4f,5f,4f,5f,8f,5f,0f}, // H
-	{100f,8f,5f,8f,2.5f,8f,2.5f,0f,0f,0f,5f,0f}, // I
-	{105f,8f,5f,1f,4f,0f,1f,0f,0f,1f,0f,3f}, // J
-	{100f,8f,0f,0f,0f,4f,5f,8f,0f,4f,5f,0f}, // K
-	{100f,8f,0f,0f,5f,0f}, // L
-	{100f,0f,0f,8f,2.5f,4f,5f,8f,5f,0f}, // M
-	{100f,0f,0f,8f,5f,0f,5f,8f}, // N
-	{101f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f}, // O
-	{100f,0f,0f,8f,4f,8f,5f,7f,5f,5f,4f,4f,0f,4f}, // P
-	{101f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f,103f,3f,5f,0f}, // Q
-	{100f,0f,0f,8f,4f,8f,5f,7f,5f,5f,4f,4f,0f,4f,3f,4f,5f,0f}, // R
-	{105f,7f,4f,8f,1f,8f,0f,7f,0f,5f,1f,4f,4f,4f,5f,3f,5f,1f,4f,0f,1f,0f,0f,1f}, // S
-	{100f,8f,5f,8f,2.5f,8f,2.5f,0f}, // T
-	{100f,8f,0f,1f,1f,0f,4f,0f,5f,1f,5f,8f}, // U
-	{100f,8f,2.5f,0f,5f,8f}, // V
-	{100f,8f,0f,0f,2.5f,4f,5f,0f,5f,8f}, // W
-	{100f,8f,5f,0f,100f,0f,5f,8f}, // X
-	{100f,8f,2.5f,4f,5f,8f,2.5f,4f,2.5f,0f}, // Y
-	{100f,8f,5f,8f,0f,0f,5f,0f}, // Z
-	{104f,8f,2f,8f,2f,0f,4f,0f}, // [
-	{100f,8f,5f,0f}, // \
-	{101f,8f,3f,8f,3f,0f,1f,0f}, // ]
-	{102f,6f,3f,8f,4f,6f}, // ^
-	{100f,-2f,5f,-2f}, // _
-	{102f,8f,4f,6f}, // `
-	{104f,5f,4f,1f,3f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,4f,4f,4f,1f,5f,0f}, // a
-	{100f,8f,0f,0f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,3f,5f,0f,3f}, // b
-	{105f,0f,1f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f}, // c
-	{105f,3f,3f,5f,1f,5f,0f,4f,0f,1f,1f,0f,4f,0f,5f,1f,5f,0f,5f,8f}, // d
-	{105f,0f,1f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f,4f,3f,0f,3f}, // e
-	{103f,0f,3f,7f,4f,8f,5f,8f,5f,7f,101f,4f,4f,4f}, // f
-	{105f,5f,5f,-3f,4f,-4f,1f,-4f,105f,1f,4f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,5f,3f}, // g
-	{100f,8f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f,5f,0f}, // h
-	{103f,4f,3f,0f,4f,0f,1f,0f,103f,6.5f,3f,5.5f}, // i
-	{104f,4f,4f,-3f,3f,-4f,1f,-4f,0f,-3f,0f,-1f,1f,0f,104f,6.5f,4f,5.5f}, // j
-	{101f,8f,1f,0f,101f,3f,5f,5f,101f,3f,5f,0f}, // k
-	{102f,8f,3f,8f,3f,0f}, // l
-	{100f,0f,0f,5f,0f,4f,1f,5f,4f,5f,5f,4f,5f,0f,102.5f,5f,2.5f,2.0f}, // m
-	{100f,0f,0f,5f,0f,4f,1f,5f,4f,5f,5f,3f,5f,0f}, // n
-	{101f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f,5f,1f,4f,0f,1f,0f}, // o
-	{100f,-4f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,3f,5f,0f,3f,0f,1f,0f,5f}, // p
-	{105f,-4f,5f,1f,4f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,5f,3f,5f,1f,5f,5f}, // q
-	{100f,5f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f}, // r
-	{105f,4f,3f,5f,2f,5f,0f,4f,0f,3f,5f,2f,5f,1f,3f,0f,2f,0f,0f,1f}, // s
-	// {105f,4f,4f,5f,3f,5f,1f,3.5f,3f,3f,4f,3f,5f,1f,4f,0f,3f,0f,1f,1f}, // s
-	{102.5f,8f,2.5f,0f,100.5f,5f,4.5f,5f}, // t
-	{100f,5f,0f,1f,1f,0f,3f,0f,5f,3f,5f,5f,5f,0f}, // u
-	{100f,5f,0f,3f,2.5f,0f,5f,3f,5f,5f}, // v
-	{100f,5f,0f,0f,2.5f,3f,5f,0f,5f,5f}, // w
-	{100f,5f,5f,0f,105f,5f,0f,0f}, // x
-	{100f,5f,0f,3f,3f,0f,5f,3f,5f,5f,5f,-3f,3f,-4f}, // y
-	{100f,5f,5f,5f,0f,0f,5f,0f}, // z
-	{104f,8f,3f,8f,2f,4.5f,1f,4.5f,2f,4.5f,3f,0f,4f,0f}, // {
-	{103.5f,8f,3.5f,0f}, // |
-	{102f,8f,3f,8f,4f,4.5f,5f,4.5f,4f,4.5f,3f,0f,2f,0f}, // }
-	{100f,4f,1f,5f,3f,4f,4f,5f}, // ~
-	{100f,0f} // RO
-	};
+    {100f,0f}, // sp
+    {101f,8f,1f,3f,3f,3f,3f,8f,1f,8f,101f,1f,1f,0f,3f,0f,3f,1f,1f,1f}, // !
+    {101f,8f,0f,5f,104f,8f,3f,5f}, // "
+    {101.5f,8f,1.5f,0f,103.5f,8f,3.5f,0f,100f,5f,5f,5f,100f,3f,5f,3f}, // #
+    {101.5f,8f,1.5f,0f,102.5f,8f,2.5f,0f,104f,5.5f,3f,7f,1f,7f,0f,5.5f,0f,4.5f,4f,3.5f,4f,2.5f,3f,1f,1f,1f,0f,2.5f}, // $
+    {100f,8f,0f,7f,1f,7f,1f,8f,0f,8f,105f,8f,0f,0f,104f,1f,4f,0f,5f,0f,5f,1f,4f,1f}, // %
+    {105f,0f,0f,5f,0f,7f,1f,8f,3f,8f,4f,7f,4f,5f,0f,3f,0f,1f,1f,0f,3f,0f,5f,3f,5f,4f}, // &
+    {101f,8f,0f,5f}, // '
+    {104f,8f,2f,6f,2f,2f,4f,0f}, // (
+    {101f,8f,3f,6f,3f,2f,1f,0f}, // )
+    {100f,7f,5f,1f,102.5f,7f,2.5f,1f,100f,1f,5f,7f,105f,4f,0f,4f}, // *
+    {102.5f,7f,2.5f,1f,100f,4f,5f,4f}, // +
+    {103f,0f,2f,0f,2f,1f,3f,1f,3f,0f,2.1f,-2f}, // ,
+    {100f,4f,5f,4f}, // -
+    {102f,0f,3f,0f,3f,1f,2f,1f,2f,0f}, // .
+    {100f,0f,5f,8f}, // /
+    {102f,8f,0f,6f,0f,2f,2f,0f,3f,0f,5f,2f,5f,6f,3f,8f,2f,8f}, // 0
+    {101f,7f,2.5f,8f,2.5f,0f,1f,0f,4f,0f}, // 1
+    {100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,0f,0f,5f,0f}, // 2
+    {100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,3f,4f,4f,4f,5f,3f,5f,1f,4f,0f,1f,0f,0f,1f}, // 3
+    {103f,8f,0f,4f,5f,4f,5f,8f,5f,0f}, // 4
+    {100f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,0f,5f,0f,8f,5f,8f}, // 5
+    {105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,3f,4f,4f,0f,4f}, // 6
+    {100f,8f,5f,8f,3f,0f}, // 7
+    {101f,8f,0f,7f,0f,5f,1f,4f,4f,4f,5f,5f,5f,7f,4f,8f,1f,8f,101f,4f,0f,3f,0f,1f,1f,0f,4f,0f,5f,1f,5f,3f,4f,4f}, // 8
+    {101f,0f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f,0f,7f,0f,5f,1f,4f,5f,4f}, // 9
+    {102f,7f,2f,5f,3f,5f,3f,7f,2f,7f,102f,3f,2f,1f,3f,1f,3f,3f,2f,3f}, // :
+    {100f,7f,0f,5f,1f,5f,1f,7f,0f,7f,100f,0f,1f,1f,1f,3f,0f,3f,0f,1f,1f,1f}, // ;
+    {105f,7f,0f,4f,5f,1f}, // <
+    {100f,5f,5f,5f,100f,3f,5f,3f}, // =
+    {100f,7f,5f,4f,0f,1f}, // >
+    {100f,7f,1f,8f,4f,8f,5f,7f,5f,5f,4f,4f,2.5f,4f,2.5f,2f,102.5f,1f,2.5f,0f}, // ?
+    {104f,0f,1f,0f,0f,1f,0f,7f,1f,8f,4f,8f,5f,7f,5f,3f,4f,1.5f,3f,2f,1.5f,4f,1.5f,5f,2.5f,6f,4f,5f,3f,2f},   // @
+    {100f,0f,0f,7f,1f,8f,4f,8f,5f,7f,5f,0f,5f,4f,0f,4f}, // A
+    {100f,8f,0f,0f,4f,0f,5f,1f,5f,3f,4f,4f,5f,5f,5f,7f,4f,8f,0f,8f,0f,4f,4f,4f}, // B
+    {105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f}, // C
+    {100f,8f,0f,0f,4f,0f,5f,1f,5f,7f,4f,8f,0f,8f}, // D
+    {105f,8f,0f,8f,0f,4f,3f,4f,0f,4f,0f,0f,5f,0f}, // E
+    {105f,8f,0f,8f,0f,4f,3f,4f,0f,4f,0f,0f}, // F
+    {105f,7f,4f,8f,1f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,3f,4f}, // G
+    {100f,8f,0f,0f,0f,4f,5f,4f,5f,8f,5f,0f}, // H
+    {100f,8f,5f,8f,2.5f,8f,2.5f,0f,0f,0f,5f,0f}, // I
+    {105f,8f,5f,1f,4f,0f,1f,0f,0f,1f,0f,3f}, // J
+    {100f,8f,0f,0f,0f,4f,5f,8f,0f,4f,5f,0f}, // K
+    {100f,8f,0f,0f,5f,0f}, // L
+    {100f,0f,0f,8f,2.5f,4f,5f,8f,5f,0f}, // M
+    {100f,0f,0f,8f,5f,0f,5f,8f}, // N
+    {101f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f}, // O
+    {100f,0f,0f,8f,4f,8f,5f,7f,5f,5f,4f,4f,0f,4f}, // P
+    {101f,8f,0f,7f,0f,1f,1f,0f,4f,0f,5f,1f,5f,7f,4f,8f,1f,8f,103f,3f,5f,0f}, // Q
+    {100f,0f,0f,8f,4f,8f,5f,7f,5f,5f,4f,4f,0f,4f,3f,4f,5f,0f}, // R
+    {105f,7f,4f,8f,1f,8f,0f,7f,0f,5f,1f,4f,4f,4f,5f,3f,5f,1f,4f,0f,1f,0f,0f,1f}, // S
+    {100f,8f,5f,8f,2.5f,8f,2.5f,0f}, // T
+    {100f,8f,0f,1f,1f,0f,4f,0f,5f,1f,5f,8f}, // U
+    {100f,8f,2.5f,0f,5f,8f}, // V
+    {100f,8f,0f,0f,2.5f,4f,5f,0f,5f,8f}, // W
+    {100f,8f,5f,0f,100f,0f,5f,8f}, // X
+    {100f,8f,2.5f,4f,5f,8f,2.5f,4f,2.5f,0f}, // Y
+    {100f,8f,5f,8f,0f,0f,5f,0f}, // Z
+    {104f,8f,2f,8f,2f,0f,4f,0f}, // [
+    {100f,8f,5f,0f}, // \
+    {101f,8f,3f,8f,3f,0f,1f,0f}, // ]
+    {102f,6f,3f,8f,4f,6f}, // ^
+    {100f,-2f,5f,-2f}, // _
+    {102f,8f,4f,6f}, // `
+    {104f,5f,4f,1f,3f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,4f,4f,4f,1f,5f,0f}, // a
+    {100f,8f,0f,0f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,3f,5f,0f,3f}, // b
+    {105f,0f,1f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f}, // c
+    {105f,3f,3f,5f,1f,5f,0f,4f,0f,1f,1f,0f,4f,0f,5f,1f,5f,0f,5f,8f}, // d
+    {105f,0f,1f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f,4f,3f,0f,3f}, // e
+    {103f,0f,3f,7f,4f,8f,5f,8f,5f,7f,101f,4f,4f,4f}, // f
+    {105f,5f,5f,-3f,4f,-4f,1f,-4f,105f,1f,4f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,5f,3f}, // g
+    {100f,8f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f,5f,0f}, // h
+    {103f,4f,3f,0f,4f,0f,1f,0f,103f,6.5f,3f,5.5f}, // i
+    {104f,4f,4f,-3f,3f,-4f,1f,-4f,0f,-3f,0f,-1f,1f,0f,104f,6.5f,4f,5.5f}, // j
+    {101f,8f,1f,0f,101f,3f,5f,5f,101f,3f,5f,0f}, // k
+    {102f,8f,3f,8f,3f,0f}, // l
+    {100f,0f,0f,5f,0f,4f,1f,5f,4f,5f,5f,4f,5f,0f,102.5f,5f,2.5f,2.0f}, // m
+    {100f,0f,0f,5f,0f,4f,1f,5f,4f,5f,5f,3f,5f,0f}, // n
+    {101f,0f,0f,1f,0f,4f,1f,5f,4f,5f,5f,4f,5f,1f,4f,0f,1f,0f}, // o
+    {100f,-4f,0f,1f,1f,0f,4f,0f,5f,1f,5f,4f,4f,5f,3f,5f,0f,3f,0f,1f,0f,5f}, // p
+    {105f,-4f,5f,1f,4f,0f,1f,0f,0f,1f,0f,4f,1f,5f,3f,5f,5f,3f,5f,1f,5f,5f}, // q
+    {100f,5f,0f,0f,0f,3f,3f,5f,4f,5f,5f,4f}, // r
+    {105f,4f,3f,5f,2f,5f,0f,4f,0f,3f,5f,2f,5f,1f,3f,0f,2f,0f,0f,1f}, // s
+    // {105f,4f,4f,5f,3f,5f,1f,3.5f,3f,3f,4f,3f,5f,1f,4f,0f,3f,0f,1f,1f}, // s
+    {102.5f,8f,2.5f,0f,100.5f,5f,4.5f,5f}, // t
+    {100f,5f,0f,1f,1f,0f,3f,0f,5f,3f,5f,5f,5f,0f}, // u
+    {100f,5f,0f,3f,2.5f,0f,5f,3f,5f,5f}, // v
+    {100f,5f,0f,0f,2.5f,3f,5f,0f,5f,5f}, // w
+    {100f,5f,5f,0f,105f,5f,0f,0f}, // x
+    {100f,5f,0f,3f,3f,0f,5f,3f,5f,5f,5f,-3f,3f,-4f}, // y
+    {100f,5f,5f,5f,0f,0f,5f,0f}, // z
+    {104f,8f,3f,8f,2f,4.5f,1f,4.5f,2f,4.5f,3f,0f,4f,0f}, // {
+    {103.5f,8f,3.5f,0f}, // |
+    {102f,8f,3f,8f,4f,4.5f,5f,4.5f,4f,4.5f,3f,0f,2f,0f}, // }
+    {100f,4f,1f,5f,3f,4f,4f,5f}, // ~
+    {100f,0f} // RO
+  };
 
   /**
    * Convert a string of characters (ASCII collating sequence) into a
@@ -209,8 +216,8 @@ public class PlotText extends Object {
       start[2] = pos;
     }
     // abcd 5 February 2001
-    return render_label(str, start, base, up, TextControl.Justification.CENTER);
-    // return render_label(str, start, base, up, true);
+    return render_label(str, start, base, up, TextControl.Justification.CENTER,
+                TextControl.Justification.BOTTOM, 0.0,1.0, null);
   }
 
   /**
@@ -229,37 +236,10 @@ public class PlotText extends Object {
   public static VisADLineArray render_label(String str, double[] start,
          double[] base, double[] up, boolean center) {
     return render_label(str, start, base, up,
-                        (center ? TextControl.Justification.CENTER :
-                                  TextControl.Justification.LEFT),
-                        TextControl.Justification.BOTTOM);
+           (center ? TextControl.Justification.CENTER :
+                     TextControl.Justification.LEFT),
+           TextControl.Justification.BOTTOM, 0.0, 1.0, null);
   }
-
-  // abcd 5 February 2001
-  // was
-  // * @param  center is <CODE>true</CODE> if string is to be centered
-  /**
-   * Convert a string of characters (ASCII collating sequence) into a
-   *  series of vectors for drawing.
-   *
-   * @param str  String to use
-   * @param  start point (x,y,z)
-   * @param  base  (x,y,z) of baseline vector
-   * @param  up  (x,y,z) of "up" direction vector
-   * @param  justification is one of:<ul>
-   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
-   * <li> TextControl.Justification.CENTER - Centered text
-   * <li> TextControl.Justification.RIGHT - Right justified text
-   * </ul>
-   *
-   * @return VisADLineArray of all the vectors needed to draw the
-   * characters in this string
-   */
-  public static VisADLineArray render_label(String str, double[] start,
-         double[] base, double[] up, TextControl.Justification justification) {
-    return render_label(str, start, base, up, justification,
-                        TextControl.Justification.BOTTOM);
-  }
-
 
   /**
    * Convert a string of characters (ASCII collating sequence) into a
@@ -286,6 +266,135 @@ public class PlotText extends Object {
   public static VisADLineArray render_label(String str, double[] start,
          double[] base, double[] up, TextControl.Justification justification,
          TextControl.Justification verticalJustification) {
+    return render_label(str, start, base, up, justification,
+                        verticalJustification, 0.0, 1.0, null);
+  }
+
+  // abcd 5 February 2001
+  // was
+  // * @param  center is <CODE>true</CODE> if string is to be centered
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of vectors for drawing.
+   *
+   * @param str  String to use
+   * @param  start point (x,y,z)
+   * @param  base  (x,y,z) of baseline vector
+   * @param  up  (x,y,z) of "up" direction vector
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   *
+   * @return VisADLineArray of all the vectors needed to draw the
+   * characters in this string
+   */
+  public static VisADLineArray render_label(String str, double[] start,
+         double[] base, double[] up, TextControl.Justification justification) {
+    return render_label(str, start, base, up, justification,
+                        TextControl.Justification.BOTTOM, 0.0, 1.0, null);
+  }
+
+
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of vectors for drawing.
+   *
+   * @param str  String to use
+   * @param  start point (x,y,z)
+   * @param  base  (x,y,z) of baseline vector
+   * @param  up  (x,y,z) of "up" direction vector
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   * @param  verticalJustification is one of:<ul>
+   * <li> TextControl.Justification.TOP - Top justified text
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
+   * </ul>
+   * @param characRotation is the angle (in degrees) at which each character
+   * in str is rotated with respect to the base line of the text.  A positive
+   * value rotates the characters clockwise; a negative value
+   * rotates them counterclockwise.
+   *
+   * @return VisADLineArray of all the vectors needed to draw the
+   * characters in this string
+   */
+  public static VisADLineArray render_label(String str, double[] start,
+         double[] base, double[] up, TextControl.Justification justification,
+         double characRotation) {
+    return render_label(str, start, base, up, justification,
+                        TextControl.Justification.BOTTOM,
+                        characRotation, 1.0, null);
+  }
+
+  // abcd 5 February 2001
+  // was
+  // * @param  center is <CODE>true</CODE> if string is to be centered
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of vectors for drawing.
+   *
+   * @param str  String to use
+   * @param  start point (x,y,z)
+   * @param  base  (x,y,z) of baseline vector
+   * @param  up  (x,y,z) of "up" direction vector
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   * @param  verticalJustification is one of:<ul>
+   * <li> TextControl.Justification.TOP - Top justified text
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
+   * </ul>
+   * @param characRotation is the angle (in degrees) at which each character
+   * in str is rotated with respect to the base line of the text.  A positive
+   * value rotates the characters clockwise; a negative value
+   * rotates them counterclockwise.
+   * @param scale is the scaling factor.
+   * @param offsets is a 1x3 array defining the offsets in X, Y, Z, respectively.
+   *
+   * @return VisADLineArray of all the lines needed to draw the
+   * characters in this string
+   */
+  public static VisADLineArray render_label(String str, double[] start,
+         double[] base, double[] up, TextControl.Justification justification,
+         TextControl.Justification verticalJustification,
+         double characRotation, double scale, double[] offsets) {
+    if (offsets == null) {
+      offsets = new double[]{0.0, 0.0, 0.0};
+    }
+    if (scale <= 0.0) {
+      scale = 1.0;
+    }
+
+    /*  System.out.println("in render_label:" +
+        " characRotation= " + characRotation +
+        " scale=" + scale +
+        " offset=[" + offsets[0] + ", " + offsets[1] +
+        ", " + offsets[2] + "]");
+    */
+
+    double []start_off = new double[3];
+    start_off[0] = start[0] + offsets[0];
+    start_off[1] = start[1] + offsets[1];
+    start_off[2] = start[2] + offsets[2];
+
+    double[] base_scaled = new double[3];
+    base_scaled[0] = base[0] * scale;
+    base_scaled[1] = base[1] * scale;
+    base_scaled[2] = base[2] * scale;
+
+    double[] up_scaled = new double[3];
+    up_scaled[0] = up[0] * scale;
+    up_scaled[1] = up[1] * scale;
+    up_scaled[2] = up[2] * scale;
+
     double[] temp;
     double cx, cy, cz;
     double startx = 0.0;
@@ -294,52 +403,24 @@ public class PlotText extends Object {
     double sw;
     int i, j, k, v2, len;
 
-    cx = start[0];
-    cy = start[1];
-    cz = start[2];
+    cx = start_off[0];
+    cy = start_off[1];
+    cz = start_off[2];
     len = str.length();
     // allow 20 2-point 3-component strokes per character
     float[] plot = new float[120 * len];
 
-    // abcd 5 February 2001
-    //if (center) {
-    //  /* calculate string width for center justify - fixed width font*/
-    //  sw = WIDTH * (float) len;
-    //  cx -= sw * base[0] / 2.0;
-    //  cy -= sw * base[1] / 2.0;
-    //  cz -= sw * base[2] / 2.0;
-    //}
-    // LEFT is normal
-    if (justification == TextControl.Justification.CENTER) {
-      sw = WIDTH * (float) len;
-      cx -= sw * base[0] / 2.0;
-      cy -= sw * base[1] / 2.0;
-      cz -= sw * base[2] / 2.0;
-    } else if (justification == TextControl.Justification.RIGHT) {
-      sw = WIDTH * (float) len;
-      cx -= sw * base[0];
-      cy -= sw * base[1];
-      cz -= sw * base[2];
-    }
-
-    // BOTTOM is normal
-    if (verticalJustification == TextControl.Justification.TOP) {
-      final double height = WIDTH;
-      cx -= height * up[0];
-      cy -= height * up[1];
-      cz -= height * up[2];
-    } else if (verticalJustification == TextControl.Justification.CENTER) {
-      final double height = WIDTH;
-      cx -= height * up[0] / 2.0;
-      cy -= height * up[1] / 2.0;
-      cz -= height * up[2] / 2.0;
-    }
-
     int plot_index = 0;
+
+    double angle = Math.toRadians(-characRotation);
+    float angle2 = (float) (angle + Math.PI/2.0);
+    double w, h, x, y;
 
     /* draw left justified text */
 
     for (i=0; i<len; i++) {
+      char cur_char = str.charAt(i);
+
       k = str.charAt(i) - 32;
       if (k < 0 || k > 127) continue; // invalid - just skip
 
@@ -348,6 +429,9 @@ public class PlotText extends Object {
       /* make the vertex array for this character */
       /* points with x>9 are 'start new segment' flag */
 
+      int plot_index_begin = plot_index;
+      float maxX = 0.f;
+      float maxY = 0.f, minY = 10.f;
       int temp_index = 0;
       for (j=0; j<verts; j++) {
 
@@ -355,22 +439,34 @@ public class PlotText extends Object {
 
         boolean dup_point = true;
         if (j == (verts - 1) ) dup_point = false; // don't dupe last point
-
-        double x, y;
-        x = (double) charCodes[k][temp_index]*.1;
-        if (x > 9.0) {
+        float px, py, pz;
+        w = (double) charCodes[k][temp_index]*.1;
+        if (w > 9.0) {
           if (j != 0) plot_index -= 3; // reset pointer to remove last point
-          x = x - 10.0;
+          w = w - 10.0;
           dup_point = false;
         }
 
         temp_index++;
-        y = (double) charCodes[k][temp_index]*.1;
+        h = (double) charCodes[k][temp_index]*.1;
         temp_index++;
 
-        plot[plot_index] = (float) (cx + x * base[0] + y * up[0]);
-        plot[plot_index + 1] = (float) (cy + x * base[1] + y * up[1]);
-        plot[plot_index + 2] = (float) (cz + x * base[2] + y * up[2]);
+        if (w > maxX) maxX = (float) w;
+        if (h > maxY) maxY = (float) h;
+        if (h < minY) minY = (float) h;
+
+        // System.out.println(i + " " + j + " " + cur_char + ". w=" + w + " h=" + h);
+        x = (float) (w * Math.cos(angle) - h * Math.sin(angle));
+        y = (float) (w * Math.sin(angle) + h * Math.cos(angle));
+        // System.out.println(i + ". " + k + ". " + j + ". x=" + x + ", y="+ y);
+
+        px = (float) (cx + x * base_scaled[0] + y * up_scaled[0]);
+        py = (float) (cy + x * base_scaled[1] + y * up_scaled[1]);
+        pz = (float) (cz + x * base_scaled[2] + y * up_scaled[2]);
+
+        plot[plot_index] = px;
+        plot[plot_index + 1] = py;
+        plot[plot_index + 2] = pz;
 
         if (dup_point) { // plot points are in pairs -- set up for next pair
           plot[plot_index + 3] = plot[plot_index];
@@ -380,14 +476,85 @@ public class PlotText extends Object {
         }
         plot_index += 3;
       }
+      if (minY > maxY) {
+        minY = maxY;  // no vertice
+      }
+      //  System.out.println(i + ". " + cur_char + ". maxX=" + maxX + ", minY="+ minY + ", maxY="+ maxY);
+
+      // Calculate offsets due to rotations of characters
+      x = maxX;
+      y = (float)(maxY-minY + 0.1);
+      float x_plus = (float) (x * Math.abs(Math.cos(angle)) +
+                              y * Math.abs(Math.cos(angle2)));
+      float cur_x_off = 0.0f;
+      if (Math.cos(angle) < 0) {
+        cur_x_off = (float) (x * Math.abs(Math.cos(angle)));
+      }
+      if (Math.cos(angle2) < 0) {
+        cur_x_off += (float) ((maxY+.05) * Math.abs(Math.cos(angle2)));
+      }
+      else if (minY < 0) {
+        cur_x_off += (float) ((-minY+0.05) * Math.abs(Math.cos(angle2)));
+      }
+
+      // System.out.println(i + ". " + cur_char + ". x=" + x + " y=" + y + " x_plus=" + x_plus + " cur_x_off=" + cur_x_off);
+
+      // Apply offsets
+      for (j=plot_index_begin;j<plot_index; j=j+6) {
+        plot[j] += cur_x_off * base_scaled[0];
+        plot[j + 1] += cur_x_off * base_scaled[1];
+        plot[j + 2] += cur_x_off * base_scaled[2];
+        plot[j + 3] += cur_x_off * base_scaled[0];
+        plot[j + 4] += cur_x_off * base_scaled[1];
+        plot[j + 5] += cur_x_off * base_scaled[2];
+      }
+
       /* calculate position for next char */
-      cx += WIDTH * base[0];
-      cy += WIDTH * base[1];
-      cz += WIDTH * base[2];
+      double width = Math.max(WIDTH, x_plus + 0.3);
+      cx += (float) (width * base_scaled[0]);
+      cy += (float) (width * base_scaled[1]);
+      cz += (float) (width * base_scaled[2]);
 
     } // end for (i=0; i<len; i++)
 
     if (plot_index <= 0) return null;
+
+    float cxoff = Float.NaN;
+    float cyoff = Float.NaN;
+    float czoff = Float.NaN;
+
+    // LEFT is normal
+    if (justification == TextControl.Justification.CENTER) {
+      cxoff = (float)((cx - start_off[0])/2.);
+      cyoff = (float)((cy - start_off[1])/2.);
+      czoff = (float)((cz - start_off[2])/2.);
+
+    } else if (justification == TextControl.Justification.RIGHT) {
+      cxoff = (float)(cx - start_off[0]);
+      cyoff = (float)(cy - start_off[1]);
+      czoff = (float)(cz - start_off[2]);
+    }
+
+    // BOTTOM is normal
+    if (verticalJustification == TextControl.Justification.TOP) {
+      final double height = WIDTH;
+      cxoff += height * up_scaled[0];
+      cyoff += height * up_scaled[1];
+      czoff += height * up_scaled[2];
+    } else if (verticalJustification == TextControl.Justification.CENTER) {
+      final double height = WIDTH;
+      cxoff += height * up_scaled[0] / 2.0;
+      cyoff += height * up_scaled[1] / 2.0;
+      czoff += height * up_scaled[2] / 2.0;
+    }
+
+    if (cxoff == cxoff) {
+      for (i=0; i<plot_index; i=i+3) {
+        plot[i] = plot[i] - cxoff;
+        plot[i+1] = plot[i+1] - cyoff;
+        plot[i+2] = plot[i+2] - czoff;
+      }
+    }
 
     VisADLineArray array = new VisADLineArray();
     float[] coordinates = new float[plot_index];
@@ -426,8 +593,8 @@ public class PlotText extends Object {
            double[] start, double[] base, double[] up, boolean center) {
     return render_font(str, font, start, base, up,
                        (center ? TextControl.Justification.CENTER :
-                                 TextControl.Justification.LEFT),
-                       TextControl.Justification.BOTTOM);
+                                  TextControl.Justification.LEFT),
+                       TextControl.Justification.BOTTOM, 0.0, 1, null);
   }
 
   /**
@@ -436,9 +603,9 @@ public class PlotText extends Object {
    *
    * @param str  String to use
    * @param  font  non-null HersheyFont name
-   * ?param  start
-   * ?param  base
-   * ?param  up
+   * @param  start
+   * @param  base
+   * @param  up
    * @param  justification is one of:<ul>
    * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
    * <li> TextControl.Justification.CENTER - Centered text
@@ -452,25 +619,99 @@ public class PlotText extends Object {
             double[] start, double[] base, double[] up,
             TextControl.Justification justification) {
     return render_font(str, font, start, base, up, justification,
-                       TextControl.Justification.BOTTOM);
+                       TextControl.Justification.BOTTOM, 0.0, 1.0, null);
   }
 
-
-// abcd, 3 March 2003
   /**
    * Convert a string of characters (ASCII collating sequence) into a
    *  series of lines for drawing.
    *
    * @param str  String to use
    * @param  font  non-null HersheyFont name
-   * ?param  start
-   * ?param  base
-   * ?param  up
+   * @param  start
+   * @param  base
+   * @param  up
    * @param  justification is one of:<ul>
    * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
    * <li> TextControl.Justification.CENTER - Centered text
    * <li> TextControl.Justification.RIGHT - Right justified text
    * </ul>
+   * @param characRotation is the angle (in degrees) at which each character
+   * in str is rotated with respect to the base line of the text.  A positive
+   * value rotates the characters clockwise; a negative value
+   * rotates them counterclockwise.
+   *
+   * @return VisADLineArray of all the lines needed to draw the
+   * characters in this string
+   */
+  public static VisADLineArray render_font(String str, HersheyFont font,
+         double[] start, double[] base, double[] up,
+         TextControl.Justification justification, double characRotation) {
+    return render_font(str, font, start, base, up, justification,
+                       TextControl.Justification.BOTTOM,
+                       characRotation, 1.0, null);
+  }
+
+
+ /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of lines for drawing.
+   *
+   * @param str  String to use
+   * @param  font  non-null HersheyFont name
+   * @param  start
+   * @param  base
+   * @param  up
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   * @param  verticalJustification is one of:<ul>
+   * <li> TextControl.Justification.TOP - Top justified text
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
+   * </ul>
+   *
+   * @return VisADLineArray of all the lines needed to draw the
+   * characters in this string
+   */
+  public static VisADLineArray render_font(String str, HersheyFont font,
+         double[] start, double[] base, double[] up,
+         TextControl.Justification justification,
+         TextControl.Justification verticalJustification) {
+    return render_font(str, font, start, base, up, justification,
+                       verticalJustification, 0.0, 1.0, null);
+  }
+
+
+
+ // abcd, 3 March 2003
+ /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of lines for drawing.
+   *
+   * @param str  String to use
+   * @param  font  non-null HersheyFont name
+   * @param  start
+   * @param  base
+   * @param  up
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   * @param  verticalJustification is one of:<ul>
+   * <li> TextControl.Justification.TOP - Top justified text
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
+   * </ul>
+   * @param characRotation is the angle (in degrees) at which each character
+   * in str is rotated with respect to the base line of the text.  A positive
+   * value rotates the characters clockwise; a negative value
+   * rotates them counterclockwise.
+   * @param scale is the scaling factor.
+   * @param offsets is a 1x3 array defining the offsets in X, Y, Z, respectively.
    *
    * @return VisADLineArray of all the lines needed to draw the
    * characters in this string
@@ -478,7 +719,36 @@ public class PlotText extends Object {
   public static VisADLineArray render_font(String str, HersheyFont font,
             double[] start, double[] base, double[] up,
             TextControl.Justification justification,
-            TextControl.Justification verticalJustification) {
+            TextControl.Justification verticalJustification,
+            double characRotation, double scale, double[] offsets) {
+    /*
+      System.out.println("in render_font with HersheyFont font:" +
+      " characRotation= " + characRotation +
+      " scale=" + scale +
+      " offset=[" + offsets[0] + ", " + offsets[1] +
+      ", " + offsets[2] + "]"              );
+    */
+
+    if (offsets == null) {
+      offsets = new double[]{0.0, 0.0, 0.0};
+    }
+    double []start_off = new double[3];
+    start_off[0] = start[0] + offsets[0];
+    start_off[1] = start[1] + offsets[1];
+    start_off[2] = start[2] + offsets[2];
+
+    if (scale <= 0.0) {
+      scale = 1.0;
+    }
+    double[] base_scaled = new double[3];
+    base_scaled[0] = base[0] * scale;
+    base_scaled[1] = base[1] * scale;
+    base_scaled[2] = base[2] * scale;
+
+    double[] up_scaled = new double[3];
+    up_scaled[0] = up[0] * scale;
+    up_scaled[1] = up[1] * scale;
+    up_scaled[2] = up[2] * scale;
 
     int maxChars = font.getCharactersInSet();
 
@@ -487,9 +757,9 @@ public class PlotText extends Object {
     double starty = 0.0;
     double startz = 0.0;
 
-    double cx = start[0];
-    double cy = start[1];
-    double cz = start[2];
+    double cx = start_off[0];
+    double cy = start_off[1];
+    double cz = start_off[2];
     int len = str.length();
     boolean isFixed = font.getFixedWidth();
 
@@ -510,9 +780,14 @@ public class PlotText extends Object {
     float oldpy = 0.f;
     float oldpz = 0.f;
     float x,y, px, py, pz;
+    float w,h;
 
     // look at each character in the string
+    double angle = Math.toRadians(-characRotation);
+    float angle2 = (float) (angle + Math.PI/2.0);
     for (int i=0; i<len; i++) {
+
+      char cur_char = str.charAt(i);
 
       int k = str.charAt(i) - (int) ' ';
       if (k < 0 || k > maxChars) continue; // invalid - just skip
@@ -525,13 +800,18 @@ public class PlotText extends Object {
 
         width = .08;
         if (isCursive) width = -.08;
-        cx += width * base[0];
-        cy += width * base[1];
-        cz += width * base[2];
+        cx += width * base_scaled[0];
+        cy += width * base_scaled[1];
+        cz += width * base_scaled[2];
       }
 
+      // System.out.println(i + ". " + cur_char + ". charMinY=" + charMinY + " charMaxY=" + charMaxY);
+      // System.out.println(i + ". " + cur_char + " cx=" + cx + " cy=" + cy + " cz=" + cz);
+
+      int plot_index_begin = plot_index;
       boolean skip = true;
       float maxX = 0.f;
+      float maxY = 0.f, minY = (float)charMaxY;
 
 
       for (int j=1; j<verts; j++) {
@@ -542,22 +822,30 @@ public class PlotText extends Object {
         } else {
           // make the coordinates relative to 0
           if (isFixed) {
-            x = (float)(charVector[0][j] - charMinX[k])
-                          / (float)(charSetMaxX - charSetMinX);
+            w = (float)(charVector[0][j] - charMinX[k])
+              / (float)(charSetMaxX - charSetMinX);
           } else {
-            x = (float)(charVector[0][j] - charMinX[k])
-                          / (float)(charMaxX[k] - charMinX[k]);
+            w = (float)(charVector[0][j] - charMinX[k])
+              / (float)(charMaxX[k] - charMinX[k]);
           }
 
-          if (x > maxX) maxX = x;
-
           // invert y coordinate
-          y = (float) (charMaxY - charVector[1][j] )
-                           / (charMaxY - charMinY);
+          h = (float) (charMaxY - charVector[1][j] )
+            / (charMaxY - charMinY);
 
-          px = (float) (cx + x * base[0] + y * up[0]);
-          py = (float) (cy + x * base[1] + y * up[1]);
-          pz = (float) (cz + x * base[2] + y * up[2]);
+          if (w > maxX) maxX = w;
+          if (h > maxY) maxY = h;
+          if (h < minY) minY = h;
+          //          System.out.println(i + " " + j + " " + cur_char + ". w=" + w + " h=" + h);
+          x = (float) (w * Math.cos(angle) - h * Math.sin(angle));
+          y = (float) (w * Math.sin(angle) + h * Math.cos(angle));
+          // System.out.println(i + ". " + k + ". " + j + ". x=" + x + ", y="+ y);
+
+          px = (float) (cx + x * base_scaled[0] + y * up_scaled[0]);
+          py = (float) (cy + x * base_scaled[1] + y * up_scaled[1]);
+          pz = (float) (cz + x * base_scaled[2] + y * up_scaled[2]);
+
+          // System.out.println(i + ". " + k + ". " + j + ". px=" + px + ", py="+ py + ", pz=" + pz);
 
           // need pairs of points
           if (!skip) {
@@ -565,7 +853,7 @@ public class PlotText extends Object {
             plot[plot_index + 1] = oldpy;
             plot[plot_index + 2] = oldpz;
             plot[plot_index + 3] = px;
-            plot[plot_index + 4] = py; 
+            plot[plot_index + 4] = py;
             plot[plot_index + 5] = pz;
             plot_index += 6;
           }
@@ -578,11 +866,45 @@ public class PlotText extends Object {
 
       if (verts == 1) maxX = .5f;
 
+      if (minY > maxY) {
+        minY = maxY;  // no vertice
+      }
+
+      // System.out.println(i + ". " + cur_char + ". maxX=" + maxX + ", minY="+ minY + ", maxY="+ maxY);
+
+      // Calculate offsets due to rotations of characters
+      x = maxX;
+      y = (float)Math.max((maxY - minY + 0.3), 0.5);
+      float x_plus = (float) (x * Math.abs(Math.cos(angle)) +
+                              y * Math.abs(Math.cos(angle2)));
+      float cur_x_off = 0.0f;
+      if (Math.cos(angle) < 0) {
+        cur_x_off = (float) (x * Math.abs(Math.cos(angle)));
+      }
+      if (Math.cos(angle2) < 0) {
+        cur_x_off += (float) (y * Math.abs(Math.cos(angle2)));
+      }
+      // The space required to center horizontally
+      float y1 = (float) ((minY + .30)/2.0 - minY);
+      cur_x_off += (float) (y1 * Math.cos(angle2));
+
+      // System.out.println(i + ". " + cur_char + ". x=" + x + " y=" + y + " y1=" + y1 + " x_plus=" + x_plus + " cur_x_off=" + cur_x_off);
+
+      // Apply offsets
+      for (int j=plot_index_begin;j<plot_index; j=j+6) {
+        plot[j] += cur_x_off * base_scaled[0];
+        plot[j + 1] += cur_x_off * base_scaled[1];
+        plot[j + 2] += cur_x_off * base_scaled[2];
+        plot[j + 3] += cur_x_off * base_scaled[0];
+        plot[j + 4] += cur_x_off * base_scaled[1];
+        plot[j + 5] += cur_x_off * base_scaled[2];
+      }
+
       // move pointer to the end position of this character
-      width = width + maxX;
-      cx += width * base[0];
-      cy += width * base[1];
-      cz += width * base[2];
+      width = width + x_plus;
+      cx += width * base_scaled[0];
+      cy += width * base_scaled[1];
+      cz += width * base_scaled[2];
 
     } // end for (i=0; i<len; i++)
 
@@ -594,34 +916,29 @@ public class PlotText extends Object {
     float cyoff = Float.NaN;
     float czoff = Float.NaN;
 
-    cxoff = (float)start[0];
-    cyoff = (float)start[1];
-    czoff = (float)start[2];
-
     // LEFT is normal
     if (justification == TextControl.Justification.CENTER) {
-      cxoff = (float)((cx - start[0])/2.);
-      cyoff = (float)((cy - start[1])/2.);
-      czoff = (float)((cz - start[2])/2.);
-
+      cxoff = (float)((cx - start_off[0])/2.);
+      cyoff = (float)((cy - start_off[1])/2.);
+      czoff = (float)((cz - start_off[2])/2.);
     } else if (justification == TextControl.Justification.RIGHT) {
-      cxoff = (float)(cx - start[0]);
-      cyoff = (float)(cy - start[1]);
-      czoff = (float)(cz - start[2]);
+      cxoff = (float)(cx - start_off[0]);
+      cyoff = (float)(cy - start_off[1]);
+      czoff = (float)(cz - start_off[2]);
 
     }
 
     // BOTTOM is normal
     if (verticalJustification == TextControl.Justification.TOP) {
       final double height = WIDTH;
-      cxoff += height * up[0];
-      cyoff += height * up[1];
-      czoff += height * up[2];
+      cxoff += height * up_scaled[0];
+      cyoff += height * up_scaled[1];
+      czoff += height * up_scaled[2];
     } else if (verticalJustification == TextControl.Justification.CENTER) {
       final double height = WIDTH;
-      cxoff += height * up[0] / 2.0;
-      cyoff += height * up[1] / 2.0;
-      czoff += height * up[2] / 2.0;
+      cxoff += height * up_scaled[0] / 2.0;
+      cyoff += height * up_scaled[1] / 2.0;
+      czoff += height * up_scaled[2] / 2.0;
     }
 
     if (cxoff == cxoff) {
@@ -662,7 +979,8 @@ public class PlotText extends Object {
     return render_font(str, font, start, base, up,
                        (center ? TextControl.Justification.CENTER :
                                  TextControl.Justification.LEFT),
-                       TextControl.Justification.BOTTOM);
+                       TextControl.Justification.BOTTOM,
+                       0.0, 1.0, null);
   }
 
 // abcd 19 March 2003
@@ -672,9 +990,9 @@ public class PlotText extends Object {
    *
    * @param str  String to use
    * @param  font  non-null font
-   * ?param  start
-   * ?param  base
-   * ?param  up
+   * @param  start
+   * @param  base
+   * @param  up
    * @param  justification is one of:<ul>
    * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
    * <li> TextControl.Justification.CENTER - Centered text
@@ -688,7 +1006,8 @@ public class PlotText extends Object {
             double[] start, double[] base, double[] up,
             TextControl.Justification justification) {
     return render_font(str, font, start, base, up, justification,
-                       TextControl.Justification.BOTTOM);
+                       TextControl.Justification.BOTTOM, 0.0, 1.0, null);
+
   }
 
   /**
@@ -697,43 +1016,137 @@ public class PlotText extends Object {
    *
    * @param str  String to use
    * @param  font  non-null font
-   * ?param  start
-   * ?param  base
-   * ?param  up
+   * @param  start
+   * @param  base
+   * @param  up
    * @param  justification is one of:<ul>
    * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
    * <li> TextControl.Justification.CENTER - Centered text
    * <li> TextControl.Justification.RIGHT - Right justified text
    * </ul>
-   * @param  verticalJustification is one of:<ul>
-   * <li> TextControl.Justification.TOP - Top justified text
-   * <li> TextControl.Justification.CENTER - Centered text
-   * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
-   * </ul>
+   * @param characRotation is the angle (in degrees) at which each character
+   * in str is rotated with respect to the base line of the text.  A positive
+   * value rotates the characters clockwise; a negative value
+   * rotates them counterclockwise.
    *
    * @return VisADTriangleArray of all the triangles needed to draw the
    * characters in this string
    */
   public static VisADTriangleArray render_font(String str, Font font,
-            double[] start, double[] base, double[] up,
-            TextControl.Justification justification,
-            TextControl.Justification verticalJustification) {
+         double[] start, double[] base, double[] up,
+         TextControl.Justification justification, double characRotation) {
+    return render_font(str, font, start, base, up, justification,
+                       TextControl.Justification.BOTTOM,
+                       characRotation, 1.0, null);
+  }
+
+
+  /**
+  * Convert a string of characters (ASCII collating sequence) into a
+  *  series of triangles for drawing.
+  *
+  * @param str  String to use
+  * @param  font  non-null font
+  * @param  start
+  * @param  base
+  * @param  up
+  * @param  justification is one of:<ul>
+  * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+  * <li> TextControl.Justification.CENTER - Centered text
+  * <li> TextControl.Justification.RIGHT - Right justified text
+  * </ul>
+  * @param  verticalJustification is one of:<ul>
+  * <li> TextControl.Justification.TOP - Top justified text
+  * <li> TextControl.Justification.CENTER - Centered text
+  * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
+  * </ul>
+  *
+  * @return VisADTriangleArray of all the triangles needed to draw the
+  * characters in this string
+  */
+  public static VisADTriangleArray render_font(String str, Font font,
+         double[] start, double[] base, double[] up,
+         TextControl.Justification justification,
+         TextControl.Justification verticalJustification) {
+    return render_font(str, font, start, base, up, justification,
+                       verticalJustification, 0.0, 1.0, null);
+  }
+
+
+  /**
+  * Convert a string of characters (ASCII collating sequence) into a
+  *  series of triangles for drawing.
+  *
+  * @param str  String to use
+  * @param  font  non-null font
+  * @param  start
+  * @param  base
+  * @param  up
+  * @param  justification is one of:<ul>
+  * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+  * <li> TextControl.Justification.CENTER - Centered text
+  * <li> TextControl.Justification.RIGHT - Right justified text
+  * </ul>
+  * @param  verticalJustification is one of:<ul>
+  * <li> TextControl.Justification.TOP - Top justified text
+  * <li> TextControl.Justification.CENTER - Centered text
+  * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
+  * </ul>
+  * @param characRotation is the angle (in degrees) at which each character
+  * in str is rotated with respect to the base line of the text.  A positive
+  * value rotates the characters clockwise; a negative value
+  * rotates them counterclockwise.
+  * @param scale is the scaling factor.
+  * @param offsets is a 1x3 array defining the offsets in X, Y, Z, respectively.
+  *
+  * @return VisADTriangleArray of all the triangles needed to draw the
+  * characters in this string
+  */
+  public static VisADTriangleArray render_font(String str, Font font,
+         double[] start, double[] base, double[] up,
+         TextControl.Justification justification,
+         TextControl.Justification verticalJustification,
+         double characRotation, double scale, double[] offsets) {
     VisADTriangleArray array = null;
 
-// System.out.println("x, y, z = " + x + " " + y + " " + z);
-// System.out.println("center = " + center);
+    // System.out.println("x, y, z = " + x + " " + y + " " + z);
+    // System.out.println("center = " + center);
+
+
+    /* System.out.println("in render_font with Java font:" +
+       " characRotation= " + characRotation +
+       " scale=" + scale +
+       " offset=[" + offsets[0] + ", " + offsets[1] +
+       ", " + offsets[2] + "]");
+    */
+    if (offsets == null) {
+      offsets = new double[]{0.0, 0.0, 0.0};
+    }
+    double []start_off = new double[3];
+    start_off[0] = start[0] + offsets[0];
+    start_off[1] = start[1] + offsets[1];
+    start_off[2] = start[2] + offsets[2];
+
+    if (scale < 0.0) {
+      scale = 1.0;
+    }
 
     float fsize = font.getSize();
-    float fsize_inv = 1.0f / fsize;
+    float fsize_inv = (float)(scale / fsize);
+    //float fsize_inv = (float)(1.0 / fsize);
 
     // ??
     // Graphics2D g2 = null;
     // FontRenderContext frc = g2.getFontRenderContext();
+    int str_len = str.length();
     AffineTransform at = null;
     boolean isAntiAliased = false;
     boolean usesFractionalMetrics = false;
     FontRenderContext frc =
       new FontRenderContext(at, isAntiAliased, usesFractionalMetrics);
+    GlyphVector gv = font.createGlyphVector(frc, "M");
+    float maxW = (float) (fsize_inv * gv.getGlyphMetrics(0).
+                          getBounds2D().getWidth());
 
     double flatness = 0.05; // ??
 
@@ -742,12 +1155,13 @@ public class PlotText extends Object {
     float[][] big_samples = new float[2][big_len];
     float[] seg = new float[6];
 
-    int str_len = str.length();
+
+
     float x_offset = 0.0f;
     for (int str_index=0; str_index<str_len; str_index++) {
       char[] chars = {str.charAt(str_index)};
-// System.out.println(str_index + " " + chars[0] + " " + x_offset);
-      GlyphVector gv = font.createGlyphVector(frc, chars);
+      gv = font.createGlyphVector(frc, chars);
+
       int ng = gv.getNumGlyphs();
       if (ng == 0) continue;
       int path_count = 0;
@@ -755,12 +1169,56 @@ public class PlotText extends Object {
 
       // abcd - 1 February 2001
       // Get x increment from the fonts 'advance' property
-      float x_plus = (float) (fsize_inv * gv.getGlyphMetrics(0).getAdvance());
+      // float x_plus = (float) (fsize_inv * gv.getGlyphMetrics(0).getAdvance());
+      //System.out.println(str_index + " " + chars[0] + " " + x_plus + " " + fsize_inv);
 
-// System.out.println(str_index + " " + chars[0] + " " + x_plus + " " + fsize_inv);
-// System.out.println(str_index + " " + chars[0] + " " + ng);
+      // Compute advance along baseline
+      float angle = (float) Math.toRadians(-characRotation);
+      float angle2 = (float) (angle + Math.PI/2.0);
+      float x = (float) (fsize_inv * gv.getGlyphMetrics(0).getAdvance());
+      float y = (float) (fsize_inv *
+                         (gv.getGlyphMetrics(0).getBounds2D().getHeight())
+                         + 0.2);
+      float x_plus = (float) (x * Math.abs(Math.cos(angle)) +
+                              y * Math.abs(Math.cos(angle2)));
+
+      // Compute offset along baseline
+      float y1 = (float) (fsize_inv *
+                          (gv.getGlyphMetrics(0).getBounds2D().getY() * -1)
+                          + 0.2);
+      float cur_x_off = 0.0f;
+      if (Math.cos(angle) < 0) {
+        cur_x_off = (float) (x * Math.abs(Math.cos(angle)));
+      }
+      if (Math.cos(angle2) < 0) {
+        cur_x_off += (float) (y1 * Math.abs(Math.cos(angle2)));
+      }
+      else {
+        cur_x_off += (float) ((y-y1) * Math.abs(Math.cos(angle2)));
+      }
+      // Compute offset perpendicular to the baseline
+      float w = (float) (fsize_inv * gv.getGlyphMetrics(0).getBounds2D().
+                         getWidth());
+      float x_start = (float) (fsize_inv * gv.getGlyphMetrics(0).getBounds2D().
+                               getX());
+      float space = (float) ((maxW - w)/2.0);
+      float cur_y_off = (float) ((space - x_start) * Math.cos(angle2));
+      //System.out.println("\n" + str_index + " " + chars[0] + " " + gv.getGlyphMetrics(0).getBounds2D() + " " + gv.getGlyphMetrics(0).getLSB() + " " + gv.getGlyphMetrics(0).getRSB());
+      //System.out.println("\n" + str_index + " " + chars[0] + " w=" + w + " x_start=" + x_start + " space=" + space + " maxW=" + maxW);
+      //System.out.println("\n" + str_index + " " + chars[0] + " " + "x=" + x + " y=" + y + " y1=" + y1 + " x_plus=" + x_plus + " cur_x_off=" + cur_x_off + " cur_y_off=" + cur_y_off);
+
       for (int ig=0; ig<ng; ig++) {
-        Shape sh = gv.getGlyphOutline(ig);
+        Shape sh = null;
+        if (characRotation != 0.0) {
+          Shape sh0 = gv.getGlyphOutline(ig);
+          angle = (float) Math.toRadians(characRotation);
+          AffineTransform at2 = AffineTransform.getRotateInstance(angle);
+          sh = at2.createTransformedShape(sh0);
+        }
+        else {
+          sh = gv.getGlyphOutline(ig);
+        }
+
         // pi only has SEG_MOVETO, SEG_LINETO, and SEG_CLOSE point types
         PathIterator pi = sh.getPathIterator(at, flatness);
         int k = 0;
@@ -769,7 +1227,7 @@ public class PlotText extends Object {
           switch(segType) {
             case PathIterator.SEG_MOVETO:
               if (k > 0) {
-// System.out.println("SEG_MOVETO  k = " + k + "  ig = " + ig);
+                //System.out.println("SEG_MOVETO  k = " + k + "  ig = " + ig);
                 float[][] samples = new float[2][k];
                 System.arraycopy(big_samples[0], 0, samples[0], 0, k);
                 System.arraycopy(big_samples[1], 0, samples[1], 0, k);
@@ -779,8 +1237,8 @@ public class PlotText extends Object {
               }
               // NOTE falls through to SEG_LINETO to add first point
             case PathIterator.SEG_LINETO:
-              big_samples[0][k] = x_offset + fsize_inv * seg[0];
-              big_samples[1][k] = - fsize_inv * seg[1];
+              big_samples[0][k] = x_offset + cur_x_off + fsize_inv * seg[0];
+              big_samples[1][k] = - cur_y_off - fsize_inv * seg[1];
               k++;
               if (k >= big_len) {
                 float[][] bs = new float[2][2 * big_len];
@@ -792,7 +1250,7 @@ public class PlotText extends Object {
               break;
             case PathIterator.SEG_CLOSE:
               if (k > 0) {
-// System.out.println("SEG_CLOSE  k = " + k + "  ig = " + ig);
+//System.out.println("SEG_CLOSE  k = " + k + "  ig = " + ig);
                 float[][] samples = new float[2][k];
                 System.arraycopy(big_samples[0], 0, samples[0], 0, k);
                 System.arraycopy(big_samples[1], 0, samples[1], 0, k);
@@ -863,7 +1321,6 @@ public class PlotText extends Object {
     } else { // justification == TextControl.Justification.RIGHT) {
       x_offset = -1.0f * x_offset;
     }
-
     /*
      * abcd 20 March 2003
      * Figure out how far to 'up' our text should start
@@ -898,14 +1355,16 @@ public class PlotText extends Object {
         for (int tj=0; tj<3; tj++) {
           int j3 = j9 + 3 * tj;
           coordinates[j3 + 0] = (float)
-            (start[0] + base[0] * (samples[0][tris[j][tj]] + x_offset) +
-                        up[0] * (samples[1][tris[j][tj]] + y_offset));
+            (start_off[0] +  base[0] * (samples[0][tris[j][tj]] + x_offset) +
+             up[0] * (samples[1][tris[j][tj]] + y_offset));
           coordinates[j3 + 1] = (float)
-            (start[1] + base[1] * (samples[0][tris[j][tj]] + x_offset) +
-                        up[1] * (samples[1][tris[j][tj]] + y_offset));
+            (start_off[1] +
+             base[1] * (samples[0][tris[j][tj]] + x_offset) +
+             up[1] * (samples[1][tris[j][tj]] + y_offset));
           coordinates[j3 + 2] = (float)
-            (start[2] + base[2] * (samples[0][tris[j][tj]] + x_offset) +
-                        up[2] * (samples[1][tris[j][tj]] + y_offset));
+            (start_off[2] +
+             base[2] * (samples[0][tris[j][tj]] + x_offset) +
+             up[2] * (samples[1][tris[j][tj]] + y_offset));
         }
       }
       float[] normals = new float[9 * m];
@@ -919,7 +1378,7 @@ public class PlotText extends Object {
       arrays[i].vertexCount = 3 * m;
       arrays[i].coordinates = coordinates;
       arrays[i].normals = normals;
-// System.out.println("array[" + i + "] has " + m + " tris");
+      // System.out.println("array[" + i + "] has " + m + " tris");
     } // end for (int i=0; i<n; i++)
 
     array = new VisADTriangleArray();

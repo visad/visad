@@ -1595,7 +1595,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
 
       float[][][] vector_ends = new float[2][][];
- 
+
 
         // WLH 4 March 2000
       renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
@@ -1605,7 +1605,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           // WLH 4 March 2000
           // renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
           //          spatial_value_indices, default_values, ranges);
- 
+
           // compute and transform 'end points' of flow vectors
           for (int k=0; k<2; k++) {
             if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
@@ -2597,6 +2597,11 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     double size = text_control.getSize();
     Font font = text_control.getFont();
     HersheyFont hfont = text_control.getHersheyFont();
+    // SL 22 June 2003
+    double rotation = text_control.getRotation();
+    double characterRotation = text_control.getCharacterRotation();
+    double scale = text_control.getScale();
+    double[] offset = text_control.getOffset();
 
     // WLH 31 May 2000
     boolean sphere = text_control.getSphere();
@@ -2641,16 +2646,19 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           if (font != null) {
             as[k] = PlotText.render_font(text_values[i], font,
                                          start, base, up,
-                                         justification, verticalJustification);
+                                         justification, verticalJustification,
+                                         characterRotation, scale, offset);
           }
           else if (hfont != null) {
             as[k] = PlotText.render_font(text_values[i], hfont,
                                          start, base, up,
-                                         justification, verticalJustification);
+                                         justification, verticalJustification,
+                                         characterRotation, scale, offset);
 
           } else {
             as[k] = PlotText.render_label(text_values[i], start, base, up,
-                                          justification, verticalJustification);
+                                          justification, verticalJustification,
+                                          characterRotation, scale, offset);
           }
           int len = (as[k] == null) ? 0 : as[k].coordinates.length;
           if (len > 0) {
@@ -2693,17 +2701,20 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           if (font != null) {
             as[k] = PlotText.render_font(text_values[i], font,
                                          start, base, up,
-                                         justification, verticalJustification);
+                                         justification, verticalJustification,
+                                         characterRotation, scale, offset);
 
           }
           else if (hfont != null) {
             as[k] = PlotText.render_font(text_values[i], hfont,
                                          start, base, up,
-                                         justification, verticalJustification);
+                                         justification, verticalJustification,
+                                         characterRotation, scale, offset);
 
           } else {
             as[k] = PlotText.render_label(text_values[i], start, base, up,
-                                          justification, verticalJustification);
+                                          justification, verticalJustification,
+                                          characterRotation, scale, offset);
           }
         }
 

@@ -19,17 +19,27 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.text.*;
+import javax.swing.border.*;
+
+// AWT packages
+import java.awt.*;
+import java.awt.event.*;
 
 import java.rmi.RemoteException;
 
 import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
+import visad.util.TextControlWidget;
 
 public class Test45
   extends UISkeleton
 {
   private boolean sphere;
+  private TextControl tcontrol;
 
   public Test45() { }
 
@@ -51,7 +61,10 @@ public class Test45
     throws RemoteException, VisADException
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ3D("display");
+    // SL 16 July 2003
+    //    dpys[0] = new DisplayImplJ3D("display");
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+
     return dpys;
   }
 
@@ -88,10 +101,9 @@ public class Test45
 
     ScalarMap tmap = new ScalarMap(text, Display.Text);
     dpys[0].addMap(tmap);
-    TextControl tcontrol = (TextControl) tmap.getControl();
+    tcontrol = (TextControl) tmap.getControl();
     tcontrol.setSphere(sphere);
     tcontrol.setCenter(true);
-    // tcontrol.setRotation(10.0);
     if (sphere) {
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
       dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
@@ -111,9 +123,23 @@ public class Test45
     dpys[0].addReference(ref_text_field, null);
   }
 
-  String getFrameTitle() { return "text in Java3D"; }
+  // SL 16 July 2003
+  Component getSpecialComponent(LocalDisplay[] dpys)
+    throws RemoteException, VisADException
+  {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
+    panel.add(new TextControlWidget(tcontrol));
+    return panel;
+  }
 
-  public String toString() { return " sphere: text in Java3D"; }
+  String getFrameTitle() {
+    return "text in Java3D with interactive settings";
+  }
+
+  public String toString() {
+    return " sphere: text in Java3D with interactive settings";
+  }
 
   public static void main(String[] args)
     throws RemoteException, VisADException

@@ -54,6 +54,10 @@ public class TextControl extends Control {
   // abcd 1 February 2001
   // Rotation, in degrees, clockwise along positive x axis
   private double rotation = 0.0;
+  // SL  15 March 2003
+  private double characterRotation = 0.0;   // characterRotation
+  private double scale = 1.0;  // Scaling factor
+  private double[] offset = new double[]{0.0, 0.0, 0.0};
 
   // WLH 6 Aug 2001
   private boolean autoSize = false;
@@ -118,6 +122,10 @@ public class TextControl extends Control {
     }
     catch (RemoteException e) {
     }
+  }
+
+  public boolean getAutoSize() {
+    return autoSize;
   }
 
   public void nullControl() {
@@ -414,10 +422,30 @@ public class TextControl extends Control {
       rotation = tc.rotation;
     }
 
+    // SL 16 July 2003
+    if (!Util.isApproximatelyEqual(characterRotation, tc.characterRotation)) {
+      changed = true;
+      characterRotation = tc.characterRotation;
+    }
+
     // WLH 6 Aug 2001
     if (autoSize != tc.autoSize) {
       // changed = true;
       setAutoSize(tc.autoSize);
+    }
+
+    // SL 16 July 2003
+    if (!Util.isApproximatelyEqual(scale, tc.scale)) {
+      changed = true;
+      scale = tc.scale;
+    }
+
+    // SL 16 July 2003
+    for (int i=0; i<3; i++) {
+      if (!Util.isApproximatelyEqual(offset[i], tc.offset[i])) {
+        changed = true;
+        offset[i] = tc.offset[i];
+      }
     }
 
     if (changed) {
@@ -476,7 +504,92 @@ public class TextControl extends Control {
       return false;
     }
 
+    // SL 18 July 2003
+    if (!Util.isApproximatelyEqual(characterRotation, tc.characterRotation)) {
+      return false;
+    }
+
+    // SL 18 July 2003
+    if (!Util.isApproximatelyEqual(scale, tc.scale)) {
+      return false;
+    }
+
+    // SL 18 July 2003
+    for (int i=0; i<3; i++) {
+      if (!Util.isApproximatelyEqual(offset[i], tc.offset[i])) {
+        return false;
+      }
+    }
+
     return true;
+  }
+
+  /**
+   * Gets the value of characterRotation
+   *
+   * @return the value of characterRotation
+   */
+  public double getCharacterRotation()  {
+    return this.characterRotation;
+  }
+
+  /**
+   * Sets the value of characterRotation
+   *
+   * @param argCharacterRotation Value to assign to this.characterRotation
+   */
+  public void setCharacterRotation(double argCharacterRotation) throws
+    VisADException, RemoteException
+  {
+    this.characterRotation = argCharacterRotation;
+    // Tell the control it's changed
+    changeControl(true);
+  }
+
+  /**
+   * Gets the value of scale
+   *
+   * @return the value of scale
+   */
+  public double getScale()  {
+    return this.scale;
+  }
+
+  /**
+   * Sets the value of scale
+   *
+   * @param argScale Value to assign to this.scale
+   */
+  public void setScale(double argScale)
+    throws VisADException, RemoteException {
+    this.scale = argScale;
+    // Tell the control it's changed
+    changeControl(true);
+  }
+
+  /**
+   * Gets the value of offset
+   *
+   * @return the value of offset
+   */
+  public double[] getOffset()  {
+    double[] aOffset = new double[]{
+      this.offset[0], this.offset[1], this.offset[2]};
+    return aOffset;
+  }
+
+  /**
+   * Sets the value of offset
+   *
+   * @param argOffset Value to assign to this.offset
+   */
+  public void setOffset(double[] argOffset)
+    throws VisADException, RemoteException {
+    this.offset[0] = argOffset[0];
+    this.offset[1] = argOffset[1];
+    this.offset[2] = argOffset[2];
+    // Tell the control it's changed
+    changeControl(true);
   }
 
   class ProjectionControlListener implements ControlListener {

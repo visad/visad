@@ -373,6 +373,10 @@ public class DelaunayCustom extends Delaunay {
     if (checkAndFixSelfIntersection(samples)) {
       if (check) throw new VisADException("path self intersects");
     }
+    if (samples == null || samples[0].length < 3) {
+      System.out.println("fillCheck return null");
+      return null;
+    }
     int n = samples[0].length;
 
     // build circular boundary list
