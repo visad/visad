@@ -1,3 +1,11 @@
+/*
+Bob Knuteson's comments:
+Bill Smith looks at RH
+look at lowest 3 KM for mixing ratio
+use RH if looking above 3 KM
+might use (T - TD) instead of RH
+*/
+
 package visad.aeri;
 
 import visad.*;
@@ -89,7 +97,7 @@ public class Aeri
     advect_range = new RealTupleType(temp, dwpt, wvmr, advAge);
     advect_type = new FunctionType(spatial_domain, advect_range);
     advect_field_type = new FunctionType(time, advect_type);
-    
+
     stations_field = 
         new FieldImpl(new FunctionType( stn_idx, advect_field_type),
                                         new Integer1DSet( stn_idx, n_stations, 
