@@ -1,5 +1,5 @@
 //
-// Scalar.java
+// ScalarIface.java
 //
 
 /*
@@ -27,23 +27,17 @@ MA 02111-1307, USA
 package visad;
 
 /**
- * Scalar is the superclass of the VisAD hierarchy of scalar data.<P>
+ * Interface to the VisAD hierarchy of scalar data.
  */
-public abstract class Scalar
-  extends	DataImpl
-  implements	ScalarIface, Comparable
+public interface ScalarIface
+  extends Data
 {
-
-  public Scalar(ScalarType type) {
-    super(type);
-  }
-
   /**
-   * Indicates if this scalar is semantically identical to an object.
+   * Indicates if this instance is semantically identical to an object.
+   *
    * @param obj			The object.
-   * @return			<code>true</code> if and only if this scalar
+   * @return			<code>true</code> if and only if this instance
    *				is semantically identical to the object.
    */
-  public abstract boolean equals(Object obj);
+  boolean equals(Object obj);
 }
-

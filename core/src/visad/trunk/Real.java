@@ -29,12 +29,15 @@ package visad;
 import java.rmi.*;
 
 /**
-   Real is the class of VisAD scalar data for real numbers represented
-   as double precision floating point values.  Double.NaN is used to
-   indicate missing values, because it has the appropriate arithmetic
-   semantics.  Real objects are immutable.<P>
-*/
-public class Real extends Scalar {
+ * Real is the class of VisAD scalar data for real numbers represented
+ * as double precision floating point values.  Double.NaN is used to
+ * indicate missing values, because it has the appropriate arithmetic
+ * semantics.  Real objects are immutable.<P>
+ */
+public class Real
+  extends	Scalar
+  implements	RealIface
+{
 
   private final double Value;
   private final Unit unit;
