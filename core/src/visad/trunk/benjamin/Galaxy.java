@@ -9,6 +9,7 @@ package visad.benjamin;
  
 // the VisAD packages
 import visad.*;
+import visad.util.Delay;
 import visad.util.VisADSlider;
 import visad.util.LabeledRGBWidget;
 import visad.java3d.DisplayImplJ3D;
@@ -69,6 +70,7 @@ public class Galaxy extends Object implements ActionListener {
   Linear1DSet distSol_set;
 
   Set distDomain;
+  Set velDomain;
   Gridded3DSet line_to_sol;
   Gridded3DSet x_to_sol;
   Gridded3DSet y_to_sol;
@@ -108,10 +110,12 @@ public class Galaxy extends Object implements ActionListener {
   RealTupleType grid_domain;
   RealType density;
   RealType emission;
+  RealType Intensity;
   RealType distance;
+  RealType v_LSR;
   FunctionType grid_type;
   FunctionType dist_density;
-  FunctionType dist_emission;
+  FunctionType vel_intensity;
   FlatField field_D;
   FlatField field_E;
  
@@ -138,7 +142,7 @@ public class Galaxy extends Object implements ActionListener {
   DataReference sol_sightRef;
   DataReference red_cursor_ref;
   DataReference dist_densityRef;
-  DataReference dist_emissionRef;
+  DataReference vel_intensityRef;
 
   /** DataReferences for 13 interactive model paramters */
   DataReference n1_ref;
@@ -292,11 +296,13 @@ public class Galaxy extends Object implements ActionListener {
     gridz = new RealType("gridz", null, null);
     grid_domain = new RealTupleType(gridx, gridy, gridz);
     density = new RealType("density", null, null);
-    emission = new RealType("emission", null, null);
+    // emission = new RealType("emission", null, null);
+    Intensity = new RealType("Intensity", null, null);
     distance = new RealType("distance", null, null);
+    v_LSR = new RealType("v_LSR", null, null);
     grid_type = new FunctionType(grid_domain, density);
     dist_density = new FunctionType(distance, density);
-    dist_emission = new FunctionType(distance, emission);
+    vel_intensity = new FunctionType(v_LSR, Intensity);
 
     line = new RealType("line", null, null);
     element = new RealType("element", null, null);
@@ -357,12 +363,12 @@ public class Galaxy extends Object implements ActionListener {
     red_cursor_ref = new DataReferenceImpl("red_cursor_ref");
     sol_ref = new DataReferenceImpl("sol_ref");
     dist_densityRef = new DataReferenceImpl("dist_densityRef");
-    dist_emissionRef = new DataReferenceImpl("dist_emissionRef");
+    vel_intensityRef = new DataReferenceImpl("vel_intensityRef");
 
     flat_sphere_button_ref = new DataReferenceImpl("flat_sphere_button");
     flat_sphere_button_ref.setData(new Real(0.0));
 
-    RealTuple init_red_cursor = new RealTuple( new Real[] {
+    final RealTuple init_red_cursor = new RealTuple( new Real[] {
                                                new Real( gridx, 0.0 ),
                                                new Real( gridy, 0.0 ),
                                                new Real( gridz, 20.0 ) } );
@@ -484,6 +490,9 @@ public class Galaxy extends Object implements ActionListener {
         System.arraycopy(grid_a[0], 0, grid_b[0], 0, grid_b[0].length);
         grid.setSamples(grid_b);
         grid_ref.setData(grid);
+
+        // trigger red_cursor_cell & computeDensityEmission_cell
+        red_cursor_ref.setData( init_red_cursor );
       }
     };
     // link cell to compute_button to trigger doAction
@@ -561,12 +570,37 @@ public class Galaxy extends Object implements ActionListener {
         dist_densityRef.setData( field_D );
 
     /*- i_type = 2 not implemented  */
-      //i_type = 2;
-      //profile_c(i_type, n_profpts, last_x, last_y, last_z, xprof, yprof); 
-        field_E = new FlatField(dist_emission, distDomain);
-      //yprof_a[0] = yprof;
-      //field_E.setSamples( yprof_a );
-        dist_emissionRef.setData( field_E );
+        i_type = 2;
+        profile_c(i_type, n_profpts, last_x, last_y, last_z, xprof, yprof); 
+/*
+System.out.println("last_x = " + last_x + " " + last_y + " " + last_z);
+System.out.println("xprof = " + xprof[0] + " " + xprof[n_profpts-1] +
+                   " n_profpts = " + n_profpts);
+System.out.println("yprof = " + yprof[0] + " " + yprof[1] + " " +
+                   yprof[2] + " " + yprof[3] + " " + yprof[n_profpts-1] + "\n");
+
+doll% java visad.benjamin.Galaxy
+last_x = 0.0 0.0 20.0
+xprof = NaN NaN n_profpts = 50
+yprof = 0.0 0.0 0.0 0.0 0.0
+
+last_x = 0.0 0.0 20.0
+xprof = NaN NaN n_profpts = 50
+yprof = 0.0 0.0 0.0 0.0 0.0
+
+// touch red cursor
+
+last_x = -0.07375812 -0.2533907 20.01677
+xprof = -24.866854 15.198111 n_profpts = 50
+yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
+
+*/
+        velDomain = new Linear1DSet( v_LSR, (double)xprof[0],
+                                     (double)xprof[n_profpts-1], n_profpts );
+        field_E = new FlatField(vel_intensity, velDomain);
+        yprof_a[0] = yprof;
+        field_E.setSamples( yprof_a );
+        vel_intensityRef.setData( field_E );
       }
     };
     computeDensityEmission_cell.addReference( density_button_ref );
@@ -621,7 +655,7 @@ public class Galaxy extends Object implements ActionListener {
       refs[22] =
         new RemoteDataReferenceImpl((DataReferenceImpl) dist_densityRef);
       refs[23] =
-        new RemoteDataReferenceImpl((DataReferenceImpl) dist_emissionRef);
+        new RemoteDataReferenceImpl((DataReferenceImpl) vel_intensityRef);
       refs[24] =
         new RemoteDataReferenceImpl((DataReferenceImpl) sol_sightRef);
       refs[25] =
@@ -668,7 +702,7 @@ public class Galaxy extends Object implements ActionListener {
     sol_ref = refs[20];
     line_to_sol_ref = refs[21];
     dist_densityRef = refs[22];
-    dist_emissionRef = refs[23];
+    vel_intensityRef = refs[23];
     sol_sightRef = refs[24];
     density_button_ref = refs[25];
     sphrSkyMap_ref = refs[26];
@@ -684,8 +718,12 @@ public class Galaxy extends Object implements ActionListener {
     gridy = (RealType) grid_domain.getComponent(1);
     gridz = (RealType) grid_domain.getComponent(2);
 
-    distance = (RealType) (((FunctionType)dist_densityRef.getType()).getDomain()).getComponent(0);
-    emission = (RealType) ((FunctionType)dist_emissionRef.getType()).getRange();
+    distance = (RealType)
+      (((FunctionType)dist_densityRef.getType()).getDomain()).getComponent(0);
+    // emission = (RealType) ((FunctionType)vel_intensityRef.getType()).getRange();
+    v_LSR = (RealType)
+      ((FunctionType)vel_intensityRef.getType()).getDomain().getComponent(0);
+    Intensity = (RealType) ((FunctionType)vel_intensityRef.getType()).getRange();
 
     // get grid size
     Field grid = (Field) grid_ref.getData();
@@ -875,19 +913,19 @@ public class Galaxy extends Object implements ActionListener {
     display3.addMap( new ScalarMap( distance, Display.XAxis ));
     display3.addMap( new ScalarMap( density, Display.YAxis ));
     display3.addMap( new ScalarMap( density, Display.Green ));
-    display4.addMap( new ScalarMap( distance, Display.XAxis ));
-    display4.addMap( new ScalarMap( emission, Display.YAxis ));
-    display4.addMap( new ScalarMap( emission, Display.Green ));
+    display4.addMap( new ScalarMap( v_LSR, Display.XAxis ));
+    display4.addMap( new ScalarMap( Intensity, Display.YAxis ));
+    display4.addMap( new ScalarMap( Intensity, Display.Green ));
 
     if (client) {
       RemoteDisplayImpl remote_display3 = new RemoteDisplayImpl(display3);
       remote_display3.addReference( dist_densityRef );
       RemoteDisplayImpl remote_display4 = new RemoteDisplayImpl(display4);
-      remote_display4.addReference( dist_emissionRef );
+      remote_display4.addReference( vel_intensityRef );
     }
     else {
       display3.addReference( dist_densityRef );
-      display4.addReference( dist_emissionRef );
+      display4.addReference( vel_intensityRef );
     }
 
     //- Spherical sky map  --*
