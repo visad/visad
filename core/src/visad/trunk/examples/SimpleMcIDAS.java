@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import visad.*;
+import visad.util.*;
 import visad.data.mcidas.*;
 import visad.java3d.*;
 import visad.bom.*;
@@ -49,8 +50,12 @@ public class SimpleMcIDAS {
       }
     });
 
-    frame.getContentPane().add(display.getComponent());
-    frame.setSize(500, 500);
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.add(display.getComponent());
+    panel.add(new LabeledColorWidget(new ColorMapWidget(rgbMap, false)));
+    frame.getContentPane().add(panel);
+    frame.setSize(500, 700);
     frame.setVisible(true);
   }
 }

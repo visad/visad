@@ -426,8 +426,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     // WLH 6 April 2000
     // ((Group) group).addChild(shape);
     BranchGroup branch = new BranchGroup();
+    branch.setCapability(BranchGroup.ALLOW_DETACH);
+    branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     branch.addChild(shape);
-    ((Group) group).addChild(branch);
+    if (((Group) group).numChildren() > 0) {
+      ((Group) group).setChild(branch, 0);
+    }
+    else {
+      ((Group) group).addChild(branch);
+    }
   }
 
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
@@ -539,7 +546,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     // WLH 6 April 2000
     // ((Group) group).addChild(swit);
     BranchGroup branch = new BranchGroup();
+    branch.setCapability(BranchGroup.ALLOW_DETACH);
+    branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     branch.addChild(swit);
+    if (((Group) group).numChildren() > 0) {
+      ((Group) group).setChild(branch, 0);
+    }
+    else {
+      ((Group) group).addChild(branch);
+    }
     ((Group) group).addChild(branch);
 
     ProjectionControlJ3D control =
@@ -824,7 +839,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     // WLH 6 April 2000
     // ((Group) group).addChild(swit);
     BranchGroup branch = new BranchGroup();
+    branch.setCapability(BranchGroup.ALLOW_DETACH);
+    branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     branch.addChild(swit);
+    if (((Group) group).numChildren() > 0) {
+      ((Group) group).setChild(branch, 0);
+    }
+    else {
+      ((Group) group).addChild(branch);
+    }
     ((Group) group).addChild(branch);
 
     ProjectionControlJ3D control =
