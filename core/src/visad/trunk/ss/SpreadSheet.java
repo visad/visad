@@ -86,6 +86,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
   static final boolean SHOW_CONNECT_MESSAGES = true;
 
 
+  /** whether Java3D is possible on this JVM */
+  protected static boolean Possible3D;
+
   /** whether Java3D is enabled on this JVM */
   protected static boolean CanDo3D;
 
@@ -111,6 +114,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** formula manager */
   protected FormulaManager fm;
 
+
+  /** server name, if any */
+  protected String serverName;
+
+  /** server address for a cloned sheet, if any */
+  protected String cloneAddress;
 
   /** server for spreadsheet cells, if any */
   protected RemoteServerImpl rsi = null;
@@ -320,24 +329,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** gateway into VisAD Visualization SpreadSheet user interface */
   public static void main(String[] argv) {
     String usage = '\n' +
-      "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows] [-no3d]\n" +
+      "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows]\n" +
       "       [-server server_name] [-client rmi_address]\n" +
-      "       [-slave rmi_address] [-debug]\n\n" +
+      "       [-slave rmi_address] [-gui] [-no3d] [-debug]\n\n" +
       "### = Maximum megabytes of memory to use\n" +
       "cols = Number of columns in this SpreadSheet\n" +
       "rows = Number of rows in this SpreadSheet\n" +
-      "-no3d = Disable Java3D\n" +
       "-server server_name = Initialize this SpreadSheet as an RMI\n" +
       "                      server named server_name\n" +
       "-client rmi_address = Initialize this SpreadSheet as a clone\n" +
       "                      of the SpreadSheet at rmi_address\n" +
       "-slave rmi_address = Initialize this SpreadSheet as a slaved\n" +
       "                     clone of the SpreadSheet at rmi_address\n" +
+      "-gui = Pop up an options window so that the user can\n" +
+      "       select SpreadSheet settings graphically\n" +
+      "-no3d = Disable Java3D\n" +
       "-debug = Print stack traces for all errors\n";
     int cols = 2;
     int rows = 2;
     String servname = null;
     String clonename = null;
+    boolean guiOptions = false;
     int len = argv.length;
     if (len > 0) {
       int ix = 0;
@@ -345,8 +357,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // parse command line flags
       while (ix < len) {
         if (argv[ix].charAt(0) == '-') {
-          if (argv[ix].equals("-no3d")) BasicSSCell.disable3D();
-          else if (argv[ix].equals("-server")) {
+          if (argv[ix].equals("-server")) {
             if (clonename != null) {
               System.out.println("A spreadsheet cannot be both a server " +
                 "and a clone!");
@@ -380,6 +391,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
               System.exit(5);
             }
           }
+          else if (argv[ix].equals("-gui")) guiOptions = true;
+          else if (argv[ix].equals("-no3d")) BasicSSCell.disable3D();
           else if (argv[ix].equals("-debug")) {
             BasicSSCell.DEBUG = true;
             FormulaVar.DEBUG = true;
@@ -425,24 +438,44 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
     SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
-      cols, rows, servname, clonename, "VisAD SpreadSheet");
+      cols, rows, servname, clonename, "VisAD SpreadSheet", null,
+      guiOptions);
   }
 
-  /** constructor with default formula manager */
+
+  // *** Constructors ***
+
+  /** constructor with option selection dialog at default values */
+  public SpreadSheet() {
+    this(WIDTH_PERCENT, HEIGHT_PERCENT, 2, 2, null, null,
+      "VisAD SpreadSheet", null, true);
+  }
+
+  /** constructor with default formula manager
+      and no option selection dialog */
   public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
     String server, String clone, String sTitle)
   {
     this(sWidth, sHeight, cols, rows, server, clone, sTitle, null);
   }
 
-  /** constructor */
+  /** constructor with no option selection dialog */
   public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
     String server, String clone, String sTitle, FormulaManager fm)
+  {
+    this(sWidth, sHeight, cols, rows, server, clone, sTitle, fm, false);
+  }
+
+  /** main constructor */
+  public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
+    String server, String clone, String sTitle, FormulaManager fm,
+    boolean chooseOptions)
   {
     bTitle = sTitle;
     NumVisX = cols;
     NumVisY = rows;
     this.fm = fm;
+    Possible3D = BasicSSCell.possible3D();
     CanDo3D = BasicSSCell.canDo3D();
     MappingDialog.initDialog();
     addWindowListener(new WindowAdapter() {
@@ -451,6 +484,19 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     });
     setBackground(Color.white);
+
+    // parse clone address
+    boolean slave = clone != null && clone.startsWith("slave:");
+    if (slave) clone = clone.substring(6);
+    if (clone != null) {
+      int slash = clone.lastIndexOf("/");
+      if (slash < 0) slash = clone.lastIndexOf(":");
+      server = clone.substring(slash + 1);
+      clone = clone.substring(0, slash);
+    }
+    serverName = server;
+    cloneAddress = clone;
+    IsSlave = slave;
 
     // test whether HDF-5 native library is present
     CanDoHDF5 = false;
@@ -490,24 +536,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
     SSFileDialog.addChoosableFileFilter(
       new ExtensionFileFilter("ss", "SpreadSheet files"));
 
+    if (chooseOptions) {
+      // get settings from option selection dialog
+      getOptions(NumVisX, NumVisY, serverName, cloneAddress, IsSlave);
+    }
+    clone = cloneAddress == null ? null : cloneAddress + "/" + serverName;
+    server = cloneAddress == null ? serverName : null;
+
     // determine information for spreadsheet cloning
     RemoteServer rs = null;
     String[][] cellNames = null;
     if (clone != null) {
-      // determine information needed for spreadsheet cloning
       boolean success = true;
-
-      // detect whether this clone is actually a slaved clone
-      boolean slave = false;
-      if (clone.startsWith("slave:")) {
-        slave = true;
-        clone = clone.substring(6);
-      }
-
-      // support ':' as separator in addition to '/'
-      char[] c = clone.toCharArray();
-      for (int i=0; i<c.length; i++) if (c[i] == ':') c[i] = '/';
-      clone = new String(c);
       if (SHOW_CONNECT_MESSAGES) {
         System.out.print("Connecting to " + clone + " ");
       }
@@ -558,14 +598,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
       if (success) {
         if (SHOW_CONNECT_MESSAGES) System.out.println(" done");
-        bTitle = bTitle + " [" + (slave ? "slaved" : "collaborative") +
+        bTitle = bTitle + " [" + (IsSlave ? "slaved" : "collaborative") +
           " mode: " + clone + ']';
         IsRemote = true;
-        IsSlave = slave;
         CollabID = (double) (new Random().nextInt(Integer.MAX_VALUE - 1) + 1);
       }
       else {
         if (SHOW_CONNECT_MESSAGES) System.out.println(" failed");
+        IsSlave = false;
         rs = null;
       }
     }
@@ -662,6 +702,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     MenuItem setupOpen = new MenuItem("Open spreadsheet file...");
     setupOpen.addActionListener(this);
     setupOpen.setActionCommand("setupOpen");
+    setupOpen.setEnabled(!IsRemote);
     SetupMenu.add(setupOpen);
 
     MenuItem setupSave = new MenuItem("Save spreadsheet file");
@@ -831,10 +872,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     FormulaField = new JTextField();
 
     // limit formula bar to one line in height
-    Dimension msize = FormulaField.getMaximumSize();
-    Dimension psize = FormulaField.getPreferredSize();
-    msize.height = psize.height;
-    FormulaField.setMaximumSize(msize);
+    adjustTextField(FormulaField);
 
     /* When a tool tip is being displayed, there is a bug where GUI
        components cannot be repainted; this tool tip has been removed
@@ -1114,8 +1152,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     int appWidth = (int) (0.01 * sWidth * screenSize.width);
     int appHeight = (int) (0.01 * sHeight * screenSize.height);
     setSize(appWidth, appHeight);
-    setLocation(screenSize.width/2 - appWidth/2,
-                screenSize.height/2 - appHeight/2);
+    centerWindow(this);
     setVisible(true);
 
     // wait for frame to lay itself out, then tile cells
@@ -3110,25 +3147,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   // *** SpreadSheet API methods ***
 
-  /** returns the JToolBar object for other programs to use
-      (e.g., add buttons) */
-  public JToolBar getToolbar() {
-    return Toolbar;
-  }
-
-  /** returns the spreadsheet cell class (which must extend FancySSCell)
-      used for creating spreadsheet cells at runtime */
-  protected FancySSCell createCell(String name, RemoteServer rs)
-    throws VisADException, RemoteException
-  {
-    return new FancySSCell(name, fm, rs, IsSlave, null, this);
-  }
-
-
-  // *** Miscellaneous methods ***
-
   /** select the specified cell and update screen info */
-  void selectCell(int x, int y) {
+  public void selectCell(int x, int y) {
     if (x < 0) x = 0;
     if (y < 0) y = 0;
     if (x >= NumVisX) x = NumVisX - 1;
@@ -3150,21 +3170,303 @@ public class SpreadSheet extends JFrame implements ActionListener,
     refreshDisplayMenuItems();
   }
 
+  /** pop up an option selection dialog for choosing SpreadSheet options */
+  protected boolean getOptions(int cols, int rows,
+    String server, String clone, boolean slave)
+  {
+    // Note: When the "Ok" button of this option dialog is pressed, the values
+    // of SpreadSheet fields are altered directly. After calling this method,
+    // another method like constructSpreadsheet() should be called to implement
+    // the user-chosen settings.
+
+    // set up the initial settings
+    final SSOptions options = new SSOptions(cols, rows, CanDo3D,
+      BasicSSCell.DEBUG, server, clone, slave);
+
+    // set up main content pane
+    final boolean[] success = new boolean[1];
+    success[0] = false;
+    final JDialog dialog =
+      new JDialog((JFrame) null, "VisAD SpreadSheet Options", true);
+    JPanel pane = new JPanel();
+    dialog.setContentPane(pane);
+    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+
+    // set up first row of options
+    JPanel row1 = new JPanel();
+    row1.setLayout(new BoxLayout(row1, BoxLayout.X_AXIS));
+    JPanel row1Cols = new JPanel();
+    row1Cols.setLayout(new BoxLayout(row1Cols, BoxLayout.Y_AXIS));
+    row1Cols.add(new JLabel("Columns"));
+    final JTextField colField = new JTextField("" + cols);
+    adjustTextField(colField);
+    colField.setEnabled(clone == null);
+    row1Cols.add(colField);
+    row1.add(row1Cols);
+    JPanel row1Xs = new JPanel();
+    row1Xs.setLayout(new BoxLayout(row1Xs, BoxLayout.Y_AXIS));
+    row1Xs.add(new JLabel(" x "));
+    row1Xs.add(new JLabel(" x "));
+    row1.add(row1Xs);
+    JPanel row1Rows = new JPanel();
+    row1Rows.setLayout(new BoxLayout(row1Rows, BoxLayout.Y_AXIS));
+    row1Rows.add(new JLabel("Rows"));
+    final JTextField rowField = new JTextField("" + rows);
+    adjustTextField(rowField);
+    rowField.setEnabled(clone == null);
+    row1Rows.add(rowField);
+    row1.add(row1Rows);
+    JPanel row1Boxes = new JPanel();
+    row1Boxes.setLayout(new BoxLayout(row1Boxes, BoxLayout.Y_AXIS));
+    final JCheckBox java3d = new JCheckBox("Enable Java3D", CanDo3D);
+    java3d.setEnabled(Possible3D);
+    row1Boxes.add(java3d);
+    final JCheckBox debugBox = new JCheckBox("Debug mode", BasicSSCell.DEBUG);
+    row1Boxes.add(debugBox);
+    row1.add(row1Boxes);
+    pane.add(row1);
+
+    // set up second row of options
+    JPanel row2 = new JPanel();
+    row2.setLayout(new BoxLayout(row2, BoxLayout.X_AXIS));
+    ButtonGroup collabGroup = new ButtonGroup();
+    final JRadioButton serverChoice = new JRadioButton("Server");
+    serverChoice.setSelected(server != null && clone == null);
+    collabGroup.add(serverChoice);
+    row2.add(serverChoice);
+    final JRadioButton cloneChoice = new JRadioButton("Clone");
+    cloneChoice.setSelected(clone != null && !slave);
+    collabGroup.add(cloneChoice);
+    row2.add(cloneChoice);
+    final JRadioButton slaveChoice = new JRadioButton("Slave");
+    slaveChoice.setSelected(slave);
+    collabGroup.add(slaveChoice);
+    row2.add(slaveChoice);
+    final JRadioButton aloneChoice = new JRadioButton("Stand-alone");
+    aloneChoice.setSelected(server == null && clone == null);
+    collabGroup.add(aloneChoice);
+    row2.add(aloneChoice);
+    pane.add(row2);
+
+    // set up third row of options
+    JPanel row3 = new JPanel();
+    row3.setLayout(new BoxLayout(row3, BoxLayout.X_AXIS));
+    row3.add(new JLabel("Server name "));
+    final JTextField name = new JTextField(server == null ? "" : server);
+    adjustTextField(name);
+    name.setEnabled(server != null);
+    row3.add(name);
+    pane.add(row3);
+
+    // set up fourth row of options
+    JPanel row4 = new JPanel();
+    row4.setLayout(new BoxLayout(row4, BoxLayout.X_AXIS));
+    row4.add(new JLabel("Server address "));
+    final JTextField host = new JTextField(clone == null ? "" : clone);
+    adjustTextField(host);
+    host.setEnabled(clone != null);
+    row4.add(host);
+    pane.add(row4);
+
+    // set up fifth row of options
+    JPanel row5 = new JPanel();
+    row5.setLayout(new BoxLayout(row5, BoxLayout.X_AXIS));
+    boolean first = true;
+    String extras = "Extras: ";
+    if (Possible3D) {
+      extras = extras + (first ? "" : ", ") + "Java3D";
+      first = false;
+    }
+    if (CanDoHDF5) {
+      extras = extras + (first ? "" : ", ") + "HDF-5";
+      first = false;
+    }
+    if (CanDoJPEG) {
+      extras = extras + (first ? "" : ", ") + "JPEG snapshot";
+      first = false;
+    }
+    if (first) extras = extras + "None";
+    extras = extras + ".";
+    row5.add(new JLabel(extras));
+    pane.add(row5);
+
+    // set up button row
+    JPanel buttons = new JPanel();
+    buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+    final JButton ok = new JButton("Ok");
+    buttons.add(ok);
+    final JButton cancel = new JButton("Cancel");
+    buttons.add(cancel);
+    pane.add(buttons);
+
+    // handle important events
+    ActionListener handler = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        Object o = e.getSource();
+        if (o == serverChoice) {
+          colField.setEnabled(true);
+          rowField.setEnabled(true);
+          name.setEnabled(true);
+          host.setEnabled(false);
+        }
+        else if (o == cloneChoice || o == slaveChoice) {
+          colField.setEnabled(false);
+          rowField.setEnabled(false);
+          name.setEnabled(true);
+          host.setEnabled(true);
+        }
+        else if (o == aloneChoice) {
+          colField.setEnabled(true);
+          rowField.setEnabled(true);
+          name.setEnabled(false);
+          host.setEnabled(false);
+        }
+        else if (o == ok) {
+          // determine server type
+          boolean serv = serverChoice.isSelected();
+          boolean clon = cloneChoice.isSelected();
+          boolean slav = slaveChoice.isSelected();
+          boolean alon = aloneChoice.isSelected();
+
+          if (clon || slav) {
+            // column and row values are irrelevant for client sheets
+            options.cols = 2;
+            options.rows = 2;
+          }
+          else {
+            // get number of columns
+            options.cols = 0;
+            try {
+              options.cols = Integer.parseInt(colField.getText());
+            }
+            catch (NumberFormatException exc) { }
+            if (options.cols <= 0) {
+              displayErrorMessage(dialog, "The columns field must contain a " +
+                "number greater than zero", null, "Invalid value");
+              return;
+            }
+
+            // get number of rows
+            options.rows = 0;
+            try {
+              options.rows = Integer.parseInt(rowField.getText());
+            }
+            catch (NumberFormatException exc) { }
+            if (options.rows <= 0) {
+              displayErrorMessage(dialog, "The rows field must contain a " +
+                "number greater than zero", null, "Invalid value");
+              return;
+            }
+          }
+
+          // get Java3D toggle value
+          options.enable3d = java3d.isSelected();
+
+          // get debug toggle value
+          options.debug = debugBox.isSelected();
+
+          // get server name
+          options.name = alon ? null : name.getText();
+
+          // get server address
+          options.address = clon || slav ? host.getText() : null;
+
+          // get slave toggle value
+          options.slave = slav;
+
+          // everything ok, assign variables
+          NumVisX = options.cols;
+          NumVisY = options.rows;
+          CanDo3D = options.enable3d;
+          BasicSSCell.DEBUG = options.debug;
+          serverName = options.name;
+          cloneAddress = options.address;
+          IsSlave = options.slave;
+
+          // return successfully
+          success[0] = true;
+          dialog.setVisible(false);
+        }
+        else if (o == cancel) {
+          success[0] = false;
+          dialog.setVisible(false);
+        }
+      }
+    };
+    serverChoice.addActionListener(handler);
+    cloneChoice.addActionListener(handler);
+    slaveChoice.addActionListener(handler);
+    aloneChoice.addActionListener(handler);
+    ok.addActionListener(handler);
+    cancel.addActionListener(handler);
+
+    // display dialog
+    dialog.pack();
+    centerWindow(dialog);
+    dialog.setVisible(true);
+
+    return success[0];
+  }
+
+  /** inner class for use with getOptions() */
+  public class SSOptions {
+    public int cols;
+    public int rows;
+    public boolean enable3d;
+    public boolean debug;
+    public String name;
+    public String address;
+    public boolean slave;
+
+    public SSOptions(int c, int r, boolean e, boolean d,
+      String n, String a, boolean s)
+    {
+      cols = c;
+      rows = r;
+      enable3d = e;
+      debug = d;
+      name = n;
+      address = a;
+      slave = s;
+    }
+  }
+
+  /** returns the JToolBar object for other programs to use
+      (e.g., add buttons) */
+  public JToolBar getToolbar() {
+    return Toolbar;
+  }
+
+  /** returns the spreadsheet cell class (which must extend FancySSCell)
+      used for creating spreadsheet cells at runtime */
+  protected FancySSCell createCell(String name, RemoteServer rs)
+    throws VisADException, RemoteException
+  {
+    return new FancySSCell(name, fm, rs, IsSlave, null, this);
+  }
+
   /** display an error in a message dialog */
-  private void displayErrorMessage(String msg, Exception exc, String title) {
+  protected void displayErrorMessage(String msg, Exception exc, String title) {
+    displayErrorMessage(this, msg, exc, title);
+  }
+
+  /** display an error in a message dialog */
+  protected void displayErrorMessage(Component parent, String msg,
+    Exception exc, String title)
+  {
     String s = (exc == null ? null : exc.getMessage());
-    final SpreadSheet ss = this;
+    final Component c = parent;
     final String m = msg + (s == null ? "." : (": " + s));
     final String t = title;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        JOptionPane.showMessageDialog(ss, m, t, JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(c, m, t, JOptionPane.ERROR_MESSAGE);
       }
     });
   }
 
   /** add a button to a toolbar */
-  private JButton addToolbarButton(String file, String tooltip,
+  protected JButton addToolbarButton(String file, String tooltip,
     String command, boolean enabled, JComponent parent)
   {
     URL url = SpreadSheet.class.getResource(file);
@@ -3185,6 +3487,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
       return b;
     }
     else return null;
+  }
+
+  /** limits the given text field to one line in height */
+  public static void adjustTextField(JTextField field) {
+    Dimension msize = field.getMaximumSize();
+    Dimension psize = field.getPreferredSize();
+    msize.height = psize.height;
+    field.setMaximumSize(msize);
+  }
+
+  /** centers the given window on the screen */
+  public static void centerWindow(Window window) {
+    Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
+    Dimension w = window.getSize();
+    window.setLocation(s.width / 2 - w.width / 2, s.height / 2 - w.height / 2);
   }
 
 }

@@ -78,6 +78,9 @@ public class BasicSSCell extends JPanel implements MouseListener {
   /** counter for the number of cells currently saving data */
   protected static int Saving = 0;
 
+  /** whether Java3D is possible for this JVM */
+  protected static boolean Possible3D;
+
   /** whether Java3D is enabled for this JVM */
   protected static boolean CanDo3D = enable3D();
 
@@ -1181,6 +1184,11 @@ public class BasicSSCell extends JPanel implements MouseListener {
     return Saving > 0;
   }
 
+  /** return true if Java3D is possible for this JVM */
+  public static boolean possible3D() {
+    return Possible3D;
+  }
+
   /** return true if Java3D is enabled for this JVM */
   public static boolean canDo3D() {
     return CanDo3D;
@@ -1189,9 +1197,11 @@ public class BasicSSCell extends JPanel implements MouseListener {
   /** attempt to enable Java3D for this JVM, returning true if successful */
   public static boolean enable3D() {
     // test for Java3D availability
+    Possible3D = false;
     CanDo3D = false;
     try {
       DisplayImplJ3D test = new DisplayImplJ3D("test");
+      Possible3D = true;
       CanDo3D = true;
     }
     catch (NoClassDefFoundError err) {
@@ -1237,6 +1247,11 @@ public class BasicSSCell extends JPanel implements MouseListener {
     Vector range = new Vector();
     Vector anim = new Vector();
     Vector value = new Vector();
+
+    // make sure cell is not remote
+    if (IsRemote) {
+      throw new VisADException("Cannot setSaveString on a remote cell");
+    }
 
     // parse the save string into lines
     StringTokenizer st = new StringTokenizer(save, "\n\r");
