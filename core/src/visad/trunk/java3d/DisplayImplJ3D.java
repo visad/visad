@@ -350,8 +350,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     // use 'java visad.DisplayImplJ3D' for size = 256 (implicit -mx16m)
     // use 'java -mx40m visad.DisplayImplJ3D' for size = 512
     int size = 64;
-    int size3d = 2;
-    float level = 0.5f;
+    // int size3d = 2;
+    // float level = 0.5f;
+    int size3d = 6;
+    float level = 2.0f;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
     FlatField grid3d = FlatField.makeField(grid_tuple, size3d, true);
@@ -383,10 +385,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     display1.addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
-    ScalarMap map1contour = new ScalarMap(ir_radiance, Display.IsoContour);
+    ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     display1.addMap(map1contour);
     ContourControl control1contour = (ContourControl) map1contour.getControl();
-    control1contour.setSurfaceValue(2.0f);
+    control1contour.setSurfaceValue(level);
 
 /*
     display1.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
@@ -584,13 +586,8 @@ java.lang.RuntimeException: PARALLEL_PROJECTION is not yet implemented
     display4.stop();
 */
 
-    boolean first = true;
     while (true) {
       delay(5000);
-      if (first) {
-        control1contour.setSurfaceValue(level);
-        first = false;
-      }
       System.out.println("\ndelay\n");
     }
 
