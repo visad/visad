@@ -215,7 +215,7 @@ class MonitorSyncer
           sendEventKeys(current);
           done = true;
         } catch (RemoteException re) {
-          if (attempts++ < 10) {
+          if (attempts++ < 5) {
             // wait a bit, then try again to notify the remote Display
             try { Thread.sleep(500); } catch (InterruptedException ie) { }
           } else {
