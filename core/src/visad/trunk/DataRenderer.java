@@ -1855,12 +1855,13 @@ System.out.println("checkClose: distance = " + distance);
           throws VisADException {
     ray_pos = Float.NaN;
     if (otherindex < 0) return ray_pos;
-    if (tuple == null) {
+    CoordinateSystem tuplecs = null;
+    if (tuple != null) tuplecs = tuple.getCoordinateSystem();
+    if (tuple == null || tuplecs == null) {
       ray_pos = (float)
         ((othervalue - origin[otherindex]) / direction[otherindex]);
     }
     else { // tuple != null
-      CoordinateSystem tuplecs = tuple.getCoordinateSystem();
       double adjust = Double.NaN;
       if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
         if (otherindex == 1) adjust = 360.0;
