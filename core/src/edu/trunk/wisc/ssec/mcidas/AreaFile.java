@@ -116,6 +116,10 @@ public class AreaFile {
   public static final int AD_AVGSMPFLAG = 53;
   /** AD_SRCTYPEORIG - original source type (ascii, satellite specific) */
   public static final int AD_SRCTYPEORIG    = 56;
+  /** AD_CALTYPEUNIT - calibration unit */
+  public static final int AD_CALTYPEUNIT    = 57;
+  /** AD_CALTYPESCALE - calibration scaling factor */
+  public static final int AD_CALTYPESCALE    = 58;
   /** AD_AUXOFFSET - byte offset to start of auxilliary data section */
   public static final int AD_AUXOFFSET  = 59;
   /** AD_CALOFFSET - byte offset to start of calibration section */
@@ -664,6 +668,8 @@ public class AreaFile {
     data = new int[numBands][numLines][numEles];
     short shdata;
     int intdata;
+    boolean isBrit = 
+       areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT");
 
     for (i = 0; i<numLines; i++) {
 
@@ -693,9 +699,9 @@ public class AreaFile {
 
               if (dir[AD_DATAWIDTH] == 1) {
                 data[k][i][j] = (int) af.readByte();
-                if (data[k][i][j] < 0) data[k][i][j] += 256;
+                if (data[k][i][j] < 0 && isBrit) data[k][i][j] += 256;
                 position = position + 1;
-              }
+              } else 
 
               if (dir[AD_DATAWIDTH] == 2) {
                 shdata = af.readShort();
@@ -706,7 +712,7 @@ public class AreaFile {
                   data[k][i][j] = (int) shdata;
                 }
                 position = position + 2;
-              }
+              } else 
 
               if (dir[AD_DATAWIDTH] == 4) {
                 intdata = af.readInt();

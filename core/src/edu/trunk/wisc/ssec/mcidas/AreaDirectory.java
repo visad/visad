@@ -50,6 +50,8 @@ public class AreaDirectory
   private double centerLongitudeResolution;
   private Vector[] calInfo = null;
   private String calType, srcType, srcTypeOrig;
+  private String calTypeUnit = null;
+  private int calTypeScaleFactor = 1;
   private String memo;
   private String[] sensors = {"derived data",
                 "test patterns",
@@ -173,6 +175,7 @@ public class AreaDirectory
                 "AQUA RET",
                 "", // 120
                 ""};
+                                   
 
   /**
    * Create an AreaDirectory from the raw block of data of
@@ -259,12 +262,22 @@ public class AreaDirectory
     int[] memoArray = new int[8];
     System.arraycopy(dir, 24, memoArray, 0, memoArray.length);
     memo = McIDASUtil.intBitsToString(memoArray);
-    calType = McIDASUtil.intBitsToString(dir[AreaFile.AD_CALTYPE]);
-    srcType = McIDASUtil.intBitsToString(dir[AreaFile.AD_SRCTYPE]);
-    srcTypeOrig = McIDASUtil.intBitsToString(dir[AreaFile.AD_SRCTYPEORIG]);
-    if (dir[AreaFile.AD_SRCTYPEORIG] == 0) srcTypeOrig = srcType;
-    
-
+    calType = McIDASUtil.intBitsToString(dir[AreaFile.AD_CALTYPE]).trim();
+    srcType = McIDASUtil.intBitsToString(dir[AreaFile.AD_SRCTYPE]).trim();
+    srcTypeOrig = (dir[AreaFile.AD_SRCTYPEORIG] == 0) 
+        ? srcType
+        : McIDASUtil.intBitsToString(dir[AreaFile.AD_SRCTYPEORIG]).trim();
+    calTypeUnit = 
+       (dir[AreaFile.AD_CALTYPEUNIT] == 0 || 
+        dir[AreaFile.AD_CALTYPEUNIT] == McIDASUtil.MCMISSING) 
+        ? null
+        : McIDASUtil.intBitsToString(dir[AreaFile.AD_CALTYPEUNIT]).trim();
+    //System.out.println("AD.calTypeUnit = >"+calTypeUnit+"<");
+    if (calTypeUnit != null && calTypeUnit.equals("")) calTypeUnit = null;
+    calTypeScaleFactor = 
+      (dir[AreaFile.AD_CALTYPESCALE] == 0 || 
+       dir[AreaFile.AD_CALTYPESCALE] == McIDASUtil.MCMISSING) 
+         ? 1 : dir[AreaFile.AD_CALTYPESCALE];
   }
 
   /**
@@ -497,6 +510,24 @@ public class AreaDirectory
   */
   public void setCenterLongitudeResolution(double res) {
     centerLongitudeResolution = res;
+  }
+
+  /** 
+   * Get the string representing the calibration unit
+   *
+   * @return name of calibration unit
+   */
+  public String getCalibrationUnitName() {
+    return calTypeUnit;
+  }
+
+  /** 
+   * Get the scaling factor of the values for this calibration type
+   *
+   * @return scaling factor
+   */
+  public int getCalibrationScaleFactor() {
+    return calTypeScaleFactor;
   }
 
   /**
