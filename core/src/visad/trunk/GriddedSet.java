@@ -42,7 +42,7 @@ package visad;
    points outside this range are indicated by the grid coordinate
    Double.NaN.<P>
 */
-public class GriddedSet extends SampledSet {
+public class GriddedSet extends SampledSet implements GriddedSetIface {
 
   int[] Lengths;
   // error tolerance for Newton's method solvers

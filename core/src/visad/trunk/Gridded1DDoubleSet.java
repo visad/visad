@@ -29,6 +29,7 @@ package visad;
 /**
    Gridded1DDoubleSet is a Gridded1DSet with double-precision samples.<P>
 */
+/*###32 [cc] class visad.Gridded1DDoubleSet must be declared abstract. It does not define visad.DataShadow ComputeRanges(visad.ShadowType, visad.DataShadow, double[][], boolean) from interface visad.SetIface.%%%*/
 public class Gridded1DDoubleSet extends Gridded1DSet
        implements GriddedDoubleSet {
 
@@ -579,15 +580,18 @@ public class Gridded1DDoubleSet extends Gridded1DSet
 
   public Object clone() {
     try {
+/*###582 [cc] class visad.Gridded1DDoubleSet is an abstract class. It can't be instantiated.%%%*/
       return new Gridded1DDoubleSet(Type, Samples, Length,
         DomainCoordinateSystem, SetUnits, SetErrors);
     }
+/*###585 [cc] Exception visad.VisADException is never thrown in the body of the corresponding try statement.%%%*/
     catch (VisADException e) {
       throw new VisADError("Gridded1DDoubleSet.clone: " + e.toString());
     }
   }
 
   public Object cloneButType(MathType type) throws VisADException {
+/*###591 [cc] class visad.Gridded1DDoubleSet is an abstract class. It can't be instantiated.%%%*/
     return new Gridded1DDoubleSet(type, Samples, Length,
       DomainCoordinateSystem, SetUnits, SetErrors);
   }

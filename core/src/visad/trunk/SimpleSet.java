@@ -32,7 +32,7 @@ import java.util.*;
    SimpleSet is the abstract superclass of Sets with a unique ManifoldDimension.
    SimpleSet objects are immutable.<P>
 */
-public abstract class SimpleSet extends Set {
+public abstract class SimpleSet extends Set implements SimpleSetIface {
 
   /** dimension of subspace that set is embedded in */
   int ManifoldDimension;

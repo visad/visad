@@ -46,7 +46,7 @@ package visad;
    Set is the abstract superclass of the VisAD hierarchy of sets.<P>
    Sets are subsets of R^n for n>0.  Set objects are immutable.<P>
 */
-public abstract class Set extends DataImpl {
+public abstract class Set extends DataImpl implements SetIface {
 
   int DomainDimension; // this is a subset of R^DomainDimension
   int Length;          // number of samples

@@ -31,7 +31,7 @@ import java.io.*;
 /**
    Gridded1DSet represents a finite set of samples of R.<P>
 */
-public class Gridded1DSet extends GriddedSet {
+public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
 
   int LengthX;
   float LowX, HiX;

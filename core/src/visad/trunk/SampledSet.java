@@ -30,7 +30,7 @@ package visad;
    SampledSet is the abstract superclass of GriddedSets, PolyCells and MultiCells.
    SampledSet objects are immutable.<P>
 */
-public abstract class SampledSet extends SimpleSet {
+public abstract class SampledSet extends SimpleSet implements SampledSetIface {
 
   float[][] Samples;
   float Low[], Hi[];
