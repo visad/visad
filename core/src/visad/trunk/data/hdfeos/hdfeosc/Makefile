@@ -79,10 +79,50 @@ clean:
 	rm -f *.class
 
 required_macros:
-	@if [ -z "$(HDF_INC)" ]; then echo "HDF_INC is undefined"; exit 1; fi
-	@if [ -z "$(HDF_LIB)" ]; then echo "HDF_LIB is undefined"; exit 1; fi
-	@if [ -z "$(HDFEOS_INC)" ]; then echo "HDFEOS_INC is undefined"; exit 1; fi
-	@if [ -z "$(HDFEOS_LIB)" ]; then echo "HDFEOS_LIB is undefined"; exit 1; fi
+	@if [ -z "$(HDF_INC)" ]; then \
+	  echo ""; \
+	  echo "  HDF_INC is undefined."; \
+	  echo ""; \
+	  echo "  (Don't worry, this is normal.  It just means the optional"; \
+	  echo "   HDF-EOSC library won't be supported.)"; \
+	  echo ""; \
+	  echo "  This 'make' will self-destruct in 1 second"; \
+	  echo ""; \
+	  exit 1; \
+	fi
+	@if [ -z "$(HDF_LIB)" ]; then \
+	  echo ""; \
+	  echo "  HDF_LIB is undefined."; \
+	  echo ""; \
+	  echo "  (Don't worry, this is normal.  It just means the optional"; \
+	  echo "   HDF-EOSC library won't be supported.)"; \
+	  echo ""; \
+	  echo "  This 'make' will self-destruct in 1 second"; \
+	  echo ""; \
+	  exit 1; \
+	fi
+	@if [ -z "$(HDFEOS_INC)" ]; then \
+	  echo ""; \
+	  echo "  HDFEOS_INC is undefined."; \
+	  echo ""; \
+	  echo "  (Don't worry, this is normal.  It just means the optional"; \
+	  echo "   HDF-EOSC library won't be supported.)"; \
+	  echo ""; \
+	  echo "  This 'make' will self-destruct in 1 second"; \
+	  echo ""; \
+	  exit 1; \
+	fi
+	@if [ -z "$(HDFEOS_LIB)" ]; then \
+	  echo ""; \
+	  echo "  HDFEOS_LIB is undefined."; \
+	  echo ""; \
+	  echo "  (Don't worry, this is normal.  It just means the optional"; \
+	  echo "   HDF-EOSC library won't be supported.)"; \
+	  echo ""; \
+	  echo "  This 'make' will self-destruct in 1 second"; \
+	  echo ""; \
+	  exit 1; \
+	fi
 
 solaris: required_macros
 	@make ARCH=solaris SYSLIBS="-lnsl -lm" LDOPT="-G" hdfeosLib
