@@ -174,7 +174,7 @@ public class RemoteServerImpl extends UnicastRemoteObject
   /** get a RemoteDisplay by index */
   public RemoteDisplay getDisplay(int index)
   {
-    if (dpys != null && index >= 0 && dpys.length < index) {
+    if (dpys != null && index >= 0 && index < dpys.length) {
       return dpys[index];
     }
     return null;
