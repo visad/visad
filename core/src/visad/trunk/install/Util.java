@@ -60,6 +60,23 @@ public class Util
     }
   }
 
+  public static final boolean copyFile(File source, File target)
+  {
+    return copyFile(null, source, target, null);
+  }
+
+  public static final boolean copyFile(JProgressBar progress,
+                                       File source, File target)
+  {
+    return copyFile(progress, source, target, null);
+  }
+
+  public static final boolean copyFile(File source, File target,
+                                       String saveSuffix)
+  {
+    return copyFile(null, source, target, saveSuffix);
+  }
+
   public static final boolean copyFile(JProgressBar progress,
                                        File source, File target,
                                        String saveSuffix)
@@ -158,6 +175,23 @@ public class Util
     target.setLastModified(source.lastModified());
 
     return true;
+  }
+
+  public static final boolean copyDirectory(File source, File target)
+  {
+    return copyDirectory(null, source, target, null);
+  }
+
+  public static final boolean copyDirectory(JProgressBar progress,
+                                            File source, File target)
+  {
+    return copyDirectory(progress, source, target, null);
+  }
+
+  public static final boolean copyDirectory(File source, File target,
+                                            String saveSuffix)
+  {
+    return copyDirectory(null, source, target, saveSuffix);
   }
 
   public static final boolean copyDirectory(JProgressBar progress,
