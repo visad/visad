@@ -646,7 +646,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       copy argument included for consistency with Field, but ignored */
   public void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException {
-    if (range.length != Length) {
+    if (range == null || range.length != Length) {
       throw new FieldException("setSamples: bad Data[] length");
     }
     for (int i=0; i<Length; i++) {
@@ -1617,9 +1617,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     if (DomainSet == null) {
       throw new FieldException("Field.setSample: DomainSet undefined");
     }
-    // WLH 9 Dec 99
-    // if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
-    if (!((FunctionType) Type).getRange().equals(range.getType())) {
+    if (range != null &&
+        !((FunctionType) Type).getRange().equals(range.getType())) {
       throw new TypeException("Field.setSample: sample range type " +
                               range.getType() +
                               " does not match expected type " +
@@ -1631,7 +1630,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     double[] vals = new double[TupleDimension];
     // holder for errors of transformed values;
     ErrorEstimate[] errors_out = new ErrorEstimate[TupleDimension];
-    if (range instanceof Real) {
+    if (range == null) {
+      for (int j=0; j<TupleDimension; j++) {
+        vals[j] = Double.NaN;
+      }
+    }
+    else if (range instanceof Real) {
       vals[0] = ((Real) range).getValue();
       vals = Unit.transformUnits (
                         RangeUnits[0], errors_out,
@@ -1700,7 +1704,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
     // now errors_out contains the transformed errors for the sample
     // in range - these may be mixed with RangeErrors
-    // incs is counter for increase / decreas in NumberNotMissing
+    // incs is counter for increase / decrease in NumberNotMissing
     int[] incs = new int[TupleDimension];
 
     synchronized (DoubleRange) {
