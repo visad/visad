@@ -125,7 +125,7 @@ public class BinaryReader
     }
   }
 
-  private void cacheCoordinateSystem()
+  private final void cacheCoordinateSystem()
     throws IOException
   {
     final int objLen = file.readInt();
@@ -146,7 +146,7 @@ if(DEBUG_CSYS)System.err.println("cchCS: serialObj (" + (objLen-5) + " bytes)");
     cSysCache.add(index, cs);
   }
 
-  private void cacheErrorEstimate()
+  private final void cacheErrorEstimate()
     throws IOException, VisADException
   {
     final int objLen = file.readInt();
@@ -190,7 +190,7 @@ if(DEBUG_ERRE)System.err.println("cchErrEst: FLD_END ("+FLD_END+")");
     errorCache.add(index, err);
   }
 
-  private MathType cacheMathType()
+  private final MathType cacheMathType()
     throws IOException, VisADException
   {
     final int objLen = file.readInt();
@@ -228,7 +228,7 @@ if(DEBUG_MATH)System.err.println("rdMthTy: MATH_TUPLE (" + MATH_TUPLE + ")");
     }
   }
 
-  private void cacheUnit()
+  private final void cacheUnit()
     throws IOException, VisADException
   {
     final int objLen = file.readInt();
@@ -330,7 +330,7 @@ if(DEBUG_MATH)System.err.println("getData: OBJ_UNIT (" + OBJ_UNIT + ")");
     }
   }
 
-  private CoordinateSystem[] readCoordinateSystems()
+  private final CoordinateSystem[] readCoordinateSystems()
     throws IOException
   {
     final int len = file.readInt();
@@ -459,7 +459,7 @@ if(DEBUG_DATA)System.err.println("rdData: DATA_UNION_SET (" + dataType + ")\nrdD
     }
   }
 
-  private Data[] readDataArray()
+  private final Data[] readDataArray()
     throws IOException, VisADException
   {
     final int len = file.readInt();
@@ -477,7 +477,7 @@ if(DEBUG_DATA)System.err.println("rdDataRA: len (" + len + ")");
     return array;
   }
 
-  private Delaunay readDelaunay()
+  private final Delaunay readDelaunay()
     throws IOException, VisADException
   {
     int[][] tri = null;
@@ -529,7 +529,7 @@ if(DEBUG_DATA)System.err.println("rdDel: FLD_END (" + FLD_END + ")");
     return new DelaunayCustom(null, tri, verts, walk, edges, numEdges);
   }
 
-  private double[] readDoubleArray()
+  private final double[] readDoubleArray()
     throws IOException
   {
     final int len = file.readInt();
@@ -548,7 +548,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdDblRA: #" + i +" (" + array[i] + ")")
     return array;
   }
 
-  private double[][] readDoubleMatrix()
+  private final double[][] readDoubleMatrix()
     throws IOException
   {
     final int len = file.readInt();
@@ -571,7 +571,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdDblMtx: #" + i + "," + j +" (" + matr
     return matrix;
   }
 
-  private ErrorEstimate[] readErrorEstimates()
+  private final ErrorEstimate[] readErrorEstimates()
     throws IOException
   {
     final int len = file.readInt();
@@ -729,7 +729,7 @@ if(DEBUG_DATA)System.err.println("rdFlFld: FLD_END (" + FLD_END + ")");
     return fld;
   }
 
-  private float[] readFloatArray()
+  private final float[] readFloatArray()
     throws IOException
   {
     final int len = file.readInt();
@@ -748,7 +748,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdFltRA: #" + i +" (" + array[i] + ")")
     return array;
   }
 
-  private float[][] readFloatMatrix()
+  private final float[][] readFloatMatrix()
     throws IOException
   {
     final int len = file.readInt();
@@ -771,7 +771,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdFltMtx: #" + i + "," + j +" (" + matr
     return matrix;
   }
 
-  private FunctionType readFunctionType(int index)
+  private final FunctionType readFunctionType(int index)
     throws IOException, VisADException
   {
     final int domainIndex = file.readInt();
@@ -1025,7 +1025,7 @@ if(DEBUG_DATA)System.err.println("rdGrSet: FLD_END (" + FLD_END + ")");
     }
   }
 
-  private int[] readIntegerArray()
+  private final int[] readIntegerArray()
     throws IOException
   {
     final int len = file.readInt();
@@ -1044,7 +1044,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdIntRA: #" + i +" (" + array[i] + ")")
     return array;
   }
 
-  private int[][] readIntegerMatrix()
+  private final int[][] readIntegerMatrix()
     throws IOException
   {
     final int len = file.readInt();
@@ -1187,7 +1187,7 @@ if(DEBUG_DATA)System.err.println("rdIntSet: FLD_END (" + FLD_END + ")");
     }
   }
 
-  private Integer1DSet[] readInteger1DSets()
+  private final Integer1DSet[] readInteger1DSets()
     throws IOException, VisADException
   {
     final int len = file.readInt();
@@ -1470,7 +1470,7 @@ if(DEBUG_DATA)System.err.println("rdLinSet: FLD_END (" + FLD_END + ")");
     }
   }
 
-  private Linear1DSet[] readLinear1DSets()
+  private final Linear1DSet[] readLinear1DSets()
     throws IOException, VisADException
   {
     Linear1DSet[] sets = new Linear1DSet[file.readInt()];
@@ -1480,7 +1480,7 @@ if(DEBUG_DATA)System.err.println("rdLinSet: FLD_END (" + FLD_END + ")");
     return sets;
   }
 
-  private List1DSet readList1DSet()
+  private final List1DSet readList1DSet()
     throws IOException, VisADException
   {
     final int typeIndex = file.readInt();
@@ -1537,7 +1537,7 @@ if(DEBUG_DATA)System.err.println("rdL1DSet: FLD_END (" + FLD_END + ")");
     return new List1DSet(list, mt, cs, units);
   }
 
-  private static int readMagic(DataInputStream stream)
+  private final static int readMagic(DataInputStream stream)
     throws IOException
   {
     byte[] magic = MAGIC_STR.getBytes();
@@ -1561,7 +1561,7 @@ if(DEBUG_DATA)System.err.println("rdL1DSet: FLD_END (" + FLD_END + ")");
     }
   }
 
-  private MathType[] readMathTypes(int dim)
+  private final MathType[] readMathTypes(int dim)
     throws IOException, VisADException
   {
     if (dim < 1) {
@@ -1579,7 +1579,7 @@ if(DEBUG_DATA&&!DEBUG_MATH)System.err.println("rdMTyS: type #" + i + " index (" 
     return list;
   }
 
-  private ProductSet readProductSet()
+  private final ProductSet readProductSet()
     throws IOException, VisADException
   {
     final int typeIndex = file.readInt();
@@ -1641,7 +1641,7 @@ if(DEBUG_DATA)System.err.println("rdPrSet: FLD_END (" + FLD_END + ")");
     return new ProductSet(st, sets, cs, units, errs);
   }
 
-  private Quantity readQuantity(int index)
+  private final Quantity readQuantity(int index)
     throws IOException, VisADException
   {
     // read the name
@@ -1704,7 +1704,7 @@ if(DEBUG_MATH)System.err.println("rdQuant: FLD_END (" + FLD_END + ")");
     return q;
   }
 
-  private Real readReal()
+  private final Real readReal()
     throws IOException, VisADException
   {
     final int typeIndex = file.readInt();
@@ -1755,7 +1755,7 @@ if(DEBUG_DATA)System.err.println("rdRl: FLD_END (" + FLD_END + ")");
     return new Real(rt, value, u, error);
   }
 
-  private Real[] readRealArray()
+  private final Real[] readRealArray()
     throws IOException, VisADException
   {
     final int len = file.readInt();
@@ -1774,7 +1774,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("rdRlRA: #" + i +" (" + array[i] + ")");
     return array;
   }
 
-  private RealTuple readRealTuple()
+  private final RealTuple readRealTuple()
     throws IOException, VisADException
   {
     final int typeIndex = file.readInt();
@@ -1840,7 +1840,7 @@ if(DEBUG_DATA)System.err.println("rdRlTpl: FLD_END (" + FLD_END + ")");
     return new RealTuple(rtt, components, cs);
   }
 
-  private RealTupleType readRealTupleType(int index)
+  private final RealTupleType readRealTupleType(int index)
     throws IOException, VisADException
   {
     final int dim = file.readInt();
@@ -1901,7 +1901,7 @@ if(DEBUG_MATH)System.err.println("rdRlTuTy: FLD_END (" + FLD_END + ")");
     return rtt;
   }
 
-  private RealType readRealType(int index)
+  private final RealType readRealType(int index)
     throws IOException, VisADException
   {
     final int attrMask = file.readInt();
@@ -1960,7 +1960,7 @@ if(DEBUG_MATH)System.err.println("rdRlTy: FLD_END (" + FLD_END + ")");
     return rt;
   }
 
-  private SampledSet[] readSampledSets()
+  private final SampledSet[] readSampledSets()
     throws IOException, VisADException
   {
     final int len = file.readInt();
@@ -1972,14 +1972,14 @@ if(DEBUG_DATA)System.err.println("rdSplSetS: len (" + len + ")");
     return sets;
   }
 
-  private Object readSerializedObject()
+  private final Object readSerializedObject()
     throws IOException
   {
     final int len = file.readInt();
     return readSerializedObject(len);
   }
 
-  private Object readSerializedObject(int len)
+  private final Object readSerializedObject(int len)
     throws IOException
   {
     if (len <= 0) {
@@ -2014,7 +2014,7 @@ if(DEBUG_DATA)System.err.println("rdSplSetS: len (" + len + ")");
     return obj;
   }
 
-  private Set readSet()
+  private final Set readSet()
     throws IOException, VisADException
   {
     final byte serByte = file.readByte();
@@ -2026,7 +2026,7 @@ if(DEBUG_DATA)System.err.println("rdSet: read " + (serByte == OBJ_MATH_SERIAL ? 
     return (Set )readSerializedObject();
   }
 
-  private Set[] readSetArray()
+  private final Set[] readSetArray()
     throws IOException, VisADException
   {
     final int len = file.readInt();
@@ -2038,7 +2038,7 @@ if(DEBUG_DATA)System.err.println("rdSetRA: len (" + len + ")");
     return sets;
   }
 
-  private SetType readSetType(int index)
+  private final SetType readSetType(int index)
     throws IOException, VisADException
   {
     final int dIndex = file.readInt();
@@ -2059,7 +2059,7 @@ if(DEBUG_MATH)System.err.println("rdSetTy: read " + (endByte == FLD_END ? "FLD_E
     return st;
   }
 
-  private SimpleSet readSimpleSet(byte dataType)
+  private final SimpleSet readSimpleSet(byte dataType)
     throws IOException, VisADException
   {
     final int typeIndex = file.readInt();
@@ -2169,7 +2169,7 @@ if(DEBUG_DATA)System.err.println("rdSglSet: FLD_END (" + FLD_END + ")");
     return new SingletonSet(sample, cs, units, errs);
   }
 
-  private String readString()
+  private final String readString()
     throws IOException
   {
     final int len = file.readInt();
@@ -2189,7 +2189,7 @@ if(DEBUG_STR)System.err.println("rdStr: str (" + buf + ")");
     return new String(buf);
   }
 
-  private Text readText()
+  private final Text readText()
     throws IOException, VisADException
   {
     final int typeIndex = file.readInt();
@@ -2210,7 +2210,7 @@ if(DEBUG_DATA)System.err.println("rdTxt: read " + (endByte == FLD_END ? "FLD_END
     return new Text(tt, value);
   }
 
-  private TextType readTextType(int index)
+  private final TextType readTextType(int index)
     throws IOException, VisADException
   {
     // read the name
@@ -2230,7 +2230,7 @@ if(DEBUG_MATH)System.err.println("rdTxTy: read " + (endByte == FLD_END ? "FLD_EN
     return tt;
   }
 
-  private Tuple readTuple()
+  private final Tuple readTuple()
     throws IOException, VisADException
   {
     final int typeIndex = file.readInt();
@@ -2266,7 +2266,7 @@ if(DEBUG_DATA)System.err.println("rdTpl: FLD_END (" + FLD_END + ")");
     return new Tuple(tt, components);
   }
 
-  private TupleType readTupleType(int index, int objLen)
+  private final TupleType readTupleType(int index, int objLen)
     throws IOException, VisADException
   {
     MathType[] list = readMathTypes((objLen - 1) / 4);
@@ -2284,7 +2284,7 @@ if(DEBUG_MATH)System.err.println("rdTuTy: read " + (endByte == FLD_END ? "FLD_EN
     return tt;
   }
 
-  private UnionSet readUnionSet()
+  private final UnionSet readUnionSet()
     throws IOException, VisADException
   {
     final int typeIndex = file.readInt();
@@ -2328,7 +2328,7 @@ if(DEBUG_DATA)System.err.println("rdLinSet: FLD_END (" + FLD_END + ")");
     return new UnionSet(st, sets);
   }
 
-  private Unit[] readUnits()
+  private final Unit[] readUnits()
     throws IOException
   {
     final int len = file.readInt();

@@ -87,7 +87,7 @@ public class BinaryWriter
     setOutputStream(stream);
   }
 
-  private int cacheMathType(MathType mt)
+  private final int cacheMathType(MathType mt)
     throws VisADException
   {
     int index = typeCache.getIndex(mt);
@@ -110,7 +110,7 @@ public class BinaryWriter
     file = null;
   }
 
-  private int computeDelaunayBytes(Delaunay d)
+  private final int computeDelaunayBytes(Delaunay d)
   {
     return (1 +
             1 + computeIntegerMatrixBytes(d.Tri) +
@@ -120,12 +120,12 @@ public class BinaryWriter
             6);
   }
 
-  private int computeDoubleArrayBytes(double[] array)
+  private final int computeDoubleArrayBytes(double[] array)
   {
     return (array == null ? 0 : 4 + (array.length * 8));
   }
 
-  private int computeDoubleMatrixBytes(double[][] matrix)
+  private final int computeDoubleMatrixBytes(double[][] matrix)
   {
     if (matrix == null) {
       return 4;
@@ -139,12 +139,12 @@ public class BinaryWriter
     return len;
   }
 
-  private int computeFloatArrayBytes(float[] array)
+  private final int computeFloatArrayBytes(float[] array)
   {
     return (array == null ? 0 : 4 + (array.length * 4));
   }
 
-  private int computeFloatMatrixBytes(float[][] matrix)
+  private final int computeFloatMatrixBytes(float[][] matrix)
   {
     if (matrix == null) {
       return 4;
@@ -158,12 +158,12 @@ public class BinaryWriter
     return len;
   }
 
-  private int computeIntegerArrayBytes(int[] array)
+  private final int computeIntegerArrayBytes(int[] array)
   {
     return (array == null ? 0 : 4 + (array.length * 4));
   }
 
-  private int computeIntegerMatrixBytes(int[][] matrix)
+  private final int computeIntegerMatrixBytes(int[][] matrix)
   {
     if (matrix == null) {
       return 4;
@@ -177,7 +177,7 @@ public class BinaryWriter
     return len;
   }
 
-  private int computeStringBytes(String str)
+  private final int computeStringBytes(String str)
   {
     return 4 + (str == null ? 0 : str.length());
   }
@@ -192,7 +192,7 @@ public class BinaryWriter
     file.flush();
   }
 
-  private byte[] getSerializedObject(Object obj)
+  private final byte[] getSerializedObject(Object obj)
     throws IOException
   {
     java.io.ByteArrayOutputStream outBytes;
@@ -208,7 +208,7 @@ public class BinaryWriter
     return outBytes.toByteArray();
   }
 
-  private void initVars()
+  private final void initVars()
   {
     if (!initialized) {
       this.file = null;
@@ -1341,7 +1341,7 @@ if(DEBUG_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
     file.writeInt(FORMAT_VERSION);
   }
 
-  private int writeCoordinateSystem(CoordinateSystem cSys)
+  private final int writeCoordinateSystem(CoordinateSystem cSys)
     throws VisADException
   {
     int index = cSysCache.getIndex(cSys);
@@ -1387,7 +1387,7 @@ if(DEBUG_CSYS)System.err.println("wrCSys: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private int[] writeCoordinateSystems(CoordinateSystem[] cSys)
+  private final int[] writeCoordinateSystems(CoordinateSystem[] cSys)
     throws VisADException
   {
     // make sure there's something to write
@@ -1415,7 +1415,7 @@ if(DEBUG_CSYS)System.err.println("wrCSys: FLD_END (" + FLD_END + ")");
     return indices;
   }
 
-  private void writeDelaunay(Delaunay delaunay)
+  private final void writeDelaunay(Delaunay delaunay)
     throws IOException, VisADException
   {
     Class dClass = delaunay.getClass();
@@ -1450,7 +1450,7 @@ if(DEBUG_CSYS)System.err.println("wrCSys: FLD_END (" + FLD_END + ")");
     file.writeByte(FLD_END);
   }
 
-  private int writeDisplayRealType(DisplayRealType drt)
+  private final int writeDisplayRealType(DisplayRealType drt)
     throws IOException, VisADException
   {
     int index = typeCache.getIndex(drt);
@@ -1464,7 +1464,7 @@ if(DEBUG_MATH)System.err.println("wrDpyRTy: serialized DisplayRealType");
     return index;
   }
 
-  private int writeDisplayTupleType(DisplayTupleType dtt)
+  private final int writeDisplayTupleType(DisplayTupleType dtt)
     throws IOException, VisADException
   {
     int index = typeCache.getIndex(dtt);
@@ -1478,7 +1478,7 @@ if(DEBUG_MATH)System.err.println("wrDpyTuTy: serialized DisplayTupleType");
     return index;
   }
 
-  private void writeDoubleArray(double[] array)
+  private final void writeDoubleArray(double[] array)
     throws IOException
   {
 if(DEBUG_DATA)System.err.println("wrDblRA: len (" + array.length + ")");
@@ -1489,7 +1489,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrDblRA: #" + i + " (" + array[i] + ")"
     }
   }
 
-  private void writeDoubleMatrix(double[][] matrix)
+  private final void writeDoubleMatrix(double[][] matrix)
     throws IOException
   {
     if (matrix == null) {
@@ -1510,7 +1510,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrDblMtx: #" + i + "," + j + " (" + mat
     }
   }
 
-  private int writeErrorEstimate(ErrorEstimate error)
+  private final int writeErrorEstimate(ErrorEstimate error)
     throws VisADException
   {
     int index = errorCache.getIndex(error);
@@ -1569,7 +1569,7 @@ if(DEBUG_ERRE)System.err.println("wrErrEst: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private int[] writeErrorEstimates(ErrorEstimate[] errors)
+  private final int[] writeErrorEstimates(ErrorEstimate[] errors)
     throws VisADException
   {
     // make sure there's something to write
@@ -1597,7 +1597,7 @@ if(DEBUG_ERRE)System.err.println("wrErrEst: FLD_END (" + FLD_END + ")");
     return indices;
   }
 
-  private void writeFloatArray(float[] array)
+  private final void writeFloatArray(float[] array)
     throws IOException
   {
 if(DEBUG_DATA)System.err.println("wrFltRA: len (" + array.length + ")");
@@ -1608,7 +1608,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrFltRA: #" + i + " (" + array[i] + ")"
     }
   }
 
-  private void writeFloatMatrix(float[][] matrix)
+  private final void writeFloatMatrix(float[][] matrix)
     throws IOException
   {
     if (matrix == null) {
@@ -1629,7 +1629,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrFltMtx: #" + i + "," + j + " (" + mat
     }
   }
 
-  private int writeFunctionType(FunctionType ft)
+  private final int writeFunctionType(FunctionType ft)
     throws IOException, VisADException
   {
     int index = typeCache.getIndex(ft);
@@ -1663,7 +1663,7 @@ if(DEBUG_MATH)System.err.println("wrFuTy: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private void writeGriddedDoubleSet(SetType type, double[][] samples,
+  private final void writeGriddedDoubleSet(SetType type, double[][] samples,
                                      int[] lengths, CoordinateSystem cs,
                                      Unit[] units, ErrorEstimate[] errors,
                                      GriddedSet set, Class canonicalClass,
@@ -1795,7 +1795,7 @@ if(DEBUG_DATA)System.err.println("wrGrDblSet: FLD_END (" + FLD_END + ")");
     }
   }
 
-  private void writeGriddedSet(SetType type, float[][] samples,
+  private final void writeGriddedSet(SetType type, float[][] samples,
                                int[] lengths, CoordinateSystem cs,
                                Unit[] units, ErrorEstimate[] errors,
                                GriddedSet set, Class canonicalClass,
@@ -1912,7 +1912,7 @@ if(DEBUG_DATA)System.err.println("wrGrSet: punt "+set.getClass().getName());
     }
   }
 
-  private void writeIntegerArray(int[] array)
+  private final void writeIntegerArray(int[] array)
     throws IOException
   {
 if(DEBUG_DATA)System.err.println("wrIntRA: len (" + array.length + ")");
@@ -1923,7 +1923,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrIntRA: #" + i + " (" + array[i] + ")"
     }
   }
 
-  private void writeIntegerMatrix(int[][] matrix)
+  private final void writeIntegerMatrix(int[][] matrix)
     throws IOException
   {
     if (matrix == null) {
@@ -1944,7 +1944,7 @@ if(DEBUG_DATA_DETAIL)System.err.println("wrIntMtx: #" + i + "," + j + " (" + mat
     }
   }
 
-  private void writeIntegerSet(SetType type, int[] lengths,
+  private final void writeIntegerSet(SetType type, int[] lengths,
                                Integer1DSet[] comps, CoordinateSystem cs,
                                Unit[] units, ErrorEstimate[] errors,
                                GriddedSet set, Class canonicalClass,
@@ -2093,7 +2093,7 @@ if(DEBUG_DATA)System.err.println("wrIntSet: FLD_END (" + FLD_END + ")");
     }
   }
 
-  private void writeIrregularSet(SetType type, float[][] samples,
+  private final void writeIrregularSet(SetType type, float[][] samples,
                                  CoordinateSystem cs, Unit[] units,
                                  ErrorEstimate[] errors, Delaunay delaunay,
                                  IrregularSet set, Class canonicalClass,
@@ -2211,7 +2211,7 @@ if(DEBUG_DATA)System.err.println("wrIrrSet: punt "+set.getClass().getName());
     }
   }
 
-  private void writeLinearSet(SetType type, double[] firsts, double[] lasts,
+  private final void writeLinearSet(SetType type, double[] firsts, double[] lasts,
                               int[] lengths, Linear1DSet[] comps,
                               CoordinateSystem cs, Unit[] units,
                               ErrorEstimate[] errors, GriddedSet set,
@@ -2366,7 +2366,7 @@ if(DEBUG_DATA)System.err.println("wrLinSet: punt "+set.getClass().getName());
     }
   }
 
-  private int writeMathType(MathType mt)
+  private final int writeMathType(MathType mt)
     throws IOException, VisADException
   {
     int index;
@@ -2390,7 +2390,7 @@ if(DEBUG_DATA)System.err.println("wrLinSet: punt "+set.getClass().getName());
     return index;
   }
 
-  private int writeQuantity(Quantity qt)
+  private final int writeQuantity(Quantity qt)
     throws IOException, VisADException
   {
     int index = typeCache.getIndex(qt);
@@ -2445,7 +2445,7 @@ if(DEBUG_MATH)System.err.println("wrQuant: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private int writeRealTupleType(RealTupleType rtt)
+  private final int writeRealTupleType(RealTupleType rtt)
     throws IOException, VisADException
   {
     if (rtt instanceof DisplayTupleType) {
@@ -2528,7 +2528,7 @@ if(DEBUG_MATH)System.err.println("wrRlTuTy: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private int writeRealType(RealType rt)
+  private final int writeRealType(RealType rt)
     throws IOException, VisADException
   {
     if (rt instanceof DisplayRealType) {
@@ -2602,7 +2602,7 @@ if(DEBUG_MATH)System.err.println("wrRlTy: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private int writeRealVectorType(RealVectorType rvt)
+  private final int writeRealVectorType(RealVectorType rvt)
     throws IOException, VisADException
   {
     int index = typeCache.getIndex(rvt);
@@ -2616,7 +2616,7 @@ if(DEBUG_MATH)System.err.println("wrRlVeTy: serialized RealVectorType (" + rvt.g
     return index;
   }
 
-  private int writeScalarType(ScalarType st)
+  private final int writeScalarType(ScalarType st)
     throws IOException, VisADException
   {
     if (st instanceof RealType) {
@@ -2636,7 +2636,7 @@ if(DEBUG_MATH)System.err.println("wrScTy: serialized ScalarType (" + st.getClass
     return index;
   }
 
-  private void writeSerializedObject(byte objType, Object obj)
+  private final void writeSerializedObject(byte objType, Object obj)
     throws IOException
   {
     if (file == null) {
@@ -2666,13 +2666,13 @@ System.err.println("Wrote serialized " + obj.getClass().getName());
 if(obj instanceof FloatSet||obj instanceof LinearNDSet)Thread.dumpStack();
   }
 
-  private void writeSet(Set set)
+  private final void writeSet(Set set)
     throws IOException
   {
     writeSerializedObject(OBJ_DATA_SERIAL, set);
   }
 
-  private int writeSetType(SetType st, Set set)
+  private final int writeSetType(SetType st, Set set)
     throws IOException, VisADException
   {
     int index = typeCache.getIndex(st);
@@ -2731,7 +2731,7 @@ if(DEBUG_MATH)System.err.println("wrSetTy: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private void writeSimpleSet(SetType type, CoordinateSystem cs,
+  private final void writeSimpleSet(SetType type, CoordinateSystem cs,
                               Unit[] units, SimpleSet set,
                               Class canonicalClass, byte dataType)
     throws VisADException
@@ -2815,7 +2815,7 @@ if(DEBUG_DATA)System.err.println("wrSimSet: FLD_END (" + FLD_END + ")");
     }
   }
 
-  private void writeString(String str)
+  private final void writeString(String str)
     throws IOException
   {
     if (str == null) {
@@ -2828,7 +2828,7 @@ if(DEBUG_DATA)System.err.println("wrSimSet: FLD_END (" + FLD_END + ")");
     }
   }
 
-  private int writeTextType(TextType tt)
+  private final int writeTextType(TextType tt)
     throws IOException, VisADException
   {
     int index = typeCache.getIndex(tt);
@@ -2866,7 +2866,7 @@ if(DEBUG_MATH)System.err.println("wrTxTy: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private int writeTupleType(TupleType tt)
+  private final int writeTupleType(TupleType tt)
     throws IOException, VisADException
   {
     if (tt instanceof RealTupleType) {
@@ -2913,7 +2913,7 @@ if(DEBUG_MATH)System.err.println("wrTuTy: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private int writeUnit(Unit u)
+  private final int writeUnit(Unit u)
     throws VisADException
   {
     int index = unitCache.getIndex(u);
@@ -2967,7 +2967,7 @@ if(DEBUG_UNIT)System.err.println("wrU: FLD_END (" + FLD_END + ")");
     return index;
   }
 
-  private int[] writeUnits(Unit[] units)
+  private final int[] writeUnits(Unit[] units)
     throws VisADException
   {
     // make sure there's something to write
