@@ -1,10 +1,14 @@
 """
 A collection of support methods for connecting VisAD to Jython.  The
-emphasis is on display-side methods and classes.
+emphasis is on display-side methods and classes.  All display-dependent
+functions (methods) are available as either static functions 
+(where one of the parameter is the 'display') or as an instance
+function (for a previously-created 'display').  See the '_vdisp' class.
 
 """
 
-try: # try/except for pydoc
+try:  #try/except done to remove these lines from documentation only
+
   from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
           Gridded2DSet, Gridded3DSet, DisplayImpl, RealType, RealTuple, \
           VisADLineArray, VisADQuadArray, VisADTriangleArray, \
@@ -19,39 +23,391 @@ try: # try/except for pydoc
   from java.lang import Double
 
   # define private fields for certains types and scalar mappings
-  __py_text_type = RealType.getRealType("py_text_type")
-  __py_shape_type = RealType.getRealType("py_shape_type")
   __py_shapes = None 
-  __pcMatrix = None
 except:
   pass
 
-# try to get 3D
+# Super class for displays - this contains all the
+# useful instance methods for the displays.  (Note
+# the 'static' methods usually use these.)  This
+# class should _only_ be instantiated indirectly using
+# the makeDisplay(), makeDisplay2D(), or makeDisplay3D()
+# methods!!
+class _vdisp:
+  instance = 0 # make sure we use unique names for each instance
+
+  def __init__(self):
+      instance =+ 1
+      self.text_type = RealType.getRealType("py_text_type_"+str(instance))
+      self.shape_type = RealType.getRealType("py_shape_type_"+str(instance))
+      self.pcMatrix = None
+      self.text_map = ScalarMap(self.text_type, Display.Text)
+      self.addMap(self.text_map)
+      self.shape_map = ScalarMap(self.shape_type, Display.Shape)
+      self.addMap(self.shape_map)
+
+
+  def addMaps(self, maps):
+    """
+    Add list/tuple <maps> mappings to the <display>.  These determine what
+    scalars will appear along what axes. See makeMaps, below.
+    """
+
+    for map in maps:
+      self.addMap(map)
+
+
+  def addShape(self, type, scale=.1, color=None, index=None, autoScale=1):
+    """
+    Add a shape for this display.  
+    Parameters: <type> of shape ('cross','triangle','square',
+    'solid_square','solid_triangle', or a VisADGeometryArray.  <scale> = 
+    relative size for the shape.  <color> = color name (e.g., "green") 
+    <index> = the index of the shape to replace with this one.  If
+    autoScale is true, the shape will be scaled.
+
+    Returns an index to this shape. (For use with moveShape.)
+
+    """
+    return (self.shapes.addShape(type, scale, color, index, autoScale))
+
+
+  def moveShape(self, index, coord):
+    """
+    Move the shape pointed to by <inx>, to the <coordinates> which
+    is a list of values in the same order as returned by
+    getDisplayMaps.
+    """
+    self.shapes.moveShape(index, coord)
+
+
+  def drawString(self, string, point, color=None, center=0, font="futural",
+                   start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],size=None ):
+
+    """
+    Draw a string of characters on this display.  <string> is the
+    string of characters.  <point> is the starting location for the
+    string drawing, expressed as a list/tuple of 2 or 3 values (x,y,z).
+    <color> is the color (e.g., "red" or java.awt.Color; default =
+    white).  <center> if true will center the string.  <font> defiles
+    the HersheyFont name to use.  <start> defines the relative location
+    of the starting point (x,y,z; default = 0,0,0).  <base> defines the
+    direction that the base of the string should point (x,y,z; default=
+    along x-axis).  <up> defines the direction of the vertical stroke
+    for each character (default = along y-axis).  <size> is the relative
+    size.  Returns the index to the shape of the text (useful for
+    moving).
+    """
+
+    textfs = textShape(string, center, font, start, base, up, size)
+    i = self.shapes.addShape(textfs, color=color, index=None)
+    self.shapes.moveShape(i, point)
+    return i
+
+
+  def addTitle(self, string, center=1, font="timesrb", color=None, size=None, offset=.1, index=None):
+    """
+    Put a title onto this display.  The title is centered just 
+    above the VisAD 'box'.  Use 'offset' to move it up/down.
+    Set the text color with 'color', and if this is a replacement
+    for a previous title, then 'index' is the value previously
+    returned.
+
+    Return the shape index for later adjustments...
+    """
+    ts = textShape(string,center,font,start=[1.,2.+offset,0], size=size)
+    return self.shapes.addShape(ts, color=color, index=index, autoScale=0)
+
+
+  def saveDisplay(self,filename):
+    """
+    Save the display <disp> as a JPEG, given the filename to use.
+    """
+    from visad.util import Util
+    Util.captureDisplay(self, filename)
+
+
+  def addData(self, name, data, constantMaps=None, renderer=None, ref=None):
+    """
+    Add VisAD <data> to the display <disp>.  Use a reference <name>.
+    If there are ConstantMaps, also add them.  If there is a non-default
+    Renderer, use it as well.  Finally, you can supply a pre-defined
+    DataReference as <ref>.
+
+    Returns the DataReference
+    """
+
+    if ref is None: 
+      ref = DataReferenceImpl(name)
+    if renderer is None:
+      self.addReference(ref, constantMaps)
+    else:
+      self.addReferences(renderer, ref, constantMaps)
+
+    if data is not None: 
+      ref.setData(data)
+    else:
+      print "added Data is None"
+
+    return ref
+    
+  def setPointSize(self, size):
+    """
+    Set the size of points (1,2,3...) to use in this display.
+    """
+    self.getGraphicsModeControl().setPointSize(size)
+    
+  def setAspectRatio(self, ratio):
+    """
+    Set the aspect <ratio> for this display.  The ratio is
+    expressed as the fractional value for: width/height.
+    """
+    x = 1.
+    y = 1.
+    if ratio > 1:
+      x = 1.
+      y = 1. / ratio
+    else:
+      y = 1.
+      x = 1. * ratio
+    self.setAspects(x, y, 1.)
+
+
+  def setAspects(self, x, y, z):
+    """
+    Set the relative sizes of each axis in this display.
+    """
+    self.getProjectionControl().setAspectCartesian( (x, y, z))
+
+  def rotateBox(self, azimuth, declination):
+    """
+    Rotate the 3D display box to the azimuth angle (0-360) and
+    declination angle (all in degrees).  Code from Unidata.
+    """
+    zangle = 180 - azimuth
+    aziMat = self.make_matrix(0, 0, zangle, 1, 0, 0, 0)
+    pc = self.getProjectionControl()
+    comb = self.multiply_matrix(aziMat, pc.getMatrix())
+    decMat = self.make_matrix(declination, 0, 0, 1, 0, 0, 0)
+    comb2 = self.multiply_matrix(decMat,comb)
+    pc.setMatrix(comb2)
+
+  def maximizeBox(self, clip=1):
+    """
+    Set the size of the VisAD 'box' for the <display> to 95%.  If
+    <clip> is true, the display will be clipped at the border of the
+    box; otherwise, data displays may spill over.
+    """
+    self.setBoxSize(.95, clip)
+
+  def setBoxSize(self, percent=.70, clip=1, showBox=1, snap=0):
+    """
+    Set the size of the VisAD 'box' for the <display> as a percentage
+    (fraction). The default is .70 (70%).   If <clip> is true, the
+    display will be clipped at the border of the box; otherwise, data
+    displays may spill over.  If <showBox> is true, the wire-frame will
+    be shown; otherwise, it will be turned off.  If <snap> is true, the
+    box will be reoriented to an upright position.
+    """
+    pc=self.getProjectionControl()
+    if (not snap) or (self.pcMatrix == None): 
+      self.pcMatrix=pc.getMatrix()
+      
+    if len(self.pcMatrix) > 10:
+      self.pcMatrix[0]=percent
+      self.pcMatrix[5]=percent
+      self.pcMatrix[10]=percent
+    else:
+      self.pcMatrix[0]=percent/.64
+      self.pcMatrix[3]=-percent/.64
+      
+    pc.setMatrix(self.pcMatrix)
+    dr = self.getDisplayRenderer();
+
+    if __ok3d:
+      try:
+         if isinstance(dr, DisplayRendererJ3D):
+           dr.setClip(0, clip,  1.,  0.0,  0.0, -1.);
+           dr.setClip(1, clip, -1.,  0.0,  0.0, -1.);
+           dr.setClip(2, clip,  0.0,  1.,  0.0, -1.);
+           dr.setClip(3, clip,  0.0, -1.,  0.0, -1.);
+           #dr.setClip(4, 1,  0.0,  0.0,  1., -1.);
+           #dr.setClip(5, 1,  0.0,  0.0, -1., -1.);
+         elif isinstance(dr, DisplayRendererJ2D):
+           if clip: 
+             dr.setClip(-1., 1., -1., 1.)
+           else:
+             dr.unsetClip()
+      except:
+         pass
+
+    dr.setBoxOn(showBox)
+
+  def makeCube(self):
+    """
+    Turn the VisAD box for this display into a cube with no
+    perspective (no 'vanishing point'.  Useful for aligning
+    vertically-stacked data.  
+    """
+
+    self.getGraphicsModeControl().setProjectionPolicy(0)
+
+  def zoomBox(self, factor):
+    """
+    Zoom the display by 'factor' (1.0 does nothing...). Related:
+    setBoxSize().
+    """
+    mouseBehavior = self.getMouseBehavior()
+    pc = self.getProjectionControl()
+    currentMatrix = pc.getMatrix()
+    scaleMatrix = mouseBehavior.make_matrix( 0, 0, 0, factor, 0, 0, 0)
+    scaleMatrix = mouseBehavior.multiply_matrix( scaleMatrix, currentMatrix);
+    try:
+      pc.setMatrix(scaleMatrix)
+    except:
+      pass
+
+  def showAxesScales(self, on):
+    """
+    Turn on the axes labels for this display if 'on' is true
+    """
+    self.getGraphicsControl().setScaleEnable(on)
+
+  def enableRubberBandBoxZoomer(self,useKey):
+    """
+    Method to attach a Rubber Band Box zoomer to this
+    display.  Once attached, it is there foreever!  The useKey
+    parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
+    """
+    RubberBandZoomer(self,useKey)
+
+  def getDisplayScalarMaps(self, includeShapes=0):
+    """
+    Return a list of the scalarmaps mappings for this display. The list
+    elements are ordered: x,y,z,display.  If <includeShapes> is
+    true, then mappings for Shape will be appended.  The <display>
+    may be a Display, or the name of a 'plot()' window.
+    """
+    return (getDisplayScalarMaps(self,includeShapes))
+
+  def getDisplayMaps(self, includeShapes=0):
+    """
+    Return a list of the type mappings for the <display>. The list
+    elements are ordered: x,y,z,display.  If <includeShapes> is
+    true, then mappings for Shape will be appended.  The <display>
+    may be a Display, or the name of a 'plot()' window.
+    """
+    return (getDisplayMaps(self,includeShapes))
+
+
+  def drawLine(self, points, color=None, mathtype=None, style=None, width=None):
+    """
+    Draw lines on this display.  <points> is a 2 or 3 dimensional,
+    list/tuple of points to connect as a line, ordered as given in the
+    <mathtype>.  Default <mathtype> is whatever is mapped to the x,y
+    (and maybe z) axis.  <color> is the line color ("red" or
+    java.awt.Color; default=white), <style> is the line style (e.g.,
+    "dash"), and <width> is the line width in pixels.
+
+    Return a reference to this line.
+    """
+
+    constmap = makeColorMap(color)
+    constyle = makeLineStyleMap(style, width)
+    if constyle is not None:
+      constmap.append(constyle)
+      
+    # drawLine(display, domainType, points[])
+    maps = None
+    if mathtype is not None:
+      if len(points) == 2:
+        lineseg = Gridded2DSet(RealTupleType(mathtype), points, len(points[0]))
+      else:
+        lineseg = Gridded3DSet(RealTupleType(mathtype), points, len(points[0]))
+
+      linref = self.addData("linesegment", lineseg, constmap)
+      return linref
+
+    # drawLine(name|display, points[])
+    else:
+      x , y , z , disp = self.getDisplayMaps()
+
+      if len(points) == 2:
+        dom = RealTupleType(x,y)
+        lineseg = Gridded2DSet(dom, points, len(points[0]))
+      else:
+        dom = RealTupleType(x,y,z)
+        lineseg = Gridded3DSet(dom, points, len(points[0]))
+
+      linref = self.addData("linesegment", lineseg, constmap)
+      return linref 
+
+
+  def showDisplay(self, width=300, height=300, 
+                  title="VisAD Display", bottom=None, top=None,
+                  panel=None, right=None, left=None):
+    """
+    Quick display of this display in a separate frame. <width> and
+    <height> give the dimensions of the window; <title> is the
+    text string for the titlebar, <bottom> is a panel to put
+    below the <display>, <top> is a panel to put above the
+    <display>, and <panel> is the panel to put everything into (default
+    is to make a new one, and display it).  Additionally, you may put
+    panels on the <right> and <left>.  
+    """
+
+    return myFrame(self, width, height, title, bottom, top, right, left, panel)
+
+
+
+#-----------------------------------------------------------------
+# try to get 3D and make display class for 3D
 __ok3d = 1
 try:
   from visad.java3d import DisplayImplJ3D, TwoDDisplayRendererJ3D, DisplayRendererJ3D,MouseBehaviorJ3D
   from visad.bom import RubberBandBoxRendererJ3D
+
+  # helper class for 3D displays -- need to subclass DisplayImplJ3D
+  # and the _vdisp helper
+  class _vdisp3D(_vdisp, DisplayImplJ3D):
+      
+    def __init__(self,maps,renderer):
+      global __py_shapes
+      DisplayImplJ3D.__init__(self,"Jython3D",renderer)
+      _vdisp.__init__(self)
+      if maps is not None:  addMaps(self, maps)
+      self.shapes = Shapes(self, self.shape_map)
+      __py_shapes = self.shapes
+
 except:
   __ok3d = 0
 
+try: # this keeps the doc from being generated 
 
+  # helper class for 2D displays -- need to subclass DisplayImplJ2D
+  # and the _vdisp helper
+  class _vdisp2D(_vdisp, DisplayImplJ2D):
+
+    def __init__(self,maps):
+      global __py_shapes
+      DisplayImplJ2D.__init__(self,"Jython2D")
+      _vdisp.__init__(self)
+      if maps is not None:  addMaps(self, maps)
+      self.shapes = Shapes(self, self.shape_map)
+      __py_shapes = self.shapes
+except:
+  pass
+
+
+#----------------------------------------------------------------
+# static methods start here
 def makeDisplay3D(maps):
   """
   Create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps
   <maps>, if any.  The VisAD box is resized to about 95% of the window.
   This returns the Display.
   """
-  
-  global __py_shapes
-  disp = DisplayImplJ3D("Jython3D")
-  __py_text_map = ScalarMap(__py_text_type, Display.Text)
-  disp.addMap(__py_text_map)
-  __py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
-  disp.addMap(__py_shape_map)
-
-  if maps != None:  addMaps(disp, maps)
-  __py_shapes = Shapes(disp, __py_shape_map)
-  return disp
+  return _vdisp3D(maps,None)
 
 def makeDisplay2D(maps):
   """
@@ -59,18 +415,7 @@ def makeDisplay2D(maps):
   <maps>, if any.  The VisAD box is resized to about 95% of the window.
   This returns the Display.
   """
-  
-  global __py_shapes
-  disp = DisplayImplJ2D("Jython2D")
-  __py_text_map = ScalarMap(__py_text_type, Display.Text)
-  disp.addMap(__py_text_map)
-  __py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
-  disp.addMap(__py_shape_map)
-
-  print "Using 2D"
-  if maps != None:  addMaps(disp, maps)
-  __py_shapes = Shapes(disp, __py_shape_map)
-  return disp
+  return _vdisp2D(maps)
 
 # create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
@@ -81,7 +426,6 @@ def makeDisplay(maps):
   Use 3D if availble, otherwise use 2D.  This returns the Display.
   """
 
-  global __py_shapes
   is3d = 0
   if maps == None:
     is3d = 1
@@ -94,15 +438,9 @@ def makeDisplay(maps):
   else:
     if __ok3d:
       tdr = TwoDDisplayRendererJ3D() 
-      disp = DisplayImplJ3D("Jython3D",tdr)
-      addMaps(disp, maps)
-      __py_text_map = ScalarMap(__py_text_type, Display.Text)
-      disp.addMap(__py_text_map)
-      __py_shape_map = ScalarMap(__py_shape_type, Display.Shape)
-      disp.addMap(__py_shape_map)
-      __py_shapes = Shapes(disp, __py_shape_map)
+      disp = _vdisp3D(maps, tdr)
     else:
-      disp =  makeDisplay2D(maps)
+      disp =  _vdisp2D(maps)
   
   return disp
 
@@ -111,8 +449,7 @@ def saveDisplay(disp, filename):
   """
   Save the display <disp> as a JPEG, given the filename to use.
   """
-  from visad.util import Util
-  Util.captureDisplay(disp, filename)
+  disp.saveDisplay(filename)
 
 
 def addData(name, data, disp, constantMaps=None, renderer=None, ref=None):
@@ -124,28 +461,15 @@ def addData(name, data, disp, constantMaps=None, renderer=None, ref=None):
 
   Returns the DataReference
   """
+  return disp.addData(name, data, constantMaps, renderer, ref)
 
-  if ref is None: 
-    ref = DataReferenceImpl(name)
-  if renderer is None:
-    disp.addReference(ref, constantMaps)
-  else:
-    disp.addReferences(renderer, ref, constantMaps)
-
-  if data is not None: 
-    ref.setData(data)
-  else:
-    print "added Data is None"
-
-  return ref
-  
 
 def setPointSize(display, size):
   """
   Set the size of points (1,2,3...) to use in the <display>.
   """
-  display.getGraphicsModeControl().setPointSize(size)
-  
+  display.setPointSize(size)
+
   
 # define the aspects of width and height, as a ratio: width/height
 def setAspectRatio(display, ratio):
@@ -153,35 +477,21 @@ def setAspectRatio(display, ratio):
   Set the aspect <ratio> for the <display>.  The ratio is
   expressed as the fractional value for: width/height.
   """
-  x = 1.
-  y = 1.
-  if ratio > 1:
-    x = 1.
-    y = 1. / ratio
-  else:
-    y = 1.
-    x = 1. * ratio
-  setAspects(display, x, y, 1.)
+  display.setAspectRatio(ratio)
 
 
 def setAspects(display, x, y, z):
   """
   Set the relative sizes of each axis in the <display>.
   """
-  display.getProjectionControl().setAspectCartesian( (x, y, z))
+  display.setAspects(x, y, z)
 
 def rotateBox(display, azimuth, declination):
   """
   Rotate the 3D display box to the azimuth angle (0-360) and
   declination angle (all in degrees).  Code from Unidata.
   """
-  zangle = 180 - azimuth
-  aziMat = display.make_matrix(0, 0, zangle, 1, 0, 0, 0)
-  pc = display.getProjectionControl()
-  comb = display.multiply_matrix(aziMat, pc.getMatrix())
-  decMat = display.make_matrix(declination, 0, 0, 1, 0, 0, 0)
-  comb2 = display.multiply_matrix(decMat,comb)
-  pc.setMatrix(comb2)
+  display.rotateBox(azimuth, declination)
 
 def maximizeBox(display, clip=1):
   """
@@ -189,7 +499,7 @@ def maximizeBox(display, clip=1):
   <clip> is true, the display will be clipped at the border of the
   box; otherwise, data displays may spill over.
   """
-  setBoxSize(display, .95, clip)
+  display.maximizeBox(clip)
 
 def setBoxSize(display, percent=.70, clip=1, showBox=1, snap=0):
   """
@@ -200,41 +510,8 @@ def setBoxSize(display, percent=.70, clip=1, showBox=1, snap=0):
   be shown; otherwise, it will be turned off.  If <snap> is true, the
   box will be reoriented to an upright position.
   """
+  display.setBoxSize(percent, clip, showBox, snap)
 
-  global __pcMatrix
-  pc=display.getProjectionControl()
-  if (not snap) or (__pcMatrix == None): 
-    __pcMatrix=pc.getMatrix()
-    
-  if len(__pcMatrix) > 10:
-    __pcMatrix[0]=percent
-    __pcMatrix[5]=percent
-    __pcMatrix[10]=percent
-  else:
-    __pcMatrix[0]=percent/.64
-    __pcMatrix[3]=-percent/.64
-    
-  pc.setMatrix(__pcMatrix)
-  dr = display.getDisplayRenderer();
-
-  if __ok3d:
-    try:
-       if isinstance(dr, DisplayRendererJ3D):
-         dr.setClip(0, clip,  1.,  0.0,  0.0, -1.);
-         dr.setClip(1, clip, -1.,  0.0,  0.0, -1.);
-         dr.setClip(2, clip,  0.0,  1.,  0.0, -1.);
-         dr.setClip(3, clip,  0.0, -1.,  0.0, -1.);
-         #dr.setClip(4, 1,  0.0,  0.0,  1., -1.);
-         #dr.setClip(5, 1,  0.0,  0.0, -1., -1.);
-       elif isinstance(dr, DisplayRendererJ2D):
-         if clip: 
-           dr.setClip(-1., 1., -1., 1.)
-         else:
-           dr.unsetClip()
-    except:
-       pass
-
-  dr.setBoxOn(showBox)
 
 def makeCube(display):
   """
@@ -242,23 +519,14 @@ def makeCube(display):
   perspective (no 'vanishing point'.  Useful for aligning
   vertically-stacked data.  
   """
-
-  display.getGraphicsModeControl().setProjectionPolicy(0)
+  display.makeCube()
 
 def zoomBox(display, factor):
   """
   Zoom the display by 'factor' (1.0 does nothing...). Related:
   setBoxSize().
   """
-  mouseBehavior = display.getMouseBehavior()
-  pc = display.getProjectionControl()
-  currentMatrix = pc.getMatrix()
-  scaleMatrix = mouseBehavior.make_matrix( 0, 0, 0, factor, 0, 0, 0)
-  scaleMatrix = mouseBehavior.multiply_matrix( scaleMatrix, currentMatrix);
-  try:
-    pc.setMatrix(scaleMatrix)
-  except:
-    pass
+  display.zoomBox(factor)
 
 def enableRubberBandBoxZoomer(display,useKey):
   """
@@ -266,11 +534,11 @@ def enableRubberBandBoxZoomer(display,useKey):
   display.  Once attached, it is there foreever!  The useKey
   parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
   """
-  RubberBandZoomer(display,useKey)
+  display.enableRubberBandBoxZoomer(useKey)
 
 def getDisplayScalarMaps(display, includeShapes=0):
   """
-  Return a list of the scalarmaps mappings for the <display>. The list
+  Return a list of the scalarmaps mappings for this display. The list
   elements are ordered: x,y,z,display.  If <includeShapes> is
   true, then mappings for Shape will be appended.  The <display>
   may be a Display, or the name of a 'plot()' window.
@@ -351,7 +619,57 @@ def getDisplayMaps(display, includeShapes=0):
   else:
     return [x,y,z,disp]
 
+def drawLine(display, points, color=None, mathtype=None, style=None, width=None):
+  """
+  Deprecated.
 
+  Draw lines on the <display>.  <points> is a 2 or 3 dimensional,
+  list/tuple of points to connect as a line, ordered as given in the
+  <mathtype>.  Default <mathtype> is whatever is mapped to the x,y
+  (and maybe z) axis.  <color> is the line color ("red" or
+  java.awt.Color; default=white), <style> is the line style (e.g.,
+  "dash"), and <width> is the line width in pixels.
+
+  Return a reference to this line.
+  """
+  return display.drawLine(points, color, mathtype, style, width)
+
+# draw a string on the display
+def drawString(display, string, point, color=None, center=0, font="futural",
+                 start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],size=None ):
+
+  """
+  Deprecated.
+
+  Draw a string of characters on the <display>.  <string> is the
+  string of characters.  <point> is the starting location for the
+  string drawing, expressed as a list/tuple of 2 or 3 values (x,y,z).
+  <color> is the color (e.g., "red" or java.awt.Color; default =
+  white).  <center> if true will center the string.  <font> defiles
+  the HersheyFont name to use.  <start> defines the relative location
+  of the starting point (x,y,z; default = 0,0,0).  <base> defines the
+  direction that the base of the string should point (x,y,z; default=
+  along x-axis).  <up> defines the direction of the vertical stroke
+  for each character (default = along y-axis).  <size> is the relative
+  size.  This returns the Shapes object.  Note that the drawString
+  method in the display returns the shape index for this, so is
+  the preferred method.
+  """
+
+  display.drawString(string, point, color, center,font, start, base, up, size)
+  return display.shapes
+
+def addMaps(display, maps):
+  """
+  Add list/tuple <maps> mappings to the <display>.  These determine what
+  scalars will appear along what axes. See makeMaps, below.
+  """
+  display.addMaps(maps)
+
+
+
+#-----------------------------------------------------------------
+# non-display type of methods to do useful things
 # make a 2D or 3D line, return a reference so it can be changed
 def makeLine(domainType, points):
   """
@@ -359,18 +677,15 @@ def makeLine(domainType, points):
   example, if <domaintType> defines a (Latitude,Longitude), then
   the <points> are in Latitude,Longitude.
   """
-
   return Gridded2DSet(RealTupleType(domainType), points, len(points[0]))
 
 
-# make ConstantMaps for line style and width
 def makeLineStyleMap(style, width):
   """
   Make a ConstantMap for the indicated line <style>, which
   may be: "dash", "dot", "dashdot", or "solid" (default). The
   <width> is the line width in pixels.  Used by drawLine.
   """
-
   constmap = None
   constyle = None
   if style is not None:
@@ -396,7 +711,6 @@ def makeLineStyleMap(style, width):
     
   return constmap
 
-# make ConstantMap list for color
 
 def makeColorMap(color):
   """
@@ -427,87 +741,7 @@ def makeColorMap(color):
 
   return constmap
 
-# draw a line directly into the display; also return reference
-# drawLine(display, domainType, points[], color=Color, mathtype=domainType)
-# drawLine(name|display, points[], color=Color)
-# "Color" is java.awt.Color
-def drawLine(display, points, color=None, mathtype=None, style=None, width=None):
-  """
-  Draw lines on the <display>.  <points> is a 2 or 3 dimensional,
-  list/tuple of points to connect as a line, ordered as given in the
-  <mathtype>.  Default <mathtype> is whatever is mapped to the x,y
-  (and maybe z) axis.  <color> is the line color ("red" or
-  java.awt.Color; default=white), <style> is the line style (e.g.,
-  "dash"), and <width> is the line width in pixels.
 
-  Return a reference to this line.
-  """
-
-  constmap = makeColorMap(color)
-  constyle = makeLineStyleMap(style, width)
-  if constyle is not None:
-    constmap.append(constyle)
-    
-  # drawLine(display, domainType, points[])
-  maps = None
-  if mathtype is not None:
-    if len(points) == 2:
-      lineseg = Gridded2DSet(RealTupleType(mathtype), points, len(points[0]))
-    else:
-      lineseg = Gridded3DSet(RealTupleType(mathtype), points, len(points[0]))
-
-    linref = addData("linesegment", lineseg, display, constmap)
-    return linref
-
-  # drawLine(name|display, points[])
-  else:
-    x , y , z , disp = getDisplayMaps(display)
-
-    if len(points) == 2:
-      dom = RealTupleType(x,y)
-      lineseg = Gridded2DSet(dom, points, len(points[0]))
-    else:
-      dom = RealTupleType(x,y,z)
-      lineseg = Gridded3DSet(dom, points, len(points[0]))
-
-    linref = addData("linesegment", lineseg, disp, constmap)
-    return linref 
-
-# draw a string on the display
-def drawString(display, string, point, color=None, center=0, font="futural",
-                 start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],size=None ):
-
-  """
-  Draw a string of characters on the <display>.  <string> is the
-  string of characters.  <point> is the starting location for the
-  string drawing, expressed as a list/tuple of 2 or 3 values (x,y,z).
-  <color> is the color (e.g., "red" or java.awt.Color; default =
-  white).  <center> if true will center the string.  <font> defiles
-  the HersheyFont name to use.  <start> defines the relative location
-  of the starting point (x,y,z; default = 0,0,0).  <base> defines the
-  direction that the base of the string should point (x,y,z; default=
-  along x-axis).  <up> defines the direction of the vertical stroke
-  for each character (default = along y-axis).  <size> is the relative
-  size.
-  """
-
-  textfs = textShape(string, center, font, start, base, up, size)
-  i = __py_shapes.addShape(textfs, color=color)
-  __py_shapes.moveShape(i, point)
-
-  return __py_shapes 
-  
-def addMaps(display, maps):
-  """
-  Add list/tuple <maps> mappings to the <display>.  These determine what
-  scalars will appear along what axes. See makeMaps, below.
-  """
-
-  for map in maps:
-    display.addMap(map)
-
-# define ScalarMap(s) given pairs of (Type, name)
-# where "name" is taken from the list, below.
 def makeMaps(*a):
   """
   Define a list of scalar mappings for each axis and any
@@ -563,6 +797,49 @@ def makeMaps(*a):
 
   return maps
 
+def textShape(string, center=0, font="futural",
+                 start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],
+                 size=None ):
+    """
+    Creates a Shape for the text string given.  For use with the Shape
+    class.  See comments on drawString, above.
+    """
+
+    from visad import PlotText
+    from visad.util import HersheyFont
+    if size != None:
+      start = [0., 0., size]
+      base = [size, 0., 0.]
+      up = [0., size, 0.]
+
+    return (PlotText.render_font(string, HersheyFont(font), 
+                                          start, base, up, center))
+
+
+# local shadow methods for addShape and moveShape
+def addShape(type, scale=.1, color=None, index=None, autoScale=1):
+  """
+  Deprecated.  (Please use the instance method from the 'display'
+  you intend to use this Shape within.)
+  
+  Simply a shadow method for addShape in case the user has not
+  made their own.  You cannot use this method with more than
+  one display (see Shapes class, or use the addShapes() method
+  for the 'display')
+  """
+  return (__py_shapes.addShape(type, scale, color, index, autoScale))
+
+
+def moveShape(index, coord):
+  """
+  Deprecated.  (Please use the instance method from the 'display'
+  you intend to use this Shape within.)
+
+  Simply a shadow method for moveShape in case the user has not
+  made their own.
+  """
+  __py_shapes.moveShape(index, coord)
+
 
 # quick display of a Display object in a separate JFrame
 # you can set the size and title, if you want...
@@ -583,6 +860,8 @@ def showDisplay(display, width=300, height=300,
   return myf
 
 
+#--------------------------------------------------------------------
+# other classes
 class myFrame:
   """
   Creates a frame out of the display, with possible optional panels
@@ -641,45 +920,6 @@ class myFrame:
       self.frame.show()
 
 
-def addTitle(string, center=1, font="timesrb", size=None, offset=.1):
-  ts = textShape(string,center,font,start=[1.,2.+offset,0], size=size)
-  addShape(ts, autoScale=0)
-
-def textShape(string, center=0, font="futural",
-                 start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],
-                 size=None ):
-    
-    """
-    Creates a Shape for the text string given.  For use with the Shape
-    class.  See comments on drawString, above.
-    """
-
-    from visad import PlotText
-    from visad.util import HersheyFont
-    if size != None:
-      start = [0., 0., size]
-      base = [size, 0., 0.]
-      up = [0., size, 0.]
-
-    return (PlotText.render_font(string, HersheyFont(font), 
-                                          start, base, up, center))
-
-# local shadow methods for addShape and moveShape
-def addShape(type, scale=.1, color=None, index=None, autoScale=1):
-  """
-  Simply a shadow method for addShape in case the user has not
-  made their own.
-  """
-  return (__py_shapes.addShape(type, scale, color, index, autoScale))
-
-
-def moveShape(index, coord):
-  """
-  Simply a shadow method for moveShape in case the user has not
-  made their own.
-  """
-  __py_shapes.moveShape(index, coord)
-
 
 class Shapes:
   """
@@ -689,7 +929,9 @@ class Shapes:
   def __init__(self, display, shapemap):
     """
     <display> is the display this is working with; <shapemap>
-    is the mapping parameter for shapes.
+    is the mapping parameter for shapes. Prior to creating
+    this instance, the <display> should have all its
+    ScalarMaps set up.
     """
 
     self.x, self.y, self.z, self.disp = getDisplayMaps(display)
@@ -777,9 +1019,7 @@ class Shapes:
                                     -scale, -scale,0,  -scale, scale, 0,
                                     -scale, scale, 0,  scale, scale, 0)
 
-      self.shape.vertexCount = len(self.shape.coordinates)/3
-
-
+    self.shape.vertexCount = len(self.shape.coordinates)/3
     shape_control = self.shapeMap.getControl()
 
     if index != None:
@@ -802,7 +1042,8 @@ class Shapes:
       shapeLoc = RealTuple(self.shape_coord, (0., 0., self.count))
 
     constmap = makeColorMap(color)
-    self.shapeRef.append(addData("shape", shapeLoc, self.disp, constmap))
+    ad=addData("shape",shapeLoc, self.disp, constmap)
+    self.shapeRef.append(ad)
 
     return (self.count)
 
@@ -900,7 +1141,6 @@ class RubberBandZoomer:
 
       def doAction(self):
 
-        print 'doAction called'
         # get the 'box' coordinates of the RB box
         set = self.ref.getData()
         samples = set.getSamples()
@@ -995,4 +1235,3 @@ class HandlePickEvent(DisplayListener):
         self.display.disableAction()
         self.handler(self.xx, self.yy)  # to get a new image
         self.display.enableAction()
-
