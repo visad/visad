@@ -61,10 +61,7 @@ DateTime
      * Unless the units of the Real specify otherwise, the Real's value
      * is assumed to be seconds since the Epoch (i.e. 1970-01-01 00:00:00Z).
      *
-     * @param   real            Real value in a temporal unit.  If the unit is
-     *                          not an Offset unit, then it is assumed that the
-     *                          temporal origin is the beginning of the Epoch
-     *                          (i.e. 1970-01-01 00:00:00Z).
+     * @param   real            Real value in a temporal unit.
      *
      * @throws  VisADException  unit conversion problem
      */
@@ -72,11 +69,7 @@ DateTime
             throws VisADException
     {
         super( RealType.Time,
-               real.isMissing()
-                   ? Double.NaN
-                   : real.getUnit() instanceof OffsetUnit
-                       ? real.getValue(CommonUnit.secondsSinceTheEpoch)
-                       : real.getValue(SI.second),
+	       real.getValue(CommonUnit.secondsSinceTheEpoch),
                CommonUnit.secondsSinceTheEpoch);
 
         // set up in terms of java date

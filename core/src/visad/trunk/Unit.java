@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.16 2000-04-24 22:50:06 steve Exp $
+ * $Id: Unit.java,v 1.17 2000-04-25 20:14:37 steve Exp $
  */
 
 package visad;
@@ -364,9 +364,6 @@ public abstract class Unit
 	    throw new UnitException(
 		"Unit.shift(): Unknown unit subclass: " + this);
 	}
-	if (this.isConvertible(SI.second))
-	    unit = TimeScaleUnit.instance((OffsetUnit)unit);
-
 	return unit;
     }
 

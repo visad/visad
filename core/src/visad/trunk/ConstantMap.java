@@ -83,13 +83,60 @@ public class ConstantMap extends ScalarMap {
 
   public boolean equals(Object o)
   {
+    boolean	equals;
     if (!(o instanceof ConstantMap)) {
-      return false;
+      equals = false;
     }
+    else {
+      ConstantMap cm = (ConstantMap )o;
+      equals = this == cm || (this.compareTo(cm) == 0);
+    }
+    return equals;
+  }
 
-    ConstantMap cm = (ConstantMap )o;
-    return (Util.isApproximatelyEqual(Constant, cm.Constant) &&
-            getDisplayScalar().equals(cm.getDisplayScalar()));
+  /**
+   * Compares this instance to another object.
+   * @param obj		The other object.
+   * @return            A value that is negative, zero, or positive depending on
+   *                    whether this instance is considered less than, equal
+   *                    to, or greater than the other object, respectively.
+   */
+  public int compareTo(Object obj)
+  {
+    return
+      obj instanceof ConstantMap
+	? compareTo((ConstantMap)obj)
+	: compareTo((ScalarMap)obj);
+  }
+
+  /**
+   * Compares this instance to another instance.
+   * @param that	The other instance.
+   * @return            A value that is negative, zero, or positive depending on
+   *                    whether this instance is considered less than, equal
+   *                    to, or greater than the other instance, respectively.
+   */
+  protected int compareTo(ConstantMap that)
+  {
+    int	comp = getDisplayScalar().compareTo(that.getDisplayScalar());
+    if (comp == 0) {
+      comp =
+	Util.isApproximatelyEqual(Constant, that.Constant)
+	  ? 0
+	  : ((Constant - that.Constant) < 0 ? -1 : 1);
+    }
+    return comp;
+  }
+
+  /**
+   * Compares this instance to a ScalarMap.
+   * @param that	The ScalarMap.
+   * @return            -1 always.  ConstantMap-s are considered less than
+   *			true ScalarMap-s.
+   */
+  protected int compareTo(ScalarMap that)
+  {
+    return -1;
   }
 
   public Object clone()

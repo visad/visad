@@ -7,12 +7,19 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.9 2000-04-24 22:50:08 steve Exp $
+ * $Id: OffsetUnit.java,v 1.10 2000-04-25 20:14:36 steve Exp $
  */
 
 package visad;
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 
 /**
@@ -21,6 +28,8 @@ import java.io.Serializable;
  *
  * This is part of Steve Emerson's Unit package that has been
  * incorporated into VisAD.
+ *
+ * Instances are immutable.
  */
 public final class OffsetUnit
     extends	Unit
@@ -36,6 +45,47 @@ public final class OffsetUnit
      * the kelvin unit is associated scaled unit).
      */
     final double	offset;
+
+    /**
+     * The date formatter.
+     * @serial
+     */
+    private static SimpleDateFormat	dateFormat;
+
+    /**
+     * The arbitrary time origin.
+     * @serial
+     */
+    private static double		offsetUnitOrigin;
+
+    /**
+     * The millisecond unit.
+     */
+    private static Unit			millisecond;
+
+    static
+    {
+	try
+	{
+	    dateFormat =
+		(SimpleDateFormat)DateFormat.getDateInstance(
+		    DateFormat.SHORT, Locale.US);
+	    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+	    dateFormat.applyPattern("yyyy-MM-dd HH:mm:ss.SSS 'UTC'");
+	    Calendar	calendar =
+		new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+	    calendar.clear();
+	    calendar.set(2001, 0, 1, 0, 0, 0);	// data.netcdf.units.UnitParser
+	    offsetUnitOrigin = calendar.getTime().getTime();
+	    millisecond = SI.second.scale(0.001).clone("ms");
+	}
+	catch (Exception e)
+	{
+	    System.err.println(
+		"OffsetUnit.<clinit>: Couldn't initialize class: " + e);
+	    System.exit(1);
+	}
+    }
 
 
     /**
@@ -176,6 +226,14 @@ public final class OffsetUnit
     }
 
     /**
+     * Indicates if this instance is a unit of time.
+     */
+    protected boolean isTime()
+    {
+	return SI.second.isConvertible(this);
+    }
+
+    /**
      * Clones this unit, changing the identifier.
      * @param identifier	The name or abbreviation for the cloned unit.
      *				May be <code>null</code> or empty.
@@ -213,11 +271,32 @@ public final class OffsetUnit
      */
     public String getDefinition()
     {
+	String	definition;
 	String	scaledString = scaledUnit.toString();
 
 	if (scaledString.indexOf(' ') != -1)
 	    scaledString = "(" + scaledString + ")";
-	return scaledString + " @ " + offset;
+	if (!isTime())
+	{
+	    definition = scaledString + " @ " + offset;
+	}
+	else
+	{
+	    try
+	    {
+		definition =
+		    scaledString + " since " +
+		    dateFormat.format(
+			new Date((long)(
+			    millisecond.toThis(
+				offset, scaledUnit) + offsetUnitOrigin)));
+	    }
+	    catch (UnitException e)
+	    {
+		definition = e.toString();
+	    }		// can't happen
+	}
+	return definition;
     }
 
     /**
@@ -347,7 +426,7 @@ public final class OffsetUnit
     public Unit
     getAbsoluteUnit()
     {
-      return scaledUnit;
+      return scaledUnit.getAbsoluteUnit();
     }
 
     /**
@@ -375,7 +454,7 @@ public final class OffsetUnit
     public static void main(String[] args)
 	throws UnitException
     {
-	BaseUnit	degK = BaseUnit.addBaseUnit("Temperature", "kelvin");
+	BaseUnit	degK = SI.kelvin;
 	Unit		degC = new OffsetUnit(273.15, degK);
 	ScaledUnit	degR = new ScaledUnit(1/1.8, degK);
 	Unit		degF = new OffsetUnit(459.67, degR);
@@ -405,6 +484,11 @@ public final class OffsetUnit
 	System.out.println("degC.multiply(degF)=" + degC.multiply(degF));
 	System.out.println("degF.divide(degC)=" + degF.divide(degC));
 	System.out.println("degC.divide(degF)=" + degC.divide(degF));
+
+	System.out.println("new OffsetUnit(0,SI.second).toString()=" +
+	    new OffsetUnit(0,SI.second).toString());
+	System.out.println("new OffsetUnit(-1.8e9,SI.second).toString()=" +
+	    new OffsetUnit(-1.8e9,SI.second).toString());
     }
 
   public boolean equals(Unit unit) {
