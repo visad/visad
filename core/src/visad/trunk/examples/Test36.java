@@ -53,9 +53,11 @@ public class Test36
     RealType radius = new RealType("radius", null, null);
     RealType x = new RealType("x", null, null);
     RealType y = new RealType("y", null, null);
+/*********** DEAD CODE ***********
     RealTupleType cartesian = new RealTupleType(x, y);
     PolarCoordinateSystem polar_coord_sys = new PolarCoordinateSystem(cartesian);
     RealTupleType polar = new RealTupleType(lon, radius, polar_coord_sys, null);
+ *********** DEAD CODE ***********/
     RealType[] types = {RealType.Latitude, RealType.Longitude};
     RealTupleType earth_location = new RealTupleType(types);
     RealType vis_radiance = new RealType("vis_radiance", null, null);
