@@ -65,12 +65,13 @@ public class FrontDrawer extends Object {
   private DefaultRendererJ3D front_renderer;
   private DataReferenceImpl curve_ref;
   private FrontManipulationRendererJ3D front_manipulation_renderer;
-  private CurveMonitor curve_monitor;
 
   private ReleaseCell release_cell;
   private DataReferenceImpl release_ref;
 
   private ProjectionControl pcontrol = null;
+  private ProjectionControlListener pcl = null;
+  private float zoom = 1.0f;
 
   private DisplayImplJ3D display;
   private ScalarMap lat_map = null;
@@ -658,7 +659,7 @@ public class FrontDrawer extends Object {
     if (profile_length < 5) profile_length = 5;
 
     pcontrol = display.getProjectionControl();
-    ProjectionControlListener pcl = new ProjectionControlListener();
+    pcl = new ProjectionControlListener();
     pcontrol.addControlListener(pcl);
 
     // find spatial maps for Latitude and Longitude
@@ -701,6 +702,8 @@ public class FrontDrawer extends Object {
     release_ref = new DataReferenceImpl("release");
     release_cell = new ReleaseCell();
     release_cell.addReference(release_ref);
+
+    setScale();
   }
 
   public static void initColormaps(DisplayImplJ3D display)
@@ -739,43 +742,69 @@ public class FrontDrawer extends Object {
 
   class ReleaseCell extends CellImpl {
 
+    private Gridded2DSet last_curve_set = null;
+
     public ReleaseCell() {
     }
 
     public void doAction() throws VisADException, RemoteException {
       synchronized (data_lock) {
         Data data = curve_ref.getData();
+        Gridded2DSet curve_set = null;
         if (data == null || !(data instanceof UnionSet)) {
           if (debug) System.out.println("data null or not UnionSet");
           curve_ref.setData(init_curve);
-          return;
+          curve_set = last_curve_set;
         }
-        SampledSet[] sets = ((UnionSet) data).getSets();
-        if (!(sets[0] instanceof Gridded2DSet)) {
-          if (debug) System.out.println("data not Gridded2DSet");
+        else {
+          SampledSet[] sets = ((UnionSet) data).getSets();
+          if (sets == null || sets.length == 0 ||
+              !(sets[0] instanceof Gridded2DSet)) {
+            if (debug) System.out.println("data not Gridded2DSet");
+            curve_ref.setData(init_curve);
+            curve_set = last_curve_set;
+          }
+          else if (sets[0].getManifoldDimension() != 1) {
+            if (debug) System.out.println("ManifoldDimension != 1");
+            curve_ref.setData(init_curve);
+            curve_set = last_curve_set;
+          }
+          else {
+            curve_set = (Gridded2DSet) sets[0];
+          }
+        }
+        if (curve_set == null) {
+          if (debug) System.out.println("curve_set is null");
           curve_ref.setData(init_curve);
           return;
         }
-        Gridded2DSet curve_set = (Gridded2DSet) sets[0];
-        if (curve_set.getManifoldDimension() != 1) {
-          if (debug) System.out.println("ManifoldDimension != 1");
-          curve_ref.setData(init_curve);
-          return;
-        }
+
         float[][] curve_samples = null;
         try {
           curve_samples = curve_set.getSamples(false);
+          if (curve_samples == null || curve_samples[0].length < 2) {
+            curve_ref.setData(init_curve);
+            throw new VisADException("bad curve_samples");
+          }
         }
         catch (VisADException e) {
-          if (debug) System.out.println("release " + e);
+          // if (debug) System.out.println("release " + e);
           curve_ref.setData(init_curve);
-          return;
+          curve_set = last_curve_set;
+          try {
+            if (curve_set != null) curve_samples = curve_set.getSamples(false);
+            if (curve_samples == null || curve_samples[0].length < 2) {
+              curve_ref.setData(init_curve);
+              throw new VisADException("bad curve_samples");
+            }
+          }
+          catch (VisADException ee) {
+            if (debug) System.out.println("release " + ee);
+            return;
+          }
         }
-        if (curve_samples == null || curve_samples[0].length < 2) {
-          curve_ref.setData(init_curve);
-          return;
-        }
-    
+        last_curve_set = curve_set;
+
         boolean flip = false;
         double[] lat_range = lat_map.getRange();
         double[] lon_range = lon_map.getRange();
@@ -795,7 +824,7 @@ public class FrontDrawer extends Object {
         // if (debug) System.out.println("curve length = " + curve[0].length);
     
         // resample curve uniformly along length
-        float increment = segment_length / profile_length;
+        float increment = segment_length / (profile_length * zoom);
         float[][] old_curve = resample_curve(curve, increment);
   
         int fw = filter_window;
@@ -852,17 +881,11 @@ public class FrontDrawer extends Object {
 
   /** called by the application to end manipulation;
       returns the final front */
-  public FieldImpl endManipulation()
+  public void endManipulation()
          throws VisADException, RemoteException {
     synchronized (data_lock) {
-
       display.removeReference(curve_ref);
-      // display.removeReference(front_ref);
-
-      // (front_index ->
-      //     ((Latitude, Longitude) -> (front_red, front_green, front_blue)))
     }
-    return front;
   }
 
   private static final float CLIP_DELTA = 0.001f;
@@ -881,7 +904,7 @@ public class FrontDrawer extends Object {
     float delta = curve_length / (len - 1);
     // curve[findex] where
     // float findex = ibase + mul * repeat_shapes[shape][0][j]
-    float mul = profile_length / segment_length;
+    float mul = profile_length * zoom / segment_length;
     // curve_perp[][findex] * ratio * repeat_shapes[shape][1][j]
     float ratio = delta * mul;
 
@@ -1026,7 +1049,7 @@ public class FrontDrawer extends Object {
     int n = samples[0].length;
     float[][] ss = new float[2][n];
     for (int i=0; i<n; i++) {
-      float findex = ibase + mul * samples[0][i];
+      float findex = ibase + mul * samples[0][i] / zoom;
       int il = (int) findex;
       int ih = il + 1;
 
@@ -1051,10 +1074,14 @@ public class FrontDrawer extends Object {
       // if (a > 1.0f) a = 1.0f;
 
       float b = 1.0f - a;
-      float xl = curve[0][il] + ratio * samples[1][i] * curve_perp[0][il];
-      float yl = curve[1][il] + ratio * samples[1][i] * curve_perp[1][il];
-      float xh = curve[0][ih] + ratio * samples[1][i] * curve_perp[0][ih];
-      float yh = curve[1][ih] + ratio * samples[1][i] * curve_perp[1][ih];
+      float xl =
+        curve[0][il] + ratio * samples[1][i] * curve_perp[0][il] / zoom;
+      float yl =
+        curve[1][il] + ratio * samples[1][i] * curve_perp[1][il] / zoom;
+      float xh =
+        curve[0][ih] + ratio * samples[1][i] * curve_perp[0][ih] / zoom;
+      float yh =
+        curve[1][ih] + ratio * samples[1][i] * curve_perp[1][ih] / zoom;
       ss[0][i] = b * xl + a * xh;
       ss[1][i] = b * yl + a * yh;
     }
@@ -1138,11 +1165,15 @@ public class FrontDrawer extends Object {
   private boolean pfirst = true;
 
   class ProjectionControlListener implements ControlListener {
+/*
     private double base_scale = 1.0;
     private float last_cscale = 1.0f;
+*/
 
     public void controlChanged(ControlEvent e)
            throws VisADException, RemoteException {
+      setScale();
+/*
       double[] matrix = pcontrol.getMatrix();
       double[] rot = new double[3];
       double[] scale = new double[1];
@@ -1162,27 +1193,29 @@ public class FrontDrawer extends Object {
           // shape_control1.setScale(cscale);
         }
       }
+*/
     }
   }
 
-  class CurveMonitor extends CellImpl {
-    DataReferenceImpl ref;
-  
-    public CurveMonitor(DataReferenceImpl r) {
-      ref = r;
-    }
-  
-    private final static float EPS = 0.01f;
+  private float last_zoom = 1.0f;
 
-    public void doAction() throws VisADException, RemoteException {
-      synchronized (data_lock) {
-        Gridded2DSet curve = (Gridded2DSet) ref.getData();
+  private void setScale()
+          throws VisADException, RemoteException {
+    double[] matrix = pcontrol.getMatrix();
+    double[] rot = new double[3];
+    double[] scale = new double[1];
+    double[] trans = new double[3];
+    MouseBehaviorJ3D.unmake_matrix(rot, scale, trans, matrix);
 
-        int mouseModifiers =
-          front_manipulation_renderer.getLastMouseModifiers();
-        int mctrl = mouseModifiers & InputEvent.CTRL_MASK;
+    zoom = (float) scale[0];
+    float ratio = zoom / last_zoom;
+// System.out.println("setScale " + zoom + " " + last_zoom + " " + ratio);
 
-      } // end synchronized (data_lock)
+    if (ratio < 0.95f || 1.05f < ratio) {
+      last_zoom = zoom;
+      release_ref.setData(null);
+// System.out.println("setScale call setData " + zoom + " " + last_zoom +
+//                    " " + ratio);
     }
   }
 
@@ -1251,7 +1284,7 @@ public class FrontDrawer extends Object {
     button_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     button_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-    FrontActionListener fal = new FrontActionListener(fd, curve_ref);
+    FrontActionListener fal = new FrontActionListener(fd);
     JButton end = new JButton("end manip");
     end.addActionListener(fal);
     end.setActionCommand("end");
@@ -1266,20 +1299,18 @@ public class FrontDrawer extends Object {
 
 class FrontActionListener implements ActionListener {
   FrontDrawer fd;
-  DataReferenceImpl track_ref;
   private static boolean debug = true;
 
-  FrontActionListener(FrontDrawer f, DataReferenceImpl tr) {
+  FrontActionListener(FrontDrawer f) {
     fd = f;
-    track_ref = tr;
   }
 
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     if (cmd.equals("end")) {
       try {
-        FieldImpl front = fd.endManipulation();
-        if (debug) System.out.println("end " + front.getType());
+        fd.endManipulation();
+        // if (debug) System.out.println("end " + front.getType());
       }
       catch (VisADException ex) {
       }
