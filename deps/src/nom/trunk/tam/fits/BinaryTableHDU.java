@@ -446,6 +446,22 @@ public class BinaryTableHDU
     return getTrimmedString("TTYPE" + (index + 1));
   }
 
+  /** Get the FITS type of a column in the table.
+    * @return The FITS type.
+    * @exception FitsException if an invalid index was requested.
+    */
+  public String getColumnFITSType(int index)
+	throws FitsException
+  {
+    int flds = myHeader.getIntValue("TFIELDS", 0);
+    if (index < 0 || index >= flds) {
+      throw new FitsException("Bad column index " + index + " (only " + flds +
+			      " columns)");
+    }
+
+    return getTrimmedString("TFORM" + (index + 1));
+  }
+
   /** Print out some information about this HDU.
     */
   public void info() {
