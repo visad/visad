@@ -73,6 +73,7 @@ public abstract class ActionImpl extends Object
   }
 
   public void stop() {
+    Thread oldThread = actionThread;
     actionThread = null;
     if (LinkVector == null) return;
     synchronized (LinkVector) {
@@ -89,6 +90,7 @@ public abstract class ActionImpl extends Object
       }
       LinkVector.removeAllElements();
     }
+    oldThread.interrupt();
   }
 
   synchronized long getLinkId() {
@@ -200,7 +202,7 @@ public abstract class ActionImpl extends Object
           v.printStackTrace();
           throw new VisADError("Action.run: " + v.toString());
         }
-      } // end if (enabled) {
+      } // end if (enabled)
     } // end synchronized (lockEnabled)
   }
 
