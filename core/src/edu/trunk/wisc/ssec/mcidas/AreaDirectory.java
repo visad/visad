@@ -49,7 +49,7 @@ public class AreaDirectory
   private double centerLatitudeResolution;
   private double centerLongitudeResolution;
   private Vector[] calInfo = null;
-  private String calType;
+  private String calType, srcType;
   private String memo;
   private String[] sensors = {"derived data",
                 "test patterns",
@@ -244,6 +244,8 @@ public class AreaDirectory
     System.arraycopy(dir, 24, memoArray, 0, memoArray.length);
     memo = McIDASUtil.intBitsToString(memoArray);
     calType = McIDASUtil.intBitsToString(dir[AreaFile.AD_CALTYPE]);
+    srcType = McIDASUtil.intBitsToString(dir[AreaFile.AD_SRCTYPE]);
+    
 
   }
 
@@ -386,11 +388,25 @@ public class AreaDirectory
   {
     return sensors[dir[AreaFile.AD_SENSORID]];
   }
+  
+  public int getSensorID() {
+    return dir[AreaFile.AD_SENSORID];
+  }
 
   /**
-   * Returns the sensor type
+   * Returns the source type
    *
-   * @return string representing the sensor type
+   * @return string representing the cal type
+   */
+  public String getSourceType()
+  {
+    return srcType;
+  }
+
+  /**
+   * Returns the calibration type
+   *
+   * @return string representing the cal type
    */
   public String getCalibrationType()
   {
