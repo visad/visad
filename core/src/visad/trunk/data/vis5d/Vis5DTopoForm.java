@@ -200,7 +200,7 @@ public class Vis5DTopoForm extends Form implements FormFileInformer {
     FlatField data = new FlatField(ftype, domain);
     float[][] samples = new float[1][rows*cols];
     for (int i = 0; i < rows*cols; i++) {
-      short s = din.readShort();
+      short s = (short) (din.readShort()/2);
       samples[0][i] = new Short(s).floatValue();
     } 
     data.setSamples(samples, false);
