@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  
 package visad;
  
+import java.util.*;
+
 /**
    VisADGeometryArray stands in for j3d.GeometryArray
    and is Serializable.<P>
@@ -38,6 +40,9 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
   public float[] normals;
   public byte[] colors;
   public float[] texCoords;
+  boolean any_longitude_rotate = false;
+  int longitude_axis = -1;
+  ScalarMap longitude_map = null;
 
   public VisADGeometryArray() {
     vertexCount = 0;
@@ -48,13 +53,159 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     texCoords = null;
   }
 
+  void rotateLongitudes(float[] lons, float base, int axis,
+                        ScalarMap map) {
+    // so rotate longitudes to base
+    any_longitude_rotate = false;
+    for (int i=0; i<vertexCount; i++) {
+      if (lons[i] == lons[i]) {
+        float x = (lons[i] - base) % 360.0f;
+        x += (x < 0.0f) ? (360.0f + base) : base;
+        if (x != lons[i]) {
+          lons[i] = x;
+          any_longitude_rotate = true;
+        }
+      }
+    }
+    if (any_longitude_rotate) {
+      float[] coords = map.scaleValues(lons);
+      for (int i=0; i<vertexCount; i++) {
+        coordinates[3 * i + axis] = coords[i];
+      }
+    }
+  }
+
+  float[] getLongitudes(DataRenderer renderer)
+          throws VisADException {
+    longitude_map = null;
+    longitude_axis = -1;
+    Vector mapVector = renderer.getDisplay().getMapVector();
+    Enumeration maps = mapVector.elements();
+    while(maps.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      DisplayRealType dreal = map.getDisplayScalar();
+      DisplayTupleType tuple = dreal.getTuple();
+      if (RealType.Longitude.equals(map.getScalar()) &&
+          Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+        // have found a map from Longitude to a Cartesian spatial axis
+        double[] map_range = map.getRange();
+        float map_min = (float) map_range[0];
+        float map_max = (float) map_range[1];
+        // get Longitude values
+        int axis = dreal.getTupleIndex();
+
+        // leave some information for getLongitudeRange
+        longitude_map = map;
+        longitude_axis = axis;
+
+        float[] lons = new float[vertexCount];
+        for (int i=0; i<vertexCount; i++) {
+          lons[i] = coordinates[3 * i + axis];
+        }
+        lons = map.inverseScaleValues(lons);
+        // get range of Longitude values
+        float lon_min = Float.MAX_VALUE;
+        float lon_max = Float.MIN_VALUE;
+        for (int i=0; i<vertexCount; i++) {
+          if (lons[i] == lons[i]) {
+            if (lons[i] < lon_min) lon_min = lons[i];
+            if (lons[i] > lon_max) lon_max = lons[i];
+          }
+        }
+        if (lon_min == Float.MAX_VALUE) return lons;
+        if (map_min == map_min && map_max == map_max) {
+          float map_delta = 0.1f * (map_max - map_min);
+          if ( ((map_min + map_delta) < lon_min &&
+                (map_max + map_delta) < lon_max) ||
+               (lon_min < (map_min - map_delta) &&
+                lon_max < (map_max - map_delta)) ) {
+            // actual longitudes are shifted significantly from map,
+            // so rotate longitudes to base at map_min
+            rotateLongitudes(lons, map_min, axis, map);
+          }
+          else if ((lon_min + 360.0f) < lon_max) {
+            rotateLongitudes(lons, lon_min, axis, map);
+          }
+        }
+        else if ((lon_min + 360.0f) < lon_max) {
+          rotateLongitudes(lons, lon_min, axis, map);
+        }
+        return lons;
+      }
+    }
+
+    int[] indices = renderer.getLatLonIndices();
+    if (indices[0] < 0 || indices[1] < 0) return null;
+    float[][] locs = new float[3][vertexCount];
+    int k = 0;
+    for (int i=0; i<vertexCount; i++) {
+      locs[0][i] = coordinates[k++];
+      locs[1][i] = coordinates[k++];
+      locs[2][i] = coordinates[k++];
+    }
+    float[][] latlons = renderer.earthToSpatial(locs, null);
+    float[] lons = latlons[1];
+    // get range of Longitude values
+    float lon_min = Float.MAX_VALUE;
+    float lon_max = Float.MIN_VALUE;
+    for (int i=0; i<vertexCount; i++) {
+      if (lons[i] == lons[i]) {
+        if (lons[i] < lon_min) lon_min = lons[i];
+        if (lons[i] > lon_max) lon_max = lons[i];
+      }
+    }
+    if (lon_min == Float.MAX_VALUE) return lons;
+    return lons;
+  }
+
+  public float[] getLongitudeRange(float[] lons, int[] axis,
+                                   float[] coords) {
+    float[] lon_range = {Float.NaN, Float.NaN};
+    axis[0] = -1;
+    coords[0] = Float.NaN;
+    coords[1] = Float.NaN;
+    float lon_min = Float.MAX_VALUE;
+    float lon_max = Float.MIN_VALUE;
+    for (int i=0; i<vertexCount; i++) {
+      if (lons[i] == lons[i]) {
+        if (lons[i] < lon_min) lon_min = lons[i];
+        if (lons[i] > lon_max) lon_max = lons[i];
+      }
+    }
+    if (lon_min <= lon_max) {
+      float delta = 1.0f; // allow a little slop in Longitudes
+      float x = (lon_min + delta) % 180.0f;
+      if (x < 0.0f) x += 180.0f;
+      float y = (lon_min + delta) - x;
+      if ((lon_max - delta) < y + 360.0f) {
+        lon_range[0] = y;
+        lon_range[1] = y + 360.0f;
+      }
+      else {
+        lon_range[0] = lon_min;
+        lon_range[1] = lon_min + 360.0f;
+      }
+      axis[0] = longitude_axis;
+      coords = longitude_map.scaleValues(lon_range);
+    }
+    return lon_range;
+  }
+
   /** default case simply return points */
-  public VisADGeometryArray adjustLongitude(int axis) {
-    VisADPointArray array = new VisADPointArray();
-    array.vertexCount = vertexCount;
-    array.coordinates = coordinates;
-    array.colors = colors;
-    return array;
+  public VisADGeometryArray adjustLongitude(DataRenderer renderer)
+         throws VisADException {
+    float[] lons = getLongitudes(renderer);
+    if (any_longitude_rotate) {
+      // some coordinates changed, so return VisADPointArray
+      VisADPointArray array = new VisADPointArray();
+      array.vertexCount = vertexCount;
+      array.coordinates = coordinates;
+      array.colors = colors;
+      return array;
+    }
+    else {
+      return this;
+    }
   }
 
   public VisADGeometryArray removeMissing() {

@@ -37,5 +37,12 @@ public class VisADPointArray extends VisADGeometryArray {
     return array;
   }
 
+  public VisADGeometryArray adjustLongitude(DataRenderer renderer)
+         throws VisADException {
+    float[] lons = getLongitudes(renderer);
+    // note that rotateLongitudes makes any changes to this.coordinates
+    return this;
+  }
+
 }
 
