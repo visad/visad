@@ -1417,6 +1417,21 @@ public abstract class JPythonMethods {
   }
 
 
+  /**
+   * get a VisAD Unit from the name given
+   * 
+   * @param   name            name of unit desired (degC, etc)
+   * 
+   * @return the Unit corresponding to the name
+   *
+   */
+  public static Unit makeUnit(String name) 
+    throws visad.data.netcdf.units.NoSuchUnitException, 
+    visad.data.netcdf.units.ParseException {
+    return (visad.data.netcdf.units.Parser.parse(name));
+  }
+
+
 /* NOT DONE
   public static Set linear(MathType type, double first, double last, int length)
          throws VisADException, RemoteException {
