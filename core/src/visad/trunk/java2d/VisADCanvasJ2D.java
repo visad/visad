@@ -247,7 +247,8 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
         }
         try {
           if (animate_control != null) animate_control.init();
-          render(g2, root);
+          render(g2, root, 0);
+          render(g2, root, 1);
           // draw Animation string in upper right corner of screen
           String animation_string = displayRenderer.getAnimationString();
           if (animation_string != null) {
@@ -286,19 +287,19 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
     } // end if (image != null)
   }
 
-  private void render(Graphics2D g2, VisADSceneGraphObject scene)
+  private void render(Graphics2D g2, VisADSceneGraphObject scene, int pass)
           throws VisADException {
     if (scene instanceof VisADSwitch) {
       VisADSceneGraphObject child =
         ((VisADSwitch) scene).getSelectedChild();
-      render(g2, child);
+      render(g2, child, pass);
     }
     else if (scene instanceof VisADGroup) {
       Vector children = ((VisADGroup) scene).getChildren();
       for (int i=children.size()-1; i>=0; i--) {
         VisADSceneGraphObject child =
           (VisADSceneGraphObject) children.elementAt(i);
-        render(g2, child);
+        render(g2, child, pass);
       }
     }
     else { // scene instanceof VisADAppearance
@@ -308,6 +309,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
       BufferedImage image = (BufferedImage) appearance.image;
       AffineTransform tg = g2.getTransform();
       if (image != null) {
+        if (pass != 0) return; // non-lines on first pass
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
                             RenderingHints.VALUE_ANTIALIAS_OFF);
         if (!(array instanceof VisADQuadArray)) {
@@ -352,6 +354,14 @@ so:
         g2.setTransform(tg); // restore tg
       }
       else { // image == null
+        if (array instanceof VisADPointArray ||
+            array instanceof VisADLineArray ||
+            array instanceof VisADLineStripArray) {
+          if (pass != 1) return; // lines on second pass
+        }
+        else {
+          if (pass != 0) return; // non-lines on first pass
+        }
         int count = array.vertexCount;
         if (count == 0) return;
         float[] coordinates = array.coordinates;
@@ -605,8 +615,8 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
         else {
           throw new VisADError("VisADCanvasJ2D.render: bad array class");
         }
-      }
-    }
+      } // end if (image == null)
+    } // end if (scene instanceof VisADAppearance)
   }
 
   /** this assumes only VisADPointArray or VisADLineArray */
