@@ -165,8 +165,8 @@ visad\data\hdfeos\README.hdfeos \
 visad\data\hdfeos\hdfeosc\*.java \
 visad\data\hdfeos\hdfeosc\*.c \
 visad\data\hdfeos\hdfeosc\*.h \
-visad\data\hdfeos\hdfeosc\Makefile
-visad\data\ij\*.java \
+visad\data\hdfeos\hdfeosc\Makefile \
+visad\data\ij\*.java
 
 JAR_FILES5 = \
 visad\data\jai\*.java \
