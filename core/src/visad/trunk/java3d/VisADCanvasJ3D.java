@@ -86,16 +86,19 @@ public class VisADCanvasJ3D extends Canvas3D {
     String prop = System.getProperty("textureWidthMax");
     textureWidthMax = (prop == null) ? 0 : Integer.parseInt(prop);
 
-    if (prop == null) {
-      prop = System.getProperty("textureHeightMax");
-      textureHeightMax = (prop == null) ? 0 : Integer.parseInt(prop);
-    }
-
     // no user defined values, so query Java3D, or set to defaults
     if ((textureHeightMax == 0) && (textureWidthMax == 0)) {
-      java.util.Map propertiesMap = new Canvas3D(c).queryProperties();
-      Integer wProp = (Integer) propertiesMap.get("textureWidthMax");
-      Integer hProp = (Integer) propertiesMap.get("textureHeightMax");
+      Integer wProp = null;
+      Integer hProp = null;
+      Canvas3D cnvs = new Canvas3D(c);
+      try {
+        java.lang.reflect.Method method = cnvs.getClass().getMethod("queryProperties", null); 
+        java.util.Map propertiesMap = (java.util.Map) method.invoke(cnvs, null);
+        wProp = (Integer) propertiesMap.get("textureWidthMax");
+        hProp = (Integer) propertiesMap.get("textureHeightMax");
+      }
+      catch (Exception exc) {
+      }
                                                                                                                                   
       if ((wProp == null) || (hProp == null)) {
         textureWidthMax  = textureWidthMaxDefault;
