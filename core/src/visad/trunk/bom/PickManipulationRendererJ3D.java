@@ -106,6 +106,12 @@ public class PickManipulationRendererJ3D extends DirectManipulationRendererJ3D {
         return;
       }
     }
+    else if (type instanceof SetType) {
+      if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_FIELD) {
+        whyNotDirect = notSimpleField;
+        return;
+      }
+    }
     else {
       if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_TUPLE) {
         whyNotDirect = notSimpleTuple;
@@ -362,6 +368,19 @@ System.out.println("checkClose: distance = " + distance);
       }
     };
     cellfield2d.addReference(field2dref);
+
+    DataReferenceImpl setref = new DataReferenceImpl("set");
+    setref.setData(set2d);
+    ConstantMap[] smaps = {new ConstantMap(-1.0, Display.ZAxis)};
+    display.addReferences(new PickManipulationRendererJ3D(), setref, smaps);
+    CellImpl cellset = new CellImpl() {
+      private boolean first = true;
+      public void doAction() throws VisADException, RemoteException {
+        if (first) first = false;
+        else System.out.println("set picked");
+      }
+    };
+    cellset.addReference(setref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test PickManipulationRendererJ3D");
