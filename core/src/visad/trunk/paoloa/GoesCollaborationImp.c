@@ -4,8 +4,8 @@
 #include <jni.h>
 #include "visad_paoloa_GoesCollaboration.h"
 
-#ifdef NO_DASH
-#define FORTNAME(foo) foo
+#ifdef DOUBLE_DASH
+#define FORTNAME(foo) foo##__
 #else
 #define FORTNAME(foo) foo##_
 #endif

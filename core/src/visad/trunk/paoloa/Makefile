@@ -245,7 +245,7 @@ irix: required_macros
 linux: required_macros
 	@make \
 		JAVAARCH=linux \
-		CFLAGS="$(CFLAGS) -DNO_DASH" \
+		CFLAGS="$(CFLAGS) -DDOUBLE_DASH" \
 		SHCFLAGS="-fPIC -DPIC" \
 		SHLD="cc" \
 		SHLDFLAGS="-shared" \
