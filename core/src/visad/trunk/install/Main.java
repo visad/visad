@@ -110,7 +110,8 @@ public class Main
     return 0;
   }
 
-  private void clusterPush(ProgressMonitor mon, String source, String target)
+  private final void clusterPush(ProgressMonitor mon, String source,
+                                 String target)
   {
     Process p;
     try {
@@ -514,7 +515,7 @@ public class Main
   /**
    * Install VisAD.
    */
-  private void install()
+  private final void install()
   {
     ProgressMonitor mon = new ProgressMonitor();
     mon.setPhase("Starting install");
@@ -626,7 +627,7 @@ public class Main
     }
   }
 
-  private void queryUserClusterPush()
+  private final void queryUserClusterPush()
   {
     int result = JOptionPane.NO_OPTION;
     if (cPushStr != null) {
@@ -645,7 +646,7 @@ public class Main
     }
   }
 
-  private void queryUserDownloadJar()
+  private final void queryUserDownloadJar()
   {
     int result = JOptionPane.YES_OPTION;
     if (installerJar != null) {
@@ -666,7 +667,7 @@ public class Main
    *          0 if a bad directory was selected,
    *          1 if a valid choice was made.
    */
-  private int queryUserInstallJar()
+  private final int queryUserInstallJar()
   {
     jarInstallDir = chooseDirectory(chooser, jarList,
                                     "Select the directory where the VisAD jar file should be installed");
@@ -691,7 +692,7 @@ public class Main
    *          0 if a bad directory was selected,
    *          1 if a valid choice was made.
    */
-  private int queryUserInstallJava()
+  private final int queryUserInstallJava()
   {
     javaInstallDir = jvmToUse = null;
     if (useSuppliedJava) {
@@ -719,7 +720,7 @@ public class Main
     return 1;
   }
 
-  private void queryUserUseSuppliedJava()
+  private final void queryUserUseSuppliedJava()
   {
     if (installerJavaDir == null) {
       useSuppliedJava = false;

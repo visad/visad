@@ -86,7 +86,7 @@ public class ChooserList
     } 
   }
 
-  private void updateSelectedFile(File file)
+  private final void updateSelectedFile(File file)
   {
     if (file != null) {
 
