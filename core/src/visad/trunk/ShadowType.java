@@ -547,8 +547,9 @@ public abstract class ShadowType extends Object
     for (int i=0; i<indices.length; i++) {
       RealType real = display.getScalar(i);
       if (indices[i] > 1) {
-        throw new BadMappingException("ShadowType.testIndices: RealType " +
-                                      real.getName() + " occurs more than once");
+        throw new BadMappingException("RealType " + real.getName() +
+                                      " occurs more than once: " +
+                                      "ShadowType.testIndices");
       }
     }
 
@@ -558,8 +559,10 @@ public abstract class ShadowType extends Object
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       if (display_indices[i] > 0) isTerminal = true;
       if (display_indices[i] > 1 && real.isSingle()) {
-        throw new BadMappingException("ShadowType.testIndices: Single " +
-                 "DisplayRealType " + real.getName() + " occurs more than once");
+        throw new BadMappingException("Single " + "DisplayRealType " +
+                                      real.getName() +
+                                      " occurs more than once: " +
+                                      "ShadowType.testIndices");
       }
     }
 
@@ -577,9 +580,9 @@ public abstract class ShadowType extends Object
                rtuple.getCoordinateSystem().getReference().equals(
                Display.DisplaySpatialCartesianTuple))) {
             if (spatialTuple != null && !spatialTuple.equals(rtuple)) {
-              throw new BadMappingException("ShadowType.testIndices: " +
-                "DisplayRealType-s occur from multiple spatial " +
-                "DisplayTupleType-s");
+              throw new BadMappingException("DisplayRealType-s occur from " +
+                                            "multiple spatial DisplayTupleType-s: " +
+                                            "ShadowType.testIndices");
             }
             spatialTuple = rtuple;
             spatialDimension++;
@@ -690,8 +693,9 @@ System.out.println("testIndices: LevelOfDifficulty = " + LevelOfDifficulty +
                                ShadowRealType[] reals) throws VisADException {
     int n = values.length;
     if (n != reals.length) {
-      throw new DisplayException("ShadowType.mapValues: lengths don't match " +
-                                 n + " != " + reals.length);
+      throw new DisplayException("lengths don't match " +
+                                 n + " != " + reals.length + ": " +
+                                 "ShadowType.mapValues");
     }
     for (int i=0; i<n; i++) {
       Enumeration maps = reals[i].getSelectedMapVector().elements();
@@ -728,8 +732,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                                ShadowRealType[] reals) throws VisADException {
     int n = values.length;
     if (n != reals.length) {
-      throw new DisplayException("ShadowType.mapValues: " +
-                                 "lengths don't match");
+      throw new DisplayException("lengths don't match: ShadowType.mapValues");
     }
     for (int i=0; i<n; i++) {
       Enumeration maps = reals[i].getSelectedMapVector().elements();
@@ -764,8 +767,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
                 float[][] color_values) throws VisADException {
     if (spatial_values == null) {
-      throw new DisplayException("ShadowType.makePointGeometry: bad " +
-                                 "spatial_values");
+      throw new DisplayException("bad spatial_values: " +
+                                 "ShadowType.makePointGeometry: bad");
     }
     VisADPointArray array = new VisADPointArray();
  
@@ -816,8 +819,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
               tuple.getCoordinateSystem().getReference().equals(
                   Display.DisplaySpatialCartesianTuple)))) {
           if (spatial_tuple != null && !spatial_tuple.equals(tuple)) {
-            throw new DisplayException("ShadowType.assembleSpatial: " +
-                                       "multiple spatial display tuples");
+            throw new DisplayException("multiple spatial display tuples: " +
+                                       "ShadowType.assembleSpatial");
           }
           spatial_tuple = tuple;
           int tuple_index = real.getTupleIndex();
@@ -1516,8 +1519,8 @@ System.out.println(" ");
             // do nothing
           }
           else {
-            throw new DisplayException("ShadowType.assembleColor: " +
-                                  "unrecognized color CoordinateSsystem");
+            throw new DisplayException("unrecognized color CoordinateSsystem: " +
+                                       "ShadowType.assembleColor");
           }
           if (len == 1) {
             for (int index = 0; index<3; index++) {
@@ -1687,7 +1690,7 @@ System.out.println(" ");
       int t_len = tuple_values[index].length;
       if (len > t_len) {
         if (t_len != 1) {
-          throw new DisplayException("ShadowType.equalizeAndDefault: bad length");
+          throw new DisplayException("bad length: ShadowType.equalizeAndDefault");
         }
         float[] t = new float[len];
         float v = tuple_values[index][0];
@@ -1740,8 +1743,7 @@ System.out.println(" ");
         rgba_values[index] = values;
       }
       else {
-        throw new DisplayException("ShadowType.singleComposite: " +
-                                   "bad lengths");
+        throw new DisplayException("bad length: ShadowType.singleComposite");
       }
     }
   }

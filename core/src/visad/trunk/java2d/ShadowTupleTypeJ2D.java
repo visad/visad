@@ -93,8 +93,8 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
     if (LevelOfDifficulty == NOTHING_MAPPED) return false;
 
     if (!(data instanceof Tuple)) {
-      throw new DisplayException("ShadowTupleTypeJ2D.doTransform: " +
-                                 "data must be Tuple");
+      throw new DisplayException("data must be Tuple: " +
+                                 "ShadowTupleTypeJ2D.doTransform");
     }
 
     // get some precomputed values useful for transform
@@ -249,9 +249,8 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
         // transform AccumulationVector
         group.addChild(data_group);
 */
-        throw new UnimplementedException("ShadowTupleTypeJ2D.postProcess: " +
-                                         "terminal LEGAL");
-      }
+              throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                         "ShadowTupleTypeJ2D.postProcess");}
       else {
         // nothing to do
       }

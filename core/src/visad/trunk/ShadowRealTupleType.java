@@ -99,8 +99,9 @@ public class ShadowRealTupleType extends ShadowTupleType {
             }
           }
           else {
-            throw new BadMappingException("ShadowRealTupleType: mapped to multiple" +
-                     " spatial DisplayTupleType-s");
+            throw new BadMappingException("mapped to multiple" +
+                                          " spatial DisplayTupleType-s: " +
+                                          "ShadowRealTupleType");
           }
         }
         else { // DisplaySpatialTuple == null
@@ -129,9 +130,10 @@ public class ShadowRealTupleType extends ShadowTupleType {
       if (tuple != null) {
         if (DisplaySpatialTuple != null) {
           if (!DisplaySpatialTuple.equals(tuple)) {
-            throw new BadMappingException("ShadowRealTupleType: mapped to " +
-            "multiple spatial DisplayTupleType-s (through " +
-            " CoordinateSystem.Reference)");
+            throw new BadMappingException("mapped to multiple" +
+                                          " spatial DisplayTupleType-s " +
+                                          "(through CoordinateSystem.Reference): " +
+                                          "ShadowRealTupleType");
           }
           else {
             allSpatial = false;

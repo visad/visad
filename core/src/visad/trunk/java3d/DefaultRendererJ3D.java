@@ -76,7 +76,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
     if (data == null) {
       branch = null;
       addException(
-        new DisplayException("DefaultRendererJ3D.doTransform: Data is null"));
+        new DisplayException("Data is null: DefaultRendererJ3D.doTransform"));
     }
     else {
       start_time = System.currentTimeMillis();

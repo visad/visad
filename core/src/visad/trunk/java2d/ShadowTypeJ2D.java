@@ -371,8 +371,8 @@ public abstract class ShadowTypeJ2D extends ShadowType {
 /*
       return true;
 */
-      throw new UnimplementedException("ShadowTypeJ2D.terminalTupleOrReal: " +
-                                       "terminal LEGAL");
+      throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                       "ShadowTypeJ2D.terminalTupleOrReal");
     }
   }
 

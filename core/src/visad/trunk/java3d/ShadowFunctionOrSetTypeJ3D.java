@@ -144,8 +144,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       ((ShadowFunctionOrSetType) adaptedShadowType).getAnyShape();
 
     if (anyShape) {
-      throw new UnimplementedException("ShadowFunctionOrSetTypeJ3D.doTransform" +
-                                       "Shape not yet supported");
+      throw new UnimplementedException("Shape not yet supported: " +
+                                       "ShadowFunctionOrSetTypeJ3D.doTransform");
     }
 
     // get some precomputed values useful for transform
@@ -202,8 +202,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       // currently only implemented for Field
       // must eventually extend to Function
       if (!(data instanceof Field)) {
-        throw new UnimplementedException("ShadowFunctionOrSetType.doTransform: " +
-                                         "data must be Field");
+        throw new UnimplementedException("data must be Field: " +
+                                         "ShadowFunctionOrSetTypeJ3D.doTransform: ");
       }
       domain_set = ((Field) data).getDomainSet();
       dataUnits = ((Function) data).getDomainUnits();
@@ -215,8 +215,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       dataCoordinateSystem = ((Set) data).getCoordinateSystem();
     }
     else {
-      throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform: " +
-                          "must be ShadowFunctionType or ShadowSetType");
+      throw new DisplayException(
+          "must be ShadowFunctionType or ShadowSetType: " +
+          "ShadowFunctionOrSetTypeJ3D.doTransform");
     }
 
     float[][] domain_values = null;
@@ -252,8 +253,8 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
     int texture_height = 1;
     if (isTextureMap) {
       if (renderer instanceof DirectManipulationRendererJ3D) {
-        throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
-                                   " DirectManipulationRendererJ3D");
+        throw new DisplayException("DirectManipulationRendererJ3D texture: " +
+                                   "ShadowFunctionOrSetTypeJ3D.doTransform");
       }
       Linear1DSet X = null;
       Linear1DSet Y = null;
@@ -284,8 +285,8 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
 
       int[] tuple_index = new int[3];
       if (DomainComponents.length != 2) {
-        throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
-                                   " domain dimension != 2");
+        throw new DisplayException("texture domain dimension != 2:" +
+                                   "ShadowFunctionOrSetTypeJ3D.doTransform");
       }
       for (int i=0; i<DomainComponents.length; i++) {
         Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
@@ -296,14 +297,14 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
         DisplayTupleType tuple = real.getTuple();
         if (tuple == null ||
             !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-          throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
-                                     " isTextureMap with bad tuple");
+          throw new DisplayException("texture with bad tuple: " +
+                                     "ShadowFunctionOrSetTypeJ3D.doTransform");
         }
         // get spatial index
         tuple_index[i] = real.getTupleIndex();
         if (maps.hasMoreElements()) {
-          throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
-                                     " isTextureMap with multiple");
+          throw new DisplayException("texture with multiple spatial: " +
+                                     "ShadowFunctionOrSetTypeJ3D.doTransform");
         }
       } // end for (int i=0; i<DomainComponents.length; i++)
       // get spatial index not mapped from domain_set
@@ -787,11 +788,13 @@ END MISSING TEST */
           array = makeFlow(flow1_values, flowScale[0], spatial_values,
                            color_values, range_select);
           if (array != null) {
-            GeometryArray geometry = display.makeGeometry(array);
-            appearance = makeAppearance(mode, constant_alpha,
-                                        constant_color, geometry);
-            Shape3D shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
+            if (array.vertexCount > 0) {
+              GeometryArray geometry = display.makeGeometry(array);
+              appearance = makeAppearance(mode, constant_alpha,
+                                          constant_color, geometry);
+              Shape3D shape = new Shape3D(geometry, appearance);
+              group.addChild(shape);
+            }
             anyFlowCreated = true;
           }
 
@@ -799,11 +802,13 @@ END MISSING TEST */
           array = makeFlow(flow2_values, flowScale[1], spatial_values,
                            color_values, range_select);
           if (array != null) {
-            GeometryArray geometry = display.makeGeometry(array);
-            appearance = makeAppearance(mode, constant_alpha,
-                                        constant_color, geometry);
-            Shape3D shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
+            if (array.vertexCount > 0) {
+              GeometryArray geometry = display.makeGeometry(array);
+              appearance = makeAppearance(mode, constant_alpha,
+                                          constant_color, geometry);
+              Shape3D shape = new Shape3D(geometry, appearance);
+              group.addChild(shape);
+            }
             anyFlowCreated = true;
           }
         }
@@ -814,6 +819,7 @@ END MISSING TEST */
             DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
             if (real.equals(Display.IsoContour) &&
                 display_values[i] != null &&
+                display_values[i].length == domain_length &&
                 inherited_values[i] == 0) {
               // non-inherited IsoContour, so generate contours
               array = null;
@@ -910,12 +916,6 @@ END MISSING TEST */
                 color_values[2][i] = color.z;
               }
             }
-/* WLH 9 July 98
-            if (color_values == null) {
-              throw new DisplayException("ShadowFunctionOrSetTypeJ3D." +
-                               ".doTransform: no color or alpha values");
-            }
-*/
             if (range_select[0] != null && range_select[0].length > 1) {
               int len = range_select[0].length;
               float alpha =
@@ -1289,11 +1289,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             // System.out.println("makePointGeometry  for 0D");
           }
           else {
-            throw new DisplayException("ShadowFunctionOrSetType.doTransform: " +
-                                       "bad spatialManifoldDimension");
+            throw new DisplayException("bad spatialManifoldDimension: " +
+                                       "ShadowFunctionOrSetTypeJ3D.doTransform");
           }
   
-          if (array != null) {
+          if (array != null && array.vertexCount > 0) {
             // MEM
             GeometryArray geometry = display.makeGeometry(array);
             // System.out.println("array.makeGeometry");
@@ -1341,8 +1341,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         } // end for (int i=0; i<valueArrayLength; i++)
   
         if (control == null) {
-          throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform: " +
-                                     "bad SIMPLE_ANIMATE_FIELD");
+          throw new DisplayException("bad SIMPLE_ANIMATE_FIELD: " +
+                                     "ShadowFunctionOrSetTypeJ3D.doTransform");
         }
   
         for (int i=0; i<domain_length; i++) {
@@ -1390,7 +1390,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             // add null BranchGroup as child to maintain order
             BranchGroup branch = new BranchGroup(); // J3D
             branch.setCapability(BranchGroup.ALLOW_DETACH);
+/* WLH 18 Aug 98
+   empty BranchGroup or Shape3D may cause NullPointerException
+   from Shape3DRetained.setLive
             branch.addChild(new Shape3D());
+*/
+            ensureNotEmpty(branch);
             swit.addChild(branch);
             // System.out.println("addChild " + i + " of " + domain_length +
             //                    " MISSING");
@@ -1416,8 +1421,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 /*
         return true;
 */
-        throw new UnimplementedException("ShadowFunctionOrSetType.doTransform: " +
-                                         "terminal LEGAL");
+        throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                         "ShadowFunctionOrSetTypeJ3D.doTransform");
       }
     }
     else { // !isTerminal
@@ -1510,7 +1515,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             BranchGroup branch = new BranchGroup(); // J3D
             branch.setCapability(BranchGroup.ALLOW_DETACH);
             swit.addChild(branch);
+/* WLH 18 Aug 98
+   empty BranchGroup or Shape3D may cause NullPointerException
+   from Shape3DRetained.setLive
             branch.addChild(new Shape3D());
+*/
+            ensureNotEmpty(branch);
             // System.out.println("addChild " + i + " of " + domain_length +
             //                    " MISSING");
           }
@@ -1542,8 +1552,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         // transform AccumulationVector
         group.addChild(data_group);
 */
-        throw new UnimplementedException("ShadowFunctionOrSetType.postProcess: " +
-                                         "terminal LEGAL");
+        throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                         "ShadowFunctionOrSetTypeJ3D.postProcess");
       }
       else {
         // includes !isTerminal

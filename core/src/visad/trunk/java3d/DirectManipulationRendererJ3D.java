@@ -99,8 +99,8 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
  
     // check type and maps for valid direct manipulation
     if (!getIsDirectManipulation()) {
-      throw new BadDirectManipulationException(
-        "DirectManipulationRendererJ3D.doTransform: " + getWhyNotDirect());
+      throw new BadDirectManipulationException(getWhyNotDirect() +
+        ": DirectManipulationRendererJ3D.doTransform");
     }
  
     // initialize valueArray to missing
@@ -114,8 +114,8 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     if (data == null) {
       branch = null;
       addException(
-        new DisplayException("DirectManipulationRendererJ3D." +
-                             "doTransform: Data is null"));
+        new DisplayException("Data is null: DirectManipulationRendererJ3D." +
+                             "doTransform"));
     }
     else {
       // no preProcess or postProcess for direct manipulation */

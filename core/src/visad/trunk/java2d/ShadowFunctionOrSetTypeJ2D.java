@@ -136,8 +136,8 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
       ((ShadowFunctionOrSetType) adaptedShadowType).getAnyShape();
 
     if (anyShape) {
-      throw new UnimplementedException("ShadowFunctionOrSetTypeJ2D.doTransform" +
-                                       "Shape not yet supported");
+      throw new UnimplementedException("Shape not yet supported: " +
+                                       "ShadowFunctionOrSetTypeJ2D.doTransform");
     }
 
     // get some precomputed values useful for transform
@@ -191,8 +191,8 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
       // currently only implemented for Field
       // must eventually extend to Function
       if (!(data instanceof Field)) {
-        throw new UnimplementedException("ShadowFunctionOrSetType.doTransform: " +
-                                         "data must be Field");
+        throw new UnimplementedException("data must be Field: " +
+                                         "ShadowFunctionOrSetTypeJ2D.doTransform: ");
       }
       domain_set = ((Field) data).getDomainSet();
       dataUnits = ((Function) data).getDomainUnits();
@@ -204,8 +204,9 @@ public class ShadowFunctionOrSetTypeJ2D extends ShadowTypeJ2D {
       dataCoordinateSystem = ((Set) data).getCoordinateSystem();
     }
     else {
-      throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform: " +
-                          "must be ShadowFunctionType or ShadowSetType");
+      throw new DisplayException(
+          "must be ShadowFunctionType or ShadowSetType: " +
+          "ShadowFunctionOrSetTypeJ2D.doTransform");
     }
 
     float[][] domain_values = null;
@@ -241,8 +242,8 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
     int texture_height = 1;
     if (isTextureMap) {
       if (renderer instanceof DirectManipulationRendererJ2D) {
-        throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform" +
-                                   " DirectManipulationRendererJ2D");
+        throw new DisplayException("DirectManipulationRendererJ2D texture: " +
+                                   "ShadowFunctionOrSetTypeJ2D.doTransform");
       }
       Linear1DSet X = null;
       Linear1DSet Y = null;
@@ -279,8 +280,8 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
 
       int[] tuple_index = new int[3];
       if (DomainComponents.length != 2) {
-        throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform" +
-                                   " domain dimension != 2");
+        throw new DisplayException("texture domain dimension != 2:" +
+                                   "ShadowFunctionOrSetTypeJ2D.doTransform");
       }
       for (int i=0; i<DomainComponents.length; i++) {
         Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
@@ -291,14 +292,14 @@ System.out.println("isTextureMap = " + isTextureMap + " " +
         DisplayTupleType tuple = real.getTuple();
         if (tuple == null ||
             !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-          throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform" +
-                                     " isTextureMap with bad tuple");
+          throw new DisplayException("texture with bad tuple: " +
+                                     "ShadowFunctionOrSetTypeJ2D.doTransform");
         }
         // get spatial index
         tuple_index[i] = real.getTupleIndex();
         if (maps.hasMoreElements()) {
-          throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform" +
-                                     " isTextureMap with multiple");
+          throw new DisplayException("texture with multiple spatial: " +
+                                     "ShadowFunctionOrSetTypeJ2D.doTransform");
         }
       } // end for (int i=0; i<DomainComponents.length; i++)
       // get spatial index not mapped from domain_set
@@ -777,6 +778,7 @@ END MISSING TEST */
             // WLH 17 Aug 98
             if (real.equals(Display.IsoContour) &&
                 display_values[i] != null &&
+                display_values[i].length == domain_length &&
                 inherited_values[i] == 0) {
               // non-inherited IsoContour, so generate contours
               array = null;
@@ -859,12 +861,6 @@ END MISSING TEST */
                 color_values[2][i] = constant_color[2];
               }
             }
-/* WLH 9 July 98
-            if (color_values == null) {
-              throw new DisplayException("ShadowFunctionOrSetTypeJ2D." +
-                               ".doTransform: no color or alpha values");
-            }
-*/
             if (range_select[0] != null && range_select[0].length > 1) {
               int len = range_select[0].length;
 /*
@@ -1034,8 +1030,8 @@ END MISSING TEST */
             // System.out.println("makePointGeometry  for 0D");
           }
           else {
-            throw new DisplayException("ShadowFunctionOrSetType.doTransform: " +
-                                       "bad spatialManifoldDimension");
+            throw new DisplayException("bad spatialManifoldDimension: " +
+                                       "ShadowFunctionOrSetTypeJ2D.doTransform");
           }
   
           if (array != null) {
@@ -1074,8 +1070,8 @@ END MISSING TEST */
         } // end for (int i=0; i<valueArrayLength; i++)
   
         if (control == null) {
-          throw new DisplayException("ShadowFunctionOrSetTypeJ2D.doTransform: " +
-                                     "bad SIMPLE_ANIMATE_FIELD");
+          throw new DisplayException("bad SIMPLE_ANIMATE_FIELD: " +
+                                     "ShadowFunctionOrSetTypeJ2D.doTransform");
         }
 
         for (int i=0; i<domain_length; i++) {
@@ -1146,8 +1142,8 @@ END MISSING TEST */
 /*
         return true;
 */
-        throw new UnimplementedException("ShadowFunctionOrSetType.doTransform: " +
-                                         "terminal LEGAL");
+        throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                         "ShadowFunctionOrSetTypeJ2D.doTransform");
       }
     }
     else { // !isTerminal
@@ -1264,8 +1260,8 @@ END MISSING TEST */
         // transform AccumulationVector
         group.addChild(data_group);
 */
-        throw new UnimplementedException("ShadowFunctionOrSetType.postProcess: " +
-                                         "terminal LEGAL");
+        throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                         "ShadowFunctionOrSetTypeJ2D.postProcess");
       }
       else {
         // includes !isTerminal

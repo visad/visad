@@ -101,8 +101,8 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
     }
 
     if (!(data instanceof Tuple)) {
-      throw new DisplayException("ShadowTupleTypeJ3D.doTransform: " +
-                                 "data must be Tuple");
+      throw new DisplayException("data must be Tuple: " +
+                                 "ShadowTupleTypeJ3D.doTransform");
     }
 
     // get some precomputed values useful for transform
@@ -259,8 +259,8 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
         // transform AccumulationVector
         group.addChild(data_group);
 */
-        throw new UnimplementedException("ShadowTupleTypeJ3D.postProcess: " +
-                                         "terminal LEGAL");
+        throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                         "ShadowTupleTypeJ3D.postProcess");
       }
       else {
         // nothing to do

@@ -73,7 +73,7 @@ public class DefaultRendererJ2D extends RendererJ2D {
     if (data == null) {
       branch = null;
       addException(
-        new DisplayException("DefaultRendererJ2D.doTransform: Data is null"));
+        new DisplayException("Data is null: DefaultRendererJ2D.doTransform"));
     }
     else {
       start_time = System.currentTimeMillis();

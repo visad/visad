@@ -82,8 +82,8 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
     if (LevelOfDifficulty == NOTHING_MAPPED) return false;
 
     if (!(data instanceof Real)) {
-      throw new DisplayException("ShadowrealType.doTransform: " +
-                                 "data must be Real");
+      throw new DisplayException("data must be Real: " +
+                                 "ShadowrealTypeJ2D.doTransform");
     }
  
     // get some precomputed values useful for transform
@@ -153,8 +153,8 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
         // transform AccumulationVector
         group.addChild(data_group);
 */
-        throw new UnimplementedException("ShadowRealTypeJ2D.postProcess: " +
-                                         "terminal LEGAL");
+        throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                         "ShadowRealTypeJ2D.doTransform");
       }
       else {
         // nothing to do

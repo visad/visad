@@ -149,9 +149,9 @@ public class ShadowTupleType extends ShadowType {
     if (Flat) {
       // test legality of Animation and SelectValue
       if (checkAnimationOrValue(DisplayIndices) > 0) {
-        throw new BadMappingException("ShadowTupleType.checkIndices: " +
-                                      "Animation and SelectValue may not " +
-                                      "occur in range");
+        throw new BadMappingException("Animation and SelectValue may not " +
+                                      "occur in range: " +
+                                      "ShadowTupleType.checkIndices");
       }
 
       LevelOfDifficulty =

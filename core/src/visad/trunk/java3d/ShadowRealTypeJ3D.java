@@ -90,8 +90,8 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
     }
 
     if (!(data instanceof Real)) {
-      throw new DisplayException("ShadowrealType.doTransform: " +
-                                 "data must be Real");
+      throw new DisplayException("data must be Real: " +
+                                 "ShadowrealTypeJ3D.doTransform");
     }
  
     // get some precomputed values useful for transform
@@ -163,8 +163,8 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
         // transform AccumulationVector
         group.addChild(data_group);
 */
-        throw new UnimplementedException("ShadowRealTypeJ3D.postProcess: " +
-                                         "terminal LEGAL");
+        throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                         "ShadowRealTypeJ3D.doTransform");
       }
       else {
         // nothing to do

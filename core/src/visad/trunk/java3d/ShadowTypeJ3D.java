@@ -367,26 +367,30 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       array = makeFlow(flow1_values, flowScale[0], spatial_values,
                        color_values, range_select);
       if (array != null) {
-        geometry = display.makeGeometry(array);
-        appearance = makeAppearance(mode, null, constant_color, geometry);
-        shape = new Shape3D(geometry, appearance);
-        group.addChild(shape);
+        if (array.vertexCount > 0) {
+          geometry = display.makeGeometry(array);
+          appearance = makeAppearance(mode, null, constant_color, geometry);
+          shape = new Shape3D(geometry, appearance);
+          group.addChild(shape);
+        }
         anyFlowCreated = true;
       }
       // try Flow2
       array = makeFlow(flow2_values, flowScale[1], spatial_values,
                        color_values, range_select);
       if (array != null) {
-        geometry = display.makeGeometry(array);
-        appearance = makeAppearance(mode, null, constant_color, geometry);
-        shape = new Shape3D(geometry, appearance);
-        group.addChild(shape);
+        if (array.vertexCount > 0) {
+          geometry = display.makeGeometry(array);
+          appearance = makeAppearance(mode, null, constant_color, geometry);
+          shape = new Shape3D(geometry, appearance);
+          group.addChild(shape);
+        }
         anyFlowCreated = true;
       }
 
       if (!anyFlowCreated) {
         array = makePointGeometry(spatial_values, null);
-        if (array != null) {
+        if (array != null && array.vertexCount > 0) {
           geometry = display.makeGeometry(array);
           appearance = makeAppearance(mode, null, constant_color, geometry);
           shape = new Shape3D(geometry, appearance);
@@ -410,8 +414,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 /*
       return true;
 */
-      throw new UnimplementedException("ShadowTypeJ3D.terminalTupleOrReal: " +
-                                       "terminal LEGAL");
+      throw new UnimplementedException("terminal LEGAL unimplemented: " +
+                                       "ShadowTypeJ3D.terminalTupleOrReal");
     }
   }
 

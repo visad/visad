@@ -95,8 +95,8 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
  
     // check type and maps for valid direct manipulation
     if (!getIsDirectManipulation()) {
-      throw new BadDirectManipulationException(
-        "DirectManipulationRendererJ2D.doTransform: " + getWhyNotDirect());
+      throw new BadDirectManipulationException(getWhyNotDirect() +
+        ": DirectManipulationRendererJ2D.doTransform");
     }
  
     // initialize valueArray to missing
@@ -111,8 +111,8 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
       branch = null;
       extra_branch = null;
       addException(
-        new DisplayException("DirectManipulationRendererJ2D." +
-                             "doTransform: Data is null"));
+        new DisplayException("Data is null: DirectManipulationRendererJ2D." +
+                             "doTransform"));
     }
     else {
       // no preProcess or postProcess for direct manipulation */
