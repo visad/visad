@@ -191,7 +191,7 @@ set = Linear2DSet: Length = 393216
       text_control.setAutoSize(true);
     }
 
-    display1.getGraphicsModeControl().setScaleEnable(true);
+    // display1.getGraphicsModeControl().setScaleEnable(true);
 
     display1.addReference(ref1);
 
@@ -217,6 +217,9 @@ set = Linear2DSet: Length = 393216
     RealType intensity = RealType.getRealType("intensity");
     final FunctionType spectrum_type = new FunctionType(channel, intensity);
     final FunctionType spectra_type = new FunctionType(point, spectrum_type);
+    final FunctionType line_type = new FunctionType(point, intensity);
+    final FunctionType lines_type = new FunctionType(channel, line_type);
+
     final DataReferenceImpl ref2 = new DataReferenceImpl("ref2");
 
     DisplayImplJ3D display2 =
@@ -275,7 +278,18 @@ set = Linear2DSet: Length = 393216
           spectrum.setSamples(temp, false);
           spectra.setSample(i, spectrum);
         }
-        ref2.setData(spectra);
+        FieldImpl lines = new FieldImpl(lines_type, channel_set);
+        for (int j=0; j<NFILES; j++) {
+          FlatField linex = new FlatField(line_type, point_set);
+          float[][] temp = new float[1][nsamp];
+          for (int i=0; i<nsamp; i++) {
+            temp[0][i] = line_samples[j][i];
+          }
+          linex.setSamples(temp, false);
+          lines.setSample(j, linex);
+        }
+
+        ref2.setData(new Tuple(new Data[] {spectra, lines}));
       }
     };
     cell.addReference(line_ref);
