@@ -36,6 +36,8 @@ import javax.vecmath.*;
 import java.util.Vector;
 import java.util.Enumeration;
 
+import java.lang.reflect.*;
+
 /**
    ProjectionControlJ3D is the VisAD class for controlling the Projection
    from 3-D to 2-D.  It manipulates a TransformGroup node in the
@@ -99,6 +101,25 @@ public class ProjectionControlJ3D extends ProjectionControl {
          throws VisADException, RemoteException {
     super.setMatrix(m);
     Matrix = new Transform3D(matrix);
+
+    VisADCanvasJ3D canvas =
+      ((DisplayRendererJ3D) getDisplayRenderer()).getCanvas();
+    if (canvas.getOffscreen()) {
+      try {
+        Method waitMethod =
+          Canvas3D.class.getMethod("renderOffScreenBuffer",
+                                   new Class[] {});
+        waitMethod.invoke(canvas, new Object[] {});
+      }
+      catch (NoSuchMethodException e) {
+      }
+      catch (IllegalAccessException e) {
+      }
+      catch (InvocationTargetException e) {
+      }
+      // canvas.renderOffScreenBuffer();
+    }
+
     ((DisplayRendererJ3D) getDisplayRenderer()).setTransform3D(Matrix);
     if (!switches.isEmpty()) selectSwitches();
     // WLH 5 May 2000
